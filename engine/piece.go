@@ -43,6 +43,21 @@ const (
 	BlackKing
 )
 
+var Pieces = []Piece{
+	WhitePawn,
+	WhiteKnight,
+	WhiteBishop,
+	WhiteRook,
+	WhiteQueen,
+	WhiteKing,
+	BlackPawn,
+	BlackKnight,
+	BlackBishop,
+	BlackRook,
+	BlackQueen,
+	BlackKing,
+}
+
 type PieceType int8
 
 const (

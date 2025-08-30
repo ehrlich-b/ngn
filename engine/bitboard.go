@@ -446,3 +446,7 @@ func bitScanForward(bb uint64) uint8 {
 func bitScanReverse(bb uint64) uint8 {
 	return uint8(bits.LeadingZeros64(bb) ^ 63)
 }
+
+func PopCount(bb uint64) int {
+	return bits.OnesCount64(bb)
+}
