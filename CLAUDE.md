@@ -4,26 +4,45 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-### Build
+Use the provided Makefile for all development tasks. Run `make help` to see all available commands.
+
+### Essential Development Commands
+
+#### Build
 ```bash
-go build -o ngn
+make build          # Build the engine binary
+make build-release  # Build optimized release binary
 ```
 
-### Format code
+#### Testing
 ```bash
-gofmt -w .
+make test          # Run all tests with coverage
+make test-short    # Run tests without coverage (faster)
+make test-verbose  # Run tests with verbose output
+make coverage      # Generate and view coverage report
 ```
 
-### Tidy dependencies
+#### Code Quality
 ```bash
-go mod tidy
+make format        # Format all Go code
+make lint          # Run linting checks
+make lint-fix      # Run linter and fix issues automatically
+make check         # Run both lint and test
 ```
 
-### Run tests
+#### Development Workflow
 ```bash
-go test ./...
+make dev           # Full development cycle: format, test, build
+make clean         # Clean build artifacts
+make install-tools # Install required development tools
 ```
-Note: Currently no test files exist in the project.
+
+#### Running and Debugging
+```bash
+make run           # Build and run the engine
+make debug         # Build with debug symbols
+make bench         # Run benchmarks
+```
 
 ### Special Commands
 

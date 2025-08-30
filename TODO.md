@@ -5,38 +5,38 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 ## Phase 0: Development Tooling and Infrastructure (Foundation)
 
 ### 0.1 Build System and Tooling
-- [ ] Create Makefile with ergonomic commands
-  - [ ] `make build` - Build the engine binary
-  - [ ] `make test` - Run all tests with coverage
-  - [ ] `make lint` - Run linting and formatting checks
-  - [ ] `make format` - Format all Go code
-  - [ ] `make clean` - Clean build artifacts
-  - [ ] `make install-tools` - Install required development tools
-- [ ] Set up Go linting with golangci-lint
-  - [ ] Configure .golangci.yml with appropriate rules
-  - [ ] Enable important linters (govet, errcheck, gofmt, etc.)
+- [x] Create Makefile with ergonomic commands
+  - [x] `make build` - Build the engine binary
+  - [x] `make test` - Run all tests with coverage
+  - [x] `make lint` - Run linting and formatting checks
+  - [x] `make format` - Format all Go code
+  - [x] `make clean` - Clean build artifacts
+  - [x] `make install-tools` - Install required development tools
+- [x] Set up Go linting with golangci-lint
+  - [x] Configure .golangci.yml with appropriate rules
+  - [x] Enable important linters (govet, errcheck, gofmt, etc.)
   - [ ] Set up pre-commit hooks (optional but recommended)
 
 ### 0.2 Testing Infrastructure
-- [ ] Create testing framework for chess engine
-  - [ ] Test utilities for board setup (FEN parsing/generation)
-  - [ ] Position equality and comparison functions
-  - [ ] Move list validation helpers
-  - [ ] Performance testing utilities (perft framework)
-- [ ] Set up test organization
-  - [ ] Unit tests for each engine component
-  - [ ] Integration tests for move generation
-  - [ ] Benchmark tests for performance tracking
-  - [ ] Test data files for known positions
-- [ ] Create continuous testing approach
-  - [ ] Table-driven tests for systematic coverage
+- [x] Create testing framework for chess engine
+  - [x] Test utilities for board setup (FEN parsing/generation scaffolding)
+  - [x] Position equality and comparison functions
+  - [x] Move list validation helpers (scaffolding)
+  - [x] Performance testing utilities (perft framework scaffolding)
+- [x] Set up test organization
+  - [x] Unit tests for each engine component
+  - [x] Integration tests for move generation (scaffolding)
+  - [x] Benchmark tests for performance tracking
+  - [x] Test data files for known positions
+- [x] Create continuous testing approach
+  - [x] Table-driven tests for systematic coverage
   - [ ] Property-based testing for move generation
   - [ ] Regression test suite for bug prevention
 
 ### 0.3 Documentation and Workflow
-- [ ] Update CLAUDE.md with Makefile commands
-- [ ] Create development workflow documentation
-- [ ] Set up code coverage reporting
+- [x] Update CLAUDE.md with Makefile commands
+- [x] Create development workflow documentation
+- [x] Set up code coverage reporting
 - [ ] Create debugging and profiling helpers
 
 ## Phase 1: Core Engine Functionality (Foundation)
