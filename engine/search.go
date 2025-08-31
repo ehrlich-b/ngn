@@ -1,10 +1,7 @@
 package engine
 
 import (
-	"log"
 	"math"
-	"os"
-	"path/filepath"
 )
 
 const (
@@ -14,23 +11,7 @@ const (
 	MAX_DEPTH    = 100
 )
 
-var searchDebugLogger *log.Logger
-
-func init() {
-	// Set up search debug logging
-	execPath, err := os.Executable()
-	if err != nil {
-		execPath = "./ngn"
-	}
-	execDir := filepath.Dir(execPath)
-	logFile, err := os.OpenFile(filepath.Join(execDir, "ngn_search_debug.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		searchDebugLogger = log.New(os.Stdout, "[SEARCH DEBUG] ", log.LstdFlags|log.Lmicroseconds)
-	} else {
-		searchDebugLogger = log.New(logFile, "[SEARCH DEBUG] ", log.LstdFlags|log.Lmicroseconds)
-	}
-	searchDebugLogger.Println("=== Search Debug Logger Initialized ===")
-}
+// Search debug logging removed for production
 
 type SearchInfo struct {
 	Nodes     uint64
@@ -103,7 +84,6 @@ func SearchIterativeDeepening(pos *Position, maxDepth int) *SearchInfo {
 }
 
 func SearchFixed(pos *Position, depth int) *SearchInfo {
-	searchDebugLogger.Printf(">>> SearchFixed depth=%d", depth)
 	
 	info := &SearchInfo{
 		Nodes:     0,  // Fresh node count for each depth
@@ -123,23 +103,17 @@ func SearchFixed(pos *Position, depth int) *SearchInfo {
 		} else {
 			info.BestScore = 0
 		}
-		searchDebugLogger.Printf("<<< SearchFixed EXIT no moves, score=%d", info.BestScore)
 		return info
 	}
 	
 	orderedMoves := orderMoves(moves)
 	
-	for i, move := range orderedMoves {
+	for _, move := range orderedMoves {
 		// Check if search was stopped
 		if info.Stopped {
-			searchDebugLogger.Printf("Search stopped at move %d", i+1)
 			break
 		}
 		
-		// Log every move at depth 4+ to catch hangs
-		if depth >= 4 {
-			searchDebugLogger.Printf("Processing move %d/%d: %v", i+1, len(orderedMoves), move.ToString())
-		}
 		
 		ep, tag, hc, _ := pos.MakeMove(move)
 		score := -alphaBeta(pos, depth-1, -beta, -alpha, info)
@@ -161,19 +135,17 @@ func SearchFixed(pos *Position, depth int) *SearchInfo {
 		}
 	}
 	
-	searchDebugLogger.Printf("<<< SearchFixed EXIT: depth=%d, bestMove=%v, score=%d, nodes=%d", depth, info.BestMove.ToString(), info.BestScore, info.Nodes)
 	return info
 }
 
 func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) int {
-	// Safety checks - much higher limit
-	if info.Nodes > 500000 { // 500K nodes - 10x higher
-		info.Stopped = true  // Mark search as stopped
+	// Safety checks - reasonable limits
+	if info.Nodes > 50000000 { // 50M nodes
+		info.Stopped = true
 		return Evaluate(&pos.Board)
 	}
 	
-	if depth > 20 {
-		searchDebugLogger.Printf("ABORT: depth limit exceeded (depth %d)", depth)
+	if depth > 64 { // Reasonable max depth
 		return Evaluate(&pos.Board)
 	}
 	
@@ -220,8 +192,8 @@ func quiescence(pos *Position, alpha int, beta int, info *SearchInfo) int {
 }
 
 func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, qDepth int) int {
-	// Prevent infinite recursion - CRITICAL SAFETY CHECK
-	if qDepth >= 2 { // Ultra aggressive limit - only 2 levels of quiescence
+	// Prevent infinite recursion
+	if qDepth >= 8 { // Reasonable quiescence depth
 		return Evaluate(&pos.Board)
 	}
 	

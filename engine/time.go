@@ -70,7 +70,7 @@ func (tm *TimeManager) SetTimeControl(params SearchParams, isWhite bool) {
 		tm.allocatedTime = time.Duration(params.MoveTime) * time.Millisecond
 	} else if params.Depth > 0 && (params.WhiteTime == 0 && params.BlackTime == 0) {
 		tm.timeControl = FixedDepth
-		tm.allocatedTime = time.Minute * 5 // Give reasonable time for depth search
+		tm.allocatedTime = time.Second * 15 // Max 15 seconds for fixed depth
 	} else {
 		// Tournament time control
 		tm.timeControl = Tournament
@@ -93,6 +93,12 @@ func (tm *TimeManager) SetTimeControl(params SearchParams, isWhite bool) {
 	
 	// Ensure we don't allocate more time than we have
 	tm.allocatedTime = tm.ensureSafeTimeAllocation()
+	
+	// Global maximum time limit for any move - 15 seconds
+	maxTime := time.Second * 15
+	if tm.allocatedTime > maxTime {
+		tm.allocatedTime = maxTime
+	}
 }
 
 // calculateTimeAllocation calculates optimal time allocation for tournament play

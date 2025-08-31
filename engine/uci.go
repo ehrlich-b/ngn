@@ -14,18 +14,19 @@ import (
 
 // UCI Engine represents the UCI interface for the chess engine
 type UCIEngine struct {
-	position     *Position
-	searching    bool
-	stopChan     chan bool
-	debugMode    bool
-	engineName   string
-	engineAuthor string
-	version      string
-	timeManager  *TimeManager
-	movesPlayed  int
-	lastScore    int
-	debugLogger  *log.Logger
-	rawUCILogger *log.Logger
+	position        *Position
+	searching       bool
+	stopChan        chan bool
+	debugMode       bool
+	engineName      string
+	engineAuthor    string
+	version         string
+	timeManager     *TimeManager
+	movesPlayed     int
+	lastScore       int
+	debugLogger     *log.Logger
+	rawUCILogger    *log.Logger
+	allowResignation bool
 }
 
 // NewUCIEngine creates a new UCI engine instance
@@ -61,18 +62,19 @@ func NewUCIEngine() *UCIEngine {
 	rawUCILogger.Println("Format: >>> = sent to engine, <<< = sent from engine")
 	
 	return &UCIEngine{
-		position:     newUCIStartingPosition(),
-		searching:    false,
-		stopChan:     make(chan bool, 1),
-		debugMode:    false,
-		engineName:   "ngn",
-		engineAuthor: "ngn team",
-		version:      "0.1.0",
-		timeManager:  NewTimeManager(),
-		movesPlayed:  0,
-		lastScore:    0,
-		debugLogger:  logger,
-		rawUCILogger: rawUCILogger,
+		position:        newUCIStartingPosition(),
+		searching:       false,
+		stopChan:        make(chan bool, 1),
+		debugMode:       false,
+		engineName:      "ngn",
+		engineAuthor:    "ngn team",
+		version:         "0.1.0",
+		timeManager:     NewTimeManager(),
+		movesPlayed:     0,
+		lastScore:       0,
+		debugLogger:     logger,
+		rawUCILogger:    rawUCILogger,
+		allowResignation: false, // Default to no resignation
 	}
 }
 
@@ -80,6 +82,11 @@ func NewUCIEngine() *UCIEngine {
 func (uci *UCIEngine) sendUCIMessage(output io.Writer, message string) {
 	uci.rawUCILogger.Printf("<<< %s", message)
 	fmt.Fprintln(output, message)
+}
+
+// SetResignationPolicy sets whether the engine should resign in hopeless positions
+func (uci *UCIEngine) SetResignationPolicy(allowResignation bool) {
+	uci.allowResignation = allowResignation
 }
 
 // Helper function to create starting position
@@ -512,15 +519,40 @@ searchComplete:
 	// Send best move
 	uci.debugLogger.Printf("*** ABOUT TO SEND BESTMOVE ***")
 	if bestMove != EmptyMove {
+		// Check if we should resign due to hopeless position
+		if !uci.allowResignation && bestScore < -MATE_IN_MAX {
+			// Position is hopeless but resignation is disabled - play the move anyway
+			uci.debugLogger.Printf("*** HOPELESS POSITION (score=%d) but resignation disabled, playing move ***", bestScore)
+		}
+		
 		moveStr := bestMove.ToString()
 		uci.debugLogger.Printf("*** SENDING: bestmove %s ***", moveStr)
 		uci.sendUCIMessage(output, fmt.Sprintf("bestmove %s", moveStr))
 		uci.debugLogger.Printf("*** BESTMOVE SENT SUCCESSFULLY: %s ***", moveStr)
 	} else {
-		// No legal moves (checkmate or stalemate)
-		uci.debugLogger.Printf("*** SENDING: bestmove (none) ***")
-		uci.sendUCIMessage(output, "bestmove (none)")
-		uci.debugLogger.Printf("*** BESTMOVE (none) SENT ***")
+		// Check if we should try to find any legal move to avoid resignation
+		if !uci.allowResignation {
+			// Try to find any legal move to avoid resignation
+			moves := GenerateLegalMoves(uci.position)
+			if len(moves) > 0 {
+				// Play the first legal move to avoid resignation
+				anyMove := moves[0]
+				moveStr := anyMove.ToString()
+				uci.debugLogger.Printf("*** NO BEST MOVE but resignation disabled, playing any move: %s ***", moveStr)
+				uci.sendUCIMessage(output, fmt.Sprintf("bestmove %s", moveStr))
+				uci.debugLogger.Printf("*** BESTMOVE SENT: %s ***", moveStr)
+			} else {
+				// Truly no legal moves (checkmate or stalemate) - must send (none)
+				uci.debugLogger.Printf("*** SENDING: bestmove (none) - truly no legal moves ***")
+				uci.sendUCIMessage(output, "bestmove (none)")
+				uci.debugLogger.Printf("*** BESTMOVE (none) SENT ***")
+			}
+		} else {
+			// Resignation allowed - send (none)
+			uci.debugLogger.Printf("*** SENDING: bestmove (none) ***")
+			uci.sendUCIMessage(output, "bestmove (none)")
+			uci.debugLogger.Printf("*** BESTMOVE (none) SENT ***")
+		}
 	}
 	uci.debugLogger.Printf("=== EXITING search() FUNCTION ===")
 }

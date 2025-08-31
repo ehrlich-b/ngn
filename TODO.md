@@ -77,6 +77,8 @@ This document outlines the step-by-step development plan to bring the ngn chess 
   - [x] `stop` and `quit` commands
 - [x] Add FEN (Forsyth-Edwards Notation) parsing and generation
 - [x] Implement algebraic notation move parsing
+- [x] **CRITICAL BUG FIX**: Fixed runtime panic in move generation (index out of bounds in KingAttacks array)
+- [x] **ENGINE NOW STABLE**: Successfully completing Arena Chess tournament games
 
 ### 2.2 Time Management
 - [x] Basic time management algorithm
@@ -85,10 +87,20 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 - [x] Emergency time handling
 
 ### 2.3 Testing Infrastructure
+- [x] Created comprehensive test harness suite for tournament position testing
+- [x] Implemented raw UCI protocol logging for debugging
+- [x] Integration with chess GUIs (Arena Chess confirmed working)
 - [ ] Automated testing against known tactical puzzles
 - [ ] Engine vs engine testing framework
-- [ ] Integration with chess GUIs (Arena, Cute Chess, etc.)
 - [ ] Benchmark positions for performance regression testing
+
+## Phase 2.5: Code Cleanup and Optimization (COMPLETED)
+- [x] **DEBUG CLEANUP**: Removed 500K node limit (now 50M)
+- [x] **DEBUG CLEANUP**: Fixed ultra-aggressive quiescence limit (2→8 levels)
+- [x] **DEBUG CLEANUP**: Removed depth 20 hard limit and ABORT messages  
+- [x] **DEBUG CLEANUP**: Cleaned up excessive debug logging
+- [x] **TIME MANAGEMENT**: Set 15-second maximum time limit for any move
+- [x] **RESIGNATION CONTROL**: Added `--allow-resignation` CLI flag (defaults to off)
 
 ## Phase 3: Tactical Strength (Expert Level ~2000)
 
