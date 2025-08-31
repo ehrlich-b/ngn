@@ -123,16 +123,17 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 
 ### 3.3 Enhanced Evaluation
 - [x] **CRITICAL PERFORMANCE FIX**: Removed mobility evaluation (achieved 2.4x speedup: 59K→143K nps)
-- [ ] More sophisticated pawn evaluation
-  - [ ] Pawn chains and support
-  - [ ] Weak squares around pawns
-  - [ ] Pawn storms
-- [ ] Improved king safety
-  - [ ] Pawn shield evaluation
-  - [ ] Attack patterns on king zone
-- [ ] Basic endgame knowledge
-  - [ ] Opposition in king and pawn endgames
-  - [ ] Basic mate patterns (KQ vs K, KR vs K)
+- [x] More sophisticated pawn evaluation
+  - [x] Pawn chains and support
+  - [x] Weak squares around pawns
+  - [x] Pawn storms
+- [x] Improved king safety
+  - [x] Enhanced pawn shield evaluation
+  - [x] Attack patterns on king zone evaluation
+- [x] Basic endgame knowledge
+  - [x] Opposition in king and pawn endgames
+  - [x] Basic mate patterns (KQ vs K, KR vs K)
+  - [x] King activity evaluation in endgames
 
 ## Phase 4: Positional Understanding (Master Level ~2200)
 

@@ -107,6 +107,19 @@ install-tools: ## Install required development tools
 	}
 	@echo "Development tools installed"
 
+# Download Stockfish for testing
+.PHONY: download-stockfish
+download-stockfish: ## Download Stockfish binary for move validation testing
+	@echo "Downloading Stockfish 16..."
+	@if [ -f "stockfish/stockfish-ubuntu-x86-64-avx2" ]; then \
+		echo "Stockfish already downloaded"; \
+	else \
+		wget -q --show-progress https://github.com/official-stockfish/Stockfish/releases/download/sf_16/stockfish-ubuntu-x86-64-avx2.tar; \
+		tar -xf stockfish-ubuntu-x86-64-avx2.tar; \
+		rm stockfish-ubuntu-x86-64-avx2.tar; \
+		echo "Stockfish 16 downloaded successfully"; \
+	fi
+
 .PHONY: check-golangci-lint
 check-golangci-lint: ## Check if golangci-lint is installed
 	@command -v golangci-lint >/dev/null 2>&1 || { \

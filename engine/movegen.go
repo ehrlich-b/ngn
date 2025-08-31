@@ -77,6 +77,8 @@ func generateWhitePawnMoves(pos *Position) []Move {
 	
 	// Single pawn pushes
 	singlePushes := (whitePawns << 8) & ^allPieces
+	singlePushesCopy := singlePushes // Save copy for double push calculation
+	
 	for singlePushes != 0 {
 		to := Square(bits.TrailingZeros64(singlePushes))
 		from := Square(int(to) - 8)
@@ -94,8 +96,8 @@ func generateWhitePawnMoves(pos *Position) []Move {
 		singlePushes &^= SquareMask[int(to)]
 	}
 	
-	// Double pawn pushes
-	doublePushes := ((whitePawns & RankMasks[Rank2]) << 16) & ^allPieces
+	// Double pawn pushes - only from starting rank, with both intermediate and destination empty
+	doublePushes := ((singlePushesCopy & RankMasks[Rank3]) << 8) & ^allPieces
 	for doublePushes != 0 {
 		to := Square(bits.TrailingZeros64(doublePushes))
 		from := Square(int(to) - 16)
@@ -181,6 +183,8 @@ func generateBlackPawnMoves(pos *Position) []Move {
 	
 	// Single pawn pushes (black pawns move "down" the board)
 	singlePushes := (blackPawns >> 8) & ^allPieces
+	singlePushesCopy := singlePushes // Save copy for double push calculation
+	
 	for singlePushes != 0 {
 		to := Square(bits.TrailingZeros64(singlePushes))
 		from := Square(int(to) + 8)
@@ -198,8 +202,8 @@ func generateBlackPawnMoves(pos *Position) []Move {
 		singlePushes &^= SquareMask[int(to)]
 	}
 	
-	// Double pawn pushes
-	doublePushes := ((blackPawns & RankMasks[Rank7]) >> 16) & ^allPieces
+	// Double pawn pushes - only from starting rank, with both intermediate and destination empty
+	doublePushes := ((singlePushesCopy & RankMasks[Rank6]) >> 8) & ^allPieces
 	for doublePushes != 0 {
 		to := Square(bits.TrailingZeros64(doublePushes))
 		from := Square(int(to) + 16)
