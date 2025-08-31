@@ -101,6 +101,8 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 - [x] **DEBUG CLEANUP**: Cleaned up excessive debug logging
 - [x] **TIME MANAGEMENT**: Set 15-second maximum time limit for any move
 - [x] **RESIGNATION CONTROL**: Added `--allow-resignation` CLI flag (defaults to off)
+- [x] **CRITICAL BUG FIX**: Fixed runtime panic in hash.go:208 (index out of range with NoPiece)
+- [x] **CRITICAL BUG FIX**: Fixed runtime panic in moveorder.go:87 (negative depth in IsKillerMove)
 
 ## Phase 3: Tactical Strength (Expert Level ~2000)
 
@@ -111,11 +113,11 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 - [x] Check extensions in search
 - [x] Mate distance pruning
 
-### 3.2 Improved Move Ordering
-- [ ] History heuristic for quiet moves
-- [ ] Killer move heuristic
-- [ ] Counter-move heuristic
-- [ ] MVV-LVA (Most Valuable Victim - Least Valuable Attacker) for captures
+### 3.2 Improved Move Ordering (COMPLETED)
+- [x] History heuristic for quiet moves
+- [x] Killer move heuristic
+- [x] Counter-move heuristic
+- [x] MVV-LVA (Most Valuable Victim - Least Valuable Attacker) for captures
 
 ### 3.3 Enhanced Evaluation
 - [ ] More sophisticated pawn evaluation

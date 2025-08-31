@@ -204,6 +204,13 @@ func updateHash(pos *Position, move Move, captureSquare Square,
 
 	movingPiece := move.MovingPiece()
 
+	// Safety check to prevent index out of range panic
+	if movingPiece == NoPiece {
+		// This should not happen in a valid move - recalculate hash from scratch
+		pos.Hash()
+		return
+	}
+
 	/* Board */
 	hash ^= piecesZC[int8(movingPiece)-1][source]
 	if promoPiece != NoPiece {

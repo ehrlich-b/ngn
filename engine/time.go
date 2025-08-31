@@ -2,6 +2,7 @@ package engine
 
 import (
 	"math"
+	"sync/atomic"
 	"time"
 )
 
@@ -37,6 +38,11 @@ type TimeManager struct {
 	// Dynamic adjustment factors
 	lastScoreChange int
 	positionComplexity float64
+	
+	// Internal rate limiting for frequent time checks
+	checkCounter     uint64 // Atomic counter for time checks
+	lastTimeCheck    time.Time // Last time we actually checked the clock
+	shouldStop       bool   // Cached result of last time check
 }
 
 // GamePhase represents the current phase of the game
@@ -60,6 +66,9 @@ func NewTimeManager() *TimeManager {
 // SetTimeControl configures the time manager for different time controls
 func (tm *TimeManager) SetTimeControl(params SearchParams, isWhite bool) {
 	tm.startTime = time.Now()
+	tm.lastTimeCheck = tm.startTime
+	tm.shouldStop = false
+	atomic.StoreUint64(&tm.checkCounter, 0)
 	
 	// Determine time control type and allocate time accordingly
 	if params.Infinite {
@@ -224,22 +233,32 @@ func (tm *TimeManager) ensureSafeTimeAllocation() time.Duration {
 }
 
 // ShouldStopSearch determines if search should stop based on time
+// This method can be called frequently without performance penalty - it uses
+// internal rate limiting to only do expensive time checks every N calls
 func (tm *TimeManager) ShouldStopSearch(depth int, iterationStartTime time.Time) bool {
-	elapsed := time.Since(tm.startTime)
+	// Increment counter atomically - this is very fast
+	count := atomic.AddUint64(&tm.checkCounter, 1)
 	
-	switch tm.timeControl {
-	case FixedDepth:
-		return false // Time doesn't matter for fixed depth
-	case Infinite:
-		return false // Never stop for infinite search
-	case TimePerMove, FixedTime:
-		// Hard time limit - stop when time is up
-		return elapsed >= tm.allocatedTime
-	case Tournament:
-		return tm.shouldStopTournamentSearch(depth, iterationStartTime, elapsed)
+	// Only do expensive time checking every 1024 calls (or immediately if we should stop)
+	if tm.shouldStop || count%1024 == 0 {
+		now := time.Now()
+		elapsed := now.Sub(tm.startTime)
+		tm.lastTimeCheck = now
+		
+		switch tm.timeControl {
+		case FixedDepth:
+			tm.shouldStop = false // Time doesn't matter for fixed depth
+		case Infinite:
+			tm.shouldStop = false // Never stop for infinite search
+		case TimePerMove, FixedTime:
+			// Hard time limit - stop when time is up
+			tm.shouldStop = elapsed >= tm.allocatedTime
+		case Tournament:
+			tm.shouldStop = tm.shouldStopTournamentSearch(depth, iterationStartTime, elapsed)
+		}
 	}
 	
-	return false
+	return tm.shouldStop
 }
 
 // shouldStopTournamentSearch determines if tournament search should stop

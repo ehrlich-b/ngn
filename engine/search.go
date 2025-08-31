@@ -56,12 +56,26 @@ func SearchIterativeDeepening(pos *Position, maxDepth int) *SearchInfo {
 	
 	// Iterative deepening - start from depth 1 and go up to maxDepth
 	for currentDepth := 1; currentDepth <= maxDepth && !info.Stopped; currentDepth++ {
+		// Check time before starting each new depth iteration
+		if info.TimeManager != nil {
+			if info.TimeManager.ShouldStopSearch(currentDepth, time.Now()) {
+				info.Stopped = true
+				break
+			}
+		}
+		
 		alpha := -INFINITY
 		beta := INFINITY
 		
-		orderedMoves := orderMoves(moves)
+		orderedMoves := orderMovesWithDepth(moves, currentDepth)
 		
 		for _, move := range orderedMoves {
+			// Check time before each move in iterative deepening
+			if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(currentDepth, time.Now()) {
+				info.Stopped = true
+				break
+			}
+			
 			ep, tag, hc, _ := pos.MakeMove(move)
 			score := -alphaBeta(pos, currentDepth-1, -beta, -alpha, info)
 			pos.UnMakeMove(move, tag, ep, hc)
@@ -114,7 +128,7 @@ func SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo
 		return info
 	}
 	
-	orderedMoves := orderMoves(moves)
+	orderedMoves := orderMovesWithDepth(moves, depth)
 	
 	for _, move := range orderedMoves {
 		// Check if search was stopped
@@ -122,6 +136,11 @@ func SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo
 			break
 		}
 		
+		// Check time before each move in fixed depth search
+		if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(depth, time.Now()) {
+			info.Stopped = true
+			break
+		}
 		
 		ep, tag, hc, _ := pos.MakeMove(move)
 		score := -alphaBeta(pos, depth-1, -beta, -alpha, info)
@@ -153,8 +172,8 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		return Evaluate(&pos.Board)
 	}
 	
-	// Check time limit if we have a time manager (check every 1024 nodes for performance)
-	if info.TimeManager != nil && info.Nodes%1024 == 0 {
+	// Check time limit if we have a time manager (now cheap to call frequently)
+	if info.TimeManager != nil {
 		if info.TimeManager.ShouldStopSearch(depth, time.Now()) {
 			info.Stopped = true
 			return Evaluate(&pos.Board)
@@ -222,12 +241,18 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		return 0
 	}
 	
-	orderedMoves := orderMoves(moves)
+	orderedMoves := orderMovesWithDepth(moves, depth)
 	bestScore := -INFINITY
 	moveCount := 0
 	
 	for _, move := range orderedMoves {
 		moveCount++
+		
+		// Check time before evaluating each move (now cheap to call)
+		if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(depth, time.Now()) {
+			info.Stopped = true
+			break
+		}
 		
 		// Futility pruning - skip quiet moves if position is hopeless
 		if futilityPrune && !move.IsCapture() {
@@ -273,6 +298,12 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 		
 		if score >= beta {
+			// Update history table for quiet moves that cause beta cutoffs
+			UpdateHistoryTable(move, depth)
+			// Update killer moves for quiet moves that cause beta cutoffs
+			UpdateKillerMoves(move, depth)
+			// Update counter move for quiet moves that cause beta cutoffs
+			UpdateCounterMove(move, GetLastMovePlayed())
 			return score
 		}
 		
