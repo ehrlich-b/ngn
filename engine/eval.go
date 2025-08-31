@@ -276,6 +276,7 @@ func countPassedPawns(board *Bitboard, color Color) int {
 }
 
 
+
 // King safety evaluation - checks squares around the king
 func evaluateKingSafety(board *Bitboard, color Color) int {
 	var kingBitboard uint64
@@ -334,46 +335,9 @@ func evaluateKingSafety(board *Bitboard, color Color) int {
 	return safety
 }
 
-// Mobility evaluation - simplified version counting legal moves
-func evaluateMobility(board *Bitboard, pos *Position) int {
-	// Generate legal moves for current side
-	legalMoves := GenerateLegalMoves(pos)
-	
-	// Basic mobility bonus
-	mobility := len(legalMoves) * 2
-	
-	// Bonus for controlling central squares
-	centralSquares := []Square{D4, D5, E4, E5}
-	centralControl := 0
-	
-	for _, move := range legalMoves {
-		for _, central := range centralSquares {
-			if move.Destination() == central {
-				centralControl++
-				break
-			}
-		}
-	}
-	
-	mobility += centralControl * 3
-	
-	// Apply perspective (positive for current player)
-	if pos.Turn() == Black {
-		mobility = -mobility
-	}
-	
-	return mobility
-}
 
 // Enhanced evaluation function
 func Evaluate(board *Bitboard) (eval int) {
-	// Create a temporary position to check turn and generate moves
-	// This is a simplified approach - in a real engine you'd pass the position
-	pos := &Position{
-		Board:     *board,
-		Tag:       WhiteToMove, // Default assumption for static evaluation
-		EnPassant: NoSquare,
-	}
 	
 	endgame := isEndgame(board)
 	
@@ -431,18 +395,6 @@ func Evaluate(board *Bitboard) (eval int) {
 		eval += -blackKingSafety
 	}
 	
-	// 5. Simple mobility evaluation (only if not endgame to avoid expensive move generation)
-	if !endgame {
-		// For white
-		pos.SetTag(WhiteToMove)
-		whiteMobility := evaluateMobility(board, pos)
-		
-		// For black  
-		pos.SetTag(BlackToMove)
-		blackMobility := evaluateMobility(board, pos)
-		
-		eval += whiteMobility - blackMobility
-	}
 	
 	return eval
 }

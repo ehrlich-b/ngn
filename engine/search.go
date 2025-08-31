@@ -180,8 +180,18 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 	}
 	
-	if depth > 64 { // Reasonable max depth
+	// Safety check for excessive depth
+	if depth > 64 {
 		return Evaluate(&pos.Board)
+	}
+	
+	// Safety check for negative depth (bug prevention)
+	if depth < 0 {
+		return Evaluate(&pos.Board)
+	}
+	
+	if depth == 0 {
+		return quiescence(pos, alpha, beta, info)
 	}
 	
 	// Mate distance pruning - don't look for mates that are too far away
@@ -197,10 +207,6 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 	}
 	if alpha >= beta {
 		return alpha
-	}
-	
-	if depth == 0 {
-		return quiescence(pos, alpha, beta, info)
 	}
 	
 	// Check if we're in check before attempting null move

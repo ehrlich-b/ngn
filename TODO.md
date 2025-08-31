@@ -103,6 +103,8 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 - [x] **RESIGNATION CONTROL**: Added `--allow-resignation` CLI flag (defaults to off)
 - [x] **CRITICAL BUG FIX**: Fixed runtime panic in hash.go:208 (index out of range with NoPiece)
 - [x] **CRITICAL BUG FIX**: Fixed runtime panic in moveorder.go:87 (negative depth in IsKillerMove)
+- [x] **CRITICAL BUG FIX**: Fixed infinite recursion in alphaBeta with negative depth underflow
+- [x] **PERFORMANCE ANALYSIS**: Identified mobility evaluation as major bottleneck (see performance_brief.md)
 
 ## Phase 3: Tactical Strength (Expert Level ~2000)
 
@@ -120,6 +122,7 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 - [x] MVV-LVA (Most Valuable Victim - Least Valuable Attacker) for captures
 
 ### 3.3 Enhanced Evaluation
+- [x] **CRITICAL PERFORMANCE FIX**: Removed mobility evaluation (achieved 2.4x speedup: 59K→143K nps)
 - [ ] More sophisticated pawn evaluation
   - [ ] Pawn chains and support
   - [ ] Weak squares around pawns
