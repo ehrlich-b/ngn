@@ -26,6 +26,20 @@ func GenerateMoves(pos *Position) []Move {
 	return moves
 }
 
+// GenerateLegalMoves generates all legal moves for the current position
+func GenerateLegalMoves(pos *Position) []Move {
+	pseudoLegalMoves := GenerateMoves(pos)
+	legalMoves := make([]Move, 0, len(pseudoLegalMoves))
+	
+	for _, move := range pseudoLegalMoves {
+		if IsLegalMove(pos, move) {
+			legalMoves = append(legalMoves, move)
+		}
+	}
+	
+	return legalMoves
+}
+
 // GenerateCapturesMoves generates only capture moves (for quiescence search)
 func GenerateCaptures(pos *Position) []Move {
 	moves := GenerateMoves(pos)
@@ -441,6 +455,49 @@ func abs(x int) int {
 
 // IsLegalMove checks if a move is legal (doesn't leave king in check)
 func IsLegalMove(pos *Position, move Move) bool {
+	// Special handling for castling - check intermediate squares
+	if move.IsCastle() {
+		color := move.MovingPiece().Color()
+		
+		// King must not be in check before castling
+		if isInCheck(pos, color) {
+			return false
+		}
+		
+		// Check intermediate and final squares
+		var intermediateSquare, finalSquare Square
+		if move.IsKingSideCastle() {
+			if color == White {
+				intermediateSquare = F1
+				finalSquare = G1
+			} else {
+				intermediateSquare = F8
+				finalSquare = G8
+			}
+		} else { // Queen-side castle
+			if color == White {
+				intermediateSquare = D1
+				finalSquare = C1
+			} else {
+				intermediateSquare = D8
+				finalSquare = C8
+			}
+		}
+		
+		// Check if intermediate square is attacked
+		if isSquareAttacked(pos, intermediateSquare, color.Other()) {
+			return false
+		}
+		
+		// Check if final square is attacked
+		if isSquareAttacked(pos, finalSquare, color.Other()) {
+			return false
+		}
+		
+		return true
+	}
+	
+	// For non-castling moves, use the standard approach
 	// Make the move
 	ep, tag, hc, _ := pos.MakeMove(move)
 	
@@ -451,6 +508,24 @@ func IsLegalMove(pos *Position, move Move) bool {
 	pos.UnMakeMove(move, tag, ep, hc)
 	
 	return legal
+}
+
+// isSquareAttacked checks if a square is attacked by pieces of the given color
+func isSquareAttacked(pos *Position, square Square, attackingColor Color) bool {
+	// Temporarily place a king of the opposite color on the square
+	originalPiece := pos.Board.PieceAt(square)
+	var testKing Piece
+	if attackingColor == White {
+		testKing = BlackKing
+	} else {
+		testKing = WhiteKing
+	}
+	
+	pos.Board.UpdateSquare(square, testKing, originalPiece)
+	attacked := isInCheck(pos, testKing.Color())
+	pos.Board.UpdateSquare(square, originalPiece, testKing)
+	
+	return attacked
 }
 
 // isInCheck checks if the king of the given color is in check

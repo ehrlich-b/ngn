@@ -50,14 +50,14 @@ This document outlines the step-by-step development plan to bring the ngn chess 
   - [x] King moves (single square + castling)
 - [x] Create move generation tests with known positions
 - [x] Add perft (performance test) function for move generation validation  
-- [ ] Implement legal move validation (filtering out moves that leave king in check)
+- [x] Implement legal move validation (filtering out moves that leave king in check)
 
 ### 1.2 Basic Search Algorithm
-- [ ] Implement minimax search with alpha-beta pruning
-- [ ] Add iterative deepening framework
-- [ ] Implement quiescence search for tactical positions
-- [ ] Add basic move ordering (captures first, then quiet moves)
-- [ ] Integrate existing transposition table into search
+- [x] Implement minimax search with alpha-beta pruning
+- [x] Add iterative deepening framework
+- [x] Implement quiescence search for tactical positions
+- [x] Add basic move ordering (captures first, then quiet moves)
+- [x] Integrate existing transposition table into search
 
 ### 1.3 Basic Evaluation Function
 - [ ] Material counting with piece values

@@ -337,6 +337,166 @@ func BenchmarkMoveGeneration(b *testing.B) {
 	})
 }
 
+func TestLegalMoveValidation(t *testing.T) {
+	// Test position where king is in check - should filter out moves that don't address check
+	pos := &Position{
+		Board:     Bitboard{},
+		Tag:       WhiteToMove,
+		EnPassant: NoSquare,
+	}
+	
+	// Set up position: White king on E1, Black rook on E8 giving check
+	pos.Board.UpdateSquare(E1, WhiteKing, NoPiece)
+	pos.Board.UpdateSquare(E8, BlackRook, NoPiece)
+	pos.Board.UpdateSquare(D1, WhiteQueen, NoPiece) // White queen to potentially block or capture
+	
+	pseudoLegalMoves := GenerateMoves(pos)
+	legalMoves := GenerateLegalMoves(pos)
+	
+	// Should have fewer legal moves than pseudo-legal moves due to check
+	if len(legalMoves) >= len(pseudoLegalMoves) {
+		t.Errorf("Expected fewer legal moves than pseudo-legal moves in check position")
+	}
+	
+	// All legal moves should actually be legal
+	for _, move := range legalMoves {
+		if !IsLegalMove(pos, move) {
+			t.Errorf("GenerateLegalMoves returned an illegal move: %s", move.ToString())
+		}
+	}
+}
+
+func TestLegalMovesStartingPosition(t *testing.T) {
+	// Test starting position - all pseudo-legal moves should be legal
+	pos := &Position{
+		Board:     StartingBoard(),
+		Tag:       WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide | WhiteToMove,
+		EnPassant: NoSquare,
+	}
+	
+	pseudoLegalMoves := GenerateMoves(pos)
+	legalMoves := GenerateLegalMoves(pos)
+	
+	// In starting position, all pseudo-legal moves should be legal
+	if len(legalMoves) != len(pseudoLegalMoves) {
+		t.Errorf("Starting position: expected %d legal moves, got %d", len(pseudoLegalMoves), len(legalMoves))
+	}
+	
+	// Verify all moves are actually legal
+	for _, move := range legalMoves {
+		if !IsLegalMove(pos, move) {
+			t.Errorf("GenerateLegalMoves returned an illegal move: %s", move.ToString())
+		}
+	}
+}
+
+func TestPinnedPieceMoves(t *testing.T) {
+	// Test position with a pinned piece
+	pos := &Position{
+		Board:     Bitboard{},
+		Tag:       WhiteToMove,
+		EnPassant: NoSquare,
+	}
+	
+	// Set up position: White king on E1, white bishop on D2, black queen on C3
+	// Bishop is pinned and cannot move without exposing king to check
+	pos.Board.UpdateSquare(E1, WhiteKing, NoPiece)
+	pos.Board.UpdateSquare(D2, WhiteBishop, NoPiece)
+	pos.Board.UpdateSquare(C3, BlackQueen, NoPiece)
+	
+	pseudoLegalMoves := GenerateMoves(pos)
+	legalMoves := GenerateLegalMoves(pos)
+	
+	// Should have fewer legal moves due to pinned bishop
+	if len(legalMoves) >= len(pseudoLegalMoves) {
+		t.Errorf("Expected fewer legal moves than pseudo-legal moves with pinned piece")
+	}
+	
+	// Check that pinned bishop moves are filtered out
+	for _, move := range legalMoves {
+		if move.MovingPiece() == WhiteBishop && move.Source() == D2 {
+			// Bishop can only move along the pin line (C3-E1 diagonal)
+			// Valid moves: C1 (along pin line) or C3 (capture attacker)
+			if move.Destination() != C1 && move.Destination() != C3 {
+				t.Errorf("Pinned bishop should only be able to block or capture along pin line, but found move to %s", move.Destination().Name())
+			}
+		}
+	}
+}
+
+func TestCastlingThroughCheck(t *testing.T) {
+	// Test castling through check (should be illegal)
+	pos := &Position{
+		Board:     Bitboard{},
+		Tag:       WhiteToMove | WhiteCanCastleKingSide,
+		EnPassant: NoSquare,
+	}
+	
+	// Set up position: White king on E1, white rook on H1, black rook on A1
+	// Black rook attacks F1 horizontally along the 1st rank, making castling through F1 illegal
+	pos.Board.UpdateSquare(E1, WhiteKing, NoPiece)
+	pos.Board.UpdateSquare(H1, WhiteRook, NoPiece)
+	pos.Board.UpdateSquare(A1, BlackRook, NoPiece)
+	
+	legalMoves := GenerateLegalMoves(pos)
+	
+	// Check that castling move is filtered out
+	castlingFound := false
+	for _, move := range legalMoves {
+		if move.IsCastle() {
+			castlingFound = true
+			break
+		}
+	}
+	
+	if castlingFound {
+		t.Errorf("Castling through check should be filtered out by legal move generation")
+	}
+}
+
+func TestEnPassantPinDiscovery(t *testing.T) {
+	// Test en passant that would discover check (should be illegal)
+	pos := &Position{
+		Board:     Bitboard{},
+		Tag:       WhiteToMove,
+		EnPassant: D6,
+	}
+	
+	// Set up position: White king on E5, White pawn on C5, Black pawn on D5, Black rook on A5
+	// En passant capture would remove the black pawn and expose king to check from rook
+	pos.Board.UpdateSquare(E5, WhiteKing, NoPiece)
+	pos.Board.UpdateSquare(C5, WhitePawn, NoPiece)
+	pos.Board.UpdateSquare(D5, BlackPawn, NoPiece)
+	pos.Board.UpdateSquare(A5, BlackRook, NoPiece)
+	
+	legalMoves := GenerateLegalMoves(pos)
+	
+	// Check that en passant move is filtered out
+	enPassantFound := false
+	for _, move := range legalMoves {
+		if move.IsEnPassant() {
+			enPassantFound = true
+			break
+		}
+	}
+	
+	if enPassantFound {
+		t.Errorf("En passant discovering check should be filtered out by legal move generation")
+	}
+}
+
+func BenchmarkLegalMoveGeneration(b *testing.B) {
+	pos := &Position{
+		Board:     StartingBoard(),
+		Tag:       WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide | WhiteToMove,
+		EnPassant: NoSquare,
+	}
+	
+	BenchmarkFunction(b, func() {
+		GenerateLegalMoves(pos)
+	})
+}
+
 func BenchmarkPerftDepth3(b *testing.B) {
 	pos := &Position{
 		Board:     StartingBoard(),
