@@ -162,6 +162,14 @@ simple-test: build ## Run simple UCI tests with basic positions
 .PHONY: test-engine
 test-engine: simple-test ## Alias for simple-test (quick engine validation)
 
+.PHONY: test-enhanced
+test-enhanced: ## Test enhanced search algorithms (null move, LMR, futility, etc.)
+	@echo "Testing enhanced search algorithms..."
+	@go test -v ./engine -run "TestNullMovePruning|TestLateMovReductions|TestFutilityPruning|TestCheckExtensions|TestMateDistancePruning" -timeout 30s
+
+.PHONY: e2e
+e2e: test-enhanced ## Run end-to-end tests for enhanced search features
+
 # Debug and profiling
 .PHONY: debug
 debug: ## Build with debug symbols and run with delve

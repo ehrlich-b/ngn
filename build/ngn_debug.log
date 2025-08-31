@@ -794,3 +794,111 @@
 [NGN DEBUG] 2025/08/31 13:10:47.581761 === STARTING DEPTH 3 ===
 [NGN DEBUG] 2025/08/31 13:10:47.581764 ShouldStopSearch(depth=3): false (elapsed: 10.1774ms, allocated: 29.95s)
 [NGN DEBUG] 2025/08/31 13:10:47.581769 Calling SearchFixed for depth 3
+[NGN DEBUG] 2025/08/31 13:22:40.996088 === NGN Chess Engine Starting ===
+[NGN DEBUG] 2025/08/31 13:22:40.996194 Executable path: /home/behrlich/repos/ngn/build/ngn
+[NGN DEBUG] 2025/08/31 13:22:40.996200 Log file directory: /home/behrlich/repos/ngn/build
+[NGN DEBUG] 2025/08/31 13:22:40.996289 handleGo called with args: [depth 3]
+[NGN DEBUG] 2025/08/31 13:22:40.996304 About to set up time management
+[NGN DEBUG] 2025/08/31 13:22:40.996307 Time management set, about to update game state
+[NGN DEBUG] 2025/08/31 13:22:40.996325 About to start search goroutine
+[NGN DEBUG] 2025/08/31 13:22:40.996359 Search goroutine launched
+[NGN DEBUG] 2025/08/31 13:22:40.996368 search() function started with params: {Depth:3 Nodes:0 MoveTime:0 WhiteTime:0 BlackTime:0 WhiteInc:0 BlackInc:0 MovesToGo:0 Infinite:false Ponder:false}
+[NGN DEBUG] 2025/08/31 13:22:40.996388 search initialized, setting flags
+[NGN DEBUG] 2025/08/31 13:22:40.996389 === STARTING DEPTH 1 ===
+[NGN DEBUG] 2025/08/31 13:22:40.996392 ShouldStopSearch(depth=1): false (elapsed: 84.3µs, allocated: 29.95s)
+[NGN DEBUG] 2025/08/31 13:22:40.996395 Calling SearchFixed for depth 1
+[NGN DEBUG] 2025/08/31 13:22:40.996699 SearchFixed returned: depth=1, bestMove=5640, bestScore=45, nodes=41
+[NGN DEBUG] 2025/08/31 13:22:40.996713 Updated bestMove to a2a4 with score 45
+[NGN DEBUG] 2025/08/31 13:22:40.996727 Sent info line for depth 1
+[NGN DEBUG] 2025/08/31 13:22:40.996730 === COMPLETED DEPTH 1 ===
+[NGN DEBUG] 2025/08/31 13:22:40.996731 === STARTING DEPTH 2 ===
+[NGN DEBUG] 2025/08/31 13:22:40.996733 ShouldStopSearch(depth=2): false (elapsed: 425.7µs, allocated: 29.95s)
+[NGN DEBUG] 2025/08/31 13:22:40.996735 Calling SearchFixed for depth 2
+[NGN DEBUG] 2025/08/31 13:22:41.001922 SearchFixed returned: depth=2, bestMove=9345, bestScore=0, nodes=766
+[NGN DEBUG] 2025/08/31 13:22:41.001943 Updated bestMove to b1c3 with score 0
+[NGN DEBUG] 2025/08/31 13:22:41.001963 Sent info line for depth 2
+[NGN DEBUG] 2025/08/31 13:22:41.001965 === COMPLETED DEPTH 2 ===
+[NGN DEBUG] 2025/08/31 13:22:41.001967 === STARTING DEPTH 3 ===
+[NGN DEBUG] 2025/08/31 13:22:41.001969 ShouldStopSearch(depth=3): false (elapsed: 5.6617ms, allocated: 29.95s)
+[NGN DEBUG] 2025/08/31 13:22:41.001972 Calling SearchFixed for depth 3
+[NGN DEBUG] 2025/08/31 13:23:29.014041 === NGN Chess Engine Starting ===
+[NGN DEBUG] 2025/08/31 13:23:29.014139 Executable path: /home/behrlich/repos/ngn/build/ngn
+[NGN DEBUG] 2025/08/31 13:23:29.014146 Log file directory: /home/behrlich/repos/ngn/build
+[NGN DEBUG] 2025/08/31 13:23:29.014231 handleGo called with args: [depth 4]
+[NGN DEBUG] 2025/08/31 13:23:29.014246 About to set up time management
+[NGN DEBUG] 2025/08/31 13:23:29.014248 Time management set, about to update game state
+[NGN DEBUG] 2025/08/31 13:23:29.014265 About to start search goroutine
+[NGN DEBUG] 2025/08/31 13:23:29.014292 Search goroutine launched
+[NGN DEBUG] 2025/08/31 13:23:29.014303 search() function started with params: {Depth:4 Nodes:0 MoveTime:0 WhiteTime:0 BlackTime:0 WhiteInc:0 BlackInc:0 MovesToGo:0 Infinite:false Ponder:false}
+[NGN DEBUG] 2025/08/31 13:23:29.014323 search initialized, setting flags
+[NGN DEBUG] 2025/08/31 13:23:29.014326 === STARTING DEPTH 1 ===
+[NGN DEBUG] 2025/08/31 13:23:29.014329 ShouldStopSearch(depth=1): false (elapsed: 80.5µs, allocated: 29.95s)
+[NGN DEBUG] 2025/08/31 13:23:29.014334 Calling SearchFixed for depth 1
+[NGN DEBUG] 2025/08/31 13:23:29.014698 SearchFixed returned: depth=1, bestMove=5640, bestScore=45, nodes=41
+[NGN DEBUG] 2025/08/31 13:23:29.014720 Updated bestMove to a2a4 with score 45
+[NGN DEBUG] 2025/08/31 13:23:29.014735 Sent info line for depth 1
+[NGN DEBUG] 2025/08/31 13:23:29.014738 === COMPLETED DEPTH 1 ===
+[NGN DEBUG] 2025/08/31 13:23:29.014740 === STARTING DEPTH 2 ===
+[NGN DEBUG] 2025/08/31 13:23:29.014743 ShouldStopSearch(depth=2): false (elapsed: 494.2µs, allocated: 29.95s)
+[NGN DEBUG] 2025/08/31 13:23:29.014746 Calling SearchFixed for depth 2
+[NGN DEBUG] 2025/08/31 13:23:29.022188 SearchFixed returned: depth=2, bestMove=9345, bestScore=0, nodes=766
+[NGN DEBUG] 2025/08/31 13:23:29.022213 Updated bestMove to b1c3 with score 0
+[NGN DEBUG] 2025/08/31 13:23:29.022232 Sent info line for depth 2
+[NGN DEBUG] 2025/08/31 13:23:29.022235 === COMPLETED DEPTH 2 ===
+[NGN DEBUG] 2025/08/31 13:23:29.022237 === STARTING DEPTH 3 ===
+[NGN DEBUG] 2025/08/31 13:23:29.022241 ShouldStopSearch(depth=3): false (elapsed: 7.992101ms, allocated: 29.95s)
+[NGN DEBUG] 2025/08/31 13:23:29.022244 Calling SearchFixed for depth 3
+[NGN DEBUG] 2025/08/31 13:24:25.366525 === NGN Chess Engine Starting ===
+[NGN DEBUG] 2025/08/31 13:24:25.366614 Executable path: /home/behrlich/repos/ngn/build/ngn
+[NGN DEBUG] 2025/08/31 13:24:25.366627 Log file directory: /home/behrlich/repos/ngn/build
+[NGN DEBUG] 2025/08/31 13:24:25.366728 handleGo called with args: [depth 4]
+[NGN DEBUG] 2025/08/31 13:24:25.366742 About to set up time management
+[NGN DEBUG] 2025/08/31 13:24:25.366744 Time management set, about to update game state
+[NGN DEBUG] 2025/08/31 13:24:25.366757 About to start search goroutine
+[NGN DEBUG] 2025/08/31 13:24:25.366786 Search goroutine launched
+[NGN DEBUG] 2025/08/31 13:24:25.366798 search() function started with params: {Depth:4 Nodes:0 MoveTime:0 WhiteTime:0 BlackTime:0 WhiteInc:0 BlackInc:0 MovesToGo:0 Infinite:false Ponder:false}
+[NGN DEBUG] 2025/08/31 13:24:25.366823 search initialized, setting flags
+[NGN DEBUG] 2025/08/31 13:24:25.366825 === STARTING DEPTH 1 ===
+[NGN DEBUG] 2025/08/31 13:24:25.366827 ShouldStopSearch(depth=1): false (elapsed: 82.8µs, allocated: 29.95s)
+[NGN DEBUG] 2025/08/31 13:24:25.366830 Calling SearchFixed for depth 1
+[NGN DEBUG] 2025/08/31 13:24:25.367120 SearchFixed returned: depth=1, bestMove=5640, bestScore=45, nodes=41
+[NGN DEBUG] 2025/08/31 13:24:25.367131 Updated bestMove to a2a4 with score 45
+[NGN DEBUG] 2025/08/31 13:24:25.367150 Sent info line for depth 1
+[NGN DEBUG] 2025/08/31 13:24:25.367152 === COMPLETED DEPTH 1 ===
+[NGN DEBUG] 2025/08/31 13:24:25.367154 === STARTING DEPTH 2 ===
+[NGN DEBUG] 2025/08/31 13:24:25.367155 ShouldStopSearch(depth=2): false (elapsed: 411.5µs, allocated: 29.95s)
+[NGN DEBUG] 2025/08/31 13:24:25.367158 Calling SearchFixed for depth 2
+[NGN DEBUG] 2025/08/31 13:24:25.376148 SearchFixed returned: depth=2, bestMove=9345, bestScore=0, nodes=766
+[NGN DEBUG] 2025/08/31 13:24:25.376177 Updated bestMove to b1c3 with score 0
+[NGN DEBUG] 2025/08/31 13:24:25.376195 Sent info line for depth 2
+[NGN DEBUG] 2025/08/31 13:24:25.376198 === COMPLETED DEPTH 2 ===
+[NGN DEBUG] 2025/08/31 13:24:25.376199 === STARTING DEPTH 3 ===
+[NGN DEBUG] 2025/08/31 13:24:25.376202 ShouldStopSearch(depth=3): false (elapsed: 9.4576ms, allocated: 29.95s)
+[NGN DEBUG] 2025/08/31 13:24:25.376205 Calling SearchFixed for depth 3
+[NGN DEBUG] 2025/08/31 13:25:27.204559 === NGN Chess Engine Starting ===
+[NGN DEBUG] 2025/08/31 13:25:27.204706 Executable path: /home/behrlich/repos/ngn/build/ngn
+[NGN DEBUG] 2025/08/31 13:25:27.204716 Log file directory: /home/behrlich/repos/ngn/build
+[NGN DEBUG] 2025/08/31 13:25:27.204845 handleGo called with args: [depth 4]
+[NGN DEBUG] 2025/08/31 13:25:27.204867 About to set up time management
+[NGN DEBUG] 2025/08/31 13:25:27.204871 Time management set, about to update game state
+[NGN DEBUG] 2025/08/31 13:25:27.204896 About to start search goroutine
+[NGN DEBUG] 2025/08/31 13:25:27.204932 Search goroutine launched
+[NGN DEBUG] 2025/08/31 13:25:27.204946 search() function started with params: {Depth:4 Nodes:0 MoveTime:0 WhiteTime:0 BlackTime:0 WhiteInc:0 BlackInc:0 MovesToGo:0 Infinite:false Ponder:false}
+[NGN DEBUG] 2025/08/31 13:25:27.204976 search initialized, setting flags
+[NGN DEBUG] 2025/08/31 13:25:27.204980 === STARTING DEPTH 1 ===
+[NGN DEBUG] 2025/08/31 13:25:27.204985 ShouldStopSearch(depth=1): false (elapsed: 113.6µs, allocated: 29.95s)
+[NGN DEBUG] 2025/08/31 13:25:27.204992 Calling SearchFixed for depth 1
+[NGN DEBUG] 2025/08/31 13:25:27.205536 SearchFixed returned: depth=1, bestMove=5640, bestScore=45, nodes=41
+[NGN DEBUG] 2025/08/31 13:25:27.205562 Updated bestMove to a2a4 with score 45
+[NGN DEBUG] 2025/08/31 13:25:27.205583 Sent info line for depth 1
+[NGN DEBUG] 2025/08/31 13:25:27.205588 === COMPLETED DEPTH 1 ===
+[NGN DEBUG] 2025/08/31 13:25:27.205592 === STARTING DEPTH 2 ===
+[NGN DEBUG] 2025/08/31 13:25:27.205596 ShouldStopSearch(depth=2): false (elapsed: 725.4µs, allocated: 29.95s)
+[NGN DEBUG] 2025/08/31 13:25:27.205601 Calling SearchFixed for depth 2
+[NGN DEBUG] 2025/08/31 13:25:27.214375 SearchFixed returned: depth=2, bestMove=9345, bestScore=0, nodes=770
+[NGN DEBUG] 2025/08/31 13:25:27.214409 Updated bestMove to b1c3 with score 0
+[NGN DEBUG] 2025/08/31 13:25:27.214431 Sent info line for depth 2
+[NGN DEBUG] 2025/08/31 13:25:27.214434 === COMPLETED DEPTH 2 ===
+[NGN DEBUG] 2025/08/31 13:25:27.214446 === STARTING DEPTH 3 ===
+[NGN DEBUG] 2025/08/31 13:25:27.214453 ShouldStopSearch(depth=3): false (elapsed: 9.5807ms, allocated: 29.95s)
+[NGN DEBUG] 2025/08/31 13:25:27.214460 Calling SearchFixed for depth 3

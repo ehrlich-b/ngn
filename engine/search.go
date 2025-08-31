@@ -6,10 +6,15 @@ import (
 )
 
 const (
-	INFINITY     = int(math.MaxInt32)
-	MATE_VALUE   = 30000
-	MATE_IN_MAX  = MATE_VALUE - 1000
-	MAX_DEPTH    = 100
+	INFINITY            = int(math.MaxInt32)
+	MATE_VALUE          = 30000
+	MATE_IN_MAX         = MATE_VALUE - 1000
+	MAX_DEPTH           = 100
+	NULL_MOVE_R         = 3  // Null move reduction depth
+	NULL_MOVE_MIN_DEPTH = 3  // Minimum depth for null move pruning
+	LMR_FULL_DEPTH      = 3  // Minimum depth for LMR
+	LMR_MOVE_THRESHOLD  = 3  // Start reducing after this many moves
+	FUTILITY_MARGIN     = 200  // Futility pruning margin
 )
 
 // Search debug logging removed for production
@@ -160,13 +165,58 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		return Evaluate(&pos.Board)
 	}
 	
+	// Mate distance pruning - don't look for mates that are too far away
+	currentDepth := info.Depth - depth
+	mateAlpha := -MATE_VALUE + currentDepth
+	mateBeta := MATE_VALUE - currentDepth - 1
+	
+	if alpha < mateAlpha {
+		alpha = mateAlpha
+	}
+	if beta > mateBeta {
+		beta = mateBeta
+	}
+	if alpha >= beta {
+		return alpha
+	}
+	
 	if depth == 0 {
 		return quiescence(pos, alpha, beta, info)
 	}
 	
+	// Check if we're in check before attempting null move
+	inCheck := isInCheck(pos, pos.Turn())
+	
+	// Futility pruning for leaf nodes (depth 1)
+	var futilityPrune bool
+	var staticEval int
+	if depth == 1 && !inCheck {
+		staticEval = Evaluate(&pos.Board)
+		if staticEval + FUTILITY_MARGIN < alpha {
+			futilityPrune = true
+		}
+	}
+	
+	// Null move pruning - only if we're not in check and depth is sufficient
+	if !inCheck && depth >= NULL_MOVE_MIN_DEPTH && beta - alpha > 1 {
+		// Make the null move
+		oldEP := pos.MakeNullMove()
+		
+		// Search with reduced depth
+		score := -alphaBeta(pos, depth-NULL_MOVE_R-1, -beta, -beta+1, info)
+		
+		// Unmake the null move
+		pos.UnMakeNullMove(oldEP)
+		
+		// If null move search caused a beta cutoff, we can prune
+		if score >= beta {
+			return beta
+		}
+	}
+	
 	moves := GenerateLegalMoves(pos)
 	if len(moves) == 0 {
-		if isInCheck(pos, pos.Turn()) {
+		if inCheck {
 			return -MATE_VALUE + (info.Depth - depth)
 		}
 		return 0
@@ -174,10 +224,46 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 	
 	orderedMoves := orderMoves(moves)
 	bestScore := -INFINITY
+	moveCount := 0
 	
 	for _, move := range orderedMoves {
+		moveCount++
+		
+		// Futility pruning - skip quiet moves if position is hopeless
+		if futilityPrune && !move.IsCapture() {
+			continue
+		}
+		
 		ep, tag, hc, _ := pos.MakeMove(move)
-		score := -alphaBeta(pos, depth-1, -beta, -alpha, info)
+		
+		var score int
+		
+		// Check for check extensions
+		givesCheck := isInCheck(pos, pos.Turn())
+		extension := 0
+		if givesCheck {
+			extension = 1  // Extend search by 1 ply when giving check
+		}
+		
+		// Late Move Reductions (LMR)
+		if depth >= LMR_FULL_DEPTH && moveCount > LMR_MOVE_THRESHOLD && 
+		   !move.IsCapture() && !inCheck && !givesCheck {
+			
+			// Reduce depth by 1 for late moves
+			reduction := 1
+			
+			// Try reduced depth search first
+			score = -alphaBeta(pos, depth-1-reduction+extension, -alpha-1, -alpha, info)
+			
+			// If reduced search suggests the move might be good, do full search
+			if score > alpha {
+				score = -alphaBeta(pos, depth-1+extension, -beta, -alpha, info)
+			}
+		} else {
+			// Full depth search for important moves
+			score = -alphaBeta(pos, depth-1+extension, -beta, -alpha, info)
+		}
+		
 		pos.UnMakeMove(move, tag, ep, hc)
 		
 		info.Nodes++

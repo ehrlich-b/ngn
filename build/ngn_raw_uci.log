@@ -26,3 +26,59 @@
 2025/08/31 13:10:47.572175 <<< info depth 1 score cp 45 nodes 41 time 0 pv a2a4
 2025/08/31 13:10:47.581741 <<< info depth 2 score cp 0 nodes 766 time 10 pv b1c3
 2025/08/31 13:10:47.581982 >>> quit
+2025/08/31 13:22:40.996214 === RAW UCI MESSAGE LOG ===
+2025/08/31 13:22:40.996221 Format: >>> = sent to engine, <<< = sent from engine
+2025/08/31 13:22:40.996250 >>> uci
+2025/08/31 13:22:40.996255 <<< id name ngn 0.1.0
+2025/08/31 13:22:40.996264 <<< id author ngn team
+2025/08/31 13:22:40.996268 <<< option name Hash type spin default 128 min 1 max 1024
+2025/08/31 13:22:40.996271 <<< option name Threads type spin default 1 min 1 max 64
+2025/08/31 13:22:40.996275 <<< option name Move Overhead type spin default 100 min 0 max 5000
+2025/08/31 13:22:40.996279 <<< uciok
+2025/08/31 13:22:40.996283 >>> position startpos
+2025/08/31 13:22:40.996286 >>> go depth 3
+2025/08/31 13:22:40.996720 <<< info depth 1 score cp 45 nodes 41 time 0 pv a2a4
+2025/08/31 13:22:41.001952 <<< info depth 2 score cp 0 nodes 766 time 5 pv b1c3
+2025/08/31 13:22:41.006607 >>> quit
+2025/08/31 13:23:29.014159 === RAW UCI MESSAGE LOG ===
+2025/08/31 13:23:29.014166 Format: >>> = sent to engine, <<< = sent from engine
+2025/08/31 13:23:29.014192 >>> uci
+2025/08/31 13:23:29.014198 <<< id name ngn 0.1.0
+2025/08/31 13:23:29.014206 <<< id author ngn team
+2025/08/31 13:23:29.014210 <<< option name Hash type spin default 128 min 1 max 1024
+2025/08/31 13:23:29.014214 <<< option name Threads type spin default 1 min 1 max 64
+2025/08/31 13:23:29.014217 <<< option name Move Overhead type spin default 100 min 0 max 5000
+2025/08/31 13:23:29.014221 <<< uciok
+2025/08/31 13:23:29.014225 >>> position startpos
+2025/08/31 13:23:29.014228 >>> go depth 4
+2025/08/31 13:23:29.014728 <<< info depth 1 score cp 45 nodes 41 time 0 pv a2a4
+2025/08/31 13:23:29.022221 <<< info depth 2 score cp 0 nodes 766 time 7 pv b1c3
+2025/08/31 13:23:29.024525 >>> quit
+2025/08/31 13:24:25.366639 === RAW UCI MESSAGE LOG ===
+2025/08/31 13:24:25.366646 Format: >>> = sent to engine, <<< = sent from engine
+2025/08/31 13:24:25.366675 >>> uci
+2025/08/31 13:24:25.366680 <<< id name ngn 0.1.0
+2025/08/31 13:24:25.366688 <<< id author ngn team
+2025/08/31 13:24:25.366692 <<< option name Hash type spin default 128 min 1 max 1024
+2025/08/31 13:24:25.366696 <<< option name Threads type spin default 1 min 1 max 64
+2025/08/31 13:24:25.366699 <<< option name Move Overhead type spin default 100 min 0 max 5000
+2025/08/31 13:24:25.366703 <<< uciok
+2025/08/31 13:24:25.366707 >>> position startpos
+2025/08/31 13:24:25.366722 >>> go depth 4
+2025/08/31 13:24:25.367137 <<< info depth 1 score cp 45 nodes 41 time 0 pv a2a4
+2025/08/31 13:24:25.376184 <<< info depth 2 score cp 0 nodes 766 time 9 pv b1c3
+2025/08/31 13:24:25.377086 >>> quit
+2025/08/31 13:25:27.204738 === RAW UCI MESSAGE LOG ===
+2025/08/31 13:25:27.204748 Format: >>> = sent to engine, <<< = sent from engine
+2025/08/31 13:25:27.204785 >>> uci
+2025/08/31 13:25:27.204794 <<< id name ngn 0.1.0
+2025/08/31 13:25:27.204806 <<< id author ngn team
+2025/08/31 13:25:27.204813 <<< option name Hash type spin default 128 min 1 max 1024
+2025/08/31 13:25:27.204818 <<< option name Threads type spin default 1 min 1 max 64
+2025/08/31 13:25:27.204824 <<< option name Move Overhead type spin default 100 min 0 max 5000
+2025/08/31 13:25:27.204830 <<< uciok
+2025/08/31 13:25:27.204836 >>> position startpos
+2025/08/31 13:25:27.204841 >>> go depth 4
+2025/08/31 13:25:27.205573 <<< info depth 1 score cp 45 nodes 41 time 0 pv a2a4
+2025/08/31 13:25:27.214417 <<< info depth 2 score cp 0 nodes 770 time 9 pv b1c3
+2025/08/31 13:25:27.215275 >>> quit

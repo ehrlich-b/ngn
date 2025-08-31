@@ -105,11 +105,11 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 ## Phase 3: Tactical Strength (Expert Level ~2000)
 
 ### 3.1 Enhanced Search
-- [ ] Null move pruning for position evaluation
-- [ ] Late move reductions (LMR) for search efficiency
-- [ ] Futility pruning in leaf nodes
-- [ ] Check extensions in search
-- [ ] Mate distance pruning
+- [x] Null move pruning for position evaluation
+- [x] Late move reductions (LMR) for search efficiency
+- [x] Futility pruning in leaf nodes
+- [x] Check extensions in search
+- [x] Mate distance pruning
 
 ### 3.2 Improved Move Ordering
 - [ ] History heuristic for quiet moves
