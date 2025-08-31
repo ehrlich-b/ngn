@@ -60,23 +60,23 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 - [x] Integrate existing transposition table into search
 
 ### 1.3 Basic Evaluation Function
-- [ ] Material counting with piece values
-- [ ] Piece-square tables for positional evaluation
-- [ ] Basic pawn structure evaluation (doubled, isolated, passed pawns)
-- [ ] King safety evaluation (simple version)
-- [ ] Mobility evaluation (number of legal moves)
+- [x] Material counting with piece values
+- [x] Piece-square tables for positional evaluation
+- [x] Basic pawn structure evaluation (doubled, isolated, passed pawns)
+- [x] King safety evaluation (simple version)
+- [x] Mobility evaluation (number of legal moves)
 
 ## Phase 2: Engine Interface and Testing (Playability)
 
 ### 2.1 UCI Protocol Implementation
-- [ ] Implement UCI (Universal Chess Interface) protocol
-  - [ ] `uci` command and engine identification
-  - [ ] `isready` and `readyok` commands
-  - [ ] `position` command (fen, startpos, moves)
-  - [ ] `go` command with time controls
-  - [ ] `stop` and `quit` commands
-- [ ] Add FEN (Forsyth-Edwards Notation) parsing and generation
-- [ ] Implement algebraic notation move parsing
+- [x] Implement UCI (Universal Chess Interface) protocol
+  - [x] `uci` command and engine identification
+  - [x] `isready` and `readyok` commands
+  - [x] `position` command (fen, startpos, moves)
+  - [x] `go` command with time controls
+  - [x] `stop` and `quit` commands
+- [x] Add FEN (Forsyth-Edwards Notation) parsing and generation
+- [x] Implement algebraic notation move parsing
 
 ### 2.2 Time Management
 - [ ] Basic time management algorithm

@@ -1,7 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"os"
+	
+	"github.com/ehrlich-b/ngn/engine"
+)
 
 func main() {
-	fmt.Println("Hello world")
+	uciEngine := engine.NewUCIEngine()
+	uciEngine.Run(os.Stdin, os.Stdout)
 }
