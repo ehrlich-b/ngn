@@ -4,6 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"log"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -18,10 +21,45 @@ type UCIEngine struct {
 	engineName   string
 	engineAuthor string
 	version      string
+	timeManager  *TimeManager
+	movesPlayed  int
+	lastScore    int
+	debugLogger  *log.Logger
+	rawUCILogger *log.Logger
 }
 
 // NewUCIEngine creates a new UCI engine instance
 func NewUCIEngine() *UCIEngine {
+	// Set up debug logging to file in executable directory
+	execPath, err := os.Executable()
+	if err != nil {
+		execPath = "./ngn" // fallback
+	}
+	execDir := filepath.Dir(execPath)
+	logFile, err := os.OpenFile(filepath.Join(execDir, "ngn_debug.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	var logger *log.Logger
+	if err != nil {
+		// Fallback to stdout if can't create log file
+		logger = log.New(os.Stdout, "[NGN DEBUG] ", log.LstdFlags|log.Lmicroseconds)
+	} else {
+		logger = log.New(logFile, "[NGN DEBUG] ", log.LstdFlags|log.Lmicroseconds)
+	}
+	
+	logger.Println("=== NGN Chess Engine Starting ===")
+	logger.Printf("Executable path: %s", execPath)
+	logger.Printf("Log file directory: %s", execDir)
+	
+	// Also create raw UCI message logger
+	uciLogFile, err := os.OpenFile(filepath.Join(execDir, "ngn_raw_uci.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	var rawUCILogger *log.Logger
+	if err != nil {
+		rawUCILogger = logger // fallback to main logger
+	} else {
+		rawUCILogger = log.New(uciLogFile, "", log.LstdFlags|log.Lmicroseconds)
+	}
+	rawUCILogger.Println("=== RAW UCI MESSAGE LOG ===")
+	rawUCILogger.Println("Format: >>> = sent to engine, <<< = sent from engine")
+	
 	return &UCIEngine{
 		position:     newUCIStartingPosition(),
 		searching:    false,
@@ -30,7 +68,18 @@ func NewUCIEngine() *UCIEngine {
 		engineName:   "ngn",
 		engineAuthor: "ngn team",
 		version:      "0.1.0",
+		timeManager:  NewTimeManager(),
+		movesPlayed:  0,
+		lastScore:    0,
+		debugLogger:  logger,
+		rawUCILogger: rawUCILogger,
 	}
+}
+
+// sendUCIMessage sends a UCI message and logs it
+func (uci *UCIEngine) sendUCIMessage(output io.Writer, message string) {
+	uci.rawUCILogger.Printf("<<< %s", message)
+	fmt.Fprintln(output, message)
 }
 
 // Helper function to create starting position
@@ -52,6 +101,9 @@ func (uci *UCIEngine) Run(input io.Reader, output io.Writer) {
 		if command == "" {
 			continue
 		}
+		
+		// Log raw UCI input
+		uci.rawUCILogger.Printf(">>> %s", command)
 		
 		if uci.debugMode {
 			fmt.Fprintf(output, "info string received: %s\n", command)
@@ -103,15 +155,15 @@ func (uci *UCIEngine) handleCommand(command string, output io.Writer) {
 
 // handleUCI responds to the uci command
 func (uci *UCIEngine) handleUCI(output io.Writer) {
-	fmt.Fprintf(output, "id name %s %s\n", uci.engineName, uci.version)
-	fmt.Fprintf(output, "id author %s\n", uci.engineAuthor)
+	uci.sendUCIMessage(output, fmt.Sprintf("id name %s %s", uci.engineName, uci.version))
+	uci.sendUCIMessage(output, fmt.Sprintf("id author %s", uci.engineAuthor))
 	
 	// Engine options (we can add more later)
-	fmt.Fprintf(output, "option name Hash type spin default 128 min 1 max 1024\n")
-	fmt.Fprintf(output, "option name Threads type spin default 1 min 1 max 64\n")
-	fmt.Fprintf(output, "option name Move Overhead type spin default 100 min 0 max 5000\n")
+	uci.sendUCIMessage(output, "option name Hash type spin default 128 min 1 max 1024")
+	uci.sendUCIMessage(output, "option name Threads type spin default 1 min 1 max 64")
+	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
 	
-	fmt.Fprintf(output, "uciok\n")
+	uci.sendUCIMessage(output, "uciok")
 }
 
 // handleDebug handles debug mode toggle
@@ -128,7 +180,7 @@ func (uci *UCIEngine) handleDebug(args []string, output io.Writer) {
 
 // handleIsReady responds to isready command
 func (uci *UCIEngine) handleIsReady(output io.Writer) {
-	fmt.Fprintf(output, "readyok\n")
+	uci.sendUCIMessage(output, "readyok")
 }
 
 // handleSetOption handles option setting (placeholder for now)
@@ -150,6 +202,11 @@ func (uci *UCIEngine) handleNewGame(output io.Writer) {
 	uci.position = newUCIStartingPosition()
 	// Clear transposition table for new game
 	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	
+	// Reset game state
+	uci.movesPlayed = 0
+	uci.lastScore = 0
+	uci.timeManager = NewTimeManager()
 	
 	if uci.debugMode {
 		fmt.Fprintf(output, "info string new game started\n")
@@ -190,6 +247,7 @@ func (uci *UCIEngine) handlePosition(args []string, output io.Writer) {
 	// Handle moves if present
 	if len(args) >= 2 && args[0] == "moves" {
 		moves := args[1:]
+		uci.movesPlayed = 0 // Reset move counter
 		for _, moveStr := range moves {
 			move, err := ParseAlgebraicMove(moveStr, uci.position)
 			if err != nil {
@@ -201,6 +259,7 @@ func (uci *UCIEngine) handlePosition(args []string, output io.Writer) {
 			
 			// Make the move
 			_, _, _, _ = uci.position.MakeMove(move)
+			uci.movesPlayed++
 		}
 	}
 }
@@ -221,7 +280,15 @@ type SearchParams struct {
 
 // handleGo handles the go command
 func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
+	uci.debugLogger.Printf("handleGo called with args: %v", args)
+	if uci.debugMode {
+		fmt.Fprintf(output, "info string handleGo called\n")
+	}
 	if uci.searching {
+		uci.debugLogger.Println("Already searching, returning")
+		if uci.debugMode {
+			fmt.Fprintf(output, "info string already searching, returning\n")
+		}
 		return // Already searching
 	}
 	
@@ -296,66 +363,166 @@ func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
 		}
 	}
 	
+	// Configure time management
+	uci.debugLogger.Println("About to set up time management")
+	if uci.debugMode {
+		fmt.Fprintf(output, "info string setting up time management\n")
+	}
+	uci.timeManager.SetTimeControl(params, uci.position.Turn() == White)
+	uci.debugLogger.Println("Time management set, about to update game state")
+	if uci.debugMode {
+		fmt.Fprintf(output, "info string updating game state\n")
+	}
+	uci.timeManager.UpdateGameState(uci.movesPlayed, uci.lastScore, uci.lastScore, uci.position)
+	
 	// Start search in goroutine
+	uci.debugLogger.Println("About to start search goroutine")
+	if uci.debugMode {
+		fmt.Fprintf(output, "info string starting search goroutine\n")
+	}
 	go uci.search(params, output)
+	uci.debugLogger.Println("Search goroutine launched")
+	
+	// Give goroutine a moment to start (important for UCI)
+	time.Sleep(10 * time.Millisecond)
 }
 
 // search performs the actual search
 func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
+	uci.debugLogger.Printf("search() function started with params: %+v", params)
+	if uci.debugMode {
+		fmt.Fprintf(output, "info string search() function started\n")
+	}
 	uci.searching = true
-	defer func() { uci.searching = false }()
+	defer func() { 
+		uci.searching = false
+		uci.debugLogger.Println("search() function completed")
+	}()
 	
-	startTime := time.Now()
+	uci.debugLogger.Println("search initialized, setting flags")
+	if uci.debugMode {
+		fmt.Fprintf(output, "info string search initialized\n")
+	}
 	
-	// Calculate search depth based on time if not specified
-	searchDepth := params.Depth
-	if params.MoveTime > 0 {
-		// Simple time-to-depth heuristic
-		if params.MoveTime < 1000 {
-			searchDepth = 4
-		} else if params.MoveTime < 5000 {
-			searchDepth = 5
-		} else {
-			searchDepth = 6
-		}
+	// Determine maximum search depth
+	maxDepth := params.Depth
+	if maxDepth <= 0 {
+		maxDepth = 64 // Default max depth for iterative deepening
+	}
+	
+	// Initialize search variables
+	var bestMove Move
+	var bestScore int
+	lastIterationScore := uci.lastScore
+	
+	if uci.debugMode {
+		fmt.Fprintf(output, "info string time control: %s, allocated: %dms\n", 
+			uci.timeManager.GetTimeControlString(), 
+			uci.timeManager.GetAllocatedTime().Milliseconds())
+	}
+	
+	// Debug: Always output what we're doing
+	if uci.debugMode {
+		fmt.Fprintf(output, "info string starting search, maxDepth=%d\n", maxDepth)
 	}
 	
 	// Perform iterative deepening search
-	var bestMove Move
-	var bestScore int
-	
-	for depth := 1; depth <= searchDepth; depth++ {
-		// Check if we should stop
+	for depth := 1; depth <= maxDepth; depth++ {
+		iterationStart := time.Now()
+		uci.debugLogger.Printf("=== STARTING DEPTH %d ===", depth)
+		
+		if uci.debugMode {
+			fmt.Fprintf(output, "info string searching depth %d\n", depth)
+		}
+		
+		// Check if we should stop due to external stop command
 		select {
 		case <-uci.stopChan:
-			break
+			uci.debugLogger.Printf("STOP COMMAND received, going to searchComplete")
+			if uci.debugMode {
+				fmt.Fprintf(output, "info string stopped by stop command\n")
+			}
+			goto searchComplete
 		default:
 		}
 		
-		// Check time limit
-		elapsed := time.Since(startTime)
-		if params.MoveTime > 0 && elapsed.Milliseconds() >= int64(params.MoveTime*3/4) {
+		// Check if we should stop due to time constraints
+		shouldStop := uci.timeManager.ShouldStopSearch(depth, iterationStart)
+		uci.debugLogger.Printf("ShouldStopSearch(depth=%d): %v (elapsed: %v, allocated: %v)", 
+			depth, shouldStop, uci.timeManager.GetElapsedTime(), uci.timeManager.GetAllocatedTime())
+		if shouldStop {
+			uci.debugLogger.Printf("TIME LIMIT: stopping at depth %d", depth-1)
+			if uci.debugMode {
+				fmt.Fprintf(output, "info string stopping search at depth %d due to time\n", depth-1)
+			}
 			break
 		}
 		
-		info := Search(uci.position, depth)
+		// Perform search at current depth
+		uci.debugLogger.Printf("Calling SearchFixed for depth %d", depth)
+		info := SearchFixed(uci.position, depth)
+		uci.debugLogger.Printf("SearchFixed returned: depth=%d, bestMove=%v, bestScore=%d, nodes=%d", 
+			depth, info.BestMove, info.BestScore, info.Nodes)
+		
 		if info.BestMove != EmptyMove {
 			bestMove = info.BestMove
 			bestScore = info.BestScore
+			uci.debugLogger.Printf("Updated bestMove to %v with score %d", bestMove.ToString(), bestScore)
+			
+			// Update time manager with score change
+			uci.timeManager.UpdateGameState(uci.movesPlayed, lastIterationScore, bestScore, uci.position)
+			lastIterationScore = bestScore
 			
 			// Send search info
-			fmt.Fprintf(output, "info depth %d score cp %d nodes %d time %d pv %s\n",
+			elapsed := uci.timeManager.GetElapsedTime()
+			infoMsg := fmt.Sprintf("info depth %d score cp %d nodes %d time %d pv %s",
 				depth, bestScore, info.Nodes, elapsed.Milliseconds(), bestMove.ToString())
+			uci.sendUCIMessage(output, infoMsg)
+			uci.debugLogger.Printf("Sent info line for depth %d", depth)
+			
+			// Emergency time check
+			if uci.timeManager.IsEmergencyTime() {
+				uci.debugLogger.Printf("EMERGENCY TIME: stopping search")
+				if uci.debugMode {
+					fmt.Fprintf(output, "info string emergency time, stopping search\n")
+				}
+				break
+			}
+		} else {
+			// No legal moves found at this depth, likely mate or stalemate
+			uci.debugLogger.Printf("SearchFixed returned EmptyMove at depth %d, BREAKING", depth)
+			if uci.debugMode {
+				fmt.Fprintf(output, "info string no legal moves found at depth %d\n", depth)
+			}
+			break
 		}
+		uci.debugLogger.Printf("=== COMPLETED DEPTH %d ===", depth)
 	}
 	
+	uci.debugLogger.Printf("=== EXITED SEARCH LOOP, going to searchComplete ===")
+	
+searchComplete:
+	// Update engine state
+	uci.debugLogger.Printf("=== AT searchComplete LABEL ===")
+	uci.debugLogger.Printf("bestMove=%v, bestScore=%d", bestMove, bestScore)
+	uci.lastScore = bestScore
+	uci.movesPlayed++
+	uci.debugLogger.Printf("Updated lastScore=%d, movesPlayed=%d", uci.lastScore, uci.movesPlayed)
+	
 	// Send best move
+	uci.debugLogger.Printf("*** ABOUT TO SEND BESTMOVE ***")
 	if bestMove != EmptyMove {
-		fmt.Fprintf(output, "bestmove %s\n", bestMove.ToString())
+		moveStr := bestMove.ToString()
+		uci.debugLogger.Printf("*** SENDING: bestmove %s ***", moveStr)
+		uci.sendUCIMessage(output, fmt.Sprintf("bestmove %s", moveStr))
+		uci.debugLogger.Printf("*** BESTMOVE SENT SUCCESSFULLY: %s ***", moveStr)
 	} else {
 		// No legal moves (checkmate or stalemate)
-		fmt.Fprintf(output, "bestmove (none)\n")
+		uci.debugLogger.Printf("*** SENDING: bestmove (none) ***")
+		uci.sendUCIMessage(output, "bestmove (none)")
+		uci.debugLogger.Printf("*** BESTMOVE (none) SENT ***")
 	}
+	uci.debugLogger.Printf("=== EXITING search() FUNCTION ===")
 }
 
 // handleStop handles the stop command

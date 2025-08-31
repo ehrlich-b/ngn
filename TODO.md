@@ -79,10 +79,10 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 - [x] Implement algebraic notation move parsing
 
 ### 2.2 Time Management
-- [ ] Basic time management algorithm
-- [ ] Support for different time controls (bullet, blitz, rapid, classical)
-- [ ] Move time allocation based on game phase
-- [ ] Emergency time handling
+- [x] Basic time management algorithm
+- [x] Support for different time controls (bullet, blitz, rapid, classical)
+- [x] Move time allocation based on game phase
+- [x] Emergency time handling
 
 ### 2.3 Testing Infrastructure
 - [ ] Automated testing against known tactical puzzles

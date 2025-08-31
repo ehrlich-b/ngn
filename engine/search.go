@@ -1,7 +1,10 @@
 package engine
 
 import (
+	"log"
 	"math"
+	"os"
+	"path/filepath"
 )
 
 const (
@@ -10,6 +13,24 @@ const (
 	MATE_IN_MAX  = MATE_VALUE - 1000
 	MAX_DEPTH    = 100
 )
+
+var searchDebugLogger *log.Logger
+
+func init() {
+	// Set up search debug logging
+	execPath, err := os.Executable()
+	if err != nil {
+		execPath = "./ngn"
+	}
+	execDir := filepath.Dir(execPath)
+	logFile, err := os.OpenFile(filepath.Join(execDir, "ngn_search_debug.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		searchDebugLogger = log.New(os.Stdout, "[SEARCH DEBUG] ", log.LstdFlags|log.Lmicroseconds)
+	} else {
+		searchDebugLogger = log.New(logFile, "[SEARCH DEBUG] ", log.LstdFlags|log.Lmicroseconds)
+	}
+	searchDebugLogger.Println("=== Search Debug Logger Initialized ===")
+}
 
 type SearchInfo struct {
 	Nodes     uint64
@@ -82,8 +103,10 @@ func SearchIterativeDeepening(pos *Position, maxDepth int) *SearchInfo {
 }
 
 func SearchFixed(pos *Position, depth int) *SearchInfo {
+	searchDebugLogger.Printf(">>> SearchFixed depth=%d", depth)
+	
 	info := &SearchInfo{
-		Nodes:     0,
+		Nodes:     0,  // Fresh node count for each depth
 		Depth:     depth,
 		BestMove:  EmptyMove,
 		BestScore: -INFINITY,
@@ -100,12 +123,24 @@ func SearchFixed(pos *Position, depth int) *SearchInfo {
 		} else {
 			info.BestScore = 0
 		}
+		searchDebugLogger.Printf("<<< SearchFixed EXIT no moves, score=%d", info.BestScore)
 		return info
 	}
 	
 	orderedMoves := orderMoves(moves)
 	
-	for _, move := range orderedMoves {
+	for i, move := range orderedMoves {
+		// Check if search was stopped
+		if info.Stopped {
+			searchDebugLogger.Printf("Search stopped at move %d", i+1)
+			break
+		}
+		
+		// Log every move at depth 4+ to catch hangs
+		if depth >= 4 {
+			searchDebugLogger.Printf("Processing move %d/%d: %v", i+1, len(orderedMoves), move.ToString())
+		}
+		
 		ep, tag, hc, _ := pos.MakeMove(move)
 		score := -alphaBeta(pos, depth-1, -beta, -alpha, info)
 		pos.UnMakeMove(move, tag, ep, hc)
@@ -126,29 +161,20 @@ func SearchFixed(pos *Position, depth int) *SearchInfo {
 		}
 	}
 	
+	searchDebugLogger.Printf("<<< SearchFixed EXIT: depth=%d, bestMove=%v, score=%d, nodes=%d", depth, info.BestMove.ToString(), info.BestScore, info.Nodes)
 	return info
 }
 
 func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) int {
-	originalAlpha := alpha
-	hash := pos.Hash()
+	// Safety checks - much higher limit
+	if info.Nodes > 500000 { // 500K nodes - 10x higher
+		info.Stopped = true  // Mark search as stopped
+		return Evaluate(&pos.Board)
+	}
 	
-	// Probe transposition table
-	ttMove, ttEval, ttDepth, ttNodeType, ttFound := TranspositionTable.Get(hash)
-	
-	if ttFound && ttDepth >= int8(depth) {
-		switch ttNodeType {
-		case Exact:
-			return int(ttEval)
-		case LowerBound:
-			if int(ttEval) >= beta {
-				return int(ttEval)
-			}
-		case UpperBound:
-			if int(ttEval) <= alpha {
-				return int(ttEval)
-			}
-		}
+	if depth > 20 {
+		searchDebugLogger.Printf("ABORT: depth limit exceeded (depth %d)", depth)
+		return Evaluate(&pos.Board)
 	}
 	
 	if depth == 0 {
@@ -164,19 +190,6 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 	}
 	
 	orderedMoves := orderMoves(moves)
-	
-	// Try hash move first if we have one
-	if ttFound && ttMove != EmptyMove {
-		// Move hash move to front
-		for i, move := range orderedMoves {
-			if move == ttMove {
-				orderedMoves[0], orderedMoves[i] = orderedMoves[i], orderedMoves[0]
-				break
-			}
-		}
-	}
-	
-	bestMove := EmptyMove
 	bestScore := -INFINITY
 	
 	for _, move := range orderedMoves {
@@ -188,12 +201,9 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		
 		if score > bestScore {
 			bestScore = score
-			bestMove = move
 		}
 		
 		if score >= beta {
-			// Store as lower bound (beta cutoff)
-			TranspositionTable.Set(hash, bestMove, int16(score), int8(depth), LowerBound)
 			return score
 		}
 		
@@ -202,23 +212,21 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 	}
 	
-	// Store in transposition table
-	var nodeType NodeType
-	if bestScore <= originalAlpha {
-		nodeType = UpperBound
-	} else {
-		nodeType = Exact
-	}
-	
-	TranspositionTable.Set(hash, bestMove, int16(bestScore), int8(depth), nodeType)
-	
 	return bestScore
 }
 
 func quiescence(pos *Position, alpha int, beta int, info *SearchInfo) int {
+	return quiescenceWithDepth(pos, alpha, beta, info, 0)
+}
+
+func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, qDepth int) int {
+	// Prevent infinite recursion - CRITICAL SAFETY CHECK
+	if qDepth >= 2 { // Ultra aggressive limit - only 2 levels of quiescence
+		return Evaluate(&pos.Board)
+	}
+	
 	// Stand pat - evaluate current position
 	standPat := Evaluate(&pos.Board)
-	
 	info.Nodes++
 	
 	if standPat >= beta {
@@ -242,7 +250,7 @@ func quiescence(pos *Position, alpha int, beta int, info *SearchInfo) int {
 		
 		// Include moves that give check
 		ep, tag, hc, _ := pos.MakeMove(move)
-		inCheck := isInCheck(pos, pos.Turn().Other())
+		inCheck := isInCheck(pos, pos.Turn())
 		pos.UnMakeMove(move, tag, ep, hc)
 		
 		if inCheck {
@@ -253,7 +261,7 @@ func quiescence(pos *Position, alpha int, beta int, info *SearchInfo) int {
 	// Search captures and checks
 	for _, move := range capturesAndChecks {
 		ep, tag, hc, _ := pos.MakeMove(move)
-		score := -quiescence(pos, -beta, -alpha, info)
+		score := -quiescenceWithDepth(pos, -beta, -alpha, info, qDepth+1)
 		pos.UnMakeMove(move, tag, ep, hc)
 		
 		if score >= beta {

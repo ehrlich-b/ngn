@@ -28,6 +28,14 @@ build-release: ## Build optimized release binary
 	go build -ldflags="-s -w" -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_FILE)
 	@echo "Built release: $(BUILD_DIR)/$(BINARY_NAME)"
 
+.PHONY: build-windows
+build-windows: ## Build Windows executable for Arena Chess
+	@echo "Building $(BINARY_NAME) for Windows..."
+	@mkdir -p "/mnt/c/Users/behrlich/Desktop/ngn"
+	GOOS=windows GOARCH=amd64 go build -o "/mnt/c/Users/behrlich/Desktop/ngn/$(BINARY_NAME).exe" $(MAIN_FILE)
+	@echo "Built Windows executable: C:\\\\Users\\\\behrlich\\\\Desktop\\\\ngn\\\\$(BINARY_NAME).exe"
+	@echo "Ready for Arena Chess! Point Arena to the .exe file above."
+
 # Test commands
 .PHONY: test
 test: ## Run all tests with coverage
@@ -131,6 +139,20 @@ ci: install-tools check build ## Run continuous integration pipeline
 run: build ## Build and run the engine
 	@echo "Running $(BINARY_NAME)..."
 	./$(BUILD_DIR)/$(BINARY_NAME)
+
+# Test harness commands
+.PHONY: test-harness
+test-harness: build ## Run automated UCI test harness with tournament positions
+	@echo "Running UCI test harness..."
+	cd cmd/test-harness && go run main.go
+
+.PHONY: simple-test
+simple-test: build ## Run simple UCI tests with basic positions
+	@echo "Running simple UCI tests..."
+	cd cmd/simple-test && go run main.go
+
+.PHONY: test-engine
+test-engine: simple-test ## Alias for simple-test (quick engine validation)
 
 # Debug and profiling
 .PHONY: debug

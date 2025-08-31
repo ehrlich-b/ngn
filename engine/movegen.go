@@ -385,7 +385,20 @@ func generateSlidingMoves(pos *Position, from Square, directions []int) []Move {
 // generateKingMoves generates moves for a king at the given square (including castling)
 func generateKingMoves(pos *Position, piece Piece) []Move {
 	moves := make([]Move, 0, 8)
-	kingSquare := Square(bits.TrailingZeros64(pos.Board.GetBitboardOf(piece)))
+	kingBitboard := pos.Board.GetBitboardOf(piece)
+	
+	// Check if king exists on the board
+	if kingBitboard == 0 {
+		return moves // No king found, return empty moves
+	}
+	
+	kingSquare := Square(bits.TrailingZeros64(kingBitboard))
+	
+	// Additional safety check (should never happen with valid positions)
+	if kingSquare > 63 {
+		return moves
+	}
+	
 	attacks := KingAttacks[kingSquare]
 	friendlyPieces := pos.Board.GetWhitePieces()
 	if piece.Color() == Black {
@@ -544,6 +557,11 @@ func isInCheck(pos *Position, color Color) bool {
 	}
 	
 	kingSquare := Square(bits.TrailingZeros64(kingBitboard))
+	
+	// Safety check for valid square
+	if kingSquare > 63 {
+		return false // Invalid square
+	}
 	
 	// Check if any enemy piece can attack the king
 	enemyColor := color.Other()
