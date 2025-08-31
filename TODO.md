@@ -42,15 +42,15 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 ## Phase 1: Core Engine Functionality (Foundation)
 
 ### 1.1 Move Generation
-- [ ] Implement pseudo-legal move generation for all piece types
-  - [ ] Pawn moves (single, double, captures, en passant)
-  - [ ] Knight moves using precomputed attack tables
-  - [ ] Bishop/Rook sliding piece moves with magic bitboards or rays
-  - [ ] Queen moves (combination of bishop + rook)
-  - [ ] King moves (single square + castling)
+- [x] Implement pseudo-legal move generation for all piece types
+  - [x] Pawn moves (single, double, captures, en passant)
+  - [x] Knight moves using precomputed attack tables
+  - [x] Bishop/Rook sliding piece moves with proper bounds checking
+  - [x] Queen moves (combination of bishop + rook)
+  - [x] King moves (single square + castling)
+- [x] Create move generation tests with known positions
+- [x] Add perft (performance test) function for move generation validation  
 - [ ] Implement legal move validation (filtering out moves that leave king in check)
-- [ ] Create move generation tests with known positions
-- [ ] Add perft (performance test) function for move generation validation
 
 ### 1.2 Basic Search Algorithm
 - [ ] Implement minimax search with alpha-beta pruning

@@ -190,12 +190,47 @@ func PrintPosition(pos *Position) string {
 
 // RunPerftTest runs a perft test and returns the result
 func RunPerftTest(position *Position, depth int) PerftResult {
-	// TODO: Implement perft testing once move generation is available
-	// For now, return a dummy result
-	return PerftResult{
-		Depth: depth,
-		Nodes: 0,
+	result := PerftResult{Depth: depth}
+	
+	if depth == 0 {
+		result.Nodes = 1
+		return result
 	}
+	
+	moves := GenerateMoves(position)
+	
+	for _, move := range moves {
+		if IsLegalMove(position, move) {
+			// Make the move
+			ep, tag, hc, _ := position.MakeMove(move)
+			
+			// Recursively count nodes
+			subResult := RunPerftTest(position, depth-1)
+			result.Nodes += subResult.Nodes
+			
+			// Count move types at leaf nodes
+			if depth == 1 {
+				if move.IsCapture() {
+					result.Captures++
+				}
+				if move.IsEnPassant() {
+					result.EnPassant++
+				}
+				if move.IsCastle() {
+					result.Castles++
+				}
+				if move.PromoType() != NoType {
+					result.Promotions++
+				}
+				// TODO: Add check and checkmate detection
+			}
+			
+			// Unmake the move
+			position.UnMakeMove(move, tag, ep, hc)
+		}
+	}
+	
+	return result
 }
 
 // ValidatePerftResult validates that a perft result matches expectations
@@ -232,14 +267,10 @@ func BenchmarkFunction(b *testing.B, fn func()) {
 
 // GenerateTestMoves generates test moves for a given position
 func GenerateTestMoves(pos *Position) []Move {
-	// TODO: Implement move generation
-	// For now, return empty slice
-	return []Move{}
+	return GenerateMoves(pos)
 }
 
-// IsLegalMove checks if a move is legal in the given position
-func IsLegalMove(pos *Position, move Move) bool {
-	// TODO: Implement legal move validation
-	// For now, return false
-	return false
+// IsTestLegalMove checks if a move is legal in the given position
+func IsTestLegalMove(pos *Position, move Move) bool {
+	return IsLegalMove(pos, move)
 }
