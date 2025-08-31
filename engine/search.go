@@ -2,6 +2,7 @@ package engine
 
 import (
 	"math"
+	"time"
 )
 
 const (
@@ -14,11 +15,12 @@ const (
 // Search debug logging removed for production
 
 type SearchInfo struct {
-	Nodes     uint64
-	Depth     int
-	BestMove  Move
-	BestScore int
-	Stopped   bool
+	Nodes       uint64
+	Depth       int
+	BestMove    Move
+	BestScore   int
+	Stopped     bool
+	TimeManager *TimeManager
 }
 
 func Search(pos *Position, depth int) *SearchInfo {
@@ -83,14 +85,15 @@ func SearchIterativeDeepening(pos *Position, maxDepth int) *SearchInfo {
 	return info
 }
 
-func SearchFixed(pos *Position, depth int) *SearchInfo {
+func SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
 	
 	info := &SearchInfo{
-		Nodes:     0,  // Fresh node count for each depth
-		Depth:     depth,
-		BestMove:  EmptyMove,
-		BestScore: -INFINITY,
-		Stopped:   false,
+		Nodes:       0,  // Fresh node count for each depth
+		Depth:       depth,
+		BestMove:    EmptyMove,
+		BestScore:   -INFINITY,
+		Stopped:     false,
+		TimeManager: timeManager,
 	}
 	
 	alpha := -INFINITY
@@ -143,6 +146,14 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 	if info.Nodes > 50000000 { // 50M nodes
 		info.Stopped = true
 		return Evaluate(&pos.Board)
+	}
+	
+	// Check time limit if we have a time manager (check every 1024 nodes for performance)
+	if info.TimeManager != nil && info.Nodes%1024 == 0 {
+		if info.TimeManager.ShouldStopSearch(depth, time.Now()) {
+			info.Stopped = true
+			return Evaluate(&pos.Board)
+		}
 	}
 	
 	if depth > 64 { // Reasonable max depth

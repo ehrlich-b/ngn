@@ -15,11 +15,19 @@ help: ## Display this help message
 
 # Build commands
 .PHONY: build
-build: ## Build the engine binary
+build: ## Build the engine binary (Linux + Windows)
 	@echo "Building $(BINARY_NAME)..."
 	@mkdir -p $(BUILD_DIR)
 	go build -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_FILE)
 	@echo "Built: $(BUILD_DIR)/$(BINARY_NAME)"
+	@echo "Building $(BINARY_NAME) for Windows..."
+	GOOS=windows GOARCH=amd64 go build -o $(BUILD_DIR)/$(BINARY_NAME).exe $(MAIN_FILE)
+	@echo "Built Windows executable: $(BUILD_DIR)/$(BINARY_NAME).exe"
+	@if [ -w "/mnt/c/Users/behrlich/Desktop/ngn" ] && cp $(BUILD_DIR)/$(BINARY_NAME).exe "/mnt/c/Users/behrlich/Desktop/ngn/" 2>/dev/null; then \
+		echo "Copied to C:\\\\Users\\\\behrlich\\\\Desktop\\\\ngn\\\\$(BINARY_NAME).exe for Arena"; \
+	else \
+		echo "Note: Copy $(BUILD_DIR)/$(BINARY_NAME).exe to your Arena Chess directory manually"; \
+	fi
 
 .PHONY: build-release
 build-release: ## Build optimized release binary

@@ -148,7 +148,7 @@ func TestIterativeDeepening(t *testing.T) {
 	}
 	
 	// Compare with fixed depth search - should get same result
-	infoFixed := SearchFixed(pos, 3)
+	infoFixed := SearchFixed(pos, 3, nil)
 	
 	if info.BestMove != infoFixed.BestMove {
 		t.Errorf("Iterative deepening and fixed depth should find same best move. ID: %s, Fixed: %s", 

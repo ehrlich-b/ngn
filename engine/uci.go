@@ -467,7 +467,7 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 		
 		// Perform search at current depth
 		uci.debugLogger.Printf("Calling SearchFixed for depth %d", depth)
-		info := SearchFixed(uci.position, depth)
+		info := SearchFixed(uci.position, depth, uci.timeManager)
 		uci.debugLogger.Printf("SearchFixed returned: depth=%d, bestMove=%v, bestScore=%d, nodes=%d", 
 			depth, info.BestMove, info.BestScore, info.Nodes)
 		
