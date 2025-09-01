@@ -4,6 +4,12 @@ import "math/bits"
 
 // GenerateMoves generates all pseudo-legal moves for the current position
 func GenerateMoves(pos *Position) []Move {
+	return WrapMoveGeneration("GenerateMoves", func() []Move {
+		return generateMovesUnsafe(pos)
+	}, pos)
+}
+
+func generateMovesUnsafe(pos *Position) []Move {
 	moves := make([]Move, 0, 64)
 	turn := pos.Turn()
 	
@@ -28,7 +34,13 @@ func GenerateMoves(pos *Position) []Move {
 
 // GenerateLegalMoves generates all legal moves for the current position
 func GenerateLegalMoves(pos *Position) []Move {
-	pseudoLegalMoves := GenerateMoves(pos)
+	return WrapMoveGeneration("GenerateLegalMoves", func() []Move {
+		return generateLegalMovesUnsafe(pos)
+	}, pos)
+}
+
+func generateLegalMovesUnsafe(pos *Position) []Move {
+	pseudoLegalMoves := generateMovesUnsafe(pos)
 	legalMoves := make([]Move, 0, len(pseudoLegalMoves))
 	
 	for _, move := range pseudoLegalMoves {
@@ -40,9 +52,15 @@ func GenerateLegalMoves(pos *Position) []Move {
 	return legalMoves
 }
 
-// GenerateCapturesMoves generates only capture moves (for quiescence search)
+// GenerateCaptures generates only capture moves (for quiescence search)
 func GenerateCaptures(pos *Position) []Move {
-	moves := GenerateMoves(pos)
+	return WrapMoveGeneration("GenerateCaptures", func() []Move {
+		return generateCapturesUnsafe(pos)
+	}, pos)
+}
+
+func generateCapturesUnsafe(pos *Position) []Move {
+	moves := generateMovesUnsafe(pos)
 	captures := make([]Move, 0, len(moves))
 	
 	for _, move := range moves {

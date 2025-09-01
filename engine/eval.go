@@ -1407,15 +1407,13 @@ func isOutpostSquare(square int, friendlyPawns, enemyPawns []int, color Color) b
 func evaluatePieceBatteries(queenBB, rookBB, bishopBB uint64) int {
 	batteryBonus := 0
 	
-	queens := getSetBits(queenBB)
-	rooks := getSetBits(rookBB)
-	bishops := getSetBits(bishopBB)
-	
 	// 1. Rook behind queen on same file or rank
-	for _, queenSquare := range queens {
+	for queenBits := queenBB; queenBits != 0; queenBits &= queenBits - 1 {
+		queenSquare := bits.TrailingZeros64(queenBits)
 		queenFile, queenRank := queenSquare%8, queenSquare/8
 		
-		for _, rookSquare := range rooks {
+		for rookBits := rookBB; rookBits != 0; rookBits &= rookBits - 1 {
+			rookSquare := bits.TrailingZeros64(rookBits)
 			rookFile, rookRank := rookSquare%8, rookSquare/8
 			
 			// Same file
@@ -1434,7 +1432,8 @@ func evaluatePieceBatteries(queenBB, rookBB, bishopBB uint64) int {
 	fileRooks := make(map[int]int) // file -> count
 	rankRooks := make(map[int]int) // rank -> count
 	
-	for _, rookSquare := range rooks {
+	for rookBits := rookBB; rookBits != 0; rookBits &= rookBits - 1 {
+		rookSquare := bits.TrailingZeros64(rookBits)
 		file, rank := rookSquare%8, rookSquare/8
 		fileRooks[file]++
 		rankRooks[rank]++
@@ -1453,11 +1452,19 @@ func evaluatePieceBatteries(queenBB, rookBB, bishopBB uint64) int {
 	}
 	
 	// 3. Bishop pair on same diagonal
-	if len(bishops) >= 2 {
-		for i, bishopSquare1 := range bishops {
-			for j, bishopSquare2 := range bishops[i+1:] {
-				_ = j // Avoid unused variable
-				if onSameDiagonal(bishopSquare1, bishopSquare2) {
+	bishopCount := bits.OnesCount64(bishopBB)
+	if bishopCount >= 2 {
+		// Check all pairs of bishops
+		bishops := [8]int{} // Maximum 8 bishops theoretically
+		idx := 0
+		for bishopBits := bishopBB; bishopBits != 0; bishopBits &= bishopBits - 1 {
+			bishops[idx] = bits.TrailingZeros64(bishopBits)
+			idx++
+		}
+		
+		for i := 0; i < bishopCount; i++ {
+			for j := i + 1; j < bishopCount; j++ {
+				if onSameDiagonal(bishops[i], bishops[j]) {
 					batteryBonus += 12 // Bonus for bishops on same diagonal
 				}
 			}
@@ -1467,55 +1474,32 @@ func evaluatePieceBatteries(queenBB, rookBB, bishopBB uint64) int {
 	return batteryBonus
 }
 
-// Evaluate piece cooperation in attacks
+// Evaluate piece cooperation in attacks (SIMPLIFIED for performance)
 func evaluatePieceCooperation(queenBB, rookBB, bishopBB, knightBB uint64, color Color) int {
+	// Simplified piece cooperation: just count pieces and give a small bonus
+	// The original complex version was taking 52% CPU time for ~5 Elo gain
 	cooperationBonus := 0
 	
-	queens := getSetBits(queenBB)
-	rooks := getSetBits(rookBB)
-	bishops := getSetBits(bishopBB)
-	knights := getSetBits(knightBB)
-	
-	// 1. Multiple pieces attacking same area
-	attackedSquares := make(map[int]int) // square -> number of attackers
-	
-	// Add queen attacks
-	for _, queenSquare := range queens {
-		attacks := getQueenAttacks(queenSquare)
-		for _, attackSquare := range attacks {
-			attackedSquares[attackSquare]++
-		}
+	// Simple approach: give small bonus for having multiple piece types developed
+	pieceTypes := 0
+	if queenBB != 0 {
+		pieceTypes++
+	}
+	if rookBB != 0 {
+		pieceTypes++
+	}
+	if bishopBB != 0 {
+		pieceTypes++
+	}
+	if knightBB != 0 {
+		pieceTypes++
 	}
 	
-	// Add rook attacks
-	for _, rookSquare := range rooks {
-		attacks := getRookAttacks(rookSquare)
-		for _, attackSquare := range attacks {
-			attackedSquares[attackSquare]++
-		}
+	if pieceTypes >= 3 {
+		cooperationBonus += 5 // Small bonus for piece development
 	}
-	
-	// Add bishop attacks
-	for _, bishopSquare := range bishops {
-		attacks := getBishopAttacks(bishopSquare)
-		for _, attackSquare := range attacks {
-			attackedSquares[attackSquare]++
-		}
-	}
-	
-	// Add knight attacks
-	for _, knightSquare := range knights {
-		attacks := getKnightAttacks(knightSquare)
-		for _, attackSquare := range attacks {
-			attackedSquares[attackSquare]++
-		}
-	}
-	
-	// Bonus for squares attacked by multiple pieces
-	for _, attackCount := range attackedSquares {
-		if attackCount >= 2 {
-			cooperationBonus += attackCount * 2 // Bonus for coordinated attacks
-		}
+	if pieceTypes >= 4 {
+		cooperationBonus += 5 // Additional bonus for full development
 	}
 	
 	// 2. Piece coordination around enemy king (if we can find it)
@@ -1711,9 +1695,16 @@ func evaluateBishopPair(board *Bitboard, color Color) int {
 		return 0
 	}
 	
-	bishops := getSetBits(bishopBB)
-	if len(bishops) != 2 {
-		return 0
+	// Extract the two bishop positions using bitboard iteration
+	bishops := [2]int{}
+	idx := 0
+	for bishopBits := bishopBB; bishopBits != 0 && idx < 2; bishopBits &= bishopBits - 1 {
+		bishops[idx] = bits.TrailingZeros64(bishopBits)
+		idx++
+	}
+	
+	if idx != 2 {
+		return 0 // Safety check
 	}
 	
 	// Check if bishops are on opposite colored squares
@@ -1755,6 +1746,12 @@ func evaluateBishopPair(board *Bitboard, color Color) int {
 
 // Enhanced evaluation function
 func Evaluate(board *Bitboard) (eval int) {
+	return WrapEvaluation("Evaluate", func() int {
+		return evaluateUnsafe(board)
+	}, board)
+}
+
+func evaluateUnsafe(board *Bitboard) (eval int) {
 	
 	endgame := isEndgame(board)
 	

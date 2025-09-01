@@ -107,6 +107,11 @@ func newUCIStartingPosition() *Position {
 
 // Run starts the UCI engine main loop
 func (uci *UCIEngine) Run(input io.Reader, output io.Writer) {
+	defer GetGlobalCrashHandler().SafeRecover("UCIEngine.Run", map[string]interface{}{
+		"engine_name": uci.engineName,
+		"debug_mode":  uci.debugMode,
+	})
+	
 	scanner := bufio.NewScanner(input)
 	
 	for scanner.Scan() {
@@ -122,7 +127,14 @@ func (uci *UCIEngine) Run(input io.Reader, output io.Writer) {
 			fmt.Fprintf(output, "info string received: %s\n", command)
 		}
 		
-		uci.handleCommand(command, output)
+		// Wrap each command in panic recovery
+		func() {
+			defer GetGlobalCrashHandler().SafeRecover("UCIEngine.handleCommand", map[string]interface{}{
+				"command": command,
+				"time":    time.Now().Format(time.RFC3339),
+			})
+			uci.handleCommand(command, output)
+		}()
 	}
 }
 
@@ -411,6 +423,13 @@ func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
 
 // search performs the actual search
 func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
+	defer GetGlobalCrashHandler().SafeRecover("UCIEngine.search", map[string]interface{}{
+		"params":      params,
+		"position":    GenerateFEN(uci.position),
+		"moves_played": uci.movesPlayed,
+		"searching":   uci.searching,
+	})
+	
 	uci.debugLogger.Printf("search() function started with params: %+v", params)
 	if uci.debugMode {
 		fmt.Fprintf(output, "info string search() function started\n")

@@ -30,10 +30,18 @@ type SearchInfo struct {
 }
 
 func Search(pos *Position, depth int) *SearchInfo {
-	return SearchIterativeDeepening(pos, depth, nil)
+	return WrapSearch("Search", func() *SearchInfo {
+		return SearchIterativeDeepening(pos, depth, nil)
+	}, pos, depth)
 }
 
 func SearchIterativeDeepening(pos *Position, maxDepth int, timeManager *TimeManager) *SearchInfo {
+	return WrapSearch("SearchIterativeDeepening", func() *SearchInfo {
+		return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager)
+	}, pos, maxDepth)
+}
+
+func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager) *SearchInfo {
 	// Advance the age of the transposition table for each search
 	TranspositionTable.AdvanceAge()
 	
@@ -160,6 +168,12 @@ func SearchIterativeDeepening(pos *Position, maxDepth int, timeManager *TimeMana
 }
 
 func SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
+	return WrapSearch("SearchFixed", func() *SearchInfo {
+		return searchFixedUnsafe(pos, depth, timeManager)
+	}, pos, depth)
+}
+
+func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
 	
 	info := &SearchInfo{
 		Nodes:       0,  // Fresh node count for each depth
