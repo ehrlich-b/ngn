@@ -22,6 +22,10 @@ func BenchmarkSearchPerformance(b *testing.B) {
 }
 
 func TestSearchNodesPerSecond(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping performance test in short mode")
+	}
+	
 	positions := []struct {
 		name string
 		fen  string
@@ -30,17 +34,17 @@ func TestSearchNodesPerSecond(t *testing.T) {
 		{
 			name:  "Starting position",
 			fen:   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-			depth: 5,
+			depth: 4, // Reduced depth for faster testing
 		},
 		{
 			name:  "Middlegame position",
 			fen:   "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 0 4",
-			depth: 5,
+			depth: 3, // Reduced depth for faster testing
 		},
 		{
 			name:  "Tactical position",
 			fen:   "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
-			depth: 4,
+			depth: 3, // Reduced depth for faster testing
 		},
 	}
 	
@@ -85,6 +89,10 @@ func TestSearchNodesPerSecond(t *testing.T) {
 }
 
 func TestSearchDepthReached(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping depth reach test in short mode")
+	}
+	
 	// Test what depth we can reach in a reasonable time
 	pos, err := ParseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 	if err != nil {
@@ -98,8 +106,7 @@ func TestSearchDepthReached(t *testing.T) {
 	timeManager.SetTimeControl(params, true)
 	
 	start := time.Now()
-	info := SearchIterativeDeepening(pos, 20) // Try up to depth 20
-	info.TimeManager = timeManager
+	info := SearchIterativeDeepening(pos, 20, timeManager) // Try up to depth 20
 	elapsed := time.Since(start)
 	
 	nps := float64(info.Nodes) / elapsed.Seconds()

@@ -6,6 +6,10 @@ import (
 )
 
 func TestPrecise5SecondPerformance(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping 5-second performance test in short mode")
+	}
+	
 	pos, err := ParseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 	if err != nil {
 		t.Fatalf("Failed to parse FEN: %v", err)

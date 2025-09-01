@@ -29,6 +29,7 @@ package engine
 
 import (
 	"math/bits"
+	"sync"
 )
 
 const CHECKMATE_EVAL int16 = 30000
@@ -42,6 +43,7 @@ type Position struct {
 	Tag           PositionTag
 	hash          uint64
 	Positions     map[uint64]int
+	positionsMutex sync.RWMutex
 	HalfMoveClock uint8
 }
 
@@ -248,6 +250,14 @@ func (p *Position) makeMoveHelper(move Move) (Square, PositionTag, uint8, bool) 
 	p.ToggleTurn()
 
 	updateHash(p, move, captureSquare, p.EnPassant, ep, promoPiece, tag)
+	
+	// Update repetition detection - increment count for this position
+	if p.Positions != nil {
+		p.positionsMutex.Lock()
+		p.Positions[p.Hash()]++
+		p.positionsMutex.Unlock()
+	}
+	
 	return ep, tag, hc, true
 }
 
@@ -260,6 +270,20 @@ func (p *Position) UnMakeMove(move Move, tag PositionTag, enPassant Square, half
 }
 
 func (p *Position) unMakeMoveHelper(move Move, tag PositionTag, enPassant Square, halfClock uint8) {
+	// Update repetition detection - decrement count for current position before undoing
+	if p.Positions != nil {
+		p.positionsMutex.Lock()
+		currentHash := p.Hash()
+		if count, exists := p.Positions[currentHash]; exists {
+			if count > 1 {
+				p.Positions[currentHash]--
+			} else {
+				delete(p.Positions, currentHash)
+			}
+		}
+		p.positionsMutex.Unlock()
+	}
+	
 	movingPiece := move.MovingPiece()
 	capturedPiece := move.CapturedPiece()
 	promoPiece := NoPiece
@@ -391,7 +415,12 @@ func (p *Position) IsFIDEDrawRule() bool {
 	if p.HalfMoveClock >= 100 {
 		return true
 	}
+	if p.Positions == nil {
+		return false
+	}
+	p.positionsMutex.RLock()
 	value, ok := p.Positions[p.Hash()]
+	p.positionsMutex.RUnlock()
 	return (ok && value >= 3)
 }
 
@@ -414,12 +443,13 @@ func (p *Position) Copy() *Position {
 	}
 
 	newPos := &Position{
-		p.Board.copy(),
-		p.EnPassant,
-		p.Tag,
-		p.hash,
-		copyMap,
-		p.HalfMoveClock,
+		Board:         p.Board.copy(),
+		EnPassant:     p.EnPassant,
+		Tag:           p.Tag,
+		hash:          p.hash,
+		Positions:     copyMap,
+		HalfMoveClock: p.HalfMoveClock,
+		// Note: Don't copy the mutex - each copy gets its own mutex
 	}
 	return newPos
 }

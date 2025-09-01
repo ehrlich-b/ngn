@@ -2,6 +2,75 @@
 
 This document outlines the step-by-step development plan to bring the ngn chess engine from its current foundation to grandmaster-level play (~2400+ ELO). The focus is on simplicity, readability, and solid fundamentals rather than cutting-edge optimization.
 
+## 🚨 EMERGENCY PHASE: Critical Fixes Required IMMEDIATELY (Worth 500+ Elo)
+
+**STOP ALL OTHER DEVELOPMENT UNTIL THESE ARE FIXED**
+
+### Critical Bugs That Are Crippling The Engine
+
+#### E.1 Transposition Table NOT BEING USED ⚠️ **+150 Elo**
+- [x] **FIXED:** TT now fully integrated into search
+- [x] Add `TranspositionTable.Probe()` at start of alphaBeta
+- [x] Add `TranspositionTable.Store()` before returning from alphaBeta
+- [x] Handle different node types (PV, Cut, All)
+- [x] TT move ordering prioritization added
+- [x] All tests passing ✅
+
+#### E.2 Repetition Detection COMPLETELY BROKEN ⚠️ **+50 Elo + Prevents Crashes**
+- [x] **FIXED:** Positions map now properly maintained
+- [x] Update Positions map in MakeMove (increment count)
+- [x] Update Positions map in UnMakeMove (decrement count)
+- [x] Check for threefold repetition in search
+- [x] Added thread-safety with mutex
+- [x] All tests passing ✅
+
+#### E.3 Add Opening Book (Easiest Big Win) 📚 **+100-150 Elo**
+- [ ] Download free Polyglot book (e.g., ProDeo.bin)
+- [ ] Implement Polyglot format reader
+- [ ] Probe book in UCI position command
+- [ ] Add book move randomization for variety
+- [ ] Fall back to search when out of book
+
+#### E.4 Add Endgame Tablebases ♔ **+50-100 Elo**
+- [ ] Integrate Syzygy tablebase probing library
+- [ ] Download 3-4-5 piece tablebases
+- [ ] Probe at root for exact scores
+- [ ] Probe in search at low depths
+- [ ] Handle WDL (Win/Draw/Loss) scores correctly
+
+#### E.5 Implement Principal Variation Search 🔍 **+50 Elo**
+- [ ] Search first move with full window
+- [ ] Search remaining moves with null window
+- [ ] Re-search if null window fails high
+- [ ] Track principal variation for better move ordering
+
+#### E.6 Add Aspiration Windows 📊 **+30 Elo**
+- [ ] Use previous iteration score as starting point
+- [ ] Start with ±50 centipawn window
+- [ ] Widen window on fail high/low
+- [ ] Fall back to full window if needed
+
+### Why This Is An EMERGENCY
+
+**Current State:** The engine is like a car with:
+- No transmission (TT not connected)
+- No brakes (can't detect repetitions)
+- No GPS (no opening book)
+- No spare tire (no endgame knowledge)
+
+**These aren't features, they're FUNDAMENTAL REQUIREMENTS that every 1800+ engine has.**
+
+### Time Estimate: 2 Weeks for +500 Elo
+
+- Days 1-2: Fix TT usage
+- Days 3-4: Fix repetition detection
+- Days 5-7: Add opening book
+- Week 2: Add tablebases + PVS + aspiration windows
+
+**After this phase, THEN continue with the original roadmap below.**
+
+---
+
 ## Phase 0: Development Tooling and Infrastructure (Foundation)
 
 ### 0.1 Build System and Tooling
@@ -104,6 +173,7 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 - [x] **CRITICAL BUG FIX**: Fixed runtime panic in hash.go:208 (index out of range with NoPiece)
 - [x] **CRITICAL BUG FIX**: Fixed runtime panic in moveorder.go:87 (negative depth in IsKillerMove)
 - [x] **CRITICAL BUG FIX**: Fixed infinite recursion in alphaBeta with negative depth underflow
+- [x] **CRITICAL BUG FIX**: Fixed runtime panic in hash.go updateHash function (en passant array bounds)
 - [x] **PERFORMANCE ANALYSIS**: Identified mobility evaluation as major bottleneck (see performance_brief.md)
 
 ## Phase 3: Tactical Strength (Expert Level ~2000)
@@ -137,13 +207,19 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 
 ## Phase 4: Positional Understanding (Master Level ~2200)
 
-### 4.1 Advanced Evaluation Features
-- [ ] Piece coordination and harmony
-- [ ] Outpost squares for knights and bishops
-- [ ] Bishop pair bonus
-- [ ] Rook on open/semi-open files
-- [ ] Space evaluation (central control)
-- [ ] Tempo and development bonuses
+### ⚠️ IMPORTANT: DO NOT WORK ON THIS UNTIL EMERGENCY PHASE IS COMPLETE
+
+### 4.1 Advanced Evaluation Features (LOW PRIORITY - Worth <50 Elo total)
+- [x] **COMPLETED**: Piece coordination and harmony (Note: Adds ~5 Elo, overengineered)
+  - [x] Mutual piece protection evaluation
+  - [x] Outpost square recognition for knights and bishops
+  - [x] Piece battery detection (rook behind queen, doubled rooks)
+  - [x] Multi-piece attack coordination
+  - [x] Centralization bonus system
+- [x] Bishop pair bonus (Note: Worth ~10 Elo, could be a single constant)
+- [ ] ~~Rook on open/semi-open files~~ (SKIP until Emergency Phase done)
+- [ ] ~~Space evaluation (central control)~~ (SKIP - marginal impact)
+- [ ] ~~Tempo and development bonuses~~ (SKIP - marginal impact)
 
 ### 4.2 Opening Preparation
 - [ ] Opening book integration
@@ -203,17 +279,41 @@ This document outlines the step-by-step development plan to bring the ngn chess 
 - [ ] Rating calculation vs known engines
 - [ ] Bug fixing and edge case handling
 
-## Milestones and Targets
+## Milestones and Targets (REVISED)
 
-- **Phase 0 Complete**: Development infrastructure and tooling ready
-- **Phase 1-2 Complete**: ~1400-1600 ELO (Beginner to Intermediate)
-- **Phase 3 Complete**: ~2000 ELO (Expert level)
-- **Phase 4 Complete**: ~2200 ELO (Master level)
-- **Phase 5 Complete**: ~2400+ ELO (Grandmaster level)
-- **Phase 6 Complete**: Optimized GM-level engine ready for super-GM enhancements
+### Current Reality Check
+- **Actual Current Strength**: ~1600 ELO (due to missing TT, repetition detection, book, tablebases)
+- **After Emergency Phase**: ~2100 ELO (+500 from critical fixes)
 
-## Development Principles
+### Original Targets (Now Obsolete)
+- ~~**Phase 0 Complete**: Development infrastructure and tooling ready~~
+- ~~**Phase 1-2 Complete**: ~1400-1600 ELO (Beginner to Intermediate)~~
+- ~~**Phase 3 Complete**: ~2000 ELO (Expert level)~~
+- ~~**Phase 4 Complete**: ~2200 ELO (Master level)~~
+- ~~**Phase 5 Complete**: ~2400+ ELO (Grandmaster level)~~
+- ~~**Phase 6 Complete**: Optimized GM-level engine ready for super-GM enhancements~~
 
+### New Realistic Targets
+- **Emergency Phase**: Fix critical bugs → 2100 ELO
+- **Phase 5 (Search)**: PVS, aspiration, extensions → 2300 ELO  
+- **Phase 6 (Polish)**: Tuning, parallel search → 2400+ ELO
+- **Evaluation improvements**: Maybe +50 ELO total (not priority)
+
+## Development Principles (UPDATED BASED ON REALITY)
+
+### What Actually Matters (In Order)
+1. **Search > Evaluation**: Search improvements give 10x more Elo than evaluation tweaks
+2. **Basics First**: TT, repetition detection, opening book are NOT optional
+3. **Measure Everything**: Test Elo gain of each feature before adding more
+4. **Simple Works**: Stockfish 1.0's simple eval beats complex eval with broken search
+
+### What To STOP Doing
+1. **STOP** adding evaluation features until Emergency Phase is complete
+2. **STOP** tweaking pawn structure details (worth <5 Elo each)
+3. **STOP** complex king safety calculations (simple version is fine)
+4. **STOP** ignoring the transposition table (it's already implemented!)
+
+### Original Principles (Still Valid But Secondary)
 1. **Simplicity First**: Implement simple, readable versions before optimizing
 2. **Test-Driven**: Each feature should have corresponding tests
 3. **Incremental**: Build and test each component thoroughly before moving on

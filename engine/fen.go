@@ -15,6 +15,7 @@ func ParseFEN(fenString string) (*Position, error) {
 	
 	position := &Position{}
 	position.Board = Bitboard{}
+	position.Positions = make(map[uint64]int)
 	
 	// 1. Parse piece placement
 	err := parsePiecePlacement(parts[0], &position.Board)
@@ -64,6 +65,11 @@ func ParseFEN(fenString string) (*Position, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid fullmove number: %v", err)
 	}
+	
+	// Add initial position to repetition tracking
+	position.positionsMutex.Lock()
+	position.Positions[position.Hash()] = 1
+	position.positionsMutex.Unlock()
 	
 	return position, nil
 }

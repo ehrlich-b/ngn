@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -216,7 +215,7 @@ func parsePGN(filename string) ([]TestPosition, error) {
 	
 	var positions []TestPosition
 	var currentPos TestPosition
-	inGame := false
+	_ = false // inGame placeholder
 	
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {

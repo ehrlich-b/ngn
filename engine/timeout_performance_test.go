@@ -43,8 +43,7 @@ func TestTimeoutPerformance(t *testing.T) {
 				tm.SetTimeControl(params, true)
 				
 				// Try iterative deepening with high max depth
-				info := SearchIterativeDeepening(pos, 20)
-				info.TimeManager = tm
+				info := SearchIterativeDeepening(pos, 20, tm)
 				
 				resultChan <- result{info: info, err: nil}
 			}()

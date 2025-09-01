@@ -241,9 +241,11 @@ func countPassedPawns(board *Bitboard, color Color) int {
 	}
 	
 	passed := 0
-	pawnSquares := getSetBits(pawnBitboard)
 	
-	for _, square := range pawnSquares {
+	// Zero-allocation pawn iteration
+	bb := pawnBitboard
+	for sq := nextSetBit(&bb); sq != 64; sq = nextSetBit(&bb) {
+		square := sq
 		file := int(square % 8)
 		rank := int(square / 8)
 		
@@ -1020,6 +1022,634 @@ func evaluateKingActivity(board *Bitboard) int {
 }
 
 
+// Piece coordination and harmony evaluation
+func evaluatePieceCoordination(board *Bitboard, color Color) int {
+	coordinationBonus := 0
+	
+	// Get piece bitboards for the given color
+	var kingBB, queenBB, rookBB, bishopBB, knightBB, pawnBB uint64
+	var opponentPawnBB uint64
+	
+	if color == White {
+		kingBB = board.GetBitboardOf(WhiteKing)
+		queenBB = board.GetBitboardOf(WhiteQueen)
+		rookBB = board.GetBitboardOf(WhiteRook)
+		bishopBB = board.GetBitboardOf(WhiteBishop)
+		knightBB = board.GetBitboardOf(WhiteKnight)
+		pawnBB = board.GetBitboardOf(WhitePawn)
+		opponentPawnBB = board.GetBitboardOf(BlackPawn)
+	} else {
+		kingBB = board.GetBitboardOf(BlackKing)
+		queenBB = board.GetBitboardOf(BlackQueen)
+		rookBB = board.GetBitboardOf(BlackRook)
+		bishopBB = board.GetBitboardOf(BlackBishop)
+		knightBB = board.GetBitboardOf(BlackKnight)
+		pawnBB = board.GetBitboardOf(BlackPawn)
+		opponentPawnBB = board.GetBitboardOf(WhitePawn)
+	}
+	
+	// 1. Evaluate mutual piece protection
+	coordinationBonus += evaluatePieceProtection(kingBB, queenBB, rookBB, bishopBB, knightBB, pawnBB, color)
+	
+	// 2. Evaluate outpost squares for knights and bishops
+	coordinationBonus += evaluateOutpostSquares(knightBB, bishopBB, pawnBB, opponentPawnBB, color)
+	
+	// 3. Evaluate piece batteries (rook behind queen, doubled rooks)
+	coordinationBonus += evaluatePieceBatteries(queenBB, rookBB, bishopBB)
+	
+	// 4. Evaluate piece cooperation in attacks
+	coordinationBonus += evaluatePieceCooperation(queenBB, rookBB, bishopBB, knightBB, color)
+	
+	// 5. Evaluate centralization coordination
+	coordinationBonus += evaluateCentralization(queenBB, rookBB, bishopBB, knightBB, pawnBB)
+	
+	return coordinationBonus
+}
+
+// Evaluate how well pieces protect each other
+func evaluatePieceProtection(kingBB, queenBB, rookBB, bishopBB, knightBB, pawnBB uint64, color Color) int {
+	protection := 0
+	
+	// Get all piece squares
+	queens := getSetBits(queenBB)
+	rooks := getSetBits(rookBB)
+	bishops := getSetBits(bishopBB)
+	knights := getSetBits(knightBB)
+	pawns := getSetBits(pawnBB)
+	
+	// Check protection for high-value pieces
+	for _, queenSquare := range queens {
+		protectors := countProtectors(queenSquare, rooks, bishops, knights, pawns, color)
+		protection += protectors * 15 // High bonus for queen protection
+	}
+	
+	for _, rookSquare := range rooks {
+		protectors := countProtectors(rookSquare, []int{}, bishops, knights, pawns, color)
+		// Add queen protection
+		for _, queenSquare := range queens {
+			if canQueenProtect(queenSquare, rookSquare) {
+				protectors++
+			}
+		}
+		protection += protectors * 8 // Good bonus for rook protection
+	}
+	
+	for _, bishopSquare := range bishops {
+		protectors := countProtectors(bishopSquare, rooks, []int{}, knights, pawns, color)
+		for _, queenSquare := range queens {
+			if canQueenProtect(queenSquare, bishopSquare) {
+				protectors++
+			}
+		}
+		protection += protectors * 5 // Moderate bonus for bishop protection
+	}
+	
+	for _, knightSquare := range knights {
+		protectors := countProtectors(knightSquare, rooks, bishops, []int{}, pawns, color)
+		for _, queenSquare := range queens {
+			if canQueenProtect(queenSquare, knightSquare) {
+				protectors++
+			}
+		}
+		protection += protectors * 5 // Moderate bonus for knight protection
+	}
+	
+	return protection
+}
+
+// Count how many pieces can protect a given square
+func countProtectors(targetSquare int, rooks, bishops, knights, pawns []int, color Color) int {
+	protectors := 0
+	targetFile := targetSquare % 8
+	targetRank := targetSquare / 8
+	
+	// Check rook protection (same rank or file)
+	for _, rookSquare := range rooks {
+		rookFile := rookSquare % 8
+		rookRank := rookSquare / 8
+		if rookFile == targetFile || rookRank == targetRank {
+			protectors++
+		}
+	}
+	
+	// Check bishop protection (same diagonal)
+	for _, bishopSquare := range bishops {
+		if onSameDiagonal(bishopSquare, targetSquare) {
+			protectors++
+		}
+	}
+	
+	// Check knight protection
+	for _, knightSquare := range knights {
+		if canKnightReach(knightSquare, targetSquare) {
+			protectors++
+		}
+	}
+	
+	// Check pawn protection
+	for _, pawnSquare := range pawns {
+		if canPawnProtect(pawnSquare, targetSquare, color) {
+			protectors++
+		}
+	}
+	
+	return protectors
+}
+
+// Check if pieces are on the same diagonal
+func onSameDiagonal(square1, square2 int) bool {
+	file1, rank1 := square1%8, square1/8
+	file2, rank2 := square2%8, square2/8
+	return evalAbs(file1-file2) == evalAbs(rank1-rank2)
+}
+
+// Check if knight can reach target square
+func canKnightReach(knightSquare, targetSquare int) bool {
+	knightFile, knightRank := knightSquare%8, knightSquare/8
+	targetFile, targetRank := targetSquare%8, targetSquare/8
+	
+	fileDiff := evalAbs(knightFile - targetFile)
+	rankDiff := evalAbs(knightRank - targetRank)
+	
+	return (fileDiff == 2 && rankDiff == 1) || (fileDiff == 1 && rankDiff == 2)
+}
+
+// Check if pawn can protect target square
+func canPawnProtect(pawnSquare, targetSquare int, color Color) bool {
+	pawnFile, pawnRank := pawnSquare%8, pawnSquare/8
+	targetFile, targetRank := targetSquare%8, targetSquare/8
+	
+	// Pawns protect diagonally forward
+	if evalAbs(pawnFile-targetFile) != 1 {
+		return false
+	}
+	
+	if color == White {
+		return targetRank == pawnRank+1
+	} else {
+		return targetRank == pawnRank-1
+	}
+}
+
+// Check if queen can protect target square
+func canQueenProtect(queenSquare, targetSquare int) bool {
+	// Queen combines rook and bishop movement
+	queenFile, queenRank := queenSquare%8, queenSquare/8
+	targetFile, targetRank := targetSquare%8, targetSquare/8
+	
+	// Same rank, file, or diagonal
+	return queenFile == targetFile || queenRank == targetRank || onSameDiagonal(queenSquare, targetSquare)
+}
+
+// Evaluate outpost squares for knights and bishops
+func evaluateOutpostSquares(knightBB, bishopBB, pawnBB, opponentPawnBB uint64, color Color) int {
+	outpostBonus := 0
+	
+	knights := getSetBits(knightBB)
+	bishops := getSetBits(bishopBB)
+	pawns := getSetBits(pawnBB)
+	opponentPawns := getSetBits(opponentPawnBB)
+	
+	// Check knights on outpost squares
+	for _, knightSquare := range knights {
+		if isOutpostSquare(knightSquare, pawns, opponentPawns, color) {
+			// Knights on outposts are very strong
+			bonus := 20
+			
+			// Extra bonus for advanced outposts
+			rank := knightSquare / 8
+			if color == White && rank >= 4 {
+				bonus += (rank - 3) * 5 // Bonus increases with advancement
+			} else if color == Black && rank <= 3 {
+				bonus += (4 - rank) * 5
+			}
+			
+			outpostBonus += bonus
+		}
+	}
+	
+	// Check bishops on outpost squares (less common but still valuable)
+	for _, bishopSquare := range bishops {
+		if isOutpostSquare(bishopSquare, pawns, opponentPawns, color) {
+			bonus := 12
+			
+			// Bishops on outposts in enemy territory
+			rank := bishopSquare / 8
+			if color == White && rank >= 4 {
+				bonus += (rank - 3) * 3
+			} else if color == Black && rank <= 3 {
+				bonus += (4 - rank) * 3
+			}
+			
+			outpostBonus += bonus
+		}
+	}
+	
+	return outpostBonus
+}
+
+// Check if a square is an outpost (supported by pawn, can't be attacked by enemy pawns)
+func isOutpostSquare(square int, friendlyPawns, enemyPawns []int, color Color) bool {
+	file := square % 8
+	rank := square / 8
+	
+	// 1. Must be supported by our own pawns
+	supported := false
+	for _, pawnSquare := range friendlyPawns {
+		if canPawnProtect(pawnSquare, square, color) {
+			supported = true
+			break
+		}
+	}
+	
+	if !supported {
+		return false
+	}
+	
+	// 2. Must not be attackable by enemy pawns (now or in future)
+	for _, enemyPawnSquare := range enemyPawns {
+		enemyFile := enemyPawnSquare % 8
+		enemyRank := enemyPawnSquare / 8
+		
+		// Check if enemy pawn can attack this square now
+		enemyColor := White
+		if color == White {
+			enemyColor = Black
+		}
+		
+		if canPawnProtect(enemyPawnSquare, square, enemyColor) {
+			return false
+		}
+		
+		// Check if enemy pawn could advance to attack this square
+		if evalAbs(enemyFile-file) == 1 {
+			if color == White {
+				// Enemy pawns advance toward us (down ranks)
+				if enemyRank > rank && enemyRank-1 == rank {
+					return false // Pawn could advance to attack
+				}
+			} else {
+				// Enemy pawns advance toward us (up ranks)
+				if enemyRank < rank && enemyRank+1 == rank {
+					return false
+				}
+			}
+		}
+	}
+	
+	return true
+}
+
+// Evaluate piece batteries (rook behind queen, doubled rooks, bishop pairs)
+func evaluatePieceBatteries(queenBB, rookBB, bishopBB uint64) int {
+	batteryBonus := 0
+	
+	queens := getSetBits(queenBB)
+	rooks := getSetBits(rookBB)
+	bishops := getSetBits(bishopBB)
+	
+	// 1. Rook behind queen on same file or rank
+	for _, queenSquare := range queens {
+		queenFile, queenRank := queenSquare%8, queenSquare/8
+		
+		for _, rookSquare := range rooks {
+			rookFile, rookRank := rookSquare%8, rookSquare/8
+			
+			// Same file
+			if queenFile == rookFile && queenRank != rookRank {
+				batteryBonus += 15 // Vertical battery
+			}
+			
+			// Same rank
+			if queenRank == rookRank && queenFile != rookFile {
+				batteryBonus += 15 // Horizontal battery
+			}
+		}
+	}
+	
+	// 2. Doubled/tripled rooks
+	fileRooks := make(map[int]int) // file -> count
+	rankRooks := make(map[int]int) // rank -> count
+	
+	for _, rookSquare := range rooks {
+		file, rank := rookSquare%8, rookSquare/8
+		fileRooks[file]++
+		rankRooks[rank]++
+	}
+	
+	for _, count := range fileRooks {
+		if count >= 2 {
+			batteryBonus += count * 10 // Bonus for doubled rooks on file
+		}
+	}
+	
+	for _, count := range rankRooks {
+		if count >= 2 {
+			batteryBonus += count * 8 // Bonus for doubled rooks on rank
+		}
+	}
+	
+	// 3. Bishop pair on same diagonal
+	if len(bishops) >= 2 {
+		for i, bishopSquare1 := range bishops {
+			for j, bishopSquare2 := range bishops[i+1:] {
+				_ = j // Avoid unused variable
+				if onSameDiagonal(bishopSquare1, bishopSquare2) {
+					batteryBonus += 12 // Bonus for bishops on same diagonal
+				}
+			}
+		}
+	}
+	
+	return batteryBonus
+}
+
+// Evaluate piece cooperation in attacks
+func evaluatePieceCooperation(queenBB, rookBB, bishopBB, knightBB uint64, color Color) int {
+	cooperationBonus := 0
+	
+	queens := getSetBits(queenBB)
+	rooks := getSetBits(rookBB)
+	bishops := getSetBits(bishopBB)
+	knights := getSetBits(knightBB)
+	
+	// 1. Multiple pieces attacking same area
+	attackedSquares := make(map[int]int) // square -> number of attackers
+	
+	// Add queen attacks
+	for _, queenSquare := range queens {
+		attacks := getQueenAttacks(queenSquare)
+		for _, attackSquare := range attacks {
+			attackedSquares[attackSquare]++
+		}
+	}
+	
+	// Add rook attacks
+	for _, rookSquare := range rooks {
+		attacks := getRookAttacks(rookSquare)
+		for _, attackSquare := range attacks {
+			attackedSquares[attackSquare]++
+		}
+	}
+	
+	// Add bishop attacks
+	for _, bishopSquare := range bishops {
+		attacks := getBishopAttacks(bishopSquare)
+		for _, attackSquare := range attacks {
+			attackedSquares[attackSquare]++
+		}
+	}
+	
+	// Add knight attacks
+	for _, knightSquare := range knights {
+		attacks := getKnightAttacks(knightSquare)
+		for _, attackSquare := range attacks {
+			attackedSquares[attackSquare]++
+		}
+	}
+	
+	// Bonus for squares attacked by multiple pieces
+	for _, attackCount := range attackedSquares {
+		if attackCount >= 2 {
+			cooperationBonus += attackCount * 2 // Bonus for coordinated attacks
+		}
+	}
+	
+	// 2. Piece coordination around enemy king (if we can find it)
+	// This is a simplified version - in practice you'd get enemy king position
+	
+	return cooperationBonus
+}
+
+// Simplified attack pattern generators (these would normally be more complex)
+func getQueenAttacks(square int) []int {
+	// Simplified: return squares on same rank, file, and diagonals
+	attacks := make([]int, 0, 27) // Max 8+8+8+3 squares
+	file, rank := square%8, square/8
+	
+	// Add rank attacks
+	for f := 0; f < 8; f++ {
+		if f != file {
+			attacks = append(attacks, rank*8+f)
+		}
+	}
+	
+	// Add file attacks
+	for r := 0; r < 8; r++ {
+		if r != rank {
+			attacks = append(attacks, r*8+file)
+		}
+	}
+	
+	// Add diagonal attacks (simplified)
+	for i := 1; i < 8; i++ {
+		// Up-right diagonal
+		if file+i < 8 && rank+i < 8 {
+			attacks = append(attacks, (rank+i)*8+(file+i))
+		}
+		// Up-left diagonal
+		if file-i >= 0 && rank+i < 8 {
+			attacks = append(attacks, (rank+i)*8+(file-i))
+		}
+		// Down-right diagonal
+		if file+i < 8 && rank-i >= 0 {
+			attacks = append(attacks, (rank-i)*8+(file+i))
+		}
+		// Down-left diagonal
+		if file-i >= 0 && rank-i >= 0 {
+			attacks = append(attacks, (rank-i)*8+(file-i))
+		}
+	}
+	
+	return attacks
+}
+
+func getRookAttacks(square int) []int {
+	attacks := make([]int, 0, 14)
+	file, rank := square%8, square/8
+	
+	// Add rank attacks
+	for f := 0; f < 8; f++ {
+		if f != file {
+			attacks = append(attacks, rank*8+f)
+		}
+	}
+	
+	// Add file attacks
+	for r := 0; r < 8; r++ {
+		if r != rank {
+			attacks = append(attacks, r*8+file)
+		}
+	}
+	
+	return attacks
+}
+
+func getBishopAttacks(square int) []int {
+	attacks := make([]int, 0, 13)
+	file, rank := square%8, square/8
+	
+	// Add diagonal attacks (simplified)
+	for i := 1; i < 8; i++ {
+		// Up-right diagonal
+		if file+i < 8 && rank+i < 8 {
+			attacks = append(attacks, (rank+i)*8+(file+i))
+		}
+		// Up-left diagonal
+		if file-i >= 0 && rank+i < 8 {
+			attacks = append(attacks, (rank+i)*8+(file-i))
+		}
+		// Down-right diagonal
+		if file+i < 8 && rank-i >= 0 {
+			attacks = append(attacks, (rank-i)*8+(file+i))
+		}
+		// Down-left diagonal
+		if file-i >= 0 && rank-i >= 0 {
+			attacks = append(attacks, (rank-i)*8+(file-i))
+		}
+	}
+	
+	return attacks
+}
+
+func getKnightAttacks(square int) []int {
+	attacks := make([]int, 0, 8)
+	file, rank := square%8, square/8
+	
+	// All possible knight moves
+	knightMoves := [][]int{
+		{-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
+		{1, -2}, {1, 2}, {2, -1}, {2, 1},
+	}
+	
+	for _, move := range knightMoves {
+		newFile := file + move[0]
+		newRank := rank + move[1]
+		
+		if newFile >= 0 && newFile < 8 && newRank >= 0 && newRank < 8 {
+			attacks = append(attacks, newRank*8+newFile)
+		}
+	}
+	
+	return attacks
+}
+
+// Evaluate centralization coordination
+func evaluateCentralization(queenBB, rookBB, bishopBB, knightBB, pawnBB uint64) int {
+	centralizationBonus := 0
+	
+	// Central squares (d4, d5, e4, e5)
+	centralSquares := []int{27, 28, 35, 36} // d4, e4, d5, e5
+	extendedCentralSquares := []int{18, 19, 20, 21, 26, 29, 34, 37, 42, 43, 44, 45} // c3-f6 area
+	
+	// Check pieces on central squares
+	for _, square := range centralSquares {
+		squareMask := uint64(1 << square)
+		
+		if (knightBB & squareMask) != 0 {
+			centralizationBonus += 15 // Knights are excellent in center
+		}
+		if (bishopBB & squareMask) != 0 {
+			centralizationBonus += 10 // Bishops good in center
+		}
+		if (pawnBB & squareMask) != 0 {
+			centralizationBonus += 12 // Central pawns are strong
+		}
+	}
+	
+	// Check pieces on extended central squares
+	for _, square := range extendedCentralSquares {
+		squareMask := uint64(1 << square)
+		
+		if (knightBB & squareMask) != 0 {
+			centralizationBonus += 8 // Good knight squares
+		}
+		if (bishopBB & squareMask) != 0 {
+			centralizationBonus += 5 // Decent bishop squares
+		}
+		if (queenBB & squareMask) != 0 {
+			centralizationBonus += 6 // Queen can be good in center but risky
+		}
+	}
+	
+	// Bonus for multiple pieces controlling center
+	centralControl := 0
+	for _, square := range centralSquares {
+		squareMask := uint64(1 << square)
+		
+		// Count pieces that could move to this square (simplified)
+		if (knightBB|bishopBB|rookBB|queenBB) & squareMask != 0 {
+			centralControl++
+		}
+	}
+	
+	// Bonus for controlling multiple central squares
+	if centralControl >= 2 {
+		centralizationBonus += centralControl * 3
+	}
+	
+	return centralizationBonus
+}
+
+// Evaluate bishop pair bonus
+func evaluateBishopPair(board *Bitboard, color Color) int {
+	var bishopBB uint64
+	
+	if color == White {
+		bishopBB = board.GetBitboardOf(WhiteBishop)
+	} else {
+		bishopBB = board.GetBitboardOf(BlackBishop)
+	}
+	
+	bishopCount := PopCount(bishopBB)
+	
+	// Must have exactly 2 bishops for the pair bonus
+	if bishopCount != 2 {
+		return 0
+	}
+	
+	bishops := getSetBits(bishopBB)
+	if len(bishops) != 2 {
+		return 0
+	}
+	
+	// Check if bishops are on opposite colored squares
+	bishop1Square := bishops[0]
+	bishop2Square := bishops[1]
+	
+	// Calculate square colors (light or dark)
+	// Light squares: (file + rank) % 2 == 0
+	// Dark squares: (file + rank) % 2 == 1
+	bishop1Color := (bishop1Square%8 + bishop1Square/8) % 2
+	bishop2Color := (bishop2Square%8 + bishop2Square/8) % 2
+	
+	// Bishop pair bonus only applies if bishops are on opposite colored squares
+	if bishop1Color != bishop2Color {
+		// Base bishop pair bonus
+		bonus := 30
+		
+		// Additional bonus in open positions (fewer pawns = more open)
+		totalPawns := PopCount(board.GetBitboardOf(WhitePawn)) + PopCount(board.GetBitboardOf(BlackPawn))
+		
+		// The fewer pawns, the stronger the bishop pair
+		if totalPawns <= 12 {
+			bonus += 10 // Extra bonus in open positions
+		}
+		if totalPawns <= 8 {
+			bonus += 10 // Even more bonus in very open positions
+		}
+		
+		// Endgame bonus - bishop pair becomes stronger in endgame
+		if isEndgame(board) {
+			bonus += 15 // Additional endgame bonus
+		}
+		
+		return bonus
+	}
+	
+	return 0
+}
+
 // Enhanced evaluation function
 func Evaluate(board *Bitboard) (eval int) {
 	
@@ -1044,11 +1674,10 @@ func Evaluate(board *Bitboard) (eval int) {
 			eval += colorMul * int(val) * PopCount(pieceBitboard)
 		}
 		
-		// 2. Piece-square table values
-		squares := getSetBits(pieceBitboard)
-		for _, square := range squares {
+		// 2. Piece-square table values (zero-allocation optimization)
+		iterateBitboard(pieceBitboard, func(square int) {
 			eval += getPieceSquareValue(piece, Square(square), endgame)
-		}
+		})
 	}
 	
 	// 3. Pawn structure evaluation
@@ -1094,7 +1723,19 @@ func Evaluate(board *Bitboard) (eval int) {
 		eval += -blackKingSafety
 	}
 	
-	// 5. Basic endgame knowledge
+	// 5. Piece coordination and harmony
+	whiteCoordination := evaluatePieceCoordination(board, White)
+	blackCoordination := evaluatePieceCoordination(board, Black)
+	eval += whiteCoordination
+	eval += -blackCoordination
+	
+	// 6. Bishop pair bonus
+	whiteBishopPairBonus := evaluateBishopPair(board, White)
+	blackBishopPairBonus := evaluateBishopPair(board, Black)
+	eval += whiteBishopPairBonus
+	eval += -blackBishopPairBonus
+	
+	// 7. Basic endgame knowledge
 	if endgame {
 		endgameBonus := evaluateBasicEndgames(board)
 		eval += endgameBonus

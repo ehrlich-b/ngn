@@ -80,10 +80,14 @@ func generateZobristHash(pos *Position) uint64 {
 	if enPassant != NoSquare {
 		if pos.Turn() == Black {
 			/* Next mov Black -> Current pos White -> White en passant square */
-			hash ^= enPassantZC[enPassant-16]
+			if enPassant >= 16 && enPassant <= 23 {
+				hash ^= enPassantZC[enPassant-16]
+			}
 		} else {
 			/* Next mov White -> Current pos Black -> Black en passant square */
-			hash ^= enPassantZC[enPassant-40+8]
+			if enPassant >= 40 && enPassant <= 47 {
+				hash ^= enPassantZC[enPassant-40+8]
+			}
 		}
 	}
 
@@ -113,20 +117,28 @@ func updateHashForNullMove(pos *Position, newEnPassant Square, oldEnPassant Squa
 	if newEnPassant != NoSquare {
 		if turn == Black {
 			/* Next mov Black -> Current pos White -> White en passant square */
-			hash ^= enPassantZC[newEnPassant-16]
+			if newEnPassant >= 16 && newEnPassant <= 23 {
+				hash ^= enPassantZC[newEnPassant-16]
+			}
 		} else {
 			/* Next mov White -> Current pos Black -> Black en passant square */
-			hash ^= enPassantZC[newEnPassant-40+8]
+			if newEnPassant >= 40 && newEnPassant <= 47 {
+				hash ^= enPassantZC[newEnPassant-40+8]
+			}
 		}
 	}
 
 	if oldEnPassant != NoSquare {
 		if turn == Black {
 			/* Previous mov Black -> Current pos White -> Black en passant square */
-			hash ^= enPassantZC[oldEnPassant-40+8]
+			if oldEnPassant >= 40 && oldEnPassant <= 47 {
+				hash ^= enPassantZC[oldEnPassant-40+8]
+			}
 		} else {
 			/* Previous mov White -> Current pos Black -> White en passant square */
-			hash ^= enPassantZC[oldEnPassant-16]
+			if oldEnPassant >= 16 && oldEnPassant <= 23 {
+				hash ^= enPassantZC[oldEnPassant-16]
+			}
 		}
 	}
 
@@ -185,20 +197,28 @@ func updateHash(pos *Position, move Move, captureSquare Square,
 	if newEnPassant != NoSquare {
 		if turn == Black {
 			/* Next mov Black -> Current pos White -> White en passant square */
-			hash ^= enPassantZC[newEnPassant-16]
+			if newEnPassant >= 16 && newEnPassant <= 23 {
+				hash ^= enPassantZC[newEnPassant-16]
+			}
 		} else {
 			/* Next mov White -> Current pos Black -> Black en passant square */
-			hash ^= enPassantZC[newEnPassant-40+8]
+			if newEnPassant >= 40 && newEnPassant <= 47 {
+				hash ^= enPassantZC[newEnPassant-40+8]
+			}
 		}
 	}
 
 	if oldEnPassant != NoSquare {
 		if turn == Black {
 			/* Previous mov Black -> Current pos White -> Black en passant square */
-			hash ^= enPassantZC[oldEnPassant-40+8]
+			if oldEnPassant >= 40 && oldEnPassant <= 47 {
+				hash ^= enPassantZC[oldEnPassant-40+8]
+			}
 		} else {
 			/* Previous mov White -> Current pos Black -> White en passant square */
-			hash ^= enPassantZC[oldEnPassant-16]
+			if oldEnPassant >= 16 && oldEnPassant <= 23 {
+				hash ^= enPassantZC[oldEnPassant-16]
+			}
 		}
 	}
 

@@ -91,12 +91,18 @@ func (uci *UCIEngine) SetResignationPolicy(allowResignation bool) {
 
 // Helper function to create starting position
 func newUCIStartingPosition() *Position {
-	return &Position{
+	pos := &Position{
 		Board:         StartingBoard(),
 		Tag:           WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide | WhiteToMove,
 		EnPassant:     NoSquare,
 		HalfMoveClock: 0,
+		Positions:     make(map[uint64]int),
 	}
+	// Add initial position to repetition tracking
+	pos.positionsMutex.Lock()
+	pos.Positions[pos.Hash()] = 1
+	pos.positionsMutex.Unlock()
+	return pos
 }
 
 // Run starts the UCI engine main loop
@@ -423,7 +429,7 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 	// Determine maximum search depth
 	maxDepth := params.Depth
 	if maxDepth <= 0 {
-		maxDepth = 64 // Default max depth for iterative deepening
+		maxDepth = MAX_DEPTH // Default max depth for iterative deepening (100 ply)
 	}
 	
 	// Initialize search variables

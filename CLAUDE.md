@@ -57,6 +57,12 @@ When the user says "reanchor", always re-read README.md, TODO.md, and CLAUDE.md 
 - Never skip this step - it's essential for maintaining project continuity
 - This prevents getting lost and ensures all work is tracked
 
+### CRITICAL: Test Performance Requirements
+- **All tests MUST complete within 15 seconds maximum**
+- Use `make test-short` for faster testing during development
+- Long-running tests should be marked with `testing.Short()` and skipped in short mode
+- Performance tests should have reasonable timeouts to prevent CI/CD pipeline delays
+
 ## Architecture
 
 This is a chess engine written in Go. The codebase follows a modular architecture with the core engine logic separated into its own package.

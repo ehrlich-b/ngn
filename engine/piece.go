@@ -102,7 +102,7 @@ func (t PieceType) Name() string {
 	case King:
 		return "K"
 	}
-	return "nothing"
+	return " "
 }
 
 func (p Piece) Type() PieceType {
@@ -188,7 +188,7 @@ func (p Piece) Name() string {
 	case BlackKing:
 		return "k"
 	}
-	return "nothing"
+	return " "
 }
 
 func pieceFromName(name rune) Piece {

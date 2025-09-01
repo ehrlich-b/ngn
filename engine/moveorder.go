@@ -153,7 +153,11 @@ func orderMovesWithDepth(moves []Move, depth int) []Move {
 	return orderMovesWithDepthAndPrevious(moves, depth, GetLastMovePlayed())
 }
 
-func orderMovesWithDepthAndPrevious(moves []Move, depth int, previousMove Move) []Move {
+func orderMovesWithDepthAndTTMove(moves []Move, depth int, ttMove Move, ttHit bool) []Move {
+	return orderMovesWithDepthPreviousAndTTMove(moves, depth, GetLastMovePlayed(), ttMove, ttHit)
+}
+
+func orderMovesWithDepthPreviousAndTTMove(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool) []Move {
 	if len(moves) == 0 {
 		return moves
 	}
@@ -163,7 +167,7 @@ func orderMovesWithDepthAndPrevious(moves []Move, depth int, previousMove Move) 
 	for i, move := range moves {
 		moveScores[i] = moveScore{
 			move:  move,
-			score: scoreMoveForOrderingWithDepthAndPrevious(move, depth, previousMove),
+			score: scoreMoveForOrderingWithDepthPreviousAndTTMove(move, depth, previousMove, ttMove, ttHit),
 		}
 	}
 	
@@ -180,12 +184,25 @@ func orderMovesWithDepthAndPrevious(moves []Move, depth int, previousMove Move) 
 	return orderedMoves
 }
 
+func orderMovesWithDepthAndPrevious(moves []Move, depth int, previousMove Move) []Move {
+	return orderMovesWithDepthPreviousAndTTMove(moves, depth, previousMove, EmptyMove, false)
+}
+
 func scoreMoveForOrdering(move Move) int {
 	return scoreMoveForOrderingWithDepth(move, 0)
 }
 
 func scoreMoveForOrderingWithDepth(move Move, depth int) int {
 	return scoreMoveForOrderingWithDepthAndPrevious(move, depth, EmptyMove)
+}
+
+func scoreMoveForOrderingWithDepthPreviousAndTTMove(move Move, depth int, previousMove Move, ttMove Move, ttHit bool) int {
+	// Transposition table move gets highest priority
+	if ttHit && move == ttMove {
+		return 50000 // Higher than any other move type
+	}
+	
+	return scoreMoveForOrderingWithDepthAndPrevious(move, depth, previousMove)
 }
 
 func scoreMoveForOrderingWithDepthAndPrevious(move Move, depth int, previousMove Move) int {

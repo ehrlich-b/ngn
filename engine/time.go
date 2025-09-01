@@ -350,11 +350,11 @@ func (tm *TimeManager) calculatePositionComplexity(position *Position) float64 {
 	complexity += float64(pieceTypes) / 8.0 * 0.3
 	
 	// Tactical positions (many pieces attacking each other) are complex
-	// This is a simplified heuristic - count pieces that can capture
-	// Only calculate if we have pieces on the board to avoid crashes
+	// Simplified heuristic based on piece density instead of expensive move generation
 	if totalPieces > 2 { // Need at least 2 kings + 1 other piece
-		captures := len(GenerateLegalMoves(position))
-		complexity += math.Min(float64(captures)/50.0, 1.0) * 0.4
+		// Estimate complexity from piece density and position (much faster)
+		densityComplexity := math.Min(float64(totalPieces)/32.0, 1.0) * 0.4
+		complexity += densityComplexity
 	}
 	
 	return math.Min(complexity, 1.0)

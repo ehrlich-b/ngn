@@ -29,21 +29,23 @@ type SearchInfo struct {
 }
 
 func Search(pos *Position, depth int) *SearchInfo {
-	return SearchIterativeDeepening(pos, depth)
+	return SearchIterativeDeepening(pos, depth, nil)
 }
 
-func SearchIterativeDeepening(pos *Position, maxDepth int) *SearchInfo {
+func SearchIterativeDeepening(pos *Position, maxDepth int, timeManager *TimeManager) *SearchInfo {
 	// Advance the age of the transposition table for each search
 	TranspositionTable.AdvanceAge()
 	
 	info := &SearchInfo{
-		Nodes:     0,
-		Depth:     maxDepth,
-		BestMove:  EmptyMove,
-		BestScore: -INFINITY,
-		Stopped:   false,
+		Nodes:       0,
+		Depth:       maxDepth,
+		BestMove:    EmptyMove,
+		BestScore:   -INFINITY,
+		Stopped:     false,
+		TimeManager: timeManager,
 	}
 	
+	// Generate moves once for iterative deepening
 	moves := GenerateLegalMoves(pos)
 	if len(moves) == 0 {
 		if isInCheck(pos, pos.Turn()) {
@@ -180,8 +182,8 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 	}
 	
-	// Safety check for excessive depth
-	if depth > 64 {
+	// Safety check for excessive depth (use MAX_DEPTH constant)
+	if depth > MAX_DEPTH {
 		return Evaluate(&pos.Board)
 	}
 	
@@ -192,6 +194,29 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 	
 	if depth == 0 {
 		return quiescence(pos, alpha, beta, info)
+	}
+	
+	// Probe transposition table
+	origAlpha := alpha
+	hash := pos.Hash()
+	
+	// NOTE: Threefold repetition checking removed from hot path for performance
+	// This should only be checked at root level, not during hypothetical search nodes
+	ttMove, ttEval, ttDepth, ttNodeType, ttHit := TranspositionTable.Get(hash)
+	
+	if ttHit && ttDepth >= int8(depth) {
+		switch ttNodeType {
+		case Exact:
+			return int(ttEval)
+		case LowerBound:
+			if int(ttEval) >= beta {
+				return int(ttEval)
+			}
+		case UpperBound:
+			if int(ttEval) <= alpha {
+				return int(ttEval)
+			}
+		}
 	}
 	
 	// Mate distance pruning - don't look for mates that are too far away
@@ -239,7 +264,8 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 	}
 	
-	moves := GenerateLegalMoves(pos)
+	// Use pseudo-legal moves for performance, check legality only when trying moves
+	moves := GenerateMoves(pos)
 	if len(moves) == 0 {
 		if inCheck {
 			return -MATE_VALUE + (info.Depth - depth)
@@ -247,8 +273,10 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		return 0
 	}
 	
-	orderedMoves := orderMovesWithDepth(moves, depth)
+	// Order moves, prioritizing TT move if available
+	orderedMoves := orderMovesWithDepthAndTTMove(moves, depth, ttMove, ttHit)
 	bestScore := -INFINITY
+	bestMove := EmptyMove
 	moveCount := 0
 	
 	for _, move := range orderedMoves {
@@ -266,6 +294,12 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 		
 		ep, tag, hc, _ := pos.MakeMove(move)
+		
+		// Check if move is legal (doesn't leave our king in check)
+		if isInCheck(pos, move.MovingPiece().Color()) {
+			pos.UnMakeMove(move, tag, ep, hc)
+			continue // Skip illegal move
+		}
 		
 		var score int
 		
@@ -301,6 +335,7 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		
 		if score > bestScore {
 			bestScore = score
+			bestMove = move
 		}
 		
 		if score >= beta {
@@ -310,6 +345,9 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 			UpdateKillerMoves(move, depth)
 			// Update counter move for quiet moves that cause beta cutoffs
 			UpdateCounterMove(move, GetLastMovePlayed())
+			
+			// Store in transposition table as Lower Bound (Cut-Node)
+			TranspositionTable.Set(hash, move, int16(score), int8(depth), LowerBound)
 			return score
 		}
 		
@@ -318,6 +356,17 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 	}
 	
+	// Store in transposition table
+	var nodeType NodeType
+	if bestScore <= origAlpha {
+		// No move improved alpha - Upper Bound (All-Node)
+		nodeType = UpperBound
+	} else {
+		// Best move improved alpha - Exact (PV-Node)
+		nodeType = Exact
+	}
+	
+	TranspositionTable.Set(hash, bestMove, int16(bestScore), int8(depth), nodeType)
 	return bestScore
 }
 
@@ -344,7 +393,8 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 	}
 	
 	// Only consider captures and checks in quiescence search
-	moves := GenerateLegalMoves(pos)
+	// Use pseudo-legal moves for performance
+	moves := GenerateMoves(pos)
 	capturesAndChecks := make([]Move, 0, len(moves))
 	
 	for _, move := range moves {
@@ -367,6 +417,13 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 	// Search captures and checks
 	for _, move := range capturesAndChecks {
 		ep, tag, hc, _ := pos.MakeMove(move)
+		
+		// Check if move is legal (doesn't leave our king in check)
+		if isInCheck(pos, move.MovingPiece().Color()) {
+			pos.UnMakeMove(move, tag, ep, hc)
+			continue // Skip illegal move
+		}
+		
 		score := -quiescenceWithDepth(pos, -beta, -alpha, info, qDepth+1)
 		pos.UnMakeMove(move, tag, ep, hc)
 		

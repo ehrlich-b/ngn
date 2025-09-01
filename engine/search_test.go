@@ -137,7 +137,7 @@ func TestIterativeDeepening(t *testing.T) {
 	pos := newStartingPosition()
 	
 	// Test that iterative deepening produces results at each depth
-	info := SearchIterativeDeepening(pos, 3)
+	info := SearchIterativeDeepening(pos, 3, nil)
 	
 	if info.BestMove == EmptyMove {
 		t.Error("Iterative deepening should find a best move")
@@ -244,7 +244,7 @@ func BenchmarkIterativeDeepening(b *testing.B) {
 	
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		SearchIterativeDeepening(pos, 4)
+		SearchIterativeDeepening(pos, 4, nil)
 	}
 }
 
