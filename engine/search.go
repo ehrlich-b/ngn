@@ -238,25 +238,25 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 	// Safety checks - reasonable limits
 	if info.Nodes > 50000000 { // 50M nodes
 		info.Stopped = true
-		return Evaluate(&pos.Board)
+		return EvaluateForPlayer(&pos.Board, pos.Turn())
 	}
 	
 	// Check time limit if we have a time manager (now cheap to call frequently)
 	if info.TimeManager != nil {
 		if info.TimeManager.ShouldStopSearch(depth, time.Now()) {
 			info.Stopped = true
-			return Evaluate(&pos.Board)
+			return EvaluateForPlayer(&pos.Board, pos.Turn())
 		}
 	}
 	
 	// Safety check for excessive depth (use MaximumDepth constant)
 	if depth > MaximumDepth {
-		return Evaluate(&pos.Board)
+		return EvaluateForPlayer(&pos.Board, pos.Turn())
 	}
 	
 	// Safety check for negative depth (bug prevention)
 	if depth < 0 {
-		return Evaluate(&pos.Board)
+		return EvaluateForPlayer(&pos.Board, pos.Turn())
 	}
 	
 	if depth == 0 {
@@ -308,7 +308,7 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 	var futilityPrune bool
 	var staticEval int
 	if depth == 1 && !inCheck {
-		staticEval = Evaluate(&pos.Board)
+		staticEval = EvaluateForPlayer(&pos.Board, pos.Turn())
 		if staticEval + FUTILITY_MARGIN < alpha {
 			futilityPrune = true
 		}
@@ -455,11 +455,11 @@ func quiescence(pos *Position, alpha int, beta int, info *SearchInfo) int {
 func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, qDepth int) int {
 	// Prevent infinite recursion - reduce depth limit for stability
 	if qDepth >= 6 { // More conservative quiescence depth
-		return Evaluate(&pos.Board)
+		return EvaluateForPlayer(&pos.Board, pos.Turn())
 	}
 	
 	// Stand pat - evaluate current position
-	standPat := Evaluate(&pos.Board)
+	standPat := EvaluateForPlayer(&pos.Board, pos.Turn())
 	info.Nodes++
 	
 	if standPat >= beta {

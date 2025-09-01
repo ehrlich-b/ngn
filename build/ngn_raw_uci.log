@@ -82,3 +82,5 @@
 2025/08/31 13:25:27.205573 <<< info depth 1 score cp 45 nodes 41 time 0 pv a2a4
 2025/08/31 13:25:27.214417 <<< info depth 2 score cp 0 nodes 770 time 9 pv b1c3
 2025/08/31 13:25:27.215275 >>> quit
+2025/09/01 13:59:03.511421 === RAW UCI MESSAGE LOG ===
+2025/09/01 13:59:03.511692 Format: >>> = sent to engine, <<< = sent from engine

@@ -902,3 +902,6 @@
 [NGN DEBUG] 2025/08/31 13:25:27.214446 === STARTING DEPTH 3 ===
 [NGN DEBUG] 2025/08/31 13:25:27.214453 ShouldStopSearch(depth=3): false (elapsed: 9.5807ms, allocated: 29.95s)
 [NGN DEBUG] 2025/08/31 13:25:27.214460 Calling SearchFixed for depth 3
+[NGN DEBUG] 2025/09/01 13:59:03.510380 === NGN Chess Engine Starting ===
+[NGN DEBUG] 2025/09/01 13:59:03.511388 Executable path: /home/behrlich/repos/ngn/build/ngn
+[NGN DEBUG] 2025/09/01 13:59:03.511401 Log file directory: /home/behrlich/repos/ngn/build

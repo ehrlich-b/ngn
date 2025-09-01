@@ -66,6 +66,12 @@ coverage: test ## Generate and view test coverage report
 	go tool cover -html=$(COVERAGE_FILE) -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 
+.PHONY: eval
+eval: ## Run comprehensive 2-minute engine evaluation with deep search
+	@echo "Running comprehensive engine evaluation (2 minutes)..."
+	@echo "⚠️  This test allows 10-15 seconds per position for meaningful depth analysis"
+	@go test -v ./engine -run "TestComprehensiveEngineEvaluation" -timeout 180s
+
 # Benchmark commands  
 .PHONY: bench
 bench: ## Run benchmarks

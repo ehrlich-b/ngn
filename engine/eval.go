@@ -1744,11 +1744,21 @@ func evaluateBishopPair(board *Bitboard, color Color) int {
 	return 0
 }
 
-// Enhanced evaluation function
+// Enhanced evaluation function - always returns from white's perspective
 func Evaluate(board *Bitboard) (eval int) {
 	return WrapEvaluation("Evaluate", func() int {
 		return evaluateUnsafe(board)
 	}, board)
+}
+
+// EvaluateForPlayer returns evaluation from the given player's perspective
+func EvaluateForPlayer(board *Bitboard, player Color) int {
+	whiteEval := Evaluate(board)
+	if player == White {
+		return whiteEval
+	} else {
+		return -whiteEval  // Flip for black's perspective
+	}
 }
 
 func evaluateUnsafe(board *Bitboard) (eval int) {
