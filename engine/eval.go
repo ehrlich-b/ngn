@@ -253,7 +253,8 @@ func countPassedPawns(board *Bitboard, color Color) int {
 		var blockedByOpponent bool
 		
 		// Check if any opponent pawns are in front of this pawn or on adjacent files
-		for _, opponentSquare := range getSetBits(opponentPawnBitboard) {
+		for obb := opponentPawnBitboard; obb != 0; obb &= obb - 1 {
+			opponentSquare := bits.TrailingZeros64(obb)
 			opponentFile := int(opponentSquare % 8)
 			opponentRank := int(opponentSquare / 8)
 			
@@ -291,9 +292,9 @@ func evaluatePawnChains(board *Bitboard, color Color) int {
 	}
 	
 	chainBonus := 0
-	pawnSquares := getSetBits(pawnBitboard)
 	
-	for _, square := range pawnSquares {
+	for pbb := pawnBitboard; pbb != 0; pbb &= pbb - 1 {
+		square := bits.TrailingZeros64(pbb)
 		file := int(square % 8)
 		rank := int(square / 8)
 		
@@ -366,9 +367,9 @@ func evaluateWeakSquares(board *Bitboard, color Color) int {
 	
 	// Generate pawn attack coverage (squares controlled by our pawns)
 	pawnAttackMask := uint64(0)
-	pawnSquares := getSetBits(pawnBitboard)
 	
-	for _, square := range pawnSquares {
+	for pbb := pawnBitboard; pbb != 0; pbb &= pbb - 1 {
+		square := bits.TrailingZeros64(pbb)
 		file := int(square % 8)
 		rank := int(square / 8)
 		
@@ -476,12 +477,12 @@ func evaluatePawnStorms(board *Bitboard, color Color) int {
 	opponentKingRank := int(opponentKingSquare / 8)
 	
 	stormBonus := 0
-	pawnSquares := getSetBits(pawnBitboard)
 	
 	// Group pawns by file and evaluate storm potential
 	pawnsByFile := make(map[int][]int) // file -> []ranks
 	
-	for _, square := range pawnSquares {
+	for pbb := pawnBitboard; pbb != 0; pbb &= pbb - 1 {
+		square := bits.TrailingZeros64(pbb)
 		file := int(square % 8)
 		rank := int(square / 8)
 		pawnsByFile[file] = append(pawnsByFile[file], rank)
@@ -996,11 +997,9 @@ func evaluateKingActivity(board *Bitboard) int {
 	whitePawnsBB := board.GetBitboardOf(WhitePawn)
 	blackPawnsBB := board.GetBitboardOf(BlackPawn)
 	
-	whitePawnSquares := getSetBits(whitePawnsBB)
-	blackPawnSquares := getSetBits(blackPawnsBB)
-	
 	// Check if king is supporting own pawns
-	for _, pawnSquare := range whitePawnSquares {
+	for wpbb := whitePawnsBB; wpbb != 0; wpbb &= wpbb - 1 {
+		pawnSquare := bits.TrailingZeros64(wpbb)
 		pawnFile := int(pawnSquare % 8)
 		pawnRank := int(pawnSquare / 8)
 		distance := evalAbs(whiteKingFile-pawnFile) + evalAbs(whiteKingRank-pawnRank)
@@ -1009,7 +1008,8 @@ func evaluateKingActivity(board *Bitboard) int {
 		}
 	}
 	
-	for _, pawnSquare := range blackPawnSquares {
+	for bpbb := blackPawnsBB; bpbb != 0; bpbb &= bpbb - 1 {
+		pawnSquare := bits.TrailingZeros64(bpbb)
 		pawnFile := int(pawnSquare % 8)
 		pawnRank := int(pawnSquare / 8)
 		distance := evalAbs(blackKingFile-pawnFile) + evalAbs(blackKingRank-pawnRank)
@@ -1070,23 +1070,20 @@ func evaluatePieceCoordination(board *Bitboard, color Color) int {
 func evaluatePieceProtection(kingBB, queenBB, rookBB, bishopBB, knightBB, pawnBB uint64, color Color) int {
 	protection := 0
 	
-	// Get all piece squares
-	queens := getSetBits(queenBB)
-	rooks := getSetBits(rookBB)
-	bishops := getSetBits(bishopBB)
-	knights := getSetBits(knightBB)
-	pawns := getSetBits(pawnBB)
-	
-	// Check protection for high-value pieces
-	for _, queenSquare := range queens {
-		protectors := countProtectors(queenSquare, rooks, bishops, knights, pawns, color)
+	// Process queens
+	for qbb := queenBB; qbb != 0; qbb &= qbb - 1 {
+		queenSquare := bits.TrailingZeros64(qbb)
+		protectors := countProtectorsBB(queenSquare, rookBB, bishopBB, knightBB, pawnBB, color)
 		protection += protectors * 15 // High bonus for queen protection
 	}
 	
-	for _, rookSquare := range rooks {
-		protectors := countProtectors(rookSquare, []int{}, bishops, knights, pawns, color)
+	// Process rooks
+	for rbb := rookBB; rbb != 0; rbb &= rbb - 1 {
+		rookSquare := bits.TrailingZeros64(rbb)
+		protectors := countProtectorsBB(rookSquare, 0, bishopBB, knightBB, pawnBB, color)
 		// Add queen protection
-		for _, queenSquare := range queens {
+		for qbb := queenBB; qbb != 0; qbb &= qbb - 1 {
+			queenSquare := bits.TrailingZeros64(qbb)
 			if canQueenProtect(queenSquare, rookSquare) {
 				protectors++
 			}
@@ -1094,9 +1091,12 @@ func evaluatePieceProtection(kingBB, queenBB, rookBB, bishopBB, knightBB, pawnBB
 		protection += protectors * 8 // Good bonus for rook protection
 	}
 	
-	for _, bishopSquare := range bishops {
-		protectors := countProtectors(bishopSquare, rooks, []int{}, knights, pawns, color)
-		for _, queenSquare := range queens {
+	// Process bishops
+	for bbb := bishopBB; bbb != 0; bbb &= bbb - 1 {
+		bishopSquare := bits.TrailingZeros64(bbb)
+		protectors := countProtectorsBB(bishopSquare, rookBB, 0, knightBB, pawnBB, color)
+		for qbb := queenBB; qbb != 0; qbb &= qbb - 1 {
+			queenSquare := bits.TrailingZeros64(qbb)
 			if canQueenProtect(queenSquare, bishopSquare) {
 				protectors++
 			}
@@ -1104,9 +1104,12 @@ func evaluatePieceProtection(kingBB, queenBB, rookBB, bishopBB, knightBB, pawnBB
 		protection += protectors * 5 // Moderate bonus for bishop protection
 	}
 	
-	for _, knightSquare := range knights {
-		protectors := countProtectors(knightSquare, rooks, bishops, []int{}, pawns, color)
-		for _, queenSquare := range queens {
+	// Process knights
+	for nbb := knightBB; nbb != 0; nbb &= nbb - 1 {
+		knightSquare := bits.TrailingZeros64(nbb)
+		protectors := countProtectorsBB(knightSquare, rookBB, bishopBB, 0, pawnBB, color)
+		for qbb := queenBB; qbb != 0; qbb &= qbb - 1 {
+			queenSquare := bits.TrailingZeros64(qbb)
 			if canQueenProtect(queenSquare, knightSquare) {
 				protectors++
 			}
@@ -1117,7 +1120,50 @@ func evaluatePieceProtection(kingBB, queenBB, rookBB, bishopBB, knightBB, pawnBB
 	return protection
 }
 
-// Count how many pieces can protect a given square
+// Count how many pieces can protect a given square (using bitboards)
+func countProtectorsBB(targetSquare int, rookBB, bishopBB, knightBB, pawnBB uint64, color Color) int {
+	protectors := 0
+	targetFile := targetSquare % 8
+	targetRank := targetSquare / 8
+	
+	// Check rook protection (same rank or file)
+	for rbb := rookBB; rbb != 0; rbb &= rbb - 1 {
+		rookSquare := bits.TrailingZeros64(rbb)
+		rookFile := rookSquare % 8
+		rookRank := rookSquare / 8
+		if rookFile == targetFile || rookRank == targetRank {
+			protectors++
+		}
+	}
+	
+	// Check bishop protection (same diagonal)
+	for bbb := bishopBB; bbb != 0; bbb &= bbb - 1 {
+		bishopSquare := bits.TrailingZeros64(bbb)
+		if onSameDiagonal(bishopSquare, targetSquare) {
+			protectors++
+		}
+	}
+	
+	// Check knight protection
+	for nbb := knightBB; nbb != 0; nbb &= nbb - 1 {
+		knightSquare := bits.TrailingZeros64(nbb)
+		if canKnightReach(knightSquare, targetSquare) {
+			protectors++
+		}
+	}
+	
+	// Check pawn protection
+	for pbb := pawnBB; pbb != 0; pbb &= pbb - 1 {
+		pawnSquare := bits.TrailingZeros64(pbb)
+		if canPawnProtect(pawnSquare, targetSquare, color) {
+			protectors++
+		}
+	}
+	
+	return protectors
+}
+
+// Keep old version for compatibility if needed
 func countProtectors(targetSquare int, rooks, bishops, knights, pawns []int, color Color) int {
 	protectors := 0
 	targetFile := targetSquare % 8
@@ -1205,14 +1251,10 @@ func canQueenProtect(queenSquare, targetSquare int) bool {
 func evaluateOutpostSquares(knightBB, bishopBB, pawnBB, opponentPawnBB uint64, color Color) int {
 	outpostBonus := 0
 	
-	knights := getSetBits(knightBB)
-	bishops := getSetBits(bishopBB)
-	pawns := getSetBits(pawnBB)
-	opponentPawns := getSetBits(opponentPawnBB)
-	
 	// Check knights on outpost squares
-	for _, knightSquare := range knights {
-		if isOutpostSquare(knightSquare, pawns, opponentPawns, color) {
+	for nbb := knightBB; nbb != 0; nbb &= nbb - 1 {
+		knightSquare := bits.TrailingZeros64(nbb)
+		if isOutpostSquareBB(knightSquare, pawnBB, opponentPawnBB, color) {
 			// Knights on outposts are very strong
 			bonus := 20
 			
@@ -1229,8 +1271,9 @@ func evaluateOutpostSquares(knightBB, bishopBB, pawnBB, opponentPawnBB uint64, c
 	}
 	
 	// Check bishops on outpost squares (less common but still valuable)
-	for _, bishopSquare := range bishops {
-		if isOutpostSquare(bishopSquare, pawns, opponentPawns, color) {
+	for bbb := bishopBB; bbb != 0; bbb &= bbb - 1 {
+		bishopSquare := bits.TrailingZeros64(bbb)
+		if isOutpostSquareBB(bishopSquare, pawnBB, opponentPawnBB, color) {
 			bonus := 12
 			
 			// Bishops on outposts in enemy territory
@@ -1249,6 +1292,66 @@ func evaluateOutpostSquares(knightBB, bishopBB, pawnBB, opponentPawnBB uint64, c
 }
 
 // Check if a square is an outpost (supported by pawn, can't be attacked by enemy pawns)
+// Check if a square is an outpost (using bitboards)
+func isOutpostSquareBB(square int, friendlyPawnBB, enemyPawnBB uint64, color Color) bool {
+	file := square % 8
+	rank := square / 8
+	
+	// 1. Must be supported by our own pawns
+	supported := false
+	for pbb := friendlyPawnBB; pbb != 0; pbb &= pbb - 1 {
+		pawnSquare := bits.TrailingZeros64(pbb)
+		if canPawnProtect(pawnSquare, square, color) {
+			supported = true
+			break
+		}
+	}
+	
+	if !supported {
+		return false
+	}
+	
+	// 2. Must not be attackable by enemy pawns (now or in future)
+	enemyColor := White
+	if color == White {
+		enemyColor = Black
+	}
+	
+	for ebb := enemyPawnBB; ebb != 0; ebb &= ebb - 1 {
+		enemyPawnSquare := bits.TrailingZeros64(ebb)
+		enemyFile := enemyPawnSquare % 8
+		enemyRank := enemyPawnSquare / 8
+		
+		// Check if enemy pawn can attack this square now
+		if canPawnProtect(enemyPawnSquare, square, enemyColor) {
+			return false
+		}
+		
+		// Check if enemy pawn can attack this square in the future
+		// (i.e., can advance and then attack)
+		if evalAbs(enemyFile-file) == 1 {
+			if color == White && enemyRank < rank {
+				// Enemy pawn can potentially advance to attack
+				return false
+			} else if color == Black && enemyRank > rank {
+				// Enemy pawn can potentially advance to attack
+				return false
+			}
+		}
+	}
+	
+	// 3. Must be in enemy territory (ranks 4-6 for white, ranks 3-5 for black)
+	if color == White && (rank < 3 || rank > 5) {
+		return false
+	}
+	if color == Black && (rank < 2 || rank > 4) {
+		return false
+	}
+	
+	return true
+}
+
+// Keep old version for compatibility
 func isOutpostSquare(square int, friendlyPawns, enemyPawns []int, color Color) bool {
 	file := square % 8
 	rank := square / 8

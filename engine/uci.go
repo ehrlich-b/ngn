@@ -429,7 +429,7 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 	// Determine maximum search depth
 	maxDepth := params.Depth
 	if maxDepth <= 0 {
-		maxDepth = MAX_DEPTH // Default max depth for iterative deepening (100 ply)
+		maxDepth = MaximumDepth // Default max depth for iterative deepening (100 ply)
 	}
 	
 	// Initialize search variables

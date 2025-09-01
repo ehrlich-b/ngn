@@ -572,16 +572,18 @@ func isInCheck(pos *Position, color Color) bool {
 	
 	// Check pawn attacks
 	if color == White {
-		// Black pawns attack diagonally "up" the board
-		leftAttack := (SquareMask[kingSquare] >> 7) & ^FileMasks[FileH]
-		rightAttack := (SquareMask[kingSquare] >> 9) & ^FileMasks[FileA]
+		// White king being attacked by black pawns - check squares where black pawns would be to attack king
+		// Black pawns attack from squares king+7 and king+9
+		leftAttack := (SquareMask[kingSquare] << 7) & ^FileMasks[FileA]  // black pawn would be at king+7
+		rightAttack := (SquareMask[kingSquare] << 9) & ^FileMasks[FileH] // black pawn would be at king+9
 		if (leftAttack|rightAttack)&pos.Board.GetBitboardOf(BlackPawn) != 0 {
 			return true
 		}
 	} else {
-		// White pawns attack diagonally "down" the board
-		leftAttack := (SquareMask[kingSquare] << 7) & ^FileMasks[FileA]
-		rightAttack := (SquareMask[kingSquare] << 9) & ^FileMasks[FileH]
+		// Black king being attacked by white pawns - check squares where white pawns would be to attack king
+		// White pawns attack from squares king-7 and king-9
+		leftAttack := (SquareMask[kingSquare] >> 7) & ^FileMasks[FileH]  // white pawn would be at king-7
+		rightAttack := (SquareMask[kingSquare] >> 9) & ^FileMasks[FileA] // white pawn would be at king-9
 		if (leftAttack|rightAttack)&pos.Board.GetBitboardOf(WhitePawn) != 0 {
 			return true
 		}

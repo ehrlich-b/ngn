@@ -10,7 +10,7 @@ var historyTable [64][64]int
 
 // Killer moves table for move ordering heuristic
 // killerMoves[depth][slot] stores killer moves at each depth (2 killer moves per depth)
-var killerMoves [MAX_DEPTH][2]Move
+var killerMoves [MaximumDepth][2]Move
 
 // Counter moves table for move ordering heuristic
 // counterMoves[from][to] stores the best counter move to moves from 'from' to 'to'
@@ -67,7 +67,7 @@ func ageHistoryTable() {
 // UpdateKillerMoves stores a move that caused a beta cutoff as a killer move
 func UpdateKillerMoves(move Move, depth int) {
 	// Only store quiet moves as killer moves
-	if !move.IsCapture() && move.PromoType() == NoType && depth >= 0 && depth < MAX_DEPTH {
+	if !move.IsCapture() && move.PromoType() == NoType && depth >= 0 && depth < MaximumDepth {
 		// Check if this move is already stored as first killer
 		if killerMoves[depth][0] == move {
 			return
@@ -81,7 +81,7 @@ func UpdateKillerMoves(move Move, depth int) {
 
 // IsKillerMove checks if a move is a killer move at the given depth
 func IsKillerMove(move Move, depth int) bool {
-	if depth < 0 || depth >= MAX_DEPTH {
+	if depth < 0 || depth >= MaximumDepth {
 		return false
 	}
 	return killerMoves[depth][0] == move || killerMoves[depth][1] == move

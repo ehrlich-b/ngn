@@ -485,6 +485,90 @@ func TestEnPassantPinDiscovery(t *testing.T) {
 	}
 }
 
+func TestPawnCheckDetection(t *testing.T) {
+	tests := []struct {
+		name     string
+		fen      string
+		kingColor Color
+		expected bool
+	}{
+		{
+			name:     "White king on e4 checked by black pawn on d5",
+			fen:      "8/8/8/3p4/4K3/8/8/8 w - - 0 1",
+			kingColor: White,
+			expected: true,
+		},
+		{
+			name:     "White king on e4 checked by black pawn on f5", 
+			fen:      "8/8/8/5p2/4K3/8/8/8 w - - 0 1",
+			kingColor: White,
+			expected: true,
+		},
+		{
+			name:     "Black king on e5 checked by white pawn on d4",
+			fen:      "8/8/8/4k3/3P4/8/8/8 b - - 0 1",
+			kingColor: Black,
+			expected: true,
+		},
+		{
+			name:     "Black king on e5 checked by white pawn on f4",
+			fen:      "8/8/8/4k3/5P2/8/8/8 b - - 0 1", 
+			kingColor: Black,
+			expected: true,
+		},
+		{
+			name:     "White king on a4 checked by black pawn on b5",
+			fen:      "8/8/8/1p6/K7/8/8/8 w - - 0 1",
+			kingColor: White,
+			expected: true,
+		},
+		{
+			name:     "White king on h4 checked by black pawn on g5", 
+			fen:      "8/8/8/6p1/7K/8/8/8 w - - 0 1",
+			kingColor: White,
+			expected: true,
+		},
+		{
+			name:     "White king on e4 NOT checked by black pawn on e5 (same file, no diagonal)",
+			fen:      "8/8/8/4p3/4K3/8/8/8 w - - 0 1",
+			kingColor: White,
+			expected: false,
+		},
+		{
+			name:     "Black king on e5 NOT checked by white pawn on e4 (same file, no diagonal)",
+			fen:      "8/8/8/4k3/4P3/8/8/8 b - - 0 1", 
+			kingColor: Black,
+			expected: false,
+		},
+		{
+			name:     "Edge case: White king on a1 checked by black pawn on b2",
+			fen:      "8/8/8/8/8/8/1p6/K7 w - - 0 1",
+			kingColor: White,
+			expected: true,
+		},
+		{
+			name:     "Edge case: Black king on h8 checked by white pawn on g7",
+			fen:      "7k/6P1/8/8/8/8/8/8 b - - 0 1",
+			kingColor: Black,
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pos, err := ParseFEN(tt.fen)
+			if err != nil {
+				t.Fatalf("Failed to parse FEN: %v", err)
+			}
+			
+			result := isInCheck(pos, tt.kingColor)
+			if result != tt.expected {
+				t.Errorf("Expected isInCheck(%s, %v) = %v, got %v", tt.fen, tt.kingColor, tt.expected, result)
+			}
+		})
+	}
+}
+
 func BenchmarkLegalMoveGeneration(b *testing.B) {
 	pos := &Position{
 		Board:     StartingBoard(),

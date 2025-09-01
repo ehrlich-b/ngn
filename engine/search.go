@@ -9,7 +9,6 @@ const (
 	INFINITY            = int(math.MaxInt32)
 	MATE_VALUE          = 30000
 	MATE_IN_MAX         = MATE_VALUE - 1000
-	MAX_DEPTH           = 100
 	NULL_MOVE_R         = 3  // Null move reduction depth
 	NULL_MOVE_MIN_DEPTH = 3  // Minimum depth for null move pruning
 	LMR_FULL_DEPTH      = 3  // Minimum depth for LMR
@@ -26,6 +25,8 @@ type SearchInfo struct {
 	BestScore   int
 	Stopped     bool
 	TimeManager *TimeManager
+	PV          [MaximumDepth]Move  // Principal variation array
+	PVLength    int                 // Length of current PV
 }
 
 func Search(pos *Position, depth int) *SearchInfo {
@@ -57,6 +58,8 @@ func SearchIterativeDeepening(pos *Position, maxDepth int, timeManager *TimeMana
 	}
 	
 	// Iterative deepening - start from depth 1 and go up to maxDepth
+	previousScore := 0 // Track previous iteration score for aspiration windows
+	
 	for currentDepth := 1; currentDepth <= maxDepth && !info.Stopped; currentDepth++ {
 		// Check time before starting each new depth iteration
 		if info.TimeManager != nil {
@@ -66,35 +69,85 @@ func SearchIterativeDeepening(pos *Position, maxDepth int, timeManager *TimeMana
 			}
 		}
 		
-		alpha := -INFINITY
-		beta := INFINITY
+		// Aspiration Windows: use previous iteration score to set a narrow window
+		var alpha, beta int
+		if currentDepth == 1 {
+			// Use full window for first iteration
+			alpha = -INFINITY
+			beta = INFINITY
+		} else {
+			// Use aspiration window based on previous iteration
+			window := 50 // 50 centipawn window
+			alpha = previousScore - window
+			beta = previousScore + window
+		}
 		
-		orderedMoves := orderMovesWithDepth(moves, currentDepth)
+		// Aspiration window re-search loop
+		iterationComplete := false
+		attempts := 0
+		maxAttempts := 4 // Prevent infinite loops
 		
-		for _, move := range orderedMoves {
-			// Check time before each move in iterative deepening
+		for !iterationComplete && attempts < maxAttempts {
+			attempts++
+			
+			// Check time before attempting search
 			if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(currentDepth, time.Now()) {
 				info.Stopped = true
 				break
 			}
 			
-			ep, tag, hc, _ := pos.MakeMove(move)
-			score := -alphaBeta(pos, currentDepth-1, -beta, -alpha, info)
-			pos.UnMakeMove(move, tag, ep, hc)
+			// Root search with aspiration window
+			orderedMoves := orderMovesWithDepth(moves, currentDepth)
+			iterationBestScore := -INFINITY
+			iterationBestMove := EmptyMove
 			
-			info.Nodes++
-			
-			if score > info.BestScore {
-				info.BestScore = score
-				info.BestMove = move
+			for _, move := range orderedMoves {
+				// Check time before each move
+				if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(currentDepth, time.Now()) {
+					info.Stopped = true
+					break
+				}
+				
+				ep, tag, hc, _ := pos.MakeMove(move)
+				score := -alphaBeta(pos, currentDepth-1, -beta, -alpha, info)
+				pos.UnMakeMove(move, tag, ep, hc)
+				
+				info.Nodes++
+				
+				if score > iterationBestScore {
+					iterationBestScore = score
+					iterationBestMove = move
+				}
+				
+				if score > alpha {
+					alpha = score
+				}
+				
+				// Beta cutoff
+				if alpha >= beta {
+					break
+				}
 			}
 			
-			if score > alpha {
-				alpha = score
-			}
-			
-			if alpha >= beta {
-				break
+			// Check if we need to widen the window
+			if iterationBestScore <= (previousScore - 50) && currentDepth > 1 {
+				// Fail low - widen alpha
+				alpha -= 100
+				if attempts == maxAttempts-1 {
+					alpha = -INFINITY // Use full window on last attempt
+				}
+			} else if iterationBestScore >= (previousScore + 50) && currentDepth > 1 {
+				// Fail high - widen beta  
+				beta += 100
+				if attempts == maxAttempts-1 {
+					beta = INFINITY // Use full window on last attempt
+				}
+			} else {
+				// Search completed successfully
+				info.BestScore = iterationBestScore
+				info.BestMove = iterationBestMove
+				previousScore = iterationBestScore
+				iterationComplete = true
 			}
 		}
 		
@@ -182,8 +235,8 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 	}
 	
-	// Safety check for excessive depth (use MAX_DEPTH constant)
-	if depth > MAX_DEPTH {
+	// Safety check for excessive depth (use MaximumDepth constant)
+	if depth > MaximumDepth {
 		return Evaluate(&pos.Board)
 	}
 	
@@ -310,23 +363,34 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 			extension = 1  // Extend search by 1 ply when giving check
 		}
 		
-		// Late Move Reductions (LMR)
-		if depth >= LMR_FULL_DEPTH && moveCount > LMR_MOVE_THRESHOLD && 
-		   !move.IsCapture() && !inCheck && !givesCheck {
+		// Principal Variation Search (PVS) implementation
+		if moveCount == 1 {
+			// Search first move (presumably best) with full window
+			score = -alphaBeta(pos, depth-1+extension, -beta, -alpha, info)
+		} else {
+			// For remaining moves, use Principal Variation Search
 			
-			// Reduce depth by 1 for late moves
-			reduction := 1
+			// Late Move Reductions (LMR) for non-PV moves
+			reduction := 0
+			if depth >= LMR_FULL_DEPTH && moveCount > LMR_MOVE_THRESHOLD && 
+			   !move.IsCapture() && !inCheck && !givesCheck {
+				reduction = 1
+			}
 			
-			// Try reduced depth search first
+			// Search with null window first (faster)
 			score = -alphaBeta(pos, depth-1-reduction+extension, -alpha-1, -alpha, info)
 			
-			// If reduced search suggests the move might be good, do full search
-			if score > alpha {
-				score = -alphaBeta(pos, depth-1+extension, -beta, -alpha, info)
+			// If null window search fails high, re-search with full window
+			if score > alpha && score < beta {
+				if reduction > 0 {
+					// First re-search with full depth but still null window
+					score = -alphaBeta(pos, depth-1+extension, -alpha-1, -alpha, info)
+				}
+				// If still fails high, do full window search
+				if score > alpha {
+					score = -alphaBeta(pos, depth-1+extension, -beta, -alpha, info)
+				}
 			}
-		} else {
-			// Full depth search for important moves
-			score = -alphaBeta(pos, depth-1+extension, -beta, -alpha, info)
 		}
 		
 		pos.UnMakeMove(move, tag, ep, hc)
@@ -375,8 +439,8 @@ func quiescence(pos *Position, alpha int, beta int, info *SearchInfo) int {
 }
 
 func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, qDepth int) int {
-	// Prevent infinite recursion
-	if qDepth >= 8 { // Reasonable quiescence depth
+	// Prevent infinite recursion - reduce depth limit for stability
+	if qDepth >= 6 { // More conservative quiescence depth
 		return Evaluate(&pos.Board)
 	}
 	
@@ -393,24 +457,26 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 	}
 	
 	// Only consider captures and checks in quiescence search
-	// Use pseudo-legal moves for performance
-	moves := GenerateMoves(pos)
-	capturesAndChecks := make([]Move, 0, len(moves))
+	// Start with captures (more efficient than generating all moves)
+	capturesAndChecks := GenerateCaptures(pos)
 	
-	for _, move := range moves {
-		// Include captures
-		if move.IsCapture() {
-			capturesAndChecks = append(capturesAndChecks, move)
-			continue
-		}
-		
-		// Include moves that give check
-		ep, tag, hc, _ := pos.MakeMove(move)
-		inCheck := isInCheck(pos, pos.Turn())
-		pos.UnMakeMove(move, tag, ep, hc)
-		
-		if inCheck {
-			capturesAndChecks = append(capturesAndChecks, move)
+	// Also consider moves that give check (but only if not too deep to avoid explosion)
+	if qDepth < 2 { // Very conservative check extension depth
+		moves := GenerateMoves(pos)
+		for _, move := range moves {
+			// Skip if already a capture
+			if move.IsCapture() {
+				continue
+			}
+			
+			// Check if move gives check
+			ep, tag, hc, _ := pos.MakeMove(move)
+			givesCheck := isInCheck(pos, pos.Turn())
+			pos.UnMakeMove(move, tag, ep, hc)
+			
+			if givesCheck {
+				capturesAndChecks = append(capturesAndChecks, move)
+			}
 		}
 	}
 	
