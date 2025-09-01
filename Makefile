@@ -46,9 +46,9 @@ build-windows: ## Build Windows executable for Arena Chess
 
 # Test commands
 .PHONY: test
-test: ## Run all tests with coverage
+test: ## Run all tests with coverage (excludes slow comprehensive evaluation)
 	@echo "Running tests with coverage..."
-	@go test -v -race -coverprofile=$(COVERAGE_FILE) -covermode=atomic ./... || { echo "Some tests failed, but continuing..."; exit 0; }
+	@go test -v -short -race -coverprofile=$(COVERAGE_FILE) -covermode=atomic ./... || { echo "Some tests failed, but continuing..."; exit 0; }
 	@echo "Coverage report: $(COVERAGE_FILE)"
 
 .PHONY: test-short

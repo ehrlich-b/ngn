@@ -7,6 +7,7 @@
 - ✅ **Evaluation**: 1477 ELO (exceeded 1400 red line) 
 - ✅ **Stability**: No crashes, proper UCI protocol
 - ✅ **Test Harness**: Fair evaluation with proper time allocation
+- ✅ **Test Framework**: `make test` now fast (excludes 2-minute eval), `make eval` for deep analysis
 
 ### 🏗️ **BREAKTHROUGH TECHNICAL FIXES**
 - **Evaluation Perspective Bug**: Created `EvaluateForPlayer()` - engine now correctly values material

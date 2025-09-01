@@ -37,6 +37,11 @@ make clean         # Clean build artifacts
 make install-tools # Install required development tools
 ```
 
+#### Evaluation Strategy
+- **IMPORTANT**: Always run `make eval` in background using Bash tool's `run_in_background: true` parameter
+- This allows monitoring output with BashOutput while continuing other work
+- Never use shell `&` - Claude Code has built-in backgrounding capabilities
+
 #### Running and Debugging
 ```bash
 make run           # Build and run the engine
