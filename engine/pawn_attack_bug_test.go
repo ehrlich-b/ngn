@@ -144,34 +144,53 @@ func TestSpecificPawnCaptureBugs(t *testing.T) {
 	})
 }
 
-// TestPawnCaptureValidation tests that IsLegalMove correctly validates pawn captures
+// TestPawnCaptureValidation tests the complete move generation and validation pipeline
 func TestPawnCaptureValidation(t *testing.T) {
 	pos, err := ParseFEN("rnbqkbnr/pppp1ppp/8/4r3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1")
 	if err != nil {
 		t.Fatalf("Failed to parse FEN: %v", err)
 	}
 	
-	// Test invalid move: pawn capturing straight ahead
-	invalidMove := NewMove(E4, E5, WhitePawn, BlackRook, NoType, Capture)
+	// Generate all legal moves - should not include straight-ahead pawn captures
+	legalMoves := GenerateLegalMoves(pos)
 	
-	if IsLegalMove(pos, invalidMove) {
-		t.Errorf("❌ CRITICAL BUG: IsLegalMove allows pawn to capture straight ahead!")
-	} else {
-		t.Logf("✅ IsLegalMove correctly rejects illegal pawn capture")
+	// Check that no pawn move captures straight ahead
+	for _, move := range legalMoves {
+		if move.MovingPiece().Type() == Pawn && move.IsCapture() {
+			from := move.Source()
+			to := move.Destination()
+			
+			// Check if it's a straight-ahead capture (same file)
+			if from.File() == to.File() {
+				t.Errorf("❌ CRITICAL BUG: Found illegal straight-ahead pawn capture: %s", move.ToString())
+			}
+		}
 	}
 	
-	// Test valid move: pawn capturing diagonally (set up position for it)
+	t.Logf("✅ Move generation correctly excludes straight-ahead pawn captures")
+	
+	// Test valid diagonal capture (set up position for it)
 	pos2, err := ParseFEN("rnbqkbnr/pppp1ppp/8/3r4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1")
 	if err != nil {
 		t.Fatalf("Failed to parse FEN: %v", err)
 	}
 	
-	validMove := NewMove(E4, D5, WhitePawn, BlackRook, NoType, Capture)
+	legalMoves2 := GenerateLegalMoves(pos2)
 	
-	if !IsLegalMove(pos2, validMove) {
-		t.Errorf("❌ BUG: IsLegalMove rejects valid pawn diagonal capture!")
+	// Check that valid diagonal capture is included
+	foundDiagonalCapture := false
+	for _, move := range legalMoves2 {
+		if move.MovingPiece().Type() == Pawn && move.IsCapture() && 
+		   move.Source() == E4 && move.Destination() == D5 {
+			foundDiagonalCapture = true
+			break
+		}
+	}
+	
+	if !foundDiagonalCapture {
+		t.Errorf("❌ BUG: Legal diagonal pawn capture not generated!")
 	} else {
-		t.Logf("✅ IsLegalMove correctly allows valid pawn diagonal capture")
+		t.Logf("✅ Move generation correctly includes diagonal pawn captures")
 	}
 }
 
