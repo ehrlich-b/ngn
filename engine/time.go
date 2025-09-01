@@ -103,7 +103,8 @@ func (tm *TimeManager) SetTimeControl(params SearchParams, isWhite bool) {
 	// Ensure we don't allocate more time than we have
 	tm.allocatedTime = tm.ensureSafeTimeAllocation()
 	
-	// Global maximum time limit for any move - 30 seconds
+	// Global maximum time limit for any move
+	// Keep a 30 second maximum for expediency
 	maxTime := time.Second * 30
 	if tm.allocatedTime > maxTime {
 		tm.allocatedTime = maxTime
@@ -146,15 +147,22 @@ func (tm *TimeManager) calculateBaseAllocation() time.Duration {
 	// Add increment to available time
 	availableTime := timePerMove + float64(tm.increment)
 	
-	// Use a percentage based on game phase
+	// Use a percentage based on game phase - be more aggressive with lots of time
 	var usagePercent float64
+	timeMultiplier := 1.0
+	if tm.baseTime > time.Minute*5 {
+		timeMultiplier = 1.8 // Use significantly more time when we have lots available
+	} else if tm.baseTime > time.Minute*2 {
+		timeMultiplier = 1.4 // Use moderately more time
+	}
+	
 	switch tm.gamePhase {
 	case Opening:
-		usagePercent = 0.6 // Use less time in opening
+		usagePercent = 0.8 * timeMultiplier // Still less in opening, but not too little
 	case Middlegame:
-		usagePercent = 1.0 // Normal time usage
+		usagePercent = 1.2 * timeMultiplier // More time in complex middlegame
 	case Endgame:
-		usagePercent = 1.2 // More time in endgame if available
+		usagePercent = 1.4 * timeMultiplier // Most time in precise endgame
 	}
 	
 	return time.Duration(availableTime * usagePercent)
@@ -162,15 +170,27 @@ func (tm *TimeManager) calculateBaseAllocation() time.Duration {
 
 // estimateMovesRemaining estimates how many moves are left in the game
 func (tm *TimeManager) estimateMovesRemaining() int {
+	// Be much more optimistic about remaining moves to allow more thinking time
+	remaining := 40 - tm.movesPlayed // Assume shorter games for better time usage
 	switch tm.gamePhase {
 	case Opening:
-		return 60 - tm.movesPlayed // Games typically 60-80 moves
+		remaining = 30 - tm.movesPlayed // Shorter estimate in opening
 	case Middlegame:
-		return 45 - tm.movesPlayed
+		remaining = 25 - tm.movesPlayed // Focus time on critical middle game
 	case Endgame:
-		return 30 - tm.movesPlayed
+		remaining = 20 - tm.movesPlayed // Endgame needs precise calculation
 	}
-	return 40 // Default estimate
+	
+	// Never estimate more than 40 moves remaining, even early in game
+	if remaining > 40 {
+		remaining = 40
+	}
+	// Always assume at least 10 moves remaining for safety
+	if remaining < 10 {
+		remaining = 10
+	}
+	
+	return remaining
 }
 
 // getGamePhaseMultiplier returns time multiplier based on game phase
@@ -212,8 +232,18 @@ func (tm *TimeManager) getScoreChangeMultiplier() float64 {
 // ensureSafeTimeAllocation ensures we don't allocate too much time
 func (tm *TimeManager) ensureSafeTimeAllocation() time.Duration {
 	if tm.timeControl == Tournament {
-		// Never use more than 1/3 of remaining time on a single move
-		maxAllocation := tm.baseTime / 3
+		// Scale maximum allocation with available time
+		var maxAllocation time.Duration
+		if tm.baseTime > time.Minute*10 {
+			// With lots of time, can use up to 1/2 of remaining time
+			maxAllocation = tm.baseTime / 2
+		} else if tm.baseTime > time.Minute*5 {
+			// With moderate time, use up to 2/5 of remaining time
+			maxAllocation = tm.baseTime * 2 / 5
+		} else {
+			// With little time, be conservative - 1/3 of remaining time
+			maxAllocation = tm.baseTime / 3
+		}
 		if tm.allocatedTime > maxAllocation {
 			tm.allocatedTime = maxAllocation
 		}
@@ -263,31 +293,72 @@ func (tm *TimeManager) ShouldStopSearch(depth int, iterationStartTime time.Time)
 
 // shouldStopTournamentSearch determines if tournament search should stop
 func (tm *TimeManager) shouldStopTournamentSearch(depth int, iterationStartTime time.Time, elapsed time.Duration) bool {
-	// Hard limit - never exceed allocated time
-	if elapsed >= tm.allocatedTime {
-		return true
-	}
-	
-	// Soft time management - don't start new iteration if likely to exceed time
-	if depth >= 4 { // Only apply soft limits after reasonable depth
-		iterationTime := time.Since(iterationStartTime)
-		
-		// Estimate time for next iteration (typically 3-4x current iteration)
-		nextIterationEstimate := iterationTime * 4
-		
-		// If next iteration would exceed our time budget, stop now
-		if elapsed+nextIterationEstimate > tm.allocatedTime {
-			return true
-		}
-	}
-	
-	// Emergency time check - if we're down to emergency time, stop
-	remainingTime := tm.baseTime - elapsed
-	if remainingTime <= tm.emergencyTime {
-		return true
-	}
-	
-	return false
+    // Hard limit - never exceed allocated time
+    if elapsed >= tm.allocatedTime {
+        return true
+    }
+
+    // Compute remaining time dynamically for this decision point
+    remainingTime := tm.baseTime - elapsed
+
+    // Dynamic depth/time floors: don't stop before we have thought "enough"
+    // unless we're in an emergency. Tiers are based on remaining time so
+    // they adapt if we spend time during this move.
+    // Keep conservative to prevent long searches
+    var minDepthFloor int
+    var minThinkTime time.Duration
+    switch {
+    case remainingTime >= 10*time.Minute:
+        minDepthFloor = 5  // Reduced from 7
+        minThinkTime = 3 * time.Second  // Reduced from 7 seconds
+    case remainingTime >= 5*time.Minute:
+        minDepthFloor = 4  // Reduced from 6
+        minThinkTime = 2 * time.Second  // Reduced from 5 seconds
+    case remainingTime >= 2*time.Minute:
+        minDepthFloor = 4  // Reduced from 5
+        minThinkTime = 1500 * time.Millisecond  // Reduced from 3 seconds
+    case remainingTime >= 60*time.Second:
+        minDepthFloor = 3  // Reduced from 4
+        minThinkTime = 1 * time.Second  // Reduced from 1.5 seconds
+    case remainingTime >= 30*time.Second:
+        minDepthFloor = 3  // Keep same
+        minThinkTime = 500 * time.Millisecond  // Reduced from 1 second
+    default:
+        minDepthFloor = 2
+        minThinkTime = 200 * time.Millisecond
+    }
+
+    // Emergency time check - if we're down to emergency time, stop regardless
+    if remainingTime <= tm.emergencyTime {
+        return true
+    }
+
+    // Respect floors: if we haven't met either floor, keep searching
+    if elapsed < minThinkTime || depth < minDepthFloor {
+        return false
+    }
+
+    // Soft time management - don't start new iteration if likely to exceed time
+    // Be more lenient when we have plenty of time available
+    iterationTime := time.Since(iterationStartTime)
+    // Estimate time for next iteration (typically 3-4x current iteration)
+    nextIterationEstimate := iterationTime * 4
+
+    // Only stop if next iteration would exceed allocated time AND we're running low on total time
+    allocatedUsed := float64(elapsed) / float64(tm.allocatedTime)
+
+    // If we've used less than 50% of allocated time, always continue (unless total time very low)
+    if allocatedUsed < 0.5 && remainingTime > 10*time.Second {
+        return false
+    }
+
+    // If we have lots of total time remaining, be very lenient
+    if remainingTime > 60*time.Second {
+        return elapsed+nextIterationEstimate > tm.allocatedTime*2 // Allow double allocated time
+    } else if remainingTime > 30*time.Second {
+        return elapsed+nextIterationEstimate > time.Duration(float64(tm.allocatedTime)*1.5) // Allow 50% over
+    }
+    return elapsed+nextIterationEstimate > tm.allocatedTime // Normal limit when time is tight
 }
 
 // UpdateGameState updates the time manager with current game state

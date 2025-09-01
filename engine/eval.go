@@ -478,45 +478,51 @@ func evaluatePawnStorms(board *Bitboard, color Color) int {
 	
 	stormBonus := 0
 	
-	// Group pawns by file and evaluate storm potential
-	pawnsByFile := make(map[int][]int) // file -> []ranks
+	// Track most advanced pawn per file without allocations
+	// Use -1 to indicate no pawn on that file
+	var mostAdvancedByFile [8]int
+	var pawnCountByFile [8]int
 	
+	// Initialize with invalid values
+	for i := 0; i < 8; i++ {
+		if color == White {
+			mostAdvancedByFile[i] = -1 // No pawn yet
+		} else {
+			mostAdvancedByFile[i] = 8 // No pawn yet (8 is invalid rank)
+		}
+	}
+	
+	// Find most advanced pawn on each file
 	for pbb := pawnBitboard; pbb != 0; pbb &= pbb - 1 {
 		square := bits.TrailingZeros64(pbb)
-		file := int(square % 8)
-		rank := int(square / 8)
-		pawnsByFile[file] = append(pawnsByFile[file], rank)
+		file := square % 8
+		rank := square / 8
+		pawnCountByFile[file]++
+		
+		if color == White {
+			if mostAdvancedByFile[file] == -1 || rank > mostAdvancedByFile[file] {
+				mostAdvancedByFile[file] = rank
+			}
+		} else {
+			if mostAdvancedByFile[file] == 8 || rank < mostAdvancedByFile[file] {
+				mostAdvancedByFile[file] = rank
+			}
+		}
 	}
 	
 	// Evaluate storm potential near enemy king
-	kingFiles := []int{opponentKingFile - 1, opponentKingFile, opponentKingFile + 1}
-	
-	for _, kingFile := range kingFiles {
+	for fileOffset := -1; fileOffset <= 1; fileOffset++ {
+		kingFile := opponentKingFile + fileOffset
 		if kingFile < 0 || kingFile > 7 {
 			continue
 		}
 		
-		pawns, exists := pawnsByFile[kingFile]
-		if !exists || len(pawns) == 0 {
-			continue
-		}
+		mostAdvancedRank := mostAdvancedByFile[kingFile]
+		pawnCount := pawnCountByFile[kingFile]
 		
-		// Find most advanced pawn on this file
-		var mostAdvancedRank int
-		if color == White {
-			mostAdvancedRank = 0
-			for _, rank := range pawns {
-				if rank > mostAdvancedRank {
-					mostAdvancedRank = rank
-				}
-			}
-		} else {
-			mostAdvancedRank = 7
-			for _, rank := range pawns {
-				if rank < mostAdvancedRank {
-					mostAdvancedRank = rank
-				}
-			}
+		// Skip if no pawns on this file
+		if pawnCount == 0 {
+			continue
 		}
 		
 		// Calculate storm advancement
@@ -545,17 +551,17 @@ func evaluatePawnStorms(board *Bitboard, color Color) int {
 		}
 		
 		// Multiple pawns on same file create stronger storms
-		if len(pawns) > 1 {
-			stormBonus += len(pawns) * 2 // Bonus for pawn cooperation
+		if pawnCount > 1 {
+			stormBonus += pawnCount * 2 // Bonus for pawn cooperation
 		}
 	}
 	
 	// Additional bonus for connected pawn storms (pawns on adjacent files)
 	for file := 0; file < 7; file++ {
-		leftPawns, leftExists := pawnsByFile[file]
-		rightPawns, rightExists := pawnsByFile[file+1]
+		leftCount := pawnCountByFile[file]
+		rightCount := pawnCountByFile[file+1]
 		
-		if leftExists && rightExists && len(leftPawns) > 0 && len(rightPawns) > 0 {
+		if leftCount > 0 && rightCount > 0 {
 			// Check if both files have advanced pawns near enemy king
 			kingDistance := evalAbs(file - opponentKingFile) + evalAbs((file+1) - opponentKingFile)
 			if kingDistance <= 3 { // Within striking distance of king
@@ -732,54 +738,36 @@ func evaluateKingAttackPatterns(queenBB, rookBB, bishopBB, knightBB uint64,
 	
 	attackWeight := 0
 	
-	// Define king zone (3x3 area around king)
-	kingZoneSquares := make([]int, 0, 9)
-	for fileOffset := -1; fileOffset <= 1; fileOffset++ {
-		for rankOffset := -1; rankOffset <= 1; rankOffset++ {
-			checkFile := kingFile + fileOffset
-			checkRank := kingRank + rankOffset
-			
-			if checkFile >= 0 && checkFile <= 7 && checkRank >= 0 && checkRank <= 7 {
-				kingZoneSquares = append(kingZoneSquares, checkRank*8+checkFile)
-			}
-		}
-	}
-	
-	// Count attacking pieces in extended king zone (5x5 area)
-	extendedKingZone := make([]int, 0, 25)
+	// Check for enemy pieces in extended king zone (5x5 area) without allocations
 	for fileOffset := -2; fileOffset <= 2; fileOffset++ {
 		for rankOffset := -2; rankOffset <= 2; rankOffset++ {
 			checkFile := kingFile + fileOffset
 			checkRank := kingRank + rankOffset
 			
 			if checkFile >= 0 && checkFile <= 7 && checkRank >= 0 && checkRank <= 7 {
-				extendedKingZone = append(extendedKingZone, checkRank*8+checkFile)
+				square := checkRank*8 + checkFile
+				squareMask := uint64(1 << square)
+				
+				// Weight attacks by piece value and proximity
+				distance := evalAbs(checkFile-kingFile) + evalAbs(checkRank-kingRank)
+				proximityMultiplier := 4 - (distance / 2) // Closer pieces are more dangerous
+				if proximityMultiplier < 1 {
+					proximityMultiplier = 1
+				}
+				
+				if (queenBB & squareMask) != 0 {
+					attackWeight += 20 * proximityMultiplier // Queens are very dangerous
+				}
+				if (rookBB & squareMask) != 0 {
+					attackWeight += 10 * proximityMultiplier // Rooks are dangerous
+				}
+				if (bishopBB & squareMask) != 0 {
+					attackWeight += 8 * proximityMultiplier // Bishops can be dangerous
+				}
+				if (knightBB & squareMask) != 0 {
+					attackWeight += 12 * proximityMultiplier // Knights are tricky near king
+				}
 			}
-		}
-	}
-	
-	// Check for enemy pieces in king zones
-	for _, square := range extendedKingZone {
-		squareMask := uint64(1 << square)
-		
-		// Weight attacks by piece value and proximity
-		distance := evalAbs(square%8-kingFile) + evalAbs(square/8-kingRank)
-		proximityMultiplier := 4 - (distance / 2) // Closer pieces are more dangerous
-		if proximityMultiplier < 1 {
-			proximityMultiplier = 1
-		}
-		
-		if (queenBB & squareMask) != 0 {
-			attackWeight += 20 * proximityMultiplier // Queens are very dangerous
-		}
-		if (rookBB & squareMask) != 0 {
-			attackWeight += 10 * proximityMultiplier // Rooks are dangerous
-		}
-		if (bishopBB & squareMask) != 0 {
-			attackWeight += 8 * proximityMultiplier // Bishops can be dangerous
-		}
-		if (knightBB & squareMask) != 0 {
-			attackWeight += 12 * proximityMultiplier // Knights are tricky near king
 		}
 	}
 	

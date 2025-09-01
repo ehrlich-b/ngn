@@ -327,7 +327,7 @@ func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
 	}
 	
 	params := SearchParams{
-		Depth:     6, // Default depth
+		Depth:     0, // No default depth - will use time-based search
 		Infinite:  false,
 	}
 	
@@ -445,11 +445,12 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 		fmt.Fprintf(output, "info string search initialized\n")
 	}
 	
-	// Determine maximum search depth
-	maxDepth := params.Depth
-	if maxDepth <= 0 {
-		maxDepth = MaximumDepth // Default max depth for iterative deepening (100 ply)
-	}
+    // Determine maximum search depth
+    maxDepth := params.Depth
+    if maxDepth <= 0 {
+        // No explicit depth specified - use time-based search with high max depth
+        maxDepth = MaximumDepth
+    }
 	
 	// Initialize search variables
 	var bestMove Move
@@ -499,13 +500,15 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 			break
 		}
 		
-		// Perform search at current depth
-		uci.debugLogger.Printf("Calling SearchFixed for depth %d", depth)
-		info := SearchFixed(uci.position, depth, uci.timeManager)
-		uci.debugLogger.Printf("SearchFixed returned: depth=%d, bestMove=%v, bestScore=%d, nodes=%d", 
-			depth, info.BestMove, info.BestScore, info.Nodes)
+        // Perform search at current depth
+        uci.debugLogger.Printf("Calling SearchFixed for depth %d", depth)
+        info := SearchFixed(uci.position, depth, uci.timeManager)
 		
-		if info.BestMove != EmptyMove {
+		uci.debugLogger.Printf("SearchFixed returned: depth=%d, bestMove=%v, bestScore=%d, nodes=%d, stopped=%v", 
+			depth, info.BestMove, info.BestScore, info.Nodes, info.Stopped)
+		
+		// CRITICAL: Only use results from COMPLETED searches, never interrupted ones
+		if info.BestMove != EmptyMove && !info.Stopped {
 			bestMove = info.BestMove
 			bestScore = info.BestScore
 			uci.debugLogger.Printf("Updated bestMove to %v with score %d", bestMove.ToString(), bestScore)
@@ -529,6 +532,13 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 				}
 				break
 			}
+		} else if info.Stopped {
+			// Search was interrupted - use best move from previous completed depth
+			uci.debugLogger.Printf("SEARCH INTERRUPTED at depth %d - keeping previous best move %v", depth, bestMove.ToString())
+			if uci.debugMode {
+				fmt.Fprintf(output, "info string search interrupted at depth %d, using previous result\n", depth)
+			}
+			break
 		} else {
 			// No legal moves found at this depth, likely mate or stalemate
 			uci.debugLogger.Printf("SearchFixed returned EmptyMove at depth %d, BREAKING", depth)

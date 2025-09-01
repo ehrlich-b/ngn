@@ -370,41 +370,56 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		
 		var score int
 		
-		// Check for check extensions
-		givesCheck := isInCheck(pos, pos.Turn())
-		extension := 0
-		if givesCheck {
-			extension = 1  // Extend search by 1 ply when giving check
-		}
+        // Check for check extensions
+        givesCheck := isInCheck(pos, pos.Turn())
+        // Compute next depth with extension, but ensure depth strictly decreases
+        // to avoid non-terminating recursion in checking lines.
+        nextDepth := depth - 1
+        if givesCheck && depth > 1 {
+            nextDepth++ // tentative extension
+        }
+        if nextDepth >= depth {
+            // Guardrail: never allow recursion with the same depth
+            nextDepth = depth - 1
+        }
 		
 		// Principal Variation Search (PVS) implementation
-		if moveCount == 1 {
-			// Search first move (presumably best) with full window
-			score = -alphaBeta(pos, depth-1+extension, -beta, -alpha, info)
-		} else {
-			// For remaining moves, use Principal Variation Search
-			
-			// Late Move Reductions (LMR) for non-PV moves
-			reduction := 0
-			if depth >= LMR_FULL_DEPTH && moveCount > LMR_MOVE_THRESHOLD && 
-			   !move.IsCapture() && !inCheck && !givesCheck {
-				reduction = 1
-			}
-			
-			// Search with null window first (faster)
-			score = -alphaBeta(pos, depth-1-reduction+extension, -alpha-1, -alpha, info)
+        if moveCount == 1 {
+            // Search first move (presumably best) with full window
+            score = -alphaBeta(pos, nextDepth, -beta, -alpha, info)
+        } else {
+            // For remaining moves, use Principal Variation Search
+            
+            // Late Move Reductions (LMR) for non-PV moves
+            reduction := 0
+            if depth >= LMR_FULL_DEPTH && moveCount > LMR_MOVE_THRESHOLD && 
+               !move.IsCapture() && !inCheck && !givesCheck {
+                reduction = 1
+            }
+            
+            // Compute reduced depth and apply the same guardrail
+            reducedDepth := depth - 1 - reduction
+            if givesCheck && reducedDepth+1 < depth { // tentative extension
+                reducedDepth++
+            }
+            if reducedDepth >= depth {
+                reducedDepth = depth - 1 - reduction
+            }
+
+            // Search with null window first (faster)
+            score = -alphaBeta(pos, reducedDepth, -alpha-1, -alpha, info)
 			
 			// If null window search fails high, re-search with full window
-			if score > alpha && score < beta {
-				if reduction > 0 {
-					// First re-search with full depth but still null window
-					score = -alphaBeta(pos, depth-1+extension, -alpha-1, -alpha, info)
-				}
-				// If still fails high, do full window search
-				if score > alpha {
-					score = -alphaBeta(pos, depth-1+extension, -beta, -alpha, info)
-				}
-			}
+            if score > alpha && score < beta {
+                if reduction > 0 {
+                    // First re-search with full depth but still null window
+                    score = -alphaBeta(pos, nextDepth, -alpha-1, -alpha, info)
+                }
+                // If still fails high, do full window search
+                if score > alpha {
+                    score = -alphaBeta(pos, nextDepth, -beta, -alpha, info)
+                }
+            }
 		}
 		
 		pos.UnMakeMove(move, tag, ep, hc)
