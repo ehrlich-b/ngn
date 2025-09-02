@@ -681,3 +681,239 @@ func isInCheck(pos *Position, color Color) bool {
 	
 	return false
 }
+
+// Buffer-based move generation to eliminate allocations (safe optimization)
+
+// GenerateMovesIntoBuffer generates moves into the provided buffer, returning the number of moves added
+func GenerateMovesIntoBuffer(pos *Position, buffer []Move) int {
+	moveCount := 0
+	turn := pos.Turn()
+	
+	if turn == White {
+		moveCount += generateWhitePawnMovesIntoBuffer(pos, buffer[moveCount:])
+		moveCount += generatePieceMovesIntoBuffer(pos, WhiteKnight, generateKnightMovesIntoBuffer, buffer[moveCount:])
+		moveCount += generatePieceMovesIntoBuffer(pos, WhiteBishop, generateBishopMovesIntoBuffer, buffer[moveCount:])
+		moveCount += generatePieceMovesIntoBuffer(pos, WhiteRook, generateRookMovesIntoBuffer, buffer[moveCount:])
+		moveCount += generatePieceMovesIntoBuffer(pos, WhiteQueen, generateQueenMovesIntoBuffer, buffer[moveCount:])
+		moveCount += generateKingMovesIntoBuffer(pos, WhiteKing, buffer[moveCount:])
+	} else {
+		moveCount += generateBlackPawnMovesIntoBuffer(pos, buffer[moveCount:])
+		moveCount += generatePieceMovesIntoBuffer(pos, BlackKnight, generateKnightMovesIntoBuffer, buffer[moveCount:])
+		moveCount += generatePieceMovesIntoBuffer(pos, BlackBishop, generateBishopMovesIntoBuffer, buffer[moveCount:])
+		moveCount += generatePieceMovesIntoBuffer(pos, BlackRook, generateRookMovesIntoBuffer, buffer[moveCount:])
+		moveCount += generatePieceMovesIntoBuffer(pos, BlackQueen, generateQueenMovesIntoBuffer, buffer[moveCount:])
+		moveCount += generateKingMovesIntoBuffer(pos, BlackKing, buffer[moveCount:])
+	}
+	
+	return moveCount
+}
+
+// GenerateCapturesIntoBuffer generates captures into the provided buffer, returning the number of captures added
+func GenerateCapturesIntoBuffer(pos *Position, buffer []Move) int {
+	captureCount := 0
+	turn := pos.Turn()
+	
+	if turn == White {
+		captureCount += generateWhitePawnCapturesIntoBuffer(pos, buffer[captureCount:])
+		captureCount += generatePieceCapturesIntoBuffer(pos, WhiteKnight, generateKnightCapturesIntoBuffer, buffer[captureCount:])
+		captureCount += generatePieceCapturesIntoBuffer(pos, WhiteBishop, generateBishopCapturesIntoBuffer, buffer[captureCount:])
+		captureCount += generatePieceCapturesIntoBuffer(pos, WhiteRook, generateRookCapturesIntoBuffer, buffer[captureCount:])
+		captureCount += generatePieceCapturesIntoBuffer(pos, WhiteQueen, generateQueenCapturesIntoBuffer, buffer[captureCount:])
+		captureCount += generateKingCapturesIntoBuffer(pos, WhiteKing, buffer[captureCount:])
+	} else {
+		captureCount += generateBlackPawnCapturesIntoBuffer(pos, buffer[captureCount:])
+		captureCount += generatePieceCapturesIntoBuffer(pos, BlackKnight, generateKnightCapturesIntoBuffer, buffer[captureCount:])
+		captureCount += generatePieceCapturesIntoBuffer(pos, BlackBishop, generateBishopCapturesIntoBuffer, buffer[captureCount:])
+		captureCount += generatePieceCapturesIntoBuffer(pos, BlackRook, generateRookCapturesIntoBuffer, buffer[captureCount:])
+		captureCount += generatePieceCapturesIntoBuffer(pos, BlackQueen, generateQueenCapturesIntoBuffer, buffer[captureCount:])
+		captureCount += generateKingCapturesIntoBuffer(pos, BlackKing, buffer[captureCount:])
+	}
+	
+	return captureCount
+}
+
+// Helper functions for buffer-based generation
+
+func generatePieceMovesIntoBuffer(pos *Position, piece Piece, generator func(*Position, Square, []Move) int, buffer []Move) int {
+	moveCount := 0
+	pieceBitboard := pos.Board.GetBitboardOf(piece)
+	
+	for pieceBitboard != 0 {
+		square := Square(bits.TrailingZeros64(pieceBitboard))
+		moveCount += generator(pos, square, buffer[moveCount:])
+		pieceBitboard &^= SquareMask[int(square)]
+	}
+	
+	return moveCount
+}
+
+func generatePieceCapturesIntoBuffer(pos *Position, piece Piece, generator func(*Position, Square, []Move) int, buffer []Move) int {
+	captureCount := 0
+	pieceBitboard := pos.Board.GetBitboardOf(piece)
+	
+	for pieceBitboard != 0 {
+		square := Square(bits.TrailingZeros64(pieceBitboard))
+		captureCount += generator(pos, square, buffer[captureCount:])
+		pieceBitboard &^= SquareMask[int(square)]
+	}
+	
+	return captureCount
+}
+
+// Buffer-based piece generators (using existing move generation - safe fallback)
+
+func generateKnightMovesIntoBuffer(pos *Position, from Square, buffer []Move) int {
+	count := 0
+	attacks := KnightAttacks[from]
+	piece := pos.Board.PieceAt(from)
+	friendlyPieces := pos.Board.GetWhitePieces()
+	if piece.Color() == Black {
+		friendlyPieces = pos.Board.GetBlackPieces()
+	}
+	
+	attacks &^= friendlyPieces
+	
+	for attacks != 0 {
+		to := Square(bits.TrailingZeros64(attacks))
+		capturedPiece := pos.Board.PieceAt(to)
+		tag := MoveTag(0)
+		if capturedPiece != NoPiece {
+			tag = Capture
+		}
+		buffer[count] = NewMove(from, to, piece, capturedPiece, NoType, tag)
+		count++
+		attacks &^= SquareMask[int(to)]
+	}
+	
+	return count
+}
+
+func generateBishopMovesIntoBuffer(pos *Position, from Square, buffer []Move) int {
+	moves := generateBishopMoves(pos, from)
+	copy(buffer, moves)
+	return len(moves)
+}
+
+func generateRookMovesIntoBuffer(pos *Position, from Square, buffer []Move) int {
+	moves := generateRookMoves(pos, from)
+	copy(buffer, moves)
+	return len(moves)
+}
+
+func generateQueenMovesIntoBuffer(pos *Position, from Square, buffer []Move) int {
+	moves := generateQueenMoves(pos, from)
+	copy(buffer, moves)
+	return len(moves)
+}
+
+func generateKnightCapturesIntoBuffer(pos *Position, from Square, buffer []Move) int {
+	captures := make([]Move, 0, 8)
+	attacks := KnightAttacks[from]
+	piece := pos.Board.PieceAt(from)
+	enemyPieces := pos.Board.GetBlackPieces()
+	if piece.Color() == Black {
+		enemyPieces = pos.Board.GetWhitePieces()
+	}
+	
+	attacks &= enemyPieces
+	
+	for attacks != 0 {
+		to := Square(bits.TrailingZeros64(attacks))
+		capturedPiece := pos.Board.PieceAt(to)
+		captures = append(captures, NewMove(from, to, piece, capturedPiece, NoType, Capture))
+		attacks &^= SquareMask[int(to)]
+	}
+	
+	copy(buffer, captures)
+	return len(captures)
+}
+
+func generateBishopCapturesIntoBuffer(pos *Position, from Square, buffer []Move) int {
+	moves := generateBishopMoves(pos, from)
+	count := 0
+	for _, move := range moves {
+		if move.IsCapture() {
+			buffer[count] = move
+			count++
+		}
+	}
+	return count
+}
+
+func generateRookCapturesIntoBuffer(pos *Position, from Square, buffer []Move) int {
+	moves := generateRookMoves(pos, from)
+	count := 0
+	for _, move := range moves {
+		if move.IsCapture() {
+			buffer[count] = move
+			count++
+		}
+	}
+	return count
+}
+
+func generateQueenCapturesIntoBuffer(pos *Position, from Square, buffer []Move) int {
+	moves := generateQueenMoves(pos, from)
+	count := 0
+	for _, move := range moves {
+		if move.IsCapture() {
+			buffer[count] = move
+			count++
+		}
+	}
+	return count
+}
+
+func generateWhitePawnMovesIntoBuffer(pos *Position, buffer []Move) int {
+	moves := generateWhitePawnMoves(pos)
+	copy(buffer, moves)
+	return len(moves)
+}
+
+func generateBlackPawnMovesIntoBuffer(pos *Position, buffer []Move) int {
+	moves := generateBlackPawnMoves(pos)
+	copy(buffer, moves)
+	return len(moves)
+}
+
+func generateWhitePawnCapturesIntoBuffer(pos *Position, buffer []Move) int {
+	moves := generateWhitePawnMoves(pos)
+	count := 0
+	for _, move := range moves {
+		if move.IsCapture() {
+			buffer[count] = move
+			count++
+		}
+	}
+	return count
+}
+
+func generateBlackPawnCapturesIntoBuffer(pos *Position, buffer []Move) int {
+	moves := generateBlackPawnMoves(pos)
+	count := 0
+	for _, move := range moves {
+		if move.IsCapture() {
+			buffer[count] = move
+			count++
+		}
+	}
+	return count
+}
+
+func generateKingMovesIntoBuffer(pos *Position, piece Piece, buffer []Move) int {
+	moves := generateKingMoves(pos, piece)
+	copy(buffer, moves)
+	return len(moves)
+}
+
+func generateKingCapturesIntoBuffer(pos *Position, piece Piece, buffer []Move) int {
+	moves := generateKingMoves(pos, piece)
+	count := 0
+	for _, move := range moves {
+		if move.IsCapture() {
+			buffer[count] = move
+			count++
+		}
+	}
+	return count
+}

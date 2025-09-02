@@ -4,16 +4,7 @@ import (
 	"math/bits"
 )
 
-// Helper function to get set bits from a bitboard
-func getSetBits(bitboard uint64) []int {
-	var setBits []int
-	for bitboard != 0 {
-		bit := bits.TrailingZeros64(bitboard)
-		setBits = append(setBits, bit)
-		bitboard &= bitboard - 1 // Clear the lowest set bit
-	}
-	return setBits
-}
+// Note: getSetBits function removed - replaced with zero-allocation iteration patterns
 
 // Helper function for trailing zeros
 func trailingZeros(bitboard uint64) int {

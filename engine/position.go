@@ -164,10 +164,20 @@ func (p *Position) partialUnMakeMove(move Move) {
 }
 
 func (p *Position) GameMakeMove(move Move) (Square, PositionTag, uint8, bool) {
-	return p.makeMoveHelper(move)
+	ep, tag, hc, legal := p.makeMoveHelper(move)
+	if legal {
+		// Update repetition detection for game moves
+		if p.Positions != nil {
+			p.positionsMutex.Lock()
+			p.Positions[p.Hash()]++
+			p.positionsMutex.Unlock()
+		}
+	}
+	return ep, tag, hc, legal
 }
 
 func (p *Position) MakeMove(move Move) (Square, PositionTag, uint8, bool) {
+	// Search version - no repetition map updates for performance
 	return p.makeMoveHelper(move)
 }
 
@@ -251,26 +261,14 @@ func (p *Position) makeMoveHelper(move Move) (Square, PositionTag, uint8, bool) 
 
 	updateHash(p, move, captureSquare, p.EnPassant, ep, promoPiece, tag)
 	
-	// Update repetition detection - increment count for this position
-	if p.Positions != nil {
-		p.positionsMutex.Lock()
-		p.Positions[p.Hash()]++
-		p.positionsMutex.Unlock()
-	}
+	// Update repetition detection - disabled in hot path for performance
+	// Only updated in GameMakeMove for actual game moves
 	
 	return ep, tag, hc, true
 }
 
 func (p *Position) GameUnMakeMove(move Move, tag PositionTag, enPassant Square, halfClock uint8) {
-	p.unMakeMoveHelper(move, tag, enPassant, halfClock)
-}
-
-func (p *Position) UnMakeMove(move Move, tag PositionTag, enPassant Square, halfClock uint8) {
-	p.unMakeMoveHelper(move, tag, enPassant, halfClock)
-}
-
-func (p *Position) unMakeMoveHelper(move Move, tag PositionTag, enPassant Square, halfClock uint8) {
-	// Update repetition detection - decrement count for current position before undoing
+	// Update repetition detection for game moves before undoing
 	if p.Positions != nil {
 		p.positionsMutex.Lock()
 		currentHash := p.Hash()
@@ -283,6 +281,17 @@ func (p *Position) unMakeMoveHelper(move Move, tag PositionTag, enPassant Square
 		}
 		p.positionsMutex.Unlock()
 	}
+	p.unMakeMoveHelper(move, tag, enPassant, halfClock)
+}
+
+func (p *Position) UnMakeMove(move Move, tag PositionTag, enPassant Square, halfClock uint8) {
+	// Search version - no repetition map updates for performance
+	p.unMakeMoveHelper(move, tag, enPassant, halfClock)
+}
+
+func (p *Position) unMakeMoveHelper(move Move, tag PositionTag, enPassant Square, halfClock uint8) {
+	// Update repetition detection - disabled in hot path for performance
+	// Only updated in GameUnMakeMove for actual game moves
 	
 	movingPiece := move.MovingPiece()
 	capturedPiece := move.CapturedPiece()

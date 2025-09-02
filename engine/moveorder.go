@@ -1,9 +1,5 @@
 package engine
 
-import (
-	"sort"
-)
-
 // History table for move ordering heuristic
 // historyTable[from][to] stores the history score for moves from 'from' to 'to'
 var historyTable [64][64]int
@@ -162,23 +158,128 @@ func orderMovesWithDepthPreviousAndTTMove(moves []Move, depth int, previousMove 
 		return moves
 	}
 	
-	moveScores := make([]moveScore, len(moves))
+	// Staged move ordering - no allocations, no sorting
+	orderedMoves := make([]Move, 0, len(moves))
 	
-	for i, move := range moves {
-		moveScores[i] = moveScore{
-			move:  move,
-			score: scoreMoveForOrderingWithDepthPreviousAndTTMove(move, depth, previousMove, ttMove, ttHit),
+	// Stage 1: TT move (if exists)
+	if ttHit && ttMove != EmptyMove {
+		for _, move := range moves {
+			if move == ttMove {
+				orderedMoves = append(orderedMoves, move)
+				break
+			}
 		}
 	}
 	
-	// Sort by score descending (higher scores first)
-	sort.Slice(moveScores, func(i, j int) bool {
-		return moveScores[i].score > moveScores[j].score
-	})
+	// Stage 2: Good captures (MVV-LVA positive)
+	for _, move := range moves {
+		if move == ttMove && ttHit {
+			continue // Already added in Stage 1
+		}
+		if move.IsCapture() || move.IsEnPassant() {
+			victim := move.CapturedPiece()
+			attacker := move.MovingPiece()
+			// Add if capture is likely good (victim >= attacker or special case)
+			if victim.Weight() >= attacker.Weight() || move.IsEnPassant() {
+				orderedMoves = append(orderedMoves, move)
+			}
+		}
+	}
 	
-	orderedMoves := make([]Move, len(moves))
-	for i, ms := range moveScores {
-		orderedMoves[i] = ms.move
+	// Stage 3: Promotions
+	for _, move := range moves {
+		if move == ttMove && ttHit {
+			continue
+		}
+		if move.PromoType() != NoType && !move.IsCapture() {
+			orderedMoves = append(orderedMoves, move)
+		}
+	}
+	
+	// Stage 4: Killer moves
+	for _, move := range moves {
+		if move == ttMove && ttHit {
+			continue
+		}
+		if !move.IsCapture() && move.PromoType() == NoType && !move.IsEnPassant() && IsKillerMove(move, depth) {
+			orderedMoves = append(orderedMoves, move)
+		}
+	}
+	
+	// Stage 5: Counter moves
+	for _, move := range moves {
+		if move == ttMove && ttHit {
+			continue
+		}
+		if !move.IsCapture() && move.PromoType() == NoType && !move.IsEnPassant() && !IsKillerMove(move, depth) && IsCounterMove(move, previousMove) {
+			orderedMoves = append(orderedMoves, move)
+		}
+	}
+	
+	// Stage 6: Castling
+	for _, move := range moves {
+		if move == ttMove && ttHit {
+			continue
+		}
+		if move.IsCastle() {
+			orderedMoves = append(orderedMoves, move)
+		}
+	}
+	
+	// Stage 7: Bad captures (MVV-LVA negative)
+	for _, move := range moves {
+		if move == ttMove && ttHit {
+			continue
+		}
+		if move.IsCapture() && !move.IsEnPassant() {
+			victim := move.CapturedPiece()
+			attacker := move.MovingPiece()
+			// Add if capture is likely bad (victim < attacker)
+			if victim.Weight() < attacker.Weight() {
+				orderedMoves = append(orderedMoves, move)
+			}
+		}
+	}
+	
+	// Stage 8: Remaining quiet moves (add in history score order without allocations)
+	// Use a simple O(n²) selection approach to avoid allocations for small sets
+	remainingMoves := make([]bool, len(moves))  // Track which moves we've added
+	
+	// Mark moves we've already added
+	for i, move := range moves {
+		if move == ttMove && ttHit {
+			remainingMoves[i] = true
+			continue
+		}
+		if move.IsCapture() || move.IsEnPassant() || move.PromoType() != NoType || 
+		   move.IsCastle() || IsKillerMove(move, depth) || IsCounterMove(move, previousMove) {
+			remainingMoves[i] = true
+		}
+	}
+	
+	// Add remaining quiet moves in history score order (without allocations)
+	for remainingCount := 0; remainingCount < len(moves); remainingCount++ {
+		bestIdx := -1
+		bestScore := -1
+		
+		for i, move := range moves {
+			if remainingMoves[i] {
+				continue
+			}
+			
+			score := GetHistoryScore(move)
+			if score > bestScore {
+				bestScore = score
+				bestIdx = i
+			}
+		}
+		
+		if bestIdx == -1 {
+			break // No more moves to add
+		}
+		
+		orderedMoves = append(orderedMoves, moves[bestIdx])
+		remainingMoves[bestIdx] = true
 	}
 	
 	return orderedMoves

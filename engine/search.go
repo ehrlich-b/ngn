@@ -30,15 +30,11 @@ type SearchInfo struct {
 }
 
 func Search(pos *Position, depth int) *SearchInfo {
-	return WrapSearch("Search", func() *SearchInfo {
-		return SearchIterativeDeepening(pos, depth, nil)
-	}, pos, depth)
+	return SearchIterativeDeepening(pos, depth, nil)
 }
 
 func SearchIterativeDeepening(pos *Position, maxDepth int, timeManager *TimeManager) *SearchInfo {
-	return WrapSearch("SearchIterativeDeepening", func() *SearchInfo {
-		return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager)
-	}, pos, maxDepth)
+	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager)
 }
 
 func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager) *SearchInfo {
@@ -168,9 +164,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 }
 
 func SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
-	return WrapSearch("SearchFixed", func() *SearchInfo {
-		return searchFixedUnsafe(pos, depth, timeManager)
-	}, pos, depth)
+	return searchFixedUnsafe(pos, depth, timeManager)
 }
 
 func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
@@ -332,8 +326,10 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 	}
 	
 	// Use pseudo-legal moves for performance, check legality only when trying moves
-	moves := GenerateMoves(pos)
-	if len(moves) == 0 {
+	var moveBuffer [256]Move  // Stack-allocated move buffer
+	numMoves := GenerateMovesIntoBuffer(pos, moveBuffer[:])
+	moves := moveBuffer[:numMoves]
+	if numMoves == 0 {
 		if inCheck {
 			return -MATE_VALUE + (info.Depth - depth)
 		}
@@ -487,11 +483,16 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 	
 	// Only consider captures and checks in quiescence search
 	// Start with captures (more efficient than generating all moves)
-	capturesAndChecks := GenerateCaptures(pos)
+	var captureBuffer [64]Move  // Smaller buffer for captures only
+	captureCount := GenerateCapturesIntoBuffer(pos, captureBuffer[:])
+	capturesAndChecks := make([]Move, captureCount, captureCount+20)  // Room for a few checks
+	copy(capturesAndChecks, captureBuffer[:captureCount])
 	
 	// Also consider moves that give check (but only if not too deep to avoid explosion)
 	if qDepth < 2 { // Very conservative check extension depth
-		moves := GenerateMoves(pos)
+		var moveBuffer [256]Move
+		numMoves := GenerateMovesIntoBuffer(pos, moveBuffer[:])
+		moves := moveBuffer[:numMoves]
 		for _, move := range moves {
 			// Skip if already a capture
 			if move.IsCapture() {
