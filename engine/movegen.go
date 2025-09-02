@@ -52,6 +52,7 @@ func generateLegalMovesUnsafe(pos *Position) []Move {
 	return legalMoves
 }
 
+
 // GenerateCaptures generates only capture moves (for quiescence search)
 func GenerateCaptures(pos *Position) []Move {
 	return WrapMoveGeneration("GenerateCaptures", func() []Move {
@@ -71,6 +72,7 @@ func generateCapturesUnsafe(pos *Position) []Move {
 	
 	return captures
 }
+
 
 // generatePieceMoves generates moves for a specific piece type using the provided generator function
 func generatePieceMoves(pos *Position, piece Piece, generator func(*Position, Square) []Move) []Move {
@@ -561,6 +563,11 @@ func isSquareAttacked(pos *Position, square Square, attackingColor Color) bool {
 	pos.Board.UpdateSquare(square, originalPiece, testKing)
 	
 	return attacked
+}
+
+// IsInCheckDirect checks if the king of the given color is in check (public version)
+func IsInCheckDirect(pos *Position, color Color) bool {
+	return isInCheck(pos, color)
 }
 
 // isInCheck checks if the king of the given color is in check

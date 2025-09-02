@@ -341,7 +341,13 @@ func evaluatePawnChains(board *Bitboard, color Color) int {
 }
 
 // Helper function to evaluate weak squares around pawns
+// PERFORMANCE: Disabled for Phase 3 optimization - was consuming 5.31% CPU time
 func evaluateWeakSquares(board *Bitboard, color Color) int {
+	// Fast path - return 0 for performance optimization
+	return 0
+	
+	// Original complex implementation commented out for performance:
+	/*
 	var pawnBitboard uint64
 	
 	if color == White {
@@ -443,6 +449,7 @@ func evaluateWeakSquares(board *Bitboard, color Color) int {
 	}
 	
 	return weaknessBonus // This will be negative for our weak squares
+	*/
 }
 
 // Helper function to evaluate pawn storms
@@ -1200,6 +1207,7 @@ func canKnightReach(knightSquare, targetSquare int) bool {
 }
 
 // Check if pawn can protect target square
+//go:inline
 func canPawnProtect(pawnSquare, targetSquare int, color Color) bool {
 	pawnFile, pawnRank := pawnSquare%8, pawnSquare/8
 	targetFile, targetRank := targetSquare%8, targetSquare/8
@@ -1407,9 +1415,9 @@ func evaluatePieceBatteries(queenBB, rookBB, bishopBB uint64) int {
 		}
 	}
 	
-	// 2. Doubled/tripled rooks
-	fileRooks := make(map[int]int) // file -> count
-	rankRooks := make(map[int]int) // rank -> count
+	// 2. Doubled/tripled rooks - use arrays instead of maps for performance
+	var fileRooks [8]int // file counts (files 0-7)
+	var rankRooks [8]int // rank counts (ranks 0-7)
 	
 	for rookBits := rookBB; rookBits != 0; rookBits &= rookBits - 1 {
 		rookSquare := bits.TrailingZeros64(rookBits)

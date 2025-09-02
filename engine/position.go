@@ -259,6 +259,13 @@ func (p *Position) makeMoveHelper(move Move) (Square, PositionTag, uint8, bool) 
 	// movingSide := p.Turn()
 	p.ToggleTurn()
 
+	// Update check status for the new position
+	if isInCheck(p, p.Turn()) {
+		p.SetTag(InCheck)
+	} else {
+		p.ClearTag(InCheck)
+	}
+
 	updateHash(p, move, captureSquare, p.EnPassant, ep, promoPiece, tag)
 	
 	// Update repetition detection - disabled in hot path for performance
