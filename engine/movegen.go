@@ -39,7 +39,31 @@ func GenerateLegalMoves(pos *Position) []Move {
 	}, pos)
 }
 
+// validatePosition checks if a position has both kings (basic validity check)
+func validatePosition(pos *Position) bool {
+	whiteKingBB := pos.Board.GetBitboardOf(WhiteKing)
+	blackKingBB := pos.Board.GetBitboardOf(BlackKing) 
+	
+	// Both kings must exist
+	if whiteKingBB == 0 || blackKingBB == 0 {
+		return false
+	}
+	
+	// Each king should appear exactly once
+	if bits.OnesCount64(whiteKingBB) != 1 || bits.OnesCount64(blackKingBB) != 1 {
+		return false
+	}
+	
+	return true
+}
+
 func generateLegalMovesUnsafe(pos *Position) []Move {
+	// Validate position before generating any moves
+	if !validatePosition(pos) {
+		// Invalid position (e.g., missing kings) - return no legal moves
+		return []Move{}
+	}
+	
 	pseudoLegalMoves := generateMovesUnsafe(pos)
 	legalMoves := make([]Move, 0, len(pseudoLegalMoves))
 	
@@ -272,20 +296,25 @@ func generateBlackPawnMoves(pos *Position) []Move {
 	}
 	
 	// En passant captures
-	if pos.EnPassant != NoSquare {
+	if pos.EnPassant != NoSquare && pos.EnPassant.Rank() == Rank3 { // Black can only en passant on rank 3 (6th rank from black's perspective)
 		enPassantTarget := pos.EnPassant
-		// Check left diagonal for en passant (from black's perspective)
-		if enPassantTarget.File() > FileA {
-			leftSquare := SquareOf(enPassantTarget.File()-1, enPassantTarget.Rank()+1)
-			if pos.Board.PieceAt(leftSquare) == BlackPawn {
-				moves = append(moves, NewMove(leftSquare, enPassantTarget, BlackPawn, WhitePawn, NoType, EnPassant|Capture))
+		capturedPawnSquare := SquareOf(enPassantTarget.File(), enPassantTarget.Rank()-1) // The pawn that moved 2 squares
+		
+		// Verify there's actually a white pawn to capture
+		if pos.Board.PieceAt(capturedPawnSquare) == WhitePawn {
+			// Check left diagonal for en passant: pawn at (target-1 file, target+1 rank) captures to target
+			if enPassantTarget.File() > FileA {
+				leftSquare := SquareOf(enPassantTarget.File()-1, enPassantTarget.Rank()+1)
+				if pos.Board.PieceAt(leftSquare) == BlackPawn {
+					moves = append(moves, NewMove(leftSquare, enPassantTarget, BlackPawn, WhitePawn, NoType, EnPassant|Capture))
+				}
 			}
-		}
-		// Check right diagonal for en passant (from black's perspective)
-		if enPassantTarget.File() < FileH {
-			rightSquare := SquareOf(enPassantTarget.File()+1, enPassantTarget.Rank()+1)
-			if pos.Board.PieceAt(rightSquare) == BlackPawn {
-				moves = append(moves, NewMove(rightSquare, enPassantTarget, BlackPawn, WhitePawn, NoType, EnPassant|Capture))
+			// Check right diagonal for en passant: pawn at (target+1 file, target+1 rank) captures to target  
+			if enPassantTarget.File() < FileH {
+				rightSquare := SquareOf(enPassantTarget.File()+1, enPassantTarget.Rank()+1)
+				if pos.Board.PieceAt(rightSquare) == BlackPawn {
+					moves = append(moves, NewMove(rightSquare, enPassantTarget, BlackPawn, WhitePawn, NoType, EnPassant|Capture))
+				}
 			}
 		}
 	}
@@ -663,9 +692,29 @@ func isSquareAttacked(pos *Position, square Square, attackingColor Color) bool {
 		testKing = WhiteKing
 	}
 	
+	// Find and temporarily remove the existing king to avoid having two kings
+	testKingColor := testKing.Color()
+	var existingKingSquare Square = 64 // Invalid square initially
+	var existingKingPiece Piece
+	
+	kingBitboard := pos.Board.GetBitboardOf(testKing)
+	if kingBitboard != 0 {
+		existingKingSquare = Square(bits.TrailingZeros64(kingBitboard))
+		existingKingPiece = pos.Board.PieceAt(existingKingSquare)
+		pos.Board.UpdateSquare(existingKingSquare, NoPiece, existingKingPiece)
+	}
+	
+	// Place test king on target square
 	pos.Board.UpdateSquare(square, testKing, originalPiece)
-	attacked := isInCheck(pos, testKing.Color())
+	
+	// Check if test king is attacked
+	attacked := isInCheck(pos, testKingColor)
+	
+	// Restore both pieces
 	pos.Board.UpdateSquare(square, originalPiece, testKing)
+	if existingKingSquare < 64 {
+		pos.Board.UpdateSquare(existingKingSquare, existingKingPiece, NoPiece)
+	}
 	
 	return attacked
 }
@@ -711,9 +760,11 @@ func isInCheck(pos *Position, color Color) bool {
 		}
 	} else {
 		// Black king being attacked by white pawns - check squares where white pawns would be to attack king
-		// White pawns attack from squares king-7 and king-9
-		leftAttack := (SquareMask[kingSquare] >> 7) & ^FileMasks[FileH]  // white pawn would be at king-7
-		rightAttack := (SquareMask[kingSquare] >> 9) & ^FileMasks[FileA] // white pawn would be at king-9
+		// White pawns attack from squares king-7 and king-9, but we need to prevent wrapping
+		// For king-7: prevent wrapping from file A to file H 
+		leftAttack := (SquareMask[kingSquare] >> 7) & ^FileMasks[FileA]  // Exclude if king is on file A
+		// For king-9: prevent wrapping from file H to file A
+		rightAttack := (SquareMask[kingSquare] >> 9) & ^FileMasks[FileH] // Exclude if king is on file H
 		if (leftAttack|rightAttack)&pos.Board.GetBitboardOf(WhitePawn) != 0 {
 			return true
 		}

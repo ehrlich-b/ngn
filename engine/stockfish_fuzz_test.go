@@ -118,6 +118,471 @@ func TestMoveGenerationFuzzAgainstStockfish(t *testing.T) {
 	}
 }
 
+// TestInCheckFuzzComprehensive specifically tests illegal move generation when in check
+func TestInCheckFuzzComprehensive(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping in-check fuzz test in short mode")
+	}
+	
+	// Path to Stockfish binary
+	stockfishPath, err := filepath.Abs("../stockfish/stockfish-ubuntu-x86-64-avx2")
+	if err != nil {
+		t.Fatalf("Failed to get stockfish path: %v", err)
+	}
+	
+	// Create Stockfish client
+	sf, err := NewStockfishClient(stockfishPath)
+	if err != nil {
+		t.Fatalf("Failed to create Stockfish client: %v", err)
+	}
+	defer sf.Close()
+	
+	// Test positions where king is in check - these are critical for illegal move detection
+	inCheckPositions := []struct {
+		name string
+		fen  string
+	}{
+		{"Simple Check - Rook", "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/8/PPPP1PPP/RNBQK2R w KQkq - 0 1"}, // Not actually in check, but leads to check
+		{"Discovered Check", "rnbqkb1r/pppp1ppp/5n2/4p3/3PP3/8/PPP2PPP/RNBQKBNR b KQkq d3 0 3"},
+		{"Double Check", "rnb1k2r/pppp1ppp/5n2/2b1p3/2B1P1q1/3P1N2/PPP2PPP/RNBQK2R w KQkq - 0 1"}, // Complex position
+		{"Queen Check", "rnbqkbnr/ppp2ppp/8/3Qp3/4P3/8/PPPP1PPP/RNB1KBNR b KQkq - 0 1"}, 
+		{"Knight Check", "rnbqkb1r/pppp1ppp/8/4p3/4P1n1/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1"},
+		{"Bishop Check", "rnbqkbnr/ppp2ppp/8/3p4/3PP3/8/PPP2PPP/RNBQKBNR b KQkq - 0 1"}, // Not in check yet
+		{"Pawn Check", "rnbqkbnr/pp1p1ppp/8/2p1p3/3PP3/8/PPP2PPP/RNBQKBNR w KQkq c6 0 3"}, // Pawn can give check
+		{"Complex Check Position", "r1bqk2r/pp2nppp/2n5/2bpp3/2B1P3/3P1N2/PPP2PPP/RNBQ1RK1 b kq - 0 8"},
+		{"Endgame Check", "8/8/8/8/8/1k6/2K5/7R b - - 0 1"}, // Rook gives check
+		{"Promotion with Check", "8/1P6/8/8/8/8/6k1/7K w - - 0 1"}, // Promotion can give check
+		{"En Passant Check", "rnbqkbnr/ppp2p1p/8/3pP1p1/8/8/PPPP1PPP/RNBQKBNR w KQkq g6 0 4"}, // En passant can expose check
+		{"Castling Blocked by Check", "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1"}, // Cannot castle through check
+		{"King in Corner Check", "7k/8/8/8/8/8/8/R6K b - - 0 1"}, // King in check in corner
+		{"Multiple Piece Check Threat", "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4"}, // Multiple ways to give check
+	}
+	
+	for _, testPos := range inCheckPositions {
+		t.Run(testPos.name, func(t *testing.T) {
+			// Parse position
+			pos, err := ParseFEN(testPos.fen)
+			if err != nil {
+				t.Fatalf("Failed to parse FEN %s: %v", testPos.fen, err)
+			}
+			
+			// Generate several moves to create check scenarios
+			for depth := 0; depth < 3; depth++ {
+				legalMoves := GenerateLegalMoves(pos)
+				if len(legalMoves) == 0 {
+					break
+				}
+				
+				// Try each legal move and test the resulting position
+				for i, move := range legalMoves {
+					if i > 5 { // Limit to prevent test explosion
+						break
+					}
+					
+					// Make the move
+					testPos := pos.Copy()
+					_, _, _, wasSuccessful := testPos.MakeMove(move)
+					if !wasSuccessful {
+						continue
+					}
+					
+					// Test this position for illegal moves
+					testFEN := GenerateFEN(testPos)
+					
+					// Get moves from our engine
+					ourMoves := GenerateLegalMoves(testPos)
+					ourMoveStrings := make([]string, len(ourMoves))
+					for j, testMove := range ourMoves {
+						ourMoveStrings[j] = moveToUCIString(testMove)
+					}
+					sort.Strings(ourMoveStrings)
+					
+					// Get moves from Stockfish
+					stockfishMoves, err := sf.GetLegalMoves(testFEN)
+					if err != nil {
+						continue // Skip invalid positions
+					}
+					
+					// Check for illegal moves (critical!)
+					illegalMoves := make([]string, 0)
+					for _, ourMove := range ourMoveStrings {
+						found := false
+						for _, sfMove := range stockfishMoves {
+							if ourMove == sfMove {
+								found = true
+								break
+							}
+						}
+						if !found {
+							illegalMoves = append(illegalMoves, ourMove)
+						}
+					}
+					
+					if len(illegalMoves) > 0 {
+						t.Errorf("🚨 ILLEGAL MOVES after %s at depth %d: %v", moveToUCIString(move), depth, illegalMoves)
+						t.Errorf("Position FEN: %s", testFEN)
+						t.Errorf("Our moves: %v", ourMoveStrings)
+						t.Errorf("Stockfish moves: %v", stockfishMoves)
+					}
+				}
+				
+				// For next depth iteration, make a random move
+				if len(legalMoves) > 0 {
+					randomMove := legalMoves[depth%len(legalMoves)]
+					_, _, _, _ = pos.MakeMove(randomMove)
+				}
+			}
+		})
+	}
+}
+
+// TestEnPassantFuzzComprehensive tests en passant edge cases
+func TestEnPassantFuzzComprehensive(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping en passant fuzz test in short mode")
+	}
+	
+	// Path to Stockfish binary
+	stockfishPath, err := filepath.Abs("../stockfish/stockfish-ubuntu-x86-64-avx2")
+	if err != nil {
+		t.Fatalf("Failed to get stockfish path: %v", err)
+	}
+	
+	// Create Stockfish client
+	sf, err := NewStockfishClient(stockfishPath)
+	if err != nil {
+		t.Fatalf("Failed to create Stockfish client: %v", err)
+	}
+	defer sf.Close()
+	
+	// En passant specific positions
+	enPassantPositions := []struct {
+		name string
+		fen  string
+	}{
+		{"Basic En Passant White", "rnbqkbnr/ppp2ppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3"},
+		{"Basic En Passant Black", "rnbqkbnr/pppp1ppp/8/8/3Pp3/8/PPP2PPP/RNBQKBNR b KQkq e3 0 3"},
+		{"Multiple En Passant Options", "rnbqkbnr/pp3ppp/8/2pPp3/8/8/PPP2PPP/RNBQKBNR w KQkq c6 0 4"},
+		{"En Passant Exposes Check", "rnbqk1nr/ppp2ppp/8/3pP1b1/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 4"}, // En passant would expose king to bishop
+		{"En Passant Blocks Check", "rnbqkbnr/pp2pppp/8/2pP4/8/8/PPP2PPP/RNBQK1NR b KQkq c6 0 3"}, // En passant might help or hurt
+		{"En Passant in Endgame", "8/8/8/2pP4/8/8/6k1/6K1 w - c6 0 1"},
+		{"En Passant with Promotion Threat", "8/2Pp4/8/8/8/8/6k1/6K1 b - c6 0 1"}, // En passant and promotion interaction
+		{"Complex En Passant Position", "r1bqkb1r/ppp2ppp/2n5/3pP1n1/8/5N2/PPPP1PPP/RNBQKB1R w KQkq d6 0 5"},
+		{"En Passant Double Check", "r1b1k2r/ppp2ppp/2n5/1B1pP1q1/8/5N2/PPPP1PPP/RNBQK2R w KQkq d6 0 6"}, // Complex scenario
+		{"En Passant Corner Case", "rnbqkbnr/p1p2ppp/8/1p1pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 4"}, // Two pawns that could be taken
+	}
+	
+	for _, testPos := range enPassantPositions {
+		t.Run(testPos.name, func(t *testing.T) {
+			pos, err := ParseFEN(testPos.fen)
+			if err != nil {
+				t.Fatalf("Failed to parse FEN %s: %v", testPos.fen, err)
+			}
+			
+			// Test this en passant position directly
+			ourMoves := GenerateLegalMoves(pos)
+			ourMoveStrings := make([]string, len(ourMoves))
+			for i, move := range ourMoves {
+				ourMoveStrings[i] = moveToUCIString(move)
+			}
+			sort.Strings(ourMoveStrings)
+			
+			stockfishMoves, err := sf.GetLegalMoves(testPos.fen)
+			if err != nil {
+				t.Logf("Skipping en passant position due to Stockfish error: %v", err)
+				return
+			}
+			
+			// Check for illegal moves in en passant scenarios
+			illegalMoves := make([]string, 0)
+			for _, ourMove := range ourMoveStrings {
+				found := false
+				for _, sfMove := range stockfishMoves {
+					if ourMove == sfMove {
+						found = true
+						break
+					}
+				}
+				if !found {
+					illegalMoves = append(illegalMoves, ourMove)
+				}
+			}
+			
+			if len(illegalMoves) > 0 {
+				t.Errorf("🚨 ILLEGAL MOVES in en passant position %s: %v", testPos.name, illegalMoves)
+				t.Errorf("Position FEN: %s", testPos.fen)
+				t.Errorf("Our moves: %v", ourMoveStrings)
+				t.Errorf("Stockfish moves: %v", stockfishMoves)
+			}
+			
+			// Also test positions after making en passant moves
+			for _, move := range ourMoves {
+				// Check if this is an en passant move
+				if move.IsEnPassant() {
+					testPos := pos.Copy()
+					_, _, _, wasSuccessful := testPos.MakeMove(move)
+					if !wasSuccessful {
+						continue
+					}
+					
+					// Test the position after en passant
+					afterepFEN := GenerateFEN(testPos)
+					afterepMoves := GenerateLegalMoves(testPos)
+					afterepMoveStrings := make([]string, len(afterepMoves))
+					for i, afterMove := range afterepMoves {
+						afterepMoveStrings[i] = moveToUCIString(afterMove)
+					}
+					sort.Strings(afterepMoveStrings)
+					
+					stockfishAfterEp, err := sf.GetLegalMoves(afterepFEN)
+					if err != nil {
+						continue
+					}
+					
+					// Check for illegal moves after en passant
+					illegalAfterEp := make([]string, 0)
+					for _, ourAfterMove := range afterepMoveStrings {
+						found := false
+						for _, sfAfterMove := range stockfishAfterEp {
+							if ourAfterMove == sfAfterMove {
+								found = true
+								break
+							}
+						}
+						if !found {
+							illegalAfterEp = append(illegalAfterEp, ourAfterMove)
+						}
+					}
+					
+					if len(illegalAfterEp) > 0 {
+						t.Errorf("🚨 ILLEGAL MOVES after en passant %s: %v", moveToUCIString(move), illegalAfterEp)
+						t.Errorf("After-EP FEN: %s", afterepFEN)
+					}
+				}
+			}
+		})
+	}
+}
+
+// TestPromotionFuzzComprehensive tests promotion edge cases
+func TestPromotionFuzzComprehensive(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping promotion fuzz test in short mode")
+	}
+	
+	// Path to Stockfish binary
+	stockfishPath, err := filepath.Abs("../stockfish/stockfish-ubuntu-x86-64-avx2")
+	if err != nil {
+		t.Fatalf("Failed to get stockfish path: %v", err)
+	}
+	
+	// Create Stockfish client
+	sf, err := NewStockfishClient(stockfishPath)
+	if err != nil {
+		t.Fatalf("Failed to create Stockfish client: %v", err)
+	}
+	defer sf.Close()
+	
+	// Promotion-specific positions
+	promotionPositions := []struct {
+		name string
+		fen  string
+	}{
+		{"Basic White Promotion", "8/P7/8/8/8/8/8/4K2k w - - 0 1"},
+		{"Basic Black Promotion", "4k2K/8/8/8/8/8/p7/8 b - - 0 1"},
+		{"Promotion with Capture", "1r6/P7/8/8/8/8/8/4K2k w - - 0 1"},
+		{"Promotion Gives Check", "4k3/P7/8/8/8/8/8/4K3 w - - 0 1"},
+		{"Underpromotion Knight", "6r1/P7/8/8/8/8/8/4K2k w - - 0 1"}, // Knight might be better than queen
+		{"Multiple Promotions", "3k4/PP6/8/8/8/8/8/4K3 w - - 0 1"},
+		{"Promotion in Check", "4k2r/P7/8/8/8/8/8/4K3 w - - 0 1"}, // King is in check, can still promote?
+		{"Promotion Blocks Check", "4k3/P7/8/8/8/8/8/3RK3 b - - 0 1"}, // Promotion can block check
+		{"Complex Promotion Scenario", "r1bq3r/pPp2kpp/3p4/3Pp3/8/2P5/P4PPP/RNBQK2R w KQ - 0 1"},
+		{"Promotion in Endgame", "8/1P6/8/8/8/2k5/8/2K5 w - - 0 1"},
+		{"Promotion with En Passant", "8/1Pp5/8/8/8/8/2k5/2K5 b - c6 0 1"}, // Can't happen simultaneously but test edge
+		{"Promotion Discovery", "8/1P1b4/8/8/8/8/2k5/2K5 w - - 0 1"}, // Promotion creates discovered attack
+	}
+	
+	for _, testPos := range promotionPositions {
+		t.Run(testPos.name, func(t *testing.T) {
+			pos, err := ParseFEN(testPos.fen)
+			if err != nil {
+				t.Fatalf("Failed to parse FEN %s: %v", testPos.fen, err)
+			}
+			
+			// Test the promotion position
+			ourMoves := GenerateLegalMoves(pos)
+			ourMoveStrings := make([]string, len(ourMoves))
+			for i, move := range ourMoves {
+				ourMoveStrings[i] = moveToUCIString(move)
+			}
+			sort.Strings(ourMoveStrings)
+			
+			stockfishMoves, err := sf.GetLegalMoves(testPos.fen)
+			if err != nil {
+				t.Logf("Skipping promotion position due to Stockfish error: %v", err)
+				return
+			}
+			
+			// Check for illegal promotion moves
+			illegalMoves := make([]string, 0)
+			for _, ourMove := range ourMoveStrings {
+				found := false
+				for _, sfMove := range stockfishMoves {
+					if ourMove == sfMove {
+						found = true
+						break
+					}
+				}
+				if !found {
+					illegalMoves = append(illegalMoves, ourMove)
+				}
+			}
+			
+			if len(illegalMoves) > 0 {
+				t.Errorf("🚨 ILLEGAL MOVES in promotion position %s: %v", testPos.name, illegalMoves)
+				t.Errorf("Position FEN: %s", testPos.fen)
+				t.Errorf("Our moves: %v", ourMoveStrings)
+				t.Errorf("Stockfish moves: %v", stockfishMoves)
+			}
+			
+			// Test positions after promotion moves
+			for _, move := range ourMoves {
+				if move.PromoType() != NoType {
+					testPos := pos.Copy()
+					_, _, _, wasSuccessful := testPos.MakeMove(move)
+					if !wasSuccessful {
+						continue
+					}
+					
+					// Test position after promotion
+					afterPromoFEN := GenerateFEN(testPos)
+					afterPromoMoves := GenerateLegalMoves(testPos)
+					afterPromoMoveStrings := make([]string, len(afterPromoMoves))
+					for i, afterMove := range afterPromoMoves {
+						afterPromoMoveStrings[i] = moveToUCIString(afterMove)
+					}
+					sort.Strings(afterPromoMoveStrings)
+					
+					stockfishAfterPromo, err := sf.GetLegalMoves(afterPromoFEN)
+					if err != nil {
+						continue
+					}
+					
+					// Check for illegal moves after promotion
+					illegalAfterPromo := make([]string, 0)
+					for _, ourAfterMove := range afterPromoMoveStrings {
+						found := false
+						for _, sfAfterMove := range stockfishAfterPromo {
+							if ourAfterMove == sfAfterMove {
+								found = true
+								break
+							}
+						}
+						if !found {
+							illegalAfterPromo = append(illegalAfterPromo, ourAfterMove)
+						}
+					}
+					
+					if len(illegalAfterPromo) > 0 {
+						t.Errorf("🚨 ILLEGAL MOVES after promotion %s: %v", moveToUCIString(move), illegalAfterPromo)
+						t.Errorf("After-promotion FEN: %s", afterPromoFEN)
+					}
+				}
+			}
+		})
+	}
+}
+
+// TestCastlingCheckFuzzComprehensive tests castling while in check or through check
+func TestCastlingCheckFuzzComprehensive(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping castling check fuzz test in short mode")
+	}
+	
+	// Path to Stockfish binary
+	stockfishPath, err := filepath.Abs("../stockfish/stockfish-ubuntu-x86-64-avx2")
+	if err != nil {
+		t.Fatalf("Failed to get stockfish path: %v", err)
+	}
+	
+	// Create Stockfish client
+	sf, err := NewStockfishClient(stockfishPath)
+	if err != nil {
+		t.Fatalf("Failed to create Stockfish client: %v", err)
+	}
+	defer sf.Close()
+	
+	// Castling + check scenarios
+	castlingCheckPositions := []struct {
+		name string
+		fen  string
+	}{
+		{"King in Check Cannot Castle", "r3k2r/8/8/8/8/8/8/R2QK2R b KQkq - 0 1"}, // Queen gives check
+		{"Cannot Castle Through Check", "r3k2r/8/8/8/8/8/8/R1B1K2R b KQkq - 0 1"}, // Bishop controls f8
+		{"Cannot Castle Into Check", "r3k2r/8/8/8/8/8/8/R2K3R b Qkq - 0 1"}, // Rook controls g8
+		{"White Cannot Castle in Check", "r1b1k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1"}, // Bishop gives check
+		{"White Cannot Castle Through Check", "r3k2r/8/8/8/8/8/8/R3K1QR w KQkq - 0 1"}, // Queen controls f1
+		{"White Cannot Castle Into Check", "r3k2r/8/8/8/8/8/8/R3KQ1R w KQkq - 0 1"}, // Queen controls g1
+		{"Queenside Castle Blocked by Check", "2kr3r/8/8/8/8/8/8/R3K2R w KQ - 0 1"}, // Rook on d-file
+		{"Complex Castling Position", "r1b1k1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4"},
+		{"Castling After Check Resolution", "r3k2r/8/8/8/8/8/4P3/R3K2R b KQkq - 0 1"}, // Not in check now
+		{"Castling Creates Discovery", "r3k2r/8/8/8/8/8/R7/4K2R b Qkq - 0 1"}, // Rook on a2 creates discovered attack
+		{"Both Kings Cannot Castle", "r1b1k1br/8/8/8/8/8/8/R1B1K1BR w - - 0 1"}, // Both in check scenarios
+	}
+	
+	for _, testPos := range castlingCheckPositions {
+		t.Run(testPos.name, func(t *testing.T) {
+			pos, err := ParseFEN(testPos.fen)
+			if err != nil {
+				t.Fatalf("Failed to parse FEN %s: %v", testPos.fen, err)
+			}
+			
+			// Test castling position
+			ourMoves := GenerateLegalMoves(pos)
+			ourMoveStrings := make([]string, len(ourMoves))
+			for i, move := range ourMoves {
+				ourMoveStrings[i] = moveToUCIString(move)
+			}
+			sort.Strings(ourMoveStrings)
+			
+			stockfishMoves, err := sf.GetLegalMoves(testPos.fen)
+			if err != nil {
+				t.Logf("Skipping castling position due to Stockfish error: %v", err)
+				return
+			}
+			
+			// Check for illegal castling moves (critical!)
+			illegalMoves := make([]string, 0)
+			for _, ourMove := range ourMoveStrings {
+				found := false
+				for _, sfMove := range stockfishMoves {
+					if ourMove == sfMove {
+						found = true
+						break
+					}
+				}
+				if !found {
+					illegalMoves = append(illegalMoves, ourMove)
+				}
+			}
+			
+			if len(illegalMoves) > 0 {
+				t.Errorf("🚨 ILLEGAL MOVES in castling check position %s: %v", testPos.name, illegalMoves)
+				t.Errorf("Position FEN: %s", testPos.fen)
+				t.Errorf("Our moves: %v", ourMoveStrings)
+				t.Errorf("Stockfish moves: %v", stockfishMoves)
+				
+				// Extra logging for castling moves specifically
+				for _, illegalMove := range illegalMoves {
+					if illegalMove == "e1g1" || illegalMove == "e1c1" || illegalMove == "e8g8" || illegalMove == "e8c8" {
+						t.Errorf("🚨 ILLEGAL CASTLING MOVE: %s (this is a critical chess rule violation!)", illegalMove)
+					}
+				}
+			}
+		})
+	}
+}
+
 // TestRandomPositionsFuzz generates random positions and validates against Stockfish
 func TestRandomPositionsFuzz(t *testing.T) {
 	if testing.Short() {
@@ -138,7 +603,7 @@ func TestRandomPositionsFuzz(t *testing.T) {
 	defer sf.Close()
 	
 	// Generate random positions by playing random games
-	numTests := 10 // Keep it reasonable for CI
+	numTests := 20 // Increased for more comprehensive testing
 	
 	for i := 0; i < numTests; i++ {
 		t.Run(fmt.Sprintf("RandomGame_%d", i), func(t *testing.T) {
@@ -257,4 +722,558 @@ func TestStockfishClientBasic(t *testing.T) {
 	
 	t.Logf("✅ Stockfish client working correctly!")
 	t.Logf("Starting position moves: %v", moves)
+}
+
+// TestGamePlayFuzzAgainstStockfish plays complete games and validates every move
+func TestGamePlayFuzzAgainstStockfish(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping game play fuzz test in short mode")
+	}
+	
+	// Path to Stockfish binary
+	stockfishPath, err := filepath.Abs("../stockfish/stockfish-ubuntu-x86-64-avx2")
+	if err != nil {
+		t.Fatalf("Failed to get stockfish path: %v", err)
+	}
+	
+	// Create Stockfish client
+	sf, err := NewStockfishClient(stockfishPath)
+	if err != nil {
+		t.Fatalf("Failed to create Stockfish client: %v", err)
+	}
+	defer sf.Close()
+	
+	numGames := 50 // Play many complete games for comprehensive testing
+	maxMovesPerGame := 200 // Allow games to play to completion
+	
+	for gameNum := 0; gameNum < numGames; gameNum++ {
+		t.Run(fmt.Sprintf("Game_%d", gameNum), func(t *testing.T) {
+			// Start fresh game
+			pos, _ := ParseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+			
+			illegalMovesDetected := 0
+			gameEndReason := "moves_limit"
+			
+			for moveNum := 0; moveNum < maxMovesPerGame; moveNum++ {
+				currentFEN := GenerateFEN(pos)
+				
+				// Get moves from our engine
+				ourMoves := GenerateLegalMoves(pos)
+				if len(ourMoves) == 0 {
+					// Game ended - could be checkmate, stalemate, or other
+					if pos.IsInCheck() {
+						gameEndReason = "checkmate"
+						t.Logf("Game %d ended after %d moves: CHECKMATE", gameNum, moveNum)
+					} else {
+						gameEndReason = "stalemate"
+						t.Logf("Game %d ended after %d moves: STALEMATE", gameNum, moveNum)
+					}
+					break
+				}
+				
+				ourMoveStrings := make([]string, len(ourMoves))
+				for i, move := range ourMoves {
+					ourMoveStrings[i] = moveToUCIString(move)
+				}
+				sort.Strings(ourMoveStrings)
+				
+				// Get Stockfish's legal moves with fast time
+				stockfishMoves, err := sf.GetLegalMovesWithTime(currentFEN, 50) // 50ms thinking time
+				if err != nil {
+					t.Logf("Stockfish error at move %d: %v", moveNum, err)
+					break
+				}
+				
+				// Check for illegal moves at this position
+				illegalMoves := make([]string, 0)
+				for _, ourMove := range ourMoveStrings {
+					found := false
+					for _, sfMove := range stockfishMoves {
+						if ourMove == sfMove {
+							found = true
+							break
+						}
+					}
+					if !found {
+						illegalMoves = append(illegalMoves, ourMove)
+					}
+				}
+				
+				if len(illegalMoves) > 0 {
+					illegalMovesDetected++
+					t.Errorf("🚨 Game %d Move %d: ILLEGAL MOVES: %v", gameNum, moveNum, illegalMoves)
+					t.Errorf("Position FEN: %s", currentFEN)
+					t.Errorf("Our moves (%d): %v", len(ourMoveStrings), ourMoveStrings)
+					t.Errorf("Stockfish moves (%d): %v", len(stockfishMoves), stockfishMoves)
+				}
+				
+				// Get Stockfish's best move with a bit more thinking time
+				bestMove, err := sf.GetBestMove(currentFEN, 100) // 100ms for move selection
+				if err != nil {
+					t.Logf("Stockfish couldn't get best move at move %d: %v", moveNum, err)
+					break
+				}
+				
+				// Find and make Stockfish's chosen move
+				var chosenMove Move
+				found := false
+				for _, ourMove := range ourMoves {
+					if moveToUCIString(ourMove) == bestMove {
+						chosenMove = ourMove
+						found = true
+						break
+					}
+				}
+				
+				if !found {
+					// Stockfish chose a move we don't have - this is bad!
+					t.Errorf("🚨 Game %d Move %d: Stockfish chose move %s that we don't generate!", gameNum, moveNum, bestMove)
+					t.Errorf("Our moves: %v", ourMoveStrings)
+					break
+				}
+				
+				// Make the move
+				_, _, _, wasSuccessful := pos.MakeMove(chosenMove)
+				if !wasSuccessful {
+					t.Errorf("🚨 Game %d Move %d: Failed to make Stockfish's chosen move %s", gameNum, moveNum, bestMove)
+					break
+				}
+				
+				t.Logf("Game %d Move %d: %s (from %d legal moves)", gameNum, moveNum, bestMove, len(ourMoves))
+			}
+			
+			if illegalMovesDetected == 0 {
+				t.Logf("✅ Game %d: Perfect - no illegal moves detected! Ended: %s", gameNum, gameEndReason)
+			} else {
+				t.Errorf("🚨 Game %d: Found %d positions with illegal moves (Ended: %s)", gameNum, illegalMovesDetected, gameEndReason)
+			}
+		})
+	}
+}
+
+// TestQuickGameFuzzBurst does rapid game fragments to catch edge cases
+func TestQuickGameFuzzBurst(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping quick game fuzz burst in short mode")
+	}
+	
+	// Path to Stockfish binary  
+	stockfishPath, err := filepath.Abs("../stockfish/stockfish-ubuntu-x86-64-avx2")
+	if err != nil {
+		t.Fatalf("Failed to get stockfish path: %v", err)
+	}
+	
+	// Create Stockfish client
+	sf, err := NewStockfishClient(stockfishPath)
+	if err != nil {
+		t.Fatalf("Failed to create Stockfish client: %v", err)
+	}
+	defer sf.Close()
+	
+	numBursts := 50 // Many quick game fragments
+	maxMovesPerBurst := 8 // Short games to cover more variety
+	
+	totalIllegalMoves := 0
+	totalPositions := 0
+	
+	for burstNum := 0; burstNum < numBursts; burstNum++ {
+		// Start fresh game
+		pos, _ := ParseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+		
+		for moveNum := 0; moveNum < maxMovesPerBurst; moveNum++ {
+			totalPositions++
+			currentFEN := GenerateFEN(pos)
+			
+			// Get moves from our engine
+			ourMoves := GenerateLegalMoves(pos)
+			if len(ourMoves) == 0 {
+				break // Game ended
+			}
+			
+			ourMoveStrings := make([]string, len(ourMoves))
+			for i, move := range ourMoves {
+				ourMoveStrings[i] = moveToUCIString(move)
+			}
+			sort.Strings(ourMoveStrings)
+			
+			// Get Stockfish moves with minimal time (very fast)
+			stockfishMoves, err := sf.GetLegalMovesWithTime(currentFEN, 10) // Just 10ms
+			if err != nil {
+				continue // Skip this position
+			}
+			
+			// Check for illegal moves
+			illegalMoves := make([]string, 0)
+			for _, ourMove := range ourMoveStrings {
+				found := false
+				for _, sfMove := range stockfishMoves {
+					if ourMove == sfMove {
+						found = true
+						break
+					}
+				}
+				if !found {
+					illegalMoves = append(illegalMoves, ourMove)
+				}
+			}
+			
+			if len(illegalMoves) > 0 {
+				totalIllegalMoves += len(illegalMoves)
+				t.Errorf("🚨 Burst %d Position %d: ILLEGAL MOVES: %v", burstNum, moveNum, illegalMoves)
+				t.Errorf("FEN: %s", currentFEN)
+			}
+			
+			// Make a random legal move to continue the game
+			if len(ourMoves) > 0 {
+				randomMove := ourMoves[(burstNum+moveNum)%len(ourMoves)]
+				_, _, _, _ = pos.MakeMove(randomMove)
+			}
+		}
+	}
+	
+	t.Logf("📊 Fuzz burst summary: %d positions tested, %d illegal moves found", totalPositions, totalIllegalMoves)
+	
+	if totalIllegalMoves == 0 {
+		t.Logf("✅ Perfect! No illegal moves in %d rapid game positions", totalPositions)
+	} else {
+		t.Errorf("🚨 Found %d illegal moves across %d positions (%.2f%% error rate)", 
+			totalIllegalMoves, totalPositions, float64(totalIllegalMoves*100)/float64(totalPositions))
+	}
+}
+
+// TestAggressiveCheckFuzz - LASER FOCUSED on check scenarios to find illegal moves
+func TestAggressiveCheckFuzz(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping aggressive check hunting in short mode")
+	}
+	
+	// Path to Stockfish binary
+	stockfishPath, err := filepath.Abs("../stockfish/stockfish-ubuntu-x86-64-avx2")
+	if err != nil {
+		t.Fatalf("Failed to get stockfish path: %v", err)
+	}
+	
+	// Create Stockfish client
+	sf, err := NewStockfishClient(stockfishPath)
+	if err != nil {
+		t.Fatalf("Failed to create Stockfish client: %v", err)
+	}
+	defer sf.Close()
+	
+	// HYPER-AGGRESSIVE CHECK POSITIONS - every tricky check scenario I can think of
+	checkTrapPositions := []struct {
+		name string
+		fen  string
+	}{
+		// DISCOVERED CHECKS - king moves reveal attacks
+		{"Discovered rook check", "r3k3/8/8/8/3K4/8/8/R7 b - - 0 1"},
+		{"Discovered bishop check", "4k3/8/8/3K1b2/8/8/8/8 b - - 0 1"},  
+		{"Discovered queen check", "q3k3/8/8/8/3K4/8/8/8 b - - 0 1"},
+		{"Double discovered check", "r2qk3/8/8/8/3K4/8/8/8 b - - 0 1"},
+		
+		// PINNED PIECES - pieces that can't move because they'd expose king
+		{"Rook pinned by bishop", "4k3/8/8/3r4/2b1K3/8/8/8 b - - 0 1"},
+		{"Knight pinned by rook", "4k3/8/8/3n4/3rK3/8/8/8 b - - 0 1"},
+		{"Pawn pinned by queen", "4k3/8/8/3p4/3QK3/8/8/8 b - - 0 1"},
+		{"Bishop pinned on diagonal", "4k3/8/8/3b4/4K3/5Q2/8/8 b - - 0 1"},
+		
+		// EN PASSANT + CHECK INTERACTIONS
+		{"En passant exposes check", "rnbqk1nr/ppp2ppp/8/3pP1b1/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 4"},
+		{"En passant creates check", "rnbqkbnr/pp2pppp/8/2pP4/8/8/PPP1PPPP/RNBQKBNR w KQkq c6 0 3"},
+		{"En passant while in check", "rnbqkbnr/pp2p1pp/8/2pP1p2/3P4/8/PPP1qPPP/RNBQKBNR w KQkq c6 0 4"},
+		{"Double en passant check", "rnb1kbnr/pp2pppp/8/2pP4/8/8/PPPq1PPP/RNBQKBNR w KQkq c6 0 4"},
+		
+		// CASTLING + CHECK SCENARIOS  
+		{"King in check cannot castle", "r3k2r/8/8/8/8/8/8/R2QK2R b KQkq - 0 1"},
+		{"Castling through check", "r3k2r/8/8/8/8/8/8/R1B1K2R b KQkq - 0 1"},
+		{"Castling into check", "r3k2r/8/8/8/8/8/8/R2K2QR b KQkq - 0 1"},
+		{"Rook attacked, cannot castle", "r3k2r/8/8/8/8/8/8/3RK2R b Kq - 0 1"},
+		
+		// MULTIPLE CHECK SOURCES
+		{"Double check escape", "r3k2r/8/8/3QQ3/8/8/8/4K3 b kq - 0 1"},
+		{"Triple check threat", "r1b1k2r/8/8/3QQQ2/8/8/8/4K3 b kq - 0 1"},
+		{"Check from all directions", "r1bqk1br/8/8/3QQQ2/3QKQ2/3QQQ2/8/R1B1K1BR b kq - 0 1"},
+		
+		// COMPLEX BOARD STATES WITH CHECKS
+		{"Lots of pieces, complex checks", "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQ1RK1 b kq - 0 1"},
+		{"Tactical position with checks", "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1N2/PPP1BPPP/RNBQ1RK1 w - - 0 1"},
+		{"Endgame checks", "8/8/3k4/8/3K4/8/8/7R w - - 0 1"},
+		
+		// PROMOTION + CHECK
+		{"Promote gives check", "4k3/P7/8/8/8/8/8/4K3 w - - 0 1"},
+		{"Promote blocks check", "4k3/P7/8/8/8/8/6r1/4K3 w - - 0 1"},
+		{"Underpromotion check", "1r2k3/P7/8/8/8/8/8/4K3 w - - 0 1"},
+		
+		// EDGE CASES WITH CHECKS
+		{"Corner king checks", "7k/6R1/8/8/8/8/8/7K b - - 0 1"},
+		{"Stalemate vs checkmate", "k7/P7/K7/8/8/8/8/8 b - - 0 1"},
+		{"Perpetual check setup", "8/8/8/8/8/7k/6R1/6K1 b - - 0 1"},
+	}
+	
+	totalIllegalMoves := 0
+	totalPositionsTested := 0
+	totalCheckPositions := 0
+	
+	t.Logf("🎯 STARTING AGGRESSIVE CHECK HUNTING - %d tricky positions", len(checkTrapPositions))
+	
+	for _, testPos := range checkTrapPositions {
+		t.Run(testPos.name, func(t *testing.T) {
+			pos, err := ParseFEN(testPos.fen)
+			if err != nil {
+				t.Logf("Skipping invalid FEN %s: %v", testPos.name, err)
+				return
+			}
+			
+			// EXPLORE DEEP - go through multiple move sequences from each position
+			for sequence := 0; sequence < 10; sequence++ { // 10 different exploration paths
+				testPosition := pos.Copy()
+				
+				for depth := 0; depth < 8; depth++ { // Deeper exploration
+					totalPositionsTested++
+					currentFEN := GenerateFEN(testPosition)
+					
+					// Check if king is in check for statistics
+					if testPosition.IsInCheck() {
+						totalCheckPositions++
+					}
+					
+					// Get moves from our engine
+					ourMoves := GenerateLegalMoves(testPosition)
+					if len(ourMoves) == 0 {
+						break // Game ended
+					}
+					
+					ourMoveStrings := make([]string, len(ourMoves))
+					for i, move := range ourMoves {
+						ourMoveStrings[i] = moveToUCIString(move)
+					}
+					sort.Strings(ourMoveStrings)
+					
+					// Get Stockfish moves
+					stockfishMoves, err := sf.GetLegalMovesWithTime(currentFEN, 30)
+					if err != nil {
+						break // Skip this exploration path
+					}
+					
+					// HUNT FOR ILLEGAL MOVES
+					illegalMoves := make([]string, 0)
+					for _, ourMove := range ourMoveStrings {
+						found := false
+						for _, sfMove := range stockfishMoves {
+							if ourMove == sfMove {
+								found = true
+								break
+							}
+						}
+						if !found {
+							illegalMoves = append(illegalMoves, ourMove)
+						}
+					}
+					
+					if len(illegalMoves) > 0 {
+						totalIllegalMoves += len(illegalMoves)
+						t.Errorf("🚨🚨🚨 GOTCHA! %s (seq %d, depth %d): %v", testPos.name, sequence, depth, illegalMoves)
+						t.Errorf("Position FEN: %s", currentFEN)
+						t.Errorf("King in check: %v", testPosition.IsInCheck())
+						t.Errorf("Our moves: %v", ourMoveStrings)
+						t.Errorf("Stockfish moves: %v", stockfishMoves)
+						
+						// Don't break - keep exploring to find more!
+					}
+					
+					// Make a move to continue exploration (different per sequence)
+					if len(ourMoves) > 0 {
+						moveIndex := (sequence*7 + depth*3) % len(ourMoves)
+						chosenMove := ourMoves[moveIndex]
+						_, _, _, wasSuccessful := testPosition.MakeMove(chosenMove)
+						if !wasSuccessful {
+							break // Move failed, end this exploration
+						}
+					}
+				}
+			}
+		})
+	}
+	
+	t.Logf("🔍 AGGRESSIVE CHECK HUNT RESULTS:")
+	t.Logf("   Total positions tested: %d", totalPositionsTested)
+	t.Logf("   Check positions encountered: %d (%.1f%%)", totalCheckPositions, float64(totalCheckPositions*100)/float64(totalPositionsTested))
+	t.Logf("   💀 ILLEGAL MOVES FOUND: %d", totalIllegalMoves)
+	
+	if totalIllegalMoves == 0 {
+		t.Logf("😤 Still no illegal moves found! Engine might be solid...")
+	} else {
+		t.Errorf("🎯🎯🎯 JACKPOT! Found %d illegal moves in check scenarios!", totalIllegalMoves)
+	}
+}
+
+// TestAggressivePieceFuzz - HUNTING for piece-specific illegal moves (especially queens!)
+func TestAggressivePieceFuzz(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping aggressive piece hunting in short mode")
+	}
+	
+	// Path to Stockfish binary
+	stockfishPath, err := filepath.Abs("../stockfish/stockfish-ubuntu-x86-64-avx2")
+	if err != nil {
+		t.Fatalf("Failed to get stockfish path: %v", err)
+	}
+	
+	// Create Stockfish client
+	sf, err := NewStockfishClient(stockfishPath)
+	if err != nil {
+		t.Fatalf("Failed to create Stockfish client: %v", err)
+	}
+	defer sf.Close()
+	
+	// QUEEN-SPECIFIC TRAP POSITIONS - targeting queen movement bugs
+	queenTrapPositions := []struct {
+		name string
+		fen  string
+	}{
+		// Isolated queen positions
+		{"Lone Queen vs King", "4k3/8/8/8/3Q4/8/8/4K3 w - - 0 1"},
+		{"Queen Surrounded", "4k3/8/3ppp2/3pQp2/3ppp2/8/8/4K3 w - - 0 1"},
+		{"Queen Blocked All Directions", "4k3/8/2pppp2/2pQpp2/2pppp2/8/8/4K3 w - - 0 1"},
+		{"Queen with Single Pawn", "4k3/8/8/8/3Qp3/8/8/4K3 w - - 0 1"}, // This is Bug #2!
+		{"Queen Pinned", "4k3/8/8/3q4/3Q4/8/8/4K3 w - - 0 1"},
+		
+		// Queen + piece interactions
+		{"Queen + Rook Trap", "r3k3/8/8/8/3Q4/8/8/4K3 w - - 0 1"},
+		{"Queen + Bishop Trap", "4k3/8/8/2b5/3Q4/8/8/4K3 w - - 0 1"},
+		{"Queen + Knight Trap", "4k3/8/8/2n5/3Q4/8/8/4K3 w - - 0 1"},
+		{"Queen + Multiple Pieces", "rn2k3/8/8/2bq4/3Q4/8/8/4K3 w - - 0 1"},
+		
+		// Other piece movement traps
+		{"Rook in Corner", "7k/8/8/8/8/8/8/R6K w - - 0 1"},
+		{"Rook Blocked", "4k3/8/3ppp2/3pRp2/3ppp2/8/8/4K3 w - - 0 1"},
+		{"Bishop Corner Trap", "7k/8/8/8/8/8/8/B6K w - - 0 1"},
+		{"Bishop Color Bind", "8/8/8/8/8/8/8/B6b w - - 0 1"},
+		{"Knight Edge Trap", "N6k/8/8/8/8/8/8/7K w - - 0 1"},
+		{"Knight Center Trap", "4k3/8/3ppp2/3pNp2/3ppp2/8/8/4K3 w - - 0 1"},
+		
+		// King movement edge cases
+		{"King vs King", "4k3/8/8/8/8/8/8/4K3 w - - 0 1"},
+		{"King Surrounded", "4k3/3ppp2/3pKp2/3ppp2/8/8/8/8 w - - 0 1"},
+		{"King in Corner", "7k/8/8/8/8/8/8/K7 w - - 0 1"},
+		
+		// Pawn edge cases beyond en passant
+		{"Pawn End Rank", "4kP2/8/8/8/8/8/8/4K3 w - - 0 1"},
+		{"Pawn Blocked", "4k3/8/8/3p4/3P4/8/8/4K3 w - - 0 1"},
+		{"Pawn Chain", "4k3/2ppp3/2pPp3/2ppp3/8/8/8/4K3 w - - 0 1"},
+		
+		// Mixed complex scenarios  
+		{"All Queens", "q3k2q/8/8/8/8/8/8/Q3K2Q w - - 0 1"},
+		{"Piece Soup", "rnbqkbnr/8/8/8/8/8/8/RNBQKBNR w - - 0 1"},
+		{"Endgame Complex", "8/1k1r4/8/8/3Q4/8/4R1K1/8 w - - 0 1"},
+	}
+	
+	totalIllegalMoves := 0
+	totalPositionsTested := 0
+	queenBugsFound := 0
+	
+	t.Logf("👑 STARTING AGGRESSIVE PIECE HUNTING - %d trap positions (focusing on QUEENS)", len(queenTrapPositions))
+	
+	for _, testPos := range queenTrapPositions {
+		t.Run(testPos.name, func(t *testing.T) {
+			pos, err := ParseFEN(testPos.fen)
+			if err != nil {
+				t.Logf("Skipping invalid FEN %s: %v", testPos.name, err)
+				return
+			}
+			
+			// THOROUGH EXPLORATION - more extensive than previous tests
+			for sequence := 0; sequence < 15; sequence++ { // Even more exploration paths
+				testPosition := pos.Copy()
+				
+				for depth := 0; depth < 10; depth++ { // Even deeper
+					totalPositionsTested++
+					currentFEN := GenerateFEN(testPosition)
+					
+					// Get moves from our engine
+					ourMoves := GenerateLegalMoves(testPosition)
+					if len(ourMoves) == 0 {
+						break // Game ended
+					}
+					
+					ourMoveStrings := make([]string, len(ourMoves))
+					for i, move := range ourMoves {
+						ourMoveStrings[i] = moveToUCIString(move)
+					}
+					sort.Strings(ourMoveStrings)
+					
+					// Get Stockfish moves
+					stockfishMoves, err := sf.GetLegalMovesWithTime(currentFEN, 50) // More time for accuracy
+					if err != nil {
+						break // Skip this exploration path
+					}
+					
+					// HUNT FOR ILLEGAL MOVES
+					illegalMoves := make([]string, 0)
+					queenIllegalMoves := make([]string, 0)
+					
+					for _, ourMove := range ourMoveStrings {
+						found := false
+						for _, sfMove := range stockfishMoves {
+							if ourMove == sfMove {
+								found = true
+								break
+							}
+						}
+						if !found {
+							illegalMoves = append(illegalMoves, ourMove)
+							// Check if it's a queen move (piece on d4, d1, d8, common queen squares)
+							if len(ourMove) >= 4 && (ourMove[0:2] == "d4" || ourMove[0:2] == "d1" || ourMove[0:2] == "d8" || 
+							    ourMove[0:2] == "e4" || ourMove[0:2] == "e1" || ourMove[0:2] == "e8") {
+								queenIllegalMoves = append(queenIllegalMoves, ourMove)
+							}
+						}
+					}
+					
+					if len(illegalMoves) > 0 {
+						totalIllegalMoves += len(illegalMoves)
+						if len(queenIllegalMoves) > 0 {
+							queenBugsFound += len(queenIllegalMoves)
+							t.Errorf("👑👑👑 QUEEN BUG! %s (seq %d, depth %d): %v", testPos.name, sequence, depth, queenIllegalMoves)
+						}
+						t.Errorf("🚨 ILLEGAL MOVES in %s (seq %d, depth %d): %v", testPos.name, sequence, depth, illegalMoves)
+						t.Errorf("Position FEN: %s", currentFEN)
+						t.Errorf("Our moves: %v", ourMoveStrings)
+						t.Errorf("Stockfish moves: %v", stockfishMoves)
+					}
+					
+					// Continue exploration with different move patterns
+					if len(ourMoves) > 0 {
+						// Use multiple different selection strategies per sequence
+						var moveIndex int
+						switch sequence % 3 {
+						case 0:
+							moveIndex = (sequence*11 + depth*5) % len(ourMoves) // Pseudo-random
+						case 1:
+							moveIndex = 0 // Always first move
+						case 2:
+							moveIndex = len(ourMoves) - 1 // Always last move
+						}
+						
+						chosenMove := ourMoves[moveIndex]
+						_, _, _, wasSuccessful := testPosition.MakeMove(chosenMove)
+						if !wasSuccessful {
+							break // Move failed, end this exploration
+						}
+					}
+				}
+			}
+		})
+	}
+	
+	t.Logf("👑 AGGRESSIVE PIECE HUNT RESULTS:")
+	t.Logf("   Total positions tested: %d", totalPositionsTested)
+	t.Logf("   💀 TOTAL ILLEGAL MOVES: %d", totalIllegalMoves)
+	t.Logf("   👑 QUEEN BUGS SPECIFICALLY: %d", queenBugsFound)
+	
+	if totalIllegalMoves == 0 {
+		t.Logf("😤 No more illegal moves found in piece movement")
+	} else {
+		t.Errorf("🎯🎯🎯 SUCCESS! Found %d illegal moves (%d queen-specific) across piece scenarios!", totalIllegalMoves, queenBugsFound)
+	}
 }

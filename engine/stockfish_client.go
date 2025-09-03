@@ -216,3 +216,77 @@ func (sf *StockfishClient) ValidatePosition(fen string) (bool, error) {
 	// If we timeout, assume position is legal (conservative approach)
 	return true, nil
 }
+
+// GetLegalMovesWithTime gets all legal moves for a position with custom time limit
+func (sf *StockfishClient) GetLegalMovesWithTime(fen string, timeMs int) ([]string, error) {
+	// Set the position
+	if err := sf.sendCommand(fmt.Sprintf("position fen %s", fen)); err != nil {
+		return nil, fmt.Errorf("failed to set position: %w", err)
+	}
+	
+	// Use perft 1 for getting all legal moves (most reliable)
+	if err := sf.sendCommand("go perft 1"); err != nil {
+		return nil, fmt.Errorf("failed to run perft: %w", err)
+	}
+	
+	// Parse perft output to extract moves
+	moves := make([]string, 0)
+	deadline := time.Now().Add(time.Duration(timeMs) * time.Millisecond + 2*time.Second) // Add buffer
+	
+	// Regex to match perft output like "e2e4: 1"
+	moveRegex := regexp.MustCompile(`^([a-h][1-8][a-h][1-8][qrbn]?): \d+$`)
+	
+	for time.Now().Before(deadline) {
+		if sf.stdout.Scan() {
+			line := strings.TrimSpace(sf.stdout.Text())
+			
+			// Check if this line contains a move
+			if matches := moveRegex.FindStringSubmatch(line); matches != nil {
+				moves = append(moves, matches[1])
+			}
+			
+			// Stop when we see "Nodes searched:"
+			if strings.HasPrefix(line, "Nodes searched:") {
+				break
+			}
+		}
+	}
+	
+	// Sort moves for consistent comparison
+	sort.Strings(moves)
+	return moves, nil
+}
+
+// GetBestMove gets Stockfish's best move for a position with custom time limit
+func (sf *StockfishClient) GetBestMove(fen string, timeMs int) (string, error) {
+	// Set the position
+	if err := sf.sendCommand(fmt.Sprintf("position fen %s", fen)); err != nil {
+		return "", fmt.Errorf("failed to set position: %w", err)
+	}
+	
+	// Search with time limit
+	if err := sf.sendCommand(fmt.Sprintf("go movetime %d", timeMs)); err != nil {
+		return "", fmt.Errorf("failed to start search: %w", err)
+	}
+	
+	// Wait for bestmove response
+	deadline := time.Now().Add(time.Duration(timeMs)*time.Millisecond + 3*time.Second) // Add buffer
+	
+	for time.Now().Before(deadline) {
+		if sf.stdout.Scan() {
+			line := strings.TrimSpace(sf.stdout.Text())
+			if strings.HasPrefix(line, "bestmove") {
+				parts := strings.Fields(line)
+				if len(parts) >= 2 && parts[1] != "(none)" {
+					return parts[1], nil
+				}
+			}
+		}
+		
+		if err := sf.stdout.Err(); err != nil {
+			return "", fmt.Errorf("error reading from stockfish: %w", err)
+		}
+	}
+	
+	return "", fmt.Errorf("no bestmove received within time limit")
+}
