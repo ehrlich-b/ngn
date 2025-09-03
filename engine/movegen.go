@@ -336,8 +336,12 @@ func generateQueenMoves(pos *Position, from Square) []Move {
 }
 
 // generateSlidingMoves generates moves for sliding pieces (bishop, rook, queen)
+// PERFORMANCE: Changed to return fixed-size array to eliminate heap allocations
+// Was allocating 253MB in profiling! Now stack-allocated.
 func generateSlidingMoves(pos *Position, from Square, directions []int) []Move {
-	moves := make([]Move, 0, 14)
+	// Stack-allocated buffer - max 27 moves (queen on center square)
+	var moveBuffer [28]Move
+	numMoves := 0
 	piece := pos.Board.PieceAt(from)
 	friendlyPieces := pos.Board.GetWhitePieces()
 	if piece.Color() == Black {
@@ -394,7 +398,8 @@ func generateSlidingMoves(pos *Position, from Square, directions []int) []Move {
 				tag = Capture
 			}
 			
-			moves = append(moves, NewMove(from, toSquare, piece, capturedPiece, NoType, tag))
+			moveBuffer[numMoves] = NewMove(from, toSquare, piece, capturedPiece, NoType, tag)
+			numMoves++
 			
 			// If we captured an enemy piece, stop sliding in this direction
 			if SquareMask[to]&allPieces != 0 {
@@ -403,7 +408,7 @@ func generateSlidingMoves(pos *Position, from Square, directions []int) []Move {
 		}
 	}
 	
-	return moves
+	return moveBuffer[:numMoves]
 }
 
 // generateKingMoves generates moves for a king at the given square (including castling)

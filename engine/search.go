@@ -485,8 +485,9 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 	// Start with captures (more efficient than generating all moves)
 	var captureBuffer [64]Move  // Smaller buffer for captures only
 	captureCount := GenerateCapturesIntoBuffer(pos, captureBuffer[:])
-	capturesAndChecks := make([]Move, captureCount, captureCount+20)  // Room for a few checks
-	copy(capturesAndChecks, captureBuffer[:captureCount])
+	var capturesAndChecks [84]Move  // Stack buffer for captures + a few checks
+	capturesAndChecksCount := captureCount
+	copy(capturesAndChecks[:], captureBuffer[:captureCount])
 	
 	// Also consider moves that give check (but only if not too deep to avoid explosion)
 	if qDepth < 2 { // Very conservative check extension depth
@@ -504,14 +505,16 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 			givesCheck := isInCheck(pos, pos.Turn())
 			pos.UnMakeMove(move, tag, ep, hc)
 			
-			if givesCheck {
-				capturesAndChecks = append(capturesAndChecks, move)
+			if givesCheck && capturesAndChecksCount < len(capturesAndChecks) {
+				capturesAndChecks[capturesAndChecksCount] = move
+				capturesAndChecksCount++
 			}
 		}
 	}
 	
 	// Search captures and checks
-	for _, move := range capturesAndChecks {
+	for i := 0; i < capturesAndChecksCount; i++ {
+		move := capturesAndChecks[i]
 		ep, tag, hc, _ := pos.MakeMove(move)
 		
 		// Check if move is legal (doesn't leave our king in check)

@@ -653,6 +653,360 @@ func evaluateKingSafety(board *Bitboard, color Color) int {
 	return safety
 }
 
+// Evaluate castling bonus for king safety (simplified version for bitboard-only evaluation)
+func evaluateCastling(board *Bitboard, color Color) int {
+	bonus := 0
+	
+	// Check if king has already castled by looking at king position
+	kingBitboard := board.GetBitboardOf(WhiteKing)
+	if color == Black {
+		kingBitboard = board.GetBitboardOf(BlackKing)
+	}
+	
+	if kingBitboard == 0 {
+		return 0
+	}
+	
+	kingSquare := trailingZeros(kingBitboard)
+	kingFile := int(kingSquare % 8)
+	kingRank := int(kingSquare / 8)
+	
+	// Detect if castling has already occurred based on king position
+	hasCastled := false
+	if color == White {
+		// White king starts on e1 (file 4, rank 0)
+		// After castling: g1 (file 6) for kingside, c1 (file 2) for queenside
+		if kingRank == 0 && (kingFile == 6 || kingFile == 2) {
+			hasCastled = true
+		}
+	} else {
+		// Black king starts on e8 (file 4, rank 7)  
+		// After castling: g8 (file 6) for kingside, c8 (file 2) for queenside
+		if kingRank == 7 && (kingFile == 6 || kingFile == 2) {
+			hasCastled = true
+		}
+	}
+	
+	if hasCastled {
+		// Bonus for having castled (king safety achieved)
+		bonus += 40
+		
+		// Additional bonus based on rook position to confirm valid castling
+		var expectedRookSquare int
+		var rookBitboard uint64
+		
+		if color == White {
+			rookBitboard = board.GetBitboardOf(WhiteRook)
+			if kingFile == 6 { // Kingside castling
+				expectedRookSquare = 5 // f1
+			} else { // Queenside castling  
+				expectedRookSquare = 3 // d1
+			}
+		} else {
+			rookBitboard = board.GetBitboardOf(BlackRook)
+			if kingFile == 6 { // Kingside castling
+				expectedRookSquare = 61 // f8
+			} else { // Queenside castling
+				expectedRookSquare = 59 // d8
+			}
+		}
+		
+		// Extra bonus if rook is in the typical castled position
+		if (rookBitboard & (1 << expectedRookSquare)) != 0 {
+			bonus += 15 // Confirmed proper castling structure
+		}
+	}
+	
+	return bonus
+}
+
+// Fast optimized castling evaluation - minimal CPU overhead  
+func evaluateCastlingFast(board *Bitboard, color Color) int {
+	var kingBitboard uint64
+	if color == White {
+		kingBitboard = board.GetBitboardOf(WhiteKing)
+	} else {
+		kingBitboard = board.GetBitboardOf(BlackKing)
+	}
+	
+	if kingBitboard == 0 {
+		return 0
+	}
+	
+	kingSquare := trailingZeros(kingBitboard)
+	kingFile := kingSquare % 8
+	kingRank := kingSquare / 8
+	
+	// Simple castling detection - just check if king is in castled position
+	if color == White {
+		if kingRank == 0 && (kingFile == 6 || kingFile == 2) {
+			return 40 // Castled bonus
+		}
+	} else {
+		if kingRank == 7 && (kingFile == 6 || kingFile == 2) {
+			return 40 // Castled bonus  
+		}
+	}
+	
+	return 0
+}
+
+// Evaluate center control bonus - reward occupation and control of central squares
+func evaluateCenterControl(board *Bitboard, color Color) int {
+	bonus := 0
+	
+	// Central squares: e4, d4, e5, d5 (squares 28, 27, 36, 35)
+	centralSquares := []int{27, 28, 35, 36} // d4, e4, d5, e5
+	extendedCenterSquares := []int{18, 19, 20, 21, 26, 29, 34, 37, 42, 43, 44, 45} // c3-f3, c4-f4, c6-f6
+	
+	var ownPawns, ownKnights, ownBishops, ownQueens uint64
+	
+	if color == White {
+		ownPawns = board.GetBitboardOf(WhitePawn)
+		ownKnights = board.GetBitboardOf(WhiteKnight)
+		ownBishops = board.GetBitboardOf(WhiteBishop)
+		ownQueens = board.GetBitboardOf(WhiteQueen)
+	} else {
+		ownPawns = board.GetBitboardOf(BlackPawn)
+		ownKnights = board.GetBitboardOf(BlackKnight)
+		ownBishops = board.GetBitboardOf(BlackBishop)
+		ownQueens = board.GetBitboardOf(BlackQueen)
+	}
+	
+	// 1. Piece occupation bonuses for central squares
+	for _, square := range centralSquares {
+		squareMask := uint64(1) << square
+		
+		if (ownPawns & squareMask) != 0 {
+			bonus += 25 // Pawn in center is very valuable
+		} else if (ownKnights & squareMask) != 0 {
+			bonus += 20 // Knight in center is strong
+		} else if (ownBishops & squareMask) != 0 {
+			bonus += 15 // Bishop in center is good
+		} else if (ownQueens & squareMask) != 0 {
+			bonus += 10 // Queen in center can be powerful but also vulnerable
+		}
+		// Rooks and kings in center are usually not beneficial
+	}
+	
+	// 2. Extended center occupation (smaller bonuses)
+	for _, square := range extendedCenterSquares {
+		squareMask := uint64(1) << square
+		
+		if (ownPawns & squareMask) != 0 {
+			bonus += 8 // Extended center pawn
+		} else if (ownKnights & squareMask) != 0 {
+			bonus += 10 // Knight in extended center
+		} else if (ownBishops & squareMask) != 0 {
+			bonus += 6 // Bishop in extended center
+		}
+	}
+	
+	// 3. Pawn control of central squares (pawn attacks center even if not occupying)
+	for _, square := range centralSquares {
+		file := square % 8
+		rank := square / 8
+		
+		// Check if our pawns control this square
+		controlledByPawn := false
+		
+		if color == White {
+			// White pawns attack diagonally upward
+			if rank > 0 { // Can be attacked from rank below
+				leftAttack := (rank-1)*8 + (file-1)
+				rightAttack := (rank-1)*8 + (file+1)
+				
+				if file > 0 && (ownPawns&(1<<leftAttack)) != 0 {
+					controlledByPawn = true
+				}
+				if file < 7 && (ownPawns&(1<<rightAttack)) != 0 {
+					controlledByPawn = true
+				}
+			}
+		} else {
+			// Black pawns attack diagonally downward
+			if rank < 7 { // Can be attacked from rank above
+				leftAttack := (rank+1)*8 + (file-1)
+				rightAttack := (rank+1)*8 + (file+1)
+				
+				if file > 0 && (ownPawns&(1<<leftAttack)) != 0 {
+					controlledByPawn = true
+				}
+				if file < 7 && (ownPawns&(1<<rightAttack)) != 0 {
+					controlledByPawn = true
+				}
+			}
+		}
+		
+		if controlledByPawn {
+			bonus += 15 // Bonus for controlling center with pawns
+		}
+	}
+	
+	return bonus
+}
+
+// Fast optimized center control - minimal overhead version
+func evaluateCenterControlFast(board *Bitboard, color Color) int {
+	bonus := 0
+	
+	// Just check piece occupation of core central squares (d4, e4, d5, e5)
+	centralSquares := [4]int{27, 28, 35, 36} // d4, e4, d5, e5
+	
+	var ownPawns, ownKnights uint64
+	if color == White {
+		ownPawns = board.GetBitboardOf(WhitePawn)
+		ownKnights = board.GetBitboardOf(WhiteKnight)
+	} else {
+		ownPawns = board.GetBitboardOf(BlackPawn)
+		ownKnights = board.GetBitboardOf(BlackKnight)
+	}
+	
+	// Quick check for occupation of central squares
+	for _, square := range centralSquares {
+		squareMask := uint64(1) << square
+		if (ownPawns & squareMask) != 0 {
+			bonus += 25 // Pawn in center
+		} else if (ownKnights & squareMask) != 0 {
+			bonus += 20 // Knight in center
+		}
+	}
+	
+	return bonus
+}
+
+// Evaluate piece development - reward proper opening principles
+func evaluatePieceDevelopment(board *Bitboard, color Color) int {
+	bonus := 0
+	
+	var ownKnights, ownBishops, ownRooks, ownQueen, ownKing uint64
+	var startingRank int
+	
+	if color == White {
+		ownKnights = board.GetBitboardOf(WhiteKnight)
+		ownBishops = board.GetBitboardOf(WhiteBishop)
+		ownRooks = board.GetBitboardOf(WhiteRook)
+		ownQueen = board.GetBitboardOf(WhiteQueen)
+		ownKing = board.GetBitboardOf(WhiteKing)
+		startingRank = 0  // White pieces start on rank 1 (0-indexed)
+	} else {
+		ownKnights = board.GetBitboardOf(BlackKnight)
+		ownBishops = board.GetBitboardOf(BlackBishop)
+		ownRooks = board.GetBitboardOf(BlackRook)
+		ownQueen = board.GetBitboardOf(BlackQueen)
+		ownKing = board.GetBitboardOf(BlackKing)
+		startingRank = 7  // Black pieces start on rank 8 (7-indexed)
+	}
+	
+	// 1. Knight development bonus
+	knightsDeveloped := 0
+	for knightBB := ownKnights; knightBB != 0; knightBB &= knightBB - 1 {
+		square := trailingZeros(knightBB)
+		rank := square / 8
+		
+		if color == White && rank > startingRank {
+			knightsDeveloped++
+			bonus += 20 // Bonus for developed knight
+			
+			// Extra bonus for knights in good squares (f3, c3, f6, c6 area)
+			file := square % 8
+			if (rank == 2 || rank == 5) && (file == 2 || file == 5) { // c3, f3, c6, f6
+				bonus += 10 // Extra bonus for knights in ideal squares
+			}
+		} else if color == Black && rank < startingRank {
+			knightsDeveloped++
+			bonus += 20 // Bonus for developed knight
+			
+			// Extra bonus for knights in good squares
+			file := square % 8
+			if (rank == 2 || rank == 5) && (file == 2 || file == 5) {
+				bonus += 10 // Extra bonus for knights in ideal squares
+			}
+		}
+	}
+	
+	// 2. Bishop development bonus
+	bishopsDeveloped := 0
+	for bishopBB := ownBishops; bishopBB != 0; bishopBB &= bishopBB - 1 {
+		square := trailingZeros(bishopBB)
+		rank := square / 8
+		
+		if color == White && rank > startingRank {
+			bishopsDeveloped++
+			bonus += 15 // Bonus for developed bishop
+		} else if color == Black && rank < startingRank {
+			bishopsDeveloped++
+			bonus += 15 // Bonus for developed bishop
+		}
+	}
+	
+	// 3. Early queen penalty (queen should not be developed too early)
+	queenDevelopedEarly := false
+	if ownQueen != 0 {
+		queenSquare := trailingZeros(ownQueen)
+		queenRank := queenSquare / 8
+		
+		if color == White && queenRank > startingRank {
+			queenDevelopedEarly = true
+		} else if color == Black && queenRank < startingRank {
+			queenDevelopedEarly = true
+		}
+		
+		// Penalty increases if queen is out but minor pieces aren't developed
+		if queenDevelopedEarly {
+			totalMinorPiecesDeveloped := knightsDeveloped + bishopsDeveloped
+			
+			if totalMinorPiecesDeveloped == 0 {
+				bonus -= 30 // Heavy penalty for queen out with no minor pieces developed
+			} else if totalMinorPiecesDeveloped == 1 {
+				bonus -= 20 // Medium penalty 
+			} else if totalMinorPiecesDeveloped == 2 {
+				bonus -= 10 // Light penalty
+			}
+			// No penalty if 3+ minor pieces developed (queen out is fine then)
+		}
+	}
+	
+	// 4. Castling preparation bonus (king and rook coordination)
+	if ownKing != 0 {
+		kingSquare := trailingZeros(ownKing)
+		kingRank := kingSquare / 8
+		kingFile := kingSquare % 8
+		
+		// Check if king is still on starting square (good for castling preparation)
+		if color == White && kingRank == 0 && kingFile == 4 { // e1
+			// Bonus for keeping king on starting square while developing
+			if knightsDeveloped >= 1 || bishopsDeveloped >= 1 {
+				bonus += 8 // Small bonus for development while keeping king safe
+			}
+		} else if color == Black && kingRank == 7 && kingFile == 4 { // e8
+			if knightsDeveloped >= 1 || bishopsDeveloped >= 1 {
+				bonus += 8 // Small bonus for development while keeping king safe
+			}
+		}
+	}
+	
+	// 5. Rook development penalty (rooks should generally stay on back rank early)
+	for rookBB := ownRooks; rookBB != 0; rookBB &= rookBB - 1 {
+		square := trailingZeros(rookBB)
+		rank := square / 8
+		
+		// Penalty for rooks leaving back rank too early
+		if color == White && rank > startingRank {
+			// Only penalty if minor pieces aren't well developed
+			if knightsDeveloped + bishopsDeveloped < 3 {
+				bonus -= 15 // Penalty for premature rook development
+			}
+		} else if color == Black && rank < startingRank {
+			if knightsDeveloped + bishopsDeveloped < 3 {
+				bonus -= 15 // Penalty for premature rook development
+			}
+		}
+	}
+	
+	return bonus
+}
+
 // Helper function for detailed pawn shield evaluation
 func evaluatePawnShield(pawnBitboard uint64, kingFile int, kingRank int, color Color) int {
 	shieldBonus := 0
@@ -1777,56 +2131,85 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 		})
 	}
 	
-	// 3. Pawn structure evaluation
-	whiteDoubledPawns := 0
-	blackDoubledPawns := 0
-	for file := 0; file < 8; file++ {
-		whiteDoubledPawns += countDoubledPawns(board, White, file)
-		blackDoubledPawns += countDoubledPawns(board, Black, file)
-	}
-	eval += -(whiteDoubledPawns * 50) // Penalty for doubled pawns
-	eval += (blackDoubledPawns * 50)
+	// 3. Pawn structure evaluation - DISABLED FOR PERFORMANCE
+	// Profiling showed these were major CPU hotspots:
+	// - countDoubledPawns: 2.04% CPU
+	// - evaluatePawnChains: 2.04% CPU
+	// Keeping only essential pawn evaluation
 	
-	whiteIsolatedPawns := countIsolatedPawns(board, White)
-	blackIsolatedPawns := countIsolatedPawns(board, Black)
-	eval += -(whiteIsolatedPawns * 15) // Penalty for isolated pawns
-	eval += (blackIsolatedPawns * 15)
-	
+	// Keep only passed pawns (most important)
 	whitePassedPawns := countPassedPawns(board, White)
 	blackPassedPawns := countPassedPawns(board, Black)
 	eval += whitePassedPawns * 25 // Bonus for passed pawns
 	eval += -(blackPassedPawns * 25)
 	
-	whitePawnChains := evaluatePawnChains(board, White)
-	blackPawnChains := evaluatePawnChains(board, Black)
-	eval += whitePawnChains // Bonus for pawn chains
-	eval += -blackPawnChains
+	// DISABLED FOR PERFORMANCE:
+	// whiteDoubledPawns := 0
+	// blackDoubledPawns := 0
+	// for file := 0; file < 8; file++ {
+	//	whiteDoubledPawns += countDoubledPawns(board, White, file)
+	//	blackDoubledPawns += countDoubledPawns(board, Black, file)
+	// }
+	// eval += -(whiteDoubledPawns * 50)
+	// eval += (blackDoubledPawns * 50)
 	
-	whiteWeakSquares := evaluateWeakSquares(board, White)
-	blackWeakSquares := evaluateWeakSquares(board, Black)
-	eval += whiteWeakSquares // Penalty for our weak squares
-	eval += -blackWeakSquares
+	// whiteIsolatedPawns := countIsolatedPawns(board, White)
+	// blackIsolatedPawns := countIsolatedPawns(board, Black)
+	// eval += -(whiteIsolatedPawns * 15)
+	// eval += (blackIsolatedPawns * 15)
 	
-	whitePawnStorms := evaluatePawnStorms(board, White)
-	blackPawnStorms := evaluatePawnStorms(board, Black)
-	eval += whitePawnStorms // Bonus for our pawn storms
-	eval += -blackPawnStorms
+	// whitePawnChains := evaluatePawnChains(board, White)
+	// blackPawnChains := evaluatePawnChains(board, Black)
+	// eval += whitePawnChains
+	// eval += -blackPawnChains
 	
-	// 4. King safety evaluation
-	whiteKingSafety := evaluateKingSafety(board, White)
-	blackKingSafety := evaluateKingSafety(board, Black)
-	if !endgame { // King safety more important in middlegame
-		eval += whiteKingSafety
-		eval += -blackKingSafety
-	}
+	// whiteWeakSquares := evaluateWeakSquares(board, White)
+	// blackWeakSquares := evaluateWeakSquares(board, Black)
+	// eval += whiteWeakSquares
+	// eval += -blackWeakSquares
 	
-	// 5. Piece coordination and harmony
-	whiteCoordination := evaluatePieceCoordination(board, White)
-	blackCoordination := evaluatePieceCoordination(board, Black)
-	eval += whiteCoordination
-	eval += -blackCoordination
+	// whitePawnStorms := evaluatePawnStorms(board, White)
+	// blackPawnStorms := evaluatePawnStorms(board, Black)
+	// eval += whitePawnStorms
+	// eval += -blackPawnStorms
 	
-	// 6. Bishop pair bonus
+	// 4. King safety evaluation - DISABLED FOR PERFORMANCE
+	// evaluateKingSafety was a major CPU hotspot
+	// if !endgame {
+	//	whiteKingSafety := evaluateKingSafety(board, White)
+	//	blackKingSafety := evaluateKingSafety(board, Black)
+	//	eval += whiteKingSafety
+	//	eval += -blackKingSafety
+	// }
+	
+	// 5. Castling evaluation (king safety bonus) - OPTIMIZED VERSION
+	whiteCastlingBonus := evaluateCastlingFast(board, White)
+	blackCastlingBonus := evaluateCastlingFast(board, Black)
+	eval += whiteCastlingBonus
+	eval += -blackCastlingBonus
+	
+	// 6. Center control evaluation - OPTIMIZED VERSION  
+	whiteCenterControl := evaluateCenterControlFast(board, White)
+	blackCenterControl := evaluateCenterControlFast(board, Black)
+	eval += whiteCenterControl
+	eval += -blackCenterControl
+	
+	// 7. Piece development evaluation (opening principles) - DISABLED FOR PERFORMANCE
+	// if !endgame { // Development most important in opening/middlegame
+	//	whiteDevelopment := evaluatePieceDevelopment(board, White)
+	//	blackDevelopment := evaluatePieceDevelopment(board, Black)
+	//	eval += whiteDevelopment
+	//	eval += -blackDevelopment
+	// }
+	
+	// 8. Piece coordination and harmony - DISABLED FOR PERFORMANCE
+	// evaluatePieceProtection was 8.50% CPU, countProtectorsBB was 6.12% CPU
+	// whiteCoordination := evaluatePieceCoordination(board, White)
+	// blackCoordination := evaluatePieceCoordination(board, Black)
+	// eval += whiteCoordination
+	// eval += -blackCoordination
+	
+	// 9. Bishop pair bonus
 	whiteBishopPairBonus := evaluateBishopPair(board, White)
 	blackBishopPairBonus := evaluateBishopPair(board, Black)
 	eval += whiteBishopPairBonus
