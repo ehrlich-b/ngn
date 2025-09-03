@@ -6,14 +6,15 @@ import (
 )
 
 const (
-	INFINITY            = int(math.MaxInt32)
-	MATE_VALUE          = 30000
-	MATE_IN_MAX         = MATE_VALUE - 1000
-	NULL_MOVE_R         = 3  // Null move reduction depth
-	NULL_MOVE_MIN_DEPTH = 3  // Minimum depth for null move pruning
-	LMR_FULL_DEPTH      = 3  // Minimum depth for LMR
-	LMR_MOVE_THRESHOLD  = 3  // Start reducing after this many moves
-	FUTILITY_MARGIN     = 200  // Futility pruning margin
+    INFINITY            = int(math.MaxInt32)
+    MATE_VALUE          = 30000
+    MATE_IN_MAX         = MATE_VALUE - 1000
+    NULL_MOVE_R         = 3  // Null move reduction depth
+    NULL_MOVE_MIN_DEPTH = 3  // Minimum depth for null move pruning
+    LMR_FULL_DEPTH      = 3  // Minimum depth for LMR
+    LMR_MOVE_THRESHOLD  = 3  // Start reducing after this many moves
+    FUTILITY_MARGIN     = 200  // Futility pruning margin
+    DELTA_MARGIN        = 100  // Delta pruning margin in quiescence
 )
 
 // Search debug logging removed for production
@@ -50,19 +51,21 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		TimeManager: timeManager,
 	}
 	
-	// Generate moves once for iterative deepening
-	moves := GenerateLegalMoves(pos)
-	if len(moves) == 0 {
-		if isInCheck(pos, pos.Turn()) {
-			info.BestScore = -MATE_VALUE
-		} else {
-			info.BestScore = 0
-		}
+    // Generate root moves without heap allocations (pseudo-legal; legality handled in search loop)
+    var rootGen [256]Move
+    numGen := GenerateMovesIntoBuffer(pos, rootGen[:])
+    moves := rootGen[:numGen]
+    if len(moves) == 0 {
+        if isInCheck(pos, pos.Turn()) {
+            info.BestScore = -MATE_VALUE
+        } else {
+            info.BestScore = 0
+        }
 		return info
 	}
 	
-	// Iterative deepening - start from depth 1 and go up to maxDepth
-	previousScore := 0 // Track previous iteration score for aspiration windows
+    // Iterative deepening - start from depth 1 and go up to maxDepth
+    previousScore := 0 // Track previous iteration score for aspiration windows
 	
 	for currentDepth := 1; currentDepth <= maxDepth && !info.Stopped; currentDepth++ {
 		// Check time before starting each new depth iteration
@@ -100,17 +103,19 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				break
 			}
 			
-			// Root search with aspiration window
-			orderedMoves := orderMovesWithDepth(moves, currentDepth)
-			iterationBestScore := -INFINITY
-			iterationBestMove := EmptyMove
-			
-			for _, move := range orderedMoves {
-				// Check time before each move
-				if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(currentDepth, time.Now()) {
-					info.Stopped = true
-					break
-				}
+            // Root search with aspiration window
+            var orderedRoot [256]Move
+            orderedCount := orderMovesIntoBufferWithDepth(moves, currentDepth, orderedRoot[:])
+            iterationBestScore := -INFINITY
+            iterationBestMove := EmptyMove
+            
+            for oi := 0; oi < orderedCount; oi++ {
+                move := orderedRoot[oi]
+                // Check time before each move
+                if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(currentDepth, time.Now()) {
+                    info.Stopped = true
+                    break
+                }
 				
 				ep, tag, hc, _ := pos.MakeMove(move)
 				score := -alphaBeta(pos, currentDepth-1, -beta, -alpha, info)
@@ -181,23 +186,27 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 	alpha := -INFINITY
 	beta := INFINITY
 	
-	moves := GenerateLegalMoves(pos)
-	if len(moves) == 0 {
-		if isInCheck(pos, pos.Turn()) {
-			info.BestScore = -MATE_VALUE
-		} else {
-			info.BestScore = 0
-		}
+    var rootGen [256]Move
+    numGen := GenerateMovesIntoBuffer(pos, rootGen[:])
+    moves := rootGen[:numGen]
+    if len(moves) == 0 {
+        if isInCheck(pos, pos.Turn()) {
+            info.BestScore = -MATE_VALUE
+        } else {
+            info.BestScore = 0
+        }
 		return info
 	}
 	
-	orderedMoves := orderMovesWithDepth(moves, depth)
-	
-	for _, move := range orderedMoves {
-		// Check if search was stopped
-		if info.Stopped {
-			break
-		}
+    var orderedRoot [256]Move
+    orderedCount := orderMovesIntoBufferWithDepth(moves, depth, orderedRoot[:])
+    
+    for oi := 0; oi < orderedCount; oi++ {
+        move := orderedRoot[oi]
+        // Check if search was stopped
+        if info.Stopped {
+            break
+        }
 		
 		// Check time before each move in fixed depth search
 		if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(depth, time.Now()) {
@@ -336,14 +345,17 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		return 0
 	}
 	
-	// Order moves, prioritizing TT move if available
-	orderedMoves := orderMovesWithDepthAndTTMove(moves, depth, ttMove, ttHit)
-	bestScore := -INFINITY
-	bestMove := EmptyMove
-	moveCount := 0
-	
-	for _, move := range orderedMoves {
-		moveCount++
+    // Order moves, prioritizing TT move if available
+    var ordered [256]Move
+    orderedCount := orderMovesIntoBufferWithDepthPreviousAndTTMove(moves, depth, GetLastMovePlayed(), ttMove, ttHit, ordered[:])
+    bestScore := -INFINITY
+    bestMove := EmptyMove
+    moveCount := 0
+    legalTried := 0
+    
+    for oi := 0; oi < orderedCount; oi++ {
+        move := ordered[oi]
+        moveCount++
 		
 		// Check time before evaluating each move (now cheap to call)
 		if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(depth, time.Now()) {
@@ -351,18 +363,35 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 			break
 		}
 		
-		// Futility pruning - skip quiet moves if position is hopeless
-		if futilityPrune && !move.IsCapture() {
-			continue
-		}
-		
-		ep, tag, hc, _ := pos.MakeMove(move)
-		
-		// Check if move is legal (doesn't leave our king in check)
-		if isInCheck(pos, move.MovingPiece().Color()) {
-			pos.UnMakeMove(move, tag, ep, hc)
-			continue // Skip illegal move
-		}
+        // Futility pruning - skip quiet moves if position is hopeless
+        if futilityPrune && !move.IsCapture() {
+            continue
+        }
+
+        // Fast legality: special-case castling path, otherwise do make/check/unmake
+        if move.IsCastle() {
+            // Cannot castle out of check
+            if inCheck {
+                continue
+            }
+            color := move.MovingPiece().Color()
+            var inter, fin Square
+            if move.IsKingSideCastle() {
+                if color == White { inter, fin = F1, G1 } else { inter, fin = F8, G8 }
+            } else { // Queen-side
+                if color == White { inter, fin = D1, C1 } else { inter, fin = D8, C8 }
+            }
+            if isSquareAttacked(pos, inter, color.Other()) || isSquareAttacked(pos, fin, color.Other()) {
+                continue
+            }
+        }
+
+        ep, tag, hc, _ := pos.MakeMove(move)
+        if isInCheck(pos, move.MovingPiece().Color()) {
+            pos.UnMakeMove(move, tag, ep, hc)
+            continue
+        }
+        legalTried++
 		
 		var score int
 		
@@ -418,14 +447,22 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
             }
 		}
 		
-		pos.UnMakeMove(move, tag, ep, hc)
+        pos.UnMakeMove(move, tag, ep, hc)
 		
 		info.Nodes++
 		
 		if score > bestScore {
 			bestScore = score
 			bestMove = move
-		}
+    }
+
+    // No legal moves from this node
+    if legalTried == 0 {
+        if inCheck {
+            return -MATE_VALUE + (info.Depth - depth)
+        }
+        return 0
+    }
 		
 		if score >= beta {
 			// Update history table for quiet moves that cause beta cutoffs
@@ -512,10 +549,18 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 		}
 	}
 	
-	// Search captures and checks
-	for i := 0; i < capturesAndChecksCount; i++ {
-		move := capturesAndChecks[i]
-		ep, tag, hc, _ := pos.MakeMove(move)
+    // Search captures and checks (with delta pruning for captures)
+    for i := 0; i < capturesAndChecksCount; i++ {
+        move := capturesAndChecks[i]
+
+        // Delta pruning: skip captures that cannot possibly raise alpha
+        if move.IsCapture() {
+            gain := int(move.CapturedPiece().Weight())
+            if standPat + gain + DELTA_MARGIN <= alpha {
+                continue
+            }
+        }
+        ep, tag, hc, _ := pos.MakeMove(move)
 		
 		// Check if move is legal (doesn't leave our king in check)
 		if isInCheck(pos, move.MovingPiece().Color()) {
@@ -530,10 +575,10 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 			return beta
 		}
 		
-		if score > alpha {
-			alpha = score
-		}
-	}
+        if score > alpha {
+            alpha = score
+        }
+    }
 	
 	return alpha
 }

@@ -482,17 +482,117 @@ func generateKingMoves(pos *Position, piece Piece) []Move {
 
 // Movement direction constants for sliding pieces
 var (
-	bishopDirections = []int{-9, -7, 7, 9}     // diagonal moves
-	rookDirections   = []int{-8, -1, 1, 8}     // horizontal and vertical moves
-	queenDirections  = []int{-9, -8, -7, -1, 1, 7, 8, 9} // all directions
+    bishopDirections = []int{-9, -7, 7, 9}     // diagonal moves
+    rookDirections   = []int{-8, -1, 1, 8}     // horizontal and vertical moves
+    queenDirections  = []int{-9, -8, -7, -1, 1, 7, 8, 9} // all directions
 )
 
 // Helper function for absolute value
 func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
+    if x < 0 {
+        return -x
+    }
+    return x
+}
+
+// Sliding piece move generators (zero allocation)
+func generateSlidingMovesIntoBuffer(pos *Position, from Square, directions []int, buffer []Move) int {
+    count := 0
+    piece := pos.Board.PieceAt(from)
+    friendly := pos.Board.GetWhitePieces()
+    enemy := pos.Board.GetBlackPieces()
+    if piece.Color() == Black {
+        friendly, enemy = enemy, friendly
+    }
+    fromFile := int(from) % 8
+    for _, d := range directions {
+        for step := 1; step < 8; step++ {
+            to := int(from) + d*step
+            if to < 0 || to > 63 {
+                break
+            }
+            toFile := to % 8
+            // Horizontal wrap checks
+            if d == -1 || d == 1 {
+                if abs(toFile-fromFile) != step {
+                    break
+                }
+            }
+            // Diagonal wrap checks: file delta must match step with correct sign
+            if d == 9 || d == -7 { // file increases by +step
+                if toFile-fromFile != step {
+                    break
+                }
+            }
+            if d == 7 || d == -9 { // file decreases by -step
+                if toFile-fromFile != -step {
+                    break
+                }
+            }
+            mask := SquareMask[to]
+            if (friendly & mask) != 0 {
+                break
+            }
+            toSq := Square(to)
+            if (enemy & mask) != 0 {
+                captured := pos.Board.PieceAt(toSq)
+                buffer[count] = NewMove(from, toSq, piece, captured, NoType, Capture)
+                count++
+                break
+            }
+            buffer[count] = NewMove(from, toSq, piece, NoPiece, NoType, 0)
+            count++
+        }
+    }
+    return count
+}
+
+func generateSlidingCapturesIntoBuffer(pos *Position, from Square, directions []int, buffer []Move) int {
+    count := 0
+    piece := pos.Board.PieceAt(from)
+    friendly := pos.Board.GetWhitePieces()
+    enemy := pos.Board.GetBlackPieces()
+    if piece.Color() == Black {
+        friendly, enemy = enemy, friendly
+    }
+    fromFile := int(from) % 8
+    for _, d := range directions {
+        for step := 1; step < 8; step++ {
+            to := int(from) + d*step
+            if to < 0 || to > 63 {
+                break
+            }
+            toFile := to % 8
+            if d == -1 || d == 1 {
+                if abs(toFile-fromFile) != step {
+                    break
+                }
+            }
+            if d == 9 || d == -7 {
+                if toFile-fromFile != step {
+                    break
+                }
+            }
+            if d == 7 || d == -9 {
+                if toFile-fromFile != -step {
+                    break
+                }
+            }
+            mask := SquareMask[to]
+            if (friendly & mask) != 0 { // blocked by friendly
+                break
+            }
+            if (enemy & mask) != 0 {
+                toSq := Square(to)
+                captured := pos.Board.PieceAt(toSq)
+                buffer[count] = NewMove(from, toSq, piece, captured, NoType, Capture)
+                count++
+                break
+            }
+            // Empty square, keep scanning
+        }
+    }
+    return count
 }
 
 // IsLegalMove checks if a move is legal (doesn't leave king in check)
@@ -722,26 +822,26 @@ func GenerateMovesIntoBuffer(pos *Position, buffer []Move) int {
 
 // GenerateCapturesIntoBuffer generates captures into the provided buffer, returning the number of captures added
 func GenerateCapturesIntoBuffer(pos *Position, buffer []Move) int {
-	captureCount := 0
-	turn := pos.Turn()
-	
-	if turn == White {
-		captureCount += generateWhitePawnCapturesIntoBuffer(pos, buffer[captureCount:])
-		captureCount += generatePieceCapturesIntoBuffer(pos, WhiteKnight, generateKnightCapturesIntoBuffer, buffer[captureCount:])
-		captureCount += generatePieceCapturesIntoBuffer(pos, WhiteBishop, generateBishopCapturesIntoBuffer, buffer[captureCount:])
-		captureCount += generatePieceCapturesIntoBuffer(pos, WhiteRook, generateRookCapturesIntoBuffer, buffer[captureCount:])
-		captureCount += generatePieceCapturesIntoBuffer(pos, WhiteQueen, generateQueenCapturesIntoBuffer, buffer[captureCount:])
-		captureCount += generateKingCapturesIntoBuffer(pos, WhiteKing, buffer[captureCount:])
-	} else {
-		captureCount += generateBlackPawnCapturesIntoBuffer(pos, buffer[captureCount:])
-		captureCount += generatePieceCapturesIntoBuffer(pos, BlackKnight, generateKnightCapturesIntoBuffer, buffer[captureCount:])
-		captureCount += generatePieceCapturesIntoBuffer(pos, BlackBishop, generateBishopCapturesIntoBuffer, buffer[captureCount:])
-		captureCount += generatePieceCapturesIntoBuffer(pos, BlackRook, generateRookCapturesIntoBuffer, buffer[captureCount:])
-		captureCount += generatePieceCapturesIntoBuffer(pos, BlackQueen, generateQueenCapturesIntoBuffer, buffer[captureCount:])
-		captureCount += generateKingCapturesIntoBuffer(pos, BlackKing, buffer[captureCount:])
-	}
-	
-	return captureCount
+    captureCount := 0
+    turn := pos.Turn()
+    
+    if turn == White {
+        captureCount += generateWhitePawnCapturesIntoBuffer(pos, buffer[captureCount:])
+        captureCount += generatePieceCapturesIntoBuffer(pos, WhiteKnight, generateKnightCapturesIntoBuffer, buffer[captureCount:])
+        captureCount += generatePieceCapturesIntoBuffer(pos, WhiteBishop, generateBishopCapturesIntoBuffer, buffer[captureCount:])
+        captureCount += generatePieceCapturesIntoBuffer(pos, WhiteRook, generateRookCapturesIntoBuffer, buffer[captureCount:])
+        captureCount += generatePieceCapturesIntoBuffer(pos, WhiteQueen, generateQueenCapturesIntoBuffer, buffer[captureCount:])
+        captureCount += generateKingCapturesIntoBuffer(pos, WhiteKing, buffer[captureCount:])
+    } else {
+        captureCount += generateBlackPawnCapturesIntoBuffer(pos, buffer[captureCount:])
+        captureCount += generatePieceCapturesIntoBuffer(pos, BlackKnight, generateKnightCapturesIntoBuffer, buffer[captureCount:])
+        captureCount += generatePieceCapturesIntoBuffer(pos, BlackBishop, generateBishopCapturesIntoBuffer, buffer[captureCount:])
+        captureCount += generatePieceCapturesIntoBuffer(pos, BlackRook, generateRookCapturesIntoBuffer, buffer[captureCount:])
+        captureCount += generatePieceCapturesIntoBuffer(pos, BlackQueen, generateQueenCapturesIntoBuffer, buffer[captureCount:])
+        captureCount += generateKingCapturesIntoBuffer(pos, BlackKing, buffer[captureCount:])
+    }
+    
+    return captureCount
 }
 
 // Helper functions for buffer-based generation
@@ -801,131 +901,414 @@ func generateKnightMovesIntoBuffer(pos *Position, from Square, buffer []Move) in
 }
 
 func generateBishopMovesIntoBuffer(pos *Position, from Square, buffer []Move) int {
-	moves := generateBishopMoves(pos, from)
-	copy(buffer, moves)
-	return len(moves)
+    return generateSlidingMovesIntoBuffer(pos, from, bishopDirections, buffer)
 }
 
 func generateRookMovesIntoBuffer(pos *Position, from Square, buffer []Move) int {
-	moves := generateRookMoves(pos, from)
-	copy(buffer, moves)
-	return len(moves)
+    return generateSlidingMovesIntoBuffer(pos, from, rookDirections, buffer)
 }
 
 func generateQueenMovesIntoBuffer(pos *Position, from Square, buffer []Move) int {
-	moves := generateQueenMoves(pos, from)
-	copy(buffer, moves)
-	return len(moves)
+    return generateSlidingMovesIntoBuffer(pos, from, queenDirections, buffer)
 }
 
 func generateKnightCapturesIntoBuffer(pos *Position, from Square, buffer []Move) int {
-	captures := make([]Move, 0, 8)
-	attacks := KnightAttacks[from]
-	piece := pos.Board.PieceAt(from)
-	enemyPieces := pos.Board.GetBlackPieces()
-	if piece.Color() == Black {
-		enemyPieces = pos.Board.GetWhitePieces()
-	}
-	
-	attacks &= enemyPieces
-	
-	for attacks != 0 {
-		to := Square(bits.TrailingZeros64(attacks))
-		capturedPiece := pos.Board.PieceAt(to)
-		captures = append(captures, NewMove(from, to, piece, capturedPiece, NoType, Capture))
-		attacks &^= SquareMask[int(to)]
-	}
-	
-	copy(buffer, captures)
-	return len(captures)
+    count := 0
+    attacks := KnightAttacks[from]
+    piece := pos.Board.PieceAt(from)
+    enemyPieces := pos.Board.GetBlackPieces()
+    if piece.Color() == Black {
+        enemyPieces = pos.Board.GetWhitePieces()
+    }
+    attacks &= enemyPieces
+    for attacks != 0 {
+        to := Square(bits.TrailingZeros64(attacks))
+        capturedPiece := pos.Board.PieceAt(to)
+        buffer[count] = NewMove(from, to, piece, capturedPiece, NoType, Capture)
+        count++
+        attacks &^= SquareMask[int(to)]
+    }
+    return count
 }
 
 func generateBishopCapturesIntoBuffer(pos *Position, from Square, buffer []Move) int {
-	moves := generateBishopMoves(pos, from)
-	count := 0
-	for _, move := range moves {
-		if move.IsCapture() {
-			buffer[count] = move
-			count++
-		}
-	}
-	return count
+    return generateSlidingCapturesIntoBuffer(pos, from, bishopDirections, buffer)
 }
 
 func generateRookCapturesIntoBuffer(pos *Position, from Square, buffer []Move) int {
-	moves := generateRookMoves(pos, from)
-	count := 0
-	for _, move := range moves {
-		if move.IsCapture() {
-			buffer[count] = move
-			count++
-		}
-	}
-	return count
+    return generateSlidingCapturesIntoBuffer(pos, from, rookDirections, buffer)
 }
 
 func generateQueenCapturesIntoBuffer(pos *Position, from Square, buffer []Move) int {
-	moves := generateQueenMoves(pos, from)
-	count := 0
-	for _, move := range moves {
-		if move.IsCapture() {
-			buffer[count] = move
-			count++
-		}
-	}
-	return count
+    return generateSlidingCapturesIntoBuffer(pos, from, queenDirections, buffer)
 }
 
 func generateWhitePawnMovesIntoBuffer(pos *Position, buffer []Move) int {
-	moves := generateWhitePawnMoves(pos)
-	copy(buffer, moves)
-	return len(moves)
+    count := 0
+    whitePawns := pos.Board.GetBitboardOf(WhitePawn)
+    allPieces := pos.Board.GetWhitePieces() | pos.Board.GetBlackPieces()
+    enemyPieces := pos.Board.GetBlackPieces()
+
+    // Single pushes
+    singlePushes := (whitePawns << 8) & ^allPieces
+    sp := singlePushes
+    for sp != 0 {
+        to := Square(bits.TrailingZeros64(sp))
+        from := Square(int(to) - 8)
+        if to.Rank() == Rank8 {
+            buffer[count] = NewMove(from, to, WhitePawn, NoPiece, Queen, 0); count++
+            buffer[count] = NewMove(from, to, WhitePawn, NoPiece, Rook, 0); count++
+            buffer[count] = NewMove(from, to, WhitePawn, NoPiece, Bishop, 0); count++
+            buffer[count] = NewMove(from, to, WhitePawn, NoPiece, Knight, 0); count++
+        } else {
+            buffer[count] = NewMove(from, to, WhitePawn, NoPiece, NoType, 0); count++
+        }
+        sp &^= SquareMask[int(to)]
+    }
+    // Double pushes
+    doublePushes := ((singlePushes & RankMasks[Rank3]) << 8) & ^allPieces
+    dp := doublePushes
+    for dp != 0 {
+        to := Square(bits.TrailingZeros64(dp))
+        from := Square(int(to) - 16)
+        buffer[count] = NewMove(from, to, WhitePawn, NoPiece, NoType, 0)
+        count++
+        dp &^= SquareMask[int(to)]
+    }
+
+    // Captures
+    leftCaptures := ((whitePawns & ^FileMasks[FileA]) << 7) & enemyPieces
+    lc := leftCaptures
+    for lc != 0 {
+        to := Square(bits.TrailingZeros64(lc))
+        from := Square(int(to) - 7)
+        captured := pos.Board.PieceAt(to)
+        if to.Rank() == Rank8 {
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Queen, Capture); count++
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Rook, Capture); count++
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Bishop, Capture); count++
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Knight, Capture); count++
+        } else {
+            buffer[count] = NewMove(from, to, WhitePawn, captured, NoType, Capture); count++
+        }
+        lc &^= SquareMask[int(to)]
+    }
+    rightCaptures := ((whitePawns & ^FileMasks[FileH]) << 9) & enemyPieces
+    rc := rightCaptures
+    for rc != 0 {
+        to := Square(bits.TrailingZeros64(rc))
+        from := Square(int(to) - 9)
+        captured := pos.Board.PieceAt(to)
+        if to.Rank() == Rank8 {
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Queen, Capture); count++
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Rook, Capture); count++
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Bishop, Capture); count++
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Knight, Capture); count++
+        } else {
+            buffer[count] = NewMove(from, to, WhitePawn, captured, NoType, Capture); count++
+        }
+        rc &^= SquareMask[int(to)]
+    }
+
+    // En passant
+    if pos.EnPassant != NoSquare {
+        ep := pos.EnPassant
+        if ep.File() > FileA {
+            left := SquareOf(ep.File()-1, ep.Rank()-1)
+            if pos.Board.PieceAt(left) == WhitePawn {
+                buffer[count] = NewMove(left, ep, WhitePawn, BlackPawn, NoType, EnPassant|Capture)
+                count++
+            }
+        }
+        if ep.File() < FileH {
+            right := SquareOf(ep.File()+1, ep.Rank()-1)
+            if pos.Board.PieceAt(right) == WhitePawn {
+                buffer[count] = NewMove(right, ep, WhitePawn, BlackPawn, NoType, EnPassant|Capture)
+                count++
+            }
+        }
+    }
+
+    return count
 }
 
 func generateBlackPawnMovesIntoBuffer(pos *Position, buffer []Move) int {
-	moves := generateBlackPawnMoves(pos)
-	copy(buffer, moves)
-	return len(moves)
+    count := 0
+    blackPawns := pos.Board.GetBitboardOf(BlackPawn)
+    allPieces := pos.Board.GetWhitePieces() | pos.Board.GetBlackPieces()
+    enemyPieces := pos.Board.GetWhitePieces()
+
+    // Single pushes
+    singlePushes := (blackPawns >> 8) & ^allPieces
+    sp := singlePushes
+    for sp != 0 {
+        to := Square(bits.TrailingZeros64(sp))
+        from := Square(int(to) + 8)
+        if to.Rank() == Rank1 {
+            buffer[count] = NewMove(from, to, BlackPawn, NoPiece, Queen, 0); count++
+            buffer[count] = NewMove(from, to, BlackPawn, NoPiece, Rook, 0); count++
+            buffer[count] = NewMove(from, to, BlackPawn, NoPiece, Bishop, 0); count++
+            buffer[count] = NewMove(from, to, BlackPawn, NoPiece, Knight, 0); count++
+        } else {
+            buffer[count] = NewMove(from, to, BlackPawn, NoPiece, NoType, 0); count++
+        }
+        sp &^= SquareMask[int(to)]
+    }
+    // Double pushes
+    doublePushes := ((singlePushes & RankMasks[Rank6]) >> 8) & ^allPieces
+    dp := doublePushes
+    for dp != 0 {
+        to := Square(bits.TrailingZeros64(dp))
+        from := Square(int(to) + 16)
+        buffer[count] = NewMove(from, to, BlackPawn, NoPiece, NoType, 0)
+        count++
+        dp &^= SquareMask[int(to)]
+    }
+
+    // Captures
+    leftCaptures := ((blackPawns & ^FileMasks[FileH]) >> 7) & enemyPieces
+    lc := leftCaptures
+    for lc != 0 {
+        to := Square(bits.TrailingZeros64(lc))
+        from := Square(int(to) + 7)
+        captured := pos.Board.PieceAt(to)
+        if to.Rank() == Rank1 {
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Queen, Capture); count++
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Rook, Capture); count++
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Bishop, Capture); count++
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Knight, Capture); count++
+        } else {
+            buffer[count] = NewMove(from, to, BlackPawn, captured, NoType, Capture); count++
+        }
+        lc &^= SquareMask[int(to)]
+    }
+    rightCaptures := ((blackPawns & ^FileMasks[FileA]) >> 9) & enemyPieces
+    rc := rightCaptures
+    for rc != 0 {
+        to := Square(bits.TrailingZeros64(rc))
+        from := Square(int(to) + 9)
+        captured := pos.Board.PieceAt(to)
+        if to.Rank() == Rank1 {
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Queen, Capture); count++
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Rook, Capture); count++
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Bishop, Capture); count++
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Knight, Capture); count++
+        } else {
+            buffer[count] = NewMove(from, to, BlackPawn, captured, NoType, Capture); count++
+        }
+        rc &^= SquareMask[int(to)]
+    }
+
+    // En passant
+    if pos.EnPassant != NoSquare {
+        ep := pos.EnPassant
+        if ep.File() > FileA {
+            left := SquareOf(ep.File()-1, ep.Rank()+1)
+            if pos.Board.PieceAt(left) == BlackPawn {
+                buffer[count] = NewMove(left, ep, BlackPawn, WhitePawn, NoType, EnPassant|Capture)
+                count++
+            }
+        }
+        if ep.File() < FileH {
+            right := SquareOf(ep.File()+1, ep.Rank()+1)
+            if pos.Board.PieceAt(right) == BlackPawn {
+                buffer[count] = NewMove(right, ep, BlackPawn, WhitePawn, NoType, EnPassant|Capture)
+                count++
+            }
+        }
+    }
+
+    return count
 }
 
 func generateWhitePawnCapturesIntoBuffer(pos *Position, buffer []Move) int {
-	moves := generateWhitePawnMoves(pos)
-	count := 0
-	for _, move := range moves {
-		if move.IsCapture() {
-			buffer[count] = move
-			count++
-		}
-	}
-	return count
+    count := 0
+    whitePawns := pos.Board.GetBitboardOf(WhitePawn)
+    enemyPieces := pos.Board.GetBlackPieces()
+
+    leftCaptures := ((whitePawns & ^FileMasks[FileA]) << 7) & enemyPieces
+    lc := leftCaptures
+    for lc != 0 {
+        to := Square(bits.TrailingZeros64(lc))
+        from := Square(int(to) - 7)
+        captured := pos.Board.PieceAt(to)
+        if to.Rank() == Rank8 {
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Queen, Capture); count++
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Rook, Capture); count++
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Bishop, Capture); count++
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Knight, Capture); count++
+        } else {
+            buffer[count] = NewMove(from, to, WhitePawn, captured, NoType, Capture); count++
+        }
+        lc &^= SquareMask[int(to)]
+    }
+
+    rightCaptures := ((whitePawns & ^FileMasks[FileH]) << 9) & enemyPieces
+    rc := rightCaptures
+    for rc != 0 {
+        to := Square(bits.TrailingZeros64(rc))
+        from := Square(int(to) - 9)
+        captured := pos.Board.PieceAt(to)
+        if to.Rank() == Rank8 {
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Queen, Capture); count++
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Rook, Capture); count++
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Bishop, Capture); count++
+            buffer[count] = NewMove(from, to, WhitePawn, captured, Knight, Capture); count++
+        } else {
+            buffer[count] = NewMove(from, to, WhitePawn, captured, NoType, Capture); count++
+        }
+        rc &^= SquareMask[int(to)]
+    }
+
+    // En passant
+    if pos.EnPassant != NoSquare {
+        ep := pos.EnPassant
+        if ep.File() > FileA {
+            left := SquareOf(ep.File()-1, ep.Rank()-1)
+            if pos.Board.PieceAt(left) == WhitePawn {
+                buffer[count] = NewMove(left, ep, WhitePawn, BlackPawn, NoType, EnPassant|Capture)
+                count++
+            }
+        }
+        if ep.File() < FileH {
+            right := SquareOf(ep.File()+1, ep.Rank()-1)
+            if pos.Board.PieceAt(right) == WhitePawn {
+                buffer[count] = NewMove(right, ep, WhitePawn, BlackPawn, NoType, EnPassant|Capture)
+                count++
+            }
+        }
+    }
+
+    return count
 }
 
 func generateBlackPawnCapturesIntoBuffer(pos *Position, buffer []Move) int {
-	moves := generateBlackPawnMoves(pos)
-	count := 0
-	for _, move := range moves {
-		if move.IsCapture() {
-			buffer[count] = move
-			count++
-		}
-	}
-	return count
+    count := 0
+    blackPawns := pos.Board.GetBitboardOf(BlackPawn)
+    enemyPieces := pos.Board.GetWhitePieces()
+
+    leftCaptures := ((blackPawns & ^FileMasks[FileH]) >> 7) & enemyPieces
+    lc := leftCaptures
+    for lc != 0 {
+        to := Square(bits.TrailingZeros64(lc))
+        from := Square(int(to) + 7)
+        captured := pos.Board.PieceAt(to)
+        if to.Rank() == Rank1 {
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Queen, Capture); count++
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Rook, Capture); count++
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Bishop, Capture); count++
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Knight, Capture); count++
+        } else {
+            buffer[count] = NewMove(from, to, BlackPawn, captured, NoType, Capture); count++
+        }
+        lc &^= SquareMask[int(to)]
+    }
+
+    rightCaptures := ((blackPawns & ^FileMasks[FileA]) >> 9) & enemyPieces
+    rc := rightCaptures
+    for rc != 0 {
+        to := Square(bits.TrailingZeros64(rc))
+        from := Square(int(to) + 9)
+        captured := pos.Board.PieceAt(to)
+        if to.Rank() == Rank1 {
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Queen, Capture); count++
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Rook, Capture); count++
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Bishop, Capture); count++
+            buffer[count] = NewMove(from, to, BlackPawn, captured, Knight, Capture); count++
+        } else {
+            buffer[count] = NewMove(from, to, BlackPawn, captured, NoType, Capture); count++
+        }
+        rc &^= SquareMask[int(to)]
+    }
+
+    // En passant
+    if pos.EnPassant != NoSquare {
+        ep := pos.EnPassant
+        if ep.File() > FileA {
+            left := SquareOf(ep.File()-1, ep.Rank()+1)
+            if pos.Board.PieceAt(left) == BlackPawn {
+                buffer[count] = NewMove(left, ep, BlackPawn, WhitePawn, NoType, EnPassant|Capture)
+                count++
+            }
+        }
+        if ep.File() < FileH {
+            right := SquareOf(ep.File()+1, ep.Rank()+1)
+            if pos.Board.PieceAt(right) == BlackPawn {
+                buffer[count] = NewMove(right, ep, BlackPawn, WhitePawn, NoType, EnPassant|Capture)
+                count++
+            }
+        }
+    }
+
+    return count
 }
 
 func generateKingMovesIntoBuffer(pos *Position, piece Piece, buffer []Move) int {
-	moves := generateKingMoves(pos, piece)
-	copy(buffer, moves)
-	return len(moves)
+    count := 0
+    kingBB := pos.Board.GetBitboardOf(piece)
+    if kingBB == 0 {
+        return 0
+    }
+    from := Square(bits.TrailingZeros64(kingBB))
+    attacks := KingAttacks[from]
+    friendly := pos.Board.GetWhitePieces()
+    if piece.Color() == Black {
+        friendly = pos.Board.GetBlackPieces()
+    }
+    attacks &^= friendly
+    for attacks != 0 {
+        to := Square(bits.TrailingZeros64(attacks))
+        captured := pos.Board.PieceAt(to)
+        tag := MoveTag(0)
+        if captured != NoPiece {
+            tag = Capture
+        }
+        buffer[count] = NewMove(from, to, piece, captured, NoType, tag)
+        count++
+        attacks &^= SquareMask[int(to)]
+    }
+    // Castling (pseudo-legal)
+    if piece == WhiteKing && from == E1 {
+        if pos.HasTag(WhiteCanCastleKingSide) && pos.Board.PieceAt(F1) == NoPiece && pos.Board.PieceAt(G1) == NoPiece && pos.Board.PieceAt(H1) == WhiteRook {
+            buffer[count] = NewMove(E1, G1, WhiteKing, NoPiece, NoType, KingSideCastle)
+            count++
+        }
+        if pos.HasTag(WhiteCanCastleQueenSide) && pos.Board.PieceAt(D1) == NoPiece && pos.Board.PieceAt(C1) == NoPiece && pos.Board.PieceAt(B1) == NoPiece && pos.Board.PieceAt(A1) == WhiteRook {
+            buffer[count] = NewMove(E1, C1, WhiteKing, NoPiece, NoType, QueenSideCastle)
+            count++
+        }
+    } else if piece == BlackKing && from == E8 {
+        if pos.HasTag(BlackCanCastleKingSide) && pos.Board.PieceAt(F8) == NoPiece && pos.Board.PieceAt(G8) == NoPiece && pos.Board.PieceAt(H8) == BlackRook {
+            buffer[count] = NewMove(E8, G8, BlackKing, NoPiece, NoType, KingSideCastle)
+            count++
+        }
+        if pos.HasTag(BlackCanCastleQueenSide) && pos.Board.PieceAt(D8) == NoPiece && pos.Board.PieceAt(C8) == NoPiece && pos.Board.PieceAt(B8) == NoPiece && pos.Board.PieceAt(A8) == BlackRook {
+            buffer[count] = NewMove(E8, C8, BlackKing, NoPiece, NoType, QueenSideCastle)
+            count++
+        }
+    }
+    return count
 }
 
 func generateKingCapturesIntoBuffer(pos *Position, piece Piece, buffer []Move) int {
-	moves := generateKingMoves(pos, piece)
-	count := 0
-	for _, move := range moves {
-		if move.IsCapture() {
-			buffer[count] = move
-			count++
-		}
-	}
-	return count
+    count := 0
+    kingBB := pos.Board.GetBitboardOf(piece)
+    if kingBB == 0 {
+        return 0
+    }
+    from := Square(bits.TrailingZeros64(kingBB))
+    attacks := KingAttacks[from]
+    enemy := pos.Board.GetBlackPieces()
+    if piece.Color() == Black {
+        enemy = pos.Board.GetWhitePieces()
+    }
+    attacks &= enemy
+    for attacks != 0 {
+        to := Square(bits.TrailingZeros64(attacks))
+        captured := pos.Board.PieceAt(to)
+        buffer[count] = NewMove(from, to, piece, captured, NoType, Capture)
+        count++
+        attacks &^= SquareMask[int(to)]
+    }
+    return count
 }

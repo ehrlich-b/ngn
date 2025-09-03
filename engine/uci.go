@@ -518,10 +518,22 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 			lastIterationScore = bestScore
 			
 			// Send search info
-			elapsed := uci.timeManager.GetElapsedTime()
-			infoMsg := fmt.Sprintf("info depth %d score cp %d nodes %d time %d pv %s",
-				depth, bestScore, info.Nodes, elapsed.Milliseconds(), bestMove.ToString())
-			uci.sendUCIMessage(output, infoMsg)
+            elapsed := uci.timeManager.GetElapsedTime()
+            // UCI: report mate scores as "score mate N" when applicable to avoid massive cp swings
+            var scoreStr string
+            if bestScore >= MATE_IN_MAX {
+                mate := (MATE_VALUE - bestScore + 1) / 2
+                scoreStr = fmt.Sprintf("mate %d", mate)
+            } else if bestScore <= -MATE_IN_MAX {
+                mate := (MATE_VALUE + bestScore + 1) / 2 // negative value
+                if mate > 0 { mate = -mate }
+                scoreStr = fmt.Sprintf("mate %d", mate)
+            } else {
+                scoreStr = fmt.Sprintf("cp %d", bestScore)
+            }
+            infoMsg := fmt.Sprintf("info depth %d score %s nodes %d time %d pv %s",
+                depth, scoreStr, info.Nodes, elapsed.Milliseconds(), bestMove.ToString())
+            uci.sendUCIMessage(output, infoMsg)
 			uci.debugLogger.Printf("Sent info line for depth %d", depth)
 			
 			// Emergency time check
