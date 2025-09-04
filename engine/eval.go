@@ -23,12 +23,13 @@ func evalAbs(x int) int {
 // Values from white's perspective, mirrored for black
 
 // Pawn piece-square table (encourages central pawns and pawn advancement)
+// Enhanced with opening nudges: e4/d4 get +15 bonus
 var pawnPST = [64]int{
 	0,   0,   0,   0,   0,   0,   0,   0,
 	50,  50,  50,  50,  50,  50,  50,  50,
 	10,  10,  20,  30,  30,  20,  10,  10,
 	5,   5,   10,  25,  25,  10,  5,   5,
-	0,   0,   0,   20,  20,  0,   0,   0,
+	0,   0,   0,   35,  35,  0,   0,   0,  // d4/e4 get +15 opening bonus
 	5,   -5,  -10, 0,   0,   -10, -5,  5,
 	5,   10,  10,  -20, -20, 10,  10,  5,
 	0,   0,   0,   0,   0,   0,   0,   0,
@@ -70,10 +71,11 @@ var rookPST = [64]int{
 	0,  0,  0,  5,  5,  0,  0,  0,
 }
 
-// Queen piece-square table (slight centralization bonus)
+// Queen piece-square table (discourages early queen development)
+// Enhanced with opening nudges: early queen squares get penalty
 var queenPST = [64]int{
 	-20, -10, -10, -5, -5, -10, -10, -20,
-	-10, 0,   0,   0,  0,  0,   0,   -10,
+	-35, -25, -25, -20, -20, -25, -25, -35,  // Queen early development penalty
 	-10, 0,   5,   5,  5,  5,   0,   -10,
 	-5,  0,   5,   5,  5,  5,   0,   -5,
 	0,   0,   5,   5,  5,  5,   0,   -5,
