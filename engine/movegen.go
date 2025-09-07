@@ -820,63 +820,91 @@ func isInCheck(pos *Position, color Color) bool {
 		return true
 	}
 
-	// Check sliding piece attacks (bishop, rook, queen)
+	// Check sliding piece attacks (optimized bounds checking)
+	kingFile := int(kingSquare) % 8
+	kingRank := int(kingSquare) / 8
 
-	// Check diagonal attacks (bishop, queen)
-	for _, direction := range bishopDirections {
-		for i := 1; i < 8; i++ {
-			to := int(kingSquare) + direction*i
-
-			if to < 0 || to > 63 {
-				break
+	// Check diagonal attacks (bishop, queen) with optimized bounds
+	// NE direction (-7)
+	for to := int(kingSquare) - 7; to >= 0 && to%8 > kingFile && to/8 < kingRank; to -= 7 {
+		piece := pos.Board.PieceAt(Square(to))
+		if piece != NoPiece {
+			if piece.Color() == enemyColor && (piece.Type() == Bishop || piece.Type() == Queen) {
+				return true
 			}
-
-			// Check bounds wrapping
-			fromFile := int(kingSquare) % 8
-			toFile := to % 8
-			if abs(fromFile-toFile) > i {
-				break
+			break
+		}
+	}
+	// NW direction (-9)
+	for to := int(kingSquare) - 9; to >= 0 && to%8 < kingFile && to/8 < kingRank; to -= 9 {
+		piece := pos.Board.PieceAt(Square(to))
+		if piece != NoPiece {
+			if piece.Color() == enemyColor && (piece.Type() == Bishop || piece.Type() == Queen) {
+				return true
 			}
-
-			toSquare := Square(to)
-			piece := pos.Board.PieceAt(toSquare)
-
-			if piece != NoPiece {
-				if piece.Color() == enemyColor && (piece.Type() == Bishop || piece.Type() == Queen) {
-					return true
-				}
-				break
+			break
+		}
+	}
+	// SE direction (+9)
+	for to := int(kingSquare) + 9; to < 64 && to%8 > kingFile && to/8 > kingRank; to += 9 {
+		piece := pos.Board.PieceAt(Square(to))
+		if piece != NoPiece {
+			if piece.Color() == enemyColor && (piece.Type() == Bishop || piece.Type() == Queen) {
+				return true
 			}
+			break
+		}
+	}
+	// SW direction (+7)
+	for to := int(kingSquare) + 7; to < 64 && to%8 < kingFile && to/8 > kingRank; to += 7 {
+		piece := pos.Board.PieceAt(Square(to))
+		if piece != NoPiece {
+			if piece.Color() == enemyColor && (piece.Type() == Bishop || piece.Type() == Queen) {
+				return true
+			}
+			break
 		}
 	}
 
-	// Check straight attacks (rook, queen)
-	for _, direction := range rookDirections {
-		for i := 1; i < 8; i++ {
-			to := int(kingSquare) + direction*i
-
-			if to < 0 || to > 63 {
-				break
+	// Check straight attacks (rook, queen) with optimized bounds
+	// North direction (-8)
+	for to := int(kingSquare) - 8; to >= 0; to -= 8 {
+		piece := pos.Board.PieceAt(Square(to))
+		if piece != NoPiece {
+			if piece.Color() == enemyColor && (piece.Type() == Rook || piece.Type() == Queen) {
+				return true
 			}
-
-			// Check bounds wrapping for horizontal moves
-			if direction == -1 || direction == 1 {
-				fromFile := int(kingSquare) % 8
-				toFile := to % 8
-				if abs(fromFile-toFile) != i {
-					break
-				}
+			break
+		}
+	}
+	// South direction (+8)
+	for to := int(kingSquare) + 8; to < 64; to += 8 {
+		piece := pos.Board.PieceAt(Square(to))
+		if piece != NoPiece {
+			if piece.Color() == enemyColor && (piece.Type() == Rook || piece.Type() == Queen) {
+				return true
 			}
-
-			toSquare := Square(to)
-			piece := pos.Board.PieceAt(toSquare)
-
-			if piece != NoPiece {
-				if piece.Color() == enemyColor && (piece.Type() == Rook || piece.Type() == Queen) {
-					return true
-				}
-				break
+			break
+		}
+	}
+	// West direction (-1)
+	for to := int(kingSquare) - 1; to >= 0 && to/8 == kingRank; to -= 1 {
+		piece := pos.Board.PieceAt(Square(to))
+		if piece != NoPiece {
+			if piece.Color() == enemyColor && (piece.Type() == Rook || piece.Type() == Queen) {
+				return true
 			}
+			break
+		}
+	}
+	// East direction (+1)
+	for to := int(kingSquare) + 1; to < 64 && to/8 == kingRank; to += 1 {
+		piece := pos.Board.PieceAt(Square(to))
+		if piece != NoPiece {
+			if piece.Color() == enemyColor && (piece.Type() == Rook || piece.Type() == Queen) {
+				return true
+			}
+			break
 		}
 	}
 

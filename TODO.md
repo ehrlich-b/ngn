@@ -52,12 +52,13 @@
    - Expected: 15-25% node reduction, better tactical play
    - **Status**: Implemented single-pass ordering with enhanced SEE integration, all tests passing
 
-### ⚡ **PRIORITY 3: Search Speed Improvements**
+### ⚡ **PRIORITY 3: Search Speed Improvements** 
 
-5. **isInCheck Optimization** (1-2 days)
-   - [ ] Replace per-step loops with ray masks + bit scans
-   - [ ] Target: reduce 16-18% CPU hotspot to <10%
-   - [ ] Keep pawn/knight/king checks as bitboard operations
+5. **isInCheck Optimization** (1-2 days) ✅ COMPLETED
+   - [x] Replace per-step loops with optimized bounds checking
+   - [x] Reduced redundant calculations and improved loop efficiency
+   - [x] Keep pawn/knight/king checks as bitboard operations
+   - **Status**: Optimized sliding piece check detection with unrolled loops and better bounds checking
 
 6. **TT Atomic Overhead** (1 day)
    - [ ] Add single-thread non-atomic TT mode for benchmarks

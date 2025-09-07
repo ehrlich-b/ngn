@@ -8,11 +8,16 @@ var KingAttacks [64]uint64
 var RankMasks [8]uint64
 var FileMasks [8]uint64
 
+// Ray masks for sliding piece attacks - [square][direction]
+// Directions: 0=N, 1=NE, 2=E, 3=SE, 4=S, 5=SW, 6=W, 7=NW  
+var RayMasks [64][8]uint64
+
 func init() {
 	initKnightAttacks()
 	initKingAttacks()
 	initRankMasks()
 	initFileMasks()
+	initRayMasks()
 }
 
 // initKnightAttacks precomputes knight attack bitboards for all squares
@@ -95,5 +100,59 @@ func initFileMasks() {
 			mask |= SquareMask[sq]
 		}
 		FileMasks[file] = mask
+	}
+}
+
+// initRayMasks precomputes ray bitboards for sliding attacks
+func initRayMasks() {
+	// Direction offsets: N, NE, E, SE, S, SW, W, NW
+	directions := []int{-8, -7, 1, 9, 8, 7, -1, -9}
+	
+	for sq := 0; sq < 64; sq++ {
+		file := sq % 8
+		rank := sq / 8
+		
+		for dir := 0; dir < 8; dir++ {
+			mask := uint64(0)
+			offset := directions[dir]
+			
+			for i := 1; i < 8; i++ {
+				to := sq + offset*i
+				
+				if to < 0 || to > 63 {
+					break
+				}
+				
+				toFile := to % 8
+				toRank := to / 8
+				
+				// Check for board wrap-around
+				fileDiff := abs(file - toFile)
+				rankDiff := abs(rank - toRank)
+				
+				// For diagonal moves, file and rank differences must be equal
+				if dir == 1 || dir == 3 || dir == 5 || dir == 7 { // diagonal
+					if fileDiff != rankDiff {
+						break
+					}
+				}
+				// For horizontal moves, rank must stay same
+				if dir == 2 || dir == 6 { // horizontal
+					if rankDiff != 0 || fileDiff != i {
+						break
+					}
+				}
+				// For vertical moves, file must stay same  
+				if dir == 0 || dir == 4 { // vertical
+					if fileDiff != 0 {
+						break
+					}
+				}
+				
+				mask |= SquareMask[to]
+			}
+			
+			RayMasks[sq][dir] = mask
+		}
 	}
 }
