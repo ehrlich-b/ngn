@@ -50,8 +50,8 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
 	movingPiece := move.MovingPiece()
 	attackers &^= SquareMask[int(from)]
 
-	// Initialize the exchange
-	gain := make([]int, 32) // Exchange gains
+	// Initialize the exchange - use stack array to avoid allocation
+	var gain [32]int // Exchange gains on stack
 	depth := 0
 	color := movingPiece.Color().Other() // Side to move after initial capture
 	occupied := pos.Board.GetWhitePieces() | pos.Board.GetBlackPieces()
@@ -361,6 +361,12 @@ type SearchInfo struct {
 	TimeManager *TimeManager
 	PV          [MaximumDepth]Move // Principal variation array
 	PVLength    int                // Length of current PV
+	
+	// Zero-allocation buffers passed through recursion
+	MoveBuffer    *[256]Move  // For move generation
+	CaptureBuffer *[64]Move   // For capture generation
+	OrderedBuffer *[256]Move  // For move ordering
+	SEEGains      *[32]int    // For SEE evaluation
 }
 
 func Search(pos *Position, depth int) *SearchInfo {
@@ -375,13 +381,23 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 	// Advance the age of the transposition table for each search
 	TranspositionTable.AdvanceAge()
 
+	// Allocate buffers once for the entire search tree
+	var moveBuffer [256]Move
+	var captureBuffer [64]Move
+	var orderedBuffer [256]Move
+	var seeGains [32]int
+
 	info := &SearchInfo{
-		Nodes:       0,
-		Depth:       maxDepth,
-		BestMove:    EmptyMove,
-		BestScore:   -INFINITY,
-		Stopped:     false,
-		TimeManager: timeManager,
+		Nodes:         0,
+		Depth:         maxDepth,
+		BestMove:      EmptyMove,
+		BestScore:     -INFINITY,
+		Stopped:       false,
+		TimeManager:   timeManager,
+		MoveBuffer:    &moveBuffer,
+		CaptureBuffer: &captureBuffer,
+		OrderedBuffer: &orderedBuffer,
+		SEEGains:      &seeGains,
 	}
 
 	// Generate root moves without heap allocations (pseudo-legal; legality handled in search loop)
@@ -513,13 +529,23 @@ func SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo
 
 func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
 
+	// Allocate buffers once for the entire search tree
+	var moveBuffer [256]Move
+	var captureBuffer [64]Move
+	var orderedBuffer [256]Move
+	var seeGains [32]int
+
 	info := &SearchInfo{
-		Nodes:       0, // Fresh node count for each depth
-		Depth:       depth,
-		BestMove:    EmptyMove,
-		BestScore:   -INFINITY,
-		Stopped:     false,
-		TimeManager: timeManager,
+		Nodes:         0, // Fresh node count for each depth
+		Depth:         depth,
+		BestMove:      EmptyMove,
+		BestScore:     -INFINITY,
+		Stopped:       false,
+		TimeManager:   timeManager,
+		MoveBuffer:    &moveBuffer,
+		CaptureBuffer: &captureBuffer,
+		OrderedBuffer: &orderedBuffer,
+		SEEGains:      &seeGains,
 	}
 
 	alpha := -INFINITY
@@ -875,30 +901,27 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 	}
 
 	// Only consider captures and checks in quiescence search
-	// Start with captures (more efficient than generating all moves)
-	var captureBuffer [64]Move // Smaller buffer for captures only
-	captureCount := GenerateCapturesIntoBuffer(pos, captureBuffer[:])
-	var capturesAndChecks [84]Move // Stack buffer for captures + a few checks
+	// Use buffers from SearchInfo to avoid allocations
+	captureCount := GenerateCapturesIntoBuffer(pos, info.CaptureBuffer[:])
+	var capturesAndChecks [84]Move // Small stack buffer for combined captures + checks
 	capturesAndChecksCount := captureCount
-	copy(capturesAndChecks[:], captureBuffer[:captureCount])
+	copy(capturesAndChecks[:], (*info.CaptureBuffer)[:captureCount])
 
 	// Also consider moves that give check (but only if not too deep to avoid explosion)
 	if qDepth < 2 { // Very conservative check extension depth
-		var moveBuffer [256]Move
-		numMoves := GenerateMovesIntoBuffer(pos, moveBuffer[:])
-		moves := moveBuffer[:numMoves]
+		// PERFORMANCE OPTIMIZATION: Use direct check detection instead of make/unmake cycle
+		// Use MoveBuffer from SearchInfo to avoid allocation
+		numMoves := GenerateMovesIntoBuffer(pos, info.MoveBuffer[:])
+		moves := (*info.MoveBuffer)[:numMoves]
+		
 		for _, move := range moves {
 			// Skip if already a capture
 			if move.IsCapture() {
 				continue
 			}
 
-			// Check if move gives check
-			ep, tag, hc, _ := pos.MakeMove(move)
-			givesCheck := isInCheck(pos, pos.Turn())
-			pos.UnMakeMove(move, tag, ep, hc)
-
-			if givesCheck && capturesAndChecksCount < len(capturesAndChecks) {
+			// OPTIMIZED: Check if move gives check without make/unmake
+			if moveGivesCheck(pos, move) && capturesAndChecksCount < len(capturesAndChecks) {
 				capturesAndChecks[capturesAndChecksCount] = move
 				capturesAndChecksCount++
 			}

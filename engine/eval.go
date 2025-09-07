@@ -108,43 +108,52 @@ var kingEndgamePST = [64]int{
 	-50, -30, -30, -30, -30, -30, -30, -50,
 }
 
-func getPieceSquareValue(piece Piece, square Square, isEndgame bool) int {
-	color := piece.Color()
-	var pstIndex int
+// Pre-computed PSTs for black pieces (flipped and negated for zero-cost lookups)
+var blackPawnPST, blackKnightPST, blackBishopPST, blackRookPST, blackQueenPST, blackKingMiddlegamePST, blackKingEndgamePST [64]int
 
-	// Mirror the square for black pieces (flip vertically)
-	if color == Black {
-		pstIndex = int(square ^ 56) // XOR with 56 to flip rank
-	} else {
-		pstIndex = int(square)
+func init() {
+	// Pre-compute all black piece-square tables (flipped and negated)
+	for i := 0; i < 64; i++ {
+		flippedIndex := i ^ 56 // Flip rank for black pieces
+		blackPawnPST[i] = -pawnPST[flippedIndex]
+		blackKnightPST[i] = -knightPST[flippedIndex] 
+		blackBishopPST[i] = -bishopPST[flippedIndex]
+		blackRookPST[i] = -rookPST[flippedIndex]
+		blackQueenPST[i] = -queenPST[flippedIndex]
+		blackKingMiddlegamePST[i] = -kingMiddlegamePST[flippedIndex]
+		blackKingEndgamePST[i] = -kingEndgamePST[flippedIndex]
 	}
+}
 
-	var value int
-	switch piece.Type() {
-	case Pawn:
-		value = pawnPST[pstIndex]
-	case Knight:
-		value = knightPST[pstIndex]
-	case Bishop:
-		value = bishopPST[pstIndex]
-	case Rook:
-		value = rookPST[pstIndex]
-	case Queen:
-		value = queenPST[pstIndex]
-	case King:
+// Optimized PST lookup - zero-cost runtime lookups with pre-computed tables
+func getPieceSquareValue(piece Piece, square Square, isEndgame bool) int {
+	sq := int(square)
+	
+	switch piece {
+	case WhitePawn:   return pawnPST[sq]
+	case BlackPawn:   return blackPawnPST[sq]
+	case WhiteKnight: return knightPST[sq]
+	case BlackKnight: return blackKnightPST[sq]
+	case WhiteBishop: return bishopPST[sq]
+	case BlackBishop: return blackBishopPST[sq]
+	case WhiteRook:   return rookPST[sq]
+	case BlackRook:   return blackRookPST[sq]
+	case WhiteQueen:  return queenPST[sq]
+	case BlackQueen:  return blackQueenPST[sq]
+	case WhiteKing:
 		if isEndgame {
-			value = kingEndgamePST[pstIndex]
+			return kingEndgamePST[sq]
 		} else {
-			value = kingMiddlegamePST[pstIndex]
+			return kingMiddlegamePST[sq]
+		}
+	case BlackKing:
+		if isEndgame {
+			return blackKingEndgamePST[sq]
+		} else {
+			return blackKingMiddlegamePST[sq]
 		}
 	}
-
-	// Negate for black pieces
-	if color == Black {
-		value = -value
-	}
-
-	return value
+	return 0
 }
 
 // Helper function to check if we're in the endgame
@@ -268,6 +277,62 @@ func countPassedPawns(board *Bitboard, color Color) int {
 		}
 	}
 
+	return passed
+}
+
+// Optimized passed pawn counting using pre-cached bitboards (replaces nested loops)
+func countPassedPawnsFast(pawnBitboard, opponentPawnBitboard uint64, color Color) int {
+	if pawnBitboard == 0 {
+		return 0
+	}
+	
+	passed := 0
+	
+	// Generate opponent pawn attack masks by file for O(1) lookups
+	var opponentControl [8]uint64
+	
+	for obb := opponentPawnBitboard; obb != 0; obb &= obb - 1 {
+		sq := bits.TrailingZeros64(obb)
+		file := sq % 8
+		rank := sq / 8
+		
+		// Mark files controlled by this opponent pawn
+		if file > 0 { // Left adjacent file
+			if color == White {
+				opponentControl[file-1] |= uint64(0xFF) << (rank * 8) // All ranks >= this rank
+			} else {
+				opponentControl[file-1] |= uint64(0xFF) >> ((7-rank) * 8) // All ranks <= this rank  
+			}
+		}
+		opponentControl[file] |= uint64(0xFF) << (rank * 8) // Same file
+		if file < 7 { // Right adjacent file
+			if color == White {
+				opponentControl[file+1] |= uint64(0xFF) << (rank * 8) // All ranks >= this rank
+			} else {
+				opponentControl[file+1] |= uint64(0xFF) >> ((7-rank) * 8) // All ranks <= this rank
+			}
+		}
+	}
+	
+	// Check each pawn against file masks
+	for bb := pawnBitboard; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		file := sq % 8
+		
+		// Create mask for squares this pawn must pass through
+		var pathMask uint64
+		if color == White {
+			pathMask = uint64(0xFF) << ((sq/8 + 1) * 8) // All ranks ahead
+		} else {
+			pathMask = uint64(0xFF) >> ((7 - sq/8 + 1) * 8) // All ranks ahead  
+		}
+		
+		// Check if path is clear
+		if (pathMask & opponentControl[file]) == 0 {
+			passed++
+		}
+	}
+	
 	return passed
 }
 
@@ -2105,32 +2170,92 @@ func EvaluateForPlayer(board *Bitboard, player Color) int {
 }
 
 func evaluateUnsafe(board *Bitboard) (eval int) {
-
 	endgame := isEndgame(board)
 
-	// 1. Material counting with piece values
-	for _, piece := range Pieces {
-		if piece == NoPiece {
-			continue
-		}
+	// Cache all piece bitboards for performance (avoid repeated GetBitboardOf calls)
+	whitePawns := board.GetBitboardOf(WhitePawn)
+	blackPawns := board.GetBitboardOf(BlackPawn)
+	whiteKnights := board.GetBitboardOf(WhiteKnight)
+	blackKnights := board.GetBitboardOf(BlackKnight)
+	whiteBishops := board.GetBitboardOf(WhiteBishop)
+	blackBishops := board.GetBitboardOf(BlackBishop)
+	whiteRooks := board.GetBitboardOf(WhiteRook)
+	blackRooks := board.GetBitboardOf(BlackRook)
+	whiteQueens := board.GetBitboardOf(WhiteQueen)
+	blackQueens := board.GetBitboardOf(BlackQueen)
+	whiteKings := board.GetBitboardOf(WhiteKing)
+	blackKings := board.GetBitboardOf(BlackKing)
 
-		pieceBitboard := board.GetBitboardOf(piece)
-		color := piece.Color()
-		val := piece.Weight()
-		colorMul := 1
-		if color == Black {
-			colorMul = -1
+	// 1. Material counting and piece-square table values in one pass
+	// White pieces - material + PST
+	eval += int(WhitePawn.Weight()) * PopCount(whitePawns)
+	for bb := whitePawns; bb != 0; bb &= bb - 1 {
+		eval += pawnPST[bits.TrailingZeros64(bb)]
+	}
+	
+	eval += int(WhiteKnight.Weight()) * PopCount(whiteKnights)
+	for bb := whiteKnights; bb != 0; bb &= bb - 1 {
+		eval += knightPST[bits.TrailingZeros64(bb)]
+	}
+	
+	eval += int(WhiteBishop.Weight()) * PopCount(whiteBishops)
+	for bb := whiteBishops; bb != 0; bb &= bb - 1 {
+		eval += bishopPST[bits.TrailingZeros64(bb)]
+	}
+	
+	eval += int(WhiteRook.Weight()) * PopCount(whiteRooks)
+	for bb := whiteRooks; bb != 0; bb &= bb - 1 {
+		eval += rookPST[bits.TrailingZeros64(bb)]
+	}
+	
+	eval += int(WhiteQueen.Weight()) * PopCount(whiteQueens)
+	for bb := whiteQueens; bb != 0; bb &= bb - 1 {
+		eval += queenPST[bits.TrailingZeros64(bb)]
+	}
+	
+	// White king PST
+	for bb := whiteKings; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		if endgame {
+			eval += kingEndgamePST[sq]
+		} else {
+			eval += kingMiddlegamePST[sq]
 		}
+	}
 
-		// Material value
-		if piece.Type() != King {
-			eval += colorMul * int(val) * PopCount(pieceBitboard)
-		}
-
-		// 2. Piece-square table values (zero-allocation, no-closure)
-		for bb := pieceBitboard; bb != 0; bb &= bb - 1 {
-			square := bits.TrailingZeros64(bb)
-			eval += getPieceSquareValue(piece, Square(square), endgame)
+	// Black pieces - material + PST (using pre-computed negative tables)
+	eval -= int(BlackPawn.Weight()) * PopCount(blackPawns)
+	for bb := blackPawns; bb != 0; bb &= bb - 1 {
+		eval += blackPawnPST[bits.TrailingZeros64(bb)]
+	}
+	
+	eval -= int(BlackKnight.Weight()) * PopCount(blackKnights)
+	for bb := blackKnights; bb != 0; bb &= bb - 1 {
+		eval += blackKnightPST[bits.TrailingZeros64(bb)]
+	}
+	
+	eval -= int(BlackBishop.Weight()) * PopCount(blackBishops)
+	for bb := blackBishops; bb != 0; bb &= bb - 1 {
+		eval += blackBishopPST[bits.TrailingZeros64(bb)]
+	}
+	
+	eval -= int(BlackRook.Weight()) * PopCount(blackRooks)
+	for bb := blackRooks; bb != 0; bb &= bb - 1 {
+		eval += blackRookPST[bits.TrailingZeros64(bb)]
+	}
+	
+	eval -= int(BlackQueen.Weight()) * PopCount(blackQueens)
+	for bb := blackQueens; bb != 0; bb &= bb - 1 {
+		eval += blackQueenPST[bits.TrailingZeros64(bb)]
+	}
+	
+	// Black king PST
+	for bb := blackKings; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		if endgame {
+			eval += blackKingEndgamePST[sq]
+		} else {
+			eval += blackKingMiddlegamePST[sq]
 		}
 	}
 
@@ -2140,11 +2265,11 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	// - evaluatePawnChains: 2.04% CPU
 	// Keeping only essential pawn evaluation
 
-	// Keep only passed pawns (most important)
-	whitePassedPawns := countPassedPawns(board, White)
-	blackPassedPawns := countPassedPawns(board, Black)
+	// Optimized passed pawn counting using cached bitboards
+	whitePassedPawns := countPassedPawnsFast(whitePawns, blackPawns, White)
+	blackPassedPawns := countPassedPawnsFast(blackPawns, whitePawns, Black)
 	eval += whitePassedPawns * 25 // Bonus for passed pawns
-	eval += -(blackPassedPawns * 25)
+	eval -= blackPassedPawns * 25
 
 	// DISABLED FOR PERFORMANCE:
 	// whiteDoubledPawns := 0
