@@ -1,25 +1,25 @@
 {
-  "timestamp": "2025-09-07T09:56:15.554470043-04:00",
+  "timestamp": "2025-09-07T18:39:54.230369141-04:00",
   "total_positions": 24,
   "successful": 24,
   "failed": 0,
-  "total_time": 21050415727,
-  "avg_nps": 486959,
-  "min_nps": 200365,
-  "max_nps": 920409,
+  "total_time": 15853239017,
+  "avg_nps": 485993,
+  "min_nps": 51644,
+  "max_nps": 1239249,
   "results": [
     {
       "position": {
         "name": "Starting Position",
         "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
       },
-      "depth": 7,
+      "depth": 4,
       "time_limit": 0,
-      "time_elapsed": 951009503,
-      "nodes": 31513,
-      "nps": 200365,
-      "score": 20,
-      "best_move": "b1c3",
+      "time_elapsed": 1189342829,
+      "nodes": 850,
+      "nps": 90248,
+      "score": 3925,
+      "best_move": "c6b7",
       "success": true
     },
     {
@@ -27,13 +27,13 @@
         "name": "After 1.e4",
         "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
       },
-      "depth": 7,
+      "depth": 4,
       "time_limit": 0,
-      "time_elapsed": 951187902,
-      "nodes": 94574,
-      "nps": 295287,
-      "score": -30,
-      "best_move": "e7e6",
+      "time_elapsed": 1182820790,
+      "nodes": 9993,
+      "nps": 801870,
+      "score": -1100,
+      "best_move": "g1g2",
       "success": true
     },
     {
@@ -41,13 +41,13 @@
         "name": "After 1.e4 e5",
         "fen": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2"
       },
-      "depth": 8,
+      "depth": 3,
       "time_limit": 0,
-      "time_elapsed": 950359803,
-      "nodes": 218814,
-      "nps": 364590,
-      "score": 175,
-      "best_move": "d1h5",
+      "time_elapsed": 957814724,
+      "nodes": 10923,
+      "nps": 647309,
+      "score": 2680,
+      "best_move": "c7d8b",
       "success": true
     },
     {
@@ -55,13 +55,13 @@
         "name": "After 1.d4",
         "fen": "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1"
       },
-      "depth": 7,
+      "depth": 4,
       "time_limit": 0,
-      "time_elapsed": 951113804,
-      "nodes": 126659,
-      "nps": 373597,
-      "score": 40,
-      "best_move": "e7e5",
+      "time_elapsed": 1591744128,
+      "nodes": 46277,
+      "nps": 456661,
+      "score": -7970,
+      "best_move": "f1g2",
       "success": true
     },
     {
@@ -69,13 +69,13 @@
         "name": "After 1.Nf3",
         "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1"
       },
-      "depth": 8,
+      "depth": 3,
       "time_limit": 0,
-      "time_elapsed": 952047106,
-      "nodes": 211091,
-      "nps": 388244,
-      "score": 10,
-      "best_move": "e7e5",
+      "time_elapsed": 1551204866,
+      "nodes": 73207,
+      "nps": 477478,
+      "score": 8335,
+      "best_move": "b3c2",
       "success": true
     },
     {
@@ -83,13 +83,13 @@
         "name": "Sicilian Defense",
         "fen": "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2"
       },
-      "depth": 1,
+      "depth": 2,
       "time_limit": 0,
-      "time_elapsed": 951544906,
-      "nodes": 61,
-      "nps": 501232,
-      "score": 90,
-      "best_move": "d1h5",
+      "time_elapsed": 521806494,
+      "nodes": 399,
+      "nps": 505667,
+      "score": 415,
+      "best_move": "d4e5",
       "success": true
     },
     {
@@ -97,13 +97,13 @@
         "name": "French Defense",
         "fen": "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
       },
-      "depth": 7,
+      "depth": 4,
       "time_limit": 0,
-      "time_elapsed": 951648107,
-      "nodes": 162704,
-      "nps": 362154,
-      "score": 70,
-      "best_move": "d1h5",
+      "time_elapsed": 1305421634,
+      "nodes": 293958,
+      "nps": 469610,
+      "score": -5370,
+      "best_move": "h5g6",
       "success": true
     },
     {
@@ -111,13 +111,13 @@
         "name": "Caro-Kann",
         "fen": "rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
       },
-      "depth": 1,
+      "depth": 3,
       "time_limit": 0,
-      "time_elapsed": 950398606,
-      "nodes": 61,
-      "nps": 450516,
-      "score": 80,
-      "best_move": "d1h5",
+      "time_elapsed": 69630057,
+      "nodes": 14882,
+      "nps": 780713,
+      "score": 2865,
+      "best_move": "b7c6",
       "success": true
     },
     {
@@ -125,13 +125,13 @@
         "name": "King's Indian",
         "fen": "rnbqkbnr/pppppp1p/6p1/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2"
       },
-      "depth": 8,
+      "depth": 2,
       "time_limit": 0,
-      "time_elapsed": 951273006,
-      "nodes": 267723,
-      "nps": 339075,
-      "score": 70,
-      "best_move": "b1c3",
+      "time_elapsed": 1204387312,
+      "nodes": 137,
+      "nps": 280810,
+      "score": 40,
+      "best_move": "c5e6",
       "success": true
     },
     {
@@ -139,13 +139,13 @@
         "name": "Queen's Gambit",
         "fen": "rnbqkbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBQKBNR b KQkq c3 0 2"
       },
-      "depth": 7,
+      "depth": 5,
       "time_limit": 0,
-      "time_elapsed": 950596907,
-      "nodes": 160637,
-      "nps": 334365,
-      "score": 65,
-      "best_move": "d5c4",
+      "time_elapsed": 1319631951,
+      "nodes": 61104,
+      "nps": 83861,
+      "score": 5225,
+      "best_move": "b3c5",
       "success": true
     },
     {
@@ -153,13 +153,13 @@
         "name": "English Opening",
         "fen": "rnbqkbnr/pppp1ppp/8/4p3/2P5/8/PP1PPPPP/RNBQKBNR w KQkq e6 0 2"
       },
-      "depth": 7,
+      "depth": 2,
       "time_limit": 0,
-      "time_elapsed": 951152206,
-      "nodes": 180170,
-      "nps": 343454,
-      "score": -90,
-      "best_move": "e2e3",
+      "time_elapsed": 989245,
+      "nodes": 461,
+      "nps": 652456,
+      "score": 245,
+      "best_move": "g8e7",
       "success": true
     },
     {
@@ -167,13 +167,13 @@
         "name": "Reti Opening",
         "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1"
       },
-      "depth": 8,
+      "depth": 4,
       "time_limit": 0,
-      "time_elapsed": 950930806,
-      "nodes": 213840,
-      "nps": 392759,
-      "score": 10,
-      "best_move": "e7e5",
+      "time_elapsed": 1002806943,
+      "nodes": 151378,
+      "nps": 408938,
+      "score": -11675,
+      "best_move": "f2e1",
       "success": true
     },
     {
@@ -181,13 +181,13 @@
         "name": "Middlegame Complex",
         "fen": "r1bqk2r/ppp2ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 4 6"
       },
-      "depth": 6,
+      "depth": 4,
       "time_limit": 0,
-      "time_elapsed": 951244105,
-      "nodes": 208322,
-      "nps": 353558,
-      "score": 110,
-      "best_move": "e1g1",
+      "time_elapsed": 1151858216,
+      "nodes": 553464,
+      "nps": 484784,
+      "score": -8050,
+      "best_move": "e3d4",
       "success": true
     },
     {
@@ -195,13 +195,13 @@
         "name": "Tactical Position",
         "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R b KQkq - 0 4"
       },
-      "depth": 7,
+      "depth": 4,
       "time_limit": 0,
-      "time_elapsed": 952930105,
-      "nodes": 211722,
-      "nps": 295834,
-      "score": 85,
-      "best_move": "f8b4",
+      "time_elapsed": 957551442,
+      "nodes": 418520,
+      "nps": 536013,
+      "score": -3310,
+      "best_move": "e4f3",
       "success": true
     },
     {
@@ -209,13 +209,13 @@
         "name": "Endgame King and Pawn",
         "fen": "8/8/8/8/8/8/4K3/4P2k w - - 0 1"
       },
-      "depth": 13,
+      "depth": 7,
       "time_limit": 0,
-      "time_elapsed": 950490305,
-      "nodes": 279723,
-      "nps": 793954,
-      "score": 264,
-      "best_move": "e2f3",
+      "time_elapsed": 3629100,
+      "nodes": 795,
+      "nps": 231433,
+      "score": 590,
+      "best_move": "f2g3",
       "success": true
     },
     {
@@ -225,11 +225,11 @@
       },
       "depth": 1,
       "time_limit": 0,
-      "time_elapsed": 410134602,
-      "nodes": 48,
-      "nps": 373540,
+      "time_elapsed": 10638213,
+      "nodes": 50,
+      "nps": 437089,
       "score": 1400,
-      "best_move": "e2e3",
+      "best_move": "e2d1",
       "success": true
     },
     {
@@ -239,11 +239,11 @@
       },
       "depth": 1,
       "time_limit": 0,
-      "time_elapsed": 3532600,
+      "time_elapsed": 12547007,
       "nodes": 76,
-      "nps": 721062,
+      "nps": 562575,
       "score": 1930,
-      "best_move": "e2e3",
+      "best_move": "e2d1",
       "success": true
     },
     {
@@ -251,13 +251,13 @@
         "name": "Knight Endgame",
         "fen": "8/8/8/8/8/8/N3K3/4N2k w - - 0 1"
       },
-      "depth": 11,
+      "depth": 1,
       "time_limit": 0,
-      "time_elapsed": 957654305,
-      "nodes": 455748,
-      "nps": 920409,
-      "score": 786,
-      "best_move": "a2c3",
+      "time_elapsed": 12026536,
+      "nodes": 28,
+      "nps": 303704,
+      "score": 682,
+      "best_move": "c1d1",
       "success": true
     },
     {
@@ -265,13 +265,13 @@
         "name": "Bishop Endgame",
         "fen": "8/8/8/8/8/8/B3K3/4B2k w - - 0 1"
       },
-      "depth": 7,
+      "depth": 3,
       "time_limit": 0,
-      "time_elapsed": 950635905,
-      "nodes": 13430,
-      "nps": 545569,
-      "score": 809,
-      "best_move": "e2f3",
+      "time_elapsed": 13810438,
+      "nodes": 2391,
+      "nps": 1239249,
+      "score": 2180,
+      "best_move": "h1g2",
       "success": true
     },
     {
@@ -279,13 +279,13 @@
         "name": "Pawn Endgame",
         "fen": "8/8/8/8/8/8/4K1P1/5k2 w - - 0 1"
       },
-      "depth": 14,
+      "depth": 6,
       "time_limit": 0,
-      "time_elapsed": 950320105,
-      "nodes": 678747,
-      "nps": 908124,
-      "score": 241,
-      "best_move": "e2f3",
+      "time_elapsed": 1221402277,
+      "nodes": 68723,
+      "nps": 283520,
+      "score": -19220,
+      "best_move": "f3e2",
       "success": true
     },
     {
@@ -293,13 +293,13 @@
         "name": "Heavy Pieces",
         "fen": "r3k2r/ppp2ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/R3K2R w KQkq - 4 6"
       },
-      "depth": 6,
+      "depth": 4,
       "time_limit": 0,
-      "time_elapsed": 950658605,
-      "nodes": 108470,
-      "nps": 452860,
-      "score": -165,
-      "best_move": "c4b5",
+      "time_elapsed": 92190111,
+      "nodes": 16964,
+      "nps": 253996,
+      "score": -2270,
+      "best_move": "c3b4",
       "success": true
     },
     {
@@ -307,13 +307,13 @@
         "name": "Development Test",
         "fen": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/2N3P1/PP1PPP1P/R1BQKBNR b KQkq - 0 3"
       },
-      "depth": 1,
+      "depth": 3,
       "time_limit": 0,
-      "time_elapsed": 657840603,
-      "nodes": 62,
-      "nps": 390428,
-      "score": 130,
-      "best_move": "f8b4",
+      "time_elapsed": 467290805,
+      "nodes": 51276,
+      "nps": 657587,
+      "score": 1415,
+      "best_move": "d2e1q",
       "success": true
     },
     {
@@ -321,13 +321,13 @@
         "name": "Castling Test",
         "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1"
       },
-      "depth": 8,
+      "depth": 3,
       "time_limit": 0,
-      "time_elapsed": 950965411,
-      "nodes": 352792,
-      "nps": 829904,
-      "score": 0,
-      "best_move": "e1c1",
+      "time_elapsed": 7123806,
+      "nodes": 2466,
+      "nps": 966619,
+      "score": 480,
+      "best_move": "e1d1",
       "success": true
     },
     {
@@ -335,13 +335,13 @@
         "name": "Promotion Test",
         "fen": "8/8/8/8/8/8/4k1P1/5K2 w - - 0 1"
       },
-      "depth": 14,
+      "depth": 7,
       "time_limit": 0,
-      "time_elapsed": 950746414,
-      "nodes": 460298,
-      "nps": 756153,
-      "score": 143,
-      "best_move": "f1g1",
+      "time_elapsed": 5570093,
+      "nodes": 114,
+      "nps": 51644,
+      "score": 192,
+      "best_move": "g1h1",
       "success": true
     }
   ]

@@ -580,8 +580,9 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		}
 
 		ep, tag, hc, _ := pos.MakeMove(move)
-		// Check if move is legal (doesn't leave king in check)
-		if isInCheck(pos, move.MovingPiece().Color()) {
+		// Check if move is legal (doesn't leave our king in check)
+		movingColor := move.MovingPiece().Color()
+		if isInCheck(pos, movingColor) {
 			pos.UnMakeMove(move, tag, ep, hc)
 			continue // Skip illegal move
 		}
@@ -766,7 +767,9 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 
 		ep, tag, hc, _ := pos.MakeMove(move)
-		if isInCheck(pos, move.MovingPiece().Color()) {
+		// Check if move is legal (doesn't leave our king in check)
+		movingColor := move.MovingPiece().Color()
+		if isInCheck(pos, movingColor) {
 			pos.UnMakeMove(move, tag, ep, hc)
 			continue
 		}

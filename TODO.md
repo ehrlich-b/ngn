@@ -10,6 +10,7 @@
 - **Testing**: Comprehensive benchmark and Stockfish-validated tactical test infrastructure implemented
 
 ### ✅ Recent Completions
+- [x] **Illegal Move Bug Fix**: Fixed critical bug where engine made illegal moves when in check ✅
 - [x] **Memory Optimization**: Eliminated 64.71% of allocations by fixing heap escape in quiescence ✅
 - [x] **SEE Stack Allocation**: Converted SEE gains array to stack allocation ✅
 - [x] **SearchInfo Buffers**: Added zero-allocation buffer passing through search tree ✅
