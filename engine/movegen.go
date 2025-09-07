@@ -399,6 +399,12 @@ func generateSlidingMoves(pos *Position, from Square, directions []int) []Move {
 				break
 			}
 			
+			// CRITICAL FIX: Check for vertical moves wrapping around the board
+			// Vertical moves should NOT change the file at all
+			if (direction == 8 || direction == -8) && toFile != fromFile {
+				break
+			}
+			
 			// For diagonal moves, check file distance matches step count and prevent board wrapping
 			if abs(direction) == 7 || abs(direction) == 9 {
 				// Check if we've wrapped around the board horizontally
@@ -541,9 +547,23 @@ func generateSlidingMovesIntoBuffer(pos *Position, from Square, directions []int
                 break
             }
             toFile := to % 8
-            // Horizontal wrap checks
+            // Horizontal wrap checks (prevent wrapping across ranks)
             if d == -1 || d == 1 {
+                // File distance must match steps taken
                 if abs(toFile-fromFile) != step {
+                    break
+                }
+                // Directional guard: moving right must increase file, moving left must decrease
+                if d == 1 && toFile < fromFile {
+                    break
+                }
+                if d == -1 && toFile > fromFile {
+                    break
+                }
+            }
+            // CRITICAL FIX: Vertical wrap checks - file must not change for vertical moves
+            if d == 8 || d == -8 {
+                if toFile != fromFile {
                     break
                 }
             }
@@ -592,8 +612,23 @@ func generateSlidingCapturesIntoBuffer(pos *Position, from Square, directions []
                 break
             }
             toFile := to % 8
+            // Horizontal wrap checks (prevent wrapping across ranks)
             if d == -1 || d == 1 {
+                // File distance must match steps taken
                 if abs(toFile-fromFile) != step {
+                    break
+                }
+                // Directional guard: moving right must increase file, moving left must decrease
+                if d == 1 && toFile < fromFile {
+                    break
+                }
+                if d == -1 && toFile > fromFile {
+                    break
+                }
+            }
+            // Vertical wrap checks (file must stay constant)
+            if d == 8 || d == -8 {
+                if toFile != fromFile {
                     break
                 }
             }

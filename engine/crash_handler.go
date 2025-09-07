@@ -159,10 +159,8 @@ func WrapMoveGeneration(functionName string, fn func() []Move, pos *Position) []
 // WrapEvaluation wraps evaluation functions with context  
 func WrapEvaluation(functionName string, fn func() int, board *Bitboard) int {
     if !ENABLE_HOT_PATH_DEBUG {
-        // Fast path - minimal overhead for performance (eliminates 19.59% CPU overhead)
-        ch := GetGlobalCrashHandler()
-        // Avoid any allocation: pass nil context
-        defer ch.SafeRecover(functionName, nil)
+        // Fast path: absolutely zero overhead in hot path
+        // Do NOT set up a defer when debug is disabled.
         return fn()
     }
 	

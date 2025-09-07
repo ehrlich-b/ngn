@@ -500,6 +500,42 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 			break
 		}
 		
+        // Check opening book first (only on depth 1 to avoid repeating book lookup)
+        if depth == 1 {
+            if bookMove, found := GetDefaultOpeningBook().ProbeBook(uci.position); found {
+                uci.debugLogger.Printf("Opening book hit! Move: %v", bookMove.ToString())
+                if uci.debugMode {
+                    fmt.Fprintf(output, "info string opening book move: %s\n", bookMove.ToString())
+                }
+                
+                // Create synthetic search info for book move
+                info := &SearchInfo{
+                    Nodes:     1, // Minimal node count since no search was performed
+                    Depth:     1,
+                    BestMove:  bookMove,
+                    BestScore: 50, // Slight positive bias for book moves
+                    Stopped:   false,
+                }
+                
+                bestMove = bookMove
+                bestScore = 50
+                uci.debugLogger.Printf("Using book move: %v with score %d", bestMove.ToString(), bestScore)
+                
+                // Output the book move result and break from search loop
+                elapsed := time.Since(iterationStart)
+                nps := uint64(float64(info.Nodes) / elapsed.Seconds())
+                fmt.Fprintf(output, "info depth %d score cp %d nodes %d time %d nps %d pv %s\n",
+                    depth, bestScore, info.Nodes, elapsed.Milliseconds(), nps, bestMove.ToString())
+                
+                break // Exit search loop since we have our book move
+            } else {
+                uci.debugLogger.Printf("No opening book move found for current position")
+                if uci.debugMode {
+                    fmt.Fprintf(output, "info string no book move found, starting search\n")
+                }
+            }
+        }
+        
         // Perform search at current depth
         uci.debugLogger.Printf("Calling SearchFixed for depth %d", depth)
         info := SearchFixed(uci.position, depth, uci.timeManager)

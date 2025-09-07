@@ -1,236 +1,160 @@
-# NGN Chess Engine - Development Roadmap
+# NGN Chess Engine — Overhauled Roadmap
 
-## 🎯 **CURRENT STATUS**: Strong Foundation, All Major Issues Resolved
+This roadmap focuses on achieving approximately 2x speed and 2x effective depth through a mix of raw throughput and stronger pruning/ordering. It replaces prior tactical fixes with a performance-first plan and clear validation.
 
-**Engine Performance**: ~364K NPS average, 429K NPS peak (Phases 1-3 complete)  
-**Engine Strength**: 1477 ELO potential with proper time allocation  
-**Core Systems**: 100% functional - move generation, evaluation, search, UCI
-**🎉 MAJOR FIX**: Critical illegal move bug resolved - engine now properly enforces chess rules
+## Objectives
+- 2x wall-clock throughput on single thread (NPS) on a mixed position set.
+- +1 to +2 ply deeper on typical midgame searches at fixed time.
+- No regressions on legality, stability, or correctness tests.
 
----
+## Key Metrics (track per commit)
+- NPS on a 100–500 position mixed suite (midgame, tactical, quiet).
+- Nodes searched to depth X on fixed positions; depth reached at fixed time.
+- TT hit rate, cut node ratio, qsearch node share.
+- Correctness: perft spot-checks, move legality, tactical regression tests.
 
-## 📈 **PERFORMANCE OPTIMIZATION ROADMAP**
+## Recently Fixed
+- Sliding move buffer wrap bug causing illegal rook moves (e1a2) fixed in `generateSlidingMovesIntoBuffer` and `generateSlidingCapturesIntoBuffer`.
+- Root legality checks enforced in search to avoid returning illegal moves.
 
-### ✅ **PHASE 1 COMPLETE** - Hot Path Cleanup (319K NPS)
-- [x] Disabled crash wrappers in search hot path
-- [x] Disabled repetition map updates during search  
-- [x] Implemented true `GenerateCaptures` (no generate-all-then-filter)
-- [x] Replaced sort-based move ordering with staged ordering
+## Phase 1 — Profiling & Benchmarks (1–2 days)
+- [ ] Add a deterministic benchmark harness (CLI or test) to report: NPS, nodes, depth per position.
+- [ ] Add CPU profiles on representative searches; store flamegraphs for before/after comparisons.
+- [ ] Lock a corpus: 100–500 FENs across openings/midgames/endgames; include a small tactics suite.
 
-**Result**: 149K → 319K NPS (2.1× improvement) ✅
+## Phase 2 — Core Throughput (3–5 days)
+- [ ] Implement magic/lookup sliding attacks (rook/bishop/queen) and use in:
+  - [ ] Move generation (all variants, including buffer-based).
+  - [ ] `isInCheck`/attack queries and pin/line-of-sight checks.
+- [ ] Minimize hot-path work:
+  - [ ] Reduce `PieceAt` calls inside loops (prefer bitboards/attacks). 
+  - [ ] Inline trivial helpers; trim branches in Make/UnMake paths.
+- Expected: 30–60% speedup depending on current hotspots.
 
-### ✅ **PHASE 2 COMPLETE** - Allocation Elimination  
-- [x] **Move buffers**: Generate into caller-provided stack arrays (`[256]Move`) ✅ **COMPLETE**
-- [x] **Pseudolegal everywhere**: Check legality only after `MakeMove` ✅ **COMPLETE**
+## Phase 3 — Pruning & Ordering Gains (4–7 days)
+- [ ] Implement SEE (Static Exchange Evaluation):
+  - [ ] Order captures by SEE; prefer profitable or neutral exchanges.
+  - [ ] Quiescence: prune losing captures; tighten delta margins based on SEE.
+  - [ ] Main search: light SEE pruning for late captures in non-PV nodes.
+- [ ] LMR: switch to dynamic reduction formula based on depth and move index; boost reductions for bad-history moves; reduce for good-history, checks, and captures.
+- [ ] IID: if no TT move at PV nodes, do a reduced-depth probe to seed ordering.
+- [ ] Null-move: adaptive R (2–3) based on depth and phase; zugzwang guards in likely endgames.
+- Expected: 20–40% node reduction; better move ordering stability.
 
-**Current Performance**: **~364K NPS average, 429K NPS peak** (+43% improvement from 255K baseline)
+## Phase 4 — Transposition Table (2–4 days)
+- [ ] Clustered TT buckets (e.g., 4 entries) with replacement by depth/age; keep current aging.
+- [ ] Make table size configurable at runtime; add lightweight stats (hit, store, replace).
+- Expected: 5–15% node reduction via higher hit-rate.
 
-### 🎯 **PHASE 3 MAJOR SUCCESS** - Hot Path Optimization (Target: 500K+ NPS)
-- [x] **Profile hot path** - identified actual bottlenecks with pprof ✅ **COMPLETE**
-- [x] **Eliminate AllPieces debug calls** - disabled expensive debug context (+20% NPS improvement) ✅ **COMPLETE**
-- [x] **Simplify pawn evaluation** - optimized weak squares evaluation ✅ **COMPLETE**
-- [x] **Replace map operations** - eliminated runtime.mapassign with array lookups (+7% NPS improvement) ✅ **COMPLETE**
-- [ ] **Optimize isInCheck** - faster piece scanning (optional - 85% of target achieved)
+## Phase 5 — SMP (Parallel Search) (5–10 days)
+- [ ] Root-split parallel search (2–N workers) with shared TT.
+- [ ] Optional split points on deeper PV nodes after stability.
+- [ ] Determinism toggle for testing; integrate with time manager.
+- Expected: 1.5–1.8x wall-clock speedup on 2–4 cores.
 
-**Achievement**: 255K → 364K NPS average, 429K NPS peak (**+68% peak improvement**)
+## Phase 6 — Eval Throughput (3–6 days)
+- [ ] Incremental evaluation: cache material/PST/selected terms; update in Make/UnMake.
+- [ ] Gate expensive terms by depth or PV-only to reduce average eval cost.
+- Expected: 10–25% time saved if eval is a hotspot.
 
-**Profiling Results**: Top bottlenecks identified:
-- AllPieces bitboard operations: 19.59% CPU
-- Complex pawn evaluation: 15-20% CPU  
-- Map operations (mapassign): 11.43% CPU
+## Guardrails
+- Never regress legality: keep perft spot-checks and legality tests on every movegen change.
+- Quiescence stability: cap qDepth; only admit a limited set of non-capturing checks; SEE-based pruning required.
+- Maintain zero allocations in hot paths (search, movegen, ordering).
 
-### ⚠️ **PHASE 4 FUTURE** - Advanced Optimizations (HIGH RISK)
-- Magic bitboards (table-driven sliding attacks)
-- Advanced bitboard isInCheck (precomputed attack tables)  
-- Custom 16-bit move encoding
+## Validation Plan
+- [ ] Continuous benchmark: report NPS, depths, nodes, TT hit-rate vs. baseline.
+- [ ] Tactical suite pass rate; ensure no pruning-induced tactical misses grow over baseline.
+- [ ] Nodes-to-depth comparison for key test FENs before/after each phase.
 
-**Note**: These require extensive testing to prevent chess rule violations
+## Stretch Goals
+- [ ] Specialized endgame pruning (e.g., late endgame futility/razoring variants with safe guards).
+- [ ] Extended history heuristics (butterfly history, continuation history).
+- [ ] Tapered and or phase-aware evaluation refinements once speed is achieved.
 
----
+## Implementation Pointers
+- Magic attacks: add a new `attacks/` module or embed into `global.go`; expose `RookAttacks(bb, sq)`, `BishopAttacks(bb, sq)` using blockers.
+- SEE: add a lightweight, non-allocating SEE; avoid recursion/alloc in hot paths.
+- LMR/IID/null-move: update `search.go` with dynamic formulas; keep guardrails to ensure depth strictly decreases.
+- TT buckets: extend `Cache` in `cache.go` to support clustering and depth/age-prefer replacement.
 
-## 🚨 **CRITICAL BUG FIX COMPLETED** - September 1, 2024
+## Status Snapshot
+- [x] Illegal sliding wrap fixed in buffer movegen.
+- [x] Root legality checks to avoid illegal best moves.
+- [ ] Magic attacks
+- [ ] SEE + qsearch pruning
+- [ ] Dynamic LMR + IID
+- [ ] TT clustering
+- [ ] SMP root split
 
-### **Issue**: Illegal Move Generation in Check
-The engine was generating and allowing illegal moves when the king was in check, causing tournament losses due to rule violations.
+This plan is designed to compound speed and depth gains. If single-thread plateaus short of 2x, SMP provides the remaining wall-clock improvement without compromising tactical strength.
 
-### **Root Cause**: Missing Check State Updates
-The `Position.InCheck` tag was never being set or cleared after moves, causing:
-- `Position.IsInCheck()` always returned `false`
-- Legal move generation failed to properly filter moves that left king in check
-- Engine would make moves that didn't resolve check situations
+## Benchmark Findings (2025-09-06)
 
-### **Solution**: Added Check State Maintenance
-- **File**: `engine/position.go:262-267`
-- **Fix**: Added check detection after every move in `makeMoveHelper`
-```go
-// Update check status for the new position
-if isInCheck(p, p.Turn()) {
-    p.SetTag(InCheck)
-} else {
-    p.ClearTag(InCheck)
-}
-```
+Current targeted benchmark results and profiles for guidance. Values are approximate; keep snapshots per commit for tracking.
 
-### **Verification**: ✅ **CONFIRMED WORKING**
-- Engine now correctly detects check situations
-- Only generates legal moves that resolve check
-- Performance maintained: ~364K NPS (no regression)
-- All existing tests pass
+- BenchmarkEvaluation: ~370–400 ns/op, 0 allocs/op (Eval is cheap).
+- BenchmarkMoveGeneration (starting pos): ~2.4 µs/op, 34 allocs/op (non-buffer API; search uses buffer APIs).
+- BenchmarkLegalMoveGeneration: ~5.6 µs/op, 35 allocs/op (non-buffer API).
+- BenchmarkCriticalPath (SearchFixed depth 4): ~1.36–1.50 ms/op, ~263 KB/op, ~350 allocs/op.
 
-**Result**: Engine is now **tournament-legal** and will not forfeit games due to illegal moves.
+CPU hotspots (depth-4 critical path):
+- isInCheck: ~16–18% CPU
+- orderMovesIntoBufferWithDepthPreviousAndTTMove: ~14% CPU
+- GenerateMovesIntoBuffer (total across pieces): ~16–19% CPU
+- Evaluate/EvaluateForPlayer: ~12–17% CPU combined
+- TT atomics (atomic.Store/Load in Cache.Set/Get): ~12–20% CPU cumulative
+- QuiescenceWithDepth: consumes ~44–52% of time cumulatively
 
----
+Memory hotspots (alloc_space / alloc_objects):
+- One-time: TranspositionTable init (NewCache): 128 MB
+- Per-search allocations dominated by:
+  - quiescenceWithDepth: ~25–27% of bytes; ~100k+ alloc objects
+  - alphaBeta: ~22–23% of bytes; ~40–50k alloc objects
 
-## 🎲 **POSITIONAL ENHANCEMENT BACKLOG** (DEFERRED)
+Notes:
+- Removing closure from eval PST loop and avoiding defer in WrapEvaluation yielded small wins but did not change the dominance of qsearch + ordering + inCheck.
+- Biggest returns will come from cutting nodes (qsearch pruning), improving ordering passes, and speeding inCheck.
 
-### **POST-MORTEM: Why These Features Failed**
-These features were implemented but caused 25-40% NPS regression:
-- **Piece coordination** (`evaluatePieceProtection`): 8.50% CPU alone
-- **Pawn chains** (`evaluatePawnChains`): 2.04% CPU  
-- **Doubled pawns** (`countDoubledPawns`): 2.04% CPU
-- **King safety** (`evaluateKingSafety`): ~5% CPU
-- **Combined Impact**: Dropped from 330K to 249K NPS (unacceptable)
+## Immediate Actions (High ROI next)
 
-### **Lessons Learned**
-1. **Complex nested loops kill performance** - each evaluation did 64+ iterations
-2. **Bitboard operations add up** - multiple GetBitboardOf calls per evaluation
-3. **Feature creep is real** - adding "just one more" evaluation compounds badly
-4. **Must profile FIRST** - would have shown these were too expensive
+1) QSearch Node Reduction (primary)
+- [ ] Implement SEE (Static Exchange Evaluation) with no allocations.
+- [ ] Use SEE to order captures and to prune losing captures in qsearch.
+- [ ] Tighten delta pruning margins using SEE-informed bounds.
+- [ ] Restrict non-capturing checks admitted in qsearch to a very small, high-value set.
 
-### **Future Implementation Requirements**
-When we DO add these (after opening books), they MUST:
-- Use lookup tables, not runtime calculation
-- Be incremental (update on moves, not recalculate)
-- Be feature-flagged for A/B testing
-- Show <2% individual NPS impact
+2) Move Ordering CPU Reduction
+- [ ] Replace multi-scan staged ordering with a single-pass classifier:
+  - [ ] Emit TT move early; then classify into captures (good/bad), promotions, castles, killers, counters, quiets.
+  - [ ] For remaining quiets, one scoring pass (history/counter/killer) and selection without multiple rescans.
 
-### **Deferred Features** (for after 1M NPS achieved):
-- **Castling evaluation** - reward king safety (+30-50 ELO)
-- **Center control** - reward e4, d4, e5, d5 occupation (+50-100 ELO)  
-- **Piece development** - reward knights before queens (+40-80 ELO)
-- **Enhanced pawn structure** - refine existing evaluation (+20-40 ELO)
+3) isInCheck Speedup (no magic requirement)
+- [ ] Switch sliding attacks in isInCheck to ray masks + straight bit scans (no per-step loops).
+- [ ] Keep pawn/knight/king bitboard checks as-is.
 
----
+4) TT Atomic Overhead (single-thread mode)
+- [ ] Add build tag or runtime option to use non-atomic TT operations when running single-threaded.
+- [ ] Optionally restrict TT stores (e.g., only at Cut/Exact nodes) to reduce writes.
 
-## ⚡ **NEXT DEVELOPMENT PRIORITIES**
+## Short-Term Follow-ups (after above lands)
+- [ ] SEE in main search for late captures at non-PV nodes (light pruning).
+- [ ] Dynamic LMR formula (depth, move index, history) and add IID at PV nodes when TT has no move.
+- [ ] Revisit GenerateMovesIntoBuffer micro-opts: reduce PieceAt calls; prefer masks; tighten branches in pawn and sliding generators.
 
-**All critical bugs resolved! ✅ Engine is tournament-ready**
+## Not Doing Now (based on experience + data)
+- Full magic bitboards for sliding: previously attempted and deemed not worth cost; profiles show higher ROI in qsearch pruning, ordering, and inCheck optimization without full magic infra.
 
-### ✅ **COMPLETED SEPTEMBER 2, 2024** - Positional Enhancements Phase 1 
-- [x] **Castling evaluation** - rewards king safety (+30-50 ELO expected) ⚡ *OPTIMIZED*
-- [x] **Center control evaluation** - rewards e4, d4, e5, d5 occupation (+50-100 ELO expected) ⚡ *OPTIMIZED*
+## Validation & KPIs
+- Always run: BenchmarkCriticalPath, BenchmarkEvaluation, BenchmarkMoveGeneration, and a small mixed FEN suite for NPS/depth tracking.
+- Track per-commit:
+  - NPS and nodes for depth-3/4 searches over a 100–500 FEN corpus.
+  - TT hit rate, qsearch node share, cutoff rate, and ordering effectiveness (fail-high rate early).
+  - Allocation counts from qsearch and alphaBeta (goal: shrink both meaningfully with SEE + pruning).
 
-**Performance Impact**: Minimal overhead (~227K NPS maintained vs ~190K baseline)
-**Combined ELO Gain Expected**: +80-150 ELO from these improvements
-
-### **OPENING NUDGES ATTEMPT - REVERTED** - September 4, 2025
-**Attempted Feature**: Simple opening nudges (+30 for e4/d4, -25 for early queen)
-**Result**: ❌ **55% performance regression** (485K → 219K NPS) 
-**Action**: **REVERTED** per >5% regression guideline
-**Current Performance**: ✅ **277K NPS** (stable, above 120K red line)
-
-**Lessons Learned**:
-- Even "simple" evaluation additions can cause major performance hits
-- Function call overhead in hot evaluation path is significant  
-- Opening detection heuristics are expensive even when optimized
-- Must profile BEFORE adding features, not after
-
-### **NEXT PRIORITIES** (Alternative Approaches):
-1. ✅ **Performance Acceptable**: 277K NPS (above 120K red line)
-2. **Opening book integration** - sidestep weak openings without evaluation cost
-3. **Move ordering improvements** - better move ordering instead of evaluation nudges
-4. **Transposition table tuning** - optimize existing systems first
-5. **Endgame tablebase support** - perfect endgame without CPU cost
-
-**New Rule**: NO evaluation additions until opening book system proven to work
-
----
-
-## 🛡️ **CRITICAL PERFORMANCE GUARDRAILS**
-
-### **MANDATORY RULES - DO NOT VIOLATE**
-1. **ALWAYS benchmark before AND after ANY evaluation change**
-2. **REJECT any feature causing >5% NPS regression**  
-3. **Red Line**: NEVER drop below 120K NPS (our 1477 ELO depends on this)
-4. **Profile First**: Use `go tool pprof` BEFORE adding complex features
-5. **Incremental Changes**: Add ONE evaluation feature at a time, measure impact
-
-### **Performance Regression Prevention**
-- Run `make test` after EVERY change (catches NPS drops immediately)
-- If NPS drops >5%, REVERT immediately and redesign
-- Complex evaluations must be feature-flagged, not commented out
-- Source control tracks what we tried - don't leave dead code
-
-### **Current Baseline** (DO NOT REGRESS)
-- **Minimum**: 120K NPS (red line for 1477 ELO)
-- **Achieved**: **514K+ NPS** ✅ (September 2, 2024)
-- **Target**: 330K+ NPS (exceeded by 155%!)
-- **Memory**: 2.4MB per deep search (down from 4.2MB)
-
----
-
----
-
-## 🎉 **CRITICAL ILLEGAL MOVE BUGS - ALL RESOLVED** ✅ - September 4, 2025
-
-### **🏆 MAJOR SUCCESS: ALL TOURNAMENT-DISQUALIFYING BUGS FIXED!**
-
-**Comprehensive Fuzz Testing Results**: ✅ **ZERO ILLEGAL MOVES DETECTED**
-- **Total Positions Tested**: ~5000+ positions across all scenarios
-- **En Passant Tests**: ✅ All passing - no more b7c6 diagonal violations
-- **Aggressive Check Tests**: ✅ All passing - no more queen illegal moves  
-- **Aggressive Piece Tests**: ✅ All passing - no more bishop illegal moves
-- **Game Play Tests**: ✅ All passing - no more missing legal moves
-
-### ✅ **FIXED BUG #1: Pawn Diagonal Move to Empty Square** 
-- **Issue**: Black pawn on b7 illegally moved diagonally to c6 (empty en passant square)
-- **Status**: ✅ **RESOLVED** - En passant validation now correctly enforces chess rules
-- **Verification**: `TestEnPassantFuzzComprehensive` passes with 0 illegal moves
-
-### ✅ **FIXED BUG #2: Queen Generates Moves in No-Move Position**
-- **Issue**: 24 illegal queen moves generated in stalemate/invalid positions
-- **Status**: ✅ **RESOLVED** - Position validation prevents moves in invalid positions
-- **Verification**: `TestAggressiveCheckFuzz` passes with 0 illegal moves
-
-### ✅ **FIXED BUG #3: Missing Moves in Game Play**
-- **Issue**: Engine missed legal moves like a1c1 rook move during gameplay
-- **Status**: ✅ **RESOLVED** - Move generation now complete and accurate
-- **Verification**: All game play tests now generate complete legal move sets
-
-### ✅ **FIXED BUG #4: Bishop Generates Moves in No-Move Position**
-- **Issue**: 7 illegal bishop moves generated in stalemate/invalid positions  
-- **Status**: ✅ **RESOLVED** - Same position validation fix as queen bug
-- **Verification**: `TestAggressivePieceFuzz` passes with 0 illegal moves
-
-### 📊 **CURRENT FUZZ TESTING STATUS - ALL GREEN** ✅
-- **En Passant Edge Cases**: ✅ **Perfect** (0 illegal moves)
-- **Aggressive Check Hunt**: ✅ **Perfect** (2076 positions, 0 illegal moves)  
-- **Aggressive Piece Hunt**: ✅ **Perfect** (3457 positions, 0 illegal moves)
-- **In-Check Scenarios**: ✅ **Perfect** (continued excellence)
-- **Promotion Scenarios**: ✅ **Perfect** (continued excellence)
-- **Castling+Check**: ✅ **Perfect** (continued excellence)
-- **Quick Game Burst**: ✅ **Perfect** (continued excellence)
-- **Random Position Tests**: ✅ **Perfect** (continued excellence)
-
-### 🎯 **MAJOR MILESTONE ACHIEVED**
-- **Tournament Legal**: ✅ Engine now generates ONLY legal moves
-- **Chess Rule Compliance**: ✅ 100% compliant with international chess rules
-- **Fuzz Test Coverage**: ✅ Comprehensive validation across all chess scenarios
-- **Performance Maintained**: ✅ Bug fixes did not impact 330K+ NPS performance
-- **Ready for Competition**: ✅ No more disqualification risk from illegal moves
-
-### 🔬 **VERIFICATION COMMANDS** (All Now Passing)
-```bash
-# All tests now show 0 illegal moves
-go test ./engine -run TestEnPassantFuzzComprehensive -v
-go test ./engine -run TestAggressiveCheckFuzz -v  
-go test ./engine -run TestAggressivePieceFuzz -v
-```
-
----
-
-## 📊 **SUCCESS METRICS**
-
-- **Phase 2 Success**: ≥500K NPS sustained
-- **Phase 3 Success**: ≥800K NPS sustained  
-- **Ultimate Goal**: ≥1M NPS + maintain 1477 ELO strength + **ZERO ILLEGAL MOVES**
+## Execution Order (Pragmatic)
+- [ ] Implement SEE + qsearch pruning and integrate with capture ordering.
+- [ ] Refactor move ordering to single-pass classifier + quiets selection.
+- [ ] Optimize isInCheck with ray scans for sliding attacks.
+- [ ] Add non-atomic TT option for single-thread bench builds; measure impact.
+- [ ] Iterate on LMR/IID and further pruning once above is stable.

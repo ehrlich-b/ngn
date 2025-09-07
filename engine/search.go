@@ -118,6 +118,12 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
                 }
 				
 				ep, tag, hc, _ := pos.MakeMove(move)
+				// Check if move is legal (doesn't leave king in check)
+				if isInCheck(pos, move.MovingPiece().Color()) {
+					pos.UnMakeMove(move, tag, ep, hc)
+					continue // Skip illegal move
+				}
+				
 				score := -alphaBeta(pos, currentDepth-1, -beta, -alpha, info)
 				pos.UnMakeMove(move, tag, ep, hc)
 				
@@ -215,6 +221,12 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		}
 		
 		ep, tag, hc, _ := pos.MakeMove(move)
+		// Check if move is legal (doesn't leave king in check)
+		if isInCheck(pos, move.MovingPiece().Color()) {
+			pos.UnMakeMove(move, tag, ep, hc)
+			continue // Skip illegal move
+		}
+		
 		score := -alphaBeta(pos, depth-1, -beta, -alpha, info)
 		pos.UnMakeMove(move, tag, ep, hc)
 		
@@ -514,6 +526,9 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 		return beta
 	}
 	
+	// BUG FIX: We must track the best score, not just update alpha
+	bestScore := standPat
+	
 	if standPat > alpha {
 		alpha = standPat
 	}
@@ -563,13 +578,19 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
         ep, tag, hc, _ := pos.MakeMove(move)
 		
 		// Check if move is legal (doesn't leave our king in check)
+		// After making a move, we need to check if OUR king (opposite of current turn) is in check
 		if isInCheck(pos, move.MovingPiece().Color()) {
 			pos.UnMakeMove(move, tag, ep, hc)
 			continue // Skip illegal move
 		}
 		
+		// Recursively search (negamax)
 		score := -quiescenceWithDepth(pos, -beta, -alpha, info, qDepth+1)
 		pos.UnMakeMove(move, tag, ep, hc)
+		
+		if score > bestScore {
+			bestScore = score
+		}
 		
 		if score >= beta {
 			return beta
@@ -580,5 +601,5 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
         }
     }
 	
-	return alpha
+	return bestScore
 }

@@ -2127,10 +2127,11 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 			eval += colorMul * int(val) * PopCount(pieceBitboard)
 		}
 		
-		// 2. Piece-square table values (zero-allocation optimization)
-		iterateBitboard(pieceBitboard, func(square int) {
-			eval += getPieceSquareValue(piece, Square(square), endgame)
-		})
+    // 2. Piece-square table values (zero-allocation, no-closure)
+    for bb := pieceBitboard; bb != 0; bb &= bb - 1 {
+        square := bits.TrailingZeros64(bb)
+        eval += getPieceSquareValue(piece, Square(square), endgame)
+    }
 	}
 	
 	// 3. Pawn structure evaluation - DISABLED FOR PERFORMANCE
