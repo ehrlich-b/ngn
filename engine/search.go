@@ -438,7 +438,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 
 			// Root search with aspiration window
 			var orderedRoot [256]Move
-			orderedCount := orderMovesIntoBufferWithDepth(moves, currentDepth, orderedRoot[:])
+			orderedCount := orderMovesIntoBufferWithDepth(moves, currentDepth, orderedRoot[:], pos)
 			iterationBestScore := -INFINITY
 			iterationBestMove := EmptyMove
 
@@ -538,7 +538,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 	}
 
 	var orderedRoot [256]Move
-	orderedCount := orderMovesIntoBufferWithDepth(moves, depth, orderedRoot[:])
+	orderedCount := orderMovesIntoBufferWithDepth(moves, depth, orderedRoot[:], pos)
 
 	for oi := 0; oi < orderedCount; oi++ {
 		move := orderedRoot[oi]
@@ -692,7 +692,7 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 
 	// Order moves, prioritizing TT move if available
 	var ordered [256]Move
-	orderedCount := orderMovesIntoBufferWithDepthPreviousAndTTMove(moves, depth, GetLastMovePlayed(), ttMove, ttHit, ordered[:])
+	orderedCount := orderMovesIntoBufferWithDepthPreviousAndTTMove(moves, depth, GetLastMovePlayed(), ttMove, ttHit, ordered[:], pos)
 	bestScore := -INFINITY
 	bestMove := EmptyMove
 	moveCount := 0

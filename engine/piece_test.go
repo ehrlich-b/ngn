@@ -37,10 +37,10 @@ func TestPieceCreation(t *testing.T) {
 
 func TestPieceProperties(t *testing.T) {
 	tests := []struct {
-		piece        Piece
-		expectedType PieceType
+		piece         Piece
+		expectedType  PieceType
 		expectedColor Color
-		name         string
+		name          string
 	}{
 		{WhitePawn, Pawn, White, "White Pawn Properties"},
 		{BlackQueen, Queen, Black, "Black Queen Properties"},

@@ -23,7 +23,7 @@ func UpdateHistoryTable(move Move, depth int) {
 		// Depth-based bonus: deeper searches are more important
 		bonus := depth * depth
 		historyTable[from][to] += bonus
-		
+
 		// Prevent overflow by capping the history score
 		if historyTable[from][to] > 8192 {
 			// Age the history table by dividing all values by 2
@@ -68,7 +68,7 @@ func UpdateKillerMoves(move Move, depth int) {
 		if killerMoves[depth][0] == move {
 			return
 		}
-		
+
 		// Shift moves down: second killer becomes first, new move becomes second
 		killerMoves[depth][1] = killerMoves[depth][0]
 		killerMoves[depth][0] = move
@@ -136,356 +136,191 @@ func ClearCounterMoves() {
 	lastMovePlayed = EmptyMove
 }
 
-type moveScore struct {
-	move  Move
-	score int
-}
+// Single-pass move ordering with enhanced SEE integration
+// Orders moves in one pass using scores, with captures ordered by SEE value
+func orderMovesSinglePass(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, pos *Position) []Move {
+	if len(moves) == 0 {
+		return moves
+	}
 
-func orderMoves(moves []Move) []Move {
-	return orderMovesWithDepth(moves, 0)
-}
+	// Create move-score pairs for single-pass ordering
+	type moveScore struct {
+		move  Move
+		score int
+	}
 
-func orderMovesWithDepth(moves []Move, depth int) []Move {
-	return orderMovesWithDepthAndPrevious(moves, depth, GetLastMovePlayed())
-}
+	scoredMoves := make([]moveScore, len(moves))
 
-func orderMovesWithDepthAndTTMove(moves []Move, depth int, ttMove Move, ttHit bool) []Move {
-    return orderMovesWithDepthPreviousAndTTMove(moves, depth, GetLastMovePlayed(), ttMove, ttHit)
-}
-
-func orderMovesWithDepthPreviousAndTTMove(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool) []Move {
-    if len(moves) == 0 {
-        return moves
-    }
-    
-    // Staged move ordering - no allocations, no sorting
-    orderedMoves := make([]Move, 0, len(moves))
-	
-	// Stage 1: TT move (if exists)
-	if ttHit && ttMove != EmptyMove {
-		for _, move := range moves {
-			if move == ttMove {
-				orderedMoves = append(orderedMoves, move)
-				break
-			}
-		}
-	}
-	
-	// Stage 2: Good captures (MVV-LVA positive)
-	for _, move := range moves {
-		if move == ttMove && ttHit {
-			continue // Already added in Stage 1
-		}
-		if move.IsCapture() || move.IsEnPassant() {
-			victim := move.CapturedPiece()
-			attacker := move.MovingPiece()
-			// Add if capture is likely good (victim >= attacker or special case)
-			if victim.Weight() >= attacker.Weight() || move.IsEnPassant() {
-				orderedMoves = append(orderedMoves, move)
-			}
-		}
-	}
-	
-	// Stage 3: Promotions
-	for _, move := range moves {
-		if move == ttMove && ttHit {
-			continue
-		}
-		if move.PromoType() != NoType && !move.IsCapture() {
-			orderedMoves = append(orderedMoves, move)
-		}
-	}
-	
-	// Stage 4: Killer moves
-	for _, move := range moves {
-		if move == ttMove && ttHit {
-			continue
-		}
-		if !move.IsCapture() && move.PromoType() == NoType && !move.IsEnPassant() && IsKillerMove(move, depth) {
-			orderedMoves = append(orderedMoves, move)
-		}
-	}
-	
-	// Stage 5: Counter moves
-	for _, move := range moves {
-		if move == ttMove && ttHit {
-			continue
-		}
-		if !move.IsCapture() && move.PromoType() == NoType && !move.IsEnPassant() && !IsKillerMove(move, depth) && IsCounterMove(move, previousMove) {
-			orderedMoves = append(orderedMoves, move)
-		}
-	}
-	
-	// Stage 6: Castling
-	for _, move := range moves {
-		if move == ttMove && ttHit {
-			continue
-		}
-		if move.IsCastle() {
-			orderedMoves = append(orderedMoves, move)
-		}
-	}
-	
-	// Stage 7: Bad captures (MVV-LVA negative)
-	for _, move := range moves {
-		if move == ttMove && ttHit {
-			continue
-		}
-		if move.IsCapture() && !move.IsEnPassant() {
-			victim := move.CapturedPiece()
-			attacker := move.MovingPiece()
-			// Add if capture is likely bad (victim < attacker)
-			if victim.Weight() < attacker.Weight() {
-				orderedMoves = append(orderedMoves, move)
-			}
-		}
-	}
-	
-	// Stage 8: Remaining quiet moves (add in history score order without allocations)
-	// Use a simple O(n²) selection approach to avoid allocations for small sets
-	remainingMoves := make([]bool, len(moves))  // Track which moves we've added
-	
-	// Mark moves we've already added
+	// Single pass: score all moves
 	for i, move := range moves {
-		if move == ttMove && ttHit {
-			remainingMoves[i] = true
-			continue
+		score := 0
+
+		// TT move gets highest priority
+		if ttHit && move == ttMove {
+			score = 100000
+		} else {
+			// Calculate score based on move type and SEE
+			if move.IsCapture() || move.IsEnPassant() {
+				// Use SEE to order captures precisely
+				seeValue := staticExchangeEvaluation(pos, move)
+				if seeValue >= 0 {
+					// Winning/equal captures: base score + SEE value for fine ordering
+					score = 80000 + seeValue + 1000
+				} else {
+					// Losing captures: still better than quiet moves, but ordered by SEE
+					score = 60000 + seeValue + 1000
+				}
+			} else if move.PromoType() != NoType {
+				// Promotions: high priority, ordered by promotion piece value
+				score = 70000 + int(GetPiece(move.PromoType(), move.MovingPiece().Color()).Weight())
+			} else if move.IsCastle() {
+				// Castling: moderate priority
+				score = 50000
+			} else {
+				// Quiet moves: use heuristics
+				score = 0
+
+				// Counter moves get highest priority among quiet moves
+				if IsCounterMove(move, previousMove) {
+					score += 30000
+				}
+
+				// Killer moves get high priority
+				if IsKillerMove(move, depth) {
+					score += 25000
+				}
+
+				// History heuristic for remaining quiet moves
+				score += GetHistoryScore(move)
+			}
 		}
-		if move.IsCapture() || move.IsEnPassant() || move.PromoType() != NoType || 
-		   move.IsCastle() || IsKillerMove(move, depth) || IsCounterMove(move, previousMove) {
-			remainingMoves[i] = true
+
+		scoredMoves[i] = moveScore{move: move, score: score}
+	}
+
+	// Sort by score (descending) - single sort operation
+	// Use simple insertion sort for small arrays (typical move count < 100)
+	for i := 1; i < len(scoredMoves); i++ {
+		key := scoredMoves[i]
+		j := i - 1
+		for j >= 0 && scoredMoves[j].score < key.score {
+			scoredMoves[j+1] = scoredMoves[j]
+			j--
+		}
+		scoredMoves[j+1] = key
+	}
+
+	// Extract sorted moves
+	orderedMoves := make([]Move, len(moves))
+	for i, ms := range scoredMoves {
+		orderedMoves[i] = ms.move
+	}
+
+	return orderedMoves
+}
+
+// Zero-allocation single-pass ordering into caller-provided buffer
+func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, pos *Position) int {
+	n := len(moves)
+	if n == 0 || len(out) < n {
+		return 0
+	}
+
+	// Use a fixed-size array for scoring to avoid allocations
+	var scores [256]int
+
+	// Single pass: score all moves
+	for i, move := range moves {
+		score := 0
+
+		// TT move gets highest priority
+		if ttHit && move == ttMove {
+			score = 100000
+		} else {
+			// Calculate score based on move type and SEE
+			if move.IsCapture() || move.IsEnPassant() {
+				// Use SEE to order captures precisely
+				seeValue := staticExchangeEvaluation(pos, move)
+				if seeValue >= 0 {
+					// Winning/equal captures: base score + SEE value for fine ordering
+					score = 80000 + seeValue + 1000
+				} else {
+					// Losing captures: still better than quiet moves, but ordered by SEE
+					score = 60000 + seeValue + 1000
+				}
+			} else if move.PromoType() != NoType {
+				// Promotions: high priority, ordered by promotion piece value
+				score = 70000 + int(GetPiece(move.PromoType(), move.MovingPiece().Color()).Weight())
+			} else if move.IsCastle() {
+				// Castling: moderate priority
+				score = 50000
+			} else {
+				// Quiet moves: use heuristics
+				score = 0
+
+				// Counter moves get highest priority among quiet moves
+				if IsCounterMove(move, previousMove) {
+					score += 30000
+				}
+
+				// Killer moves get high priority
+				if IsKillerMove(move, depth) {
+					score += 25000
+				}
+
+				// History heuristic for remaining quiet moves
+				score += GetHistoryScore(move)
+			}
+		}
+
+		scores[i] = score
+		out[i] = move
+	}
+
+	// Sort the output buffer by score (descending) using selection sort
+	for i := 0; i < n-1; i++ {
+		maxIdx := i
+		for j := i + 1; j < n; j++ {
+			if scores[j] > scores[maxIdx] {
+				maxIdx = j
+			}
+		}
+		// Swap both scores and moves
+		if maxIdx != i {
+			scores[i], scores[maxIdx] = scores[maxIdx], scores[i]
+			out[i], out[maxIdx] = out[maxIdx], out[i]
 		}
 	}
-	
-	// Add remaining quiet moves in history score order (without allocations)
-	for remainingCount := 0; remainingCount < len(moves); remainingCount++ {
-		bestIdx := -1
-		bestScore := -1
-		
-		for i, move := range moves {
-			if remainingMoves[i] {
-				continue
-			}
-			
-			score := GetHistoryScore(move)
-			if score > bestScore {
-				bestScore = score
-				bestIdx = i
-			}
-		}
-		
-		if bestIdx == -1 {
-			break // No more moves to add
-		}
-		
-		orderedMoves = append(orderedMoves, moves[bestIdx])
-		remainingMoves[bestIdx] = true
-	}
-	
-    return orderedMoves
+
+	return n
+}
+
+func orderMoves(moves []Move, pos *Position) []Move {
+	return orderMovesWithDepth(moves, 0, pos)
+}
+
+func orderMovesWithDepth(moves []Move, depth int, pos *Position) []Move {
+	return orderMovesWithDepthAndPrevious(moves, depth, GetLastMovePlayed(), pos)
+}
+
+func orderMovesWithDepthAndTTMove(moves []Move, depth int, ttMove Move, ttHit bool, pos *Position) []Move {
+	return orderMovesWithDepthPreviousAndTTMove(moves, depth, GetLastMovePlayed(), ttMove, ttHit, pos)
+}
+
+func orderMovesWithDepthPreviousAndTTMove(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, pos *Position) []Move {
+	return orderMovesSinglePass(moves, depth, previousMove, ttMove, ttHit, pos)
 }
 
 // Zero-allocation ordering into caller-provided buffer
 // Returns number of moves written to out (equals len(moves))
-func orderMovesIntoBufferWithDepthPreviousAndTTMove(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move) int {
-    n := len(moves)
-    if n == 0 {
-        return 0
-    }
-    // Track which indices are already emitted
-    var used [256]bool
-    outCount := 0
-
-    // Stage 1: TT move
-    if ttHit && ttMove != EmptyMove {
-        for i, m := range moves {
-            if m == ttMove {
-                out[outCount] = m
-                outCount++
-                used[i] = true
-                break
-            }
-        }
-    }
-
-    // Helper to emit if not used yet
-    emit := func(i int) {
-        if !used[i] {
-            out[outCount] = moves[i]
-            outCount++
-            used[i] = true
-        }
-    }
-
-    // Stage 2: Good captures (MVV-LVA positive) and en passant
-    for i, m := range moves {
-        if used[i] || (ttHit && m == ttMove) {
-            continue
-        }
-        if m.IsCapture() || m.IsEnPassant() {
-            victim := m.CapturedPiece()
-            attacker := m.MovingPiece()
-            if m.IsEnPassant() || victim.Weight() >= attacker.Weight() {
-                emit(i)
-            }
-        }
-    }
-
-    // Stage 3: Promotions (non-capturing)
-    for i, m := range moves {
-        if used[i] || (ttHit && m == ttMove) {
-            continue
-        }
-        if m.PromoType() != NoType && !m.IsCapture() {
-            emit(i)
-        }
-    }
-
-    // Stage 4: Killer moves
-    for i, m := range moves {
-        if used[i] || (ttHit && m == ttMove) {
-            continue
-        }
-        if !m.IsCapture() && m.PromoType() == NoType && !m.IsEnPassant() && IsKillerMove(m, depth) {
-            emit(i)
-        }
-    }
-
-    // Stage 5: Counter moves
-    for i, m := range moves {
-        if used[i] || (ttHit && m == ttMove) {
-            continue
-        }
-        if !m.IsCapture() && m.PromoType() == NoType && !m.IsEnPassant() && !IsKillerMove(m, depth) && IsCounterMove(m, previousMove) {
-            emit(i)
-        }
-    }
-
-    // Stage 6: Castling
-    for i, m := range moves {
-        if used[i] || (ttHit && m == ttMove) {
-            continue
-        }
-        if m.IsCastle() {
-            emit(i)
-        }
-    }
-
-    // Stage 7: Bad captures (MVV-LVA negative)
-    for i, m := range moves {
-        if used[i] || (ttHit && m == ttMove) {
-            continue
-        }
-        if m.IsCapture() && !m.IsEnPassant() {
-            victim := m.CapturedPiece()
-            attacker := m.MovingPiece()
-            if victim.Weight() < attacker.Weight() {
-                emit(i)
-            }
-        }
-    }
-
-    // Stage 8: Remaining quiet moves by history score (selection loop)
-    // Avoid allocations by using selection style with used[]
-    for {
-        bestIdx := -1
-        bestScore := -1
-        for i, m := range moves {
-            if used[i] || (ttHit && m == ttMove) {
-                continue
-            }
-            if m.IsCapture() || m.IsEnPassant() || m.PromoType() != NoType || m.IsCastle() || IsKillerMove(m, depth) || IsCounterMove(m, previousMove) {
-                continue // should have been handled already
-            }
-            s := GetHistoryScore(m)
-            if s > bestScore {
-                bestScore = s
-                bestIdx = i
-            }
-        }
-        if bestIdx == -1 {
-            break
-        }
-        emit(bestIdx)
-    }
-
-    return outCount
+func orderMovesIntoBufferWithDepthPreviousAndTTMove(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, pos *Position) int {
+	return orderMovesSinglePassIntoBuffer(moves, depth, previousMove, ttMove, ttHit, out, pos)
 }
 
-func orderMovesIntoBufferWithDepth(moves []Move, depth int, out []Move) int {
-    return orderMovesIntoBufferWithDepthPreviousAndTTMove(moves, depth, GetLastMovePlayed(), EmptyMove, false, out)
+func orderMovesIntoBufferWithDepth(moves []Move, depth int, out []Move, pos *Position) int {
+	return orderMovesIntoBufferWithDepthPreviousAndTTMove(moves, depth, GetLastMovePlayed(), EmptyMove, false, out, pos)
 }
 
-func orderMovesWithDepthAndPrevious(moves []Move, depth int, previousMove Move) []Move {
-	return orderMovesWithDepthPreviousAndTTMove(moves, depth, previousMove, EmptyMove, false)
-}
-
-func scoreMoveForOrdering(move Move) int {
-	return scoreMoveForOrderingWithDepth(move, 0)
-}
-
-func scoreMoveForOrderingWithDepth(move Move, depth int) int {
-	return scoreMoveForOrderingWithDepthAndPrevious(move, depth, EmptyMove)
-}
-
-func scoreMoveForOrderingWithDepthPreviousAndTTMove(move Move, depth int, previousMove Move, ttMove Move, ttHit bool) int {
-	// Transposition table move gets highest priority
-	if ttHit && move == ttMove {
-		return 50000 // Higher than any other move type
-	}
-	
-	return scoreMoveForOrderingWithDepthAndPrevious(move, depth, previousMove)
-}
-
-func scoreMoveForOrderingWithDepthAndPrevious(move Move, depth int, previousMove Move) int {
-	score := 0
-	
-	// Prioritize captures using MVV-LVA (Most Valuable Victim - Least Valuable Attacker)
-	if move.IsCapture() {
-		victim := move.CapturedPiece()
-		attacker := move.MovingPiece()
-		
-		// Higher value victims are better
-		score += int(victim.Weight()) * 10
-		
-		// Lower value attackers are better (subtract attacker value)
-		score -= int(attacker.Weight())
-		
-		// Base score for captures
-		score += 10000
-	}
-	
-	// Prioritize promotions
-	if move.PromoType() != NoType {
-		score += 9000
-		score += int(GetPiece(move.PromoType(), White).Weight()) * 10
-	}
-	
-	// Castling gets a modest bonus
-	if move.IsCastle() {
-		score += 5000
-	}
-	
-	// En passant captures
-	if move.IsEnPassant() {
-		score += 10000 + 100 // Equivalent to capturing a pawn
-	}
-	
-	// For quiet moves, apply heuristics in order of priority
-	if !move.IsCapture() && move.PromoType() == NoType && !move.IsEnPassant() {
-		// Counter moves get highest priority among quiet moves
-		if IsCounterMove(move, previousMove) {
-			score += 8500 // Between captures and killer moves
-		}
-		
-		// Killer moves get high priority but below counter moves
-		if IsKillerMove(move, depth) {
-			score += 8000
-		}
-		
-		// History heuristic for quiet moves (lowest priority)
-		score += GetHistoryScore(move)
-	}
-	
-	return score
+func orderMovesWithDepthAndPrevious(moves []Move, depth int, previousMove Move, pos *Position) []Move {
+	return orderMovesWithDepthPreviousAndTTMove(moves, depth, previousMove, EmptyMove, false, pos)
 }

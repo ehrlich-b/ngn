@@ -90,7 +90,7 @@ func TestBishopPairInFullEvaluation(t *testing.T) {
 
 	// White should have a better evaluation in the second position due to bishop pair advantage
 	if whitePairEval <= startingEval {
-		t.Errorf("Expected white to have better evaluation with bishop pair advantage, got starting: %d, white pair: %d", 
+		t.Errorf("Expected white to have better evaluation with bishop pair advantage, got starting: %d, white pair: %d",
 			startingEval, whitePairEval)
 	}
 
@@ -98,4 +98,3 @@ func TestBishopPairInFullEvaluation(t *testing.T) {
 	t.Logf("White bishop pair advantage evaluation: %d", whitePairEval)
 	t.Logf("Bishop pair effect: +%d centipawns for white", whitePairEval-startingEval)
 }
-

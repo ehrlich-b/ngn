@@ -15,10 +15,10 @@ import (
 )
 
 type TestPosition struct {
-	Name   string
-	ECO    string
-	Moves  string
-	FEN    string
+	Name  string
+	ECO   string
+	Moves string
+	FEN   string
 }
 
 type TestResult struct {
@@ -41,52 +41,52 @@ type UCIEngine struct {
 
 func NewUCIEngine(enginePath string) (*UCIEngine, error) {
 	cmd := exec.Command(enginePath)
-	
+
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
-	
+
 	engine := &UCIEngine{
 		cmd:    cmd,
 		stdin:  stdin,
 		stdout: stdout,
 		stderr: stderr,
 	}
-	
+
 	// Initialize UCI
 	if err := engine.sendCommand("uci"); err != nil {
 		return nil, err
 	}
-	
+
 	// Wait for uciok
 	if err := engine.waitForResponse("uciok", 5*time.Second); err != nil {
 		return nil, err
 	}
-	
+
 	// Set ready
 	if err := engine.sendCommand("isready"); err != nil {
 		return nil, err
 	}
-	
+
 	if err := engine.waitForResponse("readyok", 5*time.Second); err != nil {
 		return nil, err
 	}
-	
+
 	return engine, nil
 }
 
@@ -99,9 +99,9 @@ func (e *UCIEngine) sendCommand(command string) error {
 func (e *UCIEngine) waitForResponse(expectedResponse string, timeout time.Duration) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	
+
 	scanner := bufio.NewScanner(e.stdout)
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -110,7 +110,7 @@ func (e *UCIEngine) waitForResponse(expectedResponse string, timeout time.Durati
 			if scanner.Scan() {
 				line := strings.TrimSpace(scanner.Text())
 				log.Printf("<<< %s", line)
-				
+
 				if strings.Contains(line, expectedResponse) {
 					return nil
 				}
@@ -125,26 +125,26 @@ func (e *UCIEngine) waitForResponse(expectedResponse string, timeout time.Durati
 func (e *UCIEngine) searchPosition(position string, depth int, timeLimit time.Duration) (*TestResult, error) {
 	result := &TestResult{}
 	startTime := time.Now()
-	
+
 	// Set position
 	if err := e.sendCommand(fmt.Sprintf("position fen %s", position)); err != nil {
 		return nil, err
 	}
-	
+
 	// Start search with timeout
 	searchCmd := fmt.Sprintf("go depth %d", depth)
 	if err := e.sendCommand(searchCmd); err != nil {
 		return nil, err
 	}
-	
+
 	// Wait for bestmove with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeLimit)
 	defer cancel()
-	
+
 	scanner := bufio.NewScanner(e.stdout)
 	bestmovePattern := regexp.MustCompile(`bestmove\s+(\w+)`)
 	infoPattern := regexp.MustCompile(`info.*depth\s+(\d+).*nodes\s+(\d+).*score\s+cp\s+(-?\d+)`)
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -152,12 +152,12 @@ func (e *UCIEngine) searchPosition(position string, depth int, timeLimit time.Du
 			result.Error = "timeout waiting for bestmove"
 			result.TimeElapsed = time.Since(startTime)
 			return result, nil
-			
+
 		default:
 			if scanner.Scan() {
 				line := strings.TrimSpace(scanner.Text())
 				log.Printf("<<< %s", line)
-				
+
 				// Parse info lines
 				if matches := infoPattern.FindStringSubmatch(line); matches != nil {
 					if depth, err := strconv.Atoi(matches[1]); err == nil {
@@ -170,7 +170,7 @@ func (e *UCIEngine) searchPosition(position string, depth int, timeLimit time.Du
 						result.Score = score
 					}
 				}
-				
+
 				// Check for bestmove
 				if matches := bestmovePattern.FindStringSubmatch(line); matches != nil {
 					result.Success = true
@@ -212,20 +212,20 @@ func parsePGN(filename string) ([]TestPosition, error) {
 		return nil, err
 	}
 	defer file.Close()
-	
+
 	var positions []TestPosition
 	var currentPos TestPosition
 	_ = false // inGame placeholder
-	
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		
+
 		// Skip empty lines
 		if line == "" {
 			continue
 		}
-		
+
 		// Parse headers
 		if strings.HasPrefix(line, "[") && strings.HasSuffix(line, "]") {
 			if strings.Contains(line, `[Black "`) {
@@ -248,7 +248,7 @@ func parsePGN(filename string) ([]TestPosition, error) {
 			currentPos = TestPosition{}
 		}
 	}
-	
+
 	return positions, scanner.Err()
 }
 
@@ -265,26 +265,26 @@ func runTests() error {
 	if err != nil {
 		return fmt.Errorf("failed to parse PGN: %v", err)
 	}
-	
+
 	log.Printf("Found %d test positions", len(positions))
-	
+
 	// Create log file for detailed results
 	logFile, err := os.Create("test_results.log")
 	if err != nil {
 		return fmt.Errorf("failed to create log file: %v", err)
 	}
 	defer logFile.Close()
-	
+
 	logger := log.New(logFile, "", log.LstdFlags|log.Lmicroseconds)
-	
+
 	var successCount, failCount, timeoutCount int
 	var totalTime time.Duration
-	
+
 	// Test each position
 	for i, pos := range positions {
 		logger.Printf("=== TEST %d: %s (%s) ===", i+1, pos.Name, pos.ECO)
 		logger.Printf("Moves: %s", pos.Moves)
-		
+
 		// Start fresh engine for each test to avoid state issues
 		enginePath := "./ngn"
 		if _, err := os.Stat(enginePath); os.IsNotExist(err) {
@@ -293,29 +293,29 @@ func runTests() error {
 				return fmt.Errorf("failed to build engine: %v", err)
 			}
 		}
-		
+
 		engine, err := NewUCIEngine(enginePath)
 		if err != nil {
 			logger.Printf("Failed to start engine: %v", err)
 			failCount++
 			continue
 		}
-		
+
 		// Test with increasing depth until we find the hang point
 		maxDepth := 6
 		lastSuccessDepth := 0
-		
+
 		for depth := 1; depth <= maxDepth; depth++ {
 			logger.Printf("--- Testing depth %d ---", depth)
-			
+
 			result, err := engine.searchPosition(pos.FEN, depth, 30*time.Second)
 			if err != nil {
 				logger.Printf("Search error: %v", err)
 				break
 			}
-			
+
 			totalTime += result.TimeElapsed
-			
+
 			if result.Success {
 				logger.Printf("SUCCESS: bestmove=%s, time=%v, depth=%d, nodes=%d, score=%d",
 					result.BestMove, result.TimeElapsed, result.Depth, result.Nodes, result.Score)
@@ -331,17 +331,17 @@ func runTests() error {
 				break
 			}
 		}
-		
+
 		if lastSuccessDepth > 0 {
 			successCount++
 		}
-		
+
 		engine.Close()
-		
+
 		// Print progress
 		fmt.Printf("Test %d/%d: %s - Max depth: %d\n", i+1, len(positions), pos.Name, lastSuccessDepth)
 	}
-	
+
 	// Summary
 	summary := fmt.Sprintf(`
 === TEST SUMMARY ===
@@ -352,17 +352,17 @@ Timeouts/Hangs: %d
 Total test time: %v
 Average time per position: %v
 `, len(positions), successCount, failCount, timeoutCount, totalTime, totalTime/time.Duration(len(positions)))
-	
+
 	logger.Print(summary)
 	fmt.Print(summary)
-	
+
 	return nil
 }
 
 func main() {
 	// Set up logging
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
-	
+
 	if err := runTests(); err != nil {
 		log.Fatalf("Test harness failed: %v", err)
 	}

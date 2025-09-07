@@ -34,52 +34,52 @@ type UCIEngine struct {
 
 func NewUCIEngine(enginePath string) (*UCIEngine, error) {
 	cmd := exec.Command(enginePath)
-	
+
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
-	
+
 	engine := &UCIEngine{
 		cmd:    cmd,
 		stdin:  stdin,
 		stdout: stdout,
 		stderr: stderr,
 	}
-	
+
 	// Initialize UCI
 	if err := engine.sendCommand("uci"); err != nil {
 		return nil, err
 	}
-	
+
 	// Wait for uciok
 	if err := engine.waitForResponse("uciok", 5*time.Second); err != nil {
 		return nil, err
 	}
-	
+
 	// Set ready
 	if err := engine.sendCommand("isready"); err != nil {
 		return nil, err
 	}
-	
+
 	if err := engine.waitForResponse("readyok", 5*time.Second); err != nil {
 		return nil, err
 	}
-	
+
 	return engine, nil
 }
 
@@ -92,9 +92,9 @@ func (e *UCIEngine) sendCommand(command string) error {
 func (e *UCIEngine) waitForResponse(expectedResponse string, timeout time.Duration) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	
+
 	scanner := bufio.NewScanner(e.stdout)
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -103,7 +103,7 @@ func (e *UCIEngine) waitForResponse(expectedResponse string, timeout time.Durati
 			if scanner.Scan() {
 				line := strings.TrimSpace(scanner.Text())
 				fmt.Printf("<<< %s\n", line)
-				
+
 				if strings.Contains(line, expectedResponse) {
 					return nil
 				}
@@ -118,31 +118,31 @@ func (e *UCIEngine) waitForResponse(expectedResponse string, timeout time.Durati
 func (e *UCIEngine) searchPosition(moves string, depth int, timeLimit time.Duration) (*TestResult, error) {
 	result := &TestResult{}
 	startTime := time.Now()
-	
+
 	// Set position
 	positionCmd := "position startpos"
 	if moves != "" {
 		positionCmd += " moves " + moves
 	}
-	
+
 	if err := e.sendCommand(positionCmd); err != nil {
 		return nil, err
 	}
-	
+
 	// Start search with timeout
 	searchCmd := fmt.Sprintf("go depth %d", depth)
 	if err := e.sendCommand(searchCmd); err != nil {
 		return nil, err
 	}
-	
+
 	// Wait for bestmove with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeLimit)
 	defer cancel()
-	
+
 	scanner := bufio.NewScanner(e.stdout)
 	bestmovePattern := regexp.MustCompile(`bestmove\s+(\w+)`)
 	infoPattern := regexp.MustCompile(`info.*depth\s+(\d+).*nodes\s+(\d+).*score\s+cp\s+(-?\d+)`)
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -150,12 +150,12 @@ func (e *UCIEngine) searchPosition(moves string, depth int, timeLimit time.Durat
 			result.Error = "timeout waiting for bestmove"
 			result.TimeElapsed = time.Since(startTime)
 			return result, nil
-			
+
 		default:
 			if scanner.Scan() {
 				line := strings.TrimSpace(scanner.Text())
 				fmt.Printf("<<< %s\n", line)
-				
+
 				// Parse info lines
 				if matches := infoPattern.FindStringSubmatch(line); matches != nil {
 					if depth, err := strconv.Atoi(matches[1]); err == nil {
@@ -168,7 +168,7 @@ func (e *UCIEngine) searchPosition(moves string, depth int, timeLimit time.Durat
 						result.Score = score
 					}
 				}
-				
+
 				// Check for bestmove
 				if matches := bestmovePattern.FindStringSubmatch(line); matches != nil {
 					result.Success = true
@@ -206,15 +206,15 @@ func (e *UCIEngine) Close() error {
 
 func testBasicPositions() error {
 	fmt.Println("=== NGN ENGINE TEST HARNESS ===")
-	
+
 	// Build engine first - go back to root directory
 	fmt.Println("Building engine...")
 	if err := exec.Command("make", "-C", "../..", "build").Run(); err != nil {
 		return fmt.Errorf("failed to build engine: %v", err)
 	}
-	
+
 	enginePath := "../../build/ngn"
-	
+
 	// Test cases - start with simple positions
 	testCases := []struct {
 		name  string
@@ -227,23 +227,23 @@ func testBasicPositions() error {
 		{"After 1.Nf3", "g1f3"},
 		{"King's Indian Setup", "d2d4 g8f6 c2c4 g7g6 b1c3 f8g7"},
 	}
-	
+
 	// Create results log
 	logFile, err := os.Create("simple_test_results.log")
 	if err != nil {
 		return fmt.Errorf("failed to create log file: %v", err)
 	}
 	defer logFile.Close()
-	
+
 	logger := log.New(logFile, "", log.LstdFlags|log.Lmicroseconds)
-	
+
 	var successCount, failCount int
-	
+
 	for i, test := range testCases {
 		fmt.Printf("\n=== TEST %d: %s ===\n", i+1, test.name)
 		logger.Printf("=== TEST %d: %s ===", i+1, test.name)
 		logger.Printf("Moves: %s", test.moves)
-		
+
 		engine, err := NewUCIEngine(enginePath)
 		if err != nil {
 			fmt.Printf("Failed to start engine: %v\n", err)
@@ -251,24 +251,24 @@ func testBasicPositions() error {
 			failCount++
 			continue
 		}
-		
+
 		// Test incrementally up to depth 6 or until hang
 		maxDepth := 6
 		lastSuccessDepth := 0
-		
+
 		for depth := 1; depth <= maxDepth; depth++ {
 			fmt.Printf("--- Depth %d ---\n", depth)
 			logger.Printf("--- Testing depth %d ---", depth)
-			
+
 			result, err := engine.searchPosition(test.moves, depth, 15*time.Second)
 			if err != nil {
 				fmt.Printf("Search error: %v\n", err)
 				logger.Printf("Search error: %v", err)
 				break
 			}
-			
+
 			if result.Success {
-				fmt.Printf("✓ SUCCESS: %s (%.2fs, %d nodes, score %d)\n", 
+				fmt.Printf("✓ SUCCESS: %s (%.2fs, %d nodes, score %d)\n",
 					result.BestMove, result.TimeElapsed.Seconds(), result.Nodes, result.Score)
 				logger.Printf("SUCCESS: bestmove=%s, time=%v, depth=%d, nodes=%d, score=%d",
 					result.BestMove, result.TimeElapsed, result.Depth, result.Nodes, result.Score)
@@ -276,7 +276,7 @@ func testBasicPositions() error {
 			} else {
 				fmt.Printf("✗ FAILED: %s (%.2fs)\n", result.Error, result.TimeElapsed.Seconds())
 				logger.Printf("FAILED: %s, time=%v", result.Error, result.TimeElapsed)
-				
+
 				if strings.Contains(result.Error, "timeout") {
 					fmt.Printf("*** HANG DETECTED at depth %d ***\n", depth)
 					logger.Printf("*** HANG DETECTED at depth %d for test: %s ***", depth, test.name)
@@ -284,7 +284,7 @@ func testBasicPositions() error {
 				break
 			}
 		}
-		
+
 		if lastSuccessDepth > 0 {
 			successCount++
 			fmt.Printf("✓ Test passed - Max depth: %d\n", lastSuccessDepth)
@@ -292,13 +292,13 @@ func testBasicPositions() error {
 			failCount++
 			fmt.Printf("✗ Test failed - No successful depths\n")
 		}
-		
+
 		engine.Close()
-		
+
 		// Brief pause between tests
 		time.Sleep(100 * time.Millisecond)
 	}
-	
+
 	// Summary
 	fmt.Printf(`
 === SUMMARY ===
@@ -306,14 +306,14 @@ Total tests: %d
 Passed: %d
 Failed: %d
 `, len(testCases), successCount, failCount)
-	
+
 	logger.Printf(`
 === TEST SUMMARY ===
 Total tests: %d
 Passed: %d
 Failed: %d
 `, len(testCases), successCount, failCount)
-	
+
 	return nil
 }
 

@@ -11,22 +11,22 @@ func TestFixedPerformance(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to parse FEN: %v", err)
 	}
-	
+
 	depths := []int{3, 4, 5}
-	
+
 	for _, depth := range depths {
 		t.Run(fmt.Sprintf("depth_%d", depth), func(t *testing.T) {
 			start := time.Now()
 			info := SearchFixed(pos, depth, nil)
 			elapsed := time.Since(start)
-			
+
 			// Quick timeout check
 			if elapsed > 10*time.Second {
 				t.Fatalf("Depth %d took too long: %v", depth, elapsed)
 			}
-			
+
 			nps := float64(info.Nodes) / elapsed.Seconds()
-			
+
 			t.Logf("Depth %d:", depth)
 			t.Logf("  Nodes: %d", info.Nodes)
 			t.Logf("  Time: %v", elapsed)

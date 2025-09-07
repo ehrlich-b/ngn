@@ -72,7 +72,7 @@ eval: ## Run comprehensive 2-minute engine evaluation with deep search
 	@echo "⚠️  This test allows 10-15 seconds per position for meaningful depth analysis"
 	@go test -v ./engine -run "TestComprehensiveEngineEvaluation" -timeout 180s
 
-# Benchmark commands  
+# Benchmark commands
 .PHONY: bench
 bench: ## Run benchmarks
 	@echo "Running benchmarks..."
@@ -92,7 +92,7 @@ format: ## Format all Go code
 	@echo "Code formatted"
 
 .PHONY: lint
-lint: check-golangci-lint ## Run linting and formatting checks  
+lint: check-golangci-lint ## Run linting and formatting checks
 	@echo "Running linter..."
 	golangci-lint run ./...
 	@echo "Linting complete"
@@ -172,6 +172,21 @@ run: build ## Build and run the engine
 test-harness: build ## Run automated UCI test harness with tournament positions
 	@echo "Running UCI test harness..."
 	cd cmd/test-harness && go run main.go
+
+.PHONY: benchmark
+benchmark: build ## Run deterministic benchmark with fixed FEN corpus and regression detection
+	@echo "Running benchmark harness..."
+	cd cmd/benchmark && go run main.go
+
+.PHONY: tactical-test
+tactical-test: build ## Run tactical test suite with EPD positions
+	@echo "Running tactical test suite..."
+	cd cmd/tactical-test && go run main.go
+
+.PHONY: combined-report
+combined-report: ## Generate combined performance and tactical assessment
+	@echo "Generating combined engine assessment..."
+	cd cmd/combined-report && go run main.go
 
 .PHONY: simple-test
 simple-test: build ## Run simple UCI tests with basic positions

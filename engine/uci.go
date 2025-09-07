@@ -581,8 +581,15 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 			} else {
 				scoreStr = fmt.Sprintf("cp %d", bestScore)
 			}
-			infoMsg := fmt.Sprintf("info depth %d score %s nodes %d time %d pv %s",
-				depth, scoreStr, info.Nodes, elapsed.Milliseconds(), bestMove.ToString())
+
+			// Calculate NPS (nodes per second)
+			var nps int
+			if elapsed.Seconds() > 0 {
+				nps = int(float64(info.Nodes) / elapsed.Seconds())
+			}
+
+			infoMsg := fmt.Sprintf("info depth %d score %s nodes %d time %d nps %d pv %s",
+				depth, scoreStr, info.Nodes, elapsed.Milliseconds(), nps, bestMove.ToString())
 			uci.sendUCIMessage(output, infoMsg)
 			uci.debugLogger.Printf("Sent info line for depth %d", depth)
 

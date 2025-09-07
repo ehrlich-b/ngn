@@ -20,24 +20,24 @@ type TestPosition struct {
 
 // TestMove represents a test move with expected properties
 type TestMove struct {
-	From        Square    // Source square
-	To          Square    // Destination square
-	MovingPiece Piece     // Piece being moved
-	CapturedPiece Piece   // Piece being captured (NoPiece if no capture)
-	PromoType   PieceType // Promotion type (NoType if no promotion)
-	Tag         MoveTag   // Move tags (castle, en passant, etc.)
-	Description string    // Description of the move
+	From          Square    // Source square
+	To            Square    // Destination square
+	MovingPiece   Piece     // Piece being moved
+	CapturedPiece Piece     // Piece being captured (NoPiece if no capture)
+	PromoType     PieceType // Promotion type (NoType if no promotion)
+	Tag           MoveTag   // Move tags (castle, en passant, etc.)
+	Description   string    // Description of the move
 }
 
 // PerftResult represents the result of a perft test
 type PerftResult struct {
-	Depth     int    // Search depth
-	Nodes     uint64 // Number of nodes at this depth
-	Captures  uint64 // Number of captures
-	EnPassant uint64 // Number of en passant captures
-	Castles   uint64 // Number of castling moves
+	Depth      int    // Search depth
+	Nodes      uint64 // Number of nodes at this depth
+	Captures   uint64 // Number of captures
+	EnPassant  uint64 // Number of en passant captures
+	Castles    uint64 // Number of castling moves
 	Promotions uint64 // Number of promotions
-	Checks    uint64 // Number of checking moves
+	Checks     uint64 // Number of checking moves
 	Checkmates uint64 // Number of checkmate positions
 }
 
@@ -51,18 +51,18 @@ type PerftTestCase struct {
 // Known test positions for common scenarios
 var StandardTestPositions = []TestPosition{
 	{
-		Name: "Starting Position",
-		FEN:  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+		Name:        "Starting Position",
+		FEN:         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
 		Description: "Standard chess starting position",
 	},
 	{
-		Name: "Empty Board",
-		FEN:  "8/8/8/8/8/8/8/8 w - - 0 1",
+		Name:        "Empty Board",
+		FEN:         "8/8/8/8/8/8/8/8 w - - 0 1",
 		Description: "Empty board for testing basic functionality",
 	},
 	{
-		Name: "King and Queen vs King",
-		FEN:  "4k3/8/8/8/8/8/8/4K2Q w - - 0 1",
+		Name:        "King and Queen vs King",
+		FEN:         "4k3/8/8/8/8/8/8/4K2Q w - - 0 1",
 		Description: "Basic endgame position",
 	},
 }
@@ -96,7 +96,7 @@ func PositionEqual(a, b *Position) bool {
 	if a == nil || b == nil {
 		return a == b
 	}
-	
+
 	return a.Board == b.Board &&
 		a.Tag == b.Tag &&
 		a.EnPassant == b.EnPassant &&
@@ -109,7 +109,7 @@ func BitboardEqual(a, b *Bitboard) bool {
 	if a == nil || b == nil {
 		return a == b
 	}
-	
+
 	return reflect.DeepEqual(*a, *b)
 }
 
@@ -130,7 +130,7 @@ func AssertPositionEqual(t *testing.T, expected, actual *Position, message strin
 func AssertBitboardEqual(t *testing.T, expected, actual *Bitboard, message string) {
 	t.Helper()
 	if !BitboardEqual(expected, actual) {
-		t.Errorf("%s: bitboards not equal\nExpected: %s\nActual: %s", 
+		t.Errorf("%s: bitboards not equal\nExpected: %s\nActual: %s",
 			message, expected.Draw(), actual.Draw())
 	}
 }
@@ -139,7 +139,7 @@ func AssertBitboardEqual(t *testing.T, expected, actual *Bitboard, message strin
 func AssertMoveEqual(t *testing.T, expected, actual Move, message string) {
 	t.Helper()
 	if !MoveEqual(expected, actual) {
-		t.Errorf("%s: moves not equal\nExpected: %s\nActual: %s", 
+		t.Errorf("%s: moves not equal\nExpected: %s\nActual: %s",
 			message, expected.ToString(), actual.ToString())
 	}
 }
@@ -191,23 +191,23 @@ func PrintPosition(pos *Position) string {
 // RunPerftTest runs a perft test and returns the result
 func RunPerftTest(position *Position, depth int) PerftResult {
 	result := PerftResult{Depth: depth}
-	
+
 	if depth == 0 {
 		result.Nodes = 1
 		return result
 	}
-	
+
 	moves := GenerateMoves(position)
-	
+
 	for _, move := range moves {
 		if IsLegalMove(position, move) {
 			// Make the move
 			ep, tag, hc, _ := position.MakeMove(move)
-			
+
 			// Recursively count nodes
 			subResult := RunPerftTest(position, depth-1)
 			result.Nodes += subResult.Nodes
-			
+
 			// Count move types at leaf nodes
 			if depth == 1 {
 				if move.IsCapture() {
@@ -224,19 +224,19 @@ func RunPerftTest(position *Position, depth int) PerftResult {
 				}
 				// TODO: Add check and checkmate detection
 			}
-			
+
 			// Unmake the move
 			position.UnMakeMove(move, tag, ep, hc)
 		}
 	}
-	
+
 	return result
 }
 
 // ValidatePerftResult validates that a perft result matches expectations
 func ValidatePerftResult(t *testing.T, testCase PerftTestCase, actualResult PerftResult) {
 	t.Helper()
-	
+
 	var expectedResult *PerftResult
 	for _, expected := range testCase.Expected {
 		if expected.Depth == actualResult.Depth {
@@ -244,14 +244,14 @@ func ValidatePerftResult(t *testing.T, testCase PerftTestCase, actualResult Perf
 			break
 		}
 	}
-	
+
 	if expectedResult == nil {
 		t.Errorf("No expected result for depth %d in test case %s", actualResult.Depth, testCase.Name)
 		return
 	}
-	
+
 	if actualResult.Nodes != expectedResult.Nodes {
-		t.Errorf("Perft test %s depth %d: expected %d nodes, got %d nodes", 
+		t.Errorf("Perft test %s depth %d: expected %d nodes, got %d nodes",
 			testCase.Name, actualResult.Depth, expectedResult.Nodes, actualResult.Nodes)
 	}
 }

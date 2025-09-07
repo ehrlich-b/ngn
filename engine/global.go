@@ -18,30 +18,30 @@ func init() {
 // initKnightAttacks precomputes knight attack bitboards for all squares
 func initKnightAttacks() {
 	knightMoves := []int{-17, -15, -10, -6, 6, 10, 15, 17}
-	
+
 	for sq := 0; sq < 64; sq++ {
 		attacks := uint64(0)
 		file := sq % 8
 		rank := sq / 8
-		
+
 		for _, move := range knightMoves {
 			to := sq + move
 			if to < 0 || to > 63 {
 				continue
 			}
-			
+
 			toFile := to % 8
 			toRank := to / 8
-			
+
 			// Check if move is valid (not wrapping around board)
 			fileDiff := abs(file - toFile)
 			rankDiff := abs(rank - toRank)
-			
+
 			if (fileDiff == 2 && rankDiff == 1) || (fileDiff == 1 && rankDiff == 2) {
 				attacks |= SquareMask[to]
 			}
 		}
-		
+
 		KnightAttacks[sq] = attacks
 	}
 }
@@ -49,27 +49,27 @@ func initKnightAttacks() {
 // initKingAttacks precomputes king attack bitboards for all squares
 func initKingAttacks() {
 	kingMoves := []int{-9, -8, -7, -1, 1, 7, 8, 9}
-	
+
 	for sq := 0; sq < 64; sq++ {
 		attacks := uint64(0)
 		file := sq % 8
-		
+
 		for _, move := range kingMoves {
 			to := sq + move
 			if to < 0 || to > 63 {
 				continue
 			}
-			
+
 			toFile := to % 8
-			
+
 			// Check if move wraps around the board horizontally
 			if abs(file-toFile) > 1 {
 				continue
 			}
-			
+
 			attacks |= SquareMask[to]
 		}
-		
+
 		KingAttacks[sq] = attacks
 	}
 }

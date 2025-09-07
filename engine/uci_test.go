@@ -10,11 +10,11 @@ import (
 func TestUCIBasicCommands(t *testing.T) {
 	engine := NewUCIEngine()
 	var output bytes.Buffer
-	
+
 	// Test UCI command
 	engine.handleCommand("uci", &output)
 	response := output.String()
-	
+
 	if !strings.Contains(response, "id name ngn") {
 		t.Error("UCI response should contain engine name")
 	}
@@ -24,12 +24,12 @@ func TestUCIBasicCommands(t *testing.T) {
 	if !strings.Contains(response, "uciok") {
 		t.Error("UCI response should end with uciok")
 	}
-	
+
 	// Test isready command
 	output.Reset()
 	engine.handleCommand("isready", &output)
 	response = output.String()
-	
+
 	if !strings.Contains(response, "readyok") {
 		t.Error("isready should respond with readyok")
 	}
@@ -38,18 +38,18 @@ func TestUCIBasicCommands(t *testing.T) {
 func TestUCIPosition(t *testing.T) {
 	engine := NewUCIEngine()
 	var output bytes.Buffer
-	
+
 	// Test startpos
 	engine.handleCommand("position startpos", &output)
-	
+
 	// Verify starting position is set
 	if engine.position.Turn() != White {
 		t.Error("Starting position should be white to move")
 	}
-	
+
 	// Test position with moves
 	engine.handleCommand("position startpos moves e2e4 e7e5", &output)
-	
+
 	// The position should have changed
 	if engine.position.Board.PieceAt(E2) != NoPiece {
 		t.Error("Pawn should have moved from e2")
@@ -62,12 +62,12 @@ func TestUCIPosition(t *testing.T) {
 func TestUCIFEN(t *testing.T) {
 	engine := NewUCIEngine()
 	var output bytes.Buffer
-	
+
 	// Test FEN position
 	fenString := "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
 	command := "position fen " + fenString
 	engine.handleCommand(command, &output)
-	
+
 	// Verify the position was set correctly
 	if engine.position.Board.PieceAt(E4) != WhitePawn {
 		t.Error("White pawn should be on e4 from FEN")
@@ -83,22 +83,22 @@ func TestUCIFEN(t *testing.T) {
 func TestUCIDebugMode(t *testing.T) {
 	engine := NewUCIEngine()
 	var output bytes.Buffer
-	
+
 	// Enable debug mode
 	engine.handleCommand("debug on", &output)
 	if !engine.debugMode {
 		t.Error("Debug mode should be enabled")
 	}
-	
+
 	// Test that debug info is printed
 	output.Reset()
 	engine.handleCommand("unknown_command", &output)
 	response := output.String()
-	
+
 	if !strings.Contains(response, "unknown command") {
 		t.Error("Debug mode should print unknown command info")
 	}
-	
+
 	// Disable debug mode
 	engine.handleCommand("debug off", &output)
 	if engine.debugMode {
@@ -109,13 +109,13 @@ func TestUCIDebugMode(t *testing.T) {
 func TestUCINewGame(t *testing.T) {
 	engine := NewUCIEngine()
 	var output bytes.Buffer
-	
+
 	// Make some moves
 	engine.handleCommand("position startpos moves e2e4 e7e5", &output)
-	
+
 	// Start new game
 	engine.handleCommand("ucinewgame", &output)
-	
+
 	// Should be back to starting position
 	if engine.position.Turn() != White {
 		t.Error("New game should reset to white to move")
@@ -128,19 +128,19 @@ func TestUCINewGame(t *testing.T) {
 func TestUCIGo(t *testing.T) {
 	engine := NewUCIEngine()
 	var output bytes.Buffer
-	
+
 	// Set up a simple position
 	engine.handleCommand("position startpos", &output)
 	output.Reset()
-	
+
 	// Start search with depth 2 (fast)
 	engine.handleCommand("go depth 2", &output)
-	
+
 	// Give it a moment to search
 	time.Sleep(100 * time.Millisecond)
-	
+
 	response := output.String()
-	
+
 	// Should have search info and bestmove
 	if !strings.Contains(response, "info depth") {
 		t.Error("Should provide search info")
@@ -148,7 +148,7 @@ func TestUCIGo(t *testing.T) {
 	if !strings.Contains(response, "bestmove") {
 		t.Error("Should provide best move")
 	}
-	
+
 	// Wait for search to complete
 	for engine.searching {
 		time.Sleep(10 * time.Millisecond)
@@ -158,21 +158,21 @@ func TestUCIGo(t *testing.T) {
 func TestUCIStop(t *testing.T) {
 	engine := NewUCIEngine()
 	var output bytes.Buffer
-	
+
 	// Start a search
 	go func() {
 		engine.handleCommand("go depth 10", &output) // Deeper search
 	}()
-	
+
 	// Wait a bit then stop
 	time.Sleep(50 * time.Millisecond)
 	engine.handleCommand("stop", &output)
-	
+
 	// Should stop relatively quickly
 	timeout := time.After(2 * time.Second)
 	ticker := time.NewTicker(10 * time.Millisecond)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-timeout:
@@ -189,7 +189,7 @@ func TestUCIStop(t *testing.T) {
 func BenchmarkUCIPosition(b *testing.B) {
 	engine := NewUCIEngine()
 	var output bytes.Buffer
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		engine.handleCommand("position startpos moves e2e4 e7e5 g1f3", &output)
@@ -200,13 +200,13 @@ func BenchmarkUCIPosition(b *testing.B) {
 func BenchmarkUCIGo(b *testing.B) {
 	engine := NewUCIEngine()
 	var output bytes.Buffer
-	
+
 	engine.handleCommand("position startpos", &output)
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		engine.handleCommand("go depth 1", &output)
-		
+
 		// Wait for search to complete
 		for engine.searching {
 			time.Sleep(1 * time.Millisecond)

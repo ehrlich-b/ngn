@@ -26,7 +26,7 @@ func TestMoveCreation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			move := NewMove(tt.from, tt.to, tt.movingPiece, tt.capturedPiece, tt.promoType, tt.tag)
-			
+
 			if move.Source() != tt.from {
 				t.Errorf("%s Source() = %v; want %v", tt.name, move.Source(), tt.from)
 			}
@@ -152,11 +152,11 @@ func TestMoveToString(t *testing.T) {
 
 func TestEmptyMove(t *testing.T) {
 	empty := EmptyMove
-	
+
 	if empty != Move(0) {
 		t.Errorf("EmptyMove should be Move(0), got %v", empty)
 	}
-	
+
 	// Test that empty move has all zero values
 	if empty.Source() != Square(0) {
 		t.Errorf("EmptyMove Source() should be 0, got %v", empty.Source())
@@ -182,7 +182,7 @@ func TestMoveTagCombinations(t *testing.T) {
 	// Test that multiple tags can be combined
 	combinedTag := Capture | EnPassant
 	move := NewMove(E5, D6, WhitePawn, BlackPawn, NoType, combinedTag)
-	
+
 	if !move.IsCapture() {
 		t.Error("Move with Capture|EnPassant should be a capture")
 	}

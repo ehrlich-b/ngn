@@ -17,10 +17,10 @@ const ENABLE_HOT_PATH_DEBUG = false
 
 // CrashHandler provides comprehensive panic recovery and crash reporting
 type CrashHandler struct {
-	logger   *log.Logger
-	logFile  *os.File
-	mutex    sync.Mutex
-	crashID  int
+	logger  *log.Logger
+	logFile *os.File
+	mutex   sync.Mutex
+	crashID int
 }
 
 var (
@@ -44,26 +44,26 @@ func NewCrashHandler() *CrashHandler {
 		execPath = "./ngn"
 	}
 	execDir := filepath.Dir(execPath)
-	
+
 	logPath := filepath.Join(execDir, "ngn_crashes.log")
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		// Fallback to stderr
 		logFile = os.Stderr
 	}
-	
+
 	logger := log.New(logFile, "[NGN CRASH] ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
-	
+
 	handler := &CrashHandler{
 		logger:  logger,
 		logFile: logFile,
 		crashID: 0,
 	}
-	
+
 	// Log startup
 	handler.logger.Println("=== NGN Crash Handler Initialized ===")
 	handler.logger.Printf("Crash log: %s", logPath)
-	
+
 	return handler
 }
 
@@ -74,39 +74,39 @@ func (ch *CrashHandler) SafeRecover(functionName string, context map[string]inte
 		ch.crashID++
 		crashID := ch.crashID
 		ch.mutex.Unlock()
-		
+
 		// Get stack trace
 		stackTrace := debug.Stack()
-		
+
 		// Log comprehensive crash information
-		ch.logger.Printf("\n" + 
-			"████████████████████████████████████████████████████████████████\n" +
-			"🚨 PANIC RECOVERED - CRASH ID #%d\n" +
-			"████████████████████████████████████████████████████████████████\n" +
-			"Function: %s\n" +
-			"Time: %s\n" +
-			"Panic: %v\n" +
-			"Type: %T\n" +
-			"Go Version: %s\n" +
-			"Go Routines: %d\n" +
-			"────────────────────────────────────────────────────────────────\n" +
+		ch.logger.Printf("\n"+
+			"████████████████████████████████████████████████████████████████\n"+
+			"🚨 PANIC RECOVERED - CRASH ID #%d\n"+
+			"████████████████████████████████████████████████████████████████\n"+
+			"Function: %s\n"+
+			"Time: %s\n"+
+			"Panic: %v\n"+
+			"Type: %T\n"+
+			"Go Version: %s\n"+
+			"Go Routines: %d\n"+
+			"────────────────────────────────────────────────────────────────\n"+
 			"CONTEXT:\n",
 			crashID, functionName, time.Now().Format(time.RFC3339), r, r, runtime.Version(), runtime.NumGoroutine())
-		
+
 		// Log context information
 		for key, value := range context {
 			ch.logger.Printf("  %s: %+v", key, value)
 		}
-		
-		ch.logger.Printf("────────────────────────────────────────────────────────────────\n" +
-			"STACK TRACE:\n%s\n" +
+
+		ch.logger.Printf("────────────────────────────────────────────────────────────────\n"+
+			"STACK TRACE:\n%s\n"+
 			"████████████████████████████████████████████████████████████████\n", string(stackTrace))
-		
+
 		// Force flush
 		if ch.logFile != os.Stderr {
 			ch.logFile.Sync()
 		}
-		
+
 		// Also log to stderr for immediate visibility
 		fmt.Fprintf(os.Stderr, "🚨 NGN ENGINE PANIC #%d in %s: %v\n", crashID, functionName, r)
 		fmt.Fprintf(os.Stderr, "See ngn_crashes.log for full details\n")
@@ -134,10 +134,10 @@ func WrapSearch(functionName string, fn func() *SearchInfo, pos *Position, depth
 		"turn":         pos.Turn(),
 		"move_count":   len(GenerateLegalMoves(pos)),
 	}
-	
+
 	ch := GetGlobalCrashHandler()
 	defer ch.SafeRecover(functionName, context)
-	
+
 	return fn()
 }
 
@@ -149,33 +149,33 @@ func WrapMoveGeneration(functionName string, fn func() []Move, pos *Position) []
 		"castling":     pos.Tag,
 		"en_passant":   pos.EnPassant,
 	}
-	
+
 	ch := GetGlobalCrashHandler()
 	defer ch.SafeRecover(functionName, context)
-	
+
 	return fn()
 }
 
-// WrapEvaluation wraps evaluation functions with context  
+// WrapEvaluation wraps evaluation functions with context
 func WrapEvaluation(functionName string, fn func() int, board *Bitboard) int {
-    if !ENABLE_HOT_PATH_DEBUG {
-        // Fast path: absolutely zero overhead in hot path
-        // Do NOT set up a defer when debug is disabled.
-        return fn()
-    }
-	
+	if !ENABLE_HOT_PATH_DEBUG {
+		// Fast path: absolutely zero overhead in hot path
+		// Do NOT set up a defer when debug is disabled.
+		return fn()
+	}
+
 	// Slow path - full debugging context (disabled by default)
 	context := map[string]interface{}{
-		"white_king":    board.GetBitboardOf(WhiteKing),
-		"black_king":    board.GetBitboardOf(BlackKing),
-		"white_pieces":  board.GetWhitePieces(),
-		"black_pieces":  board.GetBlackPieces(),
-		"all_pieces":    board.AllPieces(),
+		"white_king":   board.GetBitboardOf(WhiteKing),
+		"black_king":   board.GetBitboardOf(BlackKing),
+		"white_pieces": board.GetWhitePieces(),
+		"black_pieces": board.GetBlackPieces(),
+		"all_pieces":   board.AllPieces(),
 	}
-	
+
 	ch := GetGlobalCrashHandler()
 	defer ch.SafeRecover(functionName, context)
-	
+
 	return fn()
 }
 
@@ -186,10 +186,10 @@ func WrapUCI(functionName string, fn func(), command string, args []string) {
 		"args":    args,
 		"time":    time.Now().Format(time.RFC3339),
 	}
-	
+
 	ch := GetGlobalCrashHandler()
 	defer ch.SafeRecover(functionName, context)
-	
+
 	fn()
 }
 

@@ -118,9 +118,9 @@ func TestRankNames(t *testing.T) {
 
 func TestSquareColor(t *testing.T) {
 	tests := []struct {
-		square       Square
+		square        Square
 		expectedColor Color
-		name         string
+		name          string
 	}{
 		{A1, Black, "A1 Color (Black)"},
 		{A2, White, "A2 Color (White)"},
@@ -175,7 +175,7 @@ func TestSquareRoundTrip(t *testing.T) {
 			square := SquareOf(file, rank)
 			actualFile := square.File()
 			actualRank := square.Rank()
-			
+
 			if actualFile != file {
 				t.Errorf("SquareOf(%v, %v).File() = %v; want %v", file, rank, actualFile, file)
 			}

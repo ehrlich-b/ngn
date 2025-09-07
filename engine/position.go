@@ -38,13 +38,13 @@ const MIN_NON_CHECKMATE float32 = -MAX_NON_CHECKMATE
 const CASTLING_FLAG = WhiteCanCastleQueenSide | WhiteCanCastleKingSide | BlackCanCastleQueenSide | BlackCanCastleKingSide
 
 type Position struct {
-	Board         Bitboard
-	EnPassant     Square
-	Tag           PositionTag
-	hash          uint64
-	Positions     map[uint64]int
+	Board          Bitboard
+	EnPassant      Square
+	Tag            PositionTag
+	hash           uint64
+	Positions      map[uint64]int
 	positionsMutex sync.RWMutex
-	HalfMoveClock uint8
+	HalfMoveClock  uint8
 }
 
 type PositionTag uint8
@@ -267,10 +267,10 @@ func (p *Position) makeMoveHelper(move Move) (Square, PositionTag, uint8, bool) 
 	}
 
 	updateHash(p, move, captureSquare, p.EnPassant, ep, promoPiece, tag)
-	
+
 	// Update repetition detection - disabled in hot path for performance
 	// Only updated in GameMakeMove for actual game moves
-	
+
 	return ep, tag, hc, true
 }
 
@@ -299,7 +299,7 @@ func (p *Position) UnMakeMove(move Move, tag PositionTag, enPassant Square, half
 func (p *Position) unMakeMoveHelper(move Move, tag PositionTag, enPassant Square, halfClock uint8) {
 	// Update repetition detection - disabled in hot path for performance
 	// Only updated in GameUnMakeMove for actual game moves
-	
+
 	movingPiece := move.MovingPiece()
 	capturedPiece := move.CapturedPiece()
 	promoPiece := NoPiece
