@@ -26,6 +26,11 @@ func TestComprehensiveEngineEvaluation(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping comprehensive evaluation in short mode")
 	}
+	
+	// Skip unless explicitly running comprehensive evaluation
+	if os.Getenv("RUN_COMPREHENSIVE_EVAL") != "1" {
+		t.Skip("Skipping comprehensive evaluation - set RUN_COMPREHENSIVE_EVAL=1 to enable")
+	}
 
 	t.Log("🔥 COMPREHENSIVE ENGINE EVALUATION (2 MINUTE TEST)")
 	t.Log("=================================================")

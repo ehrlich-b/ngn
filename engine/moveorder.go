@@ -143,80 +143,14 @@ func orderMovesSinglePass(moves []Move, depth int, previousMove Move, ttMove Mov
 		return moves
 	}
 
-	// Create move-score pairs for single-pass ordering
-	type moveScore struct {
-		move  Move
-		score int
-	}
-
-	scoredMoves := make([]moveScore, len(moves))
-
-	// Single pass: score all moves
-	for i, move := range moves {
-		score := 0
-
-		// TT move gets highest priority
-		if ttHit && move == ttMove {
-			score = 100000
-		} else {
-			// Calculate score based on move type and SEE
-			if move.IsCapture() || move.IsEnPassant() {
-				// Use SEE to order captures precisely
-				seeValue := staticExchangeEvaluation(pos, move)
-				if seeValue >= 0 {
-					// Winning/equal captures: base score + SEE value for fine ordering
-					score = 80000 + seeValue + 1000
-				} else {
-					// Losing captures: still better than quiet moves, but ordered by SEE
-					score = 60000 + seeValue + 1000
-				}
-			} else if move.PromoType() != NoType {
-				// Promotions: high priority, ordered by promotion piece value
-				score = 70000 + int(GetPiece(move.PromoType(), move.MovingPiece().Color()).Weight())
-			} else if move.IsCastle() {
-				// Castling: moderate priority
-				score = 50000
-			} else {
-				// Quiet moves: use heuristics
-				score = 0
-
-				// Counter moves get highest priority among quiet moves
-				if IsCounterMove(move, previousMove) {
-					score += 30000
-				}
-
-				// Killer moves get high priority
-				if IsKillerMove(move, depth) {
-					score += 25000
-				}
-
-				// History heuristic for remaining quiet moves
-				score += GetHistoryScore(move)
-			}
-		}
-
-		scoredMoves[i] = moveScore{move: move, score: score}
-	}
-
-	// Sort by score (descending) - single sort operation
-	// Use simple insertion sort for small arrays (typical move count < 100)
-	for i := 1; i < len(scoredMoves); i++ {
-		key := scoredMoves[i]
-		j := i - 1
-		for j >= 0 && scoredMoves[j].score < key.score {
-			scoredMoves[j+1] = scoredMoves[j]
-			j--
-		}
-		scoredMoves[j+1] = key
-	}
-
-	// Extract sorted moves
-	orderedMoves := make([]Move, len(moves))
-	for i, ms := range scoredMoves {
-		orderedMoves[i] = ms.move
-	}
-
-	return orderedMoves
+	// Use zero-allocation buffer version internally
+	var buffer [256]Move
+	count := orderMovesSinglePassIntoBuffer(moves, depth, previousMove, ttMove, ttHit, buffer[:], pos)
+	
+	// Return a copy of the ordered moves (only allocation, but tests need owned slice)
+	result := make([]Move, count)
+	copy(result, buffer[:count])
+	return result
 }
 
 // Zero-allocation single-pass ordering into caller-provided buffer

@@ -70,7 +70,7 @@ coverage: test ## Generate and view test coverage report
 eval: ## Run comprehensive 2-minute engine evaluation with deep search
 	@echo "Running comprehensive engine evaluation (2 minutes)..."
 	@echo "⚠️  This test allows 10-15 seconds per position for meaningful depth analysis"
-	@go test -v ./engine -run "TestComprehensiveEngineEvaluation" -timeout 180s
+	@RUN_COMPREHENSIVE_EVAL=1 go test -v ./engine -run "TestComprehensiveEngineEvaluation" -timeout 180s
 
 # Benchmark commands
 .PHONY: bench
@@ -233,3 +233,18 @@ deps: ## Display dependency information
 	@echo ""
 	@echo "All dependencies:"
 	@go list -m all
+
+# PGN analysis commands
+.PHONY: pgn-to-fens
+pgn-to-fens: ## Extract FEN positions from PGN file (usage: make pgn-to-fens PGN=game.pgn)
+	@if [ -z "$(PGN)" ]; then \
+		echo "Usage: make pgn-to-fens PGN=path/to/game.pgn"; \
+		exit 1; \
+	fi
+	@echo "Extracting FENs from $(PGN)..."
+	@go run cmd/pgn_to_fens/main.go $(PGN)
+
+.PHONY: game-fens
+game-fens: ## Extract FEN positions from the specific game file
+	@echo "Extracting FENs from the game..."
+	@go run cmd/pgn_to_fens/simple_main.go the_game.pgn

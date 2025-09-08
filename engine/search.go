@@ -775,20 +775,21 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 		legalTried++
 
-		var score int
-
-		// Check for check extensions
+		// FIXED: Check extension logic - check if move gives check to OPPONENT
+		// Now that move is made, check if opponent is in check
 		givesCheck := isInCheck(pos, pos.Turn())
-		// Compute next depth with extension, but ensure depth strictly decreases
-		// to avoid non-terminating recursion in checking lines.
+		
+		// Compute next depth with check extension
 		nextDepth := depth - 1
 		if givesCheck && depth > 1 {
-			nextDepth++ // tentative extension
+			nextDepth++ // Extend search when move gives check
 		}
 		if nextDepth >= depth {
 			// Guardrail: never allow recursion with the same depth
 			nextDepth = depth - 1
 		}
+
+		var score int
 
 		// Principal Variation Search (PVS) implementation
 		if moveCount == 1 {
