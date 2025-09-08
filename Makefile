@@ -183,6 +183,16 @@ tactical-test: build ## Run tactical test suite with EPD positions
 	@echo "Running tactical test suite..."
 	cd cmd/tactical-test && go run main.go
 
+.PHONY: perft
+perft: ## Run perft validation tests for move generation correctness
+	@echo "Running perft validation tests..."
+	@go test -v ./engine -run ".*[Pp]erft.*" -timeout 60s
+
+.PHONY: eval-regression
+eval-regression: ## Run position evaluation regression tests to detect eval function changes
+	@echo "Running evaluation regression tests..."
+	@go test -v ./engine -run "TestEvaluationRegression|TestEvaluationConsistency" -timeout 30s
+
 .PHONY: combined-report
 combined-report: ## Generate combined performance and tactical assessment
 	@echo "Generating combined engine assessment..."

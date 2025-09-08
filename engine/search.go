@@ -15,6 +15,8 @@ const (
 	LMR_FULL_DEPTH      = 3   // Minimum depth for LMR
 	LMR_MOVE_THRESHOLD  = 3   // Start reducing after this many moves
 	FUTILITY_MARGIN     = 200 // Futility pruning margin
+	FUTILITY_MAX_DEPTH  = 3   // Extended futility pruning depth
+	REVERSE_FUTILITY_MARGIN = 120 // Reverse futility margin  
 	DELTA_MARGIN        = 100 // Delta pruning margin in quiescence
 )
 
@@ -679,12 +681,29 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 	// Check if we're in check before attempting null move
 	inCheck := isInCheck(pos, pos.Turn())
 
-	// Futility pruning for leaf nodes (depth 1)
+	// Extended futility pruning (depths 1-3) and reverse futility pruning  
 	var futilityPrune bool
 	var staticEval int
-	if depth == 1 && !inCheck {
+	var evalComputed bool
+	
+	// Reverse futility pruning - if position is very good, return early
+	if depth <= 3 && !inCheck && beta - alpha == 1 {
 		staticEval = EvaluateForPlayer(&pos.Board, pos.Turn())
-		if staticEval+FUTILITY_MARGIN < alpha {
+		evalComputed = true
+		margin := REVERSE_FUTILITY_MARGIN * depth
+		if staticEval - margin >= beta {
+			return staticEval - margin
+		}
+	}
+	
+	// Extended futility pruning for shallow depths
+	if depth <= FUTILITY_MAX_DEPTH && !inCheck {
+		if !evalComputed {
+			staticEval = EvaluateForPlayer(&pos.Board, pos.Turn())
+			evalComputed = true
+		}
+		margin := FUTILITY_MARGIN + (depth-1)*50 // Increasing margin with depth
+		if staticEval + margin <= alpha {
 			futilityPrune = true
 		}
 	}
@@ -798,11 +817,34 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		} else {
 			// For remaining moves, use Principal Variation Search
 
-			// Late Move Reductions (LMR) for non-PV moves
+			// More aggressive Late Move Reductions (LMR)
 			reduction := 0
 			if depth >= LMR_FULL_DEPTH && moveCount > LMR_MOVE_THRESHOLD &&
 				!move.IsCapture() && !inCheck && !givesCheck {
+				
+				// Base reduction
 				reduction = 1
+				
+				// Extra reduction for later moves
+				if moveCount > 6 {
+					reduction++
+				}
+				if moveCount > 12 {
+					reduction++
+				}
+				
+				// Extra reduction for deeper searches
+				if depth > 6 {
+					reduction++
+				}
+				
+				// Cap maximum reduction
+				if reduction >= depth - 1 {
+					reduction = depth - 2
+				}
+				if reduction < 1 {
+					reduction = 1
+				}
 			}
 
 			// Compute reduced depth and apply the same guardrail

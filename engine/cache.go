@@ -37,6 +37,7 @@ type CachedEval struct {
 	_    [48]byte      // Padding to 64 bytes (cache line size)
 }
 
+
 type NodeType uint8
 
 const (
@@ -53,12 +54,32 @@ type Cache struct {
 	age    uint16
 }
 
+
 const OldAge = uint16(5)
 const DEFAULT_CACHE_SIZE = 128
 const MAX_CACHE_SIZE = 120_000
 
 var CACHE_ENTRY_SIZE = int(unsafe.Sizeof(CachedEval{}))
 var TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+
+// Benchmark mode flag - when true, disables atomic operations for higher performance
+// ONLY use in single-threaded benchmarks
+var BenchmarkMode = false
+
+// Helper functions for conditional atomic access
+func (c *CachedEval) LoadKey() uint64 {
+	if BenchmarkMode {
+		return *(*uint64)(unsafe.Pointer(&c.Key))
+	}
+	return c.Key.Load()
+}
+
+func (c *CachedEval) LoadData() uint64 {
+	if BenchmarkMode {
+		return *(*uint64)(unsafe.Pointer(&c.Data))
+	}
+	return c.Data.Load()
+}
 
 const MOVE_MASK uint64 = 0b1111111111111111111111111111 // move << 0, 28 bits
 const EVAL_MASK uint64 = 0b1111111111111111             // eval << 28, 16 bits
@@ -84,9 +105,16 @@ func Unpack(data uint64) (hashmove Move, eval int16, depth int8, nodeType NodeTy
 }
 
 func (c *CachedEval) Update(key uint64, data uint64) {
-	c.Key.Store(key)
-	c.Data.Store(data)
+	if BenchmarkMode {
+		// Direct non-atomic access for benchmarks (SINGLE-THREADED ONLY)
+		*(*uint64)(unsafe.Pointer(&c.Key)) = key
+		*(*uint64)(unsafe.Pointer(&c.Data)) = data
+	} else {
+		c.Key.Store(key)
+		c.Data.Store(data)
+	}
 }
+
 
 func (c *Cache) AdvanceAge() {
 	c.age += 1
@@ -100,7 +128,7 @@ func (c *Cache) Consumed() int {
 	samples := 1000
 
 	for i := 0; i < samples; i++ {
-		if c.items[i].Data.Load() != 0 {
+		if c.items[i].LoadData() != 0 {
 			used++
 		}
 	}
@@ -117,8 +145,8 @@ func (c *Cache) Set(hash uint64, hashmove Move, eval int16, depth int8, nodeType
 	age := c.age
 
 	oldValue := &c.items[index]
-	oldKey := oldValue.Key.Load()
-	oldData := oldValue.Data.Load()
+	oldKey := oldValue.LoadKey()
+	oldData := oldValue.LoadData()
 	oldHash := oldKey ^ oldData
 
 	// very good for debugging hash issues
@@ -152,8 +180,8 @@ func (c *Cache) Size() int {
 func (c *Cache) Get(hash uint64) (Move, int16, int8, NodeType, bool) {
 	index := c.index(hash)
 	value := &c.items[index]
-	data := value.Data.Load()
-	key := value.Key.Load()
+	data := value.LoadData()
+	key := value.LoadKey()
 	ok := hash == (key ^ data)
 	if ok {
 		move, eval, depth, nType, _ := Unpack(data)

@@ -1,7 +1,9 @@
 package engine
 
 import (
+	"fmt"
 	"testing"
+	"time"
 )
 
 func TestBasicMoveGeneration(t *testing.T) {
@@ -322,6 +324,38 @@ func TestPerftStartingPosition(t *testing.T) {
 	expected = uint64(400)
 	if result.Nodes != expected {
 		t.Errorf("Perft depth 2: expected %d nodes, got %d", expected, result.Nodes)
+	}
+}
+
+func TestPerftStandardSuite(t *testing.T) {
+	for _, testCase := range StandardPerftTests {
+		t.Run(testCase.Name, func(t *testing.T) {
+			pos, err := ParseFEN(testCase.FEN)
+			if err != nil {
+				t.Fatalf("Failed to parse FEN %s: %v", testCase.FEN, err)
+			}
+
+			// Test each expected depth
+			for _, expected := range testCase.Expected {
+				t.Run(fmt.Sprintf("Depth%d", expected.Depth), func(t *testing.T) {
+					start := time.Now()
+					result := RunPerftTest(pos, expected.Depth)
+					duration := time.Since(start)
+
+					if result.Nodes != expected.Nodes {
+						t.Errorf("Perft %s depth %d: expected %d nodes, got %d nodes",
+							testCase.Name, expected.Depth, expected.Nodes, result.Nodes)
+					}
+
+					// Report performance for insight
+					if duration > time.Millisecond {
+						nps := float64(result.Nodes) / duration.Seconds()
+						t.Logf("Performance: %d nodes in %v (%.0f NPS)",
+							result.Nodes, duration, nps)
+					}
+				})
+			}
+		})
 	}
 }
 
