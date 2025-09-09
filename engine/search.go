@@ -17,6 +17,8 @@ const (
 	FUTILITY_MARGIN     = 200 // Futility pruning margin
 	FUTILITY_MAX_DEPTH  = 3   // Extended futility pruning depth
 	REVERSE_FUTILITY_MARGIN = 120 // Reverse futility margin  
+	RAZORING_MARGIN     = 400 // Razoring margin (higher = less aggressive)
+	RAZORING_MAX_DEPTH  = 3   // Maximum depth for razoring (lower = less aggressive)
 	DELTA_MARGIN        = 100 // Delta pruning margin in quiescence
 )
 
@@ -369,6 +371,16 @@ type SearchInfo struct {
 	CaptureBuffer *[64]Move   // For capture generation
 	OrderedBuffer *[256]Move  // For move ordering
 	SEEGains      *[32]int    // For SEE evaluation
+	
+	// Pruning and search efficiency statistics
+	FutilityPrunes      uint64 // Moves pruned by futility pruning
+	NullMoveCutoffs     uint64 // Beta cutoffs from null move pruning
+	LMRReductions       uint64 // Moves reduced by Late Move Reduction
+	TTHits              uint64 // Transposition table hits
+	TTCutoffs           uint64 // Beta cutoffs from TT
+	BetaCutoffs         uint64 // Total beta cutoffs
+	QNodes              uint64 // Quiescence search nodes
+	CheckExtensions     uint64 // Check extensions applied
 }
 
 func Search(pos *Position, depth int) *SearchInfo {
@@ -427,23 +439,35 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 			}
 		}
 
-		// Aspiration Windows: use previous iteration score to set a narrow window
+		// Optimized Aspiration Windows: focus on performance over complexity
 		var alpha, beta int
-		if currentDepth == 1 {
-			// Use full window for first iteration
+		var windowSize int
+		if currentDepth <= 3 {
+			// Use full window for shallow depths (avoids re-searches)
 			alpha = -INFINITY
 			beta = INFINITY
 		} else {
-			// Use aspiration window based on previous iteration
-			window := 50 // 50 centipawn window
-			alpha = previousScore - window
-			beta = previousScore + window
+			// Simple, efficient window sizing
+			windowSize = 50 // Fixed 50 centipawn window - good balance of efficiency vs accuracy
+			
+			// Only widen for extreme positions to minimize re-searches
+			scoreAbs := previousScore
+			if scoreAbs < 0 {
+				scoreAbs = -scoreAbs
+			}
+			
+			if scoreAbs > 800 { // Only for very extreme positions (near mate)
+				windowSize = 100
+			}
+			
+			alpha = previousScore - windowSize
+			beta = previousScore + windowSize
 		}
 
 		// Aspiration window re-search loop
 		iterationComplete := false
 		attempts := 0
-		maxAttempts := 4 // Prevent infinite loops
+		maxAttempts := 3 // Reduced from 4 to prevent excessive re-searches
 
 		for !iterationComplete && attempts < maxAttempts {
 			attempts++
@@ -475,7 +499,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					continue // Skip illegal move
 				}
 
-				score := -alphaBeta(pos, currentDepth-1, -beta, -alpha, info)
+				score := -alphaBetaPV(pos, currentDepth-1, -beta, -alpha, true, info)
 				pos.UnMakeMove(move, tag, ep, hc)
 
 				info.Nodes++
@@ -495,21 +519,15 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				}
 			}
 
-			// Check if we need to widen the window
-			if iterationBestScore <= (previousScore-50) && currentDepth > 1 {
-				// Fail low - widen alpha
-				alpha -= 100
-				if attempts == maxAttempts-1 {
-					alpha = -INFINITY // Use full window on last attempt
-				}
-			} else if iterationBestScore >= (previousScore+50) && currentDepth > 1 {
-				// Fail high - widen beta
-				beta += 100
-				if attempts == maxAttempts-1 {
-					beta = INFINITY // Use full window on last attempt
-				}
+			// Simple window widening to minimize re-searches
+			if iterationBestScore <= alpha && currentDepth > 3 {
+				// Fail low - immediately use full window to avoid multiple re-searches
+				alpha = -INFINITY
+			} else if iterationBestScore >= beta && currentDepth > 3 {
+				// Fail high - immediately use full window to avoid multiple re-searches  
+				beta = INFINITY
 			} else {
-				// Search completed successfully
+				// Search completed successfully within the window
 				info.BestScore = iterationBestScore
 				info.BestMove = iterationBestMove
 				previousScore = iterationBestScore
@@ -589,7 +607,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 			continue // Skip illegal move
 		}
 
-		score := -alphaBeta(pos, depth-1, -beta, -alpha, info)
+		score := -alphaBetaPV(pos, depth-1, -beta, -alpha, true, info)
 		pos.UnMakeMove(move, tag, ep, hc)
 
 		info.Nodes++
@@ -612,6 +630,10 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 }
 
 func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) int {
+	return alphaBetaPV(pos, depth, alpha, beta, true, info) // Root is always PV
+}
+
+func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info *SearchInfo) int {
 	// Safety checks - reasonable limits
 	if info.Nodes > 50000000 { // 50M nodes
 		info.Stopped = true
@@ -649,11 +671,13 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 	ttMove, ttEval, ttDepth, ttNodeType, ttHit := TranspositionTable.Get(hash)
 
 	if ttHit && ttDepth >= int8(depth) {
+		info.TTHits++
 		switch ttNodeType {
 		case Exact:
 			return int(ttEval)
 		case LowerBound:
 			if int(ttEval) >= beta {
+				info.TTCutoffs++
 				return int(ttEval)
 			}
 		case UpperBound:
@@ -696,8 +720,8 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 	}
 	
-	// Extended futility pruning for shallow depths
-	if depth <= FUTILITY_MAX_DEPTH && !inCheck {
+	// PV-aware extended futility pruning for shallow depths  
+	if depth <= FUTILITY_MAX_DEPTH && !inCheck && !isPV { // Don't prune in PV nodes
 		if !evalComputed {
 			staticEval = EvaluateForPlayer(&pos.Board, pos.Turn())
 			evalComputed = true
@@ -708,19 +732,23 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 	}
 
-	// Null move pruning - only if we're not in check and depth is sufficient
-	if !inCheck && depth >= NULL_MOVE_MIN_DEPTH && beta-alpha > 1 {
+	// Note: Razoring pruning removed - futility pruning already provides effective pruning
+	// with better performance characteristics for this engine architecture
+
+	// PV-aware null move pruning - more conservative in PV nodes
+	if !inCheck && depth >= NULL_MOVE_MIN_DEPTH && beta-alpha > 1 && (!isPV || depth >= 6) {
 		// Make the null move
 		oldEP := pos.MakeNullMove()
 
 		// Search with reduced depth
-		score := -alphaBeta(pos, depth-NULL_MOVE_R-1, -beta, -beta+1, info)
+		score := -alphaBetaPV(pos, depth-NULL_MOVE_R-1, -beta, -beta+1, false, info)
 
 		// Unmake the null move
 		pos.UnMakeNullMove(oldEP)
 
 		// If null move search caused a beta cutoff, we can prune
 		if score >= beta {
+			info.NullMoveCutoffs++
 			return beta
 		}
 	}
@@ -756,6 +784,7 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 
 		// Futility pruning - skip quiet moves if position is hopeless
 		if futilityPrune && !move.IsCapture() {
+			info.FutilityPrunes++
 			continue
 		}
 
@@ -794,14 +823,14 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 		legalTried++
 
-		// FIXED: Check extension logic - check if move gives check to OPPONENT
-		// Now that move is made, check if opponent is in check
+		// Refined Check Extension logic - balance tactical strength with performance  
 		givesCheck := isInCheck(pos, pos.Turn())
 		
 		// Compute next depth with check extension
 		nextDepth := depth - 1
 		if givesCheck && depth > 1 {
 			nextDepth++ // Extend search when move gives check
+			info.CheckExtensions++
 		}
 		if nextDepth >= depth {
 			// Guardrail: never allow recursion with the same depth
@@ -810,20 +839,23 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 
 		var score int
 
-		// Principal Variation Search (PVS) implementation
+		// Enhanced Principal Variation Search (PVS) with PV-node optimization
 		if moveCount == 1 {
-			// Search first move (presumably best) with full window
-			score = -alphaBeta(pos, nextDepth, -beta, -alpha, info)
+			// First move: search with full window and PV flag
+			score = -alphaBetaPV(pos, nextDepth, -beta, -alpha, isPV, info)
 		} else {
-			// For remaining moves, use Principal Variation Search
-
-			// More aggressive Late Move Reductions (LMR)
+			// Non-first moves: enhanced PVS with PV-aware reductions
+			
+			// PV-aware Late Move Reductions
 			reduction := 0
 			if depth >= LMR_FULL_DEPTH && moveCount > LMR_MOVE_THRESHOLD &&
 				!move.IsCapture() && !inCheck && !givesCheck {
 				
-				// Base reduction
+				// Base reduction - less aggressive for PV nodes  
 				reduction = 1
+				if !isPV {
+					reduction++ // More aggressive reduction for non-PV nodes
+				}
 				
 				// Extra reduction for later moves
 				if moveCount > 6 {
@@ -833,8 +865,8 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 					reduction++
 				}
 				
-				// Extra reduction for deeper searches
-				if depth > 6 {
+				// Extra reduction for deeper searches in non-PV nodes
+				if depth > 6 && !isPV {
 					reduction++
 				}
 				
@@ -845,29 +877,34 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 				if reduction < 1 {
 					reduction = 1
 				}
+				
+				// Track LMR usage
+				if reduction > 0 {
+					info.LMRReductions++
+				}
 			}
 
-			// Compute reduced depth and apply the same guardrail
+			// Compute reduced depth with check extension
 			reducedDepth := depth - 1 - reduction
-			if givesCheck && reducedDepth+1 < depth { // tentative extension
+			if givesCheck && reducedDepth+1 < depth {
 				reducedDepth++
 			}
 			if reducedDepth >= depth {
 				reducedDepth = depth - 1 - reduction
 			}
 
-			// Search with null window first (faster)
-			score = -alphaBeta(pos, reducedDepth, -alpha-1, -alpha, info)
+			// Search with null window first (not PV)
+			score = -alphaBetaPV(pos, reducedDepth, -alpha-1, -alpha, false, info)
 
-			// If null window search fails high, re-search with full window
+			// PVS re-search logic
 			if score > alpha && score < beta {
 				if reduction > 0 {
-					// First re-search with full depth but still null window
-					score = -alphaBeta(pos, nextDepth, -alpha-1, -alpha, info)
+					// Re-search with full depth but still null window
+					score = -alphaBetaPV(pos, nextDepth, -alpha-1, -alpha, false, info)
 				}
-				// If still fails high, do full window search
+				// If still fails high, do full window search (PV if we're in PV)
 				if score > alpha {
-					score = -alphaBeta(pos, nextDepth, -beta, -alpha, info)
+					score = -alphaBetaPV(pos, nextDepth, -beta, -alpha, isPV, info)
 				}
 			}
 		}
@@ -890,6 +927,7 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 		}
 
 		if score >= beta {
+			info.BetaCutoffs++
 			// Update history table for quiet moves that cause beta cutoffs
 			UpdateHistoryTable(move, depth)
 			// Update killer moves for quiet moves that cause beta cutoffs
@@ -934,6 +972,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 	// Stand pat - evaluate current position
 	standPat := EvaluateForPlayer(&pos.Board, pos.Turn())
 	info.Nodes++
+	info.QNodes++
 
 	if standPat >= beta {
 		return beta
