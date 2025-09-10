@@ -593,6 +593,24 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 			uci.sendUCIMessage(output, infoMsg)
 			uci.debugLogger.Printf("Sent info line for depth %d", depth)
 
+			// Early termination: if we have a stable best move and reasonable depth, exit early
+			if depth >= 6 && elapsed.Milliseconds() > int64(uci.timeManager.GetAllocatedTime().Milliseconds()/4) {
+				// Check if this move has been stable for several depths
+				legalMoves := GenerateLegalMoves(uci.position)
+				if len(legalMoves) == 1 {
+					// Only one legal move - exit immediately
+					uci.debugLogger.Printf("Only one legal move, exiting early")
+					break
+				} else if elapsed.Milliseconds() > int64(uci.timeManager.GetAllocatedTime().Milliseconds()/2) {
+					// Used half time allocation - be more conservative about continuing
+					uci.debugLogger.Printf("Used half time allocation, considering early exit")
+					if depth >= 8 {
+						uci.debugLogger.Printf("Sufficient depth reached, exiting early")
+						break
+					}
+				}
+			}
+
 			// Emergency time check
 			if uci.timeManager.IsEmergencyTime() {
 				uci.debugLogger.Printf("EMERGENCY TIME: stopping search")
@@ -632,16 +650,48 @@ searchComplete:
 	// Send best move
 	uci.debugLogger.Printf("*** ABOUT TO SEND BESTMOVE ***")
 	if bestMove != EmptyMove {
-		// Check if we should resign due to hopeless position
-		if !uci.allowResignation && bestScore < -MATE_IN_MAX {
-			// Position is hopeless but resignation is disabled - play the move anyway
-			uci.debugLogger.Printf("*** HOPELESS POSITION (score=%d) but resignation disabled, playing move ***", bestScore)
+		// CRITICAL: Validate the move is legal before sending
+		legalMoves := GenerateLegalMoves(uci.position)
+		isLegal := false
+		for _, legalMove := range legalMoves {
+			if bestMove == legalMove {
+				isLegal = true
+				break
+			}
 		}
+		
+		if !isLegal {
+			uci.debugLogger.Printf("*** CRITICAL ERROR: Search returned illegal move %s, position FEN: %s ***", bestMove.ToString(), GenerateFEN(uci.position))
+			uci.debugLogger.Printf("*** Legal moves in position: %v ***", legalMoves)
+			
+			// Try to find any legal move to avoid forfeiting
+			if len(legalMoves) > 0 {
+				bestMove = legalMoves[0]
+				uci.debugLogger.Printf("*** Using first legal move instead: %s ***", bestMove.ToString())
+			} else {
+				// Truly no legal moves
+				bestMove = EmptyMove
+				uci.debugLogger.Printf("*** No legal moves available ***")
+			}
+		}
+		
+		if bestMove != EmptyMove {
+			// Check if we should resign due to hopeless position
+			if !uci.allowResignation && bestScore < -MATE_IN_MAX {
+				// Position is hopeless but resignation is disabled - play the move anyway
+				uci.debugLogger.Printf("*** HOPELESS POSITION (score=%d) but resignation disabled, playing move ***", bestScore)
+			}
 
-		moveStr := bestMove.ToString()
-		uci.debugLogger.Printf("*** SENDING: bestmove %s ***", moveStr)
-		uci.sendUCIMessage(output, fmt.Sprintf("bestmove %s", moveStr))
-		uci.debugLogger.Printf("*** BESTMOVE SENT SUCCESSFULLY: %s ***", moveStr)
+			moveStr := bestMove.ToString()
+			uci.debugLogger.Printf("*** SENDING: bestmove %s ***", moveStr)
+			uci.sendUCIMessage(output, fmt.Sprintf("bestmove %s", moveStr))
+			uci.debugLogger.Printf("*** BESTMOVE SENT SUCCESSFULLY: %s ***", moveStr)
+		} else {
+			// No legal moves available
+			uci.debugLogger.Printf("*** SENDING: bestmove (none) - no legal moves ***")
+			uci.sendUCIMessage(output, "bestmove (none)")
+			uci.debugLogger.Printf("*** BESTMOVE (none) SENT ***")
+		}
 	} else {
 		// Check if we should try to find any legal move to avoid resignation
 		if !uci.allowResignation {

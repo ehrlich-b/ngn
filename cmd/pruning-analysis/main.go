@@ -45,7 +45,7 @@ func main() {
 
 	// Display comprehensive statistics
 	fmt.Printf("=== SEARCH RESULTS ===\n")
-	fmt.Printf("Best Move: %s\n", info.BestMove)
+	fmt.Printf("Best Move: %s\n", info.BestMove.ToString())
 	fmt.Printf("Score: %d centipawns\n", info.BestScore)
 	fmt.Printf("Time: %v\n", elapsed)
 	fmt.Printf("NPS: %d\n\n", uint64(float64(info.Nodes)/elapsed.Seconds()))
