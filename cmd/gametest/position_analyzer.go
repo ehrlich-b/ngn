@@ -83,14 +83,14 @@ func (pa *PositionAnalyzer) AnalyzePosition(fen string) (*PositionInfo, error) {
 
 // PositionInfo contains analysis results for a chess position
 type PositionInfo struct {
-	FEN             string
-	IsWhiteToMove   bool
-	LegalMoveCount  int
-	IsCheckmate     bool
-	IsStalemate     bool
-	IsDraw          bool
-	GameResult      string // "1-0", "0-1", "1/2-1/2", "*"
-	ResultReason    string
+	FEN            string
+	IsWhiteToMove  bool
+	LegalMoveCount int
+	IsCheckmate    bool
+	IsStalemate    bool
+	IsDraw         bool
+	GameResult     string // "1-0", "0-1", "1/2-1/2", "*"
+	ResultReason   string
 }
 
 // isInsufficientMaterial checks if the position has insufficient material for checkmate
@@ -137,7 +137,7 @@ func (pa *PositionAnalyzer) isInsufficientMaterial(pos *engine.Position) bool {
 
 // isThreefoldRepetition checks for threefold repetition
 func (pa *PositionAnalyzer) isThreefoldRepetition(pos *engine.Position) bool {
-	// For now, just return false - threefold repetition tracking 
+	// For now, just return false - threefold repetition tracking
 	// would require game history which we don't have here
 	return false
 }

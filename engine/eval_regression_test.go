@@ -22,15 +22,15 @@ type EvaluationBaseline struct {
 
 // EvaluationRegressionSuite contains all baseline evaluations
 type EvaluationRegressionSuite struct {
-	Version   string                `json:"version"`
+	Version   string               `json:"version"`
 	Timestamp string               `json:"timestamp"`
 	Baselines []EvaluationBaseline `json:"baselines"`
 }
 
 // Standard test positions for evaluation regression testing
 var standardEvaluationPositions = []struct {
-	name string
-	fen  string
+	name     string
+	fen      string
 	comments string
 }{
 	{
@@ -238,4 +238,3 @@ func TestEvaluationConsistency(t *testing.T) {
 		})
 	}
 }
-

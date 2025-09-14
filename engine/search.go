@@ -7,19 +7,19 @@ import (
 )
 
 const (
-	INFINITY            = int(math.MaxInt32)
-	MATE_VALUE          = 30000
-	MATE_IN_MAX         = MATE_VALUE - 1000
-	NULL_MOVE_R         = 3   // Null move reduction depth
-	NULL_MOVE_MIN_DEPTH = 3   // Minimum depth for null move pruning
-	LMR_FULL_DEPTH      = 3   // Minimum depth for LMR
-	LMR_MOVE_THRESHOLD  = 3   // Start reducing after this many moves
-	FUTILITY_MARGIN     = 200 // Futility pruning margin
-	FUTILITY_MAX_DEPTH  = 3   // Extended futility pruning depth
-	REVERSE_FUTILITY_MARGIN = 120 // Reverse futility margin  
-	RAZORING_MARGIN     = 400 // Razoring margin (higher = less aggressive)
-	RAZORING_MAX_DEPTH  = 3   // Maximum depth for razoring (lower = less aggressive)
-	DELTA_MARGIN        = 100 // Delta pruning margin in quiescence
+	INFINITY                = int(math.MaxInt32)
+	MATE_VALUE              = 30000
+	MATE_IN_MAX             = MATE_VALUE - 1000
+	NULL_MOVE_R             = 3   // Null move reduction depth
+	NULL_MOVE_MIN_DEPTH     = 3   // Minimum depth for null move pruning
+	LMR_FULL_DEPTH          = 3   // Minimum depth for LMR
+	LMR_MOVE_THRESHOLD      = 3   // Start reducing after this many moves
+	FUTILITY_MARGIN         = 200 // Futility pruning margin
+	FUTILITY_MAX_DEPTH      = 3   // Extended futility pruning depth
+	REVERSE_FUTILITY_MARGIN = 120 // Reverse futility margin
+	RAZORING_MARGIN         = 400 // Razoring margin (higher = less aggressive)
+	RAZORING_MAX_DEPTH      = 3   // Maximum depth for razoring (lower = less aggressive)
+	DELTA_MARGIN            = 100 // Delta pruning margin in quiescence
 )
 
 // Static Exchange Evaluation (SEE) implementation
@@ -365,22 +365,22 @@ type SearchInfo struct {
 	TimeManager *TimeManager
 	PV          [MaximumDepth]Move // Principal variation array
 	PVLength    int                // Length of current PV
-	
+
 	// Zero-allocation buffers passed through recursion
-	MoveBuffer    *[256]Move  // For move generation
-	CaptureBuffer *[64]Move   // For capture generation
-	OrderedBuffer *[256]Move  // For move ordering
-	SEEGains      *[32]int    // For SEE evaluation
-	
+	MoveBuffer    *[256]Move // For move generation
+	CaptureBuffer *[64]Move  // For capture generation
+	OrderedBuffer *[256]Move // For move ordering
+	SEEGains      *[32]int   // For SEE evaluation
+
 	// Pruning and search efficiency statistics
-	FutilityPrunes      uint64 // Moves pruned by futility pruning
-	NullMoveCutoffs     uint64 // Beta cutoffs from null move pruning
-	LMRReductions       uint64 // Moves reduced by Late Move Reduction
-	TTHits              uint64 // Transposition table hits
-	TTCutoffs           uint64 // Beta cutoffs from TT
-	BetaCutoffs         uint64 // Total beta cutoffs
-	QNodes              uint64 // Quiescence search nodes
-	CheckExtensions     uint64 // Check extensions applied
+	FutilityPrunes  uint64 // Moves pruned by futility pruning
+	NullMoveCutoffs uint64 // Beta cutoffs from null move pruning
+	LMRReductions   uint64 // Moves reduced by Late Move Reduction
+	TTHits          uint64 // Transposition table hits
+	TTCutoffs       uint64 // Beta cutoffs from TT
+	BetaCutoffs     uint64 // Total beta cutoffs
+	QNodes          uint64 // Quiescence search nodes
+	CheckExtensions uint64 // Check extensions applied
 }
 
 func Search(pos *Position, depth int) *SearchInfo {
@@ -449,17 +449,17 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		} else {
 			// Simple, efficient window sizing
 			windowSize = 50 // Fixed 50 centipawn window - good balance of efficiency vs accuracy
-			
+
 			// Only widen for extreme positions to minimize re-searches
 			scoreAbs := previousScore
 			if scoreAbs < 0 {
 				scoreAbs = -scoreAbs
 			}
-			
+
 			if scoreAbs > 800 { // Only for very extreme positions (near mate)
 				windowSize = 100
 			}
-			
+
 			alpha = previousScore - windowSize
 			beta = previousScore + windowSize
 		}
@@ -524,7 +524,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				// Fail low - immediately use full window to avoid multiple re-searches
 				alpha = -INFINITY
 			} else if iterationBestScore >= beta && currentDepth > 3 {
-				// Fail high - immediately use full window to avoid multiple re-searches  
+				// Fail high - immediately use full window to avoid multiple re-searches
 				beta = INFINITY
 			} else {
 				// Search completed successfully within the window
@@ -705,29 +705,29 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 	// Check if we're in check before attempting null move
 	inCheck := isInCheck(pos, pos.Turn())
 
-	// Extended futility pruning (depths 1-3) and reverse futility pruning  
+	// Extended futility pruning (depths 1-3) and reverse futility pruning
 	var futilityPrune bool
 	var staticEval int
 	var evalComputed bool
-	
+
 	// Reverse futility pruning - if position is very good, return early
-	if depth <= 3 && !inCheck && beta - alpha == 1 {
+	if depth <= 3 && !inCheck && beta-alpha == 1 {
 		staticEval = EvaluateForPlayer(&pos.Board, pos.Turn())
 		evalComputed = true
 		margin := REVERSE_FUTILITY_MARGIN * depth
-		if staticEval - margin >= beta {
+		if staticEval-margin >= beta {
 			return staticEval - margin
 		}
 	}
-	
-	// PV-aware extended futility pruning for shallow depths  
+
+	// PV-aware extended futility pruning for shallow depths
 	if depth <= FUTILITY_MAX_DEPTH && !inCheck && !isPV { // Don't prune in PV nodes
 		if !evalComputed {
 			staticEval = EvaluateForPlayer(&pos.Board, pos.Turn())
 			evalComputed = true
 		}
 		margin := FUTILITY_MARGIN + (depth-1)*50 // Increasing margin with depth
-		if staticEval + margin <= alpha {
+		if staticEval+margin <= alpha {
 			futilityPrune = true
 		}
 	}
@@ -823,9 +823,9 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		}
 		legalTried++
 
-		// Refined Check Extension logic - balance tactical strength with performance  
+		// Refined Check Extension logic - balance tactical strength with performance
 		givesCheck := isInCheck(pos, pos.Turn())
-		
+
 		// Compute next depth with check extension
 		nextDepth := depth - 1
 		if givesCheck && depth > 1 {
@@ -845,18 +845,18 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 			score = -alphaBetaPV(pos, nextDepth, -beta, -alpha, isPV, info)
 		} else {
 			// Non-first moves: enhanced PVS with PV-aware reductions
-			
+
 			// PV-aware Late Move Reductions
 			reduction := 0
 			if depth >= LMR_FULL_DEPTH && moveCount > LMR_MOVE_THRESHOLD &&
 				!move.IsCapture() && !inCheck && !givesCheck {
-				
-				// Base reduction - less aggressive for PV nodes  
+
+				// Base reduction - less aggressive for PV nodes
 				reduction = 1
 				if !isPV {
 					reduction++ // More aggressive reduction for non-PV nodes
 				}
-				
+
 				// Extra reduction for later moves
 				if moveCount > 6 {
 					reduction++
@@ -864,20 +864,20 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 				if moveCount > 12 {
 					reduction++
 				}
-				
+
 				// Extra reduction for deeper searches in non-PV nodes
 				if depth > 6 && !isPV {
 					reduction++
 				}
-				
+
 				// Cap maximum reduction
-				if reduction >= depth - 1 {
+				if reduction >= depth-1 {
 					reduction = depth - 2
 				}
 				if reduction < 1 {
 					reduction = 1
 				}
-				
+
 				// Track LMR usage
 				if reduction > 0 {
 					info.LMRReductions++
@@ -969,6 +969,40 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 		return EvaluateForPlayer(&pos.Board, pos.Turn())
 	}
 
+	// MATE DETECTION: Check for checkmate/stalemate at quiescence entry
+	// This is critical for detecting mate-in-1 positions
+	if qDepth == 0 {
+		// Generate all pseudo-legal moves
+		var moveBuffer [256]Move
+		moveCount := GenerateMovesIntoBuffer(pos, moveBuffer[:])
+
+		// Check if any move is actually legal by trying them
+		hasLegalMove := false
+		for i := 0; i < moveCount && !hasLegalMove; i++ {
+			move := moveBuffer[i]
+			oldEP, oldTag, oldHalfClock, _ := pos.MakeMove(move)
+
+			// Check if this move leaves our king in check (illegal)
+			ourKingInCheck := isInCheck(pos, pos.Turn().Other())
+
+			pos.UnMakeMove(move, oldTag, oldEP, oldHalfClock)
+
+			if !ourKingInCheck {
+				hasLegalMove = true
+			}
+		}
+
+		if !hasLegalMove {
+			inCheck := pos.IsInCheck()
+			if inCheck {
+				// Checkmate - we're mated
+				return -MATE_VALUE + info.Depth
+			}
+			// Stalemate
+			return 0
+		}
+	}
+
 	// Stand pat - evaluate current position
 	standPat := EvaluateForPlayer(&pos.Board, pos.Turn())
 	info.Nodes++
@@ -998,7 +1032,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 		// Use MoveBuffer from SearchInfo to avoid allocation
 		numMoves := GenerateMovesIntoBuffer(pos, info.MoveBuffer[:])
 		moves := (*info.MoveBuffer)[:numMoves]
-		
+
 		for _, move := range moves {
 			// Skip if already a capture
 			if move.IsCapture() {

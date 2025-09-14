@@ -659,11 +659,11 @@ searchComplete:
 				break
 			}
 		}
-		
+
 		if !isLegal {
 			uci.debugLogger.Printf("*** CRITICAL ERROR: Search returned illegal move %s, position FEN: %s ***", bestMove.ToString(), GenerateFEN(uci.position))
 			uci.debugLogger.Printf("*** Legal moves in position: %v ***", legalMoves)
-			
+
 			// Try to find any legal move to avoid forfeiting
 			if len(legalMoves) > 0 {
 				bestMove = legalMoves[0]
@@ -674,7 +674,7 @@ searchComplete:
 				uci.debugLogger.Printf("*** No legal moves available ***")
 			}
 		}
-		
+
 		if bestMove != EmptyMove {
 			// Check if we should resign due to hopeless position
 			if !uci.allowResignation && bestScore < -MATE_IN_MAX {

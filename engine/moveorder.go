@@ -146,7 +146,7 @@ func orderMovesSinglePass(moves []Move, depth int, previousMove Move, ttMove Mov
 	// Use zero-allocation buffer version internally
 	var buffer [256]Move
 	count := orderMovesSinglePassIntoBuffer(moves, depth, previousMove, ttMove, ttHit, buffer[:], pos)
-	
+
 	// Return a copy of the ordered moves (only allocation, but tests need owned slice)
 	result := make([]Move, count)
 	copy(result, buffer[:count])

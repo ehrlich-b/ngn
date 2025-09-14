@@ -42,8 +42,8 @@ func TestLongSearchMemoryLeak(t *testing.T) {
 
 	// Test positions that trigger different search patterns
 	testPositions := []struct {
-		name string
-		fen  string
+		name  string
+		fen   string
 		depth int
 	}{
 		{
@@ -52,7 +52,7 @@ func TestLongSearchMemoryLeak(t *testing.T) {
 			depth: 6,
 		},
 		{
-			name:  "Tactical Position", 
+			name:  "Tactical Position",
 			fen:   "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R b KQkq - 0 4",
 			depth: 6,
 		},
@@ -63,7 +63,7 @@ func TestLongSearchMemoryLeak(t *testing.T) {
 		},
 	}
 
-	const iterations = 5 // Reduced from 10 for faster testing
+	const iterations = 5            // Reduced from 10 for faster testing
 	const maxMemoryIncreaseMB = 5.0 // Allow some memory increase but not excessive
 
 	for _, pos := range testPositions {
@@ -75,11 +75,11 @@ func TestLongSearchMemoryLeak(t *testing.T) {
 
 			// Force garbage collection before starting
 			runtime.GC()
-			runtime.GC() // Run twice to ensure clean state
+			runtime.GC()                      // Run twice to ensure clean state
 			time.Sleep(10 * time.Millisecond) // Let GC complete
 
 			initialStats := captureMemoryStats()
-			t.Logf("Initial memory: %.2f MB allocated, %d goroutines", 
+			t.Logf("Initial memory: %.2f MB allocated, %d goroutines",
 				initialStats.AllocMB, initialStats.Goroutines)
 
 			// Run multiple search iterations
@@ -105,13 +105,13 @@ func TestLongSearchMemoryLeak(t *testing.T) {
 			time.Sleep(10 * time.Millisecond)
 
 			finalStats := captureMemoryStats()
-			
+
 			memoryIncrease := finalStats.AllocMB - initialStats.AllocMB
 			goroutineIncrease := finalStats.Goroutines - initialStats.Goroutines
 
 			t.Logf("Search completed: %d iterations, %d total nodes, %.2f seconds",
 				iterations, totalNodes, searchDuration.Seconds())
-			t.Logf("Final memory: %.2f MB allocated, %d goroutines", 
+			t.Logf("Final memory: %.2f MB allocated, %d goroutines",
 				finalStats.AllocMB, finalStats.Goroutines)
 			t.Logf("Memory change: %+.2f MB, Goroutine change: %+d, GC runs: %d",
 				memoryIncrease, goroutineIncrease, finalStats.NumGC-initialStats.NumGC)
@@ -147,9 +147,9 @@ func TestTranspositionTableMemoryManagement(t *testing.T) {
 	// Force garbage collection
 	runtime.GC()
 	runtime.GC()
-	
+
 	initialStats := captureMemoryStats()
-	
+
 	// Create and populate a transposition table
 	position, err := ParseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 	if err != nil {
@@ -168,9 +168,9 @@ func TestTranspositionTableMemoryManagement(t *testing.T) {
 	// Memory after TT population
 	runtime.GC()
 	populatedStats := captureMemoryStats()
-	
+
 	memoryForTT := populatedStats.AllocMB - initialStats.AllocMB
-	
+
 	t.Logf("TT populated with %d searches, %d total nodes", numSearches, totalNodes)
 	t.Logf("Memory for TT operations: %.2f MB", memoryForTT)
 
@@ -196,25 +196,25 @@ func TestMemoryStressSearch(t *testing.T) {
 
 	runtime.GC()
 	runtime.GC()
-	
+
 	initialStats := captureMemoryStats()
-	
+
 	// Run progressively deeper searches
 	for depth := 4; depth <= 7; depth++ {
 		searchStart := time.Now()
 		info := Search(position, depth)
 		searchTime := time.Since(searchStart)
-		
+
 		runtime.GC() // Clean up after each search
-		
+
 		currentStats := captureMemoryStats()
 		memoryUsed := currentStats.AllocMB - initialStats.AllocMB
-		
+
 		nps := float64(info.Nodes) / searchTime.Seconds()
-		
-		t.Logf("Depth %d: %d nodes, %.3fs, %.0f NPS, %.2f MB memory", 
+
+		t.Logf("Depth %d: %d nodes, %.3fs, %.0f NPS, %.2f MB memory",
 			depth, info.Nodes, searchTime.Seconds(), nps, memoryUsed)
-		
+
 		// Check for excessive memory growth
 		expectedMaxMemory := float64(depth) * 2.0 // Allow 2MB per depth level
 		if memoryUsed > expectedMaxMemory {
@@ -222,17 +222,17 @@ func TestMemoryStressSearch(t *testing.T) {
 				depth, memoryUsed, expectedMaxMemory)
 		}
 	}
-	
+
 	// Final cleanup and check
 	runtime.GC()
 	runtime.GC()
 	time.Sleep(20 * time.Millisecond)
-	
+
 	finalStats := captureMemoryStats()
 	totalMemoryUsed := finalStats.AllocMB - initialStats.AllocMB
-	
+
 	t.Logf("Total memory after stress test: %.2f MB", totalMemoryUsed)
-	
+
 	// Check that memory returns to reasonable levels after GC
 	const maxFinalMemoryMB = 10.0
 	if totalMemoryUsed > maxFinalMemoryMB {

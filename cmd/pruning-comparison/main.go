@@ -10,12 +10,12 @@ import (
 
 // Configuration for different search modes
 type SearchConfig struct {
-	Name                string
-	EnableFutility      bool
-	EnableNullMove      bool
-	EnableLMR           bool
-	EnableCheckExt      bool
-	EnableTT            bool
+	Name           string
+	EnableFutility bool
+	EnableNullMove bool
+	EnableLMR      bool
+	EnableCheckExt bool
+	EnableTT       bool
 }
 
 var searchConfigs = []SearchConfig{
@@ -51,14 +51,14 @@ func main() {
 	fmt.Printf("Position: Starting Position\n")
 	fmt.Printf("Search Depth: %d\n\n", depth)
 
-	fmt.Printf("%-25s %8s %10s %8s %6s %8s %8s %8s %7s\n", 
+	fmt.Printf("%-25s %8s %10s %8s %6s %8s %8s %8s %7s\n",
 		"Configuration", "Nodes", "Time(ms)", "NPS", "EBF", "Futility", "NullMove", "BetaCut", "TTHits")
 	fmt.Printf("%s\n", string(make([]rune, 110, 110)))
 
 	var baselineNodes uint64 = 0
 
 	for i, config := range searchConfigs {
-		// Run search with current configuration  
+		// Run search with current configuration
 		start := time.Now()
 		info := engine.Search(pos, depth)
 		elapsed := time.Since(start)
@@ -69,7 +69,7 @@ func main() {
 
 		nps := uint64(float64(info.Nodes) / elapsed.Seconds())
 		ebf := calculateEBF(info.Nodes, depth)
-		
+
 		// Calculate improvement
 		improvement := ""
 		if baselineNodes > 0 && i > 0 {
@@ -96,7 +96,7 @@ func main() {
 
 	fmt.Printf("\n=== SUMMARY ===\n")
 	fmt.Printf("Baseline nodes: %d\n", baselineNodes)
-	
+
 	// Show the impact of each technique
 	fmt.Printf("\nPruning technique effectiveness (compared to baseline):\n")
 	for i := 1; i < len(searchConfigs); i++ {
@@ -121,12 +121,12 @@ func pow(base, exp float64) float64 {
 	if exp == 1 {
 		return base
 	}
-	
+
 	result := 1.0
 	for i := 0; i < int(exp); i++ {
 		result *= base
 	}
-	
+
 	// Handle fractional exponents with approximation
 	if exp != float64(int(exp)) {
 		// Simple approximation for fractional powers
@@ -136,6 +136,6 @@ func pow(base, exp float64) float64 {
 			result *= base * frac
 		}
 	}
-	
+
 	return result
 }

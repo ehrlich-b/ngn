@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-09-08T20:02:18.096997656-04:00",
+  "timestamp": "2025-09-13T14:36:01.274670722-04:00",
   "total_tests": 30,
   "correct": 28,
   "accuracy": 93.33333333333333,
-  "avg_solve_time": 1886411639,
-  "max_solve_time": 1951913320,
-  "min_solve_time": 18102349,
+  "avg_solve_time": 1412380105,
+  "max_solve_time": 1951745405,
+  "min_solve_time": 11783201,
   "random_seed": 42,
   "total_positions_available": 221,
   "results": [
@@ -18,11 +18,11 @@
       },
       "FoundMove": "b3b8",
       "Correct": true,
-      "TimeToSolve": 1950415377,
+      "TimeToSolve": 1225573318,
       "DepthReached": 3,
-      "Nodes": 5944,
-      "NPS": 786107,
-      "Score": 75
+      "Nodes": 7961,
+      "NPS": 682708,
+      "Score": 160
     },
     {
       "Position": {
@@ -33,11 +33,11 @@
       },
       "FoundMove": "g4d7",
       "Correct": true,
-      "TimeToSolve": 1950476172,
+      "TimeToSolve": 1950955789,
       "DepthReached": 3,
-      "Nodes": 7991,
-      "NPS": 940280,
-      "Score": -355
+      "Nodes": 8004,
+      "NPS": 691651,
+      "Score": -305
     },
     {
       "Position": {
@@ -48,11 +48,11 @@
       },
       "FoundMove": "g3g6",
       "Correct": true,
-      "TimeToSolve": 1950974026,
+      "TimeToSolve": 1619265556,
       "DepthReached": 3,
-      "Nodes": 11628,
-      "NPS": 1150275,
-      "Score": 245
+      "Nodes": 11803,
+      "NPS": 1202436,
+      "Score": 295
     },
     {
       "Position": {
@@ -63,11 +63,11 @@
       },
       "FoundMove": "f2f5",
       "Correct": true,
-      "TimeToSolve": 1950678066,
+      "TimeToSolve": 1162405113,
       "DepthReached": 3,
-      "Nodes": 5296,
-      "NPS": 1357689,
-      "Score": 0
+      "Nodes": 5393,
+      "NPS": 1505289,
+      "Score": 40
     },
     {
       "Position": {
@@ -78,11 +78,11 @@
       },
       "FoundMove": "d6e5",
       "Correct": false,
-      "TimeToSolve": 1950713166,
-      "DepthReached": 12,
-      "Nodes": 565540,
-      "NPS": 412088,
-      "Score": 950
+      "TimeToSolve": 1950787590,
+      "DepthReached": 11,
+      "Nodes": 252610,
+      "NPS": 323245,
+      "Score": 915
     },
     {
       "Position": {
@@ -93,11 +93,11 @@
       },
       "FoundMove": "h4h6",
       "Correct": true,
-      "TimeToSolve": 1950690969,
+      "TimeToSolve": 1951704090,
       "DepthReached": 3,
-      "Nodes": 9273,
-      "NPS": 1154755,
-      "Score": -115
+      "Nodes": 7961,
+      "NPS": 367630,
+      "Score": -170
     },
     {
       "Position": {
@@ -108,11 +108,11 @@
       },
       "FoundMove": "g2g8",
       "Correct": true,
-      "TimeToSolve": 1951156126,
+      "TimeToSolve": 1645772960,
       "DepthReached": 3,
-      "Nodes": 11583,
-      "NPS": 902416,
-      "Score": -170
+      "Nodes": 11557,
+      "NPS": 922972,
+      "Score": -135
     },
     {
       "Position": {
@@ -123,11 +123,11 @@
       },
       "FoundMove": "h4h7",
       "Correct": true,
-      "TimeToSolve": 1950935503,
+      "TimeToSolve": 1156793612,
       "DepthReached": 3,
-      "Nodes": 7289,
-      "NPS": 840307,
-      "Score": 410
+      "Nodes": 7341,
+      "NPS": 696245,
+      "Score": 430
     },
     {
       "Position": {
@@ -138,11 +138,11 @@
       },
       "FoundMove": "g6e5",
       "Correct": true,
-      "TimeToSolve": 1951177961,
+      "TimeToSolve": 1035994001,
       "DepthReached": 3,
-      "Nodes": 5987,
-      "NPS": 946438,
-      "Score": 270
+      "Nodes": 6283,
+      "NPS": 836094,
+      "Score": 240
     },
     {
       "Position": {
@@ -153,11 +153,11 @@
       },
       "FoundMove": "g2g7",
       "Correct": true,
-      "TimeToSolve": 1950654409,
+      "TimeToSolve": 1154675112,
       "DepthReached": 3,
-      "Nodes": 8753,
-      "NPS": 828220,
-      "Score": -290
+      "Nodes": 7791,
+      "NPS": 702746,
+      "Score": -300
     },
     {
       "Position": {
@@ -168,11 +168,11 @@
       },
       "FoundMove": "f4g6",
       "Correct": true,
-      "TimeToSolve": 1950680406,
+      "TimeToSolve": 1027084000,
       "DepthReached": 3,
-      "Nodes": 5510,
-      "NPS": 1468801,
-      "Score": -10
+      "Nodes": 4666,
+      "NPS": 1371344,
+      "Score": 75
     },
     {
       "Position": {
@@ -183,11 +183,11 @@
       },
       "FoundMove": "d4g1",
       "Correct": true,
-      "TimeToSolve": 1951009177,
+      "TimeToSolve": 1209562418,
       "DepthReached": 3,
-      "Nodes": 3178,
-      "NPS": 976703,
-      "Score": 115
+      "Nodes": 2685,
+      "NPS": 1289749,
+      "Score": 95
     },
     {
       "Position": {
@@ -198,11 +198,11 @@
       },
       "FoundMove": "d4h8",
       "Correct": true,
-      "TimeToSolve": 1951282053,
+      "TimeToSolve": 1486887844,
       "DepthReached": 3,
-      "Nodes": 5284,
-      "NPS": 1269240,
-      "Score": -160
+      "Nodes": 5643,
+      "NPS": 1114490,
+      "Score": -195
     },
     {
       "Position": {
@@ -213,11 +213,11 @@
       },
       "FoundMove": "e3f5",
       "Correct": true,
-      "TimeToSolve": 1950564317,
+      "TimeToSolve": 1533669250,
       "DepthReached": 3,
-      "Nodes": 4134,
-      "NPS": 779306,
-      "Score": 65
+      "Nodes": 5146,
+      "NPS": 559457,
+      "Score": 90
     },
     {
       "Position": {
@@ -228,11 +228,11 @@
       },
       "FoundMove": "h6f8",
       "Correct": true,
-      "TimeToSolve": 18102349,
+      "TimeToSolve": 11783201,
       "DepthReached": 3,
-      "Nodes": 3898,
-      "NPS": 470384,
-      "Score": -405
+      "Nodes": 3647,
+      "NPS": 865345,
+      "Score": -380
     },
     {
       "Position": {
@@ -243,11 +243,11 @@
       },
       "FoundMove": "f1f6",
       "Correct": true,
-      "TimeToSolve": 1950367336,
+      "TimeToSolve": 1234906521,
       "DepthReached": 3,
-      "Nodes": 7001,
-      "NPS": 908289,
-      "Score": 125
+      "Nodes": 8979,
+      "NPS": 836578,
+      "Score": 105
     },
     {
       "Position": {
@@ -258,11 +258,11 @@
       },
       "FoundMove": "e2e6",
       "Correct": true,
-      "TimeToSolve": 1951228295,
+      "TimeToSolve": 1007874800,
       "DepthReached": 3,
-      "Nodes": 7635,
-      "NPS": 1033820,
-      "Score": 175
+      "Nodes": 8958,
+      "NPS": 963298,
+      "Score": 165
     },
     {
       "Position": {
@@ -273,11 +273,11 @@
       },
       "FoundMove": "c5f2",
       "Correct": true,
-      "TimeToSolve": 1951352525,
+      "TimeToSolve": 1910132790,
       "DepthReached": 3,
-      "Nodes": 5913,
-      "NPS": 639419,
-      "Score": 60
+      "Nodes": 5987,
+      "NPS": 849002,
+      "Score": 35
     },
     {
       "Position": {
@@ -288,11 +288,11 @@
       },
       "FoundMove": "h3h6",
       "Correct": true,
-      "TimeToSolve": 1950741180,
+      "TimeToSolve": 1951142094,
       "DepthReached": 3,
-      "Nodes": 13677,
-      "NPS": 1003377,
-      "Score": 250
+      "Nodes": 15731,
+      "NPS": 809553,
+      "Score": 265
     },
     {
       "Position": {
@@ -303,11 +303,11 @@
       },
       "FoundMove": "a5d8",
       "Correct": true,
-      "TimeToSolve": 1950529600,
+      "TimeToSolve": 1144921313,
       "DepthReached": 3,
-      "Nodes": 5195,
-      "NPS": 1621862,
-      "Score": -15
+      "Nodes": 5041,
+      "NPS": 1616482,
+      "Score": 10
     },
     {
       "Position": {
@@ -318,11 +318,11 @@
       },
       "FoundMove": "e5f7",
       "Correct": true,
-      "TimeToSolve": 1951043927,
+      "TimeToSolve": 1950921697,
       "DepthReached": 3,
-      "Nodes": 3346,
-      "NPS": 1715174,
-      "Score": 85
+      "Nodes": 3338,
+      "NPS": 1717253,
+      "Score": 135
     },
     {
       "Position": {
@@ -333,10 +333,10 @@
       },
       "FoundMove": "e7e8",
       "Correct": true,
-      "TimeToSolve": 1951230266,
+      "TimeToSolve": 1048122010,
       "DepthReached": 3,
-      "Nodes": 7992,
-      "NPS": 1064760,
+      "Nodes": 9121,
+      "NPS": 658965,
       "Score": -10
     },
     {
@@ -348,11 +348,11 @@
       },
       "FoundMove": "d3f5",
       "Correct": true,
-      "TimeToSolve": 1950610623,
+      "TimeToSolve": 1396114946,
       "DepthReached": 3,
-      "Nodes": 4198,
-      "NPS": 749751,
-      "Score": 30
+      "Nodes": 3933,
+      "NPS": 858246,
+      "Score": -5
     },
     {
       "Position": {
@@ -363,11 +363,11 @@
       },
       "FoundMove": "g6e6",
       "Correct": true,
-      "TimeToSolve": 1950616522,
+      "TimeToSolve": 985768704,
       "DepthReached": 3,
-      "Nodes": 9655,
-      "NPS": 1297589,
-      "Score": 230
+      "Nodes": 8896,
+      "NPS": 684955,
+      "Score": 240
     },
     {
       "Position": {
@@ -378,11 +378,11 @@
       },
       "FoundMove": "g3a3",
       "Correct": false,
-      "TimeToSolve": 1950982615,
+      "TimeToSolve": 1458257053,
       "DepthReached": 12,
-      "Nodes": 648971,
-      "NPS": 572355,
-      "Score": 1155
+      "Nodes": 812868,
+      "NPS": 557557,
+      "Score": 1175
     },
     {
       "Position": {
@@ -393,11 +393,11 @@
       },
       "FoundMove": "f4f1",
       "Correct": true,
-      "TimeToSolve": 1950491550,
+      "TimeToSolve": 1951745405,
       "DepthReached": 3,
-      "Nodes": 6204,
-      "NPS": 968359,
-      "Score": 25
+      "Nodes": 4678,
+      "NPS": 1038217,
+      "Score": 65
     },
     {
       "Position": {
@@ -408,11 +408,11 @@
       },
       "FoundMove": "b3e6",
       "Correct": true,
-      "TimeToSolve": 1951913320,
+      "TimeToSolve": 1950909130,
       "DepthReached": 3,
-      "Nodes": 3665,
-      "NPS": 1349882,
-      "Score": 175
+      "Nodes": 3690,
+      "NPS": 849076,
+      "Score": 180
     },
     {
       "Position": {
@@ -423,11 +423,11 @@
       },
       "FoundMove": "a3e7",
       "Correct": true,
-      "TimeToSolve": 1950560044,
+      "TimeToSolve": 1214909053,
       "DepthReached": 3,
-      "Nodes": 2956,
-      "NPS": 835458,
-      "Score": 225
+      "Nodes": 2924,
+      "NPS": 475988,
+      "Score": 265
     },
     {
       "Position": {
@@ -438,11 +438,11 @@
       },
       "FoundMove": "c3c6",
       "Correct": true,
-      "TimeToSolve": 1950301666,
+      "TimeToSolve": 1091116238,
       "DepthReached": 3,
       "Nodes": 5330,
-      "NPS": 1734564,
-      "Score": 190
+      "NPS": 1112711,
+      "Score": 170
     },
     {
       "Position": {
@@ -453,10 +453,10 @@
       },
       "FoundMove": "f6f7",
       "Correct": true,
-      "TimeToSolve": 1950869626,
+      "TimeToSolve": 1951647546,
       "DepthReached": 3,
       "Nodes": 739,
-      "NPS": 740845,
+      "NPS": 823673,
       "Score": 330
     }
   ]

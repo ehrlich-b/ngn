@@ -35,15 +35,15 @@ var pawnPST = [64]int{
 	0, 0, 0, 0, 0, 0, 0, 0,
 }
 
-// Knight piece-square table (encourages central knight placement)
+// Knight piece-square table (discourages premature development, encourages proper knight placement)
 var knightPST = [64]int{
 	-50, -40, -30, -30, -30, -30, -40, -50,
-	-40, -20, 0, 0, 0, 0, -20, -40,
-	-30, 0, 10, 15, 15, 10, 0, -30,
-	-30, 5, 15, 20, 20, 15, 5, -30,
-	-30, 0, 15, 20, 20, 15, 0, -30,
-	-30, 5, 10, 15, 15, 10, 5, -30,
-	-40, -20, 0, 5, 5, 0, -20, -40,
+	-40, -20, -10, -10, -10, -10, -20, -40,
+	-30, -10, 0, 5, 5, 0, -10, -30,
+	-30, -5, 5, 10, 10, 5, -5, -30,
+	-30, -10, 5, 10, 10, 5, -10, -30,
+	-30, -15, -5, 0, 0, -5, -15, -30, // Early development squares get penalty
+	-40, -25, -15, -10, -10, -15, -25, -40, // Stronger penalty for very early development
 	-50, -40, -30, -30, -30, -30, -40, -50,
 }
 
@@ -116,7 +116,7 @@ func init() {
 	for i := 0; i < 64; i++ {
 		flippedIndex := i ^ 56 // Flip rank for black pieces
 		blackPawnPST[i] = -pawnPST[flippedIndex]
-		blackKnightPST[i] = -knightPST[flippedIndex] 
+		blackKnightPST[i] = -knightPST[flippedIndex]
 		blackBishopPST[i] = -bishopPST[flippedIndex]
 		blackRookPST[i] = -rookPST[flippedIndex]
 		blackQueenPST[i] = -queenPST[flippedIndex]
@@ -128,18 +128,28 @@ func init() {
 // Optimized PST lookup - zero-cost runtime lookups with pre-computed tables
 func getPieceSquareValue(piece Piece, square Square, isEndgame bool) int {
 	sq := int(square)
-	
+
 	switch piece {
-	case WhitePawn:   return pawnPST[sq]
-	case BlackPawn:   return blackPawnPST[sq]
-	case WhiteKnight: return knightPST[sq]
-	case BlackKnight: return blackKnightPST[sq]
-	case WhiteBishop: return bishopPST[sq]
-	case BlackBishop: return blackBishopPST[sq]
-	case WhiteRook:   return rookPST[sq]
-	case BlackRook:   return blackRookPST[sq]
-	case WhiteQueen:  return queenPST[sq]
-	case BlackQueen:  return blackQueenPST[sq]
+	case WhitePawn:
+		return pawnPST[sq]
+	case BlackPawn:
+		return blackPawnPST[sq]
+	case WhiteKnight:
+		return knightPST[sq]
+	case BlackKnight:
+		return blackKnightPST[sq]
+	case WhiteBishop:
+		return bishopPST[sq]
+	case BlackBishop:
+		return blackBishopPST[sq]
+	case WhiteRook:
+		return rookPST[sq]
+	case BlackRook:
+		return blackRookPST[sq]
+	case WhiteQueen:
+		return queenPST[sq]
+	case BlackQueen:
+		return blackQueenPST[sq]
 	case WhiteKing:
 		if isEndgame {
 			return kingEndgamePST[sq]
@@ -285,54 +295,54 @@ func countPassedPawnsFast(pawnBitboard, opponentPawnBitboard uint64, color Color
 	if pawnBitboard == 0 {
 		return 0
 	}
-	
+
 	passed := 0
-	
+
 	// Generate opponent pawn attack masks by file for O(1) lookups
 	var opponentControl [8]uint64
-	
+
 	for obb := opponentPawnBitboard; obb != 0; obb &= obb - 1 {
 		sq := bits.TrailingZeros64(obb)
 		file := sq % 8
 		rank := sq / 8
-		
+
 		// Mark files controlled by this opponent pawn
 		if file > 0 { // Left adjacent file
 			if color == White {
 				opponentControl[file-1] |= uint64(0xFF) << (rank * 8) // All ranks >= this rank
 			} else {
-				opponentControl[file-1] |= uint64(0xFF) >> ((7-rank) * 8) // All ranks <= this rank  
+				opponentControl[file-1] |= uint64(0xFF) >> ((7 - rank) * 8) // All ranks <= this rank
 			}
 		}
 		opponentControl[file] |= uint64(0xFF) << (rank * 8) // Same file
-		if file < 7 { // Right adjacent file
+		if file < 7 {                                       // Right adjacent file
 			if color == White {
 				opponentControl[file+1] |= uint64(0xFF) << (rank * 8) // All ranks >= this rank
 			} else {
-				opponentControl[file+1] |= uint64(0xFF) >> ((7-rank) * 8) // All ranks <= this rank
+				opponentControl[file+1] |= uint64(0xFF) >> ((7 - rank) * 8) // All ranks <= this rank
 			}
 		}
 	}
-	
+
 	// Check each pawn against file masks
 	for bb := pawnBitboard; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
 		file := sq % 8
-		
+
 		// Create mask for squares this pawn must pass through
 		var pathMask uint64
 		if color == White {
 			pathMask = uint64(0xFF) << ((sq/8 + 1) * 8) // All ranks ahead
 		} else {
-			pathMask = uint64(0xFF) >> ((7 - sq/8 + 1) * 8) // All ranks ahead  
+			pathMask = uint64(0xFF) >> ((7 - sq/8 + 1) * 8) // All ranks ahead
 		}
-		
+
 		// Check if path is clear
 		if (pathMask & opponentControl[file]) == 0 {
 			passed++
 		}
 	}
-	
+
 	return passed
 }
 
@@ -2192,27 +2202,27 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	for bb := whitePawns; bb != 0; bb &= bb - 1 {
 		eval += pawnPST[bits.TrailingZeros64(bb)]
 	}
-	
+
 	eval += int(WhiteKnight.Weight()) * PopCount(whiteKnights)
 	for bb := whiteKnights; bb != 0; bb &= bb - 1 {
 		eval += knightPST[bits.TrailingZeros64(bb)]
 	}
-	
+
 	eval += int(WhiteBishop.Weight()) * PopCount(whiteBishops)
 	for bb := whiteBishops; bb != 0; bb &= bb - 1 {
 		eval += bishopPST[bits.TrailingZeros64(bb)]
 	}
-	
+
 	eval += int(WhiteRook.Weight()) * PopCount(whiteRooks)
 	for bb := whiteRooks; bb != 0; bb &= bb - 1 {
 		eval += rookPST[bits.TrailingZeros64(bb)]
 	}
-	
+
 	eval += int(WhiteQueen.Weight()) * PopCount(whiteQueens)
 	for bb := whiteQueens; bb != 0; bb &= bb - 1 {
 		eval += queenPST[bits.TrailingZeros64(bb)]
 	}
-	
+
 	// White king PST
 	for bb := whiteKings; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
@@ -2228,27 +2238,27 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	for bb := blackPawns; bb != 0; bb &= bb - 1 {
 		eval += blackPawnPST[bits.TrailingZeros64(bb)]
 	}
-	
+
 	eval -= int(BlackKnight.Weight()) * PopCount(blackKnights)
 	for bb := blackKnights; bb != 0; bb &= bb - 1 {
 		eval += blackKnightPST[bits.TrailingZeros64(bb)]
 	}
-	
+
 	eval -= int(BlackBishop.Weight()) * PopCount(blackBishops)
 	for bb := blackBishops; bb != 0; bb &= bb - 1 {
 		eval += blackBishopPST[bits.TrailingZeros64(bb)]
 	}
-	
+
 	eval -= int(BlackRook.Weight()) * PopCount(blackRooks)
 	for bb := blackRooks; bb != 0; bb &= bb - 1 {
 		eval += blackRookPST[bits.TrailingZeros64(bb)]
 	}
-	
+
 	eval -= int(BlackQueen.Weight()) * PopCount(blackQueens)
 	for bb := blackQueens; bb != 0; bb &= bb - 1 {
 		eval += blackQueenPST[bits.TrailingZeros64(bb)]
 	}
-	
+
 	// Black king PST
 	for bb := blackKings; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
@@ -2348,6 +2358,62 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 		endgameBonus := evaluateBasicEndgames(board)
 		eval += endgameBonus
 	}
+
+	// 8. CRITICAL: Opening principles - castling safety bonus
+	if !endgame {
+		// Check if kings have castled (not on starting squares)
+		whiteKingSquare := bits.TrailingZeros64(whiteKings)
+		blackKingSquare := bits.TrailingZeros64(blackKings)
+
+		// Castling bonus: king on g1/c1 for white, g8/c8 for black
+		if whiteKingSquare == 6 || whiteKingSquare == 2 { // g1 or c1
+			eval += 50 // Castling safety bonus
+		}
+		if blackKingSquare == 62 || blackKingSquare == 58 { // g8 or c8
+			eval -= 50 // Castling safety bonus for black
+		}
+
+		// Penalty for king still on starting square in middlegame
+		if whiteKingSquare == 4 { // e1
+			eval -= 30 // Penalty for uncastled king
+		}
+		if blackKingSquare == 60 { // e8
+			eval += 30 // Penalty for uncastled king (black)
+		}
+	}
+	
+	// 9. CRITICAL: Center control bonus - reward pawns controlling e4/d4/e5/d5
+	centerBonusWhite := 0
+	centerBonusBlack := 0
+	
+	// Count pawns controlling central squares
+	for bb := whitePawns; bb != 0; bb &= bb - 1 {
+		square := bits.TrailingZeros64(bb)
+		
+		// Bonus for pawns on d4/e4 (central occupation)
+		if square == 28 || square == 36 { // d4, e4
+			centerBonusWhite += 25
+		}
+		// Bonus for pawns on d3/e3/c3/f3 (supporting center)
+		if square == 20 || square == 28 || square == 19 || square == 21 { // d3, e3, c3, f3
+			centerBonusWhite += 10  
+		}
+	}
+	
+	for bb := blackPawns; bb != 0; bb &= bb - 1 {
+		square := bits.TrailingZeros64(bb)
+		
+		// Bonus for pawns on d5/e5 (central occupation)
+		if square == 35 || square == 27 { // d5, e5  
+			centerBonusBlack += 25
+		}
+		// Bonus for pawns on d6/e6/c6/f6 (supporting center)
+		if square == 43 || square == 35 || square == 42 || square == 44 { // d6, e6, c6, f6
+			centerBonusBlack += 10
+		}
+	}
+	
+	eval += centerBonusWhite - centerBonusBlack
 
 	return eval
 }

@@ -37,7 +37,6 @@ type CachedEval struct {
 	_    [48]byte      // Padding to 64 bytes (cache line size)
 }
 
-
 type NodeType uint8
 
 const (
@@ -53,7 +52,6 @@ type Cache struct {
 	mask   uint
 	age    uint16
 }
-
 
 const OldAge = uint16(5)
 const DEFAULT_CACHE_SIZE = 128
@@ -114,7 +112,6 @@ func (c *CachedEval) Update(key uint64, data uint64) {
 		c.Data.Store(data)
 	}
 }
-
 
 func (c *Cache) AdvanceAge() {
 	c.age += 1

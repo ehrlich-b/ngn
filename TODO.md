@@ -1,33 +1,41 @@
 # NGN Chess Engine — Development Roadmap
 
-## Current Status (2025-09-09) 
+## Current Status (2025-09-14)
 
-### 🎉 **ALL CRITICAL ENGINE ISSUES RESOLVED!** 🎉
-**End-to-end game testing confirms engine is fully functional with no illegal move generation!**
+### 🚨 **CRITICAL UPDATE - MATE DETECTION FIXED BUT NEW BUGS FOUND** 🚨
+**Testing against 1320 ELO Stockfish (weakest setting) reveals progress but critical endgame failures!**
 
-#### ✅ **MAJOR ACHIEVEMENTS from Critical Bug Fix Phase**:
-- **✅ ILLEGAL MOVE GENERATION FIXED**: Engine no longer attempts illegal moves
-- **✅ SEARCH CORRUPTION RESOLVED**: All search results validated against legal move generation  
-- **✅ TIME MANAGEMENT WORKING**: Proper early termination and time allocation implemented
-- **✅ GAME STATE TRACKING**: Consistent position updates across all UCI commands
+#### 📊 **GAME TEST RESULTS vs 1320 ELO STOCKFISH**:
+- **Game 1**: Drew from completely winning position (+1850cp advantage!)
+- **Dominated opening/middlegame**: Outplayed weak Stockfish tactically
+- **FAILED to convert**: Stalemated instead of checkmating
+- **Critical bug**: Mate score shows `-1073726823` (integer overflow)
+- **Stockfish was announcing mate in -4** but NGN couldn't find it
 
-#### 🎯 **Validation Results**:
-1. **✅ COMPLETE**: Fixed illegal move generation in search/UCI interface  
-2. **✅ COMPLETE**: All search results validated against legal move generation
-3. **✅ COMPLETE**: Proper time management with early termination implemented
-4. **✅ COMPLETE**: Comprehensive move validation layer operational
+#### ❌ **CRITICAL BUGS DISCOVERED (2025-09-14)**:
+- **🔥 MATE SCORE CORRUPTION**: Shows `mate -1073726823` (integer overflow bug)
+- **🔥 STALEMATE BUG**: Stalemates opponent instead of checkmating
+- **🔥 NO ENDGAME TECHNIQUE**: Can't checkmate with K+Q vs K
+- **🔥 MATE FINDING**: Only finds mate-in-1, not deeper mates
 
-### 📊 **Game Testing Results** (vs Stockfish Skill 10, Recent Tests):
-- **NGN Score**: 15% (0 wins, 3 draws, 7 losses) - **No illegal moves detected!**
-- **Legal Move Compliance**: 100% - All moves validated and legal
-- **Time Usage**: Efficient with early termination and adaptive allocation
-- **Position Consistency**: Perfect state tracking across UCI commands
+#### ✅ **IMPROVEMENTS AFTER MATE DETECTION FIX**:
+- **Mate-in-1 detection**: NOW WORKING ✅
+- **Tactical strength**: Dominates 1320 ELO in opening/middlegame ✅
+- **Performance**: 373K NPS average (acceptable trade-off) ✅
+- **Can reach winning positions**: +1850cp advantages achieved ✅
 
-### 🎉 **Current Achievements** (All Systems Operational)
-- **🔥 TACTICAL STRENGTH**: **93.3% tactical accuracy** (28/30 positions) — now translates to legal gameplay!
-- **Performance**: 581K average NPS (benchmark), peaks over 1.4M NPS on simple positions  
-- **Search Stability**: Fixed backwards check extension bug, no illegal move issues
-- **Game Testing**: Comprehensive end-to-end testing framework validates engine functionality
+#### 📊 **THE COMPREHENSIVE EVALUATION DECEPTION**:
+- **Isolated tactical puzzles**: 93.3% ✅ (misleading - not real games)
+- **Static material tests**: 100% ✅ (trivial - any engine gets this)
+- **Simple positional tests**: 33% ⚠️ (inadequate complexity)
+- **ACTUAL CHESS GAMES**: 0% ❌ **THE ONLY TEST THAT MATTERS**
+
+#### 🎯 **ROOT CAUSE ANALYSIS**:
+**The comprehensive evaluation tests artificial scenarios, NOT real chess:**
+- **Tactical puzzles**: Isolated positions with forced solutions
+- **Material evaluation**: Static positions without context
+- **Positional tests**: Simplified scenarios, not complex games
+- **MISSING**: Strategic understanding, endgame technique, positional evaluation under pressure
 
 ### ✅ Recent Completions
 - [x] **🎯 CRITICAL TACTICAL BUG FIX**: Fixed backwards check extension logic in search.go:780 — resolved "walking into forks" behavior ✅
@@ -42,31 +50,106 @@
 - [x] **Benchmark Harness**: Deterministic testing with 24 FEN positions, regression detection ✅
 - [x] **Tactical Test Suite**: EPD-based framework with Stockfish-validated tactical positions ✅
 
-## ✅ **CRITICAL ENGINE FIXES COMPLETED** ✅
+## 🚨 **URGENT PRIORITIES - CRITICAL BUG FIXES NEEDED** 🚨
 
-**All game-breaking bugs resolved! Engine is now fully functional with comprehensive testing validation.**
+### 🔴 **PRIORITY 1: Fix Mate Score Integer Overflow**
+**The engine shows `mate -1073726823` which corrupts search**
+- Location: Likely in search.go mate distance calculation
+- Impact: Makes deep mate finding impossible
+- Fix: Check for integer overflow in MATE_VALUE arithmetic
 
-### 🎉 **PHASE 0: CRITICAL BUG FIXES** ✅ COMPLETED
-*Engine is now fully functional and ready for advanced features*
+### 🔴 **PRIORITY 2: Fix Stalemate Bug**
+**Engine stalemates opponent from winning positions**
+- Problem: Drew by stalemate with +1850cp advantage
+- Root cause: Poor move selection in winning endgames
+- Fix: Add stalemate detection before making moves
 
-1. **Search/UCI Interface Corruption** ✅ COMPLETED
-   - [x] **Game Testing Framework**: Created comprehensive UCI testing harness with Stockfish validation ✅
-   - [x] **Illegal Move Investigation**: Debug why search returns `e1c1` (illegal castling) and other invalid moves ✅
-   - [x] **Move Validation Layer**: Add validation between search results and UCI output ✅  
-   - [x] **Search Result Integrity**: Ensure search only returns moves from legal move generation ✅
-   - [x] **Position State Consistency**: Fix position tracking between UCI commands ✅
+### 🔴 **PRIORITY 3: Add Basic Checkmate Patterns**
+**Can't checkmate with K+Q vs K or K+R vs K**
+- Current: No endgame knowledge at all
+- Needed: Basic mating patterns and technique
+- Consider: Simple endgame heuristics or tablebases
 
-2. **Time Management Overhaul** ✅ COMPLETED  
-   - [x] **Early Termination**: Implement smart time allocation based on position complexity ✅
-   - [x] **Obvious Move Detection**: Quick exit for forced moves, recaptures, single legal moves ✅
-   - [x] **Adaptive Allocation**: Dynamic time budgeting based on game phase and position type ✅
-   - [x] **Emergency Time Handling**: Better handling when time is critically low ✅
+### 🟡 **PRIORITY 4: Improve Mate Finding Beyond Depth 1**
+**Only finds mate-in-1, missed mate-in-4**
+- Current: Quiescence only checks mate at depth 0
+- Needed: Better mate detection throughout search tree
+- Consider: Dedicated mate search at high scores
 
-3. **Game Testing Integration** ✅ COMPLETED
-   - [x] **Stockfish Validator**: Use Stockfish as ground truth for move legality ✅
-   - [x] **Automated Game Testing**: Run multiple games with various time controls ✅
-   - [x] **Regression Testing**: Automated detection of illegal move regressions ✅
-   - [x] **Performance Monitoring**: Track game performance vs engine benchmarks ✅
+### 🎉 **PHASE 1: CRITICAL MATE DETECTION FIX** ✅ COMPLETED
+*BREAKTHROUGH: Fixed the critical engine weakness that caused 0% win rate!*
+
+#### ✅ **MAJOR BUG FIXED (2025-09-13)**:
+**🔧 MATE DETECTION RESTORED**: Engine now correctly detects and plays checkmate moves!
+
+**Before Fix**:
+- Chose `g6f5` (+995cp) instead of `Ra8#` (mate)
+- Could not detect moves that deliver checkmate
+- Lost every game due to tactical blindness
+
+**After Fix**:
+- ✅ Correctly chooses `a7a8` (Ra8# checkmate)
+- ✅ Properly scores as `+29999cp` (mate-in-1)
+- ✅ Only 37 nodes searched (highly efficient)
+
+**Technical Fix**: Added checkmate/stalemate detection in `quiescenceWithDepth()` function in `search.go:972-986`. The search now checks for positions with no legal moves BEFORE static evaluation.
+
+1. **Critical Issues Discovered Through Game Testing**:
+   - [x] **ROOT CAUSE IDENTIFIED**: Engine cannot detect moves that deliver checkmate ✅ **FIXED!**
+   - [x] **MATE DETECTION BROKEN**: NGN evaluates mate-in-1 as +827cp instead of mate ✅ **FIXED!**
+   - [x] **SEARCH ALGORITHM ISSUE**: Move evaluation doesn't check if moves deliver checkmate ✅ **FIXED!**
+   - [ ] **POSITIONAL EVALUATION**: Massively wrong position assessments (+1975cp while getting mated)
+   - [ ] **ENDGAME TECHNIQUE**: Zero understanding of king and pawn endings, rook endings
+   - [ ] **STRATEGIC PLANNING**: No coherent plan beyond tactical tricks
+   - [ ] **EVALUATION SCALING**: Centipawn values completely disconnected from reality
+
+2. **Game Analysis Reveals Core Problems**:
+   - [x] **Tactical puzzles work**: ✅ MISLEADING - isolated positions only
+   - [x] **Real game tactics FIXED**: ✅ **MAJOR IMPROVEMENT** - engine now sees mates!
+   - [ ] **Opening principles**: ❌ BROKEN - leads to inferior positions
+   - [ ] **Middlegame evaluation**: ❌ CATASTROPHIC - cannot assess complex positions
+   - [ ] **Endgame play**: ❌ HOPELESS - loses all endgames
+
+### ⚡ **CRITICAL ROOT CAUSE ANALYSIS** - **RESOLVED!**:
+**✅ Engine CAN NOW detect checkmate moves:**
+
+**🔍 Investigation Results - BEFORE FIX:**
+- **Test Position**: K+R vs k (simple mate-in-1: Ra8#)
+- **NGN at depth 1**: Chooses g6f5 (+995cp) instead of Ra8# (mate)
+- **The Problem**: Search doesn't evaluate move consequences for checkmate
+- **Why NGN Lost Games**: Cannot see mate-in-1, cannot defend against mate-in-1
+
+**🎯 Investigation Results - AFTER FIX:**
+- **Test Position**: K+R vs k (simple mate-in-1: Ra8#)
+- **NGN at depth 1**: ✅ **Correctly chooses a7a8 (+29999cp = mate-in-1)**
+- **The Fix**: Quiescence search now detects checkmate positions
+- **Why NGN Will Win More Games**: ✅ **Can see mate-in-1, can defend against mate-in-1**
+
+### 📈 **REALISTIC ASSESSMENT** (2025-09-14):
+
+#### **Current Engine Strength**:
+- **Tactical ability**: Can outplay 1320 ELO in tactics/middlegame
+- **Endgame ability**: CRITICALLY BROKEN - can't convert wins
+- **Realistic ELO**: ~1200-1300 (due to endgame failures)
+- **Potential ELO**: ~1500-1600 (if endgame bugs fixed)
+
+#### **What's Working**:
+- ✅ Mate-in-1 detection fixed
+- ✅ Strong tactical play in opening/middlegame
+- ✅ Can reach winning positions (+1850cp advantages)
+- ✅ Good performance (373K NPS average)
+
+#### **What's Broken**:
+- ❌ Mate score integer overflow (`-1073726823`)
+- ❌ Stalemates from winning positions
+- ❌ Can't find mates beyond depth 1
+- ❌ Zero endgame knowledge (K+Q vs K should be trivial)
+
+#### **Path to First Win**:
+1. Fix mate score overflow bug
+2. Add stalemate avoidance
+3. Implement basic K+Q vs K checkmate pattern
+4. Then NGN should beat 1320 ELO Stockfish consistently
 
 ## 🎉 **PHASE A: Advanced Search Features** ✅ COMPLETED
 
@@ -212,24 +295,34 @@
 - **Anti-Blunder**: ✅ RESOLVED - engine no longer "walks into forks"
 - **User Request**: ✅ ADDRESSED - resolved 13M vs 1M node inefficiency concern
 
-## Future Features (After Testing Infrastructure)
+## 🚨 **CRITICAL PHASE: ENGINE FUNDAMENTALS OVERHAUL**
 
-### Phase A: Advanced Search (3-5 days)
-- [ ] Aspiration windows improvements
-- [ ] Check extensions refinement
-- [ ] Futility/razoring in main search
-- [ ] PV-node vs non-PV optimizations
+### ❌ **ACTUAL PERFORMANCE METRICS**:
+- **❌ REAL ELO**: ~1200-1400 (massive gap from 1801 estimate)
+- **❌ GAME WIN RATE**: 0% vs 1800 ELO (catastrophic failure)
+- **❌ TACTICAL IN GAMES**: Misses mates, blunders material
+- **❌ EVALUATION ACCURACY**: Completely wrong position assessments
 
-### Phase B: Evaluation Enhancements (2-4 days)
-- [ ] Piece-square table tuning based on game phase
-- [ ] Pawn structure improvements (chains, storms, weakness)
-- [ ] King safety refinements
-- [ ] Piece coordination bonuses
+### 🚨 **CRITICAL FIXES REQUIRED**:
+**Engine cannot play real chess - fundamental reconstruction needed:**
 
-### Phase C: Opening/Endgame (3-6 days)
-- [ ] Opening book integration (stub exists)
-- [ ] Basic endgame tablebase support
-- [ ] Specialized endgame evaluation
+**Priority 1: Evaluation System Overhaul (CRITICAL)**:
+- Fix mate detection and evaluation
+- Implement proper positional understanding
+- Scale evaluation values to reality
+- Add endgame knowledge and technique
+
+**Priority 2: Search Understanding (HIGH)**:
+- Improve mate threat recognition
+- Better pruning in critical positions
+- Enhanced quiescence for tactical accuracy
+- Fix horizon effect in complex positions
+
+**Priority 3: Strategic Planning (HIGH)**:
+- Add coherent positional plans
+- Improve piece coordination evaluation
+- Better pawn structure understanding
+- Strategic piece placement evaluation
 
 ## Development Guidelines
 

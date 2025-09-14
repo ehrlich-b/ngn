@@ -944,19 +944,19 @@ func moveGivesCheck(pos *Position, move Move) bool {
 	from := move.Source()
 	to := move.Destination()
 	enemyColor := movingPiece.Color().Other()
-	
+
 	// Find enemy king position
 	enemyKingBitboard := pos.Board.GetBitboardOf(GetPiece(King, enemyColor))
 	if enemyKingBitboard == 0 {
 		return false // No enemy king
 	}
 	kingSquare := Square(bits.TrailingZeros64(enemyKingBitboard))
-	
+
 	// Calculate what the board occupancy would be after this move
 	occupied := pos.Board.GetWhitePieces() | pos.Board.GetBlackPieces()
 	occupied &^= SquareMask[int(from)] // Remove piece from source
 	occupied |= SquareMask[int(to)]    // Add piece to destination
-	
+
 	// Check if the piece at its destination would attack the king
 	switch movingPiece.Type() {
 	case Pawn:
@@ -967,7 +967,7 @@ func moveGivesCheck(pos *Position, move Move) bool {
 			toRank := int(to) / 8
 			if toRank < 7 { // Not on 8th rank
 				if (toFile > 0 && Square((toRank+1)*8+toFile-1) == kingSquare) ||
-				   (toFile < 7 && Square((toRank+1)*8+toFile+1) == kingSquare) {
+					(toFile < 7 && Square((toRank+1)*8+toFile+1) == kingSquare) {
 					return true
 				}
 			}
@@ -977,33 +977,33 @@ func moveGivesCheck(pos *Position, move Move) bool {
 			toRank := int(to) / 8
 			if toRank > 0 { // Not on 1st rank
 				if (toFile > 0 && Square((toRank-1)*8+toFile-1) == kingSquare) ||
-				   (toFile < 7 && Square((toRank-1)*8+toFile+1) == kingSquare) {
+					(toFile < 7 && Square((toRank-1)*8+toFile+1) == kingSquare) {
 					return true
 				}
 			}
 		}
-		
+
 	case Knight:
 		// Knight attacks are precomputed
-		return KnightAttacks[to] & SquareMask[int(kingSquare)] != 0
-		
+		return KnightAttacks[to]&SquareMask[int(kingSquare)] != 0
+
 	case Bishop:
 		// Bishop uses sliding attack generation
-		return seeGetBishopAttacks(to, occupied) & SquareMask[int(kingSquare)] != 0
-		
+		return seeGetBishopAttacks(to, occupied)&SquareMask[int(kingSquare)] != 0
+
 	case Rook:
 		// Rook uses sliding attack generation
-		return seeGetRookAttacks(to, occupied) & SquareMask[int(kingSquare)] != 0
-		
+		return seeGetRookAttacks(to, occupied)&SquareMask[int(kingSquare)] != 0
+
 	case Queen:
 		// Queen combines bishop and rook attacks
-		return (seeGetBishopAttacks(to, occupied) | seeGetRookAttacks(to, occupied)) & SquareMask[int(kingSquare)] != 0
-		
+		return (seeGetBishopAttacks(to, occupied)|seeGetRookAttacks(to, occupied))&SquareMask[int(kingSquare)] != 0
+
 	case King:
 		// King attacks are precomputed
-		return KingAttacks[to] & SquareMask[int(kingSquare)] != 0
+		return KingAttacks[to]&SquareMask[int(kingSquare)] != 0
 	}
-	
+
 	return false
 }
 
@@ -1596,4 +1596,3 @@ func generateKingCapturesIntoBuffer(pos *Position, piece Piece, buffer []Move) i
 	}
 	return count
 }
-

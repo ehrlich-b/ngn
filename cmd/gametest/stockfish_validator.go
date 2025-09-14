@@ -87,7 +87,7 @@ func (sv *StockfishValidator) GetLegalMoves(fen string) ([]string, error) {
 	// Parse the search info to extract legal moves
 	moves := make([]string, 0)
 	timeout := time.After(time.Second * 2)
-	
+
 	for {
 		select {
 		case <-timeout:
@@ -167,7 +167,7 @@ func (sv *StockfishValidator) analyzeNoMovesPosition(fen string) (string, string
 	}
 
 	_ = fenParts[1] // sideToMove - not used yet
-	
+
 	// For simplicity, we'll assume stalemate for now
 	// A proper implementation would need to check if the king is in check
 	return "1/2-1/2", "stalemate", nil
@@ -176,26 +176,26 @@ func (sv *StockfishValidator) analyzeNoMovesPosition(fen string) (string, string
 // startStockfish starts a Stockfish process for validation
 func (sv *StockfishValidator) startStockfish() (*Engine, error) {
 	cmd := exec.Command(sv.stockfishPath)
-	
+
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
-	
+
 	engine := &Engine{
 		Name:    "StockfishValidator",
 		Process: cmd,
@@ -203,15 +203,15 @@ func (sv *StockfishValidator) startStockfish() (*Engine, error) {
 		Stdout:  bufio.NewScanner(stdout),
 		Stderr:  bufio.NewScanner(stderr),
 	}
-	
+
 	// Store engine reference before using it
 	sv.engine = engine
-	
+
 	// Initialize UCI
 	if err := sv.sendCommand("uci"); err != nil {
 		return nil, err
 	}
-	
+
 	// Wait for uciok
 	timeout := time.After(time.Second * 5)
 	for {
@@ -251,13 +251,13 @@ func (sv *StockfishValidator) sendCommand(command string) error {
 func (sv *StockfishValidator) Close() {
 	if sv.engine != nil {
 		sv.sendCommand("quit")
-		
+
 		// Give it a moment to exit gracefully
 		done := make(chan error, 1)
 		go func() {
 			done <- sv.engine.Process.Wait()
 		}()
-		
+
 		select {
 		case <-done:
 			// Exited gracefully

@@ -8,12 +8,12 @@ import (
 
 // BenchmarkAtomicVsNonAtomic compares search performance with and without atomic operations
 func TestAtomicVsNonAtomicPerformance(t *testing.T) {
-	// Test position that exercises the TT heavily  
+	// Test position that exercises the TT heavily
 	position, err := ParseFEN("r1bqk2r/ppp2ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 4 6")
 	if err != nil {
 		t.Fatalf("Failed to parse test position: %v", err)
 	}
-	
+
 	const testDepth = 6
 	const iterations = 3
 
@@ -21,36 +21,36 @@ func TestAtomicVsNonAtomicPerformance(t *testing.T) {
 	BenchmarkMode = false
 	var atomicNodes uint64
 	atomicStart := time.Now()
-	
+
 	for i := 0; i < iterations; i++ {
 		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE) // Fresh TT
 		info := Search(position, testDepth)
 		atomicNodes += info.Nodes
 	}
-	
+
 	atomicDuration := time.Since(atomicStart)
 	atomicNPS := float64(atomicNodes) / atomicDuration.Seconds()
-	
+
 	// Test with non-atomic operations (benchmark mode)
 	BenchmarkMode = true
 	var nonAtomicNodes uint64
 	nonAtomicStart := time.Now()
-	
+
 	for i := 0; i < iterations; i++ {
 		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE) // Fresh TT
-		info := Search(position, testDepth) 
+		info := Search(position, testDepth)
 		nonAtomicNodes += info.Nodes
 	}
-	
+
 	nonAtomicDuration := time.Since(nonAtomicStart)
 	nonAtomicNPS := float64(nonAtomicNodes) / nonAtomicDuration.Seconds()
-	
+
 	// Reset to normal mode
 	BenchmarkMode = false
-	
+
 	// Calculate improvement
 	improvement := (nonAtomicNPS - atomicNPS) / atomicNPS * 100
-	
+
 	t.Logf("=== ATOMIC VS NON-ATOMIC TT PERFORMANCE ===")
 	t.Logf("Test: %d iterations at depth %d", iterations, testDepth)
 	t.Logf("Position: Complex middlegame")
@@ -61,17 +61,17 @@ func TestAtomicVsNonAtomicPerformance(t *testing.T) {
 	t.Logf("  - NPS: %.0f", atomicNPS)
 	t.Logf("")
 	t.Logf("Non-atomic mode (benchmark):")
-	t.Logf("  - Total nodes: %d", nonAtomicNodes) 
+	t.Logf("  - Total nodes: %d", nonAtomicNodes)
 	t.Logf("  - Duration: %.3fs", nonAtomicDuration.Seconds())
 	t.Logf("  - NPS: %.0f", nonAtomicNPS)
 	t.Logf("")
 	t.Logf("Performance improvement: %.1f%%", improvement)
-	
+
 	// Sanity checks
 	if atomicNodes != nonAtomicNodes {
 		t.Errorf("Node counts should be identical: atomic=%d, non-atomic=%d", atomicNodes, nonAtomicNodes)
 	}
-	
+
 	if improvement < 0 {
 		t.Logf("WARNING: Non-atomic mode slower by %.1f%% - this is unexpected", -improvement)
 	} else if improvement < 5 {
@@ -89,10 +89,10 @@ func BenchmarkSearchWithAtomicOperations(b *testing.B) {
 	if err != nil {
 		b.Fatalf("Failed to parse position: %v", err)
 	}
-	
+
 	BenchmarkMode = false
 	b.ResetTimer()
-	
+
 	for i := 0; i < b.N; i++ {
 		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
 		Search(position, 5)
@@ -105,15 +105,15 @@ func BenchmarkSearchWithoutAtomicOperations(b *testing.B) {
 	if err != nil {
 		b.Fatalf("Failed to parse position: %v", err)
 	}
-	
+
 	BenchmarkMode = true
 	b.ResetTimer()
-	
+
 	for i := 0; i < b.N; i++ {
 		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
 		Search(position, 5)
 	}
-	
+
 	// Reset to normal mode after benchmark
 	BenchmarkMode = false
 }

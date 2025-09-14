@@ -309,23 +309,23 @@ func (tm *TimeManager) shouldStopTournamentSearch(depth int, iterationStartTime 
 	var minThinkTime time.Duration
 	switch {
 	case remainingTime >= 10*time.Minute:
-		minDepthFloor = 5              // Reduced from 7
-		minThinkTime = 3 * time.Second // Reduced from 7 seconds
+		minDepthFloor = 12             // CRITICAL: Increased from 5 to competitive level
+		minThinkTime = 8 * time.Second // Increased from 3s to allow deeper search
 	case remainingTime >= 5*time.Minute:
-		minDepthFloor = 4              // Reduced from 6
-		minThinkTime = 2 * time.Second // Reduced from 5 seconds
+		minDepthFloor = 10             // Increased from 4 to competitive level
+		minThinkTime = 6 * time.Second // Increased from 2s to allow deeper search
 	case remainingTime >= 2*time.Minute:
-		minDepthFloor = 4                      // Reduced from 5
-		minThinkTime = 1500 * time.Millisecond // Reduced from 3 seconds
+		minDepthFloor = 8              // Increased from 4 to competitive level
+		minThinkTime = 4 * time.Second // Increased from 1.5s to allow deeper search
 	case remainingTime >= 60*time.Second:
-		minDepthFloor = 3              // Reduced from 4
-		minThinkTime = 1 * time.Second // Reduced from 1.5 seconds
+		minDepthFloor = 6              // Increased from 3 to competitive level
+		minThinkTime = 2 * time.Second // Increased from 1s to allow deeper search
 	case remainingTime >= 30*time.Second:
-		minDepthFloor = 3                     // Keep same
-		minThinkTime = 500 * time.Millisecond // Reduced from 1 second
+		minDepthFloor = 5              // Increased from 3 to competitive level
+		minThinkTime = 1 * time.Second // Increased from 500ms to allow deeper search
 	default:
-		minDepthFloor = 2
-		minThinkTime = 200 * time.Millisecond
+		minDepthFloor = 4                     // Increased from 2 for emergency situations
+		minThinkTime = 500 * time.Millisecond // Increased from 200ms for emergency
 	}
 
 	// Emergency time check - if we're down to emergency time, stop regardless

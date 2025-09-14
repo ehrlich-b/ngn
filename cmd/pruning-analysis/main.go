@@ -27,7 +27,7 @@ func main() {
 	if fen != "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" {
 		log.Printf("Warning: Custom FEN not supported yet, using starting position")
 	}
-	
+
 	pos := &engine.Position{
 		Board:     engine.StartingBoard(),
 		Tag:       engine.WhiteCanCastleKingSide | engine.WhiteCanCastleQueenSide | engine.BlackCanCastleKingSide | engine.BlackCanCastleQueenSide | engine.WhiteToMove,
@@ -74,11 +74,11 @@ func main() {
 	fmt.Printf("=== EFFICIENCY METRICS ===\n")
 	fmt.Printf("Effective Branching Factor: %.2f\n", ebf)
 	fmt.Printf("Nodes per Depth:            %.0f\n", float64(info.Nodes)/float64(depth))
-	
+
 	// Pruning efficiency ratio
 	totalPrunes := info.FutilityPrunes + info.NullMoveCutoffs + info.TTCutoffs
 	fmt.Printf("Total Pruning Benefit:      %8d (%5.1f%% of nodes)\n", totalPrunes, percentage(totalPrunes, info.Nodes))
-	
+
 	// Node type distribution
 	fmt.Printf("\n=== NODE TYPE ANALYSIS ===\n")
 	if info.BetaCutoffs > 0 {
