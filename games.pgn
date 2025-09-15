@@ -1,0 +1,27 @@
+[Event "NGN vs Stockfish Test"]
+[Round "1"]
+[White "NGN"]
+[Black "Stockfish (1320 ELO)"]
+[Result "1/2-1/2"]
+[TimeControl "2s"]
+
+1. g1f3 e7e6 2. b1c3 b7b6 3. e2e4 g8f6 4. f1d3 d7d6 5. e1g1 f8e7 6. e4e5 f6g4 7. e5d6 e7f6 8. d6c7 d8c7 9. d1e1 c8b7 10. c3b5 c7c5 11. d3e4 b7e4 12. e1e4 c5b5 13. e4a8 f6e5 14. f3e5 b5e5 15. g2g3 e8g8 16. a8a7 e5h5 17. h2h4 b8c6 18. a7b6 g4e5 19. g1h1 h5g4 20. h1g1 e5f3 21. g1g2 f3h4 22. g2g1 c6e5 23. f1e1 e5f3 24. g1f1 f3h2 25. f1g1 g4h3 26. b6b7 h2f3 27. b7f3 h4f3 1/2-1/2
+
+[Event "NGN vs Stockfish Test"]
+[Round "2"]
+[White "Stockfish (1320 ELO)"]
+[Black "NGN"]
+[Result "1/2-1/2"]
+[TimeControl "2s"]
+
+1. d2d4 d7d5 2. c2c4 d5c4 3. g1f3 d8d6 4. e2e4 g8f6 5. d1c2 b8c6 6. e4e5 c6d4 7. c2c3 d4f3 8. g2f3 d6e6 9. c3d4 f6d7 10. c1e3 d7e5 11. b1d2 e6f6 12. e1c1 e5d3 13. f1d3 f6d4 14. e3d4 c4d3 15. d4e5 c8e6 16. c1b1 e8c8 17. d1e1 h8g8 18. h1g1 d8d5 19. d2b3 d3d2 20. b3d2 d5d2 21. e5f4 d2f2 22. e1c1 e6f5 23. b1a1 f5c2 24. g1g5 c7c6 25. a2a4 c2d3 26. c1c3 f2f3 27. f4d2 f3f1 28. c3c1 f1f2 29. d2e3 f2h2 30. e3c5 h2h4 31. g5g3 h4a4 32. c5a3 d3g6 33. g3h3 e7e5 34. c1d1 g6f5 35. h3h2 f8a3 36. b2b3 a4f4 37. d1h1 a3b4 38. a1b2 f4f3 39. h1c1 e5e4 40. h2e2 b4d6 41. c1c2 d6e5 42. b2a2 f5e6 43. c2c4 e6c4 44. e2h2 e5h2 45. a2b1 c4b3 46. b1b2 h2e5 47. b2b1 e5c3 48. b1c1 f3f1 1/2-1/2
+
+[Event "NGN vs Stockfish Test"]
+[Round "3"]
+[White "NGN"]
+[Black "Stockfish (1320 ELO)"]
+[Result "1/2-1/2"]
+[TimeControl "2s"]
+
+1. e2e4 e7e5 2. g1f3 g8f6 3. f3e5 d7d6 4. e5f3 f6e4 5. f1b5 c7c6 6. d1e2 c6b5 7. e2e4 f8e7 8. e1g1 f7f5 9. e4d5 a7a6 10. f3d4 b8c6 11. d4c6 c8e6 12. d5e6 b7c6 13. e6f5 d8d7 14. f5f3 e8c8 15. f3e3 e7f6 16. e3b6 d7g4 17. b6c6 c8b8 18. c6b6 b8a8 19. b6a6 a8b8 20. a6b5 b8a8 21. b5a6 a8b8 22. a6b6 b8a8 23. b6a6 a8b8 24. a6b6 b8a8 25. b6a6 a8b8 26. a6b6 b8a8 27. b1a3 f6d4 28. b6a5 a8b7 29. a5d5 b7a6 30. a3c4 h8f8 31. d5c6 a6a7 32. c6c7 a7a8 33. c7a5 a8b7 34. a5b4 b7a7 35. c4e3 g4f4 36. b4a3 a7b8 37. a3b3 b8a8 38. b3d3 d8b8 39. g2g3 f4f2 40. f1f2 d4e3 41. d2e3 b8b3 42. a2b3 a8b7 43. f2f8 b7c7 44. d3h7 c7d7 45. h7g7 d7e6 46. f8b8 e6d5 47. a1a6 d5e4 48. a6d6 e4f3 49. d6d5 f3e4 50. d5c5 e4f3 51. c5c6 f3e2 52. b8f8 e2d1 53. e3e4 d1e1 54. g7g4 1/2-1/2
+

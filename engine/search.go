@@ -608,8 +608,15 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		}
 
 		score := -alphaBetaPV(pos, depth-1, -beta, -alpha, true, info)
-		pos.UnMakeMove(move, tag, ep, hc)
 
+		// Mate threat extension: if we found a very high score, search deeper to find mate
+		if score >= MATE_IN_MAX && depth <= 2 {
+			// This looks like a mate, search deeper to confirm
+			score = -alphaBetaPV(pos, depth+2, -beta, -alpha, true, info)
+			info.Nodes++
+		}
+
+		pos.UnMakeMove(move, tag, ep, hc)
 		info.Nodes++
 
 		if score > info.BestScore {
@@ -689,6 +696,9 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 
 	// Mate distance pruning - don't look for mates that are too far away
 	currentDepth := info.Depth - depth
+	if currentDepth > 1000 {
+		currentDepth = 1000 // Clamp to prevent overflow
+	}
 	mateAlpha := -MATE_VALUE + currentDepth
 	mateBeta := MATE_VALUE - currentDepth - 1
 
@@ -759,9 +769,24 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 	moves := moveBuffer[:numMoves]
 	if numMoves == 0 {
 		if inCheck {
-			return -MATE_VALUE + (info.Depth - depth)
+			// Checkmate - clamp mate distance to prevent overflow
+			mateDistance := info.Depth - depth
+			if mateDistance > 1000 {
+				mateDistance = 1000
+			}
+			return -MATE_VALUE + mateDistance
 		}
-		return 0
+		// Stalemate - check if we're throwing away a winning position
+		eval := Evaluate(&pos.Board)
+		if pos.Turn() == Black {
+			eval = -eval // Flip evaluation for black's perspective
+		}
+
+		// If we're winning by a significant margin, heavily penalize stalemate
+		if eval > 300 { // We have significant advantage (about 3 pawns)
+			return -500 // Penalize stalemate when winning
+		}
+		return 0 // Otherwise, stalemate is still a draw
 	}
 
 	// Order moves, prioritizing TT move if available
@@ -921,9 +946,24 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		// No legal moves from this node
 		if legalTried == 0 {
 			if inCheck {
-				return -MATE_VALUE + (info.Depth - depth)
+				// Checkmate - clamp mate distance to prevent overflow
+				mateDistance := info.Depth - depth
+				if mateDistance > 1000 {
+					mateDistance = 1000
+				}
+				return -MATE_VALUE + mateDistance
 			}
-			return 0
+			// Stalemate - check if we're throwing away a winning position
+			eval := Evaluate(&pos.Board)
+			if pos.Turn() == Black {
+				eval = -eval // Flip evaluation for black's perspective
+			}
+
+			// If we're winning by a significant margin, heavily penalize stalemate
+			if eval > 300 { // We have significant advantage (about 3 pawns)
+				return -500 // Penalize stalemate when winning
+			}
+			return 0 // Otherwise, stalemate is still a draw
 		}
 
 		if score >= beta {
@@ -995,11 +1035,25 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 		if !hasLegalMove {
 			inCheck := pos.IsInCheck()
 			if inCheck {
-				// Checkmate - we're mated
-				return -MATE_VALUE + info.Depth
+				// Checkmate - we're mated, clamp mate distance to prevent overflow
+				mateDistance := info.Depth
+				if mateDistance > 1000 {
+					mateDistance = 1000
+				}
+				return -MATE_VALUE + mateDistance
 			}
-			// Stalemate
-			return 0
+			// Stalemate - check if we're throwing away a winning position
+			// If we have a material advantage, stalemating the opponent is bad for us
+			eval := Evaluate(&pos.Board)
+			if pos.Turn() == Black {
+				eval = -eval // Flip evaluation for black's perspective
+			}
+
+			// If we're winning by a significant margin, heavily penalize stalemate
+			if eval > 300 { // We have significant advantage (about 3 pawns)
+				return -500 // Penalize stalemate when winning
+			}
+			return 0 // Otherwise, stalemate is still a draw
 		}
 	}
 
@@ -1027,7 +1081,12 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 	copy(capturesAndChecks[:], (*info.CaptureBuffer)[:captureCount])
 
 	// Also consider moves that give check (but only if not too deep to avoid explosion)
-	if qDepth < 2 { // Very conservative check extension depth
+	// Allow deeper check search when in mate-threatening positions
+	maxCheckDepth := 2
+	if standPat >= MATE_IN_MAX || standPat <= -MATE_IN_MAX {
+		maxCheckDepth = 6 // Search deeper when mate is on the board
+	}
+	if qDepth < maxCheckDepth {
 		// PERFORMANCE OPTIMIZATION: Use direct check detection instead of make/unmake cycle
 		// Use MoveBuffer from SearchInfo to avoid allocation
 		numMoves := GenerateMovesIntoBuffer(pos, info.MoveBuffer[:])

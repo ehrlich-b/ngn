@@ -131,7 +131,13 @@ func parseArgs(config *GameTestConfig) {
 				config.StockfishSkill = skill
 			}
 		case arg == "--elo" && i+1 < len(os.Args[1:]):
-			if elo, err := strconv.Atoi(os.Args[i+2]); err == nil && elo >= 1320 && elo <= 3190 {
+			if elo, err := strconv.Atoi(os.Args[i+2]); err != nil {
+				fmt.Fprintf(os.Stderr, "Error: Invalid ELO value '%s': must be a number\n", os.Args[i+2])
+				os.Exit(1)
+			} else if elo < 1320 || elo > 3190 {
+				fmt.Fprintf(os.Stderr, "Error: ELO value %d is out of range. Must be between 1320-3190\n", elo)
+				os.Exit(1)
+			} else {
 				config.StockfishElo = elo
 			}
 		case arg == "--verbose":

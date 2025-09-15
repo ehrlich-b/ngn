@@ -1347,27 +1347,53 @@ func evaluateBasicMatePattern(board *Bitboard, color Color) int {
 
 	// KQ vs K mate
 	if PopCount(queenBB) > 0 {
-		mateBonus += 200 + edgeBonus // Large bonus for having queen vs bare king
+		mateBonus += 800 + edgeBonus // Massive bonus for having queen vs bare king
 
 		// Additional bonus for restricting enemy king
 		if opponentKingFile <= 1 || opponentKingFile >= 6 {
-			mateBonus += 20 // King near edge
+			mateBonus += 100 // King near edge
 		}
 		if opponentKingRank <= 1 || opponentKingRank >= 6 {
-			mateBonus += 20 // King near edge
+			mateBonus += 100 // King near edge
+		}
+
+		// Bonus for king proximity (supporting the mate)
+		kingSquare := trailingZeros(kingBB)
+		kingFile := int(kingSquare % 8)
+		kingRank := int(kingSquare / 8)
+		kingDistance := evalAbs(kingFile-opponentKingFile) + evalAbs(kingRank-opponentKingRank)
+		if kingDistance <= 3 {
+			mateBonus += (4 - kingDistance) * 50 // Closer king is better
 		}
 	}
 
 	// KR vs K mate (harder than KQ vs K)
 	if PopCount(rookBB) > 0 && PopCount(queenBB) == 0 {
-		mateBonus += 150 + edgeBonus // Good bonus for rook vs bare king
+		mateBonus += 600 + edgeBonus // Large bonus for rook vs bare king
 
 		// Additional bonus for cutting off enemy king
 		if opponentKingFile <= 1 || opponentKingFile >= 6 {
-			mateBonus += 15
+			mateBonus += 80
 		}
 		if opponentKingRank <= 1 || opponentKingRank >= 6 {
-			mateBonus += 15
+			mateBonus += 80
+		}
+
+		// Bonus for king proximity (crucial for rook mates)
+		kingSquare := trailingZeros(kingBB)
+		kingFile := int(kingSquare % 8)
+		kingRank := int(kingSquare / 8)
+		kingDistance := evalAbs(kingFile-opponentKingFile) + evalAbs(kingRank-opponentKingRank)
+		if kingDistance <= 3 {
+			mateBonus += (4 - kingDistance) * 60 // Closer king is even more important for rook mates
+		}
+
+		// Extra bonus for rook cutting off ranks/files
+		rookSquare := trailingZeros(rookBB)
+		rookFile := int(rookSquare % 8)
+		rookRank := int(rookSquare / 8)
+		if rookFile == opponentKingFile || rookRank == opponentKingRank {
+			mateBonus += 50 // Rook on same rank/file as enemy king
 		}
 	}
 

@@ -573,10 +573,14 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 				mate := (MATE_VALUE - bestScore + 1) / 2
 				scoreStr = fmt.Sprintf("mate %d", mate)
 			} else if bestScore <= -MATE_IN_MAX {
-				mate := (MATE_VALUE + bestScore + 1) / 2 // negative value
-				if mate > 0 {
-					mate = -mate
+				// Calculate mate distance for negative scores (mate against us)
+				// Protect against integer overflow by clamping extremely negative values
+				mateDistance := -bestScore - MATE_VALUE
+				if mateDistance < 0 || mateDistance > 1000 {
+					// Clamp to reasonable mate distance to prevent overflow
+					mateDistance = 1000
 				}
+				mate := -(mateDistance/2 + 1)
 				scoreStr = fmt.Sprintf("mate %d", mate)
 			} else {
 				scoreStr = fmt.Sprintf("cp %d", bestScore)
