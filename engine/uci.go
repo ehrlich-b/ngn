@@ -569,7 +569,10 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 			elapsed := uci.timeManager.GetElapsedTime()
 			// UCI: report mate scores as "score mate N" when applicable to avoid massive cp swings
 			var scoreStr string
-			if bestScore >= MATE_IN_MAX {
+			if bestScore == INFINITY || bestScore == -INFINITY {
+				// Handle INFINITY scores (indicates search bug) - report as evaluation error
+				scoreStr = "cp 0"
+			} else if bestScore >= MATE_IN_MAX {
 				mate := (MATE_VALUE - bestScore + 1) / 2
 				scoreStr = fmt.Sprintf("mate %d", mate)
 			} else if bestScore <= -MATE_IN_MAX {

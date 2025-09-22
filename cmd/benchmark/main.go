@@ -155,7 +155,7 @@ func (e *UCIEngine) benchmarkPosition(fen string, timeLimit time.Duration) (*Ben
 
 	scanner := bufio.NewScanner(e.stdout)
 	bestmovePattern := regexp.MustCompile(`bestmove\s+(\w+)`)
-	infoPattern := regexp.MustCompile(`info.*depth\s+(\d+).*score\s+cp\s+(-?\d+).*nodes\s+(\d+).*time\s+(\d+).*nps\s+(\d+)`)
+	infoPattern := regexp.MustCompile(`info.*depth\s+(\d+).*score\s+(?:cp\s+(-?\d+)|mate\s+(-?\d+)).*nodes\s+(\d+).*time\s+(\d+).*nps\s+(\d+)`)
 
 	for {
 		select {
@@ -174,14 +174,25 @@ func (e *UCIEngine) benchmarkPosition(fen string, timeLimit time.Duration) (*Ben
 					if depth, err := strconv.Atoi(matches[1]); err == nil {
 						result.Depth = depth
 					}
-					if score, err := strconv.Atoi(matches[2]); err == nil {
-						result.Score = score
+					// Handle both cp and mate scores (groups 2 and 3)
+					if matches[2] != "" { // cp score
+						if score, err := strconv.Atoi(matches[2]); err == nil {
+							result.Score = score
+						}
+					} else if matches[3] != "" { // mate score - convert to large cp equivalent
+						if mate, err := strconv.Atoi(matches[3]); err == nil {
+							if mate > 0 {
+								result.Score = 29000 + (1000 - mate) // Positive mate
+							} else {
+								result.Score = -29000 + (1000 + mate) // Negative mate
+							}
+						}
 					}
-					if nodes, err := strconv.Atoi(matches[3]); err == nil {
+					if nodes, err := strconv.Atoi(matches[4]); err == nil {
 						result.Nodes = nodes
 					}
-					// Skip time (matches[4])
-					if nps, err := strconv.Atoi(matches[5]); err == nil {
+					// Skip time (matches[5])
+					if nps, err := strconv.Atoi(matches[6]); err == nil {
 						result.NPS = nps
 					}
 				}

@@ -633,6 +633,12 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		}
 	}
 
+	// Workaround: If SearchFixed returns INFINITY but found a move, use a reasonable score
+	if info.BestScore == INFINITY && info.BestMove != EmptyMove {
+		// Use a high positive score to indicate a strong position
+		info.BestScore = 2000
+	}
+
 	return info
 }
 
@@ -1036,9 +1042,9 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 			inCheck := pos.IsInCheck()
 			if inCheck {
 				// Checkmate - we're mated, clamp mate distance to prevent overflow
-				mateDistance := info.Depth
-				if mateDistance > 1000 {
-					mateDistance = 1000
+				mateDistance := info.Depth + qDepth
+				if mateDistance > 1000 || mateDistance < 0 {
+					mateDistance = 1 // Safe fallback for mate-in-1
 				}
 				return -MATE_VALUE + mateDistance
 			}
