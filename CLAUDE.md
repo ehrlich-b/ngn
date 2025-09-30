@@ -62,26 +62,28 @@ When the user says "reanchor", always re-read README.md, TODO.md, and CLAUDE.md 
 - Never skip this step - it's essential for maintaining project continuity
 - This prevents getting lost and ensures all work is tracked
 
-### CRITICAL: Performance Monitoring End-to-End
+### CRITICAL: Performance vs Strength Balance
 - **Run `make test` after EVERY major feature** - catches performance regressions immediately
-- **Engine MUST maintain ≥120K NPS** (our 1477 ELO depends on this performance)
-- **Never ship if NPS drops >5%** - revert and profile before proceeding
+- **NEW PRIORITY**: Win rate > raw NPS (better to be slower and win than fast and lose)
+- **Target**: 80K-100K NPS with smart evaluation beats 120K+ NPS with dumb evaluation
+- **Measure what matters**: Track actual game results, not just isolated test metrics
 - **Use `make eval` sparingly** - comprehensive 2-minute evaluation for milestones only
 
 ### Test Strategy Understanding
 - `make test`: Regular development cycle with performance monitoring (run frequently)
 - `make eval`: Deep 2-minute evaluation with proper time allocation (occasional use)
-- The engine is **strong** (1477 ELO) but **only with proper time allocation**
+- **CRITICAL**: Isolated tactical tests are misleading - real game performance is what matters
 
 ## Architecture
 
-This is a **high-performance chess engine** written in Go achieving **1477 ELO** with proper time allocation.
+This is a **high-performance chess engine** written in Go currently achieving **~1200-1400 ELO**.
 
-### 🎉 **CURRENT STATUS**: All Major Issues Resolved
-- ✅ **Performance**: 149K+ NPS sustained, 300K+ NPS peak (far exceeds 120K target)
-- ✅ **Evaluation**: Captures correctly prioritized, material evaluation perfect
-- ✅ **Move Generation**: All chess rules correctly implemented  
-- 🎯 **Ready**: Engine is strong (1477 ELO potential) with solid technical foundation
+### 🔧 **CURRENT STATUS**: Evaluation Overhaul Phase
+- ✅ **Performance**: 120K+ NPS sustained with zero-allocation hot paths
+- ✅ **Mechanics**: Move generation perfect, search algorithms working, UCI functional
+- ✅ **Tactical**: 93.3% accuracy on isolated puzzles
+- ❌ **Strategic Play**: Critical evaluation features disabled for performance
+- 🎯 **Current Goal**: Re-enable evaluation to reach 1400-1600 ELO playable strength
 
 ### Core Architecture
 
@@ -119,15 +121,18 @@ This is a **high-performance chess engine** written in Go achieving **1477 ELO**
 
 ### Development Notes
 
-- **Engine is STRONG**: 1477 ELO proven with proper time allocation  
-- **Performance Excellent**: 149K+ NPS sustained, 300K+ peak with zero-allocation hot paths
 - **Foundation Solid**: Full UCI protocol, comprehensive search, perfect move generation
-- **All Systems Operational**: No known bugs or performance issues
+- **Performance Excellent**: 120K+ NPS with zero-allocation hot paths
+- **Critical Issue**: Evaluation features disabled for performance optimization
+- **Current Weakness**: Engine lacks strategic understanding (king safety, piece coordination, pawn structure)
+- **Test Deception**: 93.3% tactical accuracy misleading - only tests isolated puzzles, not real game play
 - Uses standard Go module structure with `github.com/ehrlich-b/ngn` as the module path
 - No external dependencies beyond Go standard library
 
-### 🎯 **NEXT PHASE**: Advanced Features
-With solid foundations in place, the engine is ready for advanced features like:
-- Opening books and endgame tablebases  
-- Enhanced positional evaluation (castling bonus, center control)
-- Advanced search techniques and pruning optimizations
+### 🎯 **CURRENT PHASE**: Evaluation Re-enablement
+The engine has solid mechanics but needs chess intelligence restored:
+- **Priority 1**: Re-enable king safety evaluation (critical for survival)
+- **Priority 2**: Re-enable piece coordination/protection (strategic coherence)
+- **Priority 3**: Re-enable pawn structure evaluation (positional understanding)
+- **Goal**: Find balance between performance and playing strength
+- **Target**: Accept slower NPS (80K-100K) if it means winning actual games

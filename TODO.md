@@ -1,5 +1,161 @@
 # NGN Chess Engine — Development Roadmap
 
+## 🔧 CURRENT REALITY (2025-09-29)
+
+### **The Brutal Truth**
+After extensive testing, the engine's claimed 1477 ELO was based on **misleading test metrics**:
+- ✅ **Mechanics Working**: Move generation, search algorithms, UCI protocol all functional
+- ✅ **Isolated Tactics**: 93.3% accuracy on puzzle positions (28/30)
+- ❌ **Real Games**: 0% win rate against strong opponents (~1800 ELO)
+- ❌ **Actual Strength**: ~1200-1400 ELO (not 1477)
+
+### **Root Cause: Search Algorithm Instability** (UPDATED 2025-09-29)
+Deep analysis of move 37 blunder revealed the PRIMARY issue is **search instability**:
+- ✅ Evaluation features RE-ENABLED (king safety, piece coordination, pawn structure)
+- ❌ **SEARCH BROKEN**: Evaluation swings 1100+ cp between consecutive depths
+- ❌ **MOVE SELECTION**: Best move flip-flops wildly at different depths
+- ❌ **HORIZON EFFECT**: Search can't see beyond immediate tactical threats
+
+**Example (Move 37 blunder):**
+- Depth 6-7: h8e5 is best (+944cp)
+- Depth 8: d3g6 is best (-159cp) ← Engine chose this, WRONG!
+- Correct move: h8e5 (Stockfish: -531cp, stable depth 7-20)
+
+**Result**: Engine searches correctly but makes wrong decisions due to unstable search tree.
+
+### **Test Deception Pattern**
+Previous tests validated **mechanics**, not **chess ability**:
+- Tactical puzzles: Isolated positions with forced solutions ✅ (misleading)
+- Material evaluation: Static positions, trivial ✅ (meaningless)
+- Perft validation: Move generation correctness ✅ (good, but insufficient)
+- **MISSING**: Full game testing against calibrated opponents ❌ (only thing that matters)
+
+### **Current Phase: Search Stability Fix** (UPDATED 2025-09-29)
+Goal: Fix search instability to make **consistent, reliable move decisions**
+- **Target**: Stable evaluations across depths (like Stockfish)
+- **Priority**: Search stability > Evaluation accuracy > Performance
+- **Target NPS**: 80K-100K acceptable if search is stable
+- **Target ELO**: 1400-1600 (achievable once search is fixed)
+- **Measure Success**: Win rate in actual games, not isolated test metrics
+
+### **Game Test Results - Critical Findings (2025-09-29)**
+
+**Test Setup**: NGN (White) vs Stockfish 1320 ELO, 2 seconds/move
+
+**Game 1 Analysis** (182 moves, technical draw - NGN was lost):
+
+**Early Game (Moves 1-36):**
+- NGN evaluation: +40cp → +279cp → +379cp (thought it was winning)
+- Reality: Position was roughly equal, then NGN got slightly better
+- **Problem**: Over-optimistic evaluation by ~100-200cp
+
+**Critical Turning Point (Move 37):**
+- NGN played `Bd3g6` - a blunder
+- NGN evaluation dropped from +302cp to -159cp (suddenly saw the problem)
+- Stockfish evaluation: +561cp (knew it was winning)
+- **Problem**: NGN made a tactical/positional blunder that lost the game
+
+**Mid-Game (Moves 38-110):**
+- NGN evaluation swung wildly: -192cp → +72cp → +164cp → -9cp → +78cp
+- Stockfish evaluation: Consistently +450-580cp (winning decisively)
+- **Problem**: NGN had no idea it was losing for 70+ moves
+
+**Late Game (Moves 111-182):**
+- NGN evaluation: -303cp → -534cp (finally realized losing)
+- Stockfish found mate in 9 (move 112), mate in 1 (move 182)
+- Game ended in technical draw due to no legal moves detection bug
+- **Problem**: NGN fought on in a totally lost position instead of resigning
+
+**Root Causes Identified (UPDATED after move 37 analysis):**
+1. **SEARCH INSTABILITY** (PRIMARY BUG): Evaluation swings 1100cp between depths
+2. **HORIZON EFFECT**: Search depth insufficient to see move consequences
+3. **Evaluation inaccuracy** (SECONDARY): Off by 200-500cp throughout the game
+4. **No resignation logic**: Played on in mate-in-9 position
+
+**Conclusion**: Re-enabling evaluation features did NOT solve the fundamental problems. The **search algorithm** is broken - it makes different decisions at different depths due to massive evaluation swings. This is the root cause of the 0% win rate.
+
+---
+
+### **Immediate Priorities (Next 2-3 Days)**
+
+**Phase 1: Low-Hanging Fruit (Today)** ✅ COMPLETED (But Results Disappointing)
+1. [x] Re-enable king safety evaluation (eval.go:2340) ✅
+2. [x] Re-enable piece coordination evaluation (eval.go:2369) ✅
+3. [x] Re-enable pawn structure evaluation (eval.go:2298) ✅
+4. [x] Re-enable piece development evaluation ✅
+5. [x] Run performance benchmarks to measure NPS impact ✅
+   - **Result**: NPS ~140K-290K (slower but expected with full evaluation)
+   - **Depth**: Reaches depth 8-10 typically (acceptable)
+   - **Trade-off**: Engine now has evaluation features enabled
+6. [x] Play games vs Stockfish 1320 ELO ✅
+   - **Result**: Game 1 = Technical draw after 182 moves (NGN was completely lost)
+   - **Evaluation Accuracy**: Wildly inaccurate throughout game
+   - **Critical Blunder**: Move 37 (Bd3g6) turned winning position into losing position
+   - **Conclusion**: Re-enabling evaluation DID NOT fix the fundamental problems
+
+**Phase 2: URGENT - Fix Search Bugs** (Current Priority)
+Based on move 37 blunder analysis (2025-09-29), the ROOT CAUSE is search instability:
+
+1. [x] **CRITICAL**: Analyze move 37 blunder (Bd3g6) ✅ **COMPLETED**
+   - **Position FEN**: `r3kn1Q/1p2b3/p1n1b3/2ppq3/8/3B4/PPPP1PPP/R1B3K1 w q - 0 1`
+   - **NGN's Search Behavior** (WILDLY UNSTABLE):
+     - Depth 1-3: h8e5 best (+87 to +107cp)
+     - Depth 4-5: d3g6 best (+18, -2cp)
+     - Depth 6-7: h8e5 best (+944cp!!!)
+     - Depth 8: d3g6 best (-159cp) ← **chosen move, the blunder**
+   - **Stockfish's Search** (STABLE):
+     - Depth 7-20: h8e5 consistently best (-520 to -600cp, stable)
+     - Depth 20 final: h8e5 (-531cp)
+   - **Root Cause**: Search instability with 1100+ cp swings between depths
+   - **Horizon Effect**: NGN can't see consequences of d3g6 beyond depth 8
+
+2. [ ] **CRITICAL**: Fix search instability (HIGHEST PRIORITY)
+   - **Problem**: Evaluation swings 1100cp between consecutive depths (+944 → -159)
+   - **Impact**: Engine makes completely wrong moves due to depth-dependent results
+   - **Possible Causes**:
+     - Pruning too aggressive (cutting off critical variations)
+     - Late Move Reduction applied incorrectly
+     - Transposition table corruption or incorrect bounds
+     - Quiescence search not deep enough
+     - Check extensions causing horizon issues
+   - **Action**: Add search debugging, compare search tree with Stockfish on this position
+
+3. [ ] **HIGH**: Fix evaluation scaling/calibration
+   - NGN evaluations are consistently 200-500cp too optimistic
+   - Compare evaluation components to Stockfish on test positions
+   - Likely issue: Piece-square tables or material weights wrong
+
+4. [x] **MEDIUM**: Add position analysis tool ✅ **COMPLETED**
+   - Created `cmd/moves_to_fen/main.go` - converts move sequence to FEN
+   - Can now analyze any position from game logs
+   - Used to extract move 36 position for blunder analysis
+
+5. [ ] **LOW**: Add resignation logic
+   - If evaluation < -500cp for 5+ consecutive moves, resign
+   - Prevents pointless 182-move games
+
+**Phase 3: Optimization (Deprioritized)**
+Performance is acceptable - fix correctness first:
+1. [ ] Profile if needed later
+2. [ ] Optimize hot paths if needed later
+3. [ ] Current NPS (140K-290K) is acceptable for debugging
+
+**Phase 4: Better Testing Infrastructure**
+Game testing framework exists but needs improvements:
+1. [x] Gametest harness works ✅
+2. [ ] Add PGN export for game analysis
+3. [ ] Add FEN export at critical moves
+4. [ ] Add evaluation breakdown export
+5. [ ] Automated testing against multiple ELO levels
+
+**Phase 5: Iterative Improvement (After fixes)**
+1. [ ] Analyze game logs to find specific evaluation bugs
+2. [ ] Fix one specific weakness at a time
+3. [ ] Re-run games to measure impact on win rate
+4. [ ] Repeat until target ELO (1400-1600) reached
+
+---
+
 ## Current Status (2025-09-20)
 
 ### ✅ **ENGINE NOW FUNCTIONAL - CRITICAL BUGS FIXED!** ✅

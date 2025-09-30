@@ -2307,25 +2307,25 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	eval += whitePassedPawns * 25 // Bonus for passed pawns
 	eval -= blackPassedPawns * 25
 
-	// DISABLED FOR PERFORMANCE:
-	// whiteDoubledPawns := 0
-	// blackDoubledPawns := 0
-	// for file := 0; file < 8; file++ {
-	//	whiteDoubledPawns += countDoubledPawns(board, White, file)
-	//	blackDoubledPawns += countDoubledPawns(board, Black, file)
-	// }
-	// eval += -(whiteDoubledPawns * 50)
-	// eval += (blackDoubledPawns * 50)
+	// RE-ENABLED: Core pawn structure evaluation (critical for positional play)
+	whiteDoubledPawns := 0
+	blackDoubledPawns := 0
+	for file := 0; file < 8; file++ {
+		whiteDoubledPawns += countDoubledPawns(board, White, file)
+		blackDoubledPawns += countDoubledPawns(board, Black, file)
+	}
+	eval += -(whiteDoubledPawns * 50)
+	eval += (blackDoubledPawns * 50)
 
-	// whiteIsolatedPawns := countIsolatedPawns(board, White)
-	// blackIsolatedPawns := countIsolatedPawns(board, Black)
-	// eval += -(whiteIsolatedPawns * 15)
-	// eval += (blackIsolatedPawns * 15)
+	whiteIsolatedPawns := countIsolatedPawns(board, White)
+	blackIsolatedPawns := countIsolatedPawns(board, Black)
+	eval += -(whiteIsolatedPawns * 15)
+	eval += (blackIsolatedPawns * 15)
 
-	// whitePawnChains := evaluatePawnChains(board, White)
-	// blackPawnChains := evaluatePawnChains(board, Black)
-	// eval += whitePawnChains
-	// eval += -blackPawnChains
+	whitePawnChains := evaluatePawnChains(board, White)
+	blackPawnChains := evaluatePawnChains(board, Black)
+	eval += whitePawnChains
+	eval += -blackPawnChains
 
 	// whiteWeakSquares := evaluateWeakSquares(board, White)
 	// blackWeakSquares := evaluateWeakSquares(board, Black)
@@ -2337,14 +2337,13 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	// eval += whitePawnStorms
 	// eval += -blackPawnStorms
 
-	// 4. King safety evaluation - DISABLED FOR PERFORMANCE
-	// evaluateKingSafety was a major CPU hotspot
-	// if !endgame {
-	//	whiteKingSafety := evaluateKingSafety(board, White)
-	//	blackKingSafety := evaluateKingSafety(board, Black)
-	//	eval += whiteKingSafety
-	//	eval += -blackKingSafety
-	// }
+	// 4. King safety evaluation - RE-ENABLED (critical for game play)
+	if !endgame {
+		whiteKingSafety := evaluateKingSafety(board, White)
+		blackKingSafety := evaluateKingSafety(board, Black)
+		eval += whiteKingSafety
+		eval += -blackKingSafety
+	}
 
 	// 5. Castling evaluation (king safety bonus) - OPTIMIZED VERSION
 	whiteCastlingBonus := evaluateCastlingFast(board, White)
@@ -2358,20 +2357,19 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	eval += whiteCenterControl
 	eval += -blackCenterControl
 
-	// 7. Piece development evaluation (opening principles) - DISABLED FOR PERFORMANCE
-	// if !endgame { // Development most important in opening/middlegame
-	//	whiteDevelopment := evaluatePieceDevelopment(board, White)
-	//	blackDevelopment := evaluatePieceDevelopment(board, Black)
-	//	eval += whiteDevelopment
-	//	eval += -blackDevelopment
-	// }
+	// 7. Piece development evaluation (opening principles) - RE-ENABLED
+	if !endgame { // Development most important in opening/middlegame
+		whiteDevelopment := evaluatePieceDevelopment(board, White)
+		blackDevelopment := evaluatePieceDevelopment(board, Black)
+		eval += whiteDevelopment
+		eval += -blackDevelopment
+	}
 
-	// 8. Piece coordination and harmony - DISABLED FOR PERFORMANCE
-	// evaluatePieceProtection was 8.50% CPU, countProtectorsBB was 6.12% CPU
-	// whiteCoordination := evaluatePieceCoordination(board, White)
-	// blackCoordination := evaluatePieceCoordination(board, Black)
-	// eval += whiteCoordination
-	// eval += -blackCoordination
+	// 8. Piece coordination and harmony - RE-ENABLED (critical for strategic play)
+	whiteCoordination := evaluatePieceCoordination(board, White)
+	blackCoordination := evaluatePieceCoordination(board, Black)
+	eval += whiteCoordination
+	eval += -blackCoordination
 
 	// 9. Bishop pair bonus
 	whiteBishopPairBonus := evaluateBishopPair(board, White)
