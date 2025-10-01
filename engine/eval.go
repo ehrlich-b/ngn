@@ -1516,7 +1516,7 @@ func evaluatePieceProtection(kingBB, queenBB, rookBB, bishopBB, knightBB, pawnBB
 	for qbb := queenBB; qbb != 0; qbb &= qbb - 1 {
 		queenSquare := bits.TrailingZeros64(qbb)
 		protectors := countProtectorsBB(queenSquare, rookBB, bishopBB, knightBB, pawnBB, color)
-		protection += protectors * 15 // High bonus for queen protection
+		protection += protectors * 8 // Reduced from 15 to prevent evaluation inflation
 	}
 
 	// Process rooks
@@ -1530,7 +1530,7 @@ func evaluatePieceProtection(kingBB, queenBB, rookBB, bishopBB, knightBB, pawnBB
 				protectors++
 			}
 		}
-		protection += protectors * 8 // Good bonus for rook protection
+		protection += protectors * 4 // Reduced from 8 to prevent evaluation inflation
 	}
 
 	// Process bishops
@@ -1543,7 +1543,7 @@ func evaluatePieceProtection(kingBB, queenBB, rookBB, bishopBB, knightBB, pawnBB
 				protectors++
 			}
 		}
-		protection += protectors * 5 // Moderate bonus for bishop protection
+		protection += protectors * 3 // Reduced from 5 to prevent evaluation inflation
 	}
 
 	// Process knights
@@ -1556,7 +1556,7 @@ func evaluatePieceProtection(kingBB, queenBB, rookBB, bishopBB, knightBB, pawnBB
 				protectors++
 			}
 		}
-		protection += protectors * 5 // Moderate bonus for knight protection
+		protection += protectors * 3 // Reduced from 5 to prevent evaluation inflation
 	}
 
 	return protection
@@ -2304,8 +2304,8 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	// Optimized passed pawn counting using cached bitboards
 	whitePassedPawns := countPassedPawnsFast(whitePawns, blackPawns, White)
 	blackPassedPawns := countPassedPawnsFast(blackPawns, whitePawns, Black)
-	eval += whitePassedPawns * 25 // Bonus for passed pawns
-	eval -= blackPassedPawns * 25
+	eval += whitePassedPawns * 20 // Reduced from 25 to prevent evaluation inflation
+	eval -= blackPassedPawns * 20
 
 	// RE-ENABLED: Core pawn structure evaluation (critical for positional play)
 	whiteDoubledPawns := 0
@@ -2314,13 +2314,13 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 		whiteDoubledPawns += countDoubledPawns(board, White, file)
 		blackDoubledPawns += countDoubledPawns(board, Black, file)
 	}
-	eval += -(whiteDoubledPawns * 50)
-	eval += (blackDoubledPawns * 50)
+	eval += -(whiteDoubledPawns * 30) // Reduced from 50 to prevent over-penalization
+	eval += (blackDoubledPawns * 30)
 
 	whiteIsolatedPawns := countIsolatedPawns(board, White)
 	blackIsolatedPawns := countIsolatedPawns(board, Black)
-	eval += -(whiteIsolatedPawns * 15)
-	eval += (blackIsolatedPawns * 15)
+	eval += -(whiteIsolatedPawns * 10) // Reduced from 15 to prevent over-penalization
+	eval += (blackIsolatedPawns * 10)
 
 	whitePawnChains := evaluatePawnChains(board, White)
 	blackPawnChains := evaluatePawnChains(board, Black)
@@ -2391,53 +2391,71 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 
 		// Castling bonus: king on g1/c1 for white, g8/c8 for black
 		if whiteKingSquare == 6 || whiteKingSquare == 2 { // g1 or c1
-			eval += 50 // Castling safety bonus
+			eval += 25 // Reduced from 50 to prevent evaluation inflation
 		}
 		if blackKingSquare == 62 || blackKingSquare == 58 { // g8 or c8
-			eval -= 50 // Castling safety bonus for black
+			eval -= 25 // Reduced from 50 to prevent evaluation inflation
 		}
 
 		// Penalty for king still on starting square in middlegame
 		if whiteKingSquare == 4 { // e1
-			eval -= 30 // Penalty for uncastled king
+			eval -= 15 // Reduced from 30 to prevent evaluation inflation
 		}
 		if blackKingSquare == 60 { // e8
-			eval += 30 // Penalty for uncastled king (black)
+			eval += 15 // Reduced from 30 to prevent evaluation inflation
 		}
 	}
 	
 	// 9. CRITICAL: Center control bonus - reward pawns controlling e4/d4/e5/d5
 	centerBonusWhite := 0
 	centerBonusBlack := 0
-	
+
 	// Count pawns controlling central squares
 	for bb := whitePawns; bb != 0; bb &= bb - 1 {
 		square := bits.TrailingZeros64(bb)
-		
+
 		// Bonus for pawns on d4/e4 (central occupation)
 		if square == 28 || square == 36 { // d4, e4
-			centerBonusWhite += 25
+			centerBonusWhite += 15 // Reduced from 25 to prevent evaluation inflation
 		}
 		// Bonus for pawns on d3/e3/c3/f3 (supporting center)
 		if square == 20 || square == 28 || square == 19 || square == 21 { // d3, e3, c3, f3
-			centerBonusWhite += 10  
+			centerBonusWhite += 5 // Reduced from 10 to prevent evaluation inflation
 		}
 	}
-	
+
 	for bb := blackPawns; bb != 0; bb &= bb - 1 {
 		square := bits.TrailingZeros64(bb)
-		
+
 		// Bonus for pawns on d5/e5 (central occupation)
-		if square == 35 || square == 27 { // d5, e5  
-			centerBonusBlack += 25
+		if square == 35 || square == 27 { // d5, e5
+			centerBonusBlack += 15 // Reduced from 25 to prevent evaluation inflation
 		}
 		// Bonus for pawns on d6/e6/c6/f6 (supporting center)
 		if square == 43 || square == 35 || square == 42 || square == 44 { // d6, e6, c6, f6
-			centerBonusBlack += 10
+			centerBonusBlack += 5 // Reduced from 10 to prevent evaluation inflation
 		}
 	}
-	
+
 	eval += centerBonusWhite - centerBonusBlack
+
+	// Global evaluation scaling to prevent inflation
+	// After individual bonus reductions, still ~3-4x too optimistic
+	// Apply 40% scaling (keep 40% of positional bonuses, 100% of material)
+	material := 0
+	material += int(WhitePawn.Weight()) * PopCount(whitePawns)
+	material += int(WhiteKnight.Weight()) * PopCount(whiteKnights)
+	material += int(WhiteBishop.Weight()) * PopCount(whiteBishops)
+	material += int(WhiteRook.Weight()) * PopCount(whiteRooks)
+	material += int(WhiteQueen.Weight()) * PopCount(whiteQueens)
+	material -= int(BlackPawn.Weight()) * PopCount(blackPawns)
+	material -= int(BlackKnight.Weight()) * PopCount(blackKnights)
+	material -= int(BlackBishop.Weight()) * PopCount(blackBishops)
+	material -= int(BlackRook.Weight()) * PopCount(blackRooks)
+	material -= int(BlackQueen.Weight()) * PopCount(blackQueens)
+
+	positional := eval - material
+	eval = material + (positional * 4 / 10) // Keep 100% material, 40% positional
 
 	return eval
 }
