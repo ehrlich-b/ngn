@@ -33,13 +33,27 @@ Previous tests validated **mechanics**, not **chess ability**:
 - Perft validation: Move generation correctness ✅ (good, but insufficient)
 - **MISSING**: Full game testing against calibrated opponents ❌ (only thing that matters)
 
-### **Current Phase: Game Testing** (UPDATED 2025-09-30)
-Goal: Measure ELO improvement from search stability fix
-- ✅ **Search Stability**: FIXED - evaluations stable across depths
-- 🔄 **Testing**: Running games vs Stockfish 1320 ELO
-- **Performance**: 580K+ NPS (excellent with full evaluation enabled)
-- **Target ELO**: 1400-1600 (should be achievable with stable search)
-- **Next Steps**: Measure win rate, compare to previous 0% win rate
+### **Current Phase: Post-Fix Game Testing** ✅ **COMPLETED (2025-09-30)**
+**Search Stability Fix: VERIFIED WORKING**
+- ✅ **Search Stability**: Evaluations stable across depths (no more 1100cp swings)
+- ✅ **Performance**: ~405K NPS with full evaluation enabled
+- ✅ **Survival**: 96 moves vs Stockfish (vs only 37 before blundering)
+
+**Game Results vs Stockfish 1320 ELO (2025-09-30):**
+- **Game 1**: Lost 0-1 (checkmate move 96) - survived 96 moves with stable search
+- **Game 2**: Lost (Stockfish mate-in-9 from move 91, NGN repeated moves for 75+ moves)
+- **Win Rate**: Still 0% (but MUCH better survival)
+
+**What Improved:**
+- Search stability: No evaluation swings between depths ✅
+- Game survival: 96 moves (vs 37 before) - 2.6x improvement ✅
+- Search consistency: Stable evaluations throughout game ✅
+
+**Remaining Issues:**
+1. **Evaluation inaccuracy**: Still +200-500cp too optimistic
+2. **No resignation**: Played 75 moves while being mated
+3. **Endgame weaknesses**: Gets into hopeless positions
+4. **Gametest bugs**: Marks checkmate as "draw" (testing framework issue)
 
 ### **Game Test Results - Critical Findings (2025-09-29)**
 

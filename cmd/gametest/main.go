@@ -74,8 +74,8 @@ type GameTester struct {
 
 func main() {
 	config := &GameTestConfig{
-		NGNPath:        "./build/ngn",
-		StockfishPath:  "./stockfish/stockfish-ubuntu-x86-64-avx2",
+		NGNPath:        "../../build/ngn",
+		StockfishPath:  "../../stockfish/stockfish-ubuntu-x86-64-avx2",
 		TimeControl:    time.Second * 5, // 5 seconds per move
 		MaxMoves:       200,
 		GameCount:      10,
