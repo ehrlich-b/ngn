@@ -299,6 +299,11 @@ eval-move37-start: ## Show evaluation breakdown of move 37 starting position
 	@echo "Evaluation of move 37 starting position..."
 	@go run cmd/eval_breakdown/main.go -fen "r3kn1Q/1p2b3/p1n1b3/2ppq3/8/3B4/PPPP1PPP/R1B3K1 w q - 0 1"
 
+.PHONY: compare-evals
+compare-evals: ## Compare NGN vs Stockfish evaluations on multiple test positions
+	@chmod +x compare_evals.sh
+	@./compare_evals.sh
+
 .PHONY: analyze-position
 analyze-position: ## Analyze any FEN position (usage: make analyze-position FEN="..." DEPTH=10)
 	@if [ -z "$(FEN)" ]; then \
