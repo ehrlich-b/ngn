@@ -109,16 +109,26 @@ Based on move 37 blunder analysis (2025-09-29), the ROOT CAUSE is search instabi
    - **Root Cause**: Search instability with 1100+ cp swings between depths
    - **Horizon Effect**: NGN can't see consequences of d3g6 beyond depth 8
 
-2. [ ] **CRITICAL**: Fix search instability (HIGHEST PRIORITY)
+2. [ ] **CRITICAL**: Fix search instability (HIGHEST PRIORITY) - **ROOT CAUSE IDENTIFIED 2025-09-30**
    - **Problem**: Evaluation swings 1100cp between consecutive depths (+944 → -159)
    - **Impact**: Engine makes completely wrong moves due to depth-dependent results
-   - **Possible Causes**:
-     - Pruning too aggressive (cutting off critical variations)
-     - Late Move Reduction applied incorrectly
-     - Transposition table corruption or incorrect bounds
-     - Quiescence search not deep enough
-     - Check extensions causing horizon issues
-   - **Action**: Add search debugging, compare search tree with Stockfish on this position
+
+   - **ROOT CAUSE FOUND**: UCI code uses `SearchFixed` in iterative deepening loop instead of `SearchIterativeDeepening`
+     - `engine/uci.go:553`: Calls `SearchFixed(uci.position, depth, uci.timeManager)` in loop
+     - Each depth search is INDEPENDENT, doesn't benefit from previous iterations
+     - No progressive TT building, poor move ordering, unstable aspiration windows
+
+   - **PROOF**: Same position analyzed with both methods:
+     - **SearchFixed**: Depths 6-7 = +944cp (h8e5), Depth 8 = -159cp (d3g6) - UNSTABLE!
+     - **SearchIterativeDeepening**: All depths 3-10 = +87cp (h8e5) - STABLE!
+
+   - **FIX**: Replace UCI iterative loop with proper `SearchIterativeDeepening` call
+     - Remove the manual depth loop in UCI (lines ~495-640)
+     - Call `SearchIterativeDeepening(pos, maxDepth, timeManager)` once
+     - Let SearchIterativeDeepening handle progressive depth increases internally
+
+   - **TESTED**: Check extensions, quiescence depth - NEITHER caused the instability
+   - **STATUS**: Fix identified, ready to implement
 
 3. [ ] **HIGH**: Fix evaluation scaling/calibration
    - NGN evaluations are consistently 200-500cp too optimistic
