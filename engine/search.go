@@ -387,11 +387,18 @@ func Search(pos *Position, depth int) *SearchInfo {
 	return SearchIterativeDeepening(pos, depth, nil)
 }
 
+// DepthCallback is called after each depth completes during iterative deepening
+type DepthCallback func(depth int, score int, bestMove Move, nodes uint64)
+
 func SearchIterativeDeepening(pos *Position, maxDepth int, timeManager *TimeManager) *SearchInfo {
-	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager)
+	return SearchIterativeDeepeningWithCallback(pos, maxDepth, timeManager, nil)
 }
 
-func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager) *SearchInfo {
+func SearchIterativeDeepeningWithCallback(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback) *SearchInfo {
+	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback)
+}
+
+func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback) *SearchInfo {
 	// Advance the age of the transposition table for each search
 	TranspositionTable.AdvanceAge()
 
@@ -538,6 +545,11 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		// Store the current depth result - this gives us a valid answer
 		// even if the search is interrupted at higher depths
 		info.Depth = currentDepth
+
+		// Call the callback if provided (for UCI info reporting)
+		if callback != nil && info.BestMove != EmptyMove {
+			callback(currentDepth, info.BestScore, info.BestMove, info.Nodes)
+		}
 	}
 
 	return info

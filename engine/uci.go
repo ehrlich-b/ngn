@@ -480,175 +480,97 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 		fmt.Fprintf(output, "info string starting search, maxDepth=%d\n", maxDepth)
 	}
 
-	// Perform iterative deepening search
-	for depth := 1; depth <= maxDepth; depth++ {
-		iterationStart := time.Now()
-		uci.debugLogger.Printf("=== STARTING DEPTH %d ===", depth)
-
+	// Check opening book first before starting search
+	if bookMove, found := GetDefaultOpeningBook().ProbeBook(uci.position); found {
+		uci.debugLogger.Printf("Opening book hit! Move: %v", bookMove.ToString())
 		if uci.debugMode {
-			fmt.Fprintf(output, "info string searching depth %d\n", depth)
+			fmt.Fprintf(output, "info string opening book move: %s\n", bookMove.ToString())
 		}
 
-		// Check if we should stop due to external stop command
+		bestMove = bookMove
+		bestScore = 50
+		uci.debugLogger.Printf("Using book move: %v with score %d", bestMove.ToString(), bestScore)
+
+		// Output the book move result
+		fmt.Fprintf(output, "info depth 1 score cp %d nodes 1 time 0 nps 0 pv %s\n",
+			bestScore, bestMove.ToString())
+	} else {
+		uci.debugLogger.Printf("No opening book move found for current position")
+		if uci.debugMode {
+			fmt.Fprintf(output, "info string no book move found, starting search\n")
+		}
+
+		// Perform iterative deepening search with callback for UCI info output
+		uci.debugLogger.Printf("Starting SearchIterativeDeepeningWithCallback, maxDepth=%d", maxDepth)
+
+		// Define callback to send UCI info after each depth completes
+		depthCallback := func(depth int, score int, move Move, nodes uint64) {
+		// Check for stop command
 		select {
 		case <-uci.stopChan:
-			uci.debugLogger.Printf("STOP COMMAND received, going to searchComplete")
-			if uci.debugMode {
-				fmt.Fprintf(output, "info string stopped by stop command\n")
-			}
-			goto searchComplete
+			uci.debugLogger.Printf("STOP COMMAND received during search")
+			return
 		default:
 		}
 
-		// Check if we should stop due to time constraints
-		shouldStop := uci.timeManager.ShouldStopSearch(depth, iterationStart)
-		uci.debugLogger.Printf("ShouldStopSearch(depth=%d): %v (elapsed: %v, allocated: %v)",
-			depth, shouldStop, uci.timeManager.GetElapsedTime(), uci.timeManager.GetAllocatedTime())
-		if shouldStop {
-			uci.debugLogger.Printf("TIME LIMIT: stopping at depth %d", depth-1)
-			if uci.debugMode {
-				fmt.Fprintf(output, "info string stopping search at depth %d due to time\n", depth-1)
+		// Update best move and score
+		bestMove = move
+		bestScore = score
+		lastIterationScore = score
+
+		// Update time manager with score change
+		uci.timeManager.UpdateGameState(uci.movesPlayed, lastIterationScore, score, uci.position)
+
+		// Send search info
+		elapsed := uci.timeManager.GetElapsedTime()
+
+		// UCI: report mate scores as "score mate N" when applicable
+		var scoreStr string
+		if score == INFINITY || score == -INFINITY {
+			scoreStr = "cp 0"
+		} else if score >= MATE_IN_MAX {
+			mate := (MATE_VALUE - score + 1) / 2
+			scoreStr = fmt.Sprintf("mate %d", mate)
+		} else if score <= -MATE_IN_MAX {
+			mateDistance := -score - MATE_VALUE
+			if mateDistance < 0 || mateDistance > 1000 {
+				mateDistance = 1000
 			}
-			break
+			mate := -(mateDistance/2 + 1)
+			scoreStr = fmt.Sprintf("mate %d", mate)
+		} else {
+			scoreStr = fmt.Sprintf("cp %d", score)
 		}
 
-		// Check opening book first (only on depth 1 to avoid repeating book lookup)
-		if depth == 1 {
-			if bookMove, found := GetDefaultOpeningBook().ProbeBook(uci.position); found {
-				uci.debugLogger.Printf("Opening book hit! Move: %v", bookMove.ToString())
-				if uci.debugMode {
-					fmt.Fprintf(output, "info string opening book move: %s\n", bookMove.ToString())
-				}
-
-				// Create synthetic search info for book move
-				info := &SearchInfo{
-					Nodes:     1, // Minimal node count since no search was performed
-					Depth:     1,
-					BestMove:  bookMove,
-					BestScore: 50, // Slight positive bias for book moves
-					Stopped:   false,
-				}
-
-				bestMove = bookMove
-				bestScore = 50
-				uci.debugLogger.Printf("Using book move: %v with score %d", bestMove.ToString(), bestScore)
-
-				// Output the book move result and break from search loop
-				elapsed := time.Since(iterationStart)
-				nps := uint64(float64(info.Nodes) / elapsed.Seconds())
-				fmt.Fprintf(output, "info depth %d score cp %d nodes %d time %d nps %d pv %s\n",
-					depth, bestScore, info.Nodes, elapsed.Milliseconds(), nps, bestMove.ToString())
-
-				break // Exit search loop since we have our book move
-			} else {
-				uci.debugLogger.Printf("No opening book move found for current position")
-				if uci.debugMode {
-					fmt.Fprintf(output, "info string no book move found, starting search\n")
-				}
-			}
+		// Calculate NPS
+		var nps int
+		if elapsed.Seconds() > 0 {
+			nps = int(float64(nodes) / elapsed.Seconds())
 		}
 
-		// Perform search at current depth
-		uci.debugLogger.Printf("Calling SearchFixed for depth %d", depth)
-		info := SearchFixed(uci.position, depth, uci.timeManager)
+		infoMsg := fmt.Sprintf("info depth %d score %s nodes %d time %d nps %d pv %s",
+			depth, scoreStr, nodes, elapsed.Milliseconds(), nps, move.ToString())
+		uci.sendUCIMessage(output, infoMsg)
+		uci.debugLogger.Printf("Sent info line for depth %d: score=%s bestMove=%s", depth, scoreStr, move.ToString())
+		}
 
-		uci.debugLogger.Printf("SearchFixed returned: depth=%d, bestMove=%v, bestScore=%d, nodes=%d, stopped=%v",
-			depth, info.BestMove, info.BestScore, info.Nodes, info.Stopped)
+		// Run the search - this handles progressive TT building and aspiration windows internally
+		info := SearchIterativeDeepeningWithCallback(uci.position, maxDepth, uci.timeManager, depthCallback)
 
-		// CRITICAL: Only use results from COMPLETED searches, never interrupted ones
-		if info.BestMove != EmptyMove && !info.Stopped {
+		uci.debugLogger.Printf("SearchIterativeDeepeningWithCallback completed: depth=%d, bestMove=%v, bestScore=%d, nodes=%d",
+			info.Depth, info.BestMove, info.BestScore, info.Nodes)
+
+		// Use final result from search
+		if info.BestMove != EmptyMove {
 			bestMove = info.BestMove
 			bestScore = info.BestScore
-			uci.debugLogger.Printf("Updated bestMove to %v with score %d", bestMove.ToString(), bestScore)
-
-			// Update time manager with score change
-			uci.timeManager.UpdateGameState(uci.movesPlayed, lastIterationScore, bestScore, uci.position)
-			lastIterationScore = bestScore
-
-			// Send search info
-			elapsed := uci.timeManager.GetElapsedTime()
-			// UCI: report mate scores as "score mate N" when applicable to avoid massive cp swings
-			var scoreStr string
-			if bestScore == INFINITY || bestScore == -INFINITY {
-				// Handle INFINITY scores (indicates search bug) - report as evaluation error
-				scoreStr = "cp 0"
-			} else if bestScore >= MATE_IN_MAX {
-				mate := (MATE_VALUE - bestScore + 1) / 2
-				scoreStr = fmt.Sprintf("mate %d", mate)
-			} else if bestScore <= -MATE_IN_MAX {
-				// Calculate mate distance for negative scores (mate against us)
-				// Protect against integer overflow by clamping extremely negative values
-				mateDistance := -bestScore - MATE_VALUE
-				if mateDistance < 0 || mateDistance > 1000 {
-					// Clamp to reasonable mate distance to prevent overflow
-					mateDistance = 1000
-				}
-				mate := -(mateDistance/2 + 1)
-				scoreStr = fmt.Sprintf("mate %d", mate)
-			} else {
-				scoreStr = fmt.Sprintf("cp %d", bestScore)
-			}
-
-			// Calculate NPS (nodes per second)
-			var nps int
-			if elapsed.Seconds() > 0 {
-				nps = int(float64(info.Nodes) / elapsed.Seconds())
-			}
-
-			infoMsg := fmt.Sprintf("info depth %d score %s nodes %d time %d nps %d pv %s",
-				depth, scoreStr, info.Nodes, elapsed.Milliseconds(), nps, bestMove.ToString())
-			uci.sendUCIMessage(output, infoMsg)
-			uci.debugLogger.Printf("Sent info line for depth %d", depth)
-
-			// Early termination: if we have a stable best move and reasonable depth, exit early
-			if depth >= 6 && elapsed.Milliseconds() > int64(uci.timeManager.GetAllocatedTime().Milliseconds()/4) {
-				// Check if this move has been stable for several depths
-				legalMoves := GenerateLegalMoves(uci.position)
-				if len(legalMoves) == 1 {
-					// Only one legal move - exit immediately
-					uci.debugLogger.Printf("Only one legal move, exiting early")
-					break
-				} else if elapsed.Milliseconds() > int64(uci.timeManager.GetAllocatedTime().Milliseconds()/2) {
-					// Used half time allocation - be more conservative about continuing
-					uci.debugLogger.Printf("Used half time allocation, considering early exit")
-					if depth >= 8 {
-						uci.debugLogger.Printf("Sufficient depth reached, exiting early")
-						break
-					}
-				}
-			}
-
-			// Emergency time check
-			if uci.timeManager.IsEmergencyTime() {
-				uci.debugLogger.Printf("EMERGENCY TIME: stopping search")
-				if uci.debugMode {
-					fmt.Fprintf(output, "info string emergency time, stopping search\n")
-				}
-				break
-			}
-		} else if info.Stopped {
-			// Search was interrupted - use best move from previous completed depth
-			uci.debugLogger.Printf("SEARCH INTERRUPTED at depth %d - keeping previous best move %v", depth, bestMove.ToString())
-			if uci.debugMode {
-				fmt.Fprintf(output, "info string search interrupted at depth %d, using previous result\n", depth)
-			}
-			break
-		} else {
-			// No legal moves found at this depth, likely mate or stalemate
-			uci.debugLogger.Printf("SearchFixed returned EmptyMove at depth %d, BREAKING", depth)
-			if uci.debugMode {
-				fmt.Fprintf(output, "info string no legal moves found at depth %d\n", depth)
-			}
-			break
 		}
-		uci.debugLogger.Printf("=== COMPLETED DEPTH %d ===", depth)
+
+		uci.debugLogger.Printf("=== SEARCH COMPLETE ===")
 	}
 
-	uci.debugLogger.Printf("=== EXITED SEARCH LOOP, going to searchComplete ===")
-
-searchComplete:
-	// Update engine state
-	uci.debugLogger.Printf("=== AT searchComplete LABEL ===")
+	// Update engine state after search completes
+	uci.debugLogger.Printf("=== UPDATING ENGINE STATE ===")
 	uci.debugLogger.Printf("bestMove=%v, bestScore=%d", bestMove, bestScore)
 	uci.lastScore = bestScore
 	uci.movesPlayed++
