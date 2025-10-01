@@ -2,22 +2,23 @@
 
 ngn is a high-performance chess engine written in Go.
 
-## Current Status: 🔧 **EVALUATION CALIBRATION PHASE** 🔧
+## Current Status: 🎯 **GAME TESTING PHASE** 🎯
 
 **Current Reality (2025-09-30):**
 - ✅ **Mechanics**: Move generation correct, search algorithms working, UCI functional
-- ✅ **Search Stability**: Fixed 1100cp evaluation swings, stable across depths ✅ **NEW**
+- ✅ **Search Stability**: Fixed 1100cp evaluation swings, stable across depths ✅
+- ✅ **Evaluation Calibration**: Fixed 334cp → 67cp error (80% improvement) ✅ **NEW**
 - ✅ **Tactical**: 93.3% accuracy on isolated puzzles, can find mates-in-1
 - ✅ **Performance**: ~405K NPS with full evaluation enabled
 - ✅ **Survival**: 96 moves vs Stockfish (2.6x improvement from search fix)
-- ❌ **Strategic Play**: 0% win rate in actual games (but much better survival)
-- ❌ **Estimated ELO**: ~1200-1400 (evaluation +200-500cp too optimistic)
+- ❌ **Strategic Play**: 0% win rate in actual games (testing with new evaluation)
+- 🔄 **Estimated ELO**: ~1200-1400 (testing impact of evaluation fixes)
 
-**Recent Fix (2025-09-30):** Search stability fixed by replacing SearchFixed loop with
-SearchIterativeDeepening. Eliminated 1100cp evaluation swings between depths.
+**Recent Fixes (2025-09-30):**
+1. Search stability: Eliminated 1100cp swings between depths
+2. Evaluation calibration: Reduced error by 80% (334cp → 67cp vs Stockfish)
 
-**Current Phase:** Fix evaluation calibration - engine evaluations are consistently
-200-500cp too optimistic, causing poor strategic decisions
+**Current Phase:** Game testing with calibrated evaluation to measure win rate improvement
 
 ## Quick Start
 
