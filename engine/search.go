@@ -177,64 +177,15 @@ func getAttackers(pos *Position, square Square) uint64 {
 }
 
 // seeGetBishopAttacks returns squares attacked by bishops/queens on diagonals
+// Uses magic bitboards for O(1) lookup
 func seeGetBishopAttacks(square Square, occupied uint64) uint64 {
-	attacks := uint64(0)
-
-	for _, dir := range bishopDirections {
-		for i := 1; i < 8; i++ {
-			to := int(square) + dir*i
-			if to < 0 || to > 63 {
-				break
-			}
-
-			toFile := to % 8
-			fromFile := int(square) % 8
-			if abs(toFile-fromFile) != i {
-				break
-			}
-
-			attacks |= SquareMask[to]
-			if (occupied & SquareMask[to]) != 0 {
-				break
-			}
-		}
-	}
-
-	return attacks
+	return GetBishopAttacks(int(square), occupied)
 }
 
 // seeGetRookAttacks returns squares attacked by rooks/queens on ranks/files
+// Uses magic bitboards for O(1) lookup
 func seeGetRookAttacks(square Square, occupied uint64) uint64 {
-	attacks := uint64(0)
-
-	for _, dir := range rookDirections {
-		for i := 1; i < 8; i++ {
-			to := int(square) + dir*i
-			if to < 0 || to > 63 {
-				break
-			}
-
-			if dir == -1 || dir == 1 {
-				fromFile := int(square) % 8
-				toFile := to % 8
-				if abs(toFile-fromFile) != i {
-					break
-				}
-			}
-			if dir == 8 || dir == -8 {
-				if to%8 != int(square)%8 {
-					break
-				}
-			}
-
-			attacks |= SquareMask[to]
-			if (occupied & SquareMask[to]) != 0 {
-				break
-			}
-		}
-	}
-
-	return attacks
+	return GetRookAttacks(int(square), occupied)
 }
 
 // findLeastValuableAttacker finds the least valuable piece attacking the square

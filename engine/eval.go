@@ -2253,74 +2253,14 @@ func evaluateMobility(board *Bitboard, color Color) int {
 	return mobility
 }
 
-// getBishopAttacksBB returns bishop attack bitboard using simple ray casting
+// getBishopAttacksBB returns bishop attack bitboard using magic bitboards - O(1)
 func getBishopAttacksBB(sq int, occupied uint64) uint64 {
-	attacks := uint64(0)
-	directions := []int{-9, -7, 7, 9}
-	file := sq % 8
-
-	for _, dir := range directions {
-		for step := 1; step < 8; step++ {
-			newSq := sq + dir*step
-			if newSq < 0 || newSq > 63 {
-				break
-			}
-			newFile := newSq % 8
-			// Check for wrap-around
-			fileDiff := newFile - file
-			if dir == -9 || dir == 7 { // Going left
-				if fileDiff != -step && fileDiff != -step+8 {
-					break
-				}
-			} else { // Going right
-				if fileDiff != step && fileDiff != step-8 {
-					break
-				}
-			}
-			attacks |= (1 << newSq)
-			if (occupied & (1 << newSq)) != 0 {
-				break
-			}
-		}
-	}
-	return attacks
+	return GetBishopAttacks(sq, occupied)
 }
 
-// getRookAttacksBB returns rook attack bitboard using simple ray casting
+// getRookAttacksBB returns rook attack bitboard using magic bitboards - O(1)
 func getRookAttacksBB(sq int, occupied uint64) uint64 {
-	attacks := uint64(0)
-	directions := []int{-8, -1, 1, 8}
-	file := sq % 8
-
-	for _, dir := range directions {
-		for step := 1; step < 8; step++ {
-			newSq := sq + dir*step
-			if newSq < 0 || newSq > 63 {
-				break
-			}
-			newFile := newSq % 8
-			// Horizontal moves must stay on same rank
-			if dir == -1 || dir == 1 {
-				if (dir == -1 && newFile > file) || (dir == 1 && newFile < file) {
-					break
-				}
-				if newFile < 0 || newFile > 7 {
-					break
-				}
-			}
-			// Vertical moves must stay on same file
-			if dir == -8 || dir == 8 {
-				if newFile != file {
-					break
-				}
-			}
-			attacks |= (1 << newSq)
-			if (occupied & (1 << newSq)) != 0 {
-				break
-			}
-		}
-	}
-	return attacks
+	return GetRookAttacks(sq, occupied)
 }
 
 // Enhanced evaluation function - always returns from white's perspective
