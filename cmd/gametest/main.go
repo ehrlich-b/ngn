@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ehrlich-b/ngn/engine"
 )
 
 // GameTestConfig holds configuration for engine vs engine testing
@@ -74,8 +76,8 @@ type GameTester struct {
 
 func main() {
 	config := &GameTestConfig{
-		NGNPath:        "../../build/ngn",
-		StockfishPath:  "../../stockfish/stockfish-ubuntu-x86-64-avx2",
+		NGNPath:        "./build/ngn",
+		StockfishPath:  "./stockfish/stockfish-ubuntu-x86-64-avx2",
 		TimeControl:    time.Second * 5, // 5 seconds per move
 		MaxMoves:       200,
 		GameCount:      10,
@@ -253,8 +255,42 @@ func (gt *GameTester) PlayGame(gameID int) (Game, error) {
 		}
 
 		if move == "" || move == "(none)" {
-			game.Result = "1/2-1/2"
-			game.Reason = "no_legal_moves"
+			// No legal moves - need to determine if it's checkmate or stalemate
+			// Parse the current position to check if the side to move is in check
+			currentFEN := position
+			if len(game.Moves) > 0 {
+				// Build FEN from moves - use engine to get current position
+				pos, err := engine.ParseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+				if err == nil {
+					for _, m := range game.Moves {
+						parsedMove, err := engine.ParseAlgebraicMove(m, pos)
+						if err == nil {
+							pos.MakeMove(parsedMove)
+						}
+					}
+					currentFEN = engine.GenerateFEN(pos)
+				}
+			}
+
+			// Parse position and check if in check
+			pos, err := engine.ParseFEN(currentFEN)
+			if err == nil && pos.IsInCheck() {
+				// Side to move is in check with no legal moves = checkmate
+				// The OTHER side wins
+				if isWhiteMove {
+					// White to move but checkmated = Black wins
+					game.Result = "0-1"
+					game.Reason = "checkmate"
+				} else {
+					// Black to move but checkmated = White wins
+					game.Result = "1-0"
+					game.Reason = "checkmate"
+				}
+			} else {
+				// Not in check with no legal moves = stalemate
+				game.Result = "1/2-1/2"
+				game.Reason = "stalemate"
+			}
 			break
 		}
 

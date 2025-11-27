@@ -11,12 +11,11 @@ func trailingZeros(bitboard uint64) int {
 	return bits.TrailingZeros64(bitboard)
 }
 
-// Helper function for absolute value (avoid redefinition)
+// Branchless absolute value - avoids branch prediction penalty
+// Uses sign extension: mask is -1 if x < 0, else 0
 func evalAbs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
+	mask := x >> 63
+	return (x ^ mask) - mask
 }
 
 // Piece-Square Tables for positional evaluation
@@ -1563,41 +1562,30 @@ func evaluatePieceProtection(kingBB, queenBB, rookBB, bishopBB, knightBB, pawnBB
 }
 
 // Count how many pieces can protect a given square (using bitboards)
+// Optimized with precomputed attack tables for O(1) knight/pawn lookups
 func countProtectorsBB(targetSquare int, rookBB, bishopBB, knightBB, pawnBB uint64, color Color) int {
 	protectors := 0
-	targetFile := targetSquare % 8
-	targetRank := targetSquare / 8
 
-	// Check rook protection (same rank or file)
-	for rbb := rookBB; rbb != 0; rbb &= rbb - 1 {
-		rookSquare := bits.TrailingZeros64(rbb)
-		rookFile := rookSquare % 8
-		rookRank := rookSquare / 8
-		if rookFile == targetFile || rookRank == targetRank {
-			protectors++
-		}
+	// Knight protection - O(1) with precomputed table
+	protectors += PopCount(knightBB & KnightAttacks[targetSquare])
+
+	// Pawn protection - O(1) with precomputed table
+	if color == White {
+		protectors += PopCount(pawnBB & WhitePawnAttackers[targetSquare])
+	} else {
+		protectors += PopCount(pawnBB & BlackPawnAttackers[targetSquare])
 	}
 
-	// Check bishop protection (same diagonal)
+	// Rook protection - use rank/file masks
+	targetFile := targetSquare % 8
+	targetRank := targetSquare / 8
+	rookMask := RankMasks[targetRank] | FileMasks[targetFile]
+	protectors += PopCount(rookBB & rookMask)
+
+	// Bishop protection (still need to iterate for diagonal check)
 	for bbb := bishopBB; bbb != 0; bbb &= bbb - 1 {
 		bishopSquare := bits.TrailingZeros64(bbb)
 		if onSameDiagonal(bishopSquare, targetSquare) {
-			protectors++
-		}
-	}
-
-	// Check knight protection
-	for nbb := knightBB; nbb != 0; nbb &= nbb - 1 {
-		knightSquare := bits.TrailingZeros64(nbb)
-		if canKnightReach(knightSquare, targetSquare) {
-			protectors++
-		}
-	}
-
-	// Check pawn protection
-	for pbb := pawnBB; pbb != 0; pbb &= pbb - 1 {
-		pawnSquare := bits.TrailingZeros64(pbb)
-		if canPawnProtect(pawnSquare, targetSquare, color) {
 			protectors++
 		}
 	}
@@ -1736,60 +1724,56 @@ func evaluateOutpostSquares(knightBB, bishopBB, pawnBB, opponentPawnBB uint64, c
 }
 
 // Check if a square is an outpost (supported by pawn, can't be attacked by enemy pawns)
-// Check if a square is an outpost (using bitboards)
+// Optimized with precomputed pawn attack tables
 func isOutpostSquareBB(square int, friendlyPawnBB, enemyPawnBB uint64, color Color) bool {
 	file := square % 8
 	rank := square / 8
 
-	// 1. Must be supported by our own pawns
-	supported := false
-	for pbb := friendlyPawnBB; pbb != 0; pbb &= pbb - 1 {
-		pawnSquare := bits.TrailingZeros64(pbb)
-		if canPawnProtect(pawnSquare, square, color) {
-			supported = true
-			break
-		}
-	}
-
-	if !supported {
-		return false
-	}
-
-	// 2. Must not be attackable by enemy pawns (now or in future)
-	enemyColor := White
-	if color == White {
-		enemyColor = Black
-	}
-
-	for ebb := enemyPawnBB; ebb != 0; ebb &= ebb - 1 {
-		enemyPawnSquare := bits.TrailingZeros64(ebb)
-		enemyFile := enemyPawnSquare % 8
-		enemyRank := enemyPawnSquare / 8
-
-		// Check if enemy pawn can attack this square now
-		if canPawnProtect(enemyPawnSquare, square, enemyColor) {
-			return false
-		}
-
-		// Check if enemy pawn can attack this square in the future
-		// (i.e., can advance and then attack)
-		if evalAbs(enemyFile-file) == 1 {
-			if color == White && enemyRank < rank {
-				// Enemy pawn can potentially advance to attack
-				return false
-			} else if color == Black && enemyRank > rank {
-				// Enemy pawn can potentially advance to attack
-				return false
-			}
-		}
-	}
-
 	// 3. Must be in enemy territory (ranks 4-6 for white, ranks 3-5 for black)
+	// Check this first as it's cheapest
 	if color == White && (rank < 3 || rank > 5) {
 		return false
 	}
 	if color == Black && (rank < 2 || rank > 4) {
 		return false
+	}
+
+	// 1. Must be supported by our own pawns - O(1) lookup
+	var supported bool
+	if color == White {
+		supported = (friendlyPawnBB & WhitePawnAttackers[square]) != 0
+	} else {
+		supported = (friendlyPawnBB & BlackPawnAttackers[square]) != 0
+	}
+	if !supported {
+		return false
+	}
+
+	// 2. Must not be currently attackable by enemy pawns - O(1) lookup
+	if color == White {
+		if (enemyPawnBB & BlackPawnAttackers[square]) != 0 {
+			return false
+		}
+	} else {
+		if (enemyPawnBB & WhitePawnAttackers[square]) != 0 {
+			return false
+		}
+	}
+
+	// Check if enemy pawn can attack this square in the future
+	// (on adjacent files, can advance to attack)
+	for ebb := enemyPawnBB; ebb != 0; ebb &= ebb - 1 {
+		enemyPawnSquare := bits.TrailingZeros64(ebb)
+		enemyFile := enemyPawnSquare % 8
+		enemyRank := enemyPawnSquare / 8
+
+		if evalAbs(enemyFile-file) == 1 {
+			if color == White && enemyRank < rank {
+				return false
+			} else if color == Black && enemyRank > rank {
+				return false
+			}
+		}
 	}
 
 	return true
@@ -2188,6 +2172,157 @@ func evaluateBishopPair(board *Bitboard, color Color) int {
 	return 0
 }
 
+// evaluateMobility counts available moves for pieces and awards bonuses
+// Mobility is a key positional factor - pieces that can move to more squares are more valuable
+func evaluateMobility(board *Bitboard, color Color) int {
+	mobility := 0
+	allPieces := board.GetWhitePieces() | board.GetBlackPieces()
+	var friendlyPieces, enemyPieces uint64
+
+	if color == White {
+		friendlyPieces = board.GetWhitePieces()
+		enemyPieces = board.GetBlackPieces()
+	} else {
+		friendlyPieces = board.GetBlackPieces()
+		enemyPieces = board.GetWhitePieces()
+	}
+
+	// Knight mobility (most important - knights need outposts)
+	var knightBB uint64
+	if color == White {
+		knightBB = board.GetBitboardOf(WhiteKnight)
+	} else {
+		knightBB = board.GetBitboardOf(BlackKnight)
+	}
+	for bb := knightBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		attacks := KnightAttacks[sq] &^ friendlyPieces
+		moveCount := PopCount(attacks)
+		// Knight mobility: 4 moves is baseline, bonus/penalty around that
+		mobility += (moveCount - 4) * 4
+	}
+
+	// Bishop mobility (bishops love open diagonals)
+	var bishopBB uint64
+	if color == White {
+		bishopBB = board.GetBitboardOf(WhiteBishop)
+	} else {
+		bishopBB = board.GetBitboardOf(BlackBishop)
+	}
+	for bb := bishopBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		attacks := getBishopAttacksBB(sq, allPieces) &^ friendlyPieces
+		moveCount := PopCount(attacks)
+		// Bishop mobility: 7 moves is good baseline
+		mobility += (moveCount - 7) * 3
+	}
+
+	// Rook mobility (rooks need open files)
+	var rookBB uint64
+	if color == White {
+		rookBB = board.GetBitboardOf(WhiteRook)
+	} else {
+		rookBB = board.GetBitboardOf(BlackRook)
+	}
+	for bb := rookBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		attacks := getRookAttacksBB(sq, allPieces) &^ friendlyPieces
+		moveCount := PopCount(attacks)
+		// Rook mobility: 7 moves is baseline
+		mobility += (moveCount - 7) * 2
+	}
+
+	// Queen mobility (less important per move, she's already powerful)
+	var queenBB uint64
+	if color == White {
+		queenBB = board.GetBitboardOf(WhiteQueen)
+	} else {
+		queenBB = board.GetBitboardOf(BlackQueen)
+	}
+	for bb := queenBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		attacks := (getBishopAttacksBB(sq, allPieces) | getRookAttacksBB(sq, allPieces)) &^ friendlyPieces
+		moveCount := PopCount(attacks)
+		// Queen mobility: 14 moves is baseline
+		mobility += (moveCount - 14) * 1
+	}
+
+	// Bonus for attacking enemy pieces (not just empty squares)
+	_ = enemyPieces // Could add attack bonus here
+
+	return mobility
+}
+
+// getBishopAttacksBB returns bishop attack bitboard using simple ray casting
+func getBishopAttacksBB(sq int, occupied uint64) uint64 {
+	attacks := uint64(0)
+	directions := []int{-9, -7, 7, 9}
+	file := sq % 8
+
+	for _, dir := range directions {
+		for step := 1; step < 8; step++ {
+			newSq := sq + dir*step
+			if newSq < 0 || newSq > 63 {
+				break
+			}
+			newFile := newSq % 8
+			// Check for wrap-around
+			fileDiff := newFile - file
+			if dir == -9 || dir == 7 { // Going left
+				if fileDiff != -step && fileDiff != -step+8 {
+					break
+				}
+			} else { // Going right
+				if fileDiff != step && fileDiff != step-8 {
+					break
+				}
+			}
+			attacks |= (1 << newSq)
+			if (occupied & (1 << newSq)) != 0 {
+				break
+			}
+		}
+	}
+	return attacks
+}
+
+// getRookAttacksBB returns rook attack bitboard using simple ray casting
+func getRookAttacksBB(sq int, occupied uint64) uint64 {
+	attacks := uint64(0)
+	directions := []int{-8, -1, 1, 8}
+	file := sq % 8
+
+	for _, dir := range directions {
+		for step := 1; step < 8; step++ {
+			newSq := sq + dir*step
+			if newSq < 0 || newSq > 63 {
+				break
+			}
+			newFile := newSq % 8
+			// Horizontal moves must stay on same rank
+			if dir == -1 || dir == 1 {
+				if (dir == -1 && newFile > file) || (dir == 1 && newFile < file) {
+					break
+				}
+				if newFile < 0 || newFile > 7 {
+					break
+				}
+			}
+			// Vertical moves must stay on same file
+			if dir == -8 || dir == 8 {
+				if newFile != file {
+					break
+				}
+			}
+			attacks |= (1 << newSq)
+			if (occupied & (1 << newSq)) != 0 {
+				break
+			}
+		}
+	}
+	return attacks
+}
+
 // Enhanced evaluation function - always returns from white's perspective
 func Evaluate(board *Bitboard) (eval int) {
 	return WrapEvaluation("Evaluate", func() int {
@@ -2377,85 +2512,21 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	eval += whiteBishopPairBonus
 	eval += -blackBishopPairBonus
 
+	// 10. Mobility evaluation - pieces with more moves are worth more
+	whiteMobility := evaluateMobility(board, White)
+	blackMobility := evaluateMobility(board, Black)
+	eval += whiteMobility
+	eval += -blackMobility
+
 	// 7. Basic endgame knowledge
 	if endgame {
 		endgameBonus := evaluateBasicEndgames(board)
 		eval += endgameBonus
 	}
 
-	// 8. CRITICAL: Opening principles - castling safety bonus
-	if !endgame {
-		// Check if kings have castled (not on starting squares)
-		whiteKingSquare := bits.TrailingZeros64(whiteKings)
-		blackKingSquare := bits.TrailingZeros64(blackKings)
-
-		// Castling bonus: king on g1/c1 for white, g8/c8 for black
-		if whiteKingSquare == 6 || whiteKingSquare == 2 { // g1 or c1
-			eval += 25 // Reduced from 50 to prevent evaluation inflation
-		}
-		if blackKingSquare == 62 || blackKingSquare == 58 { // g8 or c8
-			eval -= 25 // Reduced from 50 to prevent evaluation inflation
-		}
-
-		// Penalty for king still on starting square in middlegame
-		if whiteKingSquare == 4 { // e1
-			eval -= 15 // Reduced from 30 to prevent evaluation inflation
-		}
-		if blackKingSquare == 60 { // e8
-			eval += 15 // Reduced from 30 to prevent evaluation inflation
-		}
-	}
-	
-	// 9. CRITICAL: Center control bonus - reward pawns controlling e4/d4/e5/d5
-	centerBonusWhite := 0
-	centerBonusBlack := 0
-
-	// Count pawns controlling central squares
-	for bb := whitePawns; bb != 0; bb &= bb - 1 {
-		square := bits.TrailingZeros64(bb)
-
-		// Bonus for pawns on d4/e4 (central occupation)
-		if square == 28 || square == 36 { // d4, e4
-			centerBonusWhite += 15 // Reduced from 25 to prevent evaluation inflation
-		}
-		// Bonus for pawns on d3/e3/c3/f3 (supporting center)
-		if square == 20 || square == 28 || square == 19 || square == 21 { // d3, e3, c3, f3
-			centerBonusWhite += 5 // Reduced from 10 to prevent evaluation inflation
-		}
-	}
-
-	for bb := blackPawns; bb != 0; bb &= bb - 1 {
-		square := bits.TrailingZeros64(bb)
-
-		// Bonus for pawns on d5/e5 (central occupation)
-		if square == 35 || square == 27 { // d5, e5
-			centerBonusBlack += 15 // Reduced from 25 to prevent evaluation inflation
-		}
-		// Bonus for pawns on d6/e6/c6/f6 (supporting center)
-		if square == 43 || square == 35 || square == 42 || square == 44 { // d6, e6, c6, f6
-			centerBonusBlack += 5 // Reduced from 10 to prevent evaluation inflation
-		}
-	}
-
-	eval += centerBonusWhite - centerBonusBlack
-
-	// Global evaluation scaling to prevent inflation
-	// After individual bonus reductions, still ~3-4x too optimistic
-	// Apply 40% scaling (keep 40% of positional bonuses, 100% of material)
-	material := 0
-	material += int(WhitePawn.Weight()) * PopCount(whitePawns)
-	material += int(WhiteKnight.Weight()) * PopCount(whiteKnights)
-	material += int(WhiteBishop.Weight()) * PopCount(whiteBishops)
-	material += int(WhiteRook.Weight()) * PopCount(whiteRooks)
-	material += int(WhiteQueen.Weight()) * PopCount(whiteQueens)
-	material -= int(BlackPawn.Weight()) * PopCount(blackPawns)
-	material -= int(BlackKnight.Weight()) * PopCount(blackKnights)
-	material -= int(BlackBishop.Weight()) * PopCount(blackBishops)
-	material -= int(BlackRook.Weight()) * PopCount(blackRooks)
-	material -= int(BlackQueen.Weight()) * PopCount(blackQueens)
-
-	positional := eval - material
-	eval = material + (positional * 4 / 10) // Keep 100% material, 40% positional
+	// NOTE: Castling bonus already computed by evaluateCastlingFast() above
+	// NOTE: Center control already computed by evaluateCenterControlFast() above
+	// Duplicate evaluations removed to fix evaluation inflation bug
 
 	return eval
 }

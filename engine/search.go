@@ -20,7 +20,13 @@ const (
 	RAZORING_MARGIN         = 400 // Razoring margin (higher = less aggressive)
 	RAZORING_MAX_DEPTH      = 3   // Maximum depth for razoring (lower = less aggressive)
 	DELTA_MARGIN            = 100 // Delta pruning margin in quiescence
+	SINGULAR_DEPTH          = 6   // Minimum depth for singular extensions
+	SINGULAR_MARGIN         = 64  // Margin for singular move detection
 )
+
+// Late Move Pruning thresholds by depth
+// At depth d, prune quiet moves after lmpThreshold[d] moves
+var lmpThreshold = [8]int{0, 5, 8, 12, 17, 23, 30, 38}
 
 // Static Exchange Evaluation (SEE) implementation
 // Returns the material balance after a series of exchanges on the target square
@@ -373,14 +379,20 @@ type SearchInfo struct {
 	SEEGains      *[32]int   // For SEE evaluation
 
 	// Pruning and search efficiency statistics
-	FutilityPrunes  uint64 // Moves pruned by futility pruning
-	NullMoveCutoffs uint64 // Beta cutoffs from null move pruning
-	LMRReductions   uint64 // Moves reduced by Late Move Reduction
-	TTHits          uint64 // Transposition table hits
-	TTCutoffs       uint64 // Beta cutoffs from TT
-	BetaCutoffs     uint64 // Total beta cutoffs
-	QNodes          uint64 // Quiescence search nodes
-	CheckExtensions uint64 // Check extensions applied
+	FutilityPrunes      uint64 // Moves pruned by futility pruning
+	NullMoveCutoffs     uint64 // Beta cutoffs from null move pruning
+	LMRReductions       uint64 // Moves reduced by Late Move Reduction
+	LMPPrunes           uint64 // Moves pruned by Late Move Pruning
+	ProbcutPrunes       uint64 // Positions pruned by Probcut
+	TTHits              uint64 // Transposition table hits
+	TTCutoffs           uint64 // Beta cutoffs from TT
+	BetaCutoffs         uint64 // Total beta cutoffs
+	QNodes              uint64 // Quiescence search nodes
+	CheckExtensions      uint64 // Check extensions applied
+	SingularExtensions   uint64 // Singular extensions applied
+	RecaptureExtensions  uint64 // Recapture extensions applied
+	PassedPawnExtensions uint64 // Passed pawn extensions applied
+	ExcludedMove         Move   // Move to exclude during singular search
 }
 
 func Search(pos *Position, depth int) *SearchInfo {
@@ -712,6 +724,19 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		}
 	}
 
+	// Internal Iterative Deepening (IID)
+	// When we have no TT move at high depth, do a reduced search to find one
+	if ttMove == EmptyMove && depth >= 4 && isPV {
+		// Search at reduced depth to get a good move for ordering
+		iidDepth := depth - 2
+		if iidDepth < 1 {
+			iidDepth = 1
+		}
+		alphaBetaPV(pos, iidDepth, alpha, beta, true, info)
+		// Re-probe TT to get the move we just found
+		ttMove, _, _, _, _ = TranspositionTable.Get(hash)
+	}
+
 	// Mate distance pruning - don't look for mates that are too far away
 	currentDepth := info.Depth - depth
 	if currentDepth > 1000 {
@@ -781,6 +806,66 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		}
 	}
 
+	// Probcut pruning: if a reduced-depth search at a higher beta fails high,
+	// we can prune because the full search would likely also fail high
+	if !isPV && !inCheck && depth >= 5 && abs(beta) < MATE_VALUE-100 {
+		probcutBeta := beta + 200 // Higher beta threshold
+
+		// Generate captures only for probcut
+		var capBuffer [64]Move
+		capCount := 0
+		var tempBuffer [256]Move
+		tempCount := GenerateMovesIntoBuffer(pos, tempBuffer[:])
+		for i := 0; i < tempCount && capCount < 64; i++ {
+			if tempBuffer[i].IsCapture() {
+				capBuffer[capCount] = tempBuffer[i]
+				capCount++
+			}
+		}
+
+		for i := 0; i < capCount; i++ {
+			move := capBuffer[i]
+
+			// Only consider captures with good SEE
+			seeValue := staticExchangeEvaluation(pos, move)
+			if seeValue < 0 {
+				continue
+			}
+
+			ep, tag, hc, _ := pos.MakeMove(move)
+			// Check legality
+			if isInCheck(pos, move.MovingPiece().Color()) {
+				pos.UnMakeMove(move, tag, ep, hc)
+				continue
+			}
+
+			// Search with reduced depth and higher beta
+			score := -quiescence(pos, -probcutBeta, -probcutBeta+1, info)
+
+			// If quiescence score is already >= probcutBeta, try real search
+			if score >= probcutBeta {
+				score = -alphaBetaPV(pos, depth-4, -probcutBeta, -probcutBeta+1, false, info)
+			}
+
+			pos.UnMakeMove(move, tag, ep, hc)
+
+			if score >= probcutBeta {
+				info.ProbcutPrunes++
+				return beta
+			}
+		}
+	}
+
+	// Singular extension detection
+	// If we have a TT move that's clearly best, extend its search
+	singularMove := EmptyMove
+	if ttHit && ttMove != EmptyMove && depth >= SINGULAR_DEPTH &&
+		info.ExcludedMove == EmptyMove && // Not already in singular search
+		(ttNodeType == Exact || ttNodeType == LowerBound) &&
+		ttDepth >= int8(depth-3) {
+		singularMove = ttMove
+	}
+
 	// Use pseudo-legal moves for performance, check legality only when trying moves
 	var moveBuffer [256]Move // Stack-allocated move buffer
 	numMoves := GenerateMovesIntoBuffer(pos, moveBuffer[:])
@@ -815,9 +900,18 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 	moveCount := 0
 	legalTried := 0
 
+	// Track quiet moves searched for history penalization
+	var searchedQuiets [64]Move
+	searchedQuietCount := 0
+
 	for oi := 0; oi < orderedCount; oi++ {
 		move := ordered[oi]
 		moveCount++
+
+		// Skip excluded move during singular search
+		if move == info.ExcludedMove {
+			continue
+		}
 
 		// Check time before evaluating each move (now cheap to call)
 		if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(depth, time.Now()) {
@@ -829,6 +923,34 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		if futilityPrune && !move.IsCapture() {
 			info.FutilityPrunes++
 			continue
+		}
+
+		// Late Move Pruning (LMP) - skip very late quiet moves at low depths
+		// Only apply in non-PV nodes, not in check, and for quiet moves
+		if !isPV && !inCheck && depth > 0 && depth < 8 &&
+			!move.IsCapture() && move != ttMove && legalTried > 0 {
+			threshold := lmpThreshold[depth]
+			if moveCount > threshold {
+				info.LMPPrunes++
+				continue
+			}
+		}
+
+		// SEE pruning for bad captures in main search
+		// Skip obviously losing captures at low depths (not in PV, not TT move)
+		if !isPV && !inCheck && depth <= 4 && move.IsCapture() && move != ttMove {
+			seeValue := staticExchangeEvaluation(pos, move)
+			if seeValue < -100 { // Skip captures losing more than a pawn
+				continue
+			}
+		}
+
+		// History pruning: skip quiet moves with very bad history at low depths
+		if !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move != ttMove {
+			histScore := GetHistoryScore(move)
+			if histScore < -1000 && moveCount > 3 { // Very bad history and not early move
+				continue
+			}
 		}
 
 		// Fast legality: special-case castling path, otherwise do make/check/unmake
@@ -866,6 +988,12 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		}
 		legalTried++
 
+		// Track quiet moves for history penalization
+		if !move.IsCapture() && move.PromoType() == NoType && searchedQuietCount < 64 {
+			searchedQuiets[searchedQuietCount] = move
+			searchedQuietCount++
+		}
+
 		// Refined Check Extension logic - balance tactical strength with performance
 		givesCheck := isInCheck(pos, pos.Turn())
 
@@ -875,6 +1003,50 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 			nextDepth++ // Extend search when move gives check
 			info.CheckExtensions++
 		}
+
+		// Recapture extension: extend when recapturing on the same square
+		previousMove := GetLastMovePlayed()
+		if move.IsCapture() && previousMove.IsCapture() &&
+			move.Destination() == previousMove.Destination() &&
+			nextDepth+1 <= depth {
+			nextDepth++
+			info.RecaptureExtensions++
+		}
+
+		// Passed pawn extension: extend for advanced pawn pushes (near promotion)
+		if move.MovingPiece().Type() == Pawn && !move.IsCapture() {
+			destRank := int(move.Destination()) / 8
+			color := move.MovingPiece().Color()
+			// Extend if pawn reaches 6th or 7th rank (about to promote)
+			if (color == White && destRank >= 5) || (color == Black && destRank <= 2) {
+				if nextDepth+1 <= depth {
+					nextDepth++
+					info.PassedPawnExtensions++
+				}
+			}
+		}
+
+		// Singular Extension: extend if this move is clearly the best
+		if move == singularMove && singularMove != EmptyMove {
+			// Unmake to do singular search
+			pos.UnMakeMove(move, tag, ep, hc)
+
+			// Singular search: search all other moves with reduced depth/window
+			singularBeta := int(ttEval) - SINGULAR_MARGIN
+			info.ExcludedMove = singularMove
+			singularScore := alphaBetaPV(pos, depth/2, singularBeta-1, singularBeta, false, info)
+			info.ExcludedMove = EmptyMove
+
+			// Re-make the move
+			ep, tag, hc, _ = pos.MakeMove(move)
+
+			// If no other move can beat the reduced threshold, this move is singular
+			if singularScore < singularBeta {
+				nextDepth++ // Extend the singular move
+				info.SingularExtensions++
+			}
+		}
+
 		if nextDepth >= depth {
 			// Guardrail: never allow recursion with the same depth
 			nextDepth = depth - 1
@@ -911,6 +1083,26 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 				// Extra reduction for deeper searches in non-PV nodes
 				if depth > 6 && !isPV {
 					reduction++
+				}
+
+				// History-based LMR adjustment:
+				// Reduce more for moves with bad history, less for moves with good history
+				histScore := GetHistoryScore(move)
+				if histScore < -500 {
+					reduction++ // Bad history = reduce more
+				} else if histScore > 1000 {
+					reduction-- // Good history = reduce less
+					if reduction < 0 {
+						reduction = 0
+					}
+				}
+
+				// Killer move reduction adjustment - don't reduce killer moves as much
+				if IsKillerMove(move, depth) {
+					reduction-- // Reduce less for killer moves
+					if reduction < 0 {
+						reduction = 0
+					}
 				}
 
 				// Cap maximum reduction
@@ -961,29 +1153,6 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 			bestMove = move
 		}
 
-		// No legal moves from this node
-		if legalTried == 0 {
-			if inCheck {
-				// Checkmate - clamp mate distance to prevent overflow
-				mateDistance := info.Depth - depth
-				if mateDistance > 1000 {
-					mateDistance = 1000
-				}
-				return -MATE_VALUE + mateDistance
-			}
-			// Stalemate - check if we're throwing away a winning position
-			eval := Evaluate(&pos.Board)
-			if pos.Turn() == Black {
-				eval = -eval // Flip evaluation for black's perspective
-			}
-
-			// If we're winning by a significant margin, heavily penalize stalemate
-			if eval > 300 { // We have significant advantage (about 3 pawns)
-				return -500 // Penalize stalemate when winning
-			}
-			return 0 // Otherwise, stalemate is still a draw
-		}
-
 		if score >= beta {
 			info.BetaCutoffs++
 			// Update history table for quiet moves that cause beta cutoffs
@@ -993,6 +1162,14 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 			// Update counter move for quiet moves that cause beta cutoffs
 			UpdateCounterMove(move, GetLastMovePlayed())
 
+			// Penalize all quiet moves that were tried but didn't cause the cutoff
+			for i := 0; i < searchedQuietCount; i++ {
+				quietMove := searchedQuiets[i]
+				if quietMove != move {
+					PenalizeHistoryTable(quietMove, depth)
+				}
+			}
+
 			// Store in transposition table as Lower Bound (Cut-Node)
 			TranspositionTable.Set(hash, move, int16(score), int8(depth), LowerBound)
 			return score
@@ -1001,6 +1178,23 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		if score > alpha {
 			alpha = score
 		}
+	}
+
+	// Check for checkmate/stalemate: no legal moves were found
+	if legalTried == 0 {
+		if inCheck {
+			// Checkmate - return mate score adjusted for distance from root
+			mateDistance := info.Depth - depth
+			if mateDistance < 0 {
+				mateDistance = 0
+			}
+			if mateDistance > 1000 {
+				mateDistance = 1000
+			}
+			return -MATE_VALUE + mateDistance
+		}
+		// Stalemate is a draw
+		return 0
 	}
 
 	// Store in transposition table

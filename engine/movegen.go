@@ -520,12 +520,10 @@ var (
 	queenDirections  = []int{-9, -8, -7, -1, 1, 7, 8, 9} // all directions
 )
 
-// Helper function for absolute value
+// Branchless absolute value - avoids branch prediction penalty
 func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
+	mask := x >> 63
+	return (x ^ mask) - mask
 }
 
 // Sliding piece move generators (zero allocation)

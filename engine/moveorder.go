@@ -32,6 +32,22 @@ func UpdateHistoryTable(move Move, depth int) {
 	}
 }
 
+// PenalizeHistoryTable decreases the history score for moves that didn't cause cutoff
+func PenalizeHistoryTable(move Move, depth int) {
+	if !move.IsCapture() && move.PromoType() == NoType {
+		from := move.Source()
+		to := move.Destination()
+		// Depth-based penalty
+		penalty := depth * depth
+		historyTable[from][to] -= penalty
+
+		// Don't let it go too negative
+		if historyTable[from][to] < -8192 {
+			historyTable[from][to] = -8192
+		}
+	}
+}
+
 // GetHistoryScore returns the history score for a move
 func GetHistoryScore(move Move) int {
 	if !move.IsCapture() && move.PromoType() == NoType {

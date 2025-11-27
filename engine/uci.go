@@ -12,16 +12,40 @@ import (
 	"time"
 )
 
-// Opening Book stub - TODO: Implement proper opening book functionality
-type OpeningBook struct{}
+// Global opening book instance
+var globalOpeningBook *PolyglotBook
 
-func (ob *OpeningBook) ProbeBook(pos *Position) (Move, bool) {
-	// Stub implementation - always return false (no book move found)
-	return EmptyMove, false
+// InitOpeningBook loads an opening book from the given path
+func InitOpeningBook(path string) error {
+	book, err := LoadPolyglotBook(path)
+	if err != nil {
+		return err
+	}
+	globalOpeningBook = book
+	return nil
 }
 
-func GetDefaultOpeningBook() *OpeningBook {
-	return &OpeningBook{}
+// GetOpeningBook returns the global opening book
+func GetOpeningBook() *PolyglotBook {
+	return globalOpeningBook
+}
+
+// TryLoadDefaultBook attempts to load a book from common locations
+func TryLoadDefaultBook() {
+	// Try common book locations
+	bookPaths := []string{
+		"book.bin",
+		"opening.bin",
+		"openings.bin",
+		"./book/book.bin",
+		"./book/opening.bin",
+	}
+
+	for _, path := range bookPaths {
+		if err := InitOpeningBook(path); err == nil {
+			return
+		}
+	}
 }
 
 // UCI Engine represents the UCI interface for the chess engine
@@ -72,6 +96,14 @@ func NewUCIEngine() *UCIEngine {
 	}
 	rawUCILogger.Println("=== RAW UCI MESSAGE LOG ===")
 	rawUCILogger.Println("Format: >>> = sent to engine, <<< = sent from engine")
+
+	// Try to load opening book
+	TryLoadDefaultBook()
+	if book := GetOpeningBook(); book != nil {
+		logger.Printf("Opening book loaded: %d entries", book.Size())
+	} else {
+		logger.Println("No opening book found")
+	}
 
 	return &UCIEngine{
 		position:         newUCIStartingPosition(),
@@ -199,6 +231,7 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, "option name Hash type spin default 128 min 1 max 1024")
 	uci.sendUCIMessage(output, "option name Threads type spin default 1 min 1 max 64")
 	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
+	uci.sendUCIMessage(output, "option name SyzygyPath type string default <empty>")
 
 	uci.sendUCIMessage(output, "uciok")
 }
@@ -220,12 +253,54 @@ func (uci *UCIEngine) handleIsReady(output io.Writer) {
 	uci.sendUCIMessage(output, "readyok")
 }
 
-// handleSetOption handles option setting (placeholder for now)
+// handleSetOption handles option setting
 func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
-	// For now, just acknowledge option setting
-	// TODO: Implement actual option handling
+	// Parse "name <name> value <value>" format
+	var optionName, optionValue string
+	for i := 0; i < len(args); i++ {
+		if args[i] == "name" && i+1 < len(args) {
+			// Collect name until "value" keyword
+			nameStart := i + 1
+			nameEnd := nameStart
+			for j := nameStart; j < len(args); j++ {
+				if args[j] == "value" {
+					break
+				}
+				nameEnd = j + 1
+			}
+			optionName = strings.Join(args[nameStart:nameEnd], " ")
+		}
+		if args[i] == "value" && i+1 < len(args) {
+			optionValue = strings.Join(args[i+1:], " ")
+			break
+		}
+	}
+
+	// Handle specific options
+	switch strings.ToLower(optionName) {
+	case "syzygypath":
+		if optionValue != "" && optionValue != "<empty>" {
+			err := InitSyzygy(optionValue)
+			if err != nil {
+				uci.debugLogger.Printf("Failed to initialize Syzygy tablebases: %v", err)
+				if uci.debugMode {
+					fmt.Fprintf(output, "info string syzygy init failed: %v\n", err)
+				}
+			} else {
+				uci.debugLogger.Printf("Syzygy tablebases loaded from: %s (max %d pieces)", optionValue, TBLargestPieceCount())
+				if uci.debugMode {
+					fmt.Fprintf(output, "info string syzygy loaded: %s (%d pieces)\n", optionValue, TBLargestPieceCount())
+				}
+			}
+		}
+	case "hash":
+		// TODO: Implement hash table size adjustment
+	case "threads":
+		// TODO: Implement multi-threading
+	}
+
 	if uci.debugMode {
-		fmt.Fprintf(output, "info string option set: %s\n", strings.Join(args, " "))
+		fmt.Fprintf(output, "info string option set: %s = %s\n", optionName, optionValue)
 	}
 }
 
@@ -481,7 +556,16 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 	}
 
 	// Check opening book first before starting search
-	if bookMove, found := GetDefaultOpeningBook().ProbeBook(uci.position); found {
+	bookMove, bookFound := EmptyMove, false
+	if book := GetOpeningBook(); book != nil {
+		bookMove, bookFound = book.ProbeBook(uci.position)
+	}
+	// Fallback to embedded book if no external book or no hit
+	if !bookFound {
+		bookMove, bookFound = ProbeEmbeddedBook(uci.position)
+	}
+
+	if bookFound {
 		uci.debugLogger.Printf("Opening book hit! Move: %v", bookMove.ToString())
 		if uci.debugMode {
 			fmt.Fprintf(output, "info string opening book move: %s\n", bookMove.ToString())
@@ -494,6 +578,41 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 		// Output the book move result
 		fmt.Fprintf(output, "info depth 1 score cp %d nodes 1 time 0 nps 0 pv %s\n",
 			bestScore, bestMove.ToString())
+	} else if tbMove, tbResult := ProbeRoot(uci.position); tbResult.Found && tbMove != EmptyMove {
+		// Syzygy tablebase hit - perfect endgame play
+		uci.debugLogger.Printf("Syzygy tablebase hit! WDL=%d DTZ=%d Move=%s", tbResult.WDL, tbResult.DTZ, tbMove.ToString())
+		if uci.debugMode {
+			fmt.Fprintf(output, "info string tablebase move: %s (WDL=%d)\n", tbMove.ToString(), tbResult.WDL)
+		}
+
+		bestMove = tbMove
+		// Convert WDL to centipawn score
+		switch tbResult.WDL {
+		case WDL_Win:
+			bestScore = MATE_VALUE - 100 - tbResult.DTZ // Winning
+		case WDL_CursedWin:
+			bestScore = 500 // Theoretically winning but 50-move draw
+		case WDL_Draw:
+			bestScore = 0
+		case WDL_BlessedLoss:
+			bestScore = -500 // Theoretically losing but 50-move draw
+		case WDL_Loss:
+			bestScore = -MATE_VALUE + 100 + tbResult.DTZ // Losing
+		}
+
+		uci.debugLogger.Printf("Using tablebase move: %v with score %d", bestMove.ToString(), bestScore)
+
+		// Output the tablebase result
+		var scoreStr string
+		if bestScore >= MATE_IN_MAX {
+			scoreStr = fmt.Sprintf("mate %d", (MATE_VALUE-bestScore+1)/2)
+		} else if bestScore <= -MATE_IN_MAX {
+			scoreStr = fmt.Sprintf("mate %d", -(MATE_VALUE+bestScore+1)/2)
+		} else {
+			scoreStr = fmt.Sprintf("cp %d", bestScore)
+		}
+		fmt.Fprintf(output, "info depth 1 score %s nodes 1 time 0 nps 0 tbhits 1 pv %s\n",
+			scoreStr, bestMove.ToString())
 	} else {
 		uci.debugLogger.Printf("No opening book move found for current position")
 		if uci.debugMode {

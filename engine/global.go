@@ -8,6 +8,12 @@ var KingAttacks [64]uint64
 var RankMasks [8]uint64
 var FileMasks [8]uint64
 
+// Pawn attack tables: squares from which pawns of each color can attack a given square
+// WhitePawnAttackers[sq] = bitboard of squares where white pawns attack sq
+// BlackPawnAttackers[sq] = bitboard of squares where black pawns attack sq
+var WhitePawnAttackers [64]uint64
+var BlackPawnAttackers [64]uint64
+
 // Ray masks for sliding piece attacks - [square][direction]
 // Directions: 0=N, 1=NE, 2=E, 3=SE, 4=S, 5=SW, 6=W, 7=NW
 var RayMasks [64][8]uint64
@@ -15,6 +21,7 @@ var RayMasks [64][8]uint64
 func init() {
 	initKnightAttacks()
 	initKingAttacks()
+	initPawnAttackers()
 	initRankMasks()
 	initFileMasks()
 	initRayMasks()
@@ -76,6 +83,43 @@ func initKingAttacks() {
 		}
 
 		KingAttacks[sq] = attacks
+	}
+}
+
+// initPawnAttackers precomputes squares from which pawns can attack each square
+// This allows O(1) lookup instead of iterating through all pawns
+func initPawnAttackers() {
+	for sq := 0; sq < 64; sq++ {
+		file := sq % 8
+		rank := sq / 8
+
+		// White pawns attack from one rank below (rank-1), adjacent files
+		// A white pawn on sq-7 attacks sq (if sq is not on file A)
+		// A white pawn on sq-9 attacks sq (if sq is not on file H)
+		whiteMask := uint64(0)
+		if rank > 0 { // Can be attacked by white pawn
+			if file > 0 && sq-9 >= 0 { // Not on file A - can be attacked from left-below
+				whiteMask |= SquareMask[sq-9]
+			}
+			if file < 7 && sq-7 >= 0 { // Not on file H - can be attacked from right-below
+				whiteMask |= SquareMask[sq-7]
+			}
+		}
+		WhitePawnAttackers[sq] = whiteMask
+
+		// Black pawns attack from one rank above (rank+1), adjacent files
+		// A black pawn on sq+7 attacks sq (if sq is not on file H)
+		// A black pawn on sq+9 attacks sq (if sq is not on file A)
+		blackMask := uint64(0)
+		if rank < 7 { // Can be attacked by black pawn
+			if file < 7 && sq+7 < 64 { // Not on file H - can be attacked from right-above
+				blackMask |= SquareMask[sq+7]
+			}
+			if file > 0 && sq+9 < 64 { // Not on file A - can be attacked from left-above
+				blackMask |= SquareMask[sq+9]
+			}
+		}
+		BlackPawnAttackers[sq] = blackMask
 	}
 }
 
