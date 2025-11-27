@@ -818,92 +818,21 @@ func isInCheck(pos *Position, color Color) bool {
 		return true
 	}
 
-	// Check sliding piece attacks (optimized bounds checking)
-	kingFile := int(kingSquare) % 8
-	kingRank := int(kingSquare) / 8
+	// Check sliding piece attacks using magic bitboards - O(1) lookups
+	occupied := pos.Board.GetWhitePieces() | pos.Board.GetBlackPieces()
 
-	// Check diagonal attacks (bishop, queen) with optimized bounds
-	// NE direction (-7)
-	for to := int(kingSquare) - 7; to >= 0 && to%8 > kingFile && to/8 < kingRank; to -= 7 {
-		piece := pos.Board.PieceAt(Square(to))
-		if piece != NoPiece {
-			if piece.Color() == enemyColor && (piece.Type() == Bishop || piece.Type() == Queen) {
-				return true
-			}
-			break
-		}
-	}
-	// NW direction (-9)
-	for to := int(kingSquare) - 9; to >= 0 && to%8 < kingFile && to/8 < kingRank; to -= 9 {
-		piece := pos.Board.PieceAt(Square(to))
-		if piece != NoPiece {
-			if piece.Color() == enemyColor && (piece.Type() == Bishop || piece.Type() == Queen) {
-				return true
-			}
-			break
-		}
-	}
-	// SE direction (+9)
-	for to := int(kingSquare) + 9; to < 64 && to%8 > kingFile && to/8 > kingRank; to += 9 {
-		piece := pos.Board.PieceAt(Square(to))
-		if piece != NoPiece {
-			if piece.Color() == enemyColor && (piece.Type() == Bishop || piece.Type() == Queen) {
-				return true
-			}
-			break
-		}
-	}
-	// SW direction (+7)
-	for to := int(kingSquare) + 7; to < 64 && to%8 < kingFile && to/8 > kingRank; to += 7 {
-		piece := pos.Board.PieceAt(Square(to))
-		if piece != NoPiece {
-			if piece.Color() == enemyColor && (piece.Type() == Bishop || piece.Type() == Queen) {
-				return true
-			}
-			break
-		}
+	// Check diagonal attacks (bishop, queen)
+	diagonalAttackers := pos.Board.GetBitboardOf(GetPiece(Bishop, enemyColor)) |
+		pos.Board.GetBitboardOf(GetPiece(Queen, enemyColor))
+	if GetBishopAttacks(int(kingSquare), occupied)&diagonalAttackers != 0 {
+		return true
 	}
 
-	// Check straight attacks (rook, queen) with optimized bounds
-	// North direction (-8)
-	for to := int(kingSquare) - 8; to >= 0; to -= 8 {
-		piece := pos.Board.PieceAt(Square(to))
-		if piece != NoPiece {
-			if piece.Color() == enemyColor && (piece.Type() == Rook || piece.Type() == Queen) {
-				return true
-			}
-			break
-		}
-	}
-	// South direction (+8)
-	for to := int(kingSquare) + 8; to < 64; to += 8 {
-		piece := pos.Board.PieceAt(Square(to))
-		if piece != NoPiece {
-			if piece.Color() == enemyColor && (piece.Type() == Rook || piece.Type() == Queen) {
-				return true
-			}
-			break
-		}
-	}
-	// West direction (-1)
-	for to := int(kingSquare) - 1; to >= 0 && to/8 == kingRank; to -= 1 {
-		piece := pos.Board.PieceAt(Square(to))
-		if piece != NoPiece {
-			if piece.Color() == enemyColor && (piece.Type() == Rook || piece.Type() == Queen) {
-				return true
-			}
-			break
-		}
-	}
-	// East direction (+1)
-	for to := int(kingSquare) + 1; to < 64 && to/8 == kingRank; to += 1 {
-		piece := pos.Board.PieceAt(Square(to))
-		if piece != NoPiece {
-			if piece.Color() == enemyColor && (piece.Type() == Rook || piece.Type() == Queen) {
-				return true
-			}
-			break
-		}
+	// Check straight attacks (rook, queen)
+	straightAttackers := pos.Board.GetBitboardOf(GetPiece(Rook, enemyColor)) |
+		pos.Board.GetBitboardOf(GetPiece(Queen, enemyColor))
+	if GetRookAttacks(int(kingSquare), occupied)&straightAttackers != 0 {
+		return true
 	}
 
 	return false
