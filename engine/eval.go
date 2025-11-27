@@ -2402,15 +2402,17 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	eval += whitePawnChains
 	eval += -blackPawnChains
 
-	// whiteWeakSquares := evaluateWeakSquares(board, White)
-	// blackWeakSquares := evaluateWeakSquares(board, Black)
-	// eval += whiteWeakSquares
-	// eval += -blackWeakSquares
+	// Weak squares evaluation - RE-ENABLED (NPS budget restored via magic bitboards)
+	whiteWeakSquares := evaluateWeakSquares(board, White)
+	blackWeakSquares := evaluateWeakSquares(board, Black)
+	eval += whiteWeakSquares
+	eval += -blackWeakSquares
 
-	// whitePawnStorms := evaluatePawnStorms(board, White)
-	// blackPawnStorms := evaluatePawnStorms(board, Black)
-	// eval += whitePawnStorms
-	// eval += -blackPawnStorms
+	// Pawn storms evaluation - RE-ENABLED (critical for attacking play)
+	whitePawnStorms := evaluatePawnStorms(board, White)
+	blackPawnStorms := evaluatePawnStorms(board, Black)
+	eval += whitePawnStorms
+	eval += -blackPawnStorms
 
 	// 4. King safety evaluation - RE-ENABLED (critical for game play)
 	if !endgame {
