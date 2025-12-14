@@ -1,169 +1,179 @@
-# NGN Chess Engine - Road to Grandmaster
+# NGN Chess Engine - Development Roadmap
 
 ## Goal: 2500+ ELO (Grandmaster Level)
 
-**Current:** ~1900-2100 ELO (estimated) | **Target:** 2500+ ELO | **Gap:** ~400-600 ELO
+**Current Status:** ~1400-1500 ELO (65% vs Stockfish 1320)
 
 ---
 
-## Progress Summary (2024-11-24)
+## Recent Fixes
 
-### Completed Today - Search Improvements:
-1. **Internal Iterative Deepening (IID)** - Search at reduced depth when no TT move
-2. **SEE Pruning in Main Search** - Skip bad captures at low depths
-3. **History-Based Pruning** - Skip moves with very bad history
-4. **History Penalization** - Penalize quiet moves that don't cause cutoffs
-5. **Probcut Pruning** - Cut search early if reduced search strongly fails high
-6. **Recapture Extensions** - Extend when recapturing on same square
-7. **Passed Pawn Extensions** - Extend for advanced pawn pushes (6th/7th rank)
-8. **History-Based LMR** - Reduce more for bad history, less for good history
-9. **Killer Move LMR Adjustment** - Reduce less for killer moves
-
-### Previous Improvements:
-- Opening book (embedded + Polyglot)
-- Mobility evaluation
-- Syzygy tablebase support
-- Texel tuning framework
-- Singular Extensions
-- Late Move Pruning (LMP)
-- Null Move Pruning (PV-aware)
-- Futility Pruning
-- Enhanced LMR
-
-### Performance Metrics:
-- **~260K NPS** (healthy)
-- **Depth 9 in 1 second** (from starting position)
-- Tactical accuracy: 93%+ on isolated puzzles
-
-### Estimated ELO Gains from Search Improvements:
-- IID: +20-30 ELO (better move ordering at depth)
-- SEE pruning: +20-30 ELO (safer pruning)
-- History pruning: +30-40 ELO (prune bad moves earlier)
-- Probcut: +20-30 ELO (cut hopeless positions)
-- Extensions (recapture, passed pawn): +30-40 ELO (tactical accuracy)
-- History-based LMR: +20-30 ELO (smarter reductions)
-- **Total estimated: ~1900-2100 ELO now**
+### Threefold Repetition Detection (FIXED)
+- Root cause: `handlePosition` used `MakeMove` instead of `GameMakeMove` - position history wasn't tracked
+- Root search didn't check `IsFIDEDrawRule()` before returning moves
+- **Status**: FIXED - games now complete properly
 
 ---
 
-## Shortest Path to GM Level
+## Assessment Strategy
 
-### Phase 1: Quick Wins ✅ DONE
-1. ~~**Opening Book**~~ ✅ - Embedded book + Polyglot support
-2. ~~**Endgame Tablebases**~~ ✅ - Syzygy support with WDL/DTZ probing
-3. ~~**Tune Existing Eval**~~ ✅ - Texel tuning framework implemented
+### Quick Assessment (1 min)
+```bash
+./build/elo-assess -level 1 -elo 1320
+```
+- 4 games at 0.5s/move
+- Rough estimate, ~100 ELO margin of error
 
-### Phase 2: Evaluation Overhaul ✅ DONE
-4. ~~**Mobility Evaluation**~~ ✅ - Knights, bishops, rooks, queens
-5. ~~**King Safety**~~ ✅ - Comprehensive (pawn shield, attack patterns, open files)
-6. ~~**Pawn Structure**~~ ✅ - Doubled, isolated, passed pawns, chains
-7. ~~**Piece Coordination**~~ ✅ - Protection, outposts, batteries
+### Standard Assessment (5 min)
+```bash
+./build/elo-assess -level 5 -elo 1320
+```
+- 10 games at 1s/move
+- Better accuracy, ~50 ELO margin of error
 
-### Phase 3: Search Improvements ✅ DONE
-8. ~~**Singular Extensions**~~ ✅ - Extend when TT move is clearly best
-9. ~~**Late Move Pruning**~~ ✅ - Prune late quiet moves
-10. ~~**Time Management**~~ ✅ - Comprehensive with phase/complexity multipliers
-11. ~~**IID**~~ ✅ - Internal Iterative Deepening
-12. ~~**SEE Pruning**~~ ✅ - Skip bad captures in main search
-13. ~~**History Pruning/Penalization**~~ ✅ - History-based move quality
-14. ~~**Probcut**~~ ✅ - Early cutoff on reduced search
-15. ~~**Multiple Extensions**~~ ✅ - Recapture, passed pawn, check, singular
-
-### Phase 4: Remaining Classical Improvements (+200-400 ELO)
-16. **Better Aspiration Windows** - Smaller initial window, gradual widening
-17. **Multi-PV Analysis** - For understanding positions
-18. **Better Time Management** - Use more time in critical positions
-19. **Contempt Factor** - Play for wins vs weaker opponents
-20. **Evaluation Tuning** - Run Texel tuning on real game data
-
-### Phase 5: Advanced Techniques (Optional)
-21. **NNUE** - If needed for final push (but classical can reach 2500!)
-22. **Multi-threading** - Parallel search (Lazy SMP)
+### Thorough Assessment (10 min)
+```bash
+./build/elo-assess -level 10 -elo 1320
+```
+- 20 games at 1.5s/move
+- Good accuracy, ~30 ELO margin of error
 
 ---
 
-## Progress Tracker
+## Verified Implementation Status
 
-- [x] Fix critical search bugs (2024-11-24)
-- [x] Fix evaluation bugs (2024-11-24)
-- [x] Opening book implementation (2024-11-24)
-- [x] Mobility evaluation (2024-11-24)
-- [x] Endgame tablebases (Syzygy) (2024-11-24)
-- [x] Texel tuning framework (2024-11-24)
-- [x] Singular extensions (2024-11-24)
-- [x] Late Move Pruning (2024-11-24)
-- [x] Internal Iterative Deepening (2024-11-24)
-- [x] SEE pruning in main search (2024-11-24)
-- [x] History-based pruning (2024-11-24)
-- [x] History penalization (2024-11-24)
-- [x] Probcut pruning (2024-11-24)
-- [x] Recapture extensions (2024-11-24)
-- [x] Passed pawn extensions (2024-11-24)
-- [x] History-based LMR (2024-11-24)
-- [ ] Aspiration window tuning
-- [ ] Evaluation parameter tuning
+### Search Techniques (WORKING)
+- [x] Iterative deepening
+- [x] Aspiration windows
+- [x] Alpha-beta with transposition table
+- [x] Null move pruning
+- [x] Futility pruning (extended, depth 1-3)
+- [x] Reverse futility pruning
+- [x] Late Move Reduction (LMR)
+- [x] Late Move Pruning (LMP)
+- [x] Internal Iterative Deepening (IID)
+- [x] SEE (Static Exchange Evaluation)
+- [x] SEE pruning for captures
+- [x] History heuristic
+- [x] History pruning
+- [x] Killer moves (2 per ply)
+- [x] Counter move heuristic
+- [x] Probcut pruning
+- [x] Quiescence search
 
----
+### Extensions (WORKING)
+- [x] Check extensions
+- [x] Singular extensions
+- [x] Recapture extensions
+- [x] Passed pawn extensions
 
-## Technical Notes
+### Evaluation (COMPLETE)
+- [x] Material
+- [x] Piece-square tables
+- [x] King endgame PST (different from middlegame)
+- [x] Doubled pawns penalty
+- [x] Isolated pawns penalty
+- [x] Passed pawns bonus
+- [x] Pawn chains bonus
+- [x] Pawn storms
+- [x] Weak squares
+- [x] Bishop pair bonus
+- [x] Mobility evaluation (knights, bishops, rooks, queens)
+- [x] King safety (pawn shield, open files)
+- [x] Knight outposts
+- [x] Piece coordination
+- [x] Rook on open file (explicit bonus)
+- [x] Tapered eval (MG/EG interpolation for king PST)
 
-### Search Techniques Implemented
-
-**Pruning:**
-- Futility Pruning: Skip quiet moves when position is hopeless
-- Null Move Pruning: Skip positions where passing is good enough
-- Late Move Pruning: Skip very late quiet moves at low depths
-- SEE Pruning: Skip bad captures based on Static Exchange Evaluation
-- History Pruning: Skip moves with very bad history scores
-- Probcut: Cut early if reduced search suggests fail high
-
-**Reductions:**
-- Late Move Reductions (LMR): Search later moves at reduced depth
-- History-based LMR: Adjust reduction based on move history
-- Killer Move LMR: Reduce less for killer moves
-- PV-aware LMR: Less aggressive in PV nodes
-
-**Extensions:**
-- Check Extensions: Extend search when move gives check
-- Singular Extensions: Extend when TT move is clearly best
-- Recapture Extensions: Extend when recapturing on same square
-- Passed Pawn Extensions: Extend for advanced pawn pushes
-
-**Move Ordering:**
-- Transposition Table move first
-- SEE-ordered captures (winning, then equal, then losing)
-- Counter move heuristic
-- Killer moves (2 per ply)
-- History heuristic (with penalization for bad moves)
-
-**Other:**
-- Internal Iterative Deepening (IID): Search at reduced depth for move ordering
-- Aspiration Windows: Narrow search window at root
-- Transposition Table: Cache positions for reuse
-
-### Performance
-- ~260K NPS (healthy)
-- Depth 9 in 1 second typical
+### Infrastructure (WORKING)
+- [x] Opening book (embedded + Polyglot)
+- [x] Syzygy tablebase support
+- [x] UCI protocol
+- [x] Time management
 
 ---
 
-## Classical vs NNUE
+## Performance Metrics (Verified)
 
-**Myth:** "You need NNUE to reach GM level"
+| Metric | Value | Notes |
+|--------|-------|-------|
+| NPS | ~350K | At depth 10, middle game position |
+| Depth/5s | 10 | From complex position |
+| Depth/1s | ~7-8 | Estimated |
 
-**Reality:** Classical engines can absolutely reach 2500+ ELO with:
-- Excellent search pruning and extensions
-- Well-tuned evaluation parameters
-- Good move ordering
-- Comprehensive positional evaluation
+---
 
-NNUE adds ~300-400 ELO on top of a strong classical base, but it's not required for GM level. This engine proves classical techniques can go very far.
+## Development Phases
+
+### Phase 1: Critical Bug Fixes (COMPLETED)
+1. ~~Fix threefold repetition detection~~ ✓
+2. ~~Verify game completion works~~ ✓
+3. ~~Run baseline ELO assessment~~ ✓ (~1400-1500 ELO after Phase 2)
+
+### Phase 2: Evaluation Features (COMPLETED)
+All classical evaluation features now implemented:
+- ✓ Bishop pair bonus
+- ✓ Mobility evaluation
+- ✓ King safety
+- ✓ Knight outposts
+- ✓ Piece coordination
+- ✓ Rook on open file (evaluateRookOnOpenFile)
+- ✓ Tapered eval (gamePhase + taperScore for king PST)
+
+### Phase 3: Tuning
+1. Run Texel tuning on evaluation parameters
+2. Tune search parameters
+3. Re-assess ELO after each change
+
+---
+
+## Reference Engines (Go)
+
+### Blunder (Go, ~2400 ELO)
+- AdaGrad tuning for evaluation
+- Queen promotions in quiescence
+- Pawn pushes to 6th+ not reduced in LMR
+
+### Zurichess (Go, ~2500 ELO)
+- Reached GM level with classical eval
+- King-queen tropism
+- Hashing in quiescence search
+- Razoring
+
+---
+
+## Is GM Level Hard in 2025?
+
+**No.** Classical engines (no NNUE) have reached 2500+ ELO:
+- Crafty (~2600)
+- Fruit (~2700 in 2005)
+- Stockfish pre-NNUE (~3000)
+
+The techniques are well-documented. The challenge is:
+1. Getting all the pieces working together correctly
+2. Avoiding bugs in complex interactions
+3. Proper tuning of parameters
+
+NNUE adds ~300-400 ELO on top of a strong classical base, but is NOT required for GM level.
+
+---
+
+## Commands Reference
+
+```bash
+make build       # Build engine
+make test        # Run tests
+make eval        # 2-minute comprehensive eval (use sparingly)
+./build/elo-assess -level 1   # Quick ELO assessment
+./build/elo-assess -level 5   # Standard ELO assessment
+./build/elo-assess -level 10  # Thorough ELO assessment
+```
 
 ---
 
 ## Notes
 
-- Each phase builds on the previous
-- Test after each change with games vs Stockfish
-- Track ELO progress with consistent testing
-- Focus on search efficiency over raw NPS
+- Run `make test` after every change
+- Verify games complete before trusting ELO numbers
+- One bug fix at a time, test between each
+- Track ELO progress with assessment tool

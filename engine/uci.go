@@ -376,8 +376,8 @@ func (uci *UCIEngine) handlePosition(args []string, output io.Writer) {
 				return
 			}
 
-			// Make the move
-			_, _, _, _ = uci.position.MakeMove(move)
+			// Make the move using GameMakeMove to track repetition history
+			_, _, _, _ = uci.position.GameMakeMove(move)
 			uci.movesPlayed++
 			// Track the last move played for counter move heuristic
 			SetLastMovePlayed(move)

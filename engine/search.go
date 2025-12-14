@@ -462,15 +462,22 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					break
 				}
 
-				ep, tag, hc, _ := pos.MakeMove(move)
+				// Use GameMakeMove at root to track repetition history
+				ep, tag, hc, _ := pos.GameMakeMove(move)
 				// Check if move is legal (doesn't leave king in check)
 				if isInCheck(pos, move.MovingPiece().Color()) {
-					pos.UnMakeMove(move, tag, ep, hc)
+					pos.GameUnMakeMove(move, tag, ep, hc)
 					continue // Skip illegal move
 				}
 
-				score := -alphaBetaPV(pos, currentDepth-1, -beta, -alpha, true, info)
-				pos.UnMakeMove(move, tag, ep, hc)
+				var score int
+				// Check for draw by repetition or 50-move rule at root level
+				if pos.IsFIDEDrawRule() {
+					score = 0 // Draw
+				} else {
+					score = -alphaBetaPV(pos, currentDepth-1, -beta, -alpha, true, info)
+				}
+				pos.GameUnMakeMove(move, tag, ep, hc)
 
 				info.Nodes++
 
@@ -654,8 +661,6 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 	origAlpha := alpha
 	hash := pos.Hash()
 
-	// NOTE: Threefold repetition checking removed from hot path for performance
-	// This should only be checked at root level, not during hypothetical search nodes
 	ttMove, ttEval, ttDepth, ttNodeType, ttHit := TranspositionTable.Get(hash)
 
 	if ttHit && ttDepth >= int8(depth) {

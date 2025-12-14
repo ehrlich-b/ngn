@@ -165,6 +165,36 @@ func getPieceSquareValue(piece Piece, square Square, isEndgame bool) int {
 	return 0
 }
 
+// Phase values for tapered evaluation
+// Total phase = 24 (4 queens worth 4 each + 4 rooks worth 2 + 4 bishops worth 1 + 4 knights worth 1... per side)
+// Actually: 2 sides * (1 queen * 4 + 2 rooks * 2 + 2 bishops * 1 + 2 knights * 1) = 2 * (4 + 4 + 2 + 2) = 24
+const (
+	queenPhase  = 4
+	rookPhase   = 2
+	bishopPhase = 1
+	knightPhase = 1
+	totalPhase  = 24 // Maximum phase (full material)
+)
+
+// gamePhase calculates the current game phase for tapered evaluation
+// Returns a value from 0 (pure endgame) to 24 (full material opening)
+func gamePhase(board *Bitboard) int {
+	phase := queenPhase*PopCount(board.GetBitboardOf(WhiteQueen)) +
+		queenPhase*PopCount(board.GetBitboardOf(BlackQueen)) +
+		rookPhase*PopCount(board.GetBitboardOf(WhiteRook)) +
+		rookPhase*PopCount(board.GetBitboardOf(BlackRook)) +
+		bishopPhase*PopCount(board.GetBitboardOf(WhiteBishop)) +
+		bishopPhase*PopCount(board.GetBitboardOf(BlackBishop)) +
+		knightPhase*PopCount(board.GetBitboardOf(WhiteKnight)) +
+		knightPhase*PopCount(board.GetBitboardOf(BlackKnight))
+
+	// Clamp to totalPhase (should never exceed, but defensive)
+	if phase > totalPhase {
+		phase = totalPhase
+	}
+	return phase
+}
+
 // Helper function to check if we're in the endgame
 // Simple heuristic: endgame when both sides have <= 13 points of material (excluding pawns and kings)
 func isEndgame(board *Bitboard) bool {
@@ -179,6 +209,13 @@ func isEndgame(board *Bitboard) bool {
 		PopCount(board.GetBitboardOf(BlackKnight))*320
 
 	return whiteMaterial <= 1300 && blackMaterial <= 1300
+}
+
+// taperScore interpolates between middlegame and endgame scores based on game phase
+// phase: 0 = pure endgame, 24 = full material
+func taperScore(mgScore, egScore, phase int) int {
+	// Linear interpolation: (mg * phase + eg * (totalPhase - phase)) / totalPhase
+	return (mgScore*phase + egScore*(totalPhase-phase)) / totalPhase
 }
 
 // Helper function to count doubled pawns on a file
@@ -2172,6 +2209,46 @@ func evaluateBishopPair(board *Bitboard, color Color) int {
 	return 0
 }
 
+// evaluateRookOnOpenFile gives bonuses for rooks on open and semi-open files
+// Open file: no pawns of either color
+// Semi-open file: no friendly pawns, but enemy pawns present
+func evaluateRookOnOpenFile(board *Bitboard, color Color) int {
+	bonus := 0
+
+	var rookBB, friendlyPawns, enemyPawns uint64
+	if color == White {
+		rookBB = board.GetBitboardOf(WhiteRook)
+		friendlyPawns = board.GetBitboardOf(WhitePawn)
+		enemyPawns = board.GetBitboardOf(BlackPawn)
+	} else {
+		rookBB = board.GetBitboardOf(BlackRook)
+		friendlyPawns = board.GetBitboardOf(BlackPawn)
+		enemyPawns = board.GetBitboardOf(WhitePawn)
+	}
+
+	// Iterate through each rook
+	for bb := rookBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		file := sq % 8
+
+		// File mask for this file
+		fileMask := uint64(0x0101010101010101) << file
+
+		hasFriendlyPawn := (friendlyPawns & fileMask) != 0
+		hasEnemyPawn := (enemyPawns & fileMask) != 0
+
+		if !hasFriendlyPawn && !hasEnemyPawn {
+			// Fully open file
+			bonus += 25
+		} else if !hasFriendlyPawn {
+			// Semi-open file (no friendly pawns, enemy pawns present)
+			bonus += 15
+		}
+	}
+
+	return bonus
+}
+
 // evaluateMobility counts available moves for pieces and awards bonuses
 // Mobility is a key positional factor - pieces that can move to more squares are more valuable
 func evaluateMobility(board *Bitboard, color Color) int {
@@ -2282,6 +2359,7 @@ func EvaluateForPlayer(board *Bitboard, player Color) int {
 
 func evaluateUnsafe(board *Bitboard) (eval int) {
 	endgame := isEndgame(board)
+	phase := gamePhase(board) // For tapered evaluation
 
 	// Cache all piece bitboards for performance (avoid repeated GetBitboardOf calls)
 	whitePawns := board.GetBitboardOf(WhitePawn)
@@ -2324,14 +2402,12 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 		eval += queenPST[bits.TrailingZeros64(bb)]
 	}
 
-	// White king PST
+	// White king PST - use tapered eval for smooth MG/EG transition
 	for bb := whiteKings; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		if endgame {
-			eval += kingEndgamePST[sq]
-		} else {
-			eval += kingMiddlegamePST[sq]
-		}
+		mgScore := kingMiddlegamePST[sq]
+		egScore := kingEndgamePST[sq]
+		eval += taperScore(mgScore, egScore, phase)
 	}
 
 	// Black pieces - material + PST (using pre-computed negative tables)
@@ -2360,14 +2436,12 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 		eval += blackQueenPST[bits.TrailingZeros64(bb)]
 	}
 
-	// Black king PST
+	// Black king PST - use tapered eval for smooth MG/EG transition
 	for bb := blackKings; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		if endgame {
-			eval += blackKingEndgamePST[sq]
-		} else {
-			eval += blackKingMiddlegamePST[sq]
-		}
+		mgScore := blackKingMiddlegamePST[sq]
+		egScore := blackKingEndgamePST[sq]
+		eval += taperScore(mgScore, egScore, phase)
 	}
 
 	// 3. Pawn structure evaluation - DISABLED FOR PERFORMANCE
@@ -2460,7 +2534,13 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	eval += whiteMobility
 	eval += -blackMobility
 
-	// 7. Basic endgame knowledge
+	// 11. Rook on open file bonus
+	whiteRookOpenFile := evaluateRookOnOpenFile(board, White)
+	blackRookOpenFile := evaluateRookOnOpenFile(board, Black)
+	eval += whiteRookOpenFile
+	eval += -blackRookOpenFile
+
+	// 12. Basic endgame knowledge
 	if endgame {
 		endgameBonus := evaluateBasicEndgames(board)
 		eval += endgameBonus

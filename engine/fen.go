@@ -71,6 +71,11 @@ func ParseFEN(fenString string) (*Position, error) {
 	position.Positions[position.Hash()] = 1
 	position.positionsMutex.Unlock()
 
+	// Set InCheck flag if the side to move is in check
+	if isInCheck(position, position.Turn()) {
+		position.SetTag(InCheck)
+	}
+
 	return position, nil
 }
 

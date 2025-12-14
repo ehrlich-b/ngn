@@ -3,16 +3,7 @@
 [White "NGN"]
 [Black "Stockfish (1320 ELO)"]
 [Result "1/2-1/2"]
-[TimeControl "2s"]
+[TimeControl "1s"]
 
-1. b1c3 d7d5 2. g1f3 g8f6 3. f3d4 c8d7 4. d2d3 e7e5 5. d4f3 b8c6 6. c1g5 d7e6 7. g5f6 g7f6 8. e2e3 f8d6 9. f1e2 h8g8 10. e1g1 d8d7 11. e3e4 c6e7 12. d3d4 c7c6 13. d4e5 f6e5 14. e4d5 g8g2 15. g1g2 e6h3 16. g2g1 d7g4 17. g1h1 g4g2 1/2-1/2
-
-[Event "NGN vs Stockfish Test"]
-[Round "2"]
-[White "Stockfish (1320 ELO)"]
-[Black "NGN"]
-[Result "1/2-1/2"]
-[TimeControl "2s"]
-
-1. g1f3 b8c6 2. b1c3 d7d5 3. e2e4 g8f6 4. e4e5 d5d4 5. f1b5 d4c3 6. e1g1 c3d2 7. e5f6 d2c1q 8. d1c1 g7f6 9. f1d1 c8d7 10. d1d3 d8c8 11. c1e3 f8g7 12. e3f4 e8g8 13. d3d7 c8d7 14. f4c4 d7e8 15. c4e4 f6f5 16. e4e2 g7b2 17. a1d1 b2f6 18. d1b1 e7e6 19. b1c1 f6b2 20. c1b1 b2f6 21. g2g4 f5g4 22. e2e4 g4f3 23. b5f1 e8b8 24. f1d3 f8d8 25. d3a6 d8d4 26. e4e1 d4g4 27. g1f1 b7b6 28. a2a3 g4g2 29. a6b5 c6d4 30. b1b3 d4b3 31. b5d3 b3c5 32. d3e4 g2h2 33. e4f3 c7c6 34. f3c6 c5b7 35. e1e2 f6g7 36. e2g4 h2h6 37. c6g2 b8c8 38. g4e2 a8b8 39. f1g1 b7c5 40. e2e3 h6g6 41. g1h1 g7h6 42. e3f3 c5d7 43. f3c6 d7e5 44. c6a4 g6f6 45. a4d4 h6f4 46. h1g1 c8c2 47. g1f1 c2c1 48. f1e2 b8c8 49. d4a4 c8c2 50. a4c2 c1c2 51. e2f1 c2d1 1/2-1/2
+1. e2e4 e7e5 2. g1f3 d7d6 3. b1c3 f8e7 4. f1c4 g8f6 5. e1g1 c7c6 6. d2d4 e5d4 7. f3d4 a7a6 8. d1d3 d6d5 9. e4d5 c6d5 10. c3d5 f6d5 11. c4d5 d8d5 12. f1e1 b8c6 13. d4c6 d5c6 14. c1g5 c8e6 15. g5e7 e8e7 16. d3e4 h8e8 17. e4h7 c6c5 18. h7g7 e8g8 19. g7h7 c5g5 20. h7e4 b7b5 21. e4b7 e7f6 22. b7f3 f6g6 23. f3d3 g6h6 24. d3f3 a8c8 25. f3e4 c8c4 26. e4f3 c4c2 27. e1b1 c2c4 28. b1e1 c4f4 29. f3c6 g5f6 30. c6c1 h6h7 31. c1b1 h7g7 32. f2f3 g7h6 33. b1c1 f6g5 34. e1e6 f7e6 35. c1f1 g8d8 36. f1c1 f4f5 37. c1c3 f5e5 38. a1e1 e5e1 39. c3e1 g5c5 40. g1h1 h6g7 41. e1g3 g7f8 42. g3f4 f8e7 43. f4h4 e7d7 44. h4e1 c5d6 45. e1b1 d6d5 46. h1g1 d5c5 47. g1h1 c5e3 48. b1h7 d7c6 49. h7c2 c6d7 50. c2h7 d7c8 51. h7c2 c8b7 52. c2h7 b7c6 53. h7c2 c6b7 54. c2h7 b7b8 55. h7b1 d8c8 56. b1g1 c8c1 57. g1c1 e3c1 1/2-1/2
 
