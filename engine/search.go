@@ -663,7 +663,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 
 	ttMove, ttEval, ttDepth, ttNodeType, ttHit := TranspositionTable.Get(hash)
 
-	if ttHit && ttDepth >= int8(depth) {
+	if ttHit && !isPV && ttDepth >= int8(depth) {
 		info.TTHits++
 		switch ttNodeType {
 		case Exact:
