@@ -218,8 +218,27 @@ func canPieceAttackSquare(pos *Position, fromSq Square, toSq Square, occupied ui
 
 	switch piece.Type() {
 	case Pawn:
-		// Pawn attacks are handled specially in getAttackers
-		return false // We don't use this for pawns in SEE
+		// Pawns attack diagonally
+		color := piece.Color()
+		fromFile := fromSq.File()
+		if color == White {
+			// White pawns attack +7 (up-left) and +9 (up-right)
+			if fromFile > FileA && Square(int(fromSq)+7) == toSq {
+				return true
+			}
+			if fromFile < FileH && Square(int(fromSq)+9) == toSq {
+				return true
+			}
+		} else {
+			// Black pawns attack -9 (down-left) and -7 (down-right)
+			if fromFile > FileA && Square(int(fromSq)-9) == toSq {
+				return true
+			}
+			if fromFile < FileH && Square(int(fromSq)-7) == toSq {
+				return true
+			}
+		}
+		return false
 	case Knight:
 		return (KnightAttacks[fromSq] & SquareMask[int(toSq)]) != 0
 	case Bishop:
