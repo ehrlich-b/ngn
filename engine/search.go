@@ -895,7 +895,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		}
 
 		// Futility pruning - skip quiet moves if position is hopeless
-		if futilityPrune && !move.IsCapture() {
+		if futilityPrune && !move.IsCapture() && move != ttMove {
 			info.FutilityPrunes++
 			continue
 		}
