@@ -9,6 +9,22 @@
 
 ## Critical Bugs (Each one costs 50-200+ ELO)
 
+### 0. No Draw Detection Inside the Search Tree (search.go:alphaBetaPV)
+
+**Bug:** The recursive search function `alphaBetaPV` NEVER checks for draw by repetition or 50-move rule. Draw detection only happens at the root (line 475). The search uses `pos.MakeMove()` which doesn't update position history.
+
+**Impact:** This is potentially the single most damaging bug. The engine:
+- Cannot see that a line leads to draw by repetition
+- Walks into drawn positions when winning
+- Fails to find drawing resources when losing
+- Plays aimlessly in many endgame scenarios
+
+Every serious engine checks `if (isRepetition() || halfMoveClock >= 100) return 0;` at the start of each search node.
+
+**Fix:** Check for repetition at the start of `alphaBetaPV`. This requires either using `GameMakeMove` in the search (expensive) or maintaining a lightweight repetition table.
+
+---
+
 ### 1. TT Cutoffs in PV Nodes (search.go:666-670)
 
 **Bug:** Returns exact TT scores in PV nodes without checking `isPV`.
@@ -121,6 +137,21 @@ if reduction < 1 {
 
 ---
 
+### 8. Futility Pruning Doesn't Exclude TT Move (search.go:879)
+
+**Bug:** Futility pruning skips ALL quiet moves, including the TT move (the best move from a previous search).
+
+```go
+if futilityPrune && !move.IsCapture() {
+    continue  // Prunes TT move too!
+}
+```
+
+**Impact:** The most important move in the position gets pruned. Should be:
+`if futilityPrune && !move.IsCapture() && move != ttMove`
+
+---
+
 ## Evaluation Bugs
 
 ### 8. Knight PST Penalizes Development (eval.go:44-46)
@@ -185,13 +216,15 @@ Each bug doesn't just fail to help - it actively hurts. The engine is fighting i
 ## Recommended Fix Order
 
 ### Phase 1: Fix Search Correctness (Expected: +200-400 ELO)
-1. Fix TT cutoffs in PV nodes
-2. Fix SEE pawn bug
-3. Fix moveCount vs legalTried
-4. Fix LMR minimum reduction
-5. Fix extension guardrail
-6. Remove double check extension
-7. Pass previous move through search (fix counter moves)
+1. Add draw detection (repetition + 50-move) inside search tree
+2. Fix TT cutoffs in PV nodes
+3. Fix SEE pawn bug
+4. Fix moveCount vs legalTried
+5. Fix LMR minimum reduction
+6. Fix extension guardrail
+7. Remove double check extension
+8. Pass previous move through search (fix counter moves)
+9. Don't futility-prune the TT move
 
 ### Phase 2: Simplify Evaluation (Expected: +100-200 ELO)
 1. Remove all eval features except: material, PST, passed pawns, bishop pair, basic king safety
