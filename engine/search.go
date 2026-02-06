@@ -905,7 +905,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		if !isPV && !inCheck && depth > 0 && depth < 8 &&
 			!move.IsCapture() && move != ttMove && legalTried > 0 {
 			threshold := lmpThreshold[depth]
-			if moveCount > threshold {
+			if legalTried > threshold {
 				info.LMPPrunes++
 				continue
 			}
@@ -923,7 +923,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		// History pruning: skip quiet moves with very bad history at low depths
 		if !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move != ttMove {
 			histScore := GetHistoryScore(move)
-			if histScore < -1000 && moveCount > 3 { // Very bad history and not early move
+			if histScore < -1000 && legalTried > 3 { // Very bad history and not early move
 				continue
 			}
 		}
@@ -1030,7 +1030,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		var score int
 
 		// Enhanced Principal Variation Search (PVS) with PV-node optimization
-		if moveCount == 1 {
+		if legalTried == 1 {
 			// First move: search with full window and PV flag
 			score = -alphaBetaPV(pos, nextDepth, -beta, -alpha, isPV, info)
 		} else {
@@ -1038,7 +1038,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 
 			// PV-aware Late Move Reductions
 			reduction := 0
-			if depth >= LMR_FULL_DEPTH && moveCount > LMR_MOVE_THRESHOLD &&
+			if depth >= LMR_FULL_DEPTH && legalTried > LMR_MOVE_THRESHOLD &&
 				!move.IsCapture() && !inCheck && !givesCheck {
 
 				// Base reduction - less aggressive for PV nodes
@@ -1048,10 +1048,10 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 				}
 
 				// Extra reduction for later moves
-				if moveCount > 6 {
+				if legalTried > 6 {
 					reduction++
 				}
-				if moveCount > 12 {
+				if legalTried > 12 {
 					reduction++
 				}
 
