@@ -1094,14 +1094,8 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 				}
 			}
 
-			// Compute reduced depth with check extension
+			// Compute reduced depth (check extension already applied to nextDepth)
 			reducedDepth := depth - 1 - reduction
-			if givesCheck && reducedDepth+1 < depth {
-				reducedDepth++
-			}
-			if reducedDepth >= depth {
-				reducedDepth = depth - 1 - reduction
-			}
 
 			// Search with null window first (not PV)
 			score = -alphaBetaPV(pos, reducedDepth, -alpha-1, -alpha, false, info)
