@@ -1084,8 +1084,8 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 				if reduction >= depth-1 {
 					reduction = depth - 2
 				}
-				if reduction < 1 {
-					reduction = 1
+				if reduction < 0 {
+					reduction = 0
 				}
 
 				// Track LMR usage
