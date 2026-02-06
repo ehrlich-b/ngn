@@ -137,7 +137,32 @@ if reduction < 1 {
 
 ---
 
-### 8. Futility Pruning Doesn't Exclude TT Move (search.go:879)
+### 8. isInCheck Pawn File Masks Swapped for White King (movegen.go:792-793)
+
+**Bug:** The file-wrapping masks for detecting black pawn checks on the white king are reversed.
+
+```go
+// BUG: FileA should be FileH, FileH should be FileA
+leftAttack := (SquareMask[kingSquare] << 7) & ^FileMasks[FileA]  // wraps A→H, should mask FileH
+rightAttack := (SquareMask[kingSquare] << 9) & ^FileMasks[FileH] // wraps H→A, should mask FileA
+```
+
+Compare with move generation (correct): `(whitePawns & ^FileMasks[FileA]) << 7`
+Compare with black king case (correct): `(SquareMask[kingSquare] >> 7) & ^FileMasks[FileA]`
+
+**Impact:** White king on FileA/FileH can get false "in check" from pawns on the opposite file. This corrupts legality testing everywhere - moves that are legal get rejected. Rare but real.
+
+---
+
+### 9. Losing Captures Ordered Above Killer/Counter Moves (moveorder.go:197-199)
+
+**Bug:** Losing captures get base score ~60000, which is above killers (~25000-30000).
+
+**Impact:** The engine wastes time searching known-bad captures before trying proven good quiet moves.
+
+---
+
+### 10. Futility Pruning Doesn't Exclude TT Move (search.go:879)
 
 **Bug:** Futility pruning skips ALL quiet moves, including the TT move (the best move from a previous search).
 
@@ -217,14 +242,16 @@ Each bug doesn't just fail to help - it actively hurts. The engine is fighting i
 
 ### Phase 1: Fix Search Correctness (Expected: +200-400 ELO)
 1. Add draw detection (repetition + 50-move) inside search tree
-2. Fix TT cutoffs in PV nodes
-3. Fix SEE pawn bug
-4. Fix moveCount vs legalTried
-5. Fix LMR minimum reduction
-6. Fix extension guardrail
-7. Remove double check extension
-8. Pass previous move through search (fix counter moves)
-9. Don't futility-prune the TT move
+2. Fix TT cutoffs in PV nodes (add `!isPV` guard)
+3. Fix SEE pawn bug (`canPieceAttackSquare` must handle pawns)
+4. Fix isInCheck pawn file masks for white king
+5. Fix moveCount vs legalTried for LMR/LMP
+6. Fix LMR minimum reduction (allow reduction=0)
+7. Fix extension guardrail (allow nextDepth = depth, not depth-1)
+8. Remove double check extension
+9. Pass previous move through search recursion (fix counter moves)
+10. Don't futility-prune the TT move
+11. Order losing captures below killer/counter moves
 
 ### Phase 2: Simplify Evaluation (Expected: +100-200 ELO)
 1. Remove all eval features except: material, PST, passed pawns, bishop pair, basic king safety
