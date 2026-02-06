@@ -789,8 +789,8 @@ func isInCheck(pos *Position, color Color) bool {
 	if color == White {
 		// White king being attacked by black pawns - check squares where black pawns would be to attack king
 		// Black pawns attack from squares king+7 and king+9
-		leftAttack := (SquareMask[kingSquare] << 7) & ^FileMasks[FileA]  // black pawn would be at king+7
-		rightAttack := (SquareMask[kingSquare] << 9) & ^FileMasks[FileH] // black pawn would be at king+9
+		leftAttack := (SquareMask[kingSquare] << 7) & ^FileMasks[FileH]  // mask FileH to prevent H->A wrap
+		rightAttack := (SquareMask[kingSquare] << 9) & ^FileMasks[FileA] // mask FileA to prevent A->H wrap
 		if (leftAttack|rightAttack)&pos.Board.GetBitboardOf(BlackPawn) != 0 {
 			return true
 		}

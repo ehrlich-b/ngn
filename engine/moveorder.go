@@ -195,8 +195,8 @@ func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, 
 					// Winning/equal captures: base score + SEE value for fine ordering
 					score = 80000 + seeValue + 1000
 				} else {
-					// Losing captures: still better than quiet moves, but ordered by SEE
-					score = 60000 + seeValue + 1000
+					// Losing captures: below killers/counters but above unscored quiet moves
+					score = 20000 + seeValue + 1000
 				}
 			} else if move.PromoType() != NoType {
 				// Promotions: high priority, ordered by promotion piece value

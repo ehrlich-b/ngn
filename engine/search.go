@@ -218,8 +218,21 @@ func canPieceAttackSquare(pos *Position, fromSq Square, toSq Square, occupied ui
 
 	switch piece.Type() {
 	case Pawn:
-		// Pawn attacks are handled specially in getAttackers
-		return false // We don't use this for pawns in SEE
+		// Check if pawn can attack the target square diagonally
+		color := piece.Color()
+		fromFile := int(fromSq) % 8
+		toFile := int(toSq) % 8
+		fileDiff := fromFile - toFile
+		if fileDiff < 0 {
+			fileDiff = -fileDiff
+		}
+		if fileDiff != 1 {
+			return false // Pawns only attack diagonally (1 file difference)
+		}
+		if color == White {
+			return int(toSq)-int(fromSq) == 7 || int(toSq)-int(fromSq) == 9
+		}
+		return int(fromSq)-int(toSq) == 7 || int(fromSq)-int(toSq) == 9
 	case Knight:
 		return (KnightAttacks[fromSq] & SquareMask[int(toSq)]) != 0
 	case Bishop:
@@ -344,6 +357,10 @@ type SearchInfo struct {
 	RecaptureExtensions  uint64 // Recapture extensions applied
 	PassedPawnExtensions uint64 // Passed pawn extensions applied
 	ExcludedMove         Move   // Move to exclude during singular search
+
+	// Repetition detection during search
+	RepStack    [512]uint64 // Stack of Zobrist hashes on current search path
+	RepStackLen int         // Current depth in repetition stack
 }
 
 func Search(pos *Position, depth int) *SearchInfo {
@@ -653,6 +670,41 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		return EvaluateForPlayer(&pos.Board, pos.Turn())
 	}
 
+	// Draw detection: 50-move rule and repetition
+	{
+		currentHash := pos.Hash()
+
+		// 50-move rule
+		if pos.HalfMoveClock >= 100 {
+			return 0
+		}
+
+		// Check game history for repetition (count >= 2 means 3-fold with this occurrence)
+		if pos.Positions != nil {
+			pos.positionsMutex.RLock()
+			count := pos.Positions[currentHash]
+			pos.positionsMutex.RUnlock()
+			if count >= 2 {
+				return 0
+			}
+		}
+
+		// Check search path for repetition (2-fold in search = draw)
+		for i := info.RepStackLen - 1; i >= 0; i-- {
+			if info.RepStack[i] == currentHash {
+				return 0
+			}
+		}
+
+		// Push current hash onto repetition stack
+		if info.RepStackLen < len(info.RepStack) {
+			info.RepStack[info.RepStackLen] = currentHash
+			info.RepStackLen++
+		}
+	}
+	// Pop repetition stack on function exit
+	defer func() { info.RepStackLen-- }()
+
 	if depth == 0 {
 		return quiescence(pos, alpha, beta, info)
 	}
@@ -663,7 +715,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 
 	ttMove, ttEval, ttDepth, ttNodeType, ttHit := TranspositionTable.Get(hash)
 
-	if ttHit && ttDepth >= int8(depth) {
+	if ttHit && !isPV && ttDepth >= int8(depth) {
 		info.TTHits++
 		switch ttNodeType {
 		case Exact:
@@ -875,18 +927,19 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 			break
 		}
 
-		// Futility pruning - skip quiet moves if position is hopeless
-		if futilityPrune && !move.IsCapture() {
+		// Futility pruning - skip quiet moves if position is hopeless (but never prune TT move)
+		if futilityPrune && !move.IsCapture() && move != ttMove {
 			info.FutilityPrunes++
 			continue
 		}
 
 		// Late Move Pruning (LMP) - skip very late quiet moves at low depths
 		// Only apply in non-PV nodes, not in check, and for quiet moves
+		// Use legalTried (not moveCount) since moveCount includes illegal moves
 		if !isPV && !inCheck && depth > 0 && depth < 8 &&
 			!move.IsCapture() && move != ttMove && legalTried > 0 {
 			threshold := lmpThreshold[depth]
-			if moveCount > threshold {
+			if legalTried > threshold {
 				info.LMPPrunes++
 				continue
 			}
@@ -904,7 +957,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		// History pruning: skip quiet moves with very bad history at low depths
 		if !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move != ttMove {
 			histScore := GetHistoryScore(move)
-			if histScore < -1000 && moveCount > 3 { // Very bad history and not early move
+			if histScore < -1000 && legalTried > 3 { // Very bad history and not early move
 				continue
 			}
 		}
@@ -1003,23 +1056,23 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 			}
 		}
 
-		if nextDepth >= depth {
-			// Guardrail: never allow recursion with the same depth
-			nextDepth = depth - 1
+		if nextDepth > depth+1 {
+			// Guardrail: limit extensions to at most +1 beyond current depth
+			nextDepth = depth + 1
 		}
 
 		var score int
 
 		// Enhanced Principal Variation Search (PVS) with PV-node optimization
-		if moveCount == 1 {
+		if legalTried == 1 {
 			// First move: search with full window and PV flag
 			score = -alphaBetaPV(pos, nextDepth, -beta, -alpha, isPV, info)
 		} else {
 			// Non-first moves: enhanced PVS with PV-aware reductions
 
-			// PV-aware Late Move Reductions
+			// PV-aware Late Move Reductions (use legalTried, not moveCount which includes illegal moves)
 			reduction := 0
-			if depth >= LMR_FULL_DEPTH && moveCount > LMR_MOVE_THRESHOLD &&
+			if depth >= LMR_FULL_DEPTH && legalTried > LMR_MOVE_THRESHOLD &&
 				!move.IsCapture() && !inCheck && !givesCheck {
 
 				// Base reduction - less aggressive for PV nodes
@@ -1029,10 +1082,10 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 				}
 
 				// Extra reduction for later moves
-				if moveCount > 6 {
+				if legalTried > 6 {
 					reduction++
 				}
-				if moveCount > 12 {
+				if legalTried > 12 {
 					reduction++
 				}
 
@@ -1065,8 +1118,8 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 				if reduction >= depth-1 {
 					reduction = depth - 2
 				}
-				if reduction < 1 {
-					reduction = 1
+				if reduction < 0 {
+					reduction = 0
 				}
 
 				// Track LMR usage
@@ -1075,11 +1128,8 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 				}
 			}
 
-			// Compute reduced depth with check extension
+			// Compute reduced depth (check extension already applied via nextDepth)
 			reducedDepth := depth - 1 - reduction
-			if givesCheck && reducedDepth+1 < depth {
-				reducedDepth++
-			}
 			if reducedDepth >= depth {
 				reducedDepth = depth - 1 - reduction
 			}
