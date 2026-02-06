@@ -1022,9 +1022,9 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 			}
 		}
 
-		if nextDepth >= depth {
-			// Guardrail: never allow recursion with the same depth
-			nextDepth = depth - 1
+		if nextDepth > depth+1 {
+			// Guardrail: limit extensions to at most +1 ply beyond current depth
+			nextDepth = depth + 1
 		}
 
 		var score int
