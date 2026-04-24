@@ -7,6 +7,7 @@ import (
 	"log"
 	"math"
 	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -21,9 +22,14 @@ const (
 type Config struct {
 	NGNPath       string
 	StockfishPath string
-	Level         int  // 1, 5, or 10 minutes
+	Level         int
 	Verbose       bool
-	TargetELO     int  // Starting target ELO for calibration
+	TargetELO     int
+	MinGames      int
+	MaxGames      int
+	MovetimeMs    int
+	StopWidthELO  float64 // stop early when 95% ELO CI width ≤ this
+	LowPower      bool    // route to macOS E-cores via taskpolicy -b
 }
 
 type GameResult struct {
@@ -34,10 +40,37 @@ type GameResult struct {
 }
 
 func main() {
-	level := flag.Int("level", 1, "Assessment level: 1 (quick), 5 (standard), 10 (thorough) minutes")
+	level := flag.Int("level", 0, "Assessment level (1/5/10). 0 = use explicit flags below.")
 	verbose := flag.Bool("v", false, "Verbose output")
-	targetELO := flag.Int("elo", 1320, "Starting Stockfish ELO target")
+	targetELO := flag.Int("elo", 1320, "Stockfish ELO target")
+	games := flag.Int("games", 0, "Override max games (0 = use level default)")
+	movetimeMs := flag.Int("movetime", 0, "ms per move (0 = use level default)")
+	minGames := flag.Int("min", 6, "Minimum games before early-stop can fire")
+	stopWidth := flag.Float64("ci", 200, "Stop when 95% ELO CI width ≤ this (0 = never early-stop)")
+	lowPower := flag.Bool("lowpower", true, "Route engines to macOS E-cores (taskpolicy -b)")
 	flag.Parse()
+
+	// Level presets kept for backward compat. Lighter defaults than before.
+	var maxGames, moveMs int
+	switch *level {
+	case 1:
+		maxGames, moveMs = 8, 250
+	case 5:
+		maxGames, moveMs = 20, 400
+	case 10:
+		maxGames, moveMs = 40, 600
+	default:
+		maxGames, moveMs = 24, 250 // sensible cool default
+	}
+	if *games > 0 {
+		maxGames = *games
+	}
+	if *movetimeMs > 0 {
+		moveMs = *movetimeMs
+	}
+	if *minGames > maxGames {
+		*minGames = maxGames
+	}
 
 	config := &Config{
 		NGNPath:       "./build/ngn",
@@ -45,90 +78,145 @@ func main() {
 		Level:         *level,
 		Verbose:       *verbose,
 		TargetELO:     *targetELO,
+		MinGames:      *minGames,
+		MaxGames:      maxGames,
+		MovetimeMs:    moveMs,
+		StopWidthELO:  *stopWidth,
+		LowPower:      *lowPower,
 	}
 
-	fmt.Printf("NGN ELO Assessment Tool\n")
-	fmt.Printf("=======================\n")
-	fmt.Printf("Level: %d minute(s)\n", config.Level)
-	fmt.Printf("Target Stockfish ELO: %d\n\n", config.TargetELO)
-
-	// Determine game parameters based on level
-	var numGames int
-	var timePerMove float64
-
-	switch config.Level {
-	case 1:
-		numGames = 4
-		timePerMove = 0.5
-		fmt.Println("Quick assessment: 4 games @ 0.5s/move (~1 min)")
-	case 5:
-		numGames = 10
-		timePerMove = 1.0
-		fmt.Println("Standard assessment: 10 games @ 1s/move (~5 min)")
-	case 10:
-		numGames = 20
-		timePerMove = 1.5
-		fmt.Println("Thorough assessment: 20 games @ 1.5s/move (~10 min)")
-	default:
-		numGames = 4
-		timePerMove = 0.5
-		fmt.Println("Using quick assessment (default)")
+	fmt.Printf("NGN ELO Assessment (Bayesian early-stop)\n")
+	fmt.Printf("========================================\n")
+	fmt.Printf("Stockfish target: %d ELO | movetime: %dms\n", config.TargetELO, config.MovetimeMs)
+	fmt.Printf("Games: min=%d max=%d | stop at 95%% ELO CI ≤ %.0f\n",
+		config.MinGames, config.MaxGames, config.StopWidthELO)
+	if config.LowPower && runtime.GOOS == "darwin" {
+		fmt.Printf("Power: taskpolicy -b (E-cores, low power)\n")
+	} else {
+		fmt.Printf("Power: normal\n")
 	}
-
 	fmt.Println()
 
-	// Run games
-	result := runGames(config, numGames, timePerMove)
-
-	// Calculate and display results
+	result := runGamesBayesian(config)
 	displayResults(result, config.TargetELO)
 }
 
-func runGames(config *Config, numGames int, timePerMove float64) GameResult {
-	result := GameResult{TotalGames: numGames}
+// runGamesBayesian plays games until CI is tight enough or max games reached.
+// Colors alternate each game.
+func runGamesBayesian(config *Config) GameResult {
+	result := GameResult{}
+	movetime := float64(config.MovetimeMs) / 1000.0
 
-	for gameNum := 1; gameNum <= numGames; gameNum++ {
-		fmt.Printf("Game %d/%d... ", gameNum, numGames)
+	for g := 1; g <= config.MaxGames; g++ {
+		fmt.Printf("G%2d ", g)
+		ngnWhite := g%2 == 1
 
-		// Alternate colors
-		ngnWhite := gameNum%2 == 1
+		start := time.Now()
+		winner, reason := playGame(config, ngnWhite, movetime)
+		elapsed := time.Since(start).Truncate(time.Second)
 
-		winner, reason := playGame(config, ngnWhite, timePerMove)
+		color := "B"
+		if ngnWhite {
+			color = "W"
+		}
 
 		switch winner {
 		case "ngn":
 			result.NGNWins++
-			fmt.Printf("NGN wins (%s)\n", reason)
 		case "stockfish":
 			result.SFWins++
-			fmt.Printf("Stockfish wins (%s)\n", reason)
 		case "draw":
 			result.Draws++
-			fmt.Printf("Draw (%s)\n", reason)
-		default:
-			fmt.Printf("Unknown result: %s\n", reason)
+		}
+		result.TotalGames++
+
+		score := float64(result.NGNWins) + 0.5*float64(result.Draws)
+		eloEst, eloLo, eloHi := eloEstimate(score, result.TotalGames, config.TargetELO)
+		ciWidth := eloHi - eloLo
+
+		fmt.Printf("[%s] %-10s %-12s | W%d D%d L%d  est %.0f  CI [%.0f, %.0f]  (%v)\n",
+			color, winner, reason,
+			result.NGNWins, result.Draws, result.SFWins,
+			eloEst, eloLo, eloHi, elapsed)
+
+		// Early stop: CI tight enough AND past min games.
+		if config.StopWidthELO > 0 &&
+			result.TotalGames >= config.MinGames &&
+			!math.IsInf(ciWidth, 0) &&
+			ciWidth <= config.StopWidthELO {
+			fmt.Printf("\nEarly stop: ELO CI width %.0f ≤ %.0f after %d games\n",
+				ciWidth, config.StopWidthELO, result.TotalGames)
+			break
 		}
 	}
-
 	return result
 }
 
+// wilsonCI returns the Wilson 95% confidence interval for expected score-per-game
+// given total score (wins + 0.5*draws) over n games. Robust at edges unlike
+// the Normal approximation.
+func wilsonCI(score float64, n int) (lo, hi float64) {
+	const z = 1.96
+	if n == 0 {
+		return 0, 1
+	}
+	p := score / float64(n)
+	nf := float64(n)
+	denom := 1.0 + z*z/nf
+	center := (p + z*z/(2*nf)) / denom
+	margin := z * math.Sqrt(p*(1-p)/nf+z*z/(4*nf*nf)) / denom
+	lo = center - margin
+	hi = center + margin
+	if lo < 0 {
+		lo = 0
+	}
+	if hi > 1 {
+		hi = 1
+	}
+	return
+}
+
+// eloEstimate returns (point estimate, lower CI, upper CI) in absolute ELO
+// against an opponent rated targetELO. Uses Wilson CI on score fraction.
+func eloEstimate(score float64, n, targetELO int) (est, lo, hi float64) {
+	if n == 0 {
+		return float64(targetELO), float64(targetELO) - 400, float64(targetELO) + 400
+	}
+	p := score / float64(n)
+	pLo, pHi := wilsonCI(score, n)
+	est = float64(targetELO) + scoreToEloDiff(p)
+	// Higher p → higher ELO; CI mapping preserves that order.
+	lo = float64(targetELO) + scoreToEloDiff(pLo)
+	hi = float64(targetELO) + scoreToEloDiff(pHi)
+	return
+}
+
+func scoreToEloDiff(p float64) float64 {
+	// Clamp to avoid ±Inf when all games lost/won; use sentinel bounds.
+	const eps = 1e-4
+	if p <= eps {
+		return -800
+	}
+	if p >= 1-eps {
+		return 800
+	}
+	return 400 * math.Log10(p/(1-p))
+}
+
 func playGame(config *Config, ngnWhite bool, timePerMove float64) (string, string) {
-	// Start engines
-	ngn := startEngine(config.NGNPath, "NGN")
+	ngn := startEngine(config.NGNPath, "NGN", config.LowPower)
 	if ngn == nil {
 		return "error", "failed to start NGN"
 	}
 	defer stopEngine(ngn)
 
-	sf := startEngine(config.StockfishPath, "Stockfish")
+	sf := startEngine(config.StockfishPath, "Stockfish", config.LowPower)
 	if sf == nil {
 		return "error", "failed to start Stockfish"
 	}
 	defer stopEngine(sf)
 
-	// Configure Stockfish ELO
-	sendCommand(sf, fmt.Sprintf("setoption name UCI_LimitStrength value true"))
+	sendCommand(sf, "setoption name UCI_LimitStrength value true")
 	sendCommand(sf, fmt.Sprintf("setoption name UCI_Elo value %d", config.TargetELO))
 
 	moves := []string{}
@@ -144,36 +232,24 @@ func playGame(config *Config, ngnWhite bool, timePerMove float64) (string, strin
 			currentEngine = sf
 		}
 
-		// Set position
 		posCmd := "position startpos"
 		if len(moves) > 0 {
 			posCmd += " moves " + strings.Join(moves, " ")
 		}
 		sendCommand(currentEngine, posCmd)
 
-		// Get move
 		goCmd := fmt.Sprintf("go movetime %d", int(timePerMove*1000))
 		move := getMove(currentEngine, goCmd, timePerMove+2)
 
 		if move == "" || move == "(none)" {
-			// Game over - determine result
+			// Game over — side to move can't move. If it's NGN, NGN lost.
 			if currentEngine == ngn {
-				if ngnWhite == isWhiteMove {
-					return "stockfish", "checkmate"
-				} else {
-					return "stockfish", "checkmate"
-				}
-			} else {
-				if ngnWhite == isWhiteMove {
-					return "ngn", "checkmate"
-				} else {
-					return "ngn", "checkmate"
-				}
+				return "stockfish", "checkmate"
 			}
+			return "ngn", "checkmate"
 		}
 
 		moves = append(moves, move)
-
 		if config.Verbose {
 			fmt.Printf("  %d. %s\n", len(moves), move)
 		}
@@ -188,8 +264,15 @@ type Engine struct {
 	stdout *bufio.Scanner
 }
 
-func startEngine(path, name string) *Engine {
-	cmd := exec.Command(path)
+func startEngine(path, name string, lowPower bool) *Engine {
+	var cmd *exec.Cmd
+	if lowPower && runtime.GOOS == "darwin" {
+		// taskpolicy -b sets "background" QoS → Apple Silicon E-cores.
+		// Dramatic power/heat reduction vs P-cores for modest throughput cost.
+		cmd = exec.Command("taskpolicy", "-b", path)
+	} else {
+		cmd = exec.Command(path)
+	}
 	stdin, _ := cmd.StdinPipe()
 	stdout, _ := cmd.StdoutPipe()
 
@@ -204,7 +287,6 @@ func startEngine(path, name string) *Engine {
 		stdout: bufio.NewScanner(stdout),
 	}
 
-	// Initialize UCI
 	sendCommand(engine, "uci")
 	waitFor(engine, "uciok", 5*time.Second)
 	sendCommand(engine, "isready")
@@ -233,7 +315,7 @@ func waitFor(engine *Engine, expected string, timeout time.Duration) bool {
 func getMove(engine *Engine, goCmd string, timeout float64) string {
 	sendCommand(engine, goCmd)
 
-	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
+	deadline := time.Now().Add(time.Duration(timeout * float64(time.Second)))
 	for time.Now().Before(deadline) {
 		if engine.stdout.Scan() {
 			line := engine.stdout.Text()
@@ -262,37 +344,24 @@ func displayResults(result GameResult, targetELO int) {
 	fmt.Printf("Stockfish wins: %d\n", result.SFWins)
 	fmt.Printf("Draws: %d\n", result.Draws)
 
-	// Calculate score
-	ngnScore := float64(result.NGNWins) + float64(result.Draws)*0.5
-	percentage := ngnScore / float64(result.TotalGames) * 100
+	if result.TotalGames == 0 {
+		return
+	}
+	score := float64(result.NGNWins) + 0.5*float64(result.Draws)
+	p := score / float64(result.TotalGames)
+	est, lo, hi := eloEstimate(score, result.TotalGames, targetELO)
 
-	fmt.Printf("\nNGN score: %.1f/%.1f (%.1f%%)\n", ngnScore, float64(result.TotalGames), percentage)
+	fmt.Printf("\nScore: %.1f/%d  (%.1f%%)\n", score, result.TotalGames, p*100)
+	fmt.Printf("Estimated NGN ELO: %.0f   95%% CI: [%.0f, %.0f]  (width %.0f)\n",
+		est, lo, hi, hi-lo)
 
-	// Estimate ELO using Elo formula
-	// Expected score = 1 / (1 + 10^((Ra-Rb)/400))
-	// If we get score S against opponent rated R, our rating estimate:
-	// Rating = R + 400 * log10(S/(1-S))
-
-	if percentage > 0 && percentage < 100 {
-		scoreFraction := ngnScore / float64(result.TotalGames)
-		eloDiff := 400 * math.Log10(scoreFraction/(1-scoreFraction))
-		estimatedELO := float64(targetELO) + eloDiff
-
-		fmt.Printf("\n=== ELO ESTIMATE ===\n")
-		fmt.Printf("Against Stockfish %d ELO:\n", targetELO)
-		fmt.Printf("Estimated NGN ELO: %.0f (±100)\n", estimatedELO)
-
-		// Confidence note
-		if result.TotalGames < 10 {
-			fmt.Println("\nNote: Low sample size. Use 'standard' or 'thorough' for better accuracy.")
-		}
-	} else if percentage == 100 {
-		fmt.Printf("\n=== ELO ESTIMATE ===\n")
-		fmt.Printf("NGN won all games! Try higher --elo target.\n")
-		fmt.Printf("Estimated NGN ELO: >%d\n", targetELO+200)
-	} else {
-		fmt.Printf("\n=== ELO ESTIMATE ===\n")
-		fmt.Printf("NGN lost all games. Try lower --elo target.\n")
-		fmt.Printf("Estimated NGN ELO: <%d\n", targetELO-200)
+	// Interpretive hint
+	switch {
+	case lo > float64(targetELO)+50:
+		fmt.Printf("Verdict: likely stronger than SF %d (raise target)\n", targetELO)
+	case hi < float64(targetELO)-50:
+		fmt.Printf("Verdict: likely weaker than SF %d (lower target)\n", targetELO)
+	default:
+		fmt.Printf("Verdict: roughly matched with SF %d\n", targetELO)
 	}
 }
