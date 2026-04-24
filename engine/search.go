@@ -1247,6 +1247,26 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 		return EvaluateForPlayer(&pos.Board, pos.Turn())
 	}
 
+	// TT cutoff probe. Qsearch is depth 0; any cached entry at depth >= 0
+	// covers us (main search stores at depth >= 1 only).
+	{
+		_, ttEval, _, ttNodeType, ttHit := TranspositionTable.Get(pos.Hash())
+		if ttHit {
+			switch ttNodeType {
+			case Exact:
+				return int(ttEval)
+			case LowerBound:
+				if int(ttEval) >= beta {
+					return int(ttEval)
+				}
+			case UpperBound:
+				if int(ttEval) <= alpha {
+					return int(ttEval)
+				}
+			}
+		}
+	}
+
 	// MATE DETECTION: Check for checkmate/stalemate at quiescence entry
 	// This is critical for detecting mate-in-1 positions
 	if qDepth == 0 {
