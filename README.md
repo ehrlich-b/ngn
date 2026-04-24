@@ -4,9 +4,7 @@ A chess engine written in Go, targeting Grandmaster level (2500+ ELO) with class
 
 ## Current Status
 
-**ELO:** ~1400-1500 (65% vs Stockfish 1320)
-
-**Recent Fix:** Threefold repetition detection - games now complete properly.
+**ELO:** ~1600-1650 (93% vs Stockfish 1320, 68% vs Stockfish 1500 at 200ms)
 
 ## Verified Performance
 

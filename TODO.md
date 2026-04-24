@@ -2,7 +2,7 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level)
 
-**Current Status:** ~1400-1500 ELO (65% vs Stockfish 1320)
+**Current Status:** ~1600-1650 ELO (93% vs SF 1320, 68% vs SF 1500 at 200ms, est 1630, CI [1444, 1816])
 
 ---
 
