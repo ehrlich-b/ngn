@@ -2347,208 +2347,59 @@ func Evaluate(board *Bitboard) (eval int) {
 	}, board)
 }
 
-// EvaluateForPlayer returns evaluation from the given player's perspective
+// EvaluateForPlayer returns evaluation from the given player's perspective.
 func EvaluateForPlayer(board *Bitboard, player Color) int {
 	whiteEval := Evaluate(board)
 	if player == White {
 		return whiteEval
-	} else {
-		return -whiteEval // Flip for black's perspective
 	}
+	return -whiteEval
 }
 
 func evaluateUnsafe(board *Bitboard) (eval int) {
-	endgame := isEndgame(board)
-	phase := gamePhase(board) // For tapered evaluation
+	// Core: PeSTO tapered material + piece-square tables.
+	mgScore, egScore, phase := evaluatePeSTO(board)
+	eval = (mgScore*phase + egScore*(totalPhase-phase)) / totalPhase
 
-	// Cache all piece bitboards for performance (avoid repeated GetBitboardOf calls)
 	whitePawns := board.GetBitboardOf(WhitePawn)
 	blackPawns := board.GetBitboardOf(BlackPawn)
-	whiteKnights := board.GetBitboardOf(WhiteKnight)
-	blackKnights := board.GetBitboardOf(BlackKnight)
-	whiteBishops := board.GetBitboardOf(WhiteBishop)
-	blackBishops := board.GetBitboardOf(BlackBishop)
-	whiteRooks := board.GetBitboardOf(WhiteRook)
-	blackRooks := board.GetBitboardOf(BlackRook)
-	whiteQueens := board.GetBitboardOf(WhiteQueen)
-	blackQueens := board.GetBitboardOf(BlackQueen)
-	whiteKings := board.GetBitboardOf(WhiteKing)
-	blackKings := board.GetBitboardOf(BlackKing)
 
-	// 1. Material counting and piece-square table values in one pass
-	// White pieces - material + PST
-	eval += int(WhitePawn.Weight()) * PopCount(whitePawns)
-	for bb := whitePawns; bb != 0; bb &= bb - 1 {
-		eval += pawnPST[bits.TrailingZeros64(bb)]
-	}
+	// Passed pawns: essential, not captured by PST.
+	whitePassed := countPassedPawnsFast(whitePawns, blackPawns, White)
+	blackPassed := countPassedPawnsFast(blackPawns, whitePawns, Black)
+	eval += (whitePassed - blackPassed) * 20
 
-	eval += int(WhiteKnight.Weight()) * PopCount(whiteKnights)
-	for bb := whiteKnights; bb != 0; bb &= bb - 1 {
-		eval += knightPST[bits.TrailingZeros64(bb)]
-	}
-
-	eval += int(WhiteBishop.Weight()) * PopCount(whiteBishops)
-	for bb := whiteBishops; bb != 0; bb &= bb - 1 {
-		eval += bishopPST[bits.TrailingZeros64(bb)]
-	}
-
-	eval += int(WhiteRook.Weight()) * PopCount(whiteRooks)
-	for bb := whiteRooks; bb != 0; bb &= bb - 1 {
-		eval += rookPST[bits.TrailingZeros64(bb)]
-	}
-
-	eval += int(WhiteQueen.Weight()) * PopCount(whiteQueens)
-	for bb := whiteQueens; bb != 0; bb &= bb - 1 {
-		eval += queenPST[bits.TrailingZeros64(bb)]
-	}
-
-	// White king PST - use tapered eval for smooth MG/EG transition
-	for bb := whiteKings; bb != 0; bb &= bb - 1 {
-		sq := bits.TrailingZeros64(bb)
-		mgScore := kingMiddlegamePST[sq]
-		egScore := kingEndgamePST[sq]
-		eval += taperScore(mgScore, egScore, phase)
-	}
-
-	// Black pieces - material + PST (using pre-computed negative tables)
-	eval -= int(BlackPawn.Weight()) * PopCount(blackPawns)
-	for bb := blackPawns; bb != 0; bb &= bb - 1 {
-		eval += blackPawnPST[bits.TrailingZeros64(bb)]
-	}
-
-	eval -= int(BlackKnight.Weight()) * PopCount(blackKnights)
-	for bb := blackKnights; bb != 0; bb &= bb - 1 {
-		eval += blackKnightPST[bits.TrailingZeros64(bb)]
-	}
-
-	eval -= int(BlackBishop.Weight()) * PopCount(blackBishops)
-	for bb := blackBishops; bb != 0; bb &= bb - 1 {
-		eval += blackBishopPST[bits.TrailingZeros64(bb)]
-	}
-
-	eval -= int(BlackRook.Weight()) * PopCount(blackRooks)
-	for bb := blackRooks; bb != 0; bb &= bb - 1 {
-		eval += blackRookPST[bits.TrailingZeros64(bb)]
-	}
-
-	eval -= int(BlackQueen.Weight()) * PopCount(blackQueens)
-	for bb := blackQueens; bb != 0; bb &= bb - 1 {
-		eval += blackQueenPST[bits.TrailingZeros64(bb)]
-	}
-
-	// Black king PST - use tapered eval for smooth MG/EG transition
-	for bb := blackKings; bb != 0; bb &= bb - 1 {
-		sq := bits.TrailingZeros64(bb)
-		mgScore := blackKingMiddlegamePST[sq]
-		egScore := blackKingEndgamePST[sq]
-		eval += taperScore(mgScore, egScore, phase)
-	}
-
-	// 3. Pawn structure evaluation - DISABLED FOR PERFORMANCE
-	// Profiling showed these were major CPU hotspots:
-	// - countDoubledPawns: 2.04% CPU
-	// - evaluatePawnChains: 2.04% CPU
-	// Keeping only essential pawn evaluation
-
-	// Optimized passed pawn counting using cached bitboards
-	whitePassedPawns := countPassedPawnsFast(whitePawns, blackPawns, White)
-	blackPassedPawns := countPassedPawnsFast(blackPawns, whitePawns, Black)
-	eval += whitePassedPawns * 20 // Reduced from 25 to prevent evaluation inflation
-	eval -= blackPassedPawns * 20
-
-	// RE-ENABLED: Core pawn structure evaluation (critical for positional play)
-	whiteDoubledPawns := 0
-	blackDoubledPawns := 0
+	// Doubled pawns penalty (cheap to compute correctly).
+	whiteDoubled, blackDoubled := 0, 0
 	for file := 0; file < 8; file++ {
-		whiteDoubledPawns += countDoubledPawns(board, White, file)
-		blackDoubledPawns += countDoubledPawns(board, Black, file)
+		whiteDoubled += countDoubledPawns(board, White, file)
+		blackDoubled += countDoubledPawns(board, Black, file)
 	}
-	eval += -(whiteDoubledPawns * 30) // Reduced from 50 to prevent over-penalization
-	eval += (blackDoubledPawns * 30)
+	eval -= (whiteDoubled - blackDoubled) * 20
 
-	whiteIsolatedPawns := countIsolatedPawns(board, White)
-	blackIsolatedPawns := countIsolatedPawns(board, Black)
-	eval += -(whiteIsolatedPawns * 10) // Reduced from 15 to prevent over-penalization
-	eval += (blackIsolatedPawns * 10)
+	// Isolated pawns penalty.
+	whiteIsolated := countIsolatedPawns(board, White)
+	blackIsolated := countIsolatedPawns(board, Black)
+	eval -= (whiteIsolated - blackIsolated) * 12
 
-	whitePawnChains := evaluatePawnChains(board, White)
-	blackPawnChains := evaluatePawnChains(board, Black)
-	eval += whitePawnChains
-	eval += -blackPawnChains
+	// Bishop pair bonus (small but real and not in PST).
+	eval += evaluateBishopPair(board, White)
+	eval -= evaluateBishopPair(board, Black)
 
-	// Weak squares evaluation - RE-ENABLED (NPS budget restored via magic bitboards)
-	whiteWeakSquares := evaluateWeakSquares(board, White)
-	blackWeakSquares := evaluateWeakSquares(board, Black)
-	eval += whiteWeakSquares
-	eval += -blackWeakSquares
+	// Mobility — important but moderate weight (PSTs already capture positional value).
+	eval += evaluateMobility(board, White)
+	eval -= evaluateMobility(board, Black)
 
-	// Pawn storms evaluation - RE-ENABLED (critical for attacking play)
-	whitePawnStorms := evaluatePawnStorms(board, White)
-	blackPawnStorms := evaluatePawnStorms(board, Black)
-	eval += whitePawnStorms
-	eval += -blackPawnStorms
+	// Rook on open file bonus.
+	eval += evaluateRookOnOpenFile(board, White)
+	eval -= evaluateRookOnOpenFile(board, Black)
 
-	// 4. King safety evaluation - RE-ENABLED (critical for game play)
-	if !endgame {
-		whiteKingSafety := evaluateKingSafety(board, White)
-		blackKingSafety := evaluateKingSafety(board, Black)
-		eval += whiteKingSafety
-		eval += -blackKingSafety
+	// King safety: pawn shield in middlegame only.
+	if phase >= 12 { // roughly middlegame or opening
+		eval += evaluateKingSafety(board, White)
+		eval -= evaluateKingSafety(board, Black)
 	}
 
-	// 5. Castling evaluation (king safety bonus) - OPTIMIZED VERSION
-	whiteCastlingBonus := evaluateCastlingFast(board, White)
-	blackCastlingBonus := evaluateCastlingFast(board, Black)
-	eval += whiteCastlingBonus
-	eval += -blackCastlingBonus
-
-	// 6. Center control evaluation - OPTIMIZED VERSION
-	whiteCenterControl := evaluateCenterControlFast(board, White)
-	blackCenterControl := evaluateCenterControlFast(board, Black)
-	eval += whiteCenterControl
-	eval += -blackCenterControl
-
-	// 7. Piece development evaluation (opening principles) - RE-ENABLED
-	if !endgame { // Development most important in opening/middlegame
-		whiteDevelopment := evaluatePieceDevelopment(board, White)
-		blackDevelopment := evaluatePieceDevelopment(board, Black)
-		eval += whiteDevelopment
-		eval += -blackDevelopment
-	}
-
-	// 8. Piece coordination and harmony - RE-ENABLED (critical for strategic play)
-	whiteCoordination := evaluatePieceCoordination(board, White)
-	blackCoordination := evaluatePieceCoordination(board, Black)
-	eval += whiteCoordination
-	eval += -blackCoordination
-
-	// 9. Bishop pair bonus
-	whiteBishopPairBonus := evaluateBishopPair(board, White)
-	blackBishopPairBonus := evaluateBishopPair(board, Black)
-	eval += whiteBishopPairBonus
-	eval += -blackBishopPairBonus
-
-	// 10. Mobility evaluation - pieces with more moves are worth more
-	whiteMobility := evaluateMobility(board, White)
-	blackMobility := evaluateMobility(board, Black)
-	eval += whiteMobility
-	eval += -blackMobility
-
-	// 11. Rook on open file bonus
-	whiteRookOpenFile := evaluateRookOnOpenFile(board, White)
-	blackRookOpenFile := evaluateRookOnOpenFile(board, Black)
-	eval += whiteRookOpenFile
-	eval += -blackRookOpenFile
-
-	// 12. Basic endgame knowledge
-	if endgame {
-		endgameBonus := evaluateBasicEndgames(board)
-		eval += endgameBonus
-	}
-
-	// NOTE: Castling bonus already computed by evaluateCastlingFast() above
-	// NOTE: Center control already computed by evaluateCenterControlFast() above
-	// Duplicate evaluations removed to fix evaluation inflation bug
-
+	// Tempo bonus — small constant for side-to-move encoded in caller.
 	return eval
 }
