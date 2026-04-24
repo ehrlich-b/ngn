@@ -16,22 +16,34 @@ make dev            # Full cycle: format, test, build
 
 ## ELO Assessment
 
+Default: Bayesian early-stop with 200ms/move on macOS E-cores (`taskpolicy -b`).
+Keeps the Mac cool and reliably detects ±100 ELO swings.
+
 ```bash
-./build/elo-assess -level 1   # Quick: 1 min, 4 games
-./build/elo-assess -level 5   # Standard: 5 min, 10 games
-./build/elo-assess -level 10  # Thorough: 10 min, 20 games
+# Standard cadence (~3-5 min, cool):
+./build/elo-assess -elo 1320 -movetime 200 -min 6 -games 14 -ci 300
+
+# Legacy presets (hotter, slower):
+./build/elo-assess -level 1   # 8 games @ 250ms
+./build/elo-assess -level 5   # 20 games @ 400ms
+./build/elo-assess -level 10  # 40 games @ 600ms
 ```
 
 ## Development Rules
 
+### Testing Cadence
+- **Default to 14-game Bayesian tests** on E-cores. Takes 3-5 min. Detects ±100 ELO.
+- **Don't chase small effects** (< 50 ELO). 14-game CI is ~400 ELO wide — such deltas are pure noise. Resolving them needs 150+ games of direct A/B + SPRT.
+- **Iteration loop:** surgical fix → `go build` → 14-game test → commit if visibly better or within noise; revert if visibly worse.
+- **Commit checkpoints** after every confirmed win. Regressions bisect via `git stash` on one file at a time (search.go vs eval.go).
+- **Never run on P-cores** (default `-lowpower=true` routes to E-cores). Don't override.
+- **Avoid long fixed-game runs** unless explicitly asked. Prefer Bayesian early-stop.
+
 ### Always Update TODO.md
 After ANY task, update TODO.md to reflect current status.
 
-### Test After Every Change
-Run `make test` after each modification.
-
 ### Fix Bugs Before Features
-Current critical bug (repetition detection) blocks all meaningful progress.
+Fix search/eval correctness issues before adding new features. See DIAGNOSIS.md for the current bug list.
 
 ### Verify Claims
 Don't trust ELO/NPS claims in documentation without verification.

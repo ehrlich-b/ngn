@@ -479,22 +479,25 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					break
 				}
 
-				// Use GameMakeMove at root to track repetition history
+				// Use GameMakeMove at root to track repetition history.
+				// Thread lastMovePlayed so the counter-move heuristic sees the
+				// actual predecessor inside search, not a stale global.
+				savedLast := GetLastMovePlayed()
 				ep, tag, hc, _ := pos.GameMakeMove(move)
-				// Check if move is legal (doesn't leave king in check)
 				if isInCheck(pos, move.MovingPiece().Color()) {
 					pos.GameUnMakeMove(move, tag, ep, hc)
-					continue // Skip illegal move
+					continue
 				}
+				SetLastMovePlayed(move)
 
 				var score int
-				// Check for draw by repetition or 50-move rule at root level
 				if pos.IsFIDEDrawRule() {
 					score = 0 // Draw
 				} else {
 					score = -alphaBetaPV(pos, currentDepth-1, -beta, -alpha, true, info)
 				}
 				pos.GameUnMakeMove(move, tag, ep, hc)
+				SetLastMovePlayed(savedLast)
 
 				info.Nodes++
 
@@ -598,24 +601,25 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 			break
 		}
 
+		savedLast := GetLastMovePlayed()
 		ep, tag, hc, _ := pos.MakeMove(move)
-		// Check if move is legal (doesn't leave our king in check)
 		movingColor := move.MovingPiece().Color()
 		if isInCheck(pos, movingColor) {
 			pos.UnMakeMove(move, tag, ep, hc)
-			continue // Skip illegal move
+			continue
 		}
+		SetLastMovePlayed(move)
 
 		score := -alphaBetaPV(pos, depth-1, -beta, -alpha, true, info)
 
 		// Mate threat extension: if we found a very high score, search deeper to find mate
 		if score >= MATE_IN_MAX && depth <= 2 {
-			// This looks like a mate, search deeper to confirm
 			score = -alphaBetaPV(pos, depth+2, -beta, -alpha, true, info)
 			info.Nodes++
 		}
 
 		pos.UnMakeMove(move, tag, ep, hc)
+		SetLastMovePlayed(savedLast)
 		info.Nodes++
 
 		if score > info.BestScore {
@@ -798,16 +802,17 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 
 	// PV-aware null move pruning - more conservative in PV nodes
 	if !inCheck && depth >= NULL_MOVE_MIN_DEPTH && beta-alpha > 1 && (!isPV || depth >= 6) {
-		// Make the null move
+		// Set lastMovePlayed to EmptyMove so children don't pick spurious
+		// counter-move replies keyed on our own prior move.
+		savedLast := GetLastMovePlayed()
 		oldEP := pos.MakeNullMove()
+		SetLastMovePlayed(EmptyMove)
 
-		// Search with reduced depth
 		score := -alphaBetaPV(pos, depth-NULL_MOVE_R-1, -beta, -beta+1, false, info)
 
-		// Unmake the null move
 		pos.UnMakeNullMove(oldEP)
+		SetLastMovePlayed(savedLast)
 
-		// If null move search caused a beta cutoff, we can prune
 		if score >= beta {
 			info.NullMoveCutoffs++
 			return beta
@@ -840,22 +845,22 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 				continue
 			}
 
+			savedLast := GetLastMovePlayed()
 			ep, tag, hc, _ := pos.MakeMove(move)
-			// Check legality
 			if isInCheck(pos, move.MovingPiece().Color()) {
 				pos.UnMakeMove(move, tag, ep, hc)
 				continue
 			}
+			SetLastMovePlayed(move)
 
-			// Search with reduced depth and higher beta
 			score := -quiescence(pos, -probcutBeta, -probcutBeta+1, info)
 
-			// If quiescence score is already >= probcutBeta, try real search
 			if score >= probcutBeta {
 				score = -alphaBetaPV(pos, depth-4, -probcutBeta, -probcutBeta+1, false, info)
 			}
 
 			pos.UnMakeMove(move, tag, ep, hc)
+			SetLastMovePlayed(savedLast)
 
 			if score >= probcutBeta {
 				info.ProbcutPrunes++
@@ -988,13 +993,17 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 			}
 		}
 
+		// Capture the predecessor move (the one that brought us into this node)
+		// so children see the correct lastMovePlayed for counter-move lookups,
+		// and extension logic uses the true parent move.
+		savedLast := GetLastMovePlayed()
 		ep, tag, hc, _ := pos.MakeMove(move)
-		// Check if move is legal (doesn't leave our king in check)
 		movingColor := move.MovingPiece().Color()
 		if isInCheck(pos, movingColor) {
 			pos.UnMakeMove(move, tag, ep, hc)
 			continue
 		}
+		SetLastMovePlayed(move)
 		legalTried++
 
 		// Track quiet moves for history penalization
@@ -1009,14 +1018,15 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		// Compute next depth with check extension
 		nextDepth := depth - 1
 		if givesCheck && depth > 1 {
-			nextDepth++ // Extend search when move gives check
+			nextDepth++
 			info.CheckExtensions++
 		}
 
-		// Recapture extension: extend when recapturing on the same square
-		previousMove := GetLastMovePlayed()
-		if move.IsCapture() && previousMove.IsCapture() &&
-			move.Destination() == previousMove.Destination() &&
+		// Recapture extension: extend when recapturing on the same square.
+		// Use savedLast (the true previous move), not the global which now
+		// holds our just-played move.
+		if move.IsCapture() && savedLast.IsCapture() &&
+			move.Destination() == savedLast.Destination() &&
 			nextDepth+1 <= depth {
 			nextDepth++
 			info.RecaptureExtensions++
@@ -1037,21 +1047,24 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 
 		// Singular Extension: extend if this move is clearly the best
 		if move == singularMove && singularMove != EmptyMove {
-			// Unmake to do singular search
+			// Unmake to do singular search at the parent position.
+			// Restore lastMove to savedLast so the singular search (which is
+			// evaluating other replies from the parent node) sees the correct
+			// predecessor.
 			pos.UnMakeMove(move, tag, ep, hc)
+			SetLastMovePlayed(savedLast)
 
-			// Singular search: search all other moves with reduced depth/window
 			singularBeta := int(ttEval) - SINGULAR_MARGIN
 			info.ExcludedMove = singularMove
 			singularScore := alphaBetaPV(pos, depth/2, singularBeta-1, singularBeta, false, info)
 			info.ExcludedMove = EmptyMove
 
-			// Re-make the move
+			// Re-make our move and restore the global to it for children.
 			ep, tag, hc, _ = pos.MakeMove(move)
+			SetLastMovePlayed(move)
 
-			// If no other move can beat the reduced threshold, this move is singular
 			if singularScore < singularBeta {
-				nextDepth++ // Extend the singular move
+				nextDepth++
 				info.SingularExtensions++
 			}
 		}
@@ -1151,6 +1164,9 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		}
 
 		pos.UnMakeMove(move, tag, ep, hc)
+		// Restore predecessor for the next sibling (and for the caller if we
+		// return via a beta cutoff or loop exit below).
+		SetLastMovePlayed(savedLast)
 
 		info.Nodes++
 
@@ -1165,8 +1181,9 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 			UpdateHistoryTable(move, depth)
 			// Update killer moves for quiet moves that cause beta cutoffs
 			UpdateKillerMoves(move, depth)
-			// Update counter move for quiet moves that cause beta cutoffs
-			UpdateCounterMove(move, GetLastMovePlayed())
+			// Counter move: the cutoff move is a good reply to savedLast,
+			// the move that actually brought us into this node.
+			UpdateCounterMove(move, savedLast)
 
 			// Penalize all quiet moves that were tried but didn't cause the cutoff
 			for i := 0; i < searchedQuietCount; i++ {
