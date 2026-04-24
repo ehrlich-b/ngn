@@ -800,8 +800,11 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 	// Note: Razoring pruning removed - futility pruning already provides effective pruning
 	// with better performance characteristics for this engine architecture
 
-	// PV-aware null move pruning - more conservative in PV nodes
-	if !inCheck && depth >= NULL_MOVE_MIN_DEPTH && beta-alpha > 1 && (!isPV || depth >= 6) {
+	// PV-aware null move pruning - more conservative in PV nodes.
+	// Guard against zugzwang: in pawn-only endgames, passing can be the best
+	// available option for the opponent, so null-move cutoffs are unsound.
+	if !inCheck && depth >= NULL_MOVE_MIN_DEPTH && beta-alpha > 1 && (!isPV || depth >= 6) &&
+		hasNonPawnMaterial(&pos.Board, pos.Turn()) {
 		// Set lastMovePlayed to EmptyMove so children don't pick spurious
 		// counter-move replies keyed on our own prior move.
 		savedLast := GetLastMovePlayed()
