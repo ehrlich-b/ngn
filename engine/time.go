@@ -403,14 +403,23 @@ func (tm *TimeManager) calculatePositionComplexity(position *Position) float64 {
 		return 0.5 // Default complexity
 	}
 
-	complexity := 0.0
-
-	// More pieces = more complex
 	allPiecesBitboard := position.Board.GetWhitePieces() | position.Board.GetBlackPieces()
 	totalPieces := PopCount(allPiecesBitboard)
-	complexity += float64(totalPieces) / 32.0 * 0.3
+	if totalPieces == 0 {
+		return 0.0
+	}
 
-	// More piece types = more complex
+	complexity := 0.0
+
+	// Piece count: middlegame (15-25 pieces) is most complex, opening and endgame less so.
+	// Triangle peak at 20 pieces.
+	pieceCountFactor := 1.0 - math.Abs(float64(totalPieces)-20.0)/20.0
+	if pieceCountFactor < 0 {
+		pieceCountFactor = 0
+	}
+	complexity += pieceCountFactor * 0.3
+
+	// More piece-type variety = more complex
 	pieceTypes := 0
 	for _, piece := range []Piece{WhiteQueen, BlackQueen, WhiteRook, BlackRook,
 		WhiteBishop, BlackBishop, WhiteKnight, BlackKnight} {
@@ -419,14 +428,6 @@ func (tm *TimeManager) calculatePositionComplexity(position *Position) float64 {
 		}
 	}
 	complexity += float64(pieceTypes) / 8.0 * 0.3
-
-	// Tactical positions (many pieces attacking each other) are complex
-	// Simplified heuristic based on piece density instead of expensive move generation
-	if totalPieces > 2 { // Need at least 2 kings + 1 other piece
-		// Estimate complexity from piece density and position (much faster)
-		densityComplexity := math.Min(float64(totalPieces)/32.0, 1.0) * 0.4
-		complexity += densityComplexity
-	}
 
 	return math.Min(complexity, 1.0)
 }
