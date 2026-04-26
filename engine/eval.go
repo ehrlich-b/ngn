@@ -2242,78 +2242,60 @@ func evaluateMobility(board *Bitboard, color Color) int {
 	whitePieces := board.GetWhitePieces()
 	blackPieces := board.GetBlackPieces()
 	allPieces := whitePieces | blackPieces
-	var friendlyPieces, enemyPieces uint64
 
+	// Compute squares attacked by each side's pawns. A piece moving to a
+	// pawn-attacked square is essentially captured for free, so those squares
+	// don't count as real mobility.
+	whitePawns := board.GetBitboardOf(WhitePawn)
+	blackPawns := board.GetBitboardOf(BlackPawn)
+	whitePawnAttacks := ((whitePawns & ^FileMasks[FileA]) << 7) | ((whitePawns & ^FileMasks[FileH]) << 9)
+	blackPawnAttacks := ((blackPawns & ^FileMasks[FileH]) >> 7) | ((blackPawns & ^FileMasks[FileA]) >> 9)
+
+	var friendlyPieces, enemyPawnAttacks uint64
 	if color == White {
 		friendlyPieces = whitePieces
-		enemyPieces = blackPieces
+		enemyPawnAttacks = blackPawnAttacks
 	} else {
 		friendlyPieces = blackPieces
-		enemyPieces = whitePieces
+		enemyPawnAttacks = whitePawnAttacks
 	}
+	excluded := friendlyPieces | enemyPawnAttacks
 
-	// Knight mobility (most important - knights need outposts)
-	var knightBB uint64
+	// Baselines lowered by 1 (or 2 for queen) to compensate for excluding
+	// pawn-attacked squares from the mobility count.
+	var knightBB, bishopBB, rookBB, queenBB uint64
 	if color == White {
 		knightBB = board.GetBitboardOf(WhiteKnight)
+		bishopBB = board.GetBitboardOf(WhiteBishop)
+		rookBB = board.GetBitboardOf(WhiteRook)
+		queenBB = board.GetBitboardOf(WhiteQueen)
 	} else {
 		knightBB = board.GetBitboardOf(BlackKnight)
-	}
-	for bb := knightBB; bb != 0; bb &= bb - 1 {
-		sq := bits.TrailingZeros64(bb)
-		attacks := KnightAttacks[sq] &^ friendlyPieces
-		moveCount := PopCount(attacks)
-		// Knight mobility: 4 moves is baseline, bonus/penalty around that
-		mobility += (moveCount - 4) * 4
+		bishopBB = board.GetBitboardOf(BlackBishop)
+		rookBB = board.GetBitboardOf(BlackRook)
+		queenBB = board.GetBitboardOf(BlackQueen)
 	}
 
-	// Bishop mobility (bishops love open diagonals)
-	var bishopBB uint64
-	if color == White {
-		bishopBB = board.GetBitboardOf(WhiteBishop)
-	} else {
-		bishopBB = board.GetBitboardOf(BlackBishop)
+	for bb := knightBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		moveCount := PopCount(KnightAttacks[sq] &^ excluded)
+		mobility += (moveCount - 3) * 4
 	}
 	for bb := bishopBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		attacks := getBishopAttacksBB(sq, allPieces) &^ friendlyPieces
-		moveCount := PopCount(attacks)
-		// Bishop mobility: 7 moves is good baseline
-		mobility += (moveCount - 7) * 3
-	}
-
-	// Rook mobility (rooks need open files)
-	var rookBB uint64
-	if color == White {
-		rookBB = board.GetBitboardOf(WhiteRook)
-	} else {
-		rookBB = board.GetBitboardOf(BlackRook)
+		moveCount := PopCount(getBishopAttacksBB(sq, allPieces) &^ excluded)
+		mobility += (moveCount - 6) * 3
 	}
 	for bb := rookBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		attacks := getRookAttacksBB(sq, allPieces) &^ friendlyPieces
-		moveCount := PopCount(attacks)
-		// Rook mobility: 7 moves is baseline
-		mobility += (moveCount - 7) * 2
-	}
-
-	// Queen mobility (less important per move, she's already powerful)
-	var queenBB uint64
-	if color == White {
-		queenBB = board.GetBitboardOf(WhiteQueen)
-	} else {
-		queenBB = board.GetBitboardOf(BlackQueen)
+		moveCount := PopCount(getRookAttacksBB(sq, allPieces) &^ excluded)
+		mobility += (moveCount - 6) * 2
 	}
 	for bb := queenBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		attacks := (getBishopAttacksBB(sq, allPieces) | getRookAttacksBB(sq, allPieces)) &^ friendlyPieces
-		moveCount := PopCount(attacks)
-		// Queen mobility: 14 moves is baseline
-		mobility += (moveCount - 14) * 1
+		moveCount := PopCount((getBishopAttacksBB(sq, allPieces) | getRookAttacksBB(sq, allPieces)) &^ excluded)
+		mobility += (moveCount - 12) * 1
 	}
-
-	// Bonus for attacking enemy pieces (not just empty squares)
-	_ = enemyPieces // Could add attack bonus here
 
 	return mobility
 }
