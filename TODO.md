@@ -2,14 +2,25 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level)
 
-**Current Status:** ~1488 ELO rolling-smoke estimate, 95% CI [1346, 1630] (commit-decayed,
-22-game effective sample at NGN 1000ms vs SF1500 200ms). The 14-game Bayesian baseline at
+**Current Status:** 1653 ELO rolling-smoke estimate, 95% CI [1519, 1787] (commit-decayed,
+29.5-game effective sample at NGN 1000ms vs SF1500 200ms). The 14-game Bayesian baseline at
 NGN 2500ms was ~1659 ELO; the 1000ms cadence is intentionally tighter to surface
 regressions faster.
 
 ---
 
 ## Recent Fixes (2026-04-26)
+
+### Attack-table king safety (FIXED)
+- `evaluateKingAttackPatterns` rewritten to use real piece attack bitboards
+  intersected with a king zone (3x3 around king + one-rank extension toward
+  the enemy half) instead of just counting opponent pieces in a 5x5 proximity
+  zone. Per-piece attack-square hits weighted (N=2, B=2, R=3, Q=5).
+  2+ attackers fed through quadratic penalty curve (units²/8 capped at 500cp);
+  0-1 attackers get a small linear penalty (units/2). The old version flagged
+  pieces NEAR the king as dangerous even when blockaded; the new version only
+  credits real threat squares.
+- 5W-0D-0L smoke. Rolling ELO 1605 → 1653 (CI lower bound +54 to 1519).
 
 ### Mate score TT encoding (FIXED)
 - `alphaBetaPV` and `quiescenceWithDepth` now take an explicit `ply` parameter.
