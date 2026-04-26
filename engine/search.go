@@ -762,10 +762,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		return EvaluateForPlayer(&pos.Board, pos.Turn())
 	}
 
+	// Compute hash once and reuse for repetition detection and TT probe.
+	hash := pos.Hash()
+
 	// Draw detection: 50-move rule and repetition
 	{
-		currentHash := pos.Hash()
-
 		// 50-move rule
 		if pos.HalfMoveClock >= 100 {
 			return 0
@@ -774,7 +775,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Check game history for repetition (count >= 2 means 3-fold with this occurrence)
 		if pos.Positions != nil {
 			pos.positionsMutex.RLock()
-			count := pos.Positions[currentHash]
+			count := pos.Positions[hash]
 			pos.positionsMutex.RUnlock()
 			if count >= 2 {
 				return 0
@@ -783,14 +784,14 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 		// Check search path for repetition (2-fold in search = draw)
 		for i := info.RepStackLen - 1; i >= 0; i-- {
-			if info.RepStack[i] == currentHash {
+			if info.RepStack[i] == hash {
 				return 0
 			}
 		}
 
 		// Push current hash onto repetition stack
 		if info.RepStackLen < len(info.RepStack) {
-			info.RepStack[info.RepStackLen] = currentHash
+			info.RepStack[info.RepStackLen] = hash
 			info.RepStackLen++
 		}
 	}
@@ -803,7 +804,6 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// Probe transposition table
 	origAlpha := alpha
-	hash := pos.Hash()
 
 	ttMove, ttEvalRaw, ttDepth, ttNodeType, ttHit := TranspositionTable.Get(hash)
 	ttEval := scoreFromTT(ttEvalRaw, ply)
