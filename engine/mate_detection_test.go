@@ -73,9 +73,9 @@ func TestMateInOneDetection(t *testing.T) {
 			mateMoves: []string{"a7a8"},
 		},
 		{
-			name:     "Queen mate with support",
-			fen:      "6rk/6pp/8/8/8/8/6QP/6RK w - - 0 1",
-			mateMoves: []string{"g2g8"},
+			name:     "Queen mate with king support",
+			fen:      "k7/8/2K5/1Q6/8/8/8/8 w - - 0 1",
+			mateMoves: []string{"b5b7"},
 		},
 	}
 

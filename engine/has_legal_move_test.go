@@ -25,15 +25,15 @@ func TestHasLegalMove(t *testing.T) {
 		},
 		{
 			name:        "Stalemate position",
-			fen:         "7k/8/6KP/8/8/8/8/8 b - - 0 1",
+			fen:         "7k/5Q2/6K1/8/8/8/8/8 b - - 0 1",
 			shouldHave:  false,
-			description: "Black king trapped but not in check",
+			description: "Black king on h8, white K g6 + Q f7 — no legal moves, not in check",
 		},
 		{
 			name:        "King can escape",
-			fen:         "R5k1/8/6KP/8/8/8/8/8 b - - 0 1",
+			fen:         "k7/R7/8/8/8/8/8/K7 b - - 0 1",
 			shouldHave:  true,
-			description: "Black king has h7 escape square",
+			description: "Black king on a8 in check by rook, can move to b8 or capture rook",
 		},
 	}
 

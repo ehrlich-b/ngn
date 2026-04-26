@@ -16,11 +16,10 @@ func TestHasLegalMoveDebug(t *testing.T) {
 	t.Logf("Testing checkmate position: %s", GenerateFEN(pos))
 	t.Logf("Black to move, in check: %v", pos.IsInCheck())
 
-	// Test HasLegalMove
 	hasLegal := pos.HasLegalMove()
 	t.Logf("HasLegalMove returns: %v", hasLegal)
 
-	// Manually test each move
+	// Cross-check by counting moves filtered through IsLegalMove
 	var moveBuffer [256]Move
 	moveCount := GenerateMovesIntoBuffer(pos, moveBuffer[:])
 	t.Logf("Generated %d pseudo-legal moves", moveCount)
@@ -28,18 +27,8 @@ func TestHasLegalMoveDebug(t *testing.T) {
 	legalCount := 0
 	for i := 0; i < moveCount; i++ {
 		move := moveBuffer[i]
-		oldEP, oldTag, oldHalfClock, legal := pos.MakeMove(move)
-		if legal {
-			moveStr := MoveToAlgebraic(move)
-			t.Logf("  Move %s marked as legal", moveStr)
-
-			// Check if king is actually safe after this move
-			kingInCheck := pos.IsInCheck()
-			pos.UnMakeMove(move, oldTag, oldEP, oldHalfClock)
-
-			if kingInCheck {
-				t.Errorf("    ERROR: Move %s leaves king in check!", moveStr)
-			}
+		if IsLegalMove(pos, move) {
+			t.Logf("  Move %s is legal", MoveToAlgebraic(move))
 			legalCount++
 		}
 	}

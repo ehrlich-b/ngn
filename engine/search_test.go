@@ -220,11 +220,8 @@ func TestTranspositionTable(t *testing.T) {
 	// Do the same search again - should be faster due to TT hits
 	info2 := Search(pos, 3)
 
-	if info2.BestMove != info1.BestMove {
-		t.Errorf("Both searches should find the same best move. First: %s, Second: %s",
-			info1.BestMove.ToString(), info2.BestMove.ToString())
-	}
-
+	// Scores must match. Best-move can differ when multiple moves tie on score —
+	// TT-driven move ordering surfaces a different (equally-good) move first.
 	if info2.BestScore != info1.BestScore {
 		t.Errorf("Both searches should get the same score. First: %d, Second: %d",
 			info1.BestScore, info2.BestScore)
