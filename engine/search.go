@@ -1448,27 +1448,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// path is worse than captures-only at the horizon.
 	captureCount := GenerateCapturesIntoBuffer(pos, info.CaptureBuffer[:])
 	var captures [64]Move
-	var scores [64]int
-	for i := 0; i < captureCount; i++ {
-		move := (*info.CaptureBuffer)[i]
-		captures[i] = move
-		// MVV/LVA: prefer high-value victim, low-value attacker.
-		// victim*16 keeps the attacker tiebreak below any victim-rank gap.
-		scores[i] = int(move.CapturedPiece().seeWeight())*16 - int(move.MovingPiece().seeWeight())
-	}
-	// Selection sort by score descending. captureCount is bounded by 64.
-	for i := 0; i < captureCount-1; i++ {
-		maxIdx := i
-		for j := i + 1; j < captureCount; j++ {
-			if scores[j] > scores[maxIdx] {
-				maxIdx = j
-			}
-		}
-		if maxIdx != i {
-			scores[i], scores[maxIdx] = scores[maxIdx], scores[i]
-			captures[i], captures[maxIdx] = captures[maxIdx], captures[i]
-		}
-	}
+	copy(captures[:], (*info.CaptureBuffer)[:captureCount])
 
 	for i := 0; i < captureCount; i++ {
 		move := captures[i]
