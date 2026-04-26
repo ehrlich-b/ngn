@@ -1396,14 +1396,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 			pos.UnMakeMove(move, tag, ep, hc)
 		}
 		if !hasLegalMove {
-			// Stalemate (in-check case is handled above).
-			eval := Evaluate(&pos.Board)
-			if pos.Turn() == Black {
-				eval = -eval
-			}
-			if eval > 300 {
-				return -500
-			}
+			// Stalemate is a draw regardless of material balance.
 			return 0
 		}
 	}
