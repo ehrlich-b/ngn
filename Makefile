@@ -183,6 +183,20 @@ tactical-test: build ## Run tactical test suite with EPD positions
 	@echo "Running tactical test suite..."
 	cd cmd/tactical-test && go run main.go
 
+.PHONY: smoke
+smoke: build ## Fast battery-friendly check: tactical suite + 5-game smoke (~5 min)
+	@mkdir -p $(BUILD_DIR)
+	@echo "Building smoke + elo-assess..."
+	@go build -o $(BUILD_DIR)/smoke ./cmd/smoke
+	@go build -o $(BUILD_DIR)/elo-assess ./cmd/elo-assess
+	@./$(BUILD_DIR)/smoke
+
+.PHONY: smoke-tactical
+smoke-tactical: build ## Tactical-only smoke (no game phase, ~10 sec)
+	@mkdir -p $(BUILD_DIR)
+	@go build -o $(BUILD_DIR)/smoke ./cmd/smoke
+	@./$(BUILD_DIR)/smoke -skip-games
+
 .PHONY: perft
 perft: ## Run perft validation tests for move generation correctness
 	@echo "Running perft validation tests..."
