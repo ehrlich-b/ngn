@@ -141,7 +141,7 @@ func (tm *TimeManager) calculateBaseAllocation() time.Duration {
 	if tm.movesToGo > 0 {
 		// Fixed number of moves until time control
 		movesLeft := float64(tm.movesToGo)
-		timePerMove := float64(tm.baseTime) / movesLeft
+		timePerMove := float64(tm.baseTime)/movesLeft + float64(tm.increment)
 
 		// Use 80% of calculated time, save 20% for later moves
 		return time.Duration(timePerMove * 0.8)
