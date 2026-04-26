@@ -2,11 +2,46 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level)
 
-**Current Status:** ~1659 ELO, 95% CI [1468, 1851] — 14-game asymmetric (NGN 2500ms vs SF 1500 @ 200ms, E-cores). 10W-0D-4L = 71.4%.
+**Current Status:** ~1488 ELO rolling-smoke estimate, 95% CI [1346, 1630] (commit-decayed,
+22-game effective sample at NGN 1000ms vs SF1500 200ms). The 14-game Bayesian baseline at
+NGN 2500ms was ~1659 ELO; the 1000ms cadence is intentionally tighter to surface
+regressions faster.
 
 ---
 
 ## Recent Fixes (2026-04-26)
+
+### Mate score TT encoding (FIXED)
+- `alphaBetaPV` and `quiescenceWithDepth` now take an explicit `ply` parameter.
+- New `scoreToTT(score, ply)` and `scoreFromTT(score, ply)` helpers convert between
+  root-relative search scores and node-relative TT-stored scores. Without this, mate
+  scores stored at one ply and retrieved via the same hash at a different ply reported
+  the wrong distance to mate.
+- First attempt failed because `info.Depth - depth` is NOT a valid ply (info.Depth is
+  initialized to maxDepth and only updates AFTER each iteration completes). Proper fix
+  threads ply through every recursive call site (root entries, IID, null move, probcut,
+  singular, LMR, qsearch evasions/captures).
+
+### Qsearch stalemate score (FIXED)
+- `quiescenceWithDepth` returned `-500` when stalemated while winning (>+300cp eval).
+  Stalemate is a draw regardless of material; replaced with `return 0`.
+
+### Tempo bonus added
+- `EvaluateForPlayer` now applies a 10cp bonus to side-to-move (eval.go).
+  Standard small classical-eval feature, claimed +10–20 ELO.
+
+### Eval/search micro-optimizations
+- `pos.Hash()` cached once at the top of `alphaBetaPV` instead of recomputing in
+  the repetition block and TT probe block.
+- King-safety pawn lookups hoisted out of the file loop.
+- `evaluateMobility` caches `GetWhitePieces`/`GetBlackPieces`.
+
+### Rolling-ELO commit-distance decay
+- `cmd/smoke/main.go` now weights historical runs by `git rev-list --count <sha>..HEAD`:
+  full weight at distance 0, linear taper to 0.5 at distance 5, then to 0 at distance 15.
+  After 15 commits without a smoke, that data point falls off entirely.
+
+### Hash Corruption on UnMakeMove (FIXED)
 
 ### Hash Corruption on UnMakeMove (FIXED)
 - `unMakeMoveHelper` mutated `p.Tag`/`p.EnPassant` before reversing the Zobrist hash, so the XOR undo used the wrong state.
