@@ -11,12 +11,13 @@ func (p *Position) HasLegalMove() bool {
 	// Check each move for legality - return true on first legal move found
 	for i := 0; i < moveCount; i++ {
 		move := moveBuffer[i]
+		movingColor := move.MovingPiece().Color()
 
 		// Try the move
-		oldEP, oldTag, oldHalfClock, legal := p.MakeMove(move)
+		oldEP, oldTag, oldHalfClock, _ := p.MakeMove(move)
+		legal := !isInCheck(p, movingColor)
+		p.UnMakeMove(move, oldTag, oldEP, oldHalfClock)
 		if legal {
-			// Found a legal move - unmake and return true
-			p.UnMakeMove(move, oldTag, oldEP, oldHalfClock)
 			return true
 		}
 	}
@@ -71,9 +72,11 @@ func (p *Position) HasLegalMoveQuick() bool {
 	// Check if any king move is legal
 	for i := 0; i < moveCount; i++ {
 		move := moveBuffer[i]
-		oldEP, oldTag, oldHalfClock, legal := p.MakeMove(move)
+		movingColor := move.MovingPiece().Color()
+		oldEP, oldTag, oldHalfClock, _ := p.MakeMove(move)
+		legal := !isInCheck(p, movingColor)
+		p.UnMakeMove(move, oldTag, oldEP, oldHalfClock)
 		if legal {
-			p.UnMakeMove(move, oldTag, oldEP, oldHalfClock)
 			return true
 		}
 	}
