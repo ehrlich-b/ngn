@@ -20,63 +20,52 @@
 - Regression test: `engine/passed_pawn_compare_test.go` compares slow vs fast counts across 8 positions.
 - ELO impact: ~+160 ELO over post-hash baseline (CI lower bound 1468 vs prior ~1398).
 
+### Aspiration Windows Treated Completed Iterations as Fail-Low (FIXED)
+- Root loop raised `alpha` to the best score during the move loop, then classified the iteration with `iterationBestScore <= alpha` — which always fires because alpha was just raised to iterationBestScore. Past depth 3, every successful iteration was marked fail-low, attempts exhausted, but `info.Depth` and the UCI callback fired with stale data.
+- Fix: snapshot `windowAlpha`/`windowBeta` before the move loop and classify against the snapshot. Only update `info.Depth` and call the callback when the iteration actually completed (`engine/search.go`).
+
+### Quiescence Stand-Pat in Check (FIXED) + Quiet Checks Dropped
+- Qsearch unconditionally stand-patted even when side-to-move was in check.
+- Fix: at qsearch entry, compute `inCheck`. If in check, search ALL legal evasions (no stand-pat); return mate score if no legal evasion. If not in check, stand-pat + captures only (`engine/search.go`).
+- Also dropped quiet checks from qsearch and removed `moveGivesCheck` — it missed discovered/EP/promotion checks, and incomplete-quiet-checks is worse than captures-only at the horizon (`engine/movegen.go`).
+
+### TestIterativeDeepening Determinism (FIXED)
+- Test failed reproducibly with `ID: b1c3, Fixed: g1f3` because global state (TT, history, killers, counters) carried between the two searches.
+- Fix: reset global search state before each search call inside the test (`engine/search_test.go`).
+
+### UCI `stop` Wired Into Recursive Search (FIXED)
+- Stop was only checked in the depth-completion callback. `go infinite` + `stop` hung until max depth.
+- Fix: added a global atomic stop flag (`globalStopRequested` in `engine/search.go`). `RequestStop()` is called by `handleStop`; `IsStopRequested()` is sampled at the top of `alphaBetaPV` and `quiescenceWithDepth` and at every iterative-deepening depth boundary. Cleared at search entry.
+
+### ShouldStopSearch Iteration-Start (FIXED)
+- All callers passed `time.Now()` where iteration-start was expected, making `iterationTime ≈ 0` and disabling soft-stop.
+- Fix: TimeManager owns `iterationStartTime` internally. `NewIteration()` sets it at the top of each iterative-deepening depth. The legacy parameter is now ignored. Soft-stop falls back to "don't stop" if `iterationStartTime` was never set (`engine/time.go`).
+
+### Test Hygiene (PARTIAL)
+- Replaced `Rook_vs_Bishop_Knight` FEN (`8/8/8/8/8/8/2R5/2BNK2k`, which was white R+B+N vs lone king) with a real R-vs-B+N endgame.
+- Toned down the misleading `CRITICAL ERROR` wording in `free_piece_test.go` — the test never failed and the position isn't a clean free-piece test at depth.
+
 ### Threefold Repetition Detection (FIXED)
 - `handlePosition` used `MakeMove` instead of `GameMakeMove` — position history wasn't tracked.
 - Root search didn't check `IsFIDEDrawRule()` before returning moves.
 
 ---
 
-## Critical Search Bugs (Confirmed 2026-04-26 by external review + code inspection)
+## Remaining Known Issues
 
-These are pre-existing bugs not yet fixed. They likely cap strength regardless of further evaluation tuning. Fix in priority order before tuning anything.
+These are deferred from the 2026-04-26 batch. Lower priority; do not block strength gains.
 
-### Pri 0: Aspiration windows treat completed iterations as fail-low past depth 3
-- `engine/search.go:509-532` — root loop raises `alpha` to the best score during the move loop, then classifies the iteration with `iterationBestScore <= alpha` (line 520).
-- Because `alpha` was just raised to `iterationBestScore`, the check fires for normal completed searches at depth > 3, marking them fail-low.
-- The engine then exhausts `maxAttempts` without accepting the new result, but still sets `info.Depth = currentDepth` (line 537) and emits UCI info with the previous depth's best move.
-- Symptom: deep search announced, shallow play actually used. Plausibly worth >100 ELO.
-- Fix: snapshot `windowAlpha`/`windowBeta` before the loop and classify against the original window, not the mutated `alpha`. Only set `info.Depth` and call the callback when the iteration actually completed.
-- Quick test: disable aspiration windows entirely (use `[-INFINITY, INFINITY]`) and re-run the asymmetric ELO test. If ELO jumps, this confirms the bug's impact.
+### Pri 5 follow-up: discovered/EP/promotion check detection
+- Currently qsearch is captures-only (no quiet checks). If qsearch quiet-check coverage is desired later, implement a proper discovered-check detector or use make/unmake + `isInCheck`. Don't reintroduce the broken `moveGivesCheck` direct-attack-only path.
 
-### Pri 1: Quiescence allows stand-pat while in check
-- `engine/search.go:1319-1325` — qsearch unconditionally evaluates stand-pat even when side-to-move is in check.
-- In check, the side must make an evasion; stand-pat causes false beta cutoffs and missed tactics at the horizon.
-- Fix: at qsearch entry, compute `inCheck := isInCheck(pos, pos.Turn())`. If in check: skip stand-pat, generate all legal evasions (not just captures/checks), and return mate score if no legal evasion exists.
+### Pri 6: External Polyglot books silently broken
+- `engine/polyglot.go:33-55` — `polyglotRandom[781]` is generated from xorshift seed=1 instead of the spec-defined constants. Verified mismatch: `PolyglotHash` of starting position yields `0x4b9aa9e5e768fe35`, spec says `0x463b96181691fc9c`.
+- A real `.bin` polyglot book will never match positions. Embedded book still works.
+- Fix: embed the official 781 constants (large literal table) and add a starting-position hash check.
 
-### Pri 2: UCI `stop` does not stop recursive search
-- `engine/uci.go:626-633` — `stopChan` is checked only inside the depth-completion callback, not in `alphaBetaPV`/qsearch.
-- `engine/time.go:281-282` — `Infinite` mode explicitly never stops (`tm.shouldStop = false`).
-- Effect: GUI `go infinite` + `stop` hangs until max depth or hard timeout.
-- Fix: add a stop flag/context to `SearchInfo`, have `handleStop` set it, check it in the recursive search root loops and qsearch. Don't rely on the depth callback.
-
-### Pri 3: ShouldStopSearch always sees iterationTime ≈ 0
-- `engine/search.go:423,463,477,599,661,933` — every caller passes `time.Now()` where iteration-start is expected.
-- `engine/time.go` (Tournament path) computes `iterationTime := time.Since(iterationStartTime)` for soft-stop and `nextIterationEstimate := iterationTime * 4`. With `time.Now()` as the argument, `iterationTime` is ~0 and the soft-stop logic is dead.
-- Fix: record `iterationStart := time.Now()` once at the top of each iterative-deepening depth and thread it through, or remove the parameter and let `TimeManager` own iteration-start state.
-
-### Pri 4: TestIterativeDeepening fails — ID and fixed-depth disagree at depth 3
-- `engine/search_test.go` — fails reproducibly: `ID: b1c3, Fixed: g1f3` at depth 3.
-- This is below the aspiration-window depth>3 threshold, so it points at a separate instability: TT reuse, root handling, move-ordering state, or node-type storage/probing.
-- Fix path: (1) reset global state (`TranspositionTable`, history/killer/counter) inside the test; (2) if it still fails, instrument root move scores at fixed depth and ID depth 3 to find the first divergence.
-- Do not tune evaluation while this fails — it indicates non-deterministic search.
-
-### Pri 5: moveGivesCheck misses discovered/EP/promotion checks
-- `engine/movegen.go:869-935` — only tests whether the moving piece attacks the king from its destination square.
-- Misses: discovered checks (mover unblocks an attacker), en-passant discovered checks, promotion checks (Pawn case checks pawn attacks from destination, not the promoted piece's attacks).
-- Used by qsearch to add quiet checks. Discovered checks are exactly the quiet tactical moves qsearch is supposed to include.
-- Fix options: (a) make/unmake candidate quiet checks and call `isInCheck`; (b) implement a proper discovered-check detector; (c) until fixed, drop quiet checks from qsearch — captures-only is better than incomplete-quiet-checks.
-
-### Pri 6: External Polyglot books are silently broken
-- `engine/polyglot.go:33-55` — `polyglotRandom[781]` is generated from xorshift seed=1 instead of the spec-defined constants.
-- A real `.bin` polyglot book will never match positions. Embedded book still works; UCI falls back to it.
-- Test currently skipped: `engine/book_test.go:72-78`.
-- Fix: embed the official 781 constants and add a starting-position hash check against `0x463b96181691fc9c`.
-
-### Test suite hygiene (lower priority, but blocks ELO signal)
-- `engine/play_quality_test.go` (`TestEnginePlayingStrength`) compares `Move.ToString()` UCI output (`b1c3`, `e1g1`) to expected SAN (`Nc3`, `O-O`). Engine plays the right move, test marks it neutral. Fix: store expected moves in UCI or parse to `Move` and compare moves not strings.
-- Same file: `Rook_vs_Bishop_Knight` FEN `8/8/8/8/8/8/2R5/2BNK2k w - - 0 1` is white R+B+N vs lone king — not "roughly equal". Fix the FEN or remove the assertion.
-- `engine/free_piece_test.go` (`TestFreePieceCapture`) logs "CRITICAL ERROR" but never `t.Fail`s; the test position isn't a clean free-pawn at deeper depths.
-- `engine/crash_stress_test.go:250-278` (`TestConcurrencyStress`) shares one mutable `*Position` across goroutines — `GenerateLegalMoves` make/unmakes on it, so the failure is expected. Either copy per-goroutine or document non-thread-safety.
+### Test hygiene (cosmetic)
+- `engine/play_quality_test.go` (`TestEnginePlayingStrength`) compares `Move.ToString()` UCI output (`b1c3`, `e1g1`) to expected SAN (`Nc3`, `O-O`). Engine plays the right move, test marks it neutral. Most outcomes never trigger `t.Errorf`, so this is misleading rather than blocking. Fix: store expected moves in UCI or parse SAN.
+- `engine/crash_stress_test.go:250-278` (`TestConcurrencyStress`) shares one mutable `*Position` across goroutines. Fix: copy per-goroutine, or document non-thread-safety of `Position`.
 
 ---
 
@@ -105,9 +94,9 @@ Asymmetric (`-sfmovetime 200`) is the variant used to verify the recent +160 ELO
 
 ## Verified Implementation Status
 
-### Search Techniques (implemented — but see "Critical Search Bugs" above)
-- [x] Iterative deepening — works, but ID disagrees with fixed-depth (Pri 4)
-- [~] Aspiration windows — broken past depth 3 (Pri 0)
+### Search Techniques
+- [x] Iterative deepening
+- [x] Aspiration windows
 - [x] Alpha-beta with transposition table
 - [x] Null move pruning
 - [x] Futility pruning (extended, depth 1-3)
@@ -122,7 +111,7 @@ Asymmetric (`-sfmovetime 200`) is the variant used to verify the recent +160 ELO
 - [x] Killer moves (2 per ply)
 - [x] Counter move heuristic
 - [x] Probcut pruning
-- [~] Quiescence search — illegal stand-pat in check (Pri 1); incomplete quiet-check detection (Pri 5)
+- [x] Quiescence search (in-check evasions; captures-only — quiet checks intentionally dropped)
 
 ### Extensions (WORKING)
 - [x] Check extensions
@@ -148,11 +137,11 @@ Asymmetric (`-sfmovetime 200`) is the variant used to verify the recent +160 ELO
 - [x] Rook on open file (explicit bonus)
 - [x] Tapered eval (MG/EG interpolation for king PST)
 
-### Infrastructure (implemented — but see "Critical Search Bugs" above)
-- [x] Opening book (embedded works; external Polyglot broken — Pri 6)
+### Infrastructure
+- [x] Opening book (embedded works; external Polyglot broken — see Remaining Known Issues)
 - [x] Syzygy tablebase support
-- [~] UCI protocol — `stop` not wired into recursive search (Pri 2)
-- [~] Time management — `ShouldStopSearch` iteration-start argument is dead (Pri 3)
+- [x] UCI protocol (`stop` wired into recursive search via global atomic flag)
+- [x] Time management (`TimeManager.NewIteration` drives soft-stop)
 
 ---
 
@@ -183,21 +172,18 @@ All classical evaluation features now implemented:
 - ✓ Rook on open file (evaluateRookOnOpenFile)
 - ✓ Tapered eval (gamePhase + taperScore for king PST)
 
-### Phase 3: Search Correctness (CURRENT)
-Fix the seven "Critical Search Bugs" listed above before any tuning. Recommended order from review:
-1. Aspiration windows (Pri 0) — likely largest single ELO win
-2. Quiescence in-check evasions (Pri 1)
-3. Make `TestIterativeDeepening` deterministic (Pri 4)
-4. Wire UCI `stop` into recursive search (Pri 2)
-5. Fix `ShouldStopSearch` iteration-start (Pri 3)
-6. Repair misleading "quality" tests (notation mismatches, bad FENs) before treating ELO as signal
-7. moveGivesCheck completeness (Pri 5) — or drop quiet checks from qsearch
-8. Polyglot constants (Pri 6) — non-blocking for strength
+### Phase 3: Search Correctness (LARGELY COMPLETE)
+- ✓ Aspiration windows fail-low past depth 3 (Pri 0)
+- ✓ Quiescence in-check evasions + drop quiet checks (Pri 1 + Pri 5)
+- ✓ `TestIterativeDeepening` deterministic (Pri 4)
+- ✓ UCI `stop` wired into recursive search (Pri 2)
+- ✓ `ShouldStopSearch` iteration-start tracking (Pri 3)
+- Deferred: SAN→UCI in `TestEnginePlayingStrength`, Polyglot constants (Pri 6)
 
-### Phase 4: Tuning (after Phase 3 complete)
-1. Run Texel tuning on evaluation parameters
-2. Tune search parameters
-3. Re-assess ELO after each change
+### Phase 4: ELO Validation + Tuning (CURRENT)
+1. Run an asymmetric Bayesian ELO test on AC power to measure the search-correctness batch (~+? ELO over the prior 1659 baseline). Cadence: `./build/elo-assess -elo 1500 -movetime 2500 -sfmovetime 200 -min 6 -games 14 -ci 300`.
+2. If the batch is a clear net-positive, move into eval/search parameter tuning.
+3. Optional: address remaining test hygiene + Polyglot constants if external book support is wanted.
 
 ---
 

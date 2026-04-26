@@ -3,6 +3,7 @@ package engine
 import (
 	"math"
 	"math/bits"
+	"sync/atomic"
 	"time"
 )
 
@@ -23,6 +24,29 @@ const (
 	SINGULAR_DEPTH          = 6   // Minimum depth for singular extensions
 	SINGULAR_MARGIN         = 64  // Margin for singular move detection
 )
+
+// globalStopRequested is set by UCI's stop handler and observed by the search
+// hot paths. It exists because TimeManager alone cannot interrupt search:
+// - For `go infinite` it never asks to stop.
+// - For other modes, stop must be honored even before the soft/hard time hits.
+// Cleared at the start of every search; set by RequestStop().
+var globalStopRequested atomic.Bool
+
+// RequestStop signals running searches to stop as soon as practical.
+func RequestStop() {
+	globalStopRequested.Store(true)
+}
+
+// ClearStop clears any pending stop request (called at search entry).
+func ClearStop() {
+	globalStopRequested.Store(false)
+}
+
+// IsStopRequested reports whether a stop has been requested by an external
+// caller (e.g. UCI `stop`). Cheap atomic load, safe to poll in hot paths.
+func IsStopRequested() bool {
+	return globalStopRequested.Load()
+}
 
 // Late Move Pruning thresholds by depth
 // At depth d, prune quiet moves after lmpThreshold[d] moves
@@ -379,6 +403,9 @@ func SearchIterativeDeepeningWithCallback(pos *Position, maxDepth int, timeManag
 }
 
 func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback) *SearchInfo {
+	// Clear any stale stop request from a previous search.
+	ClearStop()
+
 	// Advance the age of the transposition table for each search
 	TranspositionTable.AdvanceAge()
 
@@ -418,6 +445,19 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 	previousScore := 0 // Track previous iteration score for aspiration windows
 
 	for currentDepth := 1; currentDepth <= maxDepth && !info.Stopped; currentDepth++ {
+		// Honor an external UCI stop request even when no time manager is set
+		// (e.g. `go infinite`).
+		if IsStopRequested() {
+			info.Stopped = true
+			break
+		}
+
+		// Mark the start of this iteration so the soft-stop heuristic in
+		// ShouldStopSearch can measure iteration time.
+		if info.TimeManager != nil {
+			info.TimeManager.NewIteration()
+		}
+
 		// Check time before starting each new depth iteration
 		if info.TimeManager != nil {
 			if info.TimeManager.ShouldStopSearch(currentDepth, time.Now()) {
@@ -464,6 +504,12 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				info.Stopped = true
 				break
 			}
+
+			// Snapshot the window for this attempt before the move loop mutates alpha.
+			// Classification at the end must compare against the original window, not
+			// the alpha that was raised by successful moves during the loop.
+			windowAlpha := alpha
+			windowBeta := beta
 
 			// Root search with aspiration window
 			var orderedRoot [256]Move
@@ -516,12 +562,17 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				}
 			}
 
-			// Simple window widening to minimize re-searches
-			if iterationBestScore <= alpha && currentDepth > 3 {
-				// Fail low - immediately use full window to avoid multiple re-searches
+			// Classify against the original window (windowAlpha/windowBeta), not the
+			// alpha that was mutated during the move loop. Otherwise every successful
+			// iteration looks like a fail-low because alpha was just raised to
+			// iterationBestScore.
+			if iterationBestScore <= windowAlpha && currentDepth > 3 {
+				// Fail low: widen alpha downward, keep original beta
 				alpha = -INFINITY
-			} else if iterationBestScore >= beta && currentDepth > 3 {
-				// Fail high - immediately use full window to avoid multiple re-searches
+				beta = windowBeta
+			} else if iterationBestScore >= windowBeta && currentDepth > 3 {
+				// Fail high: widen beta upward, keep original alpha
+				alpha = windowAlpha
 				beta = INFINITY
 			} else {
 				// Search completed successfully within the window
@@ -532,13 +583,14 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 			}
 		}
 
-		// Store the current depth result - this gives us a valid answer
-		// even if the search is interrupted at higher depths
-		info.Depth = currentDepth
-
-		// Call the callback if provided (for UCI info reporting)
-		if callback != nil && info.BestMove != EmptyMove {
-			callback(currentDepth, info.BestScore, info.BestMove, info.Nodes)
+		// Only commit the new depth and emit UCI info when the iteration actually
+		// completed. If we exited the inner loop on info.Stopped or exhausted
+		// maxAttempts without success, keep the previous completed depth/best move.
+		if iterationComplete {
+			info.Depth = currentDepth
+			if callback != nil && info.BestMove != EmptyMove {
+				callback(currentDepth, info.BestScore, info.BestMove, info.Nodes)
+			}
 		}
 	}
 
@@ -550,6 +602,8 @@ func SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo
 }
 
 func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
+	// Clear any stale stop request from a previous search.
+	ClearStop()
 
 	// Allocate buffers once for the entire search tree
 	var moveBuffer [256]Move
@@ -652,6 +706,13 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info *SearchInfo) int {
 	// Safety checks - reasonable limits
 	if info.Nodes > 50000000 { // 50M nodes
+		info.Stopped = true
+		return EvaluateForPlayer(&pos.Board, pos.Turn())
+	}
+
+	// External stop request (UCI `stop`) - honor it even before the time limit hits.
+	// Cheap atomic load; sampled per node is fine.
+	if IsStopRequested() {
 		info.Stopped = true
 		return EvaluateForPlayer(&pos.Board, pos.Turn())
 	}
@@ -1247,6 +1308,12 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 		return EvaluateForPlayer(&pos.Board, pos.Turn())
 	}
 
+	// External stop request - bail out without searching deeper.
+	if IsStopRequested() {
+		info.Stopped = true
+		return EvaluateForPlayer(&pos.Board, pos.Turn())
+	}
+
 	// TT cutoff probe. Qsearch is depth 0; any cached entry at depth >= 0
 	// covers us (main search stores at depth >= 1 only).
 	{
@@ -1267,144 +1334,128 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 		}
 	}
 
-	// MATE DETECTION: Check for checkmate/stalemate at quiescence entry
-	// This is critical for detecting mate-in-1 positions
-	if qDepth == 0 {
-		// Generate all pseudo-legal moves
+	info.Nodes++
+	info.QNodes++
+
+	inCheck := isInCheck(pos, pos.Turn())
+
+	// In-check branch: must search all evasions, stand-pat is illegal here.
+	if inCheck {
 		var moveBuffer [256]Move
 		moveCount := GenerateMovesIntoBuffer(pos, moveBuffer[:])
 
-		// Check if any move is actually legal by trying them
+		bestScore := -INFINITY
+		legalMoves := 0
+
+		for i := 0; i < moveCount; i++ {
+			move := moveBuffer[i]
+			ep, tag, hc, _ := pos.MakeMove(move)
+			if isInCheck(pos, move.MovingPiece().Color()) {
+				pos.UnMakeMove(move, tag, ep, hc)
+				continue
+			}
+			legalMoves++
+
+			score := -quiescenceWithDepth(pos, -beta, -alpha, info, qDepth+1)
+			pos.UnMakeMove(move, tag, ep, hc)
+
+			if score > bestScore {
+				bestScore = score
+			}
+			if score >= beta {
+				return beta
+			}
+			if score > alpha {
+				alpha = score
+			}
+		}
+
+		if legalMoves == 0 {
+			// Checkmate
+			mateDistance := info.Depth + qDepth
+			if mateDistance > 1000 || mateDistance < 0 {
+				mateDistance = 1
+			}
+			return -MATE_VALUE + mateDistance
+		}
+
+		return bestScore
+	}
+
+	// Not in check. Detect stalemate at qDepth==0 (rare; preserves prior behavior).
+	if qDepth == 0 {
+		var moveBuffer [256]Move
+		moveCount := GenerateMovesIntoBuffer(pos, moveBuffer[:])
 		hasLegalMove := false
 		for i := 0; i < moveCount && !hasLegalMove; i++ {
 			move := moveBuffer[i]
-			oldEP, oldTag, oldHalfClock, _ := pos.MakeMove(move)
-
-			// Check if this move leaves our king in check (illegal)
-			ourKingInCheck := isInCheck(pos, pos.Turn().Other())
-
-			pos.UnMakeMove(move, oldTag, oldEP, oldHalfClock)
-
-			if !ourKingInCheck {
+			ep, tag, hc, _ := pos.MakeMove(move)
+			if !isInCheck(pos, move.MovingPiece().Color()) {
 				hasLegalMove = true
 			}
+			pos.UnMakeMove(move, tag, ep, hc)
 		}
-
 		if !hasLegalMove {
-			inCheck := pos.IsInCheck()
-			if inCheck {
-				// Checkmate - we're mated, clamp mate distance to prevent overflow
-				mateDistance := info.Depth + qDepth
-				if mateDistance > 1000 || mateDistance < 0 {
-					mateDistance = 1 // Safe fallback for mate-in-1
-				}
-				return -MATE_VALUE + mateDistance
-			}
-			// Stalemate - check if we're throwing away a winning position
-			// If we have a material advantage, stalemating the opponent is bad for us
+			// Stalemate (in-check case is handled above).
 			eval := Evaluate(&pos.Board)
 			if pos.Turn() == Black {
-				eval = -eval // Flip evaluation for black's perspective
+				eval = -eval
 			}
-
-			// If we're winning by a significant margin, heavily penalize stalemate
-			if eval > 300 { // We have significant advantage (about 3 pawns)
-				return -500 // Penalize stalemate when winning
+			if eval > 300 {
+				return -500
 			}
-			return 0 // Otherwise, stalemate is still a draw
+			return 0
 		}
 	}
 
-	// Stand pat - evaluate current position
+	// Stand-pat
 	standPat := EvaluateForPlayer(&pos.Board, pos.Turn())
-	info.Nodes++
-	info.QNodes++
 
 	if standPat >= beta {
 		return beta
 	}
 
-	// BUG FIX: We must track the best score, not just update alpha
 	bestScore := standPat
-
 	if standPat > alpha {
 		alpha = standPat
 	}
 
-	// Only consider captures and checks in quiescence search
-	// Use buffers from SearchInfo to avoid allocations
+	// Captures only. Quiet checks are dropped because moveGivesCheck misses
+	// discovered, en-passant, and promotion checks; an incomplete quiet-check
+	// path is worse than captures-only at the horizon.
 	captureCount := GenerateCapturesIntoBuffer(pos, info.CaptureBuffer[:])
-	var capturesAndChecks [84]Move // Small stack buffer for combined captures + checks
-	capturesAndChecksCount := captureCount
-	copy(capturesAndChecks[:], (*info.CaptureBuffer)[:captureCount])
+	var captures [64]Move
+	copy(captures[:], (*info.CaptureBuffer)[:captureCount])
 
-	// Also consider moves that give check (but only if not too deep to avoid explosion)
-	// Allow deeper check search when in mate-threatening positions
-	maxCheckDepth := 2
-	if standPat >= MATE_IN_MAX || standPat <= -MATE_IN_MAX {
-		maxCheckDepth = 6 // Search deeper when mate is on the board
-	}
-	if qDepth < maxCheckDepth {
-		// PERFORMANCE OPTIMIZATION: Use direct check detection instead of make/unmake cycle
-		// Use MoveBuffer from SearchInfo to avoid allocation
-		numMoves := GenerateMovesIntoBuffer(pos, info.MoveBuffer[:])
-		moves := (*info.MoveBuffer)[:numMoves]
-
-		for _, move := range moves {
-			// Skip if already a capture
-			if move.IsCapture() {
-				continue
-			}
-
-			// OPTIMIZED: Check if move gives check without make/unmake
-			if moveGivesCheck(pos, move) && capturesAndChecksCount < len(capturesAndChecks) {
-				capturesAndChecks[capturesAndChecksCount] = move
-				capturesAndChecksCount++
-			}
-		}
-	}
-
-	// Search captures and checks (with delta pruning for captures)
-	for i := 0; i < capturesAndChecksCount; i++ {
-		move := capturesAndChecks[i]
+	for i := 0; i < captureCount; i++ {
+		move := captures[i]
 
 		// Delta pruning: skip captures that cannot possibly raise alpha
-		if move.IsCapture() {
-			gain := int(move.CapturedPiece().seeWeight())
-			if standPat+gain+DELTA_MARGIN <= alpha {
-				continue
-			}
+		gain := int(move.CapturedPiece().seeWeight())
+		if standPat+gain+DELTA_MARGIN <= alpha {
+			continue
 		}
 
-		// SEE-based pruning: skip losing captures
-		if move.IsCapture() {
-			seeValue := staticExchangeEvaluation(pos, move)
-			if seeValue < 0 {
-				continue // Skip losing captures
-			}
+		// SEE pruning: skip losing captures
+		if staticExchangeEvaluation(pos, move) < 0 {
+			continue
 		}
 
 		ep, tag, hc, _ := pos.MakeMove(move)
-
-		// Check if move is legal (doesn't leave our king in check)
-		// After making a move, we need to check if OUR king (opposite of current turn) is in check
 		if isInCheck(pos, move.MovingPiece().Color()) {
 			pos.UnMakeMove(move, tag, ep, hc)
-			continue // Skip illegal move
+			continue
 		}
 
-		// Recursively search (negamax)
 		score := -quiescenceWithDepth(pos, -beta, -alpha, info, qDepth+1)
 		pos.UnMakeMove(move, tag, ep, hc)
 
 		if score > bestScore {
 			bestScore = score
 		}
-
 		if score >= beta {
 			return beta
 		}
-
 		if score > alpha {
 			alpha = score
 		}

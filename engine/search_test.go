@@ -136,6 +136,17 @@ func BenchmarkSearch(b *testing.B) {
 func TestIterativeDeepening(t *testing.T) {
 	pos := newStartingPosition()
 
+	// Reset global search state so this test is deterministic regardless of
+	// what other tests left behind in TT/history/killer/counter tables.
+	resetSearchGlobals := func() {
+		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+		ClearHistoryTable()
+		ClearKillerMoves()
+		ClearCounterMoves()
+		SetLastMovePlayed(EmptyMove)
+	}
+	resetSearchGlobals()
+
 	// Test that iterative deepening produces results at each depth
 	info := SearchIterativeDeepening(pos, 3, nil)
 
@@ -147,7 +158,11 @@ func TestIterativeDeepening(t *testing.T) {
 		t.Errorf("Expected final depth 3, got %d", info.Depth)
 	}
 
-	// Compare with fixed depth search - should get same result
+	// Reset again so fixed-depth starts from the same blank state as ID did.
+	resetSearchGlobals()
+
+	// Compare with fixed depth search - should agree on best move and score
+	// when both start from clean global state.
 	infoFixed := SearchFixed(pos, 3, nil)
 
 	if info.BestMove != infoFixed.BestMove {

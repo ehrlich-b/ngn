@@ -186,8 +186,8 @@ func testMaterialEvaluation(t *testing.T, score *PlayQualityScore) int {
 		},
 		{
 			name:           "Rook_vs_Bishop_Knight",
-			fen:            "8/8/8/8/8/8/2R5/2BNK2k w - - 0 1",
-			expectedWinner: "equal", // Rook(5) vs Bishop+Knight(3+3)
+			fen:            "4k1n1/3b4/8/8/8/8/4R3/4K3 w - - 0 1",
+			expectedWinner: "equal", // White R vs Black B+N (5 vs 3+3)
 			description:    "Rook vs Bishop+Knight roughly equal",
 		},
 		{

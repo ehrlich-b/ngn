@@ -43,6 +43,12 @@ type TimeManager struct {
 	checkCounter  uint64    // Atomic counter for time checks
 	lastTimeCheck time.Time // Last time we actually checked the clock
 	shouldStop    bool      // Cached result of last time check
+
+	// iterationStartTime is set by NewIteration at the top of each iterative
+	// deepening depth and used by the soft-stop heuristic to estimate the
+	// next iteration's cost. Previously each caller passed time.Now() in this
+	// slot, which made iterationTime always ~0 and disabled soft-stop.
+	iterationStartTime time.Time
 }
 
 // GamePhase represents the current phase of the game
@@ -68,6 +74,7 @@ func (tm *TimeManager) SetTimeControl(params SearchParams, isWhite bool) {
 	tm.startTime = time.Now()
 	tm.lastTimeCheck = tm.startTime
 	tm.shouldStop = false
+	tm.iterationStartTime = time.Time{} // Cleared until NewIteration is called
 	atomic.StoreUint64(&tm.checkCounter, 0)
 
 	// Determine time control type and allocate time accordingly
@@ -265,7 +272,15 @@ func (tm *TimeManager) ensureSafeTimeAllocation() time.Duration {
 // ShouldStopSearch determines if search should stop based on time
 // This method can be called frequently without performance penalty - it uses
 // internal rate limiting to only do expensive time checks every N calls
-func (tm *TimeManager) ShouldStopSearch(depth int, iterationStartTime time.Time) bool {
+// NewIteration is called by iterative deepening at the top of each new depth
+// so the soft-stop heuristic can measure how long the current iteration took
+// and project the next one. Without this, ShouldStopSearch's nextIterationEstimate
+// would be zero.
+func (tm *TimeManager) NewIteration() {
+	tm.iterationStartTime = time.Now()
+}
+
+func (tm *TimeManager) ShouldStopSearch(depth int, _ time.Time) bool {
 	// Increment counter atomically - this is very fast
 	count := atomic.AddUint64(&tm.checkCounter, 1)
 
@@ -284,7 +299,7 @@ func (tm *TimeManager) ShouldStopSearch(depth int, iterationStartTime time.Time)
 			// Hard time limit - stop when time is up
 			tm.shouldStop = elapsed >= tm.allocatedTime
 		case Tournament:
-			tm.shouldStop = tm.shouldStopTournamentSearch(depth, iterationStartTime, elapsed)
+			tm.shouldStop = tm.shouldStopTournamentSearch(depth, elapsed)
 		}
 	}
 
@@ -292,7 +307,7 @@ func (tm *TimeManager) ShouldStopSearch(depth int, iterationStartTime time.Time)
 }
 
 // shouldStopTournamentSearch determines if tournament search should stop
-func (tm *TimeManager) shouldStopTournamentSearch(depth int, iterationStartTime time.Time, elapsed time.Duration) bool {
+func (tm *TimeManager) shouldStopTournamentSearch(depth int, elapsed time.Duration) bool {
 	// Hard limit - never exceed allocated time
 	if elapsed >= tm.allocatedTime {
 		return true
@@ -338,9 +353,14 @@ func (tm *TimeManager) shouldStopTournamentSearch(depth int, iterationStartTime 
 		return false
 	}
 
-	// Soft time management - don't start new iteration if likely to exceed time
-	// Be more lenient when we have plenty of time available
-	iterationTime := time.Since(iterationStartTime)
+	// Soft time management - don't start new iteration if likely to exceed time.
+	// iterationStartTime must be set via NewIteration at the start of each ID depth;
+	// if it was never set we conservatively skip the soft-stop check rather than
+	// using an undefined zero time.
+	if tm.iterationStartTime.IsZero() {
+		return false
+	}
+	iterationTime := time.Since(tm.iterationStartTime)
 	// Estimate time for next iteration (typically 3-4x current iteration)
 	nextIterationEstimate := iterationTime * 4
 

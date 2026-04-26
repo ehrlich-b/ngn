@@ -771,6 +771,10 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 // handleStop handles the stop command
 func (uci *UCIEngine) handleStop(output io.Writer) {
 	if uci.searching {
+		// Wire stop into the recursive search via the global stop flag, in
+		// addition to the channel that the depth callback drains. The
+		// depth callback alone cannot interrupt a running iteration.
+		RequestStop()
 		select {
 		case uci.stopChan <- true:
 		default:
