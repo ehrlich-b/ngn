@@ -199,8 +199,17 @@ func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, 
 					score = 20000 + seeValue + 1000
 				}
 			} else if move.PromoType() != NoType {
-				// Promotions: high priority, ordered by promotion piece value
-				score = 70000 + int(GetPiece(move.PromoType(), move.MovingPiece().Color()).Weight())
+				promoWeight := int(GetPiece(move.PromoType(), move.MovingPiece().Color()).Weight())
+				if move.PromoType() == Queen {
+					// Non-capture queen promotion: gains ~800cp; rank above winning
+					// captures (which max around 82000) so we explore it before any
+					// capture or quiet alternative.
+					score = 90000 + promoWeight
+				} else {
+					// Under-promotions are rare and usually inferior; keep them
+					// in the original priority band, ordered by promoted piece value.
+					score = 70000 + promoWeight
+				}
 			} else if move.IsCastle() {
 				// Castling: moderate priority
 				score = 50000
