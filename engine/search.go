@@ -52,6 +52,33 @@ func IsStopRequested() bool {
 // At depth d, prune quiet moves after lmpThreshold[d] moves
 var lmpThreshold = [8]int{0, 5, 8, 12, 17, 23, 30, 38}
 
+// scoreToTT converts a search score to a value safe to store in the TT, with
+// mate scores adjusted to be node-relative ("mate-distance-from-this-node")
+// rather than root-relative. Without this, a TT hit retrieved at a different
+// ply via the same hash would report the wrong distance to mate.
+func scoreToTT(score, ply int) int16 {
+	if score >= MATE_IN_MAX {
+		return int16(score + ply)
+	}
+	if score <= -MATE_IN_MAX {
+		return int16(score - ply)
+	}
+	return int16(score)
+}
+
+// scoreFromTT inverts scoreToTT: takes a node-relative TT score and returns a
+// root-relative score for the current node's ply.
+func scoreFromTT(score int16, ply int) int {
+	s := int(score)
+	if s >= MATE_IN_MAX {
+		return s - ply
+	}
+	if s <= -MATE_IN_MAX {
+		return s + ply
+	}
+	return s
+}
+
 // Static Exchange Evaluation (SEE) implementation
 // Returns the material balance after a series of exchanges on the target square
 func staticExchangeEvaluation(pos *Position, move Move) int {
@@ -540,7 +567,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				if pos.IsFIDEDrawRule() {
 					score = 0 // Draw
 				} else {
-					score = -alphaBetaPV(pos, currentDepth-1, -beta, -alpha, true, info)
+					score = -alphaBetaPV(pos, currentDepth-1, 1, -beta, -alpha, true, info)
 				}
 				pos.GameUnMakeMove(move, tag, ep, hc)
 				SetLastMovePlayed(savedLast)
@@ -664,11 +691,11 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		}
 		SetLastMovePlayed(move)
 
-		score := -alphaBetaPV(pos, depth-1, -beta, -alpha, true, info)
+		score := -alphaBetaPV(pos, depth-1, 1, -beta, -alpha, true, info)
 
 		// Mate threat extension: if we found a very high score, search deeper to find mate
 		if score >= MATE_IN_MAX && depth <= 2 {
-			score = -alphaBetaPV(pos, depth+2, -beta, -alpha, true, info)
+			score = -alphaBetaPV(pos, depth+2, 1, -beta, -alpha, true, info)
 			info.Nodes++
 		}
 
@@ -700,10 +727,10 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 }
 
 func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) int {
-	return alphaBetaPV(pos, depth, alpha, beta, true, info) // Root is always PV
+	return alphaBetaPV(pos, depth, 0, alpha, beta, true, info) // Root is always PV
 }
 
-func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info *SearchInfo) int {
+func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bool, info *SearchInfo) int {
 	// Safety checks - reasonable limits
 	if info.Nodes > 50000000 { // 50M nodes
 		info.Stopped = true
@@ -771,28 +798,29 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 	defer func() { info.RepStackLen-- }()
 
 	if depth == 0 {
-		return quiescence(pos, alpha, beta, info)
+		return quiescence(pos, alpha, beta, ply, info)
 	}
 
 	// Probe transposition table
 	origAlpha := alpha
 	hash := pos.Hash()
 
-	ttMove, ttEval, ttDepth, ttNodeType, ttHit := TranspositionTable.Get(hash)
+	ttMove, ttEvalRaw, ttDepth, ttNodeType, ttHit := TranspositionTable.Get(hash)
+	ttEval := scoreFromTT(ttEvalRaw, ply)
 
 	if ttHit && !isPV && ttDepth >= int8(depth) {
 		info.TTHits++
 		switch ttNodeType {
 		case Exact:
-			return int(ttEval)
+			return ttEval
 		case LowerBound:
-			if int(ttEval) >= beta {
+			if ttEval >= beta {
 				info.TTCutoffs++
-				return int(ttEval)
+				return ttEval
 			}
 		case UpperBound:
-			if int(ttEval) <= alpha {
-				return int(ttEval)
+			if ttEval <= alpha {
+				return ttEval
 			}
 		}
 	}
@@ -805,7 +833,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		if iidDepth < 1 {
 			iidDepth = 1
 		}
-		alphaBetaPV(pos, iidDepth, alpha, beta, true, info)
+		alphaBetaPV(pos, iidDepth, ply, alpha, beta, true, info)
 		// Re-probe TT to get the move we just found
 		ttMove, _, _, _, _ = TranspositionTable.Get(hash)
 	}
@@ -872,7 +900,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		oldEP := pos.MakeNullMove()
 		SetLastMovePlayed(EmptyMove)
 
-		score := -alphaBetaPV(pos, depth-NULL_MOVE_R-1, -beta, -beta+1, false, info)
+		score := -alphaBetaPV(pos, depth-NULL_MOVE_R-1, ply+1, -beta, -beta+1, false, info)
 
 		pos.UnMakeNullMove(oldEP)
 		SetLastMovePlayed(savedLast)
@@ -917,10 +945,10 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 			}
 			SetLastMovePlayed(move)
 
-			score := -quiescence(pos, -probcutBeta, -probcutBeta+1, info)
+			score := -quiescence(pos, -probcutBeta, -probcutBeta+1, ply+1, info)
 
 			if score >= probcutBeta {
-				score = -alphaBetaPV(pos, depth-4, -probcutBeta, -probcutBeta+1, false, info)
+				score = -alphaBetaPV(pos, depth-4, ply+1, -probcutBeta, -probcutBeta+1, false, info)
 			}
 
 			pos.UnMakeMove(move, tag, ep, hc)
@@ -1120,7 +1148,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 
 			singularBeta := int(ttEval) - SINGULAR_MARGIN
 			info.ExcludedMove = singularMove
-			singularScore := alphaBetaPV(pos, depth/2, singularBeta-1, singularBeta, false, info)
+			singularScore := alphaBetaPV(pos, depth/2, ply, singularBeta-1, singularBeta, false, info)
 			info.ExcludedMove = EmptyMove
 
 			// Re-make our move and restore the global to it for children.
@@ -1143,7 +1171,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		// Enhanced Principal Variation Search (PVS) with PV-node optimization
 		if legalTried == 1 {
 			// First move: search with full window and PV flag
-			score = -alphaBetaPV(pos, nextDepth, -beta, -alpha, isPV, info)
+			score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, info)
 		} else {
 			// Non-first moves: enhanced PVS with PV-aware reductions
 
@@ -1212,17 +1240,17 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 			}
 
 			// Search with null window first (not PV)
-			score = -alphaBetaPV(pos, reducedDepth, -alpha-1, -alpha, false, info)
+			score = -alphaBetaPV(pos, reducedDepth, ply+1, -alpha-1, -alpha, false, info)
 
 			// PVS re-search logic
 			if score > alpha && score < beta {
 				if reduction > 0 {
 					// Re-search with full depth but still null window
-					score = -alphaBetaPV(pos, nextDepth, -alpha-1, -alpha, false, info)
+					score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, info)
 				}
 				// If still fails high, do full window search (PV if we're in PV)
 				if score > alpha {
-					score = -alphaBetaPV(pos, nextDepth, -beta, -alpha, isPV, info)
+					score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, info)
 				}
 			}
 		}
@@ -1258,7 +1286,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 			}
 
 			// Store in transposition table as Lower Bound (Cut-Node)
-			TranspositionTable.Set(hash, move, int16(score), int8(depth), LowerBound)
+			TranspositionTable.Set(hash, move, scoreToTT(score, ply), int8(depth), LowerBound)
 			return score
 		}
 
@@ -1294,15 +1322,15 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		nodeType = Exact
 	}
 
-	TranspositionTable.Set(hash, bestMove, int16(bestScore), int8(depth), nodeType)
+	TranspositionTable.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType)
 	return bestScore
 }
 
-func quiescence(pos *Position, alpha int, beta int, info *SearchInfo) int {
-	return quiescenceWithDepth(pos, alpha, beta, info, 0)
+func quiescence(pos *Position, alpha int, beta int, ply int, info *SearchInfo) int {
+	return quiescenceWithDepth(pos, alpha, beta, ply, info, 0)
 }
 
-func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, qDepth int) int {
+func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *SearchInfo, qDepth int) int {
 	// Prevent infinite recursion - reduce depth limit for stability
 	if qDepth >= 6 { // More conservative quiescence depth
 		return EvaluateForPlayer(&pos.Board, pos.Turn())
@@ -1315,20 +1343,22 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 	}
 
 	// TT cutoff probe. Qsearch is depth 0; any cached entry at depth >= 0
-	// covers us (main search stores at depth >= 1 only).
+	// covers us (main search stores at depth >= 1 only). Mate scores need
+	// converting from node-relative TT encoding back to root-relative.
 	{
-		_, ttEval, _, ttNodeType, ttHit := TranspositionTable.Get(pos.Hash())
+		_, ttEvalRaw, _, ttNodeType, ttHit := TranspositionTable.Get(pos.Hash())
 		if ttHit {
+			ttEval := scoreFromTT(ttEvalRaw, ply)
 			switch ttNodeType {
 			case Exact:
-				return int(ttEval)
+				return ttEval
 			case LowerBound:
-				if int(ttEval) >= beta {
-					return int(ttEval)
+				if ttEval >= beta {
+					return ttEval
 				}
 			case UpperBound:
-				if int(ttEval) <= alpha {
-					return int(ttEval)
+				if ttEval <= alpha {
+					return ttEval
 				}
 			}
 		}
@@ -1356,7 +1386,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 			}
 			legalMoves++
 
-			score := -quiescenceWithDepth(pos, -beta, -alpha, info, qDepth+1)
+			score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
 			pos.UnMakeMove(move, tag, ep, hc)
 
 			if score > bestScore {
@@ -1440,7 +1470,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 			continue
 		}
 
-		score := -quiescenceWithDepth(pos, -beta, -alpha, info, qDepth+1)
+		score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
 		pos.UnMakeMove(move, tag, ep, hc)
 
 		if score > bestScore {
