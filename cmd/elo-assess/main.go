@@ -27,7 +27,8 @@ type Config struct {
 	TargetELO     int
 	MinGames      int
 	MaxGames      int
-	MovetimeMs    int
+	MovetimeMs    int  // NGN time per move
+	SFMovetimeMs  int  // Stockfish time per move (asymmetric); 0 = same as MovetimeMs
 	StopWidthELO  float64 // stop early when 95% ELO CI width ≤ this
 	LowPower      bool    // route to macOS E-cores via taskpolicy -b
 }
@@ -44,7 +45,8 @@ func main() {
 	verbose := flag.Bool("v", false, "Verbose output")
 	targetELO := flag.Int("elo", 1320, "Stockfish ELO target")
 	games := flag.Int("games", 0, "Override max games (0 = use level default)")
-	movetimeMs := flag.Int("movetime", 0, "ms per move (0 = use level default)")
+	movetimeMs := flag.Int("movetime", 0, "NGN ms per move (0 = use level default)")
+	sfMovetimeMs := flag.Int("sfmovetime", 0, "Stockfish ms per move (0 = same as -movetime)")
 	minGames := flag.Int("min", 6, "Minimum games before early-stop can fire")
 	stopWidth := flag.Float64("ci", 200, "Stop when 95% ELO CI width ≤ this (0 = never early-stop)")
 	lowPower := flag.Bool("lowpower", true, "Route engines to macOS E-cores (taskpolicy -b)")
@@ -72,6 +74,11 @@ func main() {
 		*minGames = maxGames
 	}
 
+	sfMs := *sfMovetimeMs
+	if sfMs == 0 {
+		sfMs = moveMs
+	}
+
 	config := &Config{
 		NGNPath:       "./build/ngn",
 		StockfishPath: "./stockfish/stockfish-ubuntu-x86-64-avx2",
@@ -81,13 +88,19 @@ func main() {
 		MinGames:      *minGames,
 		MaxGames:      maxGames,
 		MovetimeMs:    moveMs,
+		SFMovetimeMs:  sfMs,
 		StopWidthELO:  *stopWidth,
 		LowPower:      *lowPower,
 	}
 
 	fmt.Printf("NGN ELO Assessment (Bayesian early-stop)\n")
 	fmt.Printf("========================================\n")
-	fmt.Printf("Stockfish target: %d ELO | movetime: %dms\n", config.TargetELO, config.MovetimeMs)
+	if config.MovetimeMs == config.SFMovetimeMs {
+		fmt.Printf("Stockfish target: %d ELO | movetime: %dms (both)\n", config.TargetELO, config.MovetimeMs)
+	} else {
+		fmt.Printf("Stockfish target: %d ELO | NGN: %dms, SF: %dms\n",
+			config.TargetELO, config.MovetimeMs, config.SFMovetimeMs)
+	}
 	fmt.Printf("Games: min=%d max=%d | stop at 95%% ELO CI ≤ %.0f\n",
 		config.MinGames, config.MaxGames, config.StopWidthELO)
 	if config.LowPower && runtime.GOOS == "darwin" {
@@ -105,14 +118,15 @@ func main() {
 // Colors alternate each game.
 func runGamesBayesian(config *Config) GameResult {
 	result := GameResult{}
-	movetime := float64(config.MovetimeMs) / 1000.0
+	ngnTime := float64(config.MovetimeMs) / 1000.0
+	sfTime := float64(config.SFMovetimeMs) / 1000.0
 
 	for g := 1; g <= config.MaxGames; g++ {
 		fmt.Printf("G%2d ", g)
 		ngnWhite := g%2 == 1
 
 		start := time.Now()
-		winner, reason := playGame(config, ngnWhite, movetime)
+		winner, reason := playGame(config, ngnWhite, ngnTime, sfTime)
 		elapsed := time.Since(start).Truncate(time.Second)
 
 		color := "B"
@@ -203,7 +217,7 @@ func scoreToEloDiff(p float64) float64 {
 	return 400 * math.Log10(p/(1-p))
 }
 
-func playGame(config *Config, ngnWhite bool, timePerMove float64) (string, string) {
+func playGame(config *Config, ngnWhite bool, ngnTime, sfTime float64) (string, string) {
 	ngn := startEngine(config.NGNPath, "NGN", config.LowPower)
 	if ngn == nil {
 		return "error", "failed to start NGN"
@@ -225,11 +239,14 @@ func playGame(config *Config, ngnWhite bool, timePerMove float64) (string, strin
 	for moveNum := 0; moveNum < maxMoves; moveNum++ {
 		isWhiteMove := moveNum%2 == 0
 		var currentEngine *Engine
+		var timePerMove float64
 
 		if (isWhiteMove && ngnWhite) || (!isWhiteMove && !ngnWhite) {
 			currentEngine = ngn
+			timePerMove = ngnTime
 		} else {
 			currentEngine = sf
+			timePerMove = sfTime
 		}
 
 		posCmd := "position startpos"

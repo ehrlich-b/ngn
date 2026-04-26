@@ -16,14 +16,18 @@ make dev            # Full cycle: format, test, build
 
 ## ELO Assessment
 
-Default: Bayesian early-stop with 200ms/move on macOS E-cores (`taskpolicy -b`).
-Keeps the Mac cool and reliably detects ±100 ELO swings.
+Default: Bayesian early-stop with 2500ms/move on macOS E-cores (`taskpolicy -b`).
+At 200ms we only reached depth 4 in middlegame; at 2500ms we reach depth 6-7,
+which is meaningful for tactical accuracy. Mac stays cool on E-cores.
 
 ```bash
-# Standard cadence (~3-5 min, cool):
+# Standard cadence (~15-30 min, cool, depth 6-7 reached):
+./build/elo-assess -elo 1500 -movetime 2500 -min 6 -games 14 -ci 300
+
+# Quick smoke test (~3-5 min, depth 4 only):
 ./build/elo-assess -elo 1320 -movetime 200 -min 6 -games 14 -ci 300
 
-# Legacy presets (hotter, slower):
+# Legacy presets:
 ./build/elo-assess -level 1   # 8 games @ 250ms
 ./build/elo-assess -level 5   # 20 games @ 400ms
 ./build/elo-assess -level 10  # 40 games @ 600ms
@@ -32,8 +36,8 @@ Keeps the Mac cool and reliably detects ±100 ELO swings.
 ## Development Rules
 
 ### Testing Cadence
-- **Default to 14-game Bayesian tests** on E-cores. Takes 3-5 min. Detects ±100 ELO.
-- **Don't chase small effects** (< 50 ELO). 14-game CI is ~400 ELO wide — such deltas are pure noise. Resolving them needs 150+ games of direct A/B + SPRT.
+- **Default to 14-game Bayesian tests** at 2500ms on E-cores. Takes 15-30 min. Detects ±80 ELO.
+- **Don't chase small effects** (< 50 ELO). 14-game CI is ~300-400 ELO wide — such deltas are pure noise. Resolving them needs 150+ games of direct A/B + SPRT.
 - **Iteration loop:** surgical fix → `go build` → 14-game test → commit if visibly better or within noise; revert if visibly worse.
 - **Commit checkpoints** after every confirmed win. Regressions bisect via `git stash` on one file at a time (search.go vs eval.go).
 - **Never run on P-cores** (default `-lowpower=true` routes to E-cores). Don't override.
