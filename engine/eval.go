@@ -2239,15 +2239,17 @@ func evaluateRookOnOpenFile(board *Bitboard, color Color) int {
 // Mobility is a key positional factor - pieces that can move to more squares are more valuable
 func evaluateMobility(board *Bitboard, color Color) int {
 	mobility := 0
-	allPieces := board.GetWhitePieces() | board.GetBlackPieces()
+	whitePieces := board.GetWhitePieces()
+	blackPieces := board.GetBlackPieces()
+	allPieces := whitePieces | blackPieces
 	var friendlyPieces, enemyPieces uint64
 
 	if color == White {
-		friendlyPieces = board.GetWhitePieces()
-		enemyPieces = board.GetBlackPieces()
+		friendlyPieces = whitePieces
+		enemyPieces = blackPieces
 	} else {
-		friendlyPieces = board.GetBlackPieces()
-		enemyPieces = board.GetWhitePieces()
+		friendlyPieces = blackPieces
+		enemyPieces = whitePieces
 	}
 
 	// Knight mobility (most important - knights need outposts)
