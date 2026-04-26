@@ -302,29 +302,40 @@ func (p *Position) unMakeMoveHelper(move Move, tag PositionTag, enPassant Square
 
 	movingPiece := move.MovingPiece()
 	capturedPiece := move.CapturedPiece()
-	promoPiece := NoPiece
+	source := move.Source()
+	dest := move.Destination()
+	promoType := move.PromoType()
+
+	// Reverse the hash update before restoring state.
+	// updateHash is XOR-based, so calling it with the same args as make undoes the change.
+	// At this point p.Tag and p.EnPassant still hold their post-make values, and
+	// p.Turn() returns the side that did NOT move (post-make toggle), so the mover is p.Turn().Other().
+	var promoPiece Piece = NoPiece
+	if promoType != NoType {
+		promoPiece = GetPiece(promoType, p.Turn().Other())
+	}
+	captureSquare := NoSquare
+	if move.IsEnPassant() {
+		captureSquare = findEnPassantCaptureSquare(move)
+	} else if move.IsCapture() {
+		captureSquare = dest
+	}
+	updateHash(p, move, captureSquare, p.EnPassant, enPassant, promoPiece, tag)
+
 	p.Tag = tag
 	p.HalfMoveClock = halfClock
 	p.EnPassant = enPassant
-	source := move.Source()
-	dest := move.Destination()
 	// Undo promotion
-	promoType := move.PromoType()
 	if promoType != NoType {
-		promoPiece = GetPiece(promoType, p.Turn())
 		p.Board.UpdateSquare(dest, movingPiece, promoPiece)
 	}
 	p.Board.Move(dest, source, movingPiece, NoPiece)
 
-	// captureSquare := NoSquare
 	// Undo enpassant
 	if move.IsEnPassant() {
 		cp := findEnPassantCaptureSquare(move)
-		// captureSquare = cp
 		p.Board.UpdateSquare(cp, capturedPiece, NoPiece)
-		// p.phase += phaseValues[capturedPiece-1]
 	} else if move.IsCapture() { // Undo capture
-		// captureSquare = dest
 		p.Board.UpdateSquare(dest, capturedPiece, NoPiece)
 	}
 
