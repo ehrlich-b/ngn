@@ -52,6 +52,37 @@ func IsStopRequested() bool {
 // At depth d, prune quiet moves after lmpThreshold[d] moves
 var lmpThreshold = [8]int{0, 5, 8, 12, 17, 23, 30, 38}
 
+// scoreToTT converts a node-output score (using this codebase's "mate-distance-from-root"
+// encoding) into a value safe to store in the TT. Mate scores get adjusted to be
+// node-relative (mate-distance-from-this-node) so they remain meaningful when
+// retrieved at a different ply via the same hash.
+//
+// Why: a position can be reached by multiple paths at different plies. If we store
+// "mated at root-distance 7" and later probe the same hash at root-distance 9, the
+// raw score is wrong. Storing node-relative makes the score path-independent.
+func scoreToTT(score, ply int) int16 {
+	if score >= MATE_IN_MAX {
+		return int16(score + ply)
+	}
+	if score <= -MATE_IN_MAX {
+		return int16(score - ply)
+	}
+	return int16(score)
+}
+
+// scoreFromTT inverts scoreToTT: takes a node-relative TT score and returns a
+// score in the search's root-relative convention for the current node.
+func scoreFromTT(score int16, ply int) int {
+	s := int(score)
+	if s >= MATE_IN_MAX {
+		return s - ply
+	}
+	if s <= -MATE_IN_MAX {
+		return s + ply
+	}
+	return s
+}
+
 // Static Exchange Evaluation (SEE) implementation
 // Returns the material balance after a series of exchanges on the target square
 func staticExchangeEvaluation(pos *Position, move Move) int {
@@ -483,12 +514,19 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				scoreAbs = -scoreAbs
 			}
 
-			if scoreAbs > 800 { // Only for very extreme positions (near mate)
-				windowSize = 100
+			// In mate range, a tight window will fail-out every time the mate
+			// distance shifts by 1; open the search to ±INFINITY so we don't
+			// waste re-search attempts.
+			if scoreAbs >= MATE_IN_MAX {
+				alpha = -INFINITY
+				beta = INFINITY
+			} else {
+				if scoreAbs > 800 {
+					windowSize = 100
+				}
+				alpha = previousScore - windowSize
+				beta = previousScore + windowSize
 			}
-
-			alpha = previousScore - windowSize
-			beta = previousScore + windowSize
 		}
 
 		// Aspiration window re-search loop
@@ -777,22 +815,24 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 	// Probe transposition table
 	origAlpha := alpha
 	hash := pos.Hash()
+	ply := info.Depth - depth
 
-	ttMove, ttEval, ttDepth, ttNodeType, ttHit := TranspositionTable.Get(hash)
+	ttMove, ttEvalRaw, ttDepth, ttNodeType, ttHit := TranspositionTable.Get(hash)
+	ttEval := scoreFromTT(ttEvalRaw, ply)
 
 	if ttHit && !isPV && ttDepth >= int8(depth) {
 		info.TTHits++
 		switch ttNodeType {
 		case Exact:
-			return int(ttEval)
+			return ttEval
 		case LowerBound:
-			if int(ttEval) >= beta {
+			if ttEval >= beta {
 				info.TTCutoffs++
-				return int(ttEval)
+				return ttEval
 			}
 		case UpperBound:
-			if int(ttEval) <= alpha {
-				return int(ttEval)
+			if ttEval <= alpha {
+				return ttEval
 			}
 		}
 	}
@@ -1258,7 +1298,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 			}
 
 			// Store in transposition table as Lower Bound (Cut-Node)
-			TranspositionTable.Set(hash, move, int16(score), int8(depth), LowerBound)
+			TranspositionTable.Set(hash, move, scoreToTT(score, ply), int8(depth), LowerBound)
 			return score
 		}
 
@@ -1294,7 +1334,7 @@ func alphaBetaPV(pos *Position, depth int, alpha int, beta int, isPV bool, info 
 		nodeType = Exact
 	}
 
-	TranspositionTable.Set(hash, bestMove, int16(bestScore), int8(depth), nodeType)
+	TranspositionTable.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType)
 	return bestScore
 }
 
@@ -1315,20 +1355,23 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 	}
 
 	// TT cutoff probe. Qsearch is depth 0; any cached entry at depth >= 0
-	// covers us (main search stores at depth >= 1 only).
+	// covers us (main search stores at depth >= 1 only). Mate scores need to
+	// be denormalized to root-relative for the current node's ply.
 	{
-		_, ttEval, _, ttNodeType, ttHit := TranspositionTable.Get(pos.Hash())
+		qsPly := info.Depth + qDepth
+		_, ttEvalRaw, _, ttNodeType, ttHit := TranspositionTable.Get(pos.Hash())
 		if ttHit {
+			ttEval := scoreFromTT(ttEvalRaw, qsPly)
 			switch ttNodeType {
 			case Exact:
-				return int(ttEval)
+				return ttEval
 			case LowerBound:
-				if int(ttEval) >= beta {
-					return int(ttEval)
+				if ttEval >= beta {
+					return ttEval
 				}
 			case UpperBound:
-				if int(ttEval) <= alpha {
-					return int(ttEval)
+				if ttEval <= alpha {
+					return ttEval
 				}
 			}
 		}
@@ -1396,14 +1439,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, info *SearchInfo, q
 			pos.UnMakeMove(move, tag, ep, hc)
 		}
 		if !hasLegalMove {
-			// Stalemate (in-check case is handled above).
-			eval := Evaluate(&pos.Board)
-			if pos.Turn() == Black {
-				eval = -eval
-			}
-			if eval > 300 {
-				return -500
-			}
+			// Stalemate is a draw regardless of material balance.
 			return 0
 		}
 	}
