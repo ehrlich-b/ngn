@@ -41,11 +41,21 @@ func TestMoveOrdering(t *testing.T) {
 		t.Errorf("Expected %d moves, got %d", len(moves), len(orderedMoves))
 	}
 
-	// Test that the first move is a high-priority capture (queen capture)
+	// Highest-priority move is a non-capture queen promotion: it nets a queen
+	// without giving up a pawn to a recapture, so it ranks above winning
+	// captures (PxQ, etc.) per the move ordering scheme in moveorder.go.
 	if len(orderedMoves) > 0 {
 		firstMove := orderedMoves[0]
-		if !firstMove.IsCapture() || firstMove.CapturedPiece() != BlackQueen {
-			t.Errorf("Expected queen capture as first move, got %v", firstMove)
+		if firstMove.PromoType() != Queen || firstMove.IsCapture() {
+			t.Errorf("Expected non-capture queen promotion as first move, got %v", firstMove)
+		}
+	}
+
+	// Second-highest should be the queen capture (PxQ).
+	if len(orderedMoves) > 1 {
+		secondMove := orderedMoves[1]
+		if !secondMove.IsCapture() || secondMove.CapturedPiece() != BlackQueen {
+			t.Errorf("Expected queen capture as second move, got %v", secondMove)
 		}
 	}
 }
