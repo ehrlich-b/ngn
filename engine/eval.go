@@ -326,59 +326,51 @@ func countPassedPawns(board *Bitboard, color Color) int {
 	return passed
 }
 
-// Optimized passed pawn counting using pre-cached bitboards (replaces nested loops)
+// passedPawnFrontSpan[color][sq] is the set of squares ahead of `sq` (from
+// `color`'s perspective) on its own and adjacent files. A pawn at `sq` is
+// passed iff this mask AND the opponent's pawn bitboard is zero.
+// Index: 0 = Black, 1 = White (matches the Color enum: Black=0, White=1).
+var passedPawnFrontSpan [2][64]uint64
+
+func init() {
+	for sq := 0; sq < 64; sq++ {
+		rank := sq / 8
+		file := sq % 8
+		var wMask, bMask uint64
+		for r := 0; r < 8; r++ {
+			for fOff := -1; fOff <= 1; fOff++ {
+				f := file + fOff
+				if f < 0 || f > 7 {
+					continue
+				}
+				bit := uint64(1) << uint(r*8+f)
+				if r > rank {
+					wMask |= bit
+				}
+				if r < rank {
+					bMask |= bit
+				}
+			}
+		}
+		passedPawnFrontSpan[White][sq] = wMask
+		passedPawnFrontSpan[Black][sq] = bMask
+	}
+}
+
+// countPassedPawnsFast: pawn is passed iff no opponent pawn lies on its file
+// or adjacent files at any rank ahead (from the pawn's perspective).
 func countPassedPawnsFast(pawnBitboard, opponentPawnBitboard uint64, color Color) int {
 	if pawnBitboard == 0 {
 		return 0
 	}
-
 	passed := 0
-
-	// Generate opponent pawn attack masks by file for O(1) lookups
-	var opponentControl [8]uint64
-
-	for obb := opponentPawnBitboard; obb != 0; obb &= obb - 1 {
-		sq := bits.TrailingZeros64(obb)
-		file := sq % 8
-		rank := sq / 8
-
-		// Mark files controlled by this opponent pawn
-		if file > 0 { // Left adjacent file
-			if color == White {
-				opponentControl[file-1] |= uint64(0xFF) << (rank * 8) // All ranks >= this rank
-			} else {
-				opponentControl[file-1] |= uint64(0xFF) >> ((7 - rank) * 8) // All ranks <= this rank
-			}
-		}
-		opponentControl[file] |= uint64(0xFF) << (rank * 8) // Same file
-		if file < 7 {                                       // Right adjacent file
-			if color == White {
-				opponentControl[file+1] |= uint64(0xFF) << (rank * 8) // All ranks >= this rank
-			} else {
-				opponentControl[file+1] |= uint64(0xFF) >> ((7 - rank) * 8) // All ranks <= this rank
-			}
-		}
-	}
-
-	// Check each pawn against file masks
+	masks := &passedPawnFrontSpan[color]
 	for bb := pawnBitboard; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		file := sq % 8
-
-		// Create mask for squares this pawn must pass through
-		var pathMask uint64
-		if color == White {
-			pathMask = uint64(0xFF) << ((sq/8 + 1) * 8) // All ranks ahead
-		} else {
-			pathMask = uint64(0xFF) >> ((7 - sq/8 + 1) * 8) // All ranks ahead
-		}
-
-		// Check if path is clear
-		if (pathMask & opponentControl[file]) == 0 {
+		if masks[sq]&opponentPawnBitboard == 0 {
 			passed++
 		}
 	}
-
 	return passed
 }
 
