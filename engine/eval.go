@@ -715,11 +715,12 @@ func evaluateKingSafety(board *Bitboard, color Color) int {
 	pawnShieldBonus := evaluatePawnShield(pawnBitboard, kingFile, kingRank, color)
 	safety += pawnShieldBonus
 
-	// 2. Attack Pattern Evaluation (penalties for enemy pieces near king)
-	attackPenalty := evaluateKingAttackPatterns(
+	// 2. Attack Pattern Evaluation (penalties for enemy pieces actually
+	// attacking the king zone, not just sitting near it).
+	attackPenalty := evaluateKingAttackPatterns(board,
 		opponentQueenBitboard, opponentRookBitboard,
 		opponentBishopBitboard, opponentKnightBitboard,
-		kingFile, kingRank, color)
+		int(kingSquare), color)
 	safety -= attackPenalty
 
 	// 3. King position penalty (being in center during middlegame is dangerous)
@@ -1183,46 +1184,72 @@ func evaluatePawnShield(pawnBitboard uint64, kingFile int, kingRank int, color C
 	return shieldBonus
 }
 
-// Helper function to evaluate enemy attack patterns near king
-func evaluateKingAttackPatterns(queenBB, rookBB, bishopBB, knightBB uint64,
-	kingFile int, kingRank int, color Color) int {
+// evaluateKingAttackPatterns computes a king-safety penalty based on real
+// attack bitboards rather than just piece proximity. Each opponent piece type
+// contributes attack-units proportional to the number of king-zone squares it
+// actually attacks (knight=2, bishop=2, rook=3, queen=5 per attacked square).
+// With 2+ distinct attackers, the total is fed through a quadratic curve so
+// multi-piece attacks compound super-linearly; with 0-1 attackers, a small
+// linear penalty captures harassment without overcommitting. Capped at 500cp.
+func evaluateKingAttackPatterns(board *Bitboard, queenBB, rookBB, bishopBB, knightBB uint64,
+	kingSquare int, color Color) int {
 
-	attackWeight := 0
+	// King zone: the king's square, its 8 neighbors, plus a one-rank
+	// extension toward the enemy half (where pieces stage attacks from).
+	kingZone := KingAttacks[kingSquare] | (uint64(1) << kingSquare)
+	if color == White {
+		kingZone |= kingZone << 8
+	} else {
+		kingZone |= kingZone >> 8
+	}
 
-	// Check for enemy pieces in extended king zone (5x5 area) without allocations
-	for fileOffset := -2; fileOffset <= 2; fileOffset++ {
-		for rankOffset := -2; rankOffset <= 2; rankOffset++ {
-			checkFile := kingFile + fileOffset
-			checkRank := kingRank + rankOffset
+	occupied := board.GetWhitePieces() | board.GetBlackPieces()
 
-			if checkFile >= 0 && checkFile <= 7 && checkRank >= 0 && checkRank <= 7 {
-				square := checkRank*8 + checkFile
-				squareMask := uint64(1 << square)
+	attackUnits := 0
+	attackerCount := 0
 
-				// Weight attacks by piece value and proximity
-				distance := evalAbs(checkFile-kingFile) + evalAbs(checkRank-kingRank)
-				proximityMultiplier := 4 - (distance / 2) // Closer pieces are more dangerous
-				if proximityMultiplier < 1 {
-					proximityMultiplier = 1
-				}
-
-				if (queenBB & squareMask) != 0 {
-					attackWeight += 20 * proximityMultiplier // Queens are very dangerous
-				}
-				if (rookBB & squareMask) != 0 {
-					attackWeight += 10 * proximityMultiplier // Rooks are dangerous
-				}
-				if (bishopBB & squareMask) != 0 {
-					attackWeight += 8 * proximityMultiplier // Bishops can be dangerous
-				}
-				if (knightBB & squareMask) != 0 {
-					attackWeight += 12 * proximityMultiplier // Knights are tricky near king
-				}
-			}
+	for bb := knightBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		hits := KnightAttacks[sq] & kingZone
+		if hits != 0 {
+			attackerCount++
+			attackUnits += 2 * PopCount(hits)
+		}
+	}
+	for bb := bishopBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		hits := getBishopAttacksBB(sq, occupied) & kingZone
+		if hits != 0 {
+			attackerCount++
+			attackUnits += 2 * PopCount(hits)
+		}
+	}
+	for bb := rookBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		hits := getRookAttacksBB(sq, occupied) & kingZone
+		if hits != 0 {
+			attackerCount++
+			attackUnits += 3 * PopCount(hits)
+		}
+	}
+	for bb := queenBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		hits := (getBishopAttacksBB(sq, occupied) | getRookAttacksBB(sq, occupied)) & kingZone
+		if hits != 0 {
+			attackerCount++
+			attackUnits += 5 * PopCount(hits)
 		}
 	}
 
-	return attackWeight
+	if attackerCount < 2 {
+		return attackUnits / 2
+	}
+
+	penalty := attackUnits * attackUnits / 8
+	if penalty > 500 {
+		penalty = 500
+	}
+	return penalty
 }
 
 // Basic endgame knowledge evaluation
