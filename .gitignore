@@ -50,3 +50,7 @@ debug.txt
 
 # Evaluation results and output
 /output/
+
+# Local Claude config and review scratch files
+.claude/
+gpt_review.md
