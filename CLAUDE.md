@@ -21,6 +21,12 @@ runs a 30-position tactical suite plus a 5-game asymmetric match (NGN 1s vs
 SF1500 200ms) and appends results to a rolling-ELO history at
 `output/smoke_history.jsonl`. The cumulative Wilson CI tightens with every run.
 
+Older runs decay by commit distance from HEAD: full weight at distance 0, then
+−10%/commit through commit 5 (weight 0.5), then −5%/commit through commit 15
+(weight 0). After 15 commits without a smoke, that data point falls off
+entirely and confidence opens up again. Run smoke regularly to keep effective
+sample size high.
+
 The rolling-ELO at this config (~1430 baseline) is a **regression detector,
 not the engine's absolute strength**. The 1s/200ms ratio is much tighter than
 the 2.5s/200ms baseline used for "true" assessment; NGN looks weaker here on

@@ -317,9 +317,52 @@ func loadHistory(path string) ([]runRecord, error) {
 	return out, scan.Err()
 }
 
+// weightedRun pairs a record with the commit distance from HEAD and the
+// resulting decay weight. distance < 0 means the SHA is unreachable (deleted,
+// rewritten, or unknown) — those contribute zero weight.
+type weightedRun struct {
+	rec      runRecord
+	distance int
+	weight   float64
+}
+
+// commitDistance counts commits in HEAD's history that aren't in sha's
+// ancestry. Returns 0 when sha == HEAD, positive when HEAD has moved forward,
+// and -1 if sha can't be resolved.
+func commitDistance(sha string) int {
+	if sha == "" || sha == "unknown" {
+		return -1
+	}
+	out, err := exec.Command("git", "rev-list", "--count", sha+"..HEAD").Output()
+	if err != nil {
+		return -1
+	}
+	n, err := strconv.Atoi(strings.TrimSpace(string(out)))
+	if err != nil {
+		return -1
+	}
+	return n
+}
+
+// recordWeight applies linear decay so older runs count for less:
+//   - distance 0-5:   weight = 1.0 - 0.10*distance       (1.00 → 0.50)
+//   - distance 6-14:  weight = 0.50 - 0.05*(distance-5)  (0.45 → 0.05)
+//   - distance ≥ 15:  weight = 0  (full decay; "wide-open" again)
+//   - unreachable:    weight = 0  (rebased / unknown SHA)
+func recordWeight(distance int) float64 {
+	if distance < 0 || distance >= 15 {
+		return 0
+	}
+	if distance <= 5 {
+		return 1.0 - 0.10*float64(distance)
+	}
+	return 0.50 - 0.05*float64(distance-5)
+}
+
 // printRolling reports the rolling estimate restricted to runs at the same
 // (targetELO, ngnMs, sfMs) configuration. Different configs are not directly
-// comparable so we don't pool them.
+// comparable so we don't pool them. Older records decay per recordWeight so
+// stale data slowly bleeds out as commits accumulate.
 func printRolling(historyPath string, targetELO, ngnMs, sfMs int) {
 	all, err := loadHistory(historyPath)
 	if err != nil {
@@ -338,35 +381,71 @@ func printRolling(historyPath string, targetELO, ngnMs, sfMs int) {
 		return
 	}
 
-	var w, d, l, total int
+	weighted := make([]weightedRun, 0, len(matching))
 	for _, r := range matching {
-		w += r.NgnW
-		d += r.Draws
-		l += r.SfW
-		total += r.Games
+		d := commitDistance(r.SHA)
+		w := recordWeight(d)
+		weighted = append(weighted, weightedRun{rec: r, distance: d, weight: w})
 	}
-	score := float64(w) + 0.5*float64(d)
-	est, lo, hi := eloEstimate(score, total, targetELO)
 
-	fmt.Printf("\n== Rolling ELO (%d games across %d runs at NGN %dms vs SF%d %dms) ==\n",
-		total, len(matching), ngnMs, targetELO, sfMs)
-	fmt.Printf("Cumulative: %dW %dD %dL = %.1f%%\n", w, d, l, score/float64(total)*100)
-	fmt.Printf("Estimated ELO: %.0f  CI [%.0f, %.0f]  (width %.0f)\n",
-		est, lo, hi, hi-lo)
+	var wW, wD, wL, wTotal float64
+	contributing := 0
+	for _, wr := range weighted {
+		if wr.weight <= 0 {
+			continue
+		}
+		wW += wr.weight * float64(wr.rec.NgnW)
+		wD += wr.weight * float64(wr.rec.Draws)
+		wL += wr.weight * float64(wr.rec.SfW)
+		wTotal += wr.weight * float64(wr.rec.Games)
+		contributing++
+	}
+
+	fmt.Printf("\n== Rolling ELO (commit-decayed, NGN %dms vs SF%d %dms) ==\n",
+		ngnMs, targetELO, sfMs)
+	if wTotal <= 0 {
+		oldest := -1
+		for _, wr := range weighted {
+			if wr.distance > oldest {
+				oldest = wr.distance
+			}
+		}
+		fmt.Println("(no recent runs within decay window — confidence wide open)")
+		if oldest >= 0 {
+			fmt.Printf("Total runs in bucket: %d (oldest %d commits behind HEAD)\n",
+				len(matching), oldest)
+		} else {
+			fmt.Printf("Total runs in bucket: %d (SHAs unreachable)\n", len(matching))
+		}
+	} else {
+		score := wW + 0.5*wD
+		est, lo, hi := eloEstimate(score, wTotal, targetELO)
+		fmt.Printf("Effective sample: %.1f games across %d/%d runs\n",
+			wTotal, contributing, len(matching))
+		fmt.Printf("Weighted: %.1fW %.1fD %.1fL = %.1f%%\n",
+			wW, wD, wL, score/wTotal*100)
+		fmt.Printf("Estimated ELO: %.0f  CI [%.0f, %.0f]  (width %.0f)\n",
+			est, lo, hi, hi-lo)
+	}
 
 	// Show the last few runs for trend visibility.
 	const recentN = 6
-	start := len(matching) - recentN
+	start := len(weighted) - recentN
 	if start < 0 {
 		start = 0
 	}
-	fmt.Println("Recent runs (most recent last):")
-	for _, r := range matching[start:] {
-		ts := r.Timestamp.Local().Format("Mon 15:04")
-		runScore := float64(r.NgnW) + 0.5*float64(r.Draws)
-		runRate := runScore / float64(r.Games)
-		fmt.Printf("  %s  %s  %dW %dD %dL = %.0f%%\n",
-			ts, shortSHA(r.SHA), r.NgnW, r.Draws, r.SfW, runRate*100)
+	fmt.Println("Recent runs (most recent last; d=commits behind HEAD, w=weight):")
+	for _, wr := range weighted[start:] {
+		ts := wr.rec.Timestamp.Local().Format("Mon 15:04")
+		runScore := float64(wr.rec.NgnW) + 0.5*float64(wr.rec.Draws)
+		runRate := runScore / float64(wr.rec.Games)
+		dStr := strconv.Itoa(wr.distance)
+		if wr.distance < 0 {
+			dStr = "?"
+		}
+		fmt.Printf("  %s  %s  d=%-3s w=%.2f  %dW %dD %dL = %.0f%%\n",
+			ts, shortSHA(wr.rec.SHA), dStr, wr.weight,
+			wr.rec.NgnW, wr.rec.Draws, wr.rec.SfW, runRate*100)
 	}
 }
 
@@ -388,17 +467,17 @@ func shortSHA(sha string) string {
 // Wilson CI on a Bernoulli sample (with score = wins + 0.5*draws used as the
 // "successes" count — this is the standard chess-Elo trick: it overestimates
 // variance slightly vs a two-parameter draw model, but is the right thing to
-// do given typical engine-vs-engine sample sizes).
-func wilsonCI(score float64, n int) (lo, hi float64) {
+// do given typical engine-vs-engine sample sizes). n is float so callers can
+// pass weighted (effective) sample sizes — the math is identical.
+func wilsonCI(score, n float64) (lo, hi float64) {
 	const z = 1.96
-	if n == 0 {
+	if n <= 0 {
 		return 0, 1
 	}
-	p := score / float64(n)
-	nf := float64(n)
-	denom := 1.0 + z*z/nf
-	center := (p + z*z/(2*nf)) / denom
-	margin := z * math.Sqrt(p*(1-p)/nf+z*z/(4*nf*nf)) / denom
+	p := score / n
+	denom := 1.0 + z*z/n
+	center := (p + z*z/(2*n)) / denom
+	margin := z * math.Sqrt(p*(1-p)/n+z*z/(4*n*n)) / denom
 	lo = center - margin
 	hi = center + margin
 	if lo < 0 {
@@ -421,11 +500,11 @@ func scoreToEloDiff(p float64) float64 {
 	return 400 * math.Log10(p/(1-p))
 }
 
-func eloEstimate(score float64, n, targetELO int) (est, lo, hi float64) {
-	if n == 0 {
+func eloEstimate(score, n float64, targetELO int) (est, lo, hi float64) {
+	if n <= 0 {
 		return float64(targetELO), float64(targetELO) - 400, float64(targetELO) + 400
 	}
-	p := score / float64(n)
+	p := score / n
 	pLo, pHi := wilsonCI(score, n)
 	return float64(targetELO) + scoreToEloDiff(p),
 		float64(targetELO) + scoreToEloDiff(pLo),
