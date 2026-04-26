@@ -728,6 +728,8 @@ func evaluateKingSafety(board *Bitboard, color Color) int {
 	}
 
 	// 4. Open file penalty near king
+	whitePawnsAll := board.GetBitboardOf(WhitePawn)
+	blackPawnsAll := board.GetBitboardOf(BlackPawn)
 	for fileOffset := -1; fileOffset <= 1; fileOffset++ {
 		file := kingFile + fileOffset
 		if file < 0 || file > 7 {
@@ -736,22 +738,14 @@ func evaluateKingSafety(board *Bitboard, color Color) int {
 
 		// Check if this file is open (no pawns from either side)
 		fileMask := uint64(0x0101010101010101) << file
-		if color == White {
-			whitePawns := board.GetBitboardOf(WhitePawn) & fileMask
-			blackPawns := board.GetBitboardOf(BlackPawn) & fileMask
-			if whitePawns == 0 && blackPawns == 0 {
-				safety -= 20 // Open file near king is dangerous
-			} else if whitePawns == 0 {
-				safety -= 10 // Semi-open file is also risky
-			}
-		} else {
-			whitePawns := board.GetBitboardOf(WhitePawn) & fileMask
-			blackPawns := board.GetBitboardOf(BlackPawn) & fileMask
-			if whitePawns == 0 && blackPawns == 0 {
-				safety -= 20 // Open file near king is dangerous
-			} else if blackPawns == 0 {
-				safety -= 10 // Semi-open file is also risky
-			}
+		whitePawns := whitePawnsAll & fileMask
+		blackPawns := blackPawnsAll & fileMask
+		if whitePawns == 0 && blackPawns == 0 {
+			safety -= 20 // Open file near king is dangerous
+		} else if color == White && whitePawns == 0 {
+			safety -= 10 // Semi-open file is also risky
+		} else if color == Black && blackPawns == 0 {
+			safety -= 10
 		}
 	}
 
