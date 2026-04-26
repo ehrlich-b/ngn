@@ -71,19 +71,30 @@ These are deferred from the 2026-04-26 batch. Lower priority; do not block stren
 
 ## Assessment Strategy
 
-### Standard Cadence (15-30 min, E-cores, depth 6-7 reached)
-```bash
-./build/elo-assess -elo 1500 -movetime 2500 -min 6 -games 14 -ci 300
-```
-Asymmetric (`-sfmovetime 200`) is the variant used to verify the recent +160 ELO win.
-14 games with Bayesian early-stop. CI width ~300-400 ELO — detects ±80 ELO swings.
+### Default: `make smoke` (~5 min, E-cores, battery-friendly)
+Runs a 30-position tactical suite plus a 5-game asymmetric match (NGN 1s vs
+SF1500 200ms). Appends results to `output/smoke_history.jsonl`. Prints a
+rolling Wilson CI that tightens with every run. Fail conditions: tactical
+solve rate < 40% or 0/5 game outcome.
 
-### Quick Smoke Test (3-5 min, depth 4 only)
 ```bash
-./build/elo-assess -elo 1320 -movetime 200 -min 6 -games 14 -ci 300
+make smoke              # Default cadence
+make smoke-tactical     # Tactical only (~5 sec) — for in-flight changes
+./build/smoke -rolling  # Show rolling estimate without running
 ```
 
-### Legacy Presets (hotter)
+The rolling estimate is the source of truth for current ELO, not any single
+smoke. After 6-10 smokes at the default config the cumulative CI is tighter
+than a single 14-game Bayesian and you've burned an order of magnitude less
+battery.
+
+### Full Bayesian (AC power only, ~15-30 min)
+```bash
+./build/elo-assess -elo 1500 -movetime 2500 -sfmovetime 200 -min 6 -games 14 -ci 300
+```
+Use when you need a tight one-shot CI before a major decision.
+
+### Legacy Presets (hotter, mostly historical)
 ```bash
 ./build/elo-assess -level 1   # 8 games @ 250ms
 ./build/elo-assess -level 5   # 20 games @ 400ms
@@ -181,9 +192,10 @@ All classical evaluation features now implemented:
 - Deferred: SAN→UCI in `TestEnginePlayingStrength`, Polyglot constants (Pri 6)
 
 ### Phase 4: ELO Validation + Tuning (CURRENT)
-1. Run an asymmetric Bayesian ELO test on AC power to measure the search-correctness batch (~+? ELO over the prior 1659 baseline). Cadence: `./build/elo-assess -elo 1500 -movetime 2500 -sfmovetime 200 -min 6 -games 14 -ci 300`.
-2. If the batch is a clear net-positive, move into eval/search parameter tuning.
-3. Optional: address remaining test hygiene + Polyglot constants if external book support is wanted.
+1. Build the rolling-ELO baseline by running `make smoke` after each change. Per-run Wilson CI is wide (~700+ ELO at 5 games), but the cumulative across 6-10 smokes converges below 300.
+2. Tune evaluation/search parameters one knob at a time, gating each with `make smoke`. Revert anything that regresses tactically or drives the cumulative ELO down.
+3. When you need a publishable single-shot CI (e.g., before claiming a milestone), run a full 14-game Bayesian on AC power.
+4. Optional: address remaining test hygiene + Polyglot constants if external book support is wanted.
 
 ---
 
@@ -221,12 +233,15 @@ NNUE adds ~300-400 ELO on top of a strong classical base, but is NOT required fo
 ## Commands Reference
 
 ```bash
-make build       # Build engine
-make test        # Run tests with coverage
-make test-short  # Run tests without coverage (faster; bot review notes some non-short tests fail)
-make eval        # 2-minute comprehensive eval (use sparingly)
+make build           # Build engine
+make test            # Run tests with coverage
+make test-short      # Run tests without coverage (faster)
+make smoke           # DEFAULT verification: tactical + 5-game smoke + rolling ELO (~5 min)
+make smoke-tactical  # Tactical-only smoke (~5 sec)
 
-# Asymmetric Bayesian ELO test (preferred verification cadence):
+./build/smoke -rolling   # Print rolling-ELO summary without running
+
+# Full Bayesian ELO test (AC power only):
 ./build/elo-assess -elo 1500 -movetime 2500 -sfmovetime 200 -min 6 -games 14 -ci 300
 ```
 

@@ -45,10 +45,20 @@ make test     # Run tests
 
 ## ELO Assessment
 
+Default cadence is `make smoke`: tactical suite + 5-game asymmetric match,
+records to `output/smoke_history.jsonl`, prints a rolling ELO estimate that
+tightens with every run.
+
 ```bash
-./build/elo-assess -level 1   # Quick (1 min)
-./build/elo-assess -level 5   # Standard (5 min)
-./build/elo-assess -level 10  # Thorough (10 min)
+make smoke              # ~5 min, battery-friendly (E-cores)
+make smoke-tactical     # ~5 sec, tactical only
+./build/smoke -rolling  # Print rolling estimate without running
+```
+
+Full Bayesian test (only when on AC power):
+
+```bash
+./build/elo-assess -elo 1500 -movetime 2500 -sfmovetime 200 -min 6 -games 14 -ci 300
 ```
 
 ## Development

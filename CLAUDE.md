@@ -16,32 +16,47 @@ make dev            # Full cycle: format, test, build
 
 ## ELO Assessment
 
-Default: Bayesian early-stop with 2500ms/move on macOS E-cores (`taskpolicy -b`).
-At 200ms we only reached depth 4 in middlegame; at 2500ms we reach depth 6-7,
-which is meaningful for tactical accuracy. Mac stays cool on E-cores.
+**Default loop is `make smoke`** (~3-5 min on E-cores, battery-friendly). It
+runs a 30-position tactical suite plus a 5-game asymmetric match (NGN 1s vs
+SF1500 200ms) and appends results to a rolling-ELO history at
+`output/smoke_history.jsonl`. The cumulative Wilson CI tightens with every run.
+
+The rolling-ELO at this config (~1430 baseline) is a **regression detector,
+not the engine's absolute strength**. The 1s/200ms ratio is much tighter than
+the 2.5s/200ms baseline used for "true" assessment; NGN looks weaker here on
+purpose so we get faster feedback. What you watch for is the rolling estimate
+not falling much below the running baseline.
 
 ```bash
-# Standard cadence (~15-30 min, cool, depth 6-7 reached):
-./build/elo-assess -elo 1500 -movetime 2500 -min 6 -games 14 -ci 300
-
-# Quick smoke test (~3-5 min, depth 4 only):
-./build/elo-assess -elo 1320 -movetime 200 -min 6 -games 14 -ci 300
-
-# Legacy presets:
-./build/elo-assess -level 1   # 8 games @ 250ms
-./build/elo-assess -level 5   # 20 games @ 400ms
-./build/elo-assess -level 10  # 40 games @ 600ms
+make smoke              # Tactical + 5 games + rolling estimate (~5 min)
+make smoke-tactical     # Tactical only (~5 sec) — for in-flight changes
+./build/smoke -rolling  # Just print the rolling estimate, no run
 ```
+
+Only fall back to the full `elo-assess` Bayesian test when on AC power and you
+need a tight one-shot CI for publication or before a major decision:
+
+```bash
+./build/elo-assess -elo 1500 -movetime 2500 -sfmovetime 200 -min 6 -games 14 -ci 300
+```
+
+Legacy presets exist (`-level 1/5/10`) but are not the default cadence.
 
 ## Development Rules
 
 ### Testing Cadence
-- **Default to 14-game Bayesian tests** at 2500ms on E-cores. Takes 15-30 min. Detects ±80 ELO.
-- **Don't chase small effects** (< 50 ELO). 14-game CI is ~300-400 ELO wide — such deltas are pure noise. Resolving them needs 150+ games of direct A/B + SPRT.
-- **Iteration loop:** surgical fix → `go build` → 14-game test → commit if visibly better or within noise; revert if visibly worse.
-- **Commit checkpoints** after every confirmed win. Regressions bisect via `git stash` on one file at a time (search.go vs eval.go).
-- **Never run on P-cores** (default `-lowpower=true` routes to E-cores). Don't override.
-- **Avoid long fixed-game runs** unless explicitly asked. Prefer Bayesian early-stop.
+- **Default to `make smoke`** after every change. ~5 min, runs in-place on
+  E-cores, records a rolling-ELO data point.
+- **Smoke fails** on tactical solve rate < 40% or 0/5 game outcome (catches
+  catastrophic regressions). Mid outcomes are NEUTRAL and you continue.
+- **Rolling estimate is the source of truth for current ELO**, not any single
+  smoke. Once you have 6-10 runs at the default config the cumulative CI is
+  tighter than a single 14-game Bayesian.
+- **Don't chase small effects** (< 50 ELO). Even with the rolling estimate,
+  resolving 30-50 ELO deltas needs many runs. Big wins should appear within a
+  few smoke runs; if it doesn't show up across 4-5 smokes, it's noise.
+- **Commit checkpoints** after every smoke that doesn't fail.
+- **Never run on P-cores** (default `-lowpower=true` routes to E-cores).
 
 ### Always Update TODO.md
 After ANY task, update TODO.md to reflect current status.
