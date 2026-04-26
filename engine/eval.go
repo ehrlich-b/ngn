@@ -2339,13 +2339,21 @@ func Evaluate(board *Bitboard) (eval int) {
 	}, board)
 }
 
-// EvaluateForPlayer returns evaluation from the given player's perspective.
+// TempoBonus is a small advantage given to the side-to-move, reflecting
+// that having the next move is itself a mild positional asset. Standard
+// classical-eval value across most engines is ~10–15 cp.
+const TempoBonus = 10
+
+// EvaluateForPlayer returns evaluation from the given player's perspective,
+// including the tempo bonus for being the side-to-move. All callers in this
+// engine pass `pos.Turn()` (the side to move), so adding the bonus here
+// reliably gives it to whoever is about to play.
 func EvaluateForPlayer(board *Bitboard, player Color) int {
 	whiteEval := Evaluate(board)
 	if player == White {
-		return whiteEval
+		return whiteEval + TempoBonus
 	}
-	return -whiteEval
+	return -whiteEval + TempoBonus
 }
 
 func evaluateUnsafe(board *Bitboard) (eval int) {
