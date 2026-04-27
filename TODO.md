@@ -176,23 +176,26 @@ Use when you need a tight one-shot CI before a major decision.
 - [x] Recapture extensions
 - [x] Passed pawn extensions
 
-### Evaluation (COMPLETE)
-- [x] Material
-- [x] Piece-square tables
-- [x] King endgame PST (different from middlegame)
+### Evaluation
+
+Currently wired into `evaluateUnsafe`:
+- [x] Material + PeSTO tapered MG/EG piece-square tables (all pieces, not just king)
+- [x] Passed pawns bonus
 - [x] Doubled pawns penalty
 - [x] Isolated pawns penalty
-- [x] Passed pawns bonus
-- [x] Pawn chains bonus
-- [x] Pawn storms
-- [x] Weak squares
+- [x] Pawn chains bonus (re-wired commit a609f94 — was orphaned by PeSTO swap c6675ff)
 - [x] Bishop pair bonus
-- [x] Mobility evaluation (knights, bishops, rooks, queens)
-- [x] King safety (pawn shield, open files)
-- [x] Knight outposts
-- [x] Piece coordination
-- [x] Rook on open file (explicit bonus)
-- [x] Tapered eval (MG/EG interpolation for king PST)
+- [x] Mobility (knights/bishops/rooks/queens, enemy-pawn-attacked squares excluded)
+- [x] Rook on open / semi-open file
+- [x] King safety (pawn shield + attack-table king-zone scoring; middlegame only, phase ≥ 12)
+- [x] Tempo bonus (10cp side-to-move, applied in `EvaluateForPlayer`)
+
+Orphaned (function defined but never called from `evaluateUnsafe`; left as dead code by the PeSTO swap):
+- [ ] `evaluatePawnStorms` (eval.go:561) — moderate magnitude (advancement×4, +10 near-king, +8 connected); may double-count with attack-table king safety
+- [ ] `evaluatePieceCoordination` (eval.go:1517) — large/inflated magnitudes (queen-protection ×8 etc.); inline comments admit values were already tuned-down once. High risk to re-enable without recalibration
+- [ ] `evaluateOutpostSquares` (eval.go:1733) — only called from piece coordination; same status
+- [ ] `evaluateWeakSquares` (eval.go:450) — short-circuits `return 0`; real logic commented out for performance. Effectively a re-implementation
+- [ ] `evaluateBasicEndgames` (eval.go:1256) and its helpers `evaluateKingPawnOpposition`, `evaluateKingActivity` — `+800/+600` magnitudes mis-calibrated against PeSTO; deferred per project_bugs memory
 
 ### Infrastructure
 - [x] Opening book (embedded works; external Polyglot broken — see Remaining Known Issues)
