@@ -11,31 +11,31 @@
     {
       "name": "After 1.e4",
       "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
-      "eval": 44,
+      "eval": 41,
       "comments": "White pawn controls center, slight advantage"
     },
     {
       "name": "Queen vs Rook",
       "fen": "4k3/8/8/8/8/8/8/4KQ1R w - - 0 1",
-      "eval": 1437,
+      "eval": 1441,
       "comments": "Queen should be ~400 points better than rook"
     },
     {
       "name": "Knight vs Bishop",
       "fen": "4k3/8/8/8/8/8/8/4KNB1 w - - 0 1",
-      "eval": 561,
+      "eval": 568,
       "comments": "Knight and bishop roughly equal, slight bishop edge"
     },
     {
       "name": "Central Knight",
       "fen": "4k3/8/8/3N4/8/8/8/4K3 w - - 0 1",
-      "eval": 322,
+      "eval": 326,
       "comments": "Centralized knight should score well"
     },
     {
       "name": "Edge Knight",
       "fen": "4k3/8/8/8/8/8/8/N3K3 w - - 0 1",
-      "eval": 243,
+      "eval": 247,
       "comments": "Knight on edge should be penalized"
     },
     {
@@ -71,7 +71,7 @@
     {
       "name": "Complex Middlegame",
       "fen": "r1bqk2r/ppp2ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 4 6",
-      "eval": 55,
+      "eval": 69,
       "comments": "Complex position with multiple factors"
     }
   ]

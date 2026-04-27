@@ -2387,6 +2387,13 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	blackIsolated := countIsolatedPawns(board, Black)
 	eval -= (whiteIsolated - blackIsolated) * 12
 
+	// Pawn chains: bonus for connected/supported pawns. Complements isolated
+	// (a pawn with adjacent-file support cannot be isolated by definition).
+	// Magnitudes are conservative (8/12cp + small advancement bonus); PSTs
+	// don't capture pair-based chain dynamics.
+	eval += evaluatePawnChains(board, White)
+	eval -= evaluatePawnChains(board, Black)
+
 	// Bishop pair bonus (small but real and not in PST).
 	eval += evaluateBishopPair(board, White)
 	eval -= evaluateBishopPair(board, Black)
