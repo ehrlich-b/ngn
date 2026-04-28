@@ -71,7 +71,7 @@
     {
       "name": "Complex Middlegame",
       "fen": "r1bqk2r/ppp2ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 4 6",
-      "eval": 69,
+      "eval": 81,
       "comments": "Complex position with multiple factors"
     }
   ]

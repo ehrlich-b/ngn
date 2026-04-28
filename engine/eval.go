@@ -2406,6 +2406,15 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	eval += evaluateRookOnOpenFile(board, White)
 	eval -= evaluateRookOnOpenFile(board, Black)
 
+	// Knight/bishop outposts (squares supported by own pawn, unattackable by
+	// enemy pawns, in enemy territory). PeSTO PSTs don't know pawn structure.
+	whiteKnights := board.GetBitboardOf(WhiteKnight)
+	whiteBishops := board.GetBitboardOf(WhiteBishop)
+	blackKnights := board.GetBitboardOf(BlackKnight)
+	blackBishops := board.GetBitboardOf(BlackBishop)
+	eval += evaluateOutpostSquares(whiteKnights, whiteBishops, whitePawns, blackPawns, White)
+	eval -= evaluateOutpostSquares(blackKnights, blackBishops, blackPawns, whitePawns, Black)
+
 	// King safety: pawn shield in middlegame only.
 	if phase >= 12 { // roughly middlegame or opening
 		eval += evaluateKingSafety(board, White)
