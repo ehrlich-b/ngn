@@ -2419,10 +2419,6 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	if phase >= 12 { // roughly middlegame or opening
 		eval += evaluateKingSafety(board, White)
 		eval -= evaluateKingSafety(board, Black)
-		// Pawn storms: own pawns advancing toward enemy king. Orthogonal to
-		// attack-table king safety (which counts piece attacks, not pawn pre-pressure).
-		eval += evaluatePawnStorms(board, White)
-		eval -= evaluatePawnStorms(board, Black)
 	} else if phase < 6 {
 		// Deep endgame only: encourage king centralization and supporting pawns.
 		// Wider phase windows interfered with tactical search where leaves drop
