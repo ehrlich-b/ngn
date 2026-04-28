@@ -667,8 +667,20 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 			nps = int(float64(nodes) / elapsed.Seconds())
 		}
 
+		// Reconstruct full PV by walking the TT from the post-root position.
+		pvMoves := ExtractPVFromTT(uci.position, move, 32)
+		var pvStr string
+		if len(pvMoves) == 0 {
+			pvStr = move.ToString()
+		} else {
+			pvStr = pvMoves[0].ToString()
+			for i := 1; i < len(pvMoves); i++ {
+				pvStr += " " + pvMoves[i].ToString()
+			}
+		}
+
 		infoMsg := fmt.Sprintf("info depth %d score %s nodes %d time %d nps %d pv %s",
-			depth, scoreStr, nodes, elapsed.Milliseconds(), nps, move.ToString())
+			depth, scoreStr, nodes, elapsed.Milliseconds(), nps, pvStr)
 		uci.sendUCIMessage(output, infoMsg)
 		uci.debugLogger.Printf("Sent info line for depth %d: score=%s bestMove=%s", depth, scoreStr, move.ToString())
 		}

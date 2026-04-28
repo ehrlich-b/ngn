@@ -624,6 +624,76 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 	return info
 }
 
+// ExtractPVFromTT reconstructs the principal variation by walking the
+// transposition table from the current position. firstMove is applied at the
+// root (since the iterative-deepening root loop doesn't write a TT entry there);
+// subsequent moves are read from Exact (PV) TT entries until a miss, a
+// non-Exact bound, an illegal move, a cycle, or maxLength is reached.
+//
+// The position is mutated during the walk and restored before return. Caller
+// must run this only after a search iteration has completed (no concurrent
+// search writes).
+func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
+	if maxLength <= 0 || firstMove == EmptyMove {
+		return nil
+	}
+	type undoEntry struct {
+		move Move
+		ep   Square
+		tag  PositionTag
+		hc   uint8
+	}
+	pv := make([]Move, 0, maxLength)
+	undoStack := make([]undoEntry, 0, maxLength)
+
+	apply := func(m Move) bool {
+		legal := false
+		for _, lm := range GenerateLegalMoves(pos) {
+			if lm == m {
+				legal = true
+				break
+			}
+		}
+		if !legal {
+			return false
+		}
+		ep, tag, hc, ok := pos.MakeMove(m)
+		if !ok {
+			return false
+		}
+		undoStack = append(undoStack, undoEntry{m, ep, tag, hc})
+		pv = append(pv, m)
+		return true
+	}
+
+	if !apply(firstMove) {
+		return nil
+	}
+
+	seen := make(map[uint64]struct{}, maxLength)
+	for len(pv) < maxLength {
+		hash := pos.Hash()
+		if _, exists := seen[hash]; exists {
+			break
+		}
+		seen[hash] = struct{}{}
+
+		ttMove, _, _, ttNodeType, ttHit := TranspositionTable.Get(hash)
+		if !ttHit || ttMove == EmptyMove || ttNodeType != Exact {
+			break
+		}
+		if !apply(ttMove) {
+			break
+		}
+	}
+
+	for i := len(undoStack) - 1; i >= 0; i-- {
+		e := undoStack[i]
+		pos.UnMakeMove(e.move, e.tag, e.ep, e.hc)
+	}
+	return pv
+}
+
 func SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
 	return searchFixedUnsafe(pos, depth, timeManager)
 }
