@@ -187,15 +187,16 @@ Currently wired into `evaluateUnsafe`:
 - [x] Bishop pair bonus
 - [x] Mobility (knights/bishops/rooks/queens, enemy-pawn-attacked squares excluded)
 - [x] Rook on open / semi-open file
+- [x] Outposts (knight/bishop on pawn-supported, unattackable enemy-territory squares; re-wired commit 94c4316)
 - [x] King safety (pawn shield + attack-table king-zone scoring; middlegame only, phase ≥ 12)
+- [x] King activity (centralization + king-near-pawns; deep endgame only, phase < 6; re-wired commit c0f6bbb)
 - [x] Tempo bonus (10cp side-to-move, applied in `EvaluateForPlayer`)
 
 Orphaned (function defined but never called from `evaluateUnsafe`; left as dead code by the PeSTO swap):
 - [ ] `evaluatePawnStorms` (eval.go:561) — moderate magnitude (advancement×4, +10 near-king, +8 connected); may double-count with attack-table king safety
 - [ ] `evaluatePieceCoordination` (eval.go:1517) — large/inflated magnitudes (queen-protection ×8 etc.); inline comments admit values were already tuned-down once. High risk to re-enable without recalibration
-- [ ] `evaluateOutpostSquares` (eval.go:1733) — only called from piece coordination; same status
 - [ ] `evaluateWeakSquares` (eval.go:450) — short-circuits `return 0`; real logic commented out for performance. Effectively a re-implementation
-- [ ] `evaluateBasicEndgames` (eval.go:1256) and its helpers `evaluateKingPawnOpposition`, `evaluateKingActivity` — `+800/+600` magnitudes mis-calibrated against PeSTO; deferred per project_bugs memory
+- [ ] `evaluateBasicEndgames` (eval.go:1256) and `evaluateKingPawnOpposition` (eval.go:1304) — `+800/+600` magnitudes mis-calibrated against PeSTO; deferred per project_bugs memory
 
 ### Infrastructure
 - [x] Opening book (embedded works; external Polyglot broken — see Remaining Known Issues)
