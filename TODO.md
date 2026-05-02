@@ -1,11 +1,12 @@
 # NGN Chess Engine - Development Roadmap
 
-## Goal: 2500+ ELO (Grandmaster Level)
+## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
-**Current Status:** 1653 ELO rolling-smoke estimate, 95% CI [1519, 1787] (commit-decayed,
-29.5-game effective sample at NGN 1000ms vs SF1500 200ms). The 14-game Bayesian baseline at
-NGN 2500ms was ~1659 ELO; the 1000ms cadence is intentionally tighter to surface
-regressions faster.
+**Current Status (2026-05-02):** 1477 ELO rolling-smoke estimate, 95% CI [1318, 1636]
+(commit-decayed, 17.2-game effective sample at NGN 1000ms vs SF1500 200ms). The recent CI
+widened from prior [1519, 1787] because three of the last 19 runs are now decay-aged
+beyond 5 commits and the most recent five include the pawn-storm regression and recovery.
+A fresh smoke after the audit-batch fixes is the next data point.
 
 ---
 
@@ -97,21 +98,93 @@ regressions faster.
 
 ---
 
-## Remaining Known Issues
+## 2026-05-02 audit batch — verified bugs
 
-These are deferred from the 2026-04-26 batch. Lower priority; do not block strength gains.
+Six parallel sub-agent audits of search/eval/movegen/qsearch+SEE/TT+hash/UCI+time produced
+findings; the items below were verified against current code. Apply one at a time gated by
+`make smoke-tactical`.
 
-### Pri 5 follow-up: discovered/EP/promotion check detection
-- Currently qsearch is captures-only (no quiet checks). If qsearch quiet-check coverage is desired later, implement a proper discovered-check detector or use make/unmake + `isInCheck`. Don't reintroduce the broken `moveGivesCheck` direct-attack-only path.
+### Pri 1: Mate distance pruning uses stale `info.Depth` (CONFIRMED)
+- `engine/search.go:916`: `currentDepth := info.Depth - depth` is wrong. `info.Depth` starts
+  at `maxDepth` (line 448) and is only updated on iteration completion (line 618). During
+  the tree walk it's stale; can even go negative on iteration 2+.
+- `engine/search.go:1482`: qsearch checkmate path computes `mateDistance := info.Depth + qDepth`
+  with the same staleness; should be `ply`.
+- Fix: replace both with `ply` (already threaded after the mate-TT fix).
+- Impact: ~5-15 ELO. Mate distance pruning is small even when working; qsearch mate-detection
+  inside captures is rare. Cheap fix, no regression risk.
 
-### Pri 6: External Polyglot books silently broken
-- `engine/polyglot.go:33-55` — `polyglotRandom[781]` is generated from xorshift seed=1 instead of the spec-defined constants. Verified mismatch: `PolyglotHash` of starting position yields `0x4b9aa9e5e768fe35`, spec says `0x463b96181691fc9c`.
+### Pri 2: SEE and delta pruning ignore promotion gain (CONFIRMED)
+- `engine/search.go:121`: `gain[depth] = int(capturedValue)` — initial SEE gain misses the
+  promotion bonus. For Pxf8=Q the SEE thinks gain is rook (~500) when it's rook + queen-pawn
+  (~1300). Causes SEE pruning to skip winning promotion-captures and move ordering to misrank.
+- `engine/search.go:1534`: delta pruning has the same flaw — `gain := move.CapturedPiece().seeWeight()`
+  doesn't add promo bonus, so legitimately winning promo-captures get pruned.
+- Fix: when `move.PromoType() != NoType`, add `GetPiece(promoType, color).Weight() - PawnValue`
+  to gain at both call sites.
+- Impact: ~5-15 ELO. Promotion-captures are rare in middlegame, more impactful in endgames
+  with passed pawns.
+
+### Pri 3: Singular extension reduction is too aggressive (CONFIRMED)
+- `engine/search.go` singular search uses `depth/2`; at depth 6 that's a depth-3 verification.
+  Standard practice is `depth - 4` or `depth - 3` (Stockfish, Ethereal). Current setting
+  misses real singular moves.
+- Fix: replace `depth/2` with `max(1, depth-4)`.
+- Impact: ~10-15 ELO from extra extensions at correct depths.
+
+### Pri 4: Qsearch discards TT move + searches captures unordered (CONFIRMED)
+- `engine/search.go:1426`: TT.Get returns ttMove but qsearch underscores it.
+- `engine/search.go:1530`: captures looped in raw `GenerateCapturesIntoBuffer` order; no
+  SEE/MVV-LVA preference. Note: full upfront sort was tried (commit 2f61d3a) and reverted at
+  -129 ELO. **Pick-best-on-step (single O(n) max-find before each move)** has not been tried
+  and is the right next experiment — only pays for moves searched before cutoff.
+- `engine/search.go:1450-1478`: in-check evasions also raw-order. Could try TT-move-first +
+  captures-first split.
+- Fix: capture ttMove from TT.Get; pick-best-on-step ordering for both branches.
+- Impact: speculative ~10-25 ELO. Smoke-gate carefully; revert on regression.
+
+### Pri 5: `info.SelDepth` not reset between iterations (cosmetic)
+- The pending diff in `engine/search.go` adds SelDepth tracking but never resets it at the
+  top of each iterative-deepening depth, so iteration N reports SelDepth from the deepest
+  prior iteration.
+- Fix: assign `info.SelDepth = currentDepth` at top of loop body in `searchIterativeDeepeningUnsafe`.
+- Impact: 0 ELO; UCI cosmetic only. But ship it correct since the diff is open.
+
+### Audit findings flagged but FALSE-POSITIVE
+- **King centrality "negative for corners"** (`eval.go:1476-1484`): agent claimed HIGH/+50 ELO.
+  Verified: `whiteCentrality = 6 - centerDistance` ranges [-1, +5] (slightly asymmetric, off
+  by one). Term enters as `(whiteCentrality - blackCentrality) * 3` so the asymmetry cancels
+  when both kings have similar status. Worst-case ~3cp calibration smell, not a real bug.
+- **Cache.go atomic race / replacement strategy** (`cache.go:107-113, 157-164`): agent claimed
+  partial-update visibility. This is the textbook XOR-verifier (lockless) pattern; mismatch
+  detection rejects partial updates safely.
+
+### Audit findings UNVERIFIED (defense-in-depth, low urgency)
+- White EP missing rank validation (`movegen.go:198-214`) — perft passes; defense-in-depth fix
+  if EP could ever be set to invalid rank by some other bug. Cheap to add.
+- Movetime + 50ms overhead floor (`time.go:265-266`) — claim is plausible only at very low
+  movetime (<100ms), uncommon in our smoke (1000ms). Verify if real.
+- Soft-stop volatility burning time (`time.go:370-381`) — speculative; would need targeted A/B.
+
+## Older deferred items
+
+### External Polyglot books silently broken
+- `engine/polyglot.go:33-55` — `polyglotRandom[781]` is generated from xorshift seed=1 instead
+  of the spec-defined constants. `PolyglotHash` of starting position yields
+  `0x4b9aa9e5e768fe35`; spec says `0x463b96181691fc9c`.
 - A real `.bin` polyglot book will never match positions. Embedded book still works.
-- Fix: embed the official 781 constants (large literal table) and add a starting-position hash check.
 
 ### Test hygiene (cosmetic)
-- `engine/play_quality_test.go` (`TestEnginePlayingStrength`) compares `Move.ToString()` UCI output (`b1c3`, `e1g1`) to expected SAN (`Nc3`, `O-O`). Engine plays the right move, test marks it neutral. Most outcomes never trigger `t.Errorf`, so this is misleading rather than blocking. Fix: store expected moves in UCI or parse SAN.
-- `engine/crash_stress_test.go:250-278` (`TestConcurrencyStress`) shares one mutable `*Position` across goroutines. Fix: copy per-goroutine, or document non-thread-safety of `Position`.
+- `engine/play_quality_test.go` (`TestEnginePlayingStrength`) compares `Move.ToString()` UCI
+  output (`b1c3`, `e1g1`) to expected SAN (`Nc3`, `O-O`). Engine plays the right move, test
+  marks it neutral.
+- `engine/crash_stress_test.go:250-278` (`TestConcurrencyStress`) shares one mutable
+  `*Position` across goroutines.
+
+### Qsearch quiet-check detection (deferred — low priority)
+- Currently qsearch is captures-only (quiet checks intentionally dropped after the
+  `moveGivesCheck` direct-attack-only bug). If quiet-check coverage is desired later, use a
+  proper discovered-check detector or make/unmake + `isInCheck`.
 
 ---
 
@@ -246,6 +319,59 @@ All classical evaluation features now implemented:
 2. Tune evaluation/search parameters one knob at a time, gating each with `make smoke`. Revert anything that regresses tactically or drives the cumulative ELO down.
 3. When you need a publishable single-shot CI (e.g., before claiming a milestone), run a full 14-game Bayesian on AC power.
 4. Optional: address remaining test hygiene + Polyglot constants if external book support is wanted.
+
+---
+
+## Realistic non-NN path to 2200 ELO
+
+You're at ~1450-1650 rolling. Target +550-750 ELO. Reference points: Crafty ~2600, Fruit
+~2700, pre-NNUE Stockfish ~3000 — all classical. The route is staged, each rung gated by
+smoke. Sized in expected ELO buckets per stage; reality will vary.
+
+**Stage 1 — Audit-batch fixes (target 1700, +50-100 ELO)**
+- Pri 1-5 above: mate distance ply, SEE/delta promotion, singular reduction, qsearch TT+ordering.
+- Tactical 27/30 → 29/30 expected from #2 + #4 alone.
+
+**Stage 2 — Texel tune existing magnitudes (target 1800, +50-100 ELO)**
+- `engine/texel.go` exists. The wired components (mobility baselines, king-safety quadratic
+  curve, pawn-structure penalties, PST blends, tempo) are hand-tuned or sub-agent-guessed.
+- Run a real Texel session against ~50K-100K labeled positions. Expect biggest movers in
+  king-safety weights and mobility baselines.
+- After tuning, re-evaluate orphans (`evaluatePawnStorms`, `evaluatePieceCoordination`) at
+  freshly-tuned magnitudes — they may be salvageable post-recalibration.
+
+**Stage 3 — Better history (target 1850, +30-50 ELO)**
+- Replace `[from][to]` history with `[piece][to]` (color/piece-aware).
+- Add **continuation history**: indexed by `[prev-piece][prev-to][curr-piece][curr-to]`.
+  Known +30-50 ELO from Stockfish/Ethereal experiments.
+- LMR formula change: `log(depth) * log(moveNum) / 2` (Stockfish-style) instead of current
+  piecewise.
+
+**Stage 4 — Eval features that move the needle (target 1950-2000, +120-170 ELO)**
+- Hanging/loose pieces: every undefended attacked piece worth piece_value/4. Big in tactical play.
+- King safety upgrade: open/half-open files in front of king + pawn shelter ratio (the
+  attack-table now exists; pair with pawn-shield strength).
+- Threats: piece attacks higher-value piece, discovered-attack potential, pinned-piece bonus.
+- Endgame heuristics that don't require tablebase: KPK rule-of-the-square, KBNK corner
+  driving, opposition.
+- Space evaluation in middlegame.
+
+**Stage 5 — Search depth (target 2050-2100, +50-100 ELO)**
+- Multi-cut after null move (search 2-3 moves at reduced depth before accepting null fail-high).
+- Probcut margin / depth re-tune.
+- Razoring depth/margin re-tune.
+- Internal iterative reductions for non-PV nodes without TT move (cheaper than IID).
+
+**Stage 6 — NPS (target 2150, +50 ELO)**
+- 350K NPS is low. Profile via `cpu.prof`. Movegen at 47KB has redundant paths; hot path
+  probably re-traverses bitboards.
+- Realistic Go-bitboard target is 800K-1M NPS. 2× NPS ≈ +50 ELO via deeper search.
+
+**Stage 7 — TT, time, polish (target 2200, +50 ELO)**
+- 2-bucket TT (depth-preferred + always-replace).
+- Wire UCI Hash option (currently ignored).
+- Smarter time management: easy-move detection, reduce on book/forced moves, extend on score drop.
+- Aspiration window: smaller initial (16cp), exponential growth.
 
 ---
 
