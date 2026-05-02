@@ -117,8 +117,14 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
 	color := movingPiece.Color().Other() // Side to move after initial capture
 	occupied := pos.Board.GetWhitePieces() | pos.Board.GetBlackPieces()
 
-	// Initial capture
+	// Initial capture. For promotion-captures, the pawn becomes a queen (or
+	// other promo type) on the target square, so the material gain is
+	// capturedValue + (promoValue - pawnValue).
 	gain[depth] = int(capturedValue)
+	if move.PromoType() != NoType {
+		promoPiece := GetPiece(move.PromoType(), movingPiece.Color())
+		gain[depth] += int(promoPiece.seeWeight()) - 100 // 100 = pawn seeWeight
+	}
 
 	for {
 		depth++
@@ -380,6 +386,7 @@ func getAttackersAfterMove(pos *Position, attackers uint64, occupied uint64, tar
 type SearchInfo struct {
 	Nodes       uint64
 	Depth       int
+	SelDepth    int // Maximum ply reached including quiescence
 	BestMove    Move
 	BestScore   int
 	Stopped     bool
@@ -419,7 +426,7 @@ func Search(pos *Position, depth int) *SearchInfo {
 }
 
 // DepthCallback is called after each depth completes during iterative deepening
-type DepthCallback func(depth int, score int, bestMove Move, nodes uint64)
+type DepthCallback func(info *SearchInfo)
 
 func SearchIterativeDeepening(pos *Position, maxDepth int, timeManager *TimeManager) *SearchInfo {
 	return SearchIterativeDeepeningWithCallback(pos, maxDepth, timeManager, nil)
@@ -484,6 +491,10 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		if info.TimeManager != nil {
 			info.TimeManager.NewIteration()
 		}
+
+		// Reset seldepth at the top of each iteration so UCI info reports the
+		// deepest reach for THIS iteration, not the max across all prior ones.
+		info.SelDepth = currentDepth
 
 		// Check time before starting each new depth iteration
 		if info.TimeManager != nil {
@@ -616,7 +627,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		if iterationComplete {
 			info.Depth = currentDepth
 			if callback != nil && info.BestMove != EmptyMove {
-				callback(currentDepth, info.BestScore, info.BestMove, info.Nodes)
+				callback(info)
 			}
 		}
 	}
@@ -801,6 +812,9 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 }
 
 func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bool, info *SearchInfo) int {
+	if ply > info.SelDepth {
+		info.SelDepth = ply
+	}
 	// Safety checks - reasonable limits
 	if info.Nodes > 50000000 { // 50M nodes
 		info.Stopped = true
@@ -908,13 +922,13 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		ttMove, _, _, _, _ = TranspositionTable.Get(hash)
 	}
 
-	// Mate distance pruning - don't look for mates that are too far away
-	currentDepth := info.Depth - depth
-	if currentDepth > 1000 {
-		currentDepth = 1000 // Clamp to prevent overflow
-	}
-	mateAlpha := -MATE_VALUE + currentDepth
-	mateBeta := MATE_VALUE - currentDepth - 1
+	// Mate distance pruning - don't look for mates that are too far away.
+	// Use ply (distance from root) directly. Earlier code computed
+	// `info.Depth - depth`, but info.Depth is only set after iteration
+	// completion (line 618), so during the tree walk it was either maxDepth
+	// (first iteration) or the prior completed depth — i.e. wrong.
+	mateAlpha := -MATE_VALUE + ply
+	mateBeta := MATE_VALUE - ply - 1
 
 	if alpha < mateAlpha {
 		alpha = mateAlpha
@@ -1401,6 +1415,9 @@ func quiescence(pos *Position, alpha int, beta int, ply int, info *SearchInfo) i
 }
 
 func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *SearchInfo, qDepth int) int {
+	if d := ply + qDepth; d > info.SelDepth {
+		info.SelDepth = d
+	}
 	// Prevent infinite recursion - reduce depth limit for stability
 	if qDepth >= 6 { // More conservative quiescence depth
 		return EvaluateForPlayer(&pos.Board, pos.Turn())
@@ -1415,21 +1432,20 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// TT cutoff probe. Qsearch is depth 0; any cached entry at depth >= 0
 	// covers us (main search stores at depth >= 1 only). Mate scores need
 	// converting from node-relative TT encoding back to root-relative.
-	{
-		_, ttEvalRaw, _, ttNodeType, ttHit := TranspositionTable.Get(pos.Hash())
-		if ttHit {
-			ttEval := scoreFromTT(ttEvalRaw, ply)
-			switch ttNodeType {
-			case Exact:
+	// Also keep ttMove for move ordering even when no cutoff is taken.
+	ttMove, ttEvalRaw, _, ttNodeType, ttHit := TranspositionTable.Get(pos.Hash())
+	if ttHit {
+		ttEval := scoreFromTT(ttEvalRaw, ply)
+		switch ttNodeType {
+		case Exact:
+			return ttEval
+		case LowerBound:
+			if ttEval >= beta {
 				return ttEval
-			case LowerBound:
-				if ttEval >= beta {
-					return ttEval
-				}
-			case UpperBound:
-				if ttEval <= alpha {
-					return ttEval
-				}
+			}
+		case UpperBound:
+			if ttEval <= alpha {
+				return ttEval
 			}
 		}
 	}
@@ -1443,6 +1459,17 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	if inCheck {
 		var moveBuffer [256]Move
 		moveCount := GenerateMovesIntoBuffer(pos, moveBuffer[:])
+
+		// Move ttMove to the front if it's among the legal moves. Cheap O(n)
+		// pass that pays off when the TT suggestion produces an early cutoff.
+		if ttMove != EmptyMove {
+			for i := 0; i < moveCount; i++ {
+				if moveBuffer[i] == ttMove {
+					moveBuffer[0], moveBuffer[i] = moveBuffer[i], moveBuffer[0]
+					break
+				}
+			}
+		}
 
 		bestScore := -INFINITY
 		legalMoves := 0
@@ -1471,12 +1498,11 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		}
 
 		if legalMoves == 0 {
-			// Checkmate
-			mateDistance := info.Depth + qDepth
-			if mateDistance > 1000 || mateDistance < 0 {
-				mateDistance = 1
-			}
-			return -MATE_VALUE + mateDistance
+			// Checkmate at this node — distance from root is `ply` directly.
+			// Earlier code used info.Depth + qDepth, which was wrong because
+			// info.Depth is the last completed iteration depth, not the current
+			// search distance.
+			return -MATE_VALUE + ply
 		}
 
 		return bestScore
@@ -1520,11 +1546,29 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	var captures [64]Move
 	copy(captures[:], (*info.CaptureBuffer)[:captureCount])
 
+	// Swap ttMove to index 0 if it's a capture in this position. Avoids the
+	// regression of upfront MVV/LVA sort (commit 2f61d3a, -129 ELO) while
+	// still letting the TT-suggested capture cut early.
+	if ttMove != EmptyMove {
+		for i := 0; i < captureCount; i++ {
+			if captures[i] == ttMove {
+				captures[0], captures[i] = captures[i], captures[0]
+				break
+			}
+		}
+	}
+
 	for i := 0; i < captureCount; i++ {
 		move := captures[i]
 
-		// Delta pruning: skip captures that cannot possibly raise alpha
+		// Delta pruning: skip captures that cannot possibly raise alpha. For
+		// promotion-captures, include the promotion gain so we don't prune a
+		// winning Pxf8=Q that would actually deliver a queen.
 		gain := int(move.CapturedPiece().seeWeight())
+		if move.PromoType() != NoType {
+			promoPiece := GetPiece(move.PromoType(), move.MovingPiece().Color())
+			gain += int(promoPiece.seeWeight()) - 100
+		}
 		if standPat+gain+DELTA_MARGIN <= alpha {
 			continue
 		}

@@ -623,66 +623,78 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 		uci.debugLogger.Printf("Starting SearchIterativeDeepeningWithCallback, maxDepth=%d", maxDepth)
 
 		// Define callback to send UCI info after each depth completes
-		depthCallback := func(depth int, score int, move Move, nodes uint64) {
-		// Check for stop command
-		select {
-		case <-uci.stopChan:
-			uci.debugLogger.Printf("STOP COMMAND received during search")
-			return
-		default:
-		}
+		depthCallback := func(searchInfo *SearchInfo) {
+			depth := searchInfo.Depth
+			score := searchInfo.BestScore
+			move := searchInfo.BestMove
+			nodes := searchInfo.Nodes
 
-		// Update best move and score
-		bestMove = move
-		bestScore = score
-		lastIterationScore = score
-
-		// Update time manager with score change
-		uci.timeManager.UpdateGameState(uci.movesPlayed, lastIterationScore, score, uci.position)
-
-		// Send search info
-		elapsed := uci.timeManager.GetElapsedTime()
-
-		// UCI: report mate scores as "score mate N" when applicable
-		var scoreStr string
-		if score == INFINITY || score == -INFINITY {
-			scoreStr = "cp 0"
-		} else if score >= MATE_IN_MAX {
-			mate := (MATE_VALUE - score + 1) / 2
-			scoreStr = fmt.Sprintf("mate %d", mate)
-		} else if score <= -MATE_IN_MAX {
-			mateDistance := -score - MATE_VALUE
-			if mateDistance < 0 || mateDistance > 1000 {
-				mateDistance = 1000
+			// Check for stop command
+			select {
+			case <-uci.stopChan:
+				uci.debugLogger.Printf("STOP COMMAND received during search")
+				return
+			default:
 			}
-			mate := -(mateDistance/2 + 1)
-			scoreStr = fmt.Sprintf("mate %d", mate)
-		} else {
-			scoreStr = fmt.Sprintf("cp %d", score)
-		}
 
-		// Calculate NPS
-		var nps int
-		if elapsed.Seconds() > 0 {
-			nps = int(float64(nodes) / elapsed.Seconds())
-		}
+			// Update best move and score
+			bestMove = move
+			bestScore = score
+			lastIterationScore = score
 
-		// Reconstruct full PV by walking the TT from the post-root position.
-		pvMoves := ExtractPVFromTT(uci.position, move, 32)
-		var pvStr string
-		if len(pvMoves) == 0 {
-			pvStr = move.ToString()
-		} else {
-			pvStr = pvMoves[0].ToString()
-			for i := 1; i < len(pvMoves); i++ {
-				pvStr += " " + pvMoves[i].ToString()
+			// Update time manager with score change
+			uci.timeManager.UpdateGameState(uci.movesPlayed, lastIterationScore, score, uci.position)
+
+			// Send search info
+			elapsed := uci.timeManager.GetElapsedTime()
+
+			// UCI: report mate scores as "score mate N" when applicable
+			var scoreStr string
+			if score == INFINITY || score == -INFINITY {
+				scoreStr = "cp 0"
+			} else if score >= MATE_IN_MAX {
+				mate := (MATE_VALUE - score + 1) / 2
+				scoreStr = fmt.Sprintf("mate %d", mate)
+			} else if score <= -MATE_IN_MAX {
+				mateDistance := -score - MATE_VALUE
+				if mateDistance < 0 || mateDistance > 1000 {
+					mateDistance = 1000
+				}
+				mate := -(mateDistance/2 + 1)
+				scoreStr = fmt.Sprintf("mate %d", mate)
+			} else {
+				scoreStr = fmt.Sprintf("cp %d", score)
 			}
-		}
 
-		infoMsg := fmt.Sprintf("info depth %d score %s nodes %d time %d nps %d pv %s",
-			depth, scoreStr, nodes, elapsed.Milliseconds(), nps, pvStr)
-		uci.sendUCIMessage(output, infoMsg)
-		uci.debugLogger.Printf("Sent info line for depth %d: score=%s bestMove=%s", depth, scoreStr, move.ToString())
+			// Calculate NPS
+			var nps int
+			if elapsed.Seconds() > 0 {
+				nps = int(float64(nodes) / elapsed.Seconds())
+			}
+
+			// Reconstruct full PV by walking the TT from the post-root position.
+			pvMoves := ExtractPVFromTT(uci.position, move, 32)
+			var pvStr string
+			if len(pvMoves) == 0 {
+				pvStr = move.ToString()
+			} else {
+				pvStr = pvMoves[0].ToString()
+				for i := 1; i < len(pvMoves); i++ {
+					pvStr += " " + pvMoves[i].ToString()
+				}
+			}
+
+			// seldepth tracks the max ply reached including quiescence; floor at depth.
+			seldepth := searchInfo.SelDepth
+			if seldepth < depth {
+				seldepth = depth
+			}
+			hashfull := TranspositionTable.Consumed()
+
+			infoMsg := fmt.Sprintf("info depth %d seldepth %d score %s nodes %d time %d nps %d hashfull %d pv %s",
+				depth, seldepth, scoreStr, nodes, elapsed.Milliseconds(), nps, hashfull, pvStr)
+			uci.sendUCIMessage(output, infoMsg)
+			uci.debugLogger.Printf("Sent info line for depth %d: score=%s bestMove=%s", depth, scoreStr, move.ToString())
 		}
 
 		// Run the search - this handles progressive TT building and aspiration windows internally
