@@ -2,13 +2,14 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
-**Current Status (2026-05-03):** 1599 ELO rolling-smoke estimate, 95% CI [1464, 1733]
-(width 270, commit-decayed sample of 26.2 games across 10 runs at NGN 1000ms vs SF1500
-200ms). Tactical 28/30. Trajectory this session: 1477 → 1533 → 1582 (2 post-audit
+**Current Status (2026-05-03):** 1580 ELO rolling-smoke estimate, 95% CI [1446, 1714]
+(width 268, commit-decayed sample of 26.0 games across 11 runs at NGN 1000ms vs SF1500
+200ms). Tactical 29/30. Trajectory this session: 1477 → 1533 → 1582 (2 post-audit
 smokes) → 1553 (hanging-pieces tried/reverted) → 1559 ([piece][to] history) → 1564
-(continuation history) → 1599 (LMR log-formula). +122 ELO net since session start,
-all changes gated by smoke-tactical and committed individually. Stage 1 ladder
-target 1700 within reach: CI lower bound 1464 vs 1700 target.
+(continuation history) → 1599 (LMR log-formula) → 1580 (mate-distance ply fix; tactical
+28→29/30, rolling drift within noise). +103 ELO net since session start, all changes
+gated by smoke-tactical and committed individually. Stage 1 ladder target 1700 within
+reach: CI lower bound 1446 vs 1700 target.
 
 ---
 
@@ -106,15 +107,12 @@ Six parallel sub-agent audits of search/eval/movegen/qsearch+SEE/TT+hash/UCI+tim
 findings; the items below were verified against current code. Apply one at a time gated by
 `make smoke-tactical`.
 
-### Pri 1: Mate distance pruning uses stale `info.Depth` (CONFIRMED)
-- `engine/search.go:916`: `currentDepth := info.Depth - depth` is wrong. `info.Depth` starts
-  at `maxDepth` (line 448) and is only updated on iteration completion (line 618). During
-  the tree walk it's stale; can even go negative on iteration 2+.
-- `engine/search.go:1482`: qsearch checkmate path computes `mateDistance := info.Depth + qDepth`
-  with the same staleness; should be `ply`.
-- Fix: replace both with `ply` (already threaded after the mate-TT fix).
-- Impact: ~5-15 ELO. Mate distance pruning is small even when working; qsearch mate-detection
-  inside captures is rare. Cheap fix, no regression risk.
+### Pri 1: Mate distance pruning uses stale `info.Depth` (FIXED)
+- `engine/search.go:1081` and `:1397` (alphaBetaPV checkmate paths) used
+  `info.Depth - depth`, which is stale during the tree walk.
+- Fix: both sites now use `ply` directly. Qsearch path (line 1516) and the
+  top-of-alphaBetaPV mate-distance pruning (line 946) were already on `ply`.
+- Commit b50aa23. Tactical 28 → 29/30; rolling 1599 → 1580 (drift within noise).
 
 ### Pri 2: SEE and delta pruning ignore promotion gain (CONFIRMED)
 - `engine/search.go:121`: `gain[depth] = int(capturedValue)` — initial SEE gain misses the
