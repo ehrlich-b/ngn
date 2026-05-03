@@ -1,8 +1,13 @@
 package engine
 
-// History table for move ordering heuristic
-// historyTable[from][to] stores the history score for moves from 'from' to 'to'
-var historyTable [64][64]int
+// History table for move ordering heuristic, indexed by [piece][to].
+// Piece is `Move.MovingPiece()` (1..12 mapping WhitePawn..BlackKing; 0 is unused
+// NoPiece sentinel). Indexing by piece-type rather than from-square is strictly
+// more discriminative: a knight retreating to e4 and a queen trading on e4 are
+// stored separately, so a strong knight-to-e4 history doesn't elevate weak
+// queen-to-e4 moves. Same total bookkeeping cost; smaller table (13×64 = 832
+// entries) than the prior [64][64] = 4096.
+var historyTable [13][64]int
 
 // Killer moves table for move ordering heuristic
 // killerMoves[depth][slot] stores killer moves at each depth (2 killer moves per depth)
@@ -18,14 +23,14 @@ var lastMovePlayed Move
 // UpdateHistoryTable increases the history score for a move that caused a cutoff
 func UpdateHistoryTable(move Move, depth int) {
 	if !move.IsCapture() && move.PromoType() == NoType {
-		from := move.Source()
+		piece := move.MovingPiece()
 		to := move.Destination()
 		// Depth-based bonus: deeper searches are more important
 		bonus := depth * depth
-		historyTable[from][to] += bonus
+		historyTable[piece][to] += bonus
 
 		// Prevent overflow by capping the history score
-		if historyTable[from][to] > 8192 {
+		if historyTable[piece][to] > 8192 {
 			// Age the history table by dividing all values by 2
 			ageHistoryTable()
 		}
@@ -35,15 +40,15 @@ func UpdateHistoryTable(move Move, depth int) {
 // PenalizeHistoryTable decreases the history score for moves that didn't cause cutoff
 func PenalizeHistoryTable(move Move, depth int) {
 	if !move.IsCapture() && move.PromoType() == NoType {
-		from := move.Source()
+		piece := move.MovingPiece()
 		to := move.Destination()
 		// Depth-based penalty
 		penalty := depth * depth
-		historyTable[from][to] -= penalty
+		historyTable[piece][to] -= penalty
 
 		// Don't let it go too negative
-		if historyTable[from][to] < -8192 {
-			historyTable[from][to] = -8192
+		if historyTable[piece][to] < -8192 {
+			historyTable[piece][to] = -8192
 		}
 	}
 }
@@ -51,9 +56,9 @@ func PenalizeHistoryTable(move Move, depth int) {
 // GetHistoryScore returns the history score for a move
 func GetHistoryScore(move Move) int {
 	if !move.IsCapture() && move.PromoType() == NoType {
-		from := move.Source()
+		piece := move.MovingPiece()
 		to := move.Destination()
-		return historyTable[from][to]
+		return historyTable[piece][to]
 	}
 	return 0
 }
