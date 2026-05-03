@@ -1248,7 +1248,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 			singularBeta := int(ttEval) - SINGULAR_MARGIN
 			info.ExcludedMove = singularMove
-			singularScore := alphaBetaPV(pos, depth/2, ply, singularBeta-1, singularBeta, false, info)
+			singularDepth := depth - 4
+			if singularDepth < 1 {
+				singularDepth = 1
+			}
+			singularScore := alphaBetaPV(pos, singularDepth, ply, singularBeta-1, singularBeta, false, info)
 			info.ExcludedMove = EmptyMove
 
 			// Re-make our move and restore the global to it for children.
