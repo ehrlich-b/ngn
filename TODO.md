@@ -2,12 +2,13 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
-**Current Status (2026-05-03):** 1564 ELO rolling-smoke estimate, 95% CI [1438, 1690]
-(width 252, commit-decayed sample of 29 games across 11 runs at NGN 1000ms vs SF1500
-200ms). Tactical 28/30 (up from 27 baseline). Trajectory this session: 1477 → 1533 →
-1582 (2 post-audit smokes) → 1553 (hanging-pieces tried/reverted) → 1559 ([piece][to]
-history) → 1564 (continuation history). +87 ELO net since session start, all changes
-gated by smoke-tactical and committed individually. Stage 1 ladder target was 1700.
+**Current Status (2026-05-03):** 1599 ELO rolling-smoke estimate, 95% CI [1464, 1733]
+(width 270, commit-decayed sample of 26.2 games across 10 runs at NGN 1000ms vs SF1500
+200ms). Tactical 28/30. Trajectory this session: 1477 → 1533 → 1582 (2 post-audit
+smokes) → 1553 (hanging-pieces tried/reverted) → 1559 ([piece][to] history) → 1564
+(continuation history) → 1599 (LMR log-formula). +122 ELO net since session start,
+all changes gated by smoke-tactical and committed individually. Stage 1 ladder
+target 1700 within reach: CI lower bound 1464 vs 1700 target.
 
 ---
 
@@ -347,8 +348,9 @@ smoke. Sized in expected ELO buckets per stage; reality will vary.
 - [x] Add **continuation history**: indexed by `[prev-piece][prev-to][curr-piece][curr-to]`
   (commit 7a309c3, 2026-05-03). Tactical 28/30 held; rolling 1559 → 1564 (+5 ELO);
   CI lower bound +7. Combined Stage 3 effect: +11 ELO rolling, +16 lower bound.
-- [ ] LMR formula change: `log(depth) * log(moveNum) / 2` (Stockfish-style) instead of
-  current piecewise. Risk-stacking after history changes; defer to a separate session.
+- [x] LMR formula change: `log(depth) * log(moveNum) / 2` precomputed table replaces
+  piecewise base + legalTried thresholds + depth>6 bump (commit 2351daf, 2026-05-03).
+  Tactical 28/30 held; rolling 1564 → 1599 (+35 ELO); CI lower bound +26.
 
 **Stage 4 — Eval features that move the needle (target 1950-2000, +120-170 ELO)**
 - Hanging/loose pieces: TRIED 2026-05-03 at piece_value/4 magnitude — single-shot smoke
