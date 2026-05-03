@@ -2,12 +2,12 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
-**Current Status (2026-05-03):** 1553 ELO rolling-smoke estimate, 95% CI [1422, 1684]
-(width 261, commit-decayed sample of 26.5 games across 10 runs at NGN 1000ms vs SF1500
-200ms). Climbed from 1477 → 1533 → 1582 over two post-audit-batch smokes (both 4W-1L),
-then a tried-and-reverted hanging-pieces experiment slipped it to 1553 (2W-3L). Code
-reverted to audit-batch baseline; the regressed data point will decay out as future
-smokes accumulate. Stage 1 of the ladder targets 1700.
+**Current Status (2026-05-03):** 1564 ELO rolling-smoke estimate, 95% CI [1438, 1690]
+(width 252, commit-decayed sample of 29 games across 11 runs at NGN 1000ms vs SF1500
+200ms). Tactical 28/30 (up from 27 baseline). Trajectory this session: 1477 → 1533 →
+1582 (2 post-audit smokes) → 1553 (hanging-pieces tried/reverted) → 1559 ([piece][to]
+history) → 1564 (continuation history). +87 ELO net since session start, all changes
+gated by smoke-tactical and committed individually. Stage 1 ladder target was 1700.
 
 ---
 
@@ -342,11 +342,13 @@ smoke. Sized in expected ELO buckets per stage; reality will vary.
   freshly-tuned magnitudes — they may be salvageable post-recalibration.
 
 **Stage 3 — Better history (target 1850, +30-50 ELO)**
-- Replace `[from][to]` history with `[piece][to]` (color/piece-aware).
-- Add **continuation history**: indexed by `[prev-piece][prev-to][curr-piece][curr-to]`.
-  Known +30-50 ELO from Stockfish/Ethereal experiments.
-- LMR formula change: `log(depth) * log(moveNum) / 2` (Stockfish-style) instead of current
-  piecewise.
+- [x] Replace `[from][to]` history with `[piece][to]` (commit 8b04b85, 2026-05-03).
+  Tactical 27/30 → 28/30; rolling 1553 → 1559 (+6 ELO).
+- [x] Add **continuation history**: indexed by `[prev-piece][prev-to][curr-piece][curr-to]`
+  (commit 7a309c3, 2026-05-03). Tactical 28/30 held; rolling 1559 → 1564 (+5 ELO);
+  CI lower bound +7. Combined Stage 3 effect: +11 ELO rolling, +16 lower bound.
+- [ ] LMR formula change: `log(depth) * log(moveNum) / 2` (Stockfish-style) instead of
+  current piecewise. Risk-stacking after history changes; defer to a separate session.
 
 **Stage 4 — Eval features that move the needle (target 1950-2000, +120-170 ELO)**
 - Hanging/loose pieces: TRIED 2026-05-03 at piece_value/4 magnitude — single-shot smoke
