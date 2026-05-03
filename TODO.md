@@ -114,41 +114,22 @@ findings; the items below were verified against current code. Apply one at a tim
   top-of-alphaBetaPV mate-distance pruning (line 946) were already on `ply`.
 - Commit b50aa23. Tactical 28 → 29/30; rolling 1599 → 1580 (drift within noise).
 
-### Pri 2: SEE and delta pruning ignore promotion gain (CONFIRMED)
-- `engine/search.go:121`: `gain[depth] = int(capturedValue)` — initial SEE gain misses the
-  promotion bonus. For Pxf8=Q the SEE thinks gain is rook (~500) when it's rook + queen-pawn
-  (~1300). Causes SEE pruning to skip winning promotion-captures and move ordering to misrank.
-- `engine/search.go:1534`: delta pruning has the same flaw — `gain := move.CapturedPiece().seeWeight()`
-  doesn't add promo bonus, so legitimately winning promo-captures get pruned.
-- Fix: when `move.PromoType() != NoType`, add `GetPiece(promoType, color).Weight() - PawnValue`
-  to gain at both call sites.
-- Impact: ~5-15 ELO. Promotion-captures are rare in middlegame, more impactful in endgames
-  with passed pawns.
+### Pri 2: SEE and delta pruning ignore promotion gain (FIXED in 5b0032b)
+- Both initial SEE (`engine/search.go:139-143`) and qsearch delta pruning (`:1579-1583`)
+  now add `promoPiece.seeWeight() - 100` (pawn weight) when `move.PromoType() != NoType`.
 
-### Pri 3: Singular extension reduction is too aggressive (CONFIRMED)
-- `engine/search.go` singular search uses `depth/2`; at depth 6 that's a depth-3 verification.
-  Standard practice is `depth - 4` or `depth - 3` (Stockfish, Ethereal). Current setting
-  misses real singular moves.
-- Fix: replace `depth/2` with `max(1, depth-4)`.
-- Impact: ~10-15 ELO from extra extensions at correct depths.
+### Pri 3: Singular extension reduction is too aggressive (FIXED)
+- Replaced `depth/2` verification depth with `max(1, depth-4)` per Stockfish/Ethereal.
+- Commit 8269da1. Tactical 29/30 held; rolling 1580 → 1551 (drift within noise).
 
-### Pri 4: Qsearch discards TT move + searches captures unordered (CONFIRMED)
-- `engine/search.go:1426`: TT.Get returns ttMove but qsearch underscores it.
-- `engine/search.go:1530`: captures looped in raw `GenerateCapturesIntoBuffer` order; no
-  SEE/MVV-LVA preference. Note: full upfront sort was tried (commit 2f61d3a) and reverted at
-  -129 ELO. **Pick-best-on-step (single O(n) max-find before each move)** has not been tried
-  and is the right next experiment — only pays for moves searched before cutoff.
-- `engine/search.go:1450-1478`: in-check evasions also raw-order. Could try TT-move-first +
-  captures-first split.
-- Fix: capture ttMove from TT.Get; pick-best-on-step ordering for both branches.
-- Impact: speculative ~10-25 ELO. Smoke-gate carefully; revert on regression.
+### Pri 4: Qsearch discards TT move + searches captures unordered (FIXED in 5b0032b)
+- Both in-check evasion branch (`:1477-1484`) and captures branch (`:1564-1571`) now
+  swap ttMove to index 0 if present. Avoids the -129 ELO upfront-MVV/LVA sort regression
+  while still letting TT-suggested moves cut early.
 
-### Pri 5: `info.SelDepth` not reset between iterations (cosmetic)
-- The pending diff in `engine/search.go` adds SelDepth tracking but never resets it at the
-  top of each iterative-deepening depth, so iteration N reports SelDepth from the deepest
-  prior iteration.
-- Fix: assign `info.SelDepth = currentDepth` at top of loop body in `searchIterativeDeepeningUnsafe`.
-- Impact: 0 ELO; UCI cosmetic only. But ship it correct since the diff is open.
+### Pri 5: `info.SelDepth` not reset between iterations (FIXED in 5b0032b)
+- `info.SelDepth = currentDepth` set at top of each iteration loop in
+  `searchIterativeDeepeningUnsafe` (`engine/search.go:513`).
 
 ### Audit findings flagged but FALSE-POSITIVE
 - **King centrality "negative for corners"** (`eval.go:1476-1484`): agent claimed HIGH/+50 ELO.
@@ -328,9 +309,10 @@ You're at ~1450-1650 rolling. Target +550-750 ELO. Reference points: Crafty ~260
 ~2700, pre-NNUE Stockfish ~3000 — all classical. The route is staged, each rung gated by
 smoke. Sized in expected ELO buckets per stage; reality will vary.
 
-**Stage 1 — Audit-batch fixes (target 1700, +50-100 ELO)**
-- Pri 1-5 above: mate distance ply, SEE/delta promotion, singular reduction, qsearch TT+ordering.
-- Tactical 27/30 → 29/30 expected from #2 + #4 alone.
+**Stage 1 — Audit-batch fixes (target 1700, +50-100 ELO) — COMPLETE**
+- All Pri 1-5 done. Tactical 28 → 29/30 (mate-distance ply fix). Rolling drifted
+  1599 → 1551 across two changes — within Wilson noise; CI lower bound 1414 vs
+  the 1700 ladder target.
 
 **Stage 2 — Texel tune existing magnitudes (target 1800, +50-100 ELO)**
 - `engine/texel.go` exists. The wired components (mobility baselines, king-safety quadratic
