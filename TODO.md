@@ -2,11 +2,12 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
-**Current Status (2026-05-02):** 1477 ELO rolling-smoke estimate, 95% CI [1318, 1636]
-(commit-decayed, 17.2-game effective sample at NGN 1000ms vs SF1500 200ms). The recent CI
-widened from prior [1519, 1787] because three of the last 19 runs are now decay-aged
-beyond 5 commits and the most recent five include the pawn-storm regression and recovery.
-A fresh smoke after the audit-batch fixes is the next data point.
+**Current Status (2026-05-03):** 1553 ELO rolling-smoke estimate, 95% CI [1422, 1684]
+(width 261, commit-decayed sample of 26.5 games across 10 runs at NGN 1000ms vs SF1500
+200ms). Climbed from 1477 → 1533 → 1582 over two post-audit-batch smokes (both 4W-1L),
+then a tried-and-reverted hanging-pieces experiment slipped it to 1553 (2W-3L). Code
+reverted to audit-batch baseline; the regressed data point will decay out as future
+smokes accumulate. Stage 1 of the ladder targets 1700.
 
 ---
 
@@ -348,7 +349,13 @@ smoke. Sized in expected ELO buckets per stage; reality will vary.
   piecewise.
 
 **Stage 4 — Eval features that move the needle (target 1950-2000, +120-170 ELO)**
-- Hanging/loose pieces: every undefended attacked piece worth piece_value/4. Big in tactical play.
+- Hanging/loose pieces: TRIED 2026-05-03 at piece_value/4 magnitude — single-shot smoke
+  2W-3L vs SF1500, rolling 1582 → 1553 (-29 ELO). Tactical 27/30 held. Reverted same
+  session. Hypothesis for retry: piece_value/4 (P=25, N=80, B=82, R=131, Q=250) double-
+  counts material — the static eval already shows +V if we have the piece, then deducts
+  V/4 because it might be lost. Stockfish uses a flat ~60cp per hanging piece, not value-
+  scaled. Retry with flat 25-40cp penalty AND/OR gate magnitude on whose-turn-it-is.
+  Better: defer to post-Texel when magnitudes can be tuned automatically.
 - King safety upgrade: open/half-open files in front of king + pawn shelter ratio (the
   attack-table now exists; pair with pawn-shield strength).
 - Threats: piece attacks higher-value piece, discovered-attack potential, pinned-piece bonus.
