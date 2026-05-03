@@ -52,6 +52,22 @@ func IsStopRequested() bool {
 // At depth d, prune quiet moves after lmpThreshold[d] moves
 var lmpThreshold = [8]int{0, 5, 8, 12, 17, 23, 30, 38}
 
+// lmrTable[depth][legalTried] precomputes the Stockfish-style log-based LMR
+// base reduction: floor(log(depth) * log(legalTried) / 2). Smoother gradient
+// than the prior piecewise tiers (legalTried thresholds at 6/12 plus a
+// depth>6 bump), and reduces less at typical mid-depth/mid-moveNum nodes
+// where discrete +1 jumps tended to over-bite. PV/non-PV split, history,
+// killer adjustments, and the depth cap remain on top.
+var lmrTable [64][64]int
+
+func init() {
+	for d := 1; d < 64; d++ {
+		for m := 1; m < 64; m++ {
+			lmrTable[d][m] = int(math.Log(float64(d)) * math.Log(float64(m)) / 2.0)
+		}
+	}
+}
+
 // scoreToTT converts a search score to a value safe to store in the TT, with
 // mate scores adjusted to be node-relative ("mate-distance-from-this-node")
 // rather than root-relative. Without this, a TT hit retrieved at a different
@@ -1264,22 +1280,17 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			if depth >= LMR_FULL_DEPTH && legalTried > LMR_MOVE_THRESHOLD &&
 				!move.IsCapture() && !inCheck && !givesCheck {
 
-				// Base reduction - less aggressive for PV nodes
-				reduction = 1
+				// Stockfish-style log-based base reduction; non-PV gets +1
+				d := depth
+				if d > 63 {
+					d = 63
+				}
+				m := legalTried
+				if m > 63 {
+					m = 63
+				}
+				reduction = lmrTable[d][m]
 				if !isPV {
-					reduction++ // More aggressive reduction for non-PV nodes
-				}
-
-				// Extra reduction for later moves
-				if legalTried > 6 {
-					reduction++
-				}
-				if legalTried > 12 {
-					reduction++
-				}
-
-				// Extra reduction for deeper searches in non-PV nodes
-				if depth > 6 && !isPV {
 					reduction++
 				}
 
