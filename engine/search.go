@@ -1137,7 +1137,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 		// History pruning: skip quiet moves with very bad history at low depths
 		if !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move != ttMove {
-			histScore := GetHistoryScore(move)
+			histScore := GetHistoryScore(move, GetLastMovePlayed())
 			if histScore < -1000 && legalTried > 3 { // Very bad history and not early move
 				continue
 			}
@@ -1285,7 +1285,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 				// History-based LMR adjustment:
 				// Reduce more for moves with bad history, less for moves with good history
-				histScore := GetHistoryScore(move)
+				histScore := GetHistoryScore(move, savedLast)
 				if histScore < -500 {
 					reduction++ // Bad history = reduce more
 				} else if histScore > 1000 {
@@ -1354,7 +1354,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		if score >= beta {
 			info.BetaCutoffs++
 			// Update history table for quiet moves that cause beta cutoffs
-			UpdateHistoryTable(move, depth)
+			UpdateHistoryTable(move, savedLast, depth)
 			// Update killer moves for quiet moves that cause beta cutoffs
 			UpdateKillerMoves(move, depth)
 			// Counter move: the cutoff move is a good reply to savedLast,
@@ -1365,7 +1365,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			for i := 0; i < searchedQuietCount; i++ {
 				quietMove := searchedQuiets[i]
 				if quietMove != move {
-					PenalizeHistoryTable(quietMove, depth)
+					PenalizeHistoryTable(quietMove, savedLast, depth)
 				}
 			}
 

@@ -9,6 +9,14 @@ package engine
 // entries) than the prior [64][64] = 4096.
 var historyTable [13][64]int
 
+// Continuation history: indexed by [prev-piece][prev-to][curr-piece][curr-to].
+// Captures move sequences that work well together — e.g. given that opponent
+// just moved knight to e5, our rook lifting to e3 may be especially good.
+// 13×64×13×64 = 692,224 ints (~5.5MB). Read alongside the main history table
+// in move ordering and at history-pruning / LMR-history sites; updated at the
+// same beta-cutoff and quiet-penalty points.
+var continuationHistory [13][64][13][64]int
+
 // Killer moves table for move ordering heuristic
 // killerMoves[depth][slot] stores killer moves at each depth (2 killer moves per depth)
 var killerMoves [MaximumDepth][2]Move
@@ -21,53 +29,80 @@ var counterMoves [64][64]Move
 var lastMovePlayed Move
 
 // UpdateHistoryTable increases the history score for a move that caused a cutoff
-func UpdateHistoryTable(move Move, depth int) {
-	if !move.IsCapture() && move.PromoType() == NoType {
-		piece := move.MovingPiece()
-		to := move.Destination()
-		// Depth-based bonus: deeper searches are more important
-		bonus := depth * depth
-		historyTable[piece][to] += bonus
-
-		// Prevent overflow by capping the history score
-		if historyTable[piece][to] > 8192 {
-			// Age the history table by dividing all values by 2
-			ageHistoryTable()
+func UpdateHistoryTable(move Move, prevMove Move, depth int) {
+	if move.IsCapture() || move.PromoType() != NoType {
+		return
+	}
+	piece := move.MovingPiece()
+	to := move.Destination()
+	bonus := depth * depth
+	historyTable[piece][to] += bonus
+	if historyTable[piece][to] > 8192 {
+		ageHistoryTable()
+	}
+	if prevMove != EmptyMove {
+		prevPiece := prevMove.MovingPiece()
+		prevTo := prevMove.Destination()
+		continuationHistory[prevPiece][prevTo][piece][to] += bonus
+		if continuationHistory[prevPiece][prevTo][piece][to] > 8192 {
+			continuationHistory[prevPiece][prevTo][piece][to] /= 2
 		}
 	}
 }
 
 // PenalizeHistoryTable decreases the history score for moves that didn't cause cutoff
-func PenalizeHistoryTable(move Move, depth int) {
-	if !move.IsCapture() && move.PromoType() == NoType {
-		piece := move.MovingPiece()
-		to := move.Destination()
-		// Depth-based penalty
-		penalty := depth * depth
-		historyTable[piece][to] -= penalty
-
-		// Don't let it go too negative
-		if historyTable[piece][to] < -8192 {
-			historyTable[piece][to] = -8192
+func PenalizeHistoryTable(move Move, prevMove Move, depth int) {
+	if move.IsCapture() || move.PromoType() != NoType {
+		return
+	}
+	piece := move.MovingPiece()
+	to := move.Destination()
+	penalty := depth * depth
+	historyTable[piece][to] -= penalty
+	if historyTable[piece][to] < -8192 {
+		historyTable[piece][to] = -8192
+	}
+	if prevMove != EmptyMove {
+		prevPiece := prevMove.MovingPiece()
+		prevTo := prevMove.Destination()
+		continuationHistory[prevPiece][prevTo][piece][to] -= penalty
+		if continuationHistory[prevPiece][prevTo][piece][to] < -8192 {
+			continuationHistory[prevPiece][prevTo][piece][to] = -8192
 		}
 	}
 }
 
-// GetHistoryScore returns the history score for a move
-func GetHistoryScore(move Move) int {
-	if !move.IsCapture() && move.PromoType() == NoType {
-		piece := move.MovingPiece()
-		to := move.Destination()
-		return historyTable[piece][to]
+// GetHistoryScore returns the history score for a move, summing the main
+// [piece][to] history with the continuation [prev-piece][prev-to][piece][to]
+// when prevMove is available. Continuation gets full weight — same magnitude
+// updates means same ELO scale.
+func GetHistoryScore(move Move, prevMove Move) int {
+	if move.IsCapture() || move.PromoType() != NoType {
+		return 0
 	}
-	return 0
+	piece := move.MovingPiece()
+	to := move.Destination()
+	score := historyTable[piece][to]
+	if prevMove != EmptyMove {
+		score += continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to]
+	}
+	return score
 }
 
-// ClearHistoryTable resets the history table (used between games)
+// ClearHistoryTable resets both history tables (used between games)
 func ClearHistoryTable() {
 	for i := range historyTable {
 		for j := range historyTable[i] {
 			historyTable[i][j] = 0
+		}
+	}
+	for i := range continuationHistory {
+		for j := range continuationHistory[i] {
+			for k := range continuationHistory[i][j] {
+				for l := range continuationHistory[i][j][k] {
+					continuationHistory[i][j][k][l] = 0
+				}
+			}
 		}
 	}
 }
@@ -232,8 +267,9 @@ func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, 
 					score += 25000
 				}
 
-				// History heuristic for remaining quiet moves
-				score += GetHistoryScore(move)
+				// History heuristic for remaining quiet moves; continuation
+				// history adds context-aware ordering when previousMove != EmptyMove.
+				score += GetHistoryScore(move, previousMove)
 			}
 		}
 
