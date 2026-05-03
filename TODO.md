@@ -353,13 +353,11 @@ smoke. Sized in expected ELO buckets per stage; reality will vary.
   Tactical 28/30 held; rolling 1564 → 1599 (+35 ELO); CI lower bound +26.
 
 **Stage 4 — Eval features that move the needle (target 1950-2000, +120-170 ELO)**
-- Hanging/loose pieces: TRIED 2026-05-03 at piece_value/4 magnitude — single-shot smoke
-  2W-3L vs SF1500, rolling 1582 → 1553 (-29 ELO). Tactical 27/30 held. Reverted same
-  session. Hypothesis for retry: piece_value/4 (P=25, N=80, B=82, R=131, Q=250) double-
-  counts material — the static eval already shows +V if we have the piece, then deducts
-  V/4 because it might be lost. Stockfish uses a flat ~60cp per hanging piece, not value-
-  scaled. Retry with flat 25-40cp penalty AND/OR gate magnitude on whose-turn-it-is.
-  Better: defer to post-Texel when magnitudes can be tuned automatically.
+- Hanging/loose pieces: TRIED 2026-05-03 twice. V1 at piece_value/4 regressed -29 ELO
+  (rolling 1582 → 1553) — V/4 double-counts material. V2 at flat 30cp was neutral
+  (3W-0D-2L, rolling 1599 → 1598, tactical 27/30 held). Both reverted. Real fix:
+  defer to Stage 2 Texel so magnitudes co-tune with mobility/king-safety weights.
+  Future retry could try flat 50-60cp (Stockfish's range) but only after Texel.
 - King safety upgrade: open/half-open files in front of king + pawn shelter ratio (the
   attack-table now exists; pair with pawn-shield strength).
 - Threats: piece attacks higher-value piece, discovered-attack potential, pinned-piece bonus.
