@@ -1077,8 +1077,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	moves := moveBuffer[:numMoves]
 	if numMoves == 0 {
 		if inCheck {
-			// Checkmate - clamp mate distance to prevent overflow
-			mateDistance := info.Depth - depth
+			// Checkmate - distance from root is `ply` directly.
+			mateDistance := ply
 			if mateDistance > 1000 {
 				mateDistance = 1000
 			}
@@ -1393,11 +1393,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Check for checkmate/stalemate: no legal moves were found
 	if legalTried == 0 {
 		if inCheck {
-			// Checkmate - return mate score adjusted for distance from root
-			mateDistance := info.Depth - depth
-			if mateDistance < 0 {
-				mateDistance = 0
-			}
+			// Checkmate - distance from root is `ply` directly.
+			mateDistance := ply
 			if mateDistance > 1000 {
 				mateDistance = 1000
 			}
