@@ -350,6 +350,16 @@ smoke. Sized in expected ELO buckets per stage; reality will vary.
 - Probcut margin / depth re-tune.
 - Razoring depth/margin re-tune.
 - Internal iterative reductions for non-PV nodes without TT move (cheaper than IID).
+  TRIED 2026-05-03 with `if ttMove == EmptyMove && depth >= 4 && !isPV { depth-- }`
+  right after the IID block. Tactical 29/30 held but 5-game smoke went 0W-0D-5L
+  (all 5 losses to checkmate); rolling 1551 → 1460. Reverted (no commit).
+  Hypothesis: depth >= 4 threshold is too aggressive in our codebase — most non-PV
+  search nodes early in iterative deepening have empty TT, so IIR cascades through
+  the entire shallow tree and effectively reduces full-game search by 1+ plies.
+  Stockfish has many other compensating mechanisms (multi-cut, IIR depth >= 6,
+  tt-aware reduction caps). Retry candidates: (a) raise threshold to depth >= 6 or
+  >= 8, (b) only fire if depth - ttDepth >= 4 (skip IIR when TT has stale entry),
+  (c) defer until after Texel + multi-cut so the search tree is more robust.
 
 **Stage 6 — NPS (target 2150, +50 ELO)**
 - 350K NPS is low. Profile via `cpu.prof`. Movegen at 47KB has redundant paths; hot path
