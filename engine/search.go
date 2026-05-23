@@ -616,6 +616,17 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				}
 			}
 
+			// If the clock interrupted this iteration mid-flight, its results are
+			// partial: child searches were cut off and returned unreliable scores, so
+			// iterationBestMove may be a half-searched (often blundering) move. Discard
+			// the interrupted iteration entirely and keep the last fully-completed
+			// iteration's best move. Without this guard a partial iteration can still
+			// land in the in-window branch below and overwrite the good move — the root
+			// cause of catastrophic time-pressure blunders.
+			if info.Stopped {
+				break
+			}
+
 			// Classify against the original window (windowAlpha/windowBeta), not the
 			// alpha that was mutated during the move loop. Otherwise every successful
 			// iteration looks like a fail-low because alpha was just raised to
