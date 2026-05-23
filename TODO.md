@@ -2,9 +2,12 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
-**Current Status (2026-05-23):** ~1585 rolling-smoke estimate, 95% CI [1447, 1724]
-(commit-decayed, NGN 1000ms vs SF1500 200ms), up +117 from 1468 earlier today after the
-blunder fix below. Tactical 30/30.
+**Current Status (2026-05-23):** ~1711 rolling-smoke estimate, 95% CI [1555, 1867]
+(commit-decayed, NGN 1000ms vs SF1500 200ms), up +243 from 1468 at the start of today's
+blunder work and still climbing as pre-fix runs decay. Post-fix smokes went 19W-0D-1L
+(95%, up from ~50%); trajectory 1468 → 1585 → 1660 → 1711. Tactical 30/30. Four search
+fixes today (partial-commit, mate-found stop, losing-mate UCI formula, + the diagnostic
+tool); the dominant gain was the partial-commit fix below.
 
 MAJOR FIX (commit 362fd24): the #1 strength bottleneck was NOT eval — it was a SEARCH
 ROBUSTNESS bug. The iterative-deepening loop committed a *half-searched* best move when
@@ -22,12 +25,21 @@ stale "350K"), so Stage 6 is already met. The 5-game smoke is still a coarse ins
 (swung 80%→20% on an identical binary) — fine for catching big effects like this fix,
 useless for <100-ELO tuning.
 
-Remaining blunders (~3% at movetime, down from ~9%): moderate horizon misses at depth 7-9
-and occasional mate-blindness. Next harmonious targets: (a) mate hygiene — the ID loop has
-NO mate-found stop so it spins to depth 100 once any mate appears (search.go:497,643), and
-the losing-mate UCI formula clamps to garbage "mate -501" (uci.go:659); (b) the horizon
-misses (qsearch/extensions/depth). Eval/Texel stays premature until the blunder rate is
-driven lower.
+Mate hygiene DONE (commits e8d5eda): added a mate-found stop to the ID loop (no more
+depth-100 spin; tactical suite 4.2s → 0.2s) and fixed the losing-mate UCI formula
+("mate -501" → correct distances). Both gated by smoke-tactical 30/30, neutral on play
+(same move, just stops deepening) — expected, since the mate spin was post-fix mostly
+cosmetic.
+
+Remaining blunders (~3% at movetime, down from ~9%): all HORIZON misses — NGN blunders at
+depth 7-9 but finds the right move by depth 10-13 (verified by depth-scaling). NOT discrete
+bugs. The lever is reaching more depth in sharp positions, where the search explodes
+(~35M nodes to reach depth 10 in an 8-piece position). So further blunder reduction =
+search EFFICIENCY work (move ordering, aspiration windows, extension/qsearch discipline)
+— diminishing returns and tuning-shaped, so it needs the SPRT self-play instrument
+(deferred) to measure. Eval/Texel stays premature. Highest-value next: either build the
+SPRT harness (TC ≈ current smoke depth, NOT hyperbullet) to unlock fine tuning, or keep
+using cmd/blunder-finder for any remaining gross bugs.
 
 **Prior status (2026-05-03):** 1580 ELO rolling-smoke estimate, 95% CI [1446, 1714]
 (width 268, commit-decayed sample of 26.0 games across 11 runs at NGN 1000ms vs SF1500
