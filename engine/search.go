@@ -656,6 +656,14 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 			if callback != nil && info.BestMove != EmptyMove {
 				callback(info)
 			}
+
+			// Forced mate proven: stop deepening. Deeper iterations only re-derive the
+			// same mate instantly via the TT, spinning uselessly to maxDepth (the
+			// "depth 100 in 13ms" pathology in the logs). The mate move is already
+			// chosen and mate-distance scoring already prefers the longest defense.
+			if info.BestScore >= MATE_IN_MAX || info.BestScore <= -MATE_IN_MAX {
+				break
+			}
 		}
 	}
 
