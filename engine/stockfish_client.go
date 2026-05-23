@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -19,7 +20,13 @@ type StockfishClient struct {
 
 // NewStockfishClient creates a new Stockfish client
 func NewStockfishClient(stockfishPath string) (*StockfishClient, error) {
-	cmd := exec.Command(stockfishPath)
+	return NewStockfishClientArgs(stockfishPath)
+}
+
+// NewStockfishClientArgs starts Stockfish via an arbitrary command + args, e.g.
+// ("taskpolicy", "-b", path) to pin it to macOS E-cores for battery-friendly runs.
+func NewStockfishClientArgs(name string, args ...string) (*StockfishClient, error) {
+	cmd := exec.Command(name, args...)
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -289,4 +296,56 @@ func (sf *StockfishClient) GetBestMove(fen string, timeMs int) (string, error) {
 	}
 
 	return "", fmt.Errorf("no bestmove received within time limit")
+}
+
+// GetEval searches a position for timeMs and returns Stockfish's final score in
+// centipawns (from the side-to-move's perspective; mate scores mapped to large
+// magnitudes) along with its best move. Intended as an objective oracle.
+func (sf *StockfishClient) GetEval(fen string, timeMs int) (score int, bestMove string, err error) {
+	if err = sf.sendCommand(fmt.Sprintf("position fen %s", fen)); err != nil {
+		return 0, "", err
+	}
+	if err = sf.sendCommand(fmt.Sprintf("go movetime %d", timeMs)); err != nil {
+		return 0, "", err
+	}
+
+	scoreRe := regexp.MustCompile(`score (cp|mate) (-?\d+)`)
+	haveScore := false
+	deadline := time.Now().Add(time.Duration(timeMs)*time.Millisecond + 5*time.Second)
+
+	for time.Now().Before(deadline) {
+		if !sf.stdout.Scan() {
+			if e := sf.stdout.Err(); e != nil {
+				return 0, "", e
+			}
+			break
+		}
+		line := strings.TrimSpace(sf.stdout.Text())
+
+		if m := scoreRe.FindStringSubmatch(line); m != nil {
+			v, _ := strconv.Atoi(m[2])
+			if m[1] == "mate" {
+				if v >= 0 {
+					score = 30000 - v
+				} else {
+					score = -30000 - v
+				}
+			} else {
+				score = v
+			}
+			haveScore = true
+		}
+
+		if strings.HasPrefix(line, "bestmove") {
+			parts := strings.Fields(line)
+			if len(parts) >= 2 {
+				bestMove = parts[1]
+			}
+			if !haveScore {
+				return 0, bestMove, fmt.Errorf("no score reported (terminal position?)")
+			}
+			return score, bestMove, nil
+		}
+	}
+	return 0, "", fmt.Errorf("timeout or pipe closed before bestmove")
 }
