@@ -25,6 +25,16 @@ import (
 
 const startposFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
+// resetTTPerPos, when set, gives each position a fresh transposition table so
+// searches are independent — used to test whether cross-position TT carryover
+// (vs the position itself) is what makes NGN blunder.
+var resetTTPerPos bool
+
+// ngnFixedDepth, when >0, searches NGN to a fixed depth with NO time manager
+// (every iteration runs to completion, fully deterministic) instead of movetime.
+// Used to test whether the interruptible movetime path is what makes NGN blunder.
+var ngnFixedDepth int
+
 // Blunder is one oracle-confirmed bad move.
 type Blunder struct {
 	FEN      string `json:"fen"`       // position with NGN to move
@@ -32,9 +42,9 @@ type Blunder struct {
 	NGNScore int    `json:"ngn_score"` // NGN's own search score (cp, NGN POV)
 	NGNDepth int    `json:"ngn_depth"` // depth NGN reached
 	SFBest   string `json:"sf_best"`   // Stockfish's best move
-	SFBefore int    `json:"sf_before"` // SF eval of position (cp, NGN POV)
-	SFAfter  int    `json:"sf_after"`  // SF eval after NGN's move (cp, NGN POV)
-	Drop     int    `json:"drop"`      // SFBefore - SFAfter = centipawn loss
+	EvalBest int    `json:"eval_best"` // eval after SF's best move (cp, mover POV)
+	EvalNGN  int    `json:"eval_ngn"`  // eval after NGN's move (cp, mover POV)
+	Drop     int    `json:"drop"`      // EvalBest - EvalNGN = centipawn loss vs best
 }
 
 // fenRe matches a full 6-field FEN anywhere in a line.
@@ -52,7 +62,11 @@ func main() {
 	outFile := flag.String("out", "output/blunders.jsonl", "output JSONL path")
 	topN := flag.Int("top", 15, "print this many worst blunders to stdout")
 	lowPower := flag.Bool("lowpower", true, "route Stockfish to E-cores via taskpolicy -b")
+	resetTT := flag.Bool("reset-tt", false, "give each position a fresh TT (isolate cross-position TT carryover)")
+	fixedDepth := flag.Int("depth", 0, "search NGN to a fixed depth (deterministic, no clock) instead of -movetime")
 	flag.Parse()
+	resetTTPerPos = *resetTT
+	ngnFixedDepth = *fixedDepth
 
 	var fens []string
 	switch {
@@ -122,13 +136,17 @@ func main() {
 	}
 	for i := 0; i < n; i++ {
 		b := blunders[i]
-		fmt.Printf("\n[%d] drop %dcp  NGN played %s (d%d, NGN eval %+d)  SF best %s (eval %+d -> %+d)\n     %s\n",
-			i+1, b.Drop, b.NGNMove, b.NGNDepth, b.NGNScore, b.SFBest, b.SFBefore, b.SFAfter, b.FEN)
+		fmt.Printf("\n[%d] drop %dcp  NGN played %s (d%d, NGN eval %+d)  SF best %s  [after best %+d, after NGN %+d]\n     %s\n",
+			i+1, b.Drop, b.NGNMove, b.NGNDepth, b.NGNScore, b.SFBest, b.EvalBest, b.EvalNGN, b.FEN)
 	}
 }
 
-// analyze runs NGN on a position and oracle-scores its move. ok=false on any error
-// (illegal FEN, search produced no move, stockfish failure).
+// analyze runs NGN on a position and measures its move's centipawn loss vs
+// Stockfish's best move (both scored one ply later, in the mover's POV, so the
+// comparison is apples-to-apples). ok=false means skip: a parse/search/oracle
+// error, OR the position is already decided (even best play is hopeless or
+// already crushing) so a "blunder" there isn't meaningful and only pollutes the
+// corpus — this is what filtered out the K+B+N-vs-K forced-loss false positives.
 func analyze(sf *engine.StockfishClient, fen string, movetime, sfMovetime int) (Blunder, bool) {
 	pos, err := engine.ParseFEN(fen)
 	if err != nil {
@@ -136,56 +154,82 @@ func analyze(sf *engine.StockfishClient, fen string, movetime, sfMovetime int) (
 	}
 
 	// Fresh per-position move-ordering state so the search is reproducible.
+	if resetTTPerPos {
+		engine.TranspositionTable = engine.NewCache(engine.DEFAULT_CACHE_SIZE)
+	}
 	engine.ClearHistoryTable()
 	engine.ClearKillerMoves()
 	engine.ClearCounterMoves()
 	engine.ClearStop()
 
-	tm := engine.NewTimeManager()
-	tm.SetTimeControl(engine.SearchParams{MoveTime: movetime}, pos.Turn() == engine.White)
-	info := engine.SearchIterativeDeepening(pos, engine.MaximumDepth, tm)
+	var info *engine.SearchInfo
+	if ngnFixedDepth > 0 {
+		info = engine.SearchIterativeDeepening(pos, ngnFixedDepth, nil)
+	} else {
+		tm := engine.NewTimeManager()
+		tm.SetTimeControl(engine.SearchParams{MoveTime: movetime}, pos.Turn() == engine.White)
+		info = engine.SearchIterativeDeepening(pos, engine.MaximumDepth, tm)
+	}
 	if info.BestMove == engine.EmptyMove {
 		return Blunder{}, false
 	}
+	ngnMove := info.BestMove.ToString()
 
-	sfBefore, sfBest, err := sf.GetEval(fen, sfMovetime)
-	if err != nil {
+	_, sfBest, err := sf.GetEval(fen, sfMovetime)
+	if err != nil || sfBest == "" || sfBest == "(none)" {
 		return Blunder{}, false
 	}
 
-	// Apply NGN's move and evaluate the resulting position from NGN's POV.
-	pos2, _ := engine.ParseFEN(fen)
-	mv, err := engine.ParseUCIMove(pos2, info.BestMove.ToString())
-	if err != nil {
+	evalBest, ok := evalAfterMove(sf, fen, sfBest, sfMovetime)
+	if !ok {
 		return Blunder{}, false
 	}
-	pos2.MakeMove(mv)
-
-	var ngnAfter int
-	if len(engine.GenerateLegalMoves(pos2)) == 0 {
-		if pos2.IsInCheck() {
-			ngnAfter = 30000 // NGN delivered checkmate
-		} else {
-			ngnAfter = 0 // stalemate
-		}
-	} else {
-		raw, _, err := sf.GetEval(engine.GenerateFEN(pos2), sfMovetime)
-		if err != nil {
-			return Blunder{}, false
-		}
-		ngnAfter = -raw // flip to NGN's POV (opponent is to move after NGN's move)
+	// Skip decided positions: a forced loss even with best play, or an
+	// already-won rout, isn't a meaningful blunder.
+	if evalBest <= -1200 || evalBest >= 1500 {
+		return Blunder{}, false
+	}
+	evalNGN, ok := evalAfterMove(sf, fen, ngnMove, sfMovetime)
+	if !ok {
+		return Blunder{}, false
 	}
 
 	return Blunder{
 		FEN:      fen,
-		NGNMove:  info.BestMove.ToString(),
+		NGNMove:  ngnMove,
 		NGNScore: info.BestScore,
 		NGNDepth: info.Depth,
 		SFBest:   sfBest,
-		SFBefore: sfBefore,
-		SFAfter:  ngnAfter,
-		Drop:     sfBefore - ngnAfter,
+		EvalBest: evalBest,
+		EvalNGN:  evalNGN,
+		Drop:     evalBest - evalNGN,
 	}, true
+}
+
+// evalAfterMove applies uciMove to fen and returns Stockfish's eval of the
+// resulting position in the MOVER's POV (centipawns). Terminal results are
+// scored without calling Stockfish.
+func evalAfterMove(sf *engine.StockfishClient, fen, uciMove string, sfMovetime int) (int, bool) {
+	pos, err := engine.ParseFEN(fen)
+	if err != nil {
+		return 0, false
+	}
+	mv, err := engine.ParseUCIMove(pos, uciMove)
+	if err != nil {
+		return 0, false
+	}
+	pos.MakeMove(mv)
+	if len(engine.GenerateLegalMoves(pos)) == 0 {
+		if pos.IsInCheck() {
+			return 30000, true // mover delivered checkmate
+		}
+		return 0, true // stalemate
+	}
+	raw, _, err := sf.GetEval(engine.GenerateFEN(pos), sfMovetime)
+	if err != nil {
+		return 0, false
+	}
+	return -raw, true // opponent is to move after the move; flip to mover's POV
 }
 
 // fensFromFile extracts the first FEN found on each line.
