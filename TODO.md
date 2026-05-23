@@ -2,7 +2,21 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
-**Current Status (2026-05-03):** 1580 ELO rolling-smoke estimate, 95% CI [1446, 1714]
+**Current Status (2026-05-23):** ~1468 rolling-smoke estimate, 95% CI [1343, 1593]
+(commit-decayed, NGN 1000ms vs SF1500 200ms). Tactical 29/30. Two fresh HEAD smokes
+(4W-1L then 1W-4L = 5W-5L combined, exactly 50%) confirm the singular-extension change
+8269da1 (depth/2 → depth-4) is NEUTRAL — the prior one-off 0/5 at d3dafc8 was variance,
+not a regression. NPS VERIFIED ~750K-1M in real middlegame/tactical positions (depth 20
+in 5s in-process); the long-standing "350K NPS" claim is stale by ~3x and Stage 6 is
+effectively already met. KEY FINDING: the 5-game smoke swung 80% → 20% on an *identical*
+binary, so it cannot resolve sub-100-ELO changes — it's a catastrophe detector, not a
+tuning instrument. Bottleneck is EVALUATION: NGN out-searches SF1500 and is 29/30
+tactically yet scores only ~50% vs a 1500-capped opponent, so losses are positional, not
+tactical. Highest-leverage next steps: real Texel tuning (static MSE objective sidesteps
+smoke noise + unblocks the eval features that keep failing) and an SPRT self-play harness
+(NGN-new vs NGN-old) to make small changes measurable.
+
+**Prior status (2026-05-03):** 1580 ELO rolling-smoke estimate, 95% CI [1446, 1714]
 (width 268, commit-decayed sample of 26.0 games across 11 runs at NGN 1000ms vs SF1500
 200ms). Tactical 29/30. Trajectory this session: 1477 → 1533 → 1582 (2 post-audit
 smokes) → 1553 (hanging-pieces tried/reverted) → 1559 ([piece][to] history) → 1564
@@ -361,10 +375,13 @@ smoke. Sized in expected ELO buckets per stage; reality will vary.
   >= 8, (b) only fire if depth - ttDepth >= 4 (skip IIR when TT has stale entry),
   (c) defer until after Texel + multi-cut so the search tree is more robust.
 
-**Stage 6 — NPS (target 2150, +50 ELO)**
-- 350K NPS is low. Profile via `cpu.prof`. Movegen at 47KB has redundant paths; hot path
-  probably re-traverses bitboards.
-- Realistic Go-bitboard target is 800K-1M NPS. 2× NPS ≈ +50 ELO via deeper search.
+**Stage 6 — NPS (LARGELY DONE — verified 2026-05-23)**
+- The "350K NPS is low" premise is STALE. Measured in-process: ~750K-1M NPS in real
+  middlegame/tactical positions, 1.47M on startpos, depth 20 in 5s. The 350K figure came
+  from the Feb 5 profiling files before optimizations.
+- Already at/above the "realistic Go-bitboard target 800K-1M" this stage set as the goal.
+  Search speed is NOT the bottleneck; do not spend time here. Re-profile only if a future
+  position-mix shows a hot path, but expect single-digit ELO, not +50.
 
 **Stage 7 — TT, time, polish (target 2200, +50 ELO)**
 - 2-bucket TT (depth-preferred + always-replace).
