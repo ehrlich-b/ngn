@@ -656,12 +656,11 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 				mate := (MATE_VALUE - score + 1) / 2
 				scoreStr = fmt.Sprintf("mate %d", mate)
 			} else if score <= -MATE_IN_MAX {
-				mateDistance := -score - MATE_VALUE
-				if mateDistance < 0 || mateDistance > 1000 {
-					mateDistance = 1000
-				}
-				mate := -(mateDistance/2 + 1)
-				scoreStr = fmt.Sprintf("mate %d", mate)
+				// Mirror the winning branch (and the tablebase path at line ~610):
+				// plies-to-mate is MATE_VALUE+score, reported as a negative "mate -N".
+				// The old `-score - MATE_VALUE` underflowed for real losing mates and
+				// clamped to the garbage "mate -501" seen 25k+ times in the logs.
+				scoreStr = fmt.Sprintf("mate %d", -((MATE_VALUE + score + 1) / 2))
 			} else {
 				scoreStr = fmt.Sprintf("cp %d", score)
 			}
