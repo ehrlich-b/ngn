@@ -2,19 +2,32 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
-**Current Status (2026-05-23):** ~1468 rolling-smoke estimate, 95% CI [1343, 1593]
-(commit-decayed, NGN 1000ms vs SF1500 200ms). Tactical 29/30. Two fresh HEAD smokes
-(4W-1L then 1W-4L = 5W-5L combined, exactly 50%) confirm the singular-extension change
-8269da1 (depth/2 → depth-4) is NEUTRAL — the prior one-off 0/5 at d3dafc8 was variance,
-not a regression. NPS VERIFIED ~750K-1M in real middlegame/tactical positions (depth 20
-in 5s in-process); the long-standing "350K NPS" claim is stale by ~3x and Stage 6 is
-effectively already met. KEY FINDING: the 5-game smoke swung 80% → 20% on an *identical*
-binary, so it cannot resolve sub-100-ELO changes — it's a catastrophe detector, not a
-tuning instrument. Bottleneck is EVALUATION: NGN out-searches SF1500 and is 29/30
-tactically yet scores only ~50% vs a 1500-capped opponent, so losses are positional, not
-tactical. Highest-leverage next steps: real Texel tuning (static MSE objective sidesteps
-smoke noise + unblocks the eval features that keep failing) and an SPRT self-play harness
-(NGN-new vs NGN-old) to make small changes measurable.
+**Current Status (2026-05-23):** ~1585 rolling-smoke estimate, 95% CI [1447, 1724]
+(commit-decayed, NGN 1000ms vs SF1500 200ms), up +117 from 1468 earlier today after the
+blunder fix below. Tactical 30/30.
+
+MAJOR FIX (commit 362fd24): the #1 strength bottleneck was NOT eval — it was a SEARCH
+ROBUSTNESS bug. The iterative-deepening loop committed a *half-searched* best move when
+the clock interrupted an iteration mid-move-loop (the classifier didn't check
+`info.Stopped`), so under time pressure NGN played catastrophic blunders (hung
+queens/rooks, walked into mates). Fixed with `if info.Stopped { break }` before the
+classifier (search.go ~624). Verified three ways: oracle blunder rate 9.7%→3.2%, tactical
+29→30/30, and two post-fix smokes went 9W-0D-1L (90%) lifting rolling 1468→1585.
+
+How it was found: built `cmd/blunder-finder` (Stockfish-oracle centipawn-loss detector;
+see -log/-in, -reset-tt, -depth modes). Dissection proved it was search-not-eval (static
+evals of blunder positions were fine), and a fixed-depth-vs-movetime + reset-tt-vs-carry
+A/B isolated the cause to the time-interrupt path. NPS also VERIFIED ~750K-1M (not the
+stale "350K"), so Stage 6 is already met. The 5-game smoke is still a coarse instrument
+(swung 80%→20% on an identical binary) — fine for catching big effects like this fix,
+useless for <100-ELO tuning.
+
+Remaining blunders (~3% at movetime, down from ~9%): moderate horizon misses at depth 7-9
+and occasional mate-blindness. Next harmonious targets: (a) mate hygiene — the ID loop has
+NO mate-found stop so it spins to depth 100 once any mate appears (search.go:497,643), and
+the losing-mate UCI formula clamps to garbage "mate -501" (uci.go:659); (b) the horizon
+misses (qsearch/extensions/depth). Eval/Texel stays premature until the blunder rate is
+driven lower.
 
 **Prior status (2026-05-03):** 1580 ELO rolling-smoke estimate, 95% CI [1446, 1714]
 (width 268, commit-decayed sample of 26.0 games across 11 runs at NGN 1000ms vs SF1500
