@@ -148,46 +148,53 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
 	depth := 0
 	color := movingPiece.Color().Other() // Side to move after initial capture
 	occupied := pos.Board.GetWhitePieces() | pos.Board.GetBlackPieces()
+	occupied &^= SquareMask[int(from)] // mover left its square -> reveals x-ray attackers behind it
 
-	// Initial capture. For promotion-captures, the pawn becomes a queen (or
-	// other promo type) on the target square, so the material gain is
-	// capturedValue + (promoValue - pawnValue).
+	// gain[0] is the value of the piece initially captured. pieceOnSquare tracks
+	// the value of whatever piece now stands on the target square (initially the
+	// moving piece) -- that is what the NEXT recapture wins. For a promotion-
+	// capture the pawn becomes the promoted piece, both for the material gain and
+	// as the piece now standing on the square.
 	gain[depth] = int(capturedValue)
+	pieceOnSquare := int(movingPiece.seeWeight())
 	if move.PromoType() != NoType {
 		promoPiece := GetPiece(move.PromoType(), movingPiece.Color())
 		gain[depth] += int(promoPiece.seeWeight()) - 100 // 100 = pawn seeWeight
+		pieceOnSquare = int(promoPiece.seeWeight())
 	}
 
 	for {
 		depth++
 		if depth >= 32 {
-			break // Prevent infinite loops
+			break // Prevent overflow of the gain array
 		}
 
 		// Find the least valuable attacker for the current side
 		attackerSquare, attackerPiece := findLeastValuableAttacker(pos, attackers, color, occupied, targetSquare)
 		if attackerSquare == NoSquare {
-			break // No more attackers
+			break // No more attackers; last valid swap entry is gain[depth-1]
 		}
 
 		// Remove this attacker from the occupied bitboard
 		occupied &^= SquareMask[int(attackerSquare)]
 
-		// Update attackers (remove pieces that can no longer attack)
+		// Update attackers (reveal sliders that were behind the moved attacker)
 		attackers = getAttackersAfterMove(pos, attackers, occupied, targetSquare, attackerSquare)
 
-		// Add the gain/loss for this exchange
-		gain[depth] = int(attackerPiece.seeWeight()) - gain[depth-1]
+		// This recapture wins the piece currently standing on the square; the
+		// recapturing piece then becomes the piece on the square for the next ply.
+		gain[depth] = pieceOnSquare - gain[depth-1]
+		pieceOnSquare = int(attackerPiece.seeWeight())
 
 		// Switch sides
 		color = color.Other()
 	}
 
-	// Evaluate the exchange from the end backwards
-	for depth > 0 {
-		depth--
-		if gain[depth] > -gain[depth+1] {
-			gain[depth] = -gain[depth+1]
+	// Negamax the swap list backward over the valid entries [0 .. depth-1]. Each
+	// side, working back, declines a recapture that would leave it worse off.
+	for depth--; depth > 0; depth-- {
+		if gain[depth-1] > -gain[depth] {
+			gain[depth-1] = -gain[depth]
 		}
 	}
 

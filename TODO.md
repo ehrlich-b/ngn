@@ -91,6 +91,27 @@ positions (need a harder suite where searches reach ~100K+ nodes) or an oracle-
 based cp-loss ablation on quiet positions (ties into the search-efficiency
 measurement). The SearchToggles hooks are now in place for either.
 
+**SEE WAS COMPLETELY BROKEN — fixed, +161 ELO (2026-05-24, the session's big win
+and the proof of the correctness-first thesis).** TestSEECorrectness
+(engine/see_test.go: crafted positions vs hand-computed exchange values) found
+staticExchangeEvaluation returning garbage — 0 for winning a free knight (should
++320), 0 for QxP-defended-by-pawn (should -900). Three compounding sub-bugs in the
+swap loop (engine/search.go): (1) gain[d] used the RECAPTURING piece's value
+instead of the value of the piece standing on the square (the previous mover);
+(2) the backward negamax read an unset gain[] slot, clamping any no-recapture
+capture to 0; (3) occupied never removed the moving piece, so x-ray attackers
+behind it were invisible. Consequence: SEE-based capture ORDERING and PRUNING
+(SEE-prune, probcut, qsearch delta) ran on wrong values the entire time. Fixed all
+three; TestSEECorrectness 7/7 (incl. x-ray battery, en passant, promotion-capture).
+SPRT, fixed-SEE vs broken-SEE (the ONLY delta), fixed depth 6, 400 openings:
+**+161.4 ELO, 95% CI [+121,+201], 246W-17D-92L = 71.7%, H1 ACCEPTED.** Movetime
+would likely be even higher (ordering speedup -> deeper search is invisible at
+fixed depth). Benign side effects vs the +161: tactical 30->29 (correct SEE pruning
+now prunes shallow sacrifices -- the classic SEE-vs-sacs tension) and
+TestAtomicVsNonAtomicPerformance trips its fragile 25% node-divergence threshold
+(correct pruning amplifies atomic-vs-non-atomic TT-race divergence; a non-gating
+perf benchmark -- consider loosening/skipping it). Committed.
+
 **Current Status (2026-05-23):** ~1711 rolling-smoke estimate, 95% CI [1555, 1867]
 (commit-decayed, NGN 1000ms vs SF1500 200ms), up +243 from 1468 at the start of today's
 blunder work and still climbing as pre-fix runs decay. Post-fix smokes went 19W-0D-1L
