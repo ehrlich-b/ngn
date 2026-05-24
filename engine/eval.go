@@ -2337,6 +2337,73 @@ func getRookAttacksBB(sq int, occupied uint64) uint64 {
 	return GetRookAttacks(sq, occupied)
 }
 
+// HangingPenalty is the per-piece penalty for a non-pawn piece the enemy
+// attacks and the owner does not defend (a "loose" / hanging piece). PSTs and
+// mobility don't capture leaving a piece en prise; this is a deliberately
+// simple flat term at Stockfish's ~50cp range, to be validated via self-play
+// SPRT (the 5-game smoke twice called earlier attempts "neutral" in its noise).
+const HangingPenalty = 50
+
+// sideAttacks returns the union of all squares attacked (hence defended) by
+// `color`. A square a friendly piece sits on counts as defended when another
+// friendly piece attacks it (magic-bitboard slider attacks include the first
+// blocker, so friendly blockers register as defended).
+func sideAttacks(board *Bitboard, color Color, occupied uint64) uint64 {
+	var pawns, knights, bishops, rooks, queens, king uint64
+	if color == White {
+		pawns = board.GetBitboardOf(WhitePawn)
+		knights = board.GetBitboardOf(WhiteKnight)
+		bishops = board.GetBitboardOf(WhiteBishop)
+		rooks = board.GetBitboardOf(WhiteRook)
+		queens = board.GetBitboardOf(WhiteQueen)
+		king = board.GetBitboardOf(WhiteKing)
+	} else {
+		pawns = board.GetBitboardOf(BlackPawn)
+		knights = board.GetBitboardOf(BlackKnight)
+		bishops = board.GetBitboardOf(BlackBishop)
+		rooks = board.GetBitboardOf(BlackRook)
+		queens = board.GetBitboardOf(BlackQueen)
+		king = board.GetBitboardOf(BlackKing)
+	}
+
+	var attacks uint64
+	if color == White {
+		attacks = ((pawns & ^FileMasks[FileA]) << 7) | ((pawns & ^FileMasks[FileH]) << 9)
+	} else {
+		attacks = ((pawns & ^FileMasks[FileH]) >> 7) | ((pawns & ^FileMasks[FileA]) >> 9)
+	}
+	for bb := knights; bb != 0; bb &= bb - 1 {
+		attacks |= KnightAttacks[bits.TrailingZeros64(bb)]
+	}
+	for bb := bishops | queens; bb != 0; bb &= bb - 1 {
+		attacks |= getBishopAttacksBB(bits.TrailingZeros64(bb), occupied)
+	}
+	for bb := rooks | queens; bb != 0; bb &= bb - 1 {
+		attacks |= getRookAttacksBB(bits.TrailingZeros64(bb), occupied)
+	}
+	if king != 0 {
+		attacks |= KingAttacks[bits.TrailingZeros64(king)]
+	}
+	return attacks
+}
+
+// evaluateHangingPieces returns a white-perspective score penalizing each side
+// for non-pawn pieces the opponent attacks but the owner does not defend.
+func evaluateHangingPieces(board *Bitboard) int {
+	occupied := board.GetWhitePieces() | board.GetBlackPieces()
+	whiteAttacks := sideAttacks(board, White, occupied)
+	blackAttacks := sideAttacks(board, Black, occupied)
+
+	whitePieces := board.GetBitboardOf(WhiteKnight) | board.GetBitboardOf(WhiteBishop) |
+		board.GetBitboardOf(WhiteRook) | board.GetBitboardOf(WhiteQueen)
+	blackPieces := board.GetBitboardOf(BlackKnight) | board.GetBitboardOf(BlackBishop) |
+		board.GetBitboardOf(BlackRook) | board.GetBitboardOf(BlackQueen)
+
+	whiteHanging := PopCount(whitePieces & blackAttacks &^ whiteAttacks)
+	blackHanging := PopCount(blackPieces & whiteAttacks &^ blackAttacks)
+	return (blackHanging - whiteHanging) * HangingPenalty
+}
+
 // Enhanced evaluation function - always returns from white's perspective
 func Evaluate(board *Bitboard) (eval int) {
 	return WrapEvaluation("Evaluate", func() int {
@@ -2414,6 +2481,10 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	blackBishops := board.GetBitboardOf(BlackBishop)
 	eval += evaluateOutpostSquares(whiteKnights, whiteBishops, whitePawns, blackPawns, White)
 	eval -= evaluateOutpostSquares(blackKnights, blackBishops, blackPawns, whitePawns, Black)
+
+	// Hanging pieces: penalize non-pawn pieces the opponent attacks and the
+	// owner does not defend. Net, white-perspective.
+	eval += evaluateHangingPieces(board)
 
 	// King safety: pawn shield in middlegame only.
 	if phase >= 12 { // roughly middlegame or opening
