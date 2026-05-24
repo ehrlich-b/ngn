@@ -2,6 +2,30 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
+**Current Status (2026-05-24):** Built the measurement instrument that unblocks
+everything from here — `cmd/sprt`, an NGN-vs-NGN self-play SPRT. The 5-game
+vs-Stockfish smoke provably can't resolve sub-100-ELO changes (identical binary
+swung 80%→20%), which is why every eval/ordering tweak kept coming back "neutral"
+in the noise. sprt fixes that: **fixed-depth games by default** (every move
+reaches real depth — directly answers the "hyperbullet won't get enough depth"
+worry — and removes time noise), authoritative game-end detection via the engine
+package (checkmate/stalemate/threefold/50-move; the elo-assess loop mis-scored
+stalemate as a loss), reversed-color opening pairs for variance reduction,
+`-genbook` to scale openings, `-basedepth` for a positive control, and a GSPRT
+LLR stop. This is the prerequisite for Stages 2-7 (eval features, Texel,
+search-efficiency) — none of which the smoke can measure. Validated end-to-end:
+null (identical binaries) = exactly 50.0% (20W-8D-20L), LLR -0.10, no false
+positive; positive control (new depth 7 vs base depth 3) correctly tripped H1
+ACCEPTED at +280 elo. First real use is the next eval/ordering change.
+
+Also closed the bugs-first gate: dissected the worst residual blunder (the
+29301cp mate-walk) with a deterministic depth-1→16 scan — it's a **false-perpetual
+horizon illusion** (NGN scores it 0.00/draw at depths 4-8, then sees white escapes
+the perpetual at depth 9-10 and switches to SF's move), NOT a bug. The smoking gun
+for *why* movetime stalls at the blundering depth: depth 9 = 289K nodes but depth
+10 = **35.5M nodes** (120× explosion). Confirms search efficiency in sharp
+positions is the remaining lever — exactly the tuning-shaped work sprt now measures.
+
 **Current Status (2026-05-23):** ~1711 rolling-smoke estimate, 95% CI [1555, 1867]
 (commit-decayed, NGN 1000ms vs SF1500 200ms), up +243 from 1468 at the start of today's
 blunder work and still climbing as pre-fix runs decay. Post-fix smokes went 19W-0D-1L
