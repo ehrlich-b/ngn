@@ -52,6 +52,22 @@ func IsStopRequested() bool {
 // At depth d, prune quiet moves after lmpThreshold[d] moves
 var lmpThreshold = [8]int{0, 5, 8, 12, 17, 23, 30, 38}
 
+// SearchToggles enables/disables individual pruning & reduction techniques for
+// the correctness-ablation harness (TestPruningAblation). All default ON, so
+// normal play is unchanged; the test flips one OFF at a time — a technique whose
+// removal makes the engine solve MORE tactics is over-pruning real refutations
+// (a bug), not just trading accuracy for speed.
+var SearchToggles = struct {
+	NullMove  bool
+	Futility  bool
+	RFP       bool
+	Probcut   bool
+	LMP       bool
+	SEEPrune  bool
+	LMR       bool
+	HistPrune bool
+}{true, true, true, true, true, true, true, true}
+
 // lmrTable[depth][legalTried] precomputes the Stockfish-style log-based LMR
 // base reduction: floor(log(depth) * log(legalTried) / 2). Smoother gradient
 // than the prior piecewise tiers (legalTried thresholds at 6/12 plus a
@@ -984,7 +1000,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	var evalComputed bool
 
 	// Reverse futility pruning - if position is very good, return early
-	if depth <= 3 && !inCheck && beta-alpha == 1 {
+	if SearchToggles.RFP && depth <= 3 && !inCheck && beta-alpha == 1 {
 		staticEval = EvaluateForPlayer(&pos.Board, pos.Turn())
 		evalComputed = true
 		margin := REVERSE_FUTILITY_MARGIN * depth
@@ -994,7 +1010,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	}
 
 	// PV-aware extended futility pruning for shallow depths
-	if depth <= FUTILITY_MAX_DEPTH && !inCheck && !isPV { // Don't prune in PV nodes
+	if SearchToggles.Futility && depth <= FUTILITY_MAX_DEPTH && !inCheck && !isPV { // Don't prune in PV nodes
 		if !evalComputed {
 			staticEval = EvaluateForPlayer(&pos.Board, pos.Turn())
 			evalComputed = true
@@ -1011,7 +1027,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// PV-aware null move pruning - more conservative in PV nodes.
 	// Guard against zugzwang: in pawn-only endgames, passing can be the best
 	// available option for the opponent, so null-move cutoffs are unsound.
-	if !inCheck && depth >= NULL_MOVE_MIN_DEPTH && beta-alpha > 1 && (!isPV || depth >= 6) &&
+	if SearchToggles.NullMove && !inCheck && depth >= NULL_MOVE_MIN_DEPTH && beta-alpha > 1 && (!isPV || depth >= 6) &&
 		hasNonPawnMaterial(&pos.Board, pos.Turn()) {
 		// Set lastMovePlayed to EmptyMove so children don't pick spurious
 		// counter-move replies keyed on our own prior move.
@@ -1032,7 +1048,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// Probcut pruning: if a reduced-depth search at a higher beta fails high,
 	// we can prune because the full search would likely also fail high
-	if !isPV && !inCheck && depth >= 5 && abs(beta) < MATE_VALUE-100 {
+	if SearchToggles.Probcut && !isPV && !inCheck && depth >= 5 && abs(beta) < MATE_VALUE-100 {
 		probcutBeta := beta + 200 // Higher beta threshold
 
 		// Generate captures only for probcut
@@ -1152,7 +1168,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Late Move Pruning (LMP) - skip very late quiet moves at low depths
 		// Only apply in non-PV nodes, not in check, and for quiet moves
 		// Use legalTried (not moveCount) since moveCount includes illegal moves
-		if !isPV && !inCheck && depth > 0 && depth < 8 &&
+		if SearchToggles.LMP && !isPV && !inCheck && depth > 0 && depth < 8 &&
 			!move.IsCapture() && move != ttMove && legalTried > 0 {
 			threshold := lmpThreshold[depth]
 			if legalTried > threshold {
@@ -1163,7 +1179,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 		// SEE pruning for bad captures in main search
 		// Skip obviously losing captures at low depths (not in PV, not TT move)
-		if !isPV && !inCheck && depth <= 4 && move.IsCapture() && move != ttMove {
+		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 && move.IsCapture() && move != ttMove {
 			seeValue := staticExchangeEvaluation(pos, move)
 			if seeValue < -100 { // Skip captures losing more than a pawn
 				continue
@@ -1171,7 +1187,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 
 		// History pruning: skip quiet moves with very bad history at low depths
-		if !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move != ttMove {
+		if SearchToggles.HistPrune && !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move != ttMove {
 			histScore := GetHistoryScore(move, GetLastMovePlayed())
 			if histScore < -1000 && legalTried > 3 { // Very bad history and not early move
 				continue
@@ -1300,7 +1316,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 			// PV-aware Late Move Reductions (use legalTried, not moveCount which includes illegal moves)
 			reduction := 0
-			if depth >= LMR_FULL_DEPTH && legalTried > LMR_MOVE_THRESHOLD &&
+			if SearchToggles.LMR && depth >= LMR_FULL_DEPTH && legalTried > LMR_MOVE_THRESHOLD &&
 				!move.IsCapture() && !inCheck && !givesCheck {
 
 				// Stockfish-style log-based base reduction; non-PV gets +1

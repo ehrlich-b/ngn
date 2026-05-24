@@ -72,6 +72,25 @@ fixed): TestEnginePlayingStrength compares UCI moves ("b1c3") to SAN strings
 misleads; TestGenerateEvaluationBaseline rewrites the committed eval_baseline.json
 on every `go test` run (churn); that baseline is mildly stale (within ±10).
 
+**Pruning ablation DONE (2026-05-24) — no tactical over-pruning; suite too shallow
+for deep pruning.** Added SearchToggles (engine/search.go: 8 techniques, default ON
+= behavior-neutral, tactical 30/30 confirmed) + TestPruningAblation
+(engine/ablation_test.go): disables each technique and re-solves 120 fixed-depth-7
+positions from validated_tactical_positions.epd. At fixed depth, removing a
+technique only makes the search MORE thorough, so "solves MORE with it OFF" =
+over-pruning bug. Result: every technique OFF still solves 119/120 (+0) — NO
+over-pruning of tactical refutations in null-move/futility/RFP/probcut/LMP/SEE/
+LMR/hist-prune. CAVEAT (the node-count column earns its keep): the forcing-tactics
+suite is too shallow (avg ~4700 nodes/pos; mate-found-stop halts ID at depth 1-3),
+so the DEEP pruners barely fired — no-NullMove/no-Probcut/no-HistPrune node counts
+were IDENTICAL to baseline, no-LMR 1.00x. Only the shallow pruners
+(futility/RFP/LMP/SEE) were actually exercised (0.97-1.06x) and are clean. So
+deep-pruning soundness in QUIET play is NOT yet cleared — a forcing-tactics suite
+structurally can't stress it. NEXT: probe null-move/LMR with deeper non-mate
+positions (need a harder suite where searches reach ~100K+ nodes) or an oracle-
+based cp-loss ablation on quiet positions (ties into the search-efficiency
+measurement). The SearchToggles hooks are now in place for either.
+
 **Current Status (2026-05-23):** ~1711 rolling-smoke estimate, 95% CI [1555, 1867]
 (commit-decayed, NGN 1000ms vs SF1500 200ms), up +243 from 1468 at the start of today's
 blunder work and still climbing as pre-fix runs decay. Post-fix smokes went 19W-0D-1L
