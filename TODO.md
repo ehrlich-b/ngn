@@ -26,6 +26,52 @@ for *why* movetime stalls at the blundering depth: depth 9 = 289K nodes but dept
 10 = **35.5M nodes** (120× explosion). Confirms search efficiency in sharp
 positions is the remaining lever — exactly the tuning-shaped work sprt now measures.
 
+**First real A/B results (2026-05-24) — both NEUTRAL, and the second proves the
+instrument's worth.** (1) Hanging-pieces @ flat 50cp: 17W-10D-17L = 50.0% over 44
+(depth 8). (2) Rook-on-7th @ 20cp, guarded (enemy king on back rank OR enemy
+pawns still on the 7th): 176W-41D-183L = 49.1%, elo **-6.1**, CI [-40,+28],
+LLR -0.16 over 400 games (depth 6) — reverted. The smoking gun: rook-7th read
+**+29 ELO at 48 games** (the old built-in-opening cap), peaked ~+60, then decayed
+to **-6 by 400** — a small sample would have shipped a phantom +30. That is the
+exact false positive the 5-game smoke kept producing; it retroactively explains
+why older smoke-gated eval tweaks "looked good then regressed." **Lesson:** bolting
+single un-tuned eval terms onto an already-reasonable eval is low-yield (theory +
+2 data points agree). Real levers from here: (a) TUNE the existing eval vector
+together (Texel/SPSA — texel.go is a skeleton, a build task), or (b) search
+efficiency (the measured blunder ceiling — needs a node-limited sprt mode since
+fixed-depth can't reward reaching deeper; `-movetime` mode works now at
+concurrency 1 as a noisier stopgap). Both experiments preserved in git stash.
+
+**Correctness audit started (2026-05-24) — empirical, not code-reading.** Per the
+directive to lock down ALL classic techniques before any tuning (no Texel/SPSA
+until correctness is proven — "should reach 2k on bug-fixing alone"), began an
+empirical correctness harness (tests that PROVE a bug, vs code-reading which gives
+false positives). First test caught a real bug: replaced the coverage-theater eval
+symmetry test (1 position, only checked the signs differed) with a 20K random-
+position sweep asserting the EXACT mirror invariant Evaluate(P) == -Evaluate(
+mirror(P)). It flagged 235/20K asymmetric (±12-25cp); a per-term sweep isolated it
+to evaluateOutpostSquares; root cause = swapped edge-file guards in the
+BlackPawnAttackers table init (engine/global.go): sq+7 (file-1) was gated on
+file<7 and sq+9 (file+1) on file>0 — both backwards, so the table wrapped the A/H
+edges and missed legitimate attackers there. Fixed, verified 0/20K, all 12 eval-
+regression baselines still pass, tactical 30/30. Same family as the phantom passed-
+pawn mask. Small magnitude (edge-file outposts only, likely sub-measurable ELO
+alone) but correct now and permanently regression-guarded (TestEvaluationSymmetry,
+TestEvalSymmetryByTerm in eval_test.go).
+
+NEXT correctness-harness tests (in priority order): (1) PRUNING ABLATION — toggle
+each of null-move/LMR/LMP/futility/RFP/SEE-prune/probcut OFF vs ON on the tactical
+suite; a technique whose removal solves MORE is over-pruning = bug. This is where
+the big fish are (the +243 partial-commit fix was this class). Needs toggle hooks
+added to search.go (none exist). (2) TT SOUNDNESS — fixed-depth best move with TT
+on must equal TT off (pure cache). (3) Search consistency / re-search determinism.
+
+Pre-existing TEST-hygiene issues found en route (NOT engine bugs, flagged not
+fixed): TestEnginePlayingStrength compares UCI moves ("b1c3") to SAN strings
+("Nc3") so 3/4 sub-scores are always 0 → emits a bogus "950 ELO CRITICAL" that
+misleads; TestGenerateEvaluationBaseline rewrites the committed eval_baseline.json
+on every `go test` run (churn); that baseline is mildly stale (within ±10).
+
 **Current Status (2026-05-23):** ~1711 rolling-smoke estimate, 95% CI [1555, 1867]
 (commit-decayed, NGN 1000ms vs SF1500 200ms), up +243 from 1468 at the start of today's
 blunder work and still climbing as pre-fix runs decay. Post-fix smokes went 19W-0D-1L

@@ -112,10 +112,10 @@ func initPawnAttackers() {
 		// A black pawn on sq+9 attacks sq (if sq is not on file A)
 		blackMask := uint64(0)
 		if rank < 7 { // Can be attacked by black pawn
-			if file < 7 && sq+7 < 64 { // Not on file H - can be attacked from right-above
+			if file > 0 && sq+7 < 64 { // sq+7 = (rank+1, file-1): black pawn from left-above (needs not file A)
 				blackMask |= SquareMask[sq+7]
 			}
-			if file > 0 && sq+9 < 64 { // Not on file A - can be attacked from left-above
+			if file < 7 && sq+9 < 64 { // sq+9 = (rank+1, file+1): black pawn from right-above (needs not file H)
 				blackMask |= SquareMask[sq+9]
 			}
 		}

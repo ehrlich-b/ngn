@@ -1,6 +1,9 @@
 package engine
 
 import (
+	"fmt"
+	"math/bits"
+	"math/rand"
 	"testing"
 )
 
@@ -191,32 +194,166 @@ func TestMobilityEvaluation(t *testing.T) {
 	}
 }
 
+// mirrorBoard returns the color-and-vertical flip of src: every piece moves to
+// sq^56 with its color swapped. Evaluate() is a pure white-perspective function
+// with no side-to-move dependence, so the EXACT invariant
+// Evaluate(P) == -Evaluate(mirrorBoard(P)) must hold for any position. Any
+// violation is an asymmetry bug in some eval term.
+func mirrorBoard(src *Bitboard) Bitboard {
+	var dst Bitboard
+	pairs := [6][2]Piece{
+		{WhitePawn, BlackPawn}, {WhiteKnight, BlackKnight},
+		{WhiteBishop, BlackBishop}, {WhiteRook, BlackRook},
+		{WhiteQueen, BlackQueen}, {WhiteKing, BlackKing},
+	}
+	for _, pr := range pairs {
+		for bb := src.GetBitboardOf(pr[0]); bb != 0; bb &= bb - 1 {
+			dst.UpdateSquare(Square(bits.TrailingZeros64(bb)^56), pr[1], NoPiece)
+		}
+		for bb := src.GetBitboardOf(pr[1]); bb != 0; bb &= bb - 1 {
+			dst.UpdateSquare(Square(bits.TrailingZeros64(bb)^56), pr[0], NoPiece)
+		}
+	}
+	return dst
+}
+
+// randomEvalPosition builds a random (not necessarily legal) board with one
+// king per side and a scatter of other pieces. Legality is irrelevant to a
+// static-eval symmetry check; coverage of eval code paths is what matters.
+// Pawns are kept off ranks 1 and 8.
+func randomEvalPosition(rng *rand.Rand) Bitboard {
+	var b Bitboard
+	var occ [64]bool
+	wk, bk := rng.Intn(64), rng.Intn(64)
+	for bk == wk {
+		bk = rng.Intn(64)
+	}
+	b.UpdateSquare(Square(wk), WhiteKing, NoPiece)
+	b.UpdateSquare(Square(bk), BlackKing, NoPiece)
+	occ[wk], occ[bk] = true, true
+	choices := []Piece{
+		WhitePawn, WhiteKnight, WhiteBishop, WhiteRook, WhiteQueen,
+		BlackPawn, BlackKnight, BlackBishop, BlackRook, BlackQueen,
+	}
+	for n := rng.Intn(22); n > 0; n-- {
+		p := choices[rng.Intn(len(choices))]
+		sq := rng.Intn(64)
+		if occ[sq] {
+			continue
+		}
+		if (p == WhitePawn || p == BlackPawn) && (sq/8 == 0 || sq/8 == 7) {
+			continue
+		}
+		occ[sq] = true
+		b.UpdateSquare(Square(sq), p, NoPiece)
+	}
+	return b
+}
+
+func dumpBoard(b *Bitboard) string {
+	s := ""
+	for sq := 0; sq < 64; sq++ {
+		if p := b.PieceAt(Square(sq)); p != NoPiece {
+			s += fmt.Sprintf("%d:%d ", sq, int(p))
+		}
+	}
+	return s
+}
+
+// TestEvaluationSymmetry sweeps thousands of random positions asserting the
+// exact color-mirror invariant Evaluate(P) == -Evaluate(mirror(P)). (Replaces
+// an earlier one-position test that only checked the two evals had opposite
+// signs — which proved essentially nothing.)
 func TestEvaluationSymmetry(t *testing.T) {
-	// Test that evaluation is symmetric for mirrored positions
-	board := Bitboard{}
+	rng := rand.New(rand.NewSource(1))
+	const iters = 20000
+	fails := 0
+	for i := 0; i < iters; i++ {
+		p := randomEvalPosition(rng)
+		m := mirrorBoard(&p)
+		ep, em := Evaluate(&p), Evaluate(&m)
+		if ep+em != 0 {
+			fails++
+			if fails <= 8 {
+				t.Errorf("asymmetry #%d: Evaluate(P)=%d Evaluate(mirror)=%d sum=%d\n  P: %s\n  M: %s",
+					i, ep, em, ep+em, dumpBoard(&p), dumpBoard(&m))
+			}
+		}
+	}
+	if fails > 0 {
+		t.Fatalf("%d/%d random positions had asymmetric evaluation", fails, iters)
+	}
+}
 
-	// Set up a position from white's perspective
-	board.UpdateSquare(E1, WhiteKing, NoPiece)
-	board.UpdateSquare(D1, WhiteQueen, NoPiece)
-	board.UpdateSquare(E2, WhitePawn, NoPiece)
-	board.UpdateSquare(E8, BlackKing, NoPiece)
-	board.UpdateSquare(D7, BlackPawn, NoPiece)
-
-	evalWhite := Evaluate(&board)
-
-	// Create mirrored position (swap colors and flip board)
-	board2 := Bitboard{}
-	board2.UpdateSquare(E8, BlackKing, NoPiece)
-	board2.UpdateSquare(D8, BlackQueen, NoPiece)
-	board2.UpdateSquare(E7, BlackPawn, NoPiece)
-	board2.UpdateSquare(E1, WhiteKing, NoPiece)
-	board2.UpdateSquare(D2, WhitePawn, NoPiece)
-
-	evalBlack := Evaluate(&board2)
-
-	// The evaluations should be roughly opposite
-	if evalWhite*evalBlack >= 0 {
-		t.Errorf("Symmetric positions should have opposite evaluations. White: %d, Black: %d", evalWhite, evalBlack)
+// TestEvalSymmetryByTerm isolates WHICH eval term breaks mirror symmetry by
+// checking each term's white-perspective net contribution independently.
+func TestEvalSymmetryByTerm(t *testing.T) {
+	rng := rand.New(rand.NewSource(2))
+	type term struct {
+		name string
+		net  func(b *Bitboard) int
+	}
+	terms := []term{
+		{"pesto", func(b *Bitboard) int {
+			mg, eg, ph := evaluatePeSTO(b)
+			return (mg*ph + eg*(totalPhase-ph)) / totalPhase
+		}},
+		{"passed", func(b *Bitboard) int {
+			wp, bp := b.GetBitboardOf(WhitePawn), b.GetBitboardOf(BlackPawn)
+			return (countPassedPawnsFast(wp, bp, White) - countPassedPawnsFast(bp, wp, Black)) * 20
+		}},
+		{"doubled", func(b *Bitboard) int {
+			w, bl := 0, 0
+			for f := 0; f < 8; f++ {
+				w += countDoubledPawns(b, White, f)
+				bl += countDoubledPawns(b, Black, f)
+			}
+			return -(w - bl) * 20
+		}},
+		{"isolated", func(b *Bitboard) int {
+			return -(countIsolatedPawns(b, White) - countIsolatedPawns(b, Black)) * 12
+		}},
+		{"chains", func(b *Bitboard) int {
+			return evaluatePawnChains(b, White) - evaluatePawnChains(b, Black)
+		}},
+		{"bishoppair", func(b *Bitboard) int {
+			return evaluateBishopPair(b, White) - evaluateBishopPair(b, Black)
+		}},
+		{"mobility", func(b *Bitboard) int {
+			return evaluateMobility(b, White) - evaluateMobility(b, Black)
+		}},
+		{"rookopen", func(b *Bitboard) int {
+			return evaluateRookOnOpenFile(b, White) - evaluateRookOnOpenFile(b, Black)
+		}},
+		{"outposts", func(b *Bitboard) int {
+			wp, bp := b.GetBitboardOf(WhitePawn), b.GetBitboardOf(BlackPawn)
+			return evaluateOutpostSquares(b.GetBitboardOf(WhiteKnight), b.GetBitboardOf(WhiteBishop), wp, bp, White) -
+				evaluateOutpostSquares(b.GetBitboardOf(BlackKnight), b.GetBitboardOf(BlackBishop), bp, wp, Black)
+		}},
+		{"kingsafety", func(b *Bitboard) int {
+			return evaluateKingSafety(b, White) - evaluateKingSafety(b, Black)
+		}},
+		{"kingactivity", func(b *Bitboard) int {
+			return evaluateKingActivity(b)
+		}},
+	}
+	const iters = 20000
+	counts := make([]int, len(terms))
+	for i := 0; i < iters; i++ {
+		p := randomEvalPosition(rng)
+		m := mirrorBoard(&p)
+		for j, tm := range terms {
+			if tm.net(&p)+tm.net(&m) != 0 {
+				counts[j]++
+			}
+		}
+	}
+	for j, tm := range terms {
+		status := "ok"
+		if counts[j] > 0 {
+			status = "ASYMMETRIC"
+		}
+		t.Logf("%-14s %-11s (%d/%d)", tm.name, status, counts[j], iters)
 	}
 }
 
