@@ -2228,16 +2228,28 @@ func evaluateBishopPair(board *Bitboard, color Color) int {
 func evaluateRookOnOpenFile(board *Bitboard, color Color) int {
 	bonus := 0
 
-	var rookBB, friendlyPawns, enemyPawns uint64
+	var rookBB, friendlyPawns, enemyPawns, enemyKing uint64
+	var seventhRank, eighthRank int
 	if color == White {
 		rookBB = board.GetBitboardOf(WhiteRook)
 		friendlyPawns = board.GetBitboardOf(WhitePawn)
 		enemyPawns = board.GetBitboardOf(BlackPawn)
+		enemyKing = board.GetBitboardOf(BlackKing)
+		seventhRank, eighthRank = 6, 7
 	} else {
 		rookBB = board.GetBitboardOf(BlackRook)
 		friendlyPawns = board.GetBitboardOf(BlackPawn)
 		enemyPawns = board.GetBitboardOf(WhitePawn)
+		enemyKing = board.GetBitboardOf(WhiteKing)
+		seventhRank, eighthRank = 1, 0
 	}
+
+	// A rook on the enemy's second rank ("the 7th") is strong only when it
+	// confines the enemy king to the back rank or attacks pawns still on their
+	// start squares. Guard on those so we don't reward a premature rook lift.
+	enemyPawnsOn7th := (enemyPawns & (uint64(0xFF) << (seventhRank * 8))) != 0
+	enemyKingOnBack := (enemyKing & (uint64(0xFF) << (eighthRank * 8))) != 0
+	seventhValuable := enemyPawnsOn7th || enemyKingOnBack
 
 	// Iterate through each rook
 	for bb := rookBB; bb != 0; bb &= bb - 1 {
@@ -2256,6 +2268,10 @@ func evaluateRookOnOpenFile(board *Bitboard, color Color) int {
 		} else if !hasFriendlyPawn {
 			// Semi-open file (no friendly pawns, enemy pawns present)
 			bonus += 15
+		}
+
+		if sq/8 == seventhRank && seventhValuable {
+			bonus += 20
 		}
 	}
 
