@@ -132,8 +132,12 @@ func scoreFromTT(score int16, ply int) int {
 // Static Exchange Evaluation (SEE) implementation
 // Returns the material balance after a series of exchanges on the target square
 func staticExchangeEvaluation(pos *Position, move Move) int {
-	// If not a capture, return 0
-	if !move.IsCapture() && !move.IsEnPassant() {
+	// Castling is a king move with no exchange — SEE is meaningless and the king's
+	// infinite weight would poison the swap. Quiet (non-capture) moves DO flow
+	// through: gain[0] = 0 (nothing captured) and the swap then evaluates whether
+	// the moving piece survives on its destination square. This is what quiet-move
+	// SEE pruning reads; capture/EP/promotion paths are unchanged.
+	if move.IsCastle() {
 		return 0
 	}
 
@@ -467,6 +471,7 @@ type SearchInfo struct {
 	LMRReductions       uint64 // Moves reduced by Late Move Reduction
 	LMPPrunes           uint64 // Moves pruned by Late Move Pruning
 	ProbcutPrunes       uint64 // Positions pruned by Probcut
+	SEEQuietPrunes      uint64 // Quiet moves pruned by SEE (soft hangs)
 	TTHits              uint64 // Transposition table hits
 	TTCutoffs           uint64 // Beta cutoffs from TT
 	BetaCutoffs         uint64 // Total beta cutoffs
@@ -1244,6 +1249,22 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			seeValue := staticExchangeEvaluation(pos, move)
 			if seeValue < -100 { // Skip captures losing more than a pawn
 				continue
+			}
+		}
+
+		// SEE pruning of QUIET moves: at shallow depth, skip a quiet move whose
+		// piece can be captured on its destination for a net material loss (a
+		// "soft hang"). Threshold scales with depth so deeper nodes prune only
+		// larger losses. Exclude the TT move, promotions (tactical), and king
+		// moves — the king's infinite SEE weight poisons the swap, and a pinned
+		// enemy "attacker" of a king square may not be a legal capture.
+		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 &&
+			!move.IsCapture() && move != ttMove && move.PromoType() == NoType {
+			if mp := move.MovingPiece(); mp != WhiteKing && mp != BlackKing {
+				if staticExchangeEvaluation(pos, move) < -80*depth {
+					info.SEEQuietPrunes++
+					continue
+				}
 			}
 		}
 

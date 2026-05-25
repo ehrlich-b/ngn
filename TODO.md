@@ -44,13 +44,20 @@ PHASE 1A — cheap, reuses machinery NGN has (~50-70 ELO), bugfix-first:
   improving + LMP `idx--` when not, batched with adaptive null-R: movetime SPRT −6 elo [−37,+24]
   @488 games — neutral, reverted to keep the tree to proven wins. Re-addable; may help at longer
   TC. Soft-blend RFP return (716*beta+308*eval)/1024 still UNTRIED.
-- [ ] **SEE pruning in MAIN search** [WEAK · +10-25 · CAREFUL]. NGN already has a flat
-  captures-only gate (SEE < -100, depth<=4, search.go:1199). NB `staticExchangeEvaluation`
-  RETURNS 0 FOR NON-CAPTURES (search.go:118), so QUIET-move SEE pruning is NOT a free reuse —
-  it needs a SEE extension (gain[0]=0, pieceOnSquare=the moving piece, run the swap on the
-  destination square) + crafted-value tests (SEE was the +161 bug — unit-test any change). Then
-  prune quiet moves with SEE < -margin*depth and depth²-scale the capture threshold (Ethereal:
-  noisy -20*d², quiet -64*d, history-adjusted). Standalone item, not the cheap batch.
+- [x] **SEE pruning of QUIET moves in MAIN search** [DONE · verified cool · ELO pending · 2026-05-25].
+  Added a quiet-move SEE-prune gate beside the capture one (search.go ~1250): at depth<=4, !isPV,
+  !inCheck, skip a quiet move (non-TT, non-promo, non-king) whose `staticExchangeEvaluation < -80*depth`
+  — a "soft hang" where the piece can be won on its destination square. KEY FINDING: it was NEARLY A
+  FREE REUSE, not the "needs a SEE extension" the old note feared — the existing swap already evaluates
+  the destination exchange, so the only change was dropping the non-capture early-return (now a castle
+  guard) so gain[0]=0 flows for quiet moves. All 4 existing SEE callers gate on IsCapture first, so this
+  is a provable no-op for them. King moves excluded (infinite SEE weight poisons the swap + a pinned
+  enemy "attacker" of a king square may be an illegal capture). VERIFIED COOL: 4 crafted-value quiet-SEE
+  tests (safe square=0, queen-to-pawn=-1000, pawn-defended knight=-220, queen-declines=0; see_test.go),
+  integration test (SEEQuietPrunes>0 in a depth-8 Kiwipete search, ==0 with the toggle off), full suite
+  green, tactical 29/30. FOLLOW-UPS (not done): depth²-scale the CAPTURE threshold (Ethereal noisy
+  -20*d²); history-adjust the quiet threshold; tune the -80 coeff. NEXT: validate ELO on the fixed-nodes
+  instrument (batch with the next change).
 - [ ] **PV-reduction cutnode proxy** [MISSING · +5-15]. CounterGo one-liner `if pvNode {r-=2}`
   — cheap stand-in for full cutnode threading (the full version is 1C below).
 - [~] **Adaptive null-move R** [TRIED (depth/6 only) · neutral · reverted 2026-05-25; Blunder
