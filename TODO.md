@@ -40,22 +40,36 @@ PHASE 1A — cheap, reuses machinery NGN has (~50-70 ELO), bugfix-first:
   (movetime 100ms, conc-4, 600 games vs ngn_base): **+19.7 elo [-8,+48]**, 278-78-244 = 52.8%,
   stable — matches the +10-25 estimate, NOT a regression (over-pruning worry dead). KEPT (the
   efficiency gain compounds at longer TC). NEXT: improving-scaled RFP/futility/LMP margins.
-- [ ] **improving-scaled margins + soft-blend RFP return** [+5-10]. Uses the flag; SF returns
-  (716*beta+308*eval)/1024 not raw eval; LMP move-count threshold /(2-improving).
-- [ ] **SEE pruning in MAIN search** [WEAK · +10-25]. NGN already has a flat captures-only gate
-  (SEE < -100, depth<=4, search.go:1199). Upgrade: add QUIET-move SEE pruning (SEE < -25*lmrDepth²)
-  and depth²-scale the capture threshold (Ethereal: noisy -20*d², quiet -64*d, history-adjusted).
+- [~] **improving-scaled margins** [TRIED · neutral · reverted 2026-05-25]. RFP `depth--` when
+  improving + LMP `idx--` when not, batched with adaptive null-R: movetime SPRT −6 elo [−37,+24]
+  @488 games — neutral, reverted to keep the tree to proven wins. Re-addable; may help at longer
+  TC. Soft-blend RFP return (716*beta+308*eval)/1024 still UNTRIED.
+- [ ] **SEE pruning in MAIN search** [WEAK · +10-25 · CAREFUL]. NGN already has a flat
+  captures-only gate (SEE < -100, depth<=4, search.go:1199). NB `staticExchangeEvaluation`
+  RETURNS 0 FOR NON-CAPTURES (search.go:118), so QUIET-move SEE pruning is NOT a free reuse —
+  it needs a SEE extension (gain[0]=0, pieceOnSquare=the moving piece, run the swap on the
+  destination square) + crafted-value tests (SEE was the +161 bug — unit-test any change). Then
+  prune quiet moves with SEE < -margin*depth and depth²-scale the capture threshold (Ethereal:
+  noisy -20*d², quiet -64*d, history-adjusted). Standalone item, not the cheap batch.
 - [ ] **PV-reduction cutnode proxy** [MISSING · +5-15]. CounterGo one-liner `if pvNode {r-=2}`
   — cheap stand-in for full cutnode threading (the full version is 1C below).
-- [ ] **Adaptive null-move R** [WEAK (fixed R=3) · +5-15; Blunder +14 n.s.]. R = base + depth/d
-  + min(cap,(eval-beta)/m) replaces fixed R=3 (Ethereal: 4 + depth/5 + min(3,(eval-beta)/191)).
+- [~] **Adaptive null-move R** [TRIED (depth/6 only) · neutral · reverted 2026-05-25; Blunder
+  +14 n.s.]. `R = 3 + depth/6` batched with improving-margins: SPRT −6 elo [−37,+24] @488,
+  neutral, reverted. The eval-margin term (Ethereal min(3,(eval-beta)/191)) is UNTRIED — retry
+  that piece alone if revisited.
 
 PHASE 1B — structural (~40-60 ELO):
-- [ ] **Correction history** [MISSING · +15-35] — THE dynamic-eval lever Bryan wants. Tables
-  keyed pawn-hash / material / non-pawn (opt. continuation ply2/4); record (search−static)
-  error as a gravity-EMA, apply `eval += cv/divisor` to every static eval feeding pruning.
-  NEITHER Go engine has it (a real differentiator) and likely > SF's +13 because a classical
-  eval has more systematic bias to correct. ~60-80 LOC. (SF history.h corrhist; commit b4d995d.)
+- [x] **Correction history** [PAWN TABLE DONE · verified · 2026-05-25; ELO pending cool batch].
+  Implemented the pawn-structure table (moveorder.go): `[2][16384]` gravity-EMA keyed on a hash
+  of both pawn bitboards, SF weight 6245/131072 (saturates at ±49cp). Apply: the static eval
+  feeding RFP/futility/null/improving is now `EvaluateForPlayer + correctionValue` (search.go
+  static-eval block); update fires at BOTH node returns (fail-high + normal exit) gated SF-style
+  (skip in check / capture best move; learn only on consistent worse-than-static or
+  better-with-bestmove). Cleared with the other histories (ClearHistoryTable). VERIFIED COOL:
+  full suite green (5.5s), tactical 29/30, unit tests for hash/EMA/gate, integration test
+  populated 1131 slots in a real depth-10 search (correction_history_test.go). ELO magnitude
+  deferred to the periodic cool batch (below). FOLLOW-UPS (not done): material / non-pawn /
+  continuation-ply2 corr tables; correct the qsearch stand-pat eval too. (SF corrhist; b4d995d.)
 - [ ] **Multi-ply continuation history** [WEAK (1-ply) · +10-25]. NGN already has a real 1-ply
   conthist table (moveorder.go:46, Stage-3 commit 7a309c3) — extend to 2-ply (then 4-ply) and
   wire the summed score into the LMR reduction. CounterGo flat `[1024][1024]int16` pattern.
@@ -85,6 +99,16 @@ corrhist, capture-hist) DO move fixed-depth move quality → cmd/sprt fixed-dept
 count (mirror Blunder 10+0.1) or `go nodes` enforcement in search.go for a deterministic
 fixed-NODES SPRT (UCI parses it, search doesn't enforce — a small wiring job). Gate every change
 on smoke-tactical + node-count, stack one at a time, commit checkpoints.
+
+COOL+FAST LOOP (ADOPTED 2026-05-25, per Bryan — "SPRT is too slow + smokes the CPU"): NO
+per-change SPRT. Per change: `make smoke-tactical` (5s, in-process, cool) + a mechanism check
+(unit test of the new machinery + an integration test asserting it is actually wired into search,
+e.g. correction history's 1131-slot populate) + full `go test -short` (~5s). Theory-sound + green
++ no tactical regression → commit a checkpoint (local; push only when Bryan asks). Heavy self-play
+is RARE + COOL + BACKGROUND: batch several committed changes, then ONE run `-lowpower=true`
+(E-cores) `-concurrency 2` backgrounded — NEVER conc-4/P-cores again (that was the overheating).
+For eval/ordering items, cmd/blunder-finder cp-loss (fixed-depth, deterministic, one pass) is a
+cool quality signal that needs no self-play.
 
 DOOR OPEN: Lazy SMP is real ELO (~+80-150 multi-core) but PARKED per Bryan — an orthogonal
 multiplier, addable anytime, not the path.

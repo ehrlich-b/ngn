@@ -1018,7 +1018,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Static eval for this node, computed once and reused by RFP/futility and the
 	// improving heuristic. Undefined in check, so inherit the value from two plies
 	// ago to keep the improving chain sane across checking plies.
+	stm := pos.Turn()
 	var staticEval int
+	var corrIdx int // pawn-correction slot; valid only when !inCheck
 	if inCheck {
 		if ply >= 2 {
 			staticEval = info.StaticEvalStack[ply-2]
@@ -1026,7 +1028,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			staticEval = -INFINITY
 		}
 	} else {
-		staticEval = EvaluateForPlayer(&pos.Board, pos.Turn())
+		corrIdx = pawnCorrectionIndex(pos.Board.whitePawn, pos.Board.blackPawn)
+		staticEval = EvaluateForPlayer(&pos.Board, stm) + correctionValue(stm, corrIdx)
 	}
 	info.StaticEvalStack[ply] = staticEval
 
@@ -1456,6 +1459,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				}
 			}
 
+			// Learn the pawn-structure correction from this fail-high before returning.
+			maybeUpdatePawnCorrection(stm, corrIdx, staticEval, bestScore, beta, depth, bestMove, inCheck)
+
 			// Store in transposition table as Lower Bound (Cut-Node)
 			TranspositionTable.Set(hash, move, scoreToTT(score, ply), int8(depth), LowerBound)
 			return score
@@ -1479,6 +1485,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Stalemate is a draw
 		return 0
 	}
+
+	// Learn the pawn-structure correction from the completed search of this node.
+	maybeUpdatePawnCorrection(stm, corrIdx, staticEval, bestScore, beta, depth, bestMove, inCheck)
 
 	// Store in transposition table
 	var nodeType NodeType

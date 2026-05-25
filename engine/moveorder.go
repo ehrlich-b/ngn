@@ -17,6 +17,67 @@ var historyTable [13][64]int
 // same beta-cutoff and quiet-penalty points.
 var continuationHistory [13][64][13][64]int
 
+// Pawn-structure correction history (Stockfish concept): learns a per-pawn-structure
+// adjustment to the static eval from the gap between static eval and the search result.
+// Static eval is structurally blind to some recurring pawn shapes; this nudges it toward
+// what search actually finds for positions sharing a pawn skeleton. Indexed by
+// [side-to-move][hashed-pawn-structure]; collisions just share a slot (acceptable noise).
+const (
+	corrHistSize  = 16384 // 2^14 slots per side
+	corrHistMask  = corrHistSize - 1
+	corrHistLimit = 1024 // clamp on the stored EMA entry (Stockfish CORRECTION_HISTORY_LIMIT)
+)
+
+var pawnCorrectionHistory [2][corrHistSize]int
+
+// pawnCorrectionIndex hashes both colors' pawn bitboards into a correction-table slot.
+func pawnCorrectionIndex(whitePawns, blackPawns uint64) int {
+	key := whitePawns*0x9E3779B97F4A7C15 ^ blackPawns*0xC2B2AE3D27D4EB4F
+	key ^= key >> 29
+	return int(key & corrHistMask)
+}
+
+// correctionValue returns the centipawn adjustment to add to the static eval. The
+// 6245/131072 weight mirrors Stockfish's pawn-correction term, so a saturated entry
+// (±corrHistLimit) yields at most ±49 cp.
+func correctionValue(stm Color, idx int) int {
+	return pawnCorrectionHistory[stm][idx] * 6245 / 131072
+}
+
+// updatePawnCorrection nudges a slot toward the observed (searchScore - staticEval) gap
+// with a depth-weighted, gravity-damped EMA (Stockfish StatsEntry form) that keeps the
+// entry bounded in roughly [-corrHistLimit, corrHistLimit].
+func updatePawnCorrection(stm Color, idx, diff, depth int) {
+	bonus := diff * depth / 8
+	if bonus > corrHistLimit/4 {
+		bonus = corrHistLimit / 4
+	} else if bonus < -corrHistLimit/4 {
+		bonus = -corrHistLimit / 4
+	}
+	mag := bonus
+	if mag < 0 {
+		mag = -mag
+	}
+	e := &pawnCorrectionHistory[stm][idx]
+	*e += bonus - (*e)*mag/corrHistLimit
+}
+
+// maybeUpdatePawnCorrection applies the correction update at a completed node when the
+// search result is a consistent directional signal: worse than static eval (a true upper
+// bound) or better with a real best move. Capture-driven results are skipped as noisy.
+func maybeUpdatePawnCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
+	if inCheck {
+		return
+	}
+	if bestMove != EmptyMove && bestMove.IsCapture() {
+		return
+	}
+	if !((bestScore < staticEval && bestScore < beta) || (bestScore > staticEval && bestMove != EmptyMove)) {
+		return
+	}
+	updatePawnCorrection(stm, idx, bestScore-staticEval, depth)
+}
+
 // Killer moves table for move ordering heuristic
 // killerMoves[depth][slot] stores killer moves at each depth (2 killer moves per depth)
 var killerMoves [MaximumDepth][2]Move
@@ -103,6 +164,11 @@ func ClearHistoryTable() {
 					continuationHistory[i][j][k][l] = 0
 				}
 			}
+		}
+	}
+	for i := range pawnCorrectionHistory {
+		for j := range pawnCorrectionHistory[i] {
+			pawnCorrectionHistory[i][j] = 0
 		}
 	}
 }
