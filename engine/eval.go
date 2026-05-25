@@ -2361,6 +2361,24 @@ func EvaluateForPlayer(board *Bitboard, player Color) int {
 	return -whiteEval + TempoBonus
 }
 
+// Tunable eval-term weights — hand-set magnitudes (never data-tuned) exposed as
+// package vars so the Texel tuner (cmd/texel) can fit them to game results. The
+// three pawn-structure values are direct centipawn weights; the seven term
+// weights are percentage multipliers (100 = identity), so these defaults
+// reproduce the original eval exactly. Tuned values are pasted back here.
+var (
+	passedPawnBonus     = 20
+	doubledPawnPenalty  = 20
+	isolatedPawnPenalty = 12
+	pawnChainWeight     = 100
+	bishopPairWeight    = 100
+	mobilityWeight      = 100
+	rookOpenWeight      = 100
+	outpostWeight       = 100
+	kingSafetyWeight    = 100
+	kingActivityWeight  = 100
+)
+
 func evaluateUnsafe(board *Bitboard) (eval int) {
 	// Core: PeSTO tapered material + piece-square tables.
 	mgScore, egScore, phase := evaluatePeSTO(board)
@@ -2372,7 +2390,7 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	// Passed pawns: essential, not captured by PST.
 	whitePassed := countPassedPawnsFast(whitePawns, blackPawns, White)
 	blackPassed := countPassedPawnsFast(blackPawns, whitePawns, Black)
-	eval += (whitePassed - blackPassed) * 20
+	eval += (whitePassed - blackPassed) * passedPawnBonus
 
 	// Doubled pawns penalty (cheap to compute correctly).
 	whiteDoubled, blackDoubled := 0, 0
@@ -2380,31 +2398,27 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 		whiteDoubled += countDoubledPawns(board, White, file)
 		blackDoubled += countDoubledPawns(board, Black, file)
 	}
-	eval -= (whiteDoubled - blackDoubled) * 20
+	eval -= (whiteDoubled - blackDoubled) * doubledPawnPenalty
 
 	// Isolated pawns penalty.
 	whiteIsolated := countIsolatedPawns(board, White)
 	blackIsolated := countIsolatedPawns(board, Black)
-	eval -= (whiteIsolated - blackIsolated) * 12
+	eval -= (whiteIsolated - blackIsolated) * isolatedPawnPenalty
 
 	// Pawn chains: bonus for connected/supported pawns. Complements isolated
 	// (a pawn with adjacent-file support cannot be isolated by definition).
 	// Magnitudes are conservative (8/12cp + small advancement bonus); PSTs
 	// don't capture pair-based chain dynamics.
-	eval += evaluatePawnChains(board, White)
-	eval -= evaluatePawnChains(board, Black)
+	eval += (evaluatePawnChains(board, White) - evaluatePawnChains(board, Black)) * pawnChainWeight / 100
 
 	// Bishop pair bonus (small but real and not in PST).
-	eval += evaluateBishopPair(board, White)
-	eval -= evaluateBishopPair(board, Black)
+	eval += (evaluateBishopPair(board, White) - evaluateBishopPair(board, Black)) * bishopPairWeight / 100
 
 	// Mobility — important but moderate weight (PSTs already capture positional value).
-	eval += evaluateMobility(board, White)
-	eval -= evaluateMobility(board, Black)
+	eval += (evaluateMobility(board, White) - evaluateMobility(board, Black)) * mobilityWeight / 100
 
 	// Rook on open file bonus.
-	eval += evaluateRookOnOpenFile(board, White)
-	eval -= evaluateRookOnOpenFile(board, Black)
+	eval += (evaluateRookOnOpenFile(board, White) - evaluateRookOnOpenFile(board, Black)) * rookOpenWeight / 100
 
 	// Knight/bishop outposts (squares supported by own pawn, unattackable by
 	// enemy pawns, in enemy territory). PeSTO PSTs don't know pawn structure.
@@ -2412,18 +2426,17 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	whiteBishops := board.GetBitboardOf(WhiteBishop)
 	blackKnights := board.GetBitboardOf(BlackKnight)
 	blackBishops := board.GetBitboardOf(BlackBishop)
-	eval += evaluateOutpostSquares(whiteKnights, whiteBishops, whitePawns, blackPawns, White)
-	eval -= evaluateOutpostSquares(blackKnights, blackBishops, blackPawns, whitePawns, Black)
+	eval += (evaluateOutpostSquares(whiteKnights, whiteBishops, whitePawns, blackPawns, White) -
+		evaluateOutpostSquares(blackKnights, blackBishops, blackPawns, whitePawns, Black)) * outpostWeight / 100
 
 	// King safety: pawn shield in middlegame only.
 	if phase >= 12 { // roughly middlegame or opening
-		eval += evaluateKingSafety(board, White)
-		eval -= evaluateKingSafety(board, Black)
+		eval += (evaluateKingSafety(board, White) - evaluateKingSafety(board, Black)) * kingSafetyWeight / 100
 	} else if phase < 6 {
 		// Deep endgame only: encourage king centralization and supporting pawns.
 		// Wider phase windows interfered with tactical search where leaves drop
 		// below phase=12 mid-combination.
-		eval += evaluateKingActivity(board)
+		eval += evaluateKingActivity(board) * kingActivityWeight / 100
 	}
 
 	// Tempo bonus — small constant for side-to-move encoded in caller.

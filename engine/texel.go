@@ -5,292 +5,220 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"runtime"
+	"strconv"
 	"strings"
+	"sync"
 )
 
-// Texel Tuning - Automatic evaluation parameter tuning
-// Uses gradient descent to minimize prediction error on game positions
+// Texel tuning: fit the static evaluation's parameters (the piece-square tables)
+// to real game outcomes by minimizing the mean squared error between each
+// position's game result and a logistic of its static eval. evaluateUnsafe is a
+// pure white-perspective score (the property the symmetry test guards), so we
+// score it directly against results stored from White's point of view.
 
-// TuningPosition represents a position with known game result
-type TuningPosition struct {
-	FEN    string
-	Result float64 // 1.0 = white win, 0.5 = draw, 0.0 = black win
+// TexelSample is one labeled position: a board parsed once into memory, and the
+// game result from White's perspective (1.0 = White won, 0.5 = draw, 0.0 = lost).
+type TexelSample struct {
+	Board  Bitboard
+	Result float64
 }
 
-// TuningParam represents a tunable parameter
-type TuningParam struct {
-	Name     string
-	Value    *int
-	Min, Max int
+// texelSigmoid maps a white-perspective centipawn eval to an expected score in
+// (0,1) via the standard base-10 logistic with scaling constant K.
+func texelSigmoid(eval, k float64) float64 {
+	return 1.0 / (1.0 + math.Pow(10, -k*eval/400.0))
 }
 
-// TexelTuner holds the tuning state
-type TexelTuner struct {
-	positions []TuningPosition
-	params    []TuningParam
-	K         float64 // Scaling constant
+// texelMSE is the mean squared error between game results and the sigmoid of the
+// static (white-perspective) eval over the dataset, at scaling constant K. It is
+// parallelized across CPUs and only READS the eval parameters, so callers must
+// not mutate the PSTs concurrently (coordinate descent mutates between calls).
+func texelMSE(samples []TexelSample, k float64) float64 {
+	n := len(samples)
+	if n == 0 {
+		return 0
+	}
+	workers := runtime.GOMAXPROCS(0)
+	if workers > n {
+		workers = n
+	}
+	chunk := (n + workers - 1) / workers
+	partial := make([]float64, workers)
+	var wg sync.WaitGroup
+	for w := 0; w < workers; w++ {
+		lo := w * chunk
+		if lo >= n {
+			break
+		}
+		hi := lo + chunk
+		if hi > n {
+			hi = n
+		}
+		wg.Add(1)
+		go func(idx, lo, hi int) {
+			defer wg.Done()
+			var sum float64
+			for i := lo; i < hi; i++ {
+				e := float64(evaluateUnsafe(&samples[i].Board))
+				d := samples[i].Result - texelSigmoid(e, k)
+				sum += d * d
+			}
+			partial[idx] = sum
+		}(w, lo, hi)
+	}
+	wg.Wait()
+	var total float64
+	for _, s := range partial {
+		total += s
+	}
+	return total / float64(n)
 }
 
-// NewTexelTuner creates a new tuner instance
-func NewTexelTuner() *TexelTuner {
-	return &TexelTuner{
-		K: 1.13, // Typical scaling constant for centipawn evaluation
+// TexelFindK ternary-searches for the scaling constant K that minimizes MSE with
+// the CURRENT eval parameters — the one-time calibration before tuning so the
+// logistic is scaled to the eval's centipawn units.
+func TexelFindK(samples []TexelSample) float64 {
+	lo, hi := 0.0, 2.0
+	for iter := 0; iter < 50; iter++ {
+		m1 := lo + (hi-lo)/3
+		m2 := hi - (hi-lo)/3
+		if texelMSE(samples, m1) < texelMSE(samples, m2) {
+			hi = m2
+		} else {
+			lo = m1
+		}
+	}
+	return (lo + hi) / 2
+}
+
+// TexelWeight is a named tunable evaluation weight — a pointer into one of the
+// eval's package vars, with its name so a run can both optimize and print it.
+type TexelWeight struct {
+	Name string
+	Ptr  *int
+}
+
+// TexelWeights returns the hand-set eval-term weights exposed for tuning (the
+// untuned scalars complementing the already-tuned PeSTO core).
+func TexelWeights() []TexelWeight {
+	return []TexelWeight{
+		{"passedPawnBonus", &passedPawnBonus},
+		{"doubledPawnPenalty", &doubledPawnPenalty},
+		{"isolatedPawnPenalty", &isolatedPawnPenalty},
+		{"pawnChainWeight", &pawnChainWeight},
+		{"bishopPairWeight", &bishopPairWeight},
+		{"mobilityWeight", &mobilityWeight},
+		{"rookOpenWeight", &rookOpenWeight},
+		{"outpostWeight", &outpostWeight},
+		{"kingSafetyWeight", &kingSafetyWeight},
+		{"kingActivityWeight", &kingActivityWeight},
 	}
 }
 
-// LoadPositions loads positions from an EPD file
-// EPD format: FEN c9 "1-0"; or c9 "0-1"; or c9 "1/2-1/2";
-func (t *TexelTuner) LoadPositions(filename string) error {
-	file, err := os.Open(filename)
+// FormatTexelWeights renders the given weights as Go var assignments, ready to
+// paste back into eval.go's tunable-weights block after a tuning run.
+func FormatTexelWeights(weights []TexelWeight) string {
+	var b strings.Builder
+	for _, w := range weights {
+		fmt.Fprintf(&b, "\t%s = %d\n", w.Name, *w.Ptr)
+	}
+	return b.String()
+}
+
+// TexelTune runs coordinate descent on the piece-square tables to minimize MSE
+// over the dataset at scaling K. Each pass line-searches every parameter (steps
+// in the improving direction while MSE keeps falling), keeping all gains; it
+// repeats until a pass yields no improvement or maxPasses is reached. progress
+// (may be nil) is called once per pass with the pass index, current MSE, and how
+// many parameters moved. The PST package vars are left holding the tuned values
+// (black mirrors rebuilt). Returns the final MSE.
+// rebuild (may be nil) is invoked after every parameter mutation — used when a
+// tuned param feeds a derived table (e.g. the PeSTO mgPST/egPST) that must be
+// recomputed before the next eval. For directly-used weights, pass nil.
+func TexelTune(samples []TexelSample, params []*int, k float64, step, maxPasses int, rebuild func(), progress func(pass int, mse float64, moved int)) float64 {
+	best := texelMSE(samples, k)
+
+	// lineSearch steps *p by delta while MSE strictly improves, leaving *p at the
+	// best value found; returns true if it moved at all.
+	lineSearch := func(p *int, delta int) bool {
+		moved := false
+		for {
+			*p += delta
+			if rebuild != nil {
+				rebuild()
+			}
+			m := texelMSE(samples, k)
+			if m < best {
+				best = m
+				moved = true
+				continue
+			}
+			*p -= delta // overshot: undo the last (non-improving) step
+			if rebuild != nil {
+				rebuild()
+			}
+			return moved
+		}
+	}
+
+	for pass := 0; pass < maxPasses; pass++ {
+		moved := 0
+		for _, p := range params {
+			if lineSearch(p, step) {
+				moved++
+				continue
+			}
+			if lineSearch(p, -step) {
+				moved++
+			}
+		}
+		if progress != nil {
+			progress(pass, best, moved)
+		}
+		if moved == 0 {
+			break
+		}
+	}
+	return best
+}
+
+// LoadTexelSamples reads a dataset of "<FEN> <result>" lines (result one of 1.0 /
+// 0.5 / 0.0, White's perspective), parsing each FEN once into an in-memory board.
+// Blank lines and lines starting with '#' are skipped; unparseable lines error.
+func LoadTexelSamples(filename string) ([]TexelSample, error) {
+	f, err := os.Open(filename)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer file.Close()
+	defer f.Close()
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
+	var samples []TexelSample
+	sc := bufio.NewScanner(f)
+	sc.Buffer(make([]byte, 0, 1024*1024), 1024*1024)
+	lineNo := 0
+	for sc.Scan() {
+		lineNo++
+		line := strings.TrimSpace(sc.Text())
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-
-		pos, err := parseEPDLine(line)
+		// Result is the final whitespace-separated field; the FEN is the rest.
+		idx := strings.LastIndexByte(line, ' ')
+		if idx < 0 {
+			return nil, fmt.Errorf("line %d: no result field: %q", lineNo, line)
+		}
+		fen := strings.TrimSpace(line[:idx])
+		result, err := strconv.ParseFloat(strings.TrimSpace(line[idx+1:]), 64)
 		if err != nil {
-			continue // Skip invalid lines
+			return nil, fmt.Errorf("line %d: bad result: %w", lineNo, err)
 		}
-		t.positions = append(t.positions, pos)
-	}
-
-	return scanner.Err()
-}
-
-// parseEPDLine parses an EPD line into a TuningPosition
-func parseEPDLine(line string) (TuningPosition, error) {
-	// Split on common result markers
-	var fen string
-	var result float64
-
-	if strings.Contains(line, "1-0") {
-		result = 1.0
-		fen = strings.Split(line, " c9")[0]
-		if fen == line {
-			fen = strings.Split(line, " 1-0")[0]
-		}
-	} else if strings.Contains(line, "0-1") {
-		result = 0.0
-		fen = strings.Split(line, " c9")[0]
-		if fen == line {
-			fen = strings.Split(line, " 0-1")[0]
-		}
-	} else if strings.Contains(line, "1/2-1/2") {
-		result = 0.5
-		fen = strings.Split(line, " c9")[0]
-		if fen == line {
-			fen = strings.Split(line, " 1/2-1/2")[0]
-		}
-	} else {
-		return TuningPosition{}, fmt.Errorf("no result found in line")
-	}
-
-	fen = strings.TrimSpace(fen)
-
-	// Validate FEN by trying to parse it
-	_, err := ParseFEN(fen)
-	if err != nil {
-		return TuningPosition{}, err
-	}
-
-	return TuningPosition{FEN: fen, Result: result}, nil
-}
-
-// AddPositionsFromPGN loads positions from a PGN file (simplified)
-func (t *TexelTuner) AddPositionsFromPGN(filename string) error {
-	// For simplicity, this just loads from EPD format
-	// A full implementation would parse PGN and extract positions
-	return t.LoadPositions(filename)
-}
-
-// Sigmoid converts centipawn evaluation to win probability
-func (t *TexelTuner) Sigmoid(eval float64) float64 {
-	return 1.0 / (1.0 + math.Pow(10, -t.K*eval/400.0))
-}
-
-// MeanSquaredError calculates the mean squared error across all positions
-func (t *TexelTuner) MeanSquaredError() float64 {
-	if len(t.positions) == 0 {
-		return 0
-	}
-
-	totalError := 0.0
-	for _, pos := range t.positions {
-		// Parse the position
-		position, err := ParseFEN(pos.FEN)
+		pos, err := ParseFEN(fen)
 		if err != nil {
-			continue
+			return nil, fmt.Errorf("line %d: bad FEN %q: %w", lineNo, fen, err)
 		}
-
-		// Get static evaluation (from white's perspective)
-		eval := float64(Evaluate(&position.Board))
-		if position.Turn() == Black {
-			eval = -eval
-		}
-
-		// Calculate predicted win probability
-		predicted := t.Sigmoid(eval)
-
-		// Calculate squared error
-		err2 := (predicted - pos.Result) * (predicted - pos.Result)
-		totalError += err2
+		samples = append(samples, TexelSample{Board: pos.Board, Result: result})
 	}
-
-	return totalError / float64(len(t.positions))
+	return samples, sc.Err()
 }
 
-// FindOptimalK finds the optimal K value to minimize MSE
-func (t *TexelTuner) FindOptimalK() float64 {
-	bestK := 1.0
-	bestMSE := math.MaxFloat64
-
-	for k := 0.5; k <= 2.0; k += 0.01 {
-		t.K = k
-		mse := t.MeanSquaredError()
-		if mse < bestMSE {
-			bestMSE = mse
-			bestK = k
-		}
-	}
-
-	t.K = bestK
-	return bestK
-}
-
-// TuneParameters performs gradient descent on evaluation parameters
-func (t *TexelTuner) TuneParameters(iterations int, learningRate float64) {
-	for iter := 0; iter < iterations; iter++ {
-		for i := range t.params {
-			// Calculate gradient numerically
-			originalValue := *t.params[i].Value
-
-			// Try +1
-			*t.params[i].Value = min(originalValue+1, t.params[i].Max)
-			msePlus := t.MeanSquaredError()
-
-			// Try -1
-			*t.params[i].Value = max(originalValue-1, t.params[i].Min)
-			mseMinus := t.MeanSquaredError()
-
-			// Restore original
-			*t.params[i].Value = originalValue
-
-			// Calculate gradient
-			gradient := (msePlus - mseMinus) / 2.0
-
-			// Update parameter
-			newValue := originalValue - int(learningRate*gradient*1000)
-			newValue = max(t.params[i].Min, min(t.params[i].Max, newValue))
-			*t.params[i].Value = newValue
-		}
-
-		if iter%10 == 0 {
-			fmt.Printf("Iteration %d: MSE = %.6f\n", iter, t.MeanSquaredError())
-		}
-	}
-}
-
-// RegisterCurrentParams registers the current evaluation parameters for tuning
-func (t *TexelTuner) RegisterCurrentParams() {
-	// These would be pointers to actual evaluation constants
-	// For now, we define a set of tunable parameters
-
-	// Note: In a real implementation, these would point to mutable global variables
-	// For this framework, we demonstrate the structure
-}
-
-// PrintParams prints current parameter values
-func (t *TexelTuner) PrintParams() {
-	fmt.Println("Current Parameter Values:")
-	for _, p := range t.params {
-		fmt.Printf("  %s = %d\n", p.Name, *p.Value)
-	}
-}
-
-// GenerateTuningPositions generates positions for tuning from a starting position
-func GenerateTuningPositions(numPositions int) []TuningPosition {
-	var positions []TuningPosition
-
-	// Generate positions by playing random games
-	for i := 0; i < numPositions/50; i++ {
-		pos, _ := ParseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-		var result float64
-
-		// Play a random game
-		for moves := 0; moves < 200; moves++ {
-			legalMoves := GenerateLegalMoves(pos)
-			if len(legalMoves) == 0 {
-				// Game over
-				if pos.IsInCheck() {
-					if pos.Turn() == White {
-						result = 0.0 // Black wins
-					} else {
-						result = 1.0 // White wins
-					}
-				} else {
-					result = 0.5 // Stalemate
-				}
-				break
-			}
-
-			// Make a "reasonably good" move using search
-			info := SearchFixed(pos, 2, nil)
-			if info.BestMove == EmptyMove {
-				break
-			}
-
-			// Store position before move (skip opening)
-			if moves > 10 {
-				fen := GenerateFEN(pos)
-				positions = append(positions, TuningPosition{
-					FEN:    fen,
-					Result: -1, // Placeholder, will be filled after game
-				})
-			}
-
-			pos.MakeMove(info.BestMove)
-
-			// Check for draw by repetition/50 move
-			if pos.HalfMoveClock >= 100 {
-				result = 0.5
-				break
-			}
-		}
-
-		// Update all positions from this game with the result
-		startIdx := len(positions) - 189 // Approximate positions per game
-		if startIdx < 0 {
-			startIdx = 0
-		}
-		for j := startIdx; j < len(positions); j++ {
-			if positions[j].Result == -1 {
-				positions[j].Result = result
-			}
-		}
-	}
-
-	return positions
-}
-
-// QuickTune performs a quick tune using built-in positions
-func (t *TexelTuner) QuickTune() {
-	// Generate some test positions
-	fmt.Println("Generating test positions...")
-	t.positions = GenerateTuningPositions(1000)
-	fmt.Printf("Generated %d positions\n", len(t.positions))
-
-	// Find optimal K
-	fmt.Println("Finding optimal K...")
-	optK := t.FindOptimalK()
-	fmt.Printf("Optimal K = %.3f\n", optK)
-
-	// Show initial MSE
-	fmt.Printf("Initial MSE = %.6f\n", t.MeanSquaredError())
-}

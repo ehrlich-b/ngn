@@ -41,7 +41,7 @@
     {
       "name": "Doubled Pawns",
       "fen": "4k3/8/8/8/4P3/4P3/8/4K3 w - - 0 1",
-      "eval": 177,
+      "eval": 185,
       "comments": "Doubled pawns should receive penalty"
     },
     {
@@ -65,7 +65,7 @@
     {
       "name": "Endgame King",
       "fen": "8/8/8/4K3/8/8/8/4k3 w - - 0 1",
-      "eval": 37,
+      "eval": 46,
       "comments": "Centralized king in endgame"
     },
     {

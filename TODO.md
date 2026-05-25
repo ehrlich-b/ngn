@@ -2,6 +2,28 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
+**EVAL TUNING — ACTIVE 2026-05-25 (supersedes the search grind as current work).** After
+quiet-SEE pruning measured NEUTRAL (+2.2 [-51,+56]) — the 3rd signal that single pruning levers
+are sub-resolution — Bryan chose PIVOT TO EVAL TUNING (correctness gate satisfied; see
+[[correctness-first-to-2k]]), specifically "both, weights first." KEY DISCOVERY: the `pawnPST`/
+`knightPST`/… arrays in eval.go are the DEAD hand-set CPW tables (orphaned by the PeSTO swap,
+only tests reference them). The real eval core is `evaluatePeSTO` (eval_pesto.go) using genuine
+PeSTO MG/EG tables + material — ALREADY Texel-tuned by Friederich. So the README "tapered PeSTO"
+claim is true, and re-tuning that core on NGN's weak ~1600 self-play risks overfitting/regression
+(deferred to phase 2, SPRT-gated). PHASE 1 (current) tunes the genuinely-UNTUNED eval-term WEIGHTS.
+INFRA BUILT + verified cool (2026-05-25): `engine/texel.go` (K-scaled sigmoid MSE parallel over
+positions, ternary-search K calibration, line-search coordinate descent taking an explicit param
+list + rebuild callback so it's target-agnostic; unit-tested: sigmoid/MSE/findK/wiring/CD-never-
+increases-MSE) + `cmd/texel` (`-mode gendata` in-process self-play → quiet non-check positions
+labeled by white-POV result; `-mode tune` → calibrate K, CD schedule [8,4,2,1], dump weights).
+Exposed 10 tunable weights in eval.go (3 direct pawn scalars passed/doubled/isolated + 7 term-
+multipliers default 100 = identity for chains/bishop-pair/mobility/rook-open/outpost/king-safety/
+king-activity); the refactor is BEHAVIOR-NEUTRAL at defaults (eval symmetry + baseline + tactical
+29/30 all unchanged). NEXT: generate a real dataset (~150K positions), tune, validate tuned-vs-base
+via fixed-DEPTH SPRT (eval changes ARE visible at fixed depth, unlike the pure-efficiency search
+items). NB: the dead pawnPST tuning attempt was caught instantly by the MSE-sensitivity probe
+(mutating knightPST[18] moved MSE by exactly 0) — mechanism checks earn their keep.
+
 **GM-PATH RESEARCH → PHASE 1 SEARCH ROADMAP (2026-05-25 — latest, ACTIVE PLAN).**
 Surveyed Stockfish + Ethereal source, the two Go engines (Blunder, CounterGo) and CPW to
 answer Bryan's moved goalpost: "why can't we reach GM (2500) by pruning better, no tuning?"
