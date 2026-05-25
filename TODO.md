@@ -112,11 +112,21 @@ COOL+FAST LOOP (ADOPTED 2026-05-25, per Bryan — "SPRT is too slow + smokes the
 per-change SPRT. Per change: `make smoke-tactical` (5s, in-process, cool) + a mechanism check
 (unit test of the new machinery + an integration test asserting it is actually wired into search,
 e.g. correction history's 1131-slot populate) + full `go test -short` (~5s). Theory-sound + green
-+ no tactical regression → commit a checkpoint (local; push only when Bryan asks). Heavy self-play
-is RARE + COOL + BACKGROUND: batch several committed changes, then ONE run `-lowpower=true`
-(E-cores) `-concurrency 2` backgrounded — NEVER conc-4/P-cores again (that was the overheating).
-For eval/ordering items, cmd/blunder-finder cp-loss (fixed-depth, deterministic, one pass) is a
-cool quality signal that needs no self-play.
++ no tactical regression → commit a checkpoint (local; push only when Bryan asks).
+
+FIXED-NODES INSTRUMENT — BUILT 2026-05-25 (the unlock). `go nodes N` is now ENFORCED: a global
+node budget (search.go SetMaxNodes/MaxNodes) trips the existing stop flag when spent, reusing the
+incomplete-iteration discard; pure `go nodes` runs Infinite-time so only the budget binds. cmd/sprt
+gained `-nodes N`. Why it matters: fixed-nodes self-play is DETERMINISTIC (so concurrency is free —
+no timing noise, cool even at high concurrency), FAST (small cap → ms/move vs depth-9's ~50s/game),
+and credits BOTH ordering/efficiency (capture history, LMR, null-R) AND eval — the thing fixed-depth
+and movetime each half-miss. This is now the periodic batch validator. NB the baseline binary must
+ALSO enforce nodes, so build base = (old commit + this instrument) via worktree cherry-pick.
+
+DON'T use the SF1500 rolling smoke for strength: it is SATURATED — NGN goes 5-0 vs SF1500@200ms
+every run (100% → degenerate ELO like "2458, CI [1699,2300]"). It can't discriminate; it's pinned
+at the ceiling. Either retire it or give it a much stronger opponent. Fixed-depth one-shot SPRT is
+also a poor fit: slow (40 min/48 games at depth 9) AND blind to ordering changes. Use fixed-NODES.
 
 DOOR OPEN: Lazy SMP is real ELO (~+80-150 multi-core) but PARKED per Bryan — an orthogonal
 multiplier, addable anytime, not the path.

@@ -48,6 +48,24 @@ func IsStopRequested() bool {
 	return globalStopRequested.Load()
 }
 
+// globalMaxNodes caps total nodes for the current search (0 = unlimited). Set from
+// UCI `go nodes N` and observed in the search hot paths, which trip the stop flag
+// when the budget is spent. This makes self-play deterministic at an equal node
+// budget — fast (small cap), cool (no timing, so concurrency is free), and able to
+// credit ordering/efficiency changes that fixed-depth and movetime both miss.
+var globalMaxNodes atomic.Uint64
+
+// SetMaxNodes sets the per-search node budget (0 = unlimited). Called by UCI before
+// each search and overwritten every `go`, so it needs no separate clear.
+func SetMaxNodes(n uint64) {
+	globalMaxNodes.Store(n)
+}
+
+// MaxNodes returns the current node budget (0 = unlimited).
+func MaxNodes() uint64 {
+	return globalMaxNodes.Load()
+}
+
 // Late Move Pruning thresholds by depth
 // At depth d, prune quiet moves after lmpThreshold[d] moves
 var lmpThreshold = [8]int{0, 5, 8, 12, 17, 23, 30, 38}
@@ -883,6 +901,12 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		return EvaluateForPlayer(&pos.Board, pos.Turn())
 	}
 
+	// Fixed-node budget (UCI `go nodes`): trip the stop flag when the budget is
+	// spent, reusing the unwind/discard machinery below.
+	if m := MaxNodes(); m != 0 && info.Nodes >= m {
+		RequestStop()
+	}
+
 	// External stop request (UCI `stop`) - honor it even before the time limit hits.
 	// Cheap atomic load; sampled per node is fine.
 	if IsStopRequested() {
@@ -1532,6 +1556,11 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// Prevent infinite recursion - reduce depth limit for stability
 	if qDepth >= 6 { // More conservative quiescence depth
 		return EvaluateForPlayer(&pos.Board, pos.Turn())
+	}
+
+	// Fixed-node budget: trip the stop flag when spent (qsearch nodes count too).
+	if m := MaxNodes(); m != 0 && info.Nodes >= m {
+		RequestStop()
 	}
 
 	// External stop request - bail out without searching deeper.

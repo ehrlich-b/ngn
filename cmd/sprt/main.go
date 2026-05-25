@@ -92,6 +92,7 @@ func main() {
 	basePath := flag.String("base", "./build/ngn_base", "baseline engine binary")
 	depth := flag.Int("depth", 9, "fixed search depth per move (0 = use -movetime)")
 	movetime := flag.Int("movetime", 0, "ms per move (overrides -depth when > 0)")
+	nodes := flag.Int("nodes", 0, "fixed node budget per move (overrides -depth; deterministic, credits ordering+eval, cool at any concurrency)")
 	baseDepth := flag.Int("basedepth", 0, "base engine depth (0 = same as -depth; set lower as a positive control / depth ladder)")
 	elo0 := flag.Float64("elo0", 0, "SPRT H0 elo bound (null: new is not better)")
 	elo1 := flag.Float64("elo1", 10, "SPRT H1 elo bound (alt: new is better by this)")
@@ -145,6 +146,9 @@ func main() {
 			fmt.Printf("WARNING: movetime mode with concurrency %d — core contention makes timing (and thus results) load-dependent. Use -concurrency 1 for clean measurement.\n", *concurrency)
 		}
 	}
+	if *nodes > 0 {
+		mode = fmt.Sprintf("nodes %d/move", *nodes)
+	}
 
 	lower := math.Log(*beta / (1 - *alpha))
 	upper := math.Log((1 - *beta) / *alpha)
@@ -159,7 +163,7 @@ func main() {
 
 	runSPRT(runConfig{
 		newPath: *newPath, basePath: *basePath,
-		newDepth: newDepth, baseDepth: baseD, movetime: *movetime, maxMoves: *maxMoves,
+		newDepth: newDepth, baseDepth: baseD, movetime: *movetime, nodes: *nodes, maxMoves: *maxMoves,
 		elo0: *elo0, elo1: *elo1, lower: lower, upper: upper,
 		maxGames: *maxGames, minGames: *minGames, concurrency: *concurrency, lowPower: *lowPower,
 	}, openings)
@@ -168,6 +172,7 @@ func main() {
 type runConfig struct {
 	newPath, basePath               string
 	newDepth, baseDepth, movetime   int
+	nodes                           int
 	maxMoves                        int
 	elo0, elo1, lower, upper        float64
 	maxGames, minGames, concurrency int
@@ -176,9 +181,9 @@ type runConfig struct {
 
 func runSPRT(cfg runConfig, openings [][]string) {
 	// Build the work list: each opening twice with reversed colors. At fixed
-	// depth a repeated (opening,color) is a deterministic replay carrying no new
-	// information, so cap distinct work at 2*len(openings); only movetime mode
-	// (timing variance) justifies cycling beyond that.
+	// depth OR fixed nodes a repeated (opening,color) is a deterministic replay
+	// carrying no new information, so cap distinct work at 2*len(openings); only
+	// movetime mode (timing variance) justifies cycling beyond that.
 	var specs []spec
 	for _, op := range openings {
 		specs = append(specs, spec{op, true}, spec{op, false})
@@ -316,7 +321,10 @@ func playGame(newEng, baseEng *Engine, s spec, cfg runConfig) gameResult {
 		sendCommand(eng, "position startpos moves "+strings.Join(moves, " "))
 		var goCmd string
 		var timeout time.Duration
-		if cfg.movetime > 0 {
+		if cfg.nodes > 0 {
+			goCmd = fmt.Sprintf("go nodes %d", cfg.nodes)
+			timeout = 60 * time.Second
+		} else if cfg.movetime > 0 {
 			goCmd = fmt.Sprintf("go movetime %d", cfg.movetime)
 			timeout = time.Duration(cfg.movetime)*time.Millisecond + 5*time.Second
 		} else {

@@ -484,6 +484,15 @@ func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
 		}
 	}
 
+	// Fixed-node search (go nodes N): cap total nodes, and when no time control is
+	// given, run effectively infinite so only the node budget stops the search
+	// (otherwise pure `go nodes` falls into the tournament branch with zero time).
+	SetMaxNodes(params.Nodes)
+	if params.Nodes > 0 && params.Depth == 0 && params.MoveTime == 0 &&
+		params.WhiteTime == 0 && params.BlackTime == 0 {
+		params.Infinite = true
+	}
+
 	// Configure time management
 	uci.debugLogger.Println("About to set up time management")
 	if uci.debugMode {

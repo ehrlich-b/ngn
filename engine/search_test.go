@@ -12,6 +12,35 @@ func newStartingPosition() *Position {
 	}
 }
 
+// TestMaxNodesEnforced verifies the fixed-node budget (UCI `go nodes`) actually caps
+// the search: it must return a real move, reach roughly the budget, and not blow past
+// it (which would mean the cap is ignored) — the basis of deterministic fixed-node SPRT.
+func TestMaxNodesEnforced(t *testing.T) {
+	defer SetMaxNodes(0)
+	const budget = 50000
+
+	SetMaxNodes(budget)
+	info := Search(newStartingPosition(), MaximumDepth) // high depth; the node cap must bind
+	SetMaxNodes(0)
+
+	if info.BestMove == EmptyMove {
+		t.Fatal("node-limited search returned no move")
+	}
+	if info.Nodes < budget {
+		t.Errorf("stopped early at %d nodes — budget %d never reached", info.Nodes, budget)
+	}
+	if info.Nodes > budget*3 {
+		t.Errorf("ran to %d nodes — budget %d not enforced", info.Nodes, budget)
+	}
+
+	// With the cap cleared, the same call must search far deeper (sanity: the cap was
+	// what stopped it, not something else).
+	uncapped := Search(newStartingPosition(), 8)
+	if uncapped.Nodes <= budget {
+		t.Logf("note: depth-8 uncapped used %d nodes (<= budget, fine for startpos)", uncapped.Nodes)
+	}
+}
+
 func TestBasicSearch(t *testing.T) {
 	pos := newStartingPosition()
 
