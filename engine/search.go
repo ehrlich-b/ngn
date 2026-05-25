@@ -433,6 +433,10 @@ type SearchInfo struct {
 	PV          [MaximumDepth]Move // Principal variation array
 	PVLength    int                // Length of current PV
 
+	// Static eval per ply (white-to-move perspective of the node) for the
+	// improving heuristic; indexed by ply like PV.
+	StaticEvalStack [MaximumDepth]int
+
 	// Zero-allocation buffers passed through recursion
 	MoveBuffer    *[256]Move // For move generation
 	CaptureBuffer *[64]Move  // For capture generation
@@ -1011,15 +1015,30 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Check if we're in check before attempting null move
 	inCheck := isInCheck(pos, pos.Turn())
 
+	// Static eval for this node, computed once and reused by RFP/futility and the
+	// improving heuristic. Undefined in check, so inherit the value from two plies
+	// ago to keep the improving chain sane across checking plies.
+	var staticEval int
+	if inCheck {
+		if ply >= 2 {
+			staticEval = info.StaticEvalStack[ply-2]
+		} else {
+			staticEval = -INFINITY
+		}
+	} else {
+		staticEval = EvaluateForPlayer(&pos.Board, pos.Turn())
+	}
+	info.StaticEvalStack[ply] = staticEval
+
+	// improving: static eval better than two plies ago (our previous turn). When
+	// the position is trending up we reduce one less ply in LMR below.
+	improving := !inCheck && ply >= 2 && staticEval > info.StaticEvalStack[ply-2]
+
 	// Extended futility pruning (depths 1-3) and reverse futility pruning
 	var futilityPrune bool
-	var staticEval int
-	var evalComputed bool
 
 	// Reverse futility pruning - if position is very good, return early
 	if SearchToggles.RFP && depth <= 3 && !inCheck && beta-alpha == 1 {
-		staticEval = EvaluateForPlayer(&pos.Board, pos.Turn())
-		evalComputed = true
 		margin := REVERSE_FUTILITY_MARGIN * depth
 		if staticEval-margin >= beta {
 			return staticEval - margin
@@ -1028,10 +1047,6 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// PV-aware extended futility pruning for shallow depths
 	if SearchToggles.Futility && depth <= FUTILITY_MAX_DEPTH && !inCheck && !isPV { // Don't prune in PV nodes
-		if !evalComputed {
-			staticEval = EvaluateForPlayer(&pos.Board, pos.Turn())
-			evalComputed = true
-		}
 		margin := FUTILITY_MARGIN + (depth-1)*50 // Increasing margin with depth
 		if staticEval+margin <= alpha {
 			futilityPrune = true
@@ -1347,6 +1362,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				}
 				reduction = lmrTable[d][m]
 				if !isPV {
+					reduction++
+				}
+
+				// Reduce one less ply when our position is improving.
+				if !improving {
 					reduction++
 				}
 

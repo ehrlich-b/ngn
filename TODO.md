@@ -2,7 +2,115 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
-**DEEP-PRUNER PROBE → CORRECTNESS LOCKED DOWN (2026-05-25, latest).** Movetime
+**GM-PATH RESEARCH → PHASE 1 SEARCH ROADMAP (2026-05-25 — latest, ACTIVE PLAN).**
+Surveyed Stockfish + Ethereal source, the two Go engines (Blunder, CounterGo) and CPW to
+answer Bryan's moved goalpost: "why can't we reach GM (2500) by pruning better, no tuning?"
+HONEST FINDING — the high-ELO pruning rocks are ALREADY IN NGN. Blunder's SPRT devlog
+(algerbrex, ~2600 CCRL, Go — the cleanest comparable; full measured-ELO table in Reference
+Engines below) puts the big movers at null-move +116, LMR +61, RFP +57, futility +37,
+SEE-qsearch +26, aspiration +23, LMP +22, history +19, IID +11, singular +6.8 — NGN has every
+one. So there is NO single +100-ELO pruning lever left; what remains is a long tail of 5-30
+ELO refinements. Realistic sum of the whole roadmap below ≈ +120-160 ELO → NGN ~1750-1850
+(true), NOT 2500. The remaining ~700 ELO to GM is eval QUALITY + tuning: EVERY comparable
+engine that reached GM tuned (Blunder is AdaGrad/Texel-tuned, +34-61 ELO from eval re-tuning
+alone; cf. "Is GM Level Hard" §3 "proper tuning"). So "GM on bugfixes/pruning alone" is NOT
+supported by the evidence — but Phase 1 below is real, no-tuning, correctness-flavored ELO and
+the right next step. Revisit the eval/tuning honesty at ~1800.
+
+Ordered for HARMONY — prereqs first, cheap+independent early, structural middle, refinements
+last; stacked ONE AT A TIME, gated by smoke-tactical (no regression) + node-count check.
+Status key: MISSING / WEAK (partial) / VERIFY (audit for bug). ELO = est. at NGN's level.
+
+PHASE 1A — cheap, reuses machinery NGN has (~50-70 ELO), bugfix-first:
+- [x] **TT-replacement audit** [CLEAN — no bug · 2026-05-25]. Audited cache.go (Zahak-derived
+  single-bucket, lockless XOR-key) + the search.go store/probe. Replacement is sound: empty→
+  replace, same-pos→`depth>=oldDepth-3 || Exact`, collision→`oldAge!=age || depth>=oldDepth`;
+  AdvanceAge fires once per root search (search.go:483 — correct cadence), ucinewgame/sprt
+  rebuild per game. Store types bounds against origAlpha saved BEFORE mate-distance adjust
+  (the subtle point, done right); probe gates `!isPV && ttDepth>=depth` with correct
+  Lower≥beta / Upper≤alpha checks. Packing 28+16+7+3+10=64, no overlap. The Blunder +30 bug
+  class is NOT here (consistent with the prior TT-on==TT-off sweep).
+- [x] **`improving` flag** [DONE · +20 elo · 2026-05-25]. Added `StaticEvalStack
+  [MaximumDepth]int` to SearchInfo; compute static eval once per non-check node (reused by
+  RFP/futility, inherit across checks), `improving := staticEval > stack[ply-2]`; wired into
+  LMR as `!improving → reduction++` (the magnitude-free CounterGo/Ethereal form). MECHANISM
+  is dramatic: Kiwipete depth-12 nodes **4.84M → 1.21M (-75%)**, time 4846→1249ms, seldepth
+  43→33, NPS -3%, tactical 29/30 held, same bestmove. CAVEAT: mechanism ≠ ELO — a +1 LMR on
+  non-improving nodes can over-prune (depth-12 is now a more-pruned depth-12). SPRT verdict
+  (movetime 100ms, conc-4, 600 games vs ngn_base): **+19.7 elo [-8,+48]**, 278-78-244 = 52.8%,
+  stable — matches the +10-25 estimate, NOT a regression (over-pruning worry dead). KEPT (the
+  efficiency gain compounds at longer TC). NEXT: improving-scaled RFP/futility/LMP margins.
+- [ ] **improving-scaled margins + soft-blend RFP return** [+5-10]. Uses the flag; SF returns
+  (716*beta+308*eval)/1024 not raw eval; LMP move-count threshold /(2-improving).
+- [ ] **SEE pruning in MAIN search** [WEAK · +10-25]. NGN already has a flat captures-only gate
+  (SEE < -100, depth<=4, search.go:1199). Upgrade: add QUIET-move SEE pruning (SEE < -25*lmrDepth²)
+  and depth²-scale the capture threshold (Ethereal: noisy -20*d², quiet -64*d, history-adjusted).
+- [ ] **PV-reduction cutnode proxy** [MISSING · +5-15]. CounterGo one-liner `if pvNode {r-=2}`
+  — cheap stand-in for full cutnode threading (the full version is 1C below).
+- [ ] **Adaptive null-move R** [WEAK (fixed R=3) · +5-15; Blunder +14 n.s.]. R = base + depth/d
+  + min(cap,(eval-beta)/m) replaces fixed R=3 (Ethereal: 4 + depth/5 + min(3,(eval-beta)/191)).
+
+PHASE 1B — structural (~40-60 ELO):
+- [ ] **Correction history** [MISSING · +15-35] — THE dynamic-eval lever Bryan wants. Tables
+  keyed pawn-hash / material / non-pawn (opt. continuation ply2/4); record (search−static)
+  error as a gravity-EMA, apply `eval += cv/divisor` to every static eval feeding pruning.
+  NEITHER Go engine has it (a real differentiator) and likely > SF's +13 because a classical
+  eval has more systematic bias to correct. ~60-80 LOC. (SF history.h corrhist; commit b4d995d.)
+- [ ] **Multi-ply continuation history** [WEAK (1-ply) · +10-25]. NGN already has a real 1-ply
+  conthist table (moveorder.go:46, Stage-3 commit 7a309c3) — extend to 2-ply (then 4-ply) and
+  wire the summed score into the LMR reduction. CounterGo flat `[1024][1024]int16` pattern.
+- [ ] **Capture-history table** [MISSING · +5-15]. Indexed (piece,to,captured-type); feeds
+  capture ordering + SEE/futility margins; gravity-updated like quiet history.
+
+PHASE 1C — refinements, after cutnode is threaded (~20-40 ELO):
+- [ ] **Full cutnode/allNode threading** [MISSING]. Upgrade the PV proxy to a real cutNode bool
+  through the recursion; prereq for negative extensions + the big LMR cutnode signal (+3995/1024 in SF).
+- [ ] **Full singular package** [WEAK (single +1) · +10-25 but SKEPTICAL — Blunder's singular
+  total was only +6.8]. Add double + negative extension and MULTICUT (return when the singular
+  verification search itself fails high ≥ beta — the real prize, prunes the whole node). Reuses
+  the verification search NGN already runs. NB distinct from Stage-5 "multi-cut after null move".
+- [ ] **IIR retry** [HAS IID · ~0-10, net simplification]. Stage 5 tried IIR at depth>=4 and it
+  cascaded (0/5 smoke, rolling −91). SF's actual gating vindicates the Stage-5 retry hypothesis:
+  depth>5, PV/cutnode only, priorReduction<=3 (minimally-reduced nodes), `depth--`. Retry with
+  those guards once cutnode exists; can then replace the IID block.
+- [ ] **LMR fail-high re-search depth adjustment** [+5-10]. doDeeper/doShallower ±1 on the
+  re-search keyed on (value vs bestValue+margin), plus the `+PvNode` / cap-at-newDepth+2 form.
+
+MEASUREMENT SNAG (must solve to SIGN these): the items are 5-30 ELO search-EFFICIENCY changes;
+fixed-depth SPRT structurally can't credit efficiency and 14-game movetime SPRT is too slow +
+noisy (the extension-discipline lesson below). Blunder measured ALL of the above with thousands
+of ultra-fast 10+0.1 self-play games. PLAN: (a) ordering/eval-shaped items (improving margins,
+corrhist, capture-hist) DO move fixed-depth move quality → cmd/sprt fixed-depth signs those now;
+(b) pure-efficiency items (SEE/LMR/null-R/cutnode) need either fast self-play SPRT at high game
+count (mirror Blunder 10+0.1) or `go nodes` enforcement in search.go for a deterministic
+fixed-NODES SPRT (UCI parses it, search doesn't enforce — a small wiring job). Gate every change
+on smoke-tactical + node-count, stack one at a time, commit checkpoints.
+
+DOOR OPEN: Lazy SMP is real ELO (~+80-150 multi-core) but PARKED per Bryan — an orthogonal
+multiplier, addable anytime, not the path.
+
+**EXTENSION DISCIPLINE → TRIED, INCONCLUSIVE, REVERTED — plus an instrument lesson
+(2026-05-25).** Hypothesis from the deep review: the check extension restores depth
+(`nextDepth == depth` when givesCheck, search.go:1264) so forcing lines never decay and
+explode the tree (the "35M nodes for depth 10" pathology) — bound it with a per-path
+extension budget (cap net extensions at ~RootDepth via the ply+depth-RootDepth invariant).
+The MECHANISM worked cleanly: Kiwipete `go depth 12` nodes 4.84M -> 2.45M (-49%), seldepth
+43 -> 30; tactics held 29/30. BUT the ELO verdict was UNRESOLVABLE: two 14-game movetime
+SPRTs gave OPPOSITE signs — concurrency-1/E-cores 4W-2D-8L (-102 elo) vs concurrency-4/
+P-cores 6W-5D-3L (+76 elo), CIs hugely overlapping, both straddling 0. So the change is
+~neutral within noise, NOT the regression an early read claimed. REVERTED to HEAD (already
+strong AND crash-safe via the ply ceiling 9274203); the budget is documented here if a clean
+instrument later shows it helps. THE REAL FINDING is about the LOOP: a 14-game movetime
+self-play cannot sign a sub-100-elo SEARCH change — too slow (70s+/game) AND too noisy (sign
+flips on core/concurrency). Fixed-depth SPRT is fast but structurally CANNOT credit search
+EFFICIENCY (the change is invisible/worse at fixed depth). So search-efficiency work needs a
+fixed-NODES instrument (deterministic -> clean at high concurrency; UCI parses `go nodes` but
+search.go doesn't enforce it — a small wiring job), OR we accept search is locked down and
+move to eval, where fixed-depth SPRT + a static Texel MSE objective ARE the fast loop. Bug
+backlog now cleared; remaining ELO is eval QUALITY (calibration/tapering) = the tuning gated
+on correctness, gate now satisfied.
+
+**DEEP-PRUNER PROBE → CORRECTNESS LOCKED DOWN (2026-05-25).** Movetime
 SPRT on the crash-fixed binary, baseline (all-on) vs each pruner-off build. LMR:
 H1 ACCEPTED, +330 elo [+185,+474] (38-4-4/46) — massively load-bearing. Null-move:
 +79.5 elo [+2,+157] (40-18-22/80) — POSITIVE (matches null-move's known ~50-100
@@ -673,10 +781,19 @@ smoke. Sized in expected ELO buckets per stage; reality will vary.
 
 ## Reference Engines (Go)
 
-### Blunder (Go, ~2400 ELO)
-- AdaGrad tuning for evaluation
-- Queen promotions in quiescence
-- Pawn pushes to 6th+ not reduced in LMR
+### Blunder (Go, ~2600 CCRL — algerbrex/blunder)
+- AdaGrad/Texel eval tuning (+34-61 ELO from re-tuning alone); queen promotions in qsearch;
+  pawn pushes to 6th+ not reduced in LMR; counter-move bonus measured statistically ZERO.
+- **Measured per-feature ELO (self-play SPRT @ 10+0.1, docs/testing.md — NGN's best external
+  yardstick, same language):** null-move +116, LMR +61, RFP/static-null +57, futility +37,
+  SEE-qsearch +26, fail-soft-in-static-null +23, aspiration +23, LMP +22, history +19,
+  TT-replacement-bug FIX +30, LMR research-order +12, IID +11, razoring +8, singular +6.8,
+  adaptive-null-R +14 (n.s.), counter-move +5 (n.s.). Eval terms: king-safety +47, passed
+  pawns +36, doubled/isolated +33, mobility +27, bishop-pair +17. The numbers force the
+  conclusion: NGN already has every +20-plus pruning rock; the remaining search tail is 5-30
+  ELO each (see Phase 1 roadmap at top).
+- Lacks (vs NGN's roadmap): continuation history, correction history, improving flag,
+  cutnode-aware reductions — NGN's Phase-1B items are past even Blunder.
 
 ### Zurichess (Go, ~2500 ELO)
 - Reached GM level with classical eval
