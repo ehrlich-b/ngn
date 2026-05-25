@@ -44,7 +44,7 @@ PHASE 1A — cheap, reuses machinery NGN has (~50-70 ELO), bugfix-first:
   improving + LMP `idx--` when not, batched with adaptive null-R: movetime SPRT −6 elo [−37,+24]
   @488 games — neutral, reverted to keep the tree to proven wins. Re-addable; may help at longer
   TC. Soft-blend RFP return (716*beta+308*eval)/1024 still UNTRIED.
-- [x] **SEE pruning of QUIET moves in MAIN search** [DONE · verified cool · ELO pending · 2026-05-25].
+- [x] **SEE pruning of QUIET moves in MAIN search** [DONE · verified cool · MEASURED NEUTRAL +2.2 · 2026-05-25].
   Added a quiet-move SEE-prune gate beside the capture one (search.go ~1250): at depth<=4, !isPV,
   !inCheck, skip a quiet move (non-TT, non-promo, non-king) whose `staticExchangeEvaluation < -80*depth`
   — a "soft hang" where the piece can be won on its destination square. KEY FINDING: it was NEARLY A
@@ -56,8 +56,13 @@ PHASE 1A — cheap, reuses machinery NGN has (~50-70 ELO), bugfix-first:
   tests (safe square=0, queen-to-pawn=-1000, pawn-defended knight=-220, queen-declines=0; see_test.go),
   integration test (SEEQuietPrunes>0 in a depth-8 Kiwipete search, ==0 with the toggle off), full suite
   green, tactical 29/30. FOLLOW-UPS (not done): depth²-scale the CAPTURE threshold (Ethereal noisy
-  -20*d²); history-adjust the quiet threshold; tune the -80 coeff. NEXT: validate ELO on the fixed-nodes
-  instrument (batch with the next change).
+  -20*d²); history-adjust the quiet threshold; tune the -80 coeff. ELO VERDICT (fixed-nodes, -nodes
+  100000, conc-2, 160 games vs 3f20a67): **+2.2 elo [-51, +56]**, 70-21-69 = 50.3%, LLR -0.04 INCONCLUSIVE
+  — NOT a regression (over-pruning ruled out) but NOT a measurable win either; peaked ~+17 @G150 then
+  decayed to +2.2 (the same phantom-decay the rook-7th term showed). A sub-30 standard technique is below
+  this instrument's resolution at 160 games. Kept on theory + no-regression (sound, standard, likely
+  compounds at longer TC), NOT as a measured win. This empirically reinforces the roadmap honesty: the
+  remaining single pruning levers are all sub-resolution; the big ELO is eval QUALITY + tuning.
 - [ ] **PV-reduction cutnode proxy** [MISSING · +5-15]. CounterGo one-liner `if pvNode {r-=2}`
   — cheap stand-in for full cutnode threading (the full version is 1C below).
 - [~] **Adaptive null-move R** [TRIED (depth/6 only) · neutral · reverted 2026-05-25; Blunder
