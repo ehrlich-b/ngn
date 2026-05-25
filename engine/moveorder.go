@@ -150,6 +150,34 @@ func GetHistoryScore(move Move, prevMove Move) int {
 	return score
 }
 
+// Capture history: indexed by [moving-piece][to][captured-piece]. The quiet history
+// tables above skip captures, so without this captures are ordered by SEE alone. This
+// adds a learned tie-breaker — captures that repeatedly cause cutoffs in this search are
+// tried earlier among captures of similar SEE. Gravity-clamped like the quiet tables.
+var captureHistory [13][64][13]int
+
+func captureHistoryScore(move Move) int {
+	return captureHistory[move.MovingPiece()][move.Destination()][move.CapturedPiece()]
+}
+
+// UpdateCaptureHistory rewards a capture that caused a beta cutoff.
+func UpdateCaptureHistory(move Move, depth int) {
+	e := &captureHistory[move.MovingPiece()][move.Destination()][move.CapturedPiece()]
+	*e += depth * depth
+	if *e > 8192 {
+		*e /= 2
+	}
+}
+
+// PenalizeCaptureHistory decreases a tried capture that did not cause the cutoff.
+func PenalizeCaptureHistory(move Move, depth int) {
+	e := &captureHistory[move.MovingPiece()][move.Destination()][move.CapturedPiece()]
+	*e -= depth * depth
+	if *e < -8192 {
+		*e = -8192
+	}
+}
+
 // ClearHistoryTable resets both history tables (used between games)
 func ClearHistoryTable() {
 	for i := range historyTable {
@@ -169,6 +197,13 @@ func ClearHistoryTable() {
 	for i := range pawnCorrectionHistory {
 		for j := range pawnCorrectionHistory[i] {
 			pawnCorrectionHistory[i][j] = 0
+		}
+	}
+	for i := range captureHistory {
+		for j := range captureHistory[i] {
+			for k := range captureHistory[i][j] {
+				captureHistory[i][j][k] = 0
+			}
 		}
 	}
 }
@@ -297,12 +332,15 @@ func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, 
 			if move.IsCapture() || move.IsEnPassant() {
 				// Use SEE to order captures precisely
 				seeValue := staticExchangeEvaluation(pos, move)
+				// Capture-history tie-breaker, scaled down to stay secondary to SEE and
+				// inside each SEE band (band gap is 60000, this is at most ±1024).
+				chScore := captureHistoryScore(move) / 8
 				if seeValue >= 0 {
 					// Winning/equal captures: base score + SEE value for fine ordering
-					score = 80000 + seeValue + 1000
+					score = 80000 + seeValue + 1000 + chScore
 				} else {
 					// Losing captures: below killers/counters but above unscored quiet moves
-					score = 20000 + seeValue + 1000
+					score = 20000 + seeValue + 1000 + chScore
 				}
 			} else if move.PromoType() != NoType {
 				promoWeight := int(GetPiece(move.PromoType(), move.MovingPiece().Color()).Weight())

@@ -1178,6 +1178,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Track quiet moves searched for history penalization
 	var searchedQuiets [64]Move
 	searchedQuietCount := 0
+	var searchedCaptures [64]Move
+	searchedCaptureCount := 0
 
 	for oi := 0; oi < orderedCount; oi++ {
 		move := ordered[oi]
@@ -1272,6 +1274,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		if !move.IsCapture() && move.PromoType() == NoType && searchedQuietCount < 64 {
 			searchedQuiets[searchedQuietCount] = move
 			searchedQuietCount++
+		}
+		// Track captures for capture-history penalization
+		if move.IsCapture() && searchedCaptureCount < 64 {
+			searchedCaptures[searchedCaptureCount] = move
+			searchedCaptureCount++
 		}
 
 		// Refined Check Extension logic - balance tactical strength with performance
@@ -1456,6 +1463,17 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				quietMove := searchedQuiets[i]
 				if quietMove != move {
 					PenalizeHistoryTable(quietMove, savedLast, depth)
+				}
+			}
+
+			// Capture history: reward a cutting capture, penalize tried captures that
+			// didn't cut (whether the cutoff move was a capture or a quiet).
+			if move.IsCapture() {
+				UpdateCaptureHistory(move, depth)
+			}
+			for i := 0; i < searchedCaptureCount; i++ {
+				if searchedCaptures[i] != move {
+					PenalizeCaptureHistory(searchedCaptures[i], depth)
 				}
 			}
 

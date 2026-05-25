@@ -73,8 +73,16 @@ PHASE 1B — structural (~40-60 ELO):
 - [ ] **Multi-ply continuation history** [WEAK (1-ply) · +10-25]. NGN already has a real 1-ply
   conthist table (moveorder.go:46, Stage-3 commit 7a309c3) — extend to 2-ply (then 4-ply) and
   wire the summed score into the LMR reduction. CounterGo flat `[1024][1024]int16` pattern.
-- [ ] **Capture-history table** [MISSING · +5-15]. Indexed (piece,to,captured-type); feeds
-  capture ordering + SEE/futility margins; gravity-updated like quiet history.
+- [x] **Capture-history table** [DONE · verified · 2026-05-25; ELO pending cool batch].
+  `captureHistory[13][64][13]` keyed (moving-piece, to, captured-piece), gravity-clamped ±8192
+  like quiet history (bonus depth²). Quiet history skipped captures, so captures were ordered by
+  SEE alone — this adds a learned tie-breaker `+captureHistoryScore/8` (≤±1024, kept inside the
+  60000 SEE bands so it never reorders across winning/losing/killer bands). Updated at beta
+  cutoffs: reward a cutting capture, penalize tried captures that didn't cut (new searchedCaptures
+  list mirroring searchedQuiets). Cleared with the other histories. VERIFIED COOL: full suite green
+  (6.1s), tactical 29/30, unit tests for reward/penalty/bound/independence, integration test
+  populated 930 slots in a real depth-10 Kiwipete search (capture_history_test.go). FOLLOW-UPS
+  (not done): feed capture history into SEE/futility margins; tune the /8 ordering scale.
 
 PHASE 1C — refinements, after cutnode is threaded (~20-40 ELO):
 - [ ] **Full cutnode/allNode threading** [MISSING]. Upgrade the PV proxy to a real cutNode bool
