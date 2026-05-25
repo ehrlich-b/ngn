@@ -2,7 +2,22 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
-**BLUNDER HUNT on HEAD → CRASH FIX (2026-05-24, latest).** Pointed cmd/blunder-
+**DEEP-PRUNER PROBE → CORRECTNESS LOCKED DOWN (2026-05-25, latest).** Movetime
+SPRT on the crash-fixed binary, baseline (all-on) vs each pruner-off build. LMR:
+H1 ACCEPTED, +330 elo [+185,+474] (38-4-4/46) — massively load-bearing. Null-move:
++79.5 elo [+2,+157] (40-18-22/80) — POSITIVE (matches null-move's known ~50-100
+elo value), so NOT over-pruning; formally inconclusive only because it hit maxgames
+80 and I ran concurrency-2 (movetime timing noise — tool warned; traded for speed;
+sign is robust, lower bound +2>0). Neither over-prunes = NO bug. This was the last
+unverified classic technique, so CORRECTNESS IS NOW LOCKED DOWN: SEE, partial-
+commit, outpost, mate hygiene, the ply-ceiling crash, qsearch bound, eval symmetry,
+shallow pruners, ordering, pawn-structure, AND deep pruners all verified; the
+empirical residual is eval-shaped, not bug-shaped. Bryan's gate for eval/tuning is
+satisfied → cleared to start the Differentiation & Vision roadmap below (explainable
++ strongest-Go first). Optional loose end: a clean concurrency-1 null-move re-run
+(~15 min) would pin the +80 magnitude but doesn't change the no-bug verdict.
+
+**BLUNDER HUNT on HEAD → CRASH FIX (2026-05-24).** Pointed cmd/blunder-
 finder at HEAD's own game log (107K real decisions, stride-sampled 400, fixed
 depth 11, SF oracle) — the first real blunder hunt on the SEE-fixed engine — and
 it immediately caught an ENGINE PANIC. Root cause: runaway check extensions. A
@@ -205,6 +220,90 @@ smokes) → 1553 (hanging-pieces tried/reverted) → 1559 ([piece][to] history) 
 28→29/30, rolling drift within noise). +103 ELO net since session start, all changes
 gated by smoke-tactical and committed individually. Stage 1 ladder target 1700 within
 reach: CI lower bound 1446 vs 1700 target.
+
+---
+
+## Differentiation & Vision Roadmap (post-correctness)
+
+Once correctness is locked down, specialize. Guiding principle: the strongest
+niches LEAN INTO the classical eval (fast, hand-crafted, inspectable); the
+riskiest ABANDON it. Sequencing at the bottom.
+
+### Identity: "the strong, fast, EXPLAINABLE Go engine"
+Three reinforcing bets, all banking on the classical eval:
+- **Explainable (#1 differentiator).** Classical eval = named terms, so the engine
+  can print WHY: "+1.3 = material +1.0, king-safety +0.5, passed pawn +0.3,
+  back-rank -0.5". NNUE structurally cannot. Value grows as engines get more
+  opaque — teaching, streaming, analysis tools. Lowest competition. Build: an
+  eval-trace mode decomposing evaluateUnsafe term-by-term to a UCI `info string`.
+- **Strongest Go engine.** Concrete title to climb: Blunder ~2400, Zurichess
+  ~2500; we're in range. Scoreboard = CCRL / self-play vs those binaries.
+- **WASM / embeddable.** Single static binary; compiles to WASM = strong engine
+  in a browser tab, no install. Go is built for this.
+
+### Speed / low-latency sub-niche
+Won't beat Stockfish at bullet (it wins everywhere), but "lowest-latency engine"
+and "strongest engine on weak / no-SIMD hardware (Pi, phone, WASM)" are real
+classical wins — NNUE needs the net in RAM + SIMD; tiny classical screams on weak
+HW. The Go-GC fear is overstated: GC is sub-ms and the hot path already uses stack
+buffers (keep it zero-alloc). Go's real tax is ~1.5-2x single-thread throughput
+(no easy SIMD), and it's FLAT across time controls, not bullet-specific. Unclaimed
+speed wins: incremental eval (update on make/unmake), lazy SMP (goroutines make
+this EASIER than in C++), TT prefetch, staged/lazy move gen.
+
+### Learned pruning ("prune-net") — the one hybrid experiment
+The disciplined version of the NNUE-pruning instinct. THE TRAP: NNUE inference
+(~100-300ns) is WHY NNUE engines have lower NPS — call it at every node and you
+become a slow NNUE engine, throwing away our edge. It only pays if the net's
+verdict saves more than it costs:
+- **NN-ProbCut (amortized — START HERE).** Run a net ONLY at high nodes
+  (depth>=D, near root); one prune kills a giant subtree, so the net runs rarely
+  and NPS stays high. Builds on the existing probcut hook.
+- **Policy candidate filter (Leela-lite).** KEY: NNUE = position EVAL, not move
+  POLICY. To prune by "which moves to even try" you want a POLICY net = Leela's,
+  not Stockfish's. Search top-K policy moves, hard-prune the rest.
+- **Tiny purpose-trained prune-classifier ("prune this node? y/n").** Cheapest
+  inference, most novel, learned from our own search — the real "small" path.
+
+Net sizes (DECISION GATE before pulling anything — keep it SMALL):
+- **Stockfish .nnue**: documented (feature transformer + affine + clipped ReLU,
+  int8/16). Default net ~70MB, but small-net variants ~1-10MB are size-viable.
+- **Leela**: protobuf; strong nets are 100s of MB toward a GB = OFF-TABLE for a
+  small engine. Only tiny maia-style nets (~few MB) qualify.
+- Resolution of "pull both AND stay small": pulling = a no-training SHORTCUT to a
+  baseline; for the real thing TRAIN OUR OWN tiny prune-net (KB-to-low-MB, we
+  control size). Pull SF-small for an eval-pruning experiment; Leela-big is a no.
+- Go inference cost: feasible (Go NNUE probers exist) but SIMD-less, so slower
+  than C++ — another reason to favor a tiny custom net over a big pulled one.
+
+### Wild: generic game engine
+The search core (alpha-beta, TT, time mgmt) is GAME-AGNOSTIC; only move-gen, eval,
+terminal detection are chess-specific. Refactor behind a Game abstraction and the
+same engine plays Othello/checkers/Hex/Connect-4.
+- **Generic WITHOUT losing chess strength?** YES, if the boundary is monomorphized
+  — Go GENERICS (`Search[G Game]`), NOT interface values (dynamic dispatch in the
+  million-node loop tanks NPS). Caveat: Go generics aren't fully zero-cost
+  (GC-shape stenciling reintroduces indirection for pointers), so GATE the
+  refactor on "chess NPS did not regress" (bench + smoke canary); fallback =
+  code-gen a specialized search per game. Eval QUALITY is preserved for free —
+  eval is per-game, only the SEARCH is shared.
+- **Fully generic pruning?** Control flow yes, KNOWLEDGE no — split into a generic
+  skeleton + a GameTraits hook set: eval margins (futility/RFP, scaled to game
+  units), "quiet vs tactical?" (LMP), "forcing / extend?" (check → generic
+  forcing predicate), "null-move sound? zugzwang risk?", move-ordering signals
+  (history generic; SEE/captures chess-specific, absent in non-capture games).
+- **THE UNIFICATION:** a learned prune-net is game-agnostic MACHINERY (same arch,
+  retrained per game) that REPLACES all the hand-coded game-specific predicates —
+  so "fully generic pruning" argues FOR the prune-net, and it's the AlphaZero move
+  (generic search + learned knowledge). The prune-net and generic-engine threads
+  are one architecture; AlphaZero-lite (general MCTS + per-game self-trained net)
+  falls out of it.
+
+### Sequencing
+Correctness (current) → explainable + strongest-Go (cheap, bank the identity) →
+generic refactor behind Game (architecture forcing function, gated on chess NPS) →
+NN-ProbCut, then prune-net (the hybrid bet; train tiny, don't pull big) →
+AlphaZero-lite if we want it. Each rung is a real project, not an afternoon.
 
 ---
 
