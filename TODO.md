@@ -59,7 +59,7 @@ PHASE 1A — cheap, reuses machinery NGN has (~50-70 ELO), bugfix-first:
   that piece alone if revisited.
 
 PHASE 1B — structural (~40-60 ELO):
-- [x] **Correction history** [PAWN TABLE DONE · verified · 2026-05-25; ELO pending cool batch].
+- [x] **Correction history** [PAWN TABLE DONE · verified · +64 batch w/ capture · 2026-05-25].
   Implemented the pawn-structure table (moveorder.go): `[2][16384]` gravity-EMA keyed on a hash
   of both pawn bitboards, SF weight 6245/131072 (saturates at ±49cp). Apply: the static eval
   feeding RFP/futility/null/improving is now `EvaluateForPlayer + correctionValue` (search.go
@@ -68,12 +68,14 @@ PHASE 1B — structural (~40-60 ELO):
   better-with-bestmove). Cleared with the other histories (ClearHistoryTable). VERIFIED COOL:
   full suite green (5.5s), tactical 29/30, unit tests for hash/EMA/gate, integration test
   populated 1131 slots in a real depth-10 search (correction_history_test.go). ELO magnitude
-  deferred to the periodic cool batch (below). FOLLOW-UPS (not done): material / non-pawn /
+  validated jointly with capture history: +64.4 elo [+2, +127] (62-18-40 / 120 games) on the
+  fixed-nodes instrument vs the improving baseline — CI clears zero, a real win (fixed-DEPTH had
+  said +7 [-90,+104] because it can't see capture ordering). FOLLOW-UPS (not done): material / non-pawn /
   continuation-ply2 corr tables; correct the qsearch stand-pat eval too. (SF corrhist; b4d995d.)
 - [ ] **Multi-ply continuation history** [WEAK (1-ply) · +10-25]. NGN already has a real 1-ply
   conthist table (moveorder.go:46, Stage-3 commit 7a309c3) — extend to 2-ply (then 4-ply) and
   wire the summed score into the LMR reduction. CounterGo flat `[1024][1024]int16` pattern.
-- [x] **Capture-history table** [DONE · verified · 2026-05-25; ELO pending cool batch].
+- [x] **Capture-history table** [DONE · verified · +64 batch w/ correction · 2026-05-25].
   `captureHistory[13][64][13]` keyed (moving-piece, to, captured-piece), gravity-clamped ±8192
   like quiet history (bonus depth²). Quiet history skipped captures, so captures were ordered by
   SEE alone — this adds a learned tie-breaker `+captureHistoryScore/8` (≤±1024, kept inside the
@@ -122,6 +124,11 @@ no timing noise, cool even at high concurrency), FAST (small cap → ms/move vs 
 and credits BOTH ordering/efficiency (capture history, LMR, null-R) AND eval — the thing fixed-depth
 and movetime each half-miss. This is now the periodic batch validator. NB the baseline binary must
 ALSO enforce nodes, so build base = (old commit + this instrument) via worktree cherry-pick.
+FIRST RESULT (2026-05-25): corr+capture vs improving, -nodes 100000, 120 games → +64 [+2,+127]
+(score 59.2%). TIMING LESSON: 120 games took ~20 min at -concurrency 4 because 8 engine procs
+oversubscribe ~4 E-cores (each game ~half speed). Use -concurrency 2 (≈4 procs ≈ 4 E-cores, no
+contention) and/or a lower node cap (50k) for faster cool runs; concurrency doesn't change the
+deterministic result, only speed/heat.
 
 DON'T use the SF1500 rolling smoke for strength: it is SATURATED — NGN goes 5-0 vs SF1500@200ms
 every run (100% → degenerate ELO like "2458, CI [1699,2300]"). It can't discriminate; it's pinned
