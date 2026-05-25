@@ -147,7 +147,14 @@ func main() {
 // error, OR the position is already decided (even best play is hopeless or
 // already crushing) so a "blunder" there isn't meaningful and only pollutes the
 // corpus — this is what filtered out the K+B+N-vs-K forced-loss false positives.
-func analyze(sf *engine.StockfishClient, fen string, movetime, sfMovetime int) (Blunder, bool) {
+func analyze(sf *engine.StockfishClient, fen string, movetime, sfMovetime int) (b Blunder, ok bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Fprintf(os.Stderr, "\nENGINE PANIC on FEN: %s\n  %v\n", fen, r)
+			b, ok = Blunder{}, false
+		}
+	}()
+
 	pos, err := engine.ParseFEN(fen)
 	if err != nil {
 		return Blunder{}, false

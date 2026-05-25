@@ -2,6 +2,52 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
+**BLUNDER HUNT on HEAD → CRASH FIX (2026-05-24, latest).** Pointed cmd/blunder-
+finder at HEAD's own game log (107K real decisions, stride-sampled 400, fixed
+depth 11, SF oracle) — the first real blunder hunt on the SEE-fixed engine — and
+it immediately caught an ENGINE PANIC. Root cause: runaway check extensions. A
+check extension restores depth (`nextDepth := depth-1; if givesCheck { nextDepth++ }`
+=> nextDepth==depth, search.go:1253), so a perpetual-check / king-hunt line never
+decays into qsearch and recurses until a ply-indexed array (PV[MaximumDepth=100])
+overflows — crashed at ply 166. The clock unwinds it before that in real games
+(why the SF2000 games didn't crash); fixed-depth analysis has no clock. FIX: a ply
+ceiling `if ply >= MaximumDepth { return eval }` beside the existing depth guards
+(search.go ~907). Behavior-neutral (normal search never nears ply 100; tactical
+29/30 unchanged), and a re-scan of 400 positions now shows 0 panics (was crashing).
+Blunder rate on the fixed binary: 14/307 = 4.6%, but ~3 are decided-position /
+oracle artifacts (two 28900cp "drops" are mate-score arithmetic in already-lost
+positions that slipped the -1200 filter; two are same-move SFBest==NGN drops from
+the time-based oracle), so the real actionable rate is ~3.5-4% — in line with the
+post-partial-commit 3.2%. Every real blunder is a 150-550cp POSITIONAL/EVAL error,
+NOT a discrete bug: knight-to-rim (g1h3, f3g5), passive piece vs activation (queen
+g5h6 not g5e5; rook not activated), weak endgame king centralization (queenside
+pawn push instead of f2e3), queen-endgame eval miscalibration. EMPIRICAL CONCLUSION
+(not assertion): past this crash, the residual is TUNING-SHAPED (eval quality /
+search depth), not bug-shaped. Remaining search lever: even with the ceiling, the
+check extension still burns nodes ~100-deep on checking lines (a search-EFFICIENCY
+leak likely behind the "35M nodes for depth 10" explosions) — bounding extensions
+to actually decay depth is the next correctness-adjacent fix, but it changes search
+behavior so it needs SPRT.
+
+**RE-MEASURE + RE-ANCHOR (2026-05-24):** The SEE +161 fix is confirmed
+IN PLAY, not just at fixed depth — 4 fresh smokes at HEAD went **20W-0D-0L vs
+SF1500/200ms** (every game a checkmate), tactical 29/30. That SATURATED the
+SF1500 smoke: NGN wins 100%, the per-run estimate pins at the 2300 ceiling, and
+the rolling point estimate is dragged toward it as old broken-SEE runs decay —
+so the SF1500 rolling (and the stale "1711" below) is RETIRED as a forward
+yardstick, kept only as a regression tripwire (a drop below ~100% = a real
+break). RE-ANCHORED the default smoke to **SF2000** (`./build/smoke -elo 2000`,
+its own rolling bucket): 3 runs = **12W-1D-2L = 83.3% over 15 games, rolling
+2280, 95% CI [2059, 2500]** (width 441). This is the new working instrument —
+non-saturated (games run long, SF2000 takes points: 1 loss + 1 max-moves draw),
+CI lower bound 2059 sits above the opponent's nominal 2000. CAVEAT: still the 5x
+time-odds config (NGN 1000ms vs SF 200ms) and SF's UCI_Elo throttling is an
+imperfect strength model, so 2280 is the INSTRUMENT number, not a FIDE claim —
+but the correctness-first thesis is clearly working (cleared the SF1500 bar
+entirely on bug-fixes alone). Next correctness work is now measurable vs SF2000.
+NOTE: `make smoke` still hardcodes -elo 1500 (saturated); use `./build/smoke
+-elo 2000` until the Makefile target is bumped.
+
 **Current Status (2026-05-24):** Built the measurement instrument that unblocks
 everything from here — `cmd/sprt`, an NGN-vs-NGN self-play SPRT. The 5-game
 vs-Stockfish smoke provably can't resolve sub-100-ELO changes (identical binary

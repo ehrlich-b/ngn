@@ -904,6 +904,16 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		return EvaluateForPlayer(&pos.Board, pos.Turn())
 	}
 
+	// Safety check for excessive ply: no legal search should recurse past
+	// MaximumDepth plies. A check extension restores depth (nextDepth == depth
+	// when givesCheck), so a non-decaying checking line — perpetual check or a
+	// king hunt — never bottoms out and recurses until a ply-indexed array
+	// (e.g. PV[MaximumDepth]) overflows. The clock unwinds it in real games;
+	// fixed-depth analysis has no clock, so it crashes outright.
+	if ply >= MaximumDepth {
+		return EvaluateForPlayer(&pos.Board, pos.Turn())
+	}
+
 	// Compute hash once and reuse for repetition detection and TT probe.
 	hash := pos.Hash()
 
