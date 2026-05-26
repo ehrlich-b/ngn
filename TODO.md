@@ -19,10 +19,26 @@ labeled by white-POV result; `-mode tune` → calibrate K, CD schedule [8,4,2,1]
 Exposed 10 tunable weights in eval.go (3 direct pawn scalars passed/doubled/isolated + 7 term-
 multipliers default 100 = identity for chains/bishop-pair/mobility/rook-open/outpost/king-safety/
 king-activity); the refactor is BEHAVIOR-NEUTRAL at defaults (eval symmetry + baseline + tactical
-29/30 all unchanged). NEXT: generate a real dataset (~150K positions), tune, validate tuned-vs-base
-via fixed-DEPTH SPRT (eval changes ARE visible at fixed depth, unlike the pure-efficiency search
-items). NB: the dead pawnPST tuning attempt was caught instantly by the MSE-sensitivity probe
-(mutating knightPST[18] moved MSE by exactly 0) — mechanism checks earn their keep.
+29/30 all unchanged). NB: the dead pawnPST tuning attempt was caught instantly by the MSE-sensitivity
+probe (mutating knightPST[18] moved MSE by exactly 0) — mechanism checks earn their keep.
+
+**PHASE 1 VERDICT — REGRESSED, REVERTED 2026-05-25.** Generated 156K quiet positions from NGN
+self-play (4×400 games @4000 nodes), calibrated K=0.766, coordinate-descended the 10 weights. The
+tuner near-ELIMINATED established positive terms (mobility 100→4, bishop-pair 100→35, king-safety
+100→53, king-activity 100→40, isolated 12→2) for a NOISE-LEVEL MSE gain (0.123821→0.123791, ~0.00003).
+Tactical held 29/30, so the regression isn't tactical-vision; it's positional. Fixed-DEPTH SPRT
+(depth 8, 564 games vs ngn_base): **−44.0 ELO [−73,−15], LLR −2.96, H0 ACCEPTED (NOT better).**
+REVERTED to defaults (build/ngn back to baseline). ROOT CAUSE = DATA QUALITY, not the machinery
+(which is sound — CD never raises MSE, K-calib correct): NGN self-play labels reflect ~1600-level
+judgment, so the tuner learns to predict NGN's own weakness and suppresses terms that are redundant
+*for fitting this dataset* but valuable *in play*. The dominant eval signal is the already-(strongly-)
+tuned PeSTO core, so peripheral weights have near-zero MSE leverage. IMPLICATION: phase 2 (re-tune the
+PeSTO core on the SAME self-play data) is EVEN more likely to regress — perturbing the dominant signal
+with weak labels. The real fix is REAL labeled data (Zurichess `quiet-labeled.epd` / lichess-big3 —
+what Blunder & CounterGo actually tuned on), not better self-play. NEXT = strategic fork (see below),
+surfaced to Bryan: (1) re-tune on a real public dataset, (2) run phase-2-on-self-play anyway to close
+the hypothesis, or (3) abandon tuning and work the search long-tail. Infra (texel.go/cmd/texel) is
+data-source-agnostic — only a tiny EPD→`<FEN> <result>` adapter is needed for option 1.
 
 **GM-PATH RESEARCH → PHASE 1 SEARCH ROADMAP (2026-05-25 — latest, ACTIVE PLAN).**
 Surveyed Stockfish + Ethereal source, the two Go engines (Blunder, CounterGo) and CPW to
