@@ -84,7 +84,9 @@ var SearchToggles = struct {
 	SEEPrune  bool
 	LMR       bool
 	HistPrune bool
-}{true, true, true, true, true, true, true, true}
+	IID       bool
+	Singular  bool
+}{true, true, true, true, true, true, true, true, true, true}
 
 // lmrTable[depth][legalTried] precomputes the Stockfish-style log-based LMR
 // base reduction: floor(log(depth) * log(legalTried) / 2). Smoother gradient
@@ -1012,13 +1014,19 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// Internal Iterative Deepening (IID)
 	// When we have no TT move at high depth, do a reduced search to find one
-	if ttMove == EmptyMove && depth >= 4 && isPV {
+	if SearchToggles.IID && ttMove == EmptyMove && depth >= 4 && isPV {
 		// Search at reduced depth to get a good move for ordering
 		iidDepth := depth - 2
 		if iidDepth < 1 {
 			iidDepth = 1
 		}
+		// This re-enters alphaBetaPV on the SAME position (no move made). The
+		// current node already pushed its hash onto info.RepStack above, so the
+		// re-entry would otherwise hit its own hash in the search-path repetition
+		// scan and return a bogus draw (0). Hide our entry for the duration.
+		info.RepStackLen--
 		alphaBetaPV(pos, iidDepth, ply, alpha, beta, true, info)
+		info.RepStackLen++
 		// Re-probe TT to get the move we just found
 		ttMove, _, _, _, _ = TranspositionTable.Get(hash)
 	}
@@ -1163,7 +1171,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Singular extension detection
 	// If we have a TT move that's clearly best, extend its search
 	singularMove := EmptyMove
-	if ttHit && ttMove != EmptyMove && depth >= SINGULAR_DEPTH &&
+	if SearchToggles.Singular && ttHit && ttMove != EmptyMove && depth >= SINGULAR_DEPTH &&
 		info.ExcludedMove == EmptyMove && // Not already in singular search
 		(ttNodeType == Exact || ttNodeType == LowerBound) &&
 		ttDepth >= int8(depth-3) {
@@ -1183,17 +1191,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			}
 			return -MATE_VALUE + mateDistance
 		}
-		// Stalemate - check if we're throwing away a winning position
-		eval := Evaluate(&pos.Board)
-		if pos.Turn() == Black {
-			eval = -eval // Flip evaluation for black's perspective
-		}
-
-		// If we're winning by a significant margin, heavily penalize stalemate
-		if eval > 300 { // We have significant advantage (about 3 pawns)
-			return -500 // Penalize stalemate when winning
-		}
-		return 0 // Otherwise, stalemate is still a draw
+		// Stalemate is a draw regardless of material balance. Scoring it -500
+		// when "winning" breaks the zero-sum invariant — the opponent would read
+		// the same drawn position as +500 and steer into it.
+		return 0
 	}
 
 	// Order moves, prioritizing TT move if available
@@ -1374,7 +1375,13 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			if singularDepth < 1 {
 				singularDepth = 1
 			}
+			// The verification search re-enters alphaBetaPV on the SAME (parent)
+			// position with the singular move excluded. Hide this node's own
+			// repetition-stack entry so the re-entry doesn't match its own hash
+			// and bail out with a bogus draw (0) before doing any work.
+			info.RepStackLen--
 			singularScore := alphaBetaPV(pos, singularDepth, ply, singularBeta-1, singularBeta, false, info)
+			info.RepStackLen++
 			info.ExcludedMove = EmptyMove
 
 			// Re-make our move and restore the global to it for children.
