@@ -17,27 +17,31 @@ structural, then infra. Stack ONE at a time, gate with the COOL+FAST loop
 checkpoints; periodic fixed-nodes SPRT as the batch validator.
 
 ### Phase C — Correctness recovery (CONFIRMED bugs in supposedly-working features)
-- [ ] **C1 — IID & singular extension re-entrancy (CONFIRMED, empirically proven).**
-  `alphaBetaPV` pushes the node's hash onto `info.RepStack` (search.go:978) BEFORE
-  the IID block (search.go:1015) and the singular block (search.go:1377), both of
-  which RE-ENTER `alphaBetaPV` on the SAME position (no move made). The re-entry's
-  search-path repetition scan (search.go:971) finds the node's own hash and returns
-  0 (draw) immediately. PROOF: same position (white up a queen) returns +1024 on a
-  normal call but **0** when its hash is pre-pushed (the IID/singular path).
-  Consequences: **IID is a complete no-op** (returns 0 before storing → TT re-probe
-  finds nothing); **singular misfires** (`singularScore` always 0 → `0 < ttEval-64`
-  ⇒ just extends the TT move whenever winning by >0.64, never a real singular test,
-  no multicut). FIX: hide the node's own entry around the two re-entrant calls
-  (`info.RepStackLen--` / call / `info.RepStackLen++`). Also add `IID`/`Singular`
-  to `SearchToggles` (the ablation harness can't see them today) + a re-entrancy
-  regression test. Gate: smoke-tactical + toggle-driven node-count integration test
-  (off≠on once fixed) + fixed-nodes SPRT (efficiency → fixed-depth can't credit it).
-  IID ≈ +5-15 (Blunder +11); singular sign unknown — measure separately.
-- [ ] **C2 — stalemate-when-winning returns -500 (search.go:1193).** In the
-  `numMoves==0` (no pseudo-legal moves) branch, stalemate while up >300cp returns
-  -500 instead of 0 — breaks the zero-sum invariant. Near-unreachable (real
-  stalemate is handled at `legalTried==0` → 0), but a latent correctness hole.
-  Trivial fix, fold in with C1.
+- [x] **C1 — IID & singular extension re-entrancy + singular self-cutoff (DONE · 2026-05-28
+  · commits ff7e81e, 722b7ba).** Two stacked bugs meant IID and singular NEVER worked:
+  (1) RE-ENTRANCY — `alphaBetaPV` pushed the node's hash onto `info.RepStack` BEFORE the IID
+  and singular blocks, both of which re-enter on the SAME position; the re-entry matched its
+  own hash in the repetition scan and returned a bogus 0 (proven: +1024 → 0 with the hash
+  pre-pushed). IID was a total no-op; singular's score was always 0. Fixed by hiding the
+  node's entry around both re-entrant calls (`RepStackLen--`/call/`++`). (2) SINGULAR
+  SELF-CUTOFF — even after (1), the verification search took an immediate TT cutoff from the
+  very entry that triggered detection, so `singularScore == ttEval` and it never proved
+  singularity (0 extensions across 4 positions @ depth 11). Fixed with ply-scoped exclusion:
+  `inSingular := ExcludedMove != Empty && ply == ExcludedPly` skips the TT cutoff AND both TT
+  stores at the verification root only. Added `IID`/`Singular` to `SearchToggles` + regression
+  tests (`TestIIDIsWired`, `TestSingularExtensionsFire`: IID node-count now changes on/off;
+  singular fires 63 ext in Kiwipete, was 0). VERDICT: smoke-tactical 29/30, suite green.
+  Isolation SPRT singular-on vs off (50k nodes, 200 games, 400-opening book): **+3.5 ELO
+  [-45,+51], 92-18-90 = 50.5% — NEUTRAL** (the first 48-game full-vs-base read of -44 was
+  book-exhausted noise). Singular kept ON: now CORRECT and not a regression, same standard as
+  other sound sub-resolution techniques (cf. quiet-SEE +2.2). Full-vs-base 200g confirmation
+  RUNNING. Tuning singular to net-positive (margin/double+negative extension) → see X3.
+- [x] **C2 — stalemate-when-winning returns -500 → 0 (DONE · 2026-05-28 · commit ff7e81e).**
+  The `numMoves==0` branch returned -500 when up >300cp; stalemate is a draw. Near-unreachable
+  (real stalemate handled at `legalTried==0`) but it broke the zero-sum invariant. Now `return 0`.
+- [x] **C0 — stale eval baseline (DONE · 2026-05-28 · commit, hygiene).** `make test` was RED on
+  `main`: the +46 PST commit (bb12a48) changed eval but didn't regenerate `eval_baseline.json`.
+  Regenerated to match the tuned eval; suite green. (Test-hygiene, not an engine bug.)
 
 ### Phase S — Cheap independent search refinements (fixed-nodes SPRT signs these)
 - [ ] **S1 — Aspiration windows: exponential widening (search.go:573-596).** Today:
@@ -71,6 +75,10 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
 - [ ] **X1 — 2-ply continuation history → wire summed score into LMR.** (Have 1-ply.)
 - [ ] **X2 — Full cutnode/allNode threading.** Prereq for negative extensions, real
   IIR retry, and the big LMR cutnode signal. (See Phase 1C below.)
+- [ ] **X3 — Tune singular extensions to net-positive.** Now CORRECT but measured NEUTRAL
+  (+3.5 [-45,+51], C1). It ~2× the tree in Kiwipete, so the margin is too loose. Try a
+  larger relative `SINGULAR_MARGIN` (currently 64; scale with depth), shorter verification
+  depth, and double/negative extension (depends on X2 cutnode). Blunder's tuned singular = +6.8.
 
 ### Phase I — Infra / measurement (gates REAL-game ELO; invisible to current tests)
 - [ ] **I1 — Tournament time management is lenient (≤2× allocated) AND untested**
