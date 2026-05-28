@@ -70,17 +70,25 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
   main-search entries (store at depth 0).
 
 ### Phase E — Eval (the PROVEN lane; +46 already banked from PST+weights)
-- [ ] **E1 — Tune MATERIAL jointly with PST on Zurichess data.** Material was left
-  FIXED in the +46 tune; Rofchade got +75-80 tuning material+PST together on this
-  exact file → ~+30 likely on the table. Biggest single eval lever. Gate: fixed-depth
-  SPRT vs build/ngn_base.
-- [ ] **E2 — King-safety weight suppression review.** The Texel run cut
-  `kingSafetyWeight` to 57 and `kingActivityWeight` to 29 — the classic quiet-dataset
-  pitfall (king safety has low MSE leverage on quiet positions but matters in sharp
-  play). Test higher weights in GAMES, not MSE. While here, fold the double-counted
-  missing-shield penalty (evaluatePawnShield ~1175 + open-file block ~744) into one
-  coherent term so king safety is tunable as a unit. Also the phase 6-11 dead zone
-  (eval.go:2433) gets neither king safety nor king activity — re-check the boundary.
+- [~] **E1 — Tune MATERIAL jointly with PST (IN PROGRESS · 2026-05-28).** Tuner infra
+  DONE (commit: `TexelMaterialParams`+`FormatMaterialValues`+`-target full`). Re-fetched the
+  725K Zurichess set (KierenP mirror; 272K/253K/198K W/L/D — matches the +46 run). Dry-run
+  confirmed CD moves material the per-square PST tune missed (MG queen 1025→1270 on a 2K
+  subset). NUANCE: material ≈ PST-mean, so the +46 PST tune already captured much of it; the
+  marginal win is the material direction CD couldn't reach via 64 per-square steps — likely
+  SMALLER than the "~+30 Rofchade" guess. Full 725K run launched (`-target full`, ~1hr); gate
+  = paste back → smoke-tactical → fixed-NODES SPRT vs HEAD (eval changes don't spend nodes, so
+  fixed-nodes credits them cleanly — unlike IID). NB E1 will RE-SUPPRESS king safety (it
+  minimizes quiet-MSE), so apply E2 on TOP of E1's base.
+- [~] **E2 — King-safety suppression (PROMISING LEAD · +22.6 · 2026-05-28).** Hypothesis
+  CONFIRMED in games: bumping `kingSafetyWeight` 57→100 (revert the quiet-data suppression)
+  scored **+22.6 ELO [-25,+71], 99-15-86 = 53.2%** over 200 games (fixed-nodes, vs HEAD) —
+  inconclusive (CI spans 0) but a clear POSITIVE lean, opposite the C1 batch. Validates "MSE-
+  optimum ≠ ELO-optimum" for king safety (low MSE leverage on quiet positions, real value in
+  play). NEXT: confirm with more games and/or find the peak (try 130), then apply on top of
+  E1's tuned base. Also TODO while here: fold the double-counted missing-shield penalty
+  (evaluatePawnShield ~1175 + open-file block ~744) into one term; re-check the phase 6-11
+  dead zone (eval.go:2433, neither king safety nor activity fires).
 - [ ] **E3 — Bigger/cleaner corpus (lichess-big3) + threat terms** once E1/E2 land.
 
 ### Phase X — Structural (refinements; need cutnode threading first)
