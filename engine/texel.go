@@ -158,6 +158,35 @@ func FormatPSTTables() string {
 	return b.String()
 }
 
+// TexelMaterialParams returns pointers to the tunable PeSTO material values
+// (pawn..queen, MG then EG — 10 values; the king and unused index 0 stay fixed).
+// Exposed so coordinate descent can move a piece's material level DIRECTLY in one
+// step: the PST tuner can only shift a piece's value by stepping its 64 squares
+// one at a time across many passes, so it reaches the material direction
+// inefficiently. These feed mgPST/egPST, so a RebuildPST is required after any
+// mutation (TexelTune's rebuild callback handles it).
+func TexelMaterialParams() []*int {
+	ptrs := make([]*int, 0, 10)
+	for pt := Pawn; pt <= Queen; pt++ {
+		ptrs = append(ptrs, &pestoMGMaterial[pt])
+	}
+	for pt := Pawn; pt <= Queen; pt++ {
+		ptrs = append(ptrs, &pestoEGMaterial[pt])
+	}
+	return ptrs
+}
+
+// FormatMaterialValues renders the tuned PeSTO material arrays as Go var
+// declarations for paste-back into eval_pesto.go.
+func FormatMaterialValues() string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "var pestoMGMaterial = [7]int{%d, %d, %d, %d, %d, %d, %d}\n",
+		pestoMGMaterial[0], pestoMGMaterial[1], pestoMGMaterial[2], pestoMGMaterial[3], pestoMGMaterial[4], pestoMGMaterial[5], pestoMGMaterial[6])
+	fmt.Fprintf(&b, "var pestoEGMaterial = [7]int{%d, %d, %d, %d, %d, %d, %d}\n",
+		pestoEGMaterial[0], pestoEGMaterial[1], pestoEGMaterial[2], pestoEGMaterial[3], pestoEGMaterial[4], pestoEGMaterial[5], pestoEGMaterial[6])
+	return b.String()
+}
+
 // TexelTune runs coordinate descent on the piece-square tables to minimize MSE
 // over the dataset at scaling K. Each pass line-searches every parameter (steps
 // in the improving direction while MSE keeps falling), keeping all gains; it

@@ -35,7 +35,7 @@ func main() {
 	// tune flags
 	data := flag.String("data", "", "tune: dataset ('<FEN> <result>' lines or result-labeled EPD)")
 	passes := flag.Int("passes", 8, "tune: max coordinate-descent passes per step size")
-	target := flag.String("target", "weights", "tune: weights (10 eval-term scalars) | pst (768 PST entries + weights)")
+	target := flag.String("target", "weights", "tune: weights (10 eval-term scalars) | pst (768 PST entries + weights) | full (material + PST + weights)")
 	// shared
 	out := flag.String("out", "", "output file (default stdout)")
 	flag.Parse()
@@ -189,8 +189,17 @@ func tune(data string, passes int, target, out string) {
 		dump = func() string {
 			return engine.FormatPSTTables() + "// eval.go tunable weights:\n" + engine.FormatTexelWeights(weights)
 		}
+	case "full":
+		// Material (10) + 768 PST entries + 10 weights, tuned jointly. Material
+		// lets CD move a piece's value directly instead of via 64 per-square steps.
+		ptrs = append(engine.TexelMaterialParams(), engine.TexelPSTParams()...)
+		ptrs = append(ptrs, weightPtrs...)
+		rebuild = engine.RebuildPST
+		dump = func() string {
+			return engine.FormatMaterialValues() + "\n" + engine.FormatPSTTables() + "// eval.go tunable weights:\n" + engine.FormatTexelWeights(weights)
+		}
 	default:
-		fmt.Fprintf(os.Stderr, "tune: unknown -target %q (want weights|pst)\n", target)
+		fmt.Fprintf(os.Stderr, "tune: unknown -target %q (want weights|pst|full)\n", target)
 		os.Exit(2)
 	}
 	fmt.Fprintf(os.Stderr, "tuning %d params (target=%s)\n", len(ptrs), target)
