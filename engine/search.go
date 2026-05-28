@@ -483,6 +483,7 @@ type SearchInfo struct {
 	RecaptureExtensions  uint64 // Recapture extensions applied
 	PassedPawnExtensions uint64 // Passed pawn extensions applied
 	ExcludedMove         Move   // Move to exclude during singular search
+	ExcludedPly          int    // ply at which ExcludedMove applies (the singular verification root)
 
 	// Repetition detection during search
 	RepStack    [512]uint64 // Stack of Zobrist hashes on current search path
@@ -995,7 +996,14 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	ttMove, ttEvalRaw, ttDepth, ttNodeType, ttHit := TranspositionTable.Get(hash)
 	ttEval := scoreFromTT(ttEvalRaw, ply)
 
-	if ttHit && !isPV && ttDepth >= int8(depth) {
+	// Singular verification root: this node is being re-searched with one move
+	// excluded, so the cached entry (which reflects the full search INCLUDING the
+	// excluded move) must not short-circuit it — otherwise the verification just
+	// returns the original score and never proves singularity. Probe still runs
+	// for move ordering; only the cutoff and the (corrupting) store are skipped.
+	inSingular := info.ExcludedMove != EmptyMove && ply == info.ExcludedPly
+
+	if ttHit && !isPV && ttDepth >= int8(depth) && !inSingular {
 		info.TTHits++
 		switch ttNodeType {
 		case Exact:
@@ -1215,8 +1223,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		move := ordered[oi]
 		moveCount++
 
-		// Skip excluded move during singular search
-		if move == info.ExcludedMove {
+		// Skip excluded move at the singular verification root only (ply-scoped so
+		// a coincidentally-identical move deeper in the verification subtree isn't
+		// also skipped).
+		if inSingular && move == info.ExcludedMove {
 			continue
 		}
 
@@ -1371,6 +1381,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 			singularBeta := int(ttEval) - SINGULAR_MARGIN
 			info.ExcludedMove = singularMove
+			info.ExcludedPly = ply // the verification re-searches THIS node's position
 			singularDepth := depth - 4
 			if singularDepth < 1 {
 				singularDepth = 1
@@ -1532,8 +1543,12 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// Learn the pawn-structure correction from this fail-high before returning.
 			maybeUpdatePawnCorrection(stm, corrIdx, staticEval, bestScore, beta, depth, bestMove, inCheck)
 
-			// Store in transposition table as Lower Bound (Cut-Node)
-			TranspositionTable.Set(hash, move, scoreToTT(score, ply), int8(depth), LowerBound)
+			// Store in transposition table as Lower Bound (Cut-Node). Skip at the
+			// singular verification root: its result is a move-excluded search and
+			// would corrupt the real entry for this position.
+			if !inSingular {
+				TranspositionTable.Set(hash, move, scoreToTT(score, ply), int8(depth), LowerBound)
+			}
 			return score
 		}
 
@@ -1569,7 +1584,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		nodeType = Exact
 	}
 
-	TranspositionTable.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType)
+	// Skip the store at the singular verification root (move-excluded result must
+	// not overwrite the real entry for this position).
+	if !inSingular {
+		TranspositionTable.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType)
+	}
 	return bestScore
 }
 
