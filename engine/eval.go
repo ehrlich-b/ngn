@@ -2368,15 +2368,15 @@ func EvaluateForPlayer(board *Bitboard, player Color) int {
 // reproduce the original eval exactly. Tuned values are pasted back here.
 var (
 	passedPawnBonus     = 20
-	doubledPawnPenalty  = 20
-	isolatedPawnPenalty = 12
-	pawnChainWeight     = 100
-	bishopPairWeight    = 100
-	mobilityWeight      = 100
-	rookOpenWeight      = 100
-	outpostWeight       = 100
-	kingSafetyWeight    = 100
-	kingActivityWeight  = 100
+	doubledPawnPenalty  = 9
+	isolatedPawnPenalty = 8
+	pawnChainWeight     = 77
+	bishopPairWeight    = 90
+	mobilityWeight      = 166
+	rookOpenWeight      = 83
+	outpostWeight       = 84
+	kingSafetyWeight    = 57
+	kingActivityWeight  = 29
 )
 
 func evaluateUnsafe(board *Bitboard) (eval int) {

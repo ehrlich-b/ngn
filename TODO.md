@@ -40,6 +40,40 @@ surfaced to Bryan: (1) re-tune on a real public dataset, (2) run phase-2-on-self
 the hypothesis, or (3) abandon tuning and work the search long-tail. Infra (texel.go/cmd/texel) is
 data-source-agnostic — only a tiny EPD→`<FEN> <result>` adapter is needed for option 1.
 
+**DIAGNOSIS CORRECTED + REAL-DATA CORE TUNE LAUNCHED (2026-05-27).** Bryan pushed back on the
+data-quality framing — rightly; I'd overstated "weak self-play = useless" (even the gold-standard
+Zurichess set is itself self-play). Fetched the real corpus (KierenP/ChessTrainingSets
+`quiet-labeled.epd`, 725K balanced positions: 272K/253K/198K W/L/D), taught `LoadTexelSamples` the
+`c9 "1-0"` EPD form (first 4 FEN fields padded to a full FEN). Re-tuned the SAME 10 weights on it →
+SPLIT VERDICT: (a) CONFIRMED labels matter — self-play had near-eliminated mobility (→4) and
+bishop-pair (→35); real data keeps them sane (108 / 87). (b) CORRECTED — MSE still barely moved
+(0.0601→0.0600), so the 10 peripheral knobs are genuinely LOW-LEVERAGE regardless of data: a sub-50
+ELO effect, NOT worth an SPRT. The real leverage is material + PST (exactly what Rofchade tuned on
+THIS file for +75-80 ELO). So: exposed the 768 raw PeSTO PST entries (`TexelPSTParams` + `RebuildPST`;
+`init` refactored to call `RebuildPST`; behavior-neutral — tactical 29/30 held), added
+`cmd/texel -target pst` (tunes 768 PST entries + the 10 weights jointly; material left FIXED since a
+uniform shift of a piece's 64 squares already spans it; black tables mirror-rebuilt each mutation).
+LAUNCHED the core tune on the 725K corpus (E-cores, ~1hr). GATE: paste tuned tables → smoke-tactical
+→ fixed-DEPTH SPRT vs `build/ngn_base` → commit ONLY on a win. NB: this is NOT the "phase 2 will
+regress" I warned about — that was conditioned on self-play data; gold-standard labels flip the risk,
+and the +75-80 ELO precedent on this exact file is the evidence base.
+
+**VERDICT — WON +46 ELO, COMMITTED (2026-05-28).** Fixed-depth SPRT (depth 8, 668 games,
+302-152-214, 56.6%): **Elo(tuned−base) = +46.0, 95% CI [+19,+73], LLR +2.99 → H1 ACCEPTED (new is
+stronger ≥10 ELO).** This is the FIRST statistically-significant eval win of the whole effort and
+validates the thesis: tuning the HIGH-LEVERAGE params (768 PeSTO PST entries + the 10 weights) on
+REAL labeled data (Zurichess `quiet-labeled.epd`) delivers real ELO, where the peripheral-only tune
+was sub-resolution and the self-play tune regressed −44. MSE 0.06004→0.05935 (the PST entries moved
+it ~10× more than the 10 weights alone could). Tactical held 29/30 (not a vision change). Committed
+LOCALLY (not pushed — push is Bryan's call); `build/ngn_base` refreshed to the new tuned strength so
+future A/Bs measure deltas from here. Engine now ≈1650-1700 (prior ~1600-1650 + the +46 delta; full
+re-assess pending). CORRECTED DURABLE LESSON: not "weak self-play is useless" (I'd overstated that) —
+it's "tune HIGH-LEVERAGE params (PST/material) on REAL labeled data; peripheral knobs are low-leverage
+regardless of data source." NEXT options: (a) tune MATERIAL too — we left it fixed, and Rofchade got
++75-80 tuning material+PST on this same file, so ~+30 more may be on the table; (b) re-tune from a
+larger/cleaner corpus (lichess-big3) or add king-safety subterms; (c) the honest NNUE strategy
+conversation, now that classical tuning is PROVEN to still have headroom rather than being tapped.
+
 **GM-PATH RESEARCH → PHASE 1 SEARCH ROADMAP (2026-05-25 — latest, ACTIVE PLAN).**
 Surveyed Stockfish + Ethereal source, the two Go engines (Blunder, CounterGo) and CPW to
 answer Bryan's moved goalpost: "why can't we reach GM (2500) by pruning better, no tuning?"

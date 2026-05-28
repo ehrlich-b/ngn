@@ -126,6 +126,38 @@ func FormatTexelWeights(weights []TexelWeight) string {
 	return b.String()
 }
 
+// FormatPSTTables renders the 12 raw piece-square tables as Go var declarations
+// matching eval_pesto.go's layout (8 values per row), so a tuned set can be
+// pasted back in to replace the originals.
+func FormatPSTTables() string {
+	named := []struct {
+		name string
+		tbl  *[64]int
+	}{
+		{"mgPawnTable", &mgPawnTable}, {"mgKnightTable", &mgKnightTable}, {"mgBishopTable", &mgBishopTable},
+		{"mgRookTable", &mgRookTable}, {"mgQueenTable", &mgQueenTable}, {"mgKingTable", &mgKingTable},
+		{"egPawnTable", &egPawnTable}, {"egKnightTable", &egKnightTable}, {"egBishopTable", &egBishopTable},
+		{"egRookTable", &egRookTable}, {"egQueenTable", &egQueenTable}, {"egKingTable", &egKingTable},
+	}
+	var b strings.Builder
+	for _, t := range named {
+		fmt.Fprintf(&b, "var %s = [64]int{\n", t.name)
+		for sq := 0; sq < 64; sq++ {
+			if sq%8 == 0 {
+				b.WriteByte('\t')
+			}
+			fmt.Fprintf(&b, "%4d,", t.tbl[sq])
+			if sq%8 == 7 {
+				b.WriteByte('\n')
+			} else {
+				b.WriteByte(' ')
+			}
+		}
+		b.WriteString("}\n\n")
+	}
+	return b.String()
+}
+
 // TexelTune runs coordinate descent on the piece-square tables to minimize MSE
 // over the dataset at scaling K. Each pass line-searches every parameter (steps
 // in the improving direction while MSE keeps falling), keeping all gains; it
@@ -203,6 +235,38 @@ func LoadTexelSamples(filename string) ([]TexelSample, error) {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
+		// EPD datasets (e.g. Zurichess quiet-labeled.epd) label the result with a
+		// `c9 "1-0"` opcode rather than a trailing float, and give a 4-field FEN
+		// (no move counters). Translate those to a board + White-POV result.
+		if i := strings.Index(line, `c9 "`); i >= 0 {
+			fields := strings.Fields(line)
+			if len(fields) < 4 {
+				return nil, fmt.Errorf("line %d: short EPD: %q", lineNo, line)
+			}
+			fen := strings.Join(fields[:4], " ") + " 0 1"
+			r := line[i+len(`c9 "`):]
+			j := strings.IndexByte(r, '"')
+			if j < 0 {
+				return nil, fmt.Errorf("line %d: unterminated c9 opcode: %q", lineNo, line)
+			}
+			var result float64
+			switch r[:j] {
+			case "1-0":
+				result = 1.0
+			case "0-1":
+				result = 0.0
+			case "1/2-1/2":
+				result = 0.5
+			default:
+				return nil, fmt.Errorf("line %d: unknown c9 result %q", lineNo, r[:j])
+			}
+			pos, err := ParseFEN(fen)
+			if err != nil {
+				return nil, fmt.Errorf("line %d: bad FEN %q: %w", lineNo, fen, err)
+			}
+			samples = append(samples, TexelSample{Board: pos.Board, Result: result})
+			continue
+		}
 		// Result is the final whitespace-separated field; the FEN is the rest.
 		idx := strings.LastIndexByte(line, ' ')
 		if idx < 0 {
@@ -221,4 +285,3 @@ func LoadTexelSamples(filename string) ([]TexelSample, error) {
 	}
 	return samples, sc.Err()
 }
-

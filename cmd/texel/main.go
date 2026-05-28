@@ -33,8 +33,9 @@ func main() {
 	maxPlies := flag.Int("maxplies", 240, "gendata: max plies before scoring the game a draw")
 	seed := flag.Int64("seed", 0, "gendata: RNG seed (0 = time-based)")
 	// tune flags
-	data := flag.String("data", "", "tune: dataset file of '<FEN> <result>' lines")
+	data := flag.String("data", "", "tune: dataset ('<FEN> <result>' lines or result-labeled EPD)")
 	passes := flag.Int("passes", 8, "tune: max coordinate-descent passes per step size")
+	target := flag.String("target", "weights", "tune: weights (10 eval-term scalars) | pst (768 PST entries + weights)")
 	// shared
 	out := flag.String("out", "", "output file (default stdout)")
 	flag.Parse()
@@ -43,7 +44,7 @@ func main() {
 	case "gendata":
 		genData(*games, *nodes, *prefix, *maxPlies, *seed, *out)
 	case "tune":
-		tune(*data, *passes, *out)
+		tune(*data, *passes, *target, *out)
 	default:
 		fmt.Fprintln(os.Stderr, "specify -mode gendata or -mode tune")
 		flag.Usage()
@@ -144,8 +145,13 @@ func playGame(nodes, prefix, maxPlies int, rng *rand.Rand) ([]string, float64) {
 }
 
 // tune loads the dataset, calibrates K, runs a decreasing-step coordinate-descent
-// schedule, and writes the tuned PSTs as Go source.
-func tune(data string, passes int, out string) {
+// schedule over the chosen target, and writes the tuned values as Go source.
+//
+// target=weights tunes only the 10 hand-set eval-term scalars; target=pst tunes
+// the 768 raw PeSTO piece-square entries jointly with those scalars (material is
+// left fixed — a uniform shift of a piece's 64 squares already spans it — and the
+// black tables are rebuilt by mirroring after every mutation via RebuildPST).
+func tune(data string, passes int, target, out string) {
 	if data == "" {
 		fmt.Fprintln(os.Stderr, "tune: -data is required")
 		os.Exit(2)
@@ -165,16 +171,35 @@ func tune(data string, passes int, out string) {
 	fmt.Fprintf(os.Stderr, "calibrated K = %.4f\n", k)
 
 	weights := engine.TexelWeights()
-	ptrs := make([]*int, len(weights))
+	weightPtrs := make([]*int, len(weights))
 	for i := range weights {
-		ptrs[i] = weights[i].Ptr
+		weightPtrs[i] = weights[i].Ptr
 	}
+
+	var ptrs []*int
+	var rebuild func()
+	var dump func() string
+	switch target {
+	case "weights":
+		ptrs = weightPtrs
+		dump = func() string { return engine.FormatTexelWeights(weights) }
+	case "pst":
+		ptrs = append(engine.TexelPSTParams(), weightPtrs...)
+		rebuild = engine.RebuildPST
+		dump = func() string {
+			return engine.FormatPSTTables() + "// eval.go tunable weights:\n" + engine.FormatTexelWeights(weights)
+		}
+	default:
+		fmt.Fprintf(os.Stderr, "tune: unknown -target %q (want weights|pst)\n", target)
+		os.Exit(2)
+	}
+	fmt.Fprintf(os.Stderr, "tuning %d params (target=%s)\n", len(ptrs), target)
 	fmt.Fprintf(os.Stderr, "weights before:\n%s", engine.FormatTexelWeights(weights))
 
 	start := time.Now()
 	for _, step := range []int{8, 4, 2, 1} {
 		fmt.Fprintf(os.Stderr, "--- coordinate descent step=%d ---\n", step)
-		engine.TexelTune(samples, ptrs, k, step, passes, nil, func(pass int, mse float64, moved int) {
+		engine.TexelTune(samples, ptrs, k, step, passes, rebuild, func(pass int, mse float64, moved int) {
 			fmt.Fprintf(os.Stderr, "  step=%d pass=%d MSE=%.6f moved=%d  (%s)\n",
 				step, pass, mse, moved, time.Since(start).Round(time.Second))
 		})
@@ -191,6 +216,6 @@ func tune(data string, passes int, out string) {
 		defer f.Close()
 		w = f
 	}
-	fmt.Fprint(w, engine.FormatTexelWeights(weights))
+	fmt.Fprint(w, dump())
 	fmt.Fprintf(os.Stderr, "tuning done in %s\n", time.Since(start).Round(time.Second))
 }
