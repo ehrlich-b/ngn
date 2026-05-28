@@ -2,6 +2,100 @@
 
 ## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
 
+---
+
+## ACTIVE FIX LIST — refreshed 2026-05-28 (AUTHORITATIVE; supersedes status notes below)
+
+Fresh full-codebase audit (search/eval/movegen/position/TT/time/UCI + the
+measurement harnesses). Verified every finding against the live code; agent
+"show-stoppers" were checked and rejected where wrong. **The "correctness is
+locked down" claim below is RETRACTED** — IID and singular extensions are both
+silently broken (see C1). Worked in harmonious order: confirmed bugs first, then
+cheap independent search refinements, then eval (the proven lane), then
+structural, then infra. Stack ONE at a time, gate with the COOL+FAST loop
+(smoke-tactical + mechanism unit/integration test + `go test -short`), commit
+checkpoints; periodic fixed-nodes SPRT as the batch validator.
+
+### Phase C — Correctness recovery (CONFIRMED bugs in supposedly-working features)
+- [ ] **C1 — IID & singular extension re-entrancy (CONFIRMED, empirically proven).**
+  `alphaBetaPV` pushes the node's hash onto `info.RepStack` (search.go:978) BEFORE
+  the IID block (search.go:1015) and the singular block (search.go:1377), both of
+  which RE-ENTER `alphaBetaPV` on the SAME position (no move made). The re-entry's
+  search-path repetition scan (search.go:971) finds the node's own hash and returns
+  0 (draw) immediately. PROOF: same position (white up a queen) returns +1024 on a
+  normal call but **0** when its hash is pre-pushed (the IID/singular path).
+  Consequences: **IID is a complete no-op** (returns 0 before storing → TT re-probe
+  finds nothing); **singular misfires** (`singularScore` always 0 → `0 < ttEval-64`
+  ⇒ just extends the TT move whenever winning by >0.64, never a real singular test,
+  no multicut). FIX: hide the node's own entry around the two re-entrant calls
+  (`info.RepStackLen--` / call / `info.RepStackLen++`). Also add `IID`/`Singular`
+  to `SearchToggles` (the ablation harness can't see them today) + a re-entrancy
+  regression test. Gate: smoke-tactical + toggle-driven node-count integration test
+  (off≠on once fixed) + fixed-nodes SPRT (efficiency → fixed-depth can't credit it).
+  IID ≈ +5-15 (Blunder +11); singular sign unknown — measure separately.
+- [ ] **C2 — stalemate-when-winning returns -500 (search.go:1193).** In the
+  `numMoves==0` (no pseudo-legal moves) branch, stalemate while up >300cp returns
+  -500 instead of 0 — breaks the zero-sum invariant. Near-unreachable (real
+  stalemate is handled at `legalTried==0` → 0), but a latent correctness hole.
+  Trivial fix, fold in with C1.
+
+### Phase S — Cheap independent search refinements (fixed-nodes SPRT signs these)
+- [ ] **S1 — Aspiration windows: exponential widening (search.go:573-596).** Today:
+  fixed ±50, and on ANY fail it jumps straight to ±INFINITY — throws away the
+  aspiration benefit. Use delta≈16, widen ×~2 per fail, keep the non-failing bound,
+  go full only after a few fails. Blunder aspiration +23; delta from improving an
+  existing crude version is smaller but real.
+- [ ] **S2 — Killer moves indexed by remaining `depth`, not `ply` (moveorder.go:83).**
+  Standard is ply-indexed; depth-indexing scatters killers across slots when LMR
+  reduces then re-searches. Switch to ply. Small but real; easy A/B.
+- [ ] **S3 — Qsearch never stores to TT (search.go:1569+ only probes).** Storing the
+  q-result (bound + best capture) is a known small win and improves ordering on
+  re-visits (Zurichess does it). Watch the replacement policy doesn't evict useful
+  main-search entries (store at depth 0).
+
+### Phase E — Eval (the PROVEN lane; +46 already banked from PST+weights)
+- [ ] **E1 — Tune MATERIAL jointly with PST on Zurichess data.** Material was left
+  FIXED in the +46 tune; Rofchade got +75-80 tuning material+PST together on this
+  exact file → ~+30 likely on the table. Biggest single eval lever. Gate: fixed-depth
+  SPRT vs build/ngn_base.
+- [ ] **E2 — King-safety weight suppression review.** The Texel run cut
+  `kingSafetyWeight` to 57 and `kingActivityWeight` to 29 — the classic quiet-dataset
+  pitfall (king safety has low MSE leverage on quiet positions but matters in sharp
+  play). Test higher weights in GAMES, not MSE. While here, fold the double-counted
+  missing-shield penalty (evaluatePawnShield ~1175 + open-file block ~744) into one
+  coherent term so king safety is tunable as a unit. Also the phase 6-11 dead zone
+  (eval.go:2433) gets neither king safety nor king activity — re-check the boundary.
+- [ ] **E3 — Bigger/cleaner corpus (lichess-big3) + threat terms** once E1/E2 land.
+
+### Phase X — Structural (refinements; need cutnode threading first)
+- [ ] **X1 — 2-ply continuation history → wire summed score into LMR.** (Have 1-ply.)
+- [ ] **X2 — Full cutnode/allNode threading.** Prereq for negative extensions, real
+  IIR retry, and the big LMR cutnode signal. (See Phase 1C below.)
+
+### Phase I — Infra / measurement (gates REAL-game ELO; invisible to current tests)
+- [ ] **I1 — Tournament time management is lenient (≤2× allocated) AND untested**
+  (time.go:309-382 only runs in real clock games; smoke uses movetime hard-limit,
+  SPRT uses fixed-nodes/depth). Real CCRL risk: lose on time / misallocate. Pair the
+  overhaul with a real-clock gauntlet vs a fixed ladder (Blunder/Zurichess binaries)
+  — the only instrument that can see this class of bug.
+- [ ] **I2 — Wire `setoption Hash` + decide `Threads` (uci.go:296-300 are stubs).**
+  TT hard-pinned at 128MB; "Move Overhead" advertised (default 100) but ignored
+  (stays 50ms). Needed for external-tester fidelity.
+- [ ] **I3 — elo-assess scores stalemate as a loss (cmd/elo-assess/main.go:261-267).**
+  Minor harness correctness (smoke being retired as a yardstick anyway).
+
+### Parked (orthogonal multiplier)
+- Lazy SMP — +80-150 multi-core, Go makes it easy. Biggest single jump if wanted;
+  not on the critical path.
+
+### Audit false-positives (recorded so they aren't re-chased)
+- "Castling rook not moved in MakeMove" — FALSE: `Bitboard.Move` relocates the rook
+  on a king castle (bitboard.go:330-335); perft passes.
+- White-pawn EP rank validation (movegen.go ~197) — EP square is only ever set at the
+  correct rank in makeMoveHelper; defense-in-depth only, not exploitable.
+
+---
+
 **EVAL TUNING — ACTIVE 2026-05-25 (supersedes the search grind as current work).** After
 quiet-SEE pruning measured NEUTRAL (+2.2 [-51,+56]) — the 3rd signal that single pruning levers
 are sub-resolution — Bryan chose PIVOT TO EVAL TUNING (correctness gate satisfied; see
