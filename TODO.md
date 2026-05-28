@@ -34,8 +34,20 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
   Isolation SPRT singular-on vs off (50k nodes, 200 games, 400-opening book): **+3.5 ELO
   [-45,+51], 92-18-90 = 50.5% — NEUTRAL** (the first 48-game full-vs-base read of -44 was
   book-exhausted noise). Singular kept ON: now CORRECT and not a regression, same standard as
-  other sound sub-resolution techniques (cf. quiet-SEE +2.2). Full-vs-base 200g confirmation
-  RUNNING. Tuning singular to net-positive (margin/double+negative extension) → see X3.
+  other sound sub-resolution techniques (cf. quiet-SEE +2.2). Tuning singular to net-positive
+  (margin/double+negative extension) → see X3.
+  **FULL-BATCH VERDICT (full HEAD vs pre-fix base, 50k nodes, 200 games, 400-opening book):
+  −29.6 ELO [−78,+19], 78-27-95 = 45.8%, LLR −0.67 — INCONCLUSIVE but a consistent NEGATIVE
+  lean.** Since singular is neutral (isolation above), the drag is IID. ROOT CAUSE is most
+  likely an INSTRUMENT artifact, not a real-play regression: IID spends a reduced-depth search
+  purely to improve ordering, and the fixed-NODES instrument charges those exploratory nodes
+  with NO credit for the depth they buy at a real clock — Blunder measured IID at **+11 using
+  fixed-TIME** self-play, not fixed-nodes. The engine plays at time controls, so optimizing IID
+  away to please fixed-nodes would be instrument-optimization. DECISION PENDING (surfaced to
+  Bryan): keep on correctness + time-control grounds / revert / validate at fixed-TIME first.
+  META-FINDING (see I4): fixed-nodes SPRT systematically undercredits the whole node-SPENDING
+  class (IID, IIR, extensions) — much of the Phase-1 search roadmap — so it is the wrong
+  instrument for those; needs a fixed-TIME or long-TC complement.
 - [x] **C2 — stalemate-when-winning returns -500 → 0 (DONE · 2026-05-28 · commit ff7e81e).**
   The `numMoves==0` branch returned -500 when up >300cp; stalemate is a draw. Near-unreachable
   (real stalemate handled at `legalTried==0`) but it broke the zero-sum invariant. Now `return 0`.
@@ -91,6 +103,12 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
   (stays 50ms). Needed for external-tester fidelity.
 - [ ] **I3 — elo-assess scores stalemate as a loss (cmd/elo-assess/main.go:261-267).**
   Minor harness correctness (smoke being retired as a yardstick anyway).
+- [ ] **I4 — fixed-TIME SPRT complement (HIGH — surfaced by C1).** The fixed-NODES instrument
+  structurally undercredits node-SPENDING techniques (IID/IIR/extensions): it charges their
+  exploratory nodes without crediting the depth they buy at a clock. Half the Phase-1 search
+  roadmap is this class, so fixed-nodes is the WRONG signer for it. Add a clean fixed-time
+  self-play mode (concurrency-1 to kill timing noise; reversed-color pairs; ~200+ games) OR a
+  short-TC gauntlet vs a fixed binary ladder. Without it, IID/IIR/extension work can't be signed.
 
 ### Parked (orthogonal multiplier)
 - Lazy SMP — +80-150 multi-core, Go makes it easy. Biggest single jump if wanted;
