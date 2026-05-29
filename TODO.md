@@ -70,25 +70,30 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
   main-search entries (store at depth 0).
 
 ### Phase E — Eval (the PROVEN lane; +46 already banked from PST+weights)
-- [~] **E1 — Tune MATERIAL jointly with PST (IN PROGRESS · 2026-05-28).** Tuner infra
-  DONE (commit: `TexelMaterialParams`+`FormatMaterialValues`+`-target full`). Re-fetched the
-  725K Zurichess set (KierenP mirror; 272K/253K/198K W/L/D — matches the +46 run). Dry-run
-  confirmed CD moves material the per-square PST tune missed (MG queen 1025→1270 on a 2K
-  subset). NUANCE: material ≈ PST-mean, so the +46 PST tune already captured much of it; the
-  marginal win is the material direction CD couldn't reach via 64 per-square steps — likely
-  SMALLER than the "~+30 Rofchade" guess. Full 725K run launched (`-target full`, ~1hr); gate
-  = paste back → smoke-tactical → fixed-NODES SPRT vs HEAD (eval changes don't spend nodes, so
-  fixed-nodes credits them cleanly — unlike IID). NB E1 will RE-SUPPRESS king safety (it
-  minimizes quiet-MSE), so apply E2 on TOP of E1's base.
+- [x] **E1 — Tune MATERIAL jointly with PST (DONE · NULL RESULT · 2026-05-28).** Tuner infra
+  shipped (`TexelMaterialParams`+`FormatMaterialValues`+`-target full`). Re-fetched the 725K
+  Zurichess set (KierenP mirror; 272K/253K/198K — matches the +46 run). Ran `-target full`
+  (788 params, 29 min) starting from the +46-tuned eval. **MSE barely moved: 0.059218 →
+  0.059180 (~0.00004), ~18× SMALLER than the +46 tune's 0.00069-for-+46-ELO move → ~+2 ELO,
+  sub-resolution.** EG material didn't move at all; MG moved a hair (queen 1025→1077, rook
+  477→497, pawn 82→78). NOT shipped — not worth an SPRT. CORRECTS the "~+30 Rofchade" guess:
+  material ≈ PST-mean, and the +46 PST tune ALREADY absorbed it via per-piece table means, so
+  explicit material params add essentially nothing on top. Durable lesson: once PSTs are tuned
+  free-form, separate material tuning is redundant. (The MSE-tune also re-confirmed kingSafety
+  stays suppressed at 57 → E2 is the real eval lever.)
 - [~] **E2 — King-safety suppression (PROMISING LEAD · +22.6 · 2026-05-28).** Hypothesis
   CONFIRMED in games: bumping `kingSafetyWeight` 57→100 (revert the quiet-data suppression)
   scored **+22.6 ELO [-25,+71], 99-15-86 = 53.2%** over 200 games (fixed-nodes, vs HEAD) —
   inconclusive (CI spans 0) but a clear POSITIVE lean, opposite the C1 batch. Validates "MSE-
   optimum ≠ ELO-optimum" for king safety (low MSE leverage on quiet positions, real value in
-  play). NEXT: confirm with more games and/or find the peak (try 130), then apply on top of
-  E1's tuned base. Also TODO while here: fold the double-counted missing-shield penalty
-  (evaluatePawnShield ~1175 + open-file block ~744) into one term; re-check the phase 6-11
-  dead zone (eval.go:2433, neither king safety nor activity fires).
+  play). COST: tactical 29→28 (deterministic — king-safety weighting misses one forcing shot),
+  but the +22.6 game lean ALREADY prices that in and is still net-positive. NOT shipped yet
+  (inconclusive CI + tactical nick); eval.go reverted to 57, HEAD clean. 600-game confirmation
+  RUNNING (kingSafety=100 vs pre-E2 HEAD). If it firms up positive → ship 100 (or sweep
+  80/100/130 for the peak first). Caveat: a +22 effect needs ~900 games for p<0.05 (the
+  instrument's resolution wall), so even 600 may stay inconclusive — decide on lean+theory.
+  Also TODO while here: fold the double-counted missing-shield penalty (evaluatePawnShield
+  ~1175 + open-file block ~744) into one term; re-check the phase 6-11 dead zone (eval.go:2433).
 - [ ] **E3 — Bigger/cleaner corpus (lichess-big3) + threat terms** once E1/E2 land.
 
 ### Phase X — Structural (refinements; need cutnode threading first)
