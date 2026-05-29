@@ -81,9 +81,16 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
   explicit material params add essentially nothing on top. Durable lesson: once PSTs are tuned
   free-form, separate material tuning is redundant. (The MSE-tune also re-confirmed kingSafety
   stays suppressed at 57 → E2 is the real eval lever.)
-- [~] **E2 — King-safety suppression (PROMISING LEAD · +22.6 · 2026-05-28).** Hypothesis
-  CONFIRMED in games: bumping `kingSafetyWeight` 57→100 (revert the quiet-data suppression)
-  scored **+22.6 ELO [-25,+71], 99-15-86 = 53.2%** over 200 games (fixed-nodes, vs HEAD) —
+- [x] **E2 — King-safety suppression FIXED + SHIPPED (+17-22 ELO · commit 125b5d8 · 2026-05-29).**
+  Bumped `kingSafetyWeight` 57→100 (revert the quiet-data suppression). Two runs both positive:
+  **+22.6 [-25,+71] @200g, then +17.4 [-10,+45] @600g (LLR +0.69) — ~+18-20 across 800 games.**
+  Just under the instrument's p<0.05 wall (a +18 effect needs ~900+ games) but a consistent,
+  theory-backed lean STRONGER than the shipped `improving` flag (+19.7 [-8,+48]); shipped on
+  that bar. Net-positive despite tactical 29→28 (the game SPRT prices the nick in). FIRST eval
+  ELO win since the +46 PST tune, and it came from the MSE-vs-ELO gap (NOT MSE-tuning — E1
+  null). FOLLOW-UPS: sweep 80/100/130 for the peak; `kingActivityWeight` (29, endgame) is
+  likely suppressed the same way — test it; fold the double-counted shield/open-file penalty.
+  ORIGINAL LEAD NOTE: scored **+22.6 ELO [-25,+71], 99-15-86 = 53.2%** over 200 games (fixed-nodes, vs HEAD) —
   inconclusive (CI spans 0) but a clear POSITIVE lean, opposite the C1 batch. Validates "MSE-
   optimum ≠ ELO-optimum" for king safety (low MSE leverage on quiet positions, real value in
   play). COST: tactical 29→28 (deterministic — king-safety weighting misses one forcing shot),
