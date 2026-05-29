@@ -2375,7 +2375,7 @@ var (
 	mobilityWeight      = 166
 	rookOpenWeight      = 83
 	outpostWeight       = 84
-	kingSafetyWeight    = 57
+	kingSafetyWeight    = 100
 	kingActivityWeight  = 29
 )
 
