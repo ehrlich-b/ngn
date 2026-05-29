@@ -18,7 +18,7 @@ make dev            # Full cycle: format, test, build
 
 **Default loop is `make smoke`** (~3-5 min on E-cores, battery-friendly). It
 runs a 30-position tactical suite plus a 5-game asymmetric match (NGN 1s vs
-SF1500 200ms) and appends results to a rolling-ELO history at
+SF2400 200ms) and appends results to a rolling-ELO history at
 `output/smoke_history.jsonl`. The cumulative Wilson CI tightens with every run.
 
 Older runs decay by commit distance from HEAD: full weight at distance 0, then
@@ -27,11 +27,15 @@ Older runs decay by commit distance from HEAD: full weight at distance 0, then
 entirely and confidence opens up again. Run smoke regularly to keep effective
 sample size high.
 
-The rolling-ELO at this config (~1430 baseline) is a **regression detector,
-not the engine's absolute strength**. The 1s/200ms ratio is much tighter than
-the 2.5s/200ms baseline used for "true" assessment; NGN looks weaker here on
-purpose so we get faster feedback. What you watch for is the rolling estimate
-not falling much below the running baseline.
+The rolling-ELO at this config is a **regression detector, not the engine's
+absolute strength**. The opponent was raised SF1500 → SF2400 on 2026-05-29
+because the engine had saturated the weaker targets: NGN scored 100% vs SF1500
+and 13-1 (93%) vs SF2000, so neither could discriminate. At SF2400 NGN sits at
+~71% (9W-2D-3L over the calibration match) — a clear favorite, but SF now wins
+real games and draws appear, so drops are visible. The estimated 50% crossover
+at this 1s/200ms time config is ~SF2560; raise the target again if NGN climbs
+back toward saturation. What you watch for is the rolling estimate not falling
+much below the running baseline.
 
 ```bash
 make smoke              # Tactical + 5 games + rolling estimate (~5 min)
@@ -43,8 +47,11 @@ Only fall back to the full `elo-assess` Bayesian test when on AC power and you
 need a tight one-shot CI for publication or before a major decision:
 
 ```bash
-./build/elo-assess -elo 1500 -movetime 2500 -sfmovetime 200 -min 6 -games 14 -ci 300
+./build/elo-assess -elo 2600 -movetime 2500 -sfmovetime 200 -min 6 -games 14 -ci 300
 ```
+
+The `-elo` target above is a starting anchor; at 2.5s NGN is stronger than at
+the smoke's 1s, so raise the target if the verdict says "raise" (saturation).
 
 Legacy presets exist (`-level 1/5/10`) but are not the default cadence.
 
@@ -53,8 +60,10 @@ Legacy presets exist (`-level 1/5/10`) but are not the default cadence.
 ### Testing Cadence
 - **Default to `make smoke`** after every change. ~5 min, runs in-place on
   E-cores, records a rolling-ELO data point.
-- **Smoke fails** on tactical solve rate < 40% or 0/5 game outcome (catches
-  catastrophic regressions). Mid outcomes are NEUTRAL and you continue.
+- **Smoke fails** on tactical solve rate < 40% — the deterministic
+  catastrophic-regression gate. The game phase is now a *measurement*, not a
+  pass/fail: vs SF2400 a 0/5 shutout is within variance (it prints a SHUTOUT
+  note but does not fail), so watch the rolling estimate for real drift.
 - **Rolling estimate is the source of truth for current ELO**, not any single
   smoke. Once you have 6-10 runs at the default config the cumulative CI is
   tighter than a single 14-game Bayesian.

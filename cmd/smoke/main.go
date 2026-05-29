@@ -51,7 +51,7 @@ func main() {
 	nGames := flag.Int("games", 5, "Game-smoke games (0 = skip)")
 	ngnMs := flag.Int("ngn-ms", 1000, "NGN ms per move (game phase)")
 	sfMs := flag.Int("sf-ms", 200, "Stockfish ms per move (game phase)")
-	targetELO := flag.Int("elo", 1500, "Stockfish ELO target")
+	targetELO := flag.Int("elo", 2400, "Stockfish ELO target")
 	skipTactical := flag.Bool("skip-tactical", false, "Skip tactical phase")
 	skipGames := flag.Bool("skip-games", false, "Skip game phase")
 	epdPath := flag.String("epd", "validated_tactical_positions.epd", "EPD file path")
@@ -80,10 +80,11 @@ func main() {
 
 	var gameStats *runRecord
 	if !*skipGames && *nGames > 0 {
-		v, rec := runGameSmoke(*nGames, *ngnMs, *sfMs, *targetELO)
-		if v == "regression" {
-			fail = true
-		}
+		// Game phase is a measurement, not a hard gate: vs a strong sparring
+		// partner (SF2400) a shutout is within normal variance, not a
+		// catastrophic break. The deterministic tactical phase owns the hard
+		// fail; rolling ELO catches genuine drift.
+		_, rec := runGameSmoke(*nGames, *ngnMs, *sfMs, *targetELO)
 		if rec != nil && !*noRecord {
 			if err := appendRun(*historyPath, *rec); err != nil {
 				fmt.Printf("WARN: could not record run: %v\n", err)
@@ -262,7 +263,7 @@ func runGameSmoke(games, ngnMs, sfMs, targetELO int) (string, *runRecord) {
 
 	switch {
 	case ngnW == 0 && sfW >= games-1:
-		fmt.Println("REGRESSION — investigate before continuing")
+		fmt.Println("SHUTOUT — NGN won 0; variance vs SF2400 is possible, investigate only if it persists across runs")
 		return "regression", rec
 	case ngnW >= games-1 && sfW == 0:
 		fmt.Println("IMPROVEMENT — clear wins")
