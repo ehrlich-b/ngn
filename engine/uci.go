@@ -711,6 +711,17 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 		uci.debugLogger.Printf("SearchIterativeDeepeningWithCallback completed: depth=%d, bestMove=%v, bestScore=%d, nodes=%d",
 			info.Depth, info.BestMove, info.BestScore, info.Nodes)
 
+		// RT1: end-of-search counter dump (behind `debug on`). Surfaces the search
+		// statistics already tracked in SearchInfo so pruning behaviour is visible in
+		// real searches — e.g. watch nmcut to confirm null-move pruning actually fires.
+		if uci.debugMode {
+			uci.sendUCIMessage(output, fmt.Sprintf(
+				"info string stats depth %d seldepth %d nodes %d qnodes %d nmcut %d lmr %d lmp %d fut %d seeq %d ttcut %d tthits %d betacut %d checkext %d singext %d",
+				info.Depth, info.SelDepth, info.Nodes, info.QNodes,
+				info.NullMoveCutoffs, info.LMRReductions, info.LMPPrunes, info.FutilityPrunes, info.SEEQuietPrunes,
+				info.TTCutoffs, info.TTHits, info.BetaCutoffs, info.CheckExtensions, info.SingularExtensions))
+		}
+
 		// Use final result from search
 		if info.BestMove != EmptyMove {
 			bestMove = info.BestMove

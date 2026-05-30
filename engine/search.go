@@ -621,6 +621,17 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 			// Root search with aspiration window
 			var orderedRoot [256]Move
 			orderedCount := orderMovesIntoBufferWithDepth(moves, currentDepth, orderedRoot[:], pos)
+			// S6: search the previous iteration's best move first — a good alpha early
+			// tightens pruning and gives time management a best-move stability signal.
+			// info.BestMove holds the last COMPLETED depth's best move.
+			if info.BestMove != EmptyMove {
+				for i := 1; i < orderedCount; i++ {
+					if orderedRoot[i] == info.BestMove {
+						orderedRoot[0], orderedRoot[i] = orderedRoot[i], orderedRoot[0]
+						break
+					}
+				}
+			}
 			iterationBestScore := -INFINITY
 			iterationBestMove := EmptyMove
 
@@ -647,7 +658,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				if pos.IsFIDEDrawRule() {
 					score = 0 // Draw
 				} else {
-					score = -alphaBetaPV(pos, currentDepth-1, 1, -beta, -alpha, true, info)
+					score = -alphaBetaPV(pos, currentDepth-1, 1, -beta, -alpha, true, true, info)
 				}
 				pos.GameUnMakeMove(move, tag, ep, hc)
 				SetLastMovePlayed(savedLast)
@@ -860,11 +871,11 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		}
 		SetLastMovePlayed(move)
 
-		score := -alphaBetaPV(pos, depth-1, 1, -beta, -alpha, true, info)
+		score := -alphaBetaPV(pos, depth-1, 1, -beta, -alpha, true, true, info)
 
 		// Mate threat extension: if we found a very high score, search deeper to find mate
 		if score >= MATE_IN_MAX && depth <= 2 {
-			score = -alphaBetaPV(pos, depth+2, 1, -beta, -alpha, true, info)
+			score = -alphaBetaPV(pos, depth+2, 1, -beta, -alpha, true, true, info)
 			info.Nodes++
 		}
 
@@ -896,10 +907,10 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 }
 
 func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) int {
-	return alphaBetaPV(pos, depth, 0, alpha, beta, true, info) // Root is always PV
+	return alphaBetaPV(pos, depth, 0, alpha, beta, true, true, info) // Root is always PV
 }
 
-func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bool, info *SearchInfo) int {
+func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bool, canNull bool, info *SearchInfo) int {
 	if ply > info.SelDepth {
 		info.SelDepth = ply
 	}
@@ -1033,7 +1044,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// re-entry would otherwise hit its own hash in the search-path repetition
 		// scan and return a bogus draw (0). Hide our entry for the duration.
 		info.RepStackLen--
-		alphaBetaPV(pos, iidDepth, ply, alpha, beta, true, info)
+		alphaBetaPV(pos, iidDepth, ply, alpha, beta, true, true, info)
 		info.RepStackLen++
 		// Re-probe TT to get the move we just found
 		ttMove, _, _, _, _ = TranspositionTable.Get(hash)
@@ -1075,6 +1086,17 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	} else {
 		corrIdx = pawnCorrectionIndex(pos.Board.whitePawn, pos.Board.blackPawn)
 		staticEval = EvaluateForPlayer(&pos.Board, stm) + correctionValue(stm, corrIdx)
+		// S7: a search-refined TT score is a sharper static estimate than a fresh
+		// eval for the margin heuristics below (RFP/futility/NMP/improving). Use it
+		// when the stored bound brackets it. Skip mate scores (would distort margins)
+		// and the singular-verification root (keep its pruning behaviour unchanged).
+		if ttHit && !inSingular && abs(ttEval) < MATE_IN_MAX {
+			if ttNodeType == Exact ||
+				(ttNodeType == LowerBound && ttEval > staticEval) ||
+				(ttNodeType == UpperBound && ttEval < staticEval) {
+				staticEval = ttEval
+			}
+		}
 	}
 	info.StaticEvalStack[ply] = staticEval
 
@@ -1104,10 +1126,13 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Note: Razoring pruning removed - futility pruning already provides effective pruning
 	// with better performance characteristics for this engine architecture
 
-	// PV-aware null move pruning - more conservative in PV nodes.
-	// Guard against zugzwang: in pawn-only endgames, passing can be the best
-	// available option for the opponent, so null-move cutoffs are unsound.
-	if SearchToggles.NullMove && !inCheck && depth >= NULL_MOVE_MIN_DEPTH && beta-alpha > 1 && (!isPV || depth >= 6) &&
+	// Null-move pruning at cut nodes only. C3 fix: the prior gate required a full
+	// window (beta-alpha>1), but PVS scouts every non-PV node with a null window, so
+	// NMP fired only on the PV spine — almost never. Gate on !isPV (every cut node) +
+	// staticEval>=beta (standard soundness/efficiency guard) + canNull (no two null
+	// moves in a row, replacing the implicit beta-alpha>1 brake). Zugzwang guard:
+	// in pawn-only endgames passing can be best, so require non-pawn material.
+	if SearchToggles.NullMove && !inCheck && depth >= NULL_MOVE_MIN_DEPTH && canNull && !isPV && staticEval >= beta &&
 		hasNonPawnMaterial(&pos.Board, pos.Turn()) {
 		// Set lastMovePlayed to EmptyMove so children don't pick spurious
 		// counter-move replies keyed on our own prior move.
@@ -1115,7 +1140,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		oldEP := pos.MakeNullMove()
 		SetLastMovePlayed(EmptyMove)
 
-		score := -alphaBetaPV(pos, depth-NULL_MOVE_R-1, ply+1, -beta, -beta+1, false, info)
+		score := -alphaBetaPV(pos, depth-NULL_MOVE_R-1, ply+1, -beta, -beta+1, false, false, info)
 
 		pos.UnMakeNullMove(oldEP)
 		SetLastMovePlayed(savedLast)
@@ -1163,7 +1188,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			score := -quiescence(pos, -probcutBeta, -probcutBeta+1, ply+1, info)
 
 			if score >= probcutBeta {
-				score = -alphaBetaPV(pos, depth-4, ply+1, -probcutBeta, -probcutBeta+1, false, info)
+				score = -alphaBetaPV(pos, depth-4, ply+1, -probcutBeta, -probcutBeta+1, false, true, info)
 			}
 
 			pos.UnMakeMove(move, tag, ep, hc)
@@ -1391,7 +1416,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// repetition-stack entry so the re-entry doesn't match its own hash
 			// and bail out with a bogus draw (0) before doing any work.
 			info.RepStackLen--
-			singularScore := alphaBetaPV(pos, singularDepth, ply, singularBeta-1, singularBeta, false, info)
+			singularScore := alphaBetaPV(pos, singularDepth, ply, singularBeta-1, singularBeta, false, true, info)
 			info.RepStackLen++
 			info.ExcludedMove = EmptyMove
 
@@ -1415,7 +1440,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Enhanced Principal Variation Search (PVS) with PV-node optimization
 		if legalTried == 1 {
 			// First move: search with full window and PV flag
-			score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, info)
+			score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, info)
 		} else {
 			// Non-first moves: enhanced PVS with PV-aware reductions
 
@@ -1484,17 +1509,17 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			}
 
 			// Search with null window first (not PV)
-			score = -alphaBetaPV(pos, reducedDepth, ply+1, -alpha-1, -alpha, false, info)
+			score = -alphaBetaPV(pos, reducedDepth, ply+1, -alpha-1, -alpha, false, true, info)
 
 			// PVS re-search logic
 			if score > alpha && score < beta {
 				if reduction > 0 {
 					// Re-search with full depth but still null window
-					score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, info)
+					score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, true, info)
 				}
 				// If still fails high, do full window search (PV if we're in PV)
 				if score > alpha {
-					score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, info)
+					score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, info)
 				}
 			}
 		}

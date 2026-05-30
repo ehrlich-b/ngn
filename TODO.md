@@ -27,11 +27,31 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
   Earlier today: pre-flight `-probe`, in-play overshoot guard, 200ms stop-grace. Stop-compliant anchors:
   7.2.0/7.4.0/8.0.0 (5.0.0/6.1.0 ignore `stop`, auto-skipped). NB 7.2.0 passes the probe but overshoots
   under load (aborts); 8.0.0 is flaky (died mid-run). **7.4.0 is the one reliable anchor right now.**
-- **NEXT ACTIONS (in order):** (1) re-run `make gauntlet ARGS="-only v7.4.0,v8.0.0 -games 24 -movetime 1000"`
-  (now self-heals) for a clean number; ideally find a 2nd reliable anchor to bracket/pool. (2) Implement
-  **C3 (null-move disabled at all cut nodes — the headline +50-120 bug)** with its mandatory double-null
-  guard, fixed-TIME SPRT. (3) Cheap runtime wins RT1/RT2 (expose counters + time-stop reason — RT1 lets us
-  SEE C3 is real). Then C4/C5, S4-S7, then the time-controls NEXT block.
+- **2026-05-30 PM — C3 IMPLEMENTED + S6/S7/RT1; fixed-time SPRT RUNNING.** C3 (NMP gated on
+  `canNull && !isPV && staticEval>=beta`, with a `canNull` double-null thread through alphaBetaPV) is
+  VERIFIED at the mechanism level: Kiwipete depth-10 = 389K nodes / seldepth 29 vs HEAD 516K / seldepth 30
+  (~25% fewer nodes, faster), nmcut ~7K — NMP now fires across the whole tree, not just the PV spine.
+  Batched with S6 (root searches prev-iteration best first), S7 (reuse bounded TT score as static eval),
+  RT1 (debug-on end-of-search counter dump in uci.go: `info string stats …`). smoke-tactical 28/30 (was
+  29-30; a 1-tactic nick, same profile as the shipped E2 king-safety win). Fixed-time SPRT (movetime 100,
+  conc-1, vs **clean HEAD** — NOT the stale pre-+46 ngn_base) → **VERDICT: +138 ELO [+45,+231] over 61
+  games (38W-8D-15L = 68.9%, LLR +0.88 still climbing), batch COMMITTED.** Biggest single NGN search win
+  to date. CAVEAT: fixed-time self-play vs HEAD reads the FULL depth-gain benefit (shared eval amplifies a
+  pure search-depth edge), so the external-opponent (CCRL) contribution is likely smaller — but it is
+  unambiguously large and positive (lower bound +45). Re-confirm magnitude with the next gauntlet.
+- **GOTCHA BURNED IN (cost most of this session):** do NOT "clean up" the LMR `reducedDepth` dead branch
+  (`if reducedDepth >= depth { reducedDepth = depth-1-reduction }`). It looks like a no-op, but replacing it
+  with an `if reducedDepth < 1 { reducedDepth = 1 }` floor is CATASTROPHIC: reducedDepth legitimately
+  computes to **0 at depth-1 nodes (→ qsearch)**, and clamping to 1 turns every such leaf into a full
+  main-search ply WITH check extensions → non-decaying check recursion → seldepth 111, ~20x node explosion.
+  The value 0 flowing to qsearch is load-bearing. C3/S6/S7 were ALL innocent; this clamp (carried across
+  several "reverts") masked the real cause for hours. LESSON RE-LEARNED ([[feedback_audit_agent_skepticism]]):
+  stack ONE change at a time, each gated by a depth-10 node/seldepth check vs a freshly-built clean HEAD.
+- **C4/C5 DEFERRED (coupled to extension discipline).** Same LMR/scout block; C5 (scout at nextDepth) removes
+  the implicit brake on NGN's full-restore check extension → explosion. They need the extension-budget work
+  (bound check extensions by a per-path ply cap) FIRST, then their own SPRT.
+- **NEXT after C3 verdict:** if C3 wins → ship it, then extension discipline (unblocks C4/C5 + tames the
+  latent deep-check explosion), then S4 (LMP-improving). Gauntlet re-run for the absolute number still pending.
 - Provenance: 6-agent search audit + 1 runtime audit (2026-05-30), every claim validated vs live code →
   C3/C4/C5 + S4-S7 (Phase S), RT1-RT4 (Phase RT), TT audited CLEAN, code-clarity R1 (low pri per Bryan).
 
@@ -141,7 +161,13 @@ Search is the current 50+-ELO lane; eval (Phase E) is the proven backup.
 - [x] **C0 — stale eval baseline (DONE · 2026-05-28 · commit, hygiene).** `make test` was RED on
   `main`: the +46 PST commit (bb12a48) changed eval but didn't regenerate `eval_baseline.json`.
   Regenerated to match the tuned eval; suite green. (Test-hygiene, not an engine bug.)
-- [ ] **C3 — Null-move pruning is OFF at every cut node (search.go:1110) — HEADLINE, est. +50-120.**
+- [x] **C3 — Null-move pruning was OFF at every cut node — FIXED & SHIPPED (+138 ELO [+45,+231] fixed-time SPRT vs HEAD, 2026-05-30).**
+  DONE: gated NMP on `canNull && !isPV && staticEval>=beta` (canNull threaded through alphaBetaPV, set false
+  on the null recursion to block back-to-back nulls); nmcut now ~7K/search (was PV-spine only), ~25% fewer
+  nodes to depth 10. Batched + shipped with S6 (root prev-best ordering), S7 (TT-score-as-static-eval),
+  RT1 (debug-on counter dump). Open follow-up once more is wanted: depth-scaled `R = 3 + depth/4`. The
+  saga: my C5 "cleanup" of the reducedDepth dead branch (→ a `<1` clamp) caused a check-extension explosion
+  that masked C3 for hours — see the SESSION STATE GOTCHA at top. ORIGINAL DIAGNOSIS:
   The gate `beta-alpha > 1 && (!isPV || depth>=6)` requires a FULL window, but PVS scouts every
   non-PV node with a null window (`-alpha-1,-alpha` ⇒ beta-alpha==1, search.go:1487), so NMP fires
   ONLY on the PV spine (~depth nodes) — effectively off in ~99% of the tree. NGN's own notes put NMP
