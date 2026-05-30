@@ -11,6 +11,9 @@
 // "at an equal depth budget, does the new eval/ordering pick better moves?" Use
 // -movetime for a final time-control validation once a change looks good.
 //
+// The UCI subprocess harness and Elo math live in internal/uci and
+// internal/rating (shared with cmd/smoke, cmd/elo-assess, and cmd/gauntlet).
+//
 //	# build a baseline to test against, then a candidate
 //	cp build/ngn build/ngn_base   # baseline = current HEAD
 //	# ...make a change, rebuild build/ngn...
@@ -20,67 +23,20 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"log"
 	"math"
 	"math/rand"
 	"os"
-	"os/exec"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/ehrlich-b/ngn/engine"
+	"github.com/ehrlich-b/ngn/internal/rating"
+	"github.com/ehrlich-b/ngn/internal/uci"
 )
-
-const startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-
-// builtinOpenings are standard, roughly-balanced lines to ~ply 5, as UCI move
-// sequences from the start position. Each is played twice (colors reversed), so
-// this set yields 48 distinct fixed-depth games — enough for medium effects.
-// For finer resolution generate a larger book with -genbook.
-var builtinOpenings = []string{
-	"e2e4 e7e5 g1f3 b8c6 f1b5", // Ruy Lopez
-	"e2e4 e7e5 g1f3 b8c6 f1c4", // Italian
-	"e2e4 e7e5 g1f3 b8c6 d2d4", // Scotch
-	"e2e4 e7e5 g1f3 g8f6",      // Petrov
-	"e2e4 e7e5 f1c4",           // Bishop's Opening
-	"e2e4 c7c5 g1f3 d7d6",      // Sicilian Najdorf-ish
-	"e2e4 c7c5 g1f3 b8c6",      // Sicilian
-	"e2e4 c7c5 b1c3",           // Closed Sicilian
-	"e2e4 c7c5 c2c3",           // Alapin
-	"e2e4 e7e6 d2d4 d7d5",      // French
-	"e2e4 c7c6 d2d4 d7d5",      // Caro-Kann
-	"e2e4 d7d6 d2d4 g8f6",      // Pirc
-	"e2e4 g7g6 d2d4 f8g7",      // Modern
-	"d2d4 d7d5 c2c4 e7e6",      // QGD
-	"d2d4 d7d5 c2c4 c7c6",      // Slav
-	"d2d4 d7d5 g1f3 g8f6",      // symmetric d4
-	"d2d4 g8f6 c2c4 e7e6",      // Nimzo/QID
-	"d2d4 g8f6 c2c4 g7g6",      // KID/Grunfeld
-	"d2d4 f7f5",                // Dutch
-	"d2d4 e7e6",                // various
-	"c2c4 e7e5",                // English reversed Sicilian
-	"c2c4 c7c5",                // Symmetric English
-	"g1f3 d7d5 g2g3",           // Reti/KIA
-	"g1f3 g8f6 c2c4",           // English/Indian
-}
-
-type outcome int
-
-const (
-	loss outcome = iota // from NEW's point of view
-	draw
-	win
-)
-
-type gameResult struct {
-	res    outcome
-	reason string
-}
 
 type spec struct {
 	opening    []string
@@ -117,7 +73,7 @@ func main() {
 		return
 	}
 
-	openings, err := loadOpenings(*openingsFile)
+	openings, err := uci.LoadOpenings(*openingsFile)
 	if err != nil {
 		log.Fatalf("loading openings: %v", err)
 	}
@@ -157,7 +113,7 @@ func main() {
 	fmt.Printf("==================\n")
 	fmt.Printf("new=%s  base=%s\n", *newPath, *basePath)
 	fmt.Printf("mode: %s | openings: %d (x2 colors) | concurrency: %d%s\n",
-		mode, len(openings), *concurrency, powerNote(*lowPower))
+		mode, len(openings), *concurrency, uci.PowerNote(*lowPower))
 	fmt.Printf("H0: elo<=%.1f   H1: elo>=%.1f   (alpha=%.2f beta=%.2f -> LLR bounds [%.2f, %.2f])\n\n",
 		*elo0, *elo1, *alpha, *beta, lower, upper)
 
@@ -206,27 +162,32 @@ func runSPRT(cfg runConfig, openings [][]string) {
 	}
 	close(specCh)
 
-	results := make(chan gameResult, cfg.concurrency)
+	gameCfg := uci.GameConfig{
+		NewDepth: cfg.newDepth, BaseDepth: cfg.baseDepth,
+		Movetime: cfg.movetime, Nodes: cfg.nodes, MaxMoves: cfg.maxMoves,
+	}
+
+	results := make(chan uci.GameResult, cfg.concurrency)
 	stop := make(chan struct{})
 	var wg sync.WaitGroup
 	for w := 0; w < cfg.concurrency; w++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			newEng := startEngine(cfg.newPath, "new", cfg.lowPower)
-			baseEng := startEngine(cfg.basePath, "base", cfg.lowPower)
+			newEng := uci.Start(cfg.newPath, "new", cfg.lowPower)
+			baseEng := uci.Start(cfg.basePath, "base", cfg.lowPower)
 			if newEng == nil || baseEng == nil {
-				return
+				log.Fatalf("engine failed UCI handshake after retries (new ok=%v, base ok=%v); aborting run instead of forfeiting every game as no-move", newEng != nil, baseEng != nil)
 			}
-			defer stopEngine(newEng)
-			defer stopEngine(baseEng)
+			defer uci.Stop(newEng)
+			defer uci.Stop(baseEng)
 			for s := range specCh {
 				select {
 				case <-stop:
 					return
 				default:
 				}
-				results <- playGame(newEng, baseEng, s, cfg)
+				results <- uci.PlayGame(newEng, baseEng, s.opening, s.newIsWhite, gameCfg)
 			}
 		}()
 	}
@@ -237,19 +198,19 @@ func runSPRT(cfg runConfig, openings [][]string) {
 	stopped := false
 	verdict := "INCONCLUSIVE (ran out of games — add openings or raise -maxgames)"
 	for r := range results {
-		switch r.res {
-		case win:
+		switch r.Res {
+		case uci.Win:
 			w++
-		case draw:
+		case uci.Draw:
 			d++
-		case loss:
+		case uci.Loss:
 			l++
 		}
 		n := w + d + l
 		llr := sprtLLR(w, d, l, cfg.elo0, cfg.elo1)
-		est, lo, hi := eloEstimate(w, d, l)
+		est, lo, hi := rating.RelativeElo(w, d, l)
 		fmt.Printf("G%-4d %2dW %2dD %2dL  %5.1f%%  elo %+6.1f [%+.0f,%+.0f]  LLR %+6.2f  %-12s\n",
-			n, w, d, l, 100*score(w, d)/float64(n), est, lo, hi, llr, r.reason)
+			n, w, d, l, 100*rating.Score(w, d)/float64(n), est, lo, hi, llr, r.Reason)
 
 		if !stopped && n >= cfg.minGames && (llr >= cfg.upper || llr <= cfg.lower) {
 			if llr >= cfg.upper {
@@ -264,109 +225,17 @@ func runSPRT(cfg runConfig, openings [][]string) {
 
 	w0, d0, l0 := w, d, l
 	n := w0 + d0 + l0
-	est, lo, hi := eloEstimate(w0, d0, l0)
+	est, lo, hi := rating.RelativeElo(w0, d0, l0)
 	fmt.Printf("\n=== RESULT (%v) ===\n", time.Since(start).Truncate(time.Second))
-	fmt.Printf("Games: %d   W-D-L: %d-%d-%d   score: %.1f%%\n", n, w0, d0, l0, 100*score(w0, d0)/math.Max(1, float64(n)))
+	fmt.Printf("Games: %d   W-D-L: %d-%d-%d   score: %.1f%%\n", n, w0, d0, l0, 100*rating.Score(w0, d0)/math.Max(1, float64(n)))
 	fmt.Printf("Elo(new - base): %+.1f   95%% CI [%+.0f, %+.0f]\n", est, lo, hi)
 	fmt.Printf("LLR: %+.2f   bounds [%.2f, %.2f]\n", sprtLLR(w0, d0, l0, cfg.elo0, cfg.elo1), cfg.lower, cfg.upper)
 	fmt.Printf("Verdict: %s\n", verdict)
 }
 
-// playGame plays one game and returns the result from NEW's point of view.
-func playGame(newEng, baseEng *Engine, s spec, cfg runConfig) gameResult {
-	resetEngine(newEng)
-	resetEngine(baseEng)
-
-	pos, err := engine.ParseFEN(startFEN)
-	if err != nil {
-		return gameResult{draw, "fen-error"}
-	}
-	if pos.Positions == nil {
-		pos.Positions = make(map[uint64]int)
-	}
-	pos.Positions[pos.Hash()]++
-
-	moves := make([]string, 0, cfg.maxMoves)
-	for _, mv := range s.opening {
-		m, err := engine.ParseUCIMove(pos, mv)
-		if err != nil {
-			return gameResult{draw, "bad-opening"}
-		}
-		if _, _, _, ok := pos.GameMakeMove(m); !ok {
-			return gameResult{draw, "illegal-opening"}
-		}
-		moves = append(moves, mv)
-	}
-
-	for len(moves) < cfg.maxMoves {
-		if legal := engine.GenerateLegalMoves(pos); len(legal) == 0 {
-			if pos.IsInCheck() {
-				// Side to move is checkmated; the side that just moved won.
-				if !sideToMoveIsNew(pos, s.newIsWhite) {
-					return gameResult{win, "checkmate"}
-				}
-				return gameResult{loss, "checkmate"}
-			}
-			return gameResult{draw, "stalemate"}
-		}
-		if pos.IsFIDEDrawRule() {
-			return gameResult{draw, "draw-rule"}
-		}
-
-		newToMove := sideToMoveIsNew(pos, s.newIsWhite)
-		eng, d := baseEng, cfg.baseDepth
-		if newToMove {
-			eng, d = newEng, cfg.newDepth
-		}
-		sendCommand(eng, "position startpos moves "+strings.Join(moves, " "))
-		var goCmd string
-		var timeout time.Duration
-		if cfg.nodes > 0 {
-			goCmd = fmt.Sprintf("go nodes %d", cfg.nodes)
-			timeout = 60 * time.Second
-		} else if cfg.movetime > 0 {
-			goCmd = fmt.Sprintf("go movetime %d", cfg.movetime)
-			timeout = time.Duration(cfg.movetime)*time.Millisecond + 5*time.Second
-		} else {
-			goCmd = fmt.Sprintf("go depth %d", d)
-			timeout = 180 * time.Second
-		}
-		mv := getMove(eng, goCmd, timeout)
-		if mv == "" || mv == "(none)" {
-			// Engine failed to produce a move though legal moves exist: count it
-			// as a loss for the offending side so a flaky binary can't masquerade.
-			if newToMove {
-				return gameResult{loss, "no-move"}
-			}
-			return gameResult{win, "no-move"}
-		}
-		m, err := engine.ParseUCIMove(pos, mv)
-		if err != nil {
-			if newToMove {
-				return gameResult{loss, "illegal-move"}
-			}
-			return gameResult{win, "illegal-move"}
-		}
-		if _, _, _, ok := pos.GameMakeMove(m); !ok {
-			if newToMove {
-				return gameResult{loss, "illegal-move"}
-			}
-			return gameResult{win, "illegal-move"}
-		}
-		moves = append(moves, mv)
-	}
-	return gameResult{draw, "max-moves"}
-}
-
-func sideToMoveIsNew(pos *engine.Position, newIsWhite bool) bool {
-	return (pos.Turn() == engine.White) == newIsWhite
-}
-
 // --- SPRT statistics (Generalized SPRT on the trinomial score) ---
 
 func eloToScore(elo float64) float64 { return 1.0 / (1.0 + math.Pow(10, -elo/400)) }
-
-func score(w, d int) float64 { return float64(w) + 0.5*float64(d) }
 
 // sprtLLR is the GSPRT linear log-likelihood ratio for H0:elo0 vs H1:elo1,
 // using the empirical mean and variance of the per-game score. Positive LLR
@@ -377,7 +246,7 @@ func sprtLLR(w, d, l int, elo0, elo1 float64) float64 {
 		return 0
 	}
 	nf := float64(n)
-	S := score(w, d)
+	S := rating.Score(w, d)
 	mean := S / nf
 	// outcome second moment: win contributes 1, draw 0.25, loss 0
 	sumSq := float64(w) + 0.25*float64(d)
@@ -390,75 +259,7 @@ func sprtLLR(w, d, l int, elo0, elo1 float64) float64 {
 	return (s1 - s0) / variance * (S - nf*(s0+s1)/2.0)
 }
 
-// eloEstimate returns the point Elo of new-minus-base and a Wilson 95% CI.
-func eloEstimate(w, d, l int) (est, lo, hi float64) {
-	n := w + d + l
-	if n == 0 {
-		return 0, -800, 800
-	}
-	p := score(w, d) / float64(n)
-	const z = 1.96
-	nf := float64(n)
-	denom := 1.0 + z*z/nf
-	center := (p + z*z/(2*nf)) / denom
-	margin := z * math.Sqrt(p*(1-p)/nf+z*z/(4*nf*nf)) / denom
-	return scoreToElo(p), scoreToElo(center - margin), scoreToElo(center + margin)
-}
-
-func scoreToElo(p float64) float64 {
-	const eps = 1e-4
-	if p <= eps {
-		return -800
-	}
-	if p >= 1-eps {
-		return 800
-	}
-	return -400 * math.Log10(1/p-1)
-}
-
-// --- opening book ---
-
-func loadOpenings(path string) ([][]string, error) {
-	lines := builtinOpenings
-	if path != "" {
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return nil, err
-		}
-		lines = strings.Split(string(data), "\n")
-	}
-	var out [][]string
-	for _, ln := range lines {
-		ln = strings.TrimSpace(ln)
-		if ln == "" || strings.HasPrefix(ln, "#") {
-			continue
-		}
-		mvs := strings.Fields(ln)
-		if validOpening(mvs) {
-			out = append(out, mvs)
-		} else {
-			fmt.Printf("WARNING: skipping illegal opening line: %s\n", ln)
-		}
-	}
-	return out, nil
-}
-
-func validOpening(mvs []string) bool {
-	pos, err := engine.ParseFEN(startFEN)
-	if err != nil {
-		return false
-	}
-	for _, mv := range mvs {
-		m, err := engine.ParseUCIMove(pos, mv)
-		if err != nil {
-			return false
-		}
-		if _, _, _, ok := pos.GameMakeMove(m); !ok {
-			return false
-		}
-	}
-	return len(mvs) > 0
-}
+// --- opening book generation ---
 
 func runGenBook(n, plies, balanceCp, balanceDepth int, seed int64, outPath string) {
 	rng := rand.New(rand.NewSource(seed))
@@ -466,7 +267,7 @@ func runGenBook(n, plies, balanceCp, balanceDepth int, seed int64, outPath strin
 	var out []string
 	maxAttempts := n * 200
 	for attempts := 0; len(out) < n && attempts < maxAttempts; attempts++ {
-		pos, _ := engine.ParseFEN(startFEN)
+		pos, _ := engine.ParseFEN(uci.StartFEN)
 		pos.Positions = make(map[uint64]int)
 		pos.Positions[pos.Hash()]++
 		moves := make([]string, 0, plies)
@@ -514,89 +315,4 @@ func runGenBook(n, plies, balanceCp, balanceDepth int, seed int64, outPath strin
 	if len(out) < n {
 		fmt.Printf("NOTE: only %d/%d found; raise -balancecp or lower -genplies for a higher yield.\n", len(out), n)
 	}
-}
-
-// --- UCI engine subprocess (persistent across games) ---
-
-type Engine struct {
-	cmd    *exec.Cmd
-	stdin  *bufio.Writer
-	stdout *bufio.Scanner
-}
-
-func startEngine(path, name string, lowPower bool) *Engine {
-	var cmd *exec.Cmd
-	if lowPower && runtime.GOOS == "darwin" {
-		cmd = exec.Command("taskpolicy", "-b", path)
-	} else {
-		cmd = exec.Command(path)
-	}
-	stdin, _ := cmd.StdinPipe()
-	stdout, _ := cmd.StdoutPipe()
-	if err := cmd.Start(); err != nil {
-		log.Printf("failed to start %s (%s): %v", name, path, err)
-		return nil
-	}
-	e := &Engine{cmd: cmd, stdin: bufio.NewWriter(stdin), stdout: bufio.NewScanner(stdout)}
-	e.stdout.Buffer(make([]byte, 0, 64*1024), 1024*1024)
-	sendCommand(e, "uci")
-	waitFor(e, "uciok", 5*time.Second)
-	sendCommand(e, "isready")
-	waitFor(e, "readyok", 5*time.Second)
-	return e
-}
-
-func resetEngine(e *Engine) {
-	sendCommand(e, "ucinewgame")
-	sendCommand(e, "isready")
-	waitFor(e, "readyok", 5*time.Second)
-}
-
-func sendCommand(e *Engine, cmd string) {
-	e.stdin.WriteString(cmd + "\n")
-	e.stdin.Flush()
-}
-
-func waitFor(e *Engine, expected string, timeout time.Duration) bool {
-	deadline := time.Now().Add(timeout)
-	for time.Now().Before(deadline) {
-		if e.stdout.Scan() {
-			if strings.Contains(e.stdout.Text(), expected) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func getMove(e *Engine, goCmd string, timeout time.Duration) string {
-	sendCommand(e, goCmd)
-	deadline := time.Now().Add(timeout)
-	for time.Now().Before(deadline) {
-		if e.stdout.Scan() {
-			line := e.stdout.Text()
-			if strings.HasPrefix(line, "bestmove ") {
-				parts := strings.Fields(line)
-				if len(parts) >= 2 {
-					return parts[1]
-				}
-			}
-		}
-	}
-	return ""
-}
-
-func stopEngine(e *Engine) {
-	sendCommand(e, "quit")
-	time.Sleep(50 * time.Millisecond)
-	if e.cmd.Process != nil {
-		e.cmd.Process.Kill()
-	}
-}
-
-func powerNote(lowPower bool) string {
-	if lowPower && runtime.GOOS == "darwin" {
-		return " | E-cores (taskpolicy -b)"
-	}
-	return ""
 }
