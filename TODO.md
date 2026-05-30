@@ -66,7 +66,11 @@ deep-dive 2026-05-29 (refs below). Reprioritizes I1 to the front; makes I4 its p
 6. **Validate** on the I4 gauntlet at 1+0 / 2+1 / 3+2: success = never flags AND holds ELO
    vs a fixed-time baseline.
 
-Absorbs I1; promotes I4 from "HIGH" to PREREQUISITE.
+Absorbs I1; promotes I4 from "HIGH" to PREREQUISITE. UPDATE 2026-05-29: cmd/gauntlet
+(CCRL-rated Blunder anchors, `make gauntlet`) now reports NGN's absolute rating at fixed
+movetime — but biased ~+30-80 HIGH because movetime under-times the anchors vs their 2'+1"
+CCRL-Blitz rating. The unbiased true-clock gauntlet is gated on THIS time-management fix;
+finishing it lets us drop the gauntlet's bias caveat.
 
 ### Phase C — Correctness recovery (CONFIRMED bugs in supposedly-working features)
 - [x] **C1 — IID & singular extension re-entrancy + singular self-cutoff (DONE · 2026-05-28

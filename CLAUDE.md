@@ -16,7 +16,18 @@ make dev            # Full cycle: format, test, build
 
 ## ELO Assessment
 
-**Default loop is `make smoke`** (~3-5 min on E-cores, battery-friendly). It
+Two distinct jobs, two cadences:
+
+- **A — relative regression, per change (fast):** `make smoke` /
+  `make smoke-tactical` + self-play `sprt`. Tells you if a change broke or helped;
+  NOT an absolute rating.
+- **B — absolute CCRL calibration, occasional (slow):** `make gauntlet` plays NGN
+  against published-CCRL-rated Blunder anchors and pools a real rating. This is the
+  **single source of truth for NGN's absolute strength.** Stockfish's UCI_Elo
+  slider is NOT — we measured it ~+400 inflated vs CCRL (NGN scored 70% vs "SF2400"
+  but ~7% vs Blunder 7.4.0, CCRL 2532).
+
+**Default dev loop is `make smoke`** (~3-5 min on E-cores, battery-friendly). It
 runs a 30-position tactical suite plus a 5-game asymmetric match (NGN 1s vs
 SF2400 200ms) and appends results to a rolling-ELO history at
 `output/smoke_history.jsonl`. The cumulative Wilson CI tightens with every run.
@@ -35,7 +46,8 @@ and 13-1 (93%) vs SF2000, so neither could discriminate. At SF2400 NGN sits at
 real games and draws appear, so drops are visible. The estimated 50% crossover
 at this 1s/200ms time config is ~SF2560; raise the target again if NGN climbs
 back toward saturation. What you watch for is the rolling estimate not falling
-much below the running baseline.
+much below the running baseline. For NGN's ABSOLUTE rating use `make gauntlet`
+(Cadence B) — this SF rolling number is relative only.
 
 ```bash
 make smoke              # Tactical + 5 games + rolling estimate (~5 min)
@@ -43,15 +55,27 @@ make smoke-tactical     # Tactical only (~5 sec) — for in-flight changes
 ./build/smoke -rolling  # Just print the rolling estimate, no run
 ```
 
-Only fall back to the full `elo-assess` Bayesian test when on AC power and you
-need a tight one-shot CI for publication or before a major decision:
+**Cadence B — absolute CCRL calibration (the real number):**
+
+```bash
+make build-anchors                               # one-time: clone+build the Blunder ladder
+make gauntlet ARGS="-games 24 -movetime 1000"    # ~real CCRL number (~3-4h, E-cores)
+make gauntlet ARGS="-games 60 -movetime 2500"    # tighter, closer to CCRL Blitz (overnight)
+./build/gauntlet -rolling                        # commit-decayed pooled trend, no run
+./build/gauntlet -only v7.4.0 -ngn opponents/blunder_740   # calibration sanity (~50%/~2532)
+```
+
+The gauntlet number is a movetime proxy for CCRL Blitz (2'+1"): it under-times the
+anchors, biasing NGN ~+30-80 optimistic. A true CCRL-conditions run needs NGN to
+play a real clock — blocked by the tournament time-management bug (top TODO);
+finishing that work lets you drop the bias caveat.
+
+`elo-assess` is now ad-hoc Stockfish sparring (relative to the SF slider, NOT
+absolute — use the gauntlet for absolute):
 
 ```bash
 ./build/elo-assess -elo 2600 -movetime 2500 -sfmovetime 200 -min 6 -games 14 -ci 300
 ```
-
-The `-elo` target above is a starting anchor; at 2.5s NGN is stronger than at
-the smoke's 1s, so raise the target if the verdict says "raise" (saturation).
 
 Legacy presets exist (`-level 1/5/10`) but are not the default cadence.
 
@@ -64,9 +88,10 @@ Legacy presets exist (`-level 1/5/10`) but are not the default cadence.
   catastrophic-regression gate. The game phase is now a *measurement*, not a
   pass/fail: vs SF2400 a 0/5 shutout is within variance (it prints a SHUTOUT
   note but does not fail), so watch the rolling estimate for real drift.
-- **Rolling estimate is the source of truth for current ELO**, not any single
-  smoke. Once you have 6-10 runs at the default config the cumulative CI is
-  tighter than a single 14-game Bayesian.
+- **The smoke rolling estimate is a RELATIVE regression tripwire** (vs the SF
+  slider), NOT NGN's absolute ELO — `make gauntlet` (Cadence B) owns the absolute
+  CCRL number. Once you have 6-10 smokes at the default config its cumulative CI is
+  tighter than a single 14-game Bayesian, which is what makes it a good tripwire.
 - **Don't chase small effects** (< 50 ELO). Even with the rolling estimate,
   resolving 30-50 ELO deltas needs many runs. Big wins should appear within a
   few smoke runs; if it doesn't show up across 4-5 smokes, it's noise.
