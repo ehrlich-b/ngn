@@ -123,20 +123,21 @@ func TestMovesToGoTimeControl(t *testing.T) {
 
 	tm.SetTimeControl(params, true)
 
-	// Time allocation should be reasonable but consider safety limits
-	// Base calculation: 300s / 30 moves = 10s per move * 0.8 = 8s
-	// But limited by safety (max 1/3 of total = 100s) and emergency reserve
-
-	// Should allocate less than the naive calculation due to safety features
-	naiveTime := time.Duration(float64(300*time.Second) / 30.0 * 0.8) // 8s
-	if tm.allocatedTime >= naiveTime {
-		t.Errorf("Time allocation should be conservative, got %v which is >= naive %v", tm.allocatedTime, naiveTime)
+	// Soft target ~ the even share of the bank over the moves to go (300s/30 = 10s):
+	// the sustainable per-move budget. Allow a band around it.
+	evenShare := tm.baseTime / time.Duration(params.MovesToGo) // 10s
+	if tm.softTime < evenShare/2 || tm.softTime > evenShare*6/5 {
+		t.Errorf("soft time %v not a sane fraction of the even share %v", tm.softTime, evenShare)
 	}
 
-	// But should still allocate a reasonable amount (at least 3 seconds)
-	minTime := 3 * time.Second
-	if tm.allocatedTime < minTime {
-		t.Errorf("Time allocation too low, got %v, expected at least %v", tm.allocatedTime, minTime)
+	// Hard ceiling must never exceed 30%% of the bank — the anti-flag guarantee.
+	if tm.hardTime > tm.baseTime*3/10 {
+		t.Errorf("hard time %v exceeds 30%% of bank %v (flag risk)", tm.hardTime, tm.baseTime)
+	}
+
+	// And still allocate a reasonable amount (at least 3 seconds).
+	if tm.allocatedTime < 3*time.Second {
+		t.Errorf("Time allocation too low, got %v", tm.allocatedTime)
 	}
 }
 
@@ -246,31 +247,6 @@ func TestTimeControlStringRepresentation(t *testing.T) {
 		if result != tc.expected {
 			t.Errorf("Expected time control string %s, got %s", tc.expected, result)
 		}
-	}
-}
-
-func TestScoreChangeMultiplier(t *testing.T) {
-	tm := NewTimeManager()
-
-	// Test large score drop
-	tm.lastScoreChange = -60
-	multiplier := tm.getScoreChangeMultiplier()
-	if multiplier <= 1.0 {
-		t.Error("Should spend more time when score drops significantly")
-	}
-
-	// Test score improvement
-	tm.lastScoreChange = 40
-	multiplier = tm.getScoreChangeMultiplier()
-	if multiplier >= 1.0 {
-		t.Error("Should spend less time when score improves")
-	}
-
-	// Test neutral score change
-	tm.lastScoreChange = 5
-	multiplier = tm.getScoreChangeMultiplier()
-	if multiplier != 1.0 {
-		t.Error("Should maintain normal time for neutral score changes")
 	}
 }
 

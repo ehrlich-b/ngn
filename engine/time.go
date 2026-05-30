@@ -20,7 +20,9 @@ const (
 // TimeManager handles time allocation and management during search
 type TimeManager struct {
 	timeControl   TimeControl
-	allocatedTime time.Duration // Time allocated for this move
+	allocatedTime time.Duration // Time allocated for this move (== hardTime for Tournament)
+	softTime      time.Duration // Tournament soft budget: target before starting a new ID iteration
+	hardTime      time.Duration // Tournament hard ceiling: never exceeded (the anti-flag guarantee)
 	startTime     time.Time
 	emergencyTime time.Duration // Reserve time for emergencies
 	moveOverhead  time.Duration // Network/GUI overhead per move
@@ -49,6 +51,9 @@ type TimeManager struct {
 	// next iteration's cost. Previously each caller passed time.Now() in this
 	// slot, which made iterationTime always ~0 and disabled soft-stop.
 	iterationStartTime time.Time
+	// lastIterationTime is the wall time the most recently COMPLETED iteration
+	// took; the soft-stop projects the next iteration as a multiple of it.
+	lastIterationTime time.Duration
 }
 
 // GamePhase represents the current phase of the game
@@ -75,6 +80,7 @@ func (tm *TimeManager) SetTimeControl(params SearchParams, isWhite bool) {
 	tm.lastTimeCheck = tm.startTime
 	tm.shouldStop = false
 	tm.iterationStartTime = time.Time{} // Cleared until NewIteration is called
+	tm.lastIterationTime = 0
 	atomic.StoreUint64(&tm.checkCounter, 0)
 
 	// Determine time control type and allocate time accordingly
@@ -104,10 +110,14 @@ func (tm *TimeManager) SetTimeControl(params SearchParams, isWhite bool) {
 		tm.increment = time.Duration(myInc) * time.Millisecond
 		tm.movesToGo = params.MovesToGo
 
-		tm.allocatedTime = tm.calculateTimeAllocation()
+		// Tournament computes its own soft/hard budgets (with built-in safety) and
+		// returns; the shared cap/overhead below is for the simpler modes only.
+		tm.computeTournamentLimits()
+		return
 	}
 
-	// Ensure we don't allocate more time than we have
+	// Non-tournament modes (TimePerMove/FixedDepth/Infinite): cap and account for
+	// overhead. (Tournament returned above with its own remaining-relative caps.)
 	tm.allocatedTime = tm.ensureSafeTimeAllocation()
 
 	// Global maximum time limit for any move
@@ -118,61 +128,39 @@ func (tm *TimeManager) SetTimeControl(params SearchParams, isWhite bool) {
 	}
 }
 
-// calculateTimeAllocation calculates optimal time allocation for tournament play
-func (tm *TimeManager) calculateTimeAllocation() time.Duration {
-	baseAllocation := tm.calculateBaseAllocation()
+// computeTournamentLimits sets the soft and hard per-move budgets from an
+// increment-aware, remaining-relative formula. The old allocation stacked
+// game-phase × complexity × score × time multipliers on top of an even share,
+// so it could plan several× a sustainable per-move slice and bleed the bank far
+// faster than the increment refilled. This version is sustainable at any clock:
+//   - soft = (usable bank / moves-to-go) + 0.8·increment  — the normal target;
+//     spending ~the increment each move keeps the bank roughly flat.
+//   - hard = min(4·soft, 0.3·usable bank)                 — the rare critical-move
+//     ceiling; the 0.3 cap means one move can never blow the bank (anti-flag).
+func (tm *TimeManager) computeTournamentLimits() {
+	moves := tm.movesToGo
+	if moves <= 0 {
+		moves = tm.estimateMovesRemaining()
+	}
+	if moves < 1 {
+		moves = 1
+	}
+	// Reserve so we never plan into the emergency buffer or the GUI/move overhead.
+	usable := tm.baseTime - tm.emergencyTime - tm.moveOverhead
+	if usable < 0 {
+		usable = 0
+	}
+	uf := float64(usable)
 
-	// Apply game phase multiplier
-	phaseMultiplier := tm.getGamePhaseMultiplier()
-
-	// Apply complexity multiplier
-	complexityMultiplier := tm.getComplexityMultiplier()
-
-	// Apply score change multiplier (spend more time when score drops)
-	scoreMultiplier := tm.getScoreChangeMultiplier()
-
-	allocation := float64(baseAllocation) * phaseMultiplier * complexityMultiplier * scoreMultiplier
-
-	return time.Duration(allocation)
-}
-
-// calculateBaseAllocation calculates the base time allocation
-func (tm *TimeManager) calculateBaseAllocation() time.Duration {
-	if tm.movesToGo > 0 {
-		// Fixed number of moves until time control
-		movesLeft := float64(tm.movesToGo)
-		timePerMove := float64(tm.baseTime)/movesLeft + float64(tm.increment)
-
-		// Use 80% of calculated time, save 20% for later moves
-		return time.Duration(timePerMove * 0.8)
+	soft := uf/float64(moves) + 0.8*float64(tm.increment)
+	hard := math.Min(soft*4, uf*0.3)
+	if hard < soft {
+		hard = soft // tiny banks: don't let the 0.3 cap fall below the soft target
 	}
 
-	// No moves to go specified - estimate moves remaining
-	estimatedMovesLeft := tm.estimateMovesRemaining()
-	timePerMove := float64(tm.baseTime) / float64(estimatedMovesLeft)
-
-	// Add increment to available time
-	availableTime := timePerMove + float64(tm.increment)
-
-	// Use a percentage based on game phase - be more aggressive with lots of time
-	var usagePercent float64
-	timeMultiplier := 1.0
-	if tm.baseTime > time.Minute*5 {
-		timeMultiplier = 1.8 // Use significantly more time when we have lots available
-	} else if tm.baseTime > time.Minute*2 {
-		timeMultiplier = 1.4 // Use moderately more time
-	}
-
-	switch tm.gamePhase {
-	case Opening:
-		usagePercent = 0.8 * timeMultiplier // Still less in opening, but not too little
-	case Middlegame:
-		usagePercent = 1.2 * timeMultiplier // More time in complex middlegame
-	case Endgame:
-		usagePercent = 1.4 * timeMultiplier // Most time in precise endgame
-	}
-
-	return time.Duration(availableTime * usagePercent)
+	tm.softTime = time.Duration(soft)
+	tm.hardTime = time.Duration(hard)
+	tm.allocatedTime = tm.softTime // the normal per-move target (hard is the rare ceiling)
 }
 
 // estimateMovesRemaining estimates how many moves are left in the game
@@ -198,42 +186,6 @@ func (tm *TimeManager) estimateMovesRemaining() int {
 	}
 
 	return remaining
-}
-
-// getGamePhaseMultiplier returns time multiplier based on game phase
-func (tm *TimeManager) getGamePhaseMultiplier() float64 {
-	switch tm.gamePhase {
-	case Opening:
-		return 0.8 // Spend less time in opening
-	case Middlegame:
-		return 1.2 // Spend more time in complex middlegame
-	case Endgame:
-		return 1.0 // Normal time in endgame
-	}
-	return 1.0
-}
-
-// getComplexityMultiplier returns time multiplier based on position complexity
-func (tm *TimeManager) getComplexityMultiplier() float64 {
-	// Simple complexity heuristic - can be improved later
-	if tm.positionComplexity > 0.8 {
-		return 1.3 // Spend more time on complex positions
-	} else if tm.positionComplexity < 0.3 {
-		return 0.8 // Spend less time on simple positions
-	}
-	return 1.0
-}
-
-// getScoreChangeMultiplier returns time multiplier based on score changes
-func (tm *TimeManager) getScoreChangeMultiplier() float64 {
-	if tm.lastScoreChange < -50 {
-		return 1.4 // Score dropped significantly, think more
-	} else if tm.lastScoreChange < -20 {
-		return 1.2 // Score dropped, think a bit more
-	} else if tm.lastScoreChange > 30 {
-		return 0.9 // Score improved, can think less
-	}
-	return 1.0
 }
 
 // ensureSafeTimeAllocation ensures we don't allocate too much time
@@ -277,6 +229,12 @@ func (tm *TimeManager) ensureSafeTimeAllocation() time.Duration {
 // and project the next one. Without this, ShouldStopSearch's nextIterationEstimate
 // would be zero.
 func (tm *TimeManager) NewIteration() {
+	// Record how long the iteration that just finished took, so the soft-stop can
+	// project the next one. NewIteration runs at the top of each ID depth, so when
+	// called for depth N the previous (N-1) iteration's elapsed is measured here.
+	if !tm.iterationStartTime.IsZero() {
+		tm.lastIterationTime = time.Since(tm.iterationStartTime)
+	}
 	tm.iterationStartTime = time.Now()
 }
 
@@ -306,79 +264,35 @@ func (tm *TimeManager) ShouldStopSearch(depth int, _ time.Time) bool {
 	return tm.shouldStop
 }
 
-// shouldStopTournamentSearch determines if tournament search should stop
+// shouldStopTournamentSearch decides, from the soft/hard budgets set by
+// computeTournamentLimits, whether to stop searching. The OLD version layered
+// absolute minThinkTime (0.5-8s) and minDepth (4-12) floors that ignored the bank
+// — the bullet-killers that forced spending a fixed wall-time regardless of how
+// little time was left. This version is purely bank-relative.
 func (tm *TimeManager) shouldStopTournamentSearch(depth int, elapsed time.Duration) bool {
-	// Hard limit - never exceed allocated time
-	if elapsed >= tm.allocatedTime {
+	// Hard ceiling — never exceeded. computeTournamentLimits caps this at 30% of the
+	// usable bank, so a single move can never flag us (the anti-flag guarantee).
+	if elapsed >= tm.hardTime {
 		return true
 	}
-
-	// Compute remaining time dynamically for this decision point
-	remainingTime := tm.baseTime - elapsed
-
-	// Dynamic depth/time floors: don't stop before we have thought "enough"
-	// unless we're in an emergency. Tiers are based on remaining time so
-	// they adapt if we spend time during this move.
-	// Keep conservative to prevent long searches
-	var minDepthFloor int
-	var minThinkTime time.Duration
-	switch {
-	case remainingTime >= 10*time.Minute:
-		minDepthFloor = 12             // CRITICAL: Increased from 5 to competitive level
-		minThinkTime = 8 * time.Second // Increased from 3s to allow deeper search
-	case remainingTime >= 5*time.Minute:
-		minDepthFloor = 10             // Increased from 4 to competitive level
-		minThinkTime = 6 * time.Second // Increased from 2s to allow deeper search
-	case remainingTime >= 2*time.Minute:
-		minDepthFloor = 8              // Increased from 4 to competitive level
-		minThinkTime = 4 * time.Second // Increased from 1.5s to allow deeper search
-	case remainingTime >= 60*time.Second:
-		minDepthFloor = 6              // Increased from 3 to competitive level
-		minThinkTime = 2 * time.Second // Increased from 1s to allow deeper search
-	case remainingTime >= 30*time.Second:
-		minDepthFloor = 5              // Increased from 3 to competitive level
-		minThinkTime = 1 * time.Second // Increased from 500ms to allow deeper search
-	default:
-		minDepthFloor = 4                     // Increased from 2 for emergency situations
-		minThinkTime = 500 * time.Millisecond // Increased from 200ms for emergency
-	}
-
-	// Emergency time check - if we're down to emergency time, stop regardless
-	if remainingTime <= tm.emergencyTime {
+	// Emergency: down to the reserve, stop regardless of the budget arithmetic.
+	if tm.baseTime-elapsed <= tm.emergencyTime {
 		return true
 	}
-
-	// Respect floors: if we haven't met either floor, keep searching
-	if elapsed < minThinkTime || depth < minDepthFloor {
+	// Always finish at least one iteration so the move is real (never a depth-0
+	// blunder); the search's clock-interrupt guard keeps the last completed depth
+	// if a later iteration is cut off mid-flight.
+	if depth < 1 {
 		return false
 	}
-
-	// Soft time management - don't start new iteration if likely to exceed time.
-	// iterationStartTime must be set via NewIteration at the start of each ID depth;
-	// if it was never set we conservatively skip the soft-stop check rather than
-	// using an undefined zero time.
-	if tm.iterationStartTime.IsZero() {
-		return false
+	// Soft limit: don't START another iteration we can't finish within the soft
+	// budget. Project the next iteration as ~2x the last completed one (typical PVS
+	// growth with good ordering). Before any iteration timing exists, fall back to a
+	// plain elapsed-vs-soft check.
+	if tm.lastIterationTime == 0 {
+		return elapsed >= tm.softTime
 	}
-	iterationTime := time.Since(tm.iterationStartTime)
-	// Estimate time for next iteration (typically 3-4x current iteration)
-	nextIterationEstimate := iterationTime * 4
-
-	// Only stop if next iteration would exceed allocated time AND we're running low on total time
-	allocatedUsed := float64(elapsed) / float64(tm.allocatedTime)
-
-	// If we've used less than 50% of allocated time, always continue (unless total time very low)
-	if allocatedUsed < 0.5 && remainingTime > 10*time.Second {
-		return false
-	}
-
-	// If we have lots of total time remaining, be very lenient
-	if remainingTime > 60*time.Second {
-		return elapsed+nextIterationEstimate > tm.allocatedTime*2 // Allow double allocated time
-	} else if remainingTime > 30*time.Second {
-		return elapsed+nextIterationEstimate > time.Duration(float64(tm.allocatedTime)*1.5) // Allow 50% over
-	}
-	return elapsed+nextIterationEstimate > tm.allocatedTime // Normal limit when time is tight
+	return elapsed+tm.lastIterationTime*2 > tm.softTime
 }
 
 // UpdateGameState updates the time manager with current game state
