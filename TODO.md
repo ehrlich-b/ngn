@@ -55,11 +55,22 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
     the TT: hashfull 20→63, nodes +26% — the exact "evicts deeper main entries" pitfall the note warned of.
     Salvaged to store ONLY fail-highs (the cutting capture, depth-0 LowerBound): hashfull 40, nodes back to
     flat/slightly-better, tactical 28/30. Added QSearchTTStores counter + TestQSearchTTStoresWired.
-  - **Batch SPRT:** new=build/ngn (a0fdda4, S4+S3) vs base=build/ngn_head (f04eb0d), fixed-NODES 100k (correct
-    for node-saver/ordering items; deterministic), conc-2, 400-opening book, /tmp/sprt_s3s4.log. If WIN → both
-    stay shipped. If LOSS → bisect (S4-alone vs HEAD) since they're separate commits. NEXT after verdict:
-    extension discipline (unblocks C4/C5 + tames the latent deep-check explosion), then S1 (aspiration, needs
-    fixed-TIME) / S5 (capture-vs-quiet order, A/B both ways). Gauntlet re-run for the absolute number still pending.
+  - **Batch SPRT VERDICT: NEUTRAL — S4+S3 KEPT on theory.** fixed-NODES 100k vs clean HEAD f04eb0d, conc-2,
+    400-opening book: G82 33W-13D-36L = 48.2%, elo -13 [-87,+62], LLR drifting ~0 (lean +50→+25→0→-4→-13,
+    classic phantom-decay to neutral). No measurable win, NO significant regression. Both are textbook-sound,
+    mechanism-verified, tactical-held → kept on the established "sound standard technique + no regression" bar
+    (cf. quiet-SEE +2.2, singular +3.5). Did NOT bisect: CLAUDE.md "don't chase <50-ELO effects" — not worth
+    more SPRT cores. Stopped at G82 to free cores for the proven (eval) lane.
+- **2026-05-30 PM (cont. 2) — PIVOT TO EVAL (proven lane). kingSafety sweep RUNNING.** Search refinements are
+  all sub-resolution for NGN now (S2 rejected, S4/S3 neutral, null-R uncertain). Eval is where measurable wins
+  live (+46 PST, +18-20 E2 king-safety). Testing E2's open follow-up "sweep 80/100/130 for the king-safety
+  peak": **kingSafetyWeight 100→130** (eval.go:2378; phase>=12 coverage = most positions; E2 thesis = quiet-MSE
+  underweights king-safety's tactical value, so the ELO peak may be >100). tactical 28/30 held (130 didn't nick
+  it further). fixed-DEPTH depth-8 SPRT (the proven eval instrument): new=build/ngn (130) vs base=build/ngn_base_eval
+  (a0fdda4=100), conc-2, /tmp/sprt_ksafe130.log. eval.go left UNCOMMITTED pending verdict (needs eval_baseline.json
+  regen on a win, like C0). If WIN → regen baseline + commit + sweep further; if not → git checkout eval.go.
+  QUEUED after: kingActivity 29→? (endgame-only, motivated by NGN's own endgame-king-centralization blunders, but
+  dilute/hard to measure), then extension discipline (unblocks C4/C5). Gauntlet re-run for the absolute number still pending.
 - **GOTCHA BURNED IN (cost most of this session):** do NOT "clean up" the LMR `reducedDepth` dead branch
   (`if reducedDepth >= depth { reducedDepth = depth-1-reduction }`). It looks like a no-op, but replacing it
   with an `if reducedDepth < 1 { reducedDepth = 1 }` floor is CATASTROPHIC: reducedDepth legitimately
