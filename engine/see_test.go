@@ -179,3 +179,25 @@ func TestSEEQuietPruningWired(t *testing.T) {
 		t.Errorf("SEEPrune OFF: quiet SEE pruning fired %d times — toggle not respected", off.SEEQuietPrunes)
 	}
 }
+
+// TestQSearchTTStoresWired proves the quiescence search writes its fail-high
+// results to the transposition table (S3). A correct store is a no-op if it never
+// runs, so assert the counter is non-zero after a tactically dense search.
+func TestQSearchTTStoresWired(t *testing.T) {
+	const kiwipete = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+
+	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	ClearHistoryTable()
+	ClearKillerMoves()
+	ClearCounterMoves()
+	SetLastMovePlayed(EmptyMove)
+
+	pos, err := ParseFEN(kiwipete)
+	if err != nil {
+		t.Fatalf("bad FEN: %v", err)
+	}
+	info := Search(pos, 8)
+	if info.QSearchTTStores == 0 {
+		t.Error("quiescence never stored a fail-high to the TT in a depth-8 Kiwipete search")
+	}
+}

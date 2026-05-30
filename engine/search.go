@@ -483,6 +483,7 @@ type SearchInfo struct {
 	TTCutoffs           uint64 // Beta cutoffs from TT
 	BetaCutoffs         uint64 // Total beta cutoffs
 	QNodes              uint64 // Quiescence search nodes
+	QSearchTTStores     uint64 // Quiescence results written to the TT (S3)
 	CheckExtensions      uint64 // Check extensions applied
 	SingularExtensions   uint64 // Singular extensions applied
 	RecaptureExtensions  uint64 // Recapture extensions applied
@@ -1756,6 +1757,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	}
 
 	bestScore := standPat
+	bestMove := EmptyMove
 	if standPat > alpha {
 		alpha = standPat
 	}
@@ -1810,8 +1812,14 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 
 		if score > bestScore {
 			bestScore = score
+			bestMove = move
 		}
 		if score >= beta {
+			// Fail-high: store a lower bound (the cutting capture) at depth 0 (S3).
+			// Only fail-highs are stored — the common non-failing-high case would
+			// flood the TT with depth-0 entries and evict deeper main-search ones.
+			TranspositionTable.Set(pos.Hash(), bestMove, scoreToTT(beta, ply), 0, LowerBound)
+			info.QSearchTTStores++
 			return beta
 		}
 		if score > alpha {
