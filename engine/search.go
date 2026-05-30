@@ -66,9 +66,14 @@ func MaxNodes() uint64 {
 	return globalMaxNodes.Load()
 }
 
-// Late Move Pruning thresholds by depth
-// At depth d, prune quiet moves after lmpThreshold[d] moves
-var lmpThreshold = [8]int{0, 5, 8, 12, 17, 23, 30, 38}
+// Late Move Pruning thresholds, indexed [improving][depth] (S4). When our static
+// eval is NOT improving vs two plies ago, prune late quiets ~2x sooner; when it is
+// improving, keep the original (more generous) counts. Depth 0 is unused (the LMP
+// guard requires depth > 0).
+var lmpThreshold = [2][8]int{
+	{0, 3, 4, 6, 9, 12, 15, 19},   // not improving — prune sooner
+	{0, 5, 8, 12, 17, 23, 30, 38}, // improving — original schedule
+}
 
 // SearchToggles enables/disables individual pruning & reduction techniques for
 // the correctness-ablation harness (TestPruningAblation). All default ON, so
@@ -1272,7 +1277,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Use legalTried (not moveCount) since moveCount includes illegal moves
 		if SearchToggles.LMP && !isPV && !inCheck && depth > 0 && depth < 8 &&
 			!move.IsCapture() && move != ttMove && legalTried > 0 {
-			threshold := lmpThreshold[depth]
+			impRow := 0
+			if improving {
+				impRow = 1
+			}
+			threshold := lmpThreshold[impRow][depth]
 			if legalTried > threshold {
 				info.LMPPrunes++
 				continue
