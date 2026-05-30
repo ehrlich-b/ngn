@@ -111,8 +111,12 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
     tainted-anchor-dropped-not-voiding). Code is correct now; fresh post-C3 run RUNNING (-only v7.4.0, /tmp/gauntlet_postc3.log).
     Structural limit: weak anchors NGN beats (5.0.0/6.1.0) ignore UCI stop → can't bracket the 50% crossover at movetime;
     a fixed-depth gauntlet mode would unlock brackets (future).
-  - **PRIORITIZED QUEUE (all SPRTs run TO A BOUND now):** (1) SEE confirm **DONE** (+6.9 [-10,+24]/1565g,
-    non-regression, kept ff4ff33), (2) NMP base-case **DONE-committed 844bb20 ← SPRT RUNNING** (cont.5),
+  - **POLICY UPDATE (Bryan, cont.5):** for a fix I'm CONFIDENT in fundamentally (a real correctness fix), confirm
+    "not a big regression" with a short run (~500-1.2k games) then PROCEED — do NOT grind to a formal LLR bound.
+    Run-to-a-bound / chase-the-sign still applies to SPECULATIVE changes (ordering swaps, eval value guesses) where
+    the question is "does it help," not "is it sound." [[ngn-sprt-instrument]]
+  - **PRIORITIZED QUEUE:** (1) SEE confirm **DONE** (+6.9 [-10,+24]/1565g, non-regression, kept ff4ff33),
+    (2) NMP base-case **DONE +5.3 [-14,+24]/1254g, KEPT 844bb20**,
     (3) counter/killer swap + color dim (verified, fixed-NODES node-check FIRST per S2 lesson), (4) C4 LMR
     re-verify (clamp confirmed DEAD — leave it; dropping `&& score<beta` routes reduced fail-highs through the
     check-extension re-search = explosion vector), (5) kingSafety 100→115 (only untuned weight, fixed-DEPTH),
@@ -146,7 +150,7 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
     no-regression bar (cf. quiet-SEE +2.2). Stopped at the pre-committed N=1.5k (no optional-stopping bias). Chose
     fixed-TIME because nodes/depth REPLAY identically per opening (capped at unique-openings×2=800 < the ≥1k A5
     floor); movetime auto-fills by cycling. Conc-6 is load-dependent but UNBIASED for symmetric self-play.
-  - **(2) NMP base-case DONE-committed 844bb20 → SPRT RUNNING.** Verified A1 vs live code: at depth==3 the null
+  - **(2) NMP base-case DONE — +5.3 [-14,+24]/1254g, KEPT (844bb20).** Verified A1 vs live code: at depth==3 the null
     child depth = depth-NULL_MOVE_R-1 = -1 trips the `depth<0` guard (search.go:962) → raw EvaluateForPlayer, NOT
     qsearch (depth==0 → quiescence at :1012). Fix floors nullDepth at 0 so depth-3 NMP verifies through qsearch
     like depth>=4 (mirrors the load-bearing LMR 0→qsearch; qDepth>=6 bounds it, no explosion). Deterministic
@@ -156,9 +160,12 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
   - **FLAG (pre-existing, NOT mine) — flaky illegal-move fuzz:** `go test ./engine/` (full, not -short) FAILS
     intermittently: `TestFuzzSearchLegalMoves` is time-seeded random (search_fuzz_test.go:19) and found illegal
     moves (d5f6, e2e3 at depth 1-2) on clean HEAD too (3 on one seed, 0 on the next — pure flake). Depth 1-2 random
-    positions, where NMP can't fire, so unrelated to (2). Almost certainly `generateRandomValidPosition` slipping
-    illegal positions past `isPositionValid` (test prints no FEN → can't replay). Real games show ZERO illegal-move
-    forfeits. SEPARATE TASK: make the fuzz print+save the failing FEN, then decide test-bug vs real move-gen bug.
+    positions, where NMP can't fire, so unrelated to (2). Real games show ZERO illegal-move forfeits. Two concrete
+    root-cause leads (likely TEST artifact): (a) search_fuzz_test.go:150 builds positions with `GenerateMoves`
+    (PSEUDO-legal) not `GenerateLegalMoves` → can reach positions legal play can't; (b) the global TT is NEVER
+    cleared between unrelated random positions → a stale/index-colliding TT move from posA can surface in posB.
+    SEPARATE TASK: make the fuzz print+save the failing FEN, add a TT clear between positions, and audit whether
+    the search legality-validates its TT move before use — that last one is the only path to a REAL-game bug.
 
 ### >>> NEXT — TIGHT TIME CONTROLS (priority, set by Bryan 2026-05-29; pulled ahead of S/E/X) <<<
 **Goal: NGN plays bullet/blitz in a fully sane/good way — never flags, budgets the
