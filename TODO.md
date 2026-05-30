@@ -16,6 +16,58 @@ structural, then infra. Stack ONE at a time, gate with the COOL+FAST loop
 (smoke-tactical + mechanism unit/integration test + `go test -short`), commit
 checkpoints; periodic fixed-nodes SPRT as the batch validator.
 
+### >>> NEXT — TIGHT TIME CONTROLS (priority, set by Bryan 2026-05-29; pulled ahead of S/E/X) <<<
+**Goal: NGN plays bullet/blitz in a fully sane/good way — never flags, budgets the
+bank to last the whole game, and stops early once the move is decided.** Code-grounded
+deep-dive 2026-05-29 (refs below). Reprioritizes I1 to the front; makes I4 its prerequisite.
+
+**Why it's broken today (the autonomous-play path is UNTESTED):**
+- Real games route to the `Tournament` time control (uci.go:501); EVERY harness
+  (smoke/SPRT/elo-assess/blunder-finder) uses `movetime` = the hard-cap-only `TimePerMove`
+  path. So `shouldStopTournamentSearch` (time.go:309-382) — the real-game brain — has ZERO
+  test coverage.
+- **Bullet flags (loses on time).** On a 60s bank, per-move allocation is ~2.5-4s → out of
+  time in ~20 moves (games run 40+). Three compounding causes: (a) alloc =
+  `baseTime / ~20-25 moves × stacked multipliers`, NOT a sustainable fraction of the bank,
+  and bleeds far faster than the increment refills (time.go:140-176); (b) ABSOLUTE floors —
+  `minThinkTime` 1-2s, `minDepthFloor` 5-6 — that ignore a tiny bank (time.go:325-344;
+  comments admit they were "increased to competitive level" for LONG games); (c) soft-stop
+  allows spending 1.5-2× allocated when >30-60s remain (time.go:376-381).
+- **Dead "danger" knob.** `getScoreChangeMultiplier` (spend-more-when-score-drops) is always
+  1.0: allocation runs with `lastScoreChange==0` because uci.go:506 passes `(lastScore,
+  lastScore)` BEFORE `SetTimeControl` computes the allocation; the in-search update
+  (uci.go:655) lands too late and is never re-read.
+- **No "stop early when quiet."** Soft-stop projects only the next iteration's TIME COST
+  (time.go:363-365); it never looks at what the search FINDS. Missing the decision-quiet
+  signals: best-move stability across iterations (tracks `previousScore` but NOT
+  `previousBestMove`, search.go:548), aspiration-window-held-first-try (computed at
+  search.go:606-702, then thrown away), root falling-eval/fail-low, easy-move margin (no
+  2nd-best tracked at root, search.go:657), single-legal-move shortcut. NB: "quiet" here =
+  ROOT decision-quiet, NOT qsearch leaf-quiet (that's already used correctly to bound the
+  tree — a different thing; don't conflate).
+- GOOD (don't regress): the clock-interrupt blunder-guard keeps the last COMPLETED depth's
+  move (search.go:672-681), so it loses on time, doesn't hang pieces. NPS ~1M, so depth isn't
+  the issue — this is purely bank budgeting.
+
+**Plan (sequence I4 FIRST — unmeasurable otherwise):**
+1. **I4 real-clock instrument** — fixed-time / short-TC self-play (concurrency-1, reversed
+   pairs) or a gauntlet vs a fixed binary ladder at actual `wtime/binc`. The ONLY instrument
+   that can see flag-outs. Prerequisite for everything below.
+2. **Allocation → increment-aware fraction of remaining:** `soft ≈ remaining/movestogo +
+   0.8·inc`; `hard ≈ min(soft·N, remaining·0.3)`. Sustainable at bullet.
+3. **Floors relative to the bank** — scale `minThinkTime`/`minDepth` to remaining (or drop
+   them under low time). The absolute 1-2s floors are the bullet-killers.
+4. **Stability-scaled soft limit (the "intelligent" part)** — best-move stable K iters +
+   window held → ×0.5-0.6 (bank it); falling eval / best-move just changed → ×1.5-2 (spend
+   it). Wire the 3 signals the search already half-computes; fold the dead score-change knob
+   in here.
+5. **Fast paths** — single legal move → play instantly; easy-move (best ≫ 2nd-best at low
+   depth, needs 2nd-best tracking at root) → move early.
+6. **Validate** on the I4 gauntlet at 1+0 / 2+1 / 3+2: success = never flags AND holds ELO
+   vs a fixed-time baseline.
+
+Absorbs I1; promotes I4 from "HIGH" to PREREQUISITE.
+
 ### Phase C — Correctness recovery (CONFIRMED bugs in supposedly-working features)
 - [x] **C1 — IID & singular extension re-entrancy + singular self-cutoff (DONE · 2026-05-28
   · commits ff7e81e, 722b7ba).** Two stacked bugs meant IID and singular NEVER worked:
@@ -113,7 +165,7 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
   depth, and double/negative extension (depends on X2 cutnode). Blunder's tuned singular = +6.8.
 
 ### Phase I — Infra / measurement (gates REAL-game ELO; invisible to current tests)
-- [ ] **I1 — Tournament time management is lenient (≤2× allocated) AND untested**
+- [ ] **I1 — [PULLED TO TOP → see NEXT block] Tournament time management is lenient (≤2× allocated) AND untested**
   (time.go:309-382 only runs in real clock games; smoke uses movetime hard-limit,
   SPRT uses fixed-nodes/depth). Real CCRL risk: lose on time / misallocate. Pair the
   overhaul with a real-clock gauntlet vs a fixed ladder (Blunder/Zurichess binaries)
@@ -123,7 +175,7 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
   (stays 50ms). Needed for external-tester fidelity.
 - [ ] **I3 — elo-assess scores stalemate as a loss (cmd/elo-assess/main.go:261-267).**
   Minor harness correctness (smoke being retired as a yardstick anyway).
-- [ ] **I4 — fixed-TIME SPRT complement (HIGH — surfaced by C1).** The fixed-NODES instrument
+- [ ] **I4 — [PREREQUISITE FOR NEXT block] fixed-TIME SPRT complement (HIGH — surfaced by C1).** The fixed-NODES instrument
   structurally undercredits node-SPENDING techniques (IID/IIR/extensions): it charges their
   exploratory nodes without crediting the depth they buy at a clock. Half the Phase-1 search
   roadmap is this class, so fixed-nodes is the WRONG signer for it. Add a clean fixed-time
