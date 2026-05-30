@@ -1152,7 +1152,15 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		oldEP := pos.MakeNullMove()
 		SetLastMovePlayed(EmptyMove)
 
-		score := -alphaBetaPV(pos, depth-NULL_MOVE_R-1, ply+1, -beta, -beta+1, false, false, info)
+		// Floor the null child depth at 0. At depth==NULL_MOVE_MIN_DEPTH (3) the
+		// reduction depth-NULL_MOVE_R-1 = -1 trips the negative-depth guard and
+		// verifies the null move with a raw static eval (tactically blind) instead
+		// of quiescence; flooring routes it through qsearch like the depth>=4 path.
+		nullDepth := depth - NULL_MOVE_R - 1
+		if nullDepth < 0 {
+			nullDepth = 0
+		}
+		score := -alphaBetaPV(pos, nullDepth, ply+1, -beta, -beta+1, false, false, info)
 
 		pos.UnMakeNullMove(oldEP)
 		SetLastMovePlayed(savedLast)
