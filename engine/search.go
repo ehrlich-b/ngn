@@ -238,32 +238,38 @@ func getAttackers(pos *Position, square Square) uint64 {
 	whitePawns := pos.Board.GetBitboardOf(WhitePawn)
 	blackPawns := pos.Board.GetBitboardOf(BlackPawn)
 
-	// White pawn attacks
+	// White pawn attacks. A white pawn attacking `square` sits one rank below it:
+	// at square-9 (its file one LEFT of the target, valid when target file > A) or
+	// square-7 (one file RIGHT, valid when target file < H). The file guards must
+	// pair with the matching offset or SEE misses edge-file recapturers and invents
+	// wrap-around attackers (off-by-file bug fixed 2026-05-30).
 	if square.Rank() > Rank1 {
 		if square.File() > FileA {
-			attackSq := int(square) - 7
+			attackSq := int(square) - 9
 			if attackSq >= 0 && attackSq < 64 {
 				attackers |= (whitePawns & SquareMask[attackSq])
 			}
 		}
 		if square.File() < FileH {
-			attackSq := int(square) - 9
+			attackSq := int(square) - 7
 			if attackSq >= 0 && attackSq < 64 {
 				attackers |= (whitePawns & SquareMask[attackSq])
 			}
 		}
 	}
 
-	// Black pawn attacks
+	// Black pawn attacks. A black pawn attacking `square` sits one rank above it:
+	// at square+7 (file one LEFT, valid when target file > A) or square+9 (one file
+	// RIGHT, valid when target file < H).
 	if square.Rank() < Rank8 {
 		if square.File() > FileA {
-			attackSq := int(square) + 9
+			attackSq := int(square) + 7
 			if attackSq >= 0 && attackSq < 64 {
 				attackers |= (blackPawns & SquareMask[attackSq])
 			}
 		}
 		if square.File() < FileH {
-			attackSq := int(square) + 7
+			attackSq := int(square) + 9
 			if attackSq >= 0 && attackSq < 64 {
 				attackers |= (blackPawns & SquareMask[attackSq])
 			}
@@ -386,32 +392,32 @@ func getAttackersAfterMove(pos *Position, attackers uint64, occupied uint64, tar
 	whitePawns := pos.Board.GetBitboardOf(WhitePawn) & occupied
 	blackPawns := pos.Board.GetBitboardOf(BlackPawn) & occupied
 
-	// White pawn attacks
+	// White pawn attacks (file guards paired with the matching offset — see getAttackers).
 	if targetSquare.Rank() > Rank1 {
 		if targetSquare.File() > FileA {
-			attackSq := int(targetSquare) - 7
+			attackSq := int(targetSquare) - 9
 			if attackSq >= 0 && attackSq < 64 {
 				tempAttackers |= (whitePawns & SquareMask[attackSq])
 			}
 		}
 		if targetSquare.File() < FileH {
-			attackSq := int(targetSquare) - 9
+			attackSq := int(targetSquare) - 7
 			if attackSq >= 0 && attackSq < 64 {
 				tempAttackers |= (whitePawns & SquareMask[attackSq])
 			}
 		}
 	}
 
-	// Black pawn attacks
+	// Black pawn attacks (file guards paired with the matching offset).
 	if targetSquare.Rank() < Rank8 {
 		if targetSquare.File() > FileA {
-			attackSq := int(targetSquare) + 9
+			attackSq := int(targetSquare) + 7
 			if attackSq >= 0 && attackSq < 64 {
 				tempAttackers |= (blackPawns & SquareMask[attackSq])
 			}
 		}
 		if targetSquare.File() < FileH {
-			attackSq := int(targetSquare) + 7
+			attackSq := int(targetSquare) + 9
 			if attackSq >= 0 && attackSq < 64 {
 				tempAttackers |= (blackPawns & SquareMask[attackSq])
 			}

@@ -48,6 +48,25 @@ func TestSEECorrectness(t *testing.T) {
 			fen:  "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1",
 			uci:  "e5d6", want: 100,
 		},
+		// Edge-file regression cases (off-by-file SEE bug fixed 2026-05-30): the
+		// pawn-attacker file guards were swapped, so a recapturing pawn whose target
+		// sits on the A/H file was missed (SEE over-pessimistic) or a wrap-around
+		// attacker was invented. All three FAILED before the fix.
+		{
+			name: "rook takes h-file pawn defended by g-pawn (h-file recapture)",
+			fen:  "4k3/8/6p1/7p/8/8/8/4K2R w - - 0 1",
+			uci:  "h1h5", want: 100 - 525,
+		},
+		{
+			name: "rook takes a-file pawn defended by b-pawn (a-file recapture)",
+			fen:  "4k3/8/1p6/p7/8/8/8/R3K3 w - - 0 1",
+			uci:  "a1a5", want: 100 - 525,
+		},
+		{
+			name: "kiwipete Qxh3: g2 pawn recaptures the rook (h-file, was -900)",
+			fen:  "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+			uci:  "f3h3", want: 100 - 1000 + 525,
+		},
 	}
 
 	for _, c := range cases {
