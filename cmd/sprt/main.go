@@ -29,6 +29,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -62,6 +63,7 @@ func main() {
 	basePath := flag.String("base", "./build/ngn_base", "baseline engine binary")
 	depth := flag.Int("depth", 9, "fixed search depth per move (0 = use -movetime)")
 	movetime := flag.Int("movetime", 0, "ms per move (overrides -depth when > 0)")
+	tc := flag.String("tc", "", "real tournament clock SECONDS[+INC] (e.g. 60+1 = 60s + 1s/move); the I4 flag-detection instrument, forces concurrency 1")
 	nodes := flag.Int("nodes", 0, "fixed node budget per move (overrides -depth; deterministic, credits ordering+eval, cool at any concurrency)")
 	baseDepth := flag.Int("basedepth", 0, "base engine depth (0 = same as -depth; set lower as a positive control / depth ladder)")
 	elo0 := flag.Float64("elo0", 0, "SPRT H0 elo bound (null: new is not better)")
@@ -119,6 +121,25 @@ func main() {
 	if *nodes > 0 {
 		mode = fmt.Sprintf("nodes %d/move", *nodes)
 	}
+	tcTimeMs, tcIncMs := 0, 0
+	if *tc != "" {
+		parts := strings.SplitN(*tc, "+", 2)
+		base, err := strconv.ParseFloat(strings.TrimSpace(parts[0]), 64)
+		if err != nil || base <= 0 {
+			log.Fatalf("bad -tc %q (want SECONDS or SECONDS+INC, e.g. 60+1)", *tc)
+		}
+		tcTimeMs = int(base * 1000)
+		if len(parts) == 2 {
+			inc, err := strconv.ParseFloat(strings.TrimSpace(parts[1]), 64)
+			if err != nil || inc < 0 {
+				log.Fatalf("bad -tc increment in %q", *tc)
+			}
+			tcIncMs = int(inc * 1000)
+		}
+		// Real-clock results are load-dependent (worse than movetime); force serial.
+		*concurrency = 1
+		mode = fmt.Sprintf("real clock %.0fs+%.1fs (concurrency forced 1)", base, float64(tcIncMs)/1000)
+	}
 
 	lower := math.Log(*beta / (1 - *alpha))
 	upper := math.Log((1 - *beta) / *alpha)
@@ -134,6 +155,7 @@ func main() {
 	runSPRT(runConfig{
 		newPath: *newPath, basePath: *basePath,
 		newDepth: newDepth, baseDepth: baseD, movetime: *movetime, nodes: *nodes, maxMoves: *maxMoves,
+		tcTimeMs: tcTimeMs, tcIncMs: tcIncMs,
 		elo0: *elo0, elo1: *elo1, lower: lower, upper: upper,
 		maxGames: *maxGames, minGames: *minGames, concurrency: *concurrency, lowPower: *lowPower,
 	}, openings)
@@ -143,6 +165,7 @@ type runConfig struct {
 	newPath, basePath               string
 	newDepth, baseDepth, movetime   int
 	nodes                           int
+	tcTimeMs, tcIncMs               int
 	maxMoves                        int
 	elo0, elo1, lower, upper        float64
 	maxGames, minGames, concurrency int
@@ -168,7 +191,7 @@ func runSPRT(cfg runConfig, openings [][]string) {
 	for _, op := range openings {
 		addPair(op)
 	}
-	if cfg.movetime > 0 {
+	if cfg.movetime > 0 || cfg.tcTimeMs > 0 {
 		for i := 0; len(specs) < cfg.maxGames; i++ {
 			addPair(openings[i%len(openings)])
 		}
@@ -185,6 +208,7 @@ func runSPRT(cfg runConfig, openings [][]string) {
 	gameCfg := uci.GameConfig{
 		NewDepth: cfg.newDepth, BaseDepth: cfg.baseDepth,
 		Movetime: cfg.movetime, Nodes: cfg.nodes, MaxMoves: cfg.maxMoves,
+		TCTimeMs: cfg.tcTimeMs, TCIncMs: cfg.tcIncMs,
 	}
 
 	results := make(chan gameOutcome, cfg.concurrency)
@@ -214,6 +238,7 @@ func runSPRT(cfg runConfig, openings [][]string) {
 	go func() { wg.Wait(); close(results) }()
 
 	var w, d, l int
+	var newFlags, baseFlags int    // real-clock flag-outs (time-forfeit) by side
 	var penta [5]int               // pair-outcome counts; idx = 2*(pair points), 0..4
 	pairProg := map[int]*pairAcc{} // pairID -> the pair's first game, awaiting its partner
 	start := time.Now()
@@ -228,6 +253,13 @@ func runSPRT(cfg runConfig, openings [][]string) {
 			d++
 		case uci.Loss:
 			l++
+		}
+		if r.Reason == "time-forfeit" {
+			if r.Res == uci.Loss {
+				newFlags++
+			} else {
+				baseFlags++
+			}
 		}
 		// Pentanomial: accumulate the two games of a pair, then bucket the pair.
 		pa := pairProg[ro.pairID]
@@ -271,6 +303,9 @@ func runSPRT(cfg runConfig, openings [][]string) {
 		penta[0], penta[1], penta[2], penta[3], penta[4], pairs)
 	fmt.Printf("Penta Elo: %+.1f   95%% CI [%+.0f, %+.0f]   pLLR %+.2f  (secondary — trinomial above is the decision stat)\n",
 		pEst, pLo, pHi, pLLR)
+	if cfg.tcTimeMs > 0 {
+		fmt.Printf("Flag-outs (lost on time): new %d, base %d  of %d games  (goal: 0)\n", newFlags, baseFlags, n)
+	}
 	fmt.Printf("Verdict: %s\n", verdict)
 }
 

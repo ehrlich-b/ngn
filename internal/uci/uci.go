@@ -38,11 +38,17 @@ type GameResult struct {
 	Reason string
 }
 
-// GameConfig is the per-game search budget. Nodes, then Movetime, then depth is
-// used (in that order). NewDepth/BaseDepth let the sides search to different
-// depths (a positive control). MaxMoves caps plies before an adjudicated draw.
+// GameConfig is the per-game search budget. Real-clock (TCTimeMs), then Nodes,
+// then Movetime, then depth is used (in that order). NewDepth/BaseDepth let the
+// sides search to different depths (a positive control). MaxMoves caps plies
+// before an adjudicated draw. TCTimeMs/TCIncMs select a real tournament clock
+// (the I4 instrument): each side gets TCTimeMs to start +TCIncMs per move, the
+// harness sends `go wtime/btime/winc/binc` and a side that burns its bank loses
+// on time ("time-forfeit") — the ONLY mode that exercises NGN's Tournament time
+// management and can see flag-outs.
 type GameConfig struct {
 	NewDepth, BaseDepth, Movetime, Nodes, MaxMoves int
+	TCTimeMs, TCIncMs                              int
 }
 
 // Engine is a persistent UCI subprocess.
@@ -68,6 +74,12 @@ const overshootGrace = 2 * time.Second
 // burn ~the same wall clock as one that self-limits to the budget, so neither side
 // gets a time-odds edge (a movetime-honoring engine returns before this fires).
 const stopGrace = 200 * time.Millisecond
+
+// tcFlagGrace is how far past its remaining bank a move may arrive in real-clock
+// mode before it counts as flagging. Absorbs measurement/IPC/scheduling jitter on
+// throttled E-cores (a well-behaved engine reserves its own move-overhead and
+// returns BEFORE the bank empties); a real flag overshoots by far more than this.
+const tcFlagGrace = 300 * time.Millisecond
 
 // Start launches the engine at path, completes the UCI handshake, and verifies it
 // actually EMITS a move (warmup probe), retrying up to 3× on failure. Returns nil
@@ -252,6 +264,10 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 		moves = append(moves, mv)
 	}
 
+	// Real-clock bank per side (ms), used only when cfg.TCTimeMs > 0. Openings are
+	// free (played above before the clock starts), as in normal play.
+	whiteMs, blackMs := cfg.TCTimeMs, cfg.TCTimeMs
+
 	for len(moves) < cfg.MaxMoves {
 		if legal := engine.GenerateLegalMoves(pos); len(legal) == 0 {
 			if pos.IsInCheck() {
@@ -275,7 +291,18 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 		Send(eng, "position startpos moves "+strings.Join(moves, " "))
 		var goCmd string
 		var timeout, stopAfter time.Duration
-		if cfg.Nodes > 0 {
+		if cfg.TCTimeMs > 0 {
+			// Real tournament clock: hand the engine both banks + increment and let
+			// its own time management decide. stopAfter forces a hung/over-spending
+			// engine to yield just past its remaining bank so we can record the flag.
+			myMs := blackMs
+			if pos.Turn() == engine.White {
+				myMs = whiteMs
+			}
+			goCmd = fmt.Sprintf("go wtime %d btime %d winc %d binc %d", whiteMs, blackMs, cfg.TCIncMs, cfg.TCIncMs)
+			stopAfter = time.Duration(myMs)*time.Millisecond + tcFlagGrace
+			timeout = time.Duration(myMs)*time.Millisecond + 30*time.Second
+		} else if cfg.Nodes > 0 {
 			goCmd = fmt.Sprintf("go nodes %d", cfg.Nodes)
 			timeout = 60 * time.Second
 		} else if cfg.Movetime > 0 {
@@ -289,7 +316,24 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 			goCmd = fmt.Sprintf("go depth %d", d)
 			timeout = 180 * time.Second
 		}
+		moveStart := time.Now()
 		mv := GetMove(eng, goCmd, timeout, stopAfter)
+		if cfg.TCTimeMs > 0 {
+			// Deduct wall time from the mover's bank; an overshoot past the grace is a
+			// flag (loss on time) and ends the game before the move is even applied.
+			rem := &blackMs
+			if pos.Turn() == engine.White {
+				rem = &whiteMs
+			}
+			*rem -= int(time.Since(moveStart).Milliseconds())
+			if *rem < -int(tcFlagGrace.Milliseconds()) {
+				if newToMove {
+					return GameResult{Loss, "time-forfeit"}
+				}
+				return GameResult{Win, "time-forfeit"}
+			}
+			*rem += cfg.TCIncMs // Fischer increment for the completed move
+		}
 		if mv == "" || mv == "(none)" {
 			// Engine failed to produce a move though legal moves exist: count it
 			// as a loss for the offending side so a flaky binary can't masquerade.
