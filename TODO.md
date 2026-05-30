@@ -71,6 +71,45 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
   regen on a win, like C0). If WIN → regen baseline + commit + sweep further; if not → git checkout eval.go.
   QUEUED after: kingActivity 29→? (endgame-only, motivated by NGN's own endgame-king-centralization blunders, but
   dilute/hard to measure), then extension discipline (unblocks C4/C5). Gauntlet re-run for the absolute number still pending.
+  VERDICT (2026-05-30): kingSafety 130 = NEUTRAL-NEGATIVE (G106 49%, -10 [-76,+56], trended negative, bottomed -32 @G75)
+  → REVERTED to 100 (eval.go clean). Peak hunt UNFINISHED — A5 says test 115 (binary-search 100..130), NOT 130. Wrong sweep point.
+- **2026-05-30 PM (cont. 3) — ADVERSARIAL RE-INVESTIGATION (5 agents, Bryan-directed; [[feedback-confirm-before-dropping-findings]]).**
+  Bryan was hesitant to drop the "neutral/rejected" findings without confirmation. 4 agents deep-audited search tricks vs
+  Stockfish/Ethereal/Blunder/CPW; 1 audited WHY my findings didn't pan out. RESULTS:
+  - **REAL BUG FOUND + FIXED + COMMITTED (ff4ff33): SEE pawn-attacker file guards were SWAPPED** in getAttackers
+    (search.go:242) + getAttackersAfterMove (search.go:390), both colors. Edge-file (A/H) recapturers missed (SEE
+    over-pessimistic → discards winning edge captures) + phantom wrap-around attackers. Corrupts ~2-3% of SEE evals;
+    feeds capture pruning + ordering everywhere. Proven: Kiwipete Qf3xh3 = NGN -900 vs true -375 (missed g2 recapture).
+    Fixed (swap offsets to match guards) + 3 edge-file regression tests in see_test.go. This is a real bug like the
+    prior SEE-garbage +161. build/ngn_see = fixed binary, build/ngn_base_see = pre-SEE HEAD; **SEE SPRT (fixed-TIME,
+    to a bound) PENDING after the gauntlet frees cores.** build/ngn still = pre-SEE HEAD (gauntlet measures the "before").
+  - **NMP raw-eval base case (A1, HIGH, NEXT):** alphaBetaPV `depth<0 → EvaluateForPlayer` (raw eval, NOT qsearch),
+    so NMP at depth 3 (→depth-4=-1) verifies the null with a RAW eval — false cutoffs on hanging-piece positions; every
+    ref reduces to qsearch. ALSO explains the neutral depth-scaled-R (bigger R → more raw-eval verification). FIX: clamp
+    null recursion depth to ≥0 (surgical: `if nullDepth<0 {nullDepth=0}` in the NMP block) so depth-3 NMP gets qsearch.
+    Then re-test depth+eval-margin R. Correctness fix; commit on a tactical gate, SPRT fixed-TIME.
+  - **Move ordering (A4): counter ranked ABOVE killer is BACKWARDS** (NGN counter 30000 > killer 25000; SF/Ethereal/
+    Blunder/CPW all put killers first). NGN is the lone outlier; counters are also color-blind (counterMoves[from][to],
+    no side dim). FIX: swap to killer 30000 / counter 25000 + add [2] side index. ~+5-20, A/B (fixed-nodes, to a bound).
+    S2 RESOLVED: ply-vs-depth killers is a ~0-ELO near-tie (depth=D-ply alias at fixed depth; SF removed killers for ~0)
+    — my node-count rejection reasoning was invalid but the outcome (leave depth-indexed) is fine. DON'T pursue S2.
+  - **C4 (A2): real** — reduced LMR fail-highs not re-verified at full depth in ~99% of nodes (non-PV null-window makes
+    `score<beta` unsatisfiable); inherited from Blunder, diverges from SF/Ethereal. FIX: drop `&& score<beta`; LOW
+    explosion risk. **GOTCHA CORRECTION:** A2 says the reducedDepth=0 "load-bearing" claim does NOT hold now (reduction≤depth-2
+    cap floors it at 1; LMR excludes checks) → C5 fix may be safe — but EMPIRICALLY re-verify (depth-10 node/seldepth) before trusting.
+  - **S3 qsearch-TT (A3): CONFIRMED correct + worth keeping** (bounds right, depth-0 replacement safe). S7 consumes depth-0
+    qsearch entries ungated by depth — low severity, optionally gate S7 with ttDepth>=1.
+  - **METHODOLOGY (A5, THE BIG LESSON — in [[ngn-sprt-instrument]]):** every SPRT this session was 40-65x UNDERPOWERED
+    (82-106 games; ~5,378 needed for true +10 at [0,10]; ±69 ELO noise at n=82). "neutral" was NO INFORMATION. Run to a
+    bound/≥1k games; node count gates SANITY not strength; never batch; bracket eval sweeps; add pentanomial (~20% fewer games).
+  - **Blunder corpus (current NGN):** output/blunders_current.jsonl, 18/500 (3.6%); top-4 are mate-score artifacts (filter
+    gap), ~14 real = 150-475cp POSITIONAL/EVAL errors (endgame king/knight, passive-rook) → residual is eval-shaped, reconfirmed.
+  - **Gauntlet "why it failed":** the failing May-30 run PREDATED the fix commit 18d6ea8 (consecutive-forfeit abort +
+    tainted-anchor-dropped-not-voiding). Code is correct now; fresh post-C3 run RUNNING (-only v7.4.0, /tmp/gauntlet_postc3.log).
+    Structural limit: weak anchors NGN beats (5.0.0/6.1.0) ignore UCI stop → can't bracket the 50% crossover at movetime;
+    a fixed-depth gauntlet mode would unlock brackets (future).
+  - **PRIORITIZED QUEUE (all SPRTs run TO A BOUND now):** (1) SEE SPRT confirm (ff4ff33), (2) NMP base-case fix, (3) counter/
+    killer ordering swap + color dim, (4) C4 LMR re-verify (empirically re-check the clamp first), (5) kingSafety 115, (6) NMP depth-scaled R.
 - **GOTCHA BURNED IN (cost most of this session):** do NOT "clean up" the LMR `reducedDepth` dead branch
   (`if reducedDepth >= depth { reducedDepth = depth-1-reduction }`). It looks like a no-op, but replacing it
   with an `if reducedDepth < 1 { reducedDepth = 1 }` floor is CATASTROPHIC: reducedDepth legitimately
