@@ -39,6 +39,27 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
   to date. CAVEAT: fixed-time self-play vs HEAD reads the FULL depth-gain benefit (shared eval amplifies a
   pure search-depth edge), so the external-opponent (CCRL) contribution is likely smaller — but it is
   unambiguously large and positive (lower bound +45). Re-confirm magnitude with the next gauntlet.
+- **2026-05-30 PM (cont.) — PHASE-S BATCH (S4+S3), gated per-change, batch SPRT RUNNING.** Lowest-hanging
+  search refinements, each gated by smoke-tactical + a Kiwipete depth-10 node/seldepth tripwire vs clean
+  HEAD f04eb0d (388708 nodes / sd29) BEFORE the next was stacked. Verdicts:
+  - **S2 (killers ply-indexed) — REJECTED at the gate.** Drop-in ply-indexing REGRESSED fixed-depth ordering:
+    +28-43% nodes in 3 of 4 test positions (Kiwipete 389K→541K). The audit called it "small but real" from
+    general theory; the node-count mechanism check refuted the SIGN for NGN ([[feedback_audit_agent_skepticism]]
+    earns its keep again). Reverted, never committed. NGN's depth-indexed killers (broad per-remaining-depth
+    sharing) happen to out-order ply-indexing here; revisit only with a real fixed-time SPRT, not as a freebie.
+  - **S4 (LMP gated on improving) — committed d21a833.** Split lmpThreshold into [improving][depth]; not-improving
+    row prunes ~2x sooner ({0,3,4,6,9,12,15,19}), improving row left = HEAD ({0,5,8,12,17,23,30,38}) so only
+    not-improving nodes change. seldepth 29→26 (more pruning, as intended), tactical 28/30 held. Node count is
+    a selectivity proxy here (not pure efficiency), so its rise is not a regression signal — SPRT is the arbiter.
+  - **S3 (qsearch TT store) — committed a0fdda4, FAIL-HIGH-ONLY.** First cut (store every qsearch node) FLOODED
+    the TT: hashfull 20→63, nodes +26% — the exact "evicts deeper main entries" pitfall the note warned of.
+    Salvaged to store ONLY fail-highs (the cutting capture, depth-0 LowerBound): hashfull 40, nodes back to
+    flat/slightly-better, tactical 28/30. Added QSearchTTStores counter + TestQSearchTTStoresWired.
+  - **Batch SPRT:** new=build/ngn (a0fdda4, S4+S3) vs base=build/ngn_head (f04eb0d), fixed-NODES 100k (correct
+    for node-saver/ordering items; deterministic), conc-2, 400-opening book, /tmp/sprt_s3s4.log. If WIN → both
+    stay shipped. If LOSS → bisect (S4-alone vs HEAD) since they're separate commits. NEXT after verdict:
+    extension discipline (unblocks C4/C5 + tames the latent deep-check explosion), then S1 (aspiration, needs
+    fixed-TIME) / S5 (capture-vs-quiet order, A/B both ways). Gauntlet re-run for the absolute number still pending.
 - **GOTCHA BURNED IN (cost most of this session):** do NOT "clean up" the LMR `reducedDepth` dead branch
   (`if reducedDepth >= depth { reducedDepth = depth-1-reduction }`). It looks like a no-op, but replacing it
   with an `if reducedDepth < 1 { reducedDepth = 1 }` floor is CATASTROPHIC: reducedDepth legitimately
@@ -199,18 +220,19 @@ Search is the current 50+-ELO lane; eval (Phase E) is the proven backup.
   aspiration benefit. Use delta≈16, widen ×~2 per fail, keep the non-failing bound,
   go full only after a few fails. Blunder aspiration +23; delta from improving an
   existing crude version is smaller but real.
-- [ ] **S2 — Killer moves indexed by remaining `depth`, not `ply` (moveorder.go:83).**
-  Standard is ply-indexed; depth-indexing scatters killers across slots when LMR
-  reduces then re-searches. Switch to ply. Small but real; easy A/B. CONFIRMED 2026-05-30 by two
-  independent audit agents (ordering + LMR); sites: search.go:1459/1519, moveorder.go:83/370.
-- [ ] **S3 — Qsearch never stores to TT (search.go:1569+ only probes).** Storing the
-  q-result (bound + best capture) is a known small win and improves ordering on
-  re-visits (Zurichess does it). Watch the replacement policy doesn't evict useful
-  main-search entries (store at depth 0).
-- [ ] **S4 — LMP not gated on `improving` (search.go:1248-1250), est. +20-40.** Single
-  `lmpThreshold[depth]={0,5,8,12,17,23,30,38}`; Ethereal/Berserk key the count on `improving`
-  (~2× sooner when NOT improving). NGN already computes `improving` (search.go:1083) but uses it only
-  for LMR. FIX: 2-row table `[improving][depth]`, tighten the not-improving row. Fixed-TIME SPRT.
+- [~] **S2 — Killer ply-indexing — REJECTED 2026-05-30 (regressed ordering for NGN).** Drop-in switch
+  depth→ply INCREASED fixed-depth nodes +28-43% in 3/4 positions (Kiwipete 389K→541K) — worse ordering, not
+  better. The two audit agents argued from general theory; NGN's depth-indexed killers (broad per-remaining-
+  depth sharing) empirically out-order ply here. Reverted, not committed. Only revisit via a real fixed-time
+  SPRT (the node check killed it as a freebie). sites if retried: search.go:1484/1544, moveorder.go:83/370.
+- [x] **S3 — Qsearch stores fail-highs to TT — committed a0fdda4 2026-05-30 (batch SPRT pending).** Stores
+  ONLY fail-highs (cutting capture, depth-0 LowerBound). Storing every q-node flooded the TT (hashfull 20→63,
+  +26% nodes — the exact "evicts deeper main entries" pitfall); fail-high-only keeps it flat. QSearchTTStores
+  counter + TestQSearchTTStoresWired added. tactical 28/30. Follow-up if wanted: an Upper-bound store guarded
+  by "only if slot empty" to add the non-cutoff ordering hint without the flood.
+- [x] **S4 — LMP gated on `improving` — committed d21a833 2026-05-30 (batch SPRT pending).** 2-row
+  lmpThreshold[improving][depth]; not-improving prunes ~2x sooner ({0,3,4,6,9,12,15,19}), improving row =
+  HEAD. seldepth 29→26, tactical 28/30. est. +20-40.
 - [ ] **S5 — Losing captures ordered ABOVE good-history quiets (moveorder.go:343), est. +10-20.**
   SEE<0 captures score ~20000 (band base); quiet ceiling is ~16384 (history), so every losing capture
   is searched before every non-killer/counter quiet. DELIBERATE per the code comment, but Ethereal/
