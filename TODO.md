@@ -111,9 +111,12 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
     tainted-anchor-dropped-not-voiding). Code is correct now; fresh post-C3 run RUNNING (-only v7.4.0, /tmp/gauntlet_postc3.log).
     Structural limit: weak anchors NGN beats (5.0.0/6.1.0) ignore UCI stop → can't bracket the 50% crossover at movetime;
     a fixed-depth gauntlet mode would unlock brackets (future).
-  - **PRIORITIZED QUEUE (all SPRTs run TO A BOUND now):** (1) SEE SPRT confirm (ff4ff33) **← RUNNING** (cont.5),
-    (2) NMP base-case fix **← STAGED in source** (cont.5), (3) counter/killer ordering swap + color dim,
-    (4) C4 LMR re-verify (empirically re-check the clamp first), (5) kingSafety 115, (6) NMP depth-scaled R.
+  - **PRIORITIZED QUEUE (all SPRTs run TO A BOUND now):** (1) SEE confirm **DONE** (+6.9 [-10,+24]/1565g,
+    non-regression, kept ff4ff33), (2) NMP base-case **DONE-committed 844bb20 ← SPRT RUNNING** (cont.5),
+    (3) counter/killer swap + color dim (verified, fixed-NODES node-check FIRST per S2 lesson), (4) C4 LMR
+    re-verify (clamp confirmed DEAD — leave it; dropping `&& score<beta` routes reduced fail-highs through the
+    check-extension re-search = explosion vector), (5) kingSafety 100→115 (only untuned weight, fixed-DEPTH),
+    (6) NMP depth-scaled R.
 - **GOTCHA BURNED IN (cost most of this session):** do NOT "clean up" the LMR `reducedDepth` dead branch
   (`if reducedDepth >= depth { reducedDepth = depth-1-reduction }`). It looks like a no-op, but replacing it
   with an `if reducedDepth < 1 { reducedDepth = 1 }` floor is CATASTROPHIC: reducedDepth legitimately
@@ -137,18 +140,25 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
   PROMOTE to the stop rule ONLY after re-running the live null (identical binary→50%) + positive (depth7v3) controls
   post-gauntlet; then the whole fix queue (SEE→NMP→ordering→C4→kingSafety) costs ~15-30% fewer games to a bound.
 - **2026-05-30 PM (cont. 5) — POST-C3 GAUNTLET DONE (+240 ELO, see headline) → fix queue STARTED.**
-  - **(1) SEE confirm RUNNING:** `build/ngn_see` vs `build/ngn_base_see`, fixed-TIME movetime 100 / conc-6 /
-    maxgames 3000 / [0,10], 400-opening book auto-cycled, watching pLLR. /tmp/sprt_see.log (PID 66710). Chose
-    fixed-TIME not fixed-NODES because nodes/depth REPLAY identically per opening (game count capped at
-    unique-openings×2 = 800) — can't reach the ≥1k the A5 lesson demands; movetime auto-fills by cycling. Conc-6
-    is the tool's load-dependent path but UNBIASED for symmetric self-play (both NGN, identical NPS, swap colors);
-    pentanomial absorbs some added noise. Tracking ~50% early (narrow edge-file fix → small effect, expected).
-  - **(2) NMP base-case STAGED (source only, unbuilt):** verified the A1 claim against live code — at
-    depth==3, NMP's null child depth = depth-NULL_MOVE_R-1 = -1 trips the `depth<0` guard (search.go:962) →
-    raw EvaluateForPlayer, NOT qsearch (depth==0 routes to quiescence at :1012). Fix = floor nullDepth at 0
-    (search.go ~1155) so depth-3 NMP verifies through qsearch like depth>=4. Mirrors the load-bearing LMR
-    0→qsearch frontier; qsearch is bounded (qDepth>=6) so no explosion risk. BUILD+tactical-verify+SPRT
-    (new=ngn_nmp, base=ngn_see) DEFERRED until SEE frees cores — avoids perturbing the movetime SPRT.
+  - **(1) SEE confirm DONE — +6.9 ELO [-10,+24] over 1565 games, LLR phantom-decayed +10→+7 (→0), KEPT.**
+    `build/ngn_see` vs `build/ngn_base_see`, fixed-TIME 100ms/conc-6/[0,10], 400-opening auto-cycle. Non-regression
+    confirmed (lower bound -10), mechanism-verified (3 edge-file tests), tactical-held → kept on the sound+tested+
+    no-regression bar (cf. quiet-SEE +2.2). Stopped at the pre-committed N=1.5k (no optional-stopping bias). Chose
+    fixed-TIME because nodes/depth REPLAY identically per opening (capped at unique-openings×2=800 < the ≥1k A5
+    floor); movetime auto-fills by cycling. Conc-6 is load-dependent but UNBIASED for symmetric self-play.
+  - **(2) NMP base-case DONE-committed 844bb20 → SPRT RUNNING.** Verified A1 vs live code: at depth==3 the null
+    child depth = depth-NULL_MOVE_R-1 = -1 trips the `depth<0` guard (search.go:962) → raw EvaluateForPlayer, NOT
+    qsearch (depth==0 → quiescence at :1012). Fix floors nullDepth at 0 so depth-3 NMP verifies through qsearch
+    like depth>=4 (mirrors the load-bearing LMR 0→qsearch; qDepth>=6 bounds it, no explosion). Deterministic
+    engine tests PASS (7.7s). SPRT: build/ngn_nmp vs build/ngn_see, fixed-TIME 100ms/conc-6/[0,10] +pentanomial
+    (rebuilt sprt; pLLR column now live — its first real-game run). /tmp/sprt_nmp.log. fixed-TIME because NMP
+    SPENDS qsearch nodes for soundness (A5: fixed-nodes undercredits node-spenders).
+  - **FLAG (pre-existing, NOT mine) — flaky illegal-move fuzz:** `go test ./engine/` (full, not -short) FAILS
+    intermittently: `TestFuzzSearchLegalMoves` is time-seeded random (search_fuzz_test.go:19) and found illegal
+    moves (d5f6, e2e3 at depth 1-2) on clean HEAD too (3 on one seed, 0 on the next — pure flake). Depth 1-2 random
+    positions, where NMP can't fire, so unrelated to (2). Almost certainly `generateRandomValidPosition` slipping
+    illegal positions past `isPositionValid` (test prints no FEN → can't replay). Real games show ZERO illegal-move
+    forfeits. SEPARATE TASK: make the fuzz print+save the failing FEN, then decide test-bug vs real move-gen bug.
 
 ### >>> NEXT — TIGHT TIME CONTROLS (priority, set by Bryan 2026-05-29; pulled ahead of S/E/X) <<<
 **Goal: NGN plays bullet/blitz in a fully sane/good way — never flags, budgets the
