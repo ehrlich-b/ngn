@@ -197,6 +197,16 @@ smoke-tactical: build ## Tactical-only smoke (no game phase, ~10 sec)
 	@go build -o $(BUILD_DIR)/smoke ./cmd/smoke
 	@./$(BUILD_DIR)/smoke -skip-games
 
+.PHONY: build-anchors
+build-anchors: ## Clone + build the CCRL-rated Blunder opponent ladder into opponents/
+	@scripts/build-anchors.sh
+
+.PHONY: gauntlet
+gauntlet: build ## Measure NGN's absolute CCRL rating vs the Blunder anchor ladder (ARGS="-games 24")
+	@mkdir -p $(BUILD_DIR)
+	@go build -o $(BUILD_DIR)/gauntlet ./cmd/gauntlet
+	@./$(BUILD_DIR)/gauntlet $(ARGS)
+
 .PHONY: perft
 perft: ## Run perft validation tests for move generation correctness
 	@echo "Running perft validation tests..."

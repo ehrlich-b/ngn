@@ -1,0 +1,323 @@
+// Command gauntlet measures NGN's ABSOLUTE rating by playing it against a ladder
+// of opponents with PUBLISHED CCRL ratings (Blunder versions in opponents/), then
+// pooling the per-anchor performance ratings by inverse variance. This replaces
+// Stockfish's UCI_Elo slider as the absolute yardstick — we measured the slider
+// ~+400 inflated vs CCRL (NGN scored 70% vs "SF2400" but ~7% vs Blunder 7.4.0,
+// CCRL 2532). It runs serially at equal movetime through the hardened internal/uci
+// harness (handshake retry, warmup probe, stop-on-overshoot), so a slow or glitchy
+// opponent can't forfeit its way into a bogus result.
+//
+//	scripts/build-anchors.sh                     # build the ladder once
+//	./build/gauntlet -games 24 -movetime 1000    # ~real ballpark
+//	./build/gauntlet -games 60 -movetime 2500    # tighter, closer to CCRL Blitz
+//	./build/gauntlet -only v7.4.0 -ngn opponents/blunder_740   # calibration sanity
+//
+// CAVEAT printed on every run: this is a movetime proxy for CCRL Blitz (2'+1");
+// it under-times the anchors vs their rating-list TC, biasing NGN's number
+// optimistic by ~30-80 ELO. A true CCRL-conditions run needs NGN to play a real
+// clock, currently blocked by the tournament time-management bug (top TODO).
+package main
+
+import (
+	"encoding/json"
+	"flag"
+	"fmt"
+	"log"
+	"math"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/ehrlich-b/ngn/internal/history"
+	"github.com/ehrlich-b/ngn/internal/rating"
+	"github.com/ehrlich-b/ngn/internal/uci"
+)
+
+// Anchor is one rung of the CCRL-rated ladder (from opponents/ratings.json).
+type Anchor struct {
+	Version string `json:"version"`
+	Path    string `json:"path"`
+	CCRL    int    `json:"ccrl"`
+	Source  string `json:"source"`
+}
+
+// anchorTally is one anchor's W-D-L in a persisted gauntlet record.
+type anchorTally struct {
+	Version string `json:"version"`
+	CCRL    int    `json:"ccrl"`
+	W       int    `json:"w"`
+	D       int    `json:"d"`
+	L       int    `json:"l"`
+}
+
+// gauntletRecord is one JSONL row (mirrors smoke's runRecord; ts+sha drive the
+// commit-decayed rolling trend).
+type gauntletRecord struct {
+	Timestamp  time.Time     `json:"ts"`
+	SHA        string        `json:"sha"`
+	MovetimeMs int           `json:"movetime_ms"`
+	GamesPer   int           `json:"games_per_anchor"`
+	Anchors    []anchorTally `json:"anchors"`
+	Pooled     float64       `json:"pooled_elo"`
+	PooledLo   float64       `json:"pooled_lo"`
+	PooledHi   float64       `json:"pooled_hi"`
+}
+
+// result holds one anchor's outcome after its games are played (NGN's POV).
+type result struct {
+	anchor  Anchor
+	w, d, l int
+	reasons map[string]int
+}
+
+// forfeitReasons are game-end reasons that signal a harness/process glitch rather
+// than real chess; too many of these taints the run (the anti-bogus-40-0 rule).
+var forfeitReasons = map[string]bool{
+	"no-move": true, "illegal-move": true,
+	"illegal-opening": true, "bad-opening": true, "fen-error": true,
+}
+
+func main() {
+	anchorsPath := flag.String("anchors", "opponents/ratings.json", "JSON file: version->path->CCRL ladder")
+	ngnPath := flag.String("ngn", "build/ngn", "NGN engine binary")
+	movetimeMs := flag.Int("movetime", 1000, "ms per move (equal for both sides)")
+	games := flag.Int("games", 24, "games per anchor (even = equal colors)")
+	only := flag.String("only", "", "comma-separated versions to include (default: all)")
+	openingsFile := flag.String("openings", "output/sprt_openings.txt", "opening move-sequences, one per line")
+	historyPath := flag.String("history", "output/gauntlet_history.jsonl", "JSONL file for rolling pooled trend")
+	noRecord := flag.Bool("no-record", false, "don't append this run to history")
+	rollingOnly := flag.Bool("rolling", false, "print the commit-decayed pooled trend and exit (no games)")
+	lowPower := flag.Bool("lowpower", true, "route engines to macOS E-cores (taskpolicy -b)")
+	flag.Parse()
+
+	if *rollingOnly {
+		printRolling(*historyPath, *movetimeMs)
+		return
+	}
+
+	anchors, err := loadAnchors(*anchorsPath, *only)
+	if err != nil {
+		log.Fatalf("loading anchors: %v", err)
+	}
+	if len(anchors) == 0 {
+		log.Fatal("no anchors selected")
+	}
+	if _, err := os.Stat(*ngnPath); err != nil {
+		log.Fatalf("NGN binary not found: %s (build it first)", *ngnPath)
+	}
+	for _, a := range anchors {
+		if _, err := os.Stat(a.Path); err != nil {
+			log.Fatalf("anchor binary not found: %s (run scripts/build-anchors.sh)", a.Path)
+		}
+	}
+	if *games%2 != 0 {
+		fmt.Printf("WARNING: -games %d is odd; colors will be unbalanced — prefer an even count\n", *games)
+	}
+
+	openings, err := uci.LoadOpenings(*openingsFile)
+	if err != nil || len(openings) == 0 {
+		fmt.Printf("WARN: openings %q unavailable (%v); using built-in set\n", *openingsFile, err)
+		openings, _ = uci.LoadOpenings("")
+	}
+
+	fmt.Println("NGN CCRL-anchored gauntlet")
+	fmt.Println("==========================")
+	fmt.Printf("ngn=%s | %d anchors | %d games/anchor | movetime %dms | concurrency 1%s\n",
+		*ngnPath, len(anchors), *games, *movetimeMs, uci.PowerNote(*lowPower))
+	fmt.Println("CAVEAT: movetime proxy for CCRL Blitz (2'+1\"); under-times anchors -> NGN biased ~+30-80 optimistic.")
+	fmt.Println()
+
+	var results []result
+	for _, a := range anchors {
+		fmt.Printf("== vs Blunder %s (CCRL %d) ==\n", a.Version, a.CCRL)
+		results = append(results, playAnchor(*ngnPath, a, openings, *games, *movetimeMs, *lowPower))
+		fmt.Println()
+	}
+
+	report(results, *movetimeMs, *games, *historyPath, *noRecord)
+}
+
+func loadAnchors(path, only string) ([]Anchor, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var all []Anchor
+	if err := json.Unmarshal(data, &all); err != nil {
+		return nil, err
+	}
+	if only == "" {
+		return all, nil
+	}
+	want := map[string]bool{}
+	for _, v := range strings.Split(only, ",") {
+		want[strings.TrimSpace(v)] = true
+	}
+	var out []Anchor
+	for _, a := range all {
+		if want[a.Version] {
+			out = append(out, a)
+		}
+	}
+	return out, nil
+}
+
+// playAnchor plays `games` games NGN-vs-anchor at equal movetime, alternating
+// colors in reversed pairs over the opening list. Counts are from NGN's POV.
+func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs int, lowPower bool) result {
+	ngn := uci.Start(ngnPath, "ngn", lowPower)
+	opp := uci.Start(a.Path, a.Version, lowPower)
+	if ngn == nil || opp == nil {
+		log.Fatalf("engine failed UCI handshake (ngn ok=%v, %s ok=%v); aborting instead of forfeiting every game",
+			ngn != nil, a.Version, opp != nil)
+	}
+	defer uci.Stop(ngn)
+	defer uci.Stop(opp)
+
+	res := result{anchor: a, reasons: map[string]int{}}
+	cfg := uci.GameConfig{Movetime: movetimeMs, MaxMoves: 200}
+	for g := 0; g < games; g++ {
+		op := openings[(g/2)%len(openings)] // reversed-color pairs of the same line
+		newIsWhite := g%2 == 0
+		// uci.PlayGame returns the result from the FIRST engine's (NGN's) POV.
+		gr := uci.PlayGame(ngn, opp, op, newIsWhite, cfg)
+		res.reasons[gr.Reason]++
+		switch gr.Res {
+		case uci.Win:
+			res.w++
+		case uci.Draw:
+			res.d++
+		case uci.Loss:
+			res.l++
+		}
+		n := res.w + res.d + res.l
+		fmt.Printf("  G%-3d %2dW %2dD %2dL  %5.1f%%  %-12s\n",
+			n, res.w, res.d, res.l, 100*rating.Score(res.w, res.d)/float64(n), gr.Reason)
+	}
+	return res
+}
+
+// row is one anchor's computed display + pooling values.
+type row struct {
+	r            result
+	score, n     float64
+	perf, lo, hi float64
+	weight       float64
+}
+
+// report computes per-anchor performance ratings, the inverse-variance pooled
+// rating, runs the integrity checks, prints the crosstable, and persists the run.
+func report(results []result, movetimeMs, gamesPer int, historyPath string, noRecord bool) {
+	const c = 400.0 / math.Ln10 // logistic slope d(elo)/d(logit); var_i = c^2/(n*p*(1-p))
+
+	var rows []row
+	var sumW, sumWR float64
+	above, below, tainted := false, false, false
+
+	for _, r := range results {
+		n := float64(r.w + r.d + r.l)
+		if n == 0 {
+			continue
+		}
+		f := 0
+		for reason, cnt := range r.reasons {
+			if forfeitReasons[reason] {
+				f += cnt
+			}
+		}
+		if float64(f)/n > 0.02 {
+			tainted = true
+			fmt.Printf("TAINTED: %s had %d/%d forfeit/error games (%v) — exceeds 2%% ceiling\n",
+				r.anchor.Version, f, int(n), r.reasons)
+		}
+		score := rating.Score(r.w, r.d)
+		perf, lo, hi := rating.PerfRating(score, n, float64(r.anchor.CCRL))
+		// Pool on add-half-smoothed p so 0%/100% anchors get a large-but-finite
+		// variance (~0 weight) instead of a div-by-zero or the ±800 clamp.
+		ps := (score + 0.5) / (n + 1)
+		weight := n * ps * (1 - ps) / (c * c) // = 1/var_i
+		sumW += weight
+		sumWR += weight * (float64(r.anchor.CCRL) + rating.ScoreToEloDiff(ps))
+		if score/n > 0.5 {
+			above = true
+		} else {
+			below = true
+		}
+		rows = append(rows, row{r, score, n, perf, lo, hi, weight})
+	}
+
+	if sumW == 0 {
+		fmt.Println("no games played — nothing to pool")
+		return
+	}
+
+	fmt.Println("== Crosstable ==")
+	fmt.Printf("%-8s %5s  %3s %3s %3s  %6s  %5s  %-13s %7s\n",
+		"Anchor", "CCRL", "W", "D", "L", "Score", "Perf", "95% CI", "weight")
+	for _, rw := range rows {
+		fmt.Printf("%-8s %5d  %3d %3d %3d  %5.1f%%  %5.0f  [%4.0f,%4.0f]  %6.1f%%\n",
+			rw.r.anchor.Version, rw.r.anchor.CCRL, rw.r.w, rw.r.d, rw.r.l,
+			100*rw.score/rw.n, rw.perf, rw.lo, rw.hi, 100*rw.weight/sumW)
+	}
+	fmt.Println("------------------------------------------------------------------------")
+
+	pooled := sumWR / sumW
+	se := math.Sqrt(1 / sumW)
+	lo, hi := pooled-1.96*se, pooled+1.96*se
+
+	if tainted {
+		fmt.Println("*** NO RATING EMITTED — run tainted by forfeits/errors (see TAINTED above). Re-run. ***")
+		return
+	}
+	if len(rows) >= 2 && !(above && below) {
+		fmt.Println("NOTE: the anchors did not bracket 50% — the pooled rating is an EXTRAPOLATION.")
+		fmt.Println("      Add a weaker anchor (NGN won all) or a stronger one (NGN lost all) and re-run.")
+	}
+	fmt.Printf("\nPOOLED NGN rating: %.0f   95%% CI [%.0f, %.0f]   (%d anchors, %d games each)\n",
+		pooled, lo, hi, len(rows), gamesPer)
+	fmt.Println("(CCRL-scale via Blunder anchors at movetime; ~+30-80 optimistic vs a true 2'+1\" clock run.)")
+
+	if !noRecord {
+		rec := gauntletRecord{
+			Timestamp: time.Now().UTC(), SHA: history.CurrentSHA(),
+			MovetimeMs: movetimeMs, GamesPer: gamesPer,
+			Pooled: pooled, PooledLo: lo, PooledHi: hi,
+		}
+		for _, r := range results {
+			rec.Anchors = append(rec.Anchors, anchorTally{r.anchor.Version, r.anchor.CCRL, r.w, r.d, r.l})
+		}
+		if err := history.Append(historyPath, rec); err != nil {
+			fmt.Printf("WARN: could not record run: %v\n", err)
+		}
+	}
+}
+
+// printRolling shows the commit-decayed weighted mean of past pooled ratings at
+// the given movetime, so a trend survives across commits like smoke's rolling-ELO.
+func printRolling(historyPath string, movetimeMs int) {
+	all, err := history.Load[gauntletRecord](historyPath)
+	if err != nil {
+		fmt.Printf("WARN: could not load history %s: %v\n", historyPath, err)
+		return
+	}
+	var num, den float64
+	n := 0
+	fmt.Printf("== Rolling pooled CCRL rating (commit-decayed, movetime %dms) ==\n", movetimeMs)
+	for _, r := range all {
+		if r.MovetimeMs != movetimeMs {
+			continue
+		}
+		w := history.RecordWeight(history.CommitDistance(r.SHA))
+		if w <= 0 {
+			continue
+		}
+		num += w * r.Pooled
+		den += w
+		n++
+	}
+	if den == 0 {
+		fmt.Println("(no recent runs within decay window)")
+		return
+	}
+	fmt.Printf("Estimated NGN rating: %.0f   (effective weight %.2f across %d runs)\n", num/den, den, n)
+}
