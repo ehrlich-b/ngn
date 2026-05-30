@@ -101,7 +101,7 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
     qsearch entries ungated by depth — low severity, optionally gate S7 with ttDepth>=1.
   - **METHODOLOGY (A5, THE BIG LESSON — in [[ngn-sprt-instrument]]):** every SPRT this session was 40-65x UNDERPOWERED
     (82-106 games; ~5,378 needed for true +10 at [0,10]; ±69 ELO noise at n=82). "neutral" was NO INFORMATION. Run to a
-    bound/≥1k games; node count gates SANITY not strength; never batch; bracket eval sweeps; add pentanomial (~20% fewer games).
+    bound/≥1k games; node count gates SANITY not strength; never batch; bracket eval sweeps; pentanomial DONE (e830e37, cont.4).
   - **Blunder corpus (current NGN):** output/blunders_current.jsonl, 18/500 (3.6%); top-4 are mate-score artifacts (filter
     gap), ~14 real = 150-475cp POSITIONAL/EVAL errors (endgame king/knight, passive-rook) → residual is eval-shaped, reconfirmed.
   - **Gauntlet "why it failed":** the failing May-30 run PREDATED the fix commit 18d6ea8 (consecutive-forfeit abort +
@@ -125,6 +125,13 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
   latent deep-check explosion), then S4 (LMP-improving). Gauntlet re-run for the absolute number still pending.
 - Provenance: 6-agent search audit + 1 runtime audit (2026-05-30), every claim validated vs live code →
   C3/C4/C5 + S4-S7 (Phase S), RT1-RT4 (Phase RT), TT audited CLEAN, code-clarity R1 (low pri per Bryan).
+- **2026-05-30 PM (cont. 4) — PENTANOMIAL committed (e830e37) during the gauntlet window (non-contending, no games).**
+  cmd/sprt now scores the PAIR (same opening, reversed colors) as a 5-bucket distribution alongside the trinomial:
+  SECONDARY stat for now (per-line `pLLR` + a Penta-Elo CI in the result block); the trinomial remains the decision/
+  stop rule. Unit tests (cmd/sprt/sprt_test.go) prove it reduces EXACTLY to the trinomial under independence and
+  tightens (more-negative LLR) on the balanced-pair null — exactly the instrument's own null-validation scenario.
+  PROMOTE to the stop rule ONLY after re-running the live null (identical binary→50%) + positive (depth7v3) controls
+  post-gauntlet; then the whole fix queue (SEE→NMP→ordering→C4→kingSafety) costs ~15-30% fewer games to a bound.
 
 ### >>> NEXT — TIGHT TIME CONTROLS (priority, set by Bryan 2026-05-29; pulled ahead of S/E/X) <<<
 **Goal: NGN plays bullet/blitz in a fully sane/good way — never flags, budgets the
