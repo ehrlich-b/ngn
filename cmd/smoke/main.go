@@ -7,29 +7,28 @@
 //     200ms SF) via the existing elo-assess binary. We only fire on extreme
 //     outcomes (0 wins or all wins); mid outcomes are treated as "no signal".
 //
-// Designed to run on battery in a few minutes. If it passes, you have weak
-// evidence the change isn't broken; you can still run a full ELO test on AC
-// power before claiming an actual ELO delta.
+// Designed to run on battery in a few minutes. Its rolling number is a RELATIVE
+// regression tripwire vs Stockfish's UCI_Elo slider (which runs ~+400 inflated
+// vs CCRL) — NOT an absolute rating. Use `make gauntlet` for the absolute number.
 package main
 
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
-	"math"
 	"math/rand"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/ehrlich-b/ngn/engine"
+	"github.com/ehrlich-b/ngn/internal/history"
+	"github.com/ehrlich-b/ngn/internal/rating"
 )
 
 // runRecord is one row of the rolling-ELO history. Append-only JSONL.
@@ -86,7 +85,7 @@ func main() {
 		// fail; rolling ELO catches genuine drift.
 		_, rec := runGameSmoke(*nGames, *ngnMs, *sfMs, *targetELO)
 		if rec != nil && !*noRecord {
-			if err := appendRun(*historyPath, *rec); err != nil {
+			if err := history.Append(*historyPath, *rec); err != nil {
 				fmt.Printf("WARN: could not record run: %v\n", err)
 			}
 			gameStats = rec
@@ -251,7 +250,7 @@ func runGameSmoke(games, ngnMs, sfMs, targetELO int) (string, *runRecord) {
 
 	rec := &runRecord{
 		Timestamp: time.Now().UTC(),
-		SHA:       currentSHA(),
+		SHA:       history.CurrentSHA(),
 		NgnMs:     ngnMs,
 		SfMs:      sfMs,
 		TargetELO: targetELO,
@@ -274,50 +273,6 @@ func runGameSmoke(games, ngnMs, sfMs, targetELO int) (string, *runRecord) {
 	}
 }
 
-// appendRun appends a single record to the JSONL history file, creating the
-// parent dir if needed.
-func appendRun(path string, rec runRecord) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	data, err := json.Marshal(rec)
-	if err != nil {
-		return err
-	}
-	data = append(data, '\n')
-	_, err = f.Write(data)
-	return err
-}
-
-// loadHistory reads all run records from the JSONL file. Missing file returns
-// (nil, nil) — the caller treats that as "no history yet".
-func loadHistory(path string) ([]runRecord, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	defer f.Close()
-	var out []runRecord
-	scan := bufio.NewScanner(f)
-	scan.Buffer(make([]byte, 0, 4096), 1024*1024)
-	for scan.Scan() {
-		var r runRecord
-		if err := json.Unmarshal(scan.Bytes(), &r); err != nil {
-			continue
-		}
-		out = append(out, r)
-	}
-	return out, scan.Err()
-}
-
 // weightedRun pairs a record with the commit distance from HEAD and the
 // resulting decay weight. distance < 0 means the SHA is unreachable (deleted,
 // rewritten, or unknown) — those contribute zero weight.
@@ -327,45 +282,13 @@ type weightedRun struct {
 	weight   float64
 }
 
-// commitDistance counts commits in HEAD's history that aren't in sha's
-// ancestry. Returns 0 when sha == HEAD, positive when HEAD has moved forward,
-// and -1 if sha can't be resolved.
-func commitDistance(sha string) int {
-	if sha == "" || sha == "unknown" {
-		return -1
-	}
-	out, err := exec.Command("git", "rev-list", "--count", sha+"..HEAD").Output()
-	if err != nil {
-		return -1
-	}
-	n, err := strconv.Atoi(strings.TrimSpace(string(out)))
-	if err != nil {
-		return -1
-	}
-	return n
-}
-
-// recordWeight applies linear decay so older runs count for less:
-//   - distance 0-5:   weight = 1.0 - 0.10*distance       (1.00 → 0.50)
-//   - distance 6-14:  weight = 0.50 - 0.05*(distance-5)  (0.45 → 0.05)
-//   - distance ≥ 15:  weight = 0  (full decay; "wide-open" again)
-//   - unreachable:    weight = 0  (rebased / unknown SHA)
-func recordWeight(distance int) float64 {
-	if distance < 0 || distance >= 15 {
-		return 0
-	}
-	if distance <= 5 {
-		return 1.0 - 0.10*float64(distance)
-	}
-	return 0.50 - 0.05*float64(distance-5)
-}
-
 // printRolling reports the rolling estimate restricted to runs at the same
 // (targetELO, ngnMs, sfMs) configuration. Different configs are not directly
-// comparable so we don't pool them. Older records decay per recordWeight so
-// stale data slowly bleeds out as commits accumulate.
+// comparable so we don't pool them. Older records decay per history.RecordWeight
+// so stale data slowly bleeds out as commits accumulate. NB: this is a RELATIVE
+// tripwire vs the SF UCI_Elo slider, not an absolute CCRL rating.
 func printRolling(historyPath string, targetELO, ngnMs, sfMs int) {
-	all, err := loadHistory(historyPath)
+	all, err := history.Load[runRecord](historyPath)
 	if err != nil {
 		fmt.Printf("WARN: could not load history %s: %v\n", historyPath, err)
 		return
@@ -384,8 +307,8 @@ func printRolling(historyPath string, targetELO, ngnMs, sfMs int) {
 
 	weighted := make([]weightedRun, 0, len(matching))
 	for _, r := range matching {
-		d := commitDistance(r.SHA)
-		w := recordWeight(d)
+		d := history.CommitDistance(r.SHA)
+		w := history.RecordWeight(d)
 		weighted = append(weighted, weightedRun{rec: r, distance: d, weight: w})
 	}
 
@@ -420,13 +343,14 @@ func printRolling(historyPath string, targetELO, ngnMs, sfMs int) {
 		}
 	} else {
 		score := wW + 0.5*wD
-		est, lo, hi := eloEstimate(score, wTotal, targetELO)
+		est, lo, hi := rating.PerfRating(score, wTotal, float64(targetELO))
 		fmt.Printf("Effective sample: %.1f games across %d/%d runs\n",
 			wTotal, contributing, len(matching))
 		fmt.Printf("Weighted: %.1fW %.1fD %.1fL = %.1f%%\n",
 			wW, wD, wL, score/wTotal*100)
-		fmt.Printf("Estimated ELO: %.0f  CI [%.0f, %.0f]  (width %.0f)\n",
+		fmt.Printf("Estimated ELO vs SF slider: %.0f  CI [%.0f, %.0f]  (width %.0f)\n",
 			est, lo, hi, hi-lo)
+		fmt.Println("  (relative tripwire — SF UCI_Elo runs ~+400 hot vs CCRL; run `make gauntlet` for the absolute number)")
 	}
 
 	// Show the last few runs for trend visibility.
@@ -445,69 +369,7 @@ func printRolling(historyPath string, targetELO, ngnMs, sfMs int) {
 			dStr = "?"
 		}
 		fmt.Printf("  %s  %s  d=%-3s w=%.2f  %dW %dD %dL = %.0f%%\n",
-			ts, shortSHA(wr.rec.SHA), dStr, wr.weight,
+			ts, history.ShortSHA(wr.rec.SHA), dStr, wr.weight,
 			wr.rec.NgnW, wr.rec.Draws, wr.rec.SfW, runRate*100)
 	}
-}
-
-func currentSHA() string {
-	out, err := exec.Command("git", "rev-parse", "HEAD").Output()
-	if err != nil {
-		return "unknown"
-	}
-	return strings.TrimSpace(string(out))
-}
-
-func shortSHA(sha string) string {
-	if len(sha) >= 7 {
-		return sha[:7]
-	}
-	return sha
-}
-
-// Wilson CI on a Bernoulli sample (with score = wins + 0.5*draws used as the
-// "successes" count — this is the standard chess-Elo trick: it overestimates
-// variance slightly vs a two-parameter draw model, but is the right thing to
-// do given typical engine-vs-engine sample sizes). n is float so callers can
-// pass weighted (effective) sample sizes — the math is identical.
-func wilsonCI(score, n float64) (lo, hi float64) {
-	const z = 1.96
-	if n <= 0 {
-		return 0, 1
-	}
-	p := score / n
-	denom := 1.0 + z*z/n
-	center := (p + z*z/(2*n)) / denom
-	margin := z * math.Sqrt(p*(1-p)/n+z*z/(4*n*n)) / denom
-	lo = center - margin
-	hi = center + margin
-	if lo < 0 {
-		lo = 0
-	}
-	if hi > 1 {
-		hi = 1
-	}
-	return
-}
-
-func scoreToEloDiff(p float64) float64 {
-	const eps = 1e-4
-	if p <= eps {
-		return -800
-	}
-	if p >= 1-eps {
-		return 800
-	}
-	return 400 * math.Log10(p/(1-p))
-}
-
-func eloEstimate(score, n float64, targetELO int) (est, lo, hi float64) {
-	if n <= 0 {
-		return float64(targetELO), float64(targetELO) - 400, float64(targetELO) + 400
-	}
-	p := score / n
-	pLo, pHi := wilsonCI(score, n)
-	return float64(targetELO) + scoreToEloDiff(p),
-		float64(targetELO) + scoreToEloDiff(pLo),
-		float64(targetELO) + scoreToEloDiff(pHi)
 }

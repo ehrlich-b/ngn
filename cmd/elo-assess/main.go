@@ -1,15 +1,15 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
-	"log"
 	"math"
-	"os/exec"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/ehrlich-b/ngn/internal/rating"
+	"github.com/ehrlich-b/ngn/internal/uci"
 )
 
 // Assessment levels
@@ -27,8 +27,8 @@ type Config struct {
 	TargetELO     int
 	MinGames      int
 	MaxGames      int
-	MovetimeMs    int  // NGN time per move
-	SFMovetimeMs  int  // Stockfish time per move (asymmetric); 0 = same as MovetimeMs
+	MovetimeMs    int     // NGN time per move
+	SFMovetimeMs  int     // Stockfish time per move (asymmetric); 0 = same as MovetimeMs
 	StopWidthELO  float64 // stop early when 95% ELO CI width ≤ this
 	LowPower      bool    // route to macOS E-cores via taskpolicy -b
 }
@@ -145,7 +145,7 @@ func runGamesBayesian(config *Config) GameResult {
 		result.TotalGames++
 
 		score := float64(result.NGNWins) + 0.5*float64(result.Draws)
-		eloEst, eloLo, eloHi := eloEstimate(score, result.TotalGames, config.TargetELO)
+		eloEst, eloLo, eloHi := rating.PerfRating(score, float64(result.TotalGames), float64(config.TargetELO))
 		ciWidth := eloHi - eloLo
 
 		fmt.Printf("[%s] %-10s %-12s | W%d D%d L%d  est %.0f  CI [%.0f, %.0f]  (%v)\n",
@@ -166,79 +166,28 @@ func runGamesBayesian(config *Config) GameResult {
 	return result
 }
 
-// wilsonCI returns the Wilson 95% confidence interval for expected score-per-game
-// given total score (wins + 0.5*draws) over n games. Robust at edges unlike
-// the Normal approximation.
-func wilsonCI(score float64, n int) (lo, hi float64) {
-	const z = 1.96
-	if n == 0 {
-		return 0, 1
-	}
-	p := score / float64(n)
-	nf := float64(n)
-	denom := 1.0 + z*z/nf
-	center := (p + z*z/(2*nf)) / denom
-	margin := z * math.Sqrt(p*(1-p)/nf+z*z/(4*nf*nf)) / denom
-	lo = center - margin
-	hi = center + margin
-	if lo < 0 {
-		lo = 0
-	}
-	if hi > 1 {
-		hi = 1
-	}
-	return
-}
-
-// eloEstimate returns (point estimate, lower CI, upper CI) in absolute ELO
-// against an opponent rated targetELO. Uses Wilson CI on score fraction.
-func eloEstimate(score float64, n, targetELO int) (est, lo, hi float64) {
-	if n == 0 {
-		return float64(targetELO), float64(targetELO) - 400, float64(targetELO) + 400
-	}
-	p := score / float64(n)
-	pLo, pHi := wilsonCI(score, n)
-	est = float64(targetELO) + scoreToEloDiff(p)
-	// Higher p → higher ELO; CI mapping preserves that order.
-	lo = float64(targetELO) + scoreToEloDiff(pLo)
-	hi = float64(targetELO) + scoreToEloDiff(pHi)
-	return
-}
-
-func scoreToEloDiff(p float64) float64 {
-	// Clamp to avoid ±Inf when all games lost/won; use sentinel bounds.
-	const eps = 1e-4
-	if p <= eps {
-		return -800
-	}
-	if p >= 1-eps {
-		return 800
-	}
-	return 400 * math.Log10(p/(1-p))
-}
-
 func playGame(config *Config, ngnWhite bool, ngnTime, sfTime float64) (string, string) {
-	ngn := startEngine(config.NGNPath, "NGN", config.LowPower)
+	ngn := uci.Start(config.NGNPath, "NGN", config.LowPower)
 	if ngn == nil {
 		return "error", "failed to start NGN"
 	}
-	defer stopEngine(ngn)
+	defer uci.Stop(ngn)
 
-	sf := startEngine(config.StockfishPath, "Stockfish", config.LowPower)
+	sf := uci.Start(config.StockfishPath, "Stockfish", config.LowPower)
 	if sf == nil {
 		return "error", "failed to start Stockfish"
 	}
-	defer stopEngine(sf)
+	defer uci.Stop(sf)
 
-	sendCommand(sf, "setoption name UCI_LimitStrength value true")
-	sendCommand(sf, fmt.Sprintf("setoption name UCI_Elo value %d", config.TargetELO))
+	uci.Send(sf, "setoption name UCI_LimitStrength value true")
+	uci.Send(sf, fmt.Sprintf("setoption name UCI_Elo value %d", config.TargetELO))
 
 	moves := []string{}
 	maxMoves := 200
 
 	for moveNum := 0; moveNum < maxMoves; moveNum++ {
 		isWhiteMove := moveNum%2 == 0
-		var currentEngine *Engine
+		var currentEngine *uci.Engine
 		var timePerMove float64
 
 		if (isWhiteMove && ngnWhite) || (!isWhiteMove && !ngnWhite) {
@@ -253,10 +202,12 @@ func playGame(config *Config, ngnWhite bool, ngnTime, sfTime float64) (string, s
 		if len(moves) > 0 {
 			posCmd += " moves " + strings.Join(moves, " ")
 		}
-		sendCommand(currentEngine, posCmd)
+		uci.Send(currentEngine, posCmd)
 
 		goCmd := fmt.Sprintf("go movetime %d", int(timePerMove*1000))
-		move := getMove(currentEngine, goCmd, timePerMove+2)
+		// Force-stop at budget + 1s grace, hard cap budget + 30s (overshoot-safe).
+		mt := time.Duration(timePerMove * float64(time.Second))
+		move := uci.GetMove(currentEngine, goCmd, mt+30*time.Second, mt+1*time.Second)
 
 		if move == "" || move == "(none)" {
 			// Game over — side to move can't move. If it's NGN, NGN lost.
@@ -275,84 +226,6 @@ func playGame(config *Config, ngnWhite bool, ngnTime, sfTime float64) (string, s
 	return "draw", "max_moves"
 }
 
-type Engine struct {
-	cmd    *exec.Cmd
-	stdin  *bufio.Writer
-	stdout *bufio.Scanner
-}
-
-func startEngine(path, name string, lowPower bool) *Engine {
-	var cmd *exec.Cmd
-	if lowPower && runtime.GOOS == "darwin" {
-		// taskpolicy -b sets "background" QoS → Apple Silicon E-cores.
-		// Dramatic power/heat reduction vs P-cores for modest throughput cost.
-		cmd = exec.Command("taskpolicy", "-b", path)
-	} else {
-		cmd = exec.Command(path)
-	}
-	stdin, _ := cmd.StdinPipe()
-	stdout, _ := cmd.StdoutPipe()
-
-	if err := cmd.Start(); err != nil {
-		log.Printf("Failed to start %s: %v", name, err)
-		return nil
-	}
-
-	engine := &Engine{
-		cmd:    cmd,
-		stdin:  bufio.NewWriter(stdin),
-		stdout: bufio.NewScanner(stdout),
-	}
-
-	sendCommand(engine, "uci")
-	waitFor(engine, "uciok", 5*time.Second)
-	sendCommand(engine, "isready")
-	waitFor(engine, "readyok", 5*time.Second)
-
-	return engine
-}
-
-func sendCommand(engine *Engine, cmd string) {
-	engine.stdin.WriteString(cmd + "\n")
-	engine.stdin.Flush()
-}
-
-func waitFor(engine *Engine, expected string, timeout time.Duration) bool {
-	deadline := time.Now().Add(timeout)
-	for time.Now().Before(deadline) {
-		if engine.stdout.Scan() {
-			if strings.Contains(engine.stdout.Text(), expected) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func getMove(engine *Engine, goCmd string, timeout float64) string {
-	sendCommand(engine, goCmd)
-
-	deadline := time.Now().Add(time.Duration(timeout * float64(time.Second)))
-	for time.Now().Before(deadline) {
-		if engine.stdout.Scan() {
-			line := engine.stdout.Text()
-			if strings.HasPrefix(line, "bestmove ") {
-				parts := strings.Fields(line)
-				if len(parts) >= 2 {
-					return parts[1]
-				}
-			}
-		}
-	}
-	return ""
-}
-
-func stopEngine(engine *Engine) {
-	sendCommand(engine, "quit")
-	time.Sleep(100 * time.Millisecond)
-	engine.cmd.Process.Kill()
-}
-
 func displayResults(result GameResult, targetELO int) {
 	fmt.Println()
 	fmt.Println("=== RESULTS ===")
@@ -366,19 +239,21 @@ func displayResults(result GameResult, targetELO int) {
 	}
 	score := float64(result.NGNWins) + 0.5*float64(result.Draws)
 	p := score / float64(result.TotalGames)
-	est, lo, hi := eloEstimate(score, result.TotalGames, targetELO)
+	est, lo, hi := rating.PerfRating(score, float64(result.TotalGames), float64(targetELO))
 
 	fmt.Printf("\nScore: %.1f/%d  (%.1f%%)\n", score, result.TotalGames, p*100)
-	fmt.Printf("Estimated NGN ELO: %.0f   95%% CI: [%.0f, %.0f]  (width %.0f)\n",
-		est, lo, hi, hi-lo)
+	fmt.Printf("Performance vs SF%d slider: %.0f   95%% CI: [%.0f, %.0f]  (width %.0f)\n",
+		targetELO, est, lo, hi, hi-lo)
+	fmt.Println("NOTE: relative to Stockfish's UCI_Elo slider (inflated ~+400 vs CCRL), NOT an absolute rating.")
+	fmt.Println("      For NGN's absolute CCRL rating use `make gauntlet` (the Blunder anchors).")
 
-	// Interpretive hint
+	// Relative interpretive hint vs the SF slider setting (not an absolute claim).
 	switch {
 	case lo > float64(targetELO)+50:
-		fmt.Printf("Verdict: likely stronger than SF %d (raise target)\n", targetELO)
+		fmt.Printf("Verdict: outscoring the SF %d slider setting (raise target)\n", targetELO)
 	case hi < float64(targetELO)-50:
-		fmt.Printf("Verdict: likely weaker than SF %d (lower target)\n", targetELO)
+		fmt.Printf("Verdict: below the SF %d slider setting (lower target)\n", targetELO)
 	default:
-		fmt.Printf("Verdict: roughly matched with SF %d\n", targetELO)
+		fmt.Printf("Verdict: roughly matched with the SF %d slider setting\n", targetELO)
 	}
 }
