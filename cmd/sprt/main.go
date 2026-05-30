@@ -41,6 +41,20 @@ import (
 type spec struct {
 	opening    []string
 	newIsWhite bool
+	pairID     int // the two reversed-color games of an opening share a pairID
+}
+
+// gameOutcome carries a finished game's result back with its pair identity so the
+// consumer can score the pentanomial (pair-outcome) distribution.
+type gameOutcome struct {
+	pairID int
+	res    uci.GameResult
+}
+
+// pairAcc accumulates the two games of a reversed-color opening pair.
+type pairAcc struct {
+	points float64 // new-POV points so far (each game 1 / 0.5 / 0)
+	games  int
 }
 
 func main() {
@@ -140,20 +154,26 @@ func runSPRT(cfg runConfig, openings [][]string) {
 	// depth OR fixed nodes a repeated (opening,color) is a deterministic replay
 	// carrying no new information, so cap distinct work at 2*len(openings); only
 	// movetime mode (timing variance) justifies cycling beyond that.
+	// Each opening is played twice with reversed colors; the two games form a PAIR
+	// (shared pairID) so the consumer can score the pentanomial distribution. At
+	// fixed depth/nodes a repeated (opening,color) is a deterministic replay
+	// carrying no new info, so distinct work is 2*len(openings); only movetime
+	// (timing variance) cycles beyond that, re-adding whole pairs under fresh IDs.
 	var specs []spec
+	pid := 0
+	addPair := func(op []string) {
+		specs = append(specs, spec{op, true, pid}, spec{op, false, pid})
+		pid++
+	}
 	for _, op := range openings {
-		specs = append(specs, spec{op, true}, spec{op, false})
+		addPair(op)
 	}
-	total := len(specs)
 	if cfg.movetime > 0 {
-		// movetime: cycle openings up to maxGames
-		for len(specs) < cfg.maxGames {
-			specs = append(specs, specs[len(specs)%total])
+		for i := 0; len(specs) < cfg.maxGames; i++ {
+			addPair(openings[i%len(openings)])
 		}
-		total = cfg.maxGames
-	} else if total > cfg.maxGames {
-		total = cfg.maxGames
 	}
+	total := min(len(specs), cfg.maxGames)
 	specs = specs[:total]
 
 	specCh := make(chan spec, total)
@@ -167,7 +187,7 @@ func runSPRT(cfg runConfig, openings [][]string) {
 		Movetime: cfg.movetime, Nodes: cfg.nodes, MaxMoves: cfg.maxMoves,
 	}
 
-	results := make(chan uci.GameResult, cfg.concurrency)
+	results := make(chan gameOutcome, cfg.concurrency)
 	stop := make(chan struct{})
 	var wg sync.WaitGroup
 	for w := 0; w < cfg.concurrency; w++ {
@@ -187,17 +207,20 @@ func runSPRT(cfg runConfig, openings [][]string) {
 					return
 				default:
 				}
-				results <- uci.PlayGame(newEng, baseEng, s.opening, s.newIsWhite, gameCfg)
+				results <- gameOutcome{pairID: s.pairID, res: uci.PlayGame(newEng, baseEng, s.opening, s.newIsWhite, gameCfg)}
 			}
 		}()
 	}
 	go func() { wg.Wait(); close(results) }()
 
 	var w, d, l int
+	var penta [5]int               // pair-outcome counts; idx = 2*(pair points), 0..4
+	pairProg := map[int]*pairAcc{} // pairID -> the pair's first game, awaiting its partner
 	start := time.Now()
 	stopped := false
 	verdict := "INCONCLUSIVE (ran out of games — add openings or raise -maxgames)"
-	for r := range results {
+	for ro := range results {
+		r := ro.res
 		switch r.Res {
 		case uci.Win:
 			w++
@@ -206,11 +229,24 @@ func runSPRT(cfg runConfig, openings [][]string) {
 		case uci.Loss:
 			l++
 		}
+		// Pentanomial: accumulate the two games of a pair, then bucket the pair.
+		pa := pairProg[ro.pairID]
+		if pa == nil {
+			pa = &pairAcc{}
+			pairProg[ro.pairID] = pa
+		}
+		pa.points += gamePoints(r.Res)
+		pa.games++
+		if pa.games == 2 {
+			penta[int(pa.points*2+0.5)]++
+			delete(pairProg, ro.pairID)
+		}
 		n := w + d + l
 		llr := sprtLLR(w, d, l, cfg.elo0, cfg.elo1)
 		est, lo, hi := rating.RelativeElo(w, d, l)
-		fmt.Printf("G%-4d %2dW %2dD %2dL  %5.1f%%  elo %+6.1f [%+.0f,%+.0f]  LLR %+6.2f  %-12s\n",
-			n, w, d, l, 100*rating.Score(w, d)/float64(n), est, lo, hi, llr, r.Reason)
+		pLLR, _, _, _, _ := pentaStats(penta, cfg.elo0, cfg.elo1)
+		fmt.Printf("G%-4d %2dW %2dD %2dL  %5.1f%%  elo %+6.1f [%+.0f,%+.0f]  LLR %+6.2f  pLLR %+6.2f  %-12s\n",
+			n, w, d, l, 100*rating.Score(w, d)/float64(n), est, lo, hi, llr, pLLR, r.Reason)
 
 		if !stopped && n >= cfg.minGames && (llr >= cfg.upper || llr <= cfg.lower) {
 			if llr >= cfg.upper {
@@ -230,6 +266,11 @@ func runSPRT(cfg runConfig, openings [][]string) {
 	fmt.Printf("Games: %d   W-D-L: %d-%d-%d   score: %.1f%%\n", n, w0, d0, l0, 100*rating.Score(w0, d0)/math.Max(1, float64(n)))
 	fmt.Printf("Elo(new - base): %+.1f   95%% CI [%+.0f, %+.0f]\n", est, lo, hi)
 	fmt.Printf("LLR: %+.2f   bounds [%.2f, %.2f]\n", sprtLLR(w0, d0, l0, cfg.elo0, cfg.elo1), cfg.lower, cfg.upper)
+	pLLR, pairs, pEst, pLo, pHi := pentaStats(penta, cfg.elo0, cfg.elo1)
+	fmt.Printf("Pentanomial [LL %d  LD %d  {LW,DD} %d  WD %d  WW %d] over %d pairs\n",
+		penta[0], penta[1], penta[2], penta[3], penta[4], pairs)
+	fmt.Printf("Penta Elo: %+.1f   95%% CI [%+.0f, %+.0f]   pLLR %+.2f  (secondary — trinomial above is the decision stat)\n",
+		pEst, pLo, pHi, pLLR)
 	fmt.Printf("Verdict: %s\n", verdict)
 }
 
@@ -257,6 +298,57 @@ func sprtLLR(w, d, l int, elo0, elo1 float64) float64 {
 	variance = max(variance, 0.05)
 	s0, s1 := eloToScore(elo0), eloToScore(elo1)
 	return (s1 - s0) / variance * (S - nf*(s0+s1)/2.0)
+}
+
+func gamePoints(o uci.Outcome) float64 {
+	switch o {
+	case uci.Win:
+		return 1
+	case uci.Draw:
+		return 0.5
+	default:
+		return 0
+	}
+}
+
+// pentaStats computes the pentanomial (pair-outcome) LLR and Elo CI. The unit is
+// the PAIR: the same opening played from both sides. Pairing exploits the negative
+// correlation between the two colors of one position — the single biggest variance
+// reduction over scoring games independently (the trinomial). With independent
+// games it reduces EXACTLY to the trinomial LLR; when pairs are correlated (e.g. a
+// balanced match splits every pair 1W-1L) its variance is far lower, so it reaches
+// a bound in ~15-30% fewer games. Reported as a SECONDARY stat for now; promote it
+// to the stop rule only after re-running the live null + positive controls.
+//
+// penta index = round(2 * pair-points): 0=LL, 1=LD/DL, 2={LW,WL,DD}, 3=WD/DW, 4=WW.
+func pentaStats(penta [5]int, elo0, elo1 float64) (llr float64, pairs int, est, lo, hi float64) {
+	P := 0
+	for _, c := range penta {
+		P += c
+	}
+	if P == 0 {
+		return 0, 0, 0, -800, 800
+	}
+	Pf := float64(P)
+	var S, S2 float64
+	for k, c := range penta {
+		x := float64(k) / 4.0 // pair score on the per-game scale: 0, .25, .5, .75, 1
+		S += x * float64(c)
+		S2 += x * x * float64(c)
+	}
+	mu := S / Pf
+	variance := S2/Pf - mu*mu
+	// A perfectly balanced match legitimately splits every pair 1W-1L (pair
+	// variance 0), so the floor sits far below the trinomial's 0.05; it binds only
+	// to stop a degenerate early LLR from exploding. The minGames gate is the other
+	// guard. (Floor revisit is part of promoting penta to the stop rule.)
+	variance = max(variance, 0.001)
+	s0, s1 := eloToScore(elo0), eloToScore(elo1)
+	// GSPRT linear LLR, same form as the trinomial but with the pair as the unit.
+	llr = (s1 - s0) / variance * (S - Pf*(s0+s1)/2.0)
+	se := math.Sqrt(variance / Pf)
+	// ScoreToEloDiff clamps the tails, so passing mu±1.96se raw is safe.
+	return llr, P, rating.ScoreToEloDiff(mu), rating.ScoreToEloDiff(mu - 1.96*se), rating.ScoreToEloDiff(mu + 1.96*se)
 }
 
 // --- opening book generation ---
