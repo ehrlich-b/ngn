@@ -68,6 +68,7 @@ type result struct {
 	anchor  Anchor
 	w, d, l int
 	reasons map[string]int
+	skipped bool // excluded from pooling: opponent ignored movetime/stop (TC distorted)
 }
 
 // forfeitReasons are game-end reasons that signal a harness/process glitch rather
@@ -87,6 +88,7 @@ func main() {
 	historyPath := flag.String("history", "output/gauntlet_history.jsonl", "JSONL file for rolling pooled trend")
 	noRecord := flag.Bool("no-record", false, "don't append this run to history")
 	rollingOnly := flag.Bool("rolling", false, "print the commit-decayed pooled trend and exit (no games)")
+	probe := flag.Bool("probe", false, "probe each anchor's movetime/stop compliance and exit (no games)")
 	lowPower := flag.Bool("lowpower", true, "route engines to macOS E-cores (taskpolicy -b)")
 	flag.Parse()
 
@@ -112,6 +114,11 @@ func main() {
 	}
 	if *games%2 != 0 {
 		fmt.Printf("WARNING: -games %d is odd; colors will be unbalanced — prefer an even count\n", *games)
+	}
+
+	if *probe {
+		probeAnchors(anchors, *movetimeMs, *lowPower)
+		return
 	}
 
 	openings, err := uci.LoadOpenings(*openingsFile)
@@ -162,8 +169,33 @@ func loadAnchors(path, only string) ([]Anchor, error) {
 	return out, nil
 }
 
+// probeAnchors checks each anchor's movetime/stop compliance at the given budget
+// and prints a table, without playing games. An anchor that ignores `stop` (older
+// Blunder) can't be measured at an honest equal time control, so it's flagged
+// "NO (skip)" — exactly what a real run excludes.
+func probeAnchors(anchors []Anchor, movetimeMs int, lowPower bool) {
+	fmt.Printf("Movetime/stop compliance probe (budget %dms)%s\n", movetimeMs, uci.PowerNote(lowPower))
+	fmt.Printf("%-8s %5s  %-12s %s\n", "Anchor", "CCRL", "complies", "probe move time")
+	for _, a := range anchors {
+		opp := uci.Start(a.Path, a.Version, lowPower)
+		if opp == nil {
+			fmt.Printf("%-8s %5d  %-12s (failed handshake)\n", a.Version, a.CCRL, "NO")
+			continue
+		}
+		ok, took := uci.RespectsMovetime(opp, movetimeMs)
+		verdict := "yes"
+		if !ok {
+			verdict = "NO (skip)"
+		}
+		fmt.Printf("%-8s %5d  %-12s %s\n", a.Version, a.CCRL, verdict, took.Round(time.Millisecond))
+		uci.Stop(opp)
+	}
+}
+
 // playAnchor plays `games` games NGN-vs-anchor at equal movetime, alternating
-// colors in reversed pairs over the opening list. Counts are from NGN's POV.
+// colors in reversed pairs over the opening list. Counts are from NGN's POV. It
+// first probes the anchor for movetime/stop compliance and skips it (no games) if
+// the anchor ignores `stop`, since the time control would be distorted.
 func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs int, lowPower bool) result {
 	ngn := uci.Start(ngnPath, "ngn", lowPower)
 	opp := uci.Start(a.Path, a.Version, lowPower)
@@ -175,6 +207,15 @@ func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs
 	defer uci.Stop(opp)
 
 	res := result{anchor: a, reasons: map[string]int{}}
+	if ok, took := uci.RespectsMovetime(opp, movetimeMs); !ok {
+		fmt.Printf("  SKIP %s: ignores movetime/stop (probe move %s vs %dms budget) — TC would be distorted; excluded.\n",
+			a.Version, took.Round(time.Millisecond), movetimeMs)
+		res.skipped = true
+		return res
+	}
+	uci.ResetCounters(opp) // drop the warmup+probe moves; only rated games feed the guard
+	uci.ResetCounters(ngn)
+
 	cfg := uci.GameConfig{Movetime: movetimeMs, MaxMoves: 200}
 	for g := 0; g < games; g++ {
 		op := openings[(g/2)%len(openings)] // reversed-color pairs of the same line
@@ -193,6 +234,15 @@ func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs
 		n := res.w + res.d + res.l
 		fmt.Printf("  G%-3d %2dW %2dD %2dL  %5.1f%%  %-12s\n",
 			n, res.w, res.d, res.l, 100*rating.Score(res.w, res.d)/float64(n), gr.Reason)
+		// In-play guard: if the opponent starts ignoring `stop` mid-run (e.g. under
+		// E-core contention) it slipped past the pre-flight probe — bail rather than
+		// grind 20+ distorted games (the failure that wasted a whole overnight run).
+		if opp.Moves >= 20 && float64(opp.Overshoots) > 0.10*float64(opp.Moves) {
+			fmt.Printf("  ABORT %s: opponent overshot %d/%d moves (>10%%) — TC distorted; excluding anchor.\n",
+				a.Version, opp.Overshoots, opp.Moves)
+			res.skipped = true
+			break
+		}
 	}
 	return res
 }
@@ -215,6 +265,10 @@ func report(results []result, movetimeMs, gamesPer int, historyPath string, noRe
 	above, below, tainted := false, false, false
 
 	for _, r := range results {
+		if r.skipped {
+			fmt.Printf("EXCLUDED: %s (ignored movetime/stop — not measurable at an honest TC)\n", r.anchor.Version)
+			continue
+		}
 		n := float64(r.w + r.d + r.l)
 		if n == 0 {
 			continue
@@ -247,7 +301,8 @@ func report(results []result, movetimeMs, gamesPer int, historyPath string, noRe
 	}
 
 	if sumW == 0 {
-		fmt.Println("no games played — nothing to pool")
+		fmt.Println("No usable anchors — all were skipped (ignored movetime/stop) or had no games.")
+		fmt.Println("Check `gauntlet -probe` for which versions honor `stop`; pick a bracketing set of those.")
 		return
 	}
 
@@ -284,6 +339,9 @@ func report(results []result, movetimeMs, gamesPer int, historyPath string, noRe
 			Pooled: pooled, PooledLo: lo, PooledHi: hi,
 		}
 		for _, r := range results {
+			if r.skipped {
+				continue
+			}
 			rec.Anchors = append(rec.Anchors, anchorTally{r.anchor.Version, r.anchor.CCRL, r.w, r.d, r.l})
 		}
 		if err := history.Append(historyPath, rec); err != nil {

@@ -50,7 +50,24 @@ type Engine struct {
 	cmd    *exec.Cmd
 	stdin  *bufio.Writer
 	stdout *bufio.Scanner
+	// Moves/Overshoots track movetime-mode compliance for the gauntlet's integrity
+	// guard; Overshoots counts moves that arrived well after the `stop` deadline
+	// (the engine ignored `stop`). Reset per anchor via ResetCounters. Touched only
+	// by the single goroutine running the game, so no synchronization is needed.
+	Moves      int
+	Overshoots int
 }
+
+// overshootGrace is how long past the stop deadline a move may arrive before we
+// count it as an overshoot. Generous enough to absorb OS/scheduling jitter on
+// throttled E-cores, tight enough to flag a multi-second `stop`-ignore.
+const overshootGrace = 2 * time.Second
+
+// stopGrace is how long past the movetime budget we wait before forcing `stop`.
+// Small on purpose: an engine that ignores `go movetime` and only stops here should
+// burn ~the same wall clock as one that self-limits to the budget, so neither side
+// gets a time-odds edge (a movetime-honoring engine returns before this fires).
+const stopGrace = 200 * time.Millisecond
 
 // Start launches the engine at path, completes the UCI handshake, and verifies it
 // actually EMITS a move (warmup probe), retrying up to 3× on failure. Returns nil
@@ -129,10 +146,11 @@ func WaitFor(e *Engine, expected string, timeout time.Duration) bool {
 // ignore/overshoot their movetime budget — then waits up to timeout for the reply.
 func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
 	Send(e, goCmd)
-	deadline := time.Now().Add(timeout)
+	start := time.Now()
+	deadline := start.Add(timeout)
 	var stopAt time.Time
 	if stopAfter > 0 {
-		stopAt = time.Now().Add(stopAfter)
+		stopAt = start.Add(stopAfter)
 	}
 	stopSent := false
 	for time.Now().Before(deadline) {
@@ -145,12 +163,43 @@ func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
 			if strings.HasPrefix(line, "bestmove ") {
 				parts := strings.Fields(line)
 				if len(parts) >= 2 {
+					// Movetime-compliance bookkeeping: a move that arrives well past
+					// the stop deadline means the engine ignored `stop` (older Blunder),
+					// so the gauntlet can skip it instead of measuring a distorted TC.
+					if stopAfter > 0 {
+						e.Moves++
+						if time.Since(start) > stopAfter+overshootGrace {
+							e.Overshoots++
+						}
+					}
 					return parts[1]
 				}
 			}
 		}
 	}
 	return ""
+}
+
+// ResetCounters zeroes the movetime-compliance counters; call it per anchor after
+// the warmup/probe moves so only the rated games feed the integrity guard.
+func ResetCounters(e *Engine) {
+	e.Moves = 0
+	e.Overshoots = 0
+}
+
+// RespectsMovetime probes whether the engine returns a move near the requested
+// movetime, sending `stop` exactly as a real game does. Engines that ignore both
+// `go movetime` and `stop` (older Blunder) blow past the budget and the stop
+// grace; the gauntlet skips them rather than silently measure at a distorted,
+// over-clocked time control. Returns whether it complied and the observed time.
+func RespectsMovetime(e *Engine, movetimeMs int) (bool, time.Duration) {
+	budget := time.Duration(movetimeMs) * time.Millisecond
+	stopAfter := budget + stopGrace
+	Send(e, "position startpos")
+	start := time.Now()
+	mv := GetMove(e, fmt.Sprintf("go movetime %d", movetimeMs), budget+30*time.Second, stopAfter)
+	took := time.Since(start)
+	return mv != "" && took <= stopAfter+overshootGrace, took
 }
 
 // Stop quits the engine and kills the process.
@@ -231,9 +280,10 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 			timeout = 60 * time.Second
 		} else if cfg.Movetime > 0 {
 			goCmd = fmt.Sprintf("go movetime %d", cfg.Movetime)
-			// Force-stop at budget + 1s grace; allow up to +30s hard for the engine
-			// to return the move after "stop" (covers opponents that overshoot).
-			stopAfter = time.Duration(cfg.Movetime)*time.Millisecond + 1*time.Second
+			// Force-stop at budget + a small grace so an engine ignoring movetime
+			// still searches ~the same wall time as a movetime-honoring one (equal
+			// TC); allow +30s hard for it to actually answer the "stop".
+			stopAfter = time.Duration(cfg.Movetime)*time.Millisecond + stopGrace
 			timeout = time.Duration(cfg.Movetime)*time.Millisecond + 30*time.Second
 		} else {
 			goCmd = fmt.Sprintf("go depth %d", d)
