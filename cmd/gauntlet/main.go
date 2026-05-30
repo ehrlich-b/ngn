@@ -25,6 +25,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -82,6 +83,7 @@ func main() {
 	anchorsPath := flag.String("anchors", "opponents/ratings.json", "JSON file: version->path->CCRL ladder")
 	ngnPath := flag.String("ngn", "build/ngn", "NGN engine binary")
 	movetimeMs := flag.Int("movetime", 1000, "ms per move (equal for both sides)")
+	tc := flag.String("tc", "", "real tournament clock SECONDS[+INC] (e.g. 120+1 = CCRL Blitz); overrides -movetime, drops the movetime bias")
 	games := flag.Int("games", 24, "games per anchor (even = equal colors)")
 	only := flag.String("only", "", "comma-separated versions to include (default: all)")
 	openingsFile := flag.String("openings", "output/sprt_openings.txt", "opening move-sequences, one per line")
@@ -91,6 +93,23 @@ func main() {
 	probe := flag.Bool("probe", false, "probe each anchor's movetime/stop compliance and exit (no games)")
 	lowPower := flag.Bool("lowpower", true, "route engines to macOS E-cores (taskpolicy -b)")
 	flag.Parse()
+
+	tcTimeMs, tcIncMs := 0, 0
+	if *tc != "" {
+		parts := strings.SplitN(*tc, "+", 2)
+		base, err := strconv.ParseFloat(strings.TrimSpace(parts[0]), 64)
+		if err != nil || base <= 0 {
+			log.Fatalf("bad -tc %q (want SECONDS or SECONDS+INC, e.g. 120+1)", *tc)
+		}
+		tcTimeMs = int(base * 1000)
+		if len(parts) == 2 {
+			inc, err := strconv.ParseFloat(strings.TrimSpace(parts[1]), 64)
+			if err != nil || inc < 0 {
+				log.Fatalf("bad -tc increment in %q", *tc)
+			}
+			tcIncMs = int(inc * 1000)
+		}
+	}
 
 	if *rollingOnly {
 		printRolling(*historyPath, *movetimeMs)
@@ -129,15 +148,21 @@ func main() {
 
 	fmt.Println("NGN CCRL-anchored gauntlet")
 	fmt.Println("==========================")
-	fmt.Printf("ngn=%s | %d anchors | %d games/anchor | movetime %dms | concurrency 1%s\n",
-		*ngnPath, len(anchors), *games, *movetimeMs, uci.PowerNote(*lowPower))
-	fmt.Println("CAVEAT: movetime proxy for CCRL Blitz (2'+1\"); under-times anchors -> NGN biased ~+30-80 optimistic.")
+	if tcTimeMs > 0 {
+		fmt.Printf("ngn=%s | %d anchors | %d games/anchor | real clock %.0fs+%.1fs | concurrency 1%s\n",
+			*ngnPath, len(anchors), *games, float64(tcTimeMs)/1000, float64(tcIncMs)/1000, uci.PowerNote(*lowPower))
+		fmt.Println("REAL CLOCK: true tournament TC — no movetime bias; both sides budget their own bank (flag-outs counted).")
+	} else {
+		fmt.Printf("ngn=%s | %d anchors | %d games/anchor | movetime %dms | concurrency 1%s\n",
+			*ngnPath, len(anchors), *games, *movetimeMs, uci.PowerNote(*lowPower))
+		fmt.Println("CAVEAT: movetime proxy for CCRL Blitz (2'+1\"); under-times anchors -> NGN biased ~+30-80 optimistic.")
+	}
 	fmt.Println()
 
 	var results []result
 	for _, a := range anchors {
 		fmt.Printf("== vs Blunder %s (CCRL %d) ==\n", a.Version, a.CCRL)
-		results = append(results, playAnchor(*ngnPath, a, openings, *games, *movetimeMs, *lowPower))
+		results = append(results, playAnchor(*ngnPath, a, openings, *games, *movetimeMs, tcTimeMs, tcIncMs, *lowPower))
 		fmt.Println()
 	}
 
@@ -196,7 +221,7 @@ func probeAnchors(anchors []Anchor, movetimeMs int, lowPower bool) {
 // colors in reversed pairs over the opening list. Counts are from NGN's POV. It
 // first probes the anchor for movetime/stop compliance and skips it (no games) if
 // the anchor ignores `stop`, since the time control would be distorted.
-func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs int, lowPower bool) result {
+func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs, tcTimeMs, tcIncMs int, lowPower bool) result {
 	ngn := uci.Start(ngnPath, "ngn", lowPower)
 	opp := uci.Start(a.Path, a.Version, lowPower)
 	if ngn == nil || opp == nil {
@@ -207,7 +232,12 @@ func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs
 	defer uci.Stop(opp)
 
 	res := result{anchor: a, reasons: map[string]int{}}
-	if ok, took := uci.RespectsMovetime(opp, movetimeMs); !ok {
+	cfg := uci.GameConfig{Movetime: movetimeMs, MaxMoves: 200}
+	if tcTimeMs > 0 {
+		// Real-clock mode: the anchor plays a standard UCI clock, so there's no
+		// movetime/stop probe to run; a side that burns its bank loses "time-forfeit".
+		cfg = uci.GameConfig{TCTimeMs: tcTimeMs, TCIncMs: tcIncMs, MaxMoves: 200}
+	} else if ok, took := uci.RespectsMovetime(opp, movetimeMs); !ok {
 		fmt.Printf("  SKIP %s: ignores movetime/stop (probe move %s vs %dms budget) — TC would be distorted; excluded.\n",
 			a.Version, took.Round(time.Millisecond), movetimeMs)
 		res.skipped = true
@@ -215,8 +245,6 @@ func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs
 	}
 	uci.ResetCounters(opp) // drop the warmup+probe moves; only rated games feed the guard
 	uci.ResetCounters(ngn)
-
-	cfg := uci.GameConfig{Movetime: movetimeMs, MaxMoves: 200}
 	consecutiveForfeits := 0
 	for g := 0; g < games; g++ {
 		op := openings[(g/2)%len(openings)] // reversed-color pairs of the same line
@@ -253,7 +281,7 @@ func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs
 		// In-play guard: if the opponent starts ignoring `stop` mid-run (e.g. under
 		// E-core contention) it slipped past the pre-flight probe — bail rather than
 		// grind 20+ distorted games (the failure that wasted a whole overnight run).
-		if opp.Moves >= 20 && float64(opp.Overshoots) > 0.10*float64(opp.Moves) {
+		if tcTimeMs == 0 && opp.Moves >= 20 && float64(opp.Overshoots) > 0.10*float64(opp.Moves) {
 			fmt.Printf("  ABORT %s: opponent overshot %d/%d moves (>10%%) — TC distorted; excluding anchor.\n",
 				a.Version, opp.Overshoots, opp.Moves)
 			res.skipped = true

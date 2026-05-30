@@ -172,6 +172,23 @@ checkpoints; periodic fixed-nodes SPRT as the batch validator.
 bank to last the whole game, and stops early once the move is decided.** Code-grounded
 deep-dive 2026-05-29 (refs below). Reprioritizes I1 to the front; makes I4 its prerequisite.
 
+**2026-05-30 PROGRESS (cont. 6):**
+- **I4 instrument DONE + committed.** `sprt -tc "60+1"` plays a real tournament clock (sends
+  `go wtime/btime/winc/binc`, tracks both banks, detects flag-outs, forces conc-1, reports flag counts).
+  Validated: detector FIRES (2+0 self-play → 2 time-forfeits) AND current NGN does NOT flag at 10+0.1
+  (0/24). The diagnosis's "flags at bullet" is REGIME-SPECIFIC — only the very-short 2s clock; above
+  that NGN self-corrects (allocation shrinks with the bank, hard limit fires before the absolute floor).
+  Measure-first corrected a wrong assumption before any code changed.
+- **Steps 2-3 DONE (uncommitted, validating).** time.go: replaced the stacked-multiplier allocation
+  (phase×complexity×score×timeMult on an even share — could plan several× a sustainable slice) with
+  increment-aware soft/hard: `soft = usable/movesToGo + 0.8·inc`; `hard = min(4·soft, 0.3·usable)` —
+  the 0.3 cap MATHEMATICALLY prevents flagging. Dropped the absolute minThinkTime(0.5-8s)/minDepth(4-12)
+  floors (the bullet-killers) for bank-relative soft/hard stopping (project next iter = 2× last completed;
+  always finish ≥depth 1). Removed the 3 dead multiplier helpers + their stale test; all time tests pass.
+- **Steps 4-5 TODO:** stability-scaled soft (best-move stable K iters + aspiration-window-held → ×0.5
+  bank it; falling eval / best-move changed → ×1.5-2 spend it) — wire the signals search.go half-computes
+  (`previousScore` kept, `previousBestMove` + window-held discarded); fast paths (single legal move, easy-move).
+
 **Why it's broken today (the autonomous-play path is UNTESTED):**
 - Real games route to the `Tournament` time control (uci.go:501); EVERY harness
   (smoke/SPRT/elo-assess/blunder-finder) uses `movetime` = the hard-cap-only `TimePerMove`
