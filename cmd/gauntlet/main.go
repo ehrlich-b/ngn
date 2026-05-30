@@ -217,6 +217,7 @@ func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs
 	uci.ResetCounters(ngn)
 
 	cfg := uci.GameConfig{Movetime: movetimeMs, MaxMoves: 200}
+	consecutiveForfeits := 0
 	for g := 0; g < games; g++ {
 		op := openings[(g/2)%len(openings)] // reversed-color pairs of the same line
 		newIsWhite := g%2 == 0
@@ -234,6 +235,21 @@ func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs
 		n := res.w + res.d + res.l
 		fmt.Printf("  G%-3d %2dW %2dD %2dL  %5.1f%%  %-12s\n",
 			n, res.w, res.d, res.l, 100*rating.Score(res.w, res.d)/float64(n), gr.Reason)
+		// Dead-opponent guard: a process that died/wedged mid-run returns no move
+		// every game (a phantom forfeit-win that bypasses the overshoot counter, since
+		// the move never arrives). Abort after a few consecutive forfeits instead of
+		// grinding the rest at the full GetMove timeout — the v8.0.0 "turbo broken" run.
+		if forfeitReasons[gr.Reason] {
+			consecutiveForfeits++
+		} else {
+			consecutiveForfeits = 0
+		}
+		if consecutiveForfeits >= 3 {
+			fmt.Printf("  ABORT %s: %d consecutive forfeit games (%s) — opponent dead/broken; excluding anchor.\n",
+				a.Version, consecutiveForfeits, gr.Reason)
+			res.skipped = true
+			break
+		}
 		// In-play guard: if the opponent starts ignoring `stop` mid-run (e.g. under
 		// E-core contention) it slipped past the pre-flight probe — bail rather than
 		// grind 20+ distorted games (the failure that wasted a whole overnight run).
@@ -262,7 +278,7 @@ func report(results []result, movetimeMs, gamesPer int, historyPath string, noRe
 
 	var rows []row
 	var sumW, sumWR float64
-	above, below, tainted := false, false, false
+	above, below := false, false
 
 	for _, r := range results {
 		if r.skipped {
@@ -280,9 +296,11 @@ func report(results []result, movetimeMs, gamesPer int, historyPath string, noRe
 			}
 		}
 		if float64(f)/n > 0.02 {
-			tainted = true
-			fmt.Printf("TAINTED: %s had %d/%d forfeit/error games (%v) — exceeds 2%% ceiling\n",
+			// One bad anchor must not nuke the whole run: drop it from the pool and
+			// keep the clean anchors (the dead/wedged-opponent case the v8.0.0 run hit).
+			fmt.Printf("EXCLUDED (tainted): %s had %d/%d forfeit/error games (%v) — exceeds 2%% ceiling; dropped from pool.\n",
 				r.anchor.Version, f, int(n), r.reasons)
+			continue
 		}
 		score := rating.Score(r.w, r.d)
 		perf, lo, hi := rating.PerfRating(score, n, float64(r.anchor.CCRL))
@@ -320,10 +338,6 @@ func report(results []result, movetimeMs, gamesPer int, historyPath string, noRe
 	se := math.Sqrt(1 / sumW)
 	lo, hi := pooled-1.96*se, pooled+1.96*se
 
-	if tainted {
-		fmt.Println("*** NO RATING EMITTED — run tainted by forfeits/errors (see TAINTED above). Re-run. ***")
-		return
-	}
 	if len(rows) >= 2 && !(above && below) {
 		fmt.Println("NOTE: the anchors did not bracket 50% — the pooled rating is an EXTRAPOLATION.")
 		fmt.Println("      Add a weaker anchor (NGN won all) or a stronger one (NGN lost all) and re-run.")
