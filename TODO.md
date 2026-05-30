@@ -16,6 +16,25 @@ structural, then infra. Stack ONE at a time, gate with the COOL+FAST loop
 (smoke-tactical + mechanism unit/integration test + `go test -short`), commit
 checkpoints; periodic fixed-nodes SPRT as the batch validator.
 
+### >>> 2026-05-30 SESSION STATE — READ FIRST (post-compact anchor) <<<
+- **Real rating: NGN ≈ 2150 CCRL** (low-2000s, as expected). Clean read = Blunder 7.4.0 (CCRL 2532),
+  1W-3D-20L = 10.4% over 24 games @1s/move → perf 2158 [1944,2372]. Movetime proxy ⇒ ~+30-80 optimistic
+  (true ~2080-2120). NOT 2500 — the SF UCI_Elo slider was ~+400 inflated; it is dead as a yardstick.
+- **Gauntlet FIXED (was "turbo broken").** It had no defense against an opponent process dying mid-run:
+  v8.0.0 died after G6, then 18 phantom no-move "wins" → the run TAINTED and emitted NO RATING despite the
+  clean 7.4.0. Two fixes shipped this session: (a) dead-opponent guard — abort an anchor after 3 consecutive
+  forfeit games; (b) a tainted anchor is now EXCLUDED from the pool, not allowed to void the whole run.
+  Earlier today: pre-flight `-probe`, in-play overshoot guard, 200ms stop-grace. Stop-compliant anchors:
+  7.2.0/7.4.0/8.0.0 (5.0.0/6.1.0 ignore `stop`, auto-skipped). NB 7.2.0 passes the probe but overshoots
+  under load (aborts); 8.0.0 is flaky (died mid-run). **7.4.0 is the one reliable anchor right now.**
+- **NEXT ACTIONS (in order):** (1) re-run `make gauntlet ARGS="-only v7.4.0,v8.0.0 -games 24 -movetime 1000"`
+  (now self-heals) for a clean number; ideally find a 2nd reliable anchor to bracket/pool. (2) Implement
+  **C3 (null-move disabled at all cut nodes — the headline +50-120 bug)** with its mandatory double-null
+  guard, fixed-TIME SPRT. (3) Cheap runtime wins RT1/RT2 (expose counters + time-stop reason — RT1 lets us
+  SEE C3 is real). Then C4/C5, S4-S7, then the time-controls NEXT block.
+- Provenance: 6-agent search audit + 1 runtime audit (2026-05-30), every claim validated vs live code →
+  C3/C4/C5 + S4-S7 (Phase S), RT1-RT4 (Phase RT), TT audited CLEAN, code-clarity R1 (low pri per Bryan).
+
 ### >>> NEXT — TIGHT TIME CONTROLS (priority, set by Bryan 2026-05-29; pulled ahead of S/E/X) <<<
 **Goal: NGN plays bullet/blitz in a fully sane/good way — never flags, budgets the
 bank to last the whole game, and stops early once the move is decided.** Code-grounded
@@ -72,6 +91,18 @@ movetime — but biased ~+30-80 HIGH because movetime under-times the anchors vs
 CCRL-Blitz rating. The unbiased true-clock gauntlet is gated on THIS time-management fix;
 finishing it lets us drop the gauntlet's bias caveat.
 
+### >>> 2026-05-30 SEARCH AUDIT (6-agent fan-out; EVERY claim re-checked against live code) <<<
+Fanned out 4 search-trick deep-dives (ordering / LMR+LMP / null-move / TT) + 2 meta. Validated
+findings recorded below; over-claims rejected (the "LMR re-search not PV-gated" framing was wrong
+as stated — the real defect is the `< beta` guard, see C4). **HEADLINE: C3 — null-move pruning is
+disabled at every cut node** (a stale `beta-alpha>1` gate that PVS never satisfies off the PV
+spine) — exactly the "big bug in a small section" we suspected. Plus C4/C5 (LMR re-search + scout
+depth), S4–S7 (LMP-improving, capture/quiet ordering, root prev-best, TT-eval reuse), and S2
+independently re-confirmed by two agents. **TT audited CLEAN** (mate-adjust, bounds, key-verify,
+replacement all correct — do NOT re-chase). Implement ONE at a time, SPRT-gated (fixed-TIME for the
+node-spenders C3/C4/S4), AFTER the running gauntlet finishes (an SPRT now would taint its timing).
+Search is the current 50+-ELO lane; eval (Phase E) is the proven backup.
+
 ### Phase C — Correctness recovery (CONFIRMED bugs in supposedly-working features)
 - [x] **C1 — IID & singular extension re-entrancy + singular self-cutoff (DONE · 2026-05-28
   · commits ff7e81e, 722b7ba).** Two stacked bugs meant IID and singular NEVER worked:
@@ -110,6 +141,31 @@ finishing it lets us drop the gauntlet's bias caveat.
 - [x] **C0 — stale eval baseline (DONE · 2026-05-28 · commit, hygiene).** `make test` was RED on
   `main`: the +46 PST commit (bb12a48) changed eval but didn't regenerate `eval_baseline.json`.
   Regenerated to match the tuned eval; suite green. (Test-hygiene, not an engine bug.)
+- [ ] **C3 — Null-move pruning is OFF at every cut node (search.go:1110) — HEADLINE, est. +50-120.**
+  The gate `beta-alpha > 1 && (!isPV || depth>=6)` requires a FULL window, but PVS scouts every
+  non-PV node with a null window (`-alpha-1,-alpha` ⇒ beta-alpha==1, search.go:1487), so NMP fires
+  ONLY on the PV spine (~depth nodes) — effectively off in ~99% of the tree. NGN's own notes put NMP
+  at +80-116, almost none of it currently realized. `beta-alpha>1` is a stale pre-PVS "is this a PV
+  node" test that contradicts the later `isPV` thread. FIX: replace the gate with `!isPV`, AND add a
+  double-null guard (thread `canNull bool`, set false on the line-1118 null recursion) — that broken
+  gate is presently the ONLY thing stopping recursive double-null, so do NOT ship the gate fix without
+  it. Follow-ups once hot: `staticEval >= beta` gate; depth-scaled `R = 3 + depth/4`. VALIDATE
+  FIXED-TIME (I4), not fixed-nodes (undercredits the depth NMP buys). Confirmed vs live code 2026-05-30.
+- [ ] **C4 — LMR reduced fail-high trusted without re-verify (search.go:1490), est. +15-40 (SPRT to confirm sign).**
+  The re-search guard `if score > alpha && score < beta` SKIPS the full-depth verification when a
+  reduced scout fails HIGH (`score >= beta`): the reduced-depth cutoff goes straight to the beta cutoff
+  at 1514. Canonical PVS re-verifies at full depth on ANY `score > alpha`. FIX: re-search full-depth
+  zero-window when `reduction>0 && score>alpha`; open the full `(-beta,-alpha)` window only at PV nodes
+  (`isPV && score>alpha`). (Audit agent framed it as "re-search not PV-gated"; the actual defect is the
+  `< beta` guard — recorded correctly.) Could be a deliberate speed/accuracy tradeoff; SPRT both ways.
+  Pairs with C5 (same ~20-line block).
+- [ ] **C5 — LMR scout depth ignores extensions + dead no-op branch (search.go:1481-1484), est. +10-20.**
+  `reducedDepth := depth-1-reduction` uses `depth-1`, NOT `nextDepth` (which carries the
+  check/recapture/passed-pawn/singular extension), so an extended quiet is scouted a ply too shallow vs
+  its own verify search. And `if reducedDepth >= depth { reducedDepth = depth-1-reduction }` is
+  unreachable (reduction≥0 ⇒ reducedDepth<depth) and re-assigns the identical value — a tautology
+  mangled out of a `givesCheck` guard in commit 3900696. FIX: `reducedDepth := nextDepth - reduction;
+  if reducedDepth < 1 { reducedDepth = 1 }`; delete the dead branch. Confirmed vs live code 2026-05-30.
 
 ### Phase S — Cheap independent search refinements (fixed-nodes SPRT signs these)
 - [ ] **S1 — Aspiration windows: exponential widening (search.go:573-596).** Today:
@@ -119,11 +175,32 @@ finishing it lets us drop the gauntlet's bias caveat.
   existing crude version is smaller but real.
 - [ ] **S2 — Killer moves indexed by remaining `depth`, not `ply` (moveorder.go:83).**
   Standard is ply-indexed; depth-indexing scatters killers across slots when LMR
-  reduces then re-searches. Switch to ply. Small but real; easy A/B.
+  reduces then re-searches. Switch to ply. Small but real; easy A/B. CONFIRMED 2026-05-30 by two
+  independent audit agents (ordering + LMR); sites: search.go:1459/1519, moveorder.go:83/370.
 - [ ] **S3 — Qsearch never stores to TT (search.go:1569+ only probes).** Storing the
   q-result (bound + best capture) is a known small win and improves ordering on
   re-visits (Zurichess does it). Watch the replacement policy doesn't evict useful
   main-search entries (store at depth 0).
+- [ ] **S4 — LMP not gated on `improving` (search.go:1248-1250), est. +20-40.** Single
+  `lmpThreshold[depth]={0,5,8,12,17,23,30,38}`; Ethereal/Berserk key the count on `improving`
+  (~2× sooner when NOT improving). NGN already computes `improving` (search.go:1083) but uses it only
+  for LMR. FIX: 2-row table `[improving][depth]`, tighten the not-improving row. Fixed-TIME SPRT.
+- [ ] **S5 — Losing captures ordered ABOVE good-history quiets (moveorder.go:343), est. +10-20.**
+  SEE<0 captures score ~20000 (band base); quiet ceiling is ~16384 (history), so every losing capture
+  is searched before every non-killer/counter quiet. DELIBERATE per the code comment, but Ethereal/
+  Berserk/Blunder all order bad captures LAST (Blunder prunes them). A/B a negative base
+  (`score = -1_000_000 + see + chScore`) so losing captures fall below quiets.
+- [ ] **S6 — Root doesn't search the previous-iteration best move first (search.go:623), est. +10-20.**
+  `orderMovesIntoBufferWithDepth` passes no TT/prev-best move and `iterationBestMove` isn't fed back, so
+  each ID iteration re-derives root order from scratch. Standard ID hygiene; ALSO supplies the
+  best-move-stability signal the time manager wants (ties to the NEXT block, search.go:548/657). FIX:
+  seed root ordering with the prior iteration's best (swap to index 0, or pass as a pseudo-TT move).
+  Flagged independently by the ordering + TT agents.
+- [ ] **S7 — Reuse the TT score as the node's static eval (search.go:1076), est. +5-15.** On a TT hit,
+  refine `staticEval` from `ttEval` when the bound permits (Exact, or Lower>eval, or Upper<eval) — a
+  search-refined value beats a fresh eval for RFP/futility/NMP/improving margins and skips an eval call
+  on hits. Ethereal/Stockfish standard; the probe data (ttEval/ttNodeType) is already in hand at 1076.
+  Fixed-TIME SPRT.
 
 ### Phase E — Eval (the PROVEN lane; +46 already banked from PST+weights)
 - [x] **E1 — Tune MATERIAL jointly with PST (DONE · NULL RESULT · 2026-05-28).** Tuner infra
@@ -185,12 +262,58 @@ finishing it lets us drop the gauntlet's bias caveat.
   roadmap is this class, so fixed-nodes is the WRONG signer for it. Add a clean fixed-time
   self-play mode (concurrency-1 to kill timing noise; reversed-color pairs; ~200+ games) OR a
   short-TC gauntlet vs a fixed binary ladder. Without it, IID/IIR/extension work can't be signed.
+- [ ] **I5 — Blunder-finder → self-play capture + Stockfish-judge attribution (the RUNTIME-understandability lever).**
+  Design pass verdict: KEEP the existing SF-judge core (cmd/blunder-finder `analyze`/`evalAfterMove` is
+  sound — full-strength SF, mover-POV apples-to-apples, mate handling, decided-position guard); ADD
+  (1) self-play game CAPTURE via internal/uci.PlayGame vs a stop-compliant Blunder anchor at a REAL
+  clock (shares the I4 real-clock work + a per-move OnMove/score trace ≈ 20 lines in internal/uci, since
+  GetMove currently discards NGN's score/PV), and (2) attribution buckets (tactical-oversight /
+  time-pressure / positional-drift / endgame / missed-mate) from SF-best-vs-NGN drop +
+  `self_delusion = ngn_score − sf_eval`. Emit a bucket table + one mechanical "FIX SIGNAL" line. This is
+  what tells us WHY NGN blunders in live play (Bryan's runtime-understandability ask). Uses fixed-NODES
+  SF as judge for reproducibility; judge stays OFFLINE so the older-Blunder stop-ignore problem is
+  confined to the opponent (handled by RespectsMovetime/Overshoots).
+- [ ] **R1 — Code clarity (LOW priority per Bryan — runtime ≫ code).** Only the high-value,
+  behavior-NEUTRAL bit is worth doing now: eval.go is ~60% DEAD code (orphaned hand-PST
+  `pawnPST…kingEndgamePST` + `getPieceSquareValue`, plus ~14 unused `evaluate*` term functions) —
+  grep-verified zero non-test callers; the live eval is `evaluatePeSTO` + the ~11 terms in
+  `evaluateUnsafe`. Dead code actively misleads bug-hunting (a DIAGNOSIS "knightPST" item points at a
+  dead table). Delete in one behavior-identical commit (tests reference them — update/drop together).
+  Stale README/CLAUDE NPS (~350K → ~1M) and ELO numbers also mislead. Everything else (split
+  alphaBetaPV, banner comments, debug-tagged invariant asserts) DEFERRED unless it blocks a fix.
+
+### Phase RT — Runtime understandability (Bryan 2026-05-30; "expose what's already computed")
+NGN already COMPUTES a correct multi-move PV, 14 search counters, 11 separated eval terms, and a 4-branch
+time-stop decision — but surfaces almost none of it at runtime. All near-free plumbing (audit validated).
+- [ ] **RT1 — End-of-search counter dump behind `debug on` (~15 lines), HIGH value/effort.** Emit the
+  SearchInfo counters (NullMoveCutoffs/LMRReductions/LMPPrunes/TTCutoffs/… search.go:471-484) as one
+  `info string` after the search (uci.go:709); the formatter already exists in
+  cmd/pruning-analysis/main.go:59-90. DIRECTLY validates C3 (watch NullMoveCutoffs before/after the fix)
+  plus C4/C5 in REAL searches, not the offline start-position tool.
+- [ ] **RT2 — Time-stop reason logging (~10 lines) — UNBLOCKS the time-controls NEXT block.**
+  `shouldStopTournamentSearch` (time.go:309-382) returns a bare bool from 4 distinct points
+  (hard/emergency/floor/soft-projection). Record which fired + elapsed/alloc/nextEst/scoreChangeMult and
+  print via `info string` (debug). The overhaul is untested BECAUSE the stop decision is invisible.
+- [ ] **RT3 — `eval` UCI command: term-by-term breakdown (~30 lines).** Add `EvaluateVerbose` beside
+  evaluateUnsafe (eval.go:2382-2444; terms already isolated with named weights) + `case "eval"` in uci.go.
+  Runtime side of eval tuning + positional-blunder triage (I5). Also retires cmd/eval_breakdown's own TODO.
+- [ ] **RT4 — PV + counters in cmd/analyze_position & cmd/trace_move (~10 lines each).** They already hold
+  `*SearchInfo`; print `ExtractPVFromTT` (search.go:735) + the RT1 counter block. The offline "replay a
+  position, see move/score/PV/depth/heuristics" half of I5; zero risk (offline tools).
+- Lower-pri runtime gaps: no currmove/currmovenumber, no aspiration lowerbound/upperbound, no in-process
+  `bench`, no `d` board dump. The per-depth UCI info line itself is already near-Stockfish-standard (uci.go:702).
 
 ### Parked (orthogonal multiplier)
 - Lazy SMP — +80-150 multi-core, Go makes it easy. Biggest single jump if wanted;
   not on the critical path.
 
 ### Audit false-positives (recorded so they aren't re-chased)
+- TT (cache.go / search.go) — RE-AUDITED CLEAN 2026-05-30 vs 4 reference engines: mate-score ply
+  adjustment correct (`scoreToTT`/`scoreFromTT` match Stockfish), cutoff bound/depth/PV gating correct,
+  full-key XOR collision verification, all store paths covered, aging + per-game clear, depth-preferred
+  replacement. The classic silent TT bug is NOT present (re-confirms the 2026-05-25 audit). Remaining TT
+  items are config/refinement only: I2 (Hash unwired), S7 (eval-reuse), and a minor 50-move-rule clamp
+  on TT mate cutoffs (rare, low ELO) — none are the hidden 50+.
 - "Castling rook not moved in MakeMove" — FALSE: `Bitboard.Move` relocates the rook
   on a king castle (bitboard.go:330-335); perft passes.
 - White-pawn EP rank validation (movegen.go ~197) — EP square is only ever set at the
