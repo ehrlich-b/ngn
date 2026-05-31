@@ -458,6 +458,23 @@ func getAttackersAfterMove(pos *Position, attackers uint64, occupied uint64, tar
 
 // Search debug logging removed for production
 
+// searchFrame holds one alphaBetaPV invocation's move buffers, reused across the search
+// via a recursion-frame pool (SearchInfo.Frames) instead of being stack-allocated and
+// heap-escaping per node — cuts search allocations ~75% (docs/10 T1). Indexed by a
+// recursion-FRAME counter, NOT ply: IID and singular verification re-enter at the same
+// ply, so a ply-indexed buffer would clobber a live parent (docs/09 J3).
+type searchFrame struct {
+	moveBuffer [256]Move // raw pseudo-legal generation target (transient: gen -> order)
+	ordered    [256]Move // ordered moves, iterated across the recursive move loop
+	quiets     [64]Move  // quiet moves tried (history penalties on a cutoff)
+	captures   [64]Move  // captures tried (capture-history penalties)
+}
+
+// searchFramePoolSize bounds the reusable frame pool; a recursion depth beyond it falls
+// back to a stack-allocated frame (still correct, just not allocation-free). Sized well
+// above MaximumDepth(100) + extensions + same-ply re-entrant (IID/singular) restacking.
+const searchFramePoolSize = 256
+
 type SearchInfo struct {
 	Nodes       uint64
 	Depth       int
@@ -502,6 +519,12 @@ type SearchInfo struct {
 	// Repetition detection during search
 	RepStack    [512]uint64 // Stack of Zobrist hashes on current search path
 	RepStackLen int         // Current depth in repetition stack
+
+	// Reusable per-invocation move buffers (docs/10 T1). Frames is allocated once per
+	// search; FrameDepth is the recursion-frame counter, pushed/popped in lockstep with
+	// RepStackLen so each live alphaBetaPV invocation owns a distinct frame.
+	Frames     []searchFrame
+	FrameDepth int
 }
 
 func Search(pos *Position, depth int) *SearchInfo {
@@ -543,6 +566,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		CaptureBuffer: &captureBuffer,
 		OrderedBuffer: &orderedBuffer,
 		SEEGains:      &seeGains,
+		Frames:        make([]searchFrame, searchFramePoolSize),
 	}
 
 	// Generate root moves without heap allocations (pseudo-legal; legality handled in search loop)
@@ -857,6 +881,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		CaptureBuffer: &captureBuffer,
 		OrderedBuffer: &orderedBuffer,
 		SEEGains:      &seeGains,
+		Frames:        make([]searchFrame, searchFramePoolSize),
 	}
 
 	alpha := -INFINITY
@@ -1022,8 +1047,14 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			info.RepStackLen++
 		}
 	}
-	// Pop repetition stack on function exit
-	defer func() { info.RepStackLen-- }()
+	// Reserve this invocation's reusable move-buffer frame (docs/10 T1). frameIdx is the
+	// recursion-FRAME index (not ply): IID/singular re-enter at the same ply, so each gets
+	// a distinct frame here, never clobbering a live parent's buffers (docs/09 J3). Balanced
+	// by the same defer as the repetition stack — no extra per-node defer.
+	frameIdx := info.FrameDepth
+	info.FrameDepth++
+	// Pop repetition stack and release the buffer frame on function exit.
+	defer func() { info.RepStackLen--; info.FrameDepth-- }()
 
 	if depth == 0 {
 		return quiescence(pos, alpha, beta, ply, info)
@@ -1247,10 +1278,19 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		singularMove = ttMove
 	}
 
+	// Acquire this invocation's reusable buffers from the frame pool; fall back to a
+	// fresh stack frame only when the pool is exhausted by deep re-entrant nesting
+	// (correct, just not allocation-free). docs/10 T1.
+	var frame *searchFrame
+	if info.Frames != nil && frameIdx < len(info.Frames) {
+		frame = &info.Frames[frameIdx]
+	} else {
+		frame = new(searchFrame)
+	}
+
 	// Use pseudo-legal moves for performance, check legality only when trying moves
-	var moveBuffer [256]Move // Stack-allocated move buffer
-	numMoves := GenerateMovesIntoBuffer(pos, moveBuffer[:])
-	moves := moveBuffer[:numMoves]
+	numMoves := GenerateMovesIntoBuffer(pos, frame.moveBuffer[:])
+	moves := frame.moveBuffer[:numMoves]
 	if numMoves == 0 {
 		if inCheck {
 			// Checkmate - distance from root is `ply` directly.
@@ -1267,17 +1307,17 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	}
 
 	// Order moves, prioritizing TT move if available
-	var ordered [256]Move
-	orderedCount := orderMovesIntoBufferWithDepthPreviousAndTTMove(moves, depth, GetLastMovePlayed(), ttMove, ttHit, ordered[:], pos)
+	ordered := frame.ordered[:]
+	orderedCount := orderMovesIntoBufferWithDepthPreviousAndTTMove(moves, depth, GetLastMovePlayed(), ttMove, ttHit, ordered, pos)
 	bestScore := -INFINITY
 	bestMove := EmptyMove
 	moveCount := 0
 	legalTried := 0
 
-	// Track quiet moves searched for history penalization
-	var searchedQuiets [64]Move
+	// Track quiet/capture moves searched for history penalization (reused frame buffers)
+	searchedQuiets := frame.quiets[:]
 	searchedQuietCount := 0
-	var searchedCaptures [64]Move
+	searchedCaptures := frame.captures[:]
 	searchedCaptureCount := 0
 
 	for oi := 0; oi < orderedCount; oi++ {

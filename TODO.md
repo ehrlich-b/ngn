@@ -292,6 +292,39 @@ a J1-J15 joint catalogue, and a finding ledger that slots all 4 audits with verd
 - **NO code fixed this session (Bryan's explicit OK).** Tree change = docs only; build untouched. Fix queue (docs/09) is the durable artifact.
   RESUME: work the fix queue top-down, ONE at a time, gated (depth-10 Kiwipete node/seldepth vs clean HEAD + smoke-tactical + go test);
   J1 first (re-validates C4). Also close the extension-budget test gap. HEAD before docs commit = 87714a1, tree clean.
+
+**2026-05-31 (cont. 10) — >>> NPS IS THE ELEPHANT (profiled) + docs/10 + T1 IN PROGRESS <<<** Bryan asked why
+Blunder is still ahead. MEASURED (Kiwipete, equal movetime, both E-cores): NGN ~267K nps / depth 11 @ 3.6s vs
+**Blunder 7.4.0 ~640-750K nps / depth 13 @ 2.0s** — Blunder is ~2.5x faster per node and ~2-3 plies deeper at
+equal time. At ~40-60 ELO/ply that ~2-ply deficit ≈ 100-140 ELO ≈ the whole CCRL gap (2532-2380). Both engines
+agree the position is ~-1 pawn → NGN's eval is NOT sign-broken; it's a SPEED/DEPTH deficit. So "I suspect bugs"
+is half-right (J1 is real) but NPS is the bigger, measured lever. Memory's "NPS ~1M" was WRONG (perft/BenchmarkMode);
+real is ~267K. Have we done every standard technique? YES (per docs/01-09) — gap is NOT missing techniques; absent:
+Lazy SMP (Threads is a stub; Blunder likely single-threaded too) + NNUE (deferred).
+- **CPU profile (verified, docs/10):** eval ~15%, isInCheck ~15% (called 2-3x/move), move ordering ~14% (eager
+  SEE-per-capture + O(n²) selection sort BEFORE trying a move), movegen ~10%, **memclr ~8% + madvise ~9% + defer
+  ~3.5% = ~20% PURE OVERHEAD.** Root cause: SearchInfo pre-allocs 4 reuse buffers but 3 are DEAD FIELDS
+  (MoveBuffer/OrderedBuffer/SEEGains unused); hot path stack-allocs fresh [256]Move/[256]int per node (search.go:1251/
+  1270/1278/1280 + moveorder.go:321) that ESCAPE to heap + re-zero every node (~3.5KB/node). alphaBetaPV=62% of allocs,
+  qsearch=33%. The zero-alloc infra was half-built + abandoned.
+- **Ranked attack plan (docs/10):** T1 [NEUTRAL, ~15-20% NPS] reuse hot-path buffers via a recursion-FRAME pool
+  (NOT ply-indexed — IID/singular re-enter same ply → would clobber, the J3 joint); T2 [BEHAVIOUR, biggest algo]
+  lazy/staged move ordering (SEE on demand, stop on cutoff) — needs SPRT; T3 [NEUTRAL, ~3%] drop the per-node RepStack
+  defer; T4 cut redundant isInCheck/givesCheck. GATE for [NEUTRAL]: identical node counts + bestmove at fixed depth
+  vs clean HEAD (if counts move it's secretly BEHAVIOUR → SPRT). Do NOT trim eval for speed.
+- **T1 SHIPPED + KEPT this turn** (Bryan: "integrate into todo + proceed"). Frame-counter-keyed buffer pool in
+  SearchInfo (searchFrame{moveBuffer,ordered,quiets,captures}, balanced via the existing RepStack defer — no new
+  defer, stack fallback on pool exhaustion). Scope = alphaBetaPV main-loop buffers (the 62%); qsearch (33%) = T1b.
+  VERIFIED behaviour-neutral: IDENTICAL node counts + bestmoves at fixed depth on 3 positions (Kiwipete d12 1339599/
+  d5e6, mid d12 859325/d2c2, end d16 848103/b4f4) + go test green. Cut allocs ~75% (77→18/op). Real-search NPS ~0-2%
+  (within E-core noise), below the ~15-20% estimate. **KEPT — clear improvement + ZERO regression = KEEP, full stop**
+  (I nearly reverted it citing "benefit within noise"; Bryan: that's the rule INVERTED — see [[feedback_confirm_before_dropping_findings]]).
+- **LESSON (docs/10):** the benchmark profile OVERSTATED alloc/GC — memclr+madvise ~17% came from BenchmarkSearchDeep
+  LOOPING short searches (churns GC); a single game search allocs buffers once + GC barely runs, so killing 75% of allocs
+  moved real NPS <2%. Alloc is NOT the single-search bottleneck. Trust the profile's FLAT compute (ordering ~14% incl
+  eager-SEE+O(n²) sort, isInCheck ~15%, eval ~15%, movegen ~10%); distrust its alloc/GC cum for single-search. Verify NPS
+  on `go depth N`, not a bench-loop profile. **NEXT lever = T2 (lazy/staged move ordering, BEHAVIOUR → SPRT) + T4 (cut
+  redundant isInCheck/givesCheck) — bigger than T1.** T1b (qsearch buffers) optional follow-up (same neutral pattern).
 - **I4 instrument DONE + committed (5f2582f).** `sprt -tc "S+I"` / `gauntlet -tc "S+I"` (fab7f0b) play a real
   tournament clock (go wtime/btime/winc/binc, track both banks, detect flag-outs, force conc-1). Validated:
   detector FIRES (2+0 self-play → 2 time-forfeits) AND current NGN does NOT flag at 10+0.1 (0/24). The

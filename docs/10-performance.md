@@ -69,7 +69,29 @@ Each target tagged **[NEUTRAL]** (must be behaviour-identical — verify by dept
 **node-count + bestmove identity** vs clean HEAD, then measure NPS) or **[BEHAVIOUR]** (changes the
 tree — needs a fixed-time SPRT, not just a node check).
 
-### T1 — Reuse hot-path buffers via a per-FRAME pool `[NEUTRAL]` — est. +15–20% NPS
+### T1 — Reuse hot-path buffers via a per-FRAME pool `[NEUTRAL]` — SHIPPED 2026-05-31, KEPT
+**Result: behaviour-neutral (proven) + clear improvement → KEPT.** Implemented as a recursion-frame-counter
+pool (`searchFrame{moveBuffer,ordered,quiets,captures}`, balanced by the existing RepStack defer, stack
+fallback on pool exhaustion). It cut allocations ~75% (`BenchmarkSearch` 77→18 allocs/op) and produced
+**identical node counts + bestmoves at fixed depth on three positions** (Kiwipete d12 = 1,339,599 / d5e6;
+middlegame d12 = 859,325 / d2c2; endgame d16 = 848,103 / b4f4) — proving zero strength impact. Real-search
+speed measured ~0–2% (within E-core run-to-run noise), below the ~15–20% this estimate promised — but **a
+clear improvement (75% fewer allocs, never slower) with ZERO regression is KEPT.** The keep bar is
+"improvement + no regression," NOT "a speedup big enough to resolve." The +655KB/search is trivial against the
+128MB TT, so there is no concrete cost. (Reject applies only to non-correctness changes WITH a concrete cost —
+e.g. C5's 2× nodes; T1 has none.)
+
+> **Measurement lesson (the real takeaway): the benchmark profile overstated allocation/GC.**
+> The ~17% in `memclr` + `madvise` came from `BenchmarkSearchDeep` running *thousands of short searches in a
+> tight loop* — that churns the allocator and GC. A single game search allocates its buffers once and GC
+> barely runs, so removing 75% of allocations moved real NPS <2%. **Allocation is NOT this engine's
+> single-search bottleneck.** Trust the profile's *flat compute* hotspots (ordering, isInCheck, eval,
+> movegen — workload-independent), distrust its *alloc/GC/madvise cum* share for a single-search workload.
+> Verify NPS on a real `go depth N` search, never on a benchmark-loop profile alone.
+
+*(T2 and T4 target the trustworthy per-node compute and are the next levers — larger than T1.)*
+
+#### (original T1 plan, for reference)
 Kill the per-node `[256]Move`/`[256]int` allocation+zeroing. **The trap (this is a joint — see doc 09
 J3):** the persistent buffers (`ordered`, `searchedQuiets`, `searchedCaptures`) are live across the
 move loop's recursive calls, so they **cannot** be indexed by `ply` — IID (:1075) and singular
