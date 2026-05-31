@@ -14,25 +14,19 @@ single-threaded classical Go, so the gap is **per-node work, and it is reducible
 computed the simple/full way, MULTIPLYING ~1.4×1.3×1.3×1.15 ≈ **2.7x**. Eval runs at internal nodes too
 (RFP/futility/NMP static eval/improving), so the eval cost spans the whole tree, not just leaves.
 
-**SHIPPED (both NEUTRAL, node-identity-proven, KEPT):**
+**SHIPPED (all NEUTRAL, node-identity-proven, KEPT):**
 - **T1** — frame-pool hot-path buffer reuse (search.go searchFrame/SearchInfo.Frames). Allocs -75%. commit b9c1859.
 - **T2a** — incremental deferred selection sort (moveorder.go scoreMovesIntoBuffer+selectNextMove, driven from the
   alphaBetaPV loop). Skips the O(n²) sort tail past a beta cutoff. ~4-7% faster. commit 7445851.
+- **N1** — incremental material+PST+phase accumulator (`Bitboard.accMG/accEG/accPhase`) maintained in the three
+  board-mutation primitives (`Clear` subtracts, `UpdateSquare`/`Move` add); `evaluatePeSTO` reads it instead of
+  rescanning; dead `gamePhase` removed; Texel tuner recomputes per-sample (tables mutate under it). Bit-exact ⇒
+  node-identical on all 3 baselines; `TestEvalAccumulatorUnderMakeUnmake` walks make/unmake over 7 FENs. ~3.6%
+  faster. commit d0fae30.
 
 **QUEUE — do TOP-DOWN, one at a time, each gated before the next is stacked:**
 
-**N1 — Incremental material+PST eval `[NEUTRAL]` — BIGGEST LEVER, do first.**
-- *What:* maintain a running MG/EG material+PST accumulator updated in make/unmake, instead of `evaluatePeSTO`
-  rescanning the whole board every call. grep confirms NGN has ZERO incremental eval state today.
-- *Where:* `eval.go evaluateUnsafe:2382` / `evaluatePeSTO` (the full rescan) is the consumer; add accumulator
-  state to `Position`/`Bitboard`; update the delta in `position.go makeMoveHelper:184` + the unmake path. Must
-  mirror EVERY move type exactly: normal, capture, castle, promotion (incl. capture-promo), en passant.
-- *Why #1:* dominant eval term; eval is called at every leaf AND internal node (pruning). Est ~1.4-1.7x on the eval slice.
-- *Verify:* incremental PST is BIT-EXACT ⇒ **NODE-IDENTICAL** ⇒ same gate as T2a (identical nodes+seldepth+score+
-  bestmove vs freshly-built clean HEAD on the 3 baselines below) + `go test -short ./engine/`. **NO SPRT.** Add a
-  debug assert (`incremental == full-recompute`) exercised by tests to catch any move-type the delta mishandles.
-
-**N2 — isInCheck dedup `[NEUTRAL]` (was T4) — ~15% CPU.**
+**N2 — isInCheck dedup `[NEUTRAL]` (was T4) — ~15% CPU — NOW TOP OF QUEUE.**
 - *What:* stop recomputing the king-attacker scan ~2x/move. Node-in-check is ALREADY cached (`InCheck` tag, cheap);
   the waste is the post-make legality scan + the gives-check scan, both calling the free `isInCheck` (movegen.go:764).
 - *Where:* `search.go ~1387` (post-make legality) + `~1406` (gives-check). Derive gives-check from the move
