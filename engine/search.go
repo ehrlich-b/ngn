@@ -1779,6 +1779,23 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	info.Nodes++
 	info.QNodes++
 
+	// Reusable move buffer from the recursion-frame pool (docs/10 T1b): replaces the
+	// per-qnode stack `[256]Move` that escaped via the non-inlined GenerateMovesIntoBuffer
+	// (~7GB allocated/search here, 96.9% of all search allocs). Indexed by the FrameDepth
+	// counter so the in-check buffer survives the recursive qsearch call; stack fallback on
+	// pool exhaustion. Only `moveBuffer` is needed here — the in-check and stalemate-probe
+	// branches are mutually exclusive per call, and `captures [64]Move` below stays on the
+	// stack (inlined copy, never escaped).
+	qframeIdx := info.FrameDepth
+	info.FrameDepth++
+	defer func() { info.FrameDepth-- }()
+	var qframe *searchFrame
+	if info.Frames != nil && qframeIdx < len(info.Frames) {
+		qframe = &info.Frames[qframeIdx]
+	} else {
+		qframe = new(searchFrame)
+	}
+
 	// Node-in-check: read the maintained InCheck tag rather than rescanning
 	// (N2, node-identical) — qsearch is only entered from alphaBetaPV (same pos)
 	// or recursively after a capture make (tag set by makeMoveHelper).
@@ -1786,8 +1803,8 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 
 	// In-check branch: must search all evasions, stand-pat is illegal here.
 	if inCheck {
-		var moveBuffer [256]Move
-		moveCount := GenerateMovesIntoBuffer(pos, moveBuffer[:])
+		moveBuffer := qframe.moveBuffer[:]
+		moveCount := GenerateMovesIntoBuffer(pos, moveBuffer)
 
 		// Move ttMove to the front if it's among the legal moves. Cheap O(n)
 		// pass that pays off when the TT suggestion produces an early cutoff.
@@ -1839,8 +1856,8 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 
 	// Not in check. Detect stalemate at qDepth==0 (rare; preserves prior behavior).
 	if qDepth == 0 {
-		var moveBuffer [256]Move
-		moveCount := GenerateMovesIntoBuffer(pos, moveBuffer[:])
+		moveBuffer := qframe.moveBuffer[:]
+		moveCount := GenerateMovesIntoBuffer(pos, moveBuffer)
 		hasLegalMove := false
 		for i := 0; i < moveCount && !hasLegalMove; i++ {
 			move := moveBuffer[i]
