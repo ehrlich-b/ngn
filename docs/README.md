@@ -66,6 +66,7 @@ Treat unaudited `[HOLDS]` as `[UNVERIFIED]` until someone reads the lines.
 07  mate, draw & scoring     mate-distance encoding, scoreTo/FromTT, repetition, 50-move, stalemate
 08  time management          tournament soft/hard budgets, stability scaling, clock-interrupt discard
 09  invariants & joints      the consolidated invariant table + the joint catalogue + finding intake
+10  performance / NPS        the profiled hot-path breakdown + ranked NPS attack plan (the speed lane)
 ```
 
 ## Source-of-truth anchor
