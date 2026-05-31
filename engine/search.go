@@ -466,6 +466,7 @@ func getAttackersAfterMove(pos *Position, attackers uint64, occupied uint64, tar
 type searchFrame struct {
 	moveBuffer [256]Move // raw pseudo-legal generation target (transient: gen -> order)
 	ordered    [256]Move // ordered moves, iterated across the recursive move loop
+	scores     [256]int  // ordering scores, parallel to ordered, for incremental selection
 	quiets     [64]Move  // quiet moves tried (history penalties on a cutoff)
 	captures   [64]Move  // captures tried (capture-history penalties)
 }
@@ -1306,9 +1307,12 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		return 0
 	}
 
-	// Order moves, prioritizing TT move if available
+	// Order moves, prioritizing TT move if available. Scores are written eagerly; the sort
+	// itself is driven incrementally inside the loop (selectNextMove) so the selection tail
+	// past a beta cutoff is never paid. Node-identical to a full sort (docs/10 T2a).
 	ordered := frame.ordered[:]
-	orderedCount := orderMovesIntoBufferWithDepthPreviousAndTTMove(moves, depth, GetLastMovePlayed(), ttMove, ttHit, ordered, pos)
+	scores := frame.scores[:]
+	orderedCount := scoreMovesIntoBuffer(moves, depth, GetLastMovePlayed(), ttMove, ttHit, ordered, scores, pos)
 	bestScore := -INFINITY
 	bestMove := EmptyMove
 	moveCount := 0
@@ -1321,6 +1325,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	searchedCaptureCount := 0
 
 	for oi := 0; oi < orderedCount; oi++ {
+		// Deferred selection sort: pull the next-best move into ordered[oi]. Doing this
+		// per-iteration (rather than fully up front) skips the sort tail after a cutoff.
+		selectNextMove(ordered, scores, orderedCount, oi)
 		move := ordered[oi]
 		moveCount++
 

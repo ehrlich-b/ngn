@@ -310,15 +310,26 @@ func orderMovesSinglePass(moves []Move, depth int, previousMove Move, ttMove Mov
 	return result
 }
 
-// Zero-allocation single-pass ordering into caller-provided buffer
+// Zero-allocation single-pass ordering into caller-provided buffer. Scores every move then
+// fully sorts; used at the root and wherever the entire ordered list is consumed.
 func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, pos *Position) int {
-	n := len(moves)
-	if n == 0 || len(out) < n {
-		return 0
-	}
-
 	// Use a fixed-size array for scoring to avoid allocations
 	var scores [256]int
+	n := scoreMovesIntoBuffer(moves, depth, previousMove, ttMove, ttHit, out, scores[:], pos)
+	for i := 0; i < n-1; i++ {
+		selectNextMove(out, scores[:], n, i)
+	}
+	return n
+}
+
+// scoreMovesIntoBuffer writes each move and its ordering score into the parallel out/scores
+// buffers WITHOUT sorting. The search drives the sort incrementally via selectNextMove so the
+// O(n^2) selection tail past a beta cutoff is never paid. Returns the number of moves written.
+func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position) int {
+	n := len(moves)
+	if n == 0 || len(out) < n || len(scores) < n {
+		return 0
+	}
 
 	// Single pass: score all moves
 	for i, move := range moves {
@@ -381,22 +392,25 @@ func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, 
 		out[i] = move
 	}
 
-	// Sort the output buffer by score (descending) using selection sort
-	for i := 0; i < n-1; i++ {
-		maxIdx := i
-		for j := i + 1; j < n; j++ {
-			if scores[j] > scores[maxIdx] {
-				maxIdx = j
-			}
-		}
-		// Swap both scores and moves
-		if maxIdx != i {
-			scores[i], scores[maxIdx] = scores[maxIdx], scores[i]
-			out[i], out[maxIdx] = out[maxIdx], out[i]
+	return n
+}
+
+// selectNextMove performs one selection-sort step: it scans out[i:n] for the highest score
+// and swaps that entry (and its score) into position i. Calling it for i = 0,1,2,... yields
+// moves in the exact order a full selection sort produces, so the search can stop as soon as
+// a beta cutoff fires instead of sorting the whole list. Strict > keeps ties at their earlier
+// index, matching the full-sort order — so the incremental path is node-identical.
+func selectNextMove(out []Move, scores []int, n, i int) {
+	maxIdx := i
+	for j := i + 1; j < n; j++ {
+		if scores[j] > scores[maxIdx] {
+			maxIdx = j
 		}
 	}
-
-	return n
+	if maxIdx != i {
+		scores[i], scores[maxIdx] = scores[maxIdx], scores[i]
+		out[i], out[maxIdx] = out[maxIdx], out[i]
+	}
 }
 
 func orderMoves(moves []Move, pos *Position) []Move {

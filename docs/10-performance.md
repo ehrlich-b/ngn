@@ -104,14 +104,27 @@ buffers (raw gen `moveBuffer`, `scores`) are safe to share (no recursion during 
 them at single `SearchInfo` scratch fields. Verify: node/bestmove identity at depth 10–12 on Kiwipete +
 a quiet middlegame, then NPS delta.
 
-### T2 — Lazy / staged move ordering `[BEHAVIOUR]` — est. large (attacks ~14% + cuts SEE)
-Today ordering scores **every** move (calling `staticExchangeEvaluation` on every capture) and runs an
-**O(n²) selection sort** before the loop tries a single move — wasted whenever an early move cuts.
-Competitive engines pick moves incrementally: yield the TT move, then good captures (SEE only when
-reached), then killers/counters, then quiets — and stop as soon as a beta cutoff hits. Replaces the
-eager sort+SEE with on-demand selection. **Behaviour-affecting** (tie-break order can shift → different
-node counts), so it earns a real fixed-time SPRT. Likely the biggest single NPS win after T1, and it
-directly reduces the SEE cost folded inside the 14%.
+### T2a — Incremental (deferred) selection sort `[NEUTRAL]` — SHIPPED 2026-05-31, KEPT
+**Result: behaviour-neutral (proven) + ~4–7% faster → KEPT.** The eager path scored every move then ran
+a full O(n²) selection sort *before trying a single move* — the whole sort tail past a beta cutoff was
+wasted. Split `orderMovesSinglePassIntoBuffer` into a score-only pass (`scoreMovesIntoBuffer`, moveorder.go)
+plus a single-step `selectNextMove`, and drive the selection from the `alphaBetaPV` move loop (search.go
+~1311/1325): pull the next-best move into `ordered[oi]` per iteration, so a cutoff at move *k* never sorts
+moves *k+1..n*. A full selection sort and incrementally-deferred selection produce the **identical order**
+(strict `>` keeps ties at the earlier index; positions `[0..i)` are finalized and untouched), so it is
+**node-identical** — verified: Kiwipete d12 = 1,339,599 / d5e6, middlegame d12 = 1,165,258 / a2a3, endgame
+d16 = 848,103 / b4f4, all matching clean HEAD exactly (nodes + seldepth + score + bestmove). `go test
+-short ./engine/` green. Measured ~4–7% faster (288/305/286K → 317/305/312K NPS, same node count), never
+slower → KEPT on "improvement + no regression." Scores stored in a frame-resident `searchFrame.scores`
+(same re-entrancy constraint as `ordered` — IID/singular re-enter at the same ply). **Saves SORT work, not
+SEE work** — SEE is still computed for every capture up front (needed to know the order). That is T2b.
+
+### T2b — Lazy SEE / staged generation `[BEHAVIOUR]` — est. large (cuts the SEE inside the ~14%)
+Today scoring still calls `staticExchangeEvaluation` on **every** capture before the loop runs. Competitive
+engines stage it: yield the TT move, then captures ordered by MVV-LVA with **SEE computed only when a
+capture is actually reached**, then killers/counters/quiets — stopping as soon as a beta cutoff hits.
+Changes the capture tie-break order ⇒ node counts shift ⇒ **NOT node-identical** ⇒ needs a fixed-time SPRT
+(keep iff not a regression). Bigger SEE-cost win than T2a, but behaviour-affecting — do it after T2a.
 
 ### T3 — Drop the per-node RepStack `defer` `[NEUTRAL]` — est. +3%
 `defer func(){ info.RepStackLen-- }()` (search.go:1026) runs on every node; Go's defer machinery shows

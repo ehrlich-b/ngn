@@ -325,18 +325,32 @@ Lazy SMP (Threads is a stub; Blunder likely single-threaded too) + NNUE (deferre
   eager-SEE+O(n²) sort, isInCheck ~15%, eval ~15%, movegen ~10%); distrust its alloc/GC cum for single-search. Verify NPS
   on `go depth N`, not a bench-loop profile. **NEXT lever = T2 (lazy/staged move ordering, BEHAVIOUR → SPRT) + T4 (cut
   redundant isInCheck/givesCheck) — bigger than T1.** T1b (qsearch buffers) optional follow-up (same neutral pattern).
-- **>>> RESUME HERE: T2 (move ordering, ~14% CPU in orderMovesSinglePassIntoBuffer @ moveorder.go:314) <<<** Split:
-  - **T2a [NEUTRAL, verifiable like T1]:** replace the upfront full O(n²) selection sort + iterate with INCREMENTAL
-    max-selection inside the move loop (pick next-best each iteration), so the sort tail for moves AFTER a beta cutoff
-    is never done. Order is identical to a full selection sort ⇒ NODE-IDENTICAL ⇒ gate by node-count+bestmove identity
-    vs clean HEAD (b9c1859) on the 3 positions (Kiwipete d12 1339599/d5e6, mid 859325/d2c2, end 848103/b4f4), no SPRT.
-    NOTE: this keeps SEE scored upfront for all captures (needed to know order), so it saves SORT work, not SEE work.
-  - **T2b [BEHAVIOUR, needs fixed-time SPRT]:** lazy SEE / staged generation — order captures by MVV-LVA first, compute
-    SEE on demand only for captures actually reached. Changes tie-break order ⇒ node counts move ⇒ NOT node-identical
-    ⇒ SPRT vs clean HEAD. Bigger SEE-cost win but behaviour-affecting. Do AFTER T2a.
-  - KEEP RULE in force: T2a neutral+faster ⇒ KEEP; T2b keep iff SPRT not a regression. Never revert a neutral+faster change.
-  - Parallel neutral lever: T4 (isInCheck ~15%: cache king-attack / cheaper givesCheck) — node-identity gate.
-  HEAD = b9c1859 (T1 kept), build/ngn rebuilt with T1, tree clean. Memory keep-rule corrected ([[feedback_confirm_before_dropping_findings]]).
+- **T2a SHIPPED + KEPT (incremental/deferred selection sort, NEUTRAL).** Split orderMovesSinglePassIntoBuffer into
+  scoreMovesIntoBuffer (score-only) + selectNextMove (one selection step) driven from the alphaBetaPV move loop, so the
+  O(n²) sort tail past a beta cutoff is never paid. NODE-IDENTICAL proven (Kiwipete d12 1339599/d5e6, mid d12 1165258/a2a3,
+  end d16 848103/b4f4 = clean HEAD exactly) + go test -short green + ~4-7% faster (288/305/286K → 317/305/312K NPS, same
+  node count, never slower) → KEPT per the rule. Scores live in a frame-resident searchFrame.scores.
+- **>>> RESUME HERE: NPS GAP STILL ~2-2.4x — root-caused 2026-05-31 (Bryan: "how are we missing 2.5x?") <<<** Even after
+  T1+T2a, NGN ~310K vs Blunder ~640-750K. NOT one missing thing — ~4 hot paths each computed the SIMPLE/full way, and they
+  MULTIPLY (~1.4×1.3×1.3×1.15 ≈ 2.7x). VERIFIED against live code (not eyeballed):
+  - **#1 EVAL recomputed in full every node, ZERO incremental, ZERO lazy (~15-20%).** evaluateUnsafe (eval.go:2382) rescans
+    the whole board for tapered PeSTO + loops all 8 files for doubled + recomputes passed/isolated/chains/bishop-pair/
+    mobility/king-safety EVERY call; grep confirms no incremental material/PST state anywhere; no "material far outside
+    [α,β] → return early" lazy path. TWO standard wins NGN lacks: (a) **incremental material+PST in make/unmake** → dominant
+    term becomes ~free, and it's BIT-EXACT ⇒ NODE-IDENTICAL ⇒ verifiable like T2a, NO SPRT; (b) **lazy eval** (cheap terms
+    first, skip expensive when far from window) ⇒ BEHAVIOUR ⇒ SPRT. (a) is the dream lever: large + node-identical. Eval is
+    also called at internal nodes (RFP/futility/NMP static eval/improving), so this cost spans the whole tree, not just leaves.
+  - **#2 isInCheck recompute ~2x/move (~15%).** Node-in-check IS cached (InCheck tag, cheap) — but free isInCheck()
+    (movegen.go:764) rescans all king-attacker rays AGAIN for post-make legality AND for gives-check. Compute once /
+    derive gives-check from the move. Mostly NODE-IDENTICAL (caching/exact derivation) ⇒ verifiable. = old T4.
+  - **#3 full pseudo-legal movegen EVERY node (~10%)** when ~90% cut on move 1-2 — no staged/lazy gen (TT→captures→quiets on demand).
+  - **#4 SEE on every capture up front** (part of ordering ~14%) = T2b (lazy SEE, BEHAVIOUR/SPRT).
+  - CLEARED (checked, not the culprit): WrapEvaluation has a real fast path (`!ENABLE_HOT_PATH_DEBUG` → bare return fn()); the
+    ~17% memclr+madvise was a benchmark-loop artifact (docs/10). Don't chase those.
+  - **RECOMMENDED ORDER: incremental eval (#1a, node-identical, biggest) → isInCheck dedup (#2, ~neutral) → lazy eval (#1b,
+    SPRT) → staged movegen (#3) → T2b lazy SEE.** The two biggest are both ~node-identical (no strength risk).
+  - KEEP RULE in force: NEUTRAL+faster ⇒ KEEP (never revert for a small/noise gain); BEHAVIOUR keep iff SPRT not a regression.
+  HEAD before T2a commit = a1704cb (T1 kept). Memory keep-rule corrected ([[feedback_confirm_before_dropping_findings]]).
 - **I4 instrument DONE + committed (5f2582f).** `sprt -tc "S+I"` / `gauntlet -tc "S+I"` (fab7f0b) play a real
   tournament clock (go wtime/btime/winc/binc, track both banks, detect flag-outs, force conc-1). Validated:
   detector FIRES (2+0 self-play → 2 time-forfeits) AND current NGN does NOT flag at 10+0.1 (0/24). The
