@@ -1,7 +1,9 @@
 # 10 — Performance / NPS (the speed lane)
 
-*Profiled 2026-05-31 @ `87714a1` on E-cores (`taskpolicy -b`). Supersedes the stale
-`docs/eliminate_alloc.md` (Feb 2026; its line numbers and 336-allocs/op figure are out of date).*
+*Re-profiled **2026-05-31 @ `7c9c58f`** (post T1/T2a/N1) on E-cores (`taskpolicy -b`) with a deep,
+phase-diverse basket (`BenchmarkSearchProfile`, engine/profile_test.go — middlegame + Kiwipete +
+endgame, depth 11, cold TT per op, 27M nodes / 67s of samples). Supersedes the earlier same-day
+profile and the stale `docs/eliminate_alloc.md` (Feb 2026).*
 
 ---
 
@@ -14,170 +16,244 @@ Measured head-to-head on Kiwipete, equal time, both engines on E-cores:
 | NPS | **~267K** | **~640–750K** (~2.5x) |
 | Depth reached | 11 @ 3.6s | 13 @ 2.0s |
 
-Blunder is ~2.5x faster per node and ~2–3 plies deeper at equal wall-clock. At ~40–60 ELO/ply
-that depth deficit ≈ 100–140 ELO — comparable to the entire measured CCRL gap (2532 − 2380).
-**NPS is the single biggest lever on NGN's strength, larger than any individual search bug.**
-Both engines roughly agree on the eval of the position (NGN −136 cp @ d11, Blunder −86 cp @ d13),
-so this is a *speed/depth* deficit, not an eval-sign disaster.
+Blunder is ~2.5x faster per node and ~2–3 plies deeper at equal wall-clock. At ~40–60 ELO/ply that
+depth deficit ≈ 100–140 ELO — comparable to the entire measured CCRL gap (2532 − ~2380). **NPS is a
+top-tier lever on NGN's strength.** Both engines roughly agree on the eval of the position (NGN −136
+cp @ d11, Blunder −86 cp @ d13), so this is a *speed/depth* deficit, not an eval-sign disaster.
+
+**Both engines are single-threaded classical Go on the same hardware** — so the 2.5x is *pure
+per-node architecture*, not language, not threads, not hardware. That makes it analyzable and (partly)
+reducible. The rest of this doc is the per-node budget and an honest accounting of what "2.5x" means.
 
 ---
 
-## The profile (verified, not estimated)
+## The per-node micro-budget (verified, not estimated)
 
-CPU profile of `BenchmarkSearchDeep`, 5.31s of samples. **Cumulative** share of total CPU by
-subsystem (where the time actually goes):
+The profile is 66.97s of CPU samples over 27.05M nodes ⇒ **~2.48 µs/node E-core (profiled, cold-TT);
+the real game-search node is ~3.75 µs E-core (267K NPS) / ~1 µs P-core (~1M NPS).** Absolute ns
+shifts with hardware/TC; **the % split below is hardware-independent and is the thing to attack.**
 
-| Subsystem | % CPU | Note |
-|---|---|---|
-| `EvaluateForPlayer` (PeSTO + pawn structure + correction) | ~15% | spread across many small fns |
-| `isInCheck` | ~15% | called 2–3× per move (node-in-check, post-make legality, gives-check) |
-| `orderMovesSinglePassIntoBuffer` | ~14% | scores ALL moves (SEE per capture) + **O(n²) selection sort** |
-| `GenerateMovesIntoBuffer` | ~10% | full pseudo-legal gen every node |
-| **`runtime.memclrNoHeapPointers`** | **~8%** | **zeroing per-node `[256]Move`/`[256]int` arrays** |
-| **`runtime.madvise`** | **~9%** | **GC returning memory — driven by hot-path heap allocation** |
-| **`runtime.(*_panic).nextDefer`** | **~3.5%** | **the per-node `defer` for the RepStack pop** |
-| make/unmake, hashing, recursion | remainder | |
+### View A — by subsystem (cumulative; the all-in cost of each *action*)
 
-Allocation profile (`-alloc_objects`): **`alphaBetaPV` = 62% of allocations, `quiescenceWithDepth`
-= 33%.** Current rate ~77–207 allocs/op (`go test -benchmem`; the Feb doc's 336 has improved but
-the hot path still allocates heavily).
+These overlap (eval is called *inside* qsearch, SEE *inside* ordering), so they sum > 100% — this is
+the "what does one X cost, all-in" view.
 
-### Root cause: the zero-alloc infrastructure was half-built and abandoned
-
-`SearchInfo` pre-allocates four reusable buffers (`MoveBuffer`, `OrderedBuffer`, `CaptureBuffer`,
-`SEEGains`, search.go:478). **Only `CaptureBuffer` is actually used** (qsearch :1816). `MoveBuffer`,
-`OrderedBuffer`, and `SEEGains` are **dead fields.** Meanwhile the hot path stack-allocates fresh
-arrays *every node*:
-
-| Site | Array | Bytes/node | Lifetime |
+| Action (per node) | % CPU (cum) | ns @ 3.75µs | What it is |
 |---|---|---|---|
-| search.go:1251 | `var moveBuffer [256]Move` (raw gen) | 1 KB | transient (gen→order→discard) |
-| search.go:1270 | `var ordered [256]Move` | 1 KB | **persists across the move loop's recursion** |
-| search.go:1278/1280 | `searchedQuiets`/`searchedCaptures [64]Move` | 0.5 KB | persists across loop |
-| moveorder.go:321 | `var scores [256]int` | 1 KB | transient (inside ordering) |
-| qsearch :1730/:1783/:1817 | `[256]Move`×2 + `[64]Move` | ~1.6 KB | mixed |
+| **Quiescence subtree** | **49.8%** | — | half the whole tree is qsearch (container; its children are below) |
+| **Evaluation** (`EvaluateForPlayer→evaluateUnsafe`) | **18.6%** | ~700 | full classical eval; runs at leaves AND internal nodes (RFP/futility/NMP/improving) |
+| **Move ordering** (`scoreMovesIntoBuffer` 10.4 + `selectNextMove` 7.5) | **~18%** | ~675 | scores every move (SEE per capture) + incremental selection sort |
+| **Make + Unmake** (`makeMoveHelper` 10.1 + `unMakeMoveHelper` 6.7) | **16.8%** | ~630 | board mutation + incremental hash + N1 eval accumulator |
+| **SEE** (`staticExchangeEvaluation`) | **11.0%** | ~410 | called for *every capture during ordering* + qsearch pruning |
+| **Move generation** (`GenerateMovesIntoBuffer`) | **10.8%** | ~405 | full pseudo-legal gen every node; sliders **ray-walked** (see below) |
+| **isInCheck** | **8.2%** | ~305 | node-in-check + per-move legality scan + gives-check |
 
-≈ 3.5 KB allocated + zeroed per main-search node. The compiler can't prove these don't escape (the
-slice is handed to non-inlined `GenerateMovesIntoBuffer`), so they land on the heap → the ~8% memclr
-(zeroing) + ~9% madvise (GC) + the 62%/33% alloc split above.
+### View B — by primitive leaf (flat self-time; where raw cycles actually burn, sums ≈ sampled total)
+
+| Leaf | Flat % | Note → target |
+|---|---|---|
+| `selectNextMove` | **7.5%** | O(n²) selection-sort scan; already deferred past cutoffs (T2a). Inherent. |
+| `Bitboard.Clear` | **5.4%** | 12-way switch + composite-bb + **N1 accumulator subtract** (N1 moved eval cost here) |
+| `generateSlidingMovesIntoBuffer` | **4.9%** | **ray-walk** + per-step wrap guards → **T5 (magic)** |
+| `findLeastValuableAttacker` | **4.7%** | SEE inner loop |
+| `GetBitboardOf` | **4.6%** | **no mailbox** — 12-case piece→bb switch → **T6** |
+| `scoreMovesIntoBuffer` | **4.4%** | move scoring (SEE per capture) |
+| `generateSlidingCapturesIntoBuffer` | **3.6%** | ray-walk (captures) → **T5** |
+| `isInCheck` | **3.5%** | king-attack recompute |
+| `Bitboard.Move` | **2.7%** | 12-way switch + accumulator add |
+| `PieceAt` / `GetPiece` | **2.3% / 1.9%** | **no mailbox** → **T6** |
+| `updateHash` | **2.3%** | incremental Zobrist (fine) |
+| `madvise` / `memclrNoHeapPointers` | **2.2% / 2.1%** | **GC + zeroing — driven by the qsearch allocation (below)** |
+| `GetBishopAttacks`/`GetRookAttacks` | **2.1% / 1.8%** | O(1) magic — used by isInCheck/SEE, **NOT by movegen** (the waste) |
+| `atomic.Uint64.Load` | **1.5%** | per-node stop/max-node checks |
+| eval leaves (`pawnShield` 2.4, `kingAttackPatterns` 1.7, `mobility` 1.5, `bishopPair` 1.5, `kingSafety` 1.2, `outpost` 1.1, `rookOpenFile` 0.9 …) | **~12% total** | the positional terms not covered by the N1 accumulator |
+
+**Three cross-cutting taxes** (distributed across the subsystems above, so they don't show as one row):
+- **No mailbox:** `GetBitboardOf` + `PieceAt` + `GetPiece` = **~8.8% flat** of 12-way piece→bitboard
+  switches, called from movegen/eval/SEE/make. A `[64]Piece` mailbox makes these O(1) array reads.
+- **Allocation/GC:** `madvise` + `memclr` + `mallocgc` + `growslice` ≈ **~5% flat**, driven entirely by
+  the qsearch allocation isolated below.
+- **Ray-walk sliders:** `generateSlidingMoves`+`Captures` = **~8.4% flat**, fully replaceable by the
+  magic getters that already exist in the tree.
+
+---
+
+## Allocation profile — the picture INVERTED after T1
+
+The earlier same-day profile said *"alphaBetaPV = 62% of allocations, quiescence = 33%, ~77–207
+allocs/op, allocation is NOT the bottleneck."* **T1 (the frame pool) fixed alphaBetaPV — so the
+residual migrated entirely to quiescence, which T1 never touched:**
+
+```
+-alloc_objects:  quiescenceWithDepth 96.9%   alphaBetaPV 1.5%
+-alloc_space:    quiescenceWithDepth 93.9% (7.08 GB / 2.7M-node search)
+                 → search.go:1842  var moveBuffer [256]Move   = 6.0 GB   (stalemate probe @ qDepth==0)
+                 → search.go:1789  var moveBuffer [256]Move   = 1.08 GB  (in-check evasion buffer)
+   ~684,000 allocs/op  ≈ 0.25 allocs/node  ≈ 260 bytes/node
+```
+
+Root cause: quiescence stack-declares `var moveBuffer [256]Move` (1 KB) and hands `moveBuffer[:]` to
+non-inlined `GenerateMovesIntoBuffer`; the compiler can't prove the slice doesn't escape ⇒ the whole
+1 KB array lands on the heap, **per qsearch node**. (`var captures [64]Move` at :1876 does *not* escape
+— it's filled by an inlined `copy`, so it stays on the stack. The escape is specifically the slice
+handed across the gen call.) The 6 GB line :1842 is the worst: a full move-gen + legality-test just to
+ask *"is there one legal move (stalemate)?"* at **every** qsearch root (= every main-search horizon
+node). Blunder is **zero-alloc per node** — this is the single clearest architectural divergence.
+
+> **Measurement caveat (the T1 lesson — still load-bearing):** removing alphaBetaPV's allocations in
+> T1 moved *real game-search* NPS < 2%, far below the profile's GC share, because a benchmark loop
+> churns the allocator far harder than one game search does. So the ~5% GC tax above is an **upper
+> bound** on the qsearch-pool win; expect the real-search gain to be smaller. It is still worth doing:
+> it's node-identical (KEEP RULE), it removes 7 GB of churn + GC-pause variance, and it's the
+> prerequisite for trusting the rest of the profile. Just don't expect it alone to move the 2.5x. Verify
+> on a real `go depth N`, never on the benchmark-loop alone.
+
+---
+
+## What would "2.5x" even mean? (the honest decomposition)
+
+NGN ~3.75 µs/node vs Blunder ~1.43 µs/node (E-core) — a ~2.3 µs/node gap. **It is not one thing; it is
+a stack of independent factors that *multiply*.** Decomposing by what Blunder structurally does NOT pay:
+
+| Gap factor | NGN cost | Blunder | Recoverable? | Lever |
+|---|---|---|---|---|
+| Per-node heap alloc | ~5% (GC tax) + variance | zero-alloc | **FREE** (node-identical) | **T1b** |
+| Ray-walk vs magic movegen | ~8.4% flat | O(1) magic | **FREE** (node-identical) | **T5** |
+| 12-way piece lookup vs mailbox | ~8.8% flat | `Squares[sq]` O(1) | **FREE** (node-identical, structural) | **T6** |
+| Per-node `defer` (RepStack) | ~3% (historical) | none | **FREE** (node-identical) | **T3** |
+| SEE on *every* capture in ordering | ~8% (ordering-SEE) | MVV-LVA in ordering, SEE only in qsearch | **TRADEOFF** (SPRT) | **T2b** |
+| Rich eval (mobility/king-safety/pawn-struct/outposts/coord) | ~18.6% (vs Blunder ~10%) | 6 lean terms | **TRADEOFF** (SPRT; N3 already failed) | — |
+| Heavier per-node bookkeeping (correction history, S7, static-eval stack, singular) | a few % | leaner negamax | mostly **buys ELO** — leave | — |
+
+**The honest arithmetic:**
+- **Free, node-identical wins** (T1b + T5 + T6 + T3) ≈ **14–18% of CPU** ⇒ NGN ~3.75 → ~3.1–3.2 µs/node
+  ⇒ **~1.2–1.35x**, i.e. **+0.3–0.6 ply ≈ +15–40 real ELO via depth.** Bank these — they are pure ELO at
+  zero strength cost. (Discount by the T1b caveat above; the magic/mailbox wins are flat-compute and
+  transfer more reliably than the alloc one.)
+- **The remaining ~1.8–2.0x is NOT free.** Roughly half the gap is NGN *deliberately* spending cycles on
+  a richer eval and SEE-accurate move ordering that **buy strength per node**. Closing it means trading
+  that strength — every such cut must clear a fixed-time SPRT under the KEEP RULE, and history is against
+  it (N3 lazy-eval regressed; an upfront MVV-LVA capture sort once cost −129 ELO, commit 2f61d3a).
+
+**Conclusion / reframe:** *NPS is a means, not the end — strength = f(NPS × node-quality).* NGN trades
+NPS for node-quality on purpose. The right target is **bank the free ~1.3x, then treat each further cut
+as a speed/strength experiment, not a free win.** Do not chase NPS-parity with Blunder by gutting the
+eval; that is plausibly ELO-neutral-to-negative. A genuinely different regime (incremental/NNUE eval
+that is both cheaper AND stronger) is the only way to get *both* — that is a separate project.
 
 ---
 
 ## Ranked attack plan
 
-Each target tagged **[NEUTRAL]** (must be behaviour-identical — verify by depth-10 Kiwipete
-**node-count + bestmove identity** vs clean HEAD, then measure NPS) or **[BEHAVIOUR]** (changes the
-tree — needs a fixed-time SPRT, not just a node check).
+Each target is **[NEUTRAL]** (must be behaviour-identical — verify by node-count + seldepth + score +
+bestmove identity at fixed depth vs clean HEAD on the 3 baselines, then measure NPS) or **[BEHAVIOUR]**
+(changes the tree — needs a fixed-time SPRT, not just a node check). The node-identity gate is the
+speed-lane analogue of the keep-correctness rule (doc 09).
 
-### T1 — Reuse hot-path buffers via a per-FRAME pool `[NEUTRAL]` — SHIPPED 2026-05-31, KEPT
-**Result: behaviour-neutral (proven) + clear improvement → KEPT.** Implemented as a recursion-frame-counter
-pool (`searchFrame{moveBuffer,ordered,quiets,captures}`, balanced by the existing RepStack defer, stack
-fallback on pool exhaustion). It cut allocations ~75% (`BenchmarkSearch` 77→18 allocs/op) and produced
-**identical node counts + bestmoves at fixed depth on three positions** (Kiwipete d12 = 1,339,599 / d5e6;
-middlegame d12 = 859,325 / d2c2; endgame d16 = 848,103 / b4f4) — proving zero strength impact. Real-search
-speed measured ~0–2% (within E-core run-to-run noise), below the ~15–20% this estimate promised — but **a
-clear improvement (75% fewer allocs, never slower) with ZERO regression is KEPT.** The keep bar is
-"improvement + no regression," NOT "a speedup big enough to resolve." The +655KB/search is trivial against the
-128MB TT, so there is no concrete cost. (Reject applies only to non-correctness changes WITH a concrete cost —
-e.g. C5's 2× nodes; T1 has none.)
+**Baselines (INVARIANT under any [NEUTRAL] change):** Kiwipete d12 = 1,339,599 / sd32 / d5e6 ·
+middlegame `r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10` d12 = 1,165,258 / a2a3 ·
+endgame `8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1` d16 = 848,103 / b4f4. Driver: `/tmp/nodecheck.sh
+<bin> <fen> <depth>`.
 
-> **Measurement lesson (the real takeaway): the benchmark profile overstated allocation/GC.**
-> The ~17% in `memclr` + `madvise` came from `BenchmarkSearchDeep` running *thousands of short searches in a
-> tight loop* — that churns the allocator and GC. A single game search allocates its buffers once and GC
-> barely runs, so removing 75% of allocations moved real NPS <2%. **Allocation is NOT this engine's
-> single-search bottleneck.** Trust the profile's *flat compute* hotspots (ordering, isInCheck, eval,
-> movegen — workload-independent), distrust its *alloc/GC/madvise cum* share for a single-search workload.
-> Verify NPS on a real `go depth N` search, never on a benchmark-loop profile alone.
+### SHIPPED (kept, behaviour-neutral, do not re-litigate)
 
-*(T2 and T4 target the trustworthy per-node compute and are the next levers — larger than T1.)*
+#### T1 — frame-pool hot-path buffer reuse `[NEUTRAL]` — SHIPPED `b9c1859`
+Recursion-frame-counter pool (`searchFrame{moveBuffer,ordered,quiets,captures}`, balanced by the
+RepStack defer, stack fallback on exhaustion). Cut `alphaBetaPV` allocations ~75% (77→18/op on
+`BenchmarkSearch`), node-identical on all 3 baselines. The trap it navigates (doc 09 J3): `ordered`/
+`quiets`/`captures` are live across the loop's recursive calls, so they **cannot** be ply-indexed (IID
+and singular re-enter at the *same* ply, singular *mid-loop*) — hence a frame counter, not ply.
+**Real-search NPS moved < 2%** → see the measurement caveat above; kept on KEEP RULE (free, no
+regression). **Did NOT touch quiescence — that's the open residual (T1b).**
 
-#### (original T1 plan, for reference)
-Kill the per-node `[256]Move`/`[256]int` allocation+zeroing. **The trap (this is a joint — see doc 09
-J3):** the persistent buffers (`ordered`, `searchedQuiets`, `searchedCaptures`) are live across the
-move loop's recursive calls, so they **cannot** be indexed by `ply` — IID (:1075) and singular
-verification (:1459) re-enter `alphaBetaPV` at the *same ply*, and singular is called *mid-loop* while
-`ordered` is being iterated. A naive per-ply buffer would clobber the parent's move list and
-reintroduce a re-entrancy corruption. **Fix shape:** index a buffer pool in `SearchInfo` by a
-*recursion-frame counter* that increments on every entry and decrements on exit (like `RepStackLen`),
-sized with headroom for the re-entrant frames (≈ `2·MaximumDepth + EXTENSION_BUDGET`). The transient
-buffers (raw gen `moveBuffer`, `scores`) are safe to share (no recursion during their lifetime) — point
-them at single `SearchInfo` scratch fields. Verify: node/bestmove identity at depth 10–12 on Kiwipete +
-a quiet middlegame, then NPS delta.
+#### T2a — incremental (deferred) selection sort `[NEUTRAL]` — SHIPPED `7445851`
+Split ordering into a score-only pass (`scoreMovesIntoBuffer`) + a single-step `selectNextMove` driven
+from the `alphaBetaPV` loop, so a cutoff at move *k* never sorts *k+1..n*. Full selection sort and
+deferred selection produce the identical order (strict `>` keeps ties at the earlier index) ⇒
+node-identical (verified 3 baselines). ~4–7% faster. **Saves SORT work, not SEE work** — SEE is still
+computed for every capture up front (that's T2b).
 
-### T2a — Incremental (deferred) selection sort `[NEUTRAL]` — SHIPPED 2026-05-31, KEPT
-**Result: behaviour-neutral (proven) + ~4–7% faster → KEPT.** The eager path scored every move then ran
-a full O(n²) selection sort *before trying a single move* — the whole sort tail past a beta cutoff was
-wasted. Split `orderMovesSinglePassIntoBuffer` into a score-only pass (`scoreMovesIntoBuffer`, moveorder.go)
-plus a single-step `selectNextMove`, and drive the selection from the `alphaBetaPV` move loop (search.go
-~1311/1325): pull the next-best move into `ordered[oi]` per iteration, so a cutoff at move *k* never sorts
-moves *k+1..n*. A full selection sort and incrementally-deferred selection produce the **identical order**
-(strict `>` keeps ties at the earlier index; positions `[0..i)` are finalized and untouched), so it is
-**node-identical** — verified: Kiwipete d12 = 1,339,599 / d5e6, middlegame d12 = 1,165,258 / a2a3, endgame
-d16 = 848,103 / b4f4, all matching clean HEAD exactly (nodes + seldepth + score + bestmove). `go test
--short ./engine/` green. Measured ~4–7% faster (288/305/286K → 317/305/312K NPS, same node count), never
-slower → KEPT on "improvement + no regression." Scores stored in a frame-resident `searchFrame.scores`
-(same re-entrancy constraint as `ordered` — IID/singular re-enter at the same ply). **Saves SORT work, not
-SEE work** — SEE is still computed for every capture up front (needed to know the order). That is T2b.
+#### N1 — incremental material+PST+phase eval accumulator `[NEUTRAL]` — SHIPPED `d0fae30`
+Three running ints on `Bitboard` (`accMG/accEG/accPhase`) maintained by the only three board-mutation
+primitives — `Clear` subtracts, `UpdateSquare`/`Move` add — so every move type is exact with zero
+per-type code. `evaluatePeSTO` reads the accumulator instead of rescanning 32 squares + 8 popcounts
+every eval (and eval runs at internal nodes too). Bit-exact ⇒ node-identical (3 baselines);
+`TestEvalAccumulatorUnderMakeUnmake` pins it over make/unmake on 7 FENs. ~3.6% faster. *Caveat:* this is
+**why `Bitboard.Clear` is now 5.4% flat** — the accumulator add/subtract moved eval cost into the
+make/unmake primitives. A packed mg/eg `int` (Stockfish `make_score`) would halve that; not done.
+**Does NOT contradict "don't trim eval"** — eval is exact, only the *scan* was removed.
 
-### N1 — Incremental material+PST+phase eval `[NEUTRAL]` — SHIPPED 2026-05-31, KEPT
-**Result: behaviour-neutral (proven) + ~3.6% faster → KEPT.** `evaluatePeSTO` and `gamePhase` each rescanned
-the whole board every eval call (up to 32 piece lookups + 8 popcounts), and eval runs at internal nodes too
-(RFP/futility/NMP/improving), so the scan spanned the whole tree. Replaced the scan with a running accumulator:
-three ints on `Bitboard` (`accMG`, `accEG`, `accPhase`) maintained by the only three board-mutation primitives —
-`Clear` (subtract the removed piece), `UpdateSquare`/`Move` (add the placed piece). Because *every* make/unmake
-path funnels through those three (verified: no raw bitboard-field writes exist outside `bitboard.go`), the delta
-is automatically exact for every move type — normal, capture, castle (the recursive rook `Move` self-maintains),
-en passant, promotion, capture-promotion — with **zero per-move-type code**. `evaluatePeSTO` now just reads the
-accumulator (clamping phase to `totalPhase` exactly as `gamePhase` did, so output is bit-identical); the dead
-`gamePhase` was removed. The sums are plain integer adds → order-independent → **bit-exact with a full scan** →
-**node-identical**: Kiwipete d12 = 1,339,599 / sd32 / d5e6, middlegame d12 = 1,165,258 / a2a3, endgame d16 =
-848,103 / b4f4 — all matching clean HEAD exactly (nodes + seldepth + score + bestmove). `TestEvalAccumulatorUnderMakeUnmake`
-walks a depth-3 tree over 7 FENs (incl. castling/EP/promo/capture-promo) asserting the accumulator equals a fresh
-`recomputeAccumulator()` scan at every node and after every unmake. Measured ~+3.6% NPS over 8 interleaved Kiwipete
-rounds (334.7K→346.8K) + endgame (645K→669K), faster in the clear majority, never a real regression → KEPT on
-"improvement + no regression." **Does NOT contradict the "don't trim eval" rule below** — eval is exact, not
-trimmed; only the *scan* was eliminated. The accumulator depends on the PST tables, so the Texel tuner (which
-mutates them via `RebuildPST` between passes) calls `recomputeAccumulator()` per sample before evaluating — the
-same O(32) scan it already paid, no tuner regression. *Caveat:* the accumulator adds ~2-4 table-indexed adds per
-make/unmake (incl. the movegen-legality path), which eats into the eval saving — that tradeoff is why the net is
-~3.6%, not the full eval slice. A future packed `int` score (mg/eg in one word, à la Stockfish `make_score`) would
-halve that overhead; not done now.
+### NEXT — free, node-identical (do these first, in order)
 
-### T2b — Lazy SEE / staged generation `[BEHAVIOUR]` — est. large (cuts the SEE inside the ~14%)
-Today scoring still calls `staticExchangeEvaluation` on **every** capture before the loop runs. Competitive
-engines stage it: yield the TT move, then captures ordered by MVV-LVA with **SEE computed only when a
-capture is actually reached**, then killers/counters/quiets — stopping as soon as a beta cutoff hits.
-Changes the capture tie-break order ⇒ node counts shift ⇒ **NOT node-identical** ⇒ needs a fixed-time SPRT
-(keep iff not a regression). Bigger SEE-cost win than T2a, but behaviour-affecting — do it after T2a.
+#### T1b — quiescence frame pool `[NEUTRAL]` — NEW, do first
+Give quiescence the same treatment T1 gave alphaBetaPV. The escaping `var moveBuffer [256]Move` at
+**search.go:1789** (in-check evasions) and **:1842** (qDepth==0 stalemate probe) must come from a
+reusable pool, not a per-call stack array. **Constraint:** :1789's buffer is live across the recursive
+`quiescenceWithDepth` call (:1815), so it needs a *per-qsearch-frame* buffer (index by a qsearch frame
+counter, or extend `searchFrame` — qDepth is bounded at 6, so a small fixed pool also works); :1842's is
+consumed before any recursion (gen → legality-test → discard) so it can share a single `SearchInfo`
+scratch field. *Bonus question while here:* :1842 generates ALL moves + make/unmake-tests each just to
+detect a rare stalemate at every horizon node — verify whether that stalemate check earns its cost
+(removing it is [BEHAVIOUR], measure separately). Gate: 3-baseline node-identity + `go test -short` +
+`make smoke-tactical`. Expect a modest real-NPS gain (T1 caveat), kept regardless on KEEP RULE.
 
-### T3 — Drop the per-node RepStack `defer` `[NEUTRAL]` — est. +3%
-`defer func(){ info.RepStackLen-- }()` (search.go:1026) runs on every node; Go's defer machinery shows
-as ~3.5% (`nextDefer`). Replace with an explicit `info.RepStackLen--` at each return path. **Caution:**
-this is the very invariant doc 09 INV-A3/J3 guards — every `return` in `alphaBetaPV` must decrement
-exactly once. Pairs naturally with the J3 defensive fix (guard the pop). Verify: node/bestmove identity
-+ the RepStack-balance reasoning re-checked at each return.
+#### T5 — magic-bitboard move generation `[NEUTRAL]` — NEW, biggest free compute win
+`generateSlidingMovesIntoBuffer`/`generateSlidingCapturesIntoBuffer` (movegen.go:530+) ray-walk 4–8
+directions × up to 7 steps with per-step wrap guards and a `PieceAt` lookup per capture (~8.4% flat).
+The O(1) magic getters **already exist** (`GetRookAttacks`/`GetBishopAttacks`, magic.go:253/260) and are
+used for check detection + SEE — just not for move-gen. Rewrite slider gen as: `attacks =
+GetXxxAttacks(sq, occ)`, then iterate set bits (`attacks & ~friendly` for quiets+captures, classify by
+`enemy & bit`), emitting moves. **Move ordering is reapplied by score afterward, so generation order is
+irrelevant** ⇒ the move *set* is identical ⇒ node-identical (verify on the 3 baselines — watch for any
+ordering dependence in how ties resolve). Removes most of the slider flat cost + a chunk of the `PieceAt`
+tax. The single largest free compute win.
 
-### T4 — Cut redundant check detection `[NEUTRAL/BEHAVIOUR]` — est. part of ~15%
-`isInCheck` runs up to 3× per move (node-in-check :1100, post-make legality :1387, gives-check :1406).
-The post-make legality check and the gives-check probe both recompute king attacks. Investigate caching
-the king-attack computation, or deriving `givesCheck` from the move + a cheap incremental test. Some of
-this is genuinely behaviour-neutral (caching); a cheaper gives-check approximation would be behaviour-
-affecting. Lower priority — measure after T1/T2.
+#### T6 — mailbox piece lookup `[NEUTRAL]` — NEW, structural
+Add a `[64]Piece` mailbox to `Bitboard`, maintained in `Clear`/`UpdateSquare`/`Move` (same three
+primitives N1 already hooks), and make `PieceAt`/`GetPiece`/`GetBitboardOf`-by-square read it instead of
+the 12-way switch (~8.8% flat). Node-identical (pure lookup acceleration). More invasive than T5 (a new
+synced field across all mutation paths — like N1's accumulator, so the pattern is proven), but the gate
+catches any desync. Pairs naturally with N1's accumulator maintenance.
+
+#### T3 — drop the per-node RepStack `defer` `[NEUTRAL]`
+`defer func(){ info.RepStackLen--; info.FrameDepth-- }()` (search.go:~1052) runs every node; Go's defer
+machinery historically showed ~3% (`nextDefer`). Replace with explicit decrements at each return path.
+**Caution:** this is the exact invariant doc 09 INV-A3/J3 guards — every `return` in `alphaBetaPV` must
+decrement RepStackLen AND FrameDepth exactly once (the frame pool now rides this defer too, so a missed
+path corrupts buffer reuse, not just repetition). Verify node-identity + re-audit every return.
+
+### THEN — strength tradeoffs (fixed-time SPRT each, KEEP RULE)
+
+#### T2b — lazy SEE / staged generation `[BEHAVIOUR]`
+Today scoring calls SEE on **every** capture before the loop. Stage it: TT move, then captures by
+MVV-LVA with **SEE computed only when a capture is actually reached**, stopping at a beta cutoff. Changes
+capture tie-break order ⇒ node counts shift ⇒ fixed-time SPRT. Bigger SEE-cost win than T2a but
+behaviour-affecting, and NGN's SEE-accurate ordering may search better nodes — net unknown. (Tangle: SEE
+also feeds qsearch pruning at :1907 and the losing-capture band sits below killers/castling — a naive
+MVV-LVA swap mis-orders losing captures. Needs real staged deferral. See TODO N5.)
+
+#### T4 — cut redundant check detection `[NEUTRAL/BEHAVIOUR]`
+`isInCheck` runs up to 3× per move; N2 already removed the tag-addressable two. The **residual is the
+per-move legality scan** (search.go:~1434, mover's-king color) — the dominant remaining cost. Killing it
+needs *incremental legality* (only re-check the king when a move could expose it: pins / EP / king
+moves) — behaviour-neutral but bug-prone. Lower priority; node-identity-gated if attempted.
 
 ### Not now
-- **Eval cost (~15%)** is in-line with peers and is where strength lives — do NOT trim eval terms for
-  speed before T1–T3; the overhead targets are free, eval is not.
-- **Lazy SMP / multi-threading** is the other large lever but is a separate project (the `Threads`
-  option is a stub; INV-A7 — every global heuristic table becomes a race) and is out of scope here.
+- **Don't trim eval for speed** — the ~18.6% is where strength lives; N3 (lazy stand-pat eval) already
+  regressed (distorts null-window scouts in sharp positions). Revisit only as a cheaper-AND-stronger
+  regime (packed score, or NNUE), not as a term cull.
+- **Lazy SMP / multithreading** — the other large lever, but a separate project (the `Threads` option is
+  a stub; every global heuristic table becomes a race, INV-A7). Out of scope here.
 
 ---
 
 ## Sequencing & gate
 
-Do T1 first (biggest **safe** win, behaviour-neutral, no SPRT needed — just node-identity + an NPS
-measurement). Then T2 (the big algorithmic win, gated by a fixed-time SPRT). T3/T4 as cleanup. Re-run
-the Kiwipete vs-Blunder depth comparison after T1+T2 to quantify how much of the 2.5x closed.
+**T1b → T5 → T6 → T3** (all free, node-identity-gated, no SPRT — commit each on identity + NPS), then
+re-profile and re-target, then T2b/T4 behind fixed-time SPRTs. After T1b+T5+T6 land, re-run the Kiwipete
+vs-Blunder depth comparison to quantify how much of the 2.5x the free wins actually closed (expect
+~1.2–1.35x; the rest is the eval/ordering tradeoff, by design).
 
-**Every [NEUTRAL] target must produce identical node counts and bestmoves at fixed depth** — that is the
-proof it changed only speed, not strength. If node counts move, it's secretly a [BEHAVIOUR] change and
-needs an SPRT. This is the speed-lane analogue of the keep-correctness-fixes rule (doc 09).
+**Every [NEUTRAL] target must produce identical node counts, seldepth, score, and bestmove at fixed
+depth** on the 3 baselines — that is the proof it changed only speed, not strength. If node counts move,
+it's secretly [BEHAVIOUR] and needs an SPRT.

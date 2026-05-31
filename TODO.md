@@ -6,6 +6,56 @@
 
 ## SPEED LANE (NPS) — TOP PRIORITY, prioritized 2026-05-31 — the 2.5x gap
 
+### >>> DEEP RE-PROFILE + PLAN (2026-05-31 @ 7c9c58f) — READ FIRST, SUPERSEDES STEP 0 BELOW <<<
+
+**Full per-node micro-budget + the "what does 2.5x even mean" decomposition is in `docs/10-performance.md`
+(rewritten this session). This is the actionable distillation.** Re-profiled at HEAD with a deep
+phase-diverse basket (`BenchmarkSearchProfile`, engine/profile_test.go — mid+Kiwipete+endgame, depth 11,
+cold TT/op, 27M nodes / 67s samples, E-cores; benchmark KEPT as the reproducer). build/ngn = HEAD.
+
+**HEADLINE FINDINGS (verified vs live code + profile, not eyeballed):**
+- **Allocation INVERTED after T1.** T1 pooled alphaBetaPV's buffers, so the residual is now **96.9% in
+  quiescence**: `var moveBuffer [256]Move` at **search.go:1842 = 6.0 GB** (the qDepth==0 stalemate probe,
+  hit at every horizon node) + **:1789 = 1.08 GB** (in-check evasions). ~684K allocs/op, ~7 GB/search,
+  ~0.25 allocs/node. The `[:]` slice escapes via non-inlined `GenerateMovesIntoBuffer`. Blunder is
+  zero-alloc/node. (`captures [64]Move` :1876 does NOT escape — inlined `copy`. Earlier "alloc isn't the
+  bottleneck" was true PRE-T1; the residual just moved to qsearch, which T1 never touched.)
+- **Ray-walk movegen** (`generateSlidingMoves`/`Captures`, movegen.go:530+) = **~8.4% flat**, when O(1)
+  magic getters (`GetRookAttacks`/`GetBishopAttacks`, magic.go:253/260) ALREADY EXIST, used only for
+  check/SEE — not move-gen.
+- **No mailbox:** `GetBitboardOf`+`PieceAt`+`GetPiece` 12-way switches = **~8.8% flat**.
+- **Subsystem cum:** qsearch 49.8%, eval 18.6%, ordering ~18% (SEE-per-capture in scoring), make+unmake
+  16.8%, SEE 11%, movegen 10.8%, isInCheck 8.2%. `selectNextMove` 7.5% flat (biggest leaf, inherent post-T2a),
+  `Bitboard.Clear` 5.4% flat (N1 accumulator moved eval cost here).
+
+**THE 2.5x, HONESTLY (docs/10):** free node-identical wins (T1b+T5+T6+T3) ≈ 14–18% CPU ⇒ **~1.2–1.35x ≈
++15–40 ELO via depth — BANK THESE.** The remaining ~1.8x is NGN DELIBERATELY spending on rich eval
+(18.6%) + SEE-accurate ordering — TRADEOFFS (SPRT), and history is against trimming them (N3 reverted;
+upfront MVV-LVA sort was −129 once, 2f61d3a). **NPS is a means: strength = NPS × node-quality. Do NOT
+chase Blunder-parity by gutting eval** — only a cheaper-AND-stronger regime (packed score / NNUE) gets both.
+
+**NEW FREE QUEUE — do in order; each gated by 3-baseline node-identity (`/tmp/nodecheck.sh`) +
+`go test -short ./engine/` + `make smoke-tactical`; commit each (KEEP RULE), build dev work to a SEPARATE
+binary (never `make` mid-gate):**
+1. **T1b — quiescence frame pool `[NEUTRAL]` — DO FIRST.** Pool the escaping :1789 (needs a
+   per-qsearch-FRAME buffer — live across the recursive call at :1815) + :1842 (can share one
+   `SearchInfo` scratch field — consumed before any recursion) like T1 did for alphaBetaPV. qDepth bounded
+   at 6. Modest real-NPS expected (T1 caveat: bench-loop GC overstates the win), kept regardless on KEEP
+   RULE; it removes 7 GB churn + GC-pause variance + is the prereq for trusting the rest of the profile.
+2. **T5 — magic movegen `[NEUTRAL]` — biggest free compute win.** Rewrite slider gen to
+   `attacks = GetXxxAttacks(sq, occ)` + iterate set bits (classify capture via `enemy & bit`). Ordering is
+   reapplied by score after ⇒ move SET identical ⇒ node-identical. Kills ~8.4% flat + a chunk of PieceAt.
+3. **T6 — mailbox `[NEUTRAL]` — structural.** `[64]Piece` on `Bitboard`, synced in Clear/UpdateSquare/Move
+   (the 3 primitives N1 already hooks); PieceAt/GetPiece read it instead of the 12-way switch. Kills ~8.8% flat.
+4. **T3 — drop per-node RepStack defer `[NEUTRAL]`.** Explicit `RepStackLen--`+`FrameDepth--` at each
+   alphaBetaPV return (CAUTION: the frame pool RIDES this defer now — doc 09 INV-A3/J3; a missed path
+   corrupts buffer reuse, re-audit every return).
+
+THEN re-profile + re-target. **T2b** (lazy-SEE/staged ordering) + **T4** (incremental legality, the
+isInCheck residual) are `[BEHAVIOUR]` → fixed-time SPRT, supervised.
+
+**STATUS: starting T1b.**
+
 ### >>> AUTONOMOUS SESSION (2026-05-31 PM, Bryan away ~3-4h) — READ FIRST <<<
 
 **>>> SESSION RESULTS (Bryan, read this on return) <<<**

@@ -47,3 +47,36 @@ func BenchmarkCriticalPath(b *testing.B) {
 		SearchFixed(pos, 4, nil)
 	}
 }
+
+// BenchmarkSearchProfile drives a phase-diverse basket (middlegame / tactical /
+// endgame) to a fixed depth for CPU and allocation profiling of the per-node hot
+// path. Each op resets the TT to a fresh cold table so every iteration is a full,
+// representative search with a near-constant node count (dense, comparable samples).
+// The NewCache + ParseFEN allocations are test scaffolding — filter them out in the
+// memprofile; what matters is whether any site inside search/movegen/eval allocates.
+//
+//	go test -run=^$ -bench=BenchmarkSearchProfile -benchmem -benchtime=10x \
+//	  -cpuprofile=/tmp/cpu.prof -memprofile=/tmp/mem.prof ./engine/
+func BenchmarkSearchProfile(b *testing.B) {
+	fens := []string{
+		"r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10",   // middlegame ~35 moves
+		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",  // Kiwipete tactical
+		"8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",                            // endgame
+	}
+	const depth = 11
+	b.ResetTimer()
+	var nodes int64
+	for i := 0; i < b.N; i++ {
+		TranspositionTable = NewCache(16) // cold table per op → full representative search
+		for _, f := range fens {
+			p, err := ParseFEN(f)
+			if err != nil {
+				b.Fatalf("fen %q: %v", f, err)
+			}
+			info := SearchFixed(p, depth, nil)
+			nodes += int64(info.Nodes)
+		}
+	}
+	b.StopTimer()
+	b.ReportMetric(float64(nodes)/float64(b.N), "nodes/op")
+}
