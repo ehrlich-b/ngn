@@ -99,11 +99,14 @@ all 3 baselines, so the SPRT isolates SPEED→depth→ELO). fixed-time 100ms, co
 `/tmp/sprt_speed.log` (bash bg id bp96upzxu). Answers the strategic question "do the node-identical micro-opts buy real
 ELO at this TC?" — if clearly +, keep grinding node-identical levers; if ~0, NGN isn't depth-limited at 100ms (pivot).
 Wakes me on completion. (Watching: draw rate — speed-only twins should draw a lot when both hit equal depth.) <<<
-  - **INTERIM (G535, ~12 min):** 246W-54D-235L = 51.0%, **elo +7.1 [-22,+37]**, LLR +0.12, draws ~10%. Decayed from an
-    early +49 (n=106 noise) to a small positive. READ: ~10-15% cumulative NPS (N1+N2+N6) buys ~+7 ELO at 100ms — NO
-    regression, small gain, exactly the "micro-opts give single digits" thesis. Confirms keeping what shipped, but grinding
-    MORE fiddly node-identical micro-opts is low-ROI; the real levers are behaviour (lazy eval failed, lazy SEE tangled) or
-    structural (NNUE, deferred). Final verdict on completion (~3000 games / a bound).
+  - **STOPPED at G758 (~18 min) to reallocate cores to the J10 SPRT (higher value).** Final read: 354W-68D-336L = 51.2%,
+    **elo +8.3 [-16,+33]**, LLR +0.23, draws ~9%. Trajectory +49(n=106)→+7(n=535)→+1.6(n=646)→+8.3(n=758) = a SMALL
+    UNRESOLVED POSITIVE (~+5±15), NO regression. READ: ~10-15% cumulative NPS (N1+N2+N6) buys ~0-8 ELO at 100ms — the
+    "micro-opts give single digits, unresolvable" thesis CONFIRMED. **Strategy pivot: stop grinding node-identical speed
+    micro-opts (kept what shipped — they're free under the KEEP RULE regardless of this), the near-term ELO is in
+    correctness/behaviour (J10, J1) and eval, or structural (NNUE).** No keep/reject rode on this SPRT (the commits are
+    kept on node-identity), so stopping a settled ~neutral measurement to run the uncertain J10 fix is sound. NB: at a
+    LONGER real TC the same NPS may show more (depth matters more) — speed work isn't worthless, just unresolvable at 100ms.
 
 **N3 — Lazy eval `[BEHAVIOUR]` — TRIED 2026-05-31, REVERTED (wrong lever for NGN, NOT committed).** Implemented lazy
 stand-pat in qsearch (`lazyEvaluateForPlayer`: skip positional terms when the cheap PeSTO core is >margin past
@@ -137,7 +140,9 @@ with lazy-SEE deferral of losing captures — non-trivial. Behaviour ⇒ SPRT. S
 **The cores are busy with the speed-SPRT (~3000 games), so NO behaviour change can be game-validated until it finishes.**
 When woken by its completion: rebuild `build/ngn` from HEAD (it was the frozen N6 snapshot for the SPRT), then:
 
-1. **J10-queen — futility no-prune queen promotions `[CORRECTNESS, SPRT candidate]` — TOP.** Verified vs live code: futility
+1. **J10-queen — futility no-prune queen promotions `[CORRECTNESS]` — >>> SPRT RUNNING (bg id bl5kkkray, /tmp/sprt_j10.log,
+   new=build/ngn_j10 vs base=build/ngn N6, 100ms conc-4 [0,8] maxgames 1500) <<<. Source change UNCOMMITTED in tree pending
+   verdict; on KEEP commit it, on regression `git checkout engine/search.go`.** Verified vs live code: futility
    (search.go:1352), LMP (1361), histprune (1399) skip `!IsCapture()` moves WITHOUT a promo guard, while the SEE-quiet site
    (1389) has `PromoType()==NoType`. Futility (not move-index-gated) pruning a queen promo is a PROVABLE bug — its 200cp
    margin can't cover an ~800cp promo. ONE-LINE FIX: add `&& move.PromoType() != Queen` to the futility cond (1352).
