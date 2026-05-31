@@ -325,6 +325,18 @@ Lazy SMP (Threads is a stub; Blunder likely single-threaded too) + NNUE (deferre
   eager-SEE+O(n²) sort, isInCheck ~15%, eval ~15%, movegen ~10%); distrust its alloc/GC cum for single-search. Verify NPS
   on `go depth N`, not a bench-loop profile. **NEXT lever = T2 (lazy/staged move ordering, BEHAVIOUR → SPRT) + T4 (cut
   redundant isInCheck/givesCheck) — bigger than T1.** T1b (qsearch buffers) optional follow-up (same neutral pattern).
+- **>>> RESUME HERE: T2 (move ordering, ~14% CPU in orderMovesSinglePassIntoBuffer @ moveorder.go:314) <<<** Split:
+  - **T2a [NEUTRAL, verifiable like T1]:** replace the upfront full O(n²) selection sort + iterate with INCREMENTAL
+    max-selection inside the move loop (pick next-best each iteration), so the sort tail for moves AFTER a beta cutoff
+    is never done. Order is identical to a full selection sort ⇒ NODE-IDENTICAL ⇒ gate by node-count+bestmove identity
+    vs clean HEAD (b9c1859) on the 3 positions (Kiwipete d12 1339599/d5e6, mid 859325/d2c2, end 848103/b4f4), no SPRT.
+    NOTE: this keeps SEE scored upfront for all captures (needed to know order), so it saves SORT work, not SEE work.
+  - **T2b [BEHAVIOUR, needs fixed-time SPRT]:** lazy SEE / staged generation — order captures by MVV-LVA first, compute
+    SEE on demand only for captures actually reached. Changes tie-break order ⇒ node counts move ⇒ NOT node-identical
+    ⇒ SPRT vs clean HEAD. Bigger SEE-cost win but behaviour-affecting. Do AFTER T2a.
+  - KEEP RULE in force: T2a neutral+faster ⇒ KEEP; T2b keep iff SPRT not a regression. Never revert a neutral+faster change.
+  - Parallel neutral lever: T4 (isInCheck ~15%: cache king-attack / cheaper givesCheck) — node-identity gate.
+  HEAD = b9c1859 (T1 kept), build/ngn rebuilt with T1, tree clean. Memory keep-rule corrected ([[feedback_confirm_before_dropping_findings]]).
 - **I4 instrument DONE + committed (5f2582f).** `sprt -tc "S+I"` / `gauntlet -tc "S+I"` (fab7f0b) play a real
   tournament clock (go wtime/btime/winc/binc, track both banks, detect flag-outs, force conc-1). Validated:
   detector FIRES (2+0 self-play → 2 time-forfeits) AND current NGN does NOT flag at 10+0.1 (0/24). The
