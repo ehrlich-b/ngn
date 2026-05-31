@@ -1128,8 +1128,12 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		return alpha
 	}
 
-	// Check if we're in check before attempting null move
-	inCheck := isInCheck(pos, pos.Turn())
+	// Check if we're in check before attempting null move. The InCheck tag is
+	// maintained for the side to move on every entry path (ParseFEN at the root,
+	// makeMoveHelper after a move, preserved across IID/singular re-entry, and
+	// clear after a null move since NMP only fires when !inCheck), so read it
+	// instead of rescanning (N2, node-identical).
+	inCheck := pos.IsInCheck()
 
 	// Static eval for this node, computed once and reused by RFP/futility and the
 	// improving heuristic. Undefined in check, so inherit the value from two plies
@@ -1773,7 +1777,10 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	info.Nodes++
 	info.QNodes++
 
-	inCheck := isInCheck(pos, pos.Turn())
+	// Node-in-check: read the maintained InCheck tag rather than rescanning
+	// (N2, node-identical) — qsearch is only entered from alphaBetaPV (same pos)
+	// or recursively after a capture make (tag set by makeMoveHelper).
+	inCheck := pos.IsInCheck()
 
 	// In-check branch: must search all evasions, stand-pat is illegal here.
 	if inCheck {
