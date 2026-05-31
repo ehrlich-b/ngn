@@ -222,6 +222,21 @@ deep-dive 2026-05-29 (refs below). Reprioritizes I1 to the front; makes I4 its p
   than the unverified-reduced score thought = more accurate); nodes ~neutral (d10 +29%, d12 -15%); tactical 28/30, go test green.
   VALIDATION: fixed-time movetime-100 conc-2 vs build/ngn_base_c4 (cbe05db), /tmp/sprt_c4.log. Per PROCEED policy: correctness
   fix → confirm not-a-big-regression (~500-1.2k games) then ship; don't grind to a bound. THEN C5 (scout at nextDepth).
+  **C4 VERDICT: KEPT, committed c136b63.** +11.7 [-14,+37] over 716g (346W-48D-322L=51.7%, LLR +0.42, pLLR +0.52). The
+  -8 at G406 was noise; lean flipped POSITIVE by G700 and held → neutral-to-slightly-positive, NOT a regression →
+  sound correctness fix kept per proceed policy (same bar as quiet-SEE +2.2 / singular +3.5). movetime-100 is harsh on
+  depth-costly accuracy (charges re-search nodes as lost depth), so true value at real TC is likely ≥ this.
+- **C5 (scout at nextDepth) — IMPLEMENTED, MEASURED, REJECTED + reverted (not committed).** Changed the scout
+  base from `depth-1-reduction` to `nextDepth-reduction` (apply the extension in the primary null-window search,
+  not just the C4 re-search) and removed the now-live dead `if reducedDepth>=depth` reset (NO floor-at-1 — kept
+  0→qsearch per the GOTCHA). The budget HELD (Kiwipete sd 35/31/42, check-heavy pos sd 38 — NO 111 explosion, so
+  the budget did its job and C5 was SAFE to test — the whole point of building it first). But REJECTED on three
+  converging signals: (1) node count >2x at d12 (1.34M→2.86M) and the blowup GROWS with depth (1.4x@d10→2.1x@d12)
+  = direct fixed-time depth loss in real games; (2) ZERO tactical upside (28/30 unchanged) — no accuracy to offset
+  the cost; (3) NGN's cheap depth-1 scout is a DELIBERATE-GOOD optimization (scout cheap, extend only on a fail-high
+  re-search) that C4 already complements correctly. Fixed-nodes would undercharge it, fixed-time would only confirm
+  the depth loss → confident reject without burning a full SPRT (per "don't chase <50 ELO" + multi-signal, not a lone
+  node-count drop). **EXTENSION DISCIPLINE COMPLETE: budget (cbe05db) + C4 (c136b63) shipped; C5 rejected.**
 - **I4 instrument DONE + committed (5f2582f).** `sprt -tc "S+I"` / `gauntlet -tc "S+I"` (fab7f0b) play a real
   tournament clock (go wtime/btime/winc/binc, track both banks, detect flag-outs, force conc-1). Validated:
   detector FIRES (2+0 self-play → 2 time-forfeits) AND current NGN does NOT flag at 10+0.1 (0/24). The
