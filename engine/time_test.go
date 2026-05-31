@@ -141,6 +141,53 @@ func TestMovesToGoTimeControl(t *testing.T) {
 	}
 }
 
+func TestStabilityScaledSoftStop(t *testing.T) {
+	tm := NewTimeManager()
+
+	// ReportCompletedIteration counts only a stable best move whose window held on
+	// the first attempt; a change or a re-search resets it (the sharpness flag).
+	tm.ReportCompletedIteration(true, true) // best move changed
+	if tm.stableIters != 0 {
+		t.Fatalf("a changed best move must reset stability, got %d", tm.stableIters)
+	}
+	tm.ReportCompletedIteration(false, false) // window broke (re-search)
+	if tm.stableIters != 0 {
+		t.Fatalf("a window break must reset stability, got %d", tm.stableIters)
+	}
+	for i := 0; i < 6; i++ {
+		tm.ReportCompletedIteration(false, true) // settled iterations
+	}
+	if tm.stableIters != 6 {
+		t.Fatalf("six settled iterations should give stability 6, got %d", tm.stableIters)
+	}
+
+	// A settled decision shrinks the SOFT budget, so the search stops sooner than
+	// it would while volatile. Drive shouldStopTournamentSearch with fixed budgets.
+	tm.timeControl = Tournament
+	tm.baseTime = 120 * time.Second
+	tm.softTime = 4000 * time.Millisecond
+	tm.hardTime = 16000 * time.Millisecond
+	tm.lastIterationTime = 500 * time.Millisecond
+	const depth = 10
+	const elapsed = 2200 * time.Millisecond // between the scaled (2000) and full (4000) soft
+
+	tm.stableIters = 0
+	if tm.shouldStopTournamentSearch(depth, elapsed) {
+		t.Errorf("volatile decision (soft %v): should keep searching at elapsed %v", tm.softTime, elapsed)
+	}
+
+	tm.stableIters = 6
+	if !tm.shouldStopTournamentSearch(depth, elapsed) {
+		t.Errorf("settled decision: soft should halve and stop the search at elapsed %v", elapsed)
+	}
+
+	// The hard ceiling must NOT move with stability — the anti-flag guarantee.
+	tm.stableIters = 100
+	if !tm.shouldStopTournamentSearch(depth, tm.hardTime) {
+		t.Error("hard ceiling must still stop the search regardless of stability")
+	}
+}
+
 func TestGamePhaseDetection(t *testing.T) {
 	tm := NewTimeManager()
 

@@ -192,14 +192,24 @@ deep-dive 2026-05-29 (refs below). Reprioritizes I1 to the front; makes I4 its p
   (the 0.3 cap MATHEMATICALLY prevents flagging). Dropped the absolute minThinkTime(0.5-8s)/minDepth(4-12)
   floors (the bullet-killers) for bank-relative soft/hard stop (project next iter = 2× last completed;
   finish ≥depth 1). Removed 3 dead multiplier helpers + stale test; all time tests pass.
-- **Steps 4-5 TODO (the next work):** stability-scaled soft (best-move stable K iters + aspiration-window-held
-  first try → ×0.5 bank it; falling eval / best-move changed → ×1.5-2 spend it) — wire the signals search.go
-  half-computes (`previousScore` kept at search.go:560/722; `previousBestMove` + window-held-on-attempt-1
-  DISCARDED). Then fast paths (single legal move → instant; easy-move = best ≫ 2nd-best, needs 2nd-best at root).
-  This is the "stop early when the move is DECIDED" intelligence (the root-level version of the sharpness Q).
-- **BINARY MAP:** build/ngn == build/ngn_tc (2f5ddbc, HEAD = SEE+NMP+timefix). build/ngn_nmp (d6ce5b0 =
-  HEAD−timefix, the pre-time-fix baseline for slow-TC fix A/Bs). build/ngn_see (SEE-only). build/ngn_base_see
-  (pre-SEE). Session commits: 844bb20 NMP, 5f2582f I4, fdbf565 timefix, fab7f0b gauntlet-tc.
+- **Step 4 (stability-scaled soft) IMPLEMENTED — SPRT RUNNING (uncommitted).** Chose the minimal, strictly-safe
+  half: scale the soft budget DOWN only as the decision settles (never up — scaling up is the riskier half and
+  the larger remaining bank redeploys banked time to hard moves automatically). `TimeManager.stableIters` counts
+  consecutive COMPLETED iterations with unchanged best move AND window-held-on-attempt-1; any change or re-search
+  resets it (the sharpness flag). `shouldStopTournamentSearch`: stableIters≥6 → soft×0.5, ≥3 → soft×0.7; HARD cap
+  UNTOUCHED (so it only ever plays FASTER → cannot reintroduce flagging — mechanism-tested in TestStabilityScaledSoftStop).
+  Wired in search.go completed-iteration branch (ReportCompletedIteration(bestMoveChanged, attempts==1)). This also
+  SUBSUMES single-legal/easy-move (a forced move is stable from depth 1 → stableIters climbs fast → self-accelerates),
+  so those special-cases are DROPPED as redundant unless the SPRT shows headroom. smoke-tactical 28/30 held.
+  VALIDATION: real-clock only (no effect at fixed depth/nodes/movetime) → `sprt -tc 10+0.1` build/ngn_stab vs
+  build/ngn_base_stab (clean HEAD 1470931), 400-opening book, /tmp/sprt_stability.log. Per Bryan's PROCEED policy:
+  sound + hard-cap-safe → keep on "no big regression," don't grind to a bound.
+- **Step 5 (fast paths) — DROPPED as redundant** (subsumed by step 4's stability self-acceleration). Revisit only
+  if step-4 SPRT shows the forced/easy-move case is still leaving measurable time on the table.
+- **BINARY MAP:** build/ngn_stab = step-4 stability scaling (UNCOMMITTED, under SPRT). build/ngn_base_stab =
+  clean HEAD 1470931 (code == 2f5ddbc = SEE+NMP+timefix, the stability A/B baseline). build/ngn_tc (2f5ddbc =
+  pre-stability). build/ngn_nmp (d6ce5b0 = HEAD−timefix). build/ngn_see (SEE-only). build/ngn_base_see (pre-SEE).
+  Session commits: 844bb20 NMP, 5f2582f I4, fdbf565 timefix, fab7f0b gauntlet-tc, 1470931 gauntlet-verdict.
 - **FLAKY FUZZ still open (separate task):** TestFuzzSearchLegalMoves time-seeded random, flags illegal moves
   on clean HEAD too (test artifact: pseudo-legal posgen + uncleared TT); make it print the FEN + audit TT-move
   legality validation. Use `go test -short ./engine/` to skip it in the normal loop.

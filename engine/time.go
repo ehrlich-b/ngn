@@ -54,6 +54,14 @@ type TimeManager struct {
 	// lastIterationTime is the wall time the most recently COMPLETED iteration
 	// took; the soft-stop projects the next iteration as a multiple of it.
 	lastIterationTime time.Duration
+	// stableIters counts consecutive COMPLETED iterations whose best move was
+	// unchanged AND whose aspiration window held on the first attempt — the
+	// "the decision is settled" signal. The soft budget shrinks as it climbs so
+	// easy/forced moves play fast and bank time, which the larger remaining bank
+	// then redeploys to genuinely hard moves. Reset per move and whenever the best
+	// move changes or the window breaks (a re-search) — that volatility is the
+	// sharpness flag that says "do NOT cut this search short".
+	stableIters int
 }
 
 // GamePhase represents the current phase of the game
@@ -81,6 +89,7 @@ func (tm *TimeManager) SetTimeControl(params SearchParams, isWhite bool) {
 	tm.shouldStop = false
 	tm.iterationStartTime = time.Time{} // Cleared until NewIteration is called
 	tm.lastIterationTime = 0
+	tm.stableIters = 0
 	atomic.StoreUint64(&tm.checkCounter, 0)
 
 	// Determine time control type and allocate time accordingly
@@ -238,6 +247,21 @@ func (tm *TimeManager) NewIteration() {
 	tm.iterationStartTime = time.Now()
 }
 
+// ReportCompletedIteration feeds the root's per-iteration decision-stability
+// signal to the time manager. A completed iteration that kept the same best move
+// AND held its aspiration window on the first try means the choice is settling, so
+// stableIters climbs and shouldStopTournamentSearch shrinks the soft budget. Any
+// best-move change or window break (a fail-high/fail-low re-search) resets it —
+// that volatility is exactly when the search must NOT be cut short. Only the soft
+// target flexes; the hard ceiling never does, so this cannot increase flag risk.
+func (tm *TimeManager) ReportCompletedIteration(bestMoveChanged, windowHeldFirstTry bool) {
+	if bestMoveChanged || !windowHeldFirstTry {
+		tm.stableIters = 0
+		return
+	}
+	tm.stableIters++
+}
+
 func (tm *TimeManager) ShouldStopSearch(depth int, _ time.Time) bool {
 	// Increment counter atomically - this is very fast
 	count := atomic.AddUint64(&tm.checkCounter, 1)
@@ -286,13 +310,24 @@ func (tm *TimeManager) shouldStopTournamentSearch(depth int, elapsed time.Durati
 		return false
 	}
 	// Soft limit: don't START another iteration we can't finish within the soft
-	// budget. Project the next iteration as ~2x the last completed one (typical PVS
-	// growth with good ordering). Before any iteration timing exists, fall back to a
-	// plain elapsed-vs-soft check.
-	if tm.lastIterationTime == 0 {
-		return elapsed >= tm.softTime
+	// budget. The budget shrinks once the decision is settled (best move stable and
+	// aspiration windows holding) so easy moves play fast and bank time for hard
+	// ones; the hard ceiling above is untouched, so this only ever plays FASTER and
+	// can never increase flag risk.
+	soft := tm.softTime
+	switch {
+	case tm.stableIters >= 6:
+		soft = soft / 2 // very settled: same best move 6+ iterations running
+	case tm.stableIters >= 3:
+		soft = soft * 7 / 10 // settled
 	}
-	return elapsed+tm.lastIterationTime*2 > tm.softTime
+	// Project the next iteration as ~2x the last completed one (typical PVS growth
+	// with good ordering). Before any iteration timing exists, fall back to a plain
+	// elapsed-vs-soft check.
+	if tm.lastIterationTime == 0 {
+		return elapsed >= soft
+	}
+	return elapsed+tm.lastIterationTime*2 > soft
 }
 
 // UpdateGameState updates the time manager with current game state

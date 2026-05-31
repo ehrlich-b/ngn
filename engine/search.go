@@ -716,11 +716,19 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				alpha = windowAlpha
 				beta = INFINITY
 			} else {
-				// Search completed successfully within the window
+				// Search completed successfully within the window. Feed the time
+				// manager the decision-stability signal: did the best move change vs
+				// the last completed iteration, and did the window hold on the first
+				// attempt (attempts==1 ⇒ no fail-high/fail-low re-search). info.BestMove
+				// still holds the PREVIOUS completed iteration's move at this point.
+				bestMoveChanged := iterationBestMove != info.BestMove
 				info.BestScore = iterationBestScore
 				info.BestMove = iterationBestMove
 				previousScore = iterationBestScore
 				iterationComplete = true
+				if info.TimeManager != nil {
+					info.TimeManager.ReportCompletedIteration(bestMoveChanged, attempts == 1)
+				}
 			}
 		}
 
