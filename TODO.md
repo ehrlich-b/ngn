@@ -173,13 +173,15 @@ bank to last the whole game, and stops early once the move is decided.** Code-gr
 deep-dive 2026-05-29 (refs below). Reprioritizes I1 to the front; makes I4 its prerequisite.
 
 **2026-05-30 PROGRESS (cont. 6) — TIME MGMT CORE DONE + REAL-CLOCK GAUNTLET UNLOCKED. All committed, tree clean.**
-- **>>> RUNNING AT COMPACT (post-compact: CHECK THIS) <<<** Real-clock gauntlet: **PID 31055**,
-  log `/tmp/gauntlet_tc_real.log`, `gauntlet -tc 120+1 -only v7.4.0 -games 16` (CCRL Blitz conditions
-  vs Blunder 7.4.0 / CCRL 2532), started ~16:?? , ~6 min/game → ~80 min total. It is DETACHED so it will
-  NOT auto-notify a new session — RESUME MUST `grep -E "POOLED|Flag|Perf" /tmp/gauntlet_tc_real.log` once
-  `pgrep -f build/gauntlet` is empty. **This is NGN's TRUE CCRL-Blitz number** (drops the movetime +30-80
-  bias). Early health (3 games): 0 flag-outs, NGN drew G2 vs 2532 — fix works at a real clock. EXPECT the
-  number ~LOWER than the movetime gauntlet's 2401 (anchors now get full time = the bias correction).
+- **>>> REAL-CLOCK GAUNTLET COMPLETE — NGN's TRUE CCRL-Blitz number is 2380. <<<** `gauntlet -tc 120+1
+  -only v7.4.0 -games 16` (CCRL Blitz conditions vs Blunder 7.4.0 / CCRL 2532): **2W-5D-9L = 28.1% → perf
+  2369 [2188,2550], POOLED 2380 [2193,2567].** Reasons: 11 checkmate, 1 draw-rule, 4 max-moves — **ZERO
+  time-forfeits.** Two clean findings: (a) the time-mgmt fix is validated EXTERNALLY at a true 120+1 clock,
+  not just self-play — no flagging defect remains; (b) the real number (2380) is ~20 ELO under the movetime
+  proxy (2401), exactly the predicted direction (anchors now get their full clock = the optimism removed), so
+  **the +30-80 movetime-bias caveat is now RETIRED** — 2380 is NGN's real strength, no asterisk. NGN climbed
+  ~2150 → 2380 this session via C3+PST, now confirmed real (not a movetime artifact). CI still wide at n=16
+  (1 anchor); a future gauntlet should add a 2nd stable anchor + more games to tighten it.
 - **I4 instrument DONE + committed (5f2582f).** `sprt -tc "S+I"` / `gauntlet -tc "S+I"` (fab7f0b) play a real
   tournament clock (go wtime/btime/winc/binc, track both banks, detect flag-outs, force conc-1). Validated:
   detector FIRES (2+0 self-play → 2 time-forfeits) AND current NGN does NOT flag at 10+0.1 (0/24). The
