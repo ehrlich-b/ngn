@@ -2360,6 +2360,75 @@ var (
 	kingActivityWeight  = 29
 )
 
+// --- Pawn-structure evaluation cache (N6) ---
+// passed / doubled / isolated / pawn-chain are pure functions of the two pawn
+// bitboards, so memoize their RAW counts keyed by (whitePawns, blackPawns) with
+// a full-key verify — collision-proof, hence node-identical. Raw counts (not the
+// weighted contribution) are stored so tuning the weights never stales the cache.
+// This is a single-threaded search optimization; Texel's parallel eval loop sets
+// pawnCacheDisabled to stay race-free (the search itself is single-threaded, like
+// the existing global history/killer/TT tables).
+const (
+	pawnCacheSize = 1 << 16
+	pawnCacheMask = pawnCacheSize - 1
+)
+
+type pawnCacheEntry struct {
+	wp, bp             uint64
+	wPassed, bPassed   int16
+	wDoubled, bDoubled int16
+	wIso, bIso         int16
+	chainW, chainB     int16
+	valid              bool
+}
+
+var (
+	pawnCache         [pawnCacheSize]pawnCacheEntry
+	pawnCacheDisabled bool
+)
+
+func pawnCacheIndex(wp, bp uint64) uint64 {
+	h := wp ^ (bp*0x9E3779B97F4A7C15 + 0x7F4A7C159E3779B9)
+	h ^= h >> 29
+	h *= 0xBF58476D1CE4E5B9
+	h ^= h >> 32
+	return h & pawnCacheMask
+}
+
+// pawnStructureCounts returns the raw passed/doubled/isolated/chain counts for
+// both colors, memoized on the pawn bitboards. board's pawn bitboards MUST equal
+// (wp, bp) — the caller passes them so the key and the compute path agree.
+func pawnStructureCounts(board *Bitboard, wp, bp uint64) (wPassed, bPassed, wDoubled, bDoubled, wIso, bIso, chainW, chainB int) {
+	if !pawnCacheDisabled {
+		e := &pawnCache[pawnCacheIndex(wp, bp)]
+		if e.valid && e.wp == wp && e.bp == bp {
+			return int(e.wPassed), int(e.bPassed), int(e.wDoubled), int(e.bDoubled),
+				int(e.wIso), int(e.bIso), int(e.chainW), int(e.chainB)
+		}
+	}
+	wPassed = countPassedPawnsFast(wp, bp, White)
+	bPassed = countPassedPawnsFast(bp, wp, Black)
+	for file := 0; file < 8; file++ {
+		wDoubled += countDoubledPawns(board, White, file)
+		bDoubled += countDoubledPawns(board, Black, file)
+	}
+	wIso = countIsolatedPawns(board, White)
+	bIso = countIsolatedPawns(board, Black)
+	chainW = evaluatePawnChains(board, White)
+	chainB = evaluatePawnChains(board, Black)
+	if !pawnCacheDisabled {
+		pawnCache[pawnCacheIndex(wp, bp)] = pawnCacheEntry{
+			wp: wp, bp: bp,
+			wPassed: int16(wPassed), bPassed: int16(bPassed),
+			wDoubled: int16(wDoubled), bDoubled: int16(bDoubled),
+			wIso: int16(wIso), bIso: int16(bIso),
+			chainW: int16(chainW), chainB: int16(chainB),
+			valid: true,
+		}
+	}
+	return
+}
+
 func evaluateUnsafe(board *Bitboard) (eval int) {
 	// Core: PeSTO tapered material + piece-square tables.
 	mgScore, egScore, phase := evaluatePeSTO(board)
@@ -2368,29 +2437,16 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	whitePawns := board.GetBitboardOf(WhitePawn)
 	blackPawns := board.GetBitboardOf(BlackPawn)
 
-	// Passed pawns: essential, not captured by PST.
-	whitePassed := countPassedPawnsFast(whitePawns, blackPawns, White)
-	blackPassed := countPassedPawnsFast(blackPawns, whitePawns, Black)
-	eval += (whitePassed - blackPassed) * passedPawnBonus
-
-	// Doubled pawns penalty (cheap to compute correctly).
-	whiteDoubled, blackDoubled := 0, 0
-	for file := 0; file < 8; file++ {
-		whiteDoubled += countDoubledPawns(board, White, file)
-		blackDoubled += countDoubledPawns(board, Black, file)
-	}
-	eval -= (whiteDoubled - blackDoubled) * doubledPawnPenalty
-
-	// Isolated pawns penalty.
-	whiteIsolated := countIsolatedPawns(board, White)
-	blackIsolated := countIsolatedPawns(board, Black)
-	eval -= (whiteIsolated - blackIsolated) * isolatedPawnPenalty
-
-	// Pawn chains: bonus for connected/supported pawns. Complements isolated
-	// (a pawn with adjacent-file support cannot be isolated by definition).
-	// Magnitudes are conservative (8/12cp + small advancement bonus); PSTs
-	// don't capture pair-based chain dynamics.
-	eval += (evaluatePawnChains(board, White) - evaluatePawnChains(board, Black)) * pawnChainWeight / 100
+	// passed / doubled / isolated / pawn-chain are pure functions of the pawn
+	// bitboards — fetch their raw counts from the memoized cache (N6) and apply
+	// the weights here. Same arithmetic, same order as the inline version, so the
+	// result is bit-identical (node-identical); only the recomputation is saved.
+	whitePassed, blackPassed, whiteDoubled, blackDoubled, whiteIsolated, blackIsolated, chainWhite, chainBlack :=
+		pawnStructureCounts(board, whitePawns, blackPawns)
+	eval += (whitePassed - blackPassed) * passedPawnBonus         // passed pawns, not captured by PST
+	eval -= (whiteDoubled - blackDoubled) * doubledPawnPenalty    // doubled penalty
+	eval -= (whiteIsolated - blackIsolated) * isolatedPawnPenalty // isolated penalty
+	eval += (chainWhite - chainBlack) * pawnChainWeight / 100     // connected/supported pawn chains
 
 	// Bishop pair bonus (small but real and not in PST).
 	eval += (evaluateBishopPair(board, White) - evaluateBishopPair(board, Black)) * bishopPairWeight / 100

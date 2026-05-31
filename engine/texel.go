@@ -35,6 +35,11 @@ func texelSigmoid(eval, k float64) float64 {
 // parallelized across CPUs and only READS the eval parameters, so callers must
 // not mutate the PSTs concurrently (coordinate descent mutates between calls).
 func texelMSE(samples []TexelSample, k float64) float64 {
+	// The pawn-structure cache (eval.go) is a single-threaded search optimization;
+	// this eval loop is parallel, so disable it here to stay race-free. Texel never
+	// benefits from it anyway (each sample is a distinct position, set once before
+	// any worker goroutine spawns).
+	pawnCacheDisabled = true
 	n := len(samples)
 	if n == 0 {
 		return 0
