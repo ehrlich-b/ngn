@@ -190,6 +190,19 @@ deep-dive 2026-05-29 (refs below). Reprioritizes I1 to the front; makes I4 its p
   (~50%, n=2 probe split), 7.4.0/2532 (NGN <50%) → crossover bracketed. CAVEAT: 15+0.15 is 1/8 CCRL-Blitz time
   (cross-TC scaling ~±20-30, larger than the 120+1 run) — a fast multi-anchor proxy, NOT the gold 120+1 number.
   RESUME: read watcher output or `grep -E "POOLED|^==|reasons" /tmp/gauntlet_ccrl_calib.log` once gauntlet pgrep empty.
+  >>> VERDICT: RUN INVALID — pooled 2411 is BOGUS. 26/90 games were time-forfeits, ALL the ANCHOR flagging (NGN
+  never flagged once in 90 games — its time mgmt is bulletproof). Pattern: 6.1.0 all-30-clean (56.7%→perf 2202,
+  valid); 7.2.0 clean G1-16 (31.2%) then flagged G17-30; 7.4.0 clean G1-18 (13.9%) then flagged G19-30; fresh
+  anchor process RESETS the clock → REUSED-PROCESS SLOWDOWN (Blunder bloats over a long session, can't hold a 15s
+  bank, loses on time not OTB). Gift-wins inflated the pool 2227→2411. SALVAGED clean-subset pool = **NGN ≈ 2227
+  [2132,2322] at 15+0.15** — ~150 BELOW the 120+1 number (2380): NGN scales DOWN at faster TC. LESSON: fast TC is
+  the WRONG calibration tool — anchors are CCRL-rated at 120+1 and at 1/8 speed they both flag AND under-represent.
+  Two harness gaps found: (1) reused anchor process slows over ~16-18 games → restart anchors every ~10 games (or
+  fresh process/ucinewgame-hygiene per game); (2) the -tc crosstable FOOTER still prints the stale "...at movetime;
+  ~+30-80 optimistic" caveat (gauntlet/main.go) — wrong for real-clock. Gold calibrated number STANDS at 2380 (120+1,
+  clean). To tighten cleanly: slower clock (anchors behave) — 60+0.6 (~3-4h) or 120+1 overnight; NOT faster.
+  >>> ACCEPTED (Bryan, 2026-05-30): take 2380 (120+1) + 2227 (15+0.15) as NGN's calibrated rating; harness fixes
+  (anchor-restart + footer caveat) DEFERRED to the next real-clock gauntlet; PIVOT to engine strength = extension discipline.
 - **I4 instrument DONE + committed (5f2582f).** `sprt -tc "S+I"` / `gauntlet -tc "S+I"` (fab7f0b) play a real
   tournament clock (go wtime/btime/winc/binc, track both banks, detect flag-outs, force conc-1). Validated:
   detector FIRES (2+0 self-play → 2 time-forfeits) AND current NGN does NOT flag at 10+0.1 (0/24). The
