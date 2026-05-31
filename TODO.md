@@ -28,33 +28,55 @@ cold TT/op, 27M nodes / 67s samples, E-cores; benchmark KEPT as the reproducer).
   16.8%, SEE 11%, movegen 10.8%, isInCheck 8.2%. `selectNextMove` 7.5% flat (biggest leaf, inherent post-T2a),
   `Bitboard.Clear` 5.4% flat (N1 accumulator moved eval cost here).
 
-**THE 2.5x, HONESTLY (docs/10):** free node-identical wins (T1b+T5+T6+T3) ≈ 14–18% CPU ⇒ **~1.2–1.35x ≈
-+15–40 ELO via depth — BANK THESE.** The remaining ~1.8x is NGN DELIBERATELY spending on rich eval
-(18.6%) + SEE-accurate ordering — TRADEOFFS (SPRT), and history is against trimming them (N3 reverted;
-upfront MVV-LVA sort was −129 once, 2f61d3a). **NPS is a means: strength = NPS × node-quality. Do NOT
-chase Blunder-parity by gutting eval** — only a cheaper-AND-stronger regime (packed score / NNUE) gets both.
+**THE 2.5x, HONESTLY (docs/10) — REVISED DOWN after empirical re-scoping:** the genuinely-free
+node-identical wins are MODEST — T1b (done) + T6 (~2.3%) + T3 (~3%) ≈ ~5–6% ⇒ **~1.1x**, +GetBitboardOf
+array refactor (~4.6%, big) ⇒ **~1.15–1.2x** (≈ +5–20 ELO via depth). **The biggest single compute item,
+magic movegen (T5, ~8.4%), is NOT free** — gen-order sets tie-break order, which is load-bearing (proven:
+tie-break flip moved nodes −30%..+22% and changed a bestmove) ⇒ SPRT lane. The rest of the ~2.5x is NGN
+DELIBERATELY spending on rich eval (18.6%) + SEE-accurate ordering — TRADEOFFS (SPRT), history against
+trimming (N3 reverted; upfront MVV-LVA sort was −129 once, 2f61d3a). **NPS is a means: strength = NPS ×
+node-quality. Do NOT chase Blunder-parity by gutting eval** — only a cheaper-AND-stronger regime (packed
+score / NNUE) gets both.
 
-**NEW FREE QUEUE — do in order; each gated by 3-baseline node-identity (`/tmp/nodecheck.sh`) +
-`go test -short ./engine/` + `make smoke-tactical`; commit each (KEEP RULE), build dev work to a SEPARATE
-binary (never `make` mid-gate):**
-1. **T1b — quiescence frame pool `[NEUTRAL]` — DO FIRST.** Pool the escaping :1789 (needs a
-   per-qsearch-FRAME buffer — live across the recursive call at :1815) + :1842 (can share one
-   `SearchInfo` scratch field — consumed before any recursion) like T1 did for alphaBetaPV. qDepth bounded
-   at 6. Modest real-NPS expected (T1 caveat: bench-loop GC overstates the win), kept regardless on KEEP
-   RULE; it removes 7 GB churn + GC-pause variance + is the prereq for trusting the rest of the profile.
-2. **T5 — magic movegen `[NEUTRAL]` — biggest free compute win.** Rewrite slider gen to
-   `attacks = GetXxxAttacks(sq, occ)` + iterate set bits (classify capture via `enemy & bit`). Ordering is
-   reapplied by score after ⇒ move SET identical ⇒ node-identical. Kills ~8.4% flat + a chunk of PieceAt.
-3. **T6 — mailbox `[NEUTRAL]` — structural.** `[64]Piece` on `Bitboard`, synced in Clear/UpdateSquare/Move
-   (the 3 primitives N1 already hooks); PieceAt/GetPiece read it instead of the 12-way switch. Kills ~8.8% flat.
-4. **T3 — drop per-node RepStack defer `[NEUTRAL]`.** Explicit `RepStackLen--`+`FrameDepth--` at each
-   alphaBetaPV return (CAUTION: the frame pool RIDES this defer now — doc 09 INV-A3/J3; a missed path
-   corrupts buffer reuse, re-audit every return).
+**NEW FREE QUEUE — do in order; each gated by 3-baseline node-identity + `go test -short ./engine/` +
+`make smoke-tactical`; commit each (KEEP RULE), build dev work to a SEPARATE binary (never `make` mid-gate).**
+**CORRECTED node-identity baselines (post-J10 HEAD — the OLD values @ "NODE-IDENTITY GATE" below are STALE
+pre-J10; J10 shifted Kiwipete + endgame):** Kiwipete `r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R
+w KQkq - 0 1` d12 = **1,669,503 / sd38 / e2a6** · mid `r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1
+w - - 0 10` d12 = **1,165,258 / sd30 / a2a3** · end `8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1` d16 =
+**862,348 / sd39 / b4f4**. Driver: `/tmp/nodecheck.sh <bin> <fen> <depth>`.
+1. **T1b — quiescence frame pool `[NEUTRAL]` — >>> DONE (commit 3b6809b), KEPT. <<<** Pooled the escaping
+   `var moveBuffer [256]Move` at search.go:1789 (in-check) + :1842 (stalemate probe) onto a per-qsearch-frame
+   `qframe.moveBuffer` (FrameDepth counter, stack fallback) — both mutually exclusive per call; `captures
+   [64]Move` :1876 left on stack (never escaped). **Result: allocs/op 684K→11K (−98.4%), B/op 721MB→31MB
+   (residual is the bench's NewCache scaffolding), ~7 GB→~0 churn/search; node-identical to HEAD on all 3
+   baselines; go test -short green; tactical 28/30.** Benchmark-loop NPS +~27% but that OVERSTATES real-game
+   gain (T1 lesson); real read TBD — kept on node-identity + churn-elimination regardless.
+2. **T6 — mailbox for PieceAt `[NEUTRAL]` — ~2.3%, NEXT free item.** `[64]Piece` on `Bitboard`, synced in
+   Clear/UpdateSquare/Move (the 3 primitives N1 already hooks); `PieceAt(sq)` reads it instead of the 12-way
+   scan. CORRECTED scope (was "~8.8%"): does NOT help GetBitboardOf (4.6%, piece→bitboard, not a square
+   lookup) or GetPiece (1.9%, a type+color constructor) — neither is mailbox-addressable. ~2.3% only.
+3. **T3 — drop per-node defer `[NEUTRAL]`.** Explicit `RepStackLen--`+`FrameDepth--` at each alphaBetaPV
+   return (CAUTION: the frame pool RIDES this defer; T1b just added a 2nd qsearch-FrameDepth defer — same
+   care; doc 09 INV-A3/J3; a missed path corrupts buffer reuse — re-audit every return).
+4. **GetBitboardOf array refactor `[NEUTRAL, BIG]`** — replace the 12 named bitboard fields + 12-way switch
+   with `bitboards [12]uint64` so `GetBitboardOf(piece) = bitboards[piece]` (~4.6% flat). Large churn (every
+   `b.whitePawn` ref site), node-identity-gated. Deferred until the cheap items land.
 
-THEN re-profile + re-target. **T2b** (lazy-SEE/staged ordering) + **T4** (incremental legality, the
-isInCheck residual) are `[BEHAVIOUR]` → fixed-time SPRT, supervised.
+**SPRT LANE (BEHAVIOUR — fixed-time, run-to-bound, kept iff no regression; the biggest compute item lives here):**
+- **T5 — magic movegen `[BEHAVIOUR]` — ~8.4%, RECLASSIFIED from [NEUTRAL] (do NOT gate by node-identity).**
+  Rewrite slider gen to `GetXxxAttacks(sq,occ)` + bit-iterate (classify capture by `enemy & bit`). NOT
+  node-identical: magic emits square-order, ray-walk direction-order, and `selectNextMove` breaks
+  equal-score ties by GENERATION ORDER (the same property that made T2a neutral) ⇒ tied-quiet try-order
+  changes ⇒ node counts move. **PROVEN EMPIRICALLY 2026-05-31:** flipping the tie-break `>`→`>=` moved nodes
+  −30%..+22% (mid 1,165,258→820,220) and CHANGED a root bestmove (mid a2a3→d4c5). ⇒ fixed-time SPRT (expect
+  ~neutral, tie-break order is arbitrary). Node-identical ALT if wanted: emit per-direction in step order
+  using the magic set as a blocker mask (preserves order, drops the wrap guards — smaller win, more work).
+- **T2b** (lazy-SEE/staged ordering) + **T4** (incremental legality, the isInCheck residual) — `[BEHAVIOUR]`,
+  fixed-time SPRT, supervised.
 
-**STATUS: starting T1b.**
+**STATUS: T1b DONE (3b6809b). T5 reclassified [NEUTRAL]→[BEHAVIOUR] (SPRT lane). Next free item: T6
+(PieceAt mailbox, ~2.3%). Biggest compute item T5 (magic, ~8.4%) needs an SPRT.**
 
 ### >>> AUTONOMOUS SESSION (2026-05-31 PM, Bryan away ~3-4h) — READ FIRST <<<
 
