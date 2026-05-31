@@ -1348,8 +1348,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			break
 		}
 
-		// Futility pruning - skip quiet moves if position is hopeless (but never prune TT move)
-		if futilityPrune && !move.IsCapture() && move != ttMove {
+		// Futility pruning - skip quiet moves if position is hopeless (but never prune
+		// the TT move or a queen promotion — a queen promo gains ~800cp, far beyond any
+		// futility margin, so the "this quiet move can't reach alpha" premise is false).
+		if futilityPrune && !move.IsCapture() && move != ttMove && move.PromoType() != Queen {
 			info.FutilityPrunes++
 			continue
 		}
