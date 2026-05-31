@@ -177,6 +177,13 @@ says not to naively clamp — handle with care, NOT a floor-at-1).
 EXTENSION_BUDGET clamp (1542) bounds it, but VERIFY: depth-10/12 Kiwipete node+seldepth must NOT explode (sd stays ~30s, not
 100+), then a fixed-TIME SPRT. SUPERVISED only — this is the code that burned most of a prior session.
 
+6. **J8 — SearchFixed RootDepth=0 `[CORRECTNESS, LOW value]`.** VERIFIED 2026-05-31: `RootDepth` is set ONLY in the ID loop
+   (search.go:611); `searchFixedUnsafe` (864) + standalone `alphaBeta` (963) leave it 0, so the extension-budget clamp (1544)
+   becomes `23-ply` and truncates deep fixed-depth searches. **Confirmed it does NOT affect shipping or my node-identity
+   baselines** — UCI `go depth N` routes through `SearchIterativeDeepeningWithCallback` (uci.go:709 → sets RootDepth), so only
+   direct `SearchFixed` callers (cmd/trace_move + a few deep tests) bite. One-liner `info.RootDepth = depth` in
+   searchFixedUnsafe; baseline-neutral, safe, near-zero strength impact — do opportunistically, not urgent.
+
 **CLEARED — checked, NOT the culprit, do not chase:** `WrapEvaluation` has a real fast path
 (`!ENABLE_HOT_PATH_DEBUG` → bare `return fn()`, crash_handler.go:160); the profile's ~17% memclr+madvise was a
 BenchmarkSearchDeep loop artifact (GC churn from thousands of short searches), near-zero in a single game search (docs/10).
