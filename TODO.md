@@ -6,6 +6,40 @@
 
 ## SPEED LANE (NPS) — TOP PRIORITY, prioritized 2026-05-31 — the 2.5x gap
 
+### >>> AUTONOMOUS SESSION (2026-05-31 PM, Bryan away ~3-4h) — READ FIRST <<<
+**Mandate: keep working, NEVER ask a question, NEVER sit idle waiting.** N1 shipped (commit d0fae30, +3.6% NPS,
+node-identical). Bryan's recalibration accepted: per-node micro-opts each yield single digits; the 2.5x is
+STRUCTURAL — a stack of micro-opts won't close it. He chose **re-profile first, then target** over blind grinding.
+
+**Uncommitted in tree:** `engine/zz_nps_profile_test.go` — a throwaway deep-Kiwipete d11 profiling benchmark. It's
+the FIRST tool: run STEP 0, record findings here, then `rm` it (do NOT commit it). build/ngn currently = N1.
+
+**STEP 0 — re-profile (do immediately, bulletproof form keeps the binary for symbolization):**
+`taskpolicy -b go test ./engine/ -run=NONE -bench=BenchmarkNPSProfile -benchtime=15x -cpuprofile=/tmp/ngn_n1.prof -o /tmp/engine.test -count=1`
+then `go tool pprof -top -nodecount=40 /tmp/engine.test /tmp/ngn_n1.prof`. Read FLAT self-time of COMPUTE fns
+(post-N1 the eval slice should be smaller; watch isInCheck, ordering+SEE, movegen, make/unmake/Clear). DISCOUNT
+alloc/GC/madvise/memclr (benchmark-loop artifact — T1 lesson). Record the top-15 flat here; pick the biggest real one.
+
+**THE LOOP (repeat until window ends):**
+1. Pick the biggest actionable flat hotspot. If ambiguous, default order: N2 → N4 → N3 → N5 (specs below).
+2. NODE-IDENTICAL lever (N2; N4 if yielded order preserved): implement → GATE = 3-baseline node-identity
+   (`/tmp/nodecheck.sh <bin> <fen> <depth>`; the recorded baselines are INVARIANT under any node-identical change:
+   Kiwipete d12=1339599/sd32/d5e6, mid `r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10`
+   d12=1165258/a2a3, end `8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1` d16=848103/b4f4) + `go test -short ./engine/`
+   + `make smoke-tactical`. Pass & faster ⇒ COMMIT (KEEP RULE). Gate FAILS (nodes move) ⇒ secretly BEHAVIOUR ⇒
+   make it exact, or move it to the SPRT lane.
+3. BEHAVIOUR lever (N3 lazy eval, N5 lazy SEE): implement → launch a PROPERLY-POWERED fixed-TIME SPRT in the
+   BACKGROUND (run_in_background) — ≥1000 games / run to an SPRT bound, NOT the 82-game underpowered runs that
+   plagued this session ([[sprt_instrument]]). **NEVER block on it** — while it runs, go implement the next
+   node-identical lever. On conclusion: KEEP iff no regression, else revert. This long SPRT IS the multi-hour E-core task.
+4. COMMIT each checkpoint (single-sentence msg, NO co-author/emoji). UPDATE this block after each. Commit LOCALLY, DO NOT push.
+
+**DON'T-GET-STUCK RULES:** (a) never wait idle on a background task — always keep foreground work going;
+(b) if a lever resists the gate >~20 min, revert and take the next; (c) if the NPS queue is exhausted/blocked,
+PIVOT to the correctness lane (J1 extension×LMR reduced-scout bug, docs/09 — HIGH, independent of NPS, always
+available); (d) any choice that arises → pick the obvious option, note it here, proceed — do not ask;
+(e) re-profile again after 2-3 levers land to re-target. Keep `make smoke` (game phase) for a real regression read if unsure.
+
 **The headline lever.** NGN ~310K NPS vs Blunder 7.4.0 (CCRL 2532) ~640-750K = **~2-2.4x slower per node**,
 ~2-3 plies shallower at equal time ≈ ~100-140 ELO ≈ the whole CCRL gap (docs/10). Both engines are
 single-threaded classical Go, so the gap is **per-node work, and it is reducible** — a peer engine proves it.
