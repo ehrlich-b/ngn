@@ -23,6 +23,7 @@ const (
 	DELTA_MARGIN            = 100 // Delta pruning margin in quiescence
 	SINGULAR_DEPTH          = 6   // Minimum depth for singular extensions
 	SINGULAR_MARGIN         = 64  // Margin for singular move detection
+	EXTENSION_BUDGET        = 24  // Max net extensions on a single root-to-leaf path (anti-explosion)
 )
 
 // globalStopRequested is set by UCI's stop handler and observed by the search
@@ -461,6 +462,7 @@ type SearchInfo struct {
 	Nodes       uint64
 	Depth       int
 	SelDepth    int // Maximum ply reached including quiescence
+	RootDepth   int // Depth of the current ID iteration; the reference for the per-path extension budget
 	BestMove    Move
 	BestScore   int
 	Stopped     bool
@@ -576,6 +578,12 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		// Reset seldepth at the top of each iteration so UCI info reports the
 		// deepest reach for THIS iteration, not the max across all prior ones.
 		info.SelDepth = currentDepth
+
+		// Record this iteration's root depth as the reference for the per-path
+		// extension budget (search.go ~1470): a node's net extensions along the
+		// current path == depth + ply - RootDepth, which we cap to keep a
+		// non-decaying checking line from recursing toward MaximumDepth.
+		info.RootDepth = currentDepth
 
 		// Check time before starting each new depth iteration
 		if info.TimeManager != nil {
@@ -1465,6 +1473,20 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		if nextDepth > depth+1 {
 			// Guardrail: limit extensions to at most +1 beyond current depth
 			nextDepth = depth + 1
+		}
+
+		// Per-path extension budget (anti-explosion). The per-node guardrail above
+		// caps a single node at +1, but a check extension only RESTORES the decrement
+		// (nextDepth == depth), so a non-decaying checking line keeps depth flat and
+		// can recurse toward MaximumDepth (the seldepth-111, ~20x-node explosion).
+		// Bound the CUMULATIVE net extension on this root-to-leaf path: the child's
+		// extensions == nextDepth + (ply+1) - RootDepth, so cap nextDepth to keep that
+		// <= EXTENSION_BUDGET. Once the budget is spent, checks decrement normally and
+		// the line terminates. Generous enough to leave normal tactical search
+		// untouched (verified node-identical on Kiwipete d10-12), finite enough that
+		// the C4/C5 LMR-rescan vectors can no longer recurse without bound.
+		if maxNextDepth := info.RootDepth - (ply + 1) + EXTENSION_BUDGET; nextDepth > maxNextDepth {
+			nextDepth = maxNextDepth
 		}
 
 		var score int
