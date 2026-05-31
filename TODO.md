@@ -152,6 +152,26 @@ When woken by its completion: rebuild `build/ngn` from HEAD (it was the frozen N
 5. **J1 (extension×LMR reduced-scout, docs/09 HIGH)** — the real strength bug, but its broad fix (C5) was REJECTED for 2× nodes;
    a NARROW fix may exist (see the J1 analysis block below). HIGH risk (explosion-prone extension code) — SUPERVISED only.
 
+### J1 analysis (VERIFIED vs live code 2026-05-31 — for the supervised fix)
+**Confirmed real.** search.go:1613-1636. A non-first move (`legalTried > 1`) with `reduction == 0` — which is EVERY
+capture/check/in-check move, since the LMR gate (1557: `!move.IsCapture() && !inCheck && !givesCheck`) skips them so reduction
+stays 0 — is scouted at `reducedDepth = depth-1-reduction = depth-1` (line 1614/1620). That **ignores the extension already
+baked into `nextDepth`** (nextDepth = depth-1 + check/recapture/passed ext, computed at 1457-1485). The two re-searches that
+DO use nextDepth can't save it: C4 (1629) requires `reduction > 0` (false here); PVS (1634) requires `isPV` (false off-PV,
+~99% of nodes). NET: for an **off-PV, non-first, checking/recapture/passed move, the extension is computed + counted
+(`CheckExtensions++`) but NEVER searched** — the move is only ever seen at depth-1. (The FIRST move, 1549-1551, DOES get
+nextDepth, so the PV spine is fine; this bug is the off-PV siblings.)
+**Narrow fix (NOT C5):** before the scout, `if reduction == 0 { reducedDepth = nextDepth }` — applies the extension ONLY to
+non-reduced moves, leaving reduced moves' cheap `depth-1-reduction` scout intact (C5's mistake was `nextDepth-reduction` for
+ALL moves → reduced moves extended-then-reduced → 2× nodes).
+**GOTCHA TANGLE:** the "dead" branch at 1615-1617 (`if reducedDepth >= depth { reducedDepth = depth-1-reduction }`) is NOT
+dead under this fix — for an extended move `reducedDepth` becomes `depth` (when ext=1), trips `reducedDepth >= depth`, and
+RESETS to depth-1, clobbering the fix. The fix must restructure that branch (this is the same branch the burned-in GOTCHA
+says not to naively clamp — handle with care, NOT a floor-at-1).
+**RISK:** applying check extensions off-PV ⇒ more extensions fire ⇒ explosion vector (the seldepth-111 family). The per-path
+EXTENSION_BUDGET clamp (1542) bounds it, but VERIFY: depth-10/12 Kiwipete node+seldepth must NOT explode (sd stays ~30s, not
+100+), then a fixed-TIME SPRT. SUPERVISED only — this is the code that burned most of a prior session.
+
 **CLEARED — checked, NOT the culprit, do not chase:** `WrapEvaluation` has a real fast path
 (`!ENABLE_HOT_PATH_DEBUG` → bare `return fn()`, crash_handler.go:160); the profile's ~17% memclr+madvise was a
 BenchmarkSearchDeep loop artifact (GC churn from thousands of short searches), near-zero in a single game search (docs/10).
