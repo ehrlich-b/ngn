@@ -140,9 +140,15 @@ with lazy-SEE deferral of losing captures — non-trivial. Behaviour ⇒ SPRT. S
 **The cores are busy with the speed-SPRT (~3000 games), so NO behaviour change can be game-validated until it finishes.**
 When woken by its completion: rebuild `build/ngn` from HEAD (it was the frozen N6 snapshot for the SPRT), then:
 
-1. **J10-queen — futility no-prune queen promotions `[CORRECTNESS]` — >>> SPRT RUNNING (bg id bl5kkkray, /tmp/sprt_j10.log,
-   new=build/ngn_j10 vs base=build/ngn N6, 100ms conc-4 [0,8] maxgames 1500) <<<. Source change UNCOMMITTED in tree pending
-   verdict; on KEEP commit it, on regression `git checkout engine/search.go`.** Verified vs live code: futility
+1. **J10-queen — futility no-prune queen promotions `[CORRECTNESS]` — >>> RE-RUNNING (properly powered) <<<.**
+   **SPRT-POWER LESSON RE-LEARNED (do not delete):** an early read at G141 showed -59.7 [-118,-2] (CI excluded 0) and I
+   nearly rejected it as a "-60 regression" — but by G269 it had reverted to **-6.5 [-48,+35] (NEUTRAL, CI includes 0)**.
+   The -60 was an UNDERPOWERED NOISE EXCURSION (n=141, ±58 CI). Same trap as the +49→+8 speed-SPRT decay. NEVER trust an
+   SPRT read below ~n=1000. So J10 is NOT a clear regression — it's ~neutral so far. Now re-running with **mingames 1000,
+   maxgames 2000, bounds [-5,5]** (bg id bn64oclrj, /tmp/sprt_j10b.log, new=build/ngn_j10 vs base=build/ngn N6) so an early
+   swing CANNOT conclude it. Source UNCOMMITTED in tree pending the firm verdict. On KEEP (no measurable regression — it's a
+   provable correctness fix, methodology favors keeping) → commit; on a real regression → `git checkout engine/search.go`.
+   Verified vs live code: futility
    (search.go:1352), LMP (1361), histprune (1399) skip `!IsCapture()` moves WITHOUT a promo guard, while the SEE-quiet site
    (1389) has `PromoType()==NoType`. Futility (not move-index-gated) pruning a queen promo is a PROVABLE bug — its 200cp
    margin can't cover an ~800cp promo. ONE-LINE FIX: add `&& move.PromoType() != Queen` to the futility cond (1352).
