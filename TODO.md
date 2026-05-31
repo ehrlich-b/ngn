@@ -9,18 +9,22 @@
 ### >>> AUTONOMOUS SESSION (2026-05-31 PM, Bryan away ~3-4h) — READ FIRST <<<
 
 **>>> SESSION RESULTS (Bryan, read this on return) <<<**
-- **HEADLINE: J10 = +37 ELO [+16,+59] / 1004g SPRT (commit f6c9414)** — stopped futility-pruning queen promotions
-  (a provable correctness bug: 200cp futility margin can't cover an ~800cp promo). The session's big win.
-- **Speed lane (N2 isInCheck-tag dedup `9c414c2`/`6ca41f6`, N6 pawn-eval cache `23b6187`)**: all node-identical, KEPT,
-  but a fixed-time SPRT (N1+N2+N6 vs pre-N1) measured **~0 ELO at 100ms** → node-identical speed micro-opts don't move
-  ELO at this TC; **STRATEGY PIVOT: chase correctness/eval, not speed micro-opts** (J10 proved the point: +37 from one
-  correctness fix vs ~0 from all the speed work).
-- **Cumulative-session SPRT RUNNING** (HEAD=N2+N6+J10 vs session-start 825895d, bg b0crbbjjt, /tmp/sprt_session.log) —
-  bottom-line "session = +X ELO" (expect ~+37); re-confirms J10 via a different baseline. Wakes me on completion.
+- **HONEST HEADLINE: the session's work (N2+N6+J10) = +10 ELO [-5,+25] over 2000 games** (cumulative HEAD vs session-start
+  825895d, ran to completion = UNBIASED). A small positive, NOT firmly resolved (CI includes 0). The single behaviour fix
+  **J10 (commit f6c9414, stop futility-pruning queen promotions** — a provable bug: 200cp futility margin can't cover an
+  ~800cp promo) is most of it; the node-identical speed work is ~0 of it.
+- **CORRECTION — I overstated J10 as "+37".** The J10-vs-N6 SPRT read +37 [+16,+59] but it STOPPED at the H1 bound, and a
+  boundary-stopped point estimate is BIASED HIGH (optional-stopping inflation). The unbiased run-to-completion cumulative
+  (+10 [-5,+25]) is the trustworthy number → J10's true effect is ~+5-15, not +37. (Diagnostic: the cumulative base N1 is
+  SLOWER than N6, so it should be EASIER to beat → cumulative should EXCEED +37 if real; it's +10 ⇒ +37 was inflated.)
+- **Speed lane (N2 isInCheck-tag dedup `9c414c2`/`6ca41f6`, N6 pawn-eval cache `23b6187`)**: all node-identical, KEPT (free
+  under the KEEP RULE), but a fixed-time SPRT (N1+N2+N6 vs pre-N1) measured **~0 ELO at 100ms** → node-identical speed
+  micro-opts don't move ELO at this TC; **STRATEGY PIVOT: chase correctness/eval, not speed micro-opts.**
 - **Tried+REVERTED:** N3 lazy-eval (wrong lever — NGN's big positional terms distort sharp positions). **Deferred to
   SUPERVISED** (risky/invasive): J1 extension×LMR (HIGH, code-analyzed below), N4-TTfirst, N5 lazy-SEE.
-- **BIG METHODOLOGY LESSON:** J10 read -60 [-118,-2] @n=141 (CI excluded 0!) → -6.5 @n=269 → +37 @n=1004. A
-  CI-excludes-0 read at low n is STILL noise. Always `-mingames 1000`. I nearly threw away +37 on the n=141 noise.
+- **TWO METHODOLOGY LESSONS (both burned me this session, both in [[ngn-sprt-instrument]]):** (1) a CI-excludes-0 read at
+  low n is STILL noise — J10 read -60 [-118,-2] @n=141 → +37 @n=1004 → true ~+10; always `-mingames 1000`. (2) a
+  boundary-STOPPED SPRT inflates the point estimate; trust a RUN-TO-COMPLETION (fixed-N) estimate for magnitude.
 - **Known rare gap (low-value, supervised):** `IsCapture()` excludes en-passant (move.go:115 vs the `||IsEnPassant()`
   pattern in moveorder), so futility/LMP/histprune treat EP as a quiet move — same class as J10 but EP is rare ⇒ ~0 ELO,
   unmeasurable; fix `&& !move.IsEnPassant()` opportunistically.
@@ -77,9 +81,11 @@ computed the simple/full way, MULTIPLYING ~1.4×1.3×1.3×1.15 ≈ **2.7x**. Eva
 (RFP/futility/NMP static eval/improving), so the eval cost spans the whole tree, not just leaves.
 
 **SHIPPED THIS PUSH:**
-- **J10-queen `[+37 ELO, BEHAVIOUR/CORRECTNESS]` — commit f6c9414 — THE BIG WIN.** Stop futility-pruning queen promotions
-  (search.go:1352, `&& move.PromoType() != Queen`). +37.2 [+16,+59] / 1004g SPRT, H1 accepted. Found via docs/09 J10; the
-  node-identical speed levers below were all ~0 ELO by comparison — the lever was a pruning-blindness CORRECTNESS bug, not speed.
+- **J10-queen `[~+10 ELO, BEHAVIOUR/CORRECTNESS]` — commit f6c9414.** Stop futility-pruning queen promotions
+  (search.go:1352, `&& move.PromoType() != Queen`) — provable bug (200cp margin can't cover an ~800cp promo). The J10-vs-N6
+  SPRT read +37.2 [+16,+59]/1004g H1-accepted, BUT that was BOUNDARY-STOPPED (biased high); the unbiased run-to-completion
+  cumulative (HEAD vs session-start, 2000g) puts the real session gain at **+10 [-5,+25]**, so J10 ≈ +5-15. Kept on
+  correctness grounds (sound + positive lean + no regression). Found via docs/09 J10.
 
 **Node-identical NPS levers (all NEUTRAL, node-identity-proven, KEPT — each ~single-digit ELO, cumulatively ~0 at 100ms):**
 - **T1** — frame-pool hot-path buffer reuse (search.go searchFrame/SearchInfo.Frames). Allocs -75%. commit b9c1859.
@@ -163,16 +169,18 @@ with lazy-SEE deferral of losing captures — non-trivial. Behaviour ⇒ SPRT. S
 **The cores are busy with the speed-SPRT (~3000 games), so NO behaviour change can be game-validated until it finishes.**
 When woken by its completion: rebuild `build/ngn` from HEAD (it was the frozen N6 snapshot for the SPRT), then:
 
-1. **J10-queen — futility no-prune queen promotions `[CORRECTNESS]` — >>> DONE: +37 ELO, COMMITTED f6c9414. <<<**
-   **THE SESSION'S BIGGEST ELO WIN** (the node-identical speed work was ~0; this one correctness fix is +37). Properly-powered
-   SPRT (mingames 1000, [-5,5]): **+37.2 [+16,+59] over 1004 games, 55.3%, LLR +3.44 → H1 ACCEPTED**; pentanomial +37.2
-   [+17,+57] corroborates. **SPRT-POWER LESSON (do not delete) — the read history is brutal:** G141 = -59.7 [-118,-2] (CI
-   EXCLUDED 0, looked like a clear -60 regression — I nearly rejected it) → G269 = -6.5 [-48,+35] (neutral) → G1004 = +37
-   (decisive WIN). A CI-excludes-0 read at n=141 was a pure NOISE EXCURSION; trusting it would have thrown away +37. NEVER
-   read/conclude an SPRT below ~n=1000 even if the CI looks tight — always launch with `-mingames 1000`. ([[ngn-sprt-instrument]]
-   updated.) The +25% Kiwipete node cost IS real but the tactical accuracy of searching winning queen promos dominates (the
-   eval -136→-73-toward-Blunder signal was real after all). FOLLOW-UPS (queued below): extend the guard / hunt sibling
-   pruning-blindness bugs (quiet checks?). Verified vs live code: futility
+1. **J10-queen — futility no-prune queen promotions `[CORRECTNESS]` — >>> DONE: ~+10 ELO, COMMITTED f6c9414, KEPT. <<<**
+   Provable correctness fix (200cp futility margin can't cover an ~800cp promo), kept on correctness grounds (sound +
+   positive lean + no regression). **TWO SPRT-METHODOLOGY LESSONS, both burned me here (do not delete):**
+   (1) **low-n noise:** the J10-vs-N6 read went G141 = -59.7 [-118,-2] (CI EXCLUDED 0 — I nearly rejected it as a -60
+   regression) → G269 = -6.5 → G1004 = +37.2 [+16,+59] H1-accepted. A CI-excludes-0 read at n=141 was pure noise; NEVER
+   conclude below ~n=1000; always `-mingames 1000`.
+   (2) **boundary-stop inflation:** that +37 was BIASED HIGH because the SPRT stopped at the H1 bound. The unbiased
+   run-to-completion cumulative (HEAD=N2+N6+J10 vs session-start N1, 2000g, INCONCLUSIVE) = **+10 [-5,+25]**, and since the
+   N1 base is SLOWER than N6 (should be EASIER to beat → should EXCEED +37 if real), the true J10 is ~+5-15, not +37.
+   Trust run-to-completion estimates for MAGNITUDE, not boundary-stop estimates. ([[ngn-sprt-instrument]] updated.)
+   FOLLOW-UPS (low priority): the guard could extend to under-promos/LMP/histprune (likely ~neutral) and the EP gap
+   (rare). Verified vs live code: futility
    (search.go:1352), LMP (1361), histprune (1399) skip `!IsCapture()` moves WITHOUT a promo guard, while the SEE-quiet site
    (1389) has `PromoType()==NoType`. Futility (not move-index-gated) pruning a queen promo is a PROVABLE bug — its 200cp
    margin can't cover an ~800cp promo. ONE-LINE FIX: add `&& move.PromoType() != Queen` to the futility cond (1352).
