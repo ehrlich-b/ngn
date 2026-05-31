@@ -99,6 +99,11 @@ all 3 baselines, so the SPRT isolates SPEED→depth→ELO). fixed-time 100ms, co
 `/tmp/sprt_speed.log` (bash bg id bp96upzxu). Answers the strategic question "do the node-identical micro-opts buy real
 ELO at this TC?" — if clearly +, keep grinding node-identical levers; if ~0, NGN isn't depth-limited at 100ms (pivot).
 Wakes me on completion. (Watching: draw rate — speed-only twins should draw a lot when both hit equal depth.) <<<
+  - **INTERIM (G535, ~12 min):** 246W-54D-235L = 51.0%, **elo +7.1 [-22,+37]**, LLR +0.12, draws ~10%. Decayed from an
+    early +49 (n=106 noise) to a small positive. READ: ~10-15% cumulative NPS (N1+N2+N6) buys ~+7 ELO at 100ms — NO
+    regression, small gain, exactly the "micro-opts give single digits" thesis. Confirms keeping what shipped, but grinding
+    MORE fiddly node-identical micro-opts is low-ROI; the real levers are behaviour (lazy eval failed, lazy SEE tangled) or
+    structural (NNUE, deferred). Final verdict on completion (~3000 games / a bound).
 
 **N3 — Lazy eval `[BEHAVIOUR]` — TRIED 2026-05-31, REVERTED (wrong lever for NGN, NOT committed).** Implemented lazy
 stand-pat in qsearch (`lazyEvaluateForPlayer`: skip positional terms when the cheap PeSTO core is >margin past
@@ -114,14 +119,38 @@ DON'T retry as-is. (If ever revisited: only the *cheap-positional* terms could b
 INTERLEAVE captures and quiets: winning captures ~80000 (above counters/killers/castling) but LOSING captures ~20000 (BELOW
 counters 30000, killers 25000, castling 50000, above plain quiets). So "captures-then-quiets" staging would try losing
 captures before killers/castling ⇒ reorders ⇒ NOT node-identical (moveorder.go:343-388). The ONLY node-identical slice is
-**N4-TTfirst** (try the TT move before generating any moves; if it cuts, skip generation entirely) — fiddly (needs the TT
-move pseudo-legality-validated independently, and the rest-of-loop must exclude it identically). ATTEMPTING N4-TTfirst as
-the foreground node-identical lever while the SPRT runs.
+**N4-TTfirst** (try the TT move before generating any moves; if it cuts, skip generation entirely). ASSESSED 2026-05-31:
+the alphaBetaPV move loop body (~300 lines: extensions/LMR/re-search/history/pruning bookkeeping, search.go:1322-1670) would
+have to be DUPLICATED for the standalone TT-move trial, or extracted into a per-move helper (big refactor). Too invasive /
+high bug-surface for an unattended window — DEFER to a supervised session. (The node-identity gate makes it SAFE to attempt
+then, just not quick.)
 
-**N5 — Lazy SEE `[BEHAVIOUR → SPRT]` (was T2b).**
-- *What:* defer `staticExchangeEvaluation` to captures actually reached; order captures by MVV-LVA first. Attacks the
-  SEE cost folded inside ordering's ~14% that T2a did NOT touch (T2a saved sort work, not SEE work).
-- *Verify:* tie-break order shifts ⇒ node counts move ⇒ SPRT vs clean HEAD.
+**N5 — Lazy SEE `[BEHAVIOUR → SPRT]` (was T2b).** ASSESSED 2026-05-31: TANGLED. SEE feeds BOTH ordering (moveorder.go:345,
+every capture up front) AND pruning (search.go:1376/1391/1905, qsearch:1905). A naive MVV-LVA swap would try LOSING captures
+too early (they currently sort at ~20000, BELOW killers/castling) ⇒ likely regression. Doing it right needs STAGED selection
+with lazy-SEE deferral of losing captures — non-trivial. Behaviour ⇒ SPRT. Supervised.
+
+---
+
+## >>> POST-SPRT QUEUE (2026-05-31 PM — work these when the speed-SPRT frees the cores / when supervised) <<<
+
+**The cores are busy with the speed-SPRT (~3000 games), so NO behaviour change can be game-validated until it finishes.**
+When woken by its completion: rebuild `build/ngn` from HEAD (it was the frozen N6 snapshot for the SPRT), then:
+
+1. **J10-queen — futility no-prune queen promotions `[CORRECTNESS, SPRT candidate]` — TOP.** Verified vs live code: futility
+   (search.go:1352), LMP (1361), histprune (1399) skip `!IsCapture()` moves WITHOUT a promo guard, while the SEE-quiet site
+   (1389) has `PromoType()==NoType`. Futility (not move-index-gated) pruning a queen promo is a PROVABLE bug — its 200cp
+   margin can't cover an ~800cp promo. ONE-LINE FIX: add `&& move.PromoType() != Queen` to the futility cond (1352).
+   MEASURED (queen-only, ngn_dev): tactical held 28/30, go test green, eval moved Kiwipete **-136→-73 (TOWARD Blunder's -86!)**
+   = accuracy gain; BUT **+25% nodes on Kiwipete** (promotion-rich; midgame IDENTICAL, endgame +2.5% → cost is position-specific,
+   avg likely small). Needs a fixed-time no-regression SPRT (per methodology: correctness fix kept iff no measurable regression
+   in a short run — the node cost is the flag to check). If +/neutral, consider extending to under-promos + LMP/histprune.
+2. **Re-profile (post N2+N6)** — `BenchmarkNPSProfile` (recreate the throwaway harness), re-read flat hotspots to confirm
+   eval/isInCheck shares dropped and re-target. (Deferred during SPRT — contention pollutes the profile.)
+3. **N4-TTfirst** (node-identical, supervised — needs the loop-body-helper refactor; see above).
+4. **N5 lazy SEE** (behaviour, supervised — needs staged lazy-SEE deferral; see above).
+5. **J1 (extension×LMR reduced-scout, docs/09 HIGH)** — the real strength bug, but its broad fix (C5) was REJECTED for 2× nodes;
+   a NARROW fix may exist (see the J1 analysis block below). HIGH risk (explosion-prone extension code) — SUPERVISED only.
 
 **CLEARED — checked, NOT the culprit, do not chase:** `WrapEvaluation` has a real fast path
 (`!ENABLE_HOT_PATH_DEBUG` → bare `return fn()`, crash_handler.go:160); the profile's ~17% memclr+madvise was a
