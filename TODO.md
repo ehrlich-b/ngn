@@ -20,6 +20,16 @@ then `go tool pprof -top -nodecount=40 /tmp/engine.test /tmp/ngn_n1.prof`. Read 
 (post-N1 the eval slice should be smaller; watch isInCheck, ordering+SEE, movegen, make/unmake/Clear). DISCOUNT
 alloc/GC/madvise/memclr (benchmark-loop artifact — T1 lesson). Record the top-15 flat here; pick the biggest real one.
 
+**STEP 0 DONE (2026-05-31 PM, post-N1, d11 Kiwipete ×15, 2.82s/search):** top FLAT compute (discounting memclr 11% /
+madvise 6.2% / newobject 1.4% / atomic 4.2% = benchmark-loop + TT-probe artifacts): selectNextMove 5.48 | evaluateUnsafe
+4.02 (cum 19.8) | Bitboard.Clear 3.72 | findLeastValuableAttacker 3.70 | alphaBetaPV 3.65 | **isInCheck 3.15 (cum 8.71)**
+| evaluatePawnChains 3.00 | GetRookAttacks 2.95 | scoreMovesIntoBuffer 2.80 (cum 8.53) | genSlidingMoves 2.70 |
+genSlidingCaptures 2.38 | GetPiece 2.26 | Bitboard.Move 2.16 | updateHash 2.11 | GetBitboardOf 2.03. CUM subsystems:
+**qsearch 53.5%**, eval 19.8%, SEE 9.3%, isInCheck 8.7%, ordering ~14% (score+select). **PICK = N2 (isInCheck, cum 8.7%,
+top of queue, node-identical — gives-check should == the cached InCheck tag).** NEW lever queued: **N6 — pawn-hash cache**
+for the pawn-structure terms (pawnChains 3.0 + pawnShield 1.79 + doubled 1.54 + isolated 0.97 ≈ 7% cum, recomputed every
+eval; node-identical iff keyed on full pawn-occupancy with no-collision verify). zz_nps_profile_test.go removed post-STEP-0.
+
 **THE LOOP (repeat until window ends):**
 1. Pick the biggest actionable flat hotspot. If ambiguous, default order: N2 → N4 → N3 → N5 (specs below).
 2. NODE-IDENTICAL lever (N2; N4 if yielded order preserved): implement → GATE = 3-baseline node-identity
@@ -57,15 +67,26 @@ computed the simple/full way, MULTIPLYING ~1.4×1.3×1.3×1.15 ≈ **2.7x**. Eva
   rescanning; dead `gamePhase` removed; Texel tuner recomputes per-sample (tables mutate under it). Bit-exact ⇒
   node-identical on all 3 baselines; `TestEvalAccumulatorUnderMakeUnmake` walks make/unmake over 7 FENs. ~3.6%
   faster. commit d0fae30.
+- **N2** — isInCheck dedup via the cached `InCheck` tag. **N2a (9c414c2):** the alphaBetaPV gives-check probe
+  (search.go:1453) == exactly what makeMoveHelper:263 just computed and cached after the move, so read `pos.IsInCheck()`
+  (removes one full board scan per legal move; ~+1.4% measured). **N2b (6ca41f6):** the node-in-check probes in
+  alphaBetaPV (1132) + quiescence (1776) read the maintained tag instead of rescanning — tag is correct on every entry
+  (ParseFEN root, makeMoveHelper, IID/singular same-pos, null-move clear by the NMP `!inCheck` gate). Both node-identical
+  on all 3 baselines (the gate proves the tag-maintenance invariant holds). **RESIDUAL (NOT tag-addressable):** the
+  per-move LEGALITY scan (search.go:1434, mover's-king color ≠ side-to-move tag) is the dominant remaining isInCheck
+  cost; eliminating it needs INCREMENTAL legality (only re-check the king when the move could expose it — pins/EP/king
+  moves), a behaviour-neutral but bug-prone project. Deferred (high risk, gated by node-identity if attempted).
 
 **QUEUE — do TOP-DOWN, one at a time, each gated before the next is stacked:**
 
-**N2 — isInCheck dedup `[NEUTRAL]` (was T4) — ~15% CPU — NOW TOP OF QUEUE.**
-- *What:* stop recomputing the king-attacker scan ~2x/move. Node-in-check is ALREADY cached (`InCheck` tag, cheap);
-  the waste is the post-make legality scan + the gives-check scan, both calling the free `isInCheck` (movegen.go:764).
-- *Where:* `search.go ~1387` (post-make legality) + `~1406` (gives-check). Derive gives-check from the move
-  (moved-piece attack + discovered-check ray to the enemy king) or cache the attack bitboard.
-- *Verify:* exact derivation ⇒ node-identical gate. (A cheaper APPROXIMATE gives-check would be BEHAVIOUR ⇒ SPRT — prefer exact.)
+**N2 — isInCheck dedup `[NEUTRAL]` — DONE (9c414c2 + 6ca41f6), see SHIPPED above. Residual = per-move legality scan (deferred).**
+
+**MEASUREMENT CAVEAT (2026-05-31 PM):** back-to-back E-core benchmarking THERMALLY THROTTLES the M4 — absolute NPS
+drifted 294K→262K across two A/B runs ~10 min apart. So small NPS deltas (<~2%) are UNRESOLVABLE by interleaved A/B
+right now; trust the deterministic node-identity gate + the strictly-less-work argument for [NEUTRAL] levers, and use
+INTERLEAVED (alternating) A/B never block-vs-block. For real speed reads, let the cores cool or measure depth-to-time.
+
+**>>> NOW TOP OF QUEUE: N4 (staged movegen, below) per the default N2→N4→N3→N5 order. <<<**
 
 **N3 — Lazy eval `[BEHAVIOUR → SPRT]` — depends on N1.**
 - *What:* compute material+PST first (free after N1); if outside `[α-margin, β+margin]`, return early and SKIP
