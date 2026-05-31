@@ -182,6 +182,14 @@ deep-dive 2026-05-29 (refs below). Reprioritizes I1 to the front; makes I4 its p
   **the +30-80 movetime-bias caveat is now RETIRED** — 2380 is NGN's real strength, no asterisk. NGN climbed
   ~2150 → 2380 this session via C3+PST, now confirmed real (not a movetime artifact). CI still wide at n=16
   (1 anchor); a future gauntlet should add a 2nd stable anchor + more games to tighten it.
+- **>>> MULTI-ANCHOR CCRL CALIBRATION RUNNING (Bryan asked for a calibrated rating) <<<** `gauntlet -tc 15+0.15
+  -only v6.1.0,v7.2.0,v7.4.0 -games 30 -ngn build/ngn` (HEAD 3e88982, with step-4), log /tmp/gauntlet_ccrl_calib.log,
+  watcher bcdfsgjnc. KEY UNLOCK: at the REAL clock the gauntlet sends wtime/btime and never `stop`, so the full
+  Blunder ladder is viable (the movetime-mode stop-noncompliance that skipped 5.0.0/6.1.0 does NOT apply) — probe
+  confirmed all 5 anchors play clean (0 forfeits). 3 bracketing rungs chosen: 6.1.0/2155 (NGN >50%), 7.2.0/2425
+  (~50%, n=2 probe split), 7.4.0/2532 (NGN <50%) → crossover bracketed. CAVEAT: 15+0.15 is 1/8 CCRL-Blitz time
+  (cross-TC scaling ~±20-30, larger than the 120+1 run) — a fast multi-anchor proxy, NOT the gold 120+1 number.
+  RESUME: read watcher output or `grep -E "POOLED|^==|reasons" /tmp/gauntlet_ccrl_calib.log` once gauntlet pgrep empty.
 - **I4 instrument DONE + committed (5f2582f).** `sprt -tc "S+I"` / `gauntlet -tc "S+I"` (fab7f0b) play a real
   tournament clock (go wtime/btime/winc/binc, track both banks, detect flag-outs, force conc-1). Validated:
   detector FIRES (2+0 self-play → 2 time-forfeits) AND current NGN does NOT flag at 10+0.1 (0/24). The
