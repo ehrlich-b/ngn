@@ -259,6 +259,39 @@ node/seldepth vs clean HEAD + smoke-tactical + go test. Agent scopes (disjoint):
   Only REJECT a change when it is BOTH (a) non-correctness (speculative/tuning) AND (b) shows a concrete cost (like C5's
   2x nodes). The C5 revert was correct under this rule (NGN's cheap scout was already correct; C5 added cost, no correctness).
   Don't drop legit correctness fixes on the floor for lack of a visible ELO swing. [[feedback_confirm_before_dropping_findings]]
+
+**2026-05-31 (cont. 9) — >>> ALL 4 AGENTS LANDED + SEARCH DESIGN SPEC WRITTEN (`docs/`) <<<** Bryan: "make a /docs
+folder laying down a deep theory of all these random tree searches — an anchor design doc / spec to implement
+TOWARD, not eyeballed from memory; worried about JOINTS (bugs in the seam between two correct techniques)" +
+"this exercise will help you RECEIVE the sub-agent bugs — stay meta, use them as worked examples, OK if we drop
+some on the floor this run." Wrote `docs/README.md` + `docs/01..09` (architecture / TT / ordering / pruning+
+reductions / extensions / quiescence / mate-draw-scoring / time / invariants-joints), grounded in a FULL read of
+search.go+cache.go+moveorder.go+time.go+position.go. Template per technique: Purpose / Canonical (the target) /
+Invariants (testable) / NGN (file:line) / Joints. **`docs/09` is the INTAKE FRAMEWORK** — a master invariant table,
+a J1-J15 joint catalogue, and a finding ledger that slots all 4 audits with verdicts + a prioritized fix queue.
+- **All 4 agents completed; every finding verified vs live code + recorded in docs/09 (NOT dropped — parked w/ status):**
+  - **J1 [VIOLATED, HIGH] extension×LMR reduced-scout base** (search.go:1560 `reducedDepth := depth-1-reduction`, should
+    be `nextDepth-reduction`). LMR excludes captures/checks (reduction==0) → their check/recapture extension is COMPUTED
+    + COUNTED but NEVER APPLIED off-PV (re-searches at :1575/:1580 need reduction>0 or isPV). **Confirmed independently by
+    TWO agents (af2f023f + a4f0b130) + lead read.** Makes the C4 SPRT a no-op for its headline case. THE joints-thesis
+    proof: not the extension code, not the LMR code — the seam. Fix #1 in the queue (gate + fixed-time SPRT, likely strength-moving).
+  - **J8/INV-EXT3 [VIOLATED, MED-LOW] SearchFixed RootDepth=0** — searchFixedUnsafe/alphaBeta never set RootDepth → budget
+    clamp truncates fixed-depth search past ~depth24. Confirmed by 2 agents (a4f0b130 + af64cc38). Shipping UCI path OK
+    (ID sets it); cmd/trace_move + deep tests bite. One-liner: `info.RootDepth = depth`.
+  - **J10/DIV-FUT1 [VIOLATED, MED] futility prunes quiet promotions** (search.go:1301 lacks `&& PromoType()==NoType`; SEE-quiet
+    block at :1338 has it). LMP/hist-prune same gap [LOW, near-unreachable: promos sort first].
+  - **J12/DIV-Q1 [VIOLATED, LOW-MED] qsearch stalemate scored as material eval below qDepth==0** (:1782 stalemate check is qDepth==0-only).
+  - **J9/DIV-RFP1 [VIOLATED, LOW]** RFP gated `beta-alpha==1` not `!isPV` (mate-distance window collapse edge). **DIV-Q2 [cosmetic]** qsearch seldepth double-count.
+  - **af64cc38 fix-review: 4/5 session fixes ROCK SOLID** (C4 matches canonical PVS+LMR in all 9 cases; budget math sound on ID path;
+    stability-time + increment-alloc can't flag — hard cap/emergency guard untouched; C5 revert dropped nothing). 2 non-blocking notes:
+    SearchFixed RootDepth (above) + the "0.3 cap prevents flagging" comment is overstated (emergency guard is the real backstop).
+  - **a186f283 TT/ordering/state: NO live corruption.** Latent-only: RepStack push/pop asymmetry (unreachable, ply-100<512),
+    IID/singular RepStackLen straddle panic-unsafe (contained), singular-vs-mate-TT (efficiency), root-killer-depth-slot (efficiency).
+  - **Broad CLEAN BILLS corroborated across agents:** TT bounds/mate-encoding/TT-move-legality, make/unmake balance, repetition split,
+    ordering bands, NMP gate (C3), LMR formula/cap, probcut, singular re-entrancy, qsearch in-check evasions, delta/SEE, draw detection.
+- **NO code fixed this session (Bryan's explicit OK).** Tree change = docs only; build untouched. Fix queue (docs/09) is the durable artifact.
+  RESUME: work the fix queue top-down, ONE at a time, gated (depth-10 Kiwipete node/seldepth vs clean HEAD + smoke-tactical + go test);
+  J1 first (re-validates C4). Also close the extension-budget test gap. HEAD before docs commit = 87714a1, tree clean.
 - **I4 instrument DONE + committed (5f2582f).** `sprt -tc "S+I"` / `gauntlet -tc "S+I"` (fab7f0b) play a real
   tournament clock (go wtime/btime/winc/binc, track both banks, detect flag-outs, force conc-1). Validated:
   detector FIRES (2+0 self-play → 2 time-forfeits) AND current NGN does NOT flag at 10+0.1 (0/24). The
