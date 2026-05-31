@@ -58,7 +58,12 @@ single-threaded classical Go, so the gap is **per-node work, and it is reducible
 computed the simple/full way, MULTIPLYING ~1.4×1.3×1.3×1.15 ≈ **2.7x**. Eval runs at internal nodes too
 (RFP/futility/NMP static eval/improving), so the eval cost spans the whole tree, not just leaves.
 
-**SHIPPED (all NEUTRAL, node-identity-proven, KEPT):**
+**SHIPPED THIS PUSH:**
+- **J10-queen `[+37 ELO, BEHAVIOUR/CORRECTNESS]` — commit f6c9414 — THE BIG WIN.** Stop futility-pruning queen promotions
+  (search.go:1352, `&& move.PromoType() != Queen`). +37.2 [+16,+59] / 1004g SPRT, H1 accepted. Found via docs/09 J10; the
+  node-identical speed levers below were all ~0 ELO by comparison — the lever was a pruning-blindness CORRECTNESS bug, not speed.
+
+**Node-identical NPS levers (all NEUTRAL, node-identity-proven, KEPT — each ~single-digit ELO, cumulatively ~0 at 100ms):**
 - **T1** — frame-pool hot-path buffer reuse (search.go searchFrame/SearchInfo.Frames). Allocs -75%. commit b9c1859.
 - **T2a** — incremental deferred selection sort (moveorder.go scoreMovesIntoBuffer+selectNextMove, driven from the
   alphaBetaPV loop). Skips the O(n²) sort tail past a beta cutoff. ~4-7% faster. commit 7445851.
@@ -140,15 +145,16 @@ with lazy-SEE deferral of losing captures — non-trivial. Behaviour ⇒ SPRT. S
 **The cores are busy with the speed-SPRT (~3000 games), so NO behaviour change can be game-validated until it finishes.**
 When woken by its completion: rebuild `build/ngn` from HEAD (it was the frozen N6 snapshot for the SPRT), then:
 
-1. **J10-queen — futility no-prune queen promotions `[CORRECTNESS]` — >>> RE-RUNNING (properly powered) <<<.**
-   **SPRT-POWER LESSON RE-LEARNED (do not delete):** an early read at G141 showed -59.7 [-118,-2] (CI excluded 0) and I
-   nearly rejected it as a "-60 regression" — but by G269 it had reverted to **-6.5 [-48,+35] (NEUTRAL, CI includes 0)**.
-   The -60 was an UNDERPOWERED NOISE EXCURSION (n=141, ±58 CI). Same trap as the +49→+8 speed-SPRT decay. NEVER trust an
-   SPRT read below ~n=1000. So J10 is NOT a clear regression — it's ~neutral so far. Now re-running with **mingames 1000,
-   maxgames 2000, bounds [-5,5]** (bg id bn64oclrj, /tmp/sprt_j10b.log, new=build/ngn_j10 vs base=build/ngn N6) so an early
-   swing CANNOT conclude it. Source UNCOMMITTED in tree pending the firm verdict. On KEEP (no measurable regression — it's a
-   provable correctness fix, methodology favors keeping) → commit; on a real regression → `git checkout engine/search.go`.
-   Verified vs live code: futility
+1. **J10-queen — futility no-prune queen promotions `[CORRECTNESS]` — >>> DONE: +37 ELO, COMMITTED f6c9414. <<<**
+   **THE SESSION'S BIGGEST ELO WIN** (the node-identical speed work was ~0; this one correctness fix is +37). Properly-powered
+   SPRT (mingames 1000, [-5,5]): **+37.2 [+16,+59] over 1004 games, 55.3%, LLR +3.44 → H1 ACCEPTED**; pentanomial +37.2
+   [+17,+57] corroborates. **SPRT-POWER LESSON (do not delete) — the read history is brutal:** G141 = -59.7 [-118,-2] (CI
+   EXCLUDED 0, looked like a clear -60 regression — I nearly rejected it) → G269 = -6.5 [-48,+35] (neutral) → G1004 = +37
+   (decisive WIN). A CI-excludes-0 read at n=141 was a pure NOISE EXCURSION; trusting it would have thrown away +37. NEVER
+   read/conclude an SPRT below ~n=1000 even if the CI looks tight — always launch with `-mingames 1000`. ([[ngn-sprt-instrument]]
+   updated.) The +25% Kiwipete node cost IS real but the tactical accuracy of searching winning queen promos dominates (the
+   eval -136→-73-toward-Blunder signal was real after all). FOLLOW-UPS (queued below): extend the guard / hunt sibling
+   pruning-blindness bugs (quiet checks?). Verified vs live code: futility
    (search.go:1352), LMP (1361), histprune (1399) skip `!IsCapture()` moves WITHOUT a promo guard, while the SEE-quiet site
    (1389) has `PromoType()==NoType`. Futility (not move-index-gated) pruning a queen promo is a PROVABLE bug — its 200cp
    margin can't cover an ~800cp promo. ONE-LINE FIX: add `&& move.PromoType() != Queen` to the futility cond (1352).
