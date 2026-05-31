@@ -7,6 +7,24 @@
 ## SPEED LANE (NPS) — TOP PRIORITY, prioritized 2026-05-31 — the 2.5x gap
 
 ### >>> AUTONOMOUS SESSION (2026-05-31 PM, Bryan away ~3-4h) — READ FIRST <<<
+
+**>>> SESSION RESULTS (Bryan, read this on return) <<<**
+- **HEADLINE: J10 = +37 ELO [+16,+59] / 1004g SPRT (commit f6c9414)** — stopped futility-pruning queen promotions
+  (a provable correctness bug: 200cp futility margin can't cover an ~800cp promo). The session's big win.
+- **Speed lane (N2 isInCheck-tag dedup `9c414c2`/`6ca41f6`, N6 pawn-eval cache `23b6187`)**: all node-identical, KEPT,
+  but a fixed-time SPRT (N1+N2+N6 vs pre-N1) measured **~0 ELO at 100ms** → node-identical speed micro-opts don't move
+  ELO at this TC; **STRATEGY PIVOT: chase correctness/eval, not speed micro-opts** (J10 proved the point: +37 from one
+  correctness fix vs ~0 from all the speed work).
+- **Cumulative-session SPRT RUNNING** (HEAD=N2+N6+J10 vs session-start 825895d, bg b0crbbjjt, /tmp/sprt_session.log) —
+  bottom-line "session = +X ELO" (expect ~+37); re-confirms J10 via a different baseline. Wakes me on completion.
+- **Tried+REVERTED:** N3 lazy-eval (wrong lever — NGN's big positional terms distort sharp positions). **Deferred to
+  SUPERVISED** (risky/invasive): J1 extension×LMR (HIGH, code-analyzed below), N4-TTfirst, N5 lazy-SEE.
+- **BIG METHODOLOGY LESSON:** J10 read -60 [-118,-2] @n=141 (CI excluded 0!) → -6.5 @n=269 → +37 @n=1004. A
+  CI-excludes-0 read at low n is STILL noise. Always `-mingames 1000`. I nearly threw away +37 on the n=141 noise.
+- **Known rare gap (low-value, supervised):** `IsCapture()` excludes en-passant (move.go:115 vs the `||IsEnPassant()`
+  pattern in moveorder), so futility/LMP/histprune treat EP as a quiet move — same class as J10 but EP is rare ⇒ ~0 ELO,
+  unmeasurable; fix `&& !move.IsEnPassant()` opportunistically.
+
 **Mandate: keep working, NEVER ask a question, NEVER sit idle waiting.** N1 shipped (commit d0fae30, +3.6% NPS,
 node-identical). Bryan's recalibration accepted: per-node micro-opts each yield single digits; the 2.5x is
 STRUCTURAL — a stack of micro-opts won't close it. He chose **re-profile first, then target** over blind grinding.
