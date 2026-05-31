@@ -237,6 +237,28 @@ deep-dive 2026-05-29 (refs below). Reprioritizes I1 to the front; makes I4 its p
   re-search) that C4 already complements correctly. Fixed-nodes would undercharge it, fixed-time would only confirm
   the depth loss → confident reject without burning a full SPRT (per "don't chase <50 ELO" + multi-signal, not a lone
   node-count drop). **EXTENSION DISCIPLINE COMPLETE: budget (cbe05db) + C4 (c136b63) shipped; C5 rejected.**
+
+**2026-05-31 (cont. 8) — >>> 4 BUG-HUNT AGENTS RUNNING AT COMPACT (Bryan-directed) <<<** Bryan: "way more bugs to
+find, every pass turns up horrendous correctness bugs." Launched 4 background sub-agents (general-purpose, opus);
+they REPORT findings only (do NOT edit) — the lead VERIFIES each claim against live code before applying
+([[feedback_audit_agent_skepticism]]), then applies CORRECTNESS fixes ONE at a time gated by depth-10 Kiwipete
+node/seldepth vs clean HEAD + smoke-tactical + go test. Agent scopes (disjoint):
+  - **af2f023f30f15387a** — PRUNING & REDUCTIONS: NMP gates/canNull, LMR formula+reducedDepth arithmetic, LMP/futility/
+    razoring/probcut conditions, the PVS re-search calls, aspiration windows. (warned off the load-bearing reducedDepth=0→qsearch / dead branch.)
+  - **a4f0b130bca30faa4** — EXTENSIONS/QSEARCH/MATE-DRAW: check/recapture/passed/singular ext, the NEW budget accounting,
+    qsearch stand-pat/delta/SEE/in-check, mate-distance + scoreToTT/From ply-adjust, repetition/50mv/stalemate scoring.
+  - **a186f2830c9fe12cf** — TT/ORDERING/STATE: TT bounds+depth+illegal-TT-move validation+qsearch stores, ordering bands+
+    killer/counter/history indexing, make/unmake + lastMovePlayed restore on every path, RepStack push/pop balance.
+  - **af64cc3853cb199e2** — REVIEW THIS SESSION'S FIXES (rock-solid?): budget cbe05db, C4 c136b63, step-4 3e88982,
+    timefix fdbf565, AND whether C5's revert dropped anything correctness-relevant. Verdict per fix: ROCK SOLID / SUBTLE / BUG.
+  RESUME: agents notify on completion. Collect all 4 → triage by severity×confidence → verify each vs code → fix the
+  real correctness bugs one-at-a-time (correctness bar, NOT ELO; see methodology below). HEAD at compact = 6bcee9d, tree clean.
+- **METHODOLOGY (Bryan, cont. 8 — RESOLVES the keep/drop tension):** a PROVABLE correctness fix is KEPT on
+  CORRECTNESS grounds — mechanism-verified (depth-10 node/seldepth, unit test, tactical) + no measurable regression in
+  a SHORT run. Do NOT gate correctness fixes on a +10-ELO we can't resolve (SPRT to 10-ELO resolution takes too long).
+  Only REJECT a change when it is BOTH (a) non-correctness (speculative/tuning) AND (b) shows a concrete cost (like C5's
+  2x nodes). The C5 revert was correct under this rule (NGN's cheap scout was already correct; C5 added cost, no correctness).
+  Don't drop legit correctness fixes on the floor for lack of a visible ELO swing. [[feedback_confirm_before_dropping_findings]]
 - **I4 instrument DONE + committed (5f2582f).** `sprt -tc "S+I"` / `gauntlet -tc "S+I"` (fab7f0b) play a real
   tournament clock (go wtime/btime/winc/binc, track both banks, detect flag-outs, force conc-1). Validated:
   detector FIRES (2+0 self-play → 2 time-forfeits) AND current NGN does NOT flag at 10+0.1 (0/24). The
