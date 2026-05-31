@@ -203,6 +203,25 @@ deep-dive 2026-05-29 (refs below). Reprioritizes I1 to the front; makes I4 its p
   clean). To tighten cleanly: slower clock (anchors behave) — 60+0.6 (~3-4h) or 120+1 overnight; NOT faster.
   >>> ACCEPTED (Bryan, 2026-05-30): take 2380 (120+1) + 2227 (15+0.15) as NGN's calibrated rating; harness fixes
   (anchor-restart + footer caveat) DEFERRED to the next real-clock gauntlet; PIVOT to engine strength = extension discipline.
+
+**2026-05-30 PROGRESS (cont. 7) — EXTENSION DISCIPLINE. Step-1 budget committed; C4 implemented + SPRT running.**
+- **Extension budget DONE + committed cbe05db (foundational, behavior-NEUTRAL).** Root cause: NGN's check extension
+  does `nextDepth++` (search.go:1402) which only RESTORES the decrement (nextDepth==depth), so a non-decaying checking
+  line keeps depth flat → recurses toward MaximumDepth (the seldepth-111, ~20x-node explosion that burned cont.3).
+  Only brakes were a per-NODE cap (≤depth+1) + the implicit reducedDepth=0→qsearch. FIX: a per-PATH budget — net
+  extensions == `depth + ply - info.RootDepth` (new SearchInfo.RootDepth set per ID iteration at search.go:580);
+  clamp `nextDepth` so child net-ext ≤ EXTENSION_BUDGET (=24) right after the per-node guardrail (~search.go:1470).
+  VERIFIED: node-IDENTICAL on Kiwipete d10-12 (528711/sd29, 1072174/sd37, 1581933/sd41) = neutral on normal search;
+  clamp is LIVE (budget=2 → sd 41→26, nodes drop) so not dead code; tactical 28/30; go test green.
+- **C4 IMPLEMENTED (uncommitted) — fixed-time SPRT RUNNING.** The LMR re-search outer guard `if score>alpha && score<beta`
+  is DEAD in non-PV nodes (beta==alpha+1 ⇒ score>alpha && score<alpha+1 impossible), so reduced fail-highs were NEVER
+  re-verified at full depth in ~99% of the tree (reduced cutoffs on faith; check ext never applied off-PV). FIX (standard
+  PVS+LMR, search.go ~1568): re-search at full depth on `reduction>0 && score>alpha` (ungated by beta), then PV full-window
+  re-search gated `isPV && score>alpha && score<beta`. VERIFIED BOUNDED by the budget: Kiwipete d10-12 NO explosion
+  (sd 30/32/32, NOT 111); PV+eval CHANGED (d12 e2a6/-58 → d5e6/-136 = verifying fail-highs finds the position is worse
+  than the unverified-reduced score thought = more accurate); nodes ~neutral (d10 +29%, d12 -15%); tactical 28/30, go test green.
+  VALIDATION: fixed-time movetime-100 conc-2 vs build/ngn_base_c4 (cbe05db), /tmp/sprt_c4.log. Per PROCEED policy: correctness
+  fix → confirm not-a-big-regression (~500-1.2k games) then ship; don't grind to a bound. THEN C5 (scout at nextDepth).
 - **I4 instrument DONE + committed (5f2582f).** `sprt -tc "S+I"` / `gauntlet -tc "S+I"` (fab7f0b) play a real
   tournament clock (go wtime/btime/winc/binc, track both banks, detect flag-outs, force conc-1). Validated:
   detector FIRES (2+0 self-play → 2 time-forfeits) AND current NGN does NOT flag at 10+0.1 (0/24). The
