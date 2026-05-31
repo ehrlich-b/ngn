@@ -1565,16 +1565,20 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// Search with null window first (not PV)
 			score = -alphaBetaPV(pos, reducedDepth, ply+1, -alpha-1, -alpha, false, true, info)
 
-			// PVS re-search logic
-			if score > alpha && score < beta {
-				if reduction > 0 {
-					// Re-search with full depth but still null window
-					score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, true, info)
-				}
-				// If still fails high, do full window search (PV if we're in PV)
-				if score > alpha {
-					score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, info)
-				}
+			// LMR re-search (C4): a reduced search that beats alpha may have
+			// under-counted the move, so re-verify it at full depth with the null
+			// window. This must NOT be gated by score<beta — in a non-PV node
+			// beta==alpha+1, so that guard was never satisfiable and reduced fail-highs
+			// went UNVERIFIED in ~99% of the tree (reduced cutoffs taken on faith, and
+			// the check extension in nextDepth never actually applied off the PV). The
+			// per-path extension budget bounds the check recursion this re-search opens.
+			if reduction > 0 && score > alpha {
+				score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, true, info)
+			}
+			// PVS full-window re-search: only a PV node has a window wider than the null
+			// window, so only there does an in-window score need its exact value.
+			if isPV && score > alpha && score < beta {
+				score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, info)
 			}
 		}
 
