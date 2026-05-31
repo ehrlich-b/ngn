@@ -1449,8 +1449,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			searchedCaptureCount++
 		}
 
-		// Refined Check Extension logic - balance tactical strength with performance
-		givesCheck := isInCheck(pos, pos.Turn())
+		// Refined Check Extension logic - balance tactical strength with performance.
+		// givesCheck == "is the side now to move in check" == exactly what makeMoveHelper
+		// already computed and cached in the InCheck tag (position.go:263), so read the
+		// cached tag instead of rescanning the board (N2, node-identical).
+		givesCheck := pos.IsInCheck()
 
 		// Compute next depth with check extension
 		nextDepth := depth - 1
