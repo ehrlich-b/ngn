@@ -4,6 +4,76 @@
 
 ---
 
+## SPEED LANE (NPS) — TOP PRIORITY, prioritized 2026-05-31 — the 2.5x gap
+
+**The headline lever.** NGN ~310K NPS vs Blunder 7.4.0 (CCRL 2532) ~640-750K = **~2-2.4x slower per node**,
+~2-3 plies shallower at equal time ≈ ~100-140 ELO ≈ the whole CCRL gap (docs/10). Both engines are
+single-threaded classical Go, so the gap is **per-node work, and it is reducible** — a peer engine proves it.
+
+**Root cause (VERIFIED 2026-05-31 vs live code, NOT eyeballed):** not one missing thing — four hot paths each
+computed the simple/full way, MULTIPLYING ~1.4×1.3×1.3×1.15 ≈ **2.7x**. Eval runs at internal nodes too
+(RFP/futility/NMP static eval/improving), so the eval cost spans the whole tree, not just leaves.
+
+**SHIPPED (both NEUTRAL, node-identity-proven, KEPT):**
+- **T1** — frame-pool hot-path buffer reuse (search.go searchFrame/SearchInfo.Frames). Allocs -75%. commit b9c1859.
+- **T2a** — incremental deferred selection sort (moveorder.go scoreMovesIntoBuffer+selectNextMove, driven from the
+  alphaBetaPV loop). Skips the O(n²) sort tail past a beta cutoff. ~4-7% faster. commit 7445851.
+
+**QUEUE — do TOP-DOWN, one at a time, each gated before the next is stacked:**
+
+**N1 — Incremental material+PST eval `[NEUTRAL]` — BIGGEST LEVER, do first.**
+- *What:* maintain a running MG/EG material+PST accumulator updated in make/unmake, instead of `evaluatePeSTO`
+  rescanning the whole board every call. grep confirms NGN has ZERO incremental eval state today.
+- *Where:* `eval.go evaluateUnsafe:2382` / `evaluatePeSTO` (the full rescan) is the consumer; add accumulator
+  state to `Position`/`Bitboard`; update the delta in `position.go makeMoveHelper:184` + the unmake path. Must
+  mirror EVERY move type exactly: normal, capture, castle, promotion (incl. capture-promo), en passant.
+- *Why #1:* dominant eval term; eval is called at every leaf AND internal node (pruning). Est ~1.4-1.7x on the eval slice.
+- *Verify:* incremental PST is BIT-EXACT ⇒ **NODE-IDENTICAL** ⇒ same gate as T2a (identical nodes+seldepth+score+
+  bestmove vs freshly-built clean HEAD on the 3 baselines below) + `go test -short ./engine/`. **NO SPRT.** Add a
+  debug assert (`incremental == full-recompute`) exercised by tests to catch any move-type the delta mishandles.
+
+**N2 — isInCheck dedup `[NEUTRAL]` (was T4) — ~15% CPU.**
+- *What:* stop recomputing the king-attacker scan ~2x/move. Node-in-check is ALREADY cached (`InCheck` tag, cheap);
+  the waste is the post-make legality scan + the gives-check scan, both calling the free `isInCheck` (movegen.go:764).
+- *Where:* `search.go ~1387` (post-make legality) + `~1406` (gives-check). Derive gives-check from the move
+  (moved-piece attack + discovered-check ray to the enemy king) or cache the attack bitboard.
+- *Verify:* exact derivation ⇒ node-identical gate. (A cheaper APPROXIMATE gives-check would be BEHAVIOUR ⇒ SPRT — prefer exact.)
+
+**N3 — Lazy eval `[BEHAVIOUR → SPRT]` — depends on N1.**
+- *What:* compute material+PST first (free after N1); if outside `[α-margin, β+margin]`, return early and SKIP
+  pawn-structure / king-safety / mobility. Most nodes are far from the window.
+- *Verify:* changes far-from-window eval ⇒ pruning shifts ⇒ NOT node-identical ⇒ fixed-time SPRT vs clean HEAD.
+  Conservative margin = tiny behaviour change. Keep iff SPRT not a regression.
+
+**N4 — Staged move generation `[NEUTRAL if order preserved, else SPRT]` — ~10% CPU.**
+- *What:* generate TT move → captures → quiets ON DEMAND; at the ~90% of nodes that cut on the TT move or a capture,
+  never generate quiets at all. `GenerateCapturesIntoBuffer` (movegen.go:868) ALREADY EXISTS — low-friction partial staging.
+- *Verify:* if the yielded order is preserved exactly, node-identical (use the gate); if staging shifts order, SPRT.
+
+**N5 — Lazy SEE `[BEHAVIOUR → SPRT]` (was T2b).**
+- *What:* defer `staticExchangeEvaluation` to captures actually reached; order captures by MVV-LVA first. Attacks the
+  SEE cost folded inside ordering's ~14% that T2a did NOT touch (T2a saved sort work, not SEE work).
+- *Verify:* tie-break order shifts ⇒ node counts move ⇒ SPRT vs clean HEAD.
+
+**CLEARED — checked, NOT the culprit, do not chase:** `WrapEvaluation` has a real fast path
+(`!ENABLE_HOT_PATH_DEBUG` → bare `return fn()`, crash_handler.go:160); the profile's ~17% memclr+madvise was a
+BenchmarkSearchDeep loop artifact (GC churn from thousands of short searches), near-zero in a single game search (docs/10).
+
+**NODE-IDENTITY GATE (all NEUTRAL items):** identical node count + seldepth + score + bestmove at fixed depth vs a
+freshly-built clean HEAD on the 3 baselines — **Kiwipete d12 = 1,339,599 / sd32 / d5e6**, **middlegame
+`r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10` d12 = 1,165,258 / a2a3**, **endgame
+`8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1` d16 = 848,103 / b4f4**. Driver: `/tmp/nodecheck.sh <bin> <fen> <depth>`
+(bash coproc, waits for bestmove). If node counts MOVE, the change is secretly BEHAVIOUR → it needs an SPRT, not the gate.
+
+**KEEP RULE (in force, do not re-invert):** NEUTRAL + faster + no regression ⇒ **KEEP, full stop** — even a small/
+within-noise gain; trivial added memory is NOT a cost. BEHAVIOUR ⇒ keep iff SPRT shows no regression. REJECT only when
+BOTH non-correctness AND a concrete measured regression. [[feedback_confirm_before_dropping_findings]]
+
+**Parallel correctness lane (separate from speed):** docs/09 fix queue — J1 extension×LMR reduced-scout (HIGH), then
+J10/J8/J12/J9. NPS is the bigger measured lever, but J1 is a real strength bug; interleave as desired.
+
+---
+
 ## ACTIVE FIX LIST — refreshed 2026-05-28 (AUTHORITATIVE; supersedes status notes below)
 
 Fresh full-codebase audit (search/eval/movegen/position/TT/time/UCI + the
@@ -325,32 +395,12 @@ Lazy SMP (Threads is a stub; Blunder likely single-threaded too) + NNUE (deferre
   eager-SEE+O(n²) sort, isInCheck ~15%, eval ~15%, movegen ~10%); distrust its alloc/GC cum for single-search. Verify NPS
   on `go depth N`, not a bench-loop profile. **NEXT lever = T2 (lazy/staged move ordering, BEHAVIOUR → SPRT) + T4 (cut
   redundant isInCheck/givesCheck) — bigger than T1.** T1b (qsearch buffers) optional follow-up (same neutral pattern).
-- **T2a SHIPPED + KEPT (incremental/deferred selection sort, NEUTRAL).** Split orderMovesSinglePassIntoBuffer into
-  scoreMovesIntoBuffer (score-only) + selectNextMove (one selection step) driven from the alphaBetaPV move loop, so the
-  O(n²) sort tail past a beta cutoff is never paid. NODE-IDENTICAL proven (Kiwipete d12 1339599/d5e6, mid d12 1165258/a2a3,
-  end d16 848103/b4f4 = clean HEAD exactly) + go test -short green + ~4-7% faster (288/305/286K → 317/305/312K NPS, same
-  node count, never slower) → KEPT per the rule. Scores live in a frame-resident searchFrame.scores.
-- **>>> RESUME HERE: NPS GAP STILL ~2-2.4x — root-caused 2026-05-31 (Bryan: "how are we missing 2.5x?") <<<** Even after
-  T1+T2a, NGN ~310K vs Blunder ~640-750K. NOT one missing thing — ~4 hot paths each computed the SIMPLE/full way, and they
-  MULTIPLY (~1.4×1.3×1.3×1.15 ≈ 2.7x). VERIFIED against live code (not eyeballed):
-  - **#1 EVAL recomputed in full every node, ZERO incremental, ZERO lazy (~15-20%).** evaluateUnsafe (eval.go:2382) rescans
-    the whole board for tapered PeSTO + loops all 8 files for doubled + recomputes passed/isolated/chains/bishop-pair/
-    mobility/king-safety EVERY call; grep confirms no incremental material/PST state anywhere; no "material far outside
-    [α,β] → return early" lazy path. TWO standard wins NGN lacks: (a) **incremental material+PST in make/unmake** → dominant
-    term becomes ~free, and it's BIT-EXACT ⇒ NODE-IDENTICAL ⇒ verifiable like T2a, NO SPRT; (b) **lazy eval** (cheap terms
-    first, skip expensive when far from window) ⇒ BEHAVIOUR ⇒ SPRT. (a) is the dream lever: large + node-identical. Eval is
-    also called at internal nodes (RFP/futility/NMP static eval/improving), so this cost spans the whole tree, not just leaves.
-  - **#2 isInCheck recompute ~2x/move (~15%).** Node-in-check IS cached (InCheck tag, cheap) — but free isInCheck()
-    (movegen.go:764) rescans all king-attacker rays AGAIN for post-make legality AND for gives-check. Compute once /
-    derive gives-check from the move. Mostly NODE-IDENTICAL (caching/exact derivation) ⇒ verifiable. = old T4.
-  - **#3 full pseudo-legal movegen EVERY node (~10%)** when ~90% cut on move 1-2 — no staged/lazy gen (TT→captures→quiets on demand).
-  - **#4 SEE on every capture up front** (part of ordering ~14%) = T2b (lazy SEE, BEHAVIOUR/SPRT).
-  - CLEARED (checked, not the culprit): WrapEvaluation has a real fast path (`!ENABLE_HOT_PATH_DEBUG` → bare return fn()); the
-    ~17% memclr+madvise was a benchmark-loop artifact (docs/10). Don't chase those.
-  - **RECOMMENDED ORDER: incremental eval (#1a, node-identical, biggest) → isInCheck dedup (#2, ~neutral) → lazy eval (#1b,
-    SPRT) → staged movegen (#3) → T2b lazy SEE.** The two biggest are both ~node-identical (no strength risk).
-  - KEEP RULE in force: NEUTRAL+faster ⇒ KEEP (never revert for a small/noise gain); BEHAVIOUR keep iff SPRT not a regression.
-  HEAD before T2a commit = a1704cb (T1 kept). Memory keep-rule corrected ([[feedback_confirm_before_dropping_findings]]).
+- **T1 + T2a SHIPPED/KEPT, NPS gap root-caused (2026-05-31).** >>> The full prioritized speed plan + verified root cause
+  + the node-identity gate/baselines now live in the **`## SPEED LANE (NPS)` section at the TOP of this file** — single
+  source of truth, resume there. <<< Short version: NGN ~310K vs Blunder ~640-750K (~2-2.4x); four hot paths each computed
+  the simple/full way multiply to ~2.7x; queue N1 incremental eval (NEUTRAL, biggest) → N2 isInCheck dedup → N3 lazy eval
+  (SPRT) → N4 staged movegen → N5 lazy SEE. HEAD before T2a commit = a1704cb; T2a = 7445851. KEEP RULE unchanged
+  ([[feedback_confirm_before_dropping_findings]]).
 - **I4 instrument DONE + committed (5f2582f).** `sprt -tc "S+I"` / `gauntlet -tc "S+I"` (fab7f0b) play a real
   tournament clock (go wtime/btime/winc/binc, track both banks, detect flag-outs, force conc-1). Validated:
   detector FIRES (2+0 self-play → 2 time-forfeits) AND current NGN does NOT flag at 10+0.1 (0/24). The
