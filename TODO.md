@@ -76,6 +76,13 @@ computed the simple/full way, MULTIPLYING ~1.4×1.3×1.3×1.15 ≈ **2.7x**. Eva
   per-move LEGALITY scan (search.go:1434, mover's-king color ≠ side-to-move tag) is the dominant remaining isInCheck
   cost; eliminating it needs INCREMENTAL legality (only re-check the king when the move could expose it — pins/EP/king
   moves), a behaviour-neutral but bug-prone project. Deferred (high risk, gated by node-identity if attempted).
+- **N6** — pawn-structure eval cache (commit 23b6187). passed/doubled/isolated/pawn-chain are pure functions of the two
+  pawn bitboards (verified each reads only pawn bitboards), so memoize their RAW counts in a `(whitePawns,blackPawns)`-keyed
+  direct-mapped table (`pawnCache`, 1<<16 entries) with a full-key verify — collision-proof ⇒ node-identical. Raw counts
+  stored (weights applied after) so Texel weight-tuning never stales it; Texel's parallel eval loop sets `pawnCacheDisabled`
+  to stay race-free (search is single-threaded, like the existing global TT/history/killer tables). Node-identical on all 3
+  baselines; `TestPawnCacheMatchesDirect` pins cache==direct on miss/hit/disabled paths. **+2.6% midgame / +9% pawn-endgame
+  NPS** (biggest node-identical win this session — cache hit-rate is high since pawns rarely move within a subtree).
 
 **QUEUE — do TOP-DOWN, one at a time, each gated before the next is stacked:**
 
@@ -86,18 +93,30 @@ drifted 294K→262K across two A/B runs ~10 min apart. So small NPS deltas (<~2%
 right now; trust the deterministic node-identity gate + the strictly-less-work argument for [NEUTRAL] levers, and use
 INTERLEAVED (alternating) A/B never block-vs-block. For real speed reads, let the cores cool or measure depth-to-time.
 
-**>>> NOW TOP OF QUEUE: N4 (staged movegen, below) per the default N2→N4→N3→N5 order. <<<**
+**>>> BACKGROUND SPRT RUNNING (launched 2026-05-31 PM):** speed→ELO measurement of this session's node-identical work —
+`new=build/ngn (N6, 23b6187)` vs `base=/tmp/ngn_pre_n1 (d0fae30~1)` = pure N1+N2+N6 (baseline is node-IDENTICAL to HEAD on
+all 3 baselines, so the SPRT isolates SPEED→depth→ELO). fixed-time 100ms, conc-4, [0,8], maxgames 3000, 400-book,
+`/tmp/sprt_speed.log` (bash bg id bp96upzxu). Answers the strategic question "do the node-identical micro-opts buy real
+ELO at this TC?" — if clearly +, keep grinding node-identical levers; if ~0, NGN isn't depth-limited at 100ms (pivot).
+Wakes me on completion. (Watching: draw rate — speed-only twins should draw a lot when both hit equal depth.) <<<
 
-**N3 — Lazy eval `[BEHAVIOUR → SPRT]` — depends on N1.**
-- *What:* compute material+PST first (free after N1); if outside `[α-margin, β+margin]`, return early and SKIP
-  pawn-structure / king-safety / mobility. Most nodes are far from the window.
-- *Verify:* changes far-from-window eval ⇒ pruning shifts ⇒ NOT node-identical ⇒ fixed-time SPRT vs clean HEAD.
-  Conservative margin = tiny behaviour change. Keep iff SPRT not a regression.
+**N3 — Lazy eval `[BEHAVIOUR]` — TRIED 2026-05-31, REVERTED (wrong lever for NGN, NOT committed).** Implemented lazy
+stand-pat in qsearch (`lazyEvaluateForPlayer`: skip positional terms when the cheap PeSTO core is >margin past
+`[alpha,beta]`). At margin 150 Kiwipete EXPLODED +68% nodes (1.34M→2.26M), bestmove d5e6→e2a6, root score -136→-80; even
+at margin 300 the Kiwipete bestmove stayed wrong and score off 56cp. Root cause: in null-window scout searches (most of the
+tree) the window is 1cp wide, so "core >margin past window" fires constantly, and NGN's positional terms (king safety +
+mobility ×166%) genuinely exceed 300cp in sharp positions → coarsening flips scout results exactly where tactics matter. No
+sound margin both avoids tactical distortion AND fires usefully. Concrete cost (distorted tactical eval) ⇒ reject. Quiet
+positions DID shrink (mid -44%, end -8%) — lazy eval helps quiet, hurts sharp; NGN's big positional terms make it net-risky.
+DON'T retry as-is. (If ever revisited: only the *cheap-positional* terms could be skipped, or condition on a quietness proxy.)
 
-**N4 — Staged move generation `[NEUTRAL if order preserved, else SPRT]` — ~10% CPU.**
-- *What:* generate TT move → captures → quiets ON DEMAND; at the ~90% of nodes that cut on the TT move or a capture,
-  never generate quiets at all. `GenerateCapturesIntoBuffer` (movegen.go:868) ALREADY EXISTS — low-friction partial staging.
-- *Verify:* if the yielded order is preserved exactly, node-identical (use the gate); if staging shifts order, SPRT.
+**N4 — Staged move generation — FINDING: full staging is `[BEHAVIOUR]`, not neutral.** The move-ordering score bands
+INTERLEAVE captures and quiets: winning captures ~80000 (above counters/killers/castling) but LOSING captures ~20000 (BELOW
+counters 30000, killers 25000, castling 50000, above plain quiets). So "captures-then-quiets" staging would try losing
+captures before killers/castling ⇒ reorders ⇒ NOT node-identical (moveorder.go:343-388). The ONLY node-identical slice is
+**N4-TTfirst** (try the TT move before generating any moves; if it cuts, skip generation entirely) — fiddly (needs the TT
+move pseudo-legality-validated independently, and the rest-of-loop must exclude it identically). ATTEMPTING N4-TTfirst as
+the foreground node-identical lever while the SPRT runs.
 
 **N5 — Lazy SEE `[BEHAVIOUR → SPRT]` (was T2b).**
 - *What:* defer `staticExchangeEvaluation` to captures actually reached; order captures by MVV-LVA first. Attacks the
