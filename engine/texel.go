@@ -60,6 +60,9 @@ func texelMSE(samples []TexelSample, k float64) float64 {
 			defer wg.Done()
 			var sum float64
 			for i := lo; i < hi; i++ {
+				// PST tables were just mutated (RebuildPST), so the sample's
+				// cached eval accumulator is stale — rebuild it before eval.
+				samples[i].Board.recomputeAccumulator()
 				e := float64(evaluateUnsafe(&samples[i].Board))
 				d := samples[i].Result - texelSigmoid(e, k)
 				sum += d * d

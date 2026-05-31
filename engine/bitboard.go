@@ -45,6 +45,15 @@ type Bitboard struct {
 	whiteKing   uint64
 	whitePieces uint64
 	blackPieces uint64
+
+	// Incremental eval accumulator: running material+PST sums (white-perspective,
+	// MG and EG) and game phase, maintained by Clear/UpdateSquare/Move so
+	// evaluatePeSTO never rescans the board. Bit-exact with a full scan (integer
+	// sums), so search stays node-identical. Rebuild with recomputeAccumulator
+	// after any bulk PST-table change (RebuildPST) on a board that outlives it.
+	accMG    int
+	accEG    int
+	accPhase int
 }
 
 func (b *Bitboard) Pawns() uint64 {
@@ -149,6 +158,11 @@ func (b *Bitboard) AllPieces() map[Square]Piece {
 func (b *Bitboard) UpdateSquare(sq Square, newPiece Piece, oldPiece Piece) {
 	// Remove the piece from source square and add it to destination
 	b.Clear(sq, oldPiece)
+	if newPiece != NoPiece {
+		b.accMG += mgPST[newPiece][sq]
+		b.accEG += egPST[newPiece][sq]
+		b.accPhase += piecePhaseInc[newPiece]
+	}
 	mask := SquareMask[int(sq)]
 	switch newPiece {
 	case BlackPawn:
@@ -232,6 +246,9 @@ func (b *Bitboard) Clear(square Square, piece Piece) {
 	if piece == NoPiece {
 		return
 	}
+	b.accMG -= mgPST[piece][square]
+	b.accEG -= egPST[piece][square]
+	b.accPhase -= piecePhaseInc[piece]
 	mask := SquareMask[int(square)]
 	switch piece {
 	case BlackPawn:
@@ -282,6 +299,11 @@ func (b *Bitboard) Move(src Square, dest Square, sourcePiece Piece, destinationP
 	b.Clear(dest, destinationPiece)
 	b.Clear(src, sourcePiece)
 	maskDest := SquareMask[int(dest)]
+	if sourcePiece != NoPiece {
+		b.accMG += mgPST[sourcePiece][dest]
+		b.accEG += egPST[sourcePiece][dest]
+		b.accPhase += piecePhaseInc[sourcePiece]
+	}
 
 	// Remove the piece from source square and add it to destination
 	switch sourcePiece {
@@ -422,7 +444,32 @@ func (b *Bitboard) copy() Bitboard {
 		b.whiteKing,
 		b.whitePieces,
 		b.blackPieces,
+		b.accMG,
+		b.accEG,
+		b.accPhase,
 	}
+}
+
+// recomputeAccumulator rebuilds the incremental eval accumulator (material+PST
+// MG/EG sums and game phase) from a full board scan. The accumulator is
+// otherwise maintained incrementally by Clear/UpdateSquare/Move; call this for a
+// board that outlives a bulk PST-table change (RebuildPST), where the cached
+// sums would otherwise be stale.
+func (b *Bitboard) recomputeAccumulator() {
+	var mg, eg, phase int
+	for p := WhitePawn; p <= BlackKing; p++ {
+		bb := b.GetBitboardOf(p)
+		for bb != 0 {
+			sq := trailingZeros(bb)
+			mg += mgPST[p][sq]
+			eg += egPST[p][sq]
+			phase += piecePhaseInc[p]
+			bb &= bb - 1
+		}
+	}
+	b.accMG = mg
+	b.accEG = eg
+	b.accPhase = phase
 }
 
 /*

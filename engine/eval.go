@@ -176,25 +176,6 @@ const (
 	totalPhase  = 24 // Maximum phase (full material)
 )
 
-// gamePhase calculates the current game phase for tapered evaluation
-// Returns a value from 0 (pure endgame) to 24 (full material opening)
-func gamePhase(board *Bitboard) int {
-	phase := queenPhase*PopCount(board.GetBitboardOf(WhiteQueen)) +
-		queenPhase*PopCount(board.GetBitboardOf(BlackQueen)) +
-		rookPhase*PopCount(board.GetBitboardOf(WhiteRook)) +
-		rookPhase*PopCount(board.GetBitboardOf(BlackRook)) +
-		bishopPhase*PopCount(board.GetBitboardOf(WhiteBishop)) +
-		bishopPhase*PopCount(board.GetBitboardOf(BlackBishop)) +
-		knightPhase*PopCount(board.GetBitboardOf(WhiteKnight)) +
-		knightPhase*PopCount(board.GetBitboardOf(BlackKnight))
-
-	// Clamp to totalPhase (should never exceed, but defensive)
-	if phase > totalPhase {
-		phase = totalPhase
-	}
-	return phase
-}
-
 // Helper function to check if we're in the endgame
 // Simple heuristic: endgame when both sides have <= 13 points of material (excluding pawns and kings)
 func isEndgame(board *Bitboard) bool {

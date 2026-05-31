@@ -157,7 +157,17 @@ var egKingTable = [64]int{
 var mgPST [13][64]int // [piece][sq] indexed by Piece value (WhitePawn=1..BlackKing=12)
 var egPST [13][64]int
 
+// piecePhaseInc is the game-phase weight contributed by each piece, indexed by
+// Piece value (both colors share a type's weight). It feeds the incremental
+// phase accumulator in bitboard.go so gamePhase need not rescan the board.
+var piecePhaseInc [13]int
+
 func init() {
+	typePhase := [7]int{0, 0, knightPhase, bishopPhase, rookPhase, queenPhase, 0} // by PieceType
+	for pt := Pawn; pt <= King; pt++ {
+		piecePhaseInc[GetPiece(pt, White)] = typePhase[pt]
+		piecePhaseInc[GetPiece(pt, Black)] = typePhase[pt]
+	}
 	RebuildPST()
 }
 
@@ -216,19 +226,15 @@ func TexelPSTParams() []*int {
 // evaluatePeSTO returns the core tapered material + PST evaluation from
 // white's perspective. This is the backbone of the evaluation.
 func evaluatePeSTO(board *Bitboard) (mgScore, egScore, phase int) {
-	// Sum MG and EG scores across all pieces; compute game phase simultaneously.
-	for p := WhitePawn; p <= BlackKing; p++ {
-		bb := board.GetBitboardOf(p)
-		for bb != 0 {
-			sq := trailingZeros(bb)
-			mgScore += mgPST[p][sq]
-			egScore += egPST[p][sq]
-			bb &= bb - 1
-		}
+	// Read the incrementally-maintained accumulator instead of rescanning the
+	// board. accMG/accEG are the exact MG/EG material+PST sums; accPhase is the
+	// raw game phase, clamped here to match gamePhase's defensive cap (extra
+	// queens from promotion can push it past totalPhase).
+	phase = board.accPhase
+	if phase > totalPhase {
+		phase = totalPhase
 	}
-
-	phase = gamePhase(board)
-	return mgScore, egScore, phase
+	return board.accMG, board.accEG, phase
 }
 
 // hasNonPawnMaterial reports whether the given color has any piece other than

@@ -119,6 +119,30 @@ slower → KEPT on "improvement + no regression." Scores stored in a frame-resid
 (same re-entrancy constraint as `ordered` — IID/singular re-enter at the same ply). **Saves SORT work, not
 SEE work** — SEE is still computed for every capture up front (needed to know the order). That is T2b.
 
+### N1 — Incremental material+PST+phase eval `[NEUTRAL]` — SHIPPED 2026-05-31, KEPT
+**Result: behaviour-neutral (proven) + ~3.6% faster → KEPT.** `evaluatePeSTO` and `gamePhase` each rescanned
+the whole board every eval call (up to 32 piece lookups + 8 popcounts), and eval runs at internal nodes too
+(RFP/futility/NMP/improving), so the scan spanned the whole tree. Replaced the scan with a running accumulator:
+three ints on `Bitboard` (`accMG`, `accEG`, `accPhase`) maintained by the only three board-mutation primitives —
+`Clear` (subtract the removed piece), `UpdateSquare`/`Move` (add the placed piece). Because *every* make/unmake
+path funnels through those three (verified: no raw bitboard-field writes exist outside `bitboard.go`), the delta
+is automatically exact for every move type — normal, capture, castle (the recursive rook `Move` self-maintains),
+en passant, promotion, capture-promotion — with **zero per-move-type code**. `evaluatePeSTO` now just reads the
+accumulator (clamping phase to `totalPhase` exactly as `gamePhase` did, so output is bit-identical); the dead
+`gamePhase` was removed. The sums are plain integer adds → order-independent → **bit-exact with a full scan** →
+**node-identical**: Kiwipete d12 = 1,339,599 / sd32 / d5e6, middlegame d12 = 1,165,258 / a2a3, endgame d16 =
+848,103 / b4f4 — all matching clean HEAD exactly (nodes + seldepth + score + bestmove). `TestEvalAccumulatorUnderMakeUnmake`
+walks a depth-3 tree over 7 FENs (incl. castling/EP/promo/capture-promo) asserting the accumulator equals a fresh
+`recomputeAccumulator()` scan at every node and after every unmake. Measured ~+3.6% NPS over 8 interleaved Kiwipete
+rounds (334.7K→346.8K) + endgame (645K→669K), faster in the clear majority, never a real regression → KEPT on
+"improvement + no regression." **Does NOT contradict the "don't trim eval" rule below** — eval is exact, not
+trimmed; only the *scan* was eliminated. The accumulator depends on the PST tables, so the Texel tuner (which
+mutates them via `RebuildPST` between passes) calls `recomputeAccumulator()` per sample before evaluating — the
+same O(32) scan it already paid, no tuner regression. *Caveat:* the accumulator adds ~2-4 table-indexed adds per
+make/unmake (incl. the movegen-legality path), which eats into the eval saving — that tradeoff is why the net is
+~3.6%, not the full eval slice. A future packed `int` score (mg/eg in one word, à la Stockfish `make_score`) would
+halve that overhead; not done now.
+
 ### T2b — Lazy SEE / staged generation `[BEHAVIOUR]` — est. large (cuts the SEE inside the ~14%)
 Today scoring still calls `staticExchangeEvaluation` on **every** capture before the loop runs. Competitive
 engines stage it: yield the TT move, then captures ordered by MVV-LVA with **SEE computed only when a
