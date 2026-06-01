@@ -109,9 +109,9 @@ Don't trust ELO/NPS claims in documentation without verification.
 
 ## Current Status
 
-- **NPS:** ~350K (verified)
-- **ELO:** ~1400-1500 (65% vs Stockfish 1320)
-- **Recent Fix:** Threefold repetition detection - games now complete
+- **ELO:** ~2380 CCRL Blitz (`make gauntlet` vs Blunder anchors; the SF `UCI_Elo` slider reads ~+400 inflated — disregard old slider numbers). Blunder 7.4.0 (CCRL 2532) is the working anchor, ~+150 ahead.
+- **NPS:** phase/core-dependent, NOT a scalar — ~307K E-core middlegame, ~540K-860K E-core endgame, ~1M P-core.
+- **Gap vs Blunder (both Go, E-cores):** ~2x slower per node everywhere (engineering tax) AND a **2.5-5x larger search tree in endgames** (a pruning-efficiency collapse — the bigger, more surprising lever; middlegame tree size is ~1x). Node counts are deterministic/exact; nps is thermally noisy on the M4 (~2x). Canonical breakdown: `docs/10-performance.md`; reproduce: `scripts/h2h.sh`.
 
 ## Project Structure
 

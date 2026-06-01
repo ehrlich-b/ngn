@@ -7,23 +7,48 @@ profile and the stale `docs/eliminate_alloc.md` (Feb 2026).*
 
 ---
 
-## Why this matters
+## Why this matters — the gap, decomposed (2026-05-31, verified)
 
-Measured head-to-head on Kiwipete, equal time, both engines on E-cores:
+The old "~2.5x NPS" headline was imprecise. "NPS" is **not a scalar** — NGN's own NPS swings ~307K
+(middlegame) → ~540–860K (endgame) on E-cores, ~1M on P-cores — and a single ratio hid two
+*independent* problems. Measured properly (fixed depth, identical positions, both engines on E-cores
+via `taskpolicy -b`, both counting qsearch nodes — NGN search.go:1779-80, Blunder search.go:307) the
+gap factors cleanly:
 
-| | NGN (HEAD) | Blunder 7.4.0 (CCRL 2532) |
-|---|---|---|
-| NPS | **~267K** | **~640–750K** (~2.5x) |
-| Depth reached | 11 @ 3.6s | 13 @ 2.0s |
+    time-to-depth  =  per-node-speed (nps ratio)  ×  tree-size (nodes ratio)
 
-Blunder is ~2.5x faster per node and ~2–3 plies deeper at equal wall-clock. At ~40–60 ELO/ply that
-depth deficit ≈ 100–140 ELO — comparable to the entire measured CCRL gap (2532 − ~2380). **NPS is a
-top-tier lever on NGN's strength.** Both engines roughly agree on the eval of the position (NGN −136
-cp @ d11, Blunder −86 cp @ d13), so this is a *speed/depth* deficit, not an eval-sign disaster.
+| position | per-node BLU/NGN | **tree NGN/BLU** | to-depth NGN/BLU |
+|---|---|---|---|
+| middlegame (`r1bq1rk1/…` d12) | ~1.9x | **1.13x** | ~2.0x |
+| middlegame 2 (`r1bqk2r/…` d12) | ~1.9x | **0.78x** | ~1.4x |
+| kiwipete (d12) | ~2.0x | **1.00x** | ~2.0x |
+| passed-pawn endgame (`8/2p5/…` d16) | ~2.0x | **2.57x** | ~4–6x |
+| quiet rook endgame (`r7/5pk1/…` d18) | ~2.4x | **5.12x** | ~12x |
 
-**Both engines are single-threaded classical Go on the same hardware** — so the 2.5x is *pure
-per-node architecture*, not language, not threads, not hardware. That makes it analyzable and (partly)
-reducible. The rest of this doc is the per-node budget and an honest accounting of what "2.5x" means.
+Reproduce with **`scripts/h2h.sh`** (the canonical instrument — built precisely because a scalar NPS
+kept us oscillating). **Tree-size ratios are deterministic and exact** (node counts reproduce to the
+unit; Blunder resets its counters per-iteration so the tool sums them). **Per-node speed is thermally
+noisy on the M4** — back-to-back E-core runs throttle, so the ratio reads 1.74–2.63x depending on heat.
+Quote tree-size precisely; quote per-node speed as "~2x".
+
+**This refutes the comfortable "NGN searches fewer, higher-quality nodes" story:**
+
+- **Per-node speed — a flat ~2x tax everywhere.** Engineering, not chess-architecture: another *Go* HCE
+  engine (Zahak) benches mid-pack with the C/C++ field, so ~2x is an NGN implementation gap, not a Go
+  tax. Recovering it is worth ~+90–130 ELO at blitz (Laskos speed-doubling curve), risk-free.
+- **Tree size — ~1x in middlegames (sometimes *smaller*, 0.78x), but 2.5–5x LARGER in endgames.** NGN is
+  **not** searching fewer nodes. Effective branching matches Blunder in middlegames (~3.2 vs ~3.17) but
+  is ~10% worse per ply in endgames (~2.25 vs ~2.05), which compounds over the deep searches endgames
+  reach (1.098¹⁸ ≈ 5x). **This is a pruning-EFFICIENCY collapse, not eval cost — and it is the bigger,
+  more surprising lever.** A large share of the +150 CCRL deficit to Blunder may live in endgames. NMP
+  is *not* the cause (it fires correctly — `hasNonPawnMaterial` gates it off only in pawn-only
+  positions, and a rook is present). Suspects: LMR/LMP behaviour at low material, eval instability
+  defeating TT/aspiration cutoffs, or extensions firing in the endgame. Needs investigation + a
+  fixed-time SPRT — it is **not** addressed by any [NEUTRAL] speed item below.
+
+Both engines are single-threaded classical Go on the same box, so neither factor is language/threads/
+hardware. The per-node budget below maps the *speed* factor; the endgame *tree* factor is a separate
+search-correctness investigation.
 
 ---
 
@@ -142,11 +167,28 @@ a stack of independent factors that *multiply*.** Decomposing by what Blunder st
   trading that strength — every such cut clears a fixed-time SPRT under the KEEP RULE, and history is
   against it (N3 lazy-eval regressed; an upfront MVV-LVA capture sort once cost −129 ELO, commit 2f61d3a).
 
-**Conclusion / reframe:** *NPS is a means, not the end — strength = f(NPS × node-quality).* NGN trades
-NPS for node-quality on purpose. The right target is **bank the free ~1.15x, then treat each further cut
-(including magic movegen) as a speed/strength experiment, not a free win.** Do not chase NPS-parity with Blunder by gutting the
-eval; that is plausibly ELO-neutral-to-negative. A genuinely different regime (incremental/NNUE eval
-that is both cheaper AND stronger) is the only way to get *both* — that is a separate project.
+**Conclusion / reframe (corrected 2026-05-31 by the decomposition at the top of this doc):** the prior
+"NGN trades NPS for node-quality on purpose" was **WRONG**. The data shows NGN does *not* buy a smaller
+tree with its richness (tree ~1x in middlegames, **2.5–5x LARGER in endgames**) while paying ~2x per
+node — and the lean peer (Blunder, a 228-line eval) is +150 CCRL *stronger*. *strength = NPS ×
+node-quality* still holds, but NGN is currently behind on **both** factors, not trading one for the
+other. Levers, ranked by honest payoff:
+
+1. **Endgame search efficiency (the 2.5–5x tree).** Biggest and most surprising; it is pruning/ordering,
+   **not** eval; likely a real bug/mistune; a fixed-time SPRT target. **Investigate this first.**
+2. **Per-node speed (~2x, the engineering tax).** Bank the free node-identical wins (T1b done, T6/T3,
+   `GetBitboardOf` refactor ≈ ~1.15–1.2x), then the [BEHAVIOUR] items (magic movegen) by SPRT. Risk-free.
+3. **Eval/SEE cost audit.** NGN's eval (18.6%) is *richer* than the stronger peer, so richness is not the
+   bottleneck — but it is unaudited. Test each expensive term with a **fixed-nodes SPRT (isolates
+   node-quality) + a bench-NPS delta**: keep terms that pay, cut neutral-but-expensive ones — the KEEP
+   RULE *supports* this (a neutral cut that raises NPS with no ELO regression is a keep).
+
+**Do NOT** chase NPS by gutting eval blindly (N3 lazy-eval regressed; MVV-LVA-only sort once cost −129),
+and **do NOT** disable techniques by ply (folklore — nobody does it; the correct model is *cheap leaf
+eval × depth-scaled pruning*, and our endgame is **under**-pruned, the opposite of too-much-search).
+**Intent:** be a lean-eval, fast, strong-search engine like the Blunder/Weiss/Fruit cohort that clears
+2500+ on lean eval — rich eval only wins at the very top (SF-classical) on a world-class tuned search we
+don't have yet. NNUE remains a separate project.
 
 ---
 
@@ -157,10 +199,11 @@ bestmove identity at fixed depth vs clean HEAD on the 3 baselines, then measure 
 (changes the tree — needs a fixed-time SPRT, not just a node check). The node-identity gate is the
 speed-lane analogue of the keep-correctness rule (doc 09).
 
-**Baselines (INVARIANT under any [NEUTRAL] change):** Kiwipete d12 = 1,339,599 / sd32 / d5e6 ·
-middlegame `r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10` d12 = 1,165,258 / a2a3 ·
-endgame `8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1` d16 = 848,103 / b4f4. Driver: `/tmp/nodecheck.sh
-<bin> <fen> <depth>`.
+**Baselines (INVARIANT under any [NEUTRAL] change; post-J10, verified 2026-05-31 — the earlier
+1,339,599/848,103 values were stale pre-J10):** Kiwipete `r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1`
+d12 = 1,669,503 / sd38 / e2a6 · middlegame `r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10`
+d12 = 1,165,258 / sd30 / a2a3 · endgame `8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1` d16 = 862,348 / sd39 /
+b4f4. Driver: `/tmp/nodecheck.sh <bin> <fen> <depth>`.
 
 ### SHIPPED (kept, behaviour-neutral, do not re-litigate)
 

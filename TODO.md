@@ -6,6 +6,39 @@
 
 ## SPEED LANE (NPS) — TOP PRIORITY, prioritized 2026-05-31 — the 2.5x gap
 
+### >>> GAP DECOMPOSED — ENDGAME TREE IS THE BIG LEVER (2026-05-31, verified; SUPERSEDES the per-node framing below) <<<
+
+**The "2.5x" was one ratio hiding two independent problems.** Measured fixed-depth on 5 positions, both
+engines E-cores, both counting qsearch (`scripts/h2h.sh` = the new canonical instrument; full writeup in
+docs/10):  `time-to-depth = per-node-speed × tree-size`.
+
+  | position | per-node BLU/NGN | TREE NGN/BLU | to-depth |
+  |---|---|---|---|
+  | mid / mid2 / kiwipete (d12) | ~1.9-2.0x | 1.13 / 0.78 / 1.00x | ~2x |
+  | passed-pawn endgame (d16) | ~2.0x | **2.57x** | ~4-6x |
+  | quiet rook endgame (d18) | ~2.4x | **5.12x** | ~12x |
+
+Tree ratios are EXACT/deterministic; per-node is thermally noisy (~2x). **THESIS REFUTED:** NGN does NOT
+search fewer/better nodes — tree is ~1x in middlegames, **2.5-5x BIGGER in endgames**, while ~2x slower per
+node, and Blunder (228-line eval vs NGN's ~2400) is +150 CCRL STRONGER. NGN is behind on BOTH axes.
+
+**LEVERS, RE-RANKED (was: free-queue first):**
+1. **ENDGAME SEARCH EFFICIENCY — the 2.5-5x tree. NEW #1.** EBF matches Blunder in middlegame (~3.2) but
+   ~10% worse/ply in endgame (~2.25 vs ~2.05), compounding to 5x over deep endgame searches. PRUNING, not
+   eval. NMP is NOT the cause (fires correctly — `hasNonPawnMaterial` only gates pawn-only, rook present).
+   Suspects: LMR/LMP at low material, eval instability defeating TT/aspiration cutoffs, endgame extensions.
+   Investigate + fixed-time SPRT. Likely a big chunk of the 150-ELO deficit. **START HERE.**
+2. **PER-NODE SPEED (~2x engineering tax).** The free queue below (T6/T3/GetBitboardOf ≈ 1.15-1.2x) +
+   [BEHAVIOUR] magic movegen by SPRT. Risk-free, ~+90-130 ELO at blitz if fully recovered.
+3. **EVAL/SEE COST AUDIT.** Eval is richer than the stronger peer ⇒ not the bottleneck, but unaudited.
+   Per-term fixed-nodes SPRT + bench-NPS; cut neutral-but-expensive (KEEP RULE supports it). Don't gut
+   blindly (N3 regressed); DON'T disable-by-ply (folklore — endgame is UNDER-pruned, not over-searched).
+
+**INTENT (proposed, evidence-based):** be a lean-eval, fast, strong-search engine like Blunder/Weiss/Fruit
+(all 2500+ on lean eval); rich eval only wins at the very top on a world-class tuned search we lack. NNUE is
+a separate project. Per-node micro-opts measured ~0 ELO at 100ms ([[project_strength_bottleneck]]) ⇒
+endgame-tree (#1) and eval-audit (#3) likely matter MORE than the free speed queue (#2).
+
 ### >>> DEEP RE-PROFILE + PLAN (2026-05-31 @ 7c9c58f) — READ FIRST, SUPERSEDES STEP 0 BELOW <<<
 
 **Full per-node micro-budget + the "what does 2.5x even mean" decomposition is in `docs/10-performance.md`

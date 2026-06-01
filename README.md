@@ -4,14 +4,19 @@ A chess engine written in Go, targeting Grandmaster level (2500+ ELO) with class
 
 ## Current Status
 
-**ELO:** ~1600-1650 (93% vs Stockfish 1320, 68% vs Stockfish 1500 at 200ms)
+**ELO:** ~2380 CCRL Blitz — measured vs published-CCRL Blunder anchors (`make gauntlet`); Blunder 7.4.0 (CCRL 2532) is the working anchor and is ~+150 ahead. The Stockfish `UCI_Elo` slider reads ~+400 inflated, so disregard old slider-based "1600"/"2500" figures.
 
 ## Verified Performance
 
+NPS is phase- and core-dependent — it is **not** a scalar; always state the position and core type (the engine runs on E-cores, `taskpolicy -b`):
+
 | Metric | Value |
 |--------|-------|
-| NPS | ~350K |
-| Depth in 5s | 10 |
+| NPS (E-core, middlegame) | ~307K |
+| NPS (E-core, endgame) | ~540K–860K |
+| NPS (P-core) | ~1M |
+
+vs Blunder 7.4.0 (same box, both Go, both E-cores): ~2x slower **per node** everywhere, plus a **2.5–5x larger search tree in endgames** (a pruning-efficiency gap, not eval). Canonical breakdown: `docs/10-performance.md`; reproduce with `scripts/h2h.sh`.
 
 ## Features
 
