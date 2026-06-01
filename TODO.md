@@ -19,7 +19,7 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
 2. **PRIOR** — consult the ranked lever queue (SPEED LANE below) + memory. Don't re-open settled KEEP/REJECT/PARK calls.
 3. **PREDICT** — before touching code, write what the change should move and which instrument will show it. Enumerate candidates + their signatures TOGETHER and run the ONE decisive experiment — do NOT chase hypotheses one-at-a-time (that's the thrash that ate the endgame audit).
 4. **ACT** — one change, SEPARATE binary, never batch, never `make` mid-gate.
-5. **GATE** — [NEUTRAL] ⇒ 3-baseline node-identity (`/tmp/nodecheck.sh`; canonical post-J10 baselines live in docs/10, NOT the stale ones below). [BEHAVIOUR] ⇒ fixed-TIME SPRT to a bound, ≥1000 games. Node count ≠ strength.
+5. **GATE** — [NEUTRAL] ⇒ 3-baseline node-identity (`/tmp/nodecheck.sh`; canonical post-J10 baselines live in docs/10, NOT the stale ones below). [BEHAVIOUR] ⇒ fixed-TIME SPRT to a bound, ≥1000 games. Node count ≠ strength. **MATCH THE TC TO THE CHANGE:** pure-throughput (movegen/NPS) shows at 200ms; depth/quality-scaling changes (TT size, eval, search quality) are UNDERCREDITED at 200ms (de-pad read flat at 200ms, benefit is at deeper searches) ⇒ test those at ~600-1000ms, nearer the CCRL TC. A sound fix with no big regression can be kept without grinding to a bound (Bryan's policy, commit fa9cc02).
 6. **DECIDE (hysteresis = the KEEP RULE)** — clear improvement OR correctness + NO regression ⇒ KEEP, even if small/within-noise. REJECT only when BOTH non-correctness AND a concrete measured regression. "Too small to resolve" is not a reason. [[feedback_confirm_before_dropping_findings]]
 7. **RECORD** — commit checkpoint + update TODO + memory the SAME turn. The write-down IS the integral term that stops re-derivation.
 
@@ -48,6 +48,8 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   ordering more than the speed helped), abandon the branch, SPRT A2.
 - **SPRT QUEUE (one at a time, rebase onto main as winners merge; never batch):**
   - A2 = phase-gated futility→d8 (branch `lane-a2-futility-d8`, commit d8ed7cd, tactical 28/30) — READY (next).
+    SPRT A2 at a LONGER TC (~600-1000ms), not 200ms: futility is a depth/quality change and the de-pad result
+    showed 200ms undercredits those (A4's pure-NPS gain is the exception that shows at 200ms).
   - A3 check-ext SEE-gate (delicate: pre-move SEE + LMR reduced-scout tangle; SUPERVISED variant) and A5
     eval-audit — NOT yet built (don't over-prep; build when their turn nears).
 - **SHIPPED this session (main):** T6 PieceAt mailbox (974d75a, node-identical, perft-verified). Lane-B cheap
