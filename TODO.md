@@ -34,22 +34,22 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
 
 ## >>> IN FLIGHT (2026-06-01) — resume info, survives compaction <<<
 
-- **Lane A1 — de-pad TT SPRT RUNNING (background).** Candidate = `build/ngn_depad` (branch `lane-a1-depad-tt`,
-  commit 2cf44ed, removes the 48-byte `CachedEval` padding → 8.4M slots); base = `build/ngn_base` (= HEAD).
-  Fixed-time 200ms, [0,10] SPRT, mingames 500 / maxgames 3000, E-cores conc-2. Log: `output/depad_sprt.log`
-  (+ background task). Tactical 28/30 (sane). **On conclusion:** KEEP RULE — if no regression, `git checkout
-  main && git merge lane-a1-depad-tt` (only cache.go, trivial), commit, then run the next Lane-A SPRT (A2
-  phase-gated futility→d8). If regression, abandon the branch. DECIDE this autonomously, don't ask.
-  STATUS: ~neutral so far (G79 48%, elo -13 [-89,+63]) — NOISE at n<100, not a verdict; let it run. NOTE: at
-  200ms per-move searches are shallow but the TT persists across moves so a full game still fills it; de-pad's
-  benefit is real at the longer TC NGN actually plays (mid-tree −46% at d12), so KEEP on no-regression even if
-  the 200ms read is flat.
-- **SPRT QUEUE (one at a time, behind de-pad, rebase onto main as winners merge; never batch):**
-  - A2 = phase-gated futility→d8 (branch `lane-a2-futility-d8`, commit d8ed7cd, tactical 28/30) — READY.
-  - A4 = magic-getter slider movegen (branch `lane-a4-magic-movegen`, commit 6bc266f, perft-exact, ~2x faster
-    movegen, tactical 28/30) — READY. Order vs A2 is free; A4 is the bigger per-node win.
-  - A3 check-ext SEE-gate (delicate: SEE must be computed pre-move + the LMR reduced-scout tangle; SUPERVISED
-    variant) and A5 eval-audit — NOT yet built (don't over-prep; build when their turn nears).
+- **A1 de-pad TT — DONE, KEPT, ON MAIN (commit d1fb499).** SPRT stopped at G225: 49.8%, elo -1.5 [-47,+44] =
+  neutral / no big regression. Kept per Bryan's sound-fix-no-grind policy (commit fa9cc02): free capacity (4x TT
+  slots, removes single-thread-pointless padding, no plausible regression mechanism); the 200ms read is flat
+  because per-move searches are too shallow to pressure the TT, but the benefit is real at the longer TC NGN
+  plays + deeper searches (mid-tree −46% at d12). LESSON: 200ms UNDERCREDITS depth/quality changes; NPS changes
+  (like A4) still show at 200ms.
+- **A4 magic-movegen SPRT — RUNNING NOW (background).** new=`build/ngn_a4` (branch `lane-a4-magic-movegen`,
+  rebased onto main+de-pad), base=`build/ngn_base` (=main+de-pad) — isolates A4. Fixed-time 200ms, [0,10],
+  mingames 500 / maxgames 3000, conc-2, E-cores. Log: `output/a4_sprt.log`. A4's NPS gain shows at 200ms (unlike
+  de-pad), so expect a real signal. **On conclusion (DECIDE autonomously):** if +/neutral-no-regression, `git
+  checkout main && git merge lane-a4-magic-movegen`, commit, then SPRT A2; if it regresses (gen-order hurt
+  ordering more than the speed helped), abandon the branch, SPRT A2.
+- **SPRT QUEUE (one at a time, rebase onto main as winners merge; never batch):**
+  - A2 = phase-gated futility→d8 (branch `lane-a2-futility-d8`, commit d8ed7cd, tactical 28/30) — READY (next).
+  - A3 check-ext SEE-gate (delicate: pre-move SEE + LMR reduced-scout tangle; SUPERVISED variant) and A5
+    eval-audit — NOT yet built (don't over-prep; build when their turn nears).
 - **SHIPPED this session (main):** T6 PieceAt mailbox (974d75a, node-identical, perft-verified). Lane-B cheap
   well now ~DRY — GetBitboardOf is a 208-site array refactor (too big for ~0 ELO, DEPRIORITIZED); T3 defer is
   marginal/maybe-free (Go open-codes function-scope defers). ⇒ remaining gains are SPRT-gated (Lane A).
