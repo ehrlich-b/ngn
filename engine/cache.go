@@ -34,7 +34,10 @@ import (
 type CachedEval struct {
 	Key  atomic.Uint64 // 8
 	Data atomic.Uint64 // 8
-	_    [48]byte      // Padding to 64 bytes (cache line size)
+	// No cache-line padding: NGN's search is single-threaded (the Threads UCI
+	// option is a no-op), so there are no concurrent TT writers to false-share.
+	// A 16-byte entry quadruples slot count at the same MB (128MB: 2.1M -> 8.4M),
+	// which the endgame audit showed cuts the middlegame tree materially.
 }
 
 type NodeType uint8
