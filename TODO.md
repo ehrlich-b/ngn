@@ -41,12 +41,15 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   dependent (mid d12 −47% but kiwipete d12 +21%, end ~0 — search-instability swings, matching the neutral SPRT),
   NOT a uniform win — kept as a free no-regression capacity change, not a depth lever. LESSON: 200ms
   UNDERCREDITS depth/quality changes; NPS changes (like A4) still show at 200ms.
-- **A4 magic-movegen SPRT — RUNNING NOW (background).** new=`build/ngn_a4` (branch `lane-a4-magic-movegen`,
-  rebased onto main+de-pad), base=`build/ngn_base` (=main+de-pad) — isolates A4. Fixed-time 200ms, [0,10],
-  mingames 500 / maxgames 3000, conc-2, E-cores. Log: `output/a4_sprt.log`. A4's NPS gain shows at 200ms (unlike
-  de-pad), so expect a real signal. **On conclusion (DECIDE autonomously):** if +/neutral-no-regression, `git
-  checkout main && git merge lane-a4-magic-movegen`, commit, then SPRT A2; if it regresses (gen-order hurt
-  ordering more than the speed helped), abandon the branch, SPRT A2.
+- **A4 magic-movegen — KEPT, cherry-picked to main (commit 3ab9eb5). SPRT STILL RUNNING (background shell).**
+  G186: 53.8%, elo **+26.2 [-24,+76]**, LLR climbing — trended strongly positive from the early −88 noise scare,
+  no regression. Sound speed change (perft-exact move set, ~2x faster movegen) → KEEP per KEEP-RULE + no-grind.
+  new=`build/ngn_a4` vs base=`build/ngn_base` (=main+de-pad), 200ms, [0,10], maxgames 3000, conc-2, E-cores. Log:
+  `output/a4_sprt.log`. **HOLDING the engine-heavy finish-up until this shell EXITS** (node-baseline recompute +
+  A2 build/SPRT all run the engine and would contaminate the live movetime games). **On SPRT exit:** recompute
+  `scripts/nodecheck.sh` baselines (A4 shifts the gen-order tie-break → new tree shape), commit the baseline
+  update, then rebase A2 onto main and launch its SPRT at a longer TC. Branch `lane-a4-magic-movegen` RETAINED
+  until the SPRT fully concludes (don't delete the source branch before its validating experiment finishes).
 - **SPRT QUEUE (one at a time, rebase onto main as winners merge; never batch):**
   - A2 = phase-gated futility→d8 (branch `lane-a2-futility-d8`, commit d8ed7cd, tactical 28/30) — READY (next).
     SPRT A2 at a LONGER TC (~600-1000ms), not 200ms: futility is a depth/quality change and the de-pad result
