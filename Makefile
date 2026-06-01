@@ -207,6 +207,11 @@ gauntlet: build ## Measure NGN's absolute CCRL rating vs the Blunder anchor ladd
 	@go build -o $(BUILD_DIR)/gauntlet ./cmd/gauntlet
 	@./$(BUILD_DIR)/gauntlet $(ARGS)
 
+oracle: build ## Fast deterministic best-move-agreement pre-filter vs a labeled EPD (ARGS="-new build/ngn_a2 -base build/ngn -nodes 2000 -v")
+	@mkdir -p $(BUILD_DIR)
+	@go build -o $(BUILD_DIR)/oracle ./cmd/oracle
+	@./$(BUILD_DIR)/oracle $(ARGS)
+
 .PHONY: perft
 perft: ## Run perft validation tests for move generation correctness
 	@echo "Running perft validation tests..."
