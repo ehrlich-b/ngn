@@ -48,52 +48,61 @@ a separate project. Per-node micro-opts measured ~0 ELO at 100ms ([[project_stre
 endgame tree is real but SPRT-only-hard, so the MIDDLEGAME TT/futility candidates (#2) + eval audit (#4) are
 now the most tractable levers.
 
-**>>> NEXT — EXECUTION ORDER (the concrete queue; lever ranking above, T-item detail below) <<<**
+**>>> STEP-1 ENDGAME AUDIT — DONE 2026-06-01, VERDICT: NO QUICK PRUNING FIX EXISTS. <<<**
+Confirmed the futility 13%-vs-69% firing gap, then empirically REFUTED every standard pruning knob as the
+endgame-tree cause (throwaway-build node-count probes + Blunder-7.4.0 source diff): **futility margin**
+(tightening via accPhase gate is CHAOTIC/non-monotonic, pp-end −3%→+62%, never near Blunder); **futility
+DEPTH 3→8** (Blunder-style HELPS MG −20-23% but BLOWS UP EG: pp-end **+141%**, quiet-end +37%); **RFP depth**
+(unbounding adds nodes back); **LMR re-search** (~0.1%/node); **NMP** (blocked-by-eval 53.7% in dead-equal EG
+but that's CORRECT, Blunder gates identically); **TT capacity** (8x→16M slots: EG −0%/−5%, but MIDDLEGAME
+−46% — the inversion). Move ordering is RICHER than Blunder's; LMR reduction ~equal. **META:** single-position
+node counts are UNRELIABLE for pruning/TT knobs (instability dominates, non-monotonic — *less* futility also
+shrank the tree); only node-IDENTICAL changes + gross cross-engine structure read cleanly, STRENGTH needs
+SPRT. ⇒ the 2.5-5x endgame tree is DIFFUSE EBF, SPRT-only-hard — **PARKED** (see below). Full writeup:
+[[project_endgame_tree_diagnostic]].
 
-1. **[DIAGNOSE] Endgame pruning audit — >>> DONE 2026-05-31, VERDICT: NO QUICK PRUNING FIX EXISTS. <<<**
-   Confirmed the futility 13%-vs-69% firing gap, then empirically REFUTED every standard pruning knob as the
-   endgame-tree cause via throwaway-build node-count probes + Blunder-7.4.0 source diff: **futility margin**
-   (tightening it via accPhase gate is CHAOTIC/non-monotonic — pp-end −3%→+62%, never near Blunder);
-   **futility DEPTH** (extending 3→8 Blunder-style HELPS MG −20-23% but BLOWS UP EG: pp-end **+141%**,
-   quiet-end +37% — deeper futility is the wrong knob for EG); **RFP depth** (unbounding adds nodes back);
-   **LMR re-search** (NGN re-searches at full depth vs Blunder reduced, but fires only ~0.1%/node); **NMP**
-   (blocked-by-eval 53.7% in dead-equal EG but that's CORRECT, Blunder gates identically); **TT capacity**
-   (8x table 16M slots: EG shrinks 0% d12/d16, ~5% d18 — but MIDDLEGAME shrinks −46%! the inversion). Move
-   ordering is RICHER than Blunder's; LMR reduction ~equal. **META (⇒ gate discipline):** single-position
-   node counts are UNRELIABLE for pruning/TT knobs — search instability dominates the delta and is
-   non-monotonic; only node-IDENTICAL changes + gross cross-engine structure read cleanly, STRENGTH needs
-   SPRT. ⇒ the 2.5-5x endgame tree is DIFFUSE EBF, SPRT-only, RE-RANKED DOWN. See
-   [[project_endgame_tree_diagnostic]]. **Two MIDDLEGAME candidates fell out instead (both [BEHAVIOUR]/SPRT,
-   both noisy):** (A) **de-pad the TT** — `CachedEval` (cache.go:34) wastes 48/64 bytes on cache-line padding
-   that only matters cross-thread, but NGN is hard single-threaded (`Threads`+`Hash` setoptions are no-op
-   `// TODO` stubs uci.go:296/298) ⇒ 2M slots not 8M; de-padding = 4x slots FREE at the same 128MB, mid-tree
-   −46% signal; ONE-LINE change, lowest-risk +EV experiment → **run its fixed-time SPRT first.** (B)
-   **futility→depth-8** (Blunder-proven MG −20-23%) — needs phase-gating to avoid the EG +141% blowup.
-2. **[BEHAVIOUR / SPRT — SUPERVISED, needs Bryan's nod on variant] Check-extension discipline.** SEE-gate
-   the full-ply extend at `search.go:1466` (default = extend only if SEE(check) >= 0). Branch → verify tree
-   shrink (h2h) + tactical 30/30 → fixed-TIME SPRT run to a bound. Helps ALL phases (esp. middlegame, the
-   probe cut it −47%). Independent of step 1 (can run either order vs step 3).
-3. **[BEHAVIOUR / SPRT] Middlegame node-reducers (REPLACES the old "endgame futility fix" — that premise was
-   REFUTED in step 1).** Best first: **(A) de-pad the TT** (delete `_ [48]byte` at cache.go:34 → 8M slots;
-   one line, lowest-risk, mid-tree −46% signal). Then optionally **(B) phase-gated futility→depth-8** (MG
-   only; never deepen EG futility). Each: branch → tactical 30/30 → fixed-TIME SPRT to a bound, never batched.
-   NOTE: the endgame tree (old #1 lever) is now SPRT-only diffuse EBF — do NOT spend more node-count probing
-   on it; only a real SPRT experiment (or a structural search rethink) can move it.
-4. **[FREE / node-identical — bank cheaply, but ~0 ELO @blitz so don't over-invest] Per-node speed queue.**
-   T6 (PieceAt mailbox) → T3 (drop per-node defer) → GetBitboardOf array refactor (details below). Each
-   gated by 3-baseline node-identity + `go test -short` + smoke-tactical; commit each on KEEP RULE. ≈
-   ~1.15-1.2x. (REORDERED: this was "next" in the old block below — now it's step 4, after the endgame work.)
-5. **[BEHAVIOUR / SPRT] Magic movegen (T5, ~8.4%).** Gen-order is load-bearing (proven) → fixed-TIME SPRT,
-   NOT a node-identity item. Biggest single per-node compute item.
-6. **[BEHAVIOUR / SPRT — audit, where "trade richness for speed" legitimately applies] Eval/SEE cost audit.**
-   Per-term **fixed-NODES SPRT (isolates node-quality) + bench-NPS delta**: start with SEE-twice-per-capture
-   (T2b lazy-SEE), then the expensive eval terms (mobility/king-safety/outposts/etc.). KEEP payers, CUT
-   neutral-but-expensive (KEEP RULE supports it). Measured per-term, never blind.
+**>>> NEXT — EXECUTION MODEL: TWO LANES (the audit reshaped the queue) <<<**
+SPRTs are SERIAL + multi-hour (the bottleneck); the free node-identical queue needs NO SPRT. So run them
+CONCURRENTLY — one SPRT in the background, free-lane work in the foreground (the [[feedback_long_autonomous_sessions]]
+pattern). Ordering principle: lowest-risk highest-EV first; never batch; each kept change is a checkpoint.
 
-**Gate discipline (all steps):** build dev work to a SEPARATE binary (never `make` mid-gate); [NEUTRAL]
-items by 3-baseline node-identity; [BEHAVIOUR] items by fixed-TIME SPRT run to a bound (≥1000 games; never
-fixed-nodes for node-spending changes; never batch changes — see [[ngn-sprt-instrument]]). Each kept change
-commits as a checkpoint (local, single-sentence, no co-author).
+**LANE A — SPRT lane (serial, background, fixed-TIME to a bound ≥1000 games, one at a time):**
+- **A1 — De-pad the TT. DO FIRST (one line, lowest-risk, best EV).** Delete `_ [48]byte` from `CachedEval`
+  (engine/cache.go:34-38): entry 64B→16B ⇒ `NewCache(128)` gives **8.4M slots not 2.1M** (4x, same 128MB).
+  Safe: NGN is hard single-threaded (`Threads`/`Hash` setoptions are no-op `// TODO` stubs, uci.go:296/298),
+  so the cache-line padding (cross-thread false-sharing only) buys nothing; lockless XOR-verify `Key=Data^hash`
+  still correct, all data fits the single Data uint64. [BEHAVIOUR] (node counts change): build separate binary
+  → tactical 30/30 → fixed-time SPRT HEAD-vs-depad. Signal is MIDDLEGAME (mid-tree −46%, NGN below Blunder) but
+  NOISY (kiwipete +17%) ⇒ the SPRT decides, not node counts. Expect small-positive (more effective hash →
+  deeper MG search at fixed time). LOW-PRI COMPANION: implement the `Hash` setoption (uci.go:296) so the
+  gauntlet/tests can size TT — makes de-pad coherent and lets Cadence-B test bigger hash vs the anchors.
+- **A2 — Phase-gated futility→depth-8** (Blunder-proven MG −20-23%). Raise FUTILITY_MAX_DEPTH to ~8 in the
+  MIDDLEGAME ONLY (gate on `accPhase`); NEVER deepen EG futility (it +141%'d). Margin formula already extends
+  (200+(d-1)*50 ≈ Blunder's 520 at d8). Branch → tactical → fixed-time SPRT.
+- **A3 — Check-extension discipline (SUPERVISED — Bryan's nod on the variant).** SEE-gate the full-ply extend
+  at `search.go:~1466` (default = extend only if SEE(check) >= 0). Helps ALL phases (the disable-checkext
+  probe cut MG −47%); it's a STRENGTH feature ⇒ SPRT, not removal. Branch → tactical 30/30 → fixed-time SPRT.
+- **A4 — Magic movegen (T5, ~8.4% per-node).** Replace ray-walk `generateSlidingMoves/Captures` with the
+  existing O(1) `GetRookAttacks`/`GetBishopAttacks`. Gen-order is load-bearing (tie-break flip moved nodes
+  −30%..+22%) ⇒ NOT node-identical, fixed-time SPRT. Biggest single per-node compute item.
+- **A5 — Eval/SEE cost audit** (where "trade richness for speed" legitimately applies). Per-term **fixed-NODES
+  SPRT (isolates node-quality) + bench-NPS delta**: start SEE-twice-per-capture (T2b lazy-SEE), then expensive
+  eval terms (mobility/king-safety/outposts). KEEP payers, CUT neutral-but-expensive (KEEP RULE). Never blind.
+
+**LANE B — Free node-identical queue (foreground, NO SPRT — do WHILE a Lane-A SPRT runs):**
+- T6 (PieceAt mailbox) → T3 (drop per-node defer) → GetBitboardOf array refactor (detail in the re-profile
+  section below). ≈ ~1.15-1.2x, ~0 ELO @blitz so don't over-invest, but free to bank. Each gated by 3-baseline
+  node-identity + `go test -short ./engine/` + `make smoke-tactical`; commit each on KEEP RULE.
+
+**PARKED — Endgame tree (the old "#1 lever").** Real and deterministic (5x at d18), but the step-1 audit
+eliminated every standard knob and proved node-counts can't rank pruning changes. Do NOT spend more node-count
+probing here. Revisit only via (a) a real fixed-time SPRT of a structural search change, or (b) a deliberate
+search-architecture rethink — after Lane A's cheap wins are banked.
+
+**Gate discipline (all lanes):** build dev work to a SEPARATE binary (never `make` mid-gate); [NEUTRAL]/Lane-B
+items by 3-baseline node-identity; [BEHAVIOUR]/Lane-A items by fixed-TIME SPRT to a bound (≥1000 games; never
+fixed-nodes for node-spending changes; never batch — see [[ngn-sprt-instrument]]). Each kept change commits as
+a checkpoint (local, single-sentence, no co-author).
 
 ### >>> DEEP RE-PROFILE + PLAN (2026-05-31 @ 7c9c58f) — READ FIRST, SUPERSEDES STEP 0 BELOW <<<
 
