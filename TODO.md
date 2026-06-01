@@ -55,12 +55,17 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
     2026-06-01:** clean phase-gate (`futMaxDepth=8 if accPhase>=10 else 3`; margin formula unchanged → d8 prunes
     only at 550cp, conservative); tactical 28/30 = the standard suite baseline (NO regression — that score recurs
     across many kept changes). Cherry-picks CLEAN onto post-A4 main (anchors search.go:19 + :1183 verbatim).
-    SPRT at a LONGER TC (~800ms, NOT 200ms): futility is a depth/quality change and de-pad showed 200ms
-    undercredits those. **LAUNCH RECIPE (run after the A4 shell EXITS, never during):**
+    SPRT at a LONGER TC (600ms, NOT 200ms): futility is a depth/quality change and de-pad showed 200ms
+    undercredits those. **CONCURRENCY: use conc-4, not conc-2 — the machine has 6 E-cores and each game is 1
+    active single-threaded search, so conc-2 wasted 4 cores; conc-4 leaves 2 free for OS/foreground, adds NO
+    movetime noise (dedicated core per search) and any residual contention is SYMMETRIC (can't bias A-vs-B) ⇒ ~2x
+    throughput free. conc-4 is the standing SPRT default now.** maxgames capped at 1500 (not 3000): can't resolve
+    ±10 in tractable time (~5k games = days), so this rules out a REGRESSION + leans on KEEP-RULE. ETA ~3-4h.
+    **LAUNCH RECIPE (run after the A4 shell EXITS, never during):**
     `git checkout main && make build && rm -f build/ngn_base && cp build/ngn build/ngn_base` (base=post-A4 main);
     `git checkout -b lane-a2-r main && git cherry-pick d8ed7cd && make build && rm -f build/ngn_a2 && cp build/ngn
-    build/ngn_a2 && git checkout main`; then bg `./build/sprt -new build/ngn_a2 -base build/ngn_base -movetime 800
-    -openings output/sprt_openings.txt -mingames 500 -maxgames 3000 -concurrency 2 -lowpower true | tee
+    build/ngn_a2 && git checkout main`; then bg `./build/sprt -new build/ngn_a2 -base build/ngn_base -movetime 600
+    -openings output/sprt_openings.txt -mingames 500 -maxgames 1500 -concurrency 4 -lowpower true | tee
     output/a2_sprt.log`. On conclude: KEEP-RULE → cherry-pick d8ed7cd to main + commit, else abandon.
   - A3 check-ext SEE-gate (delicate: pre-move SEE + LMR reduced-scout tangle; SUPERVISED variant) and A5
     eval-audit — NOT yet built (don't over-prep; build when their turn nears).
