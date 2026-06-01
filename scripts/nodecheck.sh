@@ -24,12 +24,15 @@ cd "$(dirname "$0")/.."
 BIN="${1:-build/ngn}"
 [ -x "$BIN" ] || { echo "no binary at $BIN"; exit 1; }
 
-# name|fen|depth|baseline   (baselines = main @ T6+de-pad commit d1fb499, 2026-06-01;
-# de-pad shifted them from the pre-de-pad values kiwipete 1669503 / mid 1165258 / end 862348)
+# name|fen|depth|baseline   (baselines = main @ A4 commit 3ab9eb5, 2026-06-01;
+# A4 magic-movegen reordered the gen tie-break and shifted these from the T6+de-pad values
+# kiwipete 2016803 / mid 615508 / end 864252. These are an EXACT-MATCH node-IDENTITY gate for
+# Lane-B changes, NOT a tree-size lever signal — single-position counts swing with the
+# load-bearing tie-break and are non-monotonic (see project_endgame_tree_diagnostic).)
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|2016803"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|615508"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|864252"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|1319650"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|1188433"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|772119"
 )
 
 nodes() { # bin fen depth

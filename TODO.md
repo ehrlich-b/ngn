@@ -45,9 +45,8 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   52.8%, elo **+19.3 [+1,+38]**, pLLR 2.20 — CI excludes 0, a CONFIRMED small positive (the early −88 scare AND
   the +30 spike were BOTH noise; truth ~+19, matching the ~2x-faster-movegen NPS prediction). Sound perft-exact
   speed change with no realistic path to a reject ⇒ stopped rather than grind a settled call. Branch
-  `lane-a4-magic-movegen` deletable. **REMAINING A4 finish-up (now UNBLOCKED, no SPRT running):** recompute
-  `scripts/nodecheck.sh` baselines (A4 shifted the gen-order tie-break → new tree shape) — do opportunistically
-  (bundle with the next E-core run).
+  `lane-a4-magic-movegen` deletable. **A4 finish-up DONE:** post-A4 node baselines recomputed + baked into
+  `scripts/nodecheck.sh` (kiwipete 1319650 / mid 1188433 / end 772119, d12/d12/d16).
 - **ORACLE (cmd/oracle) — BUILT + VALIDATED 2026-06-01 (commit fb1e079). The fast pre-filter Bryan proposed.**
   Deterministic best-move-agreement A/B over a labeled UCI-`bm` EPD at a FIXED node budget — zero sampling
   variance (verified identical 135/221 across runs; an SPRT needs hundreds of games to average out clock noise).
@@ -59,8 +58,12 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   Mac Stockfish (only a Linux SF binary is in-repo; `brew install stockfish`) + a `-label` mode (small follow-up).
   ROLE: filter + rank in FRONT of the SPRT lane (kill bad fast, SPRT only survivors); NOT a standalone verdict.
 - **SPRT QUEUE (one at a time, rebase onto main as winners merge; never batch):**
-  - A2 = phase-gated futility→d8 (branch `lane-a2-futility-d8`, commit d8ed7cd) — **READY, diff VERIFIED
-    2026-06-01:** clean phase-gate (`futMaxDepth=8 if accPhase>=10 else 3`; margin formula unchanged → d8 prunes
+  - A2 = phase-gated futility→d8 (branch `lane-a2-futility-d8`, commit d8ed7cd) — **SPRT RUNNING (task
+    bili6udok, log output/a2_sprt.log, build/ngn_a2 vs build/ngn_base, conc-4/600ms/maxgames1500, ETA ~3-4h).**
+    Oracle pre-check: 0 flips vs base on the tactical corpus → A2 is tactically SAFE (no over-pruning of tactics),
+    but that corpus is blind to its quiet-search effect. Node-confirmed ACTIVE: mid d12 −39%, kiwipete +41%, end
+    +14% (promotion-line phase-spike fires the gate, by design — not the +141% endgame blowup). **On conclude:**
+    KEEP-RULE → cherry-pick d8ed7cd to main + commit, else abandon. Diff VERIFIED 2026-06-01: clean phase-gate (`futMaxDepth=8 if accPhase>=10 else 3`; margin formula unchanged → d8 prunes
     only at 550cp, conservative); tactical 28/30 = the standard suite baseline (NO regression — that score recurs
     across many kept changes). Cherry-picks CLEAN onto post-A4 main (anchors search.go:19 + :1183 verbatim).
     SPRT at a LONGER TC (600ms, NOT 200ms): futility is a depth/quality change and de-pad showed 200ms
