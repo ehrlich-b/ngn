@@ -44,9 +44,12 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   200ms per-move searches are shallow but the TT persists across moves so a full game still fills it; de-pad's
   benefit is real at the longer TC NGN actually plays (mid-tree −46% at d12), so KEEP on no-regression even if
   the 200ms read is flat.
-- **SPRT QUEUE (one at a time, behind de-pad, rebase onto main as winners merge):** A2 = phase-gated
-  futility→d8 (branch `lane-a2-futility-d8`, commit d8ed7cd, tactical 28/30, READY). Then A3 check-ext SEE-gate,
-  A4 magic movegen, A5 eval-audit.
+- **SPRT QUEUE (one at a time, behind de-pad, rebase onto main as winners merge; never batch):**
+  - A2 = phase-gated futility→d8 (branch `lane-a2-futility-d8`, commit d8ed7cd, tactical 28/30) — READY.
+  - A4 = magic-getter slider movegen (branch `lane-a4-magic-movegen`, commit 6bc266f, perft-exact, ~2x faster
+    movegen, tactical 28/30) — READY. Order vs A2 is free; A4 is the bigger per-node win.
+  - A3 check-ext SEE-gate (delicate: SEE must be computed pre-move + the LMR reduced-scout tangle; SUPERVISED
+    variant) and A5 eval-audit — NOT yet built (don't over-prep; build when their turn nears).
 - **SHIPPED this session (main):** T6 PieceAt mailbox (974d75a, node-identical, perft-verified). Lane-B cheap
   well now ~DRY — GetBitboardOf is a 208-site array refactor (too big for ~0 ELO, DEPRIORITIZED); T3 defer is
   marginal/maybe-free (Go open-codes function-scope defers). ⇒ remaining gains are SPRT-gated (Lane A).
