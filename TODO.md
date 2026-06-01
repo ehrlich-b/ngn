@@ -1,6 +1,34 @@
 # NGN Chess Engine - Development Roadmap
 
-## Goal: 2500+ ELO (Grandmaster Level), with 2200 as the next milestone
+## Goal: 2800 ELO. NEXT MILESTONE: GM ≈ 2500 — beat Blunder 7.4.0 (CCRL 2532) regularly. Now 2380 (gauntlet, real-clock), gap ~150.
+
+---
+
+## THE CONTROL LOOP — how to climb without oscillating (READ FIRST, every reanchor)
+
+The recurring failure mode is an UNDERDAMPED loop: high gain (flipping the whole framing on one
+noisy probe), lag (acting on stale measures), weak integral memory (re-deriving + re-deciding settled
+questions), chasing the derivative (reacting to noise). This is the standing, damped loop. It supersedes
+the dated AUTONOMOUS-SESSION block below.
+
+**Setpoint (FIXED — don't re-litigate):** NOW = beat Blunder 7.4.0 (2532) regularly ⇒ GM≈2500 (gap ~150);
+THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play SPRT. NEVER a Stockfish-slider number.
+
+**One iteration = one candidate change:**
+1. **SENSE** — read the CANONICAL instrument, never re-derive: ELO=`gauntlet` · relative=`sprt` · tree+per-node=`scripts/h2h.sh` · CPU profile=`BenchmarkSearchProfile`. ONE number per quantity. A stale written number gets fixed in ALL files THIS turn (no notice-and-forget).
+2. **PRIOR** — consult the ranked lever queue (SPEED LANE below) + memory. Don't re-open settled KEEP/REJECT/PARK calls.
+3. **PREDICT** — before touching code, write what the change should move and which instrument will show it. Enumerate candidates + their signatures TOGETHER and run the ONE decisive experiment — do NOT chase hypotheses one-at-a-time (that's the thrash that ate the endgame audit).
+4. **ACT** — one change, SEPARATE binary, never batch, never `make` mid-gate.
+5. **GATE** — [NEUTRAL] ⇒ 3-baseline node-identity (`/tmp/nodecheck.sh`; canonical post-J10 baselines live in docs/10, NOT the stale ones below). [BEHAVIOUR] ⇒ fixed-TIME SPRT to a bound, ≥1000 games. Node count ≠ strength.
+6. **DECIDE (hysteresis = the KEEP RULE)** — clear improvement OR correctness + NO regression ⇒ KEEP, even if small/within-noise. REJECT only when BOTH non-correctness AND a concrete measured regression. "Too small to resolve" is not a reason. [[feedback_confirm_before_dropping_findings]]
+7. **RECORD** — commit checkpoint + update TODO + memory the SAME turn. The write-down IS the integral term that stops re-derivation.
+
+**Damping gains (the refresh — the explicit anti-oscillation rules):**
+- **LOW GAIN:** one noisy probe does NOT flip a ranking; overturning a lever's rank needs a decisive experiment, not a single node-count wiggle.
+- **FILTER NOISE:** ignore <50 ELO chases and within-instability node deltas (PROVEN: single-position node counts can't rank pruning/TT knobs — [[project_endgame_tree_diagnostic]]).
+- **STABLE SETPOINT:** goal + lever ranking change only on LOGGED evidence, never vibes.
+- **NO RE-LITIGATION:** cite the memory; a settled call stays settled absent new evidence.
+- **DECIDE, DON'T ASK:** prioritization is mine ([[feedback_decide_dont_ask]]); only a SUPERVISED multi-hour SPRT needs Bryan's nod.
 
 ---
 
@@ -177,7 +205,7 @@ w - - 0 10` d12 = **1,165,258 / sd30 / a2a3** · end `8/2p5/3p4/KP5r/1R3p1k/8/4P
 GetBitboardOf) is now step 4 of the EXECUTION ORDER above; the #1 lever is the ENDGAME TREE (steps 1-3 =
 endgame pruning audit → check-ext discipline → endgame futility fix), do that FIRST.**
 
-### >>> AUTONOMOUS SESSION (2026-05-31 PM, Bryan away ~3-4h) — READ FIRST <<<
+### >>> AUTONOMOUS SESSION (2026-05-31 PM) — EXPIRED: superseded by THE CONTROL LOOP at top of file; kept only as the 05-31 session-results record (its baselines + "until window ends" loop are stale) <<<
 
 **>>> SESSION RESULTS (Bryan, read this on return) <<<**
 - **HONEST HEADLINE: the session's work (N2+N6+J10) = +10 ELO [-5,+25] over 2000 games** (cumulative HEAD vs session-start
