@@ -54,6 +54,12 @@ type Bitboard struct {
 	accMG    int
 	accEG    int
 	accPhase int
+
+	// Piece mailbox (square -> Piece): maintained by Clear/UpdateSquare/Move in
+	// lockstep with the piece bitboards so PieceAt is an O(1) array read instead
+	// of a 12-way bitboard scan (T6). Bit-exact with the scan (NoPiece==0, so the
+	// zero-value board is all-empty), so search stays node-identical.
+	mailbox [64]Piece
 }
 
 func (b *Bitboard) Pawns() uint64 {
@@ -202,49 +208,29 @@ func (b *Bitboard) UpdateSquare(sq Square, newPiece Piece, oldPiece Piece) {
 		b.whiteKing |= mask
 		b.whitePieces |= mask
 	}
+	b.mailbox[sq] = newPiece
 }
 
 func (b *Bitboard) PieceAt(sq Square) Piece {
 	if sq == NoSquare {
 		return NoPiece
 	}
-	mask := SquareMask[int(sq)]
-	if b.blackPieces&mask != 0 {
-		if b.blackPawn&mask != 0 {
-			return BlackPawn
-		} else if b.blackKnight&mask != 0 {
-			return BlackKnight
-		} else if b.blackBishop&mask != 0 {
-			return BlackBishop
-		} else if b.blackRook&mask != 0 {
-			return BlackRook
-		} else if b.blackQueen&mask != 0 {
-			return BlackQueen
-		} else if b.blackKing&mask != 0 {
-			return BlackKing
-		}
-	}
-
-	// It is not black? then it is white
-	if b.whitePawn&mask != 0 {
-		return WhitePawn
-	} else if b.whiteKnight&mask != 0 {
-		return WhiteKnight
-	} else if b.whiteBishop&mask != 0 {
-		return WhiteBishop
-	} else if b.whiteRook&mask != 0 {
-		return WhiteRook
-	} else if b.whiteQueen&mask != 0 {
-		return WhiteQueen
-	} else if b.whiteKing&mask != 0 {
-		return WhiteKing
-	}
-	return NoPiece
+	// O(1) mailbox read (T6); maintained bit-exact with the bitboards by
+	// Clear/UpdateSquare/Move, replacing the former 12-way scan.
+	return b.mailbox[sq]
 }
 
 func (b *Bitboard) Clear(square Square, piece Piece) {
 	if piece == NoPiece {
 		return
+	}
+	// Only blank the mailbox if this piece is the recorded occupant. MakeMove
+	// places the mover at dest BEFORE clearing the captured piece (Clear(dest,
+	// captured) runs after Move set mailbox[dest]=mover), so an unconditional
+	// blank here would erase the mover. The accumulator below stays unconditional
+	// (it's commutative); only the positional mailbox needs the guard.
+	if b.mailbox[square] == piece {
+		b.mailbox[square] = NoPiece
 	}
 	b.accMG -= mgPST[piece][square]
 	b.accEG -= egPST[piece][square]
@@ -356,6 +342,9 @@ func (b *Bitboard) Move(src Square, dest Square, sourcePiece Piece, destinationP
 			b.Move(A1, D1, WhiteRook, NoPiece)
 		}
 	}
+	// src was cleared to NoPiece above; place sourcePiece at dest (the nested
+	// castle Move set the rook's own mailbox entry).
+	b.mailbox[dest] = sourcePiece
 }
 
 func StartingBoard() Bitboard {
@@ -447,6 +436,7 @@ func (b *Bitboard) copy() Bitboard {
 		b.accMG,
 		b.accEG,
 		b.accPhase,
+		b.mailbox,
 	}
 }
 
