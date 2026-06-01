@@ -520,6 +520,22 @@ var (
 	queenDirections  = []int{-9, -8, -7, -1, 1, 7, 8, 9} // all directions
 )
 
+// sliderAttacks returns the O(1) magic attack set for a slider at `from` given
+// `occupied`, dispatching on the direction slice the caller passed (A4/T5). The
+// magic getters (already used for check/SEE) replace the ray-walk; this changes
+// move GENERATION ORDER (square order, not direction-by-direction), which is a
+// load-bearing tie-break, so this is a [BEHAVIOUR] change gated by SPRT — but the
+// move SET is identical, so perft is unchanged.
+func sliderAttacks(directions []int, from Square, occupied uint64) uint64 {
+	if len(directions) == 8 {
+		return GetQueenAttacks(int(from), occupied)
+	}
+	if directions[0] == -8 { // rookDirections starts -8
+		return GetRookAttacks(int(from), occupied)
+	}
+	return GetBishopAttacks(int(from), occupied) // bishopDirections
+}
+
 // Branchless absolute value - avoids branch prediction penalty
 func abs(x int) int {
 	mask := x >> 63
@@ -535,59 +551,21 @@ func generateSlidingMovesIntoBuffer(pos *Position, from Square, directions []int
 	if piece.Color() == Black {
 		friendly, enemy = enemy, friendly
 	}
-	fromFile := int(from) % 8
-	for _, d := range directions {
-		for step := 1; step < 8; step++ {
-			to := int(from) + d*step
-			if to < 0 || to > 63 {
-				break
-			}
-			toFile := to % 8
-			// Horizontal wrap checks (prevent wrapping across ranks)
-			if d == -1 || d == 1 {
-				// File distance must match steps taken
-				if abs(toFile-fromFile) != step {
-					break
-				}
-				// Directional guard: moving right must increase file, moving left must decrease
-				if d == 1 && toFile < fromFile {
-					break
-				}
-				if d == -1 && toFile > fromFile {
-					break
-				}
-			}
-			// CRITICAL FIX: Vertical wrap checks - file must not change for vertical moves
-			if d == 8 || d == -8 {
-				if toFile != fromFile {
-					break
-				}
-			}
-			// Diagonal wrap checks: file delta must match step with correct sign
-			if d == 9 || d == -7 { // file increases by +step
-				if toFile-fromFile != step {
-					break
-				}
-			}
-			if d == 7 || d == -9 { // file decreases by -step
-				if toFile-fromFile != -step {
-					break
-				}
-			}
-			mask := SquareMask[to]
-			if (friendly & mask) != 0 {
-				break
-			}
-			toSq := Square(to)
-			if (enemy & mask) != 0 {
-				captured := pos.Board.PieceAt(toSq)
-				buffer[count] = NewMove(from, toSq, piece, captured, NoType, Capture)
-				count++
-				break
-			}
+	// A4: magic attack set instead of the ray-walk. attacks includes the first
+	// blocker per ray; &^ friendly drops own-piece blockers, leaving empty squares
+	// (quiet) and enemy blockers (captures). Same move SET, square order.
+	occupied := friendly | enemy
+	targets := sliderAttacks(directions, from, occupied) &^ friendly
+	for targets != 0 {
+		to := trailingZeros(targets)
+		targets &= targets - 1
+		toSq := Square(to)
+		if enemy&SquareMask[to] != 0 {
+			buffer[count] = NewMove(from, toSq, piece, pos.Board.PieceAt(toSq), NoType, Capture)
+		} else {
 			buffer[count] = NewMove(from, toSq, piece, NoPiece, NoType, 0)
-			count++
 		}
+		count++
 	}
 	return count
 }
@@ -603,58 +581,17 @@ func generateSlidingCapturesIntoBuffer(pos *Position, from Square, directions []
 	if piece.Color() == Black {
 		friendly, enemy = enemy, friendly
 	}
-	fromFile := int(from) % 8
-	for _, d := range directions {
-		for step := 1; step < 8; step++ {
-			to := int(from) + d*step
-			if to < 0 || to > 63 {
-				break
-			}
-			toFile := to % 8
-			// Horizontal wrap checks (prevent wrapping across ranks)
-			if d == -1 || d == 1 {
-				// File distance must match steps taken
-				if abs(toFile-fromFile) != step {
-					break
-				}
-				// Directional guard: moving right must increase file, moving left must decrease
-				if d == 1 && toFile < fromFile {
-					break
-				}
-				if d == -1 && toFile > fromFile {
-					break
-				}
-			}
-			// Vertical wrap checks (file must stay constant)
-			if d == 8 || d == -8 {
-				if toFile != fromFile {
-					break
-				}
-			}
-			if d == 9 || d == -7 {
-				if toFile-fromFile != step {
-					break
-				}
-			}
-			if d == 7 || d == -9 {
-				if toFile-fromFile != -step {
-					break
-				}
-			}
-			mask := SquareMask[to]
-			if (friendly & mask) != 0 { // blocked by friendly
-				break
-			}
-			if (enemy & mask) != 0 {
-				if count < len(buffer) {
-					toSq := Square(to)
-					captured := pos.Board.PieceAt(toSq)
-					buffer[count] = NewMove(from, toSq, piece, captured, NoType, Capture)
-					count++
-				}
-				break
-			}
-			// Empty square, keep scanning
+	// A4: captures = magic attack set intersected with enemy pieces (the first
+	// blocker per ray is in the attack set, so this is exactly the capturable set).
+	occupied := friendly | enemy
+	caps := sliderAttacks(directions, from, occupied) & enemy
+	for caps != 0 {
+		to := trailingZeros(caps)
+		caps &= caps - 1
+		if count < len(buffer) {
+			toSq := Square(to)
+			buffer[count] = NewMove(from, toSq, piece, pos.Board.PieceAt(toSq), NoType, Capture)
+			count++
 		}
 	}
 	return count
