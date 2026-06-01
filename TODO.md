@@ -19,7 +19,7 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
 2. **PRIOR** — consult the ranked lever queue (SPEED LANE below) + memory. Don't re-open settled KEEP/REJECT/PARK calls.
 3. **PREDICT** — before touching code, write what the change should move and which instrument will show it. Enumerate candidates + their signatures TOGETHER and run the ONE decisive experiment — do NOT chase hypotheses one-at-a-time (that's the thrash that ate the endgame audit).
 4. **ACT** — one change, SEPARATE binary, never batch, never `make` mid-gate.
-5. **GATE** — [NEUTRAL] ⇒ 3-baseline node-identity (`/tmp/nodecheck.sh`; canonical post-J10 baselines live in docs/10, NOT the stale ones below). [BEHAVIOUR] ⇒ fixed-TIME SPRT to a bound, ≥1000 games. Node count ≠ strength. **MATCH THE TC TO THE CHANGE:** pure-throughput (movegen/NPS) shows at 200ms; depth/quality-scaling changes (TT size, eval, search quality) are UNDERCREDITED at 200ms (de-pad read flat at 200ms, benefit is at deeper searches) ⇒ test those at ~600-1000ms, nearer the CCRL TC. A sound fix with no big regression can be kept without grinding to a bound (Bryan's policy, commit fa9cc02).
+5. **GATE** — [NEUTRAL] ⇒ 3-baseline node-identity via committed `scripts/nodecheck.sh` (baselines baked INTO the script = current main; RECOMPUTE them in the script after any kept [BEHAVIOUR] change, e.g. de-pad shifted them). [BEHAVIOUR] ⇒ fixed-TIME SPRT to a bound, ≥1000 games. Node count ≠ strength. **MATCH THE TC TO THE CHANGE:** pure-throughput (movegen/NPS) shows at 200ms; depth/quality-scaling changes (TT size, eval, search quality) are UNDERCREDITED at 200ms (de-pad read flat at 200ms, benefit is at deeper searches) ⇒ test those at ~600-1000ms, nearer the CCRL TC. A sound fix with no big regression can be kept without grinding to a bound (Bryan's policy, commit fa9cc02).
 6. **DECIDE (hysteresis = the KEEP RULE)** — clear improvement OR correctness + NO regression ⇒ KEEP, even if small/within-noise. REJECT only when BOTH non-correctness AND a concrete measured regression. "Too small to resolve" is not a reason. [[feedback_confirm_before_dropping_findings]]
 7. **RECORD** — commit checkpoint + update TODO + memory the SAME turn. The write-down IS the integral term that stops re-derivation.
 
@@ -37,9 +37,10 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
 - **A1 de-pad TT — DONE, KEPT, ON MAIN (commit d1fb499).** SPRT stopped at G225: 49.8%, elo -1.5 [-47,+44] =
   neutral / no big regression. Kept per Bryan's sound-fix-no-grind policy (commit fa9cc02): free capacity (4x TT
   slots, removes single-thread-pointless padding, no plausible regression mechanism); the 200ms read is flat
-  because per-move searches are too shallow to pressure the TT, but the benefit is real at the longer TC NGN
-  plays + deeper searches (mid-tree −46% at d12). LESSON: 200ms UNDERCREDITS depth/quality changes; NPS changes
-  (like A4) still show at 200ms.
+  because per-move searches are too shallow to pressure the TT. Fixed-depth node effect is MIXED/position-
+  dependent (mid d12 −47% but kiwipete d12 +21%, end ~0 — search-instability swings, matching the neutral SPRT),
+  NOT a uniform win — kept as a free no-regression capacity change, not a depth lever. LESSON: 200ms
+  UNDERCREDITS depth/quality changes; NPS changes (like A4) still show at 200ms.
 - **A4 magic-movegen SPRT — RUNNING NOW (background).** new=`build/ngn_a4` (branch `lane-a4-magic-movegen`,
   rebased onto main+de-pad), base=`build/ngn_base` (=main+de-pad) — isolates A4. Fixed-time 200ms, [0,10],
   mingames 500 / maxgames 3000, conc-2, E-cores. Log: `output/a4_sprt.log`. A4's NPS gain shows at 200ms (unlike
