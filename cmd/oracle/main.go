@@ -1,21 +1,19 @@
-// cmd/oracle — fast deterministic best-move-agreement pre-filter.
+// cmd/oracle — fast deterministic engine-quality pre-filters over a position
+// corpus, sitting in FRONT of the SPRT lane (kill bad changes in seconds; spend
+// the multi-hour SPRT only on survivors). Modes:
 //
-// Runs an engine over a labeled corpus (EPD with UCI `bm`) at a FIXED node (or
-// depth) budget and reports the fraction of positions where it plays a labeled
-// best move. Because the budget is fixed nodes/depth — not movetime — the score
-// is DETERMINISTIC: zero sampling variance, exactly reproducible, unlike a
-// self-play SPRT that needs hundreds of games to average out clock noise.
+//	score     best-move agreement vs a labeled EPD (UCI `bm`). Clean signal on
+//	          TACTICAL positions (one forcing best move) but blind to quiet-search
+//	          changes — a tactic is never futility-pruned, so e.g. an over-pruning
+//	          change shows 0 flips here yet can be -145 ELO (use acpl for those).
+//	gencorpus self-play an engine from opening lines and dump a diverse, realistic
+//	          set of middlegame FENs (the distribution the engine actually reaches).
+//	label     Stockfish MultiPV: record the eval of each top move per position.
+//	acpl      average centipawn loss vs the SF labels — robust on QUIET positions
+//	          (picking a different-but-equal move costs ~0; a real mistake costs its
+//	          eval), continuous/low-variance, sees both tactical and quiet errors.
 //
-// A/B mode (-base) runs two binaries over the same corpus and prints the
-// agreement delta plus the positions that flipped. It SEES search changes
-// (unlike an eval-error oracle) because better search -> better move choice, so
-// it works on pruning/extension/ordering changes, not just eval.
-//
-// Role: a seconds-fast pre-filter that sits in FRONT of the SPRT lane — kill
-// obviously-bad changes immediately, spend the multi-hour SPRT only on the
-// survivors. It is NOT a strength oracle on its own: "plays the labelled move"
-// correlates with but is not identical to ELO (multiple moves can be fine), so
-// it filters and ranks; the SPRT/gauntlet still confirms before shipping.
+// None of these is a strength VERDICT — they filter and rank; the SPRT confirms.
 package main
 
 import (
@@ -35,8 +33,7 @@ type oraclePos struct {
 	ID  string
 }
 
-// parseEPD reads "FEN bm MOVE[ MOVE...]; comment" lines (UCI moves). Blank and
-// '#'-comment lines are skipped; multiple space-separated bm moves all count.
+// parseEPD reads "FEN bm MOVE[ MOVE...]; comment" lines (UCI moves).
 func parseEPD(path string) ([]oraclePos, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -81,9 +78,9 @@ func isHit(mv string, bm []string) bool {
 	return false
 }
 
-// scoreEngine searches every position at the fixed budget and records the move
-// played. Reset() (ucinewgame) clears the TT/history between positions so the
-// result is independent of corpus order and fully reproducible.
+// scoreEngine searches every position at the fixed budget and records the move.
+// Reset() (ucinewgame) clears the TT/history between positions for order-
+// independent, reproducible results.
 func scoreEngine(path string, positions []oraclePos, goCmd string, timeout time.Duration, lowPower bool) (hits int, moves []string) {
 	e := uci.Start(path, "oracle", lowPower)
 	if e == nil {
@@ -104,51 +101,37 @@ func scoreEngine(path string, positions []oraclePos, goCmd string, timeout time.
 	return hits, moves
 }
 
-func main() {
-	var (
-		corpus   = flag.String("corpus", "validated_tactical_positions.epd", "labeled EPD with UCI `bm`")
-		newBin   = flag.String("new", "build/ngn", "engine binary to score")
-		baseBin  = flag.String("base", "", "second binary for A/B comparison (optional)")
-		nodes    = flag.Int("nodes", 200000, "fixed node budget per position")
-		depth    = flag.Int("depth", 0, "fixed depth per position (overrides -nodes when >0)")
-		limit    = flag.Int("n", 0, "cap number of positions (0 = all)")
-		lowPower = flag.Bool("lowpower", true, "route engines to E-cores (taskpolicy -b)")
-		verbose  = flag.Bool("v", false, "list the flipped positions in A/B mode")
-	)
-	flag.Parse()
+// goCmdFrom builds the fixed-budget search command (depth overrides nodes).
+func goCmdFrom(nodes, depth int) (goCmd, label string) {
+	if depth > 0 {
+		return fmt.Sprintf("go depth %d", depth), fmt.Sprintf("depth %d", depth)
+	}
+	return fmt.Sprintf("go nodes %d", nodes), fmt.Sprintf("nodes %d", nodes)
+}
 
-	positions, err := parseEPD(*corpus)
+func runScore(corpus, newBin, baseBin, goCmd, budget string, limit int, timeout time.Duration, lowPower, verbose bool) {
+	positions, err := parseEPD(corpus)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "oracle: load corpus: %v\n", err)
 		os.Exit(1)
 	}
-	if *limit > 0 && *limit < len(positions) {
-		positions = positions[:*limit]
+	if limit > 0 && limit < len(positions) {
+		positions = positions[:limit]
 	}
 	if len(positions) == 0 {
 		fmt.Fprintln(os.Stderr, "oracle: no labeled positions in corpus")
 		os.Exit(1)
 	}
-
-	goCmd := fmt.Sprintf("go nodes %d", *nodes)
-	budget := fmt.Sprintf("nodes %d", *nodes)
-	if *depth > 0 {
-		goCmd = fmt.Sprintf("go depth %d", *depth)
-		budget = fmt.Sprintf("depth %d", *depth)
-	}
-	timeout := 60 * time.Second
 	pct := func(h int) float64 { return 100 * float64(h) / float64(len(positions)) }
+	fmt.Printf("oracle score: %s  (%d positions, %s)%s\n", corpus, len(positions), budget, uci.PowerNote(lowPower))
 
-	fmt.Printf("oracle: %s  (%d positions, %s)%s\n", *corpus, len(positions), budget, uci.PowerNote(*lowPower))
-
-	newHits, newMoves := scoreEngine(*newBin, positions, goCmd, timeout, *lowPower)
-	fmt.Printf("  new   %-24s %5.1f%%  (%d/%d)\n", *newBin, pct(newHits), newHits, len(positions))
-
-	if *baseBin == "" {
+	newHits, newMoves := scoreEngine(newBin, positions, goCmd, timeout, lowPower)
+	fmt.Printf("  new   %-24s %5.1f%%  (%d/%d)\n", newBin, pct(newHits), newHits, len(positions))
+	if baseBin == "" {
 		return
 	}
-	baseHits, baseMoves := scoreEngine(*baseBin, positions, goCmd, timeout, *lowPower)
-	fmt.Printf("  base  %-24s %5.1f%%  (%d/%d)\n", *baseBin, pct(baseHits), baseHits, len(positions))
+	baseHits, baseMoves := scoreEngine(baseBin, positions, goCmd, timeout, lowPower)
+	fmt.Printf("  base  %-24s %5.1f%%  (%d/%d)\n", baseBin, pct(baseHits), baseHits, len(positions))
 
 	gained, lost := 0, 0
 	for i := range positions {
@@ -163,7 +146,7 @@ func main() {
 	fmt.Printf("  Δ %+.1f%%  (%+d solved; +%d gained / -%d lost)\n",
 		pct(newHits)-pct(baseHits), newHits-baseHits, gained, lost)
 
-	if *verbose {
+	if verbose {
 		fmt.Println("  flips (bm | base -> new):")
 		for i := range positions {
 			nh, bh := isHit(newMoves[i], positions[i].BM), isHit(baseMoves[i], positions[i].BM)
@@ -177,5 +160,58 @@ func main() {
 			fmt.Printf("    %s #%d  bm=%s  base=%s new=%s  %s\n",
 				tag, i+1, strings.Join(positions[i].BM, "/"), baseMoves[i], newMoves[i], positions[i].ID)
 		}
+	}
+}
+
+func main() {
+	mode := flag.String("mode", "score", "score | gencorpus | label | acpl")
+	corpus := flag.String("corpus", "validated_tactical_positions.epd", "score: labeled EPD (UCI bm)")
+	labelsF := flag.String("labels", "", "acpl: SF MultiPV label file (from -mode label)")
+	fensF := flag.String("fens", "", "label: input FEN file (from -mode gencorpus)")
+	newBin := flag.String("new", "build/ngn", "engine to score (also the self-play engine for gencorpus)")
+	baseBin := flag.String("base", "", "second binary for A/B (score, acpl)")
+	nodes := flag.Int("nodes", 200000, "fixed node budget per position (score, acpl, gencorpus)")
+	depth := flag.Int("depth", 0, "fixed depth per position (overrides -nodes when >0)")
+	limit := flag.Int("n", 0, "score: cap positions (0 = all)")
+	lowPower := flag.Bool("lowpower", true, "route engines to E-cores (taskpolicy -b)")
+	verbose := flag.Bool("v", false, "score: list flipped positions")
+	openings := flag.String("openings", "output/sprt_openings.txt", "gencorpus: opening lines")
+	opens := flag.Int("opens", 100, "gencorpus: number of openings to play out")
+	plies := flag.Int("plies", 24, "gencorpus: self-play plies past the opening")
+	every := flag.Int("every", 4, "gencorpus: dump a FEN every N plies")
+	sfPath := flag.String("sf", "stockfish", "label: stockfish path")
+	multipv := flag.Int("multipv", 8, "label: SF MultiPV width")
+	sfDepth := flag.Int("sfdepth", 16, "label: SF search depth")
+	out := flag.String("out", "", "gencorpus/label: output file")
+	capCp := flag.Int("cap", 1000, "acpl: per-position cp-loss cap")
+	flag.Parse()
+
+	goCmd, budget := goCmdFrom(*nodes, *depth)
+	timeout := 60 * time.Second
+
+	switch *mode {
+	case "score":
+		runScore(*corpus, *newBin, *baseBin, goCmd, budget, *limit, timeout, *lowPower, *verbose)
+	case "gencorpus":
+		o := *out
+		if o == "" {
+			o = "output/oracle_corpus.fens"
+		}
+		runGenCorpus(*newBin, *openings, o, *opens, *plies, *every, goCmd, timeout, *lowPower)
+	case "label":
+		if *fensF == "" || *out == "" {
+			fmt.Fprintln(os.Stderr, "label: need -fens <input> and -out <output>")
+			os.Exit(1)
+		}
+		runLabel(*sfPath, *fensF, *out, *multipv, *sfDepth, *lowPower)
+	case "acpl":
+		if *labelsF == "" {
+			fmt.Fprintln(os.Stderr, "acpl: need -labels <file>")
+			os.Exit(1)
+		}
+		runACPL(*newBin, *baseBin, *labelsF, goCmd, budget, timeout, *lowPower, *capCp)
+	default:
+		fmt.Fprintf(os.Stderr, "unknown -mode %q (want score|gencorpus|label|acpl)\n", *mode)
+		os.Exit(1)
 	}
 }

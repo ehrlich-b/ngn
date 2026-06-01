@@ -192,6 +192,25 @@ func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
 	return ""
 }
 
+// Analyze sends goCmd and returns every stdout line up to and including the
+// bestmove line (or until timeout). Unlike GetMove it keeps the `info` lines,
+// so callers can parse MultiPV scores — used for Stockfish oracle labelling.
+func Analyze(e *Engine, goCmd string, timeout time.Duration) []string {
+	Send(e, goCmd)
+	deadline := time.Now().Add(timeout)
+	var lines []string
+	for time.Now().Before(deadline) {
+		if e.stdout.Scan() {
+			line := e.stdout.Text()
+			lines = append(lines, line)
+			if strings.HasPrefix(line, "bestmove ") {
+				return lines
+			}
+		}
+	}
+	return lines
+}
+
 // ResetCounters zeroes the movetime-compliance counters; call it per anchor after
 // the warmup/probe moves so only the rated games feed the integrity guard.
 func ResetCounters(e *Engine) {
