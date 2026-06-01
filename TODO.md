@@ -61,17 +61,22 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   acpl = average centipawn-loss vs SF (A/B). **ACPL is the quiet-robust metric Bryan's pushback forced out** —
   binary best-move match is noisy on quiet positions (5 near-equal moves → both engines "miss", signal drowns);
   cp-loss scores HOW MUCH eval a move gives up (equal alt ≈ 0 loss, real mistake = real loss), continuous /
-  low-variance, sees tactical+quiet uniformly (this is how lichess/STS measure accuracy). VALIDATION RUNNING
-  (task b7wveql3a, output/acpl_run.log): ~480-pos diverse corpus → SF labels → ACPL A/B of A2 (SPRT-confirmed
-  −145) vs base. If A2's ACPL is clearly HIGHER, the oracle (right corpus+metric) WOULD have caught the regression
-  that binary-match (0 flips) missed = the whole thesis validated. Verdict pending.
-  **ON RESUME (post-compact / post-sleep):** read `output/acpl_run.log`. If it ends with an `ACPL` A/B result,
-  that's the verdict — record it + the conclusion in [[ngn-oracle-acpl]]. If the chain died mid-way (no final
-  ACPL line, no live `build/oracle` proc via `pgrep -fl build/oracle`), re-launch (binaries `build/ngn_a2` +
-  `build/ngn_base` are still on disk): `build/oracle -mode gencorpus -new build/ngn_base -opens 80 -plies 30
-  -every 5 -nodes 30000 -out output/corpus.fens && build/oracle -mode label -fens output/corpus.fens -out
-  output/labels.txt -multipv 8 -sfdepth 16 && build/oracle -mode acpl -labels output/labels.txt -new
-  build/ngn_a2 -base build/ngn_base -nodes 200000`.
+  low-variance, sees tactical+quiet uniformly (this is how lichess/STS measure accuracy). VALIDATION:
+  the original ~480-pos run (task b7wveql3a, output/acpl_run.log) HUNG at the car-sleep after 150 positions / 25
+  openings — the 60s per-move timeout does NOT fire across a macOS suspend (ngn_base logged 38s CPU over 3h09m
+  elapsed then sat at 0%/state-S; corpus.fens mtime frozen at 15:38). Killed it 2026-06-01 ~18:48. 150 diverse
+  FENs is plenty for ACPL (continuous/low-variance), so RELAUNCHED the fast tail on the existing corpus: label the
+  150 → ACPL A/B of A2 (SPRT-confirmed −145) vs base. **Task b4x3uuc62, output/acpl_run2.log.** If A2's ACPL is
+  clearly HIGHER, the oracle (right corpus+metric) WOULD have caught the regression binary-match (0 flips) missed =
+  thesis validated. Verdict pending. LESSON: a `pgrep`-alive background proc ≠ progressing — verify with CPU-time
+  + output-file mtime, not liveness.
+  **ON RESUME (post-compact / post-sleep):** read `output/acpl_run2.log`. If it ends with an `ACPL` A/B result,
+  that's the verdict — record it + the conclusion in [[ngn-oracle-acpl]]. If it died mid-way (no final ACPL line,
+  no live `build/oracle` proc), re-launch on the existing 150-pos corpus (binaries `build/ngn_a2` +
+  `build/ngn_base` on disk; output/corpus.fens has 150 FENs): `build/oracle -mode label -fens output/corpus.fens
+  -out output/labels.txt -multipv 8 -sfdepth 16 && build/oracle -mode acpl -labels output/labels.txt -new
+  build/ngn_a2 -base build/ngn_base -nodes 200000`. (Only re-run gencorpus if corpus.fens is gone: `build/oracle
+  -mode gencorpus -new build/ngn_base -opens 80 -plies 30 -every 5 -nodes 30000 -out output/corpus.fens` first.)
 - **SPRT QUEUE (one at a time, rebase onto main as winners merge; never batch):**
   - A2 = phase-gated futility→d8 — **REJECTED + ABANDONED 2026-06-01 (do NOT merge): −144.7 ELO [−202,−87] @
     G165**, pLLR −3.82 past the H0 reject bound in ~20 min. Futility→d8 over-prunes catastrophically in real games
