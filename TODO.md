@@ -32,6 +32,17 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
 
 ---
 
+## >>> IN FLIGHT (2026-06-01) — resume info, survives compaction <<<
+
+- **Lane A1 — de-pad TT SPRT RUNNING (background).** Candidate = `build/ngn_depad` (branch `lane-a1-depad-tt`,
+  commit 2cf44ed, removes the 48-byte `CachedEval` padding → 8.4M slots); base = `build/ngn_base` (= HEAD).
+  Fixed-time 200ms, [0,10] SPRT, mingames 500 / maxgames 3000, E-cores conc-2. Log: `output/depad_sprt.log`
+  (+ background task). Tactical 28/30 (sane). **On conclusion:** KEEP RULE — if no regression, `git checkout
+  main && git merge lane-a1-depad-tt` (only cache.go, trivial), commit, then run the next Lane-A SPRT (A2
+  phase-gated futility→d8). If regression, abandon the branch. DECIDE this autonomously, don't ask.
+- **Foreground while it runs:** Lane B free node-identical queue (T6 PieceAt mailbox first) on `main`,
+  node-identity-gated. Keep one SPRT + foreground work going at all times ([[feedback_control_loop]]).
+
 ## SPEED LANE (NPS) — TOP PRIORITY, prioritized 2026-05-31 — the 2.5x gap
 
 ### >>> GAP DECOMPOSED — ENDGAME TREE IS THE BIG LEVER (2026-05-31, verified; SUPERSEDES the per-node framing below) <<<
