@@ -128,6 +128,15 @@ func runScore(corpus, newBin, baseBin, goCmd, budget string, limit int, timeout 
 	newHits, newMoves := scoreEngine(newBin, positions, goCmd, timeout, lowPower)
 	fmt.Printf("  new   %-24s %5.1f%%  (%d/%d)\n", newBin, pct(newHits), newHits, len(positions))
 	if baseBin == "" {
+		if verbose {
+			fmt.Println("  misses (bm | got):")
+			for i := range positions {
+				if !isHit(newMoves[i], positions[i].BM) {
+					fmt.Printf("    #%-3d %s  bm=%-6s got=%-6s  %s\n",
+						i+1, positions[i].FEN, strings.Join(positions[i].BM, "/"), newMoves[i], positions[i].ID)
+				}
+			}
+		}
 		return
 	}
 	baseHits, baseMoves := scoreEngine(baseBin, positions, goCmd, timeout, lowPower)

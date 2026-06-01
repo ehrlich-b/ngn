@@ -34,6 +34,30 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
 
 ## >>> IN FLIGHT (2026-06-01) — resume info, survives compaction <<<
 
+- **J1 extensions×LMR fix — ACTIVE CANDIDATE (uncommitted working-tree edit in engine/search.go:1615).**
+  THE headline HIGH/VIOLATED joint (docs/05+09): off-PV non-first checking/recapture moves had their
+  check/recapture extension *computed and counted but never applied* — the scout ran at `depth-1-reduction`
+  (un-extended) and neither re-search (C4 gated `reduction>0`, PVS gated `isPV`) fires for a reduction==0
+  off-PV move. Verified against live code (full trace) BEFORE editing. FIX (per doc 05's stated intent):
+  `reducedDepth := nextDepth - reduction` + dropped the tautological `if reducedDepth>=depth` clamp (its body
+  == its init, a no-op today; with the new base it would WRONGLY reset a check back to depth-1, defeating the
+  fix — the doc's "keep the dead branch" prose contradicts its own intent, so I followed intent). **PREREQ for
+  A3** (SEE-gating a dead extension = gating a no-op), so J1 reorders ahead of A3 (my call, decide-don't-ask).
+  GATES PASSED: `go test ./engine/` adds ZERO new failures (3 pre-existing broken: EnginePlayingStrength =
+  SAN-vs-UCI format mismatch scores 950 for ANY engine; ConcurrencyStress = data-race on shared pos; ordering
+  tests flaky under parallel contention, pass 5/5 isolated). Node check (build/ngn_base vs build/ngn_j1, both
+  on disk): base reproduces baselines EXACTLY, j1 fires the extension — **kiwipete d12 +51% (1.32M→2.00M),
+  mid d12 −21% (1.19M→0.94M, deeper scout improved ordering), end d16 +83% (0.77M→1.41M)**. smoke-tactical
+  28/30 (93%). seldepth bounded by EXTENSION_BUDGET=24 (structural). **THE CONCERN: end +83% amplifies the
+  endgame-tree weakness (top speed lane) — net strength is two-sided (tactical depth vs EG bloat), a fixed-TIME
+  SPRT prices it in.** NEXT: (1) oracle pre-filter running — task bbbg530e4, output/j1_oracle.log (tactical
+  best-move @2000 nodes + ACPL @ fixed depth-12, j1 vs base; J1 is tactically-relevant so the oracle CAN see it,
+  unlike A2). (2) if not clearly-worse → fixed-TIME SPRT: `build/sprt -new build/ngn_j1 -base build/ngn_base
+  -movetime 800 -concurrency 4 -elo0 -5 -elo1 0 -mingames 64 -maxgames 1000` ([-5,0] non-regression = the
+  KEEP-RULE decision; movetime because fixed-nodes/depth undercredit extensions). DECIDE: KEEP if not a
+  regression (correctness fix, KEEP RULE); REJECT if SPRT < −5 (then the dead extension was accidentally good →
+  document, don't just revert). On KEEP: commit + flip docs/05+09 J1 `[VIOLATED]`→`[HOLDS]` + recompute
+  nodecheck baselines. On REJECT: `git checkout engine/search.go`.
 - **A1 de-pad TT — DONE, KEPT, ON MAIN (commit d1fb499).** SPRT stopped at G225: 49.8%, elo -1.5 [-47,+44] =
   neutral / no big regression. Kept per Bryan's sound-fix-no-grind policy (commit fa9cc02): free capacity (4x TT
   slots, removes single-thread-pointless padding, no plausible regression mechanism); the 200ms read is flat
