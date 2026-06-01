@@ -42,9 +42,14 @@ Quote tree-size precisely; quote per-node speed as "~2x".
   reach (1.098¹⁸ ≈ 5x). **This is a pruning-EFFICIENCY collapse, not eval cost — and it is the bigger,
   more surprising lever.** A large share of the +150 CCRL deficit to Blunder may live in endgames. NMP
   is *not* the cause (it fires correctly — `hasNonPawnMaterial` gates it off only in pawn-only
-  positions, and a rook is present). Suspects: LMR/LMP behaviour at low material, eval instability
-  defeating TT/aspiration cutoffs, or extensions firing in the endgame. Needs investigation + a
-  fixed-time SPRT — it is **not** addressed by any [NEUTRAL] speed item below.
+  positions, and a rook is present). **PROBED 2026-05-31** (a throwaway build with check extensions
+  disabled): check extensions are a *phase-general* tree cost, **not** the endgame cause — disabling
+  cut the middlegame tree −47% (to *below* Blunder's) but the endgame stayed 3.25x Blunder (was 5.12x).
+  So there are TWO levers: **(a)** discipline the full-ply check extension at `search.go:1466` (SEE-gate
+  it — helps all phases, esp. middlegame; a strength feature ⇒ SPRT, not removal); **(b)** an
+  endgame-specific residual — futility prunes fire on only **13% of endgame nodes vs 69% in the
+  middlegame**, so the endgame futility/pruning gap is the second factor. Both are fixed-time SPRTs, and
+  **neither** is addressed by any [NEUTRAL] speed item below.
 
 Both engines are single-threaded classical Go on the same box, so neither factor is language/threads/
 hardware. The per-node budget below maps the *speed* factor; the endgame *tree* factor is a separate

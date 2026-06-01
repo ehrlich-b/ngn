@@ -26,8 +26,14 @@ node, and Blunder (228-line eval vs NGN's ~2400) is +150 CCRL STRONGER. NGN is b
 1. **ENDGAME SEARCH EFFICIENCY — the 2.5-5x tree. NEW #1.** EBF matches Blunder in middlegame (~3.2) but
    ~10% worse/ply in endgame (~2.25 vs ~2.05), compounding to 5x over deep endgame searches. PRUNING, not
    eval. NMP is NOT the cause (fires correctly — `hasNonPawnMaterial` only gates pawn-only, rook present).
-   Suspects: LMR/LMP at low material, eval instability defeating TT/aspiration cutoffs, endgame extensions.
-   Investigate + fixed-time SPRT. Likely a big chunk of the 150-ELO deficit. **START HERE.**
+   **PROBED 2026-05-31 (disable-checkext throwaway, h2h node counts):** check extensions are a
+   PHASE-GENERAL tree cost, NOT the endgame cause — disabling cut mid −47% (614K, now SMALLER than
+   Blunder's 1.03M), quiet-end −37%, pp-end −20%; the endgame residual PERSISTS (quiet-end still 3.25x
+   Blunder with checkext off). So TWO separate levers: **(a) discipline check extensions** (SEE-gate the
+   full-ply extend at search.go:1466 — helps ALL phases, esp. middlegame; it's a STRENGTH feature so
+   SPRT, not removal); **(b) the endgame-specific residual** — futility prunes fire on only 13% of
+   endgame nodes vs 69% in middlegame (the `fut` stat), so the endgame futility/pruning gap is the second
+   factor. Both fixed-time SPRT; likely a big chunk of the 150-ELO deficit. **START HERE.**
 2. **PER-NODE SPEED (~2x engineering tax).** The free queue below (T6/T3/GetBitboardOf ≈ 1.15-1.2x) +
    [BEHAVIOUR] magic movegen by SPRT. Risk-free, ~+90-130 ELO at blitz if fully recovered.
 3. **EVAL/SEE COST AUDIT.** Eval is richer than the stronger peer ⇒ not the bottleneck, but unaudited.
