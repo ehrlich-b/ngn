@@ -65,6 +65,13 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   (task b7wveql3a, output/acpl_run.log): ~480-pos diverse corpus → SF labels → ACPL A/B of A2 (SPRT-confirmed
   −145) vs base. If A2's ACPL is clearly HIGHER, the oracle (right corpus+metric) WOULD have caught the regression
   that binary-match (0 flips) missed = the whole thesis validated. Verdict pending.
+  **ON RESUME (post-compact / post-sleep):** read `output/acpl_run.log`. If it ends with an `ACPL` A/B result,
+  that's the verdict — record it + the conclusion in [[ngn-oracle-acpl]]. If the chain died mid-way (no final
+  ACPL line, no live `build/oracle` proc via `pgrep -fl build/oracle`), re-launch (binaries `build/ngn_a2` +
+  `build/ngn_base` are still on disk): `build/oracle -mode gencorpus -new build/ngn_base -opens 80 -plies 30
+  -every 5 -nodes 30000 -out output/corpus.fens && build/oracle -mode label -fens output/corpus.fens -out
+  output/labels.txt -multipv 8 -sfdepth 16 && build/oracle -mode acpl -labels output/labels.txt -new
+  build/ngn_a2 -base build/ngn_base -nodes 200000`.
 - **SPRT QUEUE (one at a time, rebase onto main as winners merge; never batch):**
   - A2 = phase-gated futility→d8 — **REJECTED + ABANDONED 2026-06-01 (do NOT merge): −144.7 ELO [−202,−87] @
     G165**, pLLR −3.82 past the H0 reject bound in ~20 min. Futility→d8 over-prunes catastrophically in real games
