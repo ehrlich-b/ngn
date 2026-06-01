@@ -58,26 +58,30 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   Mac Stockfish (only a Linux SF binary is in-repo; `brew install stockfish`) + a `-label` mode (small follow-up).
   ROLE: filter + rank in FRONT of the SPRT lane (kill bad fast, SPRT only survivors); NOT a standalone verdict.
 - **SPRT QUEUE (one at a time, rebase onto main as winners merge; never batch):**
-  - A2 = phase-gated futility→d8 (branch `lane-a2-futility-d8`, commit d8ed7cd) — **SPRT RUNNING (task
-    bili6udok, log output/a2_sprt.log, build/ngn_a2 vs build/ngn_base, conc-4/600ms/maxgames1500, ETA ~3-4h).**
-    Oracle pre-check: 0 flips vs base on the tactical corpus → A2 is tactically SAFE (no over-pruning of tactics),
-    but that corpus is blind to its quiet-search effect. Node-confirmed ACTIVE: mid d12 −39%, kiwipete +41%, end
-    +14% (promotion-line phase-spike fires the gate, by design — not the +141% endgame blowup). **On conclude:**
-    KEEP-RULE → cherry-pick d8ed7cd to main + commit, else abandon. Diff VERIFIED 2026-06-01: clean phase-gate (`futMaxDepth=8 if accPhase>=10 else 3`; margin formula unchanged → d8 prunes
-    only at 550cp, conservative); tactical 28/30 = the standard suite baseline (NO regression — that score recurs
-    across many kept changes). Cherry-picks CLEAN onto post-A4 main (anchors search.go:19 + :1183 verbatim).
-    SPRT at a LONGER TC (600ms, NOT 200ms): futility is a depth/quality change and de-pad showed 200ms
-    undercredits those. **CONCURRENCY: use conc-4, not conc-2 — the machine has 6 E-cores and each game is 1
-    active single-threaded search, so conc-2 wasted 4 cores; conc-4 leaves 2 free for OS/foreground, adds NO
-    movetime noise (dedicated core per search) and any residual contention is SYMMETRIC (can't bias A-vs-B) ⇒ ~2x
-    throughput free. conc-4 is the standing SPRT default now.** maxgames capped at 1500 (not 3000): can't resolve
-    ±10 in tractable time (~5k games = days), so this rules out a REGRESSION + leans on KEEP-RULE. ETA ~3-4h.
-    **LAUNCH RECIPE (run after the A4 shell EXITS, never during):**
-    `git checkout main && make build && rm -f build/ngn_base && cp build/ngn build/ngn_base` (base=post-A4 main);
-    `git checkout -b lane-a2-r main && git cherry-pick d8ed7cd && make build && rm -f build/ngn_a2 && cp build/ngn
-    build/ngn_a2 && git checkout main`; then bg `./build/sprt -new build/ngn_a2 -base build/ngn_base -movetime 600
-    -openings output/sprt_openings.txt -mingames 500 -maxgames 1500 -concurrency 4 -lowpower true | tee
-    output/a2_sprt.log`. On conclude: KEEP-RULE → cherry-pick d8ed7cd to main + commit, else abandon.
+  - A2 = phase-gated futility→d8 — **REJECTED + ABANDONED 2026-06-01 (do NOT merge): −144.7 ELO [−202,−87] @
+    G165**, pLLR −3.82 past the H0 reject bound in ~20 min. Futility→d8 over-prunes catastrophically in real games
+    (the unchanged margin formula at d8 = 550cp prunes far too much quiet play; "Blunder reaches d8" was a bad
+    analogy — its margins/conditions differ). **BIG LESSON (the whole oracle thesis in one experiment):** the
+    oracle pre-check said 0 flips / "tactically SAFE" — correctly NOT treated as a green light, because the
+    TACTICAL corpus is BLIND to A2's quiet over-pruning; the SPRT caught the −145 regression the oracle could not
+    see. Vindicates oracle=FILTER-not-verdict, SPRT-essential-for-quiet-search, and 600ms-reveals-what-200ms-hides.
+    Historical analysis (still valid): clean phase-gate, node-confirmed active (mid d12 −39%, kiwipete +41%).
+    Branch `lane-a2-futility-d8` + build/ngn_a2 abandoned. original analysis is in git history; not repeated.
+  - **STANDING SPRT DEFAULTS (locked from A2/A4):**
+    - **mingames ~64, NOT 500.** Overriding mingames high DEFEATS the SPRT's own early-stop: `cmd/sprt:283` halts
+      the instant the trinomial LLR crosses its bound, BUT only once `n >= mingames`. A2's reject bound hit ~G165;
+      `-mingames 500` would've burned ~335 needless games. Built-in default is 24. We do NOT iterate to tiny
+      bands — the LLR bound fires on the DECISION (sign), not magnitude (KEEP-RULE never needs magnitude).
+    - **Match bounds to the decision.** `[-5,0]` non-regression frame for SOUND/expected-neutral changes (accepts
+      fast on "not a regression" — would've stopped A4 fast; [0,10] only drags because it asks "worth ≥+10?",
+      slow for a small +). `[0,10]` only to confirm a real GAIN. Big regressions (A2) blow past either bound fast.
+    - **LEVER: promote the pentanomial LLR to the decision stat** — already computed, crosses ~15-30% sooner
+      (code comment has the TODO; A2's pLLR −3.82 crossed before the trinomial −2.87 did).
+    - conc-4 (6 E-cores, 1 search/game → conc-2 wasted 4 cores, symmetric contention can't bias A-vs-B, ~2x free);
+      600ms+ for depth/quality (200ms undercredits); never batch; one SPRT at a time.
+    - **CAUTION (don't hand-roll):** a raw "CI excludes 0 at 50 games → stop" peek is too trigger-happy — early
+      CIs are unstable (A4 excluded 0 at G854 [+7,+54] then RE-included it at G1354 [−0,+37]) and repeated peeking
+      inflates false-positives. The LLR bound + small mingames IS the rigorous form of that idea.
   - A3 check-ext SEE-gate (delicate: pre-move SEE + LMR reduced-scout tangle; SUPERVISED variant) and A5
     eval-audit — NOT yet built (don't over-prep; build when their turn nears).
 - **SHIPPED this session (main):** T6 PieceAt mailbox (974d75a, node-identical, perft-verified). Lane-B cheap
