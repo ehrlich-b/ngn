@@ -51,9 +51,17 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   update, then rebase A2 onto main and launch its SPRT at a longer TC. Branch `lane-a4-magic-movegen` RETAINED
   until the SPRT fully concludes (don't delete the source branch before its validating experiment finishes).
 - **SPRT QUEUE (one at a time, rebase onto main as winners merge; never batch):**
-  - A2 = phase-gated futility→d8 (branch `lane-a2-futility-d8`, commit d8ed7cd, tactical 28/30) — READY (next).
-    SPRT A2 at a LONGER TC (~600-1000ms), not 200ms: futility is a depth/quality change and the de-pad result
-    showed 200ms undercredits those (A4's pure-NPS gain is the exception that shows at 200ms).
+  - A2 = phase-gated futility→d8 (branch `lane-a2-futility-d8`, commit d8ed7cd) — **READY, diff VERIFIED
+    2026-06-01:** clean phase-gate (`futMaxDepth=8 if accPhase>=10 else 3`; margin formula unchanged → d8 prunes
+    only at 550cp, conservative); tactical 28/30 = the standard suite baseline (NO regression — that score recurs
+    across many kept changes). Cherry-picks CLEAN onto post-A4 main (anchors search.go:19 + :1183 verbatim).
+    SPRT at a LONGER TC (~800ms, NOT 200ms): futility is a depth/quality change and de-pad showed 200ms
+    undercredits those. **LAUNCH RECIPE (run after the A4 shell EXITS, never during):**
+    `git checkout main && make build && rm -f build/ngn_base && cp build/ngn build/ngn_base` (base=post-A4 main);
+    `git checkout -b lane-a2-r main && git cherry-pick d8ed7cd && make build && rm -f build/ngn_a2 && cp build/ngn
+    build/ngn_a2 && git checkout main`; then bg `./build/sprt -new build/ngn_a2 -base build/ngn_base -movetime 800
+    -openings output/sprt_openings.txt -mingames 500 -maxgames 3000 -concurrency 2 -lowpower true | tee
+    output/a2_sprt.log`. On conclude: KEEP-RULE → cherry-pick d8ed7cd to main + commit, else abandon.
   - A3 check-ext SEE-gate (delicate: pre-move SEE + LMR reduced-scout tangle; SUPERVISED variant) and A5
     eval-audit — NOT yet built (don't over-prep; build when their turn nears).
 - **SHIPPED this session (main):** T6 PieceAt mailbox (974d75a, node-identical, perft-verified). Lane-B cheap
