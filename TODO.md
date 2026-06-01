@@ -143,9 +143,17 @@ pattern). Ordering principle: lowest-risk highest-EV first; never batch; each ke
 - **A4 — Magic movegen (T5, ~8.4% per-node).** Replace ray-walk `generateSlidingMoves/Captures` with the
   existing O(1) `GetRookAttacks`/`GetBishopAttacks`. Gen-order is load-bearing (tie-break flip moved nodes
   −30%..+22%) ⇒ NOT node-identical, fixed-time SPRT. Biggest single per-node compute item.
-- **A5 — Eval/SEE cost audit** (where "trade richness for speed" legitimately applies). Per-term **fixed-NODES
-  SPRT (isolates node-quality) + bench-NPS delta**: start SEE-twice-per-capture (T2b lazy-SEE), then expensive
-  eval terms (mobility/king-safety/outposts). KEEP payers, CUT neutral-but-expensive (KEEP RULE). Never blind.
+- **A5 — Eval/SEE cost audit. REFRAMED + DOWNGRADED 2026-06-01 (call-graph traced from `evaluateUnsafe`).**
+  The LIVE eval is already LEAN — only ~8 textbook-standard term groups: PeSTO (material+PST), pawn structure
+  (passed/doubled/isolated/chains), bishop-pair, mobility, rook-open-file, knight-outposts, king-safety
+  (+pawn-shield +attack-patterns, mg phase≥12), king-activity (eg phase<6). The ~14 "speculative" funcs
+  (PieceCoordination+Protection/Batteries/Cooperation/Centralization, BasicEndgames+KingPawnOpposition/MatePattern,
+  WeakSquares, PawnStorms, Castling×2, CenterControl×2, PieceDevelopment) are **DEAD CODE** (callers=0 from the
+  live root — vestigial from a pre-PeSTO eval). ⇒ "cut expensive speculative terms" is VOID: dead code doesn't
+  run (0 ELO, 0 NPS). REAL A5 levers: (a) **SEE cost audit still valid** — SEE-twice-per-capture / T2b lazy-SEE,
+  fixed-NODES SPRT + bench-NPS; (b) **eval STRENGTH** = weight-tune the live terms (Texel, partly done bb12a48)
+  or fixed-nodes-SPRT removal of the weakest LIVE term (outposts? king-activity?). Dead-code deletion = optional
+  cleanliness only (flag, NOT a lever; may be intentionally-orphaned ⇒ don't delete unprompted).
 
 **LANE B — Free node-identical queue (foreground, NO SPRT — do WHILE a Lane-A SPRT runs):**
 - T6 (PieceAt mailbox) → T3 (drop per-node defer) → GetBitboardOf array refactor (detail in the re-profile
