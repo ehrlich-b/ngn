@@ -54,9 +54,17 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   -nodes 2000 -v"`. CALIBRATION: on the 221-pos easy-tactics corpus, solve rate 98.6%@50K → 61%@2K → 42%@800, so
   ~2000 nodes is the discrimination point. CAVEAT: easy (500ms-solvable) tactics only discriminate when
   node-STARVED (shallow-search quality ≈ an over-pruning detector, an imperfect full-depth-strength proxy).
-  UPGRADE PATH: harder/diverse SF-labeled corpus (quiet+positional) discriminates at realistic budgets — needs a
-  Mac Stockfish (only a Linux SF binary is in-repo; `brew install stockfish`) + a `-label` mode (small follow-up).
   ROLE: filter + rank in FRONT of the SPRT lane (kill bad fast, SPRT only survivors); NOT a standalone verdict.
+  **UPGRADE DONE (2026-06-01, commits fb1e079→HEAD): the ACPL pipeline.** Stockfish 18 installed (brew,
+  /opt/homebrew/bin/stockfish). cmd/oracle now has `-mode gencorpus|label|acpl` (+ `internal/uci.Analyze` to
+  capture MultiPV lines): gencorpus self-plays diverse middlegame FENs; label records SF MultiPV eval-per-move;
+  acpl = average centipawn-loss vs SF (A/B). **ACPL is the quiet-robust metric Bryan's pushback forced out** —
+  binary best-move match is noisy on quiet positions (5 near-equal moves → both engines "miss", signal drowns);
+  cp-loss scores HOW MUCH eval a move gives up (equal alt ≈ 0 loss, real mistake = real loss), continuous /
+  low-variance, sees tactical+quiet uniformly (this is how lichess/STS measure accuracy). VALIDATION RUNNING
+  (task b7wveql3a, output/acpl_run.log): ~480-pos diverse corpus → SF labels → ACPL A/B of A2 (SPRT-confirmed
+  −145) vs base. If A2's ACPL is clearly HIGHER, the oracle (right corpus+metric) WOULD have caught the regression
+  that binary-match (0 flips) missed = the whole thesis validated. Verdict pending.
 - **SPRT QUEUE (one at a time, rebase onto main as winners merge; never batch):**
   - A2 = phase-gated futility→d8 — **REJECTED + ABANDONED 2026-06-01 (do NOT merge): −144.7 ELO [−202,−87] @
     G165**, pLLR −3.82 past the H0 reject bound in ~20 min. Futility→d8 over-prunes catastrophically in real games
