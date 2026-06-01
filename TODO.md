@@ -40,8 +40,18 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   (+ background task). Tactical 28/30 (sane). **On conclusion:** KEEP RULE — if no regression, `git checkout
   main && git merge lane-a1-depad-tt` (only cache.go, trivial), commit, then run the next Lane-A SPRT (A2
   phase-gated futility→d8). If regression, abandon the branch. DECIDE this autonomously, don't ask.
-- **Foreground while it runs:** Lane B free node-identical queue (T6 PieceAt mailbox first) on `main`,
-  node-identity-gated. Keep one SPRT + foreground work going at all times ([[feedback_control_loop]]).
+  STATUS: ~neutral so far (G79 48%, elo -13 [-89,+63]) — NOISE at n<100, not a verdict; let it run. NOTE: at
+  200ms per-move searches are shallow but the TT persists across moves so a full game still fills it; de-pad's
+  benefit is real at the longer TC NGN actually plays (mid-tree −46% at d12), so KEEP on no-regression even if
+  the 200ms read is flat.
+- **SPRT QUEUE (one at a time, behind de-pad, rebase onto main as winners merge):** A2 = phase-gated
+  futility→d8 (branch `lane-a2-futility-d8`, commit d8ed7cd, tactical 28/30, READY). Then A3 check-ext SEE-gate,
+  A4 magic movegen, A5 eval-audit.
+- **SHIPPED this session (main):** T6 PieceAt mailbox (974d75a, node-identical, perft-verified). Lane-B cheap
+  well now ~DRY — GetBitboardOf is a 208-site array refactor (too big for ~0 ELO, DEPRIORITIZED); T3 defer is
+  marginal/maybe-free (Go open-codes function-scope defers). ⇒ remaining gains are SPRT-gated (Lane A).
+- **Foreground while an SPRT runs:** prep the next SPRT candidate + eval-audit analysis; keep one SPRT +
+  foreground work going at all times, never idle ([[feedback_control_loop]], [[feedback_decide_dont_ask]]).
 
 ## SPEED LANE (NPS) — TOP PRIORITY, prioritized 2026-05-31 — the 2.5x gap
 
