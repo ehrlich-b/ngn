@@ -45,6 +45,35 @@ node, and Blunder (228-line eval vs NGN's ~2400) is +150 CCRL STRONGER. NGN is b
 a separate project. Per-node micro-opts measured ~0 ELO at 100ms ([[project_strength_bottleneck]]) ⇒
 endgame-tree (#1) and eval-audit (#3) likely matter MORE than the free speed queue (#2).
 
+**>>> NEXT — EXECUTION ORDER (the concrete queue; lever ranking above, T-item detail below) <<<**
+
+1. **[DIAGNOSE — cheap, deterministic, do FIRST, no SPRT] Endgame pruning audit.** Run `info string stats`
+   (UCI `debug on`) + `scripts/h2h.sh` on ~4-5 endgames; confirm the futility-13%-vs-69%-of-nodes gap and
+   pin WHICH pruner under-fires at low material (futility margin scaling? razoring? LMR?). Quantify each
+   candidate fix's tree-shrink with a throwaway build + h2h (the checkext-probe method, gated by
+   smoke-tactical). Output: endgame-pruning fixes ranked by tree-shrink/position → feeds steps 3.
+2. **[BEHAVIOUR / SPRT — SUPERVISED, needs Bryan's nod on variant] Check-extension discipline.** SEE-gate
+   the full-ply extend at `search.go:1466` (default = extend only if SEE(check) >= 0). Branch → verify tree
+   shrink (h2h) + tactical 30/30 → fixed-TIME SPRT run to a bound. Helps ALL phases (esp. middlegame, the
+   probe cut it −47%). Independent of step 1 (can run either order vs step 3).
+3. **[BEHAVIOUR / SPRT] Endgame futility/pruning fix** from step 1's top candidate (likely futility-margin
+   scaling at low material). Branch → h2h + tactical → fixed-TIME SPRT. This + step 2 are the #1 lever.
+4. **[FREE / node-identical — bank cheaply, but ~0 ELO @blitz so don't over-invest] Per-node speed queue.**
+   T6 (PieceAt mailbox) → T3 (drop per-node defer) → GetBitboardOf array refactor (details below). Each
+   gated by 3-baseline node-identity + `go test -short` + smoke-tactical; commit each on KEEP RULE. ≈
+   ~1.15-1.2x. (REORDERED: this was "next" in the old block below — now it's step 4, after the endgame work.)
+5. **[BEHAVIOUR / SPRT] Magic movegen (T5, ~8.4%).** Gen-order is load-bearing (proven) → fixed-TIME SPRT,
+   NOT a node-identity item. Biggest single per-node compute item.
+6. **[BEHAVIOUR / SPRT — audit, where "trade richness for speed" legitimately applies] Eval/SEE cost audit.**
+   Per-term **fixed-NODES SPRT (isolates node-quality) + bench-NPS delta**: start with SEE-twice-per-capture
+   (T2b lazy-SEE), then the expensive eval terms (mobility/king-safety/outposts/etc.). KEEP payers, CUT
+   neutral-but-expensive (KEEP RULE supports it). Measured per-term, never blind.
+
+**Gate discipline (all steps):** build dev work to a SEPARATE binary (never `make` mid-gate); [NEUTRAL]
+items by 3-baseline node-identity; [BEHAVIOUR] items by fixed-TIME SPRT run to a bound (≥1000 games; never
+fixed-nodes for node-spending changes; never batch changes — see [[ngn-sprt-instrument]]). Each kept change
+commits as a checkpoint (local, single-sentence, no co-author).
+
 ### >>> DEEP RE-PROFILE + PLAN (2026-05-31 @ 7c9c58f) — READ FIRST, SUPERSEDES STEP 0 BELOW <<<
 
 **Full per-node micro-budget + the "what does 2.5x even mean" decomposition is in `docs/10-performance.md`
@@ -114,8 +143,9 @@ w - - 0 10` d12 = **1,165,258 / sd30 / a2a3** · end `8/2p5/3p4/KP5r/1R3p1k/8/4P
 - **T2b** (lazy-SEE/staged ordering) + **T4** (incremental legality, the isInCheck residual) — `[BEHAVIOUR]`,
   fixed-time SPRT, supervised.
 
-**STATUS: T1b DONE (3b6809b). T5 reclassified [NEUTRAL]→[BEHAVIOUR] (SPRT lane). Next free item: T6
-(PieceAt mailbox, ~2.3%). Biggest compute item T5 (magic, ~8.4%) needs an SPRT.**
+**STATUS: T1b DONE (3b6809b). T5 [BEHAVIOUR]/SPRT. REORDERED 2026-05-31 — the free queue (T6/T3/
+GetBitboardOf) is now step 4 of the EXECUTION ORDER above; the #1 lever is the ENDGAME TREE (steps 1-3 =
+endgame pruning audit → check-ext discipline → endgame futility fix), do that FIRST.**
 
 ### >>> AUTONOMOUS SESSION (2026-05-31 PM, Bryan away ~3-4h) — READ FIRST <<<
 
