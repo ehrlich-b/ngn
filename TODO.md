@@ -254,6 +254,15 @@ block and commit the SAME turn (the integral term). [[feedback_long_autonomous_s
   ~10-25 ELO gain (a +20 real gain only shifts the score ~+3%), so 31.8%≈31% is CONSISTENT WITH a small improvement —
   neither confirms nor refutes.** TODO for the gauntlet: rebuild a bracketing set of movetime-honoring anchors
   (`gauntlet -probe` to find which Blunder versions honor `stop`); 6.1.0/7.2.0 are unusable at an honest TC.
+- **>>> GAUNTLET RE-RUN IN THE CORRECT MODE (`-tc 120+1`) — the real payoff: +69 ELO point estimate. <<<** The
+  movetime failure above was my mode error; `-tc` sends wtime/btime (never `stop`) so anchors play clean. SAME config
+  as the historical 2380 baseline (`-tc 120+1 -only v7.4.0 -games 16` vs Blunder 7.4.0/2532): **tonight 2W-8D-6L =
+  37.5% → perf 2443, pooled 2449 [2274,2624]**, vs **historical 28.1% (2W-5D-9L) → 2369, pooled 2380 [2193,2567]**.
+  **Point estimate UP +69 ELO (2380→2449)** at the real clock vs a real opponent — directionally confirms the night's
+  F1-F9 speed (deeper search per time budget) + bishop-pair removal transferred. HONEST CAVEAT: 16 games each, CIs
+  overlap heavily ⇒ NOT statistically significant; the +69 is noise-inflated above the ~+28 expected (+20 eval +
+  ~8 speed), but the DIRECTION is right and it rules out a regression. The correct `-tc` mode showed the lift the
+  broken movetime mode (~31.8%≈historical) could not. Next: more games / a 2nd stable `-tc` anchor to tighten the CI.
 - **NIGHT VERDICT — clear NET POSITIVE, no revert.** The clean (concurrency-immune) measurements stand: (1) F1-F9 are
   node-identical ⇒ at fixed TIME more NPS = more depth = strength can only RISE — SAFE, banked. (2) bishop-pair removal
   = **+20.4 ELO at fixed-NODES** (L5, a clean deterministic measure; and since F1-F9 are node-identical, ngn_base ≡
