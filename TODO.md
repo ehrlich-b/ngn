@@ -222,11 +222,24 @@ block and commit the SAME turn (the integral term). [[feedback_long_autonomous_s
   (rebuilt from HEAD 037f853 = F1-F9 + bishop-pair-removed). Biggest eval cost (~610ms cum); high-EV test — resolves
   FAST toward H0 if king-safety is the strong earner expected (then KEEP), or is the night's biggest combined win if
   harmful like bishop-pair. build/ngn also rebuilt current for the eventual gauntlet.
-- **NEXT (on L6 wake):** decide king-safety (KEEP if clear regression — likely; DELETE only if est ≥ ~-5) → then L4
-  rook-open (rookOpenWeight=0) and L3 king-activity (kingActivityWeight=0 — most-likely-harmful: it double-counts the
-  PeSTO endgame king-centralization PST, like bishop-pair, though ~0 speed so it'd be a strength-only win) as time
-  allows → then MORNING GAUNTLET (rebuild build/ngn first) to measure F1-F9 speed + bishop-pair-removal together vs
-  Blunder anchors, ngn_prenight as the revert backstop. Foreground free lane is exhausted (F1-F9); SPRT carries the night.
+- **L6 (no-king-safety) DONE — VERDICT: KEEP king-safety (no code change).** 322-82-396, **Elo -32.2 [-56,-8]**,
+  pentanomial -32.2 [-53,-12], LLR -1.10. Removal is a clear ~32-ELO regression ⇒ king-safety is a real earner. (Note:
+  the LEAST cost-efficient earner — 610ms cum for only +32 ELO vs mobility's +66 for ~420ms — so it's the prime target
+  for a node-identical SPEEDUP if a clean one can be found; pawnShield rewrite is fragile and attack-patterns is
+  inherent per-king, so none found this session — a Track-3 candidate.)
+- **SWEEP COMPLETE (the expensive terms): outposts KEEP +9 · mobility KEEP +66 · bishop-pair DELETE +20 · king-safety
+  KEEP +32.** One harmful term found and removed (bishop-pair). Deferred low-value tail: L4 rook-open (captures
+  non-PST open-file info ⇒ likely KEEP) and L3 king-activity (endgame-only ⇒ ~0 speed + diluted SPRT signal) — run
+  next session or post-gauntlet; not worth delaying the payoff.
+- **>>> MORNING GAUNTLET LAUNCHED (bg batx1m3tx, output/gauntlet_night.log) <<<** `build/ngn` (HEAD 3f670af = F1-F9
+  speed + bishop-pair removed) vs the 3 crossover Blunder anchors (`-only v6.1.0,v7.2.0,v7.4.0`, CCRL 2155/2425/2532),
+  24 games each = 72, movetime 1000ms, E-cores, concurrency-1. ~3-4h → finishes by morning. (First launch defaulted to
+  all 5 anchors incl. saturated 2080/2674 with the key 2532 LAST — killed + relaunched focused on the crossover 3.)
+- **MORNING DECISION (on gauntlet completion):** read pooled rating. Compare to the historical ~2380 / 27.5%@300ms
+  (same-conditions reference). HIGHER ⇒ the F1-F9 speed (more depth at fixed movetime) + bishop-pair removal transferred
+  to real strength ⇒ record the new number, fix stale ~2380 docs. CLEARLY LOWER ⇒ A/B `build/ngn` vs `build/ngn_prenight`
+  (fixed-TIME SPRT) to isolate whether bishop-pair regressed in real games, revert if so. The gauntlet carries the night;
+  foreground free lane exhausted (F1-F9 banked). 19 commits local, tree clean.
 
 ---
 
