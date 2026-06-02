@@ -80,3 +80,43 @@ func BenchmarkSearchProfile(b *testing.B) {
 	b.StopTimer()
 	b.ReportMetric(float64(nodes)/float64(b.N), "nodes/op")
 }
+
+// TestHotPathAllocationFree ENFORCES the allocation-free per-node search hot path. This
+// claim (docs/10 T1) was silently FALSE for ages — probcut declared a per-node [256]Move
+// that escaped to the heap via the non-inlined GenerateMovesIntoBuffer (~34MB/run), found
+// only by profiling, never by a test. This is that test: alphaBetaPV / quiescence / movegen
+// / eval / SEE must allocate ZERO heap per node. Per-search scaffolding (TT, frame pool,
+// ParseFEN) is constant across depths, so the DELTA in allocations between two depths
+// isolates per-node allocation — alloc-free ⇒ ~0/node; a regression ⇒ thousands+. If this
+// fails: a scratch buffer is escaping; route it through the searchFrame pool, do not
+// `var x [N]Move` then pass `x[:]` to a non-inlined function.
+func TestHotPathAllocationFree(t *testing.T) {
+	const fen = "r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10"
+	allocsAt := func(depth int) (allocs float64, nodes uint64) {
+		a := testing.AllocsPerRun(2, func() {
+			TranspositionTable = NewCache(16) // constant scaffolding — cancels in the delta
+			p, err := ParseFEN(fen)
+			if err != nil {
+				t.Fatalf("fen: %v", err)
+			}
+			nodes = SearchFixed(p, depth, nil).Nodes
+		})
+		return a, nodes
+	}
+	aLo, nLo := allocsAt(6)
+	aHi, nHi := allocsAt(9)
+	if nHi <= nLo {
+		t.Fatalf("node counts not increasing (%d -> %d); cannot isolate per-node allocs", nLo, nHi)
+	}
+	perNode := (aHi - aLo) / float64(nHi-nLo)
+	t.Logf("depth6: %.0f allocs / %d nodes | depth9: %.0f allocs / %d nodes | per-node = %.6f",
+		aLo, nLo, aHi, nHi, perNode)
+	// Alloc-free ⇒ per-node ≈ 0. The probcut regression was ~0.1-0.5 allocs/node; 0.01 sits
+	// far below any real per-node allocation yet well above measurement noise.
+	if perNode > 0.01 {
+		t.Fatalf("HOT PATH ALLOCATES ~%.4f heap allocs/node — a per-node allocation regressed. "+
+			"Find it with: go test -run=^$ -bench=BenchmarkSearchProfile -memprofile=/tmp/m ./engine/ && go tool pprof -list=alphaBetaPV -alloc_space ./engine.test /tmp/m. "+
+			"Route the scratch buffer through the searchFrame pool. "+
+			"(depth6 %.0f allocs/%d nodes, depth9 %.0f allocs/%d nodes)", perNode, aLo, nLo, aHi, nHi)
+	}
+}

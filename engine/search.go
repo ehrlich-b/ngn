@@ -1223,19 +1223,30 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 	}
 
+	// Acquire this invocation's reusable buffers from the frame pool (used by probcut
+	// below AND the main move loop); fall back to a fresh stack frame only when the pool
+	// is exhausted by deep re-entrant nesting (correct, just not allocation-free).
+	// Kept ABOVE probcut so probcut's generation is allocation-free too. docs/10 T1.
+	var frame *searchFrame
+	if info.Frames != nil && frameIdx < len(info.Frames) {
+		frame = &info.Frames[frameIdx]
+	} else {
+		frame = new(searchFrame)
+	}
+
 	// Probcut pruning: if a reduced-depth search at a higher beta fails high,
 	// we can prune because the full search would likely also fail high
 	if SearchToggles.Probcut && !isPV && !inCheck && depth >= 5 && abs(beta) < MATE_VALUE-100 {
 		probcutBeta := beta + 200 // Higher beta threshold
 
-		// Generate captures only for probcut
+		// Generate into the reused frame buffer (NOT a per-node [256]Move that escapes
+		// to the heap via the non-inlined GenerateMovesIntoBuffer — that was 34MB/run).
 		var capBuffer [64]Move
 		capCount := 0
-		var tempBuffer [256]Move
-		tempCount := GenerateMovesIntoBuffer(pos, tempBuffer[:])
+		tempCount := GenerateMovesIntoBuffer(pos, frame.moveBuffer[:])
 		for i := 0; i < tempCount && capCount < 64; i++ {
-			if tempBuffer[i].IsCapture() {
-				capBuffer[capCount] = tempBuffer[i]
+			if frame.moveBuffer[i].IsCapture() {
+				capBuffer[capCount] = frame.moveBuffer[i]
 				capCount++
 			}
 		}
@@ -1283,17 +1294,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		singularMove = ttMove
 	}
 
-	// Acquire this invocation's reusable buffers from the frame pool; fall back to a
-	// fresh stack frame only when the pool is exhausted by deep re-entrant nesting
-	// (correct, just not allocation-free). docs/10 T1.
-	var frame *searchFrame
-	if info.Frames != nil && frameIdx < len(info.Frames) {
-		frame = &info.Frames[frameIdx]
-	} else {
-		frame = new(searchFrame)
-	}
-
 	// Use pseudo-legal moves for performance, check legality only when trying moves
+	// (frame acquired above, before probcut, so all generation here is allocation-free).
 	numMoves := GenerateMovesIntoBuffer(pos, frame.moveBuffer[:])
 	moves := frame.moveBuffer[:numMoves]
 	if numMoves == 0 {
