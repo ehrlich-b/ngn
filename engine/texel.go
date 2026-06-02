@@ -111,6 +111,9 @@ type TexelWeight struct {
 // untuned scalars complementing the already-tuned PeSTO core).
 func TexelWeights() []TexelWeight {
 	return []TexelWeight{
+		// 9 middlegame weights (index 0..8), then their 9 endgame twins (9..17) —
+		// the order the gradient trace's scalar indices assume (texelScalarBase+i
+		// is MG term i, texelScalarBase+9+i its EG twin).
 		{"passedPawnBonus", &passedPawnBonus},
 		{"doubledPawnPenalty", &doubledPawnPenalty},
 		{"isolatedPawnPenalty", &isolatedPawnPenalty},
@@ -120,6 +123,15 @@ func TexelWeights() []TexelWeight {
 		{"outpostWeight", &outpostWeight},
 		{"kingSafetyWeight", &kingSafetyWeight},
 		{"kingActivityWeight", &kingActivityWeight},
+		{"passedPawnBonusEG", &passedPawnBonusEG},
+		{"doubledPawnPenaltyEG", &doubledPawnPenaltyEG},
+		{"isolatedPawnPenaltyEG", &isolatedPawnPenaltyEG},
+		{"pawnChainWeightEG", &pawnChainWeightEG},
+		{"mobilityWeightEG", &mobilityWeightEG},
+		{"rookOpenWeightEG", &rookOpenWeightEG},
+		{"outpostWeightEG", &outpostWeightEG},
+		{"kingSafetyWeightEG", &kingSafetyWeightEG},
+		{"kingActivityWeightEG", &kingActivityWeightEG},
 	}
 }
 

@@ -2356,6 +2356,12 @@ func EvaluateForPlayer(board *Bitboard, player Color) int {
 // three pawn-structure values are direct centipawn weights; the six term
 // weights are percentage multipliers (100 = identity), so these defaults
 // reproduce the original eval exactly. Tuned values are pasted back here.
+//
+// Each weight is TAPERED MG->EG (like the PeSTO core): the value below is the
+// middlegame end, its *EG twin the endgame end, blended by game phase via taperW.
+// The EG defaults equal the MG values, so a fresh checkout reproduces the old flat
+// eval bit-for-bit; the tuner then pulls them apart so a passed pawn / king-safety
+// unit can be worth more (or less) in the endgame than the middlegame.
 var (
 	passedPawnBonus     = 20
 	doubledPawnPenalty  = 9
@@ -2366,7 +2372,22 @@ var (
 	outpostWeight       = 84
 	kingSafetyWeight    = 100
 	kingActivityWeight  = 29
+
+	passedPawnBonusEG     = 20
+	doubledPawnPenaltyEG  = 9
+	isolatedPawnPenaltyEG = 8
+	pawnChainWeightEG     = 77
+	mobilityWeightEG      = 166
+	rookOpenWeightEG      = 83
+	outpostWeightEG       = 84
+	kingSafetyWeightEG    = 100
+	kingActivityWeightEG  = 29
 )
+
+// taperW blends a middlegame/endgame weight pair by game phase (phase=totalPhase
+// all-MG, phase=0 all-EG), matching the PeSTO core's taper. When mg==eg it returns
+// exactly that value, so equal MG/EG twins are behavior-neutral.
+func taperW(mg, eg, phase int) int { return (mg*phase + eg*(totalPhase-phase)) / totalPhase }
 
 // --- Pawn-structure evaluation cache (N6) ---
 // passed / doubled / isolated / pawn-chain are pure functions of the two pawn
@@ -2451,10 +2472,10 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	// result is bit-identical (node-identical); only the recomputation is saved.
 	whitePassed, blackPassed, whiteDoubled, blackDoubled, whiteIsolated, blackIsolated, chainWhite, chainBlack :=
 		pawnStructureCounts(board, whitePawns, blackPawns)
-	eval += (whitePassed - blackPassed) * passedPawnBonus         // passed pawns, not captured by PST
-	eval -= (whiteDoubled - blackDoubled) * doubledPawnPenalty    // doubled penalty
-	eval -= (whiteIsolated - blackIsolated) * isolatedPawnPenalty // isolated penalty
-	eval += (chainWhite - chainBlack) * pawnChainWeight / 100     // connected/supported pawn chains
+	eval += (whitePassed - blackPassed) * taperW(passedPawnBonus, passedPawnBonusEG, phase)             // passed pawns, not captured by PST
+	eval -= (whiteDoubled - blackDoubled) * taperW(doubledPawnPenalty, doubledPawnPenaltyEG, phase)     // doubled penalty
+	eval -= (whiteIsolated - blackIsolated) * taperW(isolatedPawnPenalty, isolatedPawnPenaltyEG, phase) // isolated penalty
+	eval += (chainWhite - chainBlack) * taperW(pawnChainWeight, pawnChainWeightEG, phase) / 100         // connected/supported pawn chains
 
 	// Bishop-pair bonus REMOVED 2026-06-02: a fixed-nodes SPRT (ngn_l5 vs base, 800 games)
 	// scored removal at +20.4 ELO [-4,+45] — the term was net-harmful (it double-counted the
@@ -2462,10 +2483,10 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	// is retained only for its unit tests.
 
 	// Mobility — important but moderate weight (PSTs already capture positional value).
-	eval += evaluateMobilityDelta(board) * mobilityWeight / 100
+	eval += evaluateMobilityDelta(board) * taperW(mobilityWeight, mobilityWeightEG, phase) / 100
 
 	// Rook on open file bonus.
-	eval += (evaluateRookOnOpenFile(board, White) - evaluateRookOnOpenFile(board, Black)) * rookOpenWeight / 100
+	eval += (evaluateRookOnOpenFile(board, White) - evaluateRookOnOpenFile(board, Black)) * taperW(rookOpenWeight, rookOpenWeightEG, phase) / 100
 
 	// Knight/bishop outposts (squares supported by own pawn, unattackable by
 	// enemy pawns, in enemy territory). PeSTO PSTs don't know pawn structure.
@@ -2474,17 +2495,17 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	blackKnights := board.GetBitboardOf(BlackKnight)
 	blackBishops := board.GetBitboardOf(BlackBishop)
 	eval += (evaluateOutpostSquares(whiteKnights, whiteBishops, whitePawns, blackPawns, White) -
-		evaluateOutpostSquares(blackKnights, blackBishops, blackPawns, whitePawns, Black)) * outpostWeight / 100
+		evaluateOutpostSquares(blackKnights, blackBishops, blackPawns, whitePawns, Black)) * taperW(outpostWeight, outpostWeightEG, phase) / 100
 
 	// King safety: middlegame through late-middlegame (phase>=7 covers the
 	// measured phase 7-11 king-eval hole; king-safety was gated >=12 before).
 	if phase >= 7 {
-		eval += (evaluateKingSafety(board, White) - evaluateKingSafety(board, Black)) * kingSafetyWeight / 100
+		eval += (evaluateKingSafety(board, White) - evaluateKingSafety(board, Black)) * taperW(kingSafetyWeight, kingSafetyWeightEG, phase) / 100
 	} else if phase < 6 {
 		// Deep endgame only: encourage king centralization and supporting pawns.
 		// Wider phase windows interfered with tactical search where leaves drop
 		// below phase=12 mid-combination.
-		eval += evaluateKingActivity(board) * kingActivityWeight / 100
+		eval += evaluateKingActivity(board) * taperW(kingActivityWeight, kingActivityWeightEG, phase) / 100
 	}
 
 	// Tempo bonus — small constant for side-to-move encoded in caller.

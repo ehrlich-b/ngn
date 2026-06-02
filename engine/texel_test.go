@@ -94,8 +94,8 @@ func TestTexelMSEAndFindK(t *testing.T) {
 
 func TestTexelWeightsWiring(t *testing.T) {
 	w := TexelWeights()
-	if len(w) != 9 {
-		t.Fatalf("TexelWeights returned %d, want 9", len(w)) // 10 minus the removed bishopPairWeight (+20 ELO SPRT)
+	if len(w) != 18 {
+		t.Fatalf("TexelWeights returned %d, want 18", len(w)) // 9 MG term weights + 9 EG twins (tapered scalars)
 	}
 	// A weight pointer must alias the real eval var: mutating it changes the live
 	// package var the eval reads, proving the tuner edits the real eval.

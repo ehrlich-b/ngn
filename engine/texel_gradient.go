@@ -21,7 +21,7 @@ import (
 //	[0..4]    pestoMGMaterial[Pawn..Queen]
 //	[5..9]    pestoEGMaterial[Pawn..Queen]
 //	[10..777] 768 raw PST cells: 12 tables (mgPawn..mgKing, egPawn..egKing) × 64
-//	[778..786] the 9 hand-set scalar weights (TexelWeights order)
+//	[778..795] the 18 scalar weights (TexelWeights order: 9 MG, then 9 EG twins)
 //
 // King has no material parameter (its value is fixed at 0, conventional since both
 // sides always have exactly one), but it does have a PST.
@@ -29,7 +29,7 @@ import (
 const (
 	texelNumMaterial = 10  // mg Pawn..Queen (0..4), eg Pawn..Queen (5..9)
 	texelNumPST      = 768 // 12 tables × 64
-	texelNumScalars  = 9   // == len(TexelWeights())
+	texelNumScalars  = 18  // == len(TexelWeights()): 9 MG term weights (0..8) + 9 EG twins (9..17)
 	texelPSTBase     = texelNumMaterial
 	texelScalarBase  = texelNumMaterial + texelNumPST
 	texelNumParams   = texelNumMaterial + texelNumPST + texelNumScalars // 787
@@ -155,15 +155,16 @@ func reconstructEvalInt(t *evalTrace) int {
 		eg += s * (pestoEGMaterial[pt] + texelRawEG[pt][pc.Cell])
 	}
 	eval := (mg*t.Phase + eg*(totalPhase-t.Phase)) / totalPhase
-	eval += t.Passed * passedPawnBonus
-	eval -= t.Doubled * doubledPawnPenalty
-	eval -= t.Isolated * isolatedPawnPenalty
-	eval += t.Chain * pawnChainWeight / 100
-	eval += t.Mobility * mobilityWeight / 100
-	eval += t.RookOpen * rookOpenWeight / 100
-	eval += t.Outpost * outpostWeight / 100
-	eval += t.KingSafety * kingSafetyWeight / 100
-	eval += t.KingActivity * kingActivityWeight / 100
+	ph := t.Phase
+	eval += t.Passed * taperW(passedPawnBonus, passedPawnBonusEG, ph)
+	eval -= t.Doubled * taperW(doubledPawnPenalty, doubledPawnPenaltyEG, ph)
+	eval -= t.Isolated * taperW(isolatedPawnPenalty, isolatedPawnPenaltyEG, ph)
+	eval += t.Chain * taperW(pawnChainWeight, pawnChainWeightEG, ph) / 100
+	eval += t.Mobility * taperW(mobilityWeight, mobilityWeightEG, ph) / 100
+	eval += t.RookOpen * taperW(rookOpenWeight, rookOpenWeightEG, ph) / 100
+	eval += t.Outpost * taperW(outpostWeight, outpostWeightEG, ph) / 100
+	eval += t.KingSafety * taperW(kingSafetyWeight, kingSafetyWeightEG, ph) / 100
+	eval += t.KingActivity * taperW(kingActivityWeight, kingActivityWeightEG, ph) / 100
 	return eval
 }
 
@@ -187,19 +188,21 @@ func evalTraceFloat(t *evalTrace, w []float64) float64 {
 			s += sg * egF * w[texelMatEGIndex(pt)]
 		}
 	}
-	s += float64(t.Passed) * w[texelScalarBase+0]
-	s -= float64(t.Doubled) * w[texelScalarBase+1]
-	s -= float64(t.Isolated) * w[texelScalarBase+2]
-	s += float64(t.Chain) / 100.0 * w[texelScalarBase+3]
-	s += float64(t.Mobility) / 100.0 * w[texelScalarBase+4]
-	s += float64(t.RookOpen) / 100.0 * w[texelScalarBase+5]
-	s += float64(t.Outpost) / 100.0 * w[texelScalarBase+6]
-	s += float64(t.KingSafety) / 100.0 * w[texelScalarBase+7]
-	s += float64(t.KingActivity) / 100.0 * w[texelScalarBase+8]
+	// Each scalar term is tapered: weight = mgWeight·mgF + egWeight·egF, the float
+	// relaxation of taperW (MG twin at texelScalarBase+i, EG twin at +9+i).
+	s += float64(t.Passed) * (w[texelScalarBase+0]*mgF + w[texelScalarBase+9]*egF)
+	s -= float64(t.Doubled) * (w[texelScalarBase+1]*mgF + w[texelScalarBase+10]*egF)
+	s -= float64(t.Isolated) * (w[texelScalarBase+2]*mgF + w[texelScalarBase+11]*egF)
+	s += float64(t.Chain) / 100.0 * (w[texelScalarBase+3]*mgF + w[texelScalarBase+12]*egF)
+	s += float64(t.Mobility) / 100.0 * (w[texelScalarBase+4]*mgF + w[texelScalarBase+13]*egF)
+	s += float64(t.RookOpen) / 100.0 * (w[texelScalarBase+5]*mgF + w[texelScalarBase+14]*egF)
+	s += float64(t.Outpost) / 100.0 * (w[texelScalarBase+6]*mgF + w[texelScalarBase+15]*egF)
+	s += float64(t.KingSafety) / 100.0 * (w[texelScalarBase+7]*mgF + w[texelScalarBase+16]*egF)
+	s += float64(t.KingActivity) / 100.0 * (w[texelScalarBase+8]*mgF + w[texelScalarBase+17]*egF)
 	return s
 }
 
-// TexelFullParams returns pointers to all 787 tunable parameters in the global
+// TexelFullParams returns pointers to all 796 tunable parameters in the global
 // index order (material, PST, scalar weights) — the order the trace's index
 // helpers assume. The gradient optimizer reads current values from these and
 // writes tuned values back (RebuildPST after, since PST/material feed it).
@@ -277,15 +280,26 @@ func texelTraceAccumulate(t *evalTrace, w, g []float64, k, a float64) float64 {
 				g[texelMatEGIndex(pt)] += factor * sg * egF
 			}
 		}
-		g[texelScalarBase+0] += factor * float64(t.Passed)
-		g[texelScalarBase+1] += factor * float64(-t.Doubled)
-		g[texelScalarBase+2] += factor * float64(-t.Isolated)
-		g[texelScalarBase+3] += factor * float64(t.Chain) / 100.0
-		g[texelScalarBase+4] += factor * float64(t.Mobility) / 100.0
-		g[texelScalarBase+5] += factor * float64(t.RookOpen) / 100.0
-		g[texelScalarBase+6] += factor * float64(t.Outpost) / 100.0
-		g[texelScalarBase+7] += factor * float64(t.KingSafety) / 100.0
-		g[texelScalarBase+8] += factor * float64(t.KingActivity) / 100.0
+		// Each scalar term feeds its MG slot (·mgF) and EG twin (·egF) — the partials
+		// of coeff·(wMG·mgF + wEG·egF). Signs match evalTraceFloat.
+		g[texelScalarBase+0] += factor * float64(t.Passed) * mgF
+		g[texelScalarBase+9] += factor * float64(t.Passed) * egF
+		g[texelScalarBase+1] += factor * float64(-t.Doubled) * mgF
+		g[texelScalarBase+10] += factor * float64(-t.Doubled) * egF
+		g[texelScalarBase+2] += factor * float64(-t.Isolated) * mgF
+		g[texelScalarBase+11] += factor * float64(-t.Isolated) * egF
+		g[texelScalarBase+3] += factor * float64(t.Chain) / 100.0 * mgF
+		g[texelScalarBase+12] += factor * float64(t.Chain) / 100.0 * egF
+		g[texelScalarBase+4] += factor * float64(t.Mobility) / 100.0 * mgF
+		g[texelScalarBase+13] += factor * float64(t.Mobility) / 100.0 * egF
+		g[texelScalarBase+5] += factor * float64(t.RookOpen) / 100.0 * mgF
+		g[texelScalarBase+14] += factor * float64(t.RookOpen) / 100.0 * egF
+		g[texelScalarBase+6] += factor * float64(t.Outpost) / 100.0 * mgF
+		g[texelScalarBase+15] += factor * float64(t.Outpost) / 100.0 * egF
+		g[texelScalarBase+7] += factor * float64(t.KingSafety) / 100.0 * mgF
+		g[texelScalarBase+16] += factor * float64(t.KingSafety) / 100.0 * egF
+		g[texelScalarBase+8] += factor * float64(t.KingActivity) / 100.0 * mgF
+		g[texelScalarBase+17] += factor * float64(t.KingActivity) / 100.0 * egF
 	}
 	return diff * diff
 }
