@@ -1,240 +1,73 @@
-# NGN Chess Engine - Development Roadmap
+# NGN Chess Engine — Development Roadmap
 
-## Goal: GM ≈ 2500 (beat Blunder 7.4.0 / CCRL 2532 regularly), then 2800. Now ~2380-2449 CCRL (noisy 1-anchor read), ~+85-150 behind Blunder. **STRATEGY (2026-06-02): get an EVIDENCE-BASED hypothesis for the gap BEFORE acting — the 2026-06-01 "speed-first / eval-is-a-liability" pivot is REFUTED (see THE FRAME).**
+## Goal: GM ≈ 2500 (beat Blunder 7.4.0 / CCRL 2532), then 2800 — CLASSIC HCE + speed, **NO NNUE (yet)**. Now ~2400 CCRL, ~+85-150 behind Blunder.
+**STATUS 2026-06-02:** the evidence-based diagnosis is DONE (see DIAGNOSIS RESULT). Bryan greenlit Texel ("this feels good enough"). **SPEARHEAD = build a GRADIENT-DESCENT (AdaGrad/Adam) Texel tuner and retune the full eval.** Reanchor = re-read README.md, this TODO, CLAUDE.md.
+
+---
+
+## >>> THE PLAN — READ FIRST, every reanchor (2026-06-02) <<<
+
+We spent the day PROVING (not guessing) why Blunder beats us, and the evidence points at TUNING, not raw speed. Path to 2800 (classic, no NNUE), priority order:
+
+1. **GRADIENT TEXEL TUNER — THE SPEARHEAD (next step; full spec below).** Replace NGN's coordinate-descent tuner (slow, axis-bound, in practice only PSTs+material+10 scalars) with gradient descent (Adam) over the FULL eval param set, **trained by DISTILLATION on Stockfish-labeled positions (Bryan's steer — learn from SF, not NGN-vs-NGN; weak-teacher ceiling)**. Blunder's single biggest eval lever (8.0.0 → "a stronger, more streamlined eval"); directly fixes the M3 "noisier-shallow eval" finding; and the pipeline (positions + SF labels + gradient optimizer) is the NNUE ON-RAMP — build once, use twice.
+2. **Search-parameter tuning** (Blunder's most-REPEATED lever; NGN's LMR/NMP/futility/RFP/razoring are hand-set round numbers — search.go:14-22). SPRT-driven (not differentiable through the search).
+3. **Endgame search efficiency** — the biggest single gap (NGN searches eg 4-7 ply SHALLOWER; eg tree 2.5-5x bigger) but the HARDEST ([[project_endgame_tree_diagnostic]] refuted every standard pruning knob). Long-term lever.
+4. **Per-node speed — SECONDARY.** VERIFIED no structural bug (incremental hash/PST, magic, array-stack repetition, 0 per-node allocs, GC free at 0% CPU/~40µs pauses). The ~2x is a quality tradeoff (SEE ordering + rich eval); micro-opt ceiling ~15-20%; node-identical free wins spent (night F1-F9). Opportunistic only (staged-SEE ≈ ~5%, SPRT-gated) — NOT the push. Full 2x would need a Blunder-5.0.0-style hot-path rewrite (weeks).
+
+**DISCIPLINE (every change):** SPRT-gate — fixed-NODES for eval changes (isolates eval quality), fixed-TIME for node-spending search changes — then confirm batches on the `-tc 120+1` gauntlet (self-play SPRT gains can be transfer-MIRAGES). KEEP RULE: clear improvement OR non-regression ⇒ keep; reject only on a concrete measured regression. One SPRT at a time, never batch. Commits single-sentence, no co-author, no emoji, LOCAL (don't push). Never P-cores (`-lowpower true` → E-cores). [[feedback_decide_dont_ask]] [[feedback_canonical_measures]]
 
 ---
 
-## THE FRAME — DIAGNOSE the gap before acting (READ FIRST, every reanchor; 2026-06-02, SUPERSEDES the speed-first pivot)
+## >>> NEXT STEP: GRADIENT TEXEL TUNER — build spec (reanchor + PROCEED here) <<<
 
-**The speed-first pivot is REFUTED by our own data.** It claimed NGN's eval is a net liability to delete for speed.
-We tested it directly (fixed-nodes self-play SPRT, removing each term): **mobility +66, king-safety +32, outposts +9
-are real EARNERS (KEEP); only bishop-pair (+20 to remove) was harmful (deleted).** 4 of 5 terms earn their keep — so
-"complexity is guilty until proven" is just WRONG here; the eval is mostly well-tuned and load-bearing. The "~2750 lines
-vs Blunder's 560" was VERBOSITY, not richness — NGN computes the same standard concepts (mobility, king safety, passed
-pawns, knight outposts, N/B/R/Q mobility, king-safety attack tables — VERIFIED term-by-term against
-opponents/.src/engine/evaluation.go) in ~5x the code. **Leaning the eval was chasing a non-problem.**
+**What ALREADY exists (engine/texel.go + cmd/texel):** the Texel OBJECTIVE is implemented — `texelSigmoid(eval,k)`, `texelMSE(samples,k)`, `TexelFindK` (ternary-search K), `LoadTexelSamples` (`<FEN> <result>` / result-labeled EPD), param exposure (`TexelWeights()`=10 eval-term scalars, `TexelMaterialParams()`, PST access), `gendata` (self-play data), Go-source emitters (`FormatPSTTables/MaterialValues/TexelWeights`). The night tuned PSTs+10 weights on the Zurichess set for +46 ELO (commit bb12a48). **What's MISSING is the SOLVER:** it's COORDINATE DESCENT (`TexelTune` line-searches one param at a time — slow, stalls in diagonal valleys).
 
-**We conflated two questions.** Self-play SPRT answers *"does removing X hurt NGN-vs-old-NGN?"* — it says NOTHING about
-*"why does Blunder beat NGN?"* All night I optimized the former and never investigated the latter. **We still do NOT
-have an evidence-based hypothesis for the ~+85-150 gap. GET ONE before any more engine changes.** The loop of
-asserting a thesis → acting → contradicting it (delete-complexity-for-speed, then the deletions LOSE elo) is the
-oscillation to stop. No more intuition/dogma-driven edits.
+**The build — gradient descent (Blunder's 8.0.0 upgrade), phased:**
+1. **(a) Eval coefficient TRACE — the core new piece.** Instrument evaluatePeSTO + evaluateUnsafe to emit, per position, a sparse feature-coefficient vector: for each tunable param its (mg_coeff, eg_coeff) contribution + the position phase. The eval is LINEAR in the weights ⇒ `∂eval/∂wⱼ = coeffⱼ`. Trace every dataset position ONCE and CACHE it — then every epoch is cheap linear algebra over cached traces (no re-eval). This caching is what makes gradient 100-1000x faster than coordinate descent. GATE (a): reproduce the current `texelMSE` from the cached traces exactly (proves the trace is faithful) before optimizing.
+2. **(b) Gradient + optimizer.** MSE gradient `∂E/∂wⱼ = (2/N)Σ (σ(sᵢ)−resultᵢ)·σ'(sᵢ)·(K·ln10/400)·coeffⱼ(i)`, σ'(s)=σ(s)(1−σ(s)), s=tapered eval. Step ALL params together via **Adam** (momentum + bias-correction, modern default; AdaGrad is the simpler fallback Blunder used). ~tens of epochs.
+3. **Tune the FULL param set** (the real win vs today's 10 scalars): material + all 768 PST cells (mg+eg) + every eval-term's INTERNAL table (king-safety attack values, mobility per-piece bonuses, passed-pawn-by-rank, pawn-structure penalties, outpost bonuses) + the scalar weights. The phase-7-11 king hole should shrink once king-safety is jointly tuned across phases.
+4. **(c) Anti-overfit + VALIDATE.** TRAIN/TEST split; tune on train, watch held-out test MSE (stop when it stops improving); emit tuned values as Go source; rebuild; **fixed-nodes SPRT vs current**, then **`-tc 120+1` gauntlet** for real transfer. KEEP RULE.
+5. **Data — DISTILLATION (Bryan's steer 2026-06-02: learn from STOCKFISH, not from NGN-vs-NGN).** The self-play ceiling is in the LABELS, not the positions — NGN-vs-NGN grades itself (a weak teacher that can't correct a blind spot both its sides share). So **label positions with Stockfish's deep eval (knowledge distillation)**, not self-play WDL. POSITIONS can still come from cheap self-play (`texel -mode gendata`, fast, diverse) — SF labels supply the truth regardless of who reached the position; NGN-vs-SF game positions are a valid "relevance" option (positions NGN faces under strong pressure) but slower. LABELS via the oracle `label` pipeline (SF eval, already built); **PARALLELIZE it — labeling is OFFLINE / timing-insensitive, so run N parallel SF processes (P-cores fine; NOT the engine-vs-engine timing path) → ~100-300k positions in ~1-2h** (single-thread would be days). Map SF-cp→target via the sigmoid (or regress eval→SF-cp); optionally blend real-game WDL. The Zurichess WDL set (`LoadTexelSamples`) is a free baseline to validate the gradient MACHINERY first, before the SF-labeling run. **CAVEAT:** NGN's HCE is a small LINEAR model — it can only mimic SF's NNUE up to its capacity (a ceiling); distillation is a big win over self-play but BOUNDED, and hitting that ceiling is the future signal to go NNUE. This exact pipeline (positions + SF labels + gradient optimizer) IS the NNUE training pipeline — build once, use twice.
 
-**What we actually KNOW (evidence — `scripts/h2h.sh` + deterministic node counts):** two axes — (1) NGN ~2x slower PER
-NODE everywhere (engineering, not a Go tax — Zahak benches fine); (2) NGN's tree is ~1x Blunder's in middlegames but
-**2.5-5x BIGGER in ENDGAMES** (a ~10%/ply EBF gap compounding over deep searches; standard pruning knobs were ALL
-refuted as the cause — "diffuse EBF", see [[project_endgame_tree_diagnostic]]). **Current best hypothesis: the gap is
-SEARCH (effective depth, worst in endgames), NOT eval. Confidence MEDIUM** — the node/tree numbers are solid, but the
-"eval is fine" half is INFERRED, never measured against Blunder. THE DIAGNOSIS below settles it.
-
-**BANKED last night, keep (real wins, NOT driven by the dead thesis):** 9 node-identical speed wins (~11% NPS, F1-F9)
-+ bishop-pair removal (+20 ELO, the one harmful term) + `-tc` gauntlet ~2449 [2274,2624] (+69 point estimate over the
-2380 baseline; 16 games, not significant). Detail in the NIGHT RECORD below.
-
-## THE DIAGNOSIS — 3 measurements → 1 hypothesis (READ-ONLY; the day's deliverable)
-
-1. **M3 eval quality (LEAD — most decisive; tooling CONFIRMED, NO gap):** is NGN's eval actually as good as Blunder's?
-   `cmd/oracle` already does it — `acpl` mode + `-new` takes ANY binary (so it runs Blunder) + `-base` A/Bs two
-   binaries at once. RECIPE: (a) `./build/oracle -mode gencorpus -new build/ngn -opens 100 -out /tmp/quiet.fens`
-   (quiet self-play FENs — NGN-biased, note it; a neutral set is better if cheap); (b) `./build/oracle -mode label
-   -fens /tmp/quiet.fens -sf /opt/homebrew/bin/stockfish -sfdepth 18 -out /tmp/labels.txt` (SF18 MultiPV ground
-   truth); (c) `./build/oracle -mode acpl -new build/ngn -base opponents/blunder_740 -labels /tmp/labels.txt -depth 6`
-   → NGN's AND Blunder's cp-loss vs SF, side by side. Use a SHALLOW depth (~4-6) so the chosen move reflects EVAL not
-   deep search (deep search converges both toward SF, masking eval gaps); also run -depth 12 for the combined picture.
-   **NGN ACPL ≈ Blunder (or lower) ⇒ eval competitive ⇒ gap is PURE SEARCH ⇒ eval work dead for good. NGN clearly
-   HIGHER ⇒ eval QUALITY is part of the gap** (and the self-play "earners" were load-bearing-for-NGN, not absolute).
-2. **M2 depth deficit:** NGN vs Blunder, same positions + same TC — plies reached, split middlegame vs endgame.
-   Quantifies + localizes the search gap. `scripts/h2h.sh` gives node/tree to a fixed depth; extend to
-   depth-reached-in-fixed-time (parse each engine's `info depth`).
-3. **M1 loss classification (most direct, most tooling):** NGN's actual LOSSES to Blunder 7.4.0 (`-tc 120+1`), each
-   NGN move scored by SF18, label the decisive error — tactical (depth) / positional (eval) / endgame (technique) /
-   time. Needs game (PGN) capture from the harness.
-
-**SYNTHESIS:** combine the three → the evidence-based hypothesis, FACTS (numbers) clearly separated from INTERPRETATION.
-That committed write-up — "why Blunder beats NGN, with data" — is the day's deliverable for Bryan to review.
-
-**PRE-REGISTERED DECISION LOGIC (committed 2026-06-02 BEFORE the decisive M3 number, to guard against fitting the
-story to a noisy result — the n=6 probe hinted "NGN eval worse" but big effects on tiny n regress hard):**
-- M2 already shows (preview) a clear ENDGAME depth deficit (+3 to +7 ply) and ~0 in mg ⇒ an endgame SEARCH factor is
-  in regardless of M3. The open question M3 settles is whether MIDDLEGAME EVAL is ALSO a factor.
-- **If M3 (mg ACPL, matched-compute) shows NGN ≈ Blunder (Δ within ~±2 cp/move ≈ noise floor):** middlegame eval is
-  competitive ⇒ hypothesis = **the gap is SEARCH, concentrated in endgame depth** (eval work stays dead). M1 should
-  then show losses skewed endgame-technique + tactical(depth), not middlegame-positional.
-- **If M3 shows NGN clearly WORSE (Δ ≳ +4-5 cp/move, holding at matched-compute nodes so it's not just NGN's bigger
-  tree):** middlegame eval QUALITY is a real second factor ⇒ hypothesis = **two factors: weaker mg eval + endgame
-  search depth.** Then localize: per-phase ACPL + which term/PST (the self-play "earners" were NGN-relative, not
-  absolute-vs-Blunder). M1 should then also show middlegame-positional losses.
-- Δ scale anchor (from the night's ACPL validation): ~+3.2 cp/move corresponded to ~-145 self-play ELO, so a few
-  cp/move is a LARGE effect; <~2 cp is corpus-choice noise. Report the matched-compute (nodes) Δ as primary (depth-6
-  flatters NGN's bigger tree).
-
-## >>> DIAGNOSIS RESULT (2026-06-02) — why Blunder beats NGN, with data. M2+M3 IN; M1 real-game confirmation pending. <<<
-
-**BOTTOM LINE:** the ~+85-150 ELO gap is PRIMARILY an **endgame SEARCH-DEPTH deficit**, plus a **localized
-late-middlegame (phase 7-11) eval gap**. NGN's eval is NOT a broad liability — at matched compute it's competitive in
-the middlegame and FINE in the endgame. BOTH prior framings are refuted: "eval-is-a-liability/lean-it" (the eval is
-competitive) AND "eval is the whole bottleneck" (it's mostly search). The truth is specific and actionable.
-
-**FACTS (instruments: scripts/m2_depth.sh, cmd/oracle acpl; SF14/SF18 ground truth; all vs blunder_740 / CCRL 2532):**
-- **M2 depth-at-matched-time (3 budgets 1000/1500/2000ms, incl. one idle-clean):** mg deficit ~0-2 ply (NGN ≈ Blunder);
-  **eg deficit +4 to +7 ply** (quiet rook eg: NGN d16 vs Blunder d22), stable across budgets. NGN burns MORE nodes to
-  reach FEWER eg plies (the 2.5-5x eg-tree explosion, now a concrete depth deficit).
-- **M3 eval ACPL (240 mg/eg positions, matched-compute = primary read):** overall NGN ≈ Blunder (+2.7cp, ~noise). Per
-  phase: mg +3.6 (competitive), **late-mg/phase-7-11 +9.9 (real, search-proof gap)**, eg **-1.3 (NGN's eg eval is fine)**.
-  NGN's eval is noisier shallow (+9.8 @d6 → -3.1 @d12): Blunder leans on a clean shallow eval, NGN on search.
-
-**HYPOTHESIS (evidence-based):**
-1. **PRIMARY — endgame search depth.** NGN's eg EVAL is fine (M3 eg -1.3) ⇒ it doesn't MISjudge endgames, it
-   UNDER-SEARCHES them (M2 +4-7 ply shallow, from the bigger eg tree). Blunder out-searches NGN exactly where depth
-   decides games (technique, zugzwang, forcing lines). **This is where the games are lost.** Lever = endgame search
-   efficiency (shrink the eg tree / reach more depth) — known HARD ([[project_endgame_tree_diagnostic]] refuted the
-   standard pruning knobs), but now CONFIRMED as the dominant factor, not just a suspect.
-2. **SECONDARY, ACTIONABLE — late-middlegame (phase 7-11) eval.** NGN gives up ~+9-10 cp/move more than Blunder here,
-   and search does NOT close it. Phase 7-11 is EXACTLY where evaluateUnsafe disables both king terms (safety gated
-   `phase>=12` :2480, activity gated `phase<6` :2482). NUANCE (read the code): the tapered PeSTO king PST STILL applies
-   in 7-11, so it's the ADDED king-safety(attack) + king-activity(centralization) SIGNALS that vanish; and the activity
-   gate was DELIBERATELY narrowed (comment :2483-85 — wider windows "interfered with tactical search where leaves drop
-   below phase=12 mid-combination"), so a naive widen risks regressing tactics. CANDIDATE FIX (record only, read-only
-   mandate): a TAPERED king term across 7-11 (not a hard widen), fixed-nodes SPRT vs the leaf-stability risk. Confirm
-   the +9.9 with more phase-7-11 positions (n=56).
-3. **NOT a factor — middlegame/endgame eval quality at equal compute.** The verbose ~2750-line eval (vs Blunder's
-   560) computes the SAME terms, competitively tuned. Leaning it (the night's sweep) was a non-problem; bishop-pair
-   (the one harmful term) is already removed.
-
-**SYNTHESIS:** NGN compensates for a shallow-noisier eval with DEEP SEARCH. That works in middlegames (it reaches
-Blunder's depth) but breaks in endgames (4-7 ply shallower ⇒ its depth-dependent quality collapses) and leaves a
-hole in phase 7-11 (king-eval gap). Dominant lever = ENDGAME SEARCH; cheap localized lever = the phase-7-11 king term.
-**M1 prediction:** losses skew endgame-technique + tactical(depth), some late-mg positional, FEW clean middlegame-positional.
-(M1 STOPPED at 7 games / 2 losses 2026-06-02 PM — Bryan steered to ACTION; the M2+M3 diagnosis is solid, M1 was gravy.)
-
-## >>> EXECUTION ROADMAP (2026-06-02 PM, Bryan steered: "stop analyzing, take action; study what Blunder did to improve") <<<
-
-**KEY REFRAME (evidence, supersedes the speed-first pivot AND any "eval is the bottleneck"):** per-node SPEED is NOT the
-main lever and NGN has no structural speed bug — VERIFIED it already has packed-uint32 moves, incremental Zobrist hash,
-incremental PST/material, magic bitboards, array-stack repetition (no map in the hot path), captures-only qsearch movegen,
-0 per-node allocs (test-enforced). The ~2x is distributed micro-overhead + a heavier eval (night recovered ~11%). **Blunder's
-own changelog (opponents/.src/docs/changelog.md, read to v8.5.5) confirms its +~400 ELO (5.0.0→8.5.5) came overwhelmingly
-from TUNING + search refinement, NOT raw speed** (one speed rewrite 5.0.0, one +10-15% movegen 8.0.0; everything else =
-search techniques + relentless tuning). Its two biggest documented levers are exactly where NGN is behind:
-- **Search-param tuning** (Blunder 7.3.0 "most of the gain from slight tweaks to LMR/NMP/futility params/conditions" +45-60).
-  NGN's are HAND-SET ROUND NUMBERS (search.go:14-22: NULL_MOVE_R=3, LMR_FULL_DEPTH=3, FUTILITY_MARGIN=200,
-  REVERSE_FUTILITY_MARGIN=120, RAZORING_MARGIN=400) — never tuned.
-- **Gradient-descent (AdaGrad) eval tuner** (Blunder 8.0.0 → "stronger, more streamlined eval"). NGN still uses
-  COORDINATE DESCENT over only PSTs+material (engine/texel.go TexelTune) — the naive method Blunder REPLACED. This is
-  precisely the M3 finding (eval competitive but noisier-when-shallow).
-
-**ROADMAP (classic, NO NNUE — Bryan: 2800 on classic+speed — highest-confidence first):**
-1. **phase-7-11 king term** (our measured defect, fastest) — IN FLIGHT: lowered king-safety gate 12→7 (eval.go), fixed-nodes
-   SPRT `ngn_kingphase` vs `ngn_base`, output/sprt_kingphase.log, task bbt5nkz82. KEEP if non-regression (closes the +9.9cp hole).
-2. **Search-param tuning via SPRT** (Blunder's #1 repeated lever; ours untuned). One param/direction at a time, fixed-nodes,
-   confirm batches via `-tc` gauntlet (self-play SPRT gains can be transfer-mirages). RFP/futility margins + NMP-R + LMR table first.
-3. **Gradient-descent tuner** (Blunder's biggest eval lever; build AdaGrad in cmd/texel, retune the FULL eval incl. term weights,
-   not just PSTs). Biggest structural eval investment; cleans up the noisier-shallow eval.
-4. **Secondary:** endgame-tree search efficiency (biggest gap, HARDEST — [[project_endgame_tree_diagnostic]] refuted standard
-   pruning knobs) + behavioral per-node speed (staged/lazy movegen — the one real speed avenue NGN lacks; SPRT-gated).
-
-**DISCIPLINE:** SPRT-gate every change (fixed-nodes for eval, fixed-time for node-spenders), KEEP RULE (improvement-or-non-
-regression ⇒ keep; reject only on a measured regression), never batch, one SPRT at a time, confirm batches on the `-tc` gauntlet.
-
-## >>> AUTONOMOUS DAY (2026-06-02) — SUPERSEDED PM: diagnosis DONE, now EXECUTING the roadmap above (Bryan steered to action) <<<
-
-**MANDATE (Bryan at his day job, peeking in periodically):** proceed continuously; NEVER idle, NEVER ask, DECIDE
-measurement order/depth ([[feedback_decide_dont_ask]]). **This is a READ-ONLY DIAGNOSIS — measure, record, synthesize;
-do NOT change the engine (search/eval).** The deliverable is EVIDENCE + a hypothesis for Bryan to review on a peek-in;
-an intuition-driven engine change is exactly the oscillation he stopped. The background measurement is the heartbeat
-(its completion re-invokes me — do NOT poll/ScheduleWakeup); tooling-builds + next-measurement prep + the synthesis
-writeup fill the gaps.
-
-**FIRST ACTIONS on "reanchor and proceed":**
-1. `caffeinate -i -t 39600` background (keep-awake; the night's has likely expired).
-2. **Verify tooling, build minimal gaps (gated: `go build ./...` green + a sanity check):** SF18 present
-   (`/opt/homebrew/bin/stockfish`); READ `cmd/oracle` for the exact `-mode acpl` invocation + whether it takes an
-   arbitrary `-bin` so it can analyze BLUNDER too (if not, add a small `-bin` flag); `scripts/h2h.sh` runs; for M1,
-   confirm/ADD PGN capture to the gauntlet/sprt harness. Tooling commits are FINE (they don't touch engine strength).
-3. Launch **M3** (NGN ACPL vs SF18 on a quiet corpus) in the background; while it runs, wire/verify the Blunder-ACPL path.
-
-**THE LOOP (event-driven):** measurement completes → record the FACTS in the DIAGNOSIS LOG below (numbers only) + my
-reading flagged SEPARATELY as HYPOTHESIS → launch the next measurement → when all 3 land, write the SYNTHESIS →
-never-run-dry: DEEPEN (more positions, finer mg/eg split, more games, a 2nd `-tc` anchor) → commit each.
-
-**DECISION DISCIPLINE:** separate FACT from HYPOTHESIS always. If the data points to a clear fix, WRITE IT DOWN as a
-recommendation with the supporting numbers — do NOT execute it. The only safe autonomous engine change is a
-node-identical speedup (can't lower strength) and that lane is EXHAUSTED ⇒ effectively NO engine edits today.
-
-**SECONDARY FILL (foreground while a measurement runs):** rebuild a usable gauntlet anchor set — `./build/gauntlet
--probe` reports which Blunder versions honor `stop`; `-movetime` mode is BROKEN (6.1.0/7.2.0 ignore stop → dead;
-7.4.0 taints on forfeits), but `-tc 120+1` works for the full ladder (real clock sends wtime/btime, never `stop`). A
-2-3 anchor `-tc` set tightens the absolute number (now 1-anchor 7.4.0, ±175). This is INSTRUMENT repair, not an engine
-change — allowed.
-
-**ANTI-OSCILLATION:** the speed-first / eval-is-a-liability thesis is DEAD. Do NOT resume eval-term deletion or speed
-micro-opts. DROP the pending rook-open delete (it was neutral −2.2 — exactly the ~0-ELO churn Bryan flagged; tree is
-already clean, nothing to revert). Every future engine change must trace to a MEASURED cause from this diagnosis.
-
-**RULES (every turn):** single-sentence commits, no co-author, no emoji, commit LOCAL — DO NOT push. Never P-cores
-(`-lowpower true`). RECORD each measurement's facts in the DIAGNOSIS LOG + commit the same turn. Pre-existing broken
-tests to IGNORE: EnginePlayingStrength (SAN/UCI format), ConcurrencyStress (shared-pos race), ordering (flaky under
-parallel). [[feedback_decide_dont_ask]] [[feedback_long_autonomous_sessions]] [[feedback_canonical_measures]] [[oracle_acpl]]
-
-**DIAGNOSIS LOG (FACTS — newest last; interpretation flagged separately):**
-- **L4 rook-open deletion (completed overnight, self-play fixed-nodes SPRT, output/sprt_l4.log):** removing
-  rook-open = **Elo -2.2 [-26,+22]** over 800 games (336-123-341), LLR +0.01 (inconclusive, book-capped).
-  FACT: rook-open removal is neutral-to-slightly-negative ⇒ KEEP it (no code change, tree clean). HYPOTHESIS-
-  RELEVANT: this completes the expensive-term sweep at **5 of 6 terms are keepers** (outposts +9, mobility +66,
-  king-safety +32, rook-open ~-2-to-keep; bishop-pair -20 was the lone harmful term, deleted). ⇒ the eval is
-  well-tuned/load-bearing for NGN-vs-NGN, NOT bloated. (Still a self-play frame — says nothing about Blunder; M3 settles that.)
-- **M3 EVAL ACPL — DONE (2026-06-02, output/m3_acpl.log).** Corpus: 240 balanced middlegame/endgame positions (121
-  NGN-self-play + 119 Blunder-self-play, phase-filtered to drop openings; 56% mg / 23% late-mg / 20% eg) labeled by
-  SF14 MultiPV-6. (NOTE: a first 300-FEN corpus was 95% OPENING positions — gencorpus never escaped the opening in 30
-  plies — and was DISCARDED; regenerated deeper+phase-filtered.) FACTS — NGN vs blunder_740 ACPL (cp/move vs SF, lower=better):
-  - **depth-6 (eval-leaning): NGN 33.6 vs Blu 23.8, Δ +9.8 (NGN WORSE).**
-  - **nodes-50000 (matched compute): NGN 26.1 vs Blu 23.4, Δ +2.7 (NGN marginally worse, borderline noise).**
-  - **depth-12 (eval+search): NGN 16.7 vs Blu 19.8, Δ -3.1 (NGN BETTER).**
-  HYPOTHESIS (flagged): NGN's eval is NOT a major standalone middlegame liability — at matched compute it's ~equal
-  (+2.7, near the ~2cp noise floor). The striking pattern is DEPTH-DEPENDENCE: NGN's shallow-search move quality is
-  notably worse (+9.8 @d6) but improves far more with depth (33.6→16.7) than Blunder's (23.8→19.8), overtaking it by
-  d12. Read: **Blunder leans on a clean shallow eval; NGN leans on SEARCH to fix a noisier eval.**
-- **M3 PER-PHASE split — DONE (2026-06-02, output/m3_phase.log). The most actionable result of the day.** ACPL Δ
-  (NGN−Blunder, cp/move) by phase:
-  - **mg (135 pos): d6 +10.9, matched-compute +3.6** — NGN's eval noisier shallow, but search compensates ⇒ ~competitive.
-  - **late-mg / PHASE 7-11 (56 pos): d6 +9.0, matched-compute +9.9** — NGN clearly worse AND search does NOT close it
-    (both reads ~+9, unlike mg). A real eval gap that depth can't fix.
-  - **eg / phase 0-6 (49 pos): d6 +7.9, matched-compute -1.3** — at matched compute NGN's ENDGAME eval is FINE (≈ Blunder).
-  TWO HYPOTHESES (flagged; both need confirmation, small per-phase n):
-  1. **The endgame gap is PURE SEARCH, not eval.** Eg eval at matched compute is ≈ Blunder (-1.3); combined with M2's
-     3-7 ply eg depth deficit ⇒ NGN loses endgames by searching too shallow, NOT by misjudging them. Eval work stays dead for eg.
-  2. **A localized LATE-MIDDLEGAME (phase 7-11) eval gap (+9.9 matched-compute, search-proof) aligns with a concrete
-     code mechanism:** evaluateUnsafe gates king-safety to `phase>=12` and king-activity to `phase<6`, so in phase
-     7-11 the king gets NEITHER term — exactly the bucket that spiked. CANDIDATE FIX (record only, do NOT implement
-     per read-only mandate): a continuous king term across phase 7-11, fixed-nodes SPRT to validate. CONFIRM the +9.9
-     with more phase-7-11 positions first (n=56 is thin, though d6 and matched-compute agreeing at ~+9 is reassuring).
-- **Blunder eval coverage (FACT, verified against opponents/.src/engine/evaluation.go):** Blunder 7.4.0's eval is
-  **560 lines** (the long-repeated "228" was WRONG — corrected in docs/memory) and covers the SAME standard terms as
-  NGN — tapered MG/EG PeSTO, isolated/doubled/passed pawns, knight outposts, N/B/R/Q mobility, king-safety attack
-  tables, semi-open-file-by-king. NGN's eval is ~2750 lines for the same concepts ⇒ verbosity, not extra richness.
-  IMPLICATION: comparable term coverage makes M3's ACPL an apples-to-apples eval-QUALITY read (a gap, if any, is
-  tuning/bugs, not missing features).
-- **M1 tooling BUILT + validated (2026-06-02 AM):** capture = `gauntlet -pgn <file>` (uci.GameConfig.MovesOut out-
-  pointer) writes every game's result/color/reason/moves; analysis = `oracle -mode classify -games <pgn> -sf SF
-  -sfdepth N` replays each NGN loss, evals NGN-POV per ply (clamped ±1500 so the forced mate doesn't mask the
-  originating error), tags TACTICAL (sudden ≥200cp drop = search/depth) vs POSITIONAL (gradual = eval) × phase.
-  Validated on a 2-game test (one positional, one 613cp-tactical). M1 games need a solo `-tc` run (hours) — sequence
-  after M2.
-- **M2 depth-deficit — TWO time budgets, consistent (2026-06-02, under M3-label SF load ⇒ the NGN-vs-Blunder ratio is
-  the read; a pristine no-load pass is queued after M3):**
-  - **@1000ms:** mg deficit +1/0/0 ply (mid d10/d11, mid2 d11/d11, kiwipete d9/d9); **eg +3 ply (pp-end d16/d19) and
-    +7 ply (quiet-end d15/d22).**
-  - **@2000ms:** mg +0/+1/0 (mid d12/d12, mid2 d12/d13, kiwipete d11/d11); **eg +3 ply (pp-end d17/d20) and +6 ply
-    (quiet-end d17/d23).**
-  - **@1500ms CLEAN (idle cores, no SF — pristine):** mg +1/+2/0 (mid d11/d12, mid2 d11/d13, kiwipete d10/d10);
-    **eg +4 ply (pp-end d16/d20) and +6 ply (quiet-end d16/d22).** Confirms the under-load reads; deficit is real, not contention.
-  - FACT: NGN matches Blunder's search depth in MIDDLEGAMES (~0-1 ply) but is **3-7 plies SHALLOWER in ENDGAMES**, and
-    this is STABLE across both budgets. The 2.5-5x endgame-tree explosion as a concrete, time-budget-robust depth
-    deficit; ENDGAME-SPECIFIC (mg is fine). NGN burns MORE nodes to reach FEWER plies in eg (quiet-end 1s: 535k@d15
-    vs Blunder d22). Mechanics: Blunder 7.4.0 yields on `stop` via the paced pipe. (m2 node column dropped — Blunder
-    resets per-iteration.)
+**Implementation:** new code in engine/texel.go + a `cmd/texel -mode gradient` (keep coordinate descent as fallback). Phase strictly: (a) trace+cache+reproduce-MSE → commit; (b) Adam over the full set → tuned values; (c) SPRT/gauntlet → KEEP/revert.
 
 ---
+
+## TUNING PRIMER (distilled — the concept behind the spearhead; full thesis in the 2026-06-02 chat)
+
+- **An eval = Σ wⱼ·featureⱼ.** Features = human concepts (material, PST, mobility, king safety); weights = the knobs. Tuning = set the knobs from data.
+- **Texel tuning = the OBJECTIVE:** map eval→win-prob with sigmoid `σ(s)=1/(1+10^(−K·s/400))`, label each quiet position with its GAME RESULT (1/0.5/0), minimize MSE `E=mean((result−σ(eval))²)`. Turns "is the eval good?" into "does it predict outcomes?" — a number to minimize.
+- **Coordinate vs gradient descent = two SOLVERS for that SAME objective.** Coord (NGN now): nudge each knob, keep good nudges — derivative-free, slow, axis-bound. Gradient (Blunder 8.0): closed-form best direction for ALL knobs at once (eval is linear in weights) — 100-1000x faster AND a better minimum (moves correlated params jointly). AdaGrad/Adam = gradient + smart per-knob step sizes. "Texel" and "gradient" aren't rival techniques — gradient is the good solver FOR Texel.
+- **NNUE = the SAME objective + optimizer, eval function swapped for a neural net, human features REMOVED** (raw piece-square inputs; the net learns king-safety/mobility itself; millions of params; ~+300-400 ELO). NGN's incremental PST accumulator (accMG/accEG) is literally a 1-neuron linear NNUE. ⇒ the gradient tuner we build now is the NNUE on-ramp.
+- **The blunder-finder (oracle/ACPL) is the DIAGNOSTIC TWIN of tuning, not a loose cousin.** Tuning minimizes distance to GAME RESULTS; the blunder-finder measures distance to STOCKFISH. Same latent target (true value), two estimators (results=unbiased/noisy; SF=low-variance/slightly-biased). Blunder-finder = the loss made VISIBLE (where the eval is wrong, e.g. phase 7-11); tuning = the loss MINIMIZED. And SF-eval is itself a valid tuning TARGET (distillation) — modern NNUE pipelines blend WDL+engine-eval. So diagnose (ACPL/phase-split) → tune (gradient) → verify (SPRT/gauntlet) is ONE closed loop.
+
+---
+
+## DIAGNOSIS RESULT (2026-06-02) — why Blunder beats NGN, with data (the evidence the plan rests on)
+
+Read-only instruments built this day: `scripts/m2_depth.sh` (depth at matched time) + `cmd/oracle acpl` (cp-loss vs SF MultiPV). All vs blunder_740 (CCRL 2532).
+- **M2 — depth at matched TIME (3 budgets 1000/1500/2000ms, incl. one idle-clean):** NGN ≈ Blunder depth in MIDDLEGAMES (~0-2 ply) but **+4 to +7 ply SHALLOWER in ENDGAMES** (quiet rook eg: NGN d16 vs Blunder d22), budget-stable. The 2.5-5x eg-tree explosion as a concrete depth deficit; NGN burns MORE nodes to reach FEWER eg plies.
+- **M3 — eval ACPL (240 mg/eg positions, matched-COMPUTE nodes=fair read; depth-6 flatters NGN's bigger tree):** overall NGN ≈ Blunder (+2.7cp). Per phase: mg **+3.6** (competitive), late-mg/phase-7-11 **+9.9** (real, search-PROOF eval gap), eg **-1.3** (NGN's endgame eval is FINE). NGN's eval is noisier SHALLOW (+9.8 @d6 → -3.1 @d12): Blunder leans on a clean shallow eval, NGN on search.
+- **HYPOTHESIS:** (1) PRIMARY = endgame SEARCH DEPTH (eg eval is fine ⇒ NGN doesn't misjudge endgames, it under-searches them). (2) ACTIONABLE = phase-7-11 king-eval gap (king-safety gated `phase>=12`, activity `phase<6` ⇒ neither fires at 7-11; → king SPRT in flight; the gradient tuner is the systematic fix). (3) NOT a factor = mg eval QUALITY at equal compute, NOR per-node speed (quality tradeoff, ~15-20% ceiling, no bug, GC free).
+- M1 (real-game loss classification: gauntlet `-pgn` + oracle `classify`, both built) was stopped at 7 games when Bryan steered to action; the hypothesis stands on M2+M3.
+
+---
+
+## IN FLIGHT
+- **phase-7-11 king-eval SPRT** (task b3ujnoooq, `output/sprt_kingphase.log`): lowered king-safety gate `12→7` (eval.go) to cover the M3 hole; fixed-nodes, ngn_kingphase vs ngn_base, ~1h. On reanchor: read the verdict, KEEP if non-regression (closes a measured hole) / revert if regression. A point fix — the gradient tuner subsumes it (tuning king-safety across phases). build/ngn_kingphase + build/ngn_base on disk.
+
+---
+
+## INSTRUMENTS (the toolbox — all built + validated)
+- **cmd/sprt** — self-play SPRT. fixed-NODES = eval A/B (contention-immune); fixed-TIME = search A/B. ~800 games/run (400-opening book ×2 is the real cap). `-elo0/-elo1` match the decision ([-5,0] non-regression / [0,10] gain); mingames ~64 (NOT high — defeats the early-stop).
+- **cmd/gauntlet** — absolute CCRL rating vs Blunder anchors. **USE `-tc 120+1`** (movetime mode BROKEN — anchors ignore `stop`). `-pgn` captures games.
+- **cmd/oracle** — eval-quality diagnostics (the blunder-finder): `gencorpus`→`label` (SF MultiPV)→`acpl` (cp-loss vs SF, A/B; `-depth` eval-leaning / `-nodes` matched-compute) + `classify` (loss tactical-vs-positional × phase, mate-clamped). SF18 at /opt/homebrew/bin/stockfish.
+- **cmd/texel** — the tuner (gendata + tune). THE UPGRADE TARGET (→ gradient).
+- **scripts/m2_depth.sh** (depth at matched time — eg deficit), **scripts/h2h.sh** (fixed-depth node/nps decomposition), **scripts/nodecheck.sh** (node-identity gate for speed changes), **TestHotPathAllocationFree** (per-node alloc gate).
+
+═══════════════════════════════════════════════════════════════════════════════
+## ▼▼▼ HISTORICAL ARCHIVE (superseded — kept for the detailed record + lessons; THE PLAN ABOVE GOVERNS) ▼▼▼
+═══════════════════════════════════════════════════════════════════════════════
 
 ## NIGHT RECORD (2026-06-01 PM → 06-02 AM) — COMPLETE & SUPERSEDED by THE DIAGNOSIS above. The "RUN ALL NIGHT" mandate/loop below is DONE — do NOT re-execute it; kept only for the detailed results + lessons. <<<
 
