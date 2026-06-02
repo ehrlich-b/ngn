@@ -1,34 +1,50 @@
 # NGN Chess Engine - Development Roadmap
 
-## Goal: 2800 ELO. NEXT MILESTONE: GM ≈ 2500 — beat Blunder 7.4.0 (CCRL 2532) regularly. Now 2380 (gauntlet, real-clock), gap ~150.
+## Goal: GM ≈ 2500 (beat Blunder 7.4.0 / CCRL 2532 regularly), then 2800. Now ~2350-2400 CCRL, TC-sensitive. **STRATEGY (2026-06-01 PIVOT): BE THE FASTEST GO CHESS ENGINE. Speed/leanness is THE lever — not eval/search sophistication.**
 
 ---
 
-## THE CONTROL LOOP — how to climb without oscillating (READ FIRST, every reanchor)
+## THE FRAME — speed-first (READ FIRST, every reanchor; SUPERSEDES the old "rich classical eval" control loop)
 
-The recurring failure mode is an UNDERDAMPED loop: high gain (flipping the whole framing on one
-noisy probe), lag (acting on stale measures), weak integral memory (re-deriving + re-deciding settled
-questions), chasing the derivative (reacting to noise). This is the standing, damped loop. It supersedes
-the dated AUTONOMOUS-SESSION block below.
+**The cope is dead (Bryan, 2026-06-01, emphatic).** We kept claiming NGN's eval/search sophistication meant speed
+wasn't the priority, then excusing every loss with "we're slower." Those are incompatible. The dispositive fact:
+**Blunder is ~228 lines of eval to our ~2400, ~2x faster per node, searches a TIGHTER tree, and is +150 ELO
+STRONGER.** A simpler/faster/dumber-eval engine beats us at every TC. Sophistication is NOT compensating — it's a
+**net liability** (costs speed + tree size, doesn't buy it back). Complexity is **guilty until proven** in a real
+measurement; be willing to **DELETE** eval terms / search features, not just add (the 2400-line eval is a suspect, not a trophy).
 
-**Setpoint (FIXED — don't re-litigate):** NOW = beat Blunder 7.4.0 (2532) regularly ⇒ GM≈2500 (gap ~150);
-THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play SPRT. NEVER a Stockfish-slider number.
+**Self-play SPRT gains are largely MIRAGES.** +168 (time-mgmt) / +37 (promo) / ~+12 (NMP/SEE) were each measured vs an
+OLD VERSION OF OURSELVES and did NOT show up in the gauntlet (still ~2350-2400). Beating your former self by exploiting
+its specific weakness ≠ stronger vs a real opponent. The one real recent gain — A4 +19 — was a **SPEED** change. Speed
+is the only gain that transfers: more NPS → more depth → stronger vs ANYTHING. Treat self-play SPRT deltas as
+transfer-suspect; prefer node-identical speedups whose strength can only go up.
 
-**One iteration = one candidate change:**
-1. **SENSE** — read the CANONICAL instrument, never re-derive: ELO=`gauntlet` · relative=`sprt` · tree+per-node=`scripts/h2h.sh` · CPU profile=`BenchmarkSearchProfile`. ONE number per quantity. A stale written number gets fixed in ALL files THIS turn (no notice-and-forget).
-2. **PRIOR** — consult the ranked lever queue (SPEED LANE below) + memory. Don't re-open settled KEEP/REJECT/PARK calls.
-3. **PREDICT** — before touching code, write what the change should move and which instrument will show it. Enumerate candidates + their signatures TOGETHER and run the ONE decisive experiment — do NOT chase hypotheses one-at-a-time (that's the thrash that ate the endgame audit).
-4. **ACT** — one change, SEPARATE binary, never batch, never `make` mid-gate.
-5. **GATE** — [NEUTRAL] ⇒ 3-baseline node-identity via committed `scripts/nodecheck.sh` (baselines baked INTO the script = current main; RECOMPUTE them in the script after any kept [BEHAVIOUR] change, e.g. de-pad shifted them). [BEHAVIOUR] ⇒ fixed-TIME SPRT to a bound, ≥1000 games. Node count ≠ strength. **MATCH THE TC TO THE CHANGE:** pure-throughput (movegen/NPS) shows at 200ms; depth/quality-scaling changes (TT size, eval, search quality) are UNDERCREDITED at 200ms (de-pad read flat at 200ms, benefit is at deeper searches) ⇒ test those at ~600-1000ms, nearer the CCRL TC. A sound fix with no big regression can be kept without grinding to a bound (Bryan's policy, commit fa9cc02).
-6. **DECIDE (hysteresis = the KEEP RULE)** — clear improvement OR correctness + NO regression ⇒ KEEP, even if small/within-noise. REJECT only when BOTH non-correctness AND a concrete measured regression. "Too small to resolve" is not a reason. [[feedback_confirm_before_dropping_findings]]
-7. **RECORD** — commit checkpoint + update TODO + memory the SAME turn. The write-down IS the integral term that stops re-derivation.
+**VERIFY, don't claim.** "Hot path allocation-free" (T1) was silently FALSE for ages — probcut escaped a per-node
+[256]Move (34MB/run), caught only by the profiler, never a test. **The profiler is the source of truth, NOT the
+changelog.** Every perf claim gets an enforcing test — `TestHotPathAllocationFree` is the template (fails the build on
+a per-node-alloc regression).
 
-**Damping gains (the refresh — the explicit anti-oscillation rules):**
-- **LOW GAIN:** one noisy probe does NOT flip a ranking; overturning a lever's rank needs a decisive experiment, not a single node-count wiggle.
-- **FILTER NOISE:** ignore <50 ELO chases and within-instability node deltas (PROVEN: single-position node counts can't rank pruning/TT knobs — [[project_endgame_tree_diagnostic]]).
-- **STABLE SETPOINT:** goal + lever ranking change only on LOGGED evidence, never vibes.
-- **NO RE-LITIGATION:** cite the memory; a settled call stays settled absent new evidence.
-- **DECIDE, DON'T ASK:** prioritization is mine ([[feedback_decide_dont_ask]]); only a SUPERVISED multi-hour SPRT needs Bryan's nod.
+**Setpoint (FIXED):** GM≈2500 ⇒ 2800. Absolute truth = `make gauntlet`, run ONCE after a speed batch — NOT
+continuously: it pins cores (corrupting the very NPS measurement it informs) and measures a stale mid-optimization
+binary. NEVER a Stockfish-slider number.
+
+## THE LOOP — one speed change at a time (damped discipline kept; instrument is now the PROFILER + NPS)
+1. **PROFILE (needs FREE cores — no concurrent gauntlet/SPRT; contention corrupts NPS)** — `go test ./engine/
+   -run=^$ -bench=BenchmarkSearchProfile -cpuprofile=/tmp/c -memprofile=/tmp/m` then `go tool pprof -top`/`-list`.
+   Attack the biggest per-node cost. Ranking after the probcut-alloc fix (967d9bd): **Evaluate ~15%, SEE ~9%,
+   movegen ~8%, move-ordering ~8%, make/unmake ~8%** (the NewCache 176MB in the profile is a benchmark artifact — it
+   reallocs the TT per op; real games reuse the global TT).
+2. **ACT** — one optimization, SEPARATE binary (`build/ngn_fast`), never batch, never overwrite `build/ngn` mid-measure.
+3. **GATE** — (a) `scripts/nodecheck.sh <bin>` matches baselines EXACTLY (node-identical = behavior-neutral, the
+   default for a pure speed change); (b) `go test -run TestHotPathAllocationFree` (no per-node alloc regressed);
+   (c) clean NPS delta on FREE cores (`TestProfileHotPath` / `BenchmarkCriticalPath`).
+4. **DECIDE (KEEP RULE)** — faster + node-identical ⇒ automatic KEEP (can't lower strength, only raise it; no SPRT
+   needed). A change that ALTERS the node count is [BEHAVIOUR] = transfer-suspect (self-play SPRT unreliable); avoid
+   unless it's a genuine pruning win. REJECT a speed change only if slower or it regresses behavior.
+5. **RECORD** — commit + update TODO/memory the SAME turn (the integral term that stops re-derivation).
+
+**Damping (unchanged anti-oscillation):** one noisy probe doesn't flip a ranking; ignore <50-ELO / within-noise node
+deltas; settled calls stay settled absent new evidence; **DECIDE, DON'T ASK** on prioritization ([[feedback_decide_dont_ask]]).
 
 ---
 
@@ -63,16 +79,29 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   one-liner `reducedDepth := nextDepth - reduction` is recorded there if revisited). LESSON: a "correctness"
   invariant fix is NOT automatically a strength win — applying a long-dead extension can cost more (tree bloat)
   than it gains (tactical depth); the engine had implicitly tuned around the dead code.
-- **>>> RUNNING NOW (launched 2026-06-01 ~20:00): FRESH REAL-CLOCK GAUNTLET — pid 22444, watcher task b0v3ob8ua, log output/gauntlet_realclock.log <<<**
-  `taskpolicy -b build/gauntlet -tc 120+1 -only v6.1.0,v7.2.0,v7.4.0,v8.0.0 -games 16` (real CCRL Blitz TC 2'+1",
-  conc-1, 4 anchors bracketing 2155/2425/2532/2674, 64 games, ~4-5h). The lone prior gauntlet (2401 [2252,2550])
-  was 72 commits / ~+68 self-play ELO stale (promo +37, A4 +19, NMP+SEE ~+12) AND the +168 time-mgmt fix
-  (fdbf565) UNBLOCKED real-clock play — so this is the FIRST true-CCRL-conditions number, no movetime-bias caveat.
-  Est ~2410 (range 2350-2450); AT or NEAR 2500 = big news. **WHEN IT LANDS (watcher b0v3ob8ua wakes me):** check
-  the integrity line (≥1 anchor >50% AND ≥1 <50%, else it's an extrapolation — 610 should be the >50% floor, 740
-  the <50% ceiling), then record the pooled rating + per-anchor crosstable, and FIX THE STALE DOCS
-  with the hard number (CLAUDE.md "~2380" + TODO line 3 "2380 real-clock" are both wrong — wrong value, and that
-  run was movetime not real-clock). This real-clock number replaces all estimation.
+- **>>> SPEED LANE IS NOW THE WHOLE GAME — first win banked, gauntlet cancelled (2026-06-01 PIVOT) <<<**
+  - **PROBCUT ALLOCATION FIX — DONE, KEPT, ON MAIN (commit 967d9bd).** The profiler caught probcut escaping a
+    per-node `[256]Move` to the heap (34MB/run) — so "allocation-free hot path" (T1) had been silently FALSE.
+    Fixed by routing generation through the preallocated `frame.moveBuffer`. VERIFIED: node-identical (nodecheck
+    EXACT 1319650/1188433/772119) + per-node allocs now **0.000000** (was the #1 alloc site). Added
+    **`TestHotPathAllocationFree`** (engine/profile_test.go) = the enforcement: fails the build if any per-node
+    alloc regresses. This is the template for "VERIFY, don't claim."
+  - **GAUNTLET CANCELLED** (was on anchor 2/4, no pooled number). It pins the E-cores (corrupting the NPS
+    measurement the speed loop needs) and was measuring a binary I'm now actively changing. Re-run it ONCE at the
+    end of a speed batch — never continuously.
+  - **LAST DATA POINT (bullet, output/bullet_vs2500.log):** NGN vs Blunder 7.4.0 (2532) @ 300ms/move, 40 games =
+    7W-8D-25L (27.5%), −168 ELO → perf ~2364. Bullet is NGN's WORST TC (the 2x per-node tax bites hardest at shallow
+    depth); consistent with ~2350-2400 + strong TC-sensitivity (31% @ 1000ms old gauntlet → 27.5% @ 300ms). NOT a
+    doc number.
+  - **NEXT (the loop, on FREE cores):** profile → attack the biggest per-node cost, in order from the post-fix CPU
+    profile: **(1) Evaluate ~15% (evaluateUnsafe / evaluatePeSTO), (2) staticExchangeEvaluation ~9%,
+    (3) GenerateMovesIntoBuffer ~8%, (4) scoreMovesIntoBuffer ~8%, (5) makeMoveHelper ~8%.** `build/ngn_fast` =
+    current main (probcut fix). Each change: SEPARATE binary → `scripts/nodecheck.sh` exact + `go test -run
+    TestHotPathAllocationFree` + clean NPS delta → KEEP iff faster + node-identical.
+  - **ALSO QUEUED (cope purge, Bryan greenlit):** strip the "rich eval / GM-without-speed / fewer-better-nodes"
+    framing from CLAUDE.md (the "GM Without NNUE" section) and the project_speed_lane memory — THE FRAME at the top of
+    this file supersedes it. The SPEED-LANE section below keeps its gap-decomposition DATA (good) but its
+    "eval-not-the-bottleneck" clause is dead.
 - **A1 de-pad TT — DONE, KEPT, ON MAIN (commit d1fb499).** SPRT stopped at G225: 49.8%, elo -1.5 [-47,+44] =
   neutral / no big regression. Kept per Bryan's sound-fix-no-grind policy (commit fa9cc02): free capacity (4x TT
   slots, removes single-thread-pointless padding, no plausible regression mechanism); the 200ms read is flat
