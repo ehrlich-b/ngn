@@ -2353,7 +2353,7 @@ func EvaluateForPlayer(board *Bitboard, player Color) int {
 
 // Tunable eval-term weights — hand-set magnitudes (never data-tuned) exposed as
 // package vars so the Texel tuner (cmd/texel) can fit them to game results. The
-// three pawn-structure values are direct centipawn weights; the seven term
+// three pawn-structure values are direct centipawn weights; the six term
 // weights are percentage multipliers (100 = identity), so these defaults
 // reproduce the original eval exactly. Tuned values are pasted back here.
 var (
