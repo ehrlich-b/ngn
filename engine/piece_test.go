@@ -35,6 +35,38 @@ func TestPieceCreation(t *testing.T) {
 	}
 }
 
+// TestPieceEnumLayout locks the contiguous White-then-Black Piece layout that several
+// hot-path speed optimizations encode arithmetically: GetPiece collapses to Piece(type)
+// for White and +6 for Black; isInCheck and findLeastValuableAttacker index enemy pieces
+// as WhiteX+offset; Clear/Move/UpdateSquare pick the color aggregate with `piece < BlackPawn`.
+// If the enum is ever reordered this fails loudly here instead of silently corrupting
+// movegen/eval (which only the deterministic node-count check would otherwise catch).
+func TestPieceEnumLayout(t *testing.T) {
+	// White pieces are Pawn..King = 1..6, Black pieces are Pawn..King = 7..12.
+	if WhitePawn != 1 || WhiteKing != 6 || BlackPawn != 7 || BlackKing != 12 {
+		t.Fatalf("Piece enum bands moved: WhitePawn=%d WhiteKing=%d BlackPawn=%d BlackKing=%d; "+
+			"want 1/6/7/12 (GetPiece/isInCheck/SEE/make-unmake arithmetic depends on this)",
+			WhitePawn, WhiteKing, BlackPawn, BlackKing)
+	}
+	for pt := Pawn; pt <= King; pt++ {
+		if Piece(pt) != GetPiece(pt, White) {
+			t.Errorf("Piece(%v)=%d != GetPiece(%v,White)=%d (white piece must equal its type)",
+				pt, Piece(pt), pt, GetPiece(pt, White))
+		}
+		if Piece(pt)+6 != GetPiece(pt, Black) {
+			t.Errorf("Piece(%v)+6=%d != GetPiece(%v,Black)=%d (black piece must be white+6)",
+				pt, Piece(pt)+6, pt, GetPiece(pt, Black))
+		}
+		// The `piece < BlackPawn` color test (Clear/Move/UpdateSquare) must split colors.
+		if GetPiece(pt, White) >= BlackPawn {
+			t.Errorf("white %v >= BlackPawn breaks the `piece < BlackPawn` aggregate test", pt)
+		}
+		if GetPiece(pt, Black) < BlackPawn {
+			t.Errorf("black %v < BlackPawn breaks the `piece < BlackPawn` aggregate test", pt)
+		}
+	}
+}
+
 func TestPieceProperties(t *testing.T) {
 	tests := []struct {
 		piece         Piece
