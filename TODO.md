@@ -93,7 +93,16 @@ tests to IGNORE: EnginePlayingStrength (SAN/UCI format), ConcurrencyStress (shar
 parallel). [[feedback_decide_dont_ask]] [[feedback_long_autonomous_sessions]] [[feedback_canonical_measures]] [[oracle_acpl]]
 
 **DIAGNOSIS LOG (FACTS — newest last; interpretation flagged separately):**
-- _(pending: M3 eval-ACPL NGN-vs-Blunder-vs-SF · M2 depth deficit · M1 loss classification)_
+- **L4 rook-open deletion (completed overnight, self-play fixed-nodes SPRT, output/sprt_l4.log):** removing
+  rook-open = **Elo -2.2 [-26,+22]** over 800 games (336-123-341), LLR +0.01 (inconclusive, book-capped).
+  FACT: rook-open removal is neutral-to-slightly-negative ⇒ KEEP it (no code change, tree clean). HYPOTHESIS-
+  RELEVANT: this completes the expensive-term sweep at **5 of 6 terms are keepers** (outposts +9, mobility +66,
+  king-safety +32, rook-open ~-2-to-keep; bishop-pair -20 was the lone harmful term, deleted). ⇒ the eval is
+  well-tuned/load-bearing for NGN-vs-NGN, NOT bloated. (Still a self-play frame — says nothing about Blunder; M3 settles that.)
+- **M3 LAUNCHED (2026-06-02 AM):** balanced corpus = NGN self-play + Blunder self-play (30 openings each, depth-8,
+  every 6 plies) → SF18 depth-18 MultiPV-8 labels. acpl A/B (NGN vs blunder_740) at depth-6 (eval-isolated) AND
+  depth-12 (eval+search) pending the label completion. M2 instrument (scripts/m2_depth.sh, matched-time depth-
+  reached via go-infinite+stop) written + parser-validated; full run deferred to clean E-cores after M3.
 
 ---
 
