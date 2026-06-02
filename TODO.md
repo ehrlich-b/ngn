@@ -137,8 +137,20 @@ block and commit the SAME turn (the integral term). [[feedback_long_autonomous_s
 - **F2 DONE, KEPT (commit 8bc4416):** collapsed the 12-way piece switches in UpdateSquare/Clear/Move into direct
   `b.pieces[piece]` writes + one `piece < BlackPawn` color-branch for the white/black aggregates (castling order
   preserved). Cuts make/unmake flat cost (Clear 5.4% + Move 3.0%). Node-identical EXACT, alloc-free, suite green.
-- **L1 (no-outposts) SPRT:** trending H1 — removing outposts is **+57 ELO [-5,+119] @ G123, LLR +0.37** (the term
-  is a non-earner; heading to DELETE). Running in background, will wake on bound/maxgames.
+- **F3 DONE, KEPT (commit f81eab5):** hoisted the running max score into a local in selectNextMove so the
+  partial-selection-sort inner loop stops re-loading scores[maxIdx] (+bounds check) each iteration. Node-identical
+  (#1 flat at ~12%; the O(n²) scan itself is the floor — can't reduce further without reordering).
+- **F4 DONE, KEPT (commit 37ca163):** hoisted the per-node-constant continuationHistory[prevP][prevT] sub-table out
+  of the move-scoring loop and inlined the quiet-move history lookup (2-D index/move instead of 4-D + call).
+  Node-identical; GetHistoryScore fell off the profile (folded into scoreMovesIntoBuffer).
+- **F5 DONE, KEPT (commit cd81c0b):** collapsed GetPiece's 12-case double switch into Piece(pieceType)/+6 using the
+  contiguous White-then-Black enum layout. Node-identical (hot in attack/check detection ~4% flat).
+- **L1 (no-outposts) SPRT:** estimate regressed to the mean as games accumulated — **+57@G123 → +9@G227 → -7@G292**,
+  CI [-47,+33], LLR ~0. True effect ≈ 0 (outposts is a non-earner); LLR will random-walk near 0 and likely run to
+  maxgames 1500 → DELETE at cap (ambiguous-at-cap rule: removes CPU at no measured strength cost). Running in bg.
+- **PROFILE re-rank (post-F1..F5, contention-noisy but ordinal):** selectNextMove ~11.6% (node-identical floor),
+  evaluatePawnShield ~5%, scoreMovesIntoBuffer ~4.6% (now includes inlined history), makeMoveHelper ~4.5% (no clean
+  redundancy — real work), magic GetBishop/RookAttacks ~3.2% each (tight). Next foreground candidate: evaluatePawnShield.
 
 ---
 
