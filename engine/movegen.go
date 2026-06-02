@@ -758,16 +758,17 @@ func isInCheck(pos *Position, color Color) bool {
 	// Check sliding piece attacks using magic bitboards - O(1) lookups
 	occupied := pos.Board.GetWhitePieces() | pos.Board.GetBlackPieces()
 
+	// Enemy queens attack on both diagonals and ranks/files; fetch once and reuse.
+	enemyQueens := pos.Board.GetBitboardOf(GetPiece(Queen, enemyColor))
+
 	// Check diagonal attacks (bishop, queen)
-	diagonalAttackers := pos.Board.GetBitboardOf(GetPiece(Bishop, enemyColor)) |
-		pos.Board.GetBitboardOf(GetPiece(Queen, enemyColor))
+	diagonalAttackers := pos.Board.GetBitboardOf(GetPiece(Bishop, enemyColor)) | enemyQueens
 	if GetBishopAttacks(int(kingSquare), occupied)&diagonalAttackers != 0 {
 		return true
 	}
 
 	// Check straight attacks (rook, queen)
-	straightAttackers := pos.Board.GetBitboardOf(GetPiece(Rook, enemyColor)) |
-		pos.Board.GetBitboardOf(GetPiece(Queen, enemyColor))
+	straightAttackers := pos.Board.GetBitboardOf(GetPiece(Rook, enemyColor)) | enemyQueens
 	if GetRookAttacks(int(kingSquare), occupied)&straightAttackers != 0 {
 		return true
 	}
