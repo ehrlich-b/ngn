@@ -58,23 +58,23 @@ func TestMateDetectionFailure(t *testing.T) {
 // TestMateInOneDetection tests various mate-in-1 positions
 func TestMateInOneDetection(t *testing.T) {
 	positions := []struct {
-		name     string
-		fen      string
+		name      string
+		fen       string
 		mateMoves []string // Possible mate-in-1 moves
 	}{
 		{
-			name:     "Queen mate on back rank",
-			fen:      "rnbqkb1r/pppp1Qpp/5n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+			name:      "Queen mate on back rank",
+			fen:       "rnbqkb1r/pppp1Qpp/5n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
 			mateMoves: []string{}, // Black to move, no mate available
 		},
 		{
-			name:     "Rook mate in corner",
-			fen:      "7k/R7/6K1/8/8/8/8/8 w - - 0 1",
+			name:      "Rook mate in corner",
+			fen:       "7k/R7/6K1/8/8/8/8/8 w - - 0 1",
 			mateMoves: []string{"a7a8"},
 		},
 		{
-			name:     "Queen mate with king support",
-			fen:      "k7/8/2K5/1Q6/8/8/8/8 w - - 0 1",
+			name:      "Queen mate with king support",
+			fen:       "k7/8/2K5/1Q6/8/8/8/8 w - - 0 1",
 			mateMoves: []string{"b5b7"},
 		},
 	}

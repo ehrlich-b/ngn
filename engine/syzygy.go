@@ -23,8 +23,8 @@ const (
 
 // Tablebase probe results
 type TBResult struct {
-	WDL int  // Win/Draw/Loss result
-	DTZ int  // Distance to zeroing move (capture or pawn move)
+	WDL   int // Win/Draw/Loss result
+	DTZ   int // Distance to zeroing move (capture or pawn move)
 	Found bool
 }
 

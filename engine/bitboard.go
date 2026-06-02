@@ -31,18 +31,9 @@ import (
 )
 
 type Bitboard struct {
-	blackPawn   uint64
-	blackKnight uint64
-	blackBishop uint64
-	blackRook   uint64
-	blackQueen  uint64
-	blackKing   uint64
-	whitePawn   uint64
-	whiteKnight uint64
-	whiteBishop uint64
-	whiteRook   uint64
-	whiteQueen  uint64
-	whiteKing   uint64
+	// Per-piece occupancy indexed directly by Piece (NoPiece=0 slot stays empty),
+	// so GetBitboardOf is a single array load instead of a 12-way switch (F1).
+	pieces      [13]uint64
 	whitePieces uint64
 	blackPieces uint64
 
@@ -63,27 +54,27 @@ type Bitboard struct {
 }
 
 func (b *Bitboard) Pawns() uint64 {
-	return b.whitePawn | b.blackPawn
+	return b.pieces[WhitePawn] | b.pieces[BlackPawn]
 }
 
 func (b *Bitboard) Knights() uint64 {
-	return b.whiteKnight | b.blackKnight
+	return b.pieces[WhiteKnight] | b.pieces[BlackKnight]
 }
 
 func (b *Bitboard) Bishops() uint64 {
-	return b.whiteBishop | b.blackBishop
+	return b.pieces[WhiteBishop] | b.pieces[BlackBishop]
 }
 
 func (b *Bitboard) Rooks() uint64 {
-	return b.whiteRook | b.blackRook
+	return b.pieces[WhiteRook] | b.pieces[BlackRook]
 }
 
 func (b *Bitboard) Queens() uint64 {
-	return b.whiteQueen | b.blackQueen
+	return b.pieces[WhiteQueen] | b.pieces[BlackQueen]
 }
 
 func (b *Bitboard) Kings() uint64 {
-	return b.whiteKing | b.blackKing
+	return b.pieces[WhiteKing] | b.pieces[BlackKing]
 }
 
 func (b *Bitboard) GetWhitePieces() uint64 {
@@ -95,33 +86,7 @@ func (b *Bitboard) GetBlackPieces() uint64 {
 }
 
 func (b *Bitboard) GetBitboardOf(piece Piece) uint64 {
-	switch piece {
-	case BlackPawn:
-		return b.blackPawn
-	case BlackKnight:
-		return b.blackKnight
-	case BlackBishop:
-		return b.blackBishop
-	case BlackRook:
-		return b.blackRook
-	case BlackQueen:
-		return b.blackQueen
-	case BlackKing:
-		return b.blackKing
-	case WhitePawn:
-		return b.whitePawn
-	case WhiteKnight:
-		return b.whiteKnight
-	case WhiteBishop:
-		return b.whiteBishop
-	case WhiteRook:
-		return b.whiteRook
-	case WhiteQueen:
-		return b.whiteQueen
-	case WhiteKing:
-		return b.whiteKing
-	}
-	return 0
+	return b.pieces[piece]
 }
 
 func (b *Bitboard) AllPieces() map[Square]Piece {
@@ -131,29 +96,29 @@ func (b *Bitboard) AllPieces() map[Square]Piece {
 		index := bitScanForward(allBits)
 		mask := SquareMask[index]
 		sq := Square(index)
-		if b.blackPawn&(mask) != 0 {
+		if b.pieces[BlackPawn]&(mask) != 0 {
 			allPieces[sq] = BlackPawn
-		} else if b.whitePawn&(mask) != 0 {
+		} else if b.pieces[WhitePawn]&(mask) != 0 {
 			allPieces[sq] = WhitePawn
-		} else if b.blackKnight&(mask) != 0 {
+		} else if b.pieces[BlackKnight]&(mask) != 0 {
 			allPieces[sq] = BlackKnight
-		} else if b.whiteKnight&(mask) != 0 {
+		} else if b.pieces[WhiteKnight]&(mask) != 0 {
 			allPieces[sq] = WhiteKnight
-		} else if b.blackBishop&(mask) != 0 {
+		} else if b.pieces[BlackBishop]&(mask) != 0 {
 			allPieces[sq] = BlackBishop
-		} else if b.whiteBishop&(mask) != 0 {
+		} else if b.pieces[WhiteBishop]&(mask) != 0 {
 			allPieces[sq] = WhiteBishop
-		} else if b.blackRook&(mask) != 0 {
+		} else if b.pieces[BlackRook]&(mask) != 0 {
 			allPieces[sq] = BlackRook
-		} else if b.whiteRook&(mask) != 0 {
+		} else if b.pieces[WhiteRook]&(mask) != 0 {
 			allPieces[sq] = WhiteRook
-		} else if b.blackQueen&(mask) != 0 {
+		} else if b.pieces[BlackQueen]&(mask) != 0 {
 			allPieces[sq] = BlackQueen
-		} else if b.whiteQueen&(mask) != 0 {
+		} else if b.pieces[WhiteQueen]&(mask) != 0 {
 			allPieces[sq] = WhiteQueen
-		} else if b.blackKing&(mask) != 0 {
+		} else if b.pieces[BlackKing]&(mask) != 0 {
 			allPieces[sq] = BlackKing
-		} else if b.whiteKing&(mask) != 0 {
+		} else if b.pieces[WhiteKing]&(mask) != 0 {
 			allPieces[sq] = WhiteKing
 		}
 		allBits ^= mask
@@ -172,40 +137,40 @@ func (b *Bitboard) UpdateSquare(sq Square, newPiece Piece, oldPiece Piece) {
 	mask := SquareMask[int(sq)]
 	switch newPiece {
 	case BlackPawn:
-		b.blackPawn |= mask
+		b.pieces[BlackPawn] |= mask
 		b.blackPieces |= mask
 	case BlackKnight:
-		b.blackKnight |= mask
+		b.pieces[BlackKnight] |= mask
 		b.blackPieces |= mask
 	case BlackBishop:
-		b.blackBishop |= mask
+		b.pieces[BlackBishop] |= mask
 		b.blackPieces |= mask
 	case BlackRook:
-		b.blackRook |= mask
+		b.pieces[BlackRook] |= mask
 		b.blackPieces |= mask
 	case BlackQueen:
-		b.blackQueen |= mask
+		b.pieces[BlackQueen] |= mask
 		b.blackPieces |= mask
 	case BlackKing:
-		b.blackKing |= mask
+		b.pieces[BlackKing] |= mask
 		b.blackPieces |= mask
 	case WhitePawn:
-		b.whitePawn |= mask
+		b.pieces[WhitePawn] |= mask
 		b.whitePieces |= mask
 	case WhiteKnight:
-		b.whiteKnight |= mask
+		b.pieces[WhiteKnight] |= mask
 		b.whitePieces |= mask
 	case WhiteBishop:
-		b.whiteBishop |= mask
+		b.pieces[WhiteBishop] |= mask
 		b.whitePieces |= mask
 	case WhiteRook:
-		b.whiteRook |= mask
+		b.pieces[WhiteRook] |= mask
 		b.whitePieces |= mask
 	case WhiteQueen:
-		b.whiteQueen |= mask
+		b.pieces[WhiteQueen] |= mask
 		b.whitePieces |= mask
 	case WhiteKing:
-		b.whiteKing |= mask
+		b.pieces[WhiteKing] |= mask
 		b.whitePieces |= mask
 	}
 	b.mailbox[sq] = newPiece
@@ -238,40 +203,40 @@ func (b *Bitboard) Clear(square Square, piece Piece) {
 	mask := SquareMask[int(square)]
 	switch piece {
 	case BlackPawn:
-		b.blackPawn &^= mask
+		b.pieces[BlackPawn] &^= mask
 		b.blackPieces &^= mask
 	case BlackKnight:
-		b.blackKnight &^= mask
+		b.pieces[BlackKnight] &^= mask
 		b.blackPieces &^= mask
 	case BlackBishop:
-		b.blackBishop &^= mask
+		b.pieces[BlackBishop] &^= mask
 		b.blackPieces &^= mask
 	case BlackRook:
-		b.blackRook &^= mask
+		b.pieces[BlackRook] &^= mask
 		b.blackPieces &^= mask
 	case BlackQueen:
-		b.blackQueen &^= mask
+		b.pieces[BlackQueen] &^= mask
 		b.blackPieces &^= mask
 	case BlackKing:
-		b.blackKing &^= mask
+		b.pieces[BlackKing] &^= mask
 		b.blackPieces &^= mask
 	case WhitePawn:
-		b.whitePawn &^= mask
+		b.pieces[WhitePawn] &^= mask
 		b.whitePieces &^= mask
 	case WhiteKnight:
-		b.whiteKnight &^= mask
+		b.pieces[WhiteKnight] &^= mask
 		b.whitePieces &^= mask
 	case WhiteBishop:
-		b.whiteBishop &^= mask
+		b.pieces[WhiteBishop] &^= mask
 		b.whitePieces &^= mask
 	case WhiteRook:
-		b.whiteRook &^= mask
+		b.pieces[WhiteRook] &^= mask
 		b.whitePieces &^= mask
 	case WhiteQueen:
-		b.whiteQueen &^= mask
+		b.pieces[WhiteQueen] &^= mask
 		b.whitePieces &^= mask
 	case WhiteKing:
-		b.whiteKing &^= mask
+		b.pieces[WhiteKing] &^= mask
 		b.whitePieces &^= mask
 	}
 }
@@ -294,22 +259,22 @@ func (b *Bitboard) Move(src Square, dest Square, sourcePiece Piece, destinationP
 	// Remove the piece from source square and add it to destination
 	switch sourcePiece {
 	case BlackPawn:
-		b.blackPawn |= maskDest
+		b.pieces[BlackPawn] |= maskDest
 		b.blackPieces |= maskDest
 	case BlackKnight:
-		b.blackKnight |= maskDest
+		b.pieces[BlackKnight] |= maskDest
 		b.blackPieces |= maskDest
 	case BlackBishop:
-		b.blackBishop |= maskDest
+		b.pieces[BlackBishop] |= maskDest
 		b.blackPieces |= maskDest
 	case BlackRook:
-		b.blackRook |= maskDest
+		b.pieces[BlackRook] |= maskDest
 		b.blackPieces |= maskDest
 	case BlackQueen:
-		b.blackQueen |= maskDest
+		b.pieces[BlackQueen] |= maskDest
 		b.blackPieces |= maskDest
 	case BlackKing:
-		b.blackKing |= maskDest
+		b.pieces[BlackKing] |= maskDest
 		b.blackPieces |= maskDest
 		// Is it a castle?
 		if src == E8 && dest == G8 {
@@ -318,22 +283,22 @@ func (b *Bitboard) Move(src Square, dest Square, sourcePiece Piece, destinationP
 			b.Move(A8, D8, BlackRook, NoPiece)
 		}
 	case WhitePawn:
-		b.whitePawn |= maskDest
+		b.pieces[WhitePawn] |= maskDest
 		b.whitePieces |= maskDest
 	case WhiteKnight:
-		b.whiteKnight |= maskDest
+		b.pieces[WhiteKnight] |= maskDest
 		b.whitePieces |= maskDest
 	case WhiteBishop:
-		b.whiteBishop |= maskDest
+		b.pieces[WhiteBishop] |= maskDest
 		b.whitePieces |= maskDest
 	case WhiteRook:
-		b.whiteRook |= maskDest
+		b.pieces[WhiteRook] |= maskDest
 		b.whitePieces |= maskDest
 	case WhiteQueen:
-		b.whiteQueen |= maskDest
+		b.pieces[WhiteQueen] |= maskDest
 		b.whitePieces |= maskDest
 	case WhiteKing:
-		b.whiteKing |= maskDest
+		b.pieces[WhiteKing] |= maskDest
 		b.whitePieces |= maskDest
 		// Is it a castle?
 		if src == E1 && dest == G1 {
@@ -390,9 +355,9 @@ func StartingBoard() Bitboard {
 
 func (b *Bitboard) IsEndGame(turn Color) bool {
 	if turn == White {
-		return b.whiteKnight+b.whiteBishop+b.whiteRook+b.whiteQueen == 0
+		return b.pieces[WhiteKnight]+b.pieces[WhiteBishop]+b.pieces[WhiteRook]+b.pieces[WhiteQueen] == 0
 	} else if turn == Black {
-		return b.blackKnight+b.blackBishop+b.blackRook+b.blackQueen == 0
+		return b.pieces[BlackKnight]+b.pieces[BlackBishop]+b.pieces[BlackRook]+b.pieces[BlackQueen] == 0
 	}
 	return false
 }
@@ -418,26 +383,7 @@ func (b *Bitboard) Draw() string {
 }
 
 func (b *Bitboard) copy() Bitboard {
-	return Bitboard{
-		b.blackPawn,
-		b.blackKnight,
-		b.blackBishop,
-		b.blackRook,
-		b.blackQueen,
-		b.blackKing,
-		b.whitePawn,
-		b.whiteKnight,
-		b.whiteBishop,
-		b.whiteRook,
-		b.whiteQueen,
-		b.whiteKing,
-		b.whitePieces,
-		b.blackPieces,
-		b.accMG,
-		b.accEG,
-		b.accPhase,
-		b.mailbox,
-	}
+	return *b
 }
 
 // recomputeAccumulator rebuilds the incremental eval accumulator (material+PST

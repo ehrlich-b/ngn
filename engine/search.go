@@ -499,17 +499,17 @@ type SearchInfo struct {
 	SEEGains      *[32]int   // For SEE evaluation
 
 	// Pruning and search efficiency statistics
-	FutilityPrunes      uint64 // Moves pruned by futility pruning
-	NullMoveCutoffs     uint64 // Beta cutoffs from null move pruning
-	LMRReductions       uint64 // Moves reduced by Late Move Reduction
-	LMPPrunes           uint64 // Moves pruned by Late Move Pruning
-	ProbcutPrunes       uint64 // Positions pruned by Probcut
-	SEEQuietPrunes      uint64 // Quiet moves pruned by SEE (soft hangs)
-	TTHits              uint64 // Transposition table hits
-	TTCutoffs           uint64 // Beta cutoffs from TT
-	BetaCutoffs         uint64 // Total beta cutoffs
-	QNodes              uint64 // Quiescence search nodes
-	QSearchTTStores     uint64 // Quiescence results written to the TT (S3)
+	FutilityPrunes       uint64 // Moves pruned by futility pruning
+	NullMoveCutoffs      uint64 // Beta cutoffs from null move pruning
+	LMRReductions        uint64 // Moves reduced by Late Move Reduction
+	LMPPrunes            uint64 // Moves pruned by Late Move Pruning
+	ProbcutPrunes        uint64 // Positions pruned by Probcut
+	SEEQuietPrunes       uint64 // Quiet moves pruned by SEE (soft hangs)
+	TTHits               uint64 // Transposition table hits
+	TTCutoffs            uint64 // Beta cutoffs from TT
+	BetaCutoffs          uint64 // Total beta cutoffs
+	QNodes               uint64 // Quiescence search nodes
+	QSearchTTStores      uint64 // Quiescence results written to the TT (S3)
 	CheckExtensions      uint64 // Check extensions applied
 	SingularExtensions   uint64 // Singular extensions applied
 	RecaptureExtensions  uint64 // Recapture extensions applied
@@ -1148,7 +1148,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			staticEval = -INFINITY
 		}
 	} else {
-		corrIdx = pawnCorrectionIndex(pos.Board.whitePawn, pos.Board.blackPawn)
+		corrIdx = pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
 		staticEval = EvaluateForPlayer(&pos.Board, stm) + correctionValue(stm, corrIdx)
 		// S7: a search-refined TT score is a sharper static estimate than a fresh
 		// eval for the margin heuristics below (RFP/futility/NMP/improving). Use it

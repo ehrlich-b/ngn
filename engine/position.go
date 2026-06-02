@@ -376,15 +376,15 @@ func (p *Position) IsDraw() bool {
 	if p.HalfMoveClock > 100 {
 		return true
 	} else {
-		if p.Board.blackPawn != 0 || p.Board.whitePawn != 0 ||
-			p.Board.blackRook != 0 || p.Board.whiteRook != 0 ||
-			p.Board.blackQueen != 0 || p.Board.whiteQueen != 0 {
+		if p.Board.pieces[BlackPawn] != 0 || p.Board.pieces[WhitePawn] != 0 ||
+			p.Board.pieces[BlackRook] != 0 || p.Board.pieces[WhiteRook] != 0 ||
+			p.Board.pieces[BlackQueen] != 0 || p.Board.pieces[WhiteQueen] != 0 {
 			return false
 		} else {
-			wKnights := bitScanForward(p.Board.whiteKnight)
-			bKnights := bitScanForward(p.Board.blackKnight)
-			wBishops := bitScanForward(p.Board.whiteBishop)
-			bBishops := bitScanForward(p.Board.blackBishop)
+			wKnights := bitScanForward(p.Board.pieces[WhiteKnight])
+			bKnights := bitScanForward(p.Board.pieces[BlackKnight])
+			wBishops := bitScanForward(p.Board.pieces[WhiteBishop])
+			bBishops := bitScanForward(p.Board.pieces[BlackBishop])
 
 			wKnightsNum := 0
 			bKnightsNum := 0
@@ -414,19 +414,19 @@ func (p *Position) IsDraw() bool {
 
 			if all <= 1 {
 				if wKnightsNum != 0 {
-					return bits.OnesCount64(p.Board.whiteKnight) == 1
+					return bits.OnesCount64(p.Board.pieces[WhiteKnight]) == 1
 				} else if bKnightsNum != 0 {
-					return bits.OnesCount64(p.Board.blackKnight) == 1
+					return bits.OnesCount64(p.Board.pieces[BlackKnight]) == 1
 				} else if wBishopsNum != 0 {
-					return bits.OnesCount64(p.Board.whiteBishop) == 1
+					return bits.OnesCount64(p.Board.pieces[WhiteBishop]) == 1
 				} else if bBishopsNum != 0 {
-					return bits.OnesCount64(p.Board.blackBishop) == 1
+					return bits.OnesCount64(p.Board.pieces[BlackBishop]) == 1
 				}
 			}
 			// both sides have a king and a bishop, the bishops being the same color
 			if wKnightsNum == 0 && bKnightsNum == 0 {
-				otherWB := p.Board.whiteBishop ^ (1 << wBishops)
-				otherBB := p.Board.blackBishop ^ (1 << bBishops)
+				otherWB := p.Board.pieces[WhiteBishop] ^ (1 << wBishops)
+				otherBB := p.Board.pieces[BlackBishop] ^ (1 << bBishops)
 				if otherWB == 0 && otherBB == 0 &&
 					Square(bBishops).GetColor() == Square(wBishops).GetColor() {
 					return true

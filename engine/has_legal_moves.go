@@ -36,16 +36,16 @@ func (p *Position) HasLegalMoveQuick() bool {
 
 	// Check if we have pieces (besides the king)
 	if turn == White {
-		if p.Board.whitePawn != 0 || p.Board.whiteKnight != 0 ||
-		   p.Board.whiteBishop != 0 || p.Board.whiteRook != 0 ||
-		   p.Board.whiteQueen != 0 {
+		if p.Board.pieces[WhitePawn] != 0 || p.Board.pieces[WhiteKnight] != 0 ||
+			p.Board.pieces[WhiteBishop] != 0 || p.Board.pieces[WhiteRook] != 0 ||
+			p.Board.pieces[WhiteQueen] != 0 {
 			// We have pieces, likely have moves
 			return true
 		}
 	} else {
-		if p.Board.blackPawn != 0 || p.Board.blackKnight != 0 ||
-		   p.Board.blackBishop != 0 || p.Board.blackRook != 0 ||
-		   p.Board.blackQueen != 0 {
+		if p.Board.pieces[BlackPawn] != 0 || p.Board.pieces[BlackKnight] != 0 ||
+			p.Board.pieces[BlackBishop] != 0 || p.Board.pieces[BlackRook] != 0 ||
+			p.Board.pieces[BlackQueen] != 0 {
 			// We have pieces, likely have moves
 			return true
 		}
@@ -56,13 +56,13 @@ func (p *Position) HasLegalMoveQuick() bool {
 	moveCount := 0
 
 	if turn == White {
-		kingSquare := bitScanForward(p.Board.whiteKing)
+		kingSquare := bitScanForward(p.Board.pieces[WhiteKing])
 		if kingSquare != 64 {
 			// Generate only king moves
 			moveCount = generateKingMovesQuick(&p.Board, Square(kingSquare), turn, moveBuffer[:])
 		}
 	} else {
-		kingSquare := bitScanForward(p.Board.blackKing)
+		kingSquare := bitScanForward(p.Board.pieces[BlackKing])
 		if kingSquare != 64 {
 			// Generate only king moves
 			moveCount = generateKingMovesQuick(&p.Board, Square(kingSquare), turn, moveBuffer[:])
@@ -98,8 +98,8 @@ func generateKingMovesQuick(board *Bitboard, from Square, color Color, moves []M
 	// King can move one square in any direction
 	kingMoves := [8][2]int{
 		{-1, -1}, {-1, 0}, {-1, 1},
-		{0, -1},           {0, 1},
-		{1, -1},  {1, 0},  {1, 1},
+		{0, -1}, {0, 1},
+		{1, -1}, {1, 0}, {1, 1},
 	}
 
 	fromRank := int(from / 8)

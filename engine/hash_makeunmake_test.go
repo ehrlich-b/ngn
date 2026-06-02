@@ -12,8 +12,8 @@ func TestHashSymmetricUnderMakeUnmake(t *testing.T) {
 		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
 		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", // Kiwipete
 		"r1bqk2r/ppp2ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 4 6",
-		"4k3/8/8/8/8/8/4P3/4K3 w - - 0 1",          // K+P endgame
-		"r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",     // Castle test
+		"4k3/8/8/8/8/8/4P3/4K3 w - - 0 1",                             // K+P endgame
+		"r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",                        // Castle test
 		"rnbq1bnr/ppp1pppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2", // EP available
 	}
 	for _, fen := range fens {

@@ -73,18 +73,18 @@ func TestHasLegalMovePerformance(t *testing.T) {
 
 	// Benchmark HasLegalMove
 	const iterations = 10000
-	start := pos.Board.whiteKing // Use as timer hack
+	start := pos.Board.pieces[WhiteKing] // Use as timer hack
 	for i := 0; i < iterations; i++ {
 		pos.HasLegalMove()
 	}
-	hasLegalTime := pos.Board.whiteKing - start
+	hasLegalTime := pos.Board.pieces[WhiteKing] - start
 
 	// Benchmark GenerateLegalMoves
-	start = pos.Board.whiteKing
+	start = pos.Board.pieces[WhiteKing]
 	for i := 0; i < iterations; i++ {
 		GenerateLegalMoves(pos)
 	}
-	generateTime := pos.Board.whiteKing - start
+	generateTime := pos.Board.pieces[WhiteKing] - start
 
 	t.Logf("Performance comparison (lower is better):")
 	t.Logf("  HasLegalMove:        %d", hasLegalTime)
