@@ -48,6 +48,89 @@ deltas; settled calls stay settled absent new evidence; **DECIDE, DON'T ASK** on
 
 ---
 
+## >>> AUTONOMOUS NIGHT (2026-06-01 PM → morning) — RUN ALL NIGHT, NO STOPPING, NO QUESTIONS <<<
+
+**MANDATE (Bryan, laptop left open all night):** proceed continuously until morning. NEVER idle, NEVER ask,
+NEVER stop on a settled result — DECIDE, commit, launch the next. The background SPRT is the heartbeat (its
+completion re-invokes me automatically — do NOT poll/ScheduleWakeup for it); foreground node-identical work +
+next-candidate prep fills the gaps. Goal of the night: lean the eval for speed (Track 2) + bank node-identical
+speed (Track 1), all serving "be the fastest Go engine," then a morning gauntlet for the real number.
+
+**PRE-NIGHT MAIN baseline = `ba8397b`** (probcut-alloc-fix + TT-atomics-removed + this plan). Snapshot it as
+`build/ngn_prenight` so the whole night's accumulated leaning can be A/B'd or reverted wholesale in the morning.
+
+**FIRST ACTIONS on "reanchor and proceed":**
+1. `caffeinate -i -t 39600 &` in background (11h keep-awake; AC not guaranteed but best-effort).
+2. `go build -o build/ngn_prenight main.go` (the morning reference).
+3. Build SPRT candidate **L1** (recipe below), launch its fixed-nodes SPRT in the background.
+4. Start foreground Lane F1 (GetBitboardOf array refactor) while it runs.
+
+**THE LOOP (event-driven — each SPRT completion wakes me):**
+on wake → `tail -25 output/sprt_<name>.log` → read the `Verdict:` line + final `Elo`/CI/`LLR` → DECIDE (rules
+below) → KEEP (re-apply the real removal + commit) or REVERT (tree already clean) → `go build -o build/ngn_base
+main.go` (clean base from new HEAD) → build the next candidate → launch its SPRT (bg) → advance foreground Lane F
+→ RECORD the decision in this block + commit → end turn (the next completion re-wakes me).
+
+**SPRT INVOCATION (copy-paste; fixed-NODES = deterministic, contention-immune, isolates eval quality):**
+```
+./build/sprt -new build/ngn_<name> -base build/ngn_base -nodes 100000 -concurrency 4 \
+  -elo0 -5 -elo1 0 -mingames 64 -maxgames 1500 -openings output/sprt_openings.txt \
+  > output/sprt_<name>.log 2>&1        # run_in_background:true
+```
+`Elo(new-base)`: new = term REMOVED, base = term PRESENT. `[-5,0]`: H1-accept (removal ≥ ~0, term is a
+non-earner) ⇒ **DELETE for free speed**; H0-accept (removal ≤ -5, term earns its keep) ⇒ **REVERT (keep term)**.
+mingames 64 (NOT high — high defeats the early-stop, cmd/sprt:283). One SPRT at a time, never batch.
+
+**DECISION RULES (mechanical, KEEP RULE):**
+- DELETE the term iff NOT a regression: LLR hits H1, OR (at maxgames) point est ≥ -5 with CI not below ~-15.
+- KEEP the term iff clear regression: LLR hits H0 / point est ≤ -5 hard.
+- Ambiguous at cap (|est|<5, CI straddles): DELETE — it removes CPU with no measured strength cost (lean+free
+  under the KEEP RULE; the speed transfers, a self-play non-regression at worst hides a tiny wobble the morning
+  gauntlet will catch). Do NOT gain-hunt (mirage); only delete clear non-earners.
+
+**CANDIDATE RECIPE (cleanest, lowest-risk):** TEST step = 1-char edit (set the term's weight const = 0,
+eval.go:2355-2360) → `go build -o build/ngn_<name> main.go` (it compiles ⇒ valid; weight=0 cannot break tactics) →
+`git checkout engine/eval.go` (tree clean) → `go build -o build/ngn_base main.go` (clean base) → launch SPRT. On
+DELETE (non-regression): comment the term's CALL in evaluateUnsafe (THIS is what gains the CPU) + drop the now-unused
+weight const → `go build ./...` + `go test -short ./engine/` green + `make smoke-tactical` ≥24/30 (smoke runs
+in-process from source, no `-bin` arg, so it tests whatever's compiled; <24 ⇒ botched comment, fix it) → commit.
+(weight=0 and call-removed are eval-IDENTICAL ⇒ node-identical to each other ⇒ the SPRT verdict transfers exactly;
+the committed call-removed version is just faster.)
+
+**BACKGROUND SPRT QUEUE (eval-leaning, serial, order = speculative→core; eval.go line / weight):**
+- **L1 no-outposts** — call `eval.go:2462-2467`, `outpostWeight=84` (2462-65 also fetch 4 bitboards — drop those too).
+- **L2 no-mobility** — call `:2455`, `mobilityWeight=166` (high weight, but largely redundant with the PSTs — prime suspect).
+- **L3 no-kingactivity** — call `:2476` (eg phase<6 only), `kingActivityWeight=29` (low weight, narrow phase).
+- **L4 no-rookopen** — call `:2458`, `rookOpenWeight=83` (textbook-good, cheap — likely a keep, but confirm).
+- **L5 no-bishoppair** — call `:2452`, `bishopPairWeight=90` (**3.09% flat — biggest eval-leaf CPU**; likely keep, measure the tradeoff).
+- **L6 no-kingsafety** — call `:2470-2471` (mg phase≥12), `kingSafetyWeight=100` (**~7.85% cum — biggest subsystem**; likely keep).
+
+**FOREGROUND NODE-IDENTICAL LANE (no SPRT; gated by nodecheck which is CONTENTION-PROOF + alloc test; NPS deferred):**
+- **F1 GetBitboardOf/GetPiece → `bitboards[12]uint64` array** (~6% flat, ~208 sites, BIG mechanical — the headline free win).
+- **F2 eval-term node-identical SPEEDUPS** — make bishop-pair (3.09%) / mobility / king-safety compute bit-identical but cheaper (the *other* half of the eval CPU: keep the term, make it fast).
+- Gate each: `scripts/nodecheck.sh build/ngn_<f>` EXACT (1319650 / 1188433 / 772119) + `go test -run TestHotPathAllocationFree` + `go test -short ./engine/`. KEEP on node-identity + strictly-less-work (NPS confirm in a quiet gap). Commit each. If a refactor resists >~30 min, drop it and take a smaller one — never leave the tree half-refactored at a commit.
+
+**NEVER-RUN-DRY FALLBACK (both queues exhaust):** re-profile on free cores (between SPRTs) → new node-identical
+target / new leaning candidate from the fresh profile. Last resort: launch the morning gauntlet early.
+
+**MORNING PAYOFF (when the SPRT queue is exhausted — the real check on accumulated leaning):**
+```
+./build/gauntlet -games 24 -movetime 1000 > output/gauntlet_night.log 2>&1   # run_in_background
+```
+Compare the pooled rating to the historical ~2380 / 27.5%@300ms. CLEARLY lower ⇒ the accumulated self-play-neutral
+leaning was net-negative vs the real anchor ⇒ A/B `build/ngn` vs `build/ngn_prenight` (fixed-nodes SPRT) and revert
+the losing leans. Same-or-higher ⇒ the speed+lean is paying off; record the new number, fix the stale ~2380 docs.
+
+**PRE-EXISTING TEST FAILURES (do NOT panic — NOT my regressions):** EnginePlayingStrength (SAN-vs-UCI format),
+ConcurrencyStress (shared-pos data race), ordering tests flaky under parallel contention. `go test -short ./engine/`
+is otherwise green; `-short` skips the slow ones.
+
+**RULES (every turn):** single-sentence commits, no co-author, no emoji, commit LOCAL — DO NOT push. Never P-cores
+(`-lowpower true` default). Build dev work to SEPARATE binaries, never `make` mid-gate. RECORD each decision in this
+block and commit the SAME turn (the integral term). [[feedback_long_autonomous_sessions]] [[feedback_decide_dont_ask]] [[sprt_instrument]]
+
+---
+
 ## >>> IN FLIGHT (2026-06-01) — resume info, survives compaction <<<
 
 - **J1 extensions×LMR fix — SHELVED + REVERTED 2026-06-01 (working tree clean; one-line change re-derivable from docs/05).**
