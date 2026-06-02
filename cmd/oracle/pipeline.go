@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -490,6 +491,129 @@ func distillWorker(sfPath string, depth int, cpScale float64, lowPower bool, job
 		target := 1.0 / (1.0 + math.Pow(10, -float64(cp)/cpScale))
 		results <- fmt.Sprintf("%s %.4f", fen, target)
 	}
+}
+
+// ---------- lichess: import the Lichess Stockfish eval DB as distill targets ----------
+
+// lichessLine is the minimal slice of one Lichess eval-DB JSONL record we need:
+// the FEN plus the multi-depth evals, each a MultiPV list. We decode only fen /
+// depth / cp / mate / line; knodes and the rest are ignored by encoding/json.
+type lichessLine struct {
+	FEN   string `json:"fen"`
+	Evals []struct {
+		Depth int `json:"depth"`
+		PVs   []struct {
+			CP   *int   `json:"cp"`   // White-POV centipawns (pointer: distinguishes 0 from absent)
+			Mate *int   `json:"mate"` // signed mate distance, present iff cp absent
+			Line string `json:"line"`
+		} `json:"pvs"`
+	} `json:"evals"`
+}
+
+// runLichess converts the Lichess Stockfish eval database (one JSON object per
+// line) into Texel distill samples "<FEN> <winprob>". For each position it takes
+// the DEEPEST eval entry's best PV. Crucially the DB's cp is ALREADY White-POV, so
+// — unlike the live-SF distillWorker — there is NO side-to-move flip. mate is mapped
+// to +-mateCp. The 4-field DB FEN (no move clocks) gets " 0 1" appended. With
+// -quiet (default) it keeps only positions where the static eval is meaningful:
+// side-to-move not in check, and the best move not a capture/promotion — tuning a
+// STATIC eval on mid-tactic positions teaches it noise (the held-out-MSE mirage).
+func runLichess(inPath, outPath string, cpScale float64, mateCp int, quiet bool) {
+	in, err := os.Open(inPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "oracle lichess: open %s: %v\n", inPath, err)
+		os.Exit(1)
+	}
+	defer in.Close()
+	out, err := os.Create(outPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "oracle lichess: create %s: %v\n", outPath, err)
+		os.Exit(1)
+	}
+	defer out.Close()
+	w := bufio.NewWriter(out)
+	defer w.Flush()
+
+	sc := bufio.NewScanner(in)
+	sc.Buffer(make([]byte, 0, 1<<20), 1<<22) // deep-endgame multipv lines run large
+
+	var read, kept, skipParse, skipNoEval, skipCheck, skipCap int
+	for sc.Scan() {
+		read++
+		var rec lichessLine
+		if json.Unmarshal(sc.Bytes(), &rec) != nil || rec.FEN == "" || len(rec.Evals) == 0 {
+			skipParse++
+			continue
+		}
+		// Deepest eval entry with a usable best PV.
+		bestDepth, bi := -1, -1
+		for i := range rec.Evals {
+			if rec.Evals[i].Depth > bestDepth && len(rec.Evals[i].PVs) > 0 {
+				bestDepth, bi = rec.Evals[i].Depth, i
+			}
+		}
+		if bi < 0 {
+			skipNoEval++
+			continue
+		}
+		pv := rec.Evals[bi].PVs[0]
+		var cp int
+		switch {
+		case pv.CP != nil:
+			cp = *pv.CP
+		case pv.Mate != nil:
+			if *pv.Mate >= 0 {
+				cp = mateCp
+			} else {
+				cp = -mateCp
+			}
+		default:
+			skipNoEval++
+			continue
+		}
+		// The DB FEN is 4-field (no halfmove/fullmove clocks); pad to a legal 6-field FEN.
+		f := strings.Fields(rec.FEN)
+		if len(f) < 4 {
+			skipParse++
+			continue
+		}
+		fen := strings.Join(f[:4], " ") + " 0 1"
+		if len(f) >= 6 {
+			fen = strings.Join(f[:6], " ")
+		}
+		pos, err := engine.ParseFEN(fen)
+		if err != nil {
+			skipParse++
+			continue
+		}
+		if quiet {
+			if pos.IsInCheck() {
+				skipCheck++
+				continue
+			}
+			if pv.Line != "" {
+				if mvs := strings.Fields(pv.Line); len(mvs) > 0 {
+					if mv, err := engine.ParseUCIMove(pos, mvs[0]); err == nil &&
+						(mv.IsCapture() || mv.PromoType() != engine.NoType) {
+						skipCap++
+						continue
+					}
+				}
+			}
+		}
+		target := 1.0 / (1.0 + math.Pow(10, -float64(cp)/cpScale))
+		fmt.Fprintf(w, "%s %.4f\n", fen, target)
+		kept++
+		if read%200000 == 0 {
+			w.Flush()
+			fmt.Fprintf(os.Stderr, "  read %d, kept %d\n", read, kept)
+		}
+	}
+	if err := sc.Err(); err != nil {
+		fmt.Fprintf(os.Stderr, "oracle lichess: scan: %v\n", err)
+	}
+	fmt.Fprintf(os.Stderr, "lichess: %d read -> %d kept (%.1f%%); skipped parse=%d noeval=%d check=%d capture=%d; quiet=%v scale=%.0f -> %s\n",
+		read, kept, 100*float64(kept)/float64(read), skipParse, skipNoEval, skipCheck, skipCap, quiet, cpScale, outPath)
 }
 
 func runClassify(gamesPath, sfPath string, depth int, lowPower bool) {

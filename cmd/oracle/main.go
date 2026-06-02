@@ -173,7 +173,7 @@ func runScore(corpus, newBin, baseBin, goCmd, budget string, limit int, timeout 
 }
 
 func main() {
-	mode := flag.String("mode", "score", "score | gencorpus | label | distill | acpl | classify")
+	mode := flag.String("mode", "score", "score | gencorpus | label | distill | lichess | acpl | classify")
 	corpus := flag.String("corpus", "validated_tactical_positions.epd", "score: labeled EPD (UCI bm)")
 	labelsF := flag.String("labels", "", "acpl: SF MultiPV label file (from -mode label)")
 	fensF := flag.String("fens", "", "label: input FEN file (from -mode gencorpus)")
@@ -192,8 +192,10 @@ func main() {
 	multipv := flag.Int("multipv", 8, "label: SF MultiPV width")
 	sfDepth := flag.Int("sfdepth", 16, "label/distill: SF search depth")
 	workers := flag.Int("workers", 6, "distill: parallel Stockfish processes")
-	cpScale := flag.Float64("cpscale", 400.0, "distill: cp->win-prob logistic scale")
-	out := flag.String("out", "", "gencorpus/label/distill: output file")
+	cpScale := flag.Float64("cpscale", 400.0, "distill/lichess: cp->win-prob logistic scale")
+	mateCp := flag.Int("matecp", 10000, "lichess: cp magnitude a mate score maps to")
+	lQuiet := flag.Bool("quiet", true, "lichess: keep only quiet positions (not in check, best move not a capture)")
+	out := flag.String("out", "", "gencorpus/label/distill/lichess: output file")
 	capCp := flag.Int("cap", 1000, "acpl: per-position cp-loss cap")
 	gamesF := flag.String("games", "", "classify: gauntlet -pgn capture file (M1 loss classification)")
 	flag.Parse()
@@ -222,6 +224,12 @@ func main() {
 			os.Exit(1)
 		}
 		runDistill(*sfPath, *fensF, *out, *sfDepth, *workers, *cpScale, *lowPower)
+	case "lichess":
+		if *fensF == "" || *out == "" {
+			fmt.Fprintln(os.Stderr, "lichess: need -fens <lichess eval jsonl> and -out <output>")
+			os.Exit(1)
+		}
+		runLichess(*fensF, *out, *cpScale, *mateCp, *lQuiet)
 	case "acpl":
 		if *labelsF == "" {
 			fmt.Fprintln(os.Stderr, "acpl: need -labels <file>")
