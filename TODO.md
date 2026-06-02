@@ -115,10 +115,19 @@ parallel). [[feedback_decide_dont_ask]] [[feedback_long_autonomous_sessions]] [[
   RELEVANT: this completes the expensive-term sweep at **5 of 6 terms are keepers** (outposts +9, mobility +66,
   king-safety +32, rook-open ~-2-to-keep; bishop-pair -20 was the lone harmful term, deleted). ⇒ the eval is
   well-tuned/load-bearing for NGN-vs-NGN, NOT bloated. (Still a self-play frame — says nothing about Blunder; M3 settles that.)
-- **M3 LAUNCHED (2026-06-02 AM):** balanced corpus = NGN self-play + Blunder self-play (30 openings each, depth-8,
-  every 6 plies; 300 FENs) → SF18 depth-18 MultiPV-8 labels (~12s/pos single-thread E-core ⇒ ~55min). acpl A/B (NGN
-  vs blunder_740) at depth-6 (eval-isolated), depth-12 (eval+search), AND nodes-50000 (matched-COMPUTE, the fairest
-  eval read — fixed-depth flatters NGN's bigger tree) pending labels.
+- **M3 EVAL ACPL — DONE (2026-06-02, output/m3_acpl.log).** Corpus: 240 balanced middlegame/endgame positions (121
+  NGN-self-play + 119 Blunder-self-play, phase-filtered to drop openings; 56% mg / 23% late-mg / 20% eg) labeled by
+  SF14 MultiPV-6. (NOTE: a first 300-FEN corpus was 95% OPENING positions — gencorpus never escaped the opening in 30
+  plies — and was DISCARDED; regenerated deeper+phase-filtered.) FACTS — NGN vs blunder_740 ACPL (cp/move vs SF, lower=better):
+  - **depth-6 (eval-leaning): NGN 33.6 vs Blu 23.8, Δ +9.8 (NGN WORSE).**
+  - **nodes-50000 (matched compute): NGN 26.1 vs Blu 23.4, Δ +2.7 (NGN marginally worse, borderline noise).**
+  - **depth-12 (eval+search): NGN 16.7 vs Blu 19.8, Δ -3.1 (NGN BETTER).**
+  HYPOTHESIS (flagged): NGN's eval is NOT a major standalone middlegame liability — at matched compute it's ~equal
+  (+2.7, near the ~2cp noise floor). The striking pattern is DEPTH-DEPENDENCE: NGN's shallow-search move quality is
+  notably worse (+9.8 @d6) but improves far more with depth (33.6→16.7) than Blunder's (23.8→19.8), overtaking it by
+  d12. Read: **Blunder leans on a clean shallow eval; NGN leans on SEARCH to fix a noisier eval.** This COMPOUNDS the
+  M2 endgame finding: in mg NGN searches deep enough to compensate, but in eg (3-7 ply shallower) it runs where its
+  eval is weakest = double penalty. Per-phase split running to test if the shallow gap is eg-concentrated.
 - **Blunder eval coverage (FACT, verified against opponents/.src/engine/evaluation.go):** Blunder 7.4.0's eval is
   **560 lines** (the long-repeated "228" was WRONG — corrected in docs/memory) and covers the SAME standard terms as
   NGN — tapered MG/EG PeSTO, isolated/doubled/passed pawns, knight outposts, N/B/R/Q mobility, king-safety attack
