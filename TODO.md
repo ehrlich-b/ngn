@@ -235,6 +235,11 @@ block and commit the SAME turn (the integral term). [[feedback_long_autonomous_s
   speed + bishop-pair removed) vs the 3 crossover Blunder anchors (`-only v6.1.0,v7.2.0,v7.4.0`, CCRL 2155/2425/2532),
   24 games each = 72, movetime 1000ms, E-cores, concurrency-1. ~3-4h → finishes by morning. (First launch defaulted to
   all 5 anchors incl. saturated 2080/2674 with the key 2532 LAST — killed + relaunched focused on the crossover 3.)
+  **UPDATE: the gauntlet auto-EXCLUDED v6.1.0** (its integrity check caught it ignoring movetime/stop — probe 7.5s vs
+  1s budget — which would distort the TC), so the run is effectively 2 anchors: 7.2.0 (2425) + 7.4.0 (2532), BOTH
+  above NGN ⇒ no >50% bracket, so the pooled number is a mild downward extrapolation. The DECISIVE read is therefore
+  the PER-ANCHOR score vs 7.4.0 (and 7.2.0) compared to the historical ~31%@1000ms / 27.5%@300ms vs 7.4.0 — a
+  bracketing-independent same-anchor before/after: higher score now ⇒ the F1-F9 speed + bishop-pair removal helped.
 - **MORNING DECISION (on gauntlet completion):** read pooled rating. Compare to the historical ~2380 / 27.5%@300ms
   (same-conditions reference). HIGHER ⇒ the F1-F9 speed (more depth at fixed movetime) + bishop-pair removal transferred
   to real strength ⇒ record the new number, fix stale ~2380 docs. CLEARLY LOWER ⇒ A/B `build/ngn` vs `build/ngn_prenight`
