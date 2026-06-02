@@ -53,6 +53,21 @@ SEARCH (effective depth, worst in endgames), NOT eval. Confidence MEDIUM** — t
 **SYNTHESIS:** combine the three → the evidence-based hypothesis, FACTS (numbers) clearly separated from INTERPRETATION.
 That committed write-up — "why Blunder beats NGN, with data" — is the day's deliverable for Bryan to review.
 
+**PRE-REGISTERED DECISION LOGIC (committed 2026-06-02 BEFORE the decisive M3 number, to guard against fitting the
+story to a noisy result — the n=6 probe hinted "NGN eval worse" but big effects on tiny n regress hard):**
+- M2 already shows (preview) a clear ENDGAME depth deficit (+3 to +7 ply) and ~0 in mg ⇒ an endgame SEARCH factor is
+  in regardless of M3. The open question M3 settles is whether MIDDLEGAME EVAL is ALSO a factor.
+- **If M3 (mg ACPL, matched-compute) shows NGN ≈ Blunder (Δ within ~±2 cp/move ≈ noise floor):** middlegame eval is
+  competitive ⇒ hypothesis = **the gap is SEARCH, concentrated in endgame depth** (eval work stays dead). M1 should
+  then show losses skewed endgame-technique + tactical(depth), not middlegame-positional.
+- **If M3 shows NGN clearly WORSE (Δ ≳ +4-5 cp/move, holding at matched-compute nodes so it's not just NGN's bigger
+  tree):** middlegame eval QUALITY is a real second factor ⇒ hypothesis = **two factors: weaker mg eval + endgame
+  search depth.** Then localize: per-phase ACPL + which term/PST (the self-play "earners" were NGN-relative, not
+  absolute-vs-Blunder). M1 should then also show middlegame-positional losses.
+- Δ scale anchor (from the night's ACPL validation): ~+3.2 cp/move corresponded to ~-145 self-play ELO, so a few
+  cp/move is a LARGE effect; <~2 cp is corpus-choice noise. Report the matched-compute (nodes) Δ as primary (depth-6
+  flatters NGN's bigger tree).
+
 ## >>> AUTONOMOUS DAY (2026-06-02) — RUN ALL DAY, NO STOPPING, NO QUESTIONS, READ-ONLY DIAGNOSIS <<<
 
 **MANDATE (Bryan at his day job, peeking in periodically):** proceed continuously; NEVER idle, NEVER ask, DECIDE
