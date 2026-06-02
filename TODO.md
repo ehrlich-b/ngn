@@ -240,6 +240,12 @@ block and commit the SAME turn (the integral term). [[feedback_long_autonomous_s
   above NGN ⇒ no >50% bracket, so the pooled number is a mild downward extrapolation. The DECISIVE read is therefore
   the PER-ANCHOR score vs 7.4.0 (and 7.2.0) compared to the historical ~31%@1000ms / 27.5%@300ms vs 7.4.0 — a
   bracketing-independent same-anchor before/after: higher score now ⇒ the F1-F9 speed + bishop-pair removal helped.
+  **UPDATE 2: 7.2.0 ALSO auto-excluded (3 consecutive no-move forfeits — dead/broken), so the gauntlet is now a
+  SINGLE-anchor run vs 7.4.0 (CCRL 2532, the canonical working anchor per CLAUDE.md — playing real games: draw/mate).
+  ~24 games, ~50 min. Decisive read = NGN's score vs 7.4.0 vs historical ~31%@1000ms. (Early 0-1-2 = noise.) If the
+  24-game score is CLEARLY below ~31%, the bishop-pair removal may have regressed real strength despite +20 self-play
+  (the transfer-mirage risk) ⇒ run a fixed-time ngn_prenight-vs-build/ngn SPRT to isolate, and consider reverting it
+  while keeping the node-identical F1-F9 speed wins (which can't regress strength).**
 - **MORNING DECISION (on gauntlet completion):** read pooled rating. Compare to the historical ~2380 / 27.5%@300ms
   (same-conditions reference). HIGHER ⇒ the F1-F9 speed (more depth at fixed movetime) + bishop-pair removal transferred
   to real strength ⇒ record the new number, fix stale ~2380 docs. CLEARLY LOWER ⇒ A/B `build/ngn` vs `build/ngn_prenight`
