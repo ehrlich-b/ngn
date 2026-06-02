@@ -91,8 +91,12 @@ competitive) AND "eval is the whole bottleneck" (it's mostly search). The truth 
    standard pruning knobs), but now CONFIRMED as the dominant factor, not just a suspect.
 2. **SECONDARY, ACTIONABLE — late-middlegame (phase 7-11) eval.** NGN gives up ~+9-10 cp/move more than Blunder here,
    and search does NOT close it. Phase 7-11 is EXACTLY where evaluateUnsafe disables both king terms (safety gated
-   `phase>=12`, activity gated `phase<6`). CANDIDATE FIX (record only): continuous king eval across phase 7-11,
-   fixed-nodes SPRT to validate. Confirm the +9.9 with more phase-7-11 positions (n=56).
+   `phase>=12` :2480, activity gated `phase<6` :2482). NUANCE (read the code): the tapered PeSTO king PST STILL applies
+   in 7-11, so it's the ADDED king-safety(attack) + king-activity(centralization) SIGNALS that vanish; and the activity
+   gate was DELIBERATELY narrowed (comment :2483-85 — wider windows "interfered with tactical search where leaves drop
+   below phase=12 mid-combination"), so a naive widen risks regressing tactics. CANDIDATE FIX (record only, read-only
+   mandate): a TAPERED king term across 7-11 (not a hard widen), fixed-nodes SPRT vs the leaf-stability risk. Confirm
+   the +9.9 with more phase-7-11 positions (n=56).
 3. **NOT a factor — middlegame/endgame eval quality at equal compute.** The verbose ~2750-line eval (vs Blunder's
    560) computes the SAME terms, competitively tuned. Leaning it (the night's sweep) was a non-problem; bishop-pair
    (the one harmful term) is already removed.
