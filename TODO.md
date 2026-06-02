@@ -174,9 +174,22 @@ block and commit the SAME turn (the integral term). [[feedback_long_autonomous_s
   MEANINGFUL earner (≥~15-20 ELO), which ~800 games resolves (CI ±24). So **launch L2-L6 with `-maxgames 800`** (2x
   throughput, more frequent decision points, keeps the night active); the morning gauntlet is the backstop against
   wrongly deleting a marginal earner. Do NOT touch the running L1 (let it finish at 1500 — clean, it's the heartbeat).
-- **NEXT (on L1 completion wake):** decide L1 (KEEP outposts if settled ≤-5, else DELETE) → rebuild clean base →
-  launch L2 (no-mobility: `mobilityWeight=0` at eval.go:2356) at `-maxgames 800` → re-profile (eval change may expose
-  a new free target) → record + commit.
+- **L1 (no-outposts) DONE — VERDICT: KEEP outposts (commit-neutral, no code change).** Final @ 800 games (the
+  400-opening book ×2 colors is the REAL cap, not -maxgames 1500 — every candidate runs ~800 games / ~1h8m, which
+  moots the maxgames-800 refinement: the book already caps it): 331-117-352, **Elo(new-base) -9.1 [-33,+15]**,
+  pentanomial -9.1 [-31,+13], LLR -0.26 (inconclusive, didn't hit a bound). Point estimate is a clear ~9-ELO
+  regression for REMOVAL ⇒ outposts is a (weak) earner, NOT a free-deletion candidate ⇒ KEEP per the KEEP RULE
+  (don't delete something showing a measured regression, even a noisy one). The SPRT did its job: ruled outposts OUT.
+  Updated prior: the eval is Texel-tuned, so these terms may mostly be earners — the queue tells us which (if any) are
+  free to drop.
+- **L2 (no-mobility) LAUNCHED (bg task b432zdi5a, output/sprt_l2.log):** `mobilityWeight 166→0`, ngn_l2 vs ngn_base
+  (rebuilt from HEAD 65990da = F1-F8). Mobility is the highest eval weight + ~420ms cum + flagged "likely redundant
+  with PSTs" — the prime deletion suspect. Caps ~800 games. No re-profile this cycle (L1=KEEP ⇒ HEAD unchanged ⇒ same
+  flat profile; re-profile only after a DELETE that changes HEAD).
+- **NEXT (on L2 completion wake):** decide L2 (DELETE mobility if point est ≥ ~-5 / not a clear regression — comment
+  the call at eval.go:2455 + drop the weight + smoke-tactical ≥24 + commit; else KEEP) → if DELETE, rebuild base +
+  re-profile for the freed target → launch L3 (no-kingactivity: `kingActivityWeight=0` at eval.go:2360, eg-only narrow
+  term, low weight — likely deletable) → record + commit. Then L4 rook-open / L5 bishop-pair / L6 king-safety as time allows.
 
 ---
 
