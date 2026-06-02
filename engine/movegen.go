@@ -743,14 +743,22 @@ func isInCheck(pos *Position, color Color) bool {
 		}
 	}
 
+	// Enemy pieces are the White piece constants plus a color offset (Black pieces are
+	// +6 in the enum), so compute the offset once instead of re-branching inside
+	// GetPiece for each of the five lookups below.
+	var enemyBase Piece
+	if enemyColor == Black {
+		enemyBase = 6
+	}
+
 	// Check knight attacks
-	enemyKnights := pos.Board.GetBitboardOf(GetPiece(Knight, enemyColor))
+	enemyKnights := pos.Board.GetBitboardOf(WhiteKnight + enemyBase)
 	if KnightAttacks[kingSquare]&enemyKnights != 0 {
 		return true
 	}
 
 	// Check king attacks (for adjacent king positions)
-	enemyKing := pos.Board.GetBitboardOf(GetPiece(King, enemyColor))
+	enemyKing := pos.Board.GetBitboardOf(WhiteKing + enemyBase)
 	if KingAttacks[kingSquare]&enemyKing != 0 {
 		return true
 	}
@@ -759,16 +767,16 @@ func isInCheck(pos *Position, color Color) bool {
 	occupied := pos.Board.GetWhitePieces() | pos.Board.GetBlackPieces()
 
 	// Enemy queens attack on both diagonals and ranks/files; fetch once and reuse.
-	enemyQueens := pos.Board.GetBitboardOf(GetPiece(Queen, enemyColor))
+	enemyQueens := pos.Board.GetBitboardOf(WhiteQueen + enemyBase)
 
 	// Check diagonal attacks (bishop, queen)
-	diagonalAttackers := pos.Board.GetBitboardOf(GetPiece(Bishop, enemyColor)) | enemyQueens
+	diagonalAttackers := pos.Board.GetBitboardOf(WhiteBishop + enemyBase) | enemyQueens
 	if GetBishopAttacks(int(kingSquare), occupied)&diagonalAttackers != 0 {
 		return true
 	}
 
 	// Check straight attacks (rook, queen)
-	straightAttackers := pos.Board.GetBitboardOf(GetPiece(Rook, enemyColor)) | enemyQueens
+	straightAttackers := pos.Board.GetBitboardOf(WhiteRook + enemyBase) | enemyQueens
 	if GetRookAttacks(int(kingSquare), occupied)&straightAttackers != 0 {
 		return true
 	}
