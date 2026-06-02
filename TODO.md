@@ -115,6 +115,9 @@ target / new leaning candidate from the fresh profile. Last resort: launch the m
 
 **MORNING PAYOFF (when the SPRT queue is exhausted — the real check on accumulated leaning):**
 ```
+go build -o build/ngn main.go            # CRITICAL: build/ngn is the gauntlet's -ngn default and is otherwise
+                                          # stale (night work built to ngn_f*/ngn_base, never build/ngn). The
+                                          # movetime gauntlet rewards the F1-F8 speed wins (more NPS -> more depth).
 ./build/gauntlet -games 24 -movetime 1000 > output/gauntlet_night.log 2>&1   # run_in_background
 ```
 Compare the pooled rating to the historical ~2380 / 27.5%@300ms. CLEARLY lower ⇒ the accumulated self-play-neutral
