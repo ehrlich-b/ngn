@@ -331,6 +331,16 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Mov
 		return 0
 	}
 
+	// Hoist the continuation-history sub-table for previousMove out of the per-move
+	// loop (previousMove is constant for the whole list), so each quiet move pays one
+	// 2-D index instead of the full 4-D continuationHistory index. Bit-identical to
+	// the GetHistoryScore path below.
+	usePrev := previousMove != EmptyMove
+	var contHist *[13][64]int
+	if usePrev {
+		contHist = &continuationHistory[previousMove.MovingPiece()][previousMove.Destination()]
+	}
+
 	// Single pass: score all moves
 	for i, move := range moves {
 		score := 0
@@ -384,7 +394,16 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Mov
 
 				// History heuristic for remaining quiet moves; continuation
 				// history adds context-aware ordering when previousMove != EmptyMove.
-				score += GetHistoryScore(move, previousMove)
+				// Inlined GetHistoryScore using the hoisted contHist: this branch only
+				// runs for quiet moves, so that function's capture/promo guard (which
+				// would return 0) is always false here — identical result.
+				piece := move.MovingPiece()
+				to := move.Destination()
+				hs := historyTable[piece][to]
+				if usePrev {
+					hs += contHist[piece][to]
+				}
+				score += hs
 			}
 		}
 
