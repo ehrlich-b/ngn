@@ -104,10 +104,39 @@ competitive) AND "eval is the whole bottleneck" (it's mostly search). The truth 
 **SYNTHESIS:** NGN compensates for a shallow-noisier eval with DEEP SEARCH. That works in middlegames (it reaches
 Blunder's depth) but breaks in endgames (4-7 ply shallower ⇒ its depth-dependent quality collapses) and leaves a
 hole in phase 7-11 (king-eval gap). Dominant lever = ENDGAME SEARCH; cheap localized lever = the phase-7-11 king term.
-**M1 prediction (testing now):** losses skew endgame-technique + tactical(depth), some late-mg positional, FEW clean
-middlegame-positional.
+**M1 prediction:** losses skew endgame-technique + tactical(depth), some late-mg positional, FEW clean middlegame-positional.
+(M1 STOPPED at 7 games / 2 losses 2026-06-02 PM — Bryan steered to ACTION; the M2+M3 diagnosis is solid, M1 was gravy.)
 
-## >>> AUTONOMOUS DAY (2026-06-02) — RUN ALL DAY, NO STOPPING, NO QUESTIONS, READ-ONLY DIAGNOSIS <<<
+## >>> EXECUTION ROADMAP (2026-06-02 PM, Bryan steered: "stop analyzing, take action; study what Blunder did to improve") <<<
+
+**KEY REFRAME (evidence, supersedes the speed-first pivot AND any "eval is the bottleneck"):** per-node SPEED is NOT the
+main lever and NGN has no structural speed bug — VERIFIED it already has packed-uint32 moves, incremental Zobrist hash,
+incremental PST/material, magic bitboards, array-stack repetition (no map in the hot path), captures-only qsearch movegen,
+0 per-node allocs (test-enforced). The ~2x is distributed micro-overhead + a heavier eval (night recovered ~11%). **Blunder's
+own changelog (opponents/.src/docs/changelog.md, read to v8.5.5) confirms its +~400 ELO (5.0.0→8.5.5) came overwhelmingly
+from TUNING + search refinement, NOT raw speed** (one speed rewrite 5.0.0, one +10-15% movegen 8.0.0; everything else =
+search techniques + relentless tuning). Its two biggest documented levers are exactly where NGN is behind:
+- **Search-param tuning** (Blunder 7.3.0 "most of the gain from slight tweaks to LMR/NMP/futility params/conditions" +45-60).
+  NGN's are HAND-SET ROUND NUMBERS (search.go:14-22: NULL_MOVE_R=3, LMR_FULL_DEPTH=3, FUTILITY_MARGIN=200,
+  REVERSE_FUTILITY_MARGIN=120, RAZORING_MARGIN=400) — never tuned.
+- **Gradient-descent (AdaGrad) eval tuner** (Blunder 8.0.0 → "stronger, more streamlined eval"). NGN still uses
+  COORDINATE DESCENT over only PSTs+material (engine/texel.go TexelTune) — the naive method Blunder REPLACED. This is
+  precisely the M3 finding (eval competitive but noisier-when-shallow).
+
+**ROADMAP (classic, NO NNUE — Bryan: 2800 on classic+speed — highest-confidence first):**
+1. **phase-7-11 king term** (our measured defect, fastest) — IN FLIGHT: lowered king-safety gate 12→7 (eval.go), fixed-nodes
+   SPRT `ngn_kingphase` vs `ngn_base`, output/sprt_kingphase.log, task bbt5nkz82. KEEP if non-regression (closes the +9.9cp hole).
+2. **Search-param tuning via SPRT** (Blunder's #1 repeated lever; ours untuned). One param/direction at a time, fixed-nodes,
+   confirm batches via `-tc` gauntlet (self-play SPRT gains can be transfer-mirages). RFP/futility margins + NMP-R + LMR table first.
+3. **Gradient-descent tuner** (Blunder's biggest eval lever; build AdaGrad in cmd/texel, retune the FULL eval incl. term weights,
+   not just PSTs). Biggest structural eval investment; cleans up the noisier-shallow eval.
+4. **Secondary:** endgame-tree search efficiency (biggest gap, HARDEST — [[project_endgame_tree_diagnostic]] refuted standard
+   pruning knobs) + behavioral per-node speed (staged/lazy movegen — the one real speed avenue NGN lacks; SPRT-gated).
+
+**DISCIPLINE:** SPRT-gate every change (fixed-nodes for eval, fixed-time for node-spenders), KEEP RULE (improvement-or-non-
+regression ⇒ keep; reject only on a measured regression), never batch, one SPRT at a time, confirm batches on the `-tc` gauntlet.
+
+## >>> AUTONOMOUS DAY (2026-06-02) — SUPERSEDED PM: diagnosis DONE, now EXECUTING the roadmap above (Bryan steered to action) <<<
 
 **MANDATE (Bryan at his day job, peeking in periodically):** proceed continuously; NEVER idle, NEVER ask, DECIDE
 measurement order/depth ([[feedback_decide_dont_ask]]). **This is a READ-ONLY DIAGNOSIS — measure, record, synthesize;
