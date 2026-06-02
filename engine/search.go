@@ -1487,13 +1487,24 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			info.RecaptureExtensions++
 		}
 
-		// Passed pawn extension: extend for advanced pawn pushes (near promotion)
+		// Passed pawn extension: extend an advanced push of an ACTUALLY PASSED pawn
+		// (near promotion). Was: any non-capture push to the 6th/7th rank, which in
+		// endgames extended every pawn shuffle and stormed the tree ~20x/knode vs the
+		// middlegame (autopsy) — most of those pawns are not passers and not real
+		// promotion threats. pos is post-MakeMove, so the pushed pawn sits on its
+		// destination; it is passed iff its front span is clear of enemy pawns.
 		if move.MovingPiece().Type() == Pawn && !move.IsCapture() {
-			destRank := int(move.Destination()) / 8
+			dest := int(move.Destination())
+			destRank := dest / 8
 			color := move.MovingPiece().Color()
-			// Extend if pawn reaches 6th or 7th rank (about to promote)
 			if (color == White && destRank >= 5) || (color == Black && destRank <= 2) {
-				if nextDepth+1 <= depth {
+				var oppPawns uint64
+				if color == White {
+					oppPawns = pos.Board.GetBitboardOf(BlackPawn)
+				} else {
+					oppPawns = pos.Board.GetBitboardOf(WhitePawn)
+				}
+				if passedPawnFrontSpan[color][dest]&oppPawns == 0 && nextDepth+1 <= depth {
 					nextDepth++
 					info.PassedPawnExtensions++
 				}
