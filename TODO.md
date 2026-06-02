@@ -86,6 +86,16 @@ deltas; settled calls stay settled absent new evidence; **DECIDE, DON'T ASK** on
     EXACT 1319650/1188433/772119) + per-node allocs now **0.000000** (was the #1 alloc site). Added
     **`TestHotPathAllocationFree`** (engine/profile_test.go) = the enforcement: fails the build if any per-node
     alloc regresses. This is the template for "VERIFY, don't claim."
+  - **TT ATOMICS REMOVED — DONE, KEPT, ON MAIN (commit ed5eda0).** Profile showed `sync/atomic.(*Uint64).Load`
+    at **4.49% flat** — the TT used `atomic.Uint64` for a multi-threaded future that doesn't exist (`Threads` is a
+    no-op stub; verified the TT is touched ONLY by the lone `go uci.search` goroutine — `Consumed`/`ExtractPVFromTT`
+    run in the same goroutine's per-depth callback, `stop` never touches it, Texel goroutines do pure eval). Swapped
+    `atomic.Uint64`→plain `uint64` (ARM64 `LDAR`/`STLR`→`LDR`/`STR`, strictly cheaper), deleted the half-baked
+    `BenchmarkMode` escape-hatch + its whole benchmark test. **Struct stays 16B ⇒ slot count unchanged ⇒
+    node-IDENTICAL (exact on all 3 baselines + d13 byte-identical PV/score).** Faster by median (−49ms/9 pairs) +
+    deterministic (can't-be-slower); thermal noise too big to resolve the ~4% cleanly but the KEEP RULE is satisfied
+    (node-identical + strictly-less-work). The author had DISCOVERED this (the BenchmarkMode flag) but never turned
+    it on in production — classic.
   - **GAUNTLET CANCELLED** (was on anchor 2/4, no pooled number). It pins the E-cores (corrupting the NPS
     measurement the speed loop needs) and was measuring a binary I'm now actively changing. Re-run it ONCE at the
     end of a speed batch — never continuously.
