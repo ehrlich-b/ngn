@@ -59,7 +59,7 @@
     {
       "name": "King Safety Castled",
       "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 w kq - 0 1",
-      "eval": 20,
+      "eval": 35,
       "comments": "Castled king should be safer"
     },
     {
