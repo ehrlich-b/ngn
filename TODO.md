@@ -20,6 +20,14 @@ We spent the day PROVING (not guessing) why Blunder beats us, and the evidence p
 
 ## >>> NEXT STEP: GRADIENT TEXEL TUNER — build spec (reanchor + PROCEED here) <<<
 
+**BUILD STATUS 2026-06-02 (spearhead largely SHIPPED):**
+- **(a) eval coefficient TRACE — DONE** (commit 123181d). `engine/texel_gradient.go`: decomposes `evaluateUnsafe` into a cached sparse coeff vector (PeSTO occupancy + scalar-term features); `reconstructEvalInt` reproduces `evaluateUnsafe` BIT-EXACT over the gate FENs (the faithfulness gate, stronger than aggregate-MSE) + float model within 1.85cp. Param layout = cmd/texel "full" order (material 10 + 768 PST + 9 scalars = 787).
+- **(b) Adam optimizer — DONE** (commit 75538a8). `cmd/texel -mode gradient`: full-batch gradient descent over cached traces, all 787 params jointly. Validated by a NUMERIC gradient check (16 params incl. the negated penalties) + an end-to-end MSE-reduction/transfer test. Real-data smoke (30k self-play): train 0.122→0.091, test 0.126→0.098 in <1s (the 100-1000x speedup, realized). **Self-play data exposed the weak-teacher artifact live: isolatedPawnPenalty tuned NEGATIVE (−14), kingActivity −72 — exactly why we distill.**
+- **(c1) SF distillation labeler — DONE** (commit 096eead). `oracle -mode distill`: parallel Stockfish soft labels, white-POV cp → logistic win-prob target, Texel-format. Sign-flip verified (black-to-move winning-for-white positions read ~0.95 not ~0.04).
+- **(c2) IN PROGRESS — distill 30k + tune + SPRT + gauntlet** (task #9). Distill run live (task bgi3s9hs8, `output/texel_distilled.txt`, SF d12, 8 workers/P-cores). Then `texel -mode gradient` on distilled data → fixed-nodes SPRT vs current → `-tc 120+1` gauntlet. KEEP RULE. Watch: the negative-penalty artifact should VANISH with SF labels (the validation that distillation beats self-play).
+
+
+
 **What ALREADY exists (engine/texel.go + cmd/texel):** the Texel OBJECTIVE is implemented — `texelSigmoid(eval,k)`, `texelMSE(samples,k)`, `TexelFindK` (ternary-search K), `LoadTexelSamples` (`<FEN> <result>` / result-labeled EPD), param exposure (`TexelWeights()`=10 eval-term scalars, `TexelMaterialParams()`, PST access), `gendata` (self-play data), Go-source emitters (`FormatPSTTables/MaterialValues/TexelWeights`). The night tuned PSTs+10 weights on the Zurichess set for +46 ELO (commit bb12a48). **What's MISSING is the SOLVER:** it's COORDINATE DESCENT (`TexelTune` line-searches one param at a time — slow, stalls in diagonal valleys).
 
 **The build — gradient descent (Blunder's 8.0.0 upgrade), phased:**
@@ -54,7 +62,10 @@ Read-only instruments built this day: `scripts/m2_depth.sh` (depth at matched ti
 ---
 
 ## IN FLIGHT
-- **phase-7-11 king-eval SPRT** (task b3ujnoooq, `output/sprt_kingphase.log`): lowered king-safety gate `12→7` (eval.go) to cover the M3 hole; fixed-nodes, ngn_kingphase vs ngn_base, ~1h. On reanchor: read the verdict, KEEP if non-regression (closes a measured hole) / revert if regression. A point fix — the gradient tuner subsumes it (tuning king-safety across phases). build/ngn_kingphase + build/ngn_base on disk.
+- **SF distillation run** (task bgi3s9hs8 → `output/texel_distilled.txt`): relabeling the 30k self-play FENs with SF d12 eval. When done: `texel -mode gradient -data output/texel_distilled.txt` → emit tuned Go source → paste into eval_pesto.go/eval.go → rebuild → fixed-nodes SPRT vs current → gauntlet. (c2, task #9.)
+
+## RESOLVED THIS SESSION (2026-06-02)
+- **phase-7-11 king-eval gate — KEPT** (commit d036fbd): lowered king-safety gate `phase>=12 → >=7`. Fixed-nodes SPRT (b3ujnoooq) ran 297 games dead-neutral (elo +0.0 [-39,+39]) = no measured regression ⇒ KEEP per the rule; and structurally REQUIRED so the gradient tuner can reach king-safety in the 7-11 band (a dead term can't be tuned). Eval-regression baseline updated (709ef39, King Safety Castled 20→35, the suite's only phase-8 position — confirms the change is correctly localized).
 
 ---
 
