@@ -209,10 +209,24 @@ block and commit the SAME turn (the integral term). [[feedback_long_autonomous_s
   bishop-pair is the biggest eval-LEAF flat cost (~3% flat) AND its value is genuinely debated, so it's the
   highest-info remaining deletion test. `bishopPairWeight 90→0`, ngn_l5 vs ngn_base (HEAD with F1-F9). Caps ~800.
   (NOTE: first launch used a bare `&` which gives no completion notification — killed + relaunched via run_in_background.)
-- **NEXT:** FOREGROUND — node-identically optimize the next confirmed/likely keeper (king-safety attack-patterns =
-  biggest eval cost ~610ms cum, or rook-open per-color dedup); do NOT optimize bishop-pair until L5 confirms KEEP.
-  BACKGROUND — on L5 wake: decide bishop-pair (DELETE only if clearly NOT a regression; else KEEP + then optimize it) →
-  launch L4 rook-open → L6 king-safety → (skip L3 king-activity: ~10ms cum, deleting it saves ~0 speed). Record + commit each.
+- **L5 (no-bishop-pair) DONE — VERDICT: DELETE (the night's FIRST leaning win, commit 037f853).** 361-125-314,
+  **Elo +20.4 [-4,+45]**, pentanomial +20.4 [-1,+42], LLR +0.90 (toward H1). Removing bishop-pair is a ~20-ELO
+  IMPROVEMENT — the term was net-HARMFUL (double-counted the PeSTO bishop material values). Double win: **+20 ELO AND
+  ~3% faster** (it was the biggest eval-leaf flat cost). Executed: removed the eval call (kept evaluateBishopPair for
+  its 3 unit tests), dropped bishopPairWeight from the const block + texel tunables, fixed the weight-count test,
+  recomputed nodecheck baselines (kiwipete 1372558 / mid 1003482 / end 772119 — verified ngn_nobp ≡ ngn_l5 exactly so
+  the SPRT verdict transfers). smoke-tactical 28/30, go test -short green. **LESSON: chess-intuition priors are
+  unreliable (bishop-pair was tagged "likely keep" — it was +20 to REMOVE); test every term. The eval is NOT fully
+  tuned; the sweep finds real strength+speed wins, so it's worth continuing.**
+- **L6 (no-king-safety) LAUNCHED (bg bnexstfeq, output/sprt_l6.log):** `kingSafetyWeight 100→0`, ngn_l6 vs ngn_base
+  (rebuilt from HEAD 037f853 = F1-F9 + bishop-pair-removed). Biggest eval cost (~610ms cum); high-EV test — resolves
+  FAST toward H0 if king-safety is the strong earner expected (then KEEP), or is the night's biggest combined win if
+  harmful like bishop-pair. build/ngn also rebuilt current for the eventual gauntlet.
+- **NEXT (on L6 wake):** decide king-safety (KEEP if clear regression — likely; DELETE only if est ≥ ~-5) → then L4
+  rook-open (rookOpenWeight=0) and L3 king-activity (kingActivityWeight=0 — most-likely-harmful: it double-counts the
+  PeSTO endgame king-centralization PST, like bishop-pair, though ~0 speed so it'd be a strength-only win) as time
+  allows → then MORNING GAUNTLET (rebuild build/ngn first) to measure F1-F9 speed + bishop-pair-removal together vs
+  Blunder anchors, ngn_prenight as the revert backstop. Foreground free lane is exhausted (F1-F9); SPRT carries the night.
 
 ---
 
