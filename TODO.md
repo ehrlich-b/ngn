@@ -34,7 +34,7 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
 
 ## >>> IN FLIGHT (2026-06-01) — resume info, survives compaction <<<
 
-- **J1 extensions×LMR fix — ACTIVE CANDIDATE (uncommitted working-tree edit in engine/search.go:1615).**
+- **J1 extensions×LMR fix — SHELVED + REVERTED 2026-06-01 (working tree clean; one-line change re-derivable from docs/05).**
   THE headline HIGH/VIOLATED joint (docs/05+09): off-PV non-first checking/recapture moves had their
   check/recapture extension *computed and counted but never applied* — the scout ran at `depth-1-reduction`
   (un-extended) and neither re-search (C4 gated `reduction>0`, PVS gated `isPV`) fires for a reduction==0
@@ -52,23 +52,25 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   endgame-tree weakness (top speed lane) — net strength is two-sided (tactical depth vs EG bloat), a fixed-TIME
   SPRT prices it in.** NEXT: (1) oracle pre-filter running — task bbbg530e4, output/j1_oracle.log (tactical
   best-move @2000 nodes + ACPL @ fixed depth-12, j1 vs base; J1 is tactically-relevant so the oracle CAN see it,
-  unlike A2). (2) if not clearly-worse → fixed-TIME SPRT: `build/sprt -new build/ngn_j1 -base build/ngn_base
-  -movetime 800 -concurrency 4 -elo0 -5 -elo1 0 -mingames 64 -maxgames 1000` ([-5,0] non-regression = the
-  KEEP-RULE decision; movetime because fixed-nodes/depth undercredit extensions). DECIDE: KEEP if not a
-  regression (correctness fix, KEEP RULE); REJECT if SPRT < −5 (then the dead extension was accidentally good →
-  document, don't just revert). On KEEP: commit + flip docs/05+09 J1 `[VIOLATED]`→`[HOLDS]` + recompute
-  nodecheck baselines. On REJECT: `git checkout engine/search.go`. **SPRT watcher = task bwpna20dl** (wakes me
-  on exit; SPRT pid 91283, log output/j1_sprt.log).
-- **>>> THEN, IMMEDIATELY (Bryan-requested top priority, 2026-06-01): FRESH REAL-CLOCK GAUNTLET <<<** The lone
-  recorded gauntlet (2401 [2252,2550]) is 72 commits / ~+68 self-play ELO stale (promo +37, A4 +19, NMP+SEE ~+12)
-  AND the +168 time-mgmt fix (fdbf565) UNBLOCKED real-clock play — so the old movetime-bias caveat can finally be
-  dropped. Est now ~2410 (range 2350-2450); if the gauntlet says we're AT or NEAR 2500 that's big news. SEQUENCE
-  (must be serial — gauntlet contends with nothing): (1) apply the J1 decision above so main is final; (2)
-  `go build -o build/ngn main.go && go build -o build/gauntlet ./cmd/gauntlet`; (3) launch:
-  `nohup taskpolicy -b build/gauntlet -tc 120+1 -only v6.1.0,v7.2.0,v7.4.0,v8.0.0 -games 16 > output/gauntlet_realclock.log 2>&1 &`
-  (real CCRL Blitz TC 2'+1"; 4 anchors bracket 2155/2425/2532/2674 so the 2500 crossover is pinned BOTH sides;
-  conc-1 hardcoded; ~4-5h/64 games). Watch the integrity check (≥1 anchor >50% AND ≥1 <50%, else it's an
-  extrapolation). (4) When it lands: record the pooled rating + per-anchor crosstable, and FIX THE STALE DOCS
+  unlike A2). **VERDICT (provisional, stopped early — NOT a formal SPRT result):** oracle pre-filter MIXED
+  (tactical +0.9% / +2 solved −0 lost, but ACPL **+1.4 cp/move WORSE** on quiet middlegames — just above the
+  noise floor, not a clear reject). Fixed-TIME SPRT (ngn_j1 vs ngn_base, 800ms conc-4, [-5,0]) ran to **G65:
+  18W-18D-29L 41.5%, −59 ELO [−144,+25], LLR −0.22** — leaning clearly negative, CI still grazing 0 ([-5,0]
+  bounds resolve slowly). REVERTED to clean main to free cores for the headline gauntlet (Bryan's call): J1 is
+  ±20 immaterial to the gauntlet, leaning a regression, AND applying the extension **bloats the endgame tree
+  +83%** (the rook EG) — exactly NGN's top weakness — so KEEP RULE = don't keep. The dead off-PV extension is
+  accepted as likely-better-left-dead; docs/05+09 J1 stays `[VIOLATED]` (fix ATTEMPTED, measured not-a-win, the
+  one-liner `reducedDepth := nextDepth - reduction` is recorded there if revisited). LESSON: a "correctness"
+  invariant fix is NOT automatically a strength win — applying a long-dead extension can cost more (tree bloat)
+  than it gains (tactical depth); the engine had implicitly tuned around the dead code.
+- **>>> RUNNING NOW (launched 2026-06-01 ~20:00): FRESH REAL-CLOCK GAUNTLET — pid 22444, watcher task b0v3ob8ua, log output/gauntlet_realclock.log <<<**
+  `taskpolicy -b build/gauntlet -tc 120+1 -only v6.1.0,v7.2.0,v7.4.0,v8.0.0 -games 16` (real CCRL Blitz TC 2'+1",
+  conc-1, 4 anchors bracketing 2155/2425/2532/2674, 64 games, ~4-5h). The lone prior gauntlet (2401 [2252,2550])
+  was 72 commits / ~+68 self-play ELO stale (promo +37, A4 +19, NMP+SEE ~+12) AND the +168 time-mgmt fix
+  (fdbf565) UNBLOCKED real-clock play — so this is the FIRST true-CCRL-conditions number, no movetime-bias caveat.
+  Est ~2410 (range 2350-2450); AT or NEAR 2500 = big news. **WHEN IT LANDS (watcher b0v3ob8ua wakes me):** check
+  the integrity line (≥1 anchor >50% AND ≥1 <50%, else it's an extrapolation — 610 should be the >50% floor, 740
+  the <50% ceiling), then record the pooled rating + per-anchor crosstable, and FIX THE STALE DOCS
   with the hard number (CLAUDE.md "~2380" + TODO line 3 "2380 real-clock" are both wrong — wrong value, and that
   run was movetime not real-clock). This real-clock number replaces all estimation.
 - **A1 de-pad TT — DONE, KEPT, ON MAIN (commit d1fb499).** SPRT stopped at G225: 49.8%, elo -1.5 [-47,+44] =

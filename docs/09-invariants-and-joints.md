@@ -235,10 +235,14 @@ separate, gated step, and it is acceptable that not all are fixed the same sessi
 
 ## Fix queue (VIOLATED, by severity — apply one at a time, gated)
 
-1. **[HIGH] J1 — extension × LMR base.** `reducedDepth := nextDepth - reduction` (search.go:1560), keep the
-   dead clamp branch. Gate: depth-10 Kiwipete node/seldepth vs clean HEAD (expect a check-line node increase,
-   seldepth ≤ RootDepth+24), `make smoke-tactical`, `go test ./engine/`. **Then a fixed-time SPRT** — the one
-   fix here likely to move strength, and it re-validates the C4 measurement (currently a no-op for its headline).
+1. **[ATTEMPTED → REVERTED 2026-06-01] J1 — extension × LMR base.** Applied `reducedDepth := nextDepth - reduction`
+   (search.go:1615) + dropped the tautological clamp (keeping it would re-clamp a check back to depth-1, defeating
+   the fix — the doc's old "keep the dead branch" was wrong). Gated: `go test`/`smoke-tactical` clean, node check
+   CONFIRMED the extension now fires (kiwipete d12 +51%, mid −21%, **end +83%**). But the fixed-time SPRT (800ms,
+   [-5,0]) leaned **−59 ELO [−144,+25] at G65** and the +83% endgame-tree bloat amplifies NGN's #1 weakness →
+   **reverted, not kept** (stopped early for the headline gauntlet; not a formal verdict). The long-dead off-PV
+   extension is better left dead — the engine had implicitly tuned around it. Status stays `[VIOLATED]` but is an
+   ACCEPTED non-fix now; re-run to a formal bound before any retry. (One-liner above is the change if revisited.)
 2. **[MEDIUM] J10/FUT1 — futility prunes promotions.** Add `&& move.PromoType()==NoType` at :1301. Correctness
    fix, low-risk; keep on correctness grounds (no ELO gate). Gate: smoke-tactical + go test.
 3. **[MEDIUM-LOW] J8 — `SearchFixed` RootDepth.** `info.RootDepth = depth` in `searchFixedUnsafe` (and the
