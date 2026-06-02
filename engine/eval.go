@@ -2476,8 +2476,9 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	eval += (evaluateOutpostSquares(whiteKnights, whiteBishops, whitePawns, blackPawns, White) -
 		evaluateOutpostSquares(blackKnights, blackBishops, blackPawns, whitePawns, Black)) * outpostWeight / 100
 
-	// King safety: pawn shield in middlegame only.
-	if phase >= 12 { // roughly middlegame or opening
+	// King safety: middlegame through late-middlegame (phase>=7 covers the
+	// measured phase 7-11 king-eval hole; king-safety was gated >=12 before).
+	if phase >= 7 {
 		eval += (evaluateKingSafety(board, White) - evaluateKingSafety(board, Black)) * kingSafetyWeight / 100
 	} else if phase < 6 {
 		// Deep endgame only: encourage king centralization and supporting pawns.
