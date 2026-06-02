@@ -57,7 +57,20 @@ THEN = 2800. Absolute truth = `make gauntlet` (Cadence B). Relative = self-play 
   KEEP-RULE decision; movetime because fixed-nodes/depth undercredit extensions). DECIDE: KEEP if not a
   regression (correctness fix, KEEP RULE); REJECT if SPRT < −5 (then the dead extension was accidentally good →
   document, don't just revert). On KEEP: commit + flip docs/05+09 J1 `[VIOLATED]`→`[HOLDS]` + recompute
-  nodecheck baselines. On REJECT: `git checkout engine/search.go`.
+  nodecheck baselines. On REJECT: `git checkout engine/search.go`. **SPRT watcher = task bwpna20dl** (wakes me
+  on exit; SPRT pid 91283, log output/j1_sprt.log).
+- **>>> THEN, IMMEDIATELY (Bryan-requested top priority, 2026-06-01): FRESH REAL-CLOCK GAUNTLET <<<** The lone
+  recorded gauntlet (2401 [2252,2550]) is 72 commits / ~+68 self-play ELO stale (promo +37, A4 +19, NMP+SEE ~+12)
+  AND the +168 time-mgmt fix (fdbf565) UNBLOCKED real-clock play — so the old movetime-bias caveat can finally be
+  dropped. Est now ~2410 (range 2350-2450); if the gauntlet says we're AT or NEAR 2500 that's big news. SEQUENCE
+  (must be serial — gauntlet contends with nothing): (1) apply the J1 decision above so main is final; (2)
+  `go build -o build/ngn main.go && go build -o build/gauntlet ./cmd/gauntlet`; (3) launch:
+  `nohup taskpolicy -b build/gauntlet -tc 120+1 -only v6.1.0,v7.2.0,v7.4.0,v8.0.0 -games 16 > output/gauntlet_realclock.log 2>&1 &`
+  (real CCRL Blitz TC 2'+1"; 4 anchors bracket 2155/2425/2532/2674 so the 2500 crossover is pinned BOTH sides;
+  conc-1 hardcoded; ~4-5h/64 games). Watch the integrity check (≥1 anchor >50% AND ≥1 <50%, else it's an
+  extrapolation). (4) When it lands: record the pooled rating + per-anchor crosstable, and FIX THE STALE DOCS
+  with the hard number (CLAUDE.md "~2380" + TODO line 3 "2380 real-clock" are both wrong — wrong value, and that
+  run was movetime not real-clock). This real-clock number replaces all estimation.
 - **A1 de-pad TT — DONE, KEPT, ON MAIN (commit d1fb499).** SPRT stopped at G225: 49.8%, elo -1.5 [-47,+44] =
   neutral / no big regression. Kept per Bryan's sound-fix-no-grind policy (commit fa9cc02): free capacity (4x TT
   slots, removes single-thread-pointless padding, no plausible regression mechanism); the 200ms read is flat
