@@ -9,9 +9,10 @@
 **The speed-first pivot is REFUTED by our own data.** It claimed NGN's eval is a net liability to delete for speed.
 We tested it directly (fixed-nodes self-play SPRT, removing each term): **mobility +66, king-safety +32, outposts +9
 are real EARNERS (KEEP); only bishop-pair (+20 to remove) was harmful (deleted).** 4 of 5 terms earn their keep — so
-"complexity is guilty until proven" is just WRONG here; the eval is mostly well-tuned and load-bearing. The "2400 lines
-vs Blunder's 228" was VERBOSITY, not richness — NGN computes the same standard concepts (mobility, king safety, passed
-pawns) in more code. **Leaning the eval was chasing a non-problem.**
+"complexity is guilty until proven" is just WRONG here; the eval is mostly well-tuned and load-bearing. The "~2750 lines
+vs Blunder's 560" was VERBOSITY, not richness — NGN computes the same standard concepts (mobility, king safety, passed
+pawns, knight outposts, N/B/R/Q mobility, king-safety attack tables — VERIFIED term-by-term against
+opponents/.src/engine/evaluation.go) in ~5x the code. **Leaning the eval was chasing a non-problem.**
 
 **We conflated two questions.** Self-play SPRT answers *"does removing X hurt NGN-vs-old-NGN?"* — it says NOTHING about
 *"why does Blunder beat NGN?"* All night I optimized the former and never investigated the latter. **We still do NOT
@@ -100,9 +101,21 @@ parallel). [[feedback_decide_dont_ask]] [[feedback_long_autonomous_sessions]] [[
   king-safety +32, rook-open ~-2-to-keep; bishop-pair -20 was the lone harmful term, deleted). ⇒ the eval is
   well-tuned/load-bearing for NGN-vs-NGN, NOT bloated. (Still a self-play frame — says nothing about Blunder; M3 settles that.)
 - **M3 LAUNCHED (2026-06-02 AM):** balanced corpus = NGN self-play + Blunder self-play (30 openings each, depth-8,
-  every 6 plies) → SF18 depth-18 MultiPV-8 labels. acpl A/B (NGN vs blunder_740) at depth-6 (eval-isolated) AND
-  depth-12 (eval+search) pending the label completion. M2 instrument (scripts/m2_depth.sh, matched-time depth-
-  reached via go-infinite+stop) written + parser-validated; full run deferred to clean E-cores after M3.
+  every 6 plies; 300 FENs) → SF18 depth-18 MultiPV-8 labels (~12s/pos single-thread E-core ⇒ ~55min). acpl A/B (NGN
+  vs blunder_740) at depth-6 (eval-isolated), depth-12 (eval+search), AND nodes-50000 (matched-COMPUTE, the fairest
+  eval read — fixed-depth flatters NGN's bigger tree) pending labels.
+- **Blunder eval coverage (FACT, verified against opponents/.src/engine/evaluation.go):** Blunder 7.4.0's eval is
+  **560 lines** (the long-repeated "228" was WRONG — corrected in docs/memory) and covers the SAME standard terms as
+  NGN — tapered MG/EG PeSTO, isolated/doubled/passed pawns, knight outposts, N/B/R/Q mobility, king-safety attack
+  tables, semi-open-file-by-king. NGN's eval is ~2750 lines for the same concepts ⇒ verbosity, not extra richness.
+  IMPLICATION: comparable term coverage makes M3's ACPL an apples-to-apples eval-QUALITY read (a gap, if any, is
+  tuning/bugs, not missing features).
+- **M1 tooling BUILT + validated (2026-06-02 AM):** capture = `gauntlet -pgn <file>` (uci.GameConfig.MovesOut out-
+  pointer) writes every game's result/color/reason/moves; analysis = `oracle -mode classify -games <pgn> -sf SF
+  -sfdepth N` replays each NGN loss, evals NGN-POV per ply (clamped ±1500 so the forced mate doesn't mask the
+  originating error), tags TACTICAL (sudden ≥200cp drop = search/depth) vs POSITIONAL (gradual = eval) × phase.
+  Validated on a 2-game test (one positional, one 613cp-tactical). M1 games need a solo `-tc` run (hours) — sequence
+  after M2.
 
 ---
 
@@ -490,7 +503,7 @@ docs/10):  `time-to-depth = per-node-speed × tree-size`.
 
 Tree ratios are EXACT/deterministic; per-node is thermally noisy (~2x). **THESIS REFUTED:** NGN does NOT
 search fewer/better nodes — tree is ~1x in middlegames, **2.5-5x BIGGER in endgames**, while ~2x slower per
-node, and Blunder (228-line eval vs NGN's ~2400) is +150 CCRL STRONGER. NGN is behind on BOTH axes.
+node, and Blunder (560-line eval vs NGN's ~2750) is +150 CCRL STRONGER. NGN is behind on BOTH axes.
 
 **LEVERS, RE-RANKED 2026-05-31 AFTER THE STEP-1 AUDIT (the old "endgame = #1 quick pruning win" is REFUTED):**
 1. **ENDGAME SEARCH EFFICIENCY — the 2.5-5x tree. Still real, but NOW KNOWN HARD (was "NEW #1, START HERE").**

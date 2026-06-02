@@ -175,7 +175,7 @@ a stack of independent factors that *multiply*.** Decomposing by what Blunder st
 **Conclusion / reframe (corrected 2026-05-31 by the decomposition at the top of this doc):** the prior
 "NGN trades NPS for node-quality on purpose" was **WRONG**. The data shows NGN does *not* buy a smaller
 tree with its richness (tree ~1x in middlegames, **2.5–5x LARGER in endgames**) while paying ~2x per
-node — and the lean peer (Blunder, a 228-line eval) is +150 CCRL *stronger*. *strength = NPS ×
+node — and the lean peer (Blunder, a 560-line eval vs NGN's ~2750) is +150 CCRL *stronger*. *strength = NPS ×
 node-quality* still holds, but NGN is currently behind on **both** factors, not trading one for the
 other. Levers, ranked by honest payoff:
 
