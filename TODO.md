@@ -129,6 +129,17 @@ is otherwise green; `-short` skips the slow ones.
 (`-lowpower true` default). Build dev work to SEPARATE binaries, never `make` mid-gate. RECORD each decision in this
 block and commit the SAME turn (the integral term). [[feedback_long_autonomous_sessions]] [[feedback_decide_dont_ask]] [[sprt_instrument]]
 
+**NIGHT PROGRESS LOG (newest last):**
+- `ngn_prenight` snapshot built from baseline (probcut-fix + TT-atomics). caffeinate 11h running.
+- **F1 DONE, KEPT (commit 2aaf2e9):** replaced the 12 named piece-bitboard fields with `pieces [13]uint64`
+  indexed by Piece (via 12 `gofmt -r` rewrites across engine/ + `copy()`→`return *b`); GetBitboardOf is now a
+  single array load, not a 12-way switch (~4.16% flat). Node-identical EXACT, alloc-free, `go test -short` green.
+- **F2 DONE, KEPT (commit 8bc4416):** collapsed the 12-way piece switches in UpdateSquare/Clear/Move into direct
+  `b.pieces[piece]` writes + one `piece < BlackPawn` color-branch for the white/black aggregates (castling order
+  preserved). Cuts make/unmake flat cost (Clear 5.4% + Move 3.0%). Node-identical EXACT, alloc-free, suite green.
+- **L1 (no-outposts) SPRT:** trending H1 — removing outposts is **+57 ELO [-5,+119] @ G123, LLR +0.37** (the term
+  is a non-earner; heading to DELETE). Running in background, will wake on bound/maxgames.
+
 ---
 
 ## >>> IN FLIGHT (2026-06-01) — resume info, survives compaction <<<
