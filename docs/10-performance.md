@@ -322,3 +322,60 @@ closed — don't expect much; the rest is the eval/ordering tradeoff, by design.
 **Every [NEUTRAL] target must produce identical node counts, seldepth, score, and bestmove at fixed
 depth** on the 3 baselines — that is the proof it changed only speed, not strength. If node counts move,
 it's secretly [BEHAVIOUR] and needs an SPRT.
+
+---
+
+## Endgame-tree autopsy (2026-06-02) — the eg blowup is COMPOUNDING ORDERING, not a broken knob
+
+New instrument: `cmd/pruning-analysis` rebuilt into a phase-bucketed tree-composition profiler
+(`build/autopsy`); two counters added to `SearchInfo` (`TTProbes` = hit/cutoff denominator,
+`FirstMoveCutoffs` = beta cutoffs on the 1st legal move = move-ordering quality). It buckets a real
+corpus (`output/lichess_eval.txt`) by computed game phase and searches each bucket to a fixed depth.
+
+**Ground truth (h2h, fixed depth, current build, E-cores) — the gap GROWS with eg depth:**
+
+| pos | depth | NGN nodes | BLU nodes | tree ratio |
+|---|---|---|---|---|
+| mid / mid2 / kiwipete | d12 | — | — | **0.79–0.89x** (NGN tree *smaller* than Blunder in mg) |
+| pp-endgame | d16 | 1.27M | 336K | **3.78x** |
+| quiet-end | d18 | 3.90M | 426K | **9.16x** |
+
+NGN's eg EBF ≈ 2.4 vs Blunder's ≈ 1.95 in a quiet rook ending — a ~0.45/ply difference that compounds
+to 3.78x at d16 and 9.16x at d18. Blunder's sub-2.0 eg EBF is the anomaly (near-perfect ordering +
+aggressive pruning in simple endgames); NGN's ~2.4 is ordinary. **NGN has no eg BUG; Blunder has an eg
+STRENGTH, and it's depth-compounding.**
+
+**Composition autopsy (depth 8, 30 eg ph≤5 vs 30 mg ph≥14), eg/mg ratio of each per-node rate:**
+
+| metric | eg | mg | read |
+|---|---|---|---|
+| mean nodes/pos | 33.3k | 96.5k | eg tree is *smaller* than NGN-mg at fixed depth (gap is vs Blunder) |
+| first-move-cutoff % | 87.5% | 89.7% | **mediocre in BOTH** (top engines ~95%); ordering headroom is global |
+| qsearch node % | 35.7% | 41.4% | qsearch is **not** the eg leak (lower share in eg) |
+| TT cutoff %/probe | 20.5% | 8.8% | TT is **more** effective in eg — not the leak |
+| futility prunes /knode | 149 | 472 | **collapses in eg** — but emergent (eg static evals sit near alpha), not phase-gated, working as designed |
+| LMR reductions /knode | 94 | 145 | fires less in eg (fewer late quiets qualify) |
+| check ext /knode | 30 | 11 | **2.7x eg storm** (every check extends; lone-king checks are frequent) |
+| passed-pawn ext /knode | 35 | 1.7 | **20x eg storm** — was over-broad (extended *any* 6th/7th push, not actual passers) |
+
+**Synthesis (the mechanism).** In middlegames NGN's aggressive futility (472/knode) + LMP (547/knode)
+keep the tree at/below Blunder's *despite* mediocre 88% move ordering — the pruning masks the ordering
+weakness. In endgames the static eval sits near alpha so **futility stops firing** (149/knode, by
+design), the mask is removed, and the underlying 88% ordering + the extension storms are exposed and
+**compound over deep quiet lines** into 3.78–9.16x. So the eg gap is not one broken knob (TT, qsearch,
+futility, LMR, NMP, TT-capacity all already refuted in [[project_endgame_tree_diagnostic]] and
+re-confirmed here) — it is the **compounding of (mediocre ordering + futility-collapse + extension
+storms)** that only middlegame futility was hiding.
+
+**Acted on:** the passed-pawn extension was scoped to actually-passed pawns (commit 102b8ce); tactical
+28/30, but **node-neutral** (−1.5% eg nodes — in real endgames almost all advanced pushes are already
+passers), so it is a *correctness* fix, not the lever (fixed-time non-regression SPRT gating it).
+
+**Next candidates (one-axis, fixed-time SPRT each), ranked by the compounding logic:**
+1. **eg move ordering** — push first-move-cutoff 88%→93%+ (the biggest compounding factor; check whether
+   history/killer/counter tables and quiet-move eval-ordering degrade in eg).
+2. **an eg-appropriate replacement for the futility-collapse** — a pruner that fires when evals are flat
+   (history-leaf pruning / eg-tuned LMP) to restore the mask futility provides in mg.
+3. **tighten the eg extension storms** — check-ext (SEE≥0 only? / cap), and `EXTENSION_BUDGET=24` is very
+   loose (24 net plies/path — effectively uncapped at NGN's eg depths), which permits the deep
+   compounding checking lines.
