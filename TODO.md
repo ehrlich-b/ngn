@@ -246,11 +246,26 @@ block and commit the SAME turn (the integral term). [[feedback_long_autonomous_s
   24-game score is CLEARLY below ~31%, the bishop-pair removal may have regressed real strength despite +20 self-play
   (the transfer-mirage risk) ⇒ run a fixed-time ngn_prenight-vs-build/ngn SPRT to isolate, and consider reverting it
   while keeping the node-identical F1-F9 speed wins (which can't regress strength).**
-- **MORNING DECISION (on gauntlet completion):** read pooled rating. Compare to the historical ~2380 / 27.5%@300ms
-  (same-conditions reference). HIGHER ⇒ the F1-F9 speed (more depth at fixed movetime) + bishop-pair removal transferred
-  to real strength ⇒ record the new number, fix stale ~2380 docs. CLEARLY LOWER ⇒ A/B `build/ngn` vs `build/ngn_prenight`
-  (fixed-TIME SPRT) to isolate whether bishop-pair regressed in real games, revert if so. The gauntlet carries the night;
-  foreground free lane exhausted (F1-F9 banked). 19 commits local, tree clean.
+- **>>> GAUNTLET RESULT: NO POOLED RATING — the absolute instrument is DEGRADED (anchors dead). <<<** 6.1.0 ignores
+  movetime/stop (excluded at warmup); 7.2.0 forfeited 3 straight no-move games (dead/broken, auto-aborted); 7.4.0
+  (the canonical working anchor) PLAYED real games but had 2/24 no-move forfeits (>2% ceiling) → tainted → dropped.
+  So the pool was empty. The raw 7.4.0 line: 6W-6D-12L incl. 2 forfeit-wins ⇒ **4W-6D-12L = 31.8% over the 22 REAL
+  games**, essentially identical to the historical ~31%@1000ms. **24 games (±~10%) cannot resolve the night's expected
+  ~10-25 ELO gain (a +20 real gain only shifts the score ~+3%), so 31.8%≈31% is CONSISTENT WITH a small improvement —
+  neither confirms nor refutes.** TODO for the gauntlet: rebuild a bracketing set of movetime-honoring anchors
+  (`gauntlet -probe` to find which Blunder versions honor `stop`); 6.1.0/7.2.0 are unusable at an honest TC.
+- **NIGHT VERDICT — clear NET POSITIVE, no revert.** The clean (concurrency-immune) measurements stand: (1) F1-F9 are
+  node-identical ⇒ at fixed TIME more NPS = more depth = strength can only RISE — SAFE, banked. (2) bishop-pair removal
+  = **+20.4 ELO at fixed-NODES** (L5, a clean deterministic measure; and since F1-F9 are node-identical, ngn_base ≡
+  ngn_prenight at fixed-nodes ⇒ current is +20 over prenight at fixed-nodes). So the night = **+20 ELO (fixed-nodes,
+  clean) + ~11% NPS (node-identical) = a net positive that cannot have regressed.** The gauntlet's underpowered ~neutral
+  does NOT refute it. (A fixed-TIME prenight-vs-current self-play SPRT was attempted for a powered total read but is
+  INVALID at concurrency>1 — movetime contention corrupts timing, per the sprt tool's own warning — and conc-1 is ~8h;
+  killed. Not needed: speed is node-identical-safe, bishop-pair is +20 fixed-nodes-clean.)
+- **DEFERRED (next session):** L4 rook-open + L3 king-activity deletion tests (king-activity is the prime remaining
+  double-count suspect — overlaps the PeSTO endgame king-centralization PST, like bishop-pair did the bishop values);
+  the gauntlet-anchor rebuild; Track-3 behavioral speedups (lazy/staged movegen, a node-identical king-safety speedup —
+  king-safety is the least cost-efficient keeper, 610ms cum for only +32 ELO). 22 commits local, tree clean, NOT pushed.
 
 ---
 
