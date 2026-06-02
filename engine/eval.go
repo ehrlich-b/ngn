@@ -2245,45 +2245,14 @@ func evaluateRookOnOpenFile(board *Bitboard, color Color) int {
 
 // evaluateMobility counts available moves for pieces and awards bonuses
 // Mobility is a key positional factor - pieces that can move to more squares are more valuable
-func evaluateMobility(board *Bitboard, color Color) int {
+// mobilityForSide sums one side's piece mobility given the shared occupancy and the
+// side's excluded squares (own pieces + enemy pawn attacks). Factored out of
+// evaluateMobility so evaluateMobilityDelta can compute the color-independent setup
+// (occupancy, pawn-attack spans) once instead of once per color.
+func mobilityForSide(allPieces, excluded, knightBB, bishopBB, rookBB, queenBB uint64) int {
 	mobility := 0
-	whitePieces := board.GetWhitePieces()
-	blackPieces := board.GetBlackPieces()
-	allPieces := whitePieces | blackPieces
-
-	// Compute squares attacked by each side's pawns. A piece moving to a
-	// pawn-attacked square is essentially captured for free, so those squares
-	// don't count as real mobility.
-	whitePawns := board.GetBitboardOf(WhitePawn)
-	blackPawns := board.GetBitboardOf(BlackPawn)
-	whitePawnAttacks := ((whitePawns & ^FileMasks[FileA]) << 7) | ((whitePawns & ^FileMasks[FileH]) << 9)
-	blackPawnAttacks := ((blackPawns & ^FileMasks[FileH]) >> 7) | ((blackPawns & ^FileMasks[FileA]) >> 9)
-
-	var friendlyPieces, enemyPawnAttacks uint64
-	if color == White {
-		friendlyPieces = whitePieces
-		enemyPawnAttacks = blackPawnAttacks
-	} else {
-		friendlyPieces = blackPieces
-		enemyPawnAttacks = whitePawnAttacks
-	}
-	excluded := friendlyPieces | enemyPawnAttacks
-
 	// Baselines lowered by 1 (or 2 for queen) to compensate for excluding
 	// pawn-attacked squares from the mobility count.
-	var knightBB, bishopBB, rookBB, queenBB uint64
-	if color == White {
-		knightBB = board.GetBitboardOf(WhiteKnight)
-		bishopBB = board.GetBitboardOf(WhiteBishop)
-		rookBB = board.GetBitboardOf(WhiteRook)
-		queenBB = board.GetBitboardOf(WhiteQueen)
-	} else {
-		knightBB = board.GetBitboardOf(BlackKnight)
-		bishopBB = board.GetBitboardOf(BlackBishop)
-		rookBB = board.GetBitboardOf(BlackRook)
-		queenBB = board.GetBitboardOf(BlackQueen)
-	}
-
 	for bb := knightBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
 		moveCount := PopCount(KnightAttacks[sq] &^ excluded)
@@ -2304,8 +2273,48 @@ func evaluateMobility(board *Bitboard, color Color) int {
 		moveCount := PopCount((getBishopAttacksBB(sq, allPieces) | getRookAttacksBB(sq, allPieces)) &^ excluded)
 		mobility += (moveCount - 12) * 1
 	}
-
 	return mobility
+}
+
+// mobilitySetup computes the color-independent bitboards mobility needs: full
+// occupancy and each side's pawn-attack span (a piece moving onto a square a pawn
+// attacks is effectively lost, so those squares don't count as mobility).
+func mobilitySetup(board *Bitboard) (whitePieces, blackPieces, allPieces, whitePawnAttacks, blackPawnAttacks uint64) {
+	whitePieces = board.GetWhitePieces()
+	blackPieces = board.GetBlackPieces()
+	allPieces = whitePieces | blackPieces
+	whitePawns := board.GetBitboardOf(WhitePawn)
+	blackPawns := board.GetBitboardOf(BlackPawn)
+	whitePawnAttacks = ((whitePawns & ^FileMasks[FileA]) << 7) | ((whitePawns & ^FileMasks[FileH]) << 9)
+	blackPawnAttacks = ((blackPawns & ^FileMasks[FileH]) >> 7) | ((blackPawns & ^FileMasks[FileA]) >> 9)
+	return
+}
+
+func evaluateMobility(board *Bitboard, color Color) int {
+	whitePieces, blackPieces, allPieces, whitePawnAttacks, blackPawnAttacks := mobilitySetup(board)
+	if color == White {
+		return mobilityForSide(allPieces, whitePieces|blackPawnAttacks,
+			board.GetBitboardOf(WhiteKnight), board.GetBitboardOf(WhiteBishop),
+			board.GetBitboardOf(WhiteRook), board.GetBitboardOf(WhiteQueen))
+	}
+	return mobilityForSide(allPieces, blackPieces|whitePawnAttacks,
+		board.GetBitboardOf(BlackKnight), board.GetBitboardOf(BlackBishop),
+		board.GetBitboardOf(BlackRook), board.GetBitboardOf(BlackQueen))
+}
+
+// evaluateMobilityDelta returns White mobility minus Black mobility in one pass,
+// computing the shared setup once (evaluateMobility was called per color, doing that
+// setup twice). Bit-identical to evaluateMobility(W) - evaluateMobility(B), so search
+// stays node-identical.
+func evaluateMobilityDelta(board *Bitboard) int {
+	whitePieces, blackPieces, allPieces, whitePawnAttacks, blackPawnAttacks := mobilitySetup(board)
+	white := mobilityForSide(allPieces, whitePieces|blackPawnAttacks,
+		board.GetBitboardOf(WhiteKnight), board.GetBitboardOf(WhiteBishop),
+		board.GetBitboardOf(WhiteRook), board.GetBitboardOf(WhiteQueen))
+	black := mobilityForSide(allPieces, blackPieces|whitePawnAttacks,
+		board.GetBitboardOf(BlackKnight), board.GetBitboardOf(BlackBishop),
+		board.GetBitboardOf(BlackRook), board.GetBitboardOf(BlackQueen))
+	return white - black
 }
 
 // getBishopAttacksBB returns bishop attack bitboard using magic bitboards - O(1)
@@ -2452,7 +2461,7 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	eval += (evaluateBishopPair(board, White) - evaluateBishopPair(board, Black)) * bishopPairWeight / 100
 
 	// Mobility — important but moderate weight (PSTs already capture positional value).
-	eval += (evaluateMobility(board, White) - evaluateMobility(board, Black)) * mobilityWeight / 100
+	eval += evaluateMobilityDelta(board) * mobilityWeight / 100
 
 	// Rook on open file bonus.
 	eval += (evaluateRookOnOpenFile(board, White) - evaluateRookOnOpenFile(board, Black)) * rookOpenWeight / 100
