@@ -148,9 +148,35 @@ block and commit the SAME turn (the integral term). [[feedback_long_autonomous_s
 - **L1 (no-outposts) SPRT:** estimate regressed to the mean as games accumulated — **+57@G123 → +9@G227 → -7@G292**,
   CI [-47,+33], LLR ~0. True effect ≈ 0 (outposts is a non-earner); LLR will random-walk near 0 and likely run to
   maxgames 1500 → DELETE at cap (ambiguous-at-cap rule: removes CPU at no measured strength cost). Running in bg.
-- **PROFILE re-rank (post-F1..F5, contention-noisy but ordinal):** selectNextMove ~11.6% (node-identical floor),
-  evaluatePawnShield ~5%, scoreMovesIntoBuffer ~4.6% (now includes inlined history), makeMoveHelper ~4.5% (no clean
-  redundancy — real work), magic GetBishop/RookAttacks ~3.2% each (tight). Next foreground candidate: evaluatePawnShield.
+- **F6 DONE, KEPT (commit c05c8d6):** fetch the enemy queen bitboard once in isInCheck's attack detection (diagonal
+  and straight attackers reuse it) instead of twice. Node-identical; saves a GetPiece+GetBitboardOf per check in the
+  common no-diagonal case.
+- **F7 DONE, KEPT (commit e241a83):** hoist the enemy color offset once in isInCheck so the 5 enemy-piece lookups
+  index by WhiteX+offset instead of re-branching inside GetPiece per call. Node-identical (check detection every move).
+- **F8 DONE, KEPT (commit eb55788):** replace the per-call `[]PieceType{...}` slice literal in
+  findLeastValuableAttacker (SEE) with an integer Pawn..King loop + hoisted color offset. Node-identical.
+- **>>> FREE NODE-IDENTICAL LANE EXHAUSTED of clean hot wins (8 banked: F1-F8, commit eb55788). <<<** Measured NPS
+  gain via BenchmarkSearchProfile (identical 2,681,334 nodes/op throughout, contention-constant): **1302→1234→1168→1156
+  ns/op ≈ ~11% faster** (big drops were F3 selectNextMove + F4 history; F5-F8 smaller). Post-F8 profile is FLAT:
+  selectNextMove 11.9% (algorithmic floor — O(n²) scan, can't reduce without reordering = non-identical),
+  scoreMovesIntoBuffer 6% (SEE-per-capture + necessary scoring branches), Bitboard.Move/makeMoveHelper/updateHash
+  ~3-4% (real work, no redundancy), magic GetBishop/RookAttacks ~3.5% (tight), evaluateKingSafety 8.2% cum +
+  evaluatePawnShield ~2.6% (king-safety = L6 candidate; pawnShield's quirky rankOffset bound + early-break make a
+  node-identical bitboard rewrite fragile for ~2% — SKIPPED). canPieceAttackSquare switch = necessary attack dispatch
+  (not collapsible). Further free wins are <2% churn ⇒ STOP the free lane (anti-over-engineering). Clean NPS A/B vs
+  ngn_prenight deferred to the quiet morning (cores pinned by the SPRT now).
+- **L1 (no-outposts) SPRT trend:** +57@G123 → +9@G227 → -7@G292 → **-11 [-42,+20] @ G470, LLR -0.20**. Now leaning
+  slightly NEGATIVE (removing outposts may COST ~10 ELO ⇒ outposts earns its keep ⇒ KEEP-the-term), but CI wide and
+  bouncing — DECIDE at the 1500 cap. Running in bg.
+- **THROUGHPUT REFINEMENT (evidence-based, for L2-L6):** L1 demonstrated these eval-term effects are small enough that
+  the [-5,0] band NEVER resolves (LLR random-walks ~0) → the SPRT runs to maxgames regardless. The [-5,0] precision is
+  unachievable at any feasible n (~5000 games needed); what the DELETE decision actually needs is detecting a
+  MEANINGFUL earner (≥~15-20 ELO), which ~800 games resolves (CI ±24). So **launch L2-L6 with `-maxgames 800`** (2x
+  throughput, more frequent decision points, keeps the night active); the morning gauntlet is the backstop against
+  wrongly deleting a marginal earner. Do NOT touch the running L1 (let it finish at 1500 — clean, it's the heartbeat).
+- **NEXT (on L1 completion wake):** decide L1 (KEEP outposts if settled ≤-5, else DELETE) → rebuild clean base →
+  launch L2 (no-mobility: `mobilityWeight=0` at eval.go:2356) at `-maxgames 800` → re-profile (eval change may expose
+  a new free target) → record + commit.
 
 ---
 
