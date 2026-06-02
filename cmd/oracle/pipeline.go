@@ -3,10 +3,12 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ehrlich-b/ngn/engine"
@@ -382,6 +384,112 @@ func sfEvalCp(sf *uci.Engine, fen string, depth int) (int, bool) {
 		return 0, false
 	}
 	return evs[0].cp, true
+}
+
+// ---------- distill: Stockfish soft labels for Texel training ----------
+
+// runDistill labels positions with Stockfish's evaluation for knowledge
+// distillation: for each position SF searches to -sfdepth, and its white-POV cp is
+// mapped through the logistic 1/(1+10^(-cp/scale)) to a win-probability target,
+// written as a Texel "<FEN> <target>" line (LoadTexelSamples reads these directly).
+// The sigmoid de-emphasizes already-won positions — the strength-relevant choice
+// over matching SF's raw cp everywhere. Labeling is offline and embarrassingly
+// parallel, so it runs a pool of independent SF processes (P-cores are fine here,
+// unlike the timing-sensitive engine-vs-engine path).
+func runDistill(sfPath, inPath, outPath string, depth, workers int, cpScale float64, lowPower bool) {
+	lines, err := readLines(inPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "oracle distill: read %s: %v\n", inPath, err)
+		os.Exit(1)
+	}
+	// Accept either bare FENs or Texel "<FEN> <result>" lines — take the 6 FEN fields.
+	fens := make([]string, 0, len(lines))
+	for _, ln := range lines {
+		f := strings.Fields(ln)
+		if len(f) < 6 {
+			continue
+		}
+		fens = append(fens, strings.Join(f[:6], " "))
+	}
+	if len(fens) == 0 {
+		fmt.Fprintln(os.Stderr, "oracle distill: no positions")
+		os.Exit(1)
+	}
+	if workers < 1 {
+		workers = 1
+	}
+
+	out, err := os.Create(outPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "oracle distill: create %s: %v\n", outPath, err)
+		os.Exit(1)
+	}
+	defer out.Close()
+	w := bufio.NewWriter(out)
+	defer w.Flush()
+
+	jobs := make(chan string, workers*2)
+	results := make(chan string, workers*2)
+	var wg sync.WaitGroup
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go distillWorker(sfPath, depth, cpScale, lowPower, jobs, results, &wg)
+	}
+	done := make(chan int)
+	go func() {
+		start := time.Now()
+		n := 0
+		for line := range results {
+			fmt.Fprintln(w, line)
+			n++
+			if n%500 == 0 {
+				w.Flush()
+				rate := float64(n) / time.Since(start).Seconds()
+				fmt.Fprintf(os.Stderr, "  labeled %d/%d (%.1f pos/s)\n", n, len(fens), rate)
+			}
+		}
+		done <- n
+	}()
+
+	for _, fen := range fens {
+		jobs <- fen
+	}
+	close(jobs)
+	wg.Wait()
+	close(results)
+	n := <-done
+	fmt.Fprintf(os.Stderr, "distill done: %d/%d positions labeled (depth %d, %d workers, scale %.0f) -> %s\n",
+		n, len(fens), depth, workers, cpScale, outPath)
+}
+
+// distillWorker owns one Stockfish process and labels positions off the jobs
+// channel. cp is normalized to White's perspective (SF reports side-to-move) before
+// the logistic map.
+func distillWorker(sfPath string, depth int, cpScale float64, lowPower bool, jobs <-chan string, results chan<- string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	sf := uci.Start(sfPath, "stockfish", lowPower)
+	if sf == nil {
+		fmt.Fprintf(os.Stderr, "oracle distill: cannot start stockfish %q\n", sfPath)
+		return
+	}
+	defer uci.Stop(sf)
+	uci.Send(sf, "setoption name MultiPV value 1")
+	uci.Send(sf, "setoption name Threads value 1")
+	uci.Send(sf, "isready")
+	uci.WaitFor(sf, "readyok", 5*time.Second)
+
+	for fen := range jobs {
+		cp, ok := sfEvalCp(sf, fen, depth)
+		if !ok {
+			continue
+		}
+		fields := strings.Fields(fen)
+		if len(fields) >= 2 && fields[1] == "b" {
+			cp = -cp // SF score is side-to-move POV; flip to White POV
+		}
+		target := 1.0 / (1.0 + math.Pow(10, -float64(cp)/cpScale))
+		results <- fmt.Sprintf("%s %.4f", fen, target)
+	}
 }
 
 func runClassify(gamesPath, sfPath string, depth int, lowPower bool) {

@@ -173,7 +173,7 @@ func runScore(corpus, newBin, baseBin, goCmd, budget string, limit int, timeout 
 }
 
 func main() {
-	mode := flag.String("mode", "score", "score | gencorpus | label | acpl | classify")
+	mode := flag.String("mode", "score", "score | gencorpus | label | distill | acpl | classify")
 	corpus := flag.String("corpus", "validated_tactical_positions.epd", "score: labeled EPD (UCI bm)")
 	labelsF := flag.String("labels", "", "acpl: SF MultiPV label file (from -mode label)")
 	fensF := flag.String("fens", "", "label: input FEN file (from -mode gencorpus)")
@@ -188,10 +188,12 @@ func main() {
 	opens := flag.Int("opens", 100, "gencorpus: number of openings to play out")
 	plies := flag.Int("plies", 24, "gencorpus: self-play plies past the opening")
 	every := flag.Int("every", 4, "gencorpus: dump a FEN every N plies")
-	sfPath := flag.String("sf", "stockfish", "label: stockfish path")
+	sfPath := flag.String("sf", "stockfish", "label/distill: stockfish path")
 	multipv := flag.Int("multipv", 8, "label: SF MultiPV width")
-	sfDepth := flag.Int("sfdepth", 16, "label: SF search depth")
-	out := flag.String("out", "", "gencorpus/label: output file")
+	sfDepth := flag.Int("sfdepth", 16, "label/distill: SF search depth")
+	workers := flag.Int("workers", 6, "distill: parallel Stockfish processes")
+	cpScale := flag.Float64("cpscale", 400.0, "distill: cp->win-prob logistic scale")
+	out := flag.String("out", "", "gencorpus/label/distill: output file")
 	capCp := flag.Int("cap", 1000, "acpl: per-position cp-loss cap")
 	gamesF := flag.String("games", "", "classify: gauntlet -pgn capture file (M1 loss classification)")
 	flag.Parse()
@@ -214,6 +216,12 @@ func main() {
 			os.Exit(1)
 		}
 		runLabel(*sfPath, *fensF, *out, *multipv, *sfDepth, *lowPower)
+	case "distill":
+		if *fensF == "" || *out == "" {
+			fmt.Fprintln(os.Stderr, "distill: need -fens <input FENs/dataset> and -out <output>")
+			os.Exit(1)
+		}
+		runDistill(*sfPath, *fensF, *out, *sfDepth, *workers, *cpScale, *lowPower)
 	case "acpl":
 		if *labelsF == "" {
 			fmt.Fprintln(os.Stderr, "acpl: need -labels <file>")
