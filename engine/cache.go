@@ -26,18 +26,20 @@ SOFTWARE.
 package engine
 
 import (
-	"sync/atomic"
 	"unsafe"
 	// 	"fmt"
 )
 
 type CachedEval struct {
-	Key  atomic.Uint64 // 8
-	Data atomic.Uint64 // 8
-	// No cache-line padding: NGN's search is single-threaded (the Threads UCI
-	// option is a no-op), so there are no concurrent TT writers to false-share.
-	// A 16-byte entry quadruples slot count at the same MB (128MB: 2.1M -> 8.4M),
-	// which the endgame audit showed cuts the middlegame tree materially.
+	Key  uint64 // 8
+	Data uint64 // 8
+	// Plain uint64, NOT atomic: NGN's search is single-threaded (the Threads UCI
+	// option is a no-op stub and the TT is touched only by the lone `go uci.search`
+	// goroutine), so atomic loads/stores were pure overhead (~4.5% of search CPU,
+	// measured) buying nothing. No cache-line padding either: a 16-byte entry
+	// quadruples slot count at the same MB (128MB: 2.1M -> 8.4M), which the endgame
+	// audit showed cuts the middlegame tree materially. The lockless XOR-verify
+	// (Key=Data^hash) is kept as a cheap collision checksum — correct single-threaded.
 }
 
 type NodeType uint8
@@ -63,23 +65,12 @@ const MAX_CACHE_SIZE = 120_000
 var CACHE_ENTRY_SIZE = int(unsafe.Sizeof(CachedEval{}))
 var TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
 
-// Benchmark mode flag - when true, disables atomic operations for higher performance
-// ONLY use in single-threaded benchmarks
-var BenchmarkMode = false
-
-// Helper functions for conditional atomic access
 func (c *CachedEval) LoadKey() uint64 {
-	if BenchmarkMode {
-		return *(*uint64)(unsafe.Pointer(&c.Key))
-	}
-	return c.Key.Load()
+	return c.Key
 }
 
 func (c *CachedEval) LoadData() uint64 {
-	if BenchmarkMode {
-		return *(*uint64)(unsafe.Pointer(&c.Data))
-	}
-	return c.Data.Load()
+	return c.Data
 }
 
 const MOVE_MASK uint64 = 0b1111111111111111111111111111 // move << 0, 28 bits
@@ -106,14 +97,8 @@ func Unpack(data uint64) (hashmove Move, eval int16, depth int8, nodeType NodeTy
 }
 
 func (c *CachedEval) Update(key uint64, data uint64) {
-	if BenchmarkMode {
-		// Direct non-atomic access for benchmarks (SINGLE-THREADED ONLY)
-		*(*uint64)(unsafe.Pointer(&c.Key)) = key
-		*(*uint64)(unsafe.Pointer(&c.Data)) = data
-	} else {
-		c.Key.Store(key)
-		c.Data.Store(data)
-	}
+	c.Key = key
+	c.Data = data
 }
 
 func (c *Cache) AdvanceAge() {
