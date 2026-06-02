@@ -133,45 +133,13 @@ func (b *Bitboard) UpdateSquare(sq Square, newPiece Piece, oldPiece Piece) {
 		b.accMG += mgPST[newPiece][sq]
 		b.accEG += egPST[newPiece][sq]
 		b.accPhase += piecePhaseInc[newPiece]
-	}
-	mask := SquareMask[int(sq)]
-	switch newPiece {
-	case BlackPawn:
-		b.pieces[BlackPawn] |= mask
-		b.blackPieces |= mask
-	case BlackKnight:
-		b.pieces[BlackKnight] |= mask
-		b.blackPieces |= mask
-	case BlackBishop:
-		b.pieces[BlackBishop] |= mask
-		b.blackPieces |= mask
-	case BlackRook:
-		b.pieces[BlackRook] |= mask
-		b.blackPieces |= mask
-	case BlackQueen:
-		b.pieces[BlackQueen] |= mask
-		b.blackPieces |= mask
-	case BlackKing:
-		b.pieces[BlackKing] |= mask
-		b.blackPieces |= mask
-	case WhitePawn:
-		b.pieces[WhitePawn] |= mask
-		b.whitePieces |= mask
-	case WhiteKnight:
-		b.pieces[WhiteKnight] |= mask
-		b.whitePieces |= mask
-	case WhiteBishop:
-		b.pieces[WhiteBishop] |= mask
-		b.whitePieces |= mask
-	case WhiteRook:
-		b.pieces[WhiteRook] |= mask
-		b.whitePieces |= mask
-	case WhiteQueen:
-		b.pieces[WhiteQueen] |= mask
-		b.whitePieces |= mask
-	case WhiteKing:
-		b.pieces[WhiteKing] |= mask
-		b.whitePieces |= mask
+		mask := SquareMask[int(sq)]
+		b.pieces[newPiece] |= mask
+		if newPiece < BlackPawn { // white pieces are WhitePawn..WhiteKing (1..6)
+			b.whitePieces |= mask
+		} else {
+			b.blackPieces |= mask
+		}
 	}
 	b.mailbox[sq] = newPiece
 }
@@ -201,43 +169,11 @@ func (b *Bitboard) Clear(square Square, piece Piece) {
 	b.accEG -= egPST[piece][square]
 	b.accPhase -= piecePhaseInc[piece]
 	mask := SquareMask[int(square)]
-	switch piece {
-	case BlackPawn:
-		b.pieces[BlackPawn] &^= mask
-		b.blackPieces &^= mask
-	case BlackKnight:
-		b.pieces[BlackKnight] &^= mask
-		b.blackPieces &^= mask
-	case BlackBishop:
-		b.pieces[BlackBishop] &^= mask
-		b.blackPieces &^= mask
-	case BlackRook:
-		b.pieces[BlackRook] &^= mask
-		b.blackPieces &^= mask
-	case BlackQueen:
-		b.pieces[BlackQueen] &^= mask
-		b.blackPieces &^= mask
-	case BlackKing:
-		b.pieces[BlackKing] &^= mask
-		b.blackPieces &^= mask
-	case WhitePawn:
-		b.pieces[WhitePawn] &^= mask
+	b.pieces[piece] &^= mask
+	if piece < BlackPawn { // white pieces are WhitePawn..WhiteKing (1..6)
 		b.whitePieces &^= mask
-	case WhiteKnight:
-		b.pieces[WhiteKnight] &^= mask
-		b.whitePieces &^= mask
-	case WhiteBishop:
-		b.pieces[WhiteBishop] &^= mask
-		b.whitePieces &^= mask
-	case WhiteRook:
-		b.pieces[WhiteRook] &^= mask
-		b.whitePieces &^= mask
-	case WhiteQueen:
-		b.pieces[WhiteQueen] &^= mask
-		b.whitePieces &^= mask
-	case WhiteKing:
-		b.pieces[WhiteKing] &^= mask
-		b.whitePieces &^= mask
+	} else {
+		b.blackPieces &^= mask
 	}
 }
 
@@ -257,54 +193,27 @@ func (b *Bitboard) Move(src Square, dest Square, sourcePiece Piece, destinationP
 	}
 
 	// Remove the piece from source square and add it to destination
-	switch sourcePiece {
-	case BlackPawn:
-		b.pieces[BlackPawn] |= maskDest
-		b.blackPieces |= maskDest
-	case BlackKnight:
-		b.pieces[BlackKnight] |= maskDest
-		b.blackPieces |= maskDest
-	case BlackBishop:
-		b.pieces[BlackBishop] |= maskDest
-		b.blackPieces |= maskDest
-	case BlackRook:
-		b.pieces[BlackRook] |= maskDest
-		b.blackPieces |= maskDest
-	case BlackQueen:
-		b.pieces[BlackQueen] |= maskDest
-		b.blackPieces |= maskDest
-	case BlackKing:
-		b.pieces[BlackKing] |= maskDest
-		b.blackPieces |= maskDest
-		// Is it a castle?
-		if src == E8 && dest == G8 {
-			b.Move(H8, F8, BlackRook, NoPiece)
-		} else if src == E8 && dest == C8 {
-			b.Move(A8, D8, BlackRook, NoPiece)
+	if sourcePiece != NoPiece {
+		b.pieces[sourcePiece] |= maskDest
+		if sourcePiece < BlackPawn { // white pieces are WhitePawn..WhiteKing (1..6)
+			b.whitePieces |= maskDest
+		} else {
+			b.blackPieces |= maskDest
 		}
-	case WhitePawn:
-		b.pieces[WhitePawn] |= maskDest
-		b.whitePieces |= maskDest
-	case WhiteKnight:
-		b.pieces[WhiteKnight] |= maskDest
-		b.whitePieces |= maskDest
-	case WhiteBishop:
-		b.pieces[WhiteBishop] |= maskDest
-		b.whitePieces |= maskDest
-	case WhiteRook:
-		b.pieces[WhiteRook] |= maskDest
-		b.whitePieces |= maskDest
-	case WhiteQueen:
-		b.pieces[WhiteQueen] |= maskDest
-		b.whitePieces |= maskDest
-	case WhiteKing:
-		b.pieces[WhiteKing] |= maskDest
-		b.whitePieces |= maskDest
-		// Is it a castle?
+	}
+	// Castling: move the rook alongside the king. Order preserved — the rook's
+	// nested Move runs after the king's bits are set and before mailbox[dest].
+	if sourcePiece == WhiteKing {
 		if src == E1 && dest == G1 {
 			b.Move(H1, F1, WhiteRook, NoPiece)
 		} else if src == E1 && dest == C1 {
 			b.Move(A1, D1, WhiteRook, NoPiece)
+		}
+	} else if sourcePiece == BlackKing {
+		if src == E8 && dest == G8 {
+			b.Move(H8, F8, BlackRook, NoPiece)
+		} else if src == E8 && dest == C8 {
+			b.Move(A8, D8, BlackRook, NoPiece)
 		}
 	}
 	// src was cleared to NoPiece above; place sourcePiece at dest (the nested
