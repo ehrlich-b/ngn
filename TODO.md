@@ -164,7 +164,12 @@ block and commit the SAME turn (the integral term). [[feedback_long_autonomous_s
   evaluatePawnShield ~2.6% (king-safety = L6 candidate; pawnShield's quirky rankOffset bound + early-break make a
   node-identical bitboard rewrite fragile for ~2% — SKIPPED). canPieceAttackSquare switch = necessary attack dispatch
   (not collapsible). Further free wins are <2% churn ⇒ STOP the free lane (anti-over-engineering). Clean NPS A/B vs
-  ngn_prenight deferred to the quiet morning (cores pinned by the SPRT now).
+  ngn_prenight deferred to the quiet morning (cores pinned by the SPRT now). **Verified terminal:** qsearch (the
+  ~44% cum) is ALREADY capture-only (`GenerateCapturesIntoBuffer`) + frame-pooled; its qDepth==0 stalemate probe needs
+  full movegen for accuracy (`HasLegalMove` = same algo + heap-allocs, `HasLegalMoveQuick` is inaccurate — misses
+  piece-blocked stalemates), so not node-identically cheaper. Further per-node speed now needs BEHAVIORAL changes
+  (lazy/staged movegen, SEE caching) = SPRT-gated, NOT free — a possible Track 3 after the eval-leaning queue, but the
+  queue will eat the night's SPRT slots, so Track 3 is a future-session candidate, not tonight.
 - **L1 (no-outposts) SPRT trend:** +57@G123 → +9@G227 → -7@G292 → **-11 [-42,+20] @ G470, LLR -0.20**. Now leaning
   slightly NEGATIVE (removing outposts may COST ~10 ELO ⇒ outposts earns its keep ⇒ KEEP-the-term), but CI wide and
   bouncing — DECIDE at the 1500 cap. Running in bg.
