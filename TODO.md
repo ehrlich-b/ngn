@@ -1,54 +1,103 @@
 # NGN Chess Engine - Development Roadmap
 
-## Goal: GM ≈ 2500 (beat Blunder 7.4.0 / CCRL 2532 regularly), then 2800. Now ~2350-2400 CCRL, TC-sensitive. **STRATEGY (2026-06-01 PIVOT): BE THE FASTEST GO CHESS ENGINE. Speed/leanness is THE lever — not eval/search sophistication.**
+## Goal: GM ≈ 2500 (beat Blunder 7.4.0 / CCRL 2532 regularly), then 2800. Now ~2380-2449 CCRL (noisy 1-anchor read), ~+85-150 behind Blunder. **STRATEGY (2026-06-02): get an EVIDENCE-BASED hypothesis for the gap BEFORE acting — the 2026-06-01 "speed-first / eval-is-a-liability" pivot is REFUTED (see THE FRAME).**
 
 ---
 
-## THE FRAME — speed-first (READ FIRST, every reanchor; SUPERSEDES the old "rich classical eval" control loop)
+## THE FRAME — DIAGNOSE the gap before acting (READ FIRST, every reanchor; 2026-06-02, SUPERSEDES the speed-first pivot)
 
-**The cope is dead (Bryan, 2026-06-01, emphatic).** We kept claiming NGN's eval/search sophistication meant speed
-wasn't the priority, then excusing every loss with "we're slower." Those are incompatible. The dispositive fact:
-**Blunder is ~228 lines of eval to our ~2400, ~2x faster per node, searches a TIGHTER tree, and is +150 ELO
-STRONGER.** A simpler/faster/dumber-eval engine beats us at every TC. Sophistication is NOT compensating — it's a
-**net liability** (costs speed + tree size, doesn't buy it back). Complexity is **guilty until proven** in a real
-measurement; be willing to **DELETE** eval terms / search features, not just add (the 2400-line eval is a suspect, not a trophy).
+**The speed-first pivot is REFUTED by our own data.** It claimed NGN's eval is a net liability to delete for speed.
+We tested it directly (fixed-nodes self-play SPRT, removing each term): **mobility +66, king-safety +32, outposts +9
+are real EARNERS (KEEP); only bishop-pair (+20 to remove) was harmful (deleted).** 4 of 5 terms earn their keep — so
+"complexity is guilty until proven" is just WRONG here; the eval is mostly well-tuned and load-bearing. The "2400 lines
+vs Blunder's 228" was VERBOSITY, not richness — NGN computes the same standard concepts (mobility, king safety, passed
+pawns) in more code. **Leaning the eval was chasing a non-problem.**
 
-**Self-play SPRT gains are largely MIRAGES.** +168 (time-mgmt) / +37 (promo) / ~+12 (NMP/SEE) were each measured vs an
-OLD VERSION OF OURSELVES and did NOT show up in the gauntlet (still ~2350-2400). Beating your former self by exploiting
-its specific weakness ≠ stronger vs a real opponent. The one real recent gain — A4 +19 — was a **SPEED** change. Speed
-is the only gain that transfers: more NPS → more depth → stronger vs ANYTHING. Treat self-play SPRT deltas as
-transfer-suspect; prefer node-identical speedups whose strength can only go up.
+**We conflated two questions.** Self-play SPRT answers *"does removing X hurt NGN-vs-old-NGN?"* — it says NOTHING about
+*"why does Blunder beat NGN?"* All night I optimized the former and never investigated the latter. **We still do NOT
+have an evidence-based hypothesis for the ~+85-150 gap. GET ONE before any more engine changes.** The loop of
+asserting a thesis → acting → contradicting it (delete-complexity-for-speed, then the deletions LOSE elo) is the
+oscillation to stop. No more intuition/dogma-driven edits.
 
-**VERIFY, don't claim.** "Hot path allocation-free" (T1) was silently FALSE for ages — probcut escaped a per-node
-[256]Move (34MB/run), caught only by the profiler, never a test. **The profiler is the source of truth, NOT the
-changelog.** Every perf claim gets an enforcing test — `TestHotPathAllocationFree` is the template (fails the build on
-a per-node-alloc regression).
+**What we actually KNOW (evidence — `scripts/h2h.sh` + deterministic node counts):** two axes — (1) NGN ~2x slower PER
+NODE everywhere (engineering, not a Go tax — Zahak benches fine); (2) NGN's tree is ~1x Blunder's in middlegames but
+**2.5-5x BIGGER in ENDGAMES** (a ~10%/ply EBF gap compounding over deep searches; standard pruning knobs were ALL
+refuted as the cause — "diffuse EBF", see [[project_endgame_tree_diagnostic]]). **Current best hypothesis: the gap is
+SEARCH (effective depth, worst in endgames), NOT eval. Confidence MEDIUM** — the node/tree numbers are solid, but the
+"eval is fine" half is INFERRED, never measured against Blunder. THE DIAGNOSIS below settles it.
 
-**Setpoint (FIXED):** GM≈2500 ⇒ 2800. Absolute truth = `make gauntlet`, run ONCE after a speed batch — NOT
-continuously: it pins cores (corrupting the very NPS measurement it informs) and measures a stale mid-optimization
-binary. NEVER a Stockfish-slider number.
+**BANKED last night, keep (real wins, NOT driven by the dead thesis):** 9 node-identical speed wins (~11% NPS, F1-F9)
++ bishop-pair removal (+20 ELO, the one harmful term) + `-tc` gauntlet ~2449 [2274,2624] (+69 point estimate over the
+2380 baseline; 16 games, not significant). Detail in the NIGHT RECORD below.
 
-## THE LOOP — one speed change at a time (damped discipline kept; instrument is now the PROFILER + NPS)
-1. **PROFILE (needs FREE cores — no concurrent gauntlet/SPRT; contention corrupts NPS)** — `go test ./engine/
-   -run=^$ -bench=BenchmarkSearchProfile -cpuprofile=/tmp/c -memprofile=/tmp/m` then `go tool pprof -top`/`-list`.
-   Attack the biggest per-node cost. Ranking after the probcut-alloc fix (967d9bd): **Evaluate ~15%, SEE ~9%,
-   movegen ~8%, move-ordering ~8%, make/unmake ~8%** (the NewCache 176MB in the profile is a benchmark artifact — it
-   reallocs the TT per op; real games reuse the global TT).
-2. **ACT** — one optimization, SEPARATE binary (`build/ngn_fast`), never batch, never overwrite `build/ngn` mid-measure.
-3. **GATE** — (a) `scripts/nodecheck.sh <bin>` matches baselines EXACTLY (node-identical = behavior-neutral, the
-   default for a pure speed change); (b) `go test -run TestHotPathAllocationFree` (no per-node alloc regressed);
-   (c) clean NPS delta on FREE cores (`TestProfileHotPath` / `BenchmarkCriticalPath`).
-4. **DECIDE (KEEP RULE)** — faster + node-identical ⇒ automatic KEEP (can't lower strength, only raise it; no SPRT
-   needed). A change that ALTERS the node count is [BEHAVIOUR] = transfer-suspect (self-play SPRT unreliable); avoid
-   unless it's a genuine pruning win. REJECT a speed change only if slower or it regresses behavior.
-5. **RECORD** — commit + update TODO/memory the SAME turn (the integral term that stops re-derivation).
+## THE DIAGNOSIS — 3 measurements → 1 hypothesis (READ-ONLY; the day's deliverable)
 
-**Damping (unchanged anti-oscillation):** one noisy probe doesn't flip a ranking; ignore <50-ELO / within-noise node
-deltas; settled calls stay settled absent new evidence; **DECIDE, DON'T ASK** on prioritization ([[feedback_decide_dont_ask]]).
+1. **M3 eval quality (LEAD — most decisive; tooling CONFIRMED, NO gap):** is NGN's eval actually as good as Blunder's?
+   `cmd/oracle` already does it — `acpl` mode + `-new` takes ANY binary (so it runs Blunder) + `-base` A/Bs two
+   binaries at once. RECIPE: (a) `./build/oracle -mode gencorpus -new build/ngn -opens 100 -out /tmp/quiet.fens`
+   (quiet self-play FENs — NGN-biased, note it; a neutral set is better if cheap); (b) `./build/oracle -mode label
+   -fens /tmp/quiet.fens -sf /opt/homebrew/bin/stockfish -sfdepth 18 -out /tmp/labels.txt` (SF18 MultiPV ground
+   truth); (c) `./build/oracle -mode acpl -new build/ngn -base opponents/blunder_740 -labels /tmp/labels.txt -depth 6`
+   → NGN's AND Blunder's cp-loss vs SF, side by side. Use a SHALLOW depth (~4-6) so the chosen move reflects EVAL not
+   deep search (deep search converges both toward SF, masking eval gaps); also run -depth 12 for the combined picture.
+   **NGN ACPL ≈ Blunder (or lower) ⇒ eval competitive ⇒ gap is PURE SEARCH ⇒ eval work dead for good. NGN clearly
+   HIGHER ⇒ eval QUALITY is part of the gap** (and the self-play "earners" were load-bearing-for-NGN, not absolute).
+2. **M2 depth deficit:** NGN vs Blunder, same positions + same TC — plies reached, split middlegame vs endgame.
+   Quantifies + localizes the search gap. `scripts/h2h.sh` gives node/tree to a fixed depth; extend to
+   depth-reached-in-fixed-time (parse each engine's `info depth`).
+3. **M1 loss classification (most direct, most tooling):** NGN's actual LOSSES to Blunder 7.4.0 (`-tc 120+1`), each
+   NGN move scored by SF18, label the decisive error — tactical (depth) / positional (eval) / endgame (technique) /
+   time. Needs game (PGN) capture from the harness.
+
+**SYNTHESIS:** combine the three → the evidence-based hypothesis, FACTS (numbers) clearly separated from INTERPRETATION.
+That committed write-up — "why Blunder beats NGN, with data" — is the day's deliverable for Bryan to review.
+
+## >>> AUTONOMOUS DAY (2026-06-02) — RUN ALL DAY, NO STOPPING, NO QUESTIONS, READ-ONLY DIAGNOSIS <<<
+
+**MANDATE (Bryan at his day job, peeking in periodically):** proceed continuously; NEVER idle, NEVER ask, DECIDE
+measurement order/depth ([[feedback_decide_dont_ask]]). **This is a READ-ONLY DIAGNOSIS — measure, record, synthesize;
+do NOT change the engine (search/eval).** The deliverable is EVIDENCE + a hypothesis for Bryan to review on a peek-in;
+an intuition-driven engine change is exactly the oscillation he stopped. The background measurement is the heartbeat
+(its completion re-invokes me — do NOT poll/ScheduleWakeup); tooling-builds + next-measurement prep + the synthesis
+writeup fill the gaps.
+
+**FIRST ACTIONS on "reanchor and proceed":**
+1. `caffeinate -i -t 39600` background (keep-awake; the night's has likely expired).
+2. **Verify tooling, build minimal gaps (gated: `go build ./...` green + a sanity check):** SF18 present
+   (`/opt/homebrew/bin/stockfish`); READ `cmd/oracle` for the exact `-mode acpl` invocation + whether it takes an
+   arbitrary `-bin` so it can analyze BLUNDER too (if not, add a small `-bin` flag); `scripts/h2h.sh` runs; for M1,
+   confirm/ADD PGN capture to the gauntlet/sprt harness. Tooling commits are FINE (they don't touch engine strength).
+3. Launch **M3** (NGN ACPL vs SF18 on a quiet corpus) in the background; while it runs, wire/verify the Blunder-ACPL path.
+
+**THE LOOP (event-driven):** measurement completes → record the FACTS in the DIAGNOSIS LOG below (numbers only) + my
+reading flagged SEPARATELY as HYPOTHESIS → launch the next measurement → when all 3 land, write the SYNTHESIS →
+never-run-dry: DEEPEN (more positions, finer mg/eg split, more games, a 2nd `-tc` anchor) → commit each.
+
+**DECISION DISCIPLINE:** separate FACT from HYPOTHESIS always. If the data points to a clear fix, WRITE IT DOWN as a
+recommendation with the supporting numbers — do NOT execute it. The only safe autonomous engine change is a
+node-identical speedup (can't lower strength) and that lane is EXHAUSTED ⇒ effectively NO engine edits today.
+
+**SECONDARY FILL (foreground while a measurement runs):** rebuild a usable gauntlet anchor set — `./build/gauntlet
+-probe` reports which Blunder versions honor `stop`; `-movetime` mode is BROKEN (6.1.0/7.2.0 ignore stop → dead;
+7.4.0 taints on forfeits), but `-tc 120+1` works for the full ladder (real clock sends wtime/btime, never `stop`). A
+2-3 anchor `-tc` set tightens the absolute number (now 1-anchor 7.4.0, ±175). This is INSTRUMENT repair, not an engine
+change — allowed.
+
+**ANTI-OSCILLATION:** the speed-first / eval-is-a-liability thesis is DEAD. Do NOT resume eval-term deletion or speed
+micro-opts. DROP the pending rook-open delete (it was neutral −2.2 — exactly the ~0-ELO churn Bryan flagged; tree is
+already clean, nothing to revert). Every future engine change must trace to a MEASURED cause from this diagnosis.
+
+**RULES (every turn):** single-sentence commits, no co-author, no emoji, commit LOCAL — DO NOT push. Never P-cores
+(`-lowpower true`). RECORD each measurement's facts in the DIAGNOSIS LOG + commit the same turn. Pre-existing broken
+tests to IGNORE: EnginePlayingStrength (SAN/UCI format), ConcurrencyStress (shared-pos race), ordering (flaky under
+parallel). [[feedback_decide_dont_ask]] [[feedback_long_autonomous_sessions]] [[feedback_canonical_measures]] [[oracle_acpl]]
+
+**DIAGNOSIS LOG (FACTS — newest last; interpretation flagged separately):**
+- _(pending: M3 eval-ACPL NGN-vs-Blunder-vs-SF · M2 depth deficit · M1 loss classification)_
 
 ---
 
-## >>> AUTONOMOUS NIGHT (2026-06-01 PM → morning) — RUN ALL NIGHT, NO STOPPING, NO QUESTIONS <<<
+## NIGHT RECORD (2026-06-01 PM → 06-02 AM) — COMPLETE & SUPERSEDED by THE DIAGNOSIS above. The "RUN ALL NIGHT" mandate/loop below is DONE — do NOT re-execute it; kept only for the detailed results + lessons. <<<
 
 **MANDATE (Bryan, laptop left open all night):** proceed continuously until morning. NEVER idle, NEVER ask,
 NEVER stop on a settled result — DECIDE, commit, launch the next. The background SPRT is the heartbeat (its
