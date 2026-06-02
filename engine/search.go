@@ -322,11 +322,15 @@ func seeGetRookAttacks(square Square, occupied uint64) uint64 {
 
 // findLeastValuableAttacker finds the least valuable piece attacking the square
 func findLeastValuableAttacker(pos *Position, attackers uint64, color Color, occupied uint64, square Square) (Square, Piece) {
-	// Order: Pawn, Knight, Bishop, Rook, Queen, King
-	pieceTypes := []PieceType{Pawn, Knight, Bishop, Rook, Queen, King}
-
-	for _, pieceType := range pieceTypes {
-		piece := GetPiece(pieceType, color)
+	// Try attackers cheapest-first: Pawn, Knight, Bishop, Rook, Queen, King — exactly the
+	// PieceType order (Pawn=1..King=6). Enemy pieces are the White constants plus a color
+	// offset, so hoist the offset instead of a per-call slice literal + per-iteration GetPiece.
+	var base Piece
+	if color == Black {
+		base = 6
+	}
+	for pt := Pawn; pt <= King; pt++ {
+		piece := Piece(pt) + base
 		pieceBB := pos.Board.GetBitboardOf(piece) & attackers
 
 		for pieceBB != 0 {
