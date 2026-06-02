@@ -68,6 +68,41 @@ story to a noisy result — the n=6 probe hinted "NGN eval worse" but big effect
   cp/move is a LARGE effect; <~2 cp is corpus-choice noise. Report the matched-compute (nodes) Δ as primary (depth-6
   flatters NGN's bigger tree).
 
+## >>> DIAGNOSIS RESULT (2026-06-02) — why Blunder beats NGN, with data. M2+M3 IN; M1 real-game confirmation pending. <<<
+
+**BOTTOM LINE:** the ~+85-150 ELO gap is PRIMARILY an **endgame SEARCH-DEPTH deficit**, plus a **localized
+late-middlegame (phase 7-11) eval gap**. NGN's eval is NOT a broad liability — at matched compute it's competitive in
+the middlegame and FINE in the endgame. BOTH prior framings are refuted: "eval-is-a-liability/lean-it" (the eval is
+competitive) AND "eval is the whole bottleneck" (it's mostly search). The truth is specific and actionable.
+
+**FACTS (instruments: scripts/m2_depth.sh, cmd/oracle acpl; SF14/SF18 ground truth; all vs blunder_740 / CCRL 2532):**
+- **M2 depth-at-matched-time (3 budgets 1000/1500/2000ms, incl. one idle-clean):** mg deficit ~0-2 ply (NGN ≈ Blunder);
+  **eg deficit +4 to +7 ply** (quiet rook eg: NGN d16 vs Blunder d22), stable across budgets. NGN burns MORE nodes to
+  reach FEWER eg plies (the 2.5-5x eg-tree explosion, now a concrete depth deficit).
+- **M3 eval ACPL (240 mg/eg positions, matched-compute = primary read):** overall NGN ≈ Blunder (+2.7cp, ~noise). Per
+  phase: mg +3.6 (competitive), **late-mg/phase-7-11 +9.9 (real, search-proof gap)**, eg **-1.3 (NGN's eg eval is fine)**.
+  NGN's eval is noisier shallow (+9.8 @d6 → -3.1 @d12): Blunder leans on a clean shallow eval, NGN on search.
+
+**HYPOTHESIS (evidence-based):**
+1. **PRIMARY — endgame search depth.** NGN's eg EVAL is fine (M3 eg -1.3) ⇒ it doesn't MISjudge endgames, it
+   UNDER-SEARCHES them (M2 +4-7 ply shallow, from the bigger eg tree). Blunder out-searches NGN exactly where depth
+   decides games (technique, zugzwang, forcing lines). **This is where the games are lost.** Lever = endgame search
+   efficiency (shrink the eg tree / reach more depth) — known HARD ([[project_endgame_tree_diagnostic]] refuted the
+   standard pruning knobs), but now CONFIRMED as the dominant factor, not just a suspect.
+2. **SECONDARY, ACTIONABLE — late-middlegame (phase 7-11) eval.** NGN gives up ~+9-10 cp/move more than Blunder here,
+   and search does NOT close it. Phase 7-11 is EXACTLY where evaluateUnsafe disables both king terms (safety gated
+   `phase>=12`, activity gated `phase<6`). CANDIDATE FIX (record only): continuous king eval across phase 7-11,
+   fixed-nodes SPRT to validate. Confirm the +9.9 with more phase-7-11 positions (n=56).
+3. **NOT a factor — middlegame/endgame eval quality at equal compute.** The verbose ~2750-line eval (vs Blunder's
+   560) computes the SAME terms, competitively tuned. Leaning it (the night's sweep) was a non-problem; bishop-pair
+   (the one harmful term) is already removed.
+
+**SYNTHESIS:** NGN compensates for a shallow-noisier eval with DEEP SEARCH. That works in middlegames (it reaches
+Blunder's depth) but breaks in endgames (4-7 ply shallower ⇒ its depth-dependent quality collapses) and leaves a
+hole in phase 7-11 (king-eval gap). Dominant lever = ENDGAME SEARCH; cheap localized lever = the phase-7-11 king term.
+**M1 prediction (testing now):** losses skew endgame-technique + tactical(depth), some late-mg positional, FEW clean
+middlegame-positional.
+
 ## >>> AUTONOMOUS DAY (2026-06-02) — RUN ALL DAY, NO STOPPING, NO QUESTIONS, READ-ONLY DIAGNOSIS <<<
 
 **MANDATE (Bryan at his day job, peeking in periodically):** proceed continuously; NEVER idle, NEVER ask, DECIDE
@@ -158,6 +193,8 @@ parallel). [[feedback_decide_dont_ask]] [[feedback_long_autonomous_sessions]] [[
     +7 ply (quiet-end d15/d22).**
   - **@2000ms:** mg +0/+1/0 (mid d12/d12, mid2 d12/d13, kiwipete d11/d11); **eg +3 ply (pp-end d17/d20) and +6 ply
     (quiet-end d17/d23).**
+  - **@1500ms CLEAN (idle cores, no SF — pristine):** mg +1/+2/0 (mid d11/d12, mid2 d11/d13, kiwipete d10/d10);
+    **eg +4 ply (pp-end d16/d20) and +6 ply (quiet-end d16/d22).** Confirms the under-load reads; deficit is real, not contention.
   - FACT: NGN matches Blunder's search depth in MIDDLEGAMES (~0-1 ply) but is **3-7 plies SHALLOWER in ENDGAMES**, and
     this is STABLE across both budgets. The 2.5-5x endgame-tree explosion as a concrete, time-budget-robust depth
     deficit; ENDGAME-SPECIFIC (mg is fine). NGN burns MORE nodes to reach FEWER plies in eg (quiet-end 1s: 535k@d15
