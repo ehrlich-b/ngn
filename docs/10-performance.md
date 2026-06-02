@@ -364,18 +364,25 @@ weakness. In endgames the static eval sits near alpha so **futility stops firing
 design), the mask is removed, and the underlying 88% ordering + the extension storms are exposed and
 **compound over deep quiet lines** into 3.78–9.16x. So the eg gap is not one broken knob (TT, qsearch,
 futility, LMR, NMP, TT-capacity all already refuted in [[project_endgame_tree_diagnostic]] and
-re-confirmed here) — it is the **compounding of (mediocre ordering + futility-collapse + extension
-storms)** that only middlegame futility was hiding.
+re-confirmed here) — the cleanest framing is the **MASK**: in mg, aggressive futility/LMP keep NGN's
+tree at/below Blunder's; in eg that crutch is removed and the tree grows at its raw EBF (~2.4 vs ~1.95).
+
+**HONESTY CAVEAT (don't overclaim ordering).** "88% first-move-cutoff is the cause" is UNPROVEN — I did
+NOT measure *Blunder's* first-move-cutoff, and [[project_endgame_tree_diagnostic]] previously found
+NGN's ordering machinery is *richer* than Blunder's (SEE+counter+continuation-history vs MVV-LVA) with
+~equal LMR amount. So the lever is NOT confidently "ordering"; the grounded NEW finding from this
+autopsy is the **extension storms** (untested by the 2026-05-31 audit), which directly match the
+depth-growth signature.
 
 **Acted on:** the passed-pawn extension was scoped to actually-passed pawns (commit 102b8ce); tactical
 28/30, but **node-neutral** (−1.5% eg nodes — in real endgames almost all advanced pushes are already
 passers), so it is a *correctness* fix, not the lever (fixed-time non-regression SPRT gating it).
 
-**Next candidates (one-axis, fixed-time SPRT each), ranked by the compounding logic:**
-1. **eg move ordering** — push first-move-cutoff 88%→93%+ (the biggest compounding factor; check whether
-   history/killer/counter tables and quiet-move eval-ordering degrade in eg).
+**Next candidates (one-axis, fixed-time SPRT each), best-grounded first:**
+1. **tighten the eg extension storms** (the new finding) — check-ext (SEE≥0-gate? / cap), and
+   `EXTENSION_BUDGET=24` is very loose (24 net plies/path — effectively uncapped at NGN's eg depths),
+   which permits the deep compounding checking lines that match the depth-growth (3.78x→9.16x).
 2. **an eg-appropriate replacement for the futility-collapse** — a pruner that fires when evals are flat
    (history-leaf pruning / eg-tuned LMP) to restore the mask futility provides in mg.
-3. **tighten the eg extension storms** — check-ext (SEE≥0 only? / cap), and `EXTENSION_BUDGET=24` is very
-   loose (24 net plies/path — effectively uncapped at NGN's eg depths), which permits the deep
-   compounding checking lines.
+3. **eg move ordering** — ONLY after measuring Blunder's first-move-cutoff to confirm a real gap exists
+   (NGN's is 88%; if Blunder's is similar, there is no ordering lever here).
