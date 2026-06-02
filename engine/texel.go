@@ -115,7 +115,6 @@ func TexelWeights() []TexelWeight {
 		{"doubledPawnPenalty", &doubledPawnPenalty},
 		{"isolatedPawnPenalty", &isolatedPawnPenalty},
 		{"pawnChainWeight", &pawnChainWeight},
-		{"bishopPairWeight", &bishopPairWeight},
 		{"mobilityWeight", &mobilityWeight},
 		{"rookOpenWeight", &rookOpenWeight},
 		{"outpostWeight", &outpostWeight},

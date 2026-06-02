@@ -2361,7 +2361,6 @@ var (
 	doubledPawnPenalty  = 9
 	isolatedPawnPenalty = 8
 	pawnChainWeight     = 77
-	bishopPairWeight    = 90
 	mobilityWeight      = 166
 	rookOpenWeight      = 83
 	outpostWeight       = 84
@@ -2457,8 +2456,10 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	eval -= (whiteIsolated - blackIsolated) * isolatedPawnPenalty // isolated penalty
 	eval += (chainWhite - chainBlack) * pawnChainWeight / 100     // connected/supported pawn chains
 
-	// Bishop pair bonus (small but real and not in PST).
-	eval += (evaluateBishopPair(board, White) - evaluateBishopPair(board, Black)) * bishopPairWeight / 100
+	// Bishop-pair bonus REMOVED 2026-06-02: a fixed-nodes SPRT (ngn_l5 vs base, 800 games)
+	// scored removal at +20.4 ELO [-4,+45] — the term was net-harmful (it double-counted the
+	// PeSTO bishop values), so dropping it is both a strength and a speed win. evaluateBishopPair
+	// is retained only for its unit tests.
 
 	// Mobility — important but moderate weight (PSTs already capture positional value).
 	eval += evaluateMobilityDelta(board) * mobilityWeight / 100
