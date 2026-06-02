@@ -194,10 +194,25 @@ block and commit the SAME turn (the integral term). [[feedback_long_autonomous_s
   (rebuilt from HEAD 65990da = F1-F8). Mobility is the highest eval weight + ~420ms cum + flagged "likely redundant
   with PSTs" — the prime deletion suspect. Caps ~800 games. No re-profile this cycle (L1=KEEP ⇒ HEAD unchanged ⇒ same
   flat profile; re-profile only after a DELETE that changes HEAD).
-- **NEXT (on L2 completion wake):** decide L2 (DELETE mobility if point est ≥ ~-5 / not a clear regression — comment
-  the call at eval.go:2455 + drop the weight + smoke-tactical ≥24 + commit; else KEEP) → if DELETE, rebuild base +
-  re-profile for the freed target → launch L3 (no-kingactivity: `kingActivityWeight=0` at eval.go:2360, eg-only narrow
-  term, low weight — likely deletable) → record + commit. Then L4 rook-open / L5 bishop-pair / L6 king-safety as time allows.
+- **L2 (no-mobility) DONE — VERDICT: KEEP mobility, emphatically.** 275-99-426, **Elo -66.4 [-91,-42]**, pentanomial
+  -66.4 [-89,-44], LLR -2.49 (nearly hit H0). Removing mobility is a LARGE clear regression ⇒ mobility is a ~66-ELO
+  earner, the most valuable term tested. "Redundant with PSTs" REFUTED.
+- **>>> STRATEGY PIVOT (2026-06-02, evidence-based): both terms tested are earners (outposts +9, mobility +66) ⇒ the
+  Texel-tuned eval is well-calibrated, NOT bloated ⇒ the deletion sweep is yielding KEEPs (little/no free speed). So:
+  keep the deletion sweep running in the BACKGROUND for closure, but resume the FREE NODE-IDENTICAL LANE in the
+  FOREGROUND on CONFIRMED KEEPERS (speed up the term, keep its output) — a free win needing no SPRT. <<<**
+- **F9 DONE, KEPT (commit 6876b7b):** evaluateMobility was called per-color, recomputing the color-independent setup
+  (occupancy + both pawn-attack spans) twice/eval. Factored the per-side loops into `mobilityForSide` + added
+  `evaluateMobilityDelta` that computes the shared setup once; production caller uses it. Node-identical EXACT,
+  alloc-free, suite green. (evaluateMobility kept for eval_test:323, refactored onto the same helper.)
+- **L5 (no-bishop-pair) LAUNCHED (bg bupfifr4n, output/sprt_l5.log)** — reordered ahead of L3/L4 by value:
+  bishop-pair is the biggest eval-LEAF flat cost (~3% flat) AND its value is genuinely debated, so it's the
+  highest-info remaining deletion test. `bishopPairWeight 90→0`, ngn_l5 vs ngn_base (HEAD with F1-F9). Caps ~800.
+  (NOTE: first launch used a bare `&` which gives no completion notification — killed + relaunched via run_in_background.)
+- **NEXT:** FOREGROUND — node-identically optimize the next confirmed/likely keeper (king-safety attack-patterns =
+  biggest eval cost ~610ms cum, or rook-open per-color dedup); do NOT optimize bishop-pair until L5 confirms KEEP.
+  BACKGROUND — on L5 wake: decide bishop-pair (DELETE only if clearly NOT a regression; else KEEP + then optimize it) →
+  launch L4 rook-open → L6 king-safety → (skip L3 king-activity: ~10ms cum, deleting it saves ~0 speed). Record + commit each.
 
 ---
 
