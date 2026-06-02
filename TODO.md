@@ -125,9 +125,21 @@ parallel). [[feedback_decide_dont_ask]] [[feedback_long_autonomous_sessions]] [[
   HYPOTHESIS (flagged): NGN's eval is NOT a major standalone middlegame liability — at matched compute it's ~equal
   (+2.7, near the ~2cp noise floor). The striking pattern is DEPTH-DEPENDENCE: NGN's shallow-search move quality is
   notably worse (+9.8 @d6) but improves far more with depth (33.6→16.7) than Blunder's (23.8→19.8), overtaking it by
-  d12. Read: **Blunder leans on a clean shallow eval; NGN leans on SEARCH to fix a noisier eval.** This COMPOUNDS the
-  M2 endgame finding: in mg NGN searches deep enough to compensate, but in eg (3-7 ply shallower) it runs where its
-  eval is weakest = double penalty. Per-phase split running to test if the shallow gap is eg-concentrated.
+  d12. Read: **Blunder leans on a clean shallow eval; NGN leans on SEARCH to fix a noisier eval.**
+- **M3 PER-PHASE split — DONE (2026-06-02, output/m3_phase.log). The most actionable result of the day.** ACPL Δ
+  (NGN−Blunder, cp/move) by phase:
+  - **mg (135 pos): d6 +10.9, matched-compute +3.6** — NGN's eval noisier shallow, but search compensates ⇒ ~competitive.
+  - **late-mg / PHASE 7-11 (56 pos): d6 +9.0, matched-compute +9.9** — NGN clearly worse AND search does NOT close it
+    (both reads ~+9, unlike mg). A real eval gap that depth can't fix.
+  - **eg / phase 0-6 (49 pos): d6 +7.9, matched-compute -1.3** — at matched compute NGN's ENDGAME eval is FINE (≈ Blunder).
+  TWO HYPOTHESES (flagged; both need confirmation, small per-phase n):
+  1. **The endgame gap is PURE SEARCH, not eval.** Eg eval at matched compute is ≈ Blunder (-1.3); combined with M2's
+     3-7 ply eg depth deficit ⇒ NGN loses endgames by searching too shallow, NOT by misjudging them. Eval work stays dead for eg.
+  2. **A localized LATE-MIDDLEGAME (phase 7-11) eval gap (+9.9 matched-compute, search-proof) aligns with a concrete
+     code mechanism:** evaluateUnsafe gates king-safety to `phase>=12` and king-activity to `phase<6`, so in phase
+     7-11 the king gets NEITHER term — exactly the bucket that spiked. CANDIDATE FIX (record only, do NOT implement
+     per read-only mandate): a continuous king term across phase 7-11, fixed-nodes SPRT to validate. CONFIRM the +9.9
+     with more phase-7-11 positions first (n=56 is thin, though d6 and matched-compute agreeing at ~+9 is reassuring).
 - **Blunder eval coverage (FACT, verified against opponents/.src/engine/evaluation.go):** Blunder 7.4.0's eval is
   **560 lines** (the long-repeated "228" was WRONG — corrected in docs/memory) and covers the SAME standard terms as
   NGN — tapered MG/EG PeSTO, isolated/doubled/passed pawns, knight outposts, N/B/R/Q mobility, king-safety attack
