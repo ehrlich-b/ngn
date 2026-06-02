@@ -1,5 +1,11 @@
 package engine
 
+import (
+	"math"
+	"runtime"
+	"sync"
+)
+
 // Gradient Texel tuning. The static eval is LINEAR in its tunable parameters for
 // a fixed position: the PeSTO core is Σ_pieces sign·(material[pt] + rawPST[pt][sq])
 // tapered by phase, and every other term is feature·weight (optionally /100). So
@@ -205,4 +211,226 @@ func TexelFullParams() []*int {
 		ptrs = append(ptrs, w.Ptr)
 	}
 	return ptrs
+}
+
+// traceDataset builds the cached eval trace for every sample in parallel (pawn
+// cache disabled, matching texelMSE's regime). Each board's accumulator is
+// recomputed first so accMG/accEG/accPhase are current, and the sample result is
+// carried onto the trace.
+func traceDataset(samples []TexelSample) []evalTrace {
+	pawnCacheDisabled = true
+	traces := make([]evalTrace, len(samples))
+	n := len(samples)
+	if n == 0 {
+		return traces
+	}
+	workers := runtime.GOMAXPROCS(0)
+	if workers > n {
+		workers = n
+	}
+	chunk := (n + workers - 1) / workers
+	var wg sync.WaitGroup
+	for wk := 0; wk < workers; wk++ {
+		lo := wk * chunk
+		if lo >= n {
+			break
+		}
+		hi := lo + chunk
+		if hi > n {
+			hi = n
+		}
+		wg.Add(1)
+		go func(lo, hi int) {
+			defer wg.Done()
+			for i := lo; i < hi; i++ {
+				samples[i].Board.recomputeAccumulator()
+				tr := buildEvalTrace(&samples[i].Board)
+				tr.Result = samples[i].Result
+				traces[i] = tr
+			}
+		}(lo, hi)
+	}
+	wg.Wait()
+	return traces
+}
+
+// texelTraceAccumulate computes one trace's float eval, returns its squared error,
+// and (when g != nil) adds its gradient contribution factor·coeff into g over every
+// parameter the position touches — a single pass mirroring evalTraceFloat's term
+// structure (and signs) exactly. a = K·ln10/400 is the sigmoid-derivative constant;
+// σ'(s) = a·σ(1−σ), and d/dwⱼ of (result−σ)² carries 2(σ−result)·σ'·coeffⱼ.
+func texelTraceAccumulate(t *evalTrace, w, g []float64, k, a float64) float64 {
+	s := evalTraceFloat(t, w)
+	p := texelSigmoid(s, k)
+	diff := p - t.Result
+	if g != nil {
+		factor := 2 * diff * a * p * (1 - p)
+		mgF := float64(t.Phase) / float64(totalPhase)
+		egF := float64(totalPhase-t.Phase) / float64(totalPhase)
+		for _, pc := range t.Pieces {
+			pt := PieceType(pc.Pt)
+			sg := float64(pc.Sign)
+			g[texelPSTMGIndex(pt, pc.Cell)] += factor * sg * mgF
+			g[texelPSTEGIndex(pt, pc.Cell)] += factor * sg * egF
+			if pt != King {
+				g[texelMatMGIndex(pt)] += factor * sg * mgF
+				g[texelMatEGIndex(pt)] += factor * sg * egF
+			}
+		}
+		g[texelScalarBase+0] += factor * float64(t.Passed)
+		g[texelScalarBase+1] += factor * float64(-t.Doubled)
+		g[texelScalarBase+2] += factor * float64(-t.Isolated)
+		g[texelScalarBase+3] += factor * float64(t.Chain) / 100.0
+		g[texelScalarBase+4] += factor * float64(t.Mobility) / 100.0
+		g[texelScalarBase+5] += factor * float64(t.RookOpen) / 100.0
+		g[texelScalarBase+6] += factor * float64(t.Outpost) / 100.0
+		g[texelScalarBase+7] += factor * float64(t.KingSafety) / 100.0
+		g[texelScalarBase+8] += factor * float64(t.KingActivity) / 100.0
+	}
+	return diff * diff
+}
+
+// texelTraceGradient returns the mean squared error of the float model over the
+// traces and (when wantGrad) the mean gradient w.r.t. every parameter, computed in
+// parallel with per-worker partials reduced at the end.
+func texelTraceGradient(traces []evalTrace, w []float64, k float64, wantGrad bool) (mse float64, grad []float64) {
+	n := len(traces)
+	if n == 0 {
+		return 0, make([]float64, texelNumParams)
+	}
+	a := k * math.Ln10 / 400.0
+	workers := runtime.GOMAXPROCS(0)
+	if workers > n {
+		workers = n
+	}
+	chunk := (n + workers - 1) / workers
+	partialMSE := make([]float64, workers)
+	partialG := make([][]float64, workers)
+	var wg sync.WaitGroup
+	for wk := 0; wk < workers; wk++ {
+		lo := wk * chunk
+		if lo >= n {
+			break
+		}
+		hi := lo + chunk
+		if hi > n {
+			hi = n
+		}
+		wg.Add(1)
+		go func(idx, lo, hi int) {
+			defer wg.Done()
+			var g []float64
+			if wantGrad {
+				g = make([]float64, texelNumParams)
+			}
+			var sum float64
+			for i := lo; i < hi; i++ {
+				sum += texelTraceAccumulate(&traces[i], w, g, k, a)
+			}
+			partialMSE[idx] = sum
+			partialG[idx] = g
+		}(wk, lo, hi)
+	}
+	wg.Wait()
+	var total float64
+	for _, s := range partialMSE {
+		total += s
+	}
+	mse = total / float64(n)
+	if wantGrad {
+		grad = make([]float64, texelNumParams)
+		for _, pg := range partialG {
+			for j, v := range pg {
+				grad[j] += v
+			}
+		}
+		inv := 1.0 / float64(n)
+		for j := range grad {
+			grad[j] *= inv
+		}
+	}
+	return mse, grad
+}
+
+// TexelGradientConfig carries the gradient-tuning hyperparameters.
+type TexelGradientConfig struct {
+	K        float64 // sigmoid scaling (calibrate on the training set via TexelFindK)
+	LR       float64 // Adam learning rate (≈ centipawn step ceiling per epoch)
+	Epochs   int     // maximum epochs
+	Patience int     // stop after this many epochs without test-MSE improvement (0 = off)
+	Progress func(epoch int, trainMSE, testMSE float64)
+}
+
+// TexelGradientTune fits the full parameter vector (material + 768 PST cells + the
+// scalar weights) by Adam gradient descent on the training traces, monitoring
+// held-out test MSE for early stopping, then writes the rounded best parameters
+// into the live eval (RebuildPST after). Returns the final train/test MSE measured
+// from the INTEGER eval (the real engine), proving the tuned weights transfer off
+// the float model. Mutates the eval's global parameters as a side effect.
+func TexelGradientTune(train, test []TexelSample, cfg TexelGradientConfig) (trainMSE, testMSE float64) {
+	trainTr := traceDataset(train)
+	testTr := traceDataset(test)
+
+	ptrs := TexelFullParams()
+	w := make([]float64, len(ptrs))
+	for i, p := range ptrs {
+		w[i] = float64(*p)
+	}
+
+	m := make([]float64, len(w)) // Adam first moment
+	v := make([]float64, len(w)) // Adam second moment
+	const b1, b2, eps = 0.9, 0.999, 1e-8
+
+	best := append([]float64(nil), w...)
+	bestMonitor := math.Inf(1)
+	sinceImprove := 0
+
+	// monitor returns the loss to minimize/early-stop on: held-out test MSE when a
+	// test set is present, else the training MSE.
+	monitor := func() float64 {
+		if len(testTr) > 0 {
+			mse, _ := texelTraceGradient(testTr, w, cfg.K, false)
+			return mse
+		}
+		mse, _ := texelTraceGradient(trainTr, w, cfg.K, false)
+		return mse
+	}
+
+	for epoch := 1; epoch <= cfg.Epochs; epoch++ {
+		trMSE, g := texelTraceGradient(trainTr, w, cfg.K, true)
+		b1t := 1 - math.Pow(b1, float64(epoch))
+		b2t := 1 - math.Pow(b2, float64(epoch))
+		for j := range w {
+			m[j] = b1*m[j] + (1-b1)*g[j]
+			v[j] = b2*v[j] + (1-b2)*g[j]*g[j]
+			mhat := m[j] / b1t
+			vhat := v[j] / b2t
+			w[j] -= cfg.LR * mhat / (math.Sqrt(vhat) + eps)
+		}
+		mon := monitor()
+		if cfg.Progress != nil {
+			cfg.Progress(epoch, trMSE, mon)
+		}
+		if mon+1e-12 < bestMonitor {
+			bestMonitor = mon
+			copy(best, w)
+			sinceImprove = 0
+		} else {
+			sinceImprove++
+			if cfg.Patience > 0 && sinceImprove >= cfg.Patience {
+				break
+			}
+		}
+	}
+
+	for i, p := range ptrs {
+		*p = int(math.Round(best[i]))
+	}
+	RebuildPST()
+
+	trainMSE = texelMSE(train, cfg.K)
+	if len(test) > 0 {
+		testMSE = texelMSE(test, cfg.K)
+	}
+	return trainMSE, testMSE
 }

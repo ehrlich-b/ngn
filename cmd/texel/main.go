@@ -33,9 +33,14 @@ func main() {
 	maxPlies := flag.Int("maxplies", 240, "gendata: max plies before scoring the game a draw")
 	seed := flag.Int64("seed", 0, "gendata: RNG seed (0 = time-based)")
 	// tune flags
-	data := flag.String("data", "", "tune: dataset ('<FEN> <result>' lines or result-labeled EPD)")
+	data := flag.String("data", "", "tune/gradient: dataset ('<FEN> <result>' lines or result-labeled EPD)")
 	passes := flag.Int("passes", 8, "tune: max coordinate-descent passes per step size")
 	target := flag.String("target", "weights", "tune: weights (10 eval-term scalars) | pst (768 PST entries + weights) | full (material + PST + weights)")
+	// gradient flags
+	epochs := flag.Int("epochs", 300, "gradient: max Adam epochs")
+	lr := flag.Float64("lr", 1.0, "gradient: Adam learning rate (~centipawn step ceiling/epoch)")
+	patience := flag.Int("patience", 30, "gradient: early-stop after this many epochs without held-out improvement (0 = off)")
+	split := flag.Float64("split", 0.1, "gradient: held-out test fraction for early stopping")
 	// shared
 	out := flag.String("out", "", "output file (default stdout)")
 	flag.Parse()
@@ -45,8 +50,10 @@ func main() {
 		genData(*games, *nodes, *prefix, *maxPlies, *seed, *out)
 	case "tune":
 		tune(*data, *passes, *target, *out)
+	case "gradient":
+		gradientTune(*data, *epochs, *lr, *patience, *split, *seed, *out)
 	default:
-		fmt.Fprintln(os.Stderr, "specify -mode gendata or -mode tune")
+		fmt.Fprintln(os.Stderr, "specify -mode gendata, -mode tune, or -mode gradient")
 		flag.Usage()
 		os.Exit(2)
 	}
@@ -227,4 +234,71 @@ func tune(data string, passes int, target, out string) {
 	}
 	fmt.Fprint(w, dump())
 	fmt.Fprintf(os.Stderr, "tuning done in %s\n", time.Since(start).Round(time.Second))
+}
+
+// gradientTune fits the full eval parameter vector (material + 768 PST cells + the
+// scalar weights) by Adam gradient descent over cached eval traces, holding out a
+// fraction for early stopping, and writes the tuned values as Go source. This is
+// the gradient solver for the same Texel objective the coordinate-descent `tune`
+// minimizes — closed-form steps over all parameters jointly, ~100-1000x cheaper.
+func gradientTune(data string, epochs int, lr float64, patience int, split float64, seed int64, out string) {
+	if data == "" {
+		fmt.Fprintln(os.Stderr, "gradient: -data is required")
+		os.Exit(2)
+	}
+	fmt.Fprintf(os.Stderr, "loading %s ...\n", data)
+	samples, err := engine.LoadTexelSamples(data)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "load:", err)
+		os.Exit(1)
+	}
+	if len(samples) == 0 {
+		fmt.Fprintln(os.Stderr, "no samples")
+		os.Exit(1)
+	}
+	fmt.Fprintf(os.Stderr, "loaded %d positions\n", len(samples))
+
+	if seed == 0 {
+		seed = time.Now().UnixNano()
+	}
+	rng := rand.New(rand.NewSource(seed))
+	rng.Shuffle(len(samples), func(i, j int) { samples[i], samples[j] = samples[j], samples[i] })
+	nTest := int(float64(len(samples)) * split)
+	if nTest >= len(samples) {
+		nTest = len(samples) - 1
+	}
+	test := samples[:nTest]
+	train := samples[nTest:]
+	fmt.Fprintf(os.Stderr, "split: %d train / %d test (seed %d)\n", len(train), len(test), seed)
+
+	k := engine.TexelFindK(train)
+	fmt.Fprintf(os.Stderr, "calibrated K = %.4f on train\n", k)
+	weights := engine.TexelWeights()
+	fmt.Fprintf(os.Stderr, "weights before:\n%s", engine.FormatTexelWeights(weights))
+
+	start := time.Now()
+	trainMSE, testMSE := engine.TexelGradientTune(train, test, engine.TexelGradientConfig{
+		K: k, LR: lr, Epochs: epochs, Patience: patience,
+		Progress: func(epoch int, trMSE, teMSE float64) {
+			if epoch == 1 || epoch%10 == 0 {
+				fmt.Fprintf(os.Stderr, "  epoch %d  trainMSE=%.6f  testMSE=%.6f  (%s)\n",
+					epoch, trMSE, teMSE, time.Since(start).Round(time.Second))
+			}
+		},
+	})
+	fmt.Fprintf(os.Stderr, "final integer-eval MSE: train=%.6f test=%.6f\n", trainMSE, testMSE)
+	fmt.Fprintf(os.Stderr, "weights after:\n%s", engine.FormatTexelWeights(weights))
+
+	w := os.Stdout
+	if out != "" {
+		f, err := os.Create(out)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "create:", err)
+			os.Exit(1)
+		}
+		defer f.Close()
+		w = f
+	}
+	fmt.Fprint(w, engine.FormatMaterialValues()+"\n"+engine.FormatPSTTables()+"// eval.go tunable weights:\n"+engine.FormatTexelWeights(weights))
+	fmt.Fprintf(os.Stderr, "gradient tuning done in %s\n", time.Since(start).Round(time.Second))
 }

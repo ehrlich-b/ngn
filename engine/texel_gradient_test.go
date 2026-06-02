@@ -2,6 +2,7 @@ package engine
 
 import (
 	"math"
+	"sort"
 	"testing"
 )
 
@@ -98,4 +99,129 @@ func TestEvalTraceFloatFidelity(t *testing.T) {
 		t.Errorf("float/int eval residual %.3f exceeds expected truncation bound (~8cp)", maxResidual)
 	}
 	t.Logf("max float/int residual: %.3fcp", maxResidual)
+}
+
+// gateSamples builds a small labeled dataset from the gate FENs with varied
+// results, so the non-PeSTO terms and asymmetric occupancy carry real gradient.
+func gateSamples(t *testing.T) []TexelSample {
+	t.Helper()
+	results := []float64{0.5, 1.0, 0.0, 0.0, 1.0, 1.0, 0.5, 0.0, 1.0, 0.5}
+	samples := make([]TexelSample, 0, len(texelGateFENs))
+	for i, fen := range texelGateFENs {
+		pos, err := ParseFEN(fen)
+		if err != nil {
+			t.Fatalf("ParseFEN(%q): %v", fen, err)
+		}
+		samples = append(samples, TexelSample{Board: pos.Board, Result: results[i%len(results)]})
+	}
+	return samples
+}
+
+// TestTexelGradientNumericCheck validates the analytic gradient against a central
+// finite difference of the float MSE, on the most-active parameters (largest |g|,
+// which naturally span material / PST / scalar weights). A wrong sign or index in
+// texelTraceAccumulate would diverge here. The model is linear in w so the MSE is
+// smooth and central differences match to high precision.
+func TestTexelGradientNumericCheck(t *testing.T) {
+	saved := pawnCacheDisabled
+	pawnCacheDisabled = true
+	defer func() { pawnCacheDisabled = saved }()
+
+	traces := traceDataset(gateSamples(t))
+	ptrs := TexelFullParams()
+	w := make([]float64, len(ptrs))
+	for i, p := range ptrs {
+		w[i] = float64(*p)
+	}
+	const k = 1.0
+
+	_, g := texelTraceGradient(traces, w, k, true)
+	mseAt := func(wv []float64) float64 { mse, _ := texelTraceGradient(traces, wv, k, false); return mse }
+
+	order := make([]int, len(g))
+	for j := range order {
+		order[j] = j
+	}
+	sort.Slice(order, func(a, b int) bool { return math.Abs(g[order[a]]) > math.Abs(g[order[b]]) })
+
+	// Check the 8 most-active params (material/PST) plus every scalar weight — the
+	// scalar signs (notably the negated doubled/isolated penalties) are the most
+	// error-prone and would not otherwise rank into the top by magnitude.
+	check := append([]int(nil), order[:8]...)
+	for s := 0; s < texelNumScalars; s++ {
+		check = append(check, texelScalarBase+s)
+	}
+
+	const h = 1.0
+	checked := 0
+	for _, j := range check {
+		if g[j] == 0 {
+			continue // inactive in this tiny dataset — skip
+		}
+		wp := append([]float64(nil), w...)
+		wp[j] += h
+		wm := append([]float64(nil), w...)
+		wm[j] -= h
+		num := (mseAt(wp) - mseAt(wm)) / (2 * h)
+		if math.Abs(g[j]-num) > 1e-7+1e-3*math.Abs(num) {
+			t.Errorf("grad[%d]=%.6e disagrees with numeric %.6e (diff %.2e)", j, g[j], num, g[j]-num)
+		}
+		checked++
+	}
+	if checked == 0 {
+		t.Fatal("no active gradients to check")
+	}
+	t.Logf("gradient check passed on %d params (8 most-active + active scalars)", checked)
+}
+
+// TestTexelGradientTuneReducesMSE is the machinery end-to-end: with a REACHABLE
+// target (labels are the float model's own output at the current parameters, so a
+// zero-MSE fit exists), perturbing the parameters raises the loss and Adam descent
+// must drive the integer-eval MSE back down substantially, writing finite values
+// back. This guarantees real, reducible gradient signal (avoiding the degenerate
+// K≈0 that arbitrary uncorrelated labels produce). Parameters are saved/restored.
+func TestTexelGradientTuneReducesMSE(t *testing.T) {
+	saved := pawnCacheDisabled
+	pawnCacheDisabled = true
+	defer func() { pawnCacheDisabled = saved }()
+
+	ptrs := TexelFullParams()
+	savedParams := make([]int, len(ptrs))
+	for i, p := range ptrs {
+		savedParams[i] = *p
+	}
+	defer func() {
+		for i, p := range ptrs {
+			*p = savedParams[i]
+		}
+		RebuildPST()
+	}()
+
+	const k = 1.0
+	samples := gateSamples(t)
+	traces := traceDataset(samples) // coefficients are param-independent
+	w0 := make([]float64, len(ptrs))
+	for i, p := range ptrs {
+		w0[i] = float64(*p)
+	}
+	// Labels = logistic of the current float eval → a perfectly reachable target.
+	for i := range samples {
+		samples[i].Result = texelSigmoid(evalTraceFloat(&traces[i], w0), k)
+	}
+	// Perturb the live parameters so the starting fit is poor.
+	for _, p := range ptrs {
+		*p = *p * 4 / 5
+	}
+	RebuildPST()
+	before := texelMSE(samples, k)
+
+	trainMSE, _ := TexelGradientTune(samples, nil, TexelGradientConfig{K: k, LR: 2.0, Epochs: 200})
+
+	if math.IsNaN(trainMSE) || math.IsInf(trainMSE, 0) {
+		t.Fatalf("tuned MSE not finite: %v", trainMSE)
+	}
+	if trainMSE >= 0.7*before {
+		t.Errorf("gradient descent failed to substantially reduce MSE: before=%.6f after=%.6f", before, trainMSE)
+	}
+	t.Logf("integer-eval MSE %.6f -> %.6f over <=200 epochs", before, trainMSE)
 }
