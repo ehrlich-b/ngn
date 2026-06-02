@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"math"
 	"os"
@@ -92,6 +93,7 @@ func main() {
 	rollingOnly := flag.Bool("rolling", false, "print the commit-decayed pooled trend and exit (no games)")
 	probe := flag.Bool("probe", false, "probe each anchor's movetime/stop compliance and exit (no games)")
 	lowPower := flag.Bool("lowpower", true, "route engines to macOS E-cores (taskpolicy -b)")
+	pgnPath := flag.String("pgn", "", "capture every game (moves+result+NGN color+reason) to this file for M1 loss classification")
 	flag.Parse()
 
 	tcTimeMs, tcIncMs := 0, 0
@@ -159,10 +161,21 @@ func main() {
 	}
 	fmt.Println()
 
+	var pgnW io.Writer
+	if *pgnPath != "" {
+		f, err := os.Create(*pgnPath)
+		if err != nil {
+			log.Fatalf("cannot create -pgn file %s: %v", *pgnPath, err)
+		}
+		defer f.Close()
+		pgnW = f
+		fmt.Printf("capturing all games to %s\n\n", *pgnPath)
+	}
+
 	var results []result
 	for _, a := range anchors {
 		fmt.Printf("== vs Blunder %s (CCRL %d) ==\n", a.Version, a.CCRL)
-		results = append(results, playAnchor(*ngnPath, a, openings, *games, *movetimeMs, tcTimeMs, tcIncMs, *lowPower))
+		results = append(results, playAnchor(*ngnPath, a, openings, *games, *movetimeMs, tcTimeMs, tcIncMs, *lowPower, pgnW))
 		fmt.Println()
 	}
 
@@ -221,7 +234,7 @@ func probeAnchors(anchors []Anchor, movetimeMs int, lowPower bool) {
 // colors in reversed pairs over the opening list. Counts are from NGN's POV. It
 // first probes the anchor for movetime/stop compliance and skips it (no games) if
 // the anchor ignores `stop`, since the time control would be distorted.
-func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs, tcTimeMs, tcIncMs int, lowPower bool) result {
+func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs, tcTimeMs, tcIncMs int, lowPower bool, pgnW io.Writer) result {
 	ngn := uci.Start(ngnPath, "ngn", lowPower)
 	opp := uci.Start(a.Path, a.Version, lowPower)
 	if ngn == nil || opp == nil {
@@ -245,12 +258,30 @@ func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs
 	}
 	uci.ResetCounters(opp) // drop the warmup+probe moves; only rated games feed the guard
 	uci.ResetCounters(ngn)
+	var gameMoves []string
+	if pgnW != nil {
+		cfg.MovesOut = &gameMoves // PlayGame overwrites this each game
+	}
 	consecutiveForfeits := 0
 	for g := 0; g < games; g++ {
 		op := openings[(g/2)%len(openings)] // reversed-color pairs of the same line
 		newIsWhite := g%2 == 0
 		// uci.PlayGame returns the result from the FIRST engine's (NGN's) POV.
 		gr := uci.PlayGame(ngn, opp, op, newIsWhite, cfg)
+		if pgnW != nil {
+			rc := "D"
+			switch gr.Res {
+			case uci.Win:
+				rc = "W"
+			case uci.Loss:
+				rc = "L"
+			}
+			color := "b"
+			if newIsWhite {
+				color = "w"
+			}
+			fmt.Fprintf(pgnW, "GAME %s %s %s %s | %s\n", a.Version, rc, color, gr.Reason, strings.Join(gameMoves, " "))
+		}
 		res.reasons[gr.Reason]++
 		switch gr.Res {
 		case uci.Win:

@@ -49,6 +49,11 @@ type GameResult struct {
 type GameConfig struct {
 	NewDepth, BaseDepth, Movetime, Nodes, MaxMoves int
 	TCTimeMs, TCIncMs                              int
+	// MovesOut, if non-nil, receives the full UCI move list from the start
+	// position (opening + played moves) when the game ends, so a caller can
+	// reconstruct/replay the game (e.g. the M1 loss-classification PGN capture).
+	// Opt-in: nil for callers that only need the result.
+	MovesOut *[]string
 }
 
 // Engine is a persistent UCI subprocess.
@@ -272,6 +277,9 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 	pos.Positions[pos.Hash()]++
 
 	moves := make([]string, 0, cfg.MaxMoves)
+	if cfg.MovesOut != nil {
+		defer func() { *cfg.MovesOut = moves }()
+	}
 	for _, mv := range opening {
 		m, err := engine.ParseUCIMove(pos, mv)
 		if err != nil {
