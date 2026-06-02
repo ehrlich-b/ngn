@@ -116,6 +116,13 @@ parallel). [[feedback_decide_dont_ask]] [[feedback_long_autonomous_sessions]] [[
   originating error), tags TACTICAL (sudden ≥200cp drop = search/depth) vs POSITIONAL (gradual = eval) × phase.
   Validated on a 2-game test (one positional, one 613cp-tactical). M1 games need a solo `-tc` run (hours) — sequence
   after M2.
+- **M2 depth-deficit PREVIEW (2026-06-02, @1000ms, UNDER SF load ⇒ absolute depths depressed but the NGN-vs-Blunder
+  RATIO holds under symmetric load; CLEAN re-run pending):** middlegame deficit **+1/0/0 ply** (mid d10 vs d11, mid2
+  d11=d11, kiwipete d9=d9) — NGN matches Blunder's depth in mg. ENDGAME deficit **+3 ply (pp-end d16 vs d19) and +7
+  ply (quiet-end d15 vs d22)** — NGN searches 3-7 plies SHALLOWER in endgames, burning MORE nodes to get there
+  (quiet-end: NGN 535k nodes@d15 vs Blunder ~d22). FACT: this is the documented 2.5-5x endgame-tree explosion made
+  concrete as a depth deficit — and it is ENDGAME-SPECIFIC (mg depth is ~equal). Mechanics confirmed: Blunder 7.4.0
+  yields depth lines on `stop` via the paced raw pipe. (m2_depth.sh node column dropped — Blunder resets per-iteration.)
 
 ---
 

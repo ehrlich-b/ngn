@@ -39,19 +39,20 @@ send(){ # bin fen
     sleep 0.3; printf 'go infinite\n'; sleep "$SECS"; printf 'stop\n'; sleep 0.6; printf 'quit\n'; } \
   | taskpolicy -b "$1" 2>/dev/null | grep '^info depth'
 }
-# deepest reached: last info-depth line's depth/seldepth/nodes
-red(){ echo "$1" | tail -1 | awk '{for(i=1;i<=NF;i++){if($i=="depth")d=$(i+1);if($i=="seldepth")s=$(i+1);if($i=="nodes")n=$(i+1)}; printf "%d %d %d", d, s, n}'; }
+# deepest reached: last info-depth line's depth (the comparable metric). NODES are
+# deliberately NOT reported here — Blunder resets node counters per iteration so its
+# last line undercounts (h2h.sh sums them); this is a DEPTH instrument, see h2h.sh for nodes.
+red(){ echo "$1" | tail -1 | awk '{for(i=1;i<=NF;i++){if($i=="depth")d=$(i+1)}; printf "%d", d}'; }
 
 printf '%s\n' "===== M2 depth-deficit @ ${MS}ms — NGN ($NGN) vs Blunder ($BLU), E-cores ====="
-printf '%-10s %-3s | %-18s | %-18s | %s\n' "pos" "ph" "NGN d/seld/nodes" "BLU d/seld/nodes" "ply deficit (BLU-NGN)"
+printf '%-10s %-3s | %-9s | %-9s | %s\n' "pos" "ph" "NGN depth" "BLU depth" "ply deficit (BLU-NGN)"
 for row in "${POSITIONS[@]}"; do
   IFS='|' read -r nm fen ph <<<"$row"
   nm="${nm// /}"; fen="${fen#"${fen%%[![:space:]]*}"}"
-  no=$(red "$(send "$NGN" "$fen")")
-  bo=$(red "$(send "$BLU" "$fen")")
-  read -r nd ns nn <<<"$no"; read -r bd bs bn <<<"$bo"
-  awk -v nm="$nm" -v ph="$ph" -v nd="$nd" -v ns="$ns" -v nn="$nn" -v bd="$bd" -v bs="$bs" -v bn="$bn" 'BEGIN{
-    printf "%-10s %-3s | d%-2d sd%-3d %8dn | d%-2d sd%-3d %8dn | %+d ply\n", nm, ph, nd,ns,nn, bd,bs,bn, bd-nd }'
+  nd=$(red "$(send "$NGN" "$fen")")
+  bd=$(red "$(send "$BLU" "$fen")")
+  awk -v nm="$nm" -v ph="$ph" -v nd="$nd" -v bd="$bd" 'BEGIN{
+    printf "%-10s %-3s | d%-7d | d%-7d | %+d ply\n", nm, ph, nd, bd, bd-nd }'
 done
 echo "----"
 echo "negative deficit = NGN deeper; positive = Blunder deeper. Expect the eg rows worse for NGN."
