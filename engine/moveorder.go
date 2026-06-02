@@ -402,9 +402,11 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Mov
 // index, matching the full-sort order — so the incremental path is node-identical.
 func selectNextMove(out []Move, scores []int, n, i int) {
 	maxIdx := i
+	maxScore := scores[i] // hoist out of the loop: avoids re-loading scores[maxIdx] each iteration
 	for j := i + 1; j < n; j++ {
-		if scores[j] > scores[maxIdx] {
+		if scores[j] > maxScore {
 			maxIdx = j
+			maxScore = scores[j]
 		}
 	}
 	if maxIdx != i {
