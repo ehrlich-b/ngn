@@ -173,7 +173,7 @@ func runScore(corpus, newBin, baseBin, goCmd, budget string, limit int, timeout 
 }
 
 func main() {
-	mode := flag.String("mode", "score", "score | gencorpus | label | acpl")
+	mode := flag.String("mode", "score", "score | gencorpus | label | acpl | classify")
 	corpus := flag.String("corpus", "validated_tactical_positions.epd", "score: labeled EPD (UCI bm)")
 	labelsF := flag.String("labels", "", "acpl: SF MultiPV label file (from -mode label)")
 	fensF := flag.String("fens", "", "label: input FEN file (from -mode gencorpus)")
@@ -193,6 +193,7 @@ func main() {
 	sfDepth := flag.Int("sfdepth", 16, "label: SF search depth")
 	out := flag.String("out", "", "gencorpus/label: output file")
 	capCp := flag.Int("cap", 1000, "acpl: per-position cp-loss cap")
+	gamesF := flag.String("games", "", "classify: gauntlet -pgn capture file (M1 loss classification)")
 	flag.Parse()
 
 	goCmd, budget := goCmdFrom(*nodes, *depth)
@@ -219,8 +220,14 @@ func main() {
 			os.Exit(1)
 		}
 		runACPL(*newBin, *baseBin, *labelsF, goCmd, budget, timeout, *lowPower, *capCp)
+	case "classify":
+		if *gamesF == "" {
+			fmt.Fprintln(os.Stderr, "classify: need -games <gauntlet -pgn file>")
+			os.Exit(1)
+		}
+		runClassify(*gamesF, *sfPath, *sfDepth, *lowPower)
 	default:
-		fmt.Fprintf(os.Stderr, "unknown -mode %q (want score|gencorpus|label|acpl)\n", *mode)
+		fmt.Fprintf(os.Stderr, "unknown -mode %q (want score|gencorpus|label|acpl|classify)\n", *mode)
 		os.Exit(1)
 	}
 }

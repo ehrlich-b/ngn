@@ -312,3 +312,164 @@ func runACPL(newBin, baseBin, labelFile, goCmd, budget string, timeout time.Dura
 	fmt.Printf("  base  %-24s ACPL %6.1f\n", baseBin, baseACPL)
 	fmt.Printf("  Δ %+.1f cp/move  (lower ACPL = better; positive Δ means NEW gives up more eval = WORSE)\n", newACPL-baseACPL)
 }
+
+// ---------- classify: where did NGN lose? (M1 loss classification) ----------
+
+// tacticalDropCp: an NGN move that drops SF's NGN-POV eval by >= this in ONE move
+// is a sudden blunder (a missed tactic / hung material) = a SEARCH/depth failure.
+// Below it, a loss with no single big drop is gradual = a POSITIONAL/eval failure.
+const tacticalDropCp = 200
+
+// egPhase: PeSTO game phase <= this (from non-pawn material) counts as endgame.
+const egPhase = 6
+
+// evalClamp bounds SF's NGN-POV eval before drop computation. A position past
+// this is already decisively lost, so without the clamp the single biggest
+// "drop" is always the forced-mate score (~100000cp) at the END of the game,
+// masking the ORIGINATING error. Clamping surfaces the move where NGN actually
+// went from ~playable to ~lost — the decisive moment we want to classify.
+const evalClamp = 1500
+
+type gameRec struct {
+	anchor, result, ngnColor, reason string
+	moves                            []string
+}
+
+// parseGames reads the gauntlet -pgn capture: "GAME <anchor> <R|D|L> <w|b> <reason> | m1 m2 ...".
+func parseGames(path string) ([]gameRec, error) {
+	lines, err := readLines(path)
+	if err != nil {
+		return nil, err
+	}
+	var out []gameRec
+	for _, ln := range lines {
+		if !strings.HasPrefix(ln, "GAME ") {
+			continue
+		}
+		head, moves := ln, []string(nil)
+		if i := strings.Index(ln, " | "); i >= 0 {
+			moves = strings.Fields(ln[i+3:])
+			head = ln[:i]
+		}
+		f := strings.Fields(head) // GAME anchor result color reason...
+		if len(f) < 5 {
+			continue
+		}
+		out = append(out, gameRec{f[1], f[2], f[3], strings.Join(f[4:], " "), moves})
+	}
+	return out, nil
+}
+
+// fenPhase is a PeSTO-style game phase from the FEN's non-pawn material
+// (N/B=1, R=2, Q=4; 24=opening, 0=bare kings). evaluatePeSTO is unexported, so
+// we recompute it here for the endgame tag.
+func fenPhase(fen string) int {
+	w := map[rune]int{'N': 1, 'B': 1, 'R': 2, 'Q': 4, 'n': 1, 'b': 1, 'r': 2, 'q': 4}
+	p := 0
+	for _, c := range strings.Fields(fen)[0] {
+		p += w[c]
+	}
+	if p > 24 {
+		p = 24
+	}
+	return p
+}
+
+// sfEvalCp returns SF's eval of fen from the side-to-move's POV (best PV's cp).
+func sfEvalCp(sf *uci.Engine, fen string, depth int) (int, bool) {
+	evs := labelPosition(sf, fen, depth)
+	if len(evs) == 0 {
+		return 0, false
+	}
+	return evs[0].cp, true
+}
+
+func runClassify(gamesPath, sfPath string, depth int, lowPower bool) {
+	games, err := parseGames(gamesPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "oracle classify: %v\n", err)
+		os.Exit(1)
+	}
+	var losses []gameRec
+	for _, g := range games {
+		if g.result == "L" {
+			losses = append(losses, g)
+		}
+	}
+	fmt.Printf("classify: %s — %d games, %d NGN losses (SF %s depth %d, tactical>=%dcp, eg phase<=%d)%s\n",
+		gamesPath, len(games), len(losses), sfPath, depth, tacticalDropCp, egPhase, uci.PowerNote(lowPower))
+	if len(losses) == 0 {
+		return
+	}
+	sf := uci.Start(sfPath, "stockfish", lowPower)
+	if sf == nil {
+		fmt.Fprintf(os.Stderr, "oracle classify: cannot start stockfish %q\n", sfPath)
+		os.Exit(1)
+	}
+	defer uci.Stop(sf)
+	uci.Send(sf, "setoption name MultiPV value 1")
+	uci.Send(sf, "isready")
+	uci.WaitFor(sf, "readyok", 5*time.Second)
+
+	// type x phase tally
+	cnt := map[string]int{}
+	fmt.Printf("  %-4s %-5s %-13s %6s %6s  %-8s %s\n", "#", "color", "reason", "plies", "finalE", "type", "decisive (drop@ply, phase)")
+	for gi, g := range losses {
+		// time-forfeit: classify directly, no replay needed.
+		if g.reason == "time-forfeit" {
+			cnt["time"]++
+			fmt.Printf("  L%-3d %-5s %-13s %6d %6s  %-8s %s\n", gi+1, g.ngnColor, g.reason, len(g.moves), "-", "TIME", "(flagged on the clock)")
+			continue
+		}
+		ngnWhite := g.ngnColor == "w"
+		pos := startPosition()
+		// lastNGN = SF eval (NGN POV) after the previous ply. After the opponent's
+		// move it equals the eval just BEFORE NGN's next move, so an NGN move's drop
+		// is lastNGN - (eval after NGN's move). One SF eval per ply.
+		lastNGN, havePrev := 0, false
+		biggestDrop, dropPly, dropPhase := -1<<30, -1, 24
+		finalNGN := 0
+		for i, mv := range g.moves {
+			moverIsNGN := (pos.Turn() == engine.White) == ngnWhite
+			if !applyUCI(pos, mv) {
+				break
+			}
+			fen := engine.GenerateFEN(pos)
+			cp, ok := sfEvalCp(sf, fen, depth)
+			if !ok {
+				continue
+			}
+			ngnPOV := cp // side-to-move flipped after the move; convert to NGN POV
+			if (pos.Turn() == engine.White) != ngnWhite {
+				ngnPOV = -cp
+			}
+			if ngnPOV > evalClamp { // clamp mate/decisive scores (see evalClamp)
+				ngnPOV = evalClamp
+			} else if ngnPOV < -evalClamp {
+				ngnPOV = -evalClamp
+			}
+			finalNGN = ngnPOV
+			if moverIsNGN && havePrev {
+				if drop := lastNGN - ngnPOV; drop > biggestDrop {
+					biggestDrop, dropPly, dropPhase = drop, i+1, fenPhase(fen)
+				}
+			}
+			lastNGN, havePrev = ngnPOV, true
+		}
+		typ := "POSITNL"
+		if biggestDrop >= tacticalDropCp {
+			typ = "TACTICAL"
+		}
+		phaseTag := "mg"
+		if dropPhase <= egPhase {
+			phaseTag = "eg"
+		}
+		cnt[typ+"-"+phaseTag]++
+		fmt.Printf("  L%-3d %-5s %-13s %6d %+6d  %-8s drop %dcp @ply%d (%s, phase %d)\n",
+			gi+1, g.ngnColor, g.reason, len(g.moves), finalNGN, typ, biggestDrop, dropPly, phaseTag, dropPhase)
+	}
+	fmt.Println("  ----")
+	fmt.Printf("  TACTICAL: mg=%d eg=%d   POSITIONAL: mg=%d eg=%d   TIME=%d\n",
+		cnt["TACTICAL-mg"], cnt["TACTICAL-eg"], cnt["POSITNL-mg"], cnt["POSITNL-eg"], cnt["time"])
+	fmt.Println("  TACTICAL = sudden >=200cp drop (search/depth); POSITIONAL = gradual bleed (eval); split by phase at the decisive move.")
+}
