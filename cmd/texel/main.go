@@ -41,6 +41,7 @@ func main() {
 	lr := flag.Float64("lr", 1.0, "gradient: Adam learning rate (~centipawn step ceiling/epoch)")
 	patience := flag.Int("patience", 30, "gradient: early-stop after this many epochs without held-out improvement (0 = off)")
 	split := flag.Float64("split", 0.1, "gradient: held-out test fraction for early stopping")
+	l2 := flag.Float64("l2", 0.0, "gradient: L2 pull toward original PeSTO values (regularizes weakly-supported PST cells; e.g. 0.01)")
 	// shared
 	out := flag.String("out", "", "output file (default stdout)")
 	flag.Parse()
@@ -51,7 +52,7 @@ func main() {
 	case "tune":
 		tune(*data, *passes, *target, *out)
 	case "gradient":
-		gradientTune(*data, *epochs, *lr, *patience, *split, *seed, *out)
+		gradientTune(*data, *epochs, *lr, *patience, *split, *l2, *seed, *out)
 	default:
 		fmt.Fprintln(os.Stderr, "specify -mode gendata, -mode tune, or -mode gradient")
 		flag.Usage()
@@ -241,7 +242,7 @@ func tune(data string, passes int, target, out string) {
 // fraction for early stopping, and writes the tuned values as Go source. This is
 // the gradient solver for the same Texel objective the coordinate-descent `tune`
 // minimizes — closed-form steps over all parameters jointly, ~100-1000x cheaper.
-func gradientTune(data string, epochs int, lr float64, patience int, split float64, seed int64, out string) {
+func gradientTune(data string, epochs int, lr float64, patience int, split, l2 float64, seed int64, out string) {
 	if data == "" {
 		fmt.Fprintln(os.Stderr, "gradient: -data is required")
 		os.Exit(2)
@@ -278,7 +279,7 @@ func gradientTune(data string, epochs int, lr float64, patience int, split float
 
 	start := time.Now()
 	trainMSE, testMSE := engine.TexelGradientTune(train, test, engine.TexelGradientConfig{
-		K: k, LR: lr, Epochs: epochs, Patience: patience,
+		K: k, LR: lr, Epochs: epochs, Patience: patience, L2: l2,
 		Progress: func(epoch int, trMSE, teMSE float64) {
 			if epoch == 1 || epoch%10 == 0 {
 				fmt.Fprintf(os.Stderr, "  epoch %d  trainMSE=%.6f  testMSE=%.6f  (%s)\n",

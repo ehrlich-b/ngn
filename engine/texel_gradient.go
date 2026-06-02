@@ -358,6 +358,10 @@ type TexelGradientConfig struct {
 	LR       float64 // Adam learning rate (≈ centipawn step ceiling per epoch)
 	Epochs   int     // maximum epochs
 	Patience int     // stop after this many epochs without test-MSE improvement (0 = off)
+	L2       float64 // L2 pull toward the starting params (0 = off); reins in weakly-
+	// supported PST cells and pins the material/PST gauge so values don't wander the
+	// null space. Penalty λΣ(wⱼ−w0ⱼ)², gradient 2λ(wⱼ−w0ⱼ); well-supported params are
+	// unaffected (their data gradient dominates).
 	Progress func(epoch int, trainMSE, testMSE float64)
 }
 
@@ -376,6 +380,7 @@ func TexelGradientTune(train, test []TexelSample, cfg TexelGradientConfig) (trai
 	for i, p := range ptrs {
 		w[i] = float64(*p)
 	}
+	w0 := append([]float64(nil), w...) // L2 reference: the original (PeSTO) values
 
 	m := make([]float64, len(w)) // Adam first moment
 	v := make([]float64, len(w)) // Adam second moment
@@ -398,6 +403,11 @@ func TexelGradientTune(train, test []TexelSample, cfg TexelGradientConfig) (trai
 
 	for epoch := 1; epoch <= cfg.Epochs; epoch++ {
 		trMSE, g := texelTraceGradient(trainTr, w, cfg.K, true)
+		if cfg.L2 > 0 {
+			for j := range g {
+				g[j] += 2 * cfg.L2 * (w[j] - w0[j]) // L2 pull toward the original values
+			}
+		}
 		b1t := 1 - math.Pow(b1, float64(epoch))
 		b2t := 1 - math.Pow(b2, float64(epoch))
 		for j := range w {
