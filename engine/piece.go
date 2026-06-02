@@ -233,37 +233,18 @@ func (p Piece) Color() Color {
 }
 
 func GetPiece(pieceType PieceType, color Color) Piece {
+	// Pieces are laid out White (Pawn..King = 1..6) then Black (Pawn..King = 7..12),
+	// mirroring PieceType (Pawn..King = 1..6): a white piece is Piece(pieceType) and a
+	// black piece is that plus the 6 white pieces. Replaces a 12-case double switch
+	// (hot in attack/check detection). NoType or NoColor map to NoPiece as before.
+	if pieceType == NoType {
+		return NoPiece
+	}
 	if color == White {
-		switch pieceType {
-		case King:
-			return WhiteKing
-		case Queen:
-			return WhiteQueen
-		case Rook:
-			return WhiteRook
-		case Bishop:
-			return WhiteBishop
-		case Knight:
-			return WhiteKnight
-		case Pawn:
-			return WhitePawn
-		}
+		return Piece(pieceType)
 	}
 	if color == Black {
-		switch pieceType {
-		case King:
-			return BlackKing
-		case Queen:
-			return BlackQueen
-		case Rook:
-			return BlackRook
-		case Bishop:
-			return BlackBishop
-		case Knight:
-			return BlackKnight
-		case Pawn:
-			return BlackPawn
-		}
+		return Piece(pieceType) + 6
 	}
 	return NoPiece
 }
