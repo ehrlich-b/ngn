@@ -509,9 +509,11 @@ type SearchInfo struct {
 	LMPPrunes            uint64 // Moves pruned by Late Move Pruning
 	ProbcutPrunes        uint64 // Positions pruned by Probcut
 	SEEQuietPrunes       uint64 // Quiet moves pruned by SEE (soft hangs)
+	TTProbes             uint64 // Transposition table probes (denominator for hit/cutoff rate)
 	TTHits               uint64 // Transposition table hits
 	TTCutoffs            uint64 // Beta cutoffs from TT
 	BetaCutoffs          uint64 // Total beta cutoffs
+	FirstMoveCutoffs     uint64 // Beta cutoffs on the first legal move tried (move-ordering quality)
 	QNodes               uint64 // Quiescence search nodes
 	QSearchTTStores      uint64 // Quiescence results written to the TT (S3)
 	CheckExtensions      uint64 // Check extensions applied
@@ -1069,6 +1071,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	origAlpha := alpha
 
 	ttMove, ttEvalRaw, ttDepth, ttNodeType, ttHit := TranspositionTable.Get(hash)
+	info.TTProbes++
 	ttEval := scoreFromTT(ttEvalRaw, ply)
 
 	// Singular verification root: this node is being re-searched with one move
@@ -1658,6 +1661,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 		if score >= beta {
 			info.BetaCutoffs++
+			if legalTried == 1 {
+				info.FirstMoveCutoffs++
+			}
 			// Update history table for quiet moves that cause beta cutoffs
 			UpdateHistoryTable(move, savedLast, depth)
 			// Update killer moves for quiet moves that cause beta cutoffs
