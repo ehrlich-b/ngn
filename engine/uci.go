@@ -73,27 +73,25 @@ func NewUCIEngine() *UCIEngine {
 		execPath = "./ngn" // fallback
 	}
 	execDir := filepath.Dir(execPath)
-	logFile, err := os.OpenFile(filepath.Join(execDir, "ngn_debug.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	var logger *log.Logger
-	if err != nil {
-		// Fallback to stdout if can't create log file
-		logger = log.New(os.Stdout, "[NGN DEBUG] ", log.LstdFlags|log.Lmicroseconds)
-	} else {
-		logger = log.New(logFile, "[NGN DEBUG] ", log.LstdFlags|log.Lmicroseconds)
+	// Debug logs are opt-in via NGN_DEBUG_LOG: they're append-only and unbounded
+	// and reached multi-GB during long gauntlet/SPRT runs. Default to io.Discard so
+	// a background run can't fill the disk (and never leak debug text onto stdout,
+	// which is the UCI protocol channel). The loggers stay valid either way.
+	var logW, rawW io.Writer = io.Discard, io.Discard
+	if os.Getenv("NGN_DEBUG_LOG") != "" {
+		if f, e := os.OpenFile(filepath.Join(execDir, "ngn_debug.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666); e == nil {
+			logW = f
+		}
+		if f, e := os.OpenFile(filepath.Join(execDir, "ngn_raw_uci.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666); e == nil {
+			rawW = f
+		}
 	}
+	logger := log.New(logW, "[NGN DEBUG] ", log.LstdFlags|log.Lmicroseconds)
+	rawUCILogger := log.New(rawW, "", log.LstdFlags|log.Lmicroseconds)
 
 	logger.Println("=== NGN Chess Engine Starting ===")
 	logger.Printf("Executable path: %s", execPath)
 	logger.Printf("Log file directory: %s", execDir)
-
-	// Also create raw UCI message logger
-	uciLogFile, err := os.OpenFile(filepath.Join(execDir, "ngn_raw_uci.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	var rawUCILogger *log.Logger
-	if err != nil {
-		rawUCILogger = logger // fallback to main logger
-	} else {
-		rawUCILogger = log.New(uciLogFile, "", log.LstdFlags|log.Lmicroseconds)
-	}
 	rawUCILogger.Println("=== RAW UCI MESSAGE LOG ===")
 	rawUCILogger.Println("Format: >>> = sent to engine, <<< = sent from engine")
 

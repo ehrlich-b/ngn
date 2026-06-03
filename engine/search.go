@@ -506,6 +506,9 @@ type SearchInfo struct {
 	FutilityPrunes       uint64 // Moves pruned by futility pruning
 	NullMoveCutoffs      uint64 // Beta cutoffs from null move pruning
 	LMRReductions        uint64 // Moves reduced by Late Move Reduction
+	NullWindowScouts     uint64 // Non-first moves searched with a null window (re-search denominator)
+	LMRReSearches        uint64 // Reduced fail-highs re-searched at full depth (LMR verification churn)
+	PVReSearches         uint64 // PV nodes re-searched with the full window after a null-window fail-high
 	LMPPrunes            uint64 // Moves pruned by Late Move Pruning
 	ProbcutPrunes        uint64 // Positions pruned by Probcut
 	SEEQuietPrunes       uint64 // Quiet moves pruned by SEE (soft hangs)
@@ -1639,6 +1642,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			}
 
 			// Search with null window first (not PV)
+			info.NullWindowScouts++
 			score = -alphaBetaPV(pos, reducedDepth, ply+1, -alpha-1, -alpha, false, true, info)
 
 			// LMR re-search (C4): a reduced search that beats alpha may have
@@ -1649,11 +1653,13 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// the check extension in nextDepth never actually applied off the PV). The
 			// per-path extension budget bounds the check recursion this re-search opens.
 			if reduction > 0 && score > alpha {
+				info.LMRReSearches++
 				score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, true, info)
 			}
 			// PVS full-window re-search: only a PV node has a window wider than the null
 			// window, so only there does an in-window score need its exact value.
 			if isPV && score > alpha && score < beta {
+				info.PVReSearches++
 				score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, info)
 			}
 		}
@@ -1896,10 +1902,10 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		}
 	}
 
-	// Stand-pat
-	standPat := EvaluateForPlayer(&pos.Board, pos.Turn())
-
-	if standPat >= beta {
+	// Stand-pat (lazy: skip the expensive eval extras when the cheap core already
+	// proves the fail-high — see evaluateLazyStandPat / qsearchLazyMargin).
+	standPat, lazyFailHigh := evaluateLazyStandPat(&pos.Board, pos.Turn(), beta)
+	if lazyFailHigh || standPat >= beta {
 		return beta
 	}
 

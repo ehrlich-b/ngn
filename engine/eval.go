@@ -2458,9 +2458,21 @@ func pawnStructureCounts(board *Bitboard, wp, bp uint64) (wPassed, bPassed, wDou
 	return
 }
 
+// evaluateUnsafe = cheap CORE (material/PST + pawn structure) + expensive EXTRAS
+// (mobility, rook, outposts, king). Split so qsearch can lazily skip the extras
+// when the core alone already proves a stand-pat fail-high (evaluateLazyStandPat).
+// The full path is bit-for-bit identical to the old monolithic version.
 func evaluateUnsafe(board *Bitboard) (eval int) {
+	core, phase := evalCoreWhite(board)
+	return core + evalExtrasWhite(board, phase)
+}
+
+// evalCoreWhite is the CHEAP half (white POV): PeSTO tapered material+PST plus the
+// memoized pawn-structure terms. Also returns the game phase for the extras.
+func evalCoreWhite(board *Bitboard) (eval, phase int) {
 	// Core: PeSTO tapered material + piece-square tables.
-	mgScore, egScore, phase := evaluatePeSTO(board)
+	mgScore, egScore, ph := evaluatePeSTO(board)
+	phase = ph
 	eval = (mgScore*phase + egScore*(totalPhase-phase)) / totalPhase
 
 	whitePawns := board.GetBitboardOf(WhitePawn)
@@ -2476,6 +2488,14 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 	eval -= (whiteDoubled - blackDoubled) * taperW(doubledPawnPenalty, doubledPawnPenaltyEG, phase)     // doubled penalty
 	eval -= (whiteIsolated - blackIsolated) * taperW(isolatedPawnPenalty, isolatedPawnPenaltyEG, phase) // isolated penalty
 	eval += (chainWhite - chainBlack) * taperW(pawnChainWeight, pawnChainWeightEG, phase) / 100         // connected/supported pawn chains
+	return eval, phase
+}
+
+// evalExtrasWhite is the EXPENSIVE half (white POV): mobility, rook-on-open-file,
+// outposts, and king safety/activity — the ~16% of CPU the lazy path can skip.
+func evalExtrasWhite(board *Bitboard, phase int) (eval int) {
+	whitePawns := board.GetBitboardOf(WhitePawn)
+	blackPawns := board.GetBitboardOf(BlackPawn)
 
 	// Bishop-pair bonus REMOVED 2026-06-02: a fixed-nodes SPRT (ngn_l5 vs base, 800 games)
 	// scored removal at +20.4 ELO [-4,+45] — the term was net-harmful (it double-counted the
@@ -2507,7 +2527,37 @@ func evaluateUnsafe(board *Bitboard) (eval int) {
 		// below phase=12 mid-combination.
 		eval += evaluateKingActivity(board) * taperW(kingActivityWeight, kingActivityWeightEG, phase) / 100
 	}
-
-	// Tempo bonus — small constant for side-to-move encoded in caller.
 	return eval
+}
+
+// qsearchLazyMargin bounds the magnitude of evalExtrasWhite. In qsearch, if the
+// cheap core alone clears beta by more than this, the expensive extras cannot pull
+// the score back below beta, so the stand-pat fail-high is taken without computing
+// them. A LARGE value makes the cut provably node-identical (it fires only when the
+// extras cannot matter); shrinking it skips the expensive eval on more nodes at a
+// small exactness cost — SPRT the magnitude.
+// SHELVED 2026-06-02: 150 was unsound (extras reach +-199cp; a concrete wrong cut was
+// found, and it tested net-neutral at fixed time, G121 elo +0.0) — the CPU win it chased
+// is captured node-identically by the slider-attack dedup refactor instead. Pinned at
+// 100000 = lazy-out never fires = node-identical to the full eval.
+var qsearchLazyMargin = 100000
+
+// evaluateLazyStandPat returns the side-to-move stand-pat eval, but when the cheap
+// core already proves a fail-high (coreStm - margin >= beta) it returns failHigh
+// without computing the expensive extras. POV+tempo mirror EvaluateForPlayer.
+func evaluateLazyStandPat(board *Bitboard, player Color, beta int) (standPat int, failHigh bool) {
+	whiteCore, phase := evalCoreWhite(board)
+	coreStm := whiteCore
+	if player != White {
+		coreStm = -coreStm
+	}
+	coreStm += TempoBonus
+	if coreStm-qsearchLazyMargin >= beta {
+		return 0, true
+	}
+	full := whiteCore + evalExtrasWhite(board, phase)
+	if player != White {
+		full = -full
+	}
+	return full + TempoBonus, false
 }

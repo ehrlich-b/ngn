@@ -1,7 +1,5 @@
 package engine
 
-import "math/bits"
-
 // Magic bitboards for O(1) sliding piece attack generation
 // Instead of looping through each direction, we use a precomputed table lookup
 
@@ -73,9 +71,12 @@ var BishopShifts = [64]int{
 var RookMasks [64]uint64
 var BishopMasks [64]uint64
 
-// Attack tables - indexed by [square][magic_index]
-var RookAttacks [64][]uint64
-var BishopAttacks [64][]uint64
+// Attack tables - indexed by [square][magic_index]. Fixed arrays (not slices) so a
+// lookup is a single indexed load with no slice-header deref and no dynamic bounds
+// check — matches Blunder's [64][4096]/[64][512] layout. Sizes = 2^(max relevant
+// occupancy bits): rook 12, bishop 9. ~2.3MB static, the hottest tables in the engine.
+var RookAttacks [64][4096]uint64
+var BishopAttacks [64][512]uint64
 
 func init() {
 	initMagicBitboards()
@@ -90,9 +91,7 @@ func initMagicBitboards() {
 
 	// Initialize attack tables
 	for sq := 0; sq < 64; sq++ {
-		// Rook attacks
-		rookBits := bits.OnesCount64(RookMasks[sq])
-		RookAttacks[sq] = make([]uint64, 1<<rookBits)
+		// Rook attacks (fixed [4096] array — indices 2^bits..4095 stay zero, never read)
 		for occ := uint64(0); ; {
 			idx := (occ * RookMagics[sq]) >> RookShifts[sq]
 			RookAttacks[sq][idx] = rookAttacksSlow(sq, occ)
@@ -102,9 +101,7 @@ func initMagicBitboards() {
 			}
 		}
 
-		// Bishop attacks
-		bishopBits := bits.OnesCount64(BishopMasks[sq])
-		BishopAttacks[sq] = make([]uint64, 1<<bishopBits)
+		// Bishop attacks (fixed [512] array — indices 2^bits..511 stay zero, never read)
 		for occ := uint64(0); ; {
 			idx := (occ * BishopMagics[sq]) >> BishopShifts[sq]
 			BishopAttacks[sq][idx] = bishopAttacksSlow(sq, occ)
@@ -253,14 +250,14 @@ func bishopAttacksSlow(sq int, occ uint64) uint64 {
 func GetRookAttacks(sq int, occupied uint64) uint64 {
 	occ := occupied & RookMasks[sq]
 	idx := (occ * RookMagics[sq]) >> RookShifts[sq]
-	return RookAttacks[sq][idx]
+	return RookAttacks[sq][idx&4095] // mask is a no-op (idx < 2^bits <= 4096); elides the bounds check
 }
 
 // GetBishopAttacks returns bishop attacks using magic bitboards - O(1)
 func GetBishopAttacks(sq int, occupied uint64) uint64 {
 	occ := occupied & BishopMasks[sq]
 	idx := (occ * BishopMagics[sq]) >> BishopShifts[sq]
-	return BishopAttacks[sq][idx]
+	return BishopAttacks[sq][idx&511] // mask is a no-op (idx < 2^bits <= 512); elides the bounds check
 }
 
 // GetQueenAttacks returns queen attacks (combination of rook + bishop)

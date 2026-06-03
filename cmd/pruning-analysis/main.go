@@ -60,6 +60,7 @@ type bucket struct {
 	ttprobes, tthits, ttcutoffs          uint64
 	nmp, futility, lmp, see, lmr         uint64
 	checkExt, recapExt, passExt, singExt uint64
+	nullScout, lmrReSearch, pvReSearch   uint64
 }
 
 func (b *bucket) add(info *engine.SearchInfo) {
@@ -76,6 +77,9 @@ func (b *bucket) add(info *engine.SearchInfo) {
 	b.lmp += info.LMPPrunes
 	b.see += info.SEEQuietPrunes
 	b.lmr += info.LMRReductions
+	b.nullScout += info.NullWindowScouts
+	b.lmrReSearch += info.LMRReSearches
+	b.pvReSearch += info.PVReSearches
 	b.checkExt += info.CheckExtensions
 	b.recapExt += info.RecaptureExtensions
 	b.passExt += info.PassedPawnExtensions
@@ -197,6 +201,12 @@ func report(eg, mg *bucket, depth int, src string) {
 	rowF("LMP prunes /knode", perK(eg.lmp, eg.nodes), perK(mg.lmp, mg.nodes), "")
 	rowF("SEE prunes /knode", perK(eg.see, eg.nodes), perK(mg.see, mg.nodes), "")
 	rowF("LMR reductions /knode", perK(eg.lmr, eg.nodes), perK(mg.lmr, mg.nodes), "")
+
+	fmt.Println("--- LMR re-search economics (where verification nodes go) ---")
+	rowF("null-window scouts /knode", perK(eg.nullScout, eg.nodes), perK(mg.nullScout, mg.nodes), "")
+	rowF("LMR re-searches /knode", perK(eg.lmrReSearch, eg.nodes), perK(mg.lmrReSearch, mg.nodes), "HI eg => reduced-move verification churn")
+	rowF("PV re-searches /knode", perK(eg.pvReSearch, eg.nodes), perK(mg.pvReSearch, mg.nodes), "")
+	rowP("LMR re-search rate (resrch/reductions)", eg.lmrReSearch, eg.lmr, mg.lmrReSearch, mg.lmr, "HI => reductions undone, paid 2x")
 
 	fmt.Println("--- extensions (count per 1000 nodes) ---")
 	rowF("check ext /knode", perK(eg.checkExt, eg.nodes), perK(mg.checkExt, mg.nodes), "HI eg => check-ext storm")
