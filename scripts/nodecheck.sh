@@ -30,13 +30,14 @@ BIN="${1:-build/ngn}"
 # stats line, not the depth-N-complete one — the "unstable ruler" (end d16 read 441388/772119/
 # 1268761 depending on timing). go-depth searches ARE deterministic; waiting for the bestmove line
 # makes the count EXACT and reproducible (verified 3x identical). EXACT-MATCH node-IDENTITY gate.
-# Baselines RE-LOCKED again after the F1 fix (legalTried>0 guard on futility/SEE pruning): a kept
-# [BEHAVIOUR] change, so it legitimately shifted them — kiwipete +70% (tactical nodes that used to
-# false-draw now search the first move), end -47% (correct fail-lows cut cleaner). mid ~flat.)
+# Baselines RE-LOCKED 2026-06-03 after the night's kept [BEHAVIOUR] fixes (F1 legalTried-guard,
+# C4 phase-6 king, C1 insufficient-material draw-in-search). These shift node counts legitimately;
+# C1 especially (kiwipete -37% as deep lines trade into recognized draws, end +45% from corrected
+# draw scores reordering the search). Current HEAD = F1+C4+timefix+C1.)
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|2242743"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|1406330"
   "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|916471"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|667498"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|967198"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)

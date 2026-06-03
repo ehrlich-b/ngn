@@ -1027,8 +1027,17 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Compute hash once and reuse for repetition detection and TT probe.
 	hash := pos.Hash()
 
-	// Draw detection: 50-move rule and repetition
+	// Draw detection: insufficient material, 50-move rule, repetition
 	{
+		// Insufficient-material draw (KvK, K+single-minor vs K, same-colour KBvKB):
+		// these are dead draws, but the eval scores them non-zero (KBvK reads ~+354cp),
+		// so without this NGN burns nodes "winning" them and misjudges trades into them.
+		// IsDraw() is conservative + allocation-free; ply>0 so the root always returns a
+		// move (C1; Blunder checks the equivalent at every non-root node).
+		if ply > 0 && pos.IsDraw() {
+			return 0
+		}
+
 		// 50-move rule
 		if pos.HalfMoveClock >= 100 {
 			return 0
