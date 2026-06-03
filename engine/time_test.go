@@ -141,11 +141,12 @@ func TestMovesToGoTimeControl(t *testing.T) {
 	}
 }
 
-func TestStabilityScaledSoftStop(t *testing.T) {
+func TestTournamentSoftStop(t *testing.T) {
 	tm := NewTimeManager()
 
-	// ReportCompletedIteration counts only a stable best move whose window held on
-	// the first attempt; a change or a re-search resets it (the sharpness flag).
+	// ReportCompletedIteration still TRACKS decision stability (a changed best move or
+	// a broken window resets it); the counter is kept for diagnostics even though the
+	// soft budget no longer shrinks on it.
 	tm.ReportCompletedIteration(true, true) // best move changed
 	if tm.stableIters != 0 {
 		t.Fatalf("a changed best move must reset stability, got %d", tm.stableIters)
@@ -161,24 +162,31 @@ func TestStabilityScaledSoftStop(t *testing.T) {
 		t.Fatalf("six settled iterations should give stability 6, got %d", tm.stableIters)
 	}
 
-	// A settled decision shrinks the SOFT budget, so the search stops sooner than
-	// it would while volatile. Drive shouldStopTournamentSearch with fixed budgets.
+	// The soft budget is NOT shrunk by stability anymore: the old stableIters soft/2
+	// (and *0.7) shrink fired on nearly every quiet position, so NGN played whole games
+	// at ~25% of its clock. Now a settled and a volatile decision stop at the SAME soft
+	// budget; only the ~1x next-iteration projection and the hard ceiling gate the stop.
 	tm.timeControl = Tournament
 	tm.baseTime = 120 * time.Second
 	tm.softTime = 4000 * time.Millisecond
 	tm.hardTime = 16000 * time.Millisecond
 	tm.lastIterationTime = 500 * time.Millisecond
 	const depth = 10
-	const elapsed = 2200 * time.Millisecond // between the scaled (2000) and full (4000) soft
 
-	tm.stableIters = 0
-	if tm.shouldStopTournamentSearch(depth, elapsed) {
-		t.Errorf("volatile decision (soft %v): should keep searching at elapsed %v", tm.softTime, elapsed)
+	// elapsed+lastIter = 2700 < soft 4000: keep searching, regardless of stability.
+	for _, si := range []int{0, 6, 100} {
+		tm.stableIters = si
+		if tm.shouldStopTournamentSearch(depth, 2200*time.Millisecond) {
+			t.Errorf("stableIters=%d: should keep searching at 2200ms (soft 4000, no stability shrink)", si)
+		}
 	}
 
-	tm.stableIters = 6
-	if !tm.shouldStopTournamentSearch(depth, elapsed) {
-		t.Errorf("settled decision: soft should halve and stop the search at elapsed %v", elapsed)
+	// elapsed+lastIter = 4200 > soft 4000: the projection stops it, regardless of stability.
+	for _, si := range []int{0, 6} {
+		tm.stableIters = si
+		if !tm.shouldStopTournamentSearch(depth, 3700*time.Millisecond) {
+			t.Errorf("stableIters=%d: projection should stop near the soft budget", si)
+		}
 	}
 
 	// The hard ceiling must NOT move with stability — the anti-flag guarantee.
