@@ -25,7 +25,7 @@ import (
 const startposFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 func main() {
-	mode := flag.String("mode", "", "gendata | tune")
+	mode := flag.String("mode", "", "gendata | tune | gradient | dump")
 	// gendata flags
 	games := flag.Int("games", 1500, "gendata: number of self-play games")
 	nodes := flag.Int("nodes", 8000, "gendata: fixed node budget per move")
@@ -53,11 +53,36 @@ func main() {
 		tune(*data, *passes, *target, *out)
 	case "gradient":
 		gradientTune(*data, *epochs, *lr, *patience, *split, *l2, *seed, *out)
+	case "dump":
+		dumpWeights(*out)
 	default:
-		fmt.Fprintln(os.Stderr, "specify -mode gendata, -mode tune, or -mode gradient")
+		fmt.Fprintln(os.Stderr, "specify -mode gendata, -mode tune, -mode gradient, or -mode dump")
 		flag.Usage()
 		os.Exit(2)
 	}
+}
+
+// dumpWeights emits the engine's CURRENT live eval parameters (auxiliary term
+// scalars, material values, and piece-square tables) as Go source — the same
+// format tune/gradient emit. Snapshot before tuning, run a tune to a second
+// file, then `diff` the two to see exactly which weights moved and by how much.
+func dumpWeights(out string) {
+	w := os.Stdout
+	if out != "" {
+		f, err := os.Create(out)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "create:", err)
+			os.Exit(1)
+		}
+		defer f.Close()
+		w = f
+	}
+	bw := bufio.NewWriter(w)
+	defer bw.Flush()
+	fmt.Fprintln(bw, "// CURRENT live eval parameters (engine HEAD).")
+	fmt.Fprint(bw, engine.FormatTexelWeights(engine.TexelWeights()))
+	fmt.Fprint(bw, engine.FormatMaterialValues())
+	fmt.Fprint(bw, engine.FormatPSTTables())
 }
 
 // genData self-plays games and writes labeled quiet positions.
