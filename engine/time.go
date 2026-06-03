@@ -309,25 +309,23 @@ func (tm *TimeManager) shouldStopTournamentSearch(depth int, elapsed time.Durati
 	if depth < 1 {
 		return false
 	}
-	// Soft limit: don't START another iteration we can't finish within the soft
-	// budget. The budget shrinks once the decision is settled (best move stable and
-	// aspiration windows holding) so easy moves play fast and bank time for hard
-	// ones; the hard ceiling above is untouched, so this only ever plays FASTER and
-	// can never increase flag risk.
+	// Soft limit: don't START another iteration we can't finish within the soft budget.
+	//
+	// REMOVED (2026-06-03) the "easy move" soft shrink (×0.5 once the best move was
+	// stable 6+ iters, ×0.7 at 3+). Intent was to bank time on easy moves for hard
+	// ones — but on quiet positions the best move stabilizes within a few iterations
+	// ALMOST ALWAYS, so it fired on nearly every move and NGN played the whole game at
+	// ~25% of its clock (measured 20-31% across configs), never redeploying the bank.
+	// Blunder has no such shrink. Also softened the next-iteration projection from ×2 to
+	// ×1: ×2 alone stopped at ~50% of soft (PVS iterations ~double, so elapsed+2·last
+	// trips at elapsed≈soft/2) — too tight for a depth-starved engine. The hard ceiling
+	// and emergency floor above are the flag protection and are UNTOUCHED, so this only
+	// spends more of the (sustainable, per-move-recomputed) soft budget; it cannot flag.
 	soft := tm.softTime
-	switch {
-	case tm.stableIters >= 6:
-		soft = soft / 2 // very settled: same best move 6+ iterations running
-	case tm.stableIters >= 3:
-		soft = soft * 7 / 10 // settled
-	}
-	// Project the next iteration as ~2x the last completed one (typical PVS growth
-	// with good ordering). Before any iteration timing exists, fall back to a plain
-	// elapsed-vs-soft check.
 	if tm.lastIterationTime == 0 {
 		return elapsed >= soft
 	}
-	return elapsed+tm.lastIterationTime*2 > soft
+	return elapsed+tm.lastIterationTime > soft
 }
 
 // UpdateGameState updates the time manager with current game state
