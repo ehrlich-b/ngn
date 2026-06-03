@@ -267,7 +267,18 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 	Reset(newEng)
 	Reset(baseEng)
 
-	pos, err := engine.ParseFEN(StartFEN)
+	// An opening is either a list of UCI moves from the standard start, or a single
+	// element that is a full FEN (detected by '/') seeding the game from a specific
+	// position — e.g. a balanced endgame book that concentrates the signal for an
+	// endgame eval change instead of diluting it across a full game from move 1.
+	startPos := StartFEN
+	openingMoves := opening
+	if len(opening) == 1 && strings.Contains(opening[0], "/") {
+		startPos = opening[0]
+		openingMoves = nil
+	}
+
+	pos, err := engine.ParseFEN(startPos)
 	if err != nil {
 		return GameResult{Draw, "fen-error"}
 	}
@@ -280,7 +291,7 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 	if cfg.MovesOut != nil {
 		defer func() { *cfg.MovesOut = moves }()
 	}
-	for _, mv := range opening {
+	for _, mv := range openingMoves {
 		m, err := engine.ParseUCIMove(pos, mv)
 		if err != nil {
 			return GameResult{Draw, "bad-opening"}
@@ -294,6 +305,13 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 	// Real-clock bank per side (ms), used only when cfg.TCTimeMs > 0. Openings are
 	// free (played above before the clock starts), as in normal play.
 	whiteMs, blackMs := cfg.TCTimeMs, cfg.TCTimeMs
+
+	// Position prefix sent to the engines each move: "startpos" for a normal game,
+	// or "fen <FEN>" when the game was seeded from a book FEN.
+	posPrefix := "startpos"
+	if startPos != StartFEN {
+		posPrefix = "fen " + startPos
+	}
 
 	for len(moves) < cfg.MaxMoves {
 		if legal := engine.GenerateLegalMoves(pos); len(legal) == 0 {
@@ -315,7 +333,11 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 		if newToMove {
 			eng, d = newEng, cfg.NewDepth
 		}
-		Send(eng, "position startpos moves "+strings.Join(moves, " "))
+		posCmd := "position " + posPrefix
+		if len(moves) > 0 {
+			posCmd += " moves " + strings.Join(moves, " ")
+		}
+		Send(eng, posCmd)
 		var goCmd string
 		var timeout, stopAfter time.Duration
 		if cfg.TCTimeMs > 0 {
@@ -431,6 +453,16 @@ func LoadOpenings(path string) ([][]string, error) {
 	for _, ln := range lines {
 		ln = strings.TrimSpace(ln)
 		if ln == "" || strings.HasPrefix(ln, "#") {
+			continue
+		}
+		if strings.Contains(ln, "/") {
+			// A full FEN start position (one per line), not a move list. Stored as a
+			// single-element slice so PlayGame seeds from it directly.
+			if _, err := engine.ParseFEN(ln); err == nil {
+				out = append(out, []string{ln})
+			} else {
+				fmt.Printf("WARNING: skipping invalid FEN opening line: %s\n", ln)
+			}
 			continue
 		}
 		mvs := strings.Fields(ln)
