@@ -2394,24 +2394,24 @@ func EvaluateForPlayer(board *Bitboard, player Color) int {
 // eval bit-for-bit; the tuner then pulls them apart so a passed pawn / king-safety
 // unit can be worth more (or less) in the endgame than the middlegame.
 var (
-	passedPawnBonus     = 20
-	doubledPawnPenalty  = 9
-	isolatedPawnPenalty = 8
-	pawnChainWeight     = 77
-	mobilityWeight      = 166
-	rookOpenWeight      = 83
+	passedPawnBonus     = 10
+	doubledPawnPenalty  = 10
+	isolatedPawnPenalty = 10
+	pawnChainWeight     = 76
+	mobilityWeight      = 181
+	rookOpenWeight      = 87
 	outpostWeight       = 84
-	kingSafetyWeight    = 100
+	kingSafetyWeight    = 106
 	kingActivityWeight  = 29
 
-	passedPawnBonusEG     = 20
-	doubledPawnPenaltyEG  = 9
-	isolatedPawnPenaltyEG = 8
+	passedPawnBonusEG     = 36
+	doubledPawnPenaltyEG  = 23
+	isolatedPawnPenaltyEG = 14
 	pawnChainWeightEG     = 77
-	mobilityWeightEG      = 166
-	rookOpenWeightEG      = 83
-	outpostWeightEG       = 84
-	kingSafetyWeightEG    = 100
+	mobilityWeightEG      = 180
+	rookOpenWeightEG      = 86
+	outpostWeightEG       = 85
+	kingSafetyWeightEG    = 84
 	kingActivityWeightEG  = 29
 )
 
