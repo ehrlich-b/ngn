@@ -123,7 +123,9 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 	t.Doubled = wDoubled - bDoubled
 	t.Isolated = wIso - bIso
 	t.Chain = chainW - chainB
-	t.Mobility = evaluateMobilityDelta(board)
+	var sliderAtt [64]uint64
+	fillSliderAttacks(board, &sliderAtt)
+	t.Mobility = evaluateMobilityDelta(board, &sliderAtt)
 	t.RookOpen = evaluateRookOnOpenFile(board, White) - evaluateRookOnOpenFile(board, Black)
 
 	whiteKnights := board.GetBitboardOf(WhiteKnight)
@@ -134,7 +136,7 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 		evaluateOutpostSquares(blackKnights, blackBishops, blackPawns, whitePawns, Black)
 
 	if phase >= 7 {
-		t.KingSafety = evaluateKingSafety(board, White) - evaluateKingSafety(board, Black)
+		t.KingSafety = evaluateKingSafety(board, White, &sliderAtt) - evaluateKingSafety(board, Black, &sliderAtt)
 	} else if phase < 6 {
 		t.KingActivity = evaluateKingActivity(board)
 	}

@@ -341,6 +341,19 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Mov
 		contHist = &continuationHistory[previousMove.MovingPiece()][previousMove.Destination()]
 	}
 
+	// Hoist the loop-invariant counter move and killer slots out of the per-move loop.
+	// previousMove and depth are constant for the whole list, so each quiet move becomes
+	// two equality tests instead of re-indexing counterMoves[from][to] and the killer
+	// table (with its bounds check) every iteration. EmptyMove never matches a real
+	// generated quiet move, so the guards below are bit-identical to IsCounterMove /
+	// IsKillerMove.
+	counterMove := GetCounterMove(previousMove)
+	var killer0, killer1 Move
+	if depth >= 0 && depth < MaximumDepth {
+		killer0 = killerMoves[depth][0]
+		killer1 = killerMoves[depth][1]
+	}
+
 	// Single pass: score all moves
 	for i, move := range moves {
 		score := 0
@@ -383,12 +396,12 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Mov
 				score = 0
 
 				// Counter moves get highest priority among quiet moves
-				if IsCounterMove(move, previousMove) {
+				if move == counterMove && counterMove != EmptyMove {
 					score += 30000
 				}
 
 				// Killer moves get high priority
-				if IsKillerMove(move, depth) {
+				if move == killer0 || move == killer1 {
 					score += 25000
 				}
 

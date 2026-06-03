@@ -194,7 +194,9 @@ func (p *Position) makeMoveHelper(move Move) (Square, PositionTag, uint8, bool) 
 
 	p.Board.Move(source, dest, movingPiece, NoPiece)
 
-	if movingPiece.Type() == Pawn || capturedPiece != NoPiece {
+	// Direct pawn test instead of movingPiece.Type() (a 12-way switch) on this hot
+	// make path: a pawn is exactly WhitePawn or BlackPawn.
+	if movingPiece == WhitePawn || movingPiece == BlackPawn || capturedPiece != NoPiece {
 		p.HalfMoveClock = 0
 	} else {
 		p.HalfMoveClock += 1

@@ -117,8 +117,10 @@ func testEvalComponents(t *testing.T, board *Bitboard, label string) {
 		pawnChainBonus, weakSquaresPenalty, pawnStormBonus)
 
 	// 4. King safety
-	whiteKingSafety := evaluateKingSafety(board, White)
-	blackKingSafety := evaluateKingSafety(board, Black)
+	var sliderAtt [64]uint64
+	fillSliderAttacks(board, &sliderAtt)
+	whiteKingSafety := evaluateKingSafety(board, White, &sliderAtt)
+	blackKingSafety := evaluateKingSafety(board, Black, &sliderAtt)
 	kingSafetyBonus := 0
 	if !endgame {
 		kingSafetyBonus = whiteKingSafety - blackKingSafety

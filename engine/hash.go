@@ -180,16 +180,20 @@ func updateHash(pos *Position, move Move, captureSquare Square,
 		}
 	}
 
-	if oldPositionTag&WhiteCanCastleKingSide != pos.Tag&WhiteCanCastleKingSide {
+	// XOR the old/new tags once; a castle-right toggled iff its bit is set in the
+	// diff. Replaces eight ANDs + four cross-compares with one XOR + four bit tests
+	// (bit-identical: A&F != B&F  <=>  (A^B)&F != 0).
+	castleChanged := oldPositionTag ^ pos.Tag
+	if castleChanged&WhiteCanCastleKingSide != 0 {
 		hash ^= castleRightsZC[0]
 	}
-	if oldPositionTag&WhiteCanCastleQueenSide != pos.Tag&WhiteCanCastleQueenSide {
+	if castleChanged&WhiteCanCastleQueenSide != 0 {
 		hash ^= castleRightsZC[1]
 	}
-	if oldPositionTag&BlackCanCastleKingSide != pos.Tag&BlackCanCastleKingSide {
+	if castleChanged&BlackCanCastleKingSide != 0 {
 		hash ^= castleRightsZC[2]
 	}
-	if oldPositionTag&BlackCanCastleQueenSide != pos.Tag&BlackCanCastleQueenSide {
+	if castleChanged&BlackCanCastleQueenSide != 0 {
 		hash ^= castleRightsZC[3]
 	}
 

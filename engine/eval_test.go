@@ -331,7 +331,9 @@ func TestEvalSymmetryByTerm(t *testing.T) {
 				evaluateOutpostSquares(b.GetBitboardOf(BlackKnight), b.GetBitboardOf(BlackBishop), bp, wp, Black)
 		}},
 		{"kingsafety", func(b *Bitboard) int {
-			return evaluateKingSafety(b, White) - evaluateKingSafety(b, Black)
+			var sliderAtt [64]uint64
+			fillSliderAttacks(b, &sliderAtt)
+			return evaluateKingSafety(b, White, &sliderAtt) - evaluateKingSafety(b, Black, &sliderAtt)
 		}},
 		{"kingactivity", func(b *Bitboard) int {
 			return evaluateKingActivity(b)

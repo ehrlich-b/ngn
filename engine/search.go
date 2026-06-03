@@ -169,6 +169,11 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
 	// Get all attackers of the target square
 	attackers := getAttackers(pos, targetSquare)
 
+	// Pawn/knight/king attackers are occupancy-independent (their attack patterns
+	// can't be blocked or revealed), so derive them once and re-mask by occupancy
+	// each swap step instead of rebuilding them in getAttackersAfterMove.
+	nonSlider := seeNonSliderAttackers(pos, targetSquare)
+
 	// Remove the moving piece from attackers (it just moved)
 	movingPiece := move.MovingPiece()
 	attackers &^= SquareMask[int(from)]
@@ -200,7 +205,7 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
 		}
 
 		// Find the least valuable attacker for the current side
-		attackerSquare, attackerPiece := findLeastValuableAttacker(pos, attackers, color, occupied, targetSquare)
+		attackerSquare, attackerPiece := findLeastValuableAttacker(pos, attackers, color)
 		if attackerSquare == NoSquare {
 			break // No more attackers; last valid swap entry is gain[depth-1]
 		}
@@ -209,7 +214,7 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
 		occupied &^= SquareMask[int(attackerSquare)]
 
 		// Update attackers (reveal sliders that were behind the moved attacker)
-		attackers = getAttackersAfterMove(pos, attackers, occupied, targetSquare, attackerSquare)
+		attackers = getAttackersAfterMove(pos, nonSlider, occupied, targetSquare)
 
 		// This recapture wins the piece currently standing on the square; the
 		// recapturing piece then becomes the piece on the square for the next ply.
@@ -320,8 +325,15 @@ func seeGetRookAttacks(square Square, occupied uint64) uint64 {
 	return GetRookAttacks(int(square), occupied)
 }
 
-// findLeastValuableAttacker finds the least valuable piece attacking the square
-func findLeastValuableAttacker(pos *Position, attackers uint64, color Color, occupied uint64, square Square) (Square, Piece) {
+// findLeastValuableAttacker finds the least valuable piece attacking the square.
+// The `attackers` bitboard is already the EXACT set of pieces attacking `square`
+// under the current `occupied` (getAttackers / getAttackersAfterMove filter each
+// piece through its attack pattern against this same occupancy), so any member of
+// a piece-type's slice is a genuine attacker — no per-candidate re-verification is
+// needed. (Removing a used attacker only UNBLOCKS slider lines, so a set member can
+// never stop attacking; the recompute keeps the set exact.) Dropping the old
+// canPieceAttackSquare call removes 1-2 redundant magic lookups per swap step.
+func findLeastValuableAttacker(pos *Position, attackers uint64, color Color) (Square, Piece) {
 	// Try attackers cheapest-first: Pawn, Knight, Bishop, Rook, Queen, King — exactly the
 	// PieceType order (Pawn=1..King=6). Enemy pieces are the White constants plus a color
 	// offset, so hoist the offset instead of a per-call slice literal + per-iteration GetPiece.
@@ -332,114 +344,56 @@ func findLeastValuableAttacker(pos *Position, attackers uint64, color Color, occ
 	for pt := Pawn; pt <= King; pt++ {
 		piece := Piece(pt) + base
 		pieceBB := pos.Board.GetBitboardOf(piece) & attackers
-
-		for pieceBB != 0 {
-			sq := Square(bits.TrailingZeros64(pieceBB))
-
-			// Verify this piece can actually attack the square
-			if canPieceAttackSquare(pos, sq, square, occupied) {
-				return sq, piece
-			}
-
-			pieceBB &^= SquareMask[int(sq)]
+		if pieceBB != 0 {
+			return Square(bits.TrailingZeros64(pieceBB)), piece
 		}
 	}
 
 	return NoSquare, NoPiece
 }
 
-// canPieceAttackSquare checks if a piece on fromSq can attack toSq
-func canPieceAttackSquare(pos *Position, fromSq Square, toSq Square, occupied uint64) bool {
-	piece := pos.Board.PieceAt(fromSq)
+// seeNonSliderAttackers returns the raw (occupancy-independent) set of pawn,
+// knight and king attackers of targetSquare. Pawn/knight/king attack PATTERNS
+// don't depend on occupancy — removing pieces during the SEE swap can never block
+// or reveal one — so this set is computed ONCE per SEE call and re-masked by the
+// current occupancy each swap step (getAttackersAfterMove), instead of re-deriving
+// the file-guard branches and pattern ANDs every iteration.
+func seeNonSliderAttackers(pos *Position, targetSquare Square) uint64 {
+	nonSlider := uint64(0)
 
-	switch piece.Type() {
-	case Pawn:
-		// Check if pawn can attack the target square diagonally
-		color := piece.Color()
-		fromFile := int(fromSq) % 8
-		toFile := int(toSq) % 8
-		fileDiff := fromFile - toFile
-		if fileDiff < 0 {
-			fileDiff = -fileDiff
-		}
-		if fileDiff != 1 {
-			return false // Pawns only attack diagonally (1 file difference)
-		}
-		if color == White {
-			return int(toSq)-int(fromSq) == 7 || int(toSq)-int(fromSq) == 9
-		}
-		return int(fromSq)-int(toSq) == 7 || int(fromSq)-int(toSq) == 9
-	case Knight:
-		return (KnightAttacks[fromSq] & SquareMask[int(toSq)]) != 0
-	case Bishop:
-		return (seeGetBishopAttacks(fromSq, occupied) & SquareMask[int(toSq)]) != 0
-	case Rook:
-		return (seeGetRookAttacks(fromSq, occupied) & SquareMask[int(toSq)]) != 0
-	case Queen:
-		return ((seeGetBishopAttacks(fromSq, occupied) | seeGetRookAttacks(fromSq, occupied)) & SquareMask[int(toSq)]) != 0
-	case King:
-		return (KingAttacks[fromSq] & SquareMask[int(toSq)]) != 0
-	}
-
-	return false
-}
-
-// getAttackersAfterMove updates attackers after a piece has moved
-func getAttackersAfterMove(pos *Position, attackers uint64, occupied uint64, targetSquare Square, movedFrom Square) uint64 {
-	// For simplicity, recalculate attackers. In a full implementation,
-	// this could be optimized by updating incrementally.
-	// But for SEE, this is acceptable since it's not performance-critical.
-
-	// Create a temporary position with updated occupancy
-	tempAttackers := uint64(0)
-
-	// Pawn attacks
-	whitePawns := pos.Board.GetBitboardOf(WhitePawn) & occupied
-	blackPawns := pos.Board.GetBitboardOf(BlackPawn) & occupied
-
-	// White pawn attacks (file guards paired with the matching offset — see getAttackers).
+	// Pawn attacks (file guards paired with the matching offset — see getAttackers).
+	whitePawns := pos.Board.GetBitboardOf(WhitePawn)
+	blackPawns := pos.Board.GetBitboardOf(BlackPawn)
 	if targetSquare.Rank() > Rank1 {
 		if targetSquare.File() > FileA {
-			attackSq := int(targetSquare) - 9
-			if attackSq >= 0 && attackSq < 64 {
-				tempAttackers |= (whitePawns & SquareMask[attackSq])
-			}
+			nonSlider |= whitePawns & SquareMask[int(targetSquare)-9]
 		}
 		if targetSquare.File() < FileH {
-			attackSq := int(targetSquare) - 7
-			if attackSq >= 0 && attackSq < 64 {
-				tempAttackers |= (whitePawns & SquareMask[attackSq])
-			}
+			nonSlider |= whitePawns & SquareMask[int(targetSquare)-7]
 		}
 	}
-
-	// Black pawn attacks (file guards paired with the matching offset).
 	if targetSquare.Rank() < Rank8 {
 		if targetSquare.File() > FileA {
-			attackSq := int(targetSquare) + 7
-			if attackSq >= 0 && attackSq < 64 {
-				tempAttackers |= (blackPawns & SquareMask[attackSq])
-			}
+			nonSlider |= blackPawns & SquareMask[int(targetSquare)+7]
 		}
 		if targetSquare.File() < FileH {
-			attackSq := int(targetSquare) + 9
-			if attackSq >= 0 && attackSq < 64 {
-				tempAttackers |= (blackPawns & SquareMask[attackSq])
-			}
+			nonSlider |= blackPawns & SquareMask[int(targetSquare)+9]
 		}
 	}
 
-	// Knight attacks
-	whiteKnights := pos.Board.GetBitboardOf(WhiteKnight) & occupied
-	blackKnights := pos.Board.GetBitboardOf(BlackKnight) & occupied
-	knightAttacks := KnightAttacks[targetSquare]
-	tempAttackers |= (whiteKnights | blackKnights) & knightAttacks
+	// Knight + king attacks (occupancy-independent patterns).
+	nonSlider |= (pos.Board.GetBitboardOf(WhiteKnight) | pos.Board.GetBitboardOf(BlackKnight)) & KnightAttacks[targetSquare]
+	nonSlider |= (pos.Board.GetBitboardOf(WhiteKing) | pos.Board.GetBitboardOf(BlackKing)) & KingAttacks[targetSquare]
+	return nonSlider
+}
 
-	// King attacks
-	whiteKing := pos.Board.GetBitboardOf(WhiteKing) & occupied
-	blackKing := pos.Board.GetBitboardOf(BlackKing) & occupied
-	kingAttacks := KingAttacks[targetSquare]
-	tempAttackers |= (whiteKing | blackKing) & kingAttacks
+// getAttackersAfterMove returns the attacker set of targetSquare under the updated
+// occupancy. The non-slider attackers (nonSlider, precomputed once) only need
+// re-masking by occupied; only the sliders are recomputed, since removing the used
+// attacker can reveal x-ray bishops/rooks/queens behind it. Bit-identical to a full
+// rebuild but skips re-deriving the occupancy-independent pawn/knight/king masks.
+func getAttackersAfterMove(pos *Position, nonSlider uint64, occupied uint64, targetSquare Square) uint64 {
+	tempAttackers := nonSlider & occupied
 
 	// Bishop/Queen diagonal attacks
 	whiteBishops := pos.Board.GetBitboardOf(WhiteBishop) & occupied

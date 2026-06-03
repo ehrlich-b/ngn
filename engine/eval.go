@@ -658,7 +658,7 @@ func evaluatePawnStorms(board *Bitboard, color Color) int {
 }
 
 // Enhanced king safety evaluation with improved pawn shield and attack patterns
-func evaluateKingSafety(board *Bitboard, color Color) int {
+func evaluateKingSafety(board *Bitboard, color Color, sliderAtt *[64]uint64) int {
 	var kingBitboard uint64
 	var pawnBitboard uint64
 	var opponentQueenBitboard uint64
@@ -698,7 +698,7 @@ func evaluateKingSafety(board *Bitboard, color Color) int {
 
 	// 2. Attack Pattern Evaluation (penalties for enemy pieces actually
 	// attacking the king zone, not just sitting near it).
-	attackPenalty := evaluateKingAttackPatterns(board,
+	attackPenalty := evaluateKingAttackPatterns(sliderAtt,
 		opponentQueenBitboard, opponentRookBitboard,
 		opponentBishopBitboard, opponentKnightBitboard,
 		int(kingSquare), color)
@@ -1172,7 +1172,7 @@ func evaluatePawnShield(pawnBitboard uint64, kingFile int, kingRank int, color C
 // With 2+ distinct attackers, the total is fed through a quadratic curve so
 // multi-piece attacks compound super-linearly; with 0-1 attackers, a small
 // linear penalty captures harassment without overcommitting. Capped at 500cp.
-func evaluateKingAttackPatterns(board *Bitboard, queenBB, rookBB, bishopBB, knightBB uint64,
+func evaluateKingAttackPatterns(sliderAtt *[64]uint64, queenBB, rookBB, bishopBB, knightBB uint64,
 	kingSquare int, color Color) int {
 
 	// King zone: the king's square, its 8 neighbors, plus a one-rank
@@ -1183,8 +1183,6 @@ func evaluateKingAttackPatterns(board *Bitboard, queenBB, rookBB, bishopBB, knig
 	} else {
 		kingZone |= kingZone >> 8
 	}
-
-	occupied := board.GetWhitePieces() | board.GetBlackPieces()
 
 	attackUnits := 0
 	attackerCount := 0
@@ -1197,9 +1195,12 @@ func evaluateKingAttackPatterns(board *Bitboard, queenBB, rookBB, bishopBB, knig
 			attackUnits += 2 * PopCount(hits)
 		}
 	}
+	// Sliders read their raw attack set from the shared sliderAtt table (filled
+	// once per eval against the full occupancy) — bit-identical to recomputing the
+	// magic lookup here, but mobility already paid for it this eval.
 	for bb := bishopBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		hits := getBishopAttacksBB(sq, occupied) & kingZone
+		hits := sliderAtt[sq] & kingZone
 		if hits != 0 {
 			attackerCount++
 			attackUnits += 2 * PopCount(hits)
@@ -1207,7 +1208,7 @@ func evaluateKingAttackPatterns(board *Bitboard, queenBB, rookBB, bishopBB, knig
 	}
 	for bb := rookBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		hits := getRookAttacksBB(sq, occupied) & kingZone
+		hits := sliderAtt[sq] & kingZone
 		if hits != 0 {
 			attackerCount++
 			attackUnits += 3 * PopCount(hits)
@@ -1215,7 +1216,7 @@ func evaluateKingAttackPatterns(board *Bitboard, queenBB, rookBB, bishopBB, knig
 	}
 	for bb := queenBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		hits := (getBishopAttacksBB(sq, occupied) | getRookAttacksBB(sq, occupied)) & kingZone
+		hits := sliderAtt[sq] & kingZone
 		if hits != 0 {
 			attackerCount++
 			attackUnits += 5 * PopCount(hits)
@@ -2249,7 +2250,13 @@ func evaluateRookOnOpenFile(board *Bitboard, color Color) int {
 // side's excluded squares (own pieces + enemy pawn attacks). Factored out of
 // evaluateMobility so evaluateMobilityDelta can compute the color-independent setup
 // (occupancy, pawn-attack spans) once instead of once per color.
-func mobilityForSide(allPieces, excluded, knightBB, bishopBB, rookBB, queenBB uint64) int {
+// mobilityForSide reads each slider's raw attack set from the shared sliderAtt
+// table (filled once per eval by fillSliderAttacks against the full occupancy),
+// so mobility and king-safety no longer each recompute the same magic lookups.
+// Bit-identical to recomputing getBishopAttacksBB/getRookAttacksBB inline
+// (sliderAtt[sq] holds exactly getBishopAttacksBB(sq, all) for a bishop,
+// getRookAttacksBB for a rook, and the union for a queen).
+func mobilityForSide(sliderAtt *[64]uint64, excluded, knightBB, bishopBB, rookBB, queenBB uint64) int {
 	mobility := 0
 	// Baselines lowered by 1 (or 2 for queen) to compensate for excluding
 	// pawn-attacked squares from the mobility count.
@@ -2260,20 +2267,41 @@ func mobilityForSide(allPieces, excluded, knightBB, bishopBB, rookBB, queenBB ui
 	}
 	for bb := bishopBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		moveCount := PopCount(getBishopAttacksBB(sq, allPieces) &^ excluded)
+		moveCount := PopCount(sliderAtt[sq] &^ excluded)
 		mobility += (moveCount - 6) * 3
 	}
 	for bb := rookBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		moveCount := PopCount(getRookAttacksBB(sq, allPieces) &^ excluded)
+		moveCount := PopCount(sliderAtt[sq] &^ excluded)
 		mobility += (moveCount - 6) * 2
 	}
 	for bb := queenBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		moveCount := PopCount((getBishopAttacksBB(sq, allPieces) | getRookAttacksBB(sq, allPieces)) &^ excluded)
+		moveCount := PopCount(sliderAtt[sq] &^ excluded)
 		mobility += (moveCount - 12) * 1
 	}
 	return mobility
+}
+
+// fillSliderAttacks populates sliderAtt[sq] with the raw magic-bitboard attack
+// set of every bishop/rook/queen on the board, computed once against the shared
+// occupancy. mobility and king-safety both read this table instead of each
+// recomputing the same per-square magic lookups (~2x slider lookups per eval
+// removed). Only slider squares are written; non-slider squares are never read.
+func fillSliderAttacks(board *Bitboard, sliderAtt *[64]uint64) {
+	occupied := board.GetWhitePieces() | board.GetBlackPieces()
+	for bb := board.GetBitboardOf(WhiteBishop) | board.GetBitboardOf(BlackBishop); bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		sliderAtt[sq] = getBishopAttacksBB(sq, occupied)
+	}
+	for bb := board.GetBitboardOf(WhiteRook) | board.GetBitboardOf(BlackRook); bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		sliderAtt[sq] = getRookAttacksBB(sq, occupied)
+	}
+	for bb := board.GetBitboardOf(WhiteQueen) | board.GetBitboardOf(BlackQueen); bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		sliderAtt[sq] = getBishopAttacksBB(sq, occupied) | getRookAttacksBB(sq, occupied)
+	}
 }
 
 // mobilitySetup computes the color-independent bitboards mobility needs: full
@@ -2291,13 +2319,15 @@ func mobilitySetup(board *Bitboard) (whitePieces, blackPieces, allPieces, whiteP
 }
 
 func evaluateMobility(board *Bitboard, color Color) int {
-	whitePieces, blackPieces, allPieces, whitePawnAttacks, blackPawnAttacks := mobilitySetup(board)
+	var sliderAtt [64]uint64
+	fillSliderAttacks(board, &sliderAtt)
+	whitePieces, blackPieces, _, whitePawnAttacks, blackPawnAttacks := mobilitySetup(board)
 	if color == White {
-		return mobilityForSide(allPieces, whitePieces|blackPawnAttacks,
+		return mobilityForSide(&sliderAtt, whitePieces|blackPawnAttacks,
 			board.GetBitboardOf(WhiteKnight), board.GetBitboardOf(WhiteBishop),
 			board.GetBitboardOf(WhiteRook), board.GetBitboardOf(WhiteQueen))
 	}
-	return mobilityForSide(allPieces, blackPieces|whitePawnAttacks,
+	return mobilityForSide(&sliderAtt, blackPieces|whitePawnAttacks,
 		board.GetBitboardOf(BlackKnight), board.GetBitboardOf(BlackBishop),
 		board.GetBitboardOf(BlackRook), board.GetBitboardOf(BlackQueen))
 }
@@ -2305,13 +2335,14 @@ func evaluateMobility(board *Bitboard, color Color) int {
 // evaluateMobilityDelta returns White mobility minus Black mobility in one pass,
 // computing the shared setup once (evaluateMobility was called per color, doing that
 // setup twice). Bit-identical to evaluateMobility(W) - evaluateMobility(B), so search
-// stays node-identical.
-func evaluateMobilityDelta(board *Bitboard) int {
-	whitePieces, blackPieces, allPieces, whitePawnAttacks, blackPawnAttacks := mobilitySetup(board)
-	white := mobilityForSide(allPieces, whitePieces|blackPawnAttacks,
+// stays node-identical. sliderAtt is the per-eval slider-attack table (fillSliderAttacks),
+// shared with king-safety so each slider's magic lookups happen once per eval.
+func evaluateMobilityDelta(board *Bitboard, sliderAtt *[64]uint64) int {
+	whitePieces, blackPieces, _, whitePawnAttacks, blackPawnAttacks := mobilitySetup(board)
+	white := mobilityForSide(sliderAtt, whitePieces|blackPawnAttacks,
 		board.GetBitboardOf(WhiteKnight), board.GetBitboardOf(WhiteBishop),
 		board.GetBitboardOf(WhiteRook), board.GetBitboardOf(WhiteQueen))
-	black := mobilityForSide(allPieces, blackPieces|whitePawnAttacks,
+	black := mobilityForSide(sliderAtt, blackPieces|whitePawnAttacks,
 		board.GetBitboardOf(BlackKnight), board.GetBitboardOf(BlackBishop),
 		board.GetBitboardOf(BlackRook), board.GetBitboardOf(BlackQueen))
 	return white - black
@@ -2502,8 +2533,13 @@ func evalExtrasWhite(board *Bitboard, phase int) (eval int) {
 	// PeSTO bishop values), so dropping it is both a strength and a speed win. evaluateBishopPair
 	// is retained only for its unit tests.
 
+	// Slider-attack table, filled once per eval: mobility and king-safety both
+	// read it instead of each recomputing the same bishop/rook/queen magic lookups.
+	var sliderAtt [64]uint64
+	fillSliderAttacks(board, &sliderAtt)
+
 	// Mobility — important but moderate weight (PSTs already capture positional value).
-	eval += evaluateMobilityDelta(board) * taperW(mobilityWeight, mobilityWeightEG, phase) / 100
+	eval += evaluateMobilityDelta(board, &sliderAtt) * taperW(mobilityWeight, mobilityWeightEG, phase) / 100
 
 	// Rook on open file bonus.
 	eval += (evaluateRookOnOpenFile(board, White) - evaluateRookOnOpenFile(board, Black)) * taperW(rookOpenWeight, rookOpenWeightEG, phase) / 100
@@ -2522,7 +2558,7 @@ func evalExtrasWhite(board *Bitboard, phase int) (eval int) {
 	// the right term — the old phase>=7 gate left phase 6 with NEITHER safety nor
 	// activity (a ~144cp eval cliff at the 6/7 boundary, inside the measured 7-11 hole).
 	if phase >= 6 {
-		eval += (evaluateKingSafety(board, White) - evaluateKingSafety(board, Black)) * taperW(kingSafetyWeight, kingSafetyWeightEG, phase) / 100
+		eval += (evaluateKingSafety(board, White, &sliderAtt) - evaluateKingSafety(board, Black, &sliderAtt)) * taperW(kingSafetyWeight, kingSafetyWeightEG, phase) / 100
 	} else if phase < 6 {
 		// Deep endgame only: encourage king centralization and supporting pawns.
 		// Wider phase windows interfered with tactical search where leaves drop
