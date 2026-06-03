@@ -123,7 +123,18 @@ func countPiecesInFilename(name string) int {
 }
 
 // ProbeWDL probes the tablebase for Win/Draw/Loss result
+// syzygyProbeTrusted gates the WDL/DTZ probe. It is FALSE because the current decoder
+// (calculateTBIndex returns pos.Hash(); probeWDLTable reads data[hash%len]) is a
+// PLACEHOLDER, not a real Syzygy index scheme — its WDL/DTZ values are arbitrary bytes.
+// Until a real decoder lands, hard-gate the probe to a guaranteed miss so a stray
+// `setoption name SyzygyPath` can never drive play with random "tablebase" moves — a
+// dormant footgun in the engine's weakest phase. See task #15 / the phone-a-friend audit.
+var syzygyProbeTrusted = false
+
 func ProbeWDL(pos *Position) TBResult {
+	if !syzygyProbeTrusted {
+		return TBResult{Found: false}
+	}
 	if globalTB == nil || !globalTB.loaded {
 		return TBResult{Found: false}
 	}
