@@ -24,22 +24,35 @@ cd "$(dirname "$0")/.."
 BIN="${1:-build/ngn}"
 [ -x "$BIN" ] || { echo "no binary at $BIN"; exit 1; }
 
-# name|fen|depth|baseline   (baselines RECOMPUTED 2026-06-02 after the bishop-pair eval term
-# was removed (+20.4 ELO SPRT) — that eval change shifted kiwipete/mid from the A4 values
-# 1319650/1188433 (end 772119 unchanged: no bishop-pair effect in that endgame). These are an
-# EXACT-MATCH node-IDENTITY gate for pure-speed changes, NOT a tree-size lever signal — counts
-# swing with the load-bearing tie-break and are non-monotonic (see project_endgame_tree_diagnostic).)
+# name|fen|depth|baseline   (baselines RE-LOCKED 2026-06-02 night with the wait-for-bestmove
+# nodes() below. The OLD baselines (1372558/1003482/772119) were FIXED-SLEEP-WINDOW ARTIFACTS:
+# the old nodes() slept depth+8s then grepped tail -1, so under E-core load it caught a MID-search
+# stats line, not the depth-N-complete one — the "unstable ruler" (end d16 read 441388/772119/
+# 1268761 depending on timing). go-depth searches ARE deterministic; waiting for the bestmove line
+# makes the count EXACT and reproducible (verified 3x identical). EXACT-MATCH node-IDENTITY gate.
+# Baselines RE-LOCKED again after the F1 fix (legalTried>0 guard on futility/SEE pruning): a kept
+# [BEHAVIOUR] change, so it legitimately shifted them — kiwipete +70% (tactical nodes that used to
+# false-draw now search the first move), end -47% (correct fail-lows cut cleaner). mid ~flat.)
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|1372558"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|1003482"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|772119"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|2242743"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|916471"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|667498"
 )
 
-nodes() { # bin fen depth
-  local w=$(( $3 + 8 ))  # generous window: deterministic count, contention-proof
-  { printf 'uci\n'; sleep 1; printf 'isready\n'; sleep 0.4; printf 'debug on\n'; sleep 0.3;
-    printf 'position fen %s\n' "$2"; sleep 0.4; printf 'go depth %d\n' "$3"; sleep "$w"; printf 'quit\n'; } \
-  | taskpolicy -b "$1" 2>/dev/null | grep 'info string stats' | tail -1 | sed -E 's/.* nodes ([0-9]+).*/\1/'
+nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
+  local out fifo pid i
+  out=$(mktemp); fifo=$(mktemp -u); mkfifo "$fifo"
+  taskpolicy -b "$1" < "$fifo" > "$out" 2>/dev/null &
+  pid=$!
+  exec 3>"$fifo"
+  printf 'uci\n' >&3; sleep 0.4; printf 'isready\n' >&3; sleep 0.2; printf 'debug on\n' >&3; sleep 0.2
+  printf 'position fen %s\n' "$2" >&3
+  printf 'go depth %d\n' "$3" >&3
+  for i in $(seq 1 240); do grep -q '^bestmove' "$out" && break; sleep 0.5; done
+  printf 'quit\n' >&3; exec 3>&-
+  wait "$pid" 2>/dev/null
+  grep 'info string stats' "$out" | tail -1 | sed -E 's/.* nodes ([0-9]+).*/\1/'
+  rm -f "$out" "$fifo"
 }
 
 echo "node-identity check: $BIN"
