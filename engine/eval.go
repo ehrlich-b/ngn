@@ -2517,9 +2517,11 @@ func evalExtrasWhite(board *Bitboard, phase int) (eval int) {
 	eval += (evaluateOutpostSquares(whiteKnights, whiteBishops, whitePawns, blackPawns, White) -
 		evaluateOutpostSquares(blackKnights, blackBishops, blackPawns, whitePawns, Black)) * taperW(outpostWeight, outpostWeightEG, phase) / 100
 
-	// King safety: middlegame through late-middlegame (phase>=7 covers the
-	// measured phase 7-11 king-eval hole; king-safety was gated >=12 before).
-	if phase >= 7 {
+	// King safety: middlegame through late-middlegame. Gated phase>=6 (C4): at
+	// phase==6 (e.g. Q+2 minors / 1Q+1R) a queen can still attack, so safety is
+	// the right term — the old phase>=7 gate left phase 6 with NEITHER safety nor
+	// activity (a ~144cp eval cliff at the 6/7 boundary, inside the measured 7-11 hole).
+	if phase >= 6 {
 		eval += (evaluateKingSafety(board, White) - evaluateKingSafety(board, Black)) * taperW(kingSafetyWeight, kingSafetyWeightEG, phase) / 100
 	} else if phase < 6 {
 		// Deep endgame only: encourage king centralization and supporting pawns.
