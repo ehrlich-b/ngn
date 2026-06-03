@@ -1363,7 +1363,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Futility pruning - skip quiet moves if position is hopeless (but never prune
 		// the TT move or a queen promotion — a queen promo gains ~800cp, far beyond any
 		// futility margin, so the "this quiet move can't reach alpha" premise is false).
-		if futilityPrune && !move.IsCapture() && move != ttMove && move.PromoType() != Queen {
+		// legalTried > 0 guard (F1): never prune before a single legal move has been
+		// searched, else a node whose every move is futile prunes them all, hits
+		// legalTried==0, and returns 0 (false stalemate) instead of the true fail-low.
+		if futilityPrune && !move.IsCapture() && move != ttMove && move.PromoType() != Queen && legalTried > 0 {
 			info.FutilityPrunes++
 			continue
 		}
@@ -1385,8 +1388,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 
 		// SEE pruning for bad captures in main search
-		// Skip obviously losing captures at low depths (not in PV, not TT move)
-		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 && move.IsCapture() && move != ttMove {
+		// Skip obviously losing captures at low depths (not in PV, not TT move).
+		// legalTried > 0 guard (F1): never prune before one legal move is searched.
+		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 && move.IsCapture() && move != ttMove && legalTried > 0 {
 			seeValue := staticExchangeEvaluation(pos, move)
 			if seeValue < -100 { // Skip captures losing more than a pawn
 				continue
@@ -1400,7 +1404,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// moves — the king's infinite SEE weight poisons the swap, and a pinned
 		// enemy "attacker" of a king square may not be a legal capture.
 		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 &&
-			!move.IsCapture() && move != ttMove && move.PromoType() == NoType {
+			!move.IsCapture() && move != ttMove && move.PromoType() == NoType && legalTried > 0 {
 			if mp := move.MovingPiece(); mp != WhiteKing && mp != BlackKing {
 				if staticExchangeEvaluation(pos, move) < -80*depth {
 					info.SEEQuietPrunes++
