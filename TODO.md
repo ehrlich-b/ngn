@@ -5,6 +5,17 @@
 
 ---
 
+## >>> MORNING 2026-06-03 — what happened overnight (READ THIS FIRST) <<<
+Directive was: fresh bug-finding fleet, go for the BIG win, kill tiny increments. Result: **3 real bugs found + fixed, all committed locally (NOT pushed), tactical holds 29/30.** A 4-agent fleet (speed/search-bug/eval-bug/cold-look) + a focused time-mgmt agent found them; each VERIFIED in code (and F1 by my own repro test) before fixing.
+1. **F1 — false-draw search bug (THE big win, commit 10650fd).** Futility + SEE-capture + SEE-quiet pruning `continue`d BEFORE the legality count, so a non-PV shallow node whose every move is quiet+futile pruned them all, hit `legalTried==0`, and returned **0 (false stalemate draw)** instead of the true losing score. Fix = `legalTried>0` guard (matches LMP/history-prune + Blunder). **Self-play movetime SPRT: +154.8 ELO [+55,+254] over 55 games.** Regression test `engine/search_f1_test.go`.
+2. **Time-management bug — the long-suspected "tournament time-management bug" (commit 7d21e2b).** Real-clock search used only **~25% of its time budget** on quiet positions (an easy-move soft-shrink that fired on nearly every move + a too-aggressive next-iter projection). Hidden because movetime mode (the gauntlet's old cadence) was always healthy. Fix lifts usage to ~57% (+1 depth, no flag), hard-ceiling flag guard untouched. [[project_time_mgmt_fix]]
+3. **C4 — phase-6 king-eval hole (commit cc298b2).** Phase 6 fell between the king-safety (`>=7`) and activity (`<6`) gates → got NEITHER (~144cp cliff, in the M3-measured phase 7-11 gap). Fix = safety gate `>=6`.
+Also: **node-counter "instability" DEBUNKED** (was a fixed-sleep harness artifact; gate now reliable — [[feedback_node_count_ruler]]); eval **mirror-audit clean** (122,845 positions, no asymmetry/sign bug); F2 (qsearch TT) + F3 (origAlpha) inspected → **not real bugs, skipped**.
+**RUNNING NOW (headline, ~3.5h):** gauntlet `ngn_stack`(F1+C4+timefix) vs Blunder **7.2.0 + 7.4.0**, real clock 20+0.2 → the absolute CCRL number, `output/gauntlet_stack.log`. Pre-tonight baseline was 46.9% vs 7.2.0.
+**KEY validation lesson:** time-mgmt fixes are INVISIBLE to self-play AND movetime SPRT (both share/ignore the clock) → only a GAUNTLET vs a full-clock opponent shows them. That is why this bug survived so long.
+
+---
+
 ## >>> THE PLAN — READ FIRST, every reanchor (rev. 2026-06-02 post-pivot) <<<
 
 Eval tuning produced MSE-down / game-down repeatedly — a warning, not a reason to scale the same pipeline. The evidence (M2 depth-at-time, M3 ACPL, docs/10 tree sizes) says NGN loses because it reaches FEWER useful plies in exactly the phase where its eval is LEAST suspect. Path to 2800 (classic, no NNUE), reordered:
@@ -65,8 +76,24 @@ Read-only instruments built this day: `scripts/m2_depth.sh` (depth at matched ti
 
 ## IN FLIGHT (2026-06-02 post-pivot)
 
-**>>> OVERNIGHT AUTONOMOUS LOOP (2026-06-02 night → ~7am; Bryan ASLEEP. HARD RULE: never release control without an SPRT running.) <<<**
-**RUNNING NOW:** SPRT `brdfex1y6` (Bash bg task) — fixed-time mt250 conc1, `build/ngn_mob100` (mobilityWeight 166→100, the cold agent's "166 over-weights activity vs Blunder's tiny mobility" thesis) vs `build/ngn` (166), bounds [0,10], maxgames 3000, log `output/mob100_sprt.log`. The two binaries differ ONLY by that constant (tree is canonical at 166).
+**>>> NIGHT 2026-06-02→06-03 PROGRESS (Bryan asleep; directive: fresh bug-finding fleet, go for the BIG win, kill tiny increments). <<<**
+- **KILLED mob100 SPRT** (mobilityWeight 166→100) — the tiny eval-constant tweak Bryan said not to wait on; it was losing (−37 @ G19). Gone.
+- **NODE-COUNTER MYTH BUSTED (durable):** the "unstable ruler" (end d16 reading 441388/772119/1268761) was a FIXED-SLEEP-WINDOW HARNESS ARTIFACT, not a real determinism break. `go depth N` IS deterministic; waiting for the `bestmove` line gives EXACT counts (verified 3× identical). Fixed `scripts/nodecheck.sh` to wait-for-bestmove + re-locked baselines (commit f7beecc). The node-identity gate is RELIABLE again. (NB: this only debunks the *instability*; "a smaller tree ≠ stronger" still holds — that was the eg-tree-shrink lesson.)
+- **F1 — BIG WIN, found by the search-bug fleet agent, VERIFIED by my own repro test + fixed (commit 10650fd):** futility/SEE-capture/SEE-quiet pruning `continue`d BEFORE the legality count, so a non-PV shallow node whose every move is quiet+futile pruned them all, hit `legalTried==0`, and returned **0 (false stalemate draw)** instead of the true losing score (LMP/history-prune already had the `legalTried>0` guard; futility/SEE did not). Fix = add `legalTried>0` to all three (Blunder's `legalMoves>1`). Regression test `engine/search_f1_test.go`. Tactical 29/30. Node-shape: kiwipete +70% / mid ~flat / **end −47%** (correct fail-lows cut the endgame far cleaner — directly helps the diagnosed depth-starved phase). **SPRT (fixed-time mt250 conc1, `build/ngn_f1` vs `build/ngn_base`, log `output/f1_sprt.log`): G27 70.4% elo +150 [+11,+290], lower CI POSITIVE.** RUNNING NOW.
+- **C4 — committed (cc298b2), queued for SPRT.** Phase==6 king-eval hole (eval-bug-hunter reproduced a ~144cp cliff at the 6/7 boundary, inside the M3 phase-7-11 gap): king-safety gated `phase>=7`, activity `phase<6` ⇒ phase 6 got NEITHER. Fix = safety gate `>=7`→`>=6`. Tactical 29/30. `build/ngn_c4` ready (base = `build/ngn_f1`).
+- **eval audit (eval-bug-hunter, 122,845 mirror positions all summed to 0): NO asymmetry/sign/mirror/POV bug exists in the live eval** — that whole class is conclusively cleared. C4 was the only live eval bug.
+- **F2 INSPECTED → SKIPPED (not a clear bug):** qsearch Exact TT return is window-independent (correct fail-soft); LowerBound/UpperBound have correct `>=beta`/`<=alpha` guards. F3 (origAlpha-before-MDP) SKIPPED: <10 elo near-mate-only, not worth TT-classification regression risk.
+- **time-mgmt agent RUNNING** (the cold-look agent died on a gauntlet before reaching time.go; relaunched focused — under a real clock this is the next potential big lever).
+
+**SPRT QUEUE (one change per SPRT, fixed-TIME for these search/eval changes):** F1 (running) → **C4** (`build/ngn_c4` vs `build/ngn_f1`) → P5 MVV-LVA ordering (behavioral speed) → any time-mgmt fix.
+**NODE-IDENTICAL SPEED (no SPRT lane needed — nodecheck must reproduce 2242743/916471/667498 + perft):** P8/P9 incremental SEE (biggest, ~5%, delicate) → P3 magic-struct fold (small, certain) → P4/P10. Speed agent's P7 (selectNextMove 13.3% CPU) premise was partly wrong (hot scan is already single-array) — verify with a bench before trusting.
+
+**F1 SPRT RESULT — CONFIRMED, BANKED:** movetime mt250 conc1, `build/ngn_f1` vs `build/ngn_base`, ran to G55 = **70.9%, elo +154.8 [+55,+254]** (lower CI +55, decisively positive) then killed (a correctness fix kept regardless; magnitude thoroughly established). The big win of the night.
+
+**>>> OVERNIGHT AUTONOMOUS LOOP (HARD RULE: never release control without an SPRT running.) <<<**
+**RUNNING NOW:** TIMEFIX SPRT — increment `-tc 10+0.1` (the CCRL-like condition; SD biases against generous time use), `build/ngn_time` (F1+C4+timefix) vs `build/ngn_c4` (F1+C4), log `output/timefix_sprt.log`. Isolates the time fix under a real clock. Early (G5) 70% +147, zero losses.
+**NEXT when timefix concludes:** snapshot the stacked build → `build/ngn_stack`, then launch the HEADLINE **-tc 45+0 gauntlet vs Blunder 7.2.0** (`build/gauntlet -only v7.2.0 -tc 45+0 -games NN -pgn ...`) — directly comparable to the pre-everything baseline (ngn_snap scored 46.9% / ~2403 there) to show tonight's NET real-clock gain vs the actual competitor + the absolute number. Optional C4-isolation SPRT (`build/sprt -base build/ngn_f1 -new build/ngn_c4 -movetime 250 ...`) if a core gap opens; else C4 stands on its tactical+correctness verification and its inclusion in the gauntlet stack.
+**Binaries:** `ngn_base`(pre-F1) · `ngn_f1`(F1) · `ngn_c4`(F1+C4) · `ngn_time`==`build/ngn`(F1+C4+timefix, the live stack).
 **THE LOOP (keep elo-raising work moving all night; non-blocking):**
 1. ALWAYS keep ONE SPRT running. When the current concludes (task-notification, or LLR hits ±2.94, or maxgames): read its log → apply the KEEP RULE → if KEPT, make the change in the tree + `go build -o build/ngn main.go` → **immediately launch the NEXT queued SPRT before anything else.**
 2. Between launches, do FOREGROUND work that needs NO SPRT — the node-identical speed wins, each GATED by `scripts/nodecheck.sh` (MUST reproduce **1320651/917501/1268761**) + `go test -short -run Perft ./engine/`: **P1 slider-attack dedup** (eval.go:2261 `mobilityForSide` + :1200 `evaluateKingAttackPatterns` compute each slider's magic attacks once, thread to both) → **P3 Magic-struct fold** (magic.go, kills the 3 residual `[sq]` checks) → **P4 per-node defer removal** (search.go:1067/1820). These KEEP on nodecheck-pass+perft (pure speed, can't regress); commit each locally.
