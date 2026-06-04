@@ -33,11 +33,14 @@ BIN="${1:-build/ngn}"
 # Baselines RE-LOCKED 2026-06-03 after the night's kept [BEHAVIOUR] fixes (F1 legalTried-guard,
 # C4 phase-6 king, C1 insufficient-material draw-in-search). These shift node counts legitimately;
 # C1 especially (kiwipete -37% as deep lines trade into recognized draws, end +45% from corrected
-# draw scores reordering the search). Current HEAD = F1+C4+timefix+C1.)
+# draw scores reordering the search). RE-LOCKED AGAIN 2026-06-03 LATE after the gradient tune
+# (5915619) + #19 passed-pawn rank-scaling (0cf5c5b) shifted eval→cutoffs→tree. Current HEAD =
+# F1+C4+timefix+C1+tune+#19. The extend-only time multiplier (engine/time.go) is INERT here
+# (fixed-depth never hits shouldStopTournamentSearch) — verified node-identical to this baseline.)
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|1406330"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|916471"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|967198"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|1556029"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|841222"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|842069"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
