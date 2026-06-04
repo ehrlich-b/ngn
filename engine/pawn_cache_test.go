@@ -31,6 +31,8 @@ func TestPawnCacheMatchesDirect(t *testing.T) {
 		// Direct computation via the underlying term functions.
 		dWP := countPassedPawnsFast(wp, bp, White)
 		dBP := countPassedPawnsFast(bp, wp, Black)
+		dWPW := passedRankWeightedSum(wp, bp, White)
+		dBPW := passedRankWeightedSum(bp, wp, Black)
 		dWD, dBD := 0, 0
 		for file := 0; file < 8; file++ {
 			dWD += countDoubledPawns(&pos.Board, White, file)
@@ -42,12 +44,12 @@ func TestPawnCacheMatchesDirect(t *testing.T) {
 		dCB := evaluatePawnChains(&pos.Board, Black)
 
 		check := func(label string) {
-			wPassed, bPassed, wDoubled, bDoubled, wIso, bIso, cW, cB := pawnStructureCounts(&pos.Board, wp, bp)
-			if wPassed != dWP || bPassed != dBP || wDoubled != dWD || bDoubled != dBD ||
+			wPassed, bPassed, wPassedW, bPassedW, wDoubled, bDoubled, wIso, bIso, cW, cB := pawnStructureCounts(&pos.Board, wp, bp)
+			if wPassed != dWP || bPassed != dBP || wPassedW != dWPW || bPassedW != dBPW || wDoubled != dWD || bDoubled != dBD ||
 				wIso != dWI || bIso != dBI || cW != dCW || cB != dCB {
-				t.Errorf("fen %q [%s]: cached (%d %d %d %d %d %d %d %d) != direct (%d %d %d %d %d %d %d %d)",
-					fen, label, wPassed, bPassed, wDoubled, bDoubled, wIso, bIso, cW, cB,
-					dWP, dBP, dWD, dBD, dWI, dBI, dCW, dCB)
+				t.Errorf("fen %q [%s]: cached (%d %d %d %d %d %d %d %d %d %d) != direct (%d %d %d %d %d %d %d %d %d %d)",
+					fen, label, wPassed, bPassed, wPassedW, bPassedW, wDoubled, bDoubled, wIso, bIso, cW, cB,
+					dWP, dBP, dWPW, dBPW, dWD, dBD, dWI, dBI, dCW, dCB)
 			}
 		}
 

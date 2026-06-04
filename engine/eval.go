@@ -355,6 +355,37 @@ func countPassedPawnsFast(pawnBitboard, opponentPawnBitboard uint64, color Color
 	return passed
 }
 
+// passedRankMul scales a passed pawn's bonus by how far it has advanced toward
+// promotion (index = rank relative to the pawn's own side: 1 = just off the start
+// square ... 6 = one push from queening; 0 and 7 are unreachable for a pawn). A
+// passer on the 7th rank is far more dangerous than one on the 4th — the flat
+// per-passer bonus under-credits advanced passers, the mg->eg-transition blind
+// spot in the loss analysis. The MG/EG magnitude split stays in passedPawnBonus(EG);
+// this only reshapes by rank. <=5th keep the flat 1x weight, only 6th/7th step up.
+var passedRankMul = [8]int{0, 0, 1, 1, 1, 2, 4, 0}
+
+// passedRankWeightedSum sums passedRankMul over the side's passed pawns — the
+// rank-weighted replacement for the raw passed-pawn count. Mirrors
+// countPassedPawnsFast's passer test exactly so the two agree on which pawns pass.
+func passedRankWeightedSum(pawnBitboard, opponentPawnBitboard uint64, color Color) int {
+	if pawnBitboard == 0 {
+		return 0
+	}
+	sum := 0
+	masks := &passedPawnFrontSpan[color]
+	for bb := pawnBitboard; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		if masks[sq]&opponentPawnBitboard == 0 {
+			r := sq >> 3
+			if color == Black {
+				r = 7 - r
+			}
+			sum += passedRankMul[r]
+		}
+	}
+	return sum
+}
+
 // Helper function to evaluate pawn chains (connected pawns that support each other)
 func evaluatePawnChains(board *Bitboard, color Color) int {
 	var pawnBitboard uint64
@@ -2436,6 +2467,7 @@ const (
 type pawnCacheEntry struct {
 	wp, bp             uint64
 	wPassed, bPassed   int16
+	wPassedW, bPassedW int16
 	wDoubled, bDoubled int16
 	wIso, bIso         int16
 	chainW, chainB     int16
@@ -2455,19 +2487,22 @@ func pawnCacheIndex(wp, bp uint64) uint64 {
 	return h & pawnCacheMask
 }
 
-// pawnStructureCounts returns the raw passed/doubled/isolated/chain counts for
-// both colors, memoized on the pawn bitboards. board's pawn bitboards MUST equal
-// (wp, bp) — the caller passes them so the key and the compute path agree.
-func pawnStructureCounts(board *Bitboard, wp, bp uint64) (wPassed, bPassed, wDoubled, bDoubled, wIso, bIso, chainW, chainB int) {
+// pawnStructureCounts returns the raw passed/doubled/isolated/chain counts plus the
+// rank-weighted passed-pawn sums (wPassedW/bPassedW) for both colors, memoized on the
+// pawn bitboards. board's pawn bitboards MUST equal (wp, bp) — the caller passes them
+// so the key and the compute path agree.
+func pawnStructureCounts(board *Bitboard, wp, bp uint64) (wPassed, bPassed, wPassedW, bPassedW, wDoubled, bDoubled, wIso, bIso, chainW, chainB int) {
 	if !pawnCacheDisabled {
 		e := &pawnCache[pawnCacheIndex(wp, bp)]
 		if e.valid && e.wp == wp && e.bp == bp {
-			return int(e.wPassed), int(e.bPassed), int(e.wDoubled), int(e.bDoubled),
+			return int(e.wPassed), int(e.bPassed), int(e.wPassedW), int(e.bPassedW), int(e.wDoubled), int(e.bDoubled),
 				int(e.wIso), int(e.bIso), int(e.chainW), int(e.chainB)
 		}
 	}
 	wPassed = countPassedPawnsFast(wp, bp, White)
 	bPassed = countPassedPawnsFast(bp, wp, Black)
+	wPassedW = passedRankWeightedSum(wp, bp, White)
+	bPassedW = passedRankWeightedSum(bp, wp, Black)
 	for file := 0; file < 8; file++ {
 		wDoubled += countDoubledPawns(board, White, file)
 		bDoubled += countDoubledPawns(board, Black, file)
@@ -2480,6 +2515,7 @@ func pawnStructureCounts(board *Bitboard, wp, bp uint64) (wPassed, bPassed, wDou
 		pawnCache[pawnCacheIndex(wp, bp)] = pawnCacheEntry{
 			wp: wp, bp: bp,
 			wPassed: int16(wPassed), bPassed: int16(bPassed),
+			wPassedW: int16(wPassedW), bPassedW: int16(bPassedW),
 			wDoubled: int16(wDoubled), bDoubled: int16(bDoubled),
 			wIso: int16(wIso), bIso: int16(bIso),
 			chainW: int16(chainW), chainB: int16(chainB),
@@ -2513,9 +2549,9 @@ func evalCoreWhite(board *Bitboard) (eval, phase int) {
 	// bitboards — fetch their raw counts from the memoized cache (N6) and apply
 	// the weights here. Same arithmetic, same order as the inline version, so the
 	// result is bit-identical (node-identical); only the recomputation is saved.
-	whitePassed, blackPassed, whiteDoubled, blackDoubled, whiteIsolated, blackIsolated, chainWhite, chainBlack :=
+	_, _, whitePassedW, blackPassedW, whiteDoubled, blackDoubled, whiteIsolated, blackIsolated, chainWhite, chainBlack :=
 		pawnStructureCounts(board, whitePawns, blackPawns)
-	eval += (whitePassed - blackPassed) * taperW(passedPawnBonus, passedPawnBonusEG, phase)             // passed pawns, not captured by PST
+	eval += (whitePassedW - blackPassedW) * taperW(passedPawnBonus, passedPawnBonusEG, phase)           // passed pawns (rank-weighted), not captured by PST
 	eval -= (whiteDoubled - blackDoubled) * taperW(doubledPawnPenalty, doubledPawnPenaltyEG, phase)     // doubled penalty
 	eval -= (whiteIsolated - blackIsolated) * taperW(isolatedPawnPenalty, isolatedPawnPenaltyEG, phase) // isolated penalty
 	eval += (chainWhite - chainBlack) * taperW(pawnChainWeight, pawnChainWeightEG, phase) / 100         // connected/supported pawn chains

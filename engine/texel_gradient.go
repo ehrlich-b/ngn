@@ -118,8 +118,8 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 	// Non-PeSTO terms — identical calls/order to evaluateUnsafe.
 	whitePawns := board.GetBitboardOf(WhitePawn)
 	blackPawns := board.GetBitboardOf(BlackPawn)
-	wPassed, bPassed, wDoubled, bDoubled, wIso, bIso, chainW, chainB := pawnStructureCounts(board, whitePawns, blackPawns)
-	t.Passed = wPassed - bPassed
+	_, _, wPassedW, bPassedW, wDoubled, bDoubled, wIso, bIso, chainW, chainB := pawnStructureCounts(board, whitePawns, blackPawns)
+	t.Passed = wPassedW - bPassedW // rank-weighted passed-pawn sum (see passedRankMul)
 	t.Doubled = wDoubled - bDoubled
 	t.Isolated = wIso - bIso
 	t.Chain = chainW - chainB
