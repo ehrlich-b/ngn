@@ -240,6 +240,9 @@ func RespectsMovetime(e *Engine, movetimeMs int) (bool, time.Duration) {
 
 // Stop quits the engine and kills the process.
 func Stop(e *Engine) {
+	if e == nil { // a failed (re)start returns nil; tolerate stopping it
+		return
+	}
 	Send(e, "quit")
 	time.Sleep(50 * time.Millisecond)
 	if e.cmd.Process != nil {

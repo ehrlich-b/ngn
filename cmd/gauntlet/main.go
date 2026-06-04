@@ -80,11 +80,20 @@ var forfeitReasons = map[string]bool{
 	"illegal-opening": true, "bad-opening": true, "fen-error": true,
 }
 
+// gamesPerProcess caps how many games an engine plays before the harness restarts
+// it. A long-running opponent process degrades and starts flagging on time — the
+// 2026-06-04 storm where Blunder 7.2.0 died at G33 / 7.4.0 at G61 and every later
+// game was banked as a free NGN win (89.5% / 62%). ucinewgame (PlayGame->Reset) is
+// sent each game but doesn't stop the rot, so we cycle the processes well below the
+// observed onset. Set by the -restart-every flag; 0 = never (the old behavior).
+var gamesPerProcess int
+
 func main() {
 	anchorsPath := flag.String("anchors", "opponents/ratings.json", "JSON file: version->path->CCRL ladder")
 	ngnPath := flag.String("ngn", "build/ngn", "NGN engine binary")
 	movetimeMs := flag.Int("movetime", 1000, "ms per move (equal for both sides)")
 	tc := flag.String("tc", "", "real tournament clock SECONDS[+INC] (e.g. 120+1 = CCRL Blitz); overrides -movetime, drops the movetime bias")
+	flag.IntVar(&gamesPerProcess, "restart-every", 8, "restart both engine processes every N games to prevent long-run degradation/forfeit-storms (0 = never)")
 	games := flag.Int("games", 24, "games per anchor (even = equal colors)")
 	only := flag.String("only", "", "comma-separated versions to include (default: all)")
 	openingsFile := flag.String("openings", "output/sprt_openings.txt", "opening move-sequences, one per line")
@@ -241,8 +250,9 @@ func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs
 		log.Fatalf("engine failed UCI handshake (ngn ok=%v, %s ok=%v); aborting instead of forfeiting every game",
 			ngn != nil, a.Version, opp != nil)
 	}
-	defer uci.Stop(ngn)
-	defer uci.Stop(opp)
+	// Stop whichever pair is live at return (the loop reassigns ngn/opp on restart),
+	// so capture the variables in a closure rather than the initial pointers by value.
+	defer func() { uci.Stop(ngn); uci.Stop(opp) }()
 
 	res := result{anchor: a, reasons: map[string]int{}}
 	cfg := uci.GameConfig{Movetime: movetimeMs, MaxMoves: 200}
@@ -263,7 +273,29 @@ func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs
 		cfg.MovesOut = &gameMoves // PlayGame overwrites this each game
 	}
 	consecutiveForfeits := 0
+	consecutiveTimeForfeits := 0
 	for g := 0; g < games; g++ {
+		// Restart both engines every gamesPerProcess games so neither can degrade into
+		// the time-forfeit storm (see gamesPerProcess). ucinewgame alone doesn't stop it.
+		if g > 0 && gamesPerProcess > 0 && g%gamesPerProcess == 0 {
+			uci.Stop(ngn)
+			uci.Stop(opp)
+			ngn = uci.Start(ngnPath, "ngn", lowPower)
+			opp = uci.Start(a.Path, a.Version, lowPower)
+			if ngn == nil || opp == nil { // one retry before giving up the anchor
+				uci.Stop(ngn)
+				uci.Stop(opp)
+				ngn = uci.Start(ngnPath, "ngn", lowPower)
+				opp = uci.Start(a.Path, a.Version, lowPower)
+			}
+			if ngn == nil || opp == nil {
+				fmt.Printf("  ABORT %s: engine restart failed at game %d — excluding anchor.\n", a.Version, g)
+				res.skipped = true
+				break
+			}
+			uci.ResetCounters(ngn)
+			uci.ResetCounters(opp)
+		}
 		op := openings[(g/2)%len(openings)] // reversed-color pairs of the same line
 		newIsWhite := g%2 == 0
 		// uci.PlayGame returns the result from the FIRST engine's (NGN's) POV.
@@ -303,9 +335,17 @@ func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs
 		} else {
 			consecutiveForfeits = 0
 		}
-		if consecutiveForfeits >= 3 {
-			fmt.Printf("  ABORT %s: %d consecutive forfeit games (%s) — opponent dead/broken; excluding anchor.\n",
-				a.Version, consecutiveForfeits, gr.Reason)
+		// time-forfeit isn't a forfeitReason (an occasional real flag is legitimate and
+		// must not taint the run), but a long RUN of them is the degradation storm — a
+		// backstop in case a process rots faster than the gamesPerProcess restart cadence.
+		if gr.Reason == "time-forfeit" {
+			consecutiveTimeForfeits++
+		} else {
+			consecutiveTimeForfeits = 0
+		}
+		if consecutiveForfeits >= 3 || consecutiveTimeForfeits >= 6 {
+			fmt.Printf("  ABORT %s: %d consec forfeits / %d consec time-forfeits (%s) — opponent dead/degraded; excluding anchor.\n",
+				a.Version, consecutiveForfeits, consecutiveTimeForfeits, gr.Reason)
 			res.skipped = true
 			break
 		}
