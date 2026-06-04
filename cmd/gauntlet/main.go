@@ -93,7 +93,7 @@ func main() {
 	ngnPath := flag.String("ngn", "build/ngn", "NGN engine binary")
 	movetimeMs := flag.Int("movetime", 1000, "ms per move (equal for both sides)")
 	tc := flag.String("tc", "", "real tournament clock SECONDS[+INC] (e.g. 120+1 = CCRL Blitz); overrides -movetime, drops the movetime bias")
-	flag.IntVar(&gamesPerProcess, "restart-every", 8, "restart both engine processes every N games to prevent long-run degradation/forfeit-storms (0 = never)")
+	flag.IntVar(&gamesPerProcess, "restart-every", 1, "restart both engine processes every N games to prevent the degradation forfeit-storm; 1 = every game (default; the cost is just the ~400ms warmup probe, negligible vs a multi-hour run), 0 = never")
 	games := flag.Int("games", 24, "games per anchor (even = equal colors)")
 	only := flag.String("only", "", "comma-separated versions to include (default: all)")
 	openingsFile := flag.String("openings", "output/sprt_openings.txt", "opening move-sequences, one per line")
