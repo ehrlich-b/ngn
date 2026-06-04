@@ -1,6 +1,34 @@
 # NGN Chess Engine — Development Roadmap
 
-## Goal: GM ≈ 2500 (beat Blunder 7.4.0 / CCRL 2532), then 2800 — CLASSIC HCE + speed, **NO NNUE (yet)**. Now **2447 CCRL [2397,2497]** (n=200 gauntlet 2026-06-03), ~+85 behind Blunder 7.4.0.
+## Goal: GM ≈ 2500 (beat Blunder 7.4.0 / CCRL 2532), then 2800 — CLASSIC HCE + speed, **NO NNUE (yet)**. **SOFT-BANKED 2026-06-04: ~2540 CCRL** — two clean anchors AGREE >2500 (7.2.0→2549 n=32, 7.4.0→2538 n=60), up from pre-tune 2447. SOFT because both samples were forfeit-capped (harness storm, see below); a fixed-harness 100/anchor rerun is needed to HARDEN it. If it holds, NGN has crossed GM and is ~even with Blunder 7.4.0 — the goal.
+## >>> NIGHT 2026-06-04 — UNATTENDED: eval-ADD (proven) × endgame extension-storm (the ceiling), ONE SPRT lane <<<
+Bryan away for the night. NO questions, KEEP RULE, single-sentence LOCAL commits (no push / no co-author / no emoji), never idle-wait (always hold foreground work), don't get fully stuck.
+
+STRENGTH NOW: **soft-2540 CCRL** (forfeit-capped samples, harness since FIXED via per-game restart but NOT re-run — Bryan's call). Today KEPT: **blocked-passer discount** (+27 self-play, pentanomial LLR +1.77 / 338g, commit 8c582ce) — the 3rd straight eval-ADD KEEP after tune 5915619 + #19 passed-pawn rank-scaling. `build/ngn` = HEAD baseline incl. blocked-passer (tactical 29/30). Time-mult = NULL/parked; speed = diminishing/parked (only delicate incremental-SEE left).
+
+THE TWO LEVERS (the record has FLIP-FLOPPED on which is primary; tonight works BOTH through one gate so neither is abandoned):
+ - **EVAL CALIBRATION** — the L1 external-SF-ruler diagnosis (most rigorous: 86/87 losses are eval over-optimism ~150-220cp, NOT depth) and the PROVEN producer (3 KEEPs). Lane = chess-correct structural ADDs the tuner can't reach, **L1-ALIGNED ONLY**: reduce NGN's passer over-optimism / add missing penalties. A protected-or-connected-passer BONUS is the WRONG direction (adds own-passer value — the exact bias L1 found); skip it unless reframed as a discount.
+ - **ENDGAME SEARCH / extension-storm** — M2/M3 + the autopsy (eg tree 2.5-5x Blunder's, blowup GROWS with depth 3.78x@d16 → 9.16x@d18 = extension-storm signature; ordering refuted at 88.5% first-move-cutoff). Higher CEILING, less proven. [[follow-the-diagnosis]]: do NOT retreat from this hard lever to the easy one — it is tonight's compute-gap foreground work.
+
+THE LOOP (serial — real-clock SPRT games and heavy compute NEVER overlap; E-cores; each bg job auto-notifies):
+ 1. Prep ONE candidate (light: edit + gofmt + `go build -o build/ngn_<v> .` + gates: faithfulness, symmetry, pawn-cache, tactical ≥40%).
+ 2. Launch its short-TC SPRT: `./build/sprt -base build/ngn -new build/ngn_<v> -tc 10+0.1 -openings output/endgame_openings.txt -elo0 -5 -elo1 0 -alpha 0.05 -beta 0.05 -mingames 64 -maxgames 300`. **maxgames=300 (LOW) so it SELF-TERMINATES** — this morning's null idled forever at maxgames=1500; do NOT repeat. conc forced 1 at -tc.
+ 3. WHILE LIVE (no-CPU work ONLY): design the next candidate / read prior autopsy output / tidy TODO. NO builds, NO profiler, NO 2nd game-process (corrupts the clock).
+ 4. Verdict (auto-notifies at an LLR bound or maxgames): KEEP (chess-correct + no measured regression, OR LLR ≥ +2.94) ⇒ commit single-sentence + `go build -o build/ngn .` (new baseline) + re-run nodecheck if it was a search change. REJECT only on a measured regression (LLR ≤ −2.94) ⇒ `git checkout`.
+ 5. BETWEEN SPRTs (heavy compute OK now): run the autopsy profiler (`cmd/pruning-analysis`, phase-bucketed eg-vs-mg) to pick the extension that storms the eg tree; build + nodecheck the scoped fix; it becomes the next candidate at step 2. Alternate eval-ADD ↔ search through the single lane.
+
+CANDIDATE QUEUE (one at a time, each its own SPRT):
+ EVAL-ADD (L1-aligned):
+   - **King-distance-to-passer (EG)** — friendly-king-near / enemy-king-far on the passer's path; calibration-neutral classic eg term in the mg→eg transition L1 flags. Good leadoff (low risk, gates clean).
+   - **Unstoppable / outside-the-square passer (EG)** — rule-of-the-square; own unstoppable = big, ENEMY unstoppable = big PENALTY (directly fixes the "under-values enemy passers" + the sign-flips L1 found). Detection must be TIGHT (only genuinely unstoppable) or it adds optimism — gate hard.
+   - (SKIP protected/connected-passer bonus per the L1-direction note above.)
+ SEARCH (extension-storm, node-identity-gated THEN fixed-TIME SPRT):
+   - #20 rank-7-only passed-pawn extension (search.go:1516) — already scoped node-neutral; then check-only extension trim; then cheaper LMR re-search ladder. One axis at a time.
+
+FALLBACK (a gate blocks / queue dries / never spin): the deterministic SPEED lane — incremental-SEE @ search.go:395 (node-IDENTICAL, gated on nodecheck 1556029/841222/842069 EXACT + perft + bench ns/op down). Contention-proof, always progressable.
+
+NO gauntlet tonight (Bryan: don't babysit a measurement; soft-2540 stands). ANTI-STUCK: a string of nulls ⇒ SUSPECT THE EXPERIMENT (is the change reaching games? is the ruler deterministic?) before rationalizing it away — [[follow-the-diagnosis]]. Never re-tune the closed basis.
+
 ## >>> MORNING 2026-06-04 — TIME-MULT NULL; GAUNTLET ADJUDICATING THE EVAL BATCH (the fork-decider) <<<
 Where we are after the overnight run + Bryan's morning steer ("adjudicate eval batch"):
 - **TIME-MULT lane = NULL, PARKED.** The extend-only soft multiplier ran a clean 272-game real-clock 30+0.1 A/B → 50.6%, elo +3.8 [-37,+45], 0 forfeits. Dead flat — time-mgmt has too little bank to redistribute at bullet (its payoff is at slower TC, which Bryan's short-TC-only rule excludes). engine/time.go REVERTED to HEAD. Process lesson: an inconclusive A/B never hits the LLR bound so it never auto-notified — it idled on a converged null instead of advancing. Set a LOW maxgames (or scheduled check-ins) next time so the loop self-terminates and progresses. One real find kept for later: lastScoreChange is dead-zero (uci.go:650/653 ordering — capture prior score BEFORE overwriting), a cheap node-identical correctness fix.
