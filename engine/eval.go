@@ -386,6 +386,39 @@ func passedRankWeightedSum(pawnBitboard, opponentPawnBitboard uint64, color Colo
 	return sum
 }
 
+// passedBlockedCount counts the side's passed pawns whose stop square (one rank
+// ahead) is occupied by an enemy piece. A blockaded passer can't advance until the
+// blocker is removed, so it is worth far less than the rank-weighted bonus credits —
+// the eval-optimism bias the L1 loss analysis found (NGN steers into lost positions
+// over-valuing its own stalled passers). The blocker is necessarily a non-pawn (a
+// passer has no enemy pawn ahead on its file by definition), so oppNonPawns excludes
+// pawns. Uses the same passedPawnFrontSpan test as countPassedPawnsFast so the two
+// agree on which pawns are passed.
+func passedBlockedCount(ownPawns, oppPawns, oppNonPawns uint64, color Color) int {
+	if ownPawns == 0 {
+		return 0
+	}
+	masks := &passedPawnFrontSpan[color]
+	count := 0
+	for bb := ownPawns; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		if masks[sq]&oppPawns != 0 {
+			continue // not a passed pawn
+		}
+		stop := sq + 8
+		if color == Black {
+			stop = sq - 8
+		}
+		if stop < 0 || stop > 63 {
+			continue
+		}
+		if oppNonPawns&SquareMask[stop] != 0 {
+			count++
+		}
+	}
+	return count
+}
+
 // Helper function to evaluate pawn chains (connected pawns that support each other)
 func evaluatePawnChains(board *Bitboard, color Color) int {
 	var pawnBitboard uint64
@@ -2425,25 +2458,27 @@ func EvaluateForPlayer(board *Bitboard, player Color) int {
 // eval bit-for-bit; the tuner then pulls them apart so a passed pawn / king-safety
 // unit can be worth more (or less) in the endgame than the middlegame.
 var (
-	passedPawnBonus     = 10
-	doubledPawnPenalty  = 10
-	isolatedPawnPenalty = 10
-	pawnChainWeight     = 76
-	mobilityWeight      = 181
-	rookOpenWeight      = 87
-	outpostWeight       = 84
-	kingSafetyWeight    = 106
-	kingActivityWeight  = 29
+	passedPawnBonus      = 10
+	blockedPasserPenalty = 8 // discount a passer blockaded by an enemy piece (L1 over-optimism fix)
+	doubledPawnPenalty   = 10
+	isolatedPawnPenalty  = 10
+	pawnChainWeight      = 76
+	mobilityWeight       = 181
+	rookOpenWeight       = 87
+	outpostWeight        = 84
+	kingSafetyWeight     = 106
+	kingActivityWeight   = 29
 
-	passedPawnBonusEG     = 36
-	doubledPawnPenaltyEG  = 23
-	isolatedPawnPenaltyEG = 14
-	pawnChainWeightEG     = 77
-	mobilityWeightEG      = 180
-	rookOpenWeightEG      = 86
-	outpostWeightEG       = 85
-	kingSafetyWeightEG    = 84
-	kingActivityWeightEG  = 29
+	passedPawnBonusEG      = 36
+	blockedPasserPenaltyEG = 20 // blockaded passers matter even less in the endgame, where passers decide
+	doubledPawnPenaltyEG   = 23
+	isolatedPawnPenaltyEG  = 14
+	pawnChainWeightEG      = 77
+	mobilityWeightEG       = 180
+	rookOpenWeightEG       = 86
+	outpostWeightEG        = 85
+	kingSafetyWeightEG     = 84
+	kingActivityWeightEG   = 29
 )
 
 // taperW blends a middlegame/endgame weight pair by game phase (phase=totalPhase
@@ -2551,7 +2586,15 @@ func evalCoreWhite(board *Bitboard) (eval, phase int) {
 	// result is bit-identical (node-identical); only the recomputation is saved.
 	_, _, whitePassedW, blackPassedW, whiteDoubled, blackDoubled, whiteIsolated, blackIsolated, chainWhite, chainBlack :=
 		pawnStructureCounts(board, whitePawns, blackPawns)
-	eval += (whitePassedW - blackPassedW) * taperW(passedPawnBonus, passedPawnBonusEG, phase)           // passed pawns (rank-weighted), not captured by PST
+	eval += (whitePassedW - blackPassedW) * taperW(passedPawnBonus, passedPawnBonusEG, phase) // passed pawns (rank-weighted), not captured by PST
+	// Blockaded-passer discount: the rank-weighted bonus above credits a stalled passer
+	// fully, but one whose stop square is held by an enemy piece is going nowhere — the
+	// L1 over-optimism the loss analysis flagged. Subtract a phase-tapered penalty each.
+	blackNonPawns := board.GetBlackPieces() &^ blackPawns
+	whiteNonPawns := board.GetWhitePieces() &^ whitePawns
+	whiteBlocked := passedBlockedCount(whitePawns, blackPawns, blackNonPawns, White)
+	blackBlocked := passedBlockedCount(blackPawns, whitePawns, whiteNonPawns, Black)
+	eval -= (whiteBlocked - blackBlocked) * taperW(blockedPasserPenalty, blockedPasserPenaltyEG, phase)
 	eval -= (whiteDoubled - blackDoubled) * taperW(doubledPawnPenalty, doubledPawnPenaltyEG, phase)     // doubled penalty
 	eval -= (whiteIsolated - blackIsolated) * taperW(isolatedPawnPenalty, isolatedPawnPenaltyEG, phase) // isolated penalty
 	eval += (chainWhite - chainBlack) * taperW(pawnChainWeight, pawnChainWeightEG, phase) / 100         // connected/supported pawn chains
