@@ -35,15 +35,15 @@ BIN="${1:-build/ngn}"
 # C1 especially (kiwipete -37% as deep lines trade into recognized draws, end +45% from corrected
 # draw scores reordering the search). RE-LOCKED AGAIN 2026-06-03 LATE after the gradient tune
 # (5915619) + #19 passed-pawn rank-scaling (0cf5c5b) shifted eval→cutoffs→tree.
-# RE-LOCKED 2026-06-04 night after the king-distance-to-passer EG discount (C1, 1695e20) and the
-# rank-7-only passed-pawn extension narrowing (#20, cda2033): C1 (eval) reorders cutoffs (kiwipete
-# +85%, mid +38% vs the pre-C1 numbers), #20 (search) trims the over-firing 6th-rank extension
-# (mid -37%, end -9% vs the C1 baseline). Current HEAD = ...+tune+#19+C1+#20. Deterministic,
-# reproduced exact twice (build/ngn == build/ngn_pp7).
+# RE-LOCKED 2026-06-05 night to HEAD = ...+tune+#19+C1(king-dist 1695e20)+#20(passer-ext cda2033)
+# +C2(rook-behind 964755e). #20 trims the 6th-rank extension (mid -37%); C2 (eval) COMPOUNDS the
+# quiet rook-EG tree WITH DEPTH: end 571500(@C1+#20)->1023904 (+79% @d16, only +9% @d14 — a
+# depth-compounding cost, see [[project_endgame_tree_diagnostic]] / TODO C2 caveat). Deterministic
+# (wait-for-bestmove). NOTE for the speed lane: gate node-IDENTITY against THESE numbers.
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|2764745"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|2764776"
   "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|730222"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|571500"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|1023904"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
