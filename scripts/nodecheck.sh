@@ -40,10 +40,14 @@ BIN="${1:-build/ngn}"
 # quiet rook-EG tree WITH DEPTH: end 571500(@C1+#20)->1023904 (+79% @d16, only +9% @d14 — a
 # depth-compounding cost, see [[project_endgame_tree_diagnostic]] / TODO C2 caveat). Deterministic
 # (wait-for-bestmove). NOTE for the speed lane: gate node-IDENTITY against THESE numbers.
+# RE-LOCKED 2026-06-05 to HEAD = ...+threats (f60f9dd): the static threats eval term
+# reorders the search a lot (kiwipete -46%, end -50%, mid +35% — eval butterfly, NOT a
+# bug; tactical 30/30, SPRT +20.5/204g, faithfulness/symmetry green). Deterministic
+# (verified reproduced exactly). Gate node-IDENTITY against THESE for the speed lane.
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|2764776"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|730222"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|1023904"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|1501684"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|989263"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|513667"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
