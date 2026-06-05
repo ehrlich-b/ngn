@@ -21,6 +21,10 @@ var texelGateFENs = []string{
 	"4k3/1p6/8/2Np4/8/8/8/4K3 w - - 0 1",
 	"1q2k3/8/8/8/8/8/8/1Q2K2N w - - 0 1",
 	"r2q1rk1/1b1nbppp/p2ppn2/1p6/3NPP2/2N1B3/PPPQB1PP/R4RK1 w - - 0 12",
+	// Phase exactly 6 (Q=4 + N+B=2), asymmetric king shields (White f2/g2/h2 intact,
+	// Black f5/g5/h5 advanced) so king-safety is non-zero — exercises the king-safety
+	// gate boundary the live eval opens at phase>=6 (C4).
+	"2b3k1/pp6/5n2/5ppp/8/8/PP3PPP/3Q2K1 w - - 0 1",
 }
 
 // TestEvalTraceReproducesEval is the Phase (a) gate: the cached trace must

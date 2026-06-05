@@ -67,7 +67,7 @@ type evalTrace struct {
 	Mobility     int
 	RookOpen     int
 	Outpost      int
-	KingSafety   int // 0 unless phase >= 7
+	KingSafety   int // 0 unless phase >= 6 (matches the live eval's C4 gate)
 	KingActivity int // 0 unless phase < 6
 	// Fixed is the integer sum of the non-tunable structural terms (blockaded-passer
 	// discount + king-vs-passer discount), already tapered exactly as evalCoreWhite
@@ -141,7 +141,7 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 	t.Outpost = evaluateOutpostSquares(whiteKnights, whiteBishops, whitePawns, blackPawns, White) -
 		evaluateOutpostSquares(blackKnights, blackBishops, blackPawns, whitePawns, Black)
 
-	if phase >= 7 {
+	if phase >= 6 {
 		t.KingSafety = evaluateKingSafety(board, White, &sliderAtt) - evaluateKingSafety(board, Black, &sliderAtt)
 	} else if phase < 6 {
 		t.KingActivity = evaluateKingActivity(board)
