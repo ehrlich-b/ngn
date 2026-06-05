@@ -2511,6 +2511,97 @@ func getRookAttacksBB(sq int, occupied uint64) uint64 {
 	return GetRookAttacks(sq, occupied)
 }
 
+// --- Threats: static favorable attacks on enemy pieces ---------------------
+// NGN otherwise sees tactics only through search; this prices them into the leaf
+// eval. Each component fires ONLY on a favorable attack — an enemy minor/rook/
+// queen hit by our pawn, an enemy rook/queen hit by our minor, an enemy queen hit
+// by our rook, or any enemy piece we attack that they do not defend (hanging) — so
+// the capture always gains material and there are no "bad capture" false positives.
+// Values are hand-set centipawns (a threat is pressure, not realized material, so
+// they sit below the piece value) and ride in the texel Fixed lump, not the tuned
+// basis. The term is symmetric (White−Black) and tapered to zero in the endgame, so
+// its main job is to cut NGN's middlegame over-optimism by pricing the OPPONENT's
+// threats on NGN's pieces (the L1 loss analysis: 86/87 losses are eval over-optimism)
+// while leaving the endgame search tree unperturbed.
+var (
+	threatByPawn       = 50 // any enemy minor/rook/queen attacked by our pawn
+	threatMinorOnMajor = 38 // enemy rook/queen attacked by our knight/bishop
+	threatRookOnQueen  = 38 // enemy queen attacked by our rook
+	threatHangingMinor = 45 // enemy knight/bishop attacked by us and undefended
+	threatHangingRook  = 68 // undefended attacked rook
+	threatHangingQueen = 95 // undefended attacked queen
+)
+
+// sideAtt holds one side's attack spans split by attacker type for the threat term:
+// pawn, minor (knight|bishop), rook, and the full attack set (all).
+type sideAtt struct {
+	pawn, minor, rook, all uint64
+}
+
+// computeSideAtt unions a side's per-piece attack sets. Sliders read the shared
+// per-eval slider-attack table (fillSliderAttacks); knights/king use the static
+// tables. Queen attacks fold into `all` only — no threat component keys off the
+// queen as attacker (its only favorable target is an undefended piece, already
+// covered by the hanging test over `all`).
+func computeSideAtt(sliderAtt *[64]uint64, pawnAtt, knightBB, bishopBB, rookBB, queenBB, kingBB uint64) sideAtt {
+	var knight, bishop, rook, queen uint64
+	for bb := knightBB; bb != 0; bb &= bb - 1 {
+		knight |= KnightAttacks[bits.TrailingZeros64(bb)]
+	}
+	for bb := bishopBB; bb != 0; bb &= bb - 1 {
+		bishop |= sliderAtt[bits.TrailingZeros64(bb)]
+	}
+	for bb := rookBB; bb != 0; bb &= bb - 1 {
+		rook |= sliderAtt[bits.TrailingZeros64(bb)]
+	}
+	for bb := queenBB; bb != 0; bb &= bb - 1 {
+		queen |= sliderAtt[bits.TrailingZeros64(bb)]
+	}
+	king := KingAttacks[bits.TrailingZeros64(kingBB)]
+	minor := knight | bishop
+	return sideAtt{pawn: pawnAtt, minor: minor, rook: rook, all: pawnAtt | minor | rook | queen | king}
+}
+
+// threatScore scores one side's threats against the enemy. att is the attacker's
+// spans; the enemy* bitboards are the victim pieces; enemyAll is the enemy's full
+// attack set (a square in it is defended, so a piece there is not hanging).
+func threatScore(att sideAtt, enemyKnight, enemyBishop, enemyRook, enemyQueen, enemyAll uint64) int {
+	enemyMinors := enemyKnight | enemyBishop
+	enemyPieces := enemyMinors | enemyRook | enemyQueen
+	score := PopCount(enemyPieces&att.pawn) * threatByPawn
+	score += PopCount((enemyRook|enemyQueen)&att.minor) * threatMinorOnMajor
+	score += PopCount(enemyQueen&att.rook) * threatRookOnQueen
+	weak := att.all &^ enemyAll // attacked by us, not defended by them
+	score += PopCount(enemyMinors&weak) * threatHangingMinor
+	score += PopCount(enemyRook&weak) * threatHangingRook
+	score += PopCount(enemyQueen&weak) * threatHangingQueen
+	return score
+}
+
+// evaluateThreatsDelta returns White's threat pressure minus Black's, tapered
+// MG-full -> EG-zero (phase/totalPhase). sliderAtt is the shared slider-attack
+// table; pawn-attack spans are recomputed here with the same formula as
+// mobilitySetup, so the term needs nothing precomputed beyond sliderAtt.
+func evaluateThreatsDelta(board *Bitboard, sliderAtt *[64]uint64, phase int) int {
+	whitePawns := board.GetBitboardOf(WhitePawn)
+	blackPawns := board.GetBitboardOf(BlackPawn)
+	wPawnAtt := ((whitePawns &^ FileMasks[FileA]) << 7) | ((whitePawns &^ FileMasks[FileH]) << 9)
+	bPawnAtt := ((blackPawns &^ FileMasks[FileH]) >> 7) | ((blackPawns &^ FileMasks[FileA]) >> 9)
+	wAtt := computeSideAtt(sliderAtt, wPawnAtt,
+		board.GetBitboardOf(WhiteKnight), board.GetBitboardOf(WhiteBishop),
+		board.GetBitboardOf(WhiteRook), board.GetBitboardOf(WhiteQueen), board.GetBitboardOf(WhiteKing))
+	bAtt := computeSideAtt(sliderAtt, bPawnAtt,
+		board.GetBitboardOf(BlackKnight), board.GetBitboardOf(BlackBishop),
+		board.GetBitboardOf(BlackRook), board.GetBitboardOf(BlackQueen), board.GetBitboardOf(BlackKing))
+	white := threatScore(wAtt,
+		board.GetBitboardOf(BlackKnight), board.GetBitboardOf(BlackBishop),
+		board.GetBitboardOf(BlackRook), board.GetBitboardOf(BlackQueen), bAtt.all)
+	black := threatScore(bAtt,
+		board.GetBitboardOf(WhiteKnight), board.GetBitboardOf(WhiteBishop),
+		board.GetBitboardOf(WhiteRook), board.GetBitboardOf(WhiteQueen), wAtt.all)
+	return (white - black) * phase / totalPhase
+}
+
 // Enhanced evaluation function - always returns from white's perspective
 func Evaluate(board *Bitboard) (eval int) {
 	return WrapEvaluation("Evaluate", func() int {
@@ -2746,6 +2837,11 @@ func evalExtrasWhite(board *Bitboard, phase int) (eval int) {
 		// below phase=12 mid-combination.
 		eval += evaluateKingActivity(board) * taperW(kingActivityWeight, kingActivityWeightEG, phase) / 100
 	}
+
+	// Threats: static favorable attacks on enemy pieces (see evaluateThreatsDelta).
+	// Symmetric and MG-tapered, so it prices the opponent's threats on our pieces
+	// (cutting middlegame over-optimism) without perturbing the endgame tree.
+	eval += evaluateThreatsDelta(board, &sliderAtt, phase)
 	return eval
 }
 

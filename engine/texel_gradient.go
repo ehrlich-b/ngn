@@ -163,6 +163,9 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 	wRookBehind := passedRookBehindCount(whitePawns, blackPawns, board.GetBitboardOf(BlackRook), White)
 	bRookBehind := passedRookBehindCount(blackPawns, whitePawns, board.GetBitboardOf(WhiteRook), Black)
 	t.Fixed -= (wRookBehind - bRookBehind) * taperW(0, rookBehindPasserEG, phase)
+	// Threats ride in the Fixed lump (non-tunable, MG-tapered) — same helper and
+	// args as evalExtrasWhite, so reconstructEvalInt stays bit-exact.
+	t.Fixed += evaluateThreatsDelta(board, &sliderAtt, phase)
 	return t
 }
 
