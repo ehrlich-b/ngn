@@ -69,6 +69,12 @@ type evalTrace struct {
 	Outpost      int
 	KingSafety   int // 0 unless phase >= 7
 	KingActivity int // 0 unless phase < 6
+	// Fixed is the integer sum of the non-tunable structural terms (blockaded-passer
+	// discount + king-vs-passer discount), already tapered exactly as evalCoreWhite
+	// computes them. They carry no texel weight, so they ride as one constant lump
+	// rather than the per-term feature list — keeping reconstruct bit-exact while
+	// contributing zero gradient.
+	Fixed int
 }
 
 // texelRawMG/EG cache the (fixed) addresses of the raw white-POV PST tables so the
@@ -140,6 +146,20 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 	} else if phase < 6 {
 		t.KingActivity = evaluateKingActivity(board)
 	}
+
+	// Fixed (non-tunable) structural lump — blockaded-passer + king-vs-passer discounts,
+	// captured with the SAME arithmetic/order as evalCoreWhite so reconstructEvalInt
+	// stays bit-exact. Not in the texel param vector, hence constant in the gradient.
+	blackNonPawns := board.GetBlackPieces() &^ blackPawns
+	whiteNonPawns := board.GetWhitePieces() &^ whitePawns
+	wBlocked := passedBlockedCount(whitePawns, blackPawns, blackNonPawns, White)
+	bBlocked := passedBlockedCount(blackPawns, whitePawns, whiteNonPawns, Black)
+	t.Fixed = -(wBlocked - bBlocked) * taperW(blockedPasserPenalty, blockedPasserPenaltyEG, phase)
+	wKingSq := trailingZeros(board.GetBitboardOf(WhiteKing))
+	bKingSq := trailingZeros(board.GetBitboardOf(BlackKing))
+	wKingDisc := passedKingDiscount(whitePawns, blackPawns, bKingSq, White)
+	bKingDisc := passedKingDiscount(blackPawns, whitePawns, wKingSq, Black)
+	t.Fixed -= (wKingDisc - bKingDisc) * taperW(0, kingPasserBlockEG, phase)
 	return t
 }
 
@@ -167,6 +187,7 @@ func reconstructEvalInt(t *evalTrace) int {
 	eval += t.Outpost * taperW(outpostWeight, outpostWeightEG, ph) / 100
 	eval += t.KingSafety * taperW(kingSafetyWeight, kingSafetyWeightEG, ph) / 100
 	eval += t.KingActivity * taperW(kingActivityWeight, kingActivityWeightEG, ph) / 100
+	eval += t.Fixed // non-tunable structural lump (already tapered in buildEvalTrace)
 	return eval
 }
 
@@ -201,6 +222,7 @@ func evalTraceFloat(t *evalTrace, w []float64) float64 {
 	s += float64(t.Outpost) / 100.0 * (w[texelScalarBase+6]*mgF + w[texelScalarBase+15]*egF)
 	s += float64(t.KingSafety) / 100.0 * (w[texelScalarBase+7]*mgF + w[texelScalarBase+16]*egF)
 	s += float64(t.KingActivity) / 100.0 * (w[texelScalarBase+8]*mgF + w[texelScalarBase+17]*egF)
+	s += float64(t.Fixed) // non-tunable structural lump (constant: zero gradient)
 	return s
 }
 

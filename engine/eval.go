@@ -419,6 +419,63 @@ func passedBlockedCount(ownPawns, oppPawns, oppNonPawns uint64, color Color) int
 	return count
 }
 
+// kingPasserMaxDist is the chebyshev (king-move) distance from a passer's stop square
+// at or beyond which the enemy king is too far to discount the passer; kingPasserBlockEG
+// is the endgame centipawn discount per square the enemy king is INSIDE that radius.
+// Non-tunable structural constants (the texel param vector does not include them);
+// captured in the trace's Fixed lump so reconstructEvalInt stays bit-exact.
+const (
+	kingPasserMaxDist = 5
+	kingPasserBlockEG = 6
+)
+
+// passedKingDiscount sums, over the side's passed pawns, a proximity discount for how
+// close the ENEMY king sits to each passer's stop square. A passer the defending king
+// can reach is worth far less than the rank-weighted bonus credits — the endgame half
+// of the L1 over-optimism (NGN over-values its own passers; an enemy king racing to
+// blockade them is exactly when that bias bites). The discount ramps linearly from
+// kingPasserMaxDist (enemy king on the stop square) to 0 (king kingPasserMaxDist+ away).
+// Returns the raw ramp sum (EG taper applied by the caller); mirrors the
+// passedPawnFrontSpan passer test so it agrees with the other passed-pawn terms.
+func passedKingDiscount(ownPawns, oppPawns uint64, enemyKingSq int, color Color) int {
+	if ownPawns == 0 {
+		return 0
+	}
+	masks := &passedPawnFrontSpan[color]
+	ekFile := enemyKingSq & 7
+	ekRank := enemyKingSq >> 3
+	discount := 0
+	for bb := ownPawns; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		if masks[sq]&oppPawns != 0 {
+			continue // not a passed pawn
+		}
+		stop := sq + 8
+		if color == Black {
+			stop = sq - 8
+		}
+		if stop < 0 || stop > 63 {
+			continue
+		}
+		df := (stop & 7) - ekFile
+		if df < 0 {
+			df = -df
+		}
+		dr := (stop >> 3) - ekRank
+		if dr < 0 {
+			dr = -dr
+		}
+		d := df
+		if dr > d {
+			d = dr // chebyshev = king-move distance
+		}
+		if d < kingPasserMaxDist {
+			discount += kingPasserMaxDist - d
+		}
+	}
+	return discount
+}
+
 // Helper function to evaluate pawn chains (connected pawns that support each other)
 func evaluatePawnChains(board *Bitboard, color Color) int {
 	var pawnBitboard uint64
@@ -2595,6 +2652,14 @@ func evalCoreWhite(board *Bitboard) (eval, phase int) {
 	whiteBlocked := passedBlockedCount(whitePawns, blackPawns, blackNonPawns, White)
 	blackBlocked := passedBlockedCount(blackPawns, whitePawns, whiteNonPawns, Black)
 	eval -= (whiteBlocked - blackBlocked) * taperW(blockedPasserPenalty, blockedPasserPenaltyEG, phase)
+	// King-vs-passer endgame discount: a passer the enemy king can reach is worth less
+	// than its rank-weighted bonus credits (the endgame half of the same L1 own-passer
+	// optimism). EG-only via taperW(0, ...) so it never nudges middlegame king walks.
+	whiteKingSq := trailingZeros(board.GetBitboardOf(WhiteKing))
+	blackKingSq := trailingZeros(board.GetBitboardOf(BlackKing))
+	whiteKingDisc := passedKingDiscount(whitePawns, blackPawns, blackKingSq, White)
+	blackKingDisc := passedKingDiscount(blackPawns, whitePawns, whiteKingSq, Black)
+	eval -= (whiteKingDisc - blackKingDisc) * taperW(0, kingPasserBlockEG, phase)
 	eval -= (whiteDoubled - blackDoubled) * taperW(doubledPawnPenalty, doubledPawnPenaltyEG, phase)     // doubled penalty
 	eval -= (whiteIsolated - blackIsolated) * taperW(isolatedPawnPenalty, isolatedPawnPenaltyEG, phase) // isolated penalty
 	eval += (chainWhite - chainBlack) * taperW(pawnChainWeight, pawnChainWeightEG, phase) / 100         // connected/supported pawn chains
