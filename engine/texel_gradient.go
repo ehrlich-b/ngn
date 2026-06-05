@@ -160,6 +160,9 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 	wKingDisc := passedKingDiscount(whitePawns, blackPawns, bKingSq, White)
 	bKingDisc := passedKingDiscount(blackPawns, whitePawns, wKingSq, Black)
 	t.Fixed -= (wKingDisc - bKingDisc) * taperW(0, kingPasserBlockEG, phase)
+	wRookBehind := passedRookBehindCount(whitePawns, blackPawns, board.GetBitboardOf(BlackRook), White)
+	bRookBehind := passedRookBehindCount(blackPawns, whitePawns, board.GetBitboardOf(WhiteRook), Black)
+	t.Fixed -= (wRookBehind - bRookBehind) * taperW(0, rookBehindPasserEG, phase)
 	return t
 }
 

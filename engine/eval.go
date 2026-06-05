@@ -425,8 +425,9 @@ func passedBlockedCount(ownPawns, oppPawns, oppNonPawns uint64, color Color) int
 // Non-tunable structural constants (the texel param vector does not include them);
 // captured in the trace's Fixed lump so reconstructEvalInt stays bit-exact.
 const (
-	kingPasserMaxDist = 5
-	kingPasserBlockEG = 6
+	kingPasserMaxDist  = 5
+	kingPasserBlockEG  = 6
+	rookBehindPasserEG = 10 // EG discount for a passer with an enemy rook behind it (Tarrasch restraint)
 )
 
 // passedKingDiscount sums, over the side's passed pawns, a proximity discount for how
@@ -474,6 +475,37 @@ func passedKingDiscount(ownPawns, oppPawns uint64, enemyKingSq int, color Color)
 		}
 	}
 	return discount
+}
+
+// passedRookBehindCount counts the side's passed pawns that have an ENEMY rook behind
+// them on the same file (the defender's Tarrasch position). A rook behind a passer
+// restrains its advance and follows it down the board, so the passer is worth less than
+// its rank bonus credits — another slice of the L1 own-passer optimism. "Behind" is
+// toward the pawn's own side: lower ranks for White, higher for Black. Mirrors the
+// passedPawnFrontSpan passer test so it agrees with the other passed-pawn terms.
+func passedRookBehindCount(ownPawns, oppPawns, oppRooks uint64, color Color) int {
+	if ownPawns == 0 || oppRooks == 0 {
+		return 0
+	}
+	masks := &passedPawnFrontSpan[color]
+	count := 0
+	for bb := ownPawns; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		if masks[sq]&oppPawns != 0 {
+			continue // not a passed pawn
+		}
+		fileBB := uint64(0x0101010101010101) << (sq & 7)
+		var behind uint64
+		if color == White {
+			behind = fileBB & (SquareMask[sq] - 1) // same-file squares below the pawn
+		} else {
+			behind = fileBB &^ (SquareMask[sq] | (SquareMask[sq] - 1)) // same-file squares above the pawn
+		}
+		if oppRooks&behind != 0 {
+			count++
+		}
+	}
+	return count
 }
 
 // Helper function to evaluate pawn chains (connected pawns that support each other)
@@ -2660,6 +2692,11 @@ func evalCoreWhite(board *Bitboard) (eval, phase int) {
 	whiteKingDisc := passedKingDiscount(whitePawns, blackPawns, blackKingSq, White)
 	blackKingDisc := passedKingDiscount(blackPawns, whitePawns, whiteKingSq, Black)
 	eval -= (whiteKingDisc - blackKingDisc) * taperW(0, kingPasserBlockEG, phase)
+	// Rook-behind-passer discount (Tarrasch): a passer with an enemy rook behind it on
+	// its file is restrained, worth less than its rank bonus credits. EG-only.
+	whiteRookBehind := passedRookBehindCount(whitePawns, blackPawns, board.GetBitboardOf(BlackRook), White)
+	blackRookBehind := passedRookBehindCount(blackPawns, whitePawns, board.GetBitboardOf(WhiteRook), Black)
+	eval -= (whiteRookBehind - blackRookBehind) * taperW(0, rookBehindPasserEG, phase)
 	eval -= (whiteDoubled - blackDoubled) * taperW(doubledPawnPenalty, doubledPawnPenaltyEG, phase)     // doubled penalty
 	eval -= (whiteIsolated - blackIsolated) * taperW(isolatedPawnPenalty, isolatedPawnPenaltyEG, phase) // isolated penalty
 	eval += (chainWhite - chainBlack) * taperW(pawnChainWeight, pawnChainWeightEG, phase) / 100         // connected/supported pawn chains
