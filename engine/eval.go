@@ -2557,7 +2557,10 @@ func computeSideAtt(sliderAtt *[64]uint64, pawnAtt, knightBB, bishopBB, rookBB, 
 	for bb := queenBB; bb != 0; bb &= bb - 1 {
 		queen |= sliderAtt[bits.TrailingZeros64(bb)]
 	}
-	king := KingAttacks[bits.TrailingZeros64(kingBB)]
+	var king uint64
+	if kingBB != 0 { // malformed king-less FENs reach here via the stress tests
+		king = KingAttacks[bits.TrailingZeros64(kingBB)]
+	}
 	minor := knight | bishop
 	return sideAtt{pawn: pawnAtt, minor: minor, rook: rook, all: pawnAtt | minor | rook | queen | king}
 }
