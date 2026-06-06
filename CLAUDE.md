@@ -111,7 +111,7 @@ Don't trust ELO/NPS claims in documentation without verification.
 
 - **ELO:** ~2380 CCRL Blitz (`make gauntlet` vs Blunder anchors; the SF `UCI_Elo` slider reads ~+400 inflated — disregard old slider numbers). Blunder 7.4.0 (CCRL 2532) is the working anchor, ~+150 ahead.
 - **NPS:** phase/core-dependent, NOT a scalar — ~307K E-core middlegame, ~540K-860K E-core endgame, ~1M P-core.
-- **Gap vs Blunder (both Go, E-cores):** ~2x slower per node everywhere (engineering tax) AND a **2.5-5x larger search tree in endgames** (a pruning-efficiency collapse — the bigger, more surprising lever; middlegame tree size is ~1x). Node counts are deterministic/exact; nps is thermally noisy on the M4 (~2x). Canonical breakdown: `docs/10-performance.md`; reproduce: `scripts/h2h.sh`.
+- **Gap vs Blunder (both Go, E-cores):** ~1.5x slower per node (engineering waste, recoverable — Blunder is also Go). The old **"2.5-5x larger endgame tree / pruning collapse / the bigger lever" claim is REFUTED (2026-06-06)** — it was an artifact of ONE mislabeled h2h position: "quiet-end" `r7/5pk1/...R7` is tactically WON (1.Rxa8 wins a rook), so NGN's 6x tree there was over-searching a WON position, not floundering in a quiet one. On genuinely quiet/balanced endgames NGN's tree is **0.43-1.45x Blunder's (geo-mean ~0.85x — often SMALLER)** and the evals AGREE (no quiet-eg pruning gap, no eg over-optimism). Node counts are deterministic/exact; nps thermally noisy (~1.5x). Reproduce: `scripts/h2h.sh` — but DISREGARD its "quiet-end" row (won position).
 
 ## Project Structure
 
