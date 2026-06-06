@@ -8,9 +8,20 @@ import (
 )
 
 const (
-	INFINITY                = int(math.MaxInt32)
-	MATE_VALUE              = 30000
-	MATE_IN_MAX             = MATE_VALUE - 1000
+	INFINITY    = int(math.MaxInt32)
+	MATE_VALUE  = 30000
+	MATE_IN_MAX = MATE_VALUE - 1000
+
+	RAZORING_MARGIN    = 400 // DEAD (razoring removed): kept as documentation, not tuned
+	RAZORING_MAX_DEPTH = 3   // DEAD
+)
+
+// Tunable search parameters. These are var, not const, so the SPSA driver and
+// UCI `setoption` can override them at runtime (rebuild-free A/B); the literals
+// below are the current hand-set defaults and MUST stay node-identical
+// (scripts/nodecheck.sh). TunableSearchParams below is the single source of
+// truth tying each var to its UCI name and spin range.
+var (
 	NULL_MOVE_R             = 3   // Null move reduction depth
 	NULL_MOVE_MIN_DEPTH     = 3   // Minimum depth for null move pruning
 	LMR_FULL_DEPTH          = 3   // Minimum depth for LMR
@@ -18,13 +29,36 @@ const (
 	FUTILITY_MARGIN         = 200 // Futility pruning margin
 	FUTILITY_MAX_DEPTH      = 3   // Extended futility pruning depth
 	REVERSE_FUTILITY_MARGIN = 120 // Reverse futility margin
-	RAZORING_MARGIN         = 400 // Razoring margin (higher = less aggressive)
-	RAZORING_MAX_DEPTH      = 3   // Maximum depth for razoring (lower = less aggressive)
 	DELTA_MARGIN            = 100 // Delta pruning margin in quiescence
 	SINGULAR_DEPTH          = 6   // Minimum depth for singular extensions
 	SINGULAR_MARGIN         = 64  // Margin for singular move detection
 	EXTENSION_BUDGET        = 24  // Max net extensions on a single root-to-leaf path (anti-explosion)
 )
+
+// TunableParam ties a runtime search parameter to its UCI spin-option metadata.
+type TunableParam struct {
+	Name          string
+	Ptr           *int
+	Def, Min, Max int
+}
+
+// TunableSearchParams is the registry of search params exposed as UCI spin
+// options (advertised + applied in uci.go, and importable by the SPSA driver).
+// Min/Max bound both the spin advertisement and SPSA exploration; Def is the
+// shipped default (== the literal above).
+var TunableSearchParams = []TunableParam{
+	{"NullMoveR", &NULL_MOVE_R, 3, 2, 5},
+	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 3, 1, 6},
+	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
+	{"LMRMoveThreshold", &LMR_MOVE_THRESHOLD, 3, 1, 8},
+	{"FutilityMargin", &FUTILITY_MARGIN, 200, 50, 400},
+	{"FutilityMaxDepth", &FUTILITY_MAX_DEPTH, 3, 1, 8},
+	{"ReverseFutilityMargin", &REVERSE_FUTILITY_MARGIN, 120, 40, 300},
+	{"DeltaMargin", &DELTA_MARGIN, 100, 0, 400},
+	{"SingularDepth", &SINGULAR_DEPTH, 6, 4, 12},
+	{"SingularMargin", &SINGULAR_MARGIN, 64, 16, 256},
+	{"ExtensionBudget", &EXTENSION_BUDGET, 24, 4, 64},
+}
 
 // globalStopRequested is set by UCI's stop handler and observed by the search
 // hot paths. It exists because TimeManager alone cannot interrupt search:

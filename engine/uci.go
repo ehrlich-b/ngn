@@ -231,6 +231,11 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
 	uci.sendUCIMessage(output, "option name SyzygyPath type string default <empty>")
 
+	// Tunable search parameters (for SPSA / manual A/B; defaults == shipped values).
+	for _, p := range TunableSearchParams {
+		uci.sendUCIMessage(output, fmt.Sprintf("option name %s type spin default %d min %d max %d", p.Name, p.Def, p.Min, p.Max))
+	}
+
 	uci.sendUCIMessage(output, "uciok")
 }
 
@@ -295,11 +300,38 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 		// TODO: Implement hash table size adjustment
 	case "threads":
 		// TODO: Implement multi-threading
+	default:
+		setTunableParam(optionName, optionValue)
 	}
 
 	if uci.debugMode {
 		fmt.Fprintf(output, "info string option set: %s = %s\n", optionName, optionValue)
 	}
+}
+
+// setTunableParam applies a search-parameter override registered in
+// TunableSearchParams (matched case-insensitively), clamping to [Min,Max].
+// Returns false if the name is not a known tunable.
+func setTunableParam(name, value string) bool {
+	lname := strings.ToLower(name)
+	for i := range TunableSearchParams {
+		p := &TunableSearchParams[i]
+		if strings.ToLower(p.Name) == lname {
+			v, err := strconv.Atoi(value)
+			if err != nil {
+				return true
+			}
+			if v < p.Min {
+				v = p.Min
+			}
+			if v > p.Max {
+				v = p.Max
+			}
+			*p.Ptr = v
+			return true
+		}
+	}
+	return false
 }
 
 // handleRegister handles registration (not needed for open source engine)
