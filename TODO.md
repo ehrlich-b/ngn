@@ -5,7 +5,7 @@
 ## Where we are (2026-06-06)
 - **Strength: ~2540 CCRL, SOFT.** Two clean anchors agree — Blunder 7.2.0→2549 (n=32), 7.4.0→2538 (n=60), up from pre-tune 2447. SOFT because both samples were forfeit-capped (harness storm, since fixed via per-game restart but NOT re-run). We're at/near the GM line, ~even with Blunder 7.4.0 (CCRL 2532). **HARDEN with a fixed-harness 100/anchor rerun (#33).**
 - **Goal: 2800 — and HCE CAN reach it, no NNUE required.** Proof: Stockfish 11 ~3400 and **CounterGo (pure-*Go* HCE) ~3373**, both pre-NNUE ⇒ ~600 ELO of HCE headroom above us, same language, no net. NNUE is a SHORTCUT (+300-400), not a requirement; **"NO NNUE (yet)" stands** as Bryan's mandate call.
-- HEAD = `ac64ae3`. `build/ngn` = `build/ngn_base` = clean baseline. Working tree clean.
+- HEAD = `f06a839` (2 node-identical speed wins, ~6.5%, on the session-start baseline `ac64ae3`). `build/ngn` = `build/ngn_base` = HEAD. Working tree clean.
 
 ## Strategic map — CORRECTED 2026-06-06 (read before picking work)
 **There is no single big classical lever.** 2800 is a +20-at-a-time grind — the way CounterGo/Blunder climbed. TWO silver-bullet over-rotations were retired THIS session (eg-search → NNUE); stop reaching for one big lever.
@@ -14,16 +14,16 @@ Two dead ends, retired:
 - **eg-search tree "2.5-5× / pruning collapse" — REFUTED (measurement artifact).** h2h's "quiet-end" anchor (`r7/...R7`) is tactically WON (1.Rxa8 wins a rook), so NGN's 6× tree there was over-searching a won position. On 4 genuinely-quiet balanced endgames NGN's tree is **0.43-1.45× Blunder's (geo-mean ~0.85×, often SMALLER)** with **agreeing evals** — no quiet-eg gap, no eg over-optimism. M2's "+4-7 ply shallower in eg" is likely the same artifact; re-validate on quiet positions before trusting. [[project_endgame_tree_diagnostic]]
 - **"2800 needs NNUE" — RETRACTED.** HCE reaches 2800+ (above); NNUE became dominant because it's *better*, but 2800 was crossed by HCE a decade before NNUE existed (SF12, 2020). Blunder is HCE at every version (top ~2674-2700).
 
-**Accessible classical levers, RANKED:**
- 1. **Search-param tuning — VERIFIED UNTAPPED (the best lead).** NMP R=3 fixed, LMR = `log(d)·log(m)/2.0` bare (no tuned divisor/offset), futility 200 / RFP 120·d / razor 400 / LMP classic-Ethereal table — all round folklore defaults (search.go:14-26, 74), and **no search-tuning harness exists** (cmd/texel tunes EVAL only). Every strong HCE (SF/Ethereal/CounterGo) grinds these. CAVEAT: it's a GRIND — SPSA is sample-hungry, single-M4 is slow, short-TC self-play has transfer risk. **Cheap honest entry = ONE targeted SPRT on the LMR divisor (`/2.0` → sweep), not a campaign.**
- 2. **Per-node speed — ~1.5× recoverable, DETERMINISTIC (can't hurt strength).** Node-identity + bench gated (#24). Easy wins banked; remaining is delicate (incremental-SEE bounced twice on node-identity). The always-progressable fallback — never regresses.
- 3. **Eval-ADD — DIMINISHING (the +20 lane, ~80% mined).** Safe-checks just MISSED (leaned −77, killed). Remaining: pawn-storm→attack-units, rook-on-7th. ADD-not-RE-tune; KEEP RULE. Lower priority now.
+**Accessible classical levers, RANKED (updated 2026-06-06 after a test session):**
+ 1. **Per-node speed — DELIVERING, DETERMINISTIC (can't hurt strength).** Node-identity + bench gated (#24). 2026-06-06 banked **~6.5%**: passersOf factor-out ~5% (`6da47d4`) + pawn-shield bit-scan ~1.5% (`f06a839`), both node-identical. The productive lane — every win is free and never regresses. Profiler map remains (next targets in #24).
+ 2. **Search-param REDUCTIONS — CONCLUDED, well-tuned (NOT the untapped lever I'd hoped).** LMR more (A −135) AND less (D −16) both regress ⇒ `/2.0` optimal; NMP scaling (B −23) no gain. DON'T re-test LMR/NMP. Untested *pruning* knobs (futility 200 / RFP 120 / razor 400 / LMP table) remain but are lower-EV. [[project_search_param_lane]]
+ 3. **Eval-ADD — DIMINISHING (the +20 lane, ~80% mined).** Safe-checks MISSED (−77). Remaining: pawn-storm→attack-units, rook-on-7th. ADD-not-RE-tune; KEEP RULE.
  - **NNUE — the shortcut (+300-400), RESERVED.** Bryan's mandate call; not without his go.
 
 ## Active route
-1. **Search-param lever (cheap entry):** ONE targeted LMR-divisor SPRT. Validates or kills the lane for one SPRT's cost.
-2. **Per-node speed (#24):** the can't-hurt deterministic lane — run between/around SPRTs.
-3. **Eval-ADD (pawn-storm→attack-units, then rook-on-7th):** only if the search lane stalls.
+1. **Per-node speed (#24):** the productive can't-hurt lane — keep banking node-identical wins off the profiler. Gate = node-identity EXACT + bench faster (NOT SPRT). Next targets: scoreMovesIntoBuffer 4.8%, TT-access, movegen-buffer fills.
+2. **Confirm the speed batch:** after a few more %, ONE fixed-TIME SPRT (or gauntlet) to show the depth→ELO transfer — node-identity already proves non-regression, so this only sizes the gain.
+3. **Eval-ADD (pawn-storm→attack-units, then rook-on-7th):** if the speed lane stalls.
 4. **Harden the rating (#33):** fixed-harness gauntlet 100/anchor (7.2.0+7.4.0), overnight slot (game-process — cannot overlap an SPRT).
 
 ## The LOOP (serial; one SPRT lane; E-cores; never idle-wait)
@@ -44,17 +44,13 @@ Two dead ends, retired:
 - **DO NOT:** re-tune the existing eval basis (closed, regressed 3×); chase the eg-search tree (refuted); mine more eg-passer micro-terms; batch changes; reach for a single silver-bullet lever.
 
 ## Open tasks
-- **search-param tuning** (#34, ACTIVE) — the verified-untapped lever; **the lane is HOT** (A moved ELO ~150 on one knob). ONE axis per SPRT, `[0,10]` gain-hunt frame, trend-kill on a consistent negative. **Emerging read: two "more pruning" misses (A clear-neg, B mild-neg) ⇒ NGN does not want MORE pruning — now testing LESS (D).**
-  - **A — LMR base offset `0→0.75`** (search.go:108) — **REJECTED** 2026-06-06: 5W-6D-16L (29.6%, ~−150 ELO, CI excl. 0) at G27, killed on trend. More reduction at leaf-adjacent nodes bleeds ELO via un-re-searched fail-lows; the 30/30 tactical gate (200ms) is blind to it. **Polarity: NGN does NOT want MORE reduction.**
-  - **B — adaptive NMP `R = 3 + depth/6`** (search.go:1184) — **REJECTED** 2026-06-06: 25W-36D-31L (46.7%, −23 ELO, CI `[-93,+48]`) at G92, stable sub-50% tail, killed (no demonstrated gain). At bullet TC the depth-scaling barely bites; where it does it mildly hurts — consistent with the "don't add pruning" read.
-  - **D — LMR LESS reduction** (divisor `2.0→2.5`, search.go:108) — **IN FLIGHT** (`output/sprt_lmrD.log`, `[0,10]`). PROMOTED: the mirror of A on the proven-high-leverage knob; direct test of the over-pruned hypothesis. Gain ⇒ NGN over-prunes LMR; neutral ⇒ `/2.0` ~optimal, pivot off the LMR formula. Tactical 30/30.
-  - **C — RFP margin sweep** (`REVERSE_FUTILITY_MARGIN` 120, search.go:20) — after D; if the over-pruned read holds, test the conservative direction (HIGHER margin = less RFP).
-  - Later (one each): futility 200, LMP-table scale, LMR move-threshold 3.
+- **search-param REDUCTIONS** (#34) — **CONCLUDED 2026-06-06: well-tuned, 3 SPRTs / 0 gains.** A (LMR offset 0→0.75, −135 @ G27) + D (LMR divisor 2.0→2.5 LESS, −16 @ G155) ⇒ `/2.0` optimal both directions; B (NMP R=3+depth/6, −23 @ G92) no gain. **DON'T re-test LMR/NMP reductions.** Untested *pruning* (futility/RFP/razor/LMP) is lower-EV; the "untapped lever" premise was too optimistic. [[project_search_param_lane]]
 - **#21** — fix the 3 texel-tuner defects (quiet-filter, dedup, train/test split, external SF teacher) BEFORE any future re-tune; the phase-gate headline is already fixed (`a0e326c`).
-- **#24** — per-node speed pass (node-identity + bench gated); incremental-SEE is the known-delicate candidate (subtle x-ray reveal-timing).
+- **#24** — per-node speed pass (node-identity + bench gated). **ACTIVE, ~6.5% banked 2026-06-06** (passersOf `6da47d4` + pawn-shield `f06a839`). Profiler (`/tmp/cpu2.prof`): selectNextMove 10.9% (already optimal, algorithmic — skip), scoreMovesIntoBuffer 4.8%, LoadKey 4.3%, Bitboard.Move/makeMoveHelper 4.2%, isInCheck 6.3%cum. Look for redundant recompute (the passer/shield pattern); incremental-SEE delicate (x-ray timing). Method: profile → factor redundancy → nodecheck EXACT + bench 3× matched-node-count.
 - **#33** — harden the soft-2540 (fixed-harness gauntlet 100/anchor; the harness storm is fixed via per-game restart).
 
 ## Parked / shipped this session
+- **per-node speed (#24) — SHIPPED 2026-06-06:** passersOf factor-out (`6da47d4`, ~5%) + pawn-shield bit-scan (`f06a839`, ~1.5%), both node-identical (baselines unchanged) — ~6.5% NPS, the day's positive after 3 search-param rejects.
 - **safe-checks eval-ADD — REJECTED** (SPRT leaned −77 @ G23, consistently below 0, killed). Reverted; full diff at `output/safechecks_parked.diff` (retry with shrunk weights is possible but low priority — king-attack quadratic likely already prices most king danger).
 - **computeSideAtt king-guard — SHIPPED** (`ac64ae3`): fixed a latent panic on king-less malformed FENs that the threats commit introduced. Node-identical for every legal position.
 
