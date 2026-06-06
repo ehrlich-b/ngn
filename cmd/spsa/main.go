@@ -140,17 +140,23 @@ func main() {
 	fmt.Printf("openings=%d  out=%s  rend=%.3f  afrac=%.2f  seed=%d\n\n", len(openings), *outFile, *rEnd, *aFrac, *seed)
 	printTheta(params, "start")
 
-	plusPts, games := 0.0, 0 // health signal since last report: theta+ should hover ~50%
+	plusPts, games, forfeits := 0.0, 0, 0 // health since last report: theta+ ~50%, forfeits ~0
 	score := func(plus, minus []int) (float64, string) {
 		setParams(engPlus, params, plus)
 		setParams(engMinus, params, minus)
 		op := openings[rng.Intn(len(openings))]
 		g1 := uci.PlayGame(engPlus, engMinus, op, true, cfg) // theta+ as White
+		if g1.Reason == "time-forfeit" {
+			forfeits++
+		}
 		s := points(g1.Res)
 		n := 1
 		reason := g1.Reason
 		if !*single {
 			g2 := uci.PlayGame(engPlus, engMinus, op, false, cfg) // theta+ as Black
+			if g2.Reason == "time-forfeit" {
+				forfeits++
+			}
 			s += points(g2.Res)
 			n = 2
 			reason = g2.Reason
@@ -169,10 +175,10 @@ func main() {
 		if games > 0 {
 			pct = 100 * plusPts / float64(games)
 		}
-		fmt.Printf("[iter %d] theta+ %.1f%% over last %d games  ", k, pct, games)
+		fmt.Printf("[iter %d] theta+ %.1f%% over last %d games (%d forfeits)  ", k, pct, games, forfeits)
 		printTheta(params, "now")
 		writeCheckpoint(*outFile, k, params, pct)
-		plusPts, games = 0, 0
+		plusPts, games, forfeits = 0, 0, 0
 	}
 
 	runCampaign(params, startIter, *iters, A, rng, *report, score, onReport)
