@@ -44,12 +44,12 @@ Two dead ends, retired:
 - **DO NOT:** re-tune the existing eval basis (closed, regressed 3×); chase the eg-search tree (refuted); mine more eg-passer micro-terms; batch changes; reach for a single silver-bullet lever.
 
 ## Open tasks
-- **search-param tuning** (#34, ACTIVE) — the verified-untapped lever; ordered queue, ONE axis per SPRT, each gated by short-TC SPRT `[-5,0]`:
-  - **A — LMR base offset `0→0.75`** (search.go:108) — **IN FLIGHT** (`output/sprt_lmrA.log`). Textbook LMR carries an additive base; bare `log·log/2.0` reduces nothing at shallow/low-move nodes (`lmrTable[3][3]=0`,`[6][6]=1`). Tactical 30/30.
-  - **B — adaptive NMP `R = 3 + depth/6`** (search.go:1184, append `- depth/6`) — designed; launch when A finishes. Scales null-move reduction with depth; fixed R=3 is the conservative anomaly. Independent of A.
-  - **C — RFP margin sweep** (`REVERSE_FUTILITY_MARGIN` 120, search.go:20) — design after A/B land.
-  - **D — LMR divisor `2.0→{1.8|2.25}`** — direction set by A's verdict (offset kept ⇒ tune divisor toward more reduction; rejected ⇒ go conservative).
-  - Later (one each): futility 200, LMP-table scale, NMP eval-margin term, LMR move-threshold 3.
+- **search-param tuning** (#34, ACTIVE) — the verified-untapped lever; **the lane is HOT** (A moved ELO ~150 on one knob). ONE axis per SPRT, `[0,10]` gain-hunt frame, trend-kill on a consistent negative. **Emerging read: two "more pruning" misses (A clear-neg, B mild-neg) ⇒ NGN does not want MORE pruning — now testing LESS (D).**
+  - **A — LMR base offset `0→0.75`** (search.go:108) — **REJECTED** 2026-06-06: 5W-6D-16L (29.6%, ~−150 ELO, CI excl. 0) at G27, killed on trend. More reduction at leaf-adjacent nodes bleeds ELO via un-re-searched fail-lows; the 30/30 tactical gate (200ms) is blind to it. **Polarity: NGN does NOT want MORE reduction.**
+  - **B — adaptive NMP `R = 3 + depth/6`** (search.go:1184) — **REJECTED** 2026-06-06: 25W-36D-31L (46.7%, −23 ELO, CI `[-93,+48]`) at G92, stable sub-50% tail, killed (no demonstrated gain). At bullet TC the depth-scaling barely bites; where it does it mildly hurts — consistent with the "don't add pruning" read.
+  - **D — LMR LESS reduction** (divisor `2.0→2.5`, search.go:108) — **IN FLIGHT** (`output/sprt_lmrD.log`, `[0,10]`). PROMOTED: the mirror of A on the proven-high-leverage knob; direct test of the over-pruned hypothesis. Gain ⇒ NGN over-prunes LMR; neutral ⇒ `/2.0` ~optimal, pivot off the LMR formula. Tactical 30/30.
+  - **C — RFP margin sweep** (`REVERSE_FUTILITY_MARGIN` 120, search.go:20) — after D; if the over-pruned read holds, test the conservative direction (HIGHER margin = less RFP).
+  - Later (one each): futility 200, LMP-table scale, LMR move-threshold 3.
 - **#21** — fix the 3 texel-tuner defects (quiet-filter, dedup, train/test split, external SF teacher) BEFORE any future re-tune; the phase-gate headline is already fixed (`a0e326c`).
 - **#24** — per-node speed pass (node-identity + bench gated); incremental-SEE is the known-delicate candidate (subtle x-ray reveal-timing).
 - **#33** — harden the soft-2540 (fixed-harness gauntlet 100/anchor; the harness storm is fixed via per-game restart).
