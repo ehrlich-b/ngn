@@ -137,6 +137,21 @@ func scoreFromTT(score int16, ply int) int {
 	return s
 }
 
+// seeNonLosingByMVV reports that a capture is provably non-losing (SEE >= 0)
+// from material values alone: capturing a piece worth at least as much as the
+// mover can never lose material, since the worst case is the immediate recapture
+// (net = captured - mover >= 0) and SEE never continues an exchange that worsens
+// the result. Used to short-circuit the full SEE swap at sites that only test the
+// sign of SEE against a non-positive threshold (probcut, bad-capture pruning,
+// qsearch losing-capture pruning) — node-identical, since for these moves the full
+// SEE would return >= 0 and never trip those tests. Promotions and en passant are
+// excluded (the mover changes value / the captured square differs), so they fall
+// through to the exact computation.
+func seeNonLosingByMVV(move Move) bool {
+	return !move.IsEnPassant() && move.PromoType() == NoType &&
+		move.CapturedPiece().seeWeight() >= move.MovingPiece().seeWeight()
+}
+
 // Static Exchange Evaluation (SEE) implementation
 // Returns the material balance after a series of exchanges on the target square
 func staticExchangeEvaluation(pos *Position, move Move) int {
@@ -1227,9 +1242,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		for i := 0; i < capCount; i++ {
 			move := capBuffer[i]
 
-			// Only consider captures with good SEE
-			seeValue := staticExchangeEvaluation(pos, move)
-			if seeValue < 0 {
+			// Only consider captures with good SEE (skip the full swap when the
+			// capture is provably non-losing — see seeNonLosingByMVV).
+			if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < 0 {
 				continue
 			}
 
@@ -1354,8 +1369,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Skip obviously losing captures at low depths (not in PV, not TT move).
 		// legalTried > 0 guard (F1): never prune before one legal move is searched.
 		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 && move.IsCapture() && move != ttMove && legalTried > 0 {
-			seeValue := staticExchangeEvaluation(pos, move)
-			if seeValue < -100 { // Skip captures losing more than a pawn
+			// Skip the full swap when the capture is provably non-losing (SEE >= 0 > -100).
+			if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < -100 { // losing more than a pawn
 				continue
 			}
 		}
@@ -1916,8 +1931,8 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			continue
 		}
 
-		// SEE pruning: skip losing captures
-		if staticExchangeEvaluation(pos, move) < 0 {
+		// SEE pruning: skip losing captures (skip the full swap when provably non-losing).
+		if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < 0 {
 			continue
 		}
 
