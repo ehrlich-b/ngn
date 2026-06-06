@@ -44,7 +44,12 @@ Two dead ends, retired:
 - **DO NOT:** re-tune the existing eval basis (closed, regressed 3×); chase the eg-search tree (refuted); mine more eg-passer micro-terms; batch changes; reach for a single silver-bullet lever.
 
 ## Open tasks
-- **search-param tuning** (NEW) — verify the lane via the LMR-divisor SPRT; if it moves, scope the cheap targeted grind (LMR divisor/offset, adaptive NMP R, futility/LMP margins), one axis per SPRT.
+- **search-param tuning** (#34, ACTIVE) — the verified-untapped lever; ordered queue, ONE axis per SPRT, each gated by short-TC SPRT `[-5,0]`:
+  - **A — LMR base offset `0→0.75`** (search.go:108) — **IN FLIGHT** (`output/sprt_lmrA.log`). Textbook LMR carries an additive base; bare `log·log/2.0` reduces nothing at shallow/low-move nodes (`lmrTable[3][3]=0`,`[6][6]=1`). Tactical 30/30.
+  - **B — adaptive NMP `R = 3 + depth/6`** (search.go:1184, append `- depth/6`) — designed; launch when A finishes. Scales null-move reduction with depth; fixed R=3 is the conservative anomaly. Independent of A.
+  - **C — RFP margin sweep** (`REVERSE_FUTILITY_MARGIN` 120, search.go:20) — design after A/B land.
+  - **D — LMR divisor `2.0→{1.8|2.25}`** — direction set by A's verdict (offset kept ⇒ tune divisor toward more reduction; rejected ⇒ go conservative).
+  - Later (one each): futility 200, LMP-table scale, NMP eval-margin term, LMR move-threshold 3.
 - **#21** — fix the 3 texel-tuner defects (quiet-filter, dedup, train/test split, external SF teacher) BEFORE any future re-tune; the phase-gate headline is already fixed (`a0e326c`).
 - **#24** — per-node speed pass (node-identity + bench gated); incremental-SEE is the known-delicate candidate (subtle x-ray reveal-timing).
 - **#33** — harden the soft-2540 (fixed-harness gauntlet 100/anchor; the harness storm is fixed via per-game restart).

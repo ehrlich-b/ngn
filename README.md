@@ -4,7 +4,7 @@ A chess engine written in Go, targeting Grandmaster level (2500+ ELO) with class
 
 ## Current Status
 
-**ELO:** ~2380 CCRL Blitz — measured vs published-CCRL Blunder anchors (`make gauntlet`); Blunder 7.4.0 (CCRL 2532) is the working anchor and is ~+150 ahead. The Stockfish `UCI_Elo` slider reads ~+400 inflated, so disregard old slider-based "1600"/"2500" figures.
+**ELO:** ~2540 CCRL Blitz (soft) — measured vs published-CCRL Blunder anchors (`make gauntlet`): Blunder 7.2.0→2549 and 7.4.0→2538 agree, so NGN is ~even with Blunder 7.4.0 (CCRL 2532), at/near the GM line. Soft pending a 100/anchor rerun (the prior samples were forfeit-capped). The Stockfish `UCI_Elo` slider reads ~+400 inflated, so disregard old slider-based "1600"/"2500" figures.
 
 ## Verified Performance
 
@@ -16,7 +16,7 @@ NPS is phase- and core-dependent — it is **not** a scalar; always state the po
 | NPS (E-core, endgame) | ~540K–860K |
 | NPS (P-core) | ~1M |
 
-vs Blunder 7.4.0 (same box, both Go, both E-cores): ~2x slower **per node** everywhere, plus a **2.5–5x larger search tree in endgames** (a pruning-efficiency gap, not eval). Canonical breakdown: `docs/10-performance.md`; reproduce with `scripts/h2h.sh`.
+vs Blunder 7.4.0 (same box, both Go, both E-cores): **~1.5x slower per node** (engineering, recoverable — Blunder is also Go); the search tree is **~1x in middlegames and ~0.85x in quiet endgames** (NGN often *smaller*). The old "2.5–5x larger endgame tree / pruning collapse" claim was REFUTED (2026-06-06): thermal-NPS noise plus one mislabeled position (h2h's "quiet-end" is tactically won). Reproduce with `scripts/h2h.sh` — but disregard its "quiet-end" row.
 
 ## Features
 
