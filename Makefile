@@ -207,6 +207,12 @@ gauntlet: build ## Measure NGN's absolute CCRL rating vs the Blunder anchor ladd
 	@go build -o $(BUILD_DIR)/gauntlet ./cmd/gauntlet
 	@./$(BUILD_DIR)/gauntlet $(ARGS)
 
+.PHONY: spsa
+spsa: build ## Joint SPSA tune of the search-param vector (ARGS="-iters 8000 -tc 10+0.1"); use ARGS="-selftest" to validate the math without games
+	@mkdir -p $(BUILD_DIR)
+	@go build -o $(BUILD_DIR)/spsa ./cmd/spsa
+	@./$(BUILD_DIR)/spsa $(ARGS)
+
 oracle: build ## Fast deterministic best-move-agreement pre-filter vs a labeled EPD (ARGS="-new build/ngn_a2 -base build/ngn -nodes 2000 -v")
 	@mkdir -p $(BUILD_DIR)
 	@go build -o $(BUILD_DIR)/oracle ./cmd/oracle
