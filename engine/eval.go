@@ -386,25 +386,36 @@ func passedRankWeightedSum(pawnBitboard, opponentPawnBitboard uint64, color Colo
 	return sum
 }
 
-// passedBlockedCount counts the side's passed pawns whose stop square (one rank
-// ahead) is occupied by an enemy piece. A blockaded passer can't advance until the
-// blocker is removed, so it is worth far less than the rank-weighted bonus credits —
-// the eval-optimism bias the L1 loss analysis found (NGN steers into lost positions
-// over-valuing its own stalled passers). The blocker is necessarily a non-pawn (a
-// passer has no enemy pawn ahead on its file by definition), so oppNonPawns excludes
-// pawns. Uses the same passedPawnFrontSpan test as countPassedPawnsFast so the two
-// agree on which pawns are passed.
-func passedBlockedCount(ownPawns, oppPawns, oppNonPawns uint64, color Color) int {
+// passersOf returns the bitboard of `color`'s passed pawns (no enemy pawn anywhere
+// on the front span). The three per-eval passer terms below (blocked / king-discount
+// / rook-behind) all share this single detection instead of each re-testing every
+// pawn — node-identical, just computed once per color rather than once per term.
+func passersOf(ownPawns, oppPawns uint64, color Color) uint64 {
 	if ownPawns == 0 {
 		return 0
 	}
 	masks := &passedPawnFrontSpan[color]
-	count := 0
+	var passers uint64
 	for bb := ownPawns; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		if masks[sq]&oppPawns != 0 {
-			continue // not a passed pawn
+		if masks[sq]&oppPawns == 0 {
+			passers |= SquareMask[sq]
 		}
+	}
+	return passers
+}
+
+// passedBlockedCount counts, over the side's already-detected passers, those whose
+// stop square (one rank ahead) is occupied by an enemy piece. A blockaded passer
+// can't advance until the blocker is removed, so it is worth far less than the
+// rank-weighted bonus credits — the eval-optimism bias the L1 loss analysis found
+// (NGN steers into lost positions over-valuing its own stalled passers). The blocker
+// is necessarily a non-pawn (a passer has no enemy pawn ahead on its file), so
+// oppNonPawns excludes pawns.
+func passedBlockedCount(passers, oppNonPawns uint64, color Color) int {
+	count := 0
+	for bb := passers; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
 		stop := sq + 8
 		if color == Black {
 			stop = sq - 8
@@ -438,19 +449,15 @@ const (
 // kingPasserMaxDist (enemy king on the stop square) to 0 (king kingPasserMaxDist+ away).
 // Returns the raw ramp sum (EG taper applied by the caller); mirrors the
 // passedPawnFrontSpan passer test so it agrees with the other passed-pawn terms.
-func passedKingDiscount(ownPawns, oppPawns uint64, enemyKingSq int, color Color) int {
-	if ownPawns == 0 {
+func passedKingDiscount(passers uint64, enemyKingSq int, color Color) int {
+	if passers == 0 {
 		return 0
 	}
-	masks := &passedPawnFrontSpan[color]
 	ekFile := enemyKingSq & 7
 	ekRank := enemyKingSq >> 3
 	discount := 0
-	for bb := ownPawns; bb != 0; bb &= bb - 1 {
+	for bb := passers; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		if masks[sq]&oppPawns != 0 {
-			continue // not a passed pawn
-		}
 		stop := sq + 8
 		if color == Black {
 			stop = sq - 8
@@ -483,17 +490,13 @@ func passedKingDiscount(ownPawns, oppPawns uint64, enemyKingSq int, color Color)
 // its rank bonus credits — another slice of the L1 own-passer optimism. "Behind" is
 // toward the pawn's own side: lower ranks for White, higher for Black. Mirrors the
 // passedPawnFrontSpan passer test so it agrees with the other passed-pawn terms.
-func passedRookBehindCount(ownPawns, oppPawns, oppRooks uint64, color Color) int {
-	if ownPawns == 0 || oppRooks == 0 {
+func passedRookBehindCount(passers, oppRooks uint64, color Color) int {
+	if oppRooks == 0 {
 		return 0
 	}
-	masks := &passedPawnFrontSpan[color]
 	count := 0
-	for bb := ownPawns; bb != 0; bb &= bb - 1 {
+	for bb := passers; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		if masks[sq]&oppPawns != 0 {
-			continue // not a passed pawn
-		}
 		fileBB := uint64(0x0101010101010101) << (sq & 7)
 		var behind uint64
 		if color == White {
@@ -2775,21 +2778,23 @@ func evalCoreWhite(board *Bitboard) (eval, phase int) {
 	// L1 over-optimism the loss analysis flagged. Subtract a phase-tapered penalty each.
 	blackNonPawns := board.GetBlackPieces() &^ blackPawns
 	whiteNonPawns := board.GetWhitePieces() &^ whitePawns
-	whiteBlocked := passedBlockedCount(whitePawns, blackPawns, blackNonPawns, White)
-	blackBlocked := passedBlockedCount(blackPawns, whitePawns, whiteNonPawns, Black)
+	whitePassers := passersOf(whitePawns, blackPawns, White)
+	blackPassers := passersOf(blackPawns, whitePawns, Black)
+	whiteBlocked := passedBlockedCount(whitePassers, blackNonPawns, White)
+	blackBlocked := passedBlockedCount(blackPassers, whiteNonPawns, Black)
 	eval -= (whiteBlocked - blackBlocked) * taperW(blockedPasserPenalty, blockedPasserPenaltyEG, phase)
 	// King-vs-passer endgame discount: a passer the enemy king can reach is worth less
 	// than its rank-weighted bonus credits (the endgame half of the same L1 own-passer
 	// optimism). EG-only via taperW(0, ...) so it never nudges middlegame king walks.
 	whiteKingSq := trailingZeros(board.GetBitboardOf(WhiteKing))
 	blackKingSq := trailingZeros(board.GetBitboardOf(BlackKing))
-	whiteKingDisc := passedKingDiscount(whitePawns, blackPawns, blackKingSq, White)
-	blackKingDisc := passedKingDiscount(blackPawns, whitePawns, whiteKingSq, Black)
+	whiteKingDisc := passedKingDiscount(whitePassers, blackKingSq, White)
+	blackKingDisc := passedKingDiscount(blackPassers, whiteKingSq, Black)
 	eval -= (whiteKingDisc - blackKingDisc) * taperW(0, kingPasserBlockEG, phase)
 	// Rook-behind-passer discount (Tarrasch): a passer with an enemy rook behind it on
 	// its file is restrained, worth less than its rank bonus credits. EG-only.
-	whiteRookBehind := passedRookBehindCount(whitePawns, blackPawns, board.GetBitboardOf(BlackRook), White)
-	blackRookBehind := passedRookBehindCount(blackPawns, whitePawns, board.GetBitboardOf(WhiteRook), Black)
+	whiteRookBehind := passedRookBehindCount(whitePassers, board.GetBitboardOf(BlackRook), White)
+	blackRookBehind := passedRookBehindCount(blackPassers, board.GetBitboardOf(WhiteRook), Black)
 	eval -= (whiteRookBehind - blackRookBehind) * taperW(0, rookBehindPasserEG, phase)
 	eval -= (whiteDoubled - blackDoubled) * taperW(doubledPawnPenalty, doubledPawnPenaltyEG, phase)     // doubled penalty
 	eval -= (whiteIsolated - blackIsolated) * taperW(isolatedPawnPenalty, isolatedPawnPenaltyEG, phase) // isolated penalty

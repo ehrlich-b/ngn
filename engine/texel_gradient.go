@@ -152,16 +152,18 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 	// stays bit-exact. Not in the texel param vector, hence constant in the gradient.
 	blackNonPawns := board.GetBlackPieces() &^ blackPawns
 	whiteNonPawns := board.GetWhitePieces() &^ whitePawns
-	wBlocked := passedBlockedCount(whitePawns, blackPawns, blackNonPawns, White)
-	bBlocked := passedBlockedCount(blackPawns, whitePawns, whiteNonPawns, Black)
+	whitePassers := passersOf(whitePawns, blackPawns, White)
+	blackPassers := passersOf(blackPawns, whitePawns, Black)
+	wBlocked := passedBlockedCount(whitePassers, blackNonPawns, White)
+	bBlocked := passedBlockedCount(blackPassers, whiteNonPawns, Black)
 	t.Fixed = -(wBlocked - bBlocked) * taperW(blockedPasserPenalty, blockedPasserPenaltyEG, phase)
 	wKingSq := trailingZeros(board.GetBitboardOf(WhiteKing))
 	bKingSq := trailingZeros(board.GetBitboardOf(BlackKing))
-	wKingDisc := passedKingDiscount(whitePawns, blackPawns, bKingSq, White)
-	bKingDisc := passedKingDiscount(blackPawns, whitePawns, wKingSq, Black)
+	wKingDisc := passedKingDiscount(whitePassers, bKingSq, White)
+	bKingDisc := passedKingDiscount(blackPassers, wKingSq, Black)
 	t.Fixed -= (wKingDisc - bKingDisc) * taperW(0, kingPasserBlockEG, phase)
-	wRookBehind := passedRookBehindCount(whitePawns, blackPawns, board.GetBitboardOf(BlackRook), White)
-	bRookBehind := passedRookBehindCount(blackPawns, whitePawns, board.GetBitboardOf(WhiteRook), Black)
+	wRookBehind := passedRookBehindCount(whitePassers, board.GetBitboardOf(BlackRook), White)
+	bRookBehind := passedRookBehindCount(blackPassers, board.GetBitboardOf(WhiteRook), Black)
 	t.Fixed -= (wRookBehind - bRookBehind) * taperW(0, rookBehindPasserEG, phase)
 	// Threats ride in the Fixed lump (non-tunable, MG-tapered) — same helper and
 	// args as evalExtrasWhite, so reconstructEvalInt stays bit-exact.
