@@ -1255,31 +1255,26 @@ func evaluatePawnShield(pawnBitboard uint64, kingFile int, kingRank int, color C
 			continue
 		}
 
-		pawnFound := false
-		closestPawnRank := -1
-
-		// Find closest pawn on this file in front of king
-		for rankOffset := 1; rankOffset <= 6; rankOffset++ {
-			var checkRank int
-			if color == White {
-				checkRank = kingRank + rankOffset
-			} else {
-				checkRank = kingRank - rankOffset
-			}
-
-			if checkRank < 0 || checkRank > 7 {
-				break
-			}
-
-			checkSquare := checkRank*8 + file
-			if (pawnBitboard & (1 << checkSquare)) != 0 {
-				pawnFound = true
-				closestPawnRank = checkRank
-				break
-			}
+		// Closest own pawn in front of the king on this file, via a single bit scan
+		// instead of a rank-by-rank loop. Legal positions keep pawns on ranks 2-7, so
+		// the old loop's rankOffset<=6 cap never excluded a reachable pawn — this is
+		// bit-identical to that scan (the node-identity gate enforces it).
+		fileBB := uint64(0x0101010101010101) << uint(file)
+		var inFront uint64
+		if color == White {
+			inFront = pawnBitboard & fileBB & (^uint64(0) << uint((kingRank+1)*8)) // ranks above the king
+		} else {
+			inFront = pawnBitboard & fileBB & ((uint64(1) << uint(kingRank*8)) - 1) // ranks below the king
 		}
 
-		if pawnFound {
+		if inFront != 0 {
+			var closestPawnRank int
+			if color == White {
+				closestPawnRank = bits.TrailingZeros64(inFront) >> 3 // nearest rank above the king
+			} else {
+				closestPawnRank = (63 - bits.LeadingZeros64(inFront)) >> 3 // nearest rank below the king
+			}
+
 			var distance int
 			if color == White {
 				distance = closestPawnRank - kingRank
