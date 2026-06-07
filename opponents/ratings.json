@@ -3,5 +3,6 @@
   {"version":"v6.1.0","path":"opponents/blunder_610","ccrl":2155,"source":"CCRL Blitz (Blunder README rating table)"},
   {"version":"v7.2.0","path":"opponents/blunder_720","ccrl":2425,"source":"CCRL Blitz (Blunder README rating table)"},
   {"version":"v7.4.0","path":"opponents/blunder_740","ccrl":2532,"source":"CCRL Blitz (Blunder README rating table); the anchor that exposed SF UCI_Elo inflation"},
-  {"version":"v8.0.0","path":"opponents/blunder_800","ccrl":2674,"source":"CCRL Blitz (Blunder README rating table); fallback upper bracket"}
+  {"version":"v8.0.0","path":"opponents/blunder_800","ccrl":2674,"source":"CCRL Blitz (Blunder README rating table); fallback upper bracket"},
+  {"version":"fruit-2.1","path":"opponents/fruit_21","ccrl":2685,"source":"CCRL Blitz 40/2 = 2685 (48.3% over 604 games); Fabien Letouzey 2005; built from src (Warpten/Fruit-2.1 mirror) with clang -std=gnu++98; independent non-Blunder anchor with no movetime-overshoot bug"}
 ]

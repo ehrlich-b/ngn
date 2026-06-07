@@ -35,4 +35,17 @@ build v5.0.0 blunder_500   # 2080 — fallback bracket (NGN favored)
 build v8.0.0 blunder_800   # 2674 — fallback bracket (NGN underdog)
 
 git -C "$SRC" checkout --quiet - 2>/dev/null || true
-echo "done: $(ls "$OUT" | grep '^blunder_' | tr '\n' ' ')"
+
+# Fruit 2.1 (Fabien Letouzey, 2005) — an independent NON-Blunder anchor: a different
+# engine family that exposes anchor non-transitivity the Blunder ladder hides, and
+# with no movetime-overshoot bug. CCRL Blitz 2685. Old C++, so build with an old
+# standard under clang (the arm64 host has no GNU g++).
+FRUITSRC="$OUT/.src-fruit"
+if [ ! -d "$FRUITSRC/.git" ]; then
+	git clone --depth 1 https://github.com/Warpten/Fruit-2.1.git "$FRUITSRC"
+fi
+clang++ -std=gnu++98 -w -O3 -fno-exceptions -fno-rtti -fstrict-aliasing -fomit-frame-pointer \
+	-o "$OUT/fruit_21" "$FRUITSRC"/src/*.cpp -lm
+echo "built $OUT/fruit_21 from Fruit-2.1 src"
+
+echo "done: $(ls "$OUT" | grep -E '^(blunder_|fruit_)' | tr '\n' ' ')"

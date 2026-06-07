@@ -43,7 +43,9 @@ stockfish-*
 # Built opponent engine binaries + cloned source (rebuild: scripts/build-anchors.sh).
 # opponents/ratings.json IS tracked — it is the reproducible version->CCRL spec.
 /opponents/blunder_*
+/opponents/fruit_*
 /opponents/.src/
+/opponents/.src-fruit/
 
 # Temporary test files
 temp_*
