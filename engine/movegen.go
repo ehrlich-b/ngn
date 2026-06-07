@@ -597,6 +597,79 @@ func generateSlidingCapturesIntoBuffer(pos *Position, from Square, directions []
 	return count
 }
 
+// moveIsPseudoLegal reports whether move can be played in pos: the moving piece is
+// actually on its source square, belongs to the side to move, the destination is
+// reachable by that piece given the current occupancy, and any capture target
+// matches the board. It does NOT verify the move leaves the king out of check —
+// that is caught after make, exactly as in the normal move loop. "Pseudo-legal" is
+// precisely the guarantee needed to safely make a hash-table move (which may be a
+// collision) before generating the rest of the moves.
+//
+// Special moves (promotion, castling, en passant, double pawn push) return false:
+// their side effects (rook hop, ep capture square, double-push ep flag) are left to
+// full generation. They are a small fraction of TT moves, so deferring them keeps
+// this validator simple and safe at negligible cost to the staged-search win.
+func moveIsPseudoLegal(pos *Position, move Move) bool {
+	if move == EmptyMove {
+		return false
+	}
+	mover := move.MovingPiece()
+	src := move.Source()
+	dst := move.Destination()
+	stm := pos.Turn()
+
+	// The mover must actually sit on src and belong to the side to move.
+	if mover == NoPiece || mover.Color() != stm || pos.Board.PieceAt(src) != mover {
+		return false
+	}
+	// Defer promotions / castles / en passant (side effects) to full generation.
+	if move.PromoType() != NoType || move.IsCastle() || move.IsEnPassant() {
+		return false
+	}
+	// The encoded capture must match the board, and a capture must land on an enemy.
+	captured := pos.Board.PieceAt(dst)
+	if captured != move.CapturedPiece() {
+		return false
+	}
+	if captured != NoPiece && captured.Color() == stm {
+		return false
+	}
+
+	dstMask := SquareMask[int(dst)]
+	occupied := pos.Board.GetWhitePieces() | pos.Board.GetBlackPieces()
+
+	switch mover.Type() {
+	case Knight:
+		return KnightAttacks[src]&dstMask != 0
+	case King:
+		return KingAttacks[src]&dstMask != 0
+	case Bishop:
+		return getBishopAttacksBB(int(src), occupied)&dstMask != 0
+	case Rook:
+		return getRookAttacksBB(int(src), occupied)&dstMask != 0
+	case Queen:
+		return (getBishopAttacksBB(int(src), occupied)|getRookAttacksBB(int(src), occupied))&dstMask != 0
+	case Pawn:
+		// Forward distance normalized so "toward promotion" is positive.
+		fwd := int(dst) - int(src)
+		if stm == Black {
+			fwd = -fwd
+		}
+		srcFile := int(src) & 7
+		dstFile := int(dst) & 7
+		if captured == NoPiece {
+			// Single quiet push, same file, one rank forward, dst empty. Double
+			// pushes have fwd==16 -> false -> deferred to full generation.
+			return fwd == 8 && srcFile == dstFile
+		}
+		// Diagonal capture one rank forward onto an adjacent file holding an enemy.
+		// En passant lands on an EMPTY square (captured==NoPiece -> the push branch
+		// above rejects it -> deferred), so this only matches real diagonal captures.
+		return (fwd == 7 || fwd == 9) && (srcFile-dstFile == 1 || dstFile-srcFile == 1)
+	}
+	return false
+}
+
 // IsLegalMove checks if a move is legal (doesn't leave king in check)
 func IsLegalMove(pos *Position, move Move) bool {
 	// Special handling for castling - check intermediate squares
@@ -770,13 +843,13 @@ func isInCheck(pos *Position, color Color) bool {
 	enemyQueens := pos.Board.GetBitboardOf(WhiteQueen + enemyBase)
 
 	// Check diagonal attacks (bishop, queen)
-	diagonalAttackers := pos.Board.GetBitboardOf(WhiteBishop + enemyBase) | enemyQueens
+	diagonalAttackers := pos.Board.GetBitboardOf(WhiteBishop+enemyBase) | enemyQueens
 	if GetBishopAttacks(int(kingSquare), occupied)&diagonalAttackers != 0 {
 		return true
 	}
 
 	// Check straight attacks (rook, queen)
-	straightAttackers := pos.Board.GetBitboardOf(WhiteRook + enemyBase) | enemyQueens
+	straightAttackers := pos.Board.GetBitboardOf(WhiteRook+enemyBase) | enemyQueens
 	if GetRookAttacks(int(kingSquare), occupied)&straightAttackers != 0 {
 		return true
 	}
