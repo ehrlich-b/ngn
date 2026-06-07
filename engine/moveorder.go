@@ -315,7 +315,7 @@ func orderMovesSinglePass(moves []Move, depth int, previousMove Move, ttMove Mov
 func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, pos *Position) int {
 	// Use a fixed-size array for scoring to avoid allocations
 	var scores [256]int
-	n := scoreMovesIntoBuffer(moves, depth, previousMove, ttMove, ttHit, out, scores[:], pos)
+	n, _ := scoreMovesIntoBuffer(moves, depth, previousMove, ttMove, ttHit, out, scores[:], pos)
 	for i := 0; i < n-1; i++ {
 		selectNextMove(out, scores[:], n, i)
 	}
@@ -324,11 +324,13 @@ func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, 
 
 // scoreMovesIntoBuffer writes each move and its ordering score into the parallel out/scores
 // buffers WITHOUT sorting. The search drives the sort incrementally via selectNextMove so the
-// O(n^2) selection tail past a beta cutoff is never paid. Returns the number of moves written.
-func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position) int {
+// O(n^2) selection tail past a beta cutoff is never paid. Returns the number of moves written
+// and the index of the TT move within out[] (or -1 if absent), so the caller can hoist it to
+// the front in O(1) rather than rescanning for it in selectNextMove(oi=0).
+func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position) (int, int) {
 	n := len(moves)
 	if n == 0 || len(out) < n || len(scores) < n {
-		return 0
+		return 0, -1
 	}
 
 	// Hoist the continuation-history sub-table for previousMove out of the per-move
@@ -354,13 +356,16 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Mov
 		killer1 = killerMoves[depth][1]
 	}
 
-	// Single pass: score all moves
+	// Single pass: score all moves. Record where the TT move lands so the caller can hoist
+	// it to the front in O(1) — it always carries the unique top score (100000).
+	ttIndex := -1
 	for i, move := range moves {
 		score := 0
 
 		// TT move gets highest priority
 		if ttHit && move == ttMove {
 			score = 100000
+			ttIndex = i
 		} else {
 			// Calculate score based on move type and SEE
 			if move.IsCapture() || move.IsEnPassant() {
@@ -424,7 +429,7 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Mov
 		out[i] = move
 	}
 
-	return n
+	return n, ttIndex
 }
 
 // selectNextMove performs one selection-sort step: it scans out[i:n] for the highest score
