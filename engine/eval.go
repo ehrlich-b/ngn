@@ -813,6 +813,14 @@ func evaluatePawnStorms(board *Bitboard, color Color) int {
 	return stormBonus
 }
 
+// kingSafetyFullAttackMaterial is the enemy attacking-material total (Q=4 R=2
+// B=1 N=1) at which the POSITIONAL king-safety terms (pawn shield, central-king
+// exposure, open files near the king) apply at full weight; below it they scale
+// down linearly toward 0. An exposed king is only weak if the enemy has force to
+// exploit it — without it those terms over-credit a "safe" king, the source of a
+// measured ~+145cp own-side eval over-optimism in phase 6-11 (queens traded).
+const kingSafetyFullAttackMaterial = 8
+
 // Enhanced king safety evaluation with improved pawn shield and attack patterns
 func evaluateKingSafety(board *Bitboard, color Color, sliderAtt *[64]uint64) int {
 	var kingBitboard uint64
@@ -846,23 +854,17 @@ func evaluateKingSafety(board *Bitboard, color Color, sliderAtt *[64]uint64) int
 	kingFile := int(kingSquare % 8)
 	kingRank := int(kingSquare / 8)
 
-	safety := 0
+	// Positional ("how exposed is the king") terms — shield, central-king, open
+	// files. Accumulated into nonAttack, then scaled by enemy attacking material
+	// below: these only matter if the enemy has force to attack the king.
+	nonAttack := 0
 
 	// 1. Enhanced Pawn Shield Evaluation
-	pawnShieldBonus := evaluatePawnShield(pawnBitboard, kingFile, kingRank, color)
-	safety += pawnShieldBonus
-
-	// 2. Attack Pattern Evaluation (penalties for enemy pieces actually
-	// attacking the king zone, not just sitting near it).
-	attackPenalty := evaluateKingAttackPatterns(sliderAtt,
-		opponentQueenBitboard, opponentRookBitboard,
-		opponentBishopBitboard, opponentKnightBitboard,
-		int(kingSquare), color)
-	safety -= attackPenalty
+	nonAttack += evaluatePawnShield(pawnBitboard, kingFile, kingRank, color)
 
 	// 3. King position penalty (being in center during middlegame is dangerous)
 	if kingFile >= 2 && kingFile <= 5 { // Central files
-		safety -= 15 // Penalty for exposed king
+		nonAttack -= 15 // Penalty for exposed king
 	}
 
 	// 4. Open file penalty near king
@@ -879,13 +881,30 @@ func evaluateKingSafety(board *Bitboard, color Color, sliderAtt *[64]uint64) int
 		whitePawns := whitePawnsAll & fileMask
 		blackPawns := blackPawnsAll & fileMask
 		if whitePawns == 0 && blackPawns == 0 {
-			safety -= 20 // Open file near king is dangerous
+			nonAttack -= 20 // Open file near king is dangerous
 		} else if color == White && whitePawns == 0 {
-			safety -= 10 // Semi-open file is also risky
+			nonAttack -= 10 // Semi-open file is also risky
 		} else if color == Black && blackPawns == 0 {
-			safety -= 10
+			nonAttack -= 10
 		}
 	}
+
+	// Scale the positional terms by enemy attacking material (full weight at
+	// >=8 ~ Q+2R; collapses toward 0 once queens/heavies trade off).
+	attackerMaterial := 4*PopCount(opponentQueenBitboard) + 2*PopCount(opponentRookBitboard) +
+		PopCount(opponentBishopBitboard) + PopCount(opponentKnightBitboard)
+	if attackerMaterial > kingSafetyFullAttackMaterial {
+		attackerMaterial = kingSafetyFullAttackMaterial
+	}
+	safety := nonAttack * attackerMaterial / kingSafetyFullAttackMaterial
+
+	// 2. Attack Pattern Evaluation (penalties for enemy pieces actually attacking
+	// the king zone, not just sitting near it). Already self-scaled by the number
+	// and weight of real attackers, so it is NOT material-gated above.
+	safety -= evaluateKingAttackPatterns(sliderAtt,
+		opponentQueenBitboard, opponentRookBitboard,
+		opponentBishopBitboard, opponentKnightBitboard,
+		int(kingSquare), color)
 
 	return safety
 }
