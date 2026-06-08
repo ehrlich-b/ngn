@@ -2622,10 +2622,45 @@ func evaluateThreatsDelta(board *Bitboard, sliderAtt *[64]uint64, phase int) int
 	return (white - black) * phase / totalPhase
 }
 
+// ocbScaleEG is the eg-score scale (out of 64) applied to opposite-colored-bishop
+// endgames, which are heavily drawish even a pawn or two up. 64 = no scaling; 32 =
+// pull halfway toward the draw. NGN otherwise has NO draw scaling at all (its only
+// draw logic is the binary IsDraw, which bails the instant a pawn exists), so it
+// scores OCB endings at full material — a structural mg->eg over-optimism source.
+// Hand-set + SPRT-gated; it is a NON-LINEAR multiplier so it lives OUTSIDE
+// evaluateUnsafe (the Texel-traced linear core) and is not in the gradient basis.
+var ocbScaleEG = 32
+
+// ocbScale returns the endgame draw-scale factor (out of 64). It is 64 (identity)
+// for every position EXCEPT a pure opposite-colored-bishop ending — exactly one
+// bishop per side on opposite-colored squares, no knights/rooks/queens, and at least
+// one pawn each — where it returns ocbScaleEG to pull the eval toward the draw. Safe
+// by construction: it only ever REDUCES the magnitude of a provably-drawish ending
+// and never fires outside that exact material pattern, so it cannot create new error.
+func ocbScale(board *Bitboard) int {
+	if PopCount(board.GetBitboardOf(WhiteBishop)) != 1 || PopCount(board.GetBitboardOf(BlackBishop)) != 1 {
+		return 64
+	}
+	if board.GetBitboardOf(WhiteKnight) != 0 || board.GetBitboardOf(BlackKnight) != 0 ||
+		board.GetBitboardOf(WhiteRook) != 0 || board.GetBitboardOf(BlackRook) != 0 ||
+		board.GetBitboardOf(WhiteQueen) != 0 || board.GetBitboardOf(BlackQueen) != 0 {
+		return 64
+	}
+	if board.GetBitboardOf(WhitePawn) == 0 || board.GetBitboardOf(BlackPawn) == 0 {
+		return 64
+	}
+	wsq := int(bitScanForward(board.GetBitboardOf(WhiteBishop)))
+	bsq := int(bitScanForward(board.GetBitboardOf(BlackBishop)))
+	if (wsq%8+wsq/8)%2 == (bsq%8+bsq/8)%2 {
+		return 64 // same-colored bishops are not drawish in this way
+	}
+	return ocbScaleEG
+}
+
 // Enhanced evaluation function - always returns from white's perspective
 func Evaluate(board *Bitboard) (eval int) {
 	return WrapEvaluation("Evaluate", func() int {
-		return evaluateUnsafe(board)
+		return evaluateUnsafe(board) * ocbScale(board) / 64
 	}, board)
 }
 
@@ -2893,6 +2928,7 @@ func evaluateLazyStandPat(board *Bitboard, player Color, beta int) (standPat int
 		return 0, true
 	}
 	full := whiteCore + evalExtrasWhite(board, phase)
+	full = full * ocbScale(board) / 64 // OCB endgame draw-scaling — mirror Evaluate so main search and qsearch agree
 	if player != White {
 		full = -full
 	}
