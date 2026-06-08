@@ -218,6 +218,10 @@ oracle: build ## Fast deterministic best-move-agreement pre-filter vs a labeled 
 	@go build -o $(BUILD_DIR)/oracle ./cmd/oracle
 	@./$(BUILD_DIR)/oracle $(ARGS)
 
+.PHONY: acpl
+acpl: ## External eval ruler (run BEFORE SPRT-ing an eval change): ACPL vs Stockfish over the committed corpus (usage: make acpl BIN=build/ngn_new BASE=build/ngn)
+	@scripts/acpl.sh $(or $(BIN),build/ngn) $(BASE)
+
 .PHONY: perft
 perft: ## Run perft validation tests for move generation correctness
 	@echo "Running perft validation tests..."

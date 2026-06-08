@@ -79,6 +79,24 @@ absolute — use the gauntlet for absolute):
 
 Legacy presets exist (`-level 1/5/10`) but are not the default cadence.
 
+### External eval ruler — ACPL vs Stockfish (run BEFORE SPRT-ing an eval change)
+
+Self-play SPRT gains are partly **transfer-mirages** (they vanish on the gauntlet),
+and the gauntlet is too slow to run per change. `make acpl` is the EXTERNAL ruler:
+average centipawn loss of NGN's moves vs Stockfish over a committed, SF-labeled
+corpus (`acpl_corpus.labels`) — continuous, low-variance, and it catches the quiet
+positional error the best-move/SPRT signals miss. It FILTERS (the SPRT still
+confirms): an eval change that RAISES ACPL is suspect no matter what self-play says.
+
+```bash
+make acpl BIN=build/ngn_new BASE=build/ngn   # Δ ACPL/move (positive = NEW is worse)
+scripts/acpl.sh build/ngn_new build/ngn      # same, direct
+```
+
+The SF labels are NGN-independent ground truth, so the corpus stays valid across
+engine changes; regrow/expand it via `cmd/oracle gencorpus`+`label` (see
+`scripts/acpl.sh`).
+
 ## Development Rules
 
 ### Testing Cadence
