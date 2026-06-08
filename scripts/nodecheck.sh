@@ -44,10 +44,13 @@ BIN="${1:-build/ngn}"
 # reorders the search a lot (kiwipete -46%, end -50%, mid +35% — eval butterfly, NOT a
 # bug; tactical 30/30, SPRT +20.5/204g, faithfulness/symmetry green). Deterministic
 # (verified reproduced exactly). Gate node-IDENTITY against THESE for the speed lane.
+# RE-LOCKED 2026-06-07 to HEAD = ...+king-safety attacker-material scaling (7587eb6; SPRT
+# +43.7 elo [+9,+78] over 400g, KEEP): the eval change reorders cutoffs (mid -20%, kiwipete
+# +9%, end ~flat). Deterministic (wait-for-bestmove). Gate node-IDENTITY against THESE.
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|1501684"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|989263"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|513667"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|1632434"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|795065"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|518285"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
