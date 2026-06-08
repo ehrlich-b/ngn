@@ -109,7 +109,7 @@ Don't trust ELO/NPS claims in documentation without verification.
 
 ## Current Status
 
-- **ELO:** ~2380 CCRL Blitz (`make gauntlet` vs Blunder anchors; the SF `UCI_Elo` slider reads ~+400 inflated — disregard old slider numbers). Blunder 7.4.0 (CCRL 2532) is the working anchor, ~+150 ahead.
+- **ELO:** opponent-pool-dependent, **~2450–2655 CCRL Blitz (soft)** — large non-transitivity, so no single number pins it. ~2410–2447 vs the modern **Blunder** ladder (`make gauntlet`; Blunder 7.4.0 CCRL 2532 is ~+85–120 ahead, but its movetime-overshoot bug forfeit-contaminates the read); **~2655 vs Fruit 2.1** (CCRL 2685, a clean independent anchor, time-control-invariant across 1s/3s). 2540 is a defensible mid-spread estimate; a true number needs a broad opponent pool. SF `UCI_Elo` slider reads ~+400 inflated — disregard old slider numbers. (See README "Current Status".)
 - **NPS:** phase/core-dependent, NOT a scalar — ~307K E-core middlegame, ~540K-860K E-core endgame, ~1M P-core.
 - **Gap vs Blunder (both Go, E-cores):** ~1.5x slower per node (engineering waste, recoverable — Blunder is also Go). The old **"2.5-5x larger endgame tree / pruning collapse / the bigger lever" claim is REFUTED (2026-06-06)** — it was an artifact of ONE mislabeled h2h position: "quiet-end" `r7/5pk1/...R7` is tactically WON (1.Rxa8 wins a rook), so NGN's 6x tree there was over-searching a WON position, not floundering in a quiet one. On genuinely quiet/balanced endgames NGN's tree is **0.43-1.45x Blunder's (geo-mean ~0.85x — often SMALLER)** and the evals AGREE (no quiet-eg pruning gap, no eg over-optimism). Node counts are deterministic/exact; nps thermally noisy (~1.5x). Reproduce: `scripts/h2h.sh` — but DISREGARD its "quiet-end" row (won position).
 

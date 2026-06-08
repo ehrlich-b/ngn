@@ -4,7 +4,7 @@ A chess engine written in Go, targeting Grandmaster level (2500+ ELO) with class
 
 ## Current Status
 
-**ELO:** ~2540 CCRL Blitz (soft) — measured vs published-CCRL Blunder anchors (`make gauntlet`): Blunder 7.2.0→2549 and 7.4.0→2538 agree, so NGN is ~even with Blunder 7.4.0 (CCRL 2532), at/near the GM line. Soft pending a 100/anchor rerun (the prior samples were forfeit-capped). The Stockfish `UCI_Elo` slider reads ~+400 inflated, so disregard old slider-based "1600"/"2500" figures.
+**ELO:** opponent-pool-dependent, **~2450–2655 CCRL Blitz (soft)** — there is large non-transitivity between anchor families, so no single number pins it. Measured via two independent `make gauntlet` ladders (2026-06-07): vs the modern **Blunder** ladder NGN pools **~2447** (2026-06-03, 100/anchor), but Blunder's movetime-overshoot bug forfeit-contaminates the latest HEAD re-run (7.2.0 self-excludes on overshoot; some 7.4.0 "wins" are Blunder no-moves), so the clean Blunder read is **~2410–2447**; vs **Fruit 2.1** (CCRL 2685, a clean independent anchor with no overshoot bug) NGN scores **45–46% at both 1s and 3s/move → ~2655**, time-control-invariant (the 3s run rules out a movetime artifact). The **~200-ELO spread is genuine non-transitivity, not a measurement error** — a true CCRL rating needs a broad opponent pool (what CCRL itself does); **2540 is a defensible mid-spread estimate**. The Stockfish `UCI_Elo` slider reads ~+400 inflated, so disregard old slider-based "1600"/"2500" figures.
 
 ## Verified Performance
 
