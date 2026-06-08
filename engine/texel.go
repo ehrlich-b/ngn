@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"math"
+	"math/rand"
 	"os"
 	"runtime"
 	"strconv"
@@ -266,14 +267,33 @@ func TexelTune(samples []TexelSample, params []*int, k float64, step, maxPasses 
 // LoadTexelSamples reads a dataset of "<FEN> <result>" lines (result one of 1.0 /
 // 0.5 / 0.0, White's perspective), parsing each FEN once into an in-memory board.
 // Blank lines and lines starting with '#' are skipped; unparseable lines error.
-func LoadTexelSamples(filename string) ([]TexelSample, error) {
+//
+// Positions are DEDUPED by full Zobrist key (piece placement + side + castling +
+// en passant): self-play datasets repeat common positions heavily, which both
+// over-weights those structures in the MSE and — the worse defect — leaks the same
+// position across a later train/test split, so held-out "test" MSE secretly scores
+// training data and early stopping can't catch overfitting. Deduping at this single
+// load choke point fixes both for every consumer; the duplicate count is returned
+// so callers can report what was dropped (no silent truncation).
+func LoadTexelSamples(filename string) (samples []TexelSample, nDup int, err error) {
 	f, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer f.Close()
 
-	var samples []TexelSample
+	seen := make(map[uint64]bool)
+	// keep appends a sample unless its position was already seen; counts duplicates.
+	keep := func(pos *Position, result float64) {
+		key := pos.Hash()
+		if seen[key] {
+			nDup++
+			return
+		}
+		seen[key] = true
+		samples = append(samples, TexelSample{Board: pos.Board, Result: result})
+	}
+
 	sc := bufio.NewScanner(f)
 	sc.Buffer(make([]byte, 0, 1024*1024), 1024*1024)
 	lineNo := 0
@@ -289,13 +309,13 @@ func LoadTexelSamples(filename string) ([]TexelSample, error) {
 		if i := strings.Index(line, `c9 "`); i >= 0 {
 			fields := strings.Fields(line)
 			if len(fields) < 4 {
-				return nil, fmt.Errorf("line %d: short EPD: %q", lineNo, line)
+				return nil, 0, fmt.Errorf("line %d: short EPD: %q", lineNo, line)
 			}
 			fen := strings.Join(fields[:4], " ") + " 0 1"
 			r := line[i+len(`c9 "`):]
 			j := strings.IndexByte(r, '"')
 			if j < 0 {
-				return nil, fmt.Errorf("line %d: unterminated c9 opcode: %q", lineNo, line)
+				return nil, 0, fmt.Errorf("line %d: unterminated c9 opcode: %q", lineNo, line)
 			}
 			var result float64
 			switch r[:j] {
@@ -306,30 +326,76 @@ func LoadTexelSamples(filename string) ([]TexelSample, error) {
 			case "1/2-1/2":
 				result = 0.5
 			default:
-				return nil, fmt.Errorf("line %d: unknown c9 result %q", lineNo, r[:j])
+				return nil, 0, fmt.Errorf("line %d: unknown c9 result %q", lineNo, r[:j])
 			}
 			pos, err := ParseFEN(fen)
 			if err != nil {
-				return nil, fmt.Errorf("line %d: bad FEN %q: %w", lineNo, fen, err)
+				return nil, 0, fmt.Errorf("line %d: bad FEN %q: %w", lineNo, fen, err)
 			}
-			samples = append(samples, TexelSample{Board: pos.Board, Result: result})
+			keep(pos, result)
 			continue
 		}
 		// Result is the final whitespace-separated field; the FEN is the rest.
 		idx := strings.LastIndexByte(line, ' ')
 		if idx < 0 {
-			return nil, fmt.Errorf("line %d: no result field: %q", lineNo, line)
+			return nil, 0, fmt.Errorf("line %d: no result field: %q", lineNo, line)
 		}
 		fen := strings.TrimSpace(line[:idx])
-		result, err := strconv.ParseFloat(strings.TrimSpace(line[idx+1:]), 64)
-		if err != nil {
-			return nil, fmt.Errorf("line %d: bad result: %w", lineNo, err)
+		result, perr := strconv.ParseFloat(strings.TrimSpace(line[idx+1:]), 64)
+		if perr != nil {
+			return nil, 0, fmt.Errorf("line %d: bad result: %w", lineNo, perr)
 		}
 		pos, err := ParseFEN(fen)
 		if err != nil {
-			return nil, fmt.Errorf("line %d: bad FEN %q: %w", lineNo, fen, err)
+			return nil, 0, fmt.Errorf("line %d: bad FEN %q: %w", lineNo, fen, err)
 		}
-		samples = append(samples, TexelSample{Board: pos.Board, Result: result})
+		keep(pos, result)
 	}
-	return samples, sc.Err()
+	return samples, nDup, sc.Err()
+}
+
+// SplitTrainTest shuffles samples (seeded for reproducibility) and splits off a
+// test fraction for held-out early-stopping. Because LoadTexelSamples dedupes by
+// position, the two halves are disjoint by position — the property that makes the
+// held-out test MSE an honest overfit signal. (The prior re-tune's 3x regression
+// came from the opposite: duplicate positions straddled the split, so "test" MSE
+// partly measured training data and early stopping never fired.) Shuffles in place.
+func SplitTrainTest(samples []TexelSample, testFrac float64, seed int64) (train, test []TexelSample) {
+	rng := rand.New(rand.NewSource(seed))
+	rng.Shuffle(len(samples), func(i, j int) { samples[i], samples[j] = samples[j], samples[i] })
+	nTest := int(float64(len(samples)) * testFrac)
+	if nTest >= len(samples) {
+		nTest = len(samples) - 1
+	}
+	if nTest < 0 {
+		nTest = 0
+	}
+	return samples[nTest:], samples[:nTest]
+}
+
+// IsQuietPosition reports whether pos has no pending tactic — the property a Texel
+// training sample needs for its static eval to be meaningful against the game
+// result. Quiet ⇔ not in check AND a full-window quiescence search returns the
+// static stand-pat (no capture sequence changes the score). A hanging piece or a
+// winning capture makes qsearch diverge from the static eval, so training on such a
+// position fits the eval to a number the static function structurally cannot output
+// — the prior gendata filter (not-in-check only) let that noise poison the gradient.
+//
+// qsearch is make/unmake balanced, so pos is unchanged on return; the global stop
+// flag is saved/cleared/restored so a stale stop from a prior search can't make a
+// tactical position spuriously look quiet.
+func IsQuietPosition(pos *Position) bool {
+	if pos.IsInCheck() {
+		return false
+	}
+	static := EvaluateForPlayer(&pos.Board, pos.Turn())
+	wasStopped := IsStopRequested()
+	ClearStop()
+	var capBuf [64]Move
+	info := SearchInfo{CaptureBuffer: &capBuf}
+	q := quiescence(pos, -INFINITY, INFINITY, 0, &info)
+	if wasStopped {
+		RequestStop()
+	}
+	return q == static
 }

@@ -161,8 +161,10 @@ func playGame(nodes, prefix, maxPlies int, rng *rand.Rand) ([]string, float64) {
 			continue
 		}
 
-		// Record the position before moving (quiet = not in check).
-		if !pos.IsInCheck() {
+		// Record only quiet positions (no pending tactic): a hanging piece would make
+		// the static eval meaningless against the game result. IsQuietPosition runs a
+		// quiescence probe — the prior not-in-check-only filter let tactics through.
+		if engine.IsQuietPosition(pos) {
 			fens = append(fens, engine.GenerateFEN(pos))
 		}
 
@@ -190,12 +192,12 @@ func tune(data string, passes int, target, out string) {
 		os.Exit(2)
 	}
 	fmt.Fprintf(os.Stderr, "loading %s ...\n", data)
-	samples, err := engine.LoadTexelSamples(data)
+	samples, nDup, err := engine.LoadTexelSamples(data)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "load:", err)
 		os.Exit(1)
 	}
-	fmt.Fprintf(os.Stderr, "loaded %d positions\n", len(samples))
+	fmt.Fprintf(os.Stderr, "loaded %d unique positions (dropped %d duplicates)\n", len(samples), nDup)
 	if len(samples) == 0 {
 		os.Exit(1)
 	}
@@ -273,7 +275,7 @@ func gradientTune(data string, epochs int, lr float64, patience int, split, l2 f
 		os.Exit(2)
 	}
 	fmt.Fprintf(os.Stderr, "loading %s ...\n", data)
-	samples, err := engine.LoadTexelSamples(data)
+	samples, nDup, err := engine.LoadTexelSamples(data)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "load:", err)
 		os.Exit(1)
@@ -282,19 +284,14 @@ func gradientTune(data string, epochs int, lr float64, patience int, split, l2 f
 		fmt.Fprintln(os.Stderr, "no samples")
 		os.Exit(1)
 	}
-	fmt.Fprintf(os.Stderr, "loaded %d positions\n", len(samples))
+	fmt.Fprintf(os.Stderr, "loaded %d unique positions (dropped %d duplicates)\n", len(samples), nDup)
 
 	if seed == 0 {
 		seed = time.Now().UnixNano()
 	}
-	rng := rand.New(rand.NewSource(seed))
-	rng.Shuffle(len(samples), func(i, j int) { samples[i], samples[j] = samples[j], samples[i] })
-	nTest := int(float64(len(samples)) * split)
-	if nTest >= len(samples) {
-		nTest = len(samples) - 1
-	}
-	test := samples[:nTest]
-	train := samples[nTest:]
+	// Dedup (in LoadTexelSamples) makes train/test disjoint by position, so the
+	// held-out test MSE is an honest early-stopping signal — not leaked training data.
+	train, test := engine.SplitTrainTest(samples, split, seed)
 	fmt.Fprintf(os.Stderr, "split: %d train / %d test (seed %d)\n", len(train), len(test), seed)
 
 	k := engine.TexelFindK(train)
