@@ -25,7 +25,7 @@ var (
 	NULL_MOVE_R             = 3   // Null move reduction depth
 	NULL_MOVE_MIN_DEPTH     = 3   // Minimum depth for null move pruning
 	LMR_FULL_DEPTH          = 3   // Minimum depth for LMR
-	LMR_MOVE_THRESHOLD      = 3   // Start reducing after this many moves
+	LMR_MOVE_THRESHOLD      = 2   // Start reducing after this many moves
 	FUTILITY_MARGIN         = 200 // Futility pruning margin
 	FUTILITY_MAX_DEPTH      = 3   // Extended futility pruning depth
 	REVERSE_FUTILITY_MARGIN = 120 // Reverse futility margin
