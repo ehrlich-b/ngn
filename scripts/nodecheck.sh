@@ -55,10 +55,15 @@ BIN="${1:-build/ngn}"
 # RE-LOCKED 2026-06-10 AGAIN to HEAD = ...+A2a improving-gated RFP depth 3->7 (95379a8;
 # SPRT +6.1 elo over 400g at 10+0.1, positive at cap, KEEP): deep RFP prunes hard at
 # matched depth (kiwipete -60%, mid -44%, end -14%) — the intended width reduction.
+# RE-LOCKED 2026-06-10 (3rd) to HEAD = ...+CH-grav gravity-form history (b659c4e; SPRT
+# +13.0 over 400g / pooled +9.4 over 556g at 10+0.1, KEEP): history values now evolve
+# asymptotically with no halving cliffs, reordering the tree both ways by position
+# (kiwipete +7%, mid +55%, end +45% here; the 4 EBF-probe middlegames went -2..-10%) —
+# matched-depth counts are the identity gate, the real-clock SPRT is the strength ruler.
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|1014861"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|695565"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|420778"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|1087714"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|1076797"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|611810"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
