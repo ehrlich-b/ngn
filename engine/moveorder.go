@@ -315,11 +315,52 @@ func orderMovesSinglePass(moves []Move, depth int, previousMove Move, ttMove Mov
 func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, pos *Position) int {
 	// Use a fixed-size array for scoring to avoid allocations
 	var scores [256]int
-	n, _ := scoreMovesIntoBuffer(moves, depth, previousMove, ttMove, ttHit, out, scores[:], pos)
+	n, _ := scoreMovesIntoBuffer(moves, depth, previousMove, ttMove, ttHit, out, scores[:], pos, false)
 	for i := 0; i < n-1; i++ {
 		selectNextMove(out, scores[:], n, i)
 	}
 	return n
+}
+
+// captureOrderScoreParts combines the SEE value and the capture-history
+// tie-breaker into the capture ordering score: SEE-banded (winning/equal >=
+// 80000, losing >= 20000 — below killers/counters, above unscored quiets), the
+// history term scaled down to stay secondary to SEE inside each band (band gap
+// is 60000, chScore is at most a few thousand).
+func captureOrderScoreParts(seeValue, chScore int) int {
+	if seeValue >= 0 {
+		return 80000 + seeValue + 1000 + chScore
+	}
+	return 20000 + seeValue + 1000 + chScore
+}
+
+// captureOrderScore is the eager form: both parts read at scoring time.
+func captureOrderScore(pos *Position, move Move) int {
+	return captureOrderScoreParts(staticExchangeEvaluation(pos, move), captureHistoryScore(move)/8)
+}
+
+// unscoredCaptureBase marks a capture whose SEE swap loop was deferred (lazySEE).
+// The capture-history tie-breaker is NOT deferred — it is read at scoring time and
+// band-encoded next to the sentinel — because the table mutates as earlier moves'
+// subtrees are searched (a deferred read would see fresher history than the eager
+// path and change the order: not node-identical). SEE itself is a pure function of
+// the position, which is unchanged at this node, so deferring it is exact.
+// The band sits near -2^30, far below every real score (quiets bottom out near
+// -8192; losing captures near -12000), so no real score can land in it.
+const unscoredCaptureBase = -(1 << 30)
+
+// materializeCaptureScores fills in the capture scores that
+// scoreMovesIntoBuffer(lazySEE=true) deferred, running the SEE swap now and
+// recombining it with the scoring-time history term parked in the sentinel band.
+// It MUST run before the first selectNextMove comparison so selection never sees
+// a sentinel — with that invariant the emitted order is identical to eager scoring.
+func materializeCaptureScores(out []Move, scores []int, n int, pos *Position) {
+	for i := 0; i < n; i++ {
+		if s := scores[i]; s >= unscoredCaptureBase-(1<<16) && s <= unscoredCaptureBase+(1<<16) {
+			chScore := s - unscoredCaptureBase
+			scores[i] = captureOrderScoreParts(staticExchangeEvaluation(pos, out[i]), chScore)
+		}
+	}
 }
 
 // scoreMovesIntoBuffer writes each move and its ordering score into the parallel out/scores
@@ -327,7 +368,7 @@ func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, 
 // O(n^2) selection tail past a beta cutoff is never paid. Returns the number of moves written
 // and the index of the TT move within out[] (or -1 if absent), so the caller can hoist it to
 // the front in O(1) rather than rescanning for it in selectNextMove(oi=0).
-func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position) (int, int) {
+func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position, lazySEE bool) (int, int) {
 	n := len(moves)
 	if n == 0 || len(out) < n || len(scores) < n {
 		return 0, -1
@@ -369,17 +410,17 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Mov
 		} else {
 			// Calculate score based on move type and SEE
 			if move.IsCapture() || move.IsEnPassant() {
-				// Use SEE to order captures precisely
-				seeValue := staticExchangeEvaluation(pos, move)
-				// Capture-history tie-breaker, scaled down to stay secondary to SEE and
-				// inside each SEE band (band gap is 60000, this is at most ±1024).
-				chScore := captureHistoryScore(move) / 8
-				if seeValue >= 0 {
-					// Winning/equal captures: base score + SEE value for fine ordering
-					score = 80000 + seeValue + 1000 + chScore
+				if lazySEE {
+					// Defer the SEE swap loop: the caller materializes the real
+					// capture scores (materializeCaptureScores) immediately before
+					// its FIRST selection compare, so nodes that cut on the hoisted
+					// TT move never pay any ordering SEE at all. The history
+					// tie-breaker is read NOW (the table mutates as earlier moves'
+					// subtrees are searched; a deferred read would not be
+					// node-identical) and parked in the sentinel band.
+					score = unscoredCaptureBase + captureHistoryScore(move)/8
 				} else {
-					// Losing captures: below killers/counters but above unscored quiet moves
-					score = 20000 + seeValue + 1000 + chScore
+					score = captureOrderScore(pos, move)
 				}
 			} else if move.PromoType() != NoType {
 				promoWeight := int(GetPiece(move.PromoType(), move.MovingPiece().Color()).Weight())

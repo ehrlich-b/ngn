@@ -32,7 +32,7 @@ func TestFixedDepthTimeControl(t *testing.T) {
 	}
 
 	// Should not stop for fixed depth (time doesn't matter)
-	if tm.ShouldStopSearch(5, time.Now()) {
+	if tm.ShouldStopSearch(5) {
 		t.Error("Fixed depth search should not stop due to time")
 	}
 }
@@ -48,7 +48,7 @@ func TestInfiniteTimeControl(t *testing.T) {
 	}
 
 	// Should never stop for infinite search
-	if tm.ShouldStopSearch(10, time.Now()) {
+	if tm.ShouldStopSearch(10) {
 		t.Error("Infinite search should never stop due to time")
 	}
 }
@@ -341,6 +341,6 @@ func BenchmarkShouldStopSearch(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		tm.ShouldStopSearch(6, time.Now())
+		tm.ShouldStopSearch(6)
 	}
 }

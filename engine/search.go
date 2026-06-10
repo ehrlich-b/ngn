@@ -4,7 +4,6 @@ import (
 	"math"
 	"math/bits"
 	"sync/atomic"
-	"time"
 )
 
 const (
@@ -533,6 +532,11 @@ type SearchInfo struct {
 	RepStack    [512]uint64 // Stack of Zobrist hashes on current search path
 	RepStackLen int         // Current depth in repetition stack
 
+	// maxNodes snapshots the `go nodes` budget at search start — it is constant for
+	// the whole search, so the per-node check reads a plain field instead of paying
+	// an atomic load (MaxNodes()) at every main and qsearch node.
+	maxNodes uint64
+
 	// Reusable per-invocation move buffers (docs/10 T1). Frames is allocated once per
 	// search; FrameDepth is the recursion-frame counter, pushed/popped in lockstep with
 	// RepStackLen so each live alphaBetaPV invocation owns a distinct frame.
@@ -580,6 +584,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		OrderedBuffer: &orderedBuffer,
 		SEEGains:      &seeGains,
 		Frames:        make([]searchFrame, searchFramePoolSize),
+		maxNodes:      MaxNodes(),
 	}
 
 	// Generate root moves without heap allocations (pseudo-legal; legality handled in search loop)
@@ -624,7 +629,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 
 		// Check time before starting each new depth iteration
 		if info.TimeManager != nil {
-			if info.TimeManager.ShouldStopSearch(currentDepth, time.Now()) {
+			if info.TimeManager.ShouldStopSearch(currentDepth) {
 				info.Stopped = true
 				break
 			}
@@ -664,7 +669,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 			attempts++
 
 			// Check time before attempting search
-			if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(currentDepth, time.Now()) {
+			if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(currentDepth) {
 				info.Stopped = true
 				break
 			}
@@ -695,7 +700,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 			for oi := 0; oi < orderedCount; oi++ {
 				move := orderedRoot[oi]
 				// Check time before each move
-				if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(currentDepth, time.Now()) {
+				if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(currentDepth) {
 					info.Stopped = true
 					break
 				}
@@ -895,6 +900,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		OrderedBuffer: &orderedBuffer,
 		SEEGains:      &seeGains,
 		Frames:        make([]searchFrame, searchFramePoolSize),
+		maxNodes:      MaxNodes(),
 	}
 
 	alpha := -INFINITY
@@ -923,7 +929,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		}
 
 		// Check time before each move in fixed depth search
-		if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(depth, time.Now()) {
+		if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(depth) {
 			info.Stopped = true
 			break
 		}
@@ -988,7 +994,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// Fixed-node budget (UCI `go nodes`): trip the stop flag when the budget is
 	// spent, reusing the unwind/discard machinery below.
-	if m := MaxNodes(); m != 0 && info.Nodes >= m {
+	if m := info.maxNodes; m != 0 && info.Nodes >= m {
 		RequestStop()
 	}
 
@@ -1001,7 +1007,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// Check time limit if we have a time manager (now cheap to call frequently)
 	if info.TimeManager != nil {
-		if info.TimeManager.ShouldStopSearch(depth, time.Now()) {
+		if info.TimeManager.ShouldStopSearch(depth) {
 			info.Stopped = true
 			return EvaluateForPlayer(&pos.Board, pos.Turn())
 		}
@@ -1046,8 +1052,13 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			return 0
 		}
 
-		// Check game history for repetition (count >= 2 means 3-fold with this occurrence)
-		if pos.Positions != nil {
+		// Check game history for repetition (count >= 2 means 3-fold with this occurrence).
+		// Reachability gate: equal zobrists k plies apart require k reversible plies, so
+		// HalfMoveClock >= k (null moves increment it too, position.go:81). Every game-map
+		// entry is at least `ply` plies back (the root itself is in the map, uci.go:145),
+		// so when HMC < ply no entry can match and the lock+map probe — two atomic RMWs
+		// plus a map hash at EVERY main node — is skipped (the common case at depth).
+		if pos.Positions != nil && int(pos.HalfMoveClock) >= ply {
 			pos.positionsMutex.RLock()
 			count := pos.Positions[hash]
 			pos.positionsMutex.RUnlock()
@@ -1056,18 +1067,34 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			}
 		}
 
-		// Check search path for repetition (2-fold in search = draw)
-		for i := info.RepStackLen - 1; i >= 0; i-- {
+		// Check search path for repetition (2-fold in search = draw). The same invariant
+		// bounds the scan: an entry k plies back can only match when k <= HalfMoveClock.
+		// Stack distance equals real plies — IID/singular re-entries hide their duplicate
+		// entry (search.go IID block / singular block), so they add no phantom distance.
+		lo := info.RepStackLen - int(pos.HalfMoveClock)
+		if lo < 0 {
+			lo = 0
+		}
+		for i := info.RepStackLen - 1; i >= lo; i-- {
 			if info.RepStack[i] == hash {
 				return 0
 			}
 		}
 
-		// Push current hash onto repetition stack
-		if info.RepStackLen < len(info.RepStack) {
-			info.RepStack[info.RepStackLen] = hash
-			info.RepStackLen++
-		}
+	}
+
+	// Horizon dispatch BEFORE the rep-stack push + frame reservation + defer below:
+	// qsearch never scans RepStack and reserves its own frame, and no alphaBetaPV node
+	// exists below a depth==0 node, so the pushed hash could never be read — the push,
+	// the frame bump and the defer were pure overhead at every horizon entry.
+	if depth == 0 {
+		return quiescence(pos, alpha, beta, ply, info)
+	}
+
+	// Push current hash onto repetition stack
+	if info.RepStackLen < len(info.RepStack) {
+		info.RepStack[info.RepStackLen] = hash
+		info.RepStackLen++
 	}
 	// Reserve this invocation's reusable move-buffer frame (docs/10 T1). frameIdx is the
 	// recursion-FRAME index (not ply): IID/singular re-enter at the same ply, so each gets
@@ -1077,10 +1104,6 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	info.FrameDepth++
 	// Pop repetition stack and release the buffer frame on function exit.
 	defer func() { info.RepStackLen--; info.FrameDepth-- }()
-
-	if depth == 0 {
-		return quiescence(pos, alpha, beta, ply, info)
-	}
 
 	// Probe transposition table
 	origAlpha := alpha
@@ -1171,7 +1194,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 	} else {
 		corrIdx = pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
-		staticEval = EvaluateForPlayer(&pos.Board, stm) + correctionValue(stm, corrIdx)
+		staticEval = EvaluateForPlayerCached(pos) + correctionValue(stm, corrIdx)
 		// S7: a search-refined TT score is a sharper static estimate than a fresh
 		// eval for the margin heuristics below (RFP/futility/NMP/improving). Use it
 		// when the stored bound brackets it. Skip mate scores (would distort margins)
@@ -1340,7 +1363,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// past a beta cutoff is never paid. Node-identical to a full sort (docs/10 T2a).
 	ordered := frame.ordered[:]
 	scores := frame.scores[:]
-	orderedCount, ttIndex := scoreMovesIntoBuffer(moves, depth, GetLastMovePlayed(), ttMove, ttHit, ordered, scores, pos)
+	orderedCount, ttIndex := scoreMovesIntoBuffer(moves, depth, GetLastMovePlayed(), ttMove, ttHit, ordered, scores, pos, true)
 	bestScore := -INFINITY
 	bestMove := EmptyMove
 	moveCount := 0
@@ -1352,6 +1375,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	searchedCaptures := frame.captures[:]
 	searchedCaptureCount := 0
 
+	capturesScored := false // lazySEE: real capture scores not yet materialized
 	for oi := 0; oi < orderedCount; oi++ {
 		// Deferred selection sort: pull the next-best move into ordered[oi]. Doing this
 		// per-iteration (rather than fully up front) skips the sort tail after a cutoff.
@@ -1365,6 +1389,15 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				scores[0], scores[ttIndex] = scores[ttIndex], scores[0]
 			}
 		} else {
+			// Capture SEE scores were deferred (lazySEE): materialize them once,
+			// immediately before the first selection compare. All scores are final
+			// before any comparison, so the emitted order is identical to eager
+			// scoring — but the ~88% of cutting nodes that cut on the hoisted TT
+			// move above never reach this line and skip ordering SEE entirely.
+			if !capturesScored {
+				materializeCaptureScores(ordered, scores, orderedCount, pos)
+				capturesScored = true
+			}
 			selectNextMove(ordered, scores, orderedCount, oi)
 		}
 		move := ordered[oi]
@@ -1378,7 +1411,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 
 		// Check time before evaluating each move (now cheap to call)
-		if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(depth, time.Now()) {
+		if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(depth) {
 			info.Stopped = true
 			break
 		}
@@ -1797,11 +1830,11 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	}
 	// Prevent infinite recursion - reduce depth limit for stability
 	if qDepth >= 6 { // More conservative quiescence depth
-		return EvaluateForPlayer(&pos.Board, pos.Turn())
+		return EvaluateForPlayerCached(pos)
 	}
 
 	// Fixed-node budget: trip the stop flag when spent (qsearch nodes count too).
-	if m := MaxNodes(); m != 0 && info.Nodes >= m {
+	if m := info.maxNodes; m != 0 && info.Nodes >= m {
 		RequestStop()
 	}
 
@@ -1917,11 +1950,24 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		hasLegalMove := false
 		for i := 0; i < moveCount && !hasLegalMove; i++ {
 			move := moveBuffer[i]
-			ep, tag, hc, _ := pos.MakeMove(move)
-			if !isInCheck(pos, move.MovingPiece().Color()) {
-				hasLegalMove = true
+			if move.IsCastle() {
+				// partialMakeMove doesn't relocate the castle rook, whose placement
+				// can shield the king from rank attacks — keep the full path here.
+				ep, tag, hc, _ := pos.MakeMove(move)
+				if !isInCheck(pos, move.MovingPiece().Color()) {
+					hasLegalMove = true
+				}
+				pos.UnMakeMove(move, tag, ep, hc)
+			} else {
+				// Board-only make: this legality probe reads nothing but the board
+				// (isInCheck), so the hash/tag/clock/InCheck-tag bookkeeping of the
+				// full MakeMove — paid at EVERY horizon entry — is skipped.
+				pos.partialMakeMove(move)
+				if !isInCheck(pos, move.MovingPiece().Color()) {
+					hasLegalMove = true
+				}
+				pos.partialUnMakeMove(move)
 			}
-			pos.UnMakeMove(move, tag, ep, hc)
 		}
 		if !hasLegalMove {
 			// Stalemate is a draw regardless of material balance.
@@ -1929,10 +1975,13 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		}
 	}
 
-	// Stand-pat (lazy: skip the expensive eval extras when the cheap core already
-	// proves the fail-high — see evaluateLazyStandPat / qsearchLazyMargin).
-	standPat, lazyFailHigh := evaluateLazyStandPat(&pos.Board, pos.Turn(), beta)
-	if lazyFailHigh || standPat >= beta {
+	// Stand-pat via the exact eval cache (qsearch re-evaluates at ~every non-check
+	// qnode and is ~42% of middlegame nodes). The lazy-margin fast-out this used to
+	// route through (evaluateLazyStandPat) is pinned dead — qsearchLazyMargin=100000
+	// means lazyFailHigh never fires — so this is value-identical; re-route through a
+	// cache-aware lazy path if that margin is ever unpinned (SHELVED 2026-06-02).
+	standPat := EvaluateForPlayerCached(pos)
+	if standPat >= beta {
 		return beta
 	}
 
@@ -1949,19 +1998,27 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	var captures [64]Move
 	copy(captures[:], (*info.CaptureBuffer)[:captureCount])
 
-	// Swap ttMove to index 0 if it's a capture in this position. Avoids the
-	// regression of upfront MVV/LVA sort (commit 2f61d3a, -129 ELO) while
-	// still letting the TT-suggested capture cut early.
-	if ttMove != EmptyMove {
-		for i := 0; i < captureCount; i++ {
-			if captures[i] == ttMove {
-				captures[0], captures[i] = captures[i], captures[0]
-				break
-			}
+	// MVV/LVA scores for an INCREMENTAL selection-sort (select-max per iter, stop at
+	// cutoff — avoids the upfront full-sort cost the void "-129" comment cited).
+	// Encoding-only (victim/attacker seeWeight, no board access); ttMove forced top.
+	var capScore [64]int
+	for i := 0; i < captureCount; i++ {
+		capScore[i] = 8*int(captures[i].CapturedPiece().seeWeight()) - int(captures[i].MovingPiece().seeWeight())
+		if captures[i] == ttMove {
+			capScore[i] = 1 << 30
 		}
 	}
 
 	for i := 0; i < captureCount; i++ {
+		// incremental selection: pull the best-scored remaining capture to i
+		best := i
+		for j := i + 1; j < captureCount; j++ {
+			if capScore[j] > capScore[best] {
+				best = j
+			}
+		}
+		captures[i], captures[best] = captures[best], captures[i]
+		capScore[i], capScore[best] = capScore[best], capScore[i]
 		move := captures[i]
 
 		// Delta pruning: skip captures that cannot possibly raise alpha. For

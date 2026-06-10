@@ -20,7 +20,7 @@ func TestTimeManagerRateLimiting(t *testing.T) {
 
 	// First 1023 calls should be very fast (no actual time checking)
 	for i := 0; i < 1023; i++ {
-		tm.ShouldStopSearch(1, time.Now())
+		tm.ShouldStopSearch(1)
 		callCount++
 	}
 
@@ -35,13 +35,13 @@ func TestTimeManagerRateLimiting(t *testing.T) {
 	time.Sleep(150 * time.Millisecond)
 
 	// The 1024th call should trigger actual time check and return true
-	shouldStop := tm.ShouldStopSearch(1, time.Now())
+	shouldStop := tm.ShouldStopSearch(1)
 	if !shouldStop {
 		t.Error("Should stop after time limit exceeded on 1024th call")
 	}
 
 	// Subsequent calls should return true immediately (cached result)
-	shouldStopCached := tm.ShouldStopSearch(1, time.Now())
+	shouldStopCached := tm.ShouldStopSearch(1)
 	if !shouldStopCached {
 		t.Error("Should stop on cached result")
 	}
@@ -65,7 +65,7 @@ func TestTimeManagerAtomicCounter(t *testing.T) {
 
 	// Call ShouldStopSearch a few times
 	for i := 0; i < 5; i++ {
-		tm.ShouldStopSearch(1, time.Now())
+		tm.ShouldStopSearch(1)
 	}
 
 	// Counter should have incremented
@@ -85,7 +85,7 @@ func TestTimeManagerReset(t *testing.T) {
 	tm.SetTimeControl(params, true)
 
 	for i := 0; i < 100; i++ {
-		tm.ShouldStopSearch(1, time.Now())
+		tm.ShouldStopSearch(1)
 	}
 
 	// Counter should be non-zero

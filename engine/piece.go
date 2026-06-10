@@ -105,61 +105,37 @@ func (t PieceType) Name() string {
 	return " "
 }
 
+// Hot-path lookup tables replacing the Type/seeWeight/Weight/Color switch chains —
+// these are the innermost ops of SEE, MVV/LVA ordering, delta pruning and the
+// make-legality test. Indexed by int(p)&15 so any out-of-range Piece value maps to
+// the same defaults the old switches returned (NoType / 0 / Black) instead of
+// panicking. Layout: NoPiece=0, White Pawn..King = 1..6, Black Pawn..King = 7..12.
+var pieceTypeTable = [16]PieceType{
+	NoType, Pawn, Knight, Bishop, Rook, Queen, King, Pawn, Knight, Bishop, Rook, Queen, King, NoType, NoType, NoType,
+}
+var pieceSeeWeightTable = [16]int16{
+	0, 100, 320, 330, 525, 1000, MAX_INT, 100, 320, 330, 525, 1000, MAX_INT, 0, 0, 0,
+}
+var pieceWeightTable = [16]int16{
+	0, 100, 320, 330, 525, 1000, MAX_INT, 100, 320, 330, 525, 1000, MAX_INT, 0, 0, 0,
+}
+var pieceColorTable = [16]Color{
+	NoColor, White, White, White, White, White, White, Black, Black, Black, Black, Black, Black, Black, Black, Black,
+}
+
 func (p Piece) Type() PieceType {
-	switch p {
-	case WhitePawn, BlackPawn:
-		return Pawn
-	case WhiteKnight, BlackKnight:
-		return Knight
-	case WhiteBishop, BlackBishop:
-		return Bishop
-	case WhiteRook, BlackRook:
-		return Rook
-	case WhiteQueen, BlackQueen:
-		return Queen
-	case WhiteKing, BlackKing:
-		return King
-	}
-	return NoType
+	return pieceTypeTable[int(p)&15]
 }
 
 const MAX_INT = int16(32767)
 
+// seeWeight uses the same values as Weight() for consistency between SEE and evaluation.
 func (p Piece) seeWeight() int16 {
-	// Use same values as Weight() for consistency between SEE and evaluation
-	switch p {
-	case WhitePawn, BlackPawn:
-		return 100
-	case WhiteKnight, BlackKnight:
-		return 320
-	case WhiteBishop, BlackBishop:
-		return 330
-	case WhiteRook, BlackRook:
-		return 525
-	case WhiteQueen, BlackQueen:
-		return 1000
-	case WhiteKing, BlackKing:
-		return MAX_INT
-	}
-	return 0
+	return pieceSeeWeightTable[int(p)&15]
 }
 
 func (p Piece) Weight() int16 {
-	switch p {
-	case WhitePawn, BlackPawn:
-		return 100
-	case WhiteKnight, BlackKnight:
-		return 320
-	case WhiteBishop, BlackBishop:
-		return 330
-	case WhiteRook, BlackRook:
-		return 525
-	case WhiteQueen, BlackQueen:
-		return 1000
-	case WhiteKing, BlackKing:
-		return MAX_INT
-	}
-	return 0
+	return pieceWeightTable[int(p)&15]
 }
 
 func (p Piece) Name() string {
@@ -223,13 +199,7 @@ func pieceFromName(name rune) Piece {
 }
 
 func (p Piece) Color() Color {
-	switch p {
-	case WhitePawn, WhiteKnight, WhiteBishop, WhiteRook, WhiteQueen, WhiteKing:
-		return White
-	case NoPiece:
-		return NoColor
-	}
-	return Black
+	return pieceColorTable[int(p)&15]
 }
 
 func GetPiece(pieceType PieceType, color Color) Piece {

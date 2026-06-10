@@ -2681,6 +2681,49 @@ func EvaluateForPlayer(board *Bitboard, player Color) int {
 	return -whiteEval + TempoBonus
 }
 
+// --- Exact full-evaluation cache ---
+// Memoizes Evaluate(board) — the white-POV, ocb-scaled value — keyed by the
+// position's full zobrist hash. Node-identical by construction: a hit requires a
+// full 64-bit key match (the same collision class the TT already accepts), and the
+// stored value is exactly what a fresh Evaluate would return. Eval is a pure
+// function of the Board, and the hash's extra castle/EP/turn bits only split
+// entries (lower hit rate), never poison them. POV, TempoBonus and the pawn
+// correction-history adjustment all stay OUTSIDE the cached value.
+//
+// Only the search's hot static-eval/stand-pat sites call this. Texel and the
+// analysis tools call Evaluate directly: they never read the cache, so runtime
+// eval-weight changes there cannot serve stale values to the search within a
+// process (weights are fixed for the life of an engine process).
+// 2^20 entries x 16B = 16MB, always-replace.
+const evalCacheBits = 20
+
+type evalCacheEntry struct {
+	key uint64
+	val int32
+	_   int32
+}
+
+var evalCache [1 << evalCacheBits]evalCacheEntry
+
+// EvaluateForPlayerCached mirrors EvaluateForPlayer(&pos.Board, pos.Turn())
+// exactly, through the cache.
+func EvaluateForPlayerCached(pos *Position) int {
+	h := pos.Hash()
+	e := &evalCache[h&(1<<evalCacheBits-1)]
+	var w int
+	if e.key == h && h != 0 {
+		w = int(e.val)
+	} else {
+		w = Evaluate(&pos.Board)
+		e.key = h
+		e.val = int32(w)
+	}
+	if pos.Turn() == White {
+		return w + TempoBonus
+	}
+	return -w + TempoBonus
+}
+
 // Tunable eval-term weights — hand-set magnitudes (never data-tuned) exposed as
 // package vars so the Texel tuner (cmd/texel) can fit them to game results. The
 // three pawn-structure values are direct centipawn weights; the six term

@@ -2,7 +2,6 @@ package engine
 
 import (
 	"math"
-	"sync/atomic"
 	"time"
 )
 
@@ -42,7 +41,7 @@ type TimeManager struct {
 	positionComplexity float64
 
 	// Internal rate limiting for frequent time checks
-	checkCounter  uint64    // Atomic counter for time checks
+	checkCounter  uint64    // Time-check rate limiter (search goroutine only, non-atomic)
 	lastTimeCheck time.Time // Last time we actually checked the clock
 	shouldStop    bool      // Cached result of last time check
 
@@ -90,7 +89,7 @@ func (tm *TimeManager) SetTimeControl(params SearchParams, isWhite bool) {
 	tm.iterationStartTime = time.Time{} // Cleared until NewIteration is called
 	tm.lastIterationTime = 0
 	tm.stableIters = 0
-	atomic.StoreUint64(&tm.checkCounter, 0)
+	tm.checkCounter = 0
 
 	// Determine time control type and allocate time accordingly
 	if params.Infinite {
@@ -262,12 +261,14 @@ func (tm *TimeManager) ReportCompletedIteration(bestMoveChanged, windowHeldFirst
 	tm.stableIters++
 }
 
-func (tm *TimeManager) ShouldStopSearch(depth int, _ time.Time) bool {
-	// Increment counter atomically - this is very fast
-	count := atomic.AddUint64(&tm.checkCounter, 1)
+func (tm *TimeManager) ShouldStopSearch(depth int) bool {
+	// Plain counter: only the search goroutine calls this, and SetTimeControl's
+	// reset happens-before the goroutine launch — the old atomic.AddUint64 was a
+	// per-node RMW bought for nothing (single-threaded search).
+	tm.checkCounter++
 
 	// Only do expensive time checking every 1024 calls (or immediately if we should stop)
-	if tm.shouldStop || count%1024 == 0 {
+	if tm.shouldStop || tm.checkCounter%1024 == 0 {
 		now := time.Now()
 		elapsed := now.Sub(tm.startTime)
 		tm.lastTimeCheck = now
