@@ -1216,9 +1216,17 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Extended futility pruning (depths 1-3) and reverse futility pruning
 	var futilityPrune bool
 
-	// Reverse futility pruning - if position is very good, return early
-	if SearchToggles.RFP && depth <= 3 && !inCheck && beta-alpha == 1 {
-		margin := REVERSE_FUTILITY_MARGIN * depth
+	// Reverse futility pruning - if position is very good, return early.
+	// A2a: extended from depth<=3 to depth<=7 with the margin gated on
+	// improving (SF11 217*(d-improving), Ethereal/Weiss equivalents) — every
+	// reference engine prunes harder when the eval is NOT trending up; the
+	// ungated depth<=8 extension inflated sharp-position trees (probe-rejected).
+	if SearchToggles.RFP && depth <= 7 && !inCheck && beta-alpha == 1 {
+		imp := 0
+		if improving {
+			imp = 1
+		}
+		margin := REVERSE_FUTILITY_MARGIN * (depth - imp)
 		if staticEval-margin >= beta {
 			return staticEval - margin
 		}
