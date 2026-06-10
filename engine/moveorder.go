@@ -89,6 +89,36 @@ var counterMoves [64][64]Move
 // Track the last move played for counter move heuristic
 var lastMovePlayed Move
 
+// historyMax bounds every history entry. gravityUpdate asymptotes entries toward
+// ±historyMax instead of letting them grow until a cap event; 8192 keeps the live
+// scale identical to the old clamp, so the ordering bands (killers 25000, counters
+// 30000) and the history-pruning/LMR thresholds stay calibrated.
+const historyMax = 8192
+
+// historyBonusCap bounds a single update step. Gravity is self-bounding for any
+// |bonus| <= historyMax, but uncapped depth² steps (d12 → 144 vs d3 → 9 is fine;
+// d40+ → 1600+ is not) would let one deep cutoff swamp accumulated signal;
+// ~historyMax/4 is the reference engines' step ceiling.
+const historyBonusCap = 2048
+
+// gravityUpdate applies the standard bounded history update: the entry moves by
+// bonus, decayed in proportion to its current magnitude. Equilibrium at ±historyMax,
+// recent results outweigh stale ones, and there is no table-wide halving cliff (the
+// old ageHistoryTable erased ALL relative ordering info whenever any single entry
+// crossed the cap, and the per-entry /2 did the same locally).
+func gravityUpdate(e *int, bonus int) {
+	if bonus > historyBonusCap {
+		bonus = historyBonusCap
+	} else if bonus < -historyBonusCap {
+		bonus = -historyBonusCap
+	}
+	mag := bonus
+	if mag < 0 {
+		mag = -mag
+	}
+	*e += bonus - (*e)*mag/historyMax
+}
+
 // UpdateHistoryTable increases the history score for a move that caused a cutoff
 func UpdateHistoryTable(move Move, prevMove Move, depth int) {
 	if move.IsCapture() || move.PromoType() != NoType {
@@ -97,17 +127,9 @@ func UpdateHistoryTable(move Move, prevMove Move, depth int) {
 	piece := move.MovingPiece()
 	to := move.Destination()
 	bonus := depth * depth
-	historyTable[piece][to] += bonus
-	if historyTable[piece][to] > 8192 {
-		ageHistoryTable()
-	}
+	gravityUpdate(&historyTable[piece][to], bonus)
 	if prevMove != EmptyMove {
-		prevPiece := prevMove.MovingPiece()
-		prevTo := prevMove.Destination()
-		continuationHistory[prevPiece][prevTo][piece][to] += bonus
-		if continuationHistory[prevPiece][prevTo][piece][to] > 8192 {
-			continuationHistory[prevPiece][prevTo][piece][to] /= 2
-		}
+		gravityUpdate(&continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to], bonus)
 	}
 }
 
@@ -119,17 +141,9 @@ func PenalizeHistoryTable(move Move, prevMove Move, depth int) {
 	piece := move.MovingPiece()
 	to := move.Destination()
 	penalty := depth * depth
-	historyTable[piece][to] -= penalty
-	if historyTable[piece][to] < -8192 {
-		historyTable[piece][to] = -8192
-	}
+	gravityUpdate(&historyTable[piece][to], -penalty)
 	if prevMove != EmptyMove {
-		prevPiece := prevMove.MovingPiece()
-		prevTo := prevMove.Destination()
-		continuationHistory[prevPiece][prevTo][piece][to] -= penalty
-		if continuationHistory[prevPiece][prevTo][piece][to] < -8192 {
-			continuationHistory[prevPiece][prevTo][piece][to] = -8192
-		}
+		gravityUpdate(&continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to], -penalty)
 	}
 }
 
@@ -162,20 +176,12 @@ func captureHistoryScore(move Move) int {
 
 // UpdateCaptureHistory rewards a capture that caused a beta cutoff.
 func UpdateCaptureHistory(move Move, depth int) {
-	e := &captureHistory[move.MovingPiece()][move.Destination()][move.CapturedPiece()]
-	*e += depth * depth
-	if *e > 8192 {
-		*e /= 2
-	}
+	gravityUpdate(&captureHistory[move.MovingPiece()][move.Destination()][move.CapturedPiece()], depth*depth)
 }
 
 // PenalizeCaptureHistory decreases a tried capture that did not cause the cutoff.
 func PenalizeCaptureHistory(move Move, depth int) {
-	e := &captureHistory[move.MovingPiece()][move.Destination()][move.CapturedPiece()]
-	*e -= depth * depth
-	if *e < -8192 {
-		*e = -8192
-	}
+	gravityUpdate(&captureHistory[move.MovingPiece()][move.Destination()][move.CapturedPiece()], -(depth * depth))
 }
 
 // ClearHistoryTable resets both history tables (used between games)
@@ -204,15 +210,6 @@ func ClearHistoryTable() {
 			for k := range captureHistory[i][j] {
 				captureHistory[i][j][k] = 0
 			}
-		}
-	}
-}
-
-// ageHistoryTable divides all history values by 2 to prevent overflow
-func ageHistoryTable() {
-	for i := range historyTable {
-		for j := range historyTable[i] {
-			historyTable[i][j] /= 2
 		}
 	}
 }
