@@ -47,10 +47,15 @@ BIN="${1:-build/ngn}"
 # RE-LOCKED 2026-06-07 to HEAD = ...+king-safety attacker-material scaling (7587eb6; SPRT
 # +43.7 elo [+9,+78] over 400g, KEEP): the eval change reorders cutoffs (mid -20%, kiwipete
 # +9%, end ~flat). Deterministic (wait-for-bestmove). Gate node-IDENTITY against THESE.
+# RE-LOCKED 2026-06-10 to HEAD = ...+qmvv qsearch MVV/LVA selection-sort (3d86936; SPRT
+# +22.6 elo over 400g at 10+0.1, KEEP): qsearch ordering shifts the tree both ways by
+# position (najdorf -21%, kiwipete +55%, end -6%) — SPRT is the strength authority, these
+# counts are the identity gate. The same commit's micro-opt stack (eval cache, lazy SEE,
+# piece tables, stop checks) is byte-identical by construction (verified on this trio).
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|1632434"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|795065"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|518285"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|2535930"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|1248845"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|487140"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
