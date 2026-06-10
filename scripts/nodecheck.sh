@@ -52,10 +52,13 @@ BIN="${1:-build/ngn}"
 # position (najdorf -21%, kiwipete +55%, end -6%) — SPRT is the strength authority, these
 # counts are the identity gate. The same commit's micro-opt stack (eval cache, lazy SEE,
 # piece tables, stop checks) is byte-identical by construction (verified on this trio).
+# RE-LOCKED 2026-06-10 AGAIN to HEAD = ...+A2a improving-gated RFP depth 3->7 (95379a8;
+# SPRT +6.1 elo over 400g at 10+0.1, positive at cap, KEEP): deep RFP prunes hard at
+# matched depth (kiwipete -60%, mid -44%, end -14%) — the intended width reduction.
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|2535930"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|1248845"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|487140"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|1014861"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|695565"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|420778"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
