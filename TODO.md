@@ -17,11 +17,10 @@
 
 ## THE PLAN — four lanes, ranked; one change at a time, always SPRT-gated
 
-**Road-to-3000 arithmetic (census-revised 2026-06-10, full dossier `docs/11-road-to-3000-census.md`):** from 2669, three legs, no single one sufficient:
-1. **2669 → ~2800 = the convergent survey list** (+90-150 real at the measured ~60% transfer discount; multi-engine evidence) — INDEPENDENT of the EBF checkpoint, so a failed checkpoint does not strand the roadmap.
-2. **~2800 → 3000 = the EBF block** (+150-250 bounded): conthist system + width/geometry items, gated by the system checkpoint, ATTRIBUTED by the diagnostic (which converts a failed checkpoint into a redirect, not a dead end).
-3. **Orthogonal lanes that don't compete for the SPRT queue's subject matter:** time-mgmt trio (Lane D, ≈+25 LTC reported), eval eg-realism (Lane B3-B5, at the proven-transfer L1 signature), speed (~1.5×/node ≈ +40-60).
-Legs 1+2 cover 3000 with thin margin — run all three; the diagnostic decides W-ordering inside leg 2.
+**Road-to-3000 arithmetic — RECALIBRATED 2026-06-11 (Bryan's expectation-calibration correction, memory: feedback_expectation_calibration; census dossier `docs/11-road-to-3000-census.md`):**
+- **The demonstrated delivery curve is +10-35 self-play per kept item at ~60% transfer (~+15-25 real per full pipeline day); ~75% keep rate on census items. The only +100 events in NGN history were CORRECTNESS fixes.** Architecture-theory "+150-250 block" claims are 0-for-3 (conthist checkpoint, statlmr, eg-tree artifact) — no elo number on a theory until its falsification gate passes.
+- **Supported projection from the current queue, honestly discounted: ~2820-2920** (survey/W items ~+60-90 real over weeks + eval-eg +20-40 + time-mgmt +15-25 + speed +40-60 + SPSA +20-40, NOT additive-safe). **3000 is the existence-proof stretch goal (CG 3.8 = 2994 pure-Go HCE) with NO demonstrated mechanism yet** — paths there: undiscovered correctness bugs (live soundness-adjacent candidates: recapture-ext firehose, qsearch cap-6), joint-SPSA compounding, or the class target being nearer than literature (CG local calibration measures this).
+- Lanes: survey/W items (the grind, diagnostic-ordered), eval eg-realism (B3-B5), time-mgmt trio (D3, real-clock gate), speed. The diagnostic owns W-ordering; the checkpoint discipline stays.
 
 ### Lane A — EBF: 2.93 → ~2.2 (search-SHAPE stack)  ·  EV +150-250 bounded  ·  CO-#1
 NOT the closed scalar-retune lane: every item adds a missing INPUT or extends a technique over depth ranges where it's ABSENT. All verified in code 2026-06-09. Per-item cadence: **EBF probe (deterministic +ply readout at 400K nodes) → tactical ≥40% → short-TC SPRT 10+0.1 [-5,0] → KEEP rule.**
