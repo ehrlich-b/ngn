@@ -12,12 +12,14 @@
 # node counts disambiguate a coarse 0-ply delta (reduction-where-it-counts = real,
 # inflation-in-sharp = reject — see TODO Lane A exec log, qmvv vs A2 precedents).
 #
-# STANDING BASELINE (night-close 2026-06-10, pre-conthist HEAD 95379a8):
-#   mg depths QGD 12 / closed 9 / lateMg-ph6-11 11 / najdorf 10  (EBF ~2.9-3.5)
-#   rook-eg 15, pawn-eg 25  (CH-grav b659c4e shifted eg to 14/24; mg unchanged)
-# Modern-HCE class target at the same 400K: depth 17-19 (EBF ~2.0-2.2). The
-# conthist-system checkpoint: post-stage-3 mg depths must move >=+2 plies vs the
-# baseline or the 3000-sans-NNUE path re-rates unlikely (memory: project_ebf_lane).
+# STANDING BASELINE (2026-06-11, post-conthist HEAD fa0926d = grav+fmh kept):
+#   mg depths QGD 11 / closed 11 / lateMg-ph6-11 11 / najdorf 10
+#   rook-eg 12, pawn-eg 24
+# Prior (pre-conthist 95379a8): mg 12/9/11/10, rook-eg 15, pawn-eg 25.
+# CONTHIST SYSTEM CHECKPOINT (2026-06-11): FAIL — cumulative mg net +1 (closed
+# +2, QGD -1) vs the pre-registered >=+2 bar; statlmr stage SPRT-rejected. The
+# depth-17-19 class gap (EBF ~2.0-2.2 at this same 400K) is INTACT; attribution
+# now owned by the docs/11 §3 diagnostic (memory: project_ebf_lane).
 import subprocess, select, sys
 
 # Out-of-book positions: quiet middlegames + endgames (deltas are what matter).
