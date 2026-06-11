@@ -12,14 +12,16 @@
 # node counts disambiguate a coarse 0-ply delta (reduction-where-it-counts = real,
 # inflation-in-sharp = reject — see TODO Lane A exec log, qmvv vs A2 precedents).
 #
-# STANDING BASELINE (2026-06-11, post-conthist HEAD fa0926d = grav+fmh kept):
-#   mg depths QGD 11 / closed 11 / lateMg-ph6-11 11 / najdorf 10
-#   rook-eg 12, pawn-eg 24
-# Prior (pre-conthist 95379a8): mg 12/9/11/10, rook-eg 15, pawn-eg 25.
-# CONTHIST SYSTEM CHECKPOINT (2026-06-11): FAIL — cumulative mg net +1 (closed
-# +2, QGD -1) vs the pre-registered >=+2 bar; statlmr stage SPRT-rejected. The
-# depth-17-19 class gap (EBF ~2.0-2.2 at this same 400K) is INTACT; attribution
-# now owned by the docs/11 §3 diagnostic (memory: project_ebf_lane).
+# STANDING BASELINE (2026-06-11, post-W1 HEAD 67081e4 = futility d3->8 kept):
+#   mg depths QGD 12 / closed 9 / lateMg-ph6-11 11 / najdorf 9
+#   rook-eg 14, pawn-eg 24
+# W1 effect at 400K: QGD +2 (open positions prune deeper), closed -1, najdorf -1
+# (the closed/quiet tension the killer/counter exemptions accept), eg unchanged.
+# NOTE: the prior header's "fa0926d 11/11/.../rook-eg 12" was STALE/mismeasured —
+# the actual pre-W1 base measured QGD 10/closed 10/lateMg 11/najdorf 10, rook-eg 14.
+# CONTHIST SYSTEM CHECKPOINT (still standing): the depth-17-19 class gap (EBF
+# ~2.0-2.2 at this same 400K) is INTACT — W1's QGD 10->12 is nowhere near it;
+# attribution owned by the docs/11 §3 diagnostic (memory: project_ebf_lane).
 import subprocess, select, sys
 
 # Out-of-book positions: quiet middlegames + endgames (deltas are what matter).

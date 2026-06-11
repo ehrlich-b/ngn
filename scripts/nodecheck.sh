@@ -65,10 +65,15 @@ BIN="${1:-build/ngn}"
 # asymptotically with no halving cliffs, reordering the tree both ways by position
 # (kiwipete +7%, mid +55%, end +45% here; the 4 EBF-probe middlegames went -2..-10%) —
 # matched-depth counts are the identity gate, the real-clock SPRT is the strength ruler.
+# RE-LOCKED 2026-06-11 to HEAD = ...+W1 futility d3->8 (67081e4; SPRT +6.7 elo [-13,+26]
+# over 1200g at 10+0.1 conc-3, positive sign at cap, KEEP): deeper futility trims the
+# middlegames (kiwipete 999540->875107 -12%, mid 579466->544730 -6%) but inflates the quiet
+# rook-EG +40% (end 418446->584878) — futility is less efficient on quiet eg maneuvers
+# (single-position node shape, NOT a strength signal; the 1200g SPRT nets it +6.7).
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|999540"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|579466"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|418446"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|875107"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|544730"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|584878"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
