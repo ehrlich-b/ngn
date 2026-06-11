@@ -498,6 +498,12 @@ type SearchInfo struct {
 	// improving heuristic; indexed by ply like PV.
 	StaticEvalStack [MaximumDepth]int
 
+	// Move made at each ply on the current search path (EmptyMove for a null
+	// move); indexed like StaticEvalStack. A node at ply p reads [p-2] as its
+	// side's previous move for the follow-up history; only live-ancestor slots
+	// are ever read, so no restore on unwind is needed.
+	MoveStack [MaximumDepth]Move
+
 	// Zero-allocation buffers passed through recursion
 	MoveBuffer    *[256]Move // For move generation
 	CaptureBuffer *[64]Move  // For capture generation
@@ -715,6 +721,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					continue
 				}
 				SetLastMovePlayed(move)
+				info.MoveStack[0] = move
 
 				var score int
 				if pos.IsFIDEDrawRule() {
@@ -942,6 +949,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 			continue
 		}
 		SetLastMovePlayed(move)
+		info.MoveStack[0] = move
 
 		score := -alphaBetaPV(pos, depth-1, 1, -beta, -alpha, true, true, info)
 
@@ -1256,6 +1264,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		savedLast := GetLastMovePlayed()
 		oldEP := pos.MakeNullMove()
 		SetLastMovePlayed(EmptyMove)
+		info.MoveStack[ply] = EmptyMove
 
 		// Floor the null child depth at 0. At depth==NULL_MOVE_MIN_DEPTH (3) the
 		// reduction depth-NULL_MOVE_R-1 = -1 trips the negative-depth guard and
@@ -1369,9 +1378,15 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Order moves, prioritizing TT move if available. Scores are written eagerly; the sort
 	// itself is driven incrementally inside the loop (selectNextMove) so the selection tail
 	// past a beta cutoff is never paid. Node-identical to a full sort (docs/10 T2a).
+	// prev2 (our side's previous move, for follow-up history) is constant for the
+	// whole node: [ply-2] belongs to a live ancestor suspended mid-loop.
+	prev2 := EmptyMove
+	if ply >= 2 {
+		prev2 = info.MoveStack[ply-2]
+	}
 	ordered := frame.ordered[:]
 	scores := frame.scores[:]
-	orderedCount, ttIndex := scoreMovesIntoBuffer(moves, depth, GetLastMovePlayed(), ttMove, ttHit, ordered, scores, pos, true)
+	orderedCount, ttIndex := scoreMovesIntoBuffer(moves, depth, GetLastMovePlayed(), prev2, ttMove, ttHit, ordered, scores, pos, true)
 	bestScore := -INFINITY
 	bestMove := EmptyMove
 	moveCount := 0
@@ -1479,7 +1494,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 		// History pruning: skip quiet moves with very bad history at low depths
 		if SearchToggles.HistPrune && !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move != ttMove {
-			histScore := GetHistoryScore(move, GetLastMovePlayed())
+			histScore := GetHistoryScore(move, GetLastMovePlayed(), prev2)
 			if histScore < -1000 && legalTried > 3 { // Very bad history and not early move
 				continue
 			}
@@ -1522,6 +1537,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			continue
 		}
 		SetLastMovePlayed(move)
+		info.MoveStack[ply] = move
 		legalTried++
 
 		// Track quiet moves for history penalization
@@ -1608,8 +1624,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			info.ExcludedMove = EmptyMove
 
 			// Re-make our move and restore the global to it for children.
+			// The verification re-entry ran at this same ply and overwrote
+			// MoveStack[ply] with its own moves; restore ours.
 			ep, tag, hc, _ = pos.MakeMove(move)
 			SetLastMovePlayed(move)
+			info.MoveStack[ply] = move
 
 			if singularScore < singularBeta {
 				nextDepth++
@@ -1671,7 +1690,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 				// History-based LMR adjustment:
 				// Reduce more for moves with bad history, less for moves with good history
-				histScore := GetHistoryScore(move, savedLast)
+				histScore := GetHistoryScore(move, savedLast, prev2)
 				if histScore < -500 {
 					reduction++ // Bad history = reduce more
 				} else if histScore > 1000 {
@@ -1750,7 +1769,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				info.FirstMoveCutoffs++
 			}
 			// Update history table for quiet moves that cause beta cutoffs
-			UpdateHistoryTable(move, savedLast, depth)
+			UpdateHistoryTable(move, savedLast, prev2, depth)
 			// Update killer moves for quiet moves that cause beta cutoffs
 			UpdateKillerMoves(move, depth)
 			// Counter move: the cutoff move is a good reply to savedLast,
@@ -1761,7 +1780,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			for i := 0; i < searchedQuietCount; i++ {
 				quietMove := searchedQuiets[i]
 				if quietMove != move {
-					PenalizeHistoryTable(quietMove, savedLast, depth)
+					PenalizeHistoryTable(quietMove, savedLast, prev2, depth)
 				}
 			}
 

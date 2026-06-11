@@ -17,6 +17,12 @@ var historyTable [13][64]int
 // same beta-cutoff and quiet-penalty points.
 var continuationHistory [13][64][13][64]int
 
+// Follow-up history: same shape as continuationHistory but keyed on the move
+// TWO plies back — our own side's previous move — so it learns plans ("after my
+// g4, my g5 follow-up keeps working") where continuation history learns replies.
+// Indexed by [prev2-piece][prev2-to][curr-piece][curr-to]; another ~5.5MB.
+var followupHistory [13][64][13][64]int
+
 // Pawn-structure correction history (Stockfish concept): learns a per-pawn-structure
 // adjustment to the static eval from the gap between static eval and the search result.
 // Static eval is structurally blind to some recurring pawn shapes; this nudges it toward
@@ -120,7 +126,7 @@ func gravityUpdate(e *int, bonus int) {
 }
 
 // UpdateHistoryTable increases the history score for a move that caused a cutoff
-func UpdateHistoryTable(move Move, prevMove Move, depth int) {
+func UpdateHistoryTable(move Move, prevMove Move, prev2 Move, depth int) {
 	if move.IsCapture() || move.PromoType() != NoType {
 		return
 	}
@@ -131,10 +137,13 @@ func UpdateHistoryTable(move Move, prevMove Move, depth int) {
 	if prevMove != EmptyMove {
 		gravityUpdate(&continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to], bonus)
 	}
+	if prev2 != EmptyMove {
+		gravityUpdate(&followupHistory[prev2.MovingPiece()][prev2.Destination()][piece][to], bonus)
+	}
 }
 
 // PenalizeHistoryTable decreases the history score for moves that didn't cause cutoff
-func PenalizeHistoryTable(move Move, prevMove Move, depth int) {
+func PenalizeHistoryTable(move Move, prevMove Move, prev2 Move, depth int) {
 	if move.IsCapture() || move.PromoType() != NoType {
 		return
 	}
@@ -145,13 +154,17 @@ func PenalizeHistoryTable(move Move, prevMove Move, depth int) {
 	if prevMove != EmptyMove {
 		gravityUpdate(&continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to], -penalty)
 	}
+	if prev2 != EmptyMove {
+		gravityUpdate(&followupHistory[prev2.MovingPiece()][prev2.Destination()][piece][to], -penalty)
+	}
 }
 
 // GetHistoryScore returns the history score for a move, summing the main
 // [piece][to] history with the continuation [prev-piece][prev-to][piece][to]
-// when prevMove is available. Continuation gets full weight — same magnitude
-// updates means same ELO scale.
-func GetHistoryScore(move Move, prevMove Move) int {
+// and follow-up [prev2-piece][prev2-to][piece][to] tables when those moves are
+// available. All terms get full weight — same magnitude updates means same ELO
+// scale.
+func GetHistoryScore(move Move, prevMove Move, prev2 Move) int {
 	if move.IsCapture() || move.PromoType() != NoType {
 		return 0
 	}
@@ -160,6 +173,9 @@ func GetHistoryScore(move Move, prevMove Move) int {
 	score := historyTable[piece][to]
 	if prevMove != EmptyMove {
 		score += continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to]
+	}
+	if prev2 != EmptyMove {
+		score += followupHistory[prev2.MovingPiece()][prev2.Destination()][piece][to]
 	}
 	return score
 }
@@ -196,6 +212,15 @@ func ClearHistoryTable() {
 			for k := range continuationHistory[i][j] {
 				for l := range continuationHistory[i][j][k] {
 					continuationHistory[i][j][k][l] = 0
+				}
+			}
+		}
+	}
+	for i := range followupHistory {
+		for j := range followupHistory[i] {
+			for k := range followupHistory[i][j] {
+				for l := range followupHistory[i][j][k] {
+					followupHistory[i][j][k][l] = 0
 				}
 			}
 		}
@@ -312,7 +337,7 @@ func orderMovesSinglePass(moves []Move, depth int, previousMove Move, ttMove Mov
 func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, pos *Position) int {
 	// Use a fixed-size array for scoring to avoid allocations
 	var scores [256]int
-	n, _ := scoreMovesIntoBuffer(moves, depth, previousMove, ttMove, ttHit, out, scores[:], pos, false)
+	n, _ := scoreMovesIntoBuffer(moves, depth, previousMove, EmptyMove, ttMove, ttHit, out, scores[:], pos, false)
 	for i := 0; i < n-1; i++ {
 		selectNextMove(out, scores[:], n, i)
 	}
@@ -365,7 +390,7 @@ func materializeCaptureScores(out []Move, scores []int, n int, pos *Position) {
 // O(n^2) selection tail past a beta cutoff is never paid. Returns the number of moves written
 // and the index of the TT move within out[] (or -1 if absent), so the caller can hoist it to
 // the front in O(1) rather than rescanning for it in selectNextMove(oi=0).
-func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position, lazySEE bool) (int, int) {
+func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, prev2 Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position, lazySEE bool) (int, int) {
 	n := len(moves)
 	if n == 0 || len(out) < n || len(scores) < n {
 		return 0, -1
@@ -374,11 +399,16 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Mov
 	// Hoist the continuation-history sub-table for previousMove out of the per-move
 	// loop (previousMove is constant for the whole list), so each quiet move pays one
 	// 2-D index instead of the full 4-D continuationHistory index. Bit-identical to
-	// the GetHistoryScore path below.
+	// the GetHistoryScore path below. Same hoist for the follow-up table on prev2.
 	usePrev := previousMove != EmptyMove
 	var contHist *[13][64]int
 	if usePrev {
 		contHist = &continuationHistory[previousMove.MovingPiece()][previousMove.Destination()]
+	}
+	usePrev2 := prev2 != EmptyMove
+	var fuHist *[13][64]int
+	if usePrev2 {
+		fuHist = &followupHistory[prev2.MovingPiece()][prev2.Destination()]
 	}
 
 	// Hoist the loop-invariant counter move and killer slots out of the per-move loop.
@@ -458,6 +488,9 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Mov
 				hs := historyTable[piece][to]
 				if usePrev {
 					hs += contHist[piece][to]
+				}
+				if usePrev2 {
+					hs += fuHist[piece][to]
 				}
 				score += hs
 			}

@@ -12,26 +12,26 @@ func TestHistoryHeuristic(t *testing.T) {
 	move := NewMove(E2, E4, WhitePawn, NoPiece, NoType, 0)
 
 	// Initially, history score should be 0
-	initialScore := GetHistoryScore(move, EmptyMove)
+	initialScore := GetHistoryScore(move, EmptyMove, EmptyMove)
 	if initialScore != 0 {
 		t.Errorf("Expected initial history score to be 0, got %d", initialScore)
 	}
 
 	// Update history table with a cutoff at depth 3
-	UpdateHistoryTable(move, EmptyMove, 3)
+	UpdateHistoryTable(move, EmptyMove, EmptyMove,3)
 
 	// History score should now be depth^2 = 9
-	updatedScore := GetHistoryScore(move, EmptyMove)
+	updatedScore := GetHistoryScore(move, EmptyMove, EmptyMove)
 	expectedScore := 3 * 3 // depth^2
 	if updatedScore != expectedScore {
 		t.Errorf("Expected history score to be %d, got %d", expectedScore, updatedScore)
 	}
 
 	// Update again at depth 2
-	UpdateHistoryTable(move, EmptyMove, 2)
+	UpdateHistoryTable(move, EmptyMove, EmptyMove,2)
 
 	// History score should now be 9 + 4 = 13
-	finalScore := GetHistoryScore(move, EmptyMove)
+	finalScore := GetHistoryScore(move, EmptyMove, EmptyMove)
 	expectedFinalScore := 9 + 4
 	if finalScore != expectedFinalScore {
 		t.Errorf("Expected final history score to be %d, got %d", expectedFinalScore, finalScore)
@@ -39,8 +39,8 @@ func TestHistoryHeuristic(t *testing.T) {
 
 	// Test that captures don't get history scores
 	captureMove := NewMove(E4, D5, WhitePawn, BlackPawn, NoType, Capture)
-	UpdateHistoryTable(captureMove, EmptyMove, 5)
-	captureScore := GetHistoryScore(captureMove, EmptyMove)
+	UpdateHistoryTable(captureMove, EmptyMove, EmptyMove, 5)
+	captureScore := GetHistoryScore(captureMove, EmptyMove, EmptyMove)
 	if captureScore != 0 {
 		t.Errorf("Expected capture move to have 0 history score, got %d", captureScore)
 	}
@@ -51,10 +51,10 @@ func TestHistoryHeuristic(t *testing.T) {
 func TestHistoryTableClear(t *testing.T) {
 	// Create and update a move
 	move := NewMove(D2, D4, WhitePawn, NoPiece, NoType, 0)
-	UpdateHistoryTable(move, EmptyMove, 4)
+	UpdateHistoryTable(move, EmptyMove, EmptyMove,4)
 
 	// Verify it has a score
-	score := GetHistoryScore(move, EmptyMove)
+	score := GetHistoryScore(move, EmptyMove, EmptyMove)
 	if score == 0 {
 		t.Error("Expected move to have non-zero history score after update")
 	}
@@ -63,7 +63,7 @@ func TestHistoryTableClear(t *testing.T) {
 	ClearHistoryTable()
 
 	// Score should now be 0
-	clearedScore := GetHistoryScore(move, EmptyMove)
+	clearedScore := GetHistoryScore(move, EmptyMove, EmptyMove)
 	if clearedScore != 0 {
 		t.Errorf("Expected cleared history score to be 0, got %d", clearedScore)
 	}
@@ -89,8 +89,8 @@ func TestHistoryInMoveOrdering(t *testing.T) {
 	move2 := NewMove(D2, D4, WhitePawn, NoPiece, NoType, 0)
 
 	// Give move1 a history advantage
-	UpdateHistoryTable(move1, EmptyMove, 5) // score = 25
-	UpdateHistoryTable(move2, EmptyMove, 2) // score = 4
+	UpdateHistoryTable(move1, EmptyMove, EmptyMove, 5) // score = 25
+	UpdateHistoryTable(move2, EmptyMove, EmptyMove, 2) // score = 4
 
 	// Create a list with both moves
 	moves := []Move{move2, move1} // move2 first, then move1
