@@ -49,7 +49,7 @@ var TunableSearchParams = []TunableParam{
 	{"NullMoveR", &NULL_MOVE_R, 3, 2, 5},
 	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 3, 1, 6},
 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
-	{"LMRMoveThreshold", &LMR_MOVE_THRESHOLD, 3, 1, 8},
+	{"LMRMoveThreshold", &LMR_MOVE_THRESHOLD, 2, 1, 8},
 	{"FutilityMargin", &FUTILITY_MARGIN, 200, 50, 400},
 	{"FutilityMaxDepth", &FUTILITY_MAX_DEPTH, 3, 1, 8},
 	{"ReverseFutilityMargin", &REVERSE_FUTILITY_MARGIN, 120, 40, 300},
