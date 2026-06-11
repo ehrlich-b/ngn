@@ -345,15 +345,17 @@ func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, 
 }
 
 // captureOrderScoreParts combines the SEE value and the capture-history
-// tie-breaker into the capture ordering score: SEE-banded (winning/equal >=
-// 80000, losing >= 20000 — below killers/counters, above unscored quiets), the
-// history term scaled down to stay secondary to SEE inside each band (band gap
-// is 60000, chScore is at most a few thousand).
+// tie-breaker into the capture ordering score: SEE-banded. Winning/equal
+// captures sit at >= 80000 (above killers/counters); LOSING captures sit at
+// ~-40000 — below every quiet (history sum bottoms out at -24576) — so a
+// quiet with any history outranks a piece sacrifice that SEE already calls
+// bad. All references order this way (Weiss/Ethereal/CounterGo/SF staged-gen).
+// The history term stays secondary to SEE inside each band.
 func captureOrderScoreParts(seeValue, chScore int) int {
 	if seeValue >= 0 {
 		return 80000 + seeValue + 1000 + chScore
 	}
-	return 20000 + seeValue + 1000 + chScore
+	return -40000 + seeValue + 1000 + chScore
 }
 
 // captureOrderScore is the eager form: both parts read at scoring time.
@@ -368,7 +370,7 @@ func captureOrderScore(pos *Position, move Move) int {
 // path and change the order: not node-identical). SEE itself is a pure function of
 // the position, which is unchanged at this node, so deferring it is exact.
 // The band sits near -2^30, far below every real score (quiets bottom out near
-// -8192; losing captures near -12000), so no real score can land in it.
+// -24576; losing captures near -41000), so no real score can land in it.
 const unscoredCaptureBase = -(1 << 30)
 
 // materializeCaptureScores fills in the capture scores that
