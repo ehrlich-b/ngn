@@ -33,7 +33,7 @@ POS = [
 ]
 NODES = 400000
 
-def run(engine, fen, nodes):
+def run(engine, fen, nodes, diag=False):
     p = subprocess.Popen([engine], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                          stderr=subprocess.DEVNULL, text=True, bufsize=1)
     def send(s):
@@ -53,17 +53,25 @@ def run(engine, fen, nodes):
                 return buf
     wait("uciok")
     send("isready"); wait("readyok")
+    if diag:
+        send("debug on")  # gates the sd_* attribution dump (docs/11 §3)
     send("position fen " + fen)
     send(f"go nodes {nodes}")
     depth = seldepth = lastnodes = 0
+    sd = []
+    # Blocking reads until bestmove: a select-per-line loop races Python's
+    # internal line buffer (select sees an empty fd while buffered lines —
+    # e.g. the 6-line sd_* burst — sit unread, dropping them on timeout).
+    # `go nodes` always terminates with bestmove, so blocking is safe.
     while True:
-        r,_,_ = select.select([p.stdout], [], [], 40.0)
-        if not r:
-            break
         line = p.stdout.readline()
         if not line:
             break
-        if line.startswith("info") and " depth " in line:
+        if line.startswith("info string sd_"):
+            sd.append(line.rstrip("\n").replace("info string ", "", 1))
+        elif line.startswith("info") and not line.startswith("info string") and " depth " in line:
+            # progress lines only — the debug-mode `stats` line would otherwise
+            # overwrite these with whole-search totals (full budget, max seldepth)
             t = line.split()
             try:
                 if "depth" in t:    depth = int(t[t.index("depth")+1])
@@ -76,11 +84,22 @@ def run(engine, fen, nodes):
     send("quit")
     try: p.wait(timeout=5)
     except subprocess.TimeoutExpired: p.kill()
-    return depth, seldepth, lastnodes
+    return depth, seldepth, lastnodes, sd
 
-base, cand = sys.argv[1], sys.argv[2]
+args = [a for a in sys.argv[1:] if not a.startswith("-")]
+DIAG = "-diag" in sys.argv
+for i, a in enumerate(sys.argv):
+    if a == "-nodes":
+        NODES = int(sys.argv[i+1])
+        args = [x for x in args if x != sys.argv[i+1]]
+base, cand = args[0], args[1]
 print(f"{'position':<18}{'base d':>7}{'cand d':>7}{'Δd':>4}{'base sd':>9}{'cand sd':>9}{'base N':>10}{'cand N':>10}")
 for name, fen in POS:
-    bd, bsd, bn = run(base, fen, NODES)
-    cd, csd, cn = run(cand, fen, NODES)
+    bd, bsd, bn, bsd_lines = run(base, fen, NODES, DIAG)
+    cd, csd, cn, csd_lines = run(cand, fen, NODES, DIAG)
     print(f"{name:<18}{bd:>7}{cd:>7}{cd-bd:>4}{bsd:>9}{csd:>9}{bn:>10}{cn:>10}")
+    if DIAG:
+        for ln in bsd_lines:
+            print(f"  base {ln}")
+        for ln in csd_lines:
+            print(f"  cand {ln}")

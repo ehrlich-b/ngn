@@ -531,7 +531,48 @@ type SearchInfo struct {
 	SingularExtensions   uint64 // Singular extensions applied
 	RecaptureExtensions  uint64 // Recapture extensions applied
 	PassedPawnExtensions uint64 // Passed pawn extensions applied
-	ExcludedMove         Move   // Move to exclude during singular search
+
+	// EBF-attribution diagnostics (docs/11 §3). Plain per-search counters,
+	// incremented unconditionally, NEVER read by search decisions — node counts
+	// are identical with or without them (nodecheck is the implementation gate).
+	// Reported once after bestmove via the `debug on` sd_* dump in uci.go.
+	MoveLoopNodes       uint64    // Nodes that reach the move loop (ordering denominator)
+	TTMoveListed        uint64    // Move-loop nodes where a hash move was available to ordering
+	CutIdxHist          [5]uint64 // Beta cutoffs bucketed by legalTried: 1, 2, 3, 4-7, 8+
+	CutTriedSum         uint64    // Sum of legalTried at beta cutoffs (mean cut index; b_cut numerator)
+	BcutBand            [4]uint64 // Beta cutoffs by remaining-depth band: 1-2, 3-5, 6-9, 10+
+	FmcBand             [4]uint64 // First-move cutoffs by the same depth bands
+	CutByTT             uint64    // Cutoff move classes (scoring-time data only; killer/counter
+	CutByCapture        uint64    // labels are approximate — tables mutate during child searches)
+	CutByPromo          uint64
+	CutByKiller         uint64
+	CutByCounter        uint64
+	CutByQuietHist      uint64
+	RFPPrunes           uint64 // Reverse-futility returns (was uncounted)
+	NullMoveTries       uint64 // Null-move attempts (failed nulls are pure overhead)
+	SEECapPrunes        uint64 // Captures pruned by SEE in the move loop (was uncounted)
+	HistPrunes          uint64 // Quiets pruned by history score (was uncounted)
+	AllNodes            uint64 // Completed move loops storing UpperBound (all-nodes)
+	PVNodesExact        uint64 // Completed move loops storing Exact
+	AllTriedSum         uint64 // Sum of legalTried at all-nodes (b_all = AllTriedSum/AllNodes)
+	LMRPliesSum         uint64 // Total reduction plies (mean = LMRPliesSum/LMRReductions)
+	QDepthCapHits       uint64 // qsearch qDepth>=6 truncations to raw static eval (A4 soundness)
+	QTTProbes           uint64 // qsearch TT probes
+	QTTHits             uint64 // qsearch TT hits (any bound)
+	QTTCutoffs          uint64 // qsearch TT returns
+	QStandPatCuts       uint64 // qsearch stand-pat beta cutoffs
+	QDeltaPrunes        uint64 // qsearch delta prunes
+	QSEEPrunes          uint64 // qsearch SEE prunes
+	QBetaCutoffs        uint64 // qsearch beta cutoffs in the capture/evasion loops
+	AspFailLows         uint64 // Aspiration fail-lows (each costs a full-width re-iteration)
+	AspFailHighs        uint64 // Aspiration fail-highs
+	AspAbandoned        uint64 // Iterations discarded after exhausting widening attempts
+	RootBestMoveChanges uint64 // Root best-move changes across completed iterations
+	IIDSearches         uint64 // Internal iterative deepening searches run
+	SingularTries       uint64 // Singular verification searches run (success ctr exists)
+	ExtBudgetClamps     uint64 // Paths clamped by the extension budget (explosion lines)
+
+	ExcludedMove Move // Move to exclude during singular search
 	ExcludedPly          int    // ply at which ExcludedMove applies (the singular verification root)
 
 	// Repetition detection during search
@@ -766,10 +807,12 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 			// iterationBestScore.
 			if iterationBestScore <= windowAlpha && currentDepth > 3 {
 				// Fail low: widen alpha downward, keep original beta
+				info.AspFailLows++
 				alpha = -INFINITY
 				beta = windowBeta
 			} else if iterationBestScore >= windowBeta && currentDepth > 3 {
 				// Fail high: widen beta upward, keep original alpha
+				info.AspFailHighs++
 				alpha = windowAlpha
 				beta = INFINITY
 			} else {
@@ -779,6 +822,9 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				// attempt (attempts==1 ⇒ no fail-high/fail-low re-search). info.BestMove
 				// still holds the PREVIOUS completed iteration's move at this point.
 				bestMoveChanged := iterationBestMove != info.BestMove
+				if bestMoveChanged && currentDepth > 1 {
+					info.RootBestMoveChanges++
+				}
 				info.BestScore = iterationBestScore
 				info.BestMove = iterationBestMove
 				previousScore = iterationBestScore
@@ -792,6 +838,11 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		// Only commit the new depth and emit UCI info when the iteration actually
 		// completed. If we exited the inner loop on info.Stopped or exhausted
 		// maxAttempts without success, keep the previous completed depth/best move.
+		if !iterationComplete && !info.Stopped {
+			// Aspiration exhausted its widening attempts and the whole iteration
+			// was discarded — invisible before; any nonzero count is a red flag.
+			info.AspAbandoned++
+		}
 		if iterationComplete {
 			info.Depth = currentDepth
 			if callback != nil && info.BestMove != EmptyMove {
@@ -1156,6 +1207,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// current node already pushed its hash onto info.RepStack above, so the
 		// re-entry would otherwise hit its own hash in the search-path repetition
 		// scan and return a bogus draw (0). Hide our entry for the duration.
+		info.IIDSearches++
 		info.RepStackLen--
 		alphaBetaPV(pos, iidDepth, ply, alpha, beta, true, true, info)
 		info.RepStackLen++
@@ -1236,6 +1288,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 		margin := REVERSE_FUTILITY_MARGIN * (depth - imp)
 		if staticEval-margin >= beta {
+			info.RFPPrunes++
 			return staticEval - margin
 		}
 	}
@@ -1262,6 +1315,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Set lastMovePlayed to EmptyMove so children don't pick spurious
 		// counter-move replies keyed on our own prior move.
 		savedLast := GetLastMovePlayed()
+		info.NullMoveTries++
 		oldEP := pos.MakeNullMove()
 		SetLastMovePlayed(EmptyMove)
 		info.MoveStack[ply] = EmptyMove
@@ -1387,6 +1441,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	ordered := frame.ordered[:]
 	scores := frame.scores[:]
 	orderedCount, ttIndex := scoreMovesIntoBuffer(moves, depth, GetLastMovePlayed(), prev2, ttMove, ttHit, ordered, scores, pos, true)
+	info.MoveLoopNodes++
+	if ttIndex >= 0 {
+		info.TTMoveListed++
+	}
 	bestScore := -INFINITY
 	bestMove := EmptyMove
 	moveCount := 0
@@ -1472,6 +1530,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 && move.IsCapture() && move != ttMove && legalTried > 0 {
 			// Skip the full swap when the capture is provably non-losing (SEE >= 0 > -100).
 			if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < -100 { // losing more than a pawn
+				info.SEECapPrunes++
 				continue
 			}
 		}
@@ -1496,6 +1555,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		if SearchToggles.HistPrune && !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move != ttMove {
 			histScore := GetHistoryScore(move, GetLastMovePlayed(), prev2)
 			if histScore < -1000 && legalTried > 3 { // Very bad history and not early move
+				info.HistPrunes++
 				continue
 			}
 		}
@@ -1608,6 +1668,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			SetLastMovePlayed(savedLast)
 
 			singularBeta := int(ttEval) - SINGULAR_MARGIN
+			info.SingularTries++
 			info.ExcludedMove = singularMove
 			info.ExcludedPly = ply // the verification re-searches THIS node's position
 			singularDepth := depth - 4
@@ -1653,6 +1714,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// the C4/C5 LMR-rescan vectors can no longer recurse without bound.
 		if maxNextDepth := info.RootDepth - (ply + 1) + EXTENSION_BUDGET; nextDepth > maxNextDepth {
 			nextDepth = maxNextDepth
+			info.ExtBudgetClamps++
 		}
 
 		var score int
@@ -1719,6 +1781,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				// Track LMR usage
 				if reduction > 0 {
 					info.LMRReductions++
+					info.LMRPliesSum += uint64(reduction)
 				}
 			}
 
@@ -1767,6 +1830,38 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			info.BetaCutoffs++
 			if legalTried == 1 {
 				info.FirstMoveCutoffs++
+			}
+			// EBF-attribution: cut-index histogram, depth bands, and cut-move class.
+			// Classified BEFORE the killer/counter updates below so the labels read
+			// the tables as ordering saw them (still approximate — child searches
+			// mutate them — exact for TT/capture/promo).
+			switch {
+			case legalTried <= 3:
+				info.CutIdxHist[legalTried-1]++
+			case legalTried <= 7:
+				info.CutIdxHist[3]++
+			default:
+				info.CutIdxHist[4]++
+			}
+			info.CutTriedSum += uint64(legalTried)
+			db := depthBand(depth)
+			info.BcutBand[db]++
+			if legalTried == 1 {
+				info.FmcBand[db]++
+			}
+			switch {
+			case ttHit && move == ttMove:
+				info.CutByTT++
+			case move.IsCapture():
+				info.CutByCapture++
+			case move.PromoType() != NoType:
+				info.CutByPromo++
+			case IsKillerMove(move, depth):
+				info.CutByKiller++
+			case move == GetCounterMove(savedLast):
+				info.CutByCounter++
+			default:
+				info.CutByQuietHist++
 			}
 			// Update history table for quiet moves that cause beta cutoffs
 			UpdateHistoryTable(move, savedLast, prev2, depth)
@@ -1834,9 +1929,12 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	if bestScore <= origAlpha {
 		// No move improved alpha - Upper Bound (All-Node)
 		nodeType = UpperBound
+		info.AllNodes++
+		info.AllTriedSum += uint64(legalTried)
 	} else {
 		// Best move improved alpha - Exact (PV-Node)
 		nodeType = Exact
+		info.PVNodesExact++
 	}
 
 	// Skip the store at the singular verification root (move-excluded result must
@@ -1845,6 +1943,20 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		TranspositionTable.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType)
 	}
 	return bestScore
+}
+
+// depthBand buckets remaining depth for the EBF-attribution counters:
+// 0: d1-2, 1: d3-5, 2: d6-9, 3: d10+.
+func depthBand(depth int) int {
+	switch {
+	case depth <= 2:
+		return 0
+	case depth <= 5:
+		return 1
+	case depth <= 9:
+		return 2
+	}
+	return 3
 }
 
 func quiescence(pos *Position, alpha int, beta int, ply int, info *SearchInfo) int {
@@ -1857,6 +1969,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	}
 	// Prevent infinite recursion - reduce depth limit for stability
 	if qDepth >= 6 { // More conservative quiescence depth
+		info.QDepthCapHits++
 		return EvaluateForPlayerCached(pos)
 	}
 
@@ -1876,17 +1989,22 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// converting from node-relative TT encoding back to root-relative.
 	// Also keep ttMove for move ordering even when no cutoff is taken.
 	ttMove, ttEvalRaw, _, ttNodeType, ttHit := TranspositionTable.Get(pos.Hash())
+	info.QTTProbes++
 	if ttHit {
+		info.QTTHits++
 		ttEval := scoreFromTT(ttEvalRaw, ply)
 		switch ttNodeType {
 		case Exact:
+			info.QTTCutoffs++
 			return ttEval
 		case LowerBound:
 			if ttEval >= beta {
+				info.QTTCutoffs++
 				return ttEval
 			}
 		case UpperBound:
 			if ttEval <= alpha {
+				info.QTTCutoffs++
 				return ttEval
 			}
 		}
@@ -1952,6 +2070,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 				bestScore = score
 			}
 			if score >= beta {
+				info.QBetaCutoffs++
 				return beta
 			}
 			if score > alpha {
@@ -2009,6 +2128,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// cache-aware lazy path if that margin is ever unpinned (SHELVED 2026-06-02).
 	standPat := EvaluateForPlayerCached(pos)
 	if standPat >= beta {
+		info.QStandPatCuts++
 		return beta
 	}
 
@@ -2057,11 +2177,13 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			gain += int(promoPiece.seeWeight()) - 100
 		}
 		if standPat+gain+DELTA_MARGIN <= alpha {
+			info.QDeltaPrunes++
 			continue
 		}
 
 		// SEE pruning: skip losing captures (skip the full swap when provably non-losing).
 		if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < 0 {
+			info.QSEEPrunes++
 			continue
 		}
 
@@ -2079,6 +2201,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			bestMove = move
 		}
 		if score >= beta {
+			info.QBetaCutoffs++
 			// Fail-high: store a lower bound (the cutting capture) at depth 0 (S3).
 			// Only fail-highs are stored — the common non-failing-high case would
 			// flood the TT with depth-0 entries and evict deeper main-search ones.

@@ -750,6 +750,35 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 				info.Depth, info.SelDepth, info.Nodes, info.QNodes,
 				info.NullMoveCutoffs, info.LMRReductions, info.LMPPrunes, info.FutilityPrunes, info.SEEQuietPrunes,
 				info.TTCutoffs, info.TTHits, info.BetaCutoffs, info.CheckExtensions, info.SingularExtensions))
+			// EBF-attribution dump (docs/11 §3). The `stats` line above is a frozen
+			// contract (nodecheck.sh seds it); these sd_* lines are additive and never
+			// contain a bare token named "nodes".
+			uci.sendUCIMessage(output, fmt.Sprintf(
+				"info string sd_order mln %d ttlist %d bcut %d fmc %d cidx %d/%d/%d/%d/%d ctried %d cuttt %d cutcap %d cutpromo %d cutkill %d cutcntr %d cuthist %d",
+				info.MoveLoopNodes, info.TTMoveListed, info.BetaCutoffs, info.FirstMoveCutoffs,
+				info.CutIdxHist[0], info.CutIdxHist[1], info.CutIdxHist[2], info.CutIdxHist[3], info.CutIdxHist[4],
+				info.CutTriedSum, info.CutByTT, info.CutByCapture, info.CutByPromo, info.CutByKiller, info.CutByCounter, info.CutByQuietHist))
+			uci.sendUCIMessage(output, fmt.Sprintf(
+				"info string sd_band fmc/bcut d12 %d/%d d35 %d/%d d69 %d/%d d10 %d/%d",
+				info.FmcBand[0], info.BcutBand[0], info.FmcBand[1], info.BcutBand[1],
+				info.FmcBand[2], info.BcutBand[2], info.FmcBand[3], info.BcutBand[3]))
+			uci.sendUCIMessage(output, fmt.Sprintf(
+				"info string sd_prune rfp %d nmtry %d nmcut %d pcut %d fut %d lmp %d seecap %d seeq %d histp %d alln %d alltried %d pvn %d",
+				info.RFPPrunes, info.NullMoveTries, info.NullMoveCutoffs, info.ProbcutPrunes,
+				info.FutilityPrunes, info.LMPPrunes, info.SEECapPrunes, info.SEEQuietPrunes, info.HistPrunes,
+				info.AllNodes, info.AllTriedSum, info.PVNodesExact))
+			uci.sendUCIMessage(output, fmt.Sprintf(
+				"info string sd_lmr scout %d red %d redplies %d lmrre %d pvre %d",
+				info.NullWindowScouts, info.LMRReductions, info.LMRPliesSum, info.LMRReSearches, info.PVReSearches))
+			uci.sendUCIMessage(output, fmt.Sprintf(
+				"info string sd_q qn %d qcap %d qttp %d qtthit %d qttcut %d qstand %d qdelta %d qsee %d qbcut %d qstore %d",
+				info.QNodes, info.QDepthCapHits, info.QTTProbes, info.QTTHits, info.QTTCutoffs,
+				info.QStandPatCuts, info.QDeltaPrunes, info.QSEEPrunes, info.QBetaCutoffs, info.QSearchTTStores))
+			uci.sendUCIMessage(output, fmt.Sprintf(
+				"info string sd_root aspfl %d aspfh %d aspab %d bmchg %d iid %d singtry %d singok %d extclamp %d chk %d recap %d pp %d",
+				info.AspFailLows, info.AspFailHighs, info.AspAbandoned, info.RootBestMoveChanges,
+				info.IIDSearches, info.SingularTries, info.SingularExtensions, info.ExtBudgetClamps,
+				info.CheckExtensions, info.RecaptureExtensions, info.PassedPawnExtensions))
 		}
 
 		// Use final result from search
