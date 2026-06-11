@@ -5,7 +5,7 @@
 ## Where we are (2026-06-11)
 - **Strength: ~2669 CCRL-Blitz-equiv [2523,2815], SOFT, single-family** — real-clock 120+1 vs Blunder 7.4.0, 13W-7D-4L/24g, second consecutive clean run; trend 2449 (Jun-2) → 2632 (Jun-8) → 2669 (Jun-10). Bryan is happy with ~2600 — build strength, don't re-measure it (#R deprioritized). ⚠ Two harness biases inflate reads: anchors on default hash (Fruit 16MB), MaxMoves=200 adjudication (D1 fixes).
 - **Goal: 3000 CCRL without NNUE.** Existence proofs: Counter 3.8 = 2994 pure-Go HCE **with less machinery than NGN carries**; Demolito 3156 on butterfly-only history; SF11-HCE ~3450 the asymptote.
-- **LIVE: W5 capture-LMR SPRT** (`bcm5413vt`, output/sprt_caplmr.log, [−5,0] 10+0.1 vs counter-inclusive base; engine/search.go is the only uncommitted edit). At verdict: KEEP → commit search.go + rebuild ngn/ngn_base + re-lock nodecheck → W1. REJECT → `git checkout engine/search.go` → W1 (chScore-threshold variant only if W1's probe stalls — no bracket-spiral). Last read G349: +2.0, sign decides at cap.
+- **LIVE: concurrency null-test** (base-vs-base 10+0.1, conc 3 on 6 E-cores; validates raising the Tier-1 cap 400→1200g at the same wall-clock). W5 capture-LMR **REJECTED** at the 400g cap (131-134-135, −3.5 [−37,+31], pentanomial −3.5 [−30,+23]; started +11.2, decayed monotonically to a negative central estimate — KEEP rule wants a positive sign + no regression, this had neither). Reverted; build/ngn re-verified byte-identical to ngn_base (md5 4729ff12).
 - Node-identity: re-lock via `scripts/nodecheck.sh` after any kept search/eval change; speed changes must reproduce EXACT.
 - Infra clean bill (Jun-9 audit): hot path alloc-free, TT carry-over correct, GC ≤1-2 cycles/game. The gap is chess, not plumbing.
 
@@ -36,8 +36,8 @@ Bryan ordered deep research on why roadmaps keep promising 3000 and delivering +
 **Standing disciplines (non-negotiable):** KEEP rule (improvement OR correctness + no measured regression ⇒ KEEP; REJECT needs a concrete regression) · `make acpl` before SPRT-ing eval changes · never verdict a mid-run/killed SPRT (G68 lesson ×2) · probe = filter, SPRT = verdict (4 confirmations) · node-identity re-lock after keeps · one SPRT lane at a time, no other compute while a real-clock run is live · never P-cores · single-sentence local commits · closed-lanes ledger before reopening anything.
 
 ## THE QUEUE (serial, governing order — batches of 4-6 keeps then Tier-2 cert)
-**LIVE:** W5 capture-LMR (instructions in "Where we are").
-**Gap work after W5:** concurrency null-test → commit any pending verdict protocol.
+**LIVE:** concurrency null-test (gap-work decision; clean ⇒ raise Tier-1 cap to 1200g). W5 REJECTED (see ledger).
+**Next:** BATCH 1 → W1 futility d3→8.
 
 **BATCH 1 — search grind, CG-armed:**
 1. **W1 futility d3→8** (CG constants: skip quiets when `staticEval+100·d ≤ alpha`, d≤8, exempt checks/killers/counters/TT, skip-after-null, skip-on-high-mover-history; improving-gated margins per the A2a-kept-vs-A2-rejected lesson).
@@ -92,7 +92,7 @@ To reopen, FIRST state the new evidence the prior close missed. Code locked by t
 
 ## Exec ledger (compact; blow-by-blow in git history of this file + memory/)
 - **Kept (Jun 9-11):** A1 LMR-threshold +33 `7aac5ff` · qmvv qsearch-MVV/LVA +22.6 + 8-item node-identical micro-stack `3d86936` · A2a improving-gated RFP d7 +6.1 `95379a8` · CH-grav +9.4 pooled/556g `b659c4e` · CH-fmh +0.9 `fa0926d` · S2 LMR registry Def fix `0c0e74a` · O1 bad-caps-after-quiets +14.8 `e6b3f4b` · diag instrument `78bd291` · research verdict `38c279d`. Night-of-Jun-9 keeps (+62 SP) transferred to real clock at ~60% (gauntlet +37, prediction hit).
-- **Rejected:** A2 ungated-RFP→8 (probe: zero-deeper + sharp inflation) · A3 dynamic-NMP −11.3 (SPRT) · multicut ×2 (probe, old singular geometry) · CH-statlmr −6.1 (SPRT; χ dead-zone lesson: calibrate divisors to LIVE score distribution).
+- **Rejected:** A2 ungated-RFP→8 (probe: zero-deeper + sharp inflation) · A3 dynamic-NMP −11.3 (SPRT) · multicut ×2 (probe, old singular geometry) · CH-statlmr −6.1 (SPRT; χ dead-zone lesson: calibrate divisors to LIVE score distribution) · W5 capture-LMR −3.5 (SPRT 400g; +11.2 early → −3.5 cap, no signal — the era's modal outcome).
 - **Conthist system checkpoint: FAIL** (mg +1 ply vs pre-registered ≥+2; 12/9/11/10 → 11/11/11/10) — re-priced as level keeps, system shelved to 3200 era.
 - **Pre-Jun-9 shipped:** king-safety attacker-material +43.7 `7587eb6` (transferred) · OCB draw-scaling `79f596b` · O(1) TT placement `2d6372b` · SEE short-circuit `83581b7` · tuner #21 `49e170b` · ACPL ruler `6b435e7` · time-mgmt fix (Jun-3, +~100-class) · C3 NMP-at-cut-nodes +138 `f04eb0d` · SEE-garbage fix +161 `ddcf82f` · clock-interrupt fix `362fd24`.
 

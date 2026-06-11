@@ -63,7 +63,7 @@ func main() {
 	basePath := flag.String("base", "./build/ngn_base", "baseline engine binary")
 	depth := flag.Int("depth", 9, "fixed search depth per move (0 = use -movetime)")
 	movetime := flag.Int("movetime", 0, "ms per move (overrides -depth when > 0)")
-	tc := flag.String("tc", "", "real tournament clock SECONDS[+INC] (e.g. 60+1 = 60s + 1s/move); the I4 flag-detection instrument, forces concurrency 1")
+	tc := flag.String("tc", "", "real tournament clock SECONDS[+INC] (e.g. 60+1 = 60s + 1s/move); the I4 flag-detection instrument, concurrency 1 unless -concurrency is set explicitly")
 	nodes := flag.Int("nodes", 0, "fixed node budget per move (overrides -depth; deterministic, credits ordering+eval, cool at any concurrency)")
 	baseDepth := flag.Int("basedepth", 0, "base engine depth (0 = same as -depth; set lower as a positive control / depth ladder)")
 	elo0 := flag.Float64("elo0", 0, "SPRT H0 elo bound (null: new is not better)")
@@ -136,9 +136,20 @@ func main() {
 			}
 			tcIncMs = int(inc * 1000)
 		}
-		// Real-clock results are load-dependent (worse than movetime); force serial.
-		*concurrency = 1
-		mode = fmt.Sprintf("real clock %.0fs+%.1fs (concurrency forced 1)", base, float64(tcIncMs)/1000)
+		// Real-clock results are load-dependent (worse than movetime); force serial
+		// UNLESS the operator explicitly opts into a concurrency for a null-tested rig.
+		concExplicit := false
+		flag.Visit(func(f *flag.Flag) {
+			if f.Name == "concurrency" {
+				concExplicit = true
+			}
+		})
+		if concExplicit && *concurrency > 1 {
+			fmt.Printf("WARNING: real-clock mode at concurrency %d — timing is load-dependent; only valid on a concurrency-null-tested rig. Watch the flag-out count.\n", *concurrency)
+		} else {
+			*concurrency = 1
+		}
+		mode = fmt.Sprintf("real clock %.0fs+%.1fs (concurrency %d)", base, float64(tcIncMs)/1000, *concurrency)
 	}
 
 	lower := math.Log(*beta / (1 - *alpha))
