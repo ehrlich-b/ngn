@@ -25,8 +25,8 @@ var (
 	NULL_MOVE_MIN_DEPTH     = 3   // Minimum depth for null move pruning
 	LMR_FULL_DEPTH          = 3   // Minimum depth for LMR
 	LMR_MOVE_THRESHOLD      = 2   // Start reducing after this many moves
-	FUTILITY_MARGIN         = 200 // Futility pruning margin
-	FUTILITY_MAX_DEPTH      = 3   // Extended futility pruning depth
+	FUTILITY_MARGIN         = 100 // Futility per-depth coefficient (margin = FUTILITY_MARGIN*(depth+improving), CG-grounded)
+	FUTILITY_MAX_DEPTH      = 8   // Extended futility pruning depth (W1: was 3, CounterGo prunes quiets to depth 8)
 	REVERSE_FUTILITY_MARGIN = 120 // Reverse futility margin
 	DELTA_MARGIN            = 100 // Delta pruning margin in quiescence
 	SINGULAR_DEPTH          = 6   // Minimum depth for singular extensions
@@ -50,8 +50,8 @@ var TunableSearchParams = []TunableParam{
 	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 3, 1, 6},
 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
 	{"LMRMoveThreshold", &LMR_MOVE_THRESHOLD, 2, 1, 8},
-	{"FutilityMargin", &FUTILITY_MARGIN, 200, 50, 400},
-	{"FutilityMaxDepth", &FUTILITY_MAX_DEPTH, 3, 1, 8},
+	{"FutilityMargin", &FUTILITY_MARGIN, 100, 50, 160},
+	{"FutilityMaxDepth", &FUTILITY_MAX_DEPTH, 8, 1, 8},
 	{"ReverseFutilityMargin", &REVERSE_FUTILITY_MARGIN, 120, 40, 300},
 	{"DeltaMargin", &DELTA_MARGIN, 100, 0, 400},
 	{"SingularDepth", &SINGULAR_DEPTH, 6, 4, 12},
@@ -1293,9 +1293,17 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 	}
 
-	// PV-aware extended futility pruning for shallow depths
+	// Extended futility pruning. W1: reach extended from depth<=3 to depth<=8
+	// (CounterGo prunes quiets this deep) with the CG-grounded margin
+	// FUTILITY_MARGIN*(depth+improving). The improving term widens the margin
+	// when the eval is trending up (prune less), mirroring the A2a RFP gate that
+	// made the depth extension sound where the ungated A2 version inflated trees.
 	if SearchToggles.Futility && depth <= FUTILITY_MAX_DEPTH && !inCheck && !isPV { // Don't prune in PV nodes
-		margin := FUTILITY_MARGIN + (depth-1)*50 // Increasing margin with depth
+		imp := 0
+		if improving {
+			imp = 1
+		}
+		margin := FUTILITY_MARGIN * (depth + imp)
 		if staticEval+margin <= alpha {
 			futilityPrune = true
 		}
@@ -1503,7 +1511,13 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// legalTried > 0 guard (F1): never prune before a single legal move has been
 		// searched, else a node whose every move is futile prunes them all, hits
 		// legalTried==0, and returns 0 (false stalemate) instead of the true fail-low.
-		if futilityPrune && !move.IsCapture() && move != ttMove && move.PromoType() != Queen && legalTried > 0 {
+		// W1 exemptions: never futility-prune killers or the counter-move. At the
+		// d3 reach these rarely mattered, but extending to d8 prunes quiet
+		// maneuvering moves that hold alpha on closed positions — pruning a killer/
+		// counter there fails the node low and triggers a re-search (the closed-
+		// position tree inflation the EBF probe flagged). Keep searching them.
+		if futilityPrune && !move.IsCapture() && move != ttMove && move.PromoType() != Queen && legalTried > 0 &&
+			!IsKillerMove(move, depth) && move != GetCounterMove(GetLastMovePlayed()) {
 			info.FutilityPrunes++
 			continue
 		}
