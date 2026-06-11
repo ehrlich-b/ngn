@@ -42,7 +42,7 @@ Bryan ordered deep research on why roadmaps keep promising 3000 and delivering +
 
 **BATCH 1 — search grind, CG-armed:**
 1. **W1 futility d3→8** (CG constants: skip quiets when `staticEval+100·d ≤ alpha`, d≤8, exempt checks/killers/counters/TT, skip-after-null, skip-on-high-mover-history; improving-gated margins per the A2a-kept-vs-A2-rejected lesson).
-2. **D2 plies-vs-moves fix** (uci.go:411 counts plies, time.go:179-93 subtracts from full-move constants → ~2× front-loaded; 1 line; **real-clock SPRT gate** — bug channel, Weiss-twin).
+2. **D2 plies-vs-moves fix — CONFIRMED, fix pinned.** uci.movesPlayed is a PLY counter (uci.go:411/797, reset+recounted each `position`), passed to tm.movesPlayed (time.go:334) and subtracted from full-move constants in estimateMovesRemaining (time.go:177-184: `25−plies` saturates the floor-10 by move ~7 → `soft=usable/moves` ~1.5-2× too high → front-loaded over-spend, moves 1-12). estimateMovesRemaining is the fallback used when movesToGo≤0 = our 10+0.1 sudden-death config, so it bites. **Fix (1 line, time.go:334): `tm.movesPlayed = movesPlayed / 2`** (also corrects the `<15` opening check at time.go:359 to full-moves — verify that's intended at impl). **real-clock SPRT gate** — bug channel, Weiss-twin.
 3. **A9-lite recapture-ext diet** (probe-first; gate on SEE≥0 and/or depth; #1 extension source 14-19K/400K vs CG's zero; doubles as a simplification).
 4. **O2 retention one-liners** (TT age-refresh-on-read, cache.go:165-76 — CG-endorsed; killer/history-update-on-TT-cutoff, search.go:1130-45).
 5. → **TIER-2 CERT #1** (bundle vs pre-W5 anchor, ≥2k games).
