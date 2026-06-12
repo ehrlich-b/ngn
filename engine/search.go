@@ -1336,7 +1336,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// reduction depth-NULL_MOVE_R-1 = -1 trips the negative-depth guard and
 		// verifies the null move with a raw static eval (tactically blind) instead
 		// of quiescence; flooring routes it through qsearch like the depth>=4 path.
-		nullDepth := depth - NULL_MOVE_R - 1
+		nullDepth := depth - (4 + depth/6) // NMP-depth-R: depth-scaled reduction (was flat NULL_MOVE_R+1=4); CG/Ethereal/Weiss converge
 		if nullDepth < 0 {
 			nullDepth = 0
 		}
