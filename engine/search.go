@@ -1638,15 +1638,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			info.CheckExtensions++
 		}
 
-		// Recapture extension: extend when recapturing on the same square.
-		// Use savedLast (the true previous move), not the global which now
-		// holds our just-played move.
-		if move.IsCapture() && savedLast.IsCapture() &&
-			move.Destination() == savedLast.Destination() &&
-			nextDepth+1 <= depth {
-			nextDepth++
-			info.RecaptureExtensions++
-		}
+		// A9: recapture extension REMOVED (probe). It was NGN's #1 extension source
+		// (~14-19K/400K nodes); Counter 3.8 (2994 CCRL) ships none. Trimming it is a
+		// simplification + tree-size cut; gated at [-5,0] non-regression on the cloud.
+		// (savedLast is still read by the singular extension below.)
 
 		// Passed pawn extension: extend an actually-passed pawn pushed to the rank ONE
 		// step from promotion (7th for White, 2nd for Black). Was 6th/7th rank, but the
