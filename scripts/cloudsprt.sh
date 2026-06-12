@@ -117,9 +117,19 @@ cmd_setup() {
 # launch_one TYPE TTL_MINUTES RUNID SHARD -> instance id (uses AMI_ID, SG_ID globals)
 # Iterates the region's default subnets (one per AZ) on spot-capacity misses.
 launch_one() {
-    local ud id try subnets sn snarg
+    local ud id try subnets sn snarg arr n rot rotated k
     subnets=$(A ec2 describe-subnets --filters Name=default-for-az,Values=true --query 'Subnets[].SubnetId')
     [ -n "$subnets" ] || subnets=DEFAULT
+    # Spread shards across AZs: rotate the AZ (subnet) preference list by shard number
+    # so a multi-shard run prefers DIFFERENT AZs (independent shards = zero inter-shard
+    # cost; de-correlates spot reclaims, which hit by AZ+type — observed both 4xlarge
+    # taken together in us-east-2a). Each shard still falls back to the other AZs on a
+    # capacity miss; single-shard (shard 0) rotation is a no-op.
+    if [ "$subnets" != DEFAULT ]; then
+        arr=($subnets); n=${#arr[@]}; rot=$(( ${4:-0} % n )); rotated=""
+        for ((k = 0; k < n; k++)); do rotated="$rotated ${arr[$(((k + rot) % n))]}"; done
+        subnets=$rotated
+    fi
     ud=$(mktemp)
     printf '#!/bin/bash\nshutdown -h +%s\n' "$2" > "$ud"
     for try in 1 2 3 4 5 6; do
