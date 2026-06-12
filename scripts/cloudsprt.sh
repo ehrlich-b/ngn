@@ -315,10 +315,23 @@ EOF
             echo "shard $i: provisioning failed — terminated, dropped"
             continue
         fi
-        sleep 3
-        if ! ssh "${SSHOPTS[@]}" "ec2-user@$ip" 'pgrep -f "\./sprt" >/dev/null'; then
+        # Liveness probe with RETRY. A single transient boot-window ssh "Connection
+        # refused" was being misread as a dead sprt and false-killing HEALTHY workers
+        # mid-run (cost both cert attempts). Retry up to 6x (~30s); bail early only if
+        # the instance itself is gone (genuine spot reclaim). The terminate + the two
+        # boot/run TTLs keep the no-leak guarantee fully intact (a truly dead sprt, or a
+        # reclaimed instance, still gets dropped here, and the run survives on any other
+        # shard / pools its partial-final once established).
+        alive=0
+        for _ in 1 2 3 4 5 6; do
+            sleep 5
+            st=$(A ec2 describe-instances --instance-ids "$id" --query 'Reservations[0].Instances[0].State.Name' 2>/dev/null || echo unknown)
+            case $st in shutting-down | terminated) break ;; esac
+            if ssh "${SSHOPTS[@]}" "ec2-user@$ip" 'pgrep -f "\./sprt" >/dev/null' 2>/dev/null; then alive=1; break; fi
+        done
+        if [ "$alive" = 0 ]; then
             A ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
-            echo "shard $i: sprt not alive after start — terminated, dropped"
+            echo "shard $i: sprt not alive after start (6 probes) — terminated, dropped"
             continue
         fi
         live=$((live+1))
