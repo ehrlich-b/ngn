@@ -9,7 +9,7 @@
 #   3. `cloudsprt.sh kill` sweep + `ps` audit (tag app=cloudsprt)
 # Worst-case leak = the TTL cap (default 6h x spot price ~= $0.75).
 #
-# Logs upload to S3 every 5 min + at exit, so results survive spot eviction AND
+# Logs upload to S3 every 60s + at exit, so results survive spot eviction AND
 # the Mac sleeping. Workers need no AWS credentials (instance profile, PutObject
 # only). Engines run with -lowpower=false (taskpolicy is macOS-only).
 #
@@ -17,8 +17,8 @@
 #   smoke   ~$0.001 end-to-end proof: nano spot up -> S3 write -> SELF-shutdown observed
 #   launch  cross-compile worktree (cand) + HEAD/-baseref (base) for linux/arm64,
 #           shard the openings, start N workers; default args = Tier-1 gate
-#   status  live instances + latest result line per shard (via S3, lags <=5 min)
-#   fetch   pull shard logs, pool W/D/L, pooled elo/CI/LLR verdict
+#   status  live instances + latest result line per shard (via S3, lags <=1 min)
+#   fetch   pool shard logs -> elo/CI/LLR; verdict+sweep once NO live workers remain
 #   ps      ALL cloudsprt instances in any state (audit — empty when idle)
 #   kill    terminate instances (all, or -runid X)
 #   prices  current spot $/hr for the candidate Graviton types
@@ -118,10 +118,10 @@ cmd_setup() {
 # Iterates the region's default subnets (one per AZ) on spot-capacity misses.
 launch_one() {
     local ud id try subnets sn snarg
-    ud=$(mktemp)
-    printf '#!/bin/bash\nshutdown -h +%s\n' "$2" > "$ud"
     subnets=$(A ec2 describe-subnets --filters Name=default-for-az,Values=true --query 'Subnets[].SubnetId')
     [ -n "$subnets" ] || subnets=DEFAULT
+    ud=$(mktemp)
+    printf '#!/bin/bash\nshutdown -h +%s\n' "$2" > "$ud"
     for try in 1 2 3 4 5 6; do
         for sn in $subnets; do
             snarg=""
@@ -156,11 +156,13 @@ sweep_runid() {
     [ -n "$ids" ] && A ec2 terminate-instances --instance-ids $ids >/dev/null 2>&1 || true
 }
 
-# wait_ssh INSTANCE_ID -> public ip once sshable
+# wait_ssh INSTANCE_ID -> public ip once sshable (fails fast if the instance dies first)
 wait_ssh() {
-    local ip="" n=0
+    local ip="" st n=0
     while :; do
-        ip=$(A ec2 describe-instances --instance-ids "$1" --query 'Reservations[0].Instances[0].PublicIpAddress')
+        st=$(A ec2 describe-instances --instance-ids "$1" --query 'Reservations[0].Instances[0].State.Name' 2>/dev/null || echo unknown)
+        case $st in shutting-down|terminated) return 1;; esac
+        ip=$(A ec2 describe-instances --instance-ids "$1" --query 'Reservations[0].Instances[0].PublicIpAddress' 2>/dev/null || true)
         [ -n "$ip" ] && [ "$ip" != "None" ] && break
         n=$((n+1)); [ $n -gt 30 ] && return 1
         sleep 5
@@ -209,7 +211,7 @@ cmd_smoke() {
 }
 
 cmd_launch() {
-    local shards=1 type=c8g.2xlarge ttl=6 conc=0 baseref=HEAD openings=$REPO/output/sprt_openings.txt
+    local shards=1 type=c8g.2xlarge ttl=6 conc=0 baseref=HEAD openings=$REPO/output/sprt_openings.txt nullrun=0
     while [ $# -gt 0 ]; do
         case $1 in
             -shards)   shards=$2; shift 2;;
@@ -218,6 +220,7 @@ cmd_launch() {
             -conc)     conc=$2; shift 2;;
             -baseref)  baseref=$2; shift 2;;
             -openings) openings=$2; shift 2;;
+            -null)     nullrun=1; shift;;
             --) shift; break;;
             *) die "unknown launch flag $1 (sprt args go after --)";;
         esac
@@ -229,36 +232,68 @@ cmd_launch() {
         c8g.*|c7g.*|m8g.*|m7g.*|r8g.*|r7g.*|t4g.*) ;;
         *) die "$type is not a Graviton type (binaries are linux/arm64)";;
     esac
+    local b; b=$(bucket); AMI_ID=$(ami); SG_ID=$(sgid)
+    [ "$SG_ID" != "None" ] || die "run setup first"
+    local runid work
+    runid=$(date +%y%m%d-%H%M%S)
+    work=$(mktemp -d)
+    # bake values in now (locals are gone when the EXIT trap fires)
+    trap "git -C '$REPO' worktree remove --force '$work/basesrc' >/dev/null 2>&1; git -C '$REPO' worktree prune >/dev/null 2>&1; true" EXIT
+
+    if [ "$nullrun" = 1 ]; then
+        echo "building linux/arm64 NULL run (both engines = $baseref) + sprt (worktree)..."
+        (cd "$REPO" && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$work/sprt" ./cmd/sprt)
+        git -C "$REPO" worktree add --detach "$work/basesrc" "$baseref" >/dev/null
+        (cd "$work/basesrc" && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$work/ngn_base" .)
+        git -C "$REPO" worktree remove --force "$work/basesrc"
+        cp "$work/ngn_base" "$work/ngn_cand"
+    else
+        echo "building linux/arm64: cand (worktree) + base ($baseref) + sprt..."
+        (cd "$REPO" && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$work/ngn_cand" . \
+                    && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$work/sprt" ./cmd/sprt)
+        git -C "$REPO" worktree add --detach "$work/basesrc" "$baseref" >/dev/null
+        (cd "$work/basesrc" && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$work/ngn_base" .)
+        git -C "$REPO" worktree remove --force "$work/basesrc"
+    fi
+
+    # Launch all instances first. Shard 0 resolves the type through a capacity
+    # fallback chain; remaining shards reuse it (shard pooling must be homogeneous).
+    # A shard lost to capacity/reclaim is dropped INDIVIDUALLY (terminated if it
+    # exists); the run continues with the survivors. Zero survivors => sweep + die.
+    local i id ip ty chosen="" ids=() shardnos=() ttlmin=$((ttl * 60))
+    for ((i = 0; i < shards; i++)); do
+        if [ -z "$chosen" ]; then
+            for ty in $type c7g.2xlarge c8g.4xlarge c7g.4xlarge; do
+                if id=$(launch_one "$ty" "$ttlmin" "$runid" "$i"); then chosen=$ty; break; fi
+                echo "no spot capacity: $ty — trying next type"
+            done
+            [ -n "$chosen" ] || { sweep_runid "$runid"; die "no spot capacity on any allowed type in $REGION right now"; }
+        else
+            if ! id=$(launch_one "$chosen" "$ttlmin" "$runid" "$i"); then
+                echo "shard $i: no spot capacity — dropped, continuing with the rest"
+                continue
+            fi
+        fi
+        ids+=("$id"); shardnos+=("$i")
+        echo "shard $i: $id ($chosen)"
+    done
     if [ "$conc" = 0 ]; then
-        case $type in
+        case $chosen in
             *.4xlarge) conc=15;;
             *.2xlarge) conc=7;;
             *.xlarge)  conc=3;;
             *)         conc=1;;
         esac
     fi
-
-    local b; b=$(bucket); AMI_ID=$(ami); SG_ID=$(sgid)
-    [ "$SG_ID" != "None" ] || die "run setup first"
-    local runid work
-    runid=$(date +%y%m%d-%H%M%S)
-    work=$(mktemp -d)
-
-    echo "building linux/arm64: cand (worktree) + base ($baseref) + sprt..."
-    (cd "$REPO" && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$work/ngn_cand" . \
-                && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$work/sprt" ./cmd/sprt)
-    git -C "$REPO" worktree add --detach "$work/basesrc" "$baseref" >/dev/null
-    (cd "$work/basesrc" && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$work/ngn_base" .)
-    git -C "$REPO" worktree remove --force "$work/basesrc"
-
-    local i id ip ids=() ttlmin=$((ttl * 60))
-    for ((i = 0; i < shards; i++)); do
+    local j live=0
+    for ((j = 0; j < ${#ids[@]}; j++)); do
+        i=${shardnos[$j]}; id=${ids[$j]}
         awk "NR % $shards == $i" "$openings" > "$work/open$i.txt"
         cat > "$work/run$i.sh" <<EOF
 #!/bin/bash
 cd /home/ec2-user
 sudo shutdown -h +$ttlmin >/dev/null 2>&1   # second TTL path, independent of user-data
-(while sleep 300; do aws s3 cp sprt.log s3://$b/$runid/shard$i.log >/dev/null 2>&1; done) &
+(while sleep 60; do aws s3 cp sprt.log s3://$b/$runid/shard$i.log >/dev/null 2>&1; done) &
 KEEPER=\$!
 ./sprt -new ./ngn_cand -base ./ngn_base -lowpower=false -concurrency $conc -openings open.txt ${sprtargs[*]} > sprt.log 2>&1
 kill \$KEEPER 2>/dev/null
@@ -266,23 +301,33 @@ echo CLOUDSPRT_DONE >> sprt.log
 aws s3 cp sprt.log s3://$b/$runid/shard$i.log
 sudo shutdown -h now
 EOF
-        id=$(launch_one "$type" "$ttlmin" "$runid" "$i") || { sweep_runid "$runid"; die "shard $i launch failed — any launched workers terminated"; }
-        ids+=("$id")
-        echo "shard $i: $id"
-    done
-    for ((i = 0; i < shards; i++)); do
         echo "shard $i: waiting for ssh..."
-        ip=$(wait_ssh "${ids[$i]}") || { sweep_runid "$runid"; die "shard $i never came up — ALL $runid workers terminated"; }
-        scp "${SSHOPTS[@]}" "$work/sprt" "$work/ngn_cand" "$work/ngn_base" "ec2-user@$ip:" >/dev/null \
-            && scp "${SSHOPTS[@]}" "$work/open$i.txt" "ec2-user@$ip:open.txt" >/dev/null \
-            && scp "${SSHOPTS[@]}" "$work/run$i.sh" "ec2-user@$ip:run.sh" >/dev/null \
-            && ssh "${SSHOPTS[@]}" "ec2-user@$ip" 'chmod +x sprt ngn_cand ngn_base run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1' \
-            || { sweep_runid "$runid"; die "shard $i provisioning failed — ALL $runid workers terminated"; }
+        if ! ip=$(wait_ssh "$id"); then
+            A ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
+            echo "shard $i: gone before provisioning (spot reclaim) — terminated, dropped"
+            continue
+        fi
+        if ! { scp "${SSHOPTS[@]}" "$work/sprt" "$work/ngn_cand" "$work/ngn_base" "ec2-user@$ip:" >/dev/null \
+               && scp "${SSHOPTS[@]}" "$work/open$i.txt" "ec2-user@$ip:open.txt" >/dev/null \
+               && scp "${SSHOPTS[@]}" "$work/run$i.sh" "ec2-user@$ip:run.sh" >/dev/null \
+               && ssh "${SSHOPTS[@]}" "ec2-user@$ip" 'chmod +x sprt ngn_cand ngn_base run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1'; }; then
+            A ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
+            echo "shard $i: provisioning failed — terminated, dropped"
+            continue
+        fi
+        sleep 3
+        if ! ssh "${SSHOPTS[@]}" "ec2-user@$ip" 'pgrep -f "\./sprt" >/dev/null'; then
+            A ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
+            echo "shard $i: sprt not alive after start — terminated, dropped"
+            continue
+        fi
+        live=$((live+1))
         echo "shard $i: running on $ip"
     done
+    [ "$live" -gt 0 ] || { sweep_runid "$runid"; die "zero shards survived provisioning — ALL $runid workers terminated"; }
     find "$work" -mindepth 1 -delete && rmdir "$work"
     echo
-    echo "runid $runid — ${shards}x $type conc-$conc, TTL ${ttl}h, sprt args: ${sprtargs[*]}"
+    echo "runid $runid — $live/$shards shard(s) x $chosen conc-$conc, TTL ${ttl}h, sprt args: ${sprtargs[*]}"
     echo "  watch:  scripts/cloudsprt.sh status"
     echo "  result: scripts/cloudsprt.sh fetch -runid $runid"
 }
@@ -297,7 +342,7 @@ cmd_status() {
     for r in $(A ec2 describe-instances \
             --filters Name=tag:app,Values=$APP Name=instance-state-name,Values=pending,running \
             --query 'Reservations[].Instances[].[Tags[?Key==`runid`]|[0].Value]' | sort -u); do
-        echo "runid $r (S3 lags <=5 min):"
+        echo "runid $r (S3 lags <=1 min):"
         for k in $(A s3api list-objects-v2 --bucket "$b" --prefix "$r/" --query 'Contents[].Key' 2>/dev/null); do
             [ "$k" = "None" ] && continue
             aws --region "$REGION" s3 cp "s3://$b/$k" "/tmp/cloudsprt_tail.$$" >/dev/null 2>&1 \
@@ -318,14 +363,19 @@ cmd_fetch() {
         esac
     done
     [ -n "$runid" ] || die "usage: fetch -runid <id> [-elo0 -5] [-elo1 0]"
-    local b dir
+    local b dir live nlive=0
     b=$(bucket); dir=$REPO/output/cloud/$runid
     mkdir -p "$dir"
     aws --region "$REGION" s3 sync "s3://$b/$runid/" "$dir/" >/dev/null
+    # Verdict gate = ZERO LIVE WORKERS, not all-shards-DONE: an evicted shard never
+    # writes CLOUDSPRT_DONE, but its last 60s upload is pooled as partial-final.
+    live=$(A ec2 describe-instances --filters Name=tag:app,Values=$APP "Name=tag:runid,Values=$runid" \
+        Name=instance-state-name,Values=pending,running --query 'Reservations[].Instances[].InstanceId' 2>/dev/null || true)
+    if [ -n "$live" ]; then nlive=$(echo "$live" | wc -w | tr -d ' '); fi
     local rc=0
-    python3 - "$dir" "$elo0" "$elo1" <<'PY' || rc=$?
+    python3 - "$dir" "$elo0" "$elo1" "$nlive" <<'PY' || rc=$?
 import sys, os, re, math, glob
-d, e0, e1 = sys.argv[1], float(sys.argv[2]), float(sys.argv[3])
+d, e0, e1, nlive = sys.argv[1], float(sys.argv[2]), float(sys.argv[3]), int(sys.argv[4])
 W = D = L = 0; done = logs = 0
 for f in sorted(glob.glob(os.path.join(d, "shard*.log"))):
     logs += 1
@@ -337,13 +387,15 @@ for f in sorted(glob.glob(os.path.join(d, "shard*.log"))):
     done += fin
     if m:
         W += int(m.group(1)); D += int(m.group(2)); L += int(m.group(3))
+    state = "done" if fin else ("RUNNING" if nlive else "EVICTED->partial-final")
     tail = m.group(0) if m else (txt.strip().splitlines()[-1] if txt.strip() else "(empty)")
-    print(f'{os.path.basename(f)}: {"done" if fin else "RUNNING/EVICTED"}  {tail}')
-if logs == 0:
-    sys.exit("no shard logs found")
+    print(f'{os.path.basename(f)}: {state}  {tail}')
+if logs == 0 or W + D + L == 0:
+    if nlive:
+        print(f"no pooled games yet — {nlive} live worker(s), uploads land every 60s")
+        sys.exit(3)
+    sys.exit("no games and no live workers — run never produced results")
 n = W + D + L
-if n == 0:
-    sys.exit("no finished games yet")
 s = (W + D / 2) / n
 var = (W * (1 - s) ** 2 + D * (0.5 - s) ** 2 + L * s ** 2) / n
 se = math.sqrt(var / n) if var > 0 else 0.0
@@ -357,13 +409,15 @@ llr = 0.0 if var == 0 else (s1 - s0) * (2 * s - s0 - s1) / (2 * var) * n
 print(f"\npooled: {n}g  {W}W {D}D {L}L  score {100*s:.1f}%  "
       f"elo {elo(s):+.1f} [{elo(s-1.96*se):+.1f},{elo(s+1.96*se):+.1f}]  "
       f"LLR {llr:+.2f}  (elo0 {e0} elo1 {e1}, bounds +/-2.94)")
-if done < logs:
-    print(f"WARNING: {logs-done} shard(s) unfinished — partial pool, do not verdict")
+if nlive:
+    print(f"IN PROGRESS: {nlive} live worker(s) — NOT a verdict yet")
     sys.exit(3)
+if done < logs:
+    print(f"note: {logs-done} shard(s) evicted — pooled at last upload (complete games only; verdict is FINAL)")
 PY
     if [ "$rc" = 0 ]; then
         sweep_runid "$runid"
-        echo "(run finished — workers swept, idempotent no-op if already self-terminated)"
+        echo "(no live workers — verdict is final; sweep was an idempotent no-op if already self-terminated)"
     elif [ "$rc" = 3 ]; then
         echo "(run still in progress — workers stay up; TTL still bounds them)"
     else

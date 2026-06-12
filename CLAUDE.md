@@ -14,6 +14,41 @@ make lint           # Run linter
 make dev            # Full cycle: format, test, build
 ```
 
+## HARNESS GUARDRAILS — load-bearing, do not weaken (2026-06-11)
+
+These rules protect real money and the validity of every measurement. **If a rule
+blocks you, STOP and report the situation in TODO.md — never work around it.**
+
+**Cloud fleet (`scripts/cloudsprt.sh` — AWS spot workers):**
+- NEVER edit the shutdown-guarantee layers: `sweep_runid`, the two TTL paths
+  (user-data + run.sh `shutdown -h`), the completion self-shutdown, the
+  failure-path sweeps in `cmd_launch`, or the fetch sweep gating. ANY edit to
+  cloudsprt.sh requires `scripts/cloudsprt.sh smoke` to PASS before the next launch.
+- Every session that touches the fleet ENDS with `scripts/cloudsprt.sh ps`
+  showing nothing running that you can't name. When in doubt: `kill`, then `ps`.
+- `-ttl 2` for Tier-1/null runs; 6h absolute max. Launch only via the script,
+  never raw `aws ec2 run-instances`.
+- An AWS `AccessDenied`/`UnauthorizedOperation` error is a DESIGN BOUNDARY
+  (least-privilege key), not a bug. Never broaden IAM, never touch credentials.
+- Never pool cloud games with Mac games in one verdict; never mix instance
+  types inside one pooled run. `fetch` verdicts + sweeps only once ZERO live
+  workers remain for the runid (evicted shards pool at their last 60s upload as
+  partial-final) — NEVER verdict while any worker is live.
+
+**Verdicts (the KEEP rule is canon):**
+- Improvement OR correctness fix + no measured regression ⇒ KEEP, full stop.
+  REJECT requires a concrete measured regression. "Too small to resolve" is NOT
+  a reject reason.
+- Never verdict a mid-run or killed SPRT; run to the cap or an LLR bound.
+- Tier-1 sign filters; the Tier-2 bundle cert (every 4-6 keeps, ≥2-3k games vs
+  the pre-batch anchor) owns the truth. A failed cert ⇒ bisect halves, serially.
+
+**Local Mac:**
+- Never run engines on P-cores (`-lowpower=true` default). No other compute
+  while a local real-clock SPRT is live. `caffeinate -i` for multi-hour runs.
+- Commits: single sentence, no co-author tags, local only. Commit a change only
+  AFTER its verdict (the worktree diff is the candidate; HEAD is the base).
+
 ## ELO Assessment
 
 Two distinct jobs, two cadences:
