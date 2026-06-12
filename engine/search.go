@@ -1680,11 +1680,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			pos.UnMakeMove(move, tag, ep, hc)
 			SetLastMovePlayed(savedLast)
 
-			singularBeta := int(ttEval) - SINGULAR_MARGIN
+			singularBeta := int(ttEval) - 2*depth // singular-margin: depth-scaled (was flat SINGULAR_MARGIN=64); CG/Ethereal/Weiss converge here, NGN was the outlier
 			info.SingularTries++
 			info.ExcludedMove = singularMove
 			info.ExcludedPly = ply // the verification re-searches THIS node's position
-			singularDepth := depth - 4
+			singularDepth := (depth - 1) / 2 // singular-margin: half-depth verification (was depth-4), convergent
 			if singularDepth < 1 {
 				singularDepth = 1
 			}
