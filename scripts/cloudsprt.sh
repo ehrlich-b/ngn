@@ -307,12 +307,30 @@ EOF
             echo "shard $i: gone before provisioning (spot reclaim) — terminated, dropped"
             continue
         fi
-        if ! { scp "${SSHOPTS[@]}" "$work/sprt" "$work/ngn_cand" "$work/ngn_base" "ec2-user@$ip:" >/dev/null \
-               && scp "${SSHOPTS[@]}" "$work/open$i.txt" "ec2-user@$ip:open.txt" >/dev/null \
-               && scp "${SSHOPTS[@]}" "$work/run$i.sh" "ec2-user@$ip:run.sh" >/dev/null \
-               && ssh "${SSHOPTS[@]}" "ec2-user@$ip" 'chmod +x sprt ngn_cand ngn_base run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1'; }; then
+        # Push files with RETRY + VERIFY. Boot-window ssh/scp flakiness was silently
+        # dropping the openings file on the LATER shards (they came up with no open.txt,
+        # so sprt sat idle producing 0 games — a 4-shard run degenerated to single).
+        # Retry the scp's up to 4x and VERIFY open.txt landed with the right line count
+        # before starting — a starved shard is worse than a cleanly-dropped one.
+        nopen=$(wc -l < "$work/open$i.txt" | tr -d ' ')
+        pushed=0
+        for _ in 1 2 3 4; do
+            if scp "${SSHOPTS[@]}" "$work/sprt" "$work/ngn_cand" "$work/ngn_base" "ec2-user@$ip:" >/dev/null 2>&1 \
+               && scp "${SSHOPTS[@]}" "$work/open$i.txt" "ec2-user@$ip:open.txt" >/dev/null 2>&1 \
+               && scp "${SSHOPTS[@]}" "$work/run$i.sh" "ec2-user@$ip:run.sh" >/dev/null 2>&1 \
+               && [ "$(ssh "${SSHOPTS[@]}" "ec2-user@$ip" 'wc -l < open.txt' 2>/dev/null | tr -d ' ')" = "$nopen" ]; then
+                pushed=1; break
+            fi
+            sleep 5
+        done
+        if [ "$pushed" = 0 ]; then
             A ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
-            echo "shard $i: provisioning failed — terminated, dropped"
+            echo "shard $i: openings/binaries push failed after retries — terminated, dropped"
+            continue
+        fi
+        if ! ssh "${SSHOPTS[@]}" "ec2-user@$ip" 'chmod +x sprt ngn_cand ngn_base run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1'; then
+            A ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
+            echo "shard $i: run.sh start failed — terminated, dropped"
             continue
         fi
         # Liveness probe with RETRY. A single transient boot-window ssh "Connection
