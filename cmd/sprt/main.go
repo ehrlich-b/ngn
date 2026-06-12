@@ -29,6 +29,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -82,6 +83,7 @@ func main() {
 	balanceDepth := flag.Int("balancedepth", 8, "search depth used to score opening balance")
 	outFile := flag.String("out", "", "output file for -genbook")
 	seed := flag.Int64("seed", 1, "RNG seed for -genbook")
+	gameTimeout := flag.Int("gametimeout", 0, "per-game wall-clock watchdog deadline in seconds (0 = auto from mode); a hung game is dumped+killed+voided so the run survives the cmd/sprt I/O deadlock")
 	flag.Parse()
 
 	if *genBook > 0 {
@@ -166,7 +168,7 @@ func main() {
 	runSPRT(runConfig{
 		newPath: *newPath, basePath: *basePath,
 		newDepth: newDepth, baseDepth: baseD, movetime: *movetime, nodes: *nodes, maxMoves: *maxMoves,
-		tcTimeMs: tcTimeMs, tcIncMs: tcIncMs,
+		tcTimeMs: tcTimeMs, tcIncMs: tcIncMs, gameTimeout: *gameTimeout,
 		elo0: *elo0, elo1: *elo1, lower: lower, upper: upper,
 		maxGames: *maxGames, minGames: *minGames, concurrency: *concurrency, lowPower: *lowPower,
 	}, openings)
@@ -177,7 +179,7 @@ type runConfig struct {
 	newDepth, baseDepth, movetime   int
 	nodes                           int
 	tcTimeMs, tcIncMs               int
-	maxMoves                        int
+	maxMoves, gameTimeout           int
 	elo0, elo1, lower, upper        float64
 	maxGames, minGames, concurrency int
 	lowPower                        bool
@@ -225,6 +227,7 @@ func runSPRT(cfg runConfig, openings [][]string) {
 	results := make(chan gameOutcome, cfg.concurrency)
 	stop := make(chan struct{})
 	var wg sync.WaitGroup
+	deadline := watchdogDeadline(cfg)
 	for w := 0; w < cfg.concurrency; w++ {
 		wg.Add(1)
 		go func() {
@@ -234,15 +237,28 @@ func runSPRT(cfg runConfig, openings [][]string) {
 			if newEng == nil || baseEng == nil {
 				log.Fatalf("engine failed UCI handshake after retries (new ok=%v, base ok=%v); aborting run instead of forfeiting every game as no-move", newEng != nil, baseEng != nil)
 			}
-			defer uci.Stop(newEng)
-			defer uci.Stop(baseEng)
+			// Closure (not `defer uci.Stop(newEng)`) so that if a wedge forces an engine
+			// RESTART below, the fresh handles are the ones stopped at exit.
+			defer func() { uci.Stop(newEng); uci.Stop(baseEng) }()
 			for s := range specCh {
 				select {
 				case <-stop:
 					return
 				default:
 				}
-				results <- gameOutcome{pairID: s.pairID, res: uci.PlayGame(newEng, baseEng, s.opening, s.newIsWhite, gameCfg)}
+				res, ok := playWatch(newEng, baseEng, s.opening, s.newIsWhite, gameCfg, deadline)
+				if !ok {
+					// The watchdog killed both engines to break a wedge; bring up fresh
+					// ones and void this game — the run survives on the remaining games.
+					newEng = uci.Start(cfg.newPath, "new", cfg.lowPower)
+					baseEng = uci.Start(cfg.basePath, "base", cfg.lowPower)
+					if newEng == nil || baseEng == nil {
+						log.Printf("WATCHDOG: engine restart failed after a wedge; this worker exits, others continue")
+						return
+					}
+					continue
+				}
+				results <- gameOutcome{pairID: s.pairID, res: res}
 			}
 		}()
 	}
@@ -318,6 +334,50 @@ func runSPRT(cfg runConfig, openings [][]string) {
 		fmt.Printf("Flag-outs (lost on time): new %d, base %d  of %d games  (goal: 0)\n", newFlags, baseFlags, n)
 	}
 	fmt.Printf("Verdict: %s\n", verdict)
+}
+
+// watchdogDeadline is the per-game wall-clock cap after which a game is presumed
+// WEDGED (the cmd/sprt I/O deadlock seen on the cloud fleet: sprt + all engine
+// processes sit at 0% CPU in a mutual read-wait and never return). It is set well
+// above any legitimate game so a healthy game never trips it: ~4x the theoretical
+// whole-game wall plus a minute, floored at 3 minutes. -gametimeout overrides.
+func watchdogDeadline(cfg runConfig) time.Duration {
+	if cfg.gameTimeout > 0 {
+		return time.Duration(cfg.gameTimeout) * time.Second
+	}
+	var game time.Duration
+	switch {
+	case cfg.tcTimeMs > 0:
+		perSide := cfg.tcTimeMs + cfg.tcIncMs*cfg.maxMoves/2
+		game = time.Duration(2*perSide) * time.Millisecond
+	case cfg.movetime > 0:
+		game = time.Duration(cfg.movetime*cfg.maxMoves) * time.Millisecond
+	default: // fixed depth/nodes: bounded and fast
+		game = 75 * time.Second
+	}
+	return max(4*game+60*time.Second, 3*time.Minute)
+}
+
+// playWatch runs PlayGame under deadline. On a timeout it dumps ALL goroutine
+// stacks to stderr (cloudsprt wires sprt's stderr into sprt.log -> S3, so the dump
+// survives for root-causing the deadlock with no SIGQUIT needed), kills both
+// engines so PlayGame's blocked Scan() returns, and reports ok=false so the worker
+// voids the game and restarts engines. `done` is buffered so the abandoned
+// PlayGame goroutine never leaks when it finally returns after the kill.
+func playWatch(newEng, baseEng *uci.Engine, opening []string, newIsWhite bool, cfg uci.GameConfig, deadline time.Duration) (uci.GameResult, bool) {
+	done := make(chan uci.GameResult, 1)
+	go func() { done <- uci.PlayGame(newEng, baseEng, opening, newIsWhite, cfg) }()
+	select {
+	case r := <-done:
+		return r, true
+	case <-time.After(deadline):
+		buf := make([]byte, 1<<20)
+		n := runtime.Stack(buf, true)
+		fmt.Fprintf(os.Stderr, "WATCHDOG: a game exceeded %v — abandoning + restarting engines (presumed I/O deadlock). Full goroutine dump:\n%s\n", deadline, buf[:n])
+		uci.Stop(newEng)
+		uci.Stop(baseEng)
+		return uci.GameResult{Reason: "watchdog-void"}, false
+	}
 }
 
 // --- SPRT statistics (Generalized SPRT on the trinomial score) ---
