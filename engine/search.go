@@ -1318,8 +1318,12 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// staticEval>=beta (standard soundness/efficiency guard) + canNull (no two null
 	// moves in a row, replacing the implicit beta-alpha>1 brake). Zugzwang guard:
 	// in pawn-only endgames passing can be best, so require non-pawn material.
+	// W8: skip NMP when the TT says this node fails low (UpperBound with ttEval < beta).
+	// NMP's "node is already >= beta" premise is contradicted there, so the null search
+	// is wasted (CG + Ethereal converge on this guard; NullMoveTries should drop).
 	if SearchToggles.NullMove && !inCheck && depth >= NULL_MOVE_MIN_DEPTH && canNull && !isPV && staticEval >= beta &&
-		hasNonPawnMaterial(&pos.Board, pos.Turn()) {
+		hasNonPawnMaterial(&pos.Board, pos.Turn()) &&
+		!(ttHit && ttNodeType == UpperBound && ttEval < beta) {
 		// Set lastMovePlayed to EmptyMove so children don't pick spurious
 		// counter-move replies keyed on our own prior move.
 		savedLast := GetLastMovePlayed()
