@@ -331,7 +331,7 @@ func (tm *TimeManager) shouldStopTournamentSearch(depth int, elapsed time.Durati
 
 // UpdateGameState updates the time manager with current game state
 func (tm *TimeManager) UpdateGameState(movesPlayed int, lastScore, currentScore int, position *Position) {
-	tm.movesPlayed = movesPlayed
+	tm.movesPlayed = movesPlayed / 2 // D2: movesPlayed is a ply count (uci.go:411); halve to full-moves so the full-move constants in estimateMovesRemaining/determineGamePhase aren't decremented 2x too fast (was front-loading the clock, moves ~8-15)
 	tm.lastScoreChange = currentScore - lastScore
 
 	// Determine game phase
