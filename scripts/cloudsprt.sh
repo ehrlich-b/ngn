@@ -41,7 +41,7 @@ REGION=${AWS_REGION:-$(aws configure get region 2>/dev/null || true)}
 [ -n "$REGION" ] || REGION=us-east-1
 A() { aws --region "$REGION" --output text "$@"; }
 PEM=$HOME/.ssh/$APP.pem
-SSHOPTS=(-i "$PEM" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=5)
+SSHOPTS=(-i "$PEM" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=5 -o ServerAliveInterval=5 -o ServerAliveCountMax=3)
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 
 acct()   { A sts get-caller-identity --query Account; }
@@ -295,8 +295,16 @@ cmd_launch() {
             *)         conc=1;;
         esac
     fi
-    local j live=0
+    # Provision shards IN PARALLEL. This used to be sequential, so one slow/dead box's
+    # wait_ssh (up to ~5 min) blocked and timed out the WHOLE run — the launcher hung
+    # for many minutes and accumulated zombie procs. Each shard now provisions in its
+    # own background subshell (forked copy of these locals, read-only); a shard that
+    # can't be reached drops ITSELF (terminate + no marker) without blocking the others,
+    # and a survivor touches live.$i. Failure paths and the boot/run TTLs are unchanged,
+    # so the no-leak guarantee holds (a half-provisioned box still self-terminates at TTL).
+    local j
     for ((j = 0; j < ${#ids[@]}; j++)); do
+      (
         i=${shardnos[$j]}; id=${ids[$j]}
         awk "NR % $shards == $i" "$openings" > "$work/open$i.txt"
         cat > "$work/run$i.sh" <<EOF
@@ -305,7 +313,11 @@ cd /home/ec2-user
 sudo shutdown -h +$ttlmin >/dev/null 2>&1   # second TTL path, independent of user-data
 (while sleep 60; do aws s3 cp sprt.log s3://$b/$runid/shard$i.log >/dev/null 2>&1; done) &
 KEEPER=\$!
-./sprt -new ./ngn_cand -base ./ngn_base -lowpower=false -concurrency $conc -openings open.txt ${sprtargs[*]} > sprt.log 2>&1
+# Reserve one core for the control plane (sshd + this loop + the S3 uploader) so a
+# fully-loaded box stays reachable for diagnosis/kill: pin sprt and its engine children
+# to all-but-one core via taskset. nproc-1 cores for the games, the top core for system.
+NCPU=\$(nproc)
+taskset -c 0-\$(( NCPU > 1 ? NCPU - 2 : 0 )) ./sprt -new ./ngn_cand -base ./ngn_base -lowpower=false -concurrency $conc -openings open.txt ${sprtargs[*]} > sprt.log 2>&1
 kill \$KEEPER 2>/dev/null
 echo CLOUDSPRT_DONE >> sprt.log
 aws s3 cp sprt.log s3://$b/$runid/shard$i.log
@@ -315,7 +327,7 @@ EOF
         if ! ip=$(wait_ssh "$id"); then
             A ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
             echo "shard $i: gone before provisioning (spot reclaim) — terminated, dropped"
-            continue
+            exit 0
         fi
         # Push files with RETRY + VERIFY. Boot-window ssh/scp flakiness was silently
         # dropping the openings file on the LATER shards (they came up with no open.txt,
@@ -336,12 +348,12 @@ EOF
         if [ "$pushed" = 0 ]; then
             A ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
             echo "shard $i: openings/binaries push failed after retries — terminated, dropped"
-            continue
+            exit 0
         fi
         if ! ssh "${SSHOPTS[@]}" "ec2-user@$ip" 'chmod +x sprt ngn_cand ngn_base run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1'; then
             A ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
             echo "shard $i: run.sh start failed — terminated, dropped"
-            continue
+            exit 0
         fi
         # Liveness probe — LOG ONLY, never terminate. A fresh inbound ssh to a small box
         # already RUNNING sprt at full concurrency can't always be serviced promptly
@@ -356,9 +368,12 @@ EOF
             if ssh "${SSHOPTS[@]}" "ec2-user@$ip" 'pgrep -f "\./sprt" >/dev/null' 2>/dev/null; then alive=1; break; fi
         done
         [ "$alive" = 1 ] || echo "shard $i: liveness unconfirmed (busy box / slow sshd) — proceeding; S3 progress + TTL are the real backstops"
-        live=$((live+1))
+        : > "$work/live.$i"   # survivor marker (subshell can't increment a parent counter)
         echo "shard $i: running on $ip"
+      ) &
     done
+    wait   # block until every shard's parallel provisioning subshell has finished
+    local live; live=$(find "$work" -maxdepth 1 -name 'live.*' 2>/dev/null | wc -l | tr -d ' ')
     [ "$live" -gt 0 ] || { sweep_runid "$runid"; die "zero shards survived provisioning — ALL $runid workers terminated"; }
     find "$work" -mindepth 1 -delete && rmdir "$work"
     echo
