@@ -729,7 +729,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 
 			// Root search with aspiration window
 			var orderedRoot [256]Move
-			orderedCount := orderMovesIntoBufferWithDepth(moves, currentDepth, orderedRoot[:], pos)
+			orderedCount := orderMovesIntoBufferWithDepth(moves, 0, orderedRoot[:], pos) // killers are ply-keyed; root is ply 0
 			// S6: search the previous iteration's best move first — a good alpha early
 			// tightens pruning and gives time management a best-move stability signal.
 			// info.BestMove holds the last COMPLETED depth's best move.
@@ -977,7 +977,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 	}
 
 	var orderedRoot [256]Move
-	orderedCount := orderMovesIntoBufferWithDepth(moves, depth, orderedRoot[:], pos)
+	orderedCount := orderMovesIntoBufferWithDepth(moves, 0, orderedRoot[:], pos) // killers are ply-keyed; root is ply 0
 
 	for oi := 0; oi < orderedCount; oi++ {
 		move := orderedRoot[oi]
@@ -1452,7 +1452,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	}
 	ordered := frame.ordered[:]
 	scores := frame.scores[:]
-	orderedCount, ttIndex := scoreMovesIntoBuffer(moves, depth, GetLastMovePlayed(), prev2, ttMove, ttHit, ordered, scores, pos, true)
+	orderedCount, ttIndex := scoreMovesIntoBuffer(moves, ply, GetLastMovePlayed(), prev2, ttMove, ttHit, ordered, scores, pos, true)
 	info.MoveLoopNodes++
 	if ttIndex >= 0 {
 		info.TTMoveListed++
@@ -1521,7 +1521,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// counter there fails the node low and triggers a re-search (the closed-
 		// position tree inflation the EBF probe flagged). Keep searching them.
 		if futilityPrune && !move.IsCapture() && move != ttMove && move.PromoType() != Queen && legalTried > 0 &&
-			!IsKillerMove(move, depth) && move != GetCounterMove(GetLastMovePlayed()) {
+			!IsKillerMove(move, ply) && move != GetCounterMove(GetLastMovePlayed()) {
 			info.FutilityPrunes++
 			continue
 		}
@@ -1776,7 +1776,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				}
 
 				// Killer move reduction adjustment - don't reduce killer moves as much
-				if IsKillerMove(move, depth) {
+				if IsKillerMove(move, ply) {
 					reduction-- // Reduce less for killer moves
 					if reduction < 0 {
 						reduction = 0
@@ -1869,7 +1869,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				info.CutByCapture++
 			case move.PromoType() != NoType:
 				info.CutByPromo++
-			case IsKillerMove(move, depth):
+			case IsKillerMove(move, ply):
 				info.CutByKiller++
 			case move == GetCounterMove(savedLast):
 				info.CutByCounter++
@@ -1879,7 +1879,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// Update history table for quiet moves that cause beta cutoffs
 			UpdateHistoryTable(move, savedLast, prev2, depth)
 			// Update killer moves for quiet moves that cause beta cutoffs
-			UpdateKillerMoves(move, depth)
+			UpdateKillerMoves(move, ply)
 			// Counter move: the cutoff move is a good reply to savedLast,
 			// the move that actually brought us into this node.
 			UpdateCounterMove(move, savedLast)

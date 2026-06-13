@@ -74,10 +74,16 @@ BIN="${1:-build/ngn}"
 # tables; SPRT +22.5 elo [+0.6,+44.5] over 588g at 10+0.1 conc-7 cloud, runid 260612-223801,
 # KEEP): the more-discriminating mobility eval prunes harder (kiwipete 875107->633299 -28%,
 # mid 544730->404640 -26%) with a small quiet-eg rise (end 584878->639761 +9%).
+# RE-LOCKED 2026-06-13 (2nd) to HEAD = ...+O4 killers-by-ply (key killers by PLY not remaining
+# depth — a tree-wide aliasing fix, 4-engine convergent; SPRT +26.0 elo [-4.9,+57.3] over 295g
+# at 10+0.1 cloud, runid 260613-081026, 2-shard partial, KEEP on positive sign): the reorder
+# co-tunes with the LMR killer-reduction + futility killer-exemption, RAISING fixed-depth node
+# counts (kiwipete 633299->672812 +6%, mid 404640->521332 +29%, end 639761->889431 +39%) —
+# single-position node shape, NOT strength (the SPRT nets +26; Tier-2 cert owns the wide CI).
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|633299"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|404640"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|639761"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|672812"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|521332"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|889431"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)

@@ -84,8 +84,11 @@ func maybeUpdatePawnCorrection(stm Color, idx, staticEval, bestScore, beta, dept
 	updatePawnCorrection(stm, idx, bestScore-staticEval, depth)
 }
 
-// Killer moves table for move ordering heuristic
-// killerMoves[depth][slot] stores killer moves at each depth (2 killer moves per depth)
+// Killer moves table for move ordering heuristic.
+// killerMoves[ply][slot] stores killer moves keyed by PLY (distance from root), 2 per ply.
+// Keying by ply (not remaining depth) is what lets a quiet refutation found at one node be
+// tried at its siblings/cousins at the same distance from root; keying by remaining depth
+// instead aliased every same-draft node tree-wide (positions nothing alike sharing slots).
 var killerMoves [MaximumDepth][2]Move
 
 // Counter moves table for move ordering heuristic
@@ -239,27 +242,27 @@ func ClearHistoryTable() {
 	}
 }
 
-// UpdateKillerMoves stores a move that caused a beta cutoff as a killer move
-func UpdateKillerMoves(move Move, depth int) {
+// UpdateKillerMoves stores a move that caused a beta cutoff as a killer move at the node's ply
+func UpdateKillerMoves(move Move, ply int) {
 	// Only store quiet moves as killer moves
-	if !move.IsCapture() && move.PromoType() == NoType && depth >= 0 && depth < MaximumDepth {
+	if !move.IsCapture() && move.PromoType() == NoType && ply >= 0 && ply < MaximumDepth {
 		// Check if this move is already stored as first killer
-		if killerMoves[depth][0] == move {
+		if killerMoves[ply][0] == move {
 			return
 		}
 
 		// Shift moves down: second killer becomes first, new move becomes second
-		killerMoves[depth][1] = killerMoves[depth][0]
-		killerMoves[depth][0] = move
+		killerMoves[ply][1] = killerMoves[ply][0]
+		killerMoves[ply][0] = move
 	}
 }
 
-// IsKillerMove checks if a move is a killer move at the given depth
-func IsKillerMove(move Move, depth int) bool {
-	if depth < 0 || depth >= MaximumDepth {
+// IsKillerMove checks if a move is a killer move at the given ply
+func IsKillerMove(move Move, ply int) bool {
+	if ply < 0 || ply >= MaximumDepth {
 		return false
 	}
-	return killerMoves[depth][0] == move || killerMoves[depth][1] == move
+	return killerMoves[ply][0] == move || killerMoves[ply][1] == move
 }
 
 // ClearKillerMoves resets the killer moves table
