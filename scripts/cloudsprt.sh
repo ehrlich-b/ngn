@@ -39,43 +39,74 @@ command -v aws >/dev/null 2>&1 || die "aws CLI not installed (brew install awscl
 
 REGION=${AWS_REGION:-$(aws configure get region 2>/dev/null || true)}
 [ -n "$REGION" ] || REGION=us-east-1
-A() { aws --region "$REGION" --output text "$@"; }
-PEM=$HOME/.ssh/$APP.pem
-SSHOPTS=(-i "$PEM" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=5 -o ServerAliveInterval=5 -o ServerAliveCountMax=3)
+# Multi-region spot spread (#3). PRIMARY = $REGION: the S3 bucket lives there and workers in
+# ANY region upload to it cross-region (instance-profile PutObject on cloudsprt-* covers it,
+# so there is no per-region bucket). The sweep/audit layers (sweep_runid, fetch live-gate, ps,
+# kill) iterate ALL of REGIONS so no region can leak; the per-instance TTL is the ultimate
+# backstop if a region is transiently unreachable during a sweep. Each region gets its OWN
+# keypair (the key allows CreateKeyPair but NOT ImportKeyPair — an IAM boundary), mapped to a
+# local pem by pem_for(). Default drops us-east-1 (no default VPC on this account); override
+# the list via CLOUDSPRT_REGIONS. us-east-2 + us-west-2 + ca-central-1 are verified usable.
+REGIONS=${CLOUDSPRT_REGIONS:-"$REGION us-west-2 ca-central-1"}
+REGIONS=$(echo "$REGIONS" | tr ' ' '\n' | awk 'NF && !seen[$0]++' | tr '\n' ' ')
+A()  { aws --region "$REGION" --output text "$@"; }                # primary region (bucket, default)
+AR() { local r=$1; shift; aws --region "$r" --output text "$@"; }  # explicit region (multi-region sweeps)
+PEM=$HOME/.ssh/$APP.pem                                                               # primary-region pem (legacy path)
+pem_for() { [ "$1" = "$REGION" ] && echo "$PEM" || echo "$HOME/.ssh/$APP-$1.pem"; }   # region -> local pem
+SSHOPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=5 -o ServerAliveInterval=5 -o ServerAliveCountMax=3)
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 
 acct()   { A sts get-caller-identity --query Account; }
 bucket() { echo "$APP-$(acct)-$REGION"; }
-ami()    { A ssm get-parameter --name /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64 --query Parameter.Value; }
-sgid()   { A ec2 describe-security-groups --filters Name=group-name,Values=$APP --query 'SecurityGroups[0].GroupId' 2>/dev/null || echo None; }
+ami()    { aws --region "${1:-$REGION}" --output text ssm get-parameter --name /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64 --query Parameter.Value; }
+sgid()   { aws --region "${1:-$REGION}" --output text ec2 describe-security-groups --filters Name=group-name,Values=$APP --query 'SecurityGroups[0].GroupId' 2>/dev/null || echo None; }
 
 cmd_setup() {
     local acctid
     acctid=$(acct) || die "no AWS credentials — run: aws configure"
     echo "account $acctid, region $REGION"
 
-    if ! A ec2 describe-key-pairs --key-names $APP >/dev/null 2>&1; then
-        A ec2 create-key-pair --key-name $APP --query KeyMaterial > "$PEM"
-        chmod 400 "$PEM"; echo "keypair: created ($PEM)"
-    elif [ ! -f "$PEM" ]; then
-        A ec2 delete-key-pair --key-name $APP
-        A ec2 create-key-pair --key-name $APP --query KeyMaterial > "$PEM"
-        chmod 400 "$PEM"; echo "keypair: recreated (local pem was missing)"
-    else
-        echo "keypair: ok"
-    fi
+    # Keypair: one PER REGION. The least-privilege key allows ec2:CreateKeyPair but NOT
+    # ImportKeyPair (verified UnauthorizedOperation — a design boundary; do NOT broaden IAM),
+    # so each region gets its OWN create-key-pair material saved to a region-suffixed pem and
+    # pem_for() maps region -> local pem (primary keeps the legacy $PEM path). A region where
+    # create fails (no access) just prints a WARN and is skipped at launch. (#3)
+    local r pem
+    for r in $REGIONS; do
+        pem=$(pem_for "$r")
+        if ! AR "$r" ec2 describe-key-pairs --key-names $APP >/dev/null 2>&1; then
+            if AR "$r" ec2 create-key-pair --key-name $APP --query KeyMaterial > "$pem" 2>/dev/null; then
+                chmod 400 "$pem"; echo "keypair: created in $r ($pem)"
+            else
+                rm -f "$pem"; echo "keypair: WARN cannot create in $r (no access) — skipped at launch"
+            fi
+        elif [ ! -f "$pem" ]; then
+            AR "$r" ec2 delete-key-pair --key-name $APP >/dev/null 2>&1 || true
+            if AR "$r" ec2 create-key-pair --key-name $APP --query KeyMaterial > "$pem" 2>/dev/null; then
+                chmod 400 "$pem"; echo "keypair: recreated in $r (local pem was missing)"
+            else
+                rm -f "$pem"; echo "keypair: WARN cannot recreate in $r — skipped at launch"
+            fi
+        else
+            echo "keypair: ok in $r ($pem)"
+        fi
+    done
 
+    # Security group: one per region (a default-VPC SG is region-scoped). Skip regions with no
+    # default VPC or no access; launch only uses regions that have an SG created here.
     local vpc sg
-    vpc=$(A ec2 describe-vpcs --filters Name=is-default,Values=true --query 'Vpcs[0].VpcId')
-    [ "$vpc" != "None" ] || die "no default VPC in $REGION"
-    sg=$(sgid)
-    if [ "$sg" = "None" ]; then
-        sg=$(A ec2 create-security-group --group-name $APP --description "$APP disposable spot workers" --vpc-id "$vpc" --query GroupId)
-        A ec2 authorize-security-group-ingress --group-id "$sg" --protocol tcp --port 22 --cidr 0.0.0.0/0 >/dev/null
-        echo "security group: created ($sg, ssh key-only)"
-    else
-        echo "security group: ok ($sg)"
-    fi
+    for r in $REGIONS; do
+        vpc=$(AR "$r" ec2 describe-vpcs --filters Name=is-default,Values=true --query 'Vpcs[0].VpcId' 2>/dev/null || echo None)
+        if [ "$vpc" = "None" ]; then echo "security group: WARN no default VPC in $r (skipping)"; continue; fi
+        sg=$(sgid "$r")
+        if [ "$sg" = "None" ]; then
+            sg=$(AR "$r" ec2 create-security-group --group-name $APP --description "$APP disposable spot workers" --vpc-id "$vpc" --query GroupId)
+            AR "$r" ec2 authorize-security-group-ingress --group-id "$sg" --protocol tcp --port 22 --cidr 0.0.0.0/0 >/dev/null
+            echo "security group: created in $r ($sg, ssh key-only)"
+        else
+            echo "security group: ok in $r ($sg)"
+        fi
+    done
 
     local b; b=$(bucket)
     if ! aws --region "$REGION" s3api head-bucket --bucket "$b" >/dev/null 2>&1; then
@@ -114,34 +145,39 @@ cmd_setup() {
     echo "setup complete — next: scripts/cloudsprt.sh smoke"
 }
 
-# launch_one TYPE TTL_MINUTES RUNID SHARD -> instance id (uses AMI_ID, SG_ID globals)
-# Iterates the region's default subnets (one per AZ) on spot-capacity misses.
+# launch_one REGION TYPE TTL_MINUTES RUNID SHARD -> instance id
+# Resolves the AMI + security group + default subnets for REGION (each region has its own),
+# then iterates that region's subnets (one per AZ) on spot-capacity misses.
 launch_one() {
-    local ud id try subnets sn snarg arr n rot rotated k
-    subnets=$(A ec2 describe-subnets --filters Name=default-for-az,Values=true --query 'Subnets[].SubnetId')
+    local rgn=$1 ty=$2 ttlm=$3 runid=$4 shard=$5
+    local ud id try subnets sn snarg arr n rot rotated k ami_id sg_id
+    ami_id=$(ami "$rgn" 2>/dev/null) || { echo "launch_one: no AMI in $rgn" >&2; return 1; }
+    sg_id=$(sgid "$rgn")
+    [ "$sg_id" != "None" ] || { echo "launch_one: no security group in $rgn (run setup)" >&2; return 1; }
+    subnets=$(AR "$rgn" ec2 describe-subnets --filters Name=default-for-az,Values=true --query 'Subnets[].SubnetId' 2>/dev/null)
     [ -n "$subnets" ] || subnets=DEFAULT
-    # Spread shards across AZs: rotate the AZ (subnet) preference list by shard number
-    # so a multi-shard run prefers DIFFERENT AZs (independent shards = zero inter-shard
-    # cost; de-correlates spot reclaims, which hit by AZ+type — observed both 4xlarge
-    # taken together in us-east-2a). Each shard still falls back to the other AZs on a
-    # capacity miss; single-shard (shard 0) rotation is a no-op.
+    # Spread shards across AZs: rotate the AZ (subnet) preference list by shard number so a
+    # multi-shard run prefers DIFFERENT AZs (independent shards = zero inter-shard cost;
+    # de-correlates spot reclaims, which hit by AZ+type — observed both 4xlarge taken together
+    # in us-east-2a). Each shard still falls back to the other AZs on a capacity miss;
+    # single-shard rotation is a no-op. Cross-REGION spread is layered on top by cmd_launch.
     if [ "$subnets" != DEFAULT ]; then
-        arr=($subnets); n=${#arr[@]}; rot=$(( ${4:-0} % n )); rotated=""
+        arr=($subnets); n=${#arr[@]}; rot=$(( shard % n )); rotated=""
         for ((k = 0; k < n; k++)); do rotated="$rotated ${arr[$(((k + rot) % n))]}"; done
         subnets=$rotated
     fi
     ud=$(mktemp)
-    printf '#!/bin/bash\nshutdown -h +%s\n' "$2" > "$ud"
+    printf '#!/bin/bash\nshutdown -h +%s\n' "$ttlm" > "$ud"
     for try in 1 2 3 4 5 6; do
         for sn in $subnets; do
             snarg=""
             [ "$sn" != DEFAULT ] && snarg="--subnet-id $sn"
             # shellcheck disable=SC2086
-            if id=$(A ec2 run-instances --image-id "$AMI_ID" --instance-type "$1" --key-name $APP \
-                    --security-group-ids "$SG_ID" --iam-instance-profile Name=$APP-profile $snarg \
+            if id=$(AR "$rgn" ec2 run-instances --image-id "$ami_id" --instance-type "$ty" --key-name $APP \
+                    --security-group-ids "$sg_id" --iam-instance-profile Name=$APP-profile $snarg \
                     --instance-market-options 'MarketType=spot,SpotOptions={SpotInstanceType=one-time,InstanceInterruptionBehavior=terminate}' \
                     --user-data "file://$ud" \
-                    --tag-specifications "ResourceType=instance,Tags=[{Key=app,Value=$APP},{Key=runid,Value=$3},{Key=shard,Value=$4},{Key=Name,Value=$APP-$3-s$4}]" \
+                    --tag-specifications "ResourceType=instance,Tags=[{Key=app,Value=$APP},{Key=runid,Value=$runid},{Key=shard,Value=$shard},{Key=region,Value=$rgn},{Key=Name,Value=$APP-$runid-s$shard}]" \
                     --query 'Instances[0].InstanceId' 2>/tmp/cloudsprt_err.$$); then
                 rm -f "$ud"; echo "$id"; return 0
             fi
@@ -159,26 +195,28 @@ launch_one() {
 
 # sweep_runid RUNID — terminate every worker of a run (idempotent, never fails)
 sweep_runid() {
-    local ids
-    ids=$(A ec2 describe-instances --filters Name=tag:app,Values=$APP "Name=tag:runid,Values=$1" \
-        Name=instance-state-name,Values=pending,running --query 'Reservations[].Instances[].InstanceId' 2>/dev/null || true)
-    # shellcheck disable=SC2086
-    [ -n "$ids" ] && A ec2 terminate-instances --instance-ids $ids >/dev/null 2>&1 || true
+    local r ids
+    for r in $REGIONS; do
+        ids=$(AR "$r" ec2 describe-instances --filters Name=tag:app,Values=$APP "Name=tag:runid,Values=$1" \
+            Name=instance-state-name,Values=pending,running --query 'Reservations[].Instances[].InstanceId' 2>/dev/null || true)
+        # shellcheck disable=SC2086
+        [ -n "$ids" ] && AR "$r" ec2 terminate-instances --instance-ids $ids >/dev/null 2>&1 || true
+    done
 }
 
-# wait_ssh INSTANCE_ID -> public ip once sshable (fails fast if the instance dies first)
+# wait_ssh REGION INSTANCE_ID -> public ip once sshable (fails fast if the instance dies first)
 wait_ssh() {
-    local ip="" st n=0
+    local rgn=$1 iid=$2 ip="" st n=0 ssho=(-i "$(pem_for "$1")" "${SSHOPTS[@]}")
     while :; do
-        st=$(A ec2 describe-instances --instance-ids "$1" --query 'Reservations[0].Instances[0].State.Name' 2>/dev/null || echo unknown)
+        st=$(AR "$rgn" ec2 describe-instances --instance-ids "$iid" --query 'Reservations[0].Instances[0].State.Name' 2>/dev/null || echo unknown)
         case $st in shutting-down|terminated) return 1;; esac
-        ip=$(A ec2 describe-instances --instance-ids "$1" --query 'Reservations[0].Instances[0].PublicIpAddress' 2>/dev/null || true)
+        ip=$(AR "$rgn" ec2 describe-instances --instance-ids "$iid" --query 'Reservations[0].Instances[0].PublicIpAddress' 2>/dev/null || true)
         [ -n "$ip" ] && [ "$ip" != "None" ] && break
         n=$((n+1)); [ $n -gt 30 ] && return 1
         sleep 5
     done
     n=0
-    until ssh "${SSHOPTS[@]}" "ec2-user@$ip" true 2>/dev/null; do
+    until ssh "${ssho[@]}" "ec2-user@$ip" true 2>/dev/null; do
         n=$((n+1)); [ $n -gt 30 ] && return 1
         sleep 5
     done
@@ -186,21 +224,21 @@ wait_ssh() {
 }
 
 cmd_smoke() {
-    local b runid id ip state t
-    b=$(bucket); AMI_ID=$(ami); SG_ID=$(sgid)
+    local b runid id ip state t ssho=(-i "$PEM" "${SSHOPTS[@]}")
+    b=$(bucket); SG_ID=$(sgid)
     [ "$SG_ID" != "None" ] || die "run setup first"
     runid=smoke-$(date +%H%M%S)
     local ty
     id=""
     for ty in t4g.nano t4g.micro c7g.xlarge c8g.xlarge; do
-        echo "launching $ty spot (TTL 20 min)..."
-        if id=$(launch_one "$ty" 20 "$runid" 0); then break; fi
+        echo "launching $ty spot in $REGION (TTL 20 min)..."
+        if id=$(launch_one "$REGION" "$ty" 20 "$runid" 0); then break; fi
     done
     [ -n "$id" ] || die "no spot capacity on any smoke type in $REGION (or quota — Service Quotas -> 'All Standard Spot Instance Requests')"
     echo "instance $id — waiting for ssh (~1 min)..."
-    ip=$(wait_ssh "$id") || { A ec2 terminate-instances --instance-ids "$id" >/dev/null; die "ssh never came up (instance terminated)"; }
+    ip=$(wait_ssh "$REGION" "$id") || { A ec2 terminate-instances --instance-ids "$id" >/dev/null; die "ssh never came up (instance terminated)"; }
     echo "up at $ip — S3 marker write + self-shutdown..."
-    ssh "${SSHOPTS[@]}" "ec2-user@$ip" \
+    ssh "${ssho[@]}" "ec2-user@$ip" \
         "sudo shutdown -h +20 >/dev/null 2>&1; for i in 1 2 3 4 5 6 7 8 9 10; do echo SMOKE_OK | aws s3 cp - s3://$b/$runid/ok.txt >/dev/null 2>&1 && break; sleep 3; done; sudo shutdown -h now" || true
     t=0
     until aws --region "$REGION" s3api head-object --bucket "$b" --key "$runid/ok.txt" >/dev/null 2>&1; do
@@ -242,13 +280,13 @@ cmd_launch() {
         c8g.*|c7g.*|m8g.*|m7g.*|r8g.*|r7g.*|t4g.*) ;;
         *) die "$type is not a Graviton type (binaries are linux/arm64)";;
     esac
-    local b; b=$(bucket); AMI_ID=$(ami); SG_ID=$(sgid)
+    local b; b=$(bucket); SG_ID=$(sgid)
     [ "$SG_ID" != "None" ] || die "run setup first"
     local runid work
     runid=$(date +%y%m%d-%H%M%S)
     work=$(mktemp -d)
     # bake values in now (locals are gone when the EXIT trap fires)
-    trap "git -C '$REPO' worktree remove --force '$work/basesrc' >/dev/null 2>&1; git -C '$REPO' worktree prune >/dev/null 2>&1; true" EXIT
+    trap "git -C '$REPO' worktree remove --force '$work/basesrc' >/dev/null 2>&1 || true; git -C '$REPO' worktree prune >/dev/null 2>&1 || true" EXIT
 
     if [ "$nullrun" = 1 ]; then
         echo "building linux/arm64 NULL run (both engines = $baseref) + sprt (worktree)..."
@@ -266,26 +304,31 @@ cmd_launch() {
         git -C "$REPO" worktree remove --force "$work/basesrc"
     fi
 
-    # Launch all instances first. Shard 0 resolves the type through a capacity
-    # fallback chain; remaining shards reuse it (shard pooling must be homogeneous).
-    # A shard lost to capacity/reclaim is dropped INDIVIDUALLY (terminated if it
-    # exists); the run continues with the survivors. Zero survivors => sweep + die.
-    local i id ip ty chosen="" ids=() shardnos=() ttlmin=$((ttl * 60))
+    # Launch all instances first, SPREAD ACROSS REGIONS (shard i -> REGIONS[i % nreg]) so a
+    # multi-shard run de-correlates from a regional spot shortage / correlated reclaim. Shard 0
+    # resolves the type through a capacity fallback chain in its region; remaining shards reuse
+    # that type in THEIR region (shard pooling must be homogeneous — same type fleet-wide). A
+    # shard lost to capacity/reclaim is dropped INDIVIDUALLY; the run continues with the
+    # survivors. Zero survivors => sweep + die.
+    local regs=($REGIONS) nreg rgn
+    nreg=${#regs[@]}
+    local i id ip ty chosen="" ids=() shardnos=() regionsof=() ttlmin=$((ttl * 60))
     for ((i = 0; i < shards; i++)); do
+        rgn=${regs[$((i % nreg))]}
         if [ -z "$chosen" ]; then
             for ty in $type c7g.2xlarge c8g.4xlarge c7g.4xlarge; do
-                if id=$(launch_one "$ty" "$ttlmin" "$runid" "$i"); then chosen=$ty; break; fi
-                echo "no spot capacity: $ty — trying next type"
+                if id=$(launch_one "$rgn" "$ty" "$ttlmin" "$runid" "$i"); then chosen=$ty; break; fi
+                echo "no spot capacity: $ty in $rgn — trying next type"
             done
-            [ -n "$chosen" ] || { sweep_runid "$runid"; die "no spot capacity on any allowed type in $REGION right now"; }
+            [ -n "$chosen" ] || { sweep_runid "$runid"; die "no spot capacity on any allowed type in $rgn right now"; }
         else
-            if ! id=$(launch_one "$chosen" "$ttlmin" "$runid" "$i"); then
-                echo "shard $i: no spot capacity — dropped, continuing with the rest"
+            if ! id=$(launch_one "$rgn" "$chosen" "$ttlmin" "$runid" "$i"); then
+                echo "shard $i ($rgn): no spot capacity for $chosen — dropped, continuing with the rest"
                 continue
             fi
         fi
-        ids+=("$id"); shardnos+=("$i")
-        echo "shard $i: $id ($chosen)"
+        ids+=("$id"); shardnos+=("$i"); regionsof+=("$rgn")
+        echo "shard $i: $id ($chosen in $rgn)"
     done
     if [ "$conc" = 0 ]; then
         case $chosen in
@@ -305,13 +348,14 @@ cmd_launch() {
     local j
     for ((j = 0; j < ${#ids[@]}; j++)); do
       (
-        i=${shardnos[$j]}; id=${ids[$j]}
+        i=${shardnos[$j]}; id=${ids[$j]}; rgn=${regionsof[$j]}
+        ssho=(-i "$(pem_for "$rgn")" "${SSHOPTS[@]}")   # this shard's region keypair
         awk "NR % $shards == $i" "$openings" > "$work/open$i.txt"
         cat > "$work/run$i.sh" <<EOF
 #!/bin/bash
 cd /home/ec2-user
 sudo shutdown -h +$ttlmin >/dev/null 2>&1   # second TTL path, independent of user-data
-(while sleep 60; do aws s3 cp sprt.log s3://$b/$runid/shard$i.log >/dev/null 2>&1; done) &
+(while sleep 60; do aws s3 --region $REGION cp sprt.log s3://$b/$runid/shard$i.log >/dev/null 2>&1; done) &
 KEEPER=\$!
 # Reserve one core for the control plane (sshd + this loop + the S3 uploader) so a
 # fully-loaded box stays reachable for diagnosis/kill: pin sprt and its engine children
@@ -320,13 +364,13 @@ NCPU=\$(nproc)
 taskset -c 0-\$(( NCPU > 1 ? NCPU - 2 : 0 )) ./sprt -new ./ngn_cand -base ./ngn_base -lowpower=false -concurrency $conc -openings open.txt ${sprtargs[*]} > sprt.log 2>&1
 kill \$KEEPER 2>/dev/null
 echo CLOUDSPRT_DONE >> sprt.log
-aws s3 cp sprt.log s3://$b/$runid/shard$i.log
+aws s3 --region $REGION cp sprt.log s3://$b/$runid/shard$i.log
 sudo shutdown -h now
 EOF
-        echo "shard $i: waiting for ssh..."
-        if ! ip=$(wait_ssh "$id"); then
-            A ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
-            echo "shard $i: gone before provisioning (spot reclaim) — terminated, dropped"
+        echo "shard $i ($rgn): waiting for ssh..."
+        if ! ip=$(wait_ssh "$rgn" "$id"); then
+            AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
+            echo "shard $i ($rgn): gone before provisioning (spot reclaim) — terminated, dropped"
             exit 0
         fi
         # Push files with RETRY + VERIFY. Boot-window ssh/scp flakiness was silently
@@ -337,22 +381,22 @@ EOF
         nopen=$(wc -l < "$work/open$i.txt" | tr -d ' ')
         pushed=0
         for _ in 1 2 3 4; do
-            if scp "${SSHOPTS[@]}" "$work/sprt" "$work/ngn_cand" "$work/ngn_base" "ec2-user@$ip:" >/dev/null 2>&1 \
-               && scp "${SSHOPTS[@]}" "$work/open$i.txt" "ec2-user@$ip:open.txt" >/dev/null 2>&1 \
-               && scp "${SSHOPTS[@]}" "$work/run$i.sh" "ec2-user@$ip:run.sh" >/dev/null 2>&1 \
-               && [ "$(ssh "${SSHOPTS[@]}" "ec2-user@$ip" 'wc -l < open.txt' 2>/dev/null | tr -d ' ')" = "$nopen" ]; then
+            if scp "${ssho[@]}" "$work/sprt" "$work/ngn_cand" "$work/ngn_base" "ec2-user@$ip:" >/dev/null 2>&1 \
+               && scp "${ssho[@]}" "$work/open$i.txt" "ec2-user@$ip:open.txt" >/dev/null 2>&1 \
+               && scp "${ssho[@]}" "$work/run$i.sh" "ec2-user@$ip:run.sh" >/dev/null 2>&1 \
+               && [ "$(ssh "${ssho[@]}" "ec2-user@$ip" 'wc -l < open.txt' 2>/dev/null | tr -d ' ')" = "$nopen" ]; then
                 pushed=1; break
             fi
             sleep 5
         done
         if [ "$pushed" = 0 ]; then
-            A ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
-            echo "shard $i: openings/binaries push failed after retries — terminated, dropped"
+            AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
+            echo "shard $i ($rgn): openings/binaries push failed after retries — terminated, dropped"
             exit 0
         fi
-        if ! ssh "${SSHOPTS[@]}" "ec2-user@$ip" 'chmod +x sprt ngn_cand ngn_base run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1'; then
-            A ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
-            echo "shard $i: run.sh start failed — terminated, dropped"
+        if ! ssh "${ssho[@]}" "ec2-user@$ip" 'chmod +x sprt ngn_cand ngn_base run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1'; then
+            AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
+            echo "shard $i ($rgn): run.sh start failed — terminated, dropped"
             exit 0
         fi
         # Liveness probe — LOG ONLY, never terminate. A fresh inbound ssh to a small box
@@ -365,11 +409,11 @@ EOF
         alive=0
         for _ in 1 2 3; do
             sleep 3
-            if ssh "${SSHOPTS[@]}" "ec2-user@$ip" 'pgrep -f "\./sprt" >/dev/null' 2>/dev/null; then alive=1; break; fi
+            if ssh "${ssho[@]}" "ec2-user@$ip" 'pgrep -f "\./sprt" >/dev/null' 2>/dev/null; then alive=1; break; fi
         done
         [ "$alive" = 1 ] || echo "shard $i: liveness unconfirmed (busy box / slow sshd) — proceeding; S3 progress + TTL are the real backstops"
         : > "$work/live.$i"   # survivor marker (subshell can't increment a parent counter)
-        echo "shard $i: running on $ip"
+        echo "shard $i ($rgn): running on $ip"
       ) &
     done
     wait   # block until every shard's parallel provisioning subshell has finished
@@ -413,15 +457,19 @@ cmd_fetch() {
         esac
     done
     [ -n "$runid" ] || die "usage: fetch -runid <id> [-elo0 -5] [-elo1 0]"
-    local b dir live nlive=0
+    local b dir live="" nlive=0
     b=$(bucket); dir=$REPO/output/cloud/$runid
     mkdir -p "$dir"
     aws --region "$REGION" s3 sync "s3://$b/$runid/" "$dir/" >/dev/null
     # Verdict gate = ZERO LIVE WORKERS, not all-shards-DONE: an evicted shard never
     # writes CLOUDSPRT_DONE, but its last 60s upload is pooled as partial-final.
-    live=$(A ec2 describe-instances --filters Name=tag:app,Values=$APP "Name=tag:runid,Values=$runid" \
-        Name=instance-state-name,Values=pending,running --query 'Reservations[].Instances[].InstanceId' 2>/dev/null || true)
-    if [ -n "$live" ]; then nlive=$(echo "$live" | wc -w | tr -d ' '); fi
+    local r lr
+    for r in $REGIONS; do
+        lr=$(AR "$r" ec2 describe-instances --filters Name=tag:app,Values=$APP "Name=tag:runid,Values=$runid" \
+            Name=instance-state-name,Values=pending,running --query 'Reservations[].Instances[].InstanceId' 2>/dev/null || true)
+        live="$live $lr"
+    done
+    nlive=$(echo "$live" | wc -w | tr -d ' ')
     local rc=0
     python3 - "$dir" "$elo0" "$elo1" "$nlive" <<'PY' || rc=$?
 import sys, os, re, math, glob
@@ -476,29 +524,41 @@ PY
 }
 
 cmd_ps() {
-    aws --region "$REGION" ec2 describe-instances --filters Name=tag:app,Values=$APP \
-        --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,Tags[?Key==`runid`]|[0].Value,LaunchTime]' \
-        --output table
+    local r
+    for r in $REGIONS; do
+        echo "== region $r =="
+        aws --region "$r" ec2 describe-instances --filters Name=tag:app,Values=$APP \
+            --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,Tags[?Key==`runid`]|[0].Value,LaunchTime]' \
+            --output table 2>&1 || echo "  (region $r: query failed — disabled / no access?)"
+    done
 }
 
 cmd_kill() {
-    local ids filters=("Name=tag:app,Values=$APP" "Name=instance-state-name,Values=pending,running")
+    local r ids any=0 filters=("Name=tag:app,Values=$APP" "Name=instance-state-name,Values=pending,running")
     if [ "${1:-}" = "-runid" ]; then
         [ -n "${2:-}" ] || die "kill -runid <id>"
         filters+=("Name=tag:runid,Values=$2")
     fi
-    ids=$(A ec2 describe-instances --filters "${filters[@]}" --query 'Reservations[].Instances[].InstanceId')
-    [ -n "$ids" ] || { echo "nothing running"; return 0; }
-    # shellcheck disable=SC2086
-    A ec2 terminate-instances --instance-ids $ids --query 'TerminatingInstances[].[InstanceId,CurrentState.Name]'
+    for r in $REGIONS; do
+        ids=$(aws --region "$r" --output text ec2 describe-instances --filters "${filters[@]}" --query 'Reservations[].Instances[].InstanceId' 2>/dev/null || true)
+        [ -n "$ids" ] || continue
+        any=1; echo "== region $r =="
+        # shellcheck disable=SC2086
+        aws --region "$r" --output text ec2 terminate-instances --instance-ids $ids --query 'TerminatingInstances[].[InstanceId,CurrentState.Name]'
+    done
+    [ "$any" = 1 ] || echo "nothing running"
 }
 
 cmd_prices() {
-    aws --region "$REGION" ec2 describe-spot-price-history \
-        --instance-types c8g.2xlarge c8g.4xlarge c7g.2xlarge c7g.4xlarge t4g.nano \
-        --product-descriptions "Linux/UNIX" --start-time "$(date -u +%Y-%m-%dT%H:%M:%S)" \
-        --query 'sort_by(SpotPriceHistory,&InstanceType)[].[InstanceType,AvailabilityZone,SpotPrice]' \
-        --output table
+    local r
+    for r in $REGIONS; do
+        echo "== region $r =="
+        aws --region "$r" ec2 describe-spot-price-history \
+            --instance-types c8g.2xlarge c8g.4xlarge c7g.2xlarge c7g.4xlarge t4g.nano \
+            --product-descriptions "Linux/UNIX" --start-time "$(date -u +%Y-%m-%dT%H:%M:%S)" \
+            --query 'sort_by(SpotPriceHistory,&InstanceType)[].[InstanceType,AvailabilityZone,SpotPrice]' \
+            --output table 2>&1 || echo "  (region $r: query failed — disabled / no access?)"
+    done
 }
 
 case "${1:-help}" in
