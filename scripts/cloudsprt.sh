@@ -13,15 +13,16 @@
 # the Mac sleeping. Workers need no AWS credentials (instance profile, PutObject
 # only). Engines run with -lowpower=false (taskpolicy is macOS-only).
 #
-#   setup   one-time, idempotent: keypair, security group, S3 bucket (30d expiry), IAM
+#   setup   one-time, idempotent: per-region keypair + security group, S3 bucket (30d), IAM
 #   smoke   ~$0.001 end-to-end proof: nano spot up -> S3 write -> SELF-shutdown observed
-#   launch  cross-compile worktree (cand) + HEAD/-baseref (base) for linux/arm64,
-#           shard the openings, start N workers; default args = Tier-1 gate
+#   launch  cross-compile worktree (cand) + HEAD/-baseref (base) for linux/arm64, shard the
+#           openings ACROSS REGIONS, start N workers; default args = Tier-1 gate. -supervise
+#           relaunches reclaimed shards in a rotated region until DONE (run it backgrounded).
 #   status  live instances + latest result line per shard (via S3, lags <=1 min)
-#   fetch   pool shard logs -> elo/CI/LLR; verdict+sweep once NO live workers remain
-#   ps      ALL cloudsprt instances in any state (audit — empty when idle)
-#   kill    terminate instances (all, or -runid X)
-#   prices  current spot $/hr for the candidate Graviton types
+#   fetch   pool shard logs -> elo/CI/LLR; verdict+sweep once NO live workers remain (all regions)
+#   ps      ALL cloudsprt instances in any state, ALL regions (audit — empty when idle)
+#   kill    terminate instances across all regions (all, or -runid X)
+#   prices  current spot $/hr for the candidate Graviton types (all regions)
 #
 # Examples:
 #   scripts/cloudsprt.sh launch                                   # Tier-1, 1 worker
@@ -258,21 +259,145 @@ cmd_smoke() {
     echo "SMOKE PASS (cost ~\$0.001)"
 }
 
+# provision_shard SHARD INSTANCE_ID REGION -> 0 on success (touches "$work/live.SHARD"), 1 on
+# failure (terminates+drops the instance). Reuses the run-dir binaries/openings; reads
+# $b $runid $conc $ttlmin $work $openings $shards $REGION sprtargs from the (dynamically-scoped)
+# caller. Used by BOTH the initial parallel launch AND the -supervise reclaim-recovery loop.
+provision_shard() {
+    local i=$1 id=$2 rgn=$3 ip nopen pushed alive _
+    local ssho=(-i "$(pem_for "$rgn")" "${SSHOPTS[@]}")   # this shard's region keypair
+    awk "NR % $shards == $i" "$openings" > "$work/open$i.txt"
+    cat > "$work/run$i.sh" <<EOF
+#!/bin/bash
+cd /home/ec2-user
+sudo shutdown -h +$ttlmin >/dev/null 2>&1   # second TTL path, independent of user-data
+(while sleep 60; do aws s3 --region $REGION cp sprt.log s3://$b/$runid/shard$i.log >/dev/null 2>&1; done) &
+KEEPER=\$!
+# Spot-reclaim watcher (#4): on the 2-min interruption notice, force a final S3 flush so the
+# last games aren't lost to the 60s keeper gap (IMDSv2 token required; AL2023 default).
+(while sleep 5; do
+   TOK=\$(curl -sX PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 60" 2>/dev/null)
+   ACT=\$(curl -s -H "X-aws-ec2-metadata-token: \$TOK" "http://169.254.169.254/latest/meta-data/spot/instance-action" 2>/dev/null)
+   case "\$ACT" in *terminate*|*stop*) aws s3 --region $REGION cp sprt.log s3://$b/$runid/shard$i.log >/dev/null 2>&1; break;; esac
+ done) &
+WATCHER=\$!
+# Reserve one core for the control plane (sshd + this loop + the S3 uploader) so a
+# fully-loaded box stays reachable for diagnosis/kill: pin sprt and its engine children
+# to all-but-one core via taskset. nproc-1 cores for the games, the top core for system.
+NCPU=\$(nproc)
+taskset -c 0-\$(( NCPU > 1 ? NCPU - 2 : 0 )) ./sprt -new ./ngn_cand -base ./ngn_base -lowpower=false -concurrency $conc -openings open.txt ${sprtargs[*]} > sprt.log 2>&1
+kill \$KEEPER \$WATCHER 2>/dev/null
+echo CLOUDSPRT_DONE >> sprt.log
+aws s3 --region $REGION cp sprt.log s3://$b/$runid/shard$i.log
+sudo shutdown -h now
+EOF
+    echo "shard $i ($rgn): waiting for ssh..."
+    if ! ip=$(wait_ssh "$rgn" "$id"); then
+        AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
+        echo "shard $i ($rgn): gone before provisioning (spot reclaim) — terminated, dropped"
+        return 1
+    fi
+    # Push files with RETRY + VERIFY (boot-window ssh/scp flakiness silently starved later
+    # shards of open.txt -> 0 games). Retry 4x and VERIFY open.txt's line count before starting.
+    nopen=$(wc -l < "$work/open$i.txt" | tr -d ' ')
+    pushed=0
+    for _ in 1 2 3 4; do
+        if scp "${ssho[@]}" "$work/sprt" "$work/ngn_cand" "$work/ngn_base" "ec2-user@$ip:" >/dev/null 2>&1 \
+           && scp "${ssho[@]}" "$work/open$i.txt" "ec2-user@$ip:open.txt" >/dev/null 2>&1 \
+           && scp "${ssho[@]}" "$work/run$i.sh" "ec2-user@$ip:run.sh" >/dev/null 2>&1 \
+           && [ "$(ssh "${ssho[@]}" "ec2-user@$ip" 'wc -l < open.txt' 2>/dev/null | tr -d ' ')" = "$nopen" ]; then
+            pushed=1; break
+        fi
+        sleep 5
+    done
+    if [ "$pushed" = 0 ]; then
+        AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
+        echo "shard $i ($rgn): openings/binaries push failed after retries — terminated, dropped"
+        return 1
+    fi
+    if ! ssh "${ssho[@]}" "ec2-user@$ip" 'chmod +x sprt ngn_cand ngn_base run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1'; then
+        AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
+        echo "shard $i ($rgn): run.sh start failed — terminated, dropped"
+        return 1
+    fi
+    # Liveness probe — LOG ONLY, never terminate (a busy box's sshd can't always service a
+    # fresh probe; the two boot/run TTLs + S3 progress are the real backstops).
+    alive=0
+    for _ in 1 2 3; do
+        sleep 3
+        if ssh "${ssho[@]}" "ec2-user@$ip" 'pgrep -f "\./sprt" >/dev/null' 2>/dev/null; then alive=1; break; fi
+    done
+    [ "$alive" = 1 ] || echo "shard $i: liveness unconfirmed (busy box / slow sshd) — proceeding; S3 progress + TTL are the real backstops"
+    : > "$work/live.$i"   # survivor marker
+    echo "shard $i ($rgn): running on $ip"
+    return 0
+}
+
+# supervise_run — bounded, leak-safe reclaim recovery (#4). Polls the run; any shard that has
+# died WITHOUT writing CLOUDSPRT_DONE (reclaimed mid-run) is relaunched in a ROTATED region/AZ,
+# reusing the retained run-dir binaries (discard-and-replay: the replacement re-runs the slice
+# fresh and OVERWRITES shard$i.log; NGN is deterministic so completed games are identical => no
+# duplicates pooled). Bounded by $maxrepl total replacements AND $superwait minutes. EVERY
+# replacement is runid+shard-tagged + boot -ttl via launch_one, the region-aware sweep covers it,
+# and the per-instance TTL backstops a supervisor death — so this loop CANNOT leak. Reads
+# cmd_launch locals via dynamic scope; never sweeps (fetch owns the verdict-time sweep).
+supervise_run() {
+    local rounds=0 maxrounds=$(( superwait * 2 )) repl=0 i r liveids newrgn newid pending
+    echo "supervising $runid for reclaims (<=$maxrepl replacements, <=${superwait}m, rotate region on loss)..."
+    while [ "$rounds" -lt "$maxrounds" ]; do
+        sleep 30; rounds=$((rounds+1)); pending=0
+        for ((i = 0; i < shards; i++)); do
+            # DONE? the completion marker is in the last bytes of the shard log on S3
+            if aws --region "$REGION" s3api get-object --bucket "$b" --key "$runid/shard$i.log" --range "bytes=-256" "/tmp/cloudsprt_done.$$" >/dev/null 2>&1 \
+               && grep -q CLOUDSPRT_DONE "/tmp/cloudsprt_done.$$" 2>/dev/null; then
+                continue
+            fi
+            pending=1
+            # LIVE? an instance for this shard is pending/running in any region -> leave it alone
+            liveids=""
+            for r in $REGIONS; do
+                liveids="$liveids $(AR "$r" ec2 describe-instances --filters Name=tag:app,Values=$APP "Name=tag:runid,Values=$runid" "Name=tag:shard,Values=$i" Name=instance-state-name,Values=pending,running --query 'Reservations[].Instances[].InstanceId' 2>/dev/null || true)"
+            done
+            [ -n "$(echo "$liveids" | tr -d ' ')" ] && continue
+            # DOWN (neither done nor live) -> relaunch in a rotated region if budget remains
+            if [ "$repl" -ge "$maxrepl" ]; then
+                echo "supervise: shard $i down, replacement budget ($maxrepl) spent — leaving to partial-final"; continue
+            fi
+            newrgn=${regs[$(( (i + repl + 1) % nreg ))]}
+            repl=$((repl+1))
+            echo "supervise: shard $i DOWN (reclaimed) — relaunch $repl/$maxrepl in $newrgn"
+            rm -f "$work/live.$i"
+            if newid=$(launch_one "$newrgn" "$chosen" "$ttlmin" "$runid" "$i"); then
+                provision_shard "$i" "$newid" "$newrgn" || echo "supervise: shard $i replacement provision failed — retry next round if budget remains"
+            else
+                echo "supervise: no $chosen capacity for shard $i in $newrgn — retry next round"
+            fi
+        done
+        [ "$pending" = 0 ] && { echo "supervise: all $shards shards DONE"; break; }
+    done
+    rm -f "/tmp/cloudsprt_done.$$"
+    [ "$rounds" -lt "$maxrounds" ] || echo "supervise: ${superwait}m cap reached — stopping (every worker still bounded by its boot -ttl)"
+}
+
 cmd_launch() {
-    local shards=1 type=c8g.2xlarge ttl=6 conc=0 baseref=HEAD openings=$REPO/output/sprt_openings.txt nullrun=0
+    local shards=1 type=c8g.2xlarge ttl=6 conc=0 baseref=HEAD openings=$REPO/output/sprt_openings.txt nullrun=0 supervise=0 maxrepl=8 superwait=0
     while [ $# -gt 0 ]; do
         case $1 in
-            -shards)   shards=$2; shift 2;;
-            -type)     type=$2; shift 2;;
-            -ttl)      ttl=$2; shift 2;;
-            -conc)     conc=$2; shift 2;;
-            -baseref)  baseref=$2; shift 2;;
-            -openings) openings=$2; shift 2;;
-            -null)     nullrun=1; shift;;
+            -shards)    shards=$2; shift 2;;
+            -type)      type=$2; shift 2;;
+            -ttl)       ttl=$2; shift 2;;
+            -conc)      conc=$2; shift 2;;
+            -baseref)   baseref=$2; shift 2;;
+            -openings)  openings=$2; shift 2;;
+            -null)      nullrun=1; shift;;
+            -supervise) supervise=1; shift;;
+            -maxrepl)   maxrepl=$2; shift 2;;
+            -superwait) superwait=$2; shift 2;;
             --) shift; break;;
             *) die "unknown launch flag $1 (sprt args go after --)";;
         esac
     done
+    [ "$superwait" = 0 ] && superwait=$((ttl * 60))   # default: supervise across the whole TTL window
     local sprtargs=("$@")
     [ ${#sprtargs[@]} -gt 0 ] || sprtargs=(-tc 10+0.1 -elo0 -5 -elo1 0 -mingames 64 -maxgames 600)
     [ -f "$openings" ] || die "openings file not found: $openings"
@@ -347,83 +472,20 @@ cmd_launch() {
     # so the no-leak guarantee holds (a half-provisioned box still self-terminates at TTL).
     local j
     for ((j = 0; j < ${#ids[@]}; j++)); do
-      (
-        i=${shardnos[$j]}; id=${ids[$j]}; rgn=${regionsof[$j]}
-        ssho=(-i "$(pem_for "$rgn")" "${SSHOPTS[@]}")   # this shard's region keypair
-        awk "NR % $shards == $i" "$openings" > "$work/open$i.txt"
-        cat > "$work/run$i.sh" <<EOF
-#!/bin/bash
-cd /home/ec2-user
-sudo shutdown -h +$ttlmin >/dev/null 2>&1   # second TTL path, independent of user-data
-(while sleep 60; do aws s3 --region $REGION cp sprt.log s3://$b/$runid/shard$i.log >/dev/null 2>&1; done) &
-KEEPER=\$!
-# Reserve one core for the control plane (sshd + this loop + the S3 uploader) so a
-# fully-loaded box stays reachable for diagnosis/kill: pin sprt and its engine children
-# to all-but-one core via taskset. nproc-1 cores for the games, the top core for system.
-NCPU=\$(nproc)
-taskset -c 0-\$(( NCPU > 1 ? NCPU - 2 : 0 )) ./sprt -new ./ngn_cand -base ./ngn_base -lowpower=false -concurrency $conc -openings open.txt ${sprtargs[*]} > sprt.log 2>&1
-kill \$KEEPER 2>/dev/null
-echo CLOUDSPRT_DONE >> sprt.log
-aws s3 --region $REGION cp sprt.log s3://$b/$runid/shard$i.log
-sudo shutdown -h now
-EOF
-        echo "shard $i ($rgn): waiting for ssh..."
-        if ! ip=$(wait_ssh "$rgn" "$id"); then
-            AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
-            echo "shard $i ($rgn): gone before provisioning (spot reclaim) — terminated, dropped"
-            exit 0
-        fi
-        # Push files with RETRY + VERIFY. Boot-window ssh/scp flakiness was silently
-        # dropping the openings file on the LATER shards (they came up with no open.txt,
-        # so sprt sat idle producing 0 games — a 4-shard run degenerated to single).
-        # Retry the scp's up to 4x and VERIFY open.txt landed with the right line count
-        # before starting — a starved shard is worse than a cleanly-dropped one.
-        nopen=$(wc -l < "$work/open$i.txt" | tr -d ' ')
-        pushed=0
-        for _ in 1 2 3 4; do
-            if scp "${ssho[@]}" "$work/sprt" "$work/ngn_cand" "$work/ngn_base" "ec2-user@$ip:" >/dev/null 2>&1 \
-               && scp "${ssho[@]}" "$work/open$i.txt" "ec2-user@$ip:open.txt" >/dev/null 2>&1 \
-               && scp "${ssho[@]}" "$work/run$i.sh" "ec2-user@$ip:run.sh" >/dev/null 2>&1 \
-               && [ "$(ssh "${ssho[@]}" "ec2-user@$ip" 'wc -l < open.txt' 2>/dev/null | tr -d ' ')" = "$nopen" ]; then
-                pushed=1; break
-            fi
-            sleep 5
-        done
-        if [ "$pushed" = 0 ]; then
-            AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
-            echo "shard $i ($rgn): openings/binaries push failed after retries — terminated, dropped"
-            exit 0
-        fi
-        if ! ssh "${ssho[@]}" "ec2-user@$ip" 'chmod +x sprt ngn_cand ngn_base run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1'; then
-            AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
-            echo "shard $i ($rgn): run.sh start failed — terminated, dropped"
-            exit 0
-        fi
-        # Liveness probe — LOG ONLY, never terminate. A fresh inbound ssh to a small box
-        # already RUNNING sprt at full concurrency can't always be serviced promptly
-        # (sshd starved of CPU), so a failed probe was FALSE-KILLING productive workers
-        # (terminated boxes had already played ~100 games). The no-leak guarantee does
-        # NOT depend on this terminate: a genuinely dead sprt uploads no S3 log and is
-        # reaped by the two boot/run TTLs; the in-sprt watchdog handles wedged games.
-        # So: best-effort probe, log if unconfirmed, and PROCEED.
-        alive=0
-        for _ in 1 2 3; do
-            sleep 3
-            if ssh "${ssho[@]}" "ec2-user@$ip" 'pgrep -f "\./sprt" >/dev/null' 2>/dev/null; then alive=1; break; fi
-        done
-        [ "$alive" = 1 ] || echo "shard $i: liveness unconfirmed (busy box / slow sshd) — proceeding; S3 progress + TTL are the real backstops"
-        : > "$work/live.$i"   # survivor marker (subshell can't increment a parent counter)
-        echo "shard $i ($rgn): running on $ip"
-      ) &
+        ( provision_shard "${shardnos[$j]}" "${ids[$j]}" "${regionsof[$j]}" ) &
     done
     wait   # block until every shard's parallel provisioning subshell has finished
     local live; live=$(find "$work" -maxdepth 1 -name 'live.*' 2>/dev/null | wc -l | tr -d ' ')
     [ "$live" -gt 0 ] || { sweep_runid "$runid"; die "zero shards survived provisioning — ALL $runid workers terminated"; }
-    find "$work" -mindepth 1 -delete && rmdir "$work"
     echo
     echo "runid $runid — $live/$shards shard(s) x $chosen conc-$conc, TTL ${ttl}h, sprt args: ${sprtargs[*]}"
     echo "  watch:  scripts/cloudsprt.sh status"
     echo "  result: scripts/cloudsprt.sh fetch -runid $runid"
+    # #4 reclaim recovery: when asked, supervise the run and relaunch reclaimed shards in a
+    # rotated region (retained binaries) until DONE / budget / cap. Run launch -supervise in the
+    # BACKGROUND so it keeps replacing while you work; every worker is still -ttl-bounded.
+    if [ "$supervise" = 1 ]; then supervise_run; fi
+    find "$work" -mindepth 1 -delete 2>/dev/null; rmdir "$work" 2>/dev/null || true
 }
 
 cmd_status() {
