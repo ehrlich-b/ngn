@@ -17,7 +17,7 @@
     {
       "name": "Queen vs Rook",
       "fen": "4k3/8/8/8/8/8/8/4KQ1R w - - 0 1",
-      "eval": 1595,
+      "eval": 1597,
       "comments": "Queen should be ~400 points better than rook"
     },
     {
@@ -29,7 +29,7 @@
     {
       "name": "Central Knight",
       "fen": "4k3/8/8/3N4/8/8/8/4K3 w - - 0 1",
-      "eval": 330,
+      "eval": 320,
       "comments": "Centralized knight should score well"
     },
     {
@@ -59,7 +59,7 @@
     {
       "name": "King Safety Castled",
       "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 w kq - 0 1",
-      "eval": 27,
+      "eval": 29,
       "comments": "Castled king should be safer"
     },
     {

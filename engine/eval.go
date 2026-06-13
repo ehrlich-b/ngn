@@ -2426,31 +2426,61 @@ func evaluateRookOnOpenFile(board *Bitboard, color Color) int {
 // Bit-identical to recomputing getBishopAttacksBB/getRookAttacksBB inline
 // (sliderAtt[sq] holds exactly getBishopAttacksBB(sq, all) for a bishop,
 // getRookAttacksBB for a rook, and the union for a queen).
-func mobilityForSide(sliderAtt *[64]uint64, excluded, knightBB, bishopBB, rookBB, queenBB uint64) int {
-	mobility := 0
-	// Baselines lowered by 1 (or 2 for queen) to compensate for excluding
-	// pawn-attacked squares from the mobility count.
+// Per-count mobility tables (centipawns), indexed by the number of reachable
+// squares (own pieces + enemy-pawn-attacked squares excluded). These un-freeze
+// the old single linear slope-per-piece into a concave, phase-split shape:
+//   - concave (diminishing returns past a per-piece "knee") — the first escape
+//     squares matter most; a trapped piece is the real signal, a 12-square rook
+//     barely better than an 11-square one.
+//   - phase-split — heavy/long-range pieces (rook, bishop, queen) weigh more in
+//     the endgame where open lines decide; the knight's short range weighs
+//     slightly more in the middlegame. The old code ran ONE near-flat global
+//     MG/EG weight (181/180) over every piece, so no per-piece taper existed.
+// Zero-crossings keep the old baselines (knight 3, bishop/rook 6, queen 12),
+// and the cp scale folds in the old ~1.8x global weight, so values sit near the
+// old behaviour through the common midrange and only bend at the extremes.
+// Hand-seeded (perMove cp, halved past the knee); the texel basis does not tune
+// them — mobility now rides the non-tunable Fixed lump in the gradient trace.
+var (
+	knightMobMG = [9]int{-22, -14, -7, 0, 7, 14, 22, 25, 29}
+	knightMobEG = [9]int{-20, -13, -7, 0, 7, 13, 20, 23, 26}
+
+	bishopMobMG = [14]int{-32, -27, -22, -16, -11, -5, 0, 5, 11, 16, 19, 22, 24, 27}
+	bishopMobEG = [14]int{-36, -30, -24, -18, -12, -6, 0, 6, 12, 18, 21, 24, 27, 30}
+
+	rookMobMG = [15]int{-18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 14, 15, 17, 18}
+	rookMobEG = [15]int{-27, -23, -18, -14, -9, -5, 0, 5, 9, 14, 18, 20, 23, 25, 27}
+
+	queenMobMG = [28]int{-22, -20, -18, -16, -14, -13, -11, -9, -7, -5, -4, -2, 0, 2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 14, 15, 16, 17}
+	queenMobEG = [28]int{-26, -24, -22, -20, -18, -15, -13, -11, -9, -7, -4, -2, 0, 2, 4, 7, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21}
+)
+
+func mobilityForSide(sliderAtt *[64]uint64, excluded, knightBB, bishopBB, rookBB, queenBB uint64) (mg, eg int) {
 	for bb := knightBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		moveCount := PopCount(KnightAttacks[sq] &^ excluded)
-		mobility += (moveCount - 3) * 4
+		mc := PopCount(KnightAttacks[sq] &^ excluded)
+		mg += knightMobMG[mc]
+		eg += knightMobEG[mc]
 	}
 	for bb := bishopBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		moveCount := PopCount(sliderAtt[sq] &^ excluded)
-		mobility += (moveCount - 6) * 3
+		mc := PopCount(sliderAtt[sq] &^ excluded)
+		mg += bishopMobMG[mc]
+		eg += bishopMobEG[mc]
 	}
 	for bb := rookBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		moveCount := PopCount(sliderAtt[sq] &^ excluded)
-		mobility += (moveCount - 6) * 2
+		mc := PopCount(sliderAtt[sq] &^ excluded)
+		mg += rookMobMG[mc]
+		eg += rookMobEG[mc]
 	}
 	for bb := queenBB; bb != 0; bb &= bb - 1 {
 		sq := bits.TrailingZeros64(bb)
-		moveCount := PopCount(sliderAtt[sq] &^ excluded)
-		mobility += (moveCount - 12) * 1
+		mc := PopCount(sliderAtt[sq] &^ excluded)
+		mg += queenMobMG[mc]
+		eg += queenMobEG[mc]
 	}
-	return mobility
+	return mg, eg
 }
 
 // fillSliderAttacks populates sliderAtt[sq] with the raw magic-bitboard attack
@@ -2488,18 +2518,25 @@ func mobilitySetup(board *Bitboard) (whitePieces, blackPieces, allPieces, whiteP
 	return
 }
 
+// evaluateMobility returns one side's combined (MG+EG) mobility units. Retained
+// only for the per-term symmetry unit test; the eval hot path uses the phase-split
+// evaluateMobilityDelta. The MG+EG sum is a color-symmetric scalar, so the mirror
+// test stays valid.
 func evaluateMobility(board *Bitboard, color Color) int {
 	var sliderAtt [64]uint64
 	fillSliderAttacks(board, &sliderAtt)
 	whitePieces, blackPieces, _, whitePawnAttacks, blackPawnAttacks := mobilitySetup(board)
+	var mg, eg int
 	if color == White {
-		return mobilityForSide(&sliderAtt, whitePieces|blackPawnAttacks,
+		mg, eg = mobilityForSide(&sliderAtt, whitePieces|blackPawnAttacks,
 			board.GetBitboardOf(WhiteKnight), board.GetBitboardOf(WhiteBishop),
 			board.GetBitboardOf(WhiteRook), board.GetBitboardOf(WhiteQueen))
+	} else {
+		mg, eg = mobilityForSide(&sliderAtt, blackPieces|whitePawnAttacks,
+			board.GetBitboardOf(BlackKnight), board.GetBitboardOf(BlackBishop),
+			board.GetBitboardOf(BlackRook), board.GetBitboardOf(BlackQueen))
 	}
-	return mobilityForSide(&sliderAtt, blackPieces|whitePawnAttacks,
-		board.GetBitboardOf(BlackKnight), board.GetBitboardOf(BlackBishop),
-		board.GetBitboardOf(BlackRook), board.GetBitboardOf(BlackQueen))
+	return mg + eg
 }
 
 // evaluateMobilityDelta returns White mobility minus Black mobility in one pass,
@@ -2507,15 +2544,15 @@ func evaluateMobility(board *Bitboard, color Color) int {
 // setup twice). Bit-identical to evaluateMobility(W) - evaluateMobility(B), so search
 // stays node-identical. sliderAtt is the per-eval slider-attack table (fillSliderAttacks),
 // shared with king-safety so each slider's magic lookups happen once per eval.
-func evaluateMobilityDelta(board *Bitboard, sliderAtt *[64]uint64) int {
+func evaluateMobilityDelta(board *Bitboard, sliderAtt *[64]uint64) (mg, eg int) {
 	whitePieces, blackPieces, _, whitePawnAttacks, blackPawnAttacks := mobilitySetup(board)
-	white := mobilityForSide(sliderAtt, whitePieces|blackPawnAttacks,
+	wmg, weg := mobilityForSide(sliderAtt, whitePieces|blackPawnAttacks,
 		board.GetBitboardOf(WhiteKnight), board.GetBitboardOf(WhiteBishop),
 		board.GetBitboardOf(WhiteRook), board.GetBitboardOf(WhiteQueen))
-	black := mobilityForSide(sliderAtt, blackPieces|whitePawnAttacks,
+	bmg, beg := mobilityForSide(sliderAtt, blackPieces|whitePawnAttacks,
 		board.GetBitboardOf(BlackKnight), board.GetBitboardOf(BlackBishop),
 		board.GetBitboardOf(BlackRook), board.GetBitboardOf(BlackQueen))
-	return white - black
+	return wmg - bmg, weg - beg
 }
 
 // getBishopAttacksBB returns bishop attack bitboard using magic bitboards - O(1)
@@ -2910,8 +2947,9 @@ func evalExtrasWhite(board *Bitboard, phase int) (eval int) {
 	var sliderAtt [64]uint64
 	fillSliderAttacks(board, &sliderAtt)
 
-	// Mobility — important but moderate weight (PSTs already capture positional value).
-	eval += evaluateMobilityDelta(board, &sliderAtt) * taperW(mobilityWeight, mobilityWeightEG, phase) / 100
+	// Mobility — per-count concave MG/EG tables (centipawns), tapered by phase.
+	mgMob, egMob := evaluateMobilityDelta(board, &sliderAtt)
+	eval += taperW(mgMob, egMob, phase)
 
 	// Rook on open file bonus.
 	eval += (evaluateRookOnOpenFile(board, White) - evaluateRookOnOpenFile(board, Black)) * taperW(rookOpenWeight, rookOpenWeightEG, phase) / 100

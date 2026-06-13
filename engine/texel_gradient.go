@@ -131,7 +131,11 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 	t.Chain = chainW - chainB
 	var sliderAtt [64]uint64
 	fillSliderAttacks(board, &sliderAtt)
-	t.Mobility = evaluateMobilityDelta(board, &sliderAtt)
+	// Mobility is now a hand-set per-count shape (eval.go mobilityForSide), so it
+	// rides the non-tunable Fixed lump (folded in below, like threats). The tunable
+	// t.Mobility slot is kept and zeroed so the texel param indices do not shift.
+	mgMob, egMob := evaluateMobilityDelta(board, &sliderAtt)
+	t.Mobility = 0
 	t.RookOpen = evaluateRookOnOpenFile(board, White) - evaluateRookOnOpenFile(board, Black)
 
 	whiteKnights := board.GetBitboardOf(WhiteKnight)
@@ -168,6 +172,7 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 	// Threats ride in the Fixed lump (non-tunable, MG-tapered) — same helper and
 	// args as evalExtrasWhite, so reconstructEvalInt stays bit-exact.
 	t.Fixed += evaluateThreatsDelta(board, &sliderAtt, phase)
+	t.Fixed += taperW(mgMob, egMob, phase) // hand-set per-count mobility (see above)
 	return t
 }
 

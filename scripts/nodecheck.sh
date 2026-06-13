@@ -70,10 +70,14 @@ BIN="${1:-build/ngn}"
 # middlegames (kiwipete 999540->875107 -12%, mid 579466->544730 -6%) but inflates the quiet
 # rook-EG +40% (end 418446->584878) — futility is less efficient on quiet eg maneuvers
 # (single-position node shape, NOT a strength signal; the 1200g SPRT nets it +6.7).
+# RE-LOCKED 2026-06-13 to HEAD = ...+C1 mobility-shape un-freeze (per-count concave MG/EG
+# tables; SPRT +22.5 elo [+0.6,+44.5] over 588g at 10+0.1 conc-7 cloud, runid 260612-223801,
+# KEEP): the more-discriminating mobility eval prunes harder (kiwipete 875107->633299 -28%,
+# mid 544730->404640 -26%) with a small quiet-eg rise (end 584878->639761 +9%).
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|875107"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|544730"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|584878"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|633299"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|404640"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|639761"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
