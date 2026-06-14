@@ -78,12 +78,14 @@ BIN="${1:-build/ngn}"
 # depth — a tree-wide aliasing fix, 4-engine convergent; SPRT +26.0 elo [-4.9,+57.3] over 295g
 # at 10+0.1 cloud, runid 260613-081026, 2-shard partial, KEEP on positive sign): the reorder
 # co-tunes with the LMR killer-reduction + futility killer-exemption, RAISING fixed-depth node
-# counts (kiwipete 633299->672812 +6%, mid 404640->521332 +29%, end 639761->889431 +39%) —
-# single-position node shape, NOT strength (the SPRT nets +26; Tier-2 cert owns the wide CI).
+# counts — single-position node shape, NOT strength. Re-locked again for W11 (LMP re-bracket to
+# CounterGo's 5+depth² curve, SPRT +1.2 elo [-19.7,+22.1] over 579g 10+0.1 cloud, runid
+# 260613-201457, KEEP on positive sign): raising the LMP thresholds gave better cutoff bounds
+# that propagate, LOWERING the counts (672812->634572, 521332->517737, 889431->520424, end -41%).
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|672812"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|521332"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|889431"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|634572"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|517737"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|520424"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
