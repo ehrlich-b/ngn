@@ -28,6 +28,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ehrlich-b/ngn/internal/history"
@@ -103,6 +104,8 @@ func main() {
 	probe := flag.Bool("probe", false, "probe each anchor's movetime/stop compliance and exit (no games)")
 	lowPower := flag.Bool("lowpower", true, "route engines to macOS E-cores (taskpolicy -b)")
 	pgnPath := flag.String("pgn", "", "capture every game (moves+result+NGN color+reason) to this file for M1 loss classification")
+	concurrency := flag.Int("concurrency", 1, "parallel games (1 = serial, the validated default; >1 spawns fresh engines per game and runs all anchors' games through one worker pool — for the cloud gauntlet set this to (cores-1))")
+	tallyOut := flag.String("tally-out", "", "write per-anchor W/D/L as JSON ([]anchorTally) to this file for cross-box pooling (the cloud gauntlet sums these across shards)")
 	flag.Parse()
 
 	tcTimeMs, tcIncMs := 0, 0
@@ -160,12 +163,12 @@ func main() {
 	fmt.Println("NGN CCRL-anchored gauntlet")
 	fmt.Println("==========================")
 	if tcTimeMs > 0 {
-		fmt.Printf("ngn=%s | %d anchors | %d games/anchor | real clock %.0fs+%.1fs | concurrency 1%s\n",
-			*ngnPath, len(anchors), *games, float64(tcTimeMs)/1000, float64(tcIncMs)/1000, uci.PowerNote(*lowPower))
+		fmt.Printf("ngn=%s | %d anchors | %d games/anchor | real clock %.0fs+%.1fs | concurrency %d%s\n",
+			*ngnPath, len(anchors), *games, float64(tcTimeMs)/1000, float64(tcIncMs)/1000, *concurrency, uci.PowerNote(*lowPower))
 		fmt.Println("REAL CLOCK: true tournament TC — no movetime bias; both sides budget their own bank (flag-outs counted).")
 	} else {
-		fmt.Printf("ngn=%s | %d anchors | %d games/anchor | movetime %dms | concurrency 1%s\n",
-			*ngnPath, len(anchors), *games, *movetimeMs, uci.PowerNote(*lowPower))
+		fmt.Printf("ngn=%s | %d anchors | %d games/anchor | movetime %dms | concurrency %d%s\n",
+			*ngnPath, len(anchors), *games, *movetimeMs, *concurrency, uci.PowerNote(*lowPower))
 		fmt.Println("CAVEAT: movetime proxy for CCRL Blitz (2'+1\"); under-times anchors -> NGN biased ~+30-80 optimistic.")
 	}
 	fmt.Println()
@@ -182,13 +185,22 @@ func main() {
 	}
 
 	var results []result
-	for _, a := range anchors {
-		fmt.Printf("== vs Blunder %s (CCRL %d) ==\n", a.Version, a.CCRL)
-		results = append(results, playAnchor(*ngnPath, a, openings, *games, *movetimeMs, tcTimeMs, tcIncMs, *lowPower, pgnW))
-		fmt.Println()
+	if *concurrency > 1 {
+		results = playConcurrent(*ngnPath, anchors, openings, *games, *movetimeMs, tcTimeMs, tcIncMs, *concurrency, *lowPower, pgnW)
+	} else {
+		for _, a := range anchors {
+			fmt.Printf("== vs Blunder %s (CCRL %d) ==\n", a.Version, a.CCRL)
+			results = append(results, playAnchor(*ngnPath, a, openings, *games, *movetimeMs, tcTimeMs, tcIncMs, *lowPower, pgnW))
+			fmt.Println()
+		}
 	}
 
 	report(results, *movetimeMs, *games, *historyPath, *noRecord)
+	if *tallyOut != "" {
+		if err := writeTally(*tallyOut, results); err != nil {
+			fmt.Printf("WARN: could not write -tally-out %s: %v\n", *tallyOut, err)
+		}
+	}
 }
 
 func loadAnchors(path, only string) ([]Anchor, error) {
@@ -360,6 +372,172 @@ func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs
 		}
 	}
 	return res
+}
+
+// spec is one game to play in the concurrent gauntlet: which anchor (index into
+// the anchors slice) and the game number (drives color + opening), so a worker
+// can run it standalone.
+type spec struct {
+	anchorIdx, g int
+}
+
+// gameMsg routes one finished game back to the collector.
+type gameMsg struct {
+	anchorIdx int
+	res       uci.GameResult
+	pgn       string // pre-formatted PGN line (empty if -pgn disabled)
+}
+
+// playConcurrent runs every (anchor, game) pair through ONE worker pool of
+// `concurrency` workers — each spawns a FRESH NGN+anchor pair per game
+// (restart-every=1 semantics, so the degradation forfeit-storm can't accumulate
+// and the serial path's consecutive-forfeit abort is unnecessary; report()'s 2%
+// forfeit ceiling still drops a dead anchor from the pool). One game ≈ one busy
+// core (both engines are single-threaded and turn-based), so set concurrency to
+// (cores-1) to leave a core for the OS + driver. Returns one result per anchor,
+// identical in shape to serial playAnchor, so report() is unchanged. Anchors that
+// fail pre-flight (handshake, or movetime non-compliance in movetime mode) come
+// back skipped.
+func playConcurrent(ngnPath string, anchors []Anchor, openings [][]string, games, movetimeMs, tcTimeMs, tcIncMs, concurrency int, lowPower bool, pgnW io.Writer) []result {
+	results := make([]result, len(anchors))
+	for i, a := range anchors {
+		results[i] = result{anchor: a, reasons: map[string]int{}}
+	}
+
+	// Pre-flight each anchor once (serial, cheap): a dead binary or a
+	// movetime-ignoring anchor is excluded before we commit its games.
+	var specs []spec
+	for i, a := range anchors {
+		ngn := uci.Start(ngnPath, "ngn", lowPower)
+		opp := uci.Start(a.Path, a.Version, lowPower)
+		ok := ngn != nil && opp != nil
+		if ok && tcTimeMs == 0 {
+			if respects, took := uci.RespectsMovetime(opp, movetimeMs); !respects {
+				fmt.Printf("  SKIP %s: ignores movetime/stop (probe %s vs %dms) — excluded.\n",
+					a.Version, took.Round(time.Millisecond), movetimeMs)
+				ok = false
+			}
+		}
+		uci.Stop(ngn)
+		uci.Stop(opp)
+		if !ok {
+			results[i].skipped = true
+			continue
+		}
+		for g := 0; g < games; g++ {
+			specs = append(specs, spec{anchorIdx: i, g: g})
+		}
+	}
+	if len(specs) == 0 {
+		return results
+	}
+
+	baseCfg := uci.GameConfig{Movetime: movetimeMs, MaxMoves: 200}
+	if tcTimeMs > 0 {
+		baseCfg = uci.GameConfig{TCTimeMs: tcTimeMs, TCIncMs: tcIncMs, MaxMoves: 200}
+	}
+
+	specCh := make(chan spec, len(specs))
+	for _, s := range specs {
+		specCh <- s
+	}
+	close(specCh)
+	msgs := make(chan gameMsg, concurrency)
+
+	var wg sync.WaitGroup
+	for w := 0; w < concurrency; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for s := range specCh {
+				a := anchors[s.anchorIdx]
+				ngn := uci.Start(ngnPath, "ngn", lowPower)
+				opp := uci.Start(a.Path, a.Version, lowPower)
+				if ngn == nil || opp == nil { // one retry, then count as a forfeit
+					uci.Stop(ngn)
+					uci.Stop(opp)
+					ngn = uci.Start(ngnPath, "ngn", lowPower)
+					opp = uci.Start(a.Path, a.Version, lowPower)
+				}
+				if ngn == nil || opp == nil {
+					uci.Stop(ngn)
+					uci.Stop(opp)
+					msgs <- gameMsg{anchorIdx: s.anchorIdx, res: uci.GameResult{Res: uci.Draw, Reason: "no-move"}}
+					continue
+				}
+				op := openings[(s.g/2)%len(openings)] // reversed-color pairs of the same line
+				newIsWhite := s.g%2 == 0
+				cfg := baseCfg
+				var moves []string
+				if pgnW != nil {
+					cfg.MovesOut = &moves
+				}
+				gr := uci.PlayGame(ngn, opp, op, newIsWhite, cfg)
+				uci.Stop(ngn)
+				uci.Stop(opp)
+				m := gameMsg{anchorIdx: s.anchorIdx, res: gr}
+				if pgnW != nil {
+					rc := "D"
+					switch gr.Res {
+					case uci.Win:
+						rc = "W"
+					case uci.Loss:
+						rc = "L"
+					}
+					color := "b"
+					if newIsWhite {
+						color = "w"
+					}
+					m.pgn = fmt.Sprintf("GAME %s %s %s %s | %s\n", a.Version, rc, color, gr.Reason, strings.Join(moves, " "))
+				}
+				msgs <- m
+			}
+		}()
+	}
+	go func() { wg.Wait(); close(msgs) }()
+
+	// Single collector ⇒ no locks on results/pgnW. Prints a running tally as
+	// games land (interleaved across anchors, hence the per-line anchor label).
+	done, total := 0, len(specs)
+	for m := range msgs {
+		r := &results[m.anchorIdx]
+		r.reasons[m.res.Reason]++
+		switch m.res.Res {
+		case uci.Win:
+			r.w++
+		case uci.Draw:
+			r.d++
+		case uci.Loss:
+			r.l++
+		}
+		if pgnW != nil && m.pgn != "" {
+			io.WriteString(pgnW, m.pgn)
+		}
+		done++
+		n := r.w + r.d + r.l
+		fmt.Printf("  [%4d/%d] %-8s %2dW %2dD %2dL  %5.1f%%  %-12s\n",
+			done, total, r.anchor.Version, r.w, r.d, r.l,
+			100*rating.Score(r.w, r.d)/float64(n), m.res.Reason)
+	}
+	return results
+}
+
+// writeTally persists per-anchor W/D/L as []anchorTally JSON so the cloud
+// gauntlet can sum tallies across boxes and compute one pooled rating. Skipped
+// anchors are omitted (no usable games).
+func writeTally(path string, results []result) error {
+	var tallies []anchorTally
+	for _, r := range results {
+		if r.skipped {
+			continue
+		}
+		tallies = append(tallies, anchorTally{r.anchor.Version, r.anchor.CCRL, r.w, r.d, r.l})
+	}
+	data, err := json.MarshalIndent(tallies, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, data, 0o644)
 }
 
 // row is one anchor's computed display + pooling values.
