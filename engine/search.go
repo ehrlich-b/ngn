@@ -1709,6 +1709,13 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			if singularScore < singularBeta {
 				nextDepth++
 				info.SingularExtensions++
+			} else if !isPV && ttEval >= beta {
+				// Singular-neg-ext (W-SE2): the verification failed high — another move
+				// also reached singularBeta — and the TT eval already exceeds beta, so
+				// this is very likely a multi-good-move cut-node. Shave a ply instead of
+				// searching full depth (multicut-LITE; the return-beta multicut stays
+				// rejected, the A3 lesson). Non-PV only — never reduce a PV node.
+				nextDepth--
 			}
 		}
 

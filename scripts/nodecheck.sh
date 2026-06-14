@@ -82,10 +82,14 @@ BIN="${1:-build/ngn}"
 # CounterGo's 5+depth² curve, SPRT +1.2 elo [-19.7,+22.1] over 579g 10+0.1 cloud, runid
 # 260613-201457, KEEP on positive sign): raising the LMP thresholds gave better cutoff bounds
 # that propagate, LOWERING the counts (672812->634572, 521332->517737, 889431->520424, end -41%).
+# Re-locked AGAIN for singular-neg-ext (W-SE2, nextDepth-- on non-PV cut-nodes where singular
+# verification fails high with ttEval>=beta; SPRT +6.0 elo [-15.5,+27.5] over 582g 10+0.1 cloud,
+# runid 260613-211923, KEEP): the negative extension shrinks the middlegame tree (mid -34%,
+# kiwipete -1.7%) and buys endgame depth (+9%) — matches the ebfprobe mixed profile.
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|634572"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|517737"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|520424"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|623993"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|340351"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|568245"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
