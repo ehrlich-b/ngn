@@ -104,11 +104,12 @@ func MaxNodes() uint64 {
 // CounterGo's convergent class curve: improving = 5+depth², not-improving = that
 // halved (prune ~2x sooner when our static eval isn't improving vs two plies ago).
 // Re-bracketed from the prior hand-tuned schedule, which over-pruned at d5-7
-// (was 38 vs CG's 54 at improving d7). Depth 0 is unused (the LMP guard requires
-// depth > 0).
-var lmpThreshold = [2][8]int{
-	{0, 3, 4, 7, 10, 15, 20, 27},  // not improving — (5+depth²)/2
-	{0, 6, 9, 14, 21, 30, 41, 54}, // improving — 5+depth²
+// (was 38 vs CG's 54 at improving d7), then extended to d8 (guard is depth<9) to
+// match CounterGo's depth-8 leaf-pruning range. Depth 0 is unused (the LMP guard
+// requires depth > 0).
+var lmpThreshold = [2][9]int{
+	{0, 3, 4, 7, 10, 15, 20, 27, 34},  // not improving — (5+depth²)/2
+	{0, 6, 9, 14, 21, 30, 41, 54, 69}, // improving — 5+depth²
 }
 
 // SearchToggles enables/disables individual pruning & reduction techniques for
@@ -1531,7 +1532,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Late Move Pruning (LMP) - skip very late quiet moves at low depths
 		// Only apply in non-PV nodes, not in check, and for quiet moves
 		// Use legalTried (not moveCount) since moveCount includes illegal moves
-		if SearchToggles.LMP && !isPV && !inCheck && depth > 0 && depth < 8 &&
+		if SearchToggles.LMP && !isPV && !inCheck && depth > 0 && depth < 9 &&
 			!move.IsCapture() && move != ttMove && legalTried > 0 {
 			impRow := 0
 			if improving {

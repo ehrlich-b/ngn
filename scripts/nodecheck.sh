@@ -86,9 +86,12 @@ BIN="${1:-build/ngn}"
 # verification fails high with ttEval>=beta; SPRT +6.0 elo [-15.5,+27.5] over 582g 10+0.1 cloud,
 # runid 260613-211923, KEEP): the negative extension shrinks the middlegame tree (mid -34%,
 # kiwipete -1.7%) and buys endgame depth (+9%) — matches the ebfprobe mixed profile.
+# Re-locked AGAIN for W11-d8-row (extend LMP to depth 8, CG range; SPRT +10.1 elo [-11.2,+31.6]
+# over 583g 10+0.1 cloud, runid 260613-232400, KEEP): d8 LMP fires in high-quiet-count positions
+# (kiwipete -8.5%), mid +1.5%, endgame identical (no d8 high-fanout nodes).
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|623993"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|340351"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|570787"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|345454"
   "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|568245"
 )
 
