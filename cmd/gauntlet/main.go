@@ -106,6 +106,7 @@ func main() {
 	pgnPath := flag.String("pgn", "", "capture every game (moves+result+NGN color+reason) to this file for M1 loss classification")
 	concurrency := flag.Int("concurrency", 1, "parallel games (1 = serial, the validated default; >1 spawns fresh engines per game and runs all anchors' games through one worker pool — for the cloud gauntlet set this to (cores-1))")
 	tallyOut := flag.String("tally-out", "", "write per-anchor W/D/L as JSON ([]anchorTally) to this file for cross-box pooling (the cloud gauntlet sums these across shards)")
+	poolFiles := flag.String("pool", "", "comma-separated -tally-out JSON files to SUM per-anchor and report as one pooled rating (the cloud gauntlet's fetch step; plays no games)")
 	flag.Parse()
 
 	tcTimeMs, tcIncMs := 0, 0
@@ -123,6 +124,11 @@ func main() {
 			}
 			tcIncMs = int(inc * 1000)
 		}
+	}
+
+	if *poolFiles != "" {
+		report(poolTallies(*poolFiles), *movetimeMs, *games, *historyPath, *noRecord)
+		return
 	}
 
 	if *rollingOnly {
@@ -538,6 +544,47 @@ func writeTally(path string, results []result) error {
 		return err
 	}
 	return os.WriteFile(path, data, 0o644)
+}
+
+// poolTallies reads the comma-separated -tally-out JSON files from each cloud box
+// and SUMS their per-anchor W/D/L into one []result, so report() computes a single
+// pooled rating over the combined games. A missing/empty shard file is skipped
+// (an evicted box contributes nothing rather than failing the pool).
+func poolTallies(csv string) []result {
+	sum := map[string]*result{}
+	var order []string
+	for _, path := range strings.Split(csv, ",") {
+		path = strings.TrimSpace(path)
+		if path == "" {
+			continue
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			fmt.Printf("WARN: pool skipping %s: %v\n", path, err)
+			continue
+		}
+		var tallies []anchorTally
+		if err := json.Unmarshal(data, &tallies); err != nil {
+			fmt.Printf("WARN: pool skipping %s (bad JSON): %v\n", path, err)
+			continue
+		}
+		for _, t := range tallies {
+			r, ok := sum[t.Version]
+			if !ok {
+				r = &result{anchor: Anchor{Version: t.Version, CCRL: t.CCRL}, reasons: map[string]int{}}
+				sum[t.Version] = r
+				order = append(order, t.Version)
+			}
+			r.w += t.W
+			r.d += t.D
+			r.l += t.L
+		}
+	}
+	var out []result
+	for _, v := range order {
+		out = append(out, *sum[v])
+	}
+	return out
 }
 
 // row is one anchor's computed display + pooling values.
