@@ -585,6 +585,183 @@ PY
     fi
 }
 
+# provision_gshard SHARD INSTANCE_ID REGION -> 0 on success (touches "$work/live.SHARD"), 1 on
+# drop. The GAUNTLET analogue of provision_shard: ships ngn+gauntlet+anchors+ratings+openings and
+# runs the gauntlet on this box's opening-slice ($ggames/anchor), uploading tally$i.json. The
+# shutdown layers (boot/run TTL, completion self-shutdown, the IMDS reclaim flush) MIRROR
+# provision_shard EXACTLY — keep them in sync; `smoke` + the calibration run cover both. Reads
+# $b $runid $work $ttlmin $shards $ggames $gtc $gonly $andir $REGION from the dynamic scope.
+provision_gshard() {
+    local i=$1 id=$2 rgn=$3 ip pushed alive _
+    local ssho=(-i "$(pem_for "$rgn")" "${SSHOPTS[@]}")
+    awk "NR % $shards == $i" "$work/openings.txt" > "$work/gopen$i.txt"
+    [ -s "$work/gopen$i.txt" ] || echo "" > "$work/gopen$i.txt"   # empty -> gauntlet uses built-in
+    cat > "$work/grun$i.sh" <<EOF
+#!/bin/bash
+cd /home/ec2-user
+sudo shutdown -h +$ttlmin >/dev/null 2>&1   # run.sh TTL path (mirrors provision_shard)
+(while sleep 60; do aws s3 --region $REGION cp gauntlet.log s3://$b/$runid/gauntlet$i.log >/dev/null 2>&1; done) &
+KEEPER=\$!
+# Spot-reclaim watcher: on the 2-min notice, force-upload whatever tally exists (the gauntlet
+# only writes tally.json at the end, so a reclaimed box usually contributes nothing — acceptable
+# for v1; the run pools the survivors and -ttl bounds the box).
+(while sleep 5; do
+   TOK=\$(curl -sX PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 60" 2>/dev/null)
+   ACT=\$(curl -s -H "X-aws-ec2-metadata-token: \$TOK" "http://169.254.169.254/latest/meta-data/spot/instance-action" 2>/dev/null)
+   case "\$ACT" in *terminate*|*stop*) aws s3 --region $REGION cp tally.json s3://$b/$runid/tally$i.json >/dev/null 2>&1; break;; esac
+ done) &
+WATCHER=\$!
+# One game ~= one busy core (engines single-threaded, turn-based). Reserve the top core for the
+# control plane (sshd + uploader); run cores-1 concurrent games pinned to the rest.
+NCPU=\$(nproc)
+GCONC=\$(( NCPU > 1 ? NCPU - 1 : 1 ))
+taskset -c 0-\$(( NCPU > 1 ? NCPU - 2 : 0 )) ./gauntlet -ngn ./ngn -anchors ratings.json -openings openings.txt -only $gonly -tc $gtc -concurrency \$GCONC -lowpower=false -games $ggames -no-record -tally-out tally.json > gauntlet.log 2>&1
+kill \$KEEPER \$WATCHER 2>/dev/null
+aws s3 --region $REGION cp tally.json s3://$b/$runid/tally$i.json
+echo CLOUDSPRT_DONE >> gauntlet.log
+aws s3 --region $REGION cp gauntlet.log s3://$b/$runid/gauntlet$i.log
+sudo shutdown -h now   # completion self-shutdown (mirrors provision_shard)
+EOF
+    echo "box $i ($rgn): waiting for ssh..."
+    if ! ip=$(wait_ssh "$rgn" "$id"); then
+        AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
+        echo "box $i ($rgn): gone before provisioning (spot reclaim) — terminated, dropped"
+        return 1
+    fi
+    pushed=0
+    for _ in 1 2 3 4; do
+        if scp "${ssho[@]}" "$work/ngn" "$work/gauntlet" "$work/ratings.json" "$andir"/blunder_* "ec2-user@$ip:" >/dev/null 2>&1 \
+           && scp "${ssho[@]}" "$work/gopen$i.txt" "ec2-user@$ip:openings.txt" >/dev/null 2>&1 \
+           && scp "${ssho[@]}" "$work/grun$i.sh" "ec2-user@$ip:run.sh" >/dev/null 2>&1 \
+           && ssh "${ssho[@]}" "ec2-user@$ip" 'test -s ngn && test -s gauntlet && test -s ratings.json' 2>/dev/null; then
+            pushed=1; break
+        fi
+        sleep 5
+    done
+    if [ "$pushed" = 0 ]; then
+        AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
+        echo "box $i ($rgn): payload push failed after retries — terminated, dropped"
+        return 1
+    fi
+    if ! ssh "${ssho[@]}" "ec2-user@$ip" 'chmod +x ngn gauntlet blunder_* run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1'; then
+        AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
+        echo "box $i ($rgn): run.sh start failed — terminated, dropped"
+        return 1
+    fi
+    alive=0
+    for _ in 1 2 3; do
+        sleep 3
+        if ssh "${ssho[@]}" "ec2-user@$ip" 'pgrep -f "\./gauntlet" >/dev/null' 2>/dev/null; then alive=1; break; fi
+    done
+    [ "$alive" = 1 ] || echo "box $i: liveness unconfirmed (busy box / slow sshd) — proceeding; S3 result + TTL are the real backstops"
+    : > "$work/live.$i"
+    echo "box $i ($rgn): running on $ip"
+    return 0
+}
+
+# cmd_gauntlet — the CLOUD gauntlet: N boxes, each running cmd/gauntlet at concurrency=(cores-1)
+# over its own opening-slice ($games/N games per anchor), pooled by gfetch. Reuses launch_one (boot
+# TTL) + sweep_runid (failure/verdict sweep) UNCHANGED. Anchors ship flat with bare-path ratings.
+cmd_gauntlet() {
+    local shards=4 type=c8g.8xlarge ttl=2 games=40 gonly="v5.0.0,v6.1.0,v7.2.0,v7.4.0,v8.0.0" gtc="120+1" ref=HEAD
+    while [ $# -gt 0 ]; do
+        case $1 in
+            -shards) shards=$2; shift 2;;
+            -type)   type=$2; shift 2;;
+            -ttl)    ttl=$2; shift 2;;
+            -games)  games=$2; shift 2;;   # TOTAL games per anchor, split across the boxes
+            -only)   gonly=$2; shift 2;;
+            -tc)     gtc=$2; shift 2;;
+            -ref)    ref=$2; shift 2;;
+            *) die "unknown gauntlet flag $1";;
+        esac
+    done
+    case $type in
+        c8g.*|c7g.*|m8g.*|m7g.*|r8g.*|r7g.*|t4g.*) ;;
+        *) die "$type is not a Graviton type (binaries are linux/arm64)";;
+    esac
+    local andir=$REPO/opponents/linux-arm64
+    ls "$andir"/blunder_* >/dev/null 2>&1 || die "no linux anchors in $andir — run scripts/build-anchors.sh first"
+    local b; b=$(bucket); SG_ID=$(sgid)
+    [ "$SG_ID" != "None" ] || die "run setup first"
+    local runid work; runid=$(date +%y%m%d-%H%M%S); work=$(mktemp -d)
+    trap "git -C '$REPO' worktree remove --force '$work/ngnsrc' >/dev/null 2>&1 || true; git -C '$REPO' worktree prune >/dev/null 2>&1 || true" EXIT
+    local ggames=$(( games / shards )); [ $(( ggames % 2 )) -eq 0 ] || ggames=$(( ggames + 1 )); [ "$ggames" -ge 2 ] || ggames=2
+
+    echo "building linux/arm64: ngn ($ref) + gauntlet..."
+    git -C "$REPO" worktree add --detach "$work/ngnsrc" "$ref" >/dev/null
+    (cd "$work/ngnsrc" && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$work/ngn" .)
+    git -C "$REPO" worktree remove --force "$work/ngnsrc"
+    (cd "$REPO" && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$work/gauntlet" ./cmd/gauntlet)
+    sed 's#opponents/#./#g' "$REPO/opponents/ratings.json" > "$work/ratings.json"   # cwd-relative anchor paths (./blunder_XXX) so exec finds the flat-shipped binaries
+    cp "$REPO/output/sprt_openings.txt" "$work/openings.txt" 2>/dev/null || : > "$work/openings.txt"
+
+    local regs=($REGIONS) nreg=${#regs[@]} i id ty chosen="" ids=() shardnos=() regionsof=() ttlmin=$((ttl * 60)) rgn
+    for ((i = 0; i < shards; i++)); do
+        rgn=${regs[$((i % nreg))]}
+        if [ -z "$chosen" ]; then
+            for ty in $type c7g.4xlarge c8g.4xlarge c7g.2xlarge; do
+                if id=$(launch_one "$rgn" "$ty" "$ttlmin" "$runid" "$i"); then chosen=$ty; break; fi
+                echo "no spot capacity: $ty in $rgn — trying next type"
+            done
+            [ -n "$chosen" ] || { sweep_runid "$runid"; die "no spot capacity on any allowed type in $rgn"; }
+        else
+            if ! id=$(launch_one "$rgn" "$chosen" "$ttlmin" "$runid" "$i"); then
+                echo "box $i ($rgn): no spot capacity for $chosen — dropped, continuing"; continue
+            fi
+        fi
+        ids+=("$id"); shardnos+=("$i"); regionsof+=("$rgn")
+        echo "box $i: $id ($chosen in $rgn)"
+    done
+    local j
+    for ((j = 0; j < ${#ids[@]}; j++)); do
+        ( provision_gshard "${shardnos[$j]}" "${ids[$j]}" "${regionsof[$j]}" ) &
+    done
+    wait
+    local live; live=$(find "$work" -maxdepth 1 -name 'live.*' 2>/dev/null | wc -l | tr -d ' ')
+    [ "$live" -gt 0 ] || { sweep_runid "$runid"; die "zero gauntlet boxes survived provisioning — ALL $runid terminated"; }
+    echo
+    echo "runid $runid — $live/$shards box(es) x $chosen, ${ggames}g/anchor each (~$((ggames * live)) per anchor pooled), TC $gtc"
+    echo "  anchors: $gonly"
+    echo "  result:  scripts/cloudsprt.sh gfetch -runid $runid"
+    find "$work" -mindepth 1 -delete 2>/dev/null; rmdir "$work" 2>/dev/null || true
+}
+
+# cmd_gfetch — pool the per-box tally JSONs into one CCRL rating (gauntlet -pool), gated on ZERO
+# LIVE boxes (mirrors cmd_fetch's sweep gate); sweeps the runid when final.
+cmd_gfetch() {
+    local runid=""
+    while [ $# -gt 0 ]; do
+        case $1 in
+            -runid) runid=$2; shift 2;;
+            *) die "unknown gfetch flag $1";;
+        esac
+    done
+    [ -n "$runid" ] || die "usage: gfetch -runid <id>"
+    local b dir; b=$(bucket); dir=$REPO/output/cloud/$runid; mkdir -p "$dir"
+    aws --region "$REGION" s3 sync "s3://$b/$runid/" "$dir/" >/dev/null
+    local r lr live=""
+    for r in $REGIONS; do
+        lr=$(AR "$r" ec2 describe-instances --filters Name=tag:app,Values=$APP "Name=tag:runid,Values=$runid" \
+            Name=instance-state-name,Values=pending,running --query 'Reservations[].Instances[].InstanceId' 2>/dev/null || true)
+        live="$live $lr"
+    done
+    local nlive; nlive=$(echo "$live" | wc -w | tr -d ' ')
+    local tallies; tallies=$(find "$dir" -maxdepth 1 -name 'tally*.json' 2>/dev/null | sort | paste -sd, -)
+    if [ -z "$tallies" ]; then
+        [ "$nlive" -gt 0 ] && { echo "no tallies yet — $nlive live box(es); results land at box completion (~end of run)"; return 0; }
+        die "no tallies and no live boxes — the run produced nothing"
+    fi
+    echo "pooling $(echo "$tallies" | tr ',' '\n' | wc -l | tr -d ' ') box tally file(s):"
+    (cd "$REPO" && go run ./cmd/gauntlet -pool "$tallies" -no-record)
+    if [ "$nlive" -gt 0 ]; then
+        echo "IN PROGRESS: $nlive live box(es) — partial pool, NOT a final verdict"
+    else
+        sweep_runid "$runid"
+        echo "(no live boxes — verdict is final; sweep idempotent)"
+    fi
+}
+
 cmd_ps() {
     local r
     for r in $REGIONS; do
@@ -627,6 +804,8 @@ case "${1:-help}" in
     setup)  shift; cmd_setup "$@";;
     smoke)  shift; cmd_smoke "$@";;
     launch) shift; cmd_launch "$@";;
+    gauntlet) shift; cmd_gauntlet "$@";;
+    gfetch) shift; cmd_gfetch "$@";;
     status) shift; cmd_status "$@";;
     fetch)  shift; cmd_fetch "$@";;
     ps)     shift; cmd_ps "$@";;
