@@ -44,6 +44,7 @@ stockfish-*
 # opponents/ratings.json IS tracked — it is the reproducible version->CCRL spec.
 /opponents/blunder_*
 /opponents/fruit_*
+/opponents/linux-arm64/
 /opponents/.src/
 /opponents/.src-fruit/
 

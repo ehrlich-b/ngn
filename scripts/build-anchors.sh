@@ -36,6 +36,22 @@ build v8.0.0 blunder_800   # 2674 — fallback bracket (NGN underdog)
 
 git -C "$SRC" checkout --quiet - 2>/dev/null || true
 
+# Cross-compile the Blunder rungs for linux/arm64 (Graviton) so scripts/cloudsprt.sh
+# can ship them to the cloud gauntlet boxes. Go cross-compiles trivially; Fruit (C++)
+# is omitted from the cloud set. Gitignored like the native binaries (reproducible here).
+mkdir -p "$OUT/linux-arm64"
+lbuild() { # <tag> <outname>
+	git -C "$SRC" -c advice.detachedHead=false checkout --quiet "$1"
+	( cd "$SRC" && GOOS=linux GOARCH=arm64 go build -o "../linux-arm64/$2" blunder/main.go )
+	echo "built $OUT/linux-arm64/$2 (linux/arm64) from $1"
+}
+lbuild v5.0.0 blunder_500
+lbuild v6.1.0 blunder_610
+lbuild v7.2.0 blunder_720
+lbuild v7.4.0 blunder_740
+lbuild v8.0.0 blunder_800
+git -C "$SRC" checkout --quiet - 2>/dev/null || true
+
 # Fruit 2.1 (Fabien Letouzey, 2005) — an independent NON-Blunder anchor: a different
 # engine family that exposes anchor non-transitivity the Blunder ladder hides, and
 # with no movetime-overshoot bug. CCRL Blitz 2685. Old C++, so build with an old
