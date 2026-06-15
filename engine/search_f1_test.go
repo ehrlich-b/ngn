@@ -41,7 +41,7 @@ func TestF1FutilityFalseDraw(t *testing.T) {
 
 	// non-PV, canNull — depth 3 so FUTILITY_MAX_DEPTH applies and the futile-node
 	// condition (staticEval+margin <= alpha) holds for the queen-down side.
-	score := alphaBetaPV(pos, 3, 1, -300, -299, false, true, info)
+	score := alphaBetaPV(pos, 3, 1, -300, -299, false, true, false, info)
 	if score > -299 {
 		t.Fatalf("F1: non-PV futile node returned %d (a false draw / fail-high >= beta -299); "+
 			"a clean queen-down position must fail low (<= -300)", score)

@@ -775,7 +775,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					score = 0 // Draw
 				} else if legalRoot == 1 {
 					// First legal root move: full window + PV (establishes alpha / the PV line).
-					score = -alphaBetaPV(pos, currentDepth-1, 1, -beta, -alpha, true, true, info)
+					score = -alphaBetaPV(pos, currentDepth-1, 1, -beta, -alpha, true, true, false, info)
 				} else {
 					// Root PVS + root LMR. NGN previously full-windowed EVERY root move at full
 					// depth (waste on moves 2..N); CounterGo scouts later root moves with a null
@@ -802,15 +802,15 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 						}
 					}
 					// Null-window scout at (possibly) reduced depth.
-					score = -alphaBetaPV(pos, currentDepth-1-reduction, 1, -alpha-1, -alpha, false, true, info)
+					score = -alphaBetaPV(pos, currentDepth-1-reduction, 1, -alpha-1, -alpha, false, true, true, info)
 					// A reduced scout that beat alpha may have under-counted it: re-verify at
 					// full depth (null window) before trusting it.
 					if reduction > 0 && score > alpha {
-						score = -alphaBetaPV(pos, currentDepth-1, 1, -alpha-1, -alpha, false, true, info)
+						score = -alphaBetaPV(pos, currentDepth-1, 1, -alpha-1, -alpha, false, true, true, info)
 					}
 					// Scout failed high inside the window: full-window re-search (root is PV).
 					if score > alpha && score < beta {
-						score = -alphaBetaPV(pos, currentDepth-1, 1, -beta, -alpha, true, true, info)
+						score = -alphaBetaPV(pos, currentDepth-1, 1, -beta, -alpha, true, true, false, info)
 					}
 				}
 				pos.GameUnMakeMove(move, tag, ep, hc)
@@ -1045,11 +1045,11 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		SetLastMovePlayed(move)
 		info.MoveStack[0] = move
 
-		score := -alphaBetaPV(pos, depth-1, 1, -beta, -alpha, true, true, info)
+		score := -alphaBetaPV(pos, depth-1, 1, -beta, -alpha, true, true, false, info)
 
 		// Mate threat extension: if we found a very high score, search deeper to find mate
 		if score >= MATE_IN_MAX && depth <= 2 {
-			score = -alphaBetaPV(pos, depth+2, 1, -beta, -alpha, true, true, info)
+			score = -alphaBetaPV(pos, depth+2, 1, -beta, -alpha, true, true, false, info)
 			info.Nodes++
 		}
 
@@ -1081,10 +1081,10 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 }
 
 func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) int {
-	return alphaBetaPV(pos, depth, 0, alpha, beta, true, true, info) // Root is always PV
+	return alphaBetaPV(pos, depth, 0, alpha, beta, true, true, false, info) // Root is always PV
 }
 
-func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bool, canNull bool, info *SearchInfo) int {
+func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bool, canNull bool, cutNode bool, info *SearchInfo) int {
 	if ply > info.SelDepth {
 		info.SelDepth = ply
 	}
@@ -1252,7 +1252,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// scan and return a bogus draw (0). Hide our entry for the duration.
 		info.IIDSearches++
 		info.RepStackLen--
-		alphaBetaPV(pos, iidDepth, ply, alpha, beta, true, true, info)
+		alphaBetaPV(pos, iidDepth, ply, alpha, beta, true, true, cutNode, info)
 		info.RepStackLen++
 		// Re-probe TT to get the move we just found
 		ttMove, _, _, _, _ = TranspositionTable.Get(hash)
@@ -1383,7 +1383,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		if nullDepth < 0 {
 			nullDepth = 0
 		}
-		score := -alphaBetaPV(pos, nullDepth, ply+1, -beta, -beta+1, false, false, info)
+		score := -alphaBetaPV(pos, nullDepth, ply+1, -beta, -beta+1, false, false, !cutNode, info)
 
 		pos.UnMakeNullMove(oldEP)
 		SetLastMovePlayed(savedLast)
@@ -1442,7 +1442,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			score := -quiescence(pos, -probcutBeta, -probcutBeta+1, ply+1, info)
 
 			if score >= probcutBeta {
-				score = -alphaBetaPV(pos, depth-4, ply+1, -probcutBeta, -probcutBeta+1, false, true, info)
+				score = -alphaBetaPV(pos, depth-4, ply+1, -probcutBeta, -probcutBeta+1, false, true, !cutNode, info)
 			}
 
 			pos.UnMakeMove(move, tag, ep, hc)
@@ -1736,7 +1736,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// repetition-stack entry so the re-entry doesn't match its own hash
 			// and bail out with a bogus draw (0) before doing any work.
 			info.RepStackLen--
-			singularScore := alphaBetaPV(pos, singularDepth, ply, singularBeta-1, singularBeta, false, true, info)
+			singularScore := alphaBetaPV(pos, singularDepth, ply, singularBeta-1, singularBeta, false, true, cutNode, info)
 			info.RepStackLen++
 			info.ExcludedMove = EmptyMove
 
@@ -1785,7 +1785,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Enhanced Principal Variation Search (PVS) with PV-node optimization
 		if legalTried == 1 {
 			// First move: search with full window and PV flag
-			score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, info)
+			score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, !isPV && !cutNode, info)
 		} else {
 			// Non-first moves: enhanced PVS with PV-aware reductions
 
@@ -1856,7 +1856,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 			// Search with null window first (not PV)
 			info.NullWindowScouts++
-			score = -alphaBetaPV(pos, reducedDepth, ply+1, -alpha-1, -alpha, false, true, info)
+			score = -alphaBetaPV(pos, reducedDepth, ply+1, -alpha-1, -alpha, false, true, true, info)
 
 			// LMR re-search (C4): a reduced search that beats alpha may have
 			// under-counted the move, so re-verify it at full depth with the null
@@ -1867,13 +1867,13 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// per-path extension budget bounds the check recursion this re-search opens.
 			if reduction > 0 && score > alpha {
 				info.LMRReSearches++
-				score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, true, info)
+				score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, true, !cutNode, info)
 			}
 			// PVS full-window re-search: only a PV node has a window wider than the null
 			// window, so only there does an in-window score need its exact value.
 			if isPV && score > alpha && score < beta {
 				info.PVReSearches++
-				score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, info)
+				score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, false, info)
 			}
 		}
 
