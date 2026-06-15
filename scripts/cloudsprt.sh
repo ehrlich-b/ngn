@@ -327,10 +327,16 @@ EOF
         echo "shard $i ($rgn): openings/binaries push failed after retries — terminated, dropped"
         return 1
     fi
-    if ! ssh "${ssho[@]}" "ec2-user@$ip" 'chmod +x sprt ngn_cand ngn_base run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1'; then
-        AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
-        echo "shard $i ($rgn): run.sh start failed — terminated, dropped"
-        return 1
+    # Start run.sh fully detached (setsid + </dev/null) and return immediately. The old
+    # `nohup ./run.sh & sleep 1` held the ssh connection open while sprt's conc-N engine children
+    # ramped up; that load spike got the connection reset ("closed by remote host") so ssh returned
+    # 255 and the box was falsely "terminated, dropped" — yet run.sh (detached) kept running and
+    # COMPLETED the SPRT (observed 2026-06-15: two shards reported "start failed" finished 1900+ games
+    # each). A nonzero start-ssh is now LOG-ONLY (mirrors the liveness probe below): the run.sh
+    # self-shutdown + the two TTLs stay the no-leak backstops, and the shard still counts as live so
+    # the launch output matches reality.
+    if ! ssh "${ssho[@]}" "ec2-user@$ip" 'chmod +x sprt ngn_cand ngn_base run.sh && setsid ./run.sh >/dev/null 2>&1 </dev/null &'; then
+        echo "shard $i ($rgn): start-ssh returned nonzero (busy-box connection reset, not necessarily a real failure) — proceeding; S3 progress + TTL are the backstops"
     fi
     # Liveness probe — LOG ONLY, never terminate (a busy box's sshd can't always service a
     # fresh probe; the two boot/run TTLs + S3 progress are the real backstops).
@@ -734,10 +740,10 @@ EOF
         echo "box $i ($rgn): payload push failed after retries — terminated, dropped"
         return 1
     fi
-    if ! ssh "${ssho[@]}" "ec2-user@$ip" 'chmod +x ngn gauntlet blunder_* counter_* run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1'; then
-        AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
-        echo "box $i ($rgn): run.sh start failed — terminated, dropped"
-        return 1
+    # See provision_shard: start detached + log-only (the `& sleep 1` start-ssh false-negative that
+    # terminated healthy workers). run.sh self-shutdown + TTLs stay the no-leak backstops.
+    if ! ssh "${ssho[@]}" "ec2-user@$ip" 'chmod +x ngn gauntlet blunder_* counter_* run.sh && setsid ./run.sh >/dev/null 2>&1 </dev/null &'; then
+        echo "box $i ($rgn): start-ssh returned nonzero (busy-box connection reset, not necessarily a real failure) — proceeding; S3 result + TTL are the backstops"
     fi
     alive=0
     for _ in 1 2 3; do
