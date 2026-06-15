@@ -18,7 +18,8 @@
 #   launch  cross-compile worktree (cand) + HEAD/-baseref (base) for linux/arm64, shard the
 #           openings ACROSS REGIONS, start N workers; default args = Tier-1 gate. -supervise
 #           relaunches reclaimed shards in a rotated region until DONE (run it backgrounded).
-#   status  live instances + latest result line per shard (via S3, lags <=1 min)
+#   status  per-shard PHASE across ALL regions, the definitive "hung or working?" check:
+#           STARTING / PROGRESSING (+age of last S3 upload) / STALE=>LIKELY HUNG / DONE (S3 lags <=1 min)
 #   fetch   pool shard logs -> elo/CI/LLR; verdict+sweep once NO live workers remain (all regions)
 #   ps      ALL cloudsprt instances in any state, ALL regions (audit — empty when idle)
 #   kill    terminate instances across all regions (all, or -runid X)
@@ -205,22 +206,30 @@ sweep_runid() {
     done
 }
 
-# wait_ssh REGION INSTANCE_ID -> public ip once sshable (fails fast if the instance dies first)
+# wait_ssh REGION INSTANCE_ID -> public ip once sshable (fails fast if the instance dies first).
+# Heartbeats go to STDERR every ~15s so the launch log NEVER sits silently frozen at "waiting for
+# ssh" (that silence is exactly what made a healthy provisioning box indistinguishable from a hung
+# one). stdout stays clean: the final `echo "$ip"` is the captured return value.
 wait_ssh() {
     local rgn=$1 iid=$2 ip="" st n=0 ssho=(-i "$(pem_for "$1")" "${SSHOPTS[@]}")
+    local tag="[$iid $rgn]"
     while :; do
         st=$(AR "$rgn" ec2 describe-instances --instance-ids "$iid" --query 'Reservations[0].Instances[0].State.Name' 2>/dev/null || echo unknown)
-        case $st in shutting-down|terminated) return 1;; esac
+        case $st in shutting-down|terminated) echo "$tag died ($st) after $((n*5))s of ssh-wait" >&2; return 1;; esac
         ip=$(AR "$rgn" ec2 describe-instances --instance-ids "$iid" --query 'Reservations[0].Instances[0].PublicIpAddress' 2>/dev/null || true)
         [ -n "$ip" ] && [ "$ip" != "None" ] && break
-        n=$((n+1)); [ $n -gt 30 ] && return 1
+        [ $((n % 3)) = 0 ] && echo "$tag ssh-wait $((n*5))s: state=$st, awaiting public ip..." >&2
+        n=$((n+1)); [ $n -gt 30 ] && { echo "$tag gave up: no public ip after 150s" >&2; return 1; }
         sleep 5
     done
+    echo "$tag ip=$ip (state=$st) — probing sshd..." >&2
     n=0
     until ssh "${ssho[@]}" "ec2-user@$ip" true 2>/dev/null; do
-        n=$((n+1)); [ $n -gt 30 ] && return 1
+        { [ $((n % 3)) = 0 ] && [ "$n" -gt 0 ]; } && echo "$tag sshd not ready yet ($((n*5))s, ip=$ip)..." >&2
+        n=$((n+1)); [ $n -gt 30 ] && { echo "$tag gave up: sshd never came up after 150s (ip=$ip)" >&2; return 1; }
         sleep 5
     done
+    echo "$tag sshd UP after $((n*5))s (ip=$ip)" >&2
     echo "$ip"
 }
 
@@ -271,7 +280,10 @@ provision_shard() {
 #!/bin/bash
 cd /home/ec2-user
 sudo shutdown -h +$ttlmin >/dev/null 2>&1   # second TTL path, independent of user-data
-(while sleep 60; do aws s3 --region $REGION cp sprt.log s3://$b/$runid/shard$i.log >/dev/null 2>&1; done) &
+: > sprt.log   # create the log NOW so the upload-first keeper signals "worker started" within seconds
+# Upload-FIRST then sleep (was: sleep-then-upload, which hid the worker for a full 60s): status can
+# now decide STARTING-vs-HUNG almost immediately after run.sh begins instead of waiting a minute.
+(while :; do aws s3 --region $REGION cp sprt.log s3://$b/$runid/shard$i.log >/dev/null 2>&1; sleep 60; done) &
 KEEPER=\$!
 # Spot-reclaim watcher (#4): on the 2-min interruption notice, force a final S3 flush so the
 # last games aren't lost to the 60s keeper gap (IMDSv2 token required; AL2023 default).
@@ -479,7 +491,7 @@ cmd_launch() {
     [ "$live" -gt 0 ] || { sweep_runid "$runid"; die "zero shards survived provisioning — ALL $runid workers terminated"; }
     echo
     echo "runid $runid — $live/$shards shard(s) x $chosen conc-$conc, TTL ${ttl}h, sprt args: ${sprtargs[*]}"
-    echo "  watch:  scripts/cloudsprt.sh status"
+    echo "  watch:  scripts/cloudsprt.sh status   # per-shard phase: STARTING / PROGRESSING / LIKELY HUNG / DONE"
     echo "  result: scripts/cloudsprt.sh fetch -runid $runid"
     # #4 reclaim recovery: when asked, supervise the run and relaunch reclaimed shards in a
     # rotated region (retained binaries) until DONE / budget / cap. Run launch -supervise in the
@@ -488,24 +500,103 @@ cmd_launch() {
     find "$work" -mindepth 1 -delete 2>/dev/null; rmdir "$work" 2>/dev/null || true
 }
 
+# cmd_status — the DEFINITIVE "is it hung or working?" check. Per shard, across ALL regions
+# (status used to query only the primary region and was blind to 2/3 of a multi-region run),
+# it classifies one of: STARTING (provisioning / pre-first-upload — normal) / PROGRESSING
+# (with the age of the last S3 upload + the latest game line) / STALE => LIKELY HUNG (the box is
+# live but its log stopped uploading) / DONE. The S3 upload age is the heartbeat: a live box that
+# hasn't uploaded in >150s (uploads run every 60s) is wedged, full stop — no more guessing.
 cmd_status() {
-    local b r k
-    b=$(bucket)
-    aws --region "$REGION" ec2 describe-instances \
-        --filters Name=tag:app,Values=$APP Name=instance-state-name,Values=pending,running \
-        --query 'Reservations[].Instances[].[InstanceId,InstanceType,Tags[?Key==`runid`]|[0].Value,PublicIpAddress,LaunchTime]' \
-        --output table
-    for r in $(A ec2 describe-instances \
+    local b r rid k tmpd; b=$(bucket); tmpd=$(mktemp -d)
+    # 1) live instances in EVERY region (one JSON array per region; region recovered from filename)
+    for r in $REGIONS; do
+        aws --region "$r" --output json ec2 describe-instances \
             --filters Name=tag:app,Values=$APP Name=instance-state-name,Values=pending,running \
-            --query 'Reservations[].Instances[].[Tags[?Key==`runid`]|[0].Value]' | sort -u); do
-        echo "runid $r (S3 lags <=1 min):"
-        for k in $(A s3api list-objects-v2 --bucket "$b" --prefix "$r/" --query 'Contents[].Key' 2>/dev/null); do
-            [ "$k" = "None" ] && continue
-            aws --region "$REGION" s3 cp "s3://$b/$k" "/tmp/cloudsprt_tail.$$" >/dev/null 2>&1 \
-                && echo "  $k: $(grep -E '^G[0-9]+' "/tmp/cloudsprt_tail.$$" | tail -1)"
-        done
+            --query "Reservations[].Instances[].{shard:Tags[?Key=='shard']|[0].Value,iid:InstanceId,ty:InstanceType,runid:Tags[?Key=='runid']|[0].Value,launch:LaunchTime,state:State.Name}" \
+            > "$tmpd/inst.$r.json" 2>/dev/null || echo '[]' > "$tmpd/inst.$r.json"
     done
-    rm -f "/tmp/cloudsprt_tail.$$"
+    local runids; runids=$(python3 -c "
+import json,glob
+s=set()
+for f in glob.glob('$tmpd/inst.*.json'):
+    try:
+        for x in json.load(open(f)) or []:
+            if x.get('runid'): s.add(x['runid'])
+    except Exception: pass
+print(' '.join(sorted(s)))")
+    if [ -z "$runids" ]; then echo "no live cloudsprt instances in any region ($REGIONS)"; rm -rf "$tmpd"; return 0; fi
+    # 2) S3 object metadata (key + LastModified + size) for each live run; the bucket is primary-region
+    for rid in $runids; do
+        aws --region "$REGION" --output json s3api list-objects-v2 --bucket "$b" --prefix "$rid/" \
+            --query 'Contents[].{key:Key,lm:LastModified,size:Size}' > "$tmpd/s3.$rid.json" 2>/dev/null || echo '[]' > "$tmpd/s3.$rid.json"
+    done
+    # 3) download the tail of each *.log for the latest game line + the DONE marker
+    python3 -c "
+import json,glob
+for f in glob.glob('$tmpd/s3.*.json'):
+    try:
+        for o in json.load(open(f)) or []:
+            if str(o.get('key','')).endswith('.log'): print(o['key'])
+    except Exception: pass" > "$tmpd/keys.txt"
+    while IFS= read -r k; do
+        [ -n "$k" ] || continue
+        aws --region "$REGION" --output text s3api get-object --bucket "$b" --key "$k" --range "bytes=-1024" "$tmpd/tail.$(basename "$k")" >/dev/null 2>&1 || true
+    done < "$tmpd/keys.txt"
+    # 4) the verdict report — pure formatting + time math, deterministic
+    python3 - "$tmpd" <<'PY'
+import sys, os, re, json, glob, datetime
+tmpd=sys.argv[1]
+now=datetime.datetime.now(datetime.timezone.utc)
+def age(iso):
+    if not iso: return None
+    try: return (now-datetime.datetime.fromisoformat(str(iso).replace('Z','+00:00'))).total_seconds()
+    except Exception: return None
+def fmt(s):
+    if s is None: return "?"
+    s=int(s); m,sec=divmod(s,60); h,m=divmod(m,60)
+    return f"{h}h{m:02d}m" if h else (f"{m}m{sec:02d}s" if m else f"{sec}s")
+inst=[]
+for f in glob.glob(os.path.join(tmpd,'inst.*.json')):
+    region=os.path.basename(f)[5:-5]
+    try: arr=json.load(open(f)) or []
+    except Exception: arr=[]
+    for x in arr: x['region']=region; inst.append(x)
+s3={}
+for f in glob.glob(os.path.join(tmpd,'s3.*.json')):
+    try: arr=json.load(open(f)) or []
+    except Exception: arr=[]
+    for o in arr: s3[o['key']]=(age(o.get('lm')), o.get('size') or 0)
+from collections import defaultdict
+byrun=defaultdict(list)
+for x in inst: byrun[x.get('runid') or '?'].append(x)
+UP=60; STALE=150; GRACE=420   # GRACE = ssh-wait(~5m)+scp before a worker log is even expected
+for runid,xs in sorted(byrun.items()):
+    ages=[a for a in (age(x.get('launch')) for x in xs) if a is not None]
+    print(f"\n=== runid {runid} — {len(xs)} live instance(s), oldest launched {fmt(max(ages)) if ages else '?'} ago ===")
+    for x in sorted(xs, key=lambda z: str(z.get('shard'))):
+        n=x.get('shard'); ia=age(x.get('launch'))
+        logkey=next((c for c in (f"{runid}/shard{n}.log", f"{runid}/gauntlet{n}.log") if c in s3), None)
+        la,sz=s3.get(logkey,(None,0)) if logkey else (None,0)
+        gline=""; done=False
+        tf=os.path.join(tmpd,'tail.'+os.path.basename(logkey)) if logkey else None
+        if tf and os.path.exists(tf):
+            t=open(tf,errors='replace').read(); done='CLOUDSPRT_DONE' in t
+            g=re.findall(r'^G\d+.*$',t,re.M)
+            if g: gline=g[-1].strip()
+        if done: v="DONE — worker finished, self-shutting-down"
+        elif la is None:
+            v=(f"!! LIKELY HUNG — no worker log {fmt(ia)} after launch (provisioning is done by ~7m); read the launch log, consider kill"
+               if (ia is not None and ia>GRACE) else
+               ".. STARTING — provisioning (ssh+scp) or pre-first-upload; a worker log is expected within ~7m of launch")
+        elif la>STALE: v=f"!! LIKELY HUNG — log STALE: last S3 upload {fmt(la)} ago while the box is LIVE (uploads run every {UP}s)"
+        else:
+            g=gline or f"log {sz}B, no game line yet (sprt computing first games)"
+            v=f"OK PROGRESSING — last upload {fmt(la)} ago | {g}"
+        print(f"  shard {n}  {x.get('iid')}  {x.get('ty')}  {x.get('region')}  inst[{x.get('state')} {fmt(ia)}]")
+        print(f"       {v}")
+print()
+PY
+    rm -rf "$tmpd"
 }
 
 cmd_fetch() {
