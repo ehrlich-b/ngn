@@ -67,12 +67,12 @@ func main() {
 	tc := flag.String("tc", "", "real tournament clock SECONDS[+INC] (e.g. 60+1 = 60s + 1s/move); the I4 flag-detection instrument, concurrency 1 unless -concurrency is set explicitly")
 	nodes := flag.Int("nodes", 0, "fixed node budget per move (overrides -depth; deterministic, credits ordering+eval, cool at any concurrency)")
 	baseDepth := flag.Int("basedepth", 0, "base engine depth (0 = same as -depth; set lower as a positive control / depth ladder)")
-	elo0 := flag.Float64("elo0", 0, "SPRT H0 elo bound (null: new is not better)")
-	elo1 := flag.Float64("elo1", 10, "SPRT H1 elo bound (alt: new is better by this)")
+	elo0 := flag.Float64("elo0", -3, "SPRT H0 elo bound (mill regime: symmetric sign test [-3,3])")
+	elo1 := flag.Float64("elo1", 3, "SPRT H1 elo bound (mill regime: symmetric sign test [-3,3])")
 	alpha := flag.Float64("alpha", 0.05, "SPRT type-I error")
 	beta := flag.Float64("beta", 0.05, "SPRT type-II error")
-	maxGames := flag.Int("maxgames", 1000, "hard cap on games")
-	minGames := flag.Int("mingames", 24, "minimum games before the SPRT stop bound can fire")
+	maxGames := flag.Int("maxgames", 20000, "hard cap on games (mill: high so the SPRT reaches an LLR bound, not the cap)")
+	minGames := flag.Int("mingames", 200, "minimum games before the SPRT stop bound can fire")
 	maxMoves := flag.Int("maxmoves", 200, "ply cap per game (then adjudicated draw)")
 	openingsFile := flag.String("openings", "", "file of opening move-sequences (one per line); default = built-in set")
 	concurrency := flag.Int("concurrency", 2, "parallel games")
@@ -307,8 +307,10 @@ func runSPRT(cfg runConfig, openings [][]string) {
 		fmt.Printf("G%-4d %2dW %2dD %2dL  %5.1f%%  elo %+6.1f [%+.0f,%+.0f]  LLR %+6.2f  pLLR %+6.2f  %-12s\n",
 			n, w, d, l, 100*rating.Score(w, d)/float64(n), est, lo, hi, llr, pLLR, r.Reason)
 
-		if !stopped && n >= cfg.minGames && (llr >= cfg.upper || llr <= cfg.lower) {
-			if llr >= cfg.upper {
+		// Pentanomial pLLR is the stop stat (pair-variance reduction ~= 2x fewer
+		// games than the trinomial llr; both share the same alpha/beta bounds).
+		if !stopped && n >= cfg.minGames && (pLLR >= cfg.upper || pLLR <= cfg.lower) {
+			if pLLR >= cfg.upper {
 				verdict = fmt.Sprintf("H1 ACCEPTED: new is stronger (>= %.0f ELO)", cfg.elo1)
 			} else {
 				verdict = fmt.Sprintf("H0 ACCEPTED: new is NOT better (<= %.0f ELO)", cfg.elo0)
@@ -328,7 +330,7 @@ func runSPRT(cfg runConfig, openings [][]string) {
 	pLLR, pairs, pEst, pLo, pHi := pentaStats(penta, cfg.elo0, cfg.elo1)
 	fmt.Printf("Pentanomial [LL %d  LD %d  {LW,DD} %d  WD %d  WW %d] over %d pairs\n",
 		penta[0], penta[1], penta[2], penta[3], penta[4], pairs)
-	fmt.Printf("Penta Elo: %+.1f   95%% CI [%+.0f, %+.0f]   pLLR %+.2f  (secondary — trinomial above is the decision stat)\n",
+	fmt.Printf("Penta Elo: %+.1f   95%% CI [%+.0f, %+.0f]   pLLR %+.2f  (THE decision stat; trinomial above is secondary)\n",
 		pEst, pLo, pHi, pLLR)
 	if cfg.tcTimeMs > 0 {
 		fmt.Printf("Flag-outs (lost on time): new %d, base %d  of %d games  (goal: 0)\n", newFlags, baseFlags, n)
@@ -423,8 +425,8 @@ func gamePoints(o uci.Outcome) float64 {
 // reduction over scoring games independently (the trinomial). With independent
 // games it reduces EXACTLY to the trinomial LLR; when pairs are correlated (e.g. a
 // balanced match splits every pair 1W-1L) its variance is far lower, so it reaches
-// a bound in ~15-30% fewer games. Reported as a SECONDARY stat for now; promote it
-// to the stop rule only after re-running the live null + positive controls.
+// a bound in ~15-30% fewer games. THIS is the stop rule (promoted 2026-06-14); the
+// first mill null + positive-control run certifies it before real verdicts rely on it.
 //
 // penta index = round(2 * pair-points): 0=LL, 1=LD/DL, 2={LW,WL,DD}, 3=WD/DW, 4=WW.
 func pentaStats(penta [5]int, elo0, elo1 float64) (llr float64, pairs int, est, lo, hi float64) {

@@ -52,6 +52,19 @@ lbuild v7.4.0 blunder_740
 lbuild v8.0.0 blunder_800
 git -C "$SRC" checkout --quiet - 2>/dev/null || true
 
+# CounterGo 3.8 (Vadim Chizhov) — pure-Go HCE, CCRL Blitz ~2994. A strong NON-Blunder
+# cross-family TOP anchor that un-saturates the ladder (NGN scores well below it). "3.8"
+# is a release COMMIT (b172b99), NOT a git tag (the 3.6-4.0 version bumps were committed
+# untagged); pre-NNUE so it's pure classical. Pure Go => native + linux/arm64 like Blunder.
+CTRSRC="$OUT/.src-counter"
+if [ ! -d "$CTRSRC/.git" ]; then
+	git clone https://github.com/ChizhovVadim/CounterGo.git "$CTRSRC"
+fi
+git -C "$CTRSRC" -c advice.detachedHead=false checkout --quiet b172b99
+( cd "$CTRSRC" && go build -o "../../$OUT/counter_38" ./counter )
+( cd "$CTRSRC" && GOOS=linux GOARCH=arm64 go build -o "../linux-arm64/counter_38" ./counter )
+echo "built $OUT/counter_38 (+linux-arm64) from CounterGo 3.8 (b172b99)"
+
 # Fruit 2.1 (Fabien Letouzey, 2005) — an independent NON-Blunder anchor: a different
 # engine family that exposes anchor non-transitivity the Blunder ladder hides, and
 # with no movetime-overshoot bug. CCRL Blitz 2685. Old C++, so build with an old

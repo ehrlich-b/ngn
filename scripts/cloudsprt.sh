@@ -399,7 +399,7 @@ cmd_launch() {
     done
     [ "$superwait" = 0 ] && superwait=$((ttl * 60))   # default: supervise across the whole TTL window
     local sprtargs=("$@")
-    [ ${#sprtargs[@]} -gt 0 ] || sprtargs=(-tc 10+0.1 -elo0 -5 -elo1 0 -mingames 64 -maxgames 600)
+    [ ${#sprtargs[@]} -gt 0 ] || sprtargs=(-tc 10+0.1 -elo0 -3 -elo1 3 -mingames 200 -maxgames 2000)
     [ -f "$openings" ] || die "openings file not found: $openings"
     case $type in
         c8g.*|c7g.*|m8g.*|m7g.*|r8g.*|r7g.*|t4g.*) ;;
@@ -509,7 +509,7 @@ cmd_status() {
 }
 
 cmd_fetch() {
-    local runid="" elo0=-5 elo1=0
+    local runid="" elo0=-3 elo1=3
     while [ $# -gt 0 ]; do
         case $1 in
             -runid) runid=$2; shift 2;;
@@ -518,7 +518,7 @@ cmd_fetch() {
             *) die "unknown fetch flag $1";;
         esac
     done
-    [ -n "$runid" ] || die "usage: fetch -runid <id> [-elo0 -5] [-elo1 0]"
+    [ -n "$runid" ] || die "usage: fetch -runid <id> [-elo0 -3] [-elo1 3]"
     local b dir live="" nlive=0
     b=$(bucket); dir=$REPO/output/cloud/$runid
     mkdir -p "$dir"
@@ -630,7 +630,7 @@ EOF
     fi
     pushed=0
     for _ in 1 2 3 4; do
-        if scp "${ssho[@]}" "$work/ngn" "$work/gauntlet" "$work/ratings.json" "$andir"/blunder_* "ec2-user@$ip:" >/dev/null 2>&1 \
+        if scp "${ssho[@]}" "$work/ngn" "$work/gauntlet" "$work/ratings.json" "$andir"/blunder_* "$andir"/counter_* "ec2-user@$ip:" >/dev/null 2>&1 \
            && scp "${ssho[@]}" "$work/gopen$i.txt" "ec2-user@$ip:openings.txt" >/dev/null 2>&1 \
            && scp "${ssho[@]}" "$work/grun$i.sh" "ec2-user@$ip:run.sh" >/dev/null 2>&1 \
            && ssh "${ssho[@]}" "ec2-user@$ip" 'test -s ngn && test -s gauntlet && test -s ratings.json' 2>/dev/null; then
@@ -643,7 +643,7 @@ EOF
         echo "box $i ($rgn): payload push failed after retries — terminated, dropped"
         return 1
     fi
-    if ! ssh "${ssho[@]}" "ec2-user@$ip" 'chmod +x ngn gauntlet blunder_* run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1'; then
+    if ! ssh "${ssho[@]}" "ec2-user@$ip" 'chmod +x ngn gauntlet blunder_* counter_* run.sh && nohup ./run.sh >/dev/null 2>&1 & sleep 1'; then
         AR "$rgn" ec2 terminate-instances --instance-ids "$id" >/dev/null 2>&1 || true
         echo "box $i ($rgn): run.sh start failed — terminated, dropped"
         return 1
@@ -663,7 +663,7 @@ EOF
 # over its own opening-slice ($games/N games per anchor), pooled by gfetch. Reuses launch_one (boot
 # TTL) + sweep_runid (failure/verdict sweep) UNCHANGED. Anchors ship flat with bare-path ratings.
 cmd_gauntlet() {
-    local shards=4 type=c8g.8xlarge ttl=2 games=40 gonly="v5.0.0,v6.1.0,v7.2.0,v7.4.0,v8.0.0" gtc="120+1" ref=HEAD
+    local shards=4 type=c8g.8xlarge ttl=2 games=40 gonly="v6.1.0,v7.2.0,v7.4.0,v8.0.0,counter-3.8" gtc="120+1" ref=HEAD
     while [ $# -gt 0 ]; do
         case $1 in
             -shards) shards=$2; shift 2;;
@@ -681,7 +681,7 @@ cmd_gauntlet() {
         *) die "$type is not a Graviton type (binaries are linux/arm64)";;
     esac
     local andir=$REPO/opponents/linux-arm64
-    ls "$andir"/blunder_* >/dev/null 2>&1 || die "no linux anchors in $andir — run scripts/build-anchors.sh first"
+    ls "$andir"/blunder_* "$andir"/counter_* >/dev/null 2>&1 || die "no linux anchors in $andir — run scripts/build-anchors.sh first"
     local b; b=$(bucket); SG_ID=$(sgid)
     [ "$SG_ID" != "None" ] || die "run setup first"
     local runid work; runid=$(date +%y%m%d-%H%M%S); work=$(mktemp -d)
