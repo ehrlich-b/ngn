@@ -2659,45 +2659,86 @@ func evaluateThreatsDelta(board *Bitboard, sliderAtt *[64]uint64, phase int) int
 	return (white - black) * phase / totalPhase
 }
 
-// ocbScaleEG is the eg-score scale (out of 64) applied to opposite-colored-bishop
-// endgames, which are heavily drawish even a pawn or two up. 64 = no scaling; 32 =
-// pull halfway toward the draw. NGN otherwise has NO draw scaling at all (its only
-// draw logic is the binary IsDraw, which bails the instant a pawn exists), so it
-// scores OCB endings at full material — a structural mg->eg over-optimism source.
-// Hand-set + SPRT-gated; it is a NON-LINEAR multiplier so it lives OUTSIDE
-// evaluateUnsafe (the Texel-traced linear core) and is not in the gradient basis.
-var ocbScaleEG = 32
+// Endgame draw-scaling — generalized from OCB-only to Counter 3.8's computeFactor family
+// (CounterGo eval/evaluation.go:413). NGN previously scored dead-drawn endings (KBPvKN
+// wrong-bishop, R-vs-R, single-pawn-up, KNNK, pawnless up-a-minor, ...) at FULL material and
+// traded into them; this pulls them toward the draw. Modeled as Counter's DIVISOR d∈{1,2,4,8,16}
+// applied to the LEADING side's material (d=1 no scale, d=16 heavy pull), expressed as the /64
+// multiplier 64/d to fit the existing hook (and `raw*(64/d)/64 == raw/d` exactly for d|64). Safe
+// by construction: it only ever REDUCES the magnitude of a position the leading side cannot
+// realistically convert. Material weights are Counter's (minor 4 / rook 6 / queen 12) so the
+// thresholds port verbatim; the OCB case (d=2) reproduces the prior ocbScale.
+const (
+	dfMinor = 4
+	dfRook  = 6
+	dfQueen = 12
+)
 
-// ocbScale returns the endgame draw-scale factor (out of 64). It is 64 (identity)
-// for every position EXCEPT a pure opposite-colored-bishop ending — exactly one
-// bishop per side on opposite-colored squares, no knights/rooks/queens, and at least
-// one pawn each — where it returns ocbScaleEG to pull the eval toward the draw. Safe
-// by construction: it only ever REDUCES the magnitude of a provably-drawish ending
-// and never fires outside that exact material pattern, so it cannot create new error.
-func ocbScale(board *Bitboard) int {
-	if PopCount(board.GetBitboardOf(WhiteBishop)) != 1 || PopCount(board.GetBitboardOf(BlackBishop)) != 1 {
-		return 64
+// drawFactor = Counter's computeFactor: the draw divisor for the LEADING side (own) vs the other.
+func drawFactor(ownForce, ownPawns, ownN, theirForce, theirPawns, theirN, theirB int, ocb bool) int {
+	if ownForce >= dfQueen+dfRook {
+		return 1
 	}
-	if board.GetBitboardOf(WhiteKnight) != 0 || board.GetBitboardOf(BlackKnight) != 0 ||
-		board.GetBitboardOf(WhiteRook) != 0 || board.GetBitboardOf(BlackRook) != 0 ||
-		board.GetBitboardOf(WhiteQueen) != 0 || board.GetBitboardOf(BlackQueen) != 0 {
-		return 64
+	if ownPawns == 0 {
+		if ownForce <= dfMinor {
+			return 16
+		}
+		if ownForce == 2*dfMinor && ownN == 2 && theirPawns == 0 {
+			return 16
+		}
+		if ownForce-theirForce <= dfMinor {
+			return 4
+		}
+	} else if ownPawns == 1 {
+		if ownForce <= dfMinor && theirN+theirB != 0 {
+			return 8
+		}
+		if ownForce == theirForce && theirN+theirB != 0 {
+			return 2
+		}
+	} else if ocb && ownPawns-theirPawns <= 2 {
+		return 2
 	}
-	if board.GetBitboardOf(WhitePawn) == 0 || board.GetBitboardOf(BlackPawn) == 0 {
-		return 64
+	return 1
+}
+
+// drawScale returns the endgame draw-scale (out of 64; 64 = identity) for a WHITE-RELATIVE eval,
+// applying drawFactor to whichever side is ahead.
+func drawScale(board *Bitboard, whiteRel int) int {
+	wN := PopCount(board.GetBitboardOf(WhiteKnight))
+	wB := PopCount(board.GetBitboardOf(WhiteBishop))
+	wR := PopCount(board.GetBitboardOf(WhiteRook))
+	wQ := PopCount(board.GetBitboardOf(WhiteQueen))
+	wP := PopCount(board.GetBitboardOf(WhitePawn))
+	bN := PopCount(board.GetBitboardOf(BlackKnight))
+	bB := PopCount(board.GetBitboardOf(BlackBishop))
+	bR := PopCount(board.GetBitboardOf(BlackRook))
+	bQ := PopCount(board.GetBitboardOf(BlackQueen))
+	bP := PopCount(board.GetBitboardOf(BlackPawn))
+	wF := dfMinor*(wN+wB) + dfRook*wR + dfQueen*wQ
+	bF := dfMinor*(bN+bB) + dfRook*bR + dfQueen*bQ
+
+	ocb := wB == 1 && bB == 1 && wN == 0 && bN == 0 && wR == 0 && bR == 0 && wQ == 0 && bQ == 0
+	if ocb {
+		wsq := int(bitScanForward(board.GetBitboardOf(WhiteBishop)))
+		bsq := int(bitScanForward(board.GetBitboardOf(BlackBishop)))
+		ocb = (wsq%8+wsq/8)%2 != (bsq%8+bsq/8)%2
 	}
-	wsq := int(bitScanForward(board.GetBitboardOf(WhiteBishop)))
-	bsq := int(bitScanForward(board.GetBitboardOf(BlackBishop)))
-	if (wsq%8+wsq/8)%2 == (bsq%8+bsq/8)%2 {
-		return 64 // same-colored bishops are not drawish in this way
+
+	var d int
+	if whiteRel >= 0 {
+		d = drawFactor(wF, wP, wN, bF, bP, bN, bB, ocb)
+	} else {
+		d = drawFactor(bF, bP, bN, wF, wP, wN, wB, ocb)
 	}
-	return ocbScaleEG
+	return 64 / d
 }
 
 // Enhanced evaluation function - always returns from white's perspective
 func Evaluate(board *Bitboard) (eval int) {
 	return WrapEvaluation("Evaluate", func() int {
-		return evaluateUnsafe(board) * ocbScale(board) / 64
+		raw := evaluateUnsafe(board)
+		return raw * drawScale(board, raw) / 64
 	}, board)
 }
 
@@ -3009,7 +3050,7 @@ func evaluateLazyStandPat(board *Bitboard, player Color, beta int) (standPat int
 		return 0, true
 	}
 	full := whiteCore + evalExtrasWhite(board, phase)
-	full = full * ocbScale(board) / 64 // OCB endgame draw-scaling — mirror Evaluate so main search and qsearch agree
+	full = full * drawScale(board, full) / 64 // endgame draw-scaling — mirror Evaluate so main search and qsearch agree
 	if player != White {
 		full = -full
 	}
