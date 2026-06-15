@@ -746,6 +746,8 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 			}
 			iterationBestScore := -INFINITY
 			iterationBestMove := EmptyMove
+			rootInCheck := pos.IsInCheck() // root position: don't root-LMR while in check
+			legalRoot := 0                 // count of LEGAL root moves (PVS first-move + LMR index)
 
 			for oi := 0; oi < orderedCount; oi++ {
 				move := orderedRoot[oi]
@@ -766,12 +768,50 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				}
 				SetLastMovePlayed(move)
 				info.MoveStack[0] = move
+				legalRoot++
 
 				var score int
 				if pos.IsFIDEDrawRule() {
 					score = 0 // Draw
-				} else {
+				} else if legalRoot == 1 {
+					// First legal root move: full window + PV (establishes alpha / the PV line).
 					score = -alphaBetaPV(pos, currentDepth-1, 1, -beta, -alpha, true, true, info)
+				} else {
+					// Root PVS + root LMR. NGN previously full-windowed EVERY root move at full
+					// depth (waste on moves 2..N); CounterGo scouts later root moves with a null
+					// window and reduces late quiet ones. Mirrors the internal PVS+LMR
+					// (search.go ~1746-1837), gentler — root is always PV, so no non-PV/history bumps.
+					reduction := 0
+					givesCheck := pos.IsInCheck() // we made `move`; side-now-to-move in check == move gave check
+					if SearchToggles.LMR && currentDepth >= LMR_FULL_DEPTH && legalRoot > 4 && // root: only reduce move 5+ (keep best+captures+killers+top-history full-depth)
+						!move.IsCapture() && !rootInCheck && !givesCheck {
+						d := currentDepth
+						if d > 63 {
+							d = 63
+						}
+						m := legalRoot
+						if m > 63 {
+							m = 63
+						}
+						reduction = lmrTable[d][m]
+						if reduction >= currentDepth-1 {
+							reduction = currentDepth - 2
+						}
+						if reduction < 0 {
+							reduction = 0
+						}
+					}
+					// Null-window scout at (possibly) reduced depth.
+					score = -alphaBetaPV(pos, currentDepth-1-reduction, 1, -alpha-1, -alpha, false, true, info)
+					// A reduced scout that beat alpha may have under-counted it: re-verify at
+					// full depth (null window) before trusting it.
+					if reduction > 0 && score > alpha {
+						score = -alphaBetaPV(pos, currentDepth-1, 1, -alpha-1, -alpha, false, true, info)
+					}
+					// Scout failed high inside the window: full-window re-search (root is PV).
+					if score > alpha && score < beta {
+						score = -alphaBetaPV(pos, currentDepth-1, 1, -beta, -alpha, true, true, info)
+					}
 				}
 				pos.GameUnMakeMove(move, tag, ep, hc)
 				SetLastMovePlayed(savedLast)
