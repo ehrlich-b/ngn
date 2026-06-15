@@ -26,6 +26,11 @@ blocks you, STOP and report the situation in TODO.md — never work around it.**
   cloudsprt.sh requires `scripts/cloudsprt.sh smoke` to PASS before the next launch.
 - Every session that touches the fleet ENDS with `scripts/cloudsprt.sh ps`
   showing nothing running that you can't name. When in doubt: `kill`, then `ps`.
+- MONITOR a launch with `scripts/cloudsprt.sh status` / `ps` (and Read its raw task
+  output). NEVER pipe `launch`/`gauntlet`/`sprt` through `| tail`/`| head` — those
+  buffer until EOF, so a backgrounded run's log reads EMPTY and looks HUNG (a healthy
+  4/4 run was killed on exactly this, 2026-06-14). Run them raw; ~5 min to provision
+  4 cross-region boxes is NORMAL, not a hang.
 - `-ttl 2` for Tier-1/null runs; 6h absolute max. Launch only via the script,
   never raw `aws ec2 run-instances`.
 - An AWS `AccessDenied`/`UnauthorizedOperation` error is a DESIGN BOUNDARY
