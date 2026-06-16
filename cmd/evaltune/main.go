@@ -21,6 +21,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -28,6 +29,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type knob struct {
@@ -104,6 +106,7 @@ func main() {
 	maxPasses := flag.Int("passes", 8, "max coordinate-descent passes")
 	capW := flag.Int("cap", 400, "max weight (min 0)")
 	seed := flag.String("seed", "", "NGN_EVAL_W to start from (default = compiled baseline)")
+	timeoutS := flag.Int("timeout", 300, "per-measure oracle timeout seconds (a hang aborts with a resumable -seed)")
 	flag.Parse()
 
 	ks := baseline()
@@ -114,10 +117,16 @@ func main() {
 	nEval := 0
 	measure := func() float64 {
 		nEval++
-		cmd := exec.Command(*oracle, "-mode", "acpl", "-labels", *labels, "-new", *bin,
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*timeoutS)*time.Second)
+		defer cancel()
+		cmd := exec.CommandContext(ctx, *oracle, "-mode", "acpl", "-labels", *labels, "-new", *bin,
 			"-nodes", strconv.Itoa(*nodes), "-concurrency", strconv.Itoa(*conc))
 		cmd.Env = append(os.Environ(), "NGN_EVAL_W="+envString(ks))
 		out, err := cmd.CombinedOutput()
+		if ctx.Err() == context.DeadlineExceeded {
+			fmt.Fprintf(os.Stderr, "\nMEASURE TIMEOUT after %ds (oracle hung). Resume with:\n  -seed '%s'\n", *timeoutS, envString(ks))
+			os.Exit(3)
+		}
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "measure: oracle failed: %v\n%s\n", err, out)
 			os.Exit(1)
@@ -170,6 +179,7 @@ func main() {
 			}
 		}
 		fmt.Printf("pass %d: best ACPL %.3f, %d knobs moved, %d evals total\n", pass+1, best, moved, nEval)
+		fmt.Printf("  seed: %s\n", envString(ks))
 		if moved == 0 {
 			break
 		}
