@@ -197,6 +197,7 @@ func main() {
 	lQuiet := flag.Bool("quiet", true, "lichess: keep only quiet positions (not in check, best move not a capture)")
 	out := flag.String("out", "", "gencorpus/label/distill/lichess: output file")
 	capCp := flag.Int("cap", 1000, "acpl: per-position cp-loss cap")
+	acplConc := flag.Int("concurrency", 1, "acpl: parallel engine processes (deterministic; fixed-node, so result == serial)")
 	gamesF := flag.String("games", "", "classify: gauntlet -pgn capture file (M1 loss classification)")
 	flag.Parse()
 
@@ -235,7 +236,7 @@ func main() {
 			fmt.Fprintln(os.Stderr, "acpl: need -labels <file>")
 			os.Exit(1)
 		}
-		runACPL(*newBin, *baseBin, *labelsF, goCmd, budget, timeout, *lowPower, *capCp)
+		runACPL(*newBin, *baseBin, *labelsF, goCmd, budget, timeout, *lowPower, *capCp, *acplConc)
 	case "classify":
 		if *gamesF == "" {
 			fmt.Fprintln(os.Stderr, "classify: need -games <gauntlet -pgn file>")

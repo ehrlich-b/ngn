@@ -136,6 +136,50 @@ func TexelWeights() []TexelWeight {
 	}
 }
 
+// init applies eval aux-weight overrides from the NGN_EVAL_W environment variable
+// (comma-separated name=value pairs, names from TexelWeights plus the blocked-passer
+// knobs). This lets the ACPL tuner vary weights per trial WITHOUT rebuilding the
+// binary: the engine subprocess inherits the parent env (uci.Start sets no cmd.Env),
+// and the 18 aux weights are read at eval runtime (not baked into any precomputed
+// table), so an init override takes effect for every search. Unset/empty = no
+// override (the bit-for-bit default). A malformed pair or unknown name aborts — a
+// silent mis-tune would corrupt every downstream ACPL measurement.
+func init() {
+	spec := os.Getenv("NGN_EVAL_W")
+	if spec == "" {
+		return
+	}
+	byName := make(map[string]*int)
+	for _, w := range TexelWeights() {
+		byName[w.Name] = w.Ptr
+	}
+	byName["blockedPasserPenalty"] = &blockedPasserPenalty
+	byName["blockedPasserPenaltyEG"] = &blockedPasserPenaltyEG
+	for _, kv := range strings.Split(spec, ",") {
+		kv = strings.TrimSpace(kv)
+		if kv == "" {
+			continue
+		}
+		eq := strings.IndexByte(kv, '=')
+		if eq < 0 {
+			fmt.Fprintf(os.Stderr, "NGN_EVAL_W: bad pair %q (want name=value)\n", kv)
+			os.Exit(1)
+		}
+		name := strings.TrimSpace(kv[:eq])
+		val, err := strconv.Atoi(strings.TrimSpace(kv[eq+1:]))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "NGN_EVAL_W: bad value in %q: %v\n", kv, err)
+			os.Exit(1)
+		}
+		ptr, ok := byName[name]
+		if !ok {
+			fmt.Fprintf(os.Stderr, "NGN_EVAL_W: unknown weight %q\n", name)
+			os.Exit(1)
+		}
+		*ptr = val
+	}
+}
+
 // FormatTexelWeights renders the given weights as Go var assignments, ready to
 // paste back into eval.go's tunable-weights block after a tuning run.
 func FormatTexelWeights(weights []TexelWeight) string {

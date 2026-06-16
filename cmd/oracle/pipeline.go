@@ -259,43 +259,75 @@ func parseLabels(path string) ([]labeledPos, error) {
 	return out, nil
 }
 
-// acplEngine returns one binary's average centipawn loss vs the SF labels.
-// A move outside SF's labeled top-N is floored at the worst labeled eval (a
-// conservative LOWER bound on its true loss).
-func acplEngine(engPath string, labels []labeledPos, goCmd string, timeout time.Duration, lowPower bool, capCp int) float64 {
-	e := uci.Start(engPath, "acpl", lowPower)
-	if e == nil {
-		fmt.Fprintf(os.Stderr, "oracle acpl: cannot start %q\n", engPath)
-		os.Exit(1)
+// acplLoss is one position's capped centipawn loss for the move mv vs the SF
+// labels: bestCp minus the labeled eval of mv (floored at the worst labeled eval
+// when mv is outside SF's top-N — a conservative LOWER bound), clamped to [0,cap].
+func acplLoss(lp labeledPos, mv string, capCp int) float64 {
+	bestCp := lp.evals[0].cp
+	moveCp := lp.evals[len(lp.evals)-1].cp
+	for _, me := range lp.evals {
+		if me.move == mv {
+			moveCp = me.cp
+			break
+		}
 	}
-	defer uci.Stop(e)
-	var total float64
-	for _, lp := range labels {
-		uci.Reset(e)
-		uci.Send(e, "position fen "+lp.fen)
-		mv := uci.GetMove(e, goCmd, timeout, 0)
-		bestCp := lp.evals[0].cp
-		moveCp, found := lp.evals[len(lp.evals)-1].cp, false
-		for _, me := range lp.evals {
-			if me.move == mv {
-				moveCp, found = me.cp, true
-				break
+	loss := float64(bestCp - moveCp)
+	if loss < 0 {
+		loss = 0
+	}
+	if loss > float64(capCp) {
+		loss = float64(capCp)
+	}
+	return loss
+}
+
+// acplEngine returns one binary's average centipawn loss vs the SF labels.
+// concurrency>1 fans the positions across that many independent engine processes;
+// because each position is searched at a FIXED node/depth budget, a position's move
+// (and thus its loss) is identical regardless of which worker runs it, so the mean
+// is deterministic and equal to the serial result — concurrency only buys wall time.
+func acplEngine(engPath string, labels []labeledPos, goCmd string, timeout time.Duration, lowPower bool, capCp, concurrency int) float64 {
+	if concurrency < 1 {
+		concurrency = 1
+	}
+	if concurrency > len(labels) {
+		concurrency = len(labels)
+	}
+	losses := make([]float64, len(labels)) // worker w writes only its own indices — no race
+	jobs := make(chan int, len(labels))
+	for i := range labels {
+		jobs <- i
+	}
+	close(jobs)
+	var wg sync.WaitGroup
+	for w := 0; w < concurrency; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			e := uci.Start(engPath, "acpl", lowPower)
+			if e == nil {
+				fmt.Fprintf(os.Stderr, "oracle acpl: cannot start %q\n", engPath)
+				os.Exit(1)
 			}
-		}
-		_ = found
-		loss := float64(bestCp - moveCp)
-		if loss < 0 {
-			loss = 0
-		}
-		if loss > float64(capCp) {
-			loss = float64(capCp)
-		}
-		total += loss
+			defer uci.Stop(e)
+			for idx := range jobs {
+				lp := labels[idx]
+				uci.Reset(e)
+				uci.Send(e, "position fen "+lp.fen)
+				mv := uci.GetMove(e, goCmd, timeout, 0)
+				losses[idx] = acplLoss(lp, mv, capCp)
+			}
+		}()
+	}
+	wg.Wait()
+	var total float64
+	for _, l := range losses {
+		total += l
 	}
 	return total / float64(len(labels))
 }
 
-func runACPL(newBin, baseBin, labelFile, goCmd, budget string, timeout time.Duration, lowPower bool, capCp int) {
+func runACPL(newBin, baseBin, labelFile, goCmd, budget string, timeout time.Duration, lowPower bool, capCp, concurrency int) {
 	labels, err := parseLabels(labelFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "oracle acpl: %v\n", err)
@@ -305,13 +337,13 @@ func runACPL(newBin, baseBin, labelFile, goCmd, budget string, timeout time.Dura
 		fmt.Fprintln(os.Stderr, "oracle acpl: no labeled positions")
 		os.Exit(1)
 	}
-	fmt.Printf("acpl: %s  (%d positions, %s, cap %dcp)%s\n", labelFile, len(labels), budget, capCp, uci.PowerNote(lowPower))
-	newACPL := acplEngine(newBin, labels, goCmd, timeout, lowPower, capCp)
+	fmt.Printf("acpl: %s  (%d positions, %s, cap %dcp, conc %d)%s\n", labelFile, len(labels), budget, capCp, concurrency, uci.PowerNote(lowPower))
+	newACPL := acplEngine(newBin, labels, goCmd, timeout, lowPower, capCp, concurrency)
 	fmt.Printf("  new   %-24s ACPL %6.1f\n", newBin, newACPL)
 	if baseBin == "" {
 		return
 	}
-	baseACPL := acplEngine(baseBin, labels, goCmd, timeout, lowPower, capCp)
+	baseACPL := acplEngine(baseBin, labels, goCmd, timeout, lowPower, capCp, concurrency)
 	fmt.Printf("  base  %-24s ACPL %6.1f\n", baseBin, baseACPL)
 	fmt.Printf("  Δ %+.1f cp/move  (lower ACPL = better; positive Δ means NEW gives up more eval = WORSE)\n", newACPL-baseACPL)
 }
