@@ -2829,10 +2829,10 @@ var (
 	rookOpenWeight       = 87
 	outpostWeight        = 84
 	kingSafetyWeight     = 106
-	kingActivityWeight   = 29
+	kingActivityWeight   = 21 // ACPL coordinate-descent (2026-06-16): 29->21, NGN over-valued MG king activity
 
-	passedPawnBonusEG      = 36
-	blockedPasserPenaltyEG = 20 // blockaded passers matter even less in the endgame, where passers decide
+	passedPawnBonusEG      = 44 // ACPL coordinate-descent (2026-06-16): 36->44, NGN under-valued EG passers (opp-passer optimism)
+	blockedPasserPenaltyEG = 12 // ACPL coordinate-descent (2026-06-16): 20->12, over-penalized blockaded EG passers
 	doubledPawnPenaltyEG   = 23
 	isolatedPawnPenaltyEG  = 14
 	pawnChainWeightEG      = 77
