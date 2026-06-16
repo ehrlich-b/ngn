@@ -23,10 +23,14 @@ Ranked levers (game-autopsy order):
 6. **SEARCH S1 / TIME F2 — DEPRIORITIZED (only 1/30 losses is a tactical/depth miss; tree already ≤ Counter's).** Valid CLEANUP, not the strength lever. S1 = LMR re-search un-extension (search.go:1879, delicate/J1-adjacent); F2 = extend-on-instability (dead `stableIters`, time.go:256). F1 greedy-clock REJECTED −10.3 (time-spend lever CLOSED; ×1 projection ~tuned).
 7. **SPEED (node-identical NPS):** cache working-set shrink (drop followupHistory, re-pack conthist, reconsider the eval cache, lower default Hash) — engineering, not strength-losing; opportunistic.
 
-**IN FLIGHT / RECENT:**
-- **F1 time-mgmt — REJECT −10.3/4080g (reverted).** **E1 endgame draw-scaling — KEPT +1.1/6195g (b685b7e).** **ACTIVE NEXT (post-autopsy) = lever #1: the self-optimism-bias eval audit** (the EVAL-BLINDSPOT root) — instrument with `cmd/zzbias` on the autopsy's loss positions, fix terms that score NGN's own side without symmetric enemy weight, gate on zzbias (−cp) + a fresh lossxray blindspot recount + gauntlet. **S1/F2 search/time DEPRIORITIZED by the game autopsy (only 1/30 losses is a tactical/depth miss).**
-- **`cutNode` plumbing — DONE (commit 400ebfc, node-identical, nodecheck 293463/130764/757720).** The keystone; consumers below.
-- **cut-node LMR — REJECT** −5.8 [−13.1,+1.4]/3988g (runid 260615-133109). Reverted. **IIR (cutNode, depth--) — NEUTRAL** −0.4/3757g, abandoned. Lesson: cutNode REDUCTIONS backfire on NGN's tree (see S1 — the re-search structure is why); don't keep trying them until S1 is fixed.
+**IN FLIGHT / ▶ RESUME HERE (post-compact):**
+- **ACTIVE NEXT = implement defender-aware king-safety** (lever #1's localized culprit). `evaluateKingAttackPatterns` (engine/eval.go) is a defender-BLIND quadratic (attackUnits²/8, cap 500); make the attack penalty account for the king-zone's own defenders (preferred) — or lower the magnitude/cap, or kingSafetyWeight (106mg/84eg) as fallbacks. **FREE local gates FIRST, paid only after:**
+  1. Baseline already measured: zzbias own-side bias = **+113 mean / +136 median**; kingSafety per-term own-side = **+13.2**. A candidate MUST lower BOTH.
+  2. Build candidate `build/ngn_new`, then re-measure (NB: go tests run CWD=engine/ ⇒ ABSOLUTE paths): `BIAS_PGN=$PWD/loss_autopsy_counter.pgn BIAS_OUT=$PWD/output/bias_autopsy.tsv go test -run TestZZEvalBiasExtract ./engine/ -count=1` → `build/zzbias -in output/bias_autopsy.tsv -depth 12` (overall bias must drop) and `BIAS_PGN=$PWD/loss_autopsy_counter.pgn go test -run TestZZEvalExplain ./engine/ -count=1 -v` (kingSafety own-side must fall from +13.2).
+  3. `make acpl BIN=build/ngn_new BASE=build/ngn` must NOT worsen (external SF ruler).
+  4. ONLY if 1-3 pass: cloud gauntlet vs Counter/Blunder (QUOTE $ first, ~$1) — `scripts/cloudsprt.sh gauntlet ...`. KEEP rule; REVERT on regression (the prior +43.7 king-safety fix lives in this same function — delicate).
+- **F1 time-mgmt REJECT −10.3 (reverted). E1 draw-scaling KEPT +1.1 (b685b7e).** S1/F2 search/time DEPRIORITIZED (only 1/30 losses tactical).
+- **`cutNode` plumbing DONE (400ebfc, node-identical, nodecheck 293463/130764/757720).** cut-node LMR REJECT −5.8/3988g, IIR NEUTRAL −0.4/3757g — cutNode reductions backfire on NGN's eager LMR re-search (search.go:1879); fix S1 before retrying.
 
 ## OPERATING RULES (non-negotiable)
 - **KEEP rule (canon):** improvement OR correctness fix + NO measured regression ⇒ KEEP, full stop — even if small/within noise. "Too small to resolve" is NOT a reject reason; trivial complexity/memory is NOT a cost. REJECT requires BOTH non-correctness AND a concrete measured regression.
@@ -57,9 +61,11 @@ Ranked levers (game-autopsy order):
 - **Eval keeps:** PeSTO core +46, C1 mobility per-count un-freeze +22.5, king-safety bias fix.
 - **Tier-2 cert #1 PASS** (anchor dfde55f→7b53744; the +55.7 Tier-1 self-play SUM certified at +0.6 [-7.6,+8.8]/3877g ⇒ Tier-1 magnitudes are noise, trust the SIGN, the cert owns the truth).
 - **This session (2026-06-15):** harness status fix (aea64f7), cutNode plumbing (400ebfc), launcher false-negative fix (402ed19).
+- **This session (2026-06-16) — the floundering→diagnosis pivot ($0 cloud):** game autopsy proved 28/30 losses are EVAL not search (d30da4b), reordered the plan eval-first, committed the loss corpus (df0f05b), confirmed +113/+136 own-side optimism via zzbias (532b884), built the term-dump instrument and localized the culprit to king-safety's defender-blind attack penalty (fbe6bd8, b8e5492). Diagnosis COMPLETE; the king-safety fix is the open work (see ▶ RESUME HERE).
 
 ## INSTRUMENTS & REFERENCE
 - **Absolute rating:** `cmd/gauntlet` real-clock -tc vs Blunder/Counter ladder; cloud via `cloudsprt gauntlet`/`gfetch` (~30 min, 4 boxes). The gold standard. smoke/elo-assess are RELATIVE only.
 - **Per-change:** `cmd/sprt` self-play SPRT (the mill). `make acpl` external SF ruler (eval). `scripts/nodecheck.sh` node-identity. `scripts/ebfprobe.py` tree-shape filter. `cmd/zzbias`/`lossxray`/`sfpv` eval-bias. `cmd/blunder-finder` loss diagnosis.
+- **Eval-optimism (lever #1 toolchain, 2026-06-16):** `loss_autopsy_counter.pgn` = committed 30-loss vs-Counter corpus (the eval test set). `cmd/zzbias` reports own-side NGN−SF bias from a `TestZZEvalBiasExtract` TSV (baseline +113/+136). `engine/zz_evalexplain_test.go` (`TestZZEvalExplain`): `ZZ_FEN=<fen>` dumps one position's per-term eval (sum-checked == evaluateUnsafe, so no drift); `BIAS_PGN=<abs>` prints each term's mean own-side over the corpus (kingSafety = the +13.2 culprit). Regenerate the autopsy: `gauntlet -only counter-3.8 -games 50 -movetime 1000 -concurrency 6 -pgn <out> -no-record` → `lossxray -pgn <out> -ngn build/ngn -depth 16` (classes EVAL-BLINDSPOT/SLOW-BLEED/DEPTH × mg/eg).
 - **Anchors:** `scripts/build-anchors.sh` builds the Blunder ladder + Counter 3.8 (b172b99) native + linux/arm64. Counter source for diffing: /tmp/CounterGo.
 - **Specs:** docs/09 (search invariants + J1-J15 joints), docs/11 (3000 census). `output/` is gitignored ⇒ record runs/verdicts here or in memory at verdict time.
