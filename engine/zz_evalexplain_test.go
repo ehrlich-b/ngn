@@ -177,3 +177,146 @@ func TestZZEvalExplain(t *testing.T) {
 		fmt.Printf("  %-16s %+8.1f\n", r.name, r.mean)
 	}
 }
+
+// TestZZKingSafetySplit (throwaway diagnostic, lever #1): decomposes the single
+// kingSafety term's +13.2 own-side optimism into its two sub-parts —
+//   ksShield  = the material-scaled positional exposure (pawn shield, central
+//               king, open files near the king), and
+//   ksAttack  = -evaluateKingAttackPatterns (the defender-BLIND quadratic attack
+//               penalty against each king).
+// safety = scaledShield - attackPattern, so scaledShield = safety + attackPattern;
+// the two means sum back to the combined kingSafety own-side mean. Whichever half
+// carries the optimism is where the fix must aim (phase<6 positions use king
+// ACTIVITY instead and contribute 0 to both, kept in n so the sum matches +13.2).
+func TestZZKingSafetySplit(t *testing.T) {
+	pawnCacheDisabled = true
+	defer func() { pawnCacheDisabled = false }()
+	in := os.Getenv("BIAS_PGN")
+	if in == "" {
+		t.Skip("set BIAS_PGN")
+	}
+	every, skip := 4, 12
+	fmt.Sscanf(os.Getenv("BIAS_EVERY"), "%d", &every)
+	fmt.Sscanf(os.Getenv("BIAS_SKIP"), "%d", &skip)
+	if every < 1 {
+		every = 4
+	}
+	f, err := os.Open(in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	// shieldParts mirrors the nonAttack block of evaluateKingSafety EXACTLY, but
+	// returns its three sub-pieces separately, each already material-scaled
+	// (linear, so per-piece scaling sums back to the combined scaled shield ±1cp).
+	shieldParts := func(b *Bitboard, color Color) (ps, central, openF int) {
+		var kingBB, pawnBB, oQ, oR, oB, oN uint64
+		if color == White {
+			kingBB, pawnBB = b.GetBitboardOf(WhiteKing), b.GetBitboardOf(WhitePawn)
+			oQ, oR, oB, oN = b.GetBitboardOf(BlackQueen), b.GetBitboardOf(BlackRook), b.GetBitboardOf(BlackBishop), b.GetBitboardOf(BlackKnight)
+		} else {
+			kingBB, pawnBB = b.GetBitboardOf(BlackKing), b.GetBitboardOf(BlackPawn)
+			oQ, oR, oB, oN = b.GetBitboardOf(WhiteQueen), b.GetBitboardOf(WhiteRook), b.GetBitboardOf(WhiteBishop), b.GetBitboardOf(WhiteKnight)
+		}
+		if kingBB == 0 {
+			return
+		}
+		ksq := trailingZeros(kingBB)
+		kf, kr := int(ksq%8), int(ksq/8)
+		ps = evaluatePawnShield(pawnBB, kf, kr, color)
+		if kf >= 2 && kf <= 5 {
+			central = -15
+		}
+		wp, bp := b.GetBitboardOf(WhitePawn), b.GetBitboardOf(BlackPawn)
+		for fo := -1; fo <= 1; fo++ {
+			file := kf + fo
+			if file < 0 || file > 7 {
+				continue
+			}
+			fm := uint64(0x0101010101010101) << file
+			wpf, bpf := wp&fm, bp&fm
+			if wpf == 0 && bpf == 0 {
+				openF -= 20
+			} else if color == White && wpf == 0 {
+				openF -= 10
+			} else if color == Black && bpf == 0 {
+				openF -= 10
+			}
+		}
+		am := 4*PopCount(oQ) + 2*PopCount(oR) + PopCount(oB) + PopCount(oN)
+		if am > 8 {
+			am = 8
+		}
+		return ps * am / 8, central * am / 8, openF * am / 8
+	}
+
+	var shieldSum, attackSum, psSum, ceSum, ofSum float64
+	n := 0
+	sc := bufio.NewScanner(f)
+	sc.Buffer(make([]byte, 1<<20), 1<<22)
+	for sc.Scan() {
+		ln := strings.TrimSpace(sc.Text())
+		if !strings.HasPrefix(ln, "GAME ") {
+			continue
+		}
+		bar := strings.Index(ln, " | ")
+		if bar < 0 {
+			continue
+		}
+		head := strings.Fields(ln[:bar])
+		if len(head) < 5 || head[2] != "L" || strings.Contains(ln, "time-forfeit") {
+			continue
+		}
+		ngnWhite := head[3] == "w"
+		moves := strings.Fields(ln[bar+3:])
+		pos := &Position{Board: StartingBoard(), Tag: WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide | WhiteToMove, EnPassant: NoSquare}
+		for ply, mv := range moves {
+			pm, err := ParseUCIMove(pos, mv)
+			if err != nil {
+				break
+			}
+			pos.MakeMove(pm)
+			if ply < skip || ply%every != 0 {
+				continue
+			}
+			b := &pos.Board
+			shield, attack, ps, ce, of := 0, 0, 0, 0, 0
+			if _, _, ph := evaluatePeSTO(b); ph >= 6 {
+				var sa [64]uint64
+				fillSliderAttacks(b, &sa)
+				ksw := taperW(kingSafetyWeight, kingSafetyWeightEG, ph)
+				safetyW := evaluateKingSafety(b, White, &sa)
+				safetyB := evaluateKingSafety(b, Black, &sa)
+				attackW := evaluateKingAttackPatterns(&sa, b.GetBitboardOf(BlackQueen), b.GetBitboardOf(BlackRook), b.GetBitboardOf(BlackBishop), b.GetBitboardOf(BlackKnight), trailingZeros(b.GetBitboardOf(WhiteKing)), White)
+				attackB := evaluateKingAttackPatterns(&sa, b.GetBitboardOf(WhiteQueen), b.GetBitboardOf(WhiteRook), b.GetBitboardOf(WhiteBishop), b.GetBitboardOf(WhiteKnight), trailingZeros(b.GetBitboardOf(BlackKing)), Black)
+				shield = ((safetyW + attackW) - (safetyB + attackB)) * ksw / 100
+				attack = -(attackW - attackB) * ksw / 100
+				psW, ceW, ofW := shieldParts(b, White)
+				psB, ceB, ofB := shieldParts(b, Black)
+				ps = (psW - psB) * ksw / 100
+				ce = (ceW - ceB) * ksw / 100
+				of = (ofW - ofB) * ksw / 100
+			}
+			if !ngnWhite {
+				shield, attack, ps, ce, of = -shield, -attack, -ps, -ce, -of
+			}
+			shieldSum += float64(shield)
+			attackSum += float64(attack)
+			psSum += float64(ps)
+			ceSum += float64(ce)
+			ofSum += float64(of)
+			n++
+		}
+	}
+	if err := sc.Err(); err != nil {
+		t.Fatal(err)
+	}
+	fmt.Printf("\n=== KING-SAFETY SPLIT own-side over %d loss positions (+ = credits NGN, the loser) ===\n", n)
+	fmt.Printf("  ksShield  %+8.1f  (material-scaled exposure: shield/central/open-file)\n", shieldSum/float64(n))
+	fmt.Printf("    .pawnShield %+8.1f  (evaluatePawnShield bonus/penalty)\n", psSum/float64(n))
+	fmt.Printf("    .centralKg  %+8.1f  (-15 central-file king)\n", ceSum/float64(n))
+	fmt.Printf("    .openFile   %+8.1f  (-10/-20 open/semi-open near king)\n", ofSum/float64(n))
+	fmt.Printf("  ksAttack  %+8.1f  (-evaluateKingAttackPatterns, defender-blind quadratic)\n", attackSum/float64(n))
+	fmt.Printf("  (sum)     %+8.1f  (should match the term-dump kingSafety mean ~+13.2)\n", (shieldSum+attackSum)/float64(n))
+}
