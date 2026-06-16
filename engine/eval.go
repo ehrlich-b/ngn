@@ -1301,10 +1301,16 @@ func evaluatePawnShield(pawnBitboard uint64, kingFile int, kingRank int, color C
 				distance = kingRank - closestPawnRank
 			}
 
-			// Better bonus for closer pawns, extra bonus for center file
-			baseBonus := 20 - distance*3 // Closer is better
+			// Shelter is scored as a penalty-from-ideal, not a reward: an ideally
+			// placed (adjacent, unmoved) pawn nets ~0, and only distance, advancement,
+			// or a missing pawn create signal. The old form awarded a large positive
+			// (+20..+30/file) for the NORMAL case of simply having a shield, which made
+			// the term positive-sum and inflated king-safety by a measured +13cp
+			// own-side in lost positions — NGN rating its own superficially-intact
+			// shelter as "safe" while it drifted positionally into a mated game.
+			baseBonus := -distance * 3 // closer is better; ideal adjacent pawn = 0
 			if fileOffset == 0 {
-				baseBonus += 5 // Center file is most important
+				baseBonus += 3 // center file matters slightly more
 			}
 
 			// Bonus varies by how advanced the pawn is
@@ -1316,7 +1322,7 @@ func evaluatePawnShield(pawnBitboard uint64, kingFile int, kingRank int, color C
 			}
 
 			if pawnAdvancement == 0 {
-				baseBonus += 5 // Unmoved pawn is strong shield
+				baseBonus += 3 // Unmoved pawn is a slightly stronger shield
 			} else if pawnAdvancement >= 3 {
 				baseBonus -= 5 // Advanced pawn is weaker shield
 			}
