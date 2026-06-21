@@ -50,6 +50,8 @@ func evalTermsWhite(board *Bitboard) []termVal {
 	add("doubled", -(wDoubled-bDoubled)*taperW(doubledPawnPenalty, doubledPawnPenaltyEG, phase))
 	add("isolated", -(wIso-bIso)*taperW(isolatedPawnPenalty, isolatedPawnPenaltyEG, phase))
 	add("chains", (chainW-chainB)*taperW(pawnChainWeight, pawnChainWeightEG, phase)/100)
+	wBack, bBack := backwardPawnCounts(whitePawns, blackPawns)
+	add("backward", -(wBack-bBack)*taperW(backwardPawnPenalty, backwardPawnPenaltyEG, phase))
 
 	// --- evalExtrasWhite ---
 	var sliderAtt [64]uint64

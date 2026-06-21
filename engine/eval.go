@@ -2824,6 +2824,7 @@ var (
 	blockedPasserPenalty = 8 // discount a passer blockaded by an enemy piece (L1 over-optimism fix)
 	doubledPawnPenalty   = 10
 	isolatedPawnPenalty  = 10
+	backwardPawnPenalty  = 8 // pawn whose stop square is enemy-pawn-controlled and outside its own pawns' attack span
 	pawnChainWeight      = 76
 	mobilityWeight       = 181
 	rookOpenWeight       = 87
@@ -2835,6 +2836,7 @@ var (
 	blockedPasserPenaltyEG = 12 // ACPL coordinate-descent (2026-06-16): 20->12, over-penalized blockaded EG passers
 	doubledPawnPenaltyEG   = 23
 	isolatedPawnPenaltyEG  = 14
+	backwardPawnPenaltyEG  = 12 // backward pawns are a chronic endgame target (cannot be defended, cannot advance)
 	pawnChainWeightEG      = 77
 	mobilityWeightEG       = 180
 	rookOpenWeightEG       = 86
@@ -2926,6 +2928,24 @@ func pawnStructureCounts(board *Bitboard, wp, bp uint64) (wPassed, bPassed, wPas
 // (mobility, rook, outposts, king). Split so qsearch can lazily skip the extras
 // when the core alone already proves a stand-pat fail-high (evaluateLazyStandPat).
 // The full path is bit-for-bit identical to the old monolithic version.
+// northFill / southFill smear a bitboard toward higher / lower ranks — used to build
+// each side's pawn attack span for backward-pawn detection.
+func northFill(b uint64) uint64 { b |= b << 8; b |= b << 16; b |= b << 32; return b }
+func southFill(b uint64) uint64 { b |= b >> 8; b |= b >> 16; b |= b >> 32; return b }
+
+// backwardPawnCounts returns (white, black) backward-pawn counts. A pawn is backward
+// when the square in front of it is attacked by an enemy pawn AND lies outside its own
+// side's pawn attack span (no friendly pawn defends that stop square now or as it
+// advances) — so it can neither advance safely nor be supported, a chronic weakness the
+// pawn-structure terms otherwise miss. Set-wise (Stockfish/CPW), no per-pawn loop.
+func backwardPawnCounts(wp, bp uint64) (int, int) {
+	wpAtt := ((wp &^ FileMasks[FileA]) << 7) | ((wp &^ FileMasks[FileH]) << 9)
+	bpAtt := ((bp &^ FileMasks[FileH]) >> 7) | ((bp &^ FileMasks[FileA]) >> 9)
+	wBackward := (wp << 8) & bpAtt &^ northFill(wpAtt)
+	bBackward := (bp >> 8) & wpAtt &^ southFill(bpAtt)
+	return PopCount(wBackward), PopCount(bBackward)
+}
+
 func evaluateUnsafe(board *Bitboard) (eval int) {
 	core, phase := evalCoreWhite(board)
 	return core + evalExtrasWhite(board, phase)
@@ -2975,6 +2995,8 @@ func evalCoreWhite(board *Bitboard) (eval, phase int) {
 	eval -= (whiteDoubled - blackDoubled) * taperW(doubledPawnPenalty, doubledPawnPenaltyEG, phase)     // doubled penalty
 	eval -= (whiteIsolated - blackIsolated) * taperW(isolatedPawnPenalty, isolatedPawnPenaltyEG, phase) // isolated penalty
 	eval += (chainWhite - chainBlack) * taperW(pawnChainWeight, pawnChainWeightEG, phase) / 100         // connected/supported pawn chains
+	wBackward, bBackward := backwardPawnCounts(whitePawns, blackPawns)
+	eval -= (wBackward - bBackward) * taperW(backwardPawnPenalty, backwardPawnPenaltyEG, phase) // backward-pawn penalty
 	return eval, phase
 }
 
