@@ -21,7 +21,7 @@ build: ## Build the engine binary (Linux + Windows)
 	go build -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_FILE)
 	@echo "Built: $(BUILD_DIR)/$(BINARY_NAME)"
 	@echo "Building $(BINARY_NAME) for Windows..."
-	GOOS=windows GOARCH=amd64 go build -o $(BUILD_DIR)/$(BINARY_NAME).exe $(MAIN_FILE)
+	GOOS=windows GOARCH=amd64 GOAMD64=v3 go build -o $(BUILD_DIR)/$(BINARY_NAME).exe $(MAIN_FILE)
 	@echo "Built Windows executable: $(BUILD_DIR)/$(BINARY_NAME).exe"
 	@if [ -w "/mnt/c/Users/behrlich/Desktop/ngn" ] && cp $(BUILD_DIR)/$(BINARY_NAME).exe "/mnt/c/Users/behrlich/Desktop/ngn/" 2>/dev/null; then \
 		echo "Copied to C:\\\\Users\\\\behrlich\\\\Desktop\\\\ngn\\\\$(BINARY_NAME).exe for Arena"; \
@@ -40,7 +40,7 @@ build-release: ## Build optimized release binary
 build-windows: ## Build Windows executable for Arena Chess
 	@echo "Building $(BINARY_NAME) for Windows..."
 	@mkdir -p "/mnt/c/Users/behrlich/Desktop/ngn"
-	GOOS=windows GOARCH=amd64 go build -o "/mnt/c/Users/behrlich/Desktop/ngn/$(BINARY_NAME).exe" $(MAIN_FILE)
+	GOOS=windows GOARCH=amd64 GOAMD64=v3 go build -o "/mnt/c/Users/behrlich/Desktop/ngn/$(BINARY_NAME).exe" $(MAIN_FILE)
 	@echo "Built Windows executable: C:\\\\Users\\\\behrlich\\\\Desktop\\\\ngn\\\\$(BINARY_NAME).exe"
 	@echo "Ready for Arena Chess! Point Arena to the .exe file above."
 
