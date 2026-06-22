@@ -2789,8 +2789,20 @@ type evalCacheEntry struct {
 
 var evalCache [1 << evalCacheBits]evalCacheEntry
 
+// FiftyMoveDampBudget scales the static eval toward a draw as the halfmove clock
+// climbs toward the 50-move rule (hmc=100): factor = (BUDGET-hmc)/BUDGET, so 1.0
+// at hmc=0 and ~0.61 at hmc=100. Anti-optimism — a stale position drifting toward
+// a 50-move draw should not read as a clean win (the search otherwise ignores the
+// clock entirely; drawScale only knows material). Peer-standard (Caissa/SF/Ethereal).
+// 256 = power-of-two divisor, and since hmc is uint8 (<=255) the factor can never go
+// negative, so no clamp/branch is needed on the hot eval path. Applied OUTSIDE the
+// eval cache (depends on hmc, not the board) alongside POV/Tempo, so a board-pure
+// cached value is never poisoned, and it only ever sees a static eval (never a mate
+// score), so damping cannot corrupt mate distances.
+const FiftyMoveDampBudget = 256
+
 // EvaluateForPlayerCached mirrors EvaluateForPlayer(&pos.Board, pos.Turn())
-// exactly, through the cache.
+// exactly, through the cache, then damps by the 50-move clock.
 func EvaluateForPlayerCached(pos *Position) int {
 	h := pos.Hash()
 	e := &evalCache[h&(1<<evalCacheBits-1)]
@@ -2802,6 +2814,7 @@ func EvaluateForPlayerCached(pos *Position) int {
 		e.key = h
 		e.val = int32(w)
 	}
+	w = w * (FiftyMoveDampBudget - int(pos.HalfMoveClock)) / FiftyMoveDampBudget
 	if pos.Turn() == White {
 		return w + TempoBonus
 	}
