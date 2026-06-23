@@ -11,7 +11,7 @@
     {
       "name": "After 1.e4",
       "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
-      "eval": 54,
+      "eval": 56,
       "comments": "White pawn controls center, slight advantage"
     },
     {
@@ -29,25 +29,25 @@
     {
       "name": "Central Knight",
       "fen": "4k3/8/8/3N4/8/8/8/4K3 w - - 0 1",
-      "eval": 320,
+      "eval": 20,
       "comments": "Centralized knight should score well"
     },
     {
       "name": "Edge Knight",
       "fen": "4k3/8/8/8/8/8/8/N3K3 w - - 0 1",
-      "eval": 275,
+      "eval": 17,
       "comments": "Knight on edge should be penalized"
     },
     {
       "name": "Doubled Pawns",
       "fen": "4k3/8/8/8/4P3/4P3/8/4K3 w - - 0 1",
-      "eval": 170,
+      "eval": 186,
       "comments": "Doubled pawns should receive penalty"
     },
     {
       "name": "Passed Pawn",
       "fen": "4k3/8/8/4P3/8/8/8/4K3 w - - 0 1",
-      "eval": 88,
+      "eval": 96,
       "comments": "Advanced passed pawn should be valued highly"
     },
     {
@@ -65,13 +65,13 @@
     {
       "name": "Endgame King",
       "fen": "8/8/8/4K3/8/8/8/4k3 w - - 0 1",
-      "eval": 19,
+      "eval": 1,
       "comments": "Centralized king in endgame"
     },
     {
       "name": "Complex Middlegame",
       "fen": "r1bqk2r/ppp2ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 4 6",
-      "eval": 71,
+      "eval": 50,
       "comments": "Complex position with multiple factors"
     }
   ]

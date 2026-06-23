@@ -309,10 +309,10 @@ func TestGameStateUpdate(t *testing.T) {
 	tm := NewTimeManager()
 	pos := newUCIStartingPosition()
 
-	tm.UpdateGameState(10, 50, 30, pos) // Score dropped from 50 to 30
+	tm.UpdateGameState(10, 50, 30, pos) // 10 plies; score dropped from 50 to 30
 
-	if tm.movesPlayed != 10 {
-		t.Errorf("Expected moves played 10, got %d", tm.movesPlayed)
+	if tm.movesPlayed != 5 { // D2: arg is a ply count, halved to full-moves (time.go:334)
+		t.Errorf("Expected moves played 5, got %d", tm.movesPlayed)
 	}
 
 	if tm.lastScoreChange != -20 {
