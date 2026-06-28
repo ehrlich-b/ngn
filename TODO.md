@@ -1,152 +1,208 @@
-# NGN — Best Go Engine in the World (pure HCE to ~3150, then NNUE)
+# NGN Active Runbook
 
-> Reanchor = re-read README.md, this file, CLAUDE.md. Canonical strategic home. Implementation
-> detail in `docs/09` (search spec + joints) and `docs/11` (3000 census); research verdicts in the
-> memory files. **The 2026-06-21 six-agent deep-dive (Stockfish + Counter 3.x/4.x + Ethereal +
-> Stormphrax + Caissa source-level diff + the Go-engine landscape) is folded into STATUS / DEEP-DIVE / THE PLAN below.**
+Reset date: 2026-06-28
 
-## ★ THE PATH FORWARD (2026-06-22) — authoritative synthesis. Supersedes the 4-agent lever-list. READ FIRST.
+This is the live project state and next-action map. It must be self-building: a capable agent should be able to start here, understand why the reset happened, pick the next task, know the acceptance gate, and update the file without needing a hidden conversation.
 
-**Why we circled, and what actually changed.** We tuned against a strength-blind ruler (self-play SPRT) and chased code-diff speculation over game evidence. The fix was never a single lever — it's the INSTRUMENT + the discipline to gate on game evidence, and both now exist: the 9800X3D box ([[project_gaming_pc_worker]]) is a free real-clock gauntlet, and the 30-loss autopsy already told us where the elo is (eval-optimism, not tactics).
+Historical plans, reviews, and postmortems are evidence, not instructions. When they conflict with this file, this file wins. Use `CLAUDE.md` for agent operating rules and `experiments/` for detailed run records.
 
-**Verification verdict — the 4 code-diff "levers" checked against code/tests, 2 of 4 DEFLATED:**
+## How This File Stays Useful
 
-| lever | verdict |
-|---|---|
-| time-mgmt "+30-80" | ❌ ARTIFACT — soft budget GROWS 2.8→6.8s in real play; "frozen at 30" is move-1 only. Real bug minor (~+5-15). |
-| NPS pack-TT "+100-150" | ❌ ALREADY DONE — `CachedEval` is already 16B (stale memory note); dead-code-delete is cosmetic (~0 nps). 2.2× gap = diffuse grind. |
-| LMR over-reduction "+30-60" | ✅ REAL — search.go:1806-1820 stacks +1!isPV +1!improving +1 bad-hist; Counter only −1 for PV. Fix = reduce LESS. Net gauntlet-determined. |
-| eval joint-tune "+150-250" | ⚠️ GRIND (+2-15) — texel basis EXHAUSTED (CLOSED); the eval path is ADD terms / expose frozen shapes, not re-tune. |
+Keep this file compact but complete. It should answer:
 
-**The path, ranked:**
-- **0 — INSTRUMENT (step zero; everything below is noise without it).** Box = free real-clock gauntlet. Unit of work = build→push→gauntlet-vs-FROZEN-anchor; a change KEEPS only if it shows there (self-play SPRT is veto-only). **FIRST when home:** read `gauntlet_night.log` on the box (NGN vs Blunder 7.4.0+8.0.0 = the real baseline), freeze that binary as the anchor, wire the one-command loop. (Off the home LAN this is BLOCKED — no engine change that needs a gauntlet verdict should be made until then.)
-- **1 — EVAL-OPTIMISM (best-evidenced; 28/30 losses are eval, 1 tactical).** Two complementary attacks. **(a) DIRECT** — the residual optimism is `ksShield +9.9` (NGN over-credits its OWN king's shield/centrality/open-file when LOSING; the enemy-attacker-material gating is ALREADY done, +43.7, ksAttack correctly −5.4). ksShield is NOT a texel param ⇒ expose its internals as a tunable + ACPL/zzbias coordinate-descend (the eval-knob plan, see THE PLAN). **(b) STRUCTURAL** — you cannot texel-tune optimism away (0-for-5, lane CLOSED); sharper search that sees past the optimistic leaf eval is the fix ⇒ the search portfolio below.
-- **2 — SEARCH portfolio (all gauntlet/SPRT-gated on the box).** corrhist (cheapest, on-diagnosis — walks back staticEval; needs SPRT not ACPL, batched); LMR re-search ORDERING (+29.59 Viridithas peer — full-depth zero-window scout before full-window, fixes the cut-node backfire at search.go:1879); LMR over-reduction (reduce LESS, search.go:1806-1820 — the one verified code-diff lever). Last night's do-shallower fumble was this area, BACKWARDS — do it FRESH + box-gated, not jammed into a session tail.
-- **3 — GRIND (+4-15 each, gauntlet-gated).** Eval-add-terms (bishop-pair is dead code → re-add tuned; tropism, rook-7th, mop-up — only structural terms that REDUCE optimism survive ACPL); claw back the ~2× per-node speed (diffuse, profile-guided, node-identical); time-mgmt instability-flex (wire the unread stability signals — NOT greedy-clock, which was rejected −10.3).
+- Where are we now?
+- What is the active policy?
+- What is the next ranked work?
+- What must be true before an overnight run?
+- What evidence is required to keep, shelve, or reject a change?
+- What facts must not be forgotten?
+- Where should detailed evidence be written?
 
-**Honest ceiling.** Counter 4.1 ≈ 3157 pure-HCE, so 2800 is reachable / 2900 plausible / 3000 has NO demonstrated mechanism (don't promise it). From 2655 that's ~30-40 gauntlet-proven keeps at +4-15 — months, but PRODUCTIVE now (gauntlet-gated, not SPRT-noise). The only +100s in project history were CORRECTNESS fixes; the eval-optimism fix is the closest thing to one on the board.
+Do not paste raw logs, long narratives, repeated reversals, or multi-page experiment diaries here. Write those to `experiments/` with a short link or summary here. If this file grows because a section is historical, move that section out or collapse it to one bullet.
 
-**Process (binding).** Gauntlet = unit of work; SPRT = veto-only; ONE change at a time to a gauntlet verdict; VERIFY every claim against code/tests before building (it killed 2 phantom levers in 15 min); STOP writing a memory/TODO page per reversal. (Process post-mortem: 64% of commits were narrative churn; every historical elo gain came from a correctness fix found by reading code, never the SPRT mill.)
+## Current State
 
-## 4-AGENT ROOT-CAUSE (2026-06-21) — SUPERSEDED by THE PATH FORWARD above. Do NOT act off the original 4-lever EV claims; 2 of 4 deflated under 2026-06-22 verification. Folded essence + two corrections worth keeping:
-- **Process post-mortem (now binding, restated above):** we replaced the real-clock gauntlet with a strength-BLIND proxy (self-play SPRT/ACPL/node/memory); 64% of commits were narrative churn; every historical elo gain came from a correctness fix found by reading code, never the SPRT mill. ⇒ gauntlet = unit of work; SPRT = veto-only; one change at a time; stop writing a page per reversal.
-- **Correction (a) — the optimism GHOST:** the GLOBAL "+113cp own-side optimism" does NOT reproduce (eval reads correctly −290 own-side when losing; mirror-test 0; KS symmetric). The REAL optimism is LOCALIZED (`ksShield +9.9`) + positional misjudgement (the 30-loss autopsy). **Do not resurrect the global-offset framing.**
-- **Correction (b) — the eval contrast is calibration, not search:** Counter reaches 3157 with a LEAN, fully-tuned eval (593-line search + 697-line eval, 78 weights all jointly tuned) vs NGN's 2281+3086 lines with ~1.5k DEAD. The gap is eval calibration, not a search-feature deficit (NGN's search cupboard is well stocked).
+- Strength estimate: about 2655 CCRL blitz equivalent from the clean Jun-14 Blunder-family pin. The Jun-21 2716 read is useful evidence that NGN is above Blunder 8.0.0, but it is confounded and still single-family.
+- Target: climb with classical HCE first. No NNUE before 2800; prefer waiting until 2900 unless an explicit later decision changes this.
+- Main failure mode: speculative search/eval tuning was kept on weak self-play/proxy evidence while correctness and harness bugs remained open.
+- Development priority: correctness and measurement integrity before more Elo hunting.
+- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Active head is Immediate Queue item 2 (root repetition semantics).
 
-## STATUS (2026-06-21)
-- **Strength: ~2655 CCRL-Blitz-equiv [2606,2704]** — cloud gauntlet, 256g over 4 Blunder rungs at -tc 120+1 (Jun-14). Trend 2449 (Jun-2) → 2632 (Jun-8) → 2669 (Jun-10) → 2655 (Jun-14, flat: the post-Jun-10 grind banked sound keeps but ~0 measurable absolute elo; the +0.6 cert agrees). Still **single-family (Blunder)**; a multi-family pin (Counter/Fruit at -tc) is owed. SF UCI_Elo slider ~+400 inflated — disregard.
-- **NEW GOAL: the strongest Go engine in the world.** Current #1 = **Counter 5.5 (NNUE) ≈ 3334 CCRL-40/15** (Zahak 10.0 NNUE ≈ 3291 just behind) — the crown is held by NNUE. The staircase: **(a) NOW → ~3150 is PURE HCE, NNUE forbidden** — finish passing Blunder (we already beat the 8.0.0/2674 rung ~66%; latest 8.5.5 ≈ 2693), then chase the strongest pure-HCE Go engine ever built, **Counter 4.1 ≈ 3157** (40/15); **(b) ~2900+ → the crown needs NNUE** (the ~+150 delta below), the one place Go's tax is real. We are ~2655 ⇒ deep in the HCE phase, nowhere near the NNUE gate.
-- **★ ANCHOR CORRECTION (2026-06-21, live CCRL read).** The long-cited **"Counter 3.8 = 2994 pure-Go HCE" is WRONG** — Counter 3.8 = **3051**; the "2994" was Counter 3.4-4CPU-Blitz (wrong version/list/cores). The real pure-HCE Go ceiling is **Counter 4.1 ≈ 3157** — ~160 ABOVE what we assumed, which *strengthens* the HCE-first thesis. **NNUE bought Counter only ~+150 as a single drop-in step** (4.1=3157 → 5.0=3305; SF11→SF12 was ~+130). NNUE is a topper on a 3150 cake, NOT the source of strength — engines were 3000+ pure-HCE for a decade ([[feedback_no_nnue]]). *Fix the stale "2994 / Blunder 2532" everywhere they appear (memory + docs).*
-- **The gap is POSITIONAL EVAL CALIBRATION (2026-06-16 30-loss autopsy; CONFIRMED by the deep-dive).** 28/30 losses positional (17 slow-bleed + 11 eval-blindspot), 1 tactical; NGN's eval is optimistically biased (+80 when SF says −320). **Counter reaches 3157 with MODEST search and a LEAN, FULLY-TUNED eval (39 features / 78 weights, formula-generated PSTs).** NGN is the mirror image — rich features (~25.6k lines, ~1.5k DEAD) sitting on ~18 live tuned scalars + a **FROZEN, borrowed PeSTO PST never co-tuned with NGN's own terms.** Search is NOT the gap (it's largely SF-class); **eval calibration is.** (`project_loss_autopsy_eval`, `project_counter_gaps`.)
+## Why The Reset Happened
 
-## DEEP-DIVE: what top engines do that we don't (2026-06-21, 6-agent source diff)
-**Meta-pattern from every changelog (Caissa/Stormphrax/Ethereal/SF):** the big elo jumps were CORRECTNESS fixes (NMP/SEE bugs; Caissa's "don't update best-move unless it beats alpha" = +15) and TIME-MGMT; individual eval/search *features* are **+2–6 elo each**. So the realistic model is ONE big-bang candidate (the never-run tune) + a disciplined **+5–30 grind**. Quote that curve, not 3-digit hopes ([[feedback_expectation_calibration]]).
+Claude's supplied diagnosis had to be treated as hypotheses, not truth. The code audit confirmed the load-bearing problems:
 
-**Go is NOT the bottleneck for the HCE climb.** Search + HCE eval pay only a ~1.2–2× per-node constant (≈50–150 elo of depth): popcount/bitscan are single-instruction intrinsics, GC is free on an alloc-free hot path (our rule), Lazy SMP works. Pure-Go HCE provably reaches ~3150. The ONLY real Go wall is **NNUE inference** (SIMD/int8 — needs hand-written Plan9 asm like Counter's `internal/simd/amd64.s`; Go 1.26 has experimental `GOEXPERIMENT=simd`), a post-2800 problem. Our measured 1.5× vs Blunder is Go-vs-Go engineering waste, not a language tax. **Free speed win now: build with `GOAMD64=v3`** (emits POPCNT/TZCNT directly, drops a runtime feature-branch); also audit magic-bitboard bounds checks (`-gcflags=-d=ssa/check_bce/debug=1`) + hot-helper inliner budget (`-gcflags=-m=2`).
+- `alphaBetaPV` and `quiescence` returned ordinary static evals on stop/time/node cutoffs, and parents could then update `bestScore`, alpha, TT, history, killers, capture history, and correction history from aborted child values.
+- `quiescenceWithDepth` applied the six-ply cap before checking whether the side to move was in check.
+- `UCIEngine.searching` had a confirmed race in `go test -race ./engine -run TestUCIStop`.
+- `SearchFixed` diverged from production search by not setting `RootDepth`, using a different root make/unmake path, and carrying an `INFINITY -> 2000` workaround.
+- `Hash` was advertised as a UCI option but was still a no-op in the active tree.
+- `output/sprt_openings.txt` is gitignored and local-only. It has 5000 lines and SHA-256 `974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222`.
+- The uncommitted aux correction-history experiment was recorded as rejected and was removed from the active baseline.
 
-**The #1 eval lever is a tune NOBODY HAS RUN.** `engine/texel_gradient.go` is a *tested* Adam tuner over **787 params incl. all 768 PST cells** (analytic gradient w/ numeric-check test, L2-anchor to PeSTO, held-out early stop). It has **never been run on a real corpus** — the repo had ~150 positions. **This is DISTINCT from the CLOSED texel lane:** that lane re-tuned the ~18 FIXED-PST scalars (no headroom) under a game-result-MSE objective that "pulls away from play-strength." The untried experiment = a JOINT tune of PST+terms (PeSTO was tuned for PeSTO's term set, never co-tuned with NGN's mobility/KS/threats/passers) under an objective that CANNOT pull away from strength: **SF-eval targets (≡ minimizing ACPL, our validated ruler).** Pipeline verified end-to-end 2026-06-21 (gendata 20g→951 labeled pos/3s; the 787-param gradient run consumes + emits weights). Tempered: PeSTO is already a decent table, so this is CO-TUNING headroom, not from-scratch +100. Gate HARD on ACPL+gauntlet; reversible; it may reproduce the closure (then we learn + revert).
+The conclusion is not "everything is wrong." The core engine is worth repairing. The conclusion is that tuning must wait until stopped searches, UCI lifecycle, and experiment policy stop corrupting the verdict stream.
 
-**Correction history — the best NEW search lever, and it's HCE-NATIVE.** Originated in Caissa (Stockfish credits it by name); proven on HCE (Stormphrax's ancestor Polaris was HCE). It tracks how wrong `staticEval` has been (keyed by pawn/material/continuation features) and walks it back — a DIRECT structural fix for our diagnosed optimism bias. Full recipe + tuned constants in hand: gravity table, `bonus=(searchScore−staticEval)·depth/4` clamp ±249, apply `staticEval + corr/512`. Realistic first pawn table: **+2..+12 self-play** (Viridithas +12.25, Stormphrax +10.63, Obsidian +2 STC/+5.6 LTC) — it SCALES UP with TC, so our bullet harness sees the LOW end ⇒ gate on ACPL/zzbias, not just the SPRT. Sequence: pawn → material → non-pawn(W+B); **SKIP major** (SF removed it). ~40–80 LOC, single-thread-trivial. **HCE-port gotchas:** SF's `/32, ±32` is NNUE-unit scale — RETUNE the divisor + cap to NGN's centipawn scale (start max-adjust ≈ ⅓ pawn, SPRT the divisor); store the RAW (uncorrected) eval in the TT, never the corrected one; corrhist scales UP at long TC (so the bullet SPRT under-reads it — gate on ACPL/zzbias).
+## Reset Patch Status
 
-**Search items with REAL measured Elo in peers (Viridithas release notes, OpenBench 8+0.08):**
-- **★ LMR re-search ORDERING (+29.59 — Viridithas's single biggest search gain ever):** when the LMR-reduced zero-window search beats alpha, do a full-depth ZERO-window search BEFORE the full-window re-search (+ the do-deeper/do-shallower ladder, flip cutNode on re-search). **This is NGN's KNOWN-BROKEN area** — the eager LMR re-search (search.go:1879) that backfires the cut-node reductions (S1 / CLOSED ledger). Done right it may BOTH gain AND unblock the closed cut-node LMR/IIR ⇒ the top SEARCH lever after corrhist.
-- **Return tt_value (not alpha/beta) on TT cutoff (+14.41); TT move in qsearch (+7.46/+4.35); cache static eval in TT (+5.86); NMP-TT-veto (+5.66, we have a W8 variant).** Verify which NGN already has; the rest are clean classical adds. (Berserk 4.7.0 "HCE" = modern search on restored hand-crafted eval, ~3673 — a live "modern-search + classical-eval" reference to diff.)
+Fixed in the current reset patch:
 
-**Smaller eval-agnostic search items (+2–6 each):**
-- **Continuous history-coupled LMR/SEE** — we nudge LMR ±1 on a history bucket (search.go:1811); SF/Ethereal scale continuously (LMR `−hist/6167`, SEE bar `−hist/128`).
-- **Anti-optimism damped bound returns** — Stormphrax/Caissa return `lerp(eval,beta,~0.69)` from RFP (not raw eval) and blend fail-highs `(best·depth+beta)/(depth+1)`. On-theme for our optimism problem.
-- **`opponentWorsening` + `ttPv` — both ABSENT (verified).** Trivial: reduce/prune less in ttPv nodes; tighten margins when the opponent's last move worsened their eval.
-- **Node-based + best-move-stability time-mgmt** — all four engines converge (scale soft-time by node-fraction-on-best + PV stability); we spend only 70–80% of clock. CAVEAT: F1 greedy-clock was REJECTED −10.3 — the win (if any) is the STABILITY mechanism, not just spending more.
-- **50-move-rule eval damping** (Caissa 1-liner `eval·(234−halfmoveClock)/234`) — cheap draw-scaling we lack.
+- Interrupted child searches unwind without updating parent best scores, alpha, TT bounds, history, killer/counter/capture history, or correction history.
+- Qsearch no longer returns static eval at the q-depth cap while the side to move is in check.
+- Qsearch seldepth no longer double-counts qsearch ply.
+- UCI `searching` is atomic and set before search launch; the confirmed `TestUCIStop` race is fixed.
+- `Hash` UCI option resizes the TT, clamps to the advertised range, and persists across `ucinewgame`.
+- `SearchFixed` sets `RootDepth` and uses root `GameMakeMove`/`GameUnMakeMove`.
+- `make test` no longer swallows failing tests.
+- Rejected aux correction-history code is not active.
+- Added regressions for stopped-search TT pollution, qsearch-in-check at cap, UCI stop race, and Hash resizing.
 
-**Already done — memories were STALE, do NOT "re-add":** king-safety DOES gate on enemy attacker material (eval.go:822, 894-899 — the +43.7 fix landed); endgame draw-scaling IS present (drawFactor/drawScale, eval.go:2668, = Counter's computeFactor). Singular/probcut/IID/RFP/LMP/per-count-mobility/continuation+follow-up+capture+pawn-correction history all present. NGN's search cupboard is well stocked.
+Verified after the reset patch:
 
-## THE PLAN — eval calibration first; corrhist is the on-diagnosis search lever
-**Gate discipline (unchanged):** deterministic free gates first — `cmd/zzbias` (cp self-bias, the LOCALIZER), `make acpl` (move quality vs SF, the ARBITER), `lossxray` blindspots — then the Tier-2/3 gauntlet. **Do NOT gate eval-judgment on the self-play SPRT mill (proven false-positive machine at our game counts).** zzbias and ACPL CAN disagree (the passer-king-support lesson): require ACPL-not-worse to KEEP; gauntlet is final truth.
+```bash
+go test -short ./engine -count=1
+go test -short -race ./engine -count=1
+go test -short ./... -count=1
+go test -short -race ./... -count=1
+```
 
-**These levers are a PORTFOLIO — all-of-the-above, not alternatives** (Bryan, 2026-06-21): ordered by cost/risk and run in parallel where possible. corrhist leads (cheapest + on-diagnosis, IN FLIGHT); the eval/PST tune (#2) gets BOTH the diverse-corpus diagnostic AND the SF-eval objective; the missing terms (#3) layer on. The earlier "pick one next lever" question was a false choice.
+## Decision Policy
 
-**▶▶ NIGHT 2026-06-22 — AUTONOMOUS RUN (Bryan: "run for the whole night", unlimited tokens). Box loop LIVE. State + decision rules below survive compaction; on resume re-read this block.**
-- **★ THE Jun-21 OVERNIGHT GAUNTLET WAS A SUCCESS, NOT A FAILURE (the "crashes" were a red herring).** Box completed 400/400 at -tc 120+1: vs Blunder 7.4.0 (2532) **71.2%** (97-91-12), vs 8.0.0 (2674) **59.2%** (64-109-27) ⇒ **pooled 2716 [2680,2752]**, NGN flag-outs 0. `ngn_crashes.log` = 505 startup banners (2 lines each), **0 panics** — benign. CAVEATS: single-family Blunder + NGN beat BOTH anchors ⇒ extrapolated above the top rung (likely a touch hot). Clean claim: NGN clearly > Blunder-8.0.0/2674 over 200 real-clock games. Up from 2655 (Jun-14) but confounded (newer binary w/ the free-gated eval keeps + faster box + 2-rung extrapolation) ⇒ not a clean +61. **The recent eval keeps likely TRANSFERRED** (softens "flat/exhausted").
-- **★ INSTRUMENT IS LIVE (step-0 unlock done).** `ngn_anchor_0621.exe` frozen on the box = HEAD 31bb779 = the 2716 binary. The loop: edit Mac → `go test -short` (no NEW reds beyond the 3 stale) + ACPL + node-check → `GOOS=windows GOARCH=amd64 GOAMD64=v3 go build -o /tmp/<cand>.exe main.go` → scp to box (NEW name, never clobber the anchor) → gauntlet vs Blunder 7.4.0+8.0.0 -tc 120+1 (the cert, comparable to 2716). SSH: `ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes ehrli@192.168.4.108`.
-- **VERIFICATION killed the deep-dive's lever list (it was 0-for-4 on "missing classical adds"):** TT-value-on-cutoff (search.go:1224-1239), TT-move-in-qsearch (2106-2115), NMP-TT-veto (W8, 1364-1369), static-eval-in-TT — ALL ALREADY PRESENT. LMR re-search ordering CORE already present (zero-window full-depth re-search at 1870 + cutNode flip); only the do-deeper/shallower depth LADDER is missing, and that's exactly what blew up the tree +132% (06-21) ⇒ delicate, NOT a clean win, do NOT attempt unattended. Trust NO presence/absence claim without grepping the code.
-- **TONIGHT'S LEVER = 50-move eval damping (eval.go:2794, FiftyMoveDampBudget=256).** Genuinely absent (drawScale is material-only), ON-DIAGNOSIS (anti-optimism: a stale position drifting to a 50-move draw read as a clean win), correctness-flavored, peer-standard (Caissa/SF). Applied OUTSIDE the eval cache (depends on hmc not board) so no cache poison / no mate-score corruption. FREE-GATE: build ✓, no new test reds ✓ (eval-regression FENs are hmc=0), ACPL Δ+0.3 (within ±1 noise) ✓, node-check in flight. KEEP-rule clean (correctness + no regression).
-- **DECISION RULES (autonomous):** (1) node-check shows NO blow-up (uniform scaling can't butterfly the tree like the re-search/taperW reverts) → commit (single-line local) + launch the overnight Blunder cert of THIS one change (clean attribution, comparable to 2716). (2) If node-check shows a >1.5x blow-up (it won't) → revert, do NOT launch. (3) While the cert runs (~5-8h): implement+free-gate the NEXT levers on branches (corrhist-ext [material+non-pawn tables, bit-clean at aux=0, Tier-3-only gate], ttPv [genuinely absent], opponentWorsening [genuinely absent]) — STAGE for tomorrow's cert, do NOT stack into tonight's running cert. (4) Poll the cert; record W/D/L + perf vs 2716 at each check. (5) End state: cert running or done + a clean TODO + box `ps` showing only what I can name. NO self-play SPRT gate (strength-blind; veto-only and I'm not even running it tonight — the Blunder cert is the truth).
-- **Reverted my own stale note:** `TestIIDIsWired` PASSES (IID wired, not a no-op). The 3 short-test reds are stale baselines / a flawed invariant (ID==fixed-depth), NOT correctness bugs — no hidden +100. Crash-handler hygiene (don't log the init banner to the crash file) is a trivial deferred cleanup.
+Optimize for Elo per confirmation hour, not Elo per coding hour. Default confirmation budget per change is 1-2 hours. Longer runs are deferred until the correctness queue and harness basics below are clean, unless there is a written reason that a short run cannot answer the question.
 
-**▶▶ SESSION 2026-06-21 OUTCOME — the FREE lane (1)-(3) is COMPLETE; eval-basis lever EXHAUSTED, pivot to SEARCH.**
-- **Banked:** GOAMD64=v3 (x86 cross-build); backward-pawn penalty (committed 1435127, free-gated). 2 terms ACPL-rejected (threats-on-weak-pawns, bad-bishop).
-- **Big finding:** the SF-eval PST/material tune is a NO-OP at ship quality (full 16k SF-d16 run + 2 corroborating) — eval basis is SF-aligned in ranking; optimism lives in `ksShield +9.9` + SEARCH HORIZON, NOT the texel params. Both texel objectives × both param sets now exhausted (CLOSED ledger updated).
-- **✔ RESOLVED 2026-06-22 — SPRT process GONE, no verdict taken.** Checked at session start: no `sprt`/`ngn_base` engine procs, no `caffeinate -i`, no completed-verdict log in output//tmp ⇒ it exited overnight (likely killed by laptop sleep/reboot over ~18h, well short of 4000 games at concurrency 1). **Per canon (never verdict a killed/mid-run SPRT) NO verdict is taken; the backward-pawns keep STANDS on its free-gate (committed 1435127).** It does NOT need re-running — the free-gate is sufficient for a sound change; fold it into the owed batch gauntlet (#0) on the box instead. _Original run (background, harness task `bxqdvqb2b`):_ Tier-1 self-play SPRT validating backward-pawns — `build/ngn` (HEAD) vs `build/ngn_base` (393f7a9), real-clock 10+0.1, [-5,0] non-regression, LLR bounds [-2.94,2.94], mingames 64 / maxgames 4000, concurrency 1, `caffeinate -i`. **DECISION RULES (moot — non-completed):** accepts H1 (elo≥0, non-regression) ⇒ backward-pawns keep STANDS, add to the gauntlet batch (#0). Accepts H0 (elo≤-5) ⇒ a real self-play regression — re-examine the keep vs the free-gate (zzbias said -1.7 optimism, ACPL +0.3, so a strong H0 would be surprising and worth a look). Hits maxgames mid → it's sub-resolution (consistent with a small sound change); keep stands on the free-gate. **No other local engine compute while this real-clock SPRT is live** (timing validity).
-- **★ NIGHT-LATE 2026-06-21 — TWO rushed attempts, BOTH reverted as endgame-tree blow-ups (the node-count gate caught both):**
-  - **LMR re-search do-shallower** (search.go:1869): first cut gated on `score<=bestScore` = a NO-OP (in a non-PV node a reduced scout that clears alpha is failing high, so score>bestScore always); fixed to `score<bestScore+48` → then it BLEW UP the endgame tree +132% (290994→674930). Reverted. (Same failure class as the J1 off-PV extension.)
-  - **Passer-rank exposure** (the eval-knob lever): turned the frozen `passedRankMul {0,0,1,1,1,2,4,0}` into a tunable per-rank cp table `passerRankMG/EG` (init = passedPawnBonus×mul). GOTCHA: a per-rank `taperW` rounds differently than the old single `taperW(magnitude)×weightedSum` (floor(mul·N/TP) ≥ mul·floor(N/TP)) — only ≤3cp on the mul=2/4 ranks, but that tiny shift BUTTERFLIED the endgame tree +235% (290994→974415), so the "default" isn't a neutral tuning base. Reverted.
-  - **META-LESSON (the actual floundering):** rushing delicate eval/search surgery at the tail of a marathon session produces broken changes. The instruments WORK (node-count gate caught both). Do this surgery FRESH + gate on the box, not jammed into a session end.
-- **★ NEXT LEVER = the EVAL-KNOB plan (Bryan's standing ask, re-confirmed 2026-06-21): expose the FROZEN SHAPES as tunable tables, then ACPL-coordinate-descend (evaltune), NOT the MSE gradient (proven no-op).** Shapes to expose (quiet-firing → has gradient signal, unlike threats): passer-rank curve, king-safety SHIELD internals (the `ksShield +9.9` optimism), per-file pawn penalties, outpost-by-square. **HOW (proven path):** add the knob to `byName` in engine/texel.go init (NGN_EVAL_W) + `baseline()` in cmd/evaltune, then `evaltune` line-searches it by ACPL vs the corpus — NO gradient-trace surgery. **PASSER-RANK GOTCHA to avoid the +235% blow-up:** don't apply a per-rank `taperW` (rounds high, inflates the endgame); instead make the per-rank MUL tunable and apply the SINGLE `taperW(magnitude)` once (node-identical base), OR accept it's a behaviour change and SPRT from a value that doesn't inflate. **Gate:** node-identity (or near) at defaults → ACPL → the box gauntlet. Do it carefully, fresh.
-- **Owed (Bryan's cloud-$ OK):** batch gauntlet (#0) certifying backward+shield+ACPL-tune; the cloud-SPRT batch (#4).
+| Change class | Required evidence | If inconclusive |
+|---|---|---|
+| Provable correctness fix | Mechanism proof, regression test, short non-regression check if behavior changes | Keep only if the correctness claim is actually proved |
+| Node-identical refactor | Exact node/score identity plus tests | Keep if identity is proved and maintainability or speed benefit is real |
+| Pure speed change | Behavior identity plus repeatable wall-time/NPS gain | Shelve if speed gain is not repeatable |
+| Search/eval heuristic | Completed predeclared paired game test against immediate base, with acceptance condition met | Shelve; do not keep on positive sign at cap |
+| Tune | Holdout/proxy improvement plus paired games | Shelve or redesign |
+| Lane closure | Multiple falsification attempts using the right instrument | Mark uncertain if evidence is proxy-only |
 
-**▶ POST-COMPACT RESUME — ordered (Bryan 2026-06-21: "do all the things, any order you want"; tree is CLEAN, builds green). (1)-(3) DONE/CLOSED above; (4) needs Bryan's OK per budget:**
-1. **`GOAMD64=v3` build flag — DONE 2026-06-21 (shipped to the amd64 cross-build; arm64 no-op recorded).** Applied to the two `GOOS=windows GOARCH=amd64` targets (Makefile:24,:43) — the x86 binary that runs on real CCRL hardware (POPCNT/TZCNT direct + drops the runtime CPU-feature branch; every CCRL box is Haswell+ so v3 is safe; `make build` green). **It is a NO-OP for everything WE measure** — local bench is darwin/arm64 (Apple Silicon) and the cloud SPRT/gauntlet workers are c7g Graviton = linux/arm64, so no measured number moves. **`GOARM64` bump NOT pursued (no actionable win):** popcount (CNT) + bit-scan (RBIT/CLZ) are ARMv8.0-base and Go emits them intrinsically on arm64 regardless of the knob (it mainly gates LSE atomics, not on our single-threaded hot path); can't exceed v8.4 for Graviton3 anyway; local build isn't a rated binary. Don't re-chase.
-2. **Missing eval terms** (free-gate ACPL+zzbias, KEEP rule, ONE at a time). **PROGRESS 2026-06-21:**
-   - **backward pawns — KEPT (committed 1435127).** Set-wise Stockfish formulation, 8 MG / 12 EG. Free-gate: ACPL +0.3 (within ±1 noise), zzbias own-side **−1.7** (less optimistic, on-diagnosis), no new test reds, tactical 28/30. Node baselines remain owed (already stale pre-existing).
-   - **threats-on-weak-pawns — REJECTED.** EG-weighted, undefended enemy pawns we attack. ACPL **+2.1** (all attackers) / **+4.5** (piece/king only) — an EG-weighted term moving a MG-heavy corpus that much ⇒ it distorts EG move choice (chases pawn-grabs over SF's positional moves). **A static pawn-chase bonus is the WRONG fix for the slow-bleed/conversion losses.**
-   - **bad-bishop — REJECTED (both gates agree).** Own pawns on bishop's colour. ACPL **+2.7**, zzbias own-side **+5.6** (ADDS optimism, wrong direction); crude/swingy (all same-colour pawns, weight 3 → ±24cp). Reverted. (A blocked-central-pawns-only variant at a smaller weight MIGHT pass, but low-EV vs the #3 re-tune which recalibrates bishop weighting holistically.)
-   - **LESSON: NGN's eval is near-ACPL-optimal for its basis (texel-lane finding) ⇒ most ADDED static terms distort move choice (raise ACPL); only genuinely-missing structural ones that REDUCE optimism survive (backward did, +pawn-chase/bad-bishop did not).** ⇒ the higher-EV lever is the SF-eval RE-TUNE (#3), not bolting on terms. ENDGAME-specific terms (mop-up, rule-of-square) are ACPL-BLIND on the MG corpus ⇒ they belong in the gauntlet batch (#4), not free-gate KEEPs.
-3. **SF-eval-objective eval tune** (the big lever, free-gateable). **★ DE-RISKED 2026-06-21: needs NO code change.** `oracle -mode distill` already outputs `FEN <winprob>` where `winprob = 1/(1+10^(−cp/cpScale))` (SF's eval through a logistic), and `texel -mode gradient` reads `<FEN> <result>` as a FLOAT in `(result−σ)²` — so SF win-probs are a DROP-IN target replacing game results. The tune mutates material+768 PST+scalars via pointers and emits Go source (`FormatMaterialValues`+`FormatPSTTables`+weights) to paste into eval_pesto.go/eval.go (git = revert). **IN FLIGHT:** distilling 16,068 positions (subsampled every-25th from the 401k self-play corpus, SF d16, 6 E-core workers → `/tmp/ngn_sf_labels.txt`); dry-run on 1.3k partial labels VALIDATED end-to-end (K=1.11, emits valid Go source). **★ PREVIEW = NO-OP (2026-06-21, decisive):** ran the gradient on 4.6k partial SF labels (300 epochs, L2 0.01) — material drifts ≤1 each (MG/EG ≈ PeSTO unchanged), test MSE 0.01540→0.01521 (early-stops fast). This is the IDENTICAL pattern to the dry-run (1.3k) AND the prior 401k game-result run ⇒ **THREE independent runs now agree: the PST/material basis is already near-optimal vs SF in RANKING (K=1.107 absorbs the scale); the residual MSE is irreducible by these params.** It is NOT circularity (SF is the independent judge) — **the optimism bias lives OUTSIDE the texel param set.** **★ FULL 16k RUN DONE 2026-06-21 — CONFIRMED NO-OP:** ship-quality L2=0.01 moves material ≤1 each, test MSE 0.02054→0.02046 (flat). Unregularized L2=0 moves material ~8cp and shows a small STRUCTURAL signal (knight 337→329, bishop 365→373 — bishop>knight reweight) for a 2% MSE drop, BUT that signal only appears UNregularized where it's confounded with PST overfit on weakly-supported cells ⇒ not safely shippable. **The PST/material tune is a no-op at ship quality — LANE CLOSED with evidence.** Reusable 16k SF-winprob corpus saved at `output/sf_winprob_16k.labels` (gitignored). Filter labels with `awk 'NF>=7'`.
-   - **★ WHERE the optimism actually lives (TestZZKingSafetySplit, 851 loss pos):** `ksShield +9.9` (NGN over-credits its own king's shield/centrality/open-file when LOSING) vs `ksAttack −5.4` (correctly pessimistic). So NGN systematically thinks its OWN king is safer than it is — and `ksShield` is NOT a texel param, which is why the PST-tune can't touch it.
-   - **★ CONVERGENT THROUGH-LINE (today, 2026-06-21):** static eval is near-optimal for its TUNABLE basis — PST-tune no-ops ×3, term-additions mostly distort (1 keep / 2 ACPL-reject), king-safety mostly captured (shield rebase). ⇒ **the remaining gap is SEARCH HORIZON (the slow-bleed losses), which REVALIDATES the search levers** (LMR re-search ORDERING +29.59, item #5/cloud-SPRT). The eval-calibration grind has hit diminishing returns; the next real lever is search (needs Bryan's cloud-$ OK) + the owed gauntlet (#0).
-4. **Batched cloud SPRT** (QUOTE $ + get Bryan's OK): bundle corrhist-variants (re-apply spec in lever #1) + LMR re-search ordering (+29.59 peer; fixes the cut-node backfire, search.go:1879) + opponentWorsening + ttPv; AND run the owed shield+ACPL-tune gauntlet. One cloud spend, several verdicts.
+There is no "correctness-flavored" class. Either a change is a correctness fix with a proof and tests, or it is a heuristic.
 
-0. **▶ RESUME HERE — owed BATCH GAUNTLET (clears phantom-elo before stacking more).** Two free-gated, uncertified eval keeps stacked: shield rebase (22a14dd) + ACPL coarse-descent tune (3423379). QUOTE $ + get Bryan's OK; HEAD vs Counter 3.8 / Blunder rungs at -tc 120+1. This is also the FIRST test of whether ACPL gains TRANSFER. Don't accumulate more uncertified eval keeps until this runs.
-1. **Correction-history variants — IMPLEMENTED + FREE-GATE TESTED 2026-06-21; REVERTED, queued for batched SPRT.** Added material + non-pawn(W,B) tables alongside the shipped pawn table. **Refactor verified BIT-CLEAN** (aux weight=0 ⇒ ACPL == base, no bug). **But ACPL got monotonically WORSE (aux=1000 → +0.9, aux=3000 → +1.1) — because ACPL CANNOT gate corrhist:** `acpl_corpus.labels` is 150 UNRELATED positions, and corrhist only pays off when features RECUR within a game; ACPL sees the within-search noise, never the persistent-play gain. ⇒ reverted (clean tree); corrhist-variants need an **SPRT** (right instrument), batched with other search changes ($-justified). **LESSON: ACPL is blind to persistent-learning techniques — gate them on SPRT, not ACPL.** **Re-apply spec:** `corrIndices` struct {pawn,material,nonPawnW,nonPawnB} computed once via `computeCorrIndices(&pos.Board)` at search.go:~1299, threaded to `correctionValue`/`maybeUpdateCorrection`; 3 new `[2][16384]int` tables; material key = packed piece-counts (5 bits each, ×non-king types) hashed; non-pawn key = per-type placement hash incl. king; `correctionValue` sums pawn(×6245/131072) + 3×aux(×W/131072) clamped ±96; SKIP major (SF removed it); SPSA the aux weight (ACPL can't). Pawn corrhist stays shipped.
-2. **The JOINT eval tune EXPERIMENT (787 params incl. PSTs, SF-eval/ACPL objective, L2-anchored).** The big-bang candidate; genuinely untried (≠ the closed scalar-MSE lane — differs in BOTH parameter set AND objective). FIRST RUN (self-play game-result, 401k pos) = NO-OP (circular labels, see IN-FLIGHT). BOTH remaining tracks are TO-DO (all-of-the-above, not either/or): **(a)** re-run on a DIVERSE corpus (public Zürichess set or NGN-vs-anchors games) to confirm circularity was the cause; **(b)** the SF-eval objective — retarget the gradient to match SF (≡ ACPL) + SF-label a corpus (`oracle gencorpus`+`label`) — the principled fix that structurally exposes the optimism. Gate HARD on ACPL + gauntlet; fully reversible (the `init()` env-override is the tuning hook, eval.go aux block is the ship path). Tempered expectations — co-tuning headroom, not +100.
-3. **EVAL structural — add the missing Counter/SF terms** (ALLOWED: missing terms, not re-tunes — the distinction that reopens nothing): passer dynamics (rule-of-the-square / free-path / enemy-king-race, Counter evaluation.go:321-363), threats on weak PAWNS (EG-weighted, Counter ThreatForPawn), endgame mop-up (PushToCorners/PushClose — converts won endings we currently draw), backward pawns, rook-on-7th, king↔queen tropism, bad-bishop (own pawns rammed on bishop color), minor-protected, 50-move eval damping. **Wire up the good DEAD code (weak-squares, opposition, mate-patterns) or delete it.**
-4. **EVAL — self-optimism remainder + king-safety-into-EG.** Mostly captured (shield rebase); the depth-sweep says the fixable static-term budget is SMALL (most of +113 is search horizon). Don't over-mine zzbias. kingSafetyWeightEG fights king activity at phase 6-11 (Counter king-safety is MG-only) — zzbias-gated.
-5. **SEARCH cleanup (+2–6 each):** continuous history-coupled LMR/SEE; anti-optimism damped bound returns; `opponentWorsening`; `ttPv` tracking.
-6. **TIME-MGMT — node/stability scaling** (NOT greedy-clock, which was REJECTED −10.3); real-clock `-tc` gated only.
-7. **SPEED (Go-side, free/cheap, node-identical or NPS+):** `GOAMD64=v3` build; bounds-check + inliner audit; keep hot path alloc-free; cache working-set shrink (drop followupHistory, re-pack conthist, lower default Hash).
+## Operating Rules
 
-**IN FLIGHT / operational state (post-deep-dive):**
-- **★ JOINT TUNE EXPERIMENT — first run = NO-OP (2026-06-21).** Generated a 401,708-position SELF-PLAY game-result corpus (`/tmp/ngn_tune_corpus.txt`, 8000g @5000n, 22m) and ran the 787-param Adam tune (300 epochs, L2=0.01). Result: held-out test MSE FLAT (0.09275→0.09273; ROSE after epoch 1, early-stopped epoch 30); PST cells drifted ≤1cp each, material ±1 — a no-op, not worth ACPL-gating a sub-1cp change. **DIAGNOSIS: the self-play corpus is CIRCULAR** — NGN's eval already predicts NGN-vs-NGN results, and crucially the OPTIMISM BIAS is baked into the labels (self-play can't reveal that NGN overrates its own positions; only an independent judge can). Reproduces the CLOSED game-result-MSE finding, now on the full PST. **NOT proof the objective is dead** — Counter tuned game-result MSE on DIVERSE (Zürichess) data → 2994; our CORPUS was the problem, maybe not the objective. **NEXT for the PST lever:** (a) cheap rescue = re-run on a DIVERSE corpus (public Zürichess quiet-labeled set, or NGN-vs-anchors games — breaks the circularity); (b) principled = SF-eval objective (change the gradient target from game-result to sigmoid(SF_eval); SF-label a corpus via `oracle gencorpus`+`label`) — exposes the optimism, ≡ minimizing ACPL, can't pull from strength. ⇒ **correction history (cheaper, same optimism target, no corpus) is PROMOTED to the immediate action.** `cmd/texel` BUILDS + RUNS (gendata/gradient/dump verified); pipeline + corpus are ready for the diverse/SF re-run when we pick (a) or (b).
-- **ACPL re-tune (3423379) KEPT, free-gated:** `passedPawnBonusEG` 36→44, `blockedPasserPenaltyEG` 20→12, `kingActivityWeight` 29→21; ACPL 14.5→13.7 AND own-side optimism −1.9cp (both gates agree). Owed the batch gauntlet (#0). Mechanism: `engine/texel.go init()` reads `NGN_EVAL_W="name=val,..."`, subprocess inherits env, weights read at runtime ⇒ no rebuild per trial; unset = bit-identical. 18 live knobs (9 MG/EG pairs); `mobilityWeight` is DEAD (mobility = C1 per-count tables). `cmd/evaltune` = ACPL coordinate descent, run `-concurrency 1` SERIAL (the oracle pool deadlocks under repeated spawns).
-- **FREE-GATE RECIPE (run BEFORE any cloud spend; go tests run CWD=engine/ ⇒ ABSOLUTE paths):** (1) edit eval.go, `go build -o build/ngn_new main.go`; (2) optimism gate, SF-free: `BIAS_PGN=$PWD/loss_autopsy_counter.pgn go test -v -run TestZZEvalExplain ./engine/ -count=1` baseline vs same with `NGN_EVAL_W="..."` prepended — own-side total must NOT go more positive; (3) `make acpl BIN=build/ngn_new BASE=build/ngn` must NOT worsen; (4) only after 2-3 keeps stack: ONE gauntlet (QUOTE $).
-- **Pre-existing reds (NOT the spearhead, deferred):** `scripts/nodecheck.sh` baselines STALE (293463/130764/507458 vs HEAD 333698/226172/628707 — a search keep landed without re-locking); 4 RED `go test -short ./engine/` incl. **`TestIIDIsWired` "IID is a no-op (re-entrancy regressed)"** ⇐ possibly a REAL search-correctness regression, flag for a dedicated look. Build note: `make build` emits a Windows `.exe` (Arena target); native gating binaries need `go build -o build/ngn main.go`.
+- One behavior change at a time, candidate vs immediate base.
+- Do not stack changes unless the run is explicitly an interaction experiment.
+- No autonomous NNUE work.
+- No long CPU burn for one verdict while correctness bugs below are open.
+- Do not use `output/sprt_openings.txt` as unqualified canon. If a run uses it, record its SHA-256.
+- Every game run must record base/candidate source, patch or commit hash, binary hash, command, TC, concurrency, machine, openings hash, game count, W/D/L or penta buckets, flags/errors, and verdict.
+- Do not edit `scripts/cloudsprt.sh` while using it for a verdict. Harness edits require their own validation and A/A run.
+- Do not commit speculative changes before verdict. Correctness/test/doc reset commits are allowed after tests pass.
+- Update this file only when active state, policy, or ranked queue changes.
 
-## OPERATING RULES (non-negotiable)
-- **KEEP rule (canon):** improvement OR correctness fix + NO measured regression ⇒ KEEP, full stop — even if small/within noise. "Too small to resolve" is NOT a reject reason; trivial complexity/memory is NOT a cost. REJECT requires BOTH non-correctness AND a concrete measured regression.
-- **Three-tier gating:** Tier-1 = per-change cloud SPRT (10+0.1, sign + KEEP rule; the FILTER, magnitudes are noise). Tier-2 = per-batch cert every 4-6 keeps, ≥2-3k games vs the pre-batch anchor (the VERDICT; a fail ⇒ bisect halves serially). Tier-3 = real-clock `gauntlet -tc 120+1` vs Blunder/Counter every ~2-3 batches (absolute pin).
-- **Never verdict a mid-run or killed SPRT** — run to the cap or an LLR/penta bound (G68 lesson ×2).
-- **`make acpl` before SPRT-ing any EVAL change** (external SF ruler; ACPL up ⇒ suspect, don't SPRT). **`scripts/nodecheck.sh` re-lock** after any kept search/eval change; speed-only changes must reproduce EXACTLY (current baseline 293463/130764/757720).
-- **NO NNUE until ≥2800** (`feedback_no_nnue`). **One SPRT lane at a time; never P-cores; `caffeinate -i` for multi-hour local runs. Commits: single sentence, no co-author, local only — only AFTER a verdict** (worktree diff = candidate, HEAD = base).
+## Autonomous Work Loop
 
-## THE MILL (cloud SPRT) — how to run a verdict
-`scripts/cloudsprt.sh launch -shards 4 -type c7g.4xlarge -ttl 2 -- -tc 10+0.1 -elo0 -3 -elo1 3 -mingames 200 -maxgames 2000` (pentanomial early-stop; ~$0.5-1, ~15-30 min).
-- **Launch RAW + backgrounded, then POLL `cloudsprt status`** — it is the DEFINITIVE per-shard phase report (STARTING / PROGRESSING+upload-age / STALE=>LIKELY HUNG / DONE, all regions). **Do NOT judge hung-vs-working from the launch stdout — it has lied twice; `fetch`/`status` (S3) are truth.** Never `| tail` a launch ([[feedback_no_tail_on_long_commands]]).
-- `scripts/cloudsprt.sh fetch -runid <id>` ONLY at zero-live (it verdicts + sweeps). `ps` after every fetch; **end every session with `ps` empty** (per-instance `-ttl` is the backstop).
-- **HARNESS GUARDRAILS (load-bearing, CLAUDE.md):** never edit the shutdown-guarantee layers; ANY cloudsprt.sh edit needs `smoke` PASS before the next launch; never pool cloud+Mac or mix instance types; AWS AccessDenied/UnauthorizedOperation = a DESIGN boundary (never broaden IAM). **Budget $20/mo** — quote cost before each run ([[feedback_aws_budget]]).
-- Harness state (2026-06-15): `status` rewritten (all-regions + upload-age heartbeat), `wait_ssh` heartbeats, launcher start-ssh now setsid+log-only (was false-terminating healthy workers). All smoke-certified. A Go orchestrator is still the eventual right home.
+Use this loop for overnight work:
 
-## CLOSED / SUPERSEDED — do not reopen without NEW evidence
-- **EVAL WEIGHT re-tuning (game-result-MSE texel, FIXED PST, ~18 scalars) — 0-for-4, STILL CLOSED.** threats=no texel signal (tactical term, quiet corpus); unrestricted-mobility=overfit; restricted-mobility=MSE-mirage (ACPL +4.5 worse); fixed-tuner re-tune=no-op. The hand-seed is near ACPL-optimal; texel-MSE pulls AWAY from play-strength. **NOTE: the never-run 768-PST JOINT tune under an SF-eval/ACPL objective** (DEEP-DIVE lever #2) **has now BEEN RUN (2026-06-21) and is ALSO a NO-OP — lane CLOSED.** 16k SF-d16-labeled positions, full 787-param Adam gradient: ship-quality L2=0.01 → material ≤1 drift, flat MSE; L2=0 → ~8cp shift (small bishop>knight structural signal) but overfit-confounded, not shippable. **Mechanistic close:** NGN's PeSTO PST/material basis is already SF-aligned in RANKING (K=1.12 absorbs scale); the residual MSE and the diagnosed optimism live OUTSIDE the texel param set — in king-safety internals (`ksShield +9.9`) and SEARCH HORIZON. So BOTH texel objectives (game-result AND SF-eval) and BOTH parameter sets (scalars-only AND full-PST) are now no-ops ⇒ texel-style eval tuning is exhausted; the eval basis is not the lever. The ACPL coordinate-descent tune (3423379) remains the validated scalar-tweak path. Corpus: `output/sf_winprob_16k.labels`.
-- **EBF "3.0→2.0, +150-250 elo" — MIRAGE/DOWNGRADED.** The 5-agent measurement shows NGN's tree is competitive-to-smaller vs Counter except the endgame; the deep-dive re-confirms ordering/EBF is NOT the gap.
-- **cutNode REDUCTIONS (cut-node LMR, IIR) — both ~reject/neutral** because NGN's eager LMR re-search (search.go:1879) turns added reductions into re-searches. Fix S1 FIRST, then revisit. **(NEW 2026-06-21: getting THIS right — full-depth zero-window scout before full-window — was Viridithas's single biggest search gain, +29.59 ⇒ S1 is a real lever, not just cleanup; see DEEP-DIVE.)**
-- **Broad pruning EXTENSIONS hurt NGN's sharp search** — W9 aspiration-widen / W6 !isPV-IIR / W2 deeper-quiet-SEE all filter-stopped on sharp-position inflation. The lever is "prune more PRECISELY" (cut-node-conditioned), not "more widely." Clean one-liner pruning extensions are EXHAUSTED.
-- **Search-param SPSA — flat** (LMR/NMP reductions well-tuned; 3 SPRTs/0 gains both directions).
-- **ADJ (early adjudication default-on) — REJECT** (+45 elo null-corrupting bias; leave `-adjudicate` OFF).
-- **statScore-LMR K=2048 — neutral** (needs SPSA-tuned K — see DEEP-DIVE "continuous history-coupled LMR" for the real form). **J1 off-PV extension — left dead** (the "fix" bloated the endgame tree +83%; docs/09 J1 = accepted non-fix).
-- **F1 greedy-clock — REJECT −10.3** (time-SPEND lever closed; the node/stability mechanism is a different thing — see THE PLAN #6).
+1. Re-read `TODO.md` and `CLAUDE.md`.
+2. Check `git status --short` and preserve unrelated user/agent edits.
+3. Pick the highest-ranked unblocked item from the Immediate Queue.
+4. Prove the bug or missing behavior from code before editing.
+5. Make the smallest scoped patch.
+6. Add a regression test that would have failed before the patch when feasible.
+7. Run the narrow test, then the required baseline tests.
+8. If the change needs games, write a manifest before launching the run.
+9. Do not start a second behavior change while a verdict for the first is pending.
+10. Update this file only if active state changes; put detailed evidence in `experiments/`.
 
-## THE CLIMB SO FAR (kept changes; git is the archive)
-- **Correctness fixes = every big win:** half-searched-move-on-interrupt (blunder rate 9.7→3.2%), SEE garbage +161, NMP-was-off-at-cut-nodes +138 (C3), IID/singular re-entrancy, D2 plies-vs-moves time bug +32.5 (Weiss-twin), king-safety enemy-attacker-material. (Matches the deep-dive meta-pattern: correctness >> features.)
-- **Search keeps:** root PVS+LMR +29 (5a90a9e), A1 LMR-threshold / qmvv qsearch-ordering / A2a improving-RFP (+62 self-play night), W1 futility d3→8, W11 LMP re-bracket + d8-row, singular-neg-ext, NMP-depth-R, O4 killers-by-ply, A9 recapture-ext removal.
-- **Eval keeps:** PeSTO core +46 (the one real eval-tune win, virgin data), C1 mobility per-count un-freeze +22.5, king-safety bias fix +43.7, E1 draw-scaling +1.1 (b685b7e), shield rebase (22a14dd, free-gated), ACPL tune (3423379, free-gated) — last two owed the batch gauntlet (#0).
-- **Tier-2 cert #1 PASS** (anchor dfde55f→7b53744; the +55.7 Tier-1 self-play SUM certified at +0.6 [-7.6,+8.8]/3877g ⇒ Tier-1 magnitudes are noise, trust the SIGN, the cert owns the truth).
-- **2026-06-16 floundering→diagnosis pivot ($0 cloud):** game autopsy proved 28/30 losses are EVAL not search (d30da4b), reordered eval-first, committed the loss corpus (df0f05b), confirmed +113/+136 own-side optimism (532b884), localized to the king-safety SHIELD, rebased it to penalty-from-ideal (22a14dd), built + ran the ACPL re-tune toolchain (380d05a, 89fe70d, 3423379).
+If uncertain, prefer a small correctness fix with a direct regression test over a speculative Elo idea.
 
-## INSTRUMENTS & REFERENCE
-- **Absolute rating:** `cmd/gauntlet` real-clock -tc vs Blunder/Counter ladder; cloud via `cloudsprt gauntlet`/`gfetch` (~30 min, 4 boxes). The gold standard. smoke/elo-assess are RELATIVE only.
-- **Per-change:** `cmd/sprt` self-play SPRT (the mill). `make acpl` external SF ruler (eval). `scripts/nodecheck.sh` node-identity. `cmd/zzbias`/`lossxray`/`sfpv` eval-bias. `cmd/blunder-finder` loss diagnosis.
-- **Eval tuning (lever #2 toolchain):** `cmd/texel -mode gendata|gradient|tune|dump` (BUILDS + RUNS, 2026-06-21). gendata self-plays result-labeled positions (`FEN result` lines); `-mode gradient -data <corpus> -epochs N -lr F -l2 0.01` runs the 787-param Adam tune (material + 768 PST + scalars). `cmd/evaltune` = ACPL coordinate descent (`-concurrency 1` SERIAL). SF-eval-labeled corpus path = `cmd/oracle gencorpus`+`label`.
-- **Eval-optimism (lever #1/4 toolchain):** `loss_autopsy_counter.pgn` = committed 30-loss vs-Counter corpus (the eval test set). `cmd/zzbias` own-side NGN−SF bias (baseline +113/+136). `engine/zz_evalexplain_test.go` `TestZZEvalExplain`: `ZZ_FEN=<fen>` dumps one position's per-term eval; `BIAS_PGN=<abs>` prints each term's mean own-side over the corpus. Regenerate: `gauntlet -only counter-3.8 -games 50 -movetime 1000 -concurrency 6 -pgn <out> -no-record` → `lossxray -pgn <out> -ngn build/ngn -depth 16`.
-- **Anchors (CORRECTED 2026-06-21):** strongest Go engine = **Counter 5.5 NNUE ≈ 3334**; strongest pure-HCE Go = **Counter 4.1 ≈ 3157** (the HCE target); Counter 3.8 = 3051 (NOT 2994); Blunder 8.5.5 ≈ **2693**; NNUE delta ≈ +150. `scripts/build-anchors.sh` builds the Blunder ladder + Counter native + linux/arm64. Counter source for diffing: /tmp/CounterGo (HCE = `eval/`, ≤ v3.5.0).
-- **Specs:** docs/09 (search invariants + J1-J15 joints), docs/11 (3000 census). `output/` is gitignored ⇒ record runs/verdicts here or in memory at verdict time.
+## Immediate Queue
+
+1. Done: reset patch reviewed, baseline-green (`go test -short [-race] ./...`), and committed. Codex P0 triage confirmed the patch covers the abort-time TT pollution, qsearch-in-check, atomic UCI, and Hash fixes; chess-accuracy P1s are items 2-6 below. Active head is now item 2.
+
+2. Root repetition semantics:
+   - Problem: root search mutates game-history counts via `GameMakeMove`, and child search can treat a second occurrence as a draw.
+   - Target: game-history maps represent played positions only; search-path repetition remains separate and intentional.
+   - Acceptance: tests for first, second, and third occurrence at root and below root.
+
+3. En-passant hash/repetition normalization:
+   - Problem: non-capturable EP squares can enter the hash and split positions with identical legal moves.
+   - Target: hash EP only when an EP capture is actually legal or normalize EP state consistently.
+   - Acceptance: tests for uncapturable EP, capturable EP, and pinned EP cases; full and incremental hash agree.
+
+4. Promotion safety under forward pruning:
+   - Problem: quiet pruning paths may treat underpromotions as ordinary quiet moves.
+   - Target: all promotions are exempt from futility, LMP, history pruning, quiet SEE pruning, and LMR unless a promotion-specific proof says otherwise.
+   - Acceptance: targeted underpromotion tests, plus node/score sanity on standard tactics.
+
+5. UCI lifecycle hardening:
+   - Problem: `quit` does not terminate the scanner loop; output and mutable engine state are still not owned by a process-level protocol model.
+   - Target: process-level UCI tests for immediate `stop`, repeated `go`, `position` after stop, and `quit`.
+   - Acceptance: race-clean process-level tests; no direct test races on `bytes.Buffer`.
+
+6. `SearchFixed` authority:
+   - Problem: it is still a second root implementation with special behavior and the `INFINITY -> 2000` workaround.
+   - Target: either make it call the production one-iteration root path or mark it diagnostic-only and stop using it for conclusions.
+   - Acceptance: fixed-depth diagnostics match production semantics for root repetition, extension budget, and stop handling.
+
+7. Measurement cleanup:
+   - Add a tracked manifest for the default opening set and any verdict corpus.
+   - Add a lightweight result manifest template or JSONL ledger under `experiments/`.
+   - Require A/A preflight for any real-clock concurrent self-play configuration.
+
+8. Strength re-pin, only after items 2-6 are materially clean:
+   - Multi-family, real-clock, with at least one opponent stronger than NGN.
+   - Use Blunder for continuity and Counter/Fruit for transfer.
+   - Do not extrapolate a single-family result as a narrow absolute rating.
+
+9. Resume Elo levers after correctness/instrument cleanup:
+   - Prefer correctness-adjacent search shape fixes with short gates.
+   - Speculative search/eval heuristics must meet the decision table.
+   - Speed work must prove identity and repeatable wall-time gain.
+
+## Instrument Guide
+
+- Unit/race baseline: `go test -short ./engine -count=1`, `go test -short -race ./engine -count=1`, `go test -short ./... -count=1`.
+- Full repository race baseline: `go test -short -race ./... -count=1`.
+- Absolute strength: real-clock `cmd/gauntlet` against multiple engine families.
+- Self-play SPRT: useful for isolated behavior changes, but not a transfer guarantee.
+- ACPL/Stockfish labels: useful eval filter, not a verdict for persistent in-game learning mechanisms.
+- Nodecheck: required for node-identical claims and useful for detecting tree blowups.
+- Game autopsy/lossxray: useful for choosing classes of work, not for keeping a patch.
+
+## Run Record Minimum
+
+Every game result needs a compact tracked record. Minimum fields:
+
+```text
+id:
+date:
+change_class:
+hypothesis:
+base_commit_or_patch:
+candidate_commit_or_patch:
+base_binary_sha256:
+candidate_binary_sha256:
+harness_commit:
+command:
+machine:
+tc:
+concurrency:
+openings_path:
+openings_sha256:
+decision_rule:
+games_or_pairs:
+result:
+flags_errors:
+verdict:
+next_action:
+```
+
+## Do Not Reopen Without New Evidence
+
+- Aux correction-history tables: rejected in the recorded C-vs-B run. Reapply only as a fresh isolated experiment with reset tests and a predeclared gate.
+- Large unregularized eval/PST tunes: prior evidence says overfit or no-op.
+- Node-identical micro-speed lane: mostly tapped; new work needs a precise profile target and identity proof.
+- Sign-at-cap keeps for speculative search/eval: banned by the decision policy above.
+- NNUE: forbidden before 2800 and preferably before 2900.
+
+## What Belongs Where
+
+- `TODO.md`: live state, active policy, ranked queue, compact facts needed to continue.
+- `CLAUDE.md`: agent behavior rules, commands, guardrails, how to update docs.
+- `experiments/`: manifests, run logs, result summaries, negative results.
+- `docs/`: stable architecture/spec notes, not live run instructions.
+- Review files such as `codex_engine_review.md`: historical evidence and checklists, not policy.

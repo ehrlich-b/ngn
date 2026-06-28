@@ -1,222 +1,133 @@
 # CLAUDE.md
 
-Development guidelines for Claude Code working on this repository.
+Agent guide for NGN. `TODO.md` is the live project state and ranked work queue. This file is the operating contract for agents.
+
+## First Step
+
+Before doing any substantial work:
+
+1. Read `TODO.md`.
+2. Read this file.
+3. Run `git status --short`.
+4. Preserve unrelated user/agent edits.
+5. Pick the highest-ranked unblocked item from `TODO.md`.
+
+If an older doc conflicts with `TODO.md`, follow `TODO.md` and treat the older doc as historical evidence only.
 
 ## Commands
 
 ```bash
-make build          # Build the engine
-make test           # Run tests with coverage
-make test-short     # Run tests without coverage (faster)
-make eval           # 2-minute comprehensive evaluation (use sparingly)
-make format         # Format Go code
-make lint           # Run linter
-make dev            # Full cycle: format, test, build
+make build
+make test
+make test-short
+go test -short ./engine -count=1
+go test -short -race ./engine -count=1
+go test -short ./... -count=1
+go test -short -race ./... -count=1
 ```
 
-## HARNESS GUARDRAILS — load-bearing, do not weaken (2026-06-11)
+`make test` must fail when tests fail. Do not treat failure output as green.
 
-These rules protect real money and the validity of every measurement. **If a rule
-blocks you, STOP and report the situation in TODO.md — never work around it.**
+## Active Policy
 
-**Cloud fleet (`scripts/cloudsprt.sh` — AWS spot workers):**
-- NEVER edit the shutdown-guarantee layers: `sweep_runid`, the two TTL paths
-  (user-data + run.sh `shutdown -h`), the completion self-shutdown, the
-  failure-path sweeps in `cmd_launch`, or the fetch sweep gating. ANY edit to
-  cloudsprt.sh requires `scripts/cloudsprt.sh smoke` to PASS before the next launch.
-- Every session that touches the fleet ENDS with `scripts/cloudsprt.sh ps`
-  showing nothing running that you can't name. When in doubt: `kill`, then `ps`.
-- MONITOR a launch with `scripts/cloudsprt.sh status` / `ps` (and Read its raw task
-  output). NEVER pipe `launch`/`gauntlet`/`sprt` through `| tail`/`| head` — those
-  buffer until EOF, so a backgrounded run's log reads EMPTY and looks HUNG (a healthy
-  4/4 run was killed on exactly this, 2026-06-14). Run them raw; ~5 min to provision
-  4 cross-region boxes is NORMAL, not a hang.
-- `-ttl 2` for Tier-1/null runs; 6h absolute max. Launch only via the script,
-  never raw `aws ec2 run-instances`.
-- An AWS `AccessDenied`/`UnauthorizedOperation` error is a DESIGN BOUNDARY
-  (least-privilege key), not a bug. Never broaden IAM, never touch credentials.
-- Never pool cloud games with Mac games in one verdict; never mix instance
-  types inside one pooled run. `fetch` verdicts + sweeps only once ZERO live
-  workers remain for the runid (evicted shards pool at their last 60s upload as
-  partial-final) — NEVER verdict while any worker is live.
+- No NNUE before 2800; prefer 2900 before reopening the question.
+- Correctness and measurement integrity come before speculative Elo work.
+- Optimize for Elo per confirmation hour. Default confirmation budget is 1-2 hours per change.
+- One behavior change at a time, candidate vs immediate base.
+- Do not stack changes unless the experiment is explicitly about an interaction.
+- Do not keep speculative search/eval changes on positive sign at an inconclusive cap.
+- Do not commit speculative changes before their verdict. Correctness/test/doc reset commits are allowed after tests pass.
+- Do not create new sprawling memory/TODO narratives. Put detailed run records in `experiments/`; update `TODO.md` only when live state, policy, or ranked queue changes.
 
-**Verdicts (the KEEP rule is canon):**
-- Improvement OR correctness fix + no measured regression ⇒ KEEP, full stop.
-  REJECT requires a concrete measured regression. "Too small to resolve" is NOT
-  a reject reason.
-- Never verdict a mid-run or killed SPRT; run to the cap or an LLR bound.
-- Tier-1 sign filters; the Tier-2 bundle cert (every 4-6 keeps, ≥2-3k games vs
-  the pre-batch anchor) owns the truth. A failed cert ⇒ bisect halves, serially.
+## Decision Table
 
-**Local Mac:**
-- Never run engines on P-cores (`-lowpower=true` default). No other compute
-  while a local real-clock SPRT is live. `caffeinate -i` for multi-hour runs.
-- Commits: single sentence, no co-author tags, local only. Commit a change only
-  AFTER its verdict (the worktree diff is the candidate; HEAD is the base).
+| Change class | Required evidence | If inconclusive |
+|---|---|---|
+| Provable correctness fix | Mechanism proof, regression test, short non-regression check if behavior changes | Keep only if the correctness claim is proved |
+| Node-identical refactor | Exact node/score identity plus tests | Keep if identity is proved and the benefit is real |
+| Pure speed change | Behavior identity plus repeatable wall-time/NPS gain | Shelve if speed gain is not repeatable |
+| Search/eval heuristic | Completed predeclared paired game test against immediate base | Shelve; do not keep on sign |
+| Tune | Holdout/proxy improvement plus paired games | Shelve or redesign |
+| Lane closure | Multiple falsification attempts using the right instrument | Mark uncertain if evidence is proxy-only |
 
-## ELO Assessment
+There is no "correctness-flavored" class.
 
-Two distinct jobs, two cadences:
+## Work Loop
 
-- **A — relative regression, per change (fast):** `make smoke` /
-  `make smoke-tactical` + self-play `sprt`. Tells you if a change broke or helped;
-  NOT an absolute rating.
-- **B — absolute CCRL calibration, occasional (slow):** `make gauntlet` plays NGN
-  against published-CCRL-rated Blunder anchors and pools a real rating. This is the
-  **single source of truth for NGN's absolute strength.** Stockfish's UCI_Elo
-  slider is NOT — we measured it ~+400 inflated vs CCRL (NGN scored 70% vs "SF2400"
-  but ~7% vs Blunder 7.4.0, CCRL 2532).
+Use this loop unless the user gives a narrower instruction:
 
-**Default dev loop is `make smoke`** (~3-5 min on E-cores, battery-friendly). It
-runs a 30-position tactical suite plus a 5-game asymmetric match (NGN 1s vs
-SF2400 200ms) and appends results to a rolling-ELO history at
-`output/smoke_history.jsonl`. The cumulative Wilson CI tightens with every run.
+1. Prove the bug or missing behavior from code before editing.
+2. Make the smallest scoped patch.
+3. Add a regression test that would have failed before the patch when feasible.
+4. Run the narrow test, then the baseline tests required by `TODO.md`.
+5. If games are required, write a manifest before launching the run.
+6. Do not begin a second behavior change while a verdict for the first is pending.
+7. End with a clean account of what changed, what passed, and what remains.
 
-Older runs decay by commit distance from HEAD: full weight at distance 0, then
-−10%/commit through commit 5 (weight 0.5), then −5%/commit through commit 15
-(weight 0). After 15 commits without a smoke, that data point falls off
-entirely and confidence opens up again. Run smoke regularly to keep effective
-sample size high.
+When uncertain, prefer a small correctness fix with a direct regression test over a speculative Elo idea.
 
-The rolling-ELO at this config is a **regression detector, not the engine's
-absolute strength**. The opponent was raised SF1500 → SF2400 on 2026-05-29
-because the engine had saturated the weaker targets: NGN scored 100% vs SF1500
-and 13-1 (93%) vs SF2000, so neither could discriminate. At SF2400 NGN sits at
-~71% (9W-2D-3L over the calibration match) — a clear favorite, but SF now wins
-real games and draws appear, so drops are visible. The estimated 50% crossover
-at this 1s/200ms time config is ~SF2560; raise the target again if NGN climbs
-back toward saturation. What you watch for is the rolling estimate not falling
-much below the running baseline. For NGN's ABSOLUTE rating use `make gauntlet`
-(Cadence B) — this SF rolling number is relative only.
+## Current Reset Facts
+
+The 2026-06-28 reset patch fixed known P0 search/UCI issues that were corrupting measurement:
+
+- stopped child searches no longer update parent TT/history/best-score state;
+- qsearch handles in-check nodes at the depth cap;
+- UCI `searching` is atomic and the stop race repro passes;
+- `Hash` UCI option resizes the TT and persists through `ucinewgame`;
+- `SearchFixed` sets `RootDepth` and uses root game make/unmake;
+- rejected aux correction-history code is not active.
+
+Required baseline before new work:
 
 ```bash
-make smoke              # Tactical + 5 games + rolling estimate (~5 min)
-make smoke-tactical     # Tactical only (~5 sec) — for in-flight changes
-./build/smoke -rolling  # Just print the rolling estimate, no run
+go test -short ./engine -count=1
+go test -short -race ./engine -count=1
+go test -short ./... -count=1
 ```
 
-**Cadence B — absolute CCRL calibration (the real number):**
+Use `go test -short -race ./... -count=1` when touching UCI, harness, shared state, or concurrency.
 
-```bash
-make build-anchors                               # one-time: clone+build the Blunder ladder
-make gauntlet ARGS="-games 24 -movetime 1000"    # ~real CCRL number (~3-4h, E-cores)
-make gauntlet ARGS="-games 60 -movetime 2500"    # tighter, closer to CCRL Blitz (overnight)
-./build/gauntlet -rolling                        # commit-decayed pooled trend, no run
-./build/gauntlet -only v7.4.0 -ngn opponents/blunder_740   # calibration sanity (~50%/~2532)
+## Documentation Contract
+
+- `TODO.md`: live state, active policy, ranked queue, compact facts needed to continue.
+- `CLAUDE.md`: this operating contract.
+- `experiments/`: manifests, run logs, result summaries, and negative results.
+- `docs/`: stable architecture/spec notes, not live run instructions.
+- Review files: evidence and checklists, not policy.
+
+When updating `TODO.md`, keep it self-building but not narrative-heavy. Add enough context for the next agent to continue; move detailed evidence to `experiments/`.
+
+## Harness Guardrails
+
+- Do not edit `scripts/cloudsprt.sh` while using it for a verdict.
+- Any cloud harness edit requires a separate validation cycle and A/A run.
+- Never verdict a mid-run or killed SPRT.
+- Never pool cloud and local games in one verdict.
+- Never mix machine classes or instance types inside one pooled run.
+- Every cloud session ends with `scripts/cloudsprt.sh ps` showing no unnamed live workers.
+- If AWS denies an action, stop; do not broaden IAM or work around credentials.
+
+## Run Records
+
+Every game run must record:
+
+- base and candidate commit/patch;
+- binary SHA-256s;
+- exact command and environment;
+- TC, concurrency, machine, OS, Go version, GOARCH/GOAMD64;
+- opening/corpus checksum;
+- game count and penta or W/D/L;
+- flag-outs, crashes, illegal moves, no-move results;
+- predeclared decision rule and verdict.
+
+Default local opening file, when used:
+
+```text
+output/sprt_openings.txt
+sha256 974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222
+5000 lines
 ```
 
-The gauntlet number is a movetime proxy for CCRL Blitz (2'+1"): it under-times the
-anchors, biasing NGN ~+30-80 optimistic. A true CCRL-conditions run needs NGN to
-play a real clock — blocked by the tournament time-management bug (top TODO);
-finishing that work lets you drop the bias caveat.
+## Reanchor
 
-`elo-assess` is now ad-hoc Stockfish sparring (relative to the SF slider, NOT
-absolute — use the gauntlet for absolute):
-
-```bash
-./build/elo-assess -elo 2600 -movetime 2500 -sfmovetime 200 -min 6 -games 14 -ci 300
-```
-
-Legacy presets exist (`-level 1/5/10`) but are not the default cadence.
-
-### External eval ruler — ACPL vs Stockfish (run BEFORE SPRT-ing an eval change)
-
-Self-play SPRT gains are partly **transfer-mirages** (they vanish on the gauntlet),
-and the gauntlet is too slow to run per change. `make acpl` is the EXTERNAL ruler:
-average centipawn loss of NGN's moves vs Stockfish over a committed, SF-labeled
-corpus (`acpl_corpus.labels`) — continuous, low-variance, and it catches the quiet
-positional error the best-move/SPRT signals miss. It FILTERS (the SPRT still
-confirms): an eval change that RAISES ACPL is suspect no matter what self-play says.
-
-```bash
-make acpl BIN=build/ngn_new BASE=build/ngn   # Δ ACPL/move (positive = NEW is worse)
-scripts/acpl.sh build/ngn_new build/ngn      # same, direct
-```
-
-The SF labels are NGN-independent ground truth, so the corpus stays valid across
-engine changes; regrow/expand it via `cmd/oracle gencorpus`+`label` (see
-`scripts/acpl.sh`).
-
-## Development Rules
-
-### Testing Cadence
-- **Default to `make smoke`** after every change. ~5 min, runs in-place on
-  E-cores, records a rolling-ELO data point.
-- **Smoke fails** on tactical solve rate < 40% — the deterministic
-  catastrophic-regression gate. The game phase is now a *measurement*, not a
-  pass/fail: vs SF2400 a 0/5 shutout is within variance (it prints a SHUTOUT
-  note but does not fail), so watch the rolling estimate for real drift.
-- **The smoke rolling estimate is a RELATIVE regression tripwire** (vs the SF
-  slider), NOT NGN's absolute ELO — `make gauntlet` (Cadence B) owns the absolute
-  CCRL number. Once you have 6-10 smokes at the default config its cumulative CI is
-  tighter than a single 14-game Bayesian, which is what makes it a good tripwire.
-- **Don't chase small effects** (< 50 ELO). Even with the rolling estimate,
-  resolving 30-50 ELO deltas needs many runs. Big wins should appear within a
-  few smoke runs; if it doesn't show up across 4-5 smokes, it's noise.
-- **Commit checkpoints** after every smoke that doesn't fail.
-- **Never run on P-cores** (default `-lowpower=true` routes to E-cores).
-
-### Always Update TODO.md
-After ANY task, update TODO.md to reflect current status.
-
-### Fix Bugs Before Features
-Fix search/eval correctness issues before adding new features. See DIAGNOSIS.md for the current bug list.
-
-### Verify Claims
-Don't trust ELO/NPS claims in documentation without verification.
-
-## Current Status
-
-- **ELO:** **~2650–2670 CCRL Blitz (soft)** — real-clock `gauntlet -tc 120+1` vs **Blunder 7.4.0** (CCRL 2532): **13W-7D-4L = 68.8% over 24 games → 2669 [2523, 2815]** (2026-06-10; lone time-forfeit was Blunder's, NGN flag-outs 0). Prior run same config: 64.6% → 2632 (2026-06-08) — the +37 matches the on-record +20-50 prediction from the night's three search keeps (A1 LMR-threshold, qmvv qsearch ordering, A2a improving-gated RFP, +62 self-play sum) ⇒ **the A-lane keeps transferred to a real-clock external opponent (not self-play mirage)**. Independent **Fruit 2.1** (CCRL 2685) at movetime ~2655 raw (~2575–2625 after the generic movetime discount); the gauntlet's "+30-80 movetime-optimistic" footer does NOT apply to `-tc` runs (it prints unconditionally). Trend: 2449 (Jun 2) → 2632 (Jun 8, eval stack + time-mgmt fix) → 2669 (Jun 10, search keeps). Still single-family at n=24 (CI ~±145) ⇒ a broad multi-family pool is the only true pin. SF `UCI_Elo` slider reads ~+400 inflated — disregard old slider numbers. (See README "Current Status".)
-- **NPS:** phase/core-dependent, NOT a scalar — ~307K E-core middlegame, ~540K-860K E-core endgame, ~1M P-core.
-- **Gap vs Blunder (both Go, E-cores):** ~1.5x slower per node (engineering waste, recoverable — Blunder is also Go). The old **"2.5-5x larger endgame tree / pruning collapse / the bigger lever" claim is REFUTED (2026-06-06)** — it was an artifact of ONE mislabeled h2h position: "quiet-end" `r7/5pk1/...R7` is tactically WON (1.Rxa8 wins a rook), so NGN's 6x tree there was over-searching a WON position, not floundering in a quiet one. On genuinely quiet/balanced endgames NGN's tree is **0.43-1.45x Blunder's (geo-mean ~0.85x — often SMALLER)** and the evals AGREE (no quiet-eg pruning gap, no eg over-optimism). Node counts are deterministic/exact; nps thermally noisy (~1.5x). Reproduce: `scripts/h2h.sh` — but DISREGARD its "quiet-end" row (won position).
-
-## Project Structure
-
-```
-engine/
-  search.go     - Search algorithm (alpha-beta, pruning, extensions)
-  eval.go       - Position evaluation (material, PST, pawn structure)
-  position.go   - Game state management
-  bitboard.go   - Bitboard representation
-  uci.go        - UCI protocol
-  time.go       - Time management
-cmd/
-  elo-assess/   - ELO assessment tool
-  gametest/     - Engine vs engine testing
-```
-
-## What's Working
-
-- Search: All major techniques implemented
-- Move generation: Perft validated
-- UCI: Full protocol support
-- Opening book: Embedded + Polyglot
-- Tablebases: Syzygy support
-
-## What's Working
-
-- Repetition detection: Fixed - games complete properly
-- All search techniques verified working
-
-## Evaluation (Complete)
-
-All classical evaluation features implemented:
-- Material + piece-square tables
-- Pawn structure (doubled, isolated, passed, chains)
-- Bishop pair, mobility, king safety
-- Knight outposts, piece coordination
-- Rook on open file, tapered eval (MG/EG)
-
-## GM Without NNUE
-
-Classical engines CAN reach 2500+ ELO. Examples:
-- Crafty (~2600)
-- Fruit (~2700)
-- Pre-NNUE Stockfish (~3000)
-
-Focus on getting classical eval right before considering NNUE.
-
-## Reanchor Command
-
-When user says "reanchor", re-read README.md, TODO.md, and CLAUDE.md.
+When asked to reanchor, read `README.md`, `TODO.md`, and this file. Treat `TODO.md` as the live authority and older review files as historical evidence.
