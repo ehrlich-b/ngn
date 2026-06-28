@@ -26,7 +26,7 @@ Do not paste raw logs, long narratives, repeated reversals, or multi-page experi
 - Target: climb with classical HCE first. No NNUE before 2800; prefer waiting until 2900 unless an explicit later decision changes this.
 - Main failure mode: speculative search/eval tuning was kept on weak self-play/proxy evidence while correctness and harness bugs remained open.
 - Development priority: correctness and measurement integrity before more Elo hunting.
-- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Active head is Immediate Queue item 6 (SearchFixed authority).
+- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Items 2-6 (the correctness queue) are all DONE. Active head is Immediate Queue item 7 (measurement cleanup), then item 8 (strength re-pin — the first trustworthy Elo number, runnable on the LAN box).
 
 ## Why The Reset Happened
 
@@ -121,10 +121,7 @@ If uncertain, prefer a small correctness fix with a direct regression test over 
 
 5. Done (`3218b4d`): `quit` now breaks the scanner loop — `handleCommand` returns a quit flag the `Run` loop checks (red→green `TestUCIRunQuitTerminatesLoop`). `handleStop` joins the search goroutine by polling the atomic `searching` until the searcher clears it (in its defer, after its last write/state update), making stop / position-after-stop / quit synchronous and race-clean; `Run` also stop+joins on loop exit so the search never outlives `Run` (and `go infinite` + EOF now exits cleanly instead of hanging). A `syncWriter` serializes all output writes (search goroutine vs main loop). Four process-level `Run` tests; full short+race ./... clean; real binary verified (clean UCI session, clean quit, clean EOF-mid-search). Polling join chosen over a WaitGroup so go/stop on different goroutines (as TestUCIStop does) stay safe with no existing-test churn.
 
-6. `SearchFixed` authority:
-   - Problem: it is still a second root implementation with special behavior and the `INFINITY -> 2000` workaround.
-   - Target: either make it call the production one-iteration root path or mark it diagnostic-only and stop using it for conclusions.
-   - Acceptance: fixed-depth diagnostics match production semantics for root repetition, extension budget, and stop handling.
+6. Done (`748bb4b`): chose the diagnostic-only path (SearchFixed is used only by perf/profiling tests + cmd/trace_move, never production). Documented: it shares alphaBetaPV with production, so repetition / extension-budget / stop handling are identical by construction; it diverges only in the root loop (full-width, no PVS/LMR) → larger node counts (not a strength/EBF measure) and the EXACT full-width minimax score that production's PVS/LMR only approximate (observed 4cp gap). Removed the dead `INFINITY->2000` workaround (suite green confirms it never fired; production runs the same full-window search without it). `TestSearchFixedMatchesProductionScore` asserts move parity + score within a 25cp tolerance. Out-of-scope leftover: the unused `alphaBeta` wrapper in search.go is pre-existing dead code.
 
 7. Measurement cleanup:
    - Add a tracked manifest for the default opening set and any verdict corpus.
