@@ -120,6 +120,8 @@ Every game run must record:
 - flag-outs, crashes, illegal moves, no-move results;
 - predeclared decision rule and verdict.
 
+Record it with `experiments/RUN_RECORD_TEMPLATE.md`, and pin corpus checksums via `experiments/corpus_manifest.md`. A real-clock concurrent self-play verdict requires an A/A preflight (same binary vs itself at the exact TC/concurrency/affinity/machine) before the candidate run.
+
 Default local opening file, when used:
 
 ```text
