@@ -48,6 +48,12 @@ func ParseFEN(fenString string) (*Position, error) {
 			return nil, fmt.Errorf("invalid en passant square: %v", err)
 		}
 		position.EnPassant = square
+		// Drop a non-capturable EP target so a FEN that lists a phantom EP square
+		// (no enemy pawn able to capture) hashes identically to the same position
+		// reached by playing moves, where the EP target is gated the same way.
+		if !canCaptureEnPassant(position) {
+			position.EnPassant = NoSquare
+		}
 	}
 
 	// 5. Parse halfmove clock

@@ -268,6 +268,14 @@ func (p *Position) makeMoveHelper(move Move) (Square, PositionTag, uint8, bool) 
 		p.ClearTag(InCheck)
 	}
 
+	// En passant only distinguishes a position when an enemy pawn can actually
+	// capture; drop a non-capturable target (p.Turn() is post-ToggleTurn, i.e. the
+	// side that could capture) so phantom EP squares do not split the hash and
+	// repetition signature of otherwise-identical positions. Mirrors PolyglotHash.
+	if p.EnPassant != NoSquare && !canCaptureEnPassant(p) {
+		p.EnPassant = NoSquare
+	}
+
 	updateHash(p, move, captureSquare, p.EnPassant, ep, promoPiece, tag)
 
 	// Update repetition detection - disabled in hot path for performance

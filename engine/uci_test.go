@@ -75,8 +75,12 @@ func TestUCIFEN(t *testing.T) {
 	if engine.position.Turn() != Black {
 		t.Error("Should be black to move from FEN")
 	}
-	if engine.position.EnPassant != E3 {
-		t.Error("En passant square should be e3")
+	// After 1.e4 no black pawn can capture en passant, so the e3 target is a
+	// phantom: it is gated out so it cannot pollute the position hash / repetition
+	// signature (Stockfish reports "-" here too). A legitimate, capturable EP
+	// square from FEN is covered by TestEnPassantHashCapturabilityGate.
+	if engine.position.EnPassant != NoSquare {
+		t.Errorf("phantom en passant square should be gated to NoSquare, got %v", engine.position.EnPassant)
 	}
 }
 
