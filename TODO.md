@@ -26,7 +26,7 @@ Do not paste raw logs, long narratives, repeated reversals, or multi-page experi
 - Target: climb with classical HCE first. No NNUE before 2800; prefer waiting until 2900 unless an explicit later decision changes this.
 - Main failure mode: speculative search/eval tuning was kept on weak self-play/proxy evidence while correctness and harness bugs remained open.
 - Development priority: correctness and measurement integrity before more Elo hunting.
-- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Active head is Immediate Queue item 3 (en-passant hash/repetition normalization).
+- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Active head is Immediate Queue item 4 (promotion safety under forward pruning).
 
 ## Why The Reset Happened
 
@@ -115,10 +115,7 @@ If uncertain, prefer a small correctness fix with a direct regression test over 
 
 2. Done (`4899ae6`): both root drivers (`searchIterativeDeepeningUnsafe`, `searchFixedUnsafe`) now explore with `MakeMove`/`UnMakeMove`, so `pos.Positions` counts only played positions and the ply-1 child no longer reads an inflated count (the 2nd-occurrence-as-draw bug). Regression `TestRootExplorationDoesNotInflateRepetitionCount` (2nd occurrence not a draw, 3rd is); full short+race baseline green. Deferred non-regressing refinement: the root position is still not pushed onto the search RepStack, so a line that forces a return to the exact root is only caught via the game-history count, not as a 2-fold-in-search draw — track as its own isolated change if pursued.
 
-3. En-passant hash/repetition normalization:
-   - Problem: non-capturable EP squares can enter the hash and split positions with identical legal moves.
-   - Target: hash EP only when an EP capture is actually legal or normalize EP state consistently.
-   - Acceptance: tests for uncapturable EP, capturable EP, and pinned EP cases; full and incremental hash agree.
+3. Done (`792f4a3`): `p.EnPassant` is gated at both set-sites (makeMoveHelper double push + ParseFEN) via the existing `canCaptureEnPassant`, so the field invariantly holds only capturable EP squares; a phantom EP no longer splits the hash/repetition signature, and full==incremental stay consistent with no hash.go change. Adjacency gating (Stockfish/Polyglot-consistent): a pinned-but-adjacent EP is still hashed — the test asserts full==incremental there rather than same-as-no-EP. Regression `TestEnPassantHashCapturabilityGate`; perft byte-identical; stale `TestUCIFEN` (asserted the post-1.e4 phantom e3) updated to the gated NoSquare. The internal zobrist is separate from `PolyglotHash`, so opening-book lookups are unaffected.
 
 4. Promotion safety under forward pruning:
    - Problem: quiet pruning paths may treat underpromotions as ordinary quiet moves.
