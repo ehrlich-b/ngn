@@ -759,13 +759,18 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					break
 				}
 
-				// Use GameMakeMove at root to track repetition history.
+				// Explore root moves with MakeMove (the search make), NOT GameMakeMove:
+				// the game-history map (pos.Positions) must count only positions actually
+				// PLAYED, so root exploration must not increment it. GameMakeMove here
+				// inflated Positions[child] for the very position the ply-1 child then
+				// reads, so a 2nd occurrence (true count 1) looked like count 2 and the
+				// child's "count >= 2 == threefold" check declared a bogus draw.
 				// Thread lastMovePlayed so the counter-move heuristic sees the
 				// actual predecessor inside search, not a stale global.
 				savedLast := GetLastMovePlayed()
-				ep, tag, hc, _ := pos.GameMakeMove(move)
+				ep, tag, hc, _ := pos.MakeMove(move)
 				if isInCheck(pos, move.MovingPiece().Color()) {
-					pos.GameUnMakeMove(move, tag, ep, hc)
+					pos.UnMakeMove(move, tag, ep, hc)
 					continue
 				}
 				SetLastMovePlayed(move)
@@ -806,7 +811,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					// Null-window scout at (possibly) reduced depth.
 					score = -alphaBetaPV(pos, currentDepth-1-reduction, 1, -alpha-1, -alpha, false, true, true, info)
 					if info.Stopped {
-						pos.GameUnMakeMove(move, tag, ep, hc)
+						pos.UnMakeMove(move, tag, ep, hc)
 						SetLastMovePlayed(savedLast)
 						break
 					}
@@ -815,7 +820,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					if reduction > 0 && score > alpha {
 						score = -alphaBetaPV(pos, currentDepth-1, 1, -alpha-1, -alpha, false, true, true, info)
 						if info.Stopped {
-							pos.GameUnMakeMove(move, tag, ep, hc)
+							pos.UnMakeMove(move, tag, ep, hc)
 							SetLastMovePlayed(savedLast)
 							break
 						}
@@ -825,7 +830,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 						score = -alphaBetaPV(pos, currentDepth-1, 1, -beta, -alpha, true, true, false, info)
 					}
 				}
-				pos.GameUnMakeMove(move, tag, ep, hc)
+				pos.UnMakeMove(move, tag, ep, hc)
 				SetLastMovePlayed(savedLast)
 				if info.Stopped {
 					break
@@ -1050,10 +1055,10 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		}
 
 		savedLast := GetLastMovePlayed()
-		ep, tag, hc, _ := pos.GameMakeMove(move)
+		ep, tag, hc, _ := pos.MakeMove(move)
 		movingColor := move.MovingPiece().Color()
 		if isInCheck(pos, movingColor) {
-			pos.GameUnMakeMove(move, tag, ep, hc)
+			pos.UnMakeMove(move, tag, ep, hc)
 			continue
 		}
 		SetLastMovePlayed(move)
@@ -1061,7 +1066,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 
 		score := -alphaBetaPV(pos, depth-1, 1, -beta, -alpha, true, true, false, info)
 		if info.Stopped {
-			pos.GameUnMakeMove(move, tag, ep, hc)
+			pos.UnMakeMove(move, tag, ep, hc)
 			SetLastMovePlayed(savedLast)
 			break
 		}
@@ -1070,14 +1075,14 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		if score >= MATE_IN_MAX && depth <= 2 {
 			score = -alphaBetaPV(pos, depth+2, 1, -beta, -alpha, true, true, false, info)
 			if info.Stopped {
-				pos.GameUnMakeMove(move, tag, ep, hc)
+				pos.UnMakeMove(move, tag, ep, hc)
 				SetLastMovePlayed(savedLast)
 				break
 			}
 			info.Nodes++
 		}
 
-		pos.GameUnMakeMove(move, tag, ep, hc)
+		pos.UnMakeMove(move, tag, ep, hc)
 		SetLastMovePlayed(savedLast)
 		info.Nodes++
 
