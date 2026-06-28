@@ -26,7 +26,7 @@ Do not paste raw logs, long narratives, repeated reversals, or multi-page experi
 - Target: climb with classical HCE first. No NNUE before 2800; prefer waiting until 2900 unless an explicit later decision changes this.
 - Main failure mode: speculative search/eval tuning was kept on weak self-play/proxy evidence while correctness and harness bugs remained open.
 - Development priority: correctness and measurement integrity before more Elo hunting.
-- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Active head is Immediate Queue item 2 (root repetition semantics).
+- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Active head is Immediate Queue item 3 (en-passant hash/repetition normalization).
 
 ## Why The Reset Happened
 
@@ -113,10 +113,7 @@ If uncertain, prefer a small correctness fix with a direct regression test over 
 
 1. Done: reset patch reviewed, baseline-green (`go test -short [-race] ./...`), and committed. Codex P0 triage confirmed the patch covers the abort-time TT pollution, qsearch-in-check, atomic UCI, and Hash fixes; chess-accuracy P1s are items 2-6 below. Active head is now item 2.
 
-2. Root repetition semantics:
-   - Problem: root search mutates game-history counts via `GameMakeMove`, and child search can treat a second occurrence as a draw.
-   - Target: game-history maps represent played positions only; search-path repetition remains separate and intentional.
-   - Acceptance: tests for first, second, and third occurrence at root and below root.
+2. Done (`4899ae6`): both root drivers (`searchIterativeDeepeningUnsafe`, `searchFixedUnsafe`) now explore with `MakeMove`/`UnMakeMove`, so `pos.Positions` counts only played positions and the ply-1 child no longer reads an inflated count (the 2nd-occurrence-as-draw bug). Regression `TestRootExplorationDoesNotInflateRepetitionCount` (2nd occurrence not a draw, 3rd is); full short+race baseline green. Deferred non-regressing refinement: the root position is still not pushed onto the search RepStack, so a line that forces a return to the exact root is only caught via the game-history count, not as a 2-fold-in-search draw — track as its own isolated change if pursued.
 
 3. En-passant hash/repetition normalization:
    - Problem: non-capturable EP squares can enter the hash and split positions with identical legal moves.
