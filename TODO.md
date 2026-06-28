@@ -26,7 +26,7 @@ Do not paste raw logs, long narratives, repeated reversals, or multi-page experi
 - Target: climb with classical HCE first. No NNUE before 2800; prefer waiting until 2900 unless an explicit later decision changes this.
 - Main failure mode: speculative search/eval tuning was kept on weak self-play/proxy evidence while correctness and harness bugs remained open.
 - Development priority: correctness and measurement integrity before more Elo hunting.
-- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Items 2-7 (correctness queue + measurement plumbing) are all DONE. Item 8 (strength re-pin) is IN-FLIGHT: multi-family gauntlet (Blunder ladder 610/720/740/800 + Counter 3.8, real clock `-tc 120+1`, 80 games/anchor = 400 games, concurrency 8) launched 2026-06-28 on the LAN 9800X3D; manifest predeclared in `experiments/2026-06-28-strength-repin.md`; ~3h ETA. On completion: fill the manifest result/verdict, commit, compare vs the Jun-14 single-family pin (2655). Then item 9 (resume Elo levers). NGN + gauntlet + anchors cross-compiled to windows/amd64 v3 and staged at `~\ngn\repin\` on the box.
+- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Items 2-8 are all DONE. Item 8 (strength re-pin) RESULT: **NGN 2666 CCRL, 95% CI [2627, 2706]** — multi-family (Blunder ladder 610/720/740/800 + Counter 3.8/2994) real-clock `-tc 120+1`, 400 games on the LAN 9800X3D (`experiments/2026-06-28-strength-repin.md`). FLAT vs the Jun-14 single-family pin (2655 [2606,2704]) ⇒ the correctness reset + items 2-6 PRESERVED strength while the instrument is now trustworthy (multi-family, ±40 CI, real clock, cross-family non-transitivity now visible). Active head is **item 9 (resume Elo levers)** — the first real "make elo higher" work, now on a clean engine + trustworthy instrument. NGN+gauntlet+anchors are cross-compiled to windows/amd64 v3 and staged at `~\ngn\repin\` on the box (the re-pin pipeline is now wired); `repin.pgn` there has all 400 games for lossxray when picking the first lever.
 
 ## Why The Reset Happened
 
@@ -125,10 +125,7 @@ If uncertain, prefer a small correctness fix with a direct regression test over 
 
 7. Done (`918bed5`): `experiments/corpus_manifest.md` pins the gitignored opening set (5000 lines, sha256 `974e4b5...`) plus the tracked acpl/ratings corpora to checksums; `experiments/RUN_RECORD_TEMPLATE.md` is the structured (YAML) per-run record with a required `aa_preflight` field; CLAUDE.md Run Records now binds both and the A/A-preflight requirement for real-clock concurrent verdicts.
 
-8. Strength re-pin, only after items 2-6 are materially clean:
-   - Multi-family, real-clock, with at least one opponent stronger than NGN.
-   - Use Blunder for continuity and Counter/Fruit for transfer.
-   - Do not extrapolate a single-family result as a narrow absolute rating.
+8. Done (2026-06-28, `experiments/2026-06-28-strength-repin.md`): multi-family real-clock re-pin on the LAN box — **NGN 2666 CCRL [2627, 2706]** over 400 games vs Blunder 610/720/740/800 + Counter 3.8 (the stronger-than-NGN cross-family anchor at 2994). Flat vs the Jun-14 2655; correctness reset preserved strength. Cross-family non-transitivity now visible (Blunder ladder rates NGN 2493-2731 with the 2155 rung saturating low; Counter rates 2766; weighted pool 2666). Not extrapolated single-family. `repin.pgn` retained for lossxray.
 
 9. Resume Elo levers after correctness/instrument cleanup:
    - Prefer correctness-adjacent search shape fixes with short gates.
