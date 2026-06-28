@@ -995,6 +995,18 @@ func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
 	return pv
 }
 
+// SearchFixed runs a single fixed-depth search and is a DIAGNOSTIC instrument
+// only (profiling, fixed-depth node counts, cmd/trace_move). Production play uses
+// SearchIterativeDeepening via the UCI loop. It shares alphaBetaPV with the
+// production search, so repetition detection, the per-path extension budget, and
+// stop handling are IDENTICAL to production. It diverges only in the root move
+// loop: it full-windows every root move with no root PVS and no root LMR, so its
+// node counts are LARGER than production's and are NOT comparable as a strength or
+// EBF measure. SearchFixed returns the exact FULL-WIDTH minimax value at the given
+// depth; production's PVS/LMR/aspiration only approximate it (typically within a
+// few cp), so the two agree on the best move and track within search noise but are
+// NOT centipawn-identical (guarded by TestSearchFixedMatchesProductionScore). Do
+// not draw strength conclusions from it.
 func SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
 	ClearStop()
 	return searchFixedUnsafe(pos, depth, timeManager)
@@ -1098,12 +1110,6 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		if alpha >= beta {
 			break
 		}
-	}
-
-	// Workaround: If SearchFixed returns INFINITY but found a move, use a reasonable score
-	if info.BestScore == INFINITY && info.BestMove != EmptyMove {
-		// Use a high positive score to indicate a strong position
-		info.BestScore = 2000
 	}
 
 	return info
