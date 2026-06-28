@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -150,12 +151,31 @@ func newUCIStartingPosition() *Position {
 }
 
 // Run starts the UCI engine main loop
+// syncWriter serializes concurrent writes to the underlying writer. The search
+// goroutine and the main Run loop both emit UCI lines (info / bestmove vs
+// readyok / id ...); without serialization those writes race on the writer (a
+// bytes.Buffer in tests, os.Stdout in production). One lock per whole message
+// keeps lines from interleaving.
+type syncWriter struct {
+	mu sync.Mutex
+	w  io.Writer
+}
+
+func (s *syncWriter) Write(p []byte) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.w.Write(p)
+}
+
 func (uci *UCIEngine) Run(input io.Reader, output io.Writer) {
 	defer GetGlobalCrashHandler().SafeRecover("UCIEngine.Run", map[string]interface{}{
 		"engine_name": uci.engineName,
 		"debug_mode":  uci.debugMode,
 	})
 
+	// Serialize every write so the search goroutine and this loop cannot corrupt
+	// the output channel; hand the wrapped writer to all command handlers.
+	out := &syncWriter{w: output}
 	scanner := bufio.NewScanner(input)
 
 	for scanner.Scan() {
@@ -168,25 +188,36 @@ func (uci *UCIEngine) Run(input io.Reader, output io.Writer) {
 		uci.rawUCILogger.Printf(">>> %s", command)
 
 		if uci.debugMode {
-			fmt.Fprintf(output, "info string received: %s\n", command)
+			fmt.Fprintf(out, "info string received: %s\n", command)
 		}
 
-		// Wrap each command in panic recovery
+		// Wrap each command in panic recovery; handleCommand reports whether the
+		// loop should terminate (the quit command).
+		quit := false
 		func() {
 			defer GetGlobalCrashHandler().SafeRecover("UCIEngine.handleCommand", map[string]interface{}{
 				"command": command,
 				"time":    time.Now().Format(time.RFC3339),
 			})
-			uci.handleCommand(command, output)
+			quit = uci.handleCommand(command, out)
 		}()
+		if quit {
+			break
+		}
 	}
+
+	// The loop has ended (quit command or input EOF): stop and JOIN any in-flight
+	// search so the search goroutine never outlives Run. This is what makes
+	// process-level tests race-clean — no output write or shared-state mutation
+	// happens after Run returns.
+	uci.handleStop(out)
 }
 
 // handleCommand processes UCI commands
-func (uci *UCIEngine) handleCommand(command string, output io.Writer) {
+func (uci *UCIEngine) handleCommand(command string, output io.Writer) (quit bool) {
 	parts := strings.Fields(command)
 	if len(parts) == 0 {
-		return
+		return false
 	}
 
 	cmd := parts[0]
@@ -215,11 +246,13 @@ func (uci *UCIEngine) handleCommand(command string, output io.Writer) {
 		uci.handlePonderHit(output)
 	case "quit":
 		uci.handleQuit(output)
+		return true
 	default:
 		if uci.debugMode {
 			fmt.Fprintf(output, "info string unknown command: %s\n", cmd)
 		}
 	}
+	return false
 }
 
 // handleUCI responds to the uci command
@@ -896,6 +929,14 @@ func (uci *UCIEngine) handleStop(output io.Writer) {
 		case uci.stopChan <- true:
 		default:
 		}
+	}
+	// Join the search goroutine so stop is synchronous: search() clears `searching`
+	// in its defer AFTER its last output write and shared-state update, so once it
+	// reads false the main loop can safely mutate position/timeManager/... (e.g. a
+	// "position" right after "stop"). No-op when no search is running. The atomic
+	// Load/Store pair establishes happens-before, so reads after this are race-free.
+	for uci.searching.Load() {
+		time.Sleep(time.Millisecond)
 	}
 }
 
