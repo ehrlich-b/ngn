@@ -791,7 +791,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					reduction := 0
 					givesCheck := pos.IsInCheck()                                              // we made `move`; side-now-to-move in check == move gave check
 					if SearchToggles.LMR && currentDepth >= LMR_FULL_DEPTH && legalRoot > 4 && // root: only reduce move 5+ (keep best+captures+killers+top-history full-depth)
-						!move.IsCapture() && !rootInCheck && !givesCheck {
+						!move.IsCapture() && move.PromoType() == NoType && !rootInCheck && !givesCheck {
 						d := currentDepth
 						if d > 63 {
 							d = 63
@@ -1598,7 +1598,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 
 		// Futility pruning - skip quiet moves if position is hopeless (but never prune
-		// the TT move or a queen promotion — a queen promo gains ~800cp, far beyond any
+		// the TT move or ANY promotion — a promotion is forcing and material-changing, beyond any
 		// futility margin, so the "this quiet move can't reach alpha" premise is false).
 		// legalTried > 0 guard (F1): never prune before a single legal move has been
 		// searched, else a node whose every move is futile prunes them all, hits
@@ -1608,7 +1608,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// maneuvering moves that hold alpha on closed positions — pruning a killer/
 		// counter there fails the node low and triggers a re-search (the closed-
 		// position tree inflation the EBF probe flagged). Keep searching them.
-		if futilityPrune && !move.IsCapture() && move != ttMove && move.PromoType() != Queen && legalTried > 0 &&
+		if futilityPrune && !move.IsCapture() && move != ttMove && move.PromoType() == NoType && legalTried > 0 &&
 			!IsKillerMove(move, ply) && move != GetCounterMove(GetLastMovePlayed()) {
 			info.FutilityPrunes++
 			continue
@@ -1618,7 +1618,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Only apply in non-PV nodes, not in check, and for quiet moves
 		// Use legalTried (not moveCount) since moveCount includes illegal moves
 		if SearchToggles.LMP && !isPV && !inCheck && depth > 0 && depth < 9 &&
-			!move.IsCapture() && move != ttMove && legalTried > 0 {
+			!move.IsCapture() && move.PromoType() == NoType && move != ttMove && legalTried > 0 {
 			impRow := 0
 			if improving {
 				impRow = 1
@@ -1658,7 +1658,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 
 		// History pruning: skip quiet moves with very bad history at low depths
-		if SearchToggles.HistPrune && !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move != ttMove {
+		if SearchToggles.HistPrune && !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move.PromoType() == NoType && move != ttMove {
 			histScore := GetHistoryScore(move, GetLastMovePlayed(), prev2)
 			if histScore < -1000 && legalTried > 3 { // Very bad history and not early move
 				info.HistPrunes++
@@ -1840,7 +1840,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// PV-aware Late Move Reductions (use legalTried, not moveCount which includes illegal moves)
 			reduction := 0
 			if SearchToggles.LMR && depth >= LMR_FULL_DEPTH && legalTried > LMR_MOVE_THRESHOLD &&
-				!move.IsCapture() && !inCheck && !givesCheck {
+				!move.IsCapture() && move.PromoType() == NoType && !inCheck && !givesCheck {
 
 				// Stockfish-style log-based base reduction; non-PV gets +1
 				d := depth
