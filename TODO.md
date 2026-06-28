@@ -26,7 +26,7 @@ Do not paste raw logs, long narratives, repeated reversals, or multi-page experi
 - Target: climb with classical HCE first. No NNUE before 2800; prefer waiting until 2900 unless an explicit later decision changes this.
 - Main failure mode: speculative search/eval tuning was kept on weak self-play/proxy evidence while correctness and harness bugs remained open.
 - Development priority: correctness and measurement integrity before more Elo hunting.
-- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Active head is Immediate Queue item 4 (promotion safety under forward pruning).
+- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Active head is Immediate Queue item 5 (UCI lifecycle hardening).
 
 ## Why The Reset Happened
 
@@ -117,10 +117,7 @@ If uncertain, prefer a small correctness fix with a direct regression test over 
 
 3. Done (`792f4a3`): `p.EnPassant` is gated at both set-sites (makeMoveHelper double push + ParseFEN) via the existing `canCaptureEnPassant`, so the field invariantly holds only capturable EP squares; a phantom EP no longer splits the hash/repetition signature, and full==incremental stay consistent with no hash.go change. Adjacency gating (Stockfish/Polyglot-consistent): a pinned-but-adjacent EP is still hashed — the test asserts full==incremental there rather than same-as-no-EP. Regression `TestEnPassantHashCapturabilityGate`; perft byte-identical; stale `TestUCIFEN` (asserted the post-1.e4 phantom e3) updated to the gated NoSquare. The internal zobrist is separate from `PolyglotHash`, so opening-book lookups are unaffected.
 
-4. Promotion safety under forward pruning:
-   - Problem: quiet pruning paths may treat underpromotions as ordinary quiet moves.
-   - Target: all promotions are exempt from futility, LMP, history pruning, quiet SEE pruning, and LMR unless a promotion-specific proof says otherwise.
-   - Acceptance: targeted underpromotion tests, plus node/score sanity on standard tactics.
+4. Done (`3e52a54`): all five quiet-move prune/reduce gates that lacked it now carry `move.PromoType() == NoType` — futility (was queen-only `!= Queen`), LMP, history pruning, main LMR, and root LMR; quiet-SEE and quiet-tracking already had it. Move ordering scores underpromotions 70000 (after captures), so they were the exposed case. `TestUnderpromotionKnightForkFound` is a behavioral guard (engine finds the winning knight fork); perft byte-identical (move-gen unchanged), full short+race green. The deep-node exemptions are mechanism-proven (a promotion is forcing, not quiet) rather than red→green: the root searches all moves and a constructible fork is too shallow to be missed by a reduction, so deterministic isolation isn't practical.
 
 5. UCI lifecycle hardening:
    - Problem: `quit` does not terminate the scanner loop; output and mutable engine state are still not owned by a process-level protocol model.
