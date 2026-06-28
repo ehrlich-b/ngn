@@ -26,7 +26,7 @@ Do not paste raw logs, long narratives, repeated reversals, or multi-page experi
 - Target: climb with classical HCE first. No NNUE before 2800; prefer waiting until 2900 unless an explicit later decision changes this.
 - Main failure mode: speculative search/eval tuning was kept on weak self-play/proxy evidence while correctness and harness bugs remained open.
 - Development priority: correctness and measurement integrity before more Elo hunting.
-- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Active head is Immediate Queue item 5 (UCI lifecycle hardening).
+- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Active head is Immediate Queue item 6 (SearchFixed authority).
 
 ## Why The Reset Happened
 
@@ -119,10 +119,7 @@ If uncertain, prefer a small correctness fix with a direct regression test over 
 
 4. Done (`3e52a54`): all five quiet-move prune/reduce gates that lacked it now carry `move.PromoType() == NoType` — futility (was queen-only `!= Queen`), LMP, history pruning, main LMR, and root LMR; quiet-SEE and quiet-tracking already had it. Move ordering scores underpromotions 70000 (after captures), so they were the exposed case. `TestUnderpromotionKnightForkFound` is a behavioral guard (engine finds the winning knight fork); perft byte-identical (move-gen unchanged), full short+race green. The deep-node exemptions are mechanism-proven (a promotion is forcing, not quiet) rather than red→green: the root searches all moves and a constructible fork is too shallow to be missed by a reduction, so deterministic isolation isn't practical.
 
-5. UCI lifecycle hardening:
-   - Problem: `quit` does not terminate the scanner loop; output and mutable engine state are still not owned by a process-level protocol model.
-   - Target: process-level UCI tests for immediate `stop`, repeated `go`, `position` after stop, and `quit`.
-   - Acceptance: race-clean process-level tests; no direct test races on `bytes.Buffer`.
+5. Done (`3218b4d`): `quit` now breaks the scanner loop — `handleCommand` returns a quit flag the `Run` loop checks (red→green `TestUCIRunQuitTerminatesLoop`). `handleStop` joins the search goroutine by polling the atomic `searching` until the searcher clears it (in its defer, after its last write/state update), making stop / position-after-stop / quit synchronous and race-clean; `Run` also stop+joins on loop exit so the search never outlives `Run` (and `go infinite` + EOF now exits cleanly instead of hanging). A `syncWriter` serializes all output writes (search goroutine vs main loop). Four process-level `Run` tests; full short+race ./... clean; real binary verified (clean UCI session, clean quit, clean EOF-mid-search). Polling join chosen over a WaitGroup so go/stop on different goroutines (as TestUCIStop does) stay safe with no existing-test churn.
 
 6. `SearchFixed` authority:
    - Problem: it is still a second root implementation with special behavior and the `INFINITY -> 2000` workaround.
