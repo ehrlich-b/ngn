@@ -125,6 +125,27 @@ func TestUCINewGame(t *testing.T) {
 	}
 }
 
+func TestUCIHashOptionResizesTable(t *testing.T) {
+	savedTT := TranspositionTable
+	defer func() { TranspositionTable = savedTT }()
+
+	engine := NewUCIEngine()
+	var output bytes.Buffer
+
+	engine.handleCommand("setoption name Hash value 1", &output)
+	if engine.hashMB != 1 {
+		t.Fatalf("engine hash setting = %d MB, want 1 MB", engine.hashMB)
+	}
+	if TranspositionTable.Size() != 1 {
+		t.Fatalf("TT size = %d MB, want 1 MB", TranspositionTable.Size())
+	}
+
+	engine.handleCommand("ucinewgame", &output)
+	if TranspositionTable.Size() != 1 {
+		t.Fatalf("ucinewgame reset TT to %d MB, want to preserve 1 MB Hash option", TranspositionTable.Size())
+	}
+}
+
 func TestUCIGo(t *testing.T) {
 	engine := NewUCIEngine()
 	var output bytes.Buffer
@@ -136,22 +157,16 @@ func TestUCIGo(t *testing.T) {
 	// Start search with depth 2 (fast)
 	engine.handleCommand("go depth 2", &output)
 
-	// Give it a moment to search
-	time.Sleep(100 * time.Millisecond)
-
+	// Wait for search to complete
+	for engine.searching.Load() {
+		time.Sleep(10 * time.Millisecond)
+	}
 	response := output.String()
-
-	// Should have search info and bestmove
 	if !strings.Contains(response, "info depth") {
 		t.Error("Should provide search info")
 	}
 	if !strings.Contains(response, "bestmove") {
 		t.Error("Should provide best move")
-	}
-
-	// Wait for search to complete
-	for engine.searching {
-		time.Sleep(10 * time.Millisecond)
 	}
 }
 
@@ -179,7 +194,7 @@ func TestUCIStop(t *testing.T) {
 			t.Error("Search did not stop in reasonable time")
 			return
 		case <-ticker.C:
-			if !engine.searching {
+			if !engine.searching.Load() {
 				return // Success
 			}
 		}
@@ -208,7 +223,7 @@ func BenchmarkUCIGo(b *testing.B) {
 		engine.handleCommand("go depth 1", &output)
 
 		// Wait for search to complete
-		for engine.searching {
+		for engine.searching.Load() {
 			time.Sleep(1 * time.Millisecond)
 		}
 		output.Reset()

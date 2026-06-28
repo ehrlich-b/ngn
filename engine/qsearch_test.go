@@ -62,3 +62,22 @@ func TestQuiescenceInvariants(t *testing.T) {
 		t.Errorf("losing-capture qsearch=%d, want stand-pat %d (should decline QxP)", got, standPat)
 	}
 }
+
+func TestQuiescenceDepthCapStillHandlesCheckmate(t *testing.T) {
+	pos, err := ParseFEN("7k/6Q1/6K1/8/8/8/8/8 b - - 0 1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !pos.IsInCheck() {
+		t.Fatal("test position must have side to move in check")
+	}
+	ClearStop()
+	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+
+	const ply = 6
+	got := quiescenceWithDepth(pos, -INFINITY, INFINITY, ply, newQSearchInfo(), 6)
+	want := -MATE_VALUE + ply
+	if got != want {
+		t.Fatalf("qsearch at cap while in check returned %d, want mate score %d", got, want)
+	}
+}

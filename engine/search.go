@@ -34,6 +34,10 @@ var (
 	EXTENSION_BUDGET        = 24  // Max net extensions on a single root-to-leaf path (anti-explosion)
 )
 
+// stoppedSearchScore is a throwaway value returned only while unwinding a stopped
+// search. Every caller must check info.Stopped before using the returned score.
+const stoppedSearchScore = 0
+
 // TunableParam ties a runtime search parameter to its UCI spin-option metadata.
 type TunableParam struct {
 	Name          string
@@ -576,7 +580,7 @@ type SearchInfo struct {
 	ExtBudgetClamps     uint64 // Paths clamped by the extension budget (explosion lines)
 
 	ExcludedMove Move // Move to exclude during singular search
-	ExcludedPly          int    // ply at which ExcludedMove applies (the singular verification root)
+	ExcludedPly  int  // ply at which ExcludedMove applies (the singular verification root)
 
 	// Repetition detection during search
 	RepStack    [512]uint64 // Stack of Zobrist hashes on current search path
@@ -606,13 +610,11 @@ func SearchIterativeDeepening(pos *Position, maxDepth int, timeManager *TimeMana
 }
 
 func SearchIterativeDeepeningWithCallback(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback) *SearchInfo {
+	ClearStop()
 	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback)
 }
 
 func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback) *SearchInfo {
-	// Clear any stale stop request from a previous search.
-	ClearStop()
-
 	// Advance the age of the transposition table for each search
 	TranspositionTable.AdvanceAge()
 
@@ -782,7 +784,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					// window and reduces late quiet ones. Mirrors the internal PVS+LMR
 					// (search.go ~1746-1837), gentler — root is always PV, so no non-PV/history bumps.
 					reduction := 0
-					givesCheck := pos.IsInCheck() // we made `move`; side-now-to-move in check == move gave check
+					givesCheck := pos.IsInCheck()                                              // we made `move`; side-now-to-move in check == move gave check
 					if SearchToggles.LMR && currentDepth >= LMR_FULL_DEPTH && legalRoot > 4 && // root: only reduce move 5+ (keep best+captures+killers+top-history full-depth)
 						!move.IsCapture() && !rootInCheck && !givesCheck {
 						d := currentDepth
@@ -803,10 +805,20 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					}
 					// Null-window scout at (possibly) reduced depth.
 					score = -alphaBetaPV(pos, currentDepth-1-reduction, 1, -alpha-1, -alpha, false, true, true, info)
+					if info.Stopped {
+						pos.GameUnMakeMove(move, tag, ep, hc)
+						SetLastMovePlayed(savedLast)
+						break
+					}
 					// A reduced scout that beat alpha may have under-counted it: re-verify at
 					// full depth (null window) before trusting it.
 					if reduction > 0 && score > alpha {
 						score = -alphaBetaPV(pos, currentDepth-1, 1, -alpha-1, -alpha, false, true, true, info)
+						if info.Stopped {
+							pos.GameUnMakeMove(move, tag, ep, hc)
+							SetLastMovePlayed(savedLast)
+							break
+						}
 					}
 					// Scout failed high inside the window: full-window re-search (root is PV).
 					if score > alpha && score < beta {
@@ -815,6 +827,9 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				}
 				pos.GameUnMakeMove(move, tag, ep, hc)
 				SetLastMovePlayed(savedLast)
+				if info.Stopped {
+					break
+				}
 
 				info.Nodes++
 
@@ -976,13 +991,11 @@ func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
 }
 
 func SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
+	ClearStop()
 	return searchFixedUnsafe(pos, depth, timeManager)
 }
 
 func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
-	// Clear any stale stop request from a previous search.
-	ClearStop()
-
 	// Allocate buffers once for the entire search tree
 	var moveBuffer [256]Move
 	var captureBuffer [64]Move
@@ -992,6 +1005,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 	info := &SearchInfo{
 		Nodes:         0, // Fresh node count for each depth
 		Depth:         depth,
+		RootDepth:     depth,
 		BestMove:      EmptyMove,
 		BestScore:     -INFINITY,
 		Stopped:       false,
@@ -1036,24 +1050,34 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		}
 
 		savedLast := GetLastMovePlayed()
-		ep, tag, hc, _ := pos.MakeMove(move)
+		ep, tag, hc, _ := pos.GameMakeMove(move)
 		movingColor := move.MovingPiece().Color()
 		if isInCheck(pos, movingColor) {
-			pos.UnMakeMove(move, tag, ep, hc)
+			pos.GameUnMakeMove(move, tag, ep, hc)
 			continue
 		}
 		SetLastMovePlayed(move)
 		info.MoveStack[0] = move
 
 		score := -alphaBetaPV(pos, depth-1, 1, -beta, -alpha, true, true, false, info)
+		if info.Stopped {
+			pos.GameUnMakeMove(move, tag, ep, hc)
+			SetLastMovePlayed(savedLast)
+			break
+		}
 
 		// Mate threat extension: if we found a very high score, search deeper to find mate
 		if score >= MATE_IN_MAX && depth <= 2 {
 			score = -alphaBetaPV(pos, depth+2, 1, -beta, -alpha, true, true, false, info)
+			if info.Stopped {
+				pos.GameUnMakeMove(move, tag, ep, hc)
+				SetLastMovePlayed(savedLast)
+				break
+			}
 			info.Nodes++
 		}
 
-		pos.UnMakeMove(move, tag, ep, hc)
+		pos.GameUnMakeMove(move, tag, ep, hc)
 		SetLastMovePlayed(savedLast)
 		info.Nodes++
 
@@ -1091,7 +1115,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Safety checks - reasonable limits
 	if info.Nodes > 50000000 { // 50M nodes
 		info.Stopped = true
-		return EvaluateForPlayer(&pos.Board, pos.Turn())
+		return stoppedSearchScore
 	}
 
 	// Fixed-node budget (UCI `go nodes`): trip the stop flag when the budget is
@@ -1104,14 +1128,14 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Cheap atomic load; sampled per node is fine.
 	if IsStopRequested() {
 		info.Stopped = true
-		return EvaluateForPlayer(&pos.Board, pos.Turn())
+		return stoppedSearchScore
 	}
 
 	// Check time limit if we have a time manager (now cheap to call frequently)
 	if info.TimeManager != nil {
 		if info.TimeManager.ShouldStopSearch(depth) {
 			info.Stopped = true
-			return EvaluateForPlayer(&pos.Board, pos.Turn())
+			return stoppedSearchScore
 		}
 	}
 
@@ -1254,6 +1278,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		info.RepStackLen--
 		alphaBetaPV(pos, iidDepth, ply, alpha, beta, true, true, cutNode, info)
 		info.RepStackLen++
+		if info.Stopped {
+			return stoppedSearchScore
+		}
 		// Re-probe TT to get the move we just found
 		ttMove, _, _, _, _ = TranspositionTable.Get(hash)
 	}
@@ -1387,6 +1414,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 		pos.UnMakeNullMove(oldEP)
 		SetLastMovePlayed(savedLast)
+		if info.Stopped {
+			return stoppedSearchScore
+		}
 
 		if score >= beta {
 			info.NullMoveCutoffs++
@@ -1440,9 +1470,19 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			SetLastMovePlayed(move)
 
 			score := -quiescence(pos, -probcutBeta, -probcutBeta+1, ply+1, info)
+			if info.Stopped {
+				pos.UnMakeMove(move, tag, ep, hc)
+				SetLastMovePlayed(savedLast)
+				return stoppedSearchScore
+			}
 
 			if score >= probcutBeta {
 				score = -alphaBetaPV(pos, depth-4, ply+1, -probcutBeta, -probcutBeta+1, false, true, !cutNode, info)
+				if info.Stopped {
+					pos.UnMakeMove(move, tag, ep, hc)
+					SetLastMovePlayed(savedLast)
+					return stoppedSearchScore
+				}
 			}
 
 			pos.UnMakeMove(move, tag, ep, hc)
@@ -1726,7 +1766,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			singularBeta := int(ttEval) - 2*depth // singular-margin: depth-scaled (was flat SINGULAR_MARGIN=64); CG/Ethereal/Weiss converge here, NGN was the outlier
 			info.SingularTries++
 			info.ExcludedMove = singularMove
-			info.ExcludedPly = ply // the verification re-searches THIS node's position
+			info.ExcludedPly = ply           // the verification re-searches THIS node's position
 			singularDepth := (depth - 1) / 2 // singular-margin: half-depth verification (was depth-4), convergent
 			if singularDepth < 1 {
 				singularDepth = 1
@@ -1739,6 +1779,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			singularScore := alphaBetaPV(pos, singularDepth, ply, singularBeta-1, singularBeta, false, true, cutNode, info)
 			info.RepStackLen++
 			info.ExcludedMove = EmptyMove
+			if info.Stopped {
+				return stoppedSearchScore
+			}
 
 			// Re-make our move and restore the global to it for children.
 			// The verification re-entry ran at this same ply and overwrote
@@ -1857,6 +1900,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// Search with null window first (not PV)
 			info.NullWindowScouts++
 			score = -alphaBetaPV(pos, reducedDepth, ply+1, -alpha-1, -alpha, false, true, true, info)
+			if info.Stopped {
+				pos.UnMakeMove(move, tag, ep, hc)
+				SetLastMovePlayed(savedLast)
+				return stoppedSearchScore
+			}
 
 			// LMR re-search (C4): a reduced search that beats alpha may have
 			// under-counted the move, so re-verify it at full depth with the null
@@ -1868,12 +1916,22 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			if reduction > 0 && score > alpha {
 				info.LMRReSearches++
 				score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, true, !cutNode, info)
+				if info.Stopped {
+					pos.UnMakeMove(move, tag, ep, hc)
+					SetLastMovePlayed(savedLast)
+					return stoppedSearchScore
+				}
 			}
 			// PVS full-window re-search: only a PV node has a window wider than the null
 			// window, so only there does an in-window score need its exact value.
 			if isPV && score > alpha && score < beta {
 				info.PVReSearches++
 				score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, false, info)
+				if info.Stopped {
+					pos.UnMakeMove(move, tag, ep, hc)
+					SetLastMovePlayed(savedLast)
+					return stoppedSearchScore
+				}
 			}
 		}
 
@@ -1881,6 +1939,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Restore predecessor for the next sibling (and for the caller if we
 		// return via a beta cutoff or loop exit below).
 		SetLastMovePlayed(savedLast)
+		if info.Stopped {
+			return stoppedSearchScore
+		}
 
 		info.Nodes++
 
@@ -2027,12 +2088,10 @@ func quiescence(pos *Position, alpha int, beta int, ply int, info *SearchInfo) i
 }
 
 func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *SearchInfo, qDepth int) int {
-	if d := ply + qDepth; d > info.SelDepth {
-		info.SelDepth = d
+	if ply > info.SelDepth {
+		info.SelDepth = ply
 	}
-	// Prevent infinite recursion - reduce depth limit for stability
-	if qDepth >= 6 { // More conservative quiescence depth
-		info.QDepthCapHits++
+	if ply >= MaximumDepth {
 		return EvaluateForPlayerCached(pos)
 	}
 
@@ -2044,7 +2103,18 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// External stop request - bail out without searching deeper.
 	if IsStopRequested() {
 		info.Stopped = true
-		return EvaluateForPlayer(&pos.Board, pos.Turn())
+		return stoppedSearchScore
+	}
+
+	// Node-in-check: read the maintained InCheck tag before the q-depth cap.
+	// Stand-pat/static truncation is illegal while the side to move is in check.
+	inCheck := pos.IsInCheck()
+
+	// Prevent infinite capture recursion. In-check nodes must still search evasions;
+	// the cap applies only once the line reaches a non-check position.
+	if qDepth >= 6 && !inCheck {
+		info.QDepthCapHits++
+		return EvaluateForPlayerCached(pos)
 	}
 
 	// TT cutoff probe. Qsearch is depth 0; any cached entry at depth >= 0
@@ -2093,11 +2163,6 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		qframe = new(searchFrame)
 	}
 
-	// Node-in-check: read the maintained InCheck tag rather than rescanning
-	// (N2, node-identical) — qsearch is only entered from alphaBetaPV (same pos)
-	// or recursively after a capture make (tag set by makeMoveHelper).
-	inCheck := pos.IsInCheck()
-
 	// In-check branch: must search all evasions, stand-pat is illegal here.
 	if inCheck {
 		moveBuffer := qframe.moveBuffer[:]
@@ -2128,6 +2193,9 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 
 			score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
 			pos.UnMakeMove(move, tag, ep, hc)
+			if info.Stopped {
+				return stoppedSearchScore
+			}
 
 			if score > bestScore {
 				bestScore = score
@@ -2258,6 +2326,9 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 
 		score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
 		pos.UnMakeMove(move, tag, ep, hc)
+		if info.Stopped {
+			return stoppedSearchScore
+		}
 
 		if score > bestScore {
 			bestScore = score

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -51,13 +52,14 @@ func TryLoadDefaultBook() {
 // UCI Engine represents the UCI interface for the chess engine
 type UCIEngine struct {
 	position         *Position
-	searching        bool
+	searching        atomic.Bool
 	stopChan         chan bool
 	debugMode        bool
 	engineName       string
 	engineAuthor     string
 	version          string
 	timeManager      *TimeManager
+	hashMB           int
 	movesPlayed      int
 	lastScore        int
 	debugLogger      *log.Logger
@@ -105,13 +107,13 @@ func NewUCIEngine() *UCIEngine {
 
 	return &UCIEngine{
 		position:         newUCIStartingPosition(),
-		searching:        false,
 		stopChan:         make(chan bool, 1),
 		debugMode:        false,
 		engineName:       "ngn",
 		engineAuthor:     "ngn team",
 		version:          "0.1.0",
 		timeManager:      NewTimeManager(),
+		hashMB:           DEFAULT_CACHE_SIZE,
 		movesPlayed:      0,
 		lastScore:        0,
 		debugLogger:      logger,
@@ -297,7 +299,17 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 			}
 		}
 	case "hash":
-		// TODO: Implement hash table size adjustment
+		mb, err := strconv.Atoi(optionValue)
+		if err != nil {
+			break
+		}
+		if mb < 1 {
+			mb = 1
+		} else if mb > 1024 {
+			mb = 1024
+		}
+		uci.hashMB = mb
+		TranspositionTable = NewCache(mb)
 	case "threads":
 		// TODO: Implement multi-threading
 	default:
@@ -343,7 +355,7 @@ func (uci *UCIEngine) handleRegister(args []string, output io.Writer) {
 func (uci *UCIEngine) handleNewGame(output io.Writer) {
 	uci.position = newUCIStartingPosition()
 	// Clear transposition table for new game
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	TranspositionTable = NewCache(uci.hashMB)
 	// Clear history table for new game
 	ClearHistoryTable()
 	// Clear killer moves for new game
@@ -435,12 +447,16 @@ func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
 	if uci.debugMode {
 		fmt.Fprintf(output, "info string handleGo called\n")
 	}
-	if uci.searching {
+	if uci.searching.Load() {
 		uci.debugLogger.Println("Already searching, returning")
 		if uci.debugMode {
 			fmt.Fprintf(output, "info string already searching, returning\n")
 		}
 		return // Already searching
+	}
+	ClearStop()
+	if !uci.searching.CompareAndSwap(false, true) {
+		return
 	}
 
 	params := SearchParams{
@@ -553,16 +569,15 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 		"params":       params,
 		"position":     GenerateFEN(uci.position),
 		"moves_played": uci.movesPlayed,
-		"searching":    uci.searching,
+		"searching":    uci.searching.Load(),
 	})
 
 	uci.debugLogger.Printf("search() function started with params: %+v", params)
 	if uci.debugMode {
 		fmt.Fprintf(output, "info string search() function started\n")
 	}
-	uci.searching = true
 	defer func() {
-		uci.searching = false
+		uci.searching.Store(false)
 		uci.debugLogger.Println("search() function completed")
 	}()
 
@@ -736,7 +751,7 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 		}
 
 		// Run the search - this handles progressive TT building and aspiration windows internally
-		info := SearchIterativeDeepeningWithCallback(uci.position, maxDepth, uci.timeManager, depthCallback)
+		info := searchIterativeDeepeningUnsafe(uci.position, maxDepth, uci.timeManager, depthCallback)
 
 		uci.debugLogger.Printf("SearchIterativeDeepeningWithCallback completed: depth=%d, bestMove=%v, bestScore=%d, nodes=%d",
 			info.Depth, info.BestMove, info.BestScore, info.Nodes)
@@ -872,7 +887,7 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 
 // handleStop handles the stop command
 func (uci *UCIEngine) handleStop(output io.Writer) {
-	if uci.searching {
+	if uci.searching.Load() {
 		// Wire stop into the recursive search via the global stop flag, in
 		// addition to the channel that the depth callback drains. The
 		// depth callback alone cannot interrupt a running iteration.
@@ -891,7 +906,7 @@ func (uci *UCIEngine) handlePonderHit(output io.Writer) {
 
 // handleQuit handles the quit command
 func (uci *UCIEngine) handleQuit(output io.Writer) {
-	if uci.searching {
+	if uci.searching.Load() {
 		uci.handleStop(output)
 	}
 	// The main loop should exit after this
