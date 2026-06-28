@@ -22,11 +22,11 @@ Do not paste raw logs, long narratives, repeated reversals, or multi-page experi
 
 ## Current State
 
-- Strength estimate: about 2655 CCRL blitz equivalent from the clean Jun-14 Blunder-family pin. The Jun-21 2716 read is useful evidence that NGN is above Blunder 8.0.0, but it is confounded and still single-family.
+- Strength estimate: **2666 CCRL, 95% CI [2627, 2706]** from the 2026-06-28 multi-family real-clock re-pin (Blunder ladder + Counter 3.8) — supersedes the Jun-14 single-family 2655. The cross-family perf trend (weak anchors saturate low; Counter rates NGN 2766) hints the true number sits in the upper half (~2690-2730).
 - Target: climb with classical HCE first. No NNUE before 2800; prefer waiting until 2900 unless an explicit later decision changes this.
 - Main failure mode: speculative search/eval tuning was kept on weak self-play/proxy evidence while correctness and harness bugs remained open.
 - Development priority: correctness and measurement integrity before more Elo hunting.
-- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Items 2-8 are all DONE. Item 8 (strength re-pin) RESULT: **NGN 2666 CCRL, 95% CI [2627, 2706]** — multi-family (Blunder ladder 610/720/740/800 + Counter 3.8/2994) real-clock `-tc 120+1`, 400 games on the LAN 9800X3D (`experiments/2026-06-28-strength-repin.md`). FLAT vs the Jun-14 single-family pin (2655 [2606,2704]) ⇒ the correctness reset + items 2-6 PRESERVED strength while the instrument is now trustworthy (multi-family, ±40 CI, real clock, cross-family non-transitivity now visible). Active head is **item 9 (resume Elo levers)** — the first real "make elo higher" work, now on a clean engine + trustworthy instrument. NGN+gauntlet+anchors are cross-compiled to windows/amd64 v3 and staged at `~\ngn\repin\` on the box (the re-pin pipeline is now wired); `repin.pgn` there has all 400 games for lossxray when picking the first lever.
+- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Items 2-8 are all DONE. Item 8 (strength re-pin) RESULT: **NGN 2666 CCRL, 95% CI [2627, 2706]** — multi-family (Blunder ladder 610/720/740/800 + Counter 3.8/2994) real-clock `-tc 120+1`, 400 games on the LAN 9800X3D (`experiments/2026-06-28-strength-repin.md`). FLAT vs the Jun-14 single-family pin (2655 [2606,2704]) ⇒ the correctness reset + items 2-6 PRESERVED strength while the instrument is now trustworthy (multi-family, ±40 CI, real clock, cross-family non-transitivity now visible). Item 9 (resume Elo levers) is IN PROGRESS: first lever = **mop-up endgame eval**, diagnosed from the re-pin (162/400 games were 50-move/max-move shuffle-draws because NGN's entire endgame eval was DEAD CODE — K+R-vs-K read a flat +583 with no progress gradient). A clean symmetric mop-up term is wired in (UNCOMMITTED working tree: `eval.go` mopUpEval + `evaluateUnsafe` wiring + `texel_gradient` Fixed lump; NGN now converts K+R-vs-K to mate-in-9, full short+race suite green, eval-regression baselines regenerated). Verdict IN FLIGHT: self-play SPRT NEW-vs-base `2dadef8` on the box (fixed-nodes 128k, `experiments/2026-06-28-mopup-sprt.md`) — commit the mop-up iff KEEP, then a follow-up gauntlet to show the number moved off 2666. Box staging: `~\ngn\repin\` (gauntlet+anchors, `repin.pgn` for lossxray) and `~\ngn\sprt\` (ngn_new/ngn_base/sprt).
 
 ## Why The Reset Happened
 
@@ -127,10 +127,10 @@ If uncertain, prefer a small correctness fix with a direct regression test over 
 
 8. Done (2026-06-28, `experiments/2026-06-28-strength-repin.md`): multi-family real-clock re-pin on the LAN box — **NGN 2666 CCRL [2627, 2706]** over 400 games vs Blunder 610/720/740/800 + Counter 3.8 (the stronger-than-NGN cross-family anchor at 2994). Flat vs the Jun-14 2655; correctness reset preserved strength. Cross-family non-transitivity now visible (Blunder ladder rates NGN 2493-2731 with the 2155 rung saturating low; Counter rates 2766; weighted pool 2666). Not extrapolated single-family. `repin.pgn` retained for lossxray.
 
-9. Resume Elo levers after correctness/instrument cleanup:
-   - Prefer correctness-adjacent search shape fixes with short gates.
-   - Speculative search/eval heuristics must meet the decision table.
-   - Speed work must prove identity and repeatable wall-time gain.
+9. Resume Elo levers (IN PROGRESS) on the now-trustworthy instrument:
+   - DOING: mop-up endgame eval. The re-pin's 162/400 shuffle-draws traced to NGN's endgame eval being dead code (flat K+R-vs-K score, no conversion gradient). Clean symmetric mop-up wired in (uncommitted); KR-vs-K now mates; verdict SPRT in flight (`experiments/2026-06-28-mopup-sprt.md`). Commit iff KEEP, then gauntlet to re-pin off 2666.
+   - Next conversion levers if mop-up keeps: general endgame technique beyond bare-king (KPvK, R+P), then the counter-gap shortlist (time-mgmt clock usage, endgame draw-scaling).
+   - Prefer correctness-adjacent search shape fixes with short gates. Speculative search/eval heuristics must meet the decision table. Speed work must prove identity and repeatable wall-time gain.
 
 ## Instrument Guide
 
