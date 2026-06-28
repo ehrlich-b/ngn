@@ -26,7 +26,7 @@ Do not paste raw logs, long narratives, repeated reversals, or multi-page experi
 - Target: climb with classical HCE first. No NNUE before 2800; prefer waiting until 2900 unless an explicit later decision changes this.
 - Main failure mode: speculative search/eval tuning was kept on weak self-play/proxy evidence while correctness and harness bugs remained open.
 - Development priority: correctness and measurement integrity before more Elo hunting.
-- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Items 2-6 (the correctness queue) are all DONE. Active head is Immediate Queue item 7 (measurement cleanup), then item 8 (strength re-pin — the first trustworthy Elo number, runnable on the LAN box).
+- Current local state: reset patch committed (engine P0s + regression tests + Makefile in `ba39088`, docs/evidence reset in the following commit). Baseline suite green at commit time. Items 2-7 (correctness queue + measurement plumbing) are all DONE. Active head is item 8 (strength re-pin — the first trustworthy Elo number on the fixed engine; multi-family gauntlet, runnable on the LAN 9800X3D). Item 8 is resource-using (builds anchors + hours of games) and is paused for Bryan's go-ahead on approach. Item 9 (resume Elo levers) follows.
 
 ## Why The Reset Happened
 
@@ -123,10 +123,7 @@ If uncertain, prefer a small correctness fix with a direct regression test over 
 
 6. Done (`748bb4b`): chose the diagnostic-only path (SearchFixed is used only by perf/profiling tests + cmd/trace_move, never production). Documented: it shares alphaBetaPV with production, so repetition / extension-budget / stop handling are identical by construction; it diverges only in the root loop (full-width, no PVS/LMR) → larger node counts (not a strength/EBF measure) and the EXACT full-width minimax score that production's PVS/LMR only approximate (observed 4cp gap). Removed the dead `INFINITY->2000` workaround (suite green confirms it never fired; production runs the same full-window search without it). `TestSearchFixedMatchesProductionScore` asserts move parity + score within a 25cp tolerance. Out-of-scope leftover: the unused `alphaBeta` wrapper in search.go is pre-existing dead code.
 
-7. Measurement cleanup:
-   - Add a tracked manifest for the default opening set and any verdict corpus.
-   - Add a lightweight result manifest template or JSONL ledger under `experiments/`.
-   - Require A/A preflight for any real-clock concurrent self-play configuration.
+7. Done (`918bed5`): `experiments/corpus_manifest.md` pins the gitignored opening set (5000 lines, sha256 `974e4b5...`) plus the tracked acpl/ratings corpora to checksums; `experiments/RUN_RECORD_TEMPLATE.md` is the structured (YAML) per-run record with a required `aa_preflight` field; CLAUDE.md Run Records now binds both and the A/A-preflight requirement for real-clock concurrent verdicts.
 
 8. Strength re-pin, only after items 2-6 are materially clean:
    - Multi-family, real-clock, with at least one opponent stronger than NGN.
