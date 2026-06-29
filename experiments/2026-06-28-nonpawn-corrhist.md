@@ -32,7 +32,20 @@ candidate:     ngn_corr_half.exe (HEAD + nonpawn-only @ 3000, NO minor) SHA256 d
 base:          ngn_base.exe (HEAD engine == 2dadef8) — same base as the full-weight run, so the only delta vs that -9.5 result is the weight
 command:       sprt.exe -new .\ngn_corr_half.exe -base .\ngn_base.exe -tc 10+0.1 -concurrency 8 -lowpower=false -openings sprt_openings.txt -elo0 0 -elo1 6 -maxgames 3000 -mingames 400
 decision_rule: clear positive (CI excludes 0 +) -> KEEP nonpawn@3000, then re-stage minor on it. ~0/no-op or still-negative -> SHELVE the non-pawn corrector (no net benefit) and stop the corrhist stack; box goes idle for an attended depth lever (do not launch one unattended).
-status:        LIVE
-result:        PENDING
-verdict:       PENDING
+status:        DONE (ran to maxgames; the held ssh dropped at exit 255 but the SPRT survived in Session 0 and completed).
+result:        3000 games, W-D-L 587-1793-620, Penta Elo -3.8 95% CI [-11, +4] (pLLR -2.88, near the H0 bound). The early +16.8 @ G62 was noise.
+verdict:       SHELVE. Halving moved it up from -9.5 to -3.8 (over-correction was partly real) but it is still NOT positive — no net benefit at either weight. Per the predeclared rule (~0/still-negative -> shelve), the non-pawn corrector is rejected. Code reverted to clean HEAD (preserved: scratchpad/nonpawn.patch, nonpawn_plus_minor.patch; binaries ngn_corr/ngn_corr_half/ngn_corr2 on box).
 ```
+
+## Lane closure: additive eval-correction is DOWNSTREAM of the search fix
+
+Two clean game verdicts (nonpawn @6245 = -9.5, @3000 = -3.8) say the correction-history ADD does
+not move NGN's number. Principled reason, not bad luck: corrhist learns from `(search result -
+static eval)`, so a SEARCH-BOUND engine is a poor teacher — the corrector mostly learns noise, worst
+on the non-pawn key (changes almost every move). This matches `project_3000_mechanism` ("conthist
+pays >=3200 not 3000"): advanced history/correction techniques pay off only once the search is
+deep enough to teach them. So the minor/major/continuation corrhist follow-ons are NOT worth testing
+now (same poor-teacher problem); the corrhist lane is CLOSED until the search-bound is fixed. The
+real lever remains DEPTH (the +185/2ply proof), which needs attended work (singular double-ext touches
+the search.go:1821 anti-explosion guardrail — see the night runbook).
+
