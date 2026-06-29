@@ -18,7 +18,7 @@ machine:       LAN 9800X3D (8c/16t), native Windows
 openings:      sprt_openings sha256 974e4b5...
 suite:         go test -short ./engine green; depth-at-400K +~0.3 ply (crude)
 decision_rule: KEEP if real-clock self-play shows NEW ≥ BASE with a positive/non-regressing trend (search-efficiency change; self-play real-clock is the matching gate — unlike the mop-up, this is general, not endgame-vs-weaker). REJECT on a measured regression. If flat, retune the /2048 divisor (smaller = more aggressive) before shelving. Gauntlet-confirm an absolute move if KEEP.
-result:        PENDING
-verdict:       PENDING
-next:          if KEEP, fold in more LMR inputs (TT-PV, cutNode) + the joint-SPSA; if flat/regress, retune divisor then move to the next efficiency lever.
+result:        /2048 divisor = FLAT (-8 Elo [-44,+28] @ 358g; int-trunc made it a near-no-op for typical history magnitudes). Retuned /256 (active) = REGRESSION (-45 Elo [-88,-2] @ 254g; ±2 swing over-reduces).
+verdict:       REJECT. Continuous history-LMR scaling is worse both ways — the crude ±1-at-thresholds was already near-optimal. Reverted to HEAD. This is the predicted local-optimum wall: single-axis LMR moves regress in both directions.
+next:          Single-axis search retunes are exhausted (this + the memory int16 both failed today). Escape the local optimum via a COORDINATED move (joint-SPSA over the 11 margin params) or a STRUCTURAL ADD (more correction histories — targets the proven eval-optimism/horizon losses, additive so not a single-knob wall).
 ```
