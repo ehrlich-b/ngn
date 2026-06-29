@@ -53,6 +53,24 @@ Working tree right now = HEAD-engine + non-pawn + minor (the RUN-2 candidate sou
 - major corrhist (RUN 3, KEEP branch): mirror the minor block in moveorder.go keyed on
   `pieces[WhiteRook]|pieces[WhiteQueen]` / black; new constant pair; wire 3 sites in search.go; build ngn_corr3.exe.
 
+## If the corrhist class shelves — NEXT LEVER is ATTENDED (do not run unattended)
+
+Per the search-bound proof the binding constraint is DEPTH/EBF, so the next lever is a depth add.
+Best candidate: **singular DOUBLE-extension** (search.go ~1808). Today's full-weight nonpawn already
+shows the additive eval-correction lane is small/negative for NGN; depth is the proven lever instead.
+Implementation notes from reading the code (why it is NOT unattended-safe):
+- Current: `if singularScore < singularBeta { nextDepth++ }`, then a load-bearing guardrail
+  `if nextDepth > depth+1 { nextDepth = depth+1 }` (search.go:1821) caps a node at +1.
+- A real double-ext = when singular by a LARGE margin (`singularScore < singularBeta - M`), `nextDepth += 2`
+  AND raise that guardrail to +2 for this case — i.e. it MODIFIES the anti-explosion invariant.
+  EXTENSION_BUDGET (search.go:1836) stays the cumulative-path safety net.
+- Risk: tree explosion / search instability; the suite catches only crashes, not over-deep waste. Gate on
+  SPRT flag-outs==0 AND non-regression. NGN already removed the recapture extension as its #1 explosion source,
+  so this area is delicate — needs eyes on the node-count + flag-out behavior, not an overnight fire-and-forget.
+
+If RUN 2 (halve) shelves: record it, leave the box IDLE, hand this depth-lever spec to Bryan. Do NOT
+manufacture low-EV corrhist key/magnitude variants just to keep the box warm — that is the "suck" to avoid.
+
 ## Guardrails
 
 - One behavior change per run, candidate vs IMMEDIATE base. No stacking two untested changes.
