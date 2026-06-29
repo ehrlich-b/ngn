@@ -18,7 +18,21 @@ candidate:     working tree (moveorder.go nonPawnCorrectionHistory + search.go w
 command:       sprt.exe -new .\ngn_corr.exe -base .\ngn_base.exe -tc 10+0.1 -concurrency 8 -lowpower=false -openings sprt_openings.txt -elo0 0 -elo1 6 -maxgames 3000 -mingames 400
 local_checks:  go build OK; go test -short ./engine GREEN (eval symmetry holds — correction is in search, not Evaluate); depth-14 search sane.
 decision_rule: KEEP if real-clock self-play shows NEW >= BASE non-regressing. If it REGRESSES, first suspect over-correction (pawn+nonpawn each ±49cp, summed ±98) — halve the nonpawn weight (6245/131072 -> ~3000/131072) and retry before shelving. Then commit-or-revert.
-status:        STAGED — box is busy with the joint-SPSA; run this the moment the box frees (and decide base = HEAD vs SPSA-tuned params depending on the SPSA verdict).
+status:        DONE (real-clock self-play on the box, 2026-06-28→29).
+result:        1569 games, W-D-L 291-945-333, Penta Elo -9.5 95% CI [-20, +1] (pLLR -2.86), trinomial -9.3 [-26,+8], 0 flag-outs. SPRT stopped H0-ACCEPTED (not better).
+verdict:       REGRESS (mild but consistent: point estimate -9.5, more L than W over 1569g). Cause = over-correction: pawn(±49) + nonpawn(±49) summed ±98cp, and the non-pawn key changes almost every move so it learns noisier signal. Per the decision rule, halve-retry launched (below) before shelving.
+```
+
+## Follow-on: halve the non-pawn weight (predeclared retry)
+
+```yaml
+id:            2026-06-28-nonpawn-corrhist-half
+hypothesis:    if the -9.5 is summed-magnitude over-correction, weight 6245->3000 (nonpawn ±49->±23, summed ±72) moves it toward 0/positive
+candidate:     ngn_corr_half.exe (HEAD + nonpawn-only @ 3000, NO minor) SHA256 d5dc268a25bc309ac52e98f556f748455bccc37a4d1348d70174cc3ccb67a339, on box
+base:          ngn_base.exe (HEAD engine == 2dadef8) — same base as the full-weight run, so the only delta vs that -9.5 result is the weight
+command:       sprt.exe -new .\ngn_corr_half.exe -base .\ngn_base.exe -tc 10+0.1 -concurrency 8 -lowpower=false -openings sprt_openings.txt -elo0 0 -elo1 6 -maxgames 3000 -mingames 400
+decision_rule: clear positive (CI excludes 0 +) -> KEEP nonpawn@3000, then re-stage minor on it. ~0/no-op or still-negative -> SHELVE the non-pawn corrector (no net benefit) and stop the corrhist stack; box goes idle for an attended depth lever (do not launch one unattended).
+status:        LIVE
 result:        PENDING
 verdict:       PENDING
 ```
