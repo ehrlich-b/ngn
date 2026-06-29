@@ -121,3 +121,16 @@ cache — node-identical, +5-10%, gated on a test rig Bryan must enable). See TO
 3. Eval micro-opts (pprof -list the hot terms) — node-identical compute/recompute reductions. NEXT.
 4. isInCheck redundant-recompute — cache/pass-down node-identically.
 5. make-unmake / movegen / SEE micro-opts.
+
+## 2026-06-29 — eval-cache SIZE swept (node-identical), bits=20 is tuned — DUD both ways
+Fresh pprof (BenchmarkSearchProfile, depth 11): top self-time = TT `LoadKey` 10.8% (miss latency — already
+prefetched), `selectNextMove` 9.3% (optimal hoisted selection sort), `scoreMovesIntoBuffer` 8.4%, eval subtree
+24.7% cum. No clean code win — re-confirms "node-identical lane THOROUGHLY TAPPED."
+The one untested knob was the EVAL cache size (`evalCacheBits`, eval.go:2782; full-key check ⇒ transparent ⇒
+resize is node-identical, proven: depth-16 PV + node count identical 20↔22↔18). Box (9800X3D) fixed-nodes 8M,
+4 interleaved trials each, all 7223018 nodes (node-identity re-proven on box):
+- bits=22 (64MB): median 4428 ms vs base 4311 ms = **-2.7%** (bigger = locality/L3-pressure dud, the documented rule).
+- bits=18 (4MB):  median 4311 ms vs base 4318 ms = **+0.16% (within ~14-33 ms spread = NEUTRAL)**.
+⇒ bits=20 (16MB) is at the optimum; size is not a lever. Binaries ngn_ec22/ngn_ec18 on box. Consistent with the
+v2 rule: enlarging a cache adds memory work the OoO core loses on; shrinking recovers locality but loses hit-rate,
+net flat. The remaining per-node lever is still LARGE PAGES (TLB) — needs a Bryan-enabled test rig.
