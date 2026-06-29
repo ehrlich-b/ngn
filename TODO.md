@@ -139,6 +139,8 @@ If uncertain, prefer a small correctness fix with a direct regression test over 
      - DEPTH lever: singular double-extension (search.go:1808) — touches the search.go:1821 anti-explosion guardrail, needs eyes on node-count/flag-out behavior, not fire-and-forget (spec in `experiments/2026-06-28-night-runbook.md`).
      - Strategic: corrhist being downstream of search answers Bryan's original question — a search-bound engine is a poor teacher for ANY eval-side add (HCE corrhist now, NNUE later); fix search depth FIRST (memory `project_search_bound_proven`).
    - Measurement gotcha: naive `printf|ngn` stops early on EOF — hold stdin open (Mac-side `(printf ...; sleep N) | ssh box engine.exe`). Box binaries staged in `~\ngn\sprt\` (ngn_base/corr/corr_half/corr2/ec22/ec18); no live workers (clean).
+   - FULL "everything we've tried" inventory: `experiments/TRIED-LEDGER.md` (read before proposing any lever — avoids re-grinding). The pattern: every Elo gain was a CORRECTNESS fix; every speculative eval/search/tuning play was null or negative.
+   - NEXT LEVER (2026-06-29 tree-shape diagnostic, `experiments/2026-06-29-tree-shape.md`): move-ordering precision. NGN under-reduces (LMR re-search ~1.1%) but can't reduce more because ordering (FMC ~84% vs ~90% elite) lets aggressive reduction silently over-reduce mis-ordered good moves (re-search only catches alpha-BEATERS). Lever = raise FMC via the history formula/weighting, using FMC as a FAST deterministic proxy (no games), SPRT-confirm winners; then re-test aggressive LMR. Parallel quick win = LARGE PAGES (+5-15, node-identical, needs box admin).
 
 ## Instrument Guide
 
