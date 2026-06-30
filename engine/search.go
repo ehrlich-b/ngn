@@ -555,6 +555,9 @@ type SearchInfo struct {
 	CutByKiller         uint64
 	CutByCounter        uint64
 	CutByQuietHist      uint64
+	CutMissByClass      [6][3]uint64 // Non-first beta cutoffs (ordering misses) by [class][band];
+	//                                  class 0..5 = TT/capture/promo/killer/counter/quiet-hist,
+	//                                  band 0..2 = the cut landed on move 2 / move 3 / move 4+.
 	RFPPrunes           uint64 // Reverse-futility returns (was uncounted)
 	NullMoveTries       uint64 // Null-move attempts (failed nulls are pure overhead)
 	SEECapPrunes        uint64 // Captures pruned by SEE in the move loop (was uncounted)
@@ -1984,19 +1987,38 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			if legalTried == 1 {
 				info.FmcBand[db]++
 			}
+			var cutClass int
 			switch {
 			case ttHit && move == ttMove:
+				cutClass = 0
 				info.CutByTT++
 			case move.IsCapture():
+				cutClass = 1
 				info.CutByCapture++
 			case move.PromoType() != NoType:
+				cutClass = 2
 				info.CutByPromo++
 			case IsKillerMove(move, ply):
+				cutClass = 3
 				info.CutByKiller++
 			case move == GetCounterMove(savedLast):
+				cutClass = 4
 				info.CutByCounter++
 			default:
+				cutClass = 5
 				info.CutByQuietHist++
+			}
+			// Among NON-first cutoffs (the ordering misses), record what class
+			// of move actually deserved to be first, by how late it landed.
+			// Diagnostic only — never read by search (node-identity preserved).
+			if legalTried >= 2 {
+				band := 2
+				if legalTried == 2 {
+					band = 0
+				} else if legalTried == 3 {
+					band = 1
+				}
+				info.CutMissByClass[cutClass][band]++
 			}
 			// Update history table for quiet moves that cause beta cutoffs
 			UpdateHistoryTable(move, savedLast, prev2, depth)

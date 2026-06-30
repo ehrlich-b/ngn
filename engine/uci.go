@@ -806,6 +806,16 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 				info.MoveLoopNodes, info.TTMoveListed, info.BetaCutoffs, info.FirstMoveCutoffs,
 				info.CutIdxHist[0], info.CutIdxHist[1], info.CutIdxHist[2], info.CutIdxHist[3], info.CutIdxHist[4],
 				info.CutTriedSum, info.CutByTT, info.CutByCapture, info.CutByPromo, info.CutByKiller, info.CutByCounter, info.CutByQuietHist))
+			// Class of the cutting move among NON-first cutoffs (ordering misses),
+			// split move2/move3/move4+ — says which class deserved to be ordered first.
+			uci.sendUCIMessage(output, fmt.Sprintf(
+				"info string sd_miss m2/m3/m4+ tt %d/%d/%d cap %d/%d/%d promo %d/%d/%d kill %d/%d/%d cntr %d/%d/%d qh %d/%d/%d",
+				info.CutMissByClass[0][0], info.CutMissByClass[0][1], info.CutMissByClass[0][2],
+				info.CutMissByClass[1][0], info.CutMissByClass[1][1], info.CutMissByClass[1][2],
+				info.CutMissByClass[2][0], info.CutMissByClass[2][1], info.CutMissByClass[2][2],
+				info.CutMissByClass[3][0], info.CutMissByClass[3][1], info.CutMissByClass[3][2],
+				info.CutMissByClass[4][0], info.CutMissByClass[4][1], info.CutMissByClass[4][2],
+				info.CutMissByClass[5][0], info.CutMissByClass[5][1], info.CutMissByClass[5][2]))
 			uci.sendUCIMessage(output, fmt.Sprintf(
 				"info string sd_band fmc/bcut d12 %d/%d d35 %d/%d d69 %d/%d d10 %d/%d",
 				info.FmcBand[0], info.BcutBand[0], info.FmcBand[1], info.BcutBand[1],
