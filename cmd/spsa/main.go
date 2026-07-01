@@ -19,6 +19,7 @@
 //	./build/spsa -selftest                       # math check, seconds, no games
 //	./build/spsa -iters 20 -tc 10+0.1            # wiring sanity, ~20 min
 //	./build/spsa -iters 12000 -tc 10+0.1         # campaign (multi-day bg)
+//	./build/spsa -iters 3000 -pairs 4 -tc 5+0.05 # parallel campaign (K=4 pairs/iter, ~4x faster)
 //	./build/spsa -resume                         # continue a campaign from -out
 package main
 
@@ -33,6 +34,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ehrlich-b/ngn/engine"
@@ -62,6 +64,7 @@ func main() {
 	tc := flag.String("tc", "10+0.1", "real clock SECONDS[+INC] (e.g. 10+0.1); search params are node-spending so real clock is the correct ruler")
 	iters := flag.Int("iters", 12000, "SPSA iterations (each = one color-balanced game pair unless -single)")
 	single := flag.Bool("single", false, "one game per iteration instead of a color-balanced pair (2x faster, noisier gradient)")
+	pairs := flag.Int("pairs", 1, "concurrent perturbations averaged per iteration — parallelizes wall-clock K× and cuts gradient variance ~1/K (T8 campaign uses 4); 1 = the original sequential SPSA (identical rng stream)")
 	openingsFile := flag.String("openings", "", "opening book (one move-seq per line); default = built-in set")
 	outFile := flag.String("out", "output/spsa.jsonl", "checkpoint/history JSONL (also the -resume source)")
 	resume := flag.Bool("resume", false, "resume theta + iteration from the last checkpoint in -out")
@@ -73,6 +76,7 @@ func main() {
 	selftest := flag.Bool("selftest", false, "validate the SPSA math against a synthetic quadratic objective (no games), then exit")
 	flag.Parse()
 
+	K := max(1, *pairs)
 	rng := rand.New(rand.NewSource(*seed))
 
 	// Build the parameter vector from the engine registry (single source of truth).
@@ -110,7 +114,7 @@ func main() {
 	}
 
 	if *selftest {
-		runSelfTest(params, *iters, A, rng)
+		runSelfTest(params, *iters, K, A, rng)
 		return
 	}
 
@@ -124,50 +128,78 @@ func main() {
 		log.Fatalf("engine binary not found: %s (build it first)", *enginePath)
 	}
 
-	engPlus := uci.Start(*enginePath, "plus", *lowPower)
-	engMinus := uci.Start(*enginePath, "minus", *lowPower)
-	if engPlus == nil || engMinus == nil {
-		log.Fatalf("engine failed UCI handshake after retries (plus ok=%v, minus ok=%v); aborting", engPlus != nil, engMinus != nil)
+	type worker struct{ plus, minus *uci.Engine }
+	workers := make([]worker, K)
+	for j := range workers {
+		p := uci.Start(*enginePath, fmt.Sprintf("plus%d", j), *lowPower)
+		m := uci.Start(*enginePath, fmt.Sprintf("minus%d", j), *lowPower)
+		if p == nil || m == nil {
+			log.Fatalf("engine failed UCI handshake after retries (worker %d: plus ok=%v, minus ok=%v); aborting", j, p != nil, m != nil)
+		}
+		workers[j] = worker{p, m}
 	}
-	defer uci.Stop(engPlus)
-	defer uci.Stop(engMinus)
+	defer func() {
+		for _, w := range workers {
+			uci.Stop(w.plus)
+			uci.Stop(w.minus)
+		}
+	}()
 
 	cfg := uci.GameConfig{TCTimeMs: tcTimeMs, TCIncMs: tcIncMs, MaxMoves: 200}
 
 	fmt.Printf("NGN joint search-param SPSA\n===========================\n")
-	fmt.Printf("engine=%s  params=%d  iters=%d (%s)  tc=%ds+%.1fs%s\n",
-		*enginePath, len(params), *iters, pairMode(*single), tcTimeMs/1000, float64(tcIncMs)/1000, uci.PowerNote(*lowPower))
+	fmt.Printf("engine=%s  params=%d  iters=%d (%s, %d/iter)  tc=%ds+%.1fs%s\n",
+		*enginePath, len(params), *iters, pairMode(*single), K, tcTimeMs/1000, float64(tcIncMs)/1000, uci.PowerNote(*lowPower))
 	fmt.Printf("openings=%d  out=%s  rend=%.3f  afrac=%.2f  seed=%d\n\n", len(openings), *outFile, *rEnd, *aFrac, *seed)
 	printTheta(params, "start")
 
 	plusPts, games, forfeits := 0.0, 0, 0 // health since last report: theta+ ~50%, forfeits ~0
-	score := func(plus, minus []int) (float64, string) {
-		setParams(engPlus, params, plus)
-		setParams(engMinus, params, minus)
-		op := openings[rng.Intn(len(openings))]
-		g1 := uci.PlayGame(engPlus, engMinus, op, true, cfg) // theta+ as White
-		if g1.Reason == "time-forfeit" {
-			forfeits++
+	// playBatch plays one iteration's K perturbations concurrently — worker j runs
+	// plusV[j] vs minusV[j] on its own process pair over opening opIdx[j] — and
+	// returns each pair's R in [-1,1] from theta+'s POV. The sign/opening draws
+	// happen in runCampaign under the single-threaded rng; only the games run in
+	// parallel, so the run stays deterministic in -seed regardless of scheduling.
+	playBatch := func(plusV, minusV [][]int, opIdx []int) []float64 {
+		R := make([]float64, len(plusV))
+		var mu sync.Mutex
+		var wg sync.WaitGroup
+		for j := range plusV {
+			wg.Add(1)
+			go func(j int) {
+				defer wg.Done()
+				w := workers[j]
+				setParams(w.plus, params, plusV[j])
+				setParams(w.minus, params, minusV[j])
+				op := openings[opIdx[j]]
+				g1 := uci.PlayGame(w.plus, w.minus, op, true, cfg) // theta+ as White
+				s := points(g1.Res)
+				n, ff := 1, 0
+				if g1.Reason == "time-forfeit" {
+					ff++
+				}
+				if !*single {
+					g2 := uci.PlayGame(w.plus, w.minus, op, false, cfg) // theta+ as Black
+					if g2.Reason == "time-forfeit" {
+						ff++
+					}
+					s += points(g2.Res)
+					n = 2
+				}
+				// R in [-1,1]: pair s in [0,2] -> s-1; single s in {0,.5,1} -> 2s-1.
+				if *single {
+					R[j] = 2*s - 1
+				} else {
+					R[j] = s - 1
+				}
+				mu.Lock()
+				plusPts += s
+				games += n
+				forfeits += ff
+				mu.Unlock()
+			}(j)
 		}
-		s := points(g1.Res)
-		n := 1
-		reason := g1.Reason
-		if !*single {
-			g2 := uci.PlayGame(engPlus, engMinus, op, false, cfg) // theta+ as Black
-			if g2.Reason == "time-forfeit" {
-				forfeits++
-			}
-			s += points(g2.Res)
-			n = 2
-			reason = g2.Reason
-		}
-		plusPts += s
-		games += n
-		// R in [-1,1] from theta+'s POV: pair s in [0,2] -> s-1; single s in {0,.5,1} -> 2s-1.
-		if *single {
-			return 2*s - 1, reason
-		}
-		return s - 1, reason
+		wg.Wait()
+		return R
 	}
 
 	onReport := func(k int) {
@@ -181,7 +213,7 @@ func main() {
 		plusPts, games, forfeits = 0, 0, 0
 	}
 
-	runCampaign(params, startIter, *iters, A, rng, *report, score, onReport)
+	runCampaign(params, startIter, *iters, A, rng, *report, K, len(openings), playBatch, onReport)
 
 	fmt.Printf("\n=== FINAL VECTOR (gate on the GAUNTLET, not this run's score) ===\n")
 	printSetoptions(params)
@@ -191,31 +223,51 @@ func main() {
 // score(plus,minus) returns R in [-1,1] (>0 means theta+ was better) plus a
 // label; onReport(k) is called every `report` iters and at the end.
 func runCampaign(params []*pvar, startIter, iters int, A float64, rng *rand.Rand,
-	report int, score func(plus, minus []int) (float64, string), onReport func(k int)) {
-
-	delta := make([]float64, len(params))
-	plus := make([]int, len(params))
-	minus := make([]int, len(params))
+	report, K, nOpenings int,
+	playBatch func(plusV, minusV [][]int, opIdx []int) []float64, onReport func(k int)) {
 
 	for k := startIter; k <= iters; k++ {
 		kf := float64(k)
-		for i, p := range params {
-			d := 1.0
-			if rng.Intn(2) == 0 {
-				d = -1.0
+		// Draw K independent perturbations for this step. All rng use is here in the
+		// single main goroutine, so the sequence is deterministic in -seed no matter
+		// how the K games race in playBatch.
+		deltas := make([][]float64, K)
+		plusV := make([][]int, K)
+		minusV := make([][]int, K)
+		opIdx := make([]int, K)
+		for j := 0; j < K; j++ {
+			deltas[j] = make([]float64, len(params))
+			plusV[j] = make([]int, len(params))
+			minusV[j] = make([]int, len(params))
+			for i, p := range params {
+				d := 1.0
+				if rng.Intn(2) == 0 {
+					d = -1.0
+				}
+				deltas[j][i] = d
+				c := p.cAmp / math.Pow(kf, spsaGamma)
+				plusV[j][i] = clampRound(p.theta+c*d, p.min, p.max)
+				minusV[j][i] = clampRound(p.theta-c*d, p.min, p.max)
 			}
-			delta[i] = d
-			c := p.cAmp / math.Pow(kf, spsaGamma)
-			plus[i] = clampRound(p.theta+c*d, p.min, p.max)
-			minus[i] = clampRound(p.theta-c*d, p.min, p.max)
+			if nOpenings > 0 {
+				opIdx[j] = rng.Intn(nOpenings)
+			}
 		}
 
-		R, _ := score(plus, minus)
+		R := playBatch(plusV, minusV, opIdx)
 
+		// Averaged fishtest update: mean over the K perturbations' R*delta gradient
+		// estimates (variance ~1/K, expected direction unchanged). c is common to the
+		// step so (a/c) factors out of the mean.
 		for i, p := range params {
 			c := p.cAmp / math.Pow(kf, spsaGamma)
 			a := p.aGain / math.Pow(A+kf, spsaAlpha)
-			p.theta += (a / c) * R * delta[i] // fishtest update; maximize theta+'s score
+			grad := 0.0
+			for j := 0; j < K; j++ {
+				grad += R[j] * deltas[j][i]
+			}
+			grad /= float64(K)
+			p.theta += (a / c) * grad // maximize theta+'s score
 			if p.theta < p.min {
 				p.theta = p.min
 			}
@@ -233,7 +285,7 @@ func runCampaign(params []*pvar, startIter, iters int, A float64, rng *rand.Rand
 // runSelfTest drives the exact SPSA loop against a synthetic quadratic bowl with
 // a known optimum, so the update math is validated deterministically in seconds
 // without playing a single game. theta should converge to `target`.
-func runSelfTest(params []*pvar, iters int, A float64, rng *rand.Rand) {
+func runSelfTest(params []*pvar, iters, K int, A float64, rng *rand.Rand) {
 	target := make([]float64, len(params))
 	for i, p := range params {
 		target[i] = p.min + 0.4*(p.max-p.min) // distinct from the def so movement is visible
@@ -246,11 +298,15 @@ func runSelfTest(params []*pvar, iters int, A float64, rng *rand.Rand) {
 		}
 		return s
 	}
-	score := func(plus, minus []int) (float64, string) {
-		return math.Tanh(4.0 * (loss(minus) - loss(plus))), "" // >0 when plus is closer
+	playBatch := func(plusV, minusV [][]int, _ []int) []float64 {
+		R := make([]float64, len(plusV))
+		for j := range plusV {
+			R[j] = math.Tanh(4.0 * (loss(minusV[j]) - loss(plusV[j]))) // >0 when plus is closer
+		}
+		return R
 	}
-	fmt.Printf("SPSA selftest: %d params, %d iters, synthetic quadratic\n", len(params), iters)
-	runCampaign(params, 1, iters, A, rng, max(iters/10, 1), score, func(k int) {
+	fmt.Printf("SPSA selftest: %d params, %d iters, %d/iter, synthetic quadratic\n", len(params), iters, K)
+	runCampaign(params, 1, iters, A, rng, max(iters/10, 1), K, 0, playBatch, func(k int) {
 		fmt.Printf("[iter %d] ", k)
 		printTheta(params, "now")
 	})
