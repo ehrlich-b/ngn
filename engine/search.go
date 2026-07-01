@@ -1420,7 +1420,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// reduction depth-NULL_MOVE_R-1 = -1 trips the negative-depth guard and
 		// verifies the null move with a raw static eval (tactically blind) instead
 		// of quiescence; flooring routes it through qsearch like the depth>=4 path.
-		nullDepth := depth - (4 + depth/6) // NMP-depth-R: depth-scaled reduction (was flat NULL_MOVE_R+1=4); CG/Ethereal/Weiss converge
+		nullDepth := depth - (NULL_MOVE_R + 1 + depth/6) // NMP reduction: tunable base NULL_MOVE_R (def 3 => R+1=4) + depth-scaling; CG/Ethereal/Weiss converge
 		if nullDepth < 0 {
 			nullDepth = 0
 		}
@@ -1777,7 +1777,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			pos.UnMakeMove(move, tag, ep, hc)
 			SetLastMovePlayed(savedLast)
 
-			singularBeta := int(ttEval) - 2*depth // singular-margin: depth-scaled (was flat SINGULAR_MARGIN=64); CG/Ethereal/Weiss converge here, NGN was the outlier
+			singularBeta := int(ttEval) - (SINGULAR_MARGIN*depth)/32 // singular margin: tunable base SINGULAR_MARGIN (def 64 => 2*depth) depth-scaled; CG/Ethereal/Weiss converge here
 			info.SingularTries++
 			info.ExcludedMove = singularMove
 			info.ExcludedPly = ply           // the verification re-searches THIS node's position
