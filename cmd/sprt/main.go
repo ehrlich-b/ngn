@@ -84,6 +84,11 @@ func main() {
 	outFile := flag.String("out", "", "output file for -genbook")
 	seed := flag.Int64("seed", 1, "RNG seed for -genbook")
 	gameTimeout := flag.Int("gametimeout", 0, "per-game wall-clock watchdog deadline in seconds (0 = auto from mode); a hung game is dumped+killed+voided so the run survives the cmd/sprt I/O deadlock")
+	resignScore := flag.Int("resignscore", 0, "adjudicate a decisive game when |white-POV eval| >= this cp for -resignplies consecutive plies (0 = off); mill-throughput lever, needs an A/A before a run trusts it for a verdict")
+	resignPlies := flag.Int("resignplies", 4, "consecutive searched plies required for -resignscore (>=2 = two-sided)")
+	drawScore := flag.Int("drawscore", 0, "adjudicate a draw when |white-POV eval| <= this cp for -drawplies consecutive plies past -drawminplies (0 = off)")
+	drawPlies := flag.Int("drawplies", 8, "consecutive searched plies required for -drawscore")
+	drawMinPlies := flag.Int("drawminplies", 80, "no draw adjudication before this many plies (default 80 = move 40)")
 	flag.Parse()
 
 	if *genBook > 0 {
@@ -165,12 +170,22 @@ func main() {
 	fmt.Printf("H0: elo<=%.1f   H1: elo>=%.1f   (alpha=%.2f beta=%.2f -> LLR bounds [%.2f, %.2f])\n\n",
 		*elo0, *elo1, *alpha, *beta, lower, upper)
 
+	adj := uci.AdjConfig{
+		ResignScore: *resignScore, ResignPlies: max(1, *resignPlies),
+		DrawScore: *drawScore, DrawPlies: max(1, *drawPlies), DrawMinPlies: *drawMinPlies,
+	}
+	if adj.ResignScore > 0 || adj.DrawScore > 0 {
+		fmt.Printf("adjudication: resign>=%dcp/%dp  draw<=%dcp/%dp>=%dp  (opt-in; A/A-gate before trusting a verdict)\n\n",
+			adj.ResignScore, adj.ResignPlies, adj.DrawScore, adj.DrawPlies, adj.DrawMinPlies)
+	}
+
 	runSPRT(runConfig{
 		newPath: *newPath, basePath: *basePath,
 		newDepth: newDepth, baseDepth: baseD, movetime: *movetime, nodes: *nodes, maxMoves: *maxMoves,
 		tcTimeMs: tcTimeMs, tcIncMs: tcIncMs, gameTimeout: *gameTimeout,
 		elo0: *elo0, elo1: *elo1, lower: lower, upper: upper,
 		maxGames: *maxGames, minGames: *minGames, concurrency: *concurrency, lowPower: *lowPower,
+		adj: adj,
 	}, openings)
 }
 
@@ -183,6 +198,7 @@ type runConfig struct {
 	elo0, elo1, lower, upper        float64
 	maxGames, minGames, concurrency int
 	lowPower                        bool
+	adj                             uci.AdjConfig
 }
 
 func runSPRT(cfg runConfig, openings [][]string) {
@@ -222,6 +238,7 @@ func runSPRT(cfg runConfig, openings [][]string) {
 		NewDepth: cfg.newDepth, BaseDepth: cfg.baseDepth,
 		Movetime: cfg.movetime, Nodes: cfg.nodes, MaxMoves: cfg.maxMoves,
 		TCTimeMs: cfg.tcTimeMs, TCIncMs: cfg.tcIncMs,
+		Adj: cfg.adj,
 	}
 
 	results := make(chan gameOutcome, cfg.concurrency)
@@ -266,6 +283,7 @@ func runSPRT(cfg runConfig, openings [][]string) {
 
 	var w, d, l int
 	var newFlags, baseFlags int    // real-clock flag-outs (time-forfeit) by side
+	var adjWins, adjDraws int      // games ended early by score adjudication
 	var penta [5]int               // pair-outcome counts; idx = 2*(pair points), 0..4
 	pairProg := map[int]*pairAcc{} // pairID -> the pair's first game, awaiting its partner
 	start := time.Now()
@@ -287,6 +305,12 @@ func runSPRT(cfg runConfig, openings [][]string) {
 			} else {
 				baseFlags++
 			}
+		}
+		switch r.Reason {
+		case "adj-win":
+			adjWins++
+		case "adj-draw":
+			adjDraws++
 		}
 		// Pentanomial: accumulate the two games of a pair, then bucket the pair.
 		pa := pairProg[ro.pairID]
@@ -334,6 +358,9 @@ func runSPRT(cfg runConfig, openings [][]string) {
 		pEst, pLo, pHi, pLLR)
 	if cfg.tcTimeMs > 0 {
 		fmt.Printf("Flag-outs (lost on time): new %d, base %d  of %d games  (goal: 0)\n", newFlags, baseFlags, n)
+	}
+	if adjWins+adjDraws > 0 {
+		fmt.Printf("Adjudicated early: %d decisive, %d draw  of %d games\n", adjWins, adjDraws, n)
 	}
 	fmt.Printf("Verdict: %s\n", verdict)
 }

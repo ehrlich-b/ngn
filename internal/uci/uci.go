@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -54,6 +55,27 @@ type GameConfig struct {
 	// reconstruct/replay the game (e.g. the M1 loss-classification PGN capture).
 	// Opt-in: nil for callers that only need the result.
 	MovesOut *[]string
+	// Adj configures early game adjudication. The zero value is fully disabled, so
+	// callers that leave it unset play games out exactly as before.
+	Adj AdjConfig
+}
+
+// AdjConfig configures early game adjudication (cutechess/fastchess-style), the
+// mill-throughput lever: a decided game is called before the 200-ply cap instead
+// of playing dead moves, and a clearly-won game that would otherwise reach the cap
+// as a "max-moves" draw is scored correctly. The ZERO VALUE is fully disabled
+// (both thresholds 0) so a game plays out exactly as before; a run opts in via
+// cmd/sprt flags. Both rules are TWO-SIDED by construction: a streak of >=2
+// consecutive searched plies necessarily spans both engines' evals, so a single
+// side's mis-eval cannot adjudicate alone. All scores are centipawns in White's
+// POV. Requires an A/A validation (base-vs-base still centers on 0 with
+// adjudication ON) before it is trusted for a verdict.
+type AdjConfig struct {
+	ResignScore  int // decisive if |white-POV score| >= this for ResignPlies plies (consistent winner); 0 disables
+	ResignPlies  int // consecutive searched plies required (>=2 => two-sided)
+	DrawScore    int // draw if |white-POV score| <= this for DrawPlies plies past DrawMinPlies; 0 disables
+	DrawPlies    int
+	DrawMinPlies int // no draw adjudication before this many total plies have been played
 }
 
 // Engine is a persistent UCI subprocess.
@@ -67,6 +89,12 @@ type Engine struct {
 	// by the single goroutine running the game, so no synchronization is needed.
 	Moves      int
 	Overshoots int
+	// LastScoreCp is the most recent `score cp`/`score mate` value from the engine's
+	// last GetMove, in the MOVING side's POV (mate mapped to ±mateAdjScore).
+	// LastScoreValid is false when that search emitted no score line. Same
+	// single-goroutine ownership as Moves/Overshoots — no synchronization.
+	LastScoreCp    int
+	LastScoreValid bool
 }
 
 // overshootGrace is how long past the stop deadline a move may arrive before we
@@ -170,6 +198,7 @@ func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
 		stopAt = start.Add(stopAfter)
 	}
 	stopSent := false
+	e.LastScoreValid = false
 	for time.Now().Before(deadline) {
 		if stopAfter > 0 && !stopSent && time.Now().After(stopAt) {
 			Send(e, "stop")
@@ -177,6 +206,12 @@ func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
 		}
 		if e.stdout.Scan() {
 			line := e.stdout.Text()
+			if strings.HasPrefix(line, "info ") {
+				if sc, ok := parseScore(line); ok {
+					e.LastScoreCp = sc
+					e.LastScoreValid = true
+				}
+			}
 			if strings.HasPrefix(line, "bestmove ") {
 				parts := strings.Fields(line)
 				if len(parts) >= 2 {
@@ -263,6 +298,82 @@ func SideToMoveIsNew(pos *engine.Position, newIsWhite bool) bool {
 	return (pos.Turn() == engine.White) == newIsWhite
 }
 
+// mateAdjScore is the ± centipawn sentinel a `score mate` is mapped to, larger
+// than any resign threshold so a forced mate always reads as decisive.
+const mateAdjScore = 100000
+
+func absCp(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+// parseScore extracts a UCI `score cp N` / `score mate N` value from an info line,
+// in the MOVING side's POV (mate mapped to ±mateAdjScore). ok is false when the
+// line carries no score token (info string / currmove lines).
+func parseScore(line string) (int, bool) {
+	f := strings.Fields(line)
+	for i := 0; i+2 < len(f); i++ {
+		if f[i] != "score" {
+			continue
+		}
+		switch f[i+1] {
+		case "cp":
+			if v, err := strconv.Atoi(f[i+2]); err == nil {
+				return v, true
+			}
+		case "mate":
+			if v, err := strconv.Atoi(f[i+2]); err == nil {
+				if v >= 0 {
+					return mateAdjScore, true
+				}
+				return -mateAdjScore, true
+			}
+		}
+		return 0, false
+	}
+	return 0, false
+}
+
+// adjState carries a single game's adjudication streaks.
+type adjState struct {
+	winStreak, winSign int
+	drawStreak         int
+}
+
+// record folds one searched ply's white-POV score in (ply = total plies played so
+// far incl. opening) and reports whether a verdict fired. On a win it also reports
+// whether WHITE is the winner. A streak of >=2 plies spans both engines, so the
+// verdict is two-sided.
+func (a *adjState) record(cfg AdjConfig, whitePov, ply int) (fired, whiteWins, isDraw bool) {
+	if cfg.ResignScore > 0 && absCp(whitePov) >= cfg.ResignScore {
+		sign := 1
+		if whitePov < 0 {
+			sign = -1
+		}
+		if a.winStreak > 0 && a.winSign == sign {
+			a.winStreak++
+		} else {
+			a.winStreak, a.winSign = 1, sign
+		}
+		if a.winStreak >= cfg.ResignPlies {
+			return true, sign > 0, false
+		}
+	} else {
+		a.winStreak, a.winSign = 0, 0
+	}
+	if cfg.DrawScore > 0 && absCp(whitePov) <= cfg.DrawScore {
+		a.drawStreak++
+		if ply >= cfg.DrawMinPlies && a.drawStreak >= cfg.DrawPlies {
+			return true, false, true
+		}
+	} else {
+		a.drawStreak = 0
+	}
+	return false, false, false
+}
+
 // PlayGame plays one game from the start position through the opening line,
 // alternating the two engines by color, and returns the result from NEW's point
 // of view. Game ends are detected authoritatively via the engine package.
@@ -316,6 +427,7 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 		posPrefix = "fen " + startPos
 	}
 
+	var adj adjState
 	for len(moves) < cfg.MaxMoves {
 		if legal := engine.GenerateLegalMoves(pos); len(legal) == 0 {
 			if pos.IsInCheck() {
@@ -332,6 +444,7 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 		}
 
 		newToMove := SideToMoveIsNew(pos, newIsWhite)
+		moverWhite := pos.Turn() == engine.White
 		eng, d := baseEng, cfg.BaseDepth
 		if newToMove {
 			eng, d = newEng, cfg.NewDepth
@@ -408,6 +521,27 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 			return GameResult{Win, "illegal-move"}
 		}
 		moves = append(moves, mv)
+
+		// Early adjudication (opt-in via cfg.Adj; opening plies feed no score so the
+		// streaks only accrue over searched moves). Convert the mover's score to
+		// White's POV, then let the two-sided streaks decide.
+		if eng.LastScoreValid {
+			whitePov := eng.LastScoreCp
+			if !moverWhite {
+				whitePov = -whitePov
+			}
+			if fired, whiteWins, isDraw := adj.record(cfg.Adj, whitePov, len(moves)); fired {
+				if isDraw {
+					return GameResult{Draw, "adj-draw"}
+				}
+				if whiteWins == newIsWhite {
+					return GameResult{Win, "adj-win"}
+				}
+				return GameResult{Loss, "adj-win"}
+			}
+		} else {
+			adj = adjState{} // no score this ply: conservatively reset the streaks
+		}
 	}
 	return GameResult{Draw, "max-moves"}
 }
