@@ -212,9 +212,14 @@ Ethereal (245 SPRT commits, median ~+4.0). Cite format: [S]=Stash commit, [E]=Et
    - T1a (the staged 1-liner, 2 weeks overdue): soft-stop `elapsed+lastIterationTime > soft`
      → `elapsed >= soft` (time.go:329). The ×1 projection stops at ~2/3 of soft.
    - T1b (after T1a verdict): wire the dead `stableIters` signal — soft × stability factor,
-     symmetric (extend on instability ~1.25-2.5, shrink on stability ~0.6-0.8), hard cap
-     unchanged. (stableIters is written and never read — time.go:63,256-262. The old
-     one-sided shrink caused the 25%-clock bug; symmetry is what makes it sound.)
+     symmetric (extend on instability, shrink on stability), hard cap unchanged.
+     (stableIters is written and never read — time.go:63,256-262. The old one-sided shrink
+     caused the 25%-clock bug; symmetry is what makes it sound.) EXACT PEER SPEC — CounterGo
+     2994's three-regime `difficulty` (timemanager.go, mined 2026-07-01): score dropped
+     >50cp vs last iter → difficulty=2.0 (max think); best move changed → max(1.5, d);
+     stable → d=max(0.95, 0.9·d) (decays toward fast). Soft limit recomputed each iteration
+     from difficulty; hard set once at difficulty=2. Also: Counter uses movestogo=40
+     default (not NGN's 10-floor) and MoveOverhead 300ms.
    - T1c: the second leak — `estimateMovesRemaining` floors at 10 phantom moves in sudden
      death (time.go:188-194), perpetually reserving bank NGN never spends. Decay the
      divisor as the game progresses.
@@ -250,9 +255,14 @@ Ethereal (245 SPRT commits, median ~+4.0). Cite format: [S]=Stash commit, [E]=Et
    search.go:693-911. Measured: 10cp base **+3.5/+5.1 LTC** [E 0ad3477], window-vs-eval
    scaling +3.1 [S #128], "tweak aspiration implementation" +20.5 [Sim]. Gate: fixed-nodes
    filter (visible there) → real-clock.
-**T6. History-LMR thresholds + bumps post-reset retune** — expose `LMRHistBad(−500)`,
-   `LMRHistGood(+1000)` as params, include in SPSA-1 (T8) rather than hand-SPRTs (the
-   pre-reset "both directions regress" evidence is void — Part 1.1).
+**T6. History-LMR: continuous scaling, retested with the SCALE insight** — CounterGo uses
+   `r -= clamp(histSum/5000, −2, +2)` where its EMA-form history saturates entries toward
+   ±16384 (sum range ±49k). NGN's gravity-form entries cluster near 0 (equilibrium), so the
+   tested `/2048` truncated to 0 almost everywhere (the recorded "int-trunc no-op") and
+   `/256` over-swung — the 2026-06-28 rejection never tested a divisor matched to NGN's
+   actual value distribution WITH a ±2 clamp. Retest: measure the live histSum distribution
+   (sd_* counters), pick divisor ≈ P90/2, clamp ±2; expose `LMRHistDiv` + the ±1 thresholds
+   as SPSA dims (T8). Pre-reset "both directions regress" evidence is void (Part 1.1).
 **T7. History pruning modernization** — depth≤6, depth-scaled threshold, killer/counter
    exempt, params exposed (search.go:1682). Measured class: counter-move-history
    prune+sort **+23.7/+34.5 LTC** [E 23b841e — the biggest single classical-Ethereal item];
@@ -283,9 +293,10 @@ Ethereal (245 SPRT commits, median ~+4.0). Cite format: [S]=Stash commit, [E]=Et
    conditional replace was **+7.5** [S #16]) — cheap, single-entry, try first; T11b 4-way
    64B clustering (cache.go) if T11a leaves signal on the table. Fixed-nodes filter →
    real-clock.
-**T12. NMP polish** — eval-margin R term (`min((eval-beta)/111, 5)` [S] or `/200, 3` [E],
-   ~+3.3 [E 89ed7eb]); NMP only at expected cut-nodes (**+9.7** [S #230]); verification
-   search at high depth (present in Stash, absent in Ethereal — low confidence). Cheap.
+**T12. NMP polish** — eval-margin R term (CounterGo: `min(2, (eval-beta)/200)`; Stash
+   `/111 cap 5`; Ethereal `/200 cap 3`, ~+3.3 [E 89ed7eb]); NMP only at expected cut-nodes
+   (**+9.7** [S #230]); verification search (Stash yes, Ethereal/Counter no — low
+   confidence, last). Cheap.
 **T13. qsearch completeness** — TT store of stand-pat ≥ beta as LowerBound (**+7.0** [S
    #126]); queen promos in qsearch generation; (quiet checks PARKED until movegen gains a
    complete givesCheck — bigger job).
@@ -321,12 +332,25 @@ filter can run on the Mac while the box holds the verdict).
    run to a meaningful fraction of schedule with games ≥ ~20k, (c) verdict = games on the
    converged vector.
 
+## CounterGo cross-check (mined 2026-07-01, pre-NNUE tip `3eda962` — the 2994 peer)
+
+Counter 2994 runs a LEANER stack than NGN: no corrhist, no capture history, no multicut,
+no double/negative extensions, no NMP verification, IID not IIR, check extension only. So
+the NGN→2994 differential is NOT exotic machinery; from source it is (1) the three-regime
+stability/score-drop TIME manager (T1b spec above; NGN uses ~70-80% of clock vs ~98%),
+(2) LMR shape — log·log product lerped onto reductions ~[3..8] with pvNode −2, history
+±2 continuous, improving/check adjustments (vs NGN's /2.0 base with ±1 nudges) — T3/T6,
+and (3) draw scaling, which NGN already ported. The Stash ledger (corrhist +13/+26,
+double-ext +11, 4-ply conthist +13) is the "beyond Counter" growth lane on top. Both
+corroborate the queue order: T1 first, LMR family next, corrhist re-plumb close behind.
+Other Counter constants worth stealing when their T-items run: singular margin 1×depth
+trigger depth≥8 (NGN: 2×depth, ≥6); RFP 100×depth flat; noisy-SEE threshold alpha-aware
+`−max(depth,(staticEval+100−alpha)/100)`; killer update on TT lower-bound cutoff.
+
 ## Current known-unknowns
 
 - iir3 real-clock c4 verdict — on the box, box offline at audit time (`iir3c4_out.txt`).
-- CounterGo v3.8 feature-set mining (the direct pure-Go 2994 peer) — pending; Stash +
-  Ethereal + CPW/Simbelmyne data is already integrated above (Weiss mining failed on a
-  network error, non-blocking).
+- Weiss mining failed on a network error — non-blocking, not retried.
 - The depth-slope at operating depth (the "+30-50/ply" assertion) — unmeasured; a
   depth-18-vs-16 probe with a manifest would firm up the EBF-lever ceiling but does not
   change the queue.
