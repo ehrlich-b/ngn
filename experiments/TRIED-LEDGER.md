@@ -1,8 +1,18 @@
 # NGN — Everything We've Tried (consolidated ledger)
 
-Last updated 2026-06-29. This is the single inventory of every lever attempted, with verdicts,
+Last updated 2026-07-01. This is the single inventory of every lever attempted, with verdicts,
 so we stop re-grinding dead ends. Detailed records are in the per-experiment files and the memory
 topic files; this is the index + verdict.
+
+> **2026-07-01 CLOSURE-QUALITY AUDIT (`2026-07-01-method-revamp.md`) — corrections:**
+> a closure below is only binding if it is POST-reset games evidence meeting the decision
+> table. Re-graded: joint-SPSA = INVALID closure (iter-50 kill, param movement mathematically
+> impossible, ~100 games); "LMR/NMP both directions regress" = PRE-RESET evidence (corrupted
+> instrument), thresholds never game-tested post-reset; butterfly history = cold-proxy
+> false-reject candidate (manifest admits under-credit); corrhist = closed against a
+> MIS-PLUMBED base (correction never applied at qsearch stand-pat; learning target corrupted
+> by S7 TT-refinement) — reopened as T4. Draw scaling below is STALE: it is LIVE in HEAD
+> (eval.go:2684 drawFactor + 50-move damp, tests in eval_ocb_test.go).
 
 ## The pattern, in one line
 

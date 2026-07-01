@@ -36,6 +36,11 @@ go test -short -race ./... -count=1
 - One behavior change at a time, candidate vs immediate base.
 - Do not stack changes unless the experiment is explicitly about an interaction.
 - Do not keep speculative search/eval changes on positive sign at an inconclusive cap.
+- Batch-certification path (2026-07-01, the only sanctioned alternative to shelving at cap): a capped-but-positive result (point est ≥ +1, LLR > 0, no regression signal) may enter main as a PROVISIONAL keep; after ≤4 provisionals or 2 weeks, one powered batch-vs-pre-batch-base real-clock SPRT [0,+6] certifies all of them or triggers a bisect.
+- Pre-reset (before 2026-06-28) game verdicts are historical evidence only; they cannot close a lane or gate new work.
+- Proxies (FMC/ebfprobe/fixed-nodes/ACPL/MSE) may REJECT only pure ordering/EBF-mechanism changes, and every proxy rejection records a reopen condition. Anything touching eval values, time, or TC behavior gets a real-clock games gate.
+- Time-management and TC-sensitive changes are gated by real-clock games only.
+- A SPSA run is evidence only if its params are verified live in code, it reaches ≥20k games, and the verdict is games on the converged vector — never mid-run plus_pct or param movement.
 - Do not commit speculative changes before their verdict. Correctness/test/doc reset commits are allowed after tests pass.
 - Do not create new sprawling memory/TODO narratives. Put detailed run records in `experiments/`; update `TODO.md` only when live state, policy, or ranked queue changes.
 
