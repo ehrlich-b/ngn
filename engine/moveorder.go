@@ -50,6 +50,16 @@ func correctionValue(stm Color, idx int) int {
 	return pawnCorrectionHistory[stm][idx] * 6245 / 131072
 }
 
+// correctedStandPat is the raw eval plus the side-to-move's pawn-structure correction — the
+// same backed-up static value interior nodes use (search.go ~1353). T4: qsearch applies it at
+// the !inCheck stand-pat and the qDepth cap-return so the whole search backs up corrected statics
+// (was: qsearch returned the raw eval, discarding the correction). The ply>=MaximumDepth emergency
+// cap stays RAW — it fires before inCheck is known, and an in-check static must never be corrected.
+// The eval cache is unaffected — the correction is added outside it.
+func correctedStandPat(pos *Position) int {
+	return EvaluateForPlayerCached(pos) + correctionValue(pos.Turn(), pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn]))
+}
+
 // updatePawnCorrection nudges a slot toward the observed (searchScore - staticEval) gap
 // with a depth-weighted, gravity-damped EMA (Stockfish StatsEntry form) that keeps the
 // entry bounded in roughly [-corrHistLimit, corrHistLimit].

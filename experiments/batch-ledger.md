@@ -25,3 +25,8 @@ Rules:
 - **Trigger:** certify when this batch reaches 4 provisionals **OR** by **2026-07-15**, whichever first.
 - **Certification run:** post-batch HEAD vs `ea69ad6`, real-clock `-tc 10+0.1`, SPRT **[0, +6]**, A/A preflight required, on the LAN 9800X3D box.
 - **On fail:** bisect batch-1 commits (`7394668`, …) to find the regressor; drop it, re-certify.
+- **Note (2026-07-02) — main also carries T4 (FULL H1 accept, NOT a provisional):** the pawn corrhist
+  re-plumb landed on main as an outright SPRT accept (+9.1 penta [+0,+18], pLLR +2.80, 0/0 flag-outs /
+  2325g, real-clock 10+0.1 c8; `2026-07-02-t4-corrhist-replumb.md`). Because the certification run measures
+  post-batch HEAD vs `ea69ad6`, the certified composite will INCLUDE T4's gain alongside the iir3
+  provisional's; the bisect-on-fail rule already covers attribution (T4 is isolable by its own commit).

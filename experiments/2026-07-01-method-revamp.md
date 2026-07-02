@@ -237,7 +237,7 @@ Ethereal (245 SPRT commits, median ~+4.0). Cite format: [S]=Stash commit, [E]=Et
    - T3c TT-move-is-capture → reduce quiets more (**+2.3/+5.3 LTC** [S #166]).
    - Gate each: fixed-nodes filter → real-clock. Reject: filter clearly negative after a
      phase-split check (the iir2→iir3 lesson: if endgame-driven, try the accPhase guard once).
-**T4. Corrhist re-plumb (2 sub-changes, tested as one; mechanism-proven, games-gated).**
+**T4. Corrhist re-plumb (2 sub-changes, tested as one; mechanism-proven, games-gated).** [pawn re-plumb KEPT +9.1 H1 2026-07-02 — see the learn-target correction below and `experiments/2026-07-02-t4-corrhist-replumb.md`.]
    Prior: pawn corrhist measured **+13.1/+16.0 LTC** [S #179], **+46** [Sim]; NGN's is
    mis-plumbed (Part 1.3) so some of that value is being left on the table today.
    - Apply correction at qsearch stand-pat (search.go:2305): compute `corrIdx` there (two
@@ -246,6 +246,13 @@ Ethereal (245 SPRT commits, median ~+4.0). Cite format: [S]=Stash commit, [E]=Et
    - Learn against RAW static: keep `rawStaticEval` before S7 refinement (search.go:1358)
      and pass THAT to `maybeUpdatePawnCorrection` (search.go:2063,2094); S7-refined value
      still feeds margins/improving.
+     **[2026-07-02 correction — SHIPPED learn-from-CORRECTED, not raw.** "Learn against RAW
+     static" is right only for EMA-toward-diff update forms; NGN's `updatePawnCorrection` is the
+     GRAVITY form (`*e += bonus − (*e)·|bonus|/corrHistLimit`, self-decays toward equilibrium), so
+     learning from raw saturates entries at ±corrHistLimit and turns them magnitude-blind. Shipped
+     target = the pre-S7 CORRECTED static (`corrStaticEval` = raw + correction). Pawn re-plumb KEPT
+     **+9.1 [+0,+18] penta, H1**, real-clock 10+0.1 c8, pLLR +2.80, 0/0 flag-outs / 2325g
+     (`experiments/2026-07-02-t4-corrhist-replumb.md`).]**
    - THEN (separate item, only if T4 keeps): retest the nonpawn corrhist add — measured
      **+26.3/+27.4 LTC** [S #201], +19.7 [Sim] — the single largest modern classical lever
      on record. The prior NGN rejections tested it on the broken plumbing.

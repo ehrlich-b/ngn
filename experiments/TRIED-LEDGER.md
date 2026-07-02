@@ -92,6 +92,7 @@ search trusting an optimistic static eval), i.e. downstream of search depth, not
 | Table | Verdict |
 |---|---|
 | Pawn correction history | KEPT (in HEAD; the one corrhist that holds) |
+| Pawn corrhist RE-PLUMB (T4: apply correction at qsearch stand-pat + learn from the pre-S7 CORRECTED static, gravity form) | **KEPT +9.1 [+0,+18] penta, H1 ACCEPTED** — real-clock 10+0.1 c8, pLLR +2.80, 0/0 flag-outs / 2325g (`2026-07-02-t4-corrhist-replumb.md`); FIRST outright SPRT accept of the campaign. The prior "corrhist closed" verdicts were all measured on the MIS-PLUMBED base (correction never applied at qsearch stand-pat; learn target corrupted by S7 TT-refinement). |
 | Aux corrhist (C-vs-B, 2026-06-23) | REJECT — and the run was INVALIDATED mid-flight by a ClearHistoryTable cross-game leak (Codex caught it), since fixed |
 | Non-pawn corrhist @ weight 6245 | REJECT -9.5 [-20,+1], 1569g (over-correction). `2026-06-28-nonpawn-corrhist.md` |
 | Non-pawn corrhist @ weight 3000 (halved) | REJECT -3.8 [-11,+4], 3000g (still non-positive) |
@@ -99,6 +100,13 @@ search trusting an optimistic static eval), i.e. downstream of search depth, not
 
 **Closure (2026-06-29):** additive eval-correction is DOWNSTREAM of the search fix. corrhist learns from
 `(search - static)`, so a search-bound engine is a poor teacher → learns noise. Matches "conthist pays ≥3200".
+
+**Update (2026-07-02, T4):** the 2026-06-29 closure was measured on a MIS-PLUMBED base (correction never
+applied at qsearch stand-pat; learn target corrupted by S7 TT-refinement). Re-plumbed properly, PAWN
+corrhist is **+9.1 H1** — so the "poor teacher / downstream of search" framing does NOT close the pawn
+table. The NONPAWN retest is the remaining OPEN item, held to a STRICT gate (H1-only keep, NO
+provisional-on-cap) because the -9.5/1569g and -3.8/3000g rejections were REAL post-reset games — just on
+the old plumbing.
 
 ---
 

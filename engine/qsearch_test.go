@@ -22,6 +22,7 @@ func qsearchOf(t *testing.T, fen string) (got, standPat int) {
 		t.Fatalf("bad FEN %q: %v", fen, err)
 	}
 	ClearStop()
+	ClearHistoryTable() // T4: qsearch stand-pat now carries the pawn correction; clear it so quiet positions read == raw
 	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
 	standPat = EvaluateForPlayer(&pos.Board, pos.Turn())
 	got = quiescence(pos, -INFINITY, INFINITY, 0, newQSearchInfo())
@@ -80,4 +81,34 @@ func TestQuiescenceDepthCapStillHandlesCheckmate(t *testing.T) {
 	if got != want {
 		t.Fatalf("qsearch at cap while in check returned %d, want mate score %d", got, want)
 	}
+}
+
+// TestPawnCorrectionAppliedAtQsearchStandPat is the T4 red->green guard: the qsearch stand-pat must
+// carry the pawn-structure correction that interior nodes apply (search.go ~1353). Pre-patch the
+// qsearch returned the RAW stand-pat and discarded the correction, so this assertion (got == raw+corr)
+// failed; post-patch qsearch backs up the corrected static value.
+func TestPawnCorrectionAppliedAtQsearchStandPat(t *testing.T) {
+	pos, err := ParseFEN("4k3/pp6/8/8/8/8/6PP/4K3 w - - 0 1") // quiet: not in check, no captures available
+	if err != nil {
+		t.Fatal(err)
+	}
+	ClearStop()
+	ClearHistoryTable()
+	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+
+	stm := pos.Turn()
+	idx := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
+	pawnCorrectionHistory[stm][idx] = corrHistLimit / 2 // poison the slot -> a clear, in-bounds non-zero correction
+	corr := correctionValue(stm, idx)
+	if corr == 0 {
+		t.Fatal("test setup: poisoned correction must be non-zero")
+	}
+	raw := EvaluateForPlayer(&pos.Board, stm)
+
+	got := quiescence(pos, -INFINITY, INFINITY, 0, newQSearchInfo())
+	if got != raw+corr {
+		t.Errorf("qsearch stand-pat = %d, want raw %d + correction %d = %d (correction not applied at qsearch stand-pat)",
+			got, raw, corr, raw+corr)
+	}
+	ClearHistoryTable() // don't leak the poisoned slot into other tests
 }

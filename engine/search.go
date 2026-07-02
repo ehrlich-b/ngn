@@ -1342,6 +1342,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	stm := pos.Turn()
 	var staticEval int
 	var corrIdx int // pawn-correction slot; valid only when !inCheck
+	// T4: corrStaticEval is the CORRECTED static (raw + correction) captured BEFORE the S7 TT-refinement
+	// overwrites staticEval — the corrhist learning target. NGN's corrhist uses the gravity update
+	// (updatePawnCorrection, same form as gravityUpdate), which converges to the full correction only when
+	// it learns from the corrected value; learning from raw would saturate the entry to the clamp limit.
+	var corrStaticEval int
 	if inCheck {
 		if ply >= 2 {
 			staticEval = info.StaticEvalStack[ply-2]
@@ -1351,6 +1356,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	} else {
 		corrIdx = pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
 		staticEval = EvaluateForPlayerCached(pos) + correctionValue(stm, corrIdx)
+		corrStaticEval = staticEval // T4: capture the corrected static BEFORE S7 overwrites it (the learn target)
 		// S7: a search-refined TT score is a sharper static estimate than a fresh
 		// eval for the margin heuristics below (RFP/futility/NMP/improving). Use it
 		// when the stored bound brackets it. Skip mate scores (would distort margins)
@@ -2060,7 +2066,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			}
 
 			// Learn the pawn-structure correction from this fail-high before returning.
-			maybeUpdatePawnCorrection(stm, corrIdx, staticEval, bestScore, beta, depth, bestMove, inCheck)
+			maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
 
 			// Store in transposition table as Lower Bound (Cut-Node). Skip at the
 			// singular verification root: its result is a move-excluded search and
@@ -2091,7 +2097,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	}
 
 	// Learn the pawn-structure correction from the completed search of this node.
-	maybeUpdatePawnCorrection(stm, corrIdx, staticEval, bestScore, beta, depth, bestMove, inCheck)
+	maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
 
 	// Store in transposition table
 	var nodeType NodeType
@@ -2159,7 +2165,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// the cap applies only once the line reaches a non-check position.
 	if qDepth >= 6 && !inCheck {
 		info.QDepthCapHits++
-		return EvaluateForPlayerCached(pos)
+		return correctedStandPat(pos)
 	}
 
 	// TT cutoff probe. Qsearch is depth 0; any cached entry at depth >= 0
@@ -2302,7 +2308,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// route through (evaluateLazyStandPat) is pinned dead — qsearchLazyMargin=100000
 	// means lazyFailHigh never fires — so this is value-identical; re-route through a
 	// cache-aware lazy path if that margin is ever unpinned (SHELVED 2026-06-02).
-	standPat := EvaluateForPlayerCached(pos)
+	standPat := correctedStandPat(pos)
 	if standPat >= beta {
 		info.QStandPatCuts++
 		return beta
