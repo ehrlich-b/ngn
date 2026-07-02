@@ -50,7 +50,7 @@ Takeaway: the only repeatable wins are (a) fixing things that were broken, and (
 | Lever | Verdict |
 |---|---|
 | LMR continuous history scaling (replace crude ±1) | REJECT: /2048 flat (-8), /256 regressed (-45). `2026-06-28-lmr-conthist.md` |
-| cutNode-based LMR reductions | struck out (prior) — **[pre-reset]** evidence, NON-BINDING per ledger-hygiene; T3a retests the cutNode LMR term post-reset (Stash prior +6.2/+10) |
+| cutNode-based LMR reductions (extra reduction at cut nodes) | **REJECT -7.9** [-16,0] pLLR -2.87, fixed-nodes proxy 2984g (T3a value-1, `experiments/2026-07-02-t3a-lmr-cutnode.md`), post-reset **BINDING**. Blocked on move-ordering: NGN's FMC ~84% means MORE cutNode reduction over-reduces mis-ordered moves (silent fail-lows). REOPEN only after an ordering/FMC fix (T10); value 2/3 NOT retried (over-reduction isn't cured by more reduction). The [S] +6.2/+10 prior assumed elite ordering. |
 | LMR / NMP single-axis retunes (both directions) | 3 SPRTs / 0 gains — both directions regress (well-tuned local optimum) |
 | Joint-SPSA over all 11 margin params (coordinated) | NO-OP: zero gradient at iter 50, params pinned. `2026-06-28-joint-spsa.md` |
 | Search-param SPSA (earlier) | CLOSED (flat) |
