@@ -50,7 +50,7 @@ Takeaway: the only repeatable wins are (a) fixing things that were broken, and (
 | Lever | Verdict |
 |---|---|
 | LMR continuous history scaling (replace crude ±1) | REJECT: /2048 flat (-8), /256 regressed (-45). `2026-06-28-lmr-conthist.md` |
-| cutNode-based LMR reductions | struck out (prior) |
+| cutNode-based LMR reductions | struck out (prior) — **[pre-reset]** evidence, NON-BINDING per ledger-hygiene; T3a retests the cutNode LMR term post-reset (Stash prior +6.2/+10) |
 | LMR / NMP single-axis retunes (both directions) | 3 SPRTs / 0 gains — both directions regress (well-tuned local optimum) |
 | Joint-SPSA over all 11 margin params (coordinated) | NO-OP: zero gradient at iter 50, params pinned. `2026-06-28-joint-spsa.md` |
 | Search-param SPSA (earlier) | CLOSED (flat) |
