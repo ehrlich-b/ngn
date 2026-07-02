@@ -11,8 +11,8 @@ change_class: search/eval heuristic (time-management) — real-clock-ONLY gate
 hypothesis: firing the soft stop at elapsed>=soft (vs the prior ×1 next-iter projection) spends more of the soft bank -> more depth, with no added flag risk
 base_commit: 6959a14 (post-iir3 HEAD; includes iir3 provisional #1)
 candidate_commit: 6959a14 + output/t1a.patch (engine/time.go + engine/time_test.go only)
-base_binary_sha256: TBD (ngn_base2.exe, cross-compiled clean 6959a14 — Phase C)
-candidate_binary_sha256: TBD (ngn_t1a.exe, 6959a14 + T1a — Phase C)
+base_binary_sha256: 85703c188be79b728909433cb91a2b673efe3b03a6bc6fabc8fce59e1cd58aa5 (ngn_base2.exe, built from 464c33e = post-iir3 engine)
+candidate_binary_sha256: 7193250d355093bd1f75567bd7f3e19e4ddf0b8debdf4899415ad2b71922ae33 (ngn_t1a.exe, 464c33e + T1a)
 harness_commit: sprt.exe sha256 e9d904b878f4cb373bcc55abc325763d24f81f75248e9cb9d1540c6b93d3a668 (box, unchanged)
 command: sprt.exe -new ngn_t1a.exe -base ngn_base2.exe -tc 10+0.1 -concurrency 8 -lowpower=false -openings sprt_openings.txt -elo0 -3 -elo1 3 -alpha 0.05 -beta 0.05 -maxgames 8000 -mingames 300
 machine: AMD Ryzen 7 9800X3D 8c/16t, native Windows (LAN box 192.168.4.108)
@@ -22,7 +22,7 @@ tc: 10+0.1 (seconds; bullet)
 concurrency: 8
 openings: canonical sprt_openings (5000 lines)
 openings_sha256: 974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222
-aa_preflight: M2 c8 A/A (aa_c8_out.txt, ngn_base2 vs ngn_base2, 1600g) — REQUIRED before this verdict is valid; result TBD (Phase C)
+aa_preflight: M2 c8 A/A LAUNCHED 2026-07-01 ~23:07 (aa_c8_out.txt, ngn_base2 vs ngn_base2, 1600g, adjudication OFF, via scripts/boxsprt.sh); healthy start confirmed; final penta/flag-out result pending completion
 decision_rule: H0 elo<=-3 / H1 elo>=+3 (alpha=beta=0.05 -> pLLR bounds +-2.94); 8000 max / 300 min; adjudication OFF. pLLR>=+2.94 KEEP; <=-2.94 REJECT; capped-positive (point>=+1, pLLR>0, no regression) PROVISIONAL keep #2 (batch cert); capped-nonpositive SHELVE; candidate flag-outs above the A/A baseline (0) -> HALT + investigate
 games_or_pairs: TBD
 result: TBD
@@ -61,5 +61,6 @@ GREEN with the change.
 - Binary SHA-256s recorded in Phase C after cross-compile; the diff is the soft-stop condition only.
 
 ## Status
-Implemented + tested + backed up (2026-07-02). NOT launched. The M2 c8 A/A (Phase C) doubles as this
-verdict's required preflight; the launch pass/fail call and ordering come from the team lead.
+Implemented + tested + backed up (2026-07-02). The T1a VERDICT is NOT launched; its required A/A
+preflight (the M2 c8 run) IS launched and healthy. Binaries cross-compiled and hash-verified on the box.
+The T1a launch pass/fail call and ordering come from the team lead (command above).
