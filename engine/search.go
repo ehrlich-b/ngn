@@ -1299,6 +1299,18 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		ttMove, _, _, _, _ = TranspositionTable.Get(hash)
 	}
 
+	// Internal Iterative Reduction (IIR): a cut-node that reaches this depth with no
+	// hash move is poorly explored — searching it at full depth pays for ordering we
+	// don't have. Trim one ply instead (the modern, search-free complement to the IID
+	// block above, which only helps PV nodes). It shrinks the EBF at the ~3/4 of
+	// middlegame nodes that carry no TT move (2026-06-29 sd_order data). Gated to
+	// cutNode (not all-nodes) and skipped in low-material positions (accPhase < 8):
+	// endgames are low-branching and need depth, where reducing no-TT-move nodes cost
+	// ~2-4 ply in the probe and turned the unguarded version net-negative.
+	if ttMove == EmptyMove && depth >= 4 && cutNode && pos.Board.accPhase >= 8 {
+		depth--
+	}
+
 	// Mate distance pruning - don't look for mates that are too far away.
 	// Use ply (distance from root) directly. Earlier code computed
 	// `info.Depth - depth`, but info.Depth is only set after iteration
