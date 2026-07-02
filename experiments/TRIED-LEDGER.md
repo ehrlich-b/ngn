@@ -137,7 +137,16 @@ when it hides real memory latency (prefetch). **Untapped:** LARGE PAGES (TLB, +5
 
 Soft-stop projection fix + easy-move-shrink removal: clock usage 25%→57%, +1 depth, ~+37 Elo (transferred).
 Counter still spends ~98% of clock vs NGN ~70-80% — a residual time-mgmt gap was identified but the 1-line
-soft-stop projection refinement was only STAGED, never closed.
+soft-stop projection refinement was STAGED, then CLOSED post-reset by T1a (below).
+
+**2026-07-02 — the naive projection-drop 1-liner is CLOSED (post-reset, binding).** T1a fired the soft
+stop at `elapsed >= soft` (spending the FULL soft budget vs ~2/3 under the projection): real-clock c8
+SPRT, A/A-validated (penta -0.7 [-11,+9], 0/0 flag-outs) = **REJECT -7.8 [-15,-0], pLLR -3.22, 0/0
+flag-outs / 2864g** (`experiments/2026-07-02-t1a-softstop.md`). The projection is LOAD-BEARING: spending
+more time per move regressed strength with ZERO flag-outs — a uniform overspend starves the moves that
+matter (the removed easy-move-shrink failure mode). The +31/+29 [Stash v26] prior belongs to the
+STABILITY-SCALED soft target (T1b: keep the projection, spend more only while the decision is volatile),
+NOT this one-liner.
 
 ---
 
