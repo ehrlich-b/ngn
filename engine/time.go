@@ -55,11 +55,12 @@ type TimeManager struct {
 	lastIterationTime time.Duration
 	// stableIters counts consecutive COMPLETED iterations whose best move was
 	// unchanged AND whose aspiration window held on the first attempt — the
-	// "the decision is settled" signal. The soft budget shrinks as it climbs so
-	// easy/forced moves play fast and bank time, which the larger remaining bank
-	// then redeploys to genuinely hard moves. Reset per move and whenever the best
-	// move changes or the window breaks (a re-search) — that volatility is the
-	// sharpness flag that says "do NOT cut this search short".
+	// "the decision is settled" signal read by stabilitySoftFactor. The soft budget
+	// shrinks as it climbs (settled → spend less, bank time) and extends while it is
+	// low (volatile → spend more), redistributing the bank toward genuinely hard moves.
+	// Reset per move and whenever the best move changes or the window breaks (a
+	// re-search) — that volatility is the sharpness flag that says "do NOT cut this
+	// search short".
 	stableIters int
 }
 
@@ -261,6 +262,32 @@ func (tm *TimeManager) ReportCompletedIteration(bestMoveChanged, windowHeldFirst
 	tm.stableIters++
 }
 
+// Soft-budget stability scaling (T1b). stabilitySoftFactor maps the
+// consecutive-stable-iteration count (stableIters, maintained by
+// ReportCompletedIteration) to the multiplier the tournament soft stop applies to
+// softTime. It starts at stabilitySoftMax while the decision is volatile
+// (stableIters == 0) and decays by stabilitySoftSlope per settled iteration, floored
+// at stabilitySoftMin — so a churning root extends the soft target and a settled one
+// shrinks it and banks the difference for later hard moves. It is symmetric about 1.0
+// (crossover at stableIters == 3 with these constants), NOT the one-sided shrink
+// removed 2026-06-03. Only the soft target flexes; the hard ceiling, the emergency
+// floor, and the next-iteration projection never do, so this cannot raise flag risk.
+const (
+	stabilitySoftMax   = 1.30 // volatile (stableIters==0): extend the soft target
+	stabilitySoftMin   = 0.85 // settled: shrink it and bank the time for harder moves
+	stabilitySoftSlope = 0.10 // decay per stable iteration (1.0 crossover at stableIters==3)
+)
+
+func (tm *TimeManager) stabilitySoftFactor() float64 {
+	// stableIters is >= 0, so the factor starts at the max and only decreases; only the
+	// lower clamp is needed.
+	f := stabilitySoftMax - stabilitySoftSlope*float64(tm.stableIters)
+	if f < stabilitySoftMin {
+		f = stabilitySoftMin
+	}
+	return f
+}
+
 func (tm *TimeManager) ShouldStopSearch(depth int) bool {
 	// Plain counter: only the search goroutine calls this, and SetTimeControl's
 	// reset happens-before the goroutine launch — the old atomic.AddUint64 was a
@@ -312,17 +339,19 @@ func (tm *TimeManager) shouldStopTournamentSearch(depth int, elapsed time.Durati
 	}
 	// Soft limit: don't START another iteration we can't finish within the soft budget.
 	//
-	// REMOVED (2026-06-03) the "easy move" soft shrink (×0.5 once the best move was
-	// stable 6+ iters, ×0.7 at 3+). Intent was to bank time on easy moves for hard
-	// ones — but on quiet positions the best move stabilizes within a few iterations
-	// ALMOST ALWAYS, so it fired on nearly every move and NGN played the whole game at
-	// ~25% of its clock (measured 20-31% across configs), never redeploying the bank.
-	// Blunder has no such shrink. Also softened the next-iteration projection from ×2 to
-	// ×1: ×2 alone stopped at ~50% of soft (PVS iterations ~double, so elapsed+2·last
-	// trips at elapsed≈soft/2) — too tight for a depth-starved engine. The hard ceiling
-	// and emergency floor above are the flag protection and are UNTOUCHED, so this only
-	// spends more of the (sustainable, per-move-recomputed) soft budget; it cannot flag.
-	soft := tm.softTime
+	// The soft target is scaled by decision stability (T1b, stabilitySoftFactor): while
+	// the root's best move is still churning the position is genuinely hard and earns MORE
+	// of the bank; once the choice has settled across several iterations it earns LESS and
+	// banks the difference for later hard moves. This REDISTRIBUTES the clock toward the
+	// moves that decide games instead of moving total spend uniformly — both uniform
+	// directions are measured regressions: the one-sided "easy move" shrink removed
+	// 2026-06-03 (×0.5/×0.7 on stability) drained whole games to ~25% of the clock, and
+	// spending the FULL soft budget every move measured -7.8 Elo (T1a, 2026-07-02). The
+	// symmetric scaling here is neither; even the most volatile move (max factor 1.30)
+	// still stops below the full soft budget once the ×1 projection is added. The
+	// next-iteration projection, the hard ceiling, and the emergency floor above are the
+	// flag protection and are UNTOUCHED, so this cannot flag.
+	soft := time.Duration(float64(tm.softTime) * tm.stabilitySoftFactor())
 	if tm.lastIterationTime == 0 {
 		return elapsed >= soft
 	}

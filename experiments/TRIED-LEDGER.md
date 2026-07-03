@@ -160,6 +160,22 @@ matter (the removed easy-move-shrink failure mode). The +31/+29 [Stash v26] prio
 STABILITY-SCALED soft target (T1b: keep the projection, spend more only while the decision is volatile),
 NOT this one-liner.
 
+**2026-07-03 — T1b STABILITY-SCALED soft target is the win the +31 prior predicted. KEPT (a real Elo).**
+Wired the dead `stableIters` READ (search.go already MAINTAINED it via `ReportCompletedIteration`; only
+`shouldStopTournamentSearch` never read it) to SYMMETRICALLY scale the soft budget: `stabilitySoftFactor`
+= `max(0.85, 1.30 − 0.10·stableIters)` — extend ×1.30 while the root best move is volatile, shrink ×0.85
+once it has settled (crossover 1.0 at stableIters 3), applied at the soft-limit check only; the ×1
+projection, hard ceiling, and emergency floor are UNTOUCHED. Real-clock 10+0.1 c8 adjudicated SPRT =
+**+13.1 penta [+3,+23], pLLR crossed +2.94 at G2225 (peak +2.98, drain to +2.90), H1 ACCEPTED, 0/0
+flag-outs / 2233g** (`experiments/2026-07-03-t1b-stability-scaling.md`). This is the
+REDISTRIBUTE-not-uniform lever T1a's failure pointed to: keep the load-bearing projection, spend MORE only
+on volatile (hard) moves and LESS on settled ones — distinct from the removed one-sided easy-move shrink
+(shrink-only → the 25%-clock bug). Confirms the revamp-doc symmetric spec and the CounterGo three-regime
+direction. Follow-on = **T1c** (score-drop / eval-direction regimes = the rest of the Stash-v26 +31 /
+CounterGo three-regime package; needs a second signal — score tracking — beyond bestmove-stability). The
+"every speculative search/eval play is null or negative" headline is now falsified three times over (T4
++9.1, T4-nonpawn +6.4, T1b +13.1) — all standard-technique transplants under the revamp method.
+
 ---
 
 ## TUNING METHODS — all exhausted

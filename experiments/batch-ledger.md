@@ -36,3 +36,11 @@ Rules:
   under a STRICT gate (H1-only, NO provisional-on-cap). Same attribution note as T4: the post-batch
   certification composite (vs `ea69ad6`) will include this gain too, and it is isolable by its own commit
   for the bisect-on-fail path.
+- **Note (2026-07-03) — main also carries T1b (FULL H1 accept, NOT a provisional):** symmetric
+  stability-scaling of the soft time budget (wire the dead `stableIters` read) landed on main as an
+  outright SPRT accept (+13.1 penta [+3,+23], pLLR crossed +2.94 at G2225, 0/0 flag-outs / 2233g,
+  real-clock 10+0.1 c8 adjudicated; `2026-07-03-t1b-stability-scaling.md`). Same attribution note as
+  T4/T4-nonpawn: the post-batch certification composite (vs `ea69ad6`) will include this gain too, and it
+  is isolable by its own commit for the bisect-on-fail path. Batch 1 still holds ONE provisional (iir3);
+  T4 / T4-nonpawn / T1b are all full H1 accepts. Cumulative claimed self-play since `ea69ad6` is now
+  ~+28-30 (T4 +9.1, T4-nonpawn +6.4, T1b +13.1) — past the +15-20 milestone-gauntlet cadence trigger.
