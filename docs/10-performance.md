@@ -208,7 +208,7 @@ speed-lane analogue of the keep-correctness rule (doc 09).
 1,339,599/848,103 values were stale pre-J10):** Kiwipete `r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1`
 d12 = 1,669,503 / sd38 / e2a6 · middlegame `r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10`
 d12 = 1,165,258 / sd30 / a2a3 · endgame `8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1` d16 = 862,348 / sd39 /
-b4f4. Driver: `/tmp/nodecheck.sh <bin> <fen> <depth>`.
+b4f4. Driver: `scripts/nodecheck.sh <bin> <fen> <depth>`.
 
 ### SHIPPED (kept, behaviour-neutral, do not re-litigate)
 

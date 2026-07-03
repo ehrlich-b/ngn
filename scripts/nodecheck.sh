@@ -93,10 +93,18 @@ BIN="${1:-build/ngn}"
 # behaviour changes (chiefly the 2026-06-28 P0 hard reset + mobility tables) — every binary showed a
 # spurious mismatch, making the gate unreadable. New counts verified deterministic (3 identical runs)
 # and node-identical across HEAD vs the sd_miss instrumentation binary.
+# RE-LOCKED 2026-07-03 to HEAD 13560dc: the e16f512 baselines (270446/81006/840033) went stale over
+# three engine commits, attributed by build-and-measure at each. iir3 (7394668, phase-guarded cut-node
+# IIR: depth-- at cutNodes with no TT move when accPhase>=8) reshaped the FIXED-depth tree (mid d12
+# 81006->168053, a ~2x tree-shape change NOT a strength regression — at fixed NODES iir3 is +1 mg ply /
+# +2.0 penta real-clock); then the two T4 corrhist keeps (ffb24af pawn, 13560dc non-pawn) moved all
+# three again (mid ->124266; end d16 806334->294316 as corrhist resolves the R+P endgame faster). All
+# verified deterministic (reproduced exact). Gate node-IDENTITY against THESE.
+# baselines locked @ 13560dc 2026-07-03
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|270446"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|81006"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|840033"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|371112"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|124266"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|294316"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
