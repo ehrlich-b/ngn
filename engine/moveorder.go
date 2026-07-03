@@ -50,14 +50,18 @@ func correctionValue(stm Color, idx int) int {
 	return pawnCorrectionHistory[stm][idx] * 6245 / 131072
 }
 
-// correctedStandPat is the raw eval plus the side-to-move's pawn-structure correction — the
-// same backed-up static value interior nodes use (search.go ~1353). T4: qsearch applies it at
-// the !inCheck stand-pat and the qDepth cap-return so the whole search backs up corrected statics
-// (was: qsearch returned the raw eval, discarding the correction). The ply>=MaximumDepth emergency
-// cap stays RAW — it fires before inCheck is known, and an in-check static must never be corrected.
-// The eval cache is unaffected — the correction is added outside it.
+// correctedStandPat is the raw eval plus the side-to-move's pawn-structure AND non-pawn
+// corrections — the same backed-up static value interior nodes use (search.go ~1353). T4:
+// qsearch applies it at the !inCheck stand-pat and the qDepth cap-return so the whole search
+// backs up corrected statics (was: qsearch returned the raw eval, discarding the correction).
+// The ply>=MaximumDepth emergency cap stays RAW — it fires before inCheck is known, and an
+// in-check static must never be corrected. The eval cache is unaffected — the correction is
+// added outside it.
 func correctedStandPat(pos *Position) int {
-	return EvaluateForPlayerCached(pos) + correctionValue(pos.Turn(), pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn]))
+	stm := pos.Turn()
+	return EvaluateForPlayerCached(pos) +
+		correctionValue(stm, pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])) +
+		nonPawnCorrectionValue(stm, nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn]))
 }
 
 // updatePawnCorrection nudges a slot toward the observed (searchScore - staticEval) gap
@@ -92,6 +96,56 @@ func maybeUpdatePawnCorrection(stm Color, idx, staticEval, bestScore, beta, dept
 		return
 	}
 	updatePawnCorrection(stm, idx, bestScore-staticEval, depth)
+}
+
+// Non-pawn correction history: identical mechanism to pawnCorrectionHistory but keyed on
+// each side's NON-pawn piece placement (knights..king). The pawn key is blind to recurring
+// eval errors that depend on piece configuration (e.g. a persistently mis-valued knight
+// outpost or rook battery); this is an independent second corrector summed alongside it.
+// It rides the SAME fixed T4 plumbing as the pawn term — applied at the qsearch stand-pat
+// (via correctedStandPat) and the interior static-eval site, and learned from the pre-S7
+// corrStaticEval — which is the whole point of the retest.
+var nonPawnCorrectionHistory [2][corrHistSize]int
+
+// nonPawnCorrectionIndex hashes both sides' non-pawn occupancy into a slot. Distinct
+// mixing constants (murmur3 finalizers) from pawnCorrectionIndex so the two tables alias
+// independently.
+func nonPawnCorrectionIndex(whiteNonPawn, blackNonPawn uint64) int {
+	key := whiteNonPawn*0xFF51AFD7ED558CCD ^ blackNonPawn*0xC4CEB9FE1A85EC53
+	key ^= key >> 29
+	return int(key & corrHistMask)
+}
+
+func nonPawnCorrectionValue(stm Color, idx int) int {
+	return nonPawnCorrectionHistory[stm][idx] * 6245 / 131072
+}
+
+func updateNonPawnCorrection(stm Color, idx, diff, depth int) {
+	bonus := diff * depth / 8
+	if bonus > corrHistLimit/4 {
+		bonus = corrHistLimit / 4
+	} else if bonus < -corrHistLimit/4 {
+		bonus = -corrHistLimit / 4
+	}
+	mag := bonus
+	if mag < 0 {
+		mag = -mag
+	}
+	e := &nonPawnCorrectionHistory[stm][idx]
+	*e += bonus - (*e)*mag/corrHistLimit
+}
+
+func maybeUpdateNonPawnCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
+	if inCheck {
+		return
+	}
+	if bestMove != EmptyMove && bestMove.IsCapture() {
+		return
+	}
+	if !((bestScore < staticEval && bestScore < beta) || (bestScore > staticEval && bestMove != EmptyMove)) {
+		return
+	}
+	updateNonPawnCorrection(stm, idx, bestScore-staticEval, depth)
 }
 
 // Killer moves table for move ordering heuristic.
@@ -241,6 +295,11 @@ func ClearHistoryTable() {
 	for i := range pawnCorrectionHistory {
 		for j := range pawnCorrectionHistory[i] {
 			pawnCorrectionHistory[i][j] = 0
+		}
+	}
+	for i := range nonPawnCorrectionHistory {
+		for j := range nonPawnCorrectionHistory[i] {
+			nonPawnCorrectionHistory[i][j] = 0
 		}
 	}
 	for i := range captureHistory {

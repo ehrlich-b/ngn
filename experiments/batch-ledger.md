@@ -30,3 +30,9 @@ Rules:
   2325g, real-clock 10+0.1 c8; `2026-07-02-t4-corrhist-replumb.md`). Because the certification run measures
   post-batch HEAD vs `ea69ad6`, the certified composite will INCLUDE T4's gain alongside the iir3
   provisional's; the bisect-on-fail rule already covers attribution (T4 is isolable by its own commit).
+- **Note (2026-07-02) — main also carries T4-nonpawn (FULL H1 accept, NOT a provisional):** the non-pawn
+  corrhist add on the fixed T4 plumbing landed on main as an outright SPRT accept (+6.4 penta [-1,+14],
+  pLLR crossed +2.94 at G3796, 0/0 flag-outs / 3804g, real-clock 10+0.1 c8; `2026-07-02-t4-nonpawn.md`) —
+  under a STRICT gate (H1-only, NO provisional-on-cap). Same attribution note as T4: the post-batch
+  certification composite (vs `ea69ad6`) will include this gain too, and it is isolable by its own commit
+  for the bisect-on-fail path.

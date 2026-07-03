@@ -1341,7 +1341,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// ago to keep the improving chain sane across checking plies.
 	stm := pos.Turn()
 	var staticEval int
-	var corrIdx int // pawn-correction slot; valid only when !inCheck
+	var corrIdx int        // pawn-correction slot; valid only when !inCheck
+	var nonPawnCorrIdx int // non-pawn-correction slot; valid only when !inCheck
 	// T4: corrStaticEval is the CORRECTED static (raw + correction) captured BEFORE the S7 TT-refinement
 	// overwrites staticEval — the corrhist learning target. NGN's corrhist uses the gravity update
 	// (updatePawnCorrection, same form as gravityUpdate), which converges to the full correction only when
@@ -1355,8 +1356,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 	} else {
 		corrIdx = pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
-		staticEval = EvaluateForPlayerCached(pos) + correctionValue(stm, corrIdx)
-		corrStaticEval = staticEval // T4: capture the corrected static BEFORE S7 overwrites it (the learn target)
+		nonPawnCorrIdx = nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])
+		staticEval = EvaluateForPlayerCached(pos) + correctionValue(stm, corrIdx) + nonPawnCorrectionValue(stm, nonPawnCorrIdx)
+		corrStaticEval = staticEval // T4: capture the corrected static (raw + pawn + non-pawn) BEFORE S7 overwrites it (both tables' learn target)
 		// S7: a search-refined TT score is a sharper static estimate than a fresh
 		// eval for the margin heuristics below (RFP/futility/NMP/improving). Use it
 		// when the stored bound brackets it. Skip mate scores (would distort margins)
@@ -2065,8 +2067,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				}
 			}
 
-			// Learn the pawn-structure correction from this fail-high before returning.
+			// Learn the pawn-structure + non-pawn corrections from this fail-high before returning.
 			maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+			maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
 
 			// Store in transposition table as Lower Bound (Cut-Node). Skip at the
 			// singular verification root: its result is a move-excluded search and
@@ -2096,8 +2099,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		return 0
 	}
 
-	// Learn the pawn-structure correction from the completed search of this node.
+	// Learn the pawn-structure + non-pawn corrections from the completed search of this node.
 	maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+	maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
 
 	// Store in transposition table
 	var nodeType NodeType

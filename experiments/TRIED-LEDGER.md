@@ -93,20 +93,24 @@ search trusting an optimistic static eval), i.e. downstream of search depth, not
 |---|---|
 | Pawn correction history | KEPT (in HEAD; the one corrhist that holds) |
 | Pawn corrhist RE-PLUMB (T4: apply correction at qsearch stand-pat + learn from the pre-S7 CORRECTED static, gravity form) | **KEPT +9.1 [+0,+18] penta, H1 ACCEPTED** — real-clock 10+0.1 c8, pLLR +2.80, 0/0 flag-outs / 2325g (`2026-07-02-t4-corrhist-replumb.md`); FIRST outright SPRT accept of the campaign. The prior "corrhist closed" verdicts were all measured on the MIS-PLUMBED base (correction never applied at qsearch stand-pat; learn target corrupted by S7 TT-refinement). |
+| Non-pawn corrhist RE-PLUMB (T4-nonpawn: the ORIGINAL @6245 form on the fixed T4 plumbing — same qsearch stand-pat application + pre-S7 corrected learn target) | **KEPT +6.4 [-1,+14] penta, H1 ACCEPTED** — real-clock 10+0.1 c8, pLLR crossed +2.94 at G3796 (peak +2.97, four lines ≥ bound, drain to +2.80), 0/0 flag-outs / 3804g (`2026-07-02-t4-nonpawn.md`). SAME @6245 form the two rows below rejected → the plumbing was the confound, not the corrector. |
 | Aux corrhist (C-vs-B, 2026-06-23) | REJECT — and the run was INVALIDATED mid-flight by a ClearHistoryTable cross-game leak (Codex caught it), since fixed |
-| Non-pawn corrhist @ weight 6245 | REJECT -9.5 [-20,+1], 1569g (over-correction). `2026-06-28-nonpawn-corrhist.md` |
-| Non-pawn corrhist @ weight 3000 (halved) | REJECT -3.8 [-11,+4], 3000g (still non-positive) |
-| Minor-piece corrhist | built + suite-green, never game-tested (parked when non-pawn shelved) |
+| Non-pawn corrhist @ weight 6245 (OLD, mis-plumbed base) | ~~REJECT -9.5 [-20,+1], 1569g~~ **SUPERSEDED** by the T4-nonpawn KEEP above: identical @6245 form on FIXED plumbing = **+6.4 H1**. `2026-06-28-nonpawn-corrhist.md` |
+| Non-pawn corrhist @ weight 3000 (halved, mis-plumbed base) | ~~REJECT -3.8 [-11,+4], 3000g~~ **SUPERSEDED** — the halve was an over-correction remedy for the broken base; unnecessary on fixed plumbing (the @6245 form wins there) |
+| Minor-piece corrhist | built + suite-green, never game-tested (parked when non-pawn shelved) — **NOW QUEUED as T4c** (corrhist family is 2-for-2 on fixed plumbing; same conventions + red→green test template) |
 
 **Closure (2026-06-29):** additive eval-correction is DOWNSTREAM of the search fix. corrhist learns from
 `(search - static)`, so a search-bound engine is a poor teacher → learns noise. Matches "conthist pays ≥3200".
 
 **Update (2026-07-02, T4):** the 2026-06-29 closure was measured on a MIS-PLUMBED base (correction never
 applied at qsearch stand-pat; learn target corrupted by S7 TT-refinement). Re-plumbed properly, PAWN
-corrhist is **+9.1 H1** — so the "poor teacher / downstream of search" framing does NOT close the pawn
-table. The NONPAWN retest is the remaining OPEN item, held to a STRICT gate (H1-only keep, NO
-provisional-on-cap) because the -9.5/1569g and -3.8/3000g rejections were REAL post-reset games — just on
-the old plumbing.
+corrhist is **+9.1 H1** and NON-PAWN corrhist (identical @6245 form, STRICT H1-only gate) is **+6.4 H1 /
+3804g** — the corrhist family is now **2-for-2 on fixed plumbing**. The "corrhist is negative / downstream
+of search / poor teacher" belief was a PLUMBING CONFOUND, not a property of the corrector: the same @6245
+non-pawn code that lost -9.5/-3.8 on the broken base WINS +6.4 on the fixed one. This **CLOSES the "non-pawn
+corrhist is negative" lane** (it is positive) and de-risks the family — minor-piece corrhist (**T4c**) is
+next, same conventions + red→green test template. The remaining caution: the family stacks on ONE eval, so
+watch for diminishing returns / interaction when T4c lands (certify via games, not by assuming additivity).
 
 ---
 
