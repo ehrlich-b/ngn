@@ -9,10 +9,16 @@ import "testing"
 // nothing). A no-op feature produces IDENTICAL node counts whether toggled on or
 // off; once wired, the counts differ. (See SearchToggles.IID.)
 func TestIIDIsWired(t *testing.T) {
-	// PV-heavy middlegame so IID (PV node, no TT move, depth>=4) fires.
-	fen := "r1bqkb1r/pp1n1ppp/2p1pn2/3p4/2PP4/2N1PN2/PP3PPP/R1BQKB1R w KQkq - 0 6"
+	// PV-heavy middlegame so IID (PV node, no TT move, depth>=4) fires. The FEN must
+	// actually exercise IID: an eval-value change can shift a position out of the
+	// IID-firing regime (the T4c minor correction-history term moved the prior
+	// r1bqkb1r/... FEN there — it stopped firing IID, so on==off spuriously), so the
+	// test asserts IID fires (on.IIDSearches>0) before reading the no-op signal. The
+	// re-entrancy bug's signature is IID RUNS but changes nothing — identical node
+	// counts despite IIDSearches>0 — so the node-count check stays the primary guard.
+	fen := "r2q1rk1/1b1nbppp/p2ppn2/1p6/3NPP2/1BN1B3/PPPQ2PP/2KR3R w - - 0 12"
 
-	nodes := func(iid bool) uint64 {
+	search := func(iid bool) *SearchInfo {
 		SearchToggles.IID = iid
 		defer func() { SearchToggles.IID = true }()
 		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
@@ -23,14 +29,20 @@ func TestIIDIsWired(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		return SearchIterativeDeepening(pos, 9, nil).Nodes
+		return SearchIterativeDeepening(pos, 9, nil)
 	}
 
-	on := nodes(true)
-	off := nodes(false)
-	t.Logf("nodes: IID-on=%d  IID-off=%d", on, off)
-	if on == off {
-		t.Errorf("IID on vs off produced identical node counts (%d) — IID is a no-op (re-entrancy regressed)", on)
+	on := search(true)
+	off := search(false)
+	t.Logf("nodes: IID-on=%d(fires=%d)  IID-off=%d(fires=%d)", on.Nodes, on.IIDSearches, off.Nodes, off.IIDSearches)
+	if on.IIDSearches == 0 {
+		t.Fatalf("IID never fired on this FEN — it no longer exercises IID (pick a PV-heavy FEN with no early TT move); cannot guard the no-op regression")
+	}
+	if off.IIDSearches != 0 {
+		t.Errorf("IID fired (%d) with the toggle OFF — SearchToggles.IID not wired", off.IIDSearches)
+	}
+	if on.Nodes == off.Nodes {
+		t.Errorf("IID on vs off produced identical node counts (%d) — IID ran but changed nothing (re-entrancy regressed to a bogus-draw no-op)", on.Nodes)
 	}
 }
 

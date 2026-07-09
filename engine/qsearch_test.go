@@ -143,3 +143,35 @@ func TestNonPawnCorrectionAppliedAtQsearchStandPat(t *testing.T) {
 	}
 	ClearHistoryTable() // don't leak the poisoned slot into other tests
 }
+
+// TestMinorCorrectionAppliedAtQsearchStandPat is the T4c red->green guard: the qsearch stand-pat
+// must also carry the minor-piece correction that interior nodes apply (search.go ~1360). It mirrors
+// the pawn/non-pawn guards but poisons the minor slot (the pawn and non-pawn tables stay zero), so got
+// must equal raw + minor correction. The position holds knights so the minor key is a real hashed slot,
+// not the degenerate empty-minor slot 0. Pre-patch (correctedStandPat without the minor term) this
+// fails; post-patch qsearch backs up the corrected static value.
+func TestMinorCorrectionAppliedAtQsearchStandPat(t *testing.T) {
+	pos, err := ParseFEN("4k3/pp6/8/3n4/3N4/8/6PP/4K3 w - - 0 1") // quiet: not in check, no captures available
+	if err != nil {
+		t.Fatal(err)
+	}
+	ClearStop()
+	ClearHistoryTable()
+	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+
+	stm := pos.Turn()
+	idx := minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
+	minorCorrectionHistory[stm][idx] = corrHistLimit / 2 // poison the slot -> a clear, in-bounds non-zero correction
+	corr := minorCorrectionValue(stm, idx)
+	if corr == 0 {
+		t.Fatal("test setup: poisoned correction must be non-zero")
+	}
+	raw := EvaluateForPlayer(&pos.Board, stm)
+
+	got := quiescence(pos, -INFINITY, INFINITY, 0, newQSearchInfo())
+	if got != raw+corr {
+		t.Errorf("qsearch stand-pat = %d, want raw %d + minor correction %d = %d (minor correction not applied at qsearch stand-pat)",
+			got, raw, corr, raw+corr)
+	}
+	ClearHistoryTable() // don't leak the poisoned slot into other tests
+}

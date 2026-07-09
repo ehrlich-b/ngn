@@ -205,5 +205,50 @@ watcher is armed Mac-side (re-arm if the environment kills it — the on-box run
 
 ## Verdict
 
-TBD — apply the predeclared batch-certification rule above on completion; record penta buckets, pLLR,
-flag-outs, W-D-L, duration, and the KEEP/PROVISIONAL/SHELVE/REJECT/HALT outcome.
+**KEEP outright — H1 ACCEPTED** (coordinator-classified 2026-07-09 per the predeclared rule: pLLR +2.98 ≥
++2.94). Completed 2026-07-09, `DONE_EXIT_0`, duration **8h07m04s**. The corrhist family is now **3-for-3 on
+the fixed plumbing** (pawn +9.1, non-pawn +6.4, minor +3.7 — diminishing as predicted, still H1).
+
+RESULT block (verbatim from `output/t4c_out.txt`):
+
+```text
+=== RESULT (8h7m4s) ===
+Games: 7842   W-D-L: 2178-3569-2095   score: 50.5%
+Elo(new - base): +3.7   95% CI [-4, +11]
+LLR: +2.63   bounds [-2.94, 2.94]
+Pentanomial [LL 227  LD 926  {LW,DD} 1544  WD 985  WW 239] over 3921 pairs
+Penta Elo: +3.7   95% CI [-2, +9]   pLLR +2.98  (THE decision stat; trinomial above is secondary)
+Flag-outs (lost on time): new 0, base 0  of 7842 games  (goal: 0)
+Adjudicated early: 4256 decisive, 1830 draw  of 7842 games
+Verdict: H1 ACCEPTED: new is stronger (>= 3 ELO)
+DONE_EXIT_0
+```
+
+**Integrity sweep (full 7842-game `t4c_out.txt`):**
+- **Bound crossing + c8 drain:** pLLR first reached the +2.94 upper bound at **G7828**, oscillated around it
+  (concurrency-8 in-flight pairs draining), **peaked +3.01 at G7840-G7841**, and settled **+2.98 at G7842**
+  (the terminal game). LLR +2.63 at stop. This is the expected c8 drain, not an ambiguous crossing.
+- **No reject-bound touch anywhere:** ZERO lines with pLLR ≤ −2.94 across the whole run (checked) — no
+  double-crossing, no earlier flirt with H0.
+- **Clean terminations:** the only result reasons in 7842 games are adj-win 4256, adj-draw 1830, max-moves
+  914, draw-rule 824, checkmate 17, stalemate 1 (= 7842). **0 crash, 0 illegal-move, 0 no-move, 0
+  time-forfeit / disconnect.**
+- **Flag-outs new 0 / base 0** — no spike vs the M5-enable A/A baseline (0/0); the HALT trigger (>2 either
+  side) never approached.
+- **Adjudication:** 4256 decisive + 1830 draw fired cleanly (both kinds), 77.6% adjudicated, matching the
+  validated c8 adjudication-ON profile.
+
+**Binary integrity (hash-back):** a fresh `make build` of the KEPT tree (35c0c0a + this diff) produced
+`build/ngn.exe` sha256 `40783F0444ED47CF50BF9CA0DFA5D7635536E1A1519FE47C902498665141A1F8` — **byte-identical
+to the box-run `ngn_t4c.exe`**, so the committed HEAD == the exact engine that played the SPRT.
+
+**Baseline tests (kept tree):** `go test -short ./engine` ok, `go test -short -race ./engine` ok, `go test
+-short ./...` ok (engine + cmd/sprt + internal/uci all green).
+
+**Nodecheck re-lock (separate follow-up commit, per the 9c15bc7 precedent):** T4c is non-node-identical, so
+the fixed-depth `scripts/nodecheck.sh` baselines moved and were re-locked — kiwipete d12 371112→230036 (−38%),
+mid d12 124266→181982 (+46%), end d16 294316→587557 (+100%); reproduced identical on two runs (deterministic).
+Single-position node shape, NOT a strength signal; the real-clock SPRT above owns the strength verdict.
+
+**Box hygiene:** `scripts/boxsprt.sh ps` empty at fetch time — the run self-cleaned on `DONE_EXIT_0`, no
+stray workers.

@@ -101,7 +101,7 @@ search trusting an optimistic static eval), i.e. downstream of search depth, not
 | Aux corrhist (C-vs-B, 2026-06-23) | REJECT — and the run was INVALIDATED mid-flight by a ClearHistoryTable cross-game leak (Codex caught it), since fixed |
 | Non-pawn corrhist @ weight 6245 (OLD, mis-plumbed base) | ~~REJECT -9.5 [-20,+1], 1569g~~ **SUPERSEDED** by the T4-nonpawn KEEP above: identical @6245 form on FIXED plumbing = **+6.4 H1**. `2026-06-28-nonpawn-corrhist.md` |
 | Non-pawn corrhist @ weight 3000 (halved, mis-plumbed base) | ~~REJECT -3.8 [-11,+4], 3000g~~ **SUPERSEDED** — the halve was an over-correction remedy for the broken base; unnecessary on fixed plumbing (the @6245 form wins there) |
-| Minor-piece corrhist | built + suite-green, never game-tested (parked when non-pawn shelved) — **T4c SPRT launched 2026-07-08, verdict pending** (corrhist family is 2-for-2 on fixed plumbing; same conventions + red→green test template) |
+| Minor-piece corrhist (T4c: the THIRD corrector — knight\|bishop king-excluded key, learns from the pre-S7 corrStaticEval on the fixed T4 plumbing) | **KEPT +3.7 [-2,+9] penta, H1 ACCEPTED** — real-clock 10+0.1 c8 adjudicated, pLLR +2.98 (peak +3.01 @G7840, c8 drain), 0/0 flag-outs / 7842g (`2026-07-03-t4c-minor-corrhist.md`). Corrhist family now **3-for-3 on fixed plumbing** (pawn +9.1 → non-pawn +6.4 → minor +3.7 — diminishing as predicted, still H1). Bundled a test-only TestIIDIsWired FEN refresh (zero binary impact). |
 
 **Closure (2026-06-29): [SUPERSEDED — the 2026-07-02 T4 Update below overturns this.]** additive
 eval-correction is DOWNSTREAM of the search fix. corrhist learns from `(search - static)`, so a
@@ -116,6 +116,8 @@ non-pawn code that lost -9.5/-3.8 on the broken base WINS +6.4 on the fixed one.
 corrhist is negative" lane** (it is positive) and de-risks the family — minor-piece corrhist (**T4c**) is
 next, same conventions + red→green test template. The remaining caution: the family stacks on ONE eval, so
 watch for diminishing returns / interaction when T4c lands (certify via games, not by assuming additivity).
+**[2026-07-09: T4c LANDED — KEPT +3.7 H1 (7842g, pLLR +2.98). Family is 3-for-3; the predicted diminishing
+returns (+9.1 → +6.4 → +3.7) held, no adverse interaction, no flag-out spike.]**
 
 ---
 

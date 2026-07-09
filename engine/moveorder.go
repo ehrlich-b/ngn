@@ -50,8 +50,8 @@ func correctionValue(stm Color, idx int) int {
 	return pawnCorrectionHistory[stm][idx] * 6245 / 131072
 }
 
-// correctedStandPat is the raw eval plus the side-to-move's pawn-structure AND non-pawn
-// corrections — the same backed-up static value interior nodes use (search.go ~1353). T4:
+// correctedStandPat is the raw eval plus the side-to-move's pawn-structure, non-pawn AND
+// minor-piece corrections — the same backed-up static value interior nodes use (search.go ~1353). T4:
 // qsearch applies it at the !inCheck stand-pat and the qDepth cap-return so the whole search
 // backs up corrected statics (was: qsearch returned the raw eval, discarding the correction).
 // The ply>=MaximumDepth emergency cap stays RAW — it fires before inCheck is known, and an
@@ -61,7 +61,8 @@ func correctedStandPat(pos *Position) int {
 	stm := pos.Turn()
 	return EvaluateForPlayerCached(pos) +
 		correctionValue(stm, pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])) +
-		nonPawnCorrectionValue(stm, nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn]))
+		nonPawnCorrectionValue(stm, nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])) +
+		minorCorrectionValue(stm, minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop]))
 }
 
 // updatePawnCorrection nudges a slot toward the observed (searchScore - staticEval) gap
@@ -146,6 +147,55 @@ func maybeUpdateNonPawnCorrection(stm Color, idx, staticEval, bestScore, beta, d
 		return
 	}
 	updateNonPawnCorrection(stm, idx, bestScore-staticEval, depth)
+}
+
+// Minor-piece correction history: same mechanism, keyed on each side's MINOR-piece
+// (knight+bishop) placement. A finer key than nonPawn (which lumps every non-pawn into
+// one slot): it sharpens corrections for recurring minor-piece configuration errors
+// (outposts, bad bishops, knight-vs-bishop imbalances) that the coarse key aliases away.
+// Independent third corrector summed alongside the pawn and non-pawn terms. Rides the SAME
+// fixed T4 plumbing — applied at the qsearch stand-pat (via correctedStandPat) and the
+// interior static-eval site, and learned from the pre-S7 corrStaticEval.
+var minorCorrectionHistory [2][corrHistSize]int
+
+// minorCorrectionIndex hashes both sides' minor occupancy into a slot, with a third
+// distinct constant pair (the other splitmix64 finalizers) so it aliases independently.
+func minorCorrectionIndex(whiteMinors, blackMinors uint64) int {
+	key := whiteMinors*0xBF58476D1CE4E5B9 ^ blackMinors*0x94D049BB133111EB
+	key ^= key >> 29
+	return int(key & corrHistMask)
+}
+
+func minorCorrectionValue(stm Color, idx int) int {
+	return minorCorrectionHistory[stm][idx] * 6245 / 131072
+}
+
+func updateMinorCorrection(stm Color, idx, diff, depth int) {
+	bonus := diff * depth / 8
+	if bonus > corrHistLimit/4 {
+		bonus = corrHistLimit / 4
+	} else if bonus < -corrHistLimit/4 {
+		bonus = -corrHistLimit / 4
+	}
+	mag := bonus
+	if mag < 0 {
+		mag = -mag
+	}
+	e := &minorCorrectionHistory[stm][idx]
+	*e += bonus - (*e)*mag/corrHistLimit
+}
+
+func maybeUpdateMinorCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
+	if inCheck {
+		return
+	}
+	if bestMove != EmptyMove && bestMove.IsCapture() {
+		return
+	}
+	if !((bestScore < staticEval && bestScore < beta) || (bestScore > staticEval && bestMove != EmptyMove)) {
+		return
+	}
+	updateMinorCorrection(stm, idx, bestScore-staticEval, depth)
 }
 
 // Killer moves table for move ordering heuristic.
@@ -300,6 +350,11 @@ func ClearHistoryTable() {
 	for i := range nonPawnCorrectionHistory {
 		for j := range nonPawnCorrectionHistory[i] {
 			nonPawnCorrectionHistory[i][j] = 0
+		}
+	}
+	for i := range minorCorrectionHistory {
+		for j := range minorCorrectionHistory[i] {
+			minorCorrectionHistory[i][j] = 0
 		}
 	}
 	for i := range captureHistory {
