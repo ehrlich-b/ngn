@@ -43,11 +43,11 @@ openings_sha256: 974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b322
 adjudication: STANDARD-ON (-resignscore 900 -resignplies 5 -drawscore 10 -drawplies 10 -drawminplies 80)
 aa_preflight: cite experiments/2026-07-03-m5-adjudication-aa.md — the M5-enable A/A at this exact TC/concurrency/machine/adjudication config (2026-07-03, adjudication ON 10+0.1 c8, penta -1.1 [-13,+11] at cap, 0/0 flag-outs, 77.6% adjudicated, DONE_EXIT_0). Config unchanged since; no fresh preflight (coordinator-confirmed, same basis T1b/T4c used).
 decision_rule: see PREDECLARED RULE below (standard batch-cert shape, batch #2 slot)
-games_or_pairs: TBD (cap 8000 games)
-result: TBD
-flags_errors: TBD
-verdict: TBD
-next_action: TBD
+games_or_pairs: 8000 games (4000 pairs) — ran to the cap
+result: penta -0.4 [-6,+5], pLLR -0.32 (LLR -0.28), W-D-L 2220-3551-2229 (49.9%), 8h17m36s, DONE_EXIT_0
+flags_errors: 0/0 flag-outs (no HALT); 0 crash / 0 illegal / 0 no-move / 0 time-forfeit; reasons all legitimate (adj-win 4425, adj-draw 1927, max-moves 868, draw-rule 755, checkmate 24, stalemate 1 = 8000); pLLR never reached either SPRT bound
+verdict: SHELVED — capped-nonpositive (penta -0.4 < +1, pLLR -0.32 < 0). Engine diff reverted (targeted checkout of engine/search.go + engine/qsearch_test.go); output/t13.patch (dbd86641…) is the shelf copy
+next_action: box next item = T1c; reopen path recorded below as T16 (S7 depth-gate)
 ```
 
 ## Decision rule (predeclared — batch-certification shape, real-clock ONLY)
@@ -121,4 +121,45 @@ kinds). **Verdict TBD** — coordinator owns the watch.
 
 ## Verdict
 
-TBD.
+**SHELVED — capped-nonpositive** (coordinator-classified 2026-07-09 per the predeclared rule: ran to the
+8000g cap with penta -0.4 < +1 and pLLR -0.32 < 0). Completed 2026-07-09, `DONE_EXIT_0`, duration
+**8h17m36s**. The engine diff has been reverted (targeted `git checkout -- engine/search.go
+engine/qsearch_test.go`); `output/t13.patch` (sha256 `dbd8664139b3c4a5c852306207c39518496e7dd625349185938b11eaa7ade7bf`)
+is the shelf copy, and the reverted engine rebuilds byte-identical to the T4c-keep `ngn_t4c.exe`
+(`40783F04…`) — clean HEAD is unchanged, `go test -short ./engine` green.
+
+RESULT block (verbatim from `output/t13_out.txt`):
+
+```text
+=== RESULT (8h17m36s) ===
+Games: 8000   W-D-L: 2220-3551-2229   score: 49.9%
+Elo(new - base): -0.4   95% CI [-8, +7]
+LLR: -0.28   bounds [-2.94, 2.94]
+Pentanomial [LL 247  LD 981  {LW,DD} 1547  WD 984  WW 241] over 4000 pairs
+Penta Elo: -0.4   95% CI [-6, +5]   pLLR -0.32  (THE decision stat; trinomial above is secondary)
+Flag-outs (lost on time): new 0, base 0  of 8000 games  (goal: 0)
+Adjudicated early: 4425 decisive, 1927 draw  of 8000 games
+Verdict: INCONCLUSIVE (ran out of games — add openings or raise -maxgames)
+DONE_EXIT_0
+```
+
+**Integrity sweep (full 8000-game `t13_out.txt`):**
+- **Never crossed either bound:** ZERO lines with |pLLR| ≥ 2.94 across the whole run — it drifted around 0
+  (final pLLR -0.32) and ran to the cap, exactly the capped-nonpositive shape.
+- **Clean terminations:** the only result reasons in 8000 games are adj-win 4425, adj-draw 1927, max-moves
+  868, draw-rule 755, checkmate 24, stalemate 1 (= 8000). **0 crash, 0 illegal-move, 0 no-move, 0
+  time-forfeit / disconnect.**
+- **Flag-outs new 0 / base 0** — no spike, HALT trigger never approached.
+- **Adjudication:** 4425 decisive + 1927 draw fired cleanly (both kinds), matching the validated c8
+  adjudication-ON profile.
+
+This confirms the honest prior (the +7.0 belonged to the false "first qsearch write" premise; the
+stand-pat-only store is marginal) and the measured nodecheck headwind (+13-39% fixed-depth nodes): the
+qsearch cutoff/time savings did not overcome the depth-0 store flood + S7 margin reshaping. Net -0.4, dead
+neutral.
+
+**REOPEN CONDITION:** Reopen the stand-pat store only after the S7 static-eval refinement
+(`search.go:1368-1374`, `LowerBound && ttEval > staticEval` with NO depth gate) is depth-gated or excludes
+depth-0 qsearch entries — the traced +13-39% fixed-depth tree inflation ran through that coupling and is the
+plausible confound; also reopenable by a TT-clustering change (T11) reducing depth-0 eviction pressure.
+(This reopen path is queued as **T16 — S7 refinement depth-gate**.)

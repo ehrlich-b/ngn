@@ -64,6 +64,7 @@ Takeaway: the only repeatable wins are (a) fixing things that were broken, and (
 | Deeper futility (margin+depth) | blew up endgame tree +141% |
 | RFP / futility / LMP as the "endgame tree" fix | every standard pruning knob empirically refuted; eg-tree gap was a mislabeled-position artifact anyway |
 | TT capacity as endgame fix | bites the MIDDLEGAME (-46%), not endgame |
+| qsearch stand-pat fail-high TT store (T13) | **SHELVED -0.4 [-6,+5] at the 8000g cap** (pLLR -0.32, 0/0 flag-outs; `2026-07-09-t13-qsearch-ttstore.md`). NGN already stores the CAPTURE fail-high (a0fdda41/S3); this stand-pat-only add is marginal AND carries a +13-39% fixed-depth nodecheck headwind (depth-0 store flood + the un-gated S7 margin reshaping at search.go:1368-1374). **REOPEN** only after the S7 refinement is depth-gated / excludes depth-0 qsearch entries (queued **T16**), or a TT-clustering change (T11) cuts depth-0 eviction pressure. The audit's "+7.0 [S #126] / first qsearch write" premise was FALSE (qsearch has written capture fail-highs since a0fdda41), so the prior was downgraded pre-launch. |
 
 Mechanism (2026-06-29 diagnostic): NGN's LMR re-search rate is ~1.1% (reductions ultra-conservative,
 huge headroom) but every "reduce/prune more" regressed — because the re-search only catches moves that
