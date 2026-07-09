@@ -100,11 +100,16 @@ BIN="${1:-build/ngn}"
 # +2.0 penta real-clock); then the two T4 corrhist keeps (ffb24af pawn, 13560dc non-pawn) moved all
 # three again (mid ->124266; end d16 806334->294316 as corrhist resolves the R+P endgame faster). All
 # verified deterministic (reproduced exact). Gate node-IDENTITY against THESE.
-# baselines locked @ 13560dc 2026-07-03
+# RE-LOCKED 2026-07-09 to HEAD a195717 (T4c minor-piece corrhist KEEP, +3.7 penta H1 / pLLR +2.98 / 7842g
+# real-clock 10+0.1 c8): the third corrector reshapes the fixed-depth tree — kiwipete d12 371112->230036
+# (-38%), mid d12 124266->181982 (+46%), end d16 294316->587557 (+100%). Non-node-identical eval-value change;
+# single-position node shape is NOT a strength signal (the real-clock SPRT owns strength). Deterministic
+# (reproduced exact on 2 runs). Gate node-IDENTITY against THESE.
+# baselines locked @ a195717 2026-07-09
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|371112"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|124266"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|294316"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|230036"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|181982"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|587557"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
