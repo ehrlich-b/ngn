@@ -1,6 +1,6 @@
 # NGN — Everything We've Tried (consolidated ledger)
 
-Last updated 2026-07-01. This is the single inventory of every lever attempted, with verdicts,
+Last updated 2026-07-08. This is the single inventory of every lever attempted, with verdicts,
 so we stop re-grinding dead ends. Detailed records are in the per-experiment files and the memory
 topic files; this is the index + verdict.
 
@@ -18,9 +18,13 @@ topic files; this is the index + verdict.
 
 **Every Elo gain in this engine's history has been a CORRECTNESS fix. Every speculative
 eval / search-heuristic / tuning play has been null or negative.** That is the plateau.
+**[FALSIFIED 2026-07-02/03 by T4 +9.1, T4np +6.4, T1b +13.1 (post-revamp keeps) — retain this
+headline as a description of the PRE-revamp era ONLY.]**
 
-Strength trajectory (CCRL, real-clock): 2380 → 2449 → 2632 → 2669 → **2666** [2627,2706] (multi-family, 2026-06-28).
-The climbs were correctness fixes + the time-mgmt fix. Flat since ~Jun 10 despite weeks of eval/search work.
+Strength trajectory (CCRL, real-clock): 2380 → 2449 → 2632 → 2669 → **2666** [2627,2706] (multi-family, 2026-06-28)
+→ **2689** [2649,2729] (2026-07-08 re-pin, +23 point-signal inside the ±40 delta floor).
+The climbs were correctness fixes + the time-mgmt fix. Flat Jun-10→Jul-1 despite weeks of eval/search work;
+climbing since the 2026-07-01 revamp (~+28-30 self-play kept).
 
 ---
 
@@ -51,12 +55,12 @@ Takeaway: the only repeatable wins are (a) fixing things that were broken, and (
 |---|---|
 | LMR continuous history scaling (replace crude ±1) | REJECT: /2048 flat (-8), /256 regressed (-45). `2026-06-28-lmr-conthist.md` |
 | cutNode-based LMR reductions (extra reduction at cut nodes) | **REJECT -7.9** [-16,0] pLLR -2.87, fixed-nodes proxy 2984g (T3a value-1, `experiments/2026-07-02-t3a-lmr-cutnode.md`), post-reset **BINDING**. Blocked on move-ordering: NGN's FMC ~84% means MORE cutNode reduction over-reduces mis-ordered moves (silent fail-lows). REOPEN only after an ordering/FMC fix (T10); value 2/3 NOT retried (over-reduction isn't cured by more reduction). The [S] +6.2/+10 prior assumed elite ordering. |
-| LMR / NMP single-axis retunes (both directions) | 3 SPRTs / 0 gains — both directions regress (well-tuned local optimum) |
-| Joint-SPSA over all 11 margin params (coordinated) | NO-OP: zero gradient at iter 50, params pinned. `2026-06-28-joint-spsa.md` |
-| Search-param SPSA (earlier) | CLOSED (flat) |
+| LMR / NMP single-axis retunes (both directions) | 3 SPRTs / 0 gains — both directions regress (well-tuned local optimum). **[pre-reset — NON-BINDING, reopened]** |
+| Joint-SPSA over all 11 margin params (coordinated) | NO-OP: zero gradient at iter 50, params pinned. `2026-06-28-joint-spsa.md`. **[INVALID closure (iter-50 kill) — reopened as T8]** |
+| Search-param SPSA (earlier) | CLOSED (flat). **[reopened / superseded by T8]** |
 | J1 extension×LMR reduced-scout base fix | -59 Elo + endgame tree +83% → REVERTED (docs/09 J1 = accepted non-fix) |
-| Dynamic NMP | REJECT |
-| Multicut (return-beta) | REJECT (the A3 lesson) |
+| Dynamic NMP | REJECT. **(pre-reset evidence non-binding; adjacent to the queued T12 NMP polish)** |
+| Multicut (return-beta) | REJECT (the A3 lesson). **[pre-reset REJECT; reopened as T9, prior +5.8 [S]]** |
 | Deeper futility (margin+depth) | blew up endgame tree +141% |
 | RFP / futility / LMP as the "endgame tree" fix | every standard pruning knob empirically refuted; eg-tree gap was a mislabeled-position artifact anyway |
 | TT capacity as endgame fix | bites the MIDDLEGAME (-46%), not endgame |
@@ -97,10 +101,11 @@ search trusting an optimistic static eval), i.e. downstream of search depth, not
 | Aux corrhist (C-vs-B, 2026-06-23) | REJECT — and the run was INVALIDATED mid-flight by a ClearHistoryTable cross-game leak (Codex caught it), since fixed |
 | Non-pawn corrhist @ weight 6245 (OLD, mis-plumbed base) | ~~REJECT -9.5 [-20,+1], 1569g~~ **SUPERSEDED** by the T4-nonpawn KEEP above: identical @6245 form on FIXED plumbing = **+6.4 H1**. `2026-06-28-nonpawn-corrhist.md` |
 | Non-pawn corrhist @ weight 3000 (halved, mis-plumbed base) | ~~REJECT -3.8 [-11,+4], 3000g~~ **SUPERSEDED** — the halve was an over-correction remedy for the broken base; unnecessary on fixed plumbing (the @6245 form wins there) |
-| Minor-piece corrhist | built + suite-green, never game-tested (parked when non-pawn shelved) — **NOW QUEUED as T4c** (corrhist family is 2-for-2 on fixed plumbing; same conventions + red→green test template) |
+| Minor-piece corrhist | built + suite-green, never game-tested (parked when non-pawn shelved) — **T4c SPRT launched 2026-07-08, verdict pending** (corrhist family is 2-for-2 on fixed plumbing; same conventions + red→green test template) |
 
-**Closure (2026-06-29):** additive eval-correction is DOWNSTREAM of the search fix. corrhist learns from
-`(search - static)`, so a search-bound engine is a poor teacher → learns noise. Matches "conthist pays ≥3200".
+**Closure (2026-06-29): [SUPERSEDED — the 2026-07-02 T4 Update below overturns this.]** additive
+eval-correction is DOWNSTREAM of the search fix. corrhist learns from `(search - static)`, so a
+search-bound engine is a poor teacher → learns noise. Matches "conthist pays ≥3200".
 
 **Update (2026-07-02, T4):** the 2026-06-29 closure was measured on a MIS-PLUMBED base (correction never
 applied at qsearch stand-pat; learn target corrupted by S7 TT-refinement). Re-plumbed properly, PAWN
@@ -178,11 +183,11 @@ CounterGo three-regime package; needs a second signal — score tracking — bey
 
 ---
 
-## TUNING METHODS — all exhausted
+## TUNING METHODS — all exhausted **[SPSA rows reopened/superseded by T8, 2026-07-08; texel stays closed]**
 
 - **Texel/linear eval tuning: CLOSED.** Multiple objectives × multiple param sets, all null/dead-by-games. Don't reopen without a NEW (non-linear / structural) basis.
-- **Joint-SPSA over search margins: NO-OP** (zero gradient). The coordinated retune single SPRTs can't do — and it found nothing to do.
-- **Search-param SPSA: CLOSED** (flat).
+- **Joint-SPSA over search margins: NO-OP** (zero gradient). The coordinated retune single SPRTs can't do — and it found nothing to do. **[INVALID closure (iter-50 kill) — reopened as T8]**
+- **Search-param SPSA: CLOSED** (flat). **[reopened / superseded by T8]**
 
 ---
 
@@ -190,7 +195,7 @@ CounterGo three-regime package; needs a second signal — score tracking — bey
 
 - "2.5–5× bigger endgame tree" — REFUTED as a mislabeled-position artifact (the anchor was tactically won). Quiet endgames are ~0.85× Blunder (smaller), evals agree. No quiet-eg gap exists.
 - Mop-up mating gradient (KR-vs-K converts) — flat self-play SPRT, PARKED (git stash on main).
-- Endgame draw-scaling absent (scores dead-drawn endings as +1.5) — identified Counter gap, STAGED, never closed.
+- Endgame draw-scaling — **LIVE in HEAD** (`eval.go:2684` `drawFactor` + 50-move damp, ported from CounterGo; the "absent / STAGED / never closed" note is STALE).
 
 ---
 
@@ -198,7 +203,9 @@ CounterGo three-regime package; needs a second signal — score tracking — bey
 
 Gated ≥2800 (Bryan, emphatic). The search-bound proof says it's the wrong tool anyway: a search-bound
 engine can't teach an eval network (poor-teacher problem). Counter 3.8 = 2994 pure-Go HCE proves classical
-2800-2900 is reachable without it.
+2800-2900 is reachable without it **(anchor-label caveat: the memory 2026-06-21 note says CCRL lists Counter
+3.8 at 3051 and the "2994" figure was Counter 3.4-4CPU-Blitz; `ratings.json` keeps 2994 for pin
+comparability — do NOT change `ratings.json` mid-campaign; under verification 2026-07-08).**
 
 ---
 
