@@ -206,9 +206,10 @@ engine can't teach an eval network (poor-teacher problem). Pure-Go HCE proves cl
 is reachable without it, and the **Go-HCE ceiling is far higher (VERIFIED 2026-07-08, CCRL 40/15 1CPU lists
 dated 2026-07-04): the last pure-HCE Counter is 4.1 = 3157 (NNUE began at Counter 5.0, Nov 2023 — NOT 4.x);
 Stash 37 (Apr 2025) = 3374, still pure HCE and actively developed → the classical ceiling is demonstrated at
-≥3157.** Anchor-label caveat (VERIFIED 2026-07-08): counter-3.8 CCRL = 3050 (`ratings.json`'s 2994 ≈ Counter
-3.7); `ratings.json` kept at 2994 for pin-to-pin comparability — the absolute pin therefore reads ~11 Elo
-conservative (19.4% pool weight × ~56); do NOT change `ratings.json` mid-campaign.
+≥3157.** Anchor-label caveat (VERIFIED 2026-07-08, CCRL 40/15 1CPU, list dated 2026-07-04): counter-3.8 CCRL = 3050
+(`ratings.json`'s 2994 ≈ Counter 3.7 at 2997); `ratings.json` kept at 2994 for pin-to-pin comparability —
+the absolute pin therefore reads ~11 Elo conservative (19.4% pool weight × ~56); do NOT change
+`ratings.json` mid-campaign.
 
 ---
 
