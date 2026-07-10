@@ -184,6 +184,17 @@ CounterGo three-regime package; needs a second signal — score tracking — bey
 "every speculative search/eval play is null or negative" headline is now falsified three times over (T4
 +9.1, T4-nonpawn +6.4, T1b +13.1) — all standard-technique transplants under the revamp method.
 
+**2026-07-10 — T1c score-drop / eval-direction regime is SHELVED (clean reject).** Added the third
+CounterGo/Stash-v26 regime — a second, orthogonal time signal composed multiplicatively with T1b's
+stability factor: `scoreDropSoftFactor` (clamped ramp 1.0 at ≤50cp drop → 1.25 at 150cp, extend-only) that
+lengthens the soft budget when the root score is falling across completed iterations. Real-clock 10+0.1 c8
+adjudicated SPRT vs the T4c base = **REJECT −4.8 penta [−11,+1], pLLR −2.98 (crossed the −2.94 bound),
+0/0 flag-outs / 5763g** (`2026-07-09-t1c-score-regimes.md`). Clean statistical reject, not a cap. The
+score-drop signal as a pure orthogonal extend-on-drop multiplier is marginally harmful; T1b's
+best-move-stability scaling was the whole time-management win. REOPEN only if the score-drop signal is
+re-derived in a materially different form (e.g. gated on low best-move stability, not an independent
+orthogonal multiplier). Matches the T1a signature (time overspend regresses with zero flag-outs).
+
 ---
 
 ## TUNING METHODS — all exhausted **[SPSA rows reopened/superseded by T8, 2026-07-08; texel stays closed]**

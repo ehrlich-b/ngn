@@ -212,3 +212,48 @@ eta: ~2.5-4h at c8 if it crosses early (T1b crossed at 2h18m/2233g); ~7h to the 
 
 Poll: `scripts/boxsprt.sh tail t1c` / `scripts/boxsprt.sh ps`. This run applies the predeclared decision
 rule on completion.
+
+## Verdict (2026-07-10) — SHELVED (clean statistical reject)
+
+Completed 2026-07-10 (launched 2026-07-09 6:29:54 PM box time). The candidate crossed the predeclared
+REJECT bound. Result block, verbatim from the box:
+
+```
+=== RESULT (5h56m46s) ===
+Games: 5763   W-D-L: 1532-2620-1611   score: 49.3%
+Elo(new - base): -4.8   95% CI [-14, +4]
+LLR: -2.50   bounds [-2.94, 2.94]
+Pentanomial [LL 171  LD 704  {LW,DD} 1180  WD 685  WW 141] over 2881 pairs
+Penta Elo: -4.8   95% CI [-11, +1]   pLLR -2.98  (THE decision stat)
+Flag-outs (lost on time): new 0, base 0  of 5763 games
+Adjudicated early: 3127 decisive, 1434 draw  of 5763 games
+Verdict: H0 ACCEPTED: new is NOT better (<= -3 ELO)
+DONE_EXIT_0
+```
+
+**Decision: SHELVED.** The predeclared rule that fired is **"pLLR ≤ −2.94 → REJECT"** — the pentanomial LLR
+reached **−2.98**, below the −2.94 lower bound. This is a **clean statistical reject** (a bound crossing,
+NOT a cap): the SPRT terminated at 5763 games / 2881 pairs, well short of the 8000g cap, with a decisive
+H0-accept. Penta Elo −4.8 [−11, +1] and per-game Elo −4.8 [−14, +4] both sit below zero. This is not a
+capped-nonpositive shelve and does not enter the batch-certification path — it is a reject.
+
+**Integrity (clean, no distortion signal):**
+- **Flag-outs new 0 / base 0** of 5763 games — zero on either side, no spike vs the M5-enable A/A baseline
+  (0/0). The regression is a genuine strength loss, not a clock-management artifact (matching the T1a
+  signature: overspending time regresses with zero flag-outs).
+- **DONE_EXIT_0** — the harness completed and self-terminated cleanly.
+- No crashes, no illegal moves, no no-move results reported.
+- **5763 games > mingames 300** — the reject is powered, not an early-sample fluke.
+- Adjudication fired normally (3127 decisive + 1434 draw of 5763, ~79% adjudicated), consistent with the
+  validated M5 standard-ON behavior; the config (TC 10+0.1, c8, adjudication flags) is byte-identical to
+  the KEPT T1b/T4c runs, so the M5 A/A remains a valid preflight.
+
+**Engine diff reverted** (patch preserved as the shelf copy `output/t1c.patch`, sha256
+`f3e6cfd1cea75b3b5351bd95a353e9257f8315bad46daac21d7a7fc72fc07aed`; gitignored, not committed). The three
+touched files — `engine/search.go`, `engine/time.go`, `engine/time_test.go` — were reverted to clean HEAD;
+nodecheck baselines were unaffected (this was a time-only change, fixed-depth tree unmoved).
+
+**REOPEN CONDITION:** Reopen only if the score-drop signal is re-derived in a materially different form —
+e.g. gated on low best-move stability rather than applied as an independent orthogonal multiplier — since
+the pure orthogonal extend-on-drop factor is now measured at −4.8 Elo [−11, +1] vs the T4c base. The T1b
+stability scaling remains the sole time-management win.
