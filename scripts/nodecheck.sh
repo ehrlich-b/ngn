@@ -105,11 +105,18 @@ BIN="${1:-build/ngn}"
 # (-38%), mid d12 124266->181982 (+46%), end d16 294316->587557 (+100%). Non-node-identical eval-value change;
 # single-position node shape is NOT a strength signal (the real-clock SPRT owns strength). Deterministic
 # (reproduced exact on 2 runs). Gate node-IDENTITY against THESE.
-# baselines locked @ a195717 2026-07-09
+# RE-LOCKED 2026-07-19 to HEAD 5b93966 (T5 aspiration-window modernization KEEP, +20.2 penta [+7,+33] H1 /
+# pLLR peak +2.98 / 1309g real-clock 10+0.1 c8): replacing the fixed-50cp / jump-to-INFINITY / discard-after-3
+# aspiration scheme with a scaled initial window (12+|score|/81), progressive ×1.5 widening and never-discard
+# iterations reshapes the root re-search and the fixed-depth tree — kiwipete d12 230036->346662 (+51%),
+# mid d12 181982->149587 (-18%), end d16 587557->765656 (+30%). Search-behavior change (both-directions
+# butterfly), NOT node-identical; single-position node shape is NOT a strength signal (the real-clock SPRT owns
+# strength). Deterministic (reproduced exact on 2 runs). Gate node-IDENTITY against THESE.
+# baselines locked @ 5b93966 2026-07-19
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|230036"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|181982"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|587557"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|346662"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|149587"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|765656"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
