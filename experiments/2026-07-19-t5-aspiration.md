@@ -145,3 +145,13 @@ scripts/boxsprt.sh launch t5 -- -new '.\ngn_t5.exe' -base '.\ngn_t1e.exe' -tc 10
 
 At launch confirm: header parse, on-box SHA-256s, openings == 974e4b5a…, `ps` showing the t5 run as the ONLY
 live worker (1 sprt + 8 ngn_t5 + 8 ngn_t1e), then early health (~4 min: games completing, 0/0 flag-outs).
+
+## Launch
+
+CONFIRMED LIVE 2026-07-19 05:13:33 EDT via `scripts/boxsprt.sh launch t5` (command exactly as above).
+Topology verified: 1 sprt.exe + 8 ngn_t5 + 8 ngn_t1e, all started 05:13:33, sole live workers on the box.
+On-box hashes re-verified at stage time: candidate `ngn_t5.exe` `0A8F65B7…`, base `ngn_t1e.exe` `F65A3C16…`.
+Header matches the predeclared rule (`H0: elo<=-3.0  H1: elo>=3.0  (alpha=0.05 beta=0.05 -> LLR bounds
+[-2.94, 2.94])`), mode real clock 10s+0.1s conc 8, openings 5000. Early health at G41 (~3.5 min): 9W-20D-12L,
+elo -25.5 [-130,+80], pLLR -0.10 (early noise — CI spans ±100 at 41 games), adjudication firing
+(adj-win/adj-draw/draw-rule/max-moves), 0 forfeit/flag-out/panic/illegal/crash lines, flag-outs 0/0.
