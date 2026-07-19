@@ -29,10 +29,10 @@ openings_sha256:           974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f6178
 aa_preflight:              n/a for a gauntlet (NGN-vs-anchors, not self-play); pre-launch `-probe` recorded below. As on Jul-04, the probe is a movetime/stop probe; this real-clock `-tc` run does not skip older Blunder anchors on probe non-compliance, and clock/forfeit behavior is measured in the run.
 decision_rule:             MEASUREMENT — report pooled CCRL rating + 95% CI + per-anchor crosstable; delta vs the 2689 [2649,2729] pin = transfer readout (a SIGNAL: the delta-CI is FLOORED at ±39.5 by the fixed 2689 pin's variance, see Sizing). NOT a keep/reject gate. ANOMALY = a pin REGRESSION (HEAD pooled point below the 2689 point, or the CI excluding 2689 on the low side) — that would contradict the +30.5 self-play and triggers INVESTIGATION, never an auto-revert. Forfeit accounting: report anchor-side vs NGN-side flag-outs separately (Jul-04 had 7/400, all anchor-side).
 games_or_pairs:            400 (5 anchors x 80; S1)
-result:                    PENDING (fills at DONE_EXIT_0)
-flags_errors:              PENDING
-verdict:                   PENDING
-next_action:               PENDING (on DONE: report crosstable + pooled number + forfeit accounting; then the box returns to the queue — T10 -> T7. Powered transfer certification remains the Batch-2 self-play SPRT [0,+6] vs c514a2b, due ≤2026-08-01.)
+result:                    DONE_EXIT_0 — POOLED NGN 2704, 95% CI [2665, 2743] (5 anchors × 80g = 400g). Crosstable + per-anchor perf below.
+flags_errors:              4/400 time-forfeits (3 anchor-side: games 39/46/63 vs v6.1.0, NGN won; 1 NGN-SIDE: game 193 vs v7.4.0, NGN lost on time — FLAGGED, see Results). 0 panics / 0 illegal-move / 0 disconnect / 0 no-move / 0 crash. tally.json matches crosstable exactly and PGN result-code distribution matches both.
+verdict:                   MEASUREMENT COMPLETE — HEAD pins at 2704 [2665,2743], +15 vs the 2689 [2649,2729] Jul-08 pin = WITHIN the ±39.5 delta-CI floor, so formally FLAT-TO-UP (not a significant gain). No pin regression ⇒ the decision-rule anomaly (HEAD point below 2689) did NOT fire. Consistent with the +30.5 claimed self-play (T4c/T1e/T5) at the demonstrated ~60% transfer, but not separable from noise at this instrument's power. One NGN-side flag-out is a new observation vs Jul-04's 7/7 anchor-side — flagged for watch, not a revert trigger.
+next_action:               box returns to the queue — T10b launches immediately (separate agent). Powered transfer certification remains the Batch-2 self-play SPRT [0,+6] vs c514a2b, due ≤2026-08-01. Watch the NGN-side long-TC forfeit if it recurs (T1e time-mgmt at 120+1 is outside the 10+0.1 SPRT test envelope).
 ```
 
 ## Instrument replication (matches `experiments/2026-07-04-gauntlet-repin.md` and `experiments/2026-06-28-strength-repin.md`)
@@ -120,3 +120,75 @@ the instrument: 5 anchors, 80 games/anchor, real clock 120s+1.0s, concurrency 8,
 saturation of the bottom rung. `ngn_crashes.log` activity checked and BENIGN: init-banner lines only (one
 per NGN process spawn, no crash dumps; file accumulates since Jun-28). Expected completion ~5-7h wall
 (~12:00-14:00 EDT); completion marker `DONE_EXIT_` appended by the bat.
+
+## Results / Verdict (2026-07-19)
+
+**DONE_EXIT_0.** Launched 06:59 EDT, finished ~10:05 EDT ⇒ **~3h06m wall** (faster than the
+5-7h estimate; the c8 oversubscription + adjudication-free real gauntlet drained quickly).
+`repin_0719_tally.json` + `repin_0719.pgn` fetched to `output/` (gitignored — numbers recorded here).
+Tally, out-file crosstable, and PGN result-code distribution all agree (400 games).
+
+### Crosstable (verbatim from `repin_0719_out.txt`)
+
+```
+Anchor    CCRL    W   D   L   Score   Perf  95% CI         weight
+v6.1.0    2155   57  22   1   85.0%   2456  [2351,2561]    13.7%
+v7.2.0    2425   49  29   2   79.4%   2659  [2566,2752]    17.5%
+v7.4.0    2532   34  42   4   68.8%   2669  [2588,2750]    22.7%
+v8.0.0    2674   29  47   4   65.6%   2786  [2707,2866]    23.8%
+counter-3.8  2994    8  32  40   30.0%   2847  [2765,2929]    22.2%
+------------------------------------------------------------------------
+POOLED NGN rating: 2704   95% CI [2665, 2743]   (5 anchors, 80 games each)
+```
+
+Harness caveat line (same instrument + caveat as the 2666/2689 pins, so pin-to-pin is valid):
+CCRL-scale via Blunder anchors at movetime; ~+30-80 optimistic vs a true 2'+1" clock run.
+
+### Pooled reading vs the prior pin
+
+- **HEAD = 2704 CCRL, 95% CI [2665, 2743].**
+- Prior pin = **2689 [2649, 2729]** (2026-07-08, exact-replica instrument).
+- **Delta = +15**, which is **WITHIN the ±39.5 delta-CI floor** set by the fixed 2689 pin's variance
+  (see Sizing). So the honest read is **FLAT-TO-UP, not a significant gain** — do NOT claim a real +15.
+- Predicted was +18 (+30.5 self-play × ~60% transfer ⇒ ~2707); measured +15 lands right on that
+  prediction but is **not separable from noise** at 400g single-pin. The powered transfer instrument
+  remains the Batch-2 self-play SPRT [0,+6] vs `c514a2b` (due ≤2026-08-01).
+- Claimed self-play since the Jul-08 pin = T4c +3.7 + T1e +6.6 + T5 +20.2 = **+30.5**; measured
+  transfer is **consistent** with the demonstrated ~60%-transfer curve, but the CI floor means this
+  pin can only confirm "no regression," not quantify the gain.
+- **Pin trend:** 2380 → 2449 → 2632 → 2669 → 2666 → 2689 → **2704**.
+- Decision-rule anomaly (HEAD point below 2689, or CI excluding 2689 low) **did NOT fire** — HEAD point
+  is above 2689 and the CI comfortably contains it. No pin regression; no investigation triggered on
+  the regression front.
+
+### Forfeit accounting (from the PGN, per-game result codes)
+
+4 time-forfeits in 400 games. PGN line N == game N; result code is NGN-perspective (W/D/L), confirmed
+by the per-version tally match.
+
+| game | anchor | NGN color | result | who flagged | side |
+|---|---|---|---|---|---|
+| 39  | v6.1.0 | white | NGN win  | anchor lost on time | anchor-side |
+| 46  | v6.1.0 | white | NGN win  | anchor lost on time | anchor-side |
+| 63  | v6.1.0 | white | NGN win  | anchor lost on time | anchor-side |
+| **193** | **v7.4.0** | **white** | **NGN loss** | **NGN lost on time** | **NGN-SIDE** |
+
+- **3 anchor-side, 1 NGN-side (game 193).** The out-file running tally confirms game 193 bumped NGN's
+  loss count vs v7.4.0 from 1 → 2 with reason `time-forfeit`; the game ran 116 plies (a long endgame
+  where NGN as White flagged).
+- **⚠ FLAG:** Jul-04's precedent was **7/400 forfeits, all anchor-side (0 NGN-side)**. This run has the
+  **first NGN-side flag-out** since the reset. It matters because NGN's time management changed the night
+  before (T1e keep — node-fraction effort scaling) and this gauntlet ran at **120+1** (long TC), which
+  the 10+0.1 self-play SPRTs never exercise. One in 400 (0.25%) is a low rate and not a revert trigger
+  (this is a measurement, not a keep/reject gate), but it is a genuine new behavior — **watch for
+  recurrence at long TC**; if NGN-side long-TC flag-outs climb, the T1e/T1b soft-budget composition under
+  the [0.72,1.40] clamp is the first suspect.
+- No other flags: **0 panics, 0 illegal-move, 0 disconnect, 0 no-move, 0 crash** across all 400 games
+  (`ngn_crashes.log` accumulation is benign init-banner lines only, as noted at launch).
+
+### Verdict
+
+Milestone gauntlet complete: **NGN pins at 2704 [2665, 2743]**, flat-to-up vs the 2689 prior within the
+CI floor, no pin regression, transfer consistent with ~60% but noise-limited. One NGN-side time-forfeit
+flagged for watch. Box returns to the queue; **T10b launches immediately** (separate agent). This pin
+supersedes 2689 as the current strength estimate.
