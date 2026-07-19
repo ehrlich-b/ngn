@@ -86,9 +86,18 @@ accepts also land on main and are folded into this batch's composite for attribu
 
 | # | Change | Commit | Verdict (real-clock self-play, 10+0.1) | Run record |
 |---|---|---|---|---|
-| — | (none yet) | — | — | — |
+| 1 | T1e — node-fraction (best-move node-effort) time scaling | `645878f` + t1e (this commit) | FULL H1 accept — penta +6.6 [-1,+14], pLLR peak +2.96 crossed +2.94 at G4218, c8-drain to +2.85, 0/0 flag-outs, 4226g (2026-07-19) | `2026-07-18-t1e-node-effort.md` |
 
 - **Trigger:** certify when Batch 2 reaches 4 provisionals **OR** 2 weeks (~2026-08-01), whichever first.
 - **Certification run:** post-batch HEAD vs `c514a2b`, real-clock `-tc 10+0.1`, SPRT [0,+6], A/A preflight, LAN 9800X3D box.
 - **On fail:** bisect Batch 2 commits to find the regressor; drop it, re-certify.
-- **First candidate in flight:** T1e (node-fraction time scaling) — isolated per-change SPRT [-3,+3] vs `c514a2b`; on capped-positive it becomes Batch 2 provisional #1.
+- **Batch net (claimed self-play):** **+6.6** (T1e, FULL H1 accept — landed on main, not a provisional; folded into the composite for attribution same as Batch 1's full accepts).
+- **Note (2026-07-19) — T1e (FULL H1 accept, NOT a provisional):** node-fraction best-move effort scaling of the
+  soft time budget (SF-standard third time signal, composed multiplicatively with T1b's stability factor under
+  the T1b-proven [0.72,1.40] clamp) landed on main as an outright SPRT accept: penta **+6.6 [-1,+14]**, pLLR
+  peak **+2.96 crossed the +2.94 bound at G4218** (first & only crossing, c8-drain to +2.85 at 4226g), 0/0
+  flag-outs / 4226g, real-clock 10+0.1 c8 adjudicated (`2026-07-18-t1e-node-effort.md`) — under the STRICT
+  per-change gate (H1-only, NO provisional-on-cap). Isolated SPRT [-3,+3] vs `c514a2b`. Fixed-depth
+  node-identical (nodecheck 230036/181982/587557 unchanged), so no nodecheck re-lock; hash-back reproduced the
+  exact playing binary `f65a3c16…`. The post-batch certification composite (vs `c514a2b`) will include this
+  gain, isolable by this commit for the bisect-on-fail path.

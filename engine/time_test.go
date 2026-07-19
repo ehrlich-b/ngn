@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"math"
 	"testing"
 	"time"
 )
@@ -147,16 +148,16 @@ func TestTournamentSoftStop(t *testing.T) {
 	// ReportCompletedIteration still TRACKS decision stability (a changed best move or
 	// a broken window resets it); the counter is kept for diagnostics even though the
 	// soft budget no longer shrinks on it.
-	tm.ReportCompletedIteration(true, true) // best move changed
+	tm.ReportCompletedIteration(true, true, 0.5) // best move changed
 	if tm.stableIters != 0 {
 		t.Fatalf("a changed best move must reset stability, got %d", tm.stableIters)
 	}
-	tm.ReportCompletedIteration(false, false) // window broke (re-search)
+	tm.ReportCompletedIteration(false, false, 0.5) // window broke (re-search)
 	if tm.stableIters != 0 {
 		t.Fatalf("a window break must reset stability, got %d", tm.stableIters)
 	}
 	for i := 0; i < 6; i++ {
-		tm.ReportCompletedIteration(false, true) // settled iterations
+		tm.ReportCompletedIteration(false, true, 0.5) // settled iterations
 	}
 	if tm.stableIters != 6 {
 		t.Fatalf("six settled iterations should give stability 6, got %d", tm.stableIters)
@@ -174,6 +175,9 @@ func TestTournamentSoftStop(t *testing.T) {
 	tm.softTime = 4000 * time.Millisecond
 	tm.hardTime = 16000 * time.Millisecond
 	tm.lastIterationTime = 500 * time.Millisecond
+	// Neutralize the T1e node-effort signal (fraction 0 → nodeEffortFactor 1.0) so this
+	// test measures the T1b stability thresholds alone; T1e is covered separately.
+	tm.bestMoveNodeFraction = 0
 	const depth = 10
 
 	// At elapsed 4200ms (elapsed+lastIter = 4700): a VOLATILE search keeps going
@@ -213,6 +217,120 @@ func TestTournamentSoftStop(t *testing.T) {
 	tm.stableIters = 0
 	if !tm.shouldStopTournamentSearch(depth, tm.hardTime) {
 		t.Error("hard ceiling must still stop the search regardless of stability")
+	}
+}
+
+// TestNodeEffortFactor covers the T1e node-effort soft-target multiplier: default
+// 1.0 with no data, a neutral crossover, monotone-decreasing in the node fraction,
+// and clamped into [nodeEffortMin, nodeEffortMax].
+func TestNodeEffortFactor(t *testing.T) {
+	tm := NewTimeManager()
+
+	// No completed iteration yet (fraction 0) → neutral 1.0.
+	if f := tm.nodeEffortFactor(); f != 1.0 {
+		t.Errorf("no-data node-effort factor must default to 1.0, got %v", f)
+	}
+
+	// A best move that owns the whole tree (fraction 1.0) → maximum shrink (min).
+	tm.bestMoveNodeFraction = 1.0
+	if f := tm.nodeEffortFactor(); f != nodeEffortMin {
+		t.Errorf("fraction 1.0 must give the min factor %v, got %v", nodeEffortMin, f)
+	}
+
+	// A best move that owns almost none of the tree → maximum extend (max).
+	tm.bestMoveNodeFraction = 0.0001
+	if f := tm.nodeEffortFactor(); f <= 1.0 || f > nodeEffortMax+1e-9 {
+		t.Errorf("a tiny fraction must extend up toward the max %v, got %v", nodeEffortMax, f)
+	}
+
+	// Crossover: with these constants the factor passes through 1.0 at fraction 0.625.
+	tm.bestMoveNodeFraction = 0.625
+	if f := tm.nodeEffortFactor(); math.Abs(f-1.0) > 1e-9 {
+		t.Errorf("fraction 0.625 must be the neutral 1.0 crossover, got %v", f)
+	}
+
+	// Monotone non-increasing across the (0,1] fraction range, always clamped. Seed
+	// above the max so the first real sample passes; fraction 0 is the no-data
+	// sentinel (1.0), not part of the continuous map, so it is excluded here.
+	prev := nodeEffortMax + 1.0
+	for frac := 0.05; frac <= 1.0+1e-9; frac += 0.05 {
+		f := tm.factorAt(frac)
+		if f < nodeEffortMin-1e-9 || f > nodeEffortMax+1e-9 {
+			t.Errorf("factor at fraction %.2f = %v outside clamp [%v,%v]", frac, f, nodeEffortMin, nodeEffortMax)
+		}
+		if f > prev+1e-9 {
+			t.Errorf("factor must be monotone non-increasing in fraction: %.2f gave %v > prev %v", frac, f, prev)
+		}
+		prev = f
+	}
+
+	// Defensive: a fraction above 1.0 is clamped to the min, not extrapolated below it.
+	tm.bestMoveNodeFraction = 1.5
+	if f := tm.nodeEffortFactor(); f != nodeEffortMin {
+		t.Errorf("fraction > 1 must clamp to the min %v, got %v", nodeEffortMin, f)
+	}
+}
+
+// factorAt is a test helper: the node-effort factor for a given fraction.
+func (tm *TimeManager) factorAt(frac float64) float64 {
+	tm.bestMoveNodeFraction = frac
+	return tm.nodeEffortFactor()
+}
+
+// TestComposedSoftFactorBound verifies the T1b×T1e composed soft-target multiplier is
+// bounded to [softComposedMin, softComposedMax] so the two correlated signals cannot
+// double-count. The soft stop with lastIterationTime==0 fires exactly at elapsed >=
+// softTime*composed, so the fire threshold reveals the composed factor.
+func TestComposedSoftFactorBound(t *testing.T) {
+	tm := NewTimeManager()
+	tm.timeControl = Tournament
+	tm.baseTime = 120 * time.Second
+	tm.hardTime = 60 * time.Second
+	tm.softTime = 1000 * time.Millisecond
+	tm.lastIterationTime = 0 // fire threshold is exactly softTime*composed
+	const depth = 10
+
+	// Both signals maximally volatile: stability 1.30 × node-effort ~1.25 = ~1.625 raw,
+	// which MUST be capped to softComposedMax (1.40) → threshold 1400ms, not ~1625ms.
+	tm.stableIters = 0
+	tm.bestMoveNodeFraction = 0.0001
+	if tm.shouldStopTournamentSearch(depth, 1350*time.Millisecond) {
+		t.Error("composed soft target must extend to ~1400ms; stopped early at 1350ms")
+	}
+	if !tm.shouldStopTournamentSearch(depth, 1450*time.Millisecond) {
+		t.Error("composed soft target must be capped at ~1400ms; did not stop at 1450ms (uncapped ~1625ms)")
+	}
+
+	// Both signals maximally confident: stability 0.85 × node-effort 0.85 = ~0.7225,
+	// at/above the softComposedMin floor (0.72) → threshold ~722ms.
+	tm.stableIters = 10 // floors stabilitySoftFactor at 0.85
+	tm.bestMoveNodeFraction = 1.0
+	if tm.shouldStopTournamentSearch(depth, 700*time.Millisecond) {
+		t.Error("both-confident soft target must reach ~722ms; stopped early at 700ms")
+	}
+	if !tm.shouldStopTournamentSearch(depth, 740*time.Millisecond) {
+		t.Error("both-confident soft target must be ~722ms; did not stop at 740ms")
+	}
+}
+
+// TestNodeEffortPlumbing confirms the per-root-move node attribution is wired end to
+// end: after a real short search the best move's node fraction is positive and does
+// not exceed the iteration total (bestMoveNodes/totalNodes in (0,1]) — the sum
+// identity holds by construction (info.Nodes only advances inside the root move loop,
+// so the total is the exact sum of the per-move deltas).
+func TestNodeEffortPlumbing(t *testing.T) {
+	tm := NewTimeManager()
+	pos := newUCIStartingPosition()
+	info := SearchIterativeDeepening(pos, 6, tm)
+	if info.BestMove == EmptyMove {
+		t.Fatal("search returned no best move")
+	}
+	frac := tm.bestMoveNodeFraction
+	if frac <= 0.0 {
+		t.Errorf("best-move node fraction must be positive after a real search, got %v", frac)
+	}
+	if frac > 1.0+1e-9 {
+		t.Errorf("best-move node fraction must not exceed 1.0 (best move nodes <= total), got %v", frac)
 	}
 }
 

@@ -751,7 +751,9 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 			}
 			iterationBestScore := -INFINITY
 			iterationBestMove := EmptyMove
-			rootInCheck := pos.IsInCheck() // root position: don't root-LMR while in check
+			bestMoveNodes := uint64(0)      // T1e: nodes spent inside the current best move's subtree
+			attemptStartNodes := info.Nodes // T1e: node baseline for this attempt's per-move attribution
+			rootInCheck := pos.IsInCheck()  // root position: don't root-LMR while in check
 			legalRoot := 0                 // count of LEGAL root moves (PVS first-move + LMR index)
 
 			for oi := 0; oi < orderedCount; oi++ {
@@ -779,6 +781,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				SetLastMovePlayed(move)
 				info.MoveStack[0] = move
 				legalRoot++
+				nodesBefore := info.Nodes // T1e: node count before searching this root move's subtree
 
 				var score int
 				if pos.IsFIDEDrawRule() {
@@ -840,10 +843,12 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				}
 
 				info.Nodes++
+				moveNodes := info.Nodes - nodesBefore // T1e: this root move's subtree node cost
 
 				if score > iterationBestScore {
 					iterationBestScore = score
 					iterationBestMove = move
+					bestMoveNodes = moveNodes // the new best move so far owns this many nodes
 				}
 
 				if score > alpha {
@@ -896,7 +901,16 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				previousScore = iterationBestScore
 				iterationComplete = true
 				if info.TimeManager != nil {
-					info.TimeManager.ReportCompletedIteration(bestMoveChanged, attempts == 1)
+					// T1e: fraction of this attempt's nodes spent inside the best move's
+					// subtree. totalAttemptNodes is the exact sum of the per-move deltas
+					// (info.Nodes only advances inside the move loop), so the fraction is
+					// bestMoveNodes/totalAttemptNodes in (0,1]. Feeds nodeEffortFactor.
+					totalAttemptNodes := info.Nodes - attemptStartNodes
+					bestMoveNodeFraction := 0.0
+					if totalAttemptNodes > 0 {
+						bestMoveNodeFraction = float64(bestMoveNodes) / float64(totalAttemptNodes)
+					}
+					info.TimeManager.ReportCompletedIteration(bestMoveChanged, attempts == 1, bestMoveNodeFraction)
 				}
 			}
 		}

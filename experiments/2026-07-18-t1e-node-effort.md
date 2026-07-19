@@ -54,11 +54,11 @@ decision_rule: >
   -> SHELVE; capped at 8000g with point est >= +1, pLLR > 0, and 0 excess flag-outs -> Batch-2 PROVISIONAL
   keep (CLAUDE.md batch-certification path); capped-nonpositive -> shelve; any candidate flag-out above the
   A/A baseline (0) -> HALT and investigate.
-games_or_pairs:   # TBD at completion
-result:           # TBD at completion
-flags_errors:     # TBD at completion
-verdict:          # TBD (keep | shelve | batch-2 provisional | halt)
-next_action:      # TBD
+games_or_pairs:   4226 games / 2113 pairs
+result:           penta +6.6 [-1,+14], pLLR peak +2.96 crossed the +2.94 bound at G4218 (first & only crossing), c8-drain to +2.85 at 4226g; trinomial +6.6 [-4,+17]
+flags_errors:     0/0 flag-outs (new 0, base 0 of 4226); no crashes/illegal/no-move; 2308 adj-decisive + 1022 adj-draw
+verdict:          keep (FULL H1 ACCEPTED; predeclared pLLR >= +2.94 fired — peak +2.96 at G4218)
+next_action:      commit t1e.patch to main as Batch-2 keep #1 (certified base c514a2b); time-mgmt package now T1b+T1e; next box item T5
 ```
 
 ## Binaries
@@ -115,4 +115,51 @@ re-verified on box at stage time.
 
 ## Verdict
 
-TBD — filled at completion against the predeclared decision rule.
+**KEEP** — FULL H1 ACCEPTED. The predeclared rule (`pLLR >= +2.94 -> KEEP`) fired: the pentanomial pLLR
+**crossed +2.94 at G4218** (first and only crossing), peaking at **+2.96** (held G4218-G4220), then drained
+over the 8 in-flight c8 games to **+2.85 at 4226g** (the known c8-drain pattern, T4c precedent — the peak
+crosses the bound, the trailing pairs settle the stat lower). Independently re-verified on the box out-file
+`t1e_out.txt` post-completion (all 4226 game-lines parsed): max pLLR +2.96 @G4218, first crossing @G4218; the
+drain path G4218-4226 = +2.96, +2.96, +2.96, +2.92, +2.92, +2.92, +2.89, +2.89, +2.85. Hash-back:
+re-cross-compiling clean HEAD + `output/t1e.patch` (`GOOS=windows GOARCH=amd64 GOAMD64=v3 go build`, go1.26.2)
+reproduces the exact binary that played the run, sha256 `f65a3c16…` (byte-identical). Fixed-depth
+node-identity re-verified on the patched tree (nodecheck 230036 / 181982 / 587557 all match baselines) — T1e is
+a time-management-only change, so NO nodecheck re-lock. Tests green on the patched tree: `go test -short
+./engine`, `go test -short ./...`, `go test -short -race ./engine` all pass.
+
+Full RESULT block (verbatim, box `sprt.exe`):
+
+```text
+=== RESULT (4h21m6s) ===
+Games: 4226   W-D-L: 1197-1912-1117   score: 50.9%
+Elo(new - base): +6.6   95% CI [-4, +17]
+LLR: +2.52   bounds [-2.94, 2.94]
+Pentanomial [LL 118  LD 498  {LW,DD} 816  WD 548  WW 133] over 2113 pairs
+Penta Elo: +6.6   95% CI [-1, +14]   pLLR +2.85  (THE decision stat)
+Flag-outs (lost on time): new 0, base 0  of 4226 games  (goal: 0)
+Adjudicated early: 2308 decisive, 1022 draw  of 4226 games
+Verdict: H1 ACCEPTED: new is stronger (>= 3 ELO)
+DONE_EXIT_0
+```
+
+Peak/crossing evidence (box out-file, G4215-G4226 verbatim):
+
+```text
+G4215 1196W 1906D 1113L   51.0%  elo   +6.8 [-4,+17]  LLR  +2.62  pLLR  +2.92  adj-win
+G4216 1196W 1907D 1113L   51.0%  elo   +6.8 [-4,+17]  LLR  +2.62  pLLR  +2.92  adj-draw
+G4217 1196W 1908D 1113L   51.0%  elo   +6.8 [-4,+17]  LLR  +2.62  pLLR  +2.92  draw-rule
+G4218 1196W 1909D 1113L   51.0%  elo   +6.8 [-4,+17]  LLR  +2.62  pLLR  +2.96  adj-draw   <-- CROSS (peak)
+G4219 1196W 1910D 1113L   51.0%  elo   +6.8 [-4,+17]  LLR  +2.62  pLLR  +2.96  adj-draw
+G4220 1196W 1910D 1114L   51.0%  elo   +6.8 [-4,+17]  LLR  +2.59  pLLR  +2.96  adj-win
+G4221 1196W 1910D 1115L   51.0%  elo   +6.7 [-4,+17]  LLR  +2.56  pLLR  +2.92  adj-win
+G4222 1197W 1910D 1115L   51.0%  elo   +6.7 [-4,+17]  LLR  +2.59  pLLR  +2.92  adj-win
+G4223 1197W 1910D 1116L   51.0%  elo   +6.7 [-4,+17]  LLR  +2.56  pLLR  +2.92  adj-win
+G4224 1197W 1911D 1116L   51.0%  elo   +6.7 [-4,+17]  LLR  +2.56  pLLR  +2.89  max-moves
+G4225 1197W 1911D 1117L   50.9%  elo   +6.6 [-4,+17]  LLR  +2.52  pLLR  +2.89  adj-win
+G4226 1197W 1912D 1117L   50.9%  elo   +6.6 [-4,+17]  LLR  +2.52  pLLR  +2.85  adj-draw
+```
+
+Outcome: **T1e KEPT** — first Batch-2 keep (certified base `c514a2b`). Time-management package is now T1b
+(stability scaling) + T1e (node-fraction effort scaling), composed multiplicatively under the T1b-proven
+[0.72, 1.40] soft-budget clamp; projection / hard ceiling / emergency floor untouched (0/0 flag-outs confirms
+no raised flag risk). Next box item: T5 (aspiration).

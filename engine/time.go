@@ -62,6 +62,14 @@ type TimeManager struct {
 	// re-search) — that volatility is the sharpness flag that says "do NOT cut this
 	// search short".
 	stableIters int
+	// bestMoveNodeFraction is the share of the most recently COMPLETED iteration's
+	// search nodes that were spent inside the current best move's subtree (T1e),
+	// fed by ReportCompletedIteration from the root loop. A high share means the
+	// best move dominated the tree (a confident decision → shrink the soft target
+	// via nodeEffortFactor); a low share means the search had to spread effort
+	// across rival moves (contested → extend it). Zero means "no completed
+	// iteration yet", which nodeEffortFactor maps to a neutral 1.0. Reset per move.
+	bestMoveNodeFraction float64
 }
 
 // GamePhase represents the current phase of the game
@@ -90,6 +98,7 @@ func (tm *TimeManager) SetTimeControl(params SearchParams, isWhite bool) {
 	tm.iterationStartTime = time.Time{} // Cleared until NewIteration is called
 	tm.lastIterationTime = 0
 	tm.stableIters = 0
+	tm.bestMoveNodeFraction = 0
 	tm.checkCounter = 0
 
 	// Determine time control type and allocate time accordingly
@@ -247,14 +256,19 @@ func (tm *TimeManager) NewIteration() {
 	tm.iterationStartTime = time.Now()
 }
 
-// ReportCompletedIteration feeds the root's per-iteration decision-stability
-// signal to the time manager. A completed iteration that kept the same best move
-// AND held its aspiration window on the first try means the choice is settling, so
-// stableIters climbs and shouldStopTournamentSearch shrinks the soft budget. Any
-// best-move change or window break (a fail-high/fail-low re-search) resets it —
-// that volatility is exactly when the search must NOT be cut short. Only the soft
-// target flexes; the hard ceiling never does, so this cannot increase flag risk.
-func (tm *TimeManager) ReportCompletedIteration(bestMoveChanged, windowHeldFirstTry bool) {
+// ReportCompletedIteration feeds the root's per-iteration signals to the time
+// manager: the decision-stability flags (T1b) and the best-move node fraction
+// (T1e). A completed iteration that kept the same best move AND held its aspiration
+// window on the first try means the choice is settling, so stableIters climbs and
+// shouldStopTournamentSearch shrinks the soft budget. Any best-move change or window
+// break (a fail-high/fail-low re-search) resets it — that volatility is exactly when
+// the search must NOT be cut short. bestMoveNodeFraction (the share of the iteration's
+// nodes spent inside the best move's subtree) is stored unconditionally — it reflects
+// the node distribution of the completed iteration regardless of stability — and is
+// read by nodeEffortFactor. Only the soft target flexes; the hard ceiling never does,
+// so this cannot increase flag risk.
+func (tm *TimeManager) ReportCompletedIteration(bestMoveChanged, windowHeldFirstTry bool, bestMoveNodeFraction float64) {
+	tm.bestMoveNodeFraction = bestMoveNodeFraction
 	if bestMoveChanged || !windowHeldFirstTry {
 		tm.stableIters = 0
 		return
@@ -287,6 +301,60 @@ func (tm *TimeManager) stabilitySoftFactor() float64 {
 	}
 	return f
 }
+
+// Soft-budget node-effort scaling (T1e, the Stockfish-style third time signal).
+// nodeEffortFactor maps bestMoveNodeFraction — the share of the last completed
+// iteration's nodes spent inside the best move's subtree (maintained by
+// ReportCompletedIteration) — to the multiplier the tournament soft stop applies to
+// softTime. When the best move owns most of the tree the decision is confident, so
+// the factor shrinks the soft target toward nodeEffortMin and banks the time; when the
+// search had to spread nodes across rival moves the position is contested, so it
+// extends the target toward nodeEffortMax. The map is linear in (1 - fraction):
+//
+//	factor = nodeEffortMin + (nodeEffortMax - nodeEffortMin)*(1 - fraction)
+//
+// which already lands in [nodeEffortMin, nodeEffortMax] for fraction in [0,1] (the
+// crossover to 1.0 is at fraction == 0.625 with these constants; the explicit clamp is
+// a guard). fraction == 0 means "no completed iteration yet" → neutral 1.0, so the
+// first iteration and every non-tournament search are unaffected. Like T1b this only
+// flexes the soft target; the hard ceiling, the emergency floor, and the
+// next-iteration projection never do, so it cannot raise flag risk.
+const (
+	nodeEffortMin = 0.85 // best move dominates the tree (fraction→1): confident, shrink the soft target
+	nodeEffortMax = 1.25 // best move is a small share (fraction→0): contested, extend the soft target
+)
+
+func (tm *TimeManager) nodeEffortFactor() float64 {
+	f := tm.bestMoveNodeFraction
+	if f <= 0 {
+		return 1.0 // no completed iteration yet (or a degenerate one): stay neutral
+	}
+	if f > 1 {
+		f = 1
+	}
+	factor := nodeEffortMin + (nodeEffortMax-nodeEffortMin)*(1.0-f)
+	if factor < nodeEffortMin {
+		factor = nodeEffortMin
+	}
+	if factor > nodeEffortMax {
+		factor = nodeEffortMax
+	}
+	return factor
+}
+
+// Bounds on the composed T1b×T1e soft-target multiplier. stabilitySoftFactor and
+// nodeEffortFactor are correlated — a settled best move usually also owns most of the
+// tree — so their raw product (up to 1.30×1.25 = 1.625, down to 0.85×0.85 ≈ 0.7225) is
+// clamped here to stop the two signals from double-counting into a budget that
+// overshoots T1b's proven 1.30 max or undercuts a safe floor. The ceiling sits only a
+// little above 1.30 so node effort adds modest headroom, not a second full extension;
+// the floor sits just below the natural 0.7225 min so the most-confident case still
+// keeps a sane fraction of the budget. The T1a-proven next-iteration projection, the
+// hard ceiling, and the emergency floor are untouched, so the bound cannot flag.
+const (
+	softComposedMin = 0.72 // never spend below ~72% of the soft target, even both-signals-confident
+	softComposedMax = 1.40 // never spend above ~140% of it, even both-signals-volatile
+)
 
 func (tm *TimeManager) ShouldStopSearch(depth int) bool {
 	// Plain counter: only the search goroutine calls this, and SetTimeControl's
@@ -339,19 +407,33 @@ func (tm *TimeManager) shouldStopTournamentSearch(depth int, elapsed time.Durati
 	}
 	// Soft limit: don't START another iteration we can't finish within the soft budget.
 	//
-	// The soft target is scaled by decision stability (T1b, stabilitySoftFactor): while
-	// the root's best move is still churning the position is genuinely hard and earns MORE
-	// of the bank; once the choice has settled across several iterations it earns LESS and
-	// banks the difference for later hard moves. This REDISTRIBUTES the clock toward the
-	// moves that decide games instead of moving total spend uniformly — both uniform
-	// directions are measured regressions: the one-sided "easy move" shrink removed
-	// 2026-06-03 (×0.5/×0.7 on stability) drained whole games to ~25% of the clock, and
-	// spending the FULL soft budget every move measured -7.8 Elo (T1a, 2026-07-02). The
-	// symmetric scaling here is neither; even the most volatile move (max factor 1.30)
-	// still stops below the full soft budget once the ×1 projection is added. The
-	// next-iteration projection, the hard ceiling, and the emergency floor above are the
-	// flag protection and are UNTOUCHED, so this cannot flag.
-	soft := time.Duration(float64(tm.softTime) * tm.stabilitySoftFactor())
+	// The soft target is scaled by two composed signals — decision stability (T1b,
+	// stabilitySoftFactor) and best-move node effort (T1e, nodeEffortFactor): while the
+	// root's best move is still churning OR the search is spreading nodes across rivals the
+	// position is genuinely hard and earns MORE of the bank; once the choice has settled AND
+	// the best move owns most of the tree it earns LESS and banks the difference for later
+	// hard moves. This REDISTRIBUTES the clock toward the moves that decide games instead of
+	// moving total spend uniformly — both uniform directions are measured regressions: the
+	// one-sided "easy move" shrink removed 2026-06-03 (×0.5/×0.7 on stability) drained whole
+	// games to ~25% of the clock, and spending the FULL soft budget every move measured -7.8
+	// Elo (T1a, 2026-07-02). The bounded scaling here is neither; even the most volatile move
+	// (composed max factor 1.40) still stops below that budget once the ×1 projection is
+	// added. The next-iteration projection, the hard ceiling, and the emergency floor above
+	// are the flag protection and are UNTOUCHED, so this cannot flag.
+	// Compose the two soft-target signals multiplicatively: decision stability (T1b,
+	// stabilitySoftFactor) and node effort (T1e, nodeEffortFactor). Because they are
+	// correlated the raw product is bounded to [softComposedMin, softComposedMax] so
+	// the pair cannot double-count into a budget that overshoots T1b's proven 1.30 max
+	// or undercuts a safe floor. The next-iteration projection, the hard ceiling, and
+	// the emergency floor above are UNCHANGED, so this cannot flag.
+	composed := tm.stabilitySoftFactor() * tm.nodeEffortFactor()
+	if composed < softComposedMin {
+		composed = softComposedMin
+	}
+	if composed > softComposedMax {
+		composed = softComposedMax
+	}
+	soft := time.Duration(float64(tm.softTime) * composed)
 	if tm.lastIterationTime == 0 {
 		return elapsed >= soft
 	}
