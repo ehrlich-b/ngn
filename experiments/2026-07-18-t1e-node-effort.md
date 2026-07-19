@@ -105,7 +105,13 @@ live worker (1 sprt + 8 ngn_t1e + 8 ngn_cert), then early health (~4 min: games 
 
 ## Launch
 
-TBD — appended on confirmed-live.
+CONFIRMED LIVE 2026-07-18 22:34:51 EDT via `scripts/boxsprt.sh launch t1e` (command exactly as above).
+Topology verified: 1 sprt.exe + 8 ngn_t1e + 8 ngn_cert, all started 22:34:51; header matches the
+predeclared rule (H0: elo<=-3.0 / H1: elo>=3.0, LLR bounds [-2.94, 2.94]); sole live worker on the box
+(cert run had completed and drained). Early health at G27 (~10 min): 7W-12D-8L, pLLR +0.00, adjudication
+firing (adj-win/adj-draw/max-moves), 0 forfeit/panic/illegal lines, flag-outs 0/0. Launched the same
+evening the batch-1 cert certified (+43.2, 194d894); base ngn_cert.exe reused from that run, hashes
+re-verified on box at stage time.
 
 ## Verdict
 
