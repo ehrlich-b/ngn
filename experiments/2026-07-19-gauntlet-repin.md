@@ -109,3 +109,14 @@ PENDING LAUNCH — pre-launch preflight complete (2026-07-19):
   `ngn_t5.exe` `0a8f65b7…` (candidate, freshly staged from the sprt dir).
 
 Launch section (probe + confirmed-live evidence) appends below on GO.
+
+## Launch
+
+CONFIRMED LIVE 2026-07-19 06:59 EDT (`run_repin_0719.bat` + `repin_0719_out.txt` both created 06:59;
+launching agent died before recording, coordinator verified directly at ~07:15). Topology: `gauntlet.exe`
+PID 31256 + 8 `ngn_t5.exe` workers, Console session 1, sole live run on the box. Out-file header confirms
+the instrument: 5 anchors, 80 games/anchor, real clock 120s+1.0s, concurrency 8, PGN capture to
+`repin_0719.pgn`. Early health at game 17/400: 16W-1D-0L vs v6.1.0 (checkmates, one draw-rule) — expected
+saturation of the bottom rung. `ngn_crashes.log` activity checked and BENIGN: init-banner lines only (one
+per NGN process spawn, no crash dumps; file accumulates since Jun-28). Expected completion ~5-7h wall
+(~12:00-14:00 EDT); completion marker `DONE_EXIT_` appended by the bat.
