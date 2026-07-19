@@ -153,6 +153,51 @@ func TestSearchNodeCount(t *testing.T) {
 	}
 }
 
+// TestAspirationProgressiveWidening pins the T5 aspiration behavior: with a
+// deliberately tiny initial window (1cp) and a slow multiplier, a fixed-depth
+// iterative-deepening search on a tactically rich position must fail against the
+// window MANY times and widen PROGRESSIVELY (several fail-high/fail-low
+// re-searches per depth, not a single jump to an infinite bound) yet ALWAYS
+// complete every iteration to the target depth. The pre-T5 loop capped at 3
+// attempts and, on exhaustion, discarded the iteration (AspAbandoned++); T5
+// removes the cap and never abandons, so AspAbandoned must stay 0 and the total
+// re-search count must exceed the number of aspiration depths (proof that at
+// least one depth widened more than once — impossible under the old
+// jump-straight-to-INFINITY scheme).
+func TestAspirationProgressiveWidening(t *testing.T) {
+	saveInit, saveMult := ASP_INIT, ASP_MULT
+	ASP_INIT, ASP_MULT = 1, 110 // 1cp window, +10% (floored to +1) growth per fail
+	defer func() { ASP_INIT, ASP_MULT = saveInit, saveMult }()
+
+	// Kiwipete: sharp, scores swing between depths, so a 1cp window fails often.
+	pos, err := ParseFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	const depth = 8 // aspiration runs for depths 4..8 (5 depths)
+	info := Search(pos, depth)
+
+	if info.Depth != depth {
+		t.Fatalf("iteration did not complete to target depth: info.Depth=%d, want %d", info.Depth, depth)
+	}
+	if info.BestMove == EmptyMove {
+		t.Fatal("aspiration search returned no move")
+	}
+	if info.AspAbandoned != 0 {
+		t.Fatalf("T5 must never abandon an iteration, got AspAbandoned=%d", info.AspAbandoned)
+	}
+	reSearches := info.AspFailHighs + info.AspFailLows
+	if reSearches <= 5 {
+		// <=5 would be consistent with the old scheme's one-fail-then-jump per
+		// aspiration depth; progressive widening produces strictly more.
+		t.Fatalf("expected progressive widening (>5 re-searches across depths 4-8), got fh=%d fl=%d (total %d)",
+			info.AspFailHighs, info.AspFailLows, reSearches)
+	}
+	t.Logf("progressive widening: fh=%d fl=%d total=%d, completed to depth %d, AspAbandoned=%d",
+		info.AspFailHighs, info.AspFailLows, reSearches, info.Depth, info.AspAbandoned)
+}
+
 func BenchmarkSearch(b *testing.B) {
 	pos := newStartingPosition()
 

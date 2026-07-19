@@ -58,11 +58,11 @@ decision_rule: >
   -> SHELVE; capped at 8000g with point est >= +1, pLLR > 0, and 0 excess flag-outs -> Batch-2 PROVISIONAL
   keep (CLAUDE.md batch-certification path); capped-nonpositive -> shelve; any candidate flag-out above the
   A/A baseline (0) -> HALT and investigate.
-games_or_pairs:   PENDING
-result:           PENDING
-flags_errors:     PENDING
-verdict:          PENDING
-next_action:      PENDING
+games_or_pairs:   1309 games / 654 pairs
+result:           +20.2 penta [+7,+33], pLLR +2.88 (peak +2.98 @G1302, crossed +2.94 at G1202); trinomial +20.2 [+1,+39], LLR +2.51
+flags_errors:     0/0 flag-outs; 0 crash/illegal/no-move; 689 decisive + 334 draw adjudicated early
+verdict:          H1 ACCEPTED (>= 3 Elo) — KEEP; pLLR peak crossed the +2.94 bound, predeclared KEEP rule fired
+next_action:      committed to main as Batch-2 keep #2; nodecheck baselines re-locked 346662/149587/765656; box -> milestone multi-family gauntlet re-pin (trigger fired) -> T10 -> T7
 ```
 
 ## Constants chosen
@@ -155,3 +155,49 @@ Header matches the predeclared rule (`H0: elo<=-3.0  H1: elo>=3.0  (alpha=0.05 b
 [-2.94, 2.94])`), mode real clock 10s+0.1s conc 8, openings 5000. Early health at G41 (~3.5 min): 9W-20D-12L,
 elo -25.5 [-130,+80], pLLR -0.10 (early noise — CI spans ±100 at 41 games), adjudication firing
 (adj-win/adj-draw/draw-rule/max-moves), 0 forfeit/flag-out/panic/illegal/crash lines, flag-outs 0/0.
+
+## Verdict — H1 ACCEPTED, KEEP (2026-07-19)
+
+FULL H1 accept. Final block from `t5_out.txt` (verbatim):
+
+```text
+=== RESULT (1h21m46s) ===
+Games: 1309   W-D-L: 383-619-307   score: 52.9%
+Elo(new - base): +20.2   95% CI [+1, +39]
+LLR: +2.51   bounds [-2.94, 2.94]
+Pentanomial [LL 27  LD 138  {LW,DD} 266  WD 178  WW 45] over 654 pairs
+Penta Elo: +20.2   95% CI [+7, +33]   pLLR +2.88  (THE decision stat)
+Flag-outs (lost on time): new 0, base 0  of 1309 games  (goal: 0)
+Adjudicated early: 689 decisive, 334 draw  of 1309 games
+Verdict: H1 ACCEPTED: new is stronger (>= 3 ELO)
+DONE_EXIT_0
+```
+
+**Peak crossing verified (predeclared KEEP rule = pLLR >= +2.94).** Full-file parse of every pLLR line in
+`t5_out.txt` (1309 game lines + final penta line): the pLLR reached/exceeded +2.94 on **9 game-lines** —
+**first crossing G1202** (pLLR +2.94, elo +22.0 [+2,+42]) and G1203, then it dipped back and **sustained the
+crossing G1299–G1305**, hitting the **max pLLR +2.98 at G1302** (and G1303/G1304/G1305). It then drained on the
+c8 tail to +2.92 (G1307) and **+2.88 at the final 1309g** — the known c8-drain pattern (T1e/T4c precedent: the
+LLR bound is touched mid-run, the last few concurrent pairs land as draws/adj and shave it back under +2.94 at
+the reported endpoint). The engine's own verdict line reads H1 ACCEPTED. Predeclared rule satisfied: **KEEP.**
+
+Verified crossing lines (from the on-box file):
+
+```text
+G1202 352W 574D 276L   53.2%  elo  +22.0 [+2,+42]  LLR  +2.53  pLLR  +2.94  adj-win     (FIRST crossing)
+G1302 382W 616D 304L   53.0%  elo  +20.8 [+2,+40]  LLR  +2.57  pLLR  +2.98  adj-win     (MAX pLLR)
+G1309 383W 619D 307L   52.9%  elo  +20.2 [+1,+39]  LLR  +2.51  pLLR  +2.88  adj-draw    (final, c8 drain)
+```
+
+**Hash-back (2026-07-19):** the kept tree (clean HEAD `f337819` + `output/t5.patch`) rebuilt
+`GOOS=windows GOARCH=amd64 GOAMD64=v3 go build main.go` reproduces sha256
+`0a8f65b75e59c376052f83b14787b0af2eba65552cedfee6f70ce576891ca721` — **bit-identical to the binary that
+played.** Tests all GREEN on the patched tree (`go test -short ./engine`, `go test -short ./...`,
+`go test -short -race ./engine`). Nodecheck on the patched tree reproduces the manifest's expected moved counts
+**exactly and deterministically** (kiwipete d12 346662, mid d12 149587, end d16 765656) — baselines re-locked
+to these in the follow-up commit (the T5 keep is a search-behavior change, not node-identical).
+
+**Batch-2 accounting:** T5 lands on main as Batch-2 keep **#2** (row 2 in `experiments/batch-ledger.md`), a
+FULL H1 accept (not a provisional). Batch-2 net claimed self-play now **T1e +6.6 + T5 +20.2 = +26.8**, 0
+provisionals; Batch-2 certification due by 2026-08-01 (2-week trigger) or at 4 provisionals, whichever first.
+T5 is the **biggest single keep of the revamp campaign** (prior max was T1b +13.1).

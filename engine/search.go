@@ -32,7 +32,14 @@ var (
 	SINGULAR_DEPTH          = 6   // Minimum depth for singular extensions
 	SINGULAR_MARGIN         = 64  // Margin for singular move detection
 	EXTENSION_BUDGET        = 24  // Max net extensions on a single root-to-leaf path (anti-explosion)
+	ASP_INIT                = 12  // Aspiration initial half-window (cp); Stash shape delta = ASP_INIT + |prevScore|/ASP_SCORE_DIV
+	ASP_MULT                = 150 // Aspiration widening multiplier in percent (150 => x1.5 delta growth per fail)
 )
+
+// ASP_SCORE_DIV scales the aspiration init window by the previous score's
+// magnitude (Stash's window-vs-eval shape). Not a tunable — the two window
+// knobs exposed to SPSA are ASP_INIT and ASP_MULT.
+const ASP_SCORE_DIV = 81
 
 // stoppedSearchScore is a throwaway value returned only while unwinding a stopped
 // search. Every caller must check info.Stopped before using the returned score.
@@ -61,6 +68,8 @@ var TunableSearchParams = []TunableParam{
 	{"SingularDepth", &SINGULAR_DEPTH, 6, 4, 12},
 	{"SingularMargin", &SINGULAR_MARGIN, 64, 16, 256},
 	{"ExtensionBudget", &EXTENSION_BUDGET, 24, 4, 64},
+	{"AspInit", &ASP_INIT, 12, 4, 40},
+	{"AspMult", &ASP_MULT, 150, 110, 250},
 }
 
 // globalStopRequested is set by UCI's stop handler and observed by the search
@@ -690,37 +699,36 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 			}
 		}
 
-		// Optimized Aspiration Windows: focus on performance over complexity
-		var alpha, beta int
-		var windowSize int
+		// T5: Modern aspiration windows. Shallow depths (<=3) search full width — a
+		// stable previousScore isn't established yet and re-searches there are pure
+		// waste. From depth 4 up, open a small window scaled by the previous score's
+		// magnitude (Stash shape: delta = ASP_INIT + |prevScore|/ASP_SCORE_DIV) and
+		// widen it PROGRESSIVELY on each fail below (delta grows by ASP_MULT), never
+		// jumping straight to an infinite bound and never abandoning the iteration.
+		// Widening caps naturally at +/-INFINITY (a full-width search always lands
+		// in-window), so the iteration always completes.
+		var alpha, beta, delta int
 		if currentDepth <= 3 {
-			// Use full window for shallow depths (avoids re-searches)
 			alpha = -INFINITY
 			beta = INFINITY
 		} else {
-			// Simple, efficient window sizing
-			windowSize = 50 // Fixed 50 centipawn window - good balance of efficiency vs accuracy
-
-			// Only widen for extreme positions to minimize re-searches
 			scoreAbs := previousScore
 			if scoreAbs < 0 {
 				scoreAbs = -scoreAbs
 			}
-
-			if scoreAbs > 800 { // Only for very extreme positions (near mate)
-				windowSize = 100
-			}
-
-			alpha = previousScore - windowSize
-			beta = previousScore + windowSize
+			delta = ASP_INIT + scoreAbs/ASP_SCORE_DIV
+			alpha = previousScore - delta
+			beta = previousScore + delta
 		}
 
-		// Aspiration window re-search loop
+		// Aspiration re-search loop. T5: runs until the score lands inside the
+		// window or the clock stops — the window widens progressively on each fail
+		// (below), so there is no attempt cap and no discarded iteration. attempts
+		// still drives the window-held-on-first-attempt time-management signal.
 		iterationComplete := false
 		attempts := 0
-		maxAttempts := 3 // Reduced from 4 to prevent excessive re-searches
 
-		for !iterationComplete && attempts < maxAttempts {
+		for !iterationComplete {
 			attempts++
 
 			// Check time before attempting search
@@ -877,15 +885,36 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 			// iteration looks like a fail-low because alpha was just raised to
 			// iterationBestScore.
 			if iterationBestScore <= windowAlpha && currentDepth > 3 {
-				// Fail low: widen alpha downward, keep original beta
+				// Fail low: grow delta and widen alpha downward (anchored on the
+				// score center), keeping the upper bound tight. The +1 floor on the
+				// growth guarantees delta strictly increases even when the
+				// percentage term truncates to zero, so alpha reaches -INFINITY in
+				// a bounded number of re-searches.
 				info.AspFailLows++
-				alpha = -INFINITY
+				grow := delta * (ASP_MULT - 100) / 100
+				if grow < 1 {
+					grow = 1
+				}
+				delta += grow
+				alpha = previousScore - delta
+				if alpha < -INFINITY {
+					alpha = -INFINITY
+				}
 				beta = windowBeta
 			} else if iterationBestScore >= windowBeta && currentDepth > 3 {
-				// Fail high: widen beta upward, keep original alpha
+				// Fail high: grow delta and widen beta upward, keeping the lower
+				// bound tight. Symmetric to the fail-low branch.
 				info.AspFailHighs++
+				grow := delta * (ASP_MULT - 100) / 100
+				if grow < 1 {
+					grow = 1
+				}
+				delta += grow
+				beta = previousScore + delta
+				if beta > INFINITY {
+					beta = INFINITY
+				}
 				alpha = windowAlpha
-				beta = INFINITY
 			} else {
 				// Search completed successfully within the window. Feed the time
 				// manager the decision-stability signal: did the best move change vs
@@ -916,13 +945,9 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		}
 
 		// Only commit the new depth and emit UCI info when the iteration actually
-		// completed. If we exited the inner loop on info.Stopped or exhausted
-		// maxAttempts without success, keep the previous completed depth/best move.
-		if !iterationComplete && !info.Stopped {
-			// Aspiration exhausted its widening attempts and the whole iteration
-			// was discarded — invisible before; any nonzero count is a red flag.
-			info.AspAbandoned++
-		}
+		// completed. T5 never abandons an iteration to widening exhaustion, so the
+		// only way to reach here incomplete is a clock stop, in which case we keep
+		// the previous completed depth/best move (info.AspAbandoned stays 0).
 		if iterationComplete {
 			info.Depth = currentDepth
 			if callback != nil && info.BestMove != EmptyMove {

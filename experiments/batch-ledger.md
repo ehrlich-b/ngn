@@ -86,12 +86,13 @@ accepts also land on main and are folded into this batch's composite for attribu
 
 | # | Change | Commit | Verdict (real-clock self-play, 10+0.1) | Run record |
 |---|---|---|---|---|
-| 1 | T1e — node-fraction (best-move node-effort) time scaling | `645878f` + t1e (this commit) | FULL H1 accept — penta +6.6 [-1,+14], pLLR peak +2.96 crossed +2.94 at G4218, c8-drain to +2.85, 0/0 flag-outs, 4226g (2026-07-19) | `2026-07-18-t1e-node-effort.md` |
+| 1 | T1e — node-fraction (best-move node-effort) time scaling | `801d384` | FULL H1 accept — penta +6.6 [-1,+14], pLLR peak +2.96 crossed +2.94 at G4218, c8-drain to +2.85, 0/0 flag-outs, 4226g (2026-07-19) | `2026-07-18-t1e-node-effort.md` |
+| 2 | T5 — aspiration modernization (scaled init + progressive widening + never-discard) | this commit | FULL H1 accept — penta +20.2 [+7,+33], pLLR peak +2.98 crossed +2.94 at G1202 (sustained G1299–1305), c8-drain to +2.88, 0/0 flag-outs, 1309g (2026-07-19) | `2026-07-19-t5-aspiration.md` |
 
 - **Trigger:** certify when Batch 2 reaches 4 provisionals **OR** 2 weeks (~2026-08-01), whichever first.
 - **Certification run:** post-batch HEAD vs `c514a2b`, real-clock `-tc 10+0.1`, SPRT [0,+6], A/A preflight, LAN 9800X3D box.
 - **On fail:** bisect Batch 2 commits to find the regressor; drop it, re-certify.
-- **Batch net (claimed self-play):** **+6.6** (T1e, FULL H1 accept — landed on main, not a provisional; folded into the composite for attribution same as Batch 1's full accepts).
+- **Batch net (claimed self-play):** **+26.8** (T1e +6.6 + T5 +20.2, both FULL H1 accepts — landed on main, not provisionals; folded into the composite for attribution same as Batch 1's full accepts). 0 provisionals so far.
 - **Note (2026-07-19) — T1e (FULL H1 accept, NOT a provisional):** node-fraction best-move effort scaling of the
   soft time budget (SF-standard third time signal, composed multiplicatively with T1b's stability factor under
   the T1b-proven [0.72,1.40] clamp) landed on main as an outright SPRT accept: penta **+6.6 [-1,+14]**, pLLR
@@ -101,3 +102,17 @@ accepts also land on main and are folded into this batch's composite for attribu
   node-identical (nodecheck 230036/181982/587557 unchanged), so no nodecheck re-lock; hash-back reproduced the
   exact playing binary `f65a3c16…`. The post-batch certification composite (vs `c514a2b`) will include this
   gain, isolable by this commit for the bisect-on-fail path.
+- **Note (2026-07-19) — T5 (FULL H1 accept, NOT a provisional):** aspiration-window modernization (replace the
+  fixed 50cp / jump-to-±INFINITY / discard-after-3 scheme with a Stash-shape scaled initial window
+  `delta = 12 + |prevScore|/81`, progressive ×1.5 widening on fail with a +1 growth floor, never-discard
+  iterations, `AspInit`/`AspMult` exposed as UCI/SPSA tunables) landed on main as an outright SPRT accept:
+  penta **+20.2 [+7,+33]**, pLLR **peak +2.98 crossed the +2.94 bound at G1202** (first touch G1202–1203,
+  sustained crossing G1299–1305, c8-drain to +2.88 at 1309g), 0/0 flag-outs / 1309g, real-clock 10+0.1 c8
+  adjudicated (`2026-07-19-t5-aspiration.md`) — under the STRICT per-change gate (H1-only, NO
+  provisional-on-cap). Isolated SPRT [-3,+3] vs the on-box T1e base `ngn_t1e.exe` `f65a3c16…` (== `801d384`).
+  This is a search-behavior change, NOT node-identical: fixed-depth nodecheck MOVED (kiwipete d12
+  230036→346662 +51%, mid d12 181982→149587 −18%, end d16 587557→765656 +30%), verified deterministic, so the
+  baselines were re-locked to 346662/149587/765656 in the follow-up commit. Hash-back reproduced the exact
+  playing binary `0a8f65b7…`. **Biggest single keep of the revamp campaign** (prior max T1b +13.1). The
+  post-batch certification composite (vs `c514a2b`) will include this gain, isolable by this commit for the
+  bisect-on-fail path. Batch-2 net claimed self-play now **+26.8** (T1e +6.6 + T5 +20.2), 0 provisionals.
