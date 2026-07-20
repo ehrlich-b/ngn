@@ -131,4 +131,34 @@ scripts/boxsprt.sh launch t7 -- -new '.\ngn_t7.exe' -base '.\ngn_t5.exe' -tc 10+
 
 ## Launch
 
-(pending — appended after confirmed-live)
+CONFIRMED LIVE 2026-07-19 20:48:11 EDT via `scripts/boxsprt.sh launch t7` (command exactly as the planned block
+above). Topology verified: 1 `sprt.exe` (PID 30792, 20:48:11) + 8 `ngn_t7` (PIDs 15204, 15448, 18312, 19704,
+21496, 24696, 31012, 31708) + 8 `ngn_t5` (PIDs 2660, 5980, 13396, 22344, 22872, 23240, 24816, 30436), all
+started 20:48:12 EDT — the sole live workers on the box (idle before launch, `ps` empty). Out-file:
+`C:\Users\ehrli\ngn\sprt\t7_out.txt` (fetch via `scripts/boxsprt.sh fetch t7`).
+
+On-box hashes verified at stage time: candidate `ngn_t7.exe`
+`34BBFC66A70E121E187D571A213FBF46F3CF91AA0B2D31C429AA04FD29E3ECBF`, base `ngn_t5.exe`
+`0A8F65B75E59C376052F83B14787B0AF2EBA65552CEDFEE6F70CE576891CA721` — both full-hash matches. Interactive
+session preflight passed (`explorer.exe` PID 2060, since 2026-07-18 20:41 — the same session T10b used). Header
+echoes the predeclared binaries/args/bounds exactly (verbatim from the out-file):
+
+```text
+new=.\ngn_t7.exe  base=.\ngn_t5.exe
+mode: real clock 10s+0.1s (concurrency 8) | openings: 5000 (x2 colors) | concurrency: 8
+H0: elo<=-3.0   H1: elo>=3.0   (alpha=0.05 beta=0.05 -> LLR bounds [-2.94, 2.94])
+adjudication: resign>=900cp/5p  draw<=10cp/10p>=80p  (opt-in; A/A-gate before trusting a verdict)
+```
+
+Early games flowing G1->G10 (out-file 1110->1288 B while polling), adjudication firing (adj-win/adj-draw/
+draw-rule), 0 forfeit/flag-out/panic/illegal/crash lines:
+
+```text
+G1     1W  0D  0L  100.0%  elo +800.0 [-234,+800]  LLR  +0.09  pLLR  +0.00  adj-win
+G5     2W  2D  1L   60.0%  elo  +70.4 [-209,+350]  LLR  +0.03  pLLR  +0.02  adj-win
+G10    4W  4D  2L   60.0%  elo  +70.4 [-137,+278]  LLR  +0.06  pLLR  +0.07  draw-rule
+```
+
+(The transient G4 pLLR +4.32 is single-pair early noise — the CI spans ±hundreds at <10 games; it settles to
++0.07 by G10.) Poll with `scripts/boxsprt.sh tail t7` / `scripts/boxsprt.sh ps`; verdict is a separate agent
+per the predeclared decision_rule (the run drives to the 8000g cap or a +/-2.94 pLLR crossing).
