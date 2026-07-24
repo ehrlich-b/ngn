@@ -133,3 +133,36 @@ T1b/T4c/T1e/T5 and SHELVED T13/T1c/T16/T10b/T7 runs. `alpha=beta=0.05` yields pL
 ## Launch
 
 (pending — recorded on confirmation)
+
+CONFIRMED LIVE 2026-07-24 19:37:47 EDT via `scripts/boxsprt.sh launch t9a` (command exactly as the `command:`
+field above). Box was idle immediately before launch (`ps` empty). Topology verified: 1 `sprt.exe` (PID 14736)
++ 8 `ngn_t9a` (PIDs 5872, 11504, 11572, 28276, 29416, 30152, 30288, 31792) + 8 `ngn_t5` (PIDs 11052, 13152,
+13848, 14248, 21456, 24824, 26000, 31412), all started 19:37:47 EDT — the sole live workers on the box.
+Out-file: `C:\Users\ehrli\ngn\sprt\t9a_out.txt` (fetch via `scripts/boxsprt.sh fetch t9a`).
+
+On-box hashes verified at stage time: candidate `ngn_t9a.exe`
+`79A940B7BF28215794C2ADABFDE1DD3C19D26BF976A6DE9BB0AEDE1A6D4A36DC`, base `ngn_t5.exe`
+`0A8F65B75E59C376052F83B14787B0AF2EBA65552CEDFEE6F70CE576891CA721` — both full-hash matches. Header echoes the
+predeclared binaries/args/bounds exactly (verbatim from the out-file):
+
+```text
+new=.\ngn_t9a.exe  base=.\ngn_t5.exe
+mode: real clock 10s+0.1s (concurrency 8) | openings: 5000 (x2 colors) | concurrency: 8
+H0: elo<=-3.0   H1: elo>=3.0   (alpha=0.05 beta=0.05 -> LLR bounds [-2.94, 2.94])
+adjudication: resign>=900cp/5p  draw<=10cp/10p>=80p  (opt-in; A/A-gate before trusting a verdict)
+```
+
+Early health at G1->G9: games flowing, all four adjudication paths firing (draw-rule / adj-draw / adj-win /
+max-moves), **0 flag-outs, 0 forfeits, 0 panics, 0 illegal moves, 0 crashes** — the flag-out watch that
+discharges the ATTENDED flag. (The G5 `pLLR +2.16` is single-pair early noise at a ±hundreds CI, the same
+artifact T7's G4 +4.32 produced; the `-mingames 300` floor means the stop rule is not armed there.)
+
+```text
+G1     0W  1D  0L   50.0%  elo   +0.0 [-495,+495]  LLR  +0.00  pLLR  +0.00  draw-rule
+G5     1W  4D  0L   60.0%  elo  +70.4 [-209,+350]  LLR  +0.09  pLLR  +2.16  adj-win
+G9     1W  7D  1L   50.0%  elo   +0.0 [-213,+213]  LLR  +0.00  pLLR  +0.00  max-moves
+```
+
+Poll with `scripts/boxsprt.sh tail t9a` / `scripts/boxsprt.sh ps`. The run drives to the 8000g cap or a
++/-2.94 pLLR crossing; apply the predeclared `decision_rule` on completion, and **HALT rather than verdict if
+candidate flag-outs exceed the A/A baseline of 0** (extension changes fail as time losses, not as noise).
