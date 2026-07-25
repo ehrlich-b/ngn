@@ -198,3 +198,105 @@ rather than by another hand-picked constant — preferred if T8 runs first.
 Conversely, if the verdict is positive, the same 33% rate is worth an SPSA pass anyway: the current constant
 was chosen from the reference literature, not from NGN's own data, and the fire rate suggests it is not near
 NGN's optimum in either direction.
+
+## RESULT — H0 ACCEPTED (SHELVED), 2026-07-25 01:05 EDT
+
+```text
+=== RESULT (5h27m58s) ===
+Games: 5268   W-D-L: 1359-2471-1438   score: 49.3%
+Elo(new - base): -5.2   95% CI [-15, +4]
+LLR: -2.57   bounds [-2.94, 2.94]
+Pentanomial [LL 153  LD 687  {LW,DD} 1028  WD 618  WW 148] over 2634 pairs
+Penta Elo: -5.2   95% CI [-12, +1]   pLLR -2.87  (THE decision stat)
+Flag-outs (lost on time): new 0, base 0  of 5268 games  (goal: 0)
+Adjudicated early: 2792 decisive, 1229 draw  of 5268 games
+Verdict: H0 ACCEPTED: new is NOT better (<= -3 ELO)
+DONE_EXIT_0
+```
+
+Launched 19:37:47 EDT 2026-07-24, ran 5h27m58s to a self-declared stop at G5268 = **964 g/hr**, versus the
+961 g/hr A/A baseline. Throughput held within 0.3% for the entire run; no throughput pathology, no crash, no
+illegal move, no no-move result.
+
+**Flag-outs 0/0 — the predeclared HALT condition did NOT fire.** This matters for the reading: T9a was the
+first ATTENDED-flagged item, flagged because extension changes classically fail as *time losses* rather than
+as noise. They did not. The candidate lost strength while keeping perfect clock discipline, so the per-path
+cap (`DOUBLE_EXT_PATH_CAP = 5`) did its job and the failure is a search-quality failure, not a blow-up. The
+operational discharge of the ATTENDED flag (nodecheck explosion gate + per-path cap + HALT rule + a
+mechanism-fires regression test) is retrospectively validated — that flag never needed a human vigil.
+
+### Bound-crossing detail (recorded because the summary line reads inside the bound)
+
+The printed summary shows pLLR **-2.87**, which is inside `[-2.94, +2.94]`. The full-log scan resolves this:
+
+| Quantity | Value |
+|---|---|
+| pLLR samples scanned (regex `[-+]?[0-9]+\.[0-9]+`) | 5268 |
+| First sample at/below -2.94 | **G5258, pLLR -2.94** |
+| Samples at/below the bound before the stop drained | 10 |
+| Run minimum | **-2.98 @ G5260** |
+| Whole-run maximum | +2.16 @ **G5** (below `-mingames 300`; correctly ignored) |
+| **Post-mingames maximum** | **+0.25 @ G303** |
+
+So the crossing is real and the harness stopped on it; the final -2.87 is a **drain artifact** — the games
+already in flight across 8 concurrent workers completed after the stop signal and were folded into the
+recomputed summary. `DONE_EXIT_0` plus an explicit `H0 ACCEPTED` is the harness's own verdict, not an
+inference of mine. Note also that this distinction changes nothing: crossing the reject bound and capping
+nonpositive both route to SHELVE under the predeclared `decision_rule`, and the point estimate is negative
+either way.
+
+The **post-mingames maximum of +0.25** is the most informative number in the table. Unlike T7 (which touched
++1.92 post-mingames and spent time on the positive side), T9a never had a plausible positive phase at all
+once the run was eligible to stop. There is no "it was winning before it wasn't" story to tell here.
+
+### Elo trajectory
+
+| Checkpoint | Elo | pLLR |
+|---|---|---|
+| G500 | -3.5 | -0.18 |
+| G1000 | -7.3 | -0.76 |
+| G2000 | -7.3 | -1.49 |
+| G3000 | -6.3 | -1.91 |
+| G4000 | -3.8 | -1.54 |
+| G5000 | -4.9 | -2.52 |
+| G5268 (final) | **-5.2** | -2.87 |
+
+Monotone-ish negative from G1000 on, with one softening excursion around G4000 that reversed. The estimate
+never crossed zero after G300.
+
+### Verdict and interpretation
+
+**SHELVED.** Engine diff reverted; HEAD's engine remains byte-identical to the T5 keep `5b93966`. The patch is
+retained as `output/t9a.patch` (2 files: `engine/search.go`, `engine/reentrancy_test.go`).
+
+The pre-registered interpretation above stands **as written, unamended** — and it is worth stating plainly
+that it was written at G770 before the verdict was known, predicting a small negative and naming the
+double-extension RATE as the first suspect. The final -5.2 [-12,+1] is exactly the "small negative" that
+prediction described. The 33% fire rate (44 doubles / 135 singular extensions at kiwipete d10) remains the
+leading explanation: `DOUBLE_EXT_MARGIN = 24` against `singularBeta = ttEval - 2*depth` asks a singular move
+to beat its siblings by only ~40cp at depth 8, so T9a as built approximates "extend singular moves by 2"
+rather than "extend overwhelmingly forced moves by 2". Buying that extra ply on a third of singular nodes
+costs breadth everywhere else, which at a fixed real clock is a coherent mechanism for a -5.
+
+**This null is real evidence about the lane, not evidence about a no-op.** That is the key contrast with T7,
+and the reason the two shelves should not be read the same way. T9a moved the tree hard and provably:
+nodecheck +13.6% / +12.8% / +31.8% across the three positions, and a regression test asserted the mechanism
+fired 44 times with 0 cap clamps. T7 moved it by <1%. A null on a change that demonstrably alters the search
+constrains the hypothesis; a null on a change that alters nothing constrains only the patch. The >=1%
+nodecheck gate derived from T7 did its job here — it admitted a change that was genuinely testable, and the
+test returned a genuine answer.
+
+### Reopen condition
+
+Per the pre-registered ladder, option 1 is live and unconsumed: **T9a-2, `DOUBLE_EXT_MARGIN` 64-96**, to make
+double extensions selective, with a re-run mechanism-fires check expected to land in the single-digit
+percentages rather than 33%. That is a constant change to a mechanism now proven live in the code, and it is
+the cheapest form of a follow-up.
+
+**But it does not jump the queue.** `DoubleExtMargin` is already a registered SPSA dimension `[4, 128]`, so
+T8 reaches the same question without another hand-picked constant and without another 5.5-hour box job spent
+on one guess. Ranking: prefer T8 to pick the margin from NGN's own data; hand-run T9a-2 only if T8 slips or
+excludes the dim. Recorded as a lane that is **narrowed, not closed** — what T9a falsified is
+`DOUBLE_EXT_MARGIN = 24`, not double extensions.
+
+Cost of the answer: 5h28m of free box time, 0 dollars.
