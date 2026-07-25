@@ -308,3 +308,53 @@ broke on 2026-07-01. Lessons 1 and 2 are superseded; 3-5 stand with amendments.]
    T7's result sitting unread 2026-07-20→24 — have cost roughly **14 box-days against ~7 verdicts delivered**.
    No search idea in the queue is worth as much as reading a finished run the day it finishes. Every session
    that sees a run finish must record the result AND launch the next queued item before ending.
+
+---
+
+## INDEPENDENT CODE REVIEW 2026-07-24 (what a fresh read of the engine found, and did NOT find)
+
+Done from the code rather than from this ledger, on the principle that the accumulated doctrine has been
+wrong twice (the "everything is exhausted" frame, and the corrhist plumbing confound). Reviewed cache.go
+(TT), the whole of alphaBetaPV, quiescence, time.go, the moveorder updaters, the eval cache, and the T5
+aspiration rewrite.
+
+**Found (both queued as T17/T18 in TODO.md):**
+
+1. **`improving` reads a never-written reference.** Two distinct bad references at search.go:1419 — slot 0 of
+   `StaticEvalStack` is never written by anything (proven empirically: still 0 after a depth-8 search while
+   slots 1/2/3 hold 653/419/271), so ply-2 nodes compute "is the eval positive" instead of "is it trending
+   up"; and `-INFINITY` is stored as an in-check sentinel at ply 1 then compared as a value at ply 3, making
+   `improving` unconditionally true (measured 1068 such refs in the endgame probe, 100% spuriously true).
+   Frequency ~2% of improving decisions, but leveraged: one wrong `improving` mis-sets RFP, futility, LMP and
+   LMR simultaneously, at nodes 2-3 plies from the root. Same shape as T1b (+13.1) inverted.
+2. **Probcut has no TT short-circuit** — it does the generation, SEE and verification search even when the
+   cached entry already proves it cannot fail high.
+
+**Did NOT find — the classic bug classes are clean.** Recording this because "we looked and it was fine" is
+evidence too, and it should stop the next agent re-grinding the same ground:
+- TT mate-score encoding round-trips correctly (`scoreToTT`/`scoreFromTT`), and depth (max 100, guarded)
+  sits well inside the 7-bit packed field, so no truncation or sign inversion is reachable.
+- Every prune/reduce gate carries its guards — promotion, in-check, PV, and the `legalTried > 0` F1 guard
+  that stops an all-futile node from returning a false stalemate.
+- History/killer/counter updaters guard captures *internally*, so the unguarded call sites at the beta
+  cutoff (whose comments say "for quiet moves") are harmless — the asymmetry looks like a bug and is not.
+- Capture generation is bounds-checked stage by stage: it truncates at 64 rather than overflowing.
+- The eval cache is keyed on the full 64-bit hash, stores a pure function of the board, applies fifty-move
+  damping and tempo *outside* the cached value, and cannot go stale on a param change because eval weights
+  are not runtime-settable (only search params are UCI options). The texel path uses the *uncached* eval, so
+  the texel closure is not corrupted by it either — a hypothesis worth killing explicitly.
+- The T5 aspiration rewrite is correct: it classifies fail-low/fail-high against the *snapshotted* window
+  rather than the alpha mutated during the move loop, and the `+1` growth floor guarantees the window
+  reaches full width in a bounded number of re-searches.
+
+**The meta-finding: the correctness era really is over.** The +161/+138 wins came from a broken engine; this
+one is clean enough that a deep read produced two small warts and no P0. That is direct evidence for the
+revamp's thesis — the remaining path is standard-technique transplants and throughput, not bug-hunting — and
+against any future "there must be a big bug left" theory.
+
+**One open thread, not a finding:** qsearch never consults the TimeManager (it checks only the external UCI
+stop flag and the node budget), `ShouldStopSearch` reads the clock just once per 1024 calls, and in-check
+qsearch nodes are exempt from the qDepth-6 cap so a checking sequence can recurse toward ply 100. That is a
+concrete candidate mechanism for the one unexplained anomaly in the pin — the NGN-side flag-out at 120+1 in a
+116-ply endgame (2026-07-19 gauntlet, game 193). Unproven, cheap to instrument, and worth doing if a second
+NGN-side flag-out ever appears.
