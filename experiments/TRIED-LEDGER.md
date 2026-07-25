@@ -1,6 +1,6 @@
 # NGN — Everything We've Tried (consolidated ledger)
 
-Last updated 2026-07-08. This is the single inventory of every lever attempted, with verdicts,
+Last updated 2026-07-24. This is the single inventory of every lever attempted, with verdicts,
 so we stop re-grinding dead ends. Detailed records are in the per-experiment files and the memory
 topic files; this is the index + verdict.
 
@@ -18,13 +18,23 @@ topic files; this is the index + verdict.
 
 **Every Elo gain in this engine's history has been a CORRECTNESS fix. Every speculative
 eval / search-heuristic / tuning play has been null or negative.** That is the plateau.
-**[FALSIFIED 2026-07-02/03 by T4 +9.1, T4np +6.4, T1b +13.1 (post-revamp keeps) — retain this
-headline as a description of the PRE-revamp era ONLY.]**
+
+**[DEAD — DO NOT REASON FROM THIS HEADLINE. It describes the PRE-revamp era only.]** Falsified by
+seven post-revamp keeps of ordinary search/eval heuristics, none of them correctness fixes: T4 +9.1,
+T4np +6.4, T1b +13.1, T4c +3.7, iir3 +2.0, T1e +6.6, **T5 +20.2** (biggest single keep of the
+campaign). And the falsification is not self-play-only: the **Batch-1 certification measured
++43.2 [+26,+61] real-clock** for the first five of them against their pre-batch base (2026-07-18,
+745g, pLLR +3.09) — *more* than the +34.3 they claimed. The old headline was a true description of a
+broken measurement regime, not a law about this engine. Its zombie form ("everything is exhausted /
+local optimum") already failed one closure audit (`2026-07-01-method-revamp.md`); do not resurrect it.
 
 Strength trajectory (CCRL, real-clock): 2380 → 2449 → 2632 → 2669 → **2666** [2627,2706] (multi-family, 2026-06-28)
-→ **2689** [2649,2729] (2026-07-08 re-pin, +23 point-signal inside the ±40 delta floor).
-The climbs were correctness fixes + the time-mgmt fix. Flat Jun-10→Jul-1 despite weeks of eval/search work;
-climbing since the 2026-07-01 revamp (~+28-30 self-play kept).
+→ **2689** [2649,2729] (2026-07-08 re-pin) → **2704** [2665,2743] (2026-07-19 milestone re-pin,
+exact-replica instrument, `2026-07-19-gauntlet-repin.md`). Each step is a point-signal inside the
+±40 delta-CI floor, so formally flat-to-up, never a significant single jump — the powered transfer
+instrument is the batch certification, not the pin. The climbs were correctness fixes + the time-mgmt
+fix; flat Jun-10→Jul-1 despite weeks of eval/search work; **climbing steadily since the 2026-07-01
+revamp** (+34.3 certified at +43.2, then +26.8 more claimed in Batch 2 awaiting certification).
 
 ---
 
@@ -44,8 +54,23 @@ climbing since the 2026-07-01 revamp (~+28-30 self-play kept).
 | TT make-move prefetch | **+0.8% NPS**, node-identical | speed |
 | BCE-ordering pass on hot loop | **+1.0% NPS**, node-identical | speed |
 | passersOf + pawn-shield micro-opts | ~+6.5% node-identical (early) | speed |
+| **T4 / T4np / T4c corrhist family** (on the re-plumbed base) | **+9.1 / +6.4 / +3.7** penta, all H1 | search/eval heuristic |
+| **T1b** soft-budget stability scaling (wire the dead `stableIters`) | **+13.1** penta [+3,+23], H1 | search heuristic |
+| **T1e** node-fraction best-move effort time scaling | **+6.6** penta [-1,+14], H1 | search heuristic |
+| **T5 aspiration modernization** (scaled init window, progressive widening, never-discard) | **+20.2** penta [+7,+33], H1 — **biggest single keep of the campaign** | search heuristic |
+| iir3 phase-guarded cutNode-IIR | +2.0 penta, provisional → **certified** 2026-07-18 | search heuristic |
+| **Batch-1 certification** (the 5-keep composite vs its pre-batch base) | **+43.2 [+26,+61]** real-clock, pLLR +3.09, 745g | whole-batch gate |
 
-Takeaway: the only repeatable wins are (a) fixing things that were broken, and (b) tiny node-identical speedups in the single hottest loop.
+Takeaway **[REWRITTEN 2026-07-24 — the old one was "only correctness fixes and tiny speedups repeat",
+which the bottom seven rows falsify]**: two things produce Elo here. (a) Correctness fixes — still the
+only source of +100-class jumps, and still worth hunting first. (b) **Transplanting standard techniques
+NGN was missing or had in a degenerate form**, measured one at a time against an immediate base on a
+trustworthy instrument — median keep ~+4-7, occasional +13-20, and they *compound and certify*
+(+34.3 claimed → +43.2 measured). What does NOT produce Elo is re-tuning knobs that are already near
+their local optimum (every single-axis retune, joint-SPSA at its invalid kill, the linear texel basis).
+The distinction is "is this mechanism missing/degenerate?" vs "is this constant slightly off?" — and
+the T7 shelve (2026-07-24) shows the failure mode of getting that wrong: a change that only *looks*
+like a mechanism add but moves the tree 0.001% measures nothing in 8 hours of box time.
 
 ---
 
@@ -65,6 +90,7 @@ Takeaway: the only repeatable wins are (a) fixing things that were broken, and (
 | RFP / futility / LMP as the "endgame tree" fix | every standard pruning knob empirically refuted; eg-tree gap was a mislabeled-position artifact anyway |
 | TT capacity as endgame fix | bites the MIDDLEGAME (-46%), not endgame |
 | qsearch stand-pat fail-high TT store (T13) | **SHELVED -0.4 [-6,+5] at the 8000g cap** (pLLR -0.32, 0/0 flag-outs; `2026-07-09-t13-qsearch-ttstore.md`). NGN already stores the CAPTURE fail-high (a0fdda41/S3); this stand-pat-only add is marginal AND carries a +13-39% fixed-depth nodecheck headwind (depth-0 store flood + the un-gated S7 margin reshaping at search.go:1368-1374). **REOPEN** only after the S7 refinement is depth-gated / excludes depth-0 qsearch entries (queued **T16**), or a TT-clustering change (T11) cuts depth-0 eviction pressure. The audit's "+7.0 [S #126] / first qsearch write" premise was FALSE (qsearch has written capture fail-highs since a0fdda41), so the prior was downgraded pre-launch. |
+| History pruning modernization: depth≤3→≤6 cap, flat −1000 → depth-scaled −512·depth, killers/counter exempt (T7) | **SHELVED −0.2 [−5,+5] at the 8000g cap** (pLLR −0.15, post-mingames envelope [−0.92,+1.92] — never within a full unit of either bound, 0/0 flag-outs, 8h19m28s, DONE_EXIT_0; `2026-07-19-t7-history-pruning.md`). **The +23.7 [E] CMH-pruning prior is UNTESTED by this run.** The candidate was near-inert: fixed-depth nodecheck moved **0.001%** (+3/0/−2), because −512·depth is a MIXED edit — *more* pruning at depth 1 (−512 vs −1000), neutral at 2, *less* at 3 (−1536), depths 4-6 newly enabled but demanding −2048…−3072 against gravity-bounded (`historyMax` 8192) entries clustered near 0 — and the killer/counter exemption claws back prunes at every depth. The three effects cancel. **The lane stays OPEN; only these constants are closed.** REOPEN as a re-derived variant (smaller coefficient e.g. −256·depth; or the depth-cap extension ALONE with flat −1000; or the exemption isolated), preferably as T8 SPSA dims. **Process gate earned here: a pruning/extension candidate must move nodecheck ≥~1% on a canonical position BEFORE it earns box time** — this manifest predicted the 0.001% delta and launched anyway. |
 | S7 static-eval-refinement depth-gate (T16, T13's reopen) | **SHELVED -0.6 [-6,+5] at the 8000g cap** (pLLR -0.50, 0/0 flag-outs, DONE_EXIT_0, 8000g; `2026-07-10-t16-s7-depth-gate.md`). Added `&& ttDepth > 0` to the S7 refinement guard (search.go:1368) so depth-0 qsearch entries no longer overwrite the pruning staticEval feeding RFP/futility/NMP. Fixed-depth nodecheck MOVED (kiwipete +30%, mid -31%, end -17% — the change is live) but strength is neutral-to-slightly-negative standalone. **REOPEN** only bundled WITH the T13 qsearch stand-pat store as a single paired change — T16 was T13's reopen and neither half helps in isolation. The S7-refinement / qsearch-store neighborhood is now **tapped** (T13 + T16 both shelved). |
 
 Mechanism (2026-06-29 diagnostic): NGN's LMR re-search rate is ~1.1% (reductions ultra-conservative,
@@ -132,6 +158,7 @@ returns (+9.1 → +6.4 → +3.7) held, no adverse interaction, no flag-out spike
 | qmvv ordering | +22.6 (early keep) |
 | Staged / lazy quiet-move history scoring | REJECT (not node-identical) |
 | MVV/LVA "−129" folklore | VOIDED |
+| 4-ply continuation history, uniform 1:1:1:1:1 weight (T10b) | **SHELVED -2.4 [-8,+3] at the 8000g cap** (pLLR -2.07, scan max -0.02/min -2.47 — never crossed ±2.94, 0/0 flag-outs, DONE_EXIT_0; `2026-07-19-t10b-conthist4.md`). The **+13.1 [S #139] prior did NOT transfer** — the first straight miss in the T10 lane. Hypotheses, none isolated: uniform weight dilutes the sharp 1/2-ply signal; NGN's existing 2-ply conthist already carries most of the ordering value at ~84% FMC; +10.56 MiB of new tables taxes real-clock cache locality (mixed nodecheck +7.7/-23.7/+15.3). **REOPEN only as a re-derived variant** — non-uniform ply weights (T10c/SPSA) or 3-ply only — **never a uniform-weight re-run.** |
 
 **2026-06-29 measurement: FMC ~84% (mid 82%, eg 86%, tac 85%) — strong engines hit ~90%+.** This is the
 identified next lever (the ordering precision gate, FMC as fast proxy). NOT yet attempted.
@@ -236,12 +263,48 @@ cmd/blunder-finder, scripts/h2h.sh (node-identity + NPS), the gaming-PC SPRT mil
 EBF-attribution dump (debug on). Hard-won lesson: self-play SPRT gains are transfer-MIRAGES vs the gauntlet;
 fixed-nodes/ACPL/MSE/param-movement are FILTERS, never verdicts; a verdict = real-clock GAMES of the actual binary.
 
+**[2026-07-24 amendment — "transfer-MIRAGES" is too strong now.]** It was a fair read of the pre-reset
+instrument, but the Batch-1 certification measured **+43.2** real-clock against a claimed **+34.3** of
+pooled self-play keeps — transfer *exceeded* the claim. The disciplined version of the lesson survives: a
+single self-play SPRT is not a transfer guarantee, and the pin has a ±40 delta-CI floor that no single keep
+can clear. The batch certification exists precisely because it is the *powered* transfer instrument, and it
+has now fired once and passed. Later additions: `scripts/boxsprt.sh` (M3, one-command box mill),
+score adjudication (M5, validated non-distorting at +3.1% throughput), parallel SPSA `-pairs K` (M4).
+
 ---
 
 ## META-LESSONS (why the plateau is real)
 
-1. The only +100s ever were correctness fixes. No speculative eval/search play has moved the number.
-2. NGN already HAS all the modern machinery — it's at a tight 2666 local optimum where single-axis tweaks regress in BOTH directions.
-3. PROVEN search-bound (+185 Elo from 2 plies). Eval has headroom; the binding constraint is search DEPTH/EBF.
-4. 2026-06-29 mechanism: depth is blocked by move-ordering precision (FMC 84%, not 90%) gating safe reduction. That is the current spearhead, with FMC as a fast deterministic proxy.
-5. The remaining depth work (richer LMR formula, singular double-extension) is delicate (anti-explosion guardrail, search.go:1821) → attended, not fire-and-forget.
+**[REVISED 2026-07-24. The section title "why the plateau is real" is itself now wrong — the plateau
+broke on 2026-07-01. Lessons 1 and 2 are superseded; 3-5 stand with amendments.]**
+
+1. **SUPERSEDED.** "The only +100s ever were correctness fixes" is still true, but its companion claim —
+   "no speculative eval/search play has moved the number" — is **false as of 2026-07-02**. Seven ordinary
+   heuristic keeps (T4 +9.1, T4np +6.4, T1b +13.1, T4c +3.7, iir3 +2.0, T1e +6.6, T5 +20.2) and one
+   certified composite (+43.2 real-clock) say otherwise. What was actually true: NGN's *measurement* was
+   broken, so speculative work could not be told from noise. Fix the instrument and the ordinary climb works.
+2. **SUPERSEDED.** "NGN already HAS all the modern machinery" is feature-NAME true and formula-level FALSE —
+   the 2026-07-01 audit found aspiration at fixed-50cp/discard-after-3 (T5 = +20.2 to fix), time management
+   missing all three standard scalers (`stableIters` written and never read — T1b = +13.1), no cutNode IIR
+   (iir3), corrhist never applied at qsearch stand-pat (T4 family = +19.2 combined). "We have feature X" is
+   not evidence; read the formula. The local-optimum framing was measuring a mis-plumbed engine.
+3. **STANDS.** PROVEN search-bound (+185 Elo from 2 plies). Eval has headroom; the binding constraint is
+   search DEPTH/EBF. This is why NNUE stays the wrong tool.
+4. **STANDS, with a caution.** Depth is gated by move-ordering precision (FMC ~84% vs ~90% elite), so
+   aggressive reduction over-reduces mis-ordered moves (T3a −7.9 proved it). **Amendment 2026-07-19:** the
+   first attempt to raise FMC (T10b, 4-ply conthist) FAILED, so the T3 LMR-reduction lane stays gated and
+   the ordering spearhead is not yet demonstrated to convert into strength.
+5. **STANDS and is being discharged.** The delicate depth work (richer LMR formula, singular double
+   extension) touches the anti-explosion guardrails → attended. **T9a (double extension) went live
+   2026-07-24** with the ATTENDED flag discharged operationally rather than by vigil: a pre-launch nodecheck
+   explosion gate (+13.6/+12.8/+31.8% = mechanism live, nowhere near runaway), a per-path cap of 5, a
+   HALT-on-any-flag-out decision rule, and a `TestSingularDoubleExtensionsFire` regression test that pins the
+   arm actually firing. That combination is the reusable template for the rest of the delicate lane.
+6. **NEW (the T7 lesson, 2026-07-24).** An experiment can be *methodologically perfect and still measure
+   nothing.* T7 had a pre-registered manifest, verified hashes, a clean 8000-game run, and 0 flag-outs — and
+   tested a change that moved the search tree 0.001%. Before spending box time, ask what the instrument will
+   see, not just whether the protocol is correct. The nodecheck ≥~1% gate is the durable form of this.
+7. **NEW (the real bottleneck is handoff, not throughput).** Three stalls — after M6, after the gauntlet, and
+   T7's result sitting unread 2026-07-20→24 — have cost roughly **14 box-days against ~7 verdicts delivered**.
+   No search idea in the queue is worth as much as reading a finished run the day it finishes. Every session
+   that sees a run finish must record the result AND launch the next queued item before ending.
