@@ -78,7 +78,24 @@ self-play sum. No bisect (PASS, not FAIL).
 
 ---
 
-## Batch 2 — OPEN (certified base: `c514a2b`, opened 2026-07-18)
+## Batch 2 — CERTIFIED 2026-07-25 (pre-batch base: `c514a2b`, opened 2026-07-18, certified HEAD: `172e9e1`)
+
+**CERTIFIED 2026-07-25** — composite `172e9e1` (engine == `5b93966`) vs `c514a2b`, SPRT [0,+6] = **+35.1 penta
+[+19,+51], pLLR +2.88 with the +2.94 bound crossed at G777 (max +2.98 @G781), H1 ACCEPTED, 785g / 392 pairs,
+0/0 flag-outs, 48m36s, DONE_EXIT_0** (`2026-07-24-batch2-cert.md`). Measured **+35.1 exceeds the +26.8 claimed**
+self-play sum — the second straight certification to overshoot its claim (Batch 1: +34.3 claimed → +43.2
+measured). PASS, so **no bisect**; T1e and T5 both graduate to permanent certified keeps and the **certified
+base pointer advances `c514a2b` → `172e9e1`**. Certified base binary staged on the box as `ngn_cert2.exe`
+(`0a8f65b7…`, hash-verified after copy); `ngn_cert.exe` (Batch-1 base) deliberately left in place so an older
+bisect remains reachable.
+
+**Why this result mattered beyond the number:** it landed directly after three consecutive T-item shelves
+(T10b, T7, T9a), when the live hypothesis was that self-play keeps were not transferring and that T5's +20.2 —
+the campaign's biggest single keep — would be the first suspect in a bisect. The composite came in *above*
+claim instead, which clears the instrument and the keep rule and localizes the recent nulls to candidate
+quality. **Batch certification is now 2-for-2, both times overshooting**, mild evidence that isolated
+per-change SPRTs systematically *understate* keeps (each is measured against a base already containing the
+others' gains, and each stops at the first bound crossing rather than estimating precisely).
 
 Certified base `c514a2b` is engine-identical through current HEAD `f5b7c34` (the `e7bfd46`/`f5b7c34` delta is
 doc-only). Batch 2 accumulates the next capped-but-positive PROVISIONAL keeps against this base; full H1
@@ -89,9 +106,9 @@ accepts also land on main and are folded into this batch's composite for attribu
 | 1 | T1e — node-fraction (best-move node-effort) time scaling | `801d384` | FULL H1 accept — penta +6.6 [-1,+14], pLLR peak +2.96 crossed +2.94 at G4218, c8-drain to +2.85, 0/0 flag-outs, 4226g (2026-07-19) | `2026-07-18-t1e-node-effort.md` |
 | 2 | T5 — aspiration modernization (scaled init + progressive widening + never-discard) | this commit | FULL H1 accept — penta +20.2 [+7,+33], pLLR peak +2.98 crossed +2.94 at G1202 (sustained G1299–1305), c8-drain to +2.88, 0/0 flag-outs, 1309g (2026-07-19) | `2026-07-19-t5-aspiration.md` |
 
-- **Trigger:** certify when Batch 2 reaches 4 provisionals **OR** 2 weeks (~2026-08-01), whichever first.
-- **Certification run:** post-batch HEAD vs `c514a2b`, real-clock `-tc 10+0.1`, SPRT [0,+6], A/A preflight, LAN 9800X3D box.
-- **On fail:** bisect Batch 2 commits to find the regressor; drop it, re-certify.
+- **Trigger fired:** the 2-week date trigger (2026-08-01), at 0 provisionals — certified 6 days early, 2026-07-25.
+- **Certification run:** DONE — `172e9e1` vs `c514a2b`, real-clock `-tc 10+0.1` c8, SPRT [0,+6], standing M5 A/A basis, LAN 9800X3D box.
+- **On fail:** n/a — PASSED.
 - **Batch net (claimed self-play):** **+26.8** (T1e +6.6 + T5 +20.2, both FULL H1 accepts — landed on main, not provisionals; folded into the composite for attribution same as Batch 1's full accepts). 0 provisionals so far.
 - **Note (2026-07-19) — T1e (FULL H1 accept, NOT a provisional):** node-fraction best-move effort scaling of the
   soft time budget (SF-standard third time signal, composed multiplicatively with T1b's stability factor under
@@ -116,3 +133,23 @@ accepts also land on main and are folded into this batch's composite for attribu
   playing binary `0a8f65b7…`. **Biggest single keep of the revamp campaign** (prior max T1b +13.1). The
   post-batch certification composite (vs `c514a2b`) will include this gain, isolable by this commit for the
   bisect-on-fail path. Batch-2 net claimed self-play now **+26.8** (T1e +6.6 + T5 +20.2), 0 provisionals.
+
+---
+
+## Batch 3 — OPEN (certified base: `172e9e1`, opened 2026-07-25)
+
+Certified base `172e9e1` has engine byte-identical to the T5 keep `5b93966` (T7, T9a and T10b were all
+shelved and reverted, so nothing since T5 has changed the engine). On-box certification binary:
+`ngn_cert2.exe` sha256 `0a8f65b75e59c376052f83b14787b0af2eba65552cedfee6f70ce576891ca721`.
+
+Batch 3 accumulates the next capped-but-positive PROVISIONAL keeps against this base; full H1 accepts also
+land on main and are folded into this batch's composite for attribution, same as Batches 1 and 2.
+
+| # | Change | Commit | Verdict (real-clock self-play, 10+0.1) | Run record |
+|---|---|---|---|---|
+| — | (none yet) | — | — | — |
+
+- **Trigger:** certify when Batch 3 reaches 4 provisionals **OR** 2 weeks (**≤ 2026-08-08**), whichever first.
+- **Certification run:** post-batch HEAD vs `ngn_cert2.exe` (`172e9e1`), real-clock `-tc 10+0.1` c8, SPRT [0,+6], LAN 9800X3D box.
+- **On fail:** bisect Batch 3 commits to find the regressor; drop it, re-certify.
+- **Batch net (claimed self-play):** +0.0 — empty.
