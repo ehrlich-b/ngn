@@ -108,11 +108,11 @@ decision_rule: >
   shelved, the reference bug is still a bug; the finding is then that the search had ADAPTED to it (the
   surrounding margins were hand-tuned on top of the corrupted signal), which makes the fix a prerequisite for
   T8 rather than a standalone gain. Record that explicitly rather than filing it as "improving is fine".
-games_or_pairs: (pending)
-result: (pending)
-flags_errors: (pending)
-verdict: (pending)
-next_action: (pending)
+games_or_pairs: 4256 games / 2128 pairs
+result: penta -6.4 [-14, +1], pLLR -2.88 printed (true min -2.96 @G4253, crossed -2.94 at G4248); trinomial -6.4 [-17,+4] LLR -2.52
+flags_errors: 0 flag-outs new / 0 base of 4256; 0 crashes / illegal / no-move; DONE_EXIT_0; 4h25m46s = 960 g/hr vs the 961 baseline
+verdict: H0 ACCEPTED — SHELVE and revert (shelf copy output/t17.patch)
+next_action: T8 SPSA round 1 on the UNFIXED base; T17 reopens ONLY bundled with a retune of the four consumer knobs
 ```
 
 ## Why T17 runs before T8 (dependency, not a re-rank)
@@ -150,3 +150,95 @@ baseline match**, so the local tree carries none of the candidate's behavior whi
 
 Poll with `scripts/boxsprt.sh tail t17` / `scripts/boxsprt.sh ps`. Expected duration 1.5-8.5h depending on
 where it lands; at the 961 g/hr box rate the 8000g cap is ~8h20m.
+
+## RESULT — SHELVED 2026-07-25 (H0 ACCEPTED, clean statistical reject)
+
+```text
+Games: 4256   W-D-L: 1098-1982-1176   score: 49.1%
+Elo(new - base): -6.4   95% CI [-17, +4]      LLR: -2.52   bounds [-2.94, 2.94]
+Pentanomial [LL 119  LD 560  {LW,DD} 848  WD 482  WW 119] over 2128 pairs
+Penta Elo: -6.4   95% CI [-14, +1]   pLLR -2.88   (THE decision stat)
+Flag-outs (lost on time): new 0, base 0  of 4256 games
+Adjudicated early: 2265 decisive, 1016 draw  of 4256
+Verdict: H0 ACCEPTED: new is NOT better (<= -3 ELO)     4h25m46s   DONE_EXIT_0
+```
+
+### The printed pLLR is inside the bounds — full-envelope scan (3rd observation of the c8 drain)
+
+The summary line reads -2.88, inside [-2.94, +2.94], yet the harness declared H0 ACCEPTED. Scanned all 4256
+samples rather than assuming either number was wrong:
+
+| Quantity | Value |
+|---|---|
+| First sample <= -2.94 | **G4248 (-2.95)** |
+| Minimum pLLR | **-2.96 @G4253** |
+| Samples at/below -2.94 | **8** |
+| Samples at/above +2.94 | 0 |
+| Post-mingames pLLR max | **-0.07 @G305** |
+| Whole-run pLLR max | +0.15 @G128 (below the mingames-300 floor) |
+
+The bound was genuinely crossed; the printed -2.88 is the **c8 drain** — in-flight games across 8 workers
+complete after the stop signal and are folded into the recomputed summary. **This is now the third
+observation and it has appeared in both directions** (T9a -2.87 after crossing -2.94; Batch-2 cert +2.88 after
+crossing +2.94; T17 -2.88 after crossing -2.94), which confirms the drain is a symmetric artifact of the stop
+protocol and not a directional bias. Verdicts on this box must be taken from the harness's own
+`H0/H1 ACCEPTED` line plus an envelope scan, never from the printed final pLLR.
+
+### Trajectory — never positive after mingames
+
+| Games | pLLR | penta elo |
+|---|---|---|
+| 300 | -0.11 | -5.8 |
+| 500 | -0.10 | -2.8 |
+| 1000 | -0.27 | -2.4 |
+| 2000 | -0.99 | -4.5 |
+| 3000 | -1.61 | -5.0 |
+| 4000 | -1.73 | -4.1 |
+| 4256 | -2.88 | -6.4 |
+
+Post-mingames elo envelope: **max -0.7, min -11.2 — never once positive.** Unlike T7 (which oscillated to
++1.92) there is no positive phase to argue about, and unlike a capped null this crossed a bound. This is the
+cleanest negative of the campaign.
+
+## What this means: the defect is LOAD-BEARING (the pre-registered asymmetry, now binding)
+
+The manifest pre-registered, before any games were seen, that a shelve **does not vindicate the defect**.
+That clause is now binding and must not be softened in hindsight.
+
+Both defects are still real and still proven from code and from direct measurement:
+slot 0 was never written (measured: 0 after a full depth-8 search), and `-INFINITY` was compared as a value
+(measured: 1068 sentinel references in the endgame, 100% spuriously `improving = true`). **Nothing about
+this result makes those correct.** What the result establishes is that **the four consumer knobs have been
+tuned, by hand and by prior SPRTs, on top of the corrupted signal** — RFP margin, futility margin, the LMP
+threshold row and the LMR reduction all currently carry values that are good *given* a mis-set `improving`.
+Repairing the input alone breaks that adapted composition and costs ~6 Elo.
+
+This is the same shape as **T1a** (`experiments/2026-07-02-t1a-softstop.md`), where removing the time
+projection cost -7.8 and the finding was recorded as "the projection is LOAD-BEARING, not just flag
+protection." Same lesson, different subsystem: a component that looks like a bug in isolation can be
+carrying load placed on it by everything tuned around it.
+
+**Consequence for T8, recorded now so it cannot be rediscovered later:** T8 SPSA tunes
+`ReverseFutilityMargin`, `FutilityMargin`, `LMRFullDepth` and `LMRMoveThreshold` — four of the knobs
+`improving` feeds — on the UNFIXED base. Its converged vector will therefore be **entangled with the
+defect**, and T17 can never afterward be re-tested as an isolated change. T17's only valid reopen is
+**bundled with a retune of its consumers** (fix + SPSA over the four margins as one experiment, explicitly an
+interaction test per CLAUDE.md), never as a standalone re-run.
+
+## Ledger correction found while queuing T8 (stale claims, fixed on sight)
+
+Verified against HEAD rather than trusting the queue text:
+
+- **`DoubleExtMargin` is NOT an SPSA dim.** TODO said to prefer T8 for the T9a reopen "since `DoubleExtMargin`
+  is already an SPSA dim [4,128]". T9a was reverted, so the constant does not exist in the engine at all
+  (`grep DOUBLE_EXT engine/` is empty). The T9a-2 reopen path via T8 **does not exist** without first
+  re-adding the code. T9a-2 is therefore a fresh hand-picked-constant SPRT if it is ever run, with all the
+  cost that implies — which lowers its rank, it does not raise it.
+- **LMP dims are NOT registered.** `lmpThreshold` (search.go:123) is a hardcoded `[2][9]int` table, not a
+  tunable. "Include LMP-scale dims" is work-to-do, not a fact. Parameterizing it is a real shape decision
+  (a base/scale formula), not an M1-style node-identical re-home, so it is split out as **T8b** rather than
+  bolted onto round 1.
+
+Live registry is **13 dims** (`engine/search.go:59-73`), all verified present: NullMoveR, NullMoveMinDepth,
+LMRFullDepth, LMRMoveThreshold, FutilityMargin, FutilityMaxDepth, ReverseFutilityMargin, DeltaMargin,
+SingularDepth, SingularMargin, ExtensionBudget, AspInit, AspMult.
