@@ -26,6 +26,9 @@ BOX="${BOXSPRT_HOST:-ehrli@192.168.4.108}"
 KEY="${BOXSPRT_KEY:-$HOME/.ssh/id_ed25519}"
 REMOTE_DIR='C:\Users\ehrli\ngn\sprt'   # Windows path (schtasks/powershell)
 REMOTE_REL='ngn/sprt'                   # forward-slash path for scp (relative to home)
+# Binary `launch` runs. Defaults to sprt.exe so every existing SPRT call site is
+# byte-identical; T8 sets BOXSPRT_BIN=spsa.exe to drive the tuner on the same rig.
+BIN="${BOXSPRT_BIN:-sprt.exe}"
 SSH=(ssh -i "$KEY" -o IdentitiesOnly=yes -o ConnectTimeout=20)
 SCP=(scp -i "$KEY" -o IdentitiesOnly=yes -o ConnectTimeout=20)
 
@@ -48,7 +51,7 @@ case "$cmd" in
     bat="$REMOTE_DIR\\run_$name.bat"
     # Build the CRLF batch file locally, then scp it (avoids remote quoting hell).
     tmp="$(mktemp)"
-    printf '@echo off\r\ncd /d "%%USERPROFILE%%\\ngn\\sprt"\r\nsprt.exe %s > %s_out.txt 2>&1\r\necho DONE_EXIT_%%ERRORLEVEL%%>> %s_out.txt\r\n' "$args" "$name" "$name" > "$tmp"
+    printf '@echo off\r\ncd /d "%%USERPROFILE%%\\ngn\\sprt"\r\n%s %s > %s_out.txt 2>&1\r\necho DONE_EXIT_%%ERRORLEVEL%%>> %s_out.txt\r\n' "$BIN" "$args" "$name" "$name" > "$tmp"
     "${SCP[@]}" "$tmp" "$BOX:$REMOTE_REL/run_$name.bat"
     rm -f "$tmp"
     # schtasks create (far-future /sd so it never auto-fires) -> run now -> delete the task entry.
