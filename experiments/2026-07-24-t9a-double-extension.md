@@ -166,3 +166,35 @@ G9     1W  7D  1L   50.0%  elo   +0.0 [-213,+213]  LLR  +0.00  pLLR  +0.00  max-
 Poll with `scripts/boxsprt.sh tail t9a` / `scripts/boxsprt.sh ps`. The run drives to the 8000g cap or a
 +/-2.94 pLLR crossing; apply the predeclared `decision_rule` on completion, and **HALT rather than verdict if
 candidate flag-outs exceed the A/A baseline of 0** (extension changes fail as time losses, not as noise).
+
+## Pre-registered interpretation of a negative result (written at G770, BEFORE the verdict)
+
+Recording this now so the reading of a failure is not reverse-engineered from the number. At G770 the run sits
+at penta-adjacent trinomial elo -11.7 [-36,+13], pLLR -0.98 — drifting negative after the usual early noise.
+Throughput is normal (770 games in 48.3 min = **957 g/hr** vs the 961 g/hr A/A baseline), so nothing is
+pathological about the run itself; the candidate is simply not winning so far.
+
+If this ends negative or capped-nonpositive, the **first** hypothesis is the double-extension RATE, not the
+mechanism. The mechanism-fires check recorded **44 double extensions out of 135 singular extensions at
+kiwipete d10 — a 33% rate**, which is high for this technique: reference engines double-extend on a small
+minority of singular moves. With `singularBeta = ttEval - 2*depth`, a `DOUBLE_EXT_MARGIN` of 24 asks a
+singular move to beat its siblings by only ~40cp at depth 8 — a bar that a third of singular moves clear, so
+T9a as configured is closer to "extend singular moves by 2 plies" than to "extend *overwhelmingly forced*
+moves by 2 plies". Over-extending a third of singular nodes costs breadth everywhere else, which is a
+coherent story for a small negative at fixed real clock, and it matches the +13-32% nodecheck growth.
+
+So the predeclared reopen, if the verdict is negative:
+
+1. **Raise the margin** (T9a-2: `DOUBLE_EXT_MARGIN` 64-96) to make double extensions selective, and re-run the
+   mechanism-fires check expecting a single-digit percentage rather than 33%. This is a constant change to a
+   live mechanism, not a new mechanism — cheap, and the nodecheck gate will confirm it still moves the tree.
+2. Only if a selective margin also fails, treat the double-extension lane as genuinely non-transferring for
+   NGN and record it as such — noting that unlike T7 this run DID exercise its mechanism (+13.6/+12.8/+31.8%
+   nodecheck, 33% fire rate), so a null here is real evidence about the lane, not evidence about a no-op.
+
+`DoubleExtMargin` is already registered as an SPSA dim [4,128], so option 1 is also reachable through T8
+rather than by another hand-picked constant — preferred if T8 runs first.
+
+Conversely, if the verdict is positive, the same 33% rate is worth an SPSA pass anyway: the current constant
+was chosen from the reference literature, not from NGN's own data, and the fire rate suggests it is not near
+NGN's optimum in either direction.
