@@ -90,3 +90,58 @@ Recommend it as the next box job after T8's gate, ahead of T12.
 4. **T19** — `ttPv`, per above; needs a freed TT bit + nodecheck gate.
 5. **T18** — probcut TT short-circuit + TT store (two sub-items; lane confirmed live, pcut 1622 @kiwipete d12).
 6. T15 / T11a / T9b / T10a / T8b — as previously ranked.
+
+---
+
+## T19 `ttPv` — IMPLEMENTED and GATED 2026-07-25 (shelved at `output/t19.patch`, 190 lines)
+
+Built, measured, reverted. Tree restored and re-verified to the exact 346662/149587/765656 baseline; nothing
+speculative is committed.
+
+**Implementation (the bit budget resolved as recommended — age 10 → 9 bits):**
+
+- `AGE_MASK` 10 → 9 bits, new `TTPV_MASK` at bit 63. Entry stays 8+8 bytes, so the slot-count property that
+  the endgame audit showed is load-bearing is untouched.
+- `Pack`/`Unpack`/`Set`/`Get` all carry the flag (4 probe sites + 3 store sites updated).
+- The mark is **sticky**: `nodeTTPv := isPV || (ttHit && ttPvEntry)`, re-stored true. That is the point — a
+  node that has ever mattered keeps deserving less reduction after it drops out of the PV.
+- LMR consumes it: `if nodeTTPv { reduction-- }`.
+
+**Behavioral-delta gate — PASSES DECISIVELY:**
+
+| Position | Base | T19 | Delta |
+|---|---|---|---|
+| kiwipete d12 | 346662 | 410704 | **+18.5%** |
+| mid d12 | 149587 | 236690 | **+58.2%** |
+| end d16 | 765656 | 516337 | **-32.6%** |
+
+### BLOCKER: `TestIIDIsWired` fails under T19 — and it is NOT an IID break
+
+`go test -short ./engine` fails with `IID never fired on this FEN` (IID-on == IID-off == 32561 nodes,
+`IIDSearches == 0`) on `r2q1rk1/1b1nbppp/p2ppn2/1p6/3NPP2/1BN1B3/PPPQ2PP/2KR3R w - - 0 12` at depth 9.
+
+**Verified rather than assumed** (the failure mode here would be to shrug and edit the test): IID fires
+normally under T19 at depth 10 on that *same* FEN — `iid 1` for both HEAD and T19, on kiwipete and on the test
+FEN. So the wiring is intact; T19 merely shifted the depth-9 search out of the IID-firing regime.
+
+**This is the fragility the test's own comment already documents** — T4c's minor correction-history term moved
+the previous FEN out of that regime once before, which is exactly why the `IIDSearches > 0` assertion was
+added. The guard is working as designed: failing loudly beats passing spuriously with on == off.
+
+**Do NOT weaken this test to let T19 through.** It is a durable lock, and editing a guard to accommodate a
+speculative candidate is how locks get un-fixed. The correct sequence is:
+
+1. **Fix the test's robustness on its own merits first** (own commit, justified independently of T19): choose
+   a FEN/depth where IID fires reliably, or assert on a construction that cannot drift out of regime. It has
+   now tripped on **two** separate tree-changing candidates, so it will keep blocking the queue — this is a
+   real, recurring tax, not a one-off.
+2. Then re-run T19's gate on a green baseline and launch.
+
+T19 is therefore **NOT launch-ready**, unlike T12. Sequence it behind that test fix.
+
+### Open design question for the T19 run
+
+The qsearch store (search.go:2440) passes `ttPv = false`, so a qsearch entry replacing a marked node **clears**
+the mark. SF preserves ttPv through qsearch stores. Whether NGN should thread it through is a real variant, not
+an oversight to paper over — pick one deliberately before launch, since a mark that leaks away weakens the
+whole mechanism.
