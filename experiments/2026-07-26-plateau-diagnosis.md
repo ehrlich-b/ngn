@@ -56,7 +56,8 @@ consistent with the loss autopsy's "positional slow-bleed" finding.
 Sorting every result since the reset by what it touched:
 
 - **Search-efficiency / TT changes**: T5 aspiration **+20.2** (biggest keep of the campaign), T1b **+13.1**,
-  T4 corrhist **+9.1**. Plus the strongest gated candidate now queued, T18b, at **-25.5%/-28.5% nodes**.
+  T4 corrhist **+9.1**. Plus the strongest gated candidate now queued, T18b, at **-25.5%/-28.5% nodes**
+  (**T18b subsequently came back -22.5 — see CORRECTION 2; this column's cut is not where the signal is**).
 - **Pruning-constant changes**: T7 **0**, T10b **0**, T9a **-5.2**, T1c **-4.8**, T13 **-0.4**, T16 **-0.6**,
   T3a **-7.9**.
 
@@ -68,8 +69,10 @@ population.
 
 **Promote (touch TT retention or ordering, i.e. move EBF toward 2.0):**
 
-1. **T18b** — probcut TT store. RUNNING. Adds proved bounds to the TT, which raises ttlist directly. Its
-   -25%/-28% node reduction is exactly the predicted signature.
+1. ~~**T18b** — probcut TT store. Adds proved bounds to the TT, which raises ttlist directly. Its
+   -25%/-28% node reduction is exactly the predicted signature.~~ **SHELVED -22.5, LANE CLOSED — see
+   CORRECTION 2.** The bounds are *speculative*, not "proved", and the -25%/-28% signature was the error
+   surface growing, not savings.
 2. **T11a — 4-way TT clustering.** Was DOWNGRADED to "+7.5 prior, aging/depth-preferred already exist". That
    downgrade judged the wrong axis: the question is not replacement policy quality but **retention under
    pressure**, and ttlist at 34-47% is the direct measurement of the deficit. **Re-promote to top structural
@@ -141,3 +144,44 @@ declared "exhausted" while nothing was actually tested.
   unfinished extension, kept as a follow-up rather than bundled.
 
 Both are launch-ready behind T18b. Neither is a b_all play; both are depth-at-fixed-nodes plays.
+
+---
+
+## CORRECTION 2 (2026-07-26, from games): Finding 3's split was the WRONG CUT
+
+**T18b came back -22.5 [-36,-10], H0 ACCEPTED** — the largest single negative of the campaign, on the
+candidate this document ranked **#1** and used as the flagship of the promoted class
+(`experiments/2026-07-26-t18b-probcut-ttstore.md`). Its implementation was checked post-hoc and is a faithful
+SF transplant (stored depth == proven depth), so the idea failed, not the code.
+
+**Finding 3 above sorted results into "search-efficiency/TT wins" vs "pruning-constant losses" and re-ranked
+the entire queue on that split. The split is not wrong so much as cut in the wrong place.** The real
+discriminator:
+
+> **Does the change PERSIST SPECULATIVE INFORMATION?**
+
+Every winner in the "efficiency" column used **proven or games-verified** information — T5 aspiration invents
+none (pure window management), T1b/T1e reallocate time, T4 corrhist's learned correction was itself validated
+by games. T18b made the search cheaper by **caching a guess**: probcut is a self-described speculative prune
+("the full search would *likely* also fail high"), and storing its result turns a one-shot bounded error into
+a durable assertion re-fired on every revisit.
+
+**Consequence for how this document's own instrument is read.** The -25.5%/-28.5% nodecheck delta was cited
+here as the strongest signal on the board. It should have been read as a red flag: the store fires at **0.47%
+of nodes** yet removed a quarter of the tree — **~50x amplification per entry, which is equally the
+error-multiplication factor.**
+
+> **Node-count reduction is evidence of efficiency ONLY when the information driving it is proven.** When the
+> reduction comes from caching a heuristic, the node delta measures **error surface, not savings** — and a
+> large delta from a *low* fire rate is a warning sign, not a green light.
+
+The `>=1% nodecheck` gate now carries a second question: not just *did the tree move*, but **what kind of
+information moved it**.
+
+**This does NOT retract the EBF/TT re-ranking** — it sharpens it, and it discriminates rather than merely
+retro-explaining. **T11a keeps its top-structural rank** (it retains *real search results* already proven by
+full searches, inventing nothing), **T19 ttPv survives** (a structural mark, not a speculative value), and
+**T3b is unaffected** (it reduces; it does not cache). Findings 1 and 2 (the stale-EBF re-measurement and the
+34-47% ttlist deficit) are untouched by this result.
+
+**T18 is now fully closed, both halves** — T18a was killed at the gate (-0.15%, re-classed as pure speed).
