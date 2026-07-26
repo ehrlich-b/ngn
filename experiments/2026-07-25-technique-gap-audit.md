@@ -235,3 +235,43 @@ depth. The endgame growing 26% is the headwind the SPRT has to weigh against it.
 16-line patch shelved at `output/t18b.patch`. Full suite + `./...` green, tree restored to exact baseline.
 **Launch-ready.** Rank it directly behind T12 — the two are comparable in size but T18b moves the tree far
 harder, and unlike T12 (+30% growth) its middlegame delta points the *cheap* way.
+
+---
+
+## T15 (SEE capture-prune depth scaling) — GATED 2026-07-25, launch-ready
+
+Premise verified in code: captures are pruned at a **flat** `SEE < -100` for every depth <= 4
+(search.go:1706-1710), while the QUIET path 8 lines below scales at `-80*depth` with the explicit rationale
+"Threshold scales with depth so deeper nodes prune only larger losses." The captures path simply never got
+the same treatment — a flat -100 discards a capture losing barely more than a pawn just as eagerly at depth 4
+as at depth 1, which is the most tactically dangerous place to be throwing captures away.
+
+Candidate mirrors the existing quiet convention rather than inventing a new shape: `-100*depth` (capture base
+100, quiet base 80, same form).
+
+| Position | Base | T15 | Delta |
+|---|---|---|---|
+| kiwipete d12 | 346662 | 359952 | **+3.8%** |
+| mid d12 | 149587 | 167308 | **+11.9%** |
+| end d16 | 765656 | 666817 | **-12.9%** |
+
+Passes the >=1% gate on all three. Middlegames grow (fewer captures pruned = wider tree, the intended
+accuracy purchase), endgame shrinks ~13%. Modest next to T18b's -25/-28%, consistent with the +2-6 class this
+was ranked at. 17-line patch shelved at `output/t15.patch`, tests green, tree restored to exact baseline.
+
+## Pre-verification scoreboard for this session
+
+Every queue item touched was gated locally before any box time was committed:
+
+| Item | Nodecheck delta | Outcome |
+|---|---|---|
+| T12 NMP cut-node | +30.1 / -9.0 / +4.1 % | **launch-ready**, mechanism probe 473 blocks |
+| T18b probcut TT store | -25.5 / -28.5 / +25.9 % | **launch-ready**, strongest delta found |
+| T19 ttPv | +18.5 / +58.2 / -32.6 % | **launch-ready**, blocker test hardened, qsearch question closed |
+| T15 SEE capture scaling | +3.8 / +11.9 / -12.9 % | **launch-ready** |
+| T18a TT short-circuit | -0.15 / -0.03 / -0.11 % | **KILLED at the gate** + re-classed as a speed change |
+
+**One kill and four gated candidates, for zero box hours.** T18a alone would have consumed a ~5h SPRT and
+returned a null, and worse, would have been measured with the wrong instrument entirely. Since the ~35% hit
+rate is what dominates the 14-28 day estimate for 2800, this filtering is the most direct lever available
+without more hardware.
