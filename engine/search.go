@@ -70,6 +70,7 @@ var TunableSearchParams = []TunableParam{
 	{"ExtensionBudget", &EXTENSION_BUDGET, 24, 4, 64},
 	{"AspInit", &ASP_INIT, 12, 4, 40},
 	{"AspMult", &ASP_MULT, 150, 110, 250},
+	{"LMPBase", &LMP_BASE, 5, 2, 16},
 }
 
 // globalStopRequested is set by UCI's stop handler and observed by the search
@@ -120,9 +121,21 @@ func MaxNodes() uint64 {
 // (was 38 vs CG's 54 at improving d7), then extended to d8 (guard is depth<9) to
 // match CounterGo's depth-8 leaf-pruning range. Depth 0 is unused (the LMP guard
 // requires depth > 0).
-var lmpThreshold = [2][9]int{
-	{0, 3, 4, 7, 10, 15, 20, 27, 34},  // not improving — (5+depth²)/2
-	{0, 6, 9, 14, 21, 30, 41, 54, 69}, // improving — 5+depth²
+// T8b: the table above was already EXACTLY (LMP_BASE+depth²)/2 and LMP_BASE+depth²
+// with base 5 — its own comment said so, and all 16 entries reproduce exactly. It is
+// therefore computed inline from the tunable base rather than kept as a frozen
+// literal, which exposes it to SPSA without changing a single threshold at the
+// default. Kept as a var (not const) so the UCI/SPSA path can write through it.
+var LMP_BASE = 5
+
+// lmpThresholdFor returns the late-move-pruning move count for a depth, matching
+// the historical table exactly at LMP_BASE == 5 (integer division intended).
+func lmpThresholdFor(depth int, improving bool) int {
+	t := LMP_BASE + depth*depth
+	if !improving {
+		t /= 2
+	}
+	return t
 }
 
 // SearchToggles enables/disables individual pruning & reduction techniques for
@@ -1689,11 +1702,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Use legalTried (not moveCount) since moveCount includes illegal moves
 		if SearchToggles.LMP && !isPV && !inCheck && depth > 0 && depth < 9 &&
 			!move.IsCapture() && move.PromoType() == NoType && move != ttMove && legalTried > 0 {
-			impRow := 0
-			if improving {
-				impRow = 1
-			}
-			threshold := lmpThreshold[impRow][depth]
+			threshold := lmpThresholdFor(depth, improving)
 			if legalTried > threshold {
 				info.LMPPrunes++
 				continue

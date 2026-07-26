@@ -275,3 +275,37 @@ Every queue item touched was gated locally before any box time was committed:
 returned a null, and worse, would have been measured with the wrong instrument entirely. Since the ~35% hit
 rate is what dominates the 14-28 day estimate for 2800, this filtering is the most direct lever available
 without more hardware.
+
+---
+
+## T8b DONE 2026-07-25 (committed — node-identical re-home, NOT shelved)
+
+**Corrects a claim made earlier in this same file.** The T8 manifest and the gap audit both recorded that
+exposing LMP needs "a base/scale formula, which is a shape decision requiring its own node-identity check, not
+an M1-style re-home." **That was wrong.** The table was *already* an exact formula and its own comment said so:
+
+```go
+{0, 3, 4, 7, 10, 15, 20, 27, 34},  // not improving — (5+depth²)/2
+{0, 6, 9, 14, 21, 30, 41, 54, 69}, // improving — 5+depth²
+```
+
+All 16 entries reproduce exactly at base 5 with integer division (d8: (5+64)/2 = 34, 5+64 = 69). So this is
+precisely an M1-style re-home of a frozen literal onto its documented formula.
+
+Implemented as `LMP_BASE` (default 5) plus `lmpThresholdFor(depth, improving)` computed inline, replacing the
+literal table and the `impRow` lookup, and registered as SPSA dim **`LMPBase` [2,16]**.
+
+- **Node identity PROVEN: 346662 / 149587 / 765656 — exact, unchanged.** The decision table's requirement for
+  a node-identical refactor ("exact node/score identity plus tests") is met, which is why this is committed
+  while every speculative candidate this session stays shelved.
+- **Dim verified LIVE** by the same UCI probe used for the other 13: default 137232 nodes, `LMPBase=2` →
+  104342, `LMPBase=16` → 130771.
+- `go test -short ./engine` and `-race` both green.
+
+**Registry is now 14 dims.** T8 **round 2** picks up LMPBase; round 1 is unaffected — it is running from the
+on-box `ngn_t5.exe` and is untouched by this commit.
+
+**Provenance note for T8's confirmation SPRT:** HEAD is now **behaviorally identical but no longer
+byte-identical** to the T8 round-1 base. The gate must keep using the on-box `ngn_t5.exe`
+(`0a8f65b7…`) as its base binary, exactly as pre-registered — do not rebuild the base from HEAD and assume a
+hash match.
