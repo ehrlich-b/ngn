@@ -12,7 +12,13 @@
 # node counts disambiguate a coarse 0-ply delta (reduction-where-it-counts = real,
 # inflation-in-sharp = reject — see TODO Lane A exec log, qmvv vs A2 precedents).
 #
-# STANDING BASELINE (2026-06-11, post-W1 HEAD 67081e4 = futility d3->8 kept):
+# STANDING BASELINE RE-MEASURED 2026-07-26 on HEAD (post T5-aspiration / corrhist family / T1b+T1e):
+#   mg depths QGD 14 / closed 12 / lateMg-ph6-11 13 / najdorf 14
+#   rook-eg 17, pawn-eg 32   (nodes 183331/169011/396246/390110/354408/325143)
+#   implied EBF: 2.38 / 2.73 / 2.70 / 2.51 / 2.12 / 1.49 -- mg is ~2.4-2.7, NOT the ~3.0 this header
+#   and memory:project_ebf_lane both claimed for six weeks. The lane was never exhausted; it was
+#   delivering unmeasured. RE-READ THIS AFTER EVERY STRUCTURAL KEEP (~4 min, zero box time).
+# PRIOR BASELINE (2026-06-11, post-W1 HEAD 67081e4 = futility d3->8 kept), kept for the delta:
 #   mg depths QGD 12 / closed 9 / lateMg-ph6-11 11 / najdorf 9
 #   rook-eg 14, pawn-eg 24
 # W1 effect at 400K: QGD +2 (open positions prune deeper), closed -1, najdorf -1
