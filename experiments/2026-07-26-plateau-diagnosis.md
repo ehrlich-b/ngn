@@ -94,3 +94,50 @@ must run after the structural queue stops moving the base (see its abort record)
 - **Re-measure cadence added**: ebfprobe + the fmc/ttlist table are cheap (~4 min local, zero box time) and
   must be re-read after every structural keep. Letting them go stale for six weeks is what allowed the "lane
   exhausted" story to persist while the lane was in fact delivering.
+
+---
+
+## CORRECTION (same session, from measurement): b_all is STIFF and is the wrong steering metric
+
+Two probes were run specifically to test whether b_all is actionable. **Both say no.**
+
+**Probe 1 — capture-LMR (reduction).** b_all kiwipete 6.38 -> **6.54 (UP)**, QGD 6.42 -> 6.43 (flat).
+Obvious once measured: `b_all = alltried/allnodes` counts moves TRIED at an all-node, and LMR still tries every
+move, only shallower. **Reduction cannot move b_all by construction.** An earlier version of this file and the
+`project_ebf_lane` memory both claimed capture-LMR was "the most direct b_all lever" — that was wrong and is
+now corrected in both places.
+
+**Probe 2 — SEE-prune range 4 -> 8 (real pruning, on both the capture and quiet paths).** This is genuine
+skipping, not reducing, and it visibly pruned more (kiwipete seeq 13040 -> 18545). b_all kiwipete
+6.38 -> **6.33**, QGD 6.42 -> **6.31**. **A doubling of the pruning range bought 1-2% of b_all**, nowhere near
+the 6.4 -> 4.0 the EBF arithmetic asks for.
+
+**Conclusion: b_all is structurally pinned**, not a knob. It is held up by the exemption guards every prune
+carries (TT move exempt, `legalTried > 0` F1 guard, promotions exempt, killers/counter exempt) and by the fact
+that all-nodes cluster at shallow depth where the depth-gated prunes barely apply. Also worth stating plainly:
+**"class ~3.5-4" was never measured on a real engine** — it is back-derived from EBF ~= sqrt(b_cut*b_all) at
+elite EBF 2.0. Steering hard on a derived target that two independent levers cannot move is how a lane gets
+declared "exhausted" while nothing was actually tested.
+
+**Use depth-at-fixed-nodes as the working metric instead.** It responded to both probes where b_all did not:
+
+| Probe | kiwipete depth @400K | QGD depth @400K | b_all |
+|---|---|---|---|
+| base | 12 | 13 | 6.38 / 6.42 |
+| capture-LMR (T3b) | **13** | 13 | 6.54 / 6.43 |
+| SEE-range 4->8 (T20) | **13** | 13 | 6.33 / 6.31 |
+
+## Two new gated candidates from this work
+
+- **T3b — capture-LMR** (`output/t3b.patch`, 70 lines). NGN reduced zero captures; now non-winning captures
+  (i.e. `!seeNonLosingByMVV`) enter LMR at one ply LESS reduction than quiets, with the quiet-history and
+  killer adjustments correctly bypassed for them. +1 ply kiwipete, FMC 88.5 -> 89.9%, LMR re-search churn
+  unchanged at 0.2%. Nodecheck -29.6 / +35.4 / -1.4 %. **Explicitly NOT inheriting T3a's gate**: T3a reduced
+  QUIETS harder at ~84% FMC and over-reduced mis-ordered moves; captures are a separately- and well-ordered
+  population.
+- **T20 — SEE-prune range 4 -> 8** (`output/t20-seerange.patch`, 22 lines). The June census flagged that NGN's
+  SEE-prune dies at depth<=4 while the class runs to ~8; futility was extended to 8 in W1 but SEE-prune never
+  was. +1 ply kiwipete, FMC QGD 81.6 -> 82.3%. History pruning is still capped at depth<=3 — the same
+  unfinished extension, kept as a follow-up rather than bundled.
+
+Both are launch-ready behind T18b. Neither is a b_all play; both are depth-at-fixed-nodes plays.
