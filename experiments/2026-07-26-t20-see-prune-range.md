@@ -78,6 +78,10 @@ hypothesis: >
   middlegames) on exact material information, with no persisted speculation.
 patch: output/t20-seerange.patch (22 lines, engine/search.go only; two tokens of real change)
 rejected_variant: output/t20q-quietonly.patch (quiet path only) — FALSIFIED, -2 plies najdorf
+candidate: ngn_t20.exe sha256 90dd0ed2932cae1e2a72f5c7691460838cc84fed9b39e8aae4817ef83e020087
+  PRE-STAGED on the box 2026-07-26 with the on-box hash verified equal to the local build; `-short` and
+  `-race` engine suites green with the patch applied; tree reverted after the build. Launch is one command
+  the moment T3b resolves.
 base: ngn_t5.exe sha256 0a8f65b75e59c376052f83b14787b0af2eba65552cedfee6f70ce576891ca721
   CONDITIONAL — correct only if T3b SHELVES. If T3b is KEPT, T20 must be rebuilt and re-gated against the
   T3b tree; do NOT run against a superseded base and pool.
