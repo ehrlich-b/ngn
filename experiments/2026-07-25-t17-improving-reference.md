@@ -225,6 +225,45 @@ defect**, and T17 can never afterward be re-tested as an isolated change. T17's 
 **bundled with a retune of its consumers** (fix + SPSA over the four margins as one experiment, explicitly an
 interaction test per CLAUDE.md), never as a standalone re-run.
 
+## ADDENDUM 2026-07-26 — the reopen is nearly FREE, and the current queue order would foreclose it
+
+The consequence recorded above ("T8 on the unfixed base entangles the vector, and T17 can never afterward be
+isolated") was written as an accepted cost. **It does not have to be paid.** The reopen this record demands —
+*fix + retune the consumers as one interaction test* — is obtainable by changing **which base T8 runs on**,
+and nothing else.
+
+**Feasibility checked against the code, not assumed:**
+
+- The four named consumers are all live SPSA dims — `ReverseFutilityMargin`, `FutilityMargin`, `LMRFullDepth`,
+  `LMRMoveThreshold` (search.go:59-73) — and the LMP threshold row became a fifth, `LMPBase`, when T8b
+  re-homed it. So **all five consumers of `improving` are already in the registry.**
+- `cmd/spsa` tunes **every** entry of `engine.TunableSearchParams` (`cmd/spsa/main.go:83`); there is **no
+  dim-subset flag**. A literal "SPSA over the four margins" would therefore need a `-dims` flag or a trimmed
+  registry — a harness change.
+- **But the subset is not needed.** Running the *existing* 14-dim T8 on the **fixed** base recalibrates all
+  five consumers to a corrected `improving` signal simultaneously, which is exactly the interaction test this
+  record asks for, at **identical cost to the T8 round already planned**.
+
+**Proposal — T17b:** apply the T17 fix, then run T8 SPSA **on the fixed base** instead of the unfixed one.
+Verdict instrument is unchanged (converged vector -> real-clock 10+0.1 c8 SPRT [-3,+3] vs unmodified HEAD;
+never `plus_pct` or param movement).
+
+| | T8 on UNFIXED base (current queue) | T8 on FIXED base (T17b) |
+|---|---|---|
+| Cost | ~25h | ~25h — **the same** |
+| `improving` defect | cemented into the tuned vector permanently | repaired, and the tune adapts to the repair |
+| T17 reopen | **foreclosed forever** | satisfied |
+| Ambiguity on a negative | tune only | fix-or-tune (inherent to an interaction test, sanctioned by CLAUDE.md when explicit) |
+
+This is why it matters *now*: it is cheap to decide before T8 runs and impossible to undo after. It also fits
+the pattern the campaign's own results show — the keeps (T5 aspiration, T4 corrhist, T1b/T1e) replaced or
+added whole mechanisms, while the misses (T7, T10b, T9a, T13, T16, T3a, T1c, T18b) adjusted single sites or
+constants. "Repair a proven defect and recalibrate everything that consumes it" is a mechanism-level change;
+"tune 14 constants on a known-corrupted input" is not.
+
+**Not yet scheduled** — T3b is live and T20/T12/T19 are gated ahead of it. Recorded so the T8 launch decision
+is made deliberately rather than by queue inertia.
+
 ## Ledger correction found while queuing T8 (stale claims, fixed on sight)
 
 Verified against HEAD rather than trusting the queue text:
