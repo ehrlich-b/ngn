@@ -1,7 +1,18 @@
-# 2026-07-26 T20 — SEE-prune depth range 4 -> 8 — PRE-REGISTERED, launches behind T3b
+# 2026-07-26 T20 — SEE-prune depth range 4 -> 8 — LIVE on the box
 
-**STATUS: QUEUED, NOT LAUNCHED.** T3b is on the box. This manifest is written in advance per the CLAUDE.md
-manifest-before-launch rule and the anti-stall rule.
+**STATUS: LAUNCHED 2026-07-26 18:33:44 EDT**, confirmed live (8 `ngn_t20` + 8 `ngn_t5` + 1 `sprt`, header
+echoes `new=.\ngn_t20.exe  base=.\ngn_t5.exe`, both on-box hashes verified equal to the manifest before
+launch). T3b SHELVED as a capped null at -3.1, so the conditional base below (`ngn_t5`) is the correct one.
+Box idle between runs: ~3 minutes.
+
+> **LAUNCH GOTCHA — cost one failed launch, record it.** `boxsprt.sh launch <name> <args...>` **prepends
+> `$BIN` (`sprt.exe`) itself**. Passing the full command line from this manifest's `command:` field verbatim
+> produces `sprt.exe sprt.exe -new ...`; Go's `flag` parser stops at the first non-flag token, so **every flag
+> is silently dropped** and sprt falls back to its default engine path, dying with
+> `engine binary not found: ./build/ngn (build it first)` + `DONE_EXIT_1`. No workers spawn, so nothing leaks,
+> but the box sits idle until someone notices. **The `command:` field below is the true full command line for
+> the run record; the launch invocation must omit the leading `sprt.exe`.** Not fixing `boxsprt.sh` for this —
+> a run is live and the harness must not be edited mid-verdict (CLAUDE.md); re-evaluate when the box is free.
 
 Origin: the June technique census flagged that NGN's SEE-prune dies at `depth <= 4` while the class runs to
 ~8. Futility was extended to 8 in W1; **SEE-prune never was.** Change size: **two tokens** (`4` -> `8` on the

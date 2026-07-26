@@ -1,8 +1,8 @@
-# 2026-07-26 T3b — capture LMR (non-winning captures only) — PRE-REGISTERED, not yet launched
+# 2026-07-26 T3b — capture LMR (non-winning captures only) — COMPLETED, SHELVED (capped null)
 
-**STATUS: QUEUED, NOT LAUNCHED.** The box is running T18b until it resolves. This manifest is written in
-advance per the CLAUDE.md rule (manifest before launch) and the anti-stall rule, so T3b fires the moment the
-box frees.
+**STATUS: LAUNCHED + COMPLETED — SHELVED.** Ran to the 8000g cap, `DONE_EXIT_0`. Verdict at the bottom.
+No engine diff to revert: the patch was never committed and the tree was clean throughout
+(shelf copy `output/t3b.patch`).
 
 Origin: fell out of the 2026-07-26 plateau diagnosis (`experiments/2026-07-26-plateau-diagnosis.md`), not from
 the technique-gap prior list. Change size: **one condition + one reduction branch** (70-line patch, mostly
@@ -111,3 +111,60 @@ directions).
 Discounts: the MVV-proxy defect above is a live risk; and the diagnosis put T3b in the *ordering/efficiency*
 family only loosely — it raises FMC, but it does not raise TT-move availability (`ttlist`), which is the
 specific deficit Finding 2 identified. T18b, T11a and T19 attack `ttlist` directly; T3b does not.
+
+## VERDICT — SHELVE (capped null), 2026-07-26
+
+```yaml
+verdict: SHELVE (capped-nonpositive) — ran to the 8000g cap without crossing either bound; predeclared
+  "capped nonpositive -> SHELVE" rule fired. No revert needed (never committed); shelf copy output/t3b.patch.
+games: 8000 (4000 pairs), cap reached
+wdl: 2166W-3597D-2237L  score 49.6%
+penta: -3.1 Elo, 95% CI [-8, +2]
+penta_buckets: LL 260 / LD 960 / {LW,DD} 1613 / WD 925 / WW 242
+trinomial: -3.1 Elo [-11, +5], LLR -2.23
+pllr_final: -2.52
+harness_line: "INCONCLUSIVE (ran out of games)" — neither H0 nor H1 accepted
+flag_outs: new 0, base 0 of 8000   (goal 0 — met)
+adjudicated_early: 4379 decisive, 1811 draw of 8000
+wall: 8h19m11s (10:03:39 -> 18:22:50 EDT) = ~962 g/hr
+```
+
+**Full-envelope scan (the required check, not the printed final pLLR):**
+
+| statistic | value |
+|---|---|
+| samples | 8001 |
+| max pLLR | **+0.19 @G496** |
+| min pLLR | **-2.62 @G7940** |
+| post-mingames max pLLR | +0.19 @G496 |
+| first crossing -2.94 | **NEVER** |
+| samples at/below -2.94 | **0** |
+
+The envelope never approached either bound in 8000 games. This is a **true capped null**, not a c8-drain
+edge case: the whole trajectory lived inside [-2.62, +0.19], and the run's own peak positive (+0.19) came at
+G496 when the CI was still enormous. There is no reading of this run in which capture-LMR is worth keeping.
+
+**Predeclared reopen (T3c) is recorded but ranked LOW, not run next — decided at verdict:**
+
+The manifest says a negative T3b "does NOT close the capture-LMR lane — it would only falsify the cheap-proxy
+form of it." That stands, and T3c stays open. But *open* is not *next*, and this run's own instrumentation
+argues against promoting it:
+
+1. **The proxy defect's signature did not appear.** T3c exists because `!seeNonLosingByMVV` over-reduces
+   captures of undefended lower-valued pieces (RxN on a hanging knight). If that were driving the result,
+   those reductions would fail high and be re-searched — **LMR churn stayed flat at 0.2%.** The predicted
+   fingerprint of the defect T3c fixes is absent.
+2. **T3c is a priori weaker than T3b, not stronger.** It pays the full `staticExchangeEvaluation` swap cost at
+   every late capture, which T3b avoided via the cheap MVV test. It buys precision with speed in a lane whose
+   measured effect size is already zero.
+3. **The honest reading is lane-level, not variant-level:** reducing non-winning captures at 10+0.1 buys
+   nothing measurable in this engine, whatever the gate's precision.
+
+T3c is therefore recorded as a low-ranked reopen, to be run only if the capture-LMR lane is re-motivated by
+new evidence (e.g. T15's margin re-shaping landing positive, which would change the regime these reductions
+operate in).
+
+**Pattern note (spans runs, do not lose):** T7 = 0, T10b = -2.4, T3b = -3.1 are **three consecutive capped
+nulls in the ordering/efficiency family**, all with envelopes that never neared a bound. Three near-zero
+results in one family is a statement about the family, not three independent misses. If T20 also caps null,
+the correct response is to question the queue's premise rather than draw the next card from it.
