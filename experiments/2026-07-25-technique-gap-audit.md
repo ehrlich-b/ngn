@@ -131,7 +131,19 @@ added. The guard is working as designed: failing loudly beats passing spuriously
 **Do NOT weaken this test to let T19 through.** It is a durable lock, and editing a guard to accommodate a
 speculative candidate is how locks get un-fixed. The correct sequence is:
 
-1. **Fix the test's robustness on its own merits first** (own commit, justified independently of T19): choose
+**DONE 2026-07-25 — the test fix landed (test-only commit, engine untouched).** `TestIIDIsWired` now probes a
+SET of four PV-heavy middlegames across depths {9,10} and guards on the first that actually fires, instead of
+pinning one position. Strictly stronger than the single-FEN form: defeating the guard now requires EVERY probe
+to drift out of regime at once. Verified both directions — on HEAD it still selects the original FEN at depth 9
+(so what it guards there is unchanged, IID-on 35600 vs off 35439), and with `output/t19.patch` applied it falls
+through the three drifted positions to `2rq1rk1/...` where IID fires and counts still differ (82152 vs 82069),
+i.e. the guard stays genuinely exercised rather than passing vacuously. Full suite + `-race` green; nodecheck
+unchanged at 346662/149587/765656, confirming the engine was not touched. **T19's blocker is cleared** — it now
+needs only the qsearch-mark decision below before it is launch-ready.
+
+Original plan, retained for the record:
+
+1. ~~**Fix the test's robustness on its own merits first**~~ (own commit, justified independently of T19): choose
    a FEN/depth where IID fires reliably, or assert on a construction that cannot drift out of regime. It has
    now tripped on **two** separate tree-changing candidates, so it will keep blocking the queue — this is a
    real, recurring tax, not a one-off.
