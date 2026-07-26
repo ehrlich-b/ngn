@@ -151,7 +151,26 @@ Original plan, retained for the record:
 
 T19 is therefore **NOT launch-ready**, unlike T12. Sequence it behind that test fix.
 
-### Open design question for the T19 run
+### RESOLVED 2026-07-25 — the qsearch mark question is IMMATERIAL (measured, not assumed)
+
+Decided deliberately, then measured. Qsearch already probes the TT and was discarding the flag, so preserving
+it costs nothing: capture `ttPvEntry` from the existing probe and pass `ttHit && ttPvEntry` to the depth-0
+store instead of `false`.
+
+**But the honest result is that it changes nothing measurable.** With the mark preserved, nodecheck is
+**identical to the leaking variant on all three canonical positions** — 410704 / 236690 / 516337, exact. The
+mechanism explains it: the replacement policy only lets a depth-0 store overwrite a same-position entry when
+`depth >= oldDepth-3`, i.e. old depth <= 3, so a qsearch store almost never clobbers the deep entries that
+carry a meaningful mark.
+
+**Shipping the preserving variant anyway** — it matches SF, it is free, and it stays correct if the
+replacement policy is ever changed (T11a's 4-way clustering would touch exactly that code). But it must **not**
+be credited as an improvement: it is a correctness tidy with a measured zero delta, and calling it a fix would
+be inventing a gain. The "leak" flagged earlier was real in principle and negligible in practice.
+
+`output/t19.patch` updated to the preserving variant (194 lines). Tests green, tree restored to exact baseline.
+
+### Superseded design note (kept for the record)
 
 The qsearch store (search.go:2440) passes `ttPv = false`, so a qsearch entry replacing a marked node **clears**
 the mark. SF preserves ttPv through qsearch stores. Whether NGN should thread it through is a real variant, not
