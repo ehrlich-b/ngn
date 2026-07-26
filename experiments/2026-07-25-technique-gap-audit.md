@@ -176,3 +176,62 @@ The qsearch store (search.go:2440) passes `ttPv = false`, so a qsearch entry rep
 the mark. SF preserves ttPv through qsearch stores. Whether NGN should thread it through is a real variant, not
 an oversight to paper over — pick one deliberately before launch, since a mark that leaks away weakens the
 whole mechanism.
+
+---
+
+## T18 SPLIT AND GATED 2026-07-25 — the two halves are nothing alike
+
+Both built, measured, reverted; tree restored to exact baseline. **This is the clearest return yet on
+pre-verification: one half would have burned a 5h SPRT for nothing, and it was the wrong instrument for it
+anyway.**
+
+### T18a (TT short-circuit before probcut) — REJECTED at the gate, and RE-CLASSED
+
+Implemented deliberately **tighter than SF**, which tests `ttValue < probCutBeta` without inspecting node
+type. A LowerBound entry bounds the value only from *below* and proves nothing here, so admitting it would
+skip probcut on nodes that could still fail high. The sound form is Exact-or-UpperBound only:
+
+```go
+ttRefutesProbcut := ttHit && int(ttDepth) >= depth-4 && abs(ttEval) < MATE_IN_MAX &&
+    (ttNodeType == Exact || ttNodeType == UpperBound) && ttEval < beta+200
+```
+
+| Position | Base | T18a | Delta |
+|---|---|---|---|
+| kiwipete d12 | 346662 | 346146 | **-0.15%** |
+| mid d12 | 149587 | 149541 | **-0.03%** |
+| end d16 | 765656 | 764851 | **-0.11%** |
+
+**Fails the >=1% behavioral-delta gate — this is the T7 signature.** Characterized rather than just rejected:
+at kiwipete d12 the candidate returns the **identical bestmove (e2a6), identical score (cp -104), and an
+identical count of SUCCESSFUL probcuts (pcut 1622)**. The guard skips only attempts that would have failed,
+exactly as designed.
+
+**That re-classes the item.** T18a is not a search heuristic awaiting an SPRT — it is a **pure speed change**
+with *proven* behavior identity, so per the CLAUDE.md decision table its gate is "behavior identity plus a
+repeatable wall-time/NPS gain", not games. The saving is ~0.1-0.15% of nodes, far below repeatable wall-time
+measurement. **Verdict: SHELVED, and it should never have been queued for a games gate.**
+
+REOPEN condition: only if bundled into a larger probcut rework where the saved work is material, or if a
+future profile shows probcut attempt overhead is a real NPS cost.
+
+### T18b (TT store on probcut success) — STRONG candidate, gate PASSED
+
+The half with actual Elo potential. On a successful probcut the depth-4 verification search has *proved* a
+lower bound at this node, and NGN throws that proof away and re-derives it on every revisit. Store it
+(depth-3, LowerBound, matching SF). The store site sits after `UnMakeMove`, so `hash` is the node's own hash —
+verified, not assumed.
+
+| Position | Base | T18b | Delta |
+|---|---|---|---|
+| kiwipete d12 | 346662 | 258130 | **-25.5%** |
+| mid d12 | 149587 | 106920 | **-28.5%** |
+| end d16 | 765656 | 963871 | **+25.9%** |
+
+**Passes decisively, and the direction is encouraging**: a *quarter* fewer nodes to reach the same fixed depth
+in both middlegame positions is a large gain in search efficiency, which at fixed real clock converts to
+depth. The endgame growing 26% is the headwind the SPRT has to weigh against it.
+
+16-line patch shelved at `output/t18b.patch`. Full suite + `./...` green, tree restored to exact baseline.
+**Launch-ready.** Rank it directly behind T12 — the two are comparable in size but T18b moves the tree far
+harder, and unlike T12 (+30% growth) its middlegame delta points the *cheap* way.
