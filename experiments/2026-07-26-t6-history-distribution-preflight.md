@@ -166,3 +166,87 @@ is the follow-up, as a separate change.
    early-search evaluations are over-represented relative to real play.
 3. Mean reduction delta is a per-LMR-node average; it does not account for where in the tree the change
    lands, and a ply of reduction at depth 3 is not worth a ply at depth 12.
+
+---
+
+# T6a VERDICT — **PROXY REJECT, 2026-07-26.** Never reached the box. Zero box cost.
+
+T6a was built (`output/t6a-lmr-conthist750.patch`, `LMR_HIST_DIV = 750`), gated locally, and **rejected on
+the proxy before earning box time.** CLAUDE.md sanctions a proxy rejection here: this is a pure
+ordering/EBF-mechanism change (LMR reduction shape — no eval values, no time, no TC behavior), judged on
+depth-at-fixed-nodes, which is the instrument this lane is explicitly steered by. Reopen condition recorded
+below, as required.
+
+## Gate 1 — behavioral delta: PASSES (>= ~1%)
+
+Fixed-depth nodecheck vs the HEAD lock (346662 / 149587 / 765656): **-5.0% / +35.9% / +21.0%**
+(329180 / 203292 / 926167). Nowhere near the T7/T1f inertness failure mode.
+
+## Gate 2 — depth at 400K fixed nodes: **FAILS, -4 net plies**
+
+| position | base | T6a | delta |
+|---|---|---|---|
+| quiet-mg-QGD | 14 | 14 | 0 |
+| quiet-mg-closed | 12 | **13** | **+1** |
+| lateMg-ph6-11 | 13 | 13 | 0 |
+| najdorf-mg | 14 | 13 | **-1** |
+| rook-eg-R4P | 17 | 16 | **-1** |
+| pawn-eg | 32 | 29 | **-3** |
+
+**Net -4 plies.** This is the same figure that deprioritized T19 (commit `78b9ebb`: "T19 costs 4 net plies
+versus T20's plus 3"), so the pre-set ranking rule applies unchanged.
+
+**It also contradicts T6's founding hypothesis directly.** The 2026-06-28 manifest stated the aim as
+"finer history-scaled reductions **search deeper at the same time** ⇒ NEW > BASE." Measured, it searches
+**shallower**.
+
+## Why the level-matching repair does not exist — the load-bearing negative
+
+The mean-reduction-matched divisor (750) still grew the tree, because **tree size is convex in reduction**:
+at a constant *mean*, a higher-*variance* reduction schedule grows the tree, since reducing one ply less
+near the root costs far more than reducing one ply more near the leaves saves. The continuous scheme applies
+±2 where the step rule only ever applied ±1, so variance rises even with the mean held.
+
+The obvious repair is to level-match on **tree size** (the confound that actually matters) rather than on
+mean reduction. Swept, `LMR_HIST_DIV` 400 → 1400, nodecheck % vs the HEAD lock:
+
+| divisor | kiwipete | mid | **end** |
+|---|---|---|---|
+| 400 | +8.1% | -20.9% | **+10.2%** |
+| 512 | +13.0% | +86.8% | **+38.5%** |
+| 650 | +3.6% | -2.4% | **+23.1%** |
+| 750 | -5.0% | +35.9% | **+21.0%** |
+| 900 | +10.0% | +23.4% | **+19.2%** |
+| 1024 | -1.7% | -15.1% | **+24.9%** |
+| 1400 | +8.5% | -36.6% | **+102.9%** |
+
+**No divisor holds tree size neutral. The endgame tree grows at EVERY setting across a 3.5x divisor range
+(+10% to +103%).** So the shape axis cannot be isolated from the level axis by choosing a divisor — the
+±2 spread grows the tree at every level. The repair proposed mid-investigation is not achievable.
+
+(The kiwipete/mid columns swing non-monotonically and are NOT fitted to: that is the known artifact class
+recorded in `project_endgame_tree_diagnostic` — single-position node counts are unreliable for pruning
+knobs. The endgame column's uniform sign across the whole sweep is what carries the conclusion.)
+
+## Verdict
+
+**REJECT T6a on proxy.** Four independent strands, all negative, all at zero box cost:
+
+1. Depth at fixed nodes **-4 net plies** — the hypothesis's own stated metric, falsified.
+2. Tree grows at **every** divisor 400-1400; no level-neutral configuration exists.
+3. Prior game evidence, though underpowered, was negative in sign both ways (-8 at /2048, -45 at /256).
+4. Both of the revamp doc's rationales for reopening the lane are measured false (Findings 1 and 3 above).
+
+**REOPEN CONDITION (predeclared, required by CLAUDE.md).** This rejects the **shape** axis — continuous
+±2 scaling — on a measured mechanism: the ±2 spread inflates the tree irrespective of level. It does **not**
+close the history-LMR term as a whole. The **level** axis is untouched and untested post-reset: the
+`-500 / +1000` thresholds are unmeasured constants, and T3a (-7.9) plus `/256` (-45) together establish only
+that *more* reduction is harmful at FMC ~84% — the *de-reduction* direction has never been tried on a
+post-reset base. That is a one-constant edit, nodecheck-gateable, and is the surviving candidate from this
+lane. Reopen the shape axis only if an ordering fix raises FMC toward ~90% (which would change what
+over-reduction costs), or if a variant constrains the adjustment to ±1 so tree variance is not increased —
+noting that ±1 continuous is very close to the existing rule with moved thresholds, i.e. it collapses into
+the level axis anyway.
+
+Engine tree reverted; all three nodecheck baselines restore exactly (346662 / 149587 / 765656);
+`go test -short ./engine` green.
