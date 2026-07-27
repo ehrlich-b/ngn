@@ -92,9 +92,9 @@ node-level lane has a live counterexample and this audit weakens considerably.
 
 If T20 caps null, the proposed reorder is:
 
-1. **Counter's three-regime stability/score-drop time manager** (exact spec in the revamp doc's T1b section)
-   — the measured differential against a 2994-rated engine, in the family with the campaign's second-best
-   record, and TC-gated so it is real-clock testable by construction.
+1. ~~**Counter's three-regime stability/score-drop time manager**~~ — **WITHDRAWN, see the correction below.
+   This recommendation was wrong: the three-regime manager has already been fully tested.** The replacement
+   candidate in this slot is **T1f (composed soft-ceiling)**, derived in the correction section.
 2. **T6 — LMR shape with Counter's saturating-EMA continuous history scaling.** The spec explains *why*
    NGN's `/2048` retest no-op'd (gravity-equilibrium history values vs Counter's saturating EMA), so this is
    a shape fix with a diagnosed prior failure, not another prune-rule transplant.
@@ -107,3 +107,184 @@ If T20 caps null, the proposed reorder is:
 The one thing this audit should NOT be used for: closing the node-level lane. Ten attempts with one small
 keep is evidence of low yield, not of impossibility, and `iir3` proves the lane can produce. It is a
 ranking argument, not a closure.
+
+---
+
+# CORRECTION, 2026-07-26 (same day, T20 still live) — recommendation #1 was wrong
+
+**The error.** Recommendation #1 above proposed running "Counter's three-regime stability/score-drop time
+manager" as the next candidate. **That package has already been fully tested. There is no untested
+three-regime manager to run.** Checked against `TODO.md` and the run records:
+
+Counter 2994's `difficulty` manager has exactly three regimes: `score drop >50cp -> 2.0`;
+`best move changed -> max(1.5, d)`; `stable -> max(0.95, 0.9*d)`.
+
+| Counter regime | NGN status | Result |
+|---|---|---|
+| best move changed -> extend | **T1b**, `stabilitySoftFactor` at `stableIters==0` -> 1.30 | **KEPT +13.1** |
+| stable -> shrink | **T1b**, same factor floored at 0.85 | **KEPT** (same run) |
+| score drop -> extend | **T1c**, `scoreDropSoftFactor` ramp 50->150cp | **REJECTED -4.8, pLLR -2.98, crossed the bound** |
+
+T1b banked regimes 2 and 3; T1c ran regime 1 and was a *clean reject that crossed -2.94*, not a capped null.
+T1e then added a fourth signal Counter does not have (SF node-effort, **KEPT +6.6**), and T1a falsified
+dropping the projection (**-7.8**). **All three Counter regimes have been measured.** The audit's own shelve
+table listed T1c, so this was an internal inconsistency in the audit, not missing information — the family
+record was counted correctly (2/4) and then a member of that record was recommended as if it were new.
+
+**This does not change the audit's central finding.** The family tallies, the 1-keep-in-10 node-level record,
+and the saturation mechanism are all unaffected. What it changes is the *actionable* content: "go back to the
+time manager" cannot mean "run the thing Counter runs," because NGN already ran it.
+
+## What is actually left in time management — derived from code, not from the donor
+
+`engine/time.go:429` composes the surviving signals as a **clamped product**:
+
+```go
+composed := tm.stabilitySoftFactor() * tm.nodeEffortFactor()   // T1b x T1e
+if composed < softComposedMin { composed = softComposedMin }   // 0.72
+if composed > softComposedMax { composed = softComposedMax }   // 1.40
+soft := time.Duration(float64(tm.softTime) * composed)
+```
+
+Two provable facts fall out of the constants (`stabilitySoftMax/Min/Slope` = 1.30/0.85/0.10,
+`nodeEffortMin/Max` = 0.85/1.25):
+
+1. **The lower clamp is unreachable dead code.** The natural product minimum is `0.85*0.85 = 0.7225`, and
+   `softComposedMin` is 0.72. It can never bind. (The T1e comment says this was deliberate — recording it so
+   nobody "fixes" it or tunes it expecting an effect.)
+2. **The upper clamp binds only when `stableIters <= 1`:**
+
+| stableIters | stability | upper clamp binds when |
+|---|---|---|
+| 0 | 1.30 | best-move node fraction **< 0.433** |
+| 1 | 1.20 | best-move node fraction **< 0.208** |
+| >= 2 | <= 1.10 | **never** (would need nodeEffort > 1.25, above its max) |
+
+So `softComposedMax = 1.40` truncates the raw 1.625 maximum by **14%**, and it does so in *exactly one*
+regime: **the best move is churning AND the search cannot concentrate on it** — the most volatile, most
+contested positions. That is precisely the population the loss autopsy blamed for 28/30 losses
+(positional slow-bleeds / horizon errors), and it is where Counter spends **2.0x** against NGN's capped 1.40x.
+
+**The candidate this yields — T1f, composed soft-ceiling.** Raise `softComposedMax` (1.40 -> ~1.60, i.e.
+toward the natural 1.625 the two kept signals already want to produce), leaving the projection, the hard
+ceiling, and the emergency floor untouched.
+
+Why this is a legitimately new candidate and not a re-run of something shelved:
+
+- **It is not T1c.** No new signal is added; nothing new is measured. This is the *composition shape* of two
+  signals that both already passed their own SPRTs.
+- **It is not T1a.** T1a dropped the `x1` next-iteration projection and lost -7.8, proving the projection is
+  load-bearing. T1f does not touch the projection, the hard ceiling, or the floor — the same safety argument
+  T1b and T1e each made, both of which measured 0/0 flag-outs.
+- **The 1.40 value was never measured.** It was chosen in T1e on the reasoning that the pair "cannot
+  double-count into a budget that overshoots T1b's proven 1.30 max." That is a defensible default, but it is
+  an untested constant that silently caps the only two time signals that ever worked.
+
+## The pre-flight this candidate MUST pass first — and why the usual gate does not apply
+
+**The >=1% nodecheck behavioral-delta gate is inapplicable to this change class.** `ShouldStopSearch` returns
+false under FixedDepth, so the time manager is inert at fixed depth — T1e was explicitly recorded as
+"fixed-depth node-identical." Running nodecheck here would report 0.0% for *any* time-management patch and
+would be a meaningless green light.
+
+T7's lesson still binds, though: a candidate that barely moves behavior burns 8.5h to measure nothing. So
+T1f needs an equivalent gate in its own instrument — **measure how often the upper clamp actually binds in
+real tournament play.** If it binds in a negligible share of soft-stop evaluations, T1f is near-inert and
+must NOT be run; if it binds in a meaningful share, the 14% truncation is live and worth 8.5h.
+
+That measurement is local, costs zero box time, and is the next step. **T1f is NOT staged and NOT queued
+until it passes.** Recording the gate before measuring it, per the work loop.
+
+## Honest caveat on this correction
+
+Finding that the donor-derived recommendation was already-tested is *mild evidence against* the audit's
+optimism about the time-mgmt lane, not for it. The lane's record is 2-for-4, and the two wins are already
+banked and now compose into a ceiling that this correction proposes to raise — which is a smaller,
+more derivative idea than "port the manager from the 2994 engine." It should be judged as the
+low-single-digit change it is, not inflated by the 2994 provenance.
+
+---
+
+# T1f PRE-FLIGHT RESULT, 2026-07-26 — **T1f IS NEAR-INERT. DO NOT RUN IT.**
+
+Measured locally while T20 held the box. **Zero box cost. The candidate is killed before it consumed 8.5h.**
+
+## Method
+
+Temporary counters in `shouldStopTournamentSearch` (shelf copies `output/t1f-clampprobe.patch` and
+`output/t1f-clampprobe_test.go.txt`), driving **real tournament time control at the gate's own 10+0.1**
+over **400 positions replayed from the canonical SPRT opening corpus** (`sha256 974e4b5a…`), one full
+iterative-deepening search each. For every soft-stop decision the probe recomputed what the decision
+*would have been* at a range of candidate ceilings — the decision-relevant delta, not the raw bind rate.
+
+Instrumentation is **fully reverted**; `go test -short ./engine` green on the restored tree.
+
+## Result
+
+```text
+soft-stop evaluations        : 872398
+upper clamp (1.40) binds     : 69290  (7.94%)
+lower clamp (0.72) binds     : 0      (0.00%)
+mean raw composed factor     : 1.1630
+mean truncation when binding : 0.0771  (5.5% of the soft target withheld)
+```
+
+**The lower-clamp prediction is confirmed exactly: 0 binds in 872,398 evaluations.** `softComposedMin = 0.72`
+is unreachable dead code, as derived. Recorded so nobody tunes it expecting an effect.
+
+Decision-relevant delta — **moves that would search at least one more iteration**:
+
+| `softComposedMax` | moves changed | % of moves |
+|---|---|---|
+| 1.45 | 15 / 400 | 3.75% |
+| 1.50 | 16 / 400 | 4.00% |
+| 1.55 | **18 / 400** | **4.50%** |
+| 1.60 | 18 / 400 | 4.50% |
+| 1.625 | 18 / 400 | 4.50% |
+| **2.00 (Counter's value)** | **18 / 400** | **4.50%** |
+
+## Why this kills the candidate
+
+**The curve saturates at 4.50% by a ceiling of 1.55, and going all the way to Counter's 2.00 — a 43% raise —
+buys exactly the same 18 moves.** The reason is structural: `stabilitySoftMax * nodeEffortMax = 1.30 * 1.25 =
+1.625` is a hard cap on the raw product, so once the ceiling reaches 1.625 the clamp cannot bind at all and
+every higher value is identical. **The ceiling is not the binding constraint. The input signal ranges are.**
+
+So the entire achievable effect of *any* ceiling change is: **≤4.5% of moves get ≤16% more time**
+(1.625/1.40 = 1.161) on their final iteration. Set against T1b — which reshaped **every** move's budget by
+up to ±30% and measured +13.1 — that is roughly one-twentieth the reach at a fraction of the per-move
+magnitude. It is squarely in T7 territory: a candidate that would burn 8.5h of box time to measure nothing.
+
+**This is the pre-flight gate working as designed.** The nodecheck ≥1% gate is structurally inapplicable to
+time-management changes (the manager is inert at fixed depth), and this probe is its replacement for that
+change class — build it from the shelf patch whenever a time-mgmt candidate needs the same question answered.
+
+## The generalization — time management is closer to tapped than the audit implied
+
+To widen T1f's reach you would have to raise `stabilitySoftMax` (1.30) or `nodeEffortMax` (1.25). **Those are
+precisely the constants T1b and T1e measured and kept.** Re-tuning them is the "tuning constants" pattern that
+produced nearly every null in this campaign. Combined with T1a rejected (-7.8), T1c rejected (-4.8), and both
+wins banked with measured constants, the honest read is:
+
+**The time-management lane has no cheap Elo left in it.** What remains is **T1d** (sudden-death 10-move floor
+leak), which is a correctness item, not an Elo tune, and should be judged on the correctness track.
+
+## Consequence for the reorder
+
+Audit recommendation #1 is now **empty** — the donor package was already tested, and the one derived
+candidate it yielded is measured near-inert. **If T20 caps null, the reorder's new #1 is T6 (LMR shape with
+saturating-EMA history scaling)**, followed by T11a, then T15/T12/T19.
+
+This is a net negative update on the audit's optimism, and it should be read that way: the audit correctly
+identified *where the Elo came from*, but "go back to the winning families" has now failed to produce a
+runnable candidate in the family with the second-best record. The saturation argument may apply more broadly
+than to node-level heuristics alone.
+
+## Caveats
+
+1. **Local machine, single-threaded** — not the box at c8. Absolute flip counts could shift; the *saturation*
+   is algebraic (`1.30*1.25 = 1.625`) and is machine-independent.
+2. **One search per opening position**, at a fixed early-middlegame ply, not a full-game phase distribution.
+   Later phases could bind differently. The structural cap holds regardless of phase.
+3. The probe scores the stop decision in isolation; it does not model how a longer search would feed back
+   into subsequent stability/effort signals. That feedback could only matter on the same ≤4.5% of moves.
