@@ -163,3 +163,39 @@ depth). **Both positions reach the same depth in less wall time**, which is the 
 
 This does not predict the SPRT result — it only retires the specific risk that a fourth stand-pat corrector
 would pay for its eval gain in lost speed. It does not.
+
+## PRE-REGISTERED READING OF THE OUTCOME — written 2026-07-27 06:25 EDT at G2721, pLLR -2.06, OUTCOME UNKNOWN
+
+T4d is tracking negative (pLLR -2.06, ~70% of the way to the H0 bound). Recording how to read a rejection
+**before** it happens, so neither the excuse nor the escalation can be chosen to suit the result.
+
+### If T4d REJECTS, these two things follow and must be accepted
+
+**1. The residual-R² pre-flight is DEMOTED to rejection-only, exactly as ebfprobe was on 2026-07-27.**
+T4d was promoted on a measured 115x-over-chance signal — the strongest pre-flight of the session — and if
+that converts to a clean H0 reject then **explained-variance-on-the-residual does not predict Elo**. It would
+then join depth-at-fixed-nodes as a filter that can kill a candidate but must never promote one. That is a
+real cost: it is the instrument the whole corrector-key ranking rests on, and its *ordering* would survive
+only as a weak prior, not as evidence. **Do not special-plead** ("the key was fine, the weight was wrong") —
+that is the move the revamp doc made for T6 with the int-trunc story, which measurement later falsified.
+
+**2. A cleaner pattern would emerge, and it FAVOURS T4e rather than indicting it.** The three correctors that
+worked are **all position-feature keys** (pawn structure, non-pawn occupancy, minor occupancy). T4d is the
+campaign's **first move-sequence key**. A T4d rejection therefore reads as *"position-feature correctors work,
+move-sequence correctors do not"* — a statement about the **key class**, not about the corrhist family.
+**T4e (material signature) is a position-feature key**, in the class that is 3-for-3, and carries 4.4x
+T4d's excess-over-chance signal (0.285 vs 0.065). So T4e is NOT withdrawn by a T4d rejection.
+
+### What a rejection would NOT license
+
+- It would **not** promote T4d's reopen variants. The key ranking already measured `cont2` (prev2) at 110x
+  *below* the built `cont1` at 124x, and `cont12` at 11.6x. Both are move-sequence keys — the class the
+  rejection would indict. **Do not run them.**
+- It would **not** make the corrhist family closed. 3-for-4 with the miss in a distinct key class is not a
+  closed lane.
+
+### If T4d instead KEEPS or caps positive
+
+Then the residual-R² instrument survives as a promotion signal (one confirmation, not proof), the
+move-sequence key class is validated, and T4e proceeds on an even stronger footing. The `>= +1` point-estimate
+floor for a PROVISIONAL keep still applies — see the T20 rule-gap closure, which is now campaign-wide policy.
