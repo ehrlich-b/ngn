@@ -132,3 +132,29 @@ the engine already half-adopted (futility to 8 in W1). Discounts: **history prun
 `depth <= 3`** — the same unfinished extension, deliberately kept as a follow-up rather than bundled; SEE's
 blindness to promotion and attacking compensation is a real cost at depth 8; and the flat capture margin means
 this extension lands in a regime the engine's own stated convention says should scale.
+
+## RULE GAP CLOSED — pre-registered 2026-07-27 00:55 EDT, BEFORE the verdict (G6043, pLLR +0.47)
+
+The predeclared rule above covers `point est >= +1 and pLLR > 0 -> PROVISIONAL` and
+`capped nonpositive -> SHELVE`. It does **not** name the case T20 is currently sitting in: **capped with a
+point estimate strictly between 0 and +1**. Recording the resolution now, while the outcome is still
+unknown, so it cannot be chosen to suit the number.
+
+**RESOLUTION: point estimate < +1 at the cap -> SHELVE, regardless of pLLR sign.**
+
+Grounds, both from CLAUDE.md and neither invented for this run:
+
+1. The batch-certification path is defined as *"a capped-but-positive result (**point est >= +1**, LLR > 0,
+   no regression signal) may enter main as a PROVISIONAL keep."* The +1 floor is explicit; +0.7 does not
+   clear it.
+2. Active policy states *"Do not keep speculative search/eval changes on positive sign at an inconclusive
+   cap."* A sub-+1 point estimate with an envelope that never neared a bound **is** sign-at-cap, which is
+   precisely what that rule forbids.
+
+So the only outcomes that keep T20 are `pLLR >= +2.94` (full H1) or a capped point estimate `>= +1` with
+`pLLR > 0`. Anything else shelves and T4d launches against `ngn_t5` as staged.
+
+**Note the asymmetry this creates and accept it deliberately:** a true +2 change will usually shelve under
+this rule at this bound width, because +2 rarely reaches either bound in 8000 games at 10+0.1. That is the
+known cost of the [-3,+3] per-change gate and is the reason the batch path exists at all — it is not a
+reason to lower the bar mid-run.
