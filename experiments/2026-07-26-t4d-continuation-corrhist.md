@@ -136,3 +136,30 @@ same static eval, so some of its signal may be redundant with corrections the ot
 
 **Launch is blocked on exactly one thing: T20's verdict.** If T20 SHELVES, launch as written. If T20 KEEPS,
 `ngn_t5` is a superseded base — rebuild T4d on the T20 tree, re-gate, re-stage, and do NOT pool.
+
+## PER-NODE SPEED RISK — identified from the speed-lane profile, MEASURED, and it comes out FAVOURABLE
+
+**The risk:** the profile in `project_speed_lane` puts **qsearch at 47% of CPU**, and T4d adds a FOURTH
+corrector evaluated at every qsearch stand-pat via `correctedStandPat`. A per-node speed cost there could
+offset the eval gain — and at 10+0.1 the thing that actually matters is **time-to-depth**, not node count.
+This gate was not in the original build checklist; it should be for any change touching the stand-pat path.
+
+**Measured** (fixed depth, 3 reps, rook-eg-R4P d16 — the qsearch-heaviest position in the probe set):
+
+| | nodes | ms (3 reps) | mean ms | NPS |
+|---|---|---|---|---|
+| base | 266201 | 108 / 93 / 112 | 104.3 | ~2.55 M |
+| **T4d** | **188226** | 88 / 92 / 88 | **89.3** | ~2.11 M |
+
+Node counts are **exactly deterministic across every rep** (266201 and 188226, no variation), confirming the
+node-count ruler and isolating all variance to wall time.
+
+- **Per-node speed: -17% in the endgame** — the cost is real and is where predicted (qsearch stand-pat).
+- **Tree size: -29%** — the better-corrected eval prunes more.
+- **NET: 14.4% FASTER to depth 16.** The tree shrink more than pays for the per-node cost.
+
+kiwipete d12 agrees in direction: 346662n/190ms base vs 288774n/154ms T4d (+2.8% NPS, -17% nodes, faster to
+depth). **Both positions reach the same depth in less wall time**, which is the correct real-clock read.
+
+This does not predict the SPRT result — it only retires the specific risk that a fourth stand-pat corrector
+would pay for its eval gain in lost speed. It does not.
