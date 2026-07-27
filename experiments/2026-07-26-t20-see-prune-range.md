@@ -1,6 +1,6 @@
-# 2026-07-26 T20 — SEE-prune depth range 4 -> 8 — LIVE on the box
+# 2026-07-26 T20 — SEE-prune depth range 4 -> 8 — COMPLETED, SHELVED (capped null)
 
-**STATUS: LAUNCHED 2026-07-26 18:33:44 EDT**, confirmed live (8 `ngn_t20` + 8 `ngn_t5` + 1 `sprt`, header
+**STATUS: COMPLETED + SHELVED. Verdict at the bottom.** Launched 2026-07-26 18:33:44 EDT, confirmed live (8 `ngn_t20` + 8 `ngn_t5` + 1 `sprt`, header
 echoes `new=.\ngn_t20.exe  base=.\ngn_t5.exe`, both on-box hashes verified equal to the manifest before
 launch). T3b SHELVED as a capped null at -3.1, so the conditional base below (`ngn_t5`) is the correct one.
 Box idle between runs: ~3 minutes.
@@ -158,3 +158,65 @@ So the only outcomes that keep T20 are `pLLR >= +2.94` (full H1) or a capped poi
 this rule at this bound width, because +2 rarely reaches either bound in 8000 games at 10+0.1. That is the
 known cost of the [-3,+3] per-change gate and is the reason the batch path exists at all — it is not a
 reason to lower the bar mid-run.
+
+## VERDICT — SHELVE (capped null), 2026-07-27 03:30:51 EDT
+
+```yaml
+verdict: SHELVE (capped-nonpositive) — ran to the 8000g cap without crossing either bound; the predeclared
+  "capped nonpositive -> SHELVE" clause fired directly (the pre-registered sub-+1 gap-closure was not even
+  needed: -0.7 is nonpositive outright). No revert required — never committed; shelf copy output/t20-seerange.patch.
+games: 8000 (4000 pairs), cap reached
+wdl: 2144W-3695D-2161L  score 49.9%
+penta: -0.7 Elo, 95% CI [-6, +4]
+penta_buckets: LL 214 / LD 1006 / {LW,DD} 1599 / WD 945 / WW 236
+trinomial: -0.7 Elo [-8, +7]
+pllr_final: -0.63
+harness_line: "INCONCLUSIVE (ran out of games)" + DONE_EXIT_0 — neither H0 nor H1 accepted
+flag_outs: new 0, base 0 of 8000   (goal 0 — met)
+adjudicated_early: 4288 decisive, 1832 draw of 8000
+wall: 18:33:44 -> 03:30:51 EDT = 8h57m07s (~894 g/hr)
+box_idle_after: 30 seconds (T4d launched 03:31:21)
+```
+
+**Full-envelope scan (the required check, never the printed final pLLR):**
+
+| statistic | value |
+|---|---|
+| samples | 8001 |
+| max pLLR | +2.16 @G3 (startup artifact, 1 pair) |
+| min pLLR | -1.15 @G2462 |
+| **post-mingames max** | **+1.50 @G4094** |
+| **post-mingames min** | **-1.15 @G2462** |
+| samples >= +2.94 | **0** |
+| samples <= -2.94 | **0** |
+
+**The tightest capped null of the campaign.** The entire post-G300 trajectory lived inside **[-1.15, +1.50]**
+— never within half the distance to either bound across 7700 samples. There is no reading in which the
+SEE-prune range extension is worth keeping, and no c8-drain ambiguity to argue about.
+
+## The depth gain was REAL and did not convert — record this, it is the lane's lesson
+
+T20 had **the strongest depth result of any candidate gated this campaign**: +1 ply at 400K fixed nodes on
+3 of 4 middlegames, on exact material information, persisting nothing. It measured **-0.7**.
+
+**So depth-at-fixed-nodes gained without a strength gain.** That is the first clean case this campaign of the
+steering metric moving and Elo not following, and it materially weakens ebfprobe as a *promotion* instrument
+even as it remains useful for *rejection* (T6a's -4 plies, T19's -4). The asymmetry to carry forward:
+**a depth LOSS still predicts trouble; a depth GAIN does not predict a keep.**
+
+## REOPEN — recorded but ranked LOW, decided at verdict
+
+The manifest's reopen says a small loss should route to the **depth <= 6** half-extension. The loss is
+indeed small (-0.7). But that reopen is **not promoted**, for the same reason T3c was not:
+
+1. **T20 is the FOURTH consecutive capped null in the node-level family** — T7 -0.2, T10b -2.4, T3b -3.1,
+   T20 -0.7 — all with envelopes that never neared a bound. The queue-premise audit's tally becomes
+   **node-level: 1 keep / 11 attempts, +2.0 Elo total**.
+2. The audit's pre-registered trigger was exactly this: *"if T20 also caps null, question the queue's premise
+   rather than draw the next card."* Drawing `depth <= 6` IS drawing the next card from the same deck.
+3. Depth 6 is a smaller edit than depth 8, and depth 8 moved the tree hard (-27.8/-18.2/+78.4% nodecheck)
+   for -0.7. A half-extension has less mechanism, not more.
+
+T20-b (depth <= 6) stays open at the bottom of the queue, to be run only if the node-level lane is
+re-motivated by new evidence. **T15 (capture-margin depth-scaling) is unaffected by this verdict** — it is a
+different code path and its own premise (flat -100 vs the quiets' -80*depth) still stands.
