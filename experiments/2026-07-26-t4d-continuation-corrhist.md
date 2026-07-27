@@ -122,3 +122,17 @@ Discounts, stated plainly: R² on the eval residual is not Elo; the pre-flight c
 continuation (its signal is wholly unabsorbed while the existing keys' figures are post-correction);
 the pre-flight ran 4 games at fixed depth on a local machine; and this is the fourth table summed into the
 same static eval, so some of its signal may be redundant with corrections the other three already apply.
+
+## LAUNCH READINESS — verified 2026-07-26 22:35 EDT, while T20 was still live
+
+- **Patch reproduces the staged binary byte-for-byte.** `git apply output/t4d-continuation-corrhist.patch`
+  onto clean HEAD + `make build` yields sha256 `887c8946e5a2c2bbb84f6e697f5c5d78af5b5654d35eda2fa6eb94f47c60ffc2`,
+  identical to what is staged on the box. The build is deterministic and the run record is reproducible.
+- **All three on-box binaries verified present and correct**: `ngn_t4d.exe` 887C8946…, `ngn_t5.exe`
+  0A8F65B7…, `sprt.exe` 30C33E05… (M5-validated harness, untouched).
+- **Launch argument string pre-checked**: first token is `-new`, NOT `sprt.exe` — `boxsprt.sh launch`
+  prepends `$BIN` itself, and passing the leading `sprt.exe` silently drops every flag (the T20 gotcha).
+- Tree reverted to clean HEAD after verification; nodecheck baselines restore exactly.
+
+**Launch is blocked on exactly one thing: T20's verdict.** If T20 SHELVES, launch as written. If T20 KEEPS,
+`ngn_t5` is a superseded base — rebuild T4d on the T20 tree, re-gate, re-stage, and do NOT pool.
