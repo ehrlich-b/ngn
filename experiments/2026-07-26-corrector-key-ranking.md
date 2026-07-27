@@ -96,3 +96,45 @@ the current combined key into per-colour tables is **not** promising and should 
 4. ~~non-pawn W/B split~~ — DROPPED, measured weak.
 5. King-square corrector — weak (20.8x, R² 0.018), park it.
 6. T4d reopen variants (cont2, cont12) — both measurably worse than what is built; only if T4d fails.
+
+---
+
+# ADDENDUM — the shape of the phase bias, and a CORRECTION to Finding 3
+
+Finding 3 above proposed that PHASE's 3571x signal points at an **mg/eg taper calibration defect**.
+**Measured, and that framing is wrong.** Mean residual per phase bucket (cp, buckets with n >= 1000):
+
+| phase | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| mean cp | 44 | **120** | 40 | 52 | 84 | **124** | 35 | 35 | 96 | **131** | 33 |
+
+| phase | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| mean cp | **161** | 26 | **155** | 77 | 24 | **120** | 31 | 46 | **125** | 24 | **125** | 20 |
+
+Grand mean 51 cp, N = 1351031.
+
+**A taper miscalibration would produce a smooth monotonic drift with phase. This is non-monotonic with a
+clear parity structure**: odd-phase buckets average **~99 cp** residual, even-phase **~54 cp** — nearly 2x.
+
+With the standard phase weights (minor = 1, rook = 2, queen = 4), **an odd phase means an odd number of
+minor pieces on the board, i.e. a material imbalance.** So the eval is roughly twice as wrong when material
+is imbalanced as when it is symmetric. That is not a taper problem — it is a **missing imbalance term**,
+which is precisely what a material-keyed corrector absorbs and precisely the gap `TODO.md` already lists
+("material imbalance/pawn-count scaling", untried).
+
+**Consequences:**
+
+- **Finding 3 is corrected**: do NOT open an mg/eg taper investigation on this evidence. The bias is
+  material-structured, not phase-monotonic.
+- **T4e (material corrhist) is strengthened**, not merely confirmed: the mechanism by which material carries
+  ~22.4 points of beyond-phase signal now has a concrete shape — imbalanced material.
+- A **direct imbalance eval term** becomes a sibling candidate to T4e (learn it vs encode it). T4e is the
+  cheaper first test because it needs no new eval tuning and rides proven corrhist plumbing.
+
+**Caveats — this is suggestive, not established.** The parity pattern has real exceptions (phase 17 and 19
+are odd and LOW at 24/31 cp; phase 18 is even and HIGH at 120 cp), so parity is not the whole story. The
+residual gate is asymmetric (fail-highs and fail-lows enter on different conditions), which biases the
+overall level (+51 cp) and is uncontrolled here — the controls bound chance variance, not gate asymmetry.
+Low-residual buckets also carry far more samples (phase 24: 235727; phase 3: 11380), so the high-residual
+buckets are the noisier ones. Treat this as a mechanism hint that ranks T4e, not as a measured eval bug.
