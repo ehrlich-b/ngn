@@ -199,3 +199,65 @@ T4d's excess-over-chance signal (0.285 vs 0.065). So T4e is NOT withdrawn by a T
 Then the residual-R² instrument survives as a promotion signal (one confirmation, not proof), the
 move-sequence key class is validated, and T4e proceeds on an even stronger footing. The `>= +1` point-estimate
 floor for a PROVISIONAL keep still applies — see the T20 rule-gap closure, which is now campaign-wide policy.
+
+## RESULT — SHELVED 2026-08-01 (run completed 2026-07-27 07:05, read 5 days later)
+
+**Clean statistical reject. H0 ACCEPTED.**
+
+```text
+=== RESULT (3h34m7s) ===
+Games: 3432   W-D-L: 874-1603-955   score: 48.8%
+Elo(new - base): -8.2   95% CI [-20, +3]
+LLR: -2.63   bounds [-2.94, 2.94]
+Pentanomial [LL 101  LD 451  {LW,DD} 683  WD 390  WW 91] over 1716 pairs
+Penta Elo: -8.2   95% CI [-16, -0]   pLLR -2.99  (THE decision stat)
+Flag-outs (lost on time): new 0, base 0  of 3432 games
+Adjudicated early: 1822 decisive, 803 draw  of 3432 games
+Verdict: H0 ACCEPTED: new is NOT better (<= -3 ELO)
+DONE_EXIT_0
+```
+
+- Penta **-8.2 [-16, -0]**, pLLR **min -2.99**, first crossing of -2.94 at **G3424**, **10 samples at/below
+  the bound**. **No c8-drain ambiguity: printed pLLR == envelope min (-2.99)**, so the drain deepened in the
+  same direction — printed value and envelope agree, and the harness's own line is `H0 ACCEPTED`.
+- Post-mingames pLLR envelope **[-2.99, +0.53]**; elo max +15.7 (early, near the mingames-300 floor). Unlike
+  T17/T18b there *was* a brief positive phase, but it never approached the +2.94 bound.
+- 0/0 flag-outs / 3432g real-clock 10+0.1 c8 adjudicated, 3h34m7s, ~962 g/hr (on the 961 baseline).
+- Engine tree was never dirty; the change lives only in `output/t4d-continuation-corrhist.patch`. On-box
+  `ngn_t4d.exe` `887c8946…` retained.
+
+### The pre-registered reading applies verbatim — both consequences are ACCEPTED
+
+**1. The residual-R² pre-flight is DEMOTED to REJECTION-ONLY.** T4d carried the strongest pre-flight signal
+of the session (115x over chance, comparable explained variance to all three keeps from 20x fewer
+parameters) and it converted to a clean H0 reject. **Explained-variance-on-the-residual does not predict
+Elo.** It now sits beside ebfprobe: it may kill a candidate, it may never promote one. Its *ordering* of the
+9 keys survives only as a weak prior, not as evidence. No special pleading was entered — the "key was fine,
+the weight was wrong" move was pre-emptively barred and is not being made.
+
+**2. The indicted unit is the KEY CLASS, not the corrhist family.** The three keeps (pawn +9.1, non-pawn
++6.4, minor +3.7) are all **position-feature** keys; T4d was the campaign's first **move-sequence** key and
+is its only miss. Family is **3-for-4 with the miss isolated to a distinct key class**, which is not a lane
+closure. **T4e (material signature) is a position-feature key and is NOT withdrawn.**
+
+### What this result does NOT license (pre-registered, unchanged)
+
+- **`cont2` and `cont12` stay unrun.** Both are move-sequence keys — the indicted class — and both ranked
+  *below* the variant that just lost.
+- **The corrhist lane is NOT closed.**
+- **T4e may not be promoted on its R² (0.290).** That number is now rejection-only evidence. T4e's rank
+  rests on the position-feature key class being 3-for-3, not on its residual fit.
+
+### Leading explanation (recorded, not load-bearing)
+
+The 1664-slot move-sequence key aliases far more aggressively than the position-feature tables: a given
+`[stm][prevPiece][prevTo]` bucket pools corrections from structurally unrelated positions that happen to
+share the last move. The position-feature keys pool positions that are genuinely similar in the feature the
+eval is wrong about. High explained variance on the *residual* is consistent with both, which is precisely
+why the pre-flight failed to discriminate and why it is now rejection-only.
+
+### Process cost — HANDOFF STALL #4
+
+Run finished **2026-07-27 07:05:28**; read **2026-08-01 15:29**. **~128 box-hours idle** (~5.3 days), the
+second-worst stall of the campaign after stall #3's 4.5 days. The M7 analysis stands: no in-session waiting
+mechanism can cover an 8-hour run, and the durable fix is an out-of-agent notifier.
