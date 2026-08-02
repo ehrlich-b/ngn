@@ -231,3 +231,86 @@ cadence.
    no constant here to blame, which makes this null unusually informative.
 
 **Either branch: verify topology (1 sprt + 16 engines) and all on-box hashes after launching.**
+
+---
+
+# RESULT 2026-08-02 — **PROVISIONAL KEEP, penta +2.2 [-3, +8]. First non-negative since T5 (2026-07-19).**
+
+```text
+=== RESULT (8h19m21s) ===
+Games: 8000   W-D-L: 2184-3683-2133   score: 50.3%
+Elo(new - base): +2.2   95% CI [-5, +10]
+LLR: +1.63   bounds [-2.94, 2.94]
+Pentanomial [LL 235  LD 948  {LW,DD} 1598  WD 969  WW 250] over 4000 pairs
+Penta Elo: +2.2   95% CI [-3, +8]   pLLR +1.83  (THE decision stat)
+Flag-outs (lost on time): new 0, base 0  of 8000 games  (goal: 0)
+Adjudicated early: 4303 decisive, 1809 draw  of 8000 games
+Verdict: INCONCLUSIVE (ran out of games — add openings or raise -maxgames)
+DONE_EXIT_0
+```
+
+- Post-mingames envelope **pLLR [-0.64, +1.83]**, elo [-4.0, +12.4]. **Zero samples at/beyond either bound**,
+  so this is a clean capped-undecided run — no c8-drain ambiguity because there was no crossing to drain.
+- 0/0 flag-outs over 8000 games, 962 g/hr.
+
+## The pre-registered tie-break, applied verbatim
+
+Written at G5529 with the outcome unknown, because T12 was oscillating around its own decision boundary:
+
+1. **Decision statistic = PENTANOMIAL.** Penta = **+2.2** (trinomial also +2.2 — they agreed this time, but
+   the rule bound the penta regardless).
+2. **`>= +1.0` inclusive.** +2.2 clears it.
+3. No bound crossing, so the `>= +1` floor governs — which is exactly the capped case it was written for.
+4. Harness line is `INCONCLUSIVE (ran out of games)` + `DONE_EXIT_0`, i.e. reached the cap undecided.
+5. **The "it decayed so it's really a null" argument was pre-barred and is not being made.** The point
+   estimate did decay (+7.4 -> +1.6 -> +0.9 -> +2.2 final), which is what regression to the mean looks like;
+   the rule was written to be applied in both directions and it is.
+
+**CLAUDE.md batch-path conditions, all three met:** point estimate **+2.2 >= +1**; **LLR > 0** (pLLR +1.83);
+**no regression signal** (envelope min pLLR -0.64, elo min -4.0, 0/0 flag-outs). ⇒ **PROVISIONAL KEEP.**
+
+## Post-verdict procedure executed
+
+1. **Committed to main** (`c010ca7`). Suites green: `-short ./engine`, `-race ./engine`, `./...`.
+2. **Nodecheck baselines RE-LOCKED** in `scripts/nodecheck.sh` to **451141 / 136100 / 796906** (from
+   346662 / 149587 / 765656), with the reason recorded in the file header. Verified passing after the edit.
+3. **Hash-back check: BYTE-IDENTITY IS STRUCTURALLY UNACHIEVABLE — this is a real process finding, not a
+   failure to verify.** The rebuild gave `5c6cb162…` against the playing binary's `2081f5ac…`. Cause
+   established rather than assumed: **Go embeds VCS stamps by default**, so the commit hash is baked into the
+   binary and HEAD advanced (doc commits) between build and verdict. Proven by building twice with
+   `-buildvcs=false`, which is **deterministic and reproducible** (`21a18179…` both times) and differs from
+   the stamped build. **Therefore the "hash-back == playing binary" step in this project's procedures can
+   only ever pass when rebuilt at the identical commit and dirty state.** What is verifiable — and what was
+   verified — is **behavioural identity**: the rebuilt tree reproduces T12's gate nodecheck
+   (451141/136100/796906) exactly. **Future run records should claim behavioural identity via nodecheck, or
+   build with `-buildvcs=false`, rather than asserting a byte match that the toolchain prevents.**
+4. **Re-measure cadence run** (required after every structural keep):
+   - **ebfprobe vs the pre-T12 base: -2 net plies** (0 / 0 / -1 / 0 / -1 / 0) — reproduces T12's gate
+     measurement exactly, confirming the shipped tree is the gated one.
+   - **FMC table on the new HEAD:** kiwipete 88.99, QGD 86.19, closed 84.66, najdorf 84.84, rook-eg 80.99
+     (was 88.78 / 87.54 / 83.76 / 85.12 / 80.76) — **net -0.29 pp, flat.** Expected and reassuring: T12 is a
+     pruning restriction, not an ordering change, so ordering quality should not move. **These are the new
+     FMC reference numbers for future ordering work.**
+5. **T19 launched on the new base** — `-new .\ngn_t19on12.exe -base .\ngn_t12.exe`, both hashes verified
+   on-box, topology confirmed 1 sprt + 8 + 8. **Box idle gap 34 minutes.**
+
+## What this result means, stated carefully
+
+**The 9-run miss streak is broken**, and it is broken by the candidate whose pre-registered expectation was
+"+2 to +6, materially BELOW the +9.7 prior" — **the outcome landed inside the predicted range**, which is the
+first time this campaign a pre-registration has been calibrated rather than optimistic.
+
+**But it is a PROVISIONAL keep at +2.2 with CI [-3, +8], not a demonstrated win.** The interval includes
+zero. The batch-certification path exists precisely because single capped results at this magnitude cannot be
+distinguished from noise individually; **only Batch 3's powered [0,+6] SPRT against `172e9e1` can confirm
+it**, and that is where it must be judged.
+
+**Node-level family: 2 keeps / 12 attempts.** Still a poor base rate, but no longer 1/11 — and notably the
+keep is the member argued from *soundness* (removing a prune whose premise is contradicted at all-nodes)
+rather than from constant-tuning, which is consistent with the campaign-wide pattern that mechanism-level
+changes keep and constant tweaks do not.
+
+**The T12 x T19 non-additivity finding is now LIVE** (`experiments/2026-08-01-queue-composition-check.md`):
+T19 is running on top of T12, and their composition measured -14.8/-25.1/-12.8% where each alone grows
+kiwipete. If T19 also keeps, the pair needs an explicit interaction check, and Batch 3 certification is where
+a non-additive loss would surface.
