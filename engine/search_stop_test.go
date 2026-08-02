@@ -51,7 +51,7 @@ func TestStoppedChildDoesNotStoreParentTT(t *testing.T) {
 	if score != stoppedSearchScore {
 		t.Fatalf("stopped search returned %d, want stoppedSearchScore", score)
 	}
-	if _, _, _, _, hit := TranspositionTable.Get(rootHash); hit {
+	if _, _, _, _, hit, _ := TranspositionTable.Get(rootHash); hit {
 		t.Fatal("stopped parent wrote a transposition-table entry")
 	}
 }

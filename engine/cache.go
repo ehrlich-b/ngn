@@ -77,22 +77,29 @@ const MOVE_MASK uint64 = 0b1111111111111111111111111111 // move << 0, 28 bits
 const EVAL_MASK uint64 = 0b1111111111111111             // eval << 28, 16 bits
 const DEPTH_MASK uint64 = 0b1111111                     // depth << 44, 7 bits
 const TYPE_MASK uint64 = 0b111                          // type << 51, 3 bits
-const AGE_MASK uint64 = 0b1111111111                    // age << 54, 10 bits
+const AGE_MASK uint64 = 0b111111111                     // age << 54, 9 bits (T19: 1 bit ceded to ttPv)
+const TTPV_MASK uint64 = 0b1                            // ttPv << 63, 1 bit
 
-func Pack(hashmove Move, eval int16, depth int8, nodeType NodeType, age uint16) uint64 {
+func Pack(hashmove Move, eval int16, depth int8, nodeType NodeType, age uint16, ttPv bool) uint64 {
+	var pv uint64
+	if ttPv {
+		pv = 1
+	}
 	return (uint64(hashmove) & MOVE_MASK) |
 		((uint64(eval) & EVAL_MASK) << 28) |
 		((uint64(depth) & DEPTH_MASK) << 44) |
 		((uint64(nodeType) & TYPE_MASK) << 51) |
-		((uint64(age) & AGE_MASK) << 54)
+		((uint64(age) & AGE_MASK) << 54) |
+		((pv & TTPV_MASK) << 63)
 }
 
-func Unpack(data uint64) (hashmove Move, eval int16, depth int8, nodeType NodeType, age uint16) {
+func Unpack(data uint64) (hashmove Move, eval int16, depth int8, nodeType NodeType, age uint16, ttPv bool) {
 	hashmove = Move(data & MOVE_MASK)
 	eval = int16((data >> 28) & EVAL_MASK)
 	depth = int8((data >> 44) & DEPTH_MASK)
 	nodeType = NodeType((data >> 51) & TYPE_MASK)
 	age = uint16((data >> 54) & AGE_MASK)
+	ttPv = ((data >> 63) & TTPV_MASK) != 0
 	return
 }
 
@@ -125,7 +132,7 @@ func (c *Cache) index(hash uint64) uint {
 	return uint(hash) & c.mask
 }
 
-func (c *Cache) Set(hash uint64, hashmove Move, eval int16, depth int8, nodeType NodeType) {
+func (c *Cache) Set(hash uint64, hashmove Move, eval int16, depth int8, nodeType NodeType, ttPv bool) {
 	index := c.index(hash)
 	age := c.age
 
@@ -141,7 +148,7 @@ func (c *Cache) Set(hash uint64, hashmove Move, eval int16, depth int8, nodeType
 	// 		"Culprits are: %d %d %d %d %d\nSomehow became: %d %d %d %d %d\n", hashmove, eval, depth, nodeType, age, newHashmove, newEval, newDepth, newNodeType, newAge))
 	// }
 
-	_, _, oldDepth, _, oldAge := Unpack(oldData)
+	_, _, oldDepth, _, oldAge, _ := Unpack(oldData)
 	var replace bool
 	if oldData == 0 {
 		replace = true
@@ -152,7 +159,7 @@ func (c *Cache) Set(hash uint64, hashmove Move, eval int16, depth int8, nodeType
 	}
 	if replace {
 
-		newData := Pack(hashmove, eval, depth, nodeType, age)
+		newData := Pack(hashmove, eval, depth, nodeType, age, ttPv)
 		newKey := newData ^ hash
 		c.items[index].Update(newKey, newData)
 	}
@@ -162,17 +169,17 @@ func (c *Cache) Size() int {
 	return c.size
 }
 
-func (c *Cache) Get(hash uint64) (Move, int16, int8, NodeType, bool) {
+func (c *Cache) Get(hash uint64) (Move, int16, int8, NodeType, bool, bool) {
 	index := c.index(hash)
 	value := &c.items[index]
 	data := value.LoadData()
 	key := value.LoadKey()
 	ok := hash == (key ^ data)
 	if ok {
-		move, eval, depth, nType, _ := Unpack(data)
-		return move, eval, depth, nType, true
+		move, eval, depth, nType, _, ttPv := Unpack(data)
+		return move, eval, depth, nType, true, ttPv
 	}
-	return 0, 0, 0, 0, false
+	return 0, 0, 0, 0, false, false
 }
 
 func NewCache(megabytes int) *Cache {

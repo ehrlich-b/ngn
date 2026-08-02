@@ -1034,7 +1034,7 @@ func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
 		}
 		seen[hash] = struct{}{}
 
-		ttMove, _, _, ttNodeType, ttHit := TranspositionTable.Get(hash)
+		ttMove, _, _, ttNodeType, ttHit, _ := TranspositionTable.Get(hash)
 		if !ttHit || ttMove == EmptyMove || ttNodeType != Exact {
 			break
 		}
@@ -1300,7 +1300,13 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Probe transposition table
 	origAlpha := alpha
 
-	ttMove, ttEvalRaw, ttDepth, ttNodeType, ttHit := TranspositionTable.Get(hash)
+	ttMove, ttEvalRaw, ttDepth, ttNodeType, ttHit, ttPvEntry := TranspositionTable.Get(hash)
+
+	// T19: ttPv marks a node that has ever been searched as PV — either it is PV
+	// now, or a previous search stored it as such. It is STICKY (once true it is
+	// re-stored true) so the mark survives the node dropping out of the PV, which
+	// is the whole point: those nodes still deserve less reduction later.
+	nodeTTPv := isPV || (ttHit && ttPvEntry)
 	info.TTProbes++
 	ttEval := scoreFromTT(ttEvalRaw, ply)
 
@@ -1348,7 +1354,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			return stoppedSearchScore
 		}
 		// Re-probe TT to get the move we just found
-		ttMove, _, _, _, _ = TranspositionTable.Get(hash)
+		ttMove, _, _, _, _, _ = TranspositionTable.Get(hash)
 	}
 
 	// Internal Iterative Reduction (IIR): a cut-node that reaches this depth with no
@@ -1956,6 +1962,16 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 					}
 				}
 
+				// T19: reduce less at nodes that have ever been PV. NGN's FMC is ~84%
+				// vs elite ~90% and T3a proved ADDING reduction hurts here, so this
+				// moves with the measured weakness rather than against it.
+				if nodeTTPv {
+					reduction--
+					if reduction < 0 {
+						reduction = 0
+					}
+				}
+
 				// Killer move reduction adjustment - don't reduce killer moves as much
 				if IsKillerMove(move, ply) {
 					reduction-- // Reduce less for killer moves
@@ -2130,7 +2146,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// singular verification root: its result is a move-excluded search and
 			// would corrupt the real entry for this position.
 			if !inSingular {
-				TranspositionTable.Set(hash, move, scoreToTT(score, ply), int8(depth), LowerBound)
+				TranspositionTable.Set(hash, move, scoreToTT(score, ply), int8(depth), LowerBound, nodeTTPv)
 			}
 			return score
 		}
@@ -2175,7 +2191,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Skip the store at the singular verification root (move-excluded result must
 	// not overwrite the real entry for this position).
 	if !inSingular {
-		TranspositionTable.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType)
+		TranspositionTable.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType, nodeTTPv)
 	}
 	return bestScore
 }
@@ -2232,7 +2248,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// covers us (main search stores at depth >= 1 only). Mate scores need
 	// converting from node-relative TT encoding back to root-relative.
 	// Also keep ttMove for move ordering even when no cutoff is taken.
-	ttMove, ttEvalRaw, _, ttNodeType, ttHit := TranspositionTable.Get(pos.Hash())
+	ttMove, ttEvalRaw, _, ttNodeType, ttHit, ttPvEntry := TranspositionTable.Get(pos.Hash())
 	info.QTTProbes++
 	if ttHit {
 		info.QTTHits++
@@ -2450,7 +2466,11 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			// Fail-high: store a lower bound (the cutting capture) at depth 0 (S3).
 			// Only fail-highs are stored — the common non-failing-high case would
 			// flood the TT with depth-0 entries and evict deeper main-search ones.
-			TranspositionTable.Set(pos.Hash(), bestMove, scoreToTT(beta, ply), 0, LowerBound)
+			// T19: carry the ttPv mark forward. Qsearch already probed this slot, so
+			// preserving it is free — and dropping it would let a depth-0 store erase a
+			// mark the main search had earned, silently weakening the LMR adjustment on
+			// exactly the nodes it is meant to protect. (SF preserves ttPv likewise.)
+			TranspositionTable.Set(pos.Hash(), bestMove, scoreToTT(beta, ply), 0, LowerBound, ttHit && ttPvEntry)
 			info.QSearchTTStores++
 			return beta
 		}

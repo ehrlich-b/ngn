@@ -112,13 +112,18 @@ BIN="${1:-build/ngn}"
 # mid d12 181982->149587 (-18%), end d16 587557->765656 (+30%). Search-behavior change (both-directions
 # RE-LOCKED 2026-08-02 by the T12 provisional keep (NMP restricted to true cut nodes, penta +2.2 [-3,+8]
 # capped at 8000g): kiwipete 346662->451141 (+30.1%), mid 149587->136100 (-9.0%), end 765656->796906 (+4.1%).
+# RE-LOCKED AGAIN 2026-08-02 by the T19 ttPv FULL H1 ACCEPT (penta +7.3 [-0,+15], pLLR +3.05 crossed at
+# G3908 with 16 samples at/above, 3929g, measured ON TOP of T12): kiwipete 451141->295507 (-34.5%),
+# mid 136100->112109 (-17.6%), end 796906->667703 (-16.2%). Note the composition SHRINKS all three while
+# T12 and T19 each GREW kiwipete alone -- tree sizes do not compose additively (see
+# experiments/2026-08-01-queue-composition-check.md).
 # butterfly), NOT node-identical; single-position node shape is NOT a strength signal (the real-clock SPRT owns
 # strength). Deterministic (reproduced exact on 2 runs). Gate node-IDENTITY against THESE.
 # baselines locked @ 5b93966 2026-07-19
 POSITIONS=(
-  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|451141"
-  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|136100"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|796906"
+  "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|295507"
+  "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|112109"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|667703"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)
