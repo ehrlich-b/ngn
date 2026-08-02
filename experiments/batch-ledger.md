@@ -147,11 +147,12 @@ land on main and are folded into this batch's composite for attribution, same as
 
 | # | Change | Commit | Verdict (real-clock self-play, 10+0.1) | Run record |
 |---|---|---|---|---|
+| 2 | **T19 — ttPv (reduce less at previously-PV nodes)** | `50adc99` | **FULL H1 ACCEPT** — penta **+7.3 [-0,+15]**, pLLR **+3.05** crossed +2.94 at G3908 (16 samples at/above, envelope [-0.30,+3.05], printed == max so no drain), 3929g, 0/0 flag-outs, 4h6m20s, DONE_EXIT_0. Measured ON TOP of T12. | `experiments/2026-08-01-t19-ttpv.md` |
 | 1 | **T12 — NMP restricted to true cut nodes** | `c010ca7` | **PROVISIONAL** — penta **+2.2 [-3,+8]**, pLLR +1.83 (envelope [-0.64,+1.83], no bound crossing), 8000g capped, 0/0 flag-outs, 8h19m21s, DONE_EXIT_0 | `experiments/2026-08-01-t12-nmp-cutnode.md` |
 
 - **Trigger:** certify when Batch 3 reaches 4 provisionals **OR** 2 weeks (**≤ 2026-08-08**), whichever first.
 - **Certification run:** post-batch HEAD vs `ngn_cert2.exe` (`172e9e1`), real-clock `-tc 10+0.1` c8, SPRT [0,+6], LAN 9800X3D box.
 - **On fail:** bisect Batch 3 commits to find the regressor; drop it, re-certify.
-- **Batch net (claimed self-play):** **+2.2** (1 provisional).
-- **Nodecheck baselines re-locked by row 1** to 451141 / 136100 / 796906 (`scripts/nodecheck.sh`).
+- **Batch net (claimed self-play):** **+9.5** — T12 +2.2 (provisional) + T19 +7.3 (full accept). Increments are MARGINAL (each measured vs the immediate base), so the net is a telescoping sum, not an additivity assumption.
+- **Nodecheck baselines re-locked by row 1** to 451141 / 136100 / 796906, then **by row 2** to **295507 / 112109 / 667703** (`scripts/nodecheck.sh`).
 - **Interaction watch:** T12 x T19 measured strongly NON-additive before T19 launched (-14.8/-25.1/-12.8% composed, where each alone grows kiwipete). If T19 also keeps, this batch's composite is the place a non-additive loss would surface — and note Batches 1 and 2 both OVER-shot their claims (+43.2 vs +34.3, +35.1 vs +26.8), so an under-shoot here should be read against `experiments/2026-08-01-queue-composition-check.md` rather than treated as a surprise.
