@@ -127,3 +127,50 @@ launch binaries are already built, pushed and hash-verified:
 
 Both build clean with green `-short` suites; engine tree reverted and nodecheck re-verified at
 451141/136100/796906.
+
+---
+
+## CORRECTION 2026-08-02 — the "binding interaction check" above was OVERSTATED. The Elo bookkeeping never assumed additivity.
+
+Both addenda above concluded that if two or more of {T12, T19, T15} keep, *"their composition may NOT be
+assumed additive and requires an explicit interaction check before certifying."* **That is wrong for the Elo
+accounting, and the reason is worth stating precisely because it is a property of the protocol that was
+already doing the work.**
+
+**Every SPRT in this campaign is run against the IMMEDIATE base, verified from the run headers:**
+
+- T12: `new=.\ngn_t12.exe  base=.\ngn_t5.exe` → measures T12 **given** the pre-T12 tree.
+- T19: `new=.\ngn_t19on12.exe  base=.\ngn_t12.exe` → measures T19 **given T12**, not standalone.
+- T15 will likewise be measured against whichever tree is current.
+
+So each verdict is a **marginal** contribution, and the batch composite is a **telescoping sum**, not an
+additivity assumption:
+
+```
+(T12+T19) vs pre-T12  =  [T12 vs pre-T12]  +  [T19 vs T12]  =  +2.2 + X
+```
+
+**Nothing anywhere assumes the changes are independent.** If T19 interacts badly with T12, that damage is
+*inside* the number T19's own SPRT is measuring right now. If T15 later blows the middlegame tree up 2.6x on
+top of T12+T19, that cost lands *inside* T15's SPRT and T15 shelves. **The protocol is self-correcting, and
+this is exactly what CLAUDE.md's "one behavior change at a time, candidate vs immediate base" rule buys** —
+the rule is not merely hygiene, it is what makes stacked keeps accountable without an interaction matrix.
+
+### What survives, unchanged
+
+- **The nodecheck non-additivity is REAL and still worth knowing.** Tree sizes genuinely do not compose:
+  T12 and T19 each grow kiwipete alone yet shrink it together, and the three-way middlegame is 2.6x what
+  naive composition predicts. That remains a strong caution against **predicting** a composed candidate's
+  behaviour from standalone deltas, and against ever testing against a non-immediate base or pooling runs.
+- **The uncertainty concern is the real one, and it was always the plan:** summing point estimates
+  accumulates their CIs (T12's is [-3,+8]), which is precisely why the batch-certification path exists. **The
+  powered [0,+6] SPRT vs `172e9e1` remains the confirmation**, and nothing extra is required before it.
+- **If Batch 3 under-shoots, the middlegame interaction is still a reasonable first place to look** — as a
+  diagnostic hypothesis, not as evidence of a bookkeeping error.
+
+### Consequence
+
+**No separate interaction experiment is required.** The mandatory-interaction-check step written into T19's
+post-verdict procedure is **downgraded to: proceed normally, certify via Batch 3.** Recording the correction
+rather than silently deleting it, since the overstated version was committed and a future agent would
+otherwise find a contradiction between the two entries.
