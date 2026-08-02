@@ -151,6 +151,32 @@ land on main and are folded into this batch's composite for attribution, same as
 | 1 | **T12 — NMP restricted to true cut nodes** | `c010ca7` | **PROVISIONAL** — penta **+2.2 [-3,+8]**, pLLR +1.83 (envelope [-0.64,+1.83], no bound crossing), 8000g capped, 0/0 flag-outs, 8h19m21s, DONE_EXIT_0 | `experiments/2026-08-01-t12-nmp-cutnode.md` |
 
 - **Trigger:** certify when Batch 3 reaches 4 provisionals **OR** 2 weeks (**≤ 2026-08-08**), whichever first.
+- **DECIDED 2026-08-02: CERTIFY EARLY — immediately after T15 resolves, BEFORE launching T8.** The trigger is
+  a maximum ("≤ 4 provisionals"), not a minimum, so certifying at 2 rows is within the rule (Batch 2 also
+  certified with 2 rows). Reasons, in order of weight:
+  1. **T8's tuning base is HEAD + `output/t17.patch`, and HEAD now contains T12 + T19.** If that composite is
+     a mirage, a **25-hour** tuner is spent optimising constants against an illusory base. Certification costs
+     **~1 hour** (Batch 1 = 46m, Batch 2 = 49m) and de-risks the largest single box commitment left.
+  2. **Bisecting 2 rows is trivial; bisecting 4 is not.** If the composite fails, doing it now leaves exactly
+     two candidates to separate.
+  3. Two keeps just landed after **nine consecutive misses**; confirming them cheaply is worth more than the
+     hour it costs.
+- **Cert command (one command either way — both candidate binaries already on box, hash-verified):**
+  - if **T15 KEEPS**: `-new .\ngn_t15on1219.exe -base .\ngn_cert2.exe`
+  - if **T15 SHELVES**: `-new .\ngn_t19on12.exe -base .\ngn_cert2.exe`
+  with `-elo0 0 -elo1 6` and the standard mill flags. `ngn_cert2.exe` verified on box at
+  `0a8f65b75e59c376052f83b14787b0af2eba65552cedfee6f70ce576891ca721`.
+- **PRE-REGISTERED READING (written 2026-08-02 11:20, before the cert and before T15's verdict):**
+  - **H1 accept (pLLR ≥ +2.94)** ⇒ composite CERTIFIED. T12 graduates from provisional to permanent, T19
+    confirmed, certified base pointer advances to the new HEAD, Batch 4 opens.
+  - **H0 accept (pLLR ≤ −2.94)** ⇒ FAIL ⇒ bisect the two rows and drop the regressor.
+  - **Capped inconclusive** ⇒ **NOT a pass.** Report the point estimate against the +9.5 claim and do **not**
+    advance the certified base; the batch stays open. Do not reinterpret an inconclusive as a soft pass.
+  - **Calibration note recorded in advance so it cannot be used selectively afterward:** both prior batches
+    **OVER**-shot their claims by ~+9 (Batch 1 +43.2 vs +34.3; Batch 2 +35.1 vs +26.8). **Batch 3's claim is
+    +9.5 — far smaller — so the overshoot pattern may simply not scale, and an under-shoot here is NOT by
+    itself evidence of the non-additivity finding.** If it under-shoots, the middlegame interaction is a
+    reasonable first diagnostic hypothesis, nothing more.
 - **Certification run:** post-batch HEAD vs `ngn_cert2.exe` (`172e9e1`), real-clock `-tc 10+0.1` c8, SPRT [0,+6], LAN 9800X3D box.
 - **On fail:** bisect Batch 3 commits to find the regressor; drop it, re-certify.
 - **Batch net (claimed self-play):** **+9.5** — T12 +2.2 (provisional) + T19 +7.3 (full accept). Increments are MARGINAL (each measured vs the immediate base), so the net is a telescoping sum, not an additivity assumption.
