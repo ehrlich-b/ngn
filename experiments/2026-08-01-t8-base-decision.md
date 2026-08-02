@@ -187,3 +187,59 @@ base again would simply go stale again. Therefore:
 The **decision** (fixed base, i.e. T17 applied, on the irreversibility-asymmetry argument), the **recorded
 counter-argument** (the fixed base starts ~6.4 Elo down, so the tune must find >+6.4 to break even), the
 **~25h at 10+0.1** cost (5+0.05 is closed), and the **tuner-not-verdict** rule all stand exactly as written.
+
+---
+
+## LAUNCH RUNBOOK — ordered, so the launch is mechanical (written 2026-08-02 12:20)
+
+**PREREQUISITE — do not skip: Batch 3 certification must have PASSED first.** T8's base is
+`current HEAD + output/t17.patch`, and HEAD contains T12 (+2.2 provisional) and T19 (+7.3 full accept). **If
+the cert fails, the base is wrong and the 25-hour run is wasted** — bisect and re-certify before launching.
+This is the whole reason the cert was moved ahead of T8 (`experiments/batch-ledger.md`).
+
+**Composition re-verified 2026-08-02:** `output/t17.patch` applies clean on **T12+T19** *and* on
+**T12+T19+T15**, so whichever tree wins, the base builds.
+
+### Steps
+
+1. **Build the base from CURRENT HEAD** (never reuse a prebuilt one — `ngn_t17fix.exe` `3e8016d7…` is already
+   dead from the T12 keep):
+   ```
+   git apply output/t17.patch
+   make build && ./scripts/nodecheck.sh          # record the numbers; they define the base
+   go test -short ./engine && go test -short -race ./engine && go test -short ./...
+   GOOS=windows GOARCH=amd64 GOAMD64=v3 go build -o build/win/ngn_t8base.exe .
+   ```
+   Then push and **verify the on-box hash**. **Revert the tree afterwards** — T17 is speculative until its
+   own verdict; only the tuner runs it.
+2. **RE-RUN THE DIM-LIVENESS PRE-FLIGHT on this exact binary.** Method and table format are recorded above.
+   **Not a formality: T12 restricts NMP to true cut nodes, which directly narrows where `NullMoveR` and
+   `NullMoveMinDepth` can act, and T19 changes reduction at PV-marked nodes, which touches `LMRFullDepth` /
+   `LMRMoveThreshold`.** Four of the fourteen dims sit downstream of changes made since the last liveness
+   check. **A dim that has gone inert is exactly the defect that invalidated the 2026-06-28 joint-SPSA run**
+   (9/11 params pinned, zero gradient). Re-measure the default node count too — 247063 was pre-T12.
+3. **Launch the tuner** (`boxsprt.sh` drives it via `BOXSPRT_BIN`, already supported and byte-identical on the
+   default path):
+   ```
+   BOXSPRT_BIN=spsa.exe ./scripts/boxsprt.sh launch t8 -- \
+     -engine '.\ngn_t8base.exe' -tc 10+0.1 -iters 1500 -pairs 8 \
+     -openings sprt_openings.txt -out t8_spsa.jsonl -report 25 -lowpower=false
+   ```
+   **1500 iters x 2 games x 8 pairs = 24000 games**, clearing the >=20k policy floor; ~25h at 10+0.1
+   (5+0.05 is CLOSED, so the ~12h version does not exist). Expect **1 spsa + 16 engine procs = 17**.
+   Checkpoints every 25 iters to `t8_spsa.jsonl`; `-resume`-able if interrupted.
+4. **While it runs: nothing to read.** `plus_pct` and param movement are NOT evidence — that is the exact
+   failure the policy names and how the 2026-06-28 run was invalidated.
+5. **On completion:** take the converged vector, apply it, and run a **separate real-clock 10+0.1 c8 SPRT
+   [-3,+3] vs unmodified HEAD**. **Only that decides.** If the vector lands within rounding of the defaults,
+   the finding is "already near a local optimum" and the lane closes without a second round.
+
+### Standing cautions carried forward
+
+- **`AspMult` is by far the most sensitive dim** (min=110 gave 3.6x the default node count). **Treat a
+  converged vector that moves it far from 150 with suspicion** until the confirmation SPRT says otherwise —
+  T5's aspiration shape was games-validated at +20.2 and is not obviously improvable by a noisy 14-dim search.
+- **The fixed base starts ~6.4 Elo down** (T17 standalone measured -6.4), so the tune must find more than
+  that to break even. Recorded when the decision was made; not a reason to abandon it, but the honest bar.
+- **A negative is fix-or-tune ambiguous.** Inherent to an interaction test, sanctioned by CLAUDE.md when
+  explicit, and accepted deliberately over cementing a proven 6-Elo defect into the tuned vector forever.
