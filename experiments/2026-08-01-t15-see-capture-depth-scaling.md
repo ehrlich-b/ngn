@@ -120,3 +120,51 @@ decision_rule: >
   non-zero on either side.
 next_action: launch after T19 resolves; rebuild on whichever tree is current if any earlier candidate kept -- do NOT pool
 ```
+
+---
+
+## POST-VERDICT PROCEDURE — written 2026-08-02 13:20 at G2708, OUTCOME UNKNOWN
+
+T15 is **oscillating around zero**: elo -7.0 (G768) -> +4.2 (G1758) -> **-2.3 (G2708)**, pLLR -0.56 -> +0.78
+-> -0.65. That is what a null looks like at this sample size, but it is **not** a verdict and nothing below
+is conditioned on the sign.
+
+**Decision rule, unchanged:** pLLR >= +2.94 = full KEEP; <= -2.94 = SHELVE; at the 8000g cap a PROVISIONAL
+keep needs **penta point estimate >= +1.0 inclusive** (below +1 shelves regardless of pLLR sign). **Decision
+statistic is the PENTANOMIAL**; verdict from the harness's own H0/H1 line plus a full envelope scan, never
+the printed final pLLR (c8-drain seen 6x). **Note T15 is measured on the T12+T19 composed base, so its number
+is a MARGINAL contribution given both.**
+
+### If KEEP (full H1, or penta >= +1 at the cap)
+
+1. **Commit** `output/t15.patch` onto current HEAD (= T12+T19). One-line threshold change, no new state.
+2. **Verify BEHAVIOURAL identity, not byte identity** (Go VCS stamping — 2026-08-02 process finding): the
+   rebuilt tree must reproduce **316808 / 355965 / 667710**, the pre-measured T12+T19+T15 composition.
+3. **RE-LOCK nodecheck baselines** in `scripts/nodecheck.sh` from **295507 / 112109 / 667703** to
+   **316808 / 355965 / 667710**, reason in the file header.
+   **Expect the middlegame to jump 3.2x (112109 -> 355965).** That is the measured three-way non-additivity,
+   **already known before the run** — it is not a surprise and not a reason to re-open the verdict. Per the
+   2026-08-02 correction, that cost is **inside** the number T15's own SPRT just measured: if T15 kept, the
+   tree growth was paid for and worth it.
+4. **Batch 3 row 3**; batch net becomes +9.5 + T15's figure.
+5. **Re-measure cadence**: ebfprobe + `output/fmc-table.sh` on the new HEAD. **FMC movement is NOT a strength
+   signal here** — T15 is a pruning-threshold change, not an ordering change, and T19 established that FMC is
+   valid only for ordering candidates.
+6. **Then the Batch 3 certification**, per the early-cert decision:
+   `-new .\ngn_t15on1219.exe -base .\ngn_cert2.exe -elo0 0 -elo1 6`.
+
+### If SHELVED (penta < +1, or pLLR <= -2.94)
+
+1. Nothing to revert — the tree never carried T15. **Baselines stay 295507 / 112109 / 667703.**
+2. Apply the pre-registered reading **verbatim**: the leading hypothesis is that **the flat `-100` was already
+   near-optimal because the `depth <= 4` window is too shallow for depth-scaling to act on** — only depths 2-4
+   change at all. **Do NOT re-run at a different coefficient** (`-60*depth`, `-120*depth`); that is the
+   hand-picked-constant class that has failed repeatedly. A clean null here **closes the flat-vs-scaled
+   asymmetry question that T20's gating opened**, which is a real result rather than an absence of one.
+3. **Node-level family would go to 2 keeps / 13 attempts.** State it plainly.
+4. **Then the Batch 3 certification** on the unchanged composite:
+   `-new .\ngn_t19on12.exe -base .\ngn_cert2.exe -elo0 0 -elo1 6`.
+
+**Either branch: the certification is the next box job, NOT T8** — T8's base contains this composite and a
+25-hour tuner must not run against an unconfirmed one. Both cert binaries are already on box and
+hash-verified. Verify topology (1 sprt + 16 engines) after launching.
