@@ -142,3 +142,50 @@ next_action: launch after T4e resolves; base stays on-box ngn_t5.exe (do NOT poo
 T12's base is on-box `ngn_t5.exe` `0a8f65b7…`, the same base T4e uses. **If T4e KEEPS, T12 must be rebuilt on
 the T4e tree before launching — do NOT pool.** If T4e shelves (the more likely outcome per its own
 pre-registration), this base holds unchanged.
+
+---
+
+## PRE-REGISTERED TIE-BREAK — written 2026-08-02 02:25 at G5529, OUTCOME UNKNOWN
+
+T12 is converging on the **exact boundary of its own decision rule**. Trajectory of the point estimate:
+**+7.4 (G659) -> +4.8 (G1678) -> +3.0 (G2514) -> +1.6 (G3476) -> +1.3 (G3674) -> +0.9 (G4664) -> +1.3
+(G5529)**, i.e. classic regression toward the mean, now oscillating either side of the `>= +1` provisional
+floor with ~2500 games to run.
+
+**This is exactly the situation where a rule gets quietly reinterpreted to suit the number that lands.**
+Recording the reading in advance so it cannot be.
+
+### The tie-break, binding
+
+1. **The decision statistic is the PENTANOMIAL point estimate, not the trinomial.** The running log line
+   shows trinomial elo; the `RESULT` block prints both and labels penta *"THE decision stat"*. They differ —
+   for T4e they agreed (-20.9/-20.9), for M6-retest they agreed (-4.3/-4.3), but agreement is not guaranteed
+   and the penta figure governs regardless of which is more favourable.
+2. **`>= +1.0` is INCLUSIVE.** A penta point estimate of exactly `+1` is a PROVISIONAL keep. `+0.9` shelves.
+   No rounding in either direction, and no appeal to the trinomial if it happens to sit on the other side.
+3. **A bound crossing overrides everything.** pLLR `>= +2.94` = full KEEP; `<= -2.94` = SHELVE. The `>= +1`
+   floor only applies to a run that reaches the 8000g cap undecided.
+4. **The verdict comes from the harness's own `H0/H1 ACCEPTED` line plus a full post-mingames envelope scan**,
+   never the printed final pLLR alone — c8-drain has now been observed **6 times**, in both directions.
+5. **No "it was positive for most of the run" argument.** T12 held +2.5 to +7 for its first ~2000 games; that
+   is what regression to the mean looks like and it carries no evidential weight. Equally, **no "it decayed so
+   it must be a null" argument** if it lands `>= +1` — the rule is the rule in both directions.
+
+### If it lands PROVISIONAL (penta >= +1)
+
+It becomes **Batch 3 row 1** (Batch 3 currently has 0 rows, cert due <= 2026-08-08) and is committed to main
+as a provisional keep — **the first non-negative result since T5 on 2026-07-19**. Then, and only then, the
+**T12 x T19 non-additivity finding becomes live**: the composition measured -14.8/-25.1/-12.8% where each
+change alone grows kiwipete, so if T19 also keeps their composition needs an explicit interaction check and
+Batch 3's certification is where a non-additive loss would surface
+(`experiments/2026-08-01-queue-composition-check.md`). **T19 and T15 would need rebuilding on the new tree —
+already verified to apply and build clean, so this is mechanical.**
+
+### If it lands SHELVED (penta < +1)
+
+The miss streak goes to **10**. That is a genuinely notable number and should be recorded as such rather than
+softened: at the historical ~35% hit rate, p(10 straight) = 0.65^10 ~= **0.013**. The instrument is still not
+the suspect — Batch 2 positive-controlled it mid-streak at +35.1 vs +26.8 claimed — so the reading would be
+about candidate quality and about the node-level family, which would go to **1 keep / 12 attempts**.
+
+**Either way the run order is unchanged: T19 next, then T15.**
