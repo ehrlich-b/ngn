@@ -1479,7 +1479,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// W8: skip NMP when the TT says this node fails low (UpperBound with ttEval < beta).
 	// NMP's "node is already >= beta" premise is contradicted there, so the null search
 	// is wasted (CG + Ethereal converge on this guard; NullMoveTries should drop).
-	if SearchToggles.NullMove && !inCheck && depth >= NULL_MOVE_MIN_DEPTH && canNull && !isPV && staticEval >= beta &&
+	// T12: restrict to true cut nodes. `!isPV` admits BOTH cut and all nodes -- in PVS an
+	// all-node is expected to fail low, so NMP's "this node is already >= beta" premise is
+	// wrong there and the null search is speculative work against the node's own expectation.
+	// This makes the code match the claim the comment above already makes.
+	if SearchToggles.NullMove && !inCheck && depth >= NULL_MOVE_MIN_DEPTH && canNull && !isPV && cutNode && staticEval >= beta &&
 		hasNonPawnMaterial(&pos.Board, pos.Turn()) &&
 		!(ttHit && ttNodeType == UpperBound && ttEval < beta) {
 		// Set lastMovePlayed to EmptyMove so children don't pick spurious
