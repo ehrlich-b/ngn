@@ -188,3 +188,89 @@ M6-retest is an A/A of the *ruler* at 5+0.05 — it plays `ngn_t5` against itsel
 behavior. Whatever it returns, T4e's base stays on-box `ngn_t5.exe` `0a8f65b7…` and T4e's own verdict stays
 at **10+0.1**, because M6 on PASS clears 5+0.05 for Stage-1 filters and SPSA batches ONLY — per-change
 verdicts stay at 10+0.1 pending M6b.
+
+---
+
+# RESULT 2026-08-01 — SHELVED. Clean statistical reject, and the SECOND-LARGEST negative of the campaign.
+
+Launched 19:15, finished 20:35 (1h19m33s). Read and the next job launched within **4 minutes**.
+
+```text
+=== RESULT (1h19m33s) ===
+Games: 1280   W-D-L: 292-619-369   score: 47.0%
+Elo(new - base): -20.9   95% CI [-40, -2]
+LLR: -2.59   bounds [-2.94, 2.94]
+Pentanomial [LL 50  LD 165  {LW,DD} 263  WD 136  WW 26] over 640 pairs
+Penta Elo: -20.9   95% CI [-34, -8]   pLLR -2.86  (THE decision stat)
+Flag-outs (lost on time): new 0, base 0  of 1280 games  (goal: 0)
+Adjudicated early: 658 decisive, 297 draw  of 1280 games
+Verdict: H0 ACCEPTED: new is NOT better (<= -3 ELO)
+DONE_EXIT_0
+```
+
+- Penta **-20.9 [-34, -8]**, pLLR **min -2.97**, first crossing of -2.94 at **G1272**, **5 samples at/below**.
+- **Post-mingames envelope [-2.97, 0.00] with elo max -1.1 — never once positive after the mingames floor.**
+  Like T17 and T18b there is no positive phase to argue about.
+- **c8-drain, 6th observation:** printed -2.86 is shallower than the true envelope minimum -2.97. Verdict
+  taken from the harness `H0 ACCEPTED` line plus the envelope scan.
+- 0/0 flag-outs, 1280g, ~965 g/hr. Engine tree never carried the change.
+- **Second-largest negative of the campaign**, behind only T18b's -22.5.
+
+## Pre-registration applied VERBATIM
+
+**Expectation was "+1 to +4, with a materially higher chance of a negative than T4d had". The outcome is
+-20.9 — far outside that range and a much worse miss than predicted.** Recording that plainly: the
+expectation was wrong in magnitude, not merely in sign.
+
+**Licensed by the rejection, per the manifest:**
+
+- The **position-feature key class is now 3-for-4** and **the corrhist family is mined out**. The manifest
+  pre-committed to this being "a real and reportable conclusion", and it is hereby reported. **Family overall:
+  3 keeps / 5 attempts, +19.2 Elo.**
+
+**NOT licensed, per the manifest, and still not licensed:**
+
+- The corrhist family is **not closed** as a lane.
+- `cont2` / `cont12` remain **unrun by rule** (move-sequence keys, the class T4d indicted).
+
+## The reopen the manifest allowed is now DEAD — on evidence gathered BEFORE the verdict
+
+The manifest licensed **exactly one** reopen: *"T4e-2 = the same key at a reduced weight, deliberately ranked
+LOW."* **That reopen is now withdrawn entirely**, and the reasoning is not special pleading — the evidence was
+measured **while the run was live at G1004 with the outcome unknown**
+(`experiments/2026-08-01-imbalance-eval-probe.md`), and it strengthens rather than softens the rejection.
+
+That probe falsified the premise the whole candidate rested on. The measured residual signal that made
+material the top-ranked key is a **recapture artifact**, not an eval defect: prev-CAPTURE residual **128.2 cp
+vs prev-quiet 6.6 cp (19x)**, the entire `imbalanced:N` bucket is mid-exchange (mean cp == mean |cp| ==
++304.0, every residual positive), and **conditioned on a quiet previous move, material class explains nothing**
+(balanced 8.2, NB 0.1, P 6.9, PNB 7.1).
+
+**So a lower weight cannot help.** The signal being learned is *"a recapture is pending"* — a horizon state
+the search already resolves for itself. Reducing the weight only scales the harm toward zero; there is no
+gain underneath it to uncover. **A reopen requires a mechanism, and this one has none.**
+
+## Why it lost 20.9 Elo rather than merely failing to gain
+
+The pre-verdict hypothesis, now **corroborated but not proven**: the corrector learns a large positive
+offset for material signatures that are frequently mid-exchange, then applies it as a **standing static-eval
+correction at every node sharing that signature** — including the positions where the imbalance is **real and
+permanent** (a completed trade, a genuine sacrifice), which get inflated by up to ~a minor piece. That is not
+a neutral or merely-uninformative correction; it is a systematic eval error injected at high-leverage nodes,
+which is consistent with a double-digit loss rather than a null.
+
+This also explains why T4e is so much worse than T4d (-8.2): T4d's move-sequence key aliased badly but
+carried no systematic sign, while T4e's key is **correlated with a large, consistently-signed horizon
+residual**.
+
+## Standing corrhist ledger after this run
+
+| corrector | key class | result |
+|---|---|---|
+| pawn | position-feature | **KEPT +9.1** |
+| non-pawn | position-feature | **KEPT +6.4** |
+| minor | position-feature | **KEPT +3.7** |
+| **material (T4e)** | position-feature | **SHELVED -20.9** |
+| continuation (T4d) | move-sequence | SHELVED -8.2 |
+
+**3 keeps / 5 attempts. The family is mined out; both remaining key ideas are dead by rule or by mechanism.**
