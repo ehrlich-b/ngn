@@ -168,3 +168,60 @@ is a MARGINAL contribution given both.**
 **Either branch: the certification is the next box job, NOT T8** — T8's base contains this composite and a
 25-hour tuner must not run against an unconfirmed one. Both cert binaries are already on box and
 hash-verified. Verify topology (1 sprt + 16 engines) after launching.
+
+---
+
+# RESULT 2026-08-02 — SHELVED. Clean statistical reject, penta -4.7 [-11, +1].
+
+```text
+=== RESULT (6h14m52s) ===
+Games: 6012   W-D-L: 1529-2873-1610   score: 49.3%
+Elo(new - base): -4.7   95% CI [-13, +4]
+LLR: -2.68   bounds [-2.94, 2.94]
+Pentanomial [LL 176  LD 743  {LW,DD} 1227  WD 706  WW 154] over 3006 pairs
+Penta Elo: -4.7   95% CI [-11, +1]   pLLR -3.04  (THE decision stat)
+Flag-outs (lost on time): new 0, base 0  of 6012 games  (goal: 0)
+Adjudicated early: 3123 decisive, 1434 draw  of 6012 games
+Verdict: H0 ACCEPTED: new is NOT better (<= -3 ELO)
+DONE_EXIT_0
+```
+
+- pLLR **min -3.08**, first crossing of -2.94 at **G6004**, **10 samples at/below**, zero above.
+  Envelope **[-3.08, +1.00]**, elo [-15.0, +5.5].
+- **c8-drain, 7th observation:** printed -3.04 vs true envelope minimum -3.08. Verdict taken from the
+  harness `H0 ACCEPTED` line plus the scan, as always.
+- 0/0 flag-outs / 6012g / 6h14m52s, ~963 g/hr. Engine tree never carried the change.
+- **Measured on the T12+T19 composed base**, so -4.7 is T15's marginal contribution given both.
+
+## Pre-registration applied verbatim
+
+Expectation was **"+2 to +6 class, and a null is very plausible"**; the outcome is a **clean reject at -4.7**,
+i.e. worse than the stated range. **The heaviest pre-registered fact was the base rate, and it held:** this
+was flagged before launch as *"a node-level pruning-constant change, the family that is 1 keep / 11 attempts,
+and the plateau diagnosis found that nearly every null came from tuning constants"* — and it was **ranked last
+of the four staged candidates for exactly that reason.** It finished last.
+
+**The leading failure hypothesis, pre-registered, stands as the reading:** the flat `-100` was already
+near-optimal because the `depth <= 4` window is shallow enough that depth-scaling has almost nothing to act
+on — only depths 2-4 change at all — so the tree growth bought back captures that were mostly correctly
+pruned.
+
+**What this null CLOSES, which is a real result rather than an absence of one:** it settles the
+**flat-vs-scaled asymmetry** question that T20's gating opened on 2026-07-26. The capture path prunes at a
+flat `SEE < -100` while the quiet path scales at `-80*depth`; that asymmetry looked like an oversight against
+the engine's own stated convention. **It is not an oversight — mirroring the convention onto the capture path
+measurably loses Elo.** The asymmetry is now explained rather than outstanding.
+
+**NOT licensed, per the pre-registration:** do **NOT** re-run at a different coefficient (`-60*depth`,
+`-120*depth`). That is the hand-picked-constant class that has failed repeatedly, and the null is about the
+shape of the window, not the size of the number.
+
+## Standing
+
+**Node-level pruning/reduction family: 2 keeps / 13 attempts.** The one keep (T12) was argued from
+**soundness** — removing a prune whose premise is contradicted at all-nodes — while T15 was argued from
+**convention symmetry**. That distinction now has two data points behind it and is consistent with the
+campaign-wide pattern that mechanism-level changes keep and constant-shaped changes do not.
+
+**Session scoreboard (2026-08-01 -> 08-02): T4e -20.9, T12 +2.2 (provisional), T19 +7.3 (full accept),
+T15 -4.7.** Batch 3 holds T12 + T19 at a claimed **+9.5**, and its certification is now live.
