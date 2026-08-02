@@ -189,3 +189,45 @@ the suspect — Batch 2 positive-controlled it mid-streak at +35.1 vs +26.8 clai
 about candidate quality and about the node-level family, which would go to **1 keep / 12 attempts**.
 
 **Either way the run order is unchanged: T19 next, then T15.**
+
+## POST-VERDICT PROCEDURE — written 04:17 at G7336, outcome still unknown
+
+Both branches written out in advance so the verdict tick is mechanical and nothing is dropped. A keep fires
+**five** bookkeeping steps at once, and the easy ones to forget are the nodecheck re-lock and the re-measure
+cadence.
+
+### If PROVISIONAL KEEP (penta >= +1.0)
+
+1. **Commit** `output/t12-nmp-cutnode.patch` to main. Verify the rebuilt tree hashes back to the exact
+   playing binary `ngn_t12.exe` `2081f5ac…` — never assume, the T8 provenance note records that a
+   behaviourally-identical rebuild is not necessarily byte-identical.
+2. **RE-LOCK the nodecheck baselines** — `scripts/nodecheck.sh:117-119`, currently
+   `346662 / 149587 / 765656`, become **`451141 / 136100 / 796906`**. This is the step most likely to be
+   missed, and a stale baseline silently mis-gates every subsequent candidate.
+3. **Batch ledger** — `experiments/batch-ledger.md`, Batch 3 row 1 (currently "none yet"). Batch 3's
+   certified base is `172e9e1` / `ngn_cert2.exe` `0a8f65b7…`; cert due **<= 2026-08-08**.
+4. **Re-measure cadence** — ebfprobe + the FMC table after every structural keep (~4 min, zero box time;
+   harness `output/fmc-table.sh`). Six weeks of drift is what let the "lane exhausted" story stand while the
+   lane was delivering.
+5. **Launch T19 on the NEW base**, already prepared so this is one command:
+   `-new .\ngn_t19on12.exe -base .\ngn_t12.exe`, with `ngn_t19on12.exe` sha256
+   **`6a560c98cee9902f0ff5ca469ffade44b7c206bbe7e608b20ff9c764be277fb3`** pushed and on-box hash verified,
+   built from T12+T19 (composition verified to build with green `-short`/`-race` suites).
+   **Then the T12 x T19 non-additivity finding is live** — the composition measures -14.8/-25.1/-12.8% where
+   each change alone grows kiwipete, so if T19 also keeps their pairing needs an explicit interaction check
+   (`experiments/2026-08-01-queue-composition-check.md`).
+
+### If SHELVED (penta < +1.0)
+
+1. Nothing to revert — **the engine tree never carried the change**; the patch is shelf-only.
+2. **Do NOT touch the nodecheck baselines.** They stay `346662 / 149587 / 765656`.
+3. Record the result here and in TODO; the miss streak becomes **10** (p ~= 0.013 at the historical rate) and
+   the node-level family becomes **1 keep / 12 attempts**. State both plainly rather than softening them.
+4. **Launch T19 on the UNCHANGED base**: `-new .\ngn_t19.exe -base .\ngn_t5.exe`, `ngn_t19.exe`
+   `c61c91ae…` already staged and hash-verified. `ngn_t19on12.exe` becomes dead weight — harmless, leave it.
+5. The leading failure hypothesis pre-registered above (blocked all-node NMP attempts were cheap and mostly
+   correct anyway, so removing them buys back less than the +30.1% tree growth costs) becomes the recorded
+   reading, and it is **evidence about NMP node-type restriction generally, not about a constant** — there is
+   no constant here to blame, which makes this null unusually informative.
+
+**Either branch: verify topology (1 sprt + 16 engines) and all on-box hashes after launching.**
