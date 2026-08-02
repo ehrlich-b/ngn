@@ -161,10 +161,21 @@ land on main and are folded into this batch's composite for attribution, same as
      two candidates to separate.
   3. Two keeps just landed after **nine consecutive misses**; confirming them cheaply is worth more than the
      hour it costs.
+- **DURATION ESTIMATE CORRECTED 2026-08-02 — my own "~1 hour" figure in the early-cert decision was
+  OPTIMISTIC and rested on a bad comparison.** Batch 1 (46m, 745g) and Batch 2 (49m, 785g) crossed fast
+  because their effects were **5-7x the H1 bound** (+43.2 and +35.1 against `elo1 = 6`). **Batch 3 claims
+  only +9.5 — about 1.6x the bound** — so the SPRT has far less margin to work with and should be expected
+  to take **substantially longer, plausibly running to the 8000g cap (~8h)** rather than stopping in under
+  an hour. **Does the early-cert decision still hold at 8h? Yes** — the argument was never that certification
+  is cheap in absolute terms, it is that **a 25-hour tuner must not run against an unconfirmed base**, and
+  8h < 25h regardless. But the "~1h" claim should not be repeated as though it were established.
 - **Cert command (one command either way — both candidate binaries already on box, hash-verified):**
   - if **T15 KEEPS**: `-new .\ngn_t15on1219.exe -base .\ngn_cert2.exe`
   - if **T15 SHELVES**: `-new .\ngn_t19on12.exe -base .\ngn_cert2.exe`
-  with `-elo0 0 -elo1 6` and the standard mill flags. `ngn_cert2.exe` verified on box at
+  Full flags, matching Batches 1 and 2 exactly:
+  `-tc 10+0.1 -concurrency 8 -lowpower=false -openings sprt_openings.txt -elo0 0 -elo1 6 -alpha 0.05
+  -beta 0.05 -maxgames 8000 -mingames 300 -resignscore 900 -resignplies 5 -drawscore 10 -drawplies 10
+  -drawminplies 80`. `ngn_cert2.exe` verified on box at
   `0a8f65b75e59c376052f83b14787b0af2eba65552cedfee6f70ce576891ca721`.
 - **PRE-REGISTERED READING (written 2026-08-02 11:20, before the cert and before T15's verdict):**
   - **H1 accept (pLLR ≥ +2.94)** ⇒ composite CERTIFIED. T12 graduates from provisional to permanent, T19
