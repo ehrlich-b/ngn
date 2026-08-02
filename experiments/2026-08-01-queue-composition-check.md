@@ -76,3 +76,54 @@ binding_consequence: >
   If T12 and T19 both keep, their composition requires an explicit interaction check and may not be assumed
   additive. Batch 3 certification is where a non-additive loss would surface.
 ```
+
+---
+
+## ADDENDUM 2026-08-02 — the THREE-WAY stack is far more non-additive than the pair
+
+Measured after T12 was kept (so the baseline is now **T12 = 451141 / 136100 / 796906**), while pre-building
+both possible T15 launch binaries so the next verdict tick stays mechanical.
+
+| variant | kiwipete d12 | mid d12 | end d16 |
+|---|---|---|---|
+| **T12 (the new base)** | 451141 | **136100** | 796906 |
+| T12 + T15 | 332261 (-26.4%) | **164728 (+21.0%)** | 796906 (**identical**) |
+| T12 + T19 | 295507 (-34.5%) | **112109 (-17.6%)** | 667703 (-16.2%) |
+| **T12 + T19 + T15** | 316808 (-29.8%) | **355965 (+161.5%)** | 667710 (-16.2%) |
+
+**The middlegame is the story.** If T15's effect composed anything like additively on top of T12+T19, the
+three-way stack would sit near `112109 x (164728/136100) ~= 136000`. **It measures 355965 — 2.6x that, and
+3.2x the T12+T19 tree it is built on.**
+
+So the pairwise finding understates the problem: **T12 x T19 was strongly non-additive, and adding T15 on top
+is worse still.** Each change is individually modest in the middlegame (T15 alone +21%, T19 alone reduces
+it), yet stacked they produce a 2.6x middlegame tree explosion.
+
+**Two details that sharpen it rather than soften it:**
+
+- **The endgame is essentially untouched by T15 in both stacks** — 796906 identical on T12+T15, and
+  667710 vs 667703 on the three-way (a 7-node difference). That reproduces T15's own gate finding that it is
+  nearly inert in the endgame, so the instrument is behaving and the middlegame number is not an artifact.
+- **kiwipete does NOT explode** (-29.8%), so this is specific to the quiet middlegame position, not a
+  general blow-up.
+
+## Consequence — this is now a live risk for Batch 3, not a hypothetical
+
+Batch 3 currently holds T12 (+2.2 provisional). If **T19 and T15 both keep**, the certified composite is
+exactly this three-way stack, and its middlegame tree is 2.6x what additivity predicts. **A tree that size at
+fixed real clock is paid for in depth**, which is how T9a and T18b lost.
+
+**Binding, and it strengthens the pairwise rule already recorded:** if two or more of {T12, T19, T15} keep,
+**their composition must be interaction-checked before the batch is certified, not after.** Batches 1 and 2
+both OVER-shot their claims (+43.2 vs +34.3, +35.1 vs +26.8); **if Batch 3 UNDER-shoots, this measurement is
+the first place to look**, and the bisect rule in the ledger should start from the middlegame interaction
+rather than from the largest claimed contributor.
+
+**Run order is unchanged** — T19 is live against T12, T15 follows against whichever tree wins. Both T15
+launch binaries are already built, pushed and hash-verified:
+
+- **`ngn_t15on12.exe` `3db313b5334159a4ff53133d829a333a575d6c1a4ac07d1f606882b7224d12f4`** — if T19 shelves.
+- **`ngn_t15on1219.exe` `5819e33c757e87654407dbfef1286063ec6d97e58a420d7ea5bacc2b96545925`** — if T19 keeps.
+
+Both build clean with green `-short` suites; engine tree reverted and nodecheck re-verified at
+451141/136100/796906.
