@@ -180,6 +180,36 @@ land on main and are folded into this batch's composite for attribution, same as
 - **PRE-REGISTERED READING (written 2026-08-02 11:20, before the cert and before T15's verdict):**
   - **H1 accept (pLLR ≥ +2.94)** ⇒ composite CERTIFIED. T12 graduates from provisional to permanent, T19
     confirmed, certified base pointer advances to the new HEAD, Batch 4 opens.
+
+- **POST-VERDICT PROCEDURE, written 2026-08-02 19:20 at G1968 with the outcome unknown** (cert was at +8.1,
+  pLLR +1.08 and climbing). A certification carries more bookkeeping than a normal verdict, so both branches
+  are written out:
+
+  **On PASS (pLLR >= +2.94):**
+  1. Record the result here and in `experiments/2026-08-02-batch3-cert.md`, with the **measured vs claimed**
+     comparison (+9.5 claimed) — that ratio is the running check on whether isolated SPRTs under- or
+     over-state keeps, and it is now the THIRD data point (Batch 1 +43.2 vs +34.3, Batch 2 +35.1 vs +26.8).
+  2. **T12 graduates from PROVISIONAL to permanent**; T19 (already a full accept) is confirmed.
+  3. **Advance the certified base pointer** to the current HEAD commit, and **stage the certified binary on
+     the box as `ngn_cert3.exe`**, hash-verified after copy. **Leave `ngn_cert.exe` and `ngn_cert2.exe` in
+     place** — older bisect targets stay reachable, exactly as Batch 2 did.
+  4. **Open Batch 4** against the new pointer, 0 rows, trigger `<= 4 provisionals OR 2 weeks`.
+  5. **The gauntlet re-pin trigger should be re-evaluated but NOT auto-fired:** claimed self-play since the
+     2026-07-19 pin would be ~+9.5, still well short of the +15-20 cadence and only ~+5 CCRL at the measured
+     transfer against a ±39.5 delta-CI floor. **Deferral stands unless the certified number is much larger
+     than claimed.**
+  6. Launch **T19b** (`experiments/2026-08-02-t19b-ttpv-lmp.md`), which is ranked ahead of T8.
+
+  **On FAIL (pLLR <= -2.94):**
+  1. **Bisect the two rows** — this is why the cert was moved early, while only T12 and T19 are in play.
+     The natural first split is T12 alone vs `ngn_cert2.exe` (T12's own SPRT measured it against the pre-T12
+     base, so a direct re-measure against the certified base is the clean separator).
+  2. **Do NOT launch T8** — its base contains this composite, which is the whole reason for certifying first.
+  3. Drop the regressor, re-certify, and only then resume the queue.
+
+  **On CAPPED INCONCLUSIVE:** **not a pass** (pre-registered above). Report the estimate against +9.5, leave
+  the base pointer where it is, leave T12 provisional, and **still launch T19b** — an inconclusive says the
+  composite is not demonstrably >= +6, not that it is bad, so the queue continues while Batch 3 stays open.
   - **H0 accept (pLLR ≤ −2.94)** ⇒ FAIL ⇒ bisect the two rows and drop the regressor.
   - **Capped inconclusive** ⇒ **NOT a pass.** Report the point estimate against the +9.5 claim and do **not**
     advance the certified base; the batch stays open. Do not reinterpret an inconclusive as a soft pass.
