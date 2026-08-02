@@ -96,3 +96,55 @@ next_action: >
   Launch only when the T-queue (T12 live, then T19, T15) is exhausted. ~25h at 10+0.1. Verdict is a separate
   SPRT on the converged vector vs unmodified HEAD, never plus_pct.
 ```
+
+---
+
+## DIM LIVENESS PRE-FLIGHT on the fixed base — all 14 LIVE, verified empirically 2026-08-01
+
+**Why this was run rather than assumed:** the 2026-06-28 joint-SPSA round was invalidated precisely because
+it tuned knobs that could not move (9/11 params pinned, sub-integer steps, `plus_pct` ~50% = zero gradient),
+and the T17 fix changes how **five** of these dims' consumers read `improving`. Launching a **25-hour** run
+on an unverified registry is the one pre-flight worth its cost. The T8 round-1 manifest verified 13 dims on
+the *old* base; this re-verifies all 14 on the base that will actually be tuned.
+
+Method: `setoption name <dim> value <min|max>` over UCI, then fixed-depth node count at kiwipete d12. Default
+(T17-fixed base) = **247063** nodes.
+
+| dim | default | at MIN | at MAX | status |
+|---|---|---|---|---|
+| NullMoveR | 247063 | 190988 | 302102 | LIVE |
+| NullMoveMinDepth | 247063 | 442788 | 351834 | LIVE |
+| LMRFullDepth | 247063 | **247063** | 455894 | LIVE (flat lower half — see note) |
+| LMRMoveThreshold | 247063 | 436676 | 360584 | LIVE |
+| FutilityMargin | 247063 | 265883 | 398545 | LIVE |
+| FutilityMaxDepth | 247063 | 366722 | **247063** | LIVE (max == default — see note) |
+| ReverseFutilityMargin | 247063 | 159005 | 450336 | LIVE |
+| DeltaMargin | 247063 | 343380 | 404835 | LIVE |
+| SingularDepth | 247063 | 394239 | 303979 | LIVE |
+| SingularMargin | 247063 | 379137 | 187648 | LIVE |
+| ExtensionBudget | 247063 | 320520 | **247063** | LIVE (rarely binds high — see note) |
+| AspInit | 247063 | 570153 | 266354 | LIVE |
+| AspMult | 247063 | **891106** | 298341 | LIVE |
+| LMPBase | 247063 | 320575 | 372896 | LIVE |
+
+**No dead dims. Every one of the 14 moves the tree on at least one side.**
+
+**The three flat sides are all explained, and none is a defect:**
+
+- **`LMRFullDepth` at min=1 reproduces the default exactly.** This is the *already-recorded* flat lower half
+  (`1 == default 3` in effect) from the T8 round-1 manifest — reproduced here on the new base, so it is a
+  property of the parameter's shape, not of the T17 fix.
+- **`FutilityMaxDepth` at max=8 equals the default because the default IS 8** — the dim's range is
+  `[1, 8]` and it already sits at its ceiling. Only the downward direction can move, and it does (366722).
+- **`ExtensionBudget` at max=64 equals the default**, matching the recorded observation that it *rarely binds
+  above 24*. The downward side moves (320520), so the dim is live.
+
+**Also worth recording: `AspMult` is by far the most sensitive dim** — at min=110 the tree is **891106 nodes,
+3.6x the default**. Aspiration behaviour dominates this parameter set, which is consistent with T5
+(aspiration modernization) being the single biggest keep of the campaign at +20.2. **SPSA will feel this dim
+hardest**, and a converged vector that moves `AspMult` far from 150 should be treated with suspicion until
+the confirmation SPRT says otherwise — T5's window shape was games-validated and is not obviously improvable
+by a noisy 14-dim search.
+
+**Pre-flight verdict: the registry is sound on the fixed base and the 25-hour run is not at risk of tuning
+dead knobs.** Tree reverted after the sweep; nodecheck re-verified at exactly 346662/149587/765656.
