@@ -148,3 +148,42 @@ by a noisy 14-dim search.
 
 **Pre-flight verdict: the registry is sound on the fixed base and the 25-hour run is not at risk of tuning
 dead knobs.** Tree reverted after the sweep; nodecheck re-verified at exactly 346662/149587/765656.
+
+---
+
+## STALENESS NOTICE 2026-08-02 — the staged tuning base is OBSOLETE. Do not launch T8 with it.
+
+**`ngn_t17fix.exe` `3e8016d7…` was built from `HEAD-before-T12 + t17.patch`. T12 was kept on 2026-08-02
+(`c010ca7`), so that binary is no longer HEAD-derived and must NOT be used.** Marking it dead here rather
+than leaving a hash in the record that looks verified and is not — the same failure mode as the stale
+`output/t12` pointer this campaign already tripped over.
+
+### Re-verified: the decision survives, only the artifact is stale
+
+`output/t17.patch` was re-checked against the advanced tree and **applies clean on BOTH**:
+
+- **T12** (current HEAD) — clean.
+- **T12 + T19** (if T19 keeps) — clean.
+
+So the T17b decision itself is intact and carries no conflict risk. **Only the prebuilt binary is void.**
+
+### Policy — build T8's base AT LAUNCH TIME, not in advance
+
+T8 sits behind T15, so between now and its launch the tree may absorb **T19 and/or T15**. Pre-building the
+base again would simply go stale again. Therefore:
+
+1. **At launch: `git apply output/t17.patch` onto whatever HEAD is current**, build, and cross-compile that
+   as the tuning base. Do not reuse any previously pushed `ngn_t17fix*.exe`.
+2. **RE-RUN THE DIM-LIVENESS PRE-FLIGHT on the actual launch base** (~6 min, the method is recorded above).
+   **This is not a formality now: T12 restricts NMP to true cut nodes, which directly narrows where
+   `NullMoveR` and `NullMoveMinDepth` can act.** Both were verified live on the pre-T12 base
+   (190988/302102 and 442788/351834 against a 247063 default); **whether they remain live under T12's
+   narrower NMP is unverified and must be measured, not assumed.** A dim that has gone inert is exactly the
+   defect that invalidated the 2026-06-28 joint-SPSA round.
+3. The default node count for the liveness table must be re-measured too — 247063 was the pre-T12 figure.
+
+### What is unchanged
+
+The **decision** (fixed base, i.e. T17 applied, on the irreversibility-asymmetry argument), the **recorded
+counter-argument** (the fixed base starts ~6.4 Elo down, so the tune must find >+6.4 to break even), the
+**~25h at 10+0.1** cost (5+0.05 is closed), and the **tuner-not-verdict** rule all stand exactly as written.
