@@ -271,3 +271,58 @@ unconfirmed composite. Not launching would waste the certification that was run 
 the new HEAD (the runbook already requires building at launch, so this is handled) — and the dim-liveness
 pre-flight becomes even more important, since a third accepted change would sit upstream of the same four
 NMP/LMR dims. If the box needs to be freed for a re-pin or a bisect instead, T8 yields.
+
+---
+
+## PRE-FLIGHT RUN 2026-08-03 05:30 on the ACTUAL launch base — and it found a real problem
+
+Base built from **current HEAD (T12 + T19) + `output/t17.patch`**, staged as **`ngn_t8base.exe` sha256
+`c67200c1314b22baff0cbc22902c542154e536e6028c02c529e5b997642d0996`**, on-box hash verified. Nodecheck on the
+base: **347516 / 101343 / 539095**. Suite green. Tree reverted, baselines re-verified at 295507/112109/667703.
+
+*(Valid only if T19b shelves, which leaves HEAD unchanged. If T19b keeps, rebuild — the runbook already
+requires building at launch.)*
+
+### Dim liveness — all live, but ONE HAS ALL BUT DIED
+
+Default = **347516** nodes at kiwipete d12.
+
+| dim | at MIN | at MAX | status |
+|---|---|---|---|
+| **NullMoveR** | 346938 | 348549 | **LIVE but effectively INERT — see below** |
+| NullMoveMinDepth | 388707 | 271168 | LIVE (±17%) |
+| LMRFullDepth | 347516 | 464605 | LIVE (flat lower half, as always) |
+| LMRMoveThreshold | 480763 | 540642 | LIVE |
+| LMPBase | 359926 | 456219 | LIVE |
+| FutilityMargin | 287731 | 364965 | LIVE |
+| ReverseFutilityMargin | 129532 | 481781 | LIVE |
+
+**`NullMoveR`'s sensitivity has collapsed ~97x.**
+
+| base | span across the dim's full range, as % of default |
+|---|---|
+| pre-T12 (2026-08-01 pre-flight) | **45.0%** (190988 -> 302102 on a 247063 default) |
+| post-T12 (this pre-flight) | **0.46%** (346938 -> 348549 on a 347516 default) |
+
+**This is exactly the risk the staleness notice predicted** — *"T12 restricts NMP to true cut nodes, which
+directly narrows where `NullMoveR` and `NullMoveMinDepth` can act, and their liveness under T12 is
+unverified."* It has been verified, and the answer is that **`NullMoveMinDepth` survived fine (±17%) while
+`NullMoveR` did not.** T12 removed ~97% of the leverage that knob had over the tree, because the null-move
+reduction amount can only matter where null moves are actually tried, and T12 restricted that to cut nodes.
+
+### What this changes for the run — recorded BEFORE launch
+
+- **`cmd/spsa` has no `-dims` flag**, so T8 will tune all 14 including this one. **`NullMoveR` will wander on
+  noise and contribute essentially nothing.** That is the *exact* pathology that invalidated the 2026-06-28
+  joint-SPSA round (9/11 params pinned, `plus_pct` ~50%, zero gradient) — the difference is that here it is
+  **one dim out of fourteen, identified in advance**, rather than the whole run.
+- **PRE-REGISTERED: do NOT read meaning into `NullMoveR`'s converged value.** Whatever it lands on is noise,
+  not a tuned optimum, and it must not be reported as a finding or carried into the confirmation SPRT as
+  though it were evidence. If the converged vector is otherwise near defaults, judge that on the other 13.
+- **This does not block the run.** Thirteen dims retain real leverage, and the T17b interaction test — the
+  actual reason for the fixed base — depends on `LMRFullDepth`, `LMRMoveThreshold`, `LMPBase`,
+  `FutilityMargin` and `ReverseFutilityMargin`, **all five of which measured healthy above.**
+- **It does earn a standing rule:** a kept change can silently kill a tuning dim downstream of it. **Re-run
+  the dim-liveness pre-flight after every keep that touches a mechanism a dim controls** — not just before an
+  SPSA round. Had T8 been launched on the pre-T12 pre-flight, 1/14 of a 25-hour run would have been spent on
+  a dead knob with nobody the wiser.
