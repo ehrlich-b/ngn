@@ -654,7 +654,7 @@ corruptions from one stale line.
 This does not bite today — the last line is the current run's 14-dim checkpoint — but the protection is an
 *invariant*, not a check.
 
-**MITIGATION STAGED: `output/t8_spsa_clean.jsonl`** contains only the current run's 14-dim checkpoints.
+**MITIGATION STAGED: `experiments/2026-08-03-t8-checkpoints-clean.jsonl`** (kept in `experiments/`, not `output/` — the latter is gitignored by convention, and a recovery artifact whose entire purpose is to survive must be tracked) contains only the current run's 14-dim checkpoints.
 **If T8 ever needs resuming, do NOT resume against `t8_spsa.jsonl`.** Instead push the clean file to the box
 under a fresh name and run with `-out <that file> -resume`, which both loads a guaranteed-14-dim theta and
 keeps future checkpoints uncontaminated.
