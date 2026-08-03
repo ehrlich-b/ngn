@@ -19,7 +19,7 @@ amplification; one touching a handful of nodes that each gate huge subtrees has 
 |---|---|---|---|---|
 | T19 — ttPv -> LMR | 58.2 (mid) | 9.7 | **6x** | **KEPT +7.3** (full H1) |
 | T12 — NMP cut-node only | 30.1 (kiwipete) | 3.1 | **10x** | **KEPT +2.2** (provisional, since certified) |
-| T19b — ttPv -> LMP | 36.1 (mid) | 1.3 | **28x** | **IN FLIGHT** — see caveat |
+| T19b — ttPv -> LMP | 36.1 (mid) | 1.3 | **28x** | **SHELVED, penta -1.0** (resolved 2026-08-03) |
 | T18b — probcut TT store | 25.5 (kiwipete) | 0.47 | **54x** | **-22.5** (largest negative of the campaign) |
 
 **The ordering is monotone: the two keeps sit at 6x and 10x, the worst result of the campaign at 54x.**
@@ -35,9 +35,9 @@ surface, not savings") expressed as a computable quantity instead of a narrative
 1. **Four data points.** Setting a numeric threshold on four points would be exactly the hand-picked-constant
    error this campaign has made repeatedly (T9a's margin, T7's coefficient, T6a's divisor, T15's scaling).
    **No threshold is proposed.**
-2. **T19b's row is IN FLIGHT, not a result.** At the time of writing it stands at G3825, elo -0.1, pLLR -0.04
-   — a textbook null trajectory, but **the verdict is not in and this table must be re-checked against the
-   actual outcome.** If T19b keeps, the monotone ordering breaks and this diagnostic is much weaker.
+2. ~~T19b's row is IN FLIGHT~~ **RESOLVED 2026-08-03: T19b capped at penta -1.0 and SHELVED, so the row
+   stands at 28x = miss and the monotone ordering HOLDS.** The caveat that a keep would break it did not
+   fire. This is now four decided points — still far too few for a threshold.
 3. **T19's fire rate is an approximation.** It was measured at LMP sites (9.7% mid) and applied to LMR sites.
    Same node population, different consumer — close, but not the same measurement.
 4. **Selection effect.** Both keeps come from this session, both from the same author, and the delta chosen
