@@ -70,3 +70,45 @@ status: GATHER ONLY -- no threshold proposed on 4 decided points.
 action: compute and record amplification for every candidate passing the >=1% nodecheck gate; measure fire
   rate AT GATE TIME rather than after launch; revisit at ~10 points.
 ```
+
+
+---
+
+## RETRACTION 2026-08-03 10:30 — the diagnostic is ILL-DEFINED and the monotone ordering may be an ARTIFACT
+
+Gating T22 (probcut restricted to cut nodes) required computing its amplification, and doing so exposed that
+**the four rows above do not share a denominator.**
+
+| row | what "fire %" actually measured |
+|---|---|
+| T18b 0.47% | **of NODES** (1622 probcut stores of 346662 nodes) |
+| T12 3.1% | **of ELIGIBLE NMP sites** |
+| T19 9.7% | **of LMP-eligible sites** |
+| T19b 1.3% | **increment of LMP-eligible sites** |
+
+**Only T18b — the row anchoring the high end — used "% of nodes". The other three used "% of eligible
+sites", a denominator smaller by two to three orders of magnitude.** Since amplification divides by that
+figure, mixing the two systematically inflates T18b relative to everything else, which is exactly the shape
+of the "monotone ordering" I reported.
+
+T22 shows how large the effect is. Same candidate, same tree delta, two denominators:
+
+- fire as **% of nodes**: 11.0 / 0.155 = **71x** (T18b territory — looks alarming)
+- fire as **% of eligible**: 11.0 / 24.0 = **0.46x** (lowest on the board — looks excellent)
+
+**A diagnostic whose value spans 150x depending on an unstated convention is not a diagnostic.**
+
+### Status: RETRACTED as proposed. Not "gather more points" — the definition itself has to be fixed first.
+
+The underlying intuition may still be sound (T18b's own finding stands on its own terms: 0.47% of nodes
+removing a quarter of the tree). But the ratio as I defined it is unusable until the denominator is pinned,
+and **the honest position is that the monotone ordering I reported yesterday is not evidence of anything.**
+
+**If revisited, "% of eligible sites" is the defensible choice** — it asks *"of the places this mechanism
+could act, how many did the change touch?"*, which is the question that makes the leverage argument. "% of
+nodes" conflates a change's leverage with how common its host mechanism is. But **that has to be recomputed
+consistently across all rows before any ordering is claimed**, and until then nothing here should be cited.
+
+**Process note: this is the second self-inflicted measurement error in two days** (the other being
+observation-time-vs-event-time on the T8 rate). Both share a root cause — **a number was computed and
+reported before its definition was pinned down.**

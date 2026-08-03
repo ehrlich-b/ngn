@@ -1174,6 +1174,8 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 	return alphaBetaPV(pos, depth, 0, alpha, beta, true, true, false, info) // Root is always PV
 }
 
+var zzPCBlocked, zzPCEligible uint64
+
 func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bool, canNull bool, cutNode bool, info *SearchInfo) int {
 	if ply > info.SelDepth {
 		info.SelDepth = ply
@@ -1535,7 +1537,14 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// Probcut pruning: if a reduced-depth search at a higher beta fails high,
 	// we can prune because the full search would likely also fail high
-	if SearchToggles.Probcut && !isPV && !inCheck && depth >= 5 && abs(beta) < MATE_VALUE-100 {
+	if SearchToggles.Probcut && !isPV && !inCheck && depth >= 5 && abs(beta) < MATE_VALUE-100 && !cutNode {
+		zzPCBlocked++
+	}
+	// T22: probcut assumes "the full search would LIKELY also fail high" (comment above).
+	// At an ALL node that premise is contradicted by the node's own expectation, exactly as
+	// it was for NMP before T12 (+2.2, kept and certified). Same one-line shape, same argument.
+	if SearchToggles.Probcut && !isPV && !inCheck && depth >= 5 && abs(beta) < MATE_VALUE-100 && cutNode {
+		zzPCEligible++
 		probcutBeta := beta + 200 // Higher beta threshold
 
 		// Generate into the reused frame buffer (NOT a per-node [256]Move that escapes
