@@ -136,7 +136,50 @@ accepts also land on main and are folded into this batch's composite for attribu
 
 ---
 
-## Batch 3 — OPEN (certified base: `172e9e1`, opened 2026-07-25)
+## Batch 3 — **CERTIFIED 2026-08-02** (pre-batch base: `172e9e1`, opened 2026-07-25, certified HEAD: `50adc99`)
+
+**CERTIFIED 2026-08-02** — composite `50adc99` (T12 + T19, on-box `ngn_t19on12.exe` `6a560c98…`) vs
+`ngn_cert2.exe` (`172e9e1`), SPRT [0,+6] = **+9.9 penta [+3,+17], pLLR +2.98 (envelope max +3.05, 10 samples
+at/above the bound; post-mingames envelope [0.15,+3.05] never negative), H1 ACCEPTED, 4013g / 2006 pairs,
+0/0 flag-outs, 4h11m32s, DONE_EXIT_0** (`2026-08-02-batch3-cert.md`). **Penta CI EXCLUDES ZERO** — a
+materially stronger statement than either component alone managed (T12 [-3,+8], T19 [-0,+15]).
+
+**Measured +9.9 vs +9.5 claimed** — the third straight overshoot, so the DIRECTION is established (isolated
+SPRTs do not over-state keeps here). **But the magnitude collapsed: +8.9, +8.3, then +0.4.** The earlier
+surpluses were not a bonus that scales; at this size the claimed sum is close to accurate. **Stop planning as
+though batches come in ~+9 above claim.**
+
+PASS, so **no bisect**. **T12 graduates from PROVISIONAL to permanent**; T19 confirmed. **Certified base
+pointer advances `172e9e1` → `50adc99`.** Certified binary staged on box as `ngn_cert3.exe` (`6a560c98…`,
+hash-verified after copy); `ngn_cert.exe` and `ngn_cert2.exe` deliberately left in place so older bisect
+targets stay reachable.
+
+**Duration note:** pre-registered as "hours, possibly the full cap — NOT the ~48m of Batches 1 and 2", because
+those crossed on effects 5-7x the H1 bound while this claim was ~1.6x it. Took **4h11m / 4013g**. The "~1h"
+figure first used to justify early certification was optimistic and was corrected **before** the run.
+
+---
+
+## Batch 4 — OPEN (certified base: `50adc99`, opened 2026-08-02)
+
+On-box certification binary: `ngn_cert3.exe` sha256
+`6a560c98cee9902f0ff5ca469ffade44b7c206bbe7e608b20ff9c764be277fb3`.
+
+| # | Change | Commit | Verdict (real-clock self-play, 10+0.1) | Run record |
+|---|---|---|---|---|
+| — | (none yet) | — | — | — |
+
+- **Trigger:** certify when Batch 4 reaches 4 provisionals **OR** 2 weeks (**<= 2026-08-16**), whichever first.
+- **Certification run:** post-batch HEAD vs `ngn_cert3.exe` (`50adc99`), real-clock `-tc 10+0.1` c8,
+  SPRT [0,+6], LAN 9800X3D box. **Record the pollable run name in TODO's BOX RUN STATE when launched.**
+- **On fail:** bisect Batch 4 commits, drop the regressor, re-certify.
+- **Batch net (claimed self-play):** +0.0 — empty. **First candidate: T19b, live since 2026-08-02 22:18.**
+
+---
+
+## Batch 3 — superseded header (kept for the ledger's chronology)
+
+Original: OPEN (certified base: `172e9e1`, opened 2026-07-25)
 
 Certified base `172e9e1` has engine byte-identical to the T5 keep `5b93966` (T7, T9a and T10b were all
 shelved and reverted, so nothing since T5 has changed the engine). On-box certification binary:
