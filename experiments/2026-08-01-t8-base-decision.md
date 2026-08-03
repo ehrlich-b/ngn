@@ -569,3 +569,68 @@ T22 is staged and is the cheaper item (~8h vs the confirmation's ~8h plus 30h al
 vector is near-default, run T22 first** and treat T8's confirmation as low priority. **If the vector moved
 materially, confirm it first** — it sits upstream of everything else in Batch 4, and leaving an unconfirmed
 tuned vector in the tree would contaminate every later candidate's base.
+
+---
+
+## CHECKPOINT-FILE CONTAMINATION + trajectory read at iter 475 (2026-08-03 17:20)
+
+### The file mixes THREE campaigns. Analysis must filter; resume is safe only by an invariant.
+
+`t8_spsa.jsonl` is **append-only across runs**, and currently holds:
+
+| date | checkpoints | iters | dims |
+|---|---|---|---|
+| 2026-07-25 | 9 | 25..225 | **13** |
+| 2026-07-26 | 17 | 250..650 | **13** |
+| **2026-08-03 (current)** | 19 | 25..475 | **14** |
+
+**My first trajectory analysis was contaminated by this** — it merged all 45 rows, produced nonsense
+(iters "25..650" for a run at 475) and crashed on the 13-dim rows' missing `LMPBase`. Any future analysis
+**must filter by `time` prefix.**
+
+**`-resume` is SAFE today, but only because of an invariant worth stating.** `loadCheckpoint`
+(`cmd/spsa/main.go:442`) scans the whole file and keeps the **last parseable line** — not the highest
+`iter`. That is the current run's latest checkpoint **only because the current run is the last writer.**
+If anything else ever appends to this file, or the file is reordered, **resume would silently load a stale
+and possibly 13-dim theta.** Since resumability is the stated justification for running a 30-hour job
+unattended, this invariant is load-bearing: **do not write to `t8_spsa.jsonl` from any other process, and
+prefer a per-run `-out` filename in future rounds.**
+
+### Trajectory at iter 475/1500 — a real gradient exists, and it is concentrated
+
+Efficiency = |net drift| / total path length. 1.0 is straight-line drift; ~0 is a random walk.
+
+| param | net drift | efficiency | |
+|---|---|---|---|
+| **ReverseFutilityMargin** | **-15.29** | **0.84** | directed |
+| NullMoveMinDepth | -0.34 | 0.67 | directed |
+| **SingularMargin** | **-9.26** | **0.63** | directed |
+| LMRMoveThreshold | +0.22 | 0.44 | |
+| FutilityMargin | +2.11 | 0.33 | |
+| LMRFullDepth | -0.25 | 0.28 | |
+| ExtensionBudget | +0.68 | 0.26 | |
+| AspInit | +0.15 | 0.25 | |
+| DeltaMargin | -6.65 | 0.23 | |
+| LMPBase | -0.22 | 0.23 | |
+| NullMoveR | +0.09 | 0.18 | random walk |
+| AspMult | +1.60 | 0.13 | random walk |
+| SingularDepth | +0.08 | 0.11 | random walk |
+| FutilityMaxDepth | -0.07 | 0.05 | random walk |
+
+**This is a health signal, not a verdict** — no keep/shelve may be read from param movement.
+
+What it says: **the objective has a genuine gradient in a small number of dims.** `ReverseFutilityMargin`
+(120 -> ~105) and `SingularMargin` (64 -> ~55) are moving with 0.63-0.84 efficiency, i.e. close to
+straight-line descent rather than noise. Most other dims are wandering.
+
+**Two predictions recorded now, before the run ends:**
+
+1. **The vector will NOT land "within rounding of the defaults"** — the pre-registered condition that would
+   close the lane without a second round. Two dims have already moved 13-15% of their starting value with
+   directed trajectories, and step sizes have not yet decayed.
+2. **`NullMoveR` is wandering at efficiency 0.18, exactly as the 97x sensitivity collapse predicted.** Its
+   pre-registration as noise is holding up, and this is independent evidence for it.
+
+**`AspMult` at efficiency 0.13 is reassuring** given the standing caution to distrust large `AspMult` moves:
+it is drifting only +1.6 from 150 and doing so incoherently, so T5's games-validated aspiration shape is not
+being pulled far by this run.
