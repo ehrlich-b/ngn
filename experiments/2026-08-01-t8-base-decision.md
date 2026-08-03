@@ -243,3 +243,31 @@ This is the whole reason the cert was moved ahead of T8 (`experiments/batch-ledg
   that to break even. Recorded when the decision was made; not a reason to abandon it, but the honest bar.
 - **A negative is fix-or-tune ambiguous.** Inherent to an interaction test, sanctioned by CLAUDE.md when
   explicit, and accepted deliberately over cementing a proven 6-Elo defect into the tuned vector forever.
+
+
+---
+
+## LAUNCH AUTHORISATION NOTE — written 2026-08-03 03:30, before T8 is launched
+
+T8 will come up for launch when T19b resolves (~06:35), which is **well outside the window Bryan actually
+stated** ("overnight tonight and all day Sunday" — that ended ~24h earlier). A 25-hour job is qualitatively
+different from the 6-8h SPRTs the loop has been running unattended, so the decision is recorded rather than
+improvised at launch time.
+
+**Launching it is the right call, and the deciding fact is that it is INTERRUPTIBLE WITHOUT LOSS:**
+
+- `cmd/spsa` checkpoints theta to `t8_spsa.jsonl` **every 25 iterations** (`-report 25`) and is
+  **`-resume`-able from the last checkpoint** (`main.go:69-73`, verified in source, not assumed).
+- So if Bryan wants the box back for anything, T8 can be killed at any point and resumed later having lost at
+  most 25 iterations of work. **A 25-hour commitment that can be surrendered at 25-iteration granularity is
+  not really a 25-hour commitment.**
+
+Supporting reasons: idle box time is the campaign's **#1 measured cost** (one stall burned 128 box-hours);
+T8 is the documented ranked next item with a written runbook; and **its base was deliberately cleared by the
+Batch 3 certification**, which was itself run early specifically so this launch would not sit on an
+unconfirmed composite. Not launching would waste the certification that was run to enable it.
+
+**What would change the call:** if T19b unexpectedly KEEPS, the tree changes and T8's base must be rebuilt on
+the new HEAD (the runbook already requires building at launch, so this is handled) — and the dim-liveness
+pre-flight becomes even more important, since a third accepted change would sit upstream of the same four
+NMP/LMR dims. If the box needs to be freed for a re-pin or a bisect instead, T8 yields.
