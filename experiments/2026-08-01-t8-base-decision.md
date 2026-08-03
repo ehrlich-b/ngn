@@ -371,3 +371,48 @@ visible, box otherwise clean.
 so a novel name is simultaneously unmonitorable and unkillable by the standard tooling. Reuse the sanctioned
 names (`sprt`, `ngn_*`, `spsa`) — overwrite in place rather than versioning the filename. **Editing the
 harness patterns instead was rejected: harness edits during a live run are barred.**
+
+---
+
+## DURATION ESTIMATE CORRECTED 2026-08-03 08:20 — T8 is a ~57 HOUR run, not ~25h
+
+**Measured, not projected.** Tuner started 07:19:34, first checkpoint at iter 25 reached by 08:16:26 =
+**56m52s for 400 games (25 iters x 8 pairs x 2 games) = 422 g/hr.**
+
+| | g/hr | 24000 games |
+|---|---|---|
+| SPRT at the same TC/concurrency | ~960 | ~25h |
+| **T8 SPSA, measured** | **422 (44%)** | **~57h** |
+
+**The "~25h" figure carried in this runbook and in TODO was wrong by 2.3x.** It was derived by dividing the
+game count by the SPRT throughput, which assumed SPSA moves games at the same rate. It does not.
+
+**Leading explanation — the per-iteration BARRIER.** An SPSA iteration must complete all 8 perturbation pairs
+before the gradient can be averaged and theta updated, so **each iteration costs the SLOWEST pair, not the
+mean.** An SPRT has no such barrier: finished games are replaced immediately, so slow games overlap with
+fast ones. With real game-length variance at 10+0.1, paying max-of-8 instead of mean-of-8 every iteration is
+easily a ~2x tax. **Recorded as the leading explanation, not proven** — confirming it would need per-pair
+timings the harness does not currently emit.
+
+**Consequence: T8 finishes ~2026-08-05 16:00, not 2026-08-04 08:00.**
+
+### Why the run is NOT being shortened
+
+The obvious response is to cut `-iters`. **It is not available:** CLAUDE.md requires a SPSA run reach
+**>= 20k games** to be evidence at all (`CLAUDE.md:43`), which floors this at **1250 iterations** — only 17%
+below the 1500 already running. Cutting to the floor would save ~9h and buy a weaker result; cutting below
+it would make the entire 48h run inadmissible.
+
+So the real choice was **run ~57h or do not run T8**, and running remains right for the reasons already
+recorded: the box is otherwise idle, the base was deliberately cleared by the Batch 3 certification for
+exactly this, and **the run checkpoints every 25 iterations and is `-resume`-able**, so the commitment can be
+surrendered at ~4-minute granularity if the box is needed.
+
+### What this changes for planning
+
+- **A future SPSA round should be budgeted at ~420 g/hr, not the SPRT rate.** This is now measured for the
+  8-pair configuration at 10+0.1 on this box.
+- **`-pairs` is the lever if the barrier explanation is right** — more pairs means more work absorbed per
+  barrier, but also more processes per core. Not something to change mid-run.
+- It also **quietly strengthens the case for having certified Batch 3 first**: the tuner's base being wrong
+  would now have cost ~57 hours, not ~25.
