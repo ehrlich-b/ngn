@@ -452,3 +452,63 @@ worth naming: a log line's observation time is not its event time.** Use the art
 
 **T8 now finishes ~2026-08-04 13:00, not 2026-08-05 16:00.** Nothing else about the run changes: still
 resumable, still >= 20k games, still a tuner and not a verdict.
+
+---
+
+## HEALTH CHECK 2026-08-03 13:20 at iter 275/1500 — PASSES. And a false alarm worth recording.
+
+**This is a health check, NOT a verdict.** No keep/shelve is being read from `plus_pct` or param movement —
+that is barred. The only question asked is the one that **invalidated the 2026-06-28 joint-SPSA round**:
+*are the parameters able to move at all?*
+
+### My first read said "10 of 14 pinned" — and it was WRONG
+
+The `[iter N]` log line prints the **rounded** integer theta. Read from there, ten of fourteen params sat
+exactly at their start values after 275 iterations, which is the 2026-06-28 signature ("9/11 params pinned").
+
+**The checkpoint file stores BOTH `theta` (float) and `rounded`.** Reading `theta`:
+
+| param | start | theta@275 | drift | % of the 0.5 needed to flip |
+|---|---|---|---|---|
+| ReverseFutilityMargin | 120 | 111.435 | **-8.565** | 1713% |
+| SingularMargin | 64 | 58.671 | **-5.329** | 1066% |
+| AspMult | 150 | 152.747 | +2.747 | 549% |
+| FutilityMargin | 100 | 101.071 | +1.071 | 214% |
+| DeltaMargin | 100 | 99.645 | -0.355 | 71% |
+| ExtensionBudget | 24 | 23.648 | -0.352 | 70% |
+| AspInit | 12 | 11.755 | -0.245 | 49% |
+| NullMoveMinDepth | 3 | 2.758 | -0.242 | 48% |
+| LMRFullDepth | 3 | 2.763 | -0.237 | 47% |
+| NullMoveR | 3 | 3.180 | +0.180 | 36% |
+| SingularDepth | 6 | 6.149 | +0.149 | 30% |
+| LMRMoveThreshold | 2 | 2.129 | +0.129 | 26% |
+| FutilityMaxDepth | 8 | 7.914 | -0.086 | 17% |
+| LMPBase | 5 | 4.935 | -0.065 | 13% |
+
+**All 14 are drifting. Not one sits at its exact start value.** Four are already 47-71% of the way to a
+rounding flip at 18% of the run.
+
+### This is NOT the 2026-06-28 failure — two independent reasons
+
+1. **Theta accumulates in float.** The 2026-06-28 kill was "param movement mathematically impossible
+   (sub-integer steps)". Here sub-integer gradients accumulate correctly and cross the rounding boundary when
+   they are large enough; the integer view is only how theta is *applied*, not how it is *stored*.
+2. **`plus_pct` is NOT stuck at 50%.** That run's zero-gradient signature was `plus_pct ~50%`. Recent
+   checkpoints here read **47.4, 50.2, 52.1, 53.9** — the objective is discriminating between perturbations.
+
+**Verdict on the health check: T8 is behaving. The run is valid so far.** (`NullMoveR` remains the known
+weak dim — pre-registered as noise given its 97x sensitivity collapse — but even it is drifting, so it is
+weak rather than dead.)
+
+### The trap, and it is the same one as yesterday
+
+**A monitoring line showed a DERIVED view (`rounded`) and I read it as the underlying quantity.** That is the
+third instance this session of the same error class:
+
+- observation-time read as event-time (T8 rate → a wrong "57h" figure),
+- inconsistent denominators (the amplification ratio → a retracted diagnostic),
+- and now rounded theta read as theta.
+
+**Rule: when a tool exposes both a raw and a derived value, monitor the RAW one.** For SPSA specifically:
+**judge param movement from `theta` in `t8_spsa.jsonl`, never from the `[iter N]` log line**, which prints
+`rounded` and will show healthy params as frozen for hundreds of iterations.
