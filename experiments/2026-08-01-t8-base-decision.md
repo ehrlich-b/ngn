@@ -634,3 +634,30 @@ straight-line descent rather than noise. Most other dims are wandering.
 **`AspMult` at efficiency 0.13 is reassuring** given the standing caution to distrust large `AspMult` moves:
 it is drifting only +1.6 from 150 and doing so incoherently, so T5's games-validated aspiration shape is not
 being pulled far by this run.
+
+### The contamination hazard, made precise — and a mitigation staged
+
+`loadCheckpoint` maps params by name and **silently leaves a missing one at its default**:
+
+```go
+for _, p := range params {
+    if v, ok := last.Theta[p.name]; ok { p.theta = v }   // absent name -> silently keeps the default
+}
+```
+
+So a resume that ever picked up one of the **13-dim** rows would produce a **silently corrupted mixed
+state**: thirteen params jumping to a stale July run's values while **`LMPBase` quietly stayed at its default
+5** — with no error and no warning. And because `startIter = it + 1`, it would also **resume from iter 651**
+(the July-26 high-water mark) and run only to 1500, skipping most of the schedule. Two independent
+corruptions from one stale line.
+
+This does not bite today — the last line is the current run's 14-dim checkpoint — but the protection is an
+*invariant*, not a check.
+
+**MITIGATION STAGED: `output/t8_spsa_clean.jsonl`** contains only the current run's 14-dim checkpoints.
+**If T8 ever needs resuming, do NOT resume against `t8_spsa.jsonl`.** Instead push the clean file to the box
+under a fresh name and run with `-out <that file> -resume`, which both loads a guaranteed-14-dim theta and
+keeps future checkpoints uncontaminated.
+
+**And for the next SPSA round: use a per-run `-out` filename.** The default `output/spsa.jsonl` and the
+reused `t8_spsa.jsonl` are how three campaigns ended up in one file.
