@@ -416,3 +416,39 @@ surrendered at ~4-minute granularity if the box is needed.
   barrier, but also more processes per core. Not something to change mid-run.
 - It also **quietly strengthens the case for having certified Batch 3 first**: the tuner's base being wrong
   would now have cost ~57 hours, not ~25.
+
+### CORRECTION TO THE CORRECTION 2026-08-03 09:20 — the ~57h figure was MY error. It is ~30h.
+
+**The 422 g/hr measurement one tick earlier was wrong, and the mistake was mine, not the harness's.** I took
+the iter-25 checkpoint as having occurred at the moment I *observed* it (08:16:26) and divided from the
+process start. But a checkpoint line sits in the log until someone polls; at the true rate iter 25 completed
+around **07:50**. So the interval was inflated by roughly **26 minutes of my own polling latency**, on top of
+process startup — on a sample of a single early checkpoint.
+
+**Measured properly, from the checkpoint file's own `LastWriteTime`:**
+
+| | value |
+|---|---|
+| tuner start | 07:19:34 |
+| iter 75 checkpoint written | **08:48:50** |
+| elapsed | 1.488 h |
+| games (75 x 8 pairs x 2) | 1200 |
+| **rate** | **807 g/hr = 84% of the 960 SPRT baseline** |
+| **24000 games** | **~29.8 h** |
+
+**So the honest sequence is: original estimate ~25h (assumed the SPRT rate); my "correction" ~57h (wrong,
+built on a startup- and latency-contaminated single sample); actual ~30h.** The original figure was close;
+mine was not.
+
+**The barrier explanation survives but shrinks by a lot.** There *is* a real tax — 807 vs ~960 g/hr, about
+**16%** — consistent with paying max-of-8 instead of mean-of-8 per iteration. It is **not** the ~56% tax I
+claimed. **Budget future SPSA rounds at ~800 g/hr, not 420.**
+
+**The lesson is one this campaign has already recorded and I repeated anyway:** *do not read a rate from a
+single early sample.* It is the same error class as the SPRT low-n lesson (`sprt_instrument.md`:
+"a CI-excludes-0 early read can still be noise"), applied to throughput instead of Elo. **The specific trap
+worth naming: a log line's observation time is not its event time.** Use the artifact's own timestamp — here
+`t8_spsa.jsonl`'s `LastWriteTime` — never the moment a poll happened to notice it.
+
+**T8 now finishes ~2026-08-04 13:00, not 2026-08-05 16:00.** Nothing else about the run changes: still
+resumable, still >= 20k games, still a tuner and not a verdict.
