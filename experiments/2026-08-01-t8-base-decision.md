@@ -512,3 +512,60 @@ third instance this session of the same error class:
 **Rule: when a tool exposes both a raw and a derived value, monitor the RAW one.** For SPSA specifically:
 **judge param movement from `theta` in `t8_spsa.jsonl`, never from the `[iter N]` log line**, which prints
 `rounded` and will show healthy params as frozen for hundreds of iterations.
+
+---
+
+## POST-RUN RUNBOOK — written 2026-08-03 16:20 at iter 425/1500, before the vector exists
+
+T8 converts to a verdict only through a confirmation SPRT, and that is where a 30-hour investment gets
+wasted if the mechanics are wrong. Settled in advance.
+
+### 1. There is NO script to apply an SPSA vector. Do not look for one.
+
+`scripts/apply_tuned.py` **is for TEXEL eval tuning** — it splices PST tables and `eval.go` weight lines. It
+does **not** touch the 14 search constants and must not be used here. Checked, not assumed.
+
+**And `cmd/sprt` cannot pass UCI options.** Its full flag set is
+`-new -base -depth -movetime -tc -nodes -basedepth -maxgames -mingames -maxmoves -openings -concurrency
+-lowpower -genbook -genplies -balancecp -balancedepth -out -gametimeout -resign*/draw*` — **no option flag,
+and no `setoption` support in the harness at all.** So although the dims *are* UCI-settable (that is how the
+liveness pre-flight probed them), **the confirmation candidate must be built with the values edited into
+source.** There is no runtime path.
+
+### 2. Read the vector correctly
+
+Take the **final** checkpoint line of `t8_spsa.jsonl` and use its **`rounded`** object — that is what the
+engine actually applies. (`theta` is the float accumulator; use it to judge *movement*, never as the vector.)
+Edit the 14 constants in the `const` block near the top of `engine/search.go`
+(`NULL_MOVE_R`, `NULL_MOVE_MIN_DEPTH`, `LMR_FULL_DEPTH`, `LMR_MOVE_THRESHOLD`, `FUTILITY_MARGIN`,
+`FUTILITY_MAX_DEPTH`, `REVERSE_FUTILITY_MARGIN`, `DELTA_MARGIN`, `SINGULAR_DEPTH`, `SINGULAR_MARGIN`,
+`EXTENSION_BUDGET`, `ASP_INIT`, `ASP_MULT`, `LMP_BASE`).
+
+### 3. The comparison — easy to get wrong, and getting it wrong wastes the run
+
+**Candidate = HEAD + `output/t17.patch` + the tuned vector. Base = unmodified HEAD.**
+
+**Do NOT compare tuned-vs-untuned on the T17 base.** That would measure the tune alone and **miss the entire
+point** — T17b exists to test *fix + recalibration as one interaction*, which is why the fixed base was
+chosen over the reversible-but-foreclosing alternative. The bundle is the unit under test.
+
+Consequence already on record: **the bundle starts ~6.4 Elo down** (T17 standalone measured -6.4), so the
+tune must find more than that to break even. A negative is **fix-or-tune ambiguous** — inherent to an
+interaction test, accepted deliberately.
+
+### 4. Pre-registered cautions for reading the vector
+
+- **`NullMoveR`'s converged value is NOISE.** Its sensitivity collapsed ~97x post-T12 (span 45.0% -> 0.46%).
+  Do not report it as a tuned optimum or as a finding.
+- **Treat `AspMult` far from 150 with suspicion** until the SPRT says otherwise — it is by far the most
+  sensitive dim (3.6x node swing across its range) and T5's aspiration shape was games-validated at +20.2.
+- **If the whole vector lands within rounding of the defaults**, the finding is *"already near a local
+  optimum"* and the lane closes without a second round.
+- **`plus_pct` and param movement are NOT evidence** — the rule that invalidated the 2026-06-28 round.
+
+### 5. Sequencing against T22
+
+T22 is staged and is the cheaper item (~8h vs the confirmation's ~8h plus 30h already spent). **If T8's
+vector is near-default, run T22 first** and treat T8's confirmation as low priority. **If the vector moved
+materially, confirm it first** — it sits upstream of everything else in Batch 4, and leaving an unconfirmed
+tuned vector in the tree would contaminate every later candidate's base.
