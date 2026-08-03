@@ -326,3 +326,48 @@ reduction amount can only matter where null moves are actually tried, and T12 re
   the dim-liveness pre-flight after every keep that touches a mechanism a dim controls** — not just before an
   SPSA round. Had T8 been launched on the pre-T12 pre-flight, 1/14 of a 25-hour run would have been spent on
   a dead knob with nobody the wiser.
+
+---
+
+## LAUNCH 2026-08-03 07:30 — and two harness traps that nearly corrupted a 25-hour run
+
+T8 is **LIVE**: `1 spsa + 16 ngn_t8base = 17 procs`, `params=14`, start theta == registered defaults
+including `LMPBase=5`. Base `ngn_t8base.exe` `c67200c1…`, tuner `spsa.exe` `f26a2814…`, both hash-verified.
+
+**It took three launch attempts, and both problems were real.**
+
+### Trap 1 — the on-box `spsa.exe` was STALE and silently tuned 13 dims, not 14
+
+The first launch printed **`params=13`**. The registry is **compiled into the tuner binary**, and the on-box
+`spsa.exe` (`b92d3c50…`) was built **2026-07-25, before T8b registered `LMPBase`**. So it carried the old
+13-dim registry.
+
+**This was not cosmetic. `LMPBase` is one of the five `improving` consumers the entire T17b interaction test
+depends on** — the whole reason for choosing the fixed base. A 25-hour run would have recalibrated **4 of 5**
+consumers and produced a vector that could never be interpreted as the pre-declared interaction test.
+
+**My own base-decision doc asserted "all five consumers are live SPSA dims" — that was verified against the
+ENGINE registry (`search.go`), not against what the stale TUNER binary had compiled in.** The verification
+was real but aimed at the wrong artifact. Fixed by rebuilding `spsa.exe` from current HEAD (`f26a2814…`),
+which reports `params=14`.
+
+**Rule: a tool that embeds a registry must be rebuilt whenever that registry changes, and the dim COUNT in
+its startup banner must be checked against the expected number at every launch.** `params=N` is the cheap
+assertion; it caught this in seconds once looked at.
+
+### Trap 2 — I created a leaked worker that `ps` could not see
+
+Rebuilding as `spsa14.exe` made the process invisible to the harness: `boxsprt.sh ps` uses
+`Get-Process -Name sprt,ngn_*,spsa` — an **exact** match, so `spsa14` never appears. Worse, `boxsprt.sh kill`
+stops `sprt`, `ngn_*` and `spsa` — **also exact** — so **the tuner survived the kill while its engines were
+stopped**, leaving an orphan (PID 37084) that `ps` reported as an idle box.
+
+That is precisely the failure the no-leak rule exists to prevent, and it was **self-inflicted by choosing a
+non-matching binary name**. Cleaned up by killing `spsa14` explicitly, deleting the stray binary, and
+relaunching under the standard `spsa.exe` name so both `ps` and `kill` work as designed. Verified: 17 procs
+visible, box otherwise clean.
+
+**Rule: never introduce a new process name on the box.** The harness's `ps`/`kill` patterns are exact-match,
+so a novel name is simultaneously unmonitorable and unkillable by the standard tooling. Reuse the sanctioned
+names (`sprt`, `ngn_*`, `spsa`) — overwrite in place rather than versioning the filename. **Editing the
+harness patterns instead was rejected: harness edits during a live run are barred.**

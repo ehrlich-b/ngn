@@ -64,9 +64,9 @@ date: 2026-08-03
 change_class: proposed gate diagnostic (not adopted)
 result: >
   amplification = |nodecheck delta %| / fire rate %. Across the four candidates where both are known the
-  ordering is monotone with outcome: T19 6x KEPT +7.3, T12 10x KEPT +2.2, T19b 28x (in flight, trending
-  null), T18b 54x -22.5.
-status: GATHER ONLY -- no threshold proposed on 4 points, one of which is not yet decided.
+  ordering is monotone with outcome: T19 6x KEPT +7.3, T12 10x KEPT +2.2, T19b 28x SHELVED (penta -1.0,
+  resolved 2026-08-03), T18b 54x -22.5.
+status: GATHER ONLY -- no threshold proposed on 4 decided points.
 action: compute and record amplification for every candidate passing the >=1% nodecheck gate; measure fire
   rate AT GATE TIME rather than after launch; revisit at ~10 points.
 ```
