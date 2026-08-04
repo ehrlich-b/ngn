@@ -661,3 +661,33 @@ keeps future checkpoints uncontaminated.
 
 **And for the next SPSA round: use a per-run `-out` filename.** The default `output/spsa.jsonl` and the
 reused `t8_spsa.jsonl` are how three campaigns ended up in one file.
+
+
+### Prediction check at iter 650/1500 (2026-08-03 20:30) — tracking
+
+At iter 475 I recorded the prediction that **the vector will NOT land "within rounding of the defaults"** —
+the pre-registered condition that would close the lane without a second round. **It is holding: 6 of 14
+rounded values already differ.**
+
+| param | default -> rounded | theta |
+|---|---|---|
+| **ReverseFutilityMargin** | **120 -> 103** | 102.63 |
+| **SingularMargin** | **64 -> 50** | 49.75 |
+| DeltaMargin | 100 -> 95 | 94.80 |
+| FutilityMargin | 100 -> 103 | 102.80 |
+| AspMult | 150 -> 152 | 151.78 |
+| ExtensionBudget | 24 -> 25 | 24.95 |
+
+**The two big movers are exactly the two that showed directed trajectories** at iter 475
+(ReverseFutilityMargin efficiency 0.84, SingularMargin 0.63) — the rounded vector is confirming what the
+trajectory analysis suggested, rather than diverging from it.
+
+**Three more sit close to a rounding flip** and may yet move: `NullMoveMinDepth` (theta 2.56, flips at 2.50),
+`LMPBase` (4.63, flips at 4.50), `LMRFullDepth` (2.76). Step sizes are still decaying, so these are not
+guaranteed.
+
+**`AspMult` has moved only +2 from 150** — the standing caution to distrust a large `AspMult` excursion
+remains unbreached, and T5's games-validated aspiration shape is intact.
+
+**This is state, not evidence.** No keep/shelve may be read from param movement or `plus_pct`; the converged
+vector still requires its own SPRT against unmodified HEAD, per the post-run runbook above.
