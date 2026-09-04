@@ -1,5 +1,11 @@
 # 2026-08-03 T22 — probcut restricted to true cut nodes — BUILT, GATED, STAGED
 
+**Final status, recovered 2026-09-04: SHELVED.** The run completed August 4:
+8000 games, W/D/L 2108/3768/2124, penta -0.7 [-6,+4], final pLLR -0.62,
+post-minimum pLLR envelope [-1.50,+1.58], zero flags/errors, `DONE_EXIT_0`.
+The predeclared +1 floor was not met. Patch remains unapplied.
+Log: `output/recovery-2026-09-04/t22_out.txt`. The preparation status below is historical.
+
 **STATUS: built, gated, staged, on-box hash verified. NOT LAUNCHED** — T8 owns the box until ~2026-08-04
 13:00. Engine tree reverted; nodecheck re-verified at 295507 / 112109 / 667703. Patch
 `output/t22-probcut-cutnode.patch`.

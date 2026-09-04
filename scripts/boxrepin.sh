@@ -11,6 +11,7 @@
 #   boxrepin.sh hash <remote-file>...                  SHA-256 files in the repin dir
 #   boxrepin.sh probe [ngn.exe] [only-list]            gauntlet -probe for the standard TC
 #   boxrepin.sh launch <run> [ngn.exe] [games] [only]  detached standard 120+1 gauntlet
+#   BOXREPIN_BIN selects a versioned harness (default: gauntlet.exe).
 #   boxrepin.sh tail <run> [N]                         tail <run>_out.txt
 #   boxrepin.sh fetch <run> [dest-dir]                 fetch out/tally/pgn if present
 #   boxrepin.sh ps                                     list live gauntlet/engine processes
@@ -23,11 +24,12 @@ REMOTE_DIR='C:\Users\ehrli\ngn\repin'
 REMOTE_REL='ngn/repin'
 SPRT_DIR='C:\Users\ehrli\ngn\sprt'
 ONLY_DEFAULT='v6.1.0,v7.2.0,v7.4.0,v8.0.0,counter-3.8'
+BIN="${BOXREPIN_BIN:-gauntlet.exe}"
 
 SSH=(ssh -i "$KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=20)
 SCP=(scp -i "$KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=20)
 
-usage() { sed -n '2,17p' "$0"; exit "${1:-0}"; }
+usage() { sed -n '2,18p' "$0"; exit "${1:-0}"; }
 
 safe_name() {
   case "${1:-}" in
@@ -41,6 +43,7 @@ safe_only() {
   esac
 }
 
+safe_name "$BIN"
 cmd="${1:-}"; shift || true
 case "$cmd" in
   push)
@@ -70,15 +73,15 @@ case "$cmd" in
     ;;
 
   probe)
-    ngn="${1:-ngn_t1b.exe}"
+    ngn="${1:-ngn.exe}"
     only="${2:-$ONLY_DEFAULT}"
     safe_name "$ngn"; safe_only "$only"
-    "${SSH[@]}" "$BOX" "powershell -NoProfile -Command \"Set-Location '$REMOTE_DIR'; .\\gauntlet.exe -ngn '.\\$ngn' -anchors ratings.json -tc 120+1 -games 80 -concurrency 8 -lowpower=false -openings sprt_openings.txt -only '$only' -probe\""
+    "${SSH[@]}" "$BOX" "powershell -NoProfile -Command \"Set-Location '$REMOTE_DIR'; .\\$BIN -ngn '.\\$ngn' -anchors ratings.json -tc 120+1 -games 80 -concurrency 8 -lowpower=false -openings sprt_openings.txt -only '$only' -probe\""
     ;;
 
   launch)
     run="${1:?launch needs a run name}"
-    ngn="${2:-ngn_t1b.exe}"
+    ngn="${2:-ngn.exe}"
     games="${3:-80}"
     only="${4:-$ONLY_DEFAULT}"
     safe_name "$run"; safe_name "$ngn"; safe_only "$only"
@@ -87,8 +90,8 @@ case "$cmd" in
     task="ngn_repin_$run"
     bat="$REMOTE_DIR\\run_$run.bat"
     tmp="$(mktemp)"
-    printf '@echo off\r\ncd /d "%%USERPROFILE%%\\ngn\\repin"\r\ngauntlet.exe -ngn .\\%s -anchors ratings.json -tc 120+1 -games %s -concurrency 8 -lowpower=false -openings sprt_openings.txt -only %s -tally-out %s_tally.json -pgn %s.pgn -no-record > %s_out.txt 2>&1\r\necho DONE_EXIT_%%ERRORLEVEL%%>> %s_out.txt\r\n' \
-      "$ngn" "$games" "$only" "$run" "$run" "$run" "$run" > "$tmp"
+    printf '@echo off\r\ncd /d "%%USERPROFILE%%\\ngn\\repin"\r\n%s -ngn .\\%s -anchors ratings.json -tc 120+1 -games %s -concurrency 8 -lowpower=false -openings sprt_openings.txt -only %s -tally-out %s_tally.json -pgn %s.pgn -no-record > %s_out.txt 2>&1\r\necho DONE_EXIT_%%ERRORLEVEL%%>> %s_out.txt\r\n' \
+      "$BIN" "$ngn" "$games" "$only" "$run" "$run" "$run" "$run" > "$tmp"
     "${SCP[@]}" "$tmp" "$BOX:$REMOTE_REL/run_$run.bat"
     rm -f "$tmp"
 
@@ -117,11 +120,11 @@ case "$cmd" in
     ;;
 
   ps)
-    "${SSH[@]}" "$BOX" 'powershell -NoProfile -Command "Get-Process -Name gauntlet,ngn*,blunder*,counter_38 -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,StartTime,CPU | Format-Table -AutoSize; exit 0"'
+    "${SSH[@]}" "$BOX" 'powershell -NoProfile -Command "Get-Process -Name gauntlet*,ngn*,blunder*,counter_38 -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,StartTime,CPU | Format-Table -AutoSize; exit 0"'
     ;;
 
   kill)
-    "${SSH[@]}" "$BOX" 'powershell -NoProfile -Command "Stop-Process -Name gauntlet -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 700; Stop-Process -Name ngn*,blunder*,counter_38 -Force -ErrorAction SilentlyContinue; Write-Output killed-gauntlet-then-engines-verify-with-ps; exit 0"'
+    "${SSH[@]}" "$BOX" 'powershell -NoProfile -Command "Stop-Process -Name gauntlet* -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 700; Stop-Process -Name ngn*,blunder*,counter_38 -Force -ErrorAction SilentlyContinue; Write-Output killed-gauntlet-then-engines-verify-with-ps; exit 0"'
     ;;
 
   ""|-h|--help|help) usage 0 ;;

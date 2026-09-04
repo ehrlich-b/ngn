@@ -432,6 +432,11 @@ func IsQuietPosition(pos *Position) bool {
 	if pos.IsInCheck() {
 		return false
 	}
+	// Terminal draws have no pending tactic. Qsearch now returns their exact
+	// draw score, which can differ from the raw static eval's tempo/PST terms.
+	if pos.IsDraw() || pos.IsFIDEDrawRule() {
+		return true
+	}
 	static := EvaluateForPlayer(&pos.Board, pos.Turn())
 	wasStopped := IsStopRequested()
 	ClearStop()

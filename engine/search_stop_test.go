@@ -55,3 +55,27 @@ func TestStoppedChildDoesNotStoreParentTT(t *testing.T) {
 		t.Fatal("stopped parent wrote a transposition-table entry")
 	}
 }
+
+func TestQuiescenceHonorsTimeLimit(t *testing.T) {
+	ClearStop()
+	t.Cleanup(ClearStop)
+	TranspositionTable = NewCache(1)
+	pos, err := ParseFEN("4k3/8/8/3q4/4P3/8/8/4K3 w - - 0 1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	hash := pos.Hash()
+	tm := NewTimeManager()
+	tm.timeControl = TimePerMove
+	tm.allocatedTime = time.Nanosecond
+	tm.startTime = time.Now().Add(-time.Second)
+	tm.checkCounter = 1023 // The next time check must observe the expired clock.
+	info := newSearchInfoForTest(tm, 1)
+	score := quiescence(pos, -INFINITY, INFINITY, 1, info)
+	if !info.Stopped || score != stoppedSearchScore {
+		t.Fatalf("expired qsearch returned score=%d stopped=%v", score, info.Stopped)
+	}
+	if info.Nodes != 0 || pos.Hash() != hash {
+		t.Fatal("expired qsearch searched moves or changed the position")
+	}
+}

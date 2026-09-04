@@ -173,68 +173,17 @@ func splitFEN(fen string) []string {
 	return parts
 }
 
-// ParseUCIMove parses a UCI move string like "e2e4" into a Move
+// ParseUCIMove resolves a UCI move against the legal move list. Callers include
+// the external-engine match harness, so decoding coordinates alone is not
+// sufficient: an illegal move must not be applied to the authoritative board.
 func ParseUCIMove(pos *Position, uciMove string) (Move, error) {
-	if len(uciMove) < 4 {
-		return EmptyMove, fmt.Errorf("invalid move: %s", uciMove)
+	if len(uciMove) != 4 && len(uciMove) != 5 {
+		return EmptyMove, fmt.Errorf("invalid UCI move: %s", uciMove)
 	}
-
-	fromFile := int(uciMove[0] - 'a')
-	fromRank := int(uciMove[1] - '1')
-	toFile := int(uciMove[2] - 'a')
-	toRank := int(uciMove[3] - '1')
-
-	if fromFile < 0 || fromFile > 7 || fromRank < 0 || fromRank > 7 ||
-		toFile < 0 || toFile > 7 || toRank < 0 || toRank > 7 {
-		return EmptyMove, fmt.Errorf("invalid squares in move: %s", uciMove)
-	}
-
-	fromSq := Square(fromRank*8 + fromFile)
-	toSq := Square(toRank*8 + toFile)
-
-	movingPiece := pos.Board.PieceAt(fromSq)
-	capturedPiece := pos.Board.PieceAt(toSq)
-
-	var tag MoveTag
-	var promoType PieceType
-
-	// Capture
-	if capturedPiece != NoPiece {
-		tag |= Capture
-	}
-
-	// En passant
-	if movingPiece.Type() == Pawn && toSq == pos.EnPassant {
-		tag |= EnPassant | Capture
-		capturedPiece = GetPiece(Pawn, pos.Turn().Other())
-	}
-
-	// Castling
-	if movingPiece.Type() == King {
-		if fromSq == E1 && toSq == G1 {
-			tag |= KingSideCastle
-		} else if fromSq == E1 && toSq == C1 {
-			tag |= QueenSideCastle
-		} else if fromSq == E8 && toSq == G8 {
-			tag |= KingSideCastle
-		} else if fromSq == E8 && toSq == C8 {
-			tag |= QueenSideCastle
+	for _, move := range GenerateLegalMoves(pos) {
+		if move.ToString() == uciMove {
+			return move, nil
 		}
 	}
-
-	// Promotion
-	if len(uciMove) == 5 {
-		switch uciMove[4] {
-		case 'q':
-			promoType = Queen
-		case 'r':
-			promoType = Rook
-		case 'b':
-			promoType = Bishop
-		case 'n':
-			promoType = Knight
-		}
-	}
-
-	return NewMove(fromSq, toSq, movingPiece, capturedPiece, promoType, tag), nil
+	return EmptyMove, fmt.Errorf("illegal UCI move: %s", uciMove)
 }

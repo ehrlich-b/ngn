@@ -296,7 +296,7 @@ func generateBlackPawnMoves(pos *Position) []Move {
 	// En passant captures
 	if pos.EnPassant != NoSquare && pos.EnPassant.Rank() == Rank3 { // Black can only en passant on rank 3 (6th rank from black's perspective)
 		enPassantTarget := pos.EnPassant
-		capturedPawnSquare := SquareOf(enPassantTarget.File(), enPassantTarget.Rank()-1) // The pawn that moved 2 squares
+		capturedPawnSquare := SquareOf(enPassantTarget.File(), enPassantTarget.Rank()+1) // White pawn is on rank 4, beyond the rank-3 target.
 
 		// Verify there's actually a white pawn to capture
 		if pos.Board.PieceAt(capturedPawnSquare) == WhitePawn {

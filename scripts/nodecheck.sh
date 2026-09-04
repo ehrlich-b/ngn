@@ -119,11 +119,15 @@ BIN="${1:-build/ngn}"
 # experiments/2026-08-01-queue-composition-check.md).
 # butterfly), NOT node-identical; single-position node shape is NOT a strength signal (the real-clock SPRT owns
 # strength). Deterministic (reproduced exact on 2 runs). Gate node-IDENTITY against THESE.
-# baselines locked @ 5b93966 2026-07-19
+# RE-LOCKED 2026-09-04 after the accepted correctness repair + exact pawn-push
+# witness: kiwipete/mid unchanged; end 667703 -> 858052 from corrected terminal
+# scores. Identity verified on both Mac and Windows; strength gate +23.5 [+1,+46].
+# See experiments/2026-09-04-fast-correctness.md. These are identity, not Elo, counts.
+# baselines locked @ 2026-09-04 correctness release
 POSITIONS=(
   "kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1|12|295507"
   "mid|r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10|12|112109"
-  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|667703"
+  "end|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1|16|858052"
 )
 
 nodes() { # bin fen depth — waits for the bestmove line so the count is depth-N-complete (exact)

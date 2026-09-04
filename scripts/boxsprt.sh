@@ -64,7 +64,7 @@ case "$cmd" in
   ps)
     # exit 0 even when idle: no matching process is the normal good state (Get-Process -Name
     # sets a nonzero exit on no-match, which would trip set -e in callers).
-    "${SSH[@]}" "$BOX" 'powershell -NoProfile -Command "Get-Process -Name sprt,ngn_*,spsa -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,StartTime,CPU | Format-Table -AutoSize; exit 0"'
+    "${SSH[@]}" "$BOX" 'powershell -NoProfile -Command "Get-Process -Name sprt*,ngn*,spsa* -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,StartTime,CPU | Format-Table -AutoSize; exit 0"'
     ;;
 
   tail)
@@ -85,7 +85,7 @@ case "$cmd" in
 
   kill)
     # sprt respawns engines, so stop the harness FIRST, then any leftover engines.
-    "${SSH[@]}" "$BOX" 'powershell -NoProfile -Command "Stop-Process -Name sprt -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 700; Stop-Process -Name ngn_*,spsa -Force -ErrorAction SilentlyContinue; Write-Output killed-sprt-then-engines-verify-with-ps; exit 0"'
+    "${SSH[@]}" "$BOX" 'powershell -NoProfile -Command "Stop-Process -Name sprt*,spsa* -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 700; Stop-Process -Name ngn_* -Force -ErrorAction SilentlyContinue; Write-Output killed-harnesses-then-engines-verify-with-ps; exit 0"'
     ;;
 
   ""|-h|--help|help) usage 0 ;;

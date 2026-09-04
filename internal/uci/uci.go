@@ -396,10 +396,8 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 	if err != nil {
 		return GameResult{Draw, "fen-error"}
 	}
-	if pos.Positions == nil {
-		pos.Positions = make(map[uint64]int)
-	}
-	pos.Positions[pos.Hash()]++
+	// ParseFEN already records the initial position once. Incrementing it
+	// again adjudicates the first return to the root as a threefold draw.
 
 	moves := make([]string, 0, cfg.MaxMoves)
 	if cfg.MovesOut != nil {

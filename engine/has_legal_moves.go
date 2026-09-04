@@ -1,5 +1,43 @@
 package engine
 
+// hasLegalPawnPush proves move availability without generating a full move list.
+// A failed probe still needs the general legality check: captures, king moves,
+// and other pieces may be the only way to avoid stalemate.
+func hasLegalPawnPush(p *Position) bool {
+	color, pawn, step := p.Turn(), WhitePawn, 8
+	targets := p.Board.pieces[WhitePawn] << 8
+	if color == Black {
+		pawn, step = BlackPawn, -8
+		targets = p.Board.pieces[BlackPawn] >> 8
+	}
+	targets &^= p.Board.whitePieces | p.Board.blackPieces
+	king := Square(bitScanForward(p.Board.pieces[GetPiece(King, color)]))
+	for targets != 0 {
+		to := Square(bitScanForward(targets))
+		targets &= targets - 1
+		from := Square(int(to) - step)
+		df, dr := int(from.File())-int(king.File()), int(from.Rank())-int(king.Rank())
+		// With the king safe, removing a pawn can only uncover a slider.
+		// A forward push preserves a file block; only a shared rank or
+		// diagonal can expose the king. All other pushes are proven legal.
+		if !p.IsInCheck() && dr != 0 && df != dr && df != -dr {
+			return true
+		}
+		promo := NoType
+		if to.Rank() == Rank1 || to.Rank() == Rank8 {
+			promo = Queen
+		}
+		move := NewMove(from, to, pawn, NoPiece, promo, 0)
+		p.partialMakeMove(move)
+		legal := !isInCheck(p, color)
+		p.partialUnMakeMove(move)
+		if legal {
+			return true
+		}
+	}
+	return false
+}
+
 // HasLegalMove checks if the position has at least one legal move
 // This is MUCH faster than GenerateLegalMoves() because it returns
 // as soon as it finds the first legal move, rather than generating all moves

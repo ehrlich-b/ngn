@@ -4,9 +4,17 @@ A chess engine written in Go, targeting Grandmaster level (2500+ ELO) with class
 
 ## Current Status
 
-**ELO:** **~2600–2650 CCRL Blitz (soft)**, and two independent anchor families now AGREE — the prior ~200-ELO non-transitivity has largely collapsed. The clean read (2026-06-08) is a **real-clock** `make gauntlet -tc 120+1` vs **Blunder 7.4.0** (CCRL 2532): **10W-11D-3L = 64.6% over 24 games with ZERO flag-outs → 2632, 95% CI [2487, 2777]** (real clock, so no movetime discount applies — the crosstable footer's movetime caveat is stale text for `-tc` runs). The independent **Fruit 2.1** (CCRL 2685) anchor reads ~2655 at movetime (~2575–2625 after the generic movetime-optimism discount) — i.e. both families now land ~2600–2650. The 2026-06-02..08 eval stack (king-safety attacker-material scaling, threats, passer discounts, the aux-scalar tune) is what moved the real-clock Blunder read from **2449 (Jun 2) → 2632 (Jun 8)**; the earlier ~2447 figure was a movetime run that was also forfeit-contaminated by Blunder's overshoot bug. Caveat: still single-family-at-a-time at n=24–40 (CIs ~±130–180, overlapping), so a broad multi-family pool remains the only true pin — but the central estimate is now ~2620 with cross-anchor agreement, not a 200-ELO spread. The Stockfish `UCI_Elo` slider reads ~+400 inflated, so disregard old slider-based "1600"/"2500" figures.
+**Last measured strength: 2704, 95% CI [2665, 2743]**, from a 400-game,
+five-anchor real-clock gauntlet on July 19, 2026. This is a local estimate
+calibrated against CCRL anchors, not an official CCRL rating or a new rating for
+subsequent patches. See the [run record](experiments/2026-07-19-gauntlet-repin.md)
+and [current work state](TODO.md).
 
-## Verified Performance
+
+## Historical Performance Measurements
+
+The figures below describe earlier Mac measurements. Current repair timings
+are recorded in the [September validation](experiments/2026-09-04-fast-correctness.md).
 
 NPS is phase- and core-dependent — it is **not** a scalar; always state the position and core type (the engine runs on E-cores, `taskpolicy -b`):
 
@@ -48,22 +56,23 @@ make build    # Build the engine
 make test     # Run tests
 ```
 
-## ELO Assessment
+## Strength Assessment
 
-Default cadence is `make smoke`: tactical suite + 5-game asymmetric match,
-records to `output/smoke_history.jsonl`, prints a rolling ELO estimate that
-tightens with every run.
+Use paired games at real tournament clocks for changes to search, evaluation,
+or time management. A move-generation test, node count, NPS measurement, or
+short smoke match does not establish Elo. Same-engine preflights check the
+match setup before comparing different binaries.
+
+Absolute strength is measured against the pinned five-opponent ladder. See the
+[120+1 gauntlet manifest](experiments/2026-09-04-strength-check.md) for the exact
+command, opponent labels, checksums, exclusions, and confidence-interval rule.
+The older asymmetric Stockfish-slider and rolling smoke estimates are legacy
+instruments and should not be used to claim a rating or accept an engine change.
+
+For a quick tactical check:
 
 ```bash
-make smoke              # ~5 min, battery-friendly (E-cores)
-make smoke-tactical     # ~5 sec, tactical only
-./build/smoke -rolling  # Print rolling estimate without running
-```
-
-Full Bayesian test (only when on AC power):
-
-```bash
-./build/elo-assess -elo 1500 -movetime 2500 -sfmovetime 200 -min 6 -games 14 -ci 300
+make smoke-tactical
 ```
 
 ## Development

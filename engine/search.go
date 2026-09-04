@@ -565,19 +565,19 @@ type SearchInfo struct {
 	// incremented unconditionally, NEVER read by search decisions — node counts
 	// are identical with or without them (nodecheck is the implementation gate).
 	// Reported once after bestmove via the `debug on` sd_* dump in uci.go.
-	MoveLoopNodes       uint64    // Nodes that reach the move loop (ordering denominator)
-	TTMoveListed        uint64    // Move-loop nodes where a hash move was available to ordering
-	CutIdxHist          [5]uint64 // Beta cutoffs bucketed by legalTried: 1, 2, 3, 4-7, 8+
-	CutTriedSum         uint64    // Sum of legalTried at beta cutoffs (mean cut index; b_cut numerator)
-	BcutBand            [4]uint64 // Beta cutoffs by remaining-depth band: 1-2, 3-5, 6-9, 10+
-	FmcBand             [4]uint64 // First-move cutoffs by the same depth bands
-	CutByTT             uint64    // Cutoff move classes (scoring-time data only; killer/counter
-	CutByCapture        uint64    // labels are approximate — tables mutate during child searches)
-	CutByPromo          uint64
-	CutByKiller         uint64
-	CutByCounter        uint64
-	CutByQuietHist      uint64
-	CutMissByClass      [6][3]uint64 // Non-first beta cutoffs (ordering misses) by [class][band];
+	MoveLoopNodes  uint64    // Nodes that reach the move loop (ordering denominator)
+	TTMoveListed   uint64    // Move-loop nodes where a hash move was available to ordering
+	CutIdxHist     [5]uint64 // Beta cutoffs bucketed by legalTried: 1, 2, 3, 4-7, 8+
+	CutTriedSum    uint64    // Sum of legalTried at beta cutoffs (mean cut index; b_cut numerator)
+	BcutBand       [4]uint64 // Beta cutoffs by remaining-depth band: 1-2, 3-5, 6-9, 10+
+	FmcBand        [4]uint64 // First-move cutoffs by the same depth bands
+	CutByTT        uint64    // Cutoff move classes (scoring-time data only; killer/counter
+	CutByCapture   uint64    // labels are approximate — tables mutate during child searches)
+	CutByPromo     uint64
+	CutByKiller    uint64
+	CutByCounter   uint64
+	CutByQuietHist uint64
+	CutMissByClass [6][3]uint64 // Non-first beta cutoffs (ordering misses) by [class][band];
 	//                                  class 0..5 = TT/capture/promo/killer/counter/quiet-hist,
 	//                                  band 0..2 = the cut landed on move 2 / move 3 / move 4+.
 	RFPPrunes           uint64 // Reverse-futility returns (was uncounted)
@@ -775,7 +775,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 			bestMoveNodes := uint64(0)      // T1e: nodes spent inside the current best move's subtree
 			attemptStartNodes := info.Nodes // T1e: node baseline for this attempt's per-move attribution
 			rootInCheck := pos.IsInCheck()  // root position: don't root-LMR while in check
-			legalRoot := 0                 // count of LEGAL root moves (PVS first-move + LMR index)
+			legalRoot := 0                  // count of LEGAL root moves (PVS first-move + LMR index)
 
 			for oi := 0; oi < orderedCount; oi++ {
 				move := orderedRoot[oi]
@@ -805,9 +805,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				nodesBefore := info.Nodes // T1e: node count before searching this root move's subtree
 
 				var score int
-				if pos.IsFIDEDrawRule() {
-					score = 0 // Draw
-				} else if legalRoot == 1 {
+				if legalRoot == 1 {
 					// First legal root move: full window + PV (establishes alpha / the PV line).
 					score = -alphaBetaPV(pos, currentDepth-1, 1, -beta, -alpha, true, true, false, info)
 				} else {
@@ -1174,6 +1172,42 @@ func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) 
 	return alphaBetaPV(pos, depth, 0, alpha, beta, true, true, false, info) // Root is always PV
 }
 
+// searchDrawScore applies the same terminal rules in the main and quiescence
+// searches. Game history contains played positions only; RepStack contains
+// ancestors of this invocation, with same-position verification entries hidden.
+func searchDrawScore(pos *Position, ply int, hash uint64, info *SearchInfo) (int, bool) {
+	// Checkmate ends the game before a fifty-move draw can be claimed. Check
+	// this before IsDraw too, since that helper includes the halfmove clock.
+	if pos.HalfMoveClock >= 100 {
+		if pos.IsInCheck() && !pos.HasLegalMove() {
+			return -MATE_VALUE + ply, true
+		}
+		return 0, true
+	}
+	if pos.IsDraw() {
+		return 0, true
+	}
+	// An irreversible move makes all pre-root positions unreachable.
+	if pos.Positions != nil && int(pos.HalfMoveClock) >= ply {
+		pos.positionsMutex.RLock()
+		count := pos.Positions[hash]
+		pos.positionsMutex.RUnlock()
+		if count >= 2 {
+			return 0, true
+		}
+	}
+	lo := info.RepStackLen - int(pos.HalfMoveClock)
+	if lo < 0 {
+		lo = 0
+	}
+	for i := info.RepStackLen - 1; i >= lo; i-- {
+		if info.RepStack[i] == hash {
+			return 0, true
+		}
+	}
+	return 0, false
+}
+
 func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bool, canNull bool, cutNode bool, info *SearchInfo) int {
 	if ply > info.SelDepth {
 		info.SelDepth = ply
@@ -1225,62 +1259,16 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		return EvaluateForPlayer(&pos.Board, pos.Turn())
 	}
 
+	// Quiescence owns the horizon frame and checks terminal positions itself.
+	if depth == 0 {
+		return quiescence(pos, alpha, beta, ply, info)
+	}
+
 	// Compute hash once and reuse for repetition detection and TT probe.
 	hash := pos.Hash()
 
-	// Draw detection: insufficient material, 50-move rule, repetition
-	{
-		// Insufficient-material draw (KvK, K+single-minor vs K, same-colour KBvKB):
-		// these are dead draws, but the eval scores them non-zero (KBvK reads ~+354cp),
-		// so without this NGN burns nodes "winning" them and misjudges trades into them.
-		// IsDraw() is conservative + allocation-free; ply>0 so the root always returns a
-		// move (C1; Blunder checks the equivalent at every non-root node).
-		if ply > 0 && pos.IsDraw() {
-			return 0
-		}
-
-		// 50-move rule
-		if pos.HalfMoveClock >= 100 {
-			return 0
-		}
-
-		// Check game history for repetition (count >= 2 means 3-fold with this occurrence).
-		// Reachability gate: equal zobrists k plies apart require k reversible plies, so
-		// HalfMoveClock >= k (null moves increment it too, position.go:81). Every game-map
-		// entry is at least `ply` plies back (the root itself is in the map, uci.go:145),
-		// so when HMC < ply no entry can match and the lock+map probe — two atomic RMWs
-		// plus a map hash at EVERY main node — is skipped (the common case at depth).
-		if pos.Positions != nil && int(pos.HalfMoveClock) >= ply {
-			pos.positionsMutex.RLock()
-			count := pos.Positions[hash]
-			pos.positionsMutex.RUnlock()
-			if count >= 2 {
-				return 0
-			}
-		}
-
-		// Check search path for repetition (2-fold in search = draw). The same invariant
-		// bounds the scan: an entry k plies back can only match when k <= HalfMoveClock.
-		// Stack distance equals real plies — IID/singular re-entries hide their duplicate
-		// entry (search.go IID block / singular block), so they add no phantom distance.
-		lo := info.RepStackLen - int(pos.HalfMoveClock)
-		if lo < 0 {
-			lo = 0
-		}
-		for i := info.RepStackLen - 1; i >= lo; i-- {
-			if info.RepStack[i] == hash {
-				return 0
-			}
-		}
-
-	}
-
-	// Horizon dispatch BEFORE the rep-stack push + frame reservation + defer below:
-	// qsearch never scans RepStack and reserves its own frame, and no alphaBetaPV node
-	// exists below a depth==0 node, so the pushed hash could never be read — the push,
-	// the frame bump and the defer were pure overhead at every horizon entry.
-	if depth == 0 {
-		return quiescence(pos, alpha, beta, ply, info)
+	if score, drawn := searchDrawScore(pos, ply, hash, info); drawn {
+		return score
 	}
 
 	// Push current hash onto repetition stack
@@ -2232,14 +2220,28 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		info.Stopped = true
 		return stoppedSearchScore
 	}
+	// Capture/evasion trees can run for many nodes without returning to the
+	// main search. They must observe the clock too; depth 0 checks the hard
+	// tournament deadline without applying an iteration's soft stop.
+	if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(0) {
+		info.Stopped = true
+		return stoppedSearchScore
+	}
 
 	// Node-in-check: read the maintained InCheck tag before the q-depth cap.
 	// Stand-pat/static truncation is illegal while the side to move is in check.
 	inCheck := pos.IsInCheck()
 
-	// Prevent infinite capture recursion. In-check nodes must still search evasions;
-	// the cap applies only once the line reaches a non-check position.
+	hash := pos.Hash()
+	if score, drawn := searchDrawScore(pos, ply, hash, info); drawn {
+		return score
+	}
+	// Preserve the capture cap's position before the TT probe, but never
+	// substitute static evaluation for a stalemate or an in-check node.
 	if qDepth >= 6 && !inCheck {
+		if !hasLegalPawnPush(pos) && !pos.HasLegalMove() {
+			return 0
+		}
 		info.QDepthCapHits++
 		return correctedStandPat(pos)
 	}
@@ -2248,7 +2250,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// covers us (main search stores at depth >= 1 only). Mate scores need
 	// converting from node-relative TT encoding back to root-relative.
 	// Also keep ttMove for move ordering even when no cutoff is taken.
-	ttMove, ttEvalRaw, _, ttNodeType, ttHit, ttPvEntry := TranspositionTable.Get(pos.Hash())
+	ttMove, ttEvalRaw, _, ttNodeType, ttHit, ttPvEntry := TranspositionTable.Get(hash)
 	info.QTTProbes++
 	if ttHit {
 		info.QTTHits++
@@ -2282,7 +2284,14 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// stack (inlined copy, never escaped).
 	qframeIdx := info.FrameDepth
 	info.FrameDepth++
-	defer func() { info.FrameDepth-- }()
+	// Checks and evasions can repeat even though ordinary captures cannot.
+	// Preserve the caller's stack length on every return, including cutoffs.
+	savedRepLen := info.RepStackLen
+	if info.RepStackLen < len(info.RepStack) {
+		info.RepStack[info.RepStackLen] = hash
+		info.RepStackLen++
+	}
+	defer func() { info.FrameDepth--; info.RepStackLen = savedRepLen }()
 	var qframe *searchFrame
 	if info.Frames != nil && qframeIdx < len(info.Frames) {
 		qframe = &info.Frames[qframeIdx]
@@ -2347,8 +2356,9 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		return bestScore
 	}
 
-	// Not in check. Detect stalemate at qDepth==0 (rare; preserves prior behavior).
-	if qDepth == 0 {
+	// Not in check. A legal pawn push proves this is not stalemate without
+	// generating every piece's moves. Fall back to the full probe when needed.
+	if !hasLegalPawnPush(pos) {
 		moveBuffer := qframe.moveBuffer[:]
 		moveCount := GenerateMovesIntoBuffer(pos, moveBuffer)
 		hasLegalMove := false
