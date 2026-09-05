@@ -71,7 +71,7 @@ The completed same-qcap A/A
 `r0905qbaseaa` used precisely these settings and passed; reuse is valid only
 while baseline/harness/machine configuration remains unchanged. A new accepted
 base needs its corresponding A/A control. No autonomous handoff currently
-launches this candidate.
+launches this T8 candidate.
 
 ## Launch verification
 
@@ -89,6 +89,12 @@ binaries, with completed games flowing. No defaults were replaced.
 `output/recovery-2026-09-04/watch_r0905t8qcap.py` is a bounded collector: it
 checks once a minute, fetches the completed log and records remaining processes.
 It never launches another run, selects a verdict, commits or deploys. State is
-`t8-qcap-games-controller.json`; root must apply the original H1/H0/cap rule
-after completion. This is the only active native match. The prepared singular-only
-candidate follows this decision and must rebuild if T8 changes the accepted base.
+`t8-qcap-games-controller.json`. Root reviews any acceptance before integration.
+This is the only active native match. The prepared singular-only candidate
+follows this decision and must rebuild if T8 changes the accepted base.
+
+The [conditional successor controller](2026-09-05-singular-only-confirmation.md#conditional-unchanged-base-handoff)
+may audit a completed, clean T8 H0/cap result and launch the already frozen
+singular-only candidate after all unchanged-base prerequisites pass. It halts
+on H1 or any failed prerequisite. This automation changes neither the original
+game rule nor the installed engine, and does not extend or restart T8.

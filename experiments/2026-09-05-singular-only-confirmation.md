@@ -1,6 +1,6 @@
 # Coherent child depth with singular extensions only
 
-Candidate built and root-reviewed, **not launched or accepted**. This is the single candidate
+Candidate built, root-reviewed and staged, **not launched or accepted**. This is the single candidate
 selected from the [fixed four-arm diagnostic](2026-09-05-depth-policy.md).
 It is a search heuristic experiment, not an automatic correctness keep.
 
@@ -20,7 +20,8 @@ extra counters or UCI changes. Require full node/score/PV/bestmove identity with
 the D overlay on all three canonical roots and all23 full-history400k-node cases,
 Hash64/Threads1, plus full short/race/vet and the independent legal-move oracle.
 
-The current classical-fit verdict and T17+T8 confirmation come first. This
+The classical fit was shelved at its completed inconclusive cap; the running
+T17+T8 confirmation comes first. This
 qcap-based candidate can launch as built only if qcap remains the accepted
 immediate base. An accepted intervening change requires rebasing/rebuilding,
 repeat validation and replacement frozen artifact identities before launch.
@@ -75,9 +76,66 @@ No diagnostic data structure, switch or UCI edit remains.
   2,293 positions,48,926 depth-2 root divides,128 raw search roots, all matching
   with state restoration.
 
-The Windows binary is built locally, not pushed or installed. Immediate accepted
-base, A/A basis, native smoke, remote hashes and run name remain pending the prior
-completed game verdicts. No game launch is authorized by an artifact name alone.
+Root staged the Windows binary and reverified its remote SHA-256 above. It is
+not installed or running. Fresh Mac EP/castling/fifty-move-mate smoke passes;
+all14 advertised defaults retain the qcap values. A matching native script is
+staged but must run only after T8 completes and native workers are idle.
+
+## Conditional unchanged-base handoff
+
+The prospective run name is **`r0905singularqcap`**. Its complete command,
+frozen before launch, is:
+
+```text
+BOXSPRT_BIN=sprt_20260904.exe scripts/boxsprt.sh launch r0905singularqcap -- -new '.\ngn_20260905_singularonly.exe' -base '.\ngn_20260904_qcap.exe' -tc 10+0.1 -concurrency 8 -lowpower=false -openings sprt_openings.txt -elo0 0 -elo1 10 -alpha 0.05 -beta 0.05 -maxgames 1600 -mingames 200 -resignscore 900 -resignplies 5 -drawscore 10 -drawplies 10 -drawminplies 80
+```
+
+To avoid repeated manual polling, root prepared a bounded controller for the
+already authorized negative-result branch. It may launch this exact candidate
+only after a fresh fetch and full audit establishes that T8 completed cleanly
+with H0 or its inconclusive cap. It stops on T8 H1 for root integration/rebuild;
+it never accepts an engine into main, changes defaults or starts an external pin.
+This changes the handoff mechanism, not either frozen game decision rule.
+
+Before the successor launch it verifies frozen local source/artifact hashes,
+the original A/A log and interval, remote binary/harness/book/script hashes,
+the installed Windows default still being qcap, idle native chess workers,
+an unused run name, and the native candidate's bounded UCI smoke. Any failed
+prerequisite stops the handoff. Exclusive local claim prevents duplicate
+controllers; an ambiguous launch error is never retried automatically.
+
+The controller then collects the singular-only result and stops for root review.
+Collector timeout or lost observation is not a terminal engine verdict and
+does not authorize a restart. The live T8 collector remains responsible for
+its existing match. No Windows/WSL engine CPU is added while that match runs.
+
+Controller and offline integration tests are under
+`output/recovery-2026-09-04/{conditional_singular_handoff.py,test_conditional_singular_handoff.py}`.
+Frozen inputs and state are `singular-handoff-inputs.json` and
+`singular-handoff-controller.json`.
+
+**Armed after independent validation and root review.** Nine offline integration
+tests use temporary fixture directories and the real completed-log auditor.
+They verify exactly one frozen launch after cap, no launch after H1, invalid
+completion, changed local/remote hashes, active workers or failed native smoke,
+exclusive claiming, and no retry after ambiguous launch failure. The actual
+baseline A/A is byte-copied and SHA-verified; synthetic candidate fixtures are
+explicitly test data. Fakes reject unknown commands and assert complete launch
+arguments plus the versioned harness selector. Root reran all nine tests and
+reviewed their assertions; log `singular-handoff-root-validation.txt`.
+
+Review caught and repaired the native guard's missing PowerShell terminating-error
+setting. A read-only native probe then verified the installed qcap hash and unused
+run name and rejected the active T8 workers as required. Native candidate searches
+remain deferred until idle. The controller now waits for T8; no successor is live.
+
+Frozen SHA-256s:
+
+- Controller: `be7b720f090646a5a6ca3e2840d346d1b48f368eac2e4a47429b2bb17ae017b9`.
+- Inputs (326 local source/artifact files, five remote files):
+  `70b3079687b8913d6163fd5d0a03b178a4cf0e7fab40d438ec8719ac4db56b90`.
+- Integration tests: `c37b3bbf21e91858790ce5d439564a2d0853b355c69d745a787c109e330ed728`.
+- Native smoke script: `18ba3f7635c9967e2fc75e42e25f887df04cdd1dd88f6df31e578fe3321c05fb`.
 
 The candidate's self-play gate cannot establish the absolute2800 goal. An
 accepted engine gain proceeds to the [prospective external confirmation](2026-09-05-2800-pin-plan.md).

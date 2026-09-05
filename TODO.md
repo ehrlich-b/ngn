@@ -91,7 +91,7 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    The offline expansion exposes 138 existing mobility/threat coefficients;
    all have live activation/frozen-trace parity and all 936 stored values survive
    source import/rebuild. Initial playing eval source and weights are unchanged.
-2. **Frozen candidate ready:** `ngn_20260905_texelv2.exe` (4feb83b0...), all936
+2. **Fitted candidate completed and shelved:** `ngn_20260905_texelv2.exe` (4feb83b0...), all936
    compiled entries equal the fitted model. Full short/race/vet, UCI smoke and
    independent SF oracle pass (intentional numeric fixture change documented).
    Fresh baseline A/A `r0905qbaseaa` passed200 games (paired+15.65 [−16.71,+48.28],
@@ -107,7 +107,7 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    fetches the result but never chooses a verdict or installs a candidate.
    [Exact artifacts and bounded original confirmation rule](experiments/2026-09-05-t8-qcap-confirmation.md).
    Do not reuse the interrupted279-game castling-bug run.
-4. **Singular-only search candidate built and validated, not launched.** The fixed
+4. **Singular-only search candidate built, validated and staged, not launched.** The fixed
    four-arm [depth-policy diagnostic](experiments/2026-09-05-depth-policy.md)
    supports testing removal of positive check/passed-pawn extensions, retaining
    singular extensions and consistent scout depth. Six changed choices on23
@@ -115,6 +115,11 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    not Elo. Full plain/overlay identity, short/race/vet and independent oracle
    pass. [Frozen binaries, diff and game gate](experiments/2026-09-05-singular-only-confirmation.md).
    It must follow the fit/T8 decisions and rebuild if the accepted base changes.
+   A tested conditional unchanged-base handoff is armed: only a freshly audited,
+   clean T8 H0/cap may launch the frozen `r0905singularqcap` command after hashes,
+   A/A, idle workers and native smoke pass. T8 H1 stops for root integration.
+   Nine offline integration cases pass; controller identities are recorded in
+   the confirmation manifest. It waits on T8, with no competing engine workers.
    The old J1−59 estimate was65 interrupted games, not a completed rejection.
    [External2800 confirmation protocol](experiments/2026-09-05-2800-pin-plan.md)
    is prepared for an accepted gain, not launched.
