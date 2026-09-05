@@ -1,6 +1,8 @@
 # Singular-only confirmation on accepted T17+T8
 
-**A/A passed; `r0905singulart8` is running.** Frozen before games, the
+**Completed H0; rejected.** `r0905singulart8` finished794 games at paired
+−12.26 [−27.56,+2.99], zero errors/flags. Accepted T8 remains deployed.
+Frozen before games, the
 [original D policy](2026-09-05-singular-only-confirmation.md)
 is rebuilt on accepted T8 commit `5cf301a870f6cd9218d8085166993f7ad5364aee`.
 T8 passed its completed734-game H1 at paired+38.02 [+20.77,+55.45] and is now
@@ -150,3 +152,23 @@ eight singular-T8 workers and eight accepted-T8 workers, with games flowing.
 The candidate is not installed. No additional Windows/WSL engine work may run
 alongside it. The controller collects completion for root review without any
 automatic promotion, extension or restart.
+
+## Completed rejection and root review
+
+The match completed in50m21s with186W/394D/214L, penta21/97/181/85/13
+over397 pairs, single terminal `DONE_EXIT_0`, and idle workers. Root reviewed
+the full log, reconciled counts and independently recomputed the paired estimate
+and interval. First printed H0 crossing was G786 at pLLR−3.02; already assigned
+games drained to794, leaving final pLLR−2.85009. The final value's movement
+inside the boundary does not undo the completed stopping decision.
+
+The predeclared outcome is **REJECT_H0**. No singular-only patch is installed,
+and the match will not be extended or pooled. Raw SHA-256:
+`aa34a4679d55fe6b1407b26ae2b2ba1860e54315435ecdfad6ca507c4ff6c690`.
+Root verdict: `output/recovery-2026-09-04/r0905singulart8-root-verdict.json`.
+
+The external rating handoff selected already accepted T8. Its startup preflight
+stopped before any rating launch on a WSL ps terminal-size warning. Root fixed
+that in a new verifier version; the original collector, scripts and failure
+record remain intact. See the [pin manifest](2026-09-05-2800-pin-plan.md) for
+the selected release, passing final startup and launch record.
