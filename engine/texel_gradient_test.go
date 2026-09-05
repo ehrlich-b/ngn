@@ -2,6 +2,7 @@ package engine
 
 import (
 	"math"
+	"math/rand"
 	"sort"
 	"testing"
 )
@@ -65,6 +66,76 @@ func TestEvalTraceReproducesEval(t *testing.T) {
 			t.Errorf("decomposed (mg=%d,eg=%d) != accumulator (mg=%d,eg=%d) for %q", mg, eg, b.accMG, b.accEG, fen)
 		}
 	}
+}
+
+// TestEvalTraceParityDiverseAndPerturbedWeights guards against a trace that happens
+// to match only the default weights or a hand-picked corpus. The deterministic walks
+// cover positions outside texelGateFENs, and changing every live coordinate proves
+// that the trace remains the evaluator's model rather than a default-value snapshot.
+func TestEvalTraceParityDiverseAndPerturbedWeights(t *testing.T) {
+	savedCache := pawnCacheDisabled
+	pawnCacheDisabled = true
+	defer func() { pawnCacheDisabled = savedCache }()
+
+	positions := make([]Position, 0, 1600)
+	rng := rand.New(rand.NewSource(2600))
+	for game := 0; game < 16; game++ {
+		pos, err := ParseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+		if err != nil {
+			t.Fatal(err)
+		}
+		for ply := 0; ply < 100; ply++ {
+			positions = append(positions, *pos.Copy())
+			moves := GenerateLegalMoves(pos)
+			if len(moves) == 0 {
+				break
+			}
+			pos.GameMakeMove(moves[rng.Intn(len(moves))])
+		}
+	}
+
+	traces := make([]evalTrace, len(positions))
+	check := func(label string) {
+		t.Helper()
+		backwardFeatures := 0
+		for i := range positions {
+			b := positions[i].Board
+			b.recomputeAccumulator()
+			if label == "default" {
+				traces[i] = buildEvalTrace(&b)
+			}
+			tr := traces[i]
+			if tr.Backward != 0 {
+				backwardFeatures++
+			}
+			if got, want := reconstructEvalInt(&tr), evaluateUnsafe(&b); got != want {
+				t.Fatalf("%s position %d: trace=%d live=%d FEN=%s", label, i, got, want, GenerateFEN(&positions[i]))
+			}
+		}
+		if backwardFeatures == 0 {
+			t.Fatal("diverse corpus did not exercise the backward-pawn feature")
+		}
+	}
+
+	check("default")
+	ptrs := TexelFullParams()
+	saved := make([]int, len(ptrs))
+	for i, p := range ptrs {
+		saved[i] = *p
+		delta := (i%11 + 1) * 7
+		if i%2 != 0 {
+			delta = -delta
+		}
+		*p += delta
+	}
+	RebuildPST()
+	defer func() {
+		for i, p := range ptrs {
+			*p = saved[i]
+		}
+		RebuildPST()
+	}()
+	check("perturbed")
 }
 
 // TestEvalTraceFloatFidelity confirms the float linear model (used for gradients)
@@ -176,6 +247,91 @@ func TestTexelGradientNumericCheck(t *testing.T) {
 		t.Fatal("no active gradients to check")
 	}
 	t.Logf("gradient check passed on %d params (8 most-active + active scalars)", checked)
+}
+
+// TestTexelGradientBackwardPawnCoordinates checks both phase-tapered backward-pawn
+// coordinates directly. The general numeric test can miss them when its small corpus
+// happens not to contain a backward pawn.
+func TestTexelGradientBackwardPawnCoordinates(t *testing.T) {
+	pos, err := ParseFEN("1nb1kb1r/ppp2p2/3pqnpp/4p1P1/4BP2/2N1P2N/PPPP3P/R1BQ1K1R w kq - 0 1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	b := pos.Board
+	b.recomputeAccumulator()
+	tr := buildEvalTrace(&b)
+	if tr.Backward == 0 || tr.Phase == 0 || tr.Phase == totalPhase {
+		t.Fatalf("fixture must have a backward pawn and mixed phase: backward=%d phase=%d", tr.Backward, tr.Phase)
+	}
+	tr.Result = 0.17
+	ptrs := TexelFullParams()
+	w := make([]float64, len(ptrs))
+	for i, p := range ptrs {
+		w[i] = float64(*p)
+	}
+	_, gradient := texelTraceGradient([]evalTrace{tr}, w, 1.0, true)
+	mseAt := func(weights []float64) float64 {
+		mse, _ := texelTraceGradient([]evalTrace{tr}, weights, 1.0, false)
+		return mse
+	}
+	for _, index := range []int{texelScalarBase + 3, texelScalarBase + 13} {
+		if gradient[index] == 0 {
+			t.Fatalf("backward-pawn gradient at %d is zero", index)
+		}
+		const h = 1.0
+		plus, minus := append([]float64(nil), w...), append([]float64(nil), w...)
+		plus[index] += h
+		minus[index] -= h
+		numeric := (mseAt(plus) - mseAt(minus)) / (2 * h)
+		if math.Abs(gradient[index]-numeric) > 1e-8+1e-3*math.Abs(numeric) {
+			t.Errorf("backward gradient[%d]=%.6e, numeric=%.6e", index, gradient[index], numeric)
+		}
+	}
+}
+
+// A training update can worsen validation loss. The original vector is a valid
+// checkpoint and must win if every attempted update is worse than that baseline.
+func TestTexelGradientTunePreservesBetterInitialVector(t *testing.T) {
+	savedCache := pawnCacheDisabled
+	defer func() { pawnCacheDisabled = savedCache }()
+	ptrs := TexelFullParams()
+	saved := make([]int, len(ptrs))
+	w := make([]float64, len(ptrs))
+	for i, p := range ptrs {
+		saved[i], w[i] = *p, float64(*p)
+	}
+	defer func() {
+		for i, p := range ptrs {
+			*p = saved[i]
+		}
+		RebuildPST()
+	}()
+	validation := gateSamples(t)
+	traces := traceDataset(validation)
+	train := make([]TexelSample, len(validation))
+	for i := range validation {
+		prediction := texelSigmoid(evalTraceFloat(&traces[i], w), 1)
+		validation[i].Result = prediction // exact minimum at the initial vector
+		train[i] = validation[i]
+		if prediction < 0.5 {
+			train[i].Result = 1
+		} else {
+			train[i].Result = 0
+		}
+	}
+	var attemptedLoss float64
+	TexelGradientTune(train, validation, TexelGradientConfig{
+		K: 1, LR: 20, Epochs: 1,
+		Progress: func(_ int, _, loss float64) { attemptedLoss = loss },
+	})
+	if attemptedLoss <= 1e-10 {
+		t.Fatalf("fixture did not produce a worse validation checkpoint: %g", attemptedLoss)
+	}
+	for i, p := range ptrs {
+		if *p != saved[i] {
+			t.Fatalf("worse validation checkpoint replaced initial parameter %d: %d -> %d (loss %g)", i, saved[i], *p, attemptedLoss)
+		}
+	}
 }
 
 // TestTexelGradientTuneReducesMSE is the machinery end-to-end: with a REACHABLE

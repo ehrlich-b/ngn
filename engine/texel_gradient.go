@@ -21,7 +21,7 @@ import (
 //	[0..4]    pestoMGMaterial[Pawn..Queen]
 //	[5..9]    pestoEGMaterial[Pawn..Queen]
 //	[10..777] 768 raw PST cells: 12 tables (mgPawn..mgKing, egPawn..egKing) × 64
-//	[778..795] the 18 scalar weights (TexelWeights order: 9 MG, then 9 EG twins)
+//	[778..797] the 20 scalar weights (TexelWeights order: 10 MG, then 10 EG twins)
 //
 // King has no material parameter (its value is fixed at 0, conventional since both
 // sides always have exactly one), but it does have a PST.
@@ -29,10 +29,10 @@ import (
 const (
 	texelNumMaterial = 10  // mg Pawn..Queen (0..4), eg Pawn..Queen (5..9)
 	texelNumPST      = 768 // 12 tables × 64
-	texelNumScalars  = 18  // == len(TexelWeights()): 9 MG term weights (0..8) + 9 EG twins (9..17)
+	texelNumScalars  = 20  // == len(TexelWeights()): 10 MG term weights (0..9) + 10 EG twins (10..19)
 	texelPSTBase     = texelNumMaterial
 	texelScalarBase  = texelNumMaterial + texelNumPST
-	texelNumParams   = texelNumMaterial + texelNumPST + texelNumScalars // 787
+	texelNumParams   = texelNumMaterial + texelNumPST + texelNumScalars // 798
 )
 
 // Global-index helpers. King (pt==6) is out of material range — callers must skip
@@ -63,6 +63,7 @@ type evalTrace struct {
 	Passed       int
 	Doubled      int
 	Isolated     int
+	Backward     int
 	Chain        int
 	Mobility     int
 	RookOpen     int
@@ -128,6 +129,8 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 	t.Passed = wPassedW - bPassedW // rank-weighted passed-pawn sum (see passedRankMul)
 	t.Doubled = wDoubled - bDoubled
 	t.Isolated = wIso - bIso
+	wBackward, bBackward := backwardPawnCounts(whitePawns, blackPawns)
+	t.Backward = wBackward - bBackward
 	t.Chain = chainW - chainB
 	var sliderAtt [64]uint64
 	fillSliderAttacks(board, &sliderAtt)
@@ -194,6 +197,7 @@ func reconstructEvalInt(t *evalTrace) int {
 	eval += t.Passed * taperW(passedPawnBonus, passedPawnBonusEG, ph)
 	eval -= t.Doubled * taperW(doubledPawnPenalty, doubledPawnPenaltyEG, ph)
 	eval -= t.Isolated * taperW(isolatedPawnPenalty, isolatedPawnPenaltyEG, ph)
+	eval -= t.Backward * taperW(backwardPawnPenalty, backwardPawnPenaltyEG, ph)
 	eval += t.Chain * taperW(pawnChainWeight, pawnChainWeightEG, ph) / 100
 	eval += t.Mobility * taperW(mobilityWeight, mobilityWeightEG, ph) / 100
 	eval += t.RookOpen * taperW(rookOpenWeight, rookOpenWeightEG, ph) / 100
@@ -225,21 +229,22 @@ func evalTraceFloat(t *evalTrace, w []float64) float64 {
 		}
 	}
 	// Each scalar term is tapered: weight = mgWeight·mgF + egWeight·egF, the float
-	// relaxation of taperW (MG twin at texelScalarBase+i, EG twin at +9+i).
-	s += float64(t.Passed) * (w[texelScalarBase+0]*mgF + w[texelScalarBase+9]*egF)
-	s -= float64(t.Doubled) * (w[texelScalarBase+1]*mgF + w[texelScalarBase+10]*egF)
-	s -= float64(t.Isolated) * (w[texelScalarBase+2]*mgF + w[texelScalarBase+11]*egF)
-	s += float64(t.Chain) / 100.0 * (w[texelScalarBase+3]*mgF + w[texelScalarBase+12]*egF)
-	s += float64(t.Mobility) / 100.0 * (w[texelScalarBase+4]*mgF + w[texelScalarBase+13]*egF)
-	s += float64(t.RookOpen) / 100.0 * (w[texelScalarBase+5]*mgF + w[texelScalarBase+14]*egF)
-	s += float64(t.Outpost) / 100.0 * (w[texelScalarBase+6]*mgF + w[texelScalarBase+15]*egF)
-	s += float64(t.KingSafety) / 100.0 * (w[texelScalarBase+7]*mgF + w[texelScalarBase+16]*egF)
-	s += float64(t.KingActivity) / 100.0 * (w[texelScalarBase+8]*mgF + w[texelScalarBase+17]*egF)
+	// relaxation of taperW (MG twin at texelScalarBase+i, EG twin at +10+i).
+	s += float64(t.Passed) * (w[texelScalarBase+0]*mgF + w[texelScalarBase+10]*egF)
+	s -= float64(t.Doubled) * (w[texelScalarBase+1]*mgF + w[texelScalarBase+11]*egF)
+	s -= float64(t.Isolated) * (w[texelScalarBase+2]*mgF + w[texelScalarBase+12]*egF)
+	s -= float64(t.Backward) * (w[texelScalarBase+3]*mgF + w[texelScalarBase+13]*egF)
+	s += float64(t.Chain) / 100.0 * (w[texelScalarBase+4]*mgF + w[texelScalarBase+14]*egF)
+	s += float64(t.Mobility) / 100.0 * (w[texelScalarBase+5]*mgF + w[texelScalarBase+15]*egF)
+	s += float64(t.RookOpen) / 100.0 * (w[texelScalarBase+6]*mgF + w[texelScalarBase+16]*egF)
+	s += float64(t.Outpost) / 100.0 * (w[texelScalarBase+7]*mgF + w[texelScalarBase+17]*egF)
+	s += float64(t.KingSafety) / 100.0 * (w[texelScalarBase+8]*mgF + w[texelScalarBase+18]*egF)
+	s += float64(t.KingActivity) / 100.0 * (w[texelScalarBase+9]*mgF + w[texelScalarBase+19]*egF)
 	s += float64(t.Fixed) // non-tunable structural lump (constant: zero gradient)
 	return s
 }
 
-// TexelFullParams returns pointers to all 796 tunable parameters in the global
+// TexelFullParams returns pointers to all 798 tunable parameters in the global
 // index order (material, PST, scalar weights) — the order the trace's index
 // helpers assume. The gradient optimizer reads current values from these and
 // writes tuned values back (RebuildPST after, since PST/material feed it).
@@ -320,23 +325,25 @@ func texelTraceAccumulate(t *evalTrace, w, g []float64, k, a float64) float64 {
 		// Each scalar term feeds its MG slot (·mgF) and EG twin (·egF) — the partials
 		// of coeff·(wMG·mgF + wEG·egF). Signs match evalTraceFloat.
 		g[texelScalarBase+0] += factor * float64(t.Passed) * mgF
-		g[texelScalarBase+9] += factor * float64(t.Passed) * egF
+		g[texelScalarBase+10] += factor * float64(t.Passed) * egF
 		g[texelScalarBase+1] += factor * float64(-t.Doubled) * mgF
-		g[texelScalarBase+10] += factor * float64(-t.Doubled) * egF
+		g[texelScalarBase+11] += factor * float64(-t.Doubled) * egF
 		g[texelScalarBase+2] += factor * float64(-t.Isolated) * mgF
-		g[texelScalarBase+11] += factor * float64(-t.Isolated) * egF
-		g[texelScalarBase+3] += factor * float64(t.Chain) / 100.0 * mgF
-		g[texelScalarBase+12] += factor * float64(t.Chain) / 100.0 * egF
-		g[texelScalarBase+4] += factor * float64(t.Mobility) / 100.0 * mgF
-		g[texelScalarBase+13] += factor * float64(t.Mobility) / 100.0 * egF
-		g[texelScalarBase+5] += factor * float64(t.RookOpen) / 100.0 * mgF
-		g[texelScalarBase+14] += factor * float64(t.RookOpen) / 100.0 * egF
-		g[texelScalarBase+6] += factor * float64(t.Outpost) / 100.0 * mgF
-		g[texelScalarBase+15] += factor * float64(t.Outpost) / 100.0 * egF
-		g[texelScalarBase+7] += factor * float64(t.KingSafety) / 100.0 * mgF
-		g[texelScalarBase+16] += factor * float64(t.KingSafety) / 100.0 * egF
-		g[texelScalarBase+8] += factor * float64(t.KingActivity) / 100.0 * mgF
-		g[texelScalarBase+17] += factor * float64(t.KingActivity) / 100.0 * egF
+		g[texelScalarBase+12] += factor * float64(-t.Isolated) * egF
+		g[texelScalarBase+3] += factor * float64(-t.Backward) * mgF
+		g[texelScalarBase+13] += factor * float64(-t.Backward) * egF
+		g[texelScalarBase+4] += factor * float64(t.Chain) / 100.0 * mgF
+		g[texelScalarBase+14] += factor * float64(t.Chain) / 100.0 * egF
+		g[texelScalarBase+5] += factor * float64(t.Mobility) / 100.0 * mgF
+		g[texelScalarBase+15] += factor * float64(t.Mobility) / 100.0 * egF
+		g[texelScalarBase+6] += factor * float64(t.RookOpen) / 100.0 * mgF
+		g[texelScalarBase+16] += factor * float64(t.RookOpen) / 100.0 * egF
+		g[texelScalarBase+7] += factor * float64(t.Outpost) / 100.0 * mgF
+		g[texelScalarBase+17] += factor * float64(t.Outpost) / 100.0 * egF
+		g[texelScalarBase+8] += factor * float64(t.KingSafety) / 100.0 * mgF
+		g[texelScalarBase+18] += factor * float64(t.KingSafety) / 100.0 * egF
+		g[texelScalarBase+9] += factor * float64(t.KingActivity) / 100.0 * mgF
+		g[texelScalarBase+19] += factor * float64(t.KingActivity) / 100.0 * egF
 	}
 	return diff * diff
 }
@@ -438,7 +445,6 @@ func TexelGradientTune(train, test []TexelSample, cfg TexelGradientConfig) (trai
 	const b1, b2, eps = 0.9, 0.999, 1e-8
 
 	best := append([]float64(nil), w...)
-	bestMonitor := math.Inf(1)
 	sinceImprove := 0
 
 	// monitor returns the loss to minimize/early-stop on: held-out test MSE when a
@@ -451,6 +457,9 @@ func TexelGradientTune(train, test []TexelSample, cfg TexelGradientConfig) (trai
 		mse, _ := texelTraceGradient(trainTr, w, cfg.K, false)
 		return mse
 	}
+	// Include the unmodified vector in checkpoint selection. Otherwise the first
+	// update wins unconditionally, even if every update worsens validation loss.
+	bestMonitor := monitor()
 
 	for epoch := 1; epoch <= cfg.Epochs; epoch++ {
 		trMSE, g := texelTraceGradient(trainTr, w, cfg.K, true)

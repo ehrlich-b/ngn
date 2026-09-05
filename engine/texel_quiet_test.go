@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
@@ -28,6 +29,12 @@ func TestIsQuietPositionFiltersTactics(t *testing.T) {
 		{"bare-king endgame is quiet", "7k/8/8/8/8/8/8/K7 w - - 0 1", true},
 		{"hanging queen is NOT quiet", "4k3/8/8/3q4/4P3/8/8/4K3 w - - 0 1", false}, // exd5 wins the queen
 		{"in check is NOT quiet", "4k3/8/8/8/8/8/4r3/4K3 w - - 0 1", false},        // Re2+ on the white king
+		{"white quiet promotion is NOT quiet", "6k1/7P/8/8/8/8/8/6K1 w - - 0 1", false},
+		{"black quiet promotion is NOT quiet", "7k/8/8/8/8/8/p7/6K1 b - - 0 1", false},
+		{"blocked promotion is quiet", "6k1/7p/7P/8/8/8/8/6K1 w - - 0 1", true},
+		// Moving g7-g8 opens the h6-g7-f8 diagonal onto White's king, so the
+		// geometrically available promotion is illegal.
+		{"pinned promotion is quiet", "k4K2/6P1/7b/8/8/8/8/8 w - - 0 1", true},
 	}
 	for _, c := range cases {
 		pos, err := ParseFEN(c.fen)
@@ -42,6 +49,94 @@ func TestIsQuietPositionFiltersTactics(t *testing.T) {
 		if after := EvaluateForPlayer(&pos.Board, pos.Turn()); after != before {
 			t.Errorf("%s: IsQuietPosition mutated the position (eval %d -> %d)", c.name, before, after)
 		}
+	}
+}
+
+// BenchmarkIsQuietPositionRandomWalkCorpus measures the data-filter cost on a
+// deterministic, varied 1,600-position corpus instead of a synthetic single FEN.
+func BenchmarkIsQuietPositionRandomWalkCorpus(b *testing.B) {
+	rng := rand.New(rand.NewSource(2600))
+	positions := make([]*Position, 0, 1600)
+	for game := 0; game < 16; game++ {
+		pos, err := ParseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+		if err != nil {
+			b.Fatal(err)
+		}
+		for ply := 0; ply < 100; ply++ {
+			positions = append(positions, pos.Copy())
+			moves := GenerateLegalMoves(pos)
+			if len(moves) == 0 {
+				break
+			}
+			pos.GameMakeMove(moves[rng.Intn(len(moves))])
+		}
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		IsQuietPosition(positions[i%len(positions)])
+	}
+}
+
+// TestIsQuietPositionIsolatedFromSearchState proves that data generation cannot
+// change classification by inheriting a search's clock damping, TT/correction data,
+// stop state, or game history. It also locks caller-state preservation.
+func TestIsQuietPositionIsolatedFromSearchState(t *testing.T) {
+	savedTT := TranspositionTable
+	savedStopped := IsStopRequested()
+	defer func() {
+		TranspositionTable = savedTT
+		if savedStopped {
+			RequestStop()
+		} else {
+			ClearStop()
+		}
+	}()
+
+	pos, err := ParseFEN("4k3/8/8/8/8/8/4P3/4K3 w - - 0 1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	pos.Positions = map[uint64]int{pos.Hash(): 3}
+	before := pos.Copy()
+	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	TranspositionTable.Set(pos.Hash(), EmptyMove, 1234, 0, Exact, false)
+	corrIndex := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
+	oldCorrection := pawnCorrectionHistory[pos.Turn()][corrIndex]
+	pawnCorrectionHistory[pos.Turn()][corrIndex] = 8192
+	defer func() { pawnCorrectionHistory[pos.Turn()][corrIndex] = oldCorrection }()
+	RequestStop()
+
+	if got := IsQuietPosition(pos); !got {
+		t.Fatal("quiet position changed classification under populated search state")
+	}
+	if !IsStopRequested() {
+		t.Fatal("IsQuietPosition cleared the caller's stop request")
+	}
+	if !PositionEqual(pos, before) || pos.Positions[pos.Hash()] != before.Positions[before.Hash()] {
+		t.Fatal("IsQuietPosition mutated caller position or game history")
+	}
+	for _, clock := range []uint8{0, 20, 99} {
+		probe := pos.Copy()
+		probe.HalfMoveClock = clock
+		if got := IsQuietPosition(probe); !got {
+			t.Fatalf("halfmove clock %d changed quiet classification", clock)
+		}
+	}
+}
+
+// TestIsQuietPositionRejectsHorizonExchange locks the conservative horizon rule.
+// The forced alternating capture sequence reaches the sixth q-ply; treating that
+// leaf's static evaluation as final would admit an unresolved exchange as quiet.
+func TestIsQuietPositionRejectsHorizonExchange(t *testing.T) {
+	pos, err := ParseFEN("7k/8/8/8/q7/rb6/rQ6/RBN4K w - - 0 1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, resolved := texelQuietSearch(pos.Copy(), -INFINITY, INFINITY, 0); resolved {
+		t.Fatal("six-ply capture horizon was treated as a resolved quiet search")
+	}
+	if IsQuietPosition(pos) {
+		t.Fatal("unresolved horizon exchange was admitted as quiet")
 	}
 }
 

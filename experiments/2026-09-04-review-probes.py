@@ -2,7 +2,7 @@
 """Reproduce review findings without changing production Go files.
 
 Expected exit: 1 on the reviewed release, with explicit trace/quiet-filter
-failures. The scout and node-cap tests report observations and pass. The
+failures; 0 after the tuning-contract repair. The scout and node-cap tests report observations and pass. The
 ordinary repository test suite does not include these review-only probes.
 """
 import json
@@ -23,10 +23,10 @@ instrumented = source.replace(needle, """\t\t\tif reduction == 0 && nextDepth > 
 \t\t\t\tif reviewScoutFirst == "" { reviewScoutFirst = GenerateFEN(pos) }
 \t\t\t}
 """ + needle)
-(out / "search_instrumented.go").write_text(instrumented)
+(out / "search_instrumented.go.txt").write_text(instrumented)
 probe = root / "experiments/2026-09-04-review-probe_test.go.txt"
 overlay = {"Replace": {
-    str(root / "engine/search.go"): str(out / "search_instrumented.go"),
+    str(root / "engine/search.go"): str(out / "search_instrumented.go.txt"),
     str(root / "engine/review_probe_test.go"): str(probe),
 }}
 (out / "overlay.json").write_text(json.dumps(overlay, indent=2) + "\n")

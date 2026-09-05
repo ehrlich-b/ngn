@@ -112,12 +112,13 @@ type TexelWeight struct {
 // untuned scalars complementing the already-tuned PeSTO core).
 func TexelWeights() []TexelWeight {
 	return []TexelWeight{
-		// 9 middlegame weights (index 0..8), then their 9 endgame twins (9..17) —
+		// 10 middlegame weights (index 0..9), then their 10 endgame twins (10..19) —
 		// the order the gradient trace's scalar indices assume (texelScalarBase+i
-		// is MG term i, texelScalarBase+9+i its EG twin).
+		// is MG term i, texelScalarBase+10+i its EG twin).
 		{"passedPawnBonus", &passedPawnBonus},
 		{"doubledPawnPenalty", &doubledPawnPenalty},
 		{"isolatedPawnPenalty", &isolatedPawnPenalty},
+		{"backwardPawnPenalty", &backwardPawnPenalty},
 		{"pawnChainWeight", &pawnChainWeight},
 		{"mobilityWeight", &mobilityWeight},
 		{"rookOpenWeight", &rookOpenWeight},
@@ -127,6 +128,7 @@ func TexelWeights() []TexelWeight {
 		{"passedPawnBonusEG", &passedPawnBonusEG},
 		{"doubledPawnPenaltyEG", &doubledPawnPenaltyEG},
 		{"isolatedPawnPenaltyEG", &isolatedPawnPenaltyEG},
+		{"backwardPawnPenaltyEG", &backwardPawnPenaltyEG},
 		{"pawnChainWeightEG", &pawnChainWeightEG},
 		{"mobilityWeightEG", &mobilityWeightEG},
 		{"rookOpenWeightEG", &rookOpenWeightEG},
@@ -140,7 +142,7 @@ func TexelWeights() []TexelWeight {
 // (comma-separated name=value pairs, names from TexelWeights plus the blocked-passer
 // knobs). This lets the ACPL tuner vary weights per trial WITHOUT rebuilding the
 // binary: the engine subprocess inherits the parent env (uci.Start sets no cmd.Env),
-// and the 18 aux weights are read at eval runtime (not baked into any precomputed
+// and the 20 aux weights are read at eval runtime (not baked into any precomputed
 // table), so an init override takes effect for every search. Unset/empty = no
 // override (the bit-for-bit default). A malformed pair or unknown name aborts — a
 // silent mis-tune would corrupt every downstream ACPL measurement.
@@ -425,26 +427,120 @@ func SplitTrainTest(samples []TexelSample, testFrac float64, seed int64) (train,
 // position fits the eval to a number the static function structurally cannot output
 // — the prior gendata filter (not-in-check only) let that noise poison the gradient.
 //
-// qsearch is make/unmake balanced, so pos is unchanged on return; the global stop
-// flag is saved/cleared/restored so a stale stop from a prior search can't make a
-// tactical position spuriously look quiet.
+// The filter deliberately does not call production qsearch. Its stand-pat includes
+// halfmove-clock damping and correction histories, probes and populates the TT, and
+// obeys the process-wide stop request. None of those are sample properties.
 func IsQuietPosition(pos *Position) bool {
 	if pos.IsInCheck() {
 		return false
 	}
-	// Terminal draws have no pending tactic. Qsearch now returns their exact
-	// draw score, which can differ from the raw static eval's tempo/PST terms.
-	if pos.IsDraw() || pos.IsFIDEDrawRule() {
-		return true
+	work := pos.Copy()
+	static := texelStaticEval(work)
+	q, resolved := texelQuietSearch(work, -INFINITY, INFINITY, 0)
+	return resolved && q == static
+}
+
+// texelStaticEval is independent of search-only clock damping, correction history,
+// the TT and the stop state.
+func texelStaticEval(pos *Position) int { return EvaluateForPlayer(&pos.Board, pos.Turn()) }
+
+// hasLegalQuietPromotion catches the material-changing horizon move omitted by
+// GenerateCapturesIntoBuffer. Capture-promotions are searched as captures.
+func hasLegalQuietPromotion(pos *Position) bool {
+	var moves [256]Move
+	n := GenerateMovesIntoBuffer(pos, moves[:])
+	for i := 0; i < n; i++ {
+		move := moves[i]
+		if move.PromoType() == NoType || move.IsCapture() {
+			continue
+		}
+		ep, tag, hc, _ := pos.MakeMove(move)
+		legal := !isInCheck(pos, move.MovingPiece().Color())
+		pos.UnMakeMove(move, tag, ep, hc)
+		if legal {
+			return true
+		}
 	}
-	static := EvaluateForPlayer(&pos.Board, pos.Turn())
-	wasStopped := IsStopRequested()
-	ClearStop()
-	var capBuf [64]Move
-	info := SearchInfo{CaptureBuffer: &capBuf}
-	q := quiescence(pos, -INFINITY, INFINITY, 0, &info)
-	if wasStopped {
-		RequestStop()
+	return false
+}
+
+// texelQuietSearch is a bounded, capture-only negamax used solely to decide if a
+// static-evaluation sample is tactically contaminated. It has no shared search
+// state. Evasions are searched after a capture gives check so legal recaptures are
+// classified correctly.
+func texelQuietSearch(pos *Position, alpha, beta, depth int) (int, bool) {
+	if depth >= 6 {
+		// A capture chain at the horizon is not evidence that its stand-pat is
+		// quiet. Reject it instead of classifying an unresolved exchange as calm.
+		return 0, false
 	}
-	return q == static
+	// Quiet promotions are not in the capture generator. Check every visited node,
+	// not just the root: a capture sequence can uncover a later promotion.
+	if hasLegalQuietPromotion(pos) {
+		return 0, false
+	}
+	if pos.IsInCheck() {
+		var moves [256]Move
+		n := GenerateMovesIntoBuffer(pos, moves[:])
+		best, legalMoves := -INFINITY, 0
+		for i := 0; i < n; i++ {
+			move := moves[i]
+			ep, tag, hc, _ := pos.MakeMove(move)
+			legal := !isInCheck(pos, move.MovingPiece().Color())
+			if legal {
+				legalMoves++
+				score, resolved := texelQuietSearch(pos, -beta, -alpha, depth+1)
+				if !resolved {
+					pos.UnMakeMove(move, tag, ep, hc)
+					return 0, false
+				}
+				score = -score
+				if score > best {
+					best = score
+				}
+				if score > alpha {
+					alpha = score
+				}
+			}
+			pos.UnMakeMove(move, tag, ep, hc)
+			if alpha >= beta {
+				return beta, true
+			}
+		}
+		if legalMoves == 0 {
+			return -MATE_VALUE + depth, true
+		}
+		return best, true
+	}
+
+	standPat := texelStaticEval(pos)
+	if standPat >= beta {
+		return beta, true
+	}
+	if standPat > alpha {
+		alpha = standPat
+	}
+	var captures [64]Move
+	n := GenerateCapturesIntoBuffer(pos, captures[:])
+	for i := 0; i < n; i++ {
+		move := captures[i]
+		ep, tag, hc, _ := pos.MakeMove(move)
+		legal := !isInCheck(pos, move.MovingPiece().Color())
+		if legal {
+			score, resolved := texelQuietSearch(pos, -beta, -alpha, depth+1)
+			if !resolved {
+				pos.UnMakeMove(move, tag, ep, hc)
+				return 0, false
+			}
+			score = -score
+			if score > alpha {
+				alpha = score
+			}
+		}
+		pos.UnMakeMove(move, tag, ep, hc)
+		if alpha >= beta {
+			return beta, true
+		}
+	}
+	return alpha, true
 }

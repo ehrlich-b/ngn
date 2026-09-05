@@ -5,6 +5,12 @@ files and deployed binaries were not changed. The reusable six-angle
 [review prompt](2026-09-04-classical-review-prompt.md) includes the broader
 remaining sweep; this report does not declare every listed area clean.
 
+**Follow-up:** the [tuning-contract repair](2026-09-04-tuning-contract-repair.md)
+resolves findings 1–3 with regression tests and adds a reproduced optimizer
+checkpoint-selection fix. The evidence below describes the reviewed release;
+the search findings remain open. Deployed playing binaries are unchanged by
+these offline repairs.
+
 ## Most actionable findings
 
 ### 1. Gradient tuning omits a live evaluation term — reproduced defect
