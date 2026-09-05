@@ -68,8 +68,12 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 
 1. Resolve the live T17 + T8 paired comparison by its predeclared rule;
    no vector is applied to main. Do not extend an inconclusive cap on sign.
-2. Finish the [bounded fresh-game loss study](experiments/2026-09-04-loss-study.md)
-   while the paired comparison proceeds; its full local run has started.
+2. Follow the [completed 24-game diagnostic study](experiments/2026-09-04-loss-study.md)
+   with targeted one-family search ablations. Four-times-node probes gave 19
+   unchanged choices / five changes / no demonstrated rescue; several reference
+   scores are unusable, so this does not establish an evaluation cause.
+   Counter reports 1.39–1.77x NGN throughput in the local reference comparison;
+   node definitions differ. Both search quality and runtime remain candidates.
    Tuning-contract repairs are complete; a future tune still needs a corpus
    acceptance audit and game-disjoint validation before expensive fitting.
 3. Sync the new source/docs to WSL after native timed games; default playing
