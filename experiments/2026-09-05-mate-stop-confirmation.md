@@ -1,6 +1,12 @@
 # Cached-mate termination correction on accepted T8
 
-**Selected and locally validated; Mac fixed gate prepared, not launched.**
+**Mac fixed A/A running; candidate starts only after a passed control.**
+One-shot controller launched at11:17:37UTC September5, local PID14811,
+exec session19640. All six background-UCI cases passed before A/A, including
+Hash128 and14 T8 defaults. Initial stdout matches10+0.1/c4 and initial stderr
+is empty. No completed result is claimed. Controller status/artifacts are in
+`output/mate-history-20260905/mac-gate/`; script/input/decision hashes are frozen
+there. Protocol was committed before launch at62c4fc1.
 Before any A/A or candidate game, the still-unlaunched Windows plan is
 prospectively superseded by the Mac protocol below. Windows staged assets are
 retained for provenance; they do not authorize a second favorable-result attempt.
