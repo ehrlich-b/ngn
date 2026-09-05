@@ -131,6 +131,9 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    frozen audits and estimator, snapshots all completed inputs, and requires
    DONE_EXIT_0 plus native/WSL idle state. All337 original local inputs still
    match their frozen hashes. No local collector may resume.
+   Windows completion waiter PID22316 is verified live, waiting on gauntlet
+   PID29692 before invoking WSL validation once. Observe the same waiter and
+   `r0905acceptedpin_wsl_validation_scheduled_v2.stdout`; do not start a duplicate.
 5. **Next correctness priority: cached-mate stop guard.** Carried-state replay
    reproduces two depth1 mate claims that actually allow immediate threefold.
    Counter's depth/distance guard repairs both, and root's continued games
@@ -147,6 +150,10 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    uses the same exact candidate, a fresh fixed200-game native A/A, then a
    fixed400-game comparison at10+0.1/c8 without score adjudication. It follows
    the current external pin and WSL validation. No native launch yet; no pooling.
+   A direct cached-mate regression is staged in isolated WSL `base/` and `guard/`
+   sources under `output/mate-stop-direct-regression-20260905/`. It remains
+   runtime-unverified; check its intended old-fail/new-pass result after the pin
+   and rating audits finish. Frozen candidate binaries and source are unchanged.
    Main integration still waits for valid evidence and the pin's frozen inputs.
    The [quiet-promotion candidate](experiments/2026-09-05-quiet-promotion-candidate.md)
    is also locally ready, but remains separate and must rebase/rebuild if the

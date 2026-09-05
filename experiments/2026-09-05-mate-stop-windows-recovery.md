@@ -103,3 +103,33 @@ python3 /mnt/c/Users/ehrli/ngn/repin/root_audit_windows_mategate_20260905.py /mn
 
 Parser completion alone does not accept either gate: root applies the A/A
 CI-containing-zero rule or the candidate's predeclared correctness rule above.
+
+## Direct regression coverage follow-up
+
+The original Go fixture proves the history-free mating score and the actual
+draw continuation, but passes with either mate-stop implementation. The archived
+carried-state UCI probes supply the existing runtime before/after evidence.
+To add direct automatic coverage, Sol prepared a test calling real iterative
+deepening with the recorded game46 history and a synthetic exact child TT entry
+encoding the archived root mate15 score. Root required the test to verify the
+legal `e5e8 g4g5` threefold first and explicitly assert that its first completed
+iteration reproduces the intended cached move/score. It then requires a later
+completed iteration and a different final move. The injected cache is a targeted
+test setup; it does not reproduce the earlier warm process's full TT contents.
+
+The test and rationale are in `output/mate-history-20260905/regression-followup/`.
+Test SHA-256: `e0a61d86108420d95c1f2f6b6edc58ab498f1a09bd4d7a323fb54a03a0e28b34`.
+Source-only archive SHA-256:
+`a2b844e3a35acb83db9413dfc5dd4612d372b5e7242f1079c7adfc79db27220c`.
+It is staged under `/home/ehrli/repos/ngn/output/mate-stop-direct-regression-20260905/`,
+with separate `base/` and `guard/` source copies and identical tests. The
+playing-source difference remains only the exact frozen mate-stop hunk.
+
+Runtime red/green is **unverified**. After the current timed match and WSL
+rating validation are terminal, run only
+`TestIterativeDeepeningDoesNotStopOnShallowCachedMateWithHistory` first in each
+isolated WSL source copy. Require the baseline's intended shallow-stop failure
+and the guarded test's pass; investigate fixture setup failures rather than
+weakening assertions. No local compile, engine or chess test was performed.
+The frozen candidate archive, binaries and predeclared native game samples
+are unchanged by this additional test preparation.
