@@ -119,13 +119,16 @@ Windows speed claim and no further picker iteration is queued.
 2. T17+T8 confirmation is complete and accepted. Its relative+38.02 gain finishes
    the existing24,000-game investment; an external absolute pin is still required.
 3. The four-arm child-depth diagnostic is complete, and one singular-only
-   candidate was selected. It is rebuilt and validated on accepted T8; the fresh
-   baseline A/A passed and its [frozen game gate](2026-09-05-singular-t8-confirmation.md)
-   is running.
+   candidate was selected. Its [frozen game gate](2026-09-05-singular-t8-confirmation.md)
+   on accepted T8 completed H0: paired−12.26 [−27.56,+2.99] over794 games,
+   zero errors/flags. The candidate is rejected and accepted T8 remains installed.
    A scalar-margin tweak or another futility-off test needs a new premise:
    current controls show harm and direct watched-reply skips were not found.
 
-The third item is the current larger-change hypothesis, not a promised Elo gain.
-Quiet-promotion completeness is a separate concrete gap and must not be bundled
-silently into that search experiment. Rerate an accepted engine against external
-opponents to establish 2800; self-play, lower MSE and summed selected gains do not.
+That larger search simplification did not earn acceptance. Quiet-promotion
+completeness is a separate reproduced horizon gap; an
+[efficient candidate](2026-09-05-quiet-promotion-candidate.md) now passes local
+correctness checks and a bounded Mac timing probe, and cannot alter the current
+frozen pin. No game acceptance or strength gain is claimed. The
+[external400-game rating run](2026-09-05-2800-pin-plan.md) is now measuring accepted
+T8. Self-play, lower MSE and summed selected gains do not establish 2800.
