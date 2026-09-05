@@ -119,3 +119,37 @@ The generator includes the committed qsearch correction currently under game
 test. Those are legally played outcomes regardless of that implementation's
 eventual strength verdict. Fitting/playing integration waits for that verdict;
 generation does not establish or substitute for its acceptance.
+
+## Frozen implementation and generation artifacts
+
+Committed source `9add92c0324f3fabb3999fb22ab251461a0d152c`, clean tracked
+checkout at build time; Go1.26.2 darwin/arm64:
+
+- `build/texelcorpus_20260905`: SHA-256
+  `b832e5cd83896c2da537d8277acf922b1afcc9dbca7a251910f9c744eb024db3`.
+- `build/texel_20260905`: SHA-256
+  `edf7d2777ff12a9848244c723975b30591108966edf1fb1853a3dc3777ad623f`.
+
+Root integrated full short/race/vet suites and source-roundtrip verification
+all pass. Logs: `classical-v2-full-short.txt`, `classical-v2-full-race.txt`,
+`classical-v2-full-vet.txt`, `classical-v2-source-roundtrip.txt` under
+`output/recovery-2026-09-04/`.
+
+Smoke command (the final corpus will not load this file):
+
+```sh
+GOMAXPROCS=1 build/texelcorpus_20260905 -openings output/recovery-2026-09-04/classical-v2-training-openings.txt -opening-start 0 -games 32 -nodes 8000 -maxplies 400 -seed 20260905 -source 9add92c0324f3fabb3999fb22ab251461a0d152c -out output/recovery-2026-09-04/classical-v2-smoke.jsonl
+build/texel_20260905 -mode audit -corpus output/recovery-2026-09-04/classical-v2-smoke.jsonl -report output/recovery-2026-09-04/classical-v2-smoke-audit.json
+```
+
+Smoke PASS: 32 attempted, 32 legally completed, zero unresolved/errors; 978
+generated sample rows, 950 after 28 within-game board repeats are removed.
+Loader replay and exact generator/settings/index checks pass. Smoke SHA-256:
+`8175dbbddf678f42c52b9d7da120a0af7d58b57e44f3f8e940d704651a0601e0`.
+This small smoke does not satisfy or replace the full corpus acceptance rule.
+
+Full generation uses the same command/settings, changing only `-opening-start`
+to 0/999/1998/2997, `-games 999`, and `-out` to
+`output/recovery-2026-09-04/classical-v2-shard-{0,1,2,3}.jsonl`. Four Mac
+processes are launched together, each with GOMAXPROCS=1. Per-process logs and
+the final combined audit remain in that output directory.
