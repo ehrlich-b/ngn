@@ -45,6 +45,8 @@ A compatible existing small network can isolate inference/search integration fro
 
 ## Measuring Go leadership
 
+[The frozen release inventory](2026-09-05-go-opponent-inventory.md) identifies Counter5.5, Zahak10.0, Chess-3 4.0 and Blunder8.5.5. Initial research's older Zahak9.x rating reference below is historical orientation, not the selected release. Official Linux artifacts/source pins are prepared; runtime validation and matched games remain pending.
+
 Counter and Zahak are essential opponents, alongside chess-3 and other Go engines identified in an updated public inventory. Published readmes currently report Counter 5.5 around 3333 in 40/15 and Zahak 9.x around 3278 single-thread /3406 eight-thread blitz; chess-3 reports 4.0 around3033. These are different lists/settings and are only orientation. Check releases/tags, not just default branches: Zahak's default source dates to2022, while its repository was archived in2026.
 
 Build a stronger, diverse local opponent pool around NGN's new strength rather than continuing to rely on saturated weak anchors. Freeze opponents and held-out openings before each milestone. Report matched single-thread and equal-hardware multicore head-to-head results at short and longer clocks. A world-best claim requires completed superiority against the strongest identified public Go releases under those conditions and preferably independent external testing, not arithmetic added to our historical2884 calibration.
