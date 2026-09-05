@@ -31,8 +31,10 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   unmodified baseline comparison was invalidated by baseline-side illegal moves;
   the valid control adds only the required EP protocol fix. All raw runs remain
   separate; see the manifests for limitations and exact controls.
-- **Now:** commit and deploy the accepted source/binaries, preserving rollback;
-  then run the 200-game [fresh strength check](experiments/2026-09-04-strength-check.md),
+- **DEPLOYED:** source `71399c0`, WSL and default Windows/Mac executables.
+  Native WSL short/race suites and installed UCI smoke checks passed.
+  [Paths, hashes, rollback and verification](experiments/2026-09-04-deployment.md).
+- **Live: `r0904pin`**, the 200-game [fresh strength check](experiments/2026-09-04-strength-check.md),
   poll name `r0904pin`, five anchors at 120+1/c8. The 2600 target is not yet
   re-measured. Keep WSL builds/tests outside the timed gauntlet.
 - **T22 resolved:** completed August 4, recovered September 4: 8000 games,
@@ -46,24 +48,34 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   search refactor. It is deferred behind the correctness repair and deployment.
 - Batch 3 certified T12+T19 at +9.9 [+3,+17] vs Batch 2; Batch 4 had no keeps.
   [Batch ledger](experiments/batch-ledger.md).
+- **Classical review:** [six-angle prompt](experiments/2026-09-04-classical-review-prompt.md)
+  and [first findings with executable probes](experiments/2026-09-04-classical-review-findings.md).
+  Reproduced a missing backward-pawn term in the gradient trace, clock-dependent
+  quiet filtering, and immediate promotions admitted as quiet training data.
+  These are not yet repaired. The extension/scout issue is known J1, whose naive
+  fix previously regressed; do not sell it as a new fix. No NNUE work is queued.
 
 ## Execution queue
 
-1. Commit the accepted repair, test it natively on WSL, preserve rollback, and
-   deploy/verify the exact frozen binaries in the default Linux/Windows paths.
-2. Finish `r0904pin`; require lower 95% CI >2600, two engine families, bracketing
+1. Finish `r0904pin`; require lower 95% CI >2600, two engine families, bracketing
    scores, and no NGN errors/flags. Report exclusions; do not extend on sign.
-3. Update this file with rating and deployment pointers. Commit and sync final docs.
-4. Resume strength work from this repaired base only after the current task.
-   T8 needs a fresh candidate and explicit game manifest; no vector is applied.
+2. Update this file with rating and deployment pointers. Commit and sync final docs.
+3. Repair/verify the tuning contract before another Texel run, following the
+   review's probes. Tuner-only repairs carry no playing-strength claim.
+4. Confirm T17 + the existing T8 vector on the repaired base in an isolated
+   candidate, with an explicit game manifest; no vector is applied to main.
+5. Consider promotion-complete qsearch as an isolated game-tested candidate.
+   Follow the [larger-gain pathway](experiments/2026-09-04-strength-pathway.md):
+   a bounded study of fresh losses and controls selects one substantial search,
+   runtime, or classical evaluation change. Avoid repeating the old feature queue.
 
 ## Box access and artifacts
 
 - SSH: `ehrli@192.168.4.108`, key `~/.ssh/id_ed25519`.
 - WSL: `wsl -e sh -lc ...`; Ubuntu, user `ehrli`, Go at `/usr/local/go/bin/go`.
 - Native Windows mill: `scripts/boxsprt.sh` uses `C:\Users\ehrli\ngn\sprt`.
-  `BOXSPRT_BIN=sprt_20260904.exe` selects the repaired harness. The old `sprt.exe`
-  remains preserved and must not be used for new authoritative verdicts.
+  Both default `sprt.exe` copies now contain the corrected harness; old copies
+  have the `.pre-repair-20260904` suffix. Versioned artifacts remain available.
 - Poll: `scripts/boxsprt.sh tail <run>`. Fetch: `scripts/boxsprt.sh fetch <run> <dir>`.
   The helpers now include versioned harness names in process listing/cleanup.
   `BOXREPIN_BIN` selects the gauntlet binary; the default engine is `ngn.exe`.

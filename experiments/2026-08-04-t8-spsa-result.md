@@ -50,9 +50,13 @@ games-validated aspiration shape is undisturbed. Its trajectory efficiency was 0
 the small move is consistent with noise rather than a real pull.
 
 **The two big movers are the two that showed directed trajectories throughout** (`ReverseFutilityMargin`
-efficiency 0.84, `SingularMargin` 0.63 at iter 475). Both are **margin-loosening**: RFP prunes less
+efficiency 0.84, `SingularMargin` 0.63 at iter 475). Both are **margin-loosening**: RFP prunes more
 aggressively at 88 than 120, and a smaller singular margin makes more moves qualify as singular. Whether
 that is real is exactly what the confirmation SPRT decides.
+
+September 4 clarification: the earlier text reversed RFP's direction. Its gate
+is `staticEval - margin >= beta`; decreasing the margin makes the cutoff easier.
+This corrects the mechanism description, not the recorded tuning result.
 
 ## Next step and a sequencing note against my own rule
 
