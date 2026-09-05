@@ -47,9 +47,9 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   The vector is not in the engine. [Vector](experiments/2026-08-04-t8-spsa-result.md).
   T17 + the vector is now rebuilt in an isolated checkout on the repaired base;
   short/race/vet and UCI checks pass. [Confirmation manifest](experiments/2026-09-04-t8-confirmation.md).
-  **Live `r0904t8confirm`:** unattended handoff verified completion, idle workers
-  and frozen hashes, then started the 1600-game capped paired test. No mid-run
-  verdict. Keep WSL builds/tests outside timed games.
+  **`r0904t8confirm` cancelled without a verdict** at 279 completed games after
+  an independently proved root-castling defect. Preserve the vector and rebuild
+  after that correction. No interrupted games may be pooled into a new run.
   Main/default engines retain the accepted release. The old patch was manually
   rebased around the new draw helper rather than applied blindly.
 - Batch 3 certified T12+T19 at +9.9 [+3,+17] vs Batch 2; Batch 4 had no keeps.
@@ -63,20 +63,27 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   The optimizer also now considers the initial vector when selecting its best
   checkpoint. These offline changes carry no Elo claim. The extension/scout issue is known J1, whose naive
   fix previously regressed; do not sell it as a new fix. No NNUE work is queued.
+- **New highest-priority correctness defect:** actual loss GAME170 showed search
+  PV `e1g1` while White was checked by Bh4; the UCI guard then substituted `e2g3`,
+  immediately losing the knight. Reproduced from FEN/full history and independently
+  verified by SF perft. Root and qsearch castle legality are being repaired in
+  `output/castle-repair-20260904`. [Evidence and scope](experiments/2026-09-04-castling-repair.md).
+  Native box is idle after stopping T8; no default playing artifact changed.
 
 ## Execution queue
 
-1. Resolve the live T17 + T8 paired comparison by its predeclared rule;
-   no vector is applied to main. Do not extend an inconclusive cap on sign.
-2. Follow the [completed 24-game diagnostic study](experiments/2026-09-04-loss-study.md)
-   with targeted one-family search ablations. Four-times-node probes gave 19
+1. Prove/fix internal castling legality across root, qsearch and the offline quiet
+   filter; verify internal best/PV legality before UCI fallback. Run correctness,
+   oracle and real-clock non-regression checks before deploying.
+2. The [completed 24-game diagnostic study](experiments/2026-09-04-loss-study.md)
+   and targeted search ablations exposed the castling defect. Four-times-node probes gave 19
    unchanged choices / five changes / no demonstrated rescue; several reference
    scores are unusable, so this does not establish an evaluation cause.
    Counter reports 1.39–1.77x NGN throughput in the local reference comparison;
    node definitions differ. Both search quality and runtime remain candidates.
    Tuning-contract repairs are complete; a future tune still needs a corpus
    acceptance audit and game-disjoint validation before expensive fitting.
-3. Sync the new source/docs to WSL after native timed games; default playing
+3. Rebuild/predeclare T17 + T8 on the corrected base when warranted. Sync the new source/docs to WSL after native timed games; default playing
    artifacts are already deployed. Offline tuning repairs do not require
    replacing the frozen playing engine during a match.
 4. Consider promotion-complete qsearch as an isolated game-tested candidate.

@@ -34,11 +34,11 @@ decision_rule: >-
   Pentanomial SPRT [-3,+3], alpha/beta 0.05, minimum 200 games, cap 1600.
   Keep only on completed H1 and zero errors/flags. H0 rejects. Inconclusive
   at cap shelves; no extension or provisional keep on favorable sign.
-games_or_pairs: pending
-result: pending
-flags_errors: pending
-verdict: pending
-next_action: run after r0904pin ends, retrieve final report and apply the declared rule
+games_or_pairs: 279 completed games at cancellation, with unfinished pairs
+result: 77 W / 146 D / 56 L snapshot only; pLLR +0.86; not a verdict
+flags_errors: no recorded flag/error game before cancellation; final normal integrity summary unavailable
+verdict: cancelled without a strength verdict after an independently reproduced illegal root-castling defect
+next_action: repair search legality first, then rebuild and predeclare any T8 confirmation on the corrected base
 ```
 
 ## Verification and scope
@@ -77,3 +77,20 @@ SHA-256 matches. Launch used `BOXSPRT_BIN='call run_t8_afterpin.bat'` with
 `scripts/boxsprt.sh launch r0904t8confirm --` and the exact flags above. The
 batch wrapper runs `wait_r0904pin.ps1`, then the frozen SPRT; errors propagate
 to the outer `DONE_EXIT_*` marker. Driver files are in the raw artifact directory.
+
+## Cancellation for a newly proved search defect
+
+Before completion, the targeted loss analysis reproduced an illegal root PV:
+NGN searches `e1g1` while White is checked by Bh4, then its UCI legality fallback
+returns `e2g3`, losing the knight to `h4g3`. This occurs from both the FEN and the
+complete game history; Stockfish perft independently confirms only Ng3/Kf1/Kd2
+are legal. Repro: `output/recovery-2026-09-04/illegal-castle-repro.txt`.
+
+Stop this unfinished comparison to prioritize the correction and its game gate.
+The cancellation is due to the independently proved defect, not the score sign.
+There is no completed SPRT verdict, no keep and no lane closure. Preserve the
+T17/vector source and hashes, but rebuild on the corrected search before a new
+confirmation; these interrupted games must not be pooled with that run.
+
+Cancellation verified: `DONE_EXIT_-1`, 279 games (77/146/56), pLLR +0.86;
+`scripts/boxsprt.sh ps` shows no remaining workers. There was no H1/H0 crossing.
