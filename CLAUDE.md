@@ -30,7 +30,7 @@ go test -short -race ./... -count=1
 
 ## Active Policy
 
-- No NNUE before 2800; prefer 2900 before reopening the question.
+- Active target: at least 2800 without NNUE. Do not reopen NNUE unless the user changes the objective.
 - Correctness and measurement integrity come before speculative Elo work.
 - Optimize for Elo per confirmation hour. Default confirmation budget is 1-2 hours per change.
 - One behavior change at a time, candidate vs immediate base.

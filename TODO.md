@@ -1,6 +1,6 @@
 # NGN active runbook
 
-Updated 2026-09-04. `CLAUDE.md` owns operating policy. Detailed evidence belongs
+Updated 2026-09-04. Active target: **at least 2800 without NNUE**. `CLAUDE.md` owns operating policy. Detailed evidence belongs
 in `experiments/`. The former 132 KB runbook, including all old queue decisions,
 is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive.md).
 
@@ -43,16 +43,22 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   [Original manifest](experiments/2026-08-03-t22-probcut-cutnode.md).
 - **T8 remains unconfirmed:** 24000-game SPSA completed; nine parameters moved.
   The vector is not in the engine. [Vector](experiments/2026-08-04-t8-spsa-result.md).
-  Any future candidate must be rebuilt on the repaired current base, and its
-  consumers rechecked. Do not blindly apply the old `output/t17.patch` after the
-  search refactor. It is deferred behind the correctness repair and deployment.
+  T17 + the vector is now rebuilt in an isolated checkout on the repaired base;
+  short/race/vet and UCI checks pass. [Confirmation manifest](experiments/2026-09-04-t8-confirmation.md).
+  **Queued `r0904t8confirm`:** unattended handoff waits for `r0904pin` to finish,
+  checks idle workers and hashes, then runs the 1600-game capped paired test.
+  Main/default engines retain the accepted release. The old patch was manually
+  rebased around the new draw helper rather than applied blindly.
 - Batch 3 certified T12+T19 at +9.9 [+3,+17] vs Batch 2; Batch 4 had no keeps.
   [Batch ledger](experiments/batch-ledger.md).
 - **Classical review:** [six-angle prompt](experiments/2026-09-04-classical-review-prompt.md)
   and [first findings with executable probes](experiments/2026-09-04-classical-review-findings.md).
   Reproduced a missing backward-pawn term in the gradient trace, clock-dependent
   quiet filtering, and immediate promotions admitted as quiet training data.
-  These are not yet repaired. The extension/scout issue is known J1, whose naive
+  **Tuning defects repaired:** [model/filter/checkpoint repair](experiments/2026-09-04-tuning-contract-repair.md),
+  with frozen-trace parity under perturbed weights and conservative horizon handling.
+  The optimizer also now considers the initial vector when selecting its best
+  checkpoint. These offline changes carry no Elo claim. The extension/scout issue is known J1, whose naive
   fix previously regressed; do not sell it as a new fix. No NNUE work is queued.
 
 ## Execution queue
@@ -60,10 +66,11 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 1. Finish `r0904pin`; require lower 95% CI >2600, two engine families, bracketing
    scores, and no NGN errors/flags. Report exclusions; do not extend on sign.
 2. Update this file with rating and deployment pointers. Commit and sync final docs.
-3. Repair/verify the tuning contract before another Texel run, following the
-   review's probes. Tuner-only repairs carry no playing-strength claim.
-4. Confirm T17 + the existing T8 vector on the repaired base in an isolated
-   candidate, with an explicit game manifest; no vector is applied to main.
+3. Resolve the queued T17 + T8 paired comparison by its predeclared rule;
+   no vector is applied to main. Do not extend an inconclusive cap on sign.
+4. Run the bounded fresh-game loss study while the paired comparison proceeds.
+   Tuning-contract repairs are complete; a future tune still needs a corpus
+   acceptance audit and game-disjoint validation before expensive fitting.
 5. Consider promotion-complete qsearch as an isolated game-tested candidate.
    Follow the [larger-gain pathway](experiments/2026-09-04-strength-pathway.md):
    a bounded study of fresh losses and controls selects one substantial search,
@@ -97,7 +104,7 @@ The opt-in oracle compares depth-2 divides and incremental-state restoration;
 its ordinary test skips when Stockfish is not configured. It found the black
 EP defect that the prior standard perft coverage missed.
 
-Keep the classical engine policy: no NNUE before 2800; prefer waiting to 2900.
+Keep the active objective: at least 2800 without NNUE.
 Search/eval heuristics need completed predeclared paired games against their
 immediate base. Proxies do not establish Elo. A correctness repair with several
 interacting entry points may use an explicitly combined integration test, but
