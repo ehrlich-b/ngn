@@ -1,13 +1,14 @@
 # ngn - Chess Engine
 
-A chess engine written in Go, targeting Grandmaster level (2500+ ELO) with classical evaluation (no NNUE).
+A chess engine written in Go, targeting at least 2800 with classical evaluation (no NNUE).
 
 ## Current Status
 
-**Last measured strength: 2704, 95% CI [2665, 2743]**, from a 400-game,
-five-anchor real-clock gauntlet on July 19, 2026. This is a local estimate
-calibrated against CCRL anchors, not an official CCRL rating or a new rating for
-subsequent patches. See the [run record](experiments/2026-07-19-gauntlet-repin.md)
+**Last measured strength: 2726, reported 95% CI [2668, 2784]**, from a 200-game,
+five-anchor real-clock gauntlet on September 4, 2026, using the repaired release.
+This is a local estimate calibrated against historical CCRL anchors, not an
+official rating. It clears the original 2600 gate; 2800 remains unconfirmed.
+See the [run record and limitations](experiments/2026-09-04-strength-check.md)
 and [current work state](TODO.md).
 
 
@@ -44,7 +45,7 @@ vs Blunder 7.4.0 (same box, both Go, both E-cores): **~1.5x slower per node** (e
 - Syzygy tablebase support
 
 ### Evaluation (Complete)
-All classical evaluation features implemented:
+Current handcrafted terms:
 - Material, piece-square tables, pawn structure
 - Bishop pair, mobility, king safety, knight outposts
 - Rook on open file, tapered eval (MG/EG interpolation)
@@ -81,4 +82,7 @@ See `TODO.md` for roadmap and `CLAUDE.md` for development guidelines.
 
 ## Can Classical Engines Reach GM Level?
 
-**Yes.** Crafty (~2600), Fruit (~2700), and pre-NNUE Stockfish (~3000) all used classical evaluation. NNUE adds ~300-400 ELO but is not required for GM strength.
+**Yes.** CounterGo and Chess-3 provide concrete classical Go implementations to
+study. See the [pinned source comparison](experiments/2026-09-04-classical-review-findings.md).
+Their results do not predict an automatic gain for NGN; this campaign targets
+2800 without NNUE.

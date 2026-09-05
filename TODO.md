@@ -8,11 +8,12 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 
 - Current campaign source starts at `b378c432cb34`; certified search base is
   `50adc99` (T12 + T19). No T8 tuned vector or T22 patch is applied.
-- Historical strength pin: **2704, 95% CI [2665,2743]**, July 19, 400 games,
-  real-clock 120+1, five anchors. This is a local CCRL-calibrated estimate,
-  not an official rating. [Run record](experiments/2026-07-19-gauntlet-repin.md).
-  The September repair has no new absolute rating; its new harness repairs
-  also mean future comparisons must identify which instrument was used.
+- **Fresh strength pin: 2726, reported 95% CI [2668,2784]**, September 4,
+  200 games, 120+1/c8, five anchors. Original 2600 gate passes; **2800 remains
+  unconfirmed**. Local historical-CCRL calibration, not an official rating.
+  [Result, clock-loss sensitivity and audit](experiments/2026-09-04-strength-check.md).
+  July's 2704 [2665,2743] used the old harness; the difference is not an
+  engine-only gain measurement.
 - The WSL checkout at `/home/ehrli/repos/ngn` was clean at `7587eb6` (early June),
   with equally old binaries. Authorized task: repair correctness, validate and
   deploy the current engine there, preserving rollback.
@@ -34,9 +35,10 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 - **DEPLOYED:** source `71399c0`, WSL and default Windows/Mac executables.
   Native WSL short/race suites and installed UCI smoke checks passed.
   [Paths, hashes, rollback and verification](experiments/2026-09-04-deployment.md).
-- **Live: `r0904pin`**, the 200-game [fresh strength check](experiments/2026-09-04-strength-check.md),
-  poll name `r0904pin`, five anchors at 120+1/c8. The 2600 target is not yet
-  re-measured. Keep WSL builds/tests outside the timed gauntlet.
+- **`r0904pin` complete, DONE_EXIT_0.** Independent Stockfish audit passes
+  all 200 games / 27546 plies. Zero NGN flags/errors. Blunder 6.1 flagged once;
+  the actual pre-existing rule retains real clock losses. Excluding that entire
+  anchor gives a separate sensitivity of 2753 [2691,2815], not the primary pin.
 - **T22 resolved:** completed August 4, recovered September 4: 8000 games,
   2108/3768/2124 W/D/L, penta -0.7 [-6,+4], pLLR -0.62, post-min envelope
   [-1.50,+1.58], zero errors/flags. **Shelved** under its original rule.
@@ -45,8 +47,9 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   The vector is not in the engine. [Vector](experiments/2026-08-04-t8-spsa-result.md).
   T17 + the vector is now rebuilt in an isolated checkout on the repaired base;
   short/race/vet and UCI checks pass. [Confirmation manifest](experiments/2026-09-04-t8-confirmation.md).
-  **Queued `r0904t8confirm`:** unattended handoff waits for `r0904pin` to finish,
-  checks idle workers and hashes, then runs the 1600-game capped paired test.
+  **Live `r0904t8confirm`:** unattended handoff verified completion, idle workers
+  and frozen hashes, then started the 1600-game capped paired test. No mid-run
+  verdict. Keep WSL builds/tests outside timed games.
   Main/default engines retain the accepted release. The old patch was manually
   rebased around the new draw helper rather than applied blindly.
 - Batch 3 certified T12+T19 at +9.9 [+3,+17] vs Batch 2; Batch 4 had no keeps.
@@ -63,15 +66,16 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 
 ## Execution queue
 
-1. Finish `r0904pin`; require lower 95% CI >2600, two engine families, bracketing
-   scores, and no NGN errors/flags. Report exclusions; do not extend on sign.
-2. Update this file with rating and deployment pointers. Commit and sync final docs.
-3. Resolve the queued T17 + T8 paired comparison by its predeclared rule;
+1. Resolve the live T17 + T8 paired comparison by its predeclared rule;
    no vector is applied to main. Do not extend an inconclusive cap on sign.
-4. Run the bounded fresh-game loss study while the paired comparison proceeds.
+2. Finish the [bounded fresh-game loss study](experiments/2026-09-04-loss-study.md)
+   while the paired comparison proceeds; its full local run has started.
    Tuning-contract repairs are complete; a future tune still needs a corpus
    acceptance audit and game-disjoint validation before expensive fitting.
-5. Consider promotion-complete qsearch as an isolated game-tested candidate.
+3. Sync the new source/docs to WSL after native timed games; default playing
+   artifacts are already deployed. Offline tuning repairs do not require
+   replacing the frozen playing engine during a match.
+4. Consider promotion-complete qsearch as an isolated game-tested candidate.
    Follow the [larger-gain pathway](experiments/2026-09-04-strength-pathway.md):
    a bounded study of fresh losses and controls selects one substantial search,
    runtime, or classical evaluation change. Avoid repeating the old feature queue.

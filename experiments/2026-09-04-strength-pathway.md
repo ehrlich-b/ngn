@@ -51,12 +51,11 @@ whether their cause is evaluation, pruning, or insufficient search.
 
 ## Architectural alternative and operation
 
-Classical-only policy remains in force. NNUE is a separate direction if the
-project objective changes. Stockfish's original
-[NNUE announcement](https://stockfishchess.org/blog/2020/introducing-nnue-evaluation/)
-reported roughly +90 Elo over its classical evaluator in its own tests. That
-does not predict NGN's gain or imply a drop-in implementation. Reaching 2800
-first is a project policy, not a technical prerequisite for neural evaluation.
+The active objective is at least 2800 without NNUE. Classical reference engines
+guide feature and search choices; neural evaluation is outside this campaign.
+The [tuning-contract repair](2026-09-04-tuning-contract-repair.md) is complete,
+the [T8 confirmation](2026-09-04-t8-confirmation.md) is queued, and the
+[fresh-game diagnostic protocol](2026-09-04-loss-study.md) is ready.
 
 Long matches run unattended. Agent activity should prepare candidates, inspect
 completed evidence, and make decisions. No countdown messages or repeated

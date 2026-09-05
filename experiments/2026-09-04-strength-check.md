@@ -58,3 +58,50 @@ gauntlet_20260904.exe -ngn .\ngn_20260904_fast.exe -anchors ratings.json -tc 120
 Run name **`r0904pin`**, in `C:\Users\ehrli\ngn\repin`.
 Poll with `scripts/boxrepin.sh tail r0904pin`.
 Results and raw logs to `output/recovery-2026-09-04/` after completion.
+
+## Completed result
+
+**2726, reported 95% CI [2668,2784]**, all 200 games, `DONE_EXIT_0`.
+The original 2600 gate passes: the lower bound exceeds 2600, both families
+remain represented, scores bracket 50%, and there are no NGN errors or flags.
+This does **not** establish the later target of at least 2800.
+
+| Anchor | NGN W/D/L | Score |
+|---|---:|---:|
+| Blunder 6.1 | 33 / 6 / 1 | 90.0% |
+| Blunder 7.2 | 24 / 16 / 0 | 80.0% |
+| Blunder 7.4 | 21 / 18 / 1 | 75.0% |
+| Blunder 8.0 | 18 / 19 / 3 | 68.8% |
+| Counter 3.8 | 5 / 10 / 25 | 25.0% |
+
+One Blunder 6.1 **time-forfeit**, no other flags or process errors. An earlier
+working note incorrectly said the >2% rule automatically excluded that block.
+The code explicitly omits real time-forfeits from `forfeitReasons`; an occasional
+clock loss is treated as part of play. Thus the original-rule primary report
+retains all five anchors. A stricter sensitivity excluding all forty Blunder
+6.1 games gives **2753 [2691,2815]**, also above 2600 but not a replacement pin.
+The dropped anchor's weaker performance explains why that exclusion raises the
+estimate. No games were extended or pooled after seeing the result.
+
+Independent Stockfish replay verified **all 27546 played plies**, final mates,
+draw rules, max-move draws and the forfeit result/side. Audit: PASS. End reasons:
+130 checkmates, 49 rule draws, 20 max-move draws, one opponent clock loss.
+
+The reported interval is the existing harness's approximate inverse-variance
+calculation and excludes anchor-label uncertainty. The twenty six-ply synthetic
+opening prefixes are paired by color and reused across anchors. As an additional
+sensitivity, a seed-2800 bootstrap of those twenty complete opening clusters
+(10000 resamples, four-anchor subset) gives [2719,2784]. This does not cure
+synthetic-opening or historical-calibration limitations. No movetime discount
+applies to this real-clock run; the printed movetime footer is stale text.
+
+Raw artifact SHA-256s:
+
+- `r0904pin.pgn`: `a6b25b2af418f66c7c7cd10b9addaf48b5be4cea53e950d042caa6310848c077`
+- `r0904pin_out.txt`: `d2bf54023054788c0d68461429008f312ca30e62868cb1fd3f1d1347aa61ff2a`
+- `r0904pin_tally.json`: `2d52cafee00cbf072bc6f05a9abb54b5ea6baa901982047eec525b5e7a22c8e8`
+
+Audit and independent sensitivity outputs: `r0904pin-audit.json` and
+`r0904pin-rating-sensitivity.json`, alongside their Python drivers in the same
+raw artifact directory. Tally JSON does not encode error reasons; consult the
+full game/output logs before any future pooling.

@@ -4,7 +4,9 @@ Accepted source commit: **`71399c063ee9688f499e71e1253ebaf81b211813`**.
 The committed runtime diff matches the exact tested patch SHA-256 in the
 [validation record](2026-09-04-fast-correctness.md). The short fixed-cap check
 passed at +23.5 [+1,+46] over 400 games, with zero errors/flags. The separate
-absolute 2600 gauntlet is running; this deployment does not imply its outcome.
+absolute gauntlet has now completed at **2726 [2668,2784]**, clearing the
+original 2600 gate. [Full result and limitations](2026-09-04-strength-check.md).
+Subsequent offline tuning repairs do not change these frozen playing artifacts.
 
 ## Installed artifacts
 
