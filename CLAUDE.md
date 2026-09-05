@@ -33,6 +33,7 @@ go test -short -race ./... -count=1
 - **Explicit user restriction, September5:** never run NGN on this Mac. It is a battery-powered user computer. Run engines, matches, search tests, benchmarks, tuning and heavy chess validation on the authorized Windows/WSL box only. Background scheduling, efficiency cores or reduced concurrency do not make local execution acceptable. Local editing and lightweight read-only inspection are fine. Do not restart any stopped Mac controller or allow a remote collector to launch local engine validation.
 
 - September5 user direction: the completed2800 goal is succeeded by verified NNUE and real multicore search, toward the strongest Go-based engine. NNUE is now allowed in principle. All implementation, training, builds, profiles, engines and matches run on WSL only. See experiments/2026-09-05-next-stage-roadmap.md. The Mac is a remote terminal; no local project computation.
+- September5 planning direction: research NNUE and multicore before implementation; use the staged design in experiments/2026-09-05-nnue-smp/report-source.md. Sol performs major implementation; root coordinates, reviews contracts and controls acceptance. Start with the minimal verified pipeline and one-thread ownership, then named external backends and helper searches.
 - Correctness and measurement integrity come before speculative Elo work.
 - Optimize for Elo per confirmation hour. Default confirmation budget is 1-2 hours per change.
 - One behavior change at a time, candidate vs immediate base.

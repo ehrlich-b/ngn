@@ -4,6 +4,8 @@ The previous2800 goal is complete: accepted53e4d1b measured2884 [2834,2934] on t
 
 New direction: strongest Go-based engine, with NNUE now permitted. All work and computation must run on WSL. This isolated worktree starts at the accepted playing source; no new engine behavior is installed. Next milestone: validated NNUE, actual multicore search and measured contributions, then profile-guided Go optimization. Read [the ranked roadmap and completion gates](experiments/2026-09-05-next-stage-roadmap.md). Public reference metadata is pinned under /home/ehrli/repos/ngn/output/next-stage-20260905.
 
+Research and staged designs: [NNUE and multicore plan](experiments/2026-09-05-nnue-smp/report-source.md). Sol owns major implementation; root coordinates and reviews. Next: WSL baseline/runner controls, then exact one-thread ownership gates and the minimal Bullet pipeline. No production feature changes were made during research.
+
 The older runbook below is historical context. Its live-process claims, old no-NNUE objective and execution queue are superseded by this update and the roadmap. Do not restart historical workers.
 
 ---

@@ -2,6 +2,8 @@
 
 User direction, September 5: pursue the strongest Go-based chess engine in the world; NNUE is now allowed in principle. All development and computation must happen on the authorized WSL box. The Mac is only a remote terminal. Native Windows runs are historical evidence and are not the execution target for this sprint.
 
+Detailed researched design: [NNUE and multicore implementation plan](2026-09-05-nnue-smp/report-source.md). Its concrete architecture, compatibility tiers, worker ownership, synchronization and staged gates supersede the initial defaults below. Major implementation is assigned to Sol; root coordinates and reviews.
+
 ## Starting point
 
 Accepted playing source: 53e4d1b9bf4006a39c0327a7016faba7f2b8f82e. The completed prior native-Windows 400-game calibration is 2884.1429896655936, primary 95% interval [2834.197941381757,2934.08803794943]. Full WSL legal replay covered 400 games/55,349 played plies; all 400 terminal outcomes passed. That completed 2800 goal remains separate from future WSL measurements.
@@ -18,7 +20,7 @@ The runtime remains a Go engine. Portable scalar evaluation is the correctness r
 
 ## Priority and dependencies
 
-1. Establish the native-WSL baseline and use a mature match runner. Pin a stable fastchess release after source review, validate terminal/repetition/clock handling with the known boundary fixtures, and run a fixed A/A control. Preserve complete game histories and binary/net/book identities. This is a new test environment; do not pool its games with prior native-Windows evidence. Keep the existing independent legal and terminal audits.
+1. Establish the native-WSL baseline and use a mature match runner. Pin and validate a named fastchess release after source review (latest inspected: v1.8.2-alpha), validate terminal/repetition/clock handling with the known boundary fixtures, and run a fixed A/A control. Preserve complete game histories and binary/net/book identities. This is a new test environment; do not pool its games with prior native-Windows evidence. Keep the existing independent legal and terminal audits.
 2. Make mutable search state belong to an engine instance and worker, in small behavior-preserving steps. Inventory global TT, stop/node limits, evaluation caches, histories, per-ply buffers and repetition state. Keep one-thread behavior identical while introducing ownership needed for both NNUE accumulators and later SMP. Do not attempt a broad search rewrite.
 3. Deliver one compact NNUE end to end: fixed feature mapping, exporter and checked network format; scalar reference; incrementally updated accumulators; optimized CPU path; search score integration; one trained candidate; matched real-clock comparison against HCE. Begin with a standard compact piece-square network, with exact width/architecture pinned before training, rather than modern Stockfish's complete multi-feature architecture.
 4. Deliver Lazy SMP using private positions, histories and accumulators, a deliberately concurrent TT design, shared stop/time control, and deterministic root-result publication rules. Preserve Threads=1 as a first-class configuration. Validate stability and strength at 1/2/4/8 threads. Threads=8 must demonstrate useful playing improvement over Threads=1 at equal wall time; eight threads need not provide eightfold NPS.
@@ -56,7 +58,7 @@ CounterGo and Zahak give concrete Go implementations of neural evaluation and SI
 
 For each borrowed mechanism, record donor revision/path, prerequisite invariants, our implementation, targeted failure test, isolated game verdict, and applicable source/network/data provenance. Breadth belongs in the source inventory; accepted playing changes need focused evidence.
 
-Go1.26 introduced experimental amd64 simd/archsimd under GOEXPERIMENT=simd. Investigate it alongside small assembly kernels rather than assuming Go must cross cgo for vectorization. Pin any experimental toolchain and retain a portable scalar fallback. WSL's baseline Go toolchain is1.25.5; a newer compiler needs separate installation/build comparison, not an unrecorded replacement. Go PGO is another measured candidate, not an assumed speedup.
+Go1.27 adds experimental portable simd and revises simd/archsimd under GOEXPERIMENT=simd; the earlier1.26 API is not a fixed target. Investigate these alongside small assembly kernels rather than assuming Go must cross cgo for vectorization. Pin any experimental toolchain and retain a portable scalar fallback. WSL's baseline Go toolchain is1.25.5; a newer compiler needs separate installation/build comparison, not an unrecorded replacement. Go PGO is another measured candidate, not an assumed speedup.
 
 Historical speed results already contain failed int32, staged-scoring, pin-aware-legality and recent block-picker experiments. Those findings constrain repetition but do not close speed work after NNUE/SMP changes the workload. Benchmark actual search and equal-time Elo, not cross-engine NPS as though each node did equal work.
 
@@ -68,7 +70,7 @@ Primary sources:
 - https://github.com/jw1912/bullet
 - https://github.com/Disservin/fastchess
 - https://github.com/AndyGrant/OpenBench
-- https://go.dev/doc/go1.26
+- https://go.dev/doc/go1.27
 - https://go.dev/doc/pgo
 
 ## Sprint completion
