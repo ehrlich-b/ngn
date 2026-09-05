@@ -1,9 +1,9 @@
 # Next classical candidate: baseline preflight and bounded game gate
 
-Status: the [one grouped fit](2026-09-05-classical-model-v2.md) passed its fixed
-offline gates, baseline A/A passed its completed control, and `r0905texelv2`
-is running with the frozen artifacts below. No candidate weights have entered
-the playing defaults. The original bounded game rule still decides the vector.
+Status: **completed and shelved at the inconclusive cap**. The
+[one grouped fit](2026-09-05-classical-model-v2.md) passed its offline gates,
+but `r0905texelv2` did not reach its required H1 in 1,600 games. No candidate
+weights entered the playing defaults. The accepted qcap base is unchanged.
 
 ## Baseline A/A: r0905qbaseaa
 
@@ -100,3 +100,35 @@ Root independently observed one expected versioned harness plus eight baseline
 and eight candidate workers. The controller collects the completed result but
 never deploys or commits weights. Root reviews H1/H0/capped verdict separately;
 partial scores neither accept nor reject the vector.
+
+## Completed result and root decision
+
+`r0905texelv2` completed all1,600 games in1h42m9s: **480W/654D/466L**,
+penta57/190/299/190/64 over800 pairs. Independently recomputed paired result:
+**+3.040 Elo [−9.471,+15.559]**, pLLR−0.480748. Zero operational failures or
+flag-outs;946 adjudicated wins,334 adjudicated draws,193 max-move draws and127
+rule draws. Single final `DONE_EXIT_0`; the collector observed no remaining
+native chess workers. This was a completed capped-inconclusive result, not H0.
+
+Under the original rule, **shelve this fitted vector**. No extension, provisional
+keep, refit on the holdout or default replacement. The improved static loss did
+not establish improved play. This result does not prove that classical tuning
+cannot work or that every historical failed tune had the same cause.
+
+Root reconciled every consecutive game/WDL transition, reported counts, terminal
+reasons, settings, penta score, paired interval and LLR with the completed log.
+The audit rejects malformed or ambiguous completion and operational failures;
+it passed the completed A/A control and rejected eight damaged-log probes.
+Individual pairing identities/moves are not exposed by this SPRT log, so this
+is not an independent move replay. The frozen tested harness supplies pairing.
+
+Raw `output/recovery-2026-09-04/r0905texelv2_out.txt` SHA-256:
+`0400348d8bdeaabed713d261f42e35a4364e8214933c5af28fb7db1351395959`.
+Audit: `r0905texelv2-audit.json`; reproducer:
+
+```sh
+python3 output/recovery-2026-09-04/audit_frozen_sprt_20260905.py output/recovery-2026-09-04/r0905texelv2_out.txt ngn_20260905_texelv2.exe 0 10
+```
+
+The unchanged qcap base permits the queued T17+T8 confirmation to use its
+already frozen artifacts and completed same-configuration baseline A/A.

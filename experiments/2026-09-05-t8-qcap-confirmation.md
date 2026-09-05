@@ -1,15 +1,15 @@
 # T17 + completed T8 vector, rebuilt on accepted qcap
 
-Prepared and staged; **not launched**. This continues the previously authorized
+**Running as `r0905t8qcap`.** This continues the previously authorized
 [interrupted confirmation](2026-09-04-t8-confirmation.md), with its fixed
 [24,000-game vector](2026-08-04-t8-spsa-result.md). No new tuning or heuristic
 is included. No speculative source or playing defaults changed on main.
 
-The current `r0905texelv2` match must finish and receive its original verdict
-first. These exact artifacts can be tested only if qcap remains the accepted
-immediate base. If the fitted evaluator is accepted, rebuild the T17/vector on
-that new base, verify it and update artifact identities before launching.
-Neither candidate is an absolute2800 rating confirmation.
+The preceding `r0905texelv2` completed1,600 games and was shelved under its
+original inconclusive-cap rule: paired+3.04 [−9.47,+15.56], zero errors/flags.
+Qcap remains the accepted immediate base, so these exact artifacts and the
+completed same-configuration A/A remain applicable. This candidate is not an
+absolute2800 rating confirmation.
 
 ## Scope and artifacts
 
@@ -72,3 +72,23 @@ The completed same-qcap A/A
 while baseline/harness/machine configuration remains unchanged. A new accepted
 base needs its corresponding A/A control. No autonomous handoff currently
 launches this candidate.
+
+## Launch verification
+
+Root reviewed the completed fit verdict, confirmed idle native workers, and
+reverified all four remote candidate/base/harness/book hashes above. Native
+Windows smoke checked all14 advertised defaults, black EP evasion, forbidden
+castling, mate at the fifty-move boundary, and clean quits. All passed; log
+`output/recovery-2026-09-04/t8-qcap-windows-smoke.txt`. The script itself checks
+idle workers and candidate identity and bounds each engine output read.
+
+The exact frozen command launched at02:58:59 local September5. Root observed
+one expected versioned harness and eight workers for each of the two frozen
+binaries, with completed games flowing. No defaults were replaced.
+
+`output/recovery-2026-09-04/watch_r0905t8qcap.py` is a bounded collector: it
+checks once a minute, fetches the completed log and records remaining processes.
+It never launches another run, selects a verdict, commits or deploys. State is
+`t8-qcap-games-controller.json`; root must apply the original H1/H0/cap rule
+after completion. This is the only active native match. The prepared singular-only
+candidate follows this decision and must rebuild if T8 changes the accepted base.

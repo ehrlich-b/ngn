@@ -30,7 +30,8 @@ Read the [current evidence and decisions](2026-09-05-classical-review-update.md)
 before repeating a prior experiment. Repaired trace omissions, quiet filtering,
 checkpoint selection, castling and qsearch-cap/TT reuse are regression targets,
 not new discoveries. The current 936-entry model makes mobility/threat terms
-trainable. Its frozen fit is in games; T17+T8 is staged separately. Do not change
+trainable. Its frozen fit completed1,600 games at paired+3.04 [−9.47,+15.56] and
+was shelved under its inconclusive-cap rule; T17+T8 is now in games. Do not change
 either vector, launch competing box work, or select another fit from its holdout.
 Known J1 scout-depth inconsistency needs an interaction hypothesis: its old
 repair expanded the tree, but the negative game estimate came from only 65

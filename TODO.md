@@ -95,15 +95,17 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    compiled entries equal the fitted model. Full short/race/vet, UCI smoke and
    independent SF oracle pass (intentional numeric fixture change documented).
    Fresh baseline A/A `r0905qbaseaa` passed200 games (paired+15.65 [−16.71,+48.28],
-   zero errors/flags). **`r0905texelv2` is running**, SPRT[0,+10], max1600 games,
-   against the accepted qsearch baseline. Its bounded controller collects
-   results but never deploys. Root must review the completed paired verdict;
-   H0 or capped inconclusive shelves this fitted vector. [Game manifest](experiments/2026-09-05-classical-confirmation.md).
-3. **T17 + the completed24000-game T8 vector rebuilt and staged on qcap**:
+   zero errors/flags). **`r0905texelv2` completed and is shelved**:1600 games,
+   480/654/466, paired+3.04 [−9.47,+15.56], pLLR−0.48, zero errors/flags.
+   The fixed inconclusive-cap rule applies; no weights/defaults changed.
+   [Completed audit and game manifest](experiments/2026-09-05-classical-confirmation.md).
+3. **T17 + the completed24000-game T8 vector is running as `r0905t8qcap`**:
    `ngn_20260905_t8qcap.exe` (43b2a2c9...), isolated source, full short/race/vet
-   and protocol checks pass. Not launched or installed. After the fitted-model
-   verdict, use it only if qcap remains the accepted base; otherwise rebase and
-   rebuild. [Exact artifacts and bounded original confirmation rule](experiments/2026-09-05-t8-qcap-confirmation.md).
+   and native protocol checks pass. Qcap remains the accepted base after the
+   fitted vector was shelved; remote hashes and idle workers verified before
+   launch. SPRT[−3,+3], max1600, original H1-only keep rule. Bounded collector
+   fetches the result but never chooses a verdict or installs a candidate.
+   [Exact artifacts and bounded original confirmation rule](experiments/2026-09-05-t8-qcap-confirmation.md).
    Do not reuse the interrupted279-game castling-bug run.
 4. **Singular-only search candidate built and validated, not launched.** The fixed
    four-arm [depth-policy diagnostic](experiments/2026-09-05-depth-policy.md)

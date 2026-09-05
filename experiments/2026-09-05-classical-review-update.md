@@ -8,7 +8,9 @@ exhaustive clean bill of health or a new Elo result.
 
 The latest absolute pin remains **2726 [2668,2784]** on the frozen local
 historical calibration. The original 2600 gate passed; 2800 is unconfirmed.
-The frozen classical fit is still in its game gate; T17+T8 is staged separately.
+The frozen classical fit completed its game gate and was shelved: paired+3.04
+[−9.47,+15.56] over1,600 games, no acceptance and zero errors/flags. T17+T8 is
+now running against the unchanged accepted base under its existing frozen gate.
 No NNUE, fitted weights, search heuristic or picker change is installed here.
 
 ## What explains the tuning concern
@@ -100,12 +102,12 @@ Windows speed claim and no further picker iteration is queued.
 
 ## Three next decisions
 
-1. Finish the already frozen classical-fit game gate. Completed H1 plus clean
-   operation accepts; H0 or the 1,600-game inconclusive cap shelves. No refit,
-   favorable-sign extension or NNUE pivot is implied by either outcome.
-2. Confirm the completed T17+T8 search vector against the accepted immediate
-   base under its existing manifest. Rebuild if the fitted model becomes that
-   base. This finishes an existing 24,000-game investment; it is not a new tune.
+1. The classical-fit gate is complete: capped inconclusive, vector shelved under
+   its original rule. No refit, favorable-sign extension or NNUE pivot follows.
+   Lower validation/test MSE did not establish better play in this comparison.
+2. Finish the running T17+T8 confirmation against the unchanged accepted qcap
+   base under its existing manifest. This finishes an existing 24,000-game
+   investment; it is not a new tune.
 3. Target a coherent search-policy change if a larger gap remains. First trace
    actual child depth/window/verification and TT provenance on fresh game
    disagreements, with win/draw controls. Use an explicit small interaction
