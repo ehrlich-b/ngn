@@ -167,3 +167,21 @@ finishes. Even if this candidate completes first, root defers main integration
 until that freeze ends. Any later external goal confirmation uses a separately
 frozen accepted binary and corrected measurement instrument. Do not add a
 self-play estimate to2726 or relabel an old pin to manufacture2800.
+
+## Deferred local collection to preserve Mac isolation
+
+At12:29:51UTC root paused only local pin collector PID52989 with SIGSTOP.
+The collector would otherwise launch local bootstrap/Stockfish replay when the
+Windows games finish, creating a scheduling race with the Mac candidate.
+No fetched PGN, rating report or legal replay existed before deferral; the
+local validation had not begun. Windows games continue unchanged,285/400
+at the post-deferral check. Mac controller PID14811 remains running.
+
+One-shot helper `mac-gate/defer_pin_collection.py`, SHA-256
+`086b1382c47e65a81a317564b4e9f49db60b26cd2822b1d4dfa827cef30eacb6`,
+PID62206/session49860, verifies both exact process identities, pauses the
+collector, waits for the Mac controller to exit, then verifies and resumes the
+same collector with SIGCONT. It never launches games or modifies frozen files.
+An observation/identity failure holds for root inspection instead of guessing.
+Root verified OS state Ts for the collector and Ss for the Mac controller.
+Current helper state is in `mac-gate/collection-deferral.json`.

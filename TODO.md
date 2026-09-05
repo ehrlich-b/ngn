@@ -113,8 +113,11 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    refers to65 interrupted games, not this completed test.
    **External400-game accepted-T8 pin `r0905acceptedpin` is running.**
    [Frozen protocol and additional terminal-audit requirement](experiments/2026-09-05-2800-pin-plan.md).
-   Collector22597 only collects that existing run; do not restart the old failed
-   preflight controller or launch competing Windows/WSL engine work.
+   Collector22597/PID52989 only collects that existing run. It is temporarily
+   SIGSTOP-paused to prevent local validation overlapping the Mac match; helper
+   49860/PID62206 resumes it automatically after Mac controller14811 exits.
+   See `mac-gate/collection-deferral.json`. Windows games continue unchanged.
+   Do not restart the old controller or launch competing Windows/WSL work.
 5. **Next correctness priority: cached-mate stop guard.** Carried-state replay
    reproduces two depth1 mate claims that actually allow immediate threefold.
    Counter's depth/distance guard repairs both, and root's continued games
