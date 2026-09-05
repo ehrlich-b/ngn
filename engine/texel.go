@@ -314,13 +314,11 @@ func TexelTune(samples []TexelSample, params []*int, k float64, step, maxPasses 
 // 0.5 / 0.0, White's perspective), parsing each FEN once into an in-memory board.
 // Blank lines and lines starting with '#' are skipped; unparseable lines error.
 //
-// Positions are DEDUPED by full Zobrist key (piece placement + side + castling +
-// en passant): self-play datasets repeat common positions heavily, which both
-// over-weights those structures in the MSE and — the worse defect — leaks the same
-// position across a later train/test split, so held-out "test" MSE secretly scores
-// training data and early stopping can't catch overfitting. Deduping at this single
-// load choke point fixes both for every consumer; the duplicate count is returned
-// so callers can report what was dropped (no silent truncation).
+// Positions are deduped by full Zobrist key (pieces, side, castling and EP),
+// keeping the first outcome and returning the duplicate count. This reduces
+// repeated full positions; it does not establish game-disjoint validation or
+// board-only model-input separation. Outcome labels must be finite and in [0,1],
+// including observations of positions already seen.
 func LoadTexelSamples(filename string) (samples []TexelSample, nDup int, err error) {
 	f, err := os.Open(filename)
 	if err != nil {
@@ -391,6 +389,9 @@ func LoadTexelSamples(filename string) (samples []TexelSample, nDup int, err err
 		if perr != nil {
 			return nil, 0, fmt.Errorf("line %d: bad result: %w", lineNo, perr)
 		}
+		if math.IsNaN(result) || math.IsInf(result, 0) || result < 0 || result > 1 {
+			return nil, 0, fmt.Errorf("line %d: result must be finite and in [0,1], got %q", lineNo, strings.TrimSpace(line[idx+1:]))
+		}
 		pos, err := ParseFEN(fen)
 		if err != nil {
 			return nil, 0, fmt.Errorf("line %d: bad FEN %q: %w", lineNo, fen, err)
@@ -401,11 +402,9 @@ func LoadTexelSamples(filename string) (samples []TexelSample, nDup int, err err
 }
 
 // SplitTrainTest shuffles samples (seeded for reproducibility) and splits off a
-// test fraction for held-out early-stopping. Because LoadTexelSamples dedupes by
-// position, the two halves are disjoint by position — the property that makes the
-// held-out test MSE an honest overfit signal. (The prior re-tune's 3x regression
-// came from the opposite: duplicate positions straddled the split, so "test" MSE
-// partly measured training data and early stopping never fired.) Shuffles in place.
+// test fraction for early stopping. This legacy flat-data split has no game or
+// opening identities and cannot guarantee related-game or board-input separation.
+// Shuffles in place; use grouped data for an experiment requiring those guarantees.
 func SplitTrainTest(samples []TexelSample, testFrac float64, seed int64) (train, test []TexelSample) {
 	rng := rand.New(rand.NewSource(seed))
 	rng.Shuffle(len(samples), func(i, j int) { samples[i], samples[j] = samples[j], samples[i] })

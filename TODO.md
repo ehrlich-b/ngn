@@ -1,6 +1,6 @@
 # NGN active runbook
 
-Updated 2026-09-04. Active target: **at least 2800 without NNUE**. `CLAUDE.md` owns operating policy. Detailed evidence belongs
+Updated 2026-09-05. Active target: **at least 2800 without NNUE**. `CLAUDE.md` owns operating policy. Detailed evidence belongs
 in `experiments/`. The former 132 KB runbook, including all old queue decisions,
 is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive.md).
 
@@ -80,12 +80,12 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    100 that warm qDepth0 accepts without searching; cold qDepth0 returns 51.
    Removing only the capture cap in a diagnostic overlay makes all three return
    51. Uncapped production qsearch is now implemented, regression/oracle/short/race
-   checked and frozen. **Candidate held:** fresh same-binary `r0904qaa` completed
-   200 games at +31.35 [+0.67,+62.53], zero flags/errors, failing the predeclared
-   zero-in-interval gate. Fixed-node accounting diagnostic passed all 12 pairs
-   exactly. One predeclared 400-game real-clock replication `r0904qaa2` is running;
-   require both its interval and the combined 600-game interval to contain zero,
-   retaining the failed first run. No automatic repeat if it fails.
+   checked and frozen. **Candidate `r0904qcap` running (400 fixed games):** the bounded A/A
+   investigation passed: replication `r0904qaa2` completed 400 games at
+   −4.34 [−25.98,+17.26]; all 600 games combined +7.53 [−10.22,+25.32],
+   zero flags/errors. The first 200-game A/A failure remains recorded; the
+   predeclared replication and combined intervals both contain zero. The
+   fixed-node accounting diagnostic also passed all 12 pairs exactly.
    [Repair manifest and investigation](experiments/2026-09-04-qsearch-budget-repair.md).
    [Second review, corpus/profile evidence and lower-priority TT-age bug](experiments/2026-09-04-review-second-pass.md).
 2. The [completed 24-game diagnostic study](experiments/2026-09-04-loss-study.md)

@@ -1,9 +1,10 @@
 # Qsearch capture-budget / TT contract repair
 
 Status: implementation reviewed, checks passed and candidate artifacts frozen.
-Fresh A/A `r0904qaa` failed its predeclared interval check; candidate match is
-held for investigation. No new default engine is installed. Active objective
-remains at least 2800 without NNUE.
+The bounded A/A investigation passed its predeclared rule on September 5;
+the first failed preflight is retained below. Candidate match is cleared for
+launch. No new default engine is installed. Active objective remains at least
+2800 without NNUE.
 
 ## Evidence and selected repair
 
@@ -58,7 +59,10 @@ After source proof, tests, passing A/A, artifact hashes filled in and idle box:
 fixed **400 games / 200 opening pairs**, otherwise the same setup as A/A.
 Candidate runtime alone versus the immediate accepted castling baseline.
 
-**Not launched:** the first real-clock A/A failed; see investigation below.
+**Launched September 5:** the bounded A/A investigation passed. Native process
+inspection confirms one versioned harness and eight engines per side, with the
+scheduled task removed. Frozen candidate hash was verified immediately before
+launch. No candidate result is claimed until the fixed run completes.
 
 ```text
 sprt_20260904.exe -new .\ngn_20260904_qcap.exe -base .\ngn_20260904_castle.exe -tc 10+0.1 -concurrency 8 -lowpower=false -openings sprt_openings.txt -elo0 -3 -elo1 3 -alpha 0.05 -beta 0.05 -maxgames 400 -mingames 401 -resignscore 900 -resignplies 5 -drawscore 10 -drawplies 10 -drawminplies 80
@@ -177,6 +181,21 @@ sprt_20260904.exe -new .\ngn_20260904_castle.exe -base .\ngn_20260904_castle.exe
 ```
 
 Launch verified: one versioned harness and sixteen expected baseline processes;
-scheduled task entry deleted. Candidate `r0904qcap` remains unlaunched. Root
+scheduled task entry deleted. At replication launch, `r0904qcap` was unlaunched. Root
 source is committed at `ec9d264`; the frozen Windows/Mac binaries above retain
 their original build identity. The active default remains the castling release.
+
+### Completed investigation: PASS, original failure retained
+
+`r0904qaa2` completed 400 games / 200 pairs in 25m28s, DONE_EXIT_0:
+94/207/99 W/D/L, penta 9/48/90/45/8, paired −4.343 [−25.984,+17.264],
+pLLR −0.21. Zero flags or operational errors. Combining **all** 600 games
+gives penta 11/66/139/67/17, +7.529 [−10.220,+25.317]. Both required
+intervals contain zero, so the predeclared investigation clears the candidate
+hold. This does not erase the original failed preflight or turn the conditional
+replication into an independently preplanned test. No more A/A games are needed.
+
+Replication log SHA-256:
+`c705472b6ed1abdc0d193f8832239468ee722dc70473c39acb4d5ef65f734fb4`.
+Independent result audit: `output/recovery-2026-09-04/qaa-investigation-audit.json`.
+The completion watcher fetched the log and verified the native workers idle.
