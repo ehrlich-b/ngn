@@ -153,3 +153,22 @@ to 0/999/1998/2997, `-games 999`, and `-out` to
 `output/recovery-2026-09-04/classical-v2-shard-{0,1,2,3}.jsonl`. Four Mac
 processes are launched together, each with GOMAXPROCS=1. Per-process logs and
 the final combined audit remain in that output directory.
+
+### Generator predecessor correction before accepting data
+
+The first full generation was stopped without a corpus verdict: root review
+found `SetLastMovePlayed` was reset to empty but never updated after real moves.
+Unlike UCI's position replay, this disabled predecessor-dependent root ordering
+(`engine/moveorder.go:677`). Internal search sets/restores its own predecessors,
+so legal replay alone did not catch the missing handoff at successive roots.
+The 32-game smoke above verified its stated format/replay checks, but that
+generator is superseded and none of its data will enter the fit.
+
+All four generation workers terminated (exit −15), before publishing the full
+shards. Root moves the state reset before opening replay and sets the predecessor
+after every actual opening/searched move. `TestGeneratorHandsPlayedMoveToNextRootSearch`
+fails before correction (empty predecessor after e2e4) and covers both opening
+and searched moves. Parent failure log: `corpus-predecessor-parent-fail.txt`.
+This is a data-generation defect; no new playing-engine runtime is bundled.
+The fixed ranges/settings/acceptance rule remain; restart with a new frozen
+generator hash and a fresh 32-game smoke. Do not pool partial earlier data.

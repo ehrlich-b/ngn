@@ -64,6 +64,15 @@ func playOne(cfg GenerateOptions, index int) (GameRecord, error) {
 	if err != nil {
 		return GameRecord{}, err
 	}
+	// Match ucinewgame followed by position/moves: clear per-game search state
+	// before replaying the opening, then hand every played move to the next root.
+	engine.TranspositionTable = engine.NewCache(engine.DEFAULT_CACHE_SIZE)
+	engine.ClearHistoryTable()
+	engine.ClearKillerMoves()
+	engine.ClearCounterMoves()
+	engine.SetLastMovePlayed(engine.EmptyMove)
+	engine.ClearStop()
+	engine.SetMaxNodes(0)
 	moves := make([]string, 0, cfg.MaxPlies)
 	for openingPly, text := range cfg.Openings[index] {
 		if reason, _, done := terminal(pos); done {
@@ -76,6 +85,7 @@ func playOne(cfg GenerateOptions, index int) (GameRecord, error) {
 		if _, _, _, ok := pos.GameMakeMove(m); !ok {
 			return GameRecord{}, fmt.Errorf("opening move %q rejected", text)
 		}
+		engine.SetLastMovePlayed(m)
 		moves = append(moves, m.ToString())
 	}
 	if len(moves) > cfg.MaxPlies {
@@ -94,15 +104,6 @@ func playOne(cfg GenerateOptions, index int) (GameRecord, error) {
 		Moves: moves,
 	}
 	rng := perGameRNG(cfg.Seed, r.OpeningID)
-	// Search state is process-global. Freshen every table that affects ordering,
-	// plus the TT and stop/node knobs, before each independent game.
-	engine.TranspositionTable = engine.NewCache(engine.DEFAULT_CACHE_SIZE)
-	engine.ClearHistoryTable()
-	engine.ClearKillerMoves()
-	engine.ClearCounterMoves()
-	engine.SetLastMovePlayed(engine.EmptyMove)
-	engine.ClearStop()
-	engine.SetMaxNodes(0)
 	candidates := make([]SampleRecord, 0, 64)
 	for {
 		if reason, result, done := terminal(pos); done {
@@ -147,6 +148,7 @@ func playOne(cfg GenerateOptions, index int) (GameRecord, error) {
 		if _, _, _, ok := pos.GameMakeMove(info.BestMove); !ok {
 			return GameRecord{}, fmt.Errorf("cannot apply selected move %q", info.BestMove.ToString())
 		}
+		engine.SetLastMovePlayed(info.BestMove)
 		moves = append(moves, info.BestMove.ToString())
 		r.Moves = moves
 	}

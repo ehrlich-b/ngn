@@ -270,6 +270,22 @@ func TestGenerateMaxpliesIsUnresolvedAndWriteErrorsPropagate(t *testing.T) {
 	}
 }
 
+func TestGeneratorHandsPlayedMoveToNextRootSearch(t *testing.T) {
+	for _, maxPlies := range []int{1, 2} {
+		cfg := GenerateOptions{Openings: [][]string{{"e2e4"}}, Games: 1, Nodes: 1000, MaxPlies: maxPlies, Generator: GeneratorIdentity{ExecutableSHA256: "test", SourceIdentity: "test"}}
+		r, err := playOne(cfg, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(r.Moves) != maxPlies {
+			t.Fatalf("expected %d plies, got %v", maxPlies, r.Moves)
+		}
+		if got := engine.GetLastMovePlayed(); got == engine.EmptyMove || got.ToString() != r.Moves[len(r.Moves)-1] {
+			t.Fatalf("after %d plies root predecessor=%v, want last played move %s", maxPlies, got, r.Moves[len(r.Moves)-1])
+		}
+	}
+}
+
 func TestGenerateAcceptsMateOnLastPermittedPly(t *testing.T) {
 	var b bytes.Buffer
 	s, err := Generate(&b, GenerateOptions{Openings: [][]string{{"f2f3", "e7e5", "g2g4"}}, Games: 1, Nodes: 8000, MaxPlies: 4, Generator: GeneratorIdentity{ExecutableSHA256: "x", SourceIdentity: "x"}})
