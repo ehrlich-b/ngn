@@ -91,7 +91,7 @@ like a mechanism add but moves the tree 0.001% measures nothing in 8 hours of bo
 | LMR / NMP single-axis retunes (both directions) | 3 SPRTs / 0 gains — both directions regress (well-tuned local optimum). **[pre-reset — NON-BINDING, reopened]** |
 | Joint-SPSA over all 11 margin params (coordinated) | NO-OP: zero gradient at iter 50, params pinned. `2026-06-28-joint-spsa.md`. **[INVALID closure (iter-50 kill) — reopened as T8]** |
 | Search-param SPSA (earlier) | CLOSED (flat). **[reopened / superseded by T8]** |
-| J1 extension×LMR reduced-scout base fix | -59 Elo + endgame tree +83% → REVERTED (docs/09 J1 = accepted non-fix) |
+| J1 extension×LMR reduced-scout base fix | REVERTED after **65 interrupted games**, −59.4 [−144,+25], pLLR−0.28; **no formal verdict**, pre-reset. Old endgame tree+83% is a cost warning. Current-base interaction review reopened with that limitation (`2026-09-05-depth-policy.md`). |
 | Dynamic NMP | REJECT. **(pre-reset evidence non-binding; adjacent to the queued T12 NMP polish)** |
 | Multicut (return-beta) | REJECT (the A3 lesson). **[pre-reset REJECT; reopened as T9, prior +5.8 [S]]** |
 | Deeper futility (margin+depth) | blew up endgame tree +141% |

@@ -63,8 +63,9 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   **Tuning defects repaired:** [model/filter/checkpoint repair](experiments/2026-09-04-tuning-contract-repair.md),
   with frozen-trace parity under perturbed weights and conservative horizon handling.
   The optimizer also now considers the initial vector when selecting its best
-  checkpoint. These offline changes carry no Elo claim. The extension/scout issue is known J1, whose naive
-  fix previously regressed; do not sell it as a new fix. No NNUE work is queued.
+  checkpoint. These offline changes carry no Elo claim. The extension/scout issue
+  is known J1; its negative estimate came from 65 interrupted pre-reset games,
+  not a completed rejection. Do not sell it as a new fix. No NNUE work is queued.
 - **Accepted internal-castling correction:** actual loss GAME170 showed search
   PV `e1g1` while White was checked by Bh4; the UCI guard then substituted `e2g3`,
   immediately losing the knight. Reproduced from FEN/full history and independently
@@ -104,8 +105,19 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    verdict, use it only if qcap remains the accepted base; otherwise rebase and
    rebuild. [Exact artifacts and bounded original confirmation rule](experiments/2026-09-05-t8-qcap-confirmation.md).
    Do not reuse the interrupted279-game castling-bug run.
-4. **Futility diagnostic completed; no policy patch yet.** On seven frozen middlegame
-   disagreements, disabling futility at400k nodes produces the same choices as
+4. **Singular-only search candidate built and validated, not launched.** The fixed
+   four-arm [depth-policy diagnostic](experiments/2026-09-05-depth-policy.md)
+   supports testing removal of positive check/passed-pawn extensions, retaining
+   singular extensions and consistent scout depth. Six changed choices on23
+   frozen cases all have nonnegative SF depth16 differences; selected diagnostic,
+   not Elo. Full plain/overlay identity, short/race/vet and independent oracle
+   pass. [Frozen binaries, diff and game gate](experiments/2026-09-05-singular-only-confirmation.md).
+   It must follow the fit/T8 decisions and rebuild if the accepted base changes.
+   The old J1−59 estimate was65 interrupted games, not a completed rejection.
+   [External2800 confirmation protocol](experiments/2026-09-05-2800-pin-plan.md)
+   is prepared for an accepted gain, not launched.
+5. **Futility diagnostic completed; no policy patch yet.** On seven frozen middlegame
+   disagreements, disabling futility at 400k nodes produces the same choices as
    the base at4M; five improve at least50cp by SF depth16. Selected sample, no
    Elo/correctness claim. The remaining16 controls include one83cp regression
    and three negative changes. Direct traces do not show futility skipping the
