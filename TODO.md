@@ -124,9 +124,11 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    staged/hash-verified in native `sprt`; no startup or match launch yet.
    At the actual default Hash128, one immediate-draw failure reproduces;
    both guarded continuations finish in verified mate.
-   After the live pin is collected/reviewed: corrected terminal harness,
-   fixed200-game A/A, then fixed400-game correctness comparison with score
-   adjudication disabled so it cannot hide conversion failures. No launch yet.
+   Prospectively moved before launch to the available Mac: corrected terminal
+   harness, fixed200-game A/A then fixed400-game comparison,10+0.1/c4 with
+   taskpolicy background scheduling and score adjudication disabled. No launch
+   yet; the prior unlaunched Windows plan is superseded, with no machine fallback
+   or result pooling. Main integration still waits for the live pin's freeze.
    The [quiet-promotion candidate](experiments/2026-09-05-quiet-promotion-candidate.md)
    is also locally ready, but remains separate and must rebase/rebuild if the
    immediate accepted playing base changes. Neither candidate is installed.

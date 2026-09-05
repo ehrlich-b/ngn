@@ -1,9 +1,10 @@
 # Cached-mate termination correction on accepted T8
 
-**Selected and locally validated; no native game launch or deployment.**
-Versioned candidate/harness assets and startup verifier are now staged in the
-native `sprt` directory, with matching remote hashes. No test engines or game
-runs were started by staging. The ongoing rating pin retains its frozen inputs.
+**Selected and locally validated; Mac fixed gate prepared, not launched.**
+Before any A/A or candidate game, the still-unlaunched Windows plan is
+prospectively superseded by the Mac protocol below. Windows staged assets are
+retained for provenance; they do not authorize a second favorable-result attempt.
+The ongoing Windows absolute rating pin retains its frozen inputs and CPU.
 The [draw-conversion audit](2026-09-05-draw-conversion-audit.md) reproduces two
 current-engine choices that allow immediate threefold while claiming mate13/15
 at depth1. This candidate replaces unconditional mate stopping with Counter3.8's
@@ -67,79 +68,88 @@ reflects the containing checkout; use the explicit source hashes/diff as
 candidate provenance. Root evidence is in `root-evidence-sha256.json`,
 `root-conversion-proof.json/log` and `root-protocol.json/log`.
 
-## Native game instrument and prerequisite
+## Prospectively revised game instrument: Mac
 
-The live `r0905acceptedpin` completes first with its unchanged input files.
-Root reviews its400 games and the additional terminal-outcome audit before
-touching frozen source or starting any other Windows/WSL engine compute.
-This candidate is the next correctness priority; quiet promotions wait and
-must be rebuilt against the immediate accepted base if this correction passes.
+Revised before either test starts, September5. The Mac is available while the
+Windows `r0905acceptedpin` measurement continues. This moves the whole candidate
+gate to one machine; it does not mix machine classes or add a second trial.
+Windows/WSL engine compute stays exclusive to the rating pin. The Mac result
+cannot establish an absolute rating or be pooled with Windows games.
 
-The independently proved harness terminal-precedence fix must be used by both
-sides. Root built, but has not staged or run, the new native harness from
-`output/harness-boundary-20260905/src`:
+Mac16,1 (M4), Darwin24.6.0 arm64,24GiB,4 performance and6 efficiency cores.
+Use10+0.1 real clocks, concurrency4, `lowpower=true` (`/usr/sbin/taskpolicy -b`).
+This requests background scheduling, not guaranteed hard CPU affinity. Both
+sides use the same setting. No other local chess compute while the gate runs.
+GOMAXPROCS/GODEBUG are unset. Engines use their verified Hash128/default T8
+options, Go1.26.2, CGO0. The Mac terminal-precedence harness is built from the
+same independently validated source as the staged Windows instrument.
+Mac boundary tests pass, including both-color mate at cap, stalemate, repetition,
+fifty-move draw, ordinary cap and terminal precedence over score adjudication.
 
-- `build/sprt_20260905_terminal.exe`:
-  `62e6ffd96d57558938d45eaf0a123ee57dff1a7dec596a768738a0680b262e2a`.
-- Future external `build/gauntlet_20260905_terminal.exe`:
-  `499946e16f9758f2dd52d9760e1752565d98438b221c24bb451e46cd8a58a247`.
-- Harness production file SHA-256:
-  `2dee9d00fbc0b207d5fe9233530af850a39a0fcca5bab0434aa60788a8c8ad42`.
-  Full short/race/vet and boundary regressions pass. No playing-engine source
-  change is bundled into that harness archive.
-- Immediate baseline `ngn_20260905_t8qcap.exe`:
-  `43b2a2c93d9a773b0a08d8017d611edb7b39d63efe071cb7366c1ac4c11f92fc`.
-- Existing5000-opening book:
-  `974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222`.
+Frozen assets:
 
-Before launch, verify corrected harness/source, both exact engine binaries,
-book, unused run name, Windows/WSL idle state, native UCI/default/regression
-smokes and clean quits. Preserve all run logs and errors. No new automatic
-handoff controller has been created; root verifies these prerequisites.
+| Asset | SHA-256 |
+|---|---|
+|Mac accepted `build/ngn`|`0a42c12d287269251946f4bcbd016a497f200965a445b9806c22d57a982b4345`|
+|Mac corrected `output/harness-boundary-20260905/build/sprt_20260905_terminal`|`20cfc9c06d035cf3a7e891428fc7e9ad0b85de8d92da6afa0c9c9d6235f32d06`|
+|Harness `internal/uci/uci.go`|`2dee9d00fbc0b207d5fe9233530af850a39a0fcca5bab0434aa60788a8c8ad42`|
+|Opening book `output/sprt_openings.txt` (5000)|`974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222`|
 
-Staged verifier `verify_mateguard_startup.ps1`, SHA-256
-`f7aaf3126a92a253c366485a6543b8003d0ba13b9ffcb23be342d7a151ebf9df`,
-rejects active Windows/WSL chess workers before starting any process. It checks
-five asset hashes, the selected unused run name, Hash128 plus14 T8 defaults,
-both engines' three UCI regressions and clean exits. It then runs the native
-terminal-boundary regression executable, SHA-256
-`99cbbb9a258f41963689fa4460212ed09886b5745e4f94ebee72a6b9a36085b7`.
-`-Phase aa` checks the A/A name; `-Phase candidate` checks the candidate name
-after A/A. Native PowerShell parsing passed; actual startup execution remains
-pending the live pin's completion. Staging details and the no-launch staging
-script are under `output/mate-history-20260905/native-preflight/`.
+Candidate hash is the Mac hash in the table above. Versioned Windows candidate,
+harness, native unit-test binary and startup verifier remain staged and unrun;
+the earlier exact Windows plan is preserved in commit4963acc.
 
-**Score adjudication is disabled for both runs.** Resigning a game on large
-evaluation would hide the exact failure being tested: the base announces mate
-and subsequently draws. Games must reach actual terminal/draw rules or the
-explicit200-ply cap. Clock, concurrency and cap are identical for both sides.
+**Score adjudication is disabled.** Resigning on a large evaluation would hide
+the failure being tested: the base announces mate and subsequently draws.
+Games reach actual terminal/draw rules or the explicit200-ply cap. No playing
+engine change is bundled into the corrected harness.
 
 ## Fixed A/A followed by fixed candidate gate
 
-Native9800X3D,10+0.1 real clocks, c8, default scheduling, lowpower=false.
-Run **`r0905terminalaa`**:200 games/100 pairs with identical accepted T8 binaries.
+Run `r0905terminalaa_mac`:200 games/100 pairs, identical accepted T8 binaries.
 Require zero operational errors/flags and paired95%CI containing0. A failed
-A/A holds the candidate for investigation; no favorable-repeat sampling.
+control holds the candidate for investigation. No favorable repeat or machine
+fallback is allowed after seeing results.
 
-```sh
-BOXSPRT_BIN=sprt_20260905_terminal.exe scripts/boxsprt.sh launch r0905terminalaa -new '.\ngn_20260905_t8qcap.exe' -base '.\ngn_20260905_t8qcap.exe' -tc 10+0.1 -concurrency 8 -lowpower=false -openings sprt_openings.txt -maxmoves 200 -elo0 -3 -elo1 3 -alpha 0.05 -beta 0.05 -maxgames 200 -mingames 201 -resignscore 0 -drawscore 0
+Run `r0905mateguard_mac` only after the A/A passes:400 games/200 pairs, guarded
+candidate versus immediate accepted T8. Both phases use the same corrected
+harness, book, clocks, cap, background policy and four concurrent games.
+
+Exact command construction and one-shot launcher are in
+`output/mate-history-20260905/mac-gate/run_gate.py`; each phase records its
+complete argv and environment before launch. Shared arguments:
+
+```text
+-tc 10+0.1 -concurrency 4 -lowpower=true -openings /Users/ehrlich/repos/ngn/output/sprt_openings.txt -maxmoves 200 -elo0 -3 -elo1 3 -alpha 0.05 -beta 0.05 -resignscore 0 -drawscore 0
 ```
 
-After passed A/A and reverified idle state/assets, run **`r0905mateguard`**:
-400 games/200 pairs, candidate versus the immediate accepted T8 baseline.
+A/A uses `-maxgames 200 -mingames 201`, candidate uses
+`-maxgames 400 -mingames 401`. `-new` is the exact Mac base for A/A and the
+exact Mac candidate for the second phase; `-base` is the exact Mac base in both.
+The min-game argument disables SPRT stopping. Both must finish the full cap.
 
-```sh
-BOXSPRT_BIN=sprt_20260905_terminal.exe scripts/boxsprt.sh launch r0905mateguard -new '.\ngn_20260905_mateguard.exe' -base '.\ngn_20260905_t8qcap.exe' -tc 10+0.1 -concurrency 8 -lowpower=false -openings sprt_openings.txt -maxmoves 200 -elo0 -3 -elo1 3 -alpha 0.05 -beta 0.05 -maxgames 400 -mingames 401 -resignscore 0 -drawscore 0
-```
+Before each phase the launcher verifies frozen asset/script hashes and local
+idle state. Initial startup checks both engines under taskpolicy, all14 T8
+defaults/Hash128, three canonical UCI regressions and clean quits. Exclusive
+startup marker prevents accidental duplicate launches. Failure stops for root
+inspection; no retries, integration or remote commands occur in the launcher.
+The A/A audit must pass before the launcher starts the candidate. Both runs
+preserve stdout and stderr separately; any stderr, game-count/pair-accounting
+failure, flags, illegal/missing moves, crash, disconnect or watchdog holds the
+result. The auditor accepts only a complete fixed-cap terminal verdict.
 
-The fixed cap prevents SPRT early stopping. Correctness acceptance requires the
-proven witnesses/checks, all400 completed games, one DONE_EXIT_0, verified
-cumulative W/D/L/pentamomial accounting and zero flags, illegal/missing moves,
-crashes, disconnects or watchdogs. A paired95% interval wholly below0 rejects
-this implementation pending investigation. Otherwise an inconclusive result
-may support the proved correction, with no H1 or Elo-gain claim. No cap extension
-or pooling; a strength claim requires its own completed positive evidence.
+Correctness acceptance requires the proven witnesses/checks, all400 completed
+games, one terminal DONE_EXIT_0, and independently reconciled cumulative W/D/L,
+final pentamomial/paired confidence interval, with zero operational failures.
+A paired95% interval wholly below0 rejects this implementation pending
+investigation. Otherwise an inconclusive result may support the proved
+correction; it does not earn an H1 or Elo-gain claim. No cap extension or pooling.
+The existing SPRT log contains no moves/pair IDs, so final pair counts can be
+reconciled with WDL but this self-play gate does not claim independent PGN replay.
+The corrected instrument's boundary tests supply direct outcome-priority proof.
 
-Any later external goal confirmation uses a separately frozen accepted binary
-and corrected measurement instrument. Do not add a self-play estimate to2726
-or relabel the old pin to manufacture2800.
+The337 inputs of the live Windows pin remain unchanged until its collector
+finishes. Even if this candidate completes first, root defers main integration
+until that freeze ends. Any later external goal confirmation uses a separately
+frozen accepted binary and corrected measurement instrument. Do not add a
+self-play estimate to2726 or relabel an old pin to manufacture2800.

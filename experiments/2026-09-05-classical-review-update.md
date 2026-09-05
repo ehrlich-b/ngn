@@ -6,8 +6,11 @@ failures in the current engine. NGN stopped at depth1 on cached mate13/15 while
 allowing immediate threefold. Counter's completed-depth/mate-distance guard
 repairs both replayed continuations; root independently observed checkmate.
 The [isolated candidate and prospective native gate](2026-09-05-mate-stop-confirmation.md)
-are ready locally. The live pin stays unchanged and requires the new terminal
-audit; its completion precedes the corrected-harness A/A and candidate games.
+are ready locally. The live Windows pin stays unchanged and requires the new
+terminal audit. Before any candidate games, its separate gate was prospectively
+moved to the Mac to run concurrently: fixed200 A/A then400 candidate,10+0.1/c4,
+background scheduling, no score adjudication. Main integration waits for the
+pin freeze; there is no later machine fallback or result pooling.
 The default Hash128 follow-up reproduces one of the two immediate-draw choices;
 both guarded continuations finish in mate. The
 [live-feature activation check](2026-09-05-live-evaluation-features.md) corrects
