@@ -44,8 +44,9 @@ The corrected versioned SPRT is already in use by the Windows mate-stop gate;
 its completed200-game native A/A passed with zero errors/flags. Corrected
 gauntlet SHA-256 is
 `499946e16f9758f2dd52d9760e1752565d98438b221c24bb451e46cd8a58a247`.
-The old default gauntlet still awaits replacement; every future rating run
-must select the corrected versioned binary. This changes result bookkeeping,
+Windows default gauntlet/SPRT copies have since been updated with rollback
+siblings; the new rating run selects the corrected versioned binary explicitly.
+This changes result bookkeeping,
 not NGN's playing source, and carries no engine Elo claim.
 
 The subsequent400-game pin retained its original binaries, labels and sample.

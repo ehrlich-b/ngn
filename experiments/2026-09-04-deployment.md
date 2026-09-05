@@ -1,4 +1,41 @@
-# Current accepted T17+T8 deployment
+# Current accepted mate-stop deployment
+
+Deployed September5: playing source **53e4d1b9bf4006a39c0327a7016faba7f2b8f82e**,
+accepted T17+T8 plus the proved mate-stop correction. Fixed400-game native
+comparison91/242/67, paired+20.87 [+3.56,+38.29], zero flags/errors; accepted
+under the original correctness rule. The last completed absolute report remains
+2796 [2753,2838] with an outcome-integrity hold;2800 is not yet verified.
+[Acceptance and integration evidence](2026-09-05-mate-stop-windows-recovery.md).
+
+| Installed engine | SHA-256 |
+|---|---|
+|WSL Linux amd64/v3|0c067627404ab67a5f4a57fef63be024fd84e9248423286ef3dfc103041d266e|
+|Windows amd64/v3|2c29f19652ce0bfa2d068af093e83c4eeca4f5f1907bc5dba7475162439a3c33|
+
+WSL `/home/ehrli/repos/ngn` fast-forwarded cleanly from5cf301a to53e4d1b.
+All162 source/data files matched the isolated integration package, whose full
+short/race/vet and independent oracle passed on WSL Go1.25.5. The oracle compared
+2293 positions,48926 root moves and128 raw search roots. The exact frozen
+Go1.26.2/CGO0 binaries were installed as WSL `build/ngn` / `build/ngn.exe` and
+Windows `C:\Users\ehrli\ngn\ngn.exe` / `repin\ngn.exe`. Installed Linux and
+both Windows engine paths pass Hash128, all14 defaults, black EP, illegal-castle
+rejection, fifty-move mate and clean-quit checks.
+
+Corrected Windows harness defaults now use the terminal-precedence repair:
+`ngn\sprt.exe` and `ngn\sprt\sprt.exe`, SHA62e6ffd96d57558938d45eaf0a123ee57dff1a7dec596a768738a0680b262e2a;
+`ngn\repin\gauntlet.exe`, SHA499946e16f9758f2dd52d9760e1752565d98438b221c24bb451e46cd8a58a247.
+All replaced defaults retain `.pre-mateguard-20260905` rollback siblings; WSL
+also retains `backup/pre-mateguard-20260905`. Source, binary and post-install
+hash checks pass. The user-prohibited Mac engine execution was not performed;
+Mac executable defaults were not replaced.
+
+Reviewed scripts, exact bundle/file hashes and raw deployment/check outputs:
+`output/mate-history-20260905/integration/`; final Windows installed/startup
+checks: `output/corrected-pin-20260905/final-startup.*`.
+The [corrected external rating protocol](2026-09-05-corrected-mate-pin.md)
+now measures this accepted release separately from its self-play comparison.
+
+## Prior T17+T8 deployment
 
 **Deployed September5:** accepted T17 plus the completed T8 vector, source
 `5cf301a870f6cd9218d8085166993f7ad5364aee`. Its completed734-game gate reached

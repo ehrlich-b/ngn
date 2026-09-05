@@ -17,8 +17,9 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 
 - Current campaign source starts at `b378c432cb34`; certified search base is
   `50adc99` (T12 + T19). T17+T8 now passed its completed gate and is integrated;
-  deployed on Mac/WSL/Windows at `5cf301a`. No T22 patch or fitted evaluation
-  weights are applied.
+  playing base is `5cf301a`. The accepted mate-stop correction is now deployed
+  on Windows/WSL at `53e4d1b`; Mac defaults remain untouched. No T22 patch or
+  fitted evaluation weights are applied.
 - **Latest completed raw report: 2796 [2753,2838]**, accepted T8,400 games,
   120+1/c8. **Outcome audit HELD:** two NGN checkmates were recorded as cap
   draws by the old harness. No relabel/rerating;2800 remains unverified.
@@ -51,10 +52,11 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   unmodified baseline comparison was invalidated by baseline-side illegal moves;
   the valid control adds only the required EP protocol fix. All raw runs remain
   separate; see the manifests for limitations and exact controls.
-- **DEPLOYED:** accepted T17+T8 at `5cf301a`, inheriting the prior qsearch,
-  castling and other correctness repairs. WSL source fast-forwarded to that
-  commit; Mac/Windows retain the exact game-tested T8 binaries. Native WSL
-  short/race and all installed UCI/default checks pass, with rollback retained.
+- **DEPLOYED:** accepted mate-stop correction at `53e4d1b`, inheriting T17+T8,
+  qsearch, castling and prior correctness repairs. WSL source and exact frozen
+  Windows/WSL binaries are updated; both corrected harness defaults are installed.
+  Full WSL short/race/vet/oracle and installed UCI/default checks pass; rollback
+  copies are retained. Mac defaults were not changed or executed.
   [Paths, hashes, rollback and verification](experiments/2026-09-04-deployment.md).
 - **`r0904pin` complete, DONE_EXIT_0.** Original Stockfish legal replay passes
   all200 games /27546 plies, but a later all-final-board audit found game70's
@@ -146,13 +148,21 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    Main now includes the exact guard and both regression files alongside the
    accepted terminal harness fix. All162 staged source/data files match main;
    WSL full short/race/vet and independent oracle pass, all exits0/stderr empty.
-   Deployment with rollback is next. The current installed engine is still T8.
+   Deployed on Windows/WSL at `53e4d1b` with rollback copies and verified installed
+   defaults/UCI behavior; corrected Windows harness defaults are installed.
    The Mac candidate remains user-interrupted, never resumed or pooled.
    The [corrected external protocol](experiments/2026-09-05-corrected-mate-pin.md)
    selects only this accepted candidate for `r0905matepin`, fixed400 games at
    120+1/c8 with unchanged labels/anchors/primary goal threshold. Exact artifacts
    and WSL-only validation package are staged/hash-verified; startup script AST
-   passes. Require deployment, startup and idle box before the single launch.
+   passes. Deployment and final startup passed. **`r0905matepin` is live,
+   gauntlet PID24264**, started11:25:19 local September5. Root verified the exact
+   batch/header and16 expected workers. No competing Windows/WSL engine work.
+   Windows completion waiter PID22592 is live and waits on that exact gauntlet;
+   after DONE_EXIT_0 it invokes the pinned WSL audits once. At12:59:47 local,
+   root verified148/400 complete, gauntlet and waiter live, audit still waiting.
+   Native audit log: `repin/r0905matepin_wsl_validation.stdout`. Do not start
+   another waiter/validator or restart the match on an observation timeout.
    The [quiet-promotion candidate](experiments/2026-09-05-quiet-promotion-candidate.md)
    stays separate and must rebase/rebuild onto the newly accepted guard before
    any further gate. No promotion patch is installed.
