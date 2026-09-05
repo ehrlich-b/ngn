@@ -22,18 +22,18 @@ const (
 // truth tying each var to its UCI name and spin range.
 var (
 	NULL_MOVE_R             = 3   // Null move reduction depth
-	NULL_MOVE_MIN_DEPTH     = 3   // Minimum depth for null move pruning
+	NULL_MOVE_MIN_DEPTH     = 2   // Minimum depth for null move pruning
 	LMR_FULL_DEPTH          = 3   // Minimum depth for LMR
 	LMR_MOVE_THRESHOLD      = 2   // Start reducing after this many moves
-	FUTILITY_MARGIN         = 100 // Futility per-depth coefficient (margin = FUTILITY_MARGIN*(depth+improving), CG-grounded)
+	FUTILITY_MARGIN         = 103 // Futility per-depth coefficient (margin = FUTILITY_MARGIN*(depth+improving), CG-grounded)
 	FUTILITY_MAX_DEPTH      = 8   // Extended futility pruning depth (W1: was 3, CounterGo prunes quiets to depth 8)
-	REVERSE_FUTILITY_MARGIN = 120 // Reverse futility margin
-	DELTA_MARGIN            = 100 // Delta pruning margin in quiescence
+	REVERSE_FUTILITY_MARGIN = 88  // Reverse futility margin
+	DELTA_MARGIN            = 96  // Delta pruning margin in quiescence
 	SINGULAR_DEPTH          = 6   // Minimum depth for singular extensions
-	SINGULAR_MARGIN         = 64  // Margin for singular move detection
-	EXTENSION_BUDGET        = 24  // Max net extensions on a single root-to-leaf path (anti-explosion)
-	ASP_INIT                = 12  // Aspiration initial half-window (cp); Stash shape delta = ASP_INIT + |prevScore|/ASP_SCORE_DIV
-	ASP_MULT                = 150 // Aspiration widening multiplier in percent (150 => x1.5 delta growth per fail)
+	SINGULAR_MARGIN         = 48  // Margin for singular move detection
+	EXTENSION_BUDGET        = 26  // Max net extensions on a single root-to-leaf path (anti-explosion)
+	ASP_INIT                = 13  // Aspiration initial half-window (cp); Stash shape delta = ASP_INIT + |prevScore|/ASP_SCORE_DIV
+	ASP_MULT                = 154 // Aspiration widening multiplier in percent (150 => x1.5 delta growth per fail)
 )
 
 // ASP_SCORE_DIV scales the aspiration init window by the previous score's
@@ -58,19 +58,19 @@ type TunableParam struct {
 // shipped default (== the literal above).
 var TunableSearchParams = []TunableParam{
 	{"NullMoveR", &NULL_MOVE_R, 3, 2, 5},
-	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 3, 1, 6},
+	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 2, 1, 6},
 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
 	{"LMRMoveThreshold", &LMR_MOVE_THRESHOLD, 2, 1, 8},
-	{"FutilityMargin", &FUTILITY_MARGIN, 100, 50, 160},
+	{"FutilityMargin", &FUTILITY_MARGIN, 103, 50, 160},
 	{"FutilityMaxDepth", &FUTILITY_MAX_DEPTH, 8, 1, 8},
-	{"ReverseFutilityMargin", &REVERSE_FUTILITY_MARGIN, 120, 40, 300},
-	{"DeltaMargin", &DELTA_MARGIN, 100, 0, 400},
+	{"ReverseFutilityMargin", &REVERSE_FUTILITY_MARGIN, 88, 40, 300},
+	{"DeltaMargin", &DELTA_MARGIN, 96, 0, 400},
 	{"SingularDepth", &SINGULAR_DEPTH, 6, 4, 12},
-	{"SingularMargin", &SINGULAR_MARGIN, 64, 16, 256},
-	{"ExtensionBudget", &EXTENSION_BUDGET, 24, 4, 64},
-	{"AspInit", &ASP_INIT, 12, 4, 40},
-	{"AspMult", &ASP_MULT, 150, 110, 250},
-	{"LMPBase", &LMP_BASE, 5, 2, 16},
+	{"SingularMargin", &SINGULAR_MARGIN, 48, 16, 256},
+	{"ExtensionBudget", &EXTENSION_BUDGET, 26, 4, 64},
+	{"AspInit", &ASP_INIT, 13, 4, 40},
+	{"AspMult", &ASP_MULT, 154, 110, 250},
+	{"LMPBase", &LMP_BASE, 4, 2, 16},
 }
 
 // globalStopRequested is set by UCI's stop handler and observed by the search
@@ -126,7 +126,7 @@ func MaxNodes() uint64 {
 // therefore computed inline from the tunable base rather than kept as a frozen
 // literal, which exposes it to SPSA without changing a single threshold at the
 // default. Kept as a var (not const) so the UCI/SPSA path can write through it.
-var LMP_BASE = 5
+var LMP_BASE = 4
 
 // lmpThresholdFor returns the late-move-pruning move count for a depth, matching
 // the historical table exactly at LMP_BASE == 5 (integer division intended).
@@ -664,6 +664,8 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		maxNodes:      MaxNodes(),
 	}
 
+	seedRootStaticEval(pos, info)
+
 	// Generate root moves without heap allocations (pseudo-legal; legality handled in search loop)
 	var rootGen [256]Move
 	numGen := GenerateMovesIntoBuffer(pos, rootGen[:])
@@ -1118,6 +1120,8 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		return info
 	}
 
+	seedRootStaticEval(pos, info)
+
 	var orderedRoot [256]Move
 	orderedCount := orderMovesIntoBufferWithDepth(moves, 0, orderedRoot[:], pos) // killers are ply-keyed; root is ply 0
 	legalRoot := 0
@@ -1198,6 +1202,50 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 
 func alphaBeta(pos *Position, depth int, alpha int, beta int, info *SearchInfo) int {
 	return alphaBetaPV(pos, depth, 0, alpha, beta, true, true, false, info) // Root is always PV
+}
+
+// unknownStaticEval marks a StaticEvalStack slot that holds no usable eval: an
+// in-check node has no static eval, so it stores this instead of a number.
+const unknownStaticEval = -INFINITY
+
+// improvingVsPrevTurn reports whether the side to move is trending up — its
+// static eval beats the one from its previous turn, two plies back.
+//
+// T17: the reference slot can be unknown (an in-check ancestor stores
+// unknownStaticEval), so an unknown reference falls back four plies, and
+// improving stays false when nothing usable is on the stack. Comparing against
+// the sentinel as if it were a value made every such node unconditionally
+// "improving", which mis-set four pruning knobs at once (RFP margin, futility
+// margin, LMP threshold, LMR reduction).
+func improvingVsPrevTurn(info *SearchInfo, ply int, staticEval int) bool {
+	for back := 2; back <= 4; back += 2 {
+		if ply < back {
+			return false
+		}
+		if prev := info.StaticEvalStack[ply-back]; prev != unknownStaticEval {
+			return staticEval > prev
+		}
+	}
+	return false
+}
+
+// seedRootStaticEval writes the root's corrected static eval into slot 0.
+//
+// T17: nothing else ever writes slot 0 — alphaBetaPV is only entered at ply >= 1
+// — so without this a node at ply 2 compared its eval against a zeroed slot and
+// computed "is my eval positive" rather than "is my eval trending up". The value
+// mirrors the non-check branch of alphaBetaPV (raw eval plus all three
+// correction tables); a root in check has no static eval and seeds the sentinel.
+func seedRootStaticEval(pos *Position, info *SearchInfo) {
+	if isInCheck(pos, pos.Turn()) {
+		info.StaticEvalStack[0] = unknownStaticEval
+		return
+	}
+	stm := pos.Turn()
+	corrIdx := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
+	nonPawnCorrIdx := nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])
+	minorCorrIdx := minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
+	info.StaticEvalStack[0] = EvaluateForPlayerCached(pos) + correctionValue(stm, corrIdx) + nonPawnCorrectionValue(stm, nonPawnCorrIdx) + minorCorrectionValue(stm, minorCorrIdx)
 }
 
 // searchDrawScore applies the same terminal rules in the main and quiescence
@@ -1427,7 +1475,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		if ply >= 2 {
 			staticEval = info.StaticEvalStack[ply-2]
 		} else {
-			staticEval = -INFINITY
+			staticEval = unknownStaticEval
 		}
 	} else {
 		corrIdx = pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
@@ -1451,7 +1499,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// improving: static eval better than two plies ago (our previous turn). When
 	// the position is trending up we reduce one less ply in LMR below.
-	improving := !inCheck && ply >= 2 && staticEval > info.StaticEvalStack[ply-2]
+	improving := !inCheck && improvingVsPrevTurn(info, ply, staticEval)
 
 	// Extended futility pruning (depths 1-3) and reverse futility pruning
 	var futilityPrune bool

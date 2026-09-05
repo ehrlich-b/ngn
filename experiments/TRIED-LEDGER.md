@@ -4,6 +4,13 @@ Last updated 2026-07-24. This is the single inventory of every lever attempted, 
 so we stop re-grinding dead ends. Detailed records are in the per-experiment files and the memory
 topic files; this is the index + verdict.
 
+> **2026-09-05 search-tuning result:** T17 plus the completed24,000-game T8
+> vector passed its repaired-base confirmation:734 games, paired+38.02
+> [+20.77,+55.45], H1, zero flags/errors. The search-tuning lane was not exhausted.
+> This accepts the tested interaction, not individual parameter contributions.
+> [Completed result](2026-09-05-t8-qcap-confirmation.md). The separate classical
+> evaluation fit was shelved at its inconclusive cap; that does not close all tuning.
+
 > **2026-09-04 correctness correction:** the historical claim below that the
 > "correctness era really is over" was false. Independent probes subsequently
 > found EP parsing, terminal/draw/search-clock, tuner/model/filter/checkpoint,

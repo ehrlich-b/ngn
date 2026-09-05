@@ -7,7 +7,8 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 ## Current state
 
 - Current campaign source starts at `b378c432cb34`; certified search base is
-  `50adc99` (T12 + T19). No T8 tuned vector or T22 patch is applied.
+  `50adc99` (T12 + T19). T17+T8 now passed its completed gate and is integrated;
+  deployment is underway. No T22 patch or fitted evaluation weights are applied.
 - **Fresh strength pin: 2726, reported 95% CI [2668,2784]**, September 4,
   200 games, 120+1/c8, five anchors. Original 2600 gate passes; **2800 remains
   unconfirmed**. Local historical-CCRL calibration, not an official rating.
@@ -45,15 +46,13 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   2108/3768/2124 W/D/L, penta -0.7 [-6,+4], pLLR -0.62, post-min envelope
   [-1.50,+1.58], zero errors/flags. **Shelved** under its original rule.
   [Original manifest](experiments/2026-08-03-t22-probcut-cutnode.md).
-- **T8 remains unconfirmed:** 24000-game SPSA completed; nine parameters moved.
-  The vector is not in the engine. [Vector](experiments/2026-08-04-t8-spsa-result.md).
-  T17 + the vector is now rebuilt in an isolated checkout on the repaired base;
-  short/race/vet and UCI checks pass. [Confirmation manifest](experiments/2026-09-04-t8-confirmation.md).
-  **`r0904t8confirm` cancelled without a verdict** at 279 completed games after
-  an independently proved root-castling defect. Preserve the vector and rebuild
-  after that correction. No interrupted games may be pooled into a new run.
-  Main/default engines retain the accepted release. The old patch was manually
-  rebased around the new draw helper rather than applied blindly.
+- **T17+T8 ACCEPTED:** the completed24000-game SPSA vector passed the fresh
+  repaired-base confirmation `r0905t8qcap`:734 games,240/334/160,
+  paired **+38.02 [+20.77,+55.45]**, H1, zero errors/flags. Exact source integrated;
+  full short/race/vet, independent oracle and protocol checks pass.
+  [Completed evidence and artifacts](experiments/2026-09-05-t8-qcap-confirmation.md).
+  The old279-game interrupted castling-bug run was not pooled. Relative gain
+  does not establish the absolute2800 goal.
 - Batch 3 certified T12+T19 at +9.9 [+3,+17] vs Batch 2; Batch 4 had no keeps.
   [Batch ledger](experiments/batch-ledger.md).
 - **Classical review:** [six-angle prompt](experiments/2026-09-04-classical-review-prompt.md)
@@ -99,15 +98,14 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    480/654/466, paired+3.04 [−9.47,+15.56], pLLR−0.48, zero errors/flags.
    The fixed inconclusive-cap rule applies; no weights/defaults changed.
    [Completed audit and game manifest](experiments/2026-09-05-classical-confirmation.md).
-3. **T17 + the completed24000-game T8 vector is running as `r0905t8qcap`**:
-   `ngn_20260905_t8qcap.exe` (43b2a2c9...), isolated source, full short/race/vet
-   and native protocol checks pass. Qcap remains the accepted base after the
-   fitted vector was shelved; remote hashes and idle workers verified before
-   launch. SPRT[−3,+3], max1600, original H1-only keep rule. Bounded collector
-   fetches the result but never chooses a verdict or installs a candidate.
-   [Exact artifacts and bounded original confirmation rule](experiments/2026-09-05-t8-qcap-confirmation.md).
-   Do not reuse the interrupted279-game castling-bug run.
-4. **Singular-only search candidate built, validated and staged, not launched.** The fixed
+3. **Deploy accepted T17+T8, then preflight the new base.** `r0905t8qcap`
+   completed H1 at+38.02 [+20.77,+55.45],734 games, zero errors/flags.
+   Main equals the tested source and required checks pass. Windows candidate
+   `ngn_20260905_t8qcap.exe` (43b2a2c9...) and Mac candidate remain frozen;
+   Linux cross-build is ready. Install/smoke with rollback on all three platforms,
+   then run fresh200-game A/A at the unchanged native10+0.1/c8 settings.
+   [Completed result and artifacts](experiments/2026-09-05-t8-qcap-confirmation.md).
+4. **Rebuild singular-only on the accepted T8 base; not launched.** The fixed
    four-arm [depth-policy diagnostic](experiments/2026-09-05-depth-policy.md)
    supports testing removal of positive check/passed-pawn extensions, retaining
    singular extensions and consistent scout depth. Six changed choices on23
@@ -115,11 +113,10 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    not Elo. Full plain/overlay identity, short/race/vet and independent oracle
    pass. [Frozen binaries, diff and game gate](experiments/2026-09-05-singular-only-confirmation.md).
    It must follow the fit/T8 decisions and rebuild if the accepted base changes.
-   A tested conditional unchanged-base handoff is armed: only a freshly audited,
-   clean T8 H0/cap may launch the frozen `r0905singularqcap` command after hashes,
-   A/A, idle workers and native smoke pass. T8 H1 stops for root integration.
-   Nine offline integration cases pass; controller identities are recorded in
-   the confirmation manifest. It waits on T8, with no competing engine workers.
+   The tested conditional controller stopped on T8 H1, as intended. It did not
+   launch the obsolete qcap-based candidate. A Terra agent is rebuilding only
+   the existing D patch on T8, with full checks and repeatability; no new policy
+   is being selected. Freeze new identities and use T8's new A/A before games.
    The old J1−59 estimate was65 interrupted games, not a completed rejection.
    [External2800 confirmation protocol](experiments/2026-09-05-2800-pin-plan.md)
    is prepared for an accepted gain, not launched.

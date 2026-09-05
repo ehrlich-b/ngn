@@ -1,6 +1,6 @@
 # T17 + completed T8 vector, rebuilt on accepted qcap
 
-**Running as `r0905t8qcap`.** This continues the previously authorized
+**Completed H1; accepted for integration and deployment.** This continues the previously authorized
 [interrupted confirmation](2026-09-04-t8-confirmation.md), with its fixed
 [24,000-game vector](2026-08-04-t8-spsa-result.md). No new tuning or heuristic
 is included. No speculative source or playing defaults changed on main.
@@ -98,3 +98,41 @@ may audit a completed, clean T8 H0/cap result and launch the already frozen
 singular-only candidate after all unchanged-base prerequisites pass. It halts
 on H1 or any failed prerequisite. This automation changes neither the original
 game rule nor the installed engine, and does not extend or restart T8.
+
+## Completed result and accepted source integration
+
+`r0905t8qcap` completed734 games in46m20s: **240W/334D/160L**,
+penta12/70/144/108/33 over367 pairs. Paired **+38.0187 Elo
+[+20.7712,+55.4549]**, pLLR+2.977535. The first reported boundary crossing was
+G726 (+2.95); already assigned games drained to734. The frozen harness reports
+**H1 ACCEPTED** and a single terminal `DONE_EXIT_0`. Zero flag-outs or operational
+failures;400 adjudicated wins,184 adjudicated draws,77 rule draws,72 max-move
+draws and one stalemate. Root independently recomputed the paired statistics and
+reviewed the settings, complete audit and idle native process list.
+
+Raw log SHA-256:
+`4ca1adc3c4b18f4171359a1ea8897b6a8078b8ab8b51b5bac1d6df3c2cd42888`.
+Raw/audit files are `output/recovery-2026-09-04/r0905t8qcap_out.txt` and
+`r0905t8qcap-audit.json`. No interrupted games were pooled.
+
+**Accept the T17+T8 interaction as tested.** This is a relative short-TC gain,
+not an absolute2800 result and not separate estimates for T17 and each margin.
+The conditional controller stopped on H1 without launching the old qcap-based
+singular-only candidate. That candidate must now rebuild on T8 and use a fresh
+baseline A/A before its existing game gate.
+
+Root applied the exact reviewed patch. Every tracked Go/module file equals the
+game-tested isolated T8 source. Full main short/race/vet and independent oracle
+pass (2293 positions,48926 divides,128 internal search roots); the release smoke
+verifies all14 defaults and EP/castling/fifty-move-mate behavior. Initial main
+short/vet failures came solely from old mutually exclusive diagnostic `.go`
+files being discovered beneath `output/depth-policy-20260905`. An output-only
+module boundary preserves all frozen bytes/paths while excluding those raw
+artifacts from the parent package walk. Full checks then passed; both initial
+failure and corrected logs are retained as `t8-integrated-*`.
+
+For WSL deployment, root cross-built the same accepted source with Go1.26.2,
+Linux amd64/v3, CGO disabled. `build/ngn_20260905_t8qcap_linux` SHA-256:
+`4478de8c648d9dceac19ce9b517dc18b90ffeda27bdaf43706beceff5e7c327c`.
+Native WSL tests/smoke and default promotion remain deployment steps; the
+Windows and Mac game-tested hashes above are retained unchanged.

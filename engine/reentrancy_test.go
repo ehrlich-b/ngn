@@ -104,3 +104,55 @@ func TestSingularExtensionsFire(t *testing.T) {
 		t.Errorf("singular extensions fired (%d) with singular OFF — toggle not wired", off.SingularExtensions)
 	}
 }
+
+// TestImprovingReferenceIsWritten pins the T17 fix: the improving heuristic must
+// compare against a real eval from the side-to-move's previous turn, never
+// against an unwritten slot 0 or against the in-check sentinel treated as a
+// value. Both bugs made improving spuriously true, which simultaneously
+// mis-sets the RFP margin, the futility margin, the LMP threshold and the LMR
+// reduction. Before the fix, slot 0 stayed 0 after a full search and a
+// sentinel reference compared as "> -INFINITY" = always true.
+func TestImprovingReferenceIsWritten(t *testing.T) {
+	// (a) slot 0 must be seeded by the root, not left at zero.
+	// Kiwipete: a middlegame position whose static eval is far from 0, so a
+	// seeded slot is distinguishable from an unwritten one.
+	pos, err := ParseFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1")
+	if err != nil {
+		t.Fatalf("ParseFEN: %v", err)
+	}
+	info := SearchFixed(pos, 6, nil)
+	if info.StaticEvalStack[0] == 0 {
+		t.Fatal("StaticEvalStack[0] is 0 after a depth-6 search: root static eval was never seeded, " +
+			"so every ply-2 node computes improving as \"is the eval positive\" instead of \"is it rising\"")
+	}
+	if info.StaticEvalStack[0] == unknownStaticEval {
+		t.Fatal("StaticEvalStack[0] holds the unknown sentinel for a position that is not in check")
+	}
+
+	// (b) an unknown (in-check) reference must NOT read as improving.
+	var probe SearchInfo
+	probe.StaticEvalStack[0] = unknownStaticEval
+	if improvingVsPrevTurn(&probe, 2, -5000) {
+		t.Fatal("a ply-2 node improved against the unknown sentinel: the sentinel is being compared as a value")
+	}
+	// ...and the same at ply 3, whose reference is slot 1.
+	probe.StaticEvalStack[1] = unknownStaticEval
+	if improvingVsPrevTurn(&probe, 3, -5000) {
+		t.Fatal("a ply-3 node improved against the unknown sentinel")
+	}
+
+	// (c) a known reference still works in both directions, including the
+	// four-ply fallback when the two-ply reference is unknown.
+	probe.StaticEvalStack[2] = 100
+	if !improvingVsPrevTurn(&probe, 4, 150) {
+		t.Fatal("150 > 100 should be improving")
+	}
+	if improvingVsPrevTurn(&probe, 4, 50) {
+		t.Fatal("50 > 100 should NOT be improving")
+	}
+	probe.StaticEvalStack[2] = unknownStaticEval
+	probe.StaticEvalStack[0] = 100
+	if !improvingVsPrevTurn(&probe, 4, 150) {
+		t.Fatal("unknown two-ply reference should fall back to the four-ply reference, not give up")
+	}
+}
