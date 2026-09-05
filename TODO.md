@@ -80,7 +80,10 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    100 that warm qDepth0 accepts without searching; cold qDepth0 returns 51.
    Removing only the capture cap in a diagnostic overlay makes all three return
    51. Uncapped production qsearch is now implemented, regression/oracle/short/race
-   checked and frozen. **Candidate `r0904qcap` running (400 fixed games):** the bounded A/A
+   checked and frozen. **`r0904qcap` ACCEPTED as proved correctness repair:**
+   400 games, 106/184/110 W/D/L, paired −3.47 [−27.36,+20.38], zero
+   flags/errors, DONE_EXIT_0. Strength is inconclusive; deploy the frozen
+   artifacts with rollback. The bounded A/A
    investigation passed: replication `r0904qaa2` completed 400 games at
    −4.34 [−25.98,+17.26]; all 600 games combined +7.53 [−10.22,+25.32],
    zero flags/errors. The first 200-game A/A failure remains recorded; the
@@ -106,6 +109,11 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    unchanged. A replay-validated opening-grouped corpus pipeline and separate
    train/validation/final-test route replace anonymous rows for the next fit.
    [Implementation, evidence and fixed corpus/fit plan](experiments/2026-09-05-classical-model-v2.md).
+   Frozen corrected producer `f556aef` / `texelcorpus_20260905_r3` is generating
+   3996 games on four Mac processes. Its 32-game smoke passes independent
+   Stockfish verification of all 5229 plies, 1016 sample states and outcomes.
+   Loader audits all shards on completion; fit only if the predeclared corpus
+   acceptance gate passes. No new weights have been fitted or installed.
 3. Rebuild/predeclare T17 + T8 on the corrected base when warranted. Sync the new source/docs to WSL after native timed games; default playing
    artifacts are already deployed. Offline tuning repairs do not require
    replacing the frozen playing engine during a match.

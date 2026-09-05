@@ -194,3 +194,27 @@ must now be rebuilt; r2 data is not pooled into the final corpus. Reproducer:
 `experiments/2026-09-05-corpus-smoke-oracle.py` checks every move against SF legal
 moves, sample states and final outcomes, tolerating only uncapturable EP-target
 normalization between FEN serializers. New artifacts use `classical-v2-r3-*`.
+
+Final corrected source `f556aef700bc0d07303c548f202117b0328cfcf9`, Go1.26.2
+darwin/arm64, clean tracked checkout at build:
+
+- Generator `build/texelcorpus_20260905_r3` SHA-256
+  `fe1eb13edc5c3611e197892c1d81d4276306048d743a4b7235dce3d17c741800`.
+- Tuner/loader `build/texel_20260905_r3` SHA-256
+  `046bf1dfce08fd8f462677467bdc44fbc62801f34a7c9d48c18923c206b18a26`.
+
+Full short, focused pipeline race and full vet pass after the metadata correction
+(`corpus-fullmove-{short,race,vet}.txt`); full-project race passed immediately
+before it. Smoke and full generation retain all predeclared settings/ranges,
+using these binaries/source identity and r3 output paths. Before full generation,
+also require the 32-game Stockfish smoke oracle and exact generated moves/results
+to match r2 (the fullmove correction is serialization-only).
+
+R3 smoke PASS: 32 completed games, 1016 generated samples, 1000 retained after
+16 within-game board repeats. Independent Stockfish audit passes every one of
+5229 plies, all 1016 sample states and every terminal outcome. Moves/results
+are exactly identical to r2; only sample fullmove metadata differs. SHA-256:
+`6c301cd6b4389ac28ece4f92cb93b48a5c753c728414ea298cef99d6bc55b983`.
+Evidence: `classical-v2-r3-smoke-{audit,oracle,identity}.json` in the output
+directory. Full generation is cleared and starts with the frozen r3 artifacts,
+same four 999-opening ranges and settings. No earlier data is included.

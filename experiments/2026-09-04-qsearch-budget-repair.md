@@ -1,10 +1,10 @@
 # Qsearch capture-budget / TT contract repair
 
-Status: implementation reviewed, checks passed and candidate artifacts frozen.
-The bounded A/A investigation passed its predeclared rule on September 5;
-the first failed preflight is retained below. Candidate match is cleared for
-launch. No new default engine is installed. Active objective remains at least
-2800 without NNUE.
+Status: **ACCEPTED September 5 under the predeclared correctness rule.** The
+fixed candidate match completed; strength is inconclusive. Deployment follows
+using the frozen artifacts below. The bounded A/A investigation passed its
+predeclared rule; the first failed preflight is retained. Active objective
+remains at least 2800 without NNUE.
 
 ## Evidence and selected repair
 
@@ -199,3 +199,23 @@ Replication log SHA-256:
 `c705472b6ed1abdc0d193f8832239468ee722dc70473c39acb4d5ef65f734fb4`.
 Independent result audit: `output/recovery-2026-09-04/qaa-investigation-audit.json`.
 The completion watcher fetched the log and verified the native workers idle.
+
+## Completed candidate: correctness ACCEPTED, strength inconclusive
+
+`r0904qcap` completed exactly 400 games / 200 pairs in 25m32s, DONE_EXIT_0:
+106/184/110 W/D/L, penta 13/48/82/44/13; paired −3.474 [−27.360,+20.378],
+pLLR −0.14. Zero flags or operational errors. Reasons: 216 adjudicated wins,
+88 adjudicated draws, 48 draw-rule, 47 max-moves and one stalemate.
+
+The mechanism proof, regression/oracle/short/race checks and frozen-artifact
+tests pass; the interval is not significantly negative. This meets the stated
+rule for accepting the proved correction. It is not H1, not a demonstrated
+Elo gain, and does not establish equivalence within a narrow margin. No extra
+games or favorable-sign extension were added. The last absolute pin stays2726.
+
+Root independently checked all 400 consecutive counts, one-result increments,
+reasons, flags, footer and paired calculation. Raw log SHA-256:
+`db5202d04b04f51165e69c7242f4ce1b9bd6f99f35363449d3087b052bbc5518`.
+Audit: `output/recovery-2026-09-04/r0904qcap-audit.json`. As with A/A, the log
+lacks per-game pair IDs; this is not an independent pair-assignment replay.
+The watcher fetched the completed result and verified native workers idle.
