@@ -1,7 +1,8 @@
 # Pathway to larger strength gains
 
 Requested September 4 after the correctness release. This is a development
-plan, not an Elo forecast or a game-run manifest. Runtime remains `71399c0`.
+plan, not an Elo forecast or a game-run manifest. Deployed runtime is `71399c0`;
+the proved internal-castling/root-terminal repair `70eb527` is under game test.
 
 ## Evidence and scope
 
@@ -9,7 +10,8 @@ Historical batch comparisons measured +43.2, +35.1, then +9.9 self-play Elo;
 Batch 4 has no keeps ([ledger](batch-ledger.md)). These used the old harness.
 They suggest diminishing returns from that queue, not a strength ceiling or
 a transferable sum. Today's repair passed its separate 400-game check at
-+23.5 [+1,+46], with zero errors/flags; its absolute rating remains pending.
++23.5 [+1,+46], with zero errors/flags. Its completed absolute pin is **2726
+[2668,2784]**, not yet the active 2800 objective.
 
 Evaluation has already been tuned: `cmd/texel` supports material/PST/weights
 and gradient fitting; `cmd/evaltune` fits auxiliary weights using move quality.
@@ -54,8 +56,10 @@ whether their cause is evaluation, pruning, or insufficient search.
 The active objective is at least 2800 without NNUE. Classical reference engines
 guide feature and search choices; neural evaluation is outside this campaign.
 The [tuning-contract repair](2026-09-04-tuning-contract-repair.md) is complete,
-the [T8 confirmation](2026-09-04-t8-confirmation.md) is queued, and the
-[fresh-game diagnostic protocol](2026-09-04-loss-study.md) is ready.
+the [T8 confirmation](2026-09-04-t8-confirmation.md) was cancelled without a
+verdict after the [completed fresh-game diagnostic](2026-09-04-loss-study.md)
+exposed illegal internal castling. The [castling repair](2026-09-04-castling-repair.md)
+takes precedence; any T8 confirmation must rebuild on its accepted base.
 
 Long matches run unattended. Agent activity should prepare candidates, inspect
 completed evidence, and make decisions. No countdown messages or repeated

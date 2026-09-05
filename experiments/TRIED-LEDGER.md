@@ -4,6 +4,14 @@ Last updated 2026-07-24. This is the single inventory of every lever attempted, 
 so we stop re-grinding dead ends. Detailed records are in the per-experiment files and the memory
 topic files; this is the index + verdict.
 
+> **2026-09-04 correctness correction:** the historical claim below that the
+> "correctness era really is over" was false. Independent probes subsequently
+> found EP parsing, terminal/draw/search-clock, tuner/model/filter/checkpoint,
+> illegal internal castling, and qsearch capture-budget/TT defects. Existing
+> game verdicts retain their recorded scope; an old clean-audit assertion cannot
+> close correctness investigation. See the [current review evidence](2026-09-04-review-second-pass.md)
+> and `TODO.md` for live priorities.
+
 > **2026-07-01 CLOSURE-QUALITY AUDIT (`2026-07-01-method-revamp.md`) — corrections:**
 > a closure below is only binding if it is POST-reset games evidence meeting the decision
 > table. Re-graded: joint-SPSA = INVALID closure (iter-50 kill, param movement mathematically

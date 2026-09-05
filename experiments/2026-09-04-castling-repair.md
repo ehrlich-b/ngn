@@ -123,3 +123,24 @@ Raw evidence is under `output/recovery-2026-09-04/castle-*`. Test builds carry
 the pre-commit parent plus dirty metadata; the exact runtime patch and hashes
 above identify what was tested. No T17/T8 parameters or new eval weights enter
 this candidate. Game result pending.
+
+## Incidence in the complete fresh gauntlet
+
+An offline replay of all 200 games inspected **13,181 NGN-to-move positions**
+after the six opening plies. There were **39 positions in 25 games** where the
+generator offered a castle rejected by the legal filter; 17 were in check.
+Fresh full-history depth3 searches with the frozen release selected an illegal
+PV head in **eight positions across seven games**: two wins, three draws, two
+losses. In all eight, the legal emitted bestmove matched the actual recorded
+move. GAME170 contributes two positions.
+
+This establishes recurrence beyond the initial example. It is shallow, reset
+search-state evidence consistent with a fallback; it does not reconstruct the
+original timed searches or count seven games lost to the defect. Most susceptible
+positions did not produce an illegal depth3 choice, and winning/drawing examples
+provide useful counterevidence to attributing every affected game to the bug.
+
+Probe/method/raw transcripts: `output/recovery-2026-09-04/illegal_castle_incidence.*`.
+All game moves were independently audited previously; this probe also verifies
+full legal replay with the corrected local engine. Frozen input/release hashes
+are stored in its JSON.

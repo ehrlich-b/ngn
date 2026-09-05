@@ -66,16 +66,23 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 - **New highest-priority correctness defect:** actual loss GAME170 showed search
   PV `e1g1` while White was checked by Bh4; the UCI guard then substituted `e2g3`,
   immediately losing the knight. Reproduced from FEN/full history and independently
-  verified by SF perft. Root and qsearch castle legality are being repaired in
-  `output/castle-repair-20260904`. [Evidence and scope](experiments/2026-09-04-castling-repair.md).
-  Native box is idle after stopping T8; no default playing artifact changed.
+  verified by SF perft. Repaired in `70eb527`, including zero-legal-move root
+  terminal scores. Short/race/vet pass; independent oracle covers 2,293 positions,
+  48,926 divides and 128 internal choices. **`r0904castle` is running the frozen
+  400-game gate** against the deployed release. [Evidence and manifest](experiments/2026-09-04-castling-repair.md).
+  No default playing artifact changes until acceptance; no competing box CPU work.
 
 ## Execution queue
 
 1. Prove/fix internal castling legality across root, qsearch and the offline quiet
    filter; verify internal best/PV legality before UCI fallback. Run correctness,
    oracle and real-clock non-regression checks before deploying.
-2. The [completed 24-game diagnostic study](experiments/2026-09-04-loss-study.md)
+2. **New proved qsearch interaction:** a real qDepth5 search stores a lower bound
+   100 that warm qDepth0 accepts without searching; cold qDepth0 returns 51.
+   Removing only the capture cap in a diagnostic overlay makes all three return
+   51. After the castling gate, repair the capture-budget/TT contract with a
+   separate proof and game check. [Second review, corpus/profile evidence and lower-priority TT-age bug](experiments/2026-09-04-review-second-pass.md).
+3. The [completed 24-game diagnostic study](experiments/2026-09-04-loss-study.md)
    and targeted search ablations exposed the castling defect. Four-times-node probes gave 19
    unchanged choices / five changes / no demonstrated rescue; several reference
    scores are unusable, so this does not establish an evaluation cause.
@@ -83,10 +90,10 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    node definitions differ. Both search quality and runtime remain candidates.
    Tuning-contract repairs are complete; a future tune still needs a corpus
    acceptance audit and game-disjoint validation before expensive fitting.
-3. Rebuild/predeclare T17 + T8 on the corrected base when warranted. Sync the new source/docs to WSL after native timed games; default playing
+4. Rebuild/predeclare T17 + T8 on the corrected base when warranted. Sync the new source/docs to WSL after native timed games; default playing
    artifacts are already deployed. Offline tuning repairs do not require
    replacing the frozen playing engine during a match.
-4. Consider promotion-complete qsearch as an isolated game-tested candidate.
+5. Consider promotion-complete qsearch as an isolated game-tested candidate.
    Follow the [larger-gain pathway](experiments/2026-09-04-strength-pathway.md):
    a bounded study of fresh losses and controls selects one substantial search,
    runtime, or classical evaluation change. Avoid repeating the old feature queue.
