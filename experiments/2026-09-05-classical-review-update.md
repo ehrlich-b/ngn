@@ -83,6 +83,15 @@ leaving search, labels, integration and measurement to validate.
 
 ## New bounded promotion and speed results
 
+A subsequent [quiet-promotion witness](2026-09-05-quiet-promotion-witness.md)
+now reproduces a missed mate at the qsearch horizon in both colors: accepted T8
+returns+464 while the isolated move-class diagnostic returns mate in one.
+Normal depth-one root search already finds those mates, so no root blunder or
+Elo gain is claimed. Root verified source identity, reran/asserted the scores,
+and checked synchronized independent mate proof. Actual quiet promotions occur
+206 times in135 of the old200 rated games; this is prevalence, not causation.
+No playing change is installed or added to either frozen live experiment.
+
 The promotion trace found no omitted capture-promotion type or missing promotion
 material in SEE/delta. NGN generates Q/R/B/N capture promotions, and both delta
 gain and full SEE include the actual promoted piece. The known missing class is
