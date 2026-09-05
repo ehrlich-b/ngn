@@ -126,6 +126,11 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    Windows games were not stopped. Do not restart either local process: collect
    completed artifacts without local engine execution and validate on Windows/WSL
    after its timed game run ends. Preserve frozen files and the original sample.
+   The [WSL validation package](experiments/2026-09-05-2800-pin-plan.md#wsl-validation-after-the-local-stop)
+   is now staged with verified hashes; it has not executed. It preserves the
+   frozen audits and estimator, snapshots all completed inputs, and requires
+   DONE_EXIT_0 plus native/WSL idle state. All337 original local inputs still
+   match their frozen hashes. No local collector may resume.
 5. **Next correctness priority: cached-mate stop guard.** Carried-state replay
    reproduces two depth1 mate claims that actually allow immediate threefold.
    Counter's depth/distance guard repairs both, and root's continued games
@@ -135,14 +140,13 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    staged/hash-verified in native `sprt`; no startup or match launch yet.
    At the actual default Hash128, one immediate-draw failure reproduces;
    both guarded continuations finish in verified mate.
-   Prospectively moved before launch to the available Mac: corrected terminal
-   harness, fixed200-game A/A then fixed400-game comparison,10+0.1/c4 with
-   taskpolicy background scheduling and score adjudication disabled. A/A passed:
-   200 games,44/116/40, paired+6.95 [−21.12,+35.11], zero flags/errors.
-   The400-game candidate was interrupted on user request; no verdict, keep or
-   rejection is permitted from the partial games. All Mac workers and automatic
-   controllers were stopped. Do not restart locally. Any future remote comparison
-   requires a new prospective protocol preserving this aborted run; no pooling.
+   The Mac control completed, but the candidate was interrupted on user request;
+   no verdict, keep or rejection is permitted from the partial games. All Mac
+   workers and automatic controllers were stopped. Do not restart locally.
+   The [prospective Windows recovery protocol](experiments/2026-09-05-mate-stop-windows-recovery.md)
+   uses the same exact candidate, a fresh fixed200-game native A/A, then a
+   fixed400-game comparison at10+0.1/c8 without score adjudication. It follows
+   the current external pin and WSL validation. No native launch yet; no pooling.
    Main integration still waits for valid evidence and the pin's frozen inputs.
    The [quiet-promotion candidate](experiments/2026-09-05-quiet-promotion-candidate.md)
    is also locally ready, but remains separate and must rebase/rebuild if the
