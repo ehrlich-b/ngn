@@ -1,6 +1,16 @@
 # Cached-mate termination correction on accepted T8
 
-**Mac A/A passed; fixed400-game candidate comparison running.**
+**USER-STOPPED: Mac candidate interrupted; no candidate verdict.**
+The user reported the Mac spiraling and explicitly instructed never to run NGN
+on this battery-powered computer. Root stopped and verified absent all eight
+engine workers, harness33210, controller14811, deferred pin collector52989 and
+resumption helper62206. No automatic local collection or validation remains.
+The remote Windows rating games were not stopped. Do not restart any Mac job;
+all future engine compute and heavy validation belongs on Windows/WSL.
+The completed A/A below remains historical evidence. Candidate partial games
+cannot support a verdict or be pooled into a later run. Earlier running/deferral
+entries below describe the interrupted history and are superseded by this notice.
+
 `r0905terminalaa_mac` completed200 games in26m49s,44/116/40 W/D/L,
 penta2/23/47/25/3, paired+6.9496 [−21.1215,+35.1120], zero flags/errors,
 empty stderr and terminal DONE_EXIT_0. Root reconciled the raw log and totals,

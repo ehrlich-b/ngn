@@ -6,6 +6,15 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 
 ## Current state
 
+- **USER RESTRICTION: never run NGN on this Mac; it is on battery.** All engine
+  execution, matches, search tests, benchmarks, tuning and heavy chess validation
+  must run on Windows/WSL. No background/E-core exception. At the user's request,
+  all Mac match workers, controller19640/PID14811, collector22597/PID52989 and
+  resumption helper49860/PID62206 were killed and verified absent. Do not restart
+  them. `mac-gate/USER_STOPPED.txt` records the override. Mate-guard games are
+  interrupted with no candidate verdict. Remote Windows pin was left running;
+  its artifacts require later collection with validation on Windows/WSL.
+
 - Current campaign source starts at `b378c432cb34`; certified search base is
   `50adc99` (T12 + T19). T17+T8 now passed its completed gate and is integrated;
   deployed on Mac/WSL/Windows at `5cf301a`. No T22 patch or fitted evaluation
@@ -113,11 +122,10 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    refers to65 interrupted games, not this completed test.
    **External400-game accepted-T8 pin `r0905acceptedpin` is running.**
    [Frozen protocol and additional terminal-audit requirement](experiments/2026-09-05-2800-pin-plan.md).
-   Collector22597/PID52989 only collects that existing run. It is temporarily
-   SIGSTOP-paused to prevent local validation overlapping the Mac match; helper
-   49860/PID62206 resumes it automatically after Mac controller14811 exits.
-   See `mac-gate/collection-deferral.json`. Windows games continue unchanged.
-   Do not restart the old controller or launch competing Windows/WSL work.
+   Local collector22597 and resumption helper49860 were killed on user request.
+   Windows games were not stopped. Do not restart either local process: collect
+   completed artifacts without local engine execution and validate on Windows/WSL
+   after its timed game run ends. Preserve frozen files and the original sample.
 5. **Next correctness priority: cached-mate stop guard.** Carried-state replay
    reproduces two depth1 mate claims that actually allow immediate threefold.
    Counter's depth/distance guard repairs both, and root's continued games
@@ -131,9 +139,11 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    harness, fixed200-game A/A then fixed400-game comparison,10+0.1/c4 with
    taskpolicy background scheduling and score adjudication disabled. A/A passed:
    200 games,44/116/40, paired+6.95 [−21.12,+35.11], zero flags/errors.
-   The400-game candidate now runs under controller19640/PID14811, started
-   11:46:15UTC. The unlaunched Windows plan is superseded; no machine fallback
-   or pooling. Main integration waits for the live pin's freeze.
+   The400-game candidate was interrupted on user request; no verdict, keep or
+   rejection is permitted from the partial games. All Mac workers and automatic
+   controllers were stopped. Do not restart locally. Any future remote comparison
+   requires a new prospective protocol preserving this aborted run; no pooling.
+   Main integration still waits for valid evidence and the pin's frozen inputs.
    The [quiet-promotion candidate](experiments/2026-09-05-quiet-promotion-candidate.md)
    is also locally ready, but remains separate and must rebase/rebuild if the
    immediate accepted playing base changes. Neither candidate is installed.
