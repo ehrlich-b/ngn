@@ -1,5 +1,12 @@
 # Review prompt: explain NGN's classical strength gap
 
+Refreshed September 5 against source `c76f7ed`; the playing release remains the
+accepted uncapped-qsearch binary, not either unconfirmed candidate. The latest
+completed absolute pin is **2726 [2668,2784]** on the historical local scale.
+The active objective is at least 2800 without NNUE. Investigate substantial
+mechanism changes when evidence supports them, including replacing or removing
+a coupled subsystem. There is no 10–20 Elo ceiling on the ambition of this work.
+
 First pass reviewed runtime `71399c063ee9688f499e71e1253ebaf81b211813`.
 For a new pass, record the actual source commit, working diff and deployed binary
 hash before starting. The uncapped-qsearch correction, committed at `ec9d264`,
@@ -18,6 +25,16 @@ claims in comments, reviews, or experiment summaries. Earlier audits declared
 areas clean that subsequently contained proven defects. Historical evidence is
 useful but is not an invariant. Preserve the deployed release and live matches.
 Use isolated probes; do not apply speculative production changes during review.
+
+Read the [current evidence and decisions](2026-09-05-classical-review-update.md)
+before repeating a prior experiment. Repaired trace omissions, quiet filtering,
+checkpoint selection, castling and qsearch-cap/TT reuse are regression targets,
+not new discoveries. The current 936-entry model makes mobility/threat terms
+trainable. Its frozen fit is in games; T17+T8 is staged separately. Do not change
+either vector, launch competing box work, or select another fit from its holdout.
+Known J1 scout-depth inconsistency needs an interaction hypothesis because its
+naive repair previously lost strength. Distinguish a repaired defect from proof
+that the surrounding subsystem is correct.
 
 ## Reference sources
 
@@ -57,6 +74,10 @@ loss study proved a castle-out-of-check root choice that a legal emitted-move
 audit missed: the UCI guard substituted a legal move that hung a knight. Include
 terminal positions with a nonempty pseudo-legal list and zero legal moves.
 
+Required artifact: an independent invariant test across every implicated
+consumer, with a failing old-runtime witness where possible. A legal UCI fallback
+or tests that call the same implementation twice do not certify internal choices.
+
 ## Angle 2: search semantics and interactions
 
 Audit alpha-beta/PVS windows, bound types, mate-distance encoding, aspiration
@@ -70,6 +91,15 @@ Trace history/correction learning inputs and consumers, stop propagation, and
 state restoration across normal children, null moves and same-ply searches.
 Demonstrate an error with a concrete FEN/window/state or label it a heuristic
 hypothesis. Differences from another engine alone do not establish a bug.
+
+Review the complete child-search decision: base depth, extensions, reductions,
+scout depth, verification trigger, verification depth and final TT depth. Compare
+Counter's coherent child-depth policy with NGN's actual calls, not its comments.
+Test captures/promotions/checks separately, including promotion value in SEE and
+delta pruning. If proposing simplification, state all redundant compensations it
+removes and the smallest explicit interaction experiment. Do not merely disable
+futility: the frozen controls already contain regressions and direct traces did
+not implicate skipped reference replies.
 
 ## Angle 3: why evaluation tuning failed
 
@@ -92,6 +122,14 @@ and tested vector, and completed game evidence where available. Date any newly
 found bug before blaming it for an older failure. Do not infer that classical
 tuning cannot work, or that NNUE would work, from these failed attempts.
 
+Separate exact integer reconstruction from the differentiable approximation.
+Measure both at original and exported weights. Integer tapering before feature
+multiplication can amplify rounding; a constant residual bound needs proof.
+Check evaluation-scale changes against centipawn pruning thresholds, SEE piece
+values, aspiration windows and clock score regimes. A fixed K and an improved
+static objective do not prove these search interactions improved. Propose a
+scale diagnostic on training or fresh positions before another expensive fit.
+
 ## Angle 4: compare complete classical mechanisms
 
 Build a small matrix with NGN and reference file:line evidence. Compare formulas,
@@ -105,6 +143,11 @@ would replace. Include subtraction/simplification as candidates. Check
 `experiments/TRIED-LEDGER.md` and later run records before proposing old work.
 An old negative experiment may be reopened only with a specific new falsifiable
 premise, not because its verdict is inconvenient.
+
+Required artifact: one complete mechanism comparison and a deletion candidate.
+Explain why the reference's prerequisite holds in NGN before copying a rule.
+Do not copy an entire foreign engine into the NGN binary to meet a rating target.
+Preserve provenance and the relevant license for any code actually reused.
 
 ## Angle 5: Go runtime and usable search
 
@@ -125,6 +168,13 @@ clocks. Identify completed experiments left unconfirmed, stale binaries, tests
 that mirror implementation, and lane closures made from invalid evidence.
 Do not turn every review into a new testing framework or another long tune.
 
+Require terminal-log, binary, command, full game-count and color-pair agreement.
+An occurrence of a success marker somewhere in a log is not a terminal check.
+Exercise validators through their real public entry point with corrupted inputs;
+handwritten tests of the expected answer do not prove the validator rejects it.
+Preserve historical rating labels and exclusions; bootstrap sensitivity cannot
+retroactively change the acceptance gate or convert this local scale to CCRL.
+
 ## Required output
 
 1. Ranked findings with classification: reproduced defect, code-proven mismatch,
@@ -140,3 +190,8 @@ Do not turn every review into a new testing framework or another long tune.
 
 Give the strongest evidence against your preferred explanation. A useful review
 narrows the next implementation decision and supplies executable evidence.
+
+Bound each initial angle to 20 minutes of code/probe work and return its best
+finding or negative result. Allocate further time only to a concrete unresolved
+mechanism. At most three experiments leave the review. Long games run unattended;
+do not spend active turns on repeated polling or countdowns.

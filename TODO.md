@@ -123,6 +123,12 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    Existing nonlinear danger/mobility are not missing. The 24-game loss study's
    node probes did not establish evaluation as the cause. Follow the
    [larger-gain pathway](experiments/2026-09-04-strength-pathway.md); no NNUE.
+   [September 5 review refresh](experiments/2026-09-05-classical-review-update.md):
+   fresh 1,585-position base/fitted integer parity passes; rounding is small in
+   this sample. Capture-promotion accounting is intact; quiet promotions remain
+   absent. Exact block-picker experiment was about4% slower and is shelved.
+   The next substantial search hypothesis is a coherent extension/reduction
+   policy, with explicit interaction evidence before a playing candidate.
 
 ## Box access and artifacts
 
