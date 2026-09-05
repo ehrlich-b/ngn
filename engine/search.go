@@ -2236,24 +2236,15 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		return stoppedSearchScore
 	}
 
-	// Node-in-check: read the maintained InCheck tag before the q-depth cap.
-	// Stand-pat/static truncation is illegal while the side to move is in check.
-	inCheck := pos.IsInCheck()
-
 	hash := pos.Hash()
 	if score, drawn := searchDrawScore(pos, ply, hash, info); drawn {
 		return score
 	}
-	// Preserve the capture cap's position before the TT probe, but never
-	// substitute static evaluation for a stalemate or an in-check node.
-	if qDepth >= 6 && !inCheck {
-		if !hasLegalPawnPush(pos) && !pos.HasLegalMove() {
-			return 0
-		}
-		info.QDepthCapHits++
-		return correctedStandPat(pos)
-	}
+	inCheck := pos.IsInCheck()
 
+	// qDepth remains a diagnostic/call-site argument, not a capture horizon.
+	// Qsearch lower bounds share depth-0 TT entries, so a capture-only cap here
+	// would let a shorter search certify a bound for a later, longer one.
 	// TT cutoff probe. Qsearch is depth 0; any cached entry at depth >= 0
 	// covers us (main search stores at depth >= 1 only). Mate scores need
 	// converting from node-relative TT encoding back to root-relative.

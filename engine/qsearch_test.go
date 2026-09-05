@@ -83,6 +83,90 @@ func TestQuiescenceDepthCapStillHandlesCheckmate(t *testing.T) {
 	}
 }
 
+// Legacy callers may enter qsearch with a non-zero qDepth.  That value must
+// not shrink the capture tree: a TT bound written on the same position has to
+// cover a normal qDepth-0 call as well.  Before the uncapped search this exact
+// Kiwipete window stored a qDepth-5 lower bound of 100, then incorrectly cut a
+// qDepth-0 call whose cold result was 51.
+func TestQSearchTTBoundsDoNotDependOnLegacyQDepth(t *testing.T) {
+	for _, fen := range []string{
+		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+		"r3k2r/pppbbppp/2n2q1P/1P2p3/3pn3/BN2PNP1/P1PPQPB1/R3K2R b KQkq - 0 1",
+	} {
+		for _, legacyQDepth := range []int{1, 5, 6, 9} {
+			pos, err := ParseFEN(fen)
+			if err != nil {
+				t.Fatal(err)
+			}
+			before := pos.Copy()
+			history := make(map[uint64]int, len(pos.Positions))
+			for key, count := range pos.Positions {
+				history[key] = count
+			}
+			assertPreserved := func(stage string) {
+				t.Helper()
+				if !PositionEqual(before, pos) {
+					t.Fatalf("%s changed caller state at legacy qDepth %d", stage, legacyQDepth)
+				}
+				if len(pos.Positions) != len(history) {
+					t.Fatalf("%s changed caller history size at legacy qDepth %d", stage, legacyQDepth)
+				}
+				for key, want := range history {
+					if got := pos.Positions[key]; got != want {
+						t.Fatalf("%s changed caller history at legacy qDepth %d", stage, legacyQDepth)
+					}
+				}
+			}
+			ClearStop()
+			ClearHistoryTable()
+			TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+			_ = quiescenceWithDepth(pos, -INFINITY, 100, 5, newQSearchInfo(), legacyQDepth)
+			assertPreserved("legacy search")
+			warm := quiescenceWithDepth(pos, -INFINITY, 100, 5, newQSearchInfo(), 0)
+			assertPreserved("warm search")
+			ClearStop()
+			ClearHistoryTable()
+			TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+			cold := quiescenceWithDepth(pos, -INFINITY, 100, 5, newQSearchInfo(), 0)
+			assertPreserved("cold search")
+			if warm != cold {
+				t.Fatalf("legacy qDepth %d poisoned qDepth0: warm=%d cold=%d FEN=%s", legacyQDepth, warm, cold, fen)
+			}
+		}
+	}
+}
+
+func TestQSearchLegacyQDepthStillHonorsNodeStop(t *testing.T) {
+	pos, err := ParseFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	before := pos.Copy()
+	historyLen := len(pos.Positions)
+	history := make(map[uint64]int, historyLen)
+	for key, count := range pos.Positions {
+		history[key] = count
+	}
+	ClearStop()
+	ClearHistoryTable()
+	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	info := newQSearchInfo()
+	info.maxNodes = 1
+	_ = quiescenceWithDepth(pos, -INFINITY, INFINITY, 0, info, 9)
+	if !info.Stopped || info.Nodes == 0 {
+		t.Fatalf("legacy qDepth capture search did not reach node stop: stopped=%v nodes=%d", info.Stopped, info.Nodes)
+	}
+	if !PositionEqual(before, pos) || len(pos.Positions) != historyLen {
+		t.Fatal("bounded qsearch changed caller state")
+	}
+	for key, want := range history {
+		if got := pos.Positions[key]; got != want {
+			t.Fatal("bounded qsearch changed caller history")
+		}
+	}
+	ClearStop()
+}
+
 // TestPawnCorrectionAppliedAtQsearchStandPat is the T4 red->green guard: the qsearch stand-pat must
 // carry the pawn-structure correction that interior nodes apply (search.go ~1353). Pre-patch the
 // qsearch returned the RAW stand-pat and discarded the correction, so this assertion (got == raw+corr)

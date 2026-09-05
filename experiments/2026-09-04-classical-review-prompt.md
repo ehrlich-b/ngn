@@ -1,6 +1,10 @@
 # Review prompt: explain NGN's classical strength gap
 
-Review NGN at runtime commit `71399c063ee9688f499e71e1253ebaf81b211813`.
+First pass reviewed runtime `71399c063ee9688f499e71e1253ebaf81b211813`.
+For a new pass, record the actual source commit, working diff and deployed binary
+hash before starting. Current accepted playing source is `70eb527`; `4986330`
+includes later offline fixes/docs. The separate uncapped-qsearch candidate has
+its frozen patch and artifacts in `2026-09-04-qsearch-budget-repair.md`.
 The objective is to identify reproducible correctness defects and substantial
 implementation gaps relative to successful classical engines, especially Go
 engines. Do not propose NNUE, a language rewrite, or novel chess research as the
@@ -107,8 +111,8 @@ SEE work, hashing, caches, locks, diagnostics and time checks. Inspect hardcoded
 node/depth limits and root exits that may waste clock at longer time controls.
 Measure on equivalent hardware/settings; raw NPS and nominal depth across
 engines are not strength measurements. Distinguish exact speed improvements
-from pruning that merely makes the tree smaller. Do not load the Windows box
-while `r0904pin` is running.
+from pruning that merely makes the tree smaller. Check current native workers
+before remote compute; do not load the Windows/WSL box during timed matches.
 
 ## Angle 6: the measurement and development process
 

@@ -72,15 +72,22 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   48,926 divides and 128 internal choices. **`r0904castle` completed 400 games: 99/205/96,
   penta +2.6 [−20,+25], zero flags/errors.** Correctness gate accepted;
   strength result inconclusive. Deployed and smoke-verified on all three platforms. [Evidence and manifest](experiments/2026-09-04-castling-repair.md).
-  Native box is idle; no qsearch prototype has been installed.
+  No qsearch candidate has been installed as a default.
 
 ## Execution queue
 
 1. **New proved qsearch interaction:** a real qDepth5 search stores a lower bound
    100 that warm qDepth0 accepts without searching; cold qDepth0 returns 51.
    Removing only the capture cap in a diagnostic overlay makes all three return
-   51. Repair the capture-budget/TT contract with a
-   separate proof and game check. [Second review, corpus/profile evidence and lower-priority TT-age bug](experiments/2026-09-04-review-second-pass.md).
+   51. Uncapped production qsearch is now implemented, regression/oracle/short/race
+   checked and frozen. **Candidate held:** fresh same-binary `r0904qaa` completed
+   200 games at +31.35 [+0.67,+62.53], zero flags/errors, failing the predeclared
+   zero-in-interval gate. Fixed-node accounting diagnostic passed all 12 pairs
+   exactly. One predeclared 400-game real-clock replication `r0904qaa2` is running;
+   require both its interval and the combined 600-game interval to contain zero,
+   retaining the failed first run. No automatic repeat if it fails.
+   [Repair manifest and investigation](experiments/2026-09-04-qsearch-budget-repair.md).
+   [Second review, corpus/profile evidence and lower-priority TT-age bug](experiments/2026-09-04-review-second-pass.md).
 2. The [completed 24-game diagnostic study](experiments/2026-09-04-loss-study.md)
    and targeted search ablations exposed the castling defect. Four-times-node probes gave 19
    unchanged choices / five changes / no demonstrated rescue; several reference
@@ -89,6 +96,10 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    node definitions differ. Both search quality and runtime remain candidates.
    Tuning-contract repairs are complete; a future tune still needs a corpus
    acceptance audit and game-disjoint validation before expensive fitting.
+   [Focused classical comparison](experiments/2026-09-04-classical-evaluation-gap.md)
+   identifies frozen mobility/threat coefficients and missing safe-check inputs;
+   an actual-function witness confirms the latter feature distinction. Neither
+   establishes an Elo gain. Existing nonlinear danger/mobility are not missing.
 3. Rebuild/predeclare T17 + T8 on the corrected base when warranted. Sync the new source/docs to WSL after native timed games; default playing
    artifacts are already deployed. Offline tuning repairs do not require
    replacing the frozen playing engine during a match.
