@@ -163,6 +163,12 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    Exact isolated sources and evidence remain under the regression-followup
    directory. Frozen candidate binaries and source are unchanged.
    Mate-guard integration still waits for its candidate comparison.
+   The [new corrected external protocol](experiments/2026-09-05-corrected-mate-pin.md)
+   is prepared as `r0905matepin`, conditional on root acceptance. Its exact
+   artifacts and WSL-only validation package are staged/hash-verified; the
+   startup verifier parses. The combined source and regression tests are staged
+   separately on WSL for full checks after the current comparison drains.
+   No new rating launch or default replacement has occurred.
    The [quiet-promotion candidate](experiments/2026-09-05-quiet-promotion-candidate.md)
    is also locally ready, but remains separate and must rebase/rebuild if the
    immediate accepted playing base changes. Neither candidate is installed.
