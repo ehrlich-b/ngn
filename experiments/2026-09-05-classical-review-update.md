@@ -149,3 +149,23 @@ correctness checks and a bounded Mac timing probe, and cannot alter the current
 frozen pin. No game acceptance or strength gain is claimed. The
 [external400-game rating run](2026-09-05-2800-pin-plan.md) is now measuring accepted
 T8. Self-play, lower MSE and summed selected gains do not establish 2800.
+
+## Bounded null-move follow-up
+
+A source-only follow-up at7bfba89 examines a five-legal-ply king triangle plus
+an artificial null move. NGN's repetition scan can include the initial legal
+ancestor through that null edge. A small deferred probe is staged in
+`output/null-boundary-20260905/`; it has not been compiled or run while the Mac
+clocked gate is active. No wrong root move, actual game loss or Elo effect is
+shown, and no production patch is selected.
+
+The apparent reference gap narrowed on closer inspection. Counter stops scans
+at older null ancestors, but checks ancestor hash before that boundary and
+does not first exclude the current null node. Blunder's null halfmove-clock
+reset does not constrain its separate full history scan. Chess-3 appends the
+null hash and scans earlier hashes without a null boundary. All three pinned
+revisions were reverified. Their live predicates do not establish that this
+immediate null-cycle fixture is prevented. Treat it as a shared search
+approximation to investigate only with a meaningful root/loss witness, not as
+another established missing prerequisite for classical strength. The mate-stop
+and quiet-promotion candidates retain priority.
