@@ -11,18 +11,20 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   must run on Windows/WSL. No background/E-core exception. At the user's request,
   all Mac match workers, controller19640/PID14811, collector22597/PID52989 and
   resumption helper49860/PID62206 were killed and verified absent. Do not restart
-  them. `mac-gate/USER_STOPPED.txt` records the override. Mate-guard games are
-  interrupted with no candidate verdict. Remote Windows pin was left running;
-  its artifacts require later collection with validation on Windows/WSL.
+  them. `mac-gate/USER_STOPPED.txt` records the override. Mac mate-guard games
+  remain interrupted with no candidate verdict; the separate Windows recovery
+  protocol now owns further games.
 
 - Current campaign source starts at `b378c432cb34`; certified search base is
   `50adc99` (T12 + T19). T17+T8 now passed its completed gate and is integrated;
   deployed on Mac/WSL/Windows at `5cf301a`. No T22 patch or fitted evaluation
   weights are applied.
-- **Fresh strength pin: 2726, reported 95% CI [2668,2784]**, September 4,
-  200 games, 120+1/c8, five anchors. Original 2600 gate passes; **2800 remains
-  unconfirmed**. Local historical-CCRL calibration, not an official rating.
-  [Result, clock-loss sensitivity and audit](experiments/2026-09-04-strength-check.md).
+- **Latest completed raw report: 2796 [2753,2838]**, accepted T8,400 games,
+  120+1/c8. **Outcome audit HELD:** two NGN checkmates were recorded as cap
+  draws by the old harness. No relabel/rerating;2800 remains unverified.
+  [Completed result and audit](experiments/2026-09-05-accepted-t8-pin-result.md).
+  The earlier200-game report was2726 [2668,2784], with its own later-discovered
+  cap-mate mislabel. Local historical calibration, not an official rating.
   July's 2704 [2665,2743] used the old harness; the difference is not an
   engine-only gain measurement.
 - The WSL checkout at `/home/ehrli/repos/ngn` was clean at `7587eb6` (early June),
@@ -52,8 +54,8 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   all200 games /27546 plies, but a later all-final-board audit found game70's
   final-ply NGN checkmate mislabeled as a cap draw. Raw rating unchanged;
   [harness fix and carried-state search witnesses](experiments/2026-09-05-draw-conversion-audit.md)
-  are isolated. The live400-game pin also requires that supplemental terminal
-  audit before any goal verdict. Zero NGN flags/errors. Blunder6.1 flagged once;
+  are isolated. The subsequent400-game pin also received that terminal
+  audit before its held goal verdict. Zero NGN flags/errors. Blunder6.1 flagged once;
   the actual pre-existing rule retains real clock losses. Excluding that entire
   anchor gives a separate sensitivity of 2753 [2691,2815], not the primary pin.
 - **T22 resolved:** completed August 4, recovered September 4: 8000 games,
@@ -120,27 +122,20 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    paired−12.26 [−27.56,+2.99], zero errors/flags. The selected D interaction
    failed its game gate; it is not installed. The old J1−59 estimate still
    refers to65 interrupted games, not this completed test.
-   **External400-game accepted-T8 pin `r0905acceptedpin` is running.**
-   [Frozen protocol and additional terminal-audit requirement](experiments/2026-09-05-2800-pin-plan.md).
-   Local collector22597 and resumption helper49860 were killed on user request.
-   Windows games were not stopped. Do not restart either local process: collect
-   completed artifacts without local engine execution and validate on Windows/WSL
-   after its timed game run ends. Preserve frozen files and the original sample.
-   The [WSL validation package](experiments/2026-09-05-2800-pin-plan.md#wsl-validation-after-the-local-stop)
-   is now staged with verified hashes; it has not executed. It preserves the
-   frozen audits and estimator, snapshots all completed inputs, and requires
-   DONE_EXIT_0 plus native/WSL idle state. All337 original local inputs still
-   match their frozen hashes. No local collector may resume.
-   Windows completion waiter PID22316 is verified live, waiting on gauntlet
-   PID29692 before invoking WSL validation once. Observe the same waiter and
-   `r0905acceptedpin_wsl_validation_scheduled_v2.stdout`; do not start a duplicate.
+   **External400-game accepted-T8 pin `r0905acceptedpin` completed.**
+   [Result2796 [2753,2838] and outcome-integrity hold](experiments/2026-09-05-accepted-t8-pin-result.md).
+   Full legal replay400/56310plies passes. Terminal audit finds games211/216
+   NGN checkmates mislabeled as cap draws. Raw results remain unchanged.
+   WSL validation ended with HOLD; original gauntlet29692 and waiter22316 ended.
+   All337 local inputs and all remote assets/raw snapshots passed final hashes.
+   Original-run freeze is closed after the completed audit; preserve its artifacts.
 5. **Next correctness priority: cached-mate stop guard.** Carried-state replay
    reproduces two depth1 mate claims that actually allow immediate threefold.
    Counter's depth/distance guard repairs both, and root's continued games
    reach checkmate. Isolated final builds, full short/race/vet and UCI checks
    pass. [Frozen candidate and prospective game gate](experiments/2026-09-05-mate-stop-confirmation.md).
    Exact candidate/harness/native-regression binaries and startup verifier are
-   staged/hash-verified in native `sprt`; no startup or match launch yet.
+   staged/hash-verified in native `sprt`; native startup and A/A passed.
    At the actual default Hash128, one immediate-draw failure reproduces;
    both guarded continuations finish in verified mate.
    The Mac control completed, but the candidate was interrupted on user request;
@@ -149,12 +144,19 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    The [prospective Windows recovery protocol](experiments/2026-09-05-mate-stop-windows-recovery.md)
    uses the same exact candidate, a fresh fixed200-game native A/A, then a
    fixed400-game comparison at10+0.1/c8 without score adjudication. It follows
-   the current external pin and WSL validation. No native launch yet; no pooling.
-   A direct cached-mate regression is staged in isolated WSL `base/` and `guard/`
-   sources under `output/mate-stop-direct-regression-20260905/`. It remains
-   runtime-unverified; check its intended old-fail/new-pass result after the pin
-   and rating audits finish. Frozen candidate binaries and source are unchanged.
-   Main integration still waits for valid evidence and the pin's frozen inputs.
+   the completed external pin and its audited integrity hold. **Native A/A
+   `r0905terminalaa` completed and passed root review**,200 games,
+   36/126/38, paired−3.47 [−32.45,+25.45], zero flags/errors.
+   Both exact engines passed native defaults/three canonical smokes; all three
+   corrected-harness terminal tests passed. Candidate-phase startup also
+   passed. **`r0905mateguard` is live, PID9284**, started10:37:56 local
+   September5 with the exact fixed400-game command and16 expected workers.
+   No competing box compute; completed audit/root verdict pending. No pooling.
+   Direct cached-mate regression now has WSL old-fail/new-pass proof: baseline
+   fails at callbacks1/depth1, guarded source passes; both stderr logs empty.
+   Exact isolated sources and evidence remain under the regression-followup
+   directory. Frozen candidate binaries and source are unchanged.
+   Mate-guard integration still waits for its candidate comparison.
    The [quiet-promotion candidate](experiments/2026-09-05-quiet-promotion-candidate.md)
    is also locally ready, but remains separate and must rebase/rebuild if the
    immediate accepted playing base changes. Neither candidate is installed.

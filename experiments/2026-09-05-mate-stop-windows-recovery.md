@@ -70,8 +70,8 @@ Otherwise an inconclusive result may support the proved correction, without
 an H1 or Elo-gain claim. Preserve all output and errors. This log has no moves
 or pair identities; do not claim independent PGN replay from its pair totals.
 
-No native game has been launched under this recovery protocol yet. Root must
-record the exact startup/launch evidence and final interpretation. Any further
+The native control completed and passed root review; its evidence is below.
+Record candidate startup/launch evidence and final interpretation. Any further
 absolute-rating claim requires the original goal's valid external evidence;
 self-play estimates cannot be added to an old rating to claim2800.
 
@@ -125,11 +125,48 @@ It is staged under `/home/ehrli/repos/ngn/output/mate-stop-direct-regression-202
 with separate `base/` and `guard/` source copies and identical tests. The
 playing-source difference remains only the exact frozen mate-stop hunk.
 
-Runtime red/green is **unverified**. After the current timed match and WSL
-rating validation are terminal, run only
-`TestIterativeDeepeningDoesNotStopOnShallowCachedMateWithHistory` first in each
-isolated WSL source copy. Require the baseline's intended shallow-stop failure
-and the guarded test's pass; investigate fixture setup failures rather than
-weakening assertions. No local compile, engine or chess test was performed.
+Runtime red/green is **proved on WSL**, after the original pin and validation
+ended and both Windows and WSL were idle. All isolated source hashes passed.
+With Go1.25.5, `GOTOOLCHAIN=local GOMAXPROCS=2`, root ran
+`go test -short -p 2 ./engine -run '^TestIterativeDeepeningDoesNotStopOnShallowCachedMateWithHistory$' -count=1 -timeout=90s -v`
+sequentially in guard and base. The guard passed (exit0); the base failed
+(exit1) specifically with `callbacks=1 finalDepth=1`. Both stderr logs were
+empty. `regression-followup/direct-regression-results.json` records commands
+and raw-stream hashes. No local compile, engine or chess test was performed.
 The frozen candidate archive, binaries and predeclared native game samples
 are unchanged by this additional test preparation.
+
+## Native control completed
+
+`r0905terminalaa` launched September5 at10:11:16 local on the authorized native
+Windows box, using the exact command above. Startup verified both engines'
+Hash128/defaults and all three canonical UCI cases, plus all three native
+terminal-regression tests. The process-only PowerShell execution-policy bypass
+did not change host policy. Startup output is retained as `aa-startup.stdout`.
+
+The control completed in13m28s, DONE_EXIT_0, exactly200 games/100 pairs:
+36W/126D/38L, penta `[4,24,43,28,1]`, paired−3.4745
+[−32.4516,+25.4543], zero flags and operational errors. The predeclared parser
+passed on WSL with exit0 and empty stderr; parser, baseline, harness and opening
+hashes matched. The harness and all engine workers drained. Root inspected the
+completed output and audit and accepts this control: its paired interval
+contains0. No candidate strength conclusion follows from this A/A.
+
+Raw log SHA-256:
+`4b58a44b9ea77996a1b759335eccfbf84f8375079d2c63c904afd77e74624072`.
+All control evidence is in `output/mate-history-20260905/windows-gate/`.
+
+## Native candidate launched
+
+Candidate-phase startup passed with exit0 and empty stderr: both exact engines,
+all defaults, all three canonical UCI cases and the three native terminal tests.
+Root independently checked Windows and WSL for competing engine/build workers
+and verified the startup script's hash before execution. Evidence is retained
+as `windows-gate/candidate-startup.*`.
+
+`r0905mateguard` launched at10:37:56 local September5, PID9284, using the exact
+fixed400 command above. The scheduled task entry was deleted after launch.
+At14:39:12UTC root verified its exact batch, header and16 child processes
+(eight candidate, eight base); `candidate-launch-inspection.stdout` retains the
+receipt. Completion and root verdict are pending. No other engine work may
+compete on the box during this comparison.
