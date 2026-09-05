@@ -172,3 +172,25 @@ and searched moves. Parent failure log: `corpus-predecessor-parent-fail.txt`.
 This is a data-generation defect; no new playing-engine runtime is bundled.
 The fixed ranges/settings/acceptance rule remain; restart with a new frozen
 generator hash and a fresh 32-game smoke. Do not pool partial earlier data.
+
+Corrected source `227c4d34ef3418a662f78527486db4dc32763aa2`; frozen Mac generator
+`build/texelcorpus_20260905_r2`, SHA-256
+`99dfa1a2a9aa4d12c0c98c9aa49f86e2e86271ef0f54399af57e96d84a8d301c`.
+Full short/race/vet pass (`corpus-predecessor-{short,race,vet}.txt`). A second
+read-only state audit found no further missing handoff. Generation intentionally
+calls Search with a fresh default-size TT, bypassing UCI's optional external
+book/tablebase probes; the fixed opening prefix supplies opening diversity.
+Restart artifacts use `classical-v2-r2-*` names. The validated tuner executable
+from `9add92c` remains valid: this correction changes only data generation.
+
+The added independent Stockfish smoke exposed a serialization limitation:
+`GenerateFEN` always emits fullmove1 because Position does not store that counter.
+Corpus samples now derive it from their startpos replay ply, and the loader
+requires the same exact FEN. This metadata correction does not change search,
+quiet filtering, labels or model inputs. The old r2 smoke's format check passed,
+but the independent check failed at game0/ply21 (reported move1, actual move11).
+The new fullmove regression fails before correction. Both generator and loader
+must now be rebuilt; r2 data is not pooled into the final corpus. Reproducer:
+`experiments/2026-09-05-corpus-smoke-oracle.py` checks every move against SF legal
+moves, sample states and final outcomes, tolerating only uncapturable EP-target
+normalization between FEN serializers. New artifacts use `classical-v2-r3-*`.

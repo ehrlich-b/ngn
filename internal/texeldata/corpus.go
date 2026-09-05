@@ -14,6 +14,7 @@ import (
 	"math/bits"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/ehrlich-b/ngn/engine"
@@ -334,7 +335,7 @@ func validateRecord(r GameRecord) ([]row, string, error) {
 			return nil, "", fmt.Errorf("move %d %q rejected", ply, text)
 		}
 		at := ply + 1
-		fen := engine.GenerateFEN(pos)
+		fen := corpusFEN(pos, at)
 		if at == r.OpeningPly {
 			openingFEN = fen
 		}
@@ -412,6 +413,14 @@ func canonicalOpeningID(fen string) string {
 		return ""
 	}
 	return strings.Join(parts[:4], " ")
+}
+
+// GenerateFEN cannot recover a fullmove counter from Position (which does not
+// store one). Corpus records start at startpos, so replay length supplies it.
+func corpusFEN(pos *engine.Position, ply int) string {
+	fields := strings.Fields(engine.GenerateFEN(pos))
+	fields[5] = strconv.Itoa(ply/2 + 1)
+	return strings.Join(fields, " ")
 }
 
 func validOpeningID(id string) (*engine.Position, error) {

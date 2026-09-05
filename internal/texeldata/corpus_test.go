@@ -34,7 +34,7 @@ func validRecord(t *testing.T, id string, moves []string, openingPly int) GameRe
 			opening = engine.GenerateFEN(pos)
 		}
 		if i+1 == 12 {
-			sample = engine.GenerateFEN(pos)
+			sample = corpusFEN(pos, i+1)
 		}
 	}
 	if openingPly == 0 {
@@ -46,6 +46,13 @@ func validRecord(t *testing.T, id string, moves []string, openingPly int) GameRe
 
 func testGeneration(index int) GenerationSettings {
 	return GenerationSettings{Nodes: 8000, MaxPlies: 240, Seed: 1, OpeningIndex: index, SampleFilter: "engine.IsQuietPosition/v1", SampleFilterSource: "test-source:engine/texel.go"}
+}
+
+func TestCorpusSampleCarriesActualFullmoveNumber(t *testing.T) {
+	r := validRecord(t, "fullmove", mateLineA, 6)
+	if !strings.HasSuffix(r.Samples[0].FEN, " 0 7") {
+		t.Fatalf("after 12 plies sample must be White's seventh move: %s", r.Samples[0].FEN)
+	}
 }
 
 func writeRecords(t *testing.T, name string, records ...GameRecord) string {
@@ -337,7 +344,7 @@ func replayFEN(t *testing.T, moves []string, ply int) string {
 		}
 		pos.GameMakeMove(m)
 	}
-	return engine.GenerateFEN(pos)
+	return corpusFEN(pos, ply)
 }
 
 type errWriter struct{}

@@ -117,7 +117,7 @@ func playOne(cfg GenerateOptions, index int) (GameRecord, error) {
 		}
 		// The sample belongs to the position before the next searched move.
 		if len(moves) > r.OpeningPly && len(moves) >= 12 && engine.IsQuietPosition(pos) {
-			candidates = append(candidates, SampleRecord{Ply: len(moves), FEN: engine.GenerateFEN(pos)})
+			candidates = append(candidates, SampleRecord{Ply: len(moves), FEN: corpusFEN(pos, len(moves))})
 		}
 		legal := engine.GenerateLegalMoves(pos)
 		// terminal() above generated the same legal list, but do not infer a draw
