@@ -98,14 +98,20 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    against the accepted qsearch baseline. Its bounded controller collects
    results but never deploys. Root must review the completed paired verdict;
    H0 or capped inconclusive shelves this fitted vector. [Game manifest](experiments/2026-09-05-classical-confirmation.md).
-3. T17 + the completed 24000-game T8 SPSA vector remain unconfirmed. Rebuild on
-   the current accepted base if this becomes the next selected game candidate;
-   do not reuse the interrupted 279-game castling-bug run.
-4. **New diagnostic lead: futility pruning.** On seven frozen middlegame
+3. **T17 + the completed24000-game T8 vector rebuilt and staged on qcap**:
+   `ngn_20260905_t8qcap.exe` (43b2a2c9...), isolated source, full short/race/vet
+   and protocol checks pass. Not launched or installed. After the fitted-model
+   verdict, use it only if qcap remains the accepted base; otherwise rebase and
+   rebuild. [Exact artifacts and bounded original confirmation rule](experiments/2026-09-05-t8-qcap-confirmation.md).
+   Do not reuse the interrupted279-game castling-bug run.
+4. **Futility diagnostic completed; no policy patch yet.** On seven frozen middlegame
    disagreements, disabling futility at400k nodes produces the same choices as
    the base at4M; five improve at least50cp by SF depth16. Selected sample, no
-   Elo/correctness claim. Trace actual skips and check the remaining16 controls
-   before choosing a policy change. [Full ablation, audits and negative speed
+   Elo/correctness claim. The remaining16 controls include one83cp regression
+   and three negative changes. Direct traces do not show futility skipping the
+   watched SF replies; the local mechanism is still unproved.
+   [Controls, traces and limits](experiments/2026-09-05-futility-followup.md).
+   [Full ablation, audits and negative speed
    result](experiments/2026-09-05-search-ablation.md).
    Safe-check relevance was found in only one of49 tested continuations; more
    search also avoids it, so a king-danger transplant is not yet prioritized.
