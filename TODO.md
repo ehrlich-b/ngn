@@ -100,6 +100,12 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    identifies frozen mobility/threat coefficients and missing safe-check inputs;
    an actual-function witness confirms the latter feature distinction. Neither
    establishes an Elo gain. Existing nonlinear danger/mobility are not missing.
+   **Classical model v2 implemented offline:** all 138 appended mobility/threat
+   coefficients have live activation and frozen-trace parity; all 936 stored
+   entries survive source import and rebuild. Playing eval source/weights are
+   unchanged. A replay-validated opening-grouped corpus pipeline and separate
+   train/validation/final-test route replace anonymous rows for the next fit.
+   [Implementation, evidence and fixed corpus/fit plan](experiments/2026-09-05-classical-model-v2.md).
 3. Rebuild/predeclare T17 + T8 on the corrected base when warranted. Sync the new source/docs to WSL after native timed games; default playing
    artifacts are already deployed. Offline tuning repairs do not require
    replacing the frozen playing engine during a match.

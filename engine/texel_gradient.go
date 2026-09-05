@@ -1,8 +1,12 @@
 package engine
 
 import (
+	"encoding/json"
+	"fmt"
 	"math"
+	"math/bits"
 	"runtime"
+	"slices"
 	"sync"
 )
 
@@ -15,25 +19,107 @@ import (
 // That caching is what makes gradient descent 100-1000x cheaper than coordinate
 // descent's per-parameter line search.
 //
-// Parameter layout (the global index order, matching cmd/texel's "full" target —
-// TexelMaterialParams ++ TexelPSTParams ++ TexelWeights):
+// Versioned parameter layout (TexelFullParams and JSON Names use this order):
 //
 //	[0..4]    pestoMGMaterial[Pawn..Queen]
 //	[5..9]    pestoEGMaterial[Pawn..Queen]
 //	[10..777] 768 raw PST cells: 12 tables (mgPawn..mgKing, egPawn..egKing) × 64
-//	[778..797] the 20 scalar weights (TexelWeights order: 10 MG, then 10 EG twins)
+//	[778..797] 20 legacy scalar slots (two mobility reservations are inactive)
+//	[798..863] 66 MG mobility cells: knight, bishop, rook, queen
+//	[864..929] 66 EG mobility cells, same order
+//	[930..935] six threat coefficients
 //
 // King has no material parameter (its value is fixed at 0, conventional since both
 // sides always have exactly one), but it does have a PST.
 
 const (
-	texelNumMaterial = 10  // mg Pawn..Queen (0..4), eg Pawn..Queen (5..9)
-	texelNumPST      = 768 // 12 tables × 64
-	texelNumScalars  = 20  // == len(TexelWeights()): 10 MG term weights (0..9) + 10 EG twins (10..19)
-	texelPSTBase     = texelNumMaterial
-	texelScalarBase  = texelNumMaterial + texelNumPST
-	texelNumParams   = texelNumMaterial + texelNumPST + texelNumScalars // 798
+	texelNumMaterial    = 10  // mg Pawn..Queen (0..4), eg Pawn..Queen (5..9)
+	texelNumPST         = 768 // 12 tables × 64
+	texelNumScalars     = 20  // legacy scalar prefix: 10 MG + 10 EG twins
+	texelPSTBase        = texelNumMaterial
+	texelScalarBase     = texelNumMaterial + texelNumPST
+	texelLegacyParams   = texelNumMaterial + texelNumPST + texelNumScalars // 798
+	texelMobilityMGBase = texelLegacyParams
+	texelMobilityEGBase = texelMobilityMGBase + mobilityCellCount
+	texelThreatBase     = texelMobilityEGBase + mobilityCellCount
+	texelNumThreats     = 6
+	texelNumParams      = texelThreatBase + texelNumThreats // 936, model v2
 )
+
+const TexelModelVersion = "ngn-texel-v2-936"
+
+type TexelModelExport struct {
+	Version              string
+	Names                []string
+	Values               []int
+	StoredCount          int
+	ActiveCount          int
+	InactiveReservations []string
+}
+
+func TexelParameterNames() []string {
+	names := make([]string, 0, texelNumParams)
+	for _, phase := range []string{"mg", "eg"} {
+		for _, p := range []string{"pawn", "knight", "bishop", "rook", "queen"} {
+			names = append(names, phase+"_material_"+p)
+		}
+	}
+	for _, phase := range []string{"mg", "eg"} {
+		for _, p := range []string{"pawn", "knight", "bishop", "rook", "queen", "king"} {
+			for sq := 0; sq < 64; sq++ {
+				names = append(names, fmt.Sprintf("%s_pst_%s_%d", phase, p, sq))
+			}
+		}
+	}
+	for _, w := range TexelWeights() {
+		names = append(names, w.Name)
+	}
+	for _, phase := range []string{"mg", "eg"} {
+		for _, p := range []string{"knight", "bishop", "rook", "queen"} {
+			n := map[string]int{"knight": 9, "bishop": 14, "rook": 15, "queen": 28}[p]
+			for cell := 0; cell < n; cell++ {
+				names = append(names, fmt.Sprintf("%s_mobility_%s_%d", phase, p, cell))
+			}
+		}
+	}
+	for _, n := range []string{"threat_pawn", "threat_minor_major", "threat_rook_queen", "threat_hanging_minor", "threat_hanging_rook", "threat_hanging_queen"} {
+		names = append(names, n)
+	}
+	return names
+}
+func ExportTexelModel() TexelModelExport {
+	ptrs := TexelFullParams()
+	values := make([]int, len(ptrs))
+	for i, p := range ptrs {
+		values[i] = *p
+	}
+	return TexelModelExport{TexelModelVersion, TexelParameterNames(), values, texelNumParams, texelNumParams - 2, []string{"mobilityWeight", "mobilityWeightEG"}}
+}
+
+// ApplyTexelModel is an offline/startup import: do not race an active search.
+// Callers must parse fresh positions or rebuild board accumulators after import.
+func ApplyTexelModel(x TexelModelExport) error {
+	if x.Version != TexelModelVersion || len(x.Values) != texelNumParams || len(x.Names) != texelNumParams || x.StoredCount != texelNumParams || x.ActiveCount != texelNumParams-2 {
+		return fmt.Errorf("texel model incompatible: version=%q params=%d names=%d", x.Version, len(x.Values), len(x.Names))
+	}
+	if !slices.Equal(x.Names, TexelParameterNames()) || !slices.Equal(x.InactiveReservations, []string{"mobilityWeight", "mobilityWeightEG"}) {
+		return fmt.Errorf("texel model parameter names mismatch")
+	}
+	for i, p := range TexelFullParams() {
+		*p = x.Values[i]
+	}
+	RebuildPST()
+	// Clear derived evaluation and search state after changing the model.
+	evalCache = [1 << evalCacheBits]evalCacheEntry{}
+	pawnCache = [pawnCacheSize]pawnCacheEntry{}
+	ClearHistoryTable()
+	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	return nil
+}
+func FormatTexelModelExport() string {
+	b, _ := json.MarshalIndent(ExportTexelModel(), "", "  ")
+	return string(b) + "\n"
+}
 
 // Global-index helpers. King (pt==6) is out of material range — callers must skip
 // material for the king; its PST indices are valid.
@@ -70,6 +156,11 @@ type evalTrace struct {
 	Outpost      int
 	KingSafety   int // 0 unless phase >= 6 (matches the live eval's C4 gate)
 	KingActivity int // 0 unless phase < 6
+	// Per-cell white-minus-black mobility counts. These are appended v2
+	// parameters; the old Mobility scalar remains an intentionally inactive
+	// reservation in the 798-prefix.
+	MobilityCounts [mobilityCellCount]int
+	ThreatCounts   [texelNumThreats]int
 	// Fixed is the integer sum of the non-tunable structural terms (blockaded-passer
 	// discount + king-vs-passer discount), already tapered exactly as evalCoreWhite
 	// computes them. They carry no texel weight, so they ride as one constant lump
@@ -82,6 +173,42 @@ type evalTrace struct {
 // reconstruction need not rebuild the slice each call. The CONTENTS change during
 // tuning; the pointers do not.
 var texelRawMG, texelRawEG [7]*[64]int
+
+func texelMobilityMGAddress(i int) *int {
+	if i < 9 {
+		return &knightMobMG[i]
+	}
+	i -= 9
+	if i < 14 {
+		return &bishopMobMG[i]
+	}
+	i -= 14
+	if i < 15 {
+		return &rookMobMG[i]
+	}
+	i -= 15
+	return &queenMobMG[i]
+}
+func texelMobilityEGAddress(i int) *int {
+	if i < 9 {
+		return &knightMobEG[i]
+	}
+	i -= 9
+	if i < 14 {
+		return &bishopMobEG[i]
+	}
+	i -= 14
+	if i < 15 {
+		return &rookMobEG[i]
+	}
+	i -= 15
+	return &queenMobEG[i]
+}
+func texelMobilityMGPtr(i int) int { return *texelMobilityMGAddress(i) }
+func texelMobilityEGPtr(i int) int { return *texelMobilityEGAddress(i) }
+func texelThreatPtrs() []*int {
+	return []*int{&threatByPawn, &threatMinorOnMajor, &threatRookOnQueen, &threatHangingMinor, &threatHangingRook, &threatHangingQueen}
+}
 
 func texelRawTables() {
 	if texelRawMG[Pawn] == nil {
@@ -134,10 +261,16 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 	t.Chain = chainW - chainB
 	var sliderAtt [64]uint64
 	fillSliderAttacks(board, &sliderAtt)
-	// Mobility is now a hand-set per-count shape (eval.go mobilityForSide), so it
-	// rides the non-tunable Fixed lump (folded in below, like threats). The tunable
-	// t.Mobility slot is kept and zeroed so the texel param indices do not shift.
-	mgMob, egMob := evaluateMobilityDelta(board, &sliderAtt)
+	// V2 traces the live per-count mobility curves. The legacy scalar is zero
+	// to preserve the old prefix without pretending that scalar is active.
+	whitePieces, blackPieces, _, whitePawnAttacks, blackPawnAttacks := mobilitySetup(board)
+	wMob := mobilityCountsForSide(&sliderAtt, whitePieces|blackPawnAttacks,
+		board.GetBitboardOf(WhiteKnight), board.GetBitboardOf(WhiteBishop), board.GetBitboardOf(WhiteRook), board.GetBitboardOf(WhiteQueen))
+	bMob := mobilityCountsForSide(&sliderAtt, blackPieces|whitePawnAttacks,
+		board.GetBitboardOf(BlackKnight), board.GetBitboardOf(BlackBishop), board.GetBitboardOf(BlackRook), board.GetBitboardOf(BlackQueen))
+	for i := range t.MobilityCounts {
+		t.MobilityCounts[i] = wMob[i] - bMob[i]
+	}
 	t.Mobility = 0
 	t.RookOpen = evaluateRookOnOpenFile(board, White) - evaluateRookOnOpenFile(board, Black)
 
@@ -172,10 +305,16 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 	wRookBehind := passedRookBehindCount(whitePassers, board.GetBitboardOf(BlackRook), White)
 	bRookBehind := passedRookBehindCount(blackPassers, board.GetBitboardOf(WhiteRook), Black)
 	t.Fixed -= (wRookBehind - bRookBehind) * taperW(0, rookBehindPasserEG, phase)
-	// Threats ride in the Fixed lump (non-tunable, MG-tapered) — same helper and
-	// args as evalExtrasWhite, so reconstructEvalInt stays bit-exact.
-	t.Fixed += evaluateThreatsDelta(board, &sliderAtt, phase)
-	t.Fixed += taperW(mgMob, egMob, phase) // hand-set per-count mobility (see above)
+	// Trace the six live threat counts, whose weighted subtotal is MG-tapered.
+	wAtt := computeSideAtt(&sliderAtt, ((whitePawns&^FileMasks[FileA])<<7)|((whitePawns&^FileMasks[FileH])<<9),
+		board.GetBitboardOf(WhiteKnight), board.GetBitboardOf(WhiteBishop), board.GetBitboardOf(WhiteRook), board.GetBitboardOf(WhiteQueen), board.GetBitboardOf(WhiteKing))
+	bAtt := computeSideAtt(&sliderAtt, ((blackPawns&^FileMasks[FileH])>>7)|((blackPawns&^FileMasks[FileA])>>9),
+		board.GetBitboardOf(BlackKnight), board.GetBitboardOf(BlackBishop), board.GetBitboardOf(BlackRook), board.GetBitboardOf(BlackQueen), board.GetBitboardOf(BlackKing))
+	wt := threatFeatureCounts(wAtt, board.GetBitboardOf(BlackKnight), board.GetBitboardOf(BlackBishop), board.GetBitboardOf(BlackRook), board.GetBitboardOf(BlackQueen), bAtt.all)
+	bt := threatFeatureCounts(bAtt, board.GetBitboardOf(WhiteKnight), board.GetBitboardOf(WhiteBishop), board.GetBitboardOf(WhiteRook), board.GetBitboardOf(WhiteQueen), wAtt.all)
+	for i := range t.ThreatCounts {
+		t.ThreatCounts[i] = wt[i] - bt[i]
+	}
 	return t
 }
 
@@ -204,6 +343,17 @@ func reconstructEvalInt(t *evalTrace) int {
 	eval += t.Outpost * taperW(outpostWeight, outpostWeightEG, ph) / 100
 	eval += t.KingSafety * taperW(kingSafetyWeight, kingSafetyWeightEG, ph) / 100
 	eval += t.KingActivity * taperW(kingActivityWeight, kingActivityWeightEG, ph) / 100
+	mgMob, egMob := 0, 0
+	for i, n := range t.MobilityCounts {
+		mgMob += n * texelMobilityMGPtr(i)
+		egMob += n * texelMobilityEGPtr(i)
+	}
+	eval += taperW(mgMob, egMob, ph)
+	threat := 0
+	for i, n := range t.ThreatCounts {
+		threat += n * *texelThreatPtrs()[i]
+	}
+	eval += threat * ph / totalPhase
 	eval += t.Fixed // non-tunable structural lump (already tapered in buildEvalTrace)
 	return eval
 }
@@ -240,6 +390,12 @@ func evalTraceFloat(t *evalTrace, w []float64) float64 {
 	s += float64(t.Outpost) / 100.0 * (w[texelScalarBase+7]*mgF + w[texelScalarBase+17]*egF)
 	s += float64(t.KingSafety) / 100.0 * (w[texelScalarBase+8]*mgF + w[texelScalarBase+18]*egF)
 	s += float64(t.KingActivity) / 100.0 * (w[texelScalarBase+9]*mgF + w[texelScalarBase+19]*egF)
+	for i, n := range t.MobilityCounts {
+		s += float64(n) * (w[texelMobilityMGBase+i]*mgF + w[texelMobilityEGBase+i]*egF)
+	}
+	for i, n := range t.ThreatCounts {
+		s += float64(n) * w[texelThreatBase+i] * mgF
+	}
 	s += float64(t.Fixed) // non-tunable structural lump (constant: zero gradient)
 	return s
 }
@@ -255,6 +411,13 @@ func TexelFullParams() []*int {
 	for _, w := range TexelWeights() {
 		ptrs = append(ptrs, w.Ptr)
 	}
+	for i := 0; i < mobilityCellCount; i++ {
+		ptrs = append(ptrs, texelMobilityMGAddress(i))
+	}
+	for i := 0; i < mobilityCellCount; i++ {
+		ptrs = append(ptrs, texelMobilityEGAddress(i))
+	}
+	ptrs = append(ptrs, texelThreatPtrs()...)
 	return ptrs
 }
 
@@ -344,6 +507,13 @@ func texelTraceAccumulate(t *evalTrace, w, g []float64, k, a float64) float64 {
 		g[texelScalarBase+18] += factor * float64(t.KingSafety) / 100.0 * egF
 		g[texelScalarBase+9] += factor * float64(t.KingActivity) / 100.0 * mgF
 		g[texelScalarBase+19] += factor * float64(t.KingActivity) / 100.0 * egF
+		for i, n := range t.MobilityCounts {
+			g[texelMobilityMGBase+i] += factor * float64(n) * mgF
+			g[texelMobilityEGBase+i] += factor * float64(n) * egF
+		}
+		for i, n := range t.ThreatCounts {
+			g[texelThreatBase+i] += factor * float64(n) * mgF
+		}
 	}
 	return diff * diff
 }
@@ -424,7 +594,7 @@ type TexelGradientConfig struct {
 }
 
 // TexelGradientTune fits the full parameter vector (material + 768 PST cells + the
-// scalar weights) by Adam gradient descent on the training traces, monitoring
+// scalar, mobility and threat weights) by Adam on training traces, monitoring
 // held-out test MSE for early stopping, then writes the rounded best parameters
 // into the live eval (RebuildPST after). Returns the final train/test MSE measured
 // from the INTEGER eval (the real engine), proving the tuned weights transfer off
@@ -503,4 +673,50 @@ func TexelGradientTune(train, test []TexelSample, cfg TexelGradientConfig) (trai
 		testMSE = texelMSE(test, cfg.K)
 	}
 	return trainMSE, testMSE
+}
+
+// Offline feature extraction mirrors the direct live evaluator. Keeping it here
+// avoids adding array construction to the playing evaluation path. Parity tests
+// exercise every new coefficient against the live evaluator under perturbation.
+const mobilityCellCount = 9 + 14 + 15 + 28
+
+func mobilityCountsForSide(sliderAtt *[64]uint64, excluded, knightBB, bishopBB, rookBB, queenBB uint64) (counts [mobilityCellCount]int) {
+	offset := 0
+	for bb := knightBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		mc := PopCount(KnightAttacks[sq] &^ excluded)
+		counts[offset+mc]++
+	}
+	offset += len(knightMobMG)
+	for bb := bishopBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		mc := PopCount(sliderAtt[sq] &^ excluded)
+		counts[offset+mc]++
+	}
+	offset += len(bishopMobMG)
+	for bb := rookBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		mc := PopCount(sliderAtt[sq] &^ excluded)
+		counts[offset+mc]++
+	}
+	offset += len(rookMobMG)
+	for bb := queenBB; bb != 0; bb &= bb - 1 {
+		sq := bits.TrailingZeros64(bb)
+		mc := PopCount(sliderAtt[sq] &^ excluded)
+		counts[offset+mc]++
+	}
+	return counts
+}
+
+func threatFeatureCounts(att sideAtt, enemyKnight, enemyBishop, enemyRook, enemyQueen, enemyAll uint64) (counts [6]int) {
+	enemyMinors := enemyKnight | enemyBishop
+	enemyPieces := enemyMinors | enemyRook | enemyQueen
+	counts[0] = PopCount(enemyPieces & att.pawn)
+	counts[1] = PopCount((enemyRook | enemyQueen) & att.minor)
+	counts[2] = PopCount(enemyQueen & att.rook)
+	weak := att.all &^ enemyAll // attacked by us, not defended by them
+	counts[3] = PopCount(enemyMinors & weak)
+	counts[4] = PopCount(enemyRook & weak)
+	counts[5] = PopCount(enemyQueen & weak)
+	return counts
 }

@@ -25,7 +25,7 @@ import (
 const startposFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 func main() {
-	mode := flag.String("mode", "", "gendata | tune | gradient | dump")
+	mode := flag.String("mode", "", "gendata | tune | gradient | audit | dump")
 	// gendata flags
 	games := flag.Int("games", 1500, "gendata: number of self-play games")
 	nodes := flag.Int("nodes", 8000, "gendata: fixed node budget per move")
@@ -34,13 +34,16 @@ func main() {
 	seed := flag.Int64("seed", 0, "gendata: RNG seed (0 = time-based)")
 	// tune flags
 	data := flag.String("data", "", "tune/gradient: dataset ('<FEN> <result>' lines or result-labeled EPD)")
+	corpus := flag.String("corpus", "", "gradient/audit: comma-separated game-grouped JSONL files")
+	splitSeed := flag.String("split-seed", "ngn-classical-v2", "grouped corpus: deterministic opening partition seed")
+	report := flag.String("report", "", "grouped corpus: required JSON audit/fit report path")
 	passes := flag.Int("passes", 8, "tune: max coordinate-descent passes per step size")
 	target := flag.String("target", "weights", "tune: weights (10 eval-term scalars) | pst (768 PST entries + weights) | full (material + PST + weights)")
 	// gradient flags
 	epochs := flag.Int("epochs", 300, "gradient: max Adam epochs")
 	lr := flag.Float64("lr", 1.0, "gradient: Adam learning rate (~centipawn step ceiling/epoch)")
 	patience := flag.Int("patience", 30, "gradient: early-stop after this many epochs without held-out improvement (0 = off)")
-	split := flag.Float64("split", 0.1, "gradient: held-out test fraction for early stopping")
+	split := flag.Float64("split", 0.1, "legacy flat gradient: validation fraction for early stopping")
 	l2 := flag.Float64("l2", 0.0, "gradient: L2 pull toward original PeSTO values (regularizes weakly-supported PST cells; e.g. 0.01)")
 	// shared
 	out := flag.String("out", "", "output file (default stdout)")
@@ -52,7 +55,23 @@ func main() {
 	case "tune":
 		tune(*data, *passes, *target, *out)
 	case "gradient":
-		gradientTune(*data, *epochs, *lr, *patience, *split, *l2, *seed, *out)
+		if *corpus != "" {
+			if *data != "" {
+				fmt.Fprintln(os.Stderr, "choose one of -corpus or legacy -data")
+				os.Exit(2)
+			}
+			if err := groupedGradient(*corpus, *splitSeed, *out, *report, fitConfig{*epochs, *patience, *lr, *l2}, false); err != nil {
+				fmt.Fprintln(os.Stderr, "gradient:", err)
+				os.Exit(1)
+			}
+		} else {
+			gradientTune(*data, *epochs, *lr, *patience, *split, *l2, *seed, *out)
+		}
+	case "audit":
+		if err := groupedGradient(*corpus, *splitSeed, "", *report, fitConfig{}, true); err != nil {
+			fmt.Fprintln(os.Stderr, "audit:", err)
+			os.Exit(1)
+		}
 	case "dump":
 		dumpWeights(*out)
 	default:
@@ -62,10 +81,8 @@ func main() {
 	}
 }
 
-// dumpWeights emits the engine's CURRENT live eval parameters (auxiliary term
-// scalars, material values, and piece-square tables) as Go source — the same
-// format tune/gradient emit. Snapshot before tuning, run a tune to a second
-// file, then `diff` the two to see exactly which weights moved and by how much.
+// dumpWeights emits the full current model as versioned JSON, also used by
+// gradient. Legacy coordinate descent still emits its original Go source subset.
 func dumpWeights(out string) {
 	w := os.Stdout
 	if out != "" {
@@ -79,10 +96,7 @@ func dumpWeights(out string) {
 	}
 	bw := bufio.NewWriter(w)
 	defer bw.Flush()
-	fmt.Fprintln(bw, "// CURRENT live eval parameters (engine HEAD).")
-	fmt.Fprint(bw, engine.FormatTexelWeights(engine.TexelWeights()))
-	fmt.Fprint(bw, engine.FormatMaterialValues())
-	fmt.Fprint(bw, engine.FormatPSTTables())
+	fmt.Fprint(bw, engine.FormatTexelModelExport())
 }
 
 // genData self-plays games and writes labeled quiet positions.
@@ -289,8 +303,8 @@ func gradientTune(data string, epochs int, lr float64, patience int, split, l2 f
 	if seed == 0 {
 		seed = time.Now().UnixNano()
 	}
-	// Dedup (in LoadTexelSamples) makes train/test disjoint by position, so the
-	// held-out test MSE is an honest early-stopping signal — not leaked training data.
+	// Legacy flat rows lack game/opening identity and cannot establish independent
+	// validation. The grouped -corpus route is required for the v2 experiment.
 	train, test := engine.SplitTrainTest(samples, split, seed)
 	fmt.Fprintf(os.Stderr, "split: %d train / %d test (seed %d)\n", len(train), len(test), seed)
 
@@ -322,6 +336,6 @@ func gradientTune(data string, epochs int, lr float64, patience int, split, l2 f
 		defer f.Close()
 		w = f
 	}
-	fmt.Fprint(w, engine.FormatMaterialValues()+"\n"+engine.FormatPSTTables()+"// eval.go tunable weights:\n"+engine.FormatTexelWeights(weights))
+	fmt.Fprint(w, engine.FormatTexelModelExport())
 	fmt.Fprintf(os.Stderr, "gradient tuning done in %s\n", time.Since(start).Round(time.Second))
 }

@@ -176,6 +176,57 @@ func TestEvalTraceFloatFidelity(t *testing.T) {
 	t.Logf("max float/int residual: %.3fcp", maxResidual)
 }
 
+func TestTexelV2ExportReloadAndCoverage(t *testing.T) {
+	x := ExportTexelModel()
+	if x.Version != TexelModelVersion || len(x.Values) != texelNumParams || len(x.Names) != texelNumParams {
+		t.Fatalf("bad v2 export version=%q values=%d names=%d", x.Version, len(x.Values), len(x.Names))
+	}
+	if x.Names[texelScalarBase+5] != "mobilityWeight" || x.Names[texelMobilityMGBase+mobilityCellCount-1] != "mg_mobility_queen_27" {
+		t.Fatal("legacy reservations or high mobility cell missing from named export")
+	}
+	saved := append([]int(nil), x.Values...)
+	x.Values[texelMobilityMGBase+mobilityCellCount-1]++
+	x.Values[texelThreatBase+5]++
+	if err := ApplyTexelModel(x); err != nil {
+		t.Fatal(err)
+	}
+	got := ExportTexelModel()
+	if got.Values[texelMobilityMGBase+mobilityCellCount-1] != x.Values[texelMobilityMGBase+mobilityCellCount-1] || got.Values[texelThreatBase+5] != x.Values[texelThreatBase+5] {
+		t.Fatal("exported v2 parameters were silently dropped")
+	}
+	x.Values = saved
+	if err := ApplyTexelModel(x); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestTexelV2NewParameterGradients(t *testing.T) {
+	ptrs := TexelFullParams()
+	w := make([]float64, len(ptrs))
+	for i, p := range ptrs {
+		w[i] = float64(*p)
+	}
+	for j := texelMobilityMGBase; j < texelNumParams; j++ {
+		tr := evalTrace{Phase: 12, Result: 0.37}
+		if j < texelMobilityEGBase {
+			tr.MobilityCounts[j-texelMobilityMGBase] = 1
+		} else if j < texelThreatBase {
+			tr.MobilityCounts[j-texelMobilityEGBase] = 1
+		} else {
+			tr.ThreatCounts[j-texelThreatBase] = 1
+		}
+		_, g := texelTraceGradient([]evalTrace{tr}, w, 1, true)
+		wp, wm := append([]float64(nil), w...), append([]float64(nil), w...)
+		wp[j]++
+		wm[j]--
+		mp, _ := texelTraceGradient([]evalTrace{tr}, wp, 1, false)
+		mm, _ := texelTraceGradient([]evalTrace{tr}, wm, 1, false)
+		if math.Abs(g[j]-(mp-mm)/2) > 1e-8 {
+			t.Fatalf("new gradient %d (%s) mismatch", j, TexelParameterNames()[j])
+		}
+	}
+}
+
 // gateSamples builds a small labeled dataset from the gate FENs with varied
 // results, so the non-PeSTO terms and asymmetric occupancy carry real gradient.
 func gateSamples(t *testing.T) []TexelSample {
