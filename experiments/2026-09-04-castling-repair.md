@@ -1,6 +1,7 @@
 # Internal castling legality can produce a losing UCI fallback
 
-Status: proved defect, repair tests passed; frozen game gate running. This takes precedence over
+Status: **ACCEPTED correctness repair**, completed predeclared game gate;
+deployment in progress. This takes precedence over
 the unfinished T8 heuristic confirmation, which was cancelled without a verdict.
 Reviewed/played source: `71399c0`; main's later changes are offline tuner/docs only.
 
@@ -123,7 +124,7 @@ rule repair. UCI en-passant and fifty-move mate smoke cases still pass.
 Raw evidence is under `output/recovery-2026-09-04/castle-*`. Test builds carry
 the pre-commit parent plus dirty metadata; the exact runtime patch and hashes
 above identify what was tested. No T17/T8 parameters or new eval weights enter
-this candidate. Game result pending.
+this candidate. Completed result follows.
 
 ## Incidence in the complete fresh gauntlet
 
@@ -145,3 +146,26 @@ Probe/method/raw transcripts: `output/recovery-2026-09-04/illegal_castle_inciden
 All game moves were independently audited previously; this probe also verifies
 full legal replay with the corrected local engine. Frozen input/release hashes
 are stored in its JSON.
+
+## Completed game verdict
+
+`r0904castle` completed **400 games / 200 pairs in 25m31s**, DONE_EXIT_0.
+W/D/L **99/205/96**, pentanomial **8/54/74/55/9**. Paired Elo **+2.6
+[−20,+25]**, pLLR **+0.12**. Zero flags on either side; zero recorded illegal
+moves, missing moves, crashes, disconnects or watchdogs. All 400 sequential game
+records have normal adjudication/checkmate/draw/max-move endings. Native workers exited.
+
+The strength verdict is **INCONCLUSIVE**, with no H1 claim and no extension of
+the fixed cap. The predeclared correctness gate **PASSES**: the rule defect is
+proved and regressed; tests/oracle pass; no significant negative paired interval
+or operational failure is present. This is not a measured strength gain or a new
+absolute rating. The last absolute pin remains 2726 [2668,2784].
+
+Raw log SHA-256: `7c9f76ab15bb163886af9253bb94b2278a9f20fea899c3663fa961c9f5353f44`.
+Structured completion/reason audit: `output/recovery-2026-09-04/r0904castle-audit.json`.
+
+Linux deployment artifact, Go1.26.2 linux/amd64/v3, built from later docs-only
+commit `6175b48` with runtime identical to `70eb527`:
+`build/ngn_20260904_castle_linux`, SHA-256
+`80b7488a16ad66f80ff0c618b64baa6445d4c24cdedb78e5d2e87c3a57d32b3e`.
+Windows/Mac activation uses the frozen tested artifacts above.

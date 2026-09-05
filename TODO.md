@@ -68,15 +68,15 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   immediately losing the knight. Reproduced from FEN/full history and independently
   verified by SF perft. Repaired in `70eb527`, including zero-legal-move root
   terminal scores. Short/race/vet pass; independent oracle covers 2,293 positions,
-  48,926 divides and 128 internal choices. **`r0904castle` is running the frozen
-  400-game gate** against the deployed release. [Evidence and manifest](experiments/2026-09-04-castling-repair.md).
-  No default playing artifact changes until acceptance; no competing box CPU work.
+  48,926 divides and 128 internal choices. **`r0904castle` completed 400 games: 99/205/96,
+  penta +2.6 [−20,+25], zero flags/errors.** Correctness gate accepted;
+  strength result inconclusive. Deployment is in progress. [Evidence and manifest](experiments/2026-09-04-castling-repair.md).
+  Native box is idle; no qsearch prototype has been installed.
 
 ## Execution queue
 
-1. Prove/fix internal castling legality across root, qsearch and the offline quiet
-   filter; verify internal best/PV legality before UCI fallback. Run correctness,
-   oracle and real-clock non-regression checks before deploying.
+1. Finish deployment of accepted castling repair `70eb527`, verify installed
+   Linux/Windows/Mac defaults, and preserve the prior binaries for rollback.
 2. **New proved qsearch interaction:** a real qDepth5 search stores a lower bound
    100 that warm qDepth0 accepts without searching; cold qDepth0 returns 51.
    Removing only the capture cap in a diagnostic overlay makes all three return
