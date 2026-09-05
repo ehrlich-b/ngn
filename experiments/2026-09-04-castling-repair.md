@@ -1,6 +1,6 @@
 # Internal castling legality can produce a losing UCI fallback
 
-Status: proved defect, repair tests passed; frozen game gate ready. This takes precedence over
+Status: proved defect, repair tests passed; frozen game gate running. This takes precedence over
 the unfinished T8 heuristic confirmation, which was cancelled without a verdict.
 Reviewed/played source: `71399c0`; main's later changes are offline tuner/docs only.
 
@@ -86,7 +86,8 @@ predeclared match and does not follow by adding self-play Elo to 2726.
 sprt_20260904.exe -new .\ngn_20260904_castle.exe -base .\ngn_20260904_fast.exe -tc 10+0.1 -concurrency 8 -lowpower=false -openings sprt_openings.txt -elo0 -3 -elo1 3 -alpha 0.05 -beta 0.05 -maxgames 400 -mingames 401 -resignscore 900 -resignplies 5 -drawscore 10 -drawplies 10 -drawminplies 80
 ```
 
-Candidate artifacts frozen before launch, Go1.26.2, windows/amd64/v3:
+Candidate playing artifacts frozen before launch, Go1.26.2, windows/amd64/v3;
+committed runtime is `70eb527`:
 
 - Source parent: `c53484b`, plus `output/recovery-2026-09-04/castle-runtime.patch`
   across `search.go`, `movegen.go`, `has_legal_moves.go`, `texel.go`.

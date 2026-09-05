@@ -52,6 +52,16 @@ transfer that prerequisite. Removing the cap also requires checking work, stop
 behavior and playing strength. Quiet promotions remain a separate missing move
 class; this proof does not justify bundling them automatically.
 
+Fixed-depth diagnostics illustrate why implementation choice still needs games.
+Removing the cap changes canonical node counts by +53.4% (Kiwipete d12), +23.5%
+(middlegame d12), and approximately zero (rook ending d16). An alternative that
+retains the cap and stores q bounds only at qDepth0 also removes the reproduced
+mismatch, with node changes +26.8%, +52.5%, and −1.3%. Best moves stay the same
+on these three roots, but scores differ. Neither is established as cheaper or
+stronger by this tiny diagnostic, and neither is in the playing release.
+Raw results: `qcap-diagnostic-trees.json`; overlay control:
+`qbudget-exact-fullbudget.txt`.
+
 This follows the castling repair in priority. Raw exploratory and focused probes:
 `output/recovery-2026-09-04/qbudget*`, including the current/no-cap control pair.
 Both are reproducible Go overlays with production source untouched.
@@ -157,3 +167,18 @@ these percentages are not prospective NPS or Elo gains. The repeated-root setup
 and cross-engine node semantics limit extrapolation. Raw profiles, summaries and
 both standalone drivers are `output/recovery-2026-09-04/{castle,counter}-*` and
 `{classical,counter_classical}_profile.go.txt`.
+
+## Portable reproductions
+
+The TT reproducer and corpus audit are committed alongside this report, so the
+findings do not depend on retaining ignored output files:
+
+```sh
+python3 experiments/2026-09-04-tt-review-probes.py
+cp experiments/2026-09-04-corpus-audit.go.txt /tmp/ngn-corpus-audit.go
+go run /tmp/ngn-corpus-audit.go output/texel_selfplay.txt output/texel_selfplay_big.txt output/texel_general.txt output/texel_distilled.txt output/texel_distilled_big.txt
+```
+
+The first command intentionally exits nonzero on `70eb527` by reproducing both
+TT defects. The corpus command requires the local input files; their original
+checksums are in the saved JSON. Neither command edits production source.
