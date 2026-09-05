@@ -1,4 +1,38 @@
-# September correctness release deployment
+# Current September correctness deployment
+
+**Deployed playing source: `70eb527`**, the proved internal-castling/root-terminal
+repair. The completed 400-game gate passed its predeclared correctness rule:
+99/205/96 W/D/L, paired +2.6 [−20,+25], zero flags/errors. Strength is inconclusive;
+the last absolute pin remains **2726 [2668,2784]**. See the
+[full acceptance record](2026-09-04-castling-repair.md).
+
+| Installed platform | SHA-256 |
+|---|---|
+| Linux amd64/v3 | `80b7488a16ad66f80ff0c618b64baa6445d4c24cdedb78e5d2e87c3a57d32b3e` |
+| Windows amd64/v3 | `131b9bbf1cb064bd6c1edd5513db8e6c670eba154231f3aadd66cc1942a85e7d` |
+| Mac arm64 | `1010178789b5560583c0ee430934dc4e12473a7dbbdbf07598a30bb3185a3a0f` |
+
+WSL `/home/ehrli/repos/ngn` fast-forwarded cleanly from `71399c0` to `e02be60`
+(runtime `70eb527` plus offline tuning repairs and review/acceptance records).
+Defaults are WSL `build/ngn` and `build/ngn.exe`, Windows
+`C:\Users\ehrli\ngn\ngn.exe` and `ngn\repin\ngn.exe`, and Mac `build/ngn` /
+`build/ngn.exe`. The frozen native Windows game-tested binary was installed
+unchanged. The existing corrected harness binaries remain installed.
+
+Native WSL Go1.25.5 full short and short/race suites passed (engine packages
+5.835s and 23.765s). Installed Linux, Windows and Mac binaries passed black EP
+evasion, illegal-castle rejection (Kf1), and fifty-move mate-priority UCI checks,
+including clean quit. Native test workers exited before deployment and remain idle.
+
+Rollback: WSL branch `backup/pre-castle-20260904`; all replaced defaults have
+`.pre-castle-20260904` siblings. The earlier `.pre-repair-20260904` backups remain.
+Logs and reviewed installation scripts are `output/recovery-2026-09-04/castle-*`,
+`deploy_castle_wsl.sh`, `activate_castle_windows.ps1` and verification scripts.
+No qsearch prototype or T8 vector is installed.
+
+The earlier deployment below is retained as historical provenance.
+
+# Earlier September correctness deployment
 
 Accepted source commit: **`71399c063ee9688f499e71e1253ebaf81b211813`**.
 The committed runtime diff matches the exact tested patch SHA-256 in the

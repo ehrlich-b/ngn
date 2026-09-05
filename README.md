@@ -11,6 +11,12 @@ official rating. It clears the original 2600 gate; 2800 remains unconfirmed.
 See the [run record and limitations](experiments/2026-09-04-strength-check.md)
 and [current work state](TODO.md).
 
+The internal-castling correction is deployed after a 400-game correctness gate
+(+2.6 [−20,+25], zero flags/errors; no strength-gain claim). The
+[six-angle review](experiments/2026-09-04-classical-review-prompt.md) and
+[follow-up evidence](experiments/2026-09-04-review-second-pass.md) identify the
+next qsearch/TT repair and the remaining training-data limitations.
+
 
 ## Historical Performance Measurements
 
@@ -29,7 +35,7 @@ vs Blunder 7.4.0 (same box, both Go, both E-cores): **~1.5x slower per node** (e
 
 ## Features
 
-### Search (Working)
+### Search
 - Iterative deepening with aspiration windows
 - Alpha-beta with transposition table
 - Null move, futility, LMR, LMP pruning
@@ -44,10 +50,10 @@ vs Blunder 7.4.0 (same box, both Go, both E-cores): **~1.5x slower per node** (e
 - Opening book (embedded + Polyglot)
 - Syzygy tablebase support
 
-### Evaluation (Complete)
+### Current handcrafted evaluation
 Current handcrafted terms:
 - Material, piece-square tables, pawn structure
-- Bishop pair, mobility, king safety, knight outposts
+- Mobility, king safety, knight outposts
 - Rook on open file, tapered eval (MG/EG interpolation)
 
 ## Quick Start

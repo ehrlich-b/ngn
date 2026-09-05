@@ -1,7 +1,7 @@
 # Internal castling legality can produce a losing UCI fallback
 
 Status: **ACCEPTED correctness repair**, completed predeclared game gate;
-deployment in progress. This takes precedence over
+deployed on WSL, Windows and Mac defaults. This takes precedence over
 the unfinished T8 heuristic confirmation, which was cancelled without a verdict.
 Reviewed/played source: `71399c0`; main's later changes are offline tuner/docs only.
 
@@ -169,3 +169,6 @@ commit `6175b48` with runtime identical to `70eb527`:
 `build/ngn_20260904_castle_linux`, SHA-256
 `80b7488a16ad66f80ff0c618b64baa6445d4c24cdedb78e5d2e87c3a57d32b3e`.
 Windows/Mac activation uses the frozen tested artifacts above.
+
+Deployment completed and smoke-verified on all three platforms, with rollback
+copies and native WSL short/race tests. [Installed paths and hashes](2026-09-04-deployment.md).

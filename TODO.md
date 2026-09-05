@@ -32,7 +32,8 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   unmodified baseline comparison was invalidated by baseline-side illegal moves;
   the valid control adds only the required EP protocol fix. All raw runs remain
   separate; see the manifests for limitations and exact controls.
-- **DEPLOYED:** source `71399c0`, WSL and default Windows/Mac executables.
+- **DEPLOYED:** playing source `70eb527`, WSL and default Windows/Mac executables.
+  WSL checkout includes subsequent docs/offline tuning through `e02be60`.
   Native WSL short/race suites and installed UCI smoke checks passed.
   [Paths, hashes, rollback and verification](experiments/2026-09-04-deployment.md).
 - **`r0904pin` complete, DONE_EXIT_0.** Independent Stockfish audit passes
@@ -70,19 +71,17 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   terminal scores. Short/race/vet pass; independent oracle covers 2,293 positions,
   48,926 divides and 128 internal choices. **`r0904castle` completed 400 games: 99/205/96,
   penta +2.6 [−20,+25], zero flags/errors.** Correctness gate accepted;
-  strength result inconclusive. Deployment is in progress. [Evidence and manifest](experiments/2026-09-04-castling-repair.md).
+  strength result inconclusive. Deployed and smoke-verified on all three platforms. [Evidence and manifest](experiments/2026-09-04-castling-repair.md).
   Native box is idle; no qsearch prototype has been installed.
 
 ## Execution queue
 
-1. Finish deployment of accepted castling repair `70eb527`, verify installed
-   Linux/Windows/Mac defaults, and preserve the prior binaries for rollback.
-2. **New proved qsearch interaction:** a real qDepth5 search stores a lower bound
+1. **New proved qsearch interaction:** a real qDepth5 search stores a lower bound
    100 that warm qDepth0 accepts without searching; cold qDepth0 returns 51.
    Removing only the capture cap in a diagnostic overlay makes all three return
-   51. After the castling gate, repair the capture-budget/TT contract with a
+   51. Repair the capture-budget/TT contract with a
    separate proof and game check. [Second review, corpus/profile evidence and lower-priority TT-age bug](experiments/2026-09-04-review-second-pass.md).
-3. The [completed 24-game diagnostic study](experiments/2026-09-04-loss-study.md)
+2. The [completed 24-game diagnostic study](experiments/2026-09-04-loss-study.md)
    and targeted search ablations exposed the castling defect. Four-times-node probes gave 19
    unchanged choices / five changes / no demonstrated rescue; several reference
    scores are unusable, so this does not establish an evaluation cause.
@@ -90,10 +89,10 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    node definitions differ. Both search quality and runtime remain candidates.
    Tuning-contract repairs are complete; a future tune still needs a corpus
    acceptance audit and game-disjoint validation before expensive fitting.
-4. Rebuild/predeclare T17 + T8 on the corrected base when warranted. Sync the new source/docs to WSL after native timed games; default playing
+3. Rebuild/predeclare T17 + T8 on the corrected base when warranted. Sync the new source/docs to WSL after native timed games; default playing
    artifacts are already deployed. Offline tuning repairs do not require
    replacing the frozen playing engine during a match.
-5. Consider promotion-complete qsearch as an isolated game-tested candidate.
+4. Consider promotion-complete qsearch as an isolated game-tested candidate.
    Follow the [larger-gain pathway](experiments/2026-09-04-strength-pathway.md):
    a bounded study of fresh losses and controls selects one substantial search,
    runtime, or classical evaluation change. Avoid repeating the old feature queue.
