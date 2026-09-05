@@ -80,20 +80,24 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 
 ## Execution queue
 
-1. **Classical model/data experiment:** frozen producer `f556aef` /
-   `texelcorpus_20260905_r3` is generating **3996 games on four Mac processes**.
-   Its smoke passes independent Stockfish verification of all 5229 plies, 1016
-   sample states and outcomes. The loader audits all shards on completion; run
-   the one predeclared joint fit only if corpus acceptance passes. No new weights
-   have been fitted or installed. [Exact artifacts, checks and fixed corpus/fit
+1. **Classical model/data experiment complete offline:** producer `f556aef`
+   finished3996 games (3989 complete;7 unresolved excluded),121818 retained rows.
+   Full replay/corpus gates pass. The one joint fit improves integer validation
+   MSE0.08457950→0.08406505 and final test0.07739660→0.07706922. The modest
+   offline improvement is not an Elo claim. Fitted weights remain isolated;
+   none are installed or committed. [Exact artifacts, checks and fixed corpus/fit
    plan](experiments/2026-09-05-classical-model-v2.md).
    The offline expansion exposes 138 existing mobility/threat coefficients;
    all have live activation/frozen-trace parity and all 936 stored values survive
    source import/rebuild. Initial playing eval source and weights are unchanged.
-2. If the fitted model passes independent validation/final-test gates, freeze it
-   and run a predeclared real-clock comparison against the accepted qsearch base.
-   An offline loss improvement cannot establish Elo. If it fails, retain the
-   vector/results and diagnose the specific failure before another fit.
+2. **Frozen candidate ready:** `ngn_20260905_texelv2.exe` (4feb83b0...), all936
+   compiled entries equal the fitted model. Full short/race/vet, UCI smoke and
+   independent SF oracle pass (intentional numeric fixture change documented).
+   Fresh baseline A/A `r0905qbaseaa` is running. A bounded controller will audit
+   its completed200-game result, stop on failure, or launch **`r0905texelv2`**
+   SPRT[0,+10], max1600 games, against the accepted qsearch baseline. It collects
+   results but never deploys. Root must review the completed paired verdict;
+   H0 or capped inconclusive shelves this fitted vector. [Game manifest](experiments/2026-09-05-classical-confirmation.md).
 3. T17 + the completed 24000-game T8 SPSA vector remain unconfirmed. Rebuild on
    the current accepted base if this becomes the next selected game candidate;
    do not reuse the interrupted 279-game castling-bug run.

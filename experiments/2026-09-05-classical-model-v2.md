@@ -218,3 +218,51 @@ are exactly identical to r2; only sample fullmove metadata differs. SHA-256:
 Evidence: `classical-v2-r3-smoke-{audit,oracle,identity}.json` in the output
 directory. Full generation is cleared and starts with the frozen r3 artifacts,
 same four 999-opening ranges and settings. No earlier data is included.
+
+A bounded local controller (`run_classical_v2_fit_when_ready.py` in the output
+directory) waits for all four shards and the completed replay audit, verifies
+every record's frozen source/binary/settings/index, enforces every predeclared
+corpus acceptance threshold, and runs the single fit only on success. It records
+acceptance, baseline model, fit/model reports and hashes; it never edits source
+weights or launches games. The qsearch repair verdict is already accepted.
+Root review of the completed fit precedes any [paired model games](2026-09-05-classical-confirmation.md).
+
+## Completed corpus and single fit
+
+Generation and full loader replay completed in 321s: 3996 attempted games,
+3989 legally completed, seven unresolved excluded. After 1782 within-game
+board-repeat exclusions and120 cross-partition exclusions, 121818 rows remain:
+98191 train /12458 validation /11169 test, from3214 /404 /371 completed
+opening groups. All three outcome classes are represented in each split with
+no class near the90% limit. Every appended parameter has nonzero training
+support, although some queen bins have only116–328 observations; those counts
+are not independent games or a guarantee of stable estimates.
+
+The predeclared corpus gate passes. Exact input SHA-256s, row W/D/L and phase/bin
+counts are in `classical-v2-r3-corpus-{audit,acceptance}.json`. No failed earlier
+generation, smoke file, flat legacy corpus or confirmation opening is included.
+
+The single predeclared fit stopped early, using train-calibrated K=
+0.9330378336706635. Integer model MSE:
+
+| Partition | Initial model | Fitted model |
+|---|---:|---:|
+| Train | 0.081149765455 | 0.079638310773 |
+| Validation (checkpoint selection) | 0.084579501529 | 0.084065047164 |
+| Final test (measured after selection) | 0.077396602676 | 0.077069219580 |
+
+Both required held-out comparisons improve: ~0.61% validation and~0.42% final
+test relative MSE. This is modest offline evidence and cannot predict an Elo
+gain. 543 stored coefficients change, including96 appended coefficients. The
+largest appended mobility change is8cp and threat change4cp; the larger material/
+scalar changes are EG pawn94→116 and EG passed-pawn coefficient44→21. Neither
+test labels nor this review select another checkpoint or refit.
+
+Frozen model SHA-256:
+`6057944aea194e815a64985727a27785c46db03194c04f18fc93007884fe35a2`.
+Reports: `classical-v2-r3-{fit-report,fit-result}.json`, `classical-v2-r3-fit.log`.
+Root independently checked the artifacts/counts and a second agent reviewed
+calibration, partitioning, checkpoint selection, parameter mapping and bounds;
+no blocker found. All936 entries match the separately compiled candidate dump.
+Weights exist only in `output/classical-v2-candidate-20260905`; main/defaults
+retain the accepted untuned model. Real-clock games remain required.
