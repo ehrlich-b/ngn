@@ -27,6 +27,12 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   cap-mate mislabel. Local historical calibration, not an official rating.
   July's 2704 [2665,2743] used the old harness; the difference is not an
   engine-only gain measurement.
+- **Terminal-result harness correction integrated:** mate/stalemate and rule
+  draws take precedence over the cap and score adjudication. All159 Go/module
+  files match the previously short/race/vet-tested archive; fresh native
+  boundary tests and the corrected SPRT's200-game A/A pass. NGN playing source
+  is unchanged. Future external games must use `gauntlet_20260905_terminal.exe`
+  (499946e1...), not the old default. [Integration evidence](experiments/2026-09-05-draw-conversion-audit.md).
 - The WSL checkout at `/home/ehrli/repos/ngn` was clean at `7587eb6` (early June),
   with equally old binaries. Authorized task: repair correctness, validate and
   deploy the current engine there, preserving rollback.

@@ -31,12 +31,28 @@ draw, ordinary cap, cap-zero mate and adjudication precedence are covered.
 Full internal/uci, short full suite, full race suite and vet pass.
 Production patch SHA-256:
 `dc36280779796a4b69bc7f29ef29d4493eee011dd22b55c9e766da4c45d2e3ef`.
-It is **not integrated or deployed** while the existing pin freezes source.
+The correction is now **integrated in main** after the completed pin's audit
+and final integrity checks closed its source freeze. Root verified all159 Go
+and module files against the tested archive: the only production change is
+`internal/uci/uci.go`, with `boundary_terminal_test.go` added. The exact sources
+retain the archived full short/race/vet passes, and all three boundary-test
+parents also passed on native Windows before both subsequent match launches.
+No local engine or test was executed for integration. Hash/parity receipts are
+`main-source-parity-{before,after}-integration.json` in the archive directory.
 
-The live400-game pin keeps its original binaries, labels and sample. At
-completion it additionally requires the final-board supplement to pass; an
-affected run cannot establish the goal merely because the frozen collector
-reports PASS. No score-dependent relabeling, extension or automatic rerun.
+The corrected versioned SPRT is already in use by the Windows mate-stop gate;
+its completed200-game native A/A passed with zero errors/flags. Corrected
+gauntlet SHA-256 is
+`499946e16f9758f2dd52d9760e1752565d98438b221c24bb451e46cd8a58a247`.
+The old default gauntlet still awaits replacement; every future rating run
+must select the corrected versioned binary. This changes result bookkeeping,
+not NGN's playing source, and carries no engine Elo claim.
+
+The subsequent400-game pin retained its original binaries, labels and sample.
+Its completed terminal audit found exactly two more mislabels, games211/216;
+the [rating remains held](2026-09-05-accepted-t8-pin-result.md). An affected
+run cannot establish the goal merely because the frozen collector reports
+PASS. No score-dependent relabeling, extension or automatic rerun.
 
 ```text
 python3 output/draw-endings-20260905/audit_terminal_precedence.py <completed.pgn> --games 400 --output <new-terminal-audit.json>

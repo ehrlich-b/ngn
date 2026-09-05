@@ -298,6 +298,22 @@ func SideToMoveIsNew(pos *engine.Position, newIsWhite bool) bool {
 	return (pos.Turn() == engine.White) == newIsWhite
 }
 
+// terminalResult checks authoritative chess terminal states before a cap or
+// score-based adjudication can classify the same position as a draw.
+func terminalResult(pos *engine.Position, newIsWhite bool) (GameResult, bool) {
+	if legal := engine.GenerateLegalMoves(pos); len(legal) == 0 {
+		if pos.IsInCheck() {
+			// Side to move is checkmated; the side that just moved won.
+			if !SideToMoveIsNew(pos, newIsWhite) {
+				return GameResult{Win, "checkmate"}, true
+			}
+			return GameResult{Loss, "checkmate"}, true
+		}
+		return GameResult{Draw, "stalemate"}, true
+	}
+	return GameResult{}, false
+}
+
 // mateAdjScore is the ± centipawn sentinel a `score mate` is mapped to, larger
 // than any resign threshold so a forced mate always reads as decisive.
 const mateAdjScore = 100000
@@ -426,19 +442,15 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 	}
 
 	var adj adjState
-	for len(moves) < cfg.MaxMoves {
-		if legal := engine.GenerateLegalMoves(pos); len(legal) == 0 {
-			if pos.IsInCheck() {
-				// Side to move is checkmated; the side that just moved won.
-				if !SideToMoveIsNew(pos, newIsWhite) {
-					return GameResult{Win, "checkmate"}
-				}
-				return GameResult{Loss, "checkmate"}
-			}
-			return GameResult{Draw, "stalemate"}
+	for {
+		if result, terminal := terminalResult(pos, newIsWhite); terminal {
+			return result
 		}
 		if pos.IsFIDEDrawRule() {
 			return GameResult{Draw, "draw-rule"}
+		}
+		if len(moves) >= cfg.MaxMoves {
+			return GameResult{Draw, "max-moves"}
 		}
 
 		newToMove := SideToMoveIsNew(pos, newIsWhite)
@@ -520,6 +532,15 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 		}
 		moves = append(moves, mv)
 
+		// A move can deliver mate, stalemate, or a FIDE draw exactly on the cap.
+		// These authoritative outcomes also outrank score-based adjudication.
+		if result, terminal := terminalResult(pos, newIsWhite); terminal {
+			return result
+		}
+		if pos.IsFIDEDrawRule() {
+			return GameResult{Draw, "draw-rule"}
+		}
+
 		// Early adjudication (opt-in via cfg.Adj; opening plies feed no score so the
 		// streaks only accrue over searched moves). Convert the mover's score to
 		// White's POV, then let the two-sided streaks decide.
@@ -541,7 +562,6 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 			adj = adjState{} // no score this ply: conservatively reset the streaks
 		}
 	}
-	return GameResult{Draw, "max-moves"}
 }
 
 // builtinOpenings are standard, roughly-balanced lines to ~ply 5 as UCI move
