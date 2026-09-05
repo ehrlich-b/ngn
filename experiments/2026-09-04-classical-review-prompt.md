@@ -146,6 +146,13 @@ scale diagnostic on training or fresh positions before another expensive fit.
 
 ## Angle 4: compare complete classical mechanisms
 
+Follow live evaluator call paths, not helper definitions. The
+[bounded activation check](2026-09-05-live-evaluation-features.md) found that the
+old mating-bonus helpers are dormant and corrected an earlier audit claim.
+All three references explicitly score bishop pairs; NGN removed that feature
+and its tuning coordinate on a pre-reset inconclusive result. Treat reopening
+it as a heuristic experiment, not an automatic correctness keep.
+
 Build a small matrix with NGN and reference file:line evidence. Compare formulas,
 units, gates, update rules, representations and interactions—not feature names.
 Prioritize move ordering and LMR together, TT replacement and reuse, quiescence,

@@ -1,6 +1,9 @@
 # Cached-mate termination correction on accepted T8
 
 **Selected and locally validated; no native game launch or deployment.**
+Versioned candidate/harness assets and startup verifier are now staged in the
+native `sprt` directory, with matching remote hashes. No test engines or game
+runs were started by staging. The ongoing rating pin retains its frozen inputs.
 The [draw-conversion audit](2026-09-05-draw-conversion-audit.md) reproduces two
 current-engine choices that allow immediate threefold while claiming mate13/15
 at depth1. This candidate replaces unconditional mate stopping with Counter3.8's
@@ -27,6 +30,21 @@ then continued against Stockfish with400k NGN /100k SF node limits. Both end in
 actual checkmate after five plies. Full histories persist and every continuation
 move/final board is independently checked. This verifies the concrete mechanism;
 two selected continuations are not an Elo estimate.
+
+The original reproduction used Hash64. A follow-up at the live default
+**Hash128** reproduces game118's `e2f2` false mate (depth1/mate14), but game46's
+baseline choice changes to `e5e3` and does not reproduce its particular immediate
+draw. The guard chooses `e5d4` and `d1f1` at depths10/12. Root independently
+continued both guarded games with Hash128 and observed actual checkmates after
+five plies. Evidence: `default-hash128/results.json`,
+`default-hash128/root-conversion-proof.json/log`, and its hash manifest.
+Thus one identified immediate-draw witness persists at the actual native default;
+do not claim both Hash64 failure choices reproduce at every hash size.
+
+The agent's initial prose interpretation of the Hash128 Stockfish responses
+reversed UCI perspective. `mate -2` after NGN's move means the opponent to move
+is losing, and does not invalidate the guard. Raw transcripts were preserved;
+root's complete played continuations provide the outcome proof.
 
 Full short/race suites and vet pass. Root inspected the logs, checked the source
 diff and final hashes, and verified all14 T8 defaults plus the three existing
@@ -78,6 +96,18 @@ Before launch, verify corrected harness/source, both exact engine binaries,
 book, unused run name, Windows/WSL idle state, native UCI/default/regression
 smokes and clean quits. Preserve all run logs and errors. No new automatic
 handoff controller has been created; root verifies these prerequisites.
+
+Staged verifier `verify_mateguard_startup.ps1`, SHA-256
+`f7aaf3126a92a253c366485a6543b8003d0ba13b9ffcb23be342d7a151ebf9df`,
+rejects active Windows/WSL chess workers before starting any process. It checks
+five asset hashes, the selected unused run name, Hash128 plus14 T8 defaults,
+both engines' three UCI regressions and clean exits. It then runs the native
+terminal-boundary regression executable, SHA-256
+`99cbbb9a258f41963689fa4460212ed09886b5745e4f94ebee72a6b9a36085b7`.
+`-Phase aa` checks the A/A name; `-Phase candidate` checks the candidate name
+after A/A. Native PowerShell parsing passed; actual startup execution remains
+pending the live pin's completion. Staging details and the no-launch staging
+script are under `output/mate-history-20260905/native-preflight/`.
 
 **Score adjudication is disabled for both runs.** Resigning a game on large
 evaluation would hide the exact failure being tested: the base announces mate

@@ -120,6 +120,10 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    Counter's depth/distance guard repairs both, and root's continued games
    reach checkmate. Isolated final builds, full short/race/vet and UCI checks
    pass. [Frozen candidate and prospective game gate](experiments/2026-09-05-mate-stop-confirmation.md).
+   Exact candidate/harness/native-regression binaries and startup verifier are
+   staged/hash-verified in native `sprt`; no startup or match launch yet.
+   At the actual default Hash128, one immediate-draw failure reproduces;
+   both guarded continuations finish in verified mate.
    After the live pin is collected/reviewed: corrected terminal harness,
    fixed200-game A/A, then fixed400-game correctness comparison with score
    adjudication disabled so it cannot hide conversion failures. No launch yet.

@@ -52,9 +52,14 @@ winner, and rejects a nonterminal board labeled mate. No original file changes.
 ## Proven carried-state search failure
 
 Seven repetition draws ended with NGN holding a rook or multiple major pieces
-against a bare king: games6,45,46,58,80,105,118. NGN already implements
-queen/rook mating bonuses in `engine/eval.go`; missing mop-up knowledge cannot
-be inferred just from these endings.
+against a bare king: games6,45,46,58,80,105,118. The first reading incorrectly
+treated the queen/rook mating helpers in `engine/eval.go` as active. A complete
+call-site check shows `evaluateBasicEndgames` is called only by the old component
+diagnostic test, and `evaluateBasicMatePattern` only by that dormant helper.
+Commit c6675ff removed the production call in the April23 PeSTO replacement.
+The live evaluator does still call king activity below phase6. These distinctions
+are recorded in the [live-feature comparison](2026-09-05-live-evaluation-features.md);
+the proved cached-mate control-flow failure does not depend on those helpers.
 
 Root tested the last NGN decision in each game with the accepted Mac build,
 SHA-256 `0a42c12d287269251946f4bcbd016a497f200965a445b9806c22d57a982b4345`.

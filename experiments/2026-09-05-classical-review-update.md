@@ -8,6 +8,11 @@ repairs both replayed continuations; root independently observed checkmate.
 The [isolated candidate and prospective native gate](2026-09-05-mate-stop-confirmation.md)
 are ready locally. The live pin stays unchanged and requires the new terminal
 audit; its completion precedes the corrected-harness A/A and candidate games.
+The default Hash128 follow-up reproduces one of the two immediate-draw choices;
+both guarded continuations finish in mate. The
+[live-feature activation check](2026-09-05-live-evaluation-features.md) corrects
+the earlier claim that NGN's old mating helpers were active, and records the
+absent bishop-pair feature as a separate future heuristic hypothesis.
 
 Review source: `c76f7ed69107e083ba20d01bccbcbeb22334eb0a`, no playing-source
 diff. This refreshes the [six-angle review prompt](2026-09-04-classical-review-prompt.md)
