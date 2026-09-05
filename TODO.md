@@ -99,12 +99,11 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    480/654/466, paired+3.04 [−9.47,+15.56], pLLR−0.48, zero errors/flags.
    The fixed inconclusive-cap rule applies; no weights/defaults changed.
    [Completed audit and game manifest](experiments/2026-09-05-classical-confirmation.md).
-3. **Fresh T8 baseline A/A is running as `r0905t8baseaa`.** T8 is accepted,
-   deployed and verified on all three platforms. Fixed200 games at unchanged
-   native10+0.1/c8, early stopping disabled; require clean operation and paired
-   interval containing0. No automatic replication on failure.
+3. **Fresh T8 baseline A/A passed as `r0905t8baseaa`.** Fixed200 games,
+   49/108/43, paired+10.43 [−22.91,+43.95], zero errors/flags. Root independently
+   verified the predeclared control. T8 remains the accepted installed base.
    [A/A and candidate manifest](experiments/2026-09-05-singular-t8-confirmation.md).
-4. **Singular-only rebuilt and validated on accepted T8; not launched.** The fixed
+4. **Singular-only is running as `r0905singulart8` against accepted T8.** The fixed
    four-arm [depth-policy diagnostic](experiments/2026-09-05-depth-policy.md)
    supports testing removal of positive check/passed-pawn extensions, retaining
    singular extensions and consistent scout depth. Six changed choices on23
@@ -117,8 +116,9 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    (e5df3c21...) changes only the existing D patch on T8. Root reviewed exact
    source/diff, full short/race/vet/oracle, native smoke, all14 defaults and26
    full-history/canonical repeats. New identities and SPRT[0,+10]/cap1600 rule
-   are frozen. A tested controller may launch after the fresh A/A and all
-   unchanged-base prerequisites pass; it never installs or restarts a run.
+   are frozen. The tested controller launched after the fresh A/A and all
+   unchanged-base prerequisites passed; root verified the expected worker set.
+   It collects the final result but never installs, extends or restarts a run.
    The old J1−59 estimate was65 interrupted games, not a completed rejection.
    [External2800 confirmation protocol](experiments/2026-09-05-2800-pin-plan.md)
    is prepared for an accepted gain, not launched.

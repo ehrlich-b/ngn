@@ -1,6 +1,7 @@
 # Singular-only confirmation on accepted T17+T8
 
-Frozen before games. The [original D policy](2026-09-05-singular-only-confirmation.md)
+**A/A passed; `r0905singulart8` is running.** Frozen before games, the
+[original D policy](2026-09-05-singular-only-confirmation.md)
 is rebuilt on accepted T8 commit `5cf301a870f6cd9218d8085166993f7ad5364aee`.
 T8 passed its completed734-game H1 at paired+38.02 [+20.77,+55.45] and is now
 deployed on Mac/WSL/Windows. The old qcap-based D candidate was never launched;
@@ -130,3 +131,22 @@ The reviewed controller is now armed, waiting on the live A/A. State is
 bounded polling. It never deploys or restarts/extends games. Root validation log:
 `singular-t8-controller-root-validation.txt`. Older controllers and audits retain
 their original bytes and completed states.
+
+## Completed A/A and candidate launch
+
+`r0905t8baseaa` completed200 games in12m42s:49W/108D/43L,
+penta3/27/40/21/9. Paired+10.426 [−22.908,+43.954], zero flags/errors,
+single final `DONE_EXIT_0`. The interval contains zero, so the predeclared
+fixed-control rule **passes**. The harness's generic INCONCLUSIVE footer is
+expected because early SPRT stopping was disabled; this is not a failed control.
+Root independently recomputed the interval and reconciled the final counts/hash.
+Raw SHA-256: `00f20f569623b85310cc12541fd91e0681b51f94a8656a9ea900f2efb32cd9d7`.
+Control verdict: `output/recovery-2026-09-04/r0905t8baseaa-root-control.json`.
+
+After fresh local/remote identity, installed-base, idle-worker, unused-name and
+native UCI checks, the controller launched the exact frozen candidate command
+at04:18:24 local September5. Root observed one expected versioned harness,
+eight singular-T8 workers and eight accepted-T8 workers, with games flowing.
+The candidate is not installed. No additional Windows/WSL engine work may run
+alongside it. The controller collects completion for root review without any
+automatic promotion, extension or restart.
