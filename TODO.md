@@ -39,8 +39,12 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   commit; Mac/Windows retain the exact game-tested T8 binaries. Native WSL
   short/race and all installed UCI/default checks pass, with rollback retained.
   [Paths, hashes, rollback and verification](experiments/2026-09-04-deployment.md).
-- **`r0904pin` complete, DONE_EXIT_0.** Independent Stockfish audit passes
-  all 200 games / 27546 plies. Zero NGN flags/errors. Blunder 6.1 flagged once;
+- **`r0904pin` complete, DONE_EXIT_0.** Original Stockfish legal replay passes
+  all200 games /27546 plies, but a later all-final-board audit found game70's
+  final-ply NGN checkmate mislabeled as a cap draw. Raw rating unchanged;
+  [harness fix and carried-state search witnesses](experiments/2026-09-05-draw-conversion-audit.md)
+  are isolated. The live400-game pin also requires that supplemental terminal
+  audit before any goal verdict. Zero NGN flags/errors. Blunder6.1 flagged once;
   the actual pre-existing rule retains real clock losses. Excluding that entire
   anchor gives a separate sensitivity of 2753 [2691,2815], not the primary pin.
 - **T22 resolved:** completed August 4, recovered September 4: 8000 games,

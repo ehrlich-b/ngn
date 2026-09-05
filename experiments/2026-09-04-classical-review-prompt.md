@@ -71,6 +71,9 @@ oracle after random legal sequences, not just a handful of perft roots.
 
 Audit game-history versus search-history counts, irreversible boundaries and
 null moves. Search-cycle draws are a heuristic distinct from game threefold.
+Check every final board regardless of its recorded label: terminal verification
+must work in both directions. The September5 follow-up proved an actual
+final-ply checkmate hidden by `max-moves` that the earlier legal audit accepted.
 Check same-position reentry through IID/singular search, array limits, and every
 early return. A perft pass does not establish search correctness.
 
@@ -96,6 +99,10 @@ different halfmove clocks/history, and qsearch reuse at differing capture caps.
 
 Trace history/correction learning inputs and consumers, stop propagation, and
 state restoration across normal children, null moves and same-ply searches.
+Include state carried between moves: fresh FEN and full-history searches both
+missed a reproduced depth1 cached-mate early-stop failure. See the
+[draw-conversion evidence](2026-09-05-draw-conversion-audit.md) before repeating
+it. Compare actual mate termination guards with Counter's depth/distance rule.
 Demonstrate an error with a concrete FEN/window/state or label it a heuristic
 hypothesis. Differences from another engine alone do not establish a bug.
 

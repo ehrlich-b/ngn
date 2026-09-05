@@ -1,5 +1,12 @@
 # Fresh 2600 check after the correctness repair
 
+September5 audit correction: the original numeric report below is retained,
+but its replay PASS did not establish correct termination for every game.
+An [all-final-board follow-up](2026-09-05-draw-conversion-audit.md) found game70
+was checkmate delivered by NGN at the200-ply cap, recorded as a draw. The other
+199 final boards passed that supplemental terminal check. No raw result was
+changed or rerated. Treat this as a measurement defect in the historical pin.
+
 Predeclared before launch. This runs only after the repaired harness A/A and
 replacement 400-game correctness non-regression check pass. The original repair
 failed its game gate; the exact speed optimization and fresh preflight are
