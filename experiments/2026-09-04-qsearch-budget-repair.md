@@ -88,6 +88,9 @@ Frozen Go1.26.2 artifacts:
   `bc84fe0d298a32ff644775b2892ee43356bd94f9e22b6a527dc99cdbb29556f2`.
 - macOS arm64 `build/ngn_20260904_qcap`:
   `24d71a1ac381320d2ab790b1a88a7fdb30761bcedf573f9b98973b5a1e7eb702`.
+- Linux amd64/v3 `build/ngn_20260904_qcap_linux`, built after commit `ec9d264`
+  from the identical runtime, prepared locally but not installed or WSL-tested:
+  `372c896b7c8ed23454d99e7315e4a960d7030131293cc3a5fe54314f75342867`.
 
 ## Implementation validation
 
@@ -149,6 +152,7 @@ sprt_20260904.exe -new .\ngn_20260904_castle.exe -base .\ngn_20260904_castle.exe
 
 Completed in 2s, DONE_EXIT_0: 10/4/10 W/D/L; penta 0/0/12/0/0. All twelve
 pairs centered exactly; no operational failures. **Accounting diagnostic PASS.**
+Raw log SHA-256: `67036269388c51dff66a7bebd10e1a09786aaba893d2af209ca0987c2c17ccf7`.
 Together with the source/hash inspection, this finds no deterministic label or
 pairing defect in the sampled games; clock-dependent asymmetry remains unresolved.
 
@@ -171,3 +175,8 @@ time-dependent engine state; do not keep sampling until a favorable result.
 ```text
 sprt_20260904.exe -new .\ngn_20260904_castle.exe -base .\ngn_20260904_castle.exe -tc 10+0.1 -concurrency 8 -lowpower=false -openings sprt_openings.txt -elo0 -3 -elo1 3 -alpha 0.05 -beta 0.05 -maxgames 400 -mingames 401 -resignscore 900 -resignplies 5 -drawscore 10 -drawplies 10 -drawminplies 80
 ```
+
+Launch verified: one versioned harness and sixteen expected baseline processes;
+scheduled task entry deleted. Candidate `r0904qcap` remains unlaunched. Root
+source is committed at `ec9d264`; the frozen Windows/Mac binaries above retain
+their original build identity. The active default remains the castling release.
