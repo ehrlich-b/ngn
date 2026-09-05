@@ -126,10 +126,11 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    both guarded continuations finish in verified mate.
    Prospectively moved before launch to the available Mac: corrected terminal
    harness, fixed200-game A/A then fixed400-game comparison,10+0.1/c4 with
-   taskpolicy background scheduling and score adjudication disabled. A/A now
-   runs under one-shot controller19640/PID14811; candidate launches only after
-   a clean control. The prior unlaunched Windows plan is superseded, with no
-   machine fallback or pooling. Main integration waits for the pin's freeze.
+   taskpolicy background scheduling and score adjudication disabled. A/A passed:
+   200 games,44/116/40, paired+6.95 [−21.12,+35.11], zero flags/errors.
+   The400-game candidate now runs under controller19640/PID14811, started
+   11:46:15UTC. The unlaunched Windows plan is superseded; no machine fallback
+   or pooling. Main integration waits for the live pin's freeze.
    The [quiet-promotion candidate](experiments/2026-09-05-quiet-promotion-candidate.md)
    is also locally ready, but remains separate and must rebase/rebuild if the
    immediate accepted playing base changes. Neither candidate is installed.

@@ -1,12 +1,20 @@
 # Cached-mate termination correction on accepted T8
 
-**Mac fixed A/A running; candidate starts only after a passed control.**
-One-shot controller launched at11:17:37UTC September5, local PID14811,
-exec session19640. All six background-UCI cases passed before A/A, including
-Hash128 and14 T8 defaults. Initial stdout matches10+0.1/c4 and initial stderr
-is empty. No completed result is claimed. Controller status/artifacts are in
-`output/mate-history-20260905/mac-gate/`; script/input/decision hashes are frozen
-there. Protocol was committed before launch at62c4fc1.
+**Mac A/A passed; fixed400-game candidate comparison running.**
+`r0905terminalaa_mac` completed200 games in26m49s,44/116/40 W/D/L,
+penta2/23/47/25/3, paired+6.9496 [−21.1215,+35.1120], zero flags/errors,
+empty stderr and terminal DONE_EXIT_0. Root reconciled the raw log and totals,
+verified frozen inputs and the predeclared zero-containing confidence interval.
+Raw SHA-256: `d3c64d22a3eb0821763a08c479f0adf0ac15392c668d9aef1f737e9b78b7c357`.
+
+The one-shot controller then launched `r0905mateguard_mac` at11:46:15UTC
+September5. Root checked its exact argv against the prospectively recorded
+plan. Candidate result is pending; nothing is integrated or deployed.
+Controller PID14811/session19640 remains live, with artifacts under
+`output/mate-history-20260905/mac-gate/`. The protocol was committed before
+launch at62c4fc1. All six initial background-UCI cases passed, including
+Hash128 and14 T8 defaults. No additional local chess compute is permitted
+until the candidate finishes.
 Before any A/A or candidate game, the still-unlaunched Windows plan is
 prospectively superseded by the Mac protocol below. Windows staged assets are
 retained for provenance; they do not authorize a second favorable-result attempt.
