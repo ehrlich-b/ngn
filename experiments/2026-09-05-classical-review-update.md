@@ -1,5 +1,14 @@
 # Classical review: current evidence and next decisions
 
+Latest follow-up: the [draw-conversion audit](2026-09-05-draw-conversion-audit.md)
+proved an old pin's final-ply mate mislabeled as a draw and two carried-state
+failures in the current engine. NGN stopped at depth1 on cached mate13/15 while
+allowing immediate threefold. Counter's completed-depth/mate-distance guard
+repairs both replayed continuations; root independently observed checkmate.
+The [isolated candidate and prospective native gate](2026-09-05-mate-stop-confirmation.md)
+are ready locally. The live pin stays unchanged and requires the new terminal
+audit; its completion precedes the corrected-harness A/A and candidate games.
+
 Review source: `c76f7ed69107e083ba20d01bccbcbeb22334eb0a`, no playing-source
 diff. This refreshes the [six-angle review prompt](2026-09-04-classical-review-prompt.md)
 at the user's request. It includes a new tuning-fidelity diagnostic, a bounded

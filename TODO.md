@@ -107,26 +107,26 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    49/108/43, paired+10.43 [−22.91,+43.95], zero errors/flags. Root independently
    verified the predeclared control. T8 remains the accepted installed base.
    [A/A and candidate manifest](experiments/2026-09-05-singular-t8-confirmation.md).
-4. **Singular-only is running as `r0905singulart8` against accepted T8.** The fixed
-   four-arm [depth-policy diagnostic](experiments/2026-09-05-depth-policy.md)
-   supports testing removal of positive check/passed-pawn extensions, retaining
-   singular extensions and consistent scout depth. Six changed choices on23
-   frozen cases all have nonnegative SF depth16 differences; selected diagnostic,
-   not Elo. Full plain/overlay identity, short/race/vet and independent oracle
-   pass. [Frozen binaries, diff and game gate](experiments/2026-09-05-singular-only-confirmation.md).
-   It must follow the fit/T8 decisions and rebuild if the accepted base changes.
-   The tested conditional controller stopped on T8 H1, as intended. It did not
-   launch the obsolete qcap-based candidate. The new `ngn_20260905_singulart8.exe`
-   (e5df3c21...) changes only the existing D patch on T8. Root reviewed exact
-   source/diff, full short/race/vet/oracle, native smoke, all14 defaults and26
-   full-history/canonical repeats. New identities and SPRT[0,+10]/cap1600 rule
-   are frozen. The tested controller launched after the fresh A/A and all
-   unchanged-base prerequisites passed; root verified the expected worker set.
-   It collects the final result but never installs, extends or restarts a run.
-   The old J1−59 estimate was65 interrupted games, not a completed rejection.
-   [External2800 confirmation protocol](experiments/2026-09-05-2800-pin-plan.md)
-   is prepared for an accepted gain, not launched.
-5. **Futility diagnostic completed; no policy patch yet.** On seven frozen middlegame
+4. **Singular-only rejected:** `r0905singulart8` completed H0,794 games,
+   paired−12.26 [−27.56,+2.99], zero errors/flags. The selected D interaction
+   failed its game gate; it is not installed. The old J1−59 estimate still
+   refers to65 interrupted games, not this completed test.
+   **External400-game accepted-T8 pin `r0905acceptedpin` is running.**
+   [Frozen protocol and additional terminal-audit requirement](experiments/2026-09-05-2800-pin-plan.md).
+   Collector22597 only collects that existing run; do not restart the old failed
+   preflight controller or launch competing Windows/WSL engine work.
+5. **Next correctness priority: cached-mate stop guard.** Carried-state replay
+   reproduces two depth1 mate claims that actually allow immediate threefold.
+   Counter's depth/distance guard repairs both, and root's continued games
+   reach checkmate. Isolated final builds, full short/race/vet and UCI checks
+   pass. [Frozen candidate and prospective game gate](experiments/2026-09-05-mate-stop-confirmation.md).
+   After the live pin is collected/reviewed: corrected terminal harness,
+   fixed200-game A/A, then fixed400-game correctness comparison with score
+   adjudication disabled so it cannot hide conversion failures. No launch yet.
+   The [quiet-promotion candidate](experiments/2026-09-05-quiet-promotion-candidate.md)
+   is also locally ready, but remains separate and must rebase/rebuild if the
+   immediate accepted playing base changes. Neither candidate is installed.
+6. **Futility diagnostic completed; no policy patch yet.** On seven frozen middlegame
    disagreements, disabling futility at 400k nodes produces the same choices as
    the base at4M; five improve at least50cp by SF depth16. Selected sample, no
    Elo/correctness claim. The remaining16 controls include one83cp regression
@@ -149,8 +149,9 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    fresh 1,585-position base/fitted integer parity passes; rounding is small in
    this sample. Capture-promotion accounting is intact; quiet promotions remain
    absent. Exact block-picker experiment was about4% slower and is shelved.
-   The next substantial search hypothesis is a coherent extension/reduction
-   policy, with explicit interaction evidence before a playing candidate.
+   The selected singular-only interaction has since failed its completed gate;
+   prioritize the proved carried-state mate failure above before further policy
+   experiments. Any different interaction needs fresh mechanism evidence.
 
 ## Box access and artifacts
 

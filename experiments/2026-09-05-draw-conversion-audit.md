@@ -91,8 +91,11 @@ on May23,2026, as an optimization for repeated maximum-depth mate searches.
 Pinned Counter3.8 offers a concrete comparison: `engine/timemanager.go`,
 `OnIterationComplete`, stops for mate only when the completed depth reaches
 the reported mate distance **plus five plies** (`winIn(depth-5)` /
-`lossIn(depth-5)`). Root assigned an isolated test of that guard; no playing
-patch is selected or integrated yet, and no Elo claim is made.
+`lossIn(depth-5)`). Root selected and locally validated that isolated guard:
+both reproduced bad choices change, and both complete actual five-ply mates
+against Stockfish in root's carried-state continuation checks. Full short/race,
+vet and UCI checks pass. [Frozen candidate and native gate](2026-09-05-mate-stop-confirmation.md).
+No playing patch is integrated or deployed, and no Elo claim is made.
 The pinned Blunder8.5.5 `Search` and Chess-3v4 `iterativeDeepen` loops also
 continue through ordinary depth/node/time limits instead of NGN's unconditional
 mate-score exit. This comparison concerns their source behavior, not equivalent

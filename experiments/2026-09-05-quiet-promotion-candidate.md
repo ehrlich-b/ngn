@@ -94,6 +94,12 @@ Full method, frozen inputs and raw pairs: `root_speed_probe.py`,
 
 ## Prospective game decision
 
+September5 priority update: the independently reproduced
+[cached-mate stopping defect](2026-09-05-mate-stop-confirmation.md) is the next
+correctness candidate after the live pin. Quiet promotions remain separate.
+If that correction is accepted, rebuild this patch against the new immediate
+base and freeze new artifacts before any promotion game gate.
+
 The current external pin has priority and its candidate stays accepted T8.
 After it completes, root first applies its original2800 decision rule. If the
 goal remains unconfirmed and the measurement is valid, this single move-class
