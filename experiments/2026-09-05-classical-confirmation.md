@@ -1,10 +1,9 @@
 # Next classical candidate: baseline preflight and bounded game gate
 
-Status: baseline A/A preflight is authorized to start after the accepted qsearch
-release deployment; no fitted-model games are authorized by a partial loss
-metric. The [one grouped fit](2026-09-05-classical-model-v2.md) must first pass
-its fixed corpus and integer validation/final-test rules. No candidate weights
-have entered the playing defaults.
+Status: the [one grouped fit](2026-09-05-classical-model-v2.md) passed its fixed
+offline gates, baseline A/A passed its completed control, and `r0905texelv2`
+is running with the frozen artifacts below. No candidate weights have entered
+the playing defaults. The original bounded game rule still decides the vector.
 
 ## Baseline A/A: r0905qbaseaa
 
@@ -87,9 +86,17 @@ Exact game command after a passing200-game baseline A/A and idle native box:
 sprt_20260904.exe -new .\ngn_20260905_texelv2.exe -base .\ngn_20260904_qcap.exe -tc 10+0.1 -concurrency 8 -lowpower=false -openings sprt_openings.txt -elo0 0 -elo1 10 -alpha 0.05 -beta 0.05 -maxgames 1600 -mingames 200 -resignscore 900 -resignplies 5 -drawscore 10 -drawplies 10 -drawminplies 80
 ```
 
-The baseline A/A is running with one harness and16 identical expected engines;
-its scheduled task entry was deleted. A bounded controller may audit the completed
-preflight and launch the exact candidate above only if its original rule passes
-and remote hashes/idle status still agree. It must stop on preflight failure,
-never repeat or extend on score. It may collect the final candidate result but
-must not deploy or commit weights; root reviews that verdict separately.
+## Completed preflight and candidate launch
+
+`r0905qbaseaa` completed200 games,51W/107D/42L, penta3/25/39/26/7,
+paired+15.65 [−16.71,+48.28], zero errors/flags, `DONE_EXIT_0`. Its original
+zero-in-interval control passes. Raw SHA-256
+`d01bf1003dc73c6832c2dd9d08ecbd024825beaf37ff8d019fc8683287514661`;
+audit `output/recovery-2026-09-04/r0905qbaseaa-audit.json`.
+
+The controller checked completed preflight, idle workers and remote artifact
+hashes, then launched the exact candidate command at01:15:09 local September5.
+Root independently observed one expected versioned harness plus eight baseline
+and eight candidate workers. The controller collects the completed result but
+never deploys or commits weights. Root reviews H1/H0/capped verdict separately;
+partial scores neither accept nor reject the vector.

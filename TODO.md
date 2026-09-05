@@ -93,16 +93,25 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 2. **Frozen candidate ready:** `ngn_20260905_texelv2.exe` (4feb83b0...), all936
    compiled entries equal the fitted model. Full short/race/vet, UCI smoke and
    independent SF oracle pass (intentional numeric fixture change documented).
-   Fresh baseline A/A `r0905qbaseaa` is running. A bounded controller will audit
-   its completed200-game result, stop on failure, or launch **`r0905texelv2`**
-   SPRT[0,+10], max1600 games, against the accepted qsearch baseline. It collects
+   Fresh baseline A/A `r0905qbaseaa` passed200 games (paired+15.65 [−16.71,+48.28],
+   zero errors/flags). **`r0905texelv2` is running**, SPRT[0,+10], max1600 games,
+   against the accepted qsearch baseline. Its bounded controller collects
    results but never deploys. Root must review the completed paired verdict;
    H0 or capped inconclusive shelves this fitted vector. [Game manifest](experiments/2026-09-05-classical-confirmation.md).
 3. T17 + the completed 24000-game T8 SPSA vector remain unconfirmed. Rebuild on
    the current accepted base if this becomes the next selected game candidate;
    do not reuse the interrupted 279-game castling-bug run.
-4. Next substantial candidates remain a coherent extension/search-policy review
-   or richer classical king-danger inputs. [Classical comparison and actual
+4. **New diagnostic lead: futility pruning.** On seven frozen middlegame
+   disagreements, disabling futility at400k nodes produces the same choices as
+   the base at4M; five improve at least50cp by SF depth16. Selected sample, no
+   Elo/correctness claim. Trace actual skips and check the remaining16 controls
+   before choosing a policy change. [Full ablation, audits and negative speed
+   result](experiments/2026-09-05-search-ablation.md).
+   Safe-check relevance was found in only one of49 tested continuations; more
+   search also avoids it, so a king-danger transplant is not yet prioritized.
+   [Fixed-sample study](experiments/2026-09-05-safe-check-study.md).
+   Other candidates remain a coherent extension/search-policy review or richer
+   classical king-danger inputs. [Classical comparison and actual
    safe-check witness](experiments/2026-09-04-classical-evaluation-gap.md);
    [loss/runtime and lower-priority TT findings](experiments/2026-09-04-review-second-pass.md).
    Existing nonlinear danger/mobility are not missing. The 24-game loss study's
