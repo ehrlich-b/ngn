@@ -485,6 +485,9 @@ func texelQuietSearch(pos *Position, alpha, beta, depth int) (int, bool) {
 		best, legalMoves := -INFINITY, 0
 		for i := 0; i < n; i++ {
 			move := moves[i]
+			if move.IsCastle() && !isLegalCastle(pos, move) {
+				continue
+			}
 			ep, tag, hc, _ := pos.MakeMove(move)
 			legal := !isInCheck(pos, move.MovingPiece().Color())
 			if legal {

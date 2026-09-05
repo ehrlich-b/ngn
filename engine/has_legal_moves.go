@@ -49,6 +49,12 @@ func (p *Position) HasLegalMove() bool {
 	// Check each move for legality - return true on first legal move found
 	for i := 0; i < moveCount; i++ {
 		move := moveBuffer[i]
+		if move.IsCastle() {
+			if isLegalCastle(p, move) {
+				return true
+			}
+			continue
+		}
 		movingColor := move.MovingPiece().Color()
 
 		// Try the move

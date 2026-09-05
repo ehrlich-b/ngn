@@ -784,6 +784,9 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					info.Stopped = true
 					break
 				}
+				if move.IsCastle() && !isLegalCastle(pos, move) {
+					continue
+				}
 
 				// Explore root moves with MakeMove (the search make), NOT GameMakeMove:
 				// the game-history map (pos.Positions) must count only positions actually
@@ -889,6 +892,18 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 			// cause of catastrophic time-pressure blunders.
 			if info.Stopped {
 				break
+			}
+			// Pseudo-legal generation can be non-empty even when every move is
+			// illegal (for example a castle while in double check). Do not leave
+			// the root at -INFINITY after filtering those moves.
+			if legalRoot == 0 {
+				if isInCheck(pos, pos.Turn()) {
+					info.BestScore = -MATE_VALUE
+				} else {
+					info.BestScore = 0
+				}
+				info.BestMove = EmptyMove
+				return info
 			}
 
 			// Classify against the original window (windowAlpha/windowBeta), not the
@@ -1105,6 +1120,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 
 	var orderedRoot [256]Move
 	orderedCount := orderMovesIntoBufferWithDepth(moves, 0, orderedRoot[:], pos) // killers are ply-keyed; root is ply 0
+	legalRoot := 0
 
 	for oi := 0; oi < orderedCount; oi++ {
 		move := orderedRoot[oi]
@@ -1118,6 +1134,9 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 			info.Stopped = true
 			break
 		}
+		if move.IsCastle() && !isLegalCastle(pos, move) {
+			continue
+		}
 
 		savedLast := GetLastMovePlayed()
 		ep, tag, hc, _ := pos.MakeMove(move)
@@ -1128,6 +1147,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		}
 		SetLastMovePlayed(move)
 		info.MoveStack[0] = move
+		legalRoot++
 
 		score := -alphaBetaPV(pos, depth-1, 1, -beta, -alpha, true, true, false, info)
 		if info.Stopped {
@@ -1163,6 +1183,14 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		if alpha >= beta {
 			break
 		}
+	}
+	if !info.Stopped && legalRoot == 0 {
+		if isInCheck(pos, pos.Turn()) {
+			info.BestScore = -MATE_VALUE
+		} else {
+			info.BestScore = 0
+		}
+		info.BestMove = EmptyMove
 	}
 
 	return info
@@ -1743,30 +1771,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			}
 		}
 
-		// Fast legality: special-case castling path, otherwise do make/check/unmake
-		if move.IsCastle() {
-			// Cannot castle out of check
-			if inCheck {
-				continue
-			}
-			color := move.MovingPiece().Color()
-			var inter, fin Square
-			if move.IsKingSideCastle() {
-				if color == White {
-					inter, fin = F1, G1
-				} else {
-					inter, fin = F8, G8
-				}
-			} else { // Queen-side
-				if color == White {
-					inter, fin = D1, C1
-				} else {
-					inter, fin = D8, C8
-				}
-			}
-			if isSquareAttacked(pos, inter, color.Other()) || isSquareAttacked(pos, fin, color.Other()) {
-				continue
-			}
+		// MakeMove alone cannot validate castling: its rook relocation can shield an
+		// attack on the king's original square. Validate the complete path first.
+		if move.IsCastle() && !isLegalCastle(pos, move) {
+			continue
 		}
 
 		// Capture the predecessor move (the one that brought us into this node)
@@ -2320,6 +2328,9 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 
 		for i := 0; i < moveCount; i++ {
 			move := moveBuffer[i]
+			if move.IsCastle() && !isLegalCastle(pos, move) {
+				continue
+			}
 			ep, tag, hc, _ := pos.MakeMove(move)
 			if isInCheck(pos, move.MovingPiece().Color()) {
 				pos.UnMakeMove(move, tag, ep, hc)
@@ -2365,13 +2376,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		for i := 0; i < moveCount && !hasLegalMove; i++ {
 			move := moveBuffer[i]
 			if move.IsCastle() {
-				// partialMakeMove doesn't relocate the castle rook, whose placement
-				// can shield the king from rank attacks — keep the full path here.
-				ep, tag, hc, _ := pos.MakeMove(move)
-				if !isInCheck(pos, move.MovingPiece().Color()) {
-					hasLegalMove = true
-				}
-				pos.UnMakeMove(move, tag, ep, hc)
+				hasLegalMove = isLegalCastle(pos, move)
 			} else {
 				// Board-only make: this legality probe reads nothing but the board
 				// (isInCheck), so the hash/tag/clock/InCheck-tag bookkeeping of the

@@ -670,48 +670,36 @@ func moveIsPseudoLegal(pos *Position, move Move) bool {
 	return false
 }
 
+// isLegalCastle verifies king-path safety for a structurally pseudo-legal castle.
+// Its callers obtain the move from the generator, which already established the
+// rights, rook, and empty-path requirements. MakeMove alone cannot do this: after
+// castling, the rook may block an attack on the king's original square. Keep this
+// direct rather than relying on PositionTag while inspecting a position.
+func isLegalCastle(pos *Position, move Move) bool {
+	color := move.MovingPiece().Color()
+	if isInCheck(pos, color) {
+		return false
+	}
+	var intermediateSquare, finalSquare Square
+	if move.IsKingSideCastle() {
+		if color == White {
+			intermediateSquare, finalSquare = F1, G1
+		} else {
+			intermediateSquare, finalSquare = F8, G8
+		}
+	} else if color == White {
+		intermediateSquare, finalSquare = D1, C1
+	} else {
+		intermediateSquare, finalSquare = D8, C8
+	}
+	return !isSquareAttacked(pos, intermediateSquare, color.Other()) &&
+		!isSquareAttacked(pos, finalSquare, color.Other())
+}
+
 // IsLegalMove checks if a move is legal (doesn't leave king in check)
 func IsLegalMove(pos *Position, move Move) bool {
-	// Special handling for castling - check intermediate squares
 	if move.IsCastle() {
-		color := move.MovingPiece().Color()
-
-		// King must not be in check before castling
-		if isInCheck(pos, color) {
-			return false
-		}
-
-		// Check intermediate and final squares
-		var intermediateSquare, finalSquare Square
-		if move.IsKingSideCastle() {
-			if color == White {
-				intermediateSquare = F1
-				finalSquare = G1
-			} else {
-				intermediateSquare = F8
-				finalSquare = G8
-			}
-		} else { // Queen-side castle
-			if color == White {
-				intermediateSquare = D1
-				finalSquare = C1
-			} else {
-				intermediateSquare = D8
-				finalSquare = C8
-			}
-		}
-
-		// Check if intermediate square is attacked
-		if isSquareAttacked(pos, intermediateSquare, color.Other()) {
-			return false
-		}
-
-		// Check if final square is attacked
-		if isSquareAttacked(pos, finalSquare, color.Other()) {
-			return false
-		}
-
-		return true
+		return isLegalCastle(pos, move)
 	}
 
 	// For non-castling moves, use the standard approach

@@ -9,7 +9,12 @@ remaining sweep; this report does not declare every listed area clean.
 resolves findings 1–3 with regression tests and adds a reproduced optimizer
 checkpoint-selection fix. The evidence below describes the reviewed release;
 the search findings remain open. Deployed playing binaries are unchanged by
-these offline repairs.
+these offline repairs. The subsequent loss study also reproduced an internal
+castle-out-of-check search defect: the UCI fallback hid the illegal choice and
+substituted a legal move that hung a knight. That proved rule correction now
+takes priority over the original experiment ordering below; see the
+[castling evidence and validation gate](2026-09-04-castling-repair.md). T8's
+confirmation was cancelled without a verdict and must be rebuilt after repair.
 
 ## Most actionable findings
 

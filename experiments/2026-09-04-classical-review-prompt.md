@@ -44,6 +44,13 @@ null moves. Search-cycle draws are a heuristic distinct from game threefold.
 Check same-position reentry through IID/singular search, array limits, and every
 early return. A perft pass does not establish search correctness.
 
+Compare **internal search BestMove and every completed root iteration** against
+the independent legal set, before any UCI fallback or PV filtering. Audit every
+consumer of pseudo-legal moves, not just `GenerateLegalMoves`. The September 4
+loss study proved a castle-out-of-check root choice that a legal emitted-move
+audit missed: the UCI guard substituted a legal move that hung a knight. Include
+terminal positions with a nonempty pseudo-legal list and zero legal moves.
+
 ## Angle 2: search semantics and interactions
 
 Audit alpha-beta/PVS windows, bound types, mate-distance encoding, aspiration

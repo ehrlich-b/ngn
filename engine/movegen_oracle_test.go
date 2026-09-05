@@ -73,7 +73,7 @@ func TestMovegenOracle(t *testing.T) {
 		"n1n5/PPPk4/8/8/8/8/4Kppp/5N1N w - - 0 1",
 	}
 	rng := rand.New(rand.NewSource(2600))
-	positions, edges := 0, 0
+	positions, edges, searchRoots := 0, 0, 0
 	for game := 0; game < 36; game++ {
 		pos, err := ParseFEN(starts[game%len(starts)])
 		if err != nil {
@@ -83,6 +83,24 @@ func TestMovegenOracle(t *testing.T) {
 			fen := GenerateFEN(pos)
 			want := query(fen)
 			board, hash, tag, ep, hc := pos.Board, pos.Hash(), pos.Tag, pos.EnPassant, pos.HalfMoveClock
+			// Perft validates the legal move generator, but the search uses raw
+			// pseudo-legal generation for speed. Audit its unguarded BestMove too:
+			// this caught castling-out-of-check being searched even though UCI's
+			// final legality fallback declined to play it.
+			if pos.HasCastling() && searchRoots < 128 {
+				ClearStop()
+				ClearHistoryTable()
+				TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+				info := SearchIterativeDeepening(pos, 2, nil)
+				_, legal := want[info.BestMove.ToString()]
+				if (len(want) == 0 && info.BestMove != EmptyMove) || (len(want) != 0 && !legal) {
+					t.Fatalf("search chose illegal root %s in %s", info.BestMove.ToString(), fen)
+				}
+				if pos.Board != board || pos.Hash() != hash || pos.Tag != tag || pos.EnPassant != ep || pos.HalfMoveClock != hc {
+					t.Fatalf("search changed state in %s", fen)
+				}
+				searchRoots++
+			}
 			wantPawnPush := false
 			for uciMove := range want {
 				from := Square(int(uciMove[1]-'1')*8 + int(uciMove[0]-'a'))
@@ -144,5 +162,5 @@ func TestMovegenOracle(t *testing.T) {
 			pos.GameMakeMove(moves[rng.Intn(len(moves))])
 		}
 	}
-	t.Logf("seed 2600: %d positions, %d root moves; every depth-2 divide and state restoration matched", positions, edges)
+	t.Logf("seed 2600: %d positions, %d root moves, %d raw search roots; every depth-2 divide and state restoration matched", positions, edges, searchRoots)
 }

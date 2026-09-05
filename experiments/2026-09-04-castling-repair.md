@@ -1,6 +1,6 @@
 # Internal castling legality can produce a losing UCI fallback
 
-Status: proved defect, isolated repair in progress. This takes precedence over
+Status: proved defect, repair tests passed; frozen game gate ready. This takes precedence over
 the unfinished T8 heuristic confirmation, which was cancelled without a verdict.
 Reviewed/played source: `71399c0`; main's later changes are offline tuner/docs only.
 
@@ -57,3 +57,69 @@ No speculative vector or new weights are included. A source proof and regression
 suite establish legality; a bounded real-clock comparison with the frozen release
 checks cost and playing behavior. Record its exact manifest before launch. The
 existing accepted release stays deployed until the new repair is validated.
+
+## Predeclared game gate
+
+Run name `r0904castle`, after the isolated repair's tests and independent oracle
+pass, source/patch/binary hashes are filled in, and the box is verified idle.
+Compare the correction alone against the frozen `ngn_20260904_fast.exe`
+(`7b5af06a4a0ff02a0d9c51aa5eb041dd8ddf9935bbe4691d65dd76146a515828`).
+The existing corrected SPRT binary remains frozen at
+`63ef86d9b986fdb2c260782149af259e278845d89595d010df3970e6698cc9ed`.
+
+**Fixed 400 paired games**, 10+0.1/c8, native 9800X3D Windows, default affinity,
+`-lowpower=false`; same pinned openings SHA-256
+`974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222`.
+Preflight basis is the completed same-day `r0904fastaa`: same base binary,
+harness, TC, concurrency, affinity, power option and machine; 200 games,
+−13.9 [−44,+16], zero errors/flags. No harness/scheduling change has occurred.
+
+Require proved internal legality, all regression/oracle checks, and zero
+flags/illegal or missing moves/crashes/disconnects/watchdogs in the comparison.
+A significantly negative paired interval rejects this implementation pending
+investigation. An inconclusive non-regression result can support the proved
+rule correction, but is not a measured gain or an H1 claim. No early stopping
+or extension based on the score sign. A future absolute rating must use a new
+predeclared match and does not follow by adding self-play Elo to 2726.
+
+```text
+sprt_20260904.exe -new .\ngn_20260904_castle.exe -base .\ngn_20260904_fast.exe -tc 10+0.1 -concurrency 8 -lowpower=false -openings sprt_openings.txt -elo0 -3 -elo1 3 -alpha 0.05 -beta 0.05 -maxgames 400 -mingames 401 -resignscore 900 -resignplies 5 -drawscore 10 -drawplies 10 -drawminplies 80
+```
+
+Candidate artifacts frozen before launch, Go1.26.2, windows/amd64/v3:
+
+- Source parent: `c53484b`, plus `output/recovery-2026-09-04/castle-runtime.patch`
+  across `search.go`, `movegen.go`, `has_legal_moves.go`, `texel.go`.
+  Runtime patch SHA-256: `ffb8396c7995b9dd51e03e7ecb7f3593e29d8a9865ea38743bb0d6cee56b9ff5`.
+- Windows `build/ngn_20260904_castle.exe`:
+  `131b9bbf1cb064bd6c1edd5513db8e6c670eba154231f3aadd66cc1942a85e7d`.
+- Mac `build/ngn_20260904_castle`:
+  `1010178789b5560583c0ee430934dc4e12473a7dbbdbf07598a30bb3185a3a0f`.
+
+## Repair and pre-game checks
+
+All pseudo-legal castle consumers now use the same direct king-path check:
+iterative/fixed roots, alpha-beta, qsearch evasion/stalemate probes, `HasLegalMove`
+and the offline quiet filter. Root drivers score zero **legal** moves as mate or
+stalemate, including when their pseudo-legal list is nonempty. Interrupted roots
+are not classified as terminal merely because no move has finished.
+
+New regression tests fail against the old runtime: GAME170 chooses illegal e1g1;
+`HasLegalMove` invents a castle evasion in the double-check mate fixture; and a
+stalemated root returns −2147483647. On the repaired build, GAME170 depth3 returns
+legal PV/bestmove **e1f1**. Tests include both colors/wings, source/transit/final
+attacks, safe castles, full history, repeated search, offline/qsearch mate,
+caller-state preservation, and mate/stalemate scores in both root drivers.
+
+`go test -short ./...`, `go test -short -race ./...`, `go vet ./...` all pass.
+Stockfish oracle: **2,293 positions, 48,926 divides, 128 internal search roots**.
+The oracle checks legal-set membership even when a legal mating move has zero
+replies. Two canonical runs give identical node/score/PV/bestmove results:
+Kiwipete d12 301843 nodes; middlegame d12 112109; rook endgame d16 858052.
+The latter two are identical to the prior release; Kiwipete changes under the
+rule repair. UCI en-passant and fifty-move mate smoke cases still pass.
+
+Raw evidence is under `output/recovery-2026-09-04/castle-*`. Test builds carry
+the pre-commit parent plus dirty metadata; the exact runtime patch and hashes
+above identify what was tested. No T17/T8 parameters or new eval weights enter
+this candidate. Game result pending.
