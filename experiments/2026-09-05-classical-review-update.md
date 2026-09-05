@@ -28,7 +28,8 @@ The old optimizer also could not move the live mobility curves or threat
 coefficients. The [current model](2026-09-05-classical-model-v2.md) exposes those
 138 coefficients, retains 936 stored coordinates, and verifies actual source
 import/rebuild. Its new corpus retains game/opening identities. Its modest
-integer validation/test improvement still needs the frozen game verdict.
+integer validation/test improvement did not earn acceptance in the completed
+1,600-game gate; the fitted vector is shelved.
 
 A new diagnostic checked 1,585 fresh positions from 16 seeded legal random walks,
 using both original and actual exported fitted weights. These are not the fit's
@@ -109,8 +110,9 @@ Windows speed claim and no further picker iteration is queued.
 2. T17+T8 confirmation is complete and accepted. Its relative+38.02 gain finishes
    the existing24,000-game investment; an external absolute pin is still required.
 3. The four-arm child-depth diagnostic is complete, and one singular-only
-   candidate was selected. It is rebuilt and validated on accepted T8, queued
-   behind a fresh baseline A/A for its [frozen game gate](2026-09-05-singular-t8-confirmation.md).
+   candidate was selected. It is rebuilt and validated on accepted T8; the fresh
+   baseline A/A passed and its [frozen game gate](2026-09-05-singular-t8-confirmation.md)
+   is running.
    A scalar-margin tweak or another futility-off test needs a new premise:
    current controls show harm and direct watched-reply skips were not found.
 

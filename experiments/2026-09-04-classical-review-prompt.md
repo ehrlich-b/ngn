@@ -33,8 +33,8 @@ checkpoint selection, castling and qsearch-cap/TT reuse are regression targets,
 not new discoveries. The current 936-entry model makes mobility/threat terms
 trainable. Its frozen fit completed1,600 games at paired+3.04 [−9.47,+15.56] and
 was shelved under its inconclusive-cap rule; T17+T8 passed and is deployed.
-The selected singular-only policy is rebuilt on T8 and queued behind its fresh
-A/A under the [frozen manifest](2026-09-05-singular-t8-confirmation.md). Do not
+The selected singular-only policy is rebuilt on T8; its fresh A/A passed and
+the candidate match is running under the [frozen manifest](2026-09-05-singular-t8-confirmation.md). Do not
 alter the candidate, launch competing box work, or refit on the used holdout.
 Known J1 scout-depth inconsistency needs an interaction hypothesis: its old
 repair expanded the tree, but the negative game estimate came from only 65
