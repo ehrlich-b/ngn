@@ -168,5 +168,38 @@ as `windows-gate/candidate-startup.*`.
 fixed400 command above. The scheduled task entry was deleted after launch.
 At14:39:12UTC root verified its exact batch, header and16 child processes
 (eight candidate, eight base); `candidate-launch-inspection.stdout` retains the
-receipt. Completion and root verdict are pending. No other engine work may
-compete on the box during this comparison.
+receipt. This run has since completed; root's verdict is below. No other engine
+work competed on the box during the comparison.
+
+## Completed candidate: accepted correction
+
+The exact400-game candidate completed in26m0s with DONE_EXIT_0:
+91W/242D/67L, penta `[1,32,115,46,6]` over200 pairs. Paired estimate
+**+20.8712 [+3.5584,+38.2883]**, pLLR1.60766; zero flags and operational errors.
+The fixed-sample harness prints INCONCLUSIVE because there is no sequential
+H1 crossing; no H1 is claimed. The predeclared400-game correctness rule applies.
+
+Root inspected the completed log, prescribed WSL parser output (exit0, empty
+stderr), all five pinned hashes and native/WSL drain receipts. The direct
+old-fail/new-pass regression and carried-state witnesses prove the mechanism;
+the complete valid sample has no regression signal. **Root accepts this
+correction under the original correctness rule.** Its favorable paired estimate
+is separate from the external2800 goal and must not be added to an old rating.
+
+Raw log SHA-256:
+`79ead559be0bbc8ade59ed0f9d1967c6d13fa9c40c754a2b5f71510558c26972`.
+Evidence is in `output/mate-history-20260905/windows-gate/candidate/`.
+All games remain separate from the interrupted Mac run and completed controls.
+The log reconciles pair totals but does not contain moves or individual pair
+identities; independent PGN replay is not claimed for this self-play gate.
+
+The exact guard and both regression files are now copied into main alongside
+the already committed terminal harness correction. All162 staged source/data
+files match main. Full short/race/vet and independent oracle validation all
+passed on the idle WSL box, Go1.25.5, GOTOOLCHAIN=local, GOMAXPROCS2 and-p2.
+The oracle actually ran and passed; every command exited0 with empty stderr.
+Root fetched and inspected the raw logs in `integration/validation/`.
+Validation archive SHA-256:
+`70c2cc112c2e262925c64927b110864c611db1f203bbcdd5e1d482aaf64c674d`.
+No Mac engine/build/test execution occurred. Integration is accepted for
+commit/deployment; the new external rating is still unlaunched.

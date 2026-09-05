@@ -135,43 +135,28 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    WSL validation ended with HOLD; original gauntlet29692 and waiter22316 ended.
    All337 local inputs and all remote assets/raw snapshots passed final hashes.
    Original-run freeze is closed after the completed audit; preserve its artifacts.
-5. **Next correctness priority: cached-mate stop guard.** Carried-state replay
-   reproduces two depth1 mate claims that actually allow immediate threefold.
-   Counter's depth/distance guard repairs both, and root's continued games
-   reach checkmate. Isolated final builds, full short/race/vet and UCI checks
-   pass. [Frozen candidate and prospective game gate](experiments/2026-09-05-mate-stop-confirmation.md).
-   Exact candidate/harness/native-regression binaries and startup verifier are
-   staged/hash-verified in native `sprt`; native startup and A/A passed.
-   At the actual default Hash128, one immediate-draw failure reproduces;
-   both guarded continuations finish in verified mate.
-   The Mac control completed, but the candidate was interrupted on user request;
-   no verdict, keep or rejection is permitted from the partial games. All Mac
-   workers and automatic controllers were stopped. Do not restart locally.
-   The [prospective Windows recovery protocol](experiments/2026-09-05-mate-stop-windows-recovery.md)
-   uses the same exact candidate, a fresh fixed200-game native A/A, then a
-   fixed400-game comparison at10+0.1/c8 without score adjudication. It follows
-   the completed external pin and its audited integrity hold. **Native A/A
-   `r0905terminalaa` completed and passed root review**,200 games,
-   36/126/38, paired−3.47 [−32.45,+25.45], zero flags/errors.
-   Both exact engines passed native defaults/three canonical smokes; all three
-   corrected-harness terminal tests passed. Candidate-phase startup also
-   passed. **`r0905mateguard` is live, PID9284**, started10:37:56 local
-   September5 with the exact fixed400-game command and16 expected workers.
-   No competing box compute; completed audit/root verdict pending. No pooling.
-   Direct cached-mate regression now has WSL old-fail/new-pass proof: baseline
-   fails at callbacks1/depth1, guarded source passes; both stderr logs empty.
-   Exact isolated sources and evidence remain under the regression-followup
-   directory. Frozen candidate binaries and source are unchanged.
-   Mate-guard integration still waits for its candidate comparison.
-   The [new corrected external protocol](experiments/2026-09-05-corrected-mate-pin.md)
-   is prepared as `r0905matepin`, conditional on root acceptance. Its exact
-   artifacts and WSL-only validation package are staged/hash-verified; the
-   startup verifier parses. The combined source and regression tests are staged
-   separately on WSL for full checks after the current comparison drains.
-   No new rating launch or default replacement has occurred.
+5. **Cached-mate stop guard ACCEPTED.** NGN stopped on shallow cached mate
+   scores and allowed immediate repetitions. The carried-state witnesses and
+   WSL old-fail/new-pass regression prove the repair. The completed native
+   `r0905mateguard` fixed400-game gate is91W/242D/67L, paired
+   **+20.87 [+3.56,+38.29]**, zero flags/errors, DONE_EXIT_0. Root reviewed the
+   complete parser/hash/drain evidence and accepts under the predeclared
+   correctness rule; no sequential H1 or absolute rating claim is made.
+   [Full gate and integration evidence](experiments/2026-09-05-mate-stop-windows-recovery.md).
+   Main now includes the exact guard and both regression files alongside the
+   accepted terminal harness fix. All162 staged source/data files match main;
+   WSL full short/race/vet and independent oracle pass, all exits0/stderr empty.
+   Deployment with rollback is next. The current installed engine is still T8.
+   The Mac candidate remains user-interrupted, never resumed or pooled.
+   The [corrected external protocol](experiments/2026-09-05-corrected-mate-pin.md)
+   selects only this accepted candidate for `r0905matepin`, fixed400 games at
+   120+1/c8 with unchanged labels/anchors/primary goal threshold. Exact artifacts
+   and WSL-only validation package are staged/hash-verified; startup script AST
+   passes. Require deployment, startup and idle box before the single launch.
    The [quiet-promotion candidate](experiments/2026-09-05-quiet-promotion-candidate.md)
-   is also locally ready, but remains separate and must rebase/rebuild if the
-   immediate accepted playing base changes. Neither candidate is installed.
+   stays separate and must rebase/rebuild onto the newly accepted guard before
+   any further gate. No promotion patch is installed.
+
 6. **Futility diagnostic completed; no policy patch yet.** On seven frozen middlegame
    disagreements, disabling futility at 400k nodes produces the same choices as
    the base at4M; five improve at least50cp by SF depth16. Selected sample, no

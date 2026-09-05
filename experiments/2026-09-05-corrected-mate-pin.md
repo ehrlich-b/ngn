@@ -10,8 +10,11 @@ are relabeled, rerated or pooled, and no old controller is restarted.
 
 The only proposed candidate is the exact mate-stop binary, conditional on root
 acceptance of its [predeclared Windows comparison](2026-09-05-mate-stop-windows-recovery.md).
-That fixed400-game gate is still running. A rejected or invalid candidate gate
-holds this launch; this protocol does not switch to another candidate.
+That fixed400-game gate has now completed and passed root's original correctness
+rule:91/242/67, paired+20.87 [+3.56,+38.29], zero flags/errors. Its direct
+old-fail/new-pass proof and combined WSL short/race/vet/oracle checks also pass.
+No candidate switch occurred. Exact source integration and deployment records
+remain prerequisites to this rating launch.
 
 Before launch, require candidate acceptance, exact source integration and WSL
 short/race/vet plus independent move-generation checks. Preserve rollback and

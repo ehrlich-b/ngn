@@ -982,11 +982,13 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				callback(info)
 			}
 
-			// Forced mate proven: stop deepening. Deeper iterations only re-derive the
-			// same mate instantly via the TT, spinning uselessly to maxDepth (the
-			// "depth 100 in 13ms" pathology in the logs). The mate move is already
-			// chosen and mate-distance scoring already prefers the longest defense.
-			if info.BestScore >= MATE_IN_MAX || info.BestScore <= -MATE_IN_MAX {
+			// A cached mate must survive enough completed root depth to cover its
+			// distance plus a small verification margin. Stopping at depth one can
+			// preserve a qsearch/TT mate that ignores an available repetition.
+			const mateStopMargin = 5
+			if currentDepth > mateStopMargin &&
+				(info.BestScore >= MATE_VALUE-(currentDepth-mateStopMargin) ||
+					info.BestScore <= -MATE_VALUE+(currentDepth-mateStopMargin)) {
 				break
 			}
 		}
