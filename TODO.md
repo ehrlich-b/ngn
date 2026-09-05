@@ -1,3 +1,13 @@
+# NGN next sprint — authoritative September5 update
+
+The previous2800 goal is complete: accepted53e4d1b measured2884 [2834,2934] on the original fixed historical calibration; full legal400/55349plies and all400 terminal audits pass. Raw evidence remains in the main WSL checkout under output/corrected-pin-20260905.
+
+New direction: strongest Go-based engine, with NNUE now permitted. All work and computation must run on WSL. This isolated worktree starts at the accepted playing source; no new engine behavior is installed. Next milestone: validated NNUE, actual multicore search and measured contributions, then profile-guided Go optimization. Read [the ranked roadmap and completion gates](experiments/2026-09-05-next-stage-roadmap.md). Public reference metadata is pinned under /home/ehrli/repos/ngn/output/next-stage-20260905.
+
+The older runbook below is historical context. Its live-process claims, old no-NNUE objective and execution queue are superseded by this update and the roadmap. Do not restart historical workers.
+
+---
+
 # NGN active runbook
 
 Updated 2026-09-05. Active target: **at least 2800 without NNUE**. `CLAUDE.md` owns operating policy. Detailed evidence belongs
