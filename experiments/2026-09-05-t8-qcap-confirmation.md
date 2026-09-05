@@ -1,6 +1,6 @@
 # T17 + completed T8 vector, rebuilt on accepted qcap
 
-**Completed H1; accepted for integration and deployment.** This continues the previously authorized
+**Completed H1; integrated and deployed on Mac/WSL/Windows.** This continues the previously authorized
 [interrupted confirmation](2026-09-04-t8-confirmation.md), with its fixed
 [24,000-game vector](2026-08-04-t8-spsa-result.md). No new tuning or heuristic
 is included. No speculative source or playing defaults changed on main.
@@ -134,5 +134,9 @@ failure and corrected logs are retained as `t8-integrated-*`.
 For WSL deployment, root cross-built the same accepted source with Go1.26.2,
 Linux amd64/v3, CGO disabled. `build/ngn_20260905_t8qcap_linux` SHA-256:
 `4478de8c648d9dceac19ce9b517dc18b90ffeda27bdaf43706beceff5e7c327c`.
-Native WSL tests/smoke and default promotion remain deployment steps; the
-Windows and Mac game-tested hashes above are retained unchanged.
+Native WSL short/race checks and staged/installed smoke pass. Root promoted the
+accepted defaults on all three platforms, preserving rollback; Windows and Mac
+retain the exact game-tested hashes above. Source is committed at5cf301a.
+[Paths, final hashes and deployment logs](2026-09-04-deployment.md).
+The [fresh T8 A/A and rebuilt singular-only gate](2026-09-05-singular-t8-confirmation.md)
+now follow this completed release.

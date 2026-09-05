@@ -1,5 +1,10 @@
 # Coherent child depth with singular extensions only
 
+**Superseded by the [T8-based confirmation](2026-09-05-singular-t8-confirmation.md).**
+The qcap-based candidate below was never launched. T8 completed H1, and the
+conditional controller stopped for root integration as intended. The remainder
+records the original frozen artifacts/protocol; do not launch them on the new base.
+
 Candidate built, root-reviewed and staged, **not launched or accepted**. This is the single candidate
 selected from the [fixed four-arm diagnostic](2026-09-05-depth-policy.md).
 It is a search heuristic experiment, not an automatic correctness keep.

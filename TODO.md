@@ -8,7 +8,8 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 
 - Current campaign source starts at `b378c432cb34`; certified search base is
   `50adc99` (T12 + T19). T17+T8 now passed its completed gate and is integrated;
-  deployment is underway. No T22 patch or fitted evaluation weights are applied.
+  deployed on Mac/WSL/Windows at `5cf301a`. No T22 patch or fitted evaluation
+  weights are applied.
 - **Fresh strength pin: 2726, reported 95% CI [2668,2784]**, September 4,
   200 games, 120+1/c8, five anchors. Original 2600 gate passes; **2800 remains
   unconfirmed**. Local historical-CCRL calibration, not an official rating.
@@ -33,10 +34,10 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   unmodified baseline comparison was invalidated by baseline-side illegal moves;
   the valid control adds only the required EP protocol fix. All raw runs remain
   separate; see the manifests for limitations and exact controls.
-- **DEPLOYED:** qsearch correction committed at `ec9d264`, exact frozen WSL /
-  Windows / Mac binaries. WSL source includes offline model/corpus work through
-  `bf5c6b9`; no tuned weights are applied.
-  Native WSL short/race suites and installed UCI smoke checks passed.
+- **DEPLOYED:** accepted T17+T8 at `5cf301a`, inheriting the prior qsearch,
+  castling and other correctness repairs. WSL source fast-forwarded to that
+  commit; Mac/Windows retain the exact game-tested T8 binaries. Native WSL
+  short/race and all installed UCI/default checks pass, with rollback retained.
   [Paths, hashes, rollback and verification](experiments/2026-09-04-deployment.md).
 - **`r0904pin` complete, DONE_EXIT_0.** Independent Stockfish audit passes
   all 200 games / 27546 plies. Zero NGN flags/errors. Blunder 6.1 flagged once;
@@ -98,14 +99,12 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    480/654/466, paired+3.04 [−9.47,+15.56], pLLR−0.48, zero errors/flags.
    The fixed inconclusive-cap rule applies; no weights/defaults changed.
    [Completed audit and game manifest](experiments/2026-09-05-classical-confirmation.md).
-3. **Deploy accepted T17+T8, then preflight the new base.** `r0905t8qcap`
-   completed H1 at+38.02 [+20.77,+55.45],734 games, zero errors/flags.
-   Main equals the tested source and required checks pass. Windows candidate
-   `ngn_20260905_t8qcap.exe` (43b2a2c9...) and Mac candidate remain frozen;
-   Linux cross-build is ready. Install/smoke with rollback on all three platforms,
-   then run fresh200-game A/A at the unchanged native10+0.1/c8 settings.
-   [Completed result and artifacts](experiments/2026-09-05-t8-qcap-confirmation.md).
-4. **Rebuild singular-only on the accepted T8 base; not launched.** The fixed
+3. **Fresh T8 baseline A/A is running as `r0905t8baseaa`.** T8 is accepted,
+   deployed and verified on all three platforms. Fixed200 games at unchanged
+   native10+0.1/c8, early stopping disabled; require clean operation and paired
+   interval containing0. No automatic replication on failure.
+   [A/A and candidate manifest](experiments/2026-09-05-singular-t8-confirmation.md).
+4. **Singular-only rebuilt and validated on accepted T8; not launched.** The fixed
    four-arm [depth-policy diagnostic](experiments/2026-09-05-depth-policy.md)
    supports testing removal of positive check/passed-pawn extensions, retaining
    singular extensions and consistent scout depth. Six changed choices on23
@@ -114,9 +113,12 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    pass. [Frozen binaries, diff and game gate](experiments/2026-09-05-singular-only-confirmation.md).
    It must follow the fit/T8 decisions and rebuild if the accepted base changes.
    The tested conditional controller stopped on T8 H1, as intended. It did not
-   launch the obsolete qcap-based candidate. A Terra agent is rebuilding only
-   the existing D patch on T8, with full checks and repeatability; no new policy
-   is being selected. Freeze new identities and use T8's new A/A before games.
+   launch the obsolete qcap-based candidate. The new `ngn_20260905_singulart8.exe`
+   (e5df3c21...) changes only the existing D patch on T8. Root reviewed exact
+   source/diff, full short/race/vet/oracle, native smoke, all14 defaults and26
+   full-history/canonical repeats. New identities and SPRT[0,+10]/cap1600 rule
+   are frozen. A tested controller may launch after the fresh A/A and all
+   unchanged-base prerequisites pass; it never installs or restarts a run.
    The old J1−59 estimate was65 interrupted games, not a completed rejection.
    [External2800 confirmation protocol](experiments/2026-09-05-2800-pin-plan.md)
    is prepared for an accepted gain, not launched.

@@ -1,7 +1,8 @@
 # Review prompt: explain NGN's classical strength gap
 
-Refreshed September 5 against source `c76f7ed`; the playing release remains the
-accepted uncapped-qsearch binary, not either unconfirmed candidate. The latest
+Review evidence was refreshed September5 against `c76f7ed`. The playing release
+now includes accepted T17+T8 at `5cf301a`, inheriting the qsearch corrections:
+completed734-game H1, paired+38.02 [+20.77,+55.45], zero flags/errors. The latest
 completed absolute pin is **2726 [2668,2784]** on the historical local scale.
 The active objective is at least 2800 without NNUE. Investigate substantial
 mechanism changes when evidence supports them, including replacing or removing
@@ -31,8 +32,10 @@ before repeating a prior experiment. Repaired trace omissions, quiet filtering,
 checkpoint selection, castling and qsearch-cap/TT reuse are regression targets,
 not new discoveries. The current 936-entry model makes mobility/threat terms
 trainable. Its frozen fit completed1,600 games at paired+3.04 [−9.47,+15.56] and
-was shelved under its inconclusive-cap rule; T17+T8 is now in games. Do not change
-either vector, launch competing box work, or select another fit from its holdout.
+was shelved under its inconclusive-cap rule; T17+T8 passed and is deployed.
+The selected singular-only policy is rebuilt on T8 and queued behind its fresh
+A/A under the [frozen manifest](2026-09-05-singular-t8-confirmation.md). Do not
+alter the candidate, launch competing box work, or refit on the used holdout.
 Known J1 scout-depth inconsistency needs an interaction hypothesis: its old
 repair expanded the tree, but the negative game estimate came from only 65
 interrupted pre-reset games, not a completed verdict. Distinguish a repaired defect from proof

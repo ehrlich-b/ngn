@@ -1,4 +1,38 @@
-# Current qsearch correctness deployment
+# Current accepted T17+T8 deployment
+
+**Deployed September5:** accepted T17 plus the completed T8 vector, source
+`5cf301a870f6cd9218d8085166993f7ad5364aee`. Its completed734-game gate reached
+H1, paired+38.02 [+20.77,+55.45], with zero flags/errors. No fitted evaluation
+weights or singular-only policy are installed. The latest absolute pin is still
+the earlier2726 [2668,2784]; the relative gain does not establish2800.
+[Completed game and integration evidence](2026-09-05-t8-qcap-confirmation.md).
+
+| Installed platform | SHA-256 |
+|---|---|
+| Linux amd64/v3 | `4478de8c648d9dceac19ce9b517dc18b90ffeda27bdaf43706beceff5e7c327c` |
+| Windows amd64/v3 | `43b2a2c93d9a773b0a08d8017d611edb7b39d63efe071cb7366c1ac4c11f92fc` |
+| Mac arm64 | `0a42c12d287269251946f4bcbd016a497f200965a445b9806c22d57a982b4345` |
+
+Paths: Mac and WSL `build/ngn` plus `build/ngn.exe`; Windows
+`C:\Users\ehrli\ngn\ngn.exe` and `repin\ngn.exe`. WSL was clean atbf5c6b9
+and fast-forwarded from a verified incremental bundle to5cf301a. Native WSL
+short/race suites pass; staged and installed Linux smoke checks pass. Installed
+Mac and native Windows smoke checks also pass, including all14 T8 defaults,
+EP/castling/fifty-move-mate behavior and clean quits. Windows/Mac retain the exact
+game-tested hashes; Linux is cross-built from identical source with Go1.26.2/v3.
+
+Rollback copies use `.pre-t8-20260905`; WSL also retains
+`backup/pre-t8-20260905`. The scripts require a clean fast-forward checkout,
+idle native workers for Windows promotion, and exact hashes before replacing
+defaults. All WSL/native smoke work finished before the new T8 A/A launch.
+
+Logs/scripts under `output/recovery-2026-09-04/`: `t8-wsl-deploy.txt`,
+`t8-windows-deploy.txt`, `t8-windows-installed-smoke.txt`,
+`t8-mac-installed-smoke.txt`, `deploy_t8_wsl.sh`, `activate_t8_windows.ps1` and
+the T8 verification scripts. WSL reported `DEPLOYMENT_VERIFIED 5cf301a...` and
+Windows reported `WINDOWS_T8_DEFAULT_VERIFIED`.
+
+## Prior qsearch correctness deployment
 
 **Deployed September 5:** accepted uncapped production qsearch, runtime patch
 committed at `ec9d264`. Fixed 400-game gate: 106/184/110 W/D/L, paired
