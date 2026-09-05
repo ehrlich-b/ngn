@@ -60,7 +60,9 @@ mismatch, with node changes +26.8%, +52.5%, and −1.3%. Best moves stay the sam
 on these three roots, but scores differ. Neither is established as cheaper or
 stronger by this tiny diagnostic, and neither is in the playing release.
 Raw results: `qcap-diagnostic-trees.json`; overlay control:
-`qbudget-exact-fullbudget.txt`.
+`qbudget-exact-fullbudget.txt`. The uncapped overlay passes the full short/race
+suite; the full-budget-store overlay passes the full short suite. These checks
+validate the prototypes, not their playing strength.
 
 This follows the castling repair in priority. Raw exploratory and focused probes:
 `output/recovery-2026-09-04/qbudget*`, including the current/no-cap control pair.
