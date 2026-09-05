@@ -17,7 +17,7 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 - The WSL checkout at `/home/ehrli/repos/ngn` was clean at `7587eb6` (early June),
   with equally old binaries. Authorized task: repair correctness, validate and
   deploy the current engine there, preserving rollback.
-- **Active repair:** quiescence clocks/draws, mate at the fifty-move boundary,
+- **Earlier September repairs:** quiescence clocks/draws, mate at the fifty-move boundary,
   black en-passant validation, legal UCI parsing, and harness repetition counts.
   Removed an orphan experiment test that prevented compilation. Direct regression
   cases and an independent Stockfish move-generation audit prove the defects.
@@ -32,8 +32,9 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   unmodified baseline comparison was invalidated by baseline-side illegal moves;
   the valid control adds only the required EP protocol fix. All raw runs remain
   separate; see the manifests for limitations and exact controls.
-- **DEPLOYED:** playing source `70eb527`, WSL and default Windows/Mac executables.
-  WSL checkout includes subsequent docs/offline tuning through `e02be60`.
+- **DEPLOYED:** qsearch correction committed at `ec9d264`, exact frozen WSL /
+  Windows / Mac binaries. WSL source includes offline model/corpus work through
+  `bf5c6b9`; no tuned weights are applied.
   Native WSL short/race suites and installed UCI smoke checks passed.
   [Paths, hashes, rollback and verification](experiments/2026-09-04-deployment.md).
 - **`r0904pin` complete, DONE_EXIT_0.** Independent Stockfish audit passes
@@ -64,7 +65,7 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   The optimizer also now considers the initial vector when selecting its best
   checkpoint. These offline changes carry no Elo claim. The extension/scout issue is known J1, whose naive
   fix previously regressed; do not sell it as a new fix. No NNUE work is queued.
-- **New highest-priority correctness defect:** actual loss GAME170 showed search
+- **Accepted internal-castling correction:** actual loss GAME170 showed search
   PV `e1g1` while White was checked by Bh4; the UCI guard then substituted `e2g3`,
   immediately losing the knight. Reproduced from FEN/full history and independently
   verified by SF perft. Repaired in `70eb527`, including zero-legal-move root
@@ -72,55 +73,37 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   48,926 divides and 128 internal choices. **`r0904castle` completed 400 games: 99/205/96,
   penta +2.6 [−20,+25], zero flags/errors.** Correctness gate accepted;
   strength result inconclusive. Deployed and smoke-verified on all three platforms. [Evidence and manifest](experiments/2026-09-04-castling-repair.md).
-  No qsearch candidate has been installed as a default.
+  The subsequent qsearch correction is also accepted and deployed: 400 games,
+  106/184/110 W/D/L, paired −3.47 [−27.36,+20.38], zero flags/errors. The
+  predeclared correctness gate passed; strength remains inconclusive.
+  [Qsearch proof, full result and A/A investigation](experiments/2026-09-04-qsearch-budget-repair.md).
 
 ## Execution queue
 
-1. **New proved qsearch interaction:** a real qDepth5 search stores a lower bound
-   100 that warm qDepth0 accepts without searching; cold qDepth0 returns 51.
-   Removing only the capture cap in a diagnostic overlay makes all three return
-   51. Uncapped production qsearch is now implemented, regression/oracle/short/race
-   checked and frozen. **`r0904qcap` ACCEPTED as proved correctness repair:**
-   400 games, 106/184/110 W/D/L, paired −3.47 [−27.36,+20.38], zero
-   flags/errors, DONE_EXIT_0. Strength is inconclusive; deploy the frozen
-   artifacts with rollback. The bounded A/A
-   investigation passed: replication `r0904qaa2` completed 400 games at
-   −4.34 [−25.98,+17.26]; all 600 games combined +7.53 [−10.22,+25.32],
-   zero flags/errors. The first 200-game A/A failure remains recorded; the
-   predeclared replication and combined intervals both contain zero. The
-   fixed-node accounting diagnostic also passed all 12 pairs exactly.
-   [Repair manifest and investigation](experiments/2026-09-04-qsearch-budget-repair.md).
-   [Second review, corpus/profile evidence and lower-priority TT-age bug](experiments/2026-09-04-review-second-pass.md).
-2. The [completed 24-game diagnostic study](experiments/2026-09-04-loss-study.md)
-   and targeted search ablations exposed the castling defect. Four-times-node probes gave 19
-   unchanged choices / five changes / no demonstrated rescue; several reference
-   scores are unusable, so this does not establish an evaluation cause.
-   Counter reports 1.39–1.77x NGN throughput in the local reference comparison;
-   node definitions differ. Both search quality and runtime remain candidates.
-   Tuning-contract repairs are complete; a future tune still needs a corpus
-   acceptance audit and game-disjoint validation before expensive fitting.
-   [Focused classical comparison](experiments/2026-09-04-classical-evaluation-gap.md)
-   identifies frozen mobility/threat coefficients and missing safe-check inputs;
-   an actual-function witness confirms the latter feature distinction. Neither
-   establishes an Elo gain. Existing nonlinear danger/mobility are not missing.
-   **Classical model v2 implemented offline:** all 138 appended mobility/threat
-   coefficients have live activation and frozen-trace parity; all 936 stored
-   entries survive source import and rebuild. Playing eval source/weights are
-   unchanged. A replay-validated opening-grouped corpus pipeline and separate
-   train/validation/final-test route replace anonymous rows for the next fit.
-   [Implementation, evidence and fixed corpus/fit plan](experiments/2026-09-05-classical-model-v2.md).
-   Frozen corrected producer `f556aef` / `texelcorpus_20260905_r3` is generating
-   3996 games on four Mac processes. Its 32-game smoke passes independent
-   Stockfish verification of all 5229 plies, 1016 sample states and outcomes.
-   Loader audits all shards on completion; fit only if the predeclared corpus
-   acceptance gate passes. No new weights have been fitted or installed.
-3. Rebuild/predeclare T17 + T8 on the corrected base when warranted. Sync the new source/docs to WSL after native timed games; default playing
-   artifacts are already deployed. Offline tuning repairs do not require
-   replacing the frozen playing engine during a match.
-4. Consider promotion-complete qsearch as an isolated game-tested candidate.
-   Follow the [larger-gain pathway](experiments/2026-09-04-strength-pathway.md):
-   a bounded study of fresh losses and controls selects one substantial search,
-   runtime, or classical evaluation change. Avoid repeating the old feature queue.
+1. **Classical model/data experiment:** frozen producer `f556aef` /
+   `texelcorpus_20260905_r3` is generating **3996 games on four Mac processes**.
+   Its smoke passes independent Stockfish verification of all 5229 plies, 1016
+   sample states and outcomes. The loader audits all shards on completion; run
+   the one predeclared joint fit only if corpus acceptance passes. No new weights
+   have been fitted or installed. [Exact artifacts, checks and fixed corpus/fit
+   plan](experiments/2026-09-05-classical-model-v2.md).
+   The offline expansion exposes 138 existing mobility/threat coefficients;
+   all have live activation/frozen-trace parity and all 936 stored values survive
+   source import/rebuild. Initial playing eval source and weights are unchanged.
+2. If the fitted model passes independent validation/final-test gates, freeze it
+   and run a predeclared real-clock comparison against the accepted qsearch base.
+   An offline loss improvement cannot establish Elo. If it fails, retain the
+   vector/results and diagnose the specific failure before another fit.
+3. T17 + the completed 24000-game T8 SPSA vector remain unconfirmed. Rebuild on
+   the current accepted base if this becomes the next selected game candidate;
+   do not reuse the interrupted 279-game castling-bug run.
+4. Next substantial candidates remain a coherent extension/search-policy review
+   or richer classical king-danger inputs. [Classical comparison and actual
+   safe-check witness](experiments/2026-09-04-classical-evaluation-gap.md);
+   [loss/runtime and lower-priority TT findings](experiments/2026-09-04-review-second-pass.md).
+   Existing nonlinear danger/mobility are not missing. The 24-game loss study's
+   node probes did not establish evaluation as the cause. Follow the
+   [larger-gain pathway](experiments/2026-09-04-strength-pathway.md); no NNUE.
 
 ## Box access and artifacts
 

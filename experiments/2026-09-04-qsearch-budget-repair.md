@@ -1,8 +1,8 @@
 # Qsearch capture-budget / TT contract repair
 
 Status: **ACCEPTED September 5 under the predeclared correctness rule.** The
-fixed candidate match completed; strength is inconclusive. Deployment follows
-using the frozen artifacts below. The bounded A/A investigation passed its
+fixed candidate match completed; strength is inconclusive. The frozen artifacts
+are now deployed and smoke-verified on WSL/Windows/Mac. The bounded A/A investigation passed its
 predeclared rule; the first failed preflight is retained. Active objective
 remains at least 2800 without NNUE.
 

@@ -1,4 +1,36 @@
-# Current September correctness deployment
+# Current qsearch correctness deployment
+
+**Deployed September 5:** accepted uncapped production qsearch, runtime patch
+committed at `ec9d264`. Fixed 400-game gate: 106/184/110 W/D/L, paired
+−3.47 [−27.36,+20.38], zero flags/errors; accepted as a proved correction with
+inconclusive strength. Absolute rating remains **2726 [2668,2784]**.
+[Exact acceptance, artifacts and A/A investigation](2026-09-04-qsearch-budget-repair.md).
+
+| Installed platform | SHA-256 |
+|---|---|
+| Linux amd64/v3 | `372c896b7c8ed23454d99e7315e4a960d7030131293cc3a5fe54314f75342867` |
+| Windows amd64/v3 | `bc84fe0d298a32ff644775b2892ee43356bd94f9e22b6a527dc99cdbb29556f2` |
+| Mac arm64 | `24d71a1ac381320d2ab790b1a88a7fdb30761bcedf573f9b98973b5a1e7eb702` |
+
+WSL source fast-forwarded cleanly to `bf5c6b9`, including the offline classical
+model/corpus implementation but no changed evaluation weights. Native Go1.25.5
+full short and short/race suites pass (engine 6.287s / 24.270s). Frozen Linux
+and Windows artifacts were hash-checked before installation. Installed Linux,
+Windows and Mac binaries pass EP evasion, castle-out-of-check rejection,
+fifty-move mate precedence and clean-quit smoke checks.
+
+Defaults: WSL `build/ngn` / `build/ngn.exe`; Windows `ngn/ngn.exe` and
+`ngn/repin/ngn.exe`; Mac `build/ngn` / `build/ngn.exe`. All replaced defaults
+have `.pre-qcap-20260905` rollback siblings; WSL also retains branch
+`backup/pre-qcap-20260905`. Earlier backups remain. No classical tuned vector
+or T8 vector was installed. Native chess workers were verified idle after
+installation; corpus generation runs only on the Mac.
+
+Logs/scripts in `output/recovery-2026-09-04/`: `qcap-wsl-deploy.txt`,
+`qcap-windows-deploy.txt`, `qcap-{windows,mac}-smoke.txt`,
+`deploy_qcap_wsl.sh`, `activate_qcap_windows.ps1`, and `verify_qcap_*`.
+
+# Earlier castling correctness deployment
 
 **Deployed playing source: `70eb527`**, the proved internal-castling/root-terminal
 repair. The completed 400-game gate passed its predeclared correctness rule:

@@ -2,9 +2,11 @@
 
 First pass reviewed runtime `71399c063ee9688f499e71e1253ebaf81b211813`.
 For a new pass, record the actual source commit, working diff and deployed binary
-hash before starting. Current accepted playing source is `70eb527`; `4986330`
-includes later offline fixes/docs. The separate uncapped-qsearch candidate has
-its frozen patch and artifacts in `2026-09-04-qsearch-budget-repair.md`.
+hash before starting. The uncapped-qsearch correction, committed at `ec9d264`,
+is now accepted under its fixed correctness game gate; frozen patch/artifacts
+and the inconclusive strength result are in `2026-09-04-qsearch-budget-repair.md`.
+Later source `f556aef` includes the offline classical model/corpus implementation
+without new playing weights. Check `TODO.md` for the latest deployed state.
 The objective is to identify reproducible correctness defects and substantial
 implementation gaps relative to successful classical engines, especially Go
 engines. Do not propose NNUE, a language rewrite, or novel chess research as the
