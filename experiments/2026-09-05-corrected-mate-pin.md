@@ -144,3 +144,24 @@ root review of the detailed WSL results and every goal criterion above.
 Do not start another waiter or validator while this one or its WSL child lives.
 Raw launch/process evidence: `waiter-launch.*` and `waiter-live-inspection.*`
 in the local package directory.
+
+## Completed result and root decision
+
+The original400-game sample completed with DONE_EXIT_0 at **2884.1429896655936**,
+primary95%CI **[2834.197941381757,2934.08803794943]**. Root accepts the
+at-least2800 goal under every substantive criterion above: both families,
+all five anchors, scores bracketing50%, zero exclusions/errors/flags, exact
+sample/pairs/identities, full legal400/55349plies and all400 final outcomes PASS.
+
+The original supervisor ended exit1 because the flattened frozen audit package
+broke a relative driver path, after the unchanged rating report was produced
+and before Stockfish started. Its planned success markers were not emitted.
+Root preserved that failure and completed the missing audits once using the
+byte-identical, previously verified scripts in their original nested layout.
+The known old game70 mislabel was detected as required; the new sample passes.
+No games, labels, sample size, estimator, report or frozen script changed.
+Original gauntlet/waiter and completion auditor are terminal.
+
+The [complete result record](2026-09-05-2800-result.md) contains the recovery
+receipt, independent arithmetic review, root decision, exact hashes and limits.
+This is a completed historical-calibration goal, not an official rating listing.

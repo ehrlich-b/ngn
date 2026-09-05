@@ -32,7 +32,7 @@ go test -short -race ./... -count=1
 
 - **Explicit user restriction, September5:** never run NGN on this Mac. It is a battery-powered user computer. Run engines, matches, search tests, benchmarks, tuning and heavy chess validation on the authorized Windows/WSL box only. Background scheduling, efficiency cores or reduced concurrency do not make local execution acceptable. Local editing and lightweight read-only inspection are fine. Do not restart any stopped Mac controller or allow a remote collector to launch local engine validation.
 
-- Active target: at least 2800 without NNUE. Do not reopen NNUE unless the user changes the objective.
+- The at-least-2800 target without NNUE is verified on the fixed historical calibration; see `experiments/2026-09-05-2800-result.md`. Do not reopen NNUE unless the user changes the objective.
 - Correctness and measurement integrity come before speculative Elo work.
 - Optimize for Elo per confirmation hour. Default confirmation budget is 1-2 hours per change.
 - One behavior change at a time, candidate vs immediate base.

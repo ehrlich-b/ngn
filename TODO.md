@@ -1,6 +1,6 @@
 # NGN active runbook
 
-Updated 2026-09-05. Active target: **at least 2800 without NNUE**. `CLAUDE.md` owns operating policy. Detailed evidence belongs
+Updated 2026-09-05. **At least 2800 without NNUE: VERIFIED on the fixed historical calibration.** `CLAUDE.md` owns operating policy. Detailed evidence belongs
 in `experiments/`. The former 132 KB runbook, including all old queue decisions,
 is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive.md).
 
@@ -20,10 +20,13 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   playing base is `5cf301a`. The accepted mate-stop correction is now deployed
   on Windows/WSL at `53e4d1b`; Mac defaults remain untouched. No T22 patch or
   fitted evaluation weights are applied.
-- **Latest completed raw report: 2796 [2753,2838]**, accepted T8,400 games,
-  120+1/c8. **Outcome audit HELD:** two NGN checkmates were recorded as cap
-  draws by the old harness. No relabel/rerating;2800 remains unverified.
-  [Completed result and audit](experiments/2026-09-05-accepted-t8-pin-result.md).
+- **Latest completed and validated report: 2884 [2834,2934]**, accepted mate-stop
+  release,400 games,120+1/c8. The original primary lower95% bound exceeds2800;
+  both families/all five anchors retained, scores bracket50%, zero errors/flags.
+  Full legal replay400/55349plies and all400 terminal outcomes pass. **Goal met.**
+  [Completed result, independent review and exact evidence](experiments/2026-09-05-2800-result.md).
+  The prior2796 [2753,2838] report remains held for two cap-mate mislabels,
+  unchanged and unpooled. [Prior audit](experiments/2026-09-05-accepted-t8-pin-result.md).
   The earlier200-game report was2726 [2668,2784], with its own later-discovered
   cap-mate mislabel. Local historical calibration, not an official rating.
   July's 2704 [2665,2743] used the old harness; the difference is not an
@@ -154,15 +157,16 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
    The [corrected external protocol](experiments/2026-09-05-corrected-mate-pin.md)
    selects only this accepted candidate for `r0905matepin`, fixed400 games at
    120+1/c8 with unchanged labels/anchors/primary goal threshold. Exact artifacts
-   and WSL-only validation package are staged/hash-verified; startup script AST
-   passes. Deployment and final startup passed. **`r0905matepin` is live,
-   gauntlet PID24264**, started11:25:19 local September5. Root verified the exact
-   batch/header and16 expected workers. No competing Windows/WSL engine work.
-   Windows completion waiter PID22592 is live and waits on that exact gauntlet;
-   after DONE_EXIT_0 it invokes the pinned WSL audits once. At12:59:47 local,
-   root verified148/400 complete, gauntlet and waiter live, audit still waiting.
-   Native audit log: `repin/r0905matepin_wsl_validation.stdout`. Do not start
-   another waiter/validator or restart the match on an observation timeout.
+   and startup/launch evidence are preserved. **`r0905matepin` completed400,
+   DONE_EXIT_0:2884 [2834,2934], goal verified.** Root and independent Sol review
+   reconciled the original estimate, sample, pairings, labels and zero failures.
+   WSL legal replay400/55349plies and all400 terminal outcomes pass; all input
+   and pinned asset hashes remain unchanged. The original waiter hit a frozen
+   script path-layout error after producing the report; one reviewed completion
+   audit used byte-identical scripts in their original layout and passed.
+   Original failed logs are preserved, with no games/relabel/rerating/restart.
+   Gauntlet24264, waiter22592 and completion audit are terminal.
+   [Root decision and complete evidence](experiments/2026-09-05-2800-result.md).
    The [quiet-promotion candidate](experiments/2026-09-05-quiet-promotion-candidate.md)
    stays separate and must rebase/rebuild onto the newly accepted guard before
    any further gate. No promotion patch is installed.
@@ -222,7 +226,8 @@ The opt-in oracle compares depth-2 divides and incremental-state restoration;
 its ordinary test skips when Stockfish is not configured. It found the black
 EP defect that the prior standard perft coverage missed.
 
-Keep the active objective: at least 2800 without NNUE.
+The at-least-2800 objective is complete on the fixed historical calibration.
+Further research candidates above are unaccepted work, not a verified2900/3000 claim.
 Search/eval heuristics need completed predeclared paired games against their
 immediate base. Proxies do not establish Elo. A correctness repair with several
 interacting entry points may use an explicitly combined integration test, but

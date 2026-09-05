@@ -3,8 +3,9 @@
 Deployed September5: playing source **53e4d1b9bf4006a39c0327a7016faba7f2b8f82e**,
 accepted T17+T8 plus the proved mate-stop correction. Fixed400-game native
 comparison91/242/67, paired+20.87 [+3.56,+38.29], zero flags/errors; accepted
-under the original correctness rule. The last completed absolute report remains
-2796 [2753,2838] with an outcome-integrity hold;2800 is not yet verified.
+under the original correctness rule. The corrected400-game external run is now
+fully validated at **2884 [2834,2934]**, clearing the original2800 lower-bound
+goal. [Completed result and integrity audits](2026-09-05-2800-result.md).
 [Acceptance and integration evidence](2026-09-05-mate-stop-windows-recovery.md).
 
 | Installed engine | SHA-256 |
