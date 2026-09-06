@@ -11,8 +11,8 @@ The deployed engine remains **53e4d1b**. The development engine's latest search 
 | Real multicore search | Private worker state, shared synchronized TT, joined helper lifecycle, full short/race/vet/build gates; 128-sample matrix measured 6.41–6.69x aggregate NPS at eight threads | Prospective eight-versus-one-thread strength test is running |
 | Match validity | Four-game 8v8 operational control passed: 562 legal plies, correct worker-width receipts, no operational failures or survivors | Finish the 8v1 match under its frozen stopping rule, then independent chess/trace/SPRT audits |
 | Minimal trained NNUE | Export/scalar/incremental/optimized integer equivalence established; 3M data and 512-update training accepted | Count-only experiments stopped: selected 3M network lost its audited four-game HCE screen 0–4 |
-| Counter pretrained control | Exact Counter 5.5 loader and portable full-refresh evaluator accepted; 6,144 accumulator lanes, raw scores and historical score adaptation match actual pinned upstream | Incremental source v4 and corrected search adapter source v4 reviewed; execution held. Full engine/NNUE short regression, exact upstream oracles and actual worker race gates are prepared |
-| Stockfish compatibility | Exact Stockfish 18 SMALL official file loads; malformed-file, official-file, race, vet and build checks pass | Scalar and corrected Go/C++ oracle source v5 reviewed; bounded scalar-oracle execution plan v2 is ready. No runtime parity claim yet |
+| Counter pretrained control | Exact Counter 5.5 loader and portable full-refresh evaluator accepted; 6,144 accumulator lanes, raw scores and historical score adaptation match actual pinned upstream | Incremental and search adapter source v5 reviewed, including explicit float32 product rounding; execution held. Full short regression, upstream v1/v3 oracles and actual worker race gates are prepared |
+| Stockfish compatibility | Exact Stockfish 18 SMALL official file loads; malformed-file, official-file, race, vet and build checks pass | Scalar and corrected Go/C++ oracle source v5 reviewed; execution plan v2 ready. Incremental package draft v1 is frozen for source review and depends on full-refresh parity |
 | HCE speed investigation | Direct-search comparison has exact outcomes/PVs/final nodes; long-budget paired medians show about 2–3% overhead for one position | Further timing held while strength games use the machine |
 | Leading Go opponents | Counter 5.5, Zahak 10, Blunder 8.5.5 and Chess-3 v4.0 provisioned with protocol handshakes | Legal-search preflight and matched games remain |
 
@@ -26,7 +26,7 @@ Both sides use the same pinned 168385f binary. Candidate Threads/GOMAXPROCS=8; r
 
 The predeclared test uses normalized-Elo SPRT hypotheses 0/20, alpha=beta=0.05, complete paired games, first-boundary-crossing stopping, and a cap of 400 games. A cap without crossing is inconclusive. It is not an ordinary +20 Elo confidence claim. Interim results cannot change the stopping rule.
 
-At 14:28:47Z the reported checkpoint was 54 games / 27 pairs: eight threads 33 wins, 3 losses, 18 draws, normalized SPRT LLR 1.56. This is interim; game 55 was live and the match error stream remained empty.
+At 14:40:44Z the reported checkpoint was 60 games / 30 pairs: eight threads 37 wins, 3 losses, 20 draws, normalized SPRT LLR 1.75. This is interim; pair 31 was live and the match error stream remained empty.
 
 The frozen runner passed 55 fixtures and 246 independent C++/Python SPRT vectors. Root accepted all 200 ordered openings and 1,200 legal opening plies. Approved manifest SHA:
 `6d901b315382cf5d4ad77fe90869dbdbd82fc136f5244cdd2c08a9d02afc3c38`.
@@ -39,11 +39,13 @@ The next control uses a known pretrained Counter network with exactly reproduced
 `output/counter-pretrained-root-review-20260906/receipt-v1.json`.
 The first-slice source is committed and integrated. Incremental state and the corrected search adapter have passed source review in isolated worktrees but still require execution gates. The matching in-process Counter/HCE diagnostic runner source v3 is also reviewed; its first comparison will use one accepted binary, one thread, Hash 128 MiB and Move Overhead 100 ms at 30+0.3 for four paired games.
 
+A source review of the installed Go 1.25.5 compiler found that AMD64-v3 may fuse the Counter output multiply-add, whereas the canonical upstream reference was built for v1. Source v5 explicitly rounds each float32 product before accumulation and includes a strict-loader numeric witness that distinguishes separate +0 from fused -2^-46. This is a compiler-backed portability finding; actual pre-fix lowering and corrected runtime parity remain to be observed. It does not explain the earlier integer NGN-v1 training losses.
+
 Stockfish support is an exact architecture port. The official SF18 SMALL model is verified at 3,519,630 bytes with SHA
 `37f18f62d772f3107e1d6aaca3898c130c3c86f2ab63e6555fbbca20635a899d`.
 The accepted loader has no evaluator yet. Root acceptance:
 `output/sf18-small-loader-20260906/root-review-v1.json`.
-Arbitrary Stockfish or other .nnue files are not supported.
+Arbitrary Stockfish or other .nnue files are not supported. Stockfish selects SMALL only conditionally and may fall back to BIG; SMALL compatibility alone does not reproduce its general evaluation. The new incremental draft stays within the package and includes no engine/UCI/score-policy wiring.
 
 The direct HCE diagnostic found substantially less overhead than the earlier short UCI timings: paired session median ratios 1.023 cold and 1.027 warm for the longer budget, on one position. These include public search admission and callback reporting. The separate HCE transition fast path remains unintegrated because measured effects are modest and fixture dependent.
 
