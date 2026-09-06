@@ -1,26 +1,18 @@
 # NNUE public toolchain status
 
-Status: execution resumed after the user explicitly authorized full WSL access and bidirectional file/source/log transfers between both home-network development machines. No trained network or strength verdict exists.
+The WSL GPU/toolchain entry gates pass. Root read the actual native/NVRTC/cuBLAS logs and version/source receipts; hashes are retained in output/nnue-public-preflight-20260906/root-gpu-smoke-review.json. Sol performed installation and tests in /home/ehrli/nnue-public-toolchain-20260906. The accepted engine deployment and rollback are unchanged.
 
-The retained log now proves Cargo101 was a compiler-version incompatibility: pinned Bullet uses let-chains in crates/compiler/src/tensor/pattern.rs despite declaring Rust1.87; Rust1.87 reports E0658 before GPU execution. Sol is installing exact user-local Rust1.88.0 with official checksum verification, retaining the original toolchain and failed evidence, and rerunning unchanged locked/offline source and dependencies. No GPU driver change is involved.
+Pinned Bullet 629ee50000b2afb7b3337595401c830d3b1e0f42 declares Rust1.87 but uses let-chains in crates/compiler/src/tensor/pattern.rs. The original rustc1.87 build failed with 136 E0658 errors before GPU execution (Cargo101, 0.70s, peak RSS181928KB). Its original source, toolchain and log remain preserved. The user explicitly authorized full WSL access and bidirectional source/log transfers, resolving the earlier automatic-review block on reading that diagnostic.
 
-The historical permission-blocked attempt below is preserved as evidence; it no longer describes the active authorization.
+The minimal corrective toolchain is official-checksummed user-local Rust1.88.0, with unchanged pinned Bullet source, Cargo.lock and offline dependencies. CUDA12.8.1 is toolkit-only, retaining the Windows GPU driver; the installed nvcc identifies itself as V12.8.93. Do not infer component versions from the installer name.
 
-The reduced-data WSL preflight was approved after automatic review rejected exporting detailed host metadata. The on-host assertions returned fixed PREFLIGHT_PASS. Sol then reported completed RUST_PASS, CUDA_PASS, BULLET_FETCH_PASS, and NATIVE_SM120_PASS statuses. Rust 1.87.0 and CUDA 12.8.1 toolkit-only installation are in the isolated WSL user prefix; the Windows GPU driver was retained.
+Completed actual checks:
+- Native four-element CUDA kernel compiled with -arch=sm_120, correct output, cuobjdump target verified.
+- cargo test --locked --offline --release -p bullet-gpu --features cuda runtime::tests::cuda::compile_load_execute_kernel -- --exact --nocapture: one test passed, 28.00s including build, peak RSS365784KB.
+- cargo test --locked --offline --release -p bullet-gpu --features cuda tests::cuda::axby -- --exact --nocapture: one test passed, 1.60s, peak RSS567192KB. This exercises one narrow FP32 cuBLAS layout, not every matrix operation or derivatives.
 
-The native four-element sm_120 kernel passed. The first pinned Bullet NVRTC test attempt returned Cargo exit 101 before GPU execution. The agent confirmed the tracked command is terminal and its resource monitor reaped. The Cargo failure log is retained at:
+The next smoke remains source-review gated. Sol is preparing a bounded 128-hidden dual-perspective SCReLU forward/backward/AdamW harness, numeric checks of representative derivatives, direct checked exports, and Go bridge parity. The bundled public batch fixture is sufficient; no T80 payload or real training is needed yet.
 
-    /home/ehrli/nnue-public-toolchain-20260906/logs/bullet-nvrtc-smoke.log
+A further pinned upstream setting bug was verified: LocalSettings.batch_queue_size is not passed by ValueTrainer::run; crates/trainer/src/run.rs hardcodes sync_channel(32). The isolated harness must wire the configured capacity through, prove the actual bound, use two loader threads and queue8, and propagate errors. Setting queue8 in LocalSettings alone is not resource enforcement.
 
-Automatic approval review rejected streaming that log because it could disclose local paths, environment details, or other private diagnostics to the Mac. An approved on-host classifier returned only UNCLASSIFIED_FAILURE. No diagnostic payload was relayed or retried. Root verified the public Cargo package name bullet-gpu and its cuda feature, finding no definite command error to correct without the log.
-
-Detailed receipts and installed files remain under the isolated WSL prefix. The fixed statuses support progress reporting; full independent receipt review remains pending. No private source review, training-corpus download, NNUE pilot, real-data training, or NGN integration was performed by this provisioning step.
-
-Resumed execution queue:
-1. Inspect the existing terminal Cargo log and resolve the actual build failure.
-2. Finish the exact NVRTC kernel test.
-3. Run the bounded public tests::cuda::axby test to exercise FP32 cuBLAS.
-4. Prepare a resource-bounded forward/backward and optimizer smoke. The upstream test3 uses the bundled public fixture but sets four loader threads and queue depth 512, so it must not be launched unchanged under the current two-thread, small-queue budget. It prints expected loss and does not prove numeric gradients.
-5. Resume independent PV repair review, corrected-baseline control, and the existing staged NNUE/SMP roadmap.
-
-All installed tools and prior work are preserved. The accepted engine deployment and rollback remain unchanged.
+Earlier research corrections remain in 2026-09-06-nnue-public-preflight-review.md: ignored test_set, time-seeded SF loader ordering, swallowed checkpoint export errors, and unverified historical teacher score units. No trained network, production NNUE integration, or playing-strength verdict is established by these toolchain tests.
