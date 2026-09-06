@@ -392,11 +392,11 @@ func (uci *UCIEngine) handleNewGame(output io.Writer) {
 	// Clear transposition table for new game
 	TranspositionTable = NewCache(uci.hashMB)
 	// Clear history table for new game
-	ClearHistoryTable()
+	uci.searcher.ClearHistoryTable()
 	// Clear killer moves for new game
-	ClearKillerMoves()
+	uci.searcher.ClearKillerMoves()
 	// Clear counter moves for new game
-	ClearCounterMoves()
+	uci.searcher.ClearCounterMoves()
 
 	// Reset game state
 	uci.movesPlayed = 0
@@ -442,8 +442,8 @@ func (uci *UCIEngine) handlePosition(args []string, output io.Writer) {
 	// Handle moves if present
 	if len(args) >= 2 && args[0] == "moves" {
 		moves := args[1:]
-		uci.movesPlayed = 0          // Reset move counter
-		SetLastMovePlayed(EmptyMove) // Reset last move for new position
+		uci.movesPlayed = 0                       // Reset move counter
+		uci.searcher.SetLastMovePlayed(EmptyMove) // Reset last move for new position
 		for _, moveStr := range moves {
 			move, err := ParseAlgebraicMove(moveStr, uci.position)
 			if err != nil {
@@ -457,7 +457,7 @@ func (uci *UCIEngine) handlePosition(args []string, output io.Writer) {
 			_, _, _, _ = uci.position.GameMakeMove(move)
 			uci.movesPlayed++
 			// Track the last move played for counter move heuristic
-			SetLastMovePlayed(move)
+			uci.searcher.SetLastMovePlayed(move)
 		}
 	}
 }

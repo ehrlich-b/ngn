@@ -12,6 +12,7 @@ func newSearchInfoForTest(tm *TimeManager, rootDepth int) *SearchInfo {
 	var seeGains [32]int
 	return &SearchInfo{
 		control:       &defaultSearchEngine.control,
+		history:       &defaultSearchEngine.history,
 		Depth:         rootDepth,
 		RootDepth:     rootDepth,
 		BestMove:      EmptyMove,

@@ -101,9 +101,9 @@ func TestIsQuietPositionIsolatedFromSearchState(t *testing.T) {
 	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
 	TranspositionTable.Set(pos.Hash(), EmptyMove, 1234, 0, Exact, false)
 	corrIndex := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
-	oldCorrection := pawnCorrectionHistory[pos.Turn()][corrIndex]
-	pawnCorrectionHistory[pos.Turn()][corrIndex] = 8192
-	defer func() { pawnCorrectionHistory[pos.Turn()][corrIndex] = oldCorrection }()
+	oldCorrection := defaultSearchEngine.history.pawnCorrectionHistory[pos.Turn()][corrIndex]
+	defaultSearchEngine.history.pawnCorrectionHistory[pos.Turn()][corrIndex] = 8192
+	defer func() { defaultSearchEngine.history.pawnCorrectionHistory[pos.Turn()][corrIndex] = oldCorrection }()
 	RequestStop()
 
 	if got := IsQuietPosition(pos); !got {

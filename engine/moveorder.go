@@ -1,40 +1,33 @@
 package engine
 
-// History table for move ordering heuristic, indexed by [piece][to].
-// Piece is `Move.MovingPiece()` (1..12 mapping WhitePawn..BlackKing; 0 is unused
-// NoPiece sentinel). Indexing by piece-type rather than from-square is strictly
-// more discriminative: a knight retreating to e4 and a queen trading on e4 are
-// stored separately, so a strong knight-to-e4 history doesn't elevate weak
-// queen-to-e4 moves. Same total bookkeeping cost; smaller table (13×64 = 832
-// entries) than the prior [64][64] = 4096.
-var historyTable [13][64]int
-
-// Continuation history: indexed by [prev-piece][prev-to][curr-piece][curr-to].
-// Captures move sequences that work well together — e.g. given that opponent
-// just moved knight to e5, our rook lifting to e3 may be especially good.
-// 13×64×13×64 = 692,224 ints (~5.5MB). Read alongside the main history table
-// in move ordering and at history-pruning / LMR-history sites; updated at the
-// same beta-cutoff and quiet-penalty points.
-var continuationHistory [13][64][13][64]int
-
-// Follow-up history: same shape as continuationHistory but keyed on the move
-// TWO plies back — our own side's previous move — so it learns plans ("after my
-// g4, my g5 follow-up keeps working") where continuation history learns replies.
-// Indexed by [prev2-piece][prev2-to][curr-piece][curr-to]; another ~5.5MB.
-var followupHistory [13][64][13][64]int
-
-// Pawn-structure correction history (Stockfish concept): learns a per-pawn-structure
-// adjustment to the static eval from the gap between static eval and the search result.
-// Static eval is structurally blind to some recurring pawn shapes; this nudges it toward
-// what search actually finds for positions sharing a pawn skeleton. Indexed by
-// [side-to-move][hashed-pawn-structure]; collisions just share a slot (acceptable noise).
+// Correction-history tables are keyed by side to move and a hashed board feature.
 const (
 	corrHistSize  = 16384 // 2^14 slots per side
 	corrHistMask  = corrHistSize - 1
 	corrHistLimit = 1024 // clamp on the stored EMA entry (Stockfish CORRECTION_HISTORY_LIMIT)
 )
 
-var pawnCorrectionHistory [2][corrHistSize]int
+// workerHistory owns the mutable search heuristics for one SearchEngine worker.
+// Its tables persist across searches on that engine and are reset only at the same
+// explicit lifecycle points as before. Keeping the complete heuristic family together
+// prevents ordering, correction, killer, counter, and predecessor state from crossing
+// engine instances.
+type workerHistory struct {
+	// Main quiet history indexed by [piece][to].
+	historyTable [13][64]int
+	// Continuation and follow-up histories retain the exact [previous move][move]
+	// dimensions used by the package-owned implementation.
+	continuationHistory [13][64][13][64]int
+	followupHistory     [13][64][13][64]int
+
+	pawnCorrectionHistory    [2][corrHistSize]int
+	nonPawnCorrectionHistory [2][corrHistSize]int
+	minorCorrectionHistory   [2][corrHistSize]int
+	captureHistory           [13][64][13]int
+	killerMoves              [MaximumDepth][2]Move
+	counterMoves             [64][64]Move
+	lastMovePlayed           Move
+}
 
 // pawnCorrectionIndex hashes both colors' pawn bitboards into a correction-table slot.
 func pawnCorrectionIndex(whitePawns, blackPawns uint64) int {
@@ -46,8 +39,8 @@ func pawnCorrectionIndex(whitePawns, blackPawns uint64) int {
 // correctionValue returns the centipawn adjustment to add to the static eval. The
 // 6245/131072 weight mirrors Stockfish's pawn-correction term, so a saturated entry
 // (±corrHistLimit) yields at most ±49 cp.
-func correctionValue(stm Color, idx int) int {
-	return pawnCorrectionHistory[stm][idx] * 6245 / 131072
+func (h *workerHistory) correctionValue(stm Color, idx int) int {
+	return h.pawnCorrectionHistory[stm][idx] * 6245 / 131072
 }
 
 // correctedStandPat is the raw eval plus the side-to-move's pawn-structure, non-pawn AND
@@ -57,18 +50,18 @@ func correctionValue(stm Color, idx int) int {
 // The ply>=MaximumDepth emergency cap stays RAW — it fires before inCheck is known, and an
 // in-check static must never be corrected. The eval cache is unaffected — the correction is
 // added outside it.
-func correctedStandPat(pos *Position) int {
+func (h *workerHistory) correctedStandPat(pos *Position) int {
 	stm := pos.Turn()
 	return EvaluateForPlayerCached(pos) +
-		correctionValue(stm, pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])) +
-		nonPawnCorrectionValue(stm, nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])) +
-		minorCorrectionValue(stm, minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop]))
+		h.correctionValue(stm, pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])) +
+		h.nonPawnCorrectionValue(stm, nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])) +
+		h.minorCorrectionValue(stm, minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop]))
 }
 
 // updatePawnCorrection nudges a slot toward the observed (searchScore - staticEval) gap
 // with a depth-weighted, gravity-damped EMA (Stockfish StatsEntry form) that keeps the
 // entry bounded in roughly [-corrHistLimit, corrHistLimit].
-func updatePawnCorrection(stm Color, idx, diff, depth int) {
+func (h *workerHistory) updatePawnCorrection(stm Color, idx, diff, depth int) {
 	bonus := diff * depth / 8
 	if bonus > corrHistLimit/4 {
 		bonus = corrHistLimit / 4
@@ -79,14 +72,14 @@ func updatePawnCorrection(stm Color, idx, diff, depth int) {
 	if mag < 0 {
 		mag = -mag
 	}
-	e := &pawnCorrectionHistory[stm][idx]
+	e := &h.pawnCorrectionHistory[stm][idx]
 	*e += bonus - (*e)*mag/corrHistLimit
 }
 
 // maybeUpdatePawnCorrection applies the correction update at a completed node when the
 // search result is a consistent directional signal: worse than static eval (a true upper
 // bound) or better with a real best move. Capture-driven results are skipped as noisy.
-func maybeUpdatePawnCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
+func (h *workerHistory) maybeUpdatePawnCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
 	if inCheck {
 		return
 	}
@@ -96,7 +89,7 @@ func maybeUpdatePawnCorrection(stm Color, idx, staticEval, bestScore, beta, dept
 	if !((bestScore < staticEval && bestScore < beta) || (bestScore > staticEval && bestMove != EmptyMove)) {
 		return
 	}
-	updatePawnCorrection(stm, idx, bestScore-staticEval, depth)
+	h.updatePawnCorrection(stm, idx, bestScore-staticEval, depth)
 }
 
 // Non-pawn correction history: identical mechanism to pawnCorrectionHistory but keyed on
@@ -106,7 +99,6 @@ func maybeUpdatePawnCorrection(stm Color, idx, staticEval, bestScore, beta, dept
 // It rides the SAME fixed T4 plumbing as the pawn term — applied at the qsearch stand-pat
 // (via correctedStandPat) and the interior static-eval site, and learned from the pre-S7
 // corrStaticEval — which is the whole point of the retest.
-var nonPawnCorrectionHistory [2][corrHistSize]int
 
 // nonPawnCorrectionIndex hashes both sides' non-pawn occupancy into a slot. Distinct
 // mixing constants (murmur3 finalizers) from pawnCorrectionIndex so the two tables alias
@@ -117,11 +109,11 @@ func nonPawnCorrectionIndex(whiteNonPawn, blackNonPawn uint64) int {
 	return int(key & corrHistMask)
 }
 
-func nonPawnCorrectionValue(stm Color, idx int) int {
-	return nonPawnCorrectionHistory[stm][idx] * 6245 / 131072
+func (h *workerHistory) nonPawnCorrectionValue(stm Color, idx int) int {
+	return h.nonPawnCorrectionHistory[stm][idx] * 6245 / 131072
 }
 
-func updateNonPawnCorrection(stm Color, idx, diff, depth int) {
+func (h *workerHistory) updateNonPawnCorrection(stm Color, idx, diff, depth int) {
 	bonus := diff * depth / 8
 	if bonus > corrHistLimit/4 {
 		bonus = corrHistLimit / 4
@@ -132,11 +124,11 @@ func updateNonPawnCorrection(stm Color, idx, diff, depth int) {
 	if mag < 0 {
 		mag = -mag
 	}
-	e := &nonPawnCorrectionHistory[stm][idx]
+	e := &h.nonPawnCorrectionHistory[stm][idx]
 	*e += bonus - (*e)*mag/corrHistLimit
 }
 
-func maybeUpdateNonPawnCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
+func (h *workerHistory) maybeUpdateNonPawnCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
 	if inCheck {
 		return
 	}
@@ -146,7 +138,7 @@ func maybeUpdateNonPawnCorrection(stm Color, idx, staticEval, bestScore, beta, d
 	if !((bestScore < staticEval && bestScore < beta) || (bestScore > staticEval && bestMove != EmptyMove)) {
 		return
 	}
-	updateNonPawnCorrection(stm, idx, bestScore-staticEval, depth)
+	h.updateNonPawnCorrection(stm, idx, bestScore-staticEval, depth)
 }
 
 // Minor-piece correction history: same mechanism, keyed on each side's MINOR-piece
@@ -156,7 +148,6 @@ func maybeUpdateNonPawnCorrection(stm Color, idx, staticEval, bestScore, beta, d
 // Independent third corrector summed alongside the pawn and non-pawn terms. Rides the SAME
 // fixed T4 plumbing — applied at the qsearch stand-pat (via correctedStandPat) and the
 // interior static-eval site, and learned from the pre-S7 corrStaticEval.
-var minorCorrectionHistory [2][corrHistSize]int
 
 // minorCorrectionIndex hashes both sides' minor occupancy into a slot, with a third
 // distinct constant pair (the other splitmix64 finalizers) so it aliases independently.
@@ -166,11 +157,11 @@ func minorCorrectionIndex(whiteMinors, blackMinors uint64) int {
 	return int(key & corrHistMask)
 }
 
-func minorCorrectionValue(stm Color, idx int) int {
-	return minorCorrectionHistory[stm][idx] * 6245 / 131072
+func (h *workerHistory) minorCorrectionValue(stm Color, idx int) int {
+	return h.minorCorrectionHistory[stm][idx] * 6245 / 131072
 }
 
-func updateMinorCorrection(stm Color, idx, diff, depth int) {
+func (h *workerHistory) updateMinorCorrection(stm Color, idx, diff, depth int) {
 	bonus := diff * depth / 8
 	if bonus > corrHistLimit/4 {
 		bonus = corrHistLimit / 4
@@ -181,11 +172,11 @@ func updateMinorCorrection(stm Color, idx, diff, depth int) {
 	if mag < 0 {
 		mag = -mag
 	}
-	e := &minorCorrectionHistory[stm][idx]
+	e := &h.minorCorrectionHistory[stm][idx]
 	*e += bonus - (*e)*mag/corrHistLimit
 }
 
-func maybeUpdateMinorCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
+func (h *workerHistory) maybeUpdateMinorCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
 	if inCheck {
 		return
 	}
@@ -195,7 +186,7 @@ func maybeUpdateMinorCorrection(stm Color, idx, staticEval, bestScore, beta, dep
 	if !((bestScore < staticEval && bestScore < beta) || (bestScore > staticEval && bestMove != EmptyMove)) {
 		return
 	}
-	updateMinorCorrection(stm, idx, bestScore-staticEval, depth)
+	h.updateMinorCorrection(stm, idx, bestScore-staticEval, depth)
 }
 
 // Killer moves table for move ordering heuristic.
@@ -203,14 +194,11 @@ func maybeUpdateMinorCorrection(stm Color, idx, staticEval, bestScore, beta, dep
 // Keying by ply (not remaining depth) is what lets a quiet refutation found at one node be
 // tried at its siblings/cousins at the same distance from root; keying by remaining depth
 // instead aliased every same-draft node tree-wide (positions nothing alike sharing slots).
-var killerMoves [MaximumDepth][2]Move
 
 // Counter moves table for move ordering heuristic
 // counterMoves[from][to] stores the best counter move to moves from 'from' to 'to'
-var counterMoves [64][64]Move
 
 // Track the last move played for counter move heuristic
-var lastMovePlayed Move
 
 // historyMax bounds every history entry. gravityUpdate asymptotes entries toward
 // ±historyMax instead of letting them grow until a cap event; 8192 keeps the live
@@ -243,36 +231,36 @@ func gravityUpdate(e *int, bonus int) {
 }
 
 // UpdateHistoryTable increases the history score for a move that caused a cutoff
-func UpdateHistoryTable(move Move, prevMove Move, prev2 Move, depth int) {
+func (h *workerHistory) UpdateHistoryTable(move Move, prevMove Move, prev2 Move, depth int) {
 	if move.IsCapture() || move.PromoType() != NoType {
 		return
 	}
 	piece := move.MovingPiece()
 	to := move.Destination()
 	bonus := depth * depth
-	gravityUpdate(&historyTable[piece][to], bonus)
+	gravityUpdate(&h.historyTable[piece][to], bonus)
 	if prevMove != EmptyMove {
-		gravityUpdate(&continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to], bonus)
+		gravityUpdate(&h.continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to], bonus)
 	}
 	if prev2 != EmptyMove {
-		gravityUpdate(&followupHistory[prev2.MovingPiece()][prev2.Destination()][piece][to], bonus)
+		gravityUpdate(&h.followupHistory[prev2.MovingPiece()][prev2.Destination()][piece][to], bonus)
 	}
 }
 
 // PenalizeHistoryTable decreases the history score for moves that didn't cause cutoff
-func PenalizeHistoryTable(move Move, prevMove Move, prev2 Move, depth int) {
+func (h *workerHistory) PenalizeHistoryTable(move Move, prevMove Move, prev2 Move, depth int) {
 	if move.IsCapture() || move.PromoType() != NoType {
 		return
 	}
 	piece := move.MovingPiece()
 	to := move.Destination()
 	penalty := depth * depth
-	gravityUpdate(&historyTable[piece][to], -penalty)
+	gravityUpdate(&h.historyTable[piece][to], -penalty)
 	if prevMove != EmptyMove {
-		gravityUpdate(&continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to], -penalty)
+		gravityUpdate(&h.continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to], -penalty)
 	}
 	if prev2 != EmptyMove {
-		gravityUpdate(&followupHistory[prev2.MovingPiece()][prev2.Destination()][piece][to], -penalty)
+		gravityUpdate(&h.followupHistory[prev2.MovingPiece()][prev2.Destination()][piece][to], -penalty)
 	}
 }
 
@@ -281,18 +269,18 @@ func PenalizeHistoryTable(move Move, prevMove Move, prev2 Move, depth int) {
 // and follow-up [prev2-piece][prev2-to][piece][to] tables when those moves are
 // available. All terms get full weight — same magnitude updates means same ELO
 // scale.
-func GetHistoryScore(move Move, prevMove Move, prev2 Move) int {
+func (h *workerHistory) GetHistoryScore(move Move, prevMove Move, prev2 Move) int {
 	if move.IsCapture() || move.PromoType() != NoType {
 		return 0
 	}
 	piece := move.MovingPiece()
 	to := move.Destination()
-	score := historyTable[piece][to]
+	score := h.historyTable[piece][to]
 	if prevMove != EmptyMove {
-		score += continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to]
+		score += h.continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to]
 	}
 	if prev2 != EmptyMove {
-		score += followupHistory[prev2.MovingPiece()][prev2.Destination()][piece][to]
+		score += h.followupHistory[prev2.MovingPiece()][prev2.Destination()][piece][to]
 	}
 	return score
 }
@@ -301,157 +289,156 @@ func GetHistoryScore(move Move, prevMove Move, prev2 Move) int {
 // tables above skip captures, so without this captures are ordered by SEE alone. This
 // adds a learned tie-breaker — captures that repeatedly cause cutoffs in this search are
 // tried earlier among captures of similar SEE. Gravity-clamped like the quiet tables.
-var captureHistory [13][64][13]int
 
-func captureHistoryScore(move Move) int {
-	return captureHistory[move.MovingPiece()][move.Destination()][move.CapturedPiece()]
+func (h *workerHistory) captureHistoryScore(move Move) int {
+	return h.captureHistory[move.MovingPiece()][move.Destination()][move.CapturedPiece()]
 }
 
 // UpdateCaptureHistory rewards a capture that caused a beta cutoff.
-func UpdateCaptureHistory(move Move, depth int) {
-	gravityUpdate(&captureHistory[move.MovingPiece()][move.Destination()][move.CapturedPiece()], depth*depth)
+func (h *workerHistory) UpdateCaptureHistory(move Move, depth int) {
+	gravityUpdate(&h.captureHistory[move.MovingPiece()][move.Destination()][move.CapturedPiece()], depth*depth)
 }
 
 // PenalizeCaptureHistory decreases a tried capture that did not cause the cutoff.
-func PenalizeCaptureHistory(move Move, depth int) {
-	gravityUpdate(&captureHistory[move.MovingPiece()][move.Destination()][move.CapturedPiece()], -(depth * depth))
+func (h *workerHistory) PenalizeCaptureHistory(move Move, depth int) {
+	gravityUpdate(&h.captureHistory[move.MovingPiece()][move.Destination()][move.CapturedPiece()], -(depth * depth))
 }
 
 // ClearHistoryTable resets both history tables (used between games)
-func ClearHistoryTable() {
-	for i := range historyTable {
-		for j := range historyTable[i] {
-			historyTable[i][j] = 0
+func (h *workerHistory) ClearHistoryTable() {
+	for i := range h.historyTable {
+		for j := range h.historyTable[i] {
+			h.historyTable[i][j] = 0
 		}
 	}
-	for i := range continuationHistory {
-		for j := range continuationHistory[i] {
-			for k := range continuationHistory[i][j] {
-				for l := range continuationHistory[i][j][k] {
-					continuationHistory[i][j][k][l] = 0
+	for i := range h.continuationHistory {
+		for j := range h.continuationHistory[i] {
+			for k := range h.continuationHistory[i][j] {
+				for l := range h.continuationHistory[i][j][k] {
+					h.continuationHistory[i][j][k][l] = 0
 				}
 			}
 		}
 	}
-	for i := range followupHistory {
-		for j := range followupHistory[i] {
-			for k := range followupHistory[i][j] {
-				for l := range followupHistory[i][j][k] {
-					followupHistory[i][j][k][l] = 0
+	for i := range h.followupHistory {
+		for j := range h.followupHistory[i] {
+			for k := range h.followupHistory[i][j] {
+				for l := range h.followupHistory[i][j][k] {
+					h.followupHistory[i][j][k][l] = 0
 				}
 			}
 		}
 	}
-	for i := range pawnCorrectionHistory {
-		for j := range pawnCorrectionHistory[i] {
-			pawnCorrectionHistory[i][j] = 0
+	for i := range h.pawnCorrectionHistory {
+		for j := range h.pawnCorrectionHistory[i] {
+			h.pawnCorrectionHistory[i][j] = 0
 		}
 	}
-	for i := range nonPawnCorrectionHistory {
-		for j := range nonPawnCorrectionHistory[i] {
-			nonPawnCorrectionHistory[i][j] = 0
+	for i := range h.nonPawnCorrectionHistory {
+		for j := range h.nonPawnCorrectionHistory[i] {
+			h.nonPawnCorrectionHistory[i][j] = 0
 		}
 	}
-	for i := range minorCorrectionHistory {
-		for j := range minorCorrectionHistory[i] {
-			minorCorrectionHistory[i][j] = 0
+	for i := range h.minorCorrectionHistory {
+		for j := range h.minorCorrectionHistory[i] {
+			h.minorCorrectionHistory[i][j] = 0
 		}
 	}
-	for i := range captureHistory {
-		for j := range captureHistory[i] {
-			for k := range captureHistory[i][j] {
-				captureHistory[i][j][k] = 0
+	for i := range h.captureHistory {
+		for j := range h.captureHistory[i] {
+			for k := range h.captureHistory[i][j] {
+				h.captureHistory[i][j][k] = 0
 			}
 		}
 	}
 }
 
 // UpdateKillerMoves stores a move that caused a beta cutoff as a killer move at the node's ply
-func UpdateKillerMoves(move Move, ply int) {
+func (h *workerHistory) UpdateKillerMoves(move Move, ply int) {
 	// Only store quiet moves as killer moves
 	if !move.IsCapture() && move.PromoType() == NoType && ply >= 0 && ply < MaximumDepth {
 		// Check if this move is already stored as first killer
-		if killerMoves[ply][0] == move {
+		if h.killerMoves[ply][0] == move {
 			return
 		}
 
 		// Shift moves down: second killer becomes first, new move becomes second
-		killerMoves[ply][1] = killerMoves[ply][0]
-		killerMoves[ply][0] = move
+		h.killerMoves[ply][1] = h.killerMoves[ply][0]
+		h.killerMoves[ply][0] = move
 	}
 }
 
 // IsKillerMove checks if a move is a killer move at the given ply
-func IsKillerMove(move Move, ply int) bool {
+func (h *workerHistory) IsKillerMove(move Move, ply int) bool {
 	if ply < 0 || ply >= MaximumDepth {
 		return false
 	}
-	return killerMoves[ply][0] == move || killerMoves[ply][1] == move
+	return h.killerMoves[ply][0] == move || h.killerMoves[ply][1] == move
 }
 
 // ClearKillerMoves resets the killer moves table
-func ClearKillerMoves() {
-	for i := range killerMoves {
-		killerMoves[i][0] = EmptyMove
-		killerMoves[i][1] = EmptyMove
+func (h *workerHistory) ClearKillerMoves() {
+	for i := range h.killerMoves {
+		h.killerMoves[i][0] = EmptyMove
+		h.killerMoves[i][1] = EmptyMove
 	}
 }
 
 // UpdateCounterMove stores a move as the best counter to the given previous move
-func UpdateCounterMove(counterMove Move, previousMove Move) {
+func (h *workerHistory) UpdateCounterMove(counterMove Move, previousMove Move) {
 	// Only store quiet moves as counter moves
 	if !counterMove.IsCapture() && counterMove.PromoType() == NoType && previousMove != EmptyMove {
 		from := previousMove.Source()
 		to := previousMove.Destination()
-		counterMoves[from][to] = counterMove
+		h.counterMoves[from][to] = counterMove
 	}
 }
 
 // GetCounterMove returns the counter move for the given previous move
-func GetCounterMove(previousMove Move) Move {
+func (h *workerHistory) GetCounterMove(previousMove Move) Move {
 	if previousMove == EmptyMove {
 		return EmptyMove
 	}
 	from := previousMove.Source()
 	to := previousMove.Destination()
-	return counterMoves[from][to]
+	return h.counterMoves[from][to]
 }
 
 // IsCounterMove checks if a move is the counter move to the previous move
-func IsCounterMove(move Move, previousMove Move) bool {
-	return GetCounterMove(previousMove) == move && move != EmptyMove
+func (h *workerHistory) IsCounterMove(move Move, previousMove Move) bool {
+	return h.GetCounterMove(previousMove) == move && move != EmptyMove
 }
 
 // SetLastMovePlayed sets the last move played for counter move heuristic
-func SetLastMovePlayed(move Move) {
-	lastMovePlayed = move
+func (h *workerHistory) SetLastMovePlayed(move Move) {
+	h.lastMovePlayed = move
 }
 
 // GetLastMovePlayed returns the last move played
-func GetLastMovePlayed() Move {
-	return lastMovePlayed
+func (h *workerHistory) GetLastMovePlayed() Move {
+	return h.lastMovePlayed
 }
 
 // ClearCounterMoves resets the counter moves table
-func ClearCounterMoves() {
-	for i := range counterMoves {
-		for j := range counterMoves[i] {
-			counterMoves[i][j] = EmptyMove
+func (h *workerHistory) ClearCounterMoves() {
+	for i := range h.counterMoves {
+		for j := range h.counterMoves[i] {
+			h.counterMoves[i][j] = EmptyMove
 		}
 	}
-	lastMovePlayed = EmptyMove
+	h.lastMovePlayed = EmptyMove
 }
 
 // Single-pass move ordering with enhanced SEE integration
 // Orders moves in one pass using scores, with captures ordered by SEE value
-func orderMovesSinglePass(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, pos *Position) []Move {
+func (h *workerHistory) orderMovesSinglePass(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, pos *Position) []Move {
 	if len(moves) == 0 {
 		return moves
 	}
 
 	// Use zero-allocation buffer version internally
 	var buffer [256]Move
-	count := orderMovesSinglePassIntoBuffer(moves, depth, previousMove, ttMove, ttHit, buffer[:], pos)
+	count := h.orderMovesSinglePassIntoBuffer(moves, depth, previousMove, ttMove, ttHit, buffer[:], pos)
 
 	// Return a copy of the ordered moves (only allocation, but tests need owned slice)
 	result := make([]Move, count)
@@ -461,10 +448,10 @@ func orderMovesSinglePass(moves []Move, depth int, previousMove Move, ttMove Mov
 
 // Zero-allocation single-pass ordering into caller-provided buffer. Scores every move then
 // fully sorts; used at the root and wherever the entire ordered list is consumed.
-func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, pos *Position) int {
+func (h *workerHistory) orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, pos *Position) int {
 	// Use a fixed-size array for scoring to avoid allocations
 	var scores [256]int
-	n, _ := scoreMovesIntoBuffer(moves, depth, previousMove, EmptyMove, ttMove, ttHit, out, scores[:], pos, false)
+	n, _ := h.scoreMovesIntoBuffer(moves, depth, previousMove, EmptyMove, ttMove, ttHit, out, scores[:], pos, false)
 	for i := 0; i < n-1; i++ {
 		selectNextMove(out, scores[:], n, i)
 	}
@@ -486,8 +473,8 @@ func captureOrderScoreParts(seeValue, chScore int) int {
 }
 
 // captureOrderScore is the eager form: both parts read at scoring time.
-func captureOrderScore(pos *Position, move Move) int {
-	return captureOrderScoreParts(staticExchangeEvaluation(pos, move), captureHistoryScore(move)/8)
+func (h *workerHistory) captureOrderScore(pos *Position, move Move) int {
+	return captureOrderScoreParts(staticExchangeEvaluation(pos, move), h.captureHistoryScore(move)/8)
 }
 
 // unscoredCaptureBase marks a capture whose SEE swap loop was deferred (lazySEE).
@@ -519,7 +506,7 @@ func materializeCaptureScores(out []Move, scores []int, n int, pos *Position) {
 // O(n^2) selection tail past a beta cutoff is never paid. Returns the number of moves written
 // and the index of the TT move within out[] (or -1 if absent), so the caller can hoist it to
 // the front in O(1) rather than rescanning for it in selectNextMove(oi=0).
-func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, prev2 Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position, lazySEE bool) (int, int) {
+func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, prev2 Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position, lazySEE bool) (int, int) {
 	n := len(moves)
 	if n == 0 || len(out) < n || len(scores) < n {
 		return 0, -1
@@ -532,12 +519,12 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, prev2 Move
 	usePrev := previousMove != EmptyMove
 	var contHist *[13][64]int
 	if usePrev {
-		contHist = &continuationHistory[previousMove.MovingPiece()][previousMove.Destination()]
+		contHist = &h.continuationHistory[previousMove.MovingPiece()][previousMove.Destination()]
 	}
 	usePrev2 := prev2 != EmptyMove
 	var fuHist *[13][64]int
 	if usePrev2 {
-		fuHist = &followupHistory[prev2.MovingPiece()][prev2.Destination()]
+		fuHist = &h.followupHistory[prev2.MovingPiece()][prev2.Destination()]
 	}
 
 	// Hoist the loop-invariant counter move and killer slots out of the per-move loop.
@@ -546,11 +533,11 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, prev2 Move
 	// table (with its bounds check) every iteration. EmptyMove never matches a real
 	// generated quiet move, so the guards below are bit-identical to IsCounterMove /
 	// IsKillerMove.
-	counterMove := GetCounterMove(previousMove)
+	counterMove := h.GetCounterMove(previousMove)
 	var killer0, killer1 Move
 	if depth >= 0 && depth < MaximumDepth {
-		killer0 = killerMoves[depth][0]
-		killer1 = killerMoves[depth][1]
+		killer0 = h.killerMoves[depth][0]
+		killer1 = h.killerMoves[depth][1]
 	}
 
 	// Single pass: score all moves. Record where the TT move lands so the caller can hoist
@@ -574,9 +561,9 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, prev2 Move
 					// tie-breaker is read NOW (the table mutates as earlier moves'
 					// subtrees are searched; a deferred read would not be
 					// node-identical) and parked in the sentinel band.
-					score = unscoredCaptureBase + captureHistoryScore(move)/8
+					score = unscoredCaptureBase + h.captureHistoryScore(move)/8
 				} else {
-					score = captureOrderScore(pos, move)
+					score = h.captureOrderScore(pos, move)
 				}
 			} else if move.PromoType() != NoType {
 				promoWeight := int(GetPiece(move.PromoType(), move.MovingPiece().Color()).Weight())
@@ -614,7 +601,7 @@ func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, prev2 Move
 				// would return 0) is always false here — identical result.
 				piece := move.MovingPiece()
 				to := move.Destination()
-				hs := historyTable[piece][to]
+				hs := h.historyTable[piece][to]
 				if usePrev {
 					hs += contHist[piece][to]
 				}
@@ -652,32 +639,136 @@ func selectNextMove(out []Move, scores []int, n, i int) {
 	}
 }
 
-func orderMoves(moves []Move, pos *Position) []Move {
-	return orderMovesWithDepth(moves, 0, pos)
+func (h *workerHistory) orderMoves(moves []Move, pos *Position) []Move {
+	return h.orderMovesWithDepth(moves, 0, pos)
 }
 
-func orderMovesWithDepth(moves []Move, depth int, pos *Position) []Move {
-	return orderMovesWithDepthAndPrevious(moves, depth, GetLastMovePlayed(), pos)
+func (h *workerHistory) orderMovesWithDepth(moves []Move, depth int, pos *Position) []Move {
+	return h.orderMovesWithDepthAndPrevious(moves, depth, h.GetLastMovePlayed(), pos)
 }
 
-func orderMovesWithDepthAndTTMove(moves []Move, depth int, ttMove Move, ttHit bool, pos *Position) []Move {
-	return orderMovesWithDepthPreviousAndTTMove(moves, depth, GetLastMovePlayed(), ttMove, ttHit, pos)
+func (h *workerHistory) orderMovesWithDepthAndTTMove(moves []Move, depth int, ttMove Move, ttHit bool, pos *Position) []Move {
+	return h.orderMovesWithDepthPreviousAndTTMove(moves, depth, h.GetLastMovePlayed(), ttMove, ttHit, pos)
 }
 
-func orderMovesWithDepthPreviousAndTTMove(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, pos *Position) []Move {
-	return orderMovesSinglePass(moves, depth, previousMove, ttMove, ttHit, pos)
+func (h *workerHistory) orderMovesWithDepthPreviousAndTTMove(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, pos *Position) []Move {
+	return h.orderMovesSinglePass(moves, depth, previousMove, ttMove, ttHit, pos)
 }
 
 // Zero-allocation ordering into caller-provided buffer
 // Returns number of moves written to out (equals len(moves))
+func (h *workerHistory) orderMovesIntoBufferWithDepthPreviousAndTTMove(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, pos *Position) int {
+	return h.orderMovesSinglePassIntoBuffer(moves, depth, previousMove, ttMove, ttHit, out, pos)
+}
+
+func (h *workerHistory) orderMovesIntoBufferWithDepth(moves []Move, depth int, out []Move, pos *Position) int {
+	return h.orderMovesIntoBufferWithDepthPreviousAndTTMove(moves, depth, h.GetLastMovePlayed(), EmptyMove, false, out, pos)
+}
+
+func (h *workerHistory) orderMovesWithDepthAndPrevious(moves []Move, depth int, previousMove Move, pos *Position) []Move {
+	return h.orderMovesWithDepthPreviousAndTTMove(moves, depth, previousMove, EmptyMove, false, pos)
+}
+
+// Compatibility wrappers retain the package API and its single default heuristic
+// lifetime. Search hot paths use their SearchInfo owner directly.
+func correctionValue(stm Color, idx int) int {
+	return defaultSearchEngine.history.correctionValue(stm, idx)
+}
+func correctedStandPat(pos *Position) int {
+	return defaultSearchEngine.history.correctedStandPat(pos)
+}
+func updatePawnCorrection(stm Color, idx, diff, depth int) {
+	defaultSearchEngine.history.updatePawnCorrection(stm, idx, diff, depth)
+}
+func maybeUpdatePawnCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
+	defaultSearchEngine.history.maybeUpdatePawnCorrection(stm, idx, staticEval, bestScore, beta, depth, bestMove, inCheck)
+}
+func nonPawnCorrectionValue(stm Color, idx int) int {
+	return defaultSearchEngine.history.nonPawnCorrectionValue(stm, idx)
+}
+func updateNonPawnCorrection(stm Color, idx, diff, depth int) {
+	defaultSearchEngine.history.updateNonPawnCorrection(stm, idx, diff, depth)
+}
+func maybeUpdateNonPawnCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
+	defaultSearchEngine.history.maybeUpdateNonPawnCorrection(stm, idx, staticEval, bestScore, beta, depth, bestMove, inCheck)
+}
+func minorCorrectionValue(stm Color, idx int) int {
+	return defaultSearchEngine.history.minorCorrectionValue(stm, idx)
+}
+func updateMinorCorrection(stm Color, idx, diff, depth int) {
+	defaultSearchEngine.history.updateMinorCorrection(stm, idx, diff, depth)
+}
+func maybeUpdateMinorCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
+	defaultSearchEngine.history.maybeUpdateMinorCorrection(stm, idx, staticEval, bestScore, beta, depth, bestMove, inCheck)
+}
+func UpdateHistoryTable(move Move, prevMove Move, prev2 Move, depth int) {
+	defaultSearchEngine.history.UpdateHistoryTable(move, prevMove, prev2, depth)
+}
+func PenalizeHistoryTable(move Move, prevMove Move, prev2 Move, depth int) {
+	defaultSearchEngine.history.PenalizeHistoryTable(move, prevMove, prev2, depth)
+}
+func GetHistoryScore(move Move, prevMove Move, prev2 Move) int {
+	return defaultSearchEngine.history.GetHistoryScore(move, prevMove, prev2)
+}
+func captureHistoryScore(move Move) int {
+	return defaultSearchEngine.history.captureHistoryScore(move)
+}
+func UpdateCaptureHistory(move Move, depth int) {
+	defaultSearchEngine.history.UpdateCaptureHistory(move, depth)
+}
+func PenalizeCaptureHistory(move Move, depth int) {
+	defaultSearchEngine.history.PenalizeCaptureHistory(move, depth)
+}
+func ClearHistoryTable() { defaultSearchEngine.ClearHistoryTable() }
+func UpdateKillerMoves(move Move, ply int) {
+	defaultSearchEngine.history.UpdateKillerMoves(move, ply)
+}
+func IsKillerMove(move Move, ply int) bool {
+	return defaultSearchEngine.history.IsKillerMove(move, ply)
+}
+func ClearKillerMoves() { defaultSearchEngine.ClearKillerMoves() }
+func UpdateCounterMove(counterMove Move, previousMove Move) {
+	defaultSearchEngine.history.UpdateCounterMove(counterMove, previousMove)
+}
+func GetCounterMove(previousMove Move) Move {
+	return defaultSearchEngine.history.GetCounterMove(previousMove)
+}
+func IsCounterMove(move Move, previousMove Move) bool {
+	return defaultSearchEngine.history.IsCounterMove(move, previousMove)
+}
+func SetLastMovePlayed(move Move) { defaultSearchEngine.SetLastMovePlayed(move) }
+func GetLastMovePlayed() Move     { return defaultSearchEngine.GetLastMovePlayed() }
+func ClearCounterMoves()          { defaultSearchEngine.ClearCounterMoves() }
+func orderMovesSinglePass(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, pos *Position) []Move {
+	return defaultSearchEngine.history.orderMovesSinglePass(moves, depth, previousMove, ttMove, ttHit, pos)
+}
+func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, pos *Position) int {
+	return defaultSearchEngine.history.orderMovesSinglePassIntoBuffer(moves, depth, previousMove, ttMove, ttHit, out, pos)
+}
+func captureOrderScore(pos *Position, move Move) int {
+	return defaultSearchEngine.history.captureOrderScore(pos, move)
+}
+func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, prev2 Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position, lazySEE bool) (int, int) {
+	return defaultSearchEngine.history.scoreMovesIntoBuffer(moves, depth, previousMove, prev2, ttMove, ttHit, out, scores, pos, lazySEE)
+}
+func orderMoves(moves []Move, pos *Position) []Move {
+	return defaultSearchEngine.history.orderMoves(moves, pos)
+}
+func orderMovesWithDepth(moves []Move, depth int, pos *Position) []Move {
+	return defaultSearchEngine.history.orderMovesWithDepth(moves, depth, pos)
+}
+func orderMovesWithDepthAndTTMove(moves []Move, depth int, ttMove Move, ttHit bool, pos *Position) []Move {
+	return defaultSearchEngine.history.orderMovesWithDepthAndTTMove(moves, depth, ttMove, ttHit, pos)
+}
+func orderMovesWithDepthPreviousAndTTMove(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, pos *Position) []Move {
+	return defaultSearchEngine.history.orderMovesWithDepthPreviousAndTTMove(moves, depth, previousMove, ttMove, ttHit, pos)
+}
 func orderMovesIntoBufferWithDepthPreviousAndTTMove(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, pos *Position) int {
-	return orderMovesSinglePassIntoBuffer(moves, depth, previousMove, ttMove, ttHit, out, pos)
+	return defaultSearchEngine.history.orderMovesIntoBufferWithDepthPreviousAndTTMove(moves, depth, previousMove, ttMove, ttHit, out, pos)
 }
-
 func orderMovesIntoBufferWithDepth(moves []Move, depth int, out []Move, pos *Position) int {
-	return orderMovesIntoBufferWithDepthPreviousAndTTMove(moves, depth, GetLastMovePlayed(), EmptyMove, false, out, pos)
+	return defaultSearchEngine.history.orderMovesIntoBufferWithDepth(moves, depth, out, pos)
 }
-
 func orderMovesWithDepthAndPrevious(moves []Move, depth int, previousMove Move, pos *Position) []Move {
-	return orderMovesWithDepthPreviousAndTTMove(moves, depth, previousMove, EmptyMove, false, pos)
+	return defaultSearchEngine.history.orderMovesWithDepthAndPrevious(moves, depth, previousMove, pos)
 }

@@ -30,6 +30,7 @@ func TestF1FutilityFalseDraw(t *testing.T) {
 	var seeGains [32]int
 	info := &SearchInfo{
 		control:       &defaultSearchEngine.control,
+		history:       &defaultSearchEngine.history,
 		Depth:         3,
 		BestMove:      EmptyMove,
 		BestScore:     -INFINITY,
