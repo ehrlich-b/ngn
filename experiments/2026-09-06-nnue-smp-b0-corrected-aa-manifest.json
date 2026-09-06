@@ -3,7 +3,7 @@
   "status": "APPROVED_TO_RUN",
   "purpose": "Strict 200-game paired A/A control for corrected B0 (fb00814 plus reviewed reporting-only PV repair); pipeline evidence, not an engine-strength claim.",
   "approval": {
-    "authority": "root reviewed source and terminal diagnostic; ongoing user-authorized WSL goal",
+    "authority": "root",
     "token": "root-approved-corrected-b0-aa-200-20260906-v1",
     "exclusive_match_window": true,
     "time_utc": "2026-09-06T04:19:21.908700+00:00",
@@ -11,7 +11,8 @@
     "verified_path_sha_objects": 23,
     "verified_reporting_inputs": 2,
     "compute_preflight": [],
-    "agents": "M2 integration, M3 approved diagnostics, NNUE smoke and exact T80 transfer terminal; all agents hold computation"
+    "agents": "M2 integration, M3 approved diagnostics, NNUE smoke and exact T80 transfer terminal; all agents hold computation",
+    "review_basis": "root reviewed source and terminal diagnostic; ongoing user-authorized WSL goal"
   },
   "inputs": {
     "engine": {
@@ -242,8 +243,8 @@
       "--approval-token",
       "<TOKEN_FROM_APPROVED_MANIFEST>"
     ],
-    "stdout": "/home/ehrli/repos/ngn-next/output/nnue-smp-b0-pv-corrected-20260905/aa-200-tc30.supervisor.stdout",
-    "stderr": "/home/ehrli/repos/ngn-next/output/nnue-smp-b0-pv-corrected-20260905/aa-200-tc30.supervisor.stderr",
+    "stdout": "/home/ehrli/repos/ngn-next/output/nnue-smp-b0-pv-corrected-20260905/aa-200-tc30.supervisor-v2.stdout",
+    "stderr": "/home/ehrli/repos/ngn-next/output/nnue-smp-b0-pv-corrected-20260905/aa-200-tc30.supervisor-v2.stderr",
     "background": true
   },
   "book_and_environment_policy": {
