@@ -952,7 +952,8 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 // transposition table from the current position. firstMove is applied at the
 // root (since the iterative-deepening root loop doesn't write a TT entry there);
 // subsequent moves are read from Exact (PV) TT entries until a miss, a
-// non-Exact bound, an illegal move, a cycle, or maxLength is reached.
+// non-Exact bound, an illegal move, a terminal position, or maxLength is reached.
+// A move that creates the terminal position remains in the returned PV.
 //
 // The position is mutated during the walk and restored before return. Caller
 // must run this only after a search iteration has completed (no concurrent
@@ -969,6 +970,32 @@ func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
 	}
 	pv := make([]Move, 0, maxLength)
 	undoStack := make([]undoEntry, 0, maxLength)
+	defer func() {
+		for i := len(undoStack) - 1; i >= 0; i-- {
+			e := undoStack[i]
+			pos.UnMakeMove(e.move, e.tag, e.ep, e.hc)
+		}
+	}()
+
+	// Search MakeMove deliberately does not touch the game-history map. Take a
+	// private count snapshot instead: the PV walk must account for occurrences
+	// before the root without mutating Positions or copying its live mutex.
+	pos.positionsMutex.RLock()
+	repetitions := make(map[uint64]int, len(pos.Positions)+maxLength)
+	for hash, count := range pos.Positions {
+		repetitions[hash] = count
+	}
+	pos.positionsMutex.RUnlock()
+	rootHash := pos.Hash()
+	if repetitions[rootHash] == 0 {
+		repetitions[rootHash] = 1
+	}
+	// A supplied best move cannot cross a game boundary that already exists at
+	// the root. Check only draw predicates here: successful first-move
+	// validation below already proves that the root is not mate or stalemate.
+	if pvDrawTerminal(pos, repetitions[rootHash]) {
+		return nil
+	}
 
 	apply := func(m Move) bool {
 		legal := false
@@ -994,14 +1021,9 @@ func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
 		return nil
 	}
 
-	seen := make(map[uint64]struct{}, maxLength)
-	for len(pv) < maxLength {
-		hash := pos.Hash()
-		if _, exists := seen[hash]; exists {
-			break
-		}
-		seen[hash] = struct{}{}
-
+	hash := pos.Hash()
+	repetitions[hash]++
+	for !pvPositionTerminal(pos, repetitions[hash]) && len(pv) < maxLength {
 		ttMove, _, _, ttNodeType, ttHit, _ := TranspositionTable.Get(hash)
 		if !ttHit || ttMove == EmptyMove || ttNodeType != Exact {
 			break
@@ -1009,13 +1031,26 @@ func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
 		if !apply(ttMove) {
 			break
 		}
+		hash = pos.Hash()
+		repetitions[hash]++
 	}
 
-	for i := len(undoStack) - 1; i >= 0; i-- {
-		e := undoStack[i]
-		pos.UnMakeMove(e.move, e.tag, e.ep, e.hc)
-	}
 	return pv
+}
+
+// pvPositionTerminal applies game boundaries while reconstructing reported PVs.
+// Repetition uses the walker's private history snapshot; IsDraw supplies the
+// engine's existing insufficient-material rule, while the explicit >= 100 check
+// matches the FIDE fifty-move boundary (IsDraw historically uses > 100).
+func pvPositionTerminal(pos *Position, repetitionCount int) bool {
+	if !pos.HasLegalMove() {
+		return true
+	}
+	return pvDrawTerminal(pos, repetitionCount)
+}
+
+func pvDrawTerminal(pos *Position, repetitionCount int) bool {
+	return repetitionCount >= 3 || pos.HalfMoveClock >= 100 || pos.IsDraw()
 }
 
 // SearchFixed runs a single fixed-depth search and is a DIAGNOSTIC instrument
