@@ -45,7 +45,14 @@ func (m *Model) Evaluate(position Position) (int64, error) {
 		}
 	}
 
-	us := int(position.SideToMove)
+	return m.evaluateAccumulators(&accumulators, position.SideToMove), nil
+}
+
+func (m *Model) evaluateAccumulators(
+	accumulators *[PerspectiveCount][HiddenSize]int64,
+	sideToMove Color,
+) int64 {
+	us := int(sideToMove)
 	them := us ^ 1
 	var dot int64
 	for hidden := 0; hidden < HiddenSize; hidden++ {
@@ -55,7 +62,7 @@ func (m *Model) Evaluate(position Position) (int64, error) {
 
 	value := dot / QA
 	value += int64(m.outputBias)
-	return value * ScoreScale / (QA * QB), nil
+	return value * ScoreScale / (QA * QB)
 }
 
 func squareClipped(value int64) int64 {

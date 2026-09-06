@@ -56,10 +56,14 @@ func FeatureIndex(piece PieceOnSquare, perspective Color) (int, error) {
 		return 0, fmt.Errorf("%w: square %d", ErrFormat, piece.Square)
 	}
 
+	return featureIndexUnchecked(piece, perspective), nil
+}
+
+func featureIndexUnchecked(piece PieceOnSquare, perspective Color) int {
 	relativeColor := int(piece.Color ^ perspective)
 	relativeSquare := int(piece.Square)
 	if perspective == Black {
 		relativeSquare ^= 56
 	}
-	return relativeColor*384 + int(piece.Piece)*64 + relativeSquare, nil
+	return relativeColor*384 + int(piece.Piece)*64 + relativeSquare
 }
