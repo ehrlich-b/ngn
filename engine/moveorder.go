@@ -679,7 +679,7 @@ func correctedStandPat(pos *Position) int {
 	defer defaultSearchEngine.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	evaluator := defaultSearchEngine.prepareWorkerEvaluator(pos, generation)
+	evaluator := defaultSearchEngine.mustPreparePrimaryEvaluator(pos, generation)
 	return defaultSearchEngine.worker.history.correctedStandPat(pos, evaluator)
 }
 func updatePawnCorrection(stm Color, idx, diff, depth int) {

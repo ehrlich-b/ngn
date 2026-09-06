@@ -234,7 +234,7 @@ func TestNGNV1StopInsideSingularVerificationLeavesParentContext(t *testing.T) {
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	tt := searcher.prepareTTGeneration(generation)
-	evaluator := searcher.prepareWorkerEvaluator(pos, generation)
+	evaluator := searcher.mustPreparePrimaryEvaluator(pos, generation)
 	depth := SINGULAR_DEPTH
 	info := newN3CDirectSearchInfo(searcher, evaluator, tt, depth)
 	ttMove := adapterLegalMove(t, pos, "a1a8")
@@ -418,7 +418,7 @@ func TestNGNV1SingularVerificationRemakesAndRepushesNormally(t *testing.T) {
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	tt := searcher.prepareTTGeneration(generation)
-	evaluator := searcher.prepareWorkerEvaluator(pos, generation)
+	evaluator := searcher.mustPreparePrimaryEvaluator(pos, generation)
 	depth := SINGULAR_DEPTH
 	info := newN3CDirectSearchInfo(searcher, evaluator, tt, depth)
 	ttMove := adapterLegalMove(t, pos, "a1a8")

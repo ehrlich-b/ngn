@@ -18,50 +18,57 @@ func (e *SearchEngine) selectedEvaluatorModel(generation uint64) evaluatorModel 
 	return model
 }
 
-// prepareWorkerEvaluator runs under sessionMu and an HCE model-use lease.
-// Composite identity changes invalidate every evaluator-sensitive private
-// heuristic. Root PST accumulators are rebuilt by prepareHCEGeneration for both
-// backends because board make/unmake still uses process-global HCE tables.
-func (e *SearchEngine) prepareWorkerEvaluator(pos *Position, generation uint64) *workerEvaluator {
-	model := e.selectedEvaluatorModel(generation)
+// prepareWorkerEvaluator prepares one explicit worker against an already selected
+// immutable model. The caller holds the owning engine session lock and an HCE
+// model-use lease. Keeping the worker and model explicit lets pool construction
+// validate new workers off to the side before publishing a new immutable pool.
+func prepareWorkerEvaluator(worker *searchWorker, model evaluatorModel, pos *Position, generation uint64) (*workerEvaluator, error) {
 	var hce *hceEvaluator
 	if model.identity.backend == evaluatorBackendHCE {
-		hce = e.worker.prepareHCEGeneration(pos, generation)
+		hce = worker.prepareHCEGeneration(pos, generation)
 	} else {
 		// NNUE still needs the admitted process PST generation and an unconditional
 		// root accumulator rebuild, but it does not allocate the 16 MiB HCE cache.
-		if e.worker.hce != nil && e.worker.hce.seenGeneration != generation {
-			e.worker.hce.clearForGeneration(generation)
-			e.worker.history = workerHistory{}
+		if worker.hce != nil && worker.hce.seenGeneration != generation {
+			worker.hce.clearForGeneration(generation)
+			worker.history = workerHistory{}
 		}
 		if pos != nil {
 			pos.Board.recomputeAccumulator()
 		}
 	}
 	identity := model.identity
-	if e.worker.evaluatorIdentity != identity {
-		// A never-admitted zero-value/default-HCE receiver has no stale model
-		// state. Preserve history seeded through the legacy same-model setup path.
-		// An explicit selection prebuilds workerEvaluator, so its first admission
-		// still clears any state belonging to the prior/default backend.
-		if e.worker.evaluator != nil || e.worker.evaluatorIdentity.adapterRevision != 0 {
-			e.worker.history = workerHistory{}
+	if worker.evaluatorIdentity != identity {
+		// A never-admitted zero-value/default-HCE worker has no stale model state.
+		// Preserve history seeded through the legacy same-model setup path. An
+		// explicit selection prebuilds its evaluator, so first admission after a
+		// selection still clears state belonging to the prior/default backend.
+		if worker.evaluator != nil || worker.evaluatorIdentity.adapterRevision != 0 {
+			worker.history = workerHistory{}
 		}
-		e.worker.evaluatorIdentity = identity
+		worker.evaluatorIdentity = identity
 	}
-	if e.worker.evaluator == nil || e.worker.evaluator.Identity() != identity {
-		worker, err := model.newWorker(hce)
+	if worker.evaluator == nil || worker.evaluator.Identity() != identity {
+		evaluator, err := model.newWorker(hce)
 		if err != nil {
-			panic(fmt.Errorf("%w: construct admitted worker: %v", errWorkerEvaluator, err))
+			return nil, fmt.Errorf("%w: construct admitted worker: %v", errWorkerEvaluator, err)
 		}
-		e.worker.evaluator = worker
+		worker.evaluator = evaluator
 	}
 	if pos != nil {
-		if err := e.worker.evaluator.Reset(pos); err != nil {
-			panic(fmt.Errorf("%w: reset admitted worker: %v", errWorkerEvaluator, err))
+		if err := worker.evaluator.Reset(pos); err != nil {
+			return nil, fmt.Errorf("%w: reset admitted worker: %v", errWorkerEvaluator, err)
 		}
 	}
-	return e.worker.evaluator
+	return worker.evaluator, nil
+}
+
+func (e *SearchEngine) mustPreparePrimaryEvaluator(pos *Position, generation uint64) *workerEvaluator {
+	evaluator, err := prepareWorkerEvaluator(&e.worker, e.selectedEvaluatorModel(generation), pos, generation)
+	if err != nil {
+		panic(err)
+	}
+	return evaluator
 }
 
 // SelectHCEEvaluator transactionally selects the historical HCE backend for
@@ -162,6 +169,10 @@ func (e *SearchEngine) EvaluateSelected(pos *Position) (score int, backend strin
 		return 0, "", err
 	}
 	defer releaseHCEModelUse()
-	worker := e.prepareWorkerEvaluator(pos, generation)
+	model := e.selectedEvaluatorModel(generation)
+	worker, err := prepareWorkerEvaluator(&e.worker, model, pos, generation)
+	if err != nil {
+		return 0, "", err
+	}
 	return worker.SearchSTM(pos), evaluatorBackendName(worker.Identity().backend), nil
 }

@@ -20,9 +20,9 @@ func (c *SearchControl) StopRequested() bool  { return c.stopRequested.Load() }
 func (c *SearchControl) SetMaxNodes(n uint64) { c.maxNodes.Store(n) }
 func (c *SearchControl) MaxNodes() uint64     { return c.maxNodes.Load() }
 
-// searchWorker owns every mutable state family used by one search lane. M4a
-// extracts this lifetime without adding helper workers; SearchEngine still owns
-// exactly one persistent worker and retains the historical one-thread path.
+// searchWorker owns every mutable state family used by one search lane. Pool
+// configuration preserves these objects across idle width changes; this slice
+// still executes only the primary worker and retains the one-thread search path.
 type searchWorker struct {
 	control           SearchControl
 	history           workerHistory
@@ -31,14 +31,28 @@ type searchWorker struct {
 	evaluatorIdentity evaluatorModelIdentity
 }
 
-// SearchEngine owns one persistent worker, the cold evaluator selection, and
-// the total transposition-table allocation. It must not be copied after first
+// searchWorkerPool is an immutable publication snapshot. The slice and its
+// worker pointers never change after publication; the pointed-to worker state is
+// private to that worker. Stop and limit publication can therefore load one
+// stable snapshot without taking the search session lock.
+type searchWorkerPool struct {
+	workers []*searchWorker
+}
+
+func newSearchWorkerPool(workers []*searchWorker) *searchWorkerPool {
+	snapshot := append([]*searchWorker(nil), workers...)
+	return &searchWorkerPool{workers: snapshot}
+}
+
+// SearchEngine owns a persistent worker pool, the cold evaluator selection, and
+// one total transposition-table allocation. It must not be copied after first
 // use. Receiver lifecycle methods serialize through the final callback and are
 // intentionally non-reentrant there. Different receivers own independent
 // mutable state and may search concurrently under one immutable HCE generation.
 type SearchEngine struct {
 	sessionMu      sync.Mutex
 	worker         searchWorker
+	workerPool     atomic.Pointer[searchWorkerPool]
 	evaluatorModel evaluatorModel
 	tt             *Cache
 	hashMB         int
@@ -48,8 +62,10 @@ type SearchEngine struct {
 }
 
 const (
-	MinHashMB = 1
-	MaxHashMB = 1024
+	MinHashMB  = 1
+	MaxHashMB  = 1024
+	MinThreads = 1
+	MaxThreads = 64
 )
 
 func NewSearchEngine() *SearchEngine {
@@ -63,7 +79,106 @@ func NewSearchEngineWithHash(megabytes int) (*SearchEngine, error) {
 	if err := validateHashMB(megabytes); err != nil {
 		return nil, err
 	}
-	return &SearchEngine{hashMB: megabytes, ttMode: TTDirect}, nil
+	engine := &SearchEngine{hashMB: megabytes, ttMode: TTDirect}
+	engine.workerPool.Store(newSearchWorkerPool([]*searchWorker{&engine.worker}))
+	return engine, nil
+}
+
+func validateThreadCount(count int) error {
+	if count < MinThreads || count > MaxThreads {
+		return fmt.Errorf("Threads must be between %d and %d", MinThreads, MaxThreads)
+	}
+	return nil
+}
+
+func (e *SearchEngine) workerSnapshot() *searchWorkerPool {
+	return e.workerPool.Load()
+}
+
+func (e *SearchEngine) configuredWorkers() []*searchWorker {
+	if pool := e.workerSnapshot(); pool != nil {
+		return pool.workers
+	}
+	// Preserve useful zero-value SearchEngine behavior without publishing from
+	// a read-only operation. Constructors always install the normal snapshot.
+	return []*searchWorker{&e.worker}
+}
+
+// ThreadCount reports the atomically published pool width without taking the
+// session lock. Pool configuration itself is serialized as an idle operation.
+func (e *SearchEngine) ThreadCount() int {
+	if pool := e.workerSnapshot(); pool != nil {
+		return len(pool.workers)
+	}
+	return 1
+}
+
+// ConfigureThreads transactionally prepares a persistent worker pool while the
+// receiver is idle. It does not launch helper searches. Existing prefix workers
+// retain their evaluator caches and histories; the total Hash size remains one
+// engine-owned allocation. Crossing the one-worker boundary replaces an already
+// allocated TT so direct mode is used for one worker and synchronized mode for
+// multiple workers.
+func (e *SearchEngine) ConfigureThreads(count int) error {
+	if err := validateThreadCount(count); err != nil {
+		return err
+	}
+	e.sessionMu.Lock()
+	defer e.sessionMu.Unlock()
+	generation, err := acquireHCEModelUse()
+	if err != nil {
+		return err
+	}
+	defer releaseHCEModelUse()
+
+	current := e.configuredWorkers()
+	desiredMode := TTDirect
+	if count > 1 {
+		desiredMode = TTSynchronized
+	}
+	if len(current) == count && e.ttMode == desiredMode {
+		return nil
+	}
+
+	model := e.selectedEvaluatorModel(generation)
+	nextWorkers := make([]*searchWorker, count)
+	retained := len(current)
+	if retained > count {
+		retained = count
+	}
+	copy(nextWorkers, current[:retained])
+	for i := retained; i < count; i++ {
+		candidate := &searchWorker{}
+		candidate.control.SetMaxNodes(e.worker.control.MaxNodes())
+		if e.worker.control.StopRequested() {
+			candidate.control.RequestStop()
+		}
+		if _, err := prepareWorkerEvaluator(candidate, model, nil, generation); err != nil {
+			return err
+		}
+		nextWorkers[i] = candidate
+	}
+
+	modeChanged := e.ttMode != desiredMode
+	nextTT := e.tt
+	hashMB := e.hashMB
+	if hashMB == 0 {
+		hashMB = DEFAULT_CACHE_SIZE
+	}
+	if nextTT != nil && modeChanged {
+		nextTT = newCacheWithMode(hashMB, desiredMode)
+	}
+	nextPool := newSearchWorkerPool(nextWorkers)
+
+	e.hashMB = hashMB
+	e.tt = nextTT
+	e.ttMode = desiredMode
+	if nextTT != nil && modeChanged {
+		e.ttGeneration = generation
+		e.ttIdentity = model.identity
+	}
+	e.workerPool.Store(nextPool)
+	return nil
 }
 
 func validateHashMB(megabytes int) error {
@@ -194,27 +309,70 @@ func (e *SearchEngine) TTStore(hash uint64, move Move, eval int16, depth int8, n
 	e.prepareTTGeneration(generation).Set(hash, move, eval, depth, nodeType, ttPv)
 }
 
-// NewGame clears game-scoped search state while retaining same-generation HCE
-// full and pawn caches. A model mismatch still invalidates all evaluator and
-// heuristic state through prepareHCEGeneration.
+// NewGame clears game-scoped search state for every configured worker while
+// retaining same-generation HCE full and pawn caches. A model mismatch still
+// invalidates evaluator and heuristic state during worker preparation.
 func (e *SearchEngine) NewGame() {
 	e.sessionMu.Lock()
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	e.prepareTTGeneration(generation).Clear()
-	e.prepareWorkerEvaluator(nil, generation)
-	e.worker.history.ClearHistoryTable()
-	e.worker.history.ClearKillerMoves()
-	e.worker.history.ClearCounterMoves()
-	e.worker.history.SetLastMovePlayed(EmptyMove)
+	model := e.selectedEvaluatorModel(generation)
+	for _, worker := range e.configuredWorkers() {
+		if _, err := prepareWorkerEvaluator(worker, model, nil, generation); err != nil {
+			panic(err)
+		}
+		worker.history.ClearHistoryTable()
+		worker.history.ClearKillerMoves()
+		worker.history.ClearCounterMoves()
+		worker.history.SetLastMovePlayed(EmptyMove)
+	}
 }
 
-func (e *SearchEngine) RequestStop()         { e.worker.control.RequestStop() }
-func (e *SearchEngine) ClearStop()           { e.worker.control.ClearStop() }
-func (e *SearchEngine) StopRequested() bool  { return e.worker.control.StopRequested() }
-func (e *SearchEngine) SetMaxNodes(n uint64) { e.worker.control.SetMaxNodes(n) }
-func (e *SearchEngine) MaxNodes() uint64     { return e.worker.control.MaxNodes() }
+func (e *SearchEngine) RequestStop() {
+	if pool := e.workerSnapshot(); pool != nil {
+		for _, worker := range pool.workers {
+			worker.control.RequestStop()
+		}
+		return
+	}
+	e.worker.control.RequestStop()
+}
+
+func (e *SearchEngine) ClearStop() {
+	if pool := e.workerSnapshot(); pool != nil {
+		for _, worker := range pool.workers {
+			worker.control.ClearStop()
+		}
+		return
+	}
+	e.worker.control.ClearStop()
+}
+
+func (e *SearchEngine) StopRequested() bool {
+	if pool := e.workerSnapshot(); pool != nil {
+		for _, worker := range pool.workers {
+			if worker.control.StopRequested() {
+				return true
+			}
+		}
+		return false
+	}
+	return e.worker.control.StopRequested()
+}
+
+func (e *SearchEngine) SetMaxNodes(n uint64) {
+	if pool := e.workerSnapshot(); pool != nil {
+		for _, worker := range pool.workers {
+			worker.control.SetMaxNodes(n)
+		}
+		return
+	}
+	e.worker.control.SetMaxNodes(n)
+}
+
+func (e *SearchEngine) MaxNodes() uint64 { return e.worker.control.MaxNodes() }
 
 // prepareHCEGeneration runs only while sessionMu and a process-model use lease
 // are held. A changed generation invalidates every worker-private heuristic and
@@ -240,7 +398,7 @@ func (e *SearchEngine) ClearHistoryTable() {
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	e.prepareWorkerEvaluator(nil, generation)
+	e.mustPreparePrimaryEvaluator(nil, generation)
 	e.worker.history.ClearHistoryTable()
 }
 func (e *SearchEngine) ClearKillerMoves() {
@@ -248,7 +406,7 @@ func (e *SearchEngine) ClearKillerMoves() {
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	e.prepareWorkerEvaluator(nil, generation)
+	e.mustPreparePrimaryEvaluator(nil, generation)
 	e.worker.history.ClearKillerMoves()
 }
 func (e *SearchEngine) ClearCounterMoves() {
@@ -256,7 +414,7 @@ func (e *SearchEngine) ClearCounterMoves() {
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	e.prepareWorkerEvaluator(nil, generation)
+	e.mustPreparePrimaryEvaluator(nil, generation)
 	e.worker.history.ClearCounterMoves()
 }
 func (e *SearchEngine) SetLastMovePlayed(move Move) {
@@ -264,7 +422,7 @@ func (e *SearchEngine) SetLastMovePlayed(move Move) {
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	e.prepareWorkerEvaluator(nil, generation)
+	e.mustPreparePrimaryEvaluator(nil, generation)
 	e.worker.history.SetLastMovePlayed(move)
 }
 func (e *SearchEngine) GetLastMovePlayed() Move {
@@ -272,7 +430,7 @@ func (e *SearchEngine) GetLastMovePlayed() Move {
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	e.prepareWorkerEvaluator(nil, generation)
+	e.mustPreparePrimaryEvaluator(nil, generation)
 	return e.worker.history.GetLastMovePlayed()
 }
 
@@ -296,11 +454,11 @@ func (e *SearchEngine) SearchIterativeDeepening(pos *Position, maxDepth int, tim
 func (e *SearchEngine) SearchIterativeDeepeningWithCallback(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback) *SearchInfo {
 	e.sessionMu.Lock()
 	defer e.sessionMu.Unlock()
-	e.worker.control.ClearStop()
+	e.ClearStop()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	tt := e.prepareTTGeneration(generation)
-	evaluator := e.prepareWorkerEvaluator(pos, generation)
+	evaluator := e.mustPreparePrimaryEvaluator(pos, generation)
 	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback, &e.worker.control, &e.worker.history, evaluator, tt)
 }
 
@@ -314,18 +472,18 @@ func (e *SearchEngine) searchIterativeDeepeningPrepared(pos *Position, maxDepth 
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	tt := e.prepareTTGeneration(generation)
-	evaluator := e.prepareWorkerEvaluator(pos, generation)
+	evaluator := e.mustPreparePrimaryEvaluator(pos, generation)
 	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback, &e.worker.control, &e.worker.history, evaluator, tt)
 }
 
 func (e *SearchEngine) SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
 	e.sessionMu.Lock()
 	defer e.sessionMu.Unlock()
-	e.worker.control.ClearStop()
+	e.ClearStop()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	tt := e.prepareTTGeneration(generation)
-	evaluator := e.prepareWorkerEvaluator(pos, generation)
+	evaluator := e.mustPreparePrimaryEvaluator(pos, generation)
 	return searchFixedUnsafe(pos, depth, timeManager, &e.worker.control, &e.worker.history, evaluator, tt)
 }
 
