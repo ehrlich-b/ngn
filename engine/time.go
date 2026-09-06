@@ -70,6 +70,10 @@ type TimeManager struct {
 	// across rival moves (contested → extend it). Zero means "no completed
 	// iteration yet", which nodeEffortFactor maps to a neutral 1.0. Reset per move.
 	bestMoveNodeFraction float64
+
+	// now is injectable so admission-time accounting and setup expiry are
+	// deterministic in lifecycle tests. It is immutable while a manager is in use.
+	now func() time.Time
 }
 
 // GamePhase represents the current phase of the game
@@ -83,16 +87,30 @@ const (
 
 // NewTimeManager creates a new time manager
 func NewTimeManager() *TimeManager {
+	return newTimeManager(time.Now)
+}
+
+func newTimeManager(now func() time.Time) *TimeManager {
+	if now == nil {
+		now = time.Now
+	}
 	return &TimeManager{
 		timeControl:   FixedDepth,
 		emergencyTime: 100 * time.Millisecond, // Reserve 100ms
 		moveOverhead:  50 * time.Millisecond,  // 50ms overhead
+		now:           now,
 	}
 }
 
-// SetTimeControl configures the time manager for different time controls
+// SetTimeControl configures the time manager for different time controls.
 func (tm *TimeManager) SetTimeControl(params SearchParams, isWhite bool) {
-	tm.startTime = time.Now()
+	tm.SetTimeControlAt(params, isWhite, tm.nowTime())
+}
+
+// SetTimeControlAt configures a move whose clock began when go was received.
+// Setup and worker creation therefore consume the same budget as the search.
+func (tm *TimeManager) SetTimeControlAt(params SearchParams, isWhite bool, start time.Time) {
+	tm.startTime = start
 	tm.lastTimeCheck = tm.startTime
 	tm.shouldStop = false
 	tm.iterationStartTime = time.Time{} // Cleared until NewIteration is called
@@ -251,9 +269,9 @@ func (tm *TimeManager) NewIteration() {
 	// project the next one. NewIteration runs at the top of each ID depth, so when
 	// called for depth N the previous (N-1) iteration's elapsed is measured here.
 	if !tm.iterationStartTime.IsZero() {
-		tm.lastIterationTime = time.Since(tm.iterationStartTime)
+		tm.lastIterationTime = tm.nowTime().Sub(tm.iterationStartTime)
 	}
-	tm.iterationStartTime = time.Now()
+	tm.iterationStartTime = tm.nowTime()
 }
 
 // ReportCompletedIteration feeds the root's per-iteration signals to the time
@@ -364,7 +382,7 @@ func (tm *TimeManager) ShouldStopSearch(depth int) bool {
 
 	// Only do expensive time checking every 1024 calls (or immediately if we should stop)
 	if tm.shouldStop || tm.checkCounter%1024 == 0 {
-		now := time.Now()
+		now := tm.nowTime()
 		elapsed := now.Sub(tm.startTime)
 		tm.lastTimeCheck = now
 
@@ -535,7 +553,30 @@ func (tm *TimeManager) GetAllocatedTime() time.Duration {
 
 // GetElapsedTime returns the time elapsed since search started
 func (tm *TimeManager) GetElapsedTime() time.Duration {
-	return time.Since(tm.startTime)
+	return tm.nowTime().Sub(tm.startTime)
+}
+
+// SetupDeadlineExceeded is a direct, unrated hard-deadline check used around
+// pre-search setup. Fixed-depth and infinite searches have no wall-clock setup
+// deadline. Tournament setup uses the existing hard ceiling; it does not alter
+// the soft iteration policy.
+func (tm *TimeManager) SetupDeadlineExceeded() bool {
+	elapsed := tm.GetElapsedTime()
+	switch tm.timeControl {
+	case TimePerMove, FixedTime:
+		return elapsed >= tm.allocatedTime
+	case Tournament:
+		return elapsed >= tm.hardTime || tm.baseTime-elapsed <= tm.emergencyTime
+	default:
+		return false
+	}
+}
+
+func (tm *TimeManager) nowTime() time.Time {
+	if tm.now == nil {
+		return time.Now()
+	}
+	return tm.now()
 }
 
 // IsEmergencyTime returns true if we're in emergency time
@@ -544,7 +585,7 @@ func (tm *TimeManager) IsEmergencyTime() bool {
 		return false
 	}
 
-	elapsed := time.Since(tm.startTime)
+	elapsed := tm.nowTime().Sub(tm.startTime)
 	remaining := tm.baseTime - elapsed
 
 	return remaining <= tm.emergencyTime*2 // Emergency when 2x emergency time left
