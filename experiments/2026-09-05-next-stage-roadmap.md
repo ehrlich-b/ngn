@@ -81,4 +81,13 @@ Completed correctness/parity and concurrency checks; accepted NNUE gain; measure
 
 ## Implementation progress
 
-[WSL baseline](2026-09-05-wsl-baseline.md), [standalone NNUE N0](2026-09-05-nnue-n0-foundation.md), and [M0 stop/node ownership with exact one-thread parity](2026-09-05-smp-m0-control.md) are integrated. Helper search, trained NNUE, A/A and strength verdicts remain pending.
+As of September 6 on WSL:
+
+- Integrated: strict NNUE v1 format/scalar evaluator, independently checked incremental context, Bullet export bridge, private search control/history/HCE caches, and the reporting-only terminal PV repair.
+- Passed: bounded GPU/kernel/gradient/optimizer/export smoke, including an asymmetric perspective-swap rejection and exact integer Go parity. This establishes the training pipeline, not playing strength.
+- Current control: corrected B0 200-game A/A at30+0.3, concurrency8 on distinct physical cores, with exclusive compute access. The first launch was rejected before games because approval authority was not the required literal root; the corrected supervisor started successfully. The original failed pre-repair control remains separate.
+- Source work during the control: M3 receiver-owned/coherent TT and independent-engine tests; N3a NNUE delta adapter; deterministic T80 converter and independent verifier. Builds/training are held until the control finishes.
+- T80 payload downloaded on WSL and verified against exact10,809,713,086-byte size and SHA2560d22957b8d4f0f8e6f2913be7b744b2dab5178c3563e0f916312d0d94c28b92b. No real-data training verdict yet.
+- Still required: production NNUE score/transition wiring, the bounded real-data pilot, optimized inference, real Lazy SMP and lifecycle gates, isolated strength/scaling verdicts, longer-clock confirmation, matched Go-opponent games, and deployment.
+
+Current references: [HCE ownership](2026-09-06-hce-worker-ownership-m2.md), [GPU pipeline status](2026-09-06-nnue-toolchain-status.md), [PV repair](2026-09-06-pv-reporting-repair.md), [A/A manifest](2026-09-06-nnue-smp-b0-corrected-aa-manifest.json), and [proposed exact NNUE optimization slice](2026-09-06-nnue-simd-next-slice.md).
