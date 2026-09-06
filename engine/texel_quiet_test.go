@@ -101,9 +101,11 @@ func TestIsQuietPositionIsolatedFromSearchState(t *testing.T) {
 	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 	defaultSearchEngine.TTStore(pos.Hash(), EmptyMove, 1234, 0, Exact, false)
 	corrIndex := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
-	oldCorrection := defaultSearchEngine.history.pawnCorrectionHistory[pos.Turn()][corrIndex]
-	defaultSearchEngine.history.pawnCorrectionHistory[pos.Turn()][corrIndex] = 8192
-	defer func() { defaultSearchEngine.history.pawnCorrectionHistory[pos.Turn()][corrIndex] = oldCorrection }()
+	oldCorrection := defaultSearchEngine.worker.history.pawnCorrectionHistory[pos.Turn()][corrIndex]
+	defaultSearchEngine.worker.history.pawnCorrectionHistory[pos.Turn()][corrIndex] = 8192
+	defer func() {
+		defaultSearchEngine.worker.history.pawnCorrectionHistory[pos.Turn()][corrIndex] = oldCorrection
+	}()
 	RequestStop()
 
 	if got := IsQuietPosition(pos); !got {

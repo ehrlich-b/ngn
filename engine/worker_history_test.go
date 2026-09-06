@@ -46,7 +46,7 @@ func TestSearchEngineWorkerHistoryIsolation(t *testing.T) {
 	poisoned := NewSearchEngine()
 	cleanAfterPoison := NewSearchEngine()
 	cleanReference := NewSearchEngine()
-	fillWorkerCorrections(&poisoned.history, corrHistLimit)
+	fillWorkerCorrections(&poisoned.worker.history, corrHistLimit)
 
 	const fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 	poisonedResult := runWorkerSearchWithFreshTT(t, poisoned, fen, 3)
@@ -81,9 +81,9 @@ func TestUCIWorkerHistoryLifecycleIsolation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	first.searcher.history.UpdateCounterMove(counter, firstPrevious)
-	firstOrdered := first.searcher.history.orderMovesWithDepth(GenerateMoves(first.position), 0, first.position)
-	secondOrdered := second.searcher.history.orderMovesWithDepth(GenerateMoves(second.position), 0, second.position)
+	first.searcher.worker.history.UpdateCounterMove(counter, firstPrevious)
+	firstOrdered := first.searcher.worker.history.orderMovesWithDepth(GenerateMoves(first.position), 0, first.position)
+	secondOrdered := second.searcher.worker.history.orderMovesWithDepth(GenerateMoves(second.position), 0, second.position)
 	if len(firstOrdered) == 0 || firstOrdered[0] != counter {
 		t.Fatalf("first receiver did not prioritize its counter %s: %v", counter.ToString(), firstOrdered)
 	}

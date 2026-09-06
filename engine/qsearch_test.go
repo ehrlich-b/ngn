@@ -8,8 +8,8 @@ func newQSearchInfo() *SearchInfo {
 	var orderedBuffer [256]Move
 	var seeGains [32]int
 	return &SearchInfo{
-		control:       &defaultSearchEngine.control,
-		history:       &defaultSearchEngine.history,
+		control:       &defaultSearchEngine.worker.control,
+		history:       &defaultSearchEngine.worker.history,
 		evaluator:     testHCEWorkerEvaluator(nil),
 		tt:            defaultTTForDirectTest(),
 		MoveBuffer:    &moveBuffer,
@@ -186,7 +186,7 @@ func TestPawnCorrectionAppliedAtQsearchStandPat(t *testing.T) {
 
 	stm := pos.Turn()
 	idx := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
-	defaultSearchEngine.history.pawnCorrectionHistory[stm][idx] = corrHistLimit / 2 // poison the slot -> a clear, in-bounds non-zero correction
+	defaultSearchEngine.worker.history.pawnCorrectionHistory[stm][idx] = corrHistLimit / 2 // poison the slot -> a clear, in-bounds non-zero correction
 	corr := correctionValue(stm, idx)
 	if corr == 0 {
 		t.Fatal("test setup: poisoned correction must be non-zero")
@@ -217,7 +217,7 @@ func TestNonPawnCorrectionAppliedAtQsearchStandPat(t *testing.T) {
 
 	stm := pos.Turn()
 	idx := nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])
-	defaultSearchEngine.history.nonPawnCorrectionHistory[stm][idx] = corrHistLimit / 2 // poison the slot -> a clear, in-bounds non-zero correction
+	defaultSearchEngine.worker.history.nonPawnCorrectionHistory[stm][idx] = corrHistLimit / 2 // poison the slot -> a clear, in-bounds non-zero correction
 	corr := nonPawnCorrectionValue(stm, idx)
 	if corr == 0 {
 		t.Fatal("test setup: poisoned correction must be non-zero")
@@ -249,7 +249,7 @@ func TestMinorCorrectionAppliedAtQsearchStandPat(t *testing.T) {
 
 	stm := pos.Turn()
 	idx := minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
-	defaultSearchEngine.history.minorCorrectionHistory[stm][idx] = corrHistLimit / 2 // poison the slot -> a clear, in-bounds non-zero correction
+	defaultSearchEngine.worker.history.minorCorrectionHistory[stm][idx] = corrHistLimit / 2 // poison the slot -> a clear, in-bounds non-zero correction
 	corr := minorCorrectionValue(stm, idx)
 	if corr == 0 {
 		t.Fatal("test setup: poisoned correction must be non-zero")

@@ -27,11 +27,11 @@ func TestIterativeDeepeningDoesNotStopOnShallowCachedMateWithHistory(t *testing.
 	oldTT := defaultSearchEngine
 	oldMaxNodes := MaxNodes()
 	oldStop := IsStopRequested()
-	oldHistory := defaultSearchEngine.history.historyTable[poisoned.MovingPiece()][poisoned.Destination()]
+	oldHistory := defaultSearchEngine.worker.history.historyTable[poisoned.MovingPiece()][poisoned.Destination()]
 	defer func() {
 		defaultSearchEngine = oldTT
 		SetMaxNodes(oldMaxNodes)
-		defaultSearchEngine.history.historyTable[poisoned.MovingPiece()][poisoned.Destination()] = oldHistory
+		defaultSearchEngine.worker.history.historyTable[poisoned.MovingPiece()][poisoned.Destination()] = oldHistory
 		if oldStop {
 			RequestStop()
 		} else {
@@ -44,7 +44,7 @@ func TestIterativeDeepeningDoesNotStopOnShallowCachedMateWithHistory(t *testing.
 
 	// Root ordering does not probe the TT. Give the poisoned quiet move a test-only
 	// history score above every ordinary ordering band so it is searched first.
-	defaultSearchEngine.history.historyTable[poisoned.MovingPiece()][poisoned.Destination()] = 100000
+	defaultSearchEngine.worker.history.historyTable[poisoned.MovingPiece()][poisoned.Destination()] = 100000
 
 	ep, tag, hc, ok := pos.MakeMove(poisoned)
 	if !ok {

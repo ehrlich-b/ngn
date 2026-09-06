@@ -672,7 +672,7 @@ func (h *workerHistory) orderMovesWithDepthAndPrevious(moves []Move, depth int, 
 // Compatibility wrappers retain the package API and its single default heuristic
 // lifetime. Search hot paths use their SearchInfo owner directly.
 func correctionValue(stm Color, idx int) int {
-	return defaultSearchEngine.history.correctionValue(stm, idx)
+	return defaultSearchEngine.worker.history.correctionValue(stm, idx)
 }
 func correctedStandPat(pos *Position) int {
 	defaultSearchEngine.sessionMu.Lock()
@@ -680,100 +680,100 @@ func correctedStandPat(pos *Position) int {
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	evaluator := defaultSearchEngine.prepareWorkerEvaluator(pos, generation)
-	return defaultSearchEngine.history.correctedStandPat(pos, evaluator)
+	return defaultSearchEngine.worker.history.correctedStandPat(pos, evaluator)
 }
 func updatePawnCorrection(stm Color, idx, diff, depth int) {
-	defaultSearchEngine.history.updatePawnCorrection(stm, idx, diff, depth)
+	defaultSearchEngine.worker.history.updatePawnCorrection(stm, idx, diff, depth)
 }
 func maybeUpdatePawnCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
-	defaultSearchEngine.history.maybeUpdatePawnCorrection(stm, idx, staticEval, bestScore, beta, depth, bestMove, inCheck)
+	defaultSearchEngine.worker.history.maybeUpdatePawnCorrection(stm, idx, staticEval, bestScore, beta, depth, bestMove, inCheck)
 }
 func nonPawnCorrectionValue(stm Color, idx int) int {
-	return defaultSearchEngine.history.nonPawnCorrectionValue(stm, idx)
+	return defaultSearchEngine.worker.history.nonPawnCorrectionValue(stm, idx)
 }
 func updateNonPawnCorrection(stm Color, idx, diff, depth int) {
-	defaultSearchEngine.history.updateNonPawnCorrection(stm, idx, diff, depth)
+	defaultSearchEngine.worker.history.updateNonPawnCorrection(stm, idx, diff, depth)
 }
 func maybeUpdateNonPawnCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
-	defaultSearchEngine.history.maybeUpdateNonPawnCorrection(stm, idx, staticEval, bestScore, beta, depth, bestMove, inCheck)
+	defaultSearchEngine.worker.history.maybeUpdateNonPawnCorrection(stm, idx, staticEval, bestScore, beta, depth, bestMove, inCheck)
 }
 func minorCorrectionValue(stm Color, idx int) int {
-	return defaultSearchEngine.history.minorCorrectionValue(stm, idx)
+	return defaultSearchEngine.worker.history.minorCorrectionValue(stm, idx)
 }
 func updateMinorCorrection(stm Color, idx, diff, depth int) {
-	defaultSearchEngine.history.updateMinorCorrection(stm, idx, diff, depth)
+	defaultSearchEngine.worker.history.updateMinorCorrection(stm, idx, diff, depth)
 }
 func maybeUpdateMinorCorrection(stm Color, idx, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
-	defaultSearchEngine.history.maybeUpdateMinorCorrection(stm, idx, staticEval, bestScore, beta, depth, bestMove, inCheck)
+	defaultSearchEngine.worker.history.maybeUpdateMinorCorrection(stm, idx, staticEval, bestScore, beta, depth, bestMove, inCheck)
 }
 func UpdateHistoryTable(move Move, prevMove Move, prev2 Move, depth int) {
-	defaultSearchEngine.history.UpdateHistoryTable(move, prevMove, prev2, depth)
+	defaultSearchEngine.worker.history.UpdateHistoryTable(move, prevMove, prev2, depth)
 }
 func PenalizeHistoryTable(move Move, prevMove Move, prev2 Move, depth int) {
-	defaultSearchEngine.history.PenalizeHistoryTable(move, prevMove, prev2, depth)
+	defaultSearchEngine.worker.history.PenalizeHistoryTable(move, prevMove, prev2, depth)
 }
 func GetHistoryScore(move Move, prevMove Move, prev2 Move) int {
-	return defaultSearchEngine.history.GetHistoryScore(move, prevMove, prev2)
+	return defaultSearchEngine.worker.history.GetHistoryScore(move, prevMove, prev2)
 }
 func captureHistoryScore(move Move) int {
-	return defaultSearchEngine.history.captureHistoryScore(move)
+	return defaultSearchEngine.worker.history.captureHistoryScore(move)
 }
 func UpdateCaptureHistory(move Move, depth int) {
-	defaultSearchEngine.history.UpdateCaptureHistory(move, depth)
+	defaultSearchEngine.worker.history.UpdateCaptureHistory(move, depth)
 }
 func PenalizeCaptureHistory(move Move, depth int) {
-	defaultSearchEngine.history.PenalizeCaptureHistory(move, depth)
+	defaultSearchEngine.worker.history.PenalizeCaptureHistory(move, depth)
 }
 func ClearHistoryTable() { defaultSearchEngine.ClearHistoryTable() }
 func UpdateKillerMoves(move Move, ply int) {
-	defaultSearchEngine.history.UpdateKillerMoves(move, ply)
+	defaultSearchEngine.worker.history.UpdateKillerMoves(move, ply)
 }
 func IsKillerMove(move Move, ply int) bool {
-	return defaultSearchEngine.history.IsKillerMove(move, ply)
+	return defaultSearchEngine.worker.history.IsKillerMove(move, ply)
 }
 func ClearKillerMoves() { defaultSearchEngine.ClearKillerMoves() }
 func UpdateCounterMove(counterMove Move, previousMove Move) {
-	defaultSearchEngine.history.UpdateCounterMove(counterMove, previousMove)
+	defaultSearchEngine.worker.history.UpdateCounterMove(counterMove, previousMove)
 }
 func GetCounterMove(previousMove Move) Move {
-	return defaultSearchEngine.history.GetCounterMove(previousMove)
+	return defaultSearchEngine.worker.history.GetCounterMove(previousMove)
 }
 func IsCounterMove(move Move, previousMove Move) bool {
-	return defaultSearchEngine.history.IsCounterMove(move, previousMove)
+	return defaultSearchEngine.worker.history.IsCounterMove(move, previousMove)
 }
 func SetLastMovePlayed(move Move) { defaultSearchEngine.SetLastMovePlayed(move) }
 func GetLastMovePlayed() Move     { return defaultSearchEngine.GetLastMovePlayed() }
 func ClearCounterMoves()          { defaultSearchEngine.ClearCounterMoves() }
 func orderMovesSinglePass(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, pos *Position) []Move {
-	return defaultSearchEngine.history.orderMovesSinglePass(moves, depth, previousMove, ttMove, ttHit, pos)
+	return defaultSearchEngine.worker.history.orderMovesSinglePass(moves, depth, previousMove, ttMove, ttHit, pos)
 }
 func orderMovesSinglePassIntoBuffer(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, pos *Position) int {
-	return defaultSearchEngine.history.orderMovesSinglePassIntoBuffer(moves, depth, previousMove, ttMove, ttHit, out, pos)
+	return defaultSearchEngine.worker.history.orderMovesSinglePassIntoBuffer(moves, depth, previousMove, ttMove, ttHit, out, pos)
 }
 func captureOrderScore(pos *Position, move Move) int {
-	return defaultSearchEngine.history.captureOrderScore(pos, move)
+	return defaultSearchEngine.worker.history.captureOrderScore(pos, move)
 }
 func scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, prev2 Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position, lazySEE bool) (int, int) {
-	return defaultSearchEngine.history.scoreMovesIntoBuffer(moves, depth, previousMove, prev2, ttMove, ttHit, out, scores, pos, lazySEE)
+	return defaultSearchEngine.worker.history.scoreMovesIntoBuffer(moves, depth, previousMove, prev2, ttMove, ttHit, out, scores, pos, lazySEE)
 }
 func orderMoves(moves []Move, pos *Position) []Move {
-	return defaultSearchEngine.history.orderMoves(moves, pos)
+	return defaultSearchEngine.worker.history.orderMoves(moves, pos)
 }
 func orderMovesWithDepth(moves []Move, depth int, pos *Position) []Move {
-	return defaultSearchEngine.history.orderMovesWithDepth(moves, depth, pos)
+	return defaultSearchEngine.worker.history.orderMovesWithDepth(moves, depth, pos)
 }
 func orderMovesWithDepthAndTTMove(moves []Move, depth int, ttMove Move, ttHit bool, pos *Position) []Move {
-	return defaultSearchEngine.history.orderMovesWithDepthAndTTMove(moves, depth, ttMove, ttHit, pos)
+	return defaultSearchEngine.worker.history.orderMovesWithDepthAndTTMove(moves, depth, ttMove, ttHit, pos)
 }
 func orderMovesWithDepthPreviousAndTTMove(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, pos *Position) []Move {
-	return defaultSearchEngine.history.orderMovesWithDepthPreviousAndTTMove(moves, depth, previousMove, ttMove, ttHit, pos)
+	return defaultSearchEngine.worker.history.orderMovesWithDepthPreviousAndTTMove(moves, depth, previousMove, ttMove, ttHit, pos)
 }
 func orderMovesIntoBufferWithDepthPreviousAndTTMove(moves []Move, depth int, previousMove Move, ttMove Move, ttHit bool, out []Move, pos *Position) int {
-	return defaultSearchEngine.history.orderMovesIntoBufferWithDepthPreviousAndTTMove(moves, depth, previousMove, ttMove, ttHit, out, pos)
+	return defaultSearchEngine.worker.history.orderMovesIntoBufferWithDepthPreviousAndTTMove(moves, depth, previousMove, ttMove, ttHit, out, pos)
 }
 func orderMovesIntoBufferWithDepth(moves []Move, depth int, out []Move, pos *Position) int {
-	return defaultSearchEngine.history.orderMovesIntoBufferWithDepth(moves, depth, out, pos)
+	return defaultSearchEngine.worker.history.orderMovesIntoBufferWithDepth(moves, depth, out, pos)
 }
 func orderMovesWithDepthAndPrevious(moves []Move, depth int, previousMove Move, pos *Position) []Move {
-	return defaultSearchEngine.history.orderMovesWithDepthAndPrevious(moves, depth, previousMove, pos)
+	return defaultSearchEngine.worker.history.orderMovesWithDepthAndPrevious(moves, depth, previousMove, pos)
 }

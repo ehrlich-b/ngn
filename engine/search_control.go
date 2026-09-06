@@ -20,24 +20,31 @@ func (c *SearchControl) StopRequested() bool  { return c.stopRequested.Load() }
 func (c *SearchControl) SetMaxNodes(n uint64) { c.maxNodes.Store(n) }
 func (c *SearchControl) MaxNodes() uint64     { return c.maxNodes.Load() }
 
-// SearchEngine owns one search control, persistent worker-history state, HCE
-// caches, and transposition table. It must not be copied after first use.
-// Receiver lifecycle methods serialize through the final callback and are
+// searchWorker owns every mutable state family used by one search lane. M4a
+// extracts this lifetime without adding helper workers; SearchEngine still owns
+// exactly one persistent worker and retains the historical one-thread path.
+type searchWorker struct {
+	control           SearchControl
+	history           workerHistory
+	hce               *hceEvaluator
+	evaluator         *workerEvaluator
+	evaluatorIdentity evaluatorModelIdentity
+}
+
+// SearchEngine owns one persistent worker, the cold evaluator selection, and
+// the total transposition-table allocation. It must not be copied after first
+// use. Receiver lifecycle methods serialize through the final callback and are
 // intentionally non-reentrant there. Different receivers own independent
 // mutable state and may search concurrently under one immutable HCE generation.
 type SearchEngine struct {
-	sessionMu         sync.Mutex
-	control           SearchControl
-	history           workerHistory
-	evaluator         *hceEvaluator
-	evaluatorModel    evaluatorModel
-	workerEvaluator   *workerEvaluator
-	evaluatorIdentity evaluatorModelIdentity
-	tt                *Cache
-	hashMB            int
-	ttMode            TTMode
-	ttGeneration      uint64
-	ttIdentity        evaluatorModelIdentity
+	sessionMu      sync.Mutex
+	worker         searchWorker
+	evaluatorModel evaluatorModel
+	tt             *Cache
+	hashMB         int
+	ttMode         TTMode
+	ttGeneration   uint64
+	ttIdentity     evaluatorModelIdentity
 }
 
 const (
@@ -197,35 +204,35 @@ func (e *SearchEngine) NewGame() {
 	defer releaseHCEModelUse()
 	e.prepareTTGeneration(generation).Clear()
 	e.prepareWorkerEvaluator(nil, generation)
-	e.history.ClearHistoryTable()
-	e.history.ClearKillerMoves()
-	e.history.ClearCounterMoves()
-	e.history.SetLastMovePlayed(EmptyMove)
+	e.worker.history.ClearHistoryTable()
+	e.worker.history.ClearKillerMoves()
+	e.worker.history.ClearCounterMoves()
+	e.worker.history.SetLastMovePlayed(EmptyMove)
 }
 
-func (e *SearchEngine) RequestStop()         { e.control.RequestStop() }
-func (e *SearchEngine) ClearStop()           { e.control.ClearStop() }
-func (e *SearchEngine) StopRequested() bool  { return e.control.StopRequested() }
-func (e *SearchEngine) SetMaxNodes(n uint64) { e.control.SetMaxNodes(n) }
-func (e *SearchEngine) MaxNodes() uint64     { return e.control.MaxNodes() }
+func (e *SearchEngine) RequestStop()         { e.worker.control.RequestStop() }
+func (e *SearchEngine) ClearStop()           { e.worker.control.ClearStop() }
+func (e *SearchEngine) StopRequested() bool  { return e.worker.control.StopRequested() }
+func (e *SearchEngine) SetMaxNodes(n uint64) { e.worker.control.SetMaxNodes(n) }
+func (e *SearchEngine) MaxNodes() uint64     { return e.worker.control.MaxNodes() }
 
 // prepareHCEGeneration runs only while sessionMu and a process-model use lease
 // are held. A changed generation invalidates every worker-private heuristic and
 // cache. Root accumulators are rebuilt unconditionally because any Position may
 // have been created under an older process-wide PST generation.
-func (e *SearchEngine) prepareHCEGeneration(pos *Position, generation uint64) *hceEvaluator {
-	if e.evaluator == nil {
-		// A new receiver has no stale private state to clear. Recording the current
+func (w *searchWorker) prepareHCEGeneration(pos *Position, generation uint64) *hceEvaluator {
+	if w.hce == nil {
+		// A new worker has no stale private state to clear. Recording the current
 		// generation avoids touching its large zeroed tables on first admission.
-		e.evaluator = &hceEvaluator{seenGeneration: generation}
-	} else if e.evaluator.seenGeneration != generation {
-		e.evaluator.clearForGeneration(generation)
-		e.history = workerHistory{}
+		w.hce = &hceEvaluator{seenGeneration: generation}
+	} else if w.hce.seenGeneration != generation {
+		w.hce.clearForGeneration(generation)
+		w.history = workerHistory{}
 	}
 	if pos != nil {
 		pos.Board.recomputeAccumulator()
 	}
-	return e.evaluator
+	return w.hce
 }
 
 func (e *SearchEngine) ClearHistoryTable() {
@@ -234,7 +241,7 @@ func (e *SearchEngine) ClearHistoryTable() {
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	e.prepareWorkerEvaluator(nil, generation)
-	e.history.ClearHistoryTable()
+	e.worker.history.ClearHistoryTable()
 }
 func (e *SearchEngine) ClearKillerMoves() {
 	e.sessionMu.Lock()
@@ -242,7 +249,7 @@ func (e *SearchEngine) ClearKillerMoves() {
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	e.prepareWorkerEvaluator(nil, generation)
-	e.history.ClearKillerMoves()
+	e.worker.history.ClearKillerMoves()
 }
 func (e *SearchEngine) ClearCounterMoves() {
 	e.sessionMu.Lock()
@@ -250,7 +257,7 @@ func (e *SearchEngine) ClearCounterMoves() {
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	e.prepareWorkerEvaluator(nil, generation)
-	e.history.ClearCounterMoves()
+	e.worker.history.ClearCounterMoves()
 }
 func (e *SearchEngine) SetLastMovePlayed(move Move) {
 	e.sessionMu.Lock()
@@ -258,7 +265,7 @@ func (e *SearchEngine) SetLastMovePlayed(move Move) {
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	e.prepareWorkerEvaluator(nil, generation)
-	e.history.SetLastMovePlayed(move)
+	e.worker.history.SetLastMovePlayed(move)
 }
 func (e *SearchEngine) GetLastMovePlayed() Move {
 	e.sessionMu.Lock()
@@ -266,7 +273,7 @@ func (e *SearchEngine) GetLastMovePlayed() Move {
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	e.prepareWorkerEvaluator(nil, generation)
-	return e.history.GetLastMovePlayed()
+	return e.worker.history.GetLastMovePlayed()
 }
 
 func (e *SearchEngine) evaluateForPlayerCached(pos *Position) int {
@@ -274,7 +281,7 @@ func (e *SearchEngine) evaluateForPlayerCached(pos *Position) int {
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	evaluator := e.prepareHCEGeneration(pos, generation)
+	evaluator := e.worker.prepareHCEGeneration(pos, generation)
 	return evaluator.SearchSTM(pos)
 }
 
@@ -289,12 +296,12 @@ func (e *SearchEngine) SearchIterativeDeepening(pos *Position, maxDepth int, tim
 func (e *SearchEngine) SearchIterativeDeepeningWithCallback(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback) *SearchInfo {
 	e.sessionMu.Lock()
 	defer e.sessionMu.Unlock()
-	e.control.ClearStop()
+	e.worker.control.ClearStop()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	tt := e.prepareTTGeneration(generation)
 	evaluator := e.prepareWorkerEvaluator(pos, generation)
-	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback, &e.control, &e.history, evaluator, tt)
+	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback, &e.worker.control, &e.worker.history, evaluator, tt)
 }
 
 // searchIterativeDeepeningPrepared is used by UCI after it has cleared the
@@ -308,18 +315,18 @@ func (e *SearchEngine) searchIterativeDeepeningPrepared(pos *Position, maxDepth 
 	defer releaseHCEModelUse()
 	tt := e.prepareTTGeneration(generation)
 	evaluator := e.prepareWorkerEvaluator(pos, generation)
-	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback, &e.control, &e.history, evaluator, tt)
+	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback, &e.worker.control, &e.worker.history, evaluator, tt)
 }
 
 func (e *SearchEngine) SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
 	e.sessionMu.Lock()
 	defer e.sessionMu.Unlock()
-	e.control.ClearStop()
+	e.worker.control.ClearStop()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	tt := e.prepareTTGeneration(generation)
 	evaluator := e.prepareWorkerEvaluator(pos, generation)
-	return searchFixedUnsafe(pos, depth, timeManager, &e.control, &e.history, evaluator, tt)
+	return searchFixedUnsafe(pos, depth, timeManager, &e.worker.control, &e.worker.history, evaluator, tt)
 }
 
 // ExtractPVFromTT returns a generation-coherent snapshot outside a search

@@ -26,42 +26,42 @@ func (e *SearchEngine) prepareWorkerEvaluator(pos *Position, generation uint64) 
 	model := e.selectedEvaluatorModel(generation)
 	var hce *hceEvaluator
 	if model.identity.backend == evaluatorBackendHCE {
-		hce = e.prepareHCEGeneration(pos, generation)
+		hce = e.worker.prepareHCEGeneration(pos, generation)
 	} else {
 		// NNUE still needs the admitted process PST generation and an unconditional
 		// root accumulator rebuild, but it does not allocate the 16 MiB HCE cache.
-		if e.evaluator != nil && e.evaluator.seenGeneration != generation {
-			e.evaluator.clearForGeneration(generation)
-			e.history = workerHistory{}
+		if e.worker.hce != nil && e.worker.hce.seenGeneration != generation {
+			e.worker.hce.clearForGeneration(generation)
+			e.worker.history = workerHistory{}
 		}
 		if pos != nil {
 			pos.Board.recomputeAccumulator()
 		}
 	}
 	identity := model.identity
-	if e.evaluatorIdentity != identity {
+	if e.worker.evaluatorIdentity != identity {
 		// A never-admitted zero-value/default-HCE receiver has no stale model
 		// state. Preserve history seeded through the legacy same-model setup path.
 		// An explicit selection prebuilds workerEvaluator, so its first admission
 		// still clears any state belonging to the prior/default backend.
-		if e.workerEvaluator != nil || e.evaluatorIdentity.adapterRevision != 0 {
-			e.history = workerHistory{}
+		if e.worker.evaluator != nil || e.worker.evaluatorIdentity.adapterRevision != 0 {
+			e.worker.history = workerHistory{}
 		}
-		e.evaluatorIdentity = identity
+		e.worker.evaluatorIdentity = identity
 	}
-	if e.workerEvaluator == nil || e.workerEvaluator.Identity() != identity {
+	if e.worker.evaluator == nil || e.worker.evaluator.Identity() != identity {
 		worker, err := model.newWorker(hce)
 		if err != nil {
 			panic(fmt.Errorf("%w: construct admitted worker: %v", errWorkerEvaluator, err))
 		}
-		e.workerEvaluator = worker
+		e.worker.evaluator = worker
 	}
 	if pos != nil {
-		if err := e.workerEvaluator.Reset(pos); err != nil {
+		if err := e.worker.evaluator.Reset(pos); err != nil {
 			panic(fmt.Errorf("%w: reset admitted worker: %v", errWorkerEvaluator, err))
 		}
 	}
-	return e.workerEvaluator
+	return e.worker.evaluator
 }
 
 // SelectHCEEvaluator transactionally selects the historical HCE backend for
@@ -76,7 +76,7 @@ func (e *SearchEngine) SelectHCEEvaluator() error {
 	}
 	defer releaseHCEModelUse()
 
-	hce := e.evaluator
+	hce := e.worker.hce
 	if hce == nil {
 		hce = &hceEvaluator{seenGeneration: generation}
 	}
@@ -87,9 +87,9 @@ func (e *SearchEngine) SelectHCEEvaluator() error {
 	}
 
 	// Publish only after every fallible validation/allocation has succeeded.
-	e.evaluator = hce
+	e.worker.hce = hce
 	e.evaluatorModel = model
-	e.workerEvaluator = worker
+	e.worker.evaluator = worker
 	return nil
 }
 
@@ -118,7 +118,7 @@ func (e *SearchEngine) SelectNGNV1Evaluator(model *nnue.Model) error {
 	// Publication is one receiver-local critical section. TT/history invalidation
 	// occurs lazily before the next receiver operation observes this identity.
 	e.evaluatorModel = candidate
-	e.workerEvaluator = worker
+	e.worker.evaluator = worker
 	return nil
 }
 

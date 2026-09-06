@@ -11,8 +11,8 @@ func newSearchInfoForTest(tm *TimeManager, rootDepth int) *SearchInfo {
 	var orderedBuffer [256]Move
 	var seeGains [32]int
 	return &SearchInfo{
-		control:       &defaultSearchEngine.control,
-		history:       &defaultSearchEngine.history,
+		control:       &defaultSearchEngine.worker.control,
+		history:       &defaultSearchEngine.worker.history,
 		evaluator:     testHCEWorkerEvaluator(nil),
 		tt:            defaultTTForDirectTest(),
 		Depth:         rootDepth,

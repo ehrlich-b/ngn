@@ -323,18 +323,18 @@ func TestGenerationLazilyInvalidatesEveryReceiver(t *testing.T) {
 	searcher, _ := NewSearchEngineWithHash(1)
 	searcher.SearchFixed(mustHCEPosition(t, "7k/6Q1/6K1/8/8/8/8/8 b - - 0 1"), 1, nil)
 	move := NewMove(A1, A2, WhiteKing, NoPiece, NoType, 0)
-	searcher.history.historyTable[WhiteKing][A2] = 1
-	searcher.history.continuationHistory[WhiteKing][A1][WhiteKing][A2] = 2
-	searcher.history.followupHistory[WhiteKing][A1][WhiteKing][A2] = 3
-	searcher.history.pawnCorrectionHistory[White][1] = 4
-	searcher.history.nonPawnCorrectionHistory[Black][2] = 5
-	searcher.history.minorCorrectionHistory[White][3] = 6
-	searcher.history.captureHistory[WhiteKing][A2][BlackPawn] = 7
-	searcher.history.killerMoves[0][0] = move
-	searcher.history.counterMoves[A1][A2] = move
-	searcher.history.lastMovePlayed = move
-	searcher.evaluator.full[0] = evalCacheEntry{key: 1, val: 2}
-	searcher.evaluator.pawns[0] = pawnCacheEntry{valid: true, wp: 1}
+	searcher.worker.history.historyTable[WhiteKing][A2] = 1
+	searcher.worker.history.continuationHistory[WhiteKing][A1][WhiteKing][A2] = 2
+	searcher.worker.history.followupHistory[WhiteKing][A1][WhiteKing][A2] = 3
+	searcher.worker.history.pawnCorrectionHistory[White][1] = 4
+	searcher.worker.history.nonPawnCorrectionHistory[Black][2] = 5
+	searcher.worker.history.minorCorrectionHistory[White][3] = 6
+	searcher.worker.history.captureHistory[WhiteKing][A2][BlackPawn] = 7
+	searcher.worker.history.killerMoves[0][0] = move
+	searcher.worker.history.counterMoves[A1][A2] = move
+	searcher.worker.history.lastMovePlayed = move
+	searcher.worker.hce.full[0] = evalCacheEntry{key: 1, val: 2}
+	searcher.worker.hce.pawns[0] = pawnCacheEntry{valid: true, wp: 1}
 
 	const oldTTKey = uint64(0x11111111)
 	defaultSearchEngine.TTStore(oldTTKey, move, 12, 3, Exact, false)
@@ -356,19 +356,19 @@ func TestGenerationLazilyInvalidatesEveryReceiver(t *testing.T) {
 	if _, _, _, _, hit, _ := defaultSearchEngine.TTProbe(newTTKey); !hit {
 		t.Fatal("per-engine generation mismatch cleared the already-published TT")
 	}
-	if searcher.history.historyTable[WhiteKing][A2] != 0 ||
-		searcher.history.continuationHistory[WhiteKing][A1][WhiteKing][A2] != 0 ||
-		searcher.history.followupHistory[WhiteKing][A1][WhiteKing][A2] != 0 ||
-		searcher.history.pawnCorrectionHistory[White][1] != 0 ||
-		searcher.history.nonPawnCorrectionHistory[Black][2] != 0 ||
-		searcher.history.minorCorrectionHistory[White][3] != 0 ||
-		searcher.history.captureHistory[WhiteKing][A2][BlackPawn] != 0 ||
-		searcher.history.killerMoves[0][0] != EmptyMove ||
-		searcher.history.counterMoves[A1][A2] != EmptyMove ||
-		searcher.history.lastMovePlayed != EmptyMove {
+	if searcher.worker.history.historyTable[WhiteKing][A2] != 0 ||
+		searcher.worker.history.continuationHistory[WhiteKing][A1][WhiteKing][A2] != 0 ||
+		searcher.worker.history.followupHistory[WhiteKing][A1][WhiteKing][A2] != 0 ||
+		searcher.worker.history.pawnCorrectionHistory[White][1] != 0 ||
+		searcher.worker.history.nonPawnCorrectionHistory[Black][2] != 0 ||
+		searcher.worker.history.minorCorrectionHistory[White][3] != 0 ||
+		searcher.worker.history.captureHistory[WhiteKing][A2][BlackPawn] != 0 ||
+		searcher.worker.history.killerMoves[0][0] != EmptyMove ||
+		searcher.worker.history.counterMoves[A1][A2] != EmptyMove ||
+		searcher.worker.history.lastMovePlayed != EmptyMove {
 		t.Fatal("generation mismatch did not clear the complete worker-history family")
 	}
-	if searcher.evaluator.full[0] != (evalCacheEntry{}) || searcher.evaluator.pawns[0] != (pawnCacheEntry{}) {
+	if searcher.worker.hce.full[0] != (evalCacheEntry{}) || searcher.worker.hce.pawns[0] != (pawnCacheEntry{}) {
 		t.Fatal("generation mismatch did not clear private evaluator caches")
 	}
 }
@@ -378,17 +378,17 @@ func TestSameGenerationPreservesWarmPrivateState(t *testing.T) {
 	terminal := mustHCEPosition(t, "7k/6Q1/6K1/8/8/8/8/8 b - - 0 1")
 	searcher.SearchFixed(terminal, 1, nil)
 	move := NewMove(A1, A2, WhiteKing, NoPiece, NoType, 0)
-	searcher.history.lastMovePlayed = move
-	searcher.history.pawnCorrectionHistory[White][7] = 99
-	searcher.evaluator.full[0] = evalCacheEntry{key: 1, val: 2}
-	searcher.evaluator.pawns[0] = pawnCacheEntry{valid: true, wp: 1}
+	searcher.worker.history.lastMovePlayed = move
+	searcher.worker.history.pawnCorrectionHistory[White][7] = 99
+	searcher.worker.hce.full[0] = evalCacheEntry{key: 1, val: 2}
+	searcher.worker.hce.pawns[0] = pawnCacheEntry{valid: true, wp: 1}
 
 	searcher.SearchFixed(terminal.Copy(), 1, nil)
-	if searcher.history.lastMovePlayed != move || searcher.history.pawnCorrectionHistory[White][7] != 99 {
+	if searcher.worker.history.lastMovePlayed != move || searcher.worker.history.pawnCorrectionHistory[White][7] != 99 {
 		t.Fatal("same-generation search discarded warm worker history")
 	}
-	if searcher.evaluator.full[0] != (evalCacheEntry{key: 1, val: 2}) ||
-		searcher.evaluator.pawns[0] != (pawnCacheEntry{valid: true, wp: 1}) {
+	if searcher.worker.hce.full[0] != (evalCacheEntry{key: 1, val: 2}) ||
+		searcher.worker.hce.pawns[0] != (pawnCacheEntry{valid: true, wp: 1}) {
 		t.Fatal("same-generation search discarded warm evaluator caches")
 	}
 }

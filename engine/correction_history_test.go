@@ -136,9 +136,9 @@ func TestCorrectionPopulatedByRealSearch(t *testing.T) {
 	}
 
 	nonzero := 0
-	for c := range defaultSearchEngine.history.pawnCorrectionHistory {
-		for i := range defaultSearchEngine.history.pawnCorrectionHistory[c] {
-			if defaultSearchEngine.history.pawnCorrectionHistory[c][i] != 0 {
+	for c := range defaultSearchEngine.worker.history.pawnCorrectionHistory {
+		for i := range defaultSearchEngine.worker.history.pawnCorrectionHistory[c] {
+			if defaultSearchEngine.worker.history.pawnCorrectionHistory[c][i] != 0 {
 				nonzero++
 			}
 		}

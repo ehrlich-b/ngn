@@ -46,11 +46,11 @@ func TestSearchNGNV1IncrementalMatchesFullRefreshEveryCommittedFrame(t *testing.
 	}
 
 	observed := 0
-	incremental.workerEvaluator.transitionObserver = func(pos *Position, context *nnue.Context) {
+	incremental.worker.evaluator.transitionObserver = func(pos *Position, context *nnue.Context) {
 		observed++
 		requireAdapterContextLanes(t, context, tensors, fullPositionForWorkerTest(t, pos))
 	}
-	fullRefresh.workerEvaluator.fullRefreshOracle = true
+	fullRefresh.worker.evaluator.fullRefreshOracle = true
 
 	incrementalPos := n3cPosition(t, fen)
 	fullRefreshPos := n3cPosition(t, fen)
@@ -71,13 +71,13 @@ func TestSearchNGNV1IncrementalMatchesFullRefreshEveryCommittedFrame(t *testing.
 	if after := snapshotPVPosition(fullRefreshPos); !reflect.DeepEqual(after, fullRefreshBefore) {
 		t.Fatal("full-refresh search changed root position")
 	}
-	if incremental.workerEvaluator.context.Depth() != 0 || fullRefresh.workerEvaluator.context.Depth() != 0 {
-		t.Fatalf("context depths incremental=%d full=%d", incremental.workerEvaluator.context.Depth(), fullRefresh.workerEvaluator.context.Depth())
+	if incremental.worker.evaluator.context.Depth() != 0 || fullRefresh.worker.evaluator.context.Depth() != 0 {
+		t.Fatalf("context depths incremental=%d full=%d", incremental.worker.evaluator.context.Depth(), fullRefresh.worker.evaluator.context.Depth())
 	}
-	if incremental.evaluator != nil || fullRefresh.evaluator != nil {
+	if incremental.worker.hce != nil || fullRefresh.worker.hce != nil {
 		t.Fatal("NNUE-only search allocated an unused HCE cache")
 	}
-	requireWorkerRawMatchesFull(t, incremental.workerEvaluator, incrementalPos)
+	requireWorkerRawMatchesFull(t, incremental.worker.evaluator, incrementalPos)
 }
 
 func TestEvaluatorSelectionIsTransactionalAndCompositeIdentityClearsState(t *testing.T) {
@@ -89,26 +89,26 @@ func TestEvaluatorSelectionIsTransactionalAndCompositeIdentityClearsState(t *tes
 	searcher.SearchFixed(terminal, 1, nil)
 
 	poisonMove := NewMove(A1, A2, WhiteKing, NoPiece, NoType, 0)
-	searcher.history.historyTable[WhiteKing][A2] = 1
-	searcher.history.continuationHistory[WhiteKing][A1][WhiteKing][A2] = 2
-	searcher.history.followupHistory[WhiteKing][A1][WhiteKing][A2] = 3
-	searcher.history.pawnCorrectionHistory[White][1] = 4
-	searcher.history.nonPawnCorrectionHistory[Black][2] = 5
-	searcher.history.minorCorrectionHistory[White][3] = 6
-	searcher.history.captureHistory[WhiteKing][A2][BlackPawn] = 7
-	searcher.history.killerMoves[0][0] = poisonMove
-	searcher.history.counterMoves[A1][A2] = poisonMove
-	searcher.history.lastMovePlayed = poisonMove
+	searcher.worker.history.historyTable[WhiteKing][A2] = 1
+	searcher.worker.history.continuationHistory[WhiteKing][A1][WhiteKing][A2] = 2
+	searcher.worker.history.followupHistory[WhiteKing][A1][WhiteKing][A2] = 3
+	searcher.worker.history.pawnCorrectionHistory[White][1] = 4
+	searcher.worker.history.nonPawnCorrectionHistory[Black][2] = 5
+	searcher.worker.history.minorCorrectionHistory[White][3] = 6
+	searcher.worker.history.captureHistory[WhiteKing][A2][BlackPawn] = 7
+	searcher.worker.history.killerMoves[0][0] = poisonMove
+	searcher.worker.history.counterMoves[A1][A2] = poisonMove
+	searcher.worker.history.lastMovePlayed = poisonMove
 	const hceKey = uint64(0x4e3348ce)
 	searcher.TTStore(hceKey, poisonMove, 17, 3, Exact, false)
 	hceIdentity := searcher.ttIdentity
 
 	beforeModel := searcher.evaluatorModel
-	beforeWorker := searcher.workerEvaluator
+	beforeWorker := searcher.worker.evaluator
 	if err := searcher.SelectNGNV1Evaluator(nil); !errors.Is(err, errWorkerEvaluator) {
 		t.Fatalf("invalid selection error = %v", err)
 	}
-	if searcher.evaluatorModel != beforeModel || searcher.workerEvaluator != beforeWorker || searcher.ttIdentity != hceIdentity {
+	if searcher.evaluatorModel != beforeModel || searcher.worker.evaluator != beforeWorker || searcher.ttIdentity != hceIdentity {
 		t.Fatal("failed NNUE selection changed published receiver state")
 	}
 
@@ -116,7 +116,7 @@ func TestEvaluatorSelectionIsTransactionalAndCompositeIdentityClearsState(t *tes
 	if err := searcher.SelectNGNV1Evaluator(model); err != nil {
 		t.Fatal(err)
 	}
-	if searcher.workerEvaluator == nil || searcher.workerEvaluator.context == nil {
+	if searcher.worker.evaluator == nil || searcher.worker.evaluator.context == nil {
 		t.Fatal("NNUE selection did not prebuild a private worker Context")
 	}
 	if _, _, _, _, hit, _ := searcher.TTProbe(hceKey); hit {
@@ -127,16 +127,16 @@ func TestEvaluatorSelectionIsTransactionalAndCompositeIdentityClearsState(t *tes
 	}
 
 	searcher.SearchFixed(terminal.Copy(), 1, nil)
-	if searcher.history != (workerHistory{}) {
+	if searcher.worker.history != (workerHistory{}) {
 		t.Fatal("backend swap did not clear the complete worker-history family")
 	}
-	nnueIdentity := searcher.evaluatorIdentity
-	searcher.history.lastMovePlayed = poisonMove
+	nnueIdentity := searcher.worker.evaluatorIdentity
+	searcher.worker.history.lastMovePlayed = poisonMove
 	if err := searcher.SelectNGNV1Evaluator(model); err != nil {
 		t.Fatal(err)
 	}
 	searcher.SearchFixed(terminal.Copy(), 1, nil)
-	if searcher.evaluatorIdentity != nnueIdentity || searcher.history.lastMovePlayed != poisonMove {
+	if searcher.worker.evaluatorIdentity != nnueIdentity || searcher.worker.history.lastMovePlayed != poisonMove {
 		t.Fatal("semantically identical model selection discarded same-identity warm history")
 	}
 
@@ -149,8 +149,8 @@ func TestEvaluatorSelectionIsTransactionalAndCompositeIdentityClearsState(t *tes
 		t.Fatal("NNUE-to-HCE swap retained NNUE TT entry")
 	}
 	searcher.SearchFixed(terminal.Copy(), 1, nil)
-	if searcher.evaluatorIdentity.backend != evaluatorBackendHCE || searcher.history != (workerHistory{}) {
-		t.Fatalf("HCE re-selection state identity=%+v history-cleared=%v", searcher.evaluatorIdentity, searcher.history == (workerHistory{}))
+	if searcher.worker.evaluatorIdentity.backend != evaluatorBackendHCE || searcher.worker.history != (workerHistory{}) {
+		t.Fatalf("HCE re-selection state identity=%+v history-cleared=%v", searcher.worker.evaluatorIdentity, searcher.worker.history == (workerHistory{}))
 	}
 
 	if err := tryBeginHCEModelMutation(); err != nil {
@@ -172,7 +172,7 @@ func TestNGNV1StoppedSearchUnwindsContextAndPosition(t *testing.T) {
 	pos := n3cPosition(t, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 	before := snapshotPVPosition(pos)
 	observed := 0
-	searcher.workerEvaluator.transitionObserver = func(pos *Position, context *nnue.Context) {
+	searcher.worker.evaluator.transitionObserver = func(pos *Position, context *nnue.Context) {
 		observed++
 		requireAdapterContextLanes(t, context, tensors, fullPositionForWorkerTest(t, pos))
 	}
@@ -185,13 +185,13 @@ func TestNGNV1StoppedSearchUnwindsContextAndPosition(t *testing.T) {
 	if observed < 2 {
 		t.Fatalf("observer calls = %d, want root and searched child", observed)
 	}
-	if searcher.workerEvaluator.context.Depth() != 0 {
-		t.Fatalf("stopped search left Context depth %d", searcher.workerEvaluator.context.Depth())
+	if searcher.worker.evaluator.context.Depth() != 0 {
+		t.Fatalf("stopped search left Context depth %d", searcher.worker.evaluator.context.Depth())
 	}
 	if after := snapshotPVPosition(pos); !reflect.DeepEqual(after, before) {
 		t.Fatal("stopped NNUE search did not restore root position")
 	}
-	requireWorkerRawMatchesFull(t, searcher.workerEvaluator, pos)
+	requireWorkerRawMatchesFull(t, searcher.worker.evaluator, pos)
 }
 
 func newN3CDirectSearchInfo(searcher *SearchEngine, evaluator *workerEvaluator, tt *Cache, depth int) *SearchInfo {
@@ -209,9 +209,9 @@ func newN3CDirectSearchInfo(searcher *SearchEngine, evaluator *workerEvaluator, 
 		OrderedBuffer: &orderedBuffer,
 		SEEGains:      &seeGains,
 		Frames:        make([]searchFrame, searchFramePoolSize),
-		control:       &searcher.control,
-		maxNodes:      searcher.control.MaxNodes(),
-		history:       &searcher.history,
+		control:       &searcher.worker.control,
+		maxNodes:      searcher.worker.control.MaxNodes(),
+		history:       &searcher.worker.history,
 		evaluator:     evaluator,
 		tt:            tt,
 	}
@@ -275,10 +275,10 @@ func runN3CIterativeSnapshot(t *testing.T, searcher *SearchEngine, fen string) (
 	if after := snapshotPVPosition(pos); !reflect.DeepEqual(after, before) {
 		t.Fatal("iterative NNUE search changed root position")
 	}
-	if searcher.workerEvaluator.context.Depth() != 0 {
-		t.Fatalf("iterative NNUE search left Context depth %d", searcher.workerEvaluator.context.Depth())
+	if searcher.worker.evaluator.context.Depth() != 0 {
+		t.Fatalf("iterative NNUE search left Context depth %d", searcher.worker.evaluator.context.Depth())
 	}
-	requireWorkerRawMatchesFull(t, searcher.workerEvaluator, pos)
+	requireWorkerRawMatchesFull(t, searcher.worker.evaluator, pos)
 	return comparableN3CSearchInfo(final), callbacks
 }
 
@@ -295,11 +295,11 @@ func TestSearchNGNV1IterativeColdWarmMatchesFullRefreshCallbacks(t *testing.T) {
 		t.Fatal(err)
 	}
 	observed := 0
-	incremental.workerEvaluator.transitionObserver = func(pos *Position, context *nnue.Context) {
+	incremental.worker.evaluator.transitionObserver = func(pos *Position, context *nnue.Context) {
 		observed++
 		requireAdapterContextLanes(t, context, tensors, fullPositionForWorkerTest(t, pos))
 	}
-	fullRefresh.workerEvaluator.fullRefreshOracle = true
+	fullRefresh.worker.evaluator.fullRefreshOracle = true
 
 	for _, lifetime := range []string{"cold", "warm"} {
 		t.Run(lifetime, func(t *testing.T) {
@@ -360,30 +360,30 @@ func TestDistinctNGNV1ModelAtoBtoAAdmissionsInvalidateTTAndCompleteHistory(t *te
 		t.Fatal(err)
 	}
 	searcher.SearchFixed(terminal.Copy(), 1, nil)
-	identityA := searcher.evaluatorIdentity
+	identityA := searcher.worker.evaluatorIdentity
 
-	poisonN3CWorkerHistory(&searcher.history, poisonMove)
+	poisonN3CWorkerHistory(&searcher.worker.history, poisonMove)
 	const keyA = uint64(0x4e334141)
 	searcher.TTStore(keyA, poisonMove, 17, 3, Exact, false)
 	if err := searcher.SelectNGNV1Evaluator(modelB); err != nil {
 		t.Fatal(err)
 	}
-	if searcher.history == (workerHistory{}) {
+	if searcher.worker.history == (workerHistory{}) {
 		t.Fatal("model selection eagerly cleared history before admission")
 	}
 	searcher.SearchFixed(terminal.Copy(), 1, nil)
 	if _, _, _, _, hit, _ := searcher.TTProbe(keyA); hit {
 		t.Fatal("A-to-B admission retained model A TT entry")
 	}
-	if searcher.history != (workerHistory{}) {
+	if searcher.worker.history != (workerHistory{}) {
 		t.Fatal("A-to-B admission did not clear the complete worker-history family")
 	}
-	identityB := searcher.evaluatorIdentity
+	identityB := searcher.worker.evaluatorIdentity
 	if identityB == identityA {
 		t.Fatal("A-to-B admission retained model A composite identity")
 	}
 
-	poisonN3CWorkerHistory(&searcher.history, poisonMove)
+	poisonN3CWorkerHistory(&searcher.worker.history, poisonMove)
 	const keyB = uint64(0x4e334242)
 	searcher.TTStore(keyB, poisonMove, 18, 3, Exact, false)
 	if err := searcher.SelectNGNV1Evaluator(modelA); err != nil {
@@ -393,11 +393,11 @@ func TestDistinctNGNV1ModelAtoBtoAAdmissionsInvalidateTTAndCompleteHistory(t *te
 	if _, _, _, _, hit, _ := searcher.TTProbe(keyB); hit {
 		t.Fatal("B-to-A admission retained model B TT entry")
 	}
-	if searcher.history != (workerHistory{}) {
+	if searcher.worker.history != (workerHistory{}) {
 		t.Fatal("B-to-A admission did not clear the complete worker-history family")
 	}
-	if searcher.evaluatorIdentity != identityA {
-		t.Fatalf("B-to-A identity = %+v, original A = %+v", searcher.evaluatorIdentity, identityA)
+	if searcher.worker.evaluatorIdentity != identityA {
+		t.Fatalf("B-to-A identity = %+v, original A = %+v", searcher.worker.evaluatorIdentity, identityA)
 	}
 }
 

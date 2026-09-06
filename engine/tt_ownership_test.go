@@ -147,28 +147,28 @@ func TestNewGameClearsTTAndHistoryButKeepsWarmHCECaches(t *testing.T) {
 	engine, _ := NewSearchEngineWithHash(1)
 	pos := controlTestPosition(t)
 	_ = engine.evaluateForPlayerCached(pos)
-	engine.evaluator.full[7] = evalCacheEntry{key: 1, val: 2}
-	engine.evaluator.pawns[9] = pawnCacheEntry{valid: true, wp: 3}
+	engine.worker.hce.full[7] = evalCacheEntry{key: 1, val: 2}
+	engine.worker.hce.pawns[9] = pawnCacheEntry{valid: true, wp: 3}
 	move := NewMove(A2, A3, WhitePawn, NoPiece, NoType, 0)
-	engine.history.historyTable[WhitePawn][A3] = 4
-	engine.history.killerMoves[0][0] = move
-	engine.history.lastMovePlayed = move
+	engine.worker.history.historyTable[WhitePawn][A3] = 4
+	engine.worker.history.killerMoves[0][0] = move
+	engine.worker.history.lastMovePlayed = move
 	const key = uint64(0xfeedbeef)
 	engine.TTStore(key, move, 5, 2, Exact, false)
 	oldTT := engine.tt
-	oldEvaluator := engine.evaluator
+	oldEvaluator := engine.worker.hce
 
 	engine.NewGame()
-	if engine.tt != oldTT || engine.evaluator != oldEvaluator {
+	if engine.tt != oldTT || engine.worker.hce != oldEvaluator {
 		t.Fatal("same-generation new game replaced owned allocations")
 	}
 	if _, _, _, _, hit, _ := engine.TTProbe(key); hit {
 		t.Fatal("new game retained TT entry")
 	}
-	if engine.history.historyTable[WhitePawn][A3] != 0 || engine.history.killerMoves[0][0] != EmptyMove || engine.history.lastMovePlayed != EmptyMove {
+	if engine.worker.history.historyTable[WhitePawn][A3] != 0 || engine.worker.history.killerMoves[0][0] != EmptyMove || engine.worker.history.lastMovePlayed != EmptyMove {
 		t.Fatal("new game retained game-scoped history")
 	}
-	if engine.evaluator.full[7] != (evalCacheEntry{key: 1, val: 2}) || engine.evaluator.pawns[9] != (pawnCacheEntry{valid: true, wp: 3}) {
+	if engine.worker.hce.full[7] != (evalCacheEntry{key: 1, val: 2}) || engine.worker.hce.pawns[9] != (pawnCacheEntry{valid: true, wp: 3}) {
 		t.Fatal("same-generation new game cleared warm HCE cache")
 	}
 }

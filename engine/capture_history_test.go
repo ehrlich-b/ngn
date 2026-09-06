@@ -41,7 +41,7 @@ func TestCaptureHistoryUpdate(t *testing.T) {
 	}
 
 	// An unrelated slot must be untouched.
-	if defaultSearchEngine.history.captureHistory[WhiteKnight][0][BlackQueen] != 0 {
+	if defaultSearchEngine.worker.history.captureHistory[WhiteKnight][0][BlackQueen] != 0 {
 		t.Error("update bled into an unrelated capture-history slot")
 	}
 
@@ -74,10 +74,10 @@ func TestCaptureHistoryPopulatedByRealSearch(t *testing.T) {
 	}
 
 	nonzero := 0
-	for i := range defaultSearchEngine.history.captureHistory {
-		for j := range defaultSearchEngine.history.captureHistory[i] {
-			for k := range defaultSearchEngine.history.captureHistory[i][j] {
-				if defaultSearchEngine.history.captureHistory[i][j][k] != 0 {
+	for i := range defaultSearchEngine.worker.history.captureHistory {
+		for j := range defaultSearchEngine.worker.history.captureHistory[i] {
+			for k := range defaultSearchEngine.worker.history.captureHistory[i][j] {
+				if defaultSearchEngine.worker.history.captureHistory[i][j][k] != 0 {
 					nonzero++
 				}
 			}
