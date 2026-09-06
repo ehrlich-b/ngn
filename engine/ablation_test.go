@@ -50,7 +50,7 @@ func loadAblationEPD(t *testing.T, path string, limit int) []ablationPos {
 // total nodes.
 func runAblationSuite(positions []ablationPos, depth int) (solved int, nodes uint64) {
 	for _, p := range positions {
-		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+		defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 		ClearHistoryTable()
 		ClearKillerMoves()
 		ClearCounterMoves()

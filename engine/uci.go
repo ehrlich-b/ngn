@@ -61,7 +61,6 @@ type UCIEngine struct {
 	engineAuthor     string
 	version          string
 	timeManager      *TimeManager
-	hashMB           int
 	movesPlayed      int
 	lastScore        int
 	debugLogger      *log.Logger
@@ -116,7 +115,6 @@ func NewUCIEngine() *UCIEngine {
 		engineAuthor:     "ngn team",
 		version:          "0.1.0",
 		timeManager:      NewTimeManager(),
-		hashMB:           DEFAULT_CACHE_SIZE,
 		movesPlayed:      0,
 		lastScore:        0,
 		debugLogger:      logger,
@@ -343,8 +341,10 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 		} else if mb > 1024 {
 			mb = 1024
 		}
-		uci.hashMB = mb
-		TranspositionTable = NewCache(mb)
+		uci.handleStop(output)
+		if err := uci.searcher.ResizeHash(mb); err != nil {
+			panic(err)
+		}
 	case "threads":
 		// TODO: Implement multi-threading
 	default:
@@ -388,15 +388,10 @@ func (uci *UCIEngine) handleRegister(args []string, output io.Writer) {
 
 // handleNewGame handles ucinewgame command
 func (uci *UCIEngine) handleNewGame(output io.Writer) {
+	uci.handleStop(output)
 	uci.position = newUCIStartingPosition()
-	// Clear transposition table for new game
-	TranspositionTable = NewCache(uci.hashMB)
-	// Clear history table for new game
-	uci.searcher.ClearHistoryTable()
-	// Clear killer moves for new game
-	uci.searcher.ClearKillerMoves()
-	// Clear counter moves for new game
-	uci.searcher.ClearCounterMoves()
+	// Clear game-scoped TT and histories. Same-model HCE full and pawn caches stay warm.
+	uci.searcher.NewGame()
 
 	// Reset game state
 	uci.movesPlayed = 0
@@ -413,6 +408,7 @@ func (uci *UCIEngine) handlePosition(args []string, output io.Writer) {
 	if len(args) == 0 {
 		return
 	}
+	uci.handleStop(output)
 
 	switch args[0] {
 	case "startpos":
@@ -760,15 +756,18 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 				nps = int(float64(nodes) / elapsed.Seconds())
 			}
 
-			// Reconstruct full PV by walking the TT from the post-root position.
-			pvMoves := ExtractPVFromTT(uci.position, move, 32)
+			// Search copied reporting state before entering this non-reentrant callback.
+			pvLength := searchInfo.PVLength
+			if pvLength > 32 {
+				pvLength = 32
+			}
 			var pvStr string
-			if len(pvMoves) == 0 {
+			if pvLength == 0 {
 				pvStr = move.ToString()
 			} else {
-				pvStr = pvMoves[0].ToString()
-				for i := 1; i < len(pvMoves); i++ {
-					pvStr += " " + pvMoves[i].ToString()
+				pvStr = searchInfo.PV[0].ToString()
+				for i := 1; i < pvLength; i++ {
+					pvStr += " " + searchInfo.PV[i].ToString()
 				}
 			}
 
@@ -777,7 +776,7 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 			if seldepth < depth {
 				seldepth = depth
 			}
-			hashfull := TranspositionTable.Consumed()
+			hashfull := searchInfo.Hashfull
 
 			infoMsg := fmt.Sprintf("info depth %d seldepth %d score %s nodes %d time %d nps %d hashfull %d pv %s",
 				depth, seldepth, scoreStr, nodes, elapsed.Milliseconds(), nps, hashfull, pvStr)

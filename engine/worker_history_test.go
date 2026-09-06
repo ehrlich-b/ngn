@@ -15,7 +15,9 @@ type workerSearchFingerprint struct {
 
 func runWorkerSearchWithFreshTT(t *testing.T, searcher *SearchEngine, fen string, depth int) workerSearchFingerprint {
 	t.Helper()
-	TranspositionTable = NewCache(1)
+	if err := searcher.ResizeHash(1); err != nil {
+		t.Fatal(err)
+	}
 	pos, err := ParseFEN(fen)
 	if err != nil {
 		t.Fatal(err)

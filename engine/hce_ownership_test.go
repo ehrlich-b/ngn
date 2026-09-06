@@ -25,12 +25,12 @@ func changedQueenModel() (saved, changed TexelModelExport) {
 	return saved, changed
 }
 
-func restoreHCEModelAndTT(t *testing.T, saved TexelModelExport, savedTT *Cache) {
+func restoreHCEModelAndTT(t *testing.T, saved TexelModelExport, savedTT *SearchEngine) {
 	t.Helper()
 	if err := ApplyTexelModel(saved); err != nil {
 		t.Errorf("restore HCE model: %v", err)
 	}
-	TranspositionTable = savedTT
+	defaultSearchEngine = savedTT
 }
 
 func requireBusyPanic(t *testing.T, fn func()) {
@@ -97,7 +97,7 @@ func TestAlphaBetaSafetyReturnsRemainFreshAndUndamped(t *testing.T) {
 	}{{"depth above maximum", MaximumDepth + 1, 0}, {"negative depth", -1, 0}, {"ply at maximum", 1, MaximumDepth}}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			info := &SearchInfo{control: &SearchControl{}, evaluator: evaluator}
+			info := &SearchInfo{control: &SearchControl{}, evaluator: evaluator, tt: NewCache(1)}
 			if got := alphaBetaPV(pos, tc.depth, tc.ply, -INFINITY, INFINITY, true, true, false, info); got != want {
 				t.Fatalf("alphaBetaPV = %d, want fresh undamped %d", got, want)
 			}
@@ -171,12 +171,12 @@ func TestHCEEvaluatorCachesAreIndependentUnderConcurrentUse(t *testing.T) {
 
 func TestApplyTexelModelFailureAndBusyAreAtomic(t *testing.T) {
 	saved, changed := changedQueenModel()
-	savedTT := TranspositionTable
-	TranspositionTable = NewCache(1)
+	savedTT := defaultSearchEngine
+	defaultSearchEngine, _ = NewSearchEngineWithHash(1)
 	t.Cleanup(func() { restoreHCEModelAndTT(t, saved, savedTT) })
 
 	const key = uint64(0x123456789)
-	TranspositionTable.Set(key, EmptyMove, 77, 4, Exact, false)
+	defaultSearchEngine.TTStore(key, EmptyMove, 77, 4, Exact, false)
 	hceModelLifecycle.mu.Lock()
 	beforeGeneration := hceModelLifecycle.generation
 	hceModelLifecycle.mu.Unlock()
@@ -190,7 +190,7 @@ func TestApplyTexelModelFailureAndBusyAreAtomic(t *testing.T) {
 	if got := ExportTexelModel(); !reflect.DeepEqual(got, saved) {
 		t.Fatal("failed validation changed the live HCE model")
 	}
-	if _, _, _, _, hit, _ := TranspositionTable.Get(key); !hit {
+	if _, _, _, _, hit, _ := defaultSearchEngine.TTProbe(key); !hit {
 		t.Fatal("failed validation cleared the TT")
 	}
 
@@ -218,7 +218,7 @@ func TestApplyTexelModelFailureAndBusyAreAtomic(t *testing.T) {
 	if afterGeneration != beforeGeneration {
 		t.Fatalf("failed/busy Apply changed generation: before=%d after=%d", beforeGeneration, afterGeneration)
 	}
-	if _, _, _, _, hit, _ := TranspositionTable.Get(key); !hit {
+	if _, _, _, _, hit, _ := defaultSearchEngine.TTProbe(key); !hit {
 		t.Fatal("busy Apply cleared the TT")
 	}
 }
@@ -254,12 +254,13 @@ func TestHCEReadEntriesFailFastInsideTunerProgress(t *testing.T) {
 
 func TestApplyFromSearchCallbackReturnsBusy(t *testing.T) {
 	saved, changed := changedQueenModel()
-	savedTT := TranspositionTable
-	TranspositionTable = NewCache(1)
+	savedTT := defaultSearchEngine
+	defaultSearchEngine, _ = NewSearchEngineWithHash(1)
 	t.Cleanup(func() { restoreHCEModelAndTT(t, saved, savedTT) })
 
 	var callbackErr error
-	info := NewSearchEngine().SearchIterativeDeepeningWithCallback(
+	searcher, _ := NewSearchEngineWithHash(1)
+	info := searcher.SearchIterativeDeepeningWithCallback(
 		mustHCEPosition(t, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
 		1, nil, func(*SearchInfo) { callbackErr = ApplyTexelModel(changed) },
 	)
@@ -276,8 +277,8 @@ func TestApplyFromSearchCallbackReturnsBusy(t *testing.T) {
 
 func TestModelSwapRebuildsOldBoardsWithoutMutatingDirectCaller(t *testing.T) {
 	saved, changed := changedQueenModel()
-	savedTT := TranspositionTable
-	TranspositionTable = NewCache(1)
+	savedTT := defaultSearchEngine
+	defaultSearchEngine, _ = NewSearchEngineWithHash(1)
 	t.Cleanup(func() { restoreHCEModelAndTT(t, saved, savedTT) })
 
 	const directFEN = "7k/8/8/8/3Q4/8/8/K7 w - - 0 1"
@@ -288,7 +289,7 @@ func TestModelSwapRebuildsOldBoardsWithoutMutatingDirectCaller(t *testing.T) {
 	const mateFEN = "7k/6Q1/6K1/8/8/8/8/8 b - - 0 1"
 	oldFirst := mustHCEPosition(t, mateFEN)
 	oldSecond := mustHCEPosition(t, mateFEN)
-	searcher := NewSearchEngine()
+	searcher, _ := NewSearchEngineWithHash(1)
 	searcher.SearchFixed(oldFirst, 1, nil)
 
 	if err := ApplyTexelModel(changed); err != nil {
@@ -313,13 +314,13 @@ func TestModelSwapRebuildsOldBoardsWithoutMutatingDirectCaller(t *testing.T) {
 	}
 }
 
-func TestGenerationInvalidatesPrivateStateAndClearsTTOnlyAtPublish(t *testing.T) {
+func TestGenerationLazilyInvalidatesEveryReceiver(t *testing.T) {
 	saved, changed := changedQueenModel()
-	savedTT := TranspositionTable
-	TranspositionTable = NewCache(1)
+	savedTT := defaultSearchEngine
+	defaultSearchEngine, _ = NewSearchEngineWithHash(1)
 	t.Cleanup(func() { restoreHCEModelAndTT(t, saved, savedTT) })
 
-	searcher := NewSearchEngine()
+	searcher, _ := NewSearchEngineWithHash(1)
 	searcher.SearchFixed(mustHCEPosition(t, "7k/6Q1/6K1/8/8/8/8/8 b - - 0 1"), 1, nil)
 	move := NewMove(A1, A2, WhiteKing, NoPiece, NoType, 0)
 	searcher.history.historyTable[WhiteKing][A2] = 1
@@ -336,23 +337,23 @@ func TestGenerationInvalidatesPrivateStateAndClearsTTOnlyAtPublish(t *testing.T)
 	searcher.evaluator.pawns[0] = pawnCacheEntry{valid: true, wp: 1}
 
 	const oldTTKey = uint64(0x11111111)
-	TranspositionTable.Set(oldTTKey, move, 12, 3, Exact, false)
-	oldTable := TranspositionTable
-	oldSize := oldTable.Size()
+	defaultSearchEngine.TTStore(oldTTKey, move, 12, 3, Exact, false)
+	oldTable := defaultSearchEngine
+	oldSize := oldTable.HashSize()
 	if err := ApplyTexelModel(changed); err != nil {
 		t.Fatal(err)
 	}
-	if TranspositionTable != oldTable || TranspositionTable.Size() != oldSize {
+	if defaultSearchEngine != oldTable || defaultSearchEngine.HashSize() != oldSize {
 		t.Fatal("Apply replaced or resized the configured TT")
 	}
-	if _, _, _, _, hit, _ := TranspositionTable.Get(oldTTKey); hit {
-		t.Fatal("Apply publication did not clear evaluator-sensitive TT state")
+	if _, _, _, _, hit, _ := defaultSearchEngine.TTProbe(oldTTKey); hit {
+		t.Fatal("first receiver access did not clear stale-generation TT state")
 	}
 
 	const newTTKey = uint64(0x22222222)
-	TranspositionTable.Set(newTTKey, move, 13, 3, Exact, false)
+	defaultSearchEngine.TTStore(newTTKey, move, 13, 3, Exact, false)
 	searcher.SearchFixed(mustHCEPosition(t, "7k/6Q1/6K1/8/8/8/8/8 b - - 0 1"), 1, nil)
-	if _, _, _, _, hit, _ := TranspositionTable.Get(newTTKey); !hit {
+	if _, _, _, _, hit, _ := defaultSearchEngine.TTProbe(newTTKey); !hit {
 		t.Fatal("per-engine generation mismatch cleared the already-published TT")
 	}
 	if searcher.history.historyTable[WhiteKing][A2] != 0 ||
@@ -394,8 +395,8 @@ func TestSameGenerationPreservesWarmPrivateState(t *testing.T) {
 
 func TestTexelTunePanicRollsBackCoherentModel(t *testing.T) {
 	saved := ExportTexelModel()
-	savedTT := TranspositionTable
-	TranspositionTable = NewCache(1)
+	savedTT := defaultSearchEngine
+	defaultSearchEngine, _ = NewSearchEngineWithHash(1)
 	t.Cleanup(func() { restoreHCEModelAndTT(t, saved, savedTT) })
 
 	const fen = "7k/8/8/8/3Q4/8/8/K7 w - - 0 1"
@@ -422,7 +423,7 @@ func TestTexelTunePanicRollsBackCoherentModel(t *testing.T) {
 		t.Fatalf("post-rollback direct eval mismatch: before=%d old=%d fresh=%d", beforeDirect, gotOld, gotFresh)
 	}
 
-	searcher := NewSearchEngine()
+	searcher, _ := NewSearchEngineWithHash(1)
 	freshSearch := mustHCEPosition(t, "7k/6Q1/6K1/8/8/8/8/8 b - - 0 1")
 	searcher.SearchFixed(oldSearch, 1, nil)
 	searcher.SearchFixed(freshSearch, 1, nil)

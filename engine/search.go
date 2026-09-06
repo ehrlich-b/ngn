@@ -480,6 +480,7 @@ type SearchInfo struct {
 	TimeManager *TimeManager
 	PV          [MaximumDepth]Move // Principal variation array
 	PVLength    int                // Length of current PV
+	Hashfull    int                // Permille occupancy sampled with the completed PV
 
 	// Static eval per ply (white-to-move perspective of the node) for the
 	// improving heuristic; indexed by ply like PV.
@@ -578,6 +579,7 @@ type SearchInfo struct {
 	// It is explicit on every production entry path and never falls back to a global.
 	history   *workerHistory
 	evaluator *hceEvaluator
+	tt        *Cache
 
 	// Reusable per-invocation move buffers (docs/10 T1). Frames is allocated once per
 	// search; FrameDepth is the recursion-frame counter, pushed/popped in lockstep with
@@ -589,9 +591,9 @@ type SearchInfo struct {
 // DepthCallback is called after each depth completes during iterative deepening
 type DepthCallback func(info *SearchInfo)
 
-func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, control *SearchControl, history *workerHistory, evaluator *hceEvaluator) *SearchInfo {
+func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, control *SearchControl, history *workerHistory, evaluator *hceEvaluator, tt *Cache) *SearchInfo {
 	// Advance the age of the transposition table for each search
-	TranspositionTable.AdvanceAge()
+	tt.AdvanceAge()
 
 	// Allocate buffers once for the entire search tree
 	var moveBuffer [256]Move
@@ -615,6 +617,10 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		maxNodes:      control.MaxNodes(),
 		history:       history,
 		evaluator:     evaluator,
+		tt:            tt,
+	}
+	if callback != nil {
+		defer refreshSearchReport(pos, info)
 	}
 
 	seedRootStaticEval(pos, info)
@@ -932,6 +938,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		if iterationComplete {
 			info.Depth = currentDepth
 			if callback != nil && info.BestMove != EmptyMove {
+				refreshSearchReport(pos, info)
 				callback(info)
 			}
 
@@ -950,6 +957,25 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 	return info
 }
 
+// refreshSearchReport copies reporting-only TT state while the receiver session
+// and model lease are already held. Search decisions never read these fields.
+func refreshSearchReport(pos *Position, info *SearchInfo) {
+	info.PVLength = 0
+	clear(info.PV[:])
+	if info.BestMove != EmptyMove && info.Depth > 0 {
+		maxLength := info.Depth
+		if maxLength < 32 {
+			maxLength = 32
+		}
+		if maxLength > len(info.PV) {
+			maxLength = len(info.PV)
+		}
+		pv := extractPVFromTT(info.tt, pos, info.BestMove, maxLength)
+		info.PVLength = copy(info.PV[:], pv)
+	}
+	info.Hashfull = info.tt.Consumed()
+}
+
 // ExtractPVFromTT reconstructs the principal variation by walking the
 // transposition table from the current position. firstMove is applied at the
 // root (since the iterative-deepening root loop doesn't write a TT entry there);
@@ -960,7 +986,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 // The position is mutated during the walk and restored before return. Caller
 // must run this only after a search iteration has completed (no concurrent
 // search writes).
-func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
+func extractPVFromTT(tt *Cache, pos *Position, firstMove Move, maxLength int) []Move {
 	if maxLength <= 0 || firstMove == EmptyMove {
 		return nil
 	}
@@ -1026,7 +1052,7 @@ func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
 	hash := pos.Hash()
 	repetitions[hash]++
 	for !pvPositionTerminal(pos, repetitions[hash]) && len(pv) < maxLength {
-		ttMove, _, _, ttNodeType, ttHit, _ := TranspositionTable.Get(hash)
+		ttMove, _, _, ttNodeType, ttHit, _ := tt.Get(hash)
 		if !ttHit || ttMove == EmptyMove || ttNodeType != Exact {
 			break
 		}
@@ -1067,7 +1093,7 @@ func pvDrawTerminal(pos *Position, repetitionCount int) bool {
 // few cp), so the two agree on the best move and track within search noise but are
 // NOT centipawn-identical (guarded by TestSearchFixedMatchesProductionScore). Do
 // not draw strength conclusions from it.
-func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, control *SearchControl, history *workerHistory, evaluator *hceEvaluator) *SearchInfo {
+func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, control *SearchControl, history *workerHistory, evaluator *hceEvaluator, tt *Cache) *SearchInfo {
 	// Allocate buffers once for the entire search tree
 	var moveBuffer [256]Move
 	var captureBuffer [64]Move
@@ -1091,6 +1117,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, contr
 		maxNodes:      control.MaxNodes(),
 		history:       history,
 		evaluator:     evaluator,
+		tt:            tt,
 	}
 
 	alpha := -INFINITY
@@ -1352,7 +1379,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Probe transposition table
 	origAlpha := alpha
 
-	ttMove, ttEvalRaw, ttDepth, ttNodeType, ttHit, ttPvEntry := TranspositionTable.Get(hash)
+	ttMove, ttEvalRaw, ttDepth, ttNodeType, ttHit, ttPvEntry := info.tt.Get(hash)
 
 	// T19: ttPv marks a node that has ever been searched as PV — either it is PV
 	// now, or a previous search stored it as such. It is STICKY (once true it is
@@ -1406,7 +1433,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			return stoppedSearchScore
 		}
 		// Re-probe TT to get the move we just found
-		ttMove, _, _, _, _, _ = TranspositionTable.Get(hash)
+		ttMove, _, _, _, _, _ = info.tt.Get(hash)
 	}
 
 	// Internal Iterative Reduction (IIR): a cut-node that reaches this depth with no
@@ -2178,7 +2205,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// singular verification root: its result is a move-excluded search and
 			// would corrupt the real entry for this position.
 			if !inSingular {
-				TranspositionTable.Set(hash, move, scoreToTT(score, ply), int8(depth), LowerBound, nodeTTPv)
+				info.tt.Set(hash, move, scoreToTT(score, ply), int8(depth), LowerBound, nodeTTPv)
 			}
 			return score
 		}
@@ -2223,7 +2250,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Skip the store at the singular verification root (move-excluded result must
 	// not overwrite the real entry for this position).
 	if !inSingular {
-		TranspositionTable.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType, nodeTTPv)
+		info.tt.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType, nodeTTPv)
 	}
 	return bestScore
 }
@@ -2285,7 +2312,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// covers us (main search stores at depth >= 1 only). Mate scores need
 	// converting from node-relative TT encoding back to root-relative.
 	// Also keep ttMove for move ordering even when no cutoff is taken.
-	ttMove, ttEvalRaw, _, ttNodeType, ttHit, ttPvEntry := TranspositionTable.Get(hash)
+	ttMove, ttEvalRaw, _, ttNodeType, ttHit, ttPvEntry := info.tt.Get(hash)
 	info.QTTProbes++
 	if ttHit {
 		info.QTTHits++
@@ -2512,7 +2539,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			// preserving it is free — and dropping it would let a depth-0 store erase a
 			// mark the main search had earned, silently weakening the LMR adjustment on
 			// exactly the nodes it is meant to protect. (SF preserves ttPv likewise.)
-			TranspositionTable.Set(pos.Hash(), bestMove, scoreToTT(beta, ply), 0, LowerBound, ttHit && ttPvEntry)
+			info.tt.Set(pos.Hash(), bestMove, scoreToTT(beta, ply), 0, LowerBound, ttHit && ttPvEntry)
 			info.QSearchTTStores++
 			return beta
 		}

@@ -11,12 +11,10 @@ import (
 // their established signatures cannot return an error.
 var ErrHCEModelBusy = errors.New("HCE model is busy")
 
-// The lifecycle covers supported search, direct-evaluation, ApplyTexelModel,
-// and checked tuner entry points. Raw ParseFEN/Bitboard make-unmake operations
-// still read the process PST tables without a lease, and UCI Hash reconfiguration
-// still replaces the package TT outside this lifecycle. Callers must not overlap
-// those raw/configuration operations with Apply or tuning; receiver-owned TT and
-// broader configuration ownership are later stages.
+// The lifecycle covers supported search, direct evaluation, receiver TT content
+// operations, ApplyTexelModel, and checked tuner entry points. Raw ParseFEN and
+// Bitboard make/unmake operations still read process PST tables without a lease;
+// callers must not overlap those raw operations with Apply or tuning.
 
 var hceModelLifecycle = struct {
 	mu         sync.Mutex
@@ -68,17 +66,14 @@ func tryBeginHCEModelMutation() error {
 	return nil
 }
 
-// publishHCEModelMutation clears evaluator-sensitive shared TT state exactly
-// once, then publishes the new generation last. Per-engine state is invalidated
-// lazily when that receiver next observes the generation.
+// publishHCEModelMutation publishes the new generation last. Receiver-owned
+// evaluator, history, and TT state is invalidated lazily before that receiver's
+// next operation.
 func publishHCEModelMutation() {
 	hceModelLifecycle.mu.Lock()
 	defer hceModelLifecycle.mu.Unlock()
 	if !hceModelLifecycle.mutating {
 		panic("publishing HCE model without mutation lease")
-	}
-	if TranspositionTable != nil {
-		TranspositionTable.Clear()
 	}
 	hceModelLifecycle.generation++
 	hceModelLifecycle.mutating = false

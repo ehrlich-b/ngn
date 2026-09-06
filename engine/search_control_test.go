@@ -14,23 +14,10 @@ func controlTestPosition(t *testing.T) *Position {
 	return pos
 }
 
-// This is deliberately sequential while TT/history/eval ownership is pending:
-// it proves that real recursive searches read their receiver's control rather
+// This proves that real recursive searches read their receiver's control rather
 // than the package compatibility control.
 func TestSearchEngineControlsAreIsolatedInRealSearches(t *testing.T) {
-	oldTT := TranspositionTable
-	defer func() {
-		TranspositionTable = oldTT
-		ClearHistoryTable()
-		ClearKillerMoves()
-		ClearCounterMoves()
-	}()
-	TranspositionTable = NewCache(1)
-	ClearHistoryTable()
-	ClearKillerMoves()
-	ClearCounterMoves()
-
-	stoppedEngine := NewSearchEngine()
+	stoppedEngine, _ := NewSearchEngineWithHash(1)
 	stopped := stoppedEngine.SearchIterativeDeepeningWithCallback(controlTestPosition(t), 4, nil, func(info *SearchInfo) {
 		if info.Depth == 1 {
 			stoppedEngine.RequestStop()
@@ -40,13 +27,13 @@ func TestSearchEngineControlsAreIsolatedInRealSearches(t *testing.T) {
 		t.Fatalf("receiver stop was not observed: stopped=%v depth=%d", stopped.Stopped, stopped.Depth)
 	}
 
-	unlimitedEngine := NewSearchEngine()
+	unlimitedEngine, _ := NewSearchEngineWithHash(1)
 	completed := unlimitedEngine.Search(controlTestPosition(t), 2)
 	if completed.Stopped || completed.Depth != 2 {
 		t.Fatalf("another receiver inherited stop: stopped=%v depth=%d", completed.Stopped, completed.Depth)
 	}
 
-	limitedEngine := NewSearchEngine()
+	limitedEngine, _ := NewSearchEngineWithHash(1)
 	limitedEngine.SetMaxNodes(64)
 	limited := limitedEngine.Search(controlTestPosition(t), MaximumDepth)
 	if !limited.Stopped || limited.Nodes < 64 {
@@ -58,10 +45,7 @@ func TestSearchEngineControlsAreIsolatedInRealSearches(t *testing.T) {
 }
 
 func TestSearchEngineHoldsOneSessionLockThroughCallback(t *testing.T) {
-	oldTT := TranspositionTable
-	defer func() { TranspositionTable = oldTT }()
-	TranspositionTable = NewCache(1)
-	searcher := NewSearchEngine()
+	searcher, _ := NewSearchEngineWithHash(1)
 	entered := make(chan struct{})
 	release := make(chan struct{})
 	done := make(chan struct{})

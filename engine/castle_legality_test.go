@@ -113,7 +113,7 @@ func TestCastleFromCheckNeverEntersSearch(t *testing.T) {
 	for run := 0; run < 2; run++ {
 		ClearStop()
 		ClearHistoryTable()
-		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+		defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 		info := SearchIterativeDeepening(pos, 3, nil)
 		if info.BestMove == EmptyMove || info.BestMove.ToString() == illegalCastle || !IsLegalMove(pos, info.BestMove) {
 			t.Fatalf("run %d chose illegal root move %s", run, info.BestMove.ToString())
@@ -156,7 +156,7 @@ func TestQuiescenceDoesNotInventCastleEvasion(t *testing.T) {
 			t.Fatalf("offline quiet search(%s)=(%d,%v), want resolved mate", fen, got, resolved)
 		}
 		ClearStop()
-		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+		defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 		if got := quiescence(pos, -INFINITY, INFINITY, 0, newQSearchInfo()); got != -MATE_VALUE {
 			t.Fatalf("qsearch(%s)=%d, want checkmate %d", fen, got, -MATE_VALUE)
 		}
@@ -171,7 +171,7 @@ func TestQuiescenceDoesNotInventCastleEvasion(t *testing.T) {
 			{"fixed", func(p *Position) *SearchInfo { return SearchFixed(p, 2, nil) }},
 		} {
 			ClearStop()
-			TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+			defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 			info := search.run(pos)
 			if info.BestMove != EmptyMove || info.BestScore != -MATE_VALUE {
 				t.Fatalf("%s root(%s): move=%s score=%d, want mate", search.name, fen, info.BestMove.ToString(), info.BestScore)
@@ -197,7 +197,7 @@ func TestRootAllPseudoMovesIllegalIsStalemate(t *testing.T) {
 			t.Fatalf("fixture must have pseudo moves but no legal moves and no check: %s", fen)
 		}
 		for _, search := range []func(*Position, int, *TimeManager) *SearchInfo{SearchIterativeDeepening, SearchFixed} {
-			TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+			defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 			info := search(pos, 2, nil)
 			if info.BestMove != EmptyMove || info.BestScore != 0 || info.Stopped {
 				t.Fatalf("root(%s): move=%s score=%d stopped=%v, want stalemate", fen, info.BestMove.ToString(), info.BestScore, info.Stopped)

@@ -43,7 +43,7 @@ func TestRootExplorationDoesNotInflateRepetitionCount(t *testing.T) {
 	}()
 
 	search := func(seededCount int) int {
-		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+		defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 		ClearHistoryTable()
 		ClearKillerMoves()
 		ClearCounterMoves()

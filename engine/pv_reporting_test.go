@@ -83,7 +83,7 @@ func seedExactPV(t *testing.T, pos *Position, texts []string) []Move {
 		move := mustPVMove(t, pos, text)
 		moves = append(moves, move)
 		if i > 0 {
-			TranspositionTable.Set(pos.Hash(), move, 0, 1, Exact, true)
+			defaultSearchEngine.TTStore(pos.Hash(), move, 0, 1, Exact, true)
 		}
 		ep, tag, hc := makePVMove(t, pos, move)
 		undos = append(undos, undoEntry{move: move, ep: ep, tag: tag, hc: hc})
@@ -115,9 +115,9 @@ func movesToPVStrings(moves []Move) []string {
 
 func withFreshPVTT(t *testing.T) {
 	t.Helper()
-	saved := TranspositionTable
-	TranspositionTable = NewCache(1)
-	t.Cleanup(func() { TranspositionTable = saved })
+	saved := defaultSearchEngine
+	defaultSearchEngine, _ = NewSearchEngineWithHash(1)
+	t.Cleanup(func() { defaultSearchEngine = saved })
 }
 
 func TestExtractPVFromTTStopsAtRealHistoryRepetition(t *testing.T) {
@@ -264,7 +264,7 @@ func TestExtractPVFromTTStopsOnFirstMoveRepetition(t *testing.T) {
 	next := mustPVMove(t, pos, "e8e7")
 	pos.UnMakeMove(first, tag, ep, hc)
 	pos.Positions[childHash] = 2
-	TranspositionTable.Set(childHash, next, 0, 1, Exact, true)
+	defaultSearchEngine.TTStore(childHash, next, 0, 1, Exact, true)
 	before := snapshotPVPosition(pos)
 	got := ExtractPVFromTT(pos, first, 32)
 	if len(got) != 1 || got[0] != first {
@@ -293,14 +293,14 @@ func TestExtractPVFromTTBoundMissIllegalAndMaxLength(t *testing.T) {
 			before := snapshotPVPosition(pos)
 			moves := seedExactPV(t, pos, []string{"e2e4", "e7e5", "g1f3"})
 			if !test.setEntry {
-				TranspositionTable = NewCache(1)
+				defaultSearchEngine, _ = NewSearchEngineWithHash(1)
 			} else {
 				ep, tag, hc := makePVMove(t, pos, moves[0])
 				ttMove := moves[1]
 				if test.illegal {
 					ttMove = moves[0]
 				}
-				TranspositionTable.Set(pos.Hash(), ttMove, 0, 1, test.nodeType, true)
+				defaultSearchEngine.TTStore(pos.Hash(), ttMove, 0, 1, test.nodeType, true)
 				pos.UnMakeMove(moves[0], tag, ep, hc)
 			}
 			got := ExtractPVFromTT(pos, moves[0], test.max)

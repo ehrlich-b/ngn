@@ -32,7 +32,7 @@ func main() {
 	// Advance TT age to reduce pollution from previous searches
 	// (not perfect but helps reduce cross-depth contamination)
 	for i := 0; i < 256; i++ {
-		engine.TranspositionTable.AdvanceAge()
+		engine.AdvanceHashAge()
 	}
 
 	// Analyze position at each depth from 1 to maxDepth

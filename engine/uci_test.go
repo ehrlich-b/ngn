@@ -130,23 +130,17 @@ func TestUCINewGame(t *testing.T) {
 }
 
 func TestUCIHashOptionResizesTable(t *testing.T) {
-	savedTT := TranspositionTable
-	defer func() { TranspositionTable = savedTT }()
-
 	engine := NewUCIEngine()
 	var output bytes.Buffer
 
 	engine.handleCommand("setoption name Hash value 1", &output)
-	if engine.hashMB != 1 {
-		t.Fatalf("engine hash setting = %d MB, want 1 MB", engine.hashMB)
-	}
-	if TranspositionTable.Size() != 1 {
-		t.Fatalf("TT size = %d MB, want 1 MB", TranspositionTable.Size())
+	if engine.searcher.HashSize() != 1 {
+		t.Fatalf("TT size = %d MB, want 1 MB", engine.searcher.HashSize())
 	}
 
 	engine.handleCommand("ucinewgame", &output)
-	if TranspositionTable.Size() != 1 {
-		t.Fatalf("ucinewgame reset TT to %d MB, want to preserve 1 MB Hash option", TranspositionTable.Size())
+	if engine.searcher.HashSize() != 1 {
+		t.Fatalf("ucinewgame reset TT to %d MB, want to preserve 1 MB Hash option", engine.searcher.HashSize())
 	}
 }
 

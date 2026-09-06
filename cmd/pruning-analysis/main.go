@@ -135,7 +135,7 @@ func main() {
 		}
 		// Cold start per position: fresh TT + cleared ordering tables so the
 		// measurement is independent and comparable across positions.
-		engine.TranspositionTable = engine.NewCache(engine.DEFAULT_CACHE_SIZE)
+		engine.ClearHash()
 		engine.ClearHistoryTable()
 		engine.ClearKillerMoves()
 		engine.ClearCounterMoves()

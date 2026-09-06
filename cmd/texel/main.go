@@ -3,9 +3,9 @@
 //	texel -mode gendata -games 1500 -nodes 8000 -out data.txt
 //	texel -mode tune    -data data.txt -out tuned_psts.go
 //
-// gendata self-plays games in-process (single-threaded — Search shares global
-// TT/history state, so it cannot run concurrently in one process; run several
-// instances under `taskpolicy -b` and concatenate for more data) and records
+// gendata self-plays games in-process through one compatibility SearchEngine
+// receiver. Run several process-isolated instances under `taskpolicy -b` and
+// concatenate for more data. It records
 // quiet, non-check positions labeled with the game's final result from White's
 // perspective. tune loads that dataset, calibrates K, runs coordinate descent
 // over the PSTs, and dumps the tuned tables as Go source to paste into eval.go.
@@ -142,7 +142,7 @@ func genData(games, nodes, prefix, maxPlies int, seed int64, out string) {
 // the game result from White's perspective (1.0 / 0.5 / 0.0).
 func playGame(nodes, prefix, maxPlies int, rng *rand.Rand) ([]string, float64) {
 	// Fresh per-game search state (ucinewgame semantics).
-	engine.TranspositionTable = engine.NewCache(engine.DEFAULT_CACHE_SIZE)
+	engine.ClearHash()
 	engine.ClearHistoryTable()
 	engine.ClearKillerMoves()
 	engine.ClearCounterMoves()

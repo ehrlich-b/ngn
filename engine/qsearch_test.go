@@ -11,6 +11,7 @@ func newQSearchInfo() *SearchInfo {
 		control:       &defaultSearchEngine.control,
 		history:       &defaultSearchEngine.history,
 		evaluator:     &hceEvaluator{},
+		tt:            defaultTTForDirectTest(),
 		MoveBuffer:    &moveBuffer,
 		CaptureBuffer: &captureBuffer,
 		OrderedBuffer: &orderedBuffer,
@@ -26,7 +27,7 @@ func qsearchOf(t *testing.T, fen string) (got, standPat int) {
 	}
 	ClearStop()
 	ClearHistoryTable() // T4: qsearch stand-pat now carries the pawn correction; clear it so quiet positions read == raw
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 	standPat = EvaluateForPlayer(&pos.Board, pos.Turn())
 	got = quiescence(pos, -INFINITY, INFINITY, 0, newQSearchInfo())
 	return
@@ -76,7 +77,7 @@ func TestQuiescenceDepthCapStillHandlesCheckmate(t *testing.T) {
 		t.Fatal("test position must have side to move in check")
 	}
 	ClearStop()
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 
 	const ply = 6
 	got := quiescenceWithDepth(pos, -INFINITY, INFINITY, ply, newQSearchInfo(), 6)
@@ -122,14 +123,14 @@ func TestQSearchTTBoundsDoNotDependOnLegacyQDepth(t *testing.T) {
 			}
 			ClearStop()
 			ClearHistoryTable()
-			TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+			defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 			_ = quiescenceWithDepth(pos, -INFINITY, 100, 5, newQSearchInfo(), legacyQDepth)
 			assertPreserved("legacy search")
 			warm := quiescenceWithDepth(pos, -INFINITY, 100, 5, newQSearchInfo(), 0)
 			assertPreserved("warm search")
 			ClearStop()
 			ClearHistoryTable()
-			TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+			defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 			cold := quiescenceWithDepth(pos, -INFINITY, 100, 5, newQSearchInfo(), 0)
 			assertPreserved("cold search")
 			if warm != cold {
@@ -152,7 +153,7 @@ func TestQSearchLegacyQDepthStillHonorsNodeStop(t *testing.T) {
 	}
 	ClearStop()
 	ClearHistoryTable()
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 	info := newQSearchInfo()
 	info.maxNodes = 1
 	_ = quiescenceWithDepth(pos, -INFINITY, INFINITY, 0, info, 9)
@@ -181,7 +182,7 @@ func TestPawnCorrectionAppliedAtQsearchStandPat(t *testing.T) {
 	}
 	ClearStop()
 	ClearHistoryTable()
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 
 	stm := pos.Turn()
 	idx := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
@@ -212,7 +213,7 @@ func TestNonPawnCorrectionAppliedAtQsearchStandPat(t *testing.T) {
 	}
 	ClearStop()
 	ClearHistoryTable()
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 
 	stm := pos.Turn()
 	idx := nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])
@@ -244,7 +245,7 @@ func TestMinorCorrectionAppliedAtQsearchStandPat(t *testing.T) {
 	}
 	ClearStop()
 	ClearHistoryTable()
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 
 	stm := pos.Turn()
 	idx := minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])

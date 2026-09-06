@@ -90,7 +90,7 @@ func TestMovegenOracle(t *testing.T) {
 			if pos.HasCastling() && searchRoots < 128 {
 				ClearStop()
 				ClearHistoryTable()
-				TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+				defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 				info := SearchIterativeDeepening(pos, 2, nil)
 				_, legal := want[info.BestMove.ToString()]
 				if (len(want) == 0 && info.BestMove != EmptyMove) || (len(want) != 0 && !legal) {

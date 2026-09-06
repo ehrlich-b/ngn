@@ -427,12 +427,11 @@ func recordFixture(hashMB int, f fixture) (fixtureSnapshot, error) {
 	if hashMB < 1 {
 		return fixtureSnapshot{}, errors.New("hash_mb must be at least 1")
 	}
-	engine.TranspositionTable = engine.NewCache(hashMB)
-	engine.ClearHistoryTable()
-	engine.ClearKillerMoves()
-	engine.ClearCounterMoves()
-	engine.ClearStop()
-	engine.SetMaxNodes(f.MaxNodes)
+	searcher, err := engine.NewSearchEngineWithHash(hashMB)
+	if err != nil {
+		return fixtureSnapshot{}, err
+	}
+	searcher.SetMaxNodes(f.MaxNodes)
 
 	root, err := engine.ParseFEN(f.StartFEN)
 	if err != nil {
@@ -448,28 +447,28 @@ func recordFixture(hashMB int, f fixture) (fixtureSnapshot, error) {
 			return fixtureSnapshot{}, fmt.Errorf("fixture %q move %d %q was rejected", f.Name, i+1, text)
 		}
 		// Match UCI handlePosition: the predecessor is part of root move-order state.
-		engine.SetLastMovePlayed(move)
+		searcher.SetLastMovePlayed(move)
 	}
-	rootBefore := snapshotRoot(root, len(moves))
+	rootBefore := snapshotRoot(root, len(moves), searcher.GetLastMovePlayed())
 	if rootBefore.FEN != f.ExpectedRootFEN {
 		return fixtureSnapshot{}, fmt.Errorf("fixture %q root FEN %q, want %q", f.Name, rootBefore.FEN, f.ExpectedRootFEN)
 	}
 
 	one := fixtureSnapshot{Name: f.Name, Purpose: f.Purpose, Input: f, Root: rootBefore}
 	for _, state := range []string{"cold", "warm"} {
-		engine.ClearStop()
-		engine.SetMaxNodes(f.MaxNodes)
+		searcher.ClearStop()
+		searcher.SetMaxNodes(f.MaxNodes)
 		searchPos := root.Copy()
 		boardBefore := searchPos.Board
 		pass := passSnapshot{State: state, Iterations: make([]observation, 0)}
-		result := engine.SearchIterativeDeepeningWithCallback(searchPos, f.Depth, nil, func(info *engine.SearchInfo) {
-			pass.Iterations = append(pass.Iterations, snapshotObservation(searchPos, info))
+		result := searcher.SearchIterativeDeepeningWithCallback(searchPos, f.Depth, nil, func(info *engine.SearchInfo) {
+			pass.Iterations = append(pass.Iterations, snapshotObservation(info))
 			if f.StopAfterDepth != 0 && info.Depth >= f.StopAfterDepth {
-				engine.RequestStop()
+				searcher.RequestStop()
 			}
 		})
-		pass.Final = snapshotObservation(searchPos, result)
-		after := snapshotRoot(searchPos, len(moves))
+		pass.Final = snapshotObservation(result)
+		after := snapshotRoot(searchPos, len(moves), searcher.GetLastMovePlayed())
 		if !reflect.DeepEqual(boardBefore, searchPos.Board) {
 			return fixtureSnapshot{}, fmt.Errorf("fixture %q %s search changed hidden board state", f.Name, state)
 		}
@@ -481,7 +480,7 @@ func recordFixture(hashMB int, f fixture) (fixtureSnapshot, error) {
 	return one, nil
 }
 
-func snapshotRoot(pos *engine.Position, played int) rootState {
+func snapshotRoot(pos *engine.Position, played int, lastMove engine.Move) rootState {
 	history := make([]historyCount, 0, len(pos.Positions))
 	for hash, count := range pos.Positions {
 		history = append(history, historyCount{Hash: hashString(hash), Count: count})
@@ -489,7 +488,7 @@ func snapshotRoot(pos *engine.Position, played int) rootState {
 	sort.Slice(history, func(i, j int) bool { return history[i].Hash < history[j].Hash })
 	return rootState{
 		FEN: engine.GenerateFEN(pos), Hash: hashString(pos.Hash()),
-		BoardSHA256: boardDigest(pos.Board), LastMove: moveString(engine.GetLastMovePlayed()),
+		BoardSHA256: boardDigest(pos.Board), LastMove: moveString(lastMove),
 		PlayedPlies: played, History: history,
 	}
 }
@@ -541,11 +540,14 @@ func writeDigestString(h hash.Hash, value string) {
 	io.WriteString(h, value)
 }
 
-func snapshotObservation(pos *engine.Position, info *engine.SearchInfo) observation {
-	pvMoves := engine.ExtractPVFromTT(pos, info.BestMove, info.Depth)
-	pv := make([]string, len(pvMoves))
-	for i, move := range pvMoves {
-		pv[i] = moveString(move)
+func snapshotObservation(info *engine.SearchInfo) observation {
+	pvLength := info.PVLength
+	if pvLength > info.Depth {
+		pvLength = info.Depth
+	}
+	pv := make([]string, pvLength)
+	for i := 0; i < pvLength; i++ {
+		pv[i] = moveString(info.PV[i])
 	}
 	return observation{
 		Depth: info.Depth, SelDepth: info.SelDepth, RootDepth: info.RootDepth,

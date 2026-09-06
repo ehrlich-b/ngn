@@ -24,12 +24,12 @@ func TestIterativeDeepeningDoesNotStopOnShallowCachedMateWithHistory(t *testing.
 		t.Fatal("legal e5e8 g4g5 continuation did not reach the recorded threefold")
 	}
 
-	oldTT := TranspositionTable
+	oldTT := defaultSearchEngine
 	oldMaxNodes := MaxNodes()
 	oldStop := IsStopRequested()
 	oldHistory := defaultSearchEngine.history.historyTable[poisoned.MovingPiece()][poisoned.Destination()]
 	defer func() {
-		TranspositionTable = oldTT
+		defaultSearchEngine = oldTT
 		SetMaxNodes(oldMaxNodes)
 		defaultSearchEngine.history.historyTable[poisoned.MovingPiece()][poisoned.Destination()] = oldHistory
 		if oldStop {
@@ -38,7 +38,7 @@ func TestIterativeDeepeningDoesNotStopOnShallowCachedMateWithHistory(t *testing.
 			ClearStop()
 		}
 	}()
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 	ClearStop()
 	SetMaxNodes(0)
 
@@ -56,7 +56,7 @@ func TestIterativeDeepeningDoesNotStopOnShallowCachedMateWithHistory(t *testing.
 	// Synthetically reproduce the archived root mate-15 score (29 plies).
 	// scoreToTT normalizes the child score for storage at root ply one, and
 	// scoreFromTT restores -MATE_VALUE+29 when qsearch probes this child.
-	TranspositionTable.Set(childHash, EmptyMove,
+	defaultSearchEngine.TTStore(childHash, EmptyMove,
 		scoreToTT(-MATE_VALUE+29, 1), 0, Exact, true)
 
 	type completed struct {

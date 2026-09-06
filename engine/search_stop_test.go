@@ -14,6 +14,7 @@ func newSearchInfoForTest(tm *TimeManager, rootDepth int) *SearchInfo {
 		control:       &defaultSearchEngine.control,
 		history:       &defaultSearchEngine.history,
 		evaluator:     &hceEvaluator{},
+		tt:            defaultTTForDirectTest(),
 		Depth:         rootDepth,
 		RootDepth:     rootDepth,
 		BestMove:      EmptyMove,
@@ -32,7 +33,7 @@ func TestStoppedChildDoesNotStoreParentTT(t *testing.T) {
 	ClearHistoryTable()
 	ClearKillerMoves()
 	ClearCounterMoves()
-	TranspositionTable = NewCache(1)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(1)
 
 	pos, err := ParseFEN("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1")
 	if err != nil {
@@ -54,7 +55,7 @@ func TestStoppedChildDoesNotStoreParentTT(t *testing.T) {
 	if score != stoppedSearchScore {
 		t.Fatalf("stopped search returned %d, want stoppedSearchScore", score)
 	}
-	if _, _, _, _, hit, _ := TranspositionTable.Get(rootHash); hit {
+	if _, _, _, _, hit, _ := info.tt.Get(rootHash); hit {
 		t.Fatal("stopped parent wrote a transposition-table entry")
 	}
 }
@@ -62,7 +63,7 @@ func TestStoppedChildDoesNotStoreParentTT(t *testing.T) {
 func TestQuiescenceHonorsTimeLimit(t *testing.T) {
 	ClearStop()
 	t.Cleanup(ClearStop)
-	TranspositionTable = NewCache(1)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(1)
 	pos, err := ParseFEN("4k3/8/8/3q4/4P3/8/8/4K3 w - - 0 1")
 	if err != nil {
 		t.Fatal(err)

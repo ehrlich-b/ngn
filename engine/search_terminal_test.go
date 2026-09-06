@@ -26,7 +26,7 @@ func TestQuiescenceTerminalPositions(t *testing.T) {
 				}
 				ClearStop()
 				ClearHistoryTable()
-				TranspositionTable = NewCache(1)
+				defaultSearchEngine, _ = NewSearchEngineWithHash(1)
 				info := newQSearchInfo()
 				got := quiescenceWithDepth(pos, -INFINITY, INFINITY, ply, info, qDepth)
 				if got != tc.want {
@@ -55,7 +55,7 @@ func TestMateOnFiftiethMove(t *testing.T) {
 				ClearHistoryTable()
 				ClearKillerMoves()
 				ClearCounterMoves()
-				TranspositionTable = NewCache(1)
+				defaultSearchEngine, _ = NewSearchEngineWithHash(1)
 				info := search.run(pos, depth, nil)
 				if info.BestMove.ToString() != "a7a8" || info.BestScore != MATE_VALUE-1 {
 					t.Fatalf("move=%s score=%d, want Ra8# score=%d", info.BestMove.ToString(), info.BestScore, MATE_VALUE-1)
@@ -75,7 +75,7 @@ func TestQuiescenceRepetition(t *testing.T) {
 			}
 			ClearStop()
 			ClearHistoryTable()
-			TranspositionTable = NewCache(1)
+			defaultSearchEngine, _ = NewSearchEngineWithHash(1)
 			pos.Positions[pos.Hash()] = gameCount
 			got := quiescenceWithDepth(pos, -INFINITY, INFINITY, 4, newQSearchInfo(), 1)
 			if gameCount == 2 && got != 0 {
@@ -92,7 +92,7 @@ func TestQuiescenceRepetition(t *testing.T) {
 			t.Fatal(err)
 		}
 		ClearStop()
-		TranspositionTable = NewCache(1)
+		defaultSearchEngine, _ = NewSearchEngineWithHash(1)
 		info := newQSearchInfo()
 		info.RepStack[0] = pos.Hash()
 		info.RepStackLen = 4

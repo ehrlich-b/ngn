@@ -32,7 +32,7 @@ func TestIIDIsWired(t *testing.T) {
 	search := func(fen string, depth int, iid bool) *SearchInfo {
 		SearchToggles.IID = iid
 		defer func() { SearchToggles.IID = true }()
-		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+		defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 		ClearHistoryTable()
 		ClearKillerMoves()
 		ClearCounterMoves()
@@ -83,7 +83,7 @@ func TestSingularExtensionsFire(t *testing.T) {
 	search := func(singular bool) *SearchInfo {
 		SearchToggles.Singular = singular
 		defer func() { SearchToggles.Singular = true }()
-		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+		defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 		ClearHistoryTable()
 		ClearKillerMoves()
 		ClearCounterMoves()
