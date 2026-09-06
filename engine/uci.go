@@ -88,8 +88,8 @@ type uciSearchSession struct {
 
 func (s *uciSearchSession) cancel(searcher *SearchEngine) {
 	s.cancelOnce.Do(func() {
-		close(s.cancelled)
 		searcher.RequestStop()
+		close(s.cancelled)
 	})
 }
 
