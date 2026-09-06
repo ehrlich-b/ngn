@@ -2,6 +2,7 @@ package nnue_test
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/ehrlich-b/ngn/nnue"
@@ -175,31 +176,44 @@ func TestContextHandcraftedTransitionsMatchFullRefresh(t *testing.T) {
 	}
 
 	model := contextModel(t)
+	apis := []struct {
+		name string
+		push func(*nnue.Context, nnue.Delta, nnue.Position) error
+	}{
+		{"full-position", func(context *nnue.Context, delta nnue.Delta, after nnue.Position) error {
+			return context.Push(delta, after)
+		}},
+		{"compact-delta", func(context *nnue.Context, delta nnue.Delta, _ nnue.Position) error {
+			return context.PushDelta(delta)
+		}},
+	}
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			context, err := nnue.NewContext(model)
-			if err != nil {
-				t.Fatalf("NewContext: %v", err)
-			}
-			if err := context.Reset(test.before); err != nil {
-				t.Fatalf("Reset: %v", err)
-			}
-			rootScore := requireContextMatchesReference(t, model, context, test.before)
-			delta := transition(t, test.kind, test.before, test.after, test.removed, test.added)
-			if err := context.Push(delta, test.after); err != nil {
-				t.Fatalf("Push: %v", err)
-			}
-			requireContextMatchesReference(t, model, context, test.after)
-			if context.Depth() != 1 {
-				t.Fatalf("depth = %d, want 1", context.Depth())
-			}
-			if err := context.Pop(); err != nil {
-				t.Fatalf("Pop: %v", err)
-			}
-			if got := requireContextMatchesReference(t, model, context, test.before); got != rootScore {
-				t.Fatalf("score after undo = %d, want root %d", got, rootScore)
-			}
-		})
+		for _, api := range apis {
+			t.Run(test.name+"/"+api.name, func(t *testing.T) {
+				context, err := nnue.NewContext(model)
+				if err != nil {
+					t.Fatalf("NewContext: %v", err)
+				}
+				if err := context.Reset(test.before); err != nil {
+					t.Fatalf("Reset: %v", err)
+				}
+				rootScore := requireContextMatchesReference(t, model, context, test.before)
+				delta := transition(t, test.kind, test.before, test.after, test.removed, test.added)
+				if err := api.push(context, delta, test.after); err != nil {
+					t.Fatalf("Push: %v", err)
+				}
+				requireContextMatchesReference(t, model, context, test.after)
+				if context.Depth() != 1 {
+					t.Fatalf("depth = %d, want 1", context.Depth())
+				}
+				if err := context.Pop(); err != nil {
+					t.Fatalf("Pop: %v", err)
+				}
+				if got := requireContextMatchesReference(t, model, context, test.before); got != rootScore {
+					t.Fatalf("score after undo = %d, want root %d", got, rootScore)
+				}
+			})
+		}
 	}
 }
 
@@ -212,26 +226,41 @@ func TestContextNullMoveAndUndo(t *testing.T) {
 	)
 	after := before
 	after.SideToMove = nnue.Black
-	context, err := nnue.NewContext(model)
+	afterFacts, err := nnue.Facts(after)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := context.Reset(before); err != nil {
-		t.Fatal(err)
+	apis := []struct {
+		name string
+		push func(*nnue.Context) error
+	}{
+		{"full-position", func(context *nnue.Context) error { return context.PushNull(after) }},
+		{"compact-facts", func(context *nnue.Context) error { return context.PushNullFacts(afterFacts) }},
 	}
-	root := requireContextMatchesReference(t, model, context, before)
-	if err := context.PushNull(after); err != nil {
-		t.Fatalf("PushNull: %v", err)
-	}
-	child := requireContextMatchesReference(t, model, context, after)
-	if child == root {
-		t.Fatalf("asymmetric fixture did not distinguish STM ordering: both %d", child)
-	}
-	if err := context.Pop(); err != nil {
-		t.Fatal(err)
-	}
-	if got := requireContextMatchesReference(t, model, context, before); got != root {
-		t.Fatalf("after null undo = %d, want %d", got, root)
+	for _, api := range apis {
+		t.Run(api.name, func(t *testing.T) {
+			context, err := nnue.NewContext(model)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := context.Reset(before); err != nil {
+				t.Fatal(err)
+			}
+			root := requireContextMatchesReference(t, model, context, before)
+			if err := api.push(context); err != nil {
+				t.Fatalf("push null: %v", err)
+			}
+			child := requireContextMatchesReference(t, model, context, after)
+			if child == root {
+				t.Fatalf("asymmetric fixture did not distinguish STM ordering: both %d", child)
+			}
+			if err := context.Pop(); err != nil {
+				t.Fatal(err)
+			}
+			if got := requireContextMatchesReference(t, model, context, before); got != root {
+				t.Fatalf("after null undo = %d, want %d", got, root)
+			}
+		})
 	}
 }
 
@@ -300,6 +329,135 @@ func TestContextFailedOperationsPreserveState(t *testing.T) {
 	if snapshot := contextSnapshot(t, context); snapshot != rootSnapshot {
 		t.Fatal("failed Reset changed accumulator snapshot")
 	}
+}
+
+func TestContextPushDeltaFailuresAreTransactional(t *testing.T) {
+	model := contextModel(t)
+	before := pos(nnue.White,
+		piece(nnue.King, nnue.White, 4),
+		piece(nnue.King, nnue.Black, 60),
+		piece(nnue.Pawn, nnue.White, 12),
+		piece(nnue.Knight, nnue.Black, 28),
+	)
+	after := pos(nnue.Black,
+		piece(nnue.King, nnue.White, 4),
+		piece(nnue.King, nnue.Black, 60),
+		piece(nnue.Pawn, nnue.White, 28),
+	)
+	valid := transition(t, nnue.MoveCapture, before, after,
+		[]nnue.PieceOnSquare{before.Pieces[2], before.Pieces[3]},
+		[]nnue.PieceOnSquare{after.Pieces[2]},
+	)
+	context, _ := nnue.NewContext(model)
+	if err := context.Reset(before); err != nil {
+		t.Fatal(err)
+	}
+
+	badBefore := valid
+	badBefore.Before.Occupied ^= 1
+	missingMover := valid
+	missingMover.Removed[0].Square = 11
+	wrongVictim := valid
+	wrongVictim.Removed[1].Piece = nnue.Bishop
+	collision := valid
+	collision.Added[0].Square = 4
+	badAfter := valid
+	badAfter.After.Pawns[nnue.White] ^= uint64(1) << valid.Added[0].Square
+	wrongSide := valid
+	wrongSide.Removed[0].Color = nnue.Black
+	wrongSide.Added[0].Color = nnue.Black
+
+	for name, delta := range map[string]nnue.Delta{
+		"before facts":  badBefore,
+		"missing mover": missingMover,
+		"wrong victim":  wrongVictim,
+		"collision":     collision,
+		"after facts":   badAfter,
+		"mover side":    wrongSide,
+	} {
+		t.Run(name, func(t *testing.T) {
+			snapshot := *context
+			if err := context.PushDelta(delta); !errors.Is(err, nnue.ErrContext) {
+				t.Fatalf("PushDelta error = %v, want ErrContext", err)
+			}
+			if !reflect.DeepEqual(*context, snapshot) {
+				t.Fatal("failed PushDelta changed Context state")
+			}
+			requireContextMatchesReference(t, model, context, before)
+		})
+	}
+
+	facts, err := context.Facts()
+	if err != nil {
+		t.Fatal(err)
+	}
+	changed := facts
+	changed.Occupied ^= 1
+	snapshot := *context
+	if err := context.PushNullFacts(changed); !errors.Is(err, nnue.ErrContext) {
+		t.Fatalf("PushNullFacts error = %v, want ErrContext", err)
+	}
+	if !reflect.DeepEqual(*context, snapshot) {
+		t.Fatal("failed PushNullFacts changed Context state")
+	}
+}
+
+func TestContextPushDeltaSingularReplay(t *testing.T) {
+	model := contextModel(t)
+	root := pos(nnue.White,
+		piece(nnue.King, nnue.White, 4),
+		piece(nnue.King, nnue.Black, 60),
+		piece(nnue.Pawn, nnue.White, 12),
+	)
+	child := pos(nnue.Black,
+		piece(nnue.King, nnue.White, 4),
+		piece(nnue.King, nnue.Black, 60),
+		piece(nnue.Pawn, nnue.White, 28),
+	)
+	alternative := pos(nnue.Black,
+		piece(nnue.King, nnue.White, 3),
+		piece(nnue.King, nnue.Black, 60),
+		piece(nnue.Pawn, nnue.White, 12),
+	)
+	move := transition(t, nnue.MoveNormal, root, child,
+		[]nnue.PieceOnSquare{root.Pieces[2]},
+		[]nnue.PieceOnSquare{child.Pieces[2]},
+	)
+	verify := transition(t, nnue.MoveNormal, root, alternative,
+		[]nnue.PieceOnSquare{root.Pieces[0]},
+		[]nnue.PieceOnSquare{alternative.Pieces[0]},
+	)
+	context, _ := nnue.NewContext(model)
+	if err := context.Reset(root); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := context.PushDelta(move); err != nil {
+		t.Fatal(err)
+	}
+	requireContextMatchesReference(t, model, context, child)
+	if err := context.Pop(); err != nil {
+		t.Fatal(err)
+	}
+	requireContextMatchesReference(t, model, context, root)
+
+	if err := context.PushDelta(verify); err != nil {
+		t.Fatal(err)
+	}
+	requireContextMatchesReference(t, model, context, alternative)
+	if err := context.Pop(); err != nil {
+		t.Fatal(err)
+	}
+	requireContextMatchesReference(t, model, context, root)
+
+	if err := context.PushDelta(move); err != nil {
+		t.Fatal(err)
+	}
+	requireContextMatchesReference(t, model, context, child)
+	if err := context.Pop(); err != nil {
+		t.Fatal(err)
+	}
+	requireContextMatchesReference(t, model, context, root)
 }
 
 func TestContextStackBoundsAndUninitializedOperations(t *testing.T) {
@@ -394,7 +552,26 @@ func TestContextExtremeTensorsAndNoHotAllocations(t *testing.T) {
 		}
 	})
 	if allocations != 0 {
-		t.Fatalf("hot context cycle allocations = %g, want 0", allocations)
+		t.Fatalf("full-position context cycle allocations = %g, want 0", allocations)
+	}
+
+	compact, _ := nnue.NewContext(model)
+	compactAllocations := testing.AllocsPerRun(100, func() {
+		if err := compact.Reset(before); err != nil {
+			panic(err)
+		}
+		if err := compact.PushDelta(delta); err != nil {
+			panic(err)
+		}
+		if _, err := compact.Evaluate(); err != nil {
+			panic(err)
+		}
+		if err := compact.Pop(); err != nil {
+			panic(err)
+		}
+	})
+	if compactAllocations != 0 {
+		t.Fatalf("compact context cycle allocations = %g, want 0", compactAllocations)
 	}
 }
 

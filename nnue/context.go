@@ -158,6 +158,46 @@ func (c *Context) Push(delta Delta, afterPosition Position) error {
 		return fmt.Errorf("%w: after-position plus delta does not reconstruct current board", ErrContext)
 	}
 
+	c.commitReal(delta, afterBoard, afterFacts)
+	return nil
+}
+
+// PushDelta applies a fully semantic real-move delta without requiring a full
+// after-position scan. Before and After facts are checked against the private
+// board while every change is staged locally; a failure leaves the Context
+// byte-for-byte unchanged.
+func (c *Context) PushDelta(delta Delta) error {
+	if err := c.ready(); err != nil {
+		return err
+	}
+	if c.depth >= MaxContextPly {
+		return fmt.Errorf("%w: stack overflow at depth %d", ErrContext, c.depth)
+	}
+	current := &c.states[c.depth]
+	if err := validateDeltaShape(delta); err != nil {
+		return err
+	}
+	if delta.Removed[0].Color != current.sideToMove {
+		return fmt.Errorf("%w: mover colour does not match side to move", ErrContext)
+	}
+	if delta.Before != current.facts {
+		return fmt.Errorf("%w: delta before-facts mismatch", ErrContext)
+	}
+
+	afterBoard, afterFacts, err := applyDeltaForward(c.board, current.facts, delta)
+	if err != nil {
+		return err
+	}
+	if delta.After != afterFacts {
+		return fmt.Errorf("%w: delta after-facts mismatch", ErrContext)
+	}
+
+	c.commitReal(delta, afterBoard, afterFacts)
+	return nil
+}
+
+func (c *Context) commitReal(delta Delta, afterBoard [64]encodedPiece, afterFacts PositionFacts) {
+	current := &c.states[c.depth]
 	nextDepth := c.depth + 1
 	c.states[nextDepth] = *current
 	next := &c.states[nextDepth]
@@ -168,7 +208,7 @@ func (c *Context) Push(delta Delta, afterPosition Position) error {
 		c.model.updateAccumulators(&next.accumulators, delta.Added[i], 1)
 	}
 	next.facts = afterFacts
-	next.sideToMove = afterPosition.SideToMove
+	next.sideToMove = current.sideToMove ^ 1
 	next.transition = contextTransition{
 		removedCount: delta.RemovedCount,
 		addedCount:   delta.AddedCount,
@@ -177,7 +217,6 @@ func (c *Context) Push(delta Delta, afterPosition Position) error {
 	}
 	c.board = afterBoard
 	c.depth = nextDepth
-	return nil
 }
 
 // PushNull adds a null frame. The board and accumulators must be unchanged;
@@ -201,12 +240,33 @@ func (c *Context) PushNull(afterPosition Position) error {
 		return fmt.Errorf("%w: null move changed board features", ErrContext)
 	}
 
+	c.commitNull()
+	return nil
+}
+
+// PushNullFacts adds a null frame from compact facts. A null move must preserve
+// every board feature, so the supplied facts must equal the current state.
+func (c *Context) PushNullFacts(after PositionFacts) error {
+	if err := c.ready(); err != nil {
+		return err
+	}
+	if c.depth >= MaxContextPly {
+		return fmt.Errorf("%w: stack overflow at depth %d", ErrContext, c.depth)
+	}
+	if after != c.states[c.depth].facts {
+		return fmt.Errorf("%w: null move changed board features", ErrContext)
+	}
+	c.commitNull()
+	return nil
+}
+
+func (c *Context) commitNull() {
+	current := &c.states[c.depth]
 	nextDepth := c.depth + 1
 	c.states[nextDepth] = *current
-	c.states[nextDepth].sideToMove = afterPosition.SideToMove
+	c.states[nextDepth].sideToMove = current.sideToMove ^ 1
 	c.states[nextDepth].transition = contextTransition{}
 	c.depth = nextDepth
-	return nil
 }
 
 // Pop removes the most recent real or null frame.
@@ -377,6 +437,86 @@ func reconstructBefore(after [64]encodedPiece, delta Delta) ([64]encodedPiece, e
 		before[piece.Square] = code
 	}
 	return before, nil
+}
+
+func applyDeltaForward(
+	before [64]encodedPiece,
+	beforeFacts PositionFacts,
+	delta Delta,
+) ([64]encodedPiece, PositionFacts, error) {
+	after := before
+	facts := beforeFacts
+	for i := 0; i < int(delta.RemovedCount); i++ {
+		piece := delta.Removed[i]
+		code, err := encodePiece(piece)
+		if err != nil {
+			return after, facts, err
+		}
+		if after[piece.Square] != code {
+			return after, facts, fmt.Errorf("%w: removed piece %d is absent from current position", ErrContext, i)
+		}
+		if err := removePieceFacts(&facts, piece); err != nil {
+			return after, facts, err
+		}
+		after[piece.Square] = emptyPiece
+	}
+	for i := 0; i < int(delta.AddedCount); i++ {
+		piece := delta.Added[i]
+		code, err := encodePiece(piece)
+		if err != nil {
+			return after, facts, err
+		}
+		if after[piece.Square] != emptyPiece {
+			return after, facts, fmt.Errorf("%w: added piece %d collides with current position", ErrContext, i)
+		}
+		if err := addPieceFacts(&facts, piece); err != nil {
+			return after, facts, err
+		}
+		after[piece.Square] = code
+	}
+	return after, facts, nil
+}
+
+func removePieceFacts(facts *PositionFacts, piece PieceOnSquare) error {
+	bit := uint64(1) << piece.Square
+	if facts.Occupied&bit == 0 {
+		return fmt.Errorf("%w: removed square %d is absent from before-facts", ErrContext, piece.Square)
+	}
+	facts.Occupied &^= bit
+	if piece.Piece == Pawn {
+		if facts.Pawns[piece.Color]&bit == 0 {
+			return fmt.Errorf("%w: removed pawn is absent from before-facts", ErrContext)
+		}
+		facts.Pawns[piece.Color] &^= bit
+	}
+	if piece.Piece == King {
+		if facts.KingSquare[piece.Color] != piece.Square {
+			return fmt.Errorf("%w: removed king square disagrees with before-facts", ErrContext)
+		}
+		facts.KingSquare[piece.Color] = NoSquare
+	}
+	return nil
+}
+
+func addPieceFacts(facts *PositionFacts, piece PieceOnSquare) error {
+	bit := uint64(1) << piece.Square
+	if facts.Occupied&bit != 0 {
+		return fmt.Errorf("%w: added square %d is occupied in intermediate facts", ErrContext, piece.Square)
+	}
+	facts.Occupied |= bit
+	if piece.Piece == Pawn {
+		if facts.Pawns[piece.Color]&bit != 0 {
+			return fmt.Errorf("%w: added pawn is already present in intermediate facts", ErrContext)
+		}
+		facts.Pawns[piece.Color] |= bit
+	}
+	if piece.Piece == King {
+		if facts.KingSquare[piece.Color] != NoSquare {
+			return fmt.Errorf("%w: added a second king for colour %d", ErrContext, piece.Color)
+		}
+		facts.KingSquare[piece.Color] = piece.Square
+	}
+	return nil
 }
 
 func validateDeltaShape(delta Delta) error {
