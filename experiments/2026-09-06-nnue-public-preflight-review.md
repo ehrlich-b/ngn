@@ -66,3 +66,12 @@ Use explicit model seed 198273612 and deterministic data order. Budget 16384 pos
 For plumbing only, the proposed target uses result weight 0.75 and raw stored-score weight 0.25 with divisor 400 in raw_binpack_score_unit. This is an explicit provisional label contract, not evidence that T80 is measured in centipawns. Resolving or empirically validating teacher-label calibration remains necessary before strength interpretation.
 
 Separate gates: GPU/kernel and gradient smoke; fixed-checkpoint float/export/integer parity; data provenance/count/dedup and selection isolation; then predeclared real-clock games. No installation or run is authorized by this document alone; the existing user task authorizes eventual WSL work, with root scheduling and review controlling execution.
+
+## Required correction: validate every checkpoint export
+
+The pinned Bullet save_to_checkpoint catches raw and quantized export errors and prints them without propagating them to the training caller. The quantized writer creates its output file before tensor quantization, so file presence alone is also insufficient. Every eligible checkpoint must pass strict raw/quantized size, parse, range, hash and parity checks. A directory, process exit zero, or falling training loss cannot substitute for those checks. A wrapper using the direct save methods must propagate their Result errors.
+
+- https://github.com/jw1912/bullet/blob/629ee50000b2afb7b3337595401c830d3b1e0f42/crates/bullet_lib/src/value/save.rs
+- Source SHA-256: 49a6113bec059df11ec001ed5d09631d2defd63b0a7d877b850ba258092f00f6. The public snapshot is retained alongside the other preflight source evidence.
+
+ModelEvaluator.load_device_weights clones shared Arc buffers. One-time evaluator binding alone therefore does not prove that the live evaluator is stale; the earlier recommendation to evaluate frozen checkpoints is an isolation contract, not a confirmed upstream stale-weight defect.
