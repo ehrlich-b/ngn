@@ -81,6 +81,7 @@ type uciSearchSession struct {
 	allowResignation bool
 	copyPosition     func(*Position) *Position
 	openingBook      *PolyglotBook
+	ownBook          bool
 
 	outputMu sync.Mutex
 	suppress atomic.Bool
@@ -151,6 +152,7 @@ type UCIEngine struct {
 	now              func() time.Time
 	copyPosition     func(*Position) *Position
 	evaluatorConfig  uciEvaluatorConfig
+	ownBook          bool
 }
 
 const defaultUCIMoveOverheadMilliseconds = 100
@@ -217,6 +219,7 @@ func NewUCIEngine() *UCIEngine {
 		now:              time.Now,
 		copyPosition:     func(pos *Position) *Position { return pos.Copy() },
 		evaluatorConfig:  newUCIEvaluatorConfig(),
+		ownBook:          true,
 	}
 }
 
@@ -376,6 +379,7 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, "option name Hash type spin default 128 min 1 max 1024")
 	uci.sendUCIMessage(output, "option name Threads type spin default 1 min 1 max 64")
 	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
+	uci.sendUCIMessage(output, "option name OwnBook type check default true")
 	uci.sendUCIMessage(output, "option name SyzygyPath type string default <empty>")
 	uci.sendUCIMessage(output, "option name EvalBackend type combo default hce var hce var ngn-v1")
 	uci.sendUCIMessage(output, "option name EvalFile type string default <empty>")
@@ -474,6 +478,15 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 		}
 	case "threads":
 		// TODO: Implement multi-threading
+	case "ownbook":
+		normalized := strings.ToLower(strings.TrimSpace(optionValue))
+		if normalized != "true" && normalized != "false" {
+			return
+		}
+		uci.joinSearch(true)
+		uci.lifecycleMu.Lock()
+		uci.ownBook = normalized == "true"
+		uci.lifecycleMu.Unlock()
 	case "evalbackend":
 		uci.handleEvalBackendOption(optionValue, output)
 		return
@@ -723,6 +736,7 @@ func (uci *UCIEngine) beginSearchSession(receivedAt time.Time, params SearchPara
 		allowResignation: uci.allowResignation,
 		copyPosition:     uci.copyPosition,
 		openingBook:      GetOpeningBook(),
+		ownBook:          uci.ownBook,
 	}
 	uci.activeSearch = session
 	uci.searchState = uciSearchPrepared
@@ -896,14 +910,17 @@ func (uci *UCIEngine) searchSession(session *uciSearchSession, output io.Writer,
 		fmt.Fprintf(output, "info string starting search, maxDepth=%d\n", maxDepth)
 	}
 
-	// Check opening book first before starting search
+	// Check opening books first when enabled for this immutable search session.
+	// OwnBook=false bypasses both external Polyglot and embedded fallback books.
 	bookMove, bookFound := EmptyMove, false
-	if book := session.openingBook; book != nil {
-		bookMove, bookFound = book.ProbeBook(session.root)
-	}
-	// Fallback to embedded book if no external book or no hit
-	if !bookFound {
-		bookMove, bookFound = ProbeEmbeddedBook(session.root)
+	if session.ownBook {
+		if book := session.openingBook; book != nil {
+			bookMove, bookFound = book.ProbeBook(session.root)
+		}
+		// Fallback to embedded book if no external book or no hit.
+		if !bookFound {
+			bookMove, bookFound = ProbeEmbeddedBook(session.root)
+		}
 	}
 
 	if bookFound {
