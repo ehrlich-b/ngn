@@ -1,11 +1,17 @@
 {
   "schema": 1,
-  "status": "HOLD_FOR_ROOT_REVIEW",
+  "status": "APPROVED_TO_RUN",
   "purpose": "Strict 200-game paired A/A control for corrected B0 (fb00814 plus reviewed reporting-only PV repair); pipeline evidence, not an engine-strength claim.",
   "approval": {
-    "authority": null,
-    "token": null,
-    "exclusive_match_window": false
+    "authority": "root reviewed source and terminal diagnostic; ongoing user-authorized WSL goal",
+    "token": "root-approved-corrected-b0-aa-200-20260906-v1",
+    "exclusive_match_window": true,
+    "time_utc": "2026-09-06T04:19:21.908700+00:00",
+    "held_manifest_sha256": "f0c23498cd56c95b0ea94db60aa53b988aae81e93ae211c4f343b4f8f1275bae",
+    "verified_path_sha_objects": 23,
+    "verified_reporting_inputs": 2,
+    "compute_preflight": [],
+    "agents": "M2 integration, M3 approved diagnostics, NNUE smoke and exact T80 transfer terminal; all agents hold computation"
   },
   "inputs": {
     "engine": {
@@ -227,7 +233,6 @@
   "launch_after_approval": {
     "cwd": "/home/ehrli/repos/ngn-next",
     "argv": [
-      "nohup",
       "python3",
       "scripts/fastchess-match/run_b0_aa.py",
       "--manifest",
@@ -254,9 +259,7 @@
     ],
     "environment": "launcher removes every inherited NGN_* variable before starting fastchess, including NGN_DEBUG_LOG and NGN_EVAL_W when present"
   },
-  "prelaunch_pending": [
-    "Root final input verification and exclusive200-game window after NNUE smoke and M2 checks finish."
-  ],
+  "prelaunch_pending": [],
   "reporting_repair": {
     "scope": "fb00814 plus reporting-only PV repair commit b134e21; no search-policy change",
     "full_patch": "/home/ehrli/repos/ngn-b0-pv-corrected/output/pv-reporting-v2-20260905/pv-reporting-fb00814-v2.patch",
