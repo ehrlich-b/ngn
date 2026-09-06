@@ -1,6 +1,10 @@
 # NNUE public toolchain status
 
-Status: provisioning advanced; Bullet build diagnosis is blocked by private-log review authorization. No trained network or strength verdict exists.
+Status: execution resumed after the user explicitly authorized full WSL access and bidirectional file/source/log transfers between both home-network development machines. No trained network or strength verdict exists.
+
+The retained log now proves Cargo101 was a compiler-version incompatibility: pinned Bullet uses let-chains in crates/compiler/src/tensor/pattern.rs despite declaring Rust1.87; Rust1.87 reports E0658 before GPU execution. Sol is installing exact user-local Rust1.88.0 with official checksum verification, retaining the original toolchain and failed evidence, and rerunning unchanged locked/offline source and dependencies. No GPU driver change is involved.
+
+The historical permission-blocked attempt below is preserved as evidence; it no longer describes the active authorization.
 
 The reduced-data WSL preflight was approved after automatic review rejected exporting detailed host metadata. The on-host assertions returned fixed PREFLIGHT_PASS. Sol then reported completed RUST_PASS, CUDA_PASS, BULLET_FETCH_PASS, and NATIVE_SM120_PASS statuses. Rust 1.87.0 and CUDA 12.8.1 toolkit-only installation are in the isolated WSL user prefix; the Windows GPU driver was retained.
 
@@ -12,7 +16,7 @@ Automatic approval review rejected streaming that log because it could disclose 
 
 Detailed receipts and installed files remain under the isolated WSL prefix. The fixed statuses support progress reporting; full independent receipt review remains pending. No private source review, training-corpus download, NNUE pilot, real-data training, or NGN integration was performed by this provisioning step.
 
-Next steps after explicit SSH review authorization:
+Resumed execution queue:
 1. Inspect the existing terminal Cargo log and resolve the actual build failure.
 2. Finish the exact NVRTC kernel test.
 3. Run the bounded public tests::cuda::axby test to exercise FP32 cuBLAS.
