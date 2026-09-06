@@ -152,6 +152,16 @@ type UCIEngine struct {
 	copyPosition     func(*Position) *Position
 }
 
+const defaultUCIMoveOverheadMilliseconds = 100
+
+func newUCITimeManager() *TimeManager {
+	tm := NewTimeManager()
+	if err := tm.SetMoveOverhead(defaultUCIMoveOverheadMilliseconds); err != nil {
+		panic(err)
+	}
+	return tm
+}
+
 // NewUCIEngine creates a new UCI engine instance
 func NewUCIEngine() *UCIEngine {
 	// Set up debug logging to file in executable directory
@@ -197,7 +207,7 @@ func NewUCIEngine() *UCIEngine {
 		engineName:       "ngn",
 		engineAuthor:     "ngn team",
 		version:          "0.1.0",
-		timeManager:      NewTimeManager(),
+		timeManager:      newUCITimeManager(),
 		movesPlayed:      0,
 		lastScore:        0,
 		debugLogger:      logger,
@@ -430,6 +440,18 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 				}
 			}
 		}
+	case "move overhead":
+		milliseconds, err := strconv.Atoi(optionValue)
+		if err != nil || milliseconds < minMoveOverheadMilliseconds || milliseconds > maxMoveOverheadMilliseconds {
+			break
+		}
+		uci.joinSearch(true)
+		uci.lifecycleMu.Lock()
+		err = uci.timeManager.SetMoveOverhead(milliseconds)
+		uci.lifecycleMu.Unlock()
+		if err != nil {
+			panic(err)
+		}
 	case "hash":
 		mb, err := strconv.Atoi(optionValue)
 		if err != nil {
@@ -507,7 +529,9 @@ func (uci *UCIEngine) handleNewGame(output io.Writer) {
 	// Reset game state
 	uci.movesPlayed = 0
 	uci.lastScore = 0
-	uci.timeManager = NewTimeManager()
+	moveOverhead := uci.timeManager.moveOverhead
+	uci.timeManager = newUCITimeManager()
+	uci.timeManager.moveOverhead = moveOverhead
 
 	if uci.debugMode {
 		fmt.Fprintf(output, "info string new game started\n")

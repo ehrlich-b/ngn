@@ -227,3 +227,31 @@ func BenchmarkUCIGo(b *testing.B) {
 		output.Reset()
 	}
 }
+
+func TestUCIMoveOverheadOptionAndNewGamePersistence(t *testing.T) {
+	engine := NewUCIEngine()
+	var output bytes.Buffer
+	if got := engine.timeManager.moveOverhead; got != 100*time.Millisecond {
+		t.Fatalf("UCI default move overhead=%v, want advertised 100ms", got)
+	}
+
+	engine.handleCommand("setoption name Move Overhead value 275", &output)
+	if got := engine.timeManager.moveOverhead; got != 275*time.Millisecond {
+		t.Fatalf("configured move overhead=%v, want 275ms", got)
+	}
+	for _, command := range []string{
+		"setoption name Move Overhead value -1",
+		"setoption name Move Overhead value 5001",
+		"setoption name Move Overhead value invalid",
+	} {
+		engine.handleCommand(command, &output)
+		if got := engine.timeManager.moveOverhead; got != 275*time.Millisecond {
+			t.Fatalf("%q changed move overhead to %v", command, got)
+		}
+	}
+
+	engine.handleCommand("ucinewgame", &output)
+	if got := engine.timeManager.moveOverhead; got != 275*time.Millisecond {
+		t.Fatalf("ucinewgame reset configured move overhead to %v", got)
+	}
+}

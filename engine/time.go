@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"math"
 	"time"
 )
@@ -88,6 +89,21 @@ const (
 // NewTimeManager creates a new time manager
 func NewTimeManager() *TimeManager {
 	return newTimeManager(time.Now)
+}
+
+const (
+	minMoveOverheadMilliseconds = 0
+	maxMoveOverheadMilliseconds = 5000
+)
+
+// SetMoveOverhead configures the fixed per-move reserve in milliseconds.
+// TimeManager is worker-private and must be idle while it is reconfigured.
+func (tm *TimeManager) SetMoveOverhead(milliseconds int) error {
+	if milliseconds < minMoveOverheadMilliseconds || milliseconds > maxMoveOverheadMilliseconds {
+		return fmt.Errorf("move overhead %dms outside [%d,%d]", milliseconds, minMoveOverheadMilliseconds, maxMoveOverheadMilliseconds)
+	}
+	tm.moveOverhead = time.Duration(milliseconds) * time.Millisecond
+	return nil
 }
 
 func newTimeManager(now func() time.Time) *TimeManager {

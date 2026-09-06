@@ -482,3 +482,27 @@ func BenchmarkShouldStopSearch(b *testing.B) {
 		tm.ShouldStopSearch(6)
 	}
 }
+
+func TestTimeManagerSetMoveOverheadChecksBounds(t *testing.T) {
+	tm := NewTimeManager()
+	if tm.moveOverhead != 50*time.Millisecond {
+		t.Fatalf("standalone default overhead=%v, want 50ms", tm.moveOverhead)
+	}
+	for _, milliseconds := range []int{0, 5000} {
+		if err := tm.SetMoveOverhead(milliseconds); err != nil {
+			t.Fatalf("SetMoveOverhead(%d): %v", milliseconds, err)
+		}
+		if got := tm.moveOverhead; got != time.Duration(milliseconds)*time.Millisecond {
+			t.Fatalf("SetMoveOverhead(%d) stored %v", milliseconds, got)
+		}
+	}
+	before := tm.moveOverhead
+	for _, milliseconds := range []int{-1, 5001} {
+		if err := tm.SetMoveOverhead(milliseconds); err == nil {
+			t.Fatalf("SetMoveOverhead(%d) succeeded outside UCI range", milliseconds)
+		}
+		if tm.moveOverhead != before {
+			t.Fatalf("failed SetMoveOverhead(%d) changed overhead from %v to %v", milliseconds, before, tm.moveOverhead)
+		}
+	}
+}

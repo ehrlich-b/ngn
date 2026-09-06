@@ -706,3 +706,46 @@ func TestUCIPostPublicationDebugPanicCompletesWithFallback(t *testing.T) {
 		t.Fatalf("post-publication panic omitted legal fallback %q:\n%s", want, got)
 	}
 }
+
+func TestUCIMoveOverheadUpdateJoinsPreparedSession(t *testing.T) {
+	clock := &uciFakeClock{now: time.Date(2026, 9, 6, 15, 0, 0, 0, time.UTC)}
+	uci := newLifecycleTestUCI(t, clock)
+	entered, blockSetup, releaseSetup := newUCISetupGate(t)
+	uci.copyPosition = func(pos *Position) *Position {
+		blockSetup()
+		return pos.Copy()
+	}
+
+	var searchOutput bytes.Buffer
+	uci.handleGo([]string{"depth", "1"}, &searchOutput)
+	waitUCIChannel(t, entered, "prepared search setup")
+
+	setDone := make(chan struct{})
+	go func() {
+		uci.handleSetOption([]string{"name", "Move", "Overhead", "value", "325"}, io.Discard)
+		close(setDone)
+	}()
+	uci.lifecycleMu.Lock()
+	session := uci.activeSearch
+	uci.lifecycleMu.Unlock()
+	if session == nil {
+		releaseSetup()
+		t.Fatal("prepared session disappeared before option update joined it")
+	}
+	waitUCIChannel(t, session.cancelled, "option-triggered prepared cancellation")
+	select {
+	case <-setDone:
+		releaseSetup()
+		t.Fatal("Move Overhead update returned before prepared setup joined")
+	default:
+	}
+
+	releaseSetup()
+	waitUCIChannel(t, setDone, "Move Overhead option update")
+	if got := uci.timeManager.moveOverhead; got != 325*time.Millisecond {
+		t.Fatalf("configured move overhead=%v, want 325ms", got)
+	}
+	if n := strings.Count(searchOutput.String(), "bestmove "); n != 0 {
+		t.Fatalf("reconfiguration emitted %d stale bestmoves:\n%s", n, searchOutput.String())
+	}
+}
