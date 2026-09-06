@@ -5,6 +5,7 @@ import (
 	"errors"
 	"math"
 	"math/big"
+	"reflect"
 	"testing"
 
 	"github.com/ehrlich-b/ngn/nnue"
@@ -35,11 +36,42 @@ func fullPositionForWorkerTest(t *testing.T, pos *Position) nnue.Position {
 
 func rawWorkerScore(t *testing.T, worker *workerEvaluator) int64 {
 	t.Helper()
-	raw, err := worker.context.Evaluate()
+	raw, err := worker.evaluateNNUE()
 	if err != nil {
 		t.Fatal(err)
 	}
 	return raw
+}
+
+func requireWorkerContextLanes(t *testing.T, worker *workerEvaluator, tensors *nnue.Tensors, position nnue.Position) {
+	t.Helper()
+	var value reflect.Value
+	switch {
+	case worker.context != nil && worker.portableContext == nil:
+		value = reflect.ValueOf(worker.context).Elem()
+	case worker.portableContext != nil && worker.context == nil:
+		value = reflect.ValueOf(worker.portableContext).Elem()
+	default:
+		t.Fatal("worker must own exactly one NNUE context")
+	}
+	depth := int(value.FieldByName("depth").Uint())
+	accumulators := value.FieldByName("states").Index(depth).FieldByName("accumulators")
+	for perspective := nnue.White; perspective <= nnue.Black; perspective++ {
+		for hidden := 0; hidden < nnue.HiddenSize; hidden++ {
+			want := int64(tensors.FeatureBias[hidden])
+			for _, piece := range position.Pieces {
+				feature, err := nnue.FeatureIndex(piece, perspective)
+				if err != nil {
+					t.Fatal(err)
+				}
+				want += int64(tensors.FeatureWeights[feature][hidden])
+			}
+			got := accumulators.Index(int(perspective)).Index(hidden).Int()
+			if got != want {
+				t.Fatalf("accumulator[%d][%d] = %d, independent full refresh = %d", perspective, hidden, got, want)
+			}
+		}
+	}
 }
 
 func requireWorkerRawMatchesFull(t *testing.T, worker *workerEvaluator, pos *Position) int64 {
@@ -114,8 +146,12 @@ func TestEvaluatorModelIdentityIsCompleteAndWorkerContextsArePrivate(t *testing.
 	if err != nil {
 		t.Fatal(err)
 	}
-	if first.context == second.context {
-		t.Fatal("workers share mutable NNUE Context")
+	if first.context != nil || second.context != nil ||
+		first.portableContext == nil || second.portableContext == nil {
+		t.Fatal("validated NGN-v1 workers did not select portable int32 contexts")
+	}
+	if first.portableContext == second.portableContext {
+		t.Fatal("workers share mutable NNUE Int32Context")
 	}
 	root, err := ParseFEN("4k3/8/8/8/8/8/4P3/4K3 w - - 0 1")
 	if err != nil {
@@ -293,7 +329,7 @@ func TestNGNV1WorkerEvaluatorRejectsUnbridgedPostMoveTransactionally(t *testing.
 	if err := worker.PushMove(pos, transition); !errors.Is(err, errNNUETransition) {
 		t.Fatalf("mismatched post-move error = %v", err)
 	}
-	if worker.context.Depth() != 0 || rawWorkerScore(t, worker) != raw {
+	if worker.nnueDepth() != 0 || rawWorkerScore(t, worker) != raw {
 		t.Fatal("failed post-move validation changed Context")
 	}
 	pos.UnMakeMove(actual, undoTag, undoEP, undoClock)
@@ -305,7 +341,7 @@ func TestNGNV1WorkerEvaluatorRejectsUnbridgedPostMoveTransactionally(t *testing.
 	if err := worker.PushNull(pos, nullTransition); !errors.Is(err, errNNUETransition) {
 		t.Fatalf("missing null side flip error = %v", err)
 	}
-	if worker.context.Depth() != 0 || rawWorkerScore(t, worker) != raw {
+	if worker.nnueDepth() != 0 || rawWorkerScore(t, worker) != raw {
 		t.Fatal("failed post-null validation changed Context")
 	}
 }

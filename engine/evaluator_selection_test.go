@@ -46,9 +46,9 @@ func TestSearchNGNV1IncrementalMatchesFullRefreshEveryCommittedFrame(t *testing.
 	}
 
 	observed := 0
-	incremental.worker.evaluator.transitionObserver = func(pos *Position, context *nnue.Context) {
+	incremental.worker.evaluator.transitionObserver = func(pos *Position, evaluator *workerEvaluator) {
 		observed++
-		requireAdapterContextLanes(t, context, tensors, fullPositionForWorkerTest(t, pos))
+		requireWorkerContextLanes(t, evaluator, tensors, fullPositionForWorkerTest(t, pos))
 	}
 	fullRefresh.worker.evaluator.fullRefreshOracle = true
 
@@ -71,8 +71,8 @@ func TestSearchNGNV1IncrementalMatchesFullRefreshEveryCommittedFrame(t *testing.
 	if after := snapshotPVPosition(fullRefreshPos); !reflect.DeepEqual(after, fullRefreshBefore) {
 		t.Fatal("full-refresh search changed root position")
 	}
-	if incremental.worker.evaluator.context.Depth() != 0 || fullRefresh.worker.evaluator.context.Depth() != 0 {
-		t.Fatalf("context depths incremental=%d full=%d", incremental.worker.evaluator.context.Depth(), fullRefresh.worker.evaluator.context.Depth())
+	if incremental.worker.evaluator.nnueDepth() != 0 || fullRefresh.worker.evaluator.nnueDepth() != 0 {
+		t.Fatalf("context depths incremental=%d full=%d", incremental.worker.evaluator.nnueDepth(), fullRefresh.worker.evaluator.nnueDepth())
 	}
 	if incremental.worker.hce != nil || fullRefresh.worker.hce != nil {
 		t.Fatal("NNUE-only search allocated an unused HCE cache")
@@ -116,8 +116,9 @@ func TestEvaluatorSelectionIsTransactionalAndCompositeIdentityClearsState(t *tes
 	if err := searcher.SelectNGNV1Evaluator(model); err != nil {
 		t.Fatal(err)
 	}
-	if searcher.worker.evaluator == nil || searcher.worker.evaluator.context == nil {
-		t.Fatal("NNUE selection did not prebuild a private worker Context")
+	if searcher.worker.evaluator == nil || searcher.worker.evaluator.context != nil ||
+		searcher.worker.evaluator.portableContext == nil {
+		t.Fatal("NNUE selection did not prebuild a private portable int32 Context")
 	}
 	if _, _, _, _, hit, _ := searcher.TTProbe(hceKey); hit {
 		t.Fatal("backend swap retained HCE TT entry")
@@ -172,9 +173,9 @@ func TestNGNV1StoppedSearchUnwindsContextAndPosition(t *testing.T) {
 	pos := n3cPosition(t, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 	before := snapshotPVPosition(pos)
 	observed := 0
-	searcher.worker.evaluator.transitionObserver = func(pos *Position, context *nnue.Context) {
+	searcher.worker.evaluator.transitionObserver = func(pos *Position, evaluator *workerEvaluator) {
 		observed++
-		requireAdapterContextLanes(t, context, tensors, fullPositionForWorkerTest(t, pos))
+		requireWorkerContextLanes(t, evaluator, tensors, fullPositionForWorkerTest(t, pos))
 	}
 	searcher.SetMaxNodes(1)
 	t.Cleanup(func() { searcher.SetMaxNodes(0) })
@@ -185,8 +186,8 @@ func TestNGNV1StoppedSearchUnwindsContextAndPosition(t *testing.T) {
 	if observed < 2 {
 		t.Fatalf("observer calls = %d, want root and searched child", observed)
 	}
-	if searcher.worker.evaluator.context.Depth() != 0 {
-		t.Fatalf("stopped search left Context depth %d", searcher.worker.evaluator.context.Depth())
+	if searcher.worker.evaluator.nnueDepth() != 0 {
+		t.Fatalf("stopped search left Context depth %d", searcher.worker.evaluator.nnueDepth())
 	}
 	if after := snapshotPVPosition(pos); !reflect.DeepEqual(after, before) {
 		t.Fatal("stopped NNUE search did not restore root position")
@@ -241,7 +242,7 @@ func TestNGNV1StopInsideSingularVerificationLeavesParentContext(t *testing.T) {
 	tt.Set(pos.Hash(), ttMove, scoreToTT(100, 0), int8(depth), Exact, false)
 
 	injected := false
-	evaluator.transitionObserver = func(_ *Position, _ *nnue.Context) {
+	evaluator.transitionObserver = func(_ *Position, _ *workerEvaluator) {
 		if info.ExcludedMove != EmptyMove && !injected {
 			injected = true
 			info.control.RequestStop()
@@ -255,8 +256,8 @@ func TestNGNV1StopInsideSingularVerificationLeavesParentContext(t *testing.T) {
 	if !info.Stopped || score != stoppedSearchScore {
 		t.Fatalf("singular stopped result score=%d stopped=%v", score, info.Stopped)
 	}
-	if evaluator.context.Depth() != 0 {
-		t.Fatalf("stopped singular verification left Context depth %d", evaluator.context.Depth())
+	if evaluator.nnueDepth() != 0 {
+		t.Fatalf("stopped singular verification left Context depth %d", evaluator.nnueDepth())
 	}
 	if after := snapshotPVPosition(pos); !reflect.DeepEqual(after, before) {
 		t.Fatal("stopped singular verification did not leave parent position restored")
@@ -275,8 +276,8 @@ func runN3CIterativeSnapshot(t *testing.T, searcher *SearchEngine, fen string) (
 	if after := snapshotPVPosition(pos); !reflect.DeepEqual(after, before) {
 		t.Fatal("iterative NNUE search changed root position")
 	}
-	if searcher.worker.evaluator.context.Depth() != 0 {
-		t.Fatalf("iterative NNUE search left Context depth %d", searcher.worker.evaluator.context.Depth())
+	if searcher.worker.evaluator.nnueDepth() != 0 {
+		t.Fatalf("iterative NNUE search left Context depth %d", searcher.worker.evaluator.nnueDepth())
 	}
 	requireWorkerRawMatchesFull(t, searcher.worker.evaluator, pos)
 	return comparableN3CSearchInfo(final), callbacks
@@ -295,9 +296,9 @@ func TestSearchNGNV1IterativeColdWarmMatchesFullRefreshCallbacks(t *testing.T) {
 		t.Fatal(err)
 	}
 	observed := 0
-	incremental.worker.evaluator.transitionObserver = func(pos *Position, context *nnue.Context) {
+	incremental.worker.evaluator.transitionObserver = func(pos *Position, evaluator *workerEvaluator) {
 		observed++
-		requireAdapterContextLanes(t, context, tensors, fullPositionForWorkerTest(t, pos))
+		requireWorkerContextLanes(t, evaluator, tensors, fullPositionForWorkerTest(t, pos))
 	}
 	fullRefresh.worker.evaluator.fullRefreshOracle = true
 
@@ -430,7 +431,7 @@ func TestNGNV1SingularVerificationRemakesAndRepushesNormally(t *testing.T) {
 
 	sawVerification := false
 	sawRepush := false
-	evaluator.transitionObserver = func(observedPos *Position, _ *nnue.Context) {
+	evaluator.transitionObserver = func(observedPos *Position, _ *workerEvaluator) {
 		if info.ExcludedMove != EmptyMove {
 			sawVerification = true
 		}
@@ -445,8 +446,8 @@ func TestNGNV1SingularVerificationRemakesAndRepushesNormally(t *testing.T) {
 	if info.SingularTries == 0 || !sawVerification || !sawRepush {
 		t.Fatalf("singular completion tries=%d verification=%v repush=%v", info.SingularTries, sawVerification, sawRepush)
 	}
-	if evaluator.context.Depth() != 0 {
-		t.Fatalf("completed singular verification left Context depth %d", evaluator.context.Depth())
+	if evaluator.nnueDepth() != 0 {
+		t.Fatalf("completed singular verification left Context depth %d", evaluator.nnueDepth())
 	}
 	if after := snapshotPVPosition(pos); !reflect.DeepEqual(after, before) {
 		t.Fatal("completed singular verification did not restore root position")

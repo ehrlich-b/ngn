@@ -69,20 +69,27 @@ func ngnV1EvaluatorModel(model *nnue.Model, hceGeneration uint64) (evaluatorMode
 // once per score/transition call; NNUE's hidden-unit loops remain concrete and
 // contain no interface dispatch. It owns all mutable NNUE state for one worker.
 type workerEvaluator struct {
-	model      evaluatorModel
-	hce        *hceEvaluator
-	context    *nnue.Context
-	rootBuffer nnueRootBuffer
+	model           evaluatorModel
+	hce             *hceEvaluator
+	context         *nnue.Context
+	portableContext *nnue.Int32Context
+	rootBuffer      nnueRootBuffer
 
 	// These receiver-private hooks are set only by same-package invariant tests:
 	// one checks every committed incremental frame lane-by-lane, and one routes
 	// score reads through a fresh full-position oracle. Public selection never
 	// enables either mode.
-	transitionObserver func(*Position, *nnue.Context)
+	transitionObserver func(*Position, *workerEvaluator)
 	fullRefreshOracle  bool
 }
 
 func (m evaluatorModel) newWorker(hce *hceEvaluator) (*workerEvaluator, error) {
+	return m.newWorkerWithReferenceContext(hce, false)
+}
+
+// newWorkerWithReferenceContext is a private test seam that forces the retained
+// int64 incremental oracle without weakening model validation or model identity.
+func (m evaluatorModel) newWorkerWithReferenceContext(hce *hceEvaluator, forceReference bool) (*workerEvaluator, error) {
 	worker := &workerEvaluator{model: m}
 	switch m.identity.backend {
 	case evaluatorBackendHCE:
@@ -91,11 +98,19 @@ func (m evaluatorModel) newWorker(hce *hceEvaluator) (*workerEvaluator, error) {
 		}
 		worker.hce = hce
 	case evaluatorBackendNGNV1:
-		context, err := nnue.NewContext(m.ngnV1)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %v", errWorkerEvaluator, err)
+		if m.ngnV1.Capabilities().PortableInt32Accumulator && !forceReference {
+			context, err := nnue.NewInt32Context(m.ngnV1)
+			if err != nil {
+				return nil, fmt.Errorf("%w: %v", errWorkerEvaluator, err)
+			}
+			worker.portableContext = context
+		} else {
+			context, err := nnue.NewContext(m.ngnV1)
+			if err != nil {
+				return nil, fmt.Errorf("%w: %v", errWorkerEvaluator, err)
+			}
+			worker.context = context
 		}
-		worker.context = context
 	default:
 		return nil, fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, m.identity.backend)
 	}
@@ -123,14 +138,11 @@ func (e *workerEvaluator) Reset(pos *Position) error {
 		}
 		return nil
 	case evaluatorBackendNGNV1:
-		if e.context == nil {
-			return fmt.Errorf("%w: nil NNUE context", errWorkerEvaluator)
-		}
 		root, err := e.rootBuffer.position(pos)
 		if err != nil {
 			return err
 		}
-		if err := e.context.Reset(root); err != nil {
+		if err := e.resetNNUE(root); err != nil {
 			return fmt.Errorf("%w: reset: %v", errWorkerEvaluator, err)
 		}
 		e.observeTransition(pos)
@@ -182,13 +194,13 @@ func (e *workerEvaluator) PushMove(pos *Position, transition workerEvalMove) err
 	case evaluatorBackendHCE:
 		return nil
 	case evaluatorBackendNGNV1:
-		if !transition.active || e.context == nil {
+		if !transition.active {
 			return fmt.Errorf("%w: missing NNUE move transition", errWorkerEvaluator)
 		}
 		if err := validateNNUEMoveAfter(pos, transition.delta); err != nil {
 			return err
 		}
-		if err := e.context.PushDelta(transition.delta); err != nil {
+		if err := e.pushNNUEDelta(transition.delta); err != nil {
 			return fmt.Errorf("%w: push move: %v", errWorkerEvaluator, err)
 		}
 		e.observeTransition(pos)
@@ -235,13 +247,13 @@ func (e *workerEvaluator) PushNull(pos *Position, transition workerEvalNull) err
 	case evaluatorBackendHCE:
 		return nil
 	case evaluatorBackendNGNV1:
-		if !transition.active || e.context == nil {
+		if !transition.active {
 			return fmt.Errorf("%w: missing NNUE null transition", errWorkerEvaluator)
 		}
 		if err := validateNNUENullAfter(pos, transition.before, transition.beforePieces, transition.beforeSide); err != nil {
 			return err
 		}
-		if err := e.context.PushNullFacts(transition.before); err != nil {
+		if err := e.pushNNUENull(transition.before); err != nil {
 			return fmt.Errorf("%w: push null: %v", errWorkerEvaluator, err)
 		}
 		e.observeTransition(pos)
@@ -261,10 +273,7 @@ func (e *workerEvaluator) Pop() error {
 	case evaluatorBackendHCE:
 		return nil
 	case evaluatorBackendNGNV1:
-		if e.context == nil {
-			return fmt.Errorf("%w: nil NNUE context", errWorkerEvaluator)
-		}
-		if err := e.context.Pop(); err != nil {
+		if err := e.popNNUE(); err != nil {
 			return fmt.Errorf("%w: pop: %v", errWorkerEvaluator, err)
 		}
 		return nil
@@ -296,7 +305,7 @@ func (e *workerEvaluator) SearchSTM(pos *Position) int {
 			}
 			raw, err = e.model.ngnV1.Evaluate(full)
 		} else {
-			raw, err = e.context.Evaluate()
+			raw, err = e.evaluateNNUE()
 		}
 		if err != nil {
 			panic(fmt.Errorf("%w: NNUE evaluate: %v", errWorkerEvaluator, err))
@@ -356,8 +365,68 @@ func clampNNUEStatic(raw int64) int {
 
 func (e *workerEvaluator) observeTransition(pos *Position) {
 	if e.transitionObserver != nil {
-		e.transitionObserver(pos, e.context)
+		e.transitionObserver(pos, e)
 	}
+}
+
+func (e *workerEvaluator) resetNNUE(position nnue.Position) error {
+	if e.context != nil && e.portableContext == nil {
+		return e.context.Reset(position)
+	}
+	if e.portableContext != nil && e.context == nil {
+		return e.portableContext.Reset(position)
+	}
+	return fmt.Errorf("%w: expected exactly one NNUE context", errWorkerEvaluator)
+}
+
+func (e *workerEvaluator) pushNNUEDelta(delta nnue.Delta) error {
+	if e.context != nil && e.portableContext == nil {
+		return e.context.PushDelta(delta)
+	}
+	if e.portableContext != nil && e.context == nil {
+		return e.portableContext.PushDelta(delta)
+	}
+	return fmt.Errorf("%w: expected exactly one NNUE context", errWorkerEvaluator)
+}
+
+func (e *workerEvaluator) pushNNUENull(facts nnue.PositionFacts) error {
+	if e.context != nil && e.portableContext == nil {
+		return e.context.PushNullFacts(facts)
+	}
+	if e.portableContext != nil && e.context == nil {
+		return e.portableContext.PushNullFacts(facts)
+	}
+	return fmt.Errorf("%w: expected exactly one NNUE context", errWorkerEvaluator)
+}
+
+func (e *workerEvaluator) popNNUE() error {
+	if e.context != nil && e.portableContext == nil {
+		return e.context.Pop()
+	}
+	if e.portableContext != nil && e.context == nil {
+		return e.portableContext.Pop()
+	}
+	return fmt.Errorf("%w: expected exactly one NNUE context", errWorkerEvaluator)
+}
+
+func (e *workerEvaluator) evaluateNNUE() (int64, error) {
+	if e.context != nil && e.portableContext == nil {
+		return e.context.Evaluate()
+	}
+	if e.portableContext != nil && e.context == nil {
+		return e.portableContext.Evaluate()
+	}
+	return 0, fmt.Errorf("%w: expected exactly one NNUE context", errWorkerEvaluator)
+}
+
+func (e *workerEvaluator) nnueDepth() int {
+	if e.context != nil && e.portableContext == nil {
+		return e.context.Depth()
+	}
+	if e.portableContext != nil && e.context == nil {
+		return e.portableContext.Depth()
+	}
+	return -1
 }
 
 // The search core has no error return. Transition contract violations indicate

@@ -3,8 +3,6 @@ package engine
 import (
 	"errors"
 	"testing"
-
-	"github.com/ehrlich-b/ngn/nnue"
 )
 
 func TestConfigureThreadsPublishesPersistentPoolAndOneTotalHash(t *testing.T) {
@@ -209,14 +207,14 @@ func TestConfigureThreadsPreparesPrivateSelectedEvaluatorForNewWorkers(t *testin
 		t.Fatal("NNUE pool growth replaced the selected primary evaluator")
 	}
 	for i, worker := range pool.workers {
-		if worker.evaluator == nil || worker.evaluator.Identity().backend != evaluatorBackendNGNV1 || worker.evaluator.context == nil {
+		if worker.evaluator == nil || worker.evaluator.Identity().backend != evaluatorBackendNGNV1 || worker.evaluator.context != nil || worker.evaluator.portableContext == nil {
 			t.Fatalf("worker %d did not receive selected NNUE backend", i)
 		}
 		if worker.hce != nil {
 			t.Fatalf("worker %d allocated unused HCE cache for NNUE", i)
 		}
 		for j := 0; j < i; j++ {
-			if worker.evaluator.context == pool.workers[j].evaluator.context {
+			if worker.evaluator.portableContext == pool.workers[j].evaluator.portableContext {
 				t.Fatalf("workers %d and %d share NNUE Context", i, j)
 			}
 		}
@@ -224,7 +222,7 @@ func TestConfigureThreadsPreparesPrivateSelectedEvaluatorForNewWorkers(t *testin
 	observed := make([]int, len(pool.workers))
 	for i, worker := range pool.workers {
 		index := i
-		worker.evaluator.transitionObserver = func(*Position, *nnue.Context) {
+		worker.evaluator.transitionObserver = func(*Position, *workerEvaluator) {
 			observed[index]++
 		}
 	}
