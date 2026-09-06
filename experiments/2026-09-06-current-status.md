@@ -12,7 +12,7 @@ The deployed engine remains **53e4d1b**. The development engine's latest search 
 | Match validity | Four-game 8v8 operational control passed: 562 legal plies, correct worker-width receipts, no operational failures or survivors | Finish the 8v1 match under its frozen stopping rule, then independent chess/trace/SPRT audits |
 | Minimal trained NNUE | Export/scalar/incremental/optimized integer equivalence established; 3M data and 512-update training accepted | Count-only experiments stopped: selected 3M network lost its audited four-game HCE screen 0–4 |
 | Counter pretrained control | Exact Counter 5.5 loader and portable full-refresh evaluator accepted; 6,144 accumulator lanes, raw scores and historical score adaptation match actual pinned upstream | Incremental and search adapter source v5 reviewed, including explicit float32 product rounding; execution held. Full short regression, upstream v1/v3 oracles and actual worker race gates are prepared |
-| Stockfish compatibility | Exact Stockfish 18 SMALL official file loads; malformed-file, official-file, race, vet and build checks pass | Scalar and corrected Go/C++ oracle source v5 reviewed; execution plan v2 ready. Incremental package draft v1 is frozen for source review and depends on full-refresh parity |
+| Stockfish compatibility | Exact Stockfish 18 SMALL official file loads; malformed-file, official-file, race, vet and build checks pass | Scalar and corrected Go/C++ oracle source v5 reviewed; execution plan v2 ready. Incremental package source v2 is reviewed after captured-king and ownership-marker fixes; runtime gates depend on full-refresh parity |
 | HCE speed investigation | Direct-search comparison has exact outcomes/PVs/final nodes; long-budget paired medians show about 2–3% overhead for one position | Further timing held while strength games use the machine |
 | Leading Go opponents | Counter 5.5, Zahak 10, Blunder 8.5.5 and Chess-3 v4.0 provisioned with protocol handshakes | Legal-search preflight and matched games remain |
 
@@ -26,7 +26,7 @@ Both sides use the same pinned 168385f binary. Candidate Threads/GOMAXPROCS=8; r
 
 The predeclared test uses normalized-Elo SPRT hypotheses 0/20, alpha=beta=0.05, complete paired games, first-boundary-crossing stopping, and a cap of 400 games. A cap without crossing is inconclusive. It is not an ordinary +20 Elo confidence claim. Interim results cannot change the stopping rule.
 
-At 14:40:44Z the reported checkpoint was 60 games / 30 pairs: eight threads 37 wins, 3 losses, 20 draws, normalized SPRT LLR 1.75. This is interim; pair 31 was live and the match error stream remained empty.
+Latest root checkpoint: 86 games / 43 pairs, eight threads 52 wins, 3 losses, 31 draws, normalized SPRT LLR 2.51. This is interim; game 87 was live, the actual outer process remained present, and the match error stream was empty.
 
 The frozen runner passed 55 fixtures and 246 independent C++/Python SPRT vectors. Root accepted all 200 ordered openings and 1,200 legal opening plies. Approved manifest SHA:
 `6d901b315382cf5d4ad77fe90869dbdbd82fc136f5244cdd2c08a9d02afc3c38`.
@@ -45,9 +45,13 @@ Stockfish support is an exact architecture port. The official SF18 SMALL model i
 `37f18f62d772f3107e1d6aaca3898c130c3c86f2ab63e6555fbbca20635a899d`.
 The accepted loader has no evaluator yet. Root acceptance:
 `output/sf18-small-loader-20260906/root-review-v1.json`.
-Arbitrary Stockfish or other .nnue files are not supported. Stockfish selects SMALL only conditionally and may fall back to BIG; SMALL compatibility alone does not reproduce its general evaluation. The new incremental draft stays within the package and includes no engine/UCI/score-policy wiring.
+Arbitrary Stockfish or other .nnue files are not supported. Stockfish selects SMALL only conditionally and may fall back to BIG; SMALL compatibility alone does not reproduce its general evaluation. The incremental source v2 stays within the package and includes no engine/UCI/score-policy wiring. Root and independent review caught compact updates accepting captured kings, which could leave a missing king for later feature indexing, and an ineffective Go copylocks marker. Sol fixed both and added exact-state rejection and mixed real/null/full-unwind coverage. These are source-reviewed fixes, not executed tests; full-refresh and actual upstream transition parity remain prerequisites.
 
 The direct HCE diagnostic found substantially less overhead than the earlier short UCI timings: paired session median ratios 1.023 cold and 1.027 warm for the longer budget, on one position. These include public search admission and callback reporting. The separate HCE transition fast path remains unintegrated because measured effects are modest and fixture dependent.
+
+## External Counter admission correction
+
+The saved Counter 5.5 handshake advertised Threads max=1 because it ran under `taskset -c 8`, a one-CPU mask. Pinned release source sets the maximum from `runtime.NumCPU()` and implements a real worker pool and multicore scheduler. The old external runner plan inferred an engine limit incorrectly. Corrected plan v3 keeps the first comparison configured at one thread per side, requires a fresh handshake bound to the actual admission mask, and leaves matched eight-versus-eight as a later gated comparison. The external diagnostic runner is now being implemented in isolation. No external opponent games have run.
 
 ## Remaining release gates
 
