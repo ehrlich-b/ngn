@@ -22,3 +22,13 @@ All three bounded stages completed with zero exit status, empty stderr, no timeo
 Evidence root: /home/ehrli/repos/ngn-nnue-perf-harness-v2/output/nnue-performance-harness-20260906/go-timing-v1. Timing receipt SHA fa5e4b786a50450ccab30e9b029fab0554163f3f0f99b0fc11fd8180f9422ddd. Artifact list SHA3d8baa82ef0b1b6a881b7a0cc08febc208fbab9cede8a4096ce1867692414997. Root calculation: root-recalculation-v1.json, preserving medians and full min/max ranges.
 
 External B0/current HCE timing is a separate pending check for evaluator-plumbing overhead. Profiling is separate from unprofiled speed comparisons. Real-clock NNUE playing, multicore scaling and final accepted-release comparison remain required.
+
+## Corrected HCE wall-time comparison
+
+The v5 external sampler inserts position/isready/readyok before each timed go. Root verified all 103 final artifacts and independently reproduced all 700 measured outcomes (650 cross-session comparisons, zero differences). All 910 warmup/measured searches crossed the barrier.
+
+Current/B0 median wall-time ratios were kiwipete 1.0404, middlegame 1.3248, endgame 1.1531, en-passant 1.2555, promotion 1.0138. Values above 1 are slower. These short fixed-node, warm-session results compare entire revisions in one WSL window; they do not isolate N3 overhead or establish an Elo change. The slowdown is material enough to prioritize CPU profiling.
+
+The earlier external-v2 ratios are preserved as UCI pipeline diagnostics: B0 sleeps 10 ms after launching search, delaying consumption of the next command when the prior search finishes early. Those values must not be cited as HCE search speedups. The direct Go NNUE benchmarks are unaffected.
+
+Evidence: /home/ehrli/repos/ngn-nnue-perf-harness-v2/output/nnue-performance-harness-20260906/external-hce-timing-v3; root receipt output/nnue-performance-20260906/root-external-hce-v3-review.json.
