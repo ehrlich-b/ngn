@@ -1,10 +1,10 @@
 # Release confirmation after the pretrained control
 
-The current Counter-versus-HCE match isolates the evaluator with identical accepted source, one thread per side, and a fixed 30+0.3 paired SPRT. Its opening set is the already audited 200-line, six-ply development corpus. Neither the result nor the accepted SMP gain is a fresh absolute rating. The running manifest and stopping rule remain unchanged.
+The completed Counter-versus-HCE match isolates the evaluator with identical accepted source, one thread per side, and a fixed 30+0.3 paired SPRT. It accepted H1 after 166 games / 83 complete pairs: Counter 89 wins, 37 losses and 40 draws, with the first upper-bound crossing at pair 83. Its opening set is the audited 200-line, six-ply development corpus. This establishes the pretrained evaluator's one-thread gain under that frozen test; neither it nor the accepted SMP gain is a fresh absolute rating.
 
 ## Decisions after the current test
 
-- H1 accepted with clean audits: keep the exact network and adapter as the candidate. Confirm NNUE with eight workers at a longer clock against HCE with eight workers, keeping code, total hash, CPU mask, and time controls matched. This tests the interaction between the two features.
+- H1 was accepted with clean audits: keep the exact Counter network and adapter as the candidate. Confirm it with eight workers at a longer clock against HCE with eight workers, keeping code, total hash, CPU mask, and time controls matched. This tests the interaction between the two accepted features.
 - H0 accepted: preserve the negative result and profile the exact candidate before changing arithmetic, score policy, or search. A new architecture or more training data is not the default response. The known upstream network separates learned-network quality from NGN integration and runtime cost.
 - Cap without boundary crossing: report inconclusive. Preserve the fixed test; do not extend it opportunistically or turn a favorable interim score into acceptance.
 - Operational failure: preserve the failure, identify its cause, and distinguish recovered game evidence from a clean completed prospective run.
@@ -23,7 +23,9 @@ Before any confirmation game: extend the runner's six-ply-only contract delibera
 
 ## Opponents and deployment
 
-The first external comparison remains the pinned Counter 5.5 release, with a fresh handshake under the actual CPU mask and matched threads/hash/clock. Counter supports multiple workers; its earlier one-CPU handshake was not an engine-wide limit. Zahak 10, Blunder 8.5.5 and Chess-3 v4.0 remain provisioned opponents, with no completed external games yet. A latest-release refresh and provenance check precedes any world-ranking claim.
+Counter 5.5 remains the first external calibration because its in-process evaluator is now a controlled reference, with a fresh standalone handshake under the actual CPU mask and matched threads/hash/clock. The strongest published target in the September 5 CCRL Blitz list is now Rodent V 1.1. Its release manual identifies the Anand/testers build as strongest, while CCRL does not identify the personality behind its row; the exact official testers executable, embedded Anand net and no-options behavior therefore require separate admission. [Pinned Rodent preflight and caveats](2026-09-06-rodent-v1.1-release-confirmation.md)
+
+Zahak 10, Blunder 8.5.5 and Chess-3 v4.0 remain provisioned opponents, with no completed external games yet. Rodent V 1.2 is newer than the V1.1 CCRL entry and must be treated as a separate refresh rather than silently substituted. A latest-release refresh and provenance check precedes any world-ranking claim.
 
 Publish per-opponent completed results and uncertainty under the actual WSL conditions. Do not add internal gain estimates to the historical native-Windows 2884.14 estimate. Once the required isolated, combined and external checks pass, build the final integrated source, verify its protocol and stop behavior on WSL, archive deployment and rollback artifacts, then replace the preserved 53e4d1b release under the user's existing authorization.
 
