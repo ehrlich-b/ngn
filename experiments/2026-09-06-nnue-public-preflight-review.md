@@ -40,3 +40,29 @@ The official 2023 training wiki reports better results from staged Stockfish-gen
 - https://github.com/official-stockfish/nnue-pytorch/wiki/Training-datasets
 
 The immediate sequence remains: synthetic GPU/gradient/export smoke, bounded real-data pilot with verified label contract, then a separately declared strength experiment. Exact model-format parity is necessary; it does not prove that labels or playing strength are correct.
+
+## Required correction: external validation and fixed data order
+
+This section supersedes earlier planning that proposed LocalSettings.test_set as the validation mechanism for Bullet 629ee500. Root independently fetched that exact public source on WSL and verified that ValueTrainer::run only emits a not-implemented warning for the option. Its training call receives the training loader; it does not evaluate or select checkpoints using the supplied validation data.
+
+- https://github.com/jw1912/bullet/blob/629ee50000b2afb7b3337595401c830d3b1e0f42/crates/bullet_lib/src/value.rs
+- Verified source SHA-256: f3e36f52c91c6b604846a83ed1b7241926557ce1ea4539389258c67b3c746fe6.
+
+Use an external evaluator over frozen checkpoints, and explicitly save the initial checkpoint as an eligible candidate. The validation set must demonstrably influence checkpoint selection; altering sealed-test labels must not influence it. The trainer must never receive the sealed-test path. Evaluate fresh checkpoint state, not a potentially cached live trainer evaluator.
+
+The pinned SF-binpack loader also calls seeded_rng for its shuffles; that RNG is initialized from the current time. A model seed alone does not freeze the data order. For the proof pilot, decode and audit first, retain source metadata in a sidecar, freeze a deterministic hash order, and use DirectSequentialDataLoader. Verify actual batch order with a receipt.
+
+- https://github.com/jw1912/bullet/blob/629ee50000b2afb7b3337595401c830d3b1e0f42/crates/bullet_lib/src/value/loader/sfbinpack.rs
+- https://github.com/jw1912/bullet/blob/629ee50000b2afb7b3337595401c830d3b1e0f42/crates/bullet_lib/src/value/loader/rng.rs
+
+The public snapshots and hashes are retained under output/nnue-public-preflight-20260906. These are source-based design corrections; no training behavior has yet been tested.
+
+## Bounded pilot contract prepared by Sol
+
+Target 100000 accepted positions, whole encoded-chain splits targeting 80/10/10 percent with actual counts frozen. Quarantine or consistently reassign whole chains for cross-split model-input duplicates; require zero exact model-input overlap between splits. The source format does not prove original-game identity, and this process must not claim game-disjointness.
+
+Use explicit model seed 198273612 and deterministic data order. Budget 16384 positions per batch, 32 batches per superbatch, four superbatches: 2097152 presentations. Save initial plus all four checkpoints. Two loader threads, queue depth eight, peak RSS below 12 GiB, peak VRAM below 14 GiB.
+
+For plumbing only, the proposed target uses result weight 0.75 and raw stored-score weight 0.25 with divisor 400 in raw_binpack_score_unit. This is an explicit provisional label contract, not evidence that T80 is measured in centipawns. Resolving or empirically validating teacher-label calibration remains necessary before strength interpretation.
+
+Separate gates: GPU/kernel and gradient smoke; fixed-checkpoint float/export/integer parity; data provenance/count/dedup and selection isolation; then predeclared real-clock games. No installation or run is authorized by this document alone; the existing user task authorizes eventual WSL work, with root scheduling and review controlling execution.
