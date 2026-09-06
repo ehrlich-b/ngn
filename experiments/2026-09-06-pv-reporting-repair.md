@@ -13,3 +13,5 @@ The old accepted-v2 strict comparison correctly fails on exactly8 PV arrays in t
 Root integration passes focused tests, full short, full short race, vet, build, and exact comparison with corrected B0. Commands/logs/exits and copied reference are in output/pv-reporting-integration-v2-20260906 with DONE_EXIT_0. Isolated source/evidence are in ngn-b0-pv-corrected/output/pv-reporting-v2-20260905.
 
 The internal pseudo-legal en-passant hash identity issue remains separate. The failed original A/A is not resumed or pooled. A fresh strict two-game diagnostic and separately frozen200-game control are prepared; accepted deployment remains at53e4d1b with rollback intact.
+
+Fresh strict diagnostic completed:2games/484 independently legal plies, both final checkmates confirmed, fastchess/auditor exit0, empty stderr and terminal worker receipt, DONE_EXIT_0. Run: output/nnue-smp-b0-pv-corrected-20260905/diagnostic-2-tc30. The200game control remains held until other computation is terminal and final inputs are verified.

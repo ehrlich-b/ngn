@@ -80,6 +80,22 @@
       {
         "path": "/home/ehrli/repos/ngn-b0-pv-corrected/output/pv-reporting-v2-20260905/evidence-v2.json",
         "sha256": "88e4804de10f436068bc2110d5e547ea57406c794c5c1be4234ca262cd362458"
+      },
+      {
+        "path": "/home/ehrli/repos/ngn-next/output/nnue-smp-b0-pv-corrected-20260905/diagnostic-inputs/manifest.json",
+        "sha256": "ee28f8792d08e1287ec44402d5f43d20adff88d289f74a79c308b160e62cb3be"
+      },
+      {
+        "path": "/home/ehrli/repos/ngn-next/output/nnue-smp-b0-pv-corrected-20260905/diagnostic-2-tc30/audit.json",
+        "sha256": "2786142b14ededb11ff8b0cc798b202f4ac5a4bbbf9f80511ed2bb30116f7bab"
+      },
+      {
+        "path": "/home/ehrli/repos/ngn-next/output/nnue-smp-b0-pv-corrected-20260905/diagnostic-2-tc30/DONE",
+        "sha256": "ad19c7d1461c0d072c853e1c80e5ba10e0e741f6895106c331b2f3a2158ec756"
+      },
+      {
+        "path": "/home/ehrli/repos/ngn-next/output/nnue-smp-b0-pv-corrected-20260905/diagnostic-2-tc30/terminal-processes.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       }
     ],
     "opening_prefixes": {
@@ -239,9 +255,7 @@
     "environment": "launcher removes every inherited NGN_* variable before starting fastchess, including NGN_DEBUG_LOG and NGN_EVAL_W when present"
   },
   "prelaunch_pending": [
-    "Root review and explicit APPROVED_TO_RUN state/token/exclusive window.",
-    "Strict two-game diagnostic after root coordinates an exclusive timed window.",
-    "Re-hash every referenced input immediately before approval; any delta requires a replacement held manifest."
+    "Root final input verification and exclusive200-game window after NNUE smoke and M2 checks finish."
   ],
   "reporting_repair": {
     "scope": "fb00814 plus reporting-only PV repair commit b134e21; no search-policy change",
@@ -249,5 +263,16 @@
     "full_patch_sha256": "a65665b507cd3cc727bec59aa9efb17f8d29bb8d3a39325d4990f82297aee0ad",
     "corrected_snapshot": "/home/ehrli/repos/ngn-b0-pv-corrected/output/pv-reporting-v2-20260905/corrected-b0-reference-v1.json",
     "corrected_snapshot_sha256": "13151fdc0eb1dace72e9619c749fa12a527da517a48752f03b6dd8a869aa6c89"
+  },
+  "diagnostic": {
+    "games": 2,
+    "pairs": 1,
+    "legal_plies": 484,
+    "terminal_results": {
+      "White mates": 2
+    },
+    "status": "DONE_EXIT_0",
+    "run_directory": "/home/ehrli/repos/ngn-next/output/nnue-smp-b0-pv-corrected-20260905/diagnostic-2-tc30",
+    "limitations": "Two games are reporting/runner smoke only; not the200game A/A sanity verdict."
   }
 }
