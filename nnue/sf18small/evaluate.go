@@ -91,44 +91,51 @@ func (m *Model) evaluateAllTrace(position base.Position) (evaluationTrace, error
 	}
 
 	for perspective := base.White; perspective <= base.Black; perspective++ {
-		p := int(perspective)
-		copy(trace.accumulator.values[p][:], m.featureBias[:])
-		trace.accumulator.wideMin[p] = int64(m.featureBias[0])
-		trace.accumulator.wideMax[p] = int64(m.featureBias[0])
-		for _, value := range m.featureBias[1:] {
-			trace.accumulator.wideMin[p] = min64(trace.accumulator.wideMin[p], int64(value))
-			trace.accumulator.wideMax[p] = max64(trace.accumulator.wideMax[p], int64(value))
+		m.refreshPerspective(board, kings[perspective], perspective, &trace.accumulator)
+	}
+	return m.completeEvaluationTrace(trace, position.SideToMove, occupied), nil
+}
+
+func (m *Model) refreshPerspective(board [64]boardPiece, king base.Square, perspective base.Color, accumulator *accumulatorTrace) {
+	p := int(perspective)
+	copy(accumulator.values[p][:], m.featureBias[:])
+	accumulator.wideMin[p] = int64(m.featureBias[0])
+	accumulator.wideMax[p] = int64(m.featureBias[0])
+	for _, value := range m.featureBias[1:] {
+		accumulator.wideMin[p] = min64(accumulator.wideMin[p], int64(value))
+		accumulator.wideMax[p] = max64(accumulator.wideMax[p], int64(value))
+	}
+	for square, entry := range board {
+		if !entry.set {
+			continue
 		}
-		for square, entry := range board {
-			if !entry.set {
-				continue
-			}
-			index := featureIndex(entry, base.Square(square), kings[p], perspective)
-			count := trace.accumulator.activeCount[p]
-			trace.accumulator.active[p][count] = uint16(index)
-			trace.accumulator.activeCount[p]++
-			weightOffset := index * transformerLanes
-			for lane := 0; lane < transformerLanes; lane++ {
-				before := trace.accumulator.values[p][lane]
-				weight := m.featureWeights[weightOffset+lane]
-				wide := int64(before) + int64(weight)
-				trace.accumulator.wideMin[p] = min64(trace.accumulator.wideMin[p], wide)
-				trace.accumulator.wideMax[p] = max64(trace.accumulator.wideMax[p], wide)
-				trace.accumulator.values[p][lane] = wrapAdd16(before, weight)
-			}
-			psqtOffset := index * psqtBuckets
-			for bucket := 0; bucket < psqtBuckets; bucket++ {
-				before := trace.accumulator.psqt[p][bucket]
-				weight := m.psqtWeights[psqtOffset+bucket]
-				wide := int64(before) + int64(weight)
-				trace.accumulator.psqtWideMin[p] = min64(trace.accumulator.psqtWideMin[p], wide)
-				trace.accumulator.psqtWideMax[p] = max64(trace.accumulator.psqtWideMax[p], wide)
-				trace.accumulator.psqt[p][bucket] = wrapAdd32(before, weight)
-			}
+		index := featureIndex(entry, base.Square(square), king, perspective)
+		count := accumulator.activeCount[p]
+		accumulator.active[p][count] = uint16(index)
+		accumulator.activeCount[p]++
+		weightOffset := index * transformerLanes
+		for lane := 0; lane < transformerLanes; lane++ {
+			before := accumulator.values[p][lane]
+			weight := m.featureWeights[weightOffset+lane]
+			wide := int64(before) + int64(weight)
+			accumulator.wideMin[p] = min64(accumulator.wideMin[p], wide)
+			accumulator.wideMax[p] = max64(accumulator.wideMax[p], wide)
+			accumulator.values[p][lane] = wrapAdd16(before, weight)
+		}
+		psqtOffset := index * psqtBuckets
+		for bucket := 0; bucket < psqtBuckets; bucket++ {
+			before := accumulator.psqt[p][bucket]
+			weight := m.psqtWeights[psqtOffset+bucket]
+			wide := int64(before) + int64(weight)
+			accumulator.psqtWideMin[p] = min64(accumulator.psqtWideMin[p], wide)
+			accumulator.psqtWideMax[p] = max64(accumulator.psqtWideMax[p], wide)
+			accumulator.psqt[p][bucket] = wrapAdd32(before, weight)
 		}
 	}
+}
 
-	perspectives := [2]base.Color{position.SideToMove, position.SideToMove ^ 1}
+func (m *Model) completeEvaluationTrace(trace evaluationTrace, sideToMove base.Color, occupied int) evaluationTrace {
+	perspectives := [2]base.Color{sideToMove, sideToMove ^ 1}
 	for half, perspective := range perspectives {
 		accumulator := &trace.accumulator.values[int(perspective)]
 		for lane := 0; lane < transformerLanes/2; lane++ {
@@ -138,7 +145,7 @@ func (m *Model) evaluateAllTrace(position base.Position) (evaluationTrace, error
 		}
 	}
 
-	stm := int(position.SideToMove)
+	stm := int(sideToMove)
 	ntm := stm ^ 1
 	trace.public.CorrectBucket = uint8((occupied - 1) / 4)
 	for bucket := 0; bucket < layerStacks; bucket++ {
@@ -150,7 +157,7 @@ func (m *Model) evaluateAllTrace(position base.Position) (evaluationTrace, error
 			Positional: trace.stacks[bucket].positionalRaw / 16,
 		}
 	}
-	return trace, nil
+	return trace
 }
 
 func validatePosition(position base.Position) ([64]boardPiece, [2]base.Square, int, error) {
