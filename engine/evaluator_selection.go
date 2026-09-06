@@ -121,3 +121,47 @@ func (e *SearchEngine) SelectNGNV1Evaluator(model *nnue.Model) error {
 	e.workerEvaluator = worker
 	return nil
 }
+
+const (
+	EvaluatorBackendHCEName   = "hce"
+	EvaluatorBackendNGNV1Name = "ngn-v1"
+)
+
+func evaluatorBackendName(backend evaluatorBackend) string {
+	switch backend {
+	case evaluatorBackendHCE:
+		return EvaluatorBackendHCEName
+	case evaluatorBackendNGNV1:
+		return EvaluatorBackendNGNV1Name
+	default:
+		return fmt.Sprintf("unknown-%d", backend)
+	}
+}
+
+// SelectedEvaluatorBackend reports the receiver's immutable evaluator selection.
+// It is session serialized and participates in the process HCE/PST read lease.
+func (e *SearchEngine) SelectedEvaluatorBackend() string {
+	e.sessionMu.Lock()
+	defer e.sessionMu.Unlock()
+	generation := mustAcquireHCEModelUse()
+	defer releaseHCEModelUse()
+	return evaluatorBackendName(e.selectedEvaluatorModel(generation).identity.backend)
+}
+
+// EvaluateSelected reports the selected backend's base SearchSTM score for pos:
+// side-to-move centipawns with the backend's declared rule-50/score adapter, and
+// without search correction-history terms.
+func (e *SearchEngine) EvaluateSelected(pos *Position) (score int, backend string, err error) {
+	if pos == nil {
+		return 0, "", fmt.Errorf("%w: nil evaluation position", errWorkerEvaluator)
+	}
+	e.sessionMu.Lock()
+	defer e.sessionMu.Unlock()
+	generation, err := acquireHCEModelUse()
+	if err != nil {
+		return 0, "", err
+	}
+	defer releaseHCEModelUse()
+	worker := e.prepareWorkerEvaluator(pos, generation)
+	return worker.SearchSTM(pos), evaluatorBackendName(worker.Identity().backend), nil
+}

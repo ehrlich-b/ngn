@@ -150,6 +150,7 @@ type UCIEngine struct {
 	allowResignation bool
 	now              func() time.Time
 	copyPosition     func(*Position) *Position
+	evaluatorConfig  uciEvaluatorConfig
 }
 
 const defaultUCIMoveOverheadMilliseconds = 100
@@ -215,6 +216,7 @@ func NewUCIEngine() *UCIEngine {
 		allowResignation: false, // Default to no resignation
 		now:              time.Now,
 		copyPosition:     func(pos *Position) *Position { return pos.Copy() },
+		evaluatorConfig:  newUCIEvaluatorConfig(),
 	}
 }
 
@@ -352,6 +354,8 @@ func (uci *UCIEngine) handleCommand(command string, output io.Writer) (quit bool
 		uci.handleStop(output)
 	case "ponderhit":
 		uci.handlePonderHit(output)
+	case "eval":
+		uci.handleEvalDiagnostic(output)
 	case "quit":
 		uci.handleQuit(output)
 		return true
@@ -373,6 +377,8 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, "option name Threads type spin default 1 min 1 max 64")
 	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
 	uci.sendUCIMessage(output, "option name SyzygyPath type string default <empty>")
+	uci.sendUCIMessage(output, "option name EvalBackend type combo default hce var hce var ngn-v1")
+	uci.sendUCIMessage(output, "option name EvalFile type string default <empty>")
 
 	// Tunable search parameters (for SPSA / manual A/B; defaults == shipped values).
 	for _, p := range TunableSearchParams {
@@ -468,6 +474,12 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 		}
 	case "threads":
 		// TODO: Implement multi-threading
+	case "evalbackend":
+		uci.handleEvalBackendOption(optionValue, output)
+		return
+	case "evalfile":
+		uci.handleEvalFileOption(optionValue, output)
+		return
 	default:
 		if isTunableParam(optionName) {
 			uci.joinSearch(true)
