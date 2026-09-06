@@ -26,14 +26,18 @@ func (c *SearchControl) MaxNodes() uint64     { return c.maxNodes.Load() }
 // intentionally non-reentrant there. Different receivers own independent
 // mutable state and may search concurrently under one immutable HCE generation.
 type SearchEngine struct {
-	sessionMu    sync.Mutex
-	control      SearchControl
-	history      workerHistory
-	evaluator    *hceEvaluator
-	tt           *Cache
-	hashMB       int
-	ttMode       TTMode
-	ttGeneration uint64
+	sessionMu         sync.Mutex
+	control           SearchControl
+	history           workerHistory
+	evaluator         *hceEvaluator
+	evaluatorModel    evaluatorModel
+	workerEvaluator   *workerEvaluator
+	evaluatorIdentity evaluatorModelIdentity
+	tt                *Cache
+	hashMB            int
+	ttMode            TTMode
+	ttGeneration      uint64
+	ttIdentity        evaluatorModelIdentity
 }
 
 const (
@@ -68,15 +72,18 @@ func validTTMode(mode TTMode) bool { return mode == TTDirect || mode == TTSynchr
 // publication invalidates this receiver lazily before any probe, store, or
 // diagnostic can observe stale evaluator-dependent entries.
 func (e *SearchEngine) prepareTTGeneration(generation uint64) *Cache {
+	identity := e.selectedEvaluatorModel(generation).identity
 	if e.hashMB == 0 {
 		e.hashMB = DEFAULT_CACHE_SIZE
 	}
 	if e.tt == nil {
 		e.tt = newCacheWithMode(e.hashMB, e.ttMode)
 		e.ttGeneration = generation
-	} else if e.ttGeneration != generation {
+		e.ttIdentity = identity
+	} else if e.ttIdentity != identity {
 		e.tt.Clear()
 		e.ttGeneration = generation
+		e.ttIdentity = identity
 	}
 	return e.tt
 }
@@ -95,6 +102,7 @@ func (e *SearchEngine) ResizeHash(megabytes int) error {
 	e.tt = replacement
 	e.hashMB = megabytes
 	e.ttGeneration = generation
+	e.ttIdentity = e.selectedEvaluatorModel(generation).identity
 	return nil
 }
 
@@ -127,6 +135,7 @@ func (e *SearchEngine) SetTTMode(mode TTMode) error {
 	}
 	e.tt = newCacheWithMode(e.hashMB, mode)
 	e.ttGeneration = generation
+	e.ttIdentity = e.selectedEvaluatorModel(generation).identity
 	return nil
 }
 
@@ -187,7 +196,7 @@ func (e *SearchEngine) NewGame() {
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	e.prepareTTGeneration(generation).Clear()
-	e.prepareHCEGeneration(nil, generation)
+	e.prepareWorkerEvaluator(nil, generation)
 	e.history.ClearHistoryTable()
 	e.history.ClearKillerMoves()
 	e.history.ClearCounterMoves()
@@ -224,7 +233,7 @@ func (e *SearchEngine) ClearHistoryTable() {
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	e.prepareHCEGeneration(nil, generation)
+	e.prepareWorkerEvaluator(nil, generation)
 	e.history.ClearHistoryTable()
 }
 func (e *SearchEngine) ClearKillerMoves() {
@@ -232,7 +241,7 @@ func (e *SearchEngine) ClearKillerMoves() {
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	e.prepareHCEGeneration(nil, generation)
+	e.prepareWorkerEvaluator(nil, generation)
 	e.history.ClearKillerMoves()
 }
 func (e *SearchEngine) ClearCounterMoves() {
@@ -240,7 +249,7 @@ func (e *SearchEngine) ClearCounterMoves() {
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	e.prepareHCEGeneration(nil, generation)
+	e.prepareWorkerEvaluator(nil, generation)
 	e.history.ClearCounterMoves()
 }
 func (e *SearchEngine) SetLastMovePlayed(move Move) {
@@ -248,7 +257,7 @@ func (e *SearchEngine) SetLastMovePlayed(move Move) {
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	e.prepareHCEGeneration(nil, generation)
+	e.prepareWorkerEvaluator(nil, generation)
 	e.history.SetLastMovePlayed(move)
 }
 func (e *SearchEngine) GetLastMovePlayed() Move {
@@ -256,7 +265,7 @@ func (e *SearchEngine) GetLastMovePlayed() Move {
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	e.prepareHCEGeneration(nil, generation)
+	e.prepareWorkerEvaluator(nil, generation)
 	return e.history.GetLastMovePlayed()
 }
 
@@ -284,7 +293,7 @@ func (e *SearchEngine) SearchIterativeDeepeningWithCallback(pos *Position, maxDe
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	tt := e.prepareTTGeneration(generation)
-	evaluator := e.prepareHCEGeneration(pos, generation)
+	evaluator := e.prepareWorkerEvaluator(pos, generation)
 	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback, &e.control, &e.history, evaluator, tt)
 }
 
@@ -298,7 +307,7 @@ func (e *SearchEngine) searchIterativeDeepeningPrepared(pos *Position, maxDepth 
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	tt := e.prepareTTGeneration(generation)
-	evaluator := e.prepareHCEGeneration(pos, generation)
+	evaluator := e.prepareWorkerEvaluator(pos, generation)
 	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback, &e.control, &e.history, evaluator, tt)
 }
 
@@ -309,7 +318,7 @@ func (e *SearchEngine) SearchFixed(pos *Position, depth int, timeManager *TimeMa
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	tt := e.prepareTTGeneration(generation)
-	evaluator := e.prepareHCEGeneration(pos, generation)
+	evaluator := e.prepareWorkerEvaluator(pos, generation)
 	return searchFixedUnsafe(pos, depth, timeManager, &e.control, &e.history, evaluator, tt)
 }
 

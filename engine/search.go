@@ -578,7 +578,7 @@ type SearchInfo struct {
 	// history is the persistent heuristic owner supplied by the SearchEngine.
 	// It is explicit on every production entry path and never falls back to a global.
 	history   *workerHistory
-	evaluator *hceEvaluator
+	evaluator *workerEvaluator
 	tt        *Cache
 
 	// Reusable per-invocation move buffers (docs/10 T1). Frames is allocated once per
@@ -591,7 +591,7 @@ type SearchInfo struct {
 // DepthCallback is called after each depth completes during iterative deepening
 type DepthCallback func(info *SearchInfo)
 
-func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, control *SearchControl, history *workerHistory, evaluator *hceEvaluator, tt *Cache) *SearchInfo {
+func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, control *SearchControl, history *workerHistory, evaluator *workerEvaluator, tt *Cache) *SearchInfo {
 	// Advance the age of the transposition table for each search
 	tt.AdvanceAge()
 
@@ -758,11 +758,13 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				// Thread lastMovePlayed so the counter-move heuristic sees the
 				// actual predecessor inside search, not a stale global.
 				savedLast := info.history.GetLastMovePlayed()
+				evalMove := info.evaluator.mustPrepareMove(pos, move)
 				ep, tag, hc, _ := pos.MakeMove(move)
 				if isInCheck(pos, move.MovingPiece().Color()) {
 					pos.UnMakeMove(move, tag, ep, hc)
 					continue
 				}
+				info.evaluator.mustPushMove(pos, evalMove)
 				info.history.SetLastMovePlayed(move)
 				info.MoveStack[0] = move
 				legalRoot++
@@ -800,6 +802,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					// Null-window scout at (possibly) reduced depth.
 					score = -alphaBetaPV(pos, currentDepth-1-reduction, 1, -alpha-1, -alpha, false, true, true, info)
 					if info.Stopped {
+						info.evaluator.mustPop()
 						pos.UnMakeMove(move, tag, ep, hc)
 						info.history.SetLastMovePlayed(savedLast)
 						break
@@ -809,6 +812,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					if reduction > 0 && score > alpha {
 						score = -alphaBetaPV(pos, currentDepth-1, 1, -alpha-1, -alpha, false, true, true, info)
 						if info.Stopped {
+							info.evaluator.mustPop()
 							pos.UnMakeMove(move, tag, ep, hc)
 							info.history.SetLastMovePlayed(savedLast)
 							break
@@ -819,6 +823,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 						score = -alphaBetaPV(pos, currentDepth-1, 1, -beta, -alpha, true, true, false, info)
 					}
 				}
+				info.evaluator.mustPop()
 				pos.UnMakeMove(move, tag, ep, hc)
 				info.history.SetLastMovePlayed(savedLast)
 				if info.Stopped {
@@ -1093,7 +1098,7 @@ func pvDrawTerminal(pos *Position, repetitionCount int) bool {
 // few cp), so the two agree on the best move and track within search noise but are
 // NOT centipawn-identical (guarded by TestSearchFixedMatchesProductionScore). Do
 // not draw strength conclusions from it.
-func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, control *SearchControl, history *workerHistory, evaluator *hceEvaluator, tt *Cache) *SearchInfo {
+func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, control *SearchControl, history *workerHistory, evaluator *workerEvaluator, tt *Cache) *SearchInfo {
 	// Allocate buffers once for the entire search tree
 	var moveBuffer [256]Move
 	var captureBuffer [64]Move
@@ -1158,18 +1163,21 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, contr
 		}
 
 		savedLast := info.history.GetLastMovePlayed()
+		evalMove := info.evaluator.mustPrepareMove(pos, move)
 		ep, tag, hc, _ := pos.MakeMove(move)
 		movingColor := move.MovingPiece().Color()
 		if isInCheck(pos, movingColor) {
 			pos.UnMakeMove(move, tag, ep, hc)
 			continue
 		}
+		info.evaluator.mustPushMove(pos, evalMove)
 		info.history.SetLastMovePlayed(move)
 		info.MoveStack[0] = move
 		legalRoot++
 
 		score := -alphaBetaPV(pos, depth-1, 1, -beta, -alpha, true, true, false, info)
 		if info.Stopped {
+			info.evaluator.mustPop()
 			pos.UnMakeMove(move, tag, ep, hc)
 			info.history.SetLastMovePlayed(savedLast)
 			break
@@ -1179,12 +1187,15 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, contr
 		if score >= MATE_IN_MAX && depth <= 2 {
 			score = -alphaBetaPV(pos, depth+2, 1, -beta, -alpha, true, true, false, info)
 			if info.Stopped {
+				info.evaluator.mustPop()
 				pos.UnMakeMove(move, tag, ep, hc)
 				info.history.SetLastMovePlayed(savedLast)
 				break
 			}
 			info.Nodes++
 		}
+
+		info.evaluator.mustPop()
 
 		pos.UnMakeMove(move, tag, ep, hc)
 		info.history.SetLastMovePlayed(savedLast)
@@ -1569,7 +1580,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// counter-move replies keyed on our own prior move.
 		savedLast := info.history.GetLastMovePlayed()
 		info.NullMoveTries++
+		evalNull := info.evaluator.mustPrepareNull(pos)
 		oldEP := pos.MakeNullMove()
+		info.evaluator.mustPushNull(pos, evalNull)
 		info.history.SetLastMovePlayed(EmptyMove)
 		info.MoveStack[ply] = EmptyMove
 
@@ -1583,6 +1596,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 		score := -alphaBetaPV(pos, nullDepth, ply+1, -beta, -beta+1, false, false, !cutNode, info)
 
+		info.evaluator.mustPop()
 		pos.UnMakeNullMove(oldEP)
 		info.history.SetLastMovePlayed(savedLast)
 		if info.Stopped {
@@ -1633,15 +1647,18 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			}
 
 			savedLast := info.history.GetLastMovePlayed()
+			evalMove := info.evaluator.mustPrepareMove(pos, move)
 			ep, tag, hc, _ := pos.MakeMove(move)
 			if isInCheck(pos, move.MovingPiece().Color()) {
 				pos.UnMakeMove(move, tag, ep, hc)
 				continue
 			}
+			info.evaluator.mustPushMove(pos, evalMove)
 			info.history.SetLastMovePlayed(move)
 
 			score := -quiescence(pos, -probcutBeta, -probcutBeta+1, ply+1, info)
 			if info.Stopped {
+				info.evaluator.mustPop()
 				pos.UnMakeMove(move, tag, ep, hc)
 				info.history.SetLastMovePlayed(savedLast)
 				return stoppedSearchScore
@@ -1650,11 +1667,14 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			if score >= probcutBeta {
 				score = -alphaBetaPV(pos, depth-4, ply+1, -probcutBeta, -probcutBeta+1, false, true, !cutNode, info)
 				if info.Stopped {
+					info.evaluator.mustPop()
 					pos.UnMakeMove(move, tag, ep, hc)
 					info.history.SetLastMovePlayed(savedLast)
 					return stoppedSearchScore
 				}
 			}
+
+			info.evaluator.mustPop()
 
 			pos.UnMakeMove(move, tag, ep, hc)
 			info.history.SetLastMovePlayed(savedLast)
@@ -1838,12 +1858,14 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// so children see the correct lastMovePlayed for counter-move lookups,
 		// and extension logic uses the true parent move.
 		savedLast := info.history.GetLastMovePlayed()
+		evalMove := info.evaluator.mustPrepareMove(pos, move)
 		ep, tag, hc, _ := pos.MakeMove(move)
 		movingColor := move.MovingPiece().Color()
 		if isInCheck(pos, movingColor) {
 			pos.UnMakeMove(move, tag, ep, hc)
 			continue
 		}
+		info.evaluator.mustPushMove(pos, evalMove)
 		info.history.SetLastMovePlayed(move)
 		info.MoveStack[ply] = move
 		legalTried++
@@ -1907,6 +1929,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// Restore lastMove to savedLast so the singular search (which is
 			// evaluating other replies from the parent node) sees the correct
 			// predecessor.
+			info.evaluator.mustPop()
 			pos.UnMakeMove(move, tag, ep, hc)
 			info.history.SetLastMovePlayed(savedLast)
 
@@ -1934,6 +1957,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// The verification re-entry ran at this same ply and overwrote
 			// MoveStack[ply] with its own moves; restore ours.
 			ep, tag, hc, _ = pos.MakeMove(move)
+			info.evaluator.mustPushMove(pos, evalMove)
 			info.history.SetLastMovePlayed(move)
 			info.MoveStack[ply] = move
 
@@ -2058,6 +2082,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			info.NullWindowScouts++
 			score = -alphaBetaPV(pos, reducedDepth, ply+1, -alpha-1, -alpha, false, true, true, info)
 			if info.Stopped {
+				info.evaluator.mustPop()
 				pos.UnMakeMove(move, tag, ep, hc)
 				info.history.SetLastMovePlayed(savedLast)
 				return stoppedSearchScore
@@ -2074,6 +2099,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				info.LMRReSearches++
 				score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, true, !cutNode, info)
 				if info.Stopped {
+					info.evaluator.mustPop()
 					pos.UnMakeMove(move, tag, ep, hc)
 					info.history.SetLastMovePlayed(savedLast)
 					return stoppedSearchScore
@@ -2085,12 +2111,15 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				info.PVReSearches++
 				score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, false, info)
 				if info.Stopped {
+					info.evaluator.mustPop()
 					pos.UnMakeMove(move, tag, ep, hc)
 					info.history.SetLastMovePlayed(savedLast)
 					return stoppedSearchScore
 				}
 			}
 		}
+
+		info.evaluator.mustPop()
 
 		pos.UnMakeMove(move, tag, ep, hc)
 		// Restore predecessor for the next sibling (and for the caller if we
@@ -2379,14 +2408,17 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			if move.IsCastle() && !isLegalCastle(pos, move) {
 				continue
 			}
+			evalMove := info.evaluator.mustPrepareMove(pos, move)
 			ep, tag, hc, _ := pos.MakeMove(move)
 			if isInCheck(pos, move.MovingPiece().Color()) {
 				pos.UnMakeMove(move, tag, ep, hc)
 				continue
 			}
+			info.evaluator.mustPushMove(pos, evalMove)
 			legalMoves++
 
 			score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
+			info.evaluator.mustPop()
 			pos.UnMakeMove(move, tag, ep, hc)
 			if info.Stopped {
 				return stoppedSearchScore
@@ -2508,13 +2540,16 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			continue
 		}
 
+		evalMove := info.evaluator.mustPrepareMove(pos, move)
 		ep, tag, hc, _ := pos.MakeMove(move)
 		if isInCheck(pos, move.MovingPiece().Color()) {
 			pos.UnMakeMove(move, tag, ep, hc)
 			continue
 		}
+		info.evaluator.mustPushMove(pos, evalMove)
 
 		score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
+		info.evaluator.mustPop()
 		pos.UnMakeMove(move, tag, ep, hc)
 		if info.Stopped {
 			return stoppedSearchScore

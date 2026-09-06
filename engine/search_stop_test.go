@@ -13,7 +13,7 @@ func newSearchInfoForTest(tm *TimeManager, rootDepth int) *SearchInfo {
 	return &SearchInfo{
 		control:       &defaultSearchEngine.control,
 		history:       &defaultSearchEngine.history,
-		evaluator:     &hceEvaluator{},
+		evaluator:     testHCEWorkerEvaluator(nil),
 		tt:            defaultTTForDirectTest(),
 		Depth:         rootDepth,
 		RootDepth:     rootDepth,

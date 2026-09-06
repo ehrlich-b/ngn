@@ -10,7 +10,7 @@ func newQSearchInfo() *SearchInfo {
 	return &SearchInfo{
 		control:       &defaultSearchEngine.control,
 		history:       &defaultSearchEngine.history,
-		evaluator:     &hceEvaluator{},
+		evaluator:     testHCEWorkerEvaluator(nil),
 		tt:            defaultTTForDirectTest(),
 		MoveBuffer:    &moveBuffer,
 		CaptureBuffer: &captureBuffer,

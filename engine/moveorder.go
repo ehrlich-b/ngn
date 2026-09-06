@@ -50,7 +50,7 @@ func (h *workerHistory) correctionValue(stm Color, idx int) int {
 // The ply>=MaximumDepth emergency cap stays RAW — it fires before inCheck is known, and an
 // in-check static must never be corrected. The eval cache is unaffected — the correction is
 // added outside it.
-func (h *workerHistory) correctedStandPat(pos *Position, evaluator *hceEvaluator) int {
+func (h *workerHistory) correctedStandPat(pos *Position, evaluator *workerEvaluator) int {
 	stm := pos.Turn()
 	return evaluator.SearchSTM(pos) +
 		h.correctionValue(stm, pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])) +
@@ -679,7 +679,7 @@ func correctedStandPat(pos *Position) int {
 	defer defaultSearchEngine.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	evaluator := defaultSearchEngine.prepareHCEGeneration(pos, generation)
+	evaluator := defaultSearchEngine.prepareWorkerEvaluator(pos, generation)
 	return defaultSearchEngine.history.correctedStandPat(pos, evaluator)
 }
 func updatePawnCorrection(stm Color, idx, diff, depth int) {

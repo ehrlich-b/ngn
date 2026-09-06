@@ -97,7 +97,7 @@ func TestAlphaBetaSafetyReturnsRemainFreshAndUndamped(t *testing.T) {
 	}{{"depth above maximum", MaximumDepth + 1, 0}, {"negative depth", -1, 0}, {"ply at maximum", 1, MaximumDepth}}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			info := &SearchInfo{control: &SearchControl{}, evaluator: evaluator, tt: NewCache(1)}
+			info := &SearchInfo{control: &SearchControl{}, evaluator: testHCEWorkerEvaluator(evaluator), tt: NewCache(1)}
 			if got := alphaBetaPV(pos, tc.depth, tc.ply, -INFINITY, INFINITY, true, true, false, info); got != want {
 				t.Fatalf("alphaBetaPV = %d, want fresh undamped %d", got, want)
 			}

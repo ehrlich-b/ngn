@@ -31,7 +31,7 @@ func TestF1FutilityFalseDraw(t *testing.T) {
 	info := &SearchInfo{
 		control:       &defaultSearchEngine.control,
 		history:       &defaultSearchEngine.history,
-		evaluator:     &hceEvaluator{},
+		evaluator:     testHCEWorkerEvaluator(nil),
 		tt:            defaultTTForDirectTest(),
 		Depth:         3,
 		BestMove:      EmptyMove,

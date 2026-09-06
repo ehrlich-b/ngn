@@ -73,6 +73,13 @@ type workerEvaluator struct {
 	hce        *hceEvaluator
 	context    *nnue.Context
 	rootBuffer nnueRootBuffer
+
+	// These receiver-private hooks are set only by same-package invariant tests:
+	// one checks every committed incremental frame lane-by-lane, and one routes
+	// score reads through a fresh full-position oracle. Public selection never
+	// enables either mode.
+	transitionObserver func(*Position, *nnue.Context)
+	fullRefreshOracle  bool
 }
 
 func (m evaluatorModel) newWorker(hce *hceEvaluator) (*workerEvaluator, error) {
@@ -126,6 +133,7 @@ func (e *workerEvaluator) Reset(pos *Position) error {
 		if err := e.context.Reset(root); err != nil {
 			return fmt.Errorf("%w: reset: %v", errWorkerEvaluator, err)
 		}
+		e.observeTransition(pos)
 		return nil
 	default:
 		return fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
@@ -183,6 +191,7 @@ func (e *workerEvaluator) PushMove(pos *Position, transition workerEvalMove) err
 		if err := e.context.PushDelta(transition.delta); err != nil {
 			return fmt.Errorf("%w: push move: %v", errWorkerEvaluator, err)
 		}
+		e.observeTransition(pos)
 		return nil
 	default:
 		return fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
@@ -235,6 +244,7 @@ func (e *workerEvaluator) PushNull(pos *Position, transition workerEvalNull) err
 		if err := e.context.PushNullFacts(transition.before); err != nil {
 			return fmt.Errorf("%w: push null: %v", errWorkerEvaluator, err)
 		}
+		e.observeTransition(pos)
 		return nil
 	default:
 		return fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
@@ -277,9 +287,19 @@ func (e *workerEvaluator) SearchSTM(pos *Position) int {
 		}
 		return e.hce.SearchSTM(pos)
 	case evaluatorBackendNGNV1:
-		raw, err := e.context.Evaluate()
+		var raw int64
+		var err error
+		if e.fullRefreshOracle {
+			full, fullErr := e.rootBuffer.position(pos)
+			if fullErr != nil {
+				panic(fullErr)
+			}
+			raw, err = e.model.ngnV1.Evaluate(full)
+		} else {
+			raw, err = e.context.Evaluate()
+		}
 		if err != nil {
-			panic(fmt.Errorf("%w: incremental evaluate: %v", errWorkerEvaluator, err))
+			panic(fmt.Errorf("%w: NNUE evaluate: %v", errWorkerEvaluator, err))
 		}
 		return nnueSearchScore(raw, pos.HalfMoveClock)
 	default:
@@ -332,4 +352,47 @@ func clampNNUEStatic(raw int64) int {
 		return -int(nnueStaticEvalLimit)
 	}
 	return int(raw)
+}
+
+func (e *workerEvaluator) observeTransition(pos *Position) {
+	if e.transitionObserver != nil {
+		e.transitionObserver(pos, e.context)
+	}
+}
+
+// The search core has no error return. Transition contract violations indicate
+// engine/context divergence and fail fast at the exact boundary rather than
+// silently falling back to a refreshed or different evaluator.
+func (e *workerEvaluator) mustPrepareMove(pos *Position, move Move) workerEvalMove {
+	transition, err := e.PrepareMove(pos, move)
+	if err != nil {
+		panic(err)
+	}
+	return transition
+}
+
+func (e *workerEvaluator) mustPushMove(pos *Position, transition workerEvalMove) {
+	if err := e.PushMove(pos, transition); err != nil {
+		panic(err)
+	}
+}
+
+func (e *workerEvaluator) mustPrepareNull(pos *Position) workerEvalNull {
+	transition, err := e.PrepareNull(pos)
+	if err != nil {
+		panic(err)
+	}
+	return transition
+}
+
+func (e *workerEvaluator) mustPushNull(pos *Position, transition workerEvalNull) {
+	if err := e.PushNull(pos, transition); err != nil {
+		panic(err)
+	}
+}
+
+func (e *workerEvaluator) mustPop() {
+	if err := e.Pop(); err != nil {
+		panic(err)
+	}
 }
