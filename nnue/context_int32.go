@@ -287,10 +287,35 @@ func (m *Model) evaluateAccumulators32(
 	us := int(sideToMove)
 	them := us ^ 1
 	var dot int64
+	if m.capabilities.BoundedInt32Output {
+		dot = int64(boundedOutputDot(
+			&accumulators[us],
+			&accumulators[them],
+			&m.outputWeights,
+		))
+	} else {
+		dot = m.outputDot32Reference(accumulators, sideToMove)
+	}
+	return m.finishOutput(dot)
+}
+
+func (m *Model) outputDot32Reference(
+	accumulators *[PerspectiveCount][HiddenSize]int32,
+	sideToMove Color,
+) int64 {
+	us := int(sideToMove)
+	them := us ^ 1
+	var dot int64
 	for hidden := 0; hidden < HiddenSize; hidden++ {
 		dot += squareClipped(int64(accumulators[us][hidden])) * int64(m.outputWeights[hidden])
 		dot += squareClipped(int64(accumulators[them][hidden])) * int64(m.outputWeights[HiddenSize+hidden])
 	}
+	return dot
+}
+
+func (m *Model) finishOutput(dot int64) int64 {
+	// Keep the score contract's two signed divisions separate and in order.
+	// The bounded dot is widened before either division or bias arithmetic.
 	value := dot / QA
 	value += int64(m.outputBias)
 	return value * ScoreScale / (QA * QB)

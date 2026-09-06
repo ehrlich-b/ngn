@@ -13,7 +13,7 @@ import (
 	"github.com/ehrlich-b/ngn/nnue"
 )
 
-func n4LoadTensors(t *testing.T, tensors *nnue.Tensors) *nnue.Model {
+func n4LoadTensors(t testing.TB, tensors *nnue.Tensors) *nnue.Model {
 	t.Helper()
 	container, err := nnue.Marshal(tensors)
 	if err != nil {

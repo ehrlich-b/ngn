@@ -92,8 +92,8 @@ type Metadata struct {
 
 // Capabilities are immutable facts derived while loading the exact model.
 // PortableInt32Accumulator follows from the strict NGN-v1 tensor and Position
-// bounds. BoundedInt32Output is a separate, model-specific precondition for a
-// future packed output kernel; it never changes current scalar evaluation.
+// bounds. BoundedInt32Output is the separate, model-specific precondition for
+// the exact packed output kernel; models outside it retain int64 evaluation.
 type Capabilities struct {
 	PortableInt32Accumulator bool
 	BoundedInt32Output       bool
