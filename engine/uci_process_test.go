@@ -96,7 +96,7 @@ func TestUCIPreparedSessionStopSurvivesUntilSearchEntry(t *testing.T) {
 		uci.finishSearchSession(session)
 	})
 	stopDone := make(chan struct{}, 2)
-	for range 2 {
+	for i := 0; i < 2; i++ {
 		go func() {
 			uci.handleStop(io.Discard)
 			stopDone <- struct{}{}
@@ -128,7 +128,7 @@ func TestUCIPreparedSessionStopSurvivesUntilSearchEntry(t *testing.T) {
 	go uci.runSearchSession(session, &output)
 	deadline := time.NewTimer(5 * time.Second)
 	defer deadline.Stop()
-	for range 2 {
+	for i := 0; i < 2; i++ {
 		select {
 		case <-stopDone:
 		case <-deadline.C:
