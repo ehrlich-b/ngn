@@ -14,9 +14,9 @@ Integration: /home/ehrli/repos/ngn-next at 4bd54add148f5b3fb53675f4f107d46d5e3fc
 | Opening books | OwnBook default true preserves historical behavior; false bypasses both external and embedded books | Require false in evaluator/SMP tests |
 | Training pipeline | Real-data pilot accepted: 80,311 training positions, 2,097,152 presentations, five candidates; all export/integer parity checks pass | Broaden corpus after controlled diagnostic; do not select on training loss |
 | Pilot network | Checkpoint 1 selected on validation; NGN SHA abd956983274bae1d91b522cd7ca3a1b2fa91ef3e69051ccb414b9adf0a5c67e | Operational NNUE-vs-HCE games, then a larger verified corpus |
-| Multicore execution | Worker-pool groundwork integrated; actual joined helper search under Sol implementation | Correctness/race gates before scaling matches |
-| Candidate runner | Separate runner under Sol implementation; source/option/CPU/error/termination checks required | Fixture review, then tiny paired full-game operational smoke |
-| Go opponents | Counter 5.5, Zahak 10, Blunder 8.5.5 provisioned/handshaken; Chess-3 v4.0 built with prescribed PGO profiling | Final runtime preflight and matched-condition games |
+| Multicore execution | Worker-pool groundwork integrated; actual joined helper search passed first race/reference gates; partial-launch repair under final combined review | Correctness/race gates before scaling matches |
+| Candidate runner | Separate diagnostic runner reviewed; operational-error and cleanup corrections under Sol implementation | Fixture review, then tiny paired full-game operational smoke |
+| Go opponents | Counter 5.5, Zahak 10, Blunder 8.5.5 provisioned/handshaken; Chess-3 v4.0 built with prescribed PGO profiling | All four protocol handshakes pass; legal-search preflights and matched-condition games remain |
 | Stockfish compatibility | Exact backend compatibility ladder researched; arbitrary .nnue files unsupported | Separate exact-architecture backend later; no compatibility handwave |
 
 The portable-inference/worker combined tree 266da785 passed full short tests, full short race tests, vet, build and exact corrected-B0 HCE search snapshots (only source/build metadata differed). AVX2 passed independent lane/order/overflow/rounding/reference tests, v1 fallback, v3 race and architecture cross-build checks. The subsequent OwnBook slice passed full engine short/race tests. Full integrated checks will run again with actual helper search.
