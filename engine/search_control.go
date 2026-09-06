@@ -21,8 +21,8 @@ func (c *SearchControl) SetMaxNodes(n uint64) { c.maxNodes.Store(n) }
 func (c *SearchControl) MaxNodes() uint64     { return c.maxNodes.Load() }
 
 // searchWorker owns every mutable state family used by one search lane. Pool
-// configuration preserves these objects across idle width changes; this slice
-// still executes only the primary worker and retains the one-thread search path.
+// configuration preserves these objects across idle width changes. Iterative
+// search may run each object on a private root while sharing only the engine TT.
 type searchWorker struct {
 	control           SearchControl
 	history           workerHistory
@@ -59,6 +59,7 @@ type SearchEngine struct {
 	ttMode         TTMode
 	ttGeneration   uint64
 	ttIdentity     evaluatorModelIdentity
+	smpHooks       *smpSearchHooks
 }
 
 const (
@@ -118,7 +119,9 @@ func (e *SearchEngine) ThreadCount() int {
 // retain their evaluator caches and histories; the total Hash size remains one
 // engine-owned allocation. Crossing the one-worker boundary replaces an already
 // allocated TT so direct mode is used for one worker and synchronized mode for
-// multiple workers.
+// multiple workers. RequestStop and SetMaxNodes may run lock-free; callers must
+// otherwise configure only while idle. Search admission treats a stop retained
+// by the primary from an older pool snapshot as authoritative for every worker.
 func (e *SearchEngine) ConfigureThreads(count int) error {
 	if err := validateThreadCount(count); err != nil {
 		return err
@@ -458,8 +461,7 @@ func (e *SearchEngine) SearchIterativeDeepeningWithCallback(pos *Position, maxDe
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	tt := e.prepareTTGeneration(generation)
-	evaluator := e.mustPreparePrimaryEvaluator(pos, generation)
-	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback, &e.worker.control, &e.worker.history, evaluator, tt)
+	return e.searchIterativeDeepeningLocked(pos, maxDepth, timeManager, callback, nil, generation, tt)
 }
 
 // searchIterativeDeepeningPrepared is used by UCI after it has cleared the
@@ -467,13 +469,16 @@ func (e *SearchEngine) SearchIterativeDeepeningWithCallback(pos *Position, maxDe
 // arrive after go launches the goroutine but before the goroutine acquires this
 // session lock.
 func (e *SearchEngine) searchIterativeDeepeningPrepared(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback) *SearchInfo {
+	return e.searchIterativeDeepeningPreparedWithWidth(pos, maxDepth, timeManager, callback, nil)
+}
+
+func (e *SearchEngine) searchIterativeDeepeningPreparedWithWidth(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, onWidth func(int)) *SearchInfo {
 	e.sessionMu.Lock()
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
 	tt := e.prepareTTGeneration(generation)
-	evaluator := e.mustPreparePrimaryEvaluator(pos, generation)
-	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback, &e.worker.control, &e.worker.history, evaluator, tt)
+	return e.searchIterativeDeepeningLocked(pos, maxDepth, timeManager, callback, onWidth, generation, tt)
 }
 
 func (e *SearchEngine) SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {

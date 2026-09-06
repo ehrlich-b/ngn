@@ -61,27 +61,29 @@ const (
 )
 
 type uciSearchSession struct {
-	id           uint64
-	done         chan struct{}
-	cancelOnce   sync.Once
-	completeOnce sync.Once
-	cancelled    chan struct{}
-	resultOnce   sync.Once
+	id                uint64
+	done              chan struct{}
+	cancelOnce        sync.Once
+	completeOnce      sync.Once
+	cancelled         chan struct{}
+	resultOnce        sync.Once
+	threadReceiptOnce sync.Once
 
-	receivedAt       time.Time
-	params           SearchParams
-	rootSource       *Position
-	root             *Position
-	legalMoves       []Move
-	fallback         Move
-	timeManager      *TimeManager
-	movesPlayed      int
-	lastScore        int
-	debugMode        bool
-	allowResignation bool
-	copyPosition     func(*Position) *Position
-	openingBook      *PolyglotBook
-	ownBook          bool
+	receivedAt        time.Time
+	params            SearchParams
+	rootSource        *Position
+	root              *Position
+	legalMoves        []Move
+	fallback          Move
+	timeManager       *TimeManager
+	movesPlayed       int
+	lastScore         int
+	debugMode         bool
+	allowResignation  bool
+	copyPosition      func(*Position) *Position
+	openingBook       *PolyglotBook
+	ownBook           bool
+	configuredThreads int
 
 	outputMu sync.Mutex
 	suppress atomic.Bool
@@ -477,7 +479,15 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 			panic(err)
 		}
 	case "threads":
-		// TODO: Implement multi-threading
+		count, err := strconv.Atoi(optionValue)
+		if err != nil || validateThreadCount(count) != nil {
+			break
+		}
+		uci.joinSearch(true)
+		if err := uci.searcher.ConfigureThreads(count); err != nil {
+			panic(err)
+		}
+		uci.sendUCIMessage(output, fmt.Sprintf("info string threads configured %d effective %d", count, count))
 	case "ownbook":
 		normalized := strings.ToLower(strings.TrimSpace(optionValue))
 		if normalized != "true" && normalized != "false" {
@@ -723,20 +733,21 @@ func (uci *UCIEngine) beginSearchSession(receivedAt time.Time, params SearchPara
 	tm.now = uci.now
 	uci.nextSearchID++
 	session := &uciSearchSession{
-		id:               uci.nextSearchID,
-		done:             make(chan struct{}),
-		cancelled:        make(chan struct{}),
-		receivedAt:       receivedAt,
-		params:           params,
-		rootSource:       uci.position,
-		timeManager:      &tm,
-		movesPlayed:      uci.movesPlayed,
-		lastScore:        uci.lastScore,
-		debugMode:        uci.debugMode,
-		allowResignation: uci.allowResignation,
-		copyPosition:     uci.copyPosition,
-		openingBook:      GetOpeningBook(),
-		ownBook:          uci.ownBook,
+		id:                uci.nextSearchID,
+		done:              make(chan struct{}),
+		cancelled:         make(chan struct{}),
+		receivedAt:        receivedAt,
+		params:            params,
+		rootSource:        uci.position,
+		timeManager:       &tm,
+		movesPlayed:       uci.movesPlayed,
+		lastScore:         uci.lastScore,
+		debugMode:         uci.debugMode,
+		allowResignation:  uci.allowResignation,
+		copyPosition:      uci.copyPosition,
+		openingBook:       GetOpeningBook(),
+		ownBook:           uci.ownBook,
+		configuredThreads: uci.searcher.ThreadCount(),
 	}
 	uci.activeSearch = session
 	uci.searchState = uciSearchPrepared
@@ -791,14 +802,25 @@ func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
 	uci.debugLogger.Printf("Search coordinator launched for session %d", session.id)
 }
 
-// runSearchSession performs cancellable setup, then enters the unchanged
-// one-thread search. Completion is registered first and therefore runs last.
+// emitThreadReceipt publishes one per-go admission width after setup selects it. Completion is registered first and therefore runs last.
+func (uci *UCIEngine) emitThreadReceipt(session *uciSearchSession, output io.Writer, effective int) {
+	if session.configuredThreads <= 1 {
+		return
+	}
+	session.threadReceiptOnce.Do(func() {
+		uci.sendUCIMessage(output, fmt.Sprintf("info string threads configured %d effective %d", session.configuredThreads, effective))
+	})
+}
+
 func (uci *UCIEngine) runSearchSession(session *uciSearchSession, output io.Writer) {
 	defer uci.finishSearchSession(session)
 	sessionOutput := &uciSessionWriter{session: session, w: output}
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			originalStack := string(debug.Stack())
+			if helperPanic, ok := recovered.(*searchWorkerPanic); ok {
+				originalStack = string(helperPanic.stack)
+			}
 			uci.debugLogger.Printf("search session %d failed: %v", session.id, recovered)
 			// Publish the active session's explicit error and legal fallback first.
 			// Re-panic only inside the existing crash reporter afterward so its
@@ -817,10 +839,12 @@ func (uci *UCIEngine) runSearchSession(session *uciSearchSession, output io.Writ
 	}()
 
 	if !uci.prepareSearchSession(session, sessionOutput) {
+		uci.emitThreadReceipt(session, sessionOutput, 1)
 		uci.publishSearchResult(session, output, session.fallback, 0)
 		return
 	}
 	if !uci.markSearchRunning(session) {
+		uci.emitThreadReceipt(session, sessionOutput, 1)
 		uci.publishSearchResult(session, output, session.fallback, 0)
 		return
 	}
@@ -924,6 +948,7 @@ func (uci *UCIEngine) searchSession(session *uciSearchSession, output io.Writer,
 	}
 
 	if bookFound {
+		uci.emitThreadReceipt(session, output, 1)
 		uci.debugLogger.Printf("Opening book hit! Move: %v", bookMove.ToString())
 		if session.debugMode {
 			fmt.Fprintf(output, "info string opening book move: %s\n", bookMove.ToString())
@@ -937,6 +962,7 @@ func (uci *UCIEngine) searchSession(session *uciSearchSession, output io.Writer,
 		fmt.Fprintf(output, "info depth 1 score cp %d nodes 1 time 0 nps 0 pv %s\n",
 			bestScore, bestMove.ToString())
 	} else if tbMove, tbResult := ProbeRoot(session.root); tbResult.Found && tbMove != EmptyMove {
+		uci.emitThreadReceipt(session, output, 1)
 		// Syzygy tablebase hit - perfect endgame play
 		uci.debugLogger.Printf("Syzygy tablebase hit! WDL=%d DTZ=%d Move=%s", tbResult.WDL, tbResult.DTZ, tbMove.ToString())
 		if session.debugMode {
@@ -1056,7 +1082,9 @@ func (uci *UCIEngine) searchSession(session *uciSearchSession, output io.Writer,
 		}
 
 		// Run the search - this handles progressive TT building and aspiration windows internally
-		info := uci.searcher.searchIterativeDeepeningPrepared(session.root, maxDepth, session.timeManager, depthCallback)
+		info := uci.searcher.searchIterativeDeepeningPreparedWithWidth(session.root, maxDepth, session.timeManager, depthCallback, func(effective int) {
+			uci.emitThreadReceipt(session, output, effective)
+		})
 
 		uci.debugLogger.Printf("SearchIterativeDeepeningWithCallback completed: depth=%d, bestMove=%v, bestScore=%d, nodes=%d",
 			info.Depth, info.BestMove, info.BestScore, info.Nodes)

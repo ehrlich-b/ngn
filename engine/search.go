@@ -470,17 +470,18 @@ type searchFrame struct {
 const searchFramePoolSize = 256
 
 type SearchInfo struct {
-	Nodes       uint64
-	Depth       int
-	SelDepth    int // Maximum ply reached including quiescence
-	RootDepth   int // Depth of the current ID iteration; the reference for the per-path extension budget
-	BestMove    Move
-	BestScore   int
-	Stopped     bool
-	TimeManager *TimeManager
-	PV          [MaximumDepth]Move // Principal variation array
-	PVLength    int                // Length of current PV
-	Hashfull    int                // Permille occupancy sampled with the completed PV
+	Nodes            uint64
+	EffectiveThreads int
+	Depth            int
+	SelDepth         int // Maximum ply reached including quiescence
+	RootDepth        int // Depth of the current ID iteration; the reference for the per-path extension budget
+	BestMove         Move
+	BestScore        int
+	Stopped          bool
+	TimeManager      *TimeManager
+	PV               [MaximumDepth]Move // Principal variation array
+	PVLength         int                // Length of current PV
+	Hashfull         int                // Permille occupancy sampled with the completed PV
 
 	// Static eval per ply (white-to-move perspective of the node) for the
 	// improving heuristic; indexed by ply like PV.
@@ -581,6 +582,9 @@ type SearchInfo struct {
 	evaluator *workerEvaluator
 	tt        *Cache
 
+	nodePublisher      *searchNodePublisher
+	lastPublishedNodes uint64
+
 	// Reusable per-invocation move buffers (docs/10 T1). Frames is allocated once per
 	// search; FrameDepth is the recursion-frame counter, pushed/popped in lockstep with
 	// RepStackLen so each live alphaBetaPV invocation owns a distinct frame.
@@ -591,9 +595,20 @@ type SearchInfo struct {
 // DepthCallback is called after each depth completes during iterative deepening
 type DepthCallback func(info *SearchInfo)
 
+type iterativeSearchOptions struct {
+	advanceTTAge     bool
+	effectiveThreads int
+	nodePublisher    *searchNodePublisher
+}
+
 func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, control *SearchControl, history *workerHistory, evaluator *workerEvaluator, tt *Cache) *SearchInfo {
-	// Advance the age of the transposition table for each search
-	tt.AdvanceAge()
+	return searchIterativeDeepeningWorkerUnsafe(pos, maxDepth, timeManager, callback, control, history, evaluator, tt, iterativeSearchOptions{advanceTTAge: true, effectiveThreads: 1})
+}
+
+func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, control *SearchControl, history *workerHistory, evaluator *workerEvaluator, tt *Cache, options iterativeSearchOptions) *SearchInfo {
+	if options.advanceTTAge {
+		tt.AdvanceAge()
+	}
 
 	// Allocate buffers once for the entire search tree
 	var moveBuffer [256]Move
@@ -602,23 +617,26 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 	var seeGains [32]int
 
 	info := &SearchInfo{
-		Nodes:         0,
-		Depth:         maxDepth,
-		BestMove:      EmptyMove,
-		BestScore:     -INFINITY,
-		Stopped:       false,
-		TimeManager:   timeManager,
-		MoveBuffer:    &moveBuffer,
-		CaptureBuffer: &captureBuffer,
-		OrderedBuffer: &orderedBuffer,
-		SEEGains:      &seeGains,
-		Frames:        make([]searchFrame, searchFramePoolSize),
-		control:       control,
-		maxNodes:      control.MaxNodes(),
-		history:       history,
-		evaluator:     evaluator,
-		tt:            tt,
+		Nodes:            0,
+		EffectiveThreads: options.effectiveThreads,
+		Depth:            maxDepth,
+		BestMove:         EmptyMove,
+		BestScore:        -INFINITY,
+		Stopped:          false,
+		TimeManager:      timeManager,
+		MoveBuffer:       &moveBuffer,
+		CaptureBuffer:    &captureBuffer,
+		OrderedBuffer:    &orderedBuffer,
+		SEEGains:         &seeGains,
+		Frames:           make([]searchFrame, searchFramePoolSize),
+		control:          control,
+		maxNodes:         control.MaxNodes(),
+		history:          history,
+		evaluator:        evaluator,
+		tt:               tt,
+		nodePublisher:    options.nodePublisher,
 	}
+	defer info.publishNodesIfDue(true)
 	if callback != nil {
 		defer refreshSearchReport(pos, info)
 	}
@@ -831,6 +849,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				}
 
 				info.Nodes++
+				info.publishNodesIfDue(false)
 				moveNodes := info.Nodes - nodesBefore // T1e: this root move's subtree node cost
 
 				if score > iterationBestScore {
@@ -942,6 +961,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		// the previous completed depth/best move (info.AspAbandoned stays 0).
 		if iterationComplete {
 			info.Depth = currentDepth
+			info.publishNodesIfDue(true)
 			if callback != nil && info.BestMove != EmptyMove {
 				refreshSearchReport(pos, info)
 				callback(info)
@@ -1106,23 +1126,24 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, contr
 	var seeGains [32]int
 
 	info := &SearchInfo{
-		Nodes:         0, // Fresh node count for each depth
-		Depth:         depth,
-		RootDepth:     depth,
-		BestMove:      EmptyMove,
-		BestScore:     -INFINITY,
-		Stopped:       false,
-		TimeManager:   timeManager,
-		MoveBuffer:    &moveBuffer,
-		CaptureBuffer: &captureBuffer,
-		OrderedBuffer: &orderedBuffer,
-		SEEGains:      &seeGains,
-		Frames:        make([]searchFrame, searchFramePoolSize),
-		control:       control,
-		maxNodes:      control.MaxNodes(),
-		history:       history,
-		evaluator:     evaluator,
-		tt:            tt,
+		Nodes:            0, // Fresh node count for each depth
+		EffectiveThreads: 1,
+		Depth:            depth,
+		RootDepth:        depth,
+		BestMove:         EmptyMove,
+		BestScore:        -INFINITY,
+		Stopped:          false,
+		TimeManager:      timeManager,
+		MoveBuffer:       &moveBuffer,
+		CaptureBuffer:    &captureBuffer,
+		OrderedBuffer:    &orderedBuffer,
+		SEEGains:         &seeGains,
+		Frames:           make([]searchFrame, searchFramePoolSize),
+		control:          control,
+		maxNodes:         control.MaxNodes(),
+		history:          history,
+		evaluator:        evaluator,
+		tt:               tt,
 	}
 
 	alpha := -INFINITY
@@ -1193,6 +1214,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, contr
 				break
 			}
 			info.Nodes++
+			info.publishNodesIfDue(false)
 		}
 
 		info.evaluator.mustPop()
@@ -1200,6 +1222,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, contr
 		pos.UnMakeMove(move, tag, ep, hc)
 		info.history.SetLastMovePlayed(savedLast)
 		info.Nodes++
+		info.publishNodesIfDue(false)
 
 		if score > info.BestScore {
 			info.BestScore = score
@@ -2130,6 +2153,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 
 		info.Nodes++
+		info.publishNodesIfDue(false)
 
 		if score > bestScore {
 			bestScore = score
@@ -2359,6 +2383,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 
 	info.Nodes++
 	info.QNodes++
+	info.publishNodesIfDue(false)
 
 	// Reusable move buffer from the recursion-frame pool (docs/10 T1b): replaces the
 	// per-qnode stack `[256]Move` that escaped via the non-inlined GenerateMovesIntoBuffer
