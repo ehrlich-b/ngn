@@ -21,6 +21,11 @@ const (
 	HeaderSize  = 128
 	PayloadSize = 197378
 	FileSize    = HeaderSize + PayloadSize
+
+	// The public Position contract permits at most 64 occupied squares. With
+	// int16 feature bias and weights, every accumulator lane stays in this range.
+	MinAccumulatorValue int32 = -2129920 // -32768 bias + 64*-32768 weights.
+	MaxAccumulatorValue int32 = 2129855  // 32767 bias + 64*32767 weights.
 )
 
 const (
@@ -85,6 +90,17 @@ type Metadata struct {
 	FileSHA256      [sha256.Size]byte
 }
 
+// Capabilities are immutable facts derived while loading the exact model.
+// PortableInt32Accumulator follows from the strict NGN-v1 tensor and Position
+// bounds. BoundedInt32Output is a separate, model-specific precondition for a
+// future packed output kernel; it never changes current scalar evaluation.
+type Capabilities struct {
+	PortableInt32Accumulator bool
+	BoundedInt32Output       bool
+	AccumulatorMin           int32
+	AccumulatorMax           int32
+}
+
 // Model is immutable after loading. Its arrays are intentionally unexported.
 type Model struct {
 	featureWeights [InputSize][HiddenSize]int16
@@ -92,12 +108,21 @@ type Model struct {
 	outputWeights  [PerspectiveCount * HiddenSize]int16
 	outputBias     int16
 	metadata       Metadata
+	capabilities   Capabilities
 	loaded         bool
 }
 
 // Metadata returns a copy of the model identity.
 func (m *Model) Metadata() Metadata {
 	return m.metadata
+}
+
+// Capabilities returns a copy of the checked arithmetic capabilities.
+func (m *Model) Capabilities() Capabilities {
+	if m == nil {
+		return Capabilities{}
+	}
+	return m.capabilities
 }
 
 // Marshal encodes tensors in the strict NGN v1 container. It emits no padding.
@@ -216,6 +241,19 @@ func Load(reader io.Reader) (*Model, error) {
 		PayloadSHA256:   payloadDigest,
 	}
 	copy(model.metadata.FileSHA256[:], fileHash.Sum(nil))
+	boundedOutput := true
+	for _, weight := range model.outputWeights {
+		if weight < -128 || weight > 128 {
+			boundedOutput = false
+			break
+		}
+	}
+	model.capabilities = Capabilities{
+		PortableInt32Accumulator: true,
+		BoundedInt32Output:       boundedOutput,
+		AccumulatorMin:           MinAccumulatorValue,
+		AccumulatorMax:           MaxAccumulatorValue,
+	}
 	model.loaded = true
 	return model, nil
 }
