@@ -81,13 +81,14 @@ Completed correctness/parity and concurrency checks; accepted NNUE gain; measure
 
 ## Implementation progress
 
-As of September 6 on WSL:
+The maintained sprint state is [current status](2026-09-06-current-status.md). It supersedes this roadmap's historical installation and in-progress notes.
 
-- Integrated: strict NNUE v1 format/scalar evaluator, independently checked incremental context, Bullet export bridge, private search control/history/HCE caches, and the reporting-only terminal PV repair.
-- Passed: bounded GPU/kernel/gradient/optimizer/export smoke, including an asymmetric perspective-swap rejection and exact integer Go parity. This establishes the training pipeline, not playing strength.
-- Accepted control: corrected B0 completed200games/100pairs at30+0.3, concurrency8 on distinct physical cores. Independent audit passed31,750legalplies and all terminal results, with49.25% A score and no operational failures. All39 final artifact hashes matched. See [the control verdict](2026-09-06-corrected-b0-aa-verdict.md). The original failed pre-repair control remains separate.
-- Integrated and validated: M3 receiver-owned/coherent TT, N3a/b semantic transitions and tagged worker evaluator, and separate portable N4 integer context. Combined full short/race/vet/build and corrected-reference search parity pass; see [the integration verdict](2026-09-06-tt-nnue-foundation-integration.md). [P0/L0/L1/P1 lifecycle and overhead integration](2026-09-06-lifecycle-integration.md) also passes combined gates. Current work: N3c production NNUE search wiring, staged persistent-worker extraction and the training pilot.
-- T80 payload downloaded on WSL and verified against exact10,809,713,086-byte size and SHA2560d22957b8d4f0f8e6f2913be7b744b2dab5178c3563e0f916312d0d94c28b92b. [The verified data pilot](2026-09-06-nnue-data-pilot.md) retains100,034 positions with independent semantic verification and corruption controls; no real-data training verdict yet.
-- Still required: production NNUE score/transition wiring, the bounded real-data pilot, optimized inference, real Lazy SMP and lifecycle gates, isolated strength/scaling verdicts, longer-clock confirmation, matched Go-opponent games, and deployment.
+As of September 6, integration source 4bd54add contains strict NNUE v1 scalar/incremental/export equivalence, production NNUE search wiring, transactional UCI selection, portable int32 and bounded AVX2 inference, owned TT/history/HCE state, persistent worker configuration, cancellable joined UCI sessions and explicit OwnBook control. Deployed source 53e4d1b remains unchanged.
 
-Current references: [HCE ownership](2026-09-06-hce-worker-ownership-m2.md), [GPU pipeline status](2026-09-06-nnue-toolchain-status.md), [PV repair](2026-09-06-pv-reporting-repair.md), [A/A manifest](2026-09-06-nnue-smp-b0-corrected-aa-manifest.json), and [proposed exact NNUE optimization slice](2026-09-06-nnue-simd-next-slice.md).
+Corrected WSL B0 A/A passed 200 games/100 pairs at 30+0.3 with independent legality/terminal audit and no operational failures. The real-data pilot retained 100,034 positions, including 80,311 training examples; training completed 2,097,152 presentations and all five candidate exports passed exact integer parity. Validation selected checkpoint 1; later training lowered training loss while worsening validation. No playing-strength conclusion follows from this pilot.
+
+Real helper search has passed its first focused/full race and one-thread reference gates and is under independent review. Review is extending cleanup coverage through partial helper launch and adding simultaneous NNUE-worker lifecycle tests. The source-only performance harness and diagnostic candidate runner are also under review; their findings and required repairs are recorded in [measurement review](2026-09-06-measurement-review.md).
+
+Next: complete reviewed helper integration; isolate kernel, whole-NNUE-search and HCE-plumbing measurements; run audited same-code NNUE/HCE operational games; then broaden the verified corpus and run predeclared strength and 1/2/4/8-thread comparisons. Longer-clock confirmation, matched Go-opponent games and WSL deployment remain required. No new Elo gain has been established.
+
+Current evidence: [training pilot](2026-09-06-nnue-training-pilot.md), [worker/UCI integration](2026-09-06-worker-uci-integration.md), [candidate requirements](2026-09-06-candidate-runner-requirements.md), [A/A verdict](2026-09-06-corrected-b0-aa-verdict.md).
