@@ -1303,12 +1303,6 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	if ply > info.SelDepth {
 		info.SelDepth = ply
 	}
-	// Safety checks - reasonable limits
-	if info.Nodes > 50000000 { // 50M nodes
-		info.Stopped = true
-		return stoppedSearchScore
-	}
-
 	// Fixed-node budget (UCI `go nodes`): trip the stop flag when the budget is
 	// spent, reusing the unwind/discard machinery below.
 	if m := info.maxNodes; m != 0 && info.Nodes >= m {

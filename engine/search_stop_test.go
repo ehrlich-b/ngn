@@ -83,3 +83,29 @@ func TestQuiescenceHonorsTimeLimit(t *testing.T) {
 		t.Fatal("expired qsearch searched moves or changed the position")
 	}
 }
+
+// Long-clock and infinite searches have no hidden node ceiling. Explicit node,
+// time, and external-stop limits remain responsible for cancellation.
+func TestAlphaBetaHasNoImplicitFiftyMillionNodeCeiling(t *testing.T) {
+	pos, err := ParseFEN("7k/8/8/8/3Q4/8/8/K7 w - - 0 1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ClearStop()
+	t.Cleanup(ClearStop)
+
+	info := newSearchInfoForTest(nil, MaximumDepth+1)
+	info.Nodes = 50_000_001
+	want := info.evaluator.LegacyUndampedSTM(pos)
+	got := alphaBetaPV(pos, MaximumDepth+1, 0, -INFINITY, INFINITY, true, true, false, info)
+	if info.Stopped || got != want || info.Nodes != 50_000_001 {
+		t.Fatalf("implicit ceiling survived: score=%d want=%d stopped=%v nodes=%d", got, want, info.Stopped, info.Nodes)
+	}
+
+	limited := newSearchInfoForTest(nil, MaximumDepth+1)
+	limited.Nodes = 50_000_001
+	limited.maxNodes = limited.Nodes
+	if got := alphaBetaPV(pos, MaximumDepth+1, 0, -INFINITY, INFINITY, true, true, false, limited); got != stoppedSearchScore || !limited.Stopped {
+		t.Fatalf("explicit node limit lost: score=%d stopped=%v", got, limited.Stopped)
+	}
+}
