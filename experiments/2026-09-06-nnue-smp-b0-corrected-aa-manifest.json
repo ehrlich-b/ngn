@@ -215,8 +215,8 @@
       "python3",
       "scripts/fastchess-match/run_b0_aa.py",
       "--manifest",
-      "/home/ehrli/repos/ngn-b0-pv-corrected/output/corrected-b0-20260905/held-aa-manifest.json",
       "/home/ehrli/repos/ngn-next/experiments/2026-09-06-nnue-smp-b0-corrected-aa-manifest.json",
+      "--output",
       "/home/ehrli/repos/ngn-next/output/nnue-smp-b0-pv-corrected-20260905/aa-200-tc30",
       "--approval-token",
       "<TOKEN_FROM_APPROVED_MANIFEST>"
