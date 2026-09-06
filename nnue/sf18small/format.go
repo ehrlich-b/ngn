@@ -66,6 +66,7 @@ type layerStack struct {
 // Model owns canonical logical-order tensors. All fields are private and are
 // populated before publication, so a loaded Model is safe for concurrent reads.
 type Model struct {
+	loaded         bool
 	metadata       Metadata
 	featureBias    [transformerLanes]int16
 	featureWeights []int16
@@ -106,6 +107,7 @@ func Load(reader io.Reader) (*Model, error) {
 		return nil, fmt.Errorf("%w: file exceeds %d bytes", ErrFormat, maxFileBytes)
 	}
 	copy(model.metadata.FileSHA256[:], digest.Sum(nil))
+	model.loaded = true
 	return model, nil
 }
 
