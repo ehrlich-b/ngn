@@ -1,6 +1,6 @@
 # Current NNUE / multicore sprint status
 
-Updated 2026-09-06 after the prospective Counter/HCE match accepted H1 and while the accepted Counter transition optimization is being profiled. All project work runs on WSL; the Mac is transport only. Sol owns implementation and root coordinates and reviews.
+Updated 2026-09-06 after the prospective Counter/HCE match accepted H1 and the Counter transition fast path passed its fixed-node correctness/profile gate. All project work runs on WSL; the Mac is transport only. Sol owns implementation and root coordinates and reviews.
 
 The deployed engine remains **53e4d1b**. The development engine's latest search change is **168385f** (real multicore search). The Counter 5.5 loader, incremental context, and search adapter are integrated through **0ffbc52**; the Stockfish SMALL loader and full-refresh evaluator are integrated through **48b67dd** without search wiring. Useful eight-versus-one-thread SMP and one-thread pretrained-Counter evaluator gains are now accepted. A fresh absolute WSL rating and the combined eight-worker evaluator gain have not been established. The previous 2884.14 rating belongs to historical native-Windows conditions.
 
@@ -14,6 +14,7 @@ The deployed engine remains **53e4d1b**. The development engine's latest search 
 | Counter pretrained control | Exact Counter 5.5 loader, portable and incremental evaluators, historical score adapter, engine/UCI wiring, private worker contexts, dynamic capacity, and transactional backend selection accepted | Prospective one-thread SPRT accepted H1 after 166 games / 83 complete pairs, 89 wins / 37 losses / 40 draws; confirm Counter8 versus HCE8 at 60+0.6 on the independent 16-ply opening set |
 | Stockfish compatibility | Exact Stockfish 18 SMALL official file loads; malformed-file, official-file, race, vet and build checks pass | Full-refresh scalar evaluator now matches the actual pinned upstream oracle across 145 positions and all recorded lanes/layers; package, official-file, race, vet and build gates pass. Incremental context, genuine upstream transition-oracle source and 703-row Go consumer are source-reviewed; runtime validation awaits compute |
 | HCE speed investigation | Direct-search comparison has exact outcomes/PVs/final nodes; long-budget paired medians show about 2–3% overhead for one position | Further timing remains lower priority than pretrained-evaluator validation |
+| Counter transition fast path | Exact cold/warm result, PV and node snapshots passed on all six fixtures; accepted cold 400,000-node paired timing measured 5.466876% less time across 14 blocks | Integration remains pending; this is no Elo or steady-game-speed claim |
 | Leading Go opponents | Counter 5.5, Zahak 10, Blunder 8.5.5 and Chess-3 v4.0 provisioned with protocol handshakes; Rodent V1.1 and V1.2 release/source/model identities are pinned | Admit V1.1 Anand/testers as the publicly rated anchor and V1.2 non-Tal testers as the latest-stable target, then run matched external games |
 
 ## Accepted multicore test
@@ -63,6 +64,8 @@ Stockfish BIG now has a separate immutable loader implementation at `ngn-sf18-bi
 The actual SMALL incremental C++ producer and Go continuation launchers have now passed source review. They require upstream reuse/incremental/refresh coverage, all 703 Go comparisons, distinct successful stage receipts, final input rehashing and external process completion checks. The Counter profile plan now runs all three decoder tests plus exact cold/warm snapshots before its fixed profile and 28 timing processes. Search-focused CPU attribution is separated from benchmark setup. No new runtime or performance result is claimed from these preparations.
 
 The direct HCE diagnostic found substantially less overhead than the earlier short UCI timings: paired session median ratios 1.023 cold and 1.027 warm for the longer budget, on one position. These include public search admission and callback reporting. The separate HCE transition fast path remains unintegrated because measured effects are modest and fixture dependent.
+
+The Counter transition fast-path performance gate is accepted at `/home/ehrli/repos/ngn-counter-transition-fastpath-v1/output/counter-transition-fastpath-v1-20260906/root-performance-terminal-review-v1.json`, SHA `71d959e30c98351b52ddbd022edb1ee6caf48408c388930938d195b43441c42f`. The equal-weight median candidate/parent time ratio was 0.9453312363677768 for cold first searches at an identical 400,000 nodes. All six fixture medians were below 1.0 and correctness snapshots matched. The source remains unintegrated; the result does not establish Elo or steady-game speed.
 
 ## External Counter admission correction
 
