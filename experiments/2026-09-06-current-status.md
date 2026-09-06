@@ -1,32 +1,34 @@
 # Current NNUE / multicore sprint status
 
-Updated 2026-09-06 during the prospective 8-versus-1-thread match. All project work runs on WSL; the Mac is transport only. Sol owns implementation and root coordinates and reviews.
+Updated 2026-09-06 after root acceptance of the 8-versus-1-thread strength test. All project work runs on WSL; the Mac is transport only. Sol owns implementation and root coordinates and reviews.
 
-The deployed engine remains **53e4d1b**. The development engine's latest search change is **168385f** (real multicore search). Standalone Counter compatibility and Stockfish SMALL loader packages are integrated at **ed9ee07** and **e88d36c**. Neither package is connected to search yet. No new playing-strength gain or fresh WSL rating has been established. The previous 2884.14 rating belongs to historical native-Windows conditions.
+The deployed engine remains **53e4d1b**. The development engine's latest search change is **168385f** (real multicore search). Standalone Counter compatibility and Stockfish SMALL loader packages are integrated at **ed9ee07** and **e88d36c**. Neither package is connected to search yet. A useful eight-versus-one-thread playing-strength gain is now accepted. A fresh absolute WSL rating and an NNUE gain have not been established. The previous 2884.14 rating belongs to historical native-Windows conditions.
 
 ## Active work
 
 | Area | Accepted result | Next step |
 |---|---|---|
-| Real multicore search | Private worker state, shared synchronized TT, joined helper lifecycle, full short/race/vet/build gates; 128-sample matrix measured 6.41–6.69x aggregate NPS at eight threads | Prospective eight-versus-one-thread strength test is running |
-| Match validity | Four-game 8v8 operational control passed: 562 legal plies, correct worker-width receipts, no operational failures or survivors | Finish the 8v1 match under its frozen stopping rule, then independent chess/trace/SPRT audits |
+| Real multicore search | Private worker state, shared synchronized TT, joined helper lifecycle, full short/race/vet/build gates; 128-sample matrix measured 6.41–6.69x aggregate NPS at eight threads | Eight-versus-one-thread SPRT accepted after 102 games;2/4-thread strength and combined longer-clock validation remain |
+| Match validity | Four-game 8v8 operational control passed: 562 legal plies, correct worker-width receipts, no operational failures or survivors | All 102 games and 14,485 legal plies audited; all six supervised stages exited 0, no warnings or survivors |
 | Minimal trained NNUE | Export/scalar/incremental/optimized integer equivalence established; 3M data and 512-update training accepted | Count-only experiments stopped: selected 3M network lost its audited four-game HCE screen 0–4 |
-| Counter pretrained control | Exact Counter 5.5 loader and portable full-refresh evaluator accepted; 6,144 accumulator lanes, raw scores and historical score adaptation match actual pinned upstream | Incremental and search adapter source v5 reviewed, including explicit float32 product rounding; execution held. Full short regression, upstream v1/v3 oracles and actual worker race gates are prepared |
+| Counter pretrained control | Exact Counter 5.5 loader and portable full-refresh evaluator accepted; 6,144 accumulator lanes, raw scores and historical score adaptation match actual pinned upstream | Incremental and search adapter source v5 reviewed, including explicit float32 product rounding; formatting/input freeze is now authorized and validation is next. Full short regression, upstream v1/v3 oracles and actual worker race gates are prepared |
 | Stockfish compatibility | Exact Stockfish 18 SMALL official file loads; malformed-file, official-file, race, vet and build checks pass | Scalar and corrected Go/C++ oracle source v5 reviewed; execution plan v2 ready. Incremental package source v2 is reviewed after captured-king and ownership-marker fixes; runtime gates depend on full-refresh parity |
 | HCE speed investigation | Direct-search comparison has exact outcomes/PVs/final nodes; long-budget paired medians show about 2–3% overhead for one position | Further timing held while strength games use the machine |
 | Leading Go opponents | Counter 5.5, Zahak 10, Blunder 8.5.5 and Chess-3 v4.0 provisioned with protocol handshakes | Legal-search preflight and matched games remain |
 
-## Prospective multicore test
+## Accepted multicore test
 
 Started **2026-09-06T13:03:25Z**, outer PID **2048736**. Output:
 
 `output/m4c-hce8v1-sprt-20260906-attempt1` in the `ngn-m4c-sprt-runner` worktree.
 
-Both sides use the same pinned 168385f binary. Candidate Threads/GOMAXPROCS=8; reference=1. Time control 30+0.3, Hash 128 MiB per engine, Move Overhead 100 ms, book off, one game at a time, full physical-core mask 0,2,4,6,8,10,12,14. The match has exclusive project compute through auditing and final sealing.
+Both sides use the same pinned 168385f binary. Candidate Threads/GOMAXPROCS=8; reference=1. Time control 30+0.3, Hash 128 MiB per engine, Move Overhead 100 ms, book off, one game at a time, full physical-core mask 0,2,4,6,8,10,12,14. The match held exclusive project compute through auditing and sealing; root has now released the machine to the Counter validation lane.
 
 The predeclared test uses normalized-Elo SPRT hypotheses 0/20, alpha=beta=0.05, complete paired games, first-boundary-crossing stopping, and a cap of 400 games. A cap without crossing is inconclusive. It is not an ordinary +20 Elo confidence claim. Interim results cannot change the stopping rule.
 
-Latest root checkpoint: 86 games / 43 pairs, eight threads 52 wins, 3 losses, 31 draws, normalized SPRT LLR 2.51. This is interim; game 87 was live, the actual outer process remained present, and the match error stream was empty.
+Completed 102 games / 51 pairs: eight threads 63 wins, 3 losses, 36 draws (81/102, 79.41%). The first boundary crossing occurred on the final pair: LLR 3.024581092967444, above 2.9444389791664403. Pair 50 was 2.943521991535266, just below the boundary despite the rounded display. The outer process exited 0 and was absent; all six supervised stages passed. Root verified 94 sealed files (561,677,494 bytes), independently recomputed every PGN pair score and LLR prefix, checked 6,950 multicore per-go width receipts and 355,356 process identity observations, and found no survivors.
+
+Root acceptance: `output/m4c-sprt-root-review-20260906/terminal-review-v1.json`, SHA `353872594a7e4d93deed193cd28c444f73db0cf8a67964d5936a9ffdebe0e9eb`. Final manifest SHA `acf486c8a3add49b254a44c1d25f15d276a430aaa8348839e54f65429b641960`.
 
 The frozen runner passed 55 fixtures and 246 independent C++/Python SPRT vectors. Root accepted all 200 ordered openings and 1,200 legal opening plies. Approved manifest SHA:
 `6d901b315382cf5d4ad77fe90869dbdbd82fc136f5244cdd2c08a9d02afc3c38`.
