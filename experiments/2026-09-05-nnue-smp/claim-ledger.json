@@ -185,6 +185,11 @@
     {
       "claim": "Root incorporated architecture and concurrency review: explicit score adapter/header/delta timing, SF small scope/optimism, session-exclusive direct TT, cancellable setup, output reasons, full model-state invalidation, private time counters and worker-0-only node-limited initial milestone.",
       "status": "all three Sol design reviews reconciled; implementation gates remain unrun"
+    },
+    {
+      "claim": "Pinned Bullet writer takes f32 tensors, promotes to f64, multiplies scale in f64 and uses f64 round/trunc before checked integer casting. Float32 multiplication would produce different bytes at boundaries.",
+      "url": "https://github.com/jw1912/bullet/blob/629ee50000b2afb7b3337595401c830d3b1e0f42/crates/trainer/src/model/weights.rs#L287",
+      "status": "Root independently verified lines287-313 after Sol implementation review corrected earlier rounding-width inference; exact source governs exporter."
     }
   ]
 }
