@@ -4,9 +4,9 @@ Date: 2026-09-06. Operational acceptance only; no playing-strength estimate or r
 
 The first four paired games at 10+0.1 completed with all independent operational and chess checks passing. HCE scored 4/4 against the 100k-position pilot NNUE. All four games ended by natural mate (204 legal plies total). This pilot network remains a pipeline diagnostic; these results provide no basis to replace the accepted evaluator.
 
-Both roles used the identical clean 4bd54add executable SHA ee59a26d6b06900e5466d42a5b2f0e3d26df44059799d590a523a9819e7a1211. The NNUE role loaded candidate-1 SHA abd956983274bae1d91b522cd7ca3a1b2fa91ef3e69051ccb414b9adf0a5c67e, selected by minimum eligible raw validation loss. Settings were Threads=1, GOMAXPROCS=1, Hash=64 MiB, Move Overhead=50 ms, OwnBook=false, CPU12, concurrency1. The first two pinned six-ply openings were played in both colors. No score/draw/resignation/maxmoves adjudication, recovery, ponder or tablebase was enabled.
+Both roles used the identical clean 4bd54add executable SHA ee59a26d6b06900e5466d42a5b2f0e3d26df44059799d590a523a9819e7a1211. The NNUE role loaded candidate-1 SHA abd956983274bae1d91b522cd7ca3a1b2fa91ef3e69051ccb414b9adf0a5c67e, selected by minimum eligible raw validation loss. Settings were Threads=1, GOMAXPROCS=1, Hash=64 MiB, Move Overhead=50 ms, OwnBook=false, CPU12, concurrency 1. The first two pinned six-ply openings were played in both colors. No score/draw/resignation/maxmoves adjudication, recovery, ponder or tablebase was enabled.
 
-Root independently verified all86 final artifact hashes, reviewed the trace and chess audits, checked2354 child-process observations for exact engine identity/GOMAXPROCS/affinity, and confirmed all five supervised stages returned0 with no timeouts, monitor errors, or surviving processes. Both UCI preflights proved selected evaluator/options and real non-book search. No warning, canonical engine error, external book or probable embedded-book signature was found. Match peak sampled process-tree RSS was597324 KiB.
+Root independently verified all 86 final artifact hashes, reviewed the trace and chess audits, checked 2354 child-process observations for exact engine identity/GOMAXPROCS/affinity, and confirmed all five supervised stages returned 0 with no timeouts, monitor errors, or surviving processes. Both UCI preflights proved selected evaluator/options and real non-book search. No warning, canonical engine error, external book or probable embedded-book signature was found. Match peak sampled process-tree RSS was 597,324 KiB.
 
 Evidence:
 - Run: /home/ehrli/repos/ngn-candidate-runner/output/candidate-smoke-20260906-attempt2
@@ -17,6 +17,6 @@ Evidence:
 
 Attempt1 is preserved separately. It failed before engine launch because the invocation used the live script path instead of the exact frozen path required by the manifest. Attempt2 changed only the invocation/approval token and used a new output directory.
 
-The next data experiment increases the verified corpus target from100000 to1000000 positions under the existing decoder, split, quarantine and independent verification rules. Root rehashed all1881 frozen inputs before authorizing data conversion; training requires the exact observed split counts and its own freeze. This changes data diversity; it does not assume that another million presentations of the same small pilot will improve generalization. The100k pilot already had worsening validation after candidate1 despite falling training loss.
+The next data experiment increases the verified corpus target from 100,000 to 1,000,000 positions under the existing decoder, split, quarantine and independent verification rules. Root rehashed all 1,881 frozen inputs before authorizing data conversion; training requires the exact observed split counts and its own freeze. This changes data diversity; it does not assume that another million presentations of the same small pilot will improve generalization. The 100k pilot already had worsening validation after candidate 1 despite falling training loss.
 
-The deployed WSL engine remains53e4d1b.
+The deployed WSL engine remains 53e4d1b.
