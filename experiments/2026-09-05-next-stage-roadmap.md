@@ -78,3 +78,7 @@ Primary sources:
 ## Sprint completion
 
 Completed correctness/parity and concurrency checks; accepted NNUE gain; measured useful SMP scaling; longer-clock combined-release confirmation; no unexplained crashes/illegal moves/time failures in acceptance runs; reproducible source/net/toolchain/data/artifact identities; updated stronger-opponent progress report; deployed WSL release with rollback. Every behavior-changing candidate gets a declared verdict before promotion. World leadership, real Syzygy and further search/speed work remain subsequent milestones unless explicitly incorporated into a later goal.
+
+## Implementation progress
+
+[WSL baseline](2026-09-05-wsl-baseline.md), [standalone NNUE N0](2026-09-05-nnue-n0-foundation.md), and [M0 stop/node ownership with exact one-thread parity](2026-09-05-smp-m0-control.md) are integrated. Helper search, trained NNUE, A/A and strength verdicts remain pending.

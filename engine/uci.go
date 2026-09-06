@@ -53,6 +53,7 @@ func TryLoadDefaultBook() {
 // UCI Engine represents the UCI interface for the chess engine
 type UCIEngine struct {
 	position         *Position
+	searcher         *SearchEngine
 	searching        atomic.Bool
 	stopChan         chan bool
 	debugMode        bool
@@ -108,6 +109,7 @@ func NewUCIEngine() *UCIEngine {
 
 	return &UCIEngine{
 		position:         newUCIStartingPosition(),
+		searcher:         NewSearchEngine(),
 		stopChan:         make(chan bool, 1),
 		debugMode:        false,
 		engineName:       "ngn",
@@ -487,7 +489,7 @@ func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
 		}
 		return // Already searching
 	}
-	ClearStop()
+	uci.searcher.ClearStop()
 	if !uci.searching.CompareAndSwap(false, true) {
 		return
 	}
@@ -566,7 +568,7 @@ func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
 	// Fixed-node search (go nodes N): cap total nodes, and when no time control is
 	// given, run effectively infinite so only the node budget stops the search
 	// (otherwise pure `go nodes` falls into the tournament branch with zero time).
-	SetMaxNodes(params.Nodes)
+	uci.searcher.SetMaxNodes(params.Nodes)
 	if params.Nodes > 0 && params.Depth == 0 && params.MoveTime == 0 &&
 		params.WhiteTime == 0 && params.BlackTime == 0 {
 		params.Infinite = true
@@ -784,7 +786,7 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 		}
 
 		// Run the search - this handles progressive TT building and aspiration windows internally
-		info := searchIterativeDeepeningUnsafe(uci.position, maxDepth, uci.timeManager, depthCallback)
+		info := uci.searcher.searchIterativeDeepeningPrepared(uci.position, maxDepth, uci.timeManager, depthCallback)
 
 		uci.debugLogger.Printf("SearchIterativeDeepeningWithCallback completed: depth=%d, bestMove=%v, bestScore=%d, nodes=%d",
 			info.Depth, info.BestMove, info.BestScore, info.Nodes)
@@ -931,10 +933,10 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 // handleStop handles the stop command
 func (uci *UCIEngine) handleStop(output io.Writer) {
 	if uci.searching.Load() {
-		// Wire stop into the recursive search via the global stop flag, in
+		// Wire stop into this UCI instance's recursive search control, in
 		// addition to the channel that the depth callback drains. The
 		// depth callback alone cannot interrupt a running iteration.
-		RequestStop()
+		uci.searcher.RequestStop()
 		select {
 		case uci.stopChan <- true:
 		default:

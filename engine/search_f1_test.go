@@ -29,6 +29,7 @@ func TestF1FutilityFalseDraw(t *testing.T) {
 	var orderedBuffer [256]Move
 	var seeGains [32]int
 	info := &SearchInfo{
+		control:       &defaultSearchEngine.control,
 		Depth:         3,
 		BestMove:      EmptyMove,
 		BestScore:     -INFINITY,

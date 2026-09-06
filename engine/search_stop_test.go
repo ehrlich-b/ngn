@@ -11,6 +11,7 @@ func newSearchInfoForTest(tm *TimeManager, rootDepth int) *SearchInfo {
 	var orderedBuffer [256]Move
 	var seeGains [32]int
 	return &SearchInfo{
+		control:       &defaultSearchEngine.control,
 		Depth:         rootDepth,
 		RootDepth:     rootDepth,
 		BestMove:      EmptyMove,

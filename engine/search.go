@@ -3,7 +3,6 @@ package engine
 import (
 	"math"
 	"math/bits"
-	"sync/atomic"
 )
 
 const (
@@ -71,47 +70,6 @@ var TunableSearchParams = []TunableParam{
 	{"AspInit", &ASP_INIT, 13, 4, 40},
 	{"AspMult", &ASP_MULT, 154, 110, 250},
 	{"LMPBase", &LMP_BASE, 4, 2, 16},
-}
-
-// globalStopRequested is set by UCI's stop handler and observed by the search
-// hot paths. It exists because TimeManager alone cannot interrupt search:
-// - For `go infinite` it never asks to stop.
-// - For other modes, stop must be honored even before the soft/hard time hits.
-// Cleared at the start of every search; set by RequestStop().
-var globalStopRequested atomic.Bool
-
-// RequestStop signals running searches to stop as soon as practical.
-func RequestStop() {
-	globalStopRequested.Store(true)
-}
-
-// ClearStop clears any pending stop request (called at search entry).
-func ClearStop() {
-	globalStopRequested.Store(false)
-}
-
-// IsStopRequested reports whether a stop has been requested by an external
-// caller (e.g. UCI `stop`). Cheap atomic load, safe to poll in hot paths.
-func IsStopRequested() bool {
-	return globalStopRequested.Load()
-}
-
-// globalMaxNodes caps total nodes for the current search (0 = unlimited). Set from
-// UCI `go nodes N` and observed in the search hot paths, which trip the stop flag
-// when the budget is spent. This makes self-play deterministic at an equal node
-// budget — fast (small cap), cool (no timing, so concurrency is free), and able to
-// credit ordering/efficiency changes that fixed-depth and movetime both miss.
-var globalMaxNodes atomic.Uint64
-
-// SetMaxNodes sets the per-search node budget (0 = unlimited). Called by UCI before
-// each search and overwritten every `go`, so it needs no separate clear.
-func SetMaxNodes(n uint64) {
-	globalMaxNodes.Store(n)
-}
-
-// MaxNodes returns the current node budget (0 = unlimited).
-func MaxNodes() uint64 {
-	return globalMaxNodes.Load()
 }
 
 // Late Move Pruning thresholds, indexed [improving][depth] (S4, W11). Follows
@@ -613,7 +571,8 @@ type SearchInfo struct {
 
 	// maxNodes snapshots the `go nodes` budget at search start — it is constant for
 	// the whole search, so the per-node check reads a plain field instead of paying
-	// an atomic load (MaxNodes()) at every main and qsearch node.
+	// an atomic load at every main and qsearch node.
+	control  *SearchControl
 	maxNodes uint64
 
 	// Reusable per-invocation move buffers (docs/10 T1). Frames is allocated once per
@@ -623,23 +582,10 @@ type SearchInfo struct {
 	FrameDepth int
 }
 
-func Search(pos *Position, depth int) *SearchInfo {
-	return SearchIterativeDeepening(pos, depth, nil)
-}
-
 // DepthCallback is called after each depth completes during iterative deepening
 type DepthCallback func(info *SearchInfo)
 
-func SearchIterativeDeepening(pos *Position, maxDepth int, timeManager *TimeManager) *SearchInfo {
-	return SearchIterativeDeepeningWithCallback(pos, maxDepth, timeManager, nil)
-}
-
-func SearchIterativeDeepeningWithCallback(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback) *SearchInfo {
-	ClearStop()
-	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback)
-}
-
-func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback) *SearchInfo {
+func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, control *SearchControl) *SearchInfo {
 	// Advance the age of the transposition table for each search
 	TranspositionTable.AdvanceAge()
 
@@ -661,7 +607,8 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		OrderedBuffer: &orderedBuffer,
 		SEEGains:      &seeGains,
 		Frames:        make([]searchFrame, searchFramePoolSize),
-		maxNodes:      MaxNodes(),
+		control:       control,
+		maxNodes:      control.MaxNodes(),
 	}
 
 	seedRootStaticEval(pos, info)
@@ -685,7 +632,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 	for currentDepth := 1; currentDepth <= maxDepth && !info.Stopped; currentDepth++ {
 		// Honor an external UCI stop request even when no time manager is set
 		// (e.g. `go infinite`).
-		if IsStopRequested() {
+		if info.control.StopRequested() {
 			info.Stopped = true
 			break
 		}
@@ -1079,12 +1026,7 @@ func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
 // few cp), so the two agree on the best move and track within search noise but are
 // NOT centipawn-identical (guarded by TestSearchFixedMatchesProductionScore). Do
 // not draw strength conclusions from it.
-func SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
-	ClearStop()
-	return searchFixedUnsafe(pos, depth, timeManager)
-}
-
-func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
+func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, control *SearchControl) *SearchInfo {
 	// Allocate buffers once for the entire search tree
 	var moveBuffer [256]Move
 	var captureBuffer [64]Move
@@ -1104,7 +1046,8 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		OrderedBuffer: &orderedBuffer,
 		SEEGains:      &seeGains,
 		Frames:        make([]searchFrame, searchFramePoolSize),
-		maxNodes:      MaxNodes(),
+		control:       control,
+		maxNodes:      control.MaxNodes(),
 	}
 
 	alpha := -INFINITY
@@ -1299,12 +1242,12 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Fixed-node budget (UCI `go nodes`): trip the stop flag when the budget is
 	// spent, reusing the unwind/discard machinery below.
 	if m := info.maxNodes; m != 0 && info.Nodes >= m {
-		RequestStop()
+		info.control.RequestStop()
 	}
 
 	// External stop request (UCI `stop`) - honor it even before the time limit hits.
 	// Cheap atomic load; sampled per node is fine.
-	if IsStopRequested() {
+	if info.control.StopRequested() {
 		info.Stopped = true
 		return stoppedSearchScore
 	}
@@ -2270,11 +2213,11 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 
 	// Fixed-node budget: trip the stop flag when spent (qsearch nodes count too).
 	if m := info.maxNodes; m != 0 && info.Nodes >= m {
-		RequestStop()
+		info.control.RequestStop()
 	}
 
 	// External stop request - bail out without searching deeper.
-	if IsStopRequested() {
+	if info.control.StopRequested() {
 		info.Stopped = true
 		return stoppedSearchScore
 	}

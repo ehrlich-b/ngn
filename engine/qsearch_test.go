@@ -8,6 +8,7 @@ func newQSearchInfo() *SearchInfo {
 	var orderedBuffer [256]Move
 	var seeGains [32]int
 	return &SearchInfo{
+		control:       &defaultSearchEngine.control,
 		MoveBuffer:    &moveBuffer,
 		CaptureBuffer: &captureBuffer,
 		OrderedBuffer: &orderedBuffer,
