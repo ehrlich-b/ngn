@@ -29,3 +29,15 @@ Root evidence is output/nnue-material-root-review-20260906/receipt.json, SHA 10b
 The next training proposal keeps the same data, architecture, targets, optimizer and validation rules, increasing only the schedule to 512 updates / 8,388,608 presentations. It is justified by the improving validation trajectory through update 128; sealed results and the material probes do not rank or tune candidates. Source review is accepted pending its final immutable input request, and execution is held for the SMP matrix.
 
 Next: finish HCE fast-path correctness/compiler validation, run the frozen 1/2/4/8 HCE SMP matrix, then measure the fast path and run the count-only learning follow-up. The deployed WSL engine remains 53e4d1b.
+
+## Count-only 512-update follow-up
+
+The follow-up completed all512 updates / 8,388,608 presentations on the same accepted data and architecture. Root independently verified11,579 artifacts (865,407,501 bytes), all44 supervised stages, all18 parity reports with exact integer-Go scores, and raw/quantized NGN byte equality for all9 candidates.
+
+Validation raw mean loss at updates0/64/128/192/256/320/384/448/512 was .08070519/.06929498/.06722983/.06798208/.06871521/.06938655/.07029904/.07093377/.07140660. Candidate2 at update128 was selected; every later checkpoint worsened. Candidate4 also failed the fixed mean-quantization-error gate (8.637 cp >8), despite p99/max remaining within their limits. Selected-candidate mean/p99/max quantization errors were5.400/19.250/35.447 cp.
+
+Selected NGN SHA17cb6792d685c5439bb04b129d0dba65e193ebf509b78d0e575efa26474f0629. This is a fresh cold-retrain checkpoint near the previous128-update result, not a new demonstrated playing gain. No repeat four-game smoke or schedule extension is warranted from this result. Selection A/B remained identical; repeated sealed readouts are operational checks and cannot be presented as a fresh final release estimate.
+
+Run: /home/ehrli/nnue-public-toolchain-20260906/runs/ngn-v0-1m-512updates-v1-attempt1. Final manifest SHA b2e488b24eb93d655d157d8f4462f26d8202e67a0a1aabda0bb93d5d9f58c288. Root review output/nnue-training-512-root-review-20260906/receipt.json SHA457a8e7ae239d5220f32c8fed510a6bcf06f7c99cb7049f8b6b2620aaf36cd11.
+
+A prospective3M corpus proposal is source-only. The measured1M memory behavior suggests a6M decoded-record cap may fit the existing12 GiB process limit with conservative headroom, but this is a forecast. The data-only comparison must retain the existing validation BF exactly and independently prove chain/model-key exclusion from new training. Broader data execution and subsequent training need separate concrete review.
