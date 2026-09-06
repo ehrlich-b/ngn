@@ -77,6 +77,16 @@ func LoadCounter55Legacy(r io.Reader) (*Model, LoadMetadata, error) {
 	metadata.SHA256 = hex.EncodeToString(digest[:])
 	metadata.Bytes = len(data)
 	metadata.Values = payloadValues
+	for hidden := 0; hidden < HiddenSize; hidden++ {
+		for feature := 0; feature < InputSize; feature++ {
+			weight := math.Abs(float64(model.hiddenWeights[feature*HiddenSize+hidden]))
+			if weight > model.maxAbsUpdateWeight[hidden] {
+				model.maxAbsUpdateWeight[hidden] = weight
+			}
+		}
+	}
+	model.metadata = metadata
+	model.validated = true
 	return model, metadata, nil
 }
 

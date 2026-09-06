@@ -44,6 +44,12 @@ var (
 
 var fileMagic = [8]byte{'N', 'G', 'N', 'N', 'U', 'E', 0, 0}
 
+// RecognizesHeader reports whether prefix carries the exact NGN-v1 format
+// identifier. Full structural and integrity validation remains Load's job.
+func RecognizesHeader(prefix []byte) bool {
+	return len(prefix) >= len(fileMagic) && string(prefix[:len(fileMagic)]) == string(fileMagic[:])
+}
+
 const (
 	offsetFormatVersion = 8
 	offsetHeaderSize    = 12

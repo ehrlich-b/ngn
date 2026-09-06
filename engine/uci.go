@@ -383,7 +383,7 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
 	uci.sendUCIMessage(output, "option name OwnBook type check default true")
 	uci.sendUCIMessage(output, "option name SyzygyPath type string default <empty>")
-	uci.sendUCIMessage(output, "option name EvalBackend type combo default hce var hce var ngn-v1")
+	uci.sendUCIMessage(output, "option name EvalBackend type combo default hce var hce var ngn-v1 var counter-5.5")
 	uci.sendUCIMessage(output, "option name EvalFile type string default <empty>")
 
 	// Tunable search parameters (for SPSA / manual A/B; defaults == shipped values).

@@ -191,3 +191,35 @@ func TestLoadCounter55LegacyTensorOrder(t *testing.T) {
 		t.Fatalf("output=%v want=32", output)
 	}
 }
+
+func TestLegacyHeaderRecognitionAndValidatedMetadata(t *testing.T) {
+	data := makeLegacyFile(map[int]float32{hiddenWeightsStart: -3.5})
+	if RecognizesLegacyHeader(data[:LegacyHeaderSize-1]) {
+		t.Fatal("short prefix recognized")
+	}
+	if !RecognizesLegacyHeader(data[:LegacyHeaderSize]) || !RecognizesLegacyHeader(data) {
+		t.Fatal("exact legacy header not recognized")
+	}
+	mutated := append([]byte(nil), data[:LegacyHeaderSize]...)
+	mutated[7] ^= 1
+	if RecognizesLegacyHeader(mutated) {
+		t.Fatal("mutated header recognized")
+	}
+	if _, err := (*Model)(nil).ValidatedMetadata(); err == nil {
+		t.Fatal("nil model metadata succeeded")
+	}
+	if _, err := new(Model).ValidatedMetadata(); err == nil {
+		t.Fatal("zero model metadata succeeded")
+	}
+	model, loaded, err := LoadCounter55Legacy(bytes.NewReader(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := model.ValidatedMetadata()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != loaded {
+		t.Fatalf("cached metadata=%+v loaded=%+v", got, loaded)
+	}
+}

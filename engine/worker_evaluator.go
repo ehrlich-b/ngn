@@ -3,13 +3,16 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"math"
 
+	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
 )
 
 const (
 	nnueStaticEvalLimit      int64  = 25000
 	evaluatorAdapterRevision uint32 = 1
+	counter55AdapterRevision uint32 = 1
 )
 
 var errWorkerEvaluator = errors.New("invalid worker evaluator state")
@@ -19,6 +22,7 @@ type evaluatorBackend uint8
 const (
 	evaluatorBackendHCE evaluatorBackend = iota
 	evaluatorBackendNGNV1
+	evaluatorBackendCounter55
 )
 
 // evaluatorModelIdentity is comparable and covers every input that can change
@@ -30,14 +34,16 @@ type evaluatorModelIdentity struct {
 	adapterRevision uint32
 	hceGeneration   uint64
 	nnueMetadata    nnue.Metadata
+	counterMetadata countereval.LoadMetadata
 }
 
 // evaluatorModel is a cold immutable selection. Its NGN-v1 pointer is safe to
 // share because a validated nnue.Model is immutable; mutable Context state is
 // constructed separately for every worker.
 type evaluatorModel struct {
-	identity evaluatorModelIdentity
-	ngnV1    *nnue.Model
+	identity  evaluatorModelIdentity
+	ngnV1     *nnue.Model
+	counter55 *countereval.Model
 }
 
 func hceEvaluatorModel(hceGeneration uint64) evaluatorModel {
@@ -65,6 +71,22 @@ func ngnV1EvaluatorModel(model *nnue.Model, hceGeneration uint64) (evaluatorMode
 	}, nil
 }
 
+func counter55EvaluatorModel(model *countereval.Model, hceGeneration uint64) (evaluatorModel, error) {
+	metadata, err := model.ValidatedMetadata()
+	if err != nil {
+		return evaluatorModel{}, fmt.Errorf("%w: %v", errWorkerEvaluator, err)
+	}
+	return evaluatorModel{
+		identity: evaluatorModelIdentity{
+			backend:         evaluatorBackendCounter55,
+			adapterRevision: counter55AdapterRevision,
+			hceGeneration:   hceGeneration,
+			counterMetadata: metadata,
+		},
+		counter55: model,
+	}, nil
+}
+
 // workerEvaluator is a hot concrete tagged union. Backend selection happens
 // once per score/transition call; NNUE's hidden-unit loops remain concrete and
 // contain no interface dispatch. It owns all mutable NNUE state for one worker.
@@ -73,6 +95,7 @@ type workerEvaluator struct {
 	hce             *hceEvaluator
 	context         *nnue.Context
 	portableContext *nnue.Int32Context
+	counterContext  *countereval.SearchContext
 	rootBuffer      nnueRootBuffer
 
 	// These receiver-private hooks are set only by same-package invariant tests:
@@ -98,6 +121,9 @@ func (m evaluatorModel) newWorkerWithReferenceContext(hce *hceEvaluator, forceRe
 		}
 		worker.hce = hce
 	case evaluatorBackendNGNV1:
+		if m.ngnV1 == nil {
+			return nil, fmt.Errorf("%w: nil NGN-v1 model", errWorkerEvaluator)
+		}
 		if m.ngnV1.Capabilities().PortableInt32Accumulator && !forceReference {
 			context, err := nnue.NewInt32Context(m.ngnV1)
 			if err != nil {
@@ -111,6 +137,15 @@ func (m evaluatorModel) newWorkerWithReferenceContext(hce *hceEvaluator, forceRe
 			}
 			worker.context = context
 		}
+	case evaluatorBackendCounter55:
+		if forceReference {
+			return nil, fmt.Errorf("%w: Counter has no alternate worker context", errWorkerEvaluator)
+		}
+		context, err := m.counter55.NewSearchContext(countereval.Board{})
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", errWorkerEvaluator, err)
+		}
+		worker.counterContext = context
 	default:
 		return nil, fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, m.identity.backend)
 	}
@@ -147,14 +182,28 @@ func (e *workerEvaluator) Reset(pos *Position) error {
 		}
 		e.observeTransition(pos)
 		return nil
+	case evaluatorBackendCounter55:
+		root, err := counterBoardFromPosition(pos)
+		if err != nil {
+			return err
+		}
+		if e.counterContext == nil {
+			return fmt.Errorf("%w: nil Counter context", errWorkerEvaluator)
+		}
+		if err := e.counterContext.Reset(root); err != nil {
+			return fmt.Errorf("%w: Counter reset: %v", errWorkerEvaluator, err)
+		}
+		e.observeTransition(pos)
+		return nil
 	default:
 		return fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
 	}
 }
 
 type workerEvalMove struct {
-	delta  nnue.Delta
-	active bool
+	delta        nnue.Delta
+	counterDelta countereval.MoveDelta
+	active       bool
 }
 
 type workerEvalNull struct {
@@ -179,6 +228,12 @@ func (e *workerEvaluator) PrepareMove(pos *Position, move Move) (workerEvalMove,
 			return workerEvalMove{}, err
 		}
 		return workerEvalMove{delta: delta, active: true}, nil
+	case evaluatorBackendCounter55:
+		delta, err := counterMoveDelta(pos, move)
+		if err != nil {
+			return workerEvalMove{}, err
+		}
+		return workerEvalMove{counterDelta: delta, active: true}, nil
 	default:
 		return workerEvalMove{}, fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
 	}
@@ -205,6 +260,19 @@ func (e *workerEvaluator) PushMove(pos *Position, transition workerEvalMove) err
 		}
 		e.observeTransition(pos)
 		return nil
+	case evaluatorBackendCounter55:
+		if !transition.active || e.counterContext == nil {
+			return fmt.Errorf("%w: missing Counter move transition or context", errWorkerEvaluator)
+		}
+		post, err := validateCounterMoveAfter(pos, transition.counterDelta)
+		if err != nil {
+			return err
+		}
+		if err := e.counterContext.PushMove(transition.counterDelta, post); err != nil {
+			return fmt.Errorf("%w: Counter push move: %v", errWorkerEvaluator, err)
+		}
+		e.observeTransition(pos)
+		return nil
 	default:
 		return fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
 	}
@@ -217,7 +285,7 @@ func (e *workerEvaluator) PrepareNull(pos *Position) (workerEvalNull, error) {
 	switch e.model.identity.backend {
 	case evaluatorBackendHCE:
 		return workerEvalNull{}, nil
-	case evaluatorBackendNGNV1:
+	case evaluatorBackendNGNV1, evaluatorBackendCounter55:
 		before, err := nnuePositionFacts(pos)
 		if err != nil {
 			return workerEvalNull{}, err
@@ -258,6 +326,18 @@ func (e *workerEvaluator) PushNull(pos *Position, transition workerEvalNull) err
 		}
 		e.observeTransition(pos)
 		return nil
+	case evaluatorBackendCounter55:
+		if !transition.active || e.counterContext == nil {
+			return fmt.Errorf("%w: missing Counter null transition or context", errWorkerEvaluator)
+		}
+		if err := validateNNUENullAfter(pos, transition.before, transition.beforePieces, transition.beforeSide); err != nil {
+			return err
+		}
+		if err := e.counterContext.PushNull(); err != nil {
+			return fmt.Errorf("%w: Counter push null: %v", errWorkerEvaluator, err)
+		}
+		e.observeTransition(pos)
+		return nil
 	default:
 		return fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
 	}
@@ -275,6 +355,14 @@ func (e *workerEvaluator) Pop() error {
 	case evaluatorBackendNGNV1:
 		if err := e.popNNUE(); err != nil {
 			return fmt.Errorf("%w: pop: %v", errWorkerEvaluator, err)
+		}
+		return nil
+	case evaluatorBackendCounter55:
+		if e.counterContext == nil {
+			return fmt.Errorf("%w: nil Counter context", errWorkerEvaluator)
+		}
+		if err := e.counterContext.Pop(); err != nil {
+			return fmt.Errorf("%w: Counter pop: %v", errWorkerEvaluator, err)
 		}
 		return nil
 	default:
@@ -311,6 +399,23 @@ func (e *workerEvaluator) SearchSTM(pos *Position) int {
 			panic(fmt.Errorf("%w: NNUE evaluate: %v", errWorkerEvaluator, err))
 		}
 		return nnueSearchScore(raw, pos.HalfMoveClock)
+	case evaluatorBackendCounter55:
+		if e.counterContext == nil {
+			panic(fmt.Errorf("%w: nil Counter context", errWorkerEvaluator))
+		}
+		raw := e.counterContext.EvaluateRaw()
+		if e.fullRefreshOracle {
+			board, boardErr := counterBoardFromPosition(pos)
+			if boardErr != nil {
+				panic(boardErr)
+			}
+			fresh, err := e.model.counter55.EvaluateFullRefresh(board)
+			if err != nil {
+				panic(fmt.Errorf("%w: Counter fresh evaluate: %v", errWorkerEvaluator, err))
+			}
+			raw = fresh
+		}
+		return counterSearchScore(raw, pos, true)
 	default:
 		panic(fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend))
 	}
@@ -339,9 +444,49 @@ func (e *workerEvaluator) LegacyUndampedSTM(pos *Position) int {
 			panic(fmt.Errorf("%w: fresh evaluate: %v", errWorkerEvaluator, err))
 		}
 		return clampNNUEStatic(raw)
+	case evaluatorBackendCounter55:
+		board, err := counterBoardFromPosition(pos)
+		if err != nil {
+			panic(err)
+		}
+		raw, err := e.model.counter55.EvaluateFullRefresh(board)
+		if err != nil {
+			panic(fmt.Errorf("%w: Counter fresh evaluate: %v", errWorkerEvaluator, err))
+		}
+		return counterSearchScore(raw, pos, false)
 	default:
 		panic(fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend))
 	}
+}
+
+func counterSearchScore(raw float32, pos *Position, dampRule50 bool) int {
+	if pos == nil {
+		panic(fmt.Errorf("%w: invalid Counter score position", errWorkerEvaluator))
+	}
+	return counterSearchScoreInputs(raw, pos.Turn() == White, pos.HalfMoveClock, counterNonPawnMaterial(pos), dampRule50)
+}
+
+func counterSearchScoreInputs(raw float32, whiteMove bool, halfMoveClock uint8, nonPawnMaterial int64, dampRule50 bool) int {
+	if math.IsNaN(float64(raw)) || math.IsInf(float64(raw), 0) {
+		panic(fmt.Errorf("%w: invalid Counter score input", errWorkerEvaluator))
+	}
+	var score int64
+	switch {
+	case raw > 15000:
+		score = 15000
+	case raw < -15000:
+		score = -15000
+	default:
+		score = int64(raw)
+	}
+	score = score * (160 + nonPawnMaterial) / 160
+	if dampRule50 {
+		score = score * (200 - int64(halfMoveClock)) / 200
+	}
+	if !whiteMove {
+		score = -score
+	}
+	return clampNNUEStatic(score)
 }
 
 func nnueSearchScore(raw int64, halfMoveClock uint8) int {
@@ -423,8 +568,11 @@ func (e *workerEvaluator) nnueDepth() int {
 	if e.context != nil && e.portableContext == nil {
 		return e.context.Depth()
 	}
-	if e.portableContext != nil && e.context == nil {
+	if e.portableContext != nil && e.context == nil && e.counterContext == nil {
 		return e.portableContext.Depth()
+	}
+	if e.counterContext != nil && e.context == nil && e.portableContext == nil {
+		return e.counterContext.Depth()
 	}
 	return -1
 }
@@ -440,8 +588,19 @@ func (e *workerEvaluator) mustPrepareMove(pos *Position, move Move) workerEvalMo
 	return transition
 }
 
-func (e *workerEvaluator) mustPushMove(pos *Position, transition workerEvalMove) {
+// mustPushMadeMove restores the already advanced engine board before surfacing
+// a fail-fast evaluator error. Search state and board therefore remain one
+// transaction even when dynamic Counter capacity validation rejects a push.
+func (e *workerEvaluator) mustPushMadeMove(
+	pos *Position,
+	transition workerEvalMove,
+	move Move,
+	undoTag PositionTag,
+	undoEP Square,
+	undoClock uint8,
+) {
 	if err := e.PushMove(pos, transition); err != nil {
+		pos.UnMakeMove(move, undoTag, undoEP, undoClock)
 		panic(err)
 	}
 }
@@ -454,8 +613,9 @@ func (e *workerEvaluator) mustPrepareNull(pos *Position) workerEvalNull {
 	return transition
 }
 
-func (e *workerEvaluator) mustPushNull(pos *Position, transition workerEvalNull) {
+func (e *workerEvaluator) mustPushMadeNull(pos *Position, transition workerEvalNull, undoEP Square) {
 	if err := e.PushNull(pos, transition); err != nil {
+		pos.UnMakeNullMove(undoEP)
 		panic(err)
 	}
 }

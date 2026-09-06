@@ -15,12 +15,8 @@ func (model *Model) evaluateFullRefreshTrace(board Board) ([]int, [HiddenSize]fl
 		return nil, [HiddenSize]float32{}, 0, fmt.Errorf("counter evaluator: nil model")
 	}
 
-	var occupied uint64
-	for plane, planeBits := range board {
-		if occupied&planeBits != 0 {
-			return nil, [HiddenSize]float32{}, 0, fmt.Errorf("counter evaluator: plane %d overlaps another piece plane", plane)
-		}
-		occupied |= planeBits
+	if err := validateBoard(board); err != nil {
+		return nil, [HiddenSize]float32{}, 0, fmt.Errorf("counter evaluator: %w", err)
 	}
 
 	features := make([]int, 0, 32)
@@ -43,12 +39,5 @@ func (model *Model) evaluateFullRefreshTrace(board Board) ([]int, [HiddenSize]fl
 		}
 	}
 
-	var output float32
-	for hidden, value := range accumulator {
-		if value > 0 {
-			output += value * model.outputWeights[hidden]
-		}
-	}
-	output += model.outputBias
-	return features, accumulator, output, nil
+	return features, accumulator, model.evaluateAccumulator(&accumulator), nil
 }

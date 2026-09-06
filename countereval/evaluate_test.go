@@ -1,6 +1,7 @@
 package countereval
 
 import (
+	"bytes"
 	"math"
 	"reflect"
 	"strings"
@@ -65,5 +66,45 @@ func TestEvaluateFullRefreshScansSquaresBeforePlanes(t *testing.T) {
 	}
 	if want := []int{704, 63}; !reflect.DeepEqual(features, want) {
 		t.Fatalf("features=%v want=%v", features, want)
+	}
+}
+
+func TestEvaluateAccumulatorRoundsEachProductBeforeAddition(t *testing.T) {
+	// Load the values through the legacy file path so the witness exercises
+	// runtime tensor values rather than a constant-folded arithmetic expression.
+	model, _, err := LoadCounter55Legacy(bytes.NewReader(makeLegacyFile(map[int]float32{
+		hiddenBiasesStart:      1,
+		hiddenBiasesStart + 1:  math.Float32frombits(0x3f800001),
+		outputWeightsStart:     -1,
+		outputWeightsStart + 1: math.Float32frombits(0x3f7ffffe),
+	})))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	firstProduct := float32(model.hiddenBiases[0] * model.outputWeights[0])
+	if bits := math.Float32bits(firstProduct); bits != math.Float32bits(float32(-1)) {
+		t.Fatalf("first product bits=%08x want=%08x", bits, math.Float32bits(float32(-1)))
+	}
+	secondProduct := float32(model.hiddenBiases[1] * model.outputWeights[1])
+	if bits := math.Float32bits(secondProduct); bits != math.Float32bits(float32(1)) {
+		t.Fatalf("separately rounded second product bits=%08x want=%08x", bits, math.Float32bits(float32(1)))
+	}
+	fusedReference := float32(math.FMA(
+		float64(model.hiddenBiases[1]),
+		float64(model.outputWeights[1]),
+		float64(firstProduct),
+	))
+	if bits := math.Float32bits(fusedReference); bits != 0xa8800000 {
+		t.Fatalf("fused reference bits=%08x want=a8800000", bits)
+	}
+
+	output, err := model.EvaluateFullRefresh(Board{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bits := math.Float32bits(output); bits != math.Float32bits(float32(0)) {
+		// A fused (-1)+(1+2^-23)*(1-2^-23) is -2^-46 (bits a8800000).
+		t.Fatalf("portable non-fused output bits=%08x want=00000000; fused witness=a8800000", bits)
 	}
 }

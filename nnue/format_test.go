@@ -226,3 +226,19 @@ func TestLoadAcceptsChunkedReaderWithLegalZeroReads(t *testing.T) {
 		t.Fatalf("Load intermittent reader: %v", err)
 	}
 }
+
+func TestRecognizesHeaderExactMagic(t *testing.T) {
+	magic := []byte{'N', 'G', 'N', 'N', 'U', 'E', 0, 0}
+	prefix := make([]byte, nnue.HeaderSize)
+	copy(prefix, magic)
+	if nnue.RecognizesHeader(prefix[:len(magic)-1]) {
+		t.Fatal("short prefix recognized")
+	}
+	if !nnue.RecognizesHeader(prefix) {
+		t.Fatal("exact magic not recognized")
+	}
+	prefix[3] ^= 1
+	if nnue.RecognizesHeader(prefix) {
+		t.Fatal("mutated magic recognized")
+	}
+}

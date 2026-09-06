@@ -782,7 +782,7 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 					pos.UnMakeMove(move, tag, ep, hc)
 					continue
 				}
-				info.evaluator.mustPushMove(pos, evalMove)
+				info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
 				info.history.SetLastMovePlayed(move)
 				info.MoveStack[0] = move
 				legalRoot++
@@ -1191,7 +1191,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, contr
 			pos.UnMakeMove(move, tag, ep, hc)
 			continue
 		}
-		info.evaluator.mustPushMove(pos, evalMove)
+		info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
 		info.history.SetLastMovePlayed(move)
 		info.MoveStack[0] = move
 		legalRoot++
@@ -1605,7 +1605,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		info.NullMoveTries++
 		evalNull := info.evaluator.mustPrepareNull(pos)
 		oldEP := pos.MakeNullMove()
-		info.evaluator.mustPushNull(pos, evalNull)
+		info.evaluator.mustPushMadeNull(pos, evalNull, oldEP)
 		info.history.SetLastMovePlayed(EmptyMove)
 		info.MoveStack[ply] = EmptyMove
 
@@ -1676,7 +1676,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				pos.UnMakeMove(move, tag, ep, hc)
 				continue
 			}
-			info.evaluator.mustPushMove(pos, evalMove)
+			info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
 			info.history.SetLastMovePlayed(move)
 
 			score := -quiescence(pos, -probcutBeta, -probcutBeta+1, ply+1, info)
@@ -1888,7 +1888,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			pos.UnMakeMove(move, tag, ep, hc)
 			continue
 		}
-		info.evaluator.mustPushMove(pos, evalMove)
+		info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
 		info.history.SetLastMovePlayed(move)
 		info.MoveStack[ply] = move
 		legalTried++
@@ -1980,7 +1980,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// The verification re-entry ran at this same ply and overwrote
 			// MoveStack[ply] with its own moves; restore ours.
 			ep, tag, hc, _ = pos.MakeMove(move)
-			info.evaluator.mustPushMove(pos, evalMove)
+			info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
 			info.history.SetLastMovePlayed(move)
 			info.MoveStack[ply] = move
 
@@ -2439,7 +2439,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 				pos.UnMakeMove(move, tag, ep, hc)
 				continue
 			}
-			info.evaluator.mustPushMove(pos, evalMove)
+			info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
 			legalMoves++
 
 			score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
@@ -2571,7 +2571,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			pos.UnMakeMove(move, tag, ep, hc)
 			continue
 		}
-		info.evaluator.mustPushMove(pos, evalMove)
+		info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
 
 		score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
 		info.evaluator.mustPop()

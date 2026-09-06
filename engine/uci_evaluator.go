@@ -6,18 +6,45 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
 )
 
 const (
-	uciEvaluatorHCE   = "hce"
-	uciEvaluatorNGNV1 = "ngn-v1"
+	uciEvaluatorHCE       = "hce"
+	uciEvaluatorNGNV1     = "ngn-v1"
+	uciEvaluatorCounter55 = "counter-5.5"
 )
+
+type stagedEvaluatorKind uint8
+
+const (
+	stagedEvaluatorNone stagedEvaluatorKind = iota
+	stagedEvaluatorNGNV1
+	stagedEvaluatorCounter55
+)
+
+type stagedEvaluatorModel struct {
+	kind      stagedEvaluatorKind
+	ngnV1     *nnue.Model
+	counter55 *countereval.Model
+}
+
+func (model stagedEvaluatorModel) backendName() string {
+	switch model.kind {
+	case stagedEvaluatorNGNV1:
+		return uciEvaluatorNGNV1
+	case stagedEvaluatorCounter55:
+		return uciEvaluatorCounter55
+	default:
+		return ""
+	}
+}
 
 type uciEvaluatorConfig struct {
 	backend string
 	file    string
-	model   *nnue.Model
+	staged  stagedEvaluatorModel
 }
 
 func newUCIEvaluatorConfig() uciEvaluatorConfig {
@@ -31,17 +58,37 @@ func (c uciEvaluatorConfig) backendName() string {
 	return c.backend
 }
 
-func loadUCINGNV1Model(path string) (*nnue.Model, error) {
+func loadUCIEvaluatorModel(path string) (stagedEvaluatorModel, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("open %q: %w", path, err)
+		return stagedEvaluatorModel{}, fmt.Errorf("open %q: %w", path, err)
 	}
 	defer file.Close()
-	model, err := nnue.Load(file)
-	if err != nil {
-		return nil, fmt.Errorf("load exact ngn-v1 %q: %w", path, err)
+
+	var prefix [countereval.LegacyHeaderSize]byte
+	count, readErr := io.ReadFull(file, prefix[:])
+	if readErr != nil && readErr != io.ErrUnexpectedEOF {
+		return stagedEvaluatorModel{}, fmt.Errorf("read evaluator header %q: %w", path, readErr)
 	}
-	return model, nil
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return stagedEvaluatorModel{}, fmt.Errorf("rewind evaluator %q: %w", path, err)
+	}
+	switch {
+	case nnue.RecognizesHeader(prefix[:count]):
+		model, err := nnue.Load(file)
+		if err != nil {
+			return stagedEvaluatorModel{}, fmt.Errorf("load exact ngn-v1 %q: %w", path, err)
+		}
+		return stagedEvaluatorModel{kind: stagedEvaluatorNGNV1, ngnV1: model}, nil
+	case countereval.RecognizesLegacyHeader(prefix[:count]):
+		model, _, err := countereval.LoadCounter55Legacy(file)
+		if err != nil {
+			return stagedEvaluatorModel{}, fmt.Errorf("load exact counter-5.5 %q: %w", path, err)
+		}
+		return stagedEvaluatorModel{kind: stagedEvaluatorCounter55, counter55: model}, nil
+	default:
+		return stagedEvaluatorModel{}, fmt.Errorf("unsupported evaluator format %q", path)
+	}
 }
 
 func (uci *UCIEngine) evaluatorConfigSnapshot() uciEvaluatorConfig {
@@ -61,8 +108,8 @@ func (uci *UCIEngine) sendEvalOptionError(output io.Writer, format string, args 
 func (uci *UCIEngine) handleEvalBackendOption(value string, output io.Writer) {
 	uci.joinSearch(true)
 	backend := strings.ToLower(strings.TrimSpace(value))
-	if backend != uciEvaluatorHCE && backend != uciEvaluatorNGNV1 {
-		uci.sendEvalOptionError(output, "unsupported EvalBackend %q (want hce or ngn-v1)", value)
+	if backend != uciEvaluatorHCE && backend != uciEvaluatorNGNV1 && backend != uciEvaluatorCounter55 {
+		uci.sendEvalOptionError(output, "unsupported EvalBackend %q (want hce, ngn-v1, or counter-5.5)", value)
 		return
 	}
 
@@ -72,11 +119,17 @@ func (uci *UCIEngine) handleEvalBackendOption(value string, output io.Writer) {
 	case uciEvaluatorHCE:
 		err = uci.searcher.SelectHCEEvaluator()
 	case uciEvaluatorNGNV1:
-		if config.model == nil || config.file == "" {
-			uci.sendEvalOptionError(output, "EvalBackend ngn-v1 requires a valid staged EvalFile")
+		if config.file == "" || config.staged.kind != stagedEvaluatorNGNV1 || config.staged.ngnV1 == nil {
+			uci.sendEvalOptionError(output, "EvalBackend ngn-v1 requires a matching valid staged EvalFile")
 			return
 		}
-		err = uci.searcher.SelectNGNV1Evaluator(config.model)
+		err = uci.searcher.SelectNGNV1Evaluator(config.staged.ngnV1)
+	case uciEvaluatorCounter55:
+		if config.file == "" || config.staged.kind != stagedEvaluatorCounter55 || config.staged.counter55 == nil {
+			uci.sendEvalOptionError(output, "EvalBackend counter-5.5 requires a matching valid staged EvalFile")
+			return
+		}
+		err = uci.searcher.SelectCounter55Evaluator(config.staged.counter55)
 	}
 	if err != nil {
 		uci.sendEvalOptionError(output, "select %s: %v", backend, err)
@@ -93,34 +146,41 @@ func (uci *UCIEngine) handleEvalFileOption(value string, output io.Writer) {
 	path := strings.TrimSpace(value)
 	config := uci.evaluatorConfigSnapshot()
 	if path == "" || strings.EqualFold(path, "<empty>") {
-		if config.backendName() == uciEvaluatorNGNV1 {
-			uci.sendEvalOptionError(output, "cannot clear EvalFile while EvalBackend is ngn-v1")
+		if config.backendName() != uciEvaluatorHCE {
+			uci.sendEvalOptionError(output, "cannot clear EvalFile while EvalBackend is %s", config.backendName())
 			return
 		}
 		uci.lifecycleMu.Lock()
 		uci.evaluatorConfig.file = ""
-		uci.evaluatorConfig.model = nil
+		uci.evaluatorConfig.staged = stagedEvaluatorModel{}
 		uci.lifecycleMu.Unlock()
 		return
 	}
 
-	model, err := loadUCINGNV1Model(path)
+	staged, err := loadUCIEvaluatorModel(path)
 	if err != nil {
 		uci.sendEvalOptionError(output, "%v", err)
 		return
 	}
-	if config.backendName() == uciEvaluatorNGNV1 {
-		if err := uci.searcher.SelectNGNV1Evaluator(model); err != nil {
-			uci.sendEvalOptionError(output, "replace active ngn-v1 model: %v", err)
-			return
-		}
+	active := config.backendName()
+	if active != uciEvaluatorHCE && active != staged.backendName() {
+		uci.sendEvalOptionError(output, "cannot replace active %s with %s EvalFile; select hce first", active, staged.backendName())
+		return
+	}
+	switch active {
+	case uciEvaluatorNGNV1:
+		err = uci.searcher.SelectNGNV1Evaluator(staged.ngnV1)
+	case uciEvaluatorCounter55:
+		err = uci.searcher.SelectCounter55Evaluator(staged.counter55)
+	}
+	if err != nil {
+		uci.sendEvalOptionError(output, "replace active %s model: %v", active, err)
+		return
 	}
 
-	// Publish the staged path/model only after exact format validation and any
-	// active-backend replacement have both succeeded.
 	uci.lifecycleMu.Lock()
 	uci.evaluatorConfig.file = path
-	uci.evaluatorConfig.model = model
+	uci.evaluatorConfig.staged = staged
 	uci.lifecycleMu.Unlock()
 }
 

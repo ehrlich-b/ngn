@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 
+	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
 )
 
@@ -129,9 +130,34 @@ func (e *SearchEngine) SelectNGNV1Evaluator(model *nnue.Model) error {
 	return nil
 }
 
+// SelectCounter55Evaluator transactionally selects one exact loader-validated
+// Counter 5.5 model. Each worker receives private dynamically growing state.
+func (e *SearchEngine) SelectCounter55Evaluator(model *countereval.Model) error {
+	e.sessionMu.Lock()
+	defer e.sessionMu.Unlock()
+	generation, err := acquireHCEModelUse()
+	if err != nil {
+		return err
+	}
+	defer releaseHCEModelUse()
+
+	candidate, err := counter55EvaluatorModel(model, generation)
+	if err != nil {
+		return err
+	}
+	worker, err := candidate.newWorker(nil)
+	if err != nil {
+		return err
+	}
+	e.evaluatorModel = candidate
+	e.worker.evaluator = worker
+	return nil
+}
+
 const (
-	EvaluatorBackendHCEName   = "hce"
-	EvaluatorBackendNGNV1Name = "ngn-v1"
+	EvaluatorBackendHCEName       = "hce"
+	EvaluatorBackendNGNV1Name     = "ngn-v1"
+	EvaluatorBackendCounter55Name = "counter-5.5"
 )
 
 func evaluatorBackendName(backend evaluatorBackend) string {
@@ -140,6 +166,8 @@ func evaluatorBackendName(backend evaluatorBackend) string {
 		return EvaluatorBackendHCEName
 	case evaluatorBackendNGNV1:
 		return EvaluatorBackendNGNV1Name
+	case evaluatorBackendCounter55:
+		return EvaluatorBackendCounter55Name
 	default:
 		return fmt.Sprintf("unknown-%d", backend)
 	}

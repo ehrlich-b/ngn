@@ -13,8 +13,6 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-
-	"github.com/ehrlich-b/ngn/engine"
 )
 
 const pinnedCounter55SHA256 = "3488baed71f4d432d028e05b65e2ff13f8c9afe7f91974d1a3c34a0691d6670c"
@@ -117,25 +115,13 @@ func TestCounter55PinnedPortableOracleParity(t *testing.T) {
 		if record.FEN != literal {
 			t.Fatalf("fixture %s FEN changed: %q", record.ID, record.FEN)
 		}
-		position, err := engine.ParseFEN(literal)
-		if err != nil {
-			t.Fatalf("NGN fixture %s: %v", record.ID, err)
-		}
-		literalFields := strings.Fields(literal)
-		counterFields := strings.Fields(record.CounterCanonical)
-		ngnFields := strings.Fields(engine.GenerateFEN(position))
-		if len(literalFields) != 6 || len(counterFields) != 6 || len(ngnFields) != 6 ||
-			!reflect.DeepEqual(counterFields[:5], literalFields[:5]) ||
-			!reflect.DeepEqual(ngnFields[:5], literalFields[:5]) {
-			t.Fatalf("fixture %s parser identity differs: literal=%v counter=%v ngn=%v", record.ID, literalFields, counterFields, ngnFields)
-		}
-		board := boardFromNGN(t, position)
+		board := boardFromFeatures(t, record.Features)
 		features, accumulator, raw, err := model.evaluateFullRefreshTrace(board)
 		if err != nil {
 			t.Fatalf("fixture %s: %v", record.ID, err)
 		}
-		whiteMove := position.Turn() == engine.White
-		rule50 := int(position.HalfMoveClock)
+		whiteMove := record.WhiteMove
+		rule50 := record.Rule50
 		npMaterial := boardNPMaterial(board)
 		if !reflect.DeepEqual(features, record.Features) {
 			t.Fatalf("fixture %s features differ: got=%v want=%v", record.ID, features, record.Features)
@@ -151,8 +137,8 @@ func TestCounter55PinnedPortableOracleParity(t *testing.T) {
 		if got := math.Float32bits(raw); got != record.RawBits {
 			t.Fatalf("fixture %s raw bits=%08x want=%08x", record.ID, got, record.RawBits)
 		}
-		if whiteMove != record.WhiteMove || rule50 != record.Rule50 || npMaterial != record.NPMaterial {
-			t.Fatalf("fixture %s position facts differ", record.ID)
+		if npMaterial != record.NPMaterial {
+			t.Fatalf("fixture %s material=%d want=%d", record.ID, npMaterial, record.NPMaterial)
 		}
 		if got := counterAdapter(raw, whiteMove, rule50, npMaterial); got != record.Adapted {
 			t.Fatalf("fixture %s adapted=%d want=%d", record.ID, got, record.Adapted)
@@ -171,19 +157,20 @@ func TestCounter55PinnedPortableOracleParity(t *testing.T) {
 	requireAdapterCases(t, oracle.AdapterCases)
 }
 
-func boardFromNGN(t *testing.T, position *engine.Position) Board {
+func boardFromFeatures(t *testing.T, features []int) Board {
 	t.Helper()
 	var board Board
-	for square := 0; square < 64; square++ {
-		piece := position.Board.PieceAt(engine.Square(square))
-		if piece == engine.NoPiece {
-			continue
+	for _, feature := range features {
+		if feature < 0 || feature >= InputSize {
+			t.Fatalf("feature %d out of range", feature)
 		}
-		plane := int(piece) - int(engine.WhitePawn)
-		if plane < 0 || plane >= FeaturePlaneCount {
-			t.Fatalf("unexpected NGN piece %d at square %d", piece, square)
+		plane := feature / 64
+		square := feature % 64
+		mask := uint64(1) << square
+		if occupied(board)&mask != 0 {
+			t.Fatalf("multiple features occupy square %d", square)
 		}
-		board[plane] |= uint64(1) << square
+		board[plane] |= mask
 	}
 	return board
 }

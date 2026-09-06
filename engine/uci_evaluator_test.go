@@ -5,12 +5,14 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
 )
 
@@ -27,16 +29,32 @@ func writeUCINNUEFixture(t *testing.T, name string, tensors *nnue.Tensors) strin
 	return path
 }
 
+func writeUCICounterFixture(t *testing.T, name string, outputBias float32) string {
+	t.Helper()
+	data := make([]byte, countereval.LegacyFileSize)
+	copy(data[:countereval.LegacyHeaderSize], []byte{
+		0x42, 0x5a, 0x02, 0x00, 0x01, 0x00, 0x00, 0x00,
+		0x00, 0x03, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
+		0x01, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00,
+	})
+	binary.LittleEndian.PutUint32(data[len(data)-4:], math.Float32bits(outputBias))
+	path := filepath.Join(t.TempDir(), name)
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
 func requireUCIEvaluatorConfig(t *testing.T, uci *UCIEngine, backend, path string) uciEvaluatorConfig {
 	t.Helper()
 	config := uci.evaluatorConfigSnapshot()
 	if config.backendName() != backend || config.file != path {
 		t.Fatalf("evaluator config backend=%q file=%q, want backend=%q file=%q", config.backendName(), config.file, backend, path)
 	}
-	if path == "" && config.model != nil {
+	if path == "" && config.staged.kind != stagedEvaluatorNone {
 		t.Fatal("empty EvalFile retained a staged model")
 	}
-	if path != "" && config.model == nil {
+	if path != "" && config.staged.kind == stagedEvaluatorNone {
 		t.Fatal("non-empty EvalFile has no staged model")
 	}
 	return config
@@ -53,7 +71,7 @@ func TestUCIEvaluatorOptionDefaultsAndSelectedDiagnostic(t *testing.T) {
 	uci.handleCommand("uci", &output)
 	response := output.String()
 	for _, want := range []string{
-		"option name EvalBackend type combo default hce var hce var ngn-v1",
+		"option name EvalBackend type combo default hce var hce var ngn-v1 var counter-5.5",
 		"option name EvalFile type string default <empty>",
 	} {
 		if !strings.Contains(response, want) {
@@ -98,7 +116,7 @@ func TestUCIEvaluatorSetOptionOrdersAndTransactionalErrors(t *testing.T) {
 	// Backend-first is rejected and remains HCE. Loading afterward stages the
 	// exact model but never silently completes the rejected backend switch.
 	uci.handleCommand("setoption name EvalBackend value ngn-v1", &output)
-	if !strings.Contains(output.String(), "info string error eval option: EvalBackend ngn-v1 requires a valid staged EvalFile") {
+	if !strings.Contains(output.String(), "info string error eval option: EvalBackend ngn-v1 requires a matching valid staged EvalFile") {
 		t.Fatalf("backend-first rejection missing canonical error:\n%s", output.String())
 	}
 	requireUCIEvaluatorConfig(t, uci, uciEvaluatorHCE, "")
@@ -143,7 +161,7 @@ func TestUCIEvaluatorSetOptionOrdersAndTransactionalErrors(t *testing.T) {
 				t.Fatalf("failure omitted canonical prefix:\n%s", output.String())
 			}
 			config := requireUCIEvaluatorConfig(t, uci, uciEvaluatorNGNV1, valid)
-			if config.model != staged.model {
+			if config.staged.ngnV1 != staged.staged.ngnV1 {
 				t.Fatal("failed reconfiguration replaced the staged model")
 			}
 			if uci.searcher.evaluatorModel.identity != selectedIdentity {
@@ -154,7 +172,7 @@ func TestUCIEvaluatorSetOptionOrdersAndTransactionalErrors(t *testing.T) {
 
 	uci.handleCommand("setoption name EvalBackend value hce", &output)
 	config := requireUCIEvaluatorConfig(t, uci, uciEvaluatorHCE, valid)
-	if config.model != staged.model {
+	if config.staged.ngnV1 != staged.staged.ngnV1 {
 		t.Fatal("selecting HCE discarded the staged EvalFile model")
 	}
 	output.Reset()
@@ -194,7 +212,7 @@ func TestUCIEvaluatorActiveModelReplacementAndNewGamePersistence(t *testing.T) {
 	}
 	configB := requireUCIEvaluatorConfig(t, uci, uciEvaluatorNGNV1, pathB)
 	identityB := uci.searcher.evaluatorModel.identity
-	if configB.model == configA.model || identityB == identityA {
+	if configB.staged.ngnV1 == configA.staged.ngnV1 || identityB == identityA {
 		t.Fatal("A-to-B replacement retained model A")
 	}
 	scoreB, _, err := uci.searcher.EvaluateSelected(uci.position.Copy())
@@ -211,7 +229,7 @@ func TestUCIEvaluatorActiveModelReplacementAndNewGamePersistence(t *testing.T) {
 		t.Fatalf("failed replacement omitted canonical error:\n%s", output.String())
 	}
 	configAfterFailure := requireUCIEvaluatorConfig(t, uci, uciEvaluatorNGNV1, pathB)
-	if configAfterFailure.model != configB.model || uci.searcher.evaluatorModel.identity != identityB {
+	if configAfterFailure.staged.ngnV1 != configB.staged.ngnV1 || uci.searcher.evaluatorModel.identity != identityB {
 		t.Fatal("failed replacement changed active model B")
 	}
 	info := uci.searcher.SearchFixed(newUCIStartingPosition(), 1, nil)
@@ -221,7 +239,7 @@ func TestUCIEvaluatorActiveModelReplacementAndNewGamePersistence(t *testing.T) {
 
 	uci.handleCommand("ucinewgame", &output)
 	configAfterNewGame := requireUCIEvaluatorConfig(t, uci, uciEvaluatorNGNV1, pathB)
-	if configAfterNewGame.model != configB.model || uci.searcher.SelectedEvaluatorBackend() != EvaluatorBackendNGNV1Name {
+	if configAfterNewGame.staged.ngnV1 != configB.staged.ngnV1 || uci.searcher.SelectedEvaluatorBackend() != EvaluatorBackendNGNV1Name {
 		t.Fatal("ucinewgame changed evaluator selection or staged file")
 	}
 }
@@ -276,6 +294,64 @@ func TestUCIEvalFileReplacementJoinsPreparedSearchAndSuppressesOutput(t *testing
 		t.Fatalf("suppressed prepared search emitted stale bestmove:\n%s", searchOutput.String())
 	}
 	requireUCIEvaluatorConfig(t, uci, uciEvaluatorNGNV1, pathB)
+}
+
+func TestUCICounter55StagingSelectionAndCrossFormatReplacement(t *testing.T) {
+	counterPath := writeUCICounterFixture(t, "counter.nn", 19)
+	replacementPath := writeUCICounterFixture(t, "counter-replacement.nn", 23)
+	ngnPath := writeUCINNUEFixture(t, "ngn.ngn", new(nnue.Tensors))
+	uci := NewUCIEngine()
+	var output bytes.Buffer
+
+	uci.handleCommand("setoption name EvalFile value "+counterPath, &output)
+	config := requireUCIEvaluatorConfig(t, uci, uciEvaluatorHCE, counterPath)
+	if config.staged.kind != stagedEvaluatorCounter55 || config.staged.counter55 == nil {
+		t.Fatalf("Counter file staged as %+v", config.staged)
+	}
+	output.Reset()
+	uci.handleCommand("setoption name EvalBackend value ngn-v1", &output)
+	if !strings.Contains(output.String(), "requires a matching valid staged EvalFile") {
+		t.Fatalf("mismatched backend was not rejected: %s", output.String())
+	}
+	requireUCIEvaluatorConfig(t, uci, uciEvaluatorHCE, counterPath)
+
+	output.Reset()
+	uci.handleCommand("setoption name EvalBackend value counter-5.5", &output)
+	if strings.Contains(output.String(), "info string error") {
+		t.Fatalf("Counter selection failed: %s", output.String())
+	}
+	requireUCIEvaluatorConfig(t, uci, uciEvaluatorCounter55, counterPath)
+	if got := uci.searcher.SelectedEvaluatorBackend(); got != EvaluatorBackendCounter55Name {
+		t.Fatalf("selected backend=%q", got)
+	}
+	identity := uci.searcher.evaluatorModel.identity
+
+	output.Reset()
+	uci.handleCommand("setoption name EvalFile value "+replacementPath, &output)
+	if strings.Contains(output.String(), "info string error") {
+		t.Fatalf("same-format Counter replacement failed: %s", output.String())
+	}
+	replacement := requireUCIEvaluatorConfig(t, uci, uciEvaluatorCounter55, replacementPath)
+	if replacement.staged.counter55 == nil || uci.searcher.evaluatorModel.identity == identity {
+		t.Fatal("same-format Counter replacement did not publish new immutable identity")
+	}
+	identity = uci.searcher.evaluatorModel.identity
+
+	output.Reset()
+	uci.handleCommand("setoption name EvalFile value "+ngnPath, &output)
+	if !strings.Contains(output.String(), "select hce first") {
+		t.Fatalf("active cross-format replacement was not rejected: %s", output.String())
+	}
+	config = requireUCIEvaluatorConfig(t, uci, uciEvaluatorCounter55, replacementPath)
+	if config.staged.counter55 == nil || uci.searcher.evaluatorModel.identity != identity {
+		t.Fatal("failed cross-format replacement changed Counter state")
+	}
+
+	uci.handleCommand("ucinewgame", &output)
+	requireUCIEvaluatorConfig(t, uci, uciEvaluatorCounter55, replacementPath)
+	if uci.searcher.SelectedEvaluatorBackend() != EvaluatorBackendCounter55Name {
+		t.Fatal("new game changed Counter backend")
+	}
 }
 
 type ioDiscardBuffer struct{}
@@ -369,5 +445,38 @@ func TestUCIShortLegalSearchWithAcceptedNGNV1SmokeFile(t *testing.T) {
 	response := searchOutput.String()
 	if strings.Contains(response, "info string error") || !strings.Contains(response, "info depth 2") || !strings.Contains(response, "bestmove ") {
 		t.Fatalf("accepted smoke NNUE search response:\n%s", response)
+	}
+}
+
+func TestUCIEvaluatorFormatDispatchRejectsMutationsTransactionally(t *testing.T) {
+	validCounter := writeUCICounterFixture(t, "valid-counter.nn", 7)
+	corruptedCounter := writeUCICounterFixture(t, "corrupt-counter.nn", 7)
+	encoded, err := os.ReadFile(corruptedCounter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded[5] ^= 1
+	if err := os.WriteFile(corruptedCounter, encoded, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	unsupported := filepath.Join(t.TempDir(), "unsupported.nn")
+	if err := os.WriteFile(unsupported, bytes.Repeat([]byte{0x5a}, countereval.LegacyFileSize), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	uci := NewUCIEngine()
+	var output bytes.Buffer
+	uci.handleCommand("setoption name EvalFile value "+validCounter, &output)
+	before := requireUCIEvaluatorConfig(t, uci, uciEvaluatorHCE, validCounter)
+	for _, path := range []string{corruptedCounter, unsupported} {
+		output.Reset()
+		uci.handleCommand("setoption name EvalFile value "+path, &output)
+		if !strings.Contains(output.String(), "info string error eval option") {
+			t.Fatalf("invalid format %q produced no error: %s", path, output.String())
+		}
+		after := requireUCIEvaluatorConfig(t, uci, uciEvaluatorHCE, validCounter)
+		if after.staged.kind != before.staged.kind || after.staged.counter55 != before.staged.counter55 {
+			t.Fatal("invalid format changed staged Counter model")
+		}
 	}
 }
