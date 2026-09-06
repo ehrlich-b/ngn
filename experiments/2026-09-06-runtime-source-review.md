@@ -1,6 +1,6 @@
 # Runtime and data source review — September 6
 
-This is a source-review record, not an execution or playing-strength verdict. The corrected B0 A/A control owns the WSL compute window. All implementation and source inspection described here occurred on WSL; the Mac only transports commands and text. Accepted playing deployment at /home/ehrli/repos/ngn remains 53e4d1b.
+Historical source-review record, supplemented by [the accepted TT/NNUE foundation integration](2026-09-06-tt-nnue-foundation-integration.md). The corrected B0 A/A is now accepted and bounded correctness work is released. Statements below about pending M3/N3/N4 execution describe the earlier review boundary. All implementation and source inspection described here occurred on WSL; the Mac only transports commands and text. Accepted playing deployment at /home/ehrli/repos/ngn remains 53e4d1b.
 
 ## Frozen candidates awaiting execution
 
