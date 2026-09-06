@@ -32,3 +32,15 @@ The larger probe has seven paired-session median ratios with median 0.996 and ra
 Full follow-up artifact manifest SHA 755b785e4a9638d0a348cf16f5acebc620192d9f95875bf0af8fea3cd482e236. Analysis SHA 0c10e2159ff266b4d92f21f4fca42a2114897f443b949de33817b6ad66461f3a. Root receipt output/hce-fastpath-root-review-20260906/m4c-diagnostic-v1.json SHA c882205723d3ab214e7f235234a9d6a721c5ce87af404e3ceb84215e7c3ed3d4.
 
 Evidence root: output/hce-transition-fastpath-timing-20260906. Full 256-file manifest SHA c44a5b67ea5ad645bf7bca89bcd1447d77f79c159210d3464970dc251c7a49a1. Observability amendment SHA be0e609155a7f792db94ef7a8f29f257e91c079195c8721f69929c93f105d462. Final distribution analysis SHA 5308935fbdaefa248f1310397bac6b9c549df6292dd78f75f7afe26f1bf53044. Root review: output/hce-fastpath-root-review-20260906/diagnostic-v1.json. No deployment or playing-strength gain is implied.
+
+## Direct public-search comparison, B0 to 4bd
+
+The test-only v2 harness is accepted after root source/build review, 20 correctness rows and the single authorized ABBA14 timing run. It captures nonempty legal completed-iteration PVs and actual final SearchInfo.Nodes. The failed exact-cap preflight remains preserved: actual final counts can overshoot the requested cap by up to two nodes, identically on both revisions. Empty-PV v1 evidence is not used for the completed-PV claim.
+
+All 56 worker sessions and 140 searches completed with 112 measured rows, exact normalized move/score/PV/node trajectories, restored roots, empty stderr, initialization-only crash logs, actual outer exit zero and no monitor violations/survivors. Root verified 249 final artifacts totaling 395,137 bytes, in addition to the separately verified source and binary packet.
+
+Using seven adjacent pairs of session medians (4bd/B0), ratios were 1.0203 cold and 1.0339 warm at requested 16,384 nodes; 1.0232 cold and 1.0272 warm at requested 524,288 nodes. At the larger budget, ranges were 1.0063–1.0452 cold and 1.0103–1.0479 warm. The retained analysis also reports individual warm row-pair ratios; those repeated observations are dependent and have a different median from the seven session pairs.
+
+This one-position public-call measurement includes admission, root refresh, TT-PV reconstruction and callback copy, while excluding UCI command pacing, construction, result formatting and replay. It finds a small direct gap, far below some earlier short-UCI ratios; it is not a general speed claim or evidence that recursion alone slowed. A source-only proposal to equalize post-bestmove timing outside the next measured UCI search remains held. No production optimization or rollback follows from this diagnostic alone.
+
+Root receipt: output/hce-direct-diagnosis-20260906/root-timing-review-v2.json, SHA df4a97fdd967b9f9f7bf6bc235ff269e490be6842e42f60f8339c705a172321b.

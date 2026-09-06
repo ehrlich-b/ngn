@@ -31,4 +31,10 @@ Training run: /home/ehrli/nnue-public-toolchain-20260906/runs/ngn-v0-3m-fixedhol
 - Selection: artifacts/selection-a.txt, SHA 81fed2d7d8118971f0ca72df8cc02fb187dcc353912b87d15069aeec5fb818dc.
 - Root training receipt: output/nnue-training-3m-root-review-20260906/receipt.json, SHA c3078b7e294a1811bfd051a52a274b0287ba848391b0f508cbe7bce011287708.
 
-No playing-strength result exists for this network yet. A separate four-game same-code one-worker screen is prepared with candidate 6 frozen before games. It will not provide an Elo estimate. The original validation has been reused across these experiments; original-game disjointness is unproven and a later release requires fresh unseen evidence.
+The separate four-game same-code one-worker screen is now complete and independently accepted operationally. HCE won all four games by natural mate, over 438 legal plies, at 10+0.1 with Hash64, Move Overhead50, one physical CPU and OwnBook false. Every frozen runner/trace/chess/resource/survivor gate passed. Root rehashed 86 artifacts totaling 129,400,199 bytes and independently checked all 4,000 live child identity observations.
+
+The prospective rule was frozen before games: a winless network ends count-only data/update extensions of this minimal architecture. That stop condition is met. This is a directional failure to earn a larger test, not an Elo estimate or proof that NNUE cannot help NGN. The next evaluator path is the separately reviewed pretrained Counter compatibility control. Original-game disjointness remains unproven; later release evidence must be fresh.
+
+- Game run: /home/ehrli/repos/ngn-candidate-runner/output/candidate-smoke-3m-20260906-attempt1.
+- Game final manifest SHA: c6412b07bb0457ca3f591c15f4aabfdcaf1739ab483efa4ffedacca6bb8de805.
+- Root game receipt: output/candidate-smoke-3m-root-review-20260906/receipt.json, SHA 0f38118dd4ddfa1609248034497758d1b91e7070e63ae5e7f0e5c103f31b4ea2.
