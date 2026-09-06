@@ -11,8 +11,8 @@ The deployed engine remains **53e4d1b**. The development engine's latest search 
 | Real multicore search | Private worker state, shared synchronized TT, joined helper lifecycle, full short/race/vet/build gates; 128-sample matrix measured 6.41–6.69x aggregate NPS at eight threads | Prospective eight-versus-one-thread strength test is running |
 | Match validity | Four-game 8v8 operational control passed: 562 legal plies, correct worker-width receipts, no operational failures or survivors | Finish the 8v1 match under its frozen stopping rule, then independent chess/trace/SPRT audits |
 | Minimal trained NNUE | Export/scalar/incremental/optimized integer equivalence established; 3M data and 512-update training accepted | Count-only experiments stopped: selected 3M network lost its audited four-game HCE screen 0–4 |
-| Counter pretrained control | Exact Counter 5.5 loader and portable full-refresh evaluator accepted; 6,144 accumulator lanes, raw scores and historical score adaptation match actual pinned upstream | Incremental source v4 reviewed; execution held. Search adapter source v1 is frozen, with root-requested test/oracle corrections underway before validation |
-| Stockfish compatibility | Exact Stockfish 18 SMALL official file loads; malformed-file, official-file, race, vet and build checks pass | Scalar and corrected Go/C++ oracle source v5 reviewed. Bounded execution plan is being prepared; no runtime parity claim yet |
+| Counter pretrained control | Exact Counter 5.5 loader and portable full-refresh evaluator accepted; 6,144 accumulator lanes, raw scores and historical score adaptation match actual pinned upstream | Incremental source v4 and corrected search adapter source v4 reviewed; execution held. Full engine/NNUE short regression, exact upstream oracles and actual worker race gates are prepared |
+| Stockfish compatibility | Exact Stockfish 18 SMALL official file loads; malformed-file, official-file, race, vet and build checks pass | Scalar and corrected Go/C++ oracle source v5 reviewed; bounded scalar-oracle execution plan v2 is ready. No runtime parity claim yet |
 | HCE speed investigation | Direct-search comparison has exact outcomes/PVs/final nodes; long-budget paired medians show about 2–3% overhead for one position | Further timing held while strength games use the machine |
 | Leading Go opponents | Counter 5.5, Zahak 10, Blunder 8.5.5 and Chess-3 v4.0 provisioned with protocol handshakes | Legal-search preflight and matched games remain |
 
@@ -26,7 +26,7 @@ Both sides use the same pinned 168385f binary. Candidate Threads/GOMAXPROCS=8; r
 
 The predeclared test uses normalized-Elo SPRT hypotheses 0/20, alpha=beta=0.05, complete paired games, first-boundary-crossing stopping, and a cap of 400 games. A cap without crossing is inconclusive. It is not an ordinary +20 Elo confidence claim. Interim results cannot change the stopping rule.
 
-The latest reported checkpoint is 44 games / 22 pairs: eight threads 27 wins, 2 losses, 15 draws, normalized SPRT LLR 1.28. This is interim; game 45 was live and the match error stream remained empty.
+At 14:28:47Z the reported checkpoint was 54 games / 27 pairs: eight threads 33 wins, 3 losses, 18 draws, normalized SPRT LLR 1.56. This is interim; game 55 was live and the match error stream remained empty.
 
 The frozen runner passed 55 fixtures and 246 independent C++/Python SPRT vectors. Root accepted all 200 ordered openings and 1,200 legal opening plies. Approved manifest SHA:
 `6d901b315382cf5d4ad77fe90869dbdbd82fc136f5244cdd2c08a9d02afc3c38`.
@@ -37,7 +37,7 @@ The minimal NGN-v1 architecture and training pipeline work numerically, but the 
 
 The next control uses a known pretrained Counter network with exactly reproduced source arithmetic. Root accepted its first slice in
 `output/counter-pretrained-root-review-20260906/receipt-v1.json`.
-The source is committed and integrated; incremental state and search adaptation are the next distinct implementation boundaries.
+The first-slice source is committed and integrated. Incremental state and the corrected search adapter have passed source review in isolated worktrees but still require execution gates. The matching in-process Counter/HCE diagnostic runner source v3 is also reviewed; its first comparison will use one accepted binary, one thread, Hash 128 MiB and Move Overhead 100 ms at 30+0.3 for four paired games.
 
 Stockfish support is an exact architecture port. The official SF18 SMALL model is verified at 3,519,630 bytes with SHA
 `37f18f62d772f3107e1d6aaca3898c130c3c86f2ab63e6555fbbca20635a899d`.
