@@ -2442,6 +2442,7 @@ func evaluateRookOnOpenFile(board *Bitboard, color Color) int {
 //     the endgame where open lines decide; the knight's short range weighs
 //     slightly more in the middlegame. The old code ran ONE near-flat global
 //     MG/EG weight (181/180) over every piece, so no per-piece taper existed.
+//
 // Zero-crossings keep the old baselines (knight 3, bishop/rook 6, queen 12),
 // and the cp scale folds in the old ~1.8x global weight, so values sit near the
 // old behaviour through the common midrange and only bend at the extremes.
@@ -2740,10 +2741,26 @@ func drawScale(board *Bitboard, whiteRel int) int {
 	return 64 / d
 }
 
-// Enhanced evaluation function - always returns from white's perspective
-func Evaluate(board *Bitboard) (eval int) {
+// Enhanced evaluation function - always returns from white's perspective.
+// Public direct evaluation takes a short process-model lease and evaluates a
+// rebuilt board copy, so a Bitboard created before a model swap is safe and the
+// caller's hidden accumulator is not mutated. It fails fast with
+// ErrHCEModelBusy while an offline tuner owns the model mutation window.
+func Evaluate(board *Bitboard) int {
+	_ = mustAcquireHCEModelUse()
+	defer releaseHCEModelUse()
+	return evaluatePublicWhiteLeased(board)
+}
+
+func evaluatePublicWhiteLeased(board *Bitboard) int {
+	work := board.copy()
+	work.recomputeAccumulator()
+	return evaluateWhiteLeased(&work, nil)
+}
+
+func evaluateWhiteLeased(board *Bitboard, pawns *pawnCache) int {
 	return WrapEvaluation("Evaluate", func() int {
-		raw := evaluateUnsafe(board)
+		raw := evaluateUnsafeWithPawnCache(board, pawns)
 		return raw * drawScale(board, raw) / 64
 	}, board)
 }
@@ -2754,31 +2771,22 @@ func Evaluate(board *Bitboard) (eval int) {
 const TempoBonus = 10
 
 // EvaluateForPlayer returns evaluation from the given player's perspective,
-// including the tempo bonus for being the side-to-move. All callers in this
-// engine pass `pos.Turn()` (the side to move), so adding the bonus here
-// reliably gives it to whoever is about to play.
+// including the tempo bonus for being the side-to-move. It uses one direct
+// model lease rather than nesting through Evaluate.
 func EvaluateForPlayer(board *Bitboard, player Color) int {
-	whiteEval := Evaluate(board)
+	_ = mustAcquireHCEModelUse()
+	defer releaseHCEModelUse()
+	whiteEval := evaluatePublicWhiteLeased(board)
 	if player == White {
 		return whiteEval + TempoBonus
 	}
 	return -whiteEval + TempoBonus
 }
 
-// --- Exact full-evaluation cache ---
-// Memoizes Evaluate(board) — the white-POV, ocb-scaled value — keyed by the
-// position's full zobrist hash. Node-identical by construction: a hit requires a
-// full 64-bit key match (the same collision class the TT already accepts), and the
-// stored value is exactly what a fresh Evaluate would return. Eval is a pure
-// function of the Board, and the hash's extra castle/EP/turn bits only split
-// entries (lower hit rate), never poison them. POV, TempoBonus and the pawn
-// correction-history adjustment all stay OUTSIDE the cached value.
-//
-// Only the search's hot static-eval/stand-pat sites call this. Texel and the
-// analysis tools call Evaluate directly: they never read the cache, so runtime
-// eval-weight changes there cannot serve stale values to the search within a
-// process (weights are fixed for the life of an engine process).
-// 2^20 entries x 16B = 16MB, always-replace.
+// --- Per-engine HCE evaluation state ---
+// The full cache stores the white-POV, draw-scaled value by full position hash.
+// POV, TempoBonus, and rule-50 attenuation remain outside it. Each SearchEngine
+// owns one evaluator so search instances cannot poison each other's eval state.
 const evalCacheBits = 20
 
 type evalCacheEntry struct {
@@ -2787,7 +2795,48 @@ type evalCacheEntry struct {
 	_   int32
 }
 
-var evalCache [1 << evalCacheBits]evalCacheEntry
+type hceEvaluator struct {
+	full           [1 << evalCacheBits]evalCacheEntry
+	pawns          pawnCache
+	seenGeneration uint64
+}
+
+func (e *hceEvaluator) clearForGeneration(generation uint64) {
+	clear(e.full[:])
+	clear(e.pawns[:])
+	e.seenGeneration = generation
+}
+
+// SearchSTM is the ordinary search score route. Its operation order is the
+// legacy cached-white value, rule-50 attenuation, side-to-move POV, then Tempo.
+func (e *hceEvaluator) SearchSTM(pos *Position) int {
+	h := pos.Hash()
+	entry := &e.full[h&(1<<evalCacheBits-1)]
+	var white int
+	if entry.key == h && h != 0 {
+		white = int(entry.val)
+	} else {
+		white = evaluateWhiteLeased(&pos.Board, &e.pawns)
+		entry.key = h
+		entry.val = int32(white)
+	}
+	white = white * (FiftyMoveDampBudget - int(pos.HalfMoveClock)) / FiftyMoveDampBudget
+	if pos.Turn() == White {
+		return white + TempoBonus
+	}
+	return -white + TempoBonus
+}
+
+// LegacyUndampedSTM preserves the three alphaBeta safety-return semantics: a
+// fresh full HCE value (the pawn-count cache may hit), draw scaling, POV, Tempo,
+// and no full-cache lookup or halfmove attenuation.
+func (e *hceEvaluator) LegacyUndampedSTM(pos *Position) int {
+	white := evaluateWhiteLeased(&pos.Board, &e.pawns)
+	if pos.Turn() == White {
+		return white + TempoBonus
+	}
+	return -white + TempoBonus
+}
 
 // FiftyMoveDampBudget scales the static eval toward a draw as the halfmove clock
 // climbs toward the 50-move rule (hmc=100): factor = (BUDGET-hmc)/BUDGET, so 1.0
@@ -2801,24 +2850,10 @@ var evalCache [1 << evalCacheBits]evalCacheEntry
 // score), so damping cannot corrupt mate distances.
 const FiftyMoveDampBudget = 256
 
-// EvaluateForPlayerCached mirrors EvaluateForPlayer(&pos.Board, pos.Turn())
-// exactly, through the cache, then damps by the 50-move clock.
+// EvaluateForPlayerCached retains the package compatibility API using the
+// default SearchEngine's private evaluator and serialized session lifetime.
 func EvaluateForPlayerCached(pos *Position) int {
-	h := pos.Hash()
-	e := &evalCache[h&(1<<evalCacheBits-1)]
-	var w int
-	if e.key == h && h != 0 {
-		w = int(e.val)
-	} else {
-		w = Evaluate(&pos.Board)
-		e.key = h
-		e.val = int32(w)
-	}
-	w = w * (FiftyMoveDampBudget - int(pos.HalfMoveClock)) / FiftyMoveDampBudget
-	if pos.Turn() == White {
-		return w + TempoBonus
-	}
-	return -w + TempoBonus
+	return defaultSearchEngine.evaluateForPlayerCached(pos)
 }
 
 // Tunable eval-term weights — hand-set magnitudes (never data-tuned) exposed as
@@ -2868,9 +2903,8 @@ func taperW(mg, eg, phase int) int { return (mg*phase + eg*(totalPhase-phase)) /
 // bitboards, so memoize their RAW counts keyed by (whitePawns, blackPawns) with
 // a full-key verify — collision-proof, hence node-identical. Raw counts (not the
 // weighted contribution) are stored so tuning the weights never stales the cache.
-// This is a single-threaded search optimization; Texel's parallel eval loop sets
-// pawnCacheDisabled to stay race-free (the search itself is single-threaded, like
-// the existing global history/killer/TT tables).
+// Each SearchEngine owns this cache. Texel and direct parallel evaluation pass
+// nil explicitly, so they neither share nor mutate a search worker's entries.
 const (
 	pawnCacheSize = 1 << 16
 	pawnCacheMask = pawnCacheSize - 1
@@ -2886,10 +2920,7 @@ type pawnCacheEntry struct {
 	valid              bool
 }
 
-var (
-	pawnCache         [pawnCacheSize]pawnCacheEntry
-	pawnCacheDisabled bool
-)
+type pawnCache [pawnCacheSize]pawnCacheEntry
 
 func pawnCacheIndex(wp, bp uint64) uint64 {
 	h := wp ^ (bp*0x9E3779B97F4A7C15 + 0x7F4A7C159E3779B9)
@@ -2903,9 +2934,9 @@ func pawnCacheIndex(wp, bp uint64) uint64 {
 // rank-weighted passed-pawn sums (wPassedW/bPassedW) for both colors, memoized on the
 // pawn bitboards. board's pawn bitboards MUST equal (wp, bp) — the caller passes them
 // so the key and the compute path agree.
-func pawnStructureCounts(board *Bitboard, wp, bp uint64) (wPassed, bPassed, wPassedW, bPassedW, wDoubled, bDoubled, wIso, bIso, chainW, chainB int) {
-	if !pawnCacheDisabled {
-		e := &pawnCache[pawnCacheIndex(wp, bp)]
+func pawnStructureCounts(cache *pawnCache, board *Bitboard, wp, bp uint64) (wPassed, bPassed, wPassedW, bPassedW, wDoubled, bDoubled, wIso, bIso, chainW, chainB int) {
+	if cache != nil {
+		e := &(*cache)[pawnCacheIndex(wp, bp)]
 		if e.valid && e.wp == wp && e.bp == bp {
 			return int(e.wPassed), int(e.bPassed), int(e.wPassedW), int(e.bPassedW), int(e.wDoubled), int(e.bDoubled),
 				int(e.wIso), int(e.bIso), int(e.chainW), int(e.chainB)
@@ -2923,8 +2954,8 @@ func pawnStructureCounts(board *Bitboard, wp, bp uint64) (wPassed, bPassed, wPas
 	bIso = countIsolatedPawns(board, Black)
 	chainW = evaluatePawnChains(board, White)
 	chainB = evaluatePawnChains(board, Black)
-	if !pawnCacheDisabled {
-		pawnCache[pawnCacheIndex(wp, bp)] = pawnCacheEntry{
+	if cache != nil {
+		(*cache)[pawnCacheIndex(wp, bp)] = pawnCacheEntry{
 			wp: wp, bp: bp,
 			wPassed: int16(wPassed), bPassed: int16(bPassed),
 			wPassedW: int16(wPassedW), bPassedW: int16(bPassedW),
@@ -2959,14 +2990,23 @@ func backwardPawnCounts(wp, bp uint64) (int, int) {
 	return PopCount(wBackward), PopCount(bBackward)
 }
 
-func evaluateUnsafe(board *Bitboard) (eval int) {
-	core, phase := evalCoreWhite(board)
+func evaluateUnsafe(board *Bitboard) int {
+	return evaluateUnsafeWithPawnCache(board, nil)
+}
+
+func evaluateUnsafeWithPawnCache(board *Bitboard, pawns *pawnCache) (eval int) {
+	core, phase := evalCoreWhiteWithPawnCache(board, pawns)
 	return core + evalExtrasWhite(board, phase)
 }
 
-// evalCoreWhite is the CHEAP half (white POV): PeSTO tapered material+PST plus the
-// memoized pawn-structure terms. Also returns the game phase for the extras.
 func evalCoreWhite(board *Bitboard) (eval, phase int) {
+	return evalCoreWhiteWithPawnCache(board, nil)
+}
+
+// evalCoreWhiteWithPawnCache is the CHEAP half (white POV): PeSTO tapered
+// material+PST plus optionally memoized pawn-structure terms. It also returns
+// the game phase for the extras.
+func evalCoreWhiteWithPawnCache(board *Bitboard, pawns *pawnCache) (eval, phase int) {
 	// Core: PeSTO tapered material + piece-square tables.
 	mgScore, egScore, ph := evaluatePeSTO(board)
 	phase = ph
@@ -2980,7 +3020,7 @@ func evalCoreWhite(board *Bitboard) (eval, phase int) {
 	// the weights here. Same arithmetic, same order as the inline version, so the
 	// result is bit-identical (node-identical); only the recomputation is saved.
 	_, _, whitePassedW, blackPassedW, whiteDoubled, blackDoubled, whiteIsolated, blackIsolated, chainWhite, chainBlack :=
-		pawnStructureCounts(board, whitePawns, blackPawns)
+		pawnStructureCounts(pawns, board, whitePawns, blackPawns)
 	eval += (whitePassedW - blackPassedW) * taperW(passedPawnBonus, passedPawnBonusEG, phase) // passed pawns (rank-weighted), not captured by PST
 	// Blockaded-passer discount: the rank-weighted bonus above credits a stalled passer
 	// fully, but one whose stop square is held by an enemy piece is going nowhere — the

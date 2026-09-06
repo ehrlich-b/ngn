@@ -257,10 +257,13 @@ func tune(data string, passes int, target, out string) {
 	start := time.Now()
 	for _, step := range []int{8, 4, 2, 1} {
 		fmt.Fprintf(os.Stderr, "--- coordinate descent step=%d ---\n", step)
-		engine.TexelTune(samples, ptrs, k, step, passes, rebuild, func(pass int, mse float64, moved int) {
+		if _, err := engine.TryTexelTune(samples, ptrs, k, step, passes, rebuild, func(pass int, mse float64, moved int) {
 			fmt.Fprintf(os.Stderr, "  step=%d pass=%d MSE=%.6f moved=%d  (%s)\n",
 				step, pass, mse, moved, time.Since(start).Round(time.Second))
-		})
+		}); err != nil {
+			fmt.Fprintln(os.Stderr, "tune:", err)
+			os.Exit(1)
+		}
 	}
 	fmt.Fprintf(os.Stderr, "weights after:\n%s", engine.FormatTexelWeights(weights))
 
@@ -314,7 +317,7 @@ func gradientTune(data string, epochs int, lr float64, patience int, split, l2 f
 	fmt.Fprintf(os.Stderr, "weights before:\n%s", engine.FormatTexelWeights(weights))
 
 	start := time.Now()
-	trainMSE, testMSE := engine.TexelGradientTune(train, test, engine.TexelGradientConfig{
+	trainMSE, testMSE, err := engine.TryTexelGradientTune(train, test, engine.TexelGradientConfig{
 		K: k, LR: lr, Epochs: epochs, Patience: patience, L2: l2,
 		Progress: func(epoch int, trMSE, teMSE float64) {
 			if epoch == 1 || epoch%10 == 0 {
@@ -323,6 +326,10 @@ func gradientTune(data string, epochs int, lr float64, patience int, split, l2 f
 			}
 		},
 	})
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "gradient:", err)
+		os.Exit(1)
+	}
 	fmt.Fprintf(os.Stderr, "final integer-eval MSE: train=%.6f test=%.6f\n", trainMSE, testMSE)
 	fmt.Fprintf(os.Stderr, "weights after:\n%s", engine.FormatTexelWeights(weights))
 

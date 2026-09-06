@@ -169,6 +169,13 @@ func (c *Cache) Size() int {
 	return c.size
 }
 
+// Clear invalidates every entry while preserving the configured allocation.
+// Callers must ensure no search is concurrently reading or writing this table.
+func (c *Cache) Clear() {
+	clear(c.items)
+	c.age = 0
+}
+
 func (c *Cache) Get(hash uint64) (Move, int16, int8, NodeType, bool, bool) {
 	index := c.index(hash)
 	value := &c.items[index]

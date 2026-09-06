@@ -10,8 +10,6 @@ import (
 // measuring the delta. The base (all aux zeroed) is PeSTO material+PST. Goal:
 // find which term(s) drive NGN's ~150-220cp optimism vs Stockfish.
 func TestZZEvalTerms(t *testing.T) {
-	pawnCacheDisabled = true
-	defer func() { pawnCacheDisabled = false }()
 
 	fens := []struct{ name, fen string }{
 		// name carries NGN's color and the WHITE-POV truth per SF (so a wrong-sign

@@ -4,6 +4,8 @@ package engine
 // labeled boards. Like fitting, it is offline-only and must not race a search
 // or parameter mutation. It refreshes sample accumulators after weight changes.
 func TexelModelMSE(samples []TexelSample, k float64) float64 {
+	_ = mustAcquireHCEModelUse()
+	defer releaseHCEModelUse()
 	return texelMSE(samples, k)
 }
 
@@ -16,6 +18,8 @@ type TexelCoverage struct {
 }
 
 func TexelTrainingCoverage(samples []TexelSample) TexelCoverage {
+	_ = mustAcquireHCEModelUse()
+	defer releaseHCEModelUse()
 	r := TexelCoverage{Samples: len(samples), AppendedParameterObservations: make(map[string]int)}
 	names := TexelParameterNames()
 	for _, name := range names[texelLegacyParams:] {

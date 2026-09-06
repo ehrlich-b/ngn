@@ -10,6 +10,7 @@ func newQSearchInfo() *SearchInfo {
 	return &SearchInfo{
 		control:       &defaultSearchEngine.control,
 		history:       &defaultSearchEngine.history,
+		evaluator:     &hceEvaluator{},
 		MoveBuffer:    &moveBuffer,
 		CaptureBuffer: &captureBuffer,
 		OrderedBuffer: &orderedBuffer,

@@ -4,12 +4,10 @@ import "testing"
 
 // TestPawnCacheMatchesDirect pins the N6 pawn-structure cache as transparent: the
 // memoized passed/doubled/isolated/chain counts must equal a fresh direct
-// computation for every position, on both the miss→hit path and the disabled
-// path. Node-identity proves this indirectly in search; this nails it directly
+// computation for every position, on both the miss→hit path and an explicit
+// nil-cache path. Node-identity proves this indirectly in search; this nails it directly
 // and guards against a future term that secretly depends on non-pawn state.
 func TestPawnCacheMatchesDirect(t *testing.T) {
-	defer func() { pawnCacheDisabled = false }()
-
 	fens := []string{
 		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",             // startpos
 		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", // Kiwipete
@@ -43,8 +41,8 @@ func TestPawnCacheMatchesDirect(t *testing.T) {
 		dCW := evaluatePawnChains(&pos.Board, White)
 		dCB := evaluatePawnChains(&pos.Board, Black)
 
-		check := func(label string) {
-			wPassed, bPassed, wPassedW, bPassedW, wDoubled, bDoubled, wIso, bIso, cW, cB := pawnStructureCounts(&pos.Board, wp, bp)
+		check := func(label string, cache *pawnCache) {
+			wPassed, bPassed, wPassedW, bPassedW, wDoubled, bDoubled, wIso, bIso, cW, cB := pawnStructureCounts(cache, &pos.Board, wp, bp)
 			if wPassed != dWP || bPassed != dBP || wPassedW != dWPW || bPassedW != dBPW || wDoubled != dWD || bDoubled != dBD ||
 				wIso != dWI || bIso != dBI || cW != dCW || cB != dCB {
 				t.Errorf("fen %q [%s]: cached (%d %d %d %d %d %d %d %d %d %d) != direct (%d %d %d %d %d %d %d %d %d %d)",
@@ -53,10 +51,9 @@ func TestPawnCacheMatchesDirect(t *testing.T) {
 			}
 		}
 
-		pawnCacheDisabled = false
-		check("miss") // first call populates the entry
-		check("hit")  // second call reads it back
-		pawnCacheDisabled = true
-		check("disabled") // compute path with the cache off
+		var cache pawnCache
+		check("miss", &cache) // first call populates the entry
+		check("hit", &cache)  // second call reads it back
+		check("nil", nil)     // direct computation with no cache owner
 	}
 }

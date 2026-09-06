@@ -83,7 +83,9 @@ func groupedGradient(paths, splitSeed, out, reportPath string, cfg fitConfig, au
 	if len(parts.Train) == 0 || len(parts.Validation) == 0 || len(parts.Test) == 0 {
 		return fmt.Errorf("all three partitions must be nonempty: train=%d validation=%d test=%d", len(parts.Train), len(parts.Validation), len(parts.Test))
 	}
-	fitPartitions(parts, cfg, &report)
+	if err := fitPartitions(parts, cfg, &report); err != nil {
+		return err
+	}
 	report.Stage = "fit_complete"
 	if err := writeJSON(out, engine.ExportTexelModel()); err != nil {
 		return err
@@ -91,13 +93,14 @@ func groupedGradient(paths, splitSeed, out, reportPath string, cfg fitConfig, au
 	return writeJSON(reportPath, report)
 }
 
-func fitPartitions(parts texeldata.Partitions, cfg fitConfig, report *groupedFitReport) {
+func fitPartitions(parts texeldata.Partitions, cfg fitConfig, report *groupedFitReport) error {
 	baseline := engine.ExportTexelModel()
 	report.K = engine.TexelFindK(parts.Train)
 	report.InitialTrain = engine.TexelModelMSE(parts.Train, report.K)
 	report.InitialValidation = engine.TexelModelMSE(parts.Validation, report.K)
 	start := time.Now()
-	report.FinalTrain, report.FinalValidation = engine.TexelGradientTune(parts.Train, parts.Validation, engine.TexelGradientConfig{
+	var err error
+	report.FinalTrain, report.FinalValidation, err = engine.TryTexelGradientTune(parts.Train, parts.Validation, engine.TexelGradientConfig{
 		K: report.K, LR: cfg.LR, Epochs: cfg.Epochs, Patience: cfg.Patience, L2: cfg.L2,
 		Progress: func(epoch int, train, validation float64) {
 			if epoch == 1 || epoch%10 == 0 {
@@ -105,17 +108,21 @@ func fitPartitions(parts texeldata.Partitions, cfg fitConfig, report *groupedFit
 			}
 		},
 	})
+	if err != nil {
+		return err
+	}
 	// Compare candidate and baseline on the final test set only after checkpoint
 	// selection has ended. Neither test loss feeds back into fitting.
 	model := engine.ExportTexelModel()
 	report.FinalTest = engine.TexelModelMSE(parts.Test, report.K)
 	if err := engine.ApplyTexelModel(baseline); err != nil {
-		panic(err) // both snapshots came from this process's versioned exporter
+		return err
 	}
 	report.BaselineTest = engine.TexelModelMSE(parts.Test, report.K)
 	if err := engine.ApplyTexelModel(model); err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
 
 func writeJSON(path string, value any) error {

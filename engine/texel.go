@@ -36,11 +36,8 @@ func texelSigmoid(eval, k float64) float64 {
 // parallelized across CPUs and only READS the eval parameters, so callers must
 // not mutate the PSTs concurrently (coordinate descent mutates between calls).
 func texelMSE(samples []TexelSample, k float64) float64 {
-	// The pawn-structure cache (eval.go) is a single-threaded search optimization;
-	// this eval loop is parallel, so disable it here to stay race-free. Texel never
-	// benefits from it anyway (each sample is a distinct position, set once before
-	// any worker goroutine spawns).
-	pawnCacheDisabled = true
+	// Texel passes nil explicitly for pawn-cache ownership: samples are distinct
+	// and its parallel workers must not share mutable search caches.
 	n := len(samples)
 	if n == 0 {
 		return 0
@@ -88,6 +85,12 @@ func texelMSE(samples []TexelSample, k float64) float64 {
 // the CURRENT eval parameters — the one-time calibration before tuning so the
 // logistic is scaled to the eval's centipawn units.
 func TexelFindK(samples []TexelSample) float64 {
+	_ = mustAcquireHCEModelUse()
+	defer releaseHCEModelUse()
+	return texelFindKLeased(samples)
+}
+
+func texelFindKLeased(samples []TexelSample) float64 {
 	lo, hi := 0.0, 2.0
 	for iter := 0; iter < 50; iter++ {
 		m1 := lo + (hi-lo)/3
@@ -231,6 +234,9 @@ func FormatPSTTables() string {
 // one at a time across many passes, so it reaches the material direction
 // inefficiently. These feed mgPST/egPST, so a RebuildPST is required after any
 // mutation (TexelTune's rebuild callback handles it).
+// TexelMaterialParams exposes offline-only pointers to the process HCE model.
+// Callers must not retain or mutate them across any search/evaluation lifetime;
+// use ApplyTexelModel or a checked TryTexelTune entry point for runtime changes.
 func TexelMaterialParams() []*int {
 	ptrs := make([]*int, 0, 10)
 	for pt := Pawn; pt <= Queen; pt++ {
@@ -263,7 +269,26 @@ func FormatMaterialValues() string {
 // rebuild (may be nil) is invoked after every parameter mutation — used when a
 // tuned param feeds a derived table (e.g. the PeSTO mgPST/egPST) that must be
 // recomputed before the next eval. For directly-used weights, pass nil.
+func TryTexelTune(samples []TexelSample, params []*int, k float64, step, maxPasses int, rebuild func(), progress func(pass int, mse float64, moved int)) (float64, error) {
+	initial, err := beginHCETuning()
+	if err != nil {
+		return 0, err
+	}
+	defer finishHCETuning(initial)
+	return texelTuneLeased(samples, params, k, step, maxPasses, rebuild, progress), nil
+}
+
+// TexelTune preserves the legacy signature and fails fast rather than waiting
+// if model state is busy. New callers should use TryTexelTune.
 func TexelTune(samples []TexelSample, params []*int, k float64, step, maxPasses int, rebuild func(), progress func(pass int, mse float64, moved int)) float64 {
+	result, err := TryTexelTune(samples, params, k, step, maxPasses, rebuild, progress)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+
+func texelTuneLeased(samples []TexelSample, params []*int, k float64, step, maxPasses int, rebuild func(), progress func(pass int, mse float64, moved int)) float64 {
 	best := texelMSE(samples, k)
 
 	// lineSearch steps *p by delta while MSE strictly improves, leaving *p at the
@@ -430,6 +455,8 @@ func SplitTrainTest(samples []TexelSample, testFrac float64, seed int64) (train,
 // halfmove-clock damping and correction histories, probes and populates the TT, and
 // obeys the process-wide stop request. None of those are sample properties.
 func IsQuietPosition(pos *Position) bool {
+	_ = mustAcquireHCEModelUse()
+	defer releaseHCEModelUse()
 	if pos.IsInCheck() {
 		return false
 	}
@@ -441,7 +468,13 @@ func IsQuietPosition(pos *Position) bool {
 
 // texelStaticEval is independent of search-only clock damping, correction history,
 // the TT and the stop state.
-func texelStaticEval(pos *Position) int { return EvaluateForPlayer(&pos.Board, pos.Turn()) }
+func texelStaticEval(pos *Position) int {
+	white := evaluatePublicWhiteLeased(&pos.Board)
+	if pos.Turn() == White {
+		return white + TempoBonus
+	}
+	return -white + TempoBonus
+}
 
 // hasLegalQuietPromotion catches the material-changing horizon move omitted by
 // GenerateCapturesIntoBuffer. Capture-promotions are searched as captures.

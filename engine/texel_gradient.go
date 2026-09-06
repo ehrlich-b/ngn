@@ -88,6 +88,12 @@ func TexelParameterNames() []string {
 	return names
 }
 func ExportTexelModel() TexelModelExport {
+	_ = mustAcquireHCEModelUse()
+	defer releaseHCEModelUse()
+	return exportTexelModelLeased()
+}
+
+func exportTexelModelLeased() TexelModelExport {
 	ptrs := TexelFullParams()
 	values := make([]int, len(ptrs))
 	for i, p := range ptrs {
@@ -96,24 +102,93 @@ func ExportTexelModel() TexelModelExport {
 	return TexelModelExport{TexelModelVersion, TexelParameterNames(), values, texelNumParams, texelNumParams - 2, []string{"mobilityWeight", "mobilityWeightEG"}}
 }
 
-// ApplyTexelModel is an offline/startup import: do not race an active search.
-// Callers must parse fresh positions or rebuild board accumulators after import.
-func ApplyTexelModel(x TexelModelExport) error {
+type preparedTexelModel struct {
+	values []int
+	mgPST  [13][64]int
+	egPST  [13][64]int
+}
+
+func prepareTexelModel(x TexelModelExport) (preparedTexelModel, error) {
 	if x.Version != TexelModelVersion || len(x.Values) != texelNumParams || len(x.Names) != texelNumParams || x.StoredCount != texelNumParams || x.ActiveCount != texelNumParams-2 {
-		return fmt.Errorf("texel model incompatible: version=%q params=%d names=%d", x.Version, len(x.Values), len(x.Names))
+		return preparedTexelModel{}, fmt.Errorf("texel model incompatible: version=%q params=%d names=%d", x.Version, len(x.Values), len(x.Names))
 	}
 	if !slices.Equal(x.Names, TexelParameterNames()) || !slices.Equal(x.InactiveReservations, []string{"mobilityWeight", "mobilityWeightEG"}) {
-		return fmt.Errorf("texel model parameter names mismatch")
+		return preparedTexelModel{}, fmt.Errorf("texel model parameter names mismatch")
 	}
+	prepared := preparedTexelModel{values: append([]int(nil), x.Values...)}
+	for pt := Pawn; pt <= King; pt++ {
+		mgMaterial, egMaterial := 0, 0
+		if pt != King {
+			mgMaterial = prepared.values[texelMatMGIndex(pt)]
+			egMaterial = prepared.values[texelMatEGIndex(pt)]
+		}
+		whitePiece := GetPiece(pt, White)
+		blackPiece := GetPiece(pt, Black)
+		mgBase := texelPSTBase + (int(pt)-1)*64
+		egBase := texelPSTBase + (6+int(pt)-1)*64
+		for sq := 0; sq < 64; sq++ {
+			prepared.mgPST[whitePiece][sq] = mgMaterial + prepared.values[mgBase+(sq^56)]
+			prepared.egPST[whitePiece][sq] = egMaterial + prepared.values[egBase+(sq^56)]
+			prepared.mgPST[blackPiece][sq] = -(mgMaterial + prepared.values[mgBase+sq])
+			prepared.egPST[blackPiece][sq] = -(egMaterial + prepared.values[egBase+sq])
+		}
+	}
+	return prepared, nil
+}
+
+// ApplyTexelModel is the supported atomic process-wide HCE import. It validates,
+// clones, and prebuilds derived PST tables before reserving the model. If any
+// search, direct evaluation, Apply, or tuner is active it returns
+// ErrHCEModelBusy immediately and changes nothing.
+func installPreparedTexelModel(prepared preparedTexelModel) {
 	for i, p := range TexelFullParams() {
-		*p = x.Values[i]
+		*p = prepared.values[i]
 	}
-	RebuildPST()
-	// Clear derived evaluation and search state after changing the model.
-	evalCache = [1 << evalCacheBits]evalCacheEntry{}
-	pawnCache = [pawnCacheSize]pawnCacheEntry{}
-	ClearHistoryTable()
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	mgPST = prepared.mgPST
+	egPST = prepared.egPST
+}
+
+func beginHCETuning() (preparedTexelModel, error) {
+	if err := tryBeginHCEModelMutation(); err != nil {
+		return preparedTexelModel{}, err
+	}
+	initial, err := prepareTexelModel(exportTexelModelLeased())
+	if err != nil {
+		abortHCEModelMutation()
+		return preparedTexelModel{}, err
+	}
+	return initial, nil
+}
+
+// finishHCETuning is deferred immediately after beginHCETuning succeeds. A
+// callback panic may occur after a raw parameter write but before its rebuild;
+// restore the complete captured model and its prebuilt PSTs before publishing
+// one invalidation, then preserve the caller's panic value.
+func finishHCETuning(initial preparedTexelModel) {
+	failure := recover()
+	if failure != nil {
+		installPreparedTexelModel(initial)
+	} else {
+		// Coordinate callers may omit or provide a partial rebuild callback. Make
+		// the engine's derived PST state coherent before any reader is admitted.
+		RebuildPST()
+	}
+	publishHCEModelMutation()
+	if failure != nil {
+		panic(failure)
+	}
+}
+
+func ApplyTexelModel(x TexelModelExport) error {
+	prepared, err := prepareTexelModel(x)
+	if err != nil {
+		return err
+	}
+	if err := tryBeginHCEModelMutation(); err != nil {
+		return err
+	}
+	installPreparedTexelModel(prepared)
+	publishHCEModelMutation()
 	return nil
 }
 func FormatTexelModelExport() string {
@@ -252,7 +327,7 @@ func buildEvalTrace(board *Bitboard) evalTrace {
 	// Non-PeSTO terms — identical calls/order to evaluateUnsafe.
 	whitePawns := board.GetBitboardOf(WhitePawn)
 	blackPawns := board.GetBitboardOf(BlackPawn)
-	_, _, wPassedW, bPassedW, wDoubled, bDoubled, wIso, bIso, chainW, chainB := pawnStructureCounts(board, whitePawns, blackPawns)
+	_, _, wPassedW, bPassedW, wDoubled, bDoubled, wIso, bIso, chainW, chainB := pawnStructureCounts(nil, board, whitePawns, blackPawns)
 	t.Passed = wPassedW - bPassedW // rank-weighted passed-pawn sum (see passedRankMul)
 	t.Doubled = wDoubled - bDoubled
 	t.Isolated = wIso - bIso
@@ -400,10 +475,10 @@ func evalTraceFloat(t *evalTrace, w []float64) float64 {
 	return s
 }
 
-// TexelFullParams returns pointers to all 798 tunable parameters in the global
-// index order (material, PST, scalar weights) — the order the trace's index
-// helpers assume. The gradient optimizer reads current values from these and
-// writes tuned values back (RebuildPST after, since PST/material feed it).
+// TexelFullParams returns offline-only pointers to all 798 tunable parameters
+// in global index order (material, PST, scalar weights). The pointers carry no
+// lifecycle protection and must not escape into concurrent search/evaluation;
+// runtime replacement uses ApplyTexelModel or a checked Try tuner entry point.
 func TexelFullParams() []*int {
 	ptrs := make([]*int, 0, texelNumParams)
 	ptrs = append(ptrs, TexelMaterialParams()...)
@@ -421,12 +496,11 @@ func TexelFullParams() []*int {
 	return ptrs
 }
 
-// traceDataset builds the cached eval trace for every sample in parallel (pawn
-// cache disabled, matching texelMSE's regime). Each board's accumulator is
+// traceDataset builds the cached eval trace for every sample in parallel (nil
+// pawn cache, matching texelMSE's regime). Each board's accumulator is
 // recomputed first so accMG/accEG/accPhase are current, and the sample result is
 // carried onto the trace.
 func traceDataset(samples []TexelSample) []evalTrace {
-	pawnCacheDisabled = true
 	traces := make([]evalTrace, len(samples))
 	n := len(samples)
 	if n == 0 {
@@ -599,7 +673,27 @@ type TexelGradientConfig struct {
 // into the live eval (RebuildPST after). Returns the final train/test MSE measured
 // from the INTEGER eval (the real engine), proving the tuned weights transfer off
 // the float model. Mutates the eval's global parameters as a side effect.
+func TryTexelGradientTune(train, test []TexelSample, cfg TexelGradientConfig) (trainMSE, testMSE float64, err error) {
+	initial, err := beginHCETuning()
+	if err != nil {
+		return 0, 0, err
+	}
+	defer finishHCETuning(initial)
+	trainMSE, testMSE = texelGradientTuneLeased(train, test, cfg)
+	return trainMSE, testMSE, nil
+}
+
+// TexelGradientTune preserves the legacy signature and fails fast rather than
+// waiting if model state is busy. New callers should use TryTexelGradientTune.
 func TexelGradientTune(train, test []TexelSample, cfg TexelGradientConfig) (trainMSE, testMSE float64) {
+	trainMSE, testMSE, err := TryTexelGradientTune(train, test, cfg)
+	if err != nil {
+		panic(err)
+	}
+	return trainMSE, testMSE
+}
+
+func texelGradientTuneLeased(train, test []TexelSample, cfg TexelGradientConfig) (trainMSE, testMSE float64) {
 	trainTr := traceDataset(train)
 	testTr := traceDataset(test)
 

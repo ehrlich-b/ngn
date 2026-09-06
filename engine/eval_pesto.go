@@ -175,6 +175,9 @@ func init() {
 // tables + material. It is the single source of truth for that derivation (init
 // calls it at startup); Texel tuning calls it after mutating raw table entries
 // via TexelPSTParams so evaluatePeSTO sees the updated values.
+//
+// This is an offline raw hook. It does not acquire the HCE model lifecycle or
+// publish a generation. Runtime model replacement must use ApplyTexelModel.
 func RebuildPST() {
 	// Combine material + piece-square value so one table lookup yields total
 	// contribution for a single piece on a square. Signed by color: black
@@ -210,8 +213,9 @@ func texelPSTTables() []*[64]int {
 }
 
 // TexelPSTParams returns pointers to all 768 raw PST entries for coordinate
-// descent. Mutating any of them requires a subsequent RebuildPST before the next
-// evaluation (TexelTune does this via its rebuild callback).
+// descent. The pointers are offline-only and carry no lifecycle protection.
+// Mutating any requires RebuildPST before evaluation; runtime replacement must
+// instead use ApplyTexelModel or a checked TryTexelTune entry point.
 func TexelPSTParams() []*int {
 	tables := texelPSTTables()
 	ptrs := make([]*int, 0, len(tables)*64)

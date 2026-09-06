@@ -576,7 +576,8 @@ type SearchInfo struct {
 	maxNodes uint64
 	// history is the persistent heuristic owner supplied by the SearchEngine.
 	// It is explicit on every production entry path and never falls back to a global.
-	history *workerHistory
+	history   *workerHistory
+	evaluator *hceEvaluator
 
 	// Reusable per-invocation move buffers (docs/10 T1). Frames is allocated once per
 	// search; FrameDepth is the recursion-frame counter, pushed/popped in lockstep with
@@ -588,7 +589,7 @@ type SearchInfo struct {
 // DepthCallback is called after each depth completes during iterative deepening
 type DepthCallback func(info *SearchInfo)
 
-func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, control *SearchControl, history *workerHistory) *SearchInfo {
+func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, control *SearchControl, history *workerHistory, evaluator *hceEvaluator) *SearchInfo {
 	// Advance the age of the transposition table for each search
 	TranspositionTable.AdvanceAge()
 
@@ -613,6 +614,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		control:       control,
 		maxNodes:      control.MaxNodes(),
 		history:       history,
+		evaluator:     evaluator,
 	}
 
 	seedRootStaticEval(pos, info)
@@ -1065,7 +1067,7 @@ func pvDrawTerminal(pos *Position, repetitionCount int) bool {
 // few cp), so the two agree on the best move and track within search noise but are
 // NOT centipawn-identical (guarded by TestSearchFixedMatchesProductionScore). Do
 // not draw strength conclusions from it.
-func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, control *SearchControl, history *workerHistory) *SearchInfo {
+func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, control *SearchControl, history *workerHistory, evaluator *hceEvaluator) *SearchInfo {
 	// Allocate buffers once for the entire search tree
 	var moveBuffer [256]Move
 	var captureBuffer [64]Move
@@ -1088,6 +1090,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, contr
 		control:       control,
 		maxNodes:      control.MaxNodes(),
 		history:       history,
+		evaluator:     evaluator,
 	}
 
 	alpha := -INFINITY
@@ -1230,7 +1233,7 @@ func seedRootStaticEval(pos *Position, info *SearchInfo) {
 	corrIdx := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
 	nonPawnCorrIdx := nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])
 	minorCorrIdx := minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
-	info.StaticEvalStack[0] = EvaluateForPlayerCached(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
+	info.StaticEvalStack[0] = info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
 }
 
 // searchDrawScore applies the same terminal rules in the main and quiescence
@@ -1302,12 +1305,12 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// Safety check for excessive depth (use MaximumDepth constant)
 	if depth > MaximumDepth {
-		return EvaluateForPlayer(&pos.Board, pos.Turn())
+		return info.evaluator.LegacyUndampedSTM(pos)
 	}
 
 	// Safety check for negative depth (bug prevention)
 	if depth < 0 {
-		return EvaluateForPlayer(&pos.Board, pos.Turn())
+		return info.evaluator.LegacyUndampedSTM(pos)
 	}
 
 	// Safety check for excessive ply: no legal search should recurse past
@@ -1317,7 +1320,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// (e.g. PV[MaximumDepth]) overflows. The clock unwinds it in real games;
 	// fixed-depth analysis has no clock, so it crashes outright.
 	if ply >= MaximumDepth {
-		return EvaluateForPlayer(&pos.Board, pos.Turn())
+		return info.evaluator.LegacyUndampedSTM(pos)
 	}
 
 	// Quiescence owns the horizon frame and checks terminal positions itself.
@@ -1466,7 +1469,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		corrIdx = pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
 		nonPawnCorrIdx = nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])
 		minorCorrIdx = minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
-		staticEval = EvaluateForPlayerCached(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
+		staticEval = info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
 		corrStaticEval = staticEval // T4: capture the corrected static (raw + pawn + non-pawn + minor) BEFORE S7 overwrites it (all tables' learn target)
 		// S7: a search-refined TT score is a sharper static estimate than a fresh
 		// eval for the margin heuristics below (RFP/futility/NMP/improving). Use it
@@ -2248,7 +2251,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		info.SelDepth = ply
 	}
 	if ply >= MaximumDepth {
-		return EvaluateForPlayerCached(pos)
+		return info.evaluator.SearchSTM(pos)
 	}
 
 	// Fixed-node budget: trip the stop flag when spent (qsearch nodes count too).
@@ -2423,7 +2426,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// route through (evaluateLazyStandPat) is pinned dead — qsearchLazyMargin=100000
 	// means lazyFailHigh never fires — so this is value-identical; re-route through a
 	// cache-aware lazy path if that margin is ever unpinned (SHELVED 2026-06-02).
-	standPat := info.history.correctedStandPat(pos)
+	standPat := info.history.correctedStandPat(pos, info.evaluator)
 	if standPat >= beta {
 		info.QStandPatCuts++
 		return beta

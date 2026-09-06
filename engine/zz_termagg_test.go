@@ -27,8 +27,6 @@ func TestZZTermAgg(t *testing.T) {
 	if v := os.Getenv("AGG_PMAX"); v != "" {
 		pmax, _ = strconv.Atoi(v)
 	}
-	pawnCacheDisabled = true
-	defer func() { pawnCacheDisabled = false }()
 
 	terms := []struct {
 		name   string

@@ -33,7 +33,9 @@ func TestFinalTestLabelsCannotChangeFittedModelOrCalibration(t *testing.T) {
 	for i, target := range []float64{0, 1} {
 		restore()
 		parts := texeldata.Partitions{Train: train, Validation: validation, Test: []engine.TexelSample{sample("7k/8/q7/8/8/8/R7/7K w - - 0 1", target)}}
-		fitPartitions(parts, cfg, &reports[i])
+		if err := fitPartitions(parts, cfg, &reports[i]); err != nil {
+			t.Fatal(err)
+		}
 		models[i] = engine.ExportTexelModel()
 	}
 	if !reflect.DeepEqual(models[0], models[1]) || reports[0].K != reports[1].K || reports[0].FinalValidation != reports[1].FinalValidation {

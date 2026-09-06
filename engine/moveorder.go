@@ -50,9 +50,9 @@ func (h *workerHistory) correctionValue(stm Color, idx int) int {
 // The ply>=MaximumDepth emergency cap stays RAW — it fires before inCheck is known, and an
 // in-check static must never be corrected. The eval cache is unaffected — the correction is
 // added outside it.
-func (h *workerHistory) correctedStandPat(pos *Position) int {
+func (h *workerHistory) correctedStandPat(pos *Position, evaluator *hceEvaluator) int {
 	stm := pos.Turn()
-	return EvaluateForPlayerCached(pos) +
+	return evaluator.SearchSTM(pos) +
 		h.correctionValue(stm, pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])) +
 		h.nonPawnCorrectionValue(stm, nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])) +
 		h.minorCorrectionValue(stm, minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop]))
@@ -675,7 +675,12 @@ func correctionValue(stm Color, idx int) int {
 	return defaultSearchEngine.history.correctionValue(stm, idx)
 }
 func correctedStandPat(pos *Position) int {
-	return defaultSearchEngine.history.correctedStandPat(pos)
+	defaultSearchEngine.sessionMu.Lock()
+	defer defaultSearchEngine.sessionMu.Unlock()
+	generation := mustAcquireHCEModelUse()
+	defer releaseHCEModelUse()
+	evaluator := defaultSearchEngine.prepareHCEGeneration(pos, generation)
+	return defaultSearchEngine.history.correctedStandPat(pos, evaluator)
 }
 func updatePawnCorrection(stm Color, idx, diff, depth int) {
 	defaultSearchEngine.history.updatePawnCorrection(stm, idx, diff, depth)

@@ -31,6 +31,7 @@ func TestF1FutilityFalseDraw(t *testing.T) {
 	info := &SearchInfo{
 		control:       &defaultSearchEngine.control,
 		history:       &defaultSearchEngine.history,
+		evaluator:     &hceEvaluator{},
 		Depth:         3,
 		BestMove:      EmptyMove,
 		BestScore:     -INFINITY,
