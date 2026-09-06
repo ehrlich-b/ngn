@@ -156,7 +156,7 @@ func TestUCIGo(t *testing.T) {
 	engine.handleCommand("go depth 2", &output)
 
 	// Wait for search to complete
-	for engine.searching.Load() {
+	for engine.isSearching() {
 		time.Sleep(10 * time.Millisecond)
 	}
 	response := output.String()
@@ -192,7 +192,7 @@ func TestUCIStop(t *testing.T) {
 			t.Error("Search did not stop in reasonable time")
 			return
 		case <-ticker.C:
-			if !engine.searching.Load() {
+			if !engine.isSearching() {
 				return // Success
 			}
 		}
@@ -221,7 +221,7 @@ func BenchmarkUCIGo(b *testing.B) {
 		engine.handleCommand("go depth 1", &output)
 
 		// Wait for search to complete
-		for engine.searching.Load() {
+		for engine.isSearching() {
 			time.Sleep(1 * time.Millisecond)
 		}
 		output.Reset()

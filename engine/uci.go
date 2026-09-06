@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -50,12 +49,47 @@ func TryLoadDefaultBook() {
 	}
 }
 
+type uciSearchState uint8
+
+const (
+	uciSearchIdle uciSearchState = iota
+	uciSearchPrepared
+	uciSearchRunning
+	uciSearchStopping
+)
+
+type uciSearchSession struct {
+	id           uint64
+	done         chan struct{}
+	cancelOnce   sync.Once
+	completeOnce sync.Once
+	cancelled    chan struct{}
+}
+
+func (s *uciSearchSession) cancel(searcher *SearchEngine) {
+	s.cancelOnce.Do(func() {
+		close(s.cancelled)
+		searcher.RequestStop()
+	})
+}
+
+func (s *uciSearchSession) isCancelled() bool {
+	select {
+	case <-s.cancelled:
+		return true
+	default:
+		return false
+	}
+}
+
 // UCI Engine represents the UCI interface for the chess engine
 type UCIEngine struct {
 	position         *Position
 	searcher         *SearchEngine
-	searching        atomic.Bool
-	stopChan         chan bool
+	lifecycleMu      sync.Mutex
+	searchState      uciSearchState
+	activeSearch     *uciSearchSession
+	nextSearchID     uint64
 	debugMode        bool
 	engineName       string
 	engineAuthor     string
@@ -109,7 +143,6 @@ func NewUCIEngine() *UCIEngine {
 	return &UCIEngine{
 		position:         newUCIStartingPosition(),
 		searcher:         NewSearchEngine(),
-		stopChan:         make(chan bool, 1),
 		debugMode:        false,
 		engineName:       "ngn",
 		engineAuthor:     "ngn team",
@@ -472,23 +505,68 @@ type SearchParams struct {
 	Ponder    bool
 }
 
+func (uci *UCIEngine) beginSearchSession() (*uciSearchSession, bool) {
+	uci.lifecycleMu.Lock()
+	defer uci.lifecycleMu.Unlock()
+	if uci.activeSearch != nil {
+		return nil, false
+	}
+	// Clear the receiver control before publishing the session. Once published,
+	// stop may arrive at any point and must remain observable by the prepared entry.
+	uci.searcher.ClearStop()
+	uci.nextSearchID++
+	session := &uciSearchSession{id: uci.nextSearchID, done: make(chan struct{}), cancelled: make(chan struct{})}
+	uci.activeSearch = session
+	uci.searchState = uciSearchPrepared
+	return session, true
+}
+
+func (uci *UCIEngine) markSearchRunning(session *uciSearchSession) {
+	uci.lifecycleMu.Lock()
+	defer uci.lifecycleMu.Unlock()
+	if uci.activeSearch == session && uci.searchState == uciSearchPrepared {
+		uci.searchState = uciSearchRunning
+	}
+}
+
+func (uci *UCIEngine) finishSearchSession(session *uciSearchSession) {
+	session.completeOnce.Do(func() {
+		uci.lifecycleMu.Lock()
+		if uci.activeSearch == session {
+			uci.activeSearch = nil
+			uci.searchState = uciSearchIdle
+		}
+		close(session.done)
+		uci.lifecycleMu.Unlock()
+	})
+}
+
+func (uci *UCIEngine) isSearching() bool {
+	uci.lifecycleMu.Lock()
+	defer uci.lifecycleMu.Unlock()
+	return uci.activeSearch != nil
+}
+
 // handleGo handles the go command
 func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
 	uci.debugLogger.Printf("handleGo called with args: %v", args)
 	if uci.debugMode {
 		fmt.Fprintf(output, "info string handleGo called\n")
 	}
-	if uci.searching.Load() {
+	session, accepted := uci.beginSearchSession()
+	if !accepted {
 		uci.debugLogger.Println("Already searching, returning")
 		if uci.debugMode {
 			fmt.Fprintf(output, "info string already searching, returning\n")
 		}
-		return // Already searching
-	}
-	uci.searcher.ClearStop()
-	if !uci.searching.CompareAndSwap(false, true) {
 		return
 	}
+	launched := false
+	defer func() {
+		if !launched {
+			uci.finishSearchSession(session)
+		}
+	}()
 
 	params := SearchParams{
 		Depth:    0, // No default depth - will use time-based search
@@ -587,30 +665,30 @@ func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
 	if uci.debugMode {
 		fmt.Fprintf(output, "info string starting search goroutine\n")
 	}
-	go uci.search(params, output)
-	uci.debugLogger.Println("Search goroutine launched")
-
-	// Give goroutine a moment to start (important for UCI)
-	time.Sleep(10 * time.Millisecond)
+	uci.markSearchRunning(session)
+	go uci.search(params, output, session)
+	launched = true
+	uci.debugLogger.Printf("Search goroutine launched for session %d", session.id)
 }
 
 // search performs the actual search
-func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
+func (uci *UCIEngine) search(params SearchParams, output io.Writer, session *uciSearchSession) {
+	// Register completion first so it runs last. A stop that receives done has
+	// joined panic recovery and every final state/output write. Keep completion in
+	// its own defer so even an unexpected logger panic cannot strand a waiter.
+	defer uci.finishSearchSession(session)
+	defer uci.debugLogger.Printf("search() function completed for session %d", session.id)
 	defer GetGlobalCrashHandler().SafeRecover("UCIEngine.search", map[string]interface{}{
 		"params":       params,
 		"position":     GenerateFEN(uci.position),
 		"moves_played": uci.movesPlayed,
-		"searching":    uci.searching.Load(),
+		"searching":    uci.isSearching(),
 	})
 
 	uci.debugLogger.Printf("search() function started with params: %+v", params)
 	if uci.debugMode {
 		fmt.Fprintf(output, "info string search() function started\n")
 	}
-	defer func() {
-		uci.searching.Store(false)
-		uci.debugLogger.Println("search() function completed")
-	}()
 
 	uci.debugLogger.Println("search initialized, setting flags")
 	if uci.debugMode {
@@ -714,12 +792,10 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 			move := searchInfo.BestMove
 			nodes := searchInfo.Nodes
 
-			// Check for stop command
-			select {
-			case <-uci.stopChan:
+			// Suppress progress from an iteration that raced an explicit stop.
+			if session.isCancelled() {
 				uci.debugLogger.Printf("STOP COMMAND received during search")
 				return
-			default:
 			}
 
 			// Update best move and score
@@ -929,25 +1005,19 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 	uci.debugLogger.Printf("=== EXITING search() FUNCTION ===")
 }
 
-// handleStop handles the stop command
-func (uci *UCIEngine) handleStop(output io.Writer) {
-	if uci.searching.Load() {
-		// Wire stop into this UCI instance's recursive search control, in
-		// addition to the channel that the depth callback drains. The
-		// depth callback alone cannot interrupt a running iteration.
-		uci.searcher.RequestStop()
-		select {
-		case uci.stopChan <- true:
-		default:
-		}
+// handleStop handles the stop command.
+func (uci *UCIEngine) handleStop(_ io.Writer) {
+	uci.lifecycleMu.Lock()
+	session := uci.activeSearch
+	if session != nil {
+		uci.searchState = uciSearchStopping
+		session.cancel(uci.searcher)
 	}
-	// Join the search goroutine so stop is synchronous: search() clears `searching`
-	// in its defer AFTER its last output write and shared-state update, so once it
-	// reads false the main loop can safely mutate position/timeManager/... (e.g. a
-	// "position" right after "stop"). No-op when no search is running. The atomic
-	// Load/Store pair establishes happens-before, so reads after this are race-free.
-	for uci.searching.Load() {
-		time.Sleep(time.Millisecond)
+	uci.lifecycleMu.Unlock()
+	if session != nil {
+		// The sole completion close follows every search-state update and protocol
+		// write. Do not hold lifecycleMu while joining.
+		<-session.done
 	}
 }
 
@@ -958,8 +1028,6 @@ func (uci *UCIEngine) handlePonderHit(output io.Writer) {
 
 // handleQuit handles the quit command
 func (uci *UCIEngine) handleQuit(output io.Writer) {
-	if uci.searching.Load() {
-		uci.handleStop(output)
-	}
+	uci.handleStop(output)
 	// The main loop should exit after this
 }
