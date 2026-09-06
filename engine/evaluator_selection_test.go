@@ -263,3 +263,193 @@ func TestNGNV1StopInsideSingularVerificationLeavesParentContext(t *testing.T) {
 	}
 	requireWorkerRawMatchesFull(t, evaluator, pos)
 }
+
+func runN3CIterativeSnapshot(t *testing.T, searcher *SearchEngine, fen string) (SearchInfo, []SearchInfo) {
+	t.Helper()
+	pos := n3cPosition(t, fen)
+	before := snapshotPVPosition(pos)
+	var callbacks []SearchInfo
+	final := searcher.SearchIterativeDeepeningWithCallback(pos, 3, nil, func(info *SearchInfo) {
+		callbacks = append(callbacks, comparableN3CSearchInfo(info))
+	})
+	if after := snapshotPVPosition(pos); !reflect.DeepEqual(after, before) {
+		t.Fatal("iterative NNUE search changed root position")
+	}
+	if searcher.workerEvaluator.context.Depth() != 0 {
+		t.Fatalf("iterative NNUE search left Context depth %d", searcher.workerEvaluator.context.Depth())
+	}
+	requireWorkerRawMatchesFull(t, searcher.workerEvaluator, pos)
+	return comparableN3CSearchInfo(final), callbacks
+}
+
+func TestSearchNGNV1IterativeColdWarmMatchesFullRefreshCallbacks(t *testing.T) {
+	model, tensors := adapterContextModel(t)
+	const fen = "r3k2r/p1ppqpb1/bn2pnp1/2pP4/1p2P3/2N2N2/PPQBBPPP/R3K2R w KQkq - 37 1"
+
+	incremental := NewSearchEngine()
+	fullRefresh := NewSearchEngine()
+	if err := incremental.SelectNGNV1Evaluator(model); err != nil {
+		t.Fatal(err)
+	}
+	if err := fullRefresh.SelectNGNV1Evaluator(model); err != nil {
+		t.Fatal(err)
+	}
+	observed := 0
+	incremental.workerEvaluator.transitionObserver = func(pos *Position, context *nnue.Context) {
+		observed++
+		requireAdapterContextLanes(t, context, tensors, fullPositionForWorkerTest(t, pos))
+	}
+	fullRefresh.workerEvaluator.fullRefreshOracle = true
+
+	for _, lifetime := range []string{"cold", "warm"} {
+		t.Run(lifetime, func(t *testing.T) {
+			gotFinal, gotCallbacks := runN3CIterativeSnapshot(t, incremental, fen)
+			wantFinal, wantCallbacks := runN3CIterativeSnapshot(t, fullRefresh, fen)
+			if len(gotCallbacks) != 3 || len(wantCallbacks) != 3 {
+				t.Fatalf("callback counts incremental=%d full-refresh=%d, want 3 completed depths", len(gotCallbacks), len(wantCallbacks))
+			}
+			if !reflect.DeepEqual(gotCallbacks, wantCallbacks) {
+				t.Fatalf("iterative callback traces differ:\nincremental=%+v\nfull-refresh=%+v", gotCallbacks, wantCallbacks)
+			}
+			if !reflect.DeepEqual(gotFinal, wantFinal) {
+				t.Fatalf("iterative final results differ:\nincremental=%+v\nfull-refresh=%+v", gotFinal, wantFinal)
+			}
+			if gotCallbacks[len(gotCallbacks)-1].PVLength != gotFinal.PVLength ||
+				gotCallbacks[len(gotCallbacks)-1].PV != gotFinal.PV ||
+				gotCallbacks[len(gotCallbacks)-1].BestMove != gotFinal.BestMove ||
+				gotCallbacks[len(gotCallbacks)-1].BestScore != gotFinal.BestScore {
+				t.Fatal("final iterative result does not preserve the completed callback PV/result")
+			}
+		})
+	}
+	if observed < 4 {
+		t.Fatalf("incremental lane observer ran %d times, want roots and committed children across cold/warm searches", observed)
+	}
+}
+
+func poisonN3CWorkerHistory(history *workerHistory, move Move) {
+	history.historyTable[WhiteKing][A2] = 1
+	history.continuationHistory[WhiteKing][A1][WhiteKing][A2] = 2
+	history.followupHistory[WhiteKing][A1][WhiteKing][A2] = 3
+	history.pawnCorrectionHistory[White][1] = 4
+	history.nonPawnCorrectionHistory[Black][2] = 5
+	history.minorCorrectionHistory[White][3] = 6
+	history.captureHistory[WhiteKing][A2][BlackPawn] = 7
+	history.killerMoves[0][0] = move
+	history.counterMoves[A1][A2] = move
+	history.lastMovePlayed = move
+}
+
+func TestDistinctNGNV1ModelAtoBtoAAdmissionsInvalidateTTAndCompleteHistory(t *testing.T) {
+	modelA, tensorsA := adapterContextModel(t)
+	tensorsB := *tensorsA
+	tensorsB.OutputBias++
+	modelB := loadEvaluatorTensors(t, &tensorsB)
+	if modelA.Metadata() == modelB.Metadata() {
+		t.Fatal("distinct fixture models have identical metadata")
+	}
+
+	searcher, err := NewSearchEngineWithHash(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	terminal := n3cPosition(t, "7k/6Q1/6K1/8/8/8/8/8 b - - 0 1")
+	poisonMove := NewMove(A1, A2, WhiteKing, NoPiece, NoType, 0)
+
+	if err := searcher.SelectNGNV1Evaluator(modelA); err != nil {
+		t.Fatal(err)
+	}
+	searcher.SearchFixed(terminal.Copy(), 1, nil)
+	identityA := searcher.evaluatorIdentity
+
+	poisonN3CWorkerHistory(&searcher.history, poisonMove)
+	const keyA = uint64(0x4e334141)
+	searcher.TTStore(keyA, poisonMove, 17, 3, Exact, false)
+	if err := searcher.SelectNGNV1Evaluator(modelB); err != nil {
+		t.Fatal(err)
+	}
+	if searcher.history == (workerHistory{}) {
+		t.Fatal("model selection eagerly cleared history before admission")
+	}
+	searcher.SearchFixed(terminal.Copy(), 1, nil)
+	if _, _, _, _, hit, _ := searcher.TTProbe(keyA); hit {
+		t.Fatal("A-to-B admission retained model A TT entry")
+	}
+	if searcher.history != (workerHistory{}) {
+		t.Fatal("A-to-B admission did not clear the complete worker-history family")
+	}
+	identityB := searcher.evaluatorIdentity
+	if identityB == identityA {
+		t.Fatal("A-to-B admission retained model A composite identity")
+	}
+
+	poisonN3CWorkerHistory(&searcher.history, poisonMove)
+	const keyB = uint64(0x4e334242)
+	searcher.TTStore(keyB, poisonMove, 18, 3, Exact, false)
+	if err := searcher.SelectNGNV1Evaluator(modelA); err != nil {
+		t.Fatal(err)
+	}
+	searcher.SearchFixed(terminal.Copy(), 1, nil)
+	if _, _, _, _, hit, _ := searcher.TTProbe(keyB); hit {
+		t.Fatal("B-to-A admission retained model B TT entry")
+	}
+	if searcher.history != (workerHistory{}) {
+		t.Fatal("B-to-A admission did not clear the complete worker-history family")
+	}
+	if searcher.evaluatorIdentity != identityA {
+		t.Fatalf("B-to-A identity = %+v, original A = %+v", searcher.evaluatorIdentity, identityA)
+	}
+}
+
+func TestNGNV1SingularVerificationRemakesAndRepushesNormally(t *testing.T) {
+	model := loadEvaluatorTensors(t, new(nnue.Tensors))
+	searcher, err := NewSearchEngineWithHash(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := searcher.SelectNGNV1Evaluator(model); err != nil {
+		t.Fatal(err)
+	}
+	pos := n3cPosition(t, "4k3/8/8/8/8/8/8/R3K3 w - - 0 1")
+	before := snapshotPVPosition(pos)
+
+	searcher.sessionMu.Lock()
+	defer searcher.sessionMu.Unlock()
+	generation := mustAcquireHCEModelUse()
+	defer releaseHCEModelUse()
+	tt := searcher.prepareTTGeneration(generation)
+	evaluator := searcher.prepareWorkerEvaluator(pos, generation)
+	depth := SINGULAR_DEPTH
+	info := newN3CDirectSearchInfo(searcher, evaluator, tt, depth)
+	ttMove := adapterLegalMove(t, pos, "a1a8")
+	child := pos.Copy()
+	childEP, childTag, childClock, _ := child.MakeMove(ttMove)
+	childHash := child.Hash()
+	child.UnMakeMove(ttMove, childTag, childEP, childClock)
+	tt.Set(pos.Hash(), ttMove, scoreToTT(100, 0), int8(depth), Exact, false)
+
+	sawVerification := false
+	sawRepush := false
+	evaluator.transitionObserver = func(observedPos *Position, _ *nnue.Context) {
+		if info.ExcludedMove != EmptyMove {
+			sawVerification = true
+		}
+		if info.SingularTries > 0 && info.ExcludedMove == EmptyMove && observedPos.Hash() == childHash {
+			sawRepush = true
+		}
+	}
+	score := alphaBetaPV(pos, depth, 0, -INFINITY, INFINITY, true, true, false, info)
+	if info.Stopped || score == stoppedSearchScore {
+		t.Fatalf("normal singular witness stopped score=%d stopped=%v", score, info.Stopped)
+	}
+	if info.SingularTries == 0 || !sawVerification || !sawRepush {
+		t.Fatalf("singular completion tries=%d verification=%v repush=%v", info.SingularTries, sawVerification, sawRepush)
+	}
+	if evaluator.context.Depth() != 0 {
+		t.Fatalf("completed singular verification left Context depth %d", evaluator.context.Depth())
+	}
+	if after := snapshotPVPosition(pos); !reflect.DeepEqual(after, before) {
+		t.Fatal("completed singular verification did not restore root position")
+	}
+	requireWorkerRawMatchesFull(t, evaluator, pos)
+}
