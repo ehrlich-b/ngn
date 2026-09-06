@@ -18,4 +18,17 @@ Run: /home/ehrli/nnue-public-toolchain-20260906/runs/ngn-data-3m-fixed-holdout-v
 - Fixed-holdout audit SHA: 0aab98487cfaee6e558096a5199d06e82e5c9adaf2840262c8cd41f9e53fca22.
 - Root receipt: output/nnue-data-3m-root-review-20260906/receipt.json, SHA a23f790a099c27cd1ccfba1e31b69f62484f3cb399a91dc65a972df44d118e42.
 
-The next training proposal changes only the training BF/count from the accepted 1M 512-update experiment, preserving the exact old validation set and all graph/optimizer/target/quantization/selection rules. It has source review acceptance but no training authorization yet. The eight-thread operational game control owns the current exclusive compute window.
+The fixed-architecture, fixed-512-update training experiment is now independently accepted. Its source delta changed only the expanded training path/count and review text; the graph, optimizer, learning rate, labels, seed, original validation, quantization gates and selector stayed fixed. It consumed exactly 512 batches of 16,384 positions (8,388,608 presentations).
+
+Validation raw loss at candidates 0 through 8 was 0.080705193, 0.067443423, 0.060998271, 0.058495908, 0.058438328, 0.058538766, 0.058132751, 0.058232740 and 0.058279031. All nine candidates passed the predeclared quantization gates. The unchanged selector chose candidate 6 at update 384; its raw loss of 0.058132751 is below the prior 1M experiment's best 0.067229833 on the exact same original validation bytes. Selected quantization error was mean 6.050966 cp, p99 22.058792 cp and max 39.450790 cp under this pipeline's declared score scale.
+
+All 44 supervised stages exited zero with no survivors, timeout, memory violation or monitor error. Eighteen bridge parity checks (raw and quantized for each candidate, 16 frozen FENs each) had zero integer-versus-Go difference. All nine raw/quantized NGN artifact pairs were byte-identical. Selection A and B were identical. Root independently rehashed all 11,579 final artifacts totaling 917,126,901 bytes.
+
+Training run: /home/ehrli/nnue-public-toolchain-20260906/runs/ngn-v0-3m-fixedholdout-512updates-v1-attempt1.
+
+- Selected network: artifacts/training/candidates/candidate-6/bridge/raw.ngn, 197,506 bytes, SHA 00d3947d9ddd3734f502bec47f6fc7c2ece641bba5f765e8129f238007aa1a98.
+- Final artifact manifest: receipts/final-files.sha256, SHA 17e067796c78de7e8ee70b973dfe709af6af82d967439bf5842f8f56a33d6492.
+- Selection: artifacts/selection-a.txt, SHA 81fed2d7d8118971f0ca72df8cc02fb187dcc353912b87d15069aeec5fb818dc.
+- Root training receipt: output/nnue-training-3m-root-review-20260906/receipt.json, SHA c3078b7e294a1811bfd051a52a274b0287ba848391b0f508cbe7bce011287708.
+
+No playing-strength result exists for this network yet. A separate four-game same-code one-worker screen is prepared with candidate 6 frozen before games. It will not provide an Elo estimate. The original validation has been reused across these experiments; original-game disjointness is unproven and a later release requires fresh unseen evidence.
