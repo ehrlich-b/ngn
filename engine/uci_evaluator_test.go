@@ -91,6 +91,87 @@ func TestUCIEvaluatorOptionDefaultsAndSelectedDiagnostic(t *testing.T) {
 	}
 }
 
+func TestConfigureStartupEvaluatorCounterAndAdvertisedDefaults(t *testing.T) {
+	path := writeUCICounterFixture(t, "counter startup.nn", 19)
+	uci := NewUCIEngine()
+	if err := uci.ConfigureStartupEvaluator(" COUNTER-5.5 ", " "+path+" "); err != nil {
+		t.Fatal(err)
+	}
+	config := requireUCIEvaluatorConfig(t, uci, uciEvaluatorCounter55, path)
+	if config.staged.counter55 == nil || uci.searcher.SelectedEvaluatorBackend() != EvaluatorBackendCounter55Name {
+		t.Fatal("startup configuration did not activate Counter")
+	}
+
+	var output bytes.Buffer
+	uci.handleCommand("uci", &output)
+	for _, want := range []string{
+		"option name EvalBackend type combo default counter-5.5 var hce var ngn-v1 var counter-5.5",
+		"option name EvalFile type string default " + path,
+	} {
+		if !strings.Contains(output.String(), want+"\n") {
+			t.Fatalf("configured UCI response missing %q:\n%s", want, output.String())
+		}
+	}
+
+	// Defaults describe how this process started, not its mutable live selection.
+	uci.handleCommand("setoption name EvalBackend value hce", &output)
+	uci.handleCommand("setoption name EvalFile value <empty>", &output)
+	output.Reset()
+	uci.handleCommand("uci", &output)
+	for _, want := range []string{
+		"option name EvalBackend type combo default counter-5.5 var hce var ngn-v1 var counter-5.5",
+		"option name EvalFile type string default " + path,
+	} {
+		if !strings.Contains(output.String(), want+"\n") {
+			t.Fatalf("runtime switch changed startup default %q:\n%s", want, output.String())
+		}
+	}
+}
+
+func TestConfigureStartupEvaluatorNGNV1(t *testing.T) {
+	path := writeUCINNUEFixture(t, "startup.ngn", new(nnue.Tensors))
+	uci := NewUCIEngine()
+	if err := uci.ConfigureStartupEvaluator(uciEvaluatorNGNV1, path); err != nil {
+		t.Fatal(err)
+	}
+	requireUCIEvaluatorConfig(t, uci, uciEvaluatorNGNV1, path)
+	if uci.searcher.SelectedEvaluatorBackend() != EvaluatorBackendNGNV1Name {
+		t.Fatal("startup configuration did not activate NGN v1")
+	}
+}
+
+func TestConfigureStartupEvaluatorRejectsInvalidConfigurationTransactionally(t *testing.T) {
+	counterPath := writeUCICounterFixture(t, "counter.nn", 19)
+	ngnPath := writeUCINNUEFixture(t, "ngn.ngn", new(nnue.Tensors))
+	missing := filepath.Join(t.TempDir(), "missing.nn")
+
+	for _, test := range []struct {
+		name, backend, path string
+	}{
+		{"unknown backend", "stockfish", ""},
+		{"counter without file", uciEvaluatorCounter55, ""},
+		{"ngn without file", uciEvaluatorNGNV1, "<empty>"},
+		{"hce with file", uciEvaluatorHCE, counterPath},
+		{"missing file", uciEvaluatorCounter55, missing},
+		{"wrong model format", uciEvaluatorCounter55, ngnPath},
+		{"line break in file", uciEvaluatorCounter55, counterPath + "\nignored"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			uci := NewUCIEngine()
+			beforeModel := uci.searcher.evaluatorModel
+			beforeWorker := uci.searcher.worker.evaluator
+			if err := uci.ConfigureStartupEvaluator(test.backend, test.path); err == nil {
+				t.Fatal("invalid startup evaluator configuration succeeded")
+			}
+			requireUCIEvaluatorConfig(t, uci, uciEvaluatorHCE, "")
+			if uci.searcher.evaluatorModel != beforeModel || uci.searcher.worker.evaluator != beforeWorker ||
+				uci.searcher.SelectedEvaluatorBackend() != EvaluatorBackendHCEName {
+				t.Fatal("failed startup evaluator configuration changed active state")
+			}
+		})
+	}
+}
+
 func TestUCIEvaluatorSetOptionOrdersAndTransactionalErrors(t *testing.T) {
 	var tensors nnue.Tensors
 	tensors.OutputBias = 7

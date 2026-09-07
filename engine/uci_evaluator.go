@@ -41,6 +41,11 @@ func (model stagedEvaluatorModel) backendName() string {
 	}
 }
 
+type uciEvaluatorDefaults struct {
+	backend string
+	file    string
+}
+
 type uciEvaluatorConfig struct {
 	backend string
 	file    string
@@ -89,6 +94,63 @@ func loadUCIEvaluatorModel(path string) (stagedEvaluatorModel, error) {
 	default:
 		return stagedEvaluatorModel{}, fmt.Errorf("unsupported evaluator format %q", path)
 	}
+}
+
+// ConfigureStartupEvaluator selects the evaluator configuration exposed as the
+// UCI defaults for this process. It must be called before Run. Unlike the UCI
+// staging interface, a startup model path must name the model that is activated:
+// explicit startup configuration never silently leaves HCE selected.
+func (uci *UCIEngine) ConfigureStartupEvaluator(backend, path string) error {
+	backend = strings.ToLower(strings.TrimSpace(backend))
+	path = strings.TrimSpace(path)
+	if backend == "" {
+		backend = uciEvaluatorHCE
+	}
+	if strings.ContainsAny(path, "\r\n") {
+		return fmt.Errorf("EvalFile contains a line break")
+	}
+
+	switch backend {
+	case uciEvaluatorHCE:
+		if path != "" && !strings.EqualFold(path, "<empty>") {
+			return fmt.Errorf("EvalFile requires EvalBackend ngn-v1 or counter-5.5")
+		}
+		if err := uci.searcher.SelectHCEEvaluator(); err != nil {
+			return fmt.Errorf("select hce: %w", err)
+		}
+		uci.lifecycleMu.Lock()
+		uci.evaluatorConfig = newUCIEvaluatorConfig()
+		uci.startupDefaults = uciEvaluatorDefaults{backend: uciEvaluatorHCE}
+		uci.lifecycleMu.Unlock()
+		return nil
+	case uciEvaluatorNGNV1, uciEvaluatorCounter55:
+		if path == "" || strings.EqualFold(path, "<empty>") {
+			return fmt.Errorf("EvalBackend %s requires EvalFile", backend)
+		}
+	default:
+		return fmt.Errorf("unsupported EvalBackend %q (want hce, ngn-v1, or counter-5.5)", backend)
+	}
+
+	staged, err := loadUCIEvaluatorModel(path)
+	if err != nil {
+		return err
+	}
+	if staged.backendName() != backend {
+		return fmt.Errorf("EvalFile contains %s model, not requested %s", staged.backendName(), backend)
+	}
+	if backend == uciEvaluatorNGNV1 {
+		err = uci.searcher.SelectNGNV1Evaluator(staged.ngnV1)
+	} else {
+		err = uci.searcher.SelectCounter55Evaluator(staged.counter55)
+	}
+	if err != nil {
+		return fmt.Errorf("select %s: %w", backend, err)
+	}
+	uci.lifecycleMu.Lock()
+	uci.evaluatorConfig = uciEvaluatorConfig{backend: backend, file: path, staged: staged}
+	uci.startupDefaults = uciEvaluatorDefaults{backend: backend, file: path}
+	uci.lifecycleMu.Unlock()
+	return nil
 }
 
 func (uci *UCIEngine) evaluatorConfigSnapshot() uciEvaluatorConfig {

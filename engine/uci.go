@@ -154,6 +154,7 @@ type UCIEngine struct {
 	now              func() time.Time
 	copyPosition     func(*Position) *Position
 	evaluatorConfig  uciEvaluatorConfig
+	startupDefaults  uciEvaluatorDefaults
 	ownBook          bool
 }
 
@@ -221,6 +222,7 @@ func NewUCIEngine() *UCIEngine {
 		now:              time.Now,
 		copyPosition:     func(pos *Position) *Position { return pos.Copy() },
 		evaluatorConfig:  newUCIEvaluatorConfig(),
+		startupDefaults:  uciEvaluatorDefaults{backend: uciEvaluatorHCE},
 		ownBook:          true,
 	}
 }
@@ -377,14 +379,25 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, fmt.Sprintf("id name %s %s", uci.engineName, uci.version))
 	uci.sendUCIMessage(output, fmt.Sprintf("id author %s", uci.engineAuthor))
 
+	uci.lifecycleMu.Lock()
+	evalBackendDefault := uci.startupDefaults.backend
+	evalFileDefault := uci.startupDefaults.file
+	uci.lifecycleMu.Unlock()
+	if evalBackendDefault == "" {
+		evalBackendDefault = uciEvaluatorHCE
+	}
+	if evalFileDefault == "" {
+		evalFileDefault = "<empty>"
+	}
+
 	// Engine options (we can add more later)
 	uci.sendUCIMessage(output, "option name Hash type spin default 128 min 1 max 1024")
 	uci.sendUCIMessage(output, "option name Threads type spin default 1 min 1 max 64")
 	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
 	uci.sendUCIMessage(output, "option name OwnBook type check default true")
 	uci.sendUCIMessage(output, "option name SyzygyPath type string default <empty>")
-	uci.sendUCIMessage(output, "option name EvalBackend type combo default hce var hce var ngn-v1 var counter-5.5")
-	uci.sendUCIMessage(output, "option name EvalFile type string default <empty>")
+	uci.sendUCIMessage(output, fmt.Sprintf("option name EvalBackend type combo default %s var hce var ngn-v1 var counter-5.5", evalBackendDefault))
+	uci.sendUCIMessage(output, fmt.Sprintf("option name EvalFile type string default %s", evalFileDefault))
 
 	// Tunable search parameters (for SPSA / manual A/B; defaults == shipped values).
 	for _, p := range TunableSearchParams {
