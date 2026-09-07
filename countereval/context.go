@@ -161,14 +161,11 @@ func applyFeatureUpdates(
 ) {
 	for _, update := range updates[:updateCount] {
 		base := update.feature * HiddenSize
+		weights := (*[HiddenSize]float32)(model.hiddenWeights[base : base+HiddenSize])
 		if update.add {
-			for hidden := 0; hidden < HiddenSize; hidden++ {
-				accumulator[hidden] += model.hiddenWeights[base+hidden]
-			}
+			addFeatureRow(accumulator, weights)
 		} else {
-			for hidden := 0; hidden < HiddenSize; hidden++ {
-				accumulator[hidden] -= model.hiddenWeights[base+hidden]
-			}
+			subFeatureRow(accumulator, weights)
 		}
 	}
 }
