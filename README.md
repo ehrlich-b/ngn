@@ -105,12 +105,13 @@ The estimate is supported by several distinct measurements:
 | Counter evaluator, 8 workers vs HCE, 8 workers | 66 wins, 27 draws, 5 losses | Combined NNUE plus SMP candidate is decisively stronger than the HCE configuration |
 | Integrated candidate, 1 worker vs Counter 5.5 | 1 win, 25 draws, 74 losses; -323 relative Elo | About 3010 if mapped directly onto Counter's published 3333 anchor |
 | Integrated candidate, 8 workers vs Counter 5.5 | 1 win, 49 draws, 50 losses; -186 relative Elo | About 3147 before correcting for the rating-list/thread mismatch |
+| Integrated candidate, 1 worker vs Rodent V 1.1 | 1 win, 15 draws, 84 losses; -413 relative Elo | About 3109 when mapped onto Rodent's current 3522 CCRL 40/4 anchor |
 
-The completed Counter cross-checks disagree materially by width, which is normal
-for this kind of local calibration and is why the project should not claim a
-precise official rating. A separate Rodent V 1.1 comparison is still running and
-is excluded from the table until terminal. The working estimate will be replaced
-by the completed external matrix and eventually an independent rating-list result.
+The completed external checks differ materially by opponent and width, which is
+normal for this kind of local calibration and is why the project should not claim
+a precise official rating. The Rodent and eight-worker Counter anchors imply 3109
+and 3147 respectively, centering near the stated 3130 estimate. The working
+estimate will eventually be replaced by an independent rating-list result.
 
 The integrated source is now on `main`; deployment of the packaged candidate is
 still gated on the remaining external comparison matrix and release verification.
