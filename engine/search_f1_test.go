@@ -29,6 +29,10 @@ func TestF1FutilityFalseDraw(t *testing.T) {
 	var orderedBuffer [256]Move
 	var seeGains [32]int
 	info := &SearchInfo{
+		control:       &defaultSearchEngine.worker.control,
+		history:       &defaultSearchEngine.worker.history,
+		evaluator:     testHCEWorkerEvaluator(nil),
+		tt:            defaultTTForDirectTest(),
 		Depth:         3,
 		BestMove:      EmptyMove,
 		BestScore:     -INFINITY,

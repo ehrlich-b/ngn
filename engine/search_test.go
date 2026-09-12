@@ -213,7 +213,7 @@ func TestIterativeDeepening(t *testing.T) {
 	// Reset global search state so this test is deterministic regardless of
 	// what other tests left behind in TT/history/killer/counter tables.
 	resetSearchGlobals := func() {
-		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+		defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 		ClearHistoryTable()
 		ClearKillerMoves()
 		ClearCounterMoves()
@@ -301,7 +301,7 @@ func TestTranspositionTable(t *testing.T) {
 	pos := newStartingPosition()
 
 	// Clear the transposition table
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 
 	// Do a search to populate the transposition table
 	info1 := Search(pos, 3)
@@ -342,7 +342,7 @@ func BenchmarkWithTranspositionTable(b *testing.B) {
 	pos := newStartingPosition()
 
 	// Clear TT before benchmarking
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

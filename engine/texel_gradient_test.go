@@ -33,9 +33,6 @@ var texelGateFENs = []string{
 // accumulator), which makes texelMSE-from-traces identical to texelMSE. The tuner
 // always runs with the pawn cache disabled, so we match that regime here.
 func TestEvalTraceReproducesEval(t *testing.T) {
-	saved := pawnCacheDisabled
-	pawnCacheDisabled = true
-	defer func() { pawnCacheDisabled = saved }()
 
 	for _, fen := range texelGateFENs {
 		pos, err := ParseFEN(fen)
@@ -73,9 +70,6 @@ func TestEvalTraceReproducesEval(t *testing.T) {
 // cover positions outside texelGateFENs, and changing every live coordinate proves
 // that the trace remains the evaluator's model rather than a default-value snapshot.
 func TestEvalTraceParityDiverseAndPerturbedWeights(t *testing.T) {
-	savedCache := pawnCacheDisabled
-	pawnCacheDisabled = true
-	defer func() { pawnCacheDisabled = savedCache }()
 
 	positions := make([]Position, 0, 1600)
 	rng := rand.New(rand.NewSource(2600))
@@ -143,9 +137,6 @@ func TestEvalTraceParityDiverseAndPerturbedWeights(t *testing.T) {
 // taper floor plus six /100 term floors, < ~8cp. A large gap would mean the float
 // model and the engine eval have structurally diverged.
 func TestEvalTraceFloatFidelity(t *testing.T) {
-	saved := pawnCacheDisabled
-	pawnCacheDisabled = true
-	defer func() { pawnCacheDisabled = saved }()
 
 	ptrs := TexelFullParams()
 	if len(ptrs) != texelNumParams {
@@ -249,9 +240,6 @@ func gateSamples(t *testing.T) []TexelSample {
 // texelTraceAccumulate would diverge here. The model is linear in w so the MSE is
 // smooth and central differences match to high precision.
 func TestTexelGradientNumericCheck(t *testing.T) {
-	saved := pawnCacheDisabled
-	pawnCacheDisabled = true
-	defer func() { pawnCacheDisabled = saved }()
 
 	traces := traceDataset(gateSamples(t))
 	ptrs := TexelFullParams()
@@ -343,8 +331,6 @@ func TestTexelGradientBackwardPawnCoordinates(t *testing.T) {
 // A training update can worsen validation loss. The original vector is a valid
 // checkpoint and must win if every attempted update is worse than that baseline.
 func TestTexelGradientTunePreservesBetterInitialVector(t *testing.T) {
-	savedCache := pawnCacheDisabled
-	defer func() { pawnCacheDisabled = savedCache }()
 	ptrs := TexelFullParams()
 	saved := make([]int, len(ptrs))
 	w := make([]float64, len(ptrs))
@@ -392,9 +378,6 @@ func TestTexelGradientTunePreservesBetterInitialVector(t *testing.T) {
 // back. This guarantees real, reducible gradient signal (avoiding the degenerate
 // K≈0 that arbitrary uncorrelated labels produce). Parameters are saved/restored.
 func TestTexelGradientTuneReducesMSE(t *testing.T) {
-	saved := pawnCacheDisabled
-	pawnCacheDisabled = true
-	defer func() { pawnCacheDisabled = saved }()
 
 	ptrs := TexelFullParams()
 	savedParams := make([]int, len(ptrs))

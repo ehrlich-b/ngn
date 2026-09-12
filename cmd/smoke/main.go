@@ -131,9 +131,9 @@ func runTactical(epdPath string, n, msPerPos int, threshold float64, seed int64)
 	correct := 0
 	start := time.Now()
 	for i, p := range picks {
-		// Fresh global state per puzzle so cross-contamination from one
+		// Fresh receiver state per puzzle so cross-contamination from one
 		// puzzle's TT/history doesn't bias the next one.
-		engine.TranspositionTable = engine.NewCache(engine.DEFAULT_CACHE_SIZE)
+		engine.ClearHash()
 		engine.ClearHistoryTable()
 		engine.ClearKillerMoves()
 		engine.ClearCounterMoves()

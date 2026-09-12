@@ -36,7 +36,7 @@ func replayGame46(t *testing.T) *Position {
 }
 
 func resetMateProbe() {
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 	ClearHistoryTable()
 	ClearKillerMoves()
 	ClearCounterMoves()

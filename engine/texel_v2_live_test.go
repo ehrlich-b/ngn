@@ -135,7 +135,7 @@ func TestTexelV2ImportInvalidatesCachedEvaluation(t *testing.T) {
 	if err := ApplyTexelModel(model); err != nil {
 		t.Fatal(err)
 	}
-	// Model import requires fresh/rebuilt board accumulators by contract.
+	// A fresh position remains numerically identical to the default cached wrapper.
 	pos, err = ParseFEN(fen)
 	if err != nil {
 		t.Fatal(err)

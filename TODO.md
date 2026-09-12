@@ -1,3 +1,52 @@
+# NGN current state — September 12 audit
+
+The original classical target is complete: accepted `53e4d1b` measured 2884
+[2834,2934] on the fixed historical calibration, with 400 games, 55,349 legally
+replayed plies and all 400 terminal outcomes audited. The active direction is the
+strongest Go-based engine; NNUE and real multicore search are now in scope. All
+implementation, builds, engines and matches run on the authorized WSL host. The
+Mac is an editing and remote-control terminal only.
+
+Development source through `a51233b` has integrated Lazy SMP, Counter 5.5
+evaluation, evaluator startup selection and the accepted Counter AVX2 path.
+Width 2/1, 4/1 and 8/1 HCE tests all accepted H1; Counter1/HCE1 and the longer
+Counter8/HCE8 interaction also accepted H1. Fixed external cells completed for
+Counter 5.5 at widths 1 and 8 and Rodent V1.1 at width 1. The exact Rodent V1.1
+artifact cannot expose Threads at width 8, so that cell is unavailable without
+substitution.
+
+The external queue is **not complete**. Rodent V1.2 width 1 stopped after 50
+completed games when the exact release emitted the invalid promotion PV token
+`g2g1`; strict trace policy correctly failed the cell. That partial score is not
+accepted. Rodent V1.2 width 8 and both focused longer-clock V1.2 cells did not
+run. The prepared `a51233b` Counter package is therefore still held. WSL
+`build/ngn` remains the classical `53e4d1b` binary, while the clean source
+checkout has since advanced to `314e1ba`; the old coherent-install runbook
+expects that checkout at `53e4d1b` and must not be run unchanged. No NGN match
+or engine process was active during the September 12 read-only audit.
+
+Next, in order:
+
+1. Reproduce and classify the Rodent V1.2 promotionless-PV boundary without
+   using its observed score. Freeze any reporting-only compatibility policy and
+   its negative fixtures before a fresh full fixed schedule; otherwise mark the
+   exact V1.2 cells unavailable rather than weakening the gate retrospectively.
+2. Make the result-producing external runner source durable. Its frozen V17 delta has
+   focused passing tests, but the out-of-tree full suite still carries 27
+   failures and the WSL worktree is uncommitted; do not copy it blindly into
+   `main`.
+3. Complete a root aggregate of the combined and external terminal evidence,
+   then regenerate or amend the package transition for the current clean source
+   checkout. Rehearse and deploy only if the release gate is satisfied.
+4. After the reproducible release, improve owned training/data, SMP efficiency,
+   Stockfish-network support, search correctness and measured Go hot paths.
+
+See [the evidence and exact WSL artifact map](experiments/2026-09-12-release-state-audit.md).
+The older September 5 runbook below is historical context. Do not restart its
+workers or treat its queue as current.
+
+---
+
 # NGN active runbook
 
 Updated 2026-09-05. **At least 2800 without NNUE: VERIFIED on the fixed historical calibration.** `CLAUDE.md` owns operating policy. Detailed evidence belongs

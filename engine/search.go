@@ -3,7 +3,6 @@ package engine
 import (
 	"math"
 	"math/bits"
-	"sync/atomic"
 )
 
 const (
@@ -71,47 +70,6 @@ var TunableSearchParams = []TunableParam{
 	{"AspInit", &ASP_INIT, 13, 4, 40},
 	{"AspMult", &ASP_MULT, 154, 110, 250},
 	{"LMPBase", &LMP_BASE, 4, 2, 16},
-}
-
-// globalStopRequested is set by UCI's stop handler and observed by the search
-// hot paths. It exists because TimeManager alone cannot interrupt search:
-// - For `go infinite` it never asks to stop.
-// - For other modes, stop must be honored even before the soft/hard time hits.
-// Cleared at the start of every search; set by RequestStop().
-var globalStopRequested atomic.Bool
-
-// RequestStop signals running searches to stop as soon as practical.
-func RequestStop() {
-	globalStopRequested.Store(true)
-}
-
-// ClearStop clears any pending stop request (called at search entry).
-func ClearStop() {
-	globalStopRequested.Store(false)
-}
-
-// IsStopRequested reports whether a stop has been requested by an external
-// caller (e.g. UCI `stop`). Cheap atomic load, safe to poll in hot paths.
-func IsStopRequested() bool {
-	return globalStopRequested.Load()
-}
-
-// globalMaxNodes caps total nodes for the current search (0 = unlimited). Set from
-// UCI `go nodes N` and observed in the search hot paths, which trip the stop flag
-// when the budget is spent. This makes self-play deterministic at an equal node
-// budget — fast (small cap), cool (no timing, so concurrency is free), and able to
-// credit ordering/efficiency changes that fixed-depth and movetime both miss.
-var globalMaxNodes atomic.Uint64
-
-// SetMaxNodes sets the per-search node budget (0 = unlimited). Called by UCI before
-// each search and overwritten every `go`, so it needs no separate clear.
-func SetMaxNodes(n uint64) {
-	globalMaxNodes.Store(n)
-}
-
-// MaxNodes returns the current node budget (0 = unlimited).
-func MaxNodes() uint64 {
-	return globalMaxNodes.Load()
 }
 
 // Late Move Pruning thresholds, indexed [improving][depth] (S4, W11). Follows
@@ -512,16 +470,18 @@ type searchFrame struct {
 const searchFramePoolSize = 256
 
 type SearchInfo struct {
-	Nodes       uint64
-	Depth       int
-	SelDepth    int // Maximum ply reached including quiescence
-	RootDepth   int // Depth of the current ID iteration; the reference for the per-path extension budget
-	BestMove    Move
-	BestScore   int
-	Stopped     bool
-	TimeManager *TimeManager
-	PV          [MaximumDepth]Move // Principal variation array
-	PVLength    int                // Length of current PV
+	Nodes            uint64
+	EffectiveThreads int
+	Depth            int
+	SelDepth         int // Maximum ply reached including quiescence
+	RootDepth        int // Depth of the current ID iteration; the reference for the per-path extension budget
+	BestMove         Move
+	BestScore        int
+	Stopped          bool
+	TimeManager      *TimeManager
+	PV               [MaximumDepth]Move // Principal variation array
+	PVLength         int                // Length of current PV
+	Hashfull         int                // Permille occupancy sampled with the completed PV
 
 	// Static eval per ply (white-to-move perspective of the node) for the
 	// improving heuristic; indexed by ply like PV.
@@ -613,8 +573,17 @@ type SearchInfo struct {
 
 	// maxNodes snapshots the `go nodes` budget at search start — it is constant for
 	// the whole search, so the per-node check reads a plain field instead of paying
-	// an atomic load (MaxNodes()) at every main and qsearch node.
+	// an atomic load at every main and qsearch node.
+	control  *SearchControl
 	maxNodes uint64
+	// history is the persistent heuristic owner supplied by the SearchEngine.
+	// It is explicit on every production entry path and never falls back to a global.
+	history   *workerHistory
+	evaluator *workerEvaluator
+	tt        *Cache
+
+	nodePublisher      *searchNodePublisher
+	lastPublishedNodes uint64
 
 	// Reusable per-invocation move buffers (docs/10 T1). Frames is allocated once per
 	// search; FrameDepth is the recursion-frame counter, pushed/popped in lockstep with
@@ -623,25 +592,23 @@ type SearchInfo struct {
 	FrameDepth int
 }
 
-func Search(pos *Position, depth int) *SearchInfo {
-	return SearchIterativeDeepening(pos, depth, nil)
-}
-
 // DepthCallback is called after each depth completes during iterative deepening
 type DepthCallback func(info *SearchInfo)
 
-func SearchIterativeDeepening(pos *Position, maxDepth int, timeManager *TimeManager) *SearchInfo {
-	return SearchIterativeDeepeningWithCallback(pos, maxDepth, timeManager, nil)
+type iterativeSearchOptions struct {
+	advanceTTAge     bool
+	effectiveThreads int
+	nodePublisher    *searchNodePublisher
 }
 
-func SearchIterativeDeepeningWithCallback(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback) *SearchInfo {
-	ClearStop()
-	return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback)
+func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, control *SearchControl, history *workerHistory, evaluator *workerEvaluator, tt *Cache) *SearchInfo {
+	return searchIterativeDeepeningWorkerUnsafe(pos, maxDepth, timeManager, callback, control, history, evaluator, tt, iterativeSearchOptions{advanceTTAge: true, effectiveThreads: 1})
 }
 
-func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback) *SearchInfo {
-	// Advance the age of the transposition table for each search
-	TranspositionTable.AdvanceAge()
+func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, control *SearchControl, history *workerHistory, evaluator *workerEvaluator, tt *Cache, options iterativeSearchOptions) *SearchInfo {
+	if options.advanceTTAge {
+		tt.AdvanceAge()
+	}
 
 	// Allocate buffers once for the entire search tree
 	var moveBuffer [256]Move
@@ -650,18 +617,28 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 	var seeGains [32]int
 
 	info := &SearchInfo{
-		Nodes:         0,
-		Depth:         maxDepth,
-		BestMove:      EmptyMove,
-		BestScore:     -INFINITY,
-		Stopped:       false,
-		TimeManager:   timeManager,
-		MoveBuffer:    &moveBuffer,
-		CaptureBuffer: &captureBuffer,
-		OrderedBuffer: &orderedBuffer,
-		SEEGains:      &seeGains,
-		Frames:        make([]searchFrame, searchFramePoolSize),
-		maxNodes:      MaxNodes(),
+		Nodes:            0,
+		EffectiveThreads: options.effectiveThreads,
+		Depth:            maxDepth,
+		BestMove:         EmptyMove,
+		BestScore:        -INFINITY,
+		Stopped:          false,
+		TimeManager:      timeManager,
+		MoveBuffer:       &moveBuffer,
+		CaptureBuffer:    &captureBuffer,
+		OrderedBuffer:    &orderedBuffer,
+		SEEGains:         &seeGains,
+		Frames:           make([]searchFrame, searchFramePoolSize),
+		control:          control,
+		maxNodes:         control.MaxNodes(),
+		history:          history,
+		evaluator:        evaluator,
+		tt:               tt,
+		nodePublisher:    options.nodePublisher,
+	}
+	defer info.publishNodesIfDue(true)
+	if callback != nil {
+		defer refreshSearchReport(pos, info)
 	}
 
 	seedRootStaticEval(pos, info)
@@ -685,7 +662,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 	for currentDepth := 1; currentDepth <= maxDepth && !info.Stopped; currentDepth++ {
 		// Honor an external UCI stop request even when no time manager is set
 		// (e.g. `go infinite`).
-		if IsStopRequested() {
+		if info.control.StopRequested() {
 			info.Stopped = true
 			break
 		}
@@ -760,7 +737,7 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 
 			// Root search with aspiration window
 			var orderedRoot [256]Move
-			orderedCount := orderMovesIntoBufferWithDepth(moves, 0, orderedRoot[:], pos) // killers are ply-keyed; root is ply 0
+			orderedCount := info.history.orderMovesIntoBufferWithDepth(moves, 0, orderedRoot[:], pos) // killers are ply-keyed; root is ply 0
 			// S6: search the previous iteration's best move first — a good alpha early
 			// tightens pruning and gives time management a best-move stability signal.
 			// info.BestMove holds the last COMPLETED depth's best move.
@@ -798,13 +775,15 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 				// child's "count >= 2 == threefold" check declared a bogus draw.
 				// Thread lastMovePlayed so the counter-move heuristic sees the
 				// actual predecessor inside search, not a stale global.
-				savedLast := GetLastMovePlayed()
+				savedLast := info.history.GetLastMovePlayed()
+				evalMove := info.evaluator.mustPrepareMove(pos, move)
 				ep, tag, hc, _ := pos.MakeMove(move)
 				if isInCheck(pos, move.MovingPiece().Color()) {
 					pos.UnMakeMove(move, tag, ep, hc)
 					continue
 				}
-				SetLastMovePlayed(move)
+				info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
+				info.history.SetLastMovePlayed(move)
 				info.MoveStack[0] = move
 				legalRoot++
 				nodesBefore := info.Nodes // T1e: node count before searching this root move's subtree
@@ -841,8 +820,9 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					// Null-window scout at (possibly) reduced depth.
 					score = -alphaBetaPV(pos, currentDepth-1-reduction, 1, -alpha-1, -alpha, false, true, true, info)
 					if info.Stopped {
+						info.evaluator.mustPop()
 						pos.UnMakeMove(move, tag, ep, hc)
-						SetLastMovePlayed(savedLast)
+						info.history.SetLastMovePlayed(savedLast)
 						break
 					}
 					// A reduced scout that beat alpha may have under-counted it: re-verify at
@@ -850,8 +830,9 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 					if reduction > 0 && score > alpha {
 						score = -alphaBetaPV(pos, currentDepth-1, 1, -alpha-1, -alpha, false, true, true, info)
 						if info.Stopped {
+							info.evaluator.mustPop()
 							pos.UnMakeMove(move, tag, ep, hc)
-							SetLastMovePlayed(savedLast)
+							info.history.SetLastMovePlayed(savedLast)
 							break
 						}
 					}
@@ -860,13 +841,15 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 						score = -alphaBetaPV(pos, currentDepth-1, 1, -beta, -alpha, true, true, false, info)
 					}
 				}
+				info.evaluator.mustPop()
 				pos.UnMakeMove(move, tag, ep, hc)
-				SetLastMovePlayed(savedLast)
+				info.history.SetLastMovePlayed(savedLast)
 				if info.Stopped {
 					break
 				}
 
 				info.Nodes++
+				info.publishNodesIfDue(false)
 				moveNodes := info.Nodes - nodesBefore // T1e: this root move's subtree node cost
 
 				if score > iterationBestScore {
@@ -978,7 +961,9 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 		// the previous completed depth/best move (info.AspAbandoned stays 0).
 		if iterationComplete {
 			info.Depth = currentDepth
+			info.publishNodesIfDue(true)
 			if callback != nil && info.BestMove != EmptyMove {
+				refreshSearchReport(pos, info)
 				callback(info)
 			}
 
@@ -997,16 +982,36 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 	return info
 }
 
+// refreshSearchReport copies reporting-only TT state while the receiver session
+// and model lease are already held. Search decisions never read these fields.
+func refreshSearchReport(pos *Position, info *SearchInfo) {
+	info.PVLength = 0
+	clear(info.PV[:])
+	if info.BestMove != EmptyMove && info.Depth > 0 {
+		maxLength := info.Depth
+		if maxLength < 32 {
+			maxLength = 32
+		}
+		if maxLength > len(info.PV) {
+			maxLength = len(info.PV)
+		}
+		pv := extractPVFromTT(info.tt, pos, info.BestMove, maxLength)
+		info.PVLength = copy(info.PV[:], pv)
+	}
+	info.Hashfull = info.tt.Consumed()
+}
+
 // ExtractPVFromTT reconstructs the principal variation by walking the
 // transposition table from the current position. firstMove is applied at the
 // root (since the iterative-deepening root loop doesn't write a TT entry there);
 // subsequent moves are read from Exact (PV) TT entries until a miss, a
-// non-Exact bound, an illegal move, a cycle, or maxLength is reached.
+// non-Exact bound, an illegal move, a terminal position, or maxLength is reached.
+// A move that creates the terminal position remains in the returned PV.
 //
 // The position is mutated during the walk and restored before return. Caller
 // must run this only after a search iteration has completed (no concurrent
 // search writes).
-func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
+func extractPVFromTT(tt *Cache, pos *Position, firstMove Move, maxLength int) []Move {
 	if maxLength <= 0 || firstMove == EmptyMove {
 		return nil
 	}
@@ -1018,6 +1023,32 @@ func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
 	}
 	pv := make([]Move, 0, maxLength)
 	undoStack := make([]undoEntry, 0, maxLength)
+	defer func() {
+		for i := len(undoStack) - 1; i >= 0; i-- {
+			e := undoStack[i]
+			pos.UnMakeMove(e.move, e.tag, e.ep, e.hc)
+		}
+	}()
+
+	// Search MakeMove deliberately does not touch the game-history map. Take a
+	// private count snapshot instead: the PV walk must account for occurrences
+	// before the root without mutating Positions or copying its live mutex.
+	pos.positionsMutex.RLock()
+	repetitions := make(map[uint64]int, len(pos.Positions)+maxLength)
+	for hash, count := range pos.Positions {
+		repetitions[hash] = count
+	}
+	pos.positionsMutex.RUnlock()
+	rootHash := pos.Hash()
+	if repetitions[rootHash] == 0 {
+		repetitions[rootHash] = 1
+	}
+	// A supplied best move cannot cross a game boundary that already exists at
+	// the root. Check only draw predicates here: successful first-move
+	// validation below already proves that the root is not mate or stalemate.
+	if pvDrawTerminal(pos, repetitions[rootHash]) {
+		return nil
+	}
 
 	apply := func(m Move) bool {
 		legal := false
@@ -1043,28 +1074,36 @@ func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
 		return nil
 	}
 
-	seen := make(map[uint64]struct{}, maxLength)
-	for len(pv) < maxLength {
-		hash := pos.Hash()
-		if _, exists := seen[hash]; exists {
-			break
-		}
-		seen[hash] = struct{}{}
-
-		ttMove, _, _, ttNodeType, ttHit, _ := TranspositionTable.Get(hash)
+	hash := pos.Hash()
+	repetitions[hash]++
+	for !pvPositionTerminal(pos, repetitions[hash]) && len(pv) < maxLength {
+		ttMove, _, _, ttNodeType, ttHit, _ := tt.Get(hash)
 		if !ttHit || ttMove == EmptyMove || ttNodeType != Exact {
 			break
 		}
 		if !apply(ttMove) {
 			break
 		}
+		hash = pos.Hash()
+		repetitions[hash]++
 	}
 
-	for i := len(undoStack) - 1; i >= 0; i-- {
-		e := undoStack[i]
-		pos.UnMakeMove(e.move, e.tag, e.ep, e.hc)
-	}
 	return pv
+}
+
+// pvPositionTerminal applies game boundaries while reconstructing reported PVs.
+// Repetition uses the walker's private history snapshot; IsDraw supplies the
+// engine's existing insufficient-material rule, while the explicit >= 100 check
+// matches the FIDE fifty-move boundary (IsDraw historically uses > 100).
+func pvPositionTerminal(pos *Position, repetitionCount int) bool {
+	if !pos.HasLegalMove() {
+		return true
+	}
+	return pvDrawTerminal(pos, repetitionCount)
+}
+
+func pvDrawTerminal(pos *Position, repetitionCount int) bool {
+	return repetitionCount >= 3 || pos.HalfMoveClock >= 100 || pos.IsDraw()
 }
 
 // SearchFixed runs a single fixed-depth search and is a DIAGNOSTIC instrument
@@ -1079,12 +1118,7 @@ func ExtractPVFromTT(pos *Position, firstMove Move, maxLength int) []Move {
 // few cp), so the two agree on the best move and track within search noise but are
 // NOT centipawn-identical (guarded by TestSearchFixedMatchesProductionScore). Do
 // not draw strength conclusions from it.
-func SearchFixed(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
-	ClearStop()
-	return searchFixedUnsafe(pos, depth, timeManager)
-}
-
-func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *SearchInfo {
+func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, control *SearchControl, history *workerHistory, evaluator *workerEvaluator, tt *Cache) *SearchInfo {
 	// Allocate buffers once for the entire search tree
 	var moveBuffer [256]Move
 	var captureBuffer [64]Move
@@ -1092,19 +1126,24 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 	var seeGains [32]int
 
 	info := &SearchInfo{
-		Nodes:         0, // Fresh node count for each depth
-		Depth:         depth,
-		RootDepth:     depth,
-		BestMove:      EmptyMove,
-		BestScore:     -INFINITY,
-		Stopped:       false,
-		TimeManager:   timeManager,
-		MoveBuffer:    &moveBuffer,
-		CaptureBuffer: &captureBuffer,
-		OrderedBuffer: &orderedBuffer,
-		SEEGains:      &seeGains,
-		Frames:        make([]searchFrame, searchFramePoolSize),
-		maxNodes:      MaxNodes(),
+		Nodes:            0, // Fresh node count for each depth
+		EffectiveThreads: 1,
+		Depth:            depth,
+		RootDepth:        depth,
+		BestMove:         EmptyMove,
+		BestScore:        -INFINITY,
+		Stopped:          false,
+		TimeManager:      timeManager,
+		MoveBuffer:       &moveBuffer,
+		CaptureBuffer:    &captureBuffer,
+		OrderedBuffer:    &orderedBuffer,
+		SEEGains:         &seeGains,
+		Frames:           make([]searchFrame, searchFramePoolSize),
+		control:          control,
+		maxNodes:         control.MaxNodes(),
+		history:          history,
+		evaluator:        evaluator,
+		tt:               tt,
 	}
 
 	alpha := -INFINITY
@@ -1125,7 +1164,7 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 	seedRootStaticEval(pos, info)
 
 	var orderedRoot [256]Move
-	orderedCount := orderMovesIntoBufferWithDepth(moves, 0, orderedRoot[:], pos) // killers are ply-keyed; root is ply 0
+	orderedCount := info.history.orderMovesIntoBufferWithDepth(moves, 0, orderedRoot[:], pos) // killers are ply-keyed; root is ply 0
 	legalRoot := 0
 
 	for oi := 0; oi < orderedCount; oi++ {
@@ -1144,21 +1183,24 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 			continue
 		}
 
-		savedLast := GetLastMovePlayed()
+		savedLast := info.history.GetLastMovePlayed()
+		evalMove := info.evaluator.mustPrepareMove(pos, move)
 		ep, tag, hc, _ := pos.MakeMove(move)
 		movingColor := move.MovingPiece().Color()
 		if isInCheck(pos, movingColor) {
 			pos.UnMakeMove(move, tag, ep, hc)
 			continue
 		}
-		SetLastMovePlayed(move)
+		info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
+		info.history.SetLastMovePlayed(move)
 		info.MoveStack[0] = move
 		legalRoot++
 
 		score := -alphaBetaPV(pos, depth-1, 1, -beta, -alpha, true, true, false, info)
 		if info.Stopped {
+			info.evaluator.mustPop()
 			pos.UnMakeMove(move, tag, ep, hc)
-			SetLastMovePlayed(savedLast)
+			info.history.SetLastMovePlayed(savedLast)
 			break
 		}
 
@@ -1166,16 +1208,21 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager) *Sear
 		if score >= MATE_IN_MAX && depth <= 2 {
 			score = -alphaBetaPV(pos, depth+2, 1, -beta, -alpha, true, true, false, info)
 			if info.Stopped {
+				info.evaluator.mustPop()
 				pos.UnMakeMove(move, tag, ep, hc)
-				SetLastMovePlayed(savedLast)
+				info.history.SetLastMovePlayed(savedLast)
 				break
 			}
 			info.Nodes++
+			info.publishNodesIfDue(false)
 		}
 
+		info.evaluator.mustPop()
+
 		pos.UnMakeMove(move, tag, ep, hc)
-		SetLastMovePlayed(savedLast)
+		info.history.SetLastMovePlayed(savedLast)
 		info.Nodes++
+		info.publishNodesIfDue(false)
 
 		if score > info.BestScore {
 			info.BestScore = score
@@ -1247,7 +1294,7 @@ func seedRootStaticEval(pos *Position, info *SearchInfo) {
 	corrIdx := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
 	nonPawnCorrIdx := nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])
 	minorCorrIdx := minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
-	info.StaticEvalStack[0] = EvaluateForPlayerCached(pos) + correctionValue(stm, corrIdx) + nonPawnCorrectionValue(stm, nonPawnCorrIdx) + minorCorrectionValue(stm, minorCorrIdx)
+	info.StaticEvalStack[0] = info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
 }
 
 // searchDrawScore applies the same terminal rules in the main and quiescence
@@ -1290,21 +1337,15 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	if ply > info.SelDepth {
 		info.SelDepth = ply
 	}
-	// Safety checks - reasonable limits
-	if info.Nodes > 50000000 { // 50M nodes
-		info.Stopped = true
-		return stoppedSearchScore
-	}
-
 	// Fixed-node budget (UCI `go nodes`): trip the stop flag when the budget is
 	// spent, reusing the unwind/discard machinery below.
 	if m := info.maxNodes; m != 0 && info.Nodes >= m {
-		RequestStop()
+		info.control.RequestStop()
 	}
 
 	// External stop request (UCI `stop`) - honor it even before the time limit hits.
 	// Cheap atomic load; sampled per node is fine.
-	if IsStopRequested() {
+	if info.control.StopRequested() {
 		info.Stopped = true
 		return stoppedSearchScore
 	}
@@ -1319,12 +1360,12 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// Safety check for excessive depth (use MaximumDepth constant)
 	if depth > MaximumDepth {
-		return EvaluateForPlayer(&pos.Board, pos.Turn())
+		return info.evaluator.LegacyUndampedSTM(pos)
 	}
 
 	// Safety check for negative depth (bug prevention)
 	if depth < 0 {
-		return EvaluateForPlayer(&pos.Board, pos.Turn())
+		return info.evaluator.LegacyUndampedSTM(pos)
 	}
 
 	// Safety check for excessive ply: no legal search should recurse past
@@ -1334,7 +1375,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// (e.g. PV[MaximumDepth]) overflows. The clock unwinds it in real games;
 	// fixed-depth analysis has no clock, so it crashes outright.
 	if ply >= MaximumDepth {
-		return EvaluateForPlayer(&pos.Board, pos.Turn())
+		return info.evaluator.LegacyUndampedSTM(pos)
 	}
 
 	// Quiescence owns the horizon frame and checks terminal positions itself.
@@ -1366,7 +1407,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Probe transposition table
 	origAlpha := alpha
 
-	ttMove, ttEvalRaw, ttDepth, ttNodeType, ttHit, ttPvEntry := TranspositionTable.Get(hash)
+	ttMove, ttEvalRaw, ttDepth, ttNodeType, ttHit, ttPvEntry := info.tt.Get(hash)
 
 	// T19: ttPv marks a node that has ever been searched as PV — either it is PV
 	// now, or a previous search stored it as such. It is STICKY (once true it is
@@ -1420,7 +1461,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			return stoppedSearchScore
 		}
 		// Re-probe TT to get the move we just found
-		ttMove, _, _, _, _, _ = TranspositionTable.Get(hash)
+		ttMove, _, _, _, _, _ = info.tt.Get(hash)
 	}
 
 	// Internal Iterative Reduction (IIR): a cut-node that reaches this depth with no
@@ -1483,7 +1524,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		corrIdx = pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
 		nonPawnCorrIdx = nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])
 		minorCorrIdx = minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
-		staticEval = EvaluateForPlayerCached(pos) + correctionValue(stm, corrIdx) + nonPawnCorrectionValue(stm, nonPawnCorrIdx) + minorCorrectionValue(stm, minorCorrIdx)
+		staticEval = info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
 		corrStaticEval = staticEval // T4: capture the corrected static (raw + pawn + non-pawn + minor) BEFORE S7 overwrites it (all tables' learn target)
 		// S7: a search-refined TT score is a sharper static estimate than a fresh
 		// eval for the margin heuristics below (RFP/futility/NMP/improving). Use it
@@ -1560,10 +1601,12 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		!(ttHit && ttNodeType == UpperBound && ttEval < beta) {
 		// Set lastMovePlayed to EmptyMove so children don't pick spurious
 		// counter-move replies keyed on our own prior move.
-		savedLast := GetLastMovePlayed()
+		savedLast := info.history.GetLastMovePlayed()
 		info.NullMoveTries++
+		evalNull := info.evaluator.mustPrepareNull(pos)
 		oldEP := pos.MakeNullMove()
-		SetLastMovePlayed(EmptyMove)
+		info.evaluator.mustPushMadeNull(pos, evalNull, oldEP)
+		info.history.SetLastMovePlayed(EmptyMove)
 		info.MoveStack[ply] = EmptyMove
 
 		// Floor the null child depth at 0. At depth==NULL_MOVE_MIN_DEPTH (3) the
@@ -1576,8 +1619,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 		score := -alphaBetaPV(pos, nullDepth, ply+1, -beta, -beta+1, false, false, !cutNode, info)
 
+		info.evaluator.mustPop()
 		pos.UnMakeNullMove(oldEP)
-		SetLastMovePlayed(savedLast)
+		info.history.SetLastMovePlayed(savedLast)
 		if info.Stopped {
 			return stoppedSearchScore
 		}
@@ -1625,32 +1669,38 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				continue
 			}
 
-			savedLast := GetLastMovePlayed()
+			savedLast := info.history.GetLastMovePlayed()
+			evalMove := info.evaluator.mustPrepareMove(pos, move)
 			ep, tag, hc, _ := pos.MakeMove(move)
 			if isInCheck(pos, move.MovingPiece().Color()) {
 				pos.UnMakeMove(move, tag, ep, hc)
 				continue
 			}
-			SetLastMovePlayed(move)
+			info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
+			info.history.SetLastMovePlayed(move)
 
 			score := -quiescence(pos, -probcutBeta, -probcutBeta+1, ply+1, info)
 			if info.Stopped {
+				info.evaluator.mustPop()
 				pos.UnMakeMove(move, tag, ep, hc)
-				SetLastMovePlayed(savedLast)
+				info.history.SetLastMovePlayed(savedLast)
 				return stoppedSearchScore
 			}
 
 			if score >= probcutBeta {
 				score = -alphaBetaPV(pos, depth-4, ply+1, -probcutBeta, -probcutBeta+1, false, true, !cutNode, info)
 				if info.Stopped {
+					info.evaluator.mustPop()
 					pos.UnMakeMove(move, tag, ep, hc)
-					SetLastMovePlayed(savedLast)
+					info.history.SetLastMovePlayed(savedLast)
 					return stoppedSearchScore
 				}
 			}
 
+			info.evaluator.mustPop()
+
 			pos.UnMakeMove(move, tag, ep, hc)
-			SetLastMovePlayed(savedLast)
+			info.history.SetLastMovePlayed(savedLast)
 
 			if score >= probcutBeta {
 				info.ProbcutPrunes++
@@ -1699,7 +1749,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	}
 	ordered := frame.ordered[:]
 	scores := frame.scores[:]
-	orderedCount, ttIndex := scoreMovesIntoBuffer(moves, ply, GetLastMovePlayed(), prev2, ttMove, ttHit, ordered, scores, pos, true)
+	orderedCount, ttIndex := info.history.scoreMovesIntoBuffer(moves, ply, info.history.GetLastMovePlayed(), prev2, ttMove, ttHit, ordered, scores, pos, true)
 	info.MoveLoopNodes++
 	if ttIndex >= 0 {
 		info.TTMoveListed++
@@ -1768,7 +1818,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// counter there fails the node low and triggers a re-search (the closed-
 		// position tree inflation the EBF probe flagged). Keep searching them.
 		if futilityPrune && !move.IsCapture() && move != ttMove && move.PromoType() == NoType && legalTried > 0 &&
-			!IsKillerMove(move, ply) && move != GetCounterMove(GetLastMovePlayed()) {
+			!info.history.IsKillerMove(move, ply) && move != info.history.GetCounterMove(info.history.GetLastMovePlayed()) {
 			info.FutilityPrunes++
 			continue
 		}
@@ -1814,7 +1864,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 		// History pruning: skip quiet moves with very bad history at low depths
 		if SearchToggles.HistPrune && !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move.PromoType() == NoType && move != ttMove {
-			histScore := GetHistoryScore(move, GetLastMovePlayed(), prev2)
+			histScore := info.history.GetHistoryScore(move, info.history.GetLastMovePlayed(), prev2)
 			if histScore < -1000 && legalTried > 3 { // Very bad history and not early move
 				info.HistPrunes++
 				continue
@@ -1830,14 +1880,16 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Capture the predecessor move (the one that brought us into this node)
 		// so children see the correct lastMovePlayed for counter-move lookups,
 		// and extension logic uses the true parent move.
-		savedLast := GetLastMovePlayed()
+		savedLast := info.history.GetLastMovePlayed()
+		evalMove := info.evaluator.mustPrepareMove(pos, move)
 		ep, tag, hc, _ := pos.MakeMove(move)
 		movingColor := move.MovingPiece().Color()
 		if isInCheck(pos, movingColor) {
 			pos.UnMakeMove(move, tag, ep, hc)
 			continue
 		}
-		SetLastMovePlayed(move)
+		info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
+		info.history.SetLastMovePlayed(move)
 		info.MoveStack[ply] = move
 		legalTried++
 
@@ -1900,8 +1952,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// Restore lastMove to savedLast so the singular search (which is
 			// evaluating other replies from the parent node) sees the correct
 			// predecessor.
+			info.evaluator.mustPop()
 			pos.UnMakeMove(move, tag, ep, hc)
-			SetLastMovePlayed(savedLast)
+			info.history.SetLastMovePlayed(savedLast)
 
 			singularBeta := int(ttEval) - (SINGULAR_MARGIN*depth)/32 // singular margin: tunable base SINGULAR_MARGIN (def 64 => 2*depth) depth-scaled; CG/Ethereal/Weiss converge here
 			info.SingularTries++
@@ -1927,7 +1980,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// The verification re-entry ran at this same ply and overwrote
 			// MoveStack[ply] with its own moves; restore ours.
 			ep, tag, hc, _ = pos.MakeMove(move)
-			SetLastMovePlayed(move)
+			info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
+			info.history.SetLastMovePlayed(move)
 			info.MoveStack[ply] = move
 
 			if singularScore < singularBeta {
@@ -1998,7 +2052,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 				// History-based LMR adjustment:
 				// Reduce more for moves with bad history, less for moves with good history
-				histScore := GetHistoryScore(move, savedLast, prev2)
+				histScore := info.history.GetHistoryScore(move, savedLast, prev2)
 				if histScore < -500 {
 					reduction++ // Bad history = reduce more
 				} else if histScore > 1000 {
@@ -2019,7 +2073,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				}
 
 				// Killer move reduction adjustment - don't reduce killer moves as much
-				if IsKillerMove(move, ply) {
+				if info.history.IsKillerMove(move, ply) {
 					reduction-- // Reduce less for killer moves
 					if reduction < 0 {
 						reduction = 0
@@ -2051,8 +2105,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			info.NullWindowScouts++
 			score = -alphaBetaPV(pos, reducedDepth, ply+1, -alpha-1, -alpha, false, true, true, info)
 			if info.Stopped {
+				info.evaluator.mustPop()
 				pos.UnMakeMove(move, tag, ep, hc)
-				SetLastMovePlayed(savedLast)
+				info.history.SetLastMovePlayed(savedLast)
 				return stoppedSearchScore
 			}
 
@@ -2067,8 +2122,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				info.LMRReSearches++
 				score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, true, !cutNode, info)
 				if info.Stopped {
+					info.evaluator.mustPop()
 					pos.UnMakeMove(move, tag, ep, hc)
-					SetLastMovePlayed(savedLast)
+					info.history.SetLastMovePlayed(savedLast)
 					return stoppedSearchScore
 				}
 			}
@@ -2078,22 +2134,26 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				info.PVReSearches++
 				score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, false, info)
 				if info.Stopped {
+					info.evaluator.mustPop()
 					pos.UnMakeMove(move, tag, ep, hc)
-					SetLastMovePlayed(savedLast)
+					info.history.SetLastMovePlayed(savedLast)
 					return stoppedSearchScore
 				}
 			}
 		}
 
+		info.evaluator.mustPop()
+
 		pos.UnMakeMove(move, tag, ep, hc)
 		// Restore predecessor for the next sibling (and for the caller if we
 		// return via a beta cutoff or loop exit below).
-		SetLastMovePlayed(savedLast)
+		info.history.SetLastMovePlayed(savedLast)
 		if info.Stopped {
 			return stoppedSearchScore
 		}
 
 		info.Nodes++
+		info.publishNodesIfDue(false)
 
 		if score > bestScore {
 			bestScore = score
@@ -2134,10 +2194,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			case move.PromoType() != NoType:
 				cutClass = 2
 				info.CutByPromo++
-			case IsKillerMove(move, ply):
+			case info.history.IsKillerMove(move, ply):
 				cutClass = 3
 				info.CutByKiller++
-			case move == GetCounterMove(savedLast):
+			case move == info.history.GetCounterMove(savedLast):
 				cutClass = 4
 				info.CutByCounter++
 			default:
@@ -2157,42 +2217,42 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				info.CutMissByClass[cutClass][band]++
 			}
 			// Update history table for quiet moves that cause beta cutoffs
-			UpdateHistoryTable(move, savedLast, prev2, depth)
+			info.history.UpdateHistoryTable(move, savedLast, prev2, depth)
 			// Update killer moves for quiet moves that cause beta cutoffs
-			UpdateKillerMoves(move, ply)
+			info.history.UpdateKillerMoves(move, ply)
 			// Counter move: the cutoff move is a good reply to savedLast,
 			// the move that actually brought us into this node.
-			UpdateCounterMove(move, savedLast)
+			info.history.UpdateCounterMove(move, savedLast)
 
 			// Penalize all quiet moves that were tried but didn't cause the cutoff
 			for i := 0; i < searchedQuietCount; i++ {
 				quietMove := searchedQuiets[i]
 				if quietMove != move {
-					PenalizeHistoryTable(quietMove, savedLast, prev2, depth)
+					info.history.PenalizeHistoryTable(quietMove, savedLast, prev2, depth)
 				}
 			}
 
 			// Capture history: reward a cutting capture, penalize tried captures that
 			// didn't cut (whether the cutoff move was a capture or a quiet).
 			if move.IsCapture() {
-				UpdateCaptureHistory(move, depth)
+				info.history.UpdateCaptureHistory(move, depth)
 			}
 			for i := 0; i < searchedCaptureCount; i++ {
 				if searchedCaptures[i] != move {
-					PenalizeCaptureHistory(searchedCaptures[i], depth)
+					info.history.PenalizeCaptureHistory(searchedCaptures[i], depth)
 				}
 			}
 
 			// Learn the pawn-structure + non-pawn + minor corrections from this fail-high before returning.
-			maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
-			maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
-			maybeUpdateMinorCorrection(stm, minorCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+			info.history.maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+			info.history.maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+			info.history.maybeUpdateMinorCorrection(stm, minorCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
 
 			// Store in transposition table as Lower Bound (Cut-Node). Skip at the
 			// singular verification root: its result is a move-excluded search and
 			// would corrupt the real entry for this position.
 			if !inSingular {
-				TranspositionTable.Set(hash, move, scoreToTT(score, ply), int8(depth), LowerBound, nodeTTPv)
+				info.tt.Set(hash, move, scoreToTT(score, ply), int8(depth), LowerBound, nodeTTPv)
 			}
 			return score
 		}
@@ -2217,9 +2277,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	}
 
 	// Learn the pawn-structure + non-pawn + minor corrections from the completed search of this node.
-	maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
-	maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
-	maybeUpdateMinorCorrection(stm, minorCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+	info.history.maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+	info.history.maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+	info.history.maybeUpdateMinorCorrection(stm, minorCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
 
 	// Store in transposition table
 	var nodeType NodeType
@@ -2237,7 +2297,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// Skip the store at the singular verification root (move-excluded result must
 	// not overwrite the real entry for this position).
 	if !inSingular {
-		TranspositionTable.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType, nodeTTPv)
+		info.tt.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType, nodeTTPv)
 	}
 	return bestScore
 }
@@ -2265,16 +2325,16 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		info.SelDepth = ply
 	}
 	if ply >= MaximumDepth {
-		return EvaluateForPlayerCached(pos)
+		return info.evaluator.SearchSTM(pos)
 	}
 
 	// Fixed-node budget: trip the stop flag when spent (qsearch nodes count too).
 	if m := info.maxNodes; m != 0 && info.Nodes >= m {
-		RequestStop()
+		info.control.RequestStop()
 	}
 
 	// External stop request - bail out without searching deeper.
-	if IsStopRequested() {
+	if info.control.StopRequested() {
 		info.Stopped = true
 		return stoppedSearchScore
 	}
@@ -2299,7 +2359,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// covers us (main search stores at depth >= 1 only). Mate scores need
 	// converting from node-relative TT encoding back to root-relative.
 	// Also keep ttMove for move ordering even when no cutoff is taken.
-	ttMove, ttEvalRaw, _, ttNodeType, ttHit, ttPvEntry := TranspositionTable.Get(hash)
+	ttMove, ttEvalRaw, _, ttNodeType, ttHit, ttPvEntry := info.tt.Get(hash)
 	info.QTTProbes++
 	if ttHit {
 		info.QTTHits++
@@ -2323,6 +2383,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 
 	info.Nodes++
 	info.QNodes++
+	info.publishNodesIfDue(false)
 
 	// Reusable move buffer from the recursion-frame pool (docs/10 T1b): replaces the
 	// per-qnode stack `[256]Move` that escaped via the non-inlined GenerateMovesIntoBuffer
@@ -2372,14 +2433,17 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			if move.IsCastle() && !isLegalCastle(pos, move) {
 				continue
 			}
+			evalMove := info.evaluator.mustPrepareMove(pos, move)
 			ep, tag, hc, _ := pos.MakeMove(move)
 			if isInCheck(pos, move.MovingPiece().Color()) {
 				pos.UnMakeMove(move, tag, ep, hc)
 				continue
 			}
+			info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
 			legalMoves++
 
 			score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
+			info.evaluator.mustPop()
 			pos.UnMakeMove(move, tag, ep, hc)
 			if info.Stopped {
 				return stoppedSearchScore
@@ -2440,7 +2504,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// route through (evaluateLazyStandPat) is pinned dead — qsearchLazyMargin=100000
 	// means lazyFailHigh never fires — so this is value-identical; re-route through a
 	// cache-aware lazy path if that margin is ever unpinned (SHELVED 2026-06-02).
-	standPat := correctedStandPat(pos)
+	standPat := info.history.correctedStandPat(pos, info.evaluator)
 	if standPat >= beta {
 		info.QStandPatCuts++
 		return beta
@@ -2501,13 +2565,16 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			continue
 		}
 
+		evalMove := info.evaluator.mustPrepareMove(pos, move)
 		ep, tag, hc, _ := pos.MakeMove(move)
 		if isInCheck(pos, move.MovingPiece().Color()) {
 			pos.UnMakeMove(move, tag, ep, hc)
 			continue
 		}
+		info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
 
 		score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
+		info.evaluator.mustPop()
 		pos.UnMakeMove(move, tag, ep, hc)
 		if info.Stopped {
 			return stoppedSearchScore
@@ -2526,7 +2593,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			// preserving it is free — and dropping it would let a depth-0 store erase a
 			// mark the main search had earned, silently weakening the LMR adjustment on
 			// exactly the nodes it is meant to protect. (SF preserves ttPv likewise.)
-			TranspositionTable.Set(pos.Hash(), bestMove, scoreToTT(beta, ply), 0, LowerBound, ttHit && ttPvEntry)
+			info.tt.Set(pos.Hash(), bestMove, scoreToTT(beta, ply), 0, LowerBound, ttHit && ttPvEntry)
 			info.QSearchTTStores++
 			return beta
 		}

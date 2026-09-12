@@ -67,7 +67,7 @@ func BenchmarkSearchProfile(b *testing.B) {
 	b.ResetTimer()
 	var nodes int64
 	for i := 0; i < b.N; i++ {
-		TranspositionTable = NewCache(16) // cold table per op → full representative search
+		defaultSearchEngine, _ = NewSearchEngineWithHash(16) // cold table per op → full representative search
 		for _, f := range fens {
 			p, err := ParseFEN(f)
 			if err != nil {
@@ -94,7 +94,7 @@ func TestHotPathAllocationFree(t *testing.T) {
 	const fen = "r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10"
 	allocsAt := func(depth int) (allocs float64, nodes uint64) {
 		a := testing.AllocsPerRun(2, func() {
-			TranspositionTable = NewCache(16) // constant scaffolding — cancels in the delta
+			defaultSearchEngine, _ = NewSearchEngineWithHash(16) // constant scaffolding — cancels in the delta
 			p, err := ParseFEN(fen)
 			if err != nil {
 				t.Fatalf("fen: %v", err)

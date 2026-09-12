@@ -97,7 +97,7 @@ func main() {
 	}
 	defer sf.Close()
 
-	engine.TranspositionTable = engine.NewCache(engine.DEFAULT_CACHE_SIZE)
+	_ = engine.ResizeHash(engine.DEFAULT_CACHE_SIZE)
 
 	fmt.Printf("Scanning %d positions (NGN %dms, SF oracle %dms, blunder threshold %dcp)\n",
 		len(fens), *movetime, *sfMovetime, *threshold)
@@ -162,7 +162,7 @@ func analyze(sf *engine.StockfishClient, fen string, movetime, sfMovetime int) (
 
 	// Fresh per-position move-ordering state so the search is reproducible.
 	if resetTTPerPos {
-		engine.TranspositionTable = engine.NewCache(engine.DEFAULT_CACHE_SIZE)
+		engine.ClearHash()
 	}
 	engine.ClearHistoryTable()
 	engine.ClearKillerMoves()

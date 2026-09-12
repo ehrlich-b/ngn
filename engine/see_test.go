@@ -169,7 +169,7 @@ func TestSEEQuietPruningWired(t *testing.T) {
 	const kiwipete = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
 
 	reset := func() {
-		TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+		defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 		ClearHistoryTable()
 		ClearKillerMoves()
 		ClearCounterMoves()
@@ -205,7 +205,7 @@ func TestSEEQuietPruningWired(t *testing.T) {
 func TestQSearchTTStoresWired(t *testing.T) {
 	const kiwipete = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
 
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 	ClearHistoryTable()
 	ClearKillerMoves()
 	ClearCounterMoves()

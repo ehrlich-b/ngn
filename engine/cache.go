@@ -26,6 +26,7 @@ SOFTWARE.
 package engine
 
 import (
+	"sync"
 	"unsafe"
 	// 	"fmt"
 )
@@ -33,13 +34,10 @@ import (
 type CachedEval struct {
 	Key  uint64 // 8
 	Data uint64 // 8
-	// Plain uint64, NOT atomic: NGN's search is single-threaded (the Threads UCI
-	// option is a no-op stub and the TT is touched only by the lone `go uci.search`
-	// goroutine), so atomic loads/stores were pure overhead (~4.5% of search CPU,
-	// measured) buying nothing. No cache-line padding either: a 16-byte entry
-	// quadruples slot count at the same MB (128MB: 2.1M -> 8.4M), which the endgame
-	// audit showed cuts the middlegame tree materially. The lockless XOR-verify
-	// (Key=Data^hash) is kept as a cheap collision checksum — correct single-threaded.
+	// Plain uint64 fields preserve the 16-byte record and historical direct-mode
+	// cost. TTSynchronized protects the whole key/data record with one stripe;
+	// callers must never read or update its fields separately while shared.
+	// The XOR relation (Key=Data^hash) remains the collision checksum.
 }
 
 type NodeType uint8
@@ -50,12 +48,25 @@ const (
 	LowerBound                      // Cut-Node
 )
 
+type TTMode uint8
+
+const (
+	TTDirect TTMode = iota
+	TTSynchronized
+)
+
+const ttStripeCount = 256
+
+// Cache must not be copied after first use because synchronized mode owns mutexes.
 type Cache struct {
-	items  []CachedEval
-	size   int
-	length uint64
-	mask   uint
-	age    uint16
+	items   []CachedEval
+	size    int
+	length  uint64
+	mask    uint
+	age     uint16
+	mode    TTMode
+	ageMu   sync.Mutex
+	stripes [ttStripeCount]sync.Mutex
 }
 
 const OldAge = uint16(5)
@@ -63,7 +74,6 @@ const DEFAULT_CACHE_SIZE = 128
 const MAX_CACHE_SIZE = 120_000
 
 var CACHE_ENTRY_SIZE = int(unsafe.Sizeof(CachedEval{}))
-var TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
 
 func (c *CachedEval) LoadKey() uint64 {
 	return c.Key
@@ -109,7 +119,13 @@ func (c *CachedEval) Update(key uint64, data uint64) {
 }
 
 func (c *Cache) AdvanceAge() {
+	if c.mode == TTSynchronized {
+		c.ageMu.Lock()
+		defer c.ageMu.Unlock()
+	}
 	c.age += 1
+	// Deliberately preserve the historical 10-bit wrap even though Pack stores
+	// only nine age bits. That mismatch is a separate behavior change.
 	if c.age > uint16(0b1111111111) {
 		c.age = 0
 	}
@@ -120,7 +136,15 @@ func (c *Cache) Consumed() int {
 	samples := 1000
 
 	for i := 0; i < samples; i++ {
-		if c.items[i].LoadData() != 0 {
+		if c.mode == TTSynchronized {
+			stripe := &c.stripes[uint(i)%ttStripeCount]
+			stripe.Lock()
+			data := c.items[i].LoadData()
+			stripe.Unlock()
+			if data != 0 {
+				used++
+			}
+		} else if c.items[i].LoadData() != 0 {
 			used++
 		}
 	}
@@ -134,8 +158,20 @@ func (c *Cache) index(hash uint64) uint {
 
 func (c *Cache) Set(hash uint64, hashmove Move, eval int16, depth int8, nodeType NodeType, ttPv bool) {
 	index := c.index(hash)
-	age := c.age
+	if c.mode == TTSynchronized {
+		c.ageMu.Lock()
+		age := c.age
+		c.ageMu.Unlock()
+		stripe := &c.stripes[index%ttStripeCount]
+		stripe.Lock()
+		defer stripe.Unlock()
+		c.setAt(index, age, hash, hashmove, eval, depth, nodeType, ttPv)
+		return
+	}
+	c.setAt(index, c.age, hash, hashmove, eval, depth, nodeType, ttPv)
+}
 
+func (c *Cache) setAt(index uint, age uint16, hash uint64, hashmove Move, eval int16, depth int8, nodeType NodeType, ttPv bool) {
 	oldValue := &c.items[index]
 	oldKey := oldValue.LoadKey()
 	oldData := oldValue.LoadData()
@@ -169,8 +205,20 @@ func (c *Cache) Size() int {
 	return c.size
 }
 
+// Clear invalidates every entry while preserving the configured allocation.
+// Callers must hold exclusive idle ownership in both direct and synchronized modes.
+func (c *Cache) Clear() {
+	clear(c.items)
+	c.age = 0
+}
+
 func (c *Cache) Get(hash uint64) (Move, int16, int8, NodeType, bool, bool) {
 	index := c.index(hash)
+	if c.mode == TTSynchronized {
+		stripe := &c.stripes[index%ttStripeCount]
+		stripe.Lock()
+		defer stripe.Unlock()
+	}
 	value := &c.items[index]
 	data := value.LoadData()
 	key := value.LoadKey()
@@ -183,13 +231,19 @@ func (c *Cache) Get(hash uint64) (Move, int16, int8, NodeType, bool, bool) {
 }
 
 func NewCache(megabytes int) *Cache {
+	return newCacheWithMode(megabytes, TTDirect)
+}
+
+func newCacheWithMode(megabytes int, mode TTMode) *Cache {
 	if megabytes < 1 {
 		return nil
 	}
 	size := int((megabytes * 1024 * 1024) / CACHE_ENTRY_SIZE)
 	length := RoundPowerOfTwo(size)
-
-	return &Cache{make([]CachedEval, length), megabytes, uint64(length), uint(length - 1), 0}
+	return &Cache{
+		items: make([]CachedEval, length), size: megabytes, length: uint64(length),
+		mask: uint(length - 1), mode: mode,
+	}
 }
 
 func RoundPowerOfTwo(size int) int {

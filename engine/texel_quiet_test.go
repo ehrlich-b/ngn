@@ -15,10 +15,10 @@ import (
 // TestIsQuietPositionFiltersTactics locks defect #1 (quiet filter): a position with
 // a pending tactic must be rejected; a calm one accepted; an in-check one rejected.
 func TestIsQuietPositionFiltersTactics(t *testing.T) {
-	savedTT := TranspositionTable
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	savedTT := defaultSearchEngine
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 	ClearStop()
-	defer func() { TranspositionTable = savedTT }()
+	defer func() { defaultSearchEngine = savedTT }()
 
 	cases := []struct {
 		name string
@@ -81,10 +81,10 @@ func BenchmarkIsQuietPositionRandomWalkCorpus(b *testing.B) {
 // change classification by inheriting a search's clock damping, TT/correction data,
 // stop state, or game history. It also locks caller-state preservation.
 func TestIsQuietPositionIsolatedFromSearchState(t *testing.T) {
-	savedTT := TranspositionTable
+	savedTT := defaultSearchEngine
 	savedStopped := IsStopRequested()
 	defer func() {
-		TranspositionTable = savedTT
+		defaultSearchEngine = savedTT
 		if savedStopped {
 			RequestStop()
 		} else {
@@ -98,12 +98,14 @@ func TestIsQuietPositionIsolatedFromSearchState(t *testing.T) {
 	}
 	pos.Positions = map[uint64]int{pos.Hash(): 3}
 	before := pos.Copy()
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
-	TranspositionTable.Set(pos.Hash(), EmptyMove, 1234, 0, Exact, false)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
+	defaultSearchEngine.TTStore(pos.Hash(), EmptyMove, 1234, 0, Exact, false)
 	corrIndex := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
-	oldCorrection := pawnCorrectionHistory[pos.Turn()][corrIndex]
-	pawnCorrectionHistory[pos.Turn()][corrIndex] = 8192
-	defer func() { pawnCorrectionHistory[pos.Turn()][corrIndex] = oldCorrection }()
+	oldCorrection := defaultSearchEngine.worker.history.pawnCorrectionHistory[pos.Turn()][corrIndex]
+	defaultSearchEngine.worker.history.pawnCorrectionHistory[pos.Turn()][corrIndex] = 8192
+	defer func() {
+		defaultSearchEngine.worker.history.pawnCorrectionHistory[pos.Turn()][corrIndex] = oldCorrection
+	}()
 	RequestStop()
 
 	if got := IsQuietPosition(pos); !got {

@@ -28,7 +28,7 @@ func TestUnderpromotionKnightForkFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	TranspositionTable = NewCache(DEFAULT_CACHE_SIZE)
+	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 	ClearHistoryTable()
 	ClearKillerMoves()
 	ClearCounterMoves()

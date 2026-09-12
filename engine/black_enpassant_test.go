@@ -48,7 +48,7 @@ func TestUCIBlackEnPassantOnlyEvasion(t *testing.T) {
 	uci.handleCommand("go depth 1", &output)
 	defer uci.handleStop(&output)
 	deadline := time.Now().Add(5 * time.Second)
-	for uci.searching.Load() {
+	for uci.isSearching() {
 		if time.Now().After(deadline) {
 			t.Fatal("UCI search did not finish")
 		}

@@ -66,7 +66,7 @@ func playOne(cfg GenerateOptions, index int) (GameRecord, error) {
 	}
 	// Match ucinewgame followed by position/moves: clear per-game search state
 	// before replaying the opening, then hand every played move to the next root.
-	engine.TranspositionTable = engine.NewCache(engine.DEFAULT_CACHE_SIZE)
+	engine.ClearHash()
 	engine.ClearHistoryTable()
 	engine.ClearKillerMoves()
 	engine.ClearCounterMoves()

@@ -33,7 +33,7 @@ func TestUCIIllegalMoveInCheck(t *testing.T) {
 	engine.handleCommand("go depth 3", &output)
 
 	// Wait for search to complete
-	for engine.searching.Load() {
+	for engine.isSearching() {
 		// Wait for search to finish
 		time.Sleep(time.Millisecond)
 	}
@@ -112,7 +112,7 @@ func TestUCISequentialMovesInCheck(t *testing.T) {
 	output.Reset()
 	engine.handleCommand("go depth 5", &output)
 	// Wait for search to complete
-	for engine.searching.Load() {
+	for engine.isSearching() {
 		// Wait for search to finish
 		time.Sleep(time.Millisecond)
 	}

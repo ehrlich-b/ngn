@@ -13,12 +13,12 @@ import (
 // white-POV eval into its individual terms, mirroring evalCoreWhite+evalExtrasWhite
 // EXACTLY (the term sum is asserted == evaluateUnsafe, so there is no drift).
 //
-//   ZZ_FEN=<fen>           -> dump one position's per-term contributions.
-//   BIAS_PGN=<lossxray pgn> -> walk loss positions (BIAS_SKIP/BIAS_EVERY like the
-//                              bias extractor) and report each term's MEAN OWN-SIDE
-//                              contribution (white-POV flipped to NGN's side). The
-//                              terms that credit NGN most in games it is LOSING are
-//                              the over-optimism culprits behind the +113 zzbias gap.
+//	ZZ_FEN=<fen>           -> dump one position's per-term contributions.
+//	BIAS_PGN=<lossxray pgn> -> walk loss positions (BIAS_SKIP/BIAS_EVERY like the
+//	                           bias extractor) and report each term's MEAN OWN-SIDE
+//	                           contribution (white-POV flipped to NGN's side). The
+//	                           terms that credit NGN most in games it is LOSING are
+//	                           the over-optimism culprits behind the +113 zzbias gap.
 type termVal struct {
 	name  string
 	white int
@@ -36,7 +36,7 @@ func evalTermsWhite(board *Bitboard) []termVal {
 	whitePawns := board.GetBitboardOf(WhitePawn)
 	blackPawns := board.GetBitboardOf(BlackPawn)
 	_, _, wPassed, bPassed, wDoubled, bDoubled, wIso, bIso, chainW, chainB :=
-		pawnStructureCounts(board, whitePawns, blackPawns)
+		pawnStructureCounts(nil, board, whitePawns, blackPawns)
 	add("passed", (wPassed-bPassed)*taperW(passedPawnBonus, passedPawnBonusEG, phase))
 	blackNonPawns := board.GetBlackPieces() &^ blackPawns
 	whiteNonPawns := board.GetWhitePieces() &^ whitePawns
@@ -72,8 +72,6 @@ func evalTermsWhite(board *Bitboard) []termVal {
 }
 
 func TestZZEvalExplain(t *testing.T) {
-	pawnCacheDisabled = true
-	defer func() { pawnCacheDisabled = false }()
 
 	if fen := os.Getenv("ZZ_FEN"); fen != "" {
 		p, err := ParseFEN(fen)
@@ -182,17 +180,17 @@ func TestZZEvalExplain(t *testing.T) {
 
 // TestZZKingSafetySplit (throwaway diagnostic, lever #1): decomposes the single
 // kingSafety term's +13.2 own-side optimism into its two sub-parts —
-//   ksShield  = the material-scaled positional exposure (pawn shield, central
-//               king, open files near the king), and
-//   ksAttack  = -evaluateKingAttackPatterns (the defender-BLIND quadratic attack
-//               penalty against each king).
+//
+//	ksShield  = the material-scaled positional exposure (pawn shield, central
+//	            king, open files near the king), and
+//	ksAttack  = -evaluateKingAttackPatterns (the defender-BLIND quadratic attack
+//	            penalty against each king).
+//
 // safety = scaledShield - attackPattern, so scaledShield = safety + attackPattern;
 // the two means sum back to the combined kingSafety own-side mean. Whichever half
 // carries the optimism is where the fix must aim (phase<6 positions use king
 // ACTIVITY instead and contribute 0 to both, kept in n so the sum matches +13.2).
 func TestZZKingSafetySplit(t *testing.T) {
-	pawnCacheDisabled = true
-	defer func() { pawnCacheDisabled = false }()
 	in := os.Getenv("BIAS_PGN")
 	if in == "" {
 		t.Skip("set BIAS_PGN")

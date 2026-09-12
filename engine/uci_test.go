@@ -130,23 +130,17 @@ func TestUCINewGame(t *testing.T) {
 }
 
 func TestUCIHashOptionResizesTable(t *testing.T) {
-	savedTT := TranspositionTable
-	defer func() { TranspositionTable = savedTT }()
-
 	engine := NewUCIEngine()
 	var output bytes.Buffer
 
 	engine.handleCommand("setoption name Hash value 1", &output)
-	if engine.hashMB != 1 {
-		t.Fatalf("engine hash setting = %d MB, want 1 MB", engine.hashMB)
-	}
-	if TranspositionTable.Size() != 1 {
-		t.Fatalf("TT size = %d MB, want 1 MB", TranspositionTable.Size())
+	if engine.searcher.HashSize() != 1 {
+		t.Fatalf("TT size = %d MB, want 1 MB", engine.searcher.HashSize())
 	}
 
 	engine.handleCommand("ucinewgame", &output)
-	if TranspositionTable.Size() != 1 {
-		t.Fatalf("ucinewgame reset TT to %d MB, want to preserve 1 MB Hash option", TranspositionTable.Size())
+	if engine.searcher.HashSize() != 1 {
+		t.Fatalf("ucinewgame reset TT to %d MB, want to preserve 1 MB Hash option", engine.searcher.HashSize())
 	}
 }
 
@@ -162,7 +156,7 @@ func TestUCIGo(t *testing.T) {
 	engine.handleCommand("go depth 2", &output)
 
 	// Wait for search to complete
-	for engine.searching.Load() {
+	for engine.isSearching() {
 		time.Sleep(10 * time.Millisecond)
 	}
 	response := output.String()
@@ -198,7 +192,7 @@ func TestUCIStop(t *testing.T) {
 			t.Error("Search did not stop in reasonable time")
 			return
 		case <-ticker.C:
-			if !engine.searching.Load() {
+			if !engine.isSearching() {
 				return // Success
 			}
 		}
@@ -227,9 +221,37 @@ func BenchmarkUCIGo(b *testing.B) {
 		engine.handleCommand("go depth 1", &output)
 
 		// Wait for search to complete
-		for engine.searching.Load() {
+		for engine.isSearching() {
 			time.Sleep(1 * time.Millisecond)
 		}
 		output.Reset()
+	}
+}
+
+func TestUCIMoveOverheadOptionAndNewGamePersistence(t *testing.T) {
+	engine := NewUCIEngine()
+	var output bytes.Buffer
+	if got := engine.timeManager.moveOverhead; got != 100*time.Millisecond {
+		t.Fatalf("UCI default move overhead=%v, want advertised 100ms", got)
+	}
+
+	engine.handleCommand("setoption name Move Overhead value 275", &output)
+	if got := engine.timeManager.moveOverhead; got != 275*time.Millisecond {
+		t.Fatalf("configured move overhead=%v, want 275ms", got)
+	}
+	for _, command := range []string{
+		"setoption name Move Overhead value -1",
+		"setoption name Move Overhead value 5001",
+		"setoption name Move Overhead value invalid",
+	} {
+		engine.handleCommand(command, &output)
+		if got := engine.timeManager.moveOverhead; got != 275*time.Millisecond {
+			t.Fatalf("%q changed move overhead to %v", command, got)
+		}
+	}
+
+	engine.handleCommand("ucinewgame", &output)
+	if got := engine.timeManager.moveOverhead; got != 275*time.Millisecond {
+		t.Fatalf("ucinewgame reset configured move overhead to %v", got)
 	}
 }

@@ -30,8 +30,6 @@ func TestZZEvalBiasExtract(t *testing.T) {
 	if v := os.Getenv("BIAS_SKIP"); v != "" {
 		fmt.Sscanf(v, "%d", &skip)
 	}
-	pawnCacheDisabled = true
-	defer func() { pawnCacheDisabled = false }()
 
 	f, err := os.Open(in)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -50,22 +51,121 @@ func TryLoadDefaultBook() {
 	}
 }
 
+type uciSearchState uint8
+
+const (
+	uciSearchIdle uciSearchState = iota
+	uciSearchPrepared
+	uciSearchRunning
+	uciSearchStopping
+)
+
+type uciSearchSession struct {
+	id                uint64
+	done              chan struct{}
+	cancelOnce        sync.Once
+	completeOnce      sync.Once
+	cancelled         chan struct{}
+	resultOnce        sync.Once
+	threadReceiptOnce sync.Once
+
+	receivedAt        time.Time
+	params            SearchParams
+	rootSource        *Position
+	root              *Position
+	legalMoves        []Move
+	fallback          Move
+	timeManager       *TimeManager
+	movesPlayed       int
+	lastScore         int
+	debugMode         bool
+	allowResignation  bool
+	copyPosition      func(*Position) *Position
+	openingBook       *PolyglotBook
+	ownBook           bool
+	configuredThreads int
+
+	outputMu sync.Mutex
+	suppress atomic.Bool
+}
+
+func (s *uciSearchSession) cancel(searcher *SearchEngine) {
+	s.cancelOnce.Do(func() {
+		searcher.RequestStop()
+		close(s.cancelled)
+	})
+}
+
+func (s *uciSearchSession) isCancelled() bool {
+	select {
+	case <-s.cancelled:
+		return true
+	default:
+		return false
+	}
+}
+
+func (s *uciSearchSession) suppressOutput() {
+	s.suppress.Store(true)
+}
+
+type uciSessionWriter struct {
+	session *uciSearchSession
+	w       io.Writer
+}
+
+func (w *uciSessionWriter) Write(p []byte) (int, error) {
+	w.session.outputMu.Lock()
+	defer w.session.outputMu.Unlock()
+	if w.session.suppress.Load() {
+		return len(p), nil
+	}
+	return w.w.Write(p)
+}
+
+func (w *uciSessionWriter) sendMessage(uci *UCIEngine, message string) {
+	w.session.outputMu.Lock()
+	defer w.session.outputMu.Unlock()
+	if w.session.suppress.Load() {
+		return
+	}
+	uci.rawUCILogger.Printf("<<< %s", message)
+	fmt.Fprintln(w.w, message)
+}
+
 // UCI Engine represents the UCI interface for the chess engine
 type UCIEngine struct {
 	position         *Position
-	searching        atomic.Bool
-	stopChan         chan bool
+	searcher         *SearchEngine
+	lifecycleMu      sync.Mutex
+	searchState      uciSearchState
+	activeSearch     *uciSearchSession
+	nextSearchID     uint64
 	debugMode        bool
 	engineName       string
 	engineAuthor     string
 	version          string
 	timeManager      *TimeManager
-	hashMB           int
 	movesPlayed      int
 	lastScore        int
 	debugLogger      *log.Logger
 	rawUCILogger     *log.Logger
 	allowResignation bool
+	now              func() time.Time
+	copyPosition     func(*Position) *Position
+	evaluatorConfig  uciEvaluatorConfig
+	startupDefaults  uciEvaluatorDefaults
+	ownBook          bool
+}
+
+const defaultUCIMoveOverheadMilliseconds = 100
+
+func newUCITimeManager() *TimeManager {
+	tm := NewTimeManager()
+	if err := tm.SetMoveOverhead(defaultUCIMoveOverheadMilliseconds); err != nil {
+		panic(err)
+	}
+	return tm
 }
 
 // NewUCIEngine creates a new UCI engine instance
@@ -108,30 +208,47 @@ func NewUCIEngine() *UCIEngine {
 
 	return &UCIEngine{
 		position:         newUCIStartingPosition(),
-		stopChan:         make(chan bool, 1),
+		searcher:         NewSearchEngine(),
 		debugMode:        false,
 		engineName:       "ngn",
 		engineAuthor:     "ngn team",
 		version:          "0.1.0",
-		timeManager:      NewTimeManager(),
-		hashMB:           DEFAULT_CACHE_SIZE,
+		timeManager:      newUCITimeManager(),
 		movesPlayed:      0,
 		lastScore:        0,
 		debugLogger:      logger,
 		rawUCILogger:     rawUCILogger,
 		allowResignation: false, // Default to no resignation
+		now:              time.Now,
+		copyPosition:     func(pos *Position) *Position { return pos.Copy() },
+		evaluatorConfig:  newUCIEvaluatorConfig(),
+		startupDefaults:  uciEvaluatorDefaults{backend: uciEvaluatorHCE},
+		ownBook:          true,
 	}
 }
 
 // sendUCIMessage sends a UCI message and logs it
 func (uci *UCIEngine) sendUCIMessage(output io.Writer, message string) {
+	if sessionOutput, ok := output.(*uciSessionWriter); ok {
+		sessionOutput.sendMessage(uci, message)
+		return
+	}
 	uci.rawUCILogger.Printf("<<< %s", message)
 	fmt.Fprintln(output, message)
 }
 
 // SetResignationPolicy sets whether the engine should resign in hopeless positions
 func (uci *UCIEngine) SetResignationPolicy(allowResignation bool) {
+	uci.lifecycleMu.Lock()
 	uci.allowResignation = allowResignation
+	uci.lifecycleMu.Unlock()
+}
+
+func (uci *UCIEngine) nowTime() time.Time {
+	if uci.now == nil {
+		return time.Now()
+	}
+	return uci.now()
 }
 
 // Helper function to create starting position
@@ -210,7 +327,7 @@ func (uci *UCIEngine) Run(input io.Reader, output io.Writer) {
 	// search so the search goroutine never outlives Run. This is what makes
 	// process-level tests race-clean — no output write or shared-state mutation
 	// happens after Run returns.
-	uci.handleStop(out)
+	uci.joinSearch(true)
 }
 
 // handleCommand processes UCI commands
@@ -244,6 +361,8 @@ func (uci *UCIEngine) handleCommand(command string, output io.Writer) (quit bool
 		uci.handleStop(output)
 	case "ponderhit":
 		uci.handlePonderHit(output)
+	case "eval":
+		uci.handleEvalDiagnostic(output)
 	case "quit":
 		uci.handleQuit(output)
 		return true
@@ -260,11 +379,25 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, fmt.Sprintf("id name %s %s", uci.engineName, uci.version))
 	uci.sendUCIMessage(output, fmt.Sprintf("id author %s", uci.engineAuthor))
 
+	uci.lifecycleMu.Lock()
+	evalBackendDefault := uci.startupDefaults.backend
+	evalFileDefault := uci.startupDefaults.file
+	uci.lifecycleMu.Unlock()
+	if evalBackendDefault == "" {
+		evalBackendDefault = uciEvaluatorHCE
+	}
+	if evalFileDefault == "" {
+		evalFileDefault = "<empty>"
+	}
+
 	// Engine options (we can add more later)
 	uci.sendUCIMessage(output, "option name Hash type spin default 128 min 1 max 1024")
 	uci.sendUCIMessage(output, "option name Threads type spin default 1 min 1 max 64")
 	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
+	uci.sendUCIMessage(output, "option name OwnBook type check default true")
 	uci.sendUCIMessage(output, "option name SyzygyPath type string default <empty>")
+	uci.sendUCIMessage(output, fmt.Sprintf("option name EvalBackend type combo default %s var hce var ngn-v1 var counter-5.5", evalBackendDefault))
+	uci.sendUCIMessage(output, fmt.Sprintf("option name EvalFile type string default %s", evalFileDefault))
 
 	// Tunable search parameters (for SPSA / manual A/B; defaults == shipped values).
 	for _, p := range TunableSearchParams {
@@ -317,6 +450,7 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 	// Handle specific options
 	switch strings.ToLower(optionName) {
 	case "syzygypath":
+		uci.joinSearch(true)
 		if optionValue != "" && optionValue != "<empty>" {
 			err := InitSyzygy(optionValue)
 			if err != nil {
@@ -331,6 +465,18 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 				}
 			}
 		}
+	case "move overhead":
+		milliseconds, err := strconv.Atoi(optionValue)
+		if err != nil || milliseconds < minMoveOverheadMilliseconds || milliseconds > maxMoveOverheadMilliseconds {
+			break
+		}
+		uci.joinSearch(true)
+		uci.lifecycleMu.Lock()
+		err = uci.timeManager.SetMoveOverhead(milliseconds)
+		uci.lifecycleMu.Unlock()
+		if err != nil {
+			panic(err)
+		}
 	case "hash":
 		mb, err := strconv.Atoi(optionValue)
 		if err != nil {
@@ -341,17 +487,54 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 		} else if mb > 1024 {
 			mb = 1024
 		}
-		uci.hashMB = mb
-		TranspositionTable = NewCache(mb)
+		uci.joinSearch(true)
+		if err := uci.searcher.ResizeHash(mb); err != nil {
+			panic(err)
+		}
 	case "threads":
-		// TODO: Implement multi-threading
+		count, err := strconv.Atoi(optionValue)
+		if err != nil || validateThreadCount(count) != nil {
+			break
+		}
+		uci.joinSearch(true)
+		if err := uci.searcher.ConfigureThreads(count); err != nil {
+			panic(err)
+		}
+		uci.sendUCIMessage(output, fmt.Sprintf("info string threads configured %d effective %d", count, count))
+	case "ownbook":
+		normalized := strings.ToLower(strings.TrimSpace(optionValue))
+		if normalized != "true" && normalized != "false" {
+			return
+		}
+		uci.joinSearch(true)
+		uci.lifecycleMu.Lock()
+		uci.ownBook = normalized == "true"
+		uci.lifecycleMu.Unlock()
+	case "evalbackend":
+		uci.handleEvalBackendOption(optionValue, output)
+		return
+	case "evalfile":
+		uci.handleEvalFileOption(optionValue, output)
+		return
 	default:
-		setTunableParam(optionName, optionValue)
+		if isTunableParam(optionName) {
+			uci.joinSearch(true)
+			setTunableParam(optionName, optionValue)
+		}
 	}
 
 	if uci.debugMode {
 		fmt.Fprintf(output, "info string option set: %s = %s\n", optionName, optionValue)
 	}
+}
+
+func isTunableParam(name string) bool {
+	for i := range TunableSearchParams {
+		if strings.EqualFold(TunableSearchParams[i].Name, name) {
+			return true
+		}
+	}
+	return false
 }
 
 // setTunableParam applies a search-parameter override registered in
@@ -386,20 +569,17 @@ func (uci *UCIEngine) handleRegister(args []string, output io.Writer) {
 
 // handleNewGame handles ucinewgame command
 func (uci *UCIEngine) handleNewGame(output io.Writer) {
+	uci.joinSearch(true)
 	uci.position = newUCIStartingPosition()
-	// Clear transposition table for new game
-	TranspositionTable = NewCache(uci.hashMB)
-	// Clear history table for new game
-	ClearHistoryTable()
-	// Clear killer moves for new game
-	ClearKillerMoves()
-	// Clear counter moves for new game
-	ClearCounterMoves()
+	// Clear game-scoped TT and histories. Same-model HCE full and pawn caches stay warm.
+	uci.searcher.NewGame()
 
 	// Reset game state
 	uci.movesPlayed = 0
 	uci.lastScore = 0
-	uci.timeManager = NewTimeManager()
+	moveOverhead := uci.timeManager.moveOverhead
+	uci.timeManager = newUCITimeManager()
+	uci.timeManager.moveOverhead = moveOverhead
 
 	if uci.debugMode {
 		fmt.Fprintf(output, "info string new game started\n")
@@ -411,6 +591,7 @@ func (uci *UCIEngine) handlePosition(args []string, output io.Writer) {
 	if len(args) == 0 {
 		return
 	}
+	uci.joinSearch(true)
 
 	switch args[0] {
 	case "startpos":
@@ -440,8 +621,8 @@ func (uci *UCIEngine) handlePosition(args []string, output io.Writer) {
 	// Handle moves if present
 	if len(args) >= 2 && args[0] == "moves" {
 		moves := args[1:]
-		uci.movesPlayed = 0          // Reset move counter
-		SetLastMovePlayed(EmptyMove) // Reset last move for new position
+		uci.movesPlayed = 0                       // Reset move counter
+		uci.searcher.SetLastMovePlayed(EmptyMove) // Reset last move for new position
 		for _, moveStr := range moves {
 			move, err := ParseAlgebraicMove(moveStr, uci.position)
 			if err != nil {
@@ -455,7 +636,7 @@ func (uci *UCIEngine) handlePosition(args []string, output io.Writer) {
 			_, _, _, _ = uci.position.GameMakeMove(move)
 			uci.movesPlayed++
 			// Track the last move played for counter move heuristic
-			SetLastMovePlayed(move)
+			uci.searcher.SetLastMovePlayed(move)
 		}
 	}
 }
@@ -474,85 +655,63 @@ type SearchParams struct {
 	Ponder    bool
 }
 
-// handleGo handles the go command
-func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
-	uci.debugLogger.Printf("handleGo called with args: %v", args)
-	if uci.debugMode {
-		fmt.Fprintf(output, "info string handleGo called\n")
-	}
-	if uci.searching.Load() {
-		uci.debugLogger.Println("Already searching, returning")
-		if uci.debugMode {
-			fmt.Fprintf(output, "info string already searching, returning\n")
-		}
-		return // Already searching
-	}
-	ClearStop()
-	if !uci.searching.CompareAndSwap(false, true) {
-		return
-	}
-
-	params := SearchParams{
-		Depth:    0, // No default depth - will use time-based search
-		Infinite: false,
-	}
-
-	// Parse search parameters
+func parseSearchParams(args []string) SearchParams {
+	params := SearchParams{}
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "depth":
 			if i+1 < len(args) {
-				if depth, err := strconv.Atoi(args[i+1]); err == nil {
-					params.Depth = depth
+				if value, err := strconv.Atoi(args[i+1]); err == nil {
+					params.Depth = value
 				}
 				i++
 			}
 		case "nodes":
 			if i+1 < len(args) {
-				if nodes, err := strconv.ParseUint(args[i+1], 10, 64); err == nil {
-					params.Nodes = nodes
+				if value, err := strconv.ParseUint(args[i+1], 10, 64); err == nil {
+					params.Nodes = value
 				}
 				i++
 			}
 		case "movetime":
 			if i+1 < len(args) {
-				if moveTime, err := strconv.Atoi(args[i+1]); err == nil {
-					params.MoveTime = moveTime
+				if value, err := strconv.Atoi(args[i+1]); err == nil {
+					params.MoveTime = value
 				}
 				i++
 			}
 		case "wtime":
 			if i+1 < len(args) {
-				if wtime, err := strconv.Atoi(args[i+1]); err == nil {
-					params.WhiteTime = wtime
+				if value, err := strconv.Atoi(args[i+1]); err == nil {
+					params.WhiteTime = value
 				}
 				i++
 			}
 		case "btime":
 			if i+1 < len(args) {
-				if btime, err := strconv.Atoi(args[i+1]); err == nil {
-					params.BlackTime = btime
+				if value, err := strconv.Atoi(args[i+1]); err == nil {
+					params.BlackTime = value
 				}
 				i++
 			}
 		case "winc":
 			if i+1 < len(args) {
-				if winc, err := strconv.Atoi(args[i+1]); err == nil {
-					params.WhiteInc = winc
+				if value, err := strconv.Atoi(args[i+1]); err == nil {
+					params.WhiteInc = value
 				}
 				i++
 			}
 		case "binc":
 			if i+1 < len(args) {
-				if binc, err := strconv.Atoi(args[i+1]); err == nil {
-					params.BlackInc = binc
+				if value, err := strconv.Atoi(args[i+1]); err == nil {
+					params.BlackInc = value
 				}
 				i++
 			}
 		case "movestogo":
 			if i+1 < len(args) {
-				if mtg, err := strconv.Atoi(args[i+1]); err == nil {
-					params.MovesToGo = mtg
+				if value, err := strconv.Atoi(args[i+1]); err == nil {
+					params.MovesToGo = value
 				}
 				i++
 			}
@@ -563,59 +722,205 @@ func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
 		}
 	}
 
-	// Fixed-node search (go nodes N): cap total nodes, and when no time control is
-	// given, run effectively infinite so only the node budget stops the search
-	// (otherwise pure `go nodes` falls into the tournament branch with zero time).
-	SetMaxNodes(params.Nodes)
+	// Fixed-node searches retain the one-thread policy: without another limit,
+	// only the explicit node budget ends the search.
 	if params.Nodes > 0 && params.Depth == 0 && params.MoveTime == 0 &&
 		params.WhiteTime == 0 && params.BlackTime == 0 {
 		params.Infinite = true
 	}
-
-	// Configure time management
-	uci.debugLogger.Println("About to set up time management")
-	if uci.debugMode {
-		fmt.Fprintf(output, "info string setting up time management\n")
-	}
-	uci.timeManager.SetTimeControl(params, uci.position.Turn() == White)
-	uci.debugLogger.Println("Time management set, about to update game state")
-	if uci.debugMode {
-		fmt.Fprintf(output, "info string updating game state\n")
-	}
-	uci.timeManager.UpdateGameState(uci.movesPlayed, uci.lastScore, uci.lastScore, uci.position)
-
-	// Start search in goroutine
-	uci.debugLogger.Println("About to start search goroutine")
-	if uci.debugMode {
-		fmt.Fprintf(output, "info string starting search goroutine\n")
-	}
-	go uci.search(params, output)
-	uci.debugLogger.Println("Search goroutine launched")
-
-	// Give goroutine a moment to start (important for UCI)
-	time.Sleep(10 * time.Millisecond)
+	return params
 }
 
-// search performs the actual search
-func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
-	defer GetGlobalCrashHandler().SafeRecover("UCIEngine.search", map[string]interface{}{
-		"params":       params,
-		"position":     GenerateFEN(uci.position),
-		"moves_played": uci.movesPlayed,
-		"searching":    uci.searching.Load(),
-	})
-
-	uci.debugLogger.Printf("search() function started with params: %+v", params)
-	if uci.debugMode {
-		fmt.Fprintf(output, "info string search() function started\n")
+func (uci *UCIEngine) beginSearchSession(receivedAt time.Time, params SearchParams) (*uciSearchSession, bool) {
+	uci.lifecycleMu.Lock()
+	defer uci.lifecycleMu.Unlock()
+	if uci.activeSearch != nil {
+		return nil, false
 	}
+
+	// Clear and configure receiver control before publication. A stop may arrive
+	// at any point after activeSearch becomes visible and must remain observable.
+	uci.searcher.ClearStop()
+	uci.searcher.SetMaxNodes(params.Nodes)
+	tm := *uci.timeManager
+	tm.now = uci.now
+	uci.nextSearchID++
+	session := &uciSearchSession{
+		id:                uci.nextSearchID,
+		done:              make(chan struct{}),
+		cancelled:         make(chan struct{}),
+		receivedAt:        receivedAt,
+		params:            params,
+		rootSource:        uci.position,
+		timeManager:       &tm,
+		movesPlayed:       uci.movesPlayed,
+		lastScore:         uci.lastScore,
+		debugMode:         uci.debugMode,
+		allowResignation:  uci.allowResignation,
+		copyPosition:      uci.copyPosition,
+		openingBook:       GetOpeningBook(),
+		ownBook:           uci.ownBook,
+		configuredThreads: uci.searcher.ThreadCount(),
+	}
+	uci.activeSearch = session
+	uci.searchState = uciSearchPrepared
+	return session, true
+}
+
+func (uci *UCIEngine) markSearchRunning(session *uciSearchSession) bool {
+	uci.lifecycleMu.Lock()
+	defer uci.lifecycleMu.Unlock()
+	if uci.activeSearch != session || uci.searchState != uciSearchPrepared || session.isCancelled() {
+		return false
+	}
+	uci.searchState = uciSearchRunning
+	return true
+}
+
+func (uci *UCIEngine) finishSearchSession(session *uciSearchSession) {
+	session.completeOnce.Do(func() {
+		uci.lifecycleMu.Lock()
+		if uci.activeSearch == session {
+			uci.activeSearch = nil
+			uci.searchState = uciSearchIdle
+		}
+		close(session.done)
+		uci.lifecycleMu.Unlock()
+	})
+}
+
+func (uci *UCIEngine) isSearching() bool {
+	uci.lifecycleMu.Lock()
+	defer uci.lifecycleMu.Unlock()
+	return uci.activeSearch != nil
+}
+
+// handleGo admits a search. The receipt clock is sampled before logging,
+// parsing, allocation, position cloning, or any other setup work.
+func (uci *UCIEngine) handleGo(args []string, output io.Writer) {
+	receivedAt := uci.nowTime()
+	uci.debugLogger.Printf("handleGo called with args: %v", args)
+	params := parseSearchParams(args)
+	session, accepted := uci.beginSearchSession(receivedAt, params)
+	if !accepted {
+		uci.debugLogger.Println("Already searching, returning")
+		if uci.debugMode {
+			fmt.Fprintln(output, "info string already searching, returning")
+		}
+		return
+	}
+	// The session is already published in prepared state. The coordinator owns
+	// all remaining setup and observes cancellation before entering search.
+	go uci.runSearchSession(session, output)
+	uci.debugLogger.Printf("Search coordinator launched for session %d", session.id)
+}
+
+// emitThreadReceipt publishes one per-go admission width after setup selects it. Completion is registered first and therefore runs last.
+func (uci *UCIEngine) emitThreadReceipt(session *uciSearchSession, output io.Writer, effective int) {
+	if session.configuredThreads <= 1 {
+		return
+	}
+	session.threadReceiptOnce.Do(func() {
+		uci.sendUCIMessage(output, fmt.Sprintf("info string threads configured %d effective %d", session.configuredThreads, effective))
+	})
+}
+
+func (uci *UCIEngine) runSearchSession(session *uciSearchSession, output io.Writer) {
+	defer uci.finishSearchSession(session)
+	sessionOutput := &uciSessionWriter{session: session, w: output}
 	defer func() {
-		uci.searching.Store(false)
-		uci.debugLogger.Println("search() function completed")
+		if recovered := recover(); recovered != nil {
+			originalStack := string(debug.Stack())
+			if helperPanic, ok := recovered.(*searchWorkerPanic); ok {
+				originalStack = string(helperPanic.stack)
+			}
+			uci.debugLogger.Printf("search session %d failed: %v", session.id, recovered)
+			// Publish the active session's explicit error and legal fallback first.
+			// Re-panic only inside the existing crash reporter afterward so its
+			// recovery cannot bypass protocol completion.
+			uci.publishSearchFailure(session, output, recovered)
+			func() {
+				defer GetGlobalCrashHandler().SafeRecover("UCIEngine.searchSession", map[string]interface{}{
+					"session_id":     session.id,
+					"params":         session.params,
+					"moves_played":   session.movesPlayed,
+					"original_stack": originalStack,
+				})
+				panic(recovered)
+			}()
+		}
 	}()
 
+	if !uci.prepareSearchSession(session, sessionOutput) {
+		uci.emitThreadReceipt(session, sessionOutput, 1)
+		uci.publishSearchResult(session, output, session.fallback, 0)
+		return
+	}
+	if !uci.markSearchRunning(session) {
+		uci.emitThreadReceipt(session, sessionOutput, 1)
+		uci.publishSearchResult(session, output, session.fallback, 0)
+		return
+	}
+	uci.searchSession(session, sessionOutput, output)
+}
+
+// prepareSearchSession holds an HCE/PST read lease while board fallback
+// generation and copying use the process tables. It releases that lease before
+// searchIterativeDeepeningPrepared takes the established sessionMu -> HCE lease
+// order; the prepared search recomputes the copied root accumulator under the
+// generation it admits.
+func (uci *UCIEngine) prepareSearchSession(session *uciSearchSession, output io.Writer) bool {
+	mustAcquireHCEModelUse()
+	defer releaseHCEModelUse()
+
+	// Establish a legal fallback before cloning or evaluator/search setup. The
+	// command loop cannot mutate rootSource until it has cancelled and joined us.
+	session.legalMoves = GenerateLegalMoves(session.rootSource)
+	if len(session.legalMoves) > 0 {
+		session.fallback = session.legalMoves[0]
+	}
+	if session.debugMode {
+		fmt.Fprintln(output, "info string handleGo called")
+	}
+	uci.debugLogger.Println("About to set up time management")
+	if session.debugMode {
+		fmt.Fprintln(output, "info string setting up time management")
+	}
+	session.timeManager.SetTimeControlAt(session.params, session.rootSource.Turn() == White, session.receivedAt)
+	uci.debugLogger.Println("Time management set, about to update game state")
+	if session.debugMode {
+		fmt.Fprintln(output, "info string updating game state")
+	}
+	session.timeManager.UpdateGameState(session.movesPlayed, session.lastScore, session.lastScore, session.rootSource)
+	uci.debugLogger.Println("About to start search goroutine")
+	if session.debugMode {
+		fmt.Fprintln(output, "info string starting search goroutine")
+	}
+	if session.isCancelled() || session.timeManager.SetupDeadlineExceeded() {
+		return false
+	}
+
+	copyPosition := session.copyPosition
+	if copyPosition == nil {
+		copyPosition = func(pos *Position) *Position { return pos.Copy() }
+	}
+	session.root = copyPosition(session.rootSource)
+	if session.root == nil {
+		panic("position copy returned nil")
+	}
+	return !session.isCancelled() && !session.timeManager.SetupDeadlineExceeded()
+}
+
+// searchSession performs the actual search on session-private state.
+func (uci *UCIEngine) searchSession(session *uciSearchSession, output io.Writer, rawOutput io.Writer) {
+	params := session.params
+	uci.debugLogger.Printf("search() function started with params: %+v", params)
+	if session.debugMode {
+		fmt.Fprintf(output, "info string search() function started\n")
+	}
+
 	uci.debugLogger.Println("search initialized, setting flags")
-	if uci.debugMode {
+	if session.debugMode {
 		fmt.Fprintf(output, "info string search initialized\n")
 	}
 
@@ -629,32 +934,36 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 	// Initialize search variables
 	var bestMove Move
 	var bestScore int
-	lastIterationScore := uci.lastScore
+	lastIterationScore := session.lastScore
 
-	if uci.debugMode {
+	if session.debugMode {
 		fmt.Fprintf(output, "info string time control: %s, allocated: %dms\n",
-			uci.timeManager.GetTimeControlString(),
-			uci.timeManager.GetAllocatedTime().Milliseconds())
+			session.timeManager.GetTimeControlString(),
+			session.timeManager.GetAllocatedTime().Milliseconds())
 	}
 
 	// Debug: Always output what we're doing
-	if uci.debugMode {
+	if session.debugMode {
 		fmt.Fprintf(output, "info string starting search, maxDepth=%d\n", maxDepth)
 	}
 
-	// Check opening book first before starting search
+	// Check opening books first when enabled for this immutable search session.
+	// OwnBook=false bypasses both external Polyglot and embedded fallback books.
 	bookMove, bookFound := EmptyMove, false
-	if book := GetOpeningBook(); book != nil {
-		bookMove, bookFound = book.ProbeBook(uci.position)
-	}
-	// Fallback to embedded book if no external book or no hit
-	if !bookFound {
-		bookMove, bookFound = ProbeEmbeddedBook(uci.position)
+	if session.ownBook {
+		if book := session.openingBook; book != nil {
+			bookMove, bookFound = book.ProbeBook(session.root)
+		}
+		// Fallback to embedded book if no external book or no hit.
+		if !bookFound {
+			bookMove, bookFound = ProbeEmbeddedBook(session.root)
+		}
 	}
 
 	if bookFound {
+		uci.emitThreadReceipt(session, output, 1)
 		uci.debugLogger.Printf("Opening book hit! Move: %v", bookMove.ToString())
-		if uci.debugMode {
+		if session.debugMode {
 			fmt.Fprintf(output, "info string opening book move: %s\n", bookMove.ToString())
 		}
 
@@ -665,10 +974,11 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 		// Output the book move result
 		fmt.Fprintf(output, "info depth 1 score cp %d nodes 1 time 0 nps 0 pv %s\n",
 			bestScore, bestMove.ToString())
-	} else if tbMove, tbResult := ProbeRoot(uci.position); tbResult.Found && tbMove != EmptyMove {
+	} else if tbMove, tbResult := ProbeRoot(session.root); tbResult.Found && tbMove != EmptyMove {
+		uci.emitThreadReceipt(session, output, 1)
 		// Syzygy tablebase hit - perfect endgame play
 		uci.debugLogger.Printf("Syzygy tablebase hit! WDL=%d DTZ=%d Move=%s", tbResult.WDL, tbResult.DTZ, tbMove.ToString())
-		if uci.debugMode {
+		if session.debugMode {
 			fmt.Fprintf(output, "info string tablebase move: %s (WDL=%d)\n", tbMove.ToString(), tbResult.WDL)
 		}
 
@@ -702,7 +1012,7 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 			scoreStr, bestMove.ToString())
 	} else {
 		uci.debugLogger.Printf("No opening book move found for current position")
-		if uci.debugMode {
+		if session.debugMode {
 			fmt.Fprintf(output, "info string no book move found, starting search\n")
 		}
 
@@ -716,12 +1026,10 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 			move := searchInfo.BestMove
 			nodes := searchInfo.Nodes
 
-			// Check for stop command
-			select {
-			case <-uci.stopChan:
+			// Suppress progress from an iteration that raced an explicit stop.
+			if session.isCancelled() {
 				uci.debugLogger.Printf("STOP COMMAND received during search")
 				return
-			default:
 			}
 
 			// Update best move and score
@@ -730,10 +1038,10 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 			lastIterationScore = score
 
 			// Update time manager with score change
-			uci.timeManager.UpdateGameState(uci.movesPlayed, lastIterationScore, score, uci.position)
+			session.timeManager.UpdateGameState(session.movesPlayed, lastIterationScore, score, session.root)
 
 			// Send search info
-			elapsed := uci.timeManager.GetElapsedTime()
+			elapsed := session.timeManager.GetElapsedTime()
 
 			// UCI: report mate scores as "score mate N" when applicable
 			var scoreStr string
@@ -758,15 +1066,18 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 				nps = int(float64(nodes) / elapsed.Seconds())
 			}
 
-			// Reconstruct full PV by walking the TT from the post-root position.
-			pvMoves := ExtractPVFromTT(uci.position, move, 32)
+			// Search copied reporting state before entering this non-reentrant callback.
+			pvLength := searchInfo.PVLength
+			if pvLength > 32 {
+				pvLength = 32
+			}
 			var pvStr string
-			if len(pvMoves) == 0 {
+			if pvLength == 0 {
 				pvStr = move.ToString()
 			} else {
-				pvStr = pvMoves[0].ToString()
-				for i := 1; i < len(pvMoves); i++ {
-					pvStr += " " + pvMoves[i].ToString()
+				pvStr = searchInfo.PV[0].ToString()
+				for i := 1; i < pvLength; i++ {
+					pvStr += " " + searchInfo.PV[i].ToString()
 				}
 			}
 
@@ -775,7 +1086,7 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 			if seldepth < depth {
 				seldepth = depth
 			}
-			hashfull := TranspositionTable.Consumed()
+			hashfull := searchInfo.Hashfull
 
 			infoMsg := fmt.Sprintf("info depth %d seldepth %d score %s nodes %d time %d nps %d hashfull %d pv %s",
 				depth, seldepth, scoreStr, nodes, elapsed.Milliseconds(), nps, hashfull, pvStr)
@@ -784,7 +1095,9 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 		}
 
 		// Run the search - this handles progressive TT building and aspiration windows internally
-		info := searchIterativeDeepeningUnsafe(uci.position, maxDepth, uci.timeManager, depthCallback)
+		info := uci.searcher.searchIterativeDeepeningPreparedWithWidth(session.root, maxDepth, session.timeManager, depthCallback, func(effective int) {
+			uci.emitThreadReceipt(session, output, effective)
+		})
 
 		uci.debugLogger.Printf("SearchIterativeDeepeningWithCallback completed: depth=%d, bestMove=%v, bestScore=%d, nodes=%d",
 			info.Depth, info.BestMove, info.BestScore, info.Nodes)
@@ -792,7 +1105,7 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 		// RT1: end-of-search counter dump (behind `debug on`). Surfaces the search
 		// statistics already tracked in SearchInfo so pruning behaviour is visible in
 		// real searches — e.g. watch nmcut to confirm null-move pruning actually fires.
-		if uci.debugMode {
+		if session.debugMode {
 			uci.sendUCIMessage(output, fmt.Sprintf(
 				"info string stats depth %d seldepth %d nodes %d qnodes %d nmcut %d lmr %d lmp %d fut %d seeq %d ttcut %d tthits %d betacut %d checkext %d singext %d",
 				info.Depth, info.SelDepth, info.Nodes, info.QNodes,
@@ -848,106 +1161,102 @@ func (uci *UCIEngine) search(params SearchParams, output io.Writer) {
 		uci.debugLogger.Printf("=== SEARCH COMPLETE ===")
 	}
 
-	// Update engine state after search completes
-	uci.debugLogger.Printf("=== UPDATING ENGINE STATE ===")
-	uci.debugLogger.Printf("bestMove=%v, bestScore=%d", bestMove, bestScore)
-	uci.lastScore = bestScore
-	uci.movesPlayed++
-	uci.debugLogger.Printf("Updated lastScore=%d, movesPlayed=%d", uci.lastScore, uci.movesPlayed)
-
-	// Send best move
-	uci.debugLogger.Printf("*** ABOUT TO SEND BESTMOVE ***")
-	if bestMove != EmptyMove {
-		// CRITICAL: Validate the move is legal before sending
-		legalMoves := GenerateLegalMoves(uci.position)
-		isLegal := false
-		for _, legalMove := range legalMoves {
-			if bestMove == legalMove {
-				isLegal = true
-				break
-			}
-		}
-
-		if !isLegal {
-			uci.debugLogger.Printf("*** CRITICAL ERROR: Search returned illegal move %s, position FEN: %s ***", bestMove.ToString(), GenerateFEN(uci.position))
-			uci.debugLogger.Printf("*** Legal moves in position: %v ***", legalMoves)
-
-			// Try to find any legal move to avoid forfeiting
-			if len(legalMoves) > 0 {
-				bestMove = legalMoves[0]
-				uci.debugLogger.Printf("*** Using first legal move instead: %s ***", bestMove.ToString())
-			} else {
-				// Truly no legal moves
-				bestMove = EmptyMove
-				uci.debugLogger.Printf("*** No legal moves available ***")
-			}
-		}
-
-		if bestMove != EmptyMove {
-			// Check if we should resign due to hopeless position
-			if !uci.allowResignation && bestScore < -MATE_IN_MAX {
-				// Position is hopeless but resignation is disabled - play the move anyway
-				uci.debugLogger.Printf("*** HOPELESS POSITION (score=%d) but resignation disabled, playing move ***", bestScore)
-			}
-
-			moveStr := bestMove.ToString()
-			uci.debugLogger.Printf("*** SENDING: bestmove %s ***", moveStr)
-			uci.sendUCIMessage(output, fmt.Sprintf("bestmove %s", moveStr))
-			uci.debugLogger.Printf("*** BESTMOVE SENT SUCCESSFULLY: %s ***", moveStr)
-		} else {
-			// No legal moves available
-			uci.debugLogger.Printf("*** SENDING: bestmove (none) - no legal moves ***")
-			uci.sendUCIMessage(output, "bestmove (none)")
-			uci.debugLogger.Printf("*** BESTMOVE (none) SENT ***")
-		}
-	} else {
-		// Check if we should try to find any legal move to avoid resignation
-		if !uci.allowResignation {
-			// Try to find any legal move to avoid resignation
-			moves := GenerateLegalMoves(uci.position)
-			if len(moves) > 0 {
-				// Play the first legal move to avoid resignation
-				anyMove := moves[0]
-				moveStr := anyMove.ToString()
-				uci.debugLogger.Printf("*** NO BEST MOVE but resignation disabled, playing any move: %s ***", moveStr)
-				uci.sendUCIMessage(output, fmt.Sprintf("bestmove %s", moveStr))
-				uci.debugLogger.Printf("*** BESTMOVE SENT: %s ***", moveStr)
-			} else {
-				// Truly no legal moves (checkmate or stalemate) - must send (none)
-				uci.debugLogger.Printf("*** SENDING: bestmove (none) - truly no legal moves ***")
-				uci.sendUCIMessage(output, "bestmove (none)")
-				uci.debugLogger.Printf("*** BESTMOVE (none) SENT ***")
-			}
-		} else {
-			// Resignation allowed - send (none)
-			uci.debugLogger.Printf("*** SENDING: bestmove (none) ***")
-			uci.sendUCIMessage(output, "bestmove (none)")
-			uci.debugLogger.Printf("*** BESTMOVE (none) SENT ***")
-		}
-	}
+	uci.publishSearchResult(session, rawOutput, bestMove, bestScore)
 	uci.debugLogger.Printf("=== EXITING search() FUNCTION ===")
 }
 
-// handleStop handles the stop command
-func (uci *UCIEngine) handleStop(output io.Writer) {
-	if uci.searching.Load() {
-		// Wire stop into the recursive search via the global stop flag, in
-		// addition to the channel that the depth callback drains. The
-		// depth callback alone cannot interrupt a running iteration.
-		RequestStop()
-		select {
-		case uci.stopChan <- true:
-		default:
+func (uci *UCIEngine) publishSearchFailure(session *uciSearchSession, output io.Writer, recovered any) {
+	session.resultOnce.Do(func() {
+		session.outputMu.Lock()
+		defer session.outputMu.Unlock()
+		if session.suppress.Load() {
+			return
+		}
+		uci.sendUCIMessage(output, fmt.Sprintf("info string error search session failed: %v", recovered))
+		uci.commitAndSendBestMoveLocked(session, output, session.fallback, 0)
+	})
+}
+
+func (uci *UCIEngine) publishSearchResult(session *uciSearchSession, output io.Writer, bestMove Move, bestScore int) {
+	session.resultOnce.Do(func() {
+		session.outputMu.Lock()
+		defer session.outputMu.Unlock()
+		if session.suppress.Load() {
+			return
+		}
+		uci.commitAndSendBestMoveLocked(session, output, bestMove, bestScore)
+	})
+}
+
+// commitAndSendBestMoveLocked validates against the legal root snapshot, commits
+// session-local game state, and writes exactly one final result. outputMu is held.
+func (uci *UCIEngine) commitAndSendBestMoveLocked(session *uciSearchSession, output io.Writer, bestMove Move, bestScore int) {
+	isLegal := false
+	for _, move := range session.legalMoves {
+		if bestMove == move {
+			isLegal = true
+			break
 		}
 	}
-	// Join the search goroutine so stop is synchronous: search() clears `searching`
-	// in its defer AFTER its last output write and shared-state update, so once it
-	// reads false the main loop can safely mutate position/timeManager/... (e.g. a
-	// "position" right after "stop"). No-op when no search is running. The atomic
-	// Load/Store pair establishes happens-before, so reads after this are race-free.
-	for uci.searching.Load() {
-		time.Sleep(time.Millisecond)
+	if bestMove != EmptyMove && !isLegal {
+		uci.debugLogger.Printf("search returned illegal move %s; using legal fallback", bestMove.ToString())
+		bestMove = session.fallback
 	}
+	if bestMove == EmptyMove && !session.allowResignation {
+		bestMove = session.fallback
+	}
+
+	uci.lifecycleMu.Lock()
+	if uci.activeSearch == session {
+		uci.lastScore = bestScore
+		uci.movesPlayed = session.movesPlayed + 1
+		uci.timeManager = session.timeManager
+	}
+	uci.lifecycleMu.Unlock()
+
+	if bestMove == EmptyMove {
+		uci.sendUCIMessage(output, "bestmove (none)")
+		return
+	}
+	uci.sendUCIMessage(output, fmt.Sprintf("bestmove %s", bestMove.ToString()))
+}
+
+// handleStop is the explicit UCI stop: it joins and retains the session's
+// obligation to emit exactly one bestmove.
+func (uci *UCIEngine) handleStop(_ io.Writer) {
+	uci.joinSearch(false)
+}
+
+// joinSearch cancels and joins without holding lifecycleMu. Replacement, EOF,
+// and quit suppress future output before cancellation. A write already in
+// progress may finish; join guarantees no output after the replacement mutates
+// state or returns.
+func (uci *UCIEngine) joinSearch(suppress bool) {
+	uci.lifecycleMu.Lock()
+	session := uci.activeSearch
+	uci.lifecycleMu.Unlock()
+	if session == nil {
+		return
+	}
+	uci.stopSearchSession(session, suppress)
+	<-session.done
+}
+
+// stopSearchSession applies cancellation only while session is still the active
+// identity. Suppression and RequestStop are published under lifecycleMu, so a
+// delayed join for an old session can never stop a newly admitted search.
+func (uci *UCIEngine) stopSearchSession(session *uciSearchSession, suppress bool) bool {
+	uci.lifecycleMu.Lock()
+	defer uci.lifecycleMu.Unlock()
+	if uci.activeSearch != session {
+		return false
+	}
+	uci.searchState = uciSearchStopping
+	if suppress {
+		session.suppressOutput()
+	}
+	session.cancel(uci.searcher)
+	return true
 }
 
 // handlePonderHit handles ponderhit command
@@ -957,8 +1266,6 @@ func (uci *UCIEngine) handlePonderHit(output io.Writer) {
 
 // handleQuit handles the quit command
 func (uci *UCIEngine) handleQuit(output io.Writer) {
-	if uci.searching.Load() {
-		uci.handleStop(output)
-	}
+	uci.joinSearch(true)
 	// The main loop should exit after this
 }
