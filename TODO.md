@@ -1,4 +1,4 @@
-# NGN current state — September 12 audit
+# NGN current state — September 12 rating reassessment
 
 The original classical target is complete: accepted `53e4d1b` measured 2884
 [2834,2934] on the fixed historical calibration, with 400 games, 55,349 legally
@@ -15,31 +15,46 @@ Counter 5.5 at widths 1 and 8 and Rodent V1.1 at width 1. The exact Rodent V1.1
 artifact cannot expose Threads at width 8, so that cell is unavailable without
 substitution.
 
+The current Counter candidate's one-thread rating orientation is **roughly
+3000–3100**, not the former mixed-width 3130 headline. Accepted 100-game paired
+cells give Counter1 relative Elo −323 [−402,−263], Rodent V1.1 relative Elo
+−413 [−512,−338], and Counter8 relative Elo −186 [−230,−143]. Eight-thread
+absolute rating is not established. All three used the same `a51233b` binary;
+current `b7ffdc8` differs only in documentation. Historical 2884 remains separate.
+See [the reproducible rating reassessment](experiments/2026-09-12-rating-reassessment.md).
+
+**Current user priority:** harden this estimate without spending another long
+calibration cycle, then continue improving strength. No additional rating games
+are needed now: rating-list/settings uncertainty exceeds the useful precision
+available from repeating the same anchors. The historical external-release hold
+below remains recorded, but completing every Rodent cell and porting the entire
+external runner are not prerequisites to an isolated strength experiment.
+
 The external queue is **not complete**. Rodent V1.2 width 1 stopped after 50
 completed games when the exact release emitted the invalid promotion PV token
 `g2g1`; strict trace policy correctly failed the cell. That partial score is not
 accepted. Rodent V1.2 width 8 and both focused longer-clock V1.2 cells did not
 run. The prepared `a51233b` Counter package is therefore still held. WSL
 `build/ngn` remains the classical `53e4d1b` binary, while the clean source
-checkout has since advanced to `314e1ba`; the old coherent-install runbook
+checkout has since advanced to `b7ffdc8`; the old coherent-install runbook
 expects that checkout at `53e4d1b` and must not be run unchanged. No NGN match
 or engine process was active during the September 12 read-only audit.
 
 Next, in order:
 
-1. Reproduce and classify the Rodent V1.2 promotionless-PV boundary without
-   using its observed score. Freeze any reporting-only compatibility policy and
-   its negative fixtures before a fresh full fixed schedule; otherwise mark the
-   exact V1.2 cells unavailable rather than weakening the gate retrospectively.
-2. Make the result-producing external runner source durable. Its frozen V17 delta has
-   focused passing tests, but the out-of-tree full suite still carries 27
-   failures and the WSL worktree is uncommitted; do not copy it blindly into
-   `main`.
-3. Complete a root aggregate of the combined and external terminal evidence,
-   then regenerate or amend the package transition for the current clean source
-   checkout. Rehearse and deploy only if the release gate is satisfied.
-4. After the reproducible release, improve owned training/data, SMP efficiency,
-   Stockfish-network support, search correctness and measured Go hot paths.
+1. Rebase the direct quiet-promotion qsearch candidate onto the current accepted
+   source, verify HCE/Counter state restoration, then run one predeclared bounded
+   paired game test after a fresh same-configuration A/A. Keep only a completed
+   qualifying result; preserve an inconclusive or negative result and move on.
+2. Use that result to select the next focused search or measured hot-path
+   improvement. Owned training/data and practical Stockfish-network support
+   remain larger follow-on projects.
+3. Before release installation, resolve or explicitly close the Rodent V1.2
+   reporting boundary and amend the release contract. Rebuild the installation
+   transition for the actual source state; its old `53e4d1b` precondition is stale.
+4. Preserve the frozen external runner/results. Porting its approximately 2,000
+   changed lines and resolving 27 inherited test failures is separate maintenance,
+   not a reason to rerun accepted games or delay the next strength experiment.
 
 See [the evidence and exact WSL artifact map](experiments/2026-09-12-release-state-audit.md).
 The older September 5 runbook below is historical context. Do not restart its

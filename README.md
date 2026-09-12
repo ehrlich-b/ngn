@@ -4,10 +4,10 @@ NGN is a UCI chess engine written in Go.
 
 > **Project goal:** build the strongest Go-based chess engine in the world.
 >
-> NGN is not there yet. The current integrated candidate is provisionally around
-> 3100--3150 CCRL-style Elo, while Rodent V 1.1 is listed at 3522 on CCRL 40/4.
-> The gap is still several hundred Elo, and only independent rating-list testing
-> can settle the comparison.
+> NGN is not there yet. Completed local comparisons place the current Counter
+> candidate roughly around 3000--3100 at one thread when oriented against the
+> pinned published ratings. This is not an official rating. At eight threads,
+> NGN remains about 186 Elo behind Counter8 in the completed matched test.
 
 ## Features
 
@@ -91,27 +91,44 @@ support. External Polyglot books are also not advertised as supported.
 
 ## Current strength
 
-The best current number is a **provisional 3130 CCRL-style Elo** for the
-integrated Counter-evaluator/Lazy-SMP candidate. A reasonable working range is
-about **3000--3220**. This is a local calibration, not a CCRL result, and engine
-ratings do not transfer exactly across hardware, time controls, books or thread
-counts.
+The current Counter-evaluator candidate is **roughly 3000--3100 at one thread**
+when mapped onto the pinned published opponent ratings. This is an orientation,
+not a confidence interval or an official rating. The former 3130 headline mixed
+one-thread and eight-thread comparisons and has been retired.
 
-The estimate is supported by several distinct measurements:
+Each external row below is a completed 100-game test over 50 reversed-color
+opening pairs at 30+0.3. Intervals resample complete pairs and express local
+match uncertainty only; they do not cover transfer between rating lists, hardware,
+time controls, opening books, tablebases or opponent personalities.
 
-| Configuration and opponent | Result | What it says |
-|---|---:|---|
-| Classical HCE on native Windows against the fixed historical-anchor ladder | 2884, reported 95% interval 2834--2934 | Latest fully audited local calibration of the classical line |
-| Counter evaluator, 8 workers vs HCE, 8 workers | 66 wins, 27 draws, 5 losses | Combined NNUE plus SMP candidate is decisively stronger than the HCE configuration |
-| Integrated candidate, 1 worker vs Counter 5.5 | 1 win, 25 draws, 74 losses; -323 relative Elo | About 3010 if mapped directly onto Counter's published 3333 anchor |
-| Integrated candidate, 8 workers vs Counter 5.5 | 1 win, 49 draws, 50 losses; -186 relative Elo | About 3147 before correcting for the rating-list/thread mismatch |
-| Integrated candidate, 1 worker vs Rodent V 1.1 | 1 win, 15 draws, 84 losses; -413 relative Elo | About 3109 when mapped onto Rodent's current 3522 CCRL 40/4 anchor |
+| Configuration and opponent | NGN wins / draws / losses | Relative Elo, paired 95% interval |
+|---|---:|---:|
+| Counter evaluator, 1 worker vs Counter 5.5, 1 worker | 1 / 25 / 74 | -323 [-402, -263] |
+| Counter evaluator, 1 worker vs Rodent V1.1 Anand/testers | 1 / 15 / 84 | -413 [-512, -338] |
+| Counter evaluator, 8 workers vs Counter 5.5, 8 workers | 1 / 49 / 50 | -186 [-230, -143] |
 
-The completed external checks differ materially by opponent and width, which is
-normal for this kind of local calibration and is why the project should not claim
-a precise official rating. The Rodent and eight-worker Counter anchors imply 3109
-and 3147 respectively, centering near the stated 3130 estimate. The working
-estimate will eventually be replaced by an independent rating-list result.
+At one thread, Counter's published 3333 label maps to about 3010, while Rodent's
+pinned 3522 label maps to about 3109. Counter's 3359 label in the pinned Blitz
+snapshot shifts the first estimate to 3036. This sensitivity and the unverified
+match between Rodent's testers/Anand artifact and its rated entry prevent a
+precise combined estimate. The anchor-specific intervals span roughly 2930--3200;
+that envelope is not a combined 95% interval.
+
+At eight threads, **25.5% against Counter8** is the useful baseline. There is no
+matched eight-thread absolute anchor in this evidence. Applying Counter's 3333
+label would produce 3147, but that assumes a rating transfer we have not verified.
+The difference between the one-thread and eight-thread relative scores is also
+not NGN's isolated SMP gain: both engines changed width.
+
+The historical classical result remains **2884 [2834,2934]**, from the separately
+audited 400-game native-Windows calibration of `53e4d1b`. It is not pooled with
+these WSL games. The accepted Counter8/HCE8 result (66 wins, 27 draws, 5 losses)
+establishes an internal improvement, not an absolute rating increment.
+
+The [September 12 rating reassessment](experiments/2026-09-12-rating-reassessment.md)
+records artifact identities, paired calculations, limitations and the decision
+to spend the next games on engine improvements. The failed Rodent V1.2 partial
+cell contributes nothing to these estimates.
 
 The integrated source is now on `main`; deployment of the packaged candidate is
 still gated on the remaining external comparison matrix and release verification.
@@ -122,7 +139,8 @@ The target is the top of the Go-engine field, not merely 2800 or 3000. Rodent V,
 CounterGo, Chess-3 and Zahak show that Go is not the limiting factor. NGN still
 needs substantial work in several areas:
 
-1. Finish external calibration and ship the reproducible NNUE/SMP release.
+1. Test focused strength improvements against the accepted Counter baseline;
+   retain the bounded local calibration and prepare a reproducible release.
 2. Replace dependence on a compatibility network with a first-rate NGN-owned
    data, training, export and validation pipeline.
 3. Complete practical Stockfish-network evaluation where licensing and exact
