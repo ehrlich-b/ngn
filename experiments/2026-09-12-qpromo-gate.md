@@ -21,10 +21,10 @@ openings_sha256: 2257ecfb9af03f1ee0bff68f71ec97dbe363cdb9f535fab1a0ebc5af1abaaf3
 aa_preflight: PASS100 games, 50 pairs, identical base binary and match configuration; candidate admitted
 decision_rule: complete AA100 with paired95 interval including0; then complete candidate400; adopt only if candidate paired-bootstrap lower95 Elo is greater than0 and every integrity gate passes; otherwise shelve; no score-conditioned extension or rerun
 games_or_pairs: AA100/50 then candidate400/200
-result: pending
-flags_errors: must be zero
-verdict: pending
-next_action: monitor the frozen WSL run and audit the complete outcome
+result: candidate118W/178D/104L; penta[9,46,80,52,13]; paired-bootstrap+12.17[-11.30,+34.86]Elo
+flags_errors: zero; full legal/terminal and strict operational audits pass
+verdict: SHELVE at the fixed400-game cap; positive point estimate does not qualify
+next_action: retain the accepted engine unchanged and test the exact-order Counter output-kernel speed hypothesis
 ```
 
 The same behavior source is now accompanied by rating-documentation commit
@@ -150,4 +150,89 @@ operational audit passed 490,480 trace lines. The supervisor returned zero,
 with no termination, timeout, monitor error or surviving descendants. Peak
 sampled process-tree RSS was 5,259,180 KiB, below the amended 8-GiB cap.
 The frozen runner admitted the original 400-game candidate schedule. Its
-result remains pending; the control is not strength evidence for the patch.
+result was pending at this checkpoint; the control is not strength evidence for
+the patch. Its final paired-bootstrap interval is −13.90 [−59.64,+31.35] Elo.
+
+### Completed candidate: shelve
+
+The fixed 400-game / 200-pair comparison completed in 3,355.578 seconds with
+118 wins, 178 draws and 104 losses for candidate A (51.75% score). Penta is
+`[9,46,80,52,13]`. The predeclared 100,000-resample paired bootstrap gives
+**+12.17 [−11.30,+34.86] Elo**. The lower bound is not positive, so the exact
+rule requires **SHELVE**. There is no score-conditioned extension, provisional
+keep or claim that this proves the change is harmful or worthless.
+
+Independent Stockfish replay passed all 62,848 played plies and all 400 natural
+terminal results. The strict operational audit passed 2,018,027 trace lines;
+there were no flags, crashes, illegal moves or no-move results. The supervisor
+returned zero with no termination, timeout, monitor error or survivors. Peak
+sampled process-tree RSS was 5,637,896 KiB. The foreground SSH command also
+returned zero. The complete decision and hash inventory are preserved in the
+[artifact directory](2026-09-12-qpromo-artifacts/).
+
+Only documentation, measurement code and the intentionally archived experimental
+patches enter Git. The production and regression diffs are saved as `.patch`
+files, not installed engine source. The accepted playing engine and deployment
+remain unchanged. The isolated WSL candidate worktree and both raw run roots
+are preserved; no unrelated jobs or user files were removed.
+
+### Independent terminal review and preservation repair
+
+Sol's independent checker reconstructed each engine-A score from the game
+headers and result, mapped games back to their reversed-color opening pairs,
+and reproduced both 100,000-resample bootstrap intervals exactly. It verified
+the complete 92-file inventory and terminal/decision digest chain, build and
+input identities, legal/terminal, operational and process receipts. Neither
+stage had even one sampled interval above one non-owned CPU core (168 A/A and
+671 candidate samples); prelaunch activity was 0.03699 core. A separate live
+process scan found no remaining run-owned processes. Root reviewed the checker,
+its final diff and complete result, and verified the archived file identities.
+
+The first two executed review versions failed on a preservation assumption:
+the driver hash-checked all manifest inputs before launch but did not copy the
+two memory-amendment provenance receipts into run 002. The original external
+`resource_amendment_receipt` and `run001_supervisor_receipt` both still matched
+their exact prelaunch hashes. Final v4 explicitly permits only those two named,
+path-and-hash-bound external records and reports their origin. Both receipts
+and failed reviews are archived alongside the result. No frozen run file,
+statistical rule, game, or original receipt changed; no games were rerun.
+
+- [Final review](2026-09-12-qpromo-artifacts/independent-review.json), SHA-256
+  `9a358146b1b4301545c475306bf2f2f4471cdc2a5c2a5619c90002fc8f39be78`.
+- [Exact v4 verifier](2026-09-12-qpromo-artifacts/verify-terminal.py), SHA-256
+  `05ebd5a82e6aac7a1df4ea6bbbb47b954b0a637c5de8de197da3f96b275dba70`.
+- Terminal SHA-256: `8f4781b0fb57dbd05ac846338bb9b0522b8e90c5bf9fc8cb6d49a331987e46b0`.
+- Decision SHA-256: `c81ec9b28a0ed25d1cf87f6aa295373eb597c8fba8080d50391b74a3b4b0e66c`.
+- Inventory SHA-256: `e8d4159bedc519321611d7077f3f3b6a43dae0eb80da6d16c1b047542efa1c04`.
+
+To repeat the read-only verification on WSL, invoke the archived verifier with
+`--run-root /home/ehrli/repos/ngn-qpromo-gate-20260912/run-002` and a fresh
+`--output` path outside that frozen run. It refuses execution off WSL or to
+overwrite an existing result.
+
+## Next experiment selected before this verdict
+
+A bounded read-only Sol assessment identified the Counter output loop in
+`countereval/context.go` (`evaluateAccumulator`) as the next focused target.
+The [September 6 profile](2026-09-06-current-status.md#numerical-and-performance-evidence)
+attributed 33.56% flat CPU to scalar evaluation before the accepted feature-row
+AVX2 optimization; the output loop itself remains scalar. That is evidence for
+a promising target, not a current measured speedup or an Elo prediction.
+
+Try an **exact-order AVX2 output kernel**: vectorize positive-lane comparison
+and separately rounded float32 multiplication, then accumulate active products
+in their original ascending order with scalar additions. Keep the scalar
+implementation as the oracle. Horizontal reassociation and FMA are forbidden;
+the earlier real FMA witness changed expected `+0` to `-2^-46`.
+
+Before any acceptance, require exact raw bits on official full/incremental and
+adversarial finite inputs, signed-zero/subnormal/rounding cases, all eight-lane
+activity masks, zero kernel allocations, fixed-search node/score/PV identity,
+and GNU disassembly confirming vector multiplication without fused operations.
+Then use reciprocal-order direct-kernel timing and the existing six-fixture
+fixed-node search protocol. Shelve on any parity failure, direct-kernel speedup
+below 1.5x, whole-search equal-weight median gain below 3%, or any fixture median
+slower than base. A repeatably faster, behavior-identical implementation uses
+the repository's pure-speed gate; it does not need an Elo claim to justify
+integration. No implementation or benchmark for this second candidate began
+while the quiet-promotion verdict was pending.
