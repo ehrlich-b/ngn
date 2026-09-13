@@ -82,8 +82,9 @@ Next, in order:
    benign interleaved startup-log lines. Independent diagnosis confirms clean
    process exits and no survivors; legal replay passes all 61,755 candidate plies.
    **Not adopted / shelved**, no accepted Elo, no replay or extension. Preserve
-   the original failed audit. Fix its adjacency assumption before future game
-   gates, not by rewriting this result. See the
+   the original failed audit. The future-run auditor now accepts strict startup
+   record counts despite interleaving; all 27 harness unit tests pass. Future
+   game gates still require their normal A/A preflight. See the
    [completed diagnostic and gate disposition](experiments/2026-09-13-counter-correction-interaction.md).
    Do not rerun the shelved fusion candidate or broaden to SPSA.
 2. Existing Rodent V1.1 Anand **Slice A accepted as inactive compatibility**:

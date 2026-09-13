@@ -237,3 +237,18 @@ The separate [forensic closure](2026-09-13-counter-correction-artifacts/gate/for
 is SHA-256 `f7147fd3861b4af724ee8bfed58c489328ac00d371650165f06dc0c134b9f63a`.
 All raw artifacts remain in the original WSL run directory. The accepted
 playing source is unchanged; next work is the existing Rodent network path.
+
+## Future-run auditor repair
+
+The repository auditor now validates exactly the expected initialization and
+exact-path record counts without assuming adjacency. Unknown content, wrong
+paths, count drift and invalid timestamps remain fatal. Logs establish record
+counts, not per-process attribution; the process witness remains authoritative.
+The regression fixture reproduces the preserved role-A interleaving byte-for-byte.
+All 27 existing candidate-match Python tests pass on WSL with the two-file
+overlay on base `203830a`: `python3 -m unittest discover -s tests -p test_*.py -v`,
+3.196 seconds. The [test log](2026-09-13-counter-correction-artifacts/gate/future-auditor-tests.txt)
+has SHA-256 `9d3af608814e46bdc2b31696b6bff5f301d1c33c4bf198cc4071d3860eed03e7`.
+No historical run inputs or results were changed, and no old audit or games
+were rerun. A future gate must freeze the repaired auditor and run its ordinary
+A/A preflight before candidate games.

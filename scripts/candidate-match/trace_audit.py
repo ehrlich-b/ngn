@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import json
 import re
 import sys
@@ -23,6 +24,14 @@ FATAL_PHRASES = (
 
 
 def crash_lines(path: Path, logged_path: Path, expected_processes: int) -> dict[str, Any]:
+    """Accept only the two benign startup records emitted by each NGN process.
+
+    Concurrent processes append the initialization and path records separately,
+    so records from different processes may interleave. The log has no process
+    identifier and therefore proves only exact record counts and contents, not
+    which two records came from the same process. The match process witness is
+    authoritative for process identity, count, and lifecycle.
+    """
     if expected_processes < 0:
         raise CandidateMatchError("negative expected crash-log process count")
     if not path.is_file():
@@ -30,15 +39,33 @@ def crash_lines(path: Path, logged_path: Path, expected_processes: int) -> dict[
             return {"path": str(path), "sha256": None, "expected_processes": 0, "pairs": 0}
         raise CandidateMatchError(f"required NGN crash log absent: {path}")
     lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
-    init_re = re.compile(r"^\[NGN CRASH\] \d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}\.\d{6} crash_handler\.go:64: === NGN Crash Handler Initialized ===$")
-    path_re = re.compile(r"^\[NGN CRASH\] \d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}\.\d{6} crash_handler\.go:65: Crash log: " + re.escape(str(logged_path)) + r"$")
-    if len(lines) != expected_processes * 2:
-        raise CandidateMatchError(f"{path}: crash-log lines={len(lines)} expected={expected_processes * 2}")
-    for index in range(expected_processes):
-        first, second = lines[2 * index : 2 * index + 2]
-        if not init_re.fullmatch(first) or not path_re.fullmatch(second):
-            raise CandidateMatchError(f"{path}: non-benign crash-log pair {index}: {first!r}, {second!r}")
-    return {"path": str(path), "sha256": sha256(path), "expected_processes": expected_processes, "pairs": expected_processes}
+    timestamp = r"(?P<timestamp>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}\.\d{6})"
+    init_re = re.compile(r"^\[NGN CRASH\] " + timestamp + r" crash_handler\.go:64: === NGN Crash Handler Initialized ===$")
+    path_re = re.compile(r"^\[NGN CRASH\] " + timestamp + r" crash_handler\.go:65: Crash log: " + re.escape(str(logged_path)) + r"$")
+    counts = {"initialization": 0, "path": 0}
+    for line_number, line in enumerate(lines, 1):
+        match = init_re.fullmatch(line)
+        kind = "initialization"
+        if match is None:
+            match = path_re.fullmatch(line)
+            kind = "path"
+        if match is None:
+            raise CandidateMatchError(f"{path}: non-benign crash-log line {line_number}: {line!r}")
+        try:
+            datetime.strptime(match.group("timestamp"), "%Y/%m/%d %H:%M:%S.%f")
+        except ValueError as error:
+            raise CandidateMatchError(f"{path}: malformed crash-log timestamp on line {line_number}: {line!r}") from error
+        counts[kind] += 1
+    if counts != {"initialization": expected_processes, "path": expected_processes}:
+        raise CandidateMatchError(
+            f"{path}: crash-log startup counts={counts!r} expected_processes={expected_processes}"
+        )
+    return {
+        "path": str(path), "sha256": sha256(path), "expected_processes": expected_processes,
+        "pairs": expected_processes, "initialization_lines": counts["initialization"],
+        "path_lines": counts["path"],
+        "attribution": "record counts only; process witness is authoritative for process identity and lifecycle",
+    }
 
 
 def audit_trace(lines: list[str], roles: list[dict[str, Any]]) -> dict[str, Any]:
