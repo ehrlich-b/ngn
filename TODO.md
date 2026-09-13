@@ -101,8 +101,11 @@ Next, in order:
    worker/search lifecycle parity, full short/race and configured exact-network
    integration race tests pass; existing defaults and search policy remain.
    See [Slice C](experiments/2026-09-13-rodent-anand-slice-c.md).
-   Next: bounded realistic portable profiling, then an evidenced speed candidate
-   and a separate strength gate. Availability alone proves no Elo benefit.
+   The [bounded portable profile](experiments/2026-09-13-rodent-portable-profile.md)
+   completed cleanly: output calculation is 46.11% of sampled CPU, incremental
+   updates 33.69%. Sol is implementing one exact-integer AVX2 output candidate
+   in isolation; correctness/search identity and a frozen speed gate precede
+   adoption. A separate strength gate follows. Availability proves no Elo benefit.
    Useful SMP work remains a later lane. Owned training, new training data and
    another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
