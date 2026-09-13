@@ -110,7 +110,10 @@ Next, in order:
    Next is the [first optimized Rodent-vs-Counter paired strength gate](experiments/2026-09-13-rodent-counter-strength.md),
    with fresh A/A and fixed cap; no second optimization first. UCI preflight now
    recognizes both exact backend names; all 29 current harness unit tests pass.
-   Binary/manifest freeze and match release remain pending. No Elo gain is established.
+   Shared binary/source `7623779` and manifest are frozen and reviewed. The launch
+   stopped before any games because unrelated host CPU exceeded the predeclared
+   limit. Preserve that rejection; resume only after load clears and no run exists.
+   No Elo gain is established. Do not stop or reprioritize the unrelated workload.
    Useful SMP work remains a later lane. Owned training, new training data and
    another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
