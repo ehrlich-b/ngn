@@ -97,8 +97,12 @@ Next, in order:
    preserved; its narrow correction passed one bounded rerun with unchanged
    engine sources and oracle inputs. See the
    [completed Slice B verification](experiments/2026-09-13-rodent-anand-slice-b.md).
-   Sol is implementing Slice C named engine/UCI selection and worker/search
-   lifecycle parity in isolation. Speed and a separate game gate follow.
+   **Slice C accepted as opt-in integration:** named engine/UCI selection,
+   worker/search lifecycle parity, full short/race and configured exact-network
+   integration race tests pass; existing defaults and search policy remain.
+   See [Slice C](experiments/2026-09-13-rodent-anand-slice-c.md).
+   Next: bounded realistic portable profiling, then an evidenced speed candidate
+   and a separate strength gate. Availability alone proves no Elo benefit.
    Useful SMP work remains a later lane. Owned training, new training data and
    another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
