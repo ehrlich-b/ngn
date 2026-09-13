@@ -179,6 +179,12 @@ Add one package, tentatively `rodenteval`, and one named backend
    `SelectCounter55Evaluator`, exact board/move conversion, and backend name
    `rodent-v1.1-anand`. `SearchSTM` returns the release static above;
    `LegacyUndampedSTM` is the same value because this backend has no damping.
+   Slice C review clarification: both engine routes apply NGN's existing
+   non-mate-band clamp to `[-25000,+25000]` after the exact release static.
+   NGN reserves scores at magnitude 29000 and above for mate normalization in
+   TT storage; the package's release-static API remains exact and unclamped.
+   No halfmove-clock damping is introduced. Boundary and clock-identity tests
+   must lock this engine-only adaptation.
 4. Startup/UCI: extend the existing `EvalBackend`/`EvalFile` staging machinery,
    requiring this exact file. Do not embed or silently substitute a network.
    Evaluator selection, SMP worker isolation, stop/unwind, TT/history reset, and
@@ -214,4 +220,3 @@ Add one package, tentatively `rodenteval`, and one named backend
   the network or copied GPL implementation requires an explicit licensing
   decision before packaging. This does not block local oracle/implementation
   work; it blocks assuming distributable bundled artifacts.
-

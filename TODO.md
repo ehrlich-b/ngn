@@ -90,12 +90,14 @@ Next, in order:
    strict external loader and portable full refresh match all 72 exact-release
    corpus records; package race and full short suite pass. No engine selection,
    bundled weights, or strength claim. See [Slice A](experiments/2026-09-13-rodent-anand-slice-a.md).
-   Sol's portable incremental context and exact state-restoration source passed
-   review; the opt-in transition-oracle consumer is frozen in isolation.
-   Counter computation has terminated and cleanup is verified. Sol is formatting
-   the isolated Slice B sources before the final runtime-input freeze.
-   See the [held Slice B verification record](experiments/2026-09-13-rodent-anand-slice-b.md).
-   Engine integration, speed and a separate game gate follow verified parity.
+   **Slice B accepted as inactive compatibility:** exact incremental/full-refresh
+   parity at 75 checkpoints, ten focused tests, 22 oracle sequences, package race
+   and full short suite pass. The runner-only parent/subtest matcher failure is
+   preserved; its narrow correction passed one bounded rerun with unchanged
+   engine sources and oracle inputs. See the
+   [completed Slice B verification](experiments/2026-09-13-rodent-anand-slice-b.md).
+   Sol is implementing Slice C named engine/UCI selection and worker/search
+   lifecycle parity in isolation. Speed and a separate game gate follow.
    Useful SMP work remains a later lane. Owned training, new training data and
    another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
