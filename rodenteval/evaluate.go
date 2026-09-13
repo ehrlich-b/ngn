@@ -81,11 +81,12 @@ func clippedSquaredWeighted(value, weight int16) int32 {
 }
 
 func (model *Model) evaluateAccumulator(accumulator *accumulator, sideToMove Color) int {
-	var sum int32
-	for hidden := 0; hidden < HiddenSize; hidden++ {
-		sum += clippedSquaredWeighted(accumulator[sideToMove][hidden], model.outputWeights[0][hidden])
-		sum += clippedSquaredWeighted(accumulator[sideToMove^1][hidden], model.outputWeights[1][hidden])
-	}
+	sum := rodentOutputDot(
+		&accumulator[sideToMove],
+		&accumulator[sideToMove^1],
+		&model.outputWeights[0],
+		&model.outputWeights[1],
+	)
 	sum = sum/inputScale + int32(model.outputBias)
 	return int(sum * outputScale / (inputScale * layerScale))
 }

@@ -102,10 +102,13 @@ Next, in order:
    integration race tests pass; existing defaults and search policy remain.
    See [Slice C](experiments/2026-09-13-rodent-anand-slice-c.md).
    The [bounded portable profile](experiments/2026-09-13-rodent-portable-profile.md)
-   completed cleanly: output calculation is 46.11% of sampled CPU, incremental
-   updates 33.69%. Sol is implementing one exact-integer AVX2 output candidate
-   in isolation; correctness/search identity and a frozen speed gate precede
-   adoption. A separate strength gate follows. Availability proves no Elo benefit.
+   completed cleanly: output calculation was 46.11% of sampled CPU, incremental
+   updates 33.69%. **Rodent output AVX2 accepted:** 10.08x direct-kernel speedup,
+   45.55% less cold-search time, all six fixtures/order strata improve, exact
+   cold/warm search identity and allocation equality; all 44 stages clean.
+   See [the accepted speed gate](experiments/2026-09-13-rodent-output-kernel.md).
+   Next is the first optimized Rodent-vs-Counter paired strength gate, with fresh
+   A/A and fixed cap; no second optimization first. No Elo gain is yet established.
    Useful SMP work remains a later lane. Owned training, new training data and
    another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
