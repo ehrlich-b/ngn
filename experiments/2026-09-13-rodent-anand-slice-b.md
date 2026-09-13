@@ -85,8 +85,27 @@ Stop on any unexplained lane or raw drift; do not fit a scale to the mismatch.
 Held execution preparation lives at
 `/home/ehrli/rodent-v1.1-anand-sliceb-gate-20260913` and is not released. Root
 review found v1 lacked the tagged test's working directory and did not overlay
-the uncommitted context files onto the clean accepted-base checkout. Sol is
-correcting these source-only before release; v1 must not be launched unchanged.
+the uncommitted context files onto the clean accepted-base checkout. Driver v2
+fixes both, records exact source assembly and excludes compiler caches from the
+evidence inventory. Independent Sol review accepted the corrected stage wiring.
+Runner v3 additionally rejects skipped required unit/oracle tests (including
+subtests), without rejecting the baseline suite's intentional short-mode skips
+or claiming all baseline tests executed.
+
+The [held manifest](2026-09-13-rodent-anand-artifacts/incremental-preflight/manifest-held-v3.json)
+and adjacent driver/runner are archived byte-exactly:
+
+- Manifest v3: `50c86813ce56910c9edc151e65d25e54e2d1a50a50656a1c3e597039a9b0d609`.
+- Driver v2: `7602932f9297008292717ffdbed3702bbeb38a354cca68b49b851c31c65d5d2c`.
+- Runner v3: `5c5e5cc6be76eb0b010ab6ee2b4fa954038f001df467ac29b225b939abdb4725`.
+
+Static syntax/hash checks pass with 19 fixed inputs; no runtime verification has
+run. The source root/commit/tree remain explicitly pending. Before release,
+format the isolated Go sources on WSL, preserve raw source-only v3, review the
+formatting-only diff, and freeze the actual formatted overlays and accepted base
+in a new release manifest. Do not launch any held manifest or mutate archived
+inputs. The three bounded serial stages are tagged mechanism, exact-release raw,
+and NGN checks; their time caps are 10, 1 and 30 minutes, respectively.
 
 Only passing runtime verification permits integrating this inactive context.
 Named engine/UCI integration follows separately, retaining worker ownership,
