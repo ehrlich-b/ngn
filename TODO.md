@@ -77,10 +77,14 @@ Next, in order:
    identity. Minor correction has material influence across five distinct sampled
    trajectories, without proof of harm. Root admitted one Counter-only minor
    application/learning-off candidate; source review and all six validation
-   checks pass. Released WSL `ngn-counter-policy-gate-20260913/run-001` passed
-   fresh AA100 and its audits; fixed400 is running. Adopt only with positive paired95
-   lower bound and clean audits; no partial verdict or extension. See the
-   [diagnostic and live gate](experiments/2026-09-13-counter-correction-interaction.md).
+   checks pass. WSL `ngn-counter-policy-gate-20260913/run-001` completed AA100
+   and candidate400 (98W/207D/95L), but the frozen operational audit failed on
+   benign interleaved startup-log lines. Independent diagnosis confirms clean
+   process exits and no survivors; legal replay passes all 61,755 candidate plies.
+   **Not adopted / shelved**, no accepted Elo, no replay or extension. Preserve
+   the original failed audit. Fix its adjacency assumption before future game
+   gates, not by rewriting this result. See the
+   [completed diagnostic and gate disposition](experiments/2026-09-13-counter-correction-interaction.md).
    Do not rerun the shelved fusion candidate or broaden to SPSA.
 2. Existing Rodent V1.1 Anand **Slice A accepted as inactive compatibility**:
    strict external loader and portable full refresh match all 72 exact-release
@@ -88,7 +92,8 @@ Next, in order:
    bundled weights, or strength claim. See [Slice A](experiments/2026-09-13-rodent-anand-slice-a.md).
    Sol's portable incremental context and exact state-restoration source passed
    review; the opt-in transition-oracle consumer is frozen in isolation.
-   No Slice B builds/oracles until the Counter games and audits finish.
+   Counter computation has terminated and cleanup is verified. Sol is formatting
+   the isolated Slice B sources before the final runtime-input freeze.
    See the [held Slice B verification record](experiments/2026-09-13-rodent-anand-slice-b.md).
    Engine integration, speed and a separate game gate follow verified parity.
    Useful SMP work remains a later lane. Owned training, new training data and

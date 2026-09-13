@@ -44,8 +44,10 @@ counts, choices and reference scores cannot establish playing strength.
 The passive diagnostic is complete. Root admitted one Counter-only minor-
 correction-off candidate for implementation and a separately frozen game gate.
 Sol completed implementation and independent review. The released gate passed
-A/A and its audits and is running the fixed candidate phase; no strength verdict
-exists. The 3300 goal remains active and unproved.
+A/A and completed all 400 candidate games, but its frozen operational audit
+failed on benign concurrent startup-log interleaving. **Not adopted / shelved**;
+no accepted Elo estimate, extension or game replay. The 3300 goal remains active
+and unproved. See the terminal disposition below.
 
 Source review finds no correctness defect or obviously excessive scale. Exact
 integer saturation is ±48 cp per term, ±144 cp total; the three tables learn
@@ -143,7 +145,7 @@ and the unselected standalone Rodent package only; they do not change these
 playing inputs. WSL bundle:
 `/home/ehrli/repos/ngn-counter-minor-off-20260913/output/counter-minor-off-20260913`.
 
-## Released game gate — in progress
+## Released game gate — execution record
 
 Independent Sol review recommended release after the frozen hash-only check
 passed all 15 input artifacts and both binaries. Root read the entire driver,
@@ -165,14 +167,15 @@ retry started this single run, not a second game attempt. The 10-second prelaunc
 sample observed 0.095 non-owned CPU cores. A/A started at
 `2026-09-13T19:46:34.952141+00:00`, supervisor group/root PID 2992376, with the
 declared four physical CPU representatives and 8 GiB process-tree limit.
-The A/A phase completed and passed as detailed below. The candidate's final
-process, legal, terminal, trace and statistical audits remain pending. Do not
-restart on an observation timeout or treat a partial score as a verdict.
+The A/A phase completed and passed as detailed below. The candidate completed
+its games and legal/terminal replay, then the operational audit failed as
+recorded below. No canonical decision or terminal JSON was produced. Do not
+restart or rewrite the frozen audit result.
 
-All other owned engines/builds/tests are quiet. Sol may edit the isolated,
-unselected Rodent incremental package during this interval, without executing
-builds/oracles or adding a second playing-policy candidate. The gate must finish
-and be audited before further owned compute is released.
+Other owned engines/builds/tests remained quiet throughout the timed gate.
+Independent post-run cleanup found no surviving owned engines or match-stage
+processes. The computation hold can now be released for the next isolated
+Rodent verification step; it does not depend on accepting this candidate.
 
 ### Completed A/A preflight
 
@@ -194,4 +197,43 @@ Final A/A PGN SHA-256:
 Final EPD SHA-256:
 `b0ade6e1b9828f3b50064965f94646fcba6ccf34ee0217ad9122306c22940972`.
 The candidate phase began automatically after these checks. No partial candidate
-score is a verdict, and no other owned compute has been released.
+score was used as a verdict.
+
+## Terminal disposition — not adopted
+
+The fixed candidate sample completed in 54:32 match time: **98W/207D/95L**,
+201.5 points / 400 games, pentanomial `[9,44,87,55,5]`. These are raw completed
+game counts, not an accepted Elo result. Legal and terminal replay passes all
+400 games, 200 pairs and 61,755 plies.
+
+Candidate supervisor completed with both return codes 0, 3,275.460767 seconds
+elapsed, peak sampled RSS 5,872,380 KiB, no timeout/memory/orphan/monitor errors
+and no survivors. The process witness completed with fastchess return code 0,
+no violations and exactly four observed instances per role. Independent Sol
+review's one-shot executable check found no owned engines or match-stage process.
+
+The frozen trace auditor then rejected the shared role-A crash log because its
+first two lines both say `=== NGN Crash Handler Initialized ===`. The complete
+eight-line file contains exactly four initialization notices and four correct
+log-path notices, with no panic, stack trace or extra content. Two processes
+interleaved their separate writes as `init, init, path, path`; role B has four
+ordinary adjacent pairs. The auditor assumes every process's two writes remain
+adjacent, which is not guaranteed for a shared log. This is a false-positive
+crash-log classification, not evidence of an engine crash.
+
+The original operational audit remains **FAILED**, and the controller exited 1
+before producing `decision.json`, `terminal.json` or the declared bootstrap
+decision. There is no canonical ADOPT verdict. Root therefore shelves the
+candidate: no production patch, no accepted Elo, no game replay or extension.
+The separate forensic closure does not replace the original failed audit or
+claim the remaining full trace checks passed. Correct this narrow auditor bug
+with discriminating tests before using it for a future game gate.
+
+Candidate PGN SHA-256:
+`8ae5c595dbe80e221556a899e40486ac21b013a4f9d53ab822fadecc2c5ef822`.
+Final EPD SHA-256:
+`023c63ba55350b5384e25d9f12bcf0cd6af3868b5cbdb8ec2ba51d8caba53c28`.
+The separate [forensic closure](2026-09-13-counter-correction-artifacts/gate/forensic-closure.json)
+is SHA-256 `f7147fd3861b4af724ee8bfed58c489328ac00d371650165f06dc0c134b9f63a`.
+All raw artifacts remain in the original WSL run directory. The accepted
+playing source is unchanged; next work is the existing Rodent network path.
