@@ -43,8 +43,9 @@ counts, choices and reference scores cannot establish playing strength.
 
 The passive diagnostic is complete. Root admitted one Counter-only minor-
 correction-off candidate for implementation and a separately frozen game gate.
-Sol owns implementation and independent review. No games have started; the
-3300 goal remains active and unproved.
+Sol completed implementation and independent review. The released gate is now
+running its A/A phase; no strength verdict exists. The 3300 goal remains active
+and unproved.
 
 Source review finds no correctness defect or obviously excessive scale. Exact
 integer saturation is ±48 cp per term, ±144 cp total; the three tables learn
@@ -63,7 +64,8 @@ compatibility for the exact existing Rodent V1.1 Anand network in parallel.
 The admitted candidate's reviewed game plan is the existing 10+0.1,
 concurrency-four, one-thread-per-engine protocol:
 fresh AA100 then fixed candidate400, adopting only with positive paired95
-lower bound and all integrity checks. No games have been authorized yet.
+lower bound and all integrity checks. Root released exactly this gate after the
+completed checks below.
 
 ## Completed diagnostic
 
@@ -106,3 +108,68 @@ SHA-256 `545462126185600889cedf50ebafc08915be5f1f829be2ca7edd80c6287cda66`.
 The compact archive includes observer source, commands, summarizer, summary
 and supervisor receipt. Its `wsl-SHA256SUMS` inventories the full WSL bundle;
 the raw JSON and unchanged helper probes are intentionally not duplicated.
+
+## Frozen candidate and validation
+
+The candidate is game-ready but not adopted or integrated. Root and Sol reviewed
+the exact production patch, including unchanged TT bound refinement and immutable
+backend selection. Interior evaluation reuses its existing correction indices;
+it does not add repeated hashing as a performance confound. Discriminating tests
+cover poisoned root/interior/qsearch values, retained unequal pawn/non-pawn terms,
+excluded minor learning, other-backend controls, TT boundaries and existing
+transactional model replacement/private reusable SMP contexts.
+
+All six checks pass: focused v3, short engine v3, race engine v3, full short v3,
+and official Counter raw/transition/engine-boundary oracles at v1 and v3. The
+initial race invocation used CGO_ENABLED=0 and was rejected before any tests;
+that operational attempt is preserved/excluded. The argument-only correction
+to CGO_ENABLED=1 passes the same race suite. Normal builds retain CGO_ENABLED=0.
+
+Exact [build/test receipt](2026-09-13-counter-correction-artifacts/candidate/build-test-receipt.json):
+`cbc3acbdbf414a73e116b88fa0e29e130be793708cb302d32d69e3c4b6c9fc47`.
+The adjacent archive preserves the relative production/regression patches,
+commands and complete validation logs. The earlier absolute-path/executable-mode
+test patch is retained only on WSL; normalizing its mode/path changed no source
+bytes or binaries.
+
+Production patch: `3318c4b94306f1640d3beb803833bf2661b1edc6ebb8875e0127bbaf474b4af5`.
+Regression patch: `4dd199ed546edc63301cf4d0f28eb7ca2b5529a91e8815dd47c3f2c443ded220`.
+Base binary: `695c7aed5d15c4303d3d32f8cdc58c207b3705768e9e9d462970aa3ed1abc2df`.
+Candidate binary: `a3e7a53ac5a9960348781c48d4c8469180fff88fe426b08adcc97f33be2742a7`.
+
+Both instrument-free binaries use Go 1.25.5, GOAMD64=v3 and identical build
+flags against the frozen immediate base. Later main commits add documentation
+and the unselected standalone Rodent package only; they do not change these
+playing inputs. WSL bundle:
+`/home/ehrli/repos/ngn-counter-minor-off-20260913/output/counter-minor-off-20260913`.
+
+## Released game gate — in progress
+
+Independent Sol review recommended release after the frozen hash-only check
+passed all 15 input artifacts and both binaries. Root read the entire driver,
+manifest, patches and validation evidence. The [held manifest](2026-09-13-counter-correction-artifacts/gate/manifest-held-v3.json)
+is preserved. The [released manifest](2026-09-13-counter-correction-artifacts/gate/manifest-released-v1.json)
+changes only `release_state`, SHA-256
+`d9cbf7056d8dda5a2002fb12555379756fa2764bfaa58ecae2107380c6640192`.
+Driver SHA-256: `8aec98ffcd90001d1fd67c5a048dd4ef3e7b0aa68fcfd6d4ffcc46705f2688f2`.
+
+WSL command:
+
+```sh
+/usr/bin/python3 /home/ehrli/repos/ngn-counter-policy-gate-20260913/driver-held-v2.py /home/ehrli/repos/ngn-counter-policy-gate-20260913/manifest-released-v1.json
+```
+
+Run root: `/home/ehrli/repos/ngn-counter-policy-gate-20260913/run-001`.
+The first SSH attempt was rejected locally before connection; the authorized
+retry started this single run, not a second game attempt. The 10-second prelaunch
+sample observed 0.095 non-owned CPU cores. A/A started at
+`2026-09-13T19:46:34.952141+00:00`, supervisor group/root PID 2992376, with the
+declared four physical CPU representatives and 8 GiB process-tree limit.
+Early match output confirms games have begun; final process, legal, terminal,
+trace and statistical audits remain pending. Do not restart on an observation
+timeout or treat a partial score as a verdict.
+
+All other owned engines/builds/tests are quiet. Sol may edit the isolated,
+unselected Rodent incremental package during this interval, without executing
+builds/oracles or adding a second playing-policy candidate. The gate must finish
+and be audited before further owned compute is released.

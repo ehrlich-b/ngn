@@ -76,18 +76,19 @@ Next, in order:
    the bounded correction diagnostic is complete with exact baseline search
    identity. Minor correction has material influence across five distinct sampled
    trajectories, without proof of harm. Root admitted one Counter-only minor
-   application/learning-off candidate, now under Sol implementation and review.
-   Fresh AA100 then fixed400 real-clock games remain held until source/tests and
-   the final manifest pass review; adopt only with positive paired95 lower bound
-   and clean audits. See the [diagnostic and admission](experiments/2026-09-13-counter-correction-interaction.md).
+   application/learning-off candidate; source review and all six validation
+   checks pass. Released WSL `ngn-counter-policy-gate-20260913/run-001` is running
+   fresh AA100, then fixed400 only if A/A passes. Adopt only with positive paired95
+   lower bound and clean audits; no partial verdict or extension. See the
+   [diagnostic and live gate](experiments/2026-09-13-counter-correction-interaction.md).
    Do not rerun the shelved fusion candidate or broaden to SPSA.
 2. Existing Rodent V1.1 Anand **Slice A accepted as inactive compatibility**:
    strict external loader and portable full refresh match all 72 exact-release
    corpus records; package race and full short suite pass. No engine selection,
    bundled weights, or strength claim. See [Slice A](experiments/2026-09-13-rodent-anand-slice-a.md).
-   Next is portable incremental context and exact state restoration, then engine
-   integration, speed and a separate game gate. Finish all owned builds/oracles
-   before the Counter clocked games; source-only planning may proceed during them.
+   Sol is implementing portable incremental context and exact state restoration
+   source-only in isolation. No builds/oracles until the Counter games finish.
+   Engine integration, speed and a separate game gate follow verified parity.
    Useful SMP work remains a later lane. Owned training, new training data and
    another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
