@@ -1,4 +1,4 @@
-# NGN current state — September 12 rating reassessment
+# NGN current state — September 13 speed and competitor review
 
 The original classical target is complete: accepted `53e4d1b` measured 2884
 [2834,2934] on the fixed historical calibration, with 400 games, 55,349 legally
@@ -19,12 +19,15 @@ The current Counter candidate's one-thread rating orientation is **roughly
 3000–3100**, not the former mixed-width 3130 headline. Accepted 100-game paired
 cells give Counter1 relative Elo −323 [−402,−263], Rodent V1.1 relative Elo
 −413 [−512,−338], and Counter8 relative Elo −186 [−230,−143]. Eight-thread
-absolute rating is not established. All three used the same `a51233b` binary;
-current `b7ffdc8` differs only in documentation. Historical 2884 remains separate.
+absolute rating is not established. All three used the same `a51233b` binary.
+The September 13 output-kernel acceptance below is a subsequent pure-speed
+improvement, not a new rating measurement. Historical 2884 remains separate.
 See [the reproducible rating reassessment](experiments/2026-09-12-rating-reassessment.md).
 
-**Current user priority:** harden this estimate without spending another long
-calibration cycle, then continue improving strength. No additional rating games
+**Current user priority:** use existing networks, make the engine substantially
+faster, and identify major gaps against direct competitors before pursuing small
+heuristic changes. NGN-owned NNUE training, data generation and training-pipeline
+work are explicitly deferred. No additional rating games
 are needed now: rating-list/settings uncertainty exceeds the useful precision
 available from repeating the same anchors. The historical external-release hold
 below remains recorded, but completing every Rodent cell and porting the entire
@@ -35,8 +38,8 @@ completed games when the exact release emitted the invalid promotion PV token
 `g2g1`; strict trace policy correctly failed the cell. That partial score is not
 accepted. Rodent V1.2 width 8 and both focused longer-clock V1.2 cells did not
 run. The prepared `a51233b` Counter package is therefore still held. WSL
-`build/ngn` remains the classical `53e4d1b` binary, while the clean source
-checkout has since advanced to `b7ffdc8`; the old coherent-install runbook
+`build/ngn` remains the classical `53e4d1b` binary, while source has advanced;
+the old coherent-install runbook
 expects that checkout at `53e4d1b` and must not be run unchanged. No NGN match
 or engine process was active during the September 12 read-only audit.
 
@@ -44,21 +47,29 @@ The direct quiet-promotion candidate completed its fresh 100-game A/A and fixed
 400-game Counter-backed gate: 118W/178D/104L, paired **+12.17 [−11.30,+34.86]**.
 All legal/terminal and operational audits passed. **Shelved** under the
 predeclared positive-lower-bound rule; no extension or provisional keep.
-The accepted playing source is unchanged. See the
+That experiment made no accepted source change. See the
 [completed run and archived patches](experiments/2026-09-12-qpromo-gate.md).
+
+**Output AVX2 accepted and integrated in `66573f7`:** exact raw-bit and cold/warm
+search identity, 2.0221x direct-kernel speedup and 27.85% less time on the fixed
+one-thread cold-search fixtures. Every fixture and both order strata improve;
+all 42 stages and the independent audit pass. Baseline tests, v1/v3 oracles and
+Linux/Windows v3 packaging pass. This is not an Elo or eight-thread speed claim.
+See the [completed experiment](experiments/2026-09-13-counter-output-kernel.md).
 
 Next, in order:
 
-1. Test an exact-order AVX2 Counter output kernel against the scalar oracle.
-   Vectorize comparison/product only; preserve ascending float32 accumulation
-   and forbid FMA. Require exact raw-bit and fixed-search identity, then reject
-   early unless direct speedup is at least 1.5x, whole-search median gain is at
-   least 3%, and every fixture median improves. The
-   [bounded protocol](experiments/2026-09-12-qpromo-gate.md#next-experiment-selected-before-this-verdict)
-   is selected; no implementation has started.
-2. After that measured speed opportunity, select the next focused strength
-   experiment. Owned training/data and practical Stockfish-network support
-   remain larger follow-on projects; another absolute-rating cycle is not next.
+1. Profile the accepted faster Counter-backed engine's CPU and allocations,
+   including persistent-game state, with a one-hour diagnostic cap. Test one
+   fused accumulator-copy/ordered-update kernel only if measured cost supports
+   a ≥3% whole-search gain; otherwise target attributable redundant transition
+   work. Keep exact numerical/search identity; do not combine mechanisms.
+2. Follow the [completed Astra xhigh competitor review](experiments/2026-09-13-competitor-review.md):
+   next strength diagnostic is the inherited search-policy/Counter-evaluator
+   interaction, using accepted game prefixes. Stronger existing-network
+   integration and useful SMP work are separate follow-ons. Avoid repeating
+   prior history-layout/picker experiments without new evidence. Owned training,
+   new training data and another absolute-rating cycle are not next.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
    reporting boundary and amend the release contract. Rebuild the installation
    transition for the actual source state; its old `53e4d1b` precondition is stale.

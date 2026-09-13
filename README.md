@@ -55,7 +55,8 @@ NGN can select an evaluator at process startup or through UCI while idle:
   portable integer path, plus a bounded-output AVX2 kernel in amd64-v3 builds.
 - **`counter-5.5`** -- a compatibility backend for the proven Counter 5.5 network
   format, with worker-private incremental state, search-score adaptation and
-  portable feature updates accelerated with AVX2 in amd64-v3 builds.
+  feature updates and exact-order output evaluation accelerated with AVX2 in
+  amd64-v3 builds, retaining portable fallbacks.
 
 Model identity participates in worker, history and transposition-table lifecycle,
 so switching models cannot silently reuse state produced by a different evaluator.
@@ -130,6 +131,11 @@ records artifact identities, paired calculations, limitations and the decision
 to spend the next games on engine improvements. The failed Rodent V1.2 partial
 cell contributes nothing to these estimates.
 
+The subsequent [exact-order output kernel](experiments/2026-09-13-counter-output-kernel.md)
+reduced one-thread cold fixed-search time by 27.85% across the declared fixture
+aggregate, with identical search trajectories. That speed result does not
+establish a new Elo rating or eight-thread gain.
+
 The integrated source is now on `main`; deployment of the packaged candidate is
 still gated on the remaining external comparison matrix and release verification.
 
@@ -139,12 +145,13 @@ The target is the top of the Go-engine field, not merely 2800 or 3000. Rodent V,
 CounterGo, Chess-3 and Zahak show that Go is not the limiting factor. NGN still
 needs substantial work in several areas:
 
-1. Test focused strength improvements against the accepted Counter baseline;
-   retain the bounded local calibration and prepare a reproducible release.
-2. Replace dependence on a compatibility network with a first-rate NGN-owned
-   data, training, export and validation pipeline.
-3. Complete practical Stockfish-network evaluation where licensing and exact
-   architecture compatibility allow it.
+1. Prioritize measured engine speed and high-impact gaps against direct
+   competitors, testing changes against the accepted Counter baseline.
+2. Use existing networks. NGN-owned NNUE training, training-data generation and
+   training-pipeline development are deferred.
+3. Evaluate practical support for stronger existing networks, including
+   Stockfish formats, where architecture compatibility and integration cost
+   justify it.
 4. Improve Lazy SMP playing efficiency at 2, 4 and 8 threads, then attack
    contention, duplication and transposition-table policy with profiles.
 5. Close the remaining search-correctness and search-efficiency gaps against

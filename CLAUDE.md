@@ -33,6 +33,10 @@ of this module.
 
 ## Active Policy
 
+- **September 13 user direction:** use existing networks and prioritize engine
+  speed and high-impact gaps against direct competitors. Defer NGN-owned NNUE
+  training, training-data generation and training-pipeline work. Compatibility
+  work for existing networks remains in scope when justified by measured benefit.
 - **Explicit user restriction, September5:** never run NGN on this Mac. It is a battery-powered user computer. Run engines, matches, search tests, benchmarks, tuning and heavy chess validation on the authorized Windows/WSL box only. Background scheduling, efficiency cores or reduced concurrency do not make local execution acceptable. Local editing and lightweight read-only inspection are fine. Do not restart any stopped Mac controller or allow a remote collector to launch local engine validation.
 
 - The at-least-2800 target without NNUE is verified on the fixed historical calibration; see `experiments/2026-09-05-2800-result.md`.
