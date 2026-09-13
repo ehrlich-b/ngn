@@ -43,9 +43,9 @@ counts, choices and reference scores cannot establish playing strength.
 
 The passive diagnostic is complete. Root admitted one Counter-only minor-
 correction-off candidate for implementation and a separately frozen game gate.
-Sol completed implementation and independent review. The released gate is now
-running its A/A phase; no strength verdict exists. The 3300 goal remains active
-and unproved.
+Sol completed implementation and independent review. The released gate passed
+A/A and its audits and is running the fixed candidate phase; no strength verdict
+exists. The 3300 goal remains active and unproved.
 
 Source review finds no correctness defect or obviously excessive scale. Exact
 integer saturation is ±48 cp per term, ±144 cp total; the three tables learn
@@ -165,11 +165,33 @@ retry started this single run, not a second game attempt. The 10-second prelaunc
 sample observed 0.095 non-owned CPU cores. A/A started at
 `2026-09-13T19:46:34.952141+00:00`, supervisor group/root PID 2992376, with the
 declared four physical CPU representatives and 8 GiB process-tree limit.
-Early match output confirms games have begun; final process, legal, terminal,
-trace and statistical audits remain pending. Do not restart on an observation
-timeout or treat a partial score as a verdict.
+The A/A phase completed and passed as detailed below. The candidate's final
+process, legal, terminal, trace and statistical audits remain pending. Do not
+restart on an observation timeout or treat a partial score as a verdict.
 
 All other owned engines/builds/tests are quiet. Sol may edit the isolated,
 unselected Rodent incremental package during this interval, without executing
 builds/oracles or adding a second playing-policy candidate. The gate must finish
 and be audited before further owned compute is released.
+
+### Completed A/A preflight
+
+All 100 games / 50 pairs and 15,214 legally replayed plies pass the legal and
+terminal audit. Engine A scored 26W/52D/22L (52%); pentanomial counts are
+`[2,13,17,15,3]`. These are engine-role results, not White/Black results.
+The controller admitted the candidate phase only after the predeclared paired
+bootstrap interval included zero; its exact interval will be archived from the
+terminal decision, not substituted with fastchess's normal-approximation interval.
+
+The supervisor completed with return code 0, no termination/error/survivors,
+826.818 seconds elapsed and 5,426,592 KiB peak sampled RSS against the 8 GiB
+limit. The operational audit passes, with no canonical errors or warning lines,
+four normal process exits per role and all expected option sequences. The
+non-owned-CPU monitor did not reject the run. Independent Sol review agrees.
+
+Final A/A PGN SHA-256:
+`0f01072ea3250885c3729514aa4fc7ef2d4d0fd2f08e885b56062db4613ca159`.
+Final EPD SHA-256:
+`b0ade6e1b9828f3b50064965f94646fcba6ccf34ee0217ad9122306c22940972`.
+The candidate phase began automatically after these checks. No partial candidate
+score is a verdict, and no other owned compute has been released.

@@ -77,8 +77,8 @@ Next, in order:
    identity. Minor correction has material influence across five distinct sampled
    trajectories, without proof of harm. Root admitted one Counter-only minor
    application/learning-off candidate; source review and all six validation
-   checks pass. Released WSL `ngn-counter-policy-gate-20260913/run-001` is running
-   fresh AA100, then fixed400 only if A/A passes. Adopt only with positive paired95
+   checks pass. Released WSL `ngn-counter-policy-gate-20260913/run-001` passed
+   fresh AA100 and its audits; fixed400 is running. Adopt only with positive paired95
    lower bound and clean audits; no partial verdict or extension. See the
    [diagnostic and live gate](experiments/2026-09-13-counter-correction-interaction.md).
    Do not rerun the shelved fusion candidate or broaden to SPSA.
@@ -86,8 +86,10 @@ Next, in order:
    strict external loader and portable full refresh match all 72 exact-release
    corpus records; package race and full short suite pass. No engine selection,
    bundled weights, or strength claim. See [Slice A](experiments/2026-09-13-rodent-anand-slice-a.md).
-   Sol is implementing portable incremental context and exact state restoration
-   source-only in isolation. No builds/oracles until the Counter games finish.
+   Sol's portable incremental context and exact state-restoration source passed
+   review; the opt-in transition-oracle consumer is frozen in isolation.
+   No Slice B builds/oracles until the Counter games and audits finish.
+   See the [held Slice B verification record](experiments/2026-09-13-rodent-anand-slice-b.md).
    Engine integration, speed and a separate game gate follow verified parity.
    Useful SMP work remains a later lane. Owned training, new training data and
    another absolute-rating cycle remain deferred.
