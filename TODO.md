@@ -1,4 +1,4 @@
-# NGN current state — September 13 update-fusion verdict
+# NGN current state — September 13 correction gate / existing-network compatibility
 
 The original classical target is complete: accepted `53e4d1b` measured 2884
 [2834,2934] on the fixed historical calibration, with 400 games, 55,349 legally
@@ -66,19 +66,29 @@ stages completed cleanly. No production change, extension, deployment or Elo
 claim. The patch is preserved, not lost or provisionally kept. See the
 [completed speed experiment](experiments/2026-09-13-counter-update-fusion.md).
 
+**Active goal: raise the rating to 3300.** This is not yet verified. Internal
+relative gains and inactive compatibility milestones cannot close the goal;
+eventual completion needs fresh, configuration-matched external evidence.
+
 Next, in order:
 
 1. Follow the [completed Astra xhigh competitor review](experiments/2026-09-13-competitor-review.md):
-   run a bounded diagnostic of the inherited search-policy/Counter-evaluator
-   interaction on deterministic accepted-game prefixes with full history.
-   Start with the three-term correction family: measure its influence on
-   pruning/reductions and completed decisions before admitting one strength
-   candidate and a separately declared game gate. Do not rerun the shelved
-   fusion candidate or broaden to SPSA without fresh evidence.
-2. Stronger existing-network integration and useful SMP work are separate
-   follow-ons. Avoid repeating prior history-layout/picker experiments without
-   new evidence. Owned training, new training data and another absolute-rating
-   cycle remain deferred.
+   the bounded correction diagnostic is complete with exact baseline search
+   identity. Minor correction has material influence across five distinct sampled
+   trajectories, without proof of harm. Root admitted one Counter-only minor
+   application/learning-off candidate, now under Sol implementation and review.
+   Fresh AA100 then fixed400 real-clock games remain held until source/tests and
+   the final manifest pass review; adopt only with positive paired95 lower bound
+   and clean audits. See the [diagnostic and admission](experiments/2026-09-13-counter-correction-interaction.md).
+   Do not rerun the shelved fusion candidate or broaden to SPSA.
+2. In parallel, implement inactive full-refresh compatibility for the exact
+   existing Rodent V1.1 Anand network: strict external loader and exact released-
+   executable parity. No engine selection, bundled weights, or strength claim in
+   this slice. See [Slice A](experiments/2026-09-13-rodent-anand-slice-a.md).
+   Finish all owned builds/oracles before clocked games. Incremental evaluation,
+   engine integration, speed and a separate game gate follow verified parity.
+   Useful SMP work remains a later lane. Owned training, new training data and
+   another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
    reporting boundary and amend the release contract. Rebuild the installation
    transition for the actual source state; its old `53e4d1b` precondition is stale.
