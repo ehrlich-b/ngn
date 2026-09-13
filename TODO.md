@@ -1,4 +1,4 @@
-# NGN current state — September 13 speed and competitor review
+# NGN current state — September 13 update-fusion verdict
 
 The original classical target is complete: accepted `53e4d1b` measured 2884
 [2834,2934] on the fixed historical calibration, with 400 games, 55,349 legally
@@ -57,19 +57,28 @@ all 42 stages and the independent audit pass. Baseline tests, v1/v3 oracles and
 Linux/Windows v3 packaging pass. This is not an Elo or eight-thread speed claim.
 See the [completed experiment](experiments/2026-09-13-counter-output-kernel.md).
 
+**Accumulator copy/update fusion shelved:** profiling the accepted output-kernel
+base supported one exact-order candidate. Its fixed ten-block comparison
+reduced time by 2.7407% on cold fixtures and 2.8703% on persistent-game rows,
+missing the predeclared ≥3% threshold in both families. Every fixture and order
+stratum improved, exact search identity and allocations matched, and all 42
+stages completed cleanly. No production change, extension, deployment or Elo
+claim. The patch is preserved, not lost or provisionally kept. See the
+[completed speed experiment](experiments/2026-09-13-counter-update-fusion.md).
+
 Next, in order:
 
-1. Profile the accepted faster Counter-backed engine's CPU and allocations,
-   including persistent-game state, with a one-hour diagnostic cap. Test one
-   fused accumulator-copy/ordered-update kernel only if measured cost supports
-   a ≥3% whole-search gain; otherwise target attributable redundant transition
-   work. Keep exact numerical/search identity; do not combine mechanisms.
-2. Follow the [completed Astra xhigh competitor review](experiments/2026-09-13-competitor-review.md):
-   next strength diagnostic is the inherited search-policy/Counter-evaluator
-   interaction, using accepted game prefixes. Stronger existing-network
-   integration and useful SMP work are separate follow-ons. Avoid repeating
-   prior history-layout/picker experiments without new evidence. Owned training,
-   new training data and another absolute-rating cycle are not next.
+1. Follow the [completed Astra xhigh competitor review](experiments/2026-09-13-competitor-review.md):
+   run a bounded diagnostic of the inherited search-policy/Counter-evaluator
+   interaction on deterministic accepted-game prefixes with full history.
+   Start with the three-term correction family: measure its influence on
+   pruning/reductions and completed decisions before admitting one strength
+   candidate and a separately declared game gate. Do not rerun the shelved
+   fusion candidate or broaden to SPSA without fresh evidence.
+2. Stronger existing-network integration and useful SMP work are separate
+   follow-ons. Avoid repeating prior history-layout/picker experiments without
+   new evidence. Owned training, new training data and another absolute-rating
+   cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
    reporting boundary and amend the release contract. Rebuild the installation
    transition for the actual source state; its old `53e4d1b` precondition is stale.
