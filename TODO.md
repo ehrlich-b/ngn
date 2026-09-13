@@ -81,12 +81,13 @@ Next, in order:
    the final manifest pass review; adopt only with positive paired95 lower bound
    and clean audits. See the [diagnostic and admission](experiments/2026-09-13-counter-correction-interaction.md).
    Do not rerun the shelved fusion candidate or broaden to SPSA.
-2. In parallel, implement inactive full-refresh compatibility for the exact
-   existing Rodent V1.1 Anand network: strict external loader and exact released-
-   executable parity. No engine selection, bundled weights, or strength claim in
-   this slice. See [Slice A](experiments/2026-09-13-rodent-anand-slice-a.md).
-   Finish all owned builds/oracles before clocked games. Incremental evaluation,
-   engine integration, speed and a separate game gate follow verified parity.
+2. Existing Rodent V1.1 Anand **Slice A accepted as inactive compatibility**:
+   strict external loader and portable full refresh match all 72 exact-release
+   corpus records; package race and full short suite pass. No engine selection,
+   bundled weights, or strength claim. See [Slice A](experiments/2026-09-13-rodent-anand-slice-a.md).
+   Next is portable incremental context and exact state restoration, then engine
+   integration, speed and a separate game gate. Finish all owned builds/oracles
+   before the Counter clocked games; source-only planning may proceed during them.
    Useful SMP work remains a later lane. Owned training, new training data and
    another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
