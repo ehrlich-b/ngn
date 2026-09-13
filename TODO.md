@@ -107,8 +107,10 @@ Next, in order:
    45.55% less cold-search time, all six fixtures/order strata improve, exact
    cold/warm search identity and allocation equality; all 44 stages clean.
    See [the accepted speed gate](experiments/2026-09-13-rodent-output-kernel.md).
-   Next is the first optimized Rodent-vs-Counter paired strength gate, with fresh
-   A/A and fixed cap; no second optimization first. No Elo gain is yet established.
+   Next is the [first optimized Rodent-vs-Counter paired strength gate](experiments/2026-09-13-rodent-counter-strength.md),
+   with fresh A/A and fixed cap; no second optimization first. UCI preflight now
+   recognizes both exact backend names; all 29 current harness unit tests pass.
+   Binary/manifest freeze and match release remain pending. No Elo gain is established.
    Useful SMP work remains a later lane. Owned training, new training data and
    another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
