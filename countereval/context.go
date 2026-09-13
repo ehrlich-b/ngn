@@ -338,15 +338,5 @@ func validateBoard(board Board) error {
 }
 
 func (model *Model) evaluateAccumulator(accumulator *[HiddenSize]float32) float32 {
-	var output float32
-	for hidden, value := range accumulator {
-		if value > 0 {
-			// Counter's canonical portable contract rounds each float32 product
-			// before the ordered accumulation. The explicit conversion prevents
-			// GOAMD64 v3 from changing this into a fused multiply-add.
-			product := float32(value * model.outputWeights[hidden])
-			output += product
-		}
-	}
-	return output + model.outputBias
+	return counterOutputDot(accumulator, &model.outputWeights) + model.outputBias
 }

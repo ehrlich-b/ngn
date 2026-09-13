@@ -5,7 +5,8 @@
 // 63c487ca724c620f71c129d62129c6fb9109c872. This package owns strict loading,
 // portable full refresh, and worker-local incremental contexts. Engine search
 // selection and the historical score adapter remain explicit engine concerns;
-// AVX reduction order is outside the portable compatibility surface.
+// dispatched output kernels preserve the portable product and ordered-sum
+// compatibility surface exactly.
 package countereval
 
 import (
