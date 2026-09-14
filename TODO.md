@@ -34,9 +34,10 @@ The existing HCE default and installed classical binary remain unchanged.
 **Current user priority:** use existing networks, make the engine substantially
 faster, and identify major gaps against direct competitors before pursuing small
 heuristic changes. NGN-owned NNUE training, data generation and training-pipeline
-work are explicitly deferred. No additional rating games
-are needed now: rating-list/settings uncertainty exceeds the useful precision
-available from repeating the same anchors. The historical external-release hold
+work are explicitly deferred. A broad additional rating campaign remains
+deferred: rating-list/settings uncertainty limits repeated anchor measurements.
+After the newly accepted large speed gains, one bounded external Counter
+checkpoint is admitted below to measure the changed engine. The historical external-release hold
 below remains recorded, but completing every Rodent cell and porting the entire
 external runner are not prerequisites to an isolated strength experiment.
 
@@ -128,9 +129,10 @@ Next, in order:
    equality, all 44 stages clean. Full short/race, v1/v3 oracles and independent
    audits pass. See the [accepted update kernel](experiments/2026-09-13-rodent-update-kernel.md).
    This is another speed gain, not a measured Elo increment. Absolute 3300
-   remains unverified; the next prioritization check should assess this now much
-   faster Rodent configuration, not reuse the old Counter profile or stack
-   speculative search changes.
+   remains unverified. Prepare [one bounded external Counter checkpoint](experiments/2026-09-13-rodent-external-counter-checkpoint.md):
+   fresh AA100 plus fixed400 on this now much faster Rodent configuration, exact
+   historical Counter5.5 artifact, all process/legal gates, no result-based
+   extension. It measures the remaining opponent-specific gap, not formal Elo.
    Useful SMP work remains a later lane. Owned training, new training data and
    another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
