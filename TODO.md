@@ -122,9 +122,15 @@ Next, in order:
    Rodent is the new working reference at these tested one-thread settings.
    The [post-output profile](experiments/2026-09-13-rodent-postoutput-profile.md)
    completed cleanly: accumulator updates dominate at 58.21% flat CPU; output
-   is now 2.69%. An isolated exact int16 AVX2 update candidate is under validation,
-   keeping copy/refresh/search unchanged. Require parity and a repeatable speed
-   verdict before integration. Absolute 3300 remains unverified.
+   is now 2.69%. **Rodent update AVX2 accepted:** exact int16 arithmetic with
+   copy/refresh/search unchanged, **58.84% less cold-search time** (~2.43x),
+   all fixtures/order strata improving, exact cold/warm identity and allocation
+   equality, all 44 stages clean. Full short/race, v1/v3 oracles and independent
+   audits pass. See the [accepted update kernel](experiments/2026-09-13-rodent-update-kernel.md).
+   This is another speed gain, not a measured Elo increment. Absolute 3300
+   remains unverified; the next prioritization check should assess this now much
+   faster Rodent configuration, not reuse the old Counter profile or stack
+   speculative search changes.
    Useful SMP work remains a later lane. Owned training, new training data and
    another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
