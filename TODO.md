@@ -1,4 +1,4 @@
-# NGN current state — September 13 correction gate / existing-network compatibility
+# NGN current state — September 13 Rodent strength acceptance
 
 The original classical target is complete: accepted `53e4d1b` measured 2884
 [2834,2934] on the fixed historical calibration, with 400 games, 55,349 legally
@@ -23,6 +23,13 @@ absolute rating is not established. All three used the same `a51233b` binary.
 The September 13 output-kernel acceptance below is a subsequent pure-speed
 improvement, not a new rating measurement. Historical 2884 remains separate.
 See [the reproducible rating reassessment](experiments/2026-09-12-rating-reassessment.md).
+
+**Optimized Rodent is now the stronger tested one-thread configuration:** on the
+same accepted `7623779` binary, Rodent versus Counter completed 400 paired games
+at 10+0.1, 187W/134D/79L, **+96.19 Elo [69.53,123.02]**. Fresh A/A and all legal,
+operational and process audits pass. This is an accepted relative gain, not a new
+absolute-rating estimate; do not simply add it to the older orientation above.
+The existing HCE default and installed classical binary remain unchanged.
 
 **Current user priority:** use existing networks, make the engine substantially
 faster, and identify major gaps against direct competitors before pursuing small
@@ -107,13 +114,17 @@ Next, in order:
    45.55% less cold-search time, all six fixtures/order strata improve, exact
    cold/warm search identity and allocation equality; all 44 stages clean.
    See [the accepted speed gate](experiments/2026-09-13-rodent-output-kernel.md).
-   Next is the [first optimized Rodent-vs-Counter paired strength gate](experiments/2026-09-13-rodent-counter-strength.md),
-   with fresh A/A and fixed cap; no second optimization first. UCI preflight now
-   recognizes both exact backend names; all 29 current harness unit tests pass.
-   Shared binary/source `7623779` and manifest are frozen and reviewed. The launch
-   stopped before any games because unrelated host CPU exceeded the predeclared
-   limit. Preserve that rejection; resume only after load clears and no run exists.
-   No Elo gain is established. Do not stop or reprioritize the unrelated workload.
+   The [optimized Rodent-vs-Counter strength gate](experiments/2026-09-13-rodent-counter-strength.md)
+   **accepted Rodent**: 400 games / 200 pairs, 187W/134D/79L, +96.19 [69.53,123.02],
+   all 60,198 candidate plies audited; AA100 and all runtime audits pass. The
+   initial CPU rejection is preserved; after that unrelated job ended, one
+   byte-identical-manifest launch completed without rerun or extension.
+   Rodent is the new working reference at these tested one-thread settings.
+   The [post-output profile](experiments/2026-09-13-rodent-postoutput-profile.md)
+   completed cleanly: accumulator updates dominate at 58.21% flat CPU; output
+   is now 2.69%. An isolated exact int16 AVX2 update candidate is under validation,
+   keeping copy/refresh/search unchanged. Require parity and a repeatable speed
+   verdict before integration. Absolute 3300 remains unverified.
    Useful SMP work remains a later lane. Owned training, new training data and
    another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
