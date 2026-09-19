@@ -1,6 +1,6 @@
 # E0 — Rodent V1.2 versus optimized Anand
 
-Status: **HELD pending static review. No games have started.**
+Status: **RELEASED after static review. No games had started at release.**
 
 This is the single bounded strength gate admitted after the V1–V3 exact speed
 program and G0b harness admission. It asks whether the release-static Rodent
@@ -33,7 +33,11 @@ not an absolute rating claim.
 
 ## Frozen identities
 
-The held contract is [`manifest-held-v1.json`](manifest-held-v1.json). The
+The held contract is [`manifest-held-v1.json`](manifest-held-v1.json); the
+reviewed executable contract is
+[`manifest-release-v1.json`](manifest-release-v1.json). Their only difference is
+the `release_state` field, as recorded in
+[`static-review-v1.json`](static-review-v1.json). The
 shared binary SHA-256 is
 `dcde045792bba6b6d4f3fc83c9153763b94ff1ba1cba1d9df564a1ad69eb15aa`.
 It is bit-identical to the binary used in the successful G0b configured
@@ -48,17 +52,16 @@ established full legal/terminal replay auditor, fastchess, Stockfish, openings
 and opening-prefix inventory. The generic HCE/NGN-v1 candidate manifest was not
 broadened.
 
-## Pre-release review gates
+## Pre-release review
 
-1. Run the focused driver tests and Python compilation on WSL.
-2. Run the complete 29-test candidate-match suite from the exact WSL worktree.
-3. Run `driver.py manifest-held-v1.json --check-held`; this must hash-check all
-   13 frozen sources, the shared binary and the absent immutable run root without
-   launching an engine.
-4. Inspect the held-to-release manifest diff. It may change only
-   `release_state` to `RELEASED_AFTER_STATIC_REVIEW`.
-5. Confirm the hopper controller remains alive and that no existing E0 engine or
-   fastchess process is present immediately before launch.
+The exact WSL checkout passed all four focused driver tests, Python compilation,
+and all 29 candidate-match tests. The held check hash-checked all 13 frozen
+sources plus the shared engine while confirming that `run-001` was absent. The
+held-to-release diff changes only `release_state`. This was a root static review,
+not an independent-agent review.
 
-Only after those gates pass may `run-001` start. The driver writes an atomic
+terminal receipt after both phases and refuses an existing run root.
+Immediately before launch, confirm the hopper controller remains alive and no
+existing E0 engine or fastchess process is present. The driver writes an atomic
+terminal receipt after both phases and refuses an existing run root.
 terminal receipt after both phases and refuses an existing run root.
