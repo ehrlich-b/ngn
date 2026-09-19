@@ -332,6 +332,14 @@ model, change release scaling or add NGN rule-50 damping. The exact release is
 
 ### V0: bounded portable cost profile
 
+**Completed September 19:** the supervised fixed-budget profile and separate
+transition-incidence observer are recorded in
+[the V0 result](2026-09-19-v0-rodent-v12-profile/README.md). V1.2 costs 6.214x
+the optimized V1.1 aggregate cold time and 6.489x the persistent-prefix time.
+`applyUpdates` and output evaluation account for 83.90% of labeled V1.2 search
+CPU; frame copying is only 0.26%. The evidence fixes the order below as V1
+output, V2 updates, then refresh only if a post-V2 profile still justifies it.
+
 Profile current portable V1.2 against optimized Anand on the same accepted
 search source, ISA, one thread, Hash128 and frozen cold fixtures plus persistent
 game-prefix workloads. Pin model identities, actual work/nodes, allocations,

@@ -9,10 +9,15 @@ with a failing-before witness, scope controls and all baseline suites passing on
 WSL. F2 is also accepted: ProbCut records its actual capture in the live
 `MoveStack` slot before child search; three independent stale-slot witnesses,
 the full ProbCut group and all baseline suites pass. See
-[the F2 record](experiments/2026-09-19-probcut-movestack-contract.md). Next run
-the bounded C0 clock-mechanism and V0 V1.2 portable-cost preflights; admit at most
-one clock-policy candidate, then prioritize exact V1.2
-kernels and a fair V1.2-versus-optimized-Anand game gate. Conditional
+[the F2 record](experiments/2026-09-19-probcut-movestack-contract.md). V0 is now
+complete: the exact portable V1.2 network is 6.214x slower on the aggregate cold
+workload and 6.489x slower on persistent prefixes, with `applyUpdates` plus
+output evaluation consuming 83.90% of labeled V1.2 search CPU. The accumulator
+copy hypothesis is rejected. See the
+[V0 cost record](experiments/2026-09-19-v0-rodent-v12-profile/README.md). Next
+finish the bounded C0 clock-mechanism preflight, admit at most one clock-policy
+candidate, then implement V1 output SIMD followed by V2 update SIMD and a fair
+V1.2-versus-optimized-Anand game gate. Conditional
 lazy-accumulator and coherent history/search work follow. The hopper stays
 running. On September 19
 the user clarified that the two-minute machine-check limit applied only to the
