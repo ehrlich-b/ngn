@@ -47,9 +47,15 @@ remaining leading costs are dispersed into generic search. See the
 Stop backend kernel work. G0b is now complete: the narrow preflight admits and
 proves `rodent-v1.2-default`, all 29 WSL harness tests pass, and real configured
 V1.1/V1.2 roles pass through the same hash-bound binary. See the
-[G0b record](experiments/2026-09-19-g0b-v12-harness/README.md). Freeze and review
-the separate Rodent-specific E0 package, then run fresh A/A100 and the capped
-V1.2-versus-Anand candidate400 gate. Conditional
+[G0b record](experiments/2026-09-19-g0b-v12-harness/README.md). E0 is also now
+complete and **ADOPTED**: after a valid fresh A/A100, V1.2 scored
+145W/188D/67L against optimized Anand, paired **+68.63 Elo
+[+45.42,+92.46]** over the fixed 400 games. All legal, operational, process and
+supervision audits passed and the hopper remained live. See the
+[E0 result](experiments/2026-09-19-e0-v12-anand-strength/README.md). Treat V1.2
+as the immediate competitive evaluator and run L0 demand tracing next; admit a
+lazy implementation only if its measured avoidable share can support the
+predeclared whole-search threshold. Conditional
 lazy-accumulator and coherent history/search work follow. The hopper stays
 running. On September 19
 the user clarified that the two-minute machine-check limit applied only to the

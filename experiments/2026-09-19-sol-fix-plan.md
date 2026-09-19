@@ -600,6 +600,17 @@ Only use it after satisfying the
 [quality-screen contract](2026-09-19-strategic-review-artifacts/evaluator-quality-screen-contract.md).
 It cannot adopt or reject an evaluator without real-clock games.
 
+**Completed and accepted September 19:** the separately frozen E0 package and
+result are recorded in
+[the V1.2-versus-Anand result](2026-09-19-e0-v12-anand-strength/README.md).
+Fresh Anand/Anand A/A passed with a paired-bootstrap interval containing zero.
+V1.2 then scored 145W/188D/67L in the fixed candidate400 gate, paired +68.63 Elo
+with a 95% whole-pair bootstrap interval of [+45.42,+92.46]. Every legal,
+terminal, operational, process and supervision audit passed. **ADOPT V1.2 as
+the competitive evaluator and target for L0/H0.** This remains a relative
+same-search result; default selection, packaging and installation remain under
+the separate D0 release boundary.
+
 ## 8. L0/L1 — demand-driven accumulators, conditional on measured waste
 
 Target the current accepted competitive evaluator, not two backends at once.

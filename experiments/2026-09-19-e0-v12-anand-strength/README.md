@@ -1,12 +1,44 @@
 # E0 — Rodent V1.2 versus optimized Anand
 
-Status: **RELEASED after static review. No games had started at release.**
+Status: **COMPLETE — ADOPT Rodent V1.2 as the competitive evaluator.**
 
 This is the single bounded strength gate admitted after the V1–V3 exact speed
 program and G0b harness admission. It asks whether the release-static Rodent
 V1.2 network is stronger than the accepted optimized Rodent V1.1 Anand network
 when both receive the same current search, executable, clock, hash and one-worker
 configuration.
+
+## Result
+
+Fresh Anand/Anand A/A passed: 23W/58D/19L from engine A's perspective,
+pentanomial `[1,8,28,12,1]`, paired +13.90 Elo with the predeclared
+paired-bootstrap 95% interval `[−20.87,+48.96]`. The interval includes zero, so
+the candidate phase was admitted.
+
+Rodent V1.2 then scored **145W/188D/67L**, 239/400 (59.75%), against optimized
+Anand. Its pentanomial was `[3,35,64,77,21]`; the predeclared whole-opening-pair
+bootstrap measured **+68.63 Elo `[+45.42,+92.46]`**. The strictly positive lower
+bound satisfies the frozen rule, so the decision is **ADOPT**.
+
+All 400 games, 200 reversed-color pairs and 61,890 plies passed the independent
+legal/terminal audit. Operational audit passed 2,082,664 trace lines, 800 exact
+option refreshes, eight clean engine exits, strict startup-log counts, zero
+warnings and zero probable embedded-book signatures. The process witness made
+481,666 observations over four exact instances per role with no violations;
+both supervisors completed normally and left no survivors.
+
+The hopper remained live. Candidate telemetry covered 660 five-second samples,
+with 0.0418 mean and 0.6137 peak non-owned cores; even the old counterfactual
+exclusivity gate did not trigger. Candidate match supervision took 3,299.1
+seconds; A/A took 818.8 seconds. Exact structured results and terminal hashes are
+in [`result.json`](result.json), and the immutable WSL run is retained at
+`/home/ehrli/e0-v12-anand-strength-gate-20260919/run-001`.
+
+This is a same-search, same-clock model result—not an absolute rating, a 3300
+claim, or Elo that can be added to another opponent's published rating. It
+selects V1.2 as the next optimization/search target. Changing the global
+default, packaging the external weights, or installing a binary remains a
+separate D0 release-authority decision.
 
 ## Frozen protocol
 
@@ -60,8 +92,7 @@ sources plus the shared engine while confirming that `run-001` was absent. The
 held-to-release diff changes only `release_state`. This was a root static review,
 not an independent-agent review.
 
-terminal receipt after both phases and refuses an existing run root.
-Immediately before launch, confirm the hopper controller remains alive and no
-existing E0 engine or fastchess process is present. The driver writes an atomic
-terminal receipt after both phases and refuses an existing run root.
-terminal receipt after both phases and refuses an existing run root.
+Immediately before launch, the checks confirmed that the hopper controller was
+alive, the run root was absent, and no E0 engine or fastchess process existed.
+The driver subsequently completed both phases and wrote its atomic decision,
+inventory and terminal chain.
