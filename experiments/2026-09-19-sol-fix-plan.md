@@ -449,6 +449,14 @@ allocations are exact, both order strata and every fixture improve, and all
 by G0b and the fair V1.2-versus-Anand strength gate unless profiling reveals
 another major exact backend cost.
 
+**Post-V3 decision completed September 19:** the exact accepted-V3 profile is
+recorded in
+[the post-V3 profile result](2026-09-19-post-v3-rodent-v12-profile/README.md).
+Refresh is down to 1.58% flat (2.44% cumulative), the frame copy is 2.01%, and
+no evaluator function exceeds 10% flat CPU. Remaining leading costs are spread
+across generic search, TT access, output, move ordering and frame handling.
+There is no fourth backend-kernel ticket before games. Advance to G0b/E0.
+
 Scope: `rodentv12eval/context.go` and narrow `refresh*` helpers. A validated
 board contributes at most 64 rows. The helper gathers pointers in the original
 plane/square order; every lane begins at its bias and visits rows in that exact
@@ -462,8 +470,8 @@ copy or output behavior changed.
 The original profile could have justified update before output, but the accepted
 order and bases are now explicit. No lazy evaluation, Finny, validation
 removal, frame-copy fusion, search change or model-strength verdict belongs in
-these kernel tickets. Major scalar costs are now addressed; use the fresh
-post-V3 profile to decide whether kernel work stops. If an exact kernel had
+these kernel tickets. Major scalar costs are now addressed; the fresh post-V3
+profile has stopped kernel work. If an exact kernel had
 failed its cost gate, the current implementation could still have supported an
 informative E0 match; kernel speed never proves or disproves the network.
 

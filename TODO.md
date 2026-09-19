@@ -40,7 +40,11 @@ improving cells. See the
 [V3 record](experiments/2026-09-19-v3-rodent-v12-refresh/README.md). Next take a
 fresh post-V3 profile, then complete G0b and run the fair
 V1.2-versus-optimized-Anand game gate unless that profile exposes another major
-exact backend cost. Conditional
+exact backend cost. That profile is now complete: refresh fell to 1.58% flat,
+frame copying is 2.01%, and no evaluator function exceeds 10% flat CPU; the
+remaining leading costs are dispersed into generic search. See the
+[post-V3 profile](experiments/2026-09-19-post-v3-rodent-v12-profile/README.md).
+Stop backend kernel work and complete G0b/E0 next. Conditional
 lazy-accumulator and coherent history/search work follow. The hopper stays
 running. On September 19
 the user clarified that the two-minute machine-check limit applied only to the
