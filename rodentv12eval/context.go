@@ -389,19 +389,19 @@ func (model *Model) refreshPerspective(
 	perspective Color,
 	kingSquare int,
 ) {
-	copy(destination[:], model.inputBiases[:])
+	var rows [rodentV12MaximumRefreshRows]*[HiddenSize]int16
+	rowCount := 0
 	for plane, pieceBits := range board {
 		color := Color(plane / colorPlanes)
 		pieceType := plane % colorPlanes
 		for pieceBits != 0 {
 			square := bits.TrailingZeros64(pieceBits)
 			pieceBits &= pieceBits - 1
-			row := &model.inputWeights[featureIndex(color, pieceType, square, kingSquare, perspective)]
-			for hidden := 0; hidden < HiddenSize; hidden++ {
-				destination[hidden] += row[hidden]
-			}
+			rows[rowCount] = &model.inputWeights[featureIndex(color, pieceType, square, kingSquare, perspective)]
+			rowCount++
 		}
 	}
+	rodentV12RefreshPerspective(destination, &model.inputBiases, &rows, rowCount)
 }
 
 func removeBoardPiece(board *Board, plane, square int) error {

@@ -27,8 +27,8 @@ variants or isolated margin sweeps.
 | 2 | F2: ProbCut records the live ancestor move | Proved correctness | Descendant sees correct two-ply history context; all exits unwind |
 | 3 | C0 + V0: clock mechanism and V1.2 cost preflights | Read-only/diagnostic | One bounded report per question; no strength verdict |
 | 4 | G0a + C1: admit same-model candidate runner; split iteration admission from recursive abort | Harness, then time policy | One frozen real-clock ADOPT/SHELVE gate; otherwise move on |
-| 5 | V1/V2: exact V1.2 output and update kernels | Pure speed | Independent exactness and whole-search performance gates |
-| 6 | G0b + V3: admit V1.2 to the harness; compare against Anand | Harness, then evaluator | Fresh A/A and one frozen same-search/equal-clock strength gate |
+| 5 | V1/V2/V3: exact V1.2 output, update and conditional refresh kernels | Pure speed | Independent exactness and whole-search performance gates |
+| 6 | G0b + E0: admit V1.2 to the harness; compare against Anand | Harness, then evaluator | Fresh A/A and one frozen same-search/equal-clock strength gate |
 | 7 | L0/L1: demand trace, then lazy accumulators if justified | Conditional exact speed | Actual avoidable work, then representative exact-behavior speed gain |
 | 8 | H0/H1: completed-winner history learning plus matching consumer | Explicit search interaction | Warm-state mechanism evidence, then one whole-package game gate |
 | Later | P1 staged picker; N1 one richer-network feasibility study | Separate research | Admit only from new evidence; do not start both by default |
@@ -88,7 +88,7 @@ Configuration identities to carry forward:
 For new experiments, rebuild both roles from the **same immediate accepted
 search base**, except for the one declared candidate diff. Do not compare a
 fresh candidate to the old `52ee629` executable after F1/F2 or C1 changes search.
-For V3, prefer one executable with two explicitly verified backend/model
+For E0, prefer one executable with two explicitly verified backend/model
 configurations. Networks remain external, unmodified and unbundled.
 
 Use `/usr/local/go/bin/go` on WSL; bare `go` is not reliably on its noninteractive
@@ -411,8 +411,8 @@ portable fallbacks are recorded in
 0.365683 (63.43% less time), with byte-identical cold/warm trajectories, exact
 allocations, both order strata improving and 60/60 improving fixture pairs.
 All oracle, fallback, full-short, race and platform-build gates pass. The next
-step is the promised post-V2 profile; refresh SIMD is admitted only if that
-profile still shows a material share.
+step was the promised post-V2 profile; refresh SIMD was admitted only after that
+profile showed it remained the largest flat cost.
 
 Scope: `rodentv12eval/context.go` and narrow `apply_updates*` helpers, reusing
 the V1.1 AS/ASS/ASAS patterns at 768 lanes. Preserve int16 wrap and operation
@@ -435,12 +435,37 @@ Retain shared-host telemetry instead of reviving exclusivity. A noisy or
 subthreshold capped result shelves that kernel; no extension. Do not stack the
 second unaccepted kernel on the first.
 
-The profile may justify update before output, but the acceptance order and bases
-must be explicit. No lazy evaluation, Finny, validation removal, frame-copy
-fusion, search change or model-strength verdict in either kernel ticket. Stop
-kernel polishing once major scalar costs are addressed. If exact kernels fail
-their cost gate, record that result and decide whether the current implementation
-can still support an informative V3 match; do not declare the network disproved.
+### V3: exact king-perspective refresh
+
+**Completed and accepted September 19:** the post-V2 profile measured
+`refreshPerspective` at 2.52 of 10.75 seconds of labeled search CPU (23.44%
+flat, 24.65% cumulative), making it the largest remaining flat cost. The exact
+variable-row AVX2 refresh kernel and portable fallback are recorded in
+[the V3 result](2026-09-19-v3-rodent-v12-refresh/README.md). At realistic row
+counts its direct speedup is 16.84x–19.79x, and the ten-block whole-search ratio
+against accepted V2 is 0.784510 (21.55% less time). Cold/warm trajectories and
+allocations are exact, both order strata and every fixture improve, and all
+60/60 paired cells improve. The next step is a fresh post-V3 profile, followed
+by G0b and the fair V1.2-versus-Anand strength gate unless profiling reveals
+another major exact backend cost.
+
+Scope: `rodentv12eval/context.go` and narrow `refresh*` helpers. A validated
+board contributes at most 64 rows. The helper gathers pointers in the original
+plane/square order; every lane begins at its bias and visits rows in that exact
+order, preserving modular int16 behavior. The amd64.v3 kernel processes 48
+unaligned 32-byte blocks, with compile-time guards for 768 lanes and 64 rows.
+Tests cover zero through 64 rows, full-int16 wraparound, unaligned inputs, all
+lane boundaries, a fully occupied valid board, immutable inputs, zero
+allocations and v1/v3 dispatch. No model, feature mapping, search policy, frame
+copy or output behavior changed.
+
+The original profile could have justified update before output, but the accepted
+order and bases are now explicit. No lazy evaluation, Finny, validation
+removal, frame-copy fusion, search change or model-strength verdict belongs in
+these kernel tickets. Major scalar costs are now addressed; use the fresh
+post-V3 profile to decide whether kernel work stops. If an exact kernel had
+failed its cost gate, the current implementation could still have supported an
+informative E0 match; kernel speed never proves or disproves the network.
 
 ### Configured test map
 
@@ -474,18 +499,18 @@ execute, not merely that `go test` exits zero after a bad `-run` filter. The
 V1.2 package release oracle has 104 records. Require Linux v1/v3 and Windows v3
 build-only packaging where assembly changes; packaging is not installation.
 
-## 7. G0/V3 — minimal valid harness, then a fair model decision
+## 7. G0/E0 — minimal valid harness, then a fair model decision
 
 ### G0a/G0b: narrow harness preparation, not a port of every old runner
 
 **G0a runs before the first C1 game gate**, and is reused for H1: admit a
 same-backend/model, two-immutable-binary base/candidate contract. The only engine
 difference is the reviewed clock/history patch. Freeze separate role hashes and
-verify the same selected evaluator on both. Do not apply V3's one-binary rule
+verify the same selected evaluator on both. Do not apply E0's one-binary rule
 to a source-policy experiment. Common supervision, pairing and audit preparation
 belongs here; there is no need to finish the V1.2 backend adapter before C1.
 
-**G0b runs before V3.** The shared `scripts/candidate-match/uci_preflight.py`
+**G0b runs before E0.** The shared `scripts/candidate-match/uci_preflight.py`
 currently omits `rodent-v1.2-default` from its backend allowlist and diagnostic regex. Extend
 those and focused tests to require the exact new diagnostic, advertised option
 and selected backend. Negative tests must still reject wrong-backend output,
@@ -511,11 +536,11 @@ do not launch engines on the Mac through a test fixture.
 
 ### Default bounded strength protocol
 
-Use this for C1, V3 and H1 unless a different protocol is explicitly frozen and
+Use this for C1, E0 and H1 unless a different protocol is explicitly frozen and
 reviewed **before** results. This plan is not the released manifest.
 
 - Same immediate accepted source/configuration except the declared candidate;
-  V3 uses the same binary with the two exact backend/model choices.
+  E0 uses the same binary with the two exact backend/model choices.
 - Threads1, `GOMAXPROCS=1`, Hash128, NGN Move Overhead100, OwnBook=false,
   no ponder/tablebases/score-resign-draw-maxmove adjudication.
 - 10+0.1, concurrency four, recorded established CPU mask 0/2/4/6 after a
@@ -523,7 +548,7 @@ reviewed **before** results. This plan is not the released manifest.
 - Fresh A/A100 at the identical TC/concurrency/affinity/machine; require clean
   audits and the paired interval to include zero. That is a protocol check,
   not proof of fine-grained timing equivalence. Freeze which role's backend is
-  used for A/A, and preflight both distinct V3 configurations.
+  used for A/A, and preflight both distinct E0 configurations.
 - Candidate400 = 200 full reversed-color opening pairs. Freeze exact book bytes,
   selection/start/length and sequence. Changing a seed does not shuffle a
   sequential book. Existing default book hash is in `experiments/corpus_manifest.md`.
@@ -547,13 +572,13 @@ roughly 10–15 minutes for an hour-scale job, silently within a suitable waiter
 do not repeatedly wake the model to narrate games. Never restart on a wait
 timeout. If efficient waiting is unavailable, explain that limit once.
 
-For V3 specifically, preserve exact release-static semantics and current search
+For E0 specifically, preserve exact release-static semantics and current search
 corrections on both roles. V1.2 has not earned a default, install or release
 change by passing compatibility. A valid capped loss/inconclusive result keeps
 optimized Anand as reference and advances the next lane. No network training,
 scale fitting or prolonged SIMD salvage campaign follows automatically.
 
-Optional equal-node quality triage is **not required** before V3 and must not
+Optional equal-node quality triage is **not required** before E0 and must not
 become a tooling detour. Existing `acpl.sh` can accidentally compare default HCE,
 leave OwnBook enabled and treat omitted reference moves as eighth-place scores.
 Only use it after satisfying the

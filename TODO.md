@@ -31,9 +31,16 @@ See the [V1 record](experiments/2026-09-19-v1-rodent-v12-output/README.md).
 V2 is accepted as well: exact 768-lane update kernels are 17.58x–23.69x faster
 in isolation and cut a further 63.43% from the accepted-V1 search time, again
 with exact trajectories/allocations and 60/60 improving cells. See the
-[V2 record](experiments/2026-09-19-v2-rodent-v12-updates/README.md). Next run a
-fresh post-V2 profile; implement refresh SIMD only if still material, then run a fair
-V1.2-versus-optimized-Anand game gate. Conditional
+[V2 record](experiments/2026-09-19-v2-rodent-v12-updates/README.md). The fresh
+post-V2 profile then found king-perspective refresh at 23.44% of labeled search
+CPU. V3 is now accepted: its exact variable-row AVX2 refresh kernel is
+12.44x–19.79x faster in isolation and cuts another 21.55% from accepted-V2
+search time, with byte-identical trajectories, exact allocations and 60/60
+improving cells. See the
+[V3 record](experiments/2026-09-19-v3-rodent-v12-refresh/README.md). Next take a
+fresh post-V3 profile, then complete G0b and run the fair
+V1.2-versus-optimized-Anand game gate unless that profile exposes another major
+exact backend cost. Conditional
 lazy-accumulator and coherent history/search work follow. The hopper stays
 running. On September 19
 the user clarified that the two-minute machine-check limit applied only to the
