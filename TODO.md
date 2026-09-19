@@ -181,8 +181,13 @@ Next, in order:
    full refresh match all 104 exact-release raw and material-scaled oracle
    records; package race and full short/race suites pass while the hopper stays
    live. It adds no engine selection, bundled weights, deployment, match, or
-   strength claim. The next bounded step is incremental/full-refresh parity
-   before any search integration or strength claim.
+   strength claim. [Slice B](experiments/2026-09-19-rodent-v12-slice-b.md) is
+   also **accepted as inactive compatibility**: the worker-private incremental
+   context matches fresh full refresh in all 1,536 lanes plus raw/static output
+   across synthetic boundary coverage and exact-model multi-ply paths; package
+   race and full short/race suites pass. The next bounded step is named opt-in
+   engine/UCI integration with worker/search lifecycle parity, before realistic
+   profiling or any separately frozen strength claim.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
    reporting boundary and amend the release contract. Rebuild the installation
    transition for the actual source state; its old `53e4d1b` precondition is stale.
