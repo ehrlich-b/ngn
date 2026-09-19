@@ -1,4 +1,4 @@
-# NGN current state — September 19 SMP depth-stagger disposition
+# NGN current state — September 19 SMP TT-read disposition
 
 The original classical target is complete: accepted `53e4d1b` measured 2884
 [2834,2934] on the fixed historical calibration, with 400 games, 55,349 legally
@@ -167,6 +167,17 @@ Next, in order:
    too is **shelved**, unextended and absent from production source. Do not pool
    the two SMP experiments or use the near miss as a provisional keep. Owned
    training, new training data and another absolute-rating cycle remain deferred.
+   The follow-on [synchronized TT read-publication experiment](experiments/2026-09-19-smp-tt-read-publication.md)
+   measured the remaining width-eight lock costs and rejected both the tiny
+   age-lock-only idea and a bounded per-stripe sequence candidate. The candidate
+   removed probe blocking and reduced sampled `Cache.Get` CPU from 9.82% to
+   8.02%, but a frozen ten-block/six-fixture paired screen measured **−1.464%**
+   median throughput; only one fixture improved and the worst lost 2.463%.
+   **Shelved before games**, source removed, no Elo claim. Do not repeat that
+   single-snapshot publication protocol. The next high-impact existing-network
+   lane is the exact Rodent V1.2 non-Tal 4-king-bucket/768-hidden/8-output-bucket
+   model: begin with a strict loader, scalar full refresh and exact-release raw
+   oracle contract before incremental/search integration or any strength claim.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
    reporting boundary and amend the release contract. Rebuild the installation
    transition for the actual source state; its old `53e4d1b` precondition is stale.
