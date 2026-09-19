@@ -6,12 +6,12 @@ resuming the 3300 goal with Sol. Follow
 [the completed structural review](experiments/2026-09-19-structural-strength-review.md).
 F1 is accepted in `f1f6b7e`: singular verification now disables root ProbCut,
 with a failing-before witness, scope controls and all baseline suites passing on
-WSL. F2 is prepared but unexecuted: the live-`MoveStack` candidate, three focused
-regressions and exact resume runbook are in
-[the F2 record](experiments/2026-09-19-probcut-movestack-contract.md). Resume at
-its failing-before gate; do not accept or commit the production diff before the
-WSL receipts. After F2, run the bounded clock-mechanism and V1.2 portable-cost
-preflights; admit at most one clock-policy candidate, then prioritize exact V1.2
+WSL. F2 is also accepted: ProbCut records its actual capture in the live
+`MoveStack` slot before child search; three independent stale-slot witnesses,
+the full ProbCut group and all baseline suites pass. See
+[the F2 record](experiments/2026-09-19-probcut-movestack-contract.md). Next run
+the bounded C0 clock-mechanism and V0 V1.2 portable-cost preflights; admit at most
+one clock-policy candidate, then prioritize exact V1.2
 kernels and a fair V1.2-versus-optimized-Anand game gate. Conditional
 lazy-accumulator and coherent history/search work follow. The hopper stays
 running. On September 19

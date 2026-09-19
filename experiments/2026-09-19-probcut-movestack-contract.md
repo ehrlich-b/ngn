@@ -1,39 +1,34 @@
-# ProbCut live-MoveStack contract: prepared F2 run
+# ProbCut live-MoveStack contract repair
 
-Status: **PREPARED, NOT EXECUTED**
+Status: **ACCEPTED AS A PROVED CORRECTNESS REPAIR**
 
-The gaming PC became unavailable before F2 validation began. No test, build,
-engine or match from this ticket has run. The goal was paused without starting
-or terminating any WSL process. This record is the exact resume boundary; it is
-not an accepted fix or correctness verdict.
+ProbCut now records its actual capture in the live `MoveStack[ply]` slot before
+either quiescence or the reduced main search can consume ancestry. A clean
+failing-before run reproduced stale ancestry in the grandchild, qsearch-stop and
+sibling paths; the one-line lifecycle repair made every focused and baseline
+gate pass. This is a correctness result, not an Elo claim.
 
-## Candidate scope
+## Scope
 
 Immediate accepted base: `f1f6b7e` (`Fix singular verification ProbCut contract`)
 
-Prepared WSL worktree:
+Validation WSL worktree:
 `/home/ehrli/repos/ngn-sol-probcut-f2-20260919`
 
-Intended production diff: after a legal ProbCut capture is made and its
+Production diff: after a legal ProbCut capture is made and its
 evaluator frame is pushed, assign that actual move to `info.MoveStack[ply]`
 before entering quiescence or the reduced main search. This mirrors the normal
 real-move lifecycle. It deliberately adds no slot restoration, history-policy
 change, pruning change, or evaluator change.
 
-Prepared local file hashes:
+Validated hashes, identical in the local checkout and isolated WSL worktree:
 
 ```text
 d26651a27ad0c2f355c03817881c613e42a892c0e36d49f18d8023f3d42b63eb  engine/search.go
-8386b2be9c004a77128a0265fc3584182c9f8782789a0068728d480c579cc1a6  engine/search_probcut_contract_test.go
+491ee5d223c84e917834b18b16a8453dea394aed51b1fdc08c47095bea287257  engine/search_probcut_contract_test.go
 ```
 
-The remote worktree currently contains an earlier test draft copied before the
-PC pause. Do not run it as the final test. First overwrite only the test file
-with the current local version and retain the accepted-base `search.go` for the
-failing-before proof. Copy the candidate `search.go` only after that proof, then
-verify both hashes match.
-
-## Prepared regression contract
+## Regression contract
 
 The three new tests are designed so clearing the slot, retaining the stale move,
 or updating it only after child search all fail:
@@ -61,23 +56,30 @@ move the production assignment before `mustPushMadeMove`; that would diverge
 from the normal real-move transaction and could publish a move whose evaluator
 push failed.
 
-## Exact next-run order
+## Failing-before and passing-after evidence
 
-Keep the hopper running and use the shared-host limits from the Sol plan. The
-commands below are a runbook, not receipts.
+All commands ran in the isolated WSL worktree on the authorized shared host.
+The hopper remained live and outside every process group. Go was 1.25.5 on
+linux/amd64; focused runs used `GOAMD64=v3`, one CPU and one Go worker.
 
-1. Confirm the WSL worktree is still detached at `f1f6b7e` and has no changes
-   except the expected test draft. Do not reset or clean it.
-2. Copy the current local test file only, verify its SHA-256, and run the three
-   `TestProbcutMoveStack` tests against the unmodified accepted source. Preserve
-   stdout/stderr and require at least one intended stale-slot failure. A compile
-   failure, fixture failure, timeout, or failure unrelated to the slot contract
-   is not a failing-before proof.
-3. Copy the current local `engine/search.go`, verify both hashes above, and rerun
-   the focused group. All three tests must pass.
-4. Run the complete `Probcut` regression group, then the baseline ladder.
+The first attempted failing-before run correctly exposed all three stale-slot
+paths but also exposed a test-only assertion mistake: the stopped-search throwaway
+score is numerically zero, so a normally completed zero score cannot be rejected
+unless `info.Stopped` is true. That assertion was corrected before the production
+patch. The clean rerun against byte-unchanged accepted source then failed only on
+the intended stale ancestry:
 
-Focused failing-before and passing-after command:
+```text
+TestProbcutMoveStackFeedsGrandchild:
+  read root move e1d1, want active capture a1a7
+TestProbcutMoveStackIsLiveBeforeQuiescence:
+  root move e1d1, want traversed capture a1a7
+TestProbcutMoveStackTracksCompletedSiblings:
+  completed siblings left MoveStack[0]=b2b3
+FAIL (2.6 seconds outer command time)
+```
+
+Exact focused command:
 
 ```sh
 timeout --signal=TERM 120s taskset -c 6 nice -n 10 \
@@ -86,7 +88,9 @@ timeout --signal=TERM 120s taskset -c 6 nice -n 10 \
   test -p 1 -vet=off -run TestProbcutMoveStack -count=1 -timeout=60s -v ./engine
 ```
 
-Post-patch focused contract command:
+After copying only the one-line production candidate, the same three tests all
+passed in 2.7 seconds. The combined F1+F2 `Probcut` group then passed all seven
+tests plus both descendant-control subtests in 0.6 seconds:
 
 ```sh
 timeout --signal=TERM 120s taskset -c 6 nice -n 10 \
@@ -95,7 +99,9 @@ timeout --signal=TERM 120s taskset -c 6 nice -n 10 \
   test -p 1 -vet=off -run Probcut -count=1 -timeout=60s -v ./engine
 ```
 
-Baseline ladder:
+## Baseline validation
+
+The normal low-concurrency ladder passed:
 
 ```sh
 timeout --signal=TERM 600s taskset -c 6,7 nice -n 10 \
@@ -103,18 +109,23 @@ timeout --signal=TERM 600s taskset -c 6,7 nice -n 10 \
   /usr/local/go/bin/go -C /home/ehrli/repos/ngn-sol-probcut-f2-20260919 \
   test -short -p 2 -count=1 -timeout=8m ./engine
 
+PASS  github.com/ehrlich-b/ngn/engine  7.351s
+
 timeout --signal=TERM 900s taskset -c 6,7 nice -n 10 \
   env GOAMD64=v3 GOMAXPROCS=2 GOFLAGS=-mod=readonly \
   /usr/local/go/bin/go -C /home/ehrli/repos/ngn-sol-probcut-f2-20260919 \
   test -short -race -p 2 -count=1 -timeout=12m ./engine
 
+PASS  github.com/ehrlich-b/ngn/engine  37.085s
+
 timeout --signal=TERM 900s taskset -c 6,7 nice -n 10 \
   env GOAMD64=v3 GOMAXPROCS=2 GOFLAGS=-mod=readonly \
   /usr/local/go/bin/go -C /home/ehrli/repos/ngn-sol-probcut-f2-20260919 \
   test -short -p 2 -count=1 -timeout=12m ./...
+
+PASS  all packages; engine 7.735s
 ```
 
-If all gates pass, replace this prepared status with the actual receipts and
-validated WSL hashes, commit F2 separately, push the private `main` checkpoint,
-and advance to the paired C0/V0 diagnostics. Do not claim Elo, run a match,
-install a binary, or begin C0/V0 while F2 remains unaccepted.
+No match, engine installation, release action or hopper change occurred. The
+accepted result closes the second proved ProbCut contract defect. Next work is
+the paired C0 clock-mechanism and V0 Rodent V1.2 cost preflight from the Sol plan.

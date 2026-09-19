@@ -11,6 +11,11 @@ const probcutContractFEN = "4k3/p7/8/8/8/8/8/R3K3 w - - 0 1"
 
 func newProbcutContractState(t *testing.T, depth int) (*Position, *SearchInfo) {
 	t.Helper()
+	return newProbcutContractStateForFEN(t, probcutContractFEN, depth)
+}
+
+func newProbcutContractStateForFEN(t *testing.T, fen string, depth int) (*Position, *SearchInfo) {
+	t.Helper()
 	model := loadEvaluatorTensors(t, new(nnue.Tensors))
 	searcher, err := NewSearchEngineWithHash(1)
 	if err != nil {
@@ -19,7 +24,7 @@ func newProbcutContractState(t *testing.T, depth int) (*Position, *SearchInfo) {
 	if err := searcher.SelectNGNV1Evaluator(model); err != nil {
 		t.Fatal(err)
 	}
-	pos := n3cPosition(t, probcutContractFEN)
+	pos := n3cPosition(t, fen)
 	searcher.sessionMu.Lock()
 	generation := mustAcquireHCEModelUse()
 	t.Cleanup(func() {
@@ -30,6 +35,129 @@ func newProbcutContractState(t *testing.T, depth int) (*Position, *SearchInfo) {
 	tt := searcher.prepareTTGeneration(generation)
 	evaluator := searcher.mustPreparePrimaryEvaluator(pos, generation)
 	return pos, newN3CDirectSearchInfo(searcher, evaluator, tt, depth)
+}
+
+func TestProbcutMoveStackFeedsGrandchild(t *testing.T) {
+	pos, info := newProbcutContractState(t, 6)
+	before := snapshotPVPosition(pos)
+	capture := adapterLegalMove(t, pos, "a1a7")
+	stale := adapterLegalMove(t, pos, "e1d1")
+	info.MoveStack[0] = stale
+	info.history.SetLastMovePlayed(stale)
+	captureChild := probcutChild(t, pos, capture)
+	rootCaptureActive := false
+	observedGrandchild := false
+	observedRootMove := EmptyMove
+	info.evaluator.transitionObserver = func(observed *Position, evaluator *workerEvaluator) {
+		switch evaluator.nnueDepth() {
+		case 1:
+			rootCaptureActive = observed.Hash() == captureChild.Hash()
+		case 3:
+			if rootCaptureActive && !observedGrandchild {
+				observedGrandchild = true
+				observedRootMove = info.MoveStack[0]
+				info.control.RequestStop()
+			}
+		}
+	}
+
+	got := alphaBetaPV(pos, 6, 0, -201, -200, false, false, false, info)
+	if !observedGrandchild || !info.Stopped || got != stoppedSearchScore {
+		t.Fatalf("ProbCut grandchild result score=%d stopped=%v observed=%v", got, info.Stopped, observedGrandchild)
+	}
+	if observedRootMove != capture {
+		t.Fatalf("ProbCut grandchild read root move %s, want active capture %s", observedRootMove.ToString(), capture.ToString())
+	}
+	requireProbcutSearchUnwound(t, pos, before, info, stale, 0, 0)
+}
+
+func TestProbcutMoveStackIsLiveBeforeQuiescence(t *testing.T) {
+	pos, info := newProbcutContractState(t, 5)
+	before := snapshotPVPosition(pos)
+	capture := adapterLegalMove(t, pos, "a1a7")
+	stale := adapterLegalMove(t, pos, "e1d1")
+	info.MoveStack[0] = stale
+	info.history.SetLastMovePlayed(stale)
+	captureChild := probcutChild(t, pos, capture)
+	observedCapture := false
+	info.evaluator.transitionObserver = func(observed *Position, evaluator *workerEvaluator) {
+		if evaluator.nnueDepth() == 1 && observed.Hash() == captureChild.Hash() && !observedCapture {
+			observedCapture = true
+			info.control.RequestStop()
+		}
+	}
+
+	got := alphaBetaPV(pos, 5, 0, -201, -200, false, false, false, info)
+	if !observedCapture || !info.Stopped || got != stoppedSearchScore {
+		t.Fatalf("ProbCut qsearch stop score=%d stopped=%v observed=%v", got, info.Stopped, observedCapture)
+	}
+	if info.MoveStack[0] != capture {
+		t.Fatalf("ProbCut qsearch stop left root move %s, want traversed capture %s", info.MoveStack[0].ToString(), capture.ToString())
+	}
+	requireProbcutSearchUnwound(t, pos, before, info, stale, 0, 0)
+}
+
+func TestProbcutMoveStackTracksCompletedSiblings(t *testing.T) {
+	const fen = "4k3/p7/8/8/8/8/1K6/R6n w - - 0 1"
+	pos, info := newProbcutContractStateForFEN(t, fen, 5)
+	before := snapshotPVPosition(pos)
+	stale := adapterLegalMove(t, pos, "b2b3")
+	info.MoveStack[0] = stale
+	info.history.SetLastMovePlayed(stale)
+	captures := []Move{
+		adapterLegalMove(t, pos, "a1a7"),
+		adapterLegalMove(t, pos, "a1h1"),
+	}
+	wantByHash := make(map[uint64]Move, len(captures))
+	for _, capture := range captures {
+		wantByHash[probcutChild(t, pos, capture).Hash()] = capture
+	}
+	seen := make(map[Move]bool, len(captures))
+	previousProbcutCapture := EmptyMove
+	checkedLastSibling := false
+	info.evaluator.transitionObserver = func(observed *Position, evaluator *workerEvaluator) {
+		if evaluator.nnueDepth() != 1 {
+			return
+		}
+		// The evaluator transition callback runs just before the search path
+		// records this move. At the next sibling, the slot must therefore still
+		// name the prior completed ProbCut capture. At the first normal root move,
+		// it must name the final completed ProbCut sibling.
+		if info.MoveLoopNodes != 0 {
+			if !checkedLastSibling && previousProbcutCapture != EmptyMove {
+				checkedLastSibling = true
+				if got := info.MoveStack[0]; got != previousProbcutCapture {
+					t.Errorf("last ProbCut sibling %s left MoveStack[0]=%s", previousProbcutCapture.ToString(), got.ToString())
+				}
+			}
+			return
+		}
+		want, ok := wantByHash[observed.Hash()]
+		if !ok {
+			return
+		}
+		if previousProbcutCapture != EmptyMove {
+			if got := info.MoveStack[0]; got != previousProbcutCapture {
+				t.Errorf("ProbCut sibling %s left MoveStack[0]=%s before next sibling", previousProbcutCapture.ToString(), got.ToString())
+			}
+		}
+		seen[want] = true
+		previousProbcutCapture = want
+	}
+
+	got := alphaBetaPV(pos, 5, 0, -201, 1000, false, false, false, info)
+	if info.Stopped {
+		t.Fatalf("completed ProbCut sibling search stopped: score=%d stopped=%v", got, info.Stopped)
+	}
+	for _, capture := range captures {
+		if !seen[capture] {
+			t.Errorf("ProbCut did not traverse sibling capture %s before the root move loop", capture.ToString())
+		}
+	}
+	if !checkedLastSibling {
+		t.Error("normal root move did not verify the final completed ProbCut sibling")
+	}
+	requireProbcutSearchUnwound(t, pos, before, info, stale, 0, 0)
 }
 
 func probcutChild(t *testing.T, pos *Position, move Move) *Position {

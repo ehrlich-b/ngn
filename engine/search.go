@@ -1678,6 +1678,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			}
 			info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
 			info.history.SetLastMovePlayed(move)
+			info.MoveStack[ply] = move
 
 			score := -quiescence(pos, -probcutBeta, -probcutBeta+1, ply+1, info)
 			if info.Stopped {
