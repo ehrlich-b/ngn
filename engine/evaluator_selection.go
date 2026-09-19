@@ -6,6 +6,7 @@ import (
 	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
 	"github.com/ehrlich-b/ngn/rodenteval"
+	"github.com/ehrlich-b/ngn/rodentv12eval"
 )
 
 // selectedEvaluatorModel returns the receiver's immutable evaluator selection
@@ -179,11 +180,37 @@ func (e *SearchEngine) SelectRodentV11AnandEvaluator(model *rodenteval.Model) er
 	return nil
 }
 
+// SelectRodentV12DefaultEvaluator transactionally selects the exact
+// strict-loader-validated V1.2 default artifact. Each worker receives private
+// dynamically growing state.
+func (e *SearchEngine) SelectRodentV12DefaultEvaluator(model *rodentv12eval.Model) error {
+	e.sessionMu.Lock()
+	defer e.sessionMu.Unlock()
+	generation, err := acquireHCEModelUse()
+	if err != nil {
+		return err
+	}
+	defer releaseHCEModelUse()
+
+	candidate, err := rodentV12DefaultEvaluatorModel(model, generation)
+	if err != nil {
+		return err
+	}
+	worker, err := candidate.newWorker(nil)
+	if err != nil {
+		return err
+	}
+	e.evaluatorModel = candidate
+	e.worker.evaluator = worker
+	return nil
+}
+
 const (
-	EvaluatorBackendHCEName            = "hce"
-	EvaluatorBackendNGNV1Name          = "ngn-v1"
-	EvaluatorBackendCounter55Name      = "counter-5.5"
-	EvaluatorBackendRodentV11AnandName = "rodent-v1.1-anand"
+	EvaluatorBackendHCEName              = "hce"
+	EvaluatorBackendNGNV1Name            = "ngn-v1"
+	EvaluatorBackendCounter55Name        = "counter-5.5"
+	EvaluatorBackendRodentV11AnandName   = "rodent-v1.1-anand"
+	EvaluatorBackendRodentV12DefaultName = "rodent-v1.2-default"
 )
 
 func evaluatorBackendName(backend evaluatorBackend) string {
@@ -196,6 +223,8 @@ func evaluatorBackendName(backend evaluatorBackend) string {
 		return EvaluatorBackendCounter55Name
 	case evaluatorBackendRodentV11Anand:
 		return EvaluatorBackendRodentV11AnandName
+	case evaluatorBackendRodentV12Default:
+		return EvaluatorBackendRodentV12DefaultName
 	default:
 		return fmt.Sprintf("unknown-%d", backend)
 	}

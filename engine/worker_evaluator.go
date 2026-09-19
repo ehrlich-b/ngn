@@ -8,6 +8,7 @@ import (
 	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
 	"github.com/ehrlich-b/ngn/rodenteval"
+	"github.com/ehrlich-b/ngn/rodentv12eval"
 )
 
 const (
@@ -15,6 +16,7 @@ const (
 	evaluatorAdapterRevision uint32 = 1
 	counter55AdapterRevision uint32 = 1
 	rodentV11AdapterRevision uint32 = 1
+	rodentV12AdapterRevision uint32 = 1
 )
 
 var errWorkerEvaluator = errors.New("invalid worker evaluator state")
@@ -26,6 +28,7 @@ const (
 	evaluatorBackendNGNV1
 	evaluatorBackendCounter55
 	evaluatorBackendRodentV11Anand
+	evaluatorBackendRodentV12Default
 )
 
 // evaluatorModelIdentity is comparable and covers every input that can change
@@ -33,22 +36,24 @@ const (
 // make/unmake. The HCE generation remains part of an NNUE identity until those
 // process-global PST accumulators are removed.
 type evaluatorModelIdentity struct {
-	backend         evaluatorBackend
-	adapterRevision uint32
-	hceGeneration   uint64
-	nnueMetadata    nnue.Metadata
-	counterMetadata countereval.LoadMetadata
-	rodentMetadata  rodenteval.Metadata
+	backend           evaluatorBackend
+	adapterRevision   uint32
+	hceGeneration     uint64
+	nnueMetadata      nnue.Metadata
+	counterMetadata   countereval.LoadMetadata
+	rodentMetadata    rodenteval.Metadata
+	rodentV12Metadata rodentv12eval.Metadata
 }
 
 // evaluatorModel is a cold immutable selection. Its NGN-v1 pointer is safe to
 // share because a validated nnue.Model is immutable; mutable Context state is
 // constructed separately for every worker.
 type evaluatorModel struct {
-	identity       evaluatorModelIdentity
-	ngnV1          *nnue.Model
-	counter55      *countereval.Model
-	rodentV11Anand *rodenteval.Model
+	identity         evaluatorModelIdentity
+	ngnV1            *nnue.Model
+	counter55        *countereval.Model
+	rodentV11Anand   *rodenteval.Model
+	rodentV12Default *rodentv12eval.Model
 }
 
 func hceEvaluatorModel(hceGeneration uint64) evaluatorModel {
@@ -108,17 +113,34 @@ func rodentV11AnandEvaluatorModel(model *rodenteval.Model, hceGeneration uint64)
 	}, nil
 }
 
+func rodentV12DefaultEvaluatorModel(model *rodentv12eval.Model, hceGeneration uint64) (evaluatorModel, error) {
+	metadata, err := model.Metadata()
+	if err != nil {
+		return evaluatorModel{}, fmt.Errorf("%w: %v", errWorkerEvaluator, err)
+	}
+	return evaluatorModel{
+		identity: evaluatorModelIdentity{
+			backend:           evaluatorBackendRodentV12Default,
+			adapterRevision:   rodentV12AdapterRevision,
+			hceGeneration:     hceGeneration,
+			rodentV12Metadata: metadata,
+		},
+		rodentV12Default: model,
+	}, nil
+}
+
 // workerEvaluator is a hot concrete tagged union. Backend selection happens
 // once per score/transition call; NNUE's hidden-unit loops remain concrete and
 // contain no interface dispatch. It owns all mutable NNUE state for one worker.
 type workerEvaluator struct {
-	model           evaluatorModel
-	hce             *hceEvaluator
-	context         *nnue.Context
-	portableContext *nnue.Int32Context
-	counterContext  *countereval.SearchContext
-	rodentContext   *rodenteval.SearchContext
-	rootBuffer      nnueRootBuffer
+	model            evaluatorModel
+	hce              *hceEvaluator
+	context          *nnue.Context
+	portableContext  *nnue.Int32Context
+	counterContext   *countereval.SearchContext
+	rodentContext    *rodenteval.SearchContext
+	rodentV12Context *rodentv12eval.SearchContext
+	rootBuffer       nnueRootBuffer
 
 	// These receiver-private hooks are set only by same-package invariant tests:
 	// one checks every committed incremental frame lane-by-lane, and one routes
@@ -184,6 +206,22 @@ func (m evaluatorModel) newWorkerWithReferenceContext(hce *hceEvaluator, forceRe
 			return nil, fmt.Errorf("%w: %v", errWorkerEvaluator, err)
 		}
 		worker.rodentContext = context
+	case evaluatorBackendRodentV12Default:
+		if forceReference {
+			return nil, fmt.Errorf("%w: Rodent V1.2 has no alternate worker context", errWorkerEvaluator)
+		}
+		if m.rodentV12Default == nil {
+			return nil, fmt.Errorf("%w: nil Rodent V1.2 default model", errWorkerEvaluator)
+		}
+		var seed rodentv12eval.Position
+		seed.Board[rodentv12eval.WhiteKing] = uint64(1) << 4
+		seed.Board[rodentv12eval.BlackKing] = uint64(1) << 60
+		seed.SideToMove = rodentv12eval.White
+		context, err := m.rodentV12Default.NewSearchContext(seed)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", errWorkerEvaluator, err)
+		}
+		worker.rodentV12Context = context
 	default:
 		return nil, fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, m.identity.backend)
 	}
@@ -246,16 +284,30 @@ func (e *workerEvaluator) Reset(pos *Position) error {
 		}
 		e.observeTransition(pos)
 		return nil
+	case evaluatorBackendRodentV12Default:
+		root, err := rodentV12PositionFromPosition(pos)
+		if err != nil {
+			return err
+		}
+		if e.rodentV12Context == nil {
+			return fmt.Errorf("%w: nil Rodent V1.2 context", errWorkerEvaluator)
+		}
+		if err := e.rodentV12Context.Reset(root); err != nil {
+			return fmt.Errorf("%w: Rodent V1.2 reset: %v", errWorkerEvaluator, err)
+		}
+		e.observeTransition(pos)
+		return nil
 	default:
 		return fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
 	}
 }
 
 type workerEvalMove struct {
-	delta        nnue.Delta
-	counterDelta countereval.MoveDelta
-	rodentDelta  rodenteval.MoveDelta
-	active       bool
+	delta          nnue.Delta
+	counterDelta   countereval.MoveDelta
+	rodentDelta    rodenteval.MoveDelta
+	rodentV12Delta rodentv12eval.MoveDelta
+	active         bool
 }
 
 type workerEvalNull struct {
@@ -292,6 +344,12 @@ func (e *workerEvaluator) PrepareMove(pos *Position, move Move) (workerEvalMove,
 			return workerEvalMove{}, err
 		}
 		return workerEvalMove{rodentDelta: delta, active: true}, nil
+	case evaluatorBackendRodentV12Default:
+		delta, err := rodentV12MoveDelta(pos, move)
+		if err != nil {
+			return workerEvalMove{}, err
+		}
+		return workerEvalMove{rodentV12Delta: delta, active: true}, nil
 	default:
 		return workerEvalMove{}, fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
 	}
@@ -344,6 +402,19 @@ func (e *workerEvaluator) PushMove(pos *Position, transition workerEvalMove) err
 		}
 		e.observeTransition(pos)
 		return nil
+	case evaluatorBackendRodentV12Default:
+		if !transition.active || e.rodentV12Context == nil {
+			return fmt.Errorf("%w: missing Rodent V1.2 move transition or context", errWorkerEvaluator)
+		}
+		post, err := validateRodentV12MoveAfter(pos, transition.rodentV12Delta)
+		if err != nil {
+			return err
+		}
+		if err := e.rodentV12Context.PushMove(transition.rodentV12Delta, post); err != nil {
+			return fmt.Errorf("%w: Rodent V1.2 push move: %v", errWorkerEvaluator, err)
+		}
+		e.observeTransition(pos)
+		return nil
 	default:
 		return fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
 	}
@@ -356,7 +427,7 @@ func (e *workerEvaluator) PrepareNull(pos *Position) (workerEvalNull, error) {
 	switch e.model.identity.backend {
 	case evaluatorBackendHCE:
 		return workerEvalNull{}, nil
-	case evaluatorBackendNGNV1, evaluatorBackendCounter55, evaluatorBackendRodentV11Anand:
+	case evaluatorBackendNGNV1, evaluatorBackendCounter55, evaluatorBackendRodentV11Anand, evaluatorBackendRodentV12Default:
 		before, err := nnuePositionFacts(pos)
 		if err != nil {
 			return workerEvalNull{}, err
@@ -421,6 +492,18 @@ func (e *workerEvaluator) PushNull(pos *Position, transition workerEvalNull) err
 		}
 		e.observeTransition(pos)
 		return nil
+	case evaluatorBackendRodentV12Default:
+		if !transition.active || e.rodentV12Context == nil {
+			return fmt.Errorf("%w: missing Rodent V1.2 null transition or context", errWorkerEvaluator)
+		}
+		if err := validateNNUENullAfter(pos, transition.before, transition.beforePieces, transition.beforeSide); err != nil {
+			return err
+		}
+		if err := e.rodentV12Context.PushNull(); err != nil {
+			return fmt.Errorf("%w: Rodent V1.2 push null: %v", errWorkerEvaluator, err)
+		}
+		e.observeTransition(pos)
+		return nil
 	default:
 		return fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
 	}
@@ -454,6 +537,14 @@ func (e *workerEvaluator) Pop() error {
 		}
 		if err := e.rodentContext.Pop(); err != nil {
 			return fmt.Errorf("%w: Rodent pop: %v", errWorkerEvaluator, err)
+		}
+		return nil
+	case evaluatorBackendRodentV12Default:
+		if e.rodentV12Context == nil {
+			return fmt.Errorf("%w: nil Rodent V1.2 context", errWorkerEvaluator)
+		}
+		if err := e.rodentV12Context.Pop(); err != nil {
+			return fmt.Errorf("%w: Rodent V1.2 pop: %v", errWorkerEvaluator, err)
 		}
 		return nil
 	default:
@@ -523,6 +614,22 @@ func (e *workerEvaluator) SearchSTM(pos *Position) int {
 			panic(fmt.Errorf("%w: Rodent evaluate: %v", errWorkerEvaluator, err))
 		}
 		return rodentSearchScore(static)
+	case evaluatorBackendRodentV12Default:
+		if e.rodentV12Context == nil {
+			panic(fmt.Errorf("%w: nil Rodent V1.2 context", errWorkerEvaluator))
+		}
+		static, err := e.rodentV12Context.EvaluateReleaseStatic()
+		if e.fullRefreshOracle {
+			full, fullErr := rodentV12PositionFromPosition(pos)
+			if fullErr != nil {
+				panic(fullErr)
+			}
+			static, err = e.model.rodentV12Default.EvaluateReleaseStatic(full)
+		}
+		if err != nil {
+			panic(fmt.Errorf("%w: Rodent V1.2 evaluate: %v", errWorkerEvaluator, err))
+		}
+		return rodentSearchScore(static)
 	default:
 		panic(fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend))
 	}
@@ -569,6 +676,16 @@ func (e *workerEvaluator) LegacyUndampedSTM(pos *Position) int {
 		static, err := e.model.rodentV11Anand.EvaluateReleaseStatic(full)
 		if err != nil {
 			panic(fmt.Errorf("%w: Rodent fresh evaluate: %v", errWorkerEvaluator, err))
+		}
+		return rodentSearchScore(static)
+	case evaluatorBackendRodentV12Default:
+		full, err := rodentV12PositionFromPosition(pos)
+		if err != nil {
+			panic(err)
+		}
+		static, err := e.model.rodentV12Default.EvaluateReleaseStatic(full)
+		if err != nil {
+			panic(fmt.Errorf("%w: Rodent V1.2 fresh evaluate: %v", errWorkerEvaluator, err))
 		}
 		return rodentSearchScore(static)
 	default:
@@ -699,6 +816,9 @@ func (e *workerEvaluator) nnueDepth() int {
 	}
 	if e.rodentContext != nil && e.context == nil && e.portableContext == nil && e.counterContext == nil {
 		return e.rodentContext.Depth()
+	}
+	if e.rodentV12Context != nil && e.context == nil && e.portableContext == nil && e.counterContext == nil && e.rodentContext == nil {
+		return e.rodentV12Context.Depth()
 	}
 	return -1
 }

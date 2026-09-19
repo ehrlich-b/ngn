@@ -71,7 +71,7 @@ func TestUCIEvaluatorOptionDefaultsAndSelectedDiagnostic(t *testing.T) {
 	uci.handleCommand("uci", &output)
 	response := output.String()
 	for _, want := range []string{
-		"option name EvalBackend type combo default hce var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand",
+		"option name EvalBackend type combo default hce var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default",
 		"option name EvalFile type string default <empty>",
 	} {
 		if !strings.Contains(response, want) {
@@ -105,7 +105,7 @@ func TestConfigureStartupEvaluatorCounterAndAdvertisedDefaults(t *testing.T) {
 	var output bytes.Buffer
 	uci.handleCommand("uci", &output)
 	for _, want := range []string{
-		"option name EvalBackend type combo default counter-5.5 var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand",
+		"option name EvalBackend type combo default counter-5.5 var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default",
 		"option name EvalFile type string default " + path,
 	} {
 		if !strings.Contains(output.String(), want+"\n") {
@@ -119,7 +119,7 @@ func TestConfigureStartupEvaluatorCounterAndAdvertisedDefaults(t *testing.T) {
 	output.Reset()
 	uci.handleCommand("uci", &output)
 	for _, want := range []string{
-		"option name EvalBackend type combo default counter-5.5 var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand",
+		"option name EvalBackend type combo default counter-5.5 var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default",
 		"option name EvalFile type string default " + path,
 	} {
 		if !strings.Contains(output.String(), want+"\n") {

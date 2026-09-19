@@ -185,9 +185,14 @@ Next, in order:
    also **accepted as inactive compatibility**: the worker-private incremental
    context matches fresh full refresh in all 1,536 lanes plus raw/static output
    across synthetic boundary coverage and exact-model multi-ply paths; package
-   race and full short/race suites pass. The next bounded step is named opt-in
-   engine/UCI integration with worker/search lifecycle parity, before realistic
-   profiling or any separately frozen strength claim.
+   race and full short/race suites pass. [Slice C](experiments/2026-09-19-rodent-v12-slice-c.md)
+   is now **accepted as opt-in integration**: named transactional engine/UCI
+   selection, exact incremental/full-refresh search identity, stopped and
+   move/null/pop lifecycle parity, private SMP contexts, configured race, full
+   short/race, vet and build all pass. HCE remains the default and the external
+   model is not bundled. Next run a bounded portable performance profile against
+   the current optimized Rodent V1.1 reference before choosing an optimization
+   or freezing any separately bounded strength claim.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
    reporting boundary and amend the release contract. Rebuild the installation
    transition for the actual source state; its old `53e4d1b` precondition is stale.
