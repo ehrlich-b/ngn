@@ -27,6 +27,10 @@ type workerHistory struct {
 	killerMoves              [MaximumDepth][2]Move
 	counterMoves             [64][64]Move
 	lastMovePlayed           Move
+
+	// h0Shadow is a disposable, write-only observer used by the held H0
+	// history experiment. It is nil in every production search.
+	h0Shadow *h0HistoryShadowObserver
 }
 
 // pawnCorrectionIndex hashes both colors' pawn bitboards into a correction-table slot.
@@ -306,6 +310,9 @@ func (h *workerHistory) PenalizeCaptureHistory(move Move, depth int) {
 
 // ClearHistoryTable resets both history tables (used between games)
 func (h *workerHistory) ClearHistoryTable() {
+	if h.h0Shadow != nil {
+		h.h0Shadow.clearTables()
+	}
 	for i := range h.historyTable {
 		for j := range h.historyTable[i] {
 			h.historyTable[i][j] = 0
