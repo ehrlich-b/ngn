@@ -1,6 +1,7 @@
 # Optimized Rodent NGN versus external Counter 5.5
 
-Status: frozen protocol independently accepted and released for one run.
+Status: no accepted result. The released attempt is preserved; a clean
+operational replacement is held pending an exclusive host window.
 
 The old external rating evidence predates the accepted Counter output speedup,
 Rodent integration and its +96-Elo internal gate, and the subsequent 2.43x Rodent
@@ -64,3 +65,46 @@ remain fatal. Exact startup, embedded-network and option evidence are checked,
 with process attribution supplied by the independent process witness. Both
 crash-log parsers handle valid interleaved startup records without relaxing
 record counts, timestamps or paths.
+
+## Recovered execution disposition
+
+The September 14 execution did not produce an accepted checkpoint result.
+
+- `run-001` stopped before any game because the first driver revision expected
+  NGN's startup log in the wrong directory. The directory is preserved. No
+  engine or match result was involved.
+- `run-002` used the corrected role layout. Its A/A phase completed 100 games / 50
+  pairs, scored exactly 50%, and passed its legal match audit. The candidate
+  supervisor then completed normally after 3,359.073 seconds; fastchess exited
+  zero, its process witness recorded 478,456 observations across the exact two
+  frozen binary hashes on CPUs 0, 2, 4 and 6, found no violations, and found no
+  survivors.
+- The candidate timing evidence nevertheless failed the frozen interference
+  rule. Across 672 five-second samples, 509 exceeded one non-owned CPU core and
+  the peak was 2.1869 cores. Separate `python` and `opencode` work dominated the
+  load. This is sustained interference, not a marginal sample.
+- The driver rejected the phase before candidate legal/result audit or paired
+  Elo calculation. The candidate PGN is frozen but must not be scored, audited
+  for a rating result, pooled, extended or used to choose whether to rerun. No
+  external result or rating increment is accepted from either directory.
+
+The exact `run-002` evidence remains on the authorized host at
+`/home/ehrli/repos/ngn-external-counter-checkpoint-gate-20260913/run-002`.
+Key SHA-256s are:
+
+- frozen manifest: `c2b707223e173d84e26ac5ad3ecb1f3fdbc44cd04759635cb3dacf9ee956c52f`;
+- A/A match audit: `fea84ee74c0cd565f4294dea004534092a0a9dd819b938c1ad7a0779275e83b8`;
+- candidate CPU receipt: `d1526e80427f0ec77507ed5fade8c6c77163830527d5c4017bd6df9d1caedab9`;
+- candidate supervisor: `6e5bd45597b950b2815451819f3ffc5ae8dd83c0aa33bc06ddb6c54702081d5a`;
+- candidate process witness: `d27d94bc91cf835b469ff90284cae73422c53f8426f9fa6bf8fd2394e2031299`;
+- frozen, unaccepted candidate PGN: `026956e2f95f397f5c60e6aab974cb5a2d6b91588d1f3759aee7bc5ea5116bcd`.
+
+One operational replacement remains scientifically admissible because the
+rejection was declared without reading or computing the candidate score. It is
+not released yet. A replacement must use a fresh run directory, byte-identical
+engines/models/openings and the same fixed 100+400 protocol, preserve both
+failed attempts, and receive a fresh static/release review. Most importantly,
+the host must be reserved for the whole A/A and candidate interval: a short
+quiet preflight is insufficient when another scheduler can start CPU work
+mid-match. Do not launch while the WSL hopper or other sustained jobs are active,
+and do not weaken the one-core interference rule to make a run pass.

@@ -129,12 +129,19 @@ Next, in order:
    equality, all 44 stages clean. Full short/race, v1/v3 oracles and independent
    audits pass. See the [accepted update kernel](experiments/2026-09-13-rodent-update-kernel.md).
    This is another speed gain, not a measured Elo increment. Absolute 3300
-   remains unverified. Prepare [one bounded external Counter checkpoint](experiments/2026-09-13-rodent-external-counter-checkpoint.md):
-   fresh AA100 plus fixed400 on this now much faster Rodent configuration, exact
-   historical Counter5.5 artifact, all process/legal gates, no result-based
-   extension. It measures the remaining opponent-specific gap, not formal Elo.
-   Useful SMP work remains a later lane. Owned training, new training data and
-   another absolute-rating cycle remain deferred.
+   remains unverified. The [bounded external Counter checkpoint](experiments/2026-09-13-rodent-external-counter-checkpoint.md)
+   has **no accepted result**: `run-001` stopped at zero games on a startup-log
+   layout error; corrected `run-002` completed A/A and candidate games cleanly
+   but the frozen timing gate rejected 509/672 candidate samples above one
+   non-owned CPU core (peak 2.1869). No candidate score, Elo, extension or rerun
+   was accepted. Preserve both attempts and do not inspect the frozen candidate
+   PGN for a result. One exact operational replacement remains held until the
+   WSL host has an exclusive full-run CPU window and the fresh directory/release
+   receives static review; a momentarily quiet preflight is not enough while the
+   shared hopper can start work mid-match. This checkpoint measures the remaining
+   opponent-specific gap, not formal Elo. Useful SMP work remains a later lane.
+   Owned training, new training data and another absolute-rating cycle remain
+   deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
    reporting boundary and amend the release contract. Rebuild the installation
    transition for the actual source state; its old `53e4d1b` precondition is stale.
