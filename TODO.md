@@ -135,10 +135,13 @@ Next, in order:
    but the frozen timing gate rejected 509/672 candidate samples above one
    non-owned CPU core (peak 2.1869). No candidate score, Elo, extension or rerun
    was accepted. Preserve both attempts and do not inspect the frozen candidate
-   PGN for a result. One exact operational replacement remains held until the
-   WSL host has an exclusive full-run CPU window and the fresh directory/release
-   receives static review; a momentarily quiet preflight is not enough while the
-   shared hopper can start work mid-match. This checkpoint measures the remaining
+   PGN for a result. Exact replacement `run-003` is now prepared but held: its
+   byte-identical driver, 21 frozen inputs and both engine binaries hash-check;
+   its manifest differs only by the fresh run root and explicit non-score-based
+   replacement receipt; no engine ran and no candidate result file was read.
+   Launch still requires independent static release and an exclusive full-run
+   WSL CPU window. A momentarily quiet preflight is not enough while the shared
+   hopper can start work mid-match. This checkpoint measures the remaining
    opponent-specific gap, not formal Elo. Useful SMP work remains a later lane.
    Owned training, new training data and another absolute-rating cycle remain
    deferred.

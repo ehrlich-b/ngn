@@ -1,7 +1,8 @@
 # Optimized Rodent NGN versus external Counter 5.5
 
-Status: no accepted result. The released attempt is preserved; a clean
-operational replacement is held pending an exclusive host window.
+Status: no accepted result. The released attempt is preserved. A clean `run-003`
+package is hash-checked and held pending independent release plus an exclusive
+host window.
 
 The old external rating evidence predates the accepted Counter output speedup,
 Rodent integration and its +96-Elo internal gate, and the subsequent 2.43x Rodent
@@ -108,3 +109,28 @@ the host must be reserved for the whole A/A and candidate interval: a short
 quiet preflight is insufficient when another scheduler can start CPU work
 mid-match. Do not launch while the WSL hopper or other sustained jobs are active,
 and do not weaken the one-core interference rule to make a run pass.
+
+## Held operational replacement
+
+On September 18, `run-003` was prepared without executing either engine or
+reading any candidate result file. The held package is at
+`/home/ehrli/repos/ngn-external-counter-checkpoint-20260913/output/external-counter-checkpoint-20260913/held-v3`.
+Its driver is byte-identical to the reviewed v2 driver, all 21 frozen inputs and
+both engine binaries passed the driver's held static check, and the intended
+immutable run root does not exist.
+
+The manifest comparison passes after removing exactly two declared differences:
+the fresh `run-003` root replaces `run-002`, and an `operational_replacement`
+object records the non-score-conditioned CPU rejection. The protocol, engines,
+models, openings, source hashes, options, seeds, caps and claim boundary are
+otherwise unchanged.
+
+- held driver SHA-256: `0d204c66d49f930bcba1b09a88a60530ef260f51a659d88e37333b26d15f6344`;
+- held manifest SHA-256: `7d4c8cb12ad4616ad108182807bbcc4a2292a1e2a82647e22fb009eb0ed09ce0`;
+- held replacement receipt SHA-256: `8355e7c4b78977e41afc7f2c264e7994fb5183a4742c7bf9cdaee3000d252452`;
+- prior v2 layout-preflight receipt SHA-256:
+  `f01c64c69d3990880e8c4b9dcfcc966a738860191d353e91e81b90a227e1e995`.
+
+This is preparation, not release. `launch_authorized` is false. Remaining gates
+are an independent static review that creates the released manifest and a real
+exclusive WSL CPU window spanning both phases.
