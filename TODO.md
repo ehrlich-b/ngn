@@ -158,9 +158,15 @@ Next, in order:
    [−20.00,+16.52]**. All 59,130 candidate plies and runtime audits passed,
    the hopper stayed running, and shared-host CPU was disclosed. **Shelved** by
    the predeclared positive-lower-bound rule; the candidate source was removed
-   and the run was not extended. Do not repeat this shallow staggering or
-   combine its null result with a later helper-result candidate. Owned training,
-   new training data and another absolute-rating cycle remain deferred.
+   and the run was not extended. Do not repeat this shallow staggering. The
+   separate [completed-helper result-selection experiment](experiments/2026-09-19-smp-helper-result-selection.md)
+   also passed its WSL suites, fresh A/A and all runtime audits. It scored
+   83W/252D/65L in a separately frozen 400-game width-eight gate:
+   **+15.65 paired Elo [−2.61,+33.98]** across 65,022 legal plies. This positive
+   point estimate still missed the predeclared positive-lower-bound rule, so it
+   too is **shelved**, unextended and absent from production source. Do not pool
+   the two SMP experiments or use the near miss as a provisional keep. Owned
+   training, new training data and another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
    reporting boundary and amend the release contract. Rebuild the installation
    transition for the actual source state; its old `53e4d1b` precondition is stale.
