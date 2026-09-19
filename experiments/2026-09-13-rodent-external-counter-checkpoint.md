@@ -1,8 +1,11 @@
 # Optimized Rodent NGN versus external Counter 5.5
 
-Status: no accepted result. The released attempt is preserved. A clean `run-003`
-package is hash-checked and held pending independent release plus an exclusive
-host window.
+Status: accepted shared-host checkpoint. Fresh `run-003` completed the fixed
+100-game A/A and 400-game candidate sample while the Lean hopper remained
+running. NGN Rodent scored +28.73 paired Elo with a 95% paired-bootstrap interval
+of [+6.08,+51.62] against exact Counter 5.5. This is not an absolute-rating or
+3300 claim. The original candidate operational-audit failure and the bounded
+post-hoc concurrency-key correction are both preserved.
 
 The old external rating evidence predates the accepted Counter output speedup,
 Rodent integration and its +96-Elo internal gate, and the subsequent 2.43x Rodent
@@ -10,14 +13,17 @@ search speedup. One fresh external comparison is now useful for prioritization.
 This is not a repeat of the old broad calibration campaign, and no own-network
 training or new search heuristic is part of it.
 
-## Fixed proposed protocol
+## Executed fixed protocol
 
 - Latest accepted NGN `52ee629`, `rodent-v1.1-anand`, exact existing Anand weights.
 - Opponent: the exact Counter 5.5 release artifact from the accepted historical
   one-thread cell, with its supported options and actual NNUE path verified.
 - Fresh 100-game current-NGN/current-NGN A/A, then 400 games / 200 reversed-color
   opening pairs. 10+0.1, concurrency four, one thread each, Hash128, no book and
-  no adjudication; preserve the established affinity and interference controls.
+  no adjudication; preserve the established affinity and full interference
+  telemetry. Per the September 18 user direction, the host is deliberately
+  shared with the continuously running Lean hopper and background CPU alone is
+  not a rejection condition.
   NGN Move Overhead is 100 throughout preflight and both phases; Counter has no
   such option and retains its native time policy.
 - Freeze build/source, executable/model/opening hashes, supported options and
@@ -31,9 +37,10 @@ training or new search heuristic is part of it.
 
 ## Interpretation boundary
 
-The result will measure the remaining gap to this exact external engine under
-these local settings. It cannot establish a formal list rating or simply be
-added to prior internal gains. Historical Counter rating labels are conditional
+The result measures the remaining gap to this exact external engine under these
+local shared-host settings. Scheduler and time-management interference may
+affect the estimate. It cannot establish a formal list rating or simply be added
+to prior internal gains. Historical Counter rating labels are conditional
 orientation only: clock, machine, opponent pool and artifact correspondence
 remain separate uncertainties. Absolute 3300 is unverified until adequate fresh
 configuration-matched evidence supports that claim.
@@ -100,37 +107,119 @@ Key SHA-256s are:
 - candidate process witness: `d27d94bc91cf835b469ff90284cae73422c53f8426f9fa6bf8fd2394e2031299`;
 - frozen, unaccepted candidate PGN: `026956e2f95f397f5c60e6aab974cb5a2d6b91588d1f3759aee7bc5ea5116bcd`.
 
-One operational replacement remains scientifically admissible because the
-rejection was declared without reading or computing the candidate score. It is
-not released yet. A replacement must use a fresh run directory, byte-identical
-engines/models/openings and the same fixed 100+400 protocol, preserve both
-failed attempts, and receive a fresh static/release review. Most importantly,
-the host must be reserved for the whole A/A and candidate interval: a short
-quiet preflight is insufficient when another scheduler can start CPU work
-mid-match. Do not launch while the WSL hopper or other sustained jobs are active,
-and do not weaken the one-core interference rule to make a run pass.
+At that point one operational replacement remained scientifically admissible
+because the rejection had been declared without reading or computing the
+candidate score. The first replacement package, `held-v3`, retained the
+exclusive-host rule and was not launched. Its byte-identical driver, all 21
+frozen inputs and both engine binaries hash-checked, and the intended `run-003`
+root did not exist. These preparation hashes remain part of the history:
 
-## Held operational replacement
-
-On September 18, `run-003` was prepared without executing either engine or
-reading any candidate result file. The held package is at
-`/home/ehrli/repos/ngn-external-counter-checkpoint-20260913/output/external-counter-checkpoint-20260913/held-v3`.
-Its driver is byte-identical to the reviewed v2 driver, all 21 frozen inputs and
-both engine binaries passed the driver's held static check, and the intended
-immutable run root does not exist.
-
-The manifest comparison passes after removing exactly two declared differences:
-the fresh `run-003` root replaces `run-002`, and an `operational_replacement`
-object records the non-score-conditioned CPU rejection. The protocol, engines,
-models, openings, source hashes, options, seeds, caps and claim boundary are
-otherwise unchanged.
-
-- held driver SHA-256: `0d204c66d49f930bcba1b09a88a60530ef260f51a659d88e37333b26d15f6344`;
-- held manifest SHA-256: `7d4c8cb12ad4616ad108182807bbcc4a2292a1e2a82647e22fb009eb0ed09ce0`;
-- held replacement receipt SHA-256: `8355e7c4b78977e41afc7f2c264e7994fb5183a4742c7bf9cdaee3000d252452`;
-- prior v2 layout-preflight receipt SHA-256:
+- held-v3 driver:
+  `0d204c66d49f930bcba1b09a88a60530ef260f51a659d88e37333b26d15f6344`;
+- held-v3 manifest:
+  `7d4c8cb12ad4616ad108182807bbcc4a2292a1e2a82647e22fb009eb0ed09ce0`;
+- held-v3 replacement receipt:
+  `8355e7c4b78977e41afc7f2c264e7994fb5183a4742c7bf9cdaee3000d252452`;
+- prior v2 layout-preflight receipt:
   `f01c64c69d3990880e8c4b9dcfcc966a738860191d353e91e81b90a227e1e995`.
 
-This is preparation, not release. `launch_authorized` is false. Remaining gates
-are an independent static review that creates the released manifest and a real
-exclusive WSL CPU window spanning both phases.
+## Shared-host amendment and release
+
+On September 18 the user explicitly directed that the hopper not be paused and
+that the machine be shared. Before any fresh game result, `held-v4` amended only
+the interference disposition:
+
+- the Lean hopper stays running and may vary during both phases;
+- the ten-second prelaunch sample and five-second continuous CPU samples remain;
+- the old one-core-for-twelve-samples test remains recorded as counterfactual
+  telemetry, but background CPU alone does not invalidate the sample;
+- engines, network, openings, options, 10+0.1 time control, concurrency four,
+  CPU masks 0/2/4/6, 100+400 game counts, seeds, audits and the no-extension rule
+  remain unchanged;
+- the result is explicitly shared-host observational evidence, susceptible to
+  scheduler/time-management interference and not an absolute-rating claim.
+
+The release records an ordinary root static diff/hash/syntax audit, not an
+independent review. That distinction is explicit because no independent agent
+was authorized for this turn. Static checking again hash-checked all 21 frozen
+inputs and both engines without executing them. `run-003` was absent and the
+hopper controller was alive immediately before launch.
+
+- v4 driver: `d426dbaa603e577473222d9e58726eebc220fa7fc053c7c84a3c6585b645df61`;
+- v4 manifest: `2a330ce56cbab969ea5c919991924ac797291c78ba940da107bfce4db26eb135`;
+- static check: `978896aa2c92472c66bcaa899d6543bf4c4638240faf79199c29edc6474b226f`;
+- pre-result release receipt:
+  `268686d8f6d9739541add0da434256b5175a54120192214d6e03eb9432def3f2`.
+
+## Run-003 result
+
+The fresh sample completed on the authorized WSL host while the hopper remained
+running.
+
+- A/A: 100 games / 50 pairs, 52.0/100, pentanomial `[2,9,24,13,2]`,
+  +13.90 paired Elo, paired-bootstrap 95% interval [−27.85,+56.07]. The
+  interval includes zero. The supervisor exited cleanly; the witness recorded
+  124,703 observations across four instances per role with no violation or
+  survivor.
+- Candidate: 400 games / 200 pairs, 135 wins / 163 draws / 102 losses,
+  216.5/400 (54.125%), pentanomial `[8,37,86,52,17]`. NGN-relative paired Elo
+  is **+28.73**, normal 95% interval [+5.60,+52.12], and the predeclared
+  100,000-resample paired-bootstrap interval is **[+6.08,+51.62]**. The legal
+  audit passed all 400 games, 200 reversed-color pairs and 67,082 plies.
+- Candidate supervision was clean after 3,402.408 seconds. Fastchess returned
+  zero. The process witness recorded 495,536 observations across four exact
+  instances per role, no violations and no survivors.
+- Shared-host CPU telemetry did not trigger even the old counterfactual gate.
+  A/A used 171 samples, mean 0.1225 and peak 0.5217 non-owned cores. Candidate
+  used 681 samples, mean 0.2591 and peak 1.0185 non-owned cores; the peak was not
+  sustained for twelve samples. This does not remove the declared shared-host
+  limitation.
+
+## Preserved audit correction
+
+The frozen external trace auditor failed after the games and legal audit had
+completed. Its refresh state used `(fastchess thread, display name)`, but its
+pending `go`/width/`bestmove` state used only display name. Four legitimate
+simultaneous games therefore appeared as duplicate `go` commands and orphaned
+`bestmove` responses. The original failed receipt is preserved at SHA-256
+`5f2a72bae806d8fea179613d7830a30597c88e36571157b26498a7c6cf7b19cb`.
+
+Because the score was visible by then, no match rerun, extension, game filter or
+result-dependent protocol change was allowed. A separately frozen post-hoc
+auditor changed only those pending-state keys to `(trace thread, display name)`
+and reran every original operational check over the unchanged trace. It passed:
+all 400 option refreshes per role, exact process-exit counts, Counter startup
+records, warning allowlist, clock commands, width receipts, crash logs and
+terminal format remained enforced.
+
+- corrected auditor:
+  `b890943cab479612cae46d9c502c6d778b5bcfa06a1a16803ae436534fa5e290`;
+- correction manifest:
+  `6e5079ac4647017087c32e21f032b2ebc97282409ecb5e4fac10c688634be3c2`;
+- corrected audit receipt:
+  `2f837c8a38e1c1c24f752ea9c1a8b7803f4daa188a7381f8624abe0ada9b9f90`;
+- unchanged candidate trace:
+  `7cef8f01d612d0673c18056dce04aa25fdf12978180d9d122cbfaf6ab9824277`.
+
+The no-game finalizer hash-bound the original and corrected receipts, recomputed
+the predeclared paired statistics, and wrote a post-hoc provenance-aware terminal
+chain. The original driver is correctly recorded as not having reached its own
+terminal step; the game sample is complete and accepted through the preserved
+correction chain.
+
+- frozen run manifest:
+  `1388cd74030c9202e04feca00dad12a8b315cc94d639187482b9886338e5ed80`;
+- finalization manifest:
+  `4b07a94a09a4f8c1624b58a65ebbf5ba1bba532fefab14efdc64538c0f130b46`;
+- result:
+  `8cd41334e71f731dfd829a9ab6316be2ed446e73a9bae868ff7aeaf558c0b7a1`;
+- inventory:
+  `f63eb345349563ad76cf87b8e8adf99fe2d16ef7117cecf696fcab088a2ba8bd`;
+- terminal:
+  `90ddf9648e460fe598441bb05c57ec10beebaa5064a5ac10d8dae71d818eebd5`.
+
+The immutable run root is
+`/home/ehrli/repos/ngn-external-counter-checkpoint-gate-20260913/run-003`.
+This result establishes only that current NGN Rodent outperformed this exact
+Counter 5.5 artifact at these local shared-host settings. It does not establish
+a formal list rating or verify the active 3300 goal.

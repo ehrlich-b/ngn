@@ -130,21 +130,29 @@ Next, in order:
    audits pass. See the [accepted update kernel](experiments/2026-09-13-rodent-update-kernel.md).
    This is another speed gain, not a measured Elo increment. Absolute 3300
    remains unverified. The [bounded external Counter checkpoint](experiments/2026-09-13-rodent-external-counter-checkpoint.md)
-   has **no accepted result**: `run-001` stopped at zero games on a startup-log
-   layout error; corrected `run-002` completed A/A and candidate games cleanly
-   but the frozen timing gate rejected 509/672 candidate samples above one
-   non-owned CPU core (peak 2.1869). No candidate score, Elo, extension or rerun
-   was accepted. Preserve both attempts and do not inspect the frozen candidate
-   PGN for a result. Exact replacement `run-003` is now prepared but held: its
-   byte-identical driver, 21 frozen inputs and both engine binaries hash-check;
-   its manifest differs only by the fresh run root and explicit non-score-based
-   replacement receipt; no engine ran and no candidate result file was read.
-   Launch still requires independent static release and an exclusive full-run
-   WSL CPU window. A momentarily quiet preflight is not enough while the shared
-   hopper can start work mid-match. This checkpoint measures the remaining
-   opponent-specific gap, not formal Elo. Useful SMP work remains a later lane.
-   Owned training, new training data and another absolute-rating cycle remain
-   deferred.
+   is now **accepted with an explicit shared-host boundary**. `run-001` stopped
+   at zero games on a startup-log layout error. Corrected `run-002` completed
+   its games but was rejected before result audit by the then-frozen exclusive
+   CPU rule; its candidate PGN remains unaccepted and unscored. On September 18
+   the user explicitly directed that the Lean hopper remain running and the
+   machine be shared. A result-unseen v4 amendment retained complete CPU
+   telemetry but removed background load as a standalone rejection condition;
+   engines, model, openings, 100+400 game cap, 10+0.1 clock, concurrency four,
+   affinity, seeds, audits and no-extension rule stayed fixed. Fresh `run-003`
+   completed A/A at 52/100, paired-bootstrap +13.90 Elo
+   [−27.85,+56.07], then NGN Rodent scored 135W/163D/102L (216.5/400,
+   54.125%) against exact Counter 5.5: **+28.73 paired Elo
+   [+6.08,+51.62]**. All 67,082 candidate plies passed the legal audit; both
+   supervisors and process witnesses were clean. The frozen external trace
+   auditor initially failed because it keyed four concurrent `go` states only
+   by shared display name. Its failed receipt is preserved; a separately hashed
+   post-hoc correction changed only those state keys to `(trace thread, name)`
+   and passed the unchanged trace. The score was already visible before that
+   correction, and no game was rerun or extended. This is useful local evidence
+   that current Rodent is stronger than this exact Counter artifact under these
+   shared-host settings, not formal Elo or proof of 3300. Useful SMP work remains
+   a later lane. Owned training, new training data and another absolute-rating
+   cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
    reporting boundary and amend the release contract. Rebuild the installation
    transition for the actual source state; its old `53e4d1b` precondition is stale.
