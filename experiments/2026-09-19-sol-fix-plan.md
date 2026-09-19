@@ -404,6 +404,16 @@ package and engine configured tests, plus cold and warm fixed-node identity.
 
 ### V2: exact incremental lane arithmetic
 
+**Completed and accepted September 19:** the exact AS/ASS/ASAS AVX2 kernels and
+portable fallbacks are recorded in
+[the V2 result](2026-09-19-v2-rodent-v12-updates/README.md). Direct speedups are
+17.58x–23.69x and the ten-block whole-search ratio against accepted V1 is
+0.365683 (63.43% less time), with byte-identical cold/warm trajectories, exact
+allocations, both order strata improving and 60/60 improving fixture pairs.
+All oracle, fallback, full-short, race and platform-build gates pass. The next
+step is the promised post-V2 profile; refresh SIMD is admitted only if that
+profile still shows a material share.
+
 Scope: `rodentv12eval/context.go` and narrow `apply_updates*` helpers, reusing
 the V1.1 AS/ASS/ASAS patterns at 768 lanes. Preserve int16 wrap and operation
 order, transition validation, two-perspective frame copy, king-bucket/mirror

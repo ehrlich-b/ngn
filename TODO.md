@@ -28,7 +28,11 @@ V1 is now accepted: its exact AVX2 output kernel is 11.51x faster in isolation
 and cuts the frozen six-fixture V1.2 search time by 38.85%, with byte-identical
 cold/warm trajectories, exact allocations and 60/60 improving paired cells.
 See the [V1 record](experiments/2026-09-19-v1-rodent-v12-output/README.md).
-Next implement V2 update SIMD, re-profile, and run a fair
+V2 is accepted as well: exact 768-lane update kernels are 17.58x–23.69x faster
+in isolation and cut a further 63.43% from the accepted-V1 search time, again
+with exact trajectories/allocations and 60/60 improving cells. See the
+[V2 record](experiments/2026-09-19-v2-rodent-v12-updates/README.md). Next run a
+fresh post-V2 profile; implement refresh SIMD only if still material, then run a fair
 V1.2-versus-optimized-Anand game gate. Conditional
 lazy-accumulator and coherent history/search work follow. The hopper stays
 running. On September 19

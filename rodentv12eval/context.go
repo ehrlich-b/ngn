@@ -358,16 +358,27 @@ func (model *Model) applyUpdates(
 			feature := featureIndex(color, pieceType, update.square, kingSquares[perspective], perspective)
 			rows[index] = &model.inputWeights[feature]
 		}
-		for hidden := 0; hidden < HiddenSize; hidden++ {
-			value := destination[perspective][hidden]
-			for index, update := range updates[:updateCount] {
-				if update.add {
-					value += rows[index][hidden]
-				} else {
-					value -= rows[index][hidden]
+		switch {
+		case updateCount == 2 && updates[0].add && !updates[1].add:
+			rodentV12ApplyUpdates2(&destination[perspective], rows[0], rows[1])
+		case updateCount == 3 && updates[0].add && !updates[1].add && !updates[2].add:
+			rodentV12ApplyUpdates3(&destination[perspective], rows[0], rows[1], rows[2])
+		case updateCount == 4 && updates[0].add && !updates[1].add && updates[2].add && !updates[3].add:
+			rodentV12ApplyUpdates4(&destination[perspective], rows[0], rows[1], rows[2], rows[3])
+		default:
+			// Preserve the private helper's general semantics if a future
+			// transition introduces a different ordered update pattern.
+			for hidden := 0; hidden < HiddenSize; hidden++ {
+				value := destination[perspective][hidden]
+				for index, update := range updates[:updateCount] {
+					if update.add {
+						value += rows[index][hidden]
+					} else {
+						value -= rows[index][hidden]
+					}
 				}
+				destination[perspective][hidden] = value
 			}
-			destination[perspective][hidden] = value
 		}
 	}
 }
