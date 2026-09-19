@@ -175,9 +175,14 @@ Next, in order:
    median throughput; only one fixture improved and the worst lost 2.463%.
    **Shelved before games**, source removed, no Elo claim. Do not repeat that
    single-snapshot publication protocol. The next high-impact existing-network
-   lane is the exact Rodent V1.2 non-Tal 4-king-bucket/768-hidden/8-output-bucket
-   model: begin with a strict loader, scalar full refresh and exact-release raw
-   oracle contract before incremental/search integration or any strength claim.
+   lane uses the exact Rodent V1.2 non-Tal 4-king-bucket/768-hidden/8-output-bucket
+   model. [Slice A](experiments/2026-09-19-rodent-v12-slice-a.md) is now
+   **accepted as inactive compatibility**: the strict external loader and scalar
+   full refresh match all 104 exact-release raw and material-scaled oracle
+   records; package race and full short/race suites pass while the hopper stays
+   live. It adds no engine selection, bundled weights, deployment, match, or
+   strength claim. The next bounded step is incremental/full-refresh parity
+   before any search integration or strength claim.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
    reporting boundary and amend the release contract. Rebuild the installation
    transition for the actual source state; its old `53e4d1b` precondition is stale.
