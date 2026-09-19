@@ -1,6 +1,6 @@
 # Rodent V1.2 L0 demand trace
 
-Status: **held before execution**. This package asks whether demand-driven
+Status: **completed — shelve L1**. This package asks whether demand-driven
 V1.2 accumulators have enough measured headroom to justify an L1
 implementation. It does not change the accepted evaluator or engine behavior.
 
@@ -67,3 +67,40 @@ gain.
 
 The complete machine-readable contract is in `manifest-held-v1.json`.
 
+## Result
+
+All gates passed. The focused observer tests passed, the 12 baseline/observed
+searches matched exactly in every frozen trajectory field, all accounting
+partitions closed, all evaluator stacks returned to depth zero, and there were
+no unbalanced resets. The 5.67-second WSL run left no probe or fastchess
+processes; the live hopper remained PID 3099092.
+
+Cold demand, aligned to the frozen post-V3 cost profile, was small:
+
+- 105,427 / 1,915,563 move frames were wholly abandoned (5.50%).
+- Perspective-aware avoidability was 9.07% for move copies, 4.57% for
+  update-2, 7.67% for update-3, 7.12% for update-4, and 4.39% for refresh.
+- The directly attributed whole-search opportunity is 0.559%. Even assigning
+  all 3.72% residual `applyUpdates` cost to the most favorable measured class
+  raises the frozen optimistic ceiling only to 0.844%.
+
+Warm demand independently agrees: 6.27% of move frames were wholly abandoned,
+and the same deliberately favorable cost mapping yields a 1.240% ceiling. The
+rare warm update-4 class (924 abandoned calls out of 5,964) receives the entire
+residual in that calculation, making it intentionally generous.
+
+One post-run sensitivity check isolated the previously uncredited null path in
+the existing post-V3 CPU profile. `PushNull` was 0.01 / 6.98 seconds (0.14%
+whole-search), entirely on its accumulator-copy line. Crediting its measured
+abandonment raises the cold ceiling only to 0.854% and the warm extrapolation
+to 1.254%. Cold null copying would have needed to consume 30.44% of the whole
+search—not the measured 0.14%—to bridge the threshold.
+
+Therefore the frozen decision rule says **SHELVE L1**. Reopen only if a
+materially different evaluator/search produces a different perspective-aware
+demand profile, or a fresh cost profile attributes at least 3% of whole-search
+time to work the lazy design can actually avoid. The next high-upside lane is
+H0 passive search-history and selection-signal measurement.
+
+Exact per-fixture counts and trajectories are in `probe.json`; aggregate math,
+hashes, validation, and the decision are in `result.json`.

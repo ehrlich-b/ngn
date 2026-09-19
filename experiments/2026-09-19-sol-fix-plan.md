@@ -631,6 +631,19 @@ whole-search gain, shelve this prototype with a reopen condition (richer model
 or a materially different measured demand profile). Otherwise admit one exact
 lazy implementation.
 
+**Completed September 19 — L1 not admitted.** The frozen perspective-aware L0
+observer preserved all 12 cold/warm fixed-node trajectories exactly and closed
+every accounting partition. Cold demand maps to 0.559% directly attributed
+whole-search opportunity and a deliberately favorable 0.844% ceiling; the
+warm-prefix extrapolation is 1.240%. An existing-profile line check found the
+entire null push at only 0.14% of search CPU, raising those ceilings to 0.854%
+and 1.254%. These are far below 3%, so L1 is **shelved**. Reopen only after a
+material evaluator/search change produces a different measured demand profile,
+or a fresh profile assigns at least 3% whole-search cost to actually avoidable
+work. Exact evidence is in
+[the L0 demand result](2026-09-19-l0-v12-demand/README.md). The implementation
+notes below are retained only as the frozen reopen design, not as active work.
+
 Keep validated move/king metadata per frame, materialize needed perspectives on
 demand from the nearest valid ancestor or full refresh, and retain independent
 worker/model ownership. Ancestor reuse must respect the perspective's king-view

@@ -53,10 +53,16 @@ complete and **ADOPTED**: after a valid fresh A/A100, V1.2 scored
 [+45.42,+92.46]** over the fixed 400 games. All legal, operational, process and
 supervision audits passed and the hopper remained live. See the
 [E0 result](experiments/2026-09-19-e0-v12-anand-strength/README.md). Treat V1.2
-as the immediate competitive evaluator and run L0 demand tracing next; admit a
-lazy implementation only if its measured avoidable share can support the
-predeclared whole-search threshold. Conditional
-lazy-accumulator and coherent history/search work follow. The hopper stays
+as the immediate competitive evaluator. L0 is now complete and **shelves the
+lazy implementation**: exact perspective-aware tracing found only 0.559%
+directly attributed cold opportunity and a deliberately favorable 0.844%
+whole-search ceiling (0.854% after crediting the isolated null-copy path), far
+below the frozen 3% threshold. Warm prefixes likewise cap at 1.254% with the
+null sensitivity. All 12 baseline/observed trajectories were identical and all
+observer invariants passed. See the
+[L0 demand result](experiments/2026-09-19-l0-v12-demand/README.md). Advance to
+H0 passive search-history and selection-signal measurement; do not implement
+L1 unless the recorded reopen condition becomes true. The hopper stays
 running. On September 19
 the user clarified that the two-minute machine-check limit applied only to the
 planning session; Sol may run the plan's normal bounded WSL validation gates on
