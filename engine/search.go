@@ -592,6 +592,31 @@ type SearchInfo struct {
 	FrameDepth int
 }
 
+func (info *SearchInfo) observeTermination(reason searchTerminationReason) {
+	if info == nil || info.TimeManager == nil {
+		return
+	}
+	info.TimeManager.observeControlTermination(reason, info.RootDepth)
+}
+
+// shouldStopForControl preserves the existing external/node cancellation
+// behavior while attributing the first decisive cause when the opt-in C0
+// observer is attached. A pre-existing request wins over a simultaneously
+// reached node cap; a node-cap request is latched before its shared stop bit can
+// later look like an external request.
+func (info *SearchInfo) shouldStopForControl() bool {
+	if info.control.StopRequested() {
+		info.observeTermination(searchTerminationExternalStop)
+		return true
+	}
+	if info.maxNodes != 0 && info.Nodes >= info.maxNodes {
+		info.observeTermination(searchTerminationNodeCap)
+		info.control.RequestStop()
+		return true
+	}
+	return false
+}
+
 // DepthCallback is called after each depth completes during iterative deepening
 type DepthCallback func(info *SearchInfo)
 
@@ -653,16 +678,19 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 		} else {
 			info.BestScore = 0
 		}
+		info.observeTermination(searchTerminationTerminal)
 		return info
 	}
 
 	// Iterative deepening - start from depth 1 and go up to maxDepth
 	previousScore := 0 // Track previous iteration score for aspiration windows
 
+	terminalCompletion := false
 	for currentDepth := 1; currentDepth <= maxDepth && !info.Stopped; currentDepth++ {
 		// Honor an external UCI stop request even when no time manager is set
 		// (e.g. `go infinite`).
 		if info.control.StopRequested() {
+			info.observeTermination(searchTerminationExternalStop)
 			info.Stopped = true
 			break
 		}
@@ -685,7 +713,7 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 
 		// Check time before starting each new depth iteration
 		if info.TimeManager != nil {
-			if info.TimeManager.ShouldStopSearch(currentDepth) {
+			if info.TimeManager.shouldStopSearchAt(currentDepth, timeCheckIterationAdmission) {
 				info.Stopped = true
 				break
 			}
@@ -888,6 +916,7 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 					info.BestScore = 0
 				}
 				info.BestMove = EmptyMove
+				info.observeTermination(searchTerminationTerminal)
 				return info
 			}
 
@@ -951,6 +980,7 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 						bestMoveNodeFraction = float64(bestMoveNodes) / float64(totalAttemptNodes)
 					}
 					info.TimeManager.ReportCompletedIteration(bestMoveChanged, attempts == 1, bestMoveNodeFraction)
+					info.TimeManager.observeCompletedIteration(currentDepth, attempts)
 				}
 			}
 		}
@@ -974,9 +1004,17 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 			if currentDepth > mateStopMargin &&
 				(info.BestScore >= MATE_VALUE-(currentDepth-mateStopMargin) ||
 					info.BestScore <= -MATE_VALUE+(currentDepth-mateStopMargin)) {
+				terminalCompletion = true
 				break
 			}
 		}
+	}
+	if !info.Stopped {
+		reason := searchTerminationDepthComplete
+		if terminalCompletion {
+			reason = searchTerminationTerminal
+		}
+		info.observeTermination(reason)
 	}
 
 	return info
@@ -1337,15 +1375,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	if ply > info.SelDepth {
 		info.SelDepth = ply
 	}
-	// Fixed-node budget (UCI `go nodes`): trip the stop flag when the budget is
-	// spent, reusing the unwind/discard machinery below.
-	if m := info.maxNodes; m != 0 && info.Nodes >= m {
-		info.control.RequestStop()
-	}
-
-	// External stop request (UCI `stop`) - honor it even before the time limit hits.
-	// Cheap atomic load; sampled per node is fine.
-	if info.control.StopRequested() {
+	// Fixed-node and external cancellation share one stop bit. The helper keeps
+	// their first decisive causes distinct for the opt-in observer.
+	if info.shouldStopForControl() {
 		info.Stopped = true
 		return stoppedSearchScore
 	}
@@ -2329,13 +2361,9 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		return info.evaluator.SearchSTM(pos)
 	}
 
-	// Fixed-node budget: trip the stop flag when spent (qsearch nodes count too).
-	if m := info.maxNodes; m != 0 && info.Nodes >= m {
-		info.control.RequestStop()
-	}
-
-	// External stop request - bail out without searching deeper.
-	if info.control.StopRequested() {
+	// Fixed-node and external cancellation share one stop bit. Attribute before
+	// unwinding so a node limit cannot be relabeled as an external stop.
+	if info.shouldStopForControl() {
 		info.Stopped = true
 		return stoppedSearchScore
 	}

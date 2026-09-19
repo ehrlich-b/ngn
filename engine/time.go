@@ -17,6 +17,78 @@ const (
 	Infinite
 )
 
+// searchTerminationReason is an opt-in diagnostic classification of the first
+// event that decisively ended a search. It is deliberately unexported: ordinary
+// engine/UCI operation neither allocates an observer nor emits observer output.
+type searchTerminationReason uint8
+
+const (
+	searchTerminationNone searchTerminationReason = iota
+	searchTerminationSoftAdmission
+	searchTerminationSoftAbort
+	searchTerminationHardDeadline
+	searchTerminationEmergencyReserve
+	searchTerminationExternalStop
+	searchTerminationNodeCap
+	searchTerminationTerminal
+	searchTerminationDepthComplete
+)
+
+func (reason searchTerminationReason) String() string {
+	switch reason {
+	case searchTerminationSoftAdmission:
+		return "soft-admission"
+	case searchTerminationSoftAbort:
+		return "soft-abort"
+	case searchTerminationHardDeadline:
+		return "hard-deadline"
+	case searchTerminationEmergencyReserve:
+		return "emergency-reserve"
+	case searchTerminationExternalStop:
+		return "external-stop"
+	case searchTerminationNodeCap:
+		return "node-cap"
+	case searchTerminationTerminal:
+		return "terminal"
+	case searchTerminationDepthComplete:
+		return "depth-complete"
+	default:
+		return "none"
+	}
+}
+
+type searchIterationObservation struct {
+	Depth              int
+	Duration           time.Duration
+	CompletedAtElapsed time.Duration
+	AspirationAttempts int
+}
+
+// searchTerminationObserver is fixed-capacity so enabling the C0 diagnostic
+// adds no production hot-path allocation. The observer is worker-private, just
+// like TimeManager. Overflow is explicit rather than silently reallocating.
+type searchTerminationObserver struct {
+	FirstReason       searchTerminationReason
+	FirstDepth        int
+	FirstElapsed      time.Duration
+	Iterations        [MaximumDepth + 1]searchIterationObservation
+	IterationCount    int
+	IterationOverflow int
+}
+
+func (observer *searchTerminationObserver) reset() {
+	if observer != nil {
+		*observer = searchTerminationObserver{}
+	}
+}
+
+type timeCheckSite uint8
+
+const (
+	timeCheckActiveSearch timeCheckSite = iota
+	timeCheckIterationAdmission
+)
+
 // TimeManager handles time allocation and management during search
 type TimeManager struct {
 	timeControl   TimeControl
@@ -75,6 +147,10 @@ type TimeManager struct {
 	// now is injectable so admission-time accounting and setup expiry are
 	// deterministic in lifecycle tests. It is immutable while a manager is in use.
 	now func() time.Time
+
+	// observer is nil in ordinary play. Tests and bounded diagnostics may attach
+	// one to record the first decisive stop and completed-iteration timings.
+	observer *searchTerminationObserver
 }
 
 // GamePhase represents the current phase of the game
@@ -134,6 +210,9 @@ func (tm *TimeManager) SetTimeControlAt(params SearchParams, isWhite bool, start
 	tm.stableIters = 0
 	tm.bestMoveNodeFraction = 0
 	tm.checkCounter = 0
+	if tm.observer != nil {
+		tm.observer.reset()
+	}
 
 	// Determine time control type and allocate time accordingly
 	if params.Infinite {
@@ -178,6 +257,50 @@ func (tm *TimeManager) SetTimeControlAt(params SearchParams, isWhite bool, start
 	if tm.allocatedTime > maxTime {
 		tm.allocatedTime = maxTime
 	}
+}
+
+func (tm *TimeManager) setSearchTerminationObserver(observer *searchTerminationObserver) {
+	tm.observer = observer
+	if observer != nil {
+		observer.reset()
+	}
+}
+
+func (tm *TimeManager) observeTermination(reason searchTerminationReason, depth int, elapsed time.Duration) {
+	observer := tm.observer
+	if observer == nil || observer.FirstReason != searchTerminationNone {
+		return
+	}
+	observer.FirstReason = reason
+	observer.FirstDepth = depth
+	observer.FirstElapsed = elapsed
+}
+
+func (tm *TimeManager) observeControlTermination(reason searchTerminationReason, depth int) {
+	if tm.observer == nil {
+		return
+	}
+	tm.observeTermination(reason, depth, tm.nowTime().Sub(tm.startTime))
+}
+
+func (tm *TimeManager) observeCompletedIteration(depth, attempts int) {
+	observer := tm.observer
+	if observer == nil || tm.iterationStartTime.IsZero() {
+		return
+	}
+	now := tm.nowTime()
+	record := searchIterationObservation{
+		Depth:              depth,
+		Duration:           now.Sub(tm.iterationStartTime),
+		CompletedAtElapsed: now.Sub(tm.startTime),
+		AspirationAttempts: attempts,
+	}
+	if observer.IterationCount < len(observer.Iterations) {
+		observer.Iterations[observer.IterationCount] = record
+		observer.IterationCount++
+		return
+	}
+	observer.IterationOverflow++
 }
 
 // computeTournamentLimits sets the soft and hard per-move budgets from an
@@ -391,6 +514,10 @@ const (
 )
 
 func (tm *TimeManager) ShouldStopSearch(depth int) bool {
+	return tm.shouldStopSearchAt(depth, timeCheckActiveSearch)
+}
+
+func (tm *TimeManager) shouldStopSearchAt(depth int, site timeCheckSite) bool {
 	// Plain counter: only the search goroutine calls this, and SetTimeControl's
 	// reset happens-before the goroutine launch — the old atomic.AddUint64 was a
 	// per-node RMW bought for nothing (single-threaded search).
@@ -410,8 +537,18 @@ func (tm *TimeManager) ShouldStopSearch(depth int) bool {
 		case TimePerMove, FixedTime:
 			// Hard time limit - stop when time is up
 			tm.shouldStop = elapsed >= tm.allocatedTime
+			if tm.shouldStop {
+				tm.observeTermination(searchTerminationHardDeadline, depth, elapsed)
+			}
 		case Tournament:
-			tm.shouldStop = tm.shouldStopTournamentSearch(depth, elapsed)
+			reason := tm.tournamentStopReason(depth, elapsed)
+			tm.shouldStop = reason != searchTerminationNone
+			if reason == searchTerminationSoftAbort && site == timeCheckIterationAdmission {
+				reason = searchTerminationSoftAdmission
+			}
+			if tm.shouldStop {
+				tm.observeTermination(reason, depth, elapsed)
+			}
 		}
 	}
 
@@ -424,20 +561,24 @@ func (tm *TimeManager) ShouldStopSearch(depth int) bool {
 // — the bullet-killers that forced spending a fixed wall-time regardless of how
 // little time was left. This version is purely bank-relative.
 func (tm *TimeManager) shouldStopTournamentSearch(depth int, elapsed time.Duration) bool {
+	return tm.tournamentStopReason(depth, elapsed) != searchTerminationNone
+}
+
+func (tm *TimeManager) tournamentStopReason(depth int, elapsed time.Duration) searchTerminationReason {
 	// Hard ceiling — never exceeded. computeTournamentLimits caps this at 30% of the
 	// usable bank, so a single move can never flag us (the anti-flag guarantee).
 	if elapsed >= tm.hardTime {
-		return true
+		return searchTerminationHardDeadline
 	}
 	// Emergency: down to the reserve, stop regardless of the budget arithmetic.
 	if tm.baseTime-elapsed <= tm.emergencyTime {
-		return true
+		return searchTerminationEmergencyReserve
 	}
 	// Always finish at least one iteration so the move is real (never a depth-0
 	// blunder); the search's clock-interrupt guard keeps the last completed depth
 	// if a later iteration is cut off mid-flight.
 	if depth < 1 {
-		return false
+		return searchTerminationNone
 	}
 	// Soft limit: don't START another iteration we can't finish within the soft budget.
 	//
@@ -469,9 +610,15 @@ func (tm *TimeManager) shouldStopTournamentSearch(depth int, elapsed time.Durati
 	}
 	soft := time.Duration(float64(tm.softTime) * composed)
 	if tm.lastIterationTime == 0 {
-		return elapsed >= soft
+		if elapsed >= soft {
+			return searchTerminationSoftAbort
+		}
+		return searchTerminationNone
 	}
-	return elapsed+tm.lastIterationTime > soft
+	if elapsed+tm.lastIterationTime > soft {
+		return searchTerminationSoftAbort
+	}
+	return searchTerminationNone
 }
 
 // UpdateGameState updates the time manager with current game state
@@ -580,9 +727,21 @@ func (tm *TimeManager) SetupDeadlineExceeded() bool {
 	elapsed := tm.GetElapsedTime()
 	switch tm.timeControl {
 	case TimePerMove, FixedTime:
-		return elapsed >= tm.allocatedTime
+		if elapsed >= tm.allocatedTime {
+			tm.observeTermination(searchTerminationHardDeadline, 0, elapsed)
+			return true
+		}
+		return false
 	case Tournament:
-		return elapsed >= tm.hardTime || tm.baseTime-elapsed <= tm.emergencyTime
+		if elapsed >= tm.hardTime {
+			tm.observeTermination(searchTerminationHardDeadline, 0, elapsed)
+			return true
+		}
+		if tm.baseTime-elapsed <= tm.emergencyTime {
+			tm.observeTermination(searchTerminationEmergencyReserve, 0, elapsed)
+			return true
+		}
+		return false
 	default:
 		return false
 	}

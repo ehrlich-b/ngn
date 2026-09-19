@@ -214,6 +214,14 @@ Elo. Once both are accepted, freeze their new commit as the experimental base.
 
 ### C0: preserve the measured question
 
+**Completed September 19:** the opt-in first-cause observer and frozen warm
+diagnostic are recorded in
+[the C0 result](2026-09-19-c0-clock-preflight/README.md). All 12 searches ended
+through a soft active abort, none at soft admission or hard/emergency bounds;
+the post-completion tail was 25.74% in aggregate. Identity, short and race gates
+passed with no measurable observer overhead. This admits the one C1 boundary
+below but is not itself a strength verdict.
+
 Existing logs show a 25.529% sum-of-search-time tail after NGN's last completed
 root report. The conservative hard-bound analysis excludes hard/emergency
 exhaustion for 90.61% of substantial nonmate tail under its timestamp assumptions.

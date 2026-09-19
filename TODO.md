@@ -14,9 +14,14 @@ complete: the exact portable V1.2 network is 6.214x slower on the aggregate cold
 workload and 6.489x slower on persistent prefixes, with `applyUpdates` plus
 output evaluation consuming 83.90% of labeled V1.2 search CPU. The accumulator
 copy hypothesis is rejected. See the
-[V0 cost record](experiments/2026-09-19-v0-rodent-v12-profile/README.md). Next
-finish the bounded C0 clock-mechanism preflight, admit at most one clock-policy
-candidate, then implement V1 output SIMD followed by V2 update SIMD and a fair
+[V0 cost record](experiments/2026-09-19-v0-rodent-v12-profile/README.md). C0 is
+also complete: all 12 frozen warm searches stopped softly inside an admitted
+iteration, with a 25.74% aggregate post-completion tail and clean first-cause
+attribution. The opt-in observer passes identity, short and race gates. See the
+[C0 record](experiments/2026-09-19-c0-clock-preflight/README.md). Implement the
+single admitted C1 admission-vs-abort split next; if its deterministic safety or
+frozen game gate fails, shelve it without constants rescue. Then implement V1
+output SIMD followed by V2 update SIMD and a fair
 V1.2-versus-optimized-Anand game gate. Conditional
 lazy-accumulator and coherent history/search work follow. The hopper stays
 running. On September 19
