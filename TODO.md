@@ -1,4 +1,4 @@
-# NGN current state — September 13 Rodent strength acceptance
+# NGN current state — September 19 SMP depth-stagger disposition
 
 The original classical target is complete: accepted `53e4d1b` measured 2884
 [2834,2934] on the fixed historical calibration, with 400 games, 55,349 legally
@@ -151,8 +151,16 @@ Next, in order:
    correction, and no game was rerun or extended. This is useful local evidence
    that current Rodent is stronger than this exact Counter artifact under these
    shared-host settings, not formal Elo or proof of 3300. Useful SMP work remains
-   a later lane. Owned training, new training data and another absolute-rating
-   cycle remain deferred.
+   a later lane. The first such lane is now closed: the
+   [helper initial-depth staggering experiment](experiments/2026-09-18-smp-helper-depth-stagger.md)
+   passed WSL short/race tests and a fresh 20-game A/A, then scored
+   66W/266D/68L in its fixed 400-game width-eight gate: **−1.74 paired Elo
+   [−20.00,+16.52]**. All 59,130 candidate plies and runtime audits passed,
+   the hopper stayed running, and shared-host CPU was disclosed. **Shelved** by
+   the predeclared positive-lower-bound rule; the candidate source was removed
+   and the run was not extended. Do not repeat this shallow staggering or
+   combine its null result with a later helper-result candidate. Owned training,
+   new training data and another absolute-rating cycle remain deferred.
 3. Before release installation, resolve or explicitly close the Rodent V1.2
    reporting boundary and amend the release contract. Rebuild the installation
    transition for the actual source state; its old `53e4d1b` precondition is stale.
