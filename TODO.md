@@ -60,10 +60,15 @@ whole-search ceiling (0.854% after crediting the isolated null-copy path), far
 below the frozen 3% threshold. Warm prefixes likewise cap at 1.254% with the
 null sensitivity. All 12 baseline/observed trajectories were identical and all
 observer invariants passed. See the
-[L0 demand result](experiments/2026-09-19-l0-v12-demand/README.md). Advance to
-H0 passive search-history and selection-signal measurement; do not implement
-L1 unless the recorded reopen condition becomes true. The hopper stays
-running. On September 19
+[L0 demand result](experiments/2026-09-19-l0-v12-demand/README.md). H0 is now
+complete and **passes its predeclared mechanism gate**: the new-only learning
+mass is 5.374%, later-cutoff weighted rank improves by 0.1048 positions,
+policy 11 changes 19.142% of LMR decisions, and shadow-only prune alpha/beta
+rates are each 1.402%, with exact baseline/observer trajectory identity. See
+the [H0 result](experiments/2026-09-19-h0-history-shadow/README.md). The frozen
+four-arm H1 completed-winner history-policy gate is the active next experiment;
+do not tune its constants from H0 and do not implement L1 unless the recorded
+reopen condition becomes true. The hopper stays running. On September 19
 the user clarified that the two-minute machine-check limit applied only to the
 planning session; Sol may run the plan's normal bounded WSL validation gates on
 the shared host. Research acceptance does not authorize installation: the release

@@ -457,13 +457,12 @@ func getAttackersAfterMove(pos *Position, nonSlider uint64, occupied uint64, tar
 // recursion-FRAME counter, NOT ply: IID and singular verification re-enter at the same
 // ply, so a ply-indexed buffer would clobber a live parent (docs/09 J3).
 type searchFrame struct {
-	moveBuffer       [256]Move // raw pseudo-legal generation target (transient: gen -> order)
-	ordered          [256]Move // ordered moves, iterated across the recursive move loop
-	scores           [256]int  // ordering scores, parallel to ordered, for incremental selection
-	quiets           [64]Move  // quiet moves tried (history penalties on a cutoff)
-	captures         [64]Move  // captures tried (capture-history penalties)
-	h0SearchedQuiets [256]Move
-	h0Node           h0HistoryShadowNode
+	moveBuffer             [256]Move              // raw pseudo-legal generation target (transient: gen -> order)
+	ordered                [256]Move              // ordered moves, iterated across the recursive move loop
+	scores                 [256]int               // ordering scores, parallel to ordered, for incremental selection
+	quiets                 [64]Move               // quiet moves tried (history penalties on a cutoff)
+	captures               [64]Move               // captures tried (capture-history penalties)
+	completedHistoryQuiets h1CompletedQuietBuffer // zero-sized in policy 00/01
 }
 
 // searchFramePoolSize bounds the reusable frame pool; a recursion depth beyond it falls
@@ -779,18 +778,8 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 					}
 				}
 			}
-			var h0RootNode h0HistoryShadowNode
-			var h0RootQuiets [256]Move
-			h0RootQuietCount := 0
-			if info.history.h0Shadow != nil {
-				info.history.h0Shadow.captureNode(
-					&h0RootNode,
-					orderedRoot[:orderedCount],
-					info.history,
-					info.history.GetLastMovePlayed(),
-					EmptyMove,
-				)
-			}
+			var completedRootQuiets h1CompletedQuietBuffer
+			completedRootQuietCount := 0
 			iterationBestScore := -INFINITY
 			iterationBestMove := EmptyMove
 			bestMoveNodes := uint64(0)      // T1e: nodes spent inside the current best move's subtree
@@ -828,9 +817,8 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 				info.history.SetLastMovePlayed(move)
 				info.MoveStack[0] = move
 				legalRoot++
-				if h0QuietMove(move) && h0RootQuietCount < len(h0RootQuiets) {
-					h0RootQuiets[h0RootQuietCount] = move
-					h0RootQuietCount++
+				if h1NewHistoryProducer && h1QuietMove(move) {
+					h1AppendCompletedQuiet(&completedRootQuiets, &completedRootQuietCount, move)
 				}
 				nodesBefore := info.Nodes // T1e: node count before searching this root move's subtree
 
@@ -937,19 +925,17 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 				info.observeTermination(searchTerminationTerminal)
 				return info
 			}
-			info.history.h0Shadow.observeCompletedNode(
-				&h0RootNode,
-				h0RootQuiets[:h0RootQuietCount],
-				iterationBestMove,
-				currentDepth,
-				windowAlpha,
-				iterationBestScore,
-				windowBeta,
-				legalRoot,
-				true,
-				true,
-				false,
-			)
+			if h1NewHistoryProducer {
+				info.history.h1UpdateCompletedNode(
+					h1CompletedQuiets(&completedRootQuiets, completedRootQuietCount),
+					iterationBestMove,
+					info.history.GetLastMovePlayed(),
+					EmptyMove,
+					currentDepth,
+					windowAlpha,
+					iterationBestScore,
+				)
+			}
 
 			// Classify against the original window (windowAlpha/windowBeta), not the
 			// alpha that was mutated during the move loop. Otherwise every successful
@@ -1814,13 +1800,6 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	ordered := frame.ordered[:]
 	scores := frame.scores[:]
 	orderedCount, ttIndex := info.history.scoreMovesIntoBuffer(moves, ply, info.history.GetLastMovePlayed(), prev2, ttMove, ttHit, ordered, scores, pos, true)
-	info.history.h0Shadow.captureNode(
-		&frame.h0Node,
-		ordered[:orderedCount],
-		info.history,
-		info.history.GetLastMovePlayed(),
-		prev2,
-	)
 	info.MoveLoopNodes++
 	if ttIndex >= 0 {
 		info.TTMoveListed++
@@ -1835,8 +1814,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	searchedQuietCount := 0
 	searchedCaptures := frame.captures[:]
 	searchedCaptureCount := 0
-	h0SearchedQuiets := frame.h0SearchedQuiets[:]
-	h0SearchedQuietCount := 0
+	completedHistoryQuietCount := 0
 
 	capturesScored := false // lazySEE: real capture scores not yet materialized
 	for oi := 0; oi < orderedCount; oi++ {
@@ -1935,15 +1913,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			}
 		}
 
-		// History pruning: skip quiet moves with very bad history at low depths.
-		// The H0 observer also records the shadow policy's decision, but the live
-		// decision remains exclusively the baseline score below.
-		h0ShadowOnlyPrune := false
+		// History pruning: skip quiet moves with very bad history at low depths
 		if SearchToggles.HistPrune && !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move.PromoType() == NoType && move != ttMove {
 			histScore := info.history.GetHistoryScore(move, info.history.GetLastMovePlayed(), prev2)
-			baselinePrune, shadowOnly := info.history.h0Shadow.observeHistoryPrune(&frame.h0Node, move, histScore, legalTried)
-			h0ShadowOnlyPrune = shadowOnly
-			if baselinePrune { // Very bad history and not early move
+			if histScore < -1000 && legalTried > 3 { // Very bad history and not early move
 				info.HistPrunes++
 				continue
 			}
@@ -1964,7 +1937,6 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		movingColor := move.MovingPiece().Color()
 		if isInCheck(pos, movingColor) {
 			pos.UnMakeMove(move, tag, ep, hc)
-			info.history.h0Shadow.observeShadowPruneIllegal(h0ShadowOnlyPrune)
 			continue
 		}
 		info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
@@ -1977,9 +1949,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			searchedQuiets[searchedQuietCount] = move
 			searchedQuietCount++
 		}
-		if h0QuietMove(move) && h0SearchedQuietCount < len(h0SearchedQuiets) {
-			h0SearchedQuiets[h0SearchedQuietCount] = move
-			h0SearchedQuietCount++
+		if h1NewHistoryProducer && h1QuietMove(move) {
+			h1AppendCompletedQuiet(&frame.completedHistoryQuiets, &completedHistoryQuietCount, move)
 		}
 		// Track captures for capture-history penalization
 		if move.IsCapture() && searchedCaptureCount < 64 {
@@ -2100,11 +2071,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			info.ExtBudgetClamps++
 		}
 
-		moveAlpha := alpha
-		bestScoreBefore := bestScore
 		var score int
-		var h0LMR h0HistoryShadowLMRObservation
-		h0LMRFirstScore := 0
 
 		// Enhanced Principal Variation Search (PVS) with PV-node optimization
 		if legalTried == 1 {
@@ -2136,18 +2103,18 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				if !improving {
 					reduction++
 				}
-				h0BaseReduction := reduction
-
 				// History-based LMR adjustment:
 				// Reduce more for moves with bad history, less for moves with good history
 				histScore := info.history.GetHistoryScore(move, savedLast, prev2)
-				if histScore < -500 {
+				if h1NormalizedLMRConsumer {
+					reduction += h1NormalizedLMRTerm(histScore)
+				} else if histScore < -500 {
 					reduction++ // Bad history = reduce more
 				} else if histScore > 1000 {
 					reduction-- // Good history = reduce less
-					if reduction < 0 {
-						reduction = 0
-					}
+				}
+				if reduction < 0 {
+					reduction = 0
 				}
 
 				// T19: reduce less at nodes that have ever been PV. NGN's FMC is ~84%
@@ -2175,17 +2142,6 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				if reduction < 0 {
 					reduction = 0
 				}
-				h0LMR = info.history.h0Shadow.observeLMRDecision(
-					&frame.h0Node,
-					move,
-					histScore,
-					h0BaseReduction,
-					reduction,
-					depth,
-					nodeTTPv,
-					info.history.IsKillerMove(move, ply),
-				)
-
 				// Track LMR usage
 				if reduction > 0 {
 					info.LMRReductions++
@@ -2202,7 +2158,6 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// Search with null window first (not PV)
 			info.NullWindowScouts++
 			score = -alphaBetaPV(pos, reducedDepth, ply+1, -alpha-1, -alpha, false, true, true, info)
-			h0LMRFirstScore = score
 			if info.Stopped {
 				info.evaluator.mustPop()
 				pos.UnMakeMove(move, tag, ep, hc)
@@ -2250,9 +2205,6 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		if info.Stopped {
 			return stoppedSearchScore
 		}
-		info.history.h0Shadow.observeLMROutcome(h0LMR, h0LMRFirstScore, score, moveAlpha, beta)
-		info.history.h0Shadow.observeShadowPruneOutcome(h0ShadowOnlyPrune, score, moveAlpha, beta, score > bestScoreBefore)
-
 		info.Nodes++
 		info.publishNodesIfDue(false)
 
@@ -2262,19 +2214,17 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 
 		if score >= beta {
-			info.history.h0Shadow.observeCompletedNode(
-				&frame.h0Node,
-				h0SearchedQuiets[:h0SearchedQuietCount],
-				bestMove,
-				depth,
-				origAlpha,
-				bestScore,
-				beta,
-				legalTried,
-				isPV,
-				false,
-				inSingular,
-			)
+			if h1NewHistoryProducer {
+				info.history.h1UpdateCompletedNode(
+					h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
+					bestMove,
+					savedLast,
+					prev2,
+					depth,
+					origAlpha,
+					bestScore,
+				)
+			}
 			info.BetaCutoffs++
 			if legalTried == 1 {
 				info.FirstMoveCutoffs++
@@ -2330,8 +2280,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				}
 				info.CutMissByClass[cutClass][band]++
 			}
-			// Update history table for quiet moves that cause beta cutoffs
-			info.history.UpdateHistoryTable(move, savedLast, prev2, depth)
+			// Policy 00/01 retain cutoff-only gravity history. Policy 10/11 has
+			// already applied the completed-winner response exactly once above.
+			if !h1NewHistoryProducer {
+				info.history.UpdateHistoryTable(move, savedLast, prev2, depth)
+			}
 			// Update killer moves for quiet moves that cause beta cutoffs
 			info.history.UpdateKillerMoves(move, ply)
 			// Counter move: the cutoff move is a good reply to savedLast,
@@ -2339,10 +2292,12 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			info.history.UpdateCounterMove(move, savedLast)
 
 			// Penalize all quiet moves that were tried but didn't cause the cutoff
-			for i := 0; i < searchedQuietCount; i++ {
-				quietMove := searchedQuiets[i]
-				if quietMove != move {
-					info.history.PenalizeHistoryTable(quietMove, savedLast, prev2, depth)
+			if !h1NewHistoryProducer {
+				for i := 0; i < searchedQuietCount; i++ {
+					quietMove := searchedQuiets[i]
+					if quietMove != move {
+						info.history.PenalizeHistoryTable(quietMove, savedLast, prev2, depth)
+					}
 				}
 			}
 
@@ -2390,19 +2345,15 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		return 0
 	}
 
-	if !info.Stopped {
-		info.history.h0Shadow.observeCompletedNode(
-			&frame.h0Node,
-			h0SearchedQuiets[:h0SearchedQuietCount],
+	if h1NewHistoryProducer && !info.Stopped {
+		info.history.h1UpdateCompletedNode(
+			h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
 			bestMove,
+			info.history.GetLastMovePlayed(),
+			prev2,
 			depth,
 			origAlpha,
 			bestScore,
-			beta,
-			legalTried,
-			isPV,
-			false,
-			inSingular,
 		)
 	}
 
