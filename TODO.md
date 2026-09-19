@@ -1,4 +1,19 @@
-# NGN current state — September 19 SMP TT-read disposition
+# NGN current state — September 19 Sol structural-strength handoff
+
+**Current handoff / ranked next work:** the user requested a full fix plan for
+resuming the 3300 goal with Sol. Follow
+[the Sol implementation plan](experiments/2026-09-19-sol-fix-plan.md), grounded in
+[the completed structural review](experiments/2026-09-19-structural-strength-review.md).
+First fix the two proved ProbCut contracts separately (singular excluded capture,
+then live `MoveStack` ancestry). Next run the bounded clock-mechanism and V1.2
+portable-cost preflights; admit at most one clock-policy candidate, then prioritize
+exact V1.2 kernels and a fair V1.2-versus-optimized-Anand game gate. Conditional
+lazy-accumulator and coherent history/search work follow. No engine change or
+match is made by this planning handoff. The hopper stays running; the user's
+two-minute machine-check limit remains until clarified/lifted. Research acceptance
+does not authorize installation: the release hold below remains. This block
+supersedes the ordering of the older detailed queue, not its accepted/shelved
+verdicts or frozen evidence.
 
 The original classical target is complete: accepted `53e4d1b` measured 2884
 [2834,2934] on the fixed historical calibration, with 400 games, 55,349 legally
