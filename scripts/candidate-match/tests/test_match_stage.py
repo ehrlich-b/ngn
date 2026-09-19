@@ -39,13 +39,19 @@ class MatchStageTests(unittest.TestCase):
             shutil.copy2(sleep, engine_b)
             engine_a.chmod(0o555)
             engine_b.chmod(0o555)
+            launcher_a = role_a / "launch"
+            launcher_b = role_b / "launch"
+            shutil.copy2(PARENT, launcher_a)
+            shutil.copy2(PARENT, launcher_b)
+            launcher_a.chmod(0o555)
+            launcher_b.chmod(0o555)
             command = ["/usr/bin/python3", str(PARENT), variant, str(engine_a), str(role_a), "12", str(engine_b), str(role_b), "14"]
             config = {
                 "schema": "ngn-candidate-match-stage-v1", "command": command,
                 "cwd": str(root), "environment": {"PATH": "/usr/bin:/bin", "LANG": "C", "LC_ALL": "C", "TZ": "UTC"},
                 "roles": [
-                    {"id": "a", "engine": str(engine_a), "engine_sha256": sha256(engine_a), "cwd": str(role_a), "gomaxprocs": "1", "allowed_cpu_masks": ["12", "14"], "launcher": str(PARENT)},
-                    {"id": "b", "engine": str(engine_b), "engine_sha256": sha256(engine_b), "cwd": str(role_b), "gomaxprocs": "1", "allowed_cpu_masks": ["12", "14"], "launcher": str(PARENT)},
+                    {"id": "a", "engine": str(engine_a), "engine_sha256": sha256(engine_a), "cwd": str(role_a), "gomaxprocs": "1", "allowed_cpu_masks": ["12", "14"], "launcher": str(launcher_a)},
+                    {"id": "b", "engine": str(engine_b), "engine_sha256": sha256(engine_b), "cwd": str(role_b), "gomaxprocs": "1", "allowed_cpu_masks": ["12", "14"], "launcher": str(launcher_b)},
                 ],
                 "sample_interval_seconds": 0.01, "match_stdout": str(stdout),
                 "match_stderr": str(stderr), "witness": str(witness),

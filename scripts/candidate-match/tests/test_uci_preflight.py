@@ -34,7 +34,7 @@ class PreflightTests(unittest.TestCase):
             fixture = root / "fixture_uci_engine.py"
             fixture_source = FIXTURE.read_text(encoding="utf-8")
             old_combo = 'print("option name EvalBackend type combo default hce var hce var ngn-v1")'
-            new_combo = 'print("option name EvalBackend type combo default hce var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand")'
+            new_combo = 'print("option name EvalBackend type combo default hce var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default")'
             old_diagnostic = 'print(f"info string eval backend {backend} score_cp 0 pov side-to-move policy base-SearchSTM rule50-and-backend-adapter correction-history excluded", flush=True)'
             new_diagnostic = '\n'.join([
                 'reported = "counter-5.5" if variant == "diagnostic-mismatch" else backend',
@@ -83,7 +83,7 @@ class PreflightTests(unittest.TestCase):
         self.assertEqual(receipt["advertised_options"]["Hash"]["max"], 1024)
         self.assertEqual(
             receipt["advertised_options"]["EvalBackend"]["vars"],
-            ["hce", "ngn-v1", "counter-5.5", "rodent-v1.1-anand"],
+            ["hce", "ngn-v1", "counter-5.5", "rodent-v1.1-anand", "rodent-v1.2-default"],
         )
         self.assertTrue(receipt["_test_transcript"])
         self.assertEqual(receipt["ownbook_false_search"]["nodes"], 81)
@@ -92,8 +92,8 @@ class PreflightTests(unittest.TestCase):
             ["Threads", "OwnBook", "EvalFile", "EvalBackend", "Hash", "Move Overhead"],
         )
 
-    def test_counter_and_rodent_backends_are_proved_not_merely_advertised(self) -> None:
-        for backend in ("counter-5.5", "rodent-v1.1-anand"):
+    def test_extended_backends_are_proved_not_merely_advertised(self) -> None:
+        for backend in ("counter-5.5", "rodent-v1.1-anand", "rodent-v1.2-default"):
             with self.subTest(backend=backend):
                 completed, receipt = self.run_case("good", backend)
                 self.assertEqual(completed.returncode, 0, completed.stderr)
@@ -101,7 +101,7 @@ class PreflightTests(unittest.TestCase):
                 self.assertIn(f"eval backend {backend} ", receipt["eval_diagnostic"])
 
     def test_selected_backend_diagnostic_mismatch_is_rejected(self) -> None:
-        completed, receipt = self.run_case("diagnostic-mismatch", "rodent-v1.1-anand")
+        completed, receipt = self.run_case("diagnostic-mismatch", "rodent-v1.2-default")
         self.assertNotEqual(completed.returncode, 0)
         self.assertIn("selected evaluator diagnostic mismatch", receipt["error"])
 

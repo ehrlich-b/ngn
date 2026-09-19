@@ -18,7 +18,7 @@ from common import CandidateMatchError, atomic_json, safe_environment, utc_now
 
 OPTION_RE = re.compile(r"^option name (.+?) type (spin|combo|string|check|button)(?:\s+(.*))?$")
 EVAL_RE = re.compile(
-    r"^info string eval backend (hce|ngn-v1|counter-5\.5|rodent-v1\.1-anand) score_cp -?[0-9]+ pov side-to-move "
+    r"^info string eval backend (hce|ngn-v1|counter-5\.5|rodent-v1\.1-anand|rodent-v1\.2-default) score_cp -?[0-9]+ pov side-to-move "
     r"policy base-SearchSTM rule50-and-backend-adapter correction-history excluded$"
 )
 
@@ -156,7 +156,7 @@ def load_config(path: Path) -> dict:
     required = {"schema", "role_id", "launcher", "cwd", "backend", "capability_profile", "options", "barrier_timeout_seconds"}
     if set(value) != required or value["schema"] != "ngn-candidate-uci-preflight-v1":
         raise CandidateMatchError("invalid preflight config")
-    if value["backend"] not in {"hce", "ngn-v1", "counter-5.5", "rodent-v1.1-anand"}:
+    if value["backend"] not in {"hce", "ngn-v1", "counter-5.5", "rodent-v1.1-anand", "rodent-v1.2-default"}:
         raise CandidateMatchError("invalid backend")
     if value["capability_profile"] != "ngn-pre-m4c-pinned-one-worker-v1":
         raise CandidateMatchError("invalid capability profile")

@@ -525,6 +525,13 @@ and selected backend. Negative tests must still reject wrong-backend output,
 missing/duplicate acknowledgement, failed model load, book leakage and malformed
 records. Preserve EvalFile-before-EvalBackend transactional staging.
 
+**Completed September 19:** G0b is recorded in
+[the harness admission result](2026-09-19-g0b-v12-harness/README.md). The narrow
+preflight now admits and proves `rodent-v1.2-default`; all 29 WSL harness tests
+pass, including mismatch and failure witnesses, and real configured V1.1/V1.2
+preflights pass through one exact binary. The generic manifest remains
+unchanged. This admits preparation of E0; it is not a strength verdict.
+
 Do **not** broaden the generic HCE/NGN-v1-only manifest schema accidentally. Use
 a separately frozen Rodent-specific manifest/driver descended from the accepted
 Rodent comparison, with an explicit V1.2-versus-Anand role contract. Older

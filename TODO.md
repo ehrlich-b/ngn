@@ -44,7 +44,12 @@ exact backend cost. That profile is now complete: refresh fell to 1.58% flat,
 frame copying is 2.01%, and no evaluator function exceeds 10% flat CPU; the
 remaining leading costs are dispersed into generic search. See the
 [post-V3 profile](experiments/2026-09-19-post-v3-rodent-v12-profile/README.md).
-Stop backend kernel work and complete G0b/E0 next. Conditional
+Stop backend kernel work. G0b is now complete: the narrow preflight admits and
+proves `rodent-v1.2-default`, all 29 WSL harness tests pass, and real configured
+V1.1/V1.2 roles pass through the same hash-bound binary. See the
+[G0b record](experiments/2026-09-19-g0b-v12-harness/README.md). Freeze and review
+the separate Rodent-specific E0 package, then run fresh A/A100 and the capped
+V1.2-versus-Anand candidate400 gate. Conditional
 lazy-accumulator and coherent history/search work follow. The hopper stays
 running. On September 19
 the user clarified that the two-minute machine-check limit applied only to the
