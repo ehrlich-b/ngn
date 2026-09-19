@@ -70,13 +70,11 @@ overwrite an existing directory. Keep generated artifacts outside Go package
 discovery: ignored `output/` snapshots have previously contained partial Go
 source trees. Record remote commit, patch and all touched-file hashes.
 
-The user's two-minute machine-check limit remains controlling unless they
-clarify that it applied only to the review/planning session. This plan itself
-does not lift it. If it remains active, do source work and <=120-second bounded
-checks; mark longer suites/game gates **HELD**, preserve the candidate patch,
-and request the missing execution envelope. Never split a long match into
-two-minute jobs as a workaround. A goal resume is not permission to disregard a
-more specific active limit.
+On September 19 the user clarified that the two-minute machine-check limit
+applied only to the review/planning session. Sol may run this plan's normal
+bounded WSL validation gates on the shared host. This does not authorize
+unbounded exploration, exclusive-host assumptions, installation, or any change
+to the Lean hopper. Use the frozen limits and stop rules for each ticket.
 
 Configuration identities to carry forward:
 

@@ -9,9 +9,11 @@ then live `MoveStack` ancestry). Next run the bounded clock-mechanism and V1.2
 portable-cost preflights; admit at most one clock-policy candidate, then prioritize
 exact V1.2 kernels and a fair V1.2-versus-optimized-Anand game gate. Conditional
 lazy-accumulator and coherent history/search work follow. No engine change or
-match is made by this planning handoff. The hopper stays running; the user's
-two-minute machine-check limit remains until clarified/lifted. Research acceptance
-does not authorize installation: the release hold below remains. This block
+match is made by this planning handoff. The hopper stays running. On September 19
+the user clarified that the two-minute machine-check limit applied only to the
+planning session; Sol may run the plan's normal bounded WSL validation gates on
+the shared host. Research acceptance does not authorize installation: the release
+hold below remains. This block
 supersedes the ordering of the older detailed queue, not its accepted/shelved
 verdicts or frozen evidence.
 
