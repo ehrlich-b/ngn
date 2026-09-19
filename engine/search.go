@@ -1645,7 +1645,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// Probcut pruning: if a reduced-depth search at a higher beta fails high,
 	// we can prune because the full search would likely also fail high
-	if SearchToggles.Probcut && !isPV && !inCheck && depth >= 5 && abs(beta) < MATE_VALUE-100 {
+	if SearchToggles.Probcut && !inSingular && !isPV && !inCheck && depth >= 5 && abs(beta) < MATE_VALUE-100 {
 		probcutBeta := beta + 200 // Higher beta threshold
 
 		// Generate into the reused frame buffer (NOT a per-node [256]Move that escapes
