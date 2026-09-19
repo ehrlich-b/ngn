@@ -114,10 +114,6 @@ func h0RunProbePass(t *testing.T, model *rodentv12eval.Model, input h0ProbeInput
 	if err := searcher.SelectRodentV12DefaultEvaluator(model); err != nil {
 		t.Fatal(err)
 	}
-	if observer {
-		searcher.worker.history.enableH0HistoryShadow()
-	}
-
 	targets := make(map[int]bool, len(input.TargetAfterPlies))
 	for _, ply := range input.TargetAfterPlies {
 		targets[ply] = true
@@ -125,6 +121,13 @@ func h0RunProbePass(t *testing.T, model *rodentv12eval.Model, input h0ProbeInput
 	records := make([]h0ProbeRecord, 0, len(input.Records)*len(input.TargetAfterPlies))
 	for _, game := range input.Records {
 		searcher.NewGame()
+		// The first NewGame prepares the newly selected evaluator and may replace
+		// workerHistory as part of that identity transition. Attach only afterward;
+		// later NewGame calls retain the pointer while clearing both live and shadow
+		// tables.
+		if observer && searcher.worker.history.h0Shadow == nil {
+			searcher.worker.history.enableH0HistoryShadow()
+		}
 		pos, err := ParseFEN(h0ProbeStartFEN)
 		if err != nil {
 			t.Fatal(err)
@@ -232,6 +235,14 @@ func TestH0HistoryShadowProbe(t *testing.T) {
 		if record.Diagnostics.Counters.LMRBaselineRecomputeMismatches != 0 {
 			t.Fatalf("observer record %d has %d LMR baseline mismatches", index, record.Diagnostics.Counters.LMRBaselineRecomputeMismatches)
 		}
+	}
+	observedNodes := uint64(0)
+	for _, record := range observer {
+		observedNodes += record.Diagnostics.Counters.CompletedRootAttempts
+		observedNodes += record.Diagnostics.Counters.CompletedInteriorNodes
+	}
+	if observedNodes == 0 {
+		t.Fatal("observer recorded no completed nodes")
 	}
 	fmt.Printf("H0_RESULT %s\n", outputPath)
 }
