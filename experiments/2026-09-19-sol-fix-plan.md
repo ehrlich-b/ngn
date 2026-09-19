@@ -374,6 +374,15 @@ fixtures. Do not require cross-model nodes/PVs to match.
 
 ### V1: exact 768-lane output kernel
 
+**Completed and accepted September 19:** the exact AVX2 kernel and portable
+fallback are recorded in
+[the V1 result](2026-09-19-v1-rodent-v12-output/README.md). The direct kernel is
+11.51x faster and the ten-block whole-search ratio is 0.611458 (38.85% less
+time), with byte-identical cold/warm trajectories, exact allocation identity,
+both order strata improving and 60/60 improving fixture pairs. Linux v1/v3,
+Windows v3, released-network oracles, full short and race gates pass. V2 now
+starts from this accepted base; do not reopen V1 or stack refresh work yet.
+
 Scope: `rodentv12eval/evaluate.go`, new portable/dispatch/amd64-v3 kernel files
 and their tests. Follow the accepted `rodenteval/output_dot*` pattern. Extract
 the current arithmetic as the scalar reference before introducing assembly.

@@ -24,7 +24,11 @@ warm preflight moved 11/12 stops to admission, while one admitted iteration ran
 to the hard deadline and discarded 2.571 s; total sequence time rose 57.1%.
 No constants rescue or game extension is allowed. See the
 [C1 record](experiments/2026-09-19-c1-iteration-admission-preflight/README.md).
-Next implement V1 output SIMD followed by V2 update SIMD and a fair
+V1 is now accepted: its exact AVX2 output kernel is 11.51x faster in isolation
+and cuts the frozen six-fixture V1.2 search time by 38.85%, with byte-identical
+cold/warm trajectories, exact allocations and 60/60 improving paired cells.
+See the [V1 record](experiments/2026-09-19-v1-rodent-v12-output/README.md).
+Next implement V2 update SIMD, re-profile, and run a fair
 V1.2-versus-optimized-Anand game gate. Conditional
 lazy-accumulator and coherent history/search work follow. The hopper stays
 running. On September 19

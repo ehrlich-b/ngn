@@ -114,18 +114,7 @@ func (model *Model) evaluateAccumulator(accumulator *accumulator, sideToMove Col
 	nonSTM := &accumulator[sideToMove^1]
 	stmWeights := &model.outputWeights[bucket][0]
 	nonSTMWeights := &model.outputWeights[bucket][1]
-	var sum0, sum1, sum2, sum3 int32
-	for hidden := 0; hidden < HiddenSize; hidden += 4 {
-		sum0 += clippedSquaredWeighted(stm[hidden], stmWeights[hidden]) +
-			clippedSquaredWeighted(nonSTM[hidden], nonSTMWeights[hidden])
-		sum1 += clippedSquaredWeighted(stm[hidden+1], stmWeights[hidden+1]) +
-			clippedSquaredWeighted(nonSTM[hidden+1], nonSTMWeights[hidden+1])
-		sum2 += clippedSquaredWeighted(stm[hidden+2], stmWeights[hidden+2]) +
-			clippedSquaredWeighted(nonSTM[hidden+2], nonSTMWeights[hidden+2])
-		sum3 += clippedSquaredWeighted(stm[hidden+3], stmWeights[hidden+3]) +
-			clippedSquaredWeighted(nonSTM[hidden+3], nonSTMWeights[hidden+3])
-	}
-	sum := sum0 + sum1 + sum2 + sum3
+	sum := rodentV12OutputDot(stm, nonSTM, stmWeights, nonSTMWeights)
 	sum = sum/inputScale + int32(model.outputBiases[bucket])
 	return int(sum * outputScale / (inputScale * layerScale))
 }
