@@ -4,12 +4,17 @@
 resuming the 3300 goal with Sol. Follow
 [the Sol implementation plan](experiments/2026-09-19-sol-fix-plan.md), grounded in
 [the completed structural review](experiments/2026-09-19-structural-strength-review.md).
-First fix the two proved ProbCut contracts separately (singular excluded capture,
-then live `MoveStack` ancestry). Next run the bounded clock-mechanism and V1.2
-portable-cost preflights; admit at most one clock-policy candidate, then prioritize
-exact V1.2 kernels and a fair V1.2-versus-optimized-Anand game gate. Conditional
-lazy-accumulator and coherent history/search work follow. No engine change or
-match is made by this planning handoff. The hopper stays running. On September 19
+F1 is accepted in `f1f6b7e`: singular verification now disables root ProbCut,
+with a failing-before witness, scope controls and all baseline suites passing on
+WSL. F2 is prepared but unexecuted: the live-`MoveStack` candidate, three focused
+regressions and exact resume runbook are in
+[the F2 record](experiments/2026-09-19-probcut-movestack-contract.md). Resume at
+its failing-before gate; do not accept or commit the production diff before the
+WSL receipts. After F2, run the bounded clock-mechanism and V1.2 portable-cost
+preflights; admit at most one clock-policy candidate, then prioritize exact V1.2
+kernels and a fair V1.2-versus-optimized-Anand game gate. Conditional
+lazy-accumulator and coherent history/search work follow. The hopper stays
+running. On September 19
 the user clarified that the two-minute machine-check limit applied only to the
 planning session; Sol may run the plan's normal bounded WSL validation gates on
 the shared host. Research acceptance does not authorize installation: the release
