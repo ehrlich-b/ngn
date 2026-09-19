@@ -618,6 +618,28 @@ func (info *SearchInfo) shouldStopForControl() bool {
 	return false
 }
 
+// countNode records one completed unit of search work and latches a fixed-node
+// stop exactly at the configured cap. A child can consume the final node and
+// return normally (for example through a qsearch stand-pat cutoff); checking
+// only on the next recursive entry lets its parent increment once more.
+func (info *SearchInfo) countNode() bool {
+	if info.maxNodes != 0 && info.Nodes >= info.maxNodes {
+		info.observeTermination(searchTerminationNodeCap)
+		info.control.RequestStop()
+		info.Stopped = true
+		return false
+	}
+	info.Nodes++
+	info.publishNodesIfDue(false)
+	if info.maxNodes != 0 && info.Nodes >= info.maxNodes {
+		info.observeTermination(searchTerminationNodeCap)
+		info.control.RequestStop()
+		info.Stopped = true
+		return false
+	}
+	return true
+}
+
 // DepthCallback is called after each depth completes during iterative deepening
 type DepthCallback func(info *SearchInfo)
 
@@ -882,8 +904,9 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 					break
 				}
 
-				info.Nodes++
-				info.publishNodesIfDue(false)
+				if !info.countNode() {
+					break
+				}
 				moveNodes := info.Nodes - nodesBefore // T1e: this root move's subtree node cost
 
 				if score > iterationBestScore {
@@ -1268,16 +1291,21 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, contr
 				info.history.SetLastMovePlayed(savedLast)
 				break
 			}
-			info.Nodes++
-			info.publishNodesIfDue(false)
+			if !info.countNode() {
+				info.evaluator.mustPop()
+				pos.UnMakeMove(move, tag, ep, hc)
+				info.history.SetLastMovePlayed(savedLast)
+				break
+			}
 		}
 
 		info.evaluator.mustPop()
 
 		pos.UnMakeMove(move, tag, ep, hc)
 		info.history.SetLastMovePlayed(savedLast)
-		info.Nodes++
-		info.publishNodesIfDue(false)
+		if !info.countNode() {
+			break
+		}
 
 		if score > info.BestScore {
 			info.BestScore = score
@@ -2205,8 +2233,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		if info.Stopped {
 			return stoppedSearchScore
 		}
-		info.Nodes++
-		info.publishNodesIfDue(false)
+		if !info.countNode() {
+			return stoppedSearchScore
+		}
 
 		if score > bestScore {
 			bestScore = score
@@ -2458,9 +2487,10 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		}
 	}
 
-	info.Nodes++
 	info.QNodes++
-	info.publishNodesIfDue(false)
+	if !info.countNode() {
+		return stoppedSearchScore
+	}
 
 	// Reusable move buffer from the recursion-frame pool (docs/10 T1b): replaces the
 	// per-qnode stack `[256]Move` that escaped via the non-inlined GenerateMovesIntoBuffer
