@@ -253,6 +253,14 @@ diagnostic into a time-policy strength rejection.
 
 ### C1: exact candidate boundary
 
+**Shelved September 19 before games:** the exact split passed deterministic
+boundary tests, but its frozen warm preflight produced one hard abort in 12
+searches, discarded 2.571 seconds in that cell and increased sequence time by
+57.1%. Per the no-rescue and hard-abort safety rules below, no constants change
+or game launch follows. See
+[the C1 record](2026-09-19-c1-iteration-admission-preflight/README.md). Work
+advances to V1/V2.
+
 Proposed API split (names may follow local conventions):
 
 - `ShouldStartIteration(completedDepth int) bool`: **unthrottled** root admission;

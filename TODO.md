@@ -18,10 +18,13 @@ copy hypothesis is rejected. See the
 also complete: all 12 frozen warm searches stopped softly inside an admitted
 iteration, with a 25.74% aggregate post-completion tail and clean first-cause
 attribution. The opt-in observer passes identity, short and race gates. See the
-[C0 record](experiments/2026-09-19-c0-clock-preflight/README.md). Implement the
-single admitted C1 admission-vs-abort split next; if its deterministic safety or
-frozen game gate fails, shelve it without constants rescue. Then implement V1
-output SIMD followed by V2 update SIMD and a fair
+[C0 record](experiments/2026-09-19-c0-clock-preflight/README.md). The single C1
+candidate passed deterministic boundaries but is **shelved before games**: its
+warm preflight moved 11/12 stops to admission, while one admitted iteration ran
+to the hard deadline and discarded 2.571 s; total sequence time rose 57.1%.
+No constants rescue or game extension is allowed. See the
+[C1 record](experiments/2026-09-19-c1-iteration-admission-preflight/README.md).
+Next implement V1 output SIMD followed by V2 update SIMD and a fair
 V1.2-versus-optimized-Anand game gate. Conditional
 lazy-accumulator and coherent history/search work follow. The hopper stays
 running. On September 19
