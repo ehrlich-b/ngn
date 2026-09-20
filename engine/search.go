@@ -1815,7 +1815,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	}
 	picker := newMainMovePicker(info.history, pos, frame, info, ply, info.history.GetLastMovePlayed(), prev2, ttMove, ttHit)
 	info.MoveLoopNodes++
-	tMoveListed := false
+	ttMoveListed := false
 	bestScore := -INFINITY
 	bestMove := EmptyMove
 	moveCount := 0
