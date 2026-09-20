@@ -1,8 +1,11 @@
 # H1 completed-winner history policy gate
 
-Status: implementation, protocol, binaries and held manifest frozen; validation
-and static review passed before games. Release-manifest promotion and execution
-remain pending.
+Status: the A/A and first two factorial cells completed cleanly. During the
+completed direct 11/00 pilot, the controller's telemetry-only `/proc` sampler
+hit a transient `ProcessLookupError`; the separately supervised match still
+finished with zero exits, no violations and no survivors. Its score remains
+uninspected; the byte-frozen, no-replay recovery passed its held check and
+static review, with release promotion pending.
 
 H0 passed its predeclared mechanism screen. H1 therefore tests exactly the
 three-component package specified in the Sol plan: completed final-quiet-winner
