@@ -6,8 +6,8 @@ const (
 	h1HistoryRateCap = 400
 )
 
-// HistoryPolicyName identifies the immutable compile-time arm used by the H1
-// factorial. Ordinary builds are policy 00.
+// HistoryPolicyName identifies the accepted policy-11 implementation. It is
+// retained in production as a diagnostic and regression-test witness.
 func HistoryPolicyName() string {
 	switch {
 	case h1NewHistoryProducer && h1NormalizedLMRConsumer:

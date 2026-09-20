@@ -1,10 +1,8 @@
-//go:build h1producer
-
 package engine
 
 import "testing"
 
-func TestH1ProducerLearnsCompletedRootWinner(t *testing.T) {
+func TestHistoryLearnsCompletedRootWinner(t *testing.T) {
 	searcher, err := NewSearchEngineWithHash(1)
 	if err != nil {
 		t.Fatal(err)

@@ -1,11 +1,11 @@
 # H1 completed-winner history policy gate
 
-Status: the A/A and first two factorial cells completed cleanly. During the
-completed direct 11/00 pilot, the controller's telemetry-only `/proc` sampler
-hit a transient `ProcessLookupError`; the separately supervised match still
-finished with zero exits, no violations and no survivors. Its score remains
-uninspected; the byte-frozen, no-replay recovery passed its held check and
-static review, with release promotion pending.
+Status: ACCEPT. The independent 200-pair confirmation measured policy 11 at
+`+56.96 Elo [38.37, 75.88]` versus policy 00. All legal, operational and
+process gates passed, and the 201-file terminal inventory verified. The direct
+pilot's disclosed telemetry-only `/proc` failure was recovered without match
+replay; its independent supervisor and process witness were clean, and the
+confirmation retained complete telemetry.
 
 H0 passed its predeclared mechanism screen. H1 therefore tests exactly the
 three-component package specified in the Sol plan: completed final-quiet-winner
@@ -24,8 +24,10 @@ Four compile-time policies are immutable:
 | 01 | current cutoff-only gravity | normalized term |
 | 11 | completed-winner response | normalized term |
 
-The default build is policy 00. Experimental tags are `h1producer` and
-`h1consumer`; no runtime option can mix an unreviewed policy.
+The default build is the accepted policy 11. The four historical binaries were
+frozen from commit `2cde3b3` using the experiment-only `h1producer` and
+`h1consumer` tags; production no longer depends on those tags or exposes a
+runtime policy switch.
 
 ## Frozen game protocol and decision
 

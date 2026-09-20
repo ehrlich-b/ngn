@@ -1,7 +1,7 @@
-//go:build h1producer && h1consumer
-
 package engine
 
+// The accepted H1 policy is the production policy: completed quiet winners
+// train history, and LMR consumes the normalized history term.
 const (
 	h1NewHistoryProducer    = true
 	h1NormalizedLMRConsumer = true

@@ -462,7 +462,7 @@ type searchFrame struct {
 	scores                 [256]int               // ordering scores, parallel to ordered, for incremental selection
 	quiets                 [64]Move               // quiet moves tried (history penalties on a cutoff)
 	captures               [64]Move               // captures tried (capture-history penalties)
-	completedHistoryQuiets h1CompletedQuietBuffer // zero-sized in policy 00/01
+	completedHistoryQuiets h1CompletedQuietBuffer // completed quiet candidates for policy-11 learning
 }
 
 // searchFramePoolSize bounds the reusable frame pool; a recursion depth beyond it falls
