@@ -87,6 +87,12 @@ instance stopped. Four games had started and zero had finished; both PGN and
 final EPD are empty, no decision or terminal receipt exists, and no score was
 observed. This is an infrastructure-null attempt, not strength evidence. The
 exact failure hashes and the score-blind recovery boundary are frozen in
-`game-infrastructure-null-v1.json`. No recovery run is authorized until a new
-reviewed contract verifies that receipt and the Windows host has at least 20 GiB
-free; the observed free space after failure was only about 3.0 GB.
+`game-infrastructure-null-v1.json`.
+
+The fail-closed recovery contract is now statically reviewed. Its held check
+verified every run-001 hash and null-state invariant against the WSL artifacts,
+found no surviving match process, and proved that the fresh run-002 root is
+absent. The wrapper preserves the byte-frozen game protocol and changes only
+the immutable run root. It cannot launch until `/mnt/c` has at least 20 GiB
+free; the review observed only 2,849,021,952 bytes, so the recovery remains
+held by disk capacity. See `game-recovery-static-review-v1.json`.

@@ -1,0 +1,73 @@
+{
+  "schema": "ngn-p1-reference-picker-game-recovery-static-review-v1",
+  "state": "PASS",
+  "reviewed_utc": "2026-09-20T03:45:53Z",
+  "held_manifest": {
+    "path": "experiments/2026-09-19-p1-staged-picker-profile/game-recovery-manifest-held-v1.json",
+    "sha256": "85ba0938adccb6b5adc38d5eec3b316a637466cc53b172d7235ce1927aec1b4d",
+    "release_state": "HELD_PENDING_STATIC_REVIEW"
+  },
+  "recovery_driver": {
+    "path": "experiments/2026-09-19-p1-staged-picker-profile/game_recovery_driver.py",
+    "sha256": "c355736667769a2e5b8ac877b0b58e0603c4aa7cc3b212b2a8d22311c71c4f42",
+    "test_path": "experiments/2026-09-19-p1-staged-picker-profile/test_game_recovery_driver.py",
+    "test_sha256": "8626b5fc2cbba4d246b5aaa50f5e2f5dd7947ae2ca72aa1313ebef0ba3c19791",
+    "combined_boundary_tests": 6,
+    "local_status": "PASS"
+  },
+  "held_check": {
+    "state": "HELD_RECOVERY_CHECK_COMPLETE",
+    "driver_sha256": "c355736667769a2e5b8ac877b0b58e0603c4aa7cc3b212b2a8d22311c71c4f42",
+    "supervisor_state": "RUNNING",
+    "witness_state": "STARTING",
+    "games_started": 4,
+    "games_finished": 0,
+    "empty_pgn_epd_stderr": true,
+    "decision_absent": true,
+    "terminal_absent": true,
+    "surviving_match_processes": 0,
+    "recovery_root": "absent",
+    "windows_free_bytes": 2849021952,
+    "minimum_windows_free_bytes": 21474836480,
+    "disk_ready": false,
+    "scores_observed": false
+  },
+  "released_interlock_check": {
+    "check_only_state": "HELD_RECOVERY_CHECK_COMPLETE",
+    "check_only_windows_free_bytes": 2845286400,
+    "normal_invocation_exit_code": 1,
+    "normal_invocation_windows_free_bytes": 2849902592,
+    "rejection": "Windows free space 2849902592 is below 21474836480",
+    "recovery_root_after_rejection": "absent",
+    "surviving_chess_processes": 0,
+    "hopper_service_after_rejection": "active"
+  },
+  "frozen_original": {
+    "driver_sha256": "d5503ea0ab7dad059d2a357eda826b81811cfc015c0b51338890ceb06fe3e822",
+    "held_game_manifest_sha256": "4632f23729e8b8990dad4273b216bfdb2d3e3997edf371925c48163ab2bd0c6e",
+    "pilot_pairs": 64,
+    "confirmation_pairs": 200,
+    "time_control": "10+0.1",
+    "concurrency": 4
+  },
+  "reviewed_invariants": [
+    "Every recorded run-001 artifact is hash-checked before its semantic null state is interpreted.",
+    "Recovery rejects unless run-001 still has zero finished games, empty PGN/final-EPD/stderr, no decision or terminal receipt, and no surviving run-001 or run-002 match process.",
+    "The original held game manifest and original game driver remain byte-frozen; the wrapper changes only release state and the immutable run root from run-001 to run-002 in a temporary execution manifest.",
+    "The original driver independently rechecks all 19 frozen sources, both engine binaries, protocol, mechanism receipt, and run-root absence before creating run-002.",
+    "Execution is fail-closed below 21474836480 free bytes on /mnt/c and the observed 2849021952 bytes cannot launch chess.",
+    "Once run-002 exists, the wrapper and original driver both reject any reuse; no score-based extension or rerun is introduced.",
+    "The Lean hopper remains live and is neither paused nor managed by the recovery wrapper."
+  ],
+  "limitations": [
+    "The Windows C: volume remains critically full; at least 18625814528 additional bytes must be freed before the recovery can launch at the observed check point.",
+    "The shared-host timing and scheduler limitations in the original game contract remain unchanged.",
+    "The recovery authorizes only a replacement for an exactly proven zero-result infrastructure null; it does not weaken the original score boundary or establish an absolute rating."
+  ],
+  "authorization": {
+    "release_state": "RELEASED_AFTER_STATIC_REVIEW",
+    "authorized": true,
+    "scope": "one fresh run-002 of the byte-frozen original game protocol after the dynamic 20 GiB free-space gate passes",
+    "current_launch_state": "HELD_BY_DISK_CAPACITY"
+  }
+}
