@@ -147,8 +147,10 @@ needs substantial work in several areas:
 
 1. Prioritize measured engine speed and high-impact gaps against direct
    competitors, testing changes against the accepted Counter baseline.
-2. Use existing networks. NGN-owned NNUE training, training-data generation and
-   training-pipeline development are deferred.
+2. Develop an NGN-trained network, keeping existing networks as measured
+   references. The [owned-NNUE training plan](experiments/2026-09-20-owned-nnue-plan.md)
+   specifies the stronger architecture, trusted-label pipeline and WSL run gates;
+   training has not started, and host disk headroom must be resolved first.
 3. Evaluate practical support for stronger existing networks, including
    Stockfish formats, where architecture compatibility and integration cost
    justify it.
