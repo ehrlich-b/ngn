@@ -5,6 +5,7 @@ import (
 
 	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
+	"github.com/ehrlich-b/ngn/nnue/ngnk4"
 	"github.com/ehrlich-b/ngn/nnue/sf18big"
 	"github.com/ehrlich-b/ngn/rodenteval"
 	"github.com/ehrlich-b/ngn/rodentv12eval"
@@ -133,6 +134,30 @@ func (e *SearchEngine) SelectNGNV1Evaluator(model *nnue.Model) error {
 	return nil
 }
 
+// SelectNGNK4Evaluator transactionally selects one strict-loader-validated
+// NGN-owned king-bucketed model. Mutable accumulator state remains worker-local.
+func (e *SearchEngine) SelectNGNK4Evaluator(model *ngnk4.Model) error {
+	e.sessionMu.Lock()
+	defer e.sessionMu.Unlock()
+	generation, err := acquireHCEModelUse()
+	if err != nil {
+		return err
+	}
+	defer releaseHCEModelUse()
+
+	candidate, err := ngnK4EvaluatorModel(model, generation)
+	if err != nil {
+		return err
+	}
+	worker, err := candidate.newWorker(nil)
+	if err != nil {
+		return err
+	}
+	e.evaluatorModel = candidate
+	e.worker.evaluator = worker
+	return nil
+}
+
 // SelectSF18BIGEvaluator transactionally selects one exact validated
 // Stockfish 18 BIG model. The backend is opt-in and never changes the default
 // evaluator.
@@ -245,6 +270,7 @@ const (
 	EvaluatorBackendCounter55Name        = "counter-5.5"
 	EvaluatorBackendRodentV11AnandName   = "rodent-v1.1-anand"
 	EvaluatorBackendRodentV12DefaultName = "rodent-v1.2-default"
+	EvaluatorBackendNGNK4Name            = "ngn-k4-768-v1"
 )
 
 func evaluatorBackendName(backend evaluatorBackend) string {
@@ -261,6 +287,8 @@ func evaluatorBackendName(backend evaluatorBackend) string {
 		return EvaluatorBackendRodentV11AnandName
 	case evaluatorBackendRodentV12Default:
 		return EvaluatorBackendRodentV12DefaultName
+	case evaluatorBackendNGNK4:
+		return EvaluatorBackendNGNK4Name
 	default:
 		return fmt.Sprintf("unknown-%d", backend)
 	}

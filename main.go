@@ -19,7 +19,7 @@ func run(args []string, input io.Reader, output, errorOutput io.Writer) int {
 	flags.SetOutput(errorOutput)
 	allowResignation := flags.Bool("allow-resignation", false, "Allow engine to resign in hopeless positions")
 	evalBackend := flags.String("eval-backend", engine.EvaluatorBackendHCEName,
-		"Evaluator backend: hce, ngn-v1, sf18-big, counter-5.5, rodent-v1.1-anand, or rodent-v1.2-default (non-HCE requires -eval-file)")
+		"Evaluator backend: hce, ngn-v1, ngn-k4-768-v1, sf18-big, counter-5.5, rodent-v1.1-anand, or rodent-v1.2-default (non-HCE requires -eval-file)")
 	evalFile := flags.String("eval-file", "", "Evaluator model path for a non-HCE backend")
 	if err := flags.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {

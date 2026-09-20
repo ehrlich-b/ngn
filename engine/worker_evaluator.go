@@ -8,6 +8,7 @@ import (
 
 	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
+	"github.com/ehrlich-b/ngn/nnue/ngnk4"
 	"github.com/ehrlich-b/ngn/nnue/sf18big"
 	"github.com/ehrlich-b/ngn/rodenteval"
 	"github.com/ehrlich-b/ngn/rodentv12eval"
@@ -33,6 +34,7 @@ const (
 	evaluatorBackendCounter55
 	evaluatorBackendRodentV11Anand
 	evaluatorBackendRodentV12Default
+	evaluatorBackendNGNK4
 )
 
 // evaluatorModelIdentity is comparable and covers every input that can change
@@ -48,6 +50,7 @@ type evaluatorModelIdentity struct {
 	counterMetadata   countereval.LoadMetadata
 	rodentMetadata    rodenteval.Metadata
 	rodentV12Metadata rodentv12eval.Metadata
+	ngnK4Metadata     ngnk4.Metadata
 }
 
 // evaluatorModel is a cold immutable selection. Its NGN-v1 pointer is safe to
@@ -60,6 +63,7 @@ type evaluatorModel struct {
 	counter55        *countereval.Model
 	rodentV11Anand   *rodenteval.Model
 	rodentV12Default *rodentv12eval.Model
+	ngnK4            *ngnk4.Model
 }
 
 func hceEvaluatorModel(hceGeneration uint64) evaluatorModel {
@@ -152,6 +156,31 @@ func rodentV12DefaultEvaluatorModel(model *rodentv12eval.Model, hceGeneration ui
 	}, nil
 }
 
+func ngnK4EvaluatorModel(model *ngnk4.Model, hceGeneration uint64) (evaluatorModel, error) {
+	if model == nil {
+		return evaluatorModel{}, fmt.Errorf("%w: nil NGN K4 model", errWorkerEvaluator)
+	}
+	metadata := model.Metadata()
+	if metadata.ArchitectureID != ngnk4.ArchitectureID {
+		return evaluatorModel{}, fmt.Errorf("%w: NGN K4 model is not loader-validated", errWorkerEvaluator)
+	}
+	var seed ngnk4.Position
+	seed.Board[ngnk4.WhiteKing] = uint64(1) << 4
+	seed.Board[ngnk4.BlackKing] = uint64(1) << 60
+	if _, err := model.NewSearchContext(seed); err != nil {
+		return evaluatorModel{}, fmt.Errorf("%w: %v", errWorkerEvaluator, err)
+	}
+	return evaluatorModel{
+		identity: evaluatorModelIdentity{
+			backend:         evaluatorBackendNGNK4,
+			adapterRevision: evaluatorAdapterRevision,
+			hceGeneration:   hceGeneration,
+			ngnK4Metadata:   metadata,
+		},
+		ngnK4: model,
+	}, nil
+}
+
 // workerEvaluator is a hot concrete tagged union. Backend selection happens
 // once per score/transition call; NNUE's hidden-unit loops remain concrete and
 // contain no interface dispatch. It owns all mutable NNUE state for one worker.
@@ -164,6 +193,7 @@ type workerEvaluator struct {
 	counterContext   *countereval.SearchContext
 	rodentContext    *rodenteval.SearchContext
 	rodentV12Context *rodentv12eval.SearchContext
+	ngnK4Context     *ngnk4.SearchContext
 	rootBuffer       nnueRootBuffer
 
 	// These receiver-private hooks are set only by same-package invariant tests:
@@ -258,6 +288,21 @@ func (m evaluatorModel) newWorkerWithReferenceContext(hce *hceEvaluator, forceRe
 			return nil, fmt.Errorf("%w: %v", errWorkerEvaluator, err)
 		}
 		worker.rodentV12Context = context
+	case evaluatorBackendNGNK4:
+		if forceReference {
+			return nil, fmt.Errorf("%w: NGN K4 has no alternate context", errWorkerEvaluator)
+		}
+		if m.ngnK4 == nil {
+			return nil, fmt.Errorf("%w: nil NGN K4 model", errWorkerEvaluator)
+		}
+		var seed ngnk4.Position
+		seed.Board[ngnk4.WhiteKing] = uint64(1) << 4
+		seed.Board[ngnk4.BlackKing] = uint64(1) << 60
+		context, err := m.ngnK4.NewSearchContext(seed)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", errWorkerEvaluator, err)
+		}
+		worker.ngnK4Context = context
 	default:
 		return nil, fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, m.identity.backend)
 	}
@@ -346,6 +391,19 @@ func (e *workerEvaluator) Reset(pos *Position) error {
 		}
 		e.observeTransition(pos)
 		return nil
+	case evaluatorBackendNGNK4:
+		root, err := ngnK4PositionFromPosition(pos)
+		if err != nil {
+			return err
+		}
+		if e.ngnK4Context == nil {
+			return fmt.Errorf("%w: nil NGN K4 context", errWorkerEvaluator)
+		}
+		if err := e.ngnK4Context.Reset(root); err != nil {
+			return fmt.Errorf("%w: NGN K4 reset: %v", errWorkerEvaluator, err)
+		}
+		e.observeTransition(pos)
+		return nil
 	default:
 		return fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
 	}
@@ -356,6 +414,7 @@ type workerEvalMove struct {
 	counterDelta   countereval.MoveDelta
 	rodentDelta    rodenteval.MoveDelta
 	rodentV12Delta rodentv12eval.MoveDelta
+	ngnK4Delta     ngnk4.MoveDelta
 	active         bool
 }
 
@@ -399,6 +458,12 @@ func (e *workerEvaluator) PrepareMove(pos *Position, move Move) (workerEvalMove,
 			return workerEvalMove{}, err
 		}
 		return workerEvalMove{rodentV12Delta: delta, active: true}, nil
+	case evaluatorBackendNGNK4:
+		delta, err := ngnK4MoveDelta(pos, move)
+		if err != nil {
+			return workerEvalMove{}, err
+		}
+		return workerEvalMove{ngnK4Delta: delta, active: true}, nil
 	default:
 		return workerEvalMove{}, fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
 	}
@@ -476,6 +541,19 @@ func (e *workerEvaluator) PushMove(pos *Position, transition workerEvalMove) err
 		}
 		e.observeTransition(pos)
 		return nil
+	case evaluatorBackendNGNK4:
+		if !transition.active || e.ngnK4Context == nil {
+			return fmt.Errorf("%w: missing NGN K4 move transition or context", errWorkerEvaluator)
+		}
+		post, err := validateNGNK4MoveAfter(pos, transition.ngnK4Delta)
+		if err != nil {
+			return err
+		}
+		if err := e.ngnK4Context.PushMove(transition.ngnK4Delta, post); err != nil {
+			return fmt.Errorf("%w: NGN K4 push move: %v", errWorkerEvaluator, err)
+		}
+		e.observeTransition(pos)
+		return nil
 	default:
 		return fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
 	}
@@ -488,7 +566,7 @@ func (e *workerEvaluator) PrepareNull(pos *Position) (workerEvalNull, error) {
 	switch e.model.identity.backend {
 	case evaluatorBackendHCE:
 		return workerEvalNull{}, nil
-	case evaluatorBackendNGNV1, evaluatorBackendSF18BIGResearch, evaluatorBackendCounter55, evaluatorBackendRodentV11Anand, evaluatorBackendRodentV12Default:
+	case evaluatorBackendNGNV1, evaluatorBackendSF18BIGResearch, evaluatorBackendCounter55, evaluatorBackendRodentV11Anand, evaluatorBackendRodentV12Default, evaluatorBackendNGNK4:
 		before, err := nnuePositionFacts(pos)
 		if err != nil {
 			return workerEvalNull{}, err
@@ -577,6 +655,18 @@ func (e *workerEvaluator) PushNull(pos *Position, transition workerEvalNull) err
 		}
 		e.observeTransition(pos)
 		return nil
+	case evaluatorBackendNGNK4:
+		if !transition.active || e.ngnK4Context == nil {
+			return fmt.Errorf("%w: missing NGN K4 null transition or context", errWorkerEvaluator)
+		}
+		if err := validateNNUENullAfter(pos, transition.before, transition.beforePieces, transition.beforeSide); err != nil {
+			return err
+		}
+		if err := e.ngnK4Context.PushNull(); err != nil {
+			return fmt.Errorf("%w: NGN K4 push null: %v", errWorkerEvaluator, err)
+		}
+		e.observeTransition(pos)
+		return nil
 	default:
 		return fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend)
 	}
@@ -626,6 +716,14 @@ func (e *workerEvaluator) Pop() error {
 		}
 		if err := e.rodentV12Context.Pop(); err != nil {
 			return fmt.Errorf("%w: Rodent V1.2 pop: %v", errWorkerEvaluator, err)
+		}
+		return nil
+	case evaluatorBackendNGNK4:
+		if e.ngnK4Context == nil {
+			return fmt.Errorf("%w: nil NGN K4 context", errWorkerEvaluator)
+		}
+		if err := e.ngnK4Context.Pop(); err != nil {
+			return fmt.Errorf("%w: NGN K4 pop: %v", errWorkerEvaluator, err)
 		}
 		return nil
 	default:
@@ -714,6 +812,22 @@ func (e *workerEvaluator) SearchSTM(pos *Position) int {
 			panic(fmt.Errorf("%w: Rodent evaluate: %v", errWorkerEvaluator, err))
 		}
 		return rodentSearchScore(static)
+	case evaluatorBackendNGNK4:
+		if e.ngnK4Context == nil {
+			panic(fmt.Errorf("%w: nil NGN K4 context", errWorkerEvaluator))
+		}
+		raw, err := e.ngnK4Context.EvaluateRaw()
+		if e.fullRefreshOracle {
+			full, fullErr := ngnK4PositionFromPosition(pos)
+			if fullErr != nil {
+				panic(fullErr)
+			}
+			raw, err = e.model.ngnK4.EvaluateRaw(full)
+		}
+		if err != nil {
+			panic(fmt.Errorf("%w: NGN K4 evaluate: %v", errWorkerEvaluator, err))
+		}
+		return nnueSearchScore(raw, pos.HalfMoveClock)
 	case evaluatorBackendRodentV12Default:
 		if e.rodentV12Context == nil {
 			panic(fmt.Errorf("%w: nil Rodent V1.2 context", errWorkerEvaluator))
@@ -798,6 +912,16 @@ func (e *workerEvaluator) LegacyUndampedSTM(pos *Position) int {
 			panic(fmt.Errorf("%w: Rodent V1.2 fresh evaluate: %v", errWorkerEvaluator, err))
 		}
 		return rodentSearchScore(static)
+	case evaluatorBackendNGNK4:
+		full, err := ngnK4PositionFromPosition(pos)
+		if err != nil {
+			panic(err)
+		}
+		raw, err := e.model.ngnK4.EvaluateRaw(full)
+		if err != nil {
+			panic(fmt.Errorf("%w: NGN K4 fresh evaluate: %v", errWorkerEvaluator, err))
+		}
+		return clampNNUEStatic(raw)
 	default:
 		panic(fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend))
 	}
@@ -955,7 +1079,7 @@ func (e *workerEvaluator) evaluateNNUE() (int64, error) {
 
 func (e *workerEvaluator) nnueDepth() int {
 	if e.sf18BigContext != nil && e.context == nil && e.portableContext == nil &&
-		e.counterContext == nil && e.rodentContext == nil && e.rodentV12Context == nil {
+		e.counterContext == nil && e.rodentContext == nil && e.rodentV12Context == nil && e.ngnK4Context == nil {
 		return e.sf18BigContext.Depth()
 	}
 	if e.context != nil && e.portableContext == nil {
@@ -970,8 +1094,12 @@ func (e *workerEvaluator) nnueDepth() int {
 	if e.rodentContext != nil && e.context == nil && e.portableContext == nil && e.counterContext == nil {
 		return e.rodentContext.Depth()
 	}
-	if e.rodentV12Context != nil && e.context == nil && e.portableContext == nil && e.counterContext == nil && e.rodentContext == nil {
+	if e.rodentV12Context != nil && e.context == nil && e.portableContext == nil && e.counterContext == nil && e.rodentContext == nil && e.ngnK4Context == nil {
 		return e.rodentV12Context.Depth()
+	}
+	if e.ngnK4Context != nil && e.context == nil && e.portableContext == nil && e.counterContext == nil &&
+		e.rodentContext == nil && e.rodentV12Context == nil && e.sf18BigContext == nil {
+		return e.ngnK4Context.Depth()
 	}
 	return -1
 }

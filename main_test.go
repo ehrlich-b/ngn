@@ -15,7 +15,7 @@ func TestRunDefaultHCEAdvertisesActualDefaults(t *testing.T) {
 		t.Fatalf("default startup stderr=%q", errorOutput.String())
 	}
 	for _, want := range []string{
-		"option name EvalBackend type combo default hce var hce var ngn-v1 var sf18-big var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default\n",
+		"option name EvalBackend type combo default hce var hce var ngn-v1 var ngn-k4-768-v1 var sf18-big var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default\n",
 		"option name EvalFile type string default <empty>\n",
 	} {
 		if !strings.Contains(output.String(), want) {
