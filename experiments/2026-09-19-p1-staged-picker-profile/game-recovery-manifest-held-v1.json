@@ -1,0 +1,59 @@
+{
+  "schema": "ngn-p1-reference-picker-game-recovery-v1",
+  "driver_sha256": "c355736667769a2e5b8ac877b0b58e0603c4aa7cc3b212b2a8d22311c71c4f42",
+  "release_state": "HELD_PENDING_STATIC_REVIEW",
+  "failed_root": "/home/ehrli/p1-staged-picker-game-20260919/run-001",
+  "recovery_root": "/home/ehrli/p1-staged-picker-game-20260919/run-002",
+  "minimum_windows_free_bytes": 21474836480,
+  "recovery_rule": "Treat run-001 as infrastructure-null only after exact hashes prove its supervisor remained RUNNING, witness remained STARTING, zero games finished, PGN and final EPD are empty, no decision or terminal receipt exists, and no match process survives. Do not inspect partial engine trace for selection. Permit one fresh run-002 of the byte-frozen original game protocol only when the Windows host volume has at least 20 GiB free; never reuse run-001",
+  "original_driver": {
+    "path": "/home/ehrli/repos/ngn-p1-reference-picker-fd6b4ac/experiments/2026-09-19-p1-staged-picker-profile/game_driver.py",
+    "sha256": "d5503ea0ab7dad059d2a357eda826b81811cfc015c0b51338890ceb06fe3e822"
+  },
+  "recovery_template": {
+    "path": "/home/ehrli/repos/ngn-p1-reference-picker-fd6b4ac/experiments/2026-09-19-p1-staged-picker-profile/game-manifest-held-v1.json",
+    "sha256": "4632f23729e8b8990dad4273b216bfdb2d3e3997edf371925c48163ab2bd0c6e"
+  },
+  "failed_artifacts": {
+    "frozen_manifest": {
+      "path": "/home/ehrli/p1-staged-picker-game-20260919/run-001/frozen-manifest.json",
+      "sha256": "13e729d837fbbb09991c2278b05f77f77f73e78263f70357eab7b7f0dcfacf09"
+    },
+    "prelaunch_cpu": {
+      "path": "/home/ehrli/p1-staged-picker-game-20260919/run-001/prelaunch-non-owned-cpu.json",
+      "sha256": "61ecce2851b4f3785a77dee376c0971729b64c1c9d41d8a2b83aae06db45408d"
+    },
+    "supervisor": {
+      "path": "/home/ehrli/p1-staged-picker-game-20260919/run-001/pilot/supervisor.json",
+      "sha256": "7f232d665e2725993d51af00f3f502476e30d254e03a8381c32059e98626f740"
+    },
+    "witness": {
+      "path": "/home/ehrli/p1-staged-picker-game-20260919/run-001/pilot/match-witness.json",
+      "sha256": "a4377ad8afbcc358540125ad83ac92cb01205c99a5ab37f95934c2b3d457a90c"
+    },
+    "games": {
+      "path": "/home/ehrli/p1-staged-picker-game-20260919/run-001/pilot/games.pgn",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final_epd": {
+      "path": "/home/ehrli/p1-staged-picker-game-20260919/run-001/pilot/final.epd",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "match_stdout": {
+      "path": "/home/ehrli/p1-staged-picker-game-20260919/run-001/pilot/match.stdout",
+      "sha256": "05609df0728466011d367628b8dd9288382320ed9434d30a4119c510514ab7a8"
+    },
+    "match_stderr": {
+      "path": "/home/ehrli/p1-staged-picker-game-20260919/run-001/pilot/match.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fastchess_log": {
+      "path": "/home/ehrli/p1-staged-picker-game-20260919/run-001/pilot/fastchess.log",
+      "sha256": "5e1343b2094c95b26d01f4db72b33855710539464e62e874426578f325cc09df"
+    },
+    "process_samples": {
+      "path": "/home/ehrli/p1-staged-picker-game-20260919/run-001/pilot/process-samples.jsonl",
+      "sha256": "7d72b5fbbb637d14fd9a48cef611916acd1b8f83a1930fc861ae2af5770bf842"
+    }
+  }
+}
