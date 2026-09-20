@@ -91,6 +91,13 @@ def checked(spec: dict, label: str) -> Path:
     return path
 
 
+def checked_engine(spec: dict, label: str) -> Path:
+    """Check an engine record after its immutable build tags were validated."""
+    if set(spec) != {"path", "sha256", "build_tags"}:
+        die(f"{label}: unexpected identity keys")
+    return checked({"path": spec["path"], "sha256": spec["sha256"]}, label)
+
+
 def load_module(path: Path):
     spec = importlib.util.spec_from_file_location("h1_frozen_e0_driver", path)
     if spec is None or spec.loader is None:
@@ -199,7 +206,10 @@ def main() -> None:
     driver_hash = sha256(Path(__file__).resolve())
     validate_manifest(manifest, driver_hash)
     sources = {name: checked(spec, name) for name, spec in manifest["frozen_sources"].items()}
-    engines = {policy: checked(spec, f"engine {policy}") for policy, spec in manifest["engines"].items()}
+    engines = {
+        policy: checked_engine(spec, f"engine {policy}")
+        for policy, spec in manifest["engines"].items()
+    }
     helper = load_module(sources["e0_driver.py"])
     if args.check_held:
         print(json.dumps({

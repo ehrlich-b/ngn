@@ -6,6 +6,7 @@ from __future__ import annotations
 import copy
 import importlib.util
 from pathlib import Path
+import tempfile
 import unittest
 
 
@@ -79,6 +80,21 @@ class DriverTests(unittest.TestCase):
         changed["source"]["goamd64"] = "v1"
         with self.assertRaises(SystemExit):
             DRIVER.validate_manifest(changed, "d" * 64)
+
+    def test_engine_identity_accepts_validated_build_tags(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            engine = Path(directory) / "ngn"
+            engine.write_bytes(b"frozen engine")
+            spec = {
+                "path": str(engine),
+                "sha256": DRIVER.sha256(engine),
+                "build_tags": ["h1producer", "h1consumer"],
+            }
+            self.assertEqual(DRIVER.checked_engine(spec, "engine 11"), engine.resolve())
+            changed = copy.deepcopy(spec)
+            changed["unexpected"] = True
+            with self.assertRaises(SystemExit):
+                DRIVER.checked_engine(changed, "engine 11")
 
     def test_joint_interaction_resamples_matched_openings(self) -> None:
         left = audit([1, 2, 1, 2])

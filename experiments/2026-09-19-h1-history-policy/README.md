@@ -1,7 +1,8 @@
 # H1 completed-winner history policy gate
 
-Status: implementation and protocol frozen before games; build, static review,
-and execution pending.
+Status: implementation, protocol, binaries and held manifest frozen; validation
+and static review passed before games. Release-manifest promotion and execution
+remain pending.
 
 H0 passed its predeclared mechanism screen. H1 therefore tests exactly the
 three-component package specified in the Sol plan: completed final-quiet-winner
