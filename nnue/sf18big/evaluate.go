@@ -96,23 +96,8 @@ func (m *Model) updateBaseFeature(
 	add bool,
 ) {
 	weightOffset := feature * transformerLanes
-	for lane := 0; lane < transformerLanes; lane++ {
-		weight := m.baseWeights[weightOffset+lane]
-		if add {
-			values[lane] = wrapAdd16(values[lane], weight)
-		} else {
-			values[lane] = wrapSub16(values[lane], weight)
-		}
-	}
 	psqtOffset := feature * psqtBuckets
-	for bucket := 0; bucket < psqtBuckets; bucket++ {
-		weight := m.basePSQTWeights[psqtOffset+bucket]
-		if add {
-			psqt[bucket] = wrapAdd32(psqt[bucket], weight)
-		} else {
-			psqt[bucket] = wrapSub32(psqt[bucket], weight)
-		}
-	}
+	updateBaseRow(values, &m.baseWeights[weightOffset], psqt, &m.basePSQTWeights[psqtOffset], add)
 }
 
 // ApplyThreatDiff applies a non-refresh sorted-set threat transition to one
@@ -151,23 +136,8 @@ func (m *Model) updateThreatFeature(
 	add bool,
 ) {
 	weightOffset := int(feature) * transformerLanes
-	for lane := 0; lane < transformerLanes; lane++ {
-		weight := int16(m.threatWeights[weightOffset+lane])
-		if add {
-			values[lane] = wrapAdd16(values[lane], weight)
-		} else {
-			values[lane] = wrapSub16(values[lane], weight)
-		}
-	}
 	psqtOffset := int(feature) * psqtBuckets
-	for bucket := 0; bucket < psqtBuckets; bucket++ {
-		weight := m.threatPSQTWeights[psqtOffset+bucket]
-		if add {
-			psqt[bucket] = wrapAdd32(psqt[bucket], weight)
-		} else {
-			psqt[bucket] = wrapSub32(psqt[bucket], weight)
-		}
-	}
+	updateThreatRow(values, &m.threatWeights[weightOffset], psqt, &m.threatPSQTWeights[psqtOffset], add)
 }
 
 func applyThreatIndexDiff(before ThreatIndexList, diff ThreatDiff) ThreatIndexList {
