@@ -1,6 +1,6 @@
 # N1 richer-model feasibility: select Stockfish 18 BIG/dual
 
-Status: **first bounded slice complete; SF18 BIG/dual selected for N1.** This
+Status: **N1a and N1b complete; SF18 BIG/dual remains open for N1c.** This
 does not integrate a new evaluator into search, change the default, authorize a
 match, or establish any Elo gain.
 
@@ -65,7 +65,7 @@ proxy and removes that known confounder before BIG work. It does not predict
 BIG cost: BIG has a 1,024-byte transformed input and FullThreats state, while
 SMALL has a 128-byte transformed input and no threat features.
 
-## Boundaries and next gate
+## N1b gate definition
 
 The exact eager dual numeric footprint remains 137,844,032 shared model bytes
 before object overhead and at least 8,896 bytes per live ply per worker. At 128
@@ -92,5 +92,68 @@ N1b is one bounded, non-search-integrated BIG reference slice:
    reviewed. Failure of exact parity or an unbounded need for donor machinery
    shelves the route; lower NPS by itself does not.
 
-The goal remains active. N1a is an enabling result, not a 3300 measurement.
+## Slice N1b: exact BIG reference and cost boundary
 
+N1b implements the bounded scalar reference without crossing the search
+boundary. The BIG package now has separate HalfKAv2 and FullThreats accumulator
+state, allocation-free active-threat enumeration, a simple sorted-set
+transition diff, exact 1,024-lane base/threat row updates, transform, and the
+material-selected output head. It does not have a worker context, accumulator
+stack, SIMD, UCI option, search adapter, default change, or game authorization.
+
+The pinned Stockfish diagnostic was built independently and run on the already
+frozen core/growth legal corpus plus 12 frozen 64-ply real-game prefixes. Every
+one of 1,203 rows matches for both perspectives across active threats,
+before/after threat sets, refresh decisions, base/threat accumulators and PSQT,
+transformed input, raw selected outputs, and divided components. Each upstream
+incremental row is also compared with a fresh Stockfish stack/cache before it
+is admitted. Exact model/oracle/source hashes and commands are in
+`result-v2.json`.
+
+The representative 780-row corpus prevents the 128 sparse king-coverage cases
+from distorting the cost model:
+
+| Distribution | Median | P95 | Maximum | Mean |
+| --- | ---: | ---: | ---: | ---: |
+| Active threats / perspective | 36 | 48 | 54 | 33.18 |
+| Changed threat rows / perspective-transition | 7 | 13 | 82 | 7.24 |
+| Changed threat rows / nonrefresh move, both perspectives | 14 | 26 | 36 | 14.10 |
+| Base rows / perspective | 2 | 3 | 4 | 2.27 |
+
+Only 6/1,536 perspective-transitions cross the FullThreats king-file boundary;
+47/1,536 move their own king and require a base refresh. The large threat-diff
+maxima are those refresh cases, not unbounded ordinary updates.
+
+Ten one-second blocks on one pinned Ryzen 7 9800X3D core measured these scalar
+medians, all with zero allocations:
+
+| Kernel | Median ns/op |
+| --- | ---: |
+| FullThreats enumeration, one perspective | 2,786.5 |
+| Sorted threat diff, one perspective | 126.3 |
+| One threat row, 1,024 lanes + PSQT | 536.95 |
+| One base row, 1,024 lanes + PSQT | 451.85 |
+| Transform | 5,519.5 |
+| Material-selected head | 6,073.5 |
+| Complete two-perspective full refresh | 57,791 |
+| Complete full refresh + selected output | 69,694 |
+
+Charging observed changed rows, both enumerations/diffs, and conservatively
+replacing every own-king move with an entire two-perspective refresh gives a
+measured scalar-kernel ceiling of 15.15 us median and 17.93 us mean for
+maintenance. Adding transform/head gives 26.74 us median and 29.53 us mean;
+the P95 is 69.38 us because own-king moves make up about 6% of moves. This
+is a bounded reference ceiling, not an acceptable eager production cost and not
+a search-NPS prediction. Stack bookkeeping and evaluated-node incidence remain
+for N1c.
+
+N1b therefore passes rather than shelves the route: exactness is complete,
+feature/update counts are bounded, and refresh incidence is low. The next gate
+is N1c only: implement a non-search-integrated demand-driven BIG context that
+stores dirty transitions, computes from a usable donor only when evaluated,
+does not copy 8,896-byte frames on every edge, and matches the same independent
+oracle. It must measure evaluated-node cost before any UCI/search/default/game
+work.
+
+The goal remains active. N1b establishes feasibility, not playing strength or
+a 3300 rating.

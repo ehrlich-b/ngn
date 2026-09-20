@@ -11,9 +11,14 @@ is hash/size-bound under CC0 and NGN's strict loader is already validated.
 N1a adds no search wiring; it proves a trace-free material-selected SMALL head
 against 145 full-refresh and 703 incremental upstream rows. The selected output
 is 15.22x faster from live incremental state than the old all-eight-head oracle.
-Next is N1b only: scalar exact BIG full refresh plus legal-trace FullThreats diff
-and selected-head cost. No engine integration, games, default change or 3300
-claim is authorized by this feasibility result.
+N1b is now complete as well: scalar BIG base/threat accumulators, FullThreats
+enumeration/diff, transform and selected output match pinned Stockfish across
+1,203 rows. Representative game prefixes have median 36 active and 7 changed
+threat rows per perspective; refreshes are bounded and rare. The scalar
+measured-kernel ceiling is finite but far too expensive for eager edge updates.
+Next is N1c only: a non-search-integrated demand-driven BIG context with lazy
+donor updates and no full-frame copying. No engine integration, games, default
+change or 3300 claim is authorized by this feasibility result.
 
 # September 19 Sol structural-strength handoff
 
