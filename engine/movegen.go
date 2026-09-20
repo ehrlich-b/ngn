@@ -919,6 +919,43 @@ func GenerateCapturesIntoBuffer(pos *Position, buffer []Move) int {
 	return captureCount
 }
 
+// generateQuietPromotionsIntoBuffer generates only non-capturing promotions.
+// Capture promotions belong to GenerateCapturesIntoBuffer; keeping the two
+// disjoint lets the staged main-search picker put every promotion in its
+// tactical stage without generating ordinary quiet moves.
+func generateQuietPromotionsIntoBuffer(pos *Position, buffer []Move) int {
+	if len(buffer) == 0 {
+		return 0
+	}
+
+	occupied := pos.Board.GetWhitePieces() | pos.Board.GetBlackPieces()
+	var targets uint64
+	var pawn Piece
+	var step int
+	if pos.Turn() == White {
+		pawn = WhitePawn
+		step = 8
+		targets = (pos.Board.GetBitboardOf(pawn) << 8) & ^occupied & RankMasks[Rank8]
+	} else {
+		pawn = BlackPawn
+		step = -8
+		targets = (pos.Board.GetBitboardOf(pawn) >> 8) & ^occupied & RankMasks[Rank1]
+	}
+
+	count := 0
+	for targets != 0 && count+4 <= len(buffer) {
+		to := Square(bits.TrailingZeros64(targets))
+		from := Square(int(to) - step)
+		buffer[count] = NewMove(from, to, pawn, NoPiece, Queen, 0)
+		buffer[count+1] = NewMove(from, to, pawn, NoPiece, Rook, 0)
+		buffer[count+2] = NewMove(from, to, pawn, NoPiece, Bishop, 0)
+		buffer[count+3] = NewMove(from, to, pawn, NoPiece, Knight, 0)
+		count += 4
+		targets &= targets - 1
+	}
+	return count
+}
+
 // Helper functions for buffer-based generation
 
 func generatePieceMovesIntoBuffer(pos *Position, piece Piece, generator func(*Position, Square, []Move) int, buffer []Move) int {

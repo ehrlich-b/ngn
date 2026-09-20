@@ -477,6 +477,18 @@ func (h *workerHistory) captureOrderScore(pos *Position, move Move) int {
 	return captureOrderScoreParts(staticExchangeEvaluation(pos, move), h.captureHistoryScore(move)/8)
 }
 
+func nonCapturePromotionOrderScore(move Move) int {
+	promoWeight := int(GetPiece(move.PromoType(), move.MovingPiece().Color()).Weight())
+	if move.PromoType() == Queen {
+		// Non-capture queen promotion: gains ~800cp; rank above winning
+		// captures (which max around 82000).
+		return 90000 + promoWeight
+	}
+	// Under-promotions retain their existing band below winning captures and
+	// above castles/refutations.
+	return 70000 + promoWeight
+}
+
 // unscoredCaptureBase marks a capture whose SEE swap loop was deferred (lazySEE).
 // The capture-history tie-breaker is NOT deferred — it is read at scoring time and
 // band-encoded next to the sentinel — because the table mutates as earlier moves'
@@ -566,17 +578,7 @@ func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, depth int, previousMo
 					score = h.captureOrderScore(pos, move)
 				}
 			} else if move.PromoType() != NoType {
-				promoWeight := int(GetPiece(move.PromoType(), move.MovingPiece().Color()).Weight())
-				if move.PromoType() == Queen {
-					// Non-capture queen promotion: gains ~800cp; rank above winning
-					// captures (which max around 82000) so we explore it before any
-					// capture or quiet alternative.
-					score = 90000 + promoWeight
-				} else {
-					// Under-promotions are rare and usually inferior; keep them
-					// in the original priority band, ordered by promoted piece value.
-					score = 70000 + promoWeight
-				}
+				score = nonCapturePromotionOrderScore(move)
 			} else if move.IsCastle() {
 				// Castling: moderate priority
 				score = 50000
@@ -637,6 +639,210 @@ func selectNextMove(out []Move, scores []int, n, i int) {
 		scores[i], scores[maxIdx] = scores[maxIdx], scores[i]
 		out[i], out[maxIdx] = out[maxIdx], out[i]
 	}
+}
+
+type mainMovePickerStage uint8
+
+const (
+	mainPickerTT mainMovePickerStage = iota
+	mainPickerTactical
+	mainPickerQuiet
+	mainPickerBadCaptures
+	mainPickerDone
+)
+
+// mainMovePicker is the ordinary alphaBetaPV move iterator. It differs from the
+// rejected June TT-first prototype in one important way: after the TT move it
+// advances through explicit tactical, quiet and bad-capture stages rather than
+// falling back to one freshly history-scored global list. Stage-local history
+// reads are intentionally live, so this remains a behavior candidate.
+type mainMovePicker struct {
+	history      *workerHistory
+	pos          *Position
+	frame        *searchFrame
+	info         *SearchInfo
+	depth        int
+	previousMove Move
+	prev2        Move
+	ttMove       Move
+	ttHit        bool
+	ttEmitted    bool
+
+	stage        mainMovePickerStage
+	stageCount   int
+	stageIndex   int
+	stageTTIndex int
+	badCount     int
+	badIndex     int
+}
+
+func newMainMovePicker(history *workerHistory, pos *Position, frame *searchFrame, info *SearchInfo, depth int, previousMove, prev2, ttMove Move, ttHit bool) *mainMovePicker {
+	return &mainMovePicker{
+		history:      history,
+		pos:          pos,
+		frame:        frame,
+		info:         info,
+		depth:        depth,
+		previousMove: previousMove,
+		prev2:        prev2,
+		ttMove:       ttMove,
+		ttHit:        ttHit,
+		stage:        mainPickerTT,
+		stageTTIndex: -1,
+	}
+}
+
+func (p *mainMovePicker) next() (Move, bool) {
+	for {
+		switch p.stage {
+		case mainPickerTT:
+			p.stage = mainPickerTactical
+			if p.ttHit && moveIsPseudoLegal(p.pos, p.ttMove) {
+				p.ttEmitted = true
+				if p.info != nil {
+					p.info.PickerTTFirstMoves++
+				}
+				return p.ttMove, true
+			}
+
+		case mainPickerTactical:
+			if p.stageCount == 0 && p.stageIndex == 0 {
+				p.prepareTactical()
+			}
+			if move, ok := p.nextOrderedStage(); ok {
+				if p.info != nil {
+					p.info.PickerTacticalMoves++
+				}
+				return move, true
+			}
+			p.stage = mainPickerQuiet
+			p.resetOrderedStage()
+
+		case mainPickerQuiet:
+			if p.stageCount == 0 && p.stageIndex == 0 {
+				p.prepareQuiets()
+			}
+			if move, ok := p.nextOrderedStage(); ok {
+				if p.info != nil {
+					p.info.PickerQuietMoves++
+				}
+				return move, true
+			}
+			p.stage = mainPickerBadCaptures
+
+		case mainPickerBadCaptures:
+			if p.badIndex < p.badCount {
+				selectNextMove(p.frame.badCaptures[:], p.frame.badCaptureScores[:], p.badCount, p.badIndex)
+				move := p.frame.badCaptures[p.badIndex]
+				p.badIndex++
+				if p.info != nil {
+					p.info.PickerBadCaptureMoves++
+				}
+				return move, true
+			}
+			p.stage = mainPickerDone
+
+		case mainPickerDone:
+			return EmptyMove, false
+		}
+	}
+}
+
+func (p *mainMovePicker) resetOrderedStage() {
+	p.stageCount = 0
+	p.stageIndex = 0
+	p.stageTTIndex = -1
+}
+
+func (p *mainMovePicker) nextOrderedStage() (Move, bool) {
+	if p.stageIndex >= p.stageCount {
+		return EmptyMove, false
+	}
+	if p.stageIndex == 0 && p.stageTTIndex >= 0 {
+		if p.stageTTIndex != 0 {
+			p.frame.ordered[0], p.frame.ordered[p.stageTTIndex] = p.frame.ordered[p.stageTTIndex], p.frame.ordered[0]
+			p.frame.scores[0], p.frame.scores[p.stageTTIndex] = p.frame.scores[p.stageTTIndex], p.frame.scores[0]
+		}
+	} else {
+		selectNextMove(p.frame.ordered[:], p.frame.scores[:], p.stageCount, p.stageIndex)
+	}
+	move := p.frame.ordered[p.stageIndex]
+	p.stageIndex++
+	if p.ttHit && move == p.ttMove {
+		p.ttEmitted = true
+	}
+	return move, true
+}
+
+func (p *mainMovePicker) prepareTactical() {
+	if p.info != nil {
+		p.info.PickerTacticalStages++
+	}
+	captureCount := GenerateCapturesIntoBuffer(p.pos, p.frame.moveBuffer[:len(p.frame.badCaptures)])
+	moveCount := captureCount
+	moveCount += generateQuietPromotionsIntoBuffer(p.pos, p.frame.moveBuffer[moveCount:])
+
+	goodCount := 0
+	p.badCount = 0
+	p.stageTTIndex = -1
+	for i := 0; i < moveCount; i++ {
+		move := p.frame.moveBuffer[i]
+		if p.ttEmitted && move == p.ttMove {
+			continue
+		}
+
+		score := 0
+		isTT := p.ttHit && move == p.ttMove
+		switch {
+		case isTT:
+			score = 100000
+		case move.IsCapture() || move.IsEnPassant():
+			score = p.history.captureOrderScore(p.pos, move)
+		case move.PromoType() != NoType:
+			score = nonCapturePromotionOrderScore(move)
+		default:
+			continue
+		}
+
+		if !isTT && (move.IsCapture() || move.IsEnPassant()) && score < 0 {
+			p.frame.badCaptures[p.badCount] = move
+			p.frame.badCaptureScores[p.badCount] = score
+			p.badCount++
+			continue
+		}
+		p.frame.ordered[goodCount] = move
+		p.frame.scores[goodCount] = score
+		if isTT {
+			p.stageTTIndex = goodCount
+		}
+		goodCount++
+	}
+	p.stageCount = goodCount
+}
+
+func (p *mainMovePicker) prepareQuiets() {
+	if p.info != nil {
+		p.info.PickerQuietStages++
+	}
+	generated := GenerateMovesIntoBuffer(p.pos, p.frame.moveBuffer[:])
+	quietCount := 0
+	for i := 0; i < generated; i++ {
+		move := p.frame.moveBuffer[i]
+		if move.IsCapture() || move.IsEnPassant() || move.PromoType() != NoType {
+			continue
+		}
+		if p.ttEmitted && move == p.ttMove {
+			continue
+		}
+		p.frame.moveBuffer[quietCount] = move
+		quietCount++
+	}
+
+	stageTTHit := p.ttHit && !p.ttEmitted
+	p.stageCount, p.stageTTIndex = p.history.scoreMovesIntoBuffer(
+		p.frame.moveBuffer[:quietCount], p.depth, p.previousMove, p.prev2,
+		p.ttMove, stageTTHit, p.frame.ordered[:], p.frame.scores[:], p.pos, false,
+	)
 }
 
 func (h *workerHistory) orderMoves(moves []Move, pos *Position) []Move {

@@ -460,6 +460,8 @@ type searchFrame struct {
 	moveBuffer             [256]Move              // raw pseudo-legal generation target (transient: gen -> order)
 	ordered                [256]Move              // ordered moves, iterated across the recursive move loop
 	scores                 [256]int               // ordering scores, parallel to ordered, for incremental selection
+	badCaptures            [64]Move               // losing captures parked until after the quiet stage
+	badCaptureScores       [64]int                // ordering scores parallel to badCaptures
 	quiets                 [64]Move               // quiet moves tried (history penalties on a cutoff)
 	captures               [64]Move               // captures tried (capture-history penalties)
 	completedHistoryQuiets h1CompletedQuietBuffer // completed quiet candidates for policy-11 learning
@@ -541,29 +543,35 @@ type SearchInfo struct {
 	CutMissByClass [6][3]uint64 // Non-first beta cutoffs (ordering misses) by [class][band];
 	//                                  class 0..5 = TT/capture/promo/killer/counter/quiet-hist,
 	//                                  band 0..2 = the cut landed on move 2 / move 3 / move 4+.
-	RFPPrunes           uint64 // Reverse-futility returns (was uncounted)
-	NullMoveTries       uint64 // Null-move attempts (failed nulls are pure overhead)
-	SEECapPrunes        uint64 // Captures pruned by SEE in the move loop (was uncounted)
-	HistPrunes          uint64 // Quiets pruned by history score (was uncounted)
-	AllNodes            uint64 // Completed move loops storing UpperBound (all-nodes)
-	PVNodesExact        uint64 // Completed move loops storing Exact
-	AllTriedSum         uint64 // Sum of legalTried at all-nodes (b_all = AllTriedSum/AllNodes)
-	LMRPliesSum         uint64 // Total reduction plies (mean = LMRPliesSum/LMRReductions)
-	QDepthCapHits       uint64 // qsearch qDepth>=6 truncations to raw static eval (A4 soundness)
-	QTTProbes           uint64 // qsearch TT probes
-	QTTHits             uint64 // qsearch TT hits (any bound)
-	QTTCutoffs          uint64 // qsearch TT returns
-	QStandPatCuts       uint64 // qsearch stand-pat beta cutoffs
-	QDeltaPrunes        uint64 // qsearch delta prunes
-	QSEEPrunes          uint64 // qsearch SEE prunes
-	QBetaCutoffs        uint64 // qsearch beta cutoffs in the capture/evasion loops
-	AspFailLows         uint64 // Aspiration fail-lows (each costs a full-width re-iteration)
-	AspFailHighs        uint64 // Aspiration fail-highs
-	AspAbandoned        uint64 // Iterations discarded after exhausting widening attempts
-	RootBestMoveChanges uint64 // Root best-move changes across completed iterations
-	IIDSearches         uint64 // Internal iterative deepening searches run
-	SingularTries       uint64 // Singular verification searches run (success ctr exists)
-	ExtBudgetClamps     uint64 // Paths clamped by the extension budget (explosion lines)
+	PickerTTFirstMoves    uint64 // Structurally valid TT moves emitted before generation
+	PickerTacticalStages  uint64 // Nodes that reached tactical generation
+	PickerQuietStages     uint64 // Nodes that reached ordinary quiet generation
+	PickerTacticalMoves   uint64 // Tactical-stage moves emitted
+	PickerQuietMoves      uint64 // Quiet-stage moves emitted
+	PickerBadCaptureMoves uint64 // Deferred losing captures emitted
+	RFPPrunes             uint64 // Reverse-futility returns (was uncounted)
+	NullMoveTries         uint64 // Null-move attempts (failed nulls are pure overhead)
+	SEECapPrunes          uint64 // Captures pruned by SEE in the move loop (was uncounted)
+	HistPrunes            uint64 // Quiets pruned by history score (was uncounted)
+	AllNodes              uint64 // Completed move loops storing UpperBound (all-nodes)
+	PVNodesExact          uint64 // Completed move loops storing Exact
+	AllTriedSum           uint64 // Sum of legalTried at all-nodes (b_all = AllTriedSum/AllNodes)
+	LMRPliesSum           uint64 // Total reduction plies (mean = LMRPliesSum/LMRReductions)
+	QDepthCapHits         uint64 // qsearch qDepth>=6 truncations to raw static eval (A4 soundness)
+	QTTProbes             uint64 // qsearch TT probes
+	QTTHits               uint64 // qsearch TT hits (any bound)
+	QTTCutoffs            uint64 // qsearch TT returns
+	QStandPatCuts         uint64 // qsearch stand-pat beta cutoffs
+	QDeltaPrunes          uint64 // qsearch delta prunes
+	QSEEPrunes            uint64 // qsearch SEE prunes
+	QBetaCutoffs          uint64 // qsearch beta cutoffs in the capture/evasion loops
+	AspFailLows           uint64 // Aspiration fail-lows (each costs a full-width re-iteration)
+	AspFailHighs          uint64 // Aspiration fail-highs
+	AspAbandoned          uint64 // Iterations discarded after exhausting widening attempts
+	RootBestMoveChanges   uint64 // Root best-move changes across completed iterations
+	IIDSearches           uint64 // Internal iterative deepening searches run
+	SingularTries         uint64 // Singular verification searches run (success ctr exists)
+	ExtBudgetClamps       uint64 // Paths clamped by the extension budget (explosion lines)
 
 	ExcludedMove Move // Move to exclude during singular search
 	ExcludedPly  int  // ply at which ExcludedMove applies (the singular verification root)
@@ -1797,41 +1805,17 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		singularMove = ttMove
 	}
 
-	// Use pseudo-legal moves for performance, check legality only when trying moves
-	// (frame acquired above, before probcut, so all generation here is allocation-free).
-	numMoves := GenerateMovesIntoBuffer(pos, frame.moveBuffer[:])
-	moves := frame.moveBuffer[:numMoves]
-	if numMoves == 0 {
-		if inCheck {
-			// Checkmate - distance from root is `ply` directly.
-			mateDistance := ply
-			if mateDistance > 1000 {
-				mateDistance = 1000
-			}
-			return -MATE_VALUE + mateDistance
-		}
-		// Stalemate is a draw regardless of material balance. Scoring it -500
-		// when "winning" breaks the zero-sum invariant — the opponent would read
-		// the same drawn position as +500 and steer into it.
-		return 0
-	}
-
-	// Order moves, prioritizing TT move if available. Scores are written eagerly; the sort
-	// itself is driven incrementally inside the loop (selectNextMove) so the selection tail
-	// past a beta cutoff is never paid. Node-identical to a full sort (docs/10 T2a).
+	// The reference-style picker yields a structurally valid TT move before move
+	// generation, then advances through tactical, quiet and losing-capture stages.
 	// prev2 (our side's previous move, for follow-up history) is constant for the
 	// whole node: [ply-2] belongs to a live ancestor suspended mid-loop.
 	prev2 := EmptyMove
 	if ply >= 2 {
 		prev2 = info.MoveStack[ply-2]
 	}
-	ordered := frame.ordered[:]
-	scores := frame.scores[:]
-	orderedCount, ttIndex := info.history.scoreMovesIntoBuffer(moves, ply, info.history.GetLastMovePlayed(), prev2, ttMove, ttHit, ordered, scores, pos, true)
+	picker := newMainMovePicker(info.history, pos, frame, info, ply, info.history.GetLastMovePlayed(), prev2, ttMove, ttHit)
 	info.MoveLoopNodes++
-	if ttIndex >= 0 {
-		info.TTMoveListed++
-	}
+	tMoveListed := false
 	bestScore := -INFINITY
 	bestMove := EmptyMove
 	moveCount := 0
@@ -1844,32 +1828,15 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	searchedCaptureCount := 0
 	completedHistoryQuietCount := 0
 
-	capturesScored := false // lazySEE: real capture scores not yet materialized
-	for oi := 0; oi < orderedCount; oi++ {
-		// Deferred selection sort: pull the next-best move into ordered[oi]. Doing this
-		// per-iteration (rather than fully up front) skips the sort tail after a cutoff.
-		if oi == 0 && ttIndex >= 0 {
-			// The TT move carries the unique top score (100000), so selectNextMove(oi=0)
-			// would scan the whole list only to find it. Swap it to the front in O(1) — the
-			// identical result — skipping that O(n) scan on the ~88% of nodes that cut on the
-			// TT move (node-identical: verified by scripts/nodecheck.sh).
-			if ttIndex != 0 {
-				ordered[0], ordered[ttIndex] = ordered[ttIndex], ordered[0]
-				scores[0], scores[ttIndex] = scores[ttIndex], scores[0]
-			}
-		} else {
-			// Capture SEE scores were deferred (lazySEE): materialize them once,
-			// immediately before the first selection compare. All scores are final
-			// before any comparison, so the emitted order is identical to eager
-			// scoring — but the ~88% of cutting nodes that cut on the hoisted TT
-			// move above never reach this line and skip ordering SEE entirely.
-			if !capturesScored {
-				materializeCaptureScores(ordered, scores, orderedCount, pos)
-				capturesScored = true
-			}
-			selectNextMove(ordered, scores, orderedCount, oi)
+	for {
+		move, ok := picker.next()
+		if !ok {
+			break
 		}
-		move := ordered[oi]
+		if !ttMoveListed && ttHit && move == ttMove {
+			info.TTMoveListed++
+			ttMoveListed = true
+		}
 		moveCount++
 
 		// Skip excluded move at the singular verification root only (ply-scoped so
