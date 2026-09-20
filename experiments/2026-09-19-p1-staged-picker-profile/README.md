@@ -93,6 +93,22 @@ The fail-closed recovery contract is now statically reviewed. Its held check
 verified every run-001 hash and null-state invariant against the WSL artifacts,
 found no surviving match process, and proved that the fresh run-002 root is
 absent. The wrapper preserves the byte-frozen game protocol and changes only
-the immutable run root. It cannot launch until `/mnt/c` has at least 20 GiB
-free; the review observed only 2,849,021,952 bytes, so the recovery remains
-held by disk capacity. See `game-recovery-static-review-v1.json`.
+the immutable run root. At review time it remained held because `/mnt/c` had
+only 2,849,021,952 bytes free rather than the required 20 GiB. That capacity
+issue was resolved before the one authorized launch. See
+`game-recovery-static-review-v1.json`.
+
+## Game result
+
+After the host capacity issue was resolved, the reviewed recovery contract ran
+once at the fresh run-002 root. All 128 pilot games, 64 reversed-color pairs and
+20,164 legal plies passed the match, UCI, process, resource and operational
+audits. The candidate scored 56.5/128 (`44.140625%`), corresponding to
+`-40.9030` Elo with a paired-bootstrap 95% interval of
+`[-71.5682, -10.8609]` Elo. Because even the upper bound is below zero, the
+frozen rule yields **SHELVE_CLEARLY_BAD_PILOT** and forbids confirmation,
+extension or rerun.
+
+P1-R1 is therefore rejected despite its fixed-node timing win. Its engine
+changes remain isolated from `main` and are not merge-authorized. The durable
+summary and terminal artifact hashes are in `game-result-v1.json`.

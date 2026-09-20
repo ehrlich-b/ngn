@@ -1,0 +1,87 @@
+{
+  "schema": "ngn-p1-reference-picker-game-result-v1",
+  "state": "COMPLETE",
+  "disposition": "SHELVE_CLEARLY_BAD_PILOT",
+  "authoritative_run_root": "/home/ehrli/p1-staged-picker-game-20260919/run-002",
+  "attempt_lineage": {
+    "run_001": "INFRASTRUCTURE_NULL_NO_CHESS_RESULT",
+    "run_002": "AUTHORITATIVE_TERMINAL_RESULT",
+    "rerun_or_extension_authorized": false
+  },
+  "frozen_inputs": {
+    "manifest_sha256": "6a6b703c4d9b28f8ed9006f8c8ae4562caab6419b58698df3dba1db07287b81d",
+    "candidate_sha256": "835aaf1a489878d54ee2d69093b14e7aafcf0b3606bb29ce4c7ac8adf522cb0d",
+    "base_sha256": "19ddf423ff6addffadd4b830834ca2d3483b47c64b7530689141337b8a39a518",
+    "model_sha256": "c35a1abc1b8c1cb1d5f4221454d494c1a6da1ed9088fd51ab27038bfa74b5053",
+    "pilot_openings_sha256": "2a05f525662999bba26d0c353a536df010720ac677a43f348f7f0204e295b474",
+    "pilot_prefixes_sha256": "144ac36e0972da3aee84f7f678ca93e66f2b762feffd72e43d40685a348583a4"
+  },
+  "pilot": {
+    "engine_a": "candidate",
+    "engine_b": "base",
+    "pairs": 64,
+    "games": 128,
+    "legal_plies": 20164,
+    "engine_a_points": 56.5,
+    "engine_a_score_rate": 0.44140625,
+    "penta_0_to_4": [
+      3,
+      16,
+      38,
+      7,
+      0
+    ],
+    "paired_bootstrap_ci": {
+      "method": "paired nonparametric percentile bootstrap",
+      "replicates": 100000,
+      "seed": 2026091904,
+      "elo": -40.90303759265683,
+      "lower95_elo": -71.5682196298182,
+      "upper95_elo": -10.86089841744591
+    }
+  },
+  "gate_evidence": {
+    "match_audit": "PASS",
+    "operational_audit": "PASS",
+    "uci_preflight_candidate": "PASS",
+    "uci_preflight_base": "PASS",
+    "match_returncode": 0,
+    "match_stderr_bytes": 0,
+    "supervisor_state": "COMPLETE",
+    "supervisor_returncode": 0,
+    "timed_out": false,
+    "memory_limit_exceeded": false,
+    "orphan_detected": false,
+    "surviving_processes": 0,
+    "supervised_elapsed_seconds": 1078.3145648250002,
+    "peak_sampled_process_tree_rss_kib": 5262996,
+    "non_owned_cpu_disposition": "TELEMETRY_ONLY",
+    "non_owned_cpu_samples": 216,
+    "maximum_non_owned_cores": 0.5517510341533093,
+    "counterfactual_cpu_gate_triggered": false
+  },
+  "decision_rule_application": {
+    "independent_mechanism_advantage": true,
+    "pilot_upper95_below_zero": true,
+    "confirmation_required": false,
+    "confirmation_run": false,
+    "reason": "The paired-bootstrap upper95 Elo bound is below zero, so the frozen pilot rule shelves the candidate regardless of its independent timing advantage."
+  },
+  "terminal_artifacts": {
+    "decision_sha256": "d61ce1a39ba3aaef3c1e54de22c200917e0c1b4141e400621e8eab17c4854469",
+    "inventory_sha256": "5f6b003bde05a6cc7f69ef87b5c0f14c89067ec7b7007249d259f10646cc57e8",
+    "terminal_sha256": "c946ff0d69729fe361acfce6f92986e914c24534c00eb67631a8b8e8dcc78e98",
+    "match_audit_sha256": "a6696d9583effd13a6c416fb681e11c3944f4232995b39597d8ff7ac75ec8499",
+    "operational_audit_sha256": "6762ce14428036aa483a5c8b96748cf6ced2e5ec58336f65ff6645706491eebe",
+    "pgn_sha256": "4ef94c856520dbd483874395ebf6a4430734844f7e55960ac2742b2d0388d747",
+    "final_epd_sha256": "a254a5aba947528afbd3d85f53e61b54aa657a06efd8b20ccd420500c2dc6352",
+    "process_samples_sha256": "ee2e0f3807bbe1f4e417b70a54b23a908ac76be73626a5e2a01668c888587846"
+  },
+  "code_boundary": {
+    "candidate_engine_changes_are_isolated_from_main": true,
+    "candidate_branch": "sprint/p1-reference-picker-20260919",
+    "main_commit_during_result": "e4f138c",
+    "merge_authorized": false
+  },
+  "claim_boundary": "This valid relative one-thread Rodent-V1.2 result rejects P1-R1. It is not an absolute rating measurement or proof about every possible staged-picker design."
+}
