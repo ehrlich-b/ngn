@@ -85,6 +85,12 @@ func addSearchMonotonicCounters(dst, src *SearchInfo) {
 	dst.CutByKiller += src.CutByKiller
 	dst.CutByCounter += src.CutByCounter
 	dst.CutByQuietHist += src.CutByQuietHist
+	dst.PickerTTFirstMoves += src.PickerTTFirstMoves
+	dst.PickerTacticalStages += src.PickerTacticalStages
+	dst.PickerQuietStages += src.PickerQuietStages
+	dst.PickerTacticalMoves += src.PickerTacticalMoves
+	dst.PickerQuietMoves += src.PickerQuietMoves
+	dst.PickerBadCaptureMoves += src.PickerBadCaptureMoves
 	for class := range dst.CutMissByClass {
 		for band := range dst.CutMissByClass[class] {
 			dst.CutMissByClass[class][band] += src.CutMissByClass[class][band]
