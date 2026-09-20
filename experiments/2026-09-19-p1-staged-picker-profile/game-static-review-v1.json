@@ -1,0 +1,55 @@
+{
+  "schema": "ngn-p1-reference-picker-game-static-review-v1",
+  "state": "PASS",
+  "reviewed_utc": "2026-09-20T03:24:28Z",
+  "held_manifest": {
+    "path": "experiments/2026-09-19-p1-staged-picker-profile/game-manifest-held-v1.json",
+    "sha256": "4632f23729e8b8990dad4273b216bfdb2d3e3997edf371925c48163ab2bd0c6e",
+    "release_state": "HELD_PENDING_STATIC_REVIEW"
+  },
+  "driver": {
+    "sha256": "d5503ea0ab7dad059d2a357eda826b81811cfc015c0b51338890ceb06fe3e822",
+    "test_sha256": "b1d49b17e5df95967b2c9f4b98900eb0ac7df7d09f456b010437ea8139543a02",
+    "tests": 3,
+    "local_status": "PASS",
+    "wsl_status": "PASS"
+  },
+  "held_check": {
+    "state": "HELD_STATIC_CHECK_COMPLETE",
+    "base_sha256": "19ddf423ff6addffadd4b830834ca2d3483b47c64b7530689141337b8a39a518",
+    "candidate_sha256": "835aaf1a489878d54ee2d69093b14e7aafcf0b3606bb29ce4c7ac8adf522cb0d",
+    "frozen_sources": 19,
+    "run_root": "absent",
+    "scores_observed": false
+  },
+  "mechanism_receipt": {
+    "path": "experiments/2026-09-19-p1-staged-picker-profile/mechanism-result-v1.json",
+    "sha256": "2a9085e703d0a9e9093bd6eb012e3ba6730c9adbdf5b2f33624f453e093818de",
+    "snapshot_gate": "PASS",
+    "timing_gate": "PASS",
+    "full_short_tests": "PASS",
+    "engine_race_tests": "PASS"
+  },
+  "reviewed_invariants": [
+    "The pilot always assigns the staged-picker candidate to engine A and the accepted base to engine B; fastchess reverses colors for each of 64 sequential opening pairs.",
+    "Both roles use the same Rodent V1.2 model, Threads=1, GOMAXPROCS=1, Hash=128, OwnBook=false, Move Overhead=100 and 10+0.1 clock under the accepted supervised candidate-match harness.",
+    "The base and candidate UCI binaries are distinct, hash-frozen, and built with Go 1.25.5, GOAMD64=v3, CGO_ENABLED=0 and -trimpath from the recorded source commits and trees.",
+    "Pilot openings 1-64 and confirmation source lines 201-400 are hash-frozen before scores; the confirmation corpus is disjoint from the pilot corpus.",
+    "The pilot can advance only under the predeclared upper-bound and independent-mechanism rule; confirmation accepts only at a strictly positive paired-bootstrap lower95 Elo bound.",
+    "Neither phase can extend, rerun, change openings, tune a constant, reverse semantic roles, or substitute a binary after scores.",
+    "Every phase retains independent legal/terminal, operational, process-tree, supervisor, CPU telemetry and artifact-hash evidence.",
+    "The procfs disappearance repair changes only non-owned-CPU observation and is covered by a regression test; engine execution, clocks, affinity, scoring and audits remain in the frozen helper.",
+    "The Lean hopper remains live and is neither paused nor managed by this gate."
+  ],
+  "limitations": [
+    "The ten timing blocks were noisy even though their precommitted median passed at 0.95027; individual timing rows are not interpreted as Elo.",
+    "The worst fixed-depth node ratio, 1.14781, passed but is close to the 1.15 rejection cap.",
+    "The canonical opening sets were used by earlier independent feature gates, but they were fixed before this candidate produced any score and no picker constant was fitted to them.",
+    "This gate provides relative one-thread evidence only and cannot by itself prove an absolute 3300 rating."
+  ],
+  "authorization": {
+    "release_state": "RELEASED_AFTER_STATIC_REVIEW",
+    "authorized": true,
+    "scope": "run the single frozen 64-pair pilot and, only if its unchanged rule requires it, the single frozen 200-pair confirmation"
+  }
+}
