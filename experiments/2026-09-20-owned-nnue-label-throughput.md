@@ -8,7 +8,8 @@ Status: **PASS for labeling throughput; bulk run HELD on disk and final sampler 
 
 This gate exercised the newly source-built Stockfish 18 teacher, two-process
 label supervisor, resumable label journal, v2 K4 architecture identity, and
-independent JSONL-to-Bullet packer on 50,000 deterministic positions. The
+independent JSONL-to-Bullet packer on 55,000 deterministic positions, continuing
+until more than 50,000 labels were accepted. The
 positions came from the prior audited prefix pilot solely to measure teacher
 throughput. They are not the new full-archive 97/1/1/1 selection and are not
 eligible as pilot training data.
@@ -57,12 +58,14 @@ The Lean hopper remained live throughout.
 | --- | ---: | ---: | ---: | ---: | ---: |
 | 000 | 25,000 | 22,872 | 2,128 | 131.11 | 384,384 |
 | 001 | 25,000 | 22,851 | 2,149 | 132.50 | 384,384 |
-| Total | 50,000 | 45,723 | 4,277 | 132.50 concurrent wall | 768,768 summed peaks |
+| 002 continuation | 5,000 | 4,590 | 410 | 26.59 | 384,384 |
+| Total | 55,000 | 50,313 | 4,687 | 159.09 staged wall | 768,768 maximum concurrent summed peaks |
 
-Acceptance was 91.446%. Rejections were explicit: 19 depth-below-minimum, 20
-mate-score, 1,703 nonquiet-bestmove, and 2,535 PV/bestmove mismatches. Both
-label processes and both independent pack operations exited zero. No NGN
-labeler or Stockfish process survived the supervisor.
+Acceptance was 91.478%. Rejections were explicit: 25 depth-below-minimum, 24
+mate-score, 1,870 nonquiet-bestmove, and 2,768 PV/bestmove mismatches. All three
+label processes and all three independent pack operations exited zero. No NGN
+labeler or Stockfish process survived either supervisor. The first two shards
+ran concurrently; the small continuation deliberately used one process only.
 
 Measured accepted rate:
 
@@ -83,16 +86,19 @@ Input shard hashes:
 
 - 000: `3161b4c2efdc0674d32ff68067ab0f3bfcb8e844f896a63baf1ae7bf5c51870b`
 - 001: `7fff0803c1de81f6dc9b645a3937846ac1c91dffe3d9b4982191f46f14050b44`
+- 002: `42b2762fde6a5d74d5400359089cb2703e45ea4b7469bb20ae60a24c1b9786fb`
 
 Label output hashes:
 
 - 000: `0a27d8f4e483dbd9c654358ecf4edf5284f5332e877fbd695b2b6ba4520ae52e`
 - 001: `6d2375ba81c87e63f105faae3385c9e1b0d55e340643d5fb0240cda3c4be3325`
+- 002: `bd2113d7e82bdb121d848bf39d5b7f5911a4605bb0c5ac4811c856de0b1fd91e`
 
 Packed BF hashes and accepted counts:
 
 - 000: `88b5cb4c1a336c9f54fa8b50d625d16bb4f7c76b606b2e3ec165b721d02ca469`, 22,872 records.
 - 001: `296df08e70569a44ae27d948606f27744d26475eb0763df3bf1790578cda23fc`, 22,851 records.
+- 002: `c5e6c2958554e2105f96cd222acec47011b44e67fb3893339f453f98c625657b`, 4,590 records.
 
 The packer receipts bind label/input hashes, exact teacher source/net/binary
 identities, result constant, score perspective, K4-key contract, record order,
@@ -100,7 +106,7 @@ and accepted-stream digest.
 
 ## Remaining hold
 
-Windows C: had 5,154,881,536 bytes free after the gate. The plan requires at
+Windows C: had 5,154,881,536 bytes free after the two-shard gate. The plan requires at
 least 60 GiB before pilot launch and stops below 25 GiB. Therefore no 1M pilot,
 20M main run, or large sampler spill is authorized yet. Source-side sampler and
 split-verifier implementation can continue without weakening that gate.
