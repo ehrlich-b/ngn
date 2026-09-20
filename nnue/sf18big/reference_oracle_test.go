@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"os"
 	"slices"
 	"sort"
@@ -97,6 +98,10 @@ func runOfficialReferenceOracle(t *testing.T, oracleEnvironment string) {
 	var previousCase string
 	var previousPosition base.Position
 	var previousState ReferenceState
+	var context *Context
+	var sparseContext *Context
+	var casePositions []base.Position
+	var caseStates []ReferenceState
 	rows := 0
 	for scanner.Scan() {
 		var row referenceOracleRow
@@ -143,8 +148,28 @@ func runOfficialReferenceOracle(t *testing.T, oracleEnvironment string) {
 		}
 
 		if row.Case != previousCase {
+			if sparseContext != nil {
+				requireSparseContextState(t, sparseContext, previousState, previousPosition, "case tail")
+				requireContextUnwind(t, context, caseStates, casePositions)
+			}
+			casePositions = casePositions[:0]
+			caseStates = caseStates[:0]
 			if row.SequenceIndex != 0 || row.Operation != "root" || row.Transition != nil {
 				t.Fatalf("row %d does not start case %q with a root", rows, row.Case)
+			}
+			context, err = NewContext(model)
+			if err != nil {
+				t.Fatal(err)
+			}
+			sparseContext, err = NewContext(model)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := context.Reset(position); err != nil {
+				t.Fatalf("row %d context reset: %v", rows, err)
+			}
+			if err := sparseContext.Reset(position); err != nil {
+				t.Fatalf("row %d sparse context reset: %v", rows, err)
 			}
 		} else {
 			if row.Transition == nil {
@@ -177,10 +202,53 @@ func runOfficialReferenceOracle(t *testing.T, oracleEnvironment string) {
 					}
 				}
 			}
+			switch row.Operation {
+			case "push":
+				delta, err := oracleContextDelta(previousPosition, position, row.Action)
+				if err != nil {
+					t.Fatalf("row %d delta: %v", rows, err)
+				}
+				if err := context.Push(delta, position); err != nil {
+					t.Fatalf("row %d context push: %v", rows, err)
+				}
+				if err := sparseContext.PushDelta(delta); err != nil {
+					t.Fatalf("row %d sparse context push: %v", rows, err)
+				}
+			case "push_null":
+				if err := context.PushNull(position); err != nil {
+					t.Fatalf("row %d context null: %v", rows, err)
+				}
+				facts, err := contextBoardFacts(position)
+				if err != nil {
+					t.Fatalf("row %d null facts: %v", rows, err)
+				}
+				if err := sparseContext.PushNullFacts(facts); err != nil {
+					t.Fatalf("row %d sparse context null: %v", rows, err)
+				}
+			default:
+				t.Fatalf("row %d unexpected operation %q", rows, row.Operation)
+			}
+			frame := &context.frames[context.depth]
+			if frame.baseComputed != [2]bool{} || frame.threatComputed != [2]bool{} {
+				t.Fatalf("row %d push eagerly computed accumulator state", rows)
+			}
+		}
+
+		contextSelected, err := context.EvaluateSelected()
+		if err != nil {
+			t.Fatalf("row %d context evaluate: %v", rows, err)
+		}
+		if contextSelected != selected || context.frames[context.depth].state != state {
+			t.Fatalf("row %d demand context differs from full refresh", rows)
+		}
+		if row.SequenceIndex%8 == 0 {
+			requireSparseContextState(t, sparseContext, state, position, "periodic donor")
 		}
 		previousCase = row.Case
 		previousPosition = position
 		previousState = state
+		casePositions = append(casePositions, position)
+		caseStates = append(caseStates, state)
 		rows++
 	}
 	if err := scanner.Err(); err != nil {
@@ -189,4 +257,157 @@ func runOfficialReferenceOracle(t *testing.T, oracleEnvironment string) {
 	if rows == 0 {
 		t.Fatal("oracle is empty")
 	}
+	requireSparseContextState(t, sparseContext, previousState, previousPosition, "final case tail")
+	requireContextUnwind(t, context, caseStates, casePositions)
+	if oracleEnvironment == referenceGameOracleEnvironment {
+		sparseStats, err := sparseContext.Stats()
+		if err != nil {
+			t.Fatal(err)
+		}
+		incrementalStats, err := context.Stats()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if sparseStats.AdaptiveFullRefreshes == 0 ||
+			incrementalStats.BaseIncrementalFrames == [2]uint64{} ||
+			incrementalStats.ThreatIncrementalFrames == [2]uint64{} {
+			t.Fatalf("representative contexts did not exercise both donor policies: sparse=%+v incremental=%+v", sparseStats, incrementalStats)
+		}
+	}
+}
+
+func requireContextUnwind(
+	t *testing.T,
+	context *Context,
+	states []ReferenceState,
+	positions []base.Position,
+) {
+	t.Helper()
+	if context == nil || len(states) != len(positions) {
+		t.Fatal("invalid unwind fixture")
+	}
+	for index := len(states) - 2; index >= 0; index-- {
+		if err := context.Pop(); err != nil {
+			t.Fatalf("unwind row %d: %v", index, err)
+		}
+		got, err := context.EvaluateSelected()
+		if err != nil {
+			t.Fatalf("unwind row %d evaluate: %v", index, err)
+		}
+		want := context.model.evaluateSelectedState(&states[index], positions[index].SideToMove, len(positions[index].Pieces))
+		if got != want || context.frames[context.depth].state != states[index] {
+			t.Fatalf("unwind row %d differs from full refresh", index)
+		}
+	}
+	if context.Depth() != 0 {
+		t.Fatalf("unwind depth = %d, want 0", context.Depth())
+	}
+}
+
+func requireSparseContextState(
+	t *testing.T,
+	context *Context,
+	want ReferenceState,
+	position base.Position,
+	label string,
+) {
+	t.Helper()
+	if context == nil {
+		return
+	}
+	got, err := context.EvaluateSelected()
+	if err != nil {
+		t.Fatalf("%s evaluate: %v", label, err)
+	}
+	wantSelected := context.model.evaluateSelectedState(&want, position.SideToMove, len(position.Pieces))
+	if got != wantSelected || context.frames[context.depth].state != want {
+		t.Fatalf("%s demand context differs from full refresh", label)
+	}
+}
+
+func contextBoardFacts(position base.Position) (base.PositionFacts, error) {
+	_, facts, err := contextBoardAndFacts(position)
+	return facts, err
+}
+
+func oracleContextDelta(before, after base.Position, action string) (base.Delta, error) {
+	if len(action) != 4 && len(action) != 5 {
+		return base.Delta{}, fmt.Errorf("invalid UCI action %q", action)
+	}
+	from, err := oracleSquare(action[:2])
+	if err != nil {
+		return base.Delta{}, err
+	}
+	to, err := oracleSquare(action[2:4])
+	if err != nil {
+		return base.Delta{}, err
+	}
+	beforeBoard, beforeFacts, err := contextBoardAndFacts(before)
+	if err != nil {
+		return base.Delta{}, err
+	}
+	afterBoard, afterFacts, err := contextBoardAndFacts(after)
+	if err != nil {
+		return base.Delta{}, err
+	}
+	moverEntry := beforeBoard[from]
+	if !moverEntry.set || moverEntry.color != before.SideToMove {
+		return base.Delta{}, fmt.Errorf("action %q has no mover", action)
+	}
+	moverBefore := base.PieceOnSquare{Piece: moverEntry.piece, Color: moverEntry.color, Square: from}
+	moverAfterEntry := afterBoard[to]
+	if !moverAfterEntry.set || moverAfterEntry.color != moverEntry.color {
+		return base.Delta{}, fmt.Errorf("action %q has no mover at destination", action)
+	}
+	moverAfter := base.PieceOnSquare{Piece: moverAfterEntry.piece, Color: moverAfterEntry.color, Square: to}
+
+	removed := []base.PieceOnSquare{moverBefore}
+	added := []base.PieceOnSquare{moverAfter}
+	for square, entry := range beforeBoard {
+		if !entry.set || base.Square(square) == from || entry == afterBoard[square] {
+			continue
+		}
+		removed = append(removed, base.PieceOnSquare{Piece: entry.piece, Color: entry.color, Square: base.Square(square)})
+	}
+	for square, entry := range afterBoard {
+		if !entry.set || base.Square(square) == to || entry == beforeBoard[square] {
+			continue
+		}
+		added = append(added, base.PieceOnSquare{Piece: entry.piece, Color: entry.color, Square: base.Square(square)})
+	}
+	if len(removed) > base.MaxDeltaPieces || len(added) > base.MaxDeltaPieces {
+		return base.Delta{}, fmt.Errorf("action %q has %d removed and %d added pieces", action, len(removed), len(added))
+	}
+
+	kind := base.MoveNormal
+	fileDistance := int(to&7) - int(from&7)
+	switch {
+	case moverEntry.piece == base.King && (fileDistance == 2 || fileDistance == -2):
+		kind = base.MoveCastle
+	case moverEntry.piece == base.Pawn && moverAfterEntry.piece != base.Pawn && len(removed) == 2:
+		kind = base.MovePromotionCapture
+	case moverEntry.piece == base.Pawn && moverAfterEntry.piece != base.Pawn:
+		kind = base.MovePromotion
+	case len(removed) == 2 && removed[1].Square != to:
+		kind = base.MoveEnPassant
+	case len(removed) == 2:
+		kind = base.MoveCapture
+	}
+	delta := base.Delta{
+		Kind:         kind,
+		RemovedCount: uint8(len(removed)),
+		AddedCount:   uint8(len(added)),
+		Before:       beforeFacts,
+		After:        afterFacts,
+	}
+	copy(delta.Removed[:], removed)
+	copy(delta.Added[:], added)
+	return delta, nil
+}
+
+func oracleSquare(value string) (base.Square, error) {
+	if len(value) != 2 || value[0] < 'a' || value[0] > 'h' || value[1] < '1' || value[1] > '8' {
+		return 0, fmt.Errorf("invalid square %q", value)
+	}
+	return base.Square(value[0]-'a') + 8*base.Square(value[1]-'1'), nil
 }

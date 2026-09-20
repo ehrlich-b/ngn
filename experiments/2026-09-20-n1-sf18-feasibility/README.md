@@ -1,6 +1,7 @@
 # N1 richer-model feasibility: select Stockfish 18 BIG/dual
 
-Status: **N1a and N1b complete; SF18 BIG/dual remains open for N1c.** This
+Status: **N1a, N1b and N1c complete; SF18 BIG/dual remains open for a bounded
+search-adapter/NPS gate.** This
 does not integrate a new evaluator into search, change the default, authorize a
 match, or establish any Elo gain.
 
@@ -155,5 +156,64 @@ does not copy 8,896-byte frames on every edge, and matches the same independent
 oracle. It must measure evaluated-node cost before any UCI/search/default/game
 work.
 
-The goal remains active. N1b establishes feasibility, not playing strength or
-a 3300 rating.
+## Slice N1c: demand-driven BIG context
+
+N1c adds the worker-private accumulator stack that N1b intentionally omitted.
+Every push validates and stores only compact board facts plus the semantic
+transition, clears four computed bits, and leaves the 9,408-byte numeric frame
+untouched. It neither copies the parent frame nor clears the destination
+payload. Evaluation finds the nearest usable donor independently for base and
+FullThreats state, respects the two feature sets' different king refresh
+boundaries, materializes only the missing path, and caches the result. Pop
+reconstructs the private board from the stored transition.
+
+The scalar implementation needs one deliberate departure from Stockfish's
+always-replay policy. On the representative corpus, evaluating after two dirty
+plies costs about 51.94 us and after three costs 66.77 us, but blindly replaying
+eight costs 138.95 us. The same-position full-refresh baseline is 72.51 us.
+The context therefore replays through three dirty plies and refreshes the
+current frame at four or more. This cut the eight-ply case to 76.74 us, within
+5.8% of the full-refresh baseline including all eight pushes and pops. The
+cutoff is an explicit measured scalar policy; SIMD or fused updates can move it.
+
+Correctness extends the same independent pinned Stockfish oracle rather than
+introducing a context-authored oracle. All 1,203 positions match exactly for
+both perspectives after ordinary one-ply donors. A second lane evaluates only
+every eighth ply, forcing adaptive refreshes, and every case is then unwound to
+its root while cached states and selected output are checked again. This covers
+real and null pushes, compact-delta and full-position adapters, refresh
+boundaries, donors, adaptive refresh, pop, stack reuse, all accumulator/PSQT
+lanes, active threats, and final output. The focused race gate and the
+repository-wide short suite also pass.
+
+Ten one-second blocks on the same pinned Ryzen 7 9800X3D core measured the
+following medians; every path reports zero allocations:
+
+| Demand-context path | Median ns |
+| --- | ---: |
+| Dirty push + matching pop, per transition | 208.75 |
+| Evaluate every ply, per evaluated node | 28,668 |
+| Evaluate after 2 dirty plies | 51,942.5 |
+| Evaluate after 3 dirty plies | 66,772.5 |
+| Evaluate after 4 dirty plies, adaptive refresh | 77,729.5 |
+| Evaluate after 8 dirty plies, adaptive refresh | 76,740.5 |
+| Re-evaluate already-computed frame | 7,254.5 |
+| Same-position selected full refresh | 72,512 |
+
+The one-ply donor path is 60.5% cheaper than the same-corpus full-refresh
+baseline (2.53x throughput), while the adaptive cutoff bounds long unevaluated
+chains instead of paying work proportional to their length. The fixed
+257-frame context occupies 2,418,152 bytes; frames are 9,408 bytes each. That
+is a bounded memory trade: the 137,844,032-byte model remains shared, while
+each search worker owns about 2.31 MiB of mutable stack.
+
+N1c passes its gate. It proves an exact, allocation-free and bounded scalar
+search-state design, not playing strength. No engine search, UCI option,
+default, match, or game path uses BIG yet. The next gate is a research-only
+search adapter with fixed-position/fixed-node NPS and profile evidence before
+any Elo match is authorized. At roughly 20x the existing SMALL selected-output
+cost, BIG must demonstrate that evaluation quality pays for its node loss or
+identify a SIMD/fused-update prerequisite.
+
+The goal remains active. N1c establishes a safe measurement boundary, not a
+3300 rating.

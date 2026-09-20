@@ -91,7 +91,15 @@ func ActiveThreats(position base.Position, perspective base.Color) (ThreatIndexL
 	if perspective > base.Black {
 		return ThreatIndexList{}, fmt.Errorf("%w: perspective %d", ErrEvaluation, perspective)
 	}
+	return activeThreatsBoard(board, kings[perspective], occupied, perspective)
+}
 
+func activeThreatsBoard(
+	board [64]boardPiece,
+	king base.Square,
+	occupied uint64,
+	perspective base.Color,
+) (ThreatIndexList, error) {
 	var active ThreatIndexList
 	for relativeColor := base.White; relativeColor <= base.Black; relativeColor++ {
 		color := perspective ^ relativeColor
@@ -104,7 +112,7 @@ func ActiveThreats(position base.Position, perspective base.Color) (ThreatIndexL
 				for attacks != 0 {
 					to := base.Square(trailingZeros64(attacks))
 					attacks &= attacks - 1
-					index, ok := threatIndex(perspective, attacker, base.Square(from), board[to], to, kings[perspective])
+					index, ok := threatIndex(perspective, attacker, base.Square(from), board[to], to, king)
 					if !ok {
 						continue
 					}
