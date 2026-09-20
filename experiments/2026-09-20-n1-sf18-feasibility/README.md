@@ -1,10 +1,10 @@
 # N1 richer-model feasibility: select Stockfish 18 BIG/dual
 
-Status: **N1a through N1g complete; exact SF18 BIG/dual cleared its throughput
-gate, produced a strong positive bounded strength screen, and now has exact
-dirty-threat transitions that win their paired cost gate.** This does not
-expose the backend through the normal NGN UCI process, change the default, or
-authorize promotion.
+Status: **N1a through N1h complete; exact SF18 BIG/dual cleared its throughput
+gate, gained exact dirty-threat transitions, and passed both its bounded screen
+and its larger pre-registered equal-time strength gate.** This does not expose
+the backend through the normal NGN UCI process, change the default, establish
+an absolute rating, or authorize promotion.
 
 The immediate question after the rejected P1 staged-picker candidate was which
 single richer pretrained evaluator deserved the next architectural lane.
@@ -425,3 +425,42 @@ change, an absolute-rating claim, and promotion remain unauthorized. If more
 cost work is interleaved with that match, the profile selects accumulator-stack
 copy traffic and fused threat-row updates—not more active-set sorting—as the
 next engineering targets.
+
+## Slice N1h: larger pre-registered equal-time match
+
+N1h was frozen in `n1h-match-contract.json` before any game. Candidate, HCE
+control and harness were clean `e75533a` builds and were pinned by SHA-256. The
+opening set was the first 200 lines of the canonical 5,000-opening corpus
+(`974e4b5a...`), itself frozen as a 200-line slice with SHA-256
+`2257ecfb...`. These openings are independent of N1f's small built-in set.
+
+The contract kept the earlier 20 ms/move, serial, reversed-color-pair and
+160-ply-cap shape, with no score adjudication. It required all games to finish:
+the minimum-game thresholds were set one game beyond each cap, so the harness's
+narrow `[-3,+3]` SPRT could not stop the run early. The pre-registered strength
+rule was instead a positive lower bound on the final pentanomial 95% Elo
+interval.
+
+The required 20-game HCE/HCE smoke completed 4-10-6 with paired Elo -34.9 and
+95% CI `[-102,+30]`. More importantly for that stage, all games completed and
+the log contained no startup, protocol, crash, illegal-move, no-move, watchdog
+or timeout failure.
+
+BIG then scored **199-176-25 in 400 games (71.8%)**. Across the 200 opening
+pairs, the pentanomial was `[1,8,56,86,49]`; paired Elo was **+161.9** with 95%
+CI **[+138,+188]** and paired LLR **+8.43**. The secondary trinomial interval
+was `[+124,+200]`. All 400 games completed in 15m59s: 224 checkmates, 164 neutral
+ply-cap draws, 11 draw-rule finishes and one stalemate, with zero operational
+failure. All artifact hashes matched again after the run.
+
+The harness prints `INCONCLUSIVE` only because the contract deliberately set
+`mingames=401` for a 400-game cap. Under the decision rule frozen before the
+match, N1h is a decisive **PASS**: the paired lower confidence bound is +138,
+far above zero. The independent larger corpus also narrows and confirms N1f's
+positive quality signal rather than merely repeating its openings.
+
+N1h proves a large relative gain over same-tree HCE; it still does not prove an
+absolute 3300 rating. The next bounded slice is N1i: expose the already locked
+BIG backend through a production-compatible opt-in UCI lane, then run a pinned
+external-anchor gauntlet. Only that cross-engine calibration can decide whether
+BIG is already at the target and whether a default change should be proposed.
