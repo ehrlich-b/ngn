@@ -127,7 +127,7 @@ func validateSavedRecord(record LabelRecord, input InputPosition, split, previou
 	if err != nil {
 		return err
 	}
-	if record.Type != "label" || record.ID != input.ID || record.Split != split ||
+	if record.Type != "label" || record.ID != input.ID || record.K4InputSHA256 != input.K4InputSHA256 || record.Split != split ||
 		record.OriginalFEN != input.FEN || record.ResetFEN != reset || record.SourceMove != input.SourceMove {
 		return fmt.Errorf("%w: resumed label identity mismatch at %s", ErrContract, input.ID)
 	}

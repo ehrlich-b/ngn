@@ -42,7 +42,7 @@ func acceptedFixture(t *testing.T, id, fen, sourceMove, bestMove string, cp int)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, material, err := parseBoard(fen, 0)
+	board, material, err := parseBoard(fen, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func acceptedFixture(t *testing.T, id, fen, sourceMove, bestMove string, cp int)
 	info := "info depth 8 seldepth 11 multipv 1 score cp " + strconvItoa(cp) + " nodes 5000 nps 100000 pv " + bestMove + " a7a6"
 	infoDigest := sha256.Sum256([]byte(info))
 	return labelRecord{
-		Type: "label", ID: fixtureSHA(id), Split: "train", OriginalFEN: fen, ResetFEN: reset, SourceMove: sourceMove,
+		Type: "label", ID: fixtureSHA(id), K4InputSHA256: hex.EncodeToString(board.k4InputSHA256[:]), Split: "train", OriginalFEN: fen, ResetFEN: reset, SourceMove: sourceMove,
 		BestMove: bestMove, PVMove: bestMove, UCICP: cp, NGNScore: score, Target: target, MaterialUnits: material,
 		MaterialNormalizer: normalizer, Depth: 8, SelDepth: 11, Nodes: 5_000,
 		InfoLineSHA256: hex.EncodeToString(infoDigest[:]), TeacherInfoLine: info, Status: "accepted",
@@ -88,7 +88,11 @@ func rejectedFixture(t *testing.T) labelRecord {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return labelRecord{Type: "label", ID: fixtureSHA("rejected"), Split: "train", OriginalFEN: whiteFEN, ResetFEN: reset, SourceMove: "d2d4", Status: "rejected", RejectionReason: "saturated-tail"}
+	board, _, err := parseBoard(whiteFEN, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return labelRecord{Type: "label", ID: fixtureSHA("rejected"), K4InputSHA256: hex.EncodeToString(board.k4InputSHA256[:]), Split: "train", OriginalFEN: whiteFEN, ResetFEN: reset, SourceMove: "d2d4", Status: "rejected", RejectionReason: "saturated-tail"}
 }
 
 type fixture struct {
@@ -192,6 +196,22 @@ func TestPackPublishesVerifiedBulletShard(t *testing.T) {
 	}
 }
 
+func TestK4InputIdentityGoldens(t *testing.T) {
+	tests := []struct{ fen, want string }{
+		{whiteFEN, "754c73a16b5b3d57e57872163f8df31d7f867efe6b6dd6d3590edb2e2dae1b16"},
+		{blackFEN, "e8dc98ae95a55187e5498a2ee1678a7877a5bcf2fd154756f8ea46a80a0827df"},
+	}
+	for _, test := range tests {
+		board, _, err := parseBoard(test.fen, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := hex.EncodeToString(board.k4InputSHA256[:]); got != test.want {
+			t.Fatalf("K4 key for %s = %s, want %s", test.fen, got, test.want)
+		}
+	}
+}
+
 func TestPackRejectsResealedSemanticMutations(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -206,6 +226,7 @@ func TestPackRejectsResealedSemanticMutations(t *testing.T) {
 			value.records[0].InfoLineSHA256 = hex.EncodeToString(digest[:])
 		}, "info-line fields mismatch"},
 		{"perspective", func(value *fixture) { value.records[1].NGNScore = -value.records[1].NGNScore }, "score contract mismatch"},
+		{"k4-input", func(value *fixture) { value.records[0].K4InputSHA256 = fixtureSHA("wrong K4 input") }, "K4 input identity mismatch"},
 		{"duplicate", func(value *fixture) { value.records[1].ID = value.records[0].ID }, "duplicate label id"},
 	}
 	for _, test := range tests {

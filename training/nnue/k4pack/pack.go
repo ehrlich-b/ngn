@@ -24,14 +24,15 @@ import (
 )
 
 const (
-	InputSchema          = "ngn-k4-label-input-v1"
-	LabelSchema          = "ngn-k4-label-output-v1"
+	InputSchema          = "ngn-k4-label-input-v2"
+	LabelSchema          = "ngn-k4-label-output-v2"
 	ContractVersion      = "sf18-5kn-material-inversion-v1"
 	ReceiptSchema        = "ngn-k4-pack-receipt-v1"
 	TeacherSourceCommit  = "cb3d4ee9b47d0c5aae855b12379378ea1439675c"
 	TeacherBigNetworkSHA = "c288c895ea924429ea9092e3f36b2b3c1f00f2a3a4c759ff7e57e79e3b43e4a7"
 	TeacherSmallNetSHA   = "37f18f62d772f3107e1d6aaca3898c130c3c86f2ab63e6555fbbca20635a899d"
 	ScoreContract        = "c=round(uci_cp*a(material)/208); target=1/(1+exp(-c/400)); STM; root_halfmove=0"
+	K4InputKeyContract   = "sha256(ngn-k4-input-v1\\0 || stm_count:u16le || sorted_stm_rows:u16le[] || ntm_count:u16le || sorted_ntm_rows:u16le[] || material_head:u8)"
 	RecordBytes          = 32
 	maximumLineBytes     = 1 << 20
 	maximumInputBytes    = 512 << 20
@@ -84,6 +85,7 @@ type outputHeader struct {
 type labelRecord struct {
 	Type                 string  `json:"type"`
 	ID                   string  `json:"id"`
+	K4InputSHA256        string  `json:"k4_input_sha256"`
 	Split                string  `json:"split"`
 	OriginalFEN          string  `json:"original_fen"`
 	ResetFEN             string  `json:"reset_fen"`
@@ -140,6 +142,7 @@ type Receipt struct {
 	RecordBytes               int            `json:"record_bytes"`
 	ResultConstant            int            `json:"result_constant"`
 	ScorePerspective          string         `json:"score_perspective"`
+	K4InputKeyContract        string         `json:"k4_input_key_contract"`
 	AcceptedStreamSHA256      string         `json:"accepted_stream_sha256"`
 	TeacherExecutableSHA256   string         `json:"teacher_executable_sha256"`
 	TeacherSourceCommit       string         `json:"teacher_source_commit"`
@@ -152,15 +155,25 @@ type envelope struct {
 }
 
 type boardRecord struct {
-	occ      uint64
-	pcs      [16]byte
-	score    int16
-	result   byte
-	ksq      byte
-	oppKsq   byte
-	extra    [3]byte
-	features [32]uint16
-	featureN int
+	occ           uint64
+	pcs           [16]byte
+	score         int16
+	result        byte
+	ksq           byte
+	oppKsq        byte
+	extra         [3]byte
+	k4InputSHA256 [32]byte
+}
+
+var k4KingBuckets = [64]int{
+	1, 1, 0, 0, 0, 0, 1, 1,
+	2, 2, 2, 2, 2, 2, 2, 2,
+	3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3,
 }
 
 func validSHA(value string) bool {
@@ -420,28 +433,67 @@ func parseBoard(fen string, score int16) (boardRecord, int, error) {
 	}
 	sort.Slice(pieces, func(i, j int) bool { return pieces[i].square < pieces[j].square })
 	board := boardRecord{score: score, result: 1}
-	var ourKing, opponentKing *byte
+	var ourKing, opponentKing byte
+	var haveOurKing, haveOpponentKing bool
 	for index, item := range pieces {
 		board.occ |= uint64(1) << item.square
 		board.pcs[index/2] |= item.code << (4 * (index & 1))
 		color := int(item.code >> 3)
-		base := int(item.code&7) * 64
-		board.features[board.featureN] = uint16(color*384 + base + int(item.square))
-		board.featureN++
 		if item.code&7 == 5 {
-			value := item.square
 			if color == 0 {
-				ourKing = &value
+				ourKing, haveOurKing = item.square, true
 			} else {
-				opponentKing = &value
+				opponentKing, haveOpponentKing = item.square, true
 			}
 		}
 	}
-	if ourKing == nil || opponentKing == nil {
+	if !haveOurKing || !haveOpponentKing {
 		return boardRecord{}, 0, errors.New("missing normalized king")
 	}
-	board.ksq = *ourKing
-	board.oppKsq = *opponentKing ^ 56
+	board.ksq = ourKing
+	board.oppKsq = opponentKing ^ 56
+	var featureLists [2][]uint16
+	kingSquares := [2]int{int(ourKing), int(opponentKing)}
+	for perspective := 0; perspective < 2; perspective++ {
+		for _, item := range pieces {
+			color, pieceType := int(item.code>>3), int(item.code&7)
+			square, kingSquare := int(item.square), kingSquares[perspective]
+			orientedSquare, orientedKing := square, kingSquare
+			if perspective == 1 {
+				orientedSquare ^= 56
+				orientedKing ^= 56
+			}
+			if kingSquare%8 > 3 {
+				orientedSquare ^= 7
+			}
+			featureLists[perspective] = append(featureLists[perspective], uint16(
+				k4KingBuckets[orientedKing]*768+(color^perspective)*384+pieceType*64+orientedSquare,
+			))
+		}
+		sort.Slice(featureLists[perspective], func(i, j int) bool {
+			return featureLists[perspective][i] < featureLists[perspective][j]
+		})
+	}
+	head := (len(pieces) - 2) / 4
+	if head < 0 {
+		head = 0
+	}
+	if head > 7 {
+		head = 7
+	}
+	hasher := sha256.New()
+	hasher.Write([]byte("ngn-k4-input-v1\x00"))
+	var word [2]byte
+	for perspective := 0; perspective < 2; perspective++ {
+		binary.LittleEndian.PutUint16(word[:], uint16(len(featureLists[perspective])))
+		hasher.Write(word[:])
+		for _, feature := range featureLists[perspective] {
+			binary.LittleEndian.PutUint16(word[:], feature)
+			hasher.Write(word[:])
+		}
+	}
+	hasher.Write([]byte{byte(head)})
+	copy(board.k4InputSHA256[:], hasher.Sum(nil))
 	return board, material, nil
 }
 
@@ -455,39 +507,8 @@ func (board boardRecord) bytes() []byte {
 	return data
 }
 
-func (board boardRecord) modelInputSHA() [32]byte {
-	stm := append([]uint16(nil), board.features[:board.featureN]...)
-	sort.Slice(stm, func(i, j int) bool { return stm[i] < stm[j] })
-	ntm := make([]uint16, 0, board.featureN)
-	for index := 0; index < board.featureN; index++ {
-		feature := board.features[index]
-		color := int(feature) / 384
-		within := int(feature) % 384
-		kind, square := within/64, within%64
-		ntm = append(ntm, uint16((1-color)*384+kind*64+(square^56)))
-	}
-	sort.Slice(ntm, func(i, j int) bool { return ntm[i] < ntm[j] })
-	hasher := sha256.New()
-	var word [2]byte
-	binary.LittleEndian.PutUint16(word[:], uint16(len(stm)))
-	hasher.Write(word[:])
-	for _, feature := range stm {
-		binary.LittleEndian.PutUint16(word[:], feature)
-		hasher.Write(word[:])
-	}
-	binary.LittleEndian.PutUint16(word[:], uint16(len(ntm)))
-	hasher.Write(word[:])
-	for _, feature := range ntm {
-		binary.LittleEndian.PutUint16(word[:], feature)
-		hasher.Write(word[:])
-	}
-	var digest [32]byte
-	copy(digest[:], hasher.Sum(nil))
-	return digest
-}
-
 func validateRecord(record labelRecord, header outputHeader, previous string) (boardRecord, bool, error) {
-	if record.Type != "label" || !validSHA(record.ID) || record.Split != header.Input.Split || record.OriginalFEN == "" ||
+	if record.Type != "label" || !validSHA(record.ID) || !validSHA(record.K4InputSHA256) || record.Split != header.Input.Split || record.OriginalFEN == "" ||
 		record.PreviousRecordSHA256 != previous || !validSHA(record.RecordSHA256) {
 		return boardRecord{}, false, fmt.Errorf("%w: label identity/chain mismatch at %s", ErrContract, record.ID)
 	}
@@ -501,6 +522,13 @@ func validateRecord(record labelRecord, header outputHeader, previous string) (b
 	}
 	if err := validateQuietMove(position, record.SourceMove, true); err != nil {
 		return boardRecord{}, false, fmt.Errorf("%w: source %v", ErrContract, err)
+	}
+	board, material, err := parseBoard(record.OriginalFEN, record.NGNScore)
+	if err != nil {
+		return boardRecord{}, false, fmt.Errorf("%w: board conversion at %s: %v", ErrContract, record.ID, err)
+	}
+	if record.K4InputSHA256 != hex.EncodeToString(board.k4InputSHA256[:]) {
+		return boardRecord{}, false, fmt.Errorf("%w: K4 input identity mismatch at %s", ErrContract, record.ID)
 	}
 	switch record.Status {
 	case "rejected":
@@ -527,10 +555,6 @@ func validateRecord(record labelRecord, header outputHeader, previous string) (b
 	if err != nil || info.depth != record.Depth || info.seldepth != record.SelDepth || info.nodes != record.Nodes ||
 		info.cp != record.UCICP || info.pv != record.PVMove {
 		return boardRecord{}, false, fmt.Errorf("%w: info-line fields mismatch at %s", ErrContract, record.ID)
-	}
-	board, material, err := parseBoard(record.OriginalFEN, record.NGNScore)
-	if err != nil {
-		return boardRecord{}, false, fmt.Errorf("%w: board conversion at %s: %v", ErrContract, record.ID, err)
 	}
 	wantScore, wantTarget, wantNormalizer, err := scoreTarget(material, record.UCICP)
 	if err != nil || record.NGNScore != wantScore || record.MaterialUnits != material ||
@@ -692,9 +716,8 @@ func Pack(inputPath, outputPath, receiptPath string, command []string) (receipt 
 				if _, err := writer.Write(encoded); err != nil {
 					return Receipt{}, err
 				}
-				modelHash := board.modelInputSHA()
 				streamHash.Write([]byte(record.ID))
-				streamHash.Write(modelHash[:])
+				streamHash.Write(board.k4InputSHA256[:])
 				var word [8]byte
 				binary.LittleEndian.PutUint64(word[:], ordinal)
 				streamHash.Write(word[:])
@@ -750,7 +773,7 @@ func Pack(inputPath, outputPath, receiptPath string, command []string) (receipt 
 		InputPath: inputPath, InputBytes: info.Size(), InputSHA256: hex.EncodeToString(inputHash.Sum(nil)), InputShardSHA256: header.InputSHA256,
 		ShardID: header.Input.ShardID, Split: header.Input.Split, OutputPath: outputPath, OutputBytes: outputBytes,
 		OutputSHA256: hex.EncodeToString(outputHash.Sum(nil)), Records: accepted + rejected, Accepted: accepted, Rejected: rejected,
-		Rejections: rejections, RecordBytes: RecordBytes, ResultConstant: 1, ScorePerspective: "side-to-move",
+		Rejections: rejections, RecordBytes: RecordBytes, ResultConstant: 1, ScorePerspective: "side-to-move", K4InputKeyContract: K4InputKeyContract,
 		AcceptedStreamSHA256: hex.EncodeToString(streamHash.Sum(nil)), TeacherExecutableSHA256: header.Teacher.ExecutableSHA256,
 		TeacherSourceCommit: header.Teacher.SourceCommit, TeacherBigNetworkSHA256: header.Teacher.BigNetworkSHA256,
 		TeacherSmallNetworkSHA256: header.Teacher.SmallNetworkSHA256,

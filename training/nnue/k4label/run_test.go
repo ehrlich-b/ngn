@@ -67,7 +67,7 @@ func jsonNumber(value int) string {
 }
 
 func TestRunShardResumesVerifiedJournalAndPublishesNoClobber(t *testing.T) {
-	positions := testPositions()
+	positions := testPositions(t)
 	input := writeInputShard(t, positions)
 	output := filepath.Join(t.TempDir(), "labeled.jsonl")
 	first := &fakeAnalyzer{provenance: fakeProvenance("same"), results: fakeResults(t, positions), failAfter: 2}
@@ -135,10 +135,10 @@ func TestRunShardResumesVerifiedJournalAndPublishesNoClobber(t *testing.T) {
 }
 
 func TestRunShardRejectsTamperedResumeChainBeforeTeacher(t *testing.T) {
-	positions := testPositions()[:2]
+	positions := testPositions(t)[:2]
 	input := writeInputShard(t, positions)
 	output := filepath.Join(t.TempDir(), "labeled.jsonl")
-	first := &fakeAnalyzer{provenance: fakeProvenance("same"), results: fakeResults(t, testPositions()), failAfter: 1}
+	first := &fakeAnalyzer{provenance: fakeProvenance("same"), results: fakeResults(t, testPositions(t)), failAfter: 1}
 	if _, err := RunShard(context.Background(), input, output, first); err == nil {
 		t.Fatal("injected first run succeeded")
 	}
@@ -163,7 +163,7 @@ func TestRunShardRejectsTamperedResumeChainBeforeTeacher(t *testing.T) {
 	if err := os.WriteFile(partial, []byte(lines[0]+"\n"+string(mutated)+"\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	second := &fakeAnalyzer{provenance: fakeProvenance("same"), results: fakeResults(t, testPositions()), failAfter: -1}
+	second := &fakeAnalyzer{provenance: fakeProvenance("same"), results: fakeResults(t, testPositions(t)), failAfter: -1}
 	if _, err := RunShard(context.Background(), input, output, second); err == nil || !strings.Contains(err.Error(), "digest mismatch") {
 		t.Fatalf("tampered resume error = %v", err)
 	}
@@ -173,14 +173,14 @@ func TestRunShardRejectsTamperedResumeChainBeforeTeacher(t *testing.T) {
 }
 
 func TestRunShardRejectsChangedTeacherProvenanceOnResume(t *testing.T) {
-	positions := testPositions()[:2]
+	positions := testPositions(t)[:2]
 	input := writeInputShard(t, positions)
 	output := filepath.Join(t.TempDir(), "labeled.jsonl")
-	first := &fakeAnalyzer{provenance: fakeProvenance("first"), results: fakeResults(t, testPositions()), failAfter: 1}
+	first := &fakeAnalyzer{provenance: fakeProvenance("first"), results: fakeResults(t, testPositions(t)), failAfter: 1}
 	if _, err := RunShard(context.Background(), input, output, first); err == nil {
 		t.Fatal("injected first run succeeded")
 	}
-	second := &fakeAnalyzer{provenance: fakeProvenance("second"), results: fakeResults(t, testPositions()), failAfter: -1}
+	second := &fakeAnalyzer{provenance: fakeProvenance("second"), results: fakeResults(t, testPositions(t)), failAfter: -1}
 	if _, err := RunShard(context.Background(), input, output, second); err == nil || !strings.Contains(err.Error(), "header does not match") {
 		t.Fatalf("changed provenance error = %v", err)
 	}

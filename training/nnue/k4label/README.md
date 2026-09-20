@@ -5,10 +5,12 @@ Stockfish 18 teacher. It is intentionally single-process: the run supervisor may
 place at most two independent shard processes on admitted CPUs without allowing
 worker scheduling to change a shard's output order.
 
-The JSONL input begins with one `ngn-k4-label-input-v1` header followed by the
+The JSONL input begins with one `ngn-k4-label-input-v2` header followed by the
 declared number of position records. Each record retains its archive, encoded
 chain, entry and K4-input identities, literal six-field FEN, and the source quiet
-move used by the sampler's eligibility filter. The labeler independently rejects
+move used by the sampler's eligibility filter. It independently recomputes the
+`ngn-k4-input-v1` architecture identity from both king-bucketed/mirrored
+perspective feature lists and the material output head. The labeler rejects
 malformed state, check positions, illegal moves, captures, promotions, castling
 and en-passant source moves before starting the teacher.
 

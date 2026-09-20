@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	InputSchema          = "ngn-k4-label-input-v1"
-	OutputSchema         = "ngn-k4-label-output-v1"
+	InputSchema          = "ngn-k4-label-input-v2"
+	OutputSchema         = "ngn-k4-label-output-v2"
 	ContractVersion      = "sf18-5kn-material-inversion-v1"
 	MaximumShardRecords  = 100_000
 	MaximumInputLine     = 1 << 20
@@ -124,6 +124,7 @@ type SearchResult struct {
 type LabelRecord struct {
 	Type                 string  `json:"type"`
 	ID                   string  `json:"id"`
+	K4InputSHA256        string  `json:"k4_input_sha256"`
 	Split                string  `json:"split"`
 	OriginalFEN          string  `json:"original_fen"`
 	ResetFEN             string  `json:"reset_fen"`
@@ -221,6 +222,10 @@ func validatePosition(record InputPosition) error {
 	}
 	if position.IsInCheck() {
 		return fmt.Errorf("%w: position %s is in check", ErrContract, record.ID)
+	}
+	k4InputSHA, err := K4InputSHA256(position)
+	if err != nil || record.K4InputSHA256 != k4InputSHA {
+		return fmt.Errorf("%w: position %s K4 input identity mismatch", ErrContract, record.ID)
 	}
 	move, err := engine.ParseUCIMove(position, record.SourceMove)
 	if err != nil || move.IsCapture() || move.PromoType() != engine.NoType || move.IsCastle() || move.IsEnPassant() {
@@ -355,7 +360,7 @@ func buildLabelRecord(input InputPosition, split string, result SearchResult, re
 		return LabelRecord{}, err
 	}
 	record := LabelRecord{
-		Type: "label", ID: input.ID, Split: split, OriginalFEN: input.FEN,
+		Type: "label", ID: input.ID, K4InputSHA256: input.K4InputSHA256, Split: split, OriginalFEN: input.FEN,
 		ResetFEN: resetFEN, SourceMove: input.SourceMove, BestMove: result.BestMove,
 		PVMove: result.PVMove,
 		UCICP:  result.CP, Depth: result.Depth, SelDepth: result.SelDepth, Nodes: result.Nodes,

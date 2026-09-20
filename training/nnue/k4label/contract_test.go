@@ -18,28 +18,40 @@ func testSHA(value string) string {
 	return hex.EncodeToString(digest[:])
 }
 
-func testPositions() []InputPosition {
+func testPositions(t *testing.T) []InputPosition {
+	t.Helper()
 	archive := testSHA("source archive")
-	return []InputPosition{
+	positions := []InputPosition{
 		{
 			Type: "position", ID: testSHA("position 0"),
 			FEN: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 37 1", SourceMove: "e2e4",
 			EncodedChain: 10, ChainEntry: 2, SourcePosition: 100,
-			K4InputSHA256: testSHA("k4 0"), SourceArchiveSHA: archive,
+			SourceArchiveSHA: archive,
 		},
 		{
 			Type: "position", ID: testSHA("position 1"),
 			FEN: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 12 1", SourceMove: "e7e5",
 			EncodedChain: 11, ChainEntry: 3, SourcePosition: 101,
-			K4InputSHA256: testSHA("k4 1"), SourceArchiveSHA: archive,
+			SourceArchiveSHA: archive,
 		},
 		{
 			Type: "position", ID: testSHA("position 2"),
 			FEN: "4k3/8/8/8/3p4/4P3/8/4K3 w - - 7 1", SourceMove: "e1e2",
 			EncodedChain: 12, ChainEntry: 4, SourcePosition: 102,
-			K4InputSHA256: testSHA("k4 2"), SourceArchiveSHA: archive,
+			SourceArchiveSHA: archive,
 		},
 	}
+	for index := range positions {
+		position, err := engine.ParseFEN(positions[index].FEN)
+		if err != nil {
+			t.Fatal(err)
+		}
+		positions[index].K4InputSHA256, err = K4InputSHA256(position)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	return positions
 }
 
 func writeInputShard(t *testing.T, positions []InputPosition) string {
@@ -77,7 +89,7 @@ func byteStrings(lines [][]byte) []string {
 }
 
 func TestReadInputShardValidatesCompleteSemanticInput(t *testing.T) {
-	positions := testPositions()
+	positions := testPositions(t)
 	path := writeInputShard(t, positions)
 	shard, err := ReadInputShard(path)
 	if err != nil {
@@ -97,6 +109,12 @@ func TestReadInputShardValidatesCompleteSemanticInput(t *testing.T) {
 	duplicate[1].ID = duplicate[0].ID
 	if _, err := ReadInputShard(writeInputShard(t, duplicate)); err == nil || !strings.Contains(err.Error(), "duplicate position id") {
 		t.Fatalf("duplicate input error = %v", err)
+	}
+
+	wrongK4 := append([]InputPosition(nil), positions...)
+	wrongK4[0].K4InputSHA256 = testSHA("plain Chess768 key")
+	if _, err := ReadInputShard(writeInputShard(t, wrongK4)); err == nil || !strings.Contains(err.Error(), "K4 input identity mismatch") {
+		t.Fatalf("wrong K4 input error = %v", err)
 	}
 
 	phantomEP := append([]InputPosition(nil), positions[:1]...)
