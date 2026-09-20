@@ -1,6 +1,6 @@
 {
   "schema": "ngn-p1-reference-picker-game-gate-v1",
-  "driver_sha256": "9fa734a34442884a2ac743604378d71279947555eaf43fac5e029e25421cd132",
+  "driver_sha256": "d5503ea0ab7dad059d2a357eda826b81811cfc015c0b51338890ceb06fe3e822",
   "release_state": "HELD_PENDING_STATIC_REVIEW",
   "run_root": "/home/ehrli/p1-staged-picker-game-20260919/run-001",
   "protocol": {
@@ -120,6 +120,22 @@
     "v12_model": {
       "path": "/home/ehrli/rodent-v1.2-public-preflight-20260906/extracted/release/release-1-2/nets/rodent_4kb_768hl_8ob_v2.bin",
       "sha256": "c35a1abc1b8c1cb1d5f4221454d494c1a6da1ed9088fd51ab27038bfa74b5053"
+    },
+    "snapshot_summary": {
+      "path": "/home/ehrli/p1-staged-picker-gate-20260919/run-001/snapshot-summary.json",
+      "sha256": "1d0508beba00463bb3c1a79339a315ee9c14df0e9e35e919667e3fabaa63f0cd"
+    },
+    "timing_result": {
+      "path": "/home/ehrli/p1-staged-picker-gate-20260919/run-001/timing/result.json",
+      "sha256": "5ea2b3ecd0a7f8fb2adc22c1200bbe5f8b7536d609e2256a88a6fd7d687746ae"
+    },
+    "validation_short_receipt": {
+      "path": "/home/ehrli/p1-staged-picker-gate-20260919/run-001/validation-short-receipt.json",
+      "sha256": "5d77c91ac89913d53b01fae998aa7d0693f5b68f54bf3b8f9c5f27875bc173fa"
+    },
+    "validation_race_receipt": {
+      "path": "/home/ehrli/p1-staged-picker-gate-20260919/run-001/validation-race-receipt.json",
+      "sha256": "5d77c91ac89913d53b01fae998aa7d0693f5b68f54bf3b8f9c5f27875bc173fa"
     }
   }
 }

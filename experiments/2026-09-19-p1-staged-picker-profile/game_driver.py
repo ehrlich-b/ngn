@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import shutil
 import sys
+import time
 
 
 SCHEMA = "ngn-p1-reference-picker-game-gate-v1"
@@ -65,6 +66,8 @@ EXPECTED_SOURCES = {
     "trace_audit.py", "audit_fastchess_match.py", "uci_preflight.py", "common.py",
     "fastchess", "stockfish", "pilot_openings", "pilot_prefixes",
     "confirmation_openings", "confirmation_prefixes", "v12_model",
+    "snapshot_summary", "timing_result", "validation_short_receipt",
+    "validation_race_receipt",
 }
 ENGINE_KEYS = {
     "path", "sha256", "source_commit", "source_tree", "go_version",
@@ -108,6 +111,50 @@ def load_module(path: Path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def read_proc_entry(entry: Path) -> tuple[int, int, int, str] | None:
+    """Read one procfs row, tolerating a process disappearing between reads."""
+    try:
+        fields = (entry / "stat").read_text(encoding="utf-8").split()
+        status = (entry / "status").read_text(encoding="utf-8").splitlines()
+        return (
+            int(fields[0]),
+            int(fields[13]) + int(fields[14]),
+            int(fields[3]),
+            next((line.split(":", 1)[1].strip() for line in status if line.startswith("Name:")), "?"),
+        )
+    except (FileNotFoundError, ProcessLookupError, PermissionError, ValueError, IndexError):
+        return None
+
+
+def safe_proc_snapshot() -> tuple[float, dict[int, int], dict[int, int], dict[int, str]]:
+    """Harden the frozen telemetry helper against transient procfs exits."""
+    ticks: dict[int, int] = {}
+    parents: dict[int, int] = {}
+    names: dict[int, str] = {}
+    for entry in Path("/proc").iterdir():
+        if not entry.name.isdigit():
+            continue
+        record = read_proc_entry(entry)
+        if record is None:
+            continue
+        pid, tick_count, parent, name = record
+        ticks[pid] = tick_count
+        parents[pid] = parent
+        names[pid] = name
+    return time.monotonic(), ticks, parents, names
+
+
+def decide(pilot_ci: dict, mechanism_advantage: bool, confirmation_ci: dict | None = None) -> str:
+    """Apply the frozen pilot/confirmation boundary without score-based extension."""
+    if pilot_ci["upper95_elo"] < 0:
+        return "SHELVE_CLEARLY_BAD_PILOT"
+    if pilot_ci["elo"] <= 0 and not mechanism_advantage:
+        return "SHELVE_NONPOSITIVE_WITHOUT_MECHANISM_ADVANTAGE"
+    if confirmation_ci is None:
+        return "NEED_CONFIRMATION"
+    return "ACCEPT" if confirmation_ci["lower95_elo"] > 0 else "SHELVE"
 
 
 def validate_manifest(manifest: dict, driver_hash: str) -> None:
@@ -194,6 +241,11 @@ def main() -> None:
         die("manifest is held")
 
     helper = load_module(sources["e0_driver.py"])
+    # H1 exposed a telemetry-only race when a process vanished between reading
+    # /proc/<pid>/stat and /proc/<pid>/status. Keep the accepted helper's game,
+    # supervision and audit behavior byte-frozen, but replace that observation
+    # callback with the reviewed disappearance-tolerant equivalent.
+    helper.proc_snapshot = safe_proc_snapshot
     run_root = Path(RUN_ROOT).resolve()
     run_root.mkdir(parents=True)
     helper.baseline_cpu(10, run_root / "prelaunch-non-owned-cpu.json")
@@ -212,7 +264,11 @@ def main() -> None:
     for name in ("fastchess", "stockfish"):
         helper.copy_frozen(sources[name], tools_dir / name, manifest["frozen_sources"][name]["sha256"], executable=True)
     copied = {}
-    for name in ("pilot_openings", "pilot_prefixes", "confirmation_openings", "confirmation_prefixes", "v12_model"):
+    for name in (
+        "pilot_openings", "pilot_prefixes", "confirmation_openings",
+        "confirmation_prefixes", "v12_model", "snapshot_summary",
+        "timing_result", "validation_short_receipt", "validation_race_receipt",
+    ):
         destination = inputs_dir / Path(sources[name]).name
         helper.copy_frozen(sources[name], destination, manifest["frozen_sources"][name]["sha256"])
         copied[name] = destination
@@ -291,15 +347,12 @@ def main() -> None:
         and manifest["mechanism_gate"]["timing_median_candidate_base_ratio"]
         <= manifest["mechanism_gate"]["timing_maximum_ratio"]
     )
-    if pilot_ci["upper95_elo"] < 0:
-        decision = "SHELVE_CLEARLY_BAD_PILOT"
-    elif pilot_ci["elo"] <= 0 and not mechanism_advantage:
-        decision = "SHELVE_NONPOSITIVE_WITHOUT_MECHANISM_ADVANTAGE"
-    else:
+    decision = decide(pilot_ci, mechanism_advantage)
+    if decision == "NEED_CONFIRMATION":
         run_phase("confirmation", manifest["protocol"]["confirmation_pairs"], "confirmation")
-        decision = (
-            "ACCEPT" if phase_results["confirmation"]["paired_bootstrap_ci"]["lower95_elo"] > 0
-            else "SHELVE"
+        decision = decide(
+            pilot_ci, mechanism_advantage,
+            phase_results["confirmation"]["paired_bootstrap_ci"],
         )
 
     decision_path = run_root / "decision.json"
