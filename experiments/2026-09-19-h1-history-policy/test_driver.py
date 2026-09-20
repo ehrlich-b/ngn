@@ -66,20 +66,24 @@ class DriverTests(unittest.TestCase):
         }
 
     def test_manifest_rejects_host_build_and_run_root_drift(self) -> None:
-        manifest = self.manifest()
-        DRIVER.validate_manifest(manifest, "d" * 64)
-        for key, value in (
-            ("shared_host_contract", "changed"),
-            ("run_root", "/tmp/other-run"),
-        ):
+        original_run_root = DRIVER.RUN_ROOT
+        self.addCleanup(setattr, DRIVER, "RUN_ROOT", original_run_root)
+        with tempfile.TemporaryDirectory() as directory:
+            DRIVER.RUN_ROOT = str(Path(directory) / "not-created")
+            manifest = self.manifest()
+            DRIVER.validate_manifest(manifest, "d" * 64)
+            for key, value in (
+                ("shared_host_contract", "changed"),
+                ("run_root", str(Path(directory) / "other-run")),
+            ):
+                changed = copy.deepcopy(manifest)
+                changed[key] = value
+                with self.assertRaises(SystemExit):
+                    DRIVER.validate_manifest(changed, "d" * 64)
             changed = copy.deepcopy(manifest)
-            changed[key] = value
+            changed["source"]["goamd64"] = "v1"
             with self.assertRaises(SystemExit):
                 DRIVER.validate_manifest(changed, "d" * 64)
-        changed = copy.deepcopy(manifest)
-        changed["source"]["goamd64"] = "v1"
-        with self.assertRaises(SystemExit):
-            DRIVER.validate_manifest(changed, "d" * 64)
 
     def test_engine_identity_accepts_validated_build_tags(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
