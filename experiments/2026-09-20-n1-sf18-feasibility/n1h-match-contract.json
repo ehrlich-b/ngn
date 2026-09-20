@@ -1,13 +1,23 @@
 {
   "schema": "ngn-sf18-big-n1h-match-contract/v1",
-  "status": "pre_registered_unstarted",
+  "status": "artifacts_frozen_unstarted",
   "date": "2026-09-20",
   "question": "Does exact SF18 BIG retain a clearly positive equal-time advantage over same-tree HCE on a larger independent opening set after N1g?",
   "artifacts": {
-    "source_commit": "e75533a",
-    "candidate": "cmd/sf18big-research built from source_commit",
-    "control": "normal HCE-default cmd/ngn built from source_commit",
-    "harness": "cmd/sprt built from source_commit",
+    "source_commit": "e75533a136a413446e50880e56c8179c506bc4c7",
+    "build_flags": ["GOAMD64=v3", "-trimpath"],
+    "candidate": {
+      "description": "cmd/sf18big-research built from source_commit",
+      "sha256": "a95b06c5adb0870b7126cbfb876f81456cd138b680ee19fe71b0462b979fcb10"
+    },
+    "control": {
+      "description": "normal HCE-default cmd/ngn built from source_commit",
+      "sha256": "2e4edda305d50d62b6a7eca24d5d4ab20d02e43b6010ef70e3eca2dcde64a59c"
+    },
+    "harness": {
+      "description": "cmd/sprt built from source_commit",
+      "sha256": "80375f53d7ee561c6261b099cb0d80e774a37d3ac9df707962ced14ea12b2486"
+    },
     "model": {
       "file": "nn-c288c895ea92.nnue",
       "sha256": "c288c895ea924429ea9092e3f36b2b3c1f00f2a3a4c759ff7e57e79e3b43e4a7"
@@ -51,6 +61,11 @@
       "opening_pairs": 10,
       "max_games": 20,
       "minimum_games_before_stop": 21,
+      "arguments": [
+        "-movetime", "20", "-concurrency", "1", "-lowpower=false",
+        "-elo0", "-3", "-elo1", "3", "-alpha", "0.05", "-beta", "0.05",
+        "-maxgames", "20", "-mingames", "21", "-maxmoves", "160"
+      ],
       "required_to_continue": "all 20 games complete with zero startup, protocol, crash, illegal-move, no-move, or watchdog failures"
     },
     {
@@ -59,7 +74,12 @@
       "base": "HCE control",
       "opening_pairs": 200,
       "max_games": 400,
-      "minimum_games_before_stop": 401
+      "minimum_games_before_stop": 401,
+      "arguments": [
+        "-movetime", "20", "-concurrency", "1", "-lowpower=false",
+        "-elo0", "-3", "-elo1", "3", "-alpha", "0.05", "-beta", "0.05",
+        "-maxgames", "400", "-mingames", "401", "-maxmoves", "160"
+      ]
     }
   ],
   "decision_rule": {
