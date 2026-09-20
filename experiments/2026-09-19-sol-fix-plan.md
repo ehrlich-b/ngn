@@ -743,6 +743,14 @@ not a mandatory node-identical refactor. Do not reinstate `6bf83e9`, the June
 sentinel or rejected block selector unchanged. Predeclare prototype cost cap,
 mechanism falsifier and game gate before work.
 
+**Admitted September 19:** the fresh accepted-H1 profile measured 330 ms at the
+ordinary main-search generation call and 270 ms at its whole-list scoring call,
+6.91% of 8.68 seconds of labeled CPU against the prospectively frozen 3% gate.
+The result and the bounded P1-R1 reference-stage contract are recorded in
+[the P1 profile directory](2026-09-19-p1-staged-picker-profile/README.md). The
+contract explicitly rejects the old TT-first/global-fallback shape and kills the
+candidate before games if fixed-depth node inflation repeats.
+
 **N1, one richer model:** after the V1.2 result and search/runtime findings, choose
 one feasibility study, not concurrent ports. Berserk 14 is a plausible
 threat-free deep-network bridge (pinned source

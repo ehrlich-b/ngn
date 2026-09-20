@@ -52,3 +52,22 @@ and try a real TT move before ordinary whole-list generation, then fall back to
 capture/quiet stages without duplicates. Deferred history reads make this a
 search candidate, not a node-identical refactor.
 
+## Result
+
+The run is valid and **P1 is admitted**. All six fixtures completed three
+400,000-node searches, stderr was empty, and the filtered profile contained
+8.68 seconds of CPU samples. The ordinary `alphaBetaPV` generation call used
+330 ms and its immediately following whole-list scoring call used 270 ms. Their
+non-overlapping total is 600 ms, or **6.91%**, clearing the frozen 3.00% gate.
+
+This does not revive the June TT-first prototype. Commit `6bf83e9` records that
+its generate-everything fallback read history after the TT subtree and inflated
+fixed-depth nodes by 85% on Kiwipete, 29% in the middlegame and 12% in the
+endgame. The admitted candidate is the materially different reference-style
+stage machine frozen in `prototype-plan-v1.md`, with an explicit node-inflation
+falsifier before games.
+
+Full artifacts remain under
+`/home/ehrli/p1-staged-picker-profile-20260919/run-001` on the authorized WSL
+host. Their identities and the decision calculation are in `result-v1.json`.
+
