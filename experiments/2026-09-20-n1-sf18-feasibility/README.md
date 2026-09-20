@@ -1,7 +1,7 @@
 # N1 richer-model feasibility: select Stockfish 18 BIG/dual
 
-Status: **N1a, N1b and N1c complete; SF18 BIG/dual remains open for a bounded
-search-adapter/NPS gate.** This
+Status: **N1a through N1d complete; scalar SF18 BIG/dual is exact but rejected
+for matches pending a vector-kernel gate.** This
 does not integrate a new evaluator into search, change the default, authorize a
 match, or establish any Elo gain.
 
@@ -215,5 +215,49 @@ any Elo match is authorized. At roughly 20x the existing SMALL selected-output
 cost, BIG must demonstrate that evaluation quality pays for its node loss or
 identify a SIMD/fused-update prerequisite.
 
-The goal remains active. N1c establishes a safe measurement boundary, not a
-3300 rating.
+## Slice N1d: research search adapter and node-cost gate
+
+N1d crosses the search boundary only through an explicit programmatic backend,
+`sf18-big-research`. It is absent from UCI, is never selected by default, and
+does not authorize games. The adapter reuses NGN's already-tested semantic
+`nnue.Delta` bridge for every real/null move type, gives each search worker a
+private BIG context, and participates in evaluator identity, TT/history
+invalidation, stop/unwind, and fresh-evaluation emergency semantics.
+
+Score ownership is explicit. The adapter reproduces Stockfish 18's selected
+component blend, zero-optimism complexity correction, and material scaling
+using its exact pawn/knight/bishop/rook/queen constants. It then converts the
+208-unit Stockfish pawn scale to NGN centipawns. NGN's existing rule-50 and
+non-mate clamp boundary is applied once; Stockfish's outer rule-50 adjustment is
+not duplicated. Focused tests cover positive/negative truncation, material and
+complexity scaling, damping, clamping, transactional selection, backend
+identity, and an incremental depth-three search exactly matching a fresh BIG
+evaluation at every score read.
+
+The fixed-node cost result rejects the scalar backend for an Elo match. Ten
+independent one-iteration samples searched the same middlegame, Kiwipete and
+endgame basket for 5,000 nodes each, on one pinned Ryzen 7 9800X3D core:
+
+| Backend | Median ns/node | Implied nodes/s | Relative throughput |
+| --- | ---: | ---: | ---: |
+| HCE | 598.95 | 1,669,588 | 100% |
+| Scalar SF18 BIG | 19,079 | 52,414 | 3.14% |
+
+BIG is therefore 31.85x slower per node. This comparison includes identical
+search admission and fixed node budgets; different evaluator decisions are
+allowed, but both lanes complete exactly 15,000 nodes per operation.
+
+A final 20-iteration CPU profile localizes the gap inside BIG rather than in
+the adapter. `ensureThreats` accounts for 34.0% cumulative time;
+`updateThreatFeature` 17.9%, `affineRowValue` 20.4%, transform 16.5%, active
+threat enumeration 13.3%, and base row updates 8.1%. Adapter score conversion
+does not appear in the top 20. The first optimization target is therefore
+AVX2/amd64-v3 numerical kernels for 1,024-lane row updates, transform, and the
+selected affine head, followed by threat-enumeration/fused-update work only if
+the new profile demands it.
+
+N1d passes as a measurement gate and fails as a match gate. No BIG games should
+run at 3.14% of baseline throughput. The next bounded slice is N1e: exact
+portable scalar fallbacks plus independently tested amd64-v3 vector kernels,
+then repeat this same fixed-node gate. The goal remains active; neither exact
+integration nor model pedigree establishes a 3300 rating.

@@ -5,6 +5,7 @@ import (
 
 	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
+	"github.com/ehrlich-b/ngn/nnue/sf18big"
 	"github.com/ehrlich-b/ngn/rodenteval"
 	"github.com/ehrlich-b/ngn/rodentv12eval"
 )
@@ -132,6 +133,31 @@ func (e *SearchEngine) SelectNGNV1Evaluator(model *nnue.Model) error {
 	return nil
 }
 
+// SelectSF18BIGResearchEvaluator selects the exact Stockfish 18 BIG model for
+// bounded programmatic experiments. It is intentionally absent from UCI and
+// does not change the default evaluator.
+func (e *SearchEngine) SelectSF18BIGResearchEvaluator(model *sf18big.Model) error {
+	e.sessionMu.Lock()
+	defer e.sessionMu.Unlock()
+	generation, err := acquireHCEModelUse()
+	if err != nil {
+		return err
+	}
+	defer releaseHCEModelUse()
+
+	candidate, err := sf18BigEvaluatorModel(model, generation)
+	if err != nil {
+		return err
+	}
+	worker, err := candidate.newWorker(nil)
+	if err != nil {
+		return err
+	}
+	e.evaluatorModel = candidate
+	e.worker.evaluator = worker
+	return nil
+}
+
 // SelectCounter55Evaluator transactionally selects one exact loader-validated
 // Counter 5.5 model. Each worker receives private dynamically growing state.
 func (e *SearchEngine) SelectCounter55Evaluator(model *countereval.Model) error {
@@ -208,6 +234,7 @@ func (e *SearchEngine) SelectRodentV12DefaultEvaluator(model *rodentv12eval.Mode
 const (
 	EvaluatorBackendHCEName              = "hce"
 	EvaluatorBackendNGNV1Name            = "ngn-v1"
+	EvaluatorBackendSF18BIGResearchName  = "sf18-big-research"
 	EvaluatorBackendCounter55Name        = "counter-5.5"
 	EvaluatorBackendRodentV11AnandName   = "rodent-v1.1-anand"
 	EvaluatorBackendRodentV12DefaultName = "rodent-v1.2-default"
@@ -219,6 +246,8 @@ func evaluatorBackendName(backend evaluatorBackend) string {
 		return EvaluatorBackendHCEName
 	case evaluatorBackendNGNV1:
 		return EvaluatorBackendNGNV1Name
+	case evaluatorBackendSF18BIGResearch:
+		return EvaluatorBackendSF18BIGResearchName
 	case evaluatorBackendCounter55:
 		return EvaluatorBackendCounter55Name
 	case evaluatorBackendRodentV11Anand:

@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/bits"
 
 	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
+	"github.com/ehrlich-b/ngn/nnue/sf18big"
 	"github.com/ehrlich-b/ngn/rodenteval"
 	"github.com/ehrlich-b/ngn/rodentv12eval"
 )
@@ -15,6 +17,7 @@ const (
 	nnueStaticEvalLimit      int64  = 25000
 	evaluatorAdapterRevision uint32 = 1
 	counter55AdapterRevision uint32 = 1
+	sf18BigAdapterRevision   uint32 = 1
 	rodentV11AdapterRevision uint32 = 1
 	rodentV12AdapterRevision uint32 = 1
 )
@@ -26,6 +29,7 @@ type evaluatorBackend uint8
 const (
 	evaluatorBackendHCE evaluatorBackend = iota
 	evaluatorBackendNGNV1
+	evaluatorBackendSF18BIGResearch
 	evaluatorBackendCounter55
 	evaluatorBackendRodentV11Anand
 	evaluatorBackendRodentV12Default
@@ -40,6 +44,7 @@ type evaluatorModelIdentity struct {
 	adapterRevision   uint32
 	hceGeneration     uint64
 	nnueMetadata      nnue.Metadata
+	sf18BigMetadata   sf18big.Metadata
 	counterMetadata   countereval.LoadMetadata
 	rodentMetadata    rodenteval.Metadata
 	rodentV12Metadata rodentv12eval.Metadata
@@ -51,6 +56,7 @@ type evaluatorModelIdentity struct {
 type evaluatorModel struct {
 	identity         evaluatorModelIdentity
 	ngnV1            *nnue.Model
+	sf18Big          *sf18big.Model
 	counter55        *countereval.Model
 	rodentV11Anand   *rodenteval.Model
 	rodentV12Default *rodentv12eval.Model
@@ -78,6 +84,23 @@ func ngnV1EvaluatorModel(model *nnue.Model, hceGeneration uint64) (evaluatorMode
 			nnueMetadata:    model.Metadata(),
 		},
 		ngnV1: model,
+	}, nil
+}
+
+func sf18BigEvaluatorModel(model *sf18big.Model, hceGeneration uint64) (evaluatorModel, error) {
+	context, err := sf18big.NewContext(model)
+	if err != nil {
+		return evaluatorModel{}, fmt.Errorf("%w: %v", errWorkerEvaluator, err)
+	}
+	_ = context
+	return evaluatorModel{
+		identity: evaluatorModelIdentity{
+			backend:         evaluatorBackendSF18BIGResearch,
+			adapterRevision: sf18BigAdapterRevision,
+			hceGeneration:   hceGeneration,
+			sf18BigMetadata: model.Metadata(),
+		},
+		sf18Big: model,
 	}, nil
 }
 
@@ -137,6 +160,7 @@ type workerEvaluator struct {
 	hce              *hceEvaluator
 	context          *nnue.Context
 	portableContext  *nnue.Int32Context
+	sf18BigContext   *sf18big.Context
 	counterContext   *countereval.SearchContext
 	rodentContext    *rodenteval.SearchContext
 	rodentV12Context *rodentv12eval.SearchContext
@@ -181,6 +205,18 @@ func (m evaluatorModel) newWorkerWithReferenceContext(hce *hceEvaluator, forceRe
 			}
 			worker.context = context
 		}
+	case evaluatorBackendSF18BIGResearch:
+		if forceReference {
+			return nil, fmt.Errorf("%w: SF18 BIG has no alternate context", errWorkerEvaluator)
+		}
+		if m.sf18Big == nil {
+			return nil, fmt.Errorf("%w: nil SF18 BIG model", errWorkerEvaluator)
+		}
+		context, err := sf18big.NewContext(m.sf18Big)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", errWorkerEvaluator, err)
+		}
+		worker.sf18BigContext = context
 	case evaluatorBackendCounter55:
 		if forceReference {
 			return nil, fmt.Errorf("%w: Counter has no alternate worker context", errWorkerEvaluator)
@@ -258,6 +294,19 @@ func (e *workerEvaluator) Reset(pos *Position) error {
 		}
 		e.observeTransition(pos)
 		return nil
+	case evaluatorBackendSF18BIGResearch:
+		root, err := e.rootBuffer.position(pos)
+		if err != nil {
+			return err
+		}
+		if e.sf18BigContext == nil {
+			return fmt.Errorf("%w: nil SF18 BIG context", errWorkerEvaluator)
+		}
+		if err := e.sf18BigContext.Reset(root); err != nil {
+			return fmt.Errorf("%w: SF18 BIG reset: %v", errWorkerEvaluator, err)
+		}
+		e.observeTransition(pos)
+		return nil
 	case evaluatorBackendCounter55:
 		root, err := counterBoardFromPosition(pos)
 		if err != nil {
@@ -326,7 +375,7 @@ func (e *workerEvaluator) PrepareMove(pos *Position, move Move) (workerEvalMove,
 	switch e.model.identity.backend {
 	case evaluatorBackendHCE:
 		return workerEvalMove{}, nil
-	case evaluatorBackendNGNV1:
+	case evaluatorBackendNGNV1, evaluatorBackendSF18BIGResearch:
 		delta, err := nnueMoveDelta(pos, move)
 		if err != nil {
 			return workerEvalMove{}, err
@@ -373,6 +422,18 @@ func (e *workerEvaluator) PushMove(pos *Position, transition workerEvalMove) err
 		}
 		if err := e.pushNNUEDelta(transition.delta); err != nil {
 			return fmt.Errorf("%w: push move: %v", errWorkerEvaluator, err)
+		}
+		e.observeTransition(pos)
+		return nil
+	case evaluatorBackendSF18BIGResearch:
+		if !transition.active || e.sf18BigContext == nil {
+			return fmt.Errorf("%w: missing SF18 BIG move transition or context", errWorkerEvaluator)
+		}
+		if err := validateNNUEMoveAfter(pos, transition.delta); err != nil {
+			return err
+		}
+		if err := e.sf18BigContext.PushDelta(transition.delta); err != nil {
+			return fmt.Errorf("%w: SF18 BIG push move: %v", errWorkerEvaluator, err)
 		}
 		e.observeTransition(pos)
 		return nil
@@ -427,7 +488,7 @@ func (e *workerEvaluator) PrepareNull(pos *Position) (workerEvalNull, error) {
 	switch e.model.identity.backend {
 	case evaluatorBackendHCE:
 		return workerEvalNull{}, nil
-	case evaluatorBackendNGNV1, evaluatorBackendCounter55, evaluatorBackendRodentV11Anand, evaluatorBackendRodentV12Default:
+	case evaluatorBackendNGNV1, evaluatorBackendSF18BIGResearch, evaluatorBackendCounter55, evaluatorBackendRodentV11Anand, evaluatorBackendRodentV12Default:
 		before, err := nnuePositionFacts(pos)
 		if err != nil {
 			return workerEvalNull{}, err
@@ -465,6 +526,18 @@ func (e *workerEvaluator) PushNull(pos *Position, transition workerEvalNull) err
 		}
 		if err := e.pushNNUENull(transition.before); err != nil {
 			return fmt.Errorf("%w: push null: %v", errWorkerEvaluator, err)
+		}
+		e.observeTransition(pos)
+		return nil
+	case evaluatorBackendSF18BIGResearch:
+		if !transition.active || e.sf18BigContext == nil {
+			return fmt.Errorf("%w: missing SF18 BIG null transition or context", errWorkerEvaluator)
+		}
+		if err := validateNNUENullAfter(pos, transition.before, transition.beforePieces, transition.beforeSide); err != nil {
+			return err
+		}
+		if err := e.sf18BigContext.PushNullFacts(transition.before); err != nil {
+			return fmt.Errorf("%w: SF18 BIG push null: %v", errWorkerEvaluator, err)
 		}
 		e.observeTransition(pos)
 		return nil
@@ -521,6 +594,14 @@ func (e *workerEvaluator) Pop() error {
 	case evaluatorBackendNGNV1:
 		if err := e.popNNUE(); err != nil {
 			return fmt.Errorf("%w: pop: %v", errWorkerEvaluator, err)
+		}
+		return nil
+	case evaluatorBackendSF18BIGResearch:
+		if e.sf18BigContext == nil {
+			return fmt.Errorf("%w: nil SF18 BIG context", errWorkerEvaluator)
+		}
+		if err := e.sf18BigContext.Pop(); err != nil {
+			return fmt.Errorf("%w: SF18 BIG pop: %v", errWorkerEvaluator, err)
 		}
 		return nil
 	case evaluatorBackendCounter55:
@@ -581,6 +662,25 @@ func (e *workerEvaluator) SearchSTM(pos *Position) int {
 			panic(fmt.Errorf("%w: NNUE evaluate: %v", errWorkerEvaluator, err))
 		}
 		return nnueSearchScore(raw, pos.HalfMoveClock)
+	case evaluatorBackendSF18BIGResearch:
+		if e.sf18BigContext == nil {
+			panic(fmt.Errorf("%w: nil SF18 BIG context", errWorkerEvaluator))
+		}
+		var selected sf18big.SelectedEvaluation
+		var err error
+		if e.fullRefreshOracle {
+			full, fullErr := e.rootBuffer.position(pos)
+			if fullErr != nil {
+				panic(fullErr)
+			}
+			selected, err = e.model.sf18Big.EvaluateSelected(full)
+		} else {
+			selected, err = e.sf18BigContext.EvaluateSelected()
+		}
+		if err != nil {
+			panic(fmt.Errorf("%w: SF18 BIG evaluate: %v", errWorkerEvaluator, err))
+		}
+		return sf18BigSearchScore(selected.Components, pos)
 	case evaluatorBackendCounter55:
 		if e.counterContext == nil {
 			panic(fmt.Errorf("%w: nil Counter context", errWorkerEvaluator))
@@ -658,6 +758,16 @@ func (e *workerEvaluator) LegacyUndampedSTM(pos *Position) int {
 			panic(fmt.Errorf("%w: fresh evaluate: %v", errWorkerEvaluator, err))
 		}
 		return clampNNUEStatic(raw)
+	case evaluatorBackendSF18BIGResearch:
+		full, err := e.rootBuffer.position(pos)
+		if err != nil {
+			panic(err)
+		}
+		selected, err := e.model.sf18Big.EvaluateSelected(full)
+		if err != nil {
+			panic(fmt.Errorf("%w: SF18 BIG fresh evaluate: %v", errWorkerEvaluator, err))
+		}
+		return sf18BigUndampedScore(selected.Components, pos)
 	case evaluatorBackendCounter55:
 		board, err := counterBoardFromPosition(pos)
 		if err != nil {
@@ -730,6 +840,45 @@ func nnueSearchScore(raw int64, halfMoveClock uint8) int {
 	// zero, while remaining safe for every int64 raw score.
 	attenuated := (raw/budget)*factor + (raw%budget)*factor/budget
 	return clampNNUEStatic(attenuated)
+}
+
+func sf18BigSearchScore(components sf18big.Components, pos *Position) int {
+	return nnueSearchScore(sf18BigCentipawns(components, sf18BigMaterial(pos)), pos.HalfMoveClock)
+}
+
+func sf18BigUndampedScore(components sf18big.Components, pos *Position) int {
+	return clampNNUEStatic(sf18BigCentipawns(components, sf18BigMaterial(pos)))
+}
+
+// sf18BigCentipawns reproduces Stockfish 18's zero-optimism component,
+// complexity and material scaling, then maps its fixed PawnValue units onto
+// NGN centipawns. Rule-50 damping remains owned by nnueSearchScore so it is
+// applied exactly once at the engine boundary.
+func sf18BigCentipawns(components sf18big.Components, material int64) int64 {
+	const stockfishPawnValue = int64(208)
+	psqt, positional := int64(components.PSQT), int64(components.Positional)
+	nnue := (125*psqt + 131*positional) / 128
+	complexity := psqt - positional
+	if complexity < 0 {
+		complexity = -complexity
+	}
+	nnue -= nnue * complexity / 18236
+	nnue = nnue * (77871 + material) / 77871
+	return nnue * 100 / stockfishPawnValue
+}
+
+func sf18BigMaterial(pos *Position) int64 {
+	if pos == nil {
+		panic(fmt.Errorf("%w: nil SF18 BIG material position", errWorkerEvaluator))
+	}
+	count := func(white, black Piece) int64 {
+		return int64(bits.OnesCount64(pos.Board.GetBitboardOf(white) | pos.Board.GetBitboardOf(black)))
+	}
+	return 534*count(WhitePawn, BlackPawn) +
+		781*count(WhiteKnight, BlackKnight) +
+		825*count(WhiteBishop, BlackBishop) +
+		1276*count(WhiteRook, BlackRook) +
+		2538*count(WhiteQueen, BlackQueen)
 }
 
 // rodentSearchScore preserves the exact release-static score throughout NGN's
@@ -805,6 +954,10 @@ func (e *workerEvaluator) evaluateNNUE() (int64, error) {
 }
 
 func (e *workerEvaluator) nnueDepth() int {
+	if e.sf18BigContext != nil && e.context == nil && e.portableContext == nil &&
+		e.counterContext == nil && e.rodentContext == nil && e.rodentV12Context == nil {
+		return e.sf18BigContext.Depth()
+	}
 	if e.context != nil && e.portableContext == nil {
 		return e.context.Depth()
 	}
