@@ -1,4 +1,21 @@
-# NGN current state — September 19 Sol structural-strength handoff
+# NGN current state — September 20 richer-model continuation
+
+P1-R1's valid 128-game pilot on its isolated branch scored 56.5/128 with a
+paired-bootstrap 95% Elo interval of `[-71.57,-10.86]`; the frozen rule shelves
+it without confirmation or rerun. Its candidate engine code remains isolated
+from `main`. N1 is therefore the active architectural lane. The first bounded
+[N1 feasibility slice](experiments/2026-09-20-n1-sf18-feasibility/README.md)
+selects Stockfish 18 BIG/dual over Berserk 14: the exact Berserk network lacks
+an explicit model-license/provenance binding, while the official SF18 BIG file
+is hash/size-bound under CC0 and NGN's strict loader is already validated.
+N1a adds no search wiring; it proves a trace-free material-selected SMALL head
+against 145 full-refresh and 703 incremental upstream rows. The selected output
+is 15.22x faster from live incremental state than the old all-eight-head oracle.
+Next is N1b only: scalar exact BIG full refresh plus legal-trace FullThreats diff
+and selected-head cost. No engine integration, games, default change or 3300
+claim is authorized by this feasibility result.
+
+# September 19 Sol structural-strength handoff
 
 **Current handoff / ranked next work:** the user requested a full fix plan for
 resuming the 3300 goal with Sol. Follow

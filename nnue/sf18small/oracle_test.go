@@ -147,6 +147,13 @@ func TestOfficialAllLaneUpstreamOracle(t *testing.T) {
 			t.Fatalf("oracle row %d %q: %v", index, want.FEN, err)
 		}
 		compareUpstreamOracle(t, index, got, want)
+		selected, err := model.EvaluateSelected(expected[index].position)
+		if err != nil {
+			t.Fatalf("oracle row %d selected evaluation: %v", index, err)
+		}
+		if selected.Bucket != want.CorrectBucket || selected.Components != want.Components[want.CorrectBucket] {
+			t.Fatalf("oracle row %d selected = %+v, want bucket %d components %+v", index, selected, want.CorrectBucket, want.Components[want.CorrectBucket])
+		}
 		reversed := append([]base.PieceOnSquare(nil), expected[index].position.Pieces...)
 		for left, right := 0, len(reversed)-1; left < right; left, right = left+1, right-1 {
 			reversed[left], reversed[right] = reversed[right], reversed[left]

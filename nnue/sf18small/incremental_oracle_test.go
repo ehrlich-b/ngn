@@ -713,6 +713,17 @@ func compareIncrementalContext(t *testing.T, model *Model, context *Context, wan
 	if public != wantPublic {
 		t.Fatalf("%s row %d Context EvaluateAll differs from upstream: got %+v, want %+v", want.caseID, want.sequenceIndex, public, wantPublic)
 	}
+	selected, err := context.EvaluateSelected()
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantSelected := SelectedEvaluation{
+		Bucket:     oracle.CorrectBucket,
+		Components: oracle.Components[oracle.CorrectBucket],
+	}
+	if selected != wantSelected {
+		t.Fatalf("%s row %d Context EvaluateSelected differs from upstream: got %+v, want %+v", want.caseID, want.sequenceIndex, selected, wantSelected)
+	}
 	fresh, err := model.evaluateAllTrace(want.position)
 	if err != nil {
 		t.Fatal(err)

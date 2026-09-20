@@ -270,6 +270,21 @@ func (c *Context) EvaluateAll() (Trace, error) {
     return trace.public, nil
 }
 
+// EvaluateSelected propagates only the material-selected layer stack from the
+// current incremental state. EvaluateAll remains the diagnostic oracle.
+func (c *Context) EvaluateSelected() (SelectedEvaluation, error) {
+    if err := c.ready(); err != nil {
+        return SelectedEvaluation{}, err
+    }
+    current := c.frames[len(c.frames)-1]
+    return c.model.evaluateSelectedAccumulator(
+        &current.values,
+        &current.psqt,
+        current.sideToMove,
+        bits.OnesCount64(current.facts.Occupied),
+    ), nil
+}
+
 func (c *Context) ready() error {
     if c == nil || c.model == nil || !c.model.loaded {
         return fmt.Errorf("%w: context has no validated model", ErrContext)
