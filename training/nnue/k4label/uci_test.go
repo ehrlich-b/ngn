@@ -76,7 +76,7 @@ func startFixtureSession(t *testing.T, mode string) *Session {
 	t.Setenv("NGN_K4_LABEL_HELPER_MODE", mode)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	session, err := StartSession(ctx, []string{os.Args[0], "-test.run=TestHelperTeacher"}, TeacherSourceCommit, strings.Repeat("b", 64), strings.Repeat("c", 64))
+	session, err := StartSession(ctx, []string{os.Args[0], "-test.run=TestHelperTeacher"}, TeacherSourceCommit, TeacherBigNetworkSHA, TeacherSmallNetSHA)
 	if err != nil {
 		t.Fatal(err)
 	}

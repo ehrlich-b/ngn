@@ -86,8 +86,8 @@ func validateProvenance(sourceCommit, bigNetworkSHA, smallNetworkSHA string) err
 	if sourceCommit != TeacherSourceCommit {
 		return fmt.Errorf("%w: teacher source commit %q, want pinned %s", ErrContract, sourceCommit, TeacherSourceCommit)
 	}
-	if !validLowerHexSHA(bigNetworkSHA) || !validLowerHexSHA(smallNetworkSHA) {
-		return fmt.Errorf("%w: invalid teacher network SHA-256", ErrContract)
+	if bigNetworkSHA != TeacherBigNetworkSHA || smallNetworkSHA != TeacherSmallNetSHA {
+		return fmt.Errorf("%w: teacher network hashes do not match frozen Stockfish 18 BIG/SMALL networks", ErrContract)
 	}
 	return nil
 }

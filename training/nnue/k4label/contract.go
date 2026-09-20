@@ -37,6 +37,8 @@ const (
 	MaximumTargetScore   = 10_000
 	TargetSigmoidScale   = 400.0
 	TeacherSourceCommit  = "cb3d4ee9b47d0c5aae855b12379378ea1439675c"
+	TeacherBigNetworkSHA = "c288c895ea924429ea9092e3f36b2b3c1f00f2a3a4c759ff7e57e79e3b43e4a7"
+	TeacherSmallNetSHA   = "37f18f62d772f3107e1d6aaca3898c130c3c86f2ab63e6555fbbca20635a899d"
 )
 
 var ErrContract = errors.New("NGN K4 label contract violation")

@@ -36,7 +36,7 @@ func fakeProvenance(identity string) TeacherProvenance {
 	return TeacherProvenance{
 		Name: "fixture teacher", ExecutablePath: "/fixture/stockfish",
 		ExecutableSHA256: testSHA("executable " + identity), SourceCommit: TeacherSourceCommit,
-		BigNetworkSHA256: testSHA("big net"), SmallNetworkSHA256: testSHA("small net"),
+		BigNetworkSHA256: TeacherBigNetworkSHA, SmallNetworkSHA256: TeacherSmallNetSHA,
 		Command: []string{"/fixture/stockfish"}, HandshakeOptionDigest: testSHA("options"),
 	}
 }

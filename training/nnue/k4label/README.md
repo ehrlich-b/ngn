@@ -15,6 +15,8 @@ and en-passant source moves before starting the teacher.
 The frozen teacher contract is:
 
 - Stockfish source `cb3d4ee9b47d0c5aae855b12379378ea1439675c`;
+- BIG network SHA-256 `c288c895ea924429ea9092e3f36b2b3c1f00f2a3a4c759ff7e57e79e3b43e4a7`;
+- SMALL network SHA-256 `37f18f62d772f3107e1d6aaca3898c130c3c86f2ab63e6555fbbca20635a899d`;
 - Threads 1, Hash 16 MiB, MultiPV 1, SyzygyPath `<empty>`;
 - `ucinewgame` plus an `isready` barrier before every root;
 - original castling/EP state, halfmove clock reset to zero, no root history;
