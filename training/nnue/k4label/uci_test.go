@@ -97,7 +97,7 @@ func TestSessionExactScoreAndRejectionContracts(t *testing.T) {
 		{"accepted", "", false},
 		{"bound", "bound-only-score", false},
 		{"mate", "mate-score", false},
-		{"short", "node-budget-short", false},
+		{"short", "", false},
 		{"malformed", "", true},
 	}
 	for _, test := range tests {

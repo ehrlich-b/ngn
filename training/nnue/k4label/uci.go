@@ -440,8 +440,6 @@ func (session *Session) Analyze(parent context.Context, fen string) (SearchResul
 		switch {
 		case latest.Depth < session.config.MinimumDepth:
 			return *latest, "depth-below-minimum", nil
-		case latest.Nodes < uint64(session.config.Nodes):
-			return *latest, "node-budget-short", nil
 		case latest.PVMove == "":
 			return *latest, "missing-pv", nil
 		default:

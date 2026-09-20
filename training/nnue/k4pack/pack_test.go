@@ -50,12 +50,12 @@ func acceptedFixture(t *testing.T, id, fen, sourceMove, bestMove string, cp int)
 	if err != nil {
 		t.Fatal(err)
 	}
-	info := "info depth 8 seldepth 11 multipv 1 score cp " + strconvItoa(cp) + " nodes 5000 nps 100000 pv " + bestMove + " a7a6"
+	info := "info depth 8 seldepth 11 multipv 1 score cp " + strconvItoa(cp) + " nodes 4999 nps 100000 pv " + bestMove + " a7a6"
 	infoDigest := sha256.Sum256([]byte(info))
 	return labelRecord{
 		Type: "label", ID: fixtureSHA(id), K4InputSHA256: hex.EncodeToString(board.k4InputSHA256[:]), Split: "train", OriginalFEN: fen, ResetFEN: reset, SourceMove: sourceMove,
 		BestMove: bestMove, PVMove: bestMove, UCICP: cp, NGNScore: score, Target: target, MaterialUnits: material,
-		MaterialNormalizer: normalizer, Depth: 8, SelDepth: 11, Nodes: 5_000,
+		MaterialNormalizer: normalizer, Depth: 8, SelDepth: 11, Nodes: 4_999,
 		InfoLineSHA256: hex.EncodeToString(infoDigest[:]), TeacherInfoLine: info, Status: "accepted",
 	}
 }

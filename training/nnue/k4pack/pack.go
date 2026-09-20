@@ -26,8 +26,8 @@ import (
 const (
 	InputSchema          = "ngn-k4-label-input-v2"
 	LabelSchema          = "ngn-k4-label-output-v2"
-	ContractVersion      = "sf18-5kn-material-inversion-v1"
-	ReceiptSchema        = "ngn-k4-pack-receipt-v1"
+	ContractVersion      = "sf18-5kn-material-inversion-v2"
+	ReceiptSchema        = "ngn-k4-pack-receipt-v2"
 	TeacherSourceCommit  = "cb3d4ee9b47d0c5aae855b12379378ea1439675c"
 	TeacherBigNetworkSHA = "c288c895ea924429ea9092e3f36b2b3c1f00f2a3a4c759ff7e57e79e3b43e4a7"
 	TeacherSmallNetSHA   = "37f18f62d772f3107e1d6aaca3898c130c3c86f2ab63e6555fbbca20635a899d"
@@ -538,7 +538,7 @@ func validateRecord(record labelRecord, header outputHeader, previous string) (b
 		return boardRecord{}, false, nil
 	case "accepted":
 		if record.RejectionReason != "" || record.BestMove == "" || record.PVMove != record.BestMove ||
-			record.Depth < 4 || record.Nodes < 5_000 || record.TeacherInfoLine == "" || !validSHA(record.InfoLineSHA256) {
+			record.Depth < 4 || record.TeacherInfoLine == "" || !validSHA(record.InfoLineSHA256) {
 			return boardRecord{}, false, fmt.Errorf("%w: malformed accepted label %s", ErrContract, record.ID)
 		}
 	default:

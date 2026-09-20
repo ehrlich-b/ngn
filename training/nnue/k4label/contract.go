@@ -24,7 +24,7 @@ import (
 const (
 	InputSchema          = "ngn-k4-label-input-v2"
 	OutputSchema         = "ngn-k4-label-output-v2"
-	ContractVersion      = "sf18-5kn-material-inversion-v1"
+	ContractVersion      = "sf18-5kn-material-inversion-v2"
 	MaximumShardRecords  = 100_000
 	MaximumInputLine     = 1 << 20
 	MaximumInputBytes    = 256 << 20

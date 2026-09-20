@@ -141,7 +141,7 @@ func validateSavedRecord(record LabelRecord, input InputPosition, split, previou
 	switch record.Status {
 	case "accepted":
 		if record.RejectionReason != "" || record.BestMove == "" || record.InfoLineSHA256 == "" ||
-			record.PVMove != record.BestMove || record.Depth < MinimumTeacherDepth || record.Nodes < TeacherNodes ||
+			record.PVMove != record.BestMove || record.Depth < MinimumTeacherDepth ||
 			record.Target <= 0 || record.Target >= 1 {
 			return fmt.Errorf("%w: malformed accepted label %s", ErrContract, input.ID)
 		}

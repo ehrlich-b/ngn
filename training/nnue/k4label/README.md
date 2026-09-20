@@ -24,6 +24,8 @@ The frozen teacher contract is:
 - original castling/EP state, halfmove clock reset to zero, no root history;
 - exactly `go nodes 5000`, a two-second whole-root deadline, depth at least 4;
 - last exact non-bound CP line paired with the returned legal best move;
+- the last completed-depth info line may report fewer than 5,000 nodes because
+  Stockfish can reach the commanded root budget between depth reports;
 - teacher best move must be non-capturing and non-promoting;
 - SF18 material normalization inverted to NGN units, then the natural
   `sigmoid(score/400)` target; scores outside ±10,000 are rejected.
