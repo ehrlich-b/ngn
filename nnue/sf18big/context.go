@@ -10,10 +10,10 @@ import (
 
 var ErrContext = errors.New("invalid Stockfish 18 BIG context operation")
 
-// Scalar replay wins through three dirty plies on the pinned representative
-// corpus; four plies cost more than rebuilding the current position. SIMD or
-// fused updates may justify revisiting this measured policy later.
-const maxIncrementalDonorPlies = 3
+// With the vector kernels, replay wins through two dirty plies on the pinned
+// representative corpus; three plies cost more than rebuilding the current
+// position. Keep the cutoff tied to measured end-to-end context cost.
+const maxIncrementalDonorPlies = 2
 
 type noCopy struct{}
 
@@ -392,7 +392,7 @@ func (c *Context) ensureThreats(perspective base.Color) error {
 		if err != nil {
 			return fmt.Errorf("%w: corrupt stored transition at depth %d: %v", ErrContext, depth, err)
 		}
-		nextActive, err := activeThreatsBoard(nextBoard, frame.facts.KingSquare[p], frame.facts.Occupied, perspective)
+		nextActive, err := activeThreatsBoard(&nextBoard, frame.facts.KingSquare[p], frame.facts.Occupied, perspective)
 		if err != nil {
 			return err
 		}
@@ -514,7 +514,7 @@ func (m *Model) refreshThreatPerspective(
 	p := int(perspective)
 	state.ThreatValues[p] = [transformerLanes]int16{}
 	state.ThreatPSQT[p] = [psqtBuckets]int32{}
-	active, err := activeThreatsBoard(board, facts.KingSquare[p], facts.Occupied, perspective)
+	active, err := activeThreatsBoard(&board, facts.KingSquare[p], facts.Occupied, perspective)
 	if err != nil {
 		return err
 	}

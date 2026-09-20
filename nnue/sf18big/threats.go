@@ -3,6 +3,7 @@ package sf18big
 import (
 	"errors"
 	"fmt"
+	"math/bits"
 	"slices"
 
 	base "github.com/ehrlich-b/ngn/nnue"
@@ -53,6 +54,94 @@ type threatPieceOffsets struct {
 
 var threatOffsets = buildThreatOffsets()
 
+const invalidThreatIndexBase = int32(threatInputFeatures)
+
+type threatIndexTables struct {
+	base [12][12][2]int32
+	rank [12][64][64]uint8
+}
+
+var (
+	pseudoThreatTable = buildPseudoThreatTable()
+	threatIndexTable  = buildThreatIndexTables()
+	threatRayTable    = buildThreatRayTable()
+)
+
+func buildPseudoThreatTable() [2][6][64]uint64 {
+	var table [2][6][64]uint64
+	for color := base.White; color <= base.Black; color++ {
+		for piece := base.Pawn; piece <= base.King; piece++ {
+			for square := base.Square(0); square < 64; square++ {
+				table[color][piece][square] = pseudoThreatAttacks(piece, color, square)
+			}
+		}
+	}
+	return table
+}
+
+func buildThreatIndexTables() threatIndexTables {
+	var table threatIndexTables
+	for attackerColor := base.White; attackerColor <= base.Black; attackerColor++ {
+		for attackerPiece := base.Pawn; attackerPiece <= base.King; attackerPiece++ {
+			attackerID := int(attackerColor)*6 + int(attackerPiece)
+			offsets := threatOffsets[attackerColor][attackerPiece]
+			for attackedColor := base.White; attackedColor <= base.Black; attackedColor++ {
+				for attackedPiece := base.Pawn; attackedPiece <= base.King; attackedPiece++ {
+					attackedID := int(attackedColor)*6 + int(attackedPiece)
+					group := int(threatTargetMap[attackerPiece][attackedPiece])
+					for fromLessThanTo := 0; fromLessThanTo < 2; fromLessThanTo++ {
+						value := invalidThreatIndexBase
+						enemy := attackerColor != attackedColor
+						semiExcluded := attackerPiece == attackedPiece && (enemy || attackerPiece != base.Pawn)
+						if group >= 0 && !(semiExcluded && fromLessThanTo != 0) {
+							targetGroup := group + int(attackedColor)*(threatValidTargets[attackerPiece]/2)
+							value = int32(offsets.base + targetGroup*offsets.perTarget)
+						}
+						table.base[attackerID][attackedID][fromLessThanTo] = value
+					}
+				}
+			}
+			for from := base.Square(0); from < 64; from++ {
+				attacks := pseudoThreatTable[attackerColor][attackerPiece][from]
+				for to := base.Square(0); to < 64; to++ {
+					table.rank[attackerID][from][to] = 255
+					toBit := uint64(1) << to
+					if attacks&toBit != 0 {
+						table.rank[attackerID][from][to] = uint8(bits.OnesCount64(attacks & (toBit - 1)))
+					}
+				}
+			}
+		}
+	}
+	return table
+}
+
+const (
+	threatNorth = iota
+	threatSouth
+	threatEast
+	threatWest
+	threatNorthEast
+	threatNorthWest
+	threatSouthEast
+	threatSouthWest
+	threatRayDirections
+)
+
+func buildThreatRayTable() [threatRayDirections][64]uint64 {
+	deltas := [threatRayDirections][2]int{
+		{0, 1}, {0, -1}, {1, 0}, {-1, 0},
+		{1, 1}, {-1, 1}, {1, -1}, {-1, -1},
+	}
+	var table [threatRayDirections][64]uint64
+	for direction := range deltas {
+		for from := base.Square(0); from < 64; from++ {
+			table[direction][from] = slidingThreatAttacks(from, 0, deltas[direction:direction+1])
+		}
+	}
+	return table
+}
+
 func buildThreatOffsets() [2][6]threatPieceOffsets {
 	var result [2][6]threatPieceOffsets
 	baseOffset := 0
@@ -91,31 +180,55 @@ func ActiveThreats(position base.Position, perspective base.Color) (ThreatIndexL
 	if perspective > base.Black {
 		return ThreatIndexList{}, fmt.Errorf("%w: perspective %d", ErrEvaluation, perspective)
 	}
-	return activeThreatsBoard(board, kings[perspective], occupied, perspective)
+	return activeThreatsBoard(&board, kings[perspective], occupied, perspective)
 }
 
 func activeThreatsBoard(
-	board [64]boardPiece,
+	board *[64]boardPiece,
 	king base.Square,
 	occupied uint64,
 	perspective base.Color,
 ) (ThreatIndexList, error) {
 	var active ThreatIndexList
+	var pieces [2][6]uint64
+	for square, piece := range board {
+		if piece.set {
+			pieces[piece.color][piece.piece] |= uint64(1) << square
+		}
+	}
+	orientation := base.Square(56 * perspective)
+	if king&7 >= 4 {
+		orientation ^= 7
+	}
 	for relativeColor := base.White; relativeColor <= base.Black; relativeColor++ {
 		color := perspective ^ relativeColor
 		for piece := base.Pawn; piece <= base.King; piece++ {
-			for from, attacker := range board {
-				if !attacker.set || attacker.color != color || attacker.piece != piece {
-					continue
-				}
-				attacks := occupiedThreatAttacks(piece, color, base.Square(from), occupied)
+			attackerID := int(relativeColor)*6 + int(piece)
+			offsets := &threatOffsets[relativeColor][piece]
+			attackers := pieces[color][piece]
+			for attackers != 0 {
+				from := base.Square(bits.TrailingZeros64(attackers))
+				attackers &= attackers - 1
+				fromOriented := from ^ orientation
+				fromOffset := offsets.from[fromOriented]
+				attacks := occupiedThreatAttacks(piece, color, from, occupied)
 				for attacks != 0 {
-					to := base.Square(trailingZeros64(attacks))
+					to := base.Square(bits.TrailingZeros64(attacks))
 					attacks &= attacks - 1
-					index, ok := threatIndex(perspective, attacker, base.Square(from), board[to], to, king)
-					if !ok {
+					attacked := (*board)[to]
+					attackedColor := attacked.color ^ perspective
+					attackedID := int(attackedColor)*6 + int(attacked.piece)
+					toOriented := to ^ orientation
+					fromLessThanTo := 0
+					if fromOriented < toOriented {
+						fromLessThanTo = 1
+					}
+					indexBase := threatIndexTable.base[attackerID][attackedID][fromLessThanTo]
+					rank := threatIndexTable.rank[attackerID][fromOriented][toOriented]
+					if indexBase == invalidThreatIndexBase || rank == 255 {
 						continue
 					}
+					index := int(indexBase) + fromOffset + int(rank)
 					if int(active.Count) >= len(active.Indices) {
 						return ThreatIndexList{}, fmt.Errorf("%w: more than %d active threats", ErrEvaluation, maxActiveThreats)
 					}
@@ -187,48 +300,6 @@ func diffThreatIndexLists(beforeActive, afterActive ThreatIndexList) (ThreatInde
 	return removed, added
 }
 
-func threatIndex(
-	perspective base.Color,
-	attacker boardPiece,
-	from base.Square,
-	attacked boardPiece,
-	to base.Square,
-	king base.Square,
-) (int, bool) {
-	orientation := base.Square(56 * perspective)
-	if king&7 >= 4 {
-		orientation ^= 7
-	}
-	fromOriented := from ^ orientation
-	toOriented := to ^ orientation
-	attackerColor := attacker.color ^ perspective
-	attackedColor := attacked.color ^ perspective
-
-	group := int(threatTargetMap[attacker.piece][attacked.piece])
-	if group < 0 {
-		return 0, false
-	}
-	enemy := attackerColor != attackedColor
-	semiExcluded := attacker.piece == attacked.piece && (enemy || attacker.piece != base.Pawn)
-	if semiExcluded && fromOriented < toOriented {
-		return 0, false
-	}
-
-	offsets := threatOffsets[attackerColor][attacker.piece]
-	group += int(attackedColor) * (threatValidTargets[attacker.piece] / 2)
-	attacks := pseudoThreatAttacks(attacker.piece, attackerColor, fromOriented)
-	toBit := uint64(1) << toOriented
-	if attacks&toBit == 0 {
-		return 0, false
-	}
-	rank := popcount64(attacks & (toBit - 1))
-	index := offsets.base + group*offsets.perTarget + offsets.from[fromOriented] + rank
-	if index < 0 || index >= threatInputFeatures {
-		return 0, false
-	}
-	return index, true
-}
-
 func pseudoThreatAttacks(piece base.PieceType, color base.Color, from base.Square) uint64 {
 	switch piece {
 	case base.Pawn:
@@ -251,14 +322,43 @@ func pseudoThreatAttacks(piece base.PieceType, color base.Color, from base.Squar
 func occupiedThreatAttacks(piece base.PieceType, color base.Color, from base.Square, occupied uint64) uint64 {
 	switch piece {
 	case base.Bishop:
-		return slidingThreatAttacks(from, occupied, [][2]int{{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}) & occupied
+		return (threatRayAttacks(threatNorthEast, from, occupied) |
+			threatRayAttacks(threatNorthWest, from, occupied) |
+			threatRayAttacks(threatSouthEast, from, occupied) |
+			threatRayAttacks(threatSouthWest, from, occupied)) & occupied
 	case base.Rook:
-		return slidingThreatAttacks(from, occupied, [][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) & occupied
+		return (threatRayAttacks(threatNorth, from, occupied) |
+			threatRayAttacks(threatSouth, from, occupied) |
+			threatRayAttacks(threatEast, from, occupied) |
+			threatRayAttacks(threatWest, from, occupied)) & occupied
 	case base.Queen:
-		return slidingThreatAttacks(from, occupied, [][2]int{{1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}}) & occupied
+		return (threatRayAttacks(threatNorth, from, occupied) |
+			threatRayAttacks(threatSouth, from, occupied) |
+			threatRayAttacks(threatEast, from, occupied) |
+			threatRayAttacks(threatWest, from, occupied) |
+			threatRayAttacks(threatNorthEast, from, occupied) |
+			threatRayAttacks(threatNorthWest, from, occupied) |
+			threatRayAttacks(threatSouthEast, from, occupied) |
+			threatRayAttacks(threatSouthWest, from, occupied)) & occupied
 	default:
-		return pseudoThreatAttacks(piece, color, from) & occupied
+		return pseudoThreatTable[color][piece][from] & occupied
 	}
+}
+
+func threatRayAttacks(direction int, from base.Square, occupied uint64) uint64 {
+	ray := threatRayTable[direction][from]
+	blockers := ray & occupied
+	if blockers == 0 {
+		return ray
+	}
+	var blocker base.Square
+	switch direction {
+	case threatNorth, threatEast, threatNorthEast, threatNorthWest:
+		blocker = base.Square(bits.TrailingZeros64(blockers))
+	default:
+		blocker = base.Square(63 - bits.LeadingZeros64(blockers))
+	}
+	return ray ^ threatRayTable[direction][blocker]
 }
 
 func pawnThreatAttacks(color base.Color, from base.Square) uint64 {
@@ -346,14 +446,9 @@ func validatePosition(position base.Position) ([64]boardPiece, [2]base.Square, u
 }
 
 func popcount64(value uint64) int {
-	value = value - ((value >> 1) & 0x5555555555555555)
-	value = (value & 0x3333333333333333) + ((value >> 2) & 0x3333333333333333)
-	return int((((value + (value >> 4)) & 0x0F0F0F0F0F0F0F0F) * 0x0101010101010101) >> 56)
+	return bits.OnesCount64(value)
 }
 
 func trailingZeros64(value uint64) int {
-	if value == 0 {
-		return 64
-	}
-	return popcount64((value & -value) - 1)
+	return bits.TrailingZeros64(value)
 }

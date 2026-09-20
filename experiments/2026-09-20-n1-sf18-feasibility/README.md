@@ -1,9 +1,9 @@
 # N1 richer-model feasibility: select Stockfish 18 BIG/dual
 
-Status: **N1a through N1d complete; scalar SF18 BIG/dual is exact but rejected
-for matches pending a vector-kernel gate.** This
-does not integrate a new evaluator into search, change the default, authorize a
-match, or establish any Elo gain.
+Status: **N1a through N1e complete; exact SF18 BIG/dual now clears the bounded
+throughput gate for a research-only strength screen.** This does not expose the
+backend through UCI, change the default, authorize promotion, or establish any
+Elo gain.
 
 The immediate question after the rejected P1 staged-picker candidate was which
 single richer pretrained evaluator deserved the next architectural lane.
@@ -261,3 +261,74 @@ run at 3.14% of baseline throughput. The next bounded slice is N1e: exact
 portable scalar fallbacks plus independently tested amd64-v3 vector kernels,
 then repeat this same fixed-node gate. The goal remains active; neither exact
 integration nor model pedigree establishes a 3300 rating.
+
+## Slice N1e: exact vector kernels and FullThreats hot path
+
+N1e replaces the measured scalar numerical bottlenecks with fixed-shape AVX2
+kernels selected only by `amd64.v3`; every kernel retains a portable scalar
+fallback. The kernels cover 1,024-lane base and signed-int8 threat row updates,
+the clipped-product transform, the 1,024-wide first affine layer, and the
+32-by-32 plus 32-wide affine tail. Their exactness tests include signed limits,
+defined int16/int32 wrapping, clipping boundaries, add/subtract paths, and
+build-selection witnesses.
+
+The post-kernel profile exposed a second architectural bottleneck rather than a
+SIMD one. The reference enumerator repeatedly scanned the 64-square board,
+walked slider rays, and recomputed FullThreats feature ranks. N1e adopts the
+same broad layout as Stockfish's
+[FullThreats implementation](https://github.com/official-stockfish/Stockfish/blob/master/src/nnue/features/full_threats.cpp):
+piece bitboards, precomputed attack/ray tables, and split feature-index lookup
+tables. NGN still sorts its active set because its deliberately simple
+transition contract consumes sorted diffs. The independent pinned oracle, not
+the upstream implementation shape, remains the correctness authority.
+
+All 1,203 pinned Stockfish rows still match for both perspectives, including
+active and changed threats, accumulators, transformed bytes and selected
+outputs. The sparse every-eighth-ply context lane, complete unwind, amd64-v1
+fallback build, amd64-v3 build, focused search parity, race gates, vet, and the
+repository-wide short suite also pass.
+
+Ten one-second blocks on the same pinned Ryzen 7 9800X3D core measured:
+
+| Path | Scalar median ns | N1e median ns | Speedup |
+| --- | ---: | ---: | ---: |
+| One threat row | 536.95 | 23.025 | 23.32x |
+| One base row | 451.85 | 21.615 | 20.90x |
+| Transform | 5,519.5 | 140.45 | 39.30x |
+| Material-selected head | 6,073.5 | 255.55 | 23.77x |
+| FullThreats enumeration, one perspective | 2,786.5 | 618.35 | 4.51x |
+| Complete two-perspective full refresh | 57,791 | 4,657.5 | 12.41x |
+| Complete full refresh plus selected output | 69,694 | 4,899.5 | 14.22x |
+
+The scalar context cutoff also became stale. Replaying three dirty plies now
+costs about 8.01 us, while rebuilding the current position after the same
+pushes costs about 5.87 us. The adaptive policy therefore retains at most two
+dirty plies. Fresh full refresh now uses the vector row dispatch too; the
+reference path had retained one scalar threat-update loop until this gate.
+
+The unchanged 15,000-node basket gives the decisive end-to-end result:
+
+| Backend | Median ns/node | Implied nodes/s | Relative throughput |
+| --- | ---: | ---: | ---: |
+| HCE control | 630.0 | 1,587,302 | 100% |
+| N1e SF18 BIG | 2,770.5 | 360,946 | 22.74% |
+
+This is a 6.89x speedup over the 19,079 ns/node scalar BIG result and raises
+relative throughput from 3.14% to 22.74%. A separate three-operation-per-sample
+check measured 715.7 ns/node for HCE and 3,074.5 ns/node for BIG, or 23.28%
+relative throughput, so the conclusion is not dependent on the one-operation
+sample shape.
+
+The final 300-iteration profile measures 2,874 ns/node. `ensureThreats` is now
+45.3% cumulative; active-set enumeration is 19.9%, sorting contributes about
+8.2%, and accumulator copies contribute 10.3%. The scalar transform and affine
+loops are gone from the profile. This selects an exact Stockfish-style dirty-
+threat transition path as the next performance architecture, not more kernel
+polish.
+
+N1e passes its cost gate. At roughly 361k nodes/s on the fixed basket, a small
+research-only BIG-vs-HCE strength screen is now warranted to learn whether the
+richer model pays for its remaining 4.40x node cost. This authorizes only that
+screen and the adapter work needed to run it; it does not authorize UCI
+exposure, a default change, a wide Elo campaign, or promotion. Dirty-threat
+updates remain the next engineering gate if the quality signal is positive.

@@ -70,20 +70,7 @@ func (m *Model) ReferenceRefresh(position base.Position) (ReferenceState, int, e
 		}
 		state.Threats[p] = active
 		for _, feature := range active.Indices[:active.Count] {
-			weightOffset := int(feature) * transformerLanes
-			for lane := 0; lane < transformerLanes; lane++ {
-				state.ThreatValues[p][lane] = wrapAdd16(
-					state.ThreatValues[p][lane],
-					int16(m.threatWeights[weightOffset+lane]),
-				)
-			}
-			psqtOffset := int(feature) * psqtBuckets
-			for bucket := 0; bucket < psqtBuckets; bucket++ {
-				state.ThreatPSQT[p][bucket] = wrapAdd32(
-					state.ThreatPSQT[p][bucket],
-					m.threatPSQTWeights[psqtOffset+bucket],
-				)
-			}
+			m.updateThreatFeature(&state.ThreatValues[p], &state.ThreatPSQT[p], feature, true)
 		}
 	}
 	return state, occupied, nil
@@ -185,21 +172,14 @@ func (m *Model) evaluateSelectedState(state *ReferenceState, sideToMove base.Col
 
 func transformReferenceState(state *ReferenceState, sideToMove base.Color, bucket int) ([transformerLanes]uint8, int32) {
 	var transformed [transformerLanes]uint8
-	perspectives := [2]base.Color{sideToMove, sideToMove ^ 1}
-	for half, perspective := range perspectives {
-		p := int(perspective)
-		for lane := 0; lane < transformerLanes/2; lane++ {
-			a := clampInt16(wrapAdd16(state.BaseValues[p][lane], state.ThreatValues[p][lane]), 0, 255)
-			b := clampInt16(
-				wrapAdd16(state.BaseValues[p][lane+transformerLanes/2], state.ThreatValues[p][lane+transformerLanes/2]),
-				0,
-				255,
-			)
-			transformed[half*transformerLanes/2+lane] = uint8((uint32(a) * uint32(b)) / 512)
-		}
-	}
-
 	stm, ntm := int(sideToMove), int(sideToMove^1)
+	transformInputs(
+		&transformed,
+		&state.BaseValues[stm],
+		&state.ThreatValues[stm],
+		&state.BaseValues[ntm],
+		&state.ThreatValues[ntm],
+	)
 	baseDifference := wrapSub32(state.BasePSQT[stm][bucket], state.BasePSQT[ntm][bucket])
 	threatDifference := wrapSub32(state.ThreatPSQT[stm][bucket], state.ThreatPSQT[ntm][bucket])
 	psqtRaw := wrapAdd32(baseDifference, threatDifference) / 2
@@ -234,9 +214,9 @@ func (m *Model) propagateSelectedStack(bucket int, input *[transformerLanes]uint
 	stack := &m.stacks[bucket]
 	var fc0 [16]int32
 	for output := range fc0 {
-		fc0[output] = affineRowValue(
-			input[:],
-			stack.fc0Weight[output*transformerLanes:(output+1)*transformerLanes],
+		fc0[output] = affineRowValue1024(
+			input,
+			&stack.fc0Weight[output*transformerLanes],
 			stack.fc0Bias[output],
 		)
 	}
@@ -246,26 +226,15 @@ func (m *Model) propagateSelectedStack(bucket int, input *[transformerLanes]uint
 		fc1Input[index] = squaredClippedReLU(fc0[index])
 		fc1Input[index+15] = clippedReLU(fc0[index])
 	}
+	var fc1 [32]int32
+	affineLayer32x32(&fc1, &fc1Input, &stack.fc1Weight[0], &stack.fc1Bias)
 	var clipped1 [32]uint8
-	for output := range clipped1 {
-		value := affineRowValue(
-			fc1Input[:],
-			stack.fc1Weight[output*32:(output+1)*32],
-			stack.fc1Bias[output],
-		)
+	for output, value := range fc1 {
 		clipped1[output] = clippedReLU(value)
 	}
-	fc2 := affineRowValue(clipped1[:], stack.fc2Weight[:], stack.fc2Bias[0])
+	fc2 := affineRowValue32(&clipped1, &stack.fc2Weight[0], stack.fc2Bias[0])
 	forward := wrapMul32(fc0[15], 9600) / 8128
 	return wrapAdd32(fc2, forward)
-}
-
-func affineRowValue(input []uint8, weights []int8, bias int32) int32 {
-	value := bias
-	for index, inputValue := range input {
-		value = wrapAdd32(value, int32(inputValue)*int32(weights[index]))
-	}
-	return value
 }
 
 func squaredClippedReLU(value int32) uint8 {
