@@ -28,6 +28,21 @@ func appendU32(dst []byte, value uint32) []byte {
 	return append(dst, encoded[:]...)
 }
 
+func TestRecognizesHeader(t *testing.T) {
+	header := appendU32(nil, fileVersion)
+	header = appendU32(header, networkHash)
+	if !RecognizesHeader(header) {
+		t.Fatal("exact SF18 BIG header was not recognized")
+	}
+	if RecognizesHeader(header[:7]) {
+		t.Fatal("short header was recognized")
+	}
+	header[4] ^= 1
+	if RecognizesHeader(header) {
+		t.Fatal("wrong network hash was recognized")
+	}
+}
+
 func appendI32(dst []byte, value int32) []byte {
 	return appendU32(dst, uint32(value))
 }

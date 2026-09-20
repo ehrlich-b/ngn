@@ -1,6 +1,6 @@
 // Command sf18big-research is a dedicated, startup-locked UCI process for the
-// bounded SF18 BIG strength screen. It does not add BIG to NGN's normal UCI
-// options or change the shipped default.
+// bounded SF18 BIG strength screen. The normal process also exposes BIG as an
+// opt-in backend, but this command locks it at startup for controlled matches.
 package main
 
 import (

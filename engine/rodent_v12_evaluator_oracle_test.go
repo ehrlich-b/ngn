@@ -362,7 +362,7 @@ func TestUCIRodentV12HeaderlessSelectionAndFailureTransaction(t *testing.T) {
 	}
 	output.Reset()
 	startup.handleCommand("uci", &output)
-	if !strings.Contains(output.String(), "option name EvalBackend type combo default rodent-v1.2-default var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default") {
+	if !strings.Contains(output.String(), "option name EvalBackend type combo default rodent-v1.2-default var hce var ngn-v1 var sf18-big var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default") {
 		t.Fatalf("Rodent V1.2 startup defaults not advertised: %s", output.String())
 	}
 	if got, backend, err := startup.searcher.EvaluateSelected(position); err != nil || backend != EvaluatorBackendRodentV12DefaultName || got != rodentSearchScore(want) {

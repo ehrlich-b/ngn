@@ -8,6 +8,7 @@ import (
 
 	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
+	"github.com/ehrlich-b/ngn/nnue/sf18big"
 	"github.com/ehrlich-b/ngn/rodenteval"
 	"github.com/ehrlich-b/ngn/rodentv12eval"
 )
@@ -15,6 +16,7 @@ import (
 const (
 	uciEvaluatorHCE              = "hce"
 	uciEvaluatorNGNV1            = "ngn-v1"
+	uciEvaluatorSF18BIG          = "sf18-big"
 	uciEvaluatorCounter55        = "counter-5.5"
 	uciEvaluatorRodentV11Anand   = "rodent-v1.1-anand"
 	uciEvaluatorRodentV12Default = "rodent-v1.2-default"
@@ -25,6 +27,7 @@ type stagedEvaluatorKind uint8
 const (
 	stagedEvaluatorNone stagedEvaluatorKind = iota
 	stagedEvaluatorNGNV1
+	stagedEvaluatorSF18BIG
 	stagedEvaluatorCounter55
 	stagedEvaluatorRodentV11Anand
 	stagedEvaluatorRodentV12Default
@@ -33,6 +36,7 @@ const (
 type stagedEvaluatorModel struct {
 	kind             stagedEvaluatorKind
 	ngnV1            *nnue.Model
+	sf18Big          *sf18big.Model
 	counter55        *countereval.Model
 	rodentV11Anand   *rodenteval.Model
 	rodentV12Default *rodentv12eval.Model
@@ -42,6 +46,8 @@ func (model stagedEvaluatorModel) backendName() string {
 	switch model.kind {
 	case stagedEvaluatorNGNV1:
 		return uciEvaluatorNGNV1
+	case stagedEvaluatorSF18BIG:
+		return uciEvaluatorSF18BIG
 	case stagedEvaluatorCounter55:
 		return uciEvaluatorCounter55
 	case stagedEvaluatorRodentV11Anand:
@@ -97,6 +103,12 @@ func loadUCIEvaluatorModel(path string) (stagedEvaluatorModel, error) {
 			return stagedEvaluatorModel{}, fmt.Errorf("load exact ngn-v1 %q: %w", path, err)
 		}
 		return stagedEvaluatorModel{kind: stagedEvaluatorNGNV1, ngnV1: model}, nil
+	case sf18big.RecognizesHeader(prefix[:count]):
+		model, err := sf18big.Load(file)
+		if err != nil {
+			return stagedEvaluatorModel{}, fmt.Errorf("load exact sf18-big %q: %w", path, err)
+		}
+		return stagedEvaluatorModel{kind: stagedEvaluatorSF18BIG, sf18Big: model}, nil
 	case countereval.RecognizesLegacyHeader(prefix[:count]):
 		model, _, err := countereval.LoadCounter55Legacy(file)
 		if err != nil {
@@ -143,12 +155,12 @@ func (uci *UCIEngine) ConfigureStartupEvaluator(backend, path string) error {
 		uci.startupDefaults = uciEvaluatorDefaults{backend: uciEvaluatorHCE}
 		uci.lifecycleMu.Unlock()
 		return nil
-	case uciEvaluatorNGNV1, uciEvaluatorCounter55, uciEvaluatorRodentV11Anand, uciEvaluatorRodentV12Default:
+	case uciEvaluatorNGNV1, uciEvaluatorSF18BIG, uciEvaluatorCounter55, uciEvaluatorRodentV11Anand, uciEvaluatorRodentV12Default:
 		if path == "" || strings.EqualFold(path, "<empty>") {
 			return fmt.Errorf("EvalBackend %s requires EvalFile", backend)
 		}
 	default:
-		return fmt.Errorf("unsupported EvalBackend %q (want hce, ngn-v1, counter-5.5, rodent-v1.1-anand, or rodent-v1.2-default)", backend)
+		return fmt.Errorf("unsupported EvalBackend %q (want hce, ngn-v1, sf18-big, counter-5.5, rodent-v1.1-anand, or rodent-v1.2-default)", backend)
 	}
 
 	staged, err := loadUCIEvaluatorModel(path)
@@ -160,6 +172,8 @@ func (uci *UCIEngine) ConfigureStartupEvaluator(backend, path string) error {
 	}
 	if backend == uciEvaluatorNGNV1 {
 		err = uci.searcher.SelectNGNV1Evaluator(staged.ngnV1)
+	} else if backend == uciEvaluatorSF18BIG {
+		err = uci.searcher.SelectSF18BIGEvaluator(staged.sf18Big)
 	} else if backend == uciEvaluatorCounter55 {
 		err = uci.searcher.SelectCounter55Evaluator(staged.counter55)
 	} else if backend == uciEvaluatorRodentV11Anand {
@@ -194,9 +208,9 @@ func (uci *UCIEngine) sendEvalOptionError(output io.Writer, format string, args 
 func (uci *UCIEngine) handleEvalBackendOption(value string, output io.Writer) {
 	uci.joinSearch(true)
 	backend := strings.ToLower(strings.TrimSpace(value))
-	if backend != uciEvaluatorHCE && backend != uciEvaluatorNGNV1 && backend != uciEvaluatorCounter55 &&
+	if backend != uciEvaluatorHCE && backend != uciEvaluatorNGNV1 && backend != uciEvaluatorSF18BIG && backend != uciEvaluatorCounter55 &&
 		backend != uciEvaluatorRodentV11Anand && backend != uciEvaluatorRodentV12Default {
-		uci.sendEvalOptionError(output, "unsupported EvalBackend %q (want hce, ngn-v1, counter-5.5, rodent-v1.1-anand, or rodent-v1.2-default)", value)
+		uci.sendEvalOptionError(output, "unsupported EvalBackend %q (want hce, ngn-v1, sf18-big, counter-5.5, rodent-v1.1-anand, or rodent-v1.2-default)", value)
 		return
 	}
 
@@ -211,6 +225,12 @@ func (uci *UCIEngine) handleEvalBackendOption(value string, output io.Writer) {
 			return
 		}
 		err = uci.searcher.SelectNGNV1Evaluator(config.staged.ngnV1)
+	case uciEvaluatorSF18BIG:
+		if config.file == "" || config.staged.kind != stagedEvaluatorSF18BIG || config.staged.sf18Big == nil {
+			uci.sendEvalOptionError(output, "EvalBackend sf18-big requires a matching valid staged EvalFile")
+			return
+		}
+		err = uci.searcher.SelectSF18BIGEvaluator(config.staged.sf18Big)
 	case uciEvaluatorCounter55:
 		if config.file == "" || config.staged.kind != stagedEvaluatorCounter55 || config.staged.counter55 == nil {
 			uci.sendEvalOptionError(output, "EvalBackend counter-5.5 requires a matching valid staged EvalFile")
@@ -269,6 +289,8 @@ func (uci *UCIEngine) handleEvalFileOption(value string, output io.Writer) {
 	switch active {
 	case uciEvaluatorNGNV1:
 		err = uci.searcher.SelectNGNV1Evaluator(staged.ngnV1)
+	case uciEvaluatorSF18BIG:
+		err = uci.searcher.SelectSF18BIGEvaluator(staged.sf18Big)
 	case uciEvaluatorCounter55:
 		err = uci.searcher.SelectCounter55Evaluator(staged.counter55)
 	case uciEvaluatorRodentV11Anand:

@@ -399,7 +399,7 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, "option name OwnBook type check default true")
 	uci.sendUCIMessage(output, "option name SyzygyPath type string default <empty>")
 	if !researchEvaluatorLocked {
-		uci.sendUCIMessage(output, fmt.Sprintf("option name EvalBackend type combo default %s var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default", evalBackendDefault))
+		uci.sendUCIMessage(output, fmt.Sprintf("option name EvalBackend type combo default %s var hce var ngn-v1 var sf18-big var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default", evalBackendDefault))
 		uci.sendUCIMessage(output, fmt.Sprintf("option name EvalFile type string default %s", evalFileDefault))
 	}
 

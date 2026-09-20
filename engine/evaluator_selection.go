@@ -133,10 +133,10 @@ func (e *SearchEngine) SelectNGNV1Evaluator(model *nnue.Model) error {
 	return nil
 }
 
-// SelectSF18BIGResearchEvaluator selects the exact Stockfish 18 BIG model for
-// bounded programmatic experiments. It is intentionally absent from UCI and
-// does not change the default evaluator.
-func (e *SearchEngine) SelectSF18BIGResearchEvaluator(model *sf18big.Model) error {
+// SelectSF18BIGEvaluator transactionally selects one exact validated
+// Stockfish 18 BIG model. The backend is opt-in and never changes the default
+// evaluator.
+func (e *SearchEngine) SelectSF18BIGEvaluator(model *sf18big.Model) error {
 	e.sessionMu.Lock()
 	defer e.sessionMu.Unlock()
 	generation, err := acquireHCEModelUse()
@@ -156,6 +156,12 @@ func (e *SearchEngine) SelectSF18BIGResearchEvaluator(model *sf18big.Model) erro
 	e.evaluatorModel = candidate
 	e.worker.evaluator = worker
 	return nil
+}
+
+// SelectSF18BIGResearchEvaluator preserves the bounded-research API used by
+// the dedicated startup-locked process and historical experiments.
+func (e *SearchEngine) SelectSF18BIGResearchEvaluator(model *sf18big.Model) error {
+	return e.SelectSF18BIGEvaluator(model)
 }
 
 // SelectCounter55Evaluator transactionally selects one exact loader-validated
@@ -234,7 +240,8 @@ func (e *SearchEngine) SelectRodentV12DefaultEvaluator(model *rodentv12eval.Mode
 const (
 	EvaluatorBackendHCEName              = "hce"
 	EvaluatorBackendNGNV1Name            = "ngn-v1"
-	EvaluatorBackendSF18BIGResearchName  = "sf18-big-research"
+	EvaluatorBackendSF18BIGName          = "sf18-big"
+	EvaluatorBackendSF18BIGResearchName  = EvaluatorBackendSF18BIGName
 	EvaluatorBackendCounter55Name        = "counter-5.5"
 	EvaluatorBackendRodentV11AnandName   = "rodent-v1.1-anand"
 	EvaluatorBackendRodentV12DefaultName = "rodent-v1.2-default"
@@ -247,7 +254,7 @@ func evaluatorBackendName(backend evaluatorBackend) string {
 	case evaluatorBackendNGNV1:
 		return EvaluatorBackendNGNV1Name
 	case evaluatorBackendSF18BIGResearch:
-		return EvaluatorBackendSF18BIGResearchName
+		return EvaluatorBackendSF18BIGName
 	case evaluatorBackendCounter55:
 		return EvaluatorBackendCounter55Name
 	case evaluatorBackendRodentV11Anand:

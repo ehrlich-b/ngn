@@ -41,6 +41,16 @@ var (
 
 const leb128Magic = "COMPRESSED_LEB128"
 
+// RecognizesHeader reports whether prefix begins with the exact file-version
+// and network-hash pair accepted by Load. It is intentionally only a dispatch
+// hint: callers must still use Load for complete structural and integrity
+// validation.
+func RecognizesHeader(prefix []byte) bool {
+	return len(prefix) >= 8 &&
+		binary.LittleEndian.Uint32(prefix[0:4]) == fileVersion &&
+		binary.LittleEndian.Uint32(prefix[4:8]) == networkHash
+}
+
 // Metadata is the immutable identity of one fully validated model file.
 type Metadata struct {
 	FileSHA256       [sha256.Size]byte

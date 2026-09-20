@@ -9,9 +9,9 @@ import (
 )
 
 // ConfigureSF18BIGResearchStartup installs an exact BIG model into a dedicated
-// research UCI process. The normal NGN UCI binary does not call this method or
-// advertise the backend. Once installed, evaluator options are hidden and
-// locked so a match cannot silently switch either role mid-run.
+// research UCI process. Once installed, evaluator options are hidden and locked
+// so a match cannot silently switch either role mid-run. The normal process may
+// select the same validated implementation explicitly through EvalBackend.
 func (uci *UCIEngine) ConfigureSF18BIGResearchStartup(path string) error {
 	path = strings.TrimSpace(path)
 	if path == "" {
@@ -32,7 +32,7 @@ func (uci *UCIEngine) ConfigureSF18BIGResearchStartup(path string) error {
 	if closeErr != nil {
 		return fmt.Errorf("close SF18 BIG research model %q: %w", path, closeErr)
 	}
-	if err := uci.searcher.SelectSF18BIGResearchEvaluator(model); err != nil {
+	if err := uci.searcher.SelectSF18BIGEvaluator(model); err != nil {
 		return fmt.Errorf("select SF18 BIG research evaluator: %w", err)
 	}
 

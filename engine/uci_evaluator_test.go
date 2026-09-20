@@ -71,7 +71,7 @@ func TestUCIEvaluatorOptionDefaultsAndSelectedDiagnostic(t *testing.T) {
 	uci.handleCommand("uci", &output)
 	response := output.String()
 	for _, want := range []string{
-		"option name EvalBackend type combo default hce var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default",
+		"option name EvalBackend type combo default hce var hce var ngn-v1 var sf18-big var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default",
 		"option name EvalFile type string default <empty>",
 	} {
 		if !strings.Contains(response, want) {
@@ -105,7 +105,7 @@ func TestConfigureStartupEvaluatorCounterAndAdvertisedDefaults(t *testing.T) {
 	var output bytes.Buffer
 	uci.handleCommand("uci", &output)
 	for _, want := range []string{
-		"option name EvalBackend type combo default counter-5.5 var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default",
+		"option name EvalBackend type combo default counter-5.5 var hce var ngn-v1 var sf18-big var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default",
 		"option name EvalFile type string default " + path,
 	} {
 		if !strings.Contains(output.String(), want+"\n") {
@@ -119,7 +119,7 @@ func TestConfigureStartupEvaluatorCounterAndAdvertisedDefaults(t *testing.T) {
 	output.Reset()
 	uci.handleCommand("uci", &output)
 	for _, want := range []string{
-		"option name EvalBackend type combo default counter-5.5 var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default",
+		"option name EvalBackend type combo default counter-5.5 var hce var ngn-v1 var sf18-big var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default",
 		"option name EvalFile type string default " + path,
 	} {
 		if !strings.Contains(output.String(), want+"\n") {
@@ -432,6 +432,69 @@ func TestUCICounter55StagingSelectionAndCrossFormatReplacement(t *testing.T) {
 	requireUCIEvaluatorConfig(t, uci, uciEvaluatorCounter55, replacementPath)
 	if uci.searcher.SelectedEvaluatorBackend() != EvaluatorBackendCounter55Name {
 		t.Fatal("new game changed Counter backend")
+	}
+}
+
+func TestUCISF18BIGStagingSelectionAndNewGamePersistence(t *testing.T) {
+	path := os.Getenv(sf18BigResearchModelEnvironment)
+	if path == "" {
+		t.Skip("official SF18 BIG model is required for the normal UCI gate")
+	}
+	bad := filepath.Join(t.TempDir(), "bad-sf18-big.nnue")
+	if err := os.WriteFile(bad, []byte("bad"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	uci := NewUCIEngine()
+	var output bytes.Buffer
+	uci.handleCommand("setoption name EvalFile value "+path, &output)
+	if strings.Contains(output.String(), "info string error") {
+		t.Fatalf("SF18 BIG staging failed: %s", output.String())
+	}
+	config := requireUCIEvaluatorConfig(t, uci, uciEvaluatorHCE, path)
+	if config.staged.kind != stagedEvaluatorSF18BIG || config.staged.sf18Big == nil {
+		t.Fatalf("SF18 BIG file staged as %+v", config.staged)
+	}
+	if got := uci.searcher.SelectedEvaluatorBackend(); got != EvaluatorBackendHCEName {
+		t.Fatalf("staging silently selected %q", got)
+	}
+
+	output.Reset()
+	uci.handleCommand("setoption name EvalBackend value sf18-big", &output)
+	if strings.Contains(output.String(), "info string error") {
+		t.Fatalf("SF18 BIG selection failed: %s", output.String())
+	}
+	config = requireUCIEvaluatorConfig(t, uci, uciEvaluatorSF18BIG, path)
+	if got := uci.searcher.SelectedEvaluatorBackend(); got != EvaluatorBackendSF18BIGName {
+		t.Fatalf("selected backend=%q, want %q", got, EvaluatorBackendSF18BIGName)
+	}
+	identity := uci.searcher.evaluatorModel.identity
+	if _, backend, err := uci.searcher.EvaluateSelected(uci.position.Copy()); err != nil {
+		t.Fatal(err)
+	} else if backend != EvaluatorBackendSF18BIGName {
+		t.Fatalf("evaluation backend=%q, want %q", backend, EvaluatorBackendSF18BIGName)
+	}
+
+	output.Reset()
+	uci.handleCommand("setoption name EvalFile value "+bad, &output)
+	if !strings.HasPrefix(output.String(), "info string error eval option: ") {
+		t.Fatalf("invalid replacement omitted canonical error: %s", output.String())
+	}
+	afterFailure := requireUCIEvaluatorConfig(t, uci, uciEvaluatorSF18BIG, path)
+	if afterFailure.staged.sf18Big != config.staged.sf18Big || uci.searcher.evaluatorModel.identity != identity {
+		t.Fatal("failed replacement changed active SF18 BIG state")
+	}
+
+	output.Reset()
+	uci.handleCommand("ucinewgame", &output)
+	afterNewGame := requireUCIEvaluatorConfig(t, uci, uciEvaluatorSF18BIG, path)
+	if afterNewGame.staged.sf18Big != config.staged.sf18Big ||
+		uci.searcher.SelectedEvaluatorBackend() != EvaluatorBackendSF18BIGName {
+		t.Fatal("ucinewgame changed SF18 BIG selection or staged file")
+	}
+	info := uci.searcher.SearchFixed(newUCIStartingPosition(), 1, nil)
+	if info.BestMove == EmptyMove || info.Stopped {
+		t.Fatalf("selected SF18 BIG model is not searchable: move=%s stopped=%v", info.BestMove.ToString(), info.Stopped)
 	}
 }
 
