@@ -1,9 +1,9 @@
 # N1 richer-model feasibility: select Stockfish 18 BIG/dual
 
-Status: **N1a through N1e complete; exact SF18 BIG/dual now clears the bounded
-throughput gate for a research-only strength screen.** This does not expose the
-backend through UCI, change the default, authorize promotion, or establish any
-Elo gain.
+Status: **N1a through N1f complete; exact SF18 BIG/dual cleared its throughput
+gate and produced a strong positive bounded strength screen.** This does not
+expose the backend through the normal NGN UCI process, change the default, or
+authorize promotion.
 
 The immediate question after the rejected P1 staged-picker candidate was which
 single richer pretrained evaluator deserved the next architectural lane.
@@ -332,3 +332,36 @@ richer model pays for its remaining 4.40x node cost. This authorizes only that
 screen and the adapter work needed to run it; it does not authorize UCI
 exposure, a default change, a wide Elo campaign, or promotion. Dirty-threat
 updates remain the next engineering gate if the quality signal is positive.
+
+## Slice N1f: locked research UCI and bounded strength screen
+
+N1f adds a separate `cmd/sf18big-research` process solely for the authorized
+screen. It loads the exact official BIG model at startup, identifies itself as
+`ngn-sf18-big-research`, hides `EvalBackend` and `EvalFile` from its UCI
+handshake, rejects attempts to mutate them, and retains BIG across
+`ucinewgame`. The normal `ngn` command, normal UCI option list and HCE default
+remain unchanged.
+
+The screen used the existing paired-opening SPRT harness in capped observation
+mode: serial execution, 20 ms/move for both roles, 160-ply cap, no score
+adjudication, and 20 openings played with reversed colors. Candidate, control,
+harness and model hashes are pinned in `result-v6.json`. An 8-game HCE/HCE smoke
+first finished 2-4-2 with paired Elo 0 and no operational failures.
+
+BIG then scored **22-16-2 in 40 games (75.0%)** against the same-tree HCE
+control. The paired estimate is **+190.8 Elo**, with penta 95% CI
+**[+125, +272]** and pentanomial `[0,0,5,10,5]`. Twenty-four games ended by
+checkmate, fifteen at the neutral ply cap, and one by the engine's draw rule.
+There were no startup, protocol, crash, illegal-move or no-move failures.
+
+This is a deliberately short screen, not a promotion-grade verdict. The
+harness reports its narrow `[-3,+3]` SPRT as inconclusive because the run was
+pre-capped at 40 games, but the screen question was broader: whether BIG's
+evaluation quality could plausibly repay its measured node loss. The positive
+paired confidence interval answers that question decisively enough to continue
+engineering.
+
+N1f passes. The next bounded slice is N1g: replace per-materialized-ply
+FullThreats enumerate-sort-diff with independently verified dirty-threat
+updates, then repeat the fixed-node gate and a larger pre-registered equal-time
+match before considering normal UCI exposure or a default change.

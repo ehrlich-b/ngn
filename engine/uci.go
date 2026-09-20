@@ -135,27 +135,28 @@ func (w *uciSessionWriter) sendMessage(uci *UCIEngine, message string) {
 
 // UCI Engine represents the UCI interface for the chess engine
 type UCIEngine struct {
-	position         *Position
-	searcher         *SearchEngine
-	lifecycleMu      sync.Mutex
-	searchState      uciSearchState
-	activeSearch     *uciSearchSession
-	nextSearchID     uint64
-	debugMode        bool
-	engineName       string
-	engineAuthor     string
-	version          string
-	timeManager      *TimeManager
-	movesPlayed      int
-	lastScore        int
-	debugLogger      *log.Logger
-	rawUCILogger     *log.Logger
-	allowResignation bool
-	now              func() time.Time
-	copyPosition     func(*Position) *Position
-	evaluatorConfig  uciEvaluatorConfig
-	startupDefaults  uciEvaluatorDefaults
-	ownBook          bool
+	position                *Position
+	searcher                *SearchEngine
+	lifecycleMu             sync.Mutex
+	searchState             uciSearchState
+	activeSearch            *uciSearchSession
+	nextSearchID            uint64
+	debugMode               bool
+	engineName              string
+	engineAuthor            string
+	version                 string
+	timeManager             *TimeManager
+	movesPlayed             int
+	lastScore               int
+	debugLogger             *log.Logger
+	rawUCILogger            *log.Logger
+	allowResignation        bool
+	now                     func() time.Time
+	copyPosition            func(*Position) *Position
+	evaluatorConfig         uciEvaluatorConfig
+	startupDefaults         uciEvaluatorDefaults
+	researchEvaluatorLocked bool
+	ownBook                 bool
 }
 
 const defaultUCIMoveOverheadMilliseconds = 100
@@ -382,6 +383,7 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.lifecycleMu.Lock()
 	evalBackendDefault := uci.startupDefaults.backend
 	evalFileDefault := uci.startupDefaults.file
+	researchEvaluatorLocked := uci.researchEvaluatorLocked
 	uci.lifecycleMu.Unlock()
 	if evalBackendDefault == "" {
 		evalBackendDefault = uciEvaluatorHCE
@@ -396,8 +398,10 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
 	uci.sendUCIMessage(output, "option name OwnBook type check default true")
 	uci.sendUCIMessage(output, "option name SyzygyPath type string default <empty>")
-	uci.sendUCIMessage(output, fmt.Sprintf("option name EvalBackend type combo default %s var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default", evalBackendDefault))
-	uci.sendUCIMessage(output, fmt.Sprintf("option name EvalFile type string default %s", evalFileDefault))
+	if !researchEvaluatorLocked {
+		uci.sendUCIMessage(output, fmt.Sprintf("option name EvalBackend type combo default %s var hce var ngn-v1 var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default", evalBackendDefault))
+		uci.sendUCIMessage(output, fmt.Sprintf("option name EvalFile type string default %s", evalFileDefault))
+	}
 
 	// Tunable search parameters (for SPSA / manual A/B; defaults == shipped values).
 	for _, p := range TunableSearchParams {
@@ -511,9 +515,17 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 		uci.ownBook = normalized == "true"
 		uci.lifecycleMu.Unlock()
 	case "evalbackend":
+		if uci.researchEvaluatorIsLocked() {
+			uci.sendEvalOptionError(output, "research startup evaluator is locked")
+			return
+		}
 		uci.handleEvalBackendOption(optionValue, output)
 		return
 	case "evalfile":
+		if uci.researchEvaluatorIsLocked() {
+			uci.sendEvalOptionError(output, "research startup evaluator is locked")
+			return
+		}
 		uci.handleEvalFileOption(optionValue, output)
 		return
 	default:
