@@ -310,7 +310,16 @@ func TestTranspositionTable(t *testing.T) {
 		t.Error("First search should find a best move")
 	}
 
-	// Do the same search again - should be faster due to TT hits
+	// Isolate the TT: the search deliberately retains history, killer, and
+	// counter-move learning between calls, and a more active history producer can
+	// legitimately change the selective tree on the second search. Reset those
+	// heuristics while retaining the populated TT before comparing its result.
+	defaultSearchEngine.ClearHistoryTable()
+	defaultSearchEngine.ClearKillerMoves()
+	defaultSearchEngine.ClearCounterMoves()
+	defaultSearchEngine.SetLastMovePlayed(EmptyMove)
+
+	// Do the same search again - should be faster due to TT hits.
 	info2 := Search(pos, 3)
 
 	// Scores must match. Best-move can differ when multiple moves tie on score —
