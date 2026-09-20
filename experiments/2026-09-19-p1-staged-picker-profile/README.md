@@ -71,3 +71,22 @@ Full artifacts remain under
 `/home/ehrli/p1-staged-picker-profile-20260919/run-001` on the authorized WSL
 host. Their identities and the decision calculation are in `result-v1.json`.
 
+## Reference-picker prototype status
+
+P1-R1 subsequently passed both predeclared mechanism gates. Its accepted-manifest
+fixed-depth geometric-mean node ratio was `1.0064150954406066`, with a maximum
+fixture/pass ratio of `1.147810218978102`; all final best moves were unchanged.
+The ten-block fixed-node timing median was `0.950269675008514`, clearing the
+required `0.97` ceiling. Full short repository tests and the engine race suite
+passed, including 12 V1.2 trajectory searches that exercised every picker stage.
+The durable receipt is `mechanism-result-v1.json`.
+
+The reviewed 64-pair pilot was launched once, but the WSL filesystem returned
+`EIO` while the supervisor was writing its initial receipt and the Ubuntu
+instance stopped. Four games had started and zero had finished; both PGN and
+final EPD are empty, no decision or terminal receipt exists, and no score was
+observed. This is an infrastructure-null attempt, not strength evidence. The
+exact failure hashes and the score-blind recovery boundary are frozen in
+`game-infrastructure-null-v1.json`. No recovery run is authorized until a new
+reviewed contract verifies that receipt and the Windows host has at least 20 GiB
+free; the observed free space after failure was only about 3.0 GB.

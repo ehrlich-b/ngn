@@ -1,0 +1,52 @@
+{
+  "schema": "ngn-p1-reference-picker-game-infrastructure-null-v1",
+  "classification": "INFRASTRUCTURE_NULL_NO_CHESS_RESULT",
+  "launch_commit": "6971244",
+  "failed_run_root": "/home/ehrli/p1-staged-picker-game-20260919/run-001",
+  "first_failure": {
+    "component": "process_supervisor.py",
+    "operation": "atomic write of pilot/supervisor.json.tmp",
+    "exception": "OSError: [Errno 5] Input/output error",
+    "wsl_state_after_failure": "Ubuntu stopped; CreateInstance returned Wsl/Service/CreateInstance/E_FAIL error 6",
+    "windows_volume_health": "Healthy/OK",
+    "windows_free_bytes": 3037487104,
+    "ubuntu_vhd_bytes": 358467239936
+  },
+  "pilot_state": {
+    "supervisor_state": "RUNNING",
+    "witness_state": "STARTING",
+    "games_started": 4,
+    "games_finished": 0,
+    "games_pgn_bytes": 0,
+    "final_epd_bytes": 0,
+    "match_stderr_bytes": 0,
+    "decision_present": false,
+    "terminal_present": false,
+    "surviving_match_processes_after_wsl_recovery": 0,
+    "score_observed": false
+  },
+  "artifact_sha256": {
+    "frozen-manifest.json": "13e729d837fbbb09991c2278b05f77f77f73e78263f70357eab7b7f0dcfacf09",
+    "prelaunch-non-owned-cpu.json": "61ecce2851b4f3785a77dee376c0971729b64c1c9d41d8a2b83aae06db45408d",
+    "pilot/supervisor.json": "7f232d665e2725993d51af00f3f502476e30d254e03a8381c32059e98626f740",
+    "pilot/match-witness.json": "a4377ad8afbcc358540125ad83ac92cb01205c99a5ab37f95934c2b3d457a90c",
+    "pilot/games.pgn": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pilot/final.epd": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pilot/match.stdout": "05609df0728466011d367628b8dd9288382320ed9434d30a4119c510514ab7a8",
+    "pilot/match.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pilot/fastchess.log": "5e1343b2094c95b26d01f4db72b33855710539464e62e874426578f325cc09df",
+    "pilot/process-samples.jsonl": "7d72b5fbbb637d14fd9a48cef611916acd1b8f83a1930fc861ae2af5770bf842"
+  },
+  "wsl_recovery": {
+    "operation": "one wsl.exe --shutdown followed by one Ubuntu start after the distro was authoritatively stopped",
+    "hopper_service": "active/running",
+    "hopper_pid": 1325,
+    "hopper_workers": 2,
+    "hopper_provider_model": "arliai/DeepSeek-V4-Flash-0731",
+    "hopper_doctor_issues": [],
+    "trusted_source_commit": "054e3b6774daf1160dea660efdbd61489626738e",
+    "worker_mirror_commit": "054e3b6774daf1160dea660efdbd61489626738e",
+    "source_mirror_in_sync": true
+  },
+  "recovery_rule": "Do not interpret this attempt as strength evidence. Do not reuse run-001 or inspect partial engine trace for selection. A fresh immutable run root may execute the identical frozen pilot only after a reviewed recovery contract proves these hashes and zero completed games, verifies no surviving match process, and observes at least 20 GiB free on the Windows host volume."
+}
