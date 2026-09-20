@@ -1,0 +1,43 @@
+{
+  "schema": "ngn-p1-reference-picker-mechanism-result-v1",
+  "base_source": "383e75745dfffcc47bf1cdd60411d297f456563d",
+  "candidate_engine_source": "2a173d0232f92a228ab5282dceb6d496dfc5a686",
+  "run_root": "/home/ehrli/p1-staged-picker-gate-20260919/run-001",
+  "snapshot_gate": {
+    "geometric_mean_node_ratio": 1.0064150954406066,
+    "maximum_node_ratio": 1.147810218978102,
+    "maximum_geometric_mean_ratio": 1.05,
+    "maximum_fixture_pass_ratio": 1.15,
+    "best_moves_unchanged": true,
+    "passes": true
+  },
+  "timing_gate": {
+    "blocks": 10,
+    "fixtures_per_engine_per_block": 6,
+    "nodes_per_search": 400000,
+    "median_candidate_base_ratio": 0.950269675008514,
+    "maximum_median_ratio": 0.97,
+    "passes": true
+  },
+  "validation": {
+    "full_short_repository_tests": "PASS",
+    "engine_short_race_tests": "PASS",
+    "trajectory_searches": 12,
+    "trajectory_nodes": 4800000,
+    "picker_tt_first_moves": 287372,
+    "picker_tactical_stages": 763049,
+    "picker_quiet_stages": 551548,
+    "picker_tactical_moves": 587813,
+    "picker_quiet_moves": 13304338,
+    "picker_bad_capture_moves": 460294
+  },
+  "artifact_sha256": {
+    "snapshot-summary.json": "1d0508beba00463bb3c1a79339a315ee9c14df0e9e35e919667e3fabaa63f0cd",
+    "base-snapshot.json": "86ffc797dd93031a78f17f0fe8831a57c46c98e10d963b4b2b12c32a77168e3e",
+    "candidate-snapshot.json": "fd76b534ab8b93528e87ba4a7d2c02926373d24fad986c602c299478a5d74b7e",
+    "timing/result.json": "5ea2b3ecd0a7f8fb2adc22c1200bbe5f8b7536d609e2256a88a6fd7d687746ae",
+    "validation-short-receipt.json": "5d77c91ac89913d53b01fae998aa7d0693f5b68f54bf3b8f9c5f27875bc173fa",
+    "validation-race-receipt.json": "5d77c91ac89913d53b01fae998aa7d0693f5b68f54bf3b8f9c5f27875bc173fa"
+  },
+  "disposition": "ADMIT_FIXED_GAME_GATE"
+}
