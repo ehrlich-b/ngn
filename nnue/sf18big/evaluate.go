@@ -128,33 +128,41 @@ func (m *Model) updateThreatFeature(
 }
 
 func applyThreatIndexDiff(before ThreatIndexList, diff ThreatDiff) ThreatIndexList {
-	var after ThreatIndexList
-	i, removed, added := 0, 0, 0
-	for i < int(before.Count) || added < int(diff.Added.Count) {
-		for removed < int(diff.Removed.Count) && i < int(before.Count) &&
-			diff.Removed.Indices[removed] == before.Indices[i] {
-			i++
+	after := before
+	applyThreatIndexDiffInPlace(&after, diff)
+	return after
+}
+
+func applyThreatIndexDiffInPlace(active *ThreatIndexList, diff ThreatDiff) {
+	oldCount := int(active.Count)
+	write, removed := 0, 0
+	for read := 0; read < oldCount; read++ {
+		if removed < int(diff.Removed.Count) &&
+			diff.Removed.Indices[removed] == active.Indices[read] {
 			removed++
-		}
-		if i == int(before.Count) {
-			for added < int(diff.Added.Count) {
-				after.Indices[after.Count] = diff.Added.Indices[added]
-				after.Count++
-				added++
-			}
-			break
-		}
-		if added < int(diff.Added.Count) && diff.Added.Indices[added] < before.Indices[i] {
-			after.Indices[after.Count] = diff.Added.Indices[added]
-			after.Count++
-			added++
 			continue
 		}
-		after.Indices[after.Count] = before.Indices[i]
-		after.Count++
-		i++
+		active.Indices[write] = active.Indices[read]
+		write++
 	}
-	return after
+
+	added := int(diff.Added.Count)
+	finalCount := write + added
+	read, add, destination := write-1, added-1, finalCount-1
+	for add >= 0 {
+		if read >= 0 && active.Indices[read] > diff.Added.Indices[add] {
+			active.Indices[destination] = active.Indices[read]
+			read--
+		} else {
+			active.Indices[destination] = diff.Added.Indices[add]
+			add--
+		}
+		destination--
+	}
+	if finalCount < oldCount {
+		clear(active.Indices[finalCount:oldCount])
+	}
+	active.Count = uint8(finalCount)
 }
 
 func (m *Model) evaluateSelectedState(state *ReferenceState, sideToMove base.Color, occupied int) SelectedEvaluation {

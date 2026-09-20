@@ -1,7 +1,8 @@
 # N1 richer-model feasibility: select Stockfish 18 BIG/dual
 
-Status: **N1a through N1f complete; exact SF18 BIG/dual cleared its throughput
-gate and produced a strong positive bounded strength screen.** This does not
+Status: **N1a through N1g complete; exact SF18 BIG/dual cleared its throughput
+gate, produced a strong positive bounded strength screen, and now has exact
+dirty-threat transitions that win their paired cost gate.** This does not
 expose the backend through the normal NGN UCI process, change the default, or
 authorize promotion.
 
@@ -365,3 +366,62 @@ N1f passes. The next bounded slice is N1g: replace per-materialized-ply
 FullThreats enumerate-sort-diff with independently verified dirty-threat
 updates, then repeat the fixed-node gate and a larger pre-registered equal-time
 match before considering normal UCI exposure or a default change.
+
+## Slice N1g: exact dirty-threat transitions
+
+N1g removes full FullThreats enumeration from ordinary materialized plies. A
+transition's changed-square set is the union of its removed and added piece
+squares. The candidate takes the closure of that set under attackers in both
+the before and after boards, using reverse pawn, knight and king tables plus the
+nearest diagonal and orthogonal slider on every changed ray. It then compares
+only the before/after threat pairs produced by those affected attackers.
+
+That closure is sufficient for every possible changed feature: either the
+attacker changed, the occupied target changed, or occupancy on a slider ray
+changed. The corresponding attacker is respectively on a changed square,
+attacks a changed square, or is the nearest slider found through that square in
+one of the two boards. King-orientation half changes remain explicit refresh
+boundaries. Per-frame piece bitboards avoid rebuilding twelve bitboards from
+the 64-square board, and the sorted active-threat multiset is updated in place.
+
+The permanent regression battery covers quiet pawn and knight moves, a double
+pawn step that opens a diagonal, a capture that opens a rook ray, duplicate
+feature multiplicity, and canonical active-list tails. More importantly, all
+1,203 independent pinned Stockfish rows remain exact for both perspectives,
+including sparse every-eighth-ply materialization and complete unwind. Focused
+search against fresh full refresh is exact. amd64-v1, amd64-v3, vet, ordinary
+race, all official oracles under race, focused engine race, and the
+repository-wide short suite pass.
+
+The first subset-enumeration version was rejected after contemporaneous A/B
+measurement showed a regression. Direct pair comparison, cached piece
+bitboards, precomputed attacker index origins, and an in-place multiset merge
+turned the lane into a repeatable win. Twelve alternating samples used prebuilt
+candidate and untouched `497dfa5` binaries, the same model, the same pinned
+Ryzen 7 9800X3D core, one benchmark operation, and 15,000 searched nodes per
+sample. The candidate won all twelve adjacent pairs:
+
+| Variant | Median ns/node | Implied nodes/s |
+| --- | ---: | ---: |
+| `497dfa5` enumerate-sort-diff baseline | 2,921.0 | 342,349 |
+| N1g exact dirty-threat candidate | 2,681.5 | 372,926 |
+
+The ratio-of-medians reduction is **8.20%**; the median of the twelve paired
+reductions is **8.10%**. The cached bitboards add 147,456 bytes to the benchmark
+operation's roughly 105 MB searcher allocation, with no additional allocation
+count. That is an intentional approximately 0.14% memory trade for less work at
+every materialized node.
+
+The final 300-operation profile measures 2,664 ns/node. `ensureThreats` falls
+from N1e's 45.3% cumulative to 40.8%; dirty transition discovery is 16.3%, while
+sorting falls from about 8.2% to 0.69%. Accumulator copies are now the largest
+single flat cost at 15.1%. Three-ply replay still loses decisively: median 8.009
+us versus 5.993 us for rebuilding after the same pushes, so the measured
+two-dirty-ply cutoff remains unchanged.
+
+N1g passes. The next evidence gate is the already authorized larger,
+pre-registered equal-time BIG-vs-HCE match. Normal UCI exposure, a default
+change, an absolute-rating claim, and promotion remain unauthorized. If more
+cost work is interleaved with that match, the profile selects accumulator-stack
+copy traffic and fused threat-row updates—not more active-set sorting—as the
+next engineering targets.

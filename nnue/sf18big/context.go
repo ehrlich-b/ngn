@@ -10,9 +10,9 @@ import (
 
 var ErrContext = errors.New("invalid Stockfish 18 BIG context operation")
 
-// With the vector kernels, replay wins through two dirty plies on the pinned
-// representative corpus; three plies cost more than rebuilding the current
-// position. Keep the cutoff tied to measured end-to-end context cost.
+// With exact dirty-threat transitions, replay wins through two dirty plies on
+// the pinned representative corpus; three plies still cost more than rebuilding
+// the current position. Keep the cutoff tied to measured end-to-end context cost.
 const maxIncrementalDonorPlies = 2
 
 type noCopy struct{}
@@ -36,9 +36,21 @@ func (t contextTransition) delta() base.Delta {
 	}
 }
 
+func (t contextTransition) changedSquares() uint64 {
+	var changed uint64
+	for index := 0; index < int(t.removedCount); index++ {
+		changed |= uint64(1) << t.removed[index].Square
+	}
+	for index := 0; index < int(t.addedCount); index++ {
+		changed |= uint64(1) << t.added[index].Square
+	}
+	return changed
+}
+
 type contextFrame struct {
 	state          ReferenceState
 	facts          base.PositionFacts
+	pieces         [2][6]uint64
 	sideToMove     base.Color
 	transition     contextTransition
 	baseComputed   [2]bool
@@ -117,6 +129,7 @@ func (c *Context) Reset(position base.Position) error {
 	c.frames[0] = contextFrame{
 		state:          state,
 		facts:          facts,
+		pieces:         boardPieceBitboards(&board),
 		sideToMove:     position.SideToMove,
 		baseComputed:   [2]bool{true, true},
 		threatComputed: [2]bool{true, true},
@@ -199,6 +212,15 @@ func (c *Context) commitReal(delta base.Delta, afterBoard [64]boardPiece, afterF
 	nextDepth := c.depth + 1
 	next := &c.frames[nextDepth]
 	next.facts = afterFacts
+	next.pieces = c.frames[c.depth].pieces
+	for index := 0; index < int(delta.RemovedCount); index++ {
+		piece := delta.Removed[index]
+		next.pieces[piece.Color][piece.Piece] &^= uint64(1) << piece.Square
+	}
+	for index := 0; index < int(delta.AddedCount); index++ {
+		piece := delta.Added[index]
+		next.pieces[piece.Color][piece.Piece] |= uint64(1) << piece.Square
+	}
 	next.sideToMove = c.frames[c.depth].sideToMove ^ 1
 	next.transition = contextTransition{
 		removedCount: delta.RemovedCount,
@@ -249,6 +271,7 @@ func (c *Context) commitNull() {
 	nextDepth := c.depth + 1
 	next := &c.frames[nextDepth]
 	next.facts = c.frames[c.depth].facts
+	next.pieces = c.frames[c.depth].pieces
 	next.sideToMove = c.frames[c.depth].sideToMove ^ 1
 	next.transition = contextTransition{}
 	next.baseComputed = [2]bool{}
@@ -392,21 +415,34 @@ func (c *Context) ensureThreats(perspective base.Color) error {
 		if err != nil {
 			return fmt.Errorf("%w: corrupt stored transition at depth %d: %v", ErrContext, depth, err)
 		}
-		nextActive, err := activeThreatsBoard(&nextBoard, frame.facts.KingSquare[p], frame.facts.Occupied, perspective)
+		previous := &c.frames[depth-1]
+		removed, added, err := dirtyThreatIndexDiff(
+			&board,
+			&nextBoard,
+			previous.pieces,
+			frame.pieces,
+			previous.facts.Occupied,
+			frame.facts.Occupied,
+			frame.transition.changedSquares(),
+			frame.facts.KingSquare[p],
+			perspective,
+		)
 		if err != nil {
 			return err
 		}
-		previous := &c.frames[depth-1]
 		frame.state.ThreatValues[p] = previous.state.ThreatValues[p]
 		frame.state.ThreatPSQT[p] = previous.state.ThreatPSQT[p]
-		removed, added := diffThreatIndexLists(previous.state.Threats[p], nextActive)
 		for _, feature := range removed.Indices[:removed.Count] {
 			c.model.updateThreatFeature(&frame.state.ThreatValues[p], &frame.state.ThreatPSQT[p], feature, false)
 		}
 		for _, feature := range added.Indices[:added.Count] {
 			c.model.updateThreatFeature(&frame.state.ThreatValues[p], &frame.state.ThreatPSQT[p], feature, true)
 		}
-		frame.state.Threats[p] = nextActive
+		frame.state.Threats[p] = previous.state.Threats[p]
+		applyThreatIndexDiffInPlace(&frame.state.Threats[p], ThreatDiff{
+			Removed: removed,
+			Added:   added,
+		})
 		frame.threatComputed[p] = true
 		c.stats.ThreatIncrementalFrames[p]++
 		board = nextBoard

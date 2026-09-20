@@ -190,56 +190,240 @@ func activeThreatsBoard(
 	perspective base.Color,
 ) (ThreatIndexList, error) {
 	var active ThreatIndexList
-	var pieces [2][6]uint64
-	for square, piece := range board {
-		if piece.set {
-			pieces[piece.color][piece.piece] |= uint64(1) << square
-		}
-	}
-	orientation := base.Square(56 * perspective)
-	if king&7 >= 4 {
-		orientation ^= 7
-	}
+	pieces := boardPieceBitboards(board)
+	orientation := threatOrientation(king, perspective)
 	for relativeColor := base.White; relativeColor <= base.Black; relativeColor++ {
 		color := perspective ^ relativeColor
 		for piece := base.Pawn; piece <= base.King; piece++ {
-			attackerID := int(relativeColor)*6 + int(piece)
-			offsets := &threatOffsets[relativeColor][piece]
 			attackers := pieces[color][piece]
 			for attackers != 0 {
 				from := base.Square(bits.TrailingZeros64(attackers))
 				attackers &= attackers - 1
-				fromOriented := from ^ orientation
-				fromOffset := offsets.from[fromOriented]
-				attacks := occupiedThreatAttacks(piece, color, from, occupied)
-				for attacks != 0 {
-					to := base.Square(bits.TrailingZeros64(attacks))
-					attacks &= attacks - 1
-					attacked := (*board)[to]
-					attackedColor := attacked.color ^ perspective
-					attackedID := int(attackedColor)*6 + int(attacked.piece)
-					toOriented := to ^ orientation
-					fromLessThanTo := 0
-					if fromOriented < toOriented {
-						fromLessThanTo = 1
-					}
-					indexBase := threatIndexTable.base[attackerID][attackedID][fromLessThanTo]
-					rank := threatIndexTable.rank[attackerID][fromOriented][toOriented]
-					if indexBase == invalidThreatIndexBase || rank == 255 {
-						continue
-					}
-					index := int(indexBase) + fromOffset + int(rank)
-					if int(active.Count) >= len(active.Indices) {
-						return ThreatIndexList{}, fmt.Errorf("%w: more than %d active threats", ErrEvaluation, maxActiveThreats)
-					}
-					active.Indices[active.Count] = uint32(index)
-					active.Count++
+				if err := appendAttackerThreats(&active, board, occupied, perspective, orientation, from); err != nil {
+					return ThreatIndexList{}, err
 				}
 			}
 		}
 	}
 	slices.Sort(active.Indices[:active.Count])
 	return active, nil
+}
+
+func boardPieceBitboards(board *[64]boardPiece) [2][6]uint64 {
+	var pieces [2][6]uint64
+	for square, piece := range board {
+		if piece.set {
+			pieces[piece.color][piece.piece] |= uint64(1) << square
+		}
+	}
+	return pieces
+}
+
+func threatOrientation(king base.Square, perspective base.Color) base.Square {
+	orientation := base.Square(56 * perspective)
+	if king&7 >= 4 {
+		orientation ^= 7
+	}
+	return orientation
+}
+
+func appendAttackerThreats(
+	active *ThreatIndexList,
+	board *[64]boardPiece,
+	occupied uint64,
+	perspective base.Color,
+	orientation base.Square,
+	from base.Square,
+) error {
+	attacker := (*board)[from]
+	if !attacker.set {
+		return nil
+	}
+	attackerColor := attacker.color ^ perspective
+	attackerID := int(attackerColor)*6 + int(attacker.piece)
+	fromOriented := from ^ orientation
+	fromOffset := threatOffsets[attackerColor][attacker.piece].from[fromOriented]
+	attacks := occupiedThreatAttacks(attacker.piece, attacker.color, from, occupied)
+	for attacks != 0 {
+		to := base.Square(bits.TrailingZeros64(attacks))
+		attacks &= attacks - 1
+		attacked := (*board)[to]
+		attackedColor := attacked.color ^ perspective
+		attackedID := int(attackedColor)*6 + int(attacked.piece)
+		toOriented := to ^ orientation
+		fromLessThanTo := 0
+		if fromOriented < toOriented {
+			fromLessThanTo = 1
+		}
+		indexBase := threatIndexTable.base[attackerID][attackedID][fromLessThanTo]
+		rank := threatIndexTable.rank[attackerID][fromOriented][toOriented]
+		if indexBase == invalidThreatIndexBase || rank == 255 {
+			continue
+		}
+		if int(active.Count) >= len(active.Indices) {
+			return fmt.Errorf("%w: more than %d active threats", ErrEvaluation, maxActiveThreats)
+		}
+		active.Indices[active.Count] = uint32(int(indexBase) + fromOffset + int(rank))
+		active.Count++
+	}
+	return nil
+}
+
+func dirtyThreatIndexDiff(
+	before, after *[64]boardPiece,
+	beforePieces, afterPieces [2][6]uint64,
+	beforeOccupied, afterOccupied uint64,
+	changedSquares uint64,
+	king base.Square,
+	perspective base.Color,
+) (ThreatIndexList, ThreatIndexList, error) {
+	if changedSquares == 0 {
+		return ThreatIndexList{}, ThreatIndexList{}, nil
+	}
+	affected := changedSquares |
+		threatAttackersToSquares(beforePieces, beforeOccupied, changedSquares) |
+		threatAttackersToSquares(afterPieces, afterOccupied, changedSquares)
+	orientation := threatOrientation(king, perspective)
+	var removedCandidates, addedCandidates ThreatIndexList
+	for affected != 0 {
+		from := base.Square(bits.TrailingZeros64(affected))
+		affected &= affected - 1
+		beforeAttacker := (*before)[from]
+		var beforeAttacks uint64
+		if beforeAttacker.set {
+			beforeAttacks = occupiedThreatAttacks(
+				beforeAttacker.piece,
+				beforeAttacker.color,
+				from,
+				beforeOccupied,
+			)
+		}
+		afterAttacker := (*after)[from]
+		var afterAttacks uint64
+		if afterAttacker.set {
+			afterAttacks = occupiedThreatAttacks(
+				afterAttacker.piece,
+				afterAttacker.color,
+				from,
+				afterOccupied,
+			)
+		}
+		beforeOrigin := indexedThreatOrigin(beforeAttacker, perspective, orientation, from)
+		afterOrigin := indexedThreatOrigin(afterAttacker, perspective, orientation, from)
+		for targets := beforeAttacks | afterAttacks; targets != 0; targets &= targets - 1 {
+			to := base.Square(bits.TrailingZeros64(targets))
+			toBit := uint64(1) << to
+			toOriented := to ^ orientation
+			var beforeIndex, afterIndex uint32
+			var beforeActive, afterActive bool
+			if beforeAttacks&toBit != 0 {
+				beforeIndex, beforeActive = indexedThreatTarget(
+					beforeOrigin, (*before)[to], perspective, toOriented,
+				)
+			}
+			if afterAttacks&toBit != 0 {
+				afterIndex, afterActive = indexedThreatTarget(
+					afterOrigin, (*after)[to], perspective, toOriented,
+				)
+			}
+			if beforeActive && afterActive && beforeIndex == afterIndex {
+				continue
+			}
+			if beforeActive {
+				if err := appendThreatIndex(&removedCandidates, beforeIndex); err != nil {
+					return ThreatIndexList{}, ThreatIndexList{}, err
+				}
+			}
+			if afterActive {
+				if err := appendThreatIndex(&addedCandidates, afterIndex); err != nil {
+					return ThreatIndexList{}, ThreatIndexList{}, err
+				}
+			}
+		}
+	}
+	slices.Sort(removedCandidates.Indices[:removedCandidates.Count])
+	slices.Sort(addedCandidates.Indices[:addedCandidates.Count])
+	removed, added := diffThreatIndexLists(removedCandidates, addedCandidates)
+	return removed, added, nil
+}
+
+type threatIndexOrigin struct {
+	attackerID   int
+	fromOffset   int
+	fromOriented base.Square
+	valid        bool
+}
+
+func indexedThreatOrigin(
+	attacker boardPiece,
+	perspective base.Color,
+	orientation base.Square,
+	from base.Square,
+) threatIndexOrigin {
+	if !attacker.set {
+		return threatIndexOrigin{}
+	}
+	attackerColor := attacker.color ^ perspective
+	fromOriented := from ^ orientation
+	return threatIndexOrigin{
+		attackerID:   int(attackerColor)*6 + int(attacker.piece),
+		fromOffset:   threatOffsets[attackerColor][attacker.piece].from[fromOriented],
+		fromOriented: fromOriented,
+		valid:        true,
+	}
+}
+
+func indexedThreatTarget(
+	origin threatIndexOrigin,
+	attacked boardPiece,
+	perspective base.Color,
+	toOriented base.Square,
+) (uint32, bool) {
+	if !origin.valid || !attacked.set {
+		return 0, false
+	}
+	attackedColor := attacked.color ^ perspective
+	attackedID := int(attackedColor)*6 + int(attacked.piece)
+	fromLessThanTo := 0
+	if origin.fromOriented < toOriented {
+		fromLessThanTo = 1
+	}
+	indexBase := threatIndexTable.base[origin.attackerID][attackedID][fromLessThanTo]
+	rank := threatIndexTable.rank[origin.attackerID][origin.fromOriented][toOriented]
+	if indexBase == invalidThreatIndexBase || rank == 255 {
+		return 0, false
+	}
+	return uint32(int(indexBase) + origin.fromOffset + int(rank)), true
+}
+
+func appendThreatIndex(active *ThreatIndexList, index uint32) error {
+	if int(active.Count) >= len(active.Indices) {
+		return fmt.Errorf("%w: more than %d active threats", ErrEvaluation, maxActiveThreats)
+	}
+	active.Indices[active.Count] = index
+	active.Count++
+	return nil
+}
+
+func threatAttackersToSquares(pieces [2][6]uint64, occupied, targets uint64) uint64 {
+	var attackers uint64
+	for targets != 0 {
+		to := base.Square(bits.TrailingZeros64(targets))
+		targets &= targets - 1
+		attackers |= pseudoThreatTable[base.Black][base.Pawn][to] & pieces[base.White][base.Pawn]
+		attackers |= pseudoThreatTable[base.White][base.Pawn][to] & pieces[base.Black][base.Pawn]
+		attackers |= pseudoThreatTable[base.White][base.Knight][to] &
+			(pieces[base.White][base.Knight] | pieces[base.Black][base.Knight])
+		attackers |= pseudoThreatTable[base.White][base.King][to] &
+			(pieces[base.White][base.King] | pieces[base.Black][base.King])
+		diagonal := occupiedThreatAttacks(base.Bishop, base.White, to, occupied)
+		attackers |= diagonal & (pieces[base.White][base.Bishop] | pieces[base.Black][base.Bishop] |
+			pieces[base.White][base.Queen] | pieces[base.Black][base.Queen])
+		orthogonal := occupiedThreatAttacks(base.Rook, base.White, to, occupied)
+		attackers |= orthogonal & (pieces[base.White][base.Rook] | pieces[base.Black][base.Rook] |
+			pieces[base.White][base.Queen] | pieces[base.Black][base.Queen])
+	}
+	return attackers
 }
 
 // DiffThreats computes a reference sorted-set transition. It accepts two
