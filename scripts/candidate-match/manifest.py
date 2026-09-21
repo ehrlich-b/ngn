@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Strict v1 manifest validation for same-code one-worker NGN HCE vs NGN-v1."""
+"""Strict v1 manifest validation for same-code one-worker HCE vs exact NGN network."""
 from __future__ import annotations
 
 import hashlib
@@ -12,6 +12,7 @@ from typing import Any
 SCHEMA = "ngn-candidate-match-v1"
 CAPABILITY = "ngn-pre-m4c-pinned-one-worker-v1"
 OPTION_NAMES = ["Threads", "OwnBook", "EvalFile", "EvalBackend", "Hash", "Move Overhead"]
+NETWORK_BACKENDS = {"ngn-v1", "ngn-k4-768-v1"}
 HELD_APPROVAL = {
     "authority": None,
     "token": None,
@@ -106,16 +107,18 @@ def role(value: Any, index: int) -> dict[str, Any]:
         network = obj(value["network"], f"{location}.network")
         exact_keys(network, {"path", "sha256", "format"}, set(), f"{location}.network")
         file_spec({"path": network["path"], "sha256": network["sha256"]}, f"{location}.network.file")
-        if network["format"] != "ngn-v1":
-            raise ManifestError(f"{location}.network.format: must be ngn-v1")
+        if network["format"] not in NETWORK_BACKENDS:
+            raise ManifestError(f"{location}.network.format: unsupported exact NGN format")
     if value["capability_profile"] != CAPABILITY:
         raise ManifestError(f"{location}.capability_profile: unsupported by v1")
-    if value["backend"] not in {"hce", "ngn-v1"}:
-        raise ManifestError(f"{location}.backend: expected hce or ngn-v1")
-    if value["backend"] == "ngn-v1" and value["network"] is None:
-        raise ManifestError(f"{location}: ngn-v1 requires network")
+    if value["backend"] not in {"hce", *NETWORK_BACKENDS}:
+        raise ManifestError(f"{location}.backend: expected hce or an exact NGN backend")
+    if value["backend"] in NETWORK_BACKENDS and value["network"] is None:
+        raise ManifestError(f"{location}: network backend requires network")
     if value["backend"] == "hce" and value["network"] is not None:
         raise ManifestError(f"{location}: hce forbids network")
+    if value["network"] is not None and value["network"]["format"] != value["backend"]:
+        raise ManifestError(f"{location}: network format must equal backend")
 
     options = value["uci_options"]
     if not isinstance(options, list) or len(options) != len(OPTION_NAMES):
@@ -128,7 +131,7 @@ def role(value: Any, index: int) -> dict[str, Any]:
         parsed[name] = option["value"]
     if [option["name"] for option in options] != OPTION_NAMES:
         raise ManifestError(f"{location}.uci_options: canonical order is {OPTION_NAMES}")
-    expected_file = "$FROZEN_NETWORK" if value["backend"] == "ngn-v1" else "<empty>"
+    expected_file = "$FROZEN_NETWORK" if value["backend"] in NETWORK_BACKENDS else "<empty>"
     if parsed != {
         "Threads": 1,
         "OwnBook": False,
@@ -211,8 +214,9 @@ def validate_manifest(value: Any) -> dict[str, Any]:
     roles = [role(item, index) for index, item in enumerate(roles)]
     if len({item["id"] for item in roles}) != 2 or len({item["display_name"] for item in roles}) != 2:
         raise ManifestError("inputs.roles: IDs and display names must be unique")
-    if {item["backend"] for item in roles} != {"hce", "ngn-v1"}:
-        raise ManifestError("inputs.roles: v1 requires one HCE and one NGN-v1 role")
+    backends = {item["backend"] for item in roles}
+    if "hce" not in backends or len(backends) != 2 or not (backends - {"hce"}).issubset(NETWORK_BACKENDS):
+        raise ManifestError("inputs.roles: v1 requires one HCE and one exact NGN-network role")
     binary_identities = {(item["binary"]["sha256"], item["binary"]["provenance"]["source_commit"], item["binary"]["provenance"]["source_tree"]) for item in roles}
     if len(binary_identities) != 1:
         raise ManifestError("inputs.roles: v1 requires same-code binary/source identities")

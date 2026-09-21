@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed same-code NGN HCE versus NGN-v1 candidate match runner."""
+"""Fail-closed same-code HCE versus exact NGN-network candidate match runner."""
 from __future__ import annotations
 
 import argparse

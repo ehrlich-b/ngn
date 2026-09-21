@@ -30,7 +30,7 @@ def binary_spec() -> dict:
 
 
 def role(role_id: str, backend: str) -> dict:
-    network = None if backend == "hce" else {**file_spec("/tmp/pilot network.ngn"), "format": "ngn-v1"}
+    network = None if backend == "hce" else {**file_spec("/tmp/pilot network.ngn"), "format": backend}
     eval_file = "<empty>" if backend == "hce" else "$FROZEN_NETWORK"
     return {
         "id": role_id,
@@ -159,6 +159,17 @@ class ManifestTests(unittest.TestCase):
         value = manifest()
         value["inputs"]["roles"][1]["uci_options"][2]["value"] = "<empty>"
         with self.assertRaisesRegex(ManifestError, "backend/thread/file mismatch"):
+            validate_manifest(value)
+
+    def test_k4_exact_network_role_is_supported(self) -> None:
+        value = manifest()
+        value["inputs"]["roles"][1] = role("k4", "ngn-k4-768-v1")
+        self.assertIs(validate_manifest(value), value)
+
+    def test_network_format_must_match_backend(self) -> None:
+        value = manifest()
+        value["inputs"]["roles"][1]["network"]["format"] = "ngn-k4-768-v1"
+        with self.assertRaisesRegex(ManifestError, "format must equal backend"):
             validate_manifest(value)
 
 

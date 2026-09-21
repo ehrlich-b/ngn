@@ -124,7 +124,8 @@
         "backend": {
           "enum": [
             "hce",
-            "ngn-v1"
+            "ngn-v1",
+            "ngn-k4-768-v1"
           ]
         },
         "binary": {
@@ -198,7 +199,10 @@
               "additionalProperties": false,
               "properties": {
                 "format": {
-                  "const": "ngn-v1"
+                  "enum": [
+                    "ngn-v1",
+                    "ngn-k4-768-v1"
+                  ]
                 },
                 "path": {
                   "minLength": 1,
