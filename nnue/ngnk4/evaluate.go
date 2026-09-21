@@ -79,13 +79,41 @@ func (model *Model) fullRefresh(board Board) accumulator {
 			pieceBits &= pieceBits - 1
 			whiteRow := &model.inputWeights[featureIndex(color, pieceType, square, whiteKingSquare, White)]
 			blackRow := &model.inputWeights[featureIndex(color, pieceType, square, blackKingSquare, Black)]
-			for hidden := 0; hidden < HiddenSize; hidden++ {
-				result[White][hidden] += int32(whiteRow[hidden])
-				result[Black][hidden] += int32(blackRow[hidden])
-			}
+			addFeatureRow(&result[White], whiteRow)
+			addFeatureRow(&result[Black], blackRow)
 		}
 	}
 	return result
+}
+
+// These fixed-width kernels expose independent accumulator lanes to the Go
+// compiler. The network width is a format constant and a multiple of eight.
+// Keeping the bounds explicit avoids a branch and dependent induction update
+// for every one of the 768 scalar lanes on the search hot path.
+func addFeatureRow(destination *[HiddenSize]int32, row *[HiddenSize]int16) {
+	for hidden := 0; hidden < HiddenSize; hidden += 8 {
+		destination[hidden] += int32(row[hidden])
+		destination[hidden+1] += int32(row[hidden+1])
+		destination[hidden+2] += int32(row[hidden+2])
+		destination[hidden+3] += int32(row[hidden+3])
+		destination[hidden+4] += int32(row[hidden+4])
+		destination[hidden+5] += int32(row[hidden+5])
+		destination[hidden+6] += int32(row[hidden+6])
+		destination[hidden+7] += int32(row[hidden+7])
+	}
+}
+
+func subtractFeatureRow(destination *[HiddenSize]int32, row *[HiddenSize]int16) {
+	for hidden := 0; hidden < HiddenSize; hidden += 8 {
+		destination[hidden] -= int32(row[hidden])
+		destination[hidden+1] -= int32(row[hidden+1])
+		destination[hidden+2] -= int32(row[hidden+2])
+		destination[hidden+3] -= int32(row[hidden+3])
+		destination[hidden+4] -= int32(row[hidden+4])
+		destination[hidden+5] -= int32(row[hidden+5])
+		destination[hidden+6] -= int32(row[hidden+6])
+		destination[hidden+7] -= int32(row[hidden+7])
+	}
 }
 
 func clippedSquaredWeighted(value int32, weight int16) int64 {
@@ -95,6 +123,15 @@ func clippedSquaredWeighted(value int32, weight int16) int64 {
 		value = InputScale
 	}
 	return int64(value) * int64(value) * int64(weight)
+}
+
+func clippedSquaredWeightedFast(value int32, weight int16) int32 {
+	if value < 0 {
+		value = 0
+	} else if value > InputScale {
+		value = InputScale
+	}
+	return value * value * int32(weight)
 }
 
 func outputBucket(board Board) int {
@@ -114,10 +151,31 @@ func (model *Model) evaluateAccumulator(accumulator *accumulator, sideToMove Col
 	nonSTM := &accumulator[sideToMove^1]
 	stmWeights := &model.outputWeights[bucket][0]
 	nonSTMWeights := &model.outputWeights[bucket][1]
+	if model.metadata.FastOutputSafe[bucket] {
+		var sum int32
+		for hidden := 0; hidden < HiddenSize; hidden += 4 {
+			sum += clippedSquaredWeightedFast(stm[hidden], stmWeights[hidden])
+			sum += clippedSquaredWeightedFast(nonSTM[hidden], nonSTMWeights[hidden])
+			sum += clippedSquaredWeightedFast(stm[hidden+1], stmWeights[hidden+1])
+			sum += clippedSquaredWeightedFast(nonSTM[hidden+1], nonSTMWeights[hidden+1])
+			sum += clippedSquaredWeightedFast(stm[hidden+2], stmWeights[hidden+2])
+			sum += clippedSquaredWeightedFast(nonSTM[hidden+2], nonSTMWeights[hidden+2])
+			sum += clippedSquaredWeightedFast(stm[hidden+3], stmWeights[hidden+3])
+			sum += clippedSquaredWeightedFast(nonSTM[hidden+3], nonSTMWeights[hidden+3])
+		}
+		q := int64(sum)/InputScale + int64(model.outputBiases[bucket])
+		return q * OutputScale / (InputScale * LayerScale)
+	}
 	var sum int64
-	for hidden := 0; hidden < HiddenSize; hidden++ {
+	for hidden := 0; hidden < HiddenSize; hidden += 4 {
 		sum += clippedSquaredWeighted(stm[hidden], stmWeights[hidden])
 		sum += clippedSquaredWeighted(nonSTM[hidden], nonSTMWeights[hidden])
+		sum += clippedSquaredWeighted(stm[hidden+1], stmWeights[hidden+1])
+		sum += clippedSquaredWeighted(nonSTM[hidden+1], nonSTMWeights[hidden+1])
+		sum += clippedSquaredWeighted(stm[hidden+2], stmWeights[hidden+2])
+		sum += clippedSquaredWeighted(nonSTM[hidden+2], nonSTMWeights[hidden+2])
+		sum += clippedSquaredWeighted(stm[hidden+3], stmWeights[hidden+3])
+		sum += clippedSquaredWeighted(nonSTM[hidden+3], nonSTMWeights[hidden+3])
 	}
 	q := sum/InputScale + int64(model.outputBiases[bucket])
 	return q * OutputScale / (InputScale * LayerScale)

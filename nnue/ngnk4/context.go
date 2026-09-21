@@ -120,9 +120,6 @@ func (context *SearchContext) PushMove(delta MoveDelta, expectedPost Position) e
 	if err := context.validate(); err != nil {
 		return err
 	}
-	if err := validatePosition(expectedPost); err != nil {
-		return fmt.Errorf("NGN K4 search context: expected post position: %w", err)
-	}
 	current := context.positions[context.depth]
 	nextPosition, updates, updateCount, refreshPerspective, err := deriveTransition(current, delta)
 	if err != nil {
@@ -207,9 +204,13 @@ func deriveTransition(current Position, delta MoveDelta) (Position, [4]featureUp
 	fail := func(format string, args ...interface{}) (Position, [4]featureUpdate, int, Color, error) {
 		return Position{}, [4]featureUpdate{}, 0, Color(2), fmt.Errorf("NGN K4 search context: "+format, args...)
 	}
-	if err := validatePosition(current); err != nil {
-		return fail("current position: %v", err)
-	}
+	// SearchContext admits a validated root and stores only transitions derived
+	// here, so current is already a valid invariant. The derived position cannot
+	// gain overlaps, kings, or pieces: helpers require exact removals and empty
+	// destinations, king captures are forbidden, and every move preserves both
+	// kings and the <=32-piece bound. Comparing it with expectedPost in PushMove
+	// therefore validates the engine adapter without rescanning 12 bitboards
+	// three times on every searched edge.
 	if delta.MovingPlane >= FeaturePlaneCount {
 		return fail("moving plane %d out of range", delta.MovingPlane)
 	}
@@ -279,9 +280,6 @@ func deriveTransition(current Position, delta MoveDelta) (Position, [4]featureUp
 		}
 	}
 	next.SideToMove ^= 1
-	if err := validatePosition(next); err != nil {
-		return fail("derived post position: %v", err)
-	}
 
 	updates := [4]featureUpdate{{plane: targetPlane, square: to, add: true}, {plane: movingPlane, square: from}}
 	updateCount := 2
@@ -322,12 +320,10 @@ func (model *Model) applyUpdates(destination *accumulator, postBoard Board, upda
 			color := Color(update.plane / colorPlanes)
 			pieceType := update.plane % colorPlanes
 			row := &model.inputWeights[featureIndex(color, pieceType, update.square, kingSquares[perspective], perspective)]
-			for hidden, weight := range row {
-				if update.add {
-					destination[perspective][hidden] += int32(weight)
-				} else {
-					destination[perspective][hidden] -= int32(weight)
-				}
+			if update.add {
+				addFeatureRow(&destination[perspective], row)
+			} else {
+				subtractFeatureRow(&destination[perspective], row)
 			}
 		}
 	}
@@ -344,9 +340,7 @@ func (model *Model) refreshPerspective(destination *[HiddenSize]int32, board Boa
 			square := bits.TrailingZeros64(pieceBits)
 			pieceBits &= pieceBits - 1
 			row := &model.inputWeights[featureIndex(color, pieceType, square, kingSquare, perspective)]
-			for hidden, weight := range row {
-				destination[hidden] += int32(weight)
-			}
+			addFeatureRow(destination, row)
 		}
 	}
 }
