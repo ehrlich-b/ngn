@@ -72,6 +72,7 @@ type k4ParityRecord struct {
 type k4ParityReport struct {
 	BridgeVersion          string           `json:"bridge_version"`
 	BulletCommit           string           `json:"bullet_commit"`
+	BulletPatchSHA256      string           `json:"bullet_patch_sha256"`
 	Command                []string         `json:"command"`
 	RawPath                string           `json:"raw_path"`
 	RawSHA256              string           `json:"raw_sha256"`
@@ -226,7 +227,10 @@ func readProbe(path string, fens []string) ([]probeRecord, [sha256.Size]byte, er
 	}
 	records := make([]probeRecord, 0, len(fens))
 	passLine := false
-	expectedPass := fmt.Sprintf("NGN_K4_PROBE_PASS bullet_commit=%s positions=%d", bulletCommit, len(fens))
+	expectedPass := fmt.Sprintf(
+		"NGN_K4_PROBE_PASS bullet_commit=%s patch=%s positions=%d",
+		bulletCommit, bulletPatchSHA, len(fens),
+	)
 	scanner := bufio.NewScanner(bytes.NewReader(data))
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -402,6 +406,7 @@ func runParity(args []string, stdout, stderr io.Writer) error {
 	report := k4ParityReport{
 		BridgeVersion:          bridgeVersion,
 		BulletCommit:           bulletCommit,
+		BulletPatchSHA256:      bulletPatchSHA,
 		Command:                append([]string{"ngnk4bridge", "parity"}, args...),
 		RawPath:                *rawPath,
 		RawSHA256:              hex.EncodeToString(rawSHA[:]),

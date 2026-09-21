@@ -17,10 +17,11 @@ import (
 )
 
 const (
-	bridgeVersion = "ngn-k4-768-v1-bullet629ee5-v1"
-	bulletCommit  = "629ee50000b2afb7b3337595401c830d3b1e0f42"
-	trailerBytes  = 48
-	inputBytes    = ngnk4.PayloadSize + trailerBytes
+	bridgeVersion  = "ngn-k4-768-v1-bullet629ee5-patchf7f5e0-v2"
+	bulletCommit   = "629ee50000b2afb7b3337595401c830d3b1e0f42"
+	bulletPatchSHA = "f7f5e0dd02695fe57ec58a630b63006da96cb1ec6b8fd4769a4e6308a8121e54"
+	trailerBytes   = 48
+	inputBytes     = ngnk4.PayloadSize + trailerBytes
 )
 
 var bulletTrailer = bytes.Repeat([]byte("bullet"), 8)

@@ -27,7 +27,6 @@ const (
 	checkpointSchema         = "ngn-k4-bullet-checkpoint-v1"
 	finalizedSchema          = "ngn-k4-finalized-corpus-v1"
 	finalizedContract        = "sf18-5kn-material-inversion-v2"
-	selectionBulletPatchSHA  = "f7f5e0dd02695fe57ec58a630b63006da96cb1ec6b8fd4769a4e6308a8121e54"
 	pilotTotalUpdates        = 1024
 	pilotCheckpointUpdates   = 128
 	pilotValidationRecords   = 100_000
@@ -411,7 +410,7 @@ func loadSelectionCandidates(
 			return nil, fmt.Errorf("decode %s: %w", receiptPath, err)
 		}
 		if checkpoint.Schema != checkpointSchema || checkpoint.BulletCommit != bulletCommit ||
-			checkpoint.BulletPatchSHA256 != selectionBulletPatchSHA || checkpoint.Mode != "pilot" ||
+			checkpoint.BulletPatchSHA256 != bulletPatchSHA || checkpoint.Mode != "pilot" ||
 			checkpoint.CompletedUpdates != update || checkpoint.TotalUpdates != pilotTotalUpdates ||
 			checkpoint.CheckpointUpdates != pilotCheckpointUpdates || checkpoint.InputBuckets != ngnk4.InputBuckets ||
 			checkpoint.Hidden != ngnk4.HiddenSize || checkpoint.OutputBuckets != ngnk4.OutputBuckets ||

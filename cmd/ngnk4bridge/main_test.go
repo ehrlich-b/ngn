@@ -171,7 +171,7 @@ func TestParityChecksTensorAndBulletGoEvaluationContracts(t *testing.T) {
 	probePath := filepath.Join(directory, "probe.tsv")
 	probe := "NGN_K4_PROBE\t0\t0.000000000\t" + fens[0] + "\n" +
 		"NGN_K4_PROBE\t1\t0.000000000\t" + fens[1] + "\n" +
-		"NGN_K4_PROBE_PASS bullet_commit=" + bulletCommit + " positions=2\n"
+		"NGN_K4_PROBE_PASS bullet_commit=" + bulletCommit + " patch=" + bulletPatchSHA + " positions=2\n"
 	if err := os.WriteFile(probePath, []byte(probe), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -185,7 +185,7 @@ func TestParityChecksTensorAndBulletGoEvaluationContracts(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &report); err != nil {
 		t.Fatal(err)
 	}
-	if !report.Pass || !report.TensorQuantizationPass || len(report.Records) != len(fens) ||
+	if !report.Pass || !report.TensorQuantizationPass || report.BulletPatchSHA256 != bulletPatchSHA || len(report.Records) != len(fens) ||
 		report.Records[0].OutputBucket != 0 || report.Records[1].OutputBucket != 1 {
 		t.Fatalf("parity report = %+v", report)
 	}
