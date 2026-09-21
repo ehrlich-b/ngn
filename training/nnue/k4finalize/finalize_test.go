@@ -3,6 +3,7 @@ package k4finalize
 import (
 	"bufio"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"os"
@@ -178,6 +179,38 @@ func makeLayout(t *testing.T) testLayout {
 	sampler := filepath.Join(root, "sampler.json")
 	writeJSON(t, sampler, manifest)
 	return testLayout{sampler: sampler, labels: labels, packed: packed, expected: expected}
+}
+
+func TestPackerStreamDigestUsesCanonicalHexLabelID(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "accepted.bf")
+	record := make([]byte, k4pack.RecordBytes)
+	record[24] = 0x34
+	record[25] = 0x12
+	if err := os.WriteFile(path, record, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	var identity acceptedIdentity
+	for index := range identity.id {
+		identity.id[index] = byte(index)
+		identity.key[index] = byte(255 - index)
+	}
+
+	got, err := packerStreamDigest(path, []acceptedIdentity{identity})
+	if err != nil {
+		t.Fatal(err)
+	}
+	digest := sha256.New()
+	digest.Write([]byte("ngn-k4-pack-accepted-stream-v1\x00"))
+	digest.Write([]byte(hex.EncodeToString(identity.id[:])))
+	digest.Write(identity.key[:])
+	var ordinal [8]byte
+	binary.LittleEndian.PutUint64(ordinal[:], 0)
+	digest.Write(ordinal[:])
+	digest.Write(record[24:26])
+	want := hex.EncodeToString(digest.Sum(nil))
+	if got != want {
+		t.Fatalf("accepted stream digest = %s, want %s", got, want)
+	}
 }
 
 func TestPilotAndMainFreezeExactAcceptedSets(t *testing.T) {

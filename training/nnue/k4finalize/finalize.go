@@ -417,7 +417,11 @@ func packerStreamDigest(path string, identities []acceptedIdentity) (string, err
 		if _, err := io.ReadFull(file, record[:]); err != nil {
 			return "", err
 		}
-		digest.Write(identity.id[:])
+		// k4pack hashes the canonical lowercase hex label ID exactly as it
+		// appears in the label stream, while the input key is hashed as its
+		// decoded 32-byte value. Re-encode the already-validated ID here so
+		// independent finalization reproduces the packer's receipt contract.
+		digest.Write([]byte(hex.EncodeToString(identity.id[:])))
 		digest.Write(identity.key[:])
 		var word [8]byte
 		binary.LittleEndian.PutUint64(word[:], uint64(ordinal))
