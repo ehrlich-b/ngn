@@ -20,7 +20,7 @@ use sha2::{Digest, Sha256};
 
 const CONTRACT: &str = "ngn-k4-sampler-v2";
 const OUTPUT_SCHEMA: &str = "ngn-k4-sampler-output-v2";
-const SELECTION_SCHEMA: &str = "ngn-k4-selection-v2";
+const SELECTION_SCHEMA: &str = "ngn-k4-selection-v3";
 const SCAN_SCHEMA: &str = "ngn-k4-scan-manifest-v1";
 const CHUNK_SCHEMA: &str = "ngn-k4-scan-chunk-v1";
 const INPUT_SCHEMA: &str = "ngn-k4-label-input-v2";
@@ -419,6 +419,7 @@ struct SelectionCounts {
     historical_conflict_keys: u64,
     quarantined_chains: u64,
     unique_owner_positions: u64,
+    selected_owner_positions: u64,
     candidate_chains: [u64; 4],
     pilot_candidate_positions: u64,
     main_candidate_positions: u64,
@@ -806,9 +807,9 @@ impl MultisetDigest {
         let value: [u8; 32] = digest.finalize().into();
         self.count += 1;
         let mut carry = 0u16;
-        for index in 0..32 {
-            self.xor[index] ^= value[index];
-            let total = u16::from(self.sum[index]) + u16::from(value[index]) + carry;
+        for (index, byte) in value.iter().enumerate() {
+            self.xor[index] ^= *byte;
+            let total = u16::from(self.sum[index]) + u16::from(*byte) + carry;
             self.sum[index] = total as u8;
             carry = total >> 8;
         }
@@ -926,17 +927,48 @@ fn verify_conflicts(
     Ok(quarantined)
 }
 
+fn load_selected_mask(selection: &SelectionManifest, chain_count: usize) -> Result<Vec<bool>> {
+    let mut reader = RawReader::open(&selection.selected_chains.path, SELECTED_BYTES)?;
+    let mut selected = vec![false; chain_count];
+    let mut previous = None;
+    let mut chains = 0u64;
+    let mut positions = 0u64;
+    while let Some(bytes) = reader.next()? {
+        let item = decode_selected(&bytes)?;
+        let index: usize = item.chain.try_into()?;
+        let bit = selected
+            .get_mut(index)
+            .context("selected chain exceeds scan chain count")?;
+        if *bit || previous.is_some_and(|prior| item.chain <= prior) || item.unique == 0 {
+            bail!("selected-chain mask order/identity mismatch");
+        }
+        *bit = true;
+        previous = Some(item.chain);
+        chains += 1;
+        positions += u64::from(item.unique);
+    }
+    if chains != selection.counts.selected_chains
+        || positions != selection.counts.selected_owner_positions
+    {
+        bail!("selected-chain mask aggregate mismatch");
+    }
+    Ok(selected)
+}
+
 fn verify_owners_by_key(
     scan: &ScanManifest,
     selection: &SelectionManifest,
     source: &[u8; 32],
     quarantined: &BTreeSet<u64>,
-) -> Result<MultisetDigest> {
+    selected: &[bool],
+) -> Result<(MultisetDigest, Vec<u32>)> {
     let mut keys = KeyMerger::open(&key_paths(scan))?;
     let mut actual = RawReader::open(&selection.owners_by_key.path, OWNER_BYTES)?;
     let mut current_key = None;
     let mut owner: Option<(KeyRecord, [u8; 32], [u8; 32])> = None;
     let mut digest = MultisetDigest::default();
+    let mut owner_counts = vec![0u32; selected.len()];
+    let mut total_owners = 0u64;
     let mut finish = |owner: &mut Option<(KeyRecord, [u8; 32], [u8; 32])>| -> Result<()> {
         if let Some((record, _, _)) = owner.take() {
             let expected = Owner {
@@ -945,11 +977,19 @@ fn verify_owners_by_key(
                 split: record.split,
                 key: record.key,
             };
-            let bytes = actual.next()?.context("owners-by-key ended early")?;
-            if decode_owner(&bytes)? != expected {
-                bail!("owners-by-key differs at K4 key {}", hex(record.key));
+            let index: usize = record.chain.try_into()?;
+            let count = owner_counts
+                .get_mut(index)
+                .context("owner references missing chain")?;
+            *count = count.checked_add(1).context("owner count overflow")?;
+            total_owners += 1;
+            if selected[index] {
+                let bytes = actual.next()?.context("owners-by-key ended early")?;
+                if decode_owner(&bytes)? != expected {
+                    bail!("owners-by-key differs at K4 key {}", hex(record.key));
+                }
+                digest.add(&owner_bytes(expected));
             }
-            digest.add(&owner_bytes(expected));
         }
         Ok(())
     };
@@ -984,10 +1024,13 @@ fn verify_owners_by_key(
         }
     }
     finish(&mut owner)?;
-    if actual.next()?.is_some() || digest.count != selection.counts.unique_owner_positions {
+    if actual.next()?.is_some()
+        || total_owners != selection.counts.unique_owner_positions
+        || digest.count != selection.counts.selected_owner_positions
+    {
         bail!("owners-by-key has an unexpected tail/count");
     }
-    Ok(digest)
+    Ok((digest, owner_counts))
 }
 
 fn load_chains(scan: &ScanManifest, source: &[u8; 32]) -> Result<Vec<ChainAudit>> {
@@ -1011,30 +1054,49 @@ fn load_chains(scan: &ScanManifest, source: &[u8; 32]) -> Result<Vec<ChainAudit>
 fn verify_owner_chain_order(
     selection: &SelectionManifest,
     chains: &[ChainAudit],
+    selected: &[bool],
+    owner_counts: &[u32],
     expected_digest: &MultisetDigest,
-) -> Result<Vec<u32>> {
-    let mut counts = vec![0u32; chains.len()];
+) -> Result<()> {
     let mut reader = RawReader::open(&selection.owners_by_chain.path, OWNER_BYTES)?;
     let mut previous = None;
+    let mut current_chain = None;
+    let mut current_count = 0u32;
     let mut digest = MultisetDigest::default();
     while let Some(bytes) = reader.next()? {
         let owner = decode_owner(&bytes)?;
-        if owner.chain as usize >= chains.len()
-            || owner.split != chains[owner.chain as usize].split
+        let index: usize = owner.chain.try_into()?;
+        if index >= chains.len()
+            || !selected[index]
+            || owner.split != chains[index].split
             || previous.is_some_and(|prior: (u64, u32)| (owner.chain, owner.entry) <= prior)
         {
             bail!("owners-by-chain order/identity mismatch");
         }
-        counts[owner.chain as usize] = counts[owner.chain as usize]
+        if current_chain != Some(owner.chain) {
+            if let Some(chain) = current_chain {
+                if current_count != owner_counts[chain as usize] {
+                    bail!("owners-by-chain selected count mismatch at chain {chain}");
+                }
+            }
+            current_chain = Some(owner.chain);
+            current_count = 0;
+        }
+        current_count = current_count
             .checked_add(1)
             .context("owner count overflow")?;
         previous = Some((owner.chain, owner.entry));
         digest.add(&bytes);
     }
+    if let Some(chain) = current_chain {
+        if current_count != owner_counts[chain as usize] {
+            bail!("owners-by-chain selected count mismatch at chain {chain}");
+        }
+    }
     if &digest != expected_digest {
         bail!("owners-by-chain is not the same multiset as independently checked owners-by-key");
     }
-    Ok(counts)
+    Ok(())
 }
 
 fn verify_candidates_and_selection(
@@ -1543,9 +1605,18 @@ fn main() -> Result<()> {
     let source_sha = decode_hex_32(SOURCE_SHA256)?;
     let historical = verify_historical(&selection)?;
     let quarantined = verify_conflicts(&scan, &selection, &historical)?;
-    let owner_digest = verify_owners_by_key(&scan, &selection, &source_sha, &quarantined)?;
+    let chain_count: usize = scan.complete_chains.try_into()?;
+    let selected_mask = load_selected_mask(&selection, chain_count)?;
+    let (owner_digest, owner_counts) =
+        verify_owners_by_key(&scan, &selection, &source_sha, &quarantined, &selected_mask)?;
     let chains = load_chains(&scan, &source_sha)?;
-    let owner_counts = verify_owner_chain_order(&selection, &chains, &owner_digest)?;
+    verify_owner_chain_order(
+        &selection,
+        &chains,
+        &selected_mask,
+        &owner_counts,
+        &owner_digest,
+    )?;
     let selected = verify_candidates_and_selection(&selection, &chains, &owner_counts)?;
     verify_source_and_shards(&source_path, &scan, &selection, &output, &chains, &selected)?;
     println!(

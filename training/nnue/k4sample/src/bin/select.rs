@@ -12,14 +12,15 @@ use ngn_k4_sample::fixed::{ChainID, ExternalSorter, RecordMerger, RecordReader};
 use ngn_k4_sample::{
     CHAIN_PRIORITY_DOMAIN, CHAIN_RECORD_BYTES, CONTRACT_VERSION, CandidateRecord, ChainRecord,
     ConflictRecord, DEFAULT_RUN_RECORDS, FileReceipt, K4_INPUT_DOMAIN, KEY_RECORD_BYTES,
-    MAX_SCAN_SECONDS, POSITION_ID_DOMAIN, POSITION_PRIORITY_DOMAIN, SOURCE_BYTES, SOURCE_SHA256,
-    SPLIT_DOMAIN, SPLIT_SEED, ScanManifest, SelectedChain, Split, chain_priority, decode_hex_32,
-    hex, k4_input_key, position_id, position_priority, receipt, rejection_reasons, sha256_file,
+    MAX_SCAN_SECONDS, OwnerRecord, POSITION_ID_DOMAIN, POSITION_PRIORITY_DOMAIN, SOURCE_BYTES,
+    SOURCE_SHA256, SPLIT_DOMAIN, SPLIT_SEED, ScanManifest, SelectedChain, Split, chain_priority,
+    decode_hex_32, hex, k4_input_key, position_id, position_priority, receipt, rejection_reasons,
+    sha256_file,
 };
 use serde::{Deserialize, Serialize};
 use sfbinpack::CompressedTrainingDataEntryReader;
 
-const SELECTION_SCHEMA: &str = "ngn-k4-selection-v2";
+const SELECTION_SCHEMA: &str = "ngn-k4-selection-v3";
 const OUTPUT_SCHEMA: &str = "ngn-k4-sampler-output-v2";
 const INPUT_SCHEMA: &str = "ngn-k4-label-input-v2";
 const PILOT_ACCEPTED: u64 = 1_000_000;
@@ -308,36 +309,29 @@ fn quarantine_chains(
     Ok((result, records))
 }
 
-fn choose_owners(
+fn for_each_owner<F>(
     scan: &ScanManifest,
     source_sha: &[u8; 32],
     quarantined: &[u64],
-    by_chain_output: &Path,
-    by_key_output: &Path,
-    sort_records: usize,
-    scratch: &Path,
-) -> Result<u64> {
+    mut visit: F,
+) -> Result<u64>
+where
+    F: FnMut(OwnerRecord) -> Result<()>,
+{
     let mut keys = RecordMerger::<ngn_k4_sample::KeyRecord>::open(&key_paths(scan), true)?;
-    let mut sorter = ExternalSorter::new(scratch, "owners", sort_records)?;
-    let mut key_writer = BufWriter::new(
-        OpenOptions::new()
-            .create_new(true)
-            .write(true)
-            .open(by_key_output)?,
-    );
     let mut current_key = None;
     let mut owner: Option<(ngn_k4_sample::KeyRecord, [u8; 32], [u8; 32])> = None;
+    let mut count = 0u64;
     let mut finish_group =
         |owner: &mut Option<(ngn_k4_sample::KeyRecord, [u8; 32], [u8; 32])>| -> Result<()> {
             if let Some((record, _, _)) = owner.take() {
-                let selected = ngn_k4_sample::OwnerRecord {
+                visit(OwnerRecord {
                     chain: record.chain,
                     entry: record.entry,
                     split: record.split,
                     key: record.key,
-                };
-                key_writer.write_all(&selected.encode())?;
-                sorter.push(selected)?;
+                })?;
+                count += 1;
             }
             Ok(())
         };
@@ -372,15 +366,96 @@ fn choose_owners(
         }
     }
     finish_group(&mut owner)?;
+    Ok(count)
+}
+
+fn count_owners(
+    scan: &ScanManifest,
+    source_sha: &[u8; 32],
+    quarantined: &[u64],
+) -> Result<(Vec<u32>, u64)> {
+    let chain_count: usize = scan
+        .complete_chains
+        .try_into()
+        .context("chain count exceeds address space")?;
+    let mut counts = vec![0u32; chain_count];
+    let total = for_each_owner(scan, source_sha, quarantined, |owner| {
+        let index: usize = owner.chain.try_into()?;
+        let count = counts
+            .get_mut(index)
+            .context("owner references missing chain")?;
+        *count = count.checked_add(1).context("owner count overflow")?;
+        Ok(())
+    })?;
+    Ok((counts, total))
+}
+
+fn selected_chain_mask(path: &Path, chain_count: usize) -> Result<(Vec<bool>, u64, u64)> {
+    let mut reader = RecordReader::<SelectedChain>::open(path)?;
+    let mut mask = vec![false; chain_count];
+    let mut chains = 0u64;
+    let mut positions = 0u64;
+    while let Some(selected) = reader.next_record()? {
+        let index: usize = selected.chain.try_into()?;
+        let bit = mask
+            .get_mut(index)
+            .context("selected owner chain exceeds scan chain count")?;
+        if *bit {
+            bail!("duplicate selected chain {}", selected.chain);
+        }
+        *bit = true;
+        chains += 1;
+        positions += u64::from(selected.unique_positions);
+    }
+    Ok((mask, chains, positions))
+}
+
+struct OwnerOutputs<'a> {
+    by_chain: &'a Path,
+    by_key: &'a Path,
+    scratch: &'a Path,
+    sort_records: usize,
+}
+
+fn write_selected_owners(
+    scan: &ScanManifest,
+    source_sha: &[u8; 32],
+    quarantined: &[u64],
+    selected: &[bool],
+    outputs: OwnerOutputs<'_>,
+) -> Result<(u64, u64)> {
+    let mut sorter = ExternalSorter::new(outputs.scratch, "selected-owners", outputs.sort_records)?;
+    let mut key_writer = BufWriter::new(
+        OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(outputs.by_key)?,
+    );
+    let mut selected_count = 0u64;
+    let total = for_each_owner(scan, source_sha, quarantined, |owner| {
+        let index: usize = owner.chain.try_into()?;
+        if selected
+            .get(index)
+            .copied()
+            .context("owner references missing selected-mask chain")?
+        {
+            key_writer.write_all(&owner.encode())?;
+            sorter.push(owner)?;
+            selected_count += 1;
+        }
+        Ok(())
+    })?;
     key_writer.flush()?;
     key_writer.get_ref().sync_all()?;
     let by_key_count =
         key_writer.get_ref().metadata()?.len() / ngn_k4_sample::OWNER_RECORD_BYTES as u64;
-    let by_chain_count = sorter.finish(by_chain_output)?;
-    if by_key_count != by_chain_count {
-        bail!("owner key/chain order counts differ: {by_key_count}/{by_chain_count}");
+    let by_chain_count = sorter.finish(outputs.by_chain)?;
+    if by_key_count != selected_count || by_chain_count != selected_count {
+        bail!(
+            "selected owner key/chain order counts differ: expected={selected_count} key={by_key_count} chain={by_chain_count}"
+        );
     }
-    Ok(by_chain_count)
+    Ok((total, selected_count))
 }
 
 fn candidate_paths(output: &Path) -> [PathBuf; 4] {
@@ -394,7 +469,7 @@ fn candidate_paths(output: &Path) -> [PathBuf; 4] {
 
 fn build_candidates(
     scan: &ScanManifest,
-    owners_path: &Path,
+    owner_counts: &[u32],
     output: &Path,
     sort_records: usize,
     scratch: &Path,
@@ -409,8 +484,6 @@ fn build_candidates(
             )
         })
         .collect::<Result<Vec<_>>>()?;
-    let mut owners = RecordReader::<ngn_k4_sample::OwnerRecord>::open(owners_path)?;
-    let mut owner = owners.next_record()?;
     let mut expected_chain = 0u64;
     for chunk in &scan.chunks {
         let mut chains = RecordReader::<ChainRecord>::open(&chunk.chains.path)?;
@@ -418,18 +491,10 @@ fn build_candidates(
             if chain.chain != expected_chain {
                 bail!("chain metadata ordinal mismatch at {expected_chain}");
             }
-            let mut count = 0u32;
-            while owner.is_some_and(|item| item.chain == chain.chain) {
-                let item = owner.unwrap();
-                if item.split != chain.split {
-                    bail!("owner/chain split mismatch at chain {}", chain.chain);
-                }
-                count = count.checked_add(1).context("owner count overflow")?;
-                owner = owners.next_record()?;
-            }
-            if owner.is_some_and(|item| item.chain < chain.chain) {
-                bail!("owner references missing chain");
-            }
+            let index: usize = chain.chain.try_into()?;
+            let count = *owner_counts
+                .get(index)
+                .context("owner-count vector ended before chain metadata")?;
             if count > 0 {
                 sorters[chain.split as usize].push(CandidateRecord {
                     priority: chain.priority,
@@ -441,8 +506,8 @@ fn build_candidates(
             expected_chain += 1;
         }
     }
-    if owner.is_some() || expected_chain != scan.complete_chains {
-        bail!("owner or chain stream has unexpected tail");
+    if expected_chain != scan.complete_chains || owner_counts.len() != expected_chain as usize {
+        bail!("owner-count or chain stream has unexpected tail");
     }
     let paths = candidate_paths(output);
     let mut counts = [0u64; 4];
@@ -459,6 +524,7 @@ struct SelectionCounts {
     historical_conflict_keys: u64,
     quarantined_chains: u64,
     unique_owner_positions: u64,
+    selected_owner_positions: u64,
     candidate_chains: [u64; 4],
     pilot_candidate_positions: u64,
     main_candidate_positions: u64,
@@ -729,7 +795,7 @@ fn emit_shards(
         let entry = reader.next();
         let continuation = reader.is_next_entry_continuation();
         let entry_ordinal: u32 = (source_position - chain_start).try_into()?;
-        while selected.is_some_and(|item| item.chain < chain) {
+        if selected.is_some_and(|item| item.chain < chain) {
             bail!(
                 "selected chain {} was not observed",
                 selected.unwrap().chain
@@ -857,21 +923,11 @@ fn run(args: &Args) -> Result<()> {
         args.sort_records,
         &args.output,
     )?;
-    let owners_path = args.output.join("owners-by-chain.bin");
-    let owners_by_key_path = args.output.join("owners-by-key.bin");
     let source_sha = decode_hex_32(SOURCE_SHA256)?;
-    let owner_count = choose_owners(
-        &scan,
-        &source_sha,
-        &quarantined,
-        &owners_path,
-        &owners_by_key_path,
-        args.sort_records,
-        &args.output,
-    )?;
+    let (owner_counts, owner_count) = count_owners(&scan, &source_sha, &quarantined)?;
     let candidate_counts = build_candidates(
         &scan,
-        &owners_path,
+        &owner_counts,
         &args.output,
         args.sort_records,
         &args.output,
@@ -887,12 +943,45 @@ fn run(args: &Args) -> Result<()> {
         MAIN_CANDIDATES,
         HOLDOUT_CANDIDATES,
     )?;
+    let (selected_mask, selected_file_chains, selected_file_positions) =
+        selected_chain_mask(&selected_path, owner_counts.len())?;
+    if selected_file_chains != selected_chain_count {
+        bail!(
+            "selected-chain count changed while loading mask: {selected_file_chains}/{selected_chain_count}"
+        );
+    }
+    let expected_selected_positions = selected_counts[1] + selected_counts[2..].iter().sum::<u64>();
+    if selected_file_positions != expected_selected_positions {
+        bail!(
+            "selected-chain position total differs: {selected_file_positions}/{expected_selected_positions}"
+        );
+    }
+    let owners_path = args.output.join("owners-by-chain.bin");
+    let owners_by_key_path = args.output.join("owners-by-key.bin");
+    let (second_owner_count, selected_owner_count) = write_selected_owners(
+        &scan,
+        &source_sha,
+        &quarantined,
+        &selected_mask,
+        OwnerOutputs {
+            by_chain: &owners_path,
+            by_key: &owners_by_key_path,
+            scratch: &args.output,
+            sort_records: args.sort_records,
+        },
+    )?;
+    if second_owner_count != owner_count || selected_owner_count != expected_selected_positions {
+        bail!(
+            "owner replay differs: total={second_owner_count}/{owner_count} selected={selected_owner_count}/{expected_selected_positions}"
+        );
+    }
     let counts = SelectionCounts {
         historical_holdout_keys: historical.len() as u64,
         cross_split_keys: cross_keys,
         historical_conflict_keys: historical_conflicts,
         quarantined_chains: quarantine_count,
         unique_owner_positions: owner_count,
+        selected_owner_positions: selected_owner_count,
         candidate_chains: candidate_counts,
         pilot_candidate_positions: selected_counts[0],
         main_candidate_positions: selected_counts[1],
@@ -1058,6 +1147,8 @@ mod tests {
         let cross = [0x11; 32];
         let historical = [0x22; 32];
         let shared_train = [0x33; 32];
+        let unique_three = [0x44; 32];
+        let unique_four = [0x55; 32];
         let scan = scan_with_keys(
             &keys_path,
             &[
@@ -1091,6 +1182,18 @@ mod tests {
                     entry: 0,
                     split: Split::Train,
                 },
+                KeyRecord {
+                    key: unique_three,
+                    chain: 3,
+                    entry: 1,
+                    split: Split::Train,
+                },
+                KeyRecord {
+                    key: unique_four,
+                    chain: 4,
+                    entry: 1,
+                    split: Split::Train,
+                },
             ],
         );
         let conflicts = root.join("conflicts.bin");
@@ -1105,28 +1208,40 @@ mod tests {
         assert_eq!(quarantined, vec![0, 1, 2]);
         let owners = root.join("owners.bin");
         let owners_by_key = root.join("owners-key.bin");
-        assert_eq!(
-            choose_owners(
-                &scan,
-                &source,
-                &quarantined,
-                &owners,
-                &owners_by_key,
-                2,
-                &root
-            )
-            .unwrap(),
-            1
-        );
-        let mut reader = RecordReader::<ngn_k4_sample::OwnerRecord>::open(&owners).unwrap();
-        let owner = reader.next_record().unwrap().unwrap();
         let want_chain = if chain_priority(&source, 3) < chain_priority(&source, 4) {
             3
         } else {
             4
         };
+        let (counts, total) = count_owners(&scan, &source, &quarantined).unwrap();
+        assert_eq!(total, 3);
+        assert_eq!(counts.iter().sum::<u32>(), 3);
+        assert_eq!(counts[want_chain as usize], 2);
+        let mut selected = vec![false; counts.len()];
+        selected[want_chain as usize] = true;
+        assert_eq!(
+            write_selected_owners(
+                &scan,
+                &source,
+                &quarantined,
+                &selected,
+                OwnerOutputs {
+                    by_chain: &owners,
+                    by_key: &owners_by_key,
+                    scratch: &root,
+                    sort_records: 2,
+                },
+            )
+            .unwrap(),
+            (3, 2)
+        );
+        let mut reader = RecordReader::<OwnerRecord>::open(&owners).unwrap();
+        let owner = reader.next_record().unwrap().unwrap();
         assert_eq!(owner.chain, want_chain);
         assert_eq!(owner.key, shared_train);
+        let owner = reader.next_record().unwrap().unwrap();
+        assert_eq!(owner.chain, want_chain);
+        assert_eq!(owner.entry, 1);
         assert!(reader.next_record().unwrap().is_none());
         fs::remove_dir_all(root).unwrap();
     }

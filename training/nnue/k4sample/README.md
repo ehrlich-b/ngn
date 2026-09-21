@@ -31,6 +31,16 @@ conflicts, quarantine, owner choice and chain-prefix selection; checks both
 owner orderings as the same cryptographic multiset; and replays the source while
 matching every selected record to the emitted label shards.
 
+Selection schema v3 keeps one `u32` unique-owner count per complete chain while
+performing the first key merge. After chain-priority selection, it repeats the
+immutable key merge and materializes owner records only for selected chains.
+The by-key and by-chain owner evidence therefore covers the exact selected
+25.375M-position corpus rather than duplicating every unique archive position;
+the manifest still records the full unique-owner count. The independent
+verifier repeats the full owner merge, reconstructs every per-chain count, and
+compares both selected-owner orderings. This trades one sequential merge pass
+for bounded disk use without changing selection or emitted-shard semantics.
+
 The production run is additionally gated outside this package on at least
 60 GiB free on the Windows host volume and must stop before 25 GiB. The pinned
 offline Rust dependencies live in the existing WSL toolchain; no new download
