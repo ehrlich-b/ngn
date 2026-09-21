@@ -15,7 +15,13 @@ The pipeline is deliberately staged:
    cap.
 2. `ngnk4select` externally merges key runs, quarantines whole chains for
    cross-split or historical-holdout conflicts, chooses unique K4 inputs by
-   deterministic chain priority, and emits the pilot/main label shards.
+   deterministic chain priority, and emits disjoint pilot and main-expansion
+   candidate shards. The frozen pools contain at least 1.25M pilot candidates,
+   25M total train candidates, and 125k candidates in each holdout. That 20%
+   rejection headroom is consumed by the post-label finalizer, which freezes
+   exactly 1M accepted pilot positions, 20M accepted total train positions, and
+   100k accepted positions per holdout; the exact pilot is prepended to and is
+   therefore an exact subset of the main corpus.
 3. `ngnk4sampleverify` independently replays the source and verifies the final
    selection, split isolation, historical exclusions, identities and receipts.
 

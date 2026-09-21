@@ -19,12 +19,15 @@ use ngn_k4_sample::{
 use serde::{Deserialize, Serialize};
 use sfbinpack::CompressedTrainingDataEntryReader;
 
-const SELECTION_SCHEMA: &str = "ngn-k4-selection-v1";
-const OUTPUT_SCHEMA: &str = "ngn-k4-sampler-output-v1";
+const SELECTION_SCHEMA: &str = "ngn-k4-selection-v2";
+const OUTPUT_SCHEMA: &str = "ngn-k4-sampler-output-v2";
 const INPUT_SCHEMA: &str = "ngn-k4-label-input-v2";
-const PILOT_TRAIN: u64 = 1_000_000;
-const MAIN_TRAIN: u64 = 20_000_000;
-const HOLDOUT: u64 = 100_000;
+const PILOT_ACCEPTED: u64 = 1_000_000;
+const MAIN_ACCEPTED: u64 = 20_000_000;
+const HOLDOUT_ACCEPTED: u64 = 100_000;
+const PILOT_CANDIDATES: u64 = 1_250_000;
+const MAIN_CANDIDATES: u64 = 25_000_000;
+const HOLDOUT_CANDIDATES: u64 = 125_000;
 const MAX_QUARANTINE_CHAINS: usize = 50_000_000;
 const MAX_SHARD_RECORDS: usize = 100_000;
 
@@ -39,7 +42,7 @@ struct Args {
 
 fn usage() -> ! {
     eprintln!(
-        "usage: ngnk4select --scan-manifest SCAN/manifest.json --historical-positions positions.jsonl --source SOURCE.binpack --output NEW_DIR --pilot-train 1000000 --main-train 20000000 --holdout 100000 --sort-records 1000000"
+        "usage: ngnk4select --scan-manifest SCAN/manifest.json --historical-positions positions.jsonl --source SOURCE.binpack --output NEW_DIR --pilot-candidates 1250000 --main-candidates 25000000 --holdout-candidates 125000 --sort-records 1000000"
     );
     std::process::exit(2)
 }
@@ -61,9 +64,9 @@ fn arguments() -> Result<Args> {
         index += 2;
     }
     for (name, frozen) in [
-        ("--pilot-train", PILOT_TRAIN),
-        ("--main-train", MAIN_TRAIN),
-        ("--holdout", HOLDOUT),
+        ("--pilot-candidates", PILOT_CANDIDATES),
+        ("--main-candidates", MAIN_CANDIDATES),
+        ("--holdout-candidates", HOLDOUT_CANDIDATES),
         ("--sort-records", DEFAULT_RUN_RECORDS as u64),
     ] {
         let actual = values
@@ -457,11 +460,11 @@ struct SelectionCounts {
     quarantined_chains: u64,
     unique_owner_positions: u64,
     candidate_chains: [u64; 4],
-    pilot_train_positions: u64,
-    main_train_positions: u64,
-    validation_positions: u64,
-    calibration_positions: u64,
-    reserved_test_positions: u64,
+    pilot_candidate_positions: u64,
+    main_candidate_positions: u64,
+    validation_candidate_positions: u64,
+    calibration_candidate_positions: u64,
+    reserved_test_candidate_positions: u64,
     selected_chains: u64,
 }
 
@@ -550,9 +553,12 @@ struct SelectionManifest {
     position_priority_domain_hex: String,
     position_id_domain_hex: String,
     k4_input_domain_hex: String,
-    pilot_train_target: u64,
-    main_train_target: u64,
-    holdout_target: u64,
+    pilot_candidate_target: u64,
+    main_candidate_target: u64,
+    holdout_candidate_target: u64,
+    pilot_accepted_target: u64,
+    main_accepted_target: u64,
+    holdout_accepted_target: u64,
     counts: SelectionCounts,
 }
 
@@ -672,11 +678,15 @@ struct OutputManifest {
     state: String,
     selection: FileReceipt,
     shards: Vec<ShardReceipt>,
-    pilot_train_positions: u64,
-    main_train_positions: u64,
-    validation_positions: u64,
-    calibration_positions: u64,
-    reserved_test_positions: u64,
+    pilot_candidate_positions: u64,
+    main_expansion_candidate_positions: u64,
+    total_train_candidate_positions: u64,
+    validation_candidate_positions: u64,
+    calibration_candidate_positions: u64,
+    reserved_test_candidate_positions: u64,
+    pilot_accepted_target: u64,
+    main_accepted_target: u64,
+    holdout_accepted_target: u64,
 }
 
 fn emit_shards(
@@ -692,7 +702,12 @@ fn emit_shards(
     fs::create_dir(&shard_dir)?;
     let mut series = vec![
         ShardSeries::new("pilot", Split::Train, &selection.sha256, &shard_dir),
-        ShardSeries::new("main", Split::Train, &selection.sha256, &shard_dir),
+        ShardSeries::new(
+            "main-expansion",
+            Split::Train,
+            &selection.sha256,
+            &shard_dir,
+        ),
         ShardSeries::new("fixed", Split::Validation, &selection.sha256, &shard_dir),
         ShardSeries::new("fixed", Split::Calibration, &selection.sha256, &shard_dir),
         ShardSeries::new("fixed", Split::ReservedTest, &selection.sha256, &shard_dir),
@@ -756,17 +771,14 @@ fn emit_shards(
                     source_manifest_ref: selection_path.display().to_string(),
                 };
                 let series_index = match selected_chain.split {
+                    Split::Train if selected_chain.pilot => 0,
                     Split::Train => 1,
                     Split::Validation => 2,
                     Split::Calibration => 3,
                     Split::ReservedTest => 4,
                 };
-                series[series_index].push(base.clone())?;
+                series[series_index].push(base)?;
                 emitted[series_index] += 1;
-                if selected_chain.pilot {
-                    series[0].push(base)?;
-                    emitted[0] += 1;
-                }
                 emitted_in_chain += 1;
                 owner = owners.next_record()?;
             }
@@ -871,9 +883,9 @@ fn run(args: &Args) -> Result<()> {
         &selected_path,
         args.sort_records,
         &args.output,
-        PILOT_TRAIN,
-        MAIN_TRAIN,
-        HOLDOUT,
+        PILOT_CANDIDATES,
+        MAIN_CANDIDATES,
+        HOLDOUT_CANDIDATES,
     )?;
     let counts = SelectionCounts {
         historical_holdout_keys: historical.len() as u64,
@@ -882,11 +894,11 @@ fn run(args: &Args) -> Result<()> {
         quarantined_chains: quarantine_count,
         unique_owner_positions: owner_count,
         candidate_chains: candidate_counts,
-        pilot_train_positions: selected_counts[0],
-        main_train_positions: selected_counts[1],
-        validation_positions: selected_counts[2],
-        calibration_positions: selected_counts[3],
-        reserved_test_positions: selected_counts[4],
+        pilot_candidate_positions: selected_counts[0],
+        main_candidate_positions: selected_counts[1],
+        validation_candidate_positions: selected_counts[2],
+        calibration_candidate_positions: selected_counts[3],
+        reserved_test_candidate_positions: selected_counts[4],
         selected_chains: selected_chain_count,
     };
     let selection_path = args.output.join("selection.json");
@@ -914,19 +926,22 @@ fn run(args: &Args) -> Result<()> {
         position_priority_domain_hex: hex(POSITION_PRIORITY_DOMAIN),
         position_id_domain_hex: hex(POSITION_ID_DOMAIN),
         k4_input_domain_hex: hex(K4_INPUT_DOMAIN),
-        pilot_train_target: PILOT_TRAIN,
-        main_train_target: MAIN_TRAIN,
-        holdout_target: HOLDOUT,
+        pilot_candidate_target: PILOT_CANDIDATES,
+        main_candidate_target: MAIN_CANDIDATES,
+        holdout_candidate_target: HOLDOUT_CANDIDATES,
+        pilot_accepted_target: PILOT_ACCEPTED,
+        main_accepted_target: MAIN_ACCEPTED,
+        holdout_accepted_target: HOLDOUT_ACCEPTED,
         counts,
     };
     write_json_new(&selection_path, &selection)?;
     fs::write(args.output.join("STATE"), "EMITTING\n")?;
     let expected = [
-        selection.counts.pilot_train_positions,
-        selection.counts.main_train_positions,
-        selection.counts.validation_positions,
-        selection.counts.calibration_positions,
-        selection.counts.reserved_test_positions,
+        selection.counts.pilot_candidate_positions,
+        selection.counts.main_candidate_positions - selection.counts.pilot_candidate_positions,
+        selection.counts.validation_candidate_positions,
+        selection.counts.calibration_candidate_positions,
+        selection.counts.reserved_test_candidate_positions,
     ];
     let shards = emit_shards(
         args,
@@ -942,11 +957,15 @@ fn run(args: &Args) -> Result<()> {
         state: "COMPLETE".to_string(),
         selection: receipt(&selection_path)?,
         shards,
-        pilot_train_positions: expected[0],
-        main_train_positions: expected[1],
-        validation_positions: expected[2],
-        calibration_positions: expected[3],
-        reserved_test_positions: expected[4],
+        pilot_candidate_positions: expected[0],
+        main_expansion_candidate_positions: expected[1],
+        total_train_candidate_positions: expected[0] + expected[1],
+        validation_candidate_positions: expected[2],
+        calibration_candidate_positions: expected[3],
+        reserved_test_candidate_positions: expected[4],
+        pilot_accepted_target: PILOT_ACCEPTED,
+        main_accepted_target: MAIN_ACCEPTED,
+        holdout_accepted_target: HOLDOUT_ACCEPTED,
     };
     write_json_new(&args.output.join("manifest.json"), &output)?;
     fs::write(args.output.join("STATE"), "COMPLETE\n")?;

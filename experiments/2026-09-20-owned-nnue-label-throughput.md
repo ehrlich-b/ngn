@@ -78,7 +78,13 @@ Frozen forecast with 30% slack:
 - Even 20.3M from zero forecasts to about 21.24 hours with slack.
 
 This is a capacity forecast, not authorization to launch. It assumes the final
-full-archive sampler produces a similar eligible distribution.
+full-archive sampler produces a similar eligible distribution. The sampler now
+freezes 1.25M pilot candidates, 25M total train candidates, and 125k candidates
+per holdout, enough to tolerate 20% rejection. Labeling stops only after the
+exact accepted target is available; the forecast above is therefore correctly
+based on accepted throughput rather than pre-label candidate count. Even if the
+entire 23.75M main-expansion candidate pool were consumed, the observed input
+rate with 30% slack forecasts about 22.7 hours, still inside its 24-hour gate.
 
 ## Bound artifacts
 

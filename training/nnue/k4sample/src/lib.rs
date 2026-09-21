@@ -16,7 +16,7 @@ use sfbinpack::{
 };
 use sha2::{Digest, Sha256};
 
-pub const CONTRACT_VERSION: &str = "ngn-k4-sampler-v1";
+pub const CONTRACT_VERSION: &str = "ngn-k4-sampler-v2";
 pub const SOURCE_REVISION: &str = "1e095a758c630bc58d0b6dac4da44fcd38ac89c2";
 pub const SOURCE_BYTES: u64 = 10_809_713_086;
 pub const SOURCE_SHA256: &str = "0d22957b8d4f0f8e6f2913be7b744b2dab5178c3563e0f916312d0d94c28b92b";

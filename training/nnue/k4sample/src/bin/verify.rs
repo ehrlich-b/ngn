@@ -18,9 +18,9 @@ use sfbinpack::{
 };
 use sha2::{Digest, Sha256};
 
-const CONTRACT: &str = "ngn-k4-sampler-v1";
-const OUTPUT_SCHEMA: &str = "ngn-k4-sampler-output-v1";
-const SELECTION_SCHEMA: &str = "ngn-k4-selection-v1";
+const CONTRACT: &str = "ngn-k4-sampler-v2";
+const OUTPUT_SCHEMA: &str = "ngn-k4-sampler-output-v2";
+const SELECTION_SCHEMA: &str = "ngn-k4-selection-v2";
 const SCAN_SCHEMA: &str = "ngn-k4-scan-manifest-v1";
 const CHUNK_SCHEMA: &str = "ngn-k4-scan-chunk-v1";
 const INPUT_SCHEMA: &str = "ngn-k4-label-input-v2";
@@ -32,9 +32,12 @@ const CHAIN_PRIORITY_DOMAIN: &[u8] = b"ngn-k4-chain-priority-v1\0";
 const POSITION_PRIORITY_DOMAIN: &[u8] = b"ngn-k4-position-priority-v1\0";
 const POSITION_ID_DOMAIN: &[u8] = b"ngn-k4-position-id-v1\0";
 const K4_INPUT_DOMAIN: &[u8] = b"ngn-k4-input-v1\0";
-const PILOT_TARGET: u64 = 1_000_000;
-const MAIN_TARGET: u64 = 20_000_000;
-const HOLDOUT_TARGET: u64 = 100_000;
+const PILOT_ACCEPTED_TARGET: u64 = 1_000_000;
+const MAIN_ACCEPTED_TARGET: u64 = 20_000_000;
+const HOLDOUT_ACCEPTED_TARGET: u64 = 100_000;
+const PILOT_CANDIDATE_TARGET: u64 = 1_250_000;
+const MAIN_CANDIDATE_TARGET: u64 = 25_000_000;
+const HOLDOUT_CANDIDATE_TARGET: u64 = 125_000;
 const RUN_RECORDS: usize = 1_000_000;
 const MAX_SCAN_SECONDS: u64 = 14_400;
 const MAX_QUARANTINE_CHAINS: usize = 50_000_000;
@@ -417,11 +420,11 @@ struct SelectionCounts {
     quarantined_chains: u64,
     unique_owner_positions: u64,
     candidate_chains: [u64; 4],
-    pilot_train_positions: u64,
-    main_train_positions: u64,
-    validation_positions: u64,
-    calibration_positions: u64,
-    reserved_test_positions: u64,
+    pilot_candidate_positions: u64,
+    main_candidate_positions: u64,
+    validation_candidate_positions: u64,
+    calibration_candidate_positions: u64,
+    reserved_test_candidate_positions: u64,
     selected_chains: u64,
 }
 
@@ -449,9 +452,12 @@ struct SelectionManifest {
     position_priority_domain_hex: String,
     position_id_domain_hex: String,
     k4_input_domain_hex: String,
-    pilot_train_target: u64,
-    main_train_target: u64,
-    holdout_target: u64,
+    pilot_candidate_target: u64,
+    main_candidate_target: u64,
+    holdout_candidate_target: u64,
+    pilot_accepted_target: u64,
+    main_accepted_target: u64,
+    holdout_accepted_target: u64,
     counts: SelectionCounts,
 }
 
@@ -473,11 +479,15 @@ struct OutputManifest {
     state: String,
     selection: FileReceipt,
     shards: Vec<ShardReceipt>,
-    pilot_train_positions: u64,
-    main_train_positions: u64,
-    validation_positions: u64,
-    calibration_positions: u64,
-    reserved_test_positions: u64,
+    pilot_candidate_positions: u64,
+    main_expansion_candidate_positions: u64,
+    total_train_candidate_positions: u64,
+    validation_candidate_positions: u64,
+    calibration_candidate_positions: u64,
+    reserved_test_candidate_positions: u64,
+    pilot_accepted_target: u64,
+    main_accepted_target: u64,
+    holdout_accepted_target: u64,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -1068,12 +1078,12 @@ fn verify_candidates_and_selection(
                 Split::ReservedTest => 4,
             };
             let target = if split == Split::Train {
-                MAIN_TARGET
+                MAIN_CANDIDATE_TARGET
             } else {
-                HOLDOUT_TARGET
+                HOLDOUT_CANDIDATE_TARGET
             };
             if selected_counts[count_index] < target {
-                let pilot = split == Split::Train && selected_counts[0] < PILOT_TARGET;
+                let pilot = split == Split::Train && selected_counts[0] < PILOT_CANDIDATE_TARGET;
                 if pilot {
                     selected_counts[0] += u64::from(candidate.unique);
                 }
@@ -1096,11 +1106,11 @@ fn verify_candidates_and_selection(
         bail!("candidate coverage/count mismatch");
     }
     let manifest_counts = [
-        selection.counts.pilot_train_positions,
-        selection.counts.main_train_positions,
-        selection.counts.validation_positions,
-        selection.counts.calibration_positions,
-        selection.counts.reserved_test_positions,
+        selection.counts.pilot_candidate_positions,
+        selection.counts.main_candidate_positions,
+        selection.counts.validation_candidate_positions,
+        selection.counts.calibration_candidate_positions,
+        selection.counts.reserved_test_candidate_positions,
     ];
     if selected_counts != manifest_counts {
         bail!("selected position counts differ: {selected_counts:?}/{manifest_counts:?}");
@@ -1215,7 +1225,7 @@ impl SeriesReader {
 fn shard_series(output: &OutputManifest, selection_sha: &str) -> Result<Vec<SeriesReader>> {
     let specifications = [
         ("pilot", Split::Train),
-        ("main", Split::Train),
+        ("main-expansion", Split::Train),
         ("fixed", Split::Validation),
         ("fixed", Split::Calibration),
         ("fixed", Split::ReservedTest),
@@ -1326,6 +1336,7 @@ fn verify_source_and_shards(
                     source_manifest_ref: output.selection.path.clone(),
                 };
                 let series_index = match selected_chain.split {
+                    Split::Train if selected_chain.pilot => 0,
                     Split::Train => 1,
                     Split::Validation => 2,
                     Split::Calibration => 3,
@@ -1336,14 +1347,6 @@ fn verify_source_and_shards(
                     .context("selected shard series ended early")?;
                 if actual != expected {
                     bail!("shard differs at chain {chain} entry {entry_ordinal}");
-                }
-                if selected_chain.pilot {
-                    let pilot = series[0]
-                        .next()?
-                        .context("pilot shard series ended early")?;
-                    if pilot != expected {
-                        bail!("pilot shard differs at chain {chain} entry {entry_ordinal}");
-                    }
                 }
             }
             owner = owners
@@ -1404,11 +1407,11 @@ fn verify_source_and_shards(
         series[4].total,
     ];
     let expected = [
-        output.pilot_train_positions,
-        output.main_train_positions,
-        output.validation_positions,
-        output.calibration_positions,
-        output.reserved_test_positions,
+        output.pilot_candidate_positions,
+        output.main_expansion_candidate_positions,
+        output.validation_candidate_positions,
+        output.calibration_candidate_positions,
+        output.reserved_test_candidate_positions,
     ];
     if totals != expected {
         bail!("shard totals differ: {totals:?}/{expected:?}");
@@ -1449,14 +1452,25 @@ fn verify_contracts(
         || scan.sfbinpack_version != "0.6.4"
         || scan.run_records != RUN_RECORDS
         || scan.max_scan_seconds != MAX_SCAN_SECONDS
-        || selection.pilot_train_target != PILOT_TARGET
-        || selection.main_train_target != MAIN_TARGET
-        || selection.holdout_target != HOLDOUT_TARGET
-        || output.pilot_train_positions != selection.counts.pilot_train_positions
-        || output.main_train_positions != selection.counts.main_train_positions
-        || output.validation_positions != selection.counts.validation_positions
-        || output.calibration_positions != selection.counts.calibration_positions
-        || output.reserved_test_positions != selection.counts.reserved_test_positions
+        || selection.pilot_candidate_target != PILOT_CANDIDATE_TARGET
+        || selection.main_candidate_target != MAIN_CANDIDATE_TARGET
+        || selection.holdout_candidate_target != HOLDOUT_CANDIDATE_TARGET
+        || selection.pilot_accepted_target != PILOT_ACCEPTED_TARGET
+        || selection.main_accepted_target != MAIN_ACCEPTED_TARGET
+        || selection.holdout_accepted_target != HOLDOUT_ACCEPTED_TARGET
+        || output.pilot_candidate_positions != selection.counts.pilot_candidate_positions
+        || output.main_expansion_candidate_positions
+            != selection.counts.main_candidate_positions
+                - selection.counts.pilot_candidate_positions
+        || output.total_train_candidate_positions != selection.counts.main_candidate_positions
+        || output.validation_candidate_positions != selection.counts.validation_candidate_positions
+        || output.calibration_candidate_positions
+            != selection.counts.calibration_candidate_positions
+        || output.reserved_test_candidate_positions
+            != selection.counts.reserved_test_candidate_positions
+        || output.pilot_accepted_target != PILOT_ACCEPTED_TARGET
+        || output.main_accepted_target != MAIN_ACCEPTED_TARGET
+        || output.holdout_accepted_target != HOLDOUT_ACCEPTED_TARGET
     {
         bail!("manifest contract fields differ from verifier constants");
     }
@@ -1535,8 +1549,8 @@ fn main() -> Result<()> {
     let selected = verify_candidates_and_selection(&selection, &chains, &owner_counts)?;
     verify_source_and_shards(&source_path, &scan, &selection, &output, &chains, &selected)?;
     println!(
-        "verified {} selected chains and {} main training positions",
-        selection.counts.selected_chains, selection.counts.main_train_positions
+        "verified {} selected chains and {} train candidate positions",
+        selection.counts.selected_chains, selection.counts.main_candidate_positions
     );
     Ok(())
 }

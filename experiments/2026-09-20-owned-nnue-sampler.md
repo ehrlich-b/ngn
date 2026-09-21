@@ -12,9 +12,12 @@ frozen 60 GiB launch threshold.
   `0d22957b8d4f0f8e6f2913be7b744b2dab5178c3563e0f916312d0d94c28b92b`.
 - Split seed is `26092001`; complete encoded chains receive deterministic
   97/1/1/1 train/validation/calibration/reserved-test assignments.
-- Selection uses deterministic SHA-256 chain priority. The 1M pilot is a
-  whole-chain prefix of the 20M main training selection; the three 100k
-  holdouts are frozen once.
+- Selection uses deterministic SHA-256 chain priority. It freezes whole-chain
+  candidate pools of at least 1.25M pilot positions, 25M total train positions,
+  and 125k positions in each holdout. Pilot and main-expansion candidates are
+  emitted disjointly. The post-label finalizer takes exact accepted prefixes:
+  1M pilot, 19M expansion, and 100k in each holdout, making the exact pilot a
+  byte-for-byte prefix and subset of the exact 20M main corpus.
 - Input identity is the exact `ngn-k4-input-v1` digest over both sorted
   king-bucketed/mirrored perspective row lists and the material output head.
 - All historical eligible validation and sealed-test FENs are independently
@@ -34,8 +37,9 @@ after 14,400 seconds.
 `ngnk4select` performs repeated k-way merges instead of loading archive keys
 into RAM. It publishes conflicts, sorted quarantine IDs, owners in both key and
 chain order, priority-sorted candidate files, selected chains, and labeler-v2
-JSONL shards. Pilot and main train shards are separate; fixed holdout shards are
-shared byte-for-byte.
+JSONL shards. Pilot and main-expansion train shards are disjoint; fixed holdout
+shards are shared byte-for-byte. Sampler/selection schemas are v2 so the old
+pre-label 1M/20M targets cannot be mistaken for accepted-position counts.
 
 `ngnk4sampleverify` does not call the sampler's identity or selection helpers.
 It independently reimplements eligibility, split, priority, K4 identity and
@@ -67,11 +71,13 @@ external sort/dedup, retroactive cross-split quarantine, historical quarantine,
 same-split owner transfer, whole-chain pilot overshoot, and order-independent
 owner-multiset comparison.
 
-The existing Go labeler/packer boundary remained green:
+The existing Go labeler/packer boundary and the exact accepted-set finalizer
+remained green:
 
 ```text
 go test ./training/nnue/k4label ./training/nnue/k4pack \
-  ./cmd/ngnk4label ./cmd/ngnk4pack
+  ./training/nnue/k4finalize ./cmd/ngnk4label ./cmd/ngnk4pack \
+  ./cmd/ngnk4finalize
 ```
 
 The disk supervisor negative control refused to launch `/usr/bin/true` with
@@ -82,6 +88,7 @@ bypass the current disk hold.
 
 Free and verify at least 60 GiB on the Windows volume, then run the complete
 scan, selection and independent verifier through the supervisor. Only their
-complete immutable receipts may admit the 1M labeling/training pilot. The 5k
+complete immutable receipts may admit candidate labeling and exact accepted-set
+finalization. The 5k
 versus 20k calibration quality comparison, learning gates, 20M main training,
 candidate matches and frozen-scale rating proof remain outstanding.
