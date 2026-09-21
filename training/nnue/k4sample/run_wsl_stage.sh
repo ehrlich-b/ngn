@@ -6,6 +6,7 @@ set -euo pipefail
 readonly LAUNCH_KIB=$((60 * 1024 * 1024))
 readonly STOP_KIB=$((25 * 1024 * 1024))
 readonly CHECK_SECONDS=60
+readonly CPU_LIST=12,14
 
 usage() {
   echo "usage: run_wsl_stage.sh COMMAND [ARG ...]" >&2
@@ -17,6 +18,18 @@ available_kib() {
 }
 
 [[ $# -gt 0 ]] || usage
+for cpu in 12 14; do
+  [[ -r "/sys/devices/system/cpu/cpu${cpu}/topology/core_id" ]] || {
+    echo "required low-priority CPU ${cpu} is unavailable" >&2
+    exit 1
+  }
+done
+core_12="$(< /sys/devices/system/cpu/cpu12/topology/core_id)"
+core_14="$(< /sys/devices/system/cpu/cpu14/topology/core_id)"
+[[ "$core_12" != "$core_14" ]] || {
+  echo "required CPUs 12 and 14 are not distinct physical cores" >&2
+  exit 1
+}
 available="$(available_kib)"
 [[ "$available" =~ ^[0-9]+$ ]] || {
   echo "could not read physical free space for /mnt/c" >&2
@@ -28,7 +41,7 @@ if (( available < LAUNCH_KIB )); then
   exit 1
 fi
 
-setsid taskset -c 10-11 nice -n 10 "$@" &
+setsid taskset -c "$CPU_LIST" nice -n 10 "$@" &
 job_pid=$!
 
 stop_job() {

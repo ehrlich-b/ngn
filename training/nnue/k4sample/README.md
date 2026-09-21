@@ -46,6 +46,7 @@ The production run is additionally gated outside this package on at least
 offline Rust dependencies live in the existing WSL toolchain; no new download
 or duplicate source archive is required.
 
-`run_wsl_stage.sh` enforces those physical-volume gates, confines the command to
-two low-priority CPUs, and supervises the process group with a one-minute disk
-check. Use it for every production scan, selection and verification command.
+`run_wsl_stage.sh` enforces those physical-volume gates, verifies and confines
+the command to distinct low-priority physical cores 12 and 14, and supervises
+the process group with a one-minute disk check. Use it for every production
+scan, selection and verification command.
