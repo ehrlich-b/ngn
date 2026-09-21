@@ -1,0 +1,571 @@
+package main
+
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"flag"
+	"fmt"
+	"io"
+	"math"
+	"math/bits"
+	"os"
+	"path/filepath"
+	"sort"
+	"strconv"
+	"strings"
+	"unicode/utf8"
+
+	"github.com/ehrlich-b/ngn/nnue/ngnk4"
+)
+
+const (
+	selectionSchema          = "ngn-k4-pilot-selection-v1"
+	checkpointSchema         = "ngn-k4-bullet-checkpoint-v1"
+	finalizedSchema          = "ngn-k4-finalized-corpus-v1"
+	finalizedContract        = "sf18-5kn-material-inversion-v2"
+	selectionBulletPatchSHA  = "f7f5e0dd02695fe57ec58a630b63006da96cb1ec6b8fd4769a4e6308a8121e54"
+	pilotTotalUpdates        = 1024
+	pilotCheckpointUpdates   = 128
+	pilotValidationRecords   = 100_000
+	selectionScoreScale      = 400.0
+	selectionImprovementGate = 1.0e-5
+	selectionPatience        = 4
+	selectionOptimizerMax    = 64 << 20
+	selectionOptimizerSize   = 8
+)
+
+type selectionFileReceipt struct {
+	Path   string `json:"path"`
+	Bytes  int64  `json:"bytes"`
+	SHA256 string `json:"sha256"`
+}
+
+type selectionCorpus struct {
+	Name        string               `json:"name"`
+	Split       string               `json:"split"`
+	Records     uint64               `json:"records"`
+	RecordBytes int                  `json:"record_bytes"`
+	File        selectionFileReceipt `json:"file"`
+}
+
+type selectionManifest struct {
+	Schema          string            `json:"schema"`
+	ContractVersion string            `json:"contract_version"`
+	State           string            `json:"state"`
+	Mode            string            `json:"mode"`
+	Corpora         []selectionCorpus `json:"corpora"`
+}
+
+type selectionCheckpointFiles struct {
+	Raw       selectionFileReceipt `json:"raw"`
+	Quantised selectionFileReceipt `json:"quantised"`
+	Weights   selectionFileReceipt `json:"weights"`
+	Momentum  selectionFileReceipt `json:"momentum"`
+	Velocity  selectionFileReceipt `json:"velocity"`
+}
+
+type selectionCheckpoint struct {
+	Schema            string                   `json:"schema"`
+	BulletCommit      string                   `json:"bullet_commit"`
+	BulletPatchSHA256 string                   `json:"bullet_patch_sha256"`
+	Mode              string                   `json:"mode"`
+	FinalizedManifest selectionFileReceipt     `json:"finalized_manifest"`
+	CompletedUpdates  uint64                   `json:"completed_updates"`
+	TotalUpdates      uint64                   `json:"total_updates"`
+	CheckpointUpdates uint64                   `json:"checkpoint_updates"`
+	InputBuckets      int                      `json:"input_buckets"`
+	Hidden            int                      `json:"hidden"`
+	OutputBuckets     int                      `json:"output_buckets"`
+	ModelSeed         uint64                   `json:"model_seed"`
+	ScoreScale        int                      `json:"score_scale"`
+	Files             selectionCheckpointFiles `json:"files"`
+}
+
+type candidateMetric struct {
+	Update                        uint64                      `json:"update"`
+	Checkpoint                    selectionFileReceipt        `json:"checkpoint"`
+	Raw                           selectionFileReceipt        `json:"raw"`
+	Quantised                     selectionFileReceipt        `json:"quantised"`
+	Positions                     int                         `json:"positions"`
+	RawMeanMSE                    float64                     `json:"raw_mean_mse"`
+	IntegerMeanMSE                float64                     `json:"integer_mean_mse"`
+	IntegerMinusRawMSE            float64                     `json:"integer_minus_raw_mse"`
+	MeanAbsoluteQuantizationCP    float64                     `json:"mean_absolute_quantization_cp"`
+	P99AbsoluteQuantizationCP     float64                     `json:"p99_absolute_quantization_cp"`
+	MaximumAbsoluteQuantizationCP float64                     `json:"maximum_absolute_quantization_cp"`
+	PositionsByOutputBucket       [ngnk4.OutputBuckets]uint64 `json:"positions_by_output_bucket"`
+	SaturatedValuesByOutputHead   [ngnk4.OutputBuckets]uint64 `json:"saturated_values_by_output_head"`
+	FastOutputSafe                [ngnk4.OutputBuckets]bool   `json:"fast_output_safe"`
+	OptimizerStateFinite          bool                        `json:"optimizer_state_finite"`
+	Eligible                      bool                        `json:"eligible"`
+}
+
+type optimizerTensorSpec struct {
+	Name  string
+	Count uint64
+}
+
+type earlyStopReceipt struct {
+	MinimumUpdate                uint64  `json:"minimum_update"`
+	Patience                     int     `json:"patience"`
+	MinimumIntegerMSEImprovement float64 `json:"minimum_integer_mse_improvement"`
+	Triggered                    bool    `json:"triggered"`
+	StopUpdate                   uint64  `json:"stop_update,omitempty"`
+}
+
+type selectionReceipt struct {
+	Schema          string               `json:"schema"`
+	ContractVersion string               `json:"contract_version"`
+	Command         []string             `json:"command"`
+	Manifest        selectionFileReceipt `json:"manifest"`
+	Validation      selectionFileReceipt `json:"validation"`
+	Rank            string               `json:"rank"`
+	TieBreak        string               `json:"tie_break"`
+	MeanGateCP      float64              `json:"mean_absolute_quantization_gate_cp"`
+	P99GateCP       float64              `json:"p99_absolute_quantization_gate_cp"`
+	MaximumGateCP   float64              `json:"maximum_absolute_quantization_gate_cp"`
+	EarlyStop       earlyStopReceipt     `json:"early_stop"`
+	Candidates      []candidateMetric    `json:"candidates"`
+	SelectedUpdate  uint64               `json:"selected_update"`
+	Selected        selectionFileReceipt `json:"selected_checkpoint"`
+}
+
+func selectionReceiptForBytes(path string, data []byte) selectionFileReceipt {
+	digest := sha256.Sum256(data)
+	return selectionFileReceipt{Path: path, Bytes: int64(len(data)), SHA256: hex.EncodeToString(digest[:])}
+}
+
+func verifySelectionFile(item selectionFileReceipt, expectedPath string, expectedBytes int) ([]byte, error) {
+	if item.Path == "" || item.Bytes < 0 || len(item.SHA256) != sha256.Size*2 || !samePath(item.Path, expectedPath) {
+		return nil, errors.New("malformed or path-mismatched file receipt")
+	}
+	data, err := readExactFile(expectedPath, expectedBytes)
+	if err != nil {
+		return nil, err
+	}
+	actual := selectionReceiptForBytes(expectedPath, data)
+	if item.Bytes != actual.Bytes || item.SHA256 != actual.SHA256 {
+		return nil, errors.New("file receipt size or SHA-256 mismatch")
+	}
+	return data, nil
+}
+
+func validateOptimizerState(data []byte) ([]optimizerTensorSpec, error) {
+	if len(data) == 0 || len(data) > selectionOptimizerMax {
+		return nil, fmt.Errorf("optimizer state bytes %d outside 1..%d", len(data), selectionOptimizerMax)
+	}
+	seen := make(map[string]struct{})
+	var specs []optimizerTensorSpec
+	for offset := 0; offset < len(data); {
+		relativeEnd := bytes.IndexByte(data[offset:], '\n')
+		if relativeEnd <= 0 || relativeEnd > 1024 {
+			return nil, fmt.Errorf("optimizer tensor %d has invalid name", len(specs))
+		}
+		nameBytes := data[offset : offset+relativeEnd]
+		if !utf8.Valid(nameBytes) {
+			return nil, fmt.Errorf("optimizer tensor %d name is not UTF-8", len(specs))
+		}
+		name := string(nameBytes)
+		if _, exists := seen[name]; exists {
+			return nil, fmt.Errorf("duplicate optimizer tensor %q", name)
+		}
+		seen[name] = struct{}{}
+		offset += relativeEnd + 1
+		if len(data)-offset < selectionOptimizerSize {
+			return nil, fmt.Errorf("optimizer tensor %q lacks a size", name)
+		}
+		count := binary.LittleEndian.Uint64(data[offset : offset+selectionOptimizerSize])
+		offset += selectionOptimizerSize
+		if count > uint64((len(data)-offset)/4) {
+			return nil, fmt.Errorf("optimizer tensor %q is truncated", name)
+		}
+		valueBytes := int(count) * 4
+		for index := 0; index < valueBytes; index += 4 {
+			value := math.Float32frombits(binary.LittleEndian.Uint32(data[offset+index:]))
+			if math.IsNaN(float64(value)) || math.IsInf(float64(value), 0) {
+				return nil, fmt.Errorf("optimizer tensor %q value %d is nonfinite", name, index/4)
+			}
+		}
+		offset += valueBytes
+		specs = append(specs, optimizerTensorSpec{Name: name, Count: count})
+	}
+	if len(specs) == 0 {
+		return nil, errors.New("optimizer state contains no tensors")
+	}
+	return specs, nil
+}
+
+func verifyOptimizerState(item selectionFileReceipt, expectedPath string) ([]optimizerTensorSpec, error) {
+	if item.Bytes <= 0 || item.Bytes > selectionOptimizerMax {
+		return nil, fmt.Errorf("optimizer receipt bytes %d outside 1..%d", item.Bytes, selectionOptimizerMax)
+	}
+	data, err := verifySelectionFile(item, expectedPath, int(item.Bytes))
+	if err != nil {
+		return nil, err
+	}
+	return validateOptimizerState(data)
+}
+
+func sameOptimizerLayout(first, second []optimizerTensorSpec) bool {
+	if len(first) != len(second) {
+		return false
+	}
+	for index := range first {
+		if first[index] != second[index] {
+			return false
+		}
+	}
+	return true
+}
+
+func loadSelectionManifest(path, validationPath string) ([]byte, [sha256.Size]byte, selectionFileReceipt, []byte, error) {
+	manifestBytes, manifestSHA, err := readManifest(path)
+	if err != nil {
+		return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, err
+	}
+	var manifest selectionManifest
+	if err := json.Unmarshal(manifestBytes, &manifest); err != nil {
+		return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, err
+	}
+	if manifest.Schema != finalizedSchema || manifest.ContractVersion != finalizedContract ||
+		manifest.State != "COMPLETE" || manifest.Mode != "pilot" {
+		return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, errors.New("finalized manifest contract mismatch")
+	}
+	var validation *selectionCorpus
+	for index := range manifest.Corpora {
+		if manifest.Corpora[index].Name == "validation" {
+			if validation != nil {
+				return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, errors.New("duplicate validation corpus")
+			}
+			validation = &manifest.Corpora[index]
+		}
+	}
+	if validation == nil || validation.Split != "validation" || validation.Records != pilotValidationRecords ||
+		validation.RecordBytes != 32 || validation.File.Bytes != pilotValidationRecords*32 ||
+		!samePath(validation.File.Path, validationPath) {
+		return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, errors.New("validation corpus contract mismatch")
+	}
+	validationBytes, err := verifySelectionFile(validation.File, validationPath, pilotValidationRecords*32)
+	if err != nil {
+		return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, fmt.Errorf("verify validation: %w", err)
+	}
+	return manifestBytes, manifestSHA, selectionReceiptForBytes(path, manifestBytes), validationBytes, nil
+}
+
+func decodeSelectionPosition(record []byte) (ngnk4.Position, int16, error) {
+	if len(record) != 32 {
+		return ngnk4.Position{}, 0, errors.New("BF record is not 32 bytes")
+	}
+	occupied := binary.LittleEndian.Uint64(record[:8])
+	pieceCount := bits.OnesCount64(occupied)
+	if pieceCount < 2 || pieceCount > 32 || record[26] != 1 || record[29] != 0 || record[30] != 0 || record[31] != 0 {
+		return ngnk4.Position{}, 0, errors.New("BF record header/result/reserved contract mismatch")
+	}
+	position := ngnk4.Position{SideToMove: ngnk4.White}
+	remaining := occupied
+	for pieceIndex := 0; pieceIndex < pieceCount; pieceIndex++ {
+		square := bits.TrailingZeros64(remaining)
+		remaining &= remaining - 1
+		piece := (record[8+pieceIndex/2] >> (4 * (pieceIndex & 1))) & 15
+		kind := int(piece & 7)
+		color := int(piece >> 3)
+		if kind > 5 || color > 1 {
+			return ngnk4.Position{}, 0, fmt.Errorf("invalid BF piece nibble %d", piece)
+		}
+		position.Board[color*6+kind] |= uint64(1) << square
+	}
+	if remaining != 0 || bits.OnesCount64(position.Board[ngnk4.WhiteKing]) != 1 ||
+		bits.OnesCount64(position.Board[ngnk4.BlackKing]) != 1 {
+		return ngnk4.Position{}, 0, errors.New("BF occupancy or king contract mismatch")
+	}
+	whiteKing := bits.TrailingZeros64(position.Board[ngnk4.WhiteKing])
+	blackKing := bits.TrailingZeros64(position.Board[ngnk4.BlackKing])
+	if int(record[27]) != whiteKing || int(record[28]) != blackKing^56 {
+		return ngnk4.Position{}, 0, errors.New("BF cached king square mismatch")
+	}
+	return position, int16(binary.LittleEndian.Uint16(record[24:26])), nil
+}
+
+func selectionSigmoid(value float64) float64 {
+	return 1 / (1 + math.Exp(-value))
+}
+
+func outputHeadSaturation(tensors *ngnk4.Tensors) [ngnk4.OutputBuckets]uint64 {
+	var counts [ngnk4.OutputBuckets]uint64
+	for bucket := range tensors.OutputWeights {
+		for perspective := range tensors.OutputWeights[bucket] {
+			for _, value := range tensors.OutputWeights[bucket][perspective] {
+				if value == math.MinInt16 || value == math.MaxInt16 {
+					counts[bucket]++
+				}
+			}
+		}
+		if tensors.OutputBiases[bucket] == math.MinInt16 || tensors.OutputBiases[bucket] == math.MaxInt16 {
+			counts[bucket]++
+		}
+	}
+	return counts
+}
+
+func evaluateSelectionCandidate(
+	metric candidateMetric,
+	rawData, quantisedData, validation []byte,
+	manifestSHA [sha256.Size]byte,
+) (candidateMetric, error) {
+	raw, err := decodeRaw(rawData)
+	if err != nil {
+		return candidateMetric{}, err
+	}
+	tensors, _, err := decodeBullet(quantisedData)
+	if err != nil {
+		return candidateMetric{}, err
+	}
+	modelBytes, err := ngnk4.Marshal(tensors, manifestSHA)
+	if err != nil {
+		return candidateMetric{}, err
+	}
+	if err := verifyRawQuantization(rawData, modelBytes); err != nil {
+		return candidateMetric{}, err
+	}
+	model, err := ngnk4.Load(bytes.NewReader(modelBytes))
+	if err != nil {
+		return candidateMetric{}, err
+	}
+	metadata := model.Metadata()
+	metric.FastOutputSafe = metadata.FastOutputSafe
+	metric.SaturatedValuesByOutputHead = outputHeadSaturation(tensors)
+	errorsCP := make([]float64, 0, pilotValidationRecords)
+	var rawLoss, integerLoss float64
+	for offset := 0; offset < len(validation); offset += 32 {
+		position, score, err := decodeSelectionPosition(validation[offset : offset+32])
+		if err != nil {
+			return candidateMetric{}, fmt.Errorf("validation record %d: %w", offset/32, err)
+		}
+		rawZ, bucket := evaluateFloat(raw, position)
+		integerCP, err := model.EvaluateRaw(position)
+		if err != nil {
+			return candidateMetric{}, fmt.Errorf("integer validation record %d: %w", offset/32, err)
+		}
+		target := selectionSigmoid(float64(score) / selectionScoreScale)
+		rawError := selectionSigmoid(rawZ) - target
+		integerError := selectionSigmoid(float64(integerCP)/selectionScoreScale) - target
+		rawLoss += rawError * rawError
+		integerLoss += integerError * integerError
+		errorsCP = append(errorsCP, math.Abs(rawZ*selectionScoreScale-float64(integerCP)))
+		metric.PositionsByOutputBucket[bucket]++
+	}
+	sort.Float64s(errorsCP)
+	metric.Positions = len(errorsCP)
+	metric.RawMeanMSE = rawLoss / float64(metric.Positions)
+	metric.IntegerMeanMSE = integerLoss / float64(metric.Positions)
+	metric.IntegerMinusRawMSE = metric.IntegerMeanMSE - metric.RawMeanMSE
+	for _, value := range errorsCP {
+		metric.MeanAbsoluteQuantizationCP += value
+	}
+	metric.MeanAbsoluteQuantizationCP /= float64(metric.Positions)
+	metric.P99AbsoluteQuantizationCP = errorsCP[(99*metric.Positions+99)/100-1]
+	metric.MaximumAbsoluteQuantizationCP = errorsCP[len(errorsCP)-1]
+	safe := true
+	for _, value := range metric.FastOutputSafe {
+		safe = safe && value
+	}
+	metric.Eligible = metric.Update > 0 && safe &&
+		metric.MeanAbsoluteQuantizationCP <= meanQuantDeltaGate &&
+		metric.P99AbsoluteQuantizationCP <= p99QuantDeltaGate &&
+		metric.MaximumAbsoluteQuantizationCP <= maxQuantDeltaGate
+	return metric, nil
+}
+
+func loadSelectionCandidates(
+	root, manifestPath string,
+	manifestBytes int64,
+	manifestSHA [sha256.Size]byte,
+	validation []byte,
+) ([]candidateMetric, error) {
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		return nil, err
+	}
+	var metrics []candidateMetric
+	var expectedOptimizerLayout []optimizerTensorSpec
+	for _, entry := range entries {
+		if !entry.IsDir() || !strings.HasPrefix(entry.Name(), "candidate-") {
+			continue
+		}
+		update, err := strconv.ParseUint(strings.TrimPrefix(entry.Name(), "candidate-"), 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid candidate directory %q", entry.Name())
+		}
+		directory := filepath.Join(root, entry.Name())
+		receiptPath := filepath.Join(directory, "receipt.json")
+		receiptBytes, err := os.ReadFile(receiptPath)
+		if err != nil {
+			return nil, err
+		}
+		var checkpoint selectionCheckpoint
+		if err := json.Unmarshal(receiptBytes, &checkpoint); err != nil {
+			return nil, fmt.Errorf("decode %s: %w", receiptPath, err)
+		}
+		if checkpoint.Schema != checkpointSchema || checkpoint.BulletCommit != bulletCommit ||
+			checkpoint.BulletPatchSHA256 != selectionBulletPatchSHA || checkpoint.Mode != "pilot" ||
+			checkpoint.CompletedUpdates != update || checkpoint.TotalUpdates != pilotTotalUpdates ||
+			checkpoint.CheckpointUpdates != pilotCheckpointUpdates || checkpoint.InputBuckets != ngnk4.InputBuckets ||
+			checkpoint.Hidden != ngnk4.HiddenSize || checkpoint.OutputBuckets != ngnk4.OutputBuckets ||
+			checkpoint.ModelSeed != 26_092_001 || checkpoint.ScoreScale != int(selectionScoreScale) ||
+			!samePath(checkpoint.FinalizedManifest.Path, manifestPath) ||
+			checkpoint.FinalizedManifest.Bytes != manifestBytes || checkpoint.FinalizedManifest.SHA256 != hex.EncodeToString(manifestSHA[:]) {
+			return nil, fmt.Errorf("checkpoint contract mismatch %s", receiptPath)
+		}
+		rawPath := filepath.Join(directory, "raw.bin")
+		quantisedPath := filepath.Join(directory, "quantised.bin")
+		rawData, err := verifySelectionFile(checkpoint.Files.Raw, rawPath, deployedRawBytes)
+		if err != nil {
+			return nil, fmt.Errorf("verify raw update %d: %w", update, err)
+		}
+		quantisedData, err := verifySelectionFile(checkpoint.Files.Quantised, quantisedPath, inputBytes)
+		if err != nil {
+			return nil, fmt.Errorf("verify quantised update %d: %w", update, err)
+		}
+		optimizerItems := []struct {
+			name string
+			item selectionFileReceipt
+			path string
+		}{
+			{"weights", checkpoint.Files.Weights, filepath.Join(directory, "optimiser_state", "weights.bin")},
+			{"momentum", checkpoint.Files.Momentum, filepath.Join(directory, "optimiser_state", "momentum.bin")},
+			{"velocity", checkpoint.Files.Velocity, filepath.Join(directory, "optimiser_state", "velocity.bin")},
+		}
+		var optimizerLayout []optimizerTensorSpec
+		for optimizerIndex, optimizer := range optimizerItems {
+			layout, err := verifyOptimizerState(optimizer.item, optimizer.path)
+			if err != nil {
+				return nil, fmt.Errorf("verify %s update %d: %w", optimizer.name, update, err)
+			}
+			if optimizerIndex == 0 {
+				optimizerLayout = layout
+			} else if !sameOptimizerLayout(optimizerLayout, layout) {
+				return nil, fmt.Errorf("optimizer state layout mismatch for %s update %d", optimizer.name, update)
+			}
+		}
+		if expectedOptimizerLayout == nil {
+			expectedOptimizerLayout = optimizerLayout
+		} else if !sameOptimizerLayout(expectedOptimizerLayout, optimizerLayout) {
+			return nil, fmt.Errorf("optimizer state layout mismatch across checkpoints at update %d", update)
+		}
+		metric := candidateMetric{
+			Update: update, Checkpoint: selectionReceiptForBytes(receiptPath, receiptBytes),
+			Raw: checkpoint.Files.Raw, Quantised: checkpoint.Files.Quantised,
+			OptimizerStateFinite: true,
+		}
+		metric, err = evaluateSelectionCandidate(metric, rawData, quantisedData, validation, manifestSHA)
+		if err != nil {
+			return nil, fmt.Errorf("evaluate update %d: %w", update, err)
+		}
+		metrics = append(metrics, metric)
+	}
+	sort.Slice(metrics, func(i, j int) bool { return metrics[i].Update < metrics[j].Update })
+	if len(metrics) != pilotTotalUpdates/pilotCheckpointUpdates+1 {
+		return nil, fmt.Errorf("candidate count %d, want %d", len(metrics), pilotTotalUpdates/pilotCheckpointUpdates+1)
+	}
+	for index, metric := range metrics {
+		if metric.Update != uint64(index*pilotCheckpointUpdates) {
+			return nil, fmt.Errorf("candidate update sequence mismatch at %d: %d", index, metric.Update)
+		}
+	}
+	return metrics, nil
+}
+
+func chooseSelectionCandidate(metrics []candidateMetric) (candidateMetric, earlyStopReceipt, error) {
+	stop := earlyStopReceipt{
+		MinimumUpdate: pilotTotalUpdates / 4, Patience: selectionPatience,
+		MinimumIntegerMSEImprovement: selectionImprovementGate,
+	}
+	bestLoss := math.Inf(1)
+	withoutImprovement := 0
+	limit := uint64(pilotTotalUpdates)
+	for _, metric := range metrics {
+		if metric.Update == 0 {
+			continue
+		}
+		if metric.Eligible && metric.IntegerMeanMSE <= bestLoss-selectionImprovementGate {
+			bestLoss = metric.IntegerMeanMSE
+			withoutImprovement = 0
+		} else {
+			withoutImprovement++
+		}
+		if metric.Update >= stop.MinimumUpdate && withoutImprovement >= stop.Patience {
+			stop.Triggered = true
+			stop.StopUpdate = metric.Update
+			limit = metric.Update
+			break
+		}
+	}
+	var selected *candidateMetric
+	for index := range metrics {
+		metric := &metrics[index]
+		if metric.Update == 0 || metric.Update > limit || !metric.Eligible {
+			continue
+		}
+		if selected == nil || metric.IntegerMeanMSE < selected.IntegerMeanMSE {
+			selected = metric
+		}
+	}
+	if selected == nil {
+		return candidateMetric{}, stop, errors.New("no eligible trained checkpoint")
+	}
+	return *selected, stop, nil
+}
+
+func runSelect(args []string, stdout, stderr io.Writer) error {
+	flags := flag.NewFlagSet("select", flag.ContinueOnError)
+	flags.SetOutput(stderr)
+	candidates := flags.String("candidates", "", "pilot candidate directory")
+	manifestPath := flags.String("manifest", "", "frozen finalized-pilot manifest")
+	validationPath := flags.String("validation", "", "frozen validation BF")
+	outputPath := flags.String("out", "", "new JSON selection receipt")
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+	if flags.NArg() != 0 || *candidates == "" || *manifestPath == "" || *validationPath == "" || *outputPath == "" {
+		return errors.New("select requires -candidates, -manifest, -validation, and -out")
+	}
+	if _, err := os.Stat(*outputPath); !os.IsNotExist(err) {
+		return fmt.Errorf("refusing existing output %s", *outputPath)
+	}
+	_, manifestSHA, manifestReceipt, validation, err := loadSelectionManifest(*manifestPath, *validationPath)
+	if err != nil {
+		return err
+	}
+	metrics, err := loadSelectionCandidates(*candidates, *manifestPath, manifestReceipt.Bytes, manifestSHA, validation)
+	if err != nil {
+		return err
+	}
+	selected, stop, err := chooseSelectionCandidate(metrics)
+	if err != nil {
+		return err
+	}
+	receipt := selectionReceipt{
+		Schema: selectionSchema, ContractVersion: finalizedContract,
+		Command:    append([]string{"ngnk4bridge", "select"}, args...),
+		Manifest:   manifestReceipt,
+		Validation: selectionReceiptForBytes(*validationPath, validation),
+		Rank:       "lowest eligible validation integer MSE through the predeclared early-stop point",
+		TieBreak:   "earliest update",
+		MeanGateCP: meanQuantDeltaGate, P99GateCP: p99QuantDeltaGate, MaximumGateCP: maxQuantDeltaGate,
+		EarlyStop: stop, Candidates: metrics, SelectedUpdate: selected.Update, Selected: selected.Checkpoint,
+	}
+	encoded, err := json.MarshalIndent(receipt, "", "  ")
+	if err != nil {
+		return err
+	}
+	encoded = append(encoded, '\n')
+	if err := writeAtomicNew(*outputPath, encoded); err != nil {
+		return err
+	}
+	_, err = stdout.Write(encoded)
+	return err
+}

@@ -45,6 +45,7 @@ type conversionReceipt struct {
 func usage(writer io.Writer) {
 	fmt.Fprintln(writer, "usage: ngnk4bridge convert -in BULLET.nn -manifest run-manifest.json -out MODEL.nnue")
 	fmt.Fprintln(writer, "       ngnk4bridge parity -raw DEPLOYED.raw -model MODEL.nnue -fens FENS -probe BULLET.tsv")
+	fmt.Fprintln(writer, "       ngnk4bridge select -candidates DIR -manifest FINALIZED.json -validation VALIDATION.bf -out RECEIPT.json")
 }
 
 func readExactFile(path string, size int) ([]byte, error) {
@@ -239,6 +240,8 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runConvert(args[1:], stdout, stderr)
 	case "parity":
 		return runParity(args[1:], stdout, stderr)
+	case "select":
+		return runSelect(args[1:], stdout, stderr)
 	case "help", "-h", "--help":
 		usage(stdout)
 		return nil
