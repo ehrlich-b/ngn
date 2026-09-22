@@ -24,6 +24,7 @@ import (
 
 const (
 	selectionSchema          = "ngn-k4-pilot-selection-v1"
+	selectionSchemaS1        = "ngn-k4-pilot-s1-selection-v1"
 	checkpointSchema         = "ngn-k4-bullet-checkpoint-v1"
 	finalizedSchema          = "ngn-k4-finalized-corpus-v1"
 	finalizedContract        = "sf18-5kn-material-inversion-v2"
@@ -118,6 +119,7 @@ type earlyStopReceipt struct {
 
 type selectionReceipt struct {
 	Schema          string               `json:"schema"`
+	Mode            string               `json:"mode,omitempty"`
 	ContractVersion string               `json:"contract_version"`
 	Command         []string             `json:"command"`
 	Manifest        selectionFileReceipt `json:"manifest"`
@@ -131,6 +133,33 @@ type selectionReceipt struct {
 	Candidates      []candidateMetric    `json:"candidates"`
 	SelectedUpdate  uint64               `json:"selected_update"`
 	Selected        selectionFileReceipt `json:"selected_checkpoint"`
+}
+
+type selectionMode struct {
+	name              string
+	schema            string
+	totalUpdates      int
+	checkpointUpdates int
+	minimumUpdate     uint64
+	patience          int
+}
+
+func selectionModeFor(value string) (selectionMode, error) {
+	switch value {
+	case "pilot":
+		return selectionMode{
+			name: "pilot", schema: selectionSchema, totalUpdates: pilotTotalUpdates,
+			checkpointUpdates: pilotCheckpointUpdates, minimumUpdate: pilotTotalUpdates / 4,
+			patience: selectionPatience,
+		}, nil
+	case "pilot-s1":
+		return selectionMode{
+			name: "pilot-s1", schema: selectionSchemaS1, totalUpdates: 16_384,
+			checkpointUpdates: 512, minimumUpdate: 4_096, patience: 8,
+		}, nil
+	default:
+		return selectionMode{}, fmt.Errorf("unknown selection mode %q", value)
+	}
 }
 
 func selectionReceiptForBytes(path string, data []byte) selectionFileReceipt {
@@ -384,6 +413,7 @@ func loadSelectionCandidates(
 	manifestBytes int64,
 	manifestSHA [sha256.Size]byte,
 	validation []byte,
+	mode selectionMode,
 ) ([]candidateMetric, error) {
 	entries, err := os.ReadDir(root)
 	if err != nil {
@@ -410,9 +440,9 @@ func loadSelectionCandidates(
 			return nil, fmt.Errorf("decode %s: %w", receiptPath, err)
 		}
 		if checkpoint.Schema != checkpointSchema || checkpoint.BulletCommit != bulletCommit ||
-			checkpoint.BulletPatchSHA256 != bulletPatchSHA || checkpoint.Mode != "pilot" ||
-			checkpoint.CompletedUpdates != update || checkpoint.TotalUpdates != pilotTotalUpdates ||
-			checkpoint.CheckpointUpdates != pilotCheckpointUpdates || checkpoint.InputBuckets != ngnk4.InputBuckets ||
+			checkpoint.BulletPatchSHA256 != bulletPatchSHA || checkpoint.Mode != mode.name ||
+			checkpoint.CompletedUpdates != update || checkpoint.TotalUpdates != uint64(mode.totalUpdates) ||
+			checkpoint.CheckpointUpdates != uint64(mode.checkpointUpdates) || checkpoint.InputBuckets != ngnk4.InputBuckets ||
 			checkpoint.Hidden != ngnk4.HiddenSize || checkpoint.OutputBuckets != ngnk4.OutputBuckets ||
 			checkpoint.ModelSeed != 26_092_001 || checkpoint.ScoreScale != int(selectionScoreScale) ||
 			!samePath(checkpoint.FinalizedManifest.Path, manifestPath) ||
@@ -467,11 +497,11 @@ func loadSelectionCandidates(
 		metrics = append(metrics, metric)
 	}
 	sort.Slice(metrics, func(i, j int) bool { return metrics[i].Update < metrics[j].Update })
-	if len(metrics) != pilotTotalUpdates/pilotCheckpointUpdates+1 {
-		return nil, fmt.Errorf("candidate count %d, want %d", len(metrics), pilotTotalUpdates/pilotCheckpointUpdates+1)
+	if len(metrics) != mode.totalUpdates/mode.checkpointUpdates+1 {
+		return nil, fmt.Errorf("candidate count %d, want %d", len(metrics), mode.totalUpdates/mode.checkpointUpdates+1)
 	}
 	for index, metric := range metrics {
-		if metric.Update != uint64(index*pilotCheckpointUpdates) {
+		if metric.Update != uint64(index*mode.checkpointUpdates) {
 			return nil, fmt.Errorf("candidate update sequence mismatch at %d: %d", index, metric.Update)
 		}
 	}
@@ -479,13 +509,18 @@ func loadSelectionCandidates(
 }
 
 func chooseSelectionCandidate(metrics []candidateMetric) (candidateMetric, earlyStopReceipt, error) {
+	mode, _ := selectionModeFor("pilot")
+	return chooseSelectionCandidateForMode(metrics, mode)
+}
+
+func chooseSelectionCandidateForMode(metrics []candidateMetric, mode selectionMode) (candidateMetric, earlyStopReceipt, error) {
 	stop := earlyStopReceipt{
-		MinimumUpdate: pilotTotalUpdates / 4, Patience: selectionPatience,
+		MinimumUpdate: mode.minimumUpdate, Patience: mode.patience,
 		MinimumIntegerMSEImprovement: selectionImprovementGate,
 	}
 	bestLoss := math.Inf(1)
 	withoutImprovement := 0
-	limit := uint64(pilotTotalUpdates)
+	limit := uint64(mode.totalUpdates)
 	for _, metric := range metrics {
 		if metric.Update == 0 {
 			continue
@@ -522,6 +557,7 @@ func chooseSelectionCandidate(metrics []candidateMetric) (candidateMetric, early
 func runSelect(args []string, stdout, stderr io.Writer) error {
 	flags := flag.NewFlagSet("select", flag.ContinueOnError)
 	flags.SetOutput(stderr)
+	modeName := flags.String("mode", "pilot", "selection mode: pilot or pilot-s1")
 	candidates := flags.String("candidates", "", "pilot candidate directory")
 	manifestPath := flags.String("manifest", "", "frozen finalized-pilot manifest")
 	validationPath := flags.String("validation", "", "frozen validation BF")
@@ -532,6 +568,10 @@ func runSelect(args []string, stdout, stderr io.Writer) error {
 	if flags.NArg() != 0 || *candidates == "" || *manifestPath == "" || *validationPath == "" || *outputPath == "" {
 		return errors.New("select requires -candidates, -manifest, -validation, and -out")
 	}
+	mode, err := selectionModeFor(*modeName)
+	if err != nil {
+		return err
+	}
 	if _, err := os.Stat(*outputPath); !os.IsNotExist(err) {
 		return fmt.Errorf("refusing existing output %s", *outputPath)
 	}
@@ -539,16 +579,16 @@ func runSelect(args []string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return err
 	}
-	metrics, err := loadSelectionCandidates(*candidates, *manifestPath, manifestReceipt.Bytes, manifestSHA, validation)
+	metrics, err := loadSelectionCandidates(*candidates, *manifestPath, manifestReceipt.Bytes, manifestSHA, validation, mode)
 	if err != nil {
 		return err
 	}
-	selected, stop, err := chooseSelectionCandidate(metrics)
+	selected, stop, err := chooseSelectionCandidateForMode(metrics, mode)
 	if err != nil {
 		return err
 	}
 	receipt := selectionReceipt{
-		Schema: selectionSchema, ContractVersion: finalizedContract,
+		Schema: mode.schema, ContractVersion: finalizedContract,
 		Command:    append([]string{"ngnk4bridge", "select"}, args...),
 		Manifest:   manifestReceipt,
 		Validation: selectionReceiptForBytes(*validationPath, validation),
@@ -556,6 +596,9 @@ func runSelect(args []string, stdout, stderr io.Writer) error {
 		TieBreak:   "earliest update",
 		MeanGateCP: meanQuantDeltaGate, P99GateCP: p99QuantDeltaGate, MaximumGateCP: maxQuantDeltaGate,
 		EarlyStop: stop, Candidates: metrics, SelectedUpdate: selected.Update, Selected: selected.Checkpoint,
+	}
+	if mode.name != "pilot" {
+		receipt.Mode = mode.name
 	}
 	encoded, err := json.MarshalIndent(receipt, "", "  ")
 	if err != nil {

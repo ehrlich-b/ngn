@@ -20,7 +20,13 @@ identities in `NGN_K4_EXECUTION_IDENTITY`.
 | --- | --- | ---: | ---: | ---: |
 | smoke | pilot | 1,000,000 | 256 | 128 |
 | pilot | pilot | 1,000,000 | 1,024 | 128 |
+| pilot-s1 | pilot | 1,000,000 | 16,384 | 512 |
 | main | main | 20,000,000 | 16,384 | 512 |
+
+`pilot-s1` is the schedule-only diagnostic on the exact pilot BF. Its longer
+cosine horizon leaves the model, target, seed, batch size, and data order fixed.
+The `main` row records the original recipe; its 20M expansion is held pending
+the diagnostic gates in the failure analysis.
 
 All modes use seed 26092001, batch size 16,384, two loader threads, and an
 actual queue depth of eight. Targets are 100% record score
@@ -39,8 +45,8 @@ holdouts must be inherited, while pilot holdouts must not be.
 ## Start and resume
 
 ```text
-ngn_k4_train start smoke|pilot|main FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY
-ngn_k4_train resume smoke|pilot|main FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY
+ngn_k4_train start smoke|pilot|pilot-s1|main FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY
+ngn_k4_train resume smoke|pilot|pilot-s1|main FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY
 ```
 
 The harness refuses an existing attempt directory. `attempt.json` binds the

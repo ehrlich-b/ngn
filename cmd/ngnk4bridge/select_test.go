@@ -98,6 +98,34 @@ func TestChooseSelectionCandidateBreaksExactTieAtEarlierUpdate(t *testing.T) {
 	}
 }
 
+func TestPilotS1SelectionWaitsForMinimumAndEightMisses(t *testing.T) {
+	mode, err := selectionModeFor("pilot-s1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if mode.totalUpdates != 16_384 || mode.checkpointUpdates != 512 || mode.minimumUpdate != 4_096 || mode.patience != 8 {
+		t.Fatalf("mode=%+v", mode)
+	}
+	var metrics []candidateMetric
+	for update := uint64(0); update <= 16_384; update += 512 {
+		loss := 0.2
+		if update == 512 {
+			loss = 0.1
+		}
+		if update > 4_608 {
+			loss = 0.05 // A later win must be excluded after the declared stop.
+		}
+		metrics = append(metrics, candidateMetric{Update: update, IntegerMeanMSE: loss, Eligible: update > 0})
+	}
+	selected, stop, err := chooseSelectionCandidateForMode(metrics, mode)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if selected.Update != 512 || !stop.Triggered || stop.StopUpdate != 4_608 {
+		t.Fatalf("selected=%d stop=%+v", selected.Update, stop)
+	}
+}
+
 func TestValidateOptimizerStateChecksLayoutAndFiniteValues(t *testing.T) {
 	data := optimizerStateFixture(
 		struct {

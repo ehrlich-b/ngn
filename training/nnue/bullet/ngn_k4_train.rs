@@ -97,6 +97,14 @@ fn mode(value: &str) -> Option<Mode> {
             updates: 1_024,
             checkpoint_updates: 128,
         }),
+        "pilot-s1" => Some(Mode {
+            name: "pilot-s1",
+            manifest_mode: "pilot",
+            corpus_name: "train-pilot",
+            positions: 1_000_000,
+            updates: 16_384,
+            checkpoint_updates: 512,
+        }),
         "main" => Some(Mode {
             name: "main",
             manifest_mode: "main",
@@ -1017,7 +1025,7 @@ fn main() {
     let resume = action.as_deref() == Some("resume");
     if (action.as_deref() != Some("start") && !resume) || (!resume && args.len() != 5) || (resume && args.len() != 6) {
         fail(
-            "usage: ngn_k4_train start smoke|pilot|main FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|main FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
+            "usage: ngn_k4_train start smoke|pilot|pilot-s1|main FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|pilot-s1|main FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
         );
     }
     let mode_text = args[2].to_string_lossy();
