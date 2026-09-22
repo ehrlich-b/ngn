@@ -21,6 +21,10 @@ python3 cmd/ngnk4staticdump/analyze.py \
   --output NEW_ANALYSIS.json
 ```
 
+The default K4 SHA-256 pins the original 1,024-update pilot. For a newly
+selected checkpoint, pass `-k4-sha256 EXPECTED_SHA256`; the dump verifies that
+exact model and records its digest in the receipt.
+
 The analysis script requires NumPy and SciPy. It reports score and WDL errors,
 sign accuracy, rank correlation, Huber score slope/intercept, and results by
 side, output head, king-bucket pair, piece count, source ply and teacher-score

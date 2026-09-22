@@ -304,6 +304,7 @@ func run(args []string, stdout io.Writer) error {
 	manifestPath := flags.String("manifest", "", "completed pilot finalizer manifest")
 	manifestSHA := flags.String("manifest-sha256", "", "expected finalizer manifest SHA-256")
 	k4Path := flags.String("k4-model", "", "selected K4 model file")
+	k4SHA := flags.String("k4-sha256", expectedK4SHA, "expected selected K4 model SHA-256")
 	rodentPath := flags.String("rodent-model", "", "pinned borrowed Rodent Anand model file")
 	outputPath := flags.String("output", "", "new predictions CSV")
 	receiptPath := flags.String("receipt", "", "new JSON receipt")
@@ -355,7 +356,7 @@ func run(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-	if k4File.SHA256 != expectedK4SHA {
+	if k4File.SHA256 != *k4SHA {
 		return errors.New("selected K4 model SHA mismatch")
 	}
 	rodentFile, err := shaFile(*rodentPath)
