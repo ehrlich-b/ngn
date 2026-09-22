@@ -18,6 +18,15 @@ type fakeAnalyzer struct {
 	calls      []string
 }
 
+func TestRunShardRejectsDiagnosticTeacherConfiguration(t *testing.T) {
+	config := FrozenSearchConfig()
+	config.Nodes = 20_000
+	_, err := RunShard(context.Background(), "unused", filepath.Join(t.TempDir(), "labels.jsonl"), &Session{config: config})
+	if !errors.Is(err, ErrContract) {
+		t.Fatalf("diagnostic teacher RunShard error = %v, want contract rejection", err)
+	}
+}
+
 func (analyzer *fakeAnalyzer) Provenance() TeacherProvenance { return analyzer.provenance }
 func (analyzer *fakeAnalyzer) Close() error                  { return nil }
 func (analyzer *fakeAnalyzer) Analyze(_ context.Context, fen string) (SearchResult, string, error) {

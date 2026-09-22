@@ -96,6 +96,20 @@ func validateProvenance(sourceCommit, bigNetworkSHA, smallNetworkSHA string) err
 // source and network identities into the returned provenance. command[0] is the
 // executable; additional elements are supported for protocol fixtures only.
 func StartSession(ctx context.Context, command []string, sourceCommit, bigNetworkSHA, smallNetworkSHA string) (*Session, error) {
+	return startSession(ctx, command, sourceCommit, bigNetworkSHA, smallNetworkSHA, FrozenSearchConfig())
+}
+
+// StartDiagnosticSession uses the frozen teacher settings with a larger node
+// budget solely for the predeclared 5k-versus-20k calibration audit. It cannot
+// be passed to RunShard: that function always requires FrozenSearchConfig.
+func StartDiagnosticSession(ctx context.Context, command []string, sourceCommit, bigNetworkSHA, smallNetworkSHA string) (*Session, error) {
+	config := FrozenSearchConfig()
+	config.Nodes = 20_000
+	config.TimeoutMillis = 8_000
+	return startSession(ctx, command, sourceCommit, bigNetworkSHA, smallNetworkSHA, config)
+}
+
+func startSession(ctx context.Context, command []string, sourceCommit, bigNetworkSHA, smallNetworkSHA string, config SearchConfig) (*Session, error) {
 	if len(command) == 0 || command[0] == "" {
 		return nil, fmt.Errorf("%w: empty teacher command", ErrContract)
 	}
@@ -122,7 +136,7 @@ func StartSession(ctx context.Context, command []string, sourceCommit, bigNetwor
 	}
 	session := &Session{
 		cmd: cmd, stdin: stdin, lines: make(chan streamItem, 4096), done: make(chan struct{}),
-		stderr: stderr, config: FrozenSearchConfig(),
+		stderr: stderr, config: config,
 	}
 	go func() {
 		err := cmd.Wait()

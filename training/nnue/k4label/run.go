@@ -411,6 +411,9 @@ func RunShard(ctx context.Context, inputPath, outputPath string, analyzer Analyz
 	if analyzer == nil {
 		return RunReceipt{}, fmt.Errorf("%w: nil analyzer", ErrContract)
 	}
+	if session, ok := analyzer.(*Session); ok && session.config != FrozenSearchConfig() {
+		return RunReceipt{}, fmt.Errorf("%w: diagnostic teacher configuration cannot label training data", ErrContract)
+	}
 	if outputPath == "" || strings.HasSuffix(outputPath, ".partial") {
 		return RunReceipt{}, fmt.Errorf("%w: invalid output path", ErrContract)
 	}
