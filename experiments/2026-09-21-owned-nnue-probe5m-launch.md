@@ -59,3 +59,15 @@ Completion is signaled by `POSTLABEL_STATE=CALIBRATED`; `FAILED` names a stopped
 continuation whose last stage and stderr log should be inspected. Neither
 service needs status polling while the label job is active. The next read is
 due near the expected multi-hour completion or after a failure notification.
+
+At 2026-09-22 02:03 UTC, a third user service,
+`ngn-k4-probe5m-panel-20260921.service`, began waiting on the post-label state
+file via inotify. [Its pinned script](2026-09-21-owned-nnue-probe5m-panel.sh)
+is SHA-256 `b2ffd37a948ff99d661dc1f0ac9a161ae403c5c7f379bc7b5ae8f1f34e0abf24`.
+After `CALIBRATED`, it will run the existing 32-position HCE/K4/Rodent/SF18
+search diagnostic using the selected 5M model and the verified AVX2 engine.
+The positions, budgets, teacher, Rodent net and original UCI runner are pinned;
+the derived panel records the selected model and optimized engine SHA-256.
+`PANEL_STATE=PANEL_COMPLETE` will indicate a finished search receipt under
+`search-probe5m`. This diagnostic does not start a game screen or the 20M
+expansion; those decisions depend on the resulting quality evidence.
