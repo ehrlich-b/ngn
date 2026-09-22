@@ -47,6 +47,8 @@ const LOADER_THREADS: usize = 2;
 const BATCH_QUEUE_SIZE: usize = 8;
 const INITIAL_LR: f32 = 0.001;
 const FINAL_LR: f32 = 0.00005;
+const LR1_INITIAL_LR: f32 = 0.0002;
+const LR1_FINAL_LR: f32 = 0.00001;
 const DEPLOYED_VALUES: usize = 2_372_360;
 const RAW_BYTES: usize = DEPLOYED_VALUES * 4;
 const QUANT_TENSOR_BYTES: usize = DEPLOYED_VALUES * 2;
@@ -79,6 +81,16 @@ struct Mode {
     checkpoint_updates: usize,
 }
 
+impl Mode {
+    fn learning_rates(self) -> (f32, f32) {
+        if self.name == "pilot-lr1" {
+            (LR1_INITIAL_LR, LR1_FINAL_LR)
+        } else {
+            (INITIAL_LR, FINAL_LR)
+        }
+    }
+}
+
 fn mode(value: &str) -> Option<Mode> {
     match value {
         "smoke" => Some(Mode {
@@ -99,6 +111,14 @@ fn mode(value: &str) -> Option<Mode> {
         }),
         "pilot-s1" => Some(Mode {
             name: "pilot-s1",
+            manifest_mode: "pilot",
+            corpus_name: "train-pilot",
+            positions: 1_000_000,
+            updates: 16_384,
+            checkpoint_updates: 512,
+        }),
+        "pilot-lr1" => Some(Mode {
+            name: "pilot-lr1",
             manifest_mode: "pilot",
             corpus_name: "train-pilot",
             positions: 1_000_000,
@@ -850,6 +870,7 @@ fn write_checkpoint_receipt(
     reader: ReaderWitness,
 ) -> FileReceipt {
     validate_checkpoint(root);
+    let (initial_lr, final_lr) = run_mode.learning_rates();
     let presentations = completed_updates * BATCH_SIZE as u64;
     let receipt_value = CheckpointReceipt {
         schema: CHECKPOINT_SCHEMA.to_string(),
@@ -873,8 +894,8 @@ fn write_checkpoint_receipt(
         output_buckets: OUTPUT_BUCKETS,
         model_seed: MODEL_SEED,
         score_scale: SCORE_SCALE,
-        initial_lr: INITIAL_LR,
-        final_lr: FINAL_LR,
+        initial_lr,
+        final_lr,
         loader_threads: LOADER_THREADS,
         batch_queue_size: BATCH_QUEUE_SIZE,
         files: checkpoint_files(root),
@@ -890,6 +911,7 @@ fn load_parent_checkpoint(
     input: &TrainingInput,
     executable: &FileReceipt,
 ) -> (CheckpointReceipt, FileReceipt) {
+    let (initial_lr, final_lr) = run_mode.learning_rates();
     let receipt_file = file_receipt(path);
     let checkpoint: CheckpointReceipt = read_json(path);
     if checkpoint.schema != CHECKPOINT_SCHEMA
@@ -911,8 +933,8 @@ fn load_parent_checkpoint(
         || checkpoint.output_buckets != OUTPUT_BUCKETS
         || checkpoint.model_seed != MODEL_SEED
         || checkpoint.score_scale != SCORE_SCALE
-        || checkpoint.initial_lr != INITIAL_LR
-        || checkpoint.final_lr != FINAL_LR
+        || checkpoint.initial_lr != initial_lr
+        || checkpoint.final_lr != final_lr
         || checkpoint.loader_threads != LOADER_THREADS
         || checkpoint.batch_queue_size != BATCH_QUEUE_SIZE
     {
@@ -957,8 +979,8 @@ fn load_parent_checkpoint(
         || parent_attempt.hidden != HIDDEN
         || parent_attempt.output_buckets != OUTPUT_BUCKETS
         || parent_attempt.score_scale != SCORE_SCALE
-        || parent_attempt.initial_lr != INITIAL_LR
-        || parent_attempt.final_lr != FINAL_LR
+        || parent_attempt.initial_lr != initial_lr
+        || parent_attempt.final_lr != final_lr
         || parent_attempt.loader_threads != LOADER_THREADS
         || parent_attempt.batch_queue_size != BATCH_QUEUE_SIZE
     {
@@ -1048,7 +1070,7 @@ fn main() {
     let resume = action.as_deref() == Some("resume");
     if (action.as_deref() != Some("start") && !resume) || (!resume && args.len() != 5) || (resume && args.len() != 6) {
         fail(
-            "usage: ngn_k4_train start smoke|pilot|pilot-s1|probe5m|main|main-m1 FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|pilot-s1|probe5m|main|main-m1 FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
+            "usage: ngn_k4_train start smoke|pilot|pilot-s1|pilot-lr1|probe5m|main|main-m1 FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|pilot-s1|pilot-lr1|probe5m|main|main-m1 FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
         );
     }
     let mode_text = args[2].to_string_lossy();
@@ -1099,6 +1121,7 @@ fn main() {
         } else {
             (0, None, None)
         };
+    let (initial_lr, final_lr) = run_mode.learning_rates();
     let attempt_value = AttemptContract {
         schema: ATTEMPT_SCHEMA.to_string(),
         bullet_commit: BULLET_COMMIT.to_string(),
@@ -1119,8 +1142,8 @@ fn main() {
         hidden: HIDDEN,
         output_buckets: OUTPUT_BUCKETS,
         score_scale: SCORE_SCALE,
-        initial_lr: INITIAL_LR,
-        final_lr: FINAL_LR,
+        initial_lr,
+        final_lr,
         loader_threads: LOADER_THREADS,
         batch_queue_size: BATCH_QUEUE_SIZE,
     };
@@ -1158,8 +1181,8 @@ fn main() {
             },
             wdl_scheduler: wdl::ConstantWDL { value: 0.0 },
             lr_scheduler: lr::CosineDecayLR {
-                initial_lr: INITIAL_LR,
-                final_lr: FINAL_LR,
+                initial_lr,
+                final_lr,
                 final_superbatch: total_superbatches,
             },
             save_rate: 1,

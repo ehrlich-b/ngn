@@ -1,0 +1,95 @@
+# K4-LR1 learning-rate isolation result
+
+Status: **positive static and small-panel diagnostic; 40-game screen running.**
+The 5M unique-data probe continues independently. Neither diagnostic is a 3k
+rating result or a reason to start the held 20M expansion yet.
+
+## Run identity
+
+[The prospectively frozen LR1 plan](2026-09-22-owned-nnue-lr1-plan.md) changed
+only the S1 cosine learning-rate endpoints, from `0.001 -> 0.00005` to
+`0.0002 -> 0.00001`. Architecture, seed, exact 1M pilot BF, target, batch size,
+16,384-update horizon, 512-update checkpoint interval and validation set were
+unchanged. The Rust harness SHA-256 is
+`ad17bc5a6b4e576372a252e0cc04dcba0e1634fe68d23b0a2cfc04b8b98ef769`.
+
+The first isolated build omitted Bullet's `cuda` feature. Its systemd attempt
+failed immediately in the mock GPU runtime with no trained checkpoint; that
+attempt remains at `runs/k4-pilot-lr1-20260922`. The [corrected launcher](2026-09-22-owned-nnue-lr1-run.sh)
+uses the CUDA-enabled trainer SHA-256
+`34d49b9dd175a15e622aa6ac8781817606914899f8b609976806424a0f14e187`
+and a new no-clobber run at `runs/k4-pilot-lr1-20260922-retry1`. Its
+[run receipt](2026-09-22-owned-nnue-lr1-run-receipt.txt) binds the pilot BF,
+finalizer manifest, trainer, bridge and completed training. The retry completed
+all 16,384 updates, 268,435,456 presentations and 33 checkpoint receipts.
+
+## Validation selection
+
+[The complete selector receipt](2026-09-22-owned-nnue-lr1-selection.json) has
+SHA-256 `4ad114f4f6ea91d46f63097e50be23f61e7e10e14cbfdf16bb5e934b3fb5d4ae`.
+It selected update 1,024, integer MSE **0.011008**, versus **0.011393** for the
+original pilot and **0.012274** for S1's selected model. The retrospective
+early stop was update 5,120. Update 512 had lower raw/integer loss but failed
+the predeclared quantization-error gates, so it was not eligible. Loss rose
+again through later checkpoints, which argues against more presentations on
+this same 1M BF at these learning rates.
+
+## Frozen static calibration
+
+The selected K4 file is SHA-256
+`47127943aaaa7e1db7e4e0efeb5f88716aea0936b8306be68f341830308e6cb4`.
+The [calibration launcher](2026-09-22-owned-nnue-lr1-calibrate.sh) used the
+same frozen 100k positions and label shards as the original K4/HCE/Rodent
+comparison. Its [receipt](2026-09-22-owned-nnue-lr1-calibration-receipt.txt)
+binds the prediction CSV and [full analysis](2026-09-22-owned-nnue-lr1-static-analysis.json),
+whose SHA-256 is `7810dd0746a74b17c86eb432e62b9d267425a27d20389d31b6b7d4cbb3a57178`.
+
+| Evaluator | MAE (cp) | WDL MSE | Spearman | Sign accuracy, teacher magnitude ≥50 |
+| --- | ---: | ---: | ---: | ---: |
+| Original K4 pilot | 157.92 | 0.011457 | 0.6691 | 80.13% |
+| K4-LR1 | **150.55** | **0.010957** | **0.6848** | **81.05%** |
+| HCE | 152.70 | 0.011296 | 0.6845 | 80.83% |
+| Borrowed Rodent Anand | 133.13 | 0.008559 | 0.8352 | 89.30% |
+
+LR1's paired MAE advantage over HCE is 2.15 cp on this set (position-bootstrap
+95% interval 1.40 to 2.96 cp). Related positions can share source chains, so
+that interval does not measure independent-game uncertainty. LR1 remains well
+behind the borrowed Rodent net on these static labels.
+
+## Frozen search panel
+
+The [LR1 search launcher](2026-09-22-owned-nnue-lr1-search-panel.sh) reused the
+preselected 32 FENs, SF18 reference, HCE/Rodent comparators and search budgets,
+with the optimized K4 engine and selected LR1 model. The [complete result](2026-09-22-owned-nnue-lr1-search-panel-result.json)
+has SHA-256 `7ec9ba99ffdf07a008bcfcb543d9c07fc3315e47ffd67b6171ea777060a56dcd`.
+
+| Same 32 positions | Original K4 on optimized engine | K4-LR1 | HCE |
+| --- | ---: | ---: | ---: |
+| 100k node request: SF18 move agreement | 13/32 | **15/32** | 15/32 |
+| 250 ms request: SF18 move agreement | 14/32 | **15/32** | 16/32 |
+| 250 ms request: mean reported nodes | 120,109 | 121,793 | 201,793 |
+
+The two extra equal-node matches split into five LR1-only and three original
+pilot-only positions. Thirty-two positions cannot prove a playing-strength
+gain. LR1 still searches fewer nodes than HCE at equal clock, though the AVX2
+inference work greatly narrowed that cost.
+
+## Real-clock gate
+
+The 40-game, 20 reversed-color-pair HCE screen uses the clean-source AVX2
+engine from commit `7f6b1f4`, the selected LR1 model and the accepted 10+0.1
+runner. [The build receipt](2026-09-22-owned-nnue-lr1-engine-build.json) binds
+the Linux binary SHA-256
+`1f2502844f0eab41832cd0818f57c81d59ec66a774e1a09756e0cc72c0c6d1be`.
+The [HELD review subject](2026-09-22-owned-nnue-lr1-screen-held.json) hashes to
+`26cbee7a64c1548861b209815a74050500e85563c0b552603910d9b8e4c1b9ce`;
+the approved WSL manifest is SHA-256
+`a46e70e2d7e7af00861ec60f9bb7ceb08a8d7b6be87b5c29930dcfa3bb586eba`.
+The match reuses the prior screen's 20 opening pairs for direct comparability;
+no formal rating claim will use that reuse as independent evidence.
+
+The match unit `ngn-k4-lr1-screen-40-20260922.service` started at about
+02:43 UTC. The predeclared cutoff remains **35%**: below it holds the recipe;
+at least 35% permits further expenditure but does not claim superiority.
+Complete-game, process and operational audits must pass before interpreting
+the score.

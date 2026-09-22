@@ -25,6 +25,7 @@ import (
 const (
 	selectionSchema          = "ngn-k4-pilot-selection-v1"
 	selectionSchemaS1        = "ngn-k4-pilot-s1-selection-v1"
+	selectionSchemaLR1       = "ngn-k4-pilot-lr1-selection-v1"
 	selectionSchemaProbe5M   = "ngn-k4-probe5m-selection-v1"
 	selectionSchemaMainM1    = "ngn-k4-main-m1-selection-v1"
 	checkpointSchema         = "ngn-k4-bullet-checkpoint-v1"
@@ -86,6 +87,8 @@ type selectionCheckpoint struct {
 	OutputBuckets     int                      `json:"output_buckets"`
 	ModelSeed         uint64                   `json:"model_seed"`
 	ScoreScale        int                      `json:"score_scale"`
+	InitialLR         float32                  `json:"initial_lr"`
+	FinalLR           float32                  `json:"final_lr"`
 	Files             selectionCheckpointFiles `json:"files"`
 }
 
@@ -160,6 +163,11 @@ func selectionModeFor(value string) (selectionMode, error) {
 	case "pilot-s1":
 		return selectionMode{
 			name: "pilot-s1", manifestMode: "pilot", schema: selectionSchemaS1, totalUpdates: 16_384,
+			checkpointUpdates: 512, minimumUpdate: 4_096, patience: 8,
+		}, nil
+	case "pilot-lr1":
+		return selectionMode{
+			name: "pilot-lr1", manifestMode: "pilot", schema: selectionSchemaLR1, totalUpdates: 16_384,
 			checkpointUpdates: 512, minimumUpdate: 4_096, patience: 8,
 		}, nil
 	case "probe5m":
@@ -459,6 +467,10 @@ func loadSelectionCandidates(
 	validation []byte,
 	mode selectionMode,
 ) ([]candidateMetric, error) {
+	initialLR, finalLR := float32(0.001), float32(0.00005)
+	if mode.name == "pilot-lr1" {
+		initialLR, finalLR = 0.0002, 0.00001
+	}
 	entries, err := os.ReadDir(root)
 	if err != nil {
 		return nil, err
@@ -489,6 +501,7 @@ func loadSelectionCandidates(
 			checkpoint.CheckpointUpdates != uint64(mode.checkpointUpdates) || checkpoint.InputBuckets != ngnk4.InputBuckets ||
 			checkpoint.Hidden != ngnk4.HiddenSize || checkpoint.OutputBuckets != ngnk4.OutputBuckets ||
 			checkpoint.ModelSeed != 26_092_001 || checkpoint.ScoreScale != int(selectionScoreScale) ||
+			checkpoint.InitialLR != initialLR || checkpoint.FinalLR != finalLR ||
 			!samePath(checkpoint.FinalizedManifest.Path, manifestPath) ||
 			checkpoint.FinalizedManifest.Bytes != manifestBytes || checkpoint.FinalizedManifest.SHA256 != hex.EncodeToString(manifestSHA[:]) {
 			return nil, fmt.Errorf("checkpoint contract mismatch %s", receiptPath)
@@ -601,7 +614,7 @@ func chooseSelectionCandidateForMode(metrics []candidateMetric, mode selectionMo
 func runSelect(args []string, stdout, stderr io.Writer) error {
 	flags := flag.NewFlagSet("select", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	modeName := flags.String("mode", "pilot", "selection mode: pilot, pilot-s1, probe5m, or main-m1")
+	modeName := flags.String("mode", "pilot", "selection mode: pilot, pilot-s1, pilot-lr1, probe5m, or main-m1")
 	candidates := flags.String("candidates", "", "pilot candidate directory")
 	manifestPath := flags.String("manifest", "", "frozen finalized-pilot manifest")
 	validationPath := flags.String("validation", "", "frozen validation BF")
