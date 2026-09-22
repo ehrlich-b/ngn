@@ -142,40 +142,43 @@ func TestProbe5MSelectionModeUsesInheritedManifestAndLongerBudget(t *testing.T) 
 }
 
 func TestMainM1SelectionHonorsMinimumBeforeEarlyStop(t *testing.T) {
-	mode, err := selectionModeFor("main-m1")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if mode.manifestMode != "main" || mode.schema != selectionSchemaMainM1 ||
-		mode.totalUpdates != 131_072 || mode.checkpointUpdates != 4_096 ||
-		mode.minimumUpdate != 32_768 || mode.patience != 6 {
-		t.Fatalf("mode=%+v", mode)
-	}
-	var metrics []candidateMetric
-	for update := uint64(0); update <= 131_072; update += 4_096 {
-		loss := 0.2
-		if update == 4_096 {
-			loss = 0.1
-		}
-		if update > 32_768 {
-			loss = 0.05 // A later improvement cannot undo the declared stop.
-		}
-		metrics = append(metrics, candidateMetric{Update: update, IntegerMeanMSE: loss, Eligible: update > 0})
-	}
-	selected, stop, err := chooseSelectionCandidateForMode(metrics, mode)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if selected.Update != 4_096 || !stop.Triggered || stop.StopUpdate != 32_768 {
-		t.Fatalf("selected=%d stop=%+v", selected.Update, stop)
+	for _, item := range []struct{ name, schema string }{
+		{"main-m1", selectionSchemaMainM1},
+		{"main-m1-lr1", selectionSchemaMainM1LR1},
+	} {
+		t.Run(item.name, func(t *testing.T) {
+			mode, err := selectionModeFor(item.name)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if mode.manifestMode != "main" || mode.schema != item.schema ||
+				mode.totalUpdates != 131_072 || mode.checkpointUpdates != 4_096 ||
+				mode.minimumUpdate != 32_768 || mode.patience != 6 {
+				t.Fatalf("mode=%+v", mode)
+			}
+			var metrics []candidateMetric
+			for update := uint64(0); update <= 131_072; update += 4_096 {
+				loss := 0.2
+				if update == 4_096 {
+					loss = 0.1
+				}
+				if update > 32_768 {
+					loss = 0.05 // A later improvement cannot undo the declared stop.
+				}
+				metrics = append(metrics, candidateMetric{Update: update, IntegerMeanMSE: loss, Eligible: update > 0})
+			}
+			selected, stop, err := chooseSelectionCandidateForMode(metrics, mode)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if selected.Update != 4_096 || !stop.Triggered || stop.StopUpdate != 32_768 {
+				t.Fatalf("selected=%d stop=%+v", selected.Update, stop)
+			}
+		})
 	}
 }
 
 func TestMainM1SelectionAcceptsOnlyMainTrainingManifest(t *testing.T) {
-	mode, err := selectionModeFor("main-m1")
-	if err != nil {
-		t.Fatal(err)
-	}
 	directory := t.TempDir()
 	parentPath := filepath.Join(directory, "pilot.json")
 	parentBytes := []byte("{}\n")
@@ -214,14 +217,26 @@ func TestMainM1SelectionAcceptsOnlyMainTrainingManifest(t *testing.T) {
 		}
 	}
 	writeManifest()
-	_, digest, _, loadedValidation, err := loadSelectionManifest(manifestPath, validationPath, mode)
-	if err != nil || digest == ([sha256.Size]byte{}) || !bytes.Equal(loadedValidation, validationBytes) {
-		t.Fatalf("load main manifest: sha=%x, validation=%d bytes, err=%v", digest, len(loadedValidation), err)
+	for _, name := range []string{"main-m1", "main-m1-lr1"} {
+		mode, err := selectionModeFor(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, digest, _, loadedValidation, err := loadSelectionManifest(manifestPath, validationPath, mode)
+		if err != nil || digest == ([sha256.Size]byte{}) || !bytes.Equal(loadedValidation, validationBytes) {
+			t.Fatalf("%s load main manifest: sha=%x, validation=%d bytes, err=%v", name, digest, len(loadedValidation), err)
+		}
 	}
 	manifest.Corpora[0].Records = 5_000_000
 	writeManifest()
-	if _, _, _, _, err := loadSelectionManifest(manifestPath, validationPath, mode); err == nil {
-		t.Fatal("accepted five-million-record manifest as main-M1 training input")
+	for _, name := range []string{"main-m1", "main-m1-lr1"} {
+		mode, err := selectionModeFor(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, _, _, _, err := loadSelectionManifest(manifestPath, validationPath, mode); err == nil {
+			t.Fatalf("%s accepted five-million-record manifest as main training input", name)
+		}
 	}
 }
 

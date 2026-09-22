@@ -83,7 +83,7 @@ struct Mode {
 
 impl Mode {
     fn learning_rates(self) -> (f32, f32) {
-        if self.name == "pilot-lr1" || self.name == "probe5m-lr1" {
+        if self.name == "pilot-lr1" || self.name == "probe5m-lr1" || self.name == "main-m1-lr1" {
             (LR1_INITIAL_LR, LR1_FINAL_LR)
         } else {
             (INITIAL_LR, FINAL_LR)
@@ -151,6 +151,14 @@ fn mode(value: &str) -> Option<Mode> {
         }),
         "main-m1" => Some(Mode {
             name: "main-m1",
+            manifest_mode: "main",
+            corpus_name: "train-main",
+            positions: 20_000_000,
+            updates: 131_072,
+            checkpoint_updates: 4_096,
+        }),
+        "main-m1-lr1" => Some(Mode {
+            name: "main-m1-lr1",
             manifest_mode: "main",
             corpus_name: "train-main",
             positions: 20_000_000,
@@ -1078,7 +1086,7 @@ fn main() {
     let resume = action.as_deref() == Some("resume");
     if (action.as_deref() != Some("start") && !resume) || (!resume && args.len() != 5) || (resume && args.len() != 6) {
         fail(
-            "usage: ngn_k4_train start smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1 FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1 FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
+            "usage: ngn_k4_train start smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1|main-m1-lr1 FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1|main-m1-lr1 FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
         );
     }
     let mode_text = args[2].to_string_lossy();
@@ -1188,11 +1196,7 @@ fn main() {
                 end_superbatch: superbatch,
             },
             wdl_scheduler: wdl::ConstantWDL { value: 0.0 },
-            lr_scheduler: lr::CosineDecayLR {
-                initial_lr,
-                final_lr,
-                final_superbatch: total_superbatches,
-            },
+            lr_scheduler: lr::CosineDecayLR { initial_lr, final_lr, final_superbatch: total_superbatches },
             save_rate: 1,
         };
         let settings = LocalSettings {
