@@ -23,6 +23,7 @@ identities in `NGN_K4_EXECUTION_IDENTITY`.
 | pilot-s1 | pilot | 1,000,000 | 16,384 | 512 |
 | pilot-lr1 | pilot | 1,000,000 | 16,384 | 512 |
 | probe5m | probe5m | 5,000,000 | 32,768 | 1,024 |
+| probe5m-lr1 | probe5m | 5,000,000 | 32,768 | 1,024 |
 | main | main | 20,000,000 | 16,384 | 512 |
 | main-m1 | main | 20,000,000 | 131,072 | 4,096 |
 
@@ -30,6 +31,8 @@ identities in `NGN_K4_EXECUTION_IDENTITY`.
 cosine horizon leaves the model, target, seed, batch size, and data order fixed.
 `pilot-lr1` repeats that horizon on the exact same BF and seed with only the
 cosine learning-rate endpoints reduced fivefold (`0.0002` to `0.00001`).
+`probe5m-lr1` repeats `probe5m` on the exact same finalized 5M BF with those
+same reduced learning-rate endpoints.
 The `main` row records the withdrawn original schedule. `main-m1` is the
 predeclared replacement for a 20M corpus, held pending the 5M quality gates in
 the failure analysis. Its selection rule uses a 32,768-update minimum and six
@@ -38,7 +41,7 @@ non-improving 4,096-update checks.
 expansion inputs, with all three fixed holdouts inherited.
 
 All modes use seed 26092001, batch size 16,384, two loader threads, and an
-actual queue depth of eight. Except `pilot-lr1`, they use a cosine learning rate
+actual queue depth of eight. Except `pilot-lr1` and `probe5m-lr1`, they use a cosine learning rate
 from `0.001` to `0.00005`. Targets are 100% record score
 (`result_weight=0`) under a scale-400 sigmoid. The 768-feature factorizer is
 zero-initialized, trained jointly, and merged into four transformer buckets on
@@ -55,8 +58,8 @@ holdouts must be inherited, while pilot holdouts must not be.
 ## Start and resume
 
 ```text
-ngn_k4_train start smoke|pilot|pilot-s1|pilot-lr1|probe5m|main|main-m1 FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY
-ngn_k4_train resume smoke|pilot|pilot-s1|pilot-lr1|probe5m|main|main-m1 FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY
+ngn_k4_train start smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1 FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY
+ngn_k4_train resume smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1 FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY
 ```
 
 The harness refuses an existing attempt directory. `attempt.json` binds the

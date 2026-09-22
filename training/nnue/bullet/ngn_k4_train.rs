@@ -83,7 +83,7 @@ struct Mode {
 
 impl Mode {
     fn learning_rates(self) -> (f32, f32) {
-        if self.name == "pilot-lr1" {
+        if self.name == "pilot-lr1" || self.name == "probe5m-lr1" {
             (LR1_INITIAL_LR, LR1_FINAL_LR)
         } else {
             (INITIAL_LR, FINAL_LR)
@@ -127,6 +127,14 @@ fn mode(value: &str) -> Option<Mode> {
         }),
         "probe5m" => Some(Mode {
             name: "probe5m",
+            manifest_mode: "probe5m",
+            corpus_name: "train-probe5m",
+            positions: 5_000_000,
+            updates: 32_768,
+            checkpoint_updates: 1_024,
+        }),
+        "probe5m-lr1" => Some(Mode {
+            name: "probe5m-lr1",
             manifest_mode: "probe5m",
             corpus_name: "train-probe5m",
             positions: 5_000_000,
@@ -1070,7 +1078,7 @@ fn main() {
     let resume = action.as_deref() == Some("resume");
     if (action.as_deref() != Some("start") && !resume) || (!resume && args.len() != 5) || (resume && args.len() != 6) {
         fail(
-            "usage: ngn_k4_train start smoke|pilot|pilot-s1|pilot-lr1|probe5m|main|main-m1 FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|pilot-s1|pilot-lr1|probe5m|main|main-m1 FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
+            "usage: ngn_k4_train start smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1 FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1 FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
         );
     }
     let mode_text = args[2].to_string_lossy();
