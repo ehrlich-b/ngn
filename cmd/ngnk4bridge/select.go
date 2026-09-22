@@ -26,6 +26,7 @@ const (
 	selectionSchema          = "ngn-k4-pilot-selection-v1"
 	selectionSchemaS1        = "ngn-k4-pilot-s1-selection-v1"
 	selectionSchemaProbe5M   = "ngn-k4-probe5m-selection-v1"
+	selectionSchemaMainM1    = "ngn-k4-main-m1-selection-v1"
 	checkpointSchema         = "ngn-k4-bullet-checkpoint-v1"
 	finalizedSchema          = "ngn-k4-finalized-corpus-v1"
 	finalizedContract        = "sf18-5kn-material-inversion-v2"
@@ -166,6 +167,11 @@ func selectionModeFor(value string) (selectionMode, error) {
 			name: "probe5m", manifestMode: "probe5m", schema: selectionSchemaProbe5M, totalUpdates: 32_768,
 			checkpointUpdates: 1_024, minimumUpdate: 8_192, patience: 8,
 		}, nil
+	case "main-m1":
+		return selectionMode{
+			name: "main-m1", manifestMode: "main", schema: selectionSchemaMainM1, totalUpdates: 131_072,
+			checkpointUpdates: 4_096, minimumUpdate: 32_768, patience: 6,
+		}, nil
 	default:
 		return selectionMode{}, fmt.Errorf("unknown selection mode %q", value)
 	}
@@ -283,8 +289,11 @@ func loadSelectionManifest(path, validationPath string, mode selectionMode) ([]b
 		}
 	}
 	trainName, trainRecords := "train-pilot", uint64(1_000_000)
-	if mode.manifestMode == "probe5m" {
+	switch mode.manifestMode {
+	case "probe5m":
 		trainName, trainRecords = "train-probe5m", 5_000_000
+	case "main":
+		trainName, trainRecords = "train-main", 20_000_000
 	}
 	var validation *selectionCorpus
 	var train *selectionCorpus
@@ -592,7 +601,7 @@ func chooseSelectionCandidateForMode(metrics []candidateMetric, mode selectionMo
 func runSelect(args []string, stdout, stderr io.Writer) error {
 	flags := flag.NewFlagSet("select", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	modeName := flags.String("mode", "pilot", "selection mode: pilot, pilot-s1, or probe5m")
+	modeName := flags.String("mode", "pilot", "selection mode: pilot, pilot-s1, probe5m, or main-m1")
 	candidates := flags.String("candidates", "", "pilot candidate directory")
 	manifestPath := flags.String("manifest", "", "frozen finalized-pilot manifest")
 	validationPath := flags.String("validation", "", "frozen validation BF")

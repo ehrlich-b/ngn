@@ -23,11 +23,14 @@ identities in `NGN_K4_EXECUTION_IDENTITY`.
 | pilot-s1 | pilot | 1,000,000 | 16,384 | 512 |
 | probe5m | probe5m | 5,000,000 | 32,768 | 1,024 |
 | main | main | 20,000,000 | 16,384 | 512 |
+| main-m1 | main | 20,000,000 | 131,072 | 4,096 |
 
 `pilot-s1` is the schedule-only diagnostic on the exact pilot BF. Its longer
 cosine horizon leaves the model, target, seed, batch size, and data order fixed.
-The `main` row records the original recipe; its 20M expansion is held pending
-the diagnostic gates in the failure analysis.
+The `main` row records the withdrawn original schedule. `main-m1` is the
+predeclared replacement for a 20M corpus, held pending the 5M quality gates in
+the failure analysis. Its selection rule uses a 32,768-update minimum and six
+non-improving 4,096-update checks.
 `probe5m` consumes the exact pilot prefix plus the first four million accepted
 expansion inputs, with all three fixed holdouts inherited.
 
@@ -48,8 +51,8 @@ holdouts must be inherited, while pilot holdouts must not be.
 ## Start and resume
 
 ```text
-ngn_k4_train start smoke|pilot|pilot-s1|probe5m|main FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY
-ngn_k4_train resume smoke|pilot|pilot-s1|probe5m|main FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY
+ngn_k4_train start smoke|pilot|pilot-s1|probe5m|main|main-m1 FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY
+ngn_k4_train resume smoke|pilot|pilot-s1|probe5m|main|main-m1 FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY
 ```
 
 The harness refuses an existing attempt directory. `attempt.json` binds the

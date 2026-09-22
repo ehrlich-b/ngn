@@ -2,8 +2,12 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
+	"encoding/json"
 	"math"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/ehrlich-b/ngn/nnue/ngnk4"
@@ -134,6 +138,90 @@ func TestProbe5MSelectionModeUsesInheritedManifestAndLongerBudget(t *testing.T) 
 	if mode.name != "probe5m" || mode.manifestMode != "probe5m" || mode.schema != selectionSchemaProbe5M ||
 		mode.totalUpdates != 32_768 || mode.checkpointUpdates != 1_024 || mode.minimumUpdate != 8_192 || mode.patience != 8 {
 		t.Fatalf("mode=%+v", mode)
+	}
+}
+
+func TestMainM1SelectionHonorsMinimumBeforeEarlyStop(t *testing.T) {
+	mode, err := selectionModeFor("main-m1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if mode.manifestMode != "main" || mode.schema != selectionSchemaMainM1 ||
+		mode.totalUpdates != 131_072 || mode.checkpointUpdates != 4_096 ||
+		mode.minimumUpdate != 32_768 || mode.patience != 6 {
+		t.Fatalf("mode=%+v", mode)
+	}
+	var metrics []candidateMetric
+	for update := uint64(0); update <= 131_072; update += 4_096 {
+		loss := 0.2
+		if update == 4_096 {
+			loss = 0.1
+		}
+		if update > 32_768 {
+			loss = 0.05 // A later improvement cannot undo the declared stop.
+		}
+		metrics = append(metrics, candidateMetric{Update: update, IntegerMeanMSE: loss, Eligible: update > 0})
+	}
+	selected, stop, err := chooseSelectionCandidateForMode(metrics, mode)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if selected.Update != 4_096 || !stop.Triggered || stop.StopUpdate != 32_768 {
+		t.Fatalf("selected=%d stop=%+v", selected.Update, stop)
+	}
+}
+
+func TestMainM1SelectionAcceptsOnlyMainTrainingManifest(t *testing.T) {
+	mode, err := selectionModeFor("main-m1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	directory := t.TempDir()
+	parentPath := filepath.Join(directory, "pilot.json")
+	parentBytes := []byte("{}\n")
+	if err := os.WriteFile(parentPath, parentBytes, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	parent := selectionReceiptForBytes(parentPath, parentBytes)
+	validationPath := filepath.Join(directory, "validation.bf")
+	validationBytes := make([]byte, pilotValidationRecords*32)
+	if err := os.WriteFile(validationPath, validationBytes, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	validation := selectionCorpus{
+		Name: "validation", Split: "validation", Records: pilotValidationRecords, RecordBytes: 32,
+		File: selectionReceiptForBytes(validationPath, validationBytes), Inherited: true,
+	}
+	train := selectionCorpus{
+		Name: "train-main", Split: "train", Records: 20_000_000, RecordBytes: 32,
+		File: selectionFileReceipt{Path: filepath.Join(directory, "train-main.bf"), Bytes: 20_000_000 * 32,
+			SHA256: "0000000000000000000000000000000000000000000000000000000000000000"},
+	}
+	manifest := selectionManifest{
+		Schema: finalizedSchema, ContractVersion: finalizedContract, State: "COMPLETE", Mode: "main",
+		ParentPilot: &parent,
+		Corpora:     []selectionCorpus{train, validation, {Name: "calibration"}, {Name: "reserved-test"}},
+	}
+	manifestPath := filepath.Join(directory, "manifest.json")
+	writeManifest := func() {
+		t.Helper()
+		data, err := json.Marshal(manifest)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(manifestPath, data, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	writeManifest()
+	_, digest, _, loadedValidation, err := loadSelectionManifest(manifestPath, validationPath, mode)
+	if err != nil || digest == ([sha256.Size]byte{}) || !bytes.Equal(loadedValidation, validationBytes) {
+		t.Fatalf("load main manifest: sha=%x, validation=%d bytes, err=%v", digest, len(loadedValidation), err)
+	}
+	manifest.Corpora[0].Records = 5_000_000
+	writeManifest()
+	if _, _, _, _, err := loadSelectionManifest(manifestPath, validationPath, mode); err == nil {
+		t.Fatal("accepted five-million-record manifest as main-M1 training input")
 	}
 }
 
