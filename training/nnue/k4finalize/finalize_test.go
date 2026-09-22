@@ -239,4 +239,28 @@ func TestPilotAndMainFreezeExactAcceptedSets(t *testing.T) {
 	if len(mainBytes) < len(pilotBytes) || string(mainBytes[:len(pilotBytes)]) != string(pilotBytes) {
 		t.Fatal("pilot corpus is not an exact main prefix")
 	}
+	probeDir := filepath.Join(filepath.Dir(layout.sampler), "probe5m")
+	probe, err := finalizeExpanded(layout.sampler, filepath.Join(pilotDir, "manifest.json"), layout.labels, layout.packed,
+		probeDir, []string{"test-probe5m"}, layout.expected, "probe5m", "train-probe5m", 3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	probeTrain, err := findCorpus(probe, "train-probe5m")
+	if err != nil || probe.Mode != "probe5m" || probeTrain.Records != 3 || len(probeTrain.Segments) != 2 ||
+		probeTrain.Segments[0].Records != 2 || probeTrain.Segments[1].Records != 1 || len(probe.UsedShards) != 1 {
+		t.Fatalf("probe corpus = %+v mode=%s used=%d err=%v", probeTrain, probe.Mode, len(probe.UsedShards), err)
+	}
+	probeBytes, err := os.ReadFile(probeTrain.File.Path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(probeBytes) != 3*k4pack.RecordBytes || string(probeBytes) != string(mainBytes[:len(probeBytes)]) {
+		t.Fatal("probe corpus is not an exact main prefix")
+	}
+	for _, name := range []string{"validation", "calibration", "reserved-test"} {
+		corpus, err := findCorpus(probe, name)
+		if err != nil || !corpus.Inherited {
+			t.Fatalf("probe did not inherit %s: %+v %v", name, corpus, err)
+		}
+	}
 }

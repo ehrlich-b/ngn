@@ -25,6 +25,7 @@ import (
 const (
 	selectionSchema          = "ngn-k4-pilot-selection-v1"
 	selectionSchemaS1        = "ngn-k4-pilot-s1-selection-v1"
+	selectionSchemaProbe5M   = "ngn-k4-probe5m-selection-v1"
 	checkpointSchema         = "ngn-k4-bullet-checkpoint-v1"
 	finalizedSchema          = "ngn-k4-finalized-corpus-v1"
 	finalizedContract        = "sf18-5kn-material-inversion-v2"
@@ -50,14 +51,16 @@ type selectionCorpus struct {
 	Records     uint64               `json:"records"`
 	RecordBytes int                  `json:"record_bytes"`
 	File        selectionFileReceipt `json:"file"`
+	Inherited   bool                 `json:"inherited,omitempty"`
 }
 
 type selectionManifest struct {
-	Schema          string            `json:"schema"`
-	ContractVersion string            `json:"contract_version"`
-	State           string            `json:"state"`
-	Mode            string            `json:"mode"`
-	Corpora         []selectionCorpus `json:"corpora"`
+	Schema          string                `json:"schema"`
+	ContractVersion string                `json:"contract_version"`
+	State           string                `json:"state"`
+	Mode            string                `json:"mode"`
+	ParentPilot     *selectionFileReceipt `json:"parent_pilot,omitempty"`
+	Corpora         []selectionCorpus     `json:"corpora"`
 }
 
 type selectionCheckpointFiles struct {
@@ -137,6 +140,7 @@ type selectionReceipt struct {
 
 type selectionMode struct {
 	name              string
+	manifestMode      string
 	schema            string
 	totalUpdates      int
 	checkpointUpdates int
@@ -148,14 +152,19 @@ func selectionModeFor(value string) (selectionMode, error) {
 	switch value {
 	case "pilot":
 		return selectionMode{
-			name: "pilot", schema: selectionSchema, totalUpdates: pilotTotalUpdates,
+			name: "pilot", manifestMode: "pilot", schema: selectionSchema, totalUpdates: pilotTotalUpdates,
 			checkpointUpdates: pilotCheckpointUpdates, minimumUpdate: pilotTotalUpdates / 4,
 			patience: selectionPatience,
 		}, nil
 	case "pilot-s1":
 		return selectionMode{
-			name: "pilot-s1", schema: selectionSchemaS1, totalUpdates: 16_384,
+			name: "pilot-s1", manifestMode: "pilot", schema: selectionSchemaS1, totalUpdates: 16_384,
 			checkpointUpdates: 512, minimumUpdate: 4_096, patience: 8,
+		}, nil
+	case "probe5m":
+		return selectionMode{
+			name: "probe5m", manifestMode: "probe5m", schema: selectionSchemaProbe5M, totalUpdates: 32_768,
+			checkpointUpdates: 1_024, minimumUpdate: 8_192, patience: 8,
 		}, nil
 	default:
 		return selectionMode{}, fmt.Errorf("unknown selection mode %q", value)
@@ -250,7 +259,7 @@ func sameOptimizerLayout(first, second []optimizerTensorSpec) bool {
 	return true
 }
 
-func loadSelectionManifest(path, validationPath string) ([]byte, [sha256.Size]byte, selectionFileReceipt, []byte, error) {
+func loadSelectionManifest(path, validationPath string, mode selectionMode) ([]byte, [sha256.Size]byte, selectionFileReceipt, []byte, error) {
 	manifestBytes, manifestSHA, err := readManifest(path)
 	if err != nil {
 		return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, err
@@ -260,11 +269,32 @@ func loadSelectionManifest(path, validationPath string) ([]byte, [sha256.Size]by
 		return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, err
 	}
 	if manifest.Schema != finalizedSchema || manifest.ContractVersion != finalizedContract ||
-		manifest.State != "COMPLETE" || manifest.Mode != "pilot" {
+		manifest.State != "COMPLETE" || manifest.Mode != mode.manifestMode ||
+		(manifest.ParentPilot != nil) != (mode.manifestMode != "pilot") {
 		return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, errors.New("finalized manifest contract mismatch")
 	}
+	if manifest.ParentPilot != nil {
+		parent := *manifest.ParentPilot
+		if parent.Bytes <= 0 || parent.Bytes > 16<<20 {
+			return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, errors.New("parent pilot receipt size mismatch")
+		}
+		if _, err := verifySelectionFile(parent, parent.Path, int(parent.Bytes)); err != nil {
+			return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, fmt.Errorf("verify parent pilot: %w", err)
+		}
+	}
+	trainName, trainRecords := "train-pilot", uint64(1_000_000)
+	if mode.manifestMode == "probe5m" {
+		trainName, trainRecords = "train-probe5m", 5_000_000
+	}
 	var validation *selectionCorpus
+	var train *selectionCorpus
 	for index := range manifest.Corpora {
+		if manifest.Corpora[index].Name == trainName {
+			if train != nil {
+				return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, errors.New("duplicate training corpus")
+			}
+			train = &manifest.Corpora[index]
+		}
 		if manifest.Corpora[index].Name == "validation" {
 			if validation != nil {
 				return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, errors.New("duplicate validation corpus")
@@ -272,8 +302,13 @@ func loadSelectionManifest(path, validationPath string) ([]byte, [sha256.Size]by
 			validation = &manifest.Corpora[index]
 		}
 	}
+	if len(manifest.Corpora) != 4 || train == nil || train.Split != "train" || train.Records != trainRecords ||
+		train.RecordBytes != 32 || train.File.Bytes != int64(trainRecords*32) || train.Inherited {
+		return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, errors.New("training corpus contract mismatch")
+	}
 	if validation == nil || validation.Split != "validation" || validation.Records != pilotValidationRecords ||
 		validation.RecordBytes != 32 || validation.File.Bytes != pilotValidationRecords*32 ||
+		validation.Inherited != (mode.manifestMode != "pilot") ||
 		!samePath(validation.File.Path, validationPath) {
 		return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, errors.New("validation corpus contract mismatch")
 	}
@@ -557,7 +592,7 @@ func chooseSelectionCandidateForMode(metrics []candidateMetric, mode selectionMo
 func runSelect(args []string, stdout, stderr io.Writer) error {
 	flags := flag.NewFlagSet("select", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	modeName := flags.String("mode", "pilot", "selection mode: pilot or pilot-s1")
+	modeName := flags.String("mode", "pilot", "selection mode: pilot, pilot-s1, or probe5m")
 	candidates := flags.String("candidates", "", "pilot candidate directory")
 	manifestPath := flags.String("manifest", "", "frozen finalized-pilot manifest")
 	validationPath := flags.String("validation", "", "frozen validation BF")
@@ -575,7 +610,7 @@ func runSelect(args []string, stdout, stderr io.Writer) error {
 	if _, err := os.Stat(*outputPath); !os.IsNotExist(err) {
 		return fmt.Errorf("refusing existing output %s", *outputPath)
 	}
-	_, manifestSHA, manifestReceipt, validation, err := loadSelectionManifest(*manifestPath, *validationPath)
+	_, manifestSHA, manifestReceipt, validation, err := loadSelectionManifest(*manifestPath, *validationPath, mode)
 	if err != nil {
 		return err
 	}

@@ -126,6 +126,17 @@ func TestPilotS1SelectionWaitsForMinimumAndEightMisses(t *testing.T) {
 	}
 }
 
+func TestProbe5MSelectionModeUsesInheritedManifestAndLongerBudget(t *testing.T) {
+	mode, err := selectionModeFor("probe5m")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if mode.name != "probe5m" || mode.manifestMode != "probe5m" || mode.schema != selectionSchemaProbe5M ||
+		mode.totalUpdates != 32_768 || mode.checkpointUpdates != 1_024 || mode.minimumUpdate != 8_192 || mode.patience != 8 {
+		t.Fatalf("mode=%+v", mode)
+	}
+}
+
 func TestValidateOptimizerStateChecksLayoutAndFiniteValues(t *testing.T) {
 	data := optimizerStateFixture(
 		struct {

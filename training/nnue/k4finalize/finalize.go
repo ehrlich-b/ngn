@@ -750,6 +750,23 @@ func FinalizeMain(samplerPath, pilotManifestPath, labelsDir, packedDir, outputDi
 }
 
 func finalizeMain(samplerPath, pilotManifestPath, labelsDir, packedDir, outputDir string, command []string, expected contract) (manifest Manifest, err error) {
+	return finalizeExpanded(samplerPath, pilotManifestPath, labelsDir, packedDir, outputDir, command,
+		expected, "main", "train-main", expected.mainAccepted)
+}
+
+// FinalizeProbe5M freezes the first four million accepted expansion inputs after
+// the exact one-million-record pilot prefix. It inherits all three pilot holdouts.
+func FinalizeProbe5M(samplerPath, pilotManifestPath, labelsDir, packedDir, outputDir string, command []string) (Manifest, error) {
+	return finalizeExpanded(samplerPath, pilotManifestPath, labelsDir, packedDir, outputDir, command,
+		productionContract(), "probe5m", "train-probe5m", 5_000_000)
+}
+
+func finalizeExpanded(samplerPath, pilotManifestPath, labelsDir, packedDir, outputDir string,
+	command []string, expected contract, mode, corpusName string, acceptedTarget uint64,
+) (manifest Manifest, err error) {
+	if acceptedTarget <= expected.pilotAccepted || acceptedTarget > expected.mainAccepted {
+		return manifest, fmt.Errorf("%w: expansion target outside pilot/main bounds", ErrContract)
+	}
 	sampler, samplerReceipt, groups, err := loadSampler(samplerPath, expected)
 	if err != nil {
 		return manifest, err
@@ -767,7 +784,7 @@ func finalizeMain(samplerPath, pilotManifestPath, labelsDir, packedDir, outputDi
 		}
 	}()
 	pilotTrain, _ := findCorpus(pilot, "train-pilot")
-	path := filepath.Join(outputDir, "train-main.bf")
+	path := filepath.Join(outputDir, corpusName+".bf")
 	writer, err := newCorpusWriter(path)
 	if err != nil {
 		return manifest, err
@@ -776,22 +793,22 @@ func finalizeMain(samplerPath, pilotManifestPath, labelsDir, packedDir, outputDi
 		_ = writer.file.Close()
 		return manifest, err
 	}
-	expansionTarget := expected.mainAccepted - expected.pilotAccepted
+	expansionTarget := acceptedTarget - expected.pilotAccepted
 	expansion, used, err := appendSeries(writer, "main-expansion", "train", groups[seriesKey("main-expansion", "train")],
 		expansionTarget, sampler.Selection.SHA256, labelsDir, packedDir)
 	if err != nil {
 		_ = writer.file.Close()
 		return manifest, err
 	}
-	mainFile, err := writer.close(path, expected.mainAccepted)
+	mainFile, err := writer.close(path, acceptedTarget)
 	if err != nil {
 		return manifest, err
 	}
 	pilotSegment := pilotTrain.Segments[0]
 	segments := []AcceptedSegment{pilotSegment, expansion}
-	mainCorpus := CorpusReceipt{Name: "train-main", Split: "train", Records: expected.mainAccepted, RecordBytes: k4pack.RecordBytes,
+	mainCorpus := CorpusReceipt{Name: corpusName, Split: "train", Records: acceptedTarget, RecordBytes: k4pack.RecordBytes,
 		File: mainFile, Segments: segments, AcceptedIdentitySHA256: compositeIdentity(segments), IdentityContract: IdentityContract}
-	manifest = Manifest{Schema: ManifestSchema, ContractVersion: k4pack.ContractVersion, State: "COMPLETE", Mode: "main",
+	manifest = Manifest{Schema: ManifestSchema, ContractVersion: k4pack.ContractVersion, State: "COMPLETE", Mode: mode,
 		Command: append([]string(nil), command...), Sampler: samplerReceipt, ParentPilot: &pilotReceipt,
 		Corpora: []CorpusReceipt{mainCorpus}, UsedShards: used}
 	for _, name := range []string{"validation", "calibration", "reserved-test"} {

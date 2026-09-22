@@ -32,6 +32,17 @@ ngnk4finalize main -sampler SAMPLER/manifest.json \
   -output NEW_MAIN_DIR
 ```
 
+The intermediate `probe5m` command uses the same frozen sampler and exact pilot
+prefix, then takes the first 4,000,000 accepted main-expansion records. It
+inherits the same three holdouts and writes a distinct `train-probe5m.bf` and
+manifest mode, so it cannot be confused with the 20M main corpus:
+
+```text
+ngnk4finalize probe5m -sampler SAMPLER/manifest.json \
+  -pilot PILOT/manifest.json -labels LABELS -packed PACKED \
+  -output NEW_PROBE5M_DIR
+```
+
 Both modes refuse an existing output directory. Their manifests bind ordered
 sampler, label and pack artifacts, accepted identity streams, exact BF hashes,
 the frozen SF18 executable and network provenance, and any parent pilot.

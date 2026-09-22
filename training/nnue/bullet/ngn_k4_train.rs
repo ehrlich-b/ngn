@@ -105,6 +105,14 @@ fn mode(value: &str) -> Option<Mode> {
             updates: 16_384,
             checkpoint_updates: 512,
         }),
+        "probe5m" => Some(Mode {
+            name: "probe5m",
+            manifest_mode: "probe5m",
+            corpus_name: "train-probe5m",
+            positions: 5_000_000,
+            updates: 32_768,
+            checkpoint_updates: 1_024,
+        }),
         "main" => Some(Mode {
             name: "main",
             manifest_mode: "main",
@@ -316,6 +324,13 @@ fn load_training_input(path: &Path, run_mode: Mode) -> TrainingInput {
                                 && corpus.segments[1].name == "main-expansion/train"
                                 && corpus.segments[1].records == 19_000_000
                         }
+                        "probe5m" => {
+                            corpus.segments.len() == 2
+                                && corpus.segments[0].name == "pilot/train"
+                                && corpus.segments[0].records == 1_000_000
+                                && corpus.segments[1].name == "main-expansion/train"
+                                && corpus.segments[1].records == 4_000_000
+                        }
                         _ => false,
                     };
                 if !valid_train {
@@ -326,7 +341,7 @@ fn load_training_input(path: &Path, run_mode: Mode) -> TrainingInput {
             "validation" | "calibration" | "reserved-test" => {
                 if corpus.split != corpus.name
                     || corpus.records != 100_000
-                    || corpus.inherited != (manifest.mode == "main")
+                    || corpus.inherited != (manifest.mode != "pilot")
                     || corpus.segments.len() != 1
                     || corpus.segments[0].name != format!("fixed/{}", corpus.name)
                     || corpus.segments[0].records != 100_000
@@ -1025,7 +1040,7 @@ fn main() {
     let resume = action.as_deref() == Some("resume");
     if (action.as_deref() != Some("start") && !resume) || (!resume && args.len() != 5) || (resume && args.len() != 6) {
         fail(
-            "usage: ngn_k4_train start smoke|pilot|pilot-s1|main FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|pilot-s1|main FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
+            "usage: ngn_k4_train start smoke|pilot|pilot-s1|probe5m|main FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|pilot-s1|probe5m|main FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
         );
     }
     let mode_text = args[2].to_string_lossy();
