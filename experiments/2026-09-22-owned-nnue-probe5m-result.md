@@ -1,9 +1,9 @@
 # Owned K4 5M paired learning-rate result
 
-Status at 2026-09-22 06:12 UTC: the lower-rate candidate passed the static
-and 32-position search diagnostics; its 40-game HCE screen is running. The
-20M expansion remains held pending the predeclared 35% game gate. Neither
-diagnostic is a 3k rating result.
+Status at 2026-09-22 06:35 UTC: the lower-rate candidate passed its static,
+32-position search and audited 40-game HCE expenditure gates. The 20M
+expansion is now permitted, subject to its resource and corpus checks. The
+screen does not establish a 3k rating.
 
 ## Identical data and isolated schedules
 
@@ -97,3 +97,25 @@ adjudication or recovery, and independent game and process audits. Reused
 openings aid direct comparison but do not create independent rating evidence.
 The predeclared cutoff is **35%**: below it holds the recipe; at least 35%
 permits further expenditure, but does not establish a 3k rating.
+
+The [terminal receipt](2026-09-22-owned-nnue-probe5m-lr1-screen-terminal.json),
+SHA-256 `fec31b043fb72d9a2758fde1ecd036a06428678b20be0ced6bb7ff2f399395c9`,
+records 40 complete games, 20 pairs, and both independent audits passing at
+06:34:55 UTC. The [chess audit](2026-09-22-owned-nnue-probe5m-lr1-screen-audit.json),
+SHA-256 `13f652f15a93231a04cb887c684165bad393c675331829d444a1aa71f7d2e95a`,
+checked 6,322 legal plies, all natural terminal states and zero probable
+embedded-book signature plies. Its PGN SHA-256 is
+`aee4983e7ea1db48fc59da9f310df08533744dd6bb5dbe60f1e9be61c066932a`.
+The [operational audit](2026-09-22-owned-nnue-probe5m-lr1-screen-audit-operational.json),
+SHA-256 `591685764ac6b600f1cddc53cd24acb10bda8ad188eabc9b3ce2e21b48535c4a`,
+passed; the [final run state](2026-09-22-owned-nnue-probe5m-lr1-screen-state.json)
+binds the output-file digest.
+
+The owned 5M lower-rate model scored **26.5/40 (66.25%)** against HCE:
+**22 wins, 9 draws and 9 losses**. It scored 11/20 as White and 15.5/20 as
+Black. This is above the predeclared 35% threshold and sharply better than
+the 1M LR1 screen's 8/40, but 40 reused-opening games cannot provide a
+precise strength or absolute-rating estimate. The result authorizes the
+20M expansion; subsequent 20M play must use a disjoint game set. The owned
+NNUE still needs the frozen 400-game confirmation and external comparison
+specified in the original plan before any 3k claim.
