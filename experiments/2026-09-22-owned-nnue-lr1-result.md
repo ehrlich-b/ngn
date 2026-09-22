@@ -56,6 +56,16 @@ LR1's paired MAE advantage over HCE is 2.15 cp on this set (position-bootstrap
 that interval does not measure independent-game uncertainty. LR1 remains well
 behind the borrowed Rodent net on these static labels.
 
+The global MAE hides a chess-relevant deficit. Combining the frozen
+teacher-score bands from -100 through +99 cp (43,524 positions), LR1 has
+**94.12 cp MAE** and **0.005579 WDL MSE**, versus HCE's **68.74 cp** and
+**0.003195**. LR1's overall lead comes from positions with larger teacher
+scores: for the 15,716 positions at or below -401 cp or at or above +400 cp,
+its MAE is 329.18 cp versus HCE's 385.89 cp. These are retrospective slices
+of a pre-existing calibration, not a new selection rule. The near-equal
+deficit is a plausible contributor to poor game results and a useful
+diagnostic for the 5M models; it is not a causal proof from this static set.
+
 ## Frozen search panel
 
 The [LR1 search launcher](2026-09-22-owned-nnue-lr1-search-panel.sh) reused the
