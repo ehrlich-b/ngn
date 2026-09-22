@@ -1,7 +1,8 @@
 # K4 5M post-label recovery
 
-Status at 2026-09-22 05:30 UTC: the isolated retry pipeline is running. No
-training or playing result follows from this recovery note.
+Status at 2026-09-22 06:12 UTC: both 5M models are calibrated and their
+32-position search panels are complete. The 5M lower-rate real-clock screen
+is running. This note records operational recovery, not playing strength.
 
 The first 50 main-expansion shards finished labeling with `STATE=LABELED`.
 All 50 pack receipts exist and contain 4,327,066 accepted expansion records,
@@ -40,3 +41,25 @@ and executes the unchanged pinned launcher. Unit
 `ngn-k4-probe5m-lr1-retry1-20260922.service` was waiting for the original 5M
 panel at 05:30 UTC. These three retry stages are event-driven. The 20M
 expansion remains held pending quality and game evidence.
+
+The post-label retry completed calibration at 05:33 UTC, with
+`POSTLABEL_STATE=CALIBRATED` and selected model SHA-256
+`d5262a2157c74f13463bbb35fbf81341c154f96fd30867dbfe0b22d9ee6b9459`.
+The first panel retry nevertheless observed `FAILED` while that producer was
+still live; it stopped before creating `search-probe5m`. The producer's final
+state and service exit were successful. The precise source of that transient
+state write is unproven. A `FAILED` state alone is therefore insufficient to
+declare a still-running producer terminal.
+
+[Panel retry 2](2026-09-22-owned-nnue-probe5m-panel-retry2.sh), SHA-256
+`97fd03299781f259de9c053cf4fb8410b907a53e812a00bc2b646994ce76a000`,
+required the terminal `CALIBRATED` state, archived the second failed panel
+state, and executed the unchanged panel. It completed with result SHA-256
+`eca320dc77d34aa39840bc9dc44e4542318b41338c2fd6cc614ab1cd333f5fa4`.
+
+The first lower-rate retry also stopped on the failed panel state, before
+training. [Lower-rate retry 2](2026-09-22-owned-nnue-probe5m-lr1-retry2.sh),
+SHA-256 `6c083ead49d31314df6cd34908964e68c9f6555fdb564ece1bd61e44772887dd`,
+archived that state-only run and waited for the successful panel. It completed
+training and calibration at 05:56 UTC, selecting model SHA-256
+`55d109e9ebc14fe5836974ed07a8d7f913c58b066408fe921462df274bd2885a`.
