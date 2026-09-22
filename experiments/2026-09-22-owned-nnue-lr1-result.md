@@ -1,8 +1,8 @@
 # K4-LR1 learning-rate isolation result
 
-Status: **positive static and small-panel diagnostic; 40-game screen running.**
-The 5M unique-data probe continues independently. Neither diagnostic is a 3k
-rating result or a reason to start the held 20M expansion yet.
+Status: **positive static and small-panel diagnostic; real-clock screen failed
+its 35% gate.** The 5M unique-data probe continues independently. This is not
+a 3k rating result; the 20M expansion remains held.
 
 ## Run identity
 
@@ -88,8 +88,28 @@ the approved WSL manifest is SHA-256
 The match reuses the prior screen's 20 opening pairs for direct comparability;
 no formal rating claim will use that reuse as independent evidence.
 
-The match unit `ngn-k4-lr1-screen-40-20260922.service` started at about
-02:43 UTC. The predeclared cutoff remains **35%**: below it holds the recipe;
-at least 35% permits further expenditure but does not claim superiority.
-Complete-game, process and operational audits must pass before interpreting
-the score.
+The match unit `ngn-k4-lr1-screen-40-20260922.service` ran from about 02:43
+to 03:04 UTC. The [terminal receipt](2026-09-22-owned-nnue-lr1-screen-terminal.json)
+has SHA-256 `50028c27ac47ef9c21a4cc7d0dbf5d0d9be3af28f41dcd4d9a7341e7e9840ae6`.
+The [independent chess audit](2026-09-22-owned-nnue-lr1-screen-audit.json)
+has SHA-256 `9c04e9626e6eeefb94b29725d5ce4a3f940116c132332ce46c5c97cd812033cb`;
+the [operational audit](2026-09-22-owned-nnue-lr1-screen-audit-operational.json)
+has SHA-256 `f44f8e2d45a9914856285737dc4366da15cf9e40eb02b0cacd1b7fe569e5ba67`.
+Both passed, with 40 complete games, 20 opening pairs and 5,471 legal plies.
+The [run state](2026-09-22-owned-nnue-lr1-screen-state.json) records the
+final file digest; the chess audit binds the PGN SHA-256
+`edaf29fea682ec849f4375f9f744a601ab8b23dc80e309976670977633544d62`.
+
+LR1 scored **8/40 (20%)** against HCE: 5 wins, 6 draws and 29 losses. The
+original pilot scored 1.5/40 (3.75%) on the reused opening pairs. LR1's gain
+is real in this screen, but 20% misses the predeclared **35%** gate. The 20M
+expansion stays held, and neither screen is a formal rating estimate.
+
+The PGN's per-move search telemetry shows LR1 averaged about 1.05M reported
+nodes/second and depth 12.7 over 2,446 non-book moves; HCE averaged 1.76M
+nodes/second and depth 15.5 over 2,399. In the first 40 plies, the respective
+figures were 1.00M/depth 12.6 and 1.46M/depth 14.5. These are descriptive
+averages across varying positions and clock budgets, so they do not isolate
+the contribution of search speed from evaluation errors. They do show why
+near-parity on static labels and 15/32 equal-node panel agreement did not
+establish real-clock strength.
