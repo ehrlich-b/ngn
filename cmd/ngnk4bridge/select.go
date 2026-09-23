@@ -23,24 +23,25 @@ import (
 )
 
 const (
-	selectionSchema           = "ngn-k4-pilot-selection-v1"
-	selectionSchemaS1         = "ngn-k4-pilot-s1-selection-v1"
-	selectionSchemaLR1        = "ngn-k4-pilot-lr1-selection-v1"
-	selectionSchemaProbe5M    = "ngn-k4-probe5m-selection-v1"
-	selectionSchemaProbe5MLR1 = "ngn-k4-probe5m-lr1-selection-v1"
-	selectionSchemaMainM1     = "ngn-k4-main-m1-selection-v1"
-	selectionSchemaMainM1LR1  = "ngn-k4-main-m1-lr1-selection-v1"
-	checkpointSchema          = "ngn-k4-bullet-checkpoint-v1"
-	finalizedSchema           = "ngn-k4-finalized-corpus-v1"
-	finalizedContract         = "sf18-5kn-material-inversion-v2"
-	pilotTotalUpdates         = 1024
-	pilotCheckpointUpdates    = 128
-	pilotValidationRecords    = 100_000
-	selectionScoreScale       = 400.0
-	selectionImprovementGate  = 1.0e-5
-	selectionPatience         = 4
-	selectionOptimizerMax     = 64 << 20
-	selectionOptimizerSize    = 8
+	selectionSchema             = "ngn-k4-pilot-selection-v1"
+	selectionSchemaS1           = "ngn-k4-pilot-s1-selection-v1"
+	selectionSchemaLR1          = "ngn-k4-pilot-lr1-selection-v1"
+	selectionSchemaProbe5M      = "ngn-k4-probe5m-selection-v1"
+	selectionSchemaProbe5MLR1   = "ngn-k4-probe5m-lr1-selection-v1"
+	selectionSchemaMainM1       = "ngn-k4-main-m1-selection-v1"
+	selectionSchemaMainM1LR1    = "ngn-k4-main-m1-lr1-selection-v1"
+	selectionSchemaMainM1LR132K = "ngn-k4-main-m1-lr1-32k-selection-v1"
+	checkpointSchema            = "ngn-k4-bullet-checkpoint-v1"
+	finalizedSchema             = "ngn-k4-finalized-corpus-v1"
+	finalizedContract           = "sf18-5kn-material-inversion-v2"
+	pilotTotalUpdates           = 1024
+	pilotCheckpointUpdates      = 128
+	pilotValidationRecords      = 100_000
+	selectionScoreScale         = 400.0
+	selectionImprovementGate    = 1.0e-5
+	selectionPatience           = 4
+	selectionOptimizerMax       = 64 << 20
+	selectionOptimizerSize      = 8
 )
 
 type selectionFileReceipt struct {
@@ -191,6 +192,11 @@ func selectionModeFor(value string) (selectionMode, error) {
 		return selectionMode{
 			name: "main-m1-lr1", manifestMode: "main", schema: selectionSchemaMainM1LR1, totalUpdates: 131_072,
 			checkpointUpdates: 4_096, minimumUpdate: 32_768, patience: 6,
+		}, nil
+	case "main-m1-lr1-32k":
+		return selectionMode{
+			name: "main-m1-lr1-32k", manifestMode: "main", schema: selectionSchemaMainM1LR132K, totalUpdates: 32_768,
+			checkpointUpdates: 4_096, minimumUpdate: 8_192, patience: 8,
 		}, nil
 	default:
 		return selectionMode{}, fmt.Errorf("unknown selection mode %q", value)
@@ -480,7 +486,7 @@ func loadSelectionCandidates(
 	mode selectionMode,
 ) ([]candidateMetric, error) {
 	initialLR, finalLR := float32(0.001), float32(0.00005)
-	if mode.name == "pilot-lr1" || mode.name == "probe5m-lr1" || mode.name == "main-m1-lr1" {
+	if mode.name == "pilot-lr1" || mode.name == "probe5m-lr1" || mode.name == "main-m1-lr1" || mode.name == "main-m1-lr1-32k" {
 		initialLR, finalLR = 0.0002, 0.00001
 	}
 	entries, err := os.ReadDir(root)
@@ -626,7 +632,7 @@ func chooseSelectionCandidateForMode(metrics []candidateMetric, mode selectionMo
 func runSelect(args []string, stdout, stderr io.Writer) error {
 	flags := flag.NewFlagSet("select", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	modeName := flags.String("mode", "pilot", "selection mode: pilot, pilot-s1, pilot-lr1, probe5m, probe5m-lr1, main-m1, or main-m1-lr1")
+	modeName := flags.String("mode", "pilot", "selection mode: pilot, pilot-s1, pilot-lr1, probe5m, probe5m-lr1, main-m1, main-m1-lr1, or main-m1-lr1-32k")
 	candidates := flags.String("candidates", "", "pilot candidate directory")
 	manifestPath := flags.String("manifest", "", "frozen finalized-pilot manifest")
 	validationPath := flags.String("validation", "", "frozen validation BF")

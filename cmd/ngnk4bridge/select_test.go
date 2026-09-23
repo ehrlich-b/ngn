@@ -178,6 +178,18 @@ func TestMainM1SelectionHonorsMinimumBeforeEarlyStop(t *testing.T) {
 	}
 }
 
+func TestMainM1LR132KSelectionUsesShortSchedule(t *testing.T) {
+	mode, err := selectionModeFor("main-m1-lr1-32k")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if mode.manifestMode != "main" || mode.schema != selectionSchemaMainM1LR132K ||
+		mode.totalUpdates != 32_768 || mode.checkpointUpdates != 4_096 ||
+		mode.minimumUpdate != 8_192 || mode.patience != 8 {
+		t.Fatalf("short-schedule selection mode=%+v", mode)
+	}
+}
+
 func TestMainM1SelectionAcceptsOnlyMainTrainingManifest(t *testing.T) {
 	directory := t.TempDir()
 	parentPath := filepath.Join(directory, "pilot.json")
