@@ -436,6 +436,10 @@
     },
     "match": {
       "additionalProperties": false,
+      "oneOf": [
+        {"required": ["time_control"]},
+        {"required": ["node_limit"]}
+      ],
       "properties": {
         "affinity_cpus": {
           "items": {
@@ -497,6 +501,10 @@
           "minLength": 1,
           "type": "string"
         },
+        "node_limit": {
+          "minimum": 1,
+          "type": "integer"
+        },
         "use_affinity": {
           "const": true
         }
@@ -504,7 +512,6 @@
       "required": [
         "games",
         "pairs",
-        "time_control",
         "concurrency",
         "seed",
         "opening_plies",
@@ -581,7 +588,8 @@
     "schema": {
       "enum": [
         "ngn-candidate-match-v1",
-        "ngn-candidate-match-borrowed-v1"
+        "ngn-candidate-match-borrowed-v1",
+        "ngn-candidate-match-borrowed-fixed-nodes-v1"
       ]
     },
     "status": {
