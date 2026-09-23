@@ -5,12 +5,15 @@ September 13 deferral in `CLAUDE.md`. The original 20M K4 model scored
 323.5/400 versus HCE at 30+0.3, then 34.5/200 versus borrowed Rodent V1.1
 Anand at 10+0.1 in the same engine (−272 relative Elo, paired 95% interval
 [−319, −230]). The short-cosine checkpoint improved validation loss but has no
-game-strength promotion. Selected models and checkpoints and both match
-archives have verified off-worker copies. The [current diagnosis and next
+game-strength promotion. A same-opening 200-game equal-node follow-up scored
+37/200 (18.5%), versus 17.25% under the clock; the paired difference interval
+is [−3.75, +6.5] percentage points. The large Rodent gap persists with equal
+nodes. Selected models and checkpoints and all three match archives have
+verified off-worker copies. The [current diagnosis and next
 gate](experiments/2026-09-23-owned-nnue-next-step-diagnosis.md) takes priority
-for this owned-NNUE lane: audit match-reached errors, separate throughput with
-a fixed-node match, then compare a small existing scored-data shard at equal
-size before a longer data run. Absolute 3000 remains unmeasured.
+for this owned-NNUE lane: audit match-reached errors and sibling move ranking,
+then compare a small existing scored-data shard at equal size before a longer
+data run. Absolute 3000 remains unmeasured.
 
 ## Earlier N1 richer-model lane
 

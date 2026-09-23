@@ -104,6 +104,22 @@ def bootstrap(scores: list[float], seed: int) -> list[float]:
     return [percentile(samples, 0.025), percentile(samples, 0.975)]
 
 
+def outcomes(audit: dict, k4_name: str) -> dict[str, int]:
+    result = {'wins': 0, 'draws': 0, 'losses': 0}
+    for game in audit['game_audit']:
+        if game['result'] == '1/2-1/2':
+            result['draws'] += 1
+        elif (game['result'] == '1-0' and game['white'] == k4_name) or (game['result'] == '0-1' and game['black'] == k4_name):
+            result['wins'] += 1
+        else:
+            result['losses'] += 1
+    if result['wins'] + result['draws'] + result['losses'] != GAMES:
+        raise ValueError('outcome count differs')
+    if result['wins'] + result['draws'] / 2 != audit['engine_a_points']:
+        raise ValueError('outcome points differ from audit')
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--held', type=Path, required=True)
@@ -166,6 +182,7 @@ def main() -> None:
         'games': GAMES,
         'pairs': PAIRS,
         'fixed_node_limit_per_move': 160_000,
+        'fixed_nodes_k4_outcomes': outcomes(audit, names[0]),
         'fixed_nodes_k4_points': audit['engine_a_points'],
         'fixed_nodes_k4_score': fixed_score,
         'fixed_nodes_score_interval_95': fixed_interval,
@@ -174,7 +191,7 @@ def main() -> None:
         'clock_k4_score': clock_score,
         'fixed_minus_clock_score': fixed_score - clock_score,
         'fixed_minus_clock_score_interval_95': delta_interval,
-        'bootstrap': {'method': 'nonparametric percentile, paired by opening pair index',
+        'bootstrap': {'method': 'nonparametric percentile, paired by exact six-ply opening prefix',
                       'score_seed': 2026092302, 'delta_seed': 2026092303,
                       'resamples': RESAMPLES},
         'absolute_rating_3k': 'NOT_ESTABLISHED',

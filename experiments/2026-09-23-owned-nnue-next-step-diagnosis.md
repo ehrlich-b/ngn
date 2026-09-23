@@ -81,8 +81,11 @@ WDL-space loss; that blend is a candidate experiment, not an automatic fix.
 Next, first audit owned-versus-Rodent errors on positions reached in their
 match: compare each engine's static evaluation and deeper SF18 moves at equal
 nodes, especially near the first large swing. Freeze the sample before
-examining its scores. Run a same-opening fixed-node match to bound the part of
-the real-clock gap due to speed, with a fresh manifest and audit. Then test a
+examining its scores. The same-opening
+[fixed-node match](2026-09-23-owned-nnue-k4-vs-rodent200-fixednodes-result.md)
+has now completed: K4 scored 18.5% versus 17.25% under the clock, with a
+paired score-difference interval spanning zero. The large Rodent gap remains
+at equal nodes. Then test a
 small, game-disjoint shard from one existing scored-position corpus against an
 equal-size current-data control. Keep architecture, schedule and validation
 rules fixed for that source-only comparison. Evaluate both on fresh held-out
