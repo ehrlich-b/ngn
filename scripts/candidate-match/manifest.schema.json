@@ -125,7 +125,8 @@
           "enum": [
             "hce",
             "ngn-v1",
-            "ngn-k4-768-v1"
+            "ngn-k4-768-v1",
+            "rodent-v1.1-anand"
           ]
         },
         "binary": {
@@ -201,7 +202,8 @@
                 "format": {
                   "enum": [
                     "ngn-v1",
-                    "ngn-k4-768-v1"
+                    "ngn-k4-768-v1",
+                    "rodent-v1.1-anand"
                   ]
                 },
                 "path": {
@@ -577,7 +579,10 @@
       "type": "object"
     },
     "schema": {
-      "const": "ngn-candidate-match-v1"
+      "enum": [
+        "ngn-candidate-match-v1",
+        "ngn-candidate-match-borrowed-v1"
+      ]
     },
     "status": {
       "enum": [

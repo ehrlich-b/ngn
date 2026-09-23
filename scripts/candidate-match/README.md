@@ -1,8 +1,11 @@
 # Candidate match runner v1
 
-This runner is scoped to a same-binary, one-worker NGN HCE versus an exact NGN
-network diagnostic (`ngn-v1` or `ngn-k4-768-v1`). The Python validator is
-authoritative; manifest.schema.json documents its external JSON shape.
+This runner supports two strict same-binary, one-worker evaluator comparisons:
+legacy schema `ngn-candidate-match-v1` pairs HCE with an exact NGN network
+(`ngn-v1` or `ngn-k4-768-v1`); schema
+`ngn-candidate-match-borrowed-v1` pairs owned K4 with borrowed Rodent V1.1
+Anand. The Python validator is authoritative; manifest.schema.json documents
+its external JSON shape.
 
 The manifest first exists in HELD state with the exact null approval block. manifest.review_subject_sha256 canonicalizes the complete JSON with sorted keys and compact separators after replacing only status and approval with their HELD values. Root reviews that digest, then changes only those two authorization fields. An approved run recomputes the subject digest before copying or launching anything. The CLI approval token must also equal the approved manifest token.
 

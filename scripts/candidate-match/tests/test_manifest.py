@@ -99,6 +99,17 @@ def manifest() -> dict:
 
 
 class ManifestTests(unittest.TestCase):
+    def test_borrowed_comparison_requires_exact_k4_rodent_pair(self) -> None:
+        value = manifest()
+        value["inputs"]["roles"] = [role("k4", "ngn-k4-768-v1"), role("rodent", "rodent-v1.1-anand")]
+        with self.assertRaisesRegex(ManifestError, "v1 requires one HCE"):
+            validate_manifest(value)
+        value["schema"] = "ngn-candidate-match-borrowed-v1"
+        self.assertIs(validate_manifest(value), value)
+        value["inputs"]["roles"][0] = role("hce", "hce")
+        with self.assertRaisesRegex(ManifestError, "requires owned K4 and Rodent"):
+            validate_manifest(value)
+
     def test_held_and_bound_approved_manifest(self) -> None:
         value = manifest()
         self.assertIs(validate_manifest(value), value)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Strict v1 manifest validation for same-code one-worker HCE vs exact NGN network."""
+"""Strict same-code one-worker candidate match manifest validation."""
 from __future__ import annotations
 
 import hashlib
@@ -10,9 +10,10 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "ngn-candidate-match-v1"
+SCHEMA_BORROWED = "ngn-candidate-match-borrowed-v1"
 CAPABILITY = "ngn-pre-m4c-pinned-one-worker-v1"
 OPTION_NAMES = ["Threads", "OwnBook", "EvalFile", "EvalBackend", "Hash", "Move Overhead"]
-NETWORK_BACKENDS = {"ngn-v1", "ngn-k4-768-v1"}
+NETWORK_BACKENDS = {"ngn-v1", "ngn-k4-768-v1", "rodent-v1.1-anand"}
 HELD_APPROVAL = {
     "authority": None,
     "token": None,
@@ -181,8 +182,8 @@ def role(value: Any, index: int) -> dict[str, Any]:
 def validate_manifest(value: Any) -> dict[str, Any]:
     value = obj(value, "manifest")
     exact_keys(value, {"schema", "status", "purpose", "classification", "approval", "inputs", "match", "resources", "limits", "operational_profile", "acceptance"}, set(), "manifest")
-    if value["schema"] != SCHEMA:
-        raise ManifestError(f"manifest.schema: expected {SCHEMA}")
+    if value["schema"] not in {SCHEMA, SCHEMA_BORROWED}:
+        raise ManifestError(f"manifest.schema: expected {SCHEMA} or {SCHEMA_BORROWED}")
     if value["status"] not in {"HELD", "APPROVED_TO_RUN"}:
         raise ManifestError("manifest.status: expected HELD or APPROVED_TO_RUN")
     text(value["purpose"], "manifest.purpose")
@@ -215,8 +216,11 @@ def validate_manifest(value: Any) -> dict[str, Any]:
     if len({item["id"] for item in roles}) != 2 or len({item["display_name"] for item in roles}) != 2:
         raise ManifestError("inputs.roles: IDs and display names must be unique")
     backends = {item["backend"] for item in roles}
-    if "hce" not in backends or len(backends) != 2 or not (backends - {"hce"}).issubset(NETWORK_BACKENDS):
-        raise ManifestError("inputs.roles: v1 requires one HCE and one exact NGN-network role")
+    if value["schema"] == SCHEMA:
+        if "hce" not in backends or len(backends) != 2 or not (backends - {"hce"}).issubset({"ngn-v1", "ngn-k4-768-v1"}):
+            raise ManifestError("inputs.roles: v1 requires one HCE and one exact NGN-network role")
+    elif backends != {"ngn-k4-768-v1", "rodent-v1.1-anand"}:
+        raise ManifestError("inputs.roles: borrowed schema requires owned K4 and Rodent V1.1 Anand")
     binary_identities = {(item["binary"]["sha256"], item["binary"]["provenance"]["source_commit"], item["binary"]["provenance"]["source_tree"]) for item in roles}
     if len(binary_identities) != 1:
         raise ManifestError("inputs.roles: v1 requires same-code binary/source identities")
