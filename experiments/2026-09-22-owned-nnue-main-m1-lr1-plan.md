@@ -1,7 +1,8 @@
 # K4 20M lower-rate training plan
 
-Status: completed through the disjoint 40-game screen. The result and resume
-point are recorded in [the 20M result](2026-09-22-owned-nnue-main-m1-lr1-result.md).
+Status: completed through the fixed 400-game confirmation, including independent
+chess and operational audits. The result and resume point are recorded in
+[the 20M result](2026-09-22-owned-nnue-main-m1-lr1-result.md).
 The primary candidate is `main-m1-lr1`.
 
 The paired 5M comparison used the same exact BF and changed only cosine

@@ -1,9 +1,9 @@
 # Owned K4 20M lower-rate result and resume point
 
-Status at 2026-09-22 20:27 UTC: the 20M label, training, static calibration,
-search panel and disjoint 40-game HCE screen completed. The screen cleared its
-predeclared 50% expenditure gate. No 400-game confirmation or absolute rating
-claim has been made.
+Status at 2026-09-23 08:29 UTC: the 20M label, training, static calibration,
+search panel, disjoint 40-game HCE screen, and fixed 400-game confirmation
+completed. The owned-network milestone passed its paired lower-bound gate.
+No absolute rating claim has been made.
 
 ## Preserved run
 
@@ -60,7 +60,7 @@ confirmation, requiring a paired-bootstrap 95% lower bound above 50%, followed
 by borrowed-evaluator and actual-engine comparisons. The 40-game HCE result
 does not establish a 3k absolute rating.
 
-## Confirmation in progress
+## Fixed 400-game confirmation
 
 At 2026-09-23 03:14 UTC, the separate fixed 400-game 30+0.3 confirmation
 started as WSL user unit `ngn-k4-main20m-lr1-confirm-400-20260922.service`.
@@ -68,6 +68,27 @@ The [HELD manifest](2026-09-22-owned-nnue-main-m1-lr1-confirm400-held.json)
 and [setup receipt](2026-09-22-owned-nnue-main-m1-lr1-confirm400-setup-receipt.json)
 bind 200 new opening pairs 4041–4240, two concurrent pinned one-thread games,
 the original selected model SHA above, and the unchanged same-code HCE role.
-The unit was verified active with four engine processes after UCI preflight.
-Its result and independent audits are pending; no milestone conclusion follows
-from a live match.
+The unit was verified active with four engine processes after UCI preflight and
+finished at 2026-09-23 08:29 UTC. The [terminal receipt](2026-09-22-owned-nnue-main-m1-lr1-confirm400-terminal.json),
+[independent chess audit](2026-09-22-owned-nnue-main-m1-lr1-confirm400-audit.json),
+[operational audit](2026-09-22-owned-nnue-main-m1-lr1-confirm400-audit-operational.json)
+and [final state](2026-09-22-owned-nnue-main-m1-lr1-confirm400-state.json)
+passed for all 400 games, 200 pairs and 56,891 legal plies, with zero probable
+embedded-book signature plies and no operational warning lines.
+
+K4 scored **323.5/400 (80.875%)**, from **293 wins, 61 draws and 46 losses**.
+The [pre-result paired-bootstrap rule](2026-09-22-owned-nnue-main-m1-lr1-confirm400-report.py)
+gave a [95% paired score interval](2026-09-22-owned-nnue-main-m1-lr1-confirm400-report.json)
+of **77.75%–83.875%** (100,000 resamples, frozen seed 2026092201), with its
+lower bound above the predeclared 50% gate. The owned-network milestone
+therefore passes. The implied +250 relative Elo [217, 286] is only against
+this same-code HCE at these conditions. It is not an absolute 3k rating.
+
+The 400-game PGN, fastchess trace and final EPD are retained on WSL and in a
+hash-verified off-host archive at
+`/Users/ehrlich/repos/ngn/output/nnue-owned-k4-backup-20260922/confirm400-games-trace.tar.gz`,
+SHA-256 `3b97947713792af0cb6b373f58852aadf214835864528e5f3daad742c4874ae9`.
+Its three contents each matched the independent audit's SHA-256. The
+[final-files digest](2026-09-22-owned-nnue-main-m1-lr1-confirm400-final-files.sha256)
+matches the terminal state's SHA-256. Next: direct comparisons against the
+borrowed evaluators and actual external engines under matched conditions.
