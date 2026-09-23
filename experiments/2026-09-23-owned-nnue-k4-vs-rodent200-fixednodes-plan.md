@@ -31,8 +31,10 @@ source files.
 At completion, require 200 legal games, 100 complete reversed-color pairs,
 zero unexpected operational errors or survivors and the independent audit's
 no-embedded-book check. Report K4 points, W/D/L and a 100,000-resample
-opening-pair bootstrap 95% interval with seed 2026092302. Compare the
-fixed-node score with the 17.25% real-clock score descriptively. A smaller
+opening-pair bootstrap 95% interval with seed 2026092302. Also compute the
+fixed-node minus real-clock score difference over the same 100 six-ply opening
+prefixes and give a 100,000-resample paired-bootstrap interval with seed
+2026092303, using the already frozen 10+0.1 audit. A smaller
 loss at equal nodes supports a throughput contribution; a similar large loss
 keeps model/search-fit quality as the primary concern. The conditions differ
 in effective depth and time management, so subtracting their Elo estimates
