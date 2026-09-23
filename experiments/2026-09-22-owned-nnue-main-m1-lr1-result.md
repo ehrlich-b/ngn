@@ -59,3 +59,15 @@ screen gate. The next planned strength step is the 400-game paired 30+0.3
 confirmation, requiring a paired-bootstrap 95% lower bound above 50%, followed
 by borrowed-evaluator and actual-engine comparisons. The 40-game HCE result
 does not establish a 3k absolute rating.
+
+## Confirmation in progress
+
+At 2026-09-23 03:14 UTC, the separate fixed 400-game 30+0.3 confirmation
+started as WSL user unit `ngn-k4-main20m-lr1-confirm-400-20260922.service`.
+The [HELD manifest](2026-09-22-owned-nnue-main-m1-lr1-confirm400-held.json)
+and [setup receipt](2026-09-22-owned-nnue-main-m1-lr1-confirm400-setup-receipt.json)
+bind 200 new opening pairs 4041–4240, two concurrent pinned one-thread games,
+the original selected model SHA above, and the unchanged same-code HCE role.
+The unit was verified active with four engine processes after UCI preflight.
+Its result and independent audits are pending; no milestone conclusion follows
+from a live match.
