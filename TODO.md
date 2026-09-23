@@ -1,4 +1,18 @@
-# NGN current state — September 20 richer-model continuation
+# NGN current state — September 23 owned-NNUE continuation
+
+The user reopened owned-NNUE research toward at least 3000, superseding the
+September 13 deferral in `CLAUDE.md`. The original 20M K4 model scored
+323.5/400 versus HCE at 30+0.3, then 34.5/200 versus borrowed Rodent V1.1
+Anand at 10+0.1 in the same engine (−272 relative Elo, paired 95% interval
+[−319, −230]). The short-cosine checkpoint improved validation loss but has no
+game-strength promotion. Selected models and checkpoints and both match
+archives have verified off-worker copies. The [current diagnosis and next
+gate](experiments/2026-09-23-owned-nnue-next-step-diagnosis.md) takes priority
+for this owned-NNUE lane: audit match-reached errors, separate throughput with
+a fixed-node match, then compare a small existing scored-data shard at equal
+size before a longer data run. Absolute 3000 remains unmeasured.
+
+## Earlier N1 richer-model lane
 
 P1-R1's valid 128-game pilot on its isolated branch scored 56.5/128 with a
 paired-bootstrap 95% Elo interval of `[-71.57,-10.86]`; the frozen rule shelves
