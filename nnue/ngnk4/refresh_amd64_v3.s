@@ -1,5 +1,6 @@
 //go:build amd64 && amd64.v3
 
+#include "go_asm.h"
 #include "textflag.h"
 
 // The K4 refresh is exact modular int16 arithmetic. Each vector lane starts
@@ -10,7 +11,7 @@ TEXT ·k4RefreshPerspectiveAVX2(SB), NOSPLIT, $0-32
 	MOVQ biases+8(FP), BX
 	MOVQ rows+16(FP), CX
 	MOVQ rowCount+24(FP), DX
-	MOVL $48, R8
+	MOVL $const_k4LaneBlocks, R8
 	XORQ R12, R12
 k4_refresh_block:
 	VMOVDQU (BX), Y0

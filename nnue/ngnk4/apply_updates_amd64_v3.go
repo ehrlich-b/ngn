@@ -4,11 +4,10 @@ package ngnk4
 
 const k4ApplyUpdatesUsesAVX2 = true
 
-// These pairs fail compilation if the fixed K4 hidden width changes without
-// a corresponding kernel review.
+// These pairs fail compilation if the hidden width is not a whole number of
+// 16-lane blocks; the kernels iterate k4LaneBlocks times.
 var (
-	_ [HiddenSize - 768]byte
-	_ [768 - HiddenSize]byte
+	_ [-(HiddenSize % 16)]byte
 )
 
 func k4ApplyUpdates2(

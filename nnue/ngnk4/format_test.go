@@ -55,6 +55,9 @@ func outputWeightOffset(bucket, perspective, hidden int) int {
 }
 
 func TestStructuralContractAndHeaderRecognition(t *testing.T) {
+	if InputBuckets != 4 || HiddenSize != 768 {
+		t.Skip("frozen sizes cover only the default K4-768 build")
+	}
 	if HeaderSize != 256 || PayloadSize != 4_744_720 || FileSize != 4_744_976 {
 		t.Fatalf("sizes = %d/%d/%d", HeaderSize, PayloadSize, FileSize)
 	}

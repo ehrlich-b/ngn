@@ -23,23 +23,12 @@ import (
 )
 
 const (
-	deployedRawBytes   = 2_372_360 * 4
+	deployedRawBytes   = ngnk4.PayloadSize / 2 * 4
 	maximumProbeDelta  = 0.0002
 	meanQuantDeltaGate = 8.0
 	p99QuantDeltaGate  = 32.0
 	maxQuantDeltaGate  = 64.0
 )
-
-var referenceKingBuckets = [64]int{
-	1, 1, 0, 0, 0, 0, 1, 1,
-	2, 2, 2, 2, 2, 2, 2, 2,
-	3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3,
-}
 
 type floatTensors struct {
 	inputWeights  [ngnk4.TotalInputFeatures][ngnk4.HiddenSize]float32

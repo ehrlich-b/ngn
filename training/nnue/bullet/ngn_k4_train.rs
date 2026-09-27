@@ -37,7 +37,8 @@ const ATTEMPT_SCHEMA: &str = "ngn-k4-bullet-attempt-v1";
 const COMPLETION_SCHEMA: &str = "ngn-k4-bullet-completion-v1";
 const IDENTITY_CONTRACT: &str = "sha256(ngn-k4-final-segments-v1\\0 || segment_name || count:u64le || sha256(ngn-k4-final-accepted-v1\\0 || id:32 || k4_key:32 || ordinal:u64le) for each ordered segment)";
 const MODEL_SEED: u64 = 26_092_001;
-const HIDDEN: usize = 768;
+// Compile with NGN_H1024 set (any value) for the 1024-wide research variant.
+const HIDDEN: usize = if option_env!("NGN_H1024").is_some() { 1024 } else { 768 };
 const OUTPUT_BUCKETS: usize = 8;
 const SCORE_SCALE: i16 = 400;
 const QA: i16 = 255;
@@ -51,7 +52,7 @@ const LR1_INITIAL_LR: f32 = 0.0002;
 const LR1_FINAL_LR: f32 = 0.00001;
 const ARCHIVE_SCHEMA: &str = "ngn-k4-archive-corpus-v1";
 const ARCHIVE_FINAL_LR: f32 = 0.00001;
-const DEPLOYED_VALUES: usize = 2_372_360;
+const DEPLOYED_VALUES: usize = INPUT_BUCKETS * 768 * HIDDEN + HIDDEN + OUTPUT_BUCKETS * 2 * HIDDEN + OUTPUT_BUCKETS;
 const RAW_BYTES: usize = DEPLOYED_VALUES * 4;
 const QUANT_TENSOR_BYTES: usize = DEPLOYED_VALUES * 2;
 const QUANT_BYTES: usize = QUANT_TENSOR_BYTES + 48;
@@ -59,8 +60,12 @@ const RESUME_MAX_ABS_DELTA: f64 = 1.0e-3;
 const RESUME_MAX_QUANTISED_DIFFERENCES: u64 = 64;
 const RESUME_MAX_QUANTISED_DELTA: i32 = 1;
 
+// Compile with NGN_K8 set (any value) for the eight-bucket research variant; the default
+// build is the frozen four-bucket K4 harness.
+const K8: bool = option_env!("NGN_K8").is_some();
+
 #[rustfmt::skip]
-const BUCKET_LAYOUT: [usize; 32] = [
+const K4_BUCKET_LAYOUT: [usize; 32] = [
     1, 1, 0, 0,
     2, 2, 2, 2,
     3, 3, 3, 3,
@@ -70,6 +75,20 @@ const BUCKET_LAYOUT: [usize; 32] = [
     3, 3, 3, 3,
     3, 3, 3, 3,
 ];
+
+#[rustfmt::skip]
+const K8_BUCKET_LAYOUT: [usize; 32] = [
+    0, 1, 2, 3,
+    4, 4, 5, 5,
+    6, 6, 6, 6,
+    6, 6, 6, 6,
+    7, 7, 7, 7,
+    7, 7, 7, 7,
+    7, 7, 7, 7,
+    7, 7, 7, 7,
+];
+
+const BUCKET_LAYOUT: [usize; 32] = if K8 { K8_BUCKET_LAYOUT } else { K4_BUCKET_LAYOUT };
 
 const INPUT_BUCKETS: usize = get_num_buckets(&BUCKET_LAYOUT);
 
@@ -1162,7 +1181,7 @@ fn main() {
     }
     let mode_text = args[2].to_string_lossy();
     let run_mode = mode(&mode_text).unwrap_or_else(|| fail(format!("unknown mode {mode_text}")));
-    if INPUT_BUCKETS != 4 || !valid_sha(BULLET_PATCH_SHA256) {
+    if INPUT_BUCKETS != (if K8 { 8 } else { 4 }) || !valid_sha(BULLET_PATCH_SHA256) {
         fail("compile-time architecture/patch identity mismatch");
     }
     if run_mode.updates % run_mode.checkpoint_updates != 0 {

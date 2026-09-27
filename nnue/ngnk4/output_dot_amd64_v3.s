@@ -1,5 +1,6 @@
 //go:build amd64 && amd64.v3
 
+#include "go_asm.h"
 #include "textflag.h"
 
 // k4OutputDotAVX2 computes the exact modular int32 output sum. For each
@@ -22,7 +23,7 @@ TEXT ·k4OutputDotAVX2(SB), NOSPLIT, $0-36
 	VMOVD R8, X13
 	VPBROADCASTD X13, Y13
 
-	MOVL $48, R9
+	MOVL $const_k4LaneBlocks, R9
 k4_output_block:
 	VMOVDQU (AX), Y0
 	VPMAXSW Y15, Y0, Y0

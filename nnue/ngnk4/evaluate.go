@@ -5,17 +5,6 @@ import (
 	"math/bits"
 )
 
-var kingBucketTable = [64]int{
-	1, 1, 0, 0, 0, 0, 1, 1,
-	2, 2, 2, 2, 2, 2, 2, 2,
-	3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3,
-}
-
 // Accumulators are int16. The loader proves that |bias| plus the 32 largest
 // input-row magnitudes of every bucket fits in int16, so for every legal board
 // the modular int16 lanes equal the exact integer sums.

@@ -3,15 +3,13 @@ package ngnk4
 import "crypto/sha256"
 
 const (
-	InputBuckets       = 4
 	InputSize          = 768
 	TotalInputFeatures = InputBuckets * InputSize
-	HiddenSize         = 768
 	OutputBuckets      = 8
 	FeaturePlaneCount  = 12
 
 	HeaderSize  = 256
-	PayloadSize = 4_744_720
+	PayloadSize = 2 * (TotalInputFeatures*HiddenSize + HiddenSize + OutputBuckets*2*HiddenSize + OutputBuckets)
 	FileSize    = HeaderSize + PayloadSize
 
 	InputScale  = 255
@@ -19,9 +17,12 @@ const (
 	OutputScale = 400
 )
 
+// k4LaneBlocks is the AVX2 loop count over 16 int16 lanes (see go_asm.h).
+const k4LaneBlocks = HiddenSize / 16
+
 const (
-	ArchitectureID  = "ngn-k4-768-v1"
-	FeatureSetID    = "halfka-k4-mirrored-relative-12x64-v1"
+	ArchitectureID  = "ngn-" + bucketLabel + "-" + widthLabel + "-v1"
+	FeatureSetID    = "halfka-" + bucketLabel + "-mirrored-relative-12x64-v1"
 	QuantizationID  = "i16-qa255-qb64-screlu-wide-v1"
 	ScoreContractID = "stm-400z-rule50-at-engine-v1"
 )

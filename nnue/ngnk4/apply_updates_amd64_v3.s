@@ -1,5 +1,6 @@
 //go:build amd64 && amd64.v3
 
+#include "go_asm.h"
 #include "textflag.h"
 
 // The K4 update rows are exact modular int16 arithmetic. VPADDW and VPSUBW
@@ -8,7 +9,7 @@ TEXT ·k4ApplyUpdates2AVX2(SB), NOSPLIT, $0-24
 	MOVQ destination+0(FP), AX
 	MOVQ add0+8(FP), BX
 	MOVQ subtract1+16(FP), CX
-	MOVL $48, R8
+	MOVL $const_k4LaneBlocks, R8
 k4_apply_updates_2_block:
 	VMOVDQU (AX), Y0
 	VPADDW (BX), Y0, Y0
@@ -27,7 +28,7 @@ TEXT ·k4ApplyUpdates3AVX2(SB), NOSPLIT, $0-32
 	MOVQ add0+8(FP), BX
 	MOVQ subtract1+16(FP), CX
 	MOVQ subtract2+24(FP), DX
-	MOVL $48, R8
+	MOVL $const_k4LaneBlocks, R8
 k4_apply_updates_3_block:
 	VMOVDQU (AX), Y0
 	VPADDW (BX), Y0, Y0
@@ -49,7 +50,7 @@ TEXT ·k4ApplyUpdates4AVX2(SB), NOSPLIT, $0-40
 	MOVQ subtract1+16(FP), CX
 	MOVQ add2+24(FP), DX
 	MOVQ subtract3+32(FP), R8
-	MOVL $48, R9
+	MOVL $const_k4LaneBlocks, R9
 k4_apply_updates_4_block:
 	VMOVDQU (AX), Y0
 	VPADDW (BX), Y0, Y0

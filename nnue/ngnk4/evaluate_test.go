@@ -15,6 +15,9 @@ func testPosition(side Color) Position {
 }
 
 func TestFeatureContractAllKingSquaresBothPerspectives(t *testing.T) {
+	if InputBuckets != 4 {
+		t.Skip("independent table covers only the frozen four-bucket layout")
+	}
 	for perspective := White; perspective <= Black; perspective++ {
 		for king := 0; king < 64; king++ {
 			for plane := 0; plane < FeaturePlaneCount; plane++ {
