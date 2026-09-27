@@ -16,7 +16,10 @@ var kingBucketTable = [64]int{
 	3, 3, 3, 3, 3, 3, 3, 3,
 }
 
-type accumulator [2][HiddenSize]int32
+// Accumulators are int16. The loader proves that |bias| plus the 32 largest
+// input-row magnitudes of every bucket fits in int16, so for every legal board
+// the modular int16 lanes equal the exact integer sums.
+type accumulator [2][HiddenSize]int16
 
 func (model *Model) validate() error {
 	if model == nil || !model.loaded || model.metadata.ArchitectureID != ArchitectureID ||
@@ -65,64 +68,19 @@ func featureIndex(color Color, pieceType, square, kingSquare int, perspective Co
 
 func (model *Model) fullRefresh(board Board) accumulator {
 	var result accumulator
-	for hidden, bias := range model.inputBiases {
-		result[White][hidden] = int32(bias)
-		result[Black][hidden] = int32(bias)
-	}
-	whiteKingSquare := bits.TrailingZeros64(board[WhiteKing])
-	blackKingSquare := bits.TrailingZeros64(board[BlackKing])
-	for plane, pieceBits := range board {
-		color := Color(plane / 6)
-		pieceType := plane % 6
-		for pieceBits != 0 {
-			square := bits.TrailingZeros64(pieceBits)
-			pieceBits &= pieceBits - 1
-			whiteRow := &model.inputWeights[featureIndex(color, pieceType, square, whiteKingSquare, White)]
-			blackRow := &model.inputWeights[featureIndex(color, pieceType, square, blackKingSquare, Black)]
-			addFeatureRow(&result[White], whiteRow)
-			addFeatureRow(&result[Black], blackRow)
-		}
-	}
+	model.refreshPerspective(&result[White], board, White, bits.TrailingZeros64(board[WhiteKing]))
+	model.refreshPerspective(&result[Black], board, Black, bits.TrailingZeros64(board[BlackKing]))
 	return result
 }
 
-// These fixed-width kernels expose independent accumulator lanes to the Go
-// compiler. The network width is a format constant and a multiple of eight.
-// Keeping the bounds explicit avoids a branch and dependent induction update
-// for every one of the 768 scalar lanes on the search hot path.
-func addFeatureRowPortable(destination *[HiddenSize]int32, row *[HiddenSize]int16) {
-	for hidden := 0; hidden < HiddenSize; hidden += 8 {
-		destination[hidden] += int32(row[hidden])
-		destination[hidden+1] += int32(row[hidden+1])
-		destination[hidden+2] += int32(row[hidden+2])
-		destination[hidden+3] += int32(row[hidden+3])
-		destination[hidden+4] += int32(row[hidden+4])
-		destination[hidden+5] += int32(row[hidden+5])
-		destination[hidden+6] += int32(row[hidden+6])
-		destination[hidden+7] += int32(row[hidden+7])
+func clippedSquaredWeighted(value, weight int16) int64 {
+	v := int64(value)
+	if v < 0 {
+		v = 0
+	} else if v > InputScale {
+		v = InputScale
 	}
-}
-
-func subtractFeatureRowPortable(destination *[HiddenSize]int32, row *[HiddenSize]int16) {
-	for hidden := 0; hidden < HiddenSize; hidden += 8 {
-		destination[hidden] -= int32(row[hidden])
-		destination[hidden+1] -= int32(row[hidden+1])
-		destination[hidden+2] -= int32(row[hidden+2])
-		destination[hidden+3] -= int32(row[hidden+3])
-		destination[hidden+4] -= int32(row[hidden+4])
-		destination[hidden+5] -= int32(row[hidden+5])
-		destination[hidden+6] -= int32(row[hidden+6])
-		destination[hidden+7] -= int32(row[hidden+7])
-	}
-}
-
-func clippedSquaredWeighted(value int32, weight int16) int64 {
-	if value < 0 {
-		value = 0
-	} else if value > InputScale {
-		value = InputScale
-	}
-	return int64(value) * int64(value) * int64(weight)
+	return v * v * int64(weight)
 }
 
 func outputBucket(board Board) int {

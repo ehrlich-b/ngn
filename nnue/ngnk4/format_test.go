@@ -204,3 +204,26 @@ func TestWideOutputBoundClassification(t *testing.T) {
 		}
 	}
 }
+
+func TestLoadEnforcesInt16AccumulatorBound(t *testing.T) {
+	// 31 rows of 1024 plus 1022 and a bias of 1 reach exactly MaxInt16.
+	atLimit := makeTestFile(t, func(payload []byte) {
+		for feature := 0; feature < maximumActiveFeatures; feature++ {
+			putI16(payload, inputWeightOffset(InputSize+feature, 5), -1024)
+		}
+		putI16(payload, inputWeightOffset(InputSize+maximumActiveFeatures-1, 5), -1022)
+		putI16(payload, inputBiasOffset+5*2, 1)
+	})
+	if _, err := Load(bytes.NewReader(atLimit)); err != nil {
+		t.Fatalf("bound exactly MaxInt16 rejected: %v", err)
+	}
+	overLimit := makeTestFile(t, func(payload []byte) {
+		for feature := 0; feature < maximumActiveFeatures; feature++ {
+			putI16(payload, inputWeightOffset(InputSize+feature, 5), -1024)
+		}
+		putI16(payload, inputBiasOffset+5*2, 1)
+	})
+	if _, err := Load(bytes.NewReader(overLimit)); !errors.Is(err, ErrUnsupported) {
+		t.Fatalf("bound MaxInt16+1 = %v, want ErrUnsupported", err)
+	}
+}

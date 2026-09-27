@@ -316,33 +316,49 @@ func (model *Model) applyUpdates(destination *accumulator, postBoard Board, upda
 			model.refreshPerspective(&destination[perspective], postBoard, perspective, kingSquares[perspective])
 			continue
 		}
-		for _, update := range updates[:updateCount] {
+		var rows [4]*[HiddenSize]int16
+		for index, update := range updates[:updateCount] {
 			color := Color(update.plane / colorPlanes)
 			pieceType := update.plane % colorPlanes
-			row := &model.inputWeights[featureIndex(color, pieceType, update.square, kingSquares[perspective], perspective)]
-			if update.add {
-				addFeatureRow(&destination[perspective], row)
-			} else {
-				subtractFeatureRow(&destination[perspective], row)
+			rows[index] = &model.inputWeights[featureIndex(color, pieceType, update.square, kingSquares[perspective], perspective)]
+		}
+		switch {
+		case updateCount == 2 && updates[0].add && !updates[1].add:
+			k4ApplyUpdates2(&destination[perspective], rows[0], rows[1])
+		case updateCount == 3 && updates[0].add && !updates[1].add && !updates[2].add:
+			k4ApplyUpdates3(&destination[perspective], rows[0], rows[1], rows[2])
+		case updateCount == 4 && updates[0].add && !updates[1].add && updates[2].add && !updates[3].add:
+			k4ApplyUpdates4(&destination[perspective], rows[0], rows[1], rows[2], rows[3])
+		default:
+			for hidden := 0; hidden < HiddenSize; hidden++ {
+				value := destination[perspective][hidden]
+				for index, update := range updates[:updateCount] {
+					if update.add {
+						value += rows[index][hidden]
+					} else {
+						value -= rows[index][hidden]
+					}
+				}
+				destination[perspective][hidden] = value
 			}
 		}
 	}
 }
 
-func (model *Model) refreshPerspective(destination *[HiddenSize]int32, board Board, perspective Color, kingSquare int) {
-	for hidden, bias := range model.inputBiases {
-		destination[hidden] = int32(bias)
-	}
+func (model *Model) refreshPerspective(destination *[HiddenSize]int16, board Board, perspective Color, kingSquare int) {
+	var rows [k4MaximumRefreshRows]*[HiddenSize]int16
+	rowCount := 0
 	for plane, pieceBits := range board {
 		color := Color(plane / colorPlanes)
 		pieceType := plane % colorPlanes
 		for pieceBits != 0 {
 			square := bits.TrailingZeros64(pieceBits)
 			pieceBits &= pieceBits - 1
-			row := &model.inputWeights[featureIndex(color, pieceType, square, kingSquare, perspective)]
-			addFeatureRow(destination, row)
+			rows[rowCount] = &model.inputWeights[featureIndex(color, pieceType, square, kingSquare, perspective)]
+			rowCount++
 		}
 	}
+	k4RefreshPerspective(destination, &model.inputBiases, &rows, rowCount)
 }
 
 func removeBoardPiece(board *Board, plane, square int) error {

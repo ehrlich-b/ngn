@@ -141,6 +141,10 @@ func Load(reader io.Reader) (*Model, error) {
 		return nil, fmt.Errorf("%w: decoded %d payload bytes, want %d", ErrFormat, offset, PayloadSize)
 	}
 
+	if err := model.checkAccumulatorBound(); err != nil {
+		return nil, err
+	}
+
 	var fastSafe [OutputBuckets]bool
 	for bucket := range model.outputWeights {
 		var absoluteWeightSum uint64
@@ -205,4 +209,46 @@ func allZero(data []byte) bool {
 		}
 	}
 	return true
+}
+
+// maximumActiveFeatures is the legal-board piece bound that validatePosition
+// enforces; every active feature of one perspective shares a king bucket.
+const maximumActiveFeatures = 32
+
+// checkAccumulatorBound proves that int16 accumulator lanes never differ from
+// exact integer sums: for every bucket and hidden lane, |bias| plus the 32
+// largest row magnitudes must fit in int16. Intermediate int16 wraparound is
+// then harmless because addition and subtraction are exact modulo 2^16.
+func (model *Model) checkAccumulatorBound() error {
+	for bucket := 0; bucket < InputBuckets; bucket++ {
+		for hidden := 0; hidden < HiddenSize; hidden++ {
+			var largest [maximumActiveFeatures]int32
+			for feature := bucket * InputSize; feature < (bucket+1)*InputSize; feature++ {
+				magnitude := int32(model.inputWeights[feature][hidden])
+				if magnitude < 0 {
+					magnitude = -magnitude
+				}
+				if magnitude <= largest[maximumActiveFeatures-1] {
+					continue
+				}
+				index := maximumActiveFeatures - 1
+				for index > 0 && largest[index-1] < magnitude {
+					largest[index] = largest[index-1]
+					index--
+				}
+				largest[index] = magnitude
+			}
+			bound := int32(model.inputBiases[hidden])
+			if bound < 0 {
+				bound = -bound
+			}
+			for _, magnitude := range largest {
+				bound += magnitude
+			}
+			if bound > math.MaxInt16 {
+				return fmt.Errorf("%w: bucket %d hidden %d accumulator bound %d exceeds int16", ErrUnsupported, bucket, hidden, bound)
+			}
+		}
+	}
+	return nil
 }
