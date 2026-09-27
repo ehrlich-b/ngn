@@ -31,6 +31,9 @@ const (
 	selectionSchemaMainM1       = "ngn-k4-main-m1-selection-v1"
 	selectionSchemaMainM1LR1    = "ngn-k4-main-m1-lr1-selection-v1"
 	selectionSchemaMainM1LR132K = "ngn-k4-main-m1-lr1-32k-selection-v1"
+	selectionSchemaArchiveA1E1  = "ngn-k4-archive-a1-e1-selection-v1"
+	selectionSchemaArchiveA1E10 = "ngn-k4-archive-a1-e10-selection-v1"
+	archiveCorpusSchema         = "ngn-k4-archive-corpus-v1"
 	checkpointSchema            = "ngn-k4-bullet-checkpoint-v1"
 	finalizedSchema             = "ngn-k4-finalized-corpus-v1"
 	finalizedContract           = "sf18-5kn-material-inversion-v2"
@@ -198,6 +201,16 @@ func selectionModeFor(value string) (selectionMode, error) {
 			name: "main-m1-lr1-32k", manifestMode: "main", schema: selectionSchemaMainM1LR132K, totalUpdates: 32_768,
 			checkpointUpdates: 4_096, minimumUpdate: 8_192, patience: 8,
 		}, nil
+	case "archive-a1-e1":
+		return selectionMode{
+			name: "archive-a1-e1", manifestMode: "archive", schema: selectionSchemaArchiveA1E1, totalUpdates: 163_840,
+			checkpointUpdates: 16_384, minimumUpdate: 81_920, patience: 8,
+		}, nil
+	case "archive-a1-e10":
+		return selectionMode{
+			name: "archive-a1-e10", manifestMode: "archive", schema: selectionSchemaArchiveA1E10, totalUpdates: 1_638_400,
+			checkpointUpdates: 16_384, minimumUpdate: 819_200, patience: 8,
+		}, nil
 	default:
 		return selectionMode{}, fmt.Errorf("unknown selection mode %q", value)
 	}
@@ -295,6 +308,28 @@ func loadSelectionManifest(path, validationPath string, mode selectionMode) ([]b
 	manifestBytes, manifestSHA, err := readManifest(path)
 	if err != nil {
 		return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, err
+	}
+	if mode.manifestMode == "archive" {
+		// Archive corpora carry their own training file; the frozen SF18-labeled
+		// validation BF is supplied directly as the monitoring holdout.
+		var archive struct {
+			Schema  string               `json:"schema"`
+			State   string               `json:"state"`
+			Records uint64               `json:"records"`
+			Train   selectionFileReceipt `json:"train"`
+		}
+		if err := json.Unmarshal(manifestBytes, &archive); err != nil {
+			return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, err
+		}
+		if archive.Schema != archiveCorpusSchema || archive.State != "COMPLETE" || archive.Records == 0 ||
+			archive.Train.Bytes != int64(archive.Records*32) {
+			return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, errors.New("archive manifest contract mismatch")
+		}
+		validationBytes, err := readExactFile(validationPath, pilotValidationRecords*32)
+		if err != nil {
+			return nil, [sha256.Size]byte{}, selectionFileReceipt{}, nil, fmt.Errorf("read validation: %w", err)
+		}
+		return manifestBytes, manifestSHA, selectionReceiptForBytes(path, manifestBytes), validationBytes, nil
 	}
 	var manifest selectionManifest
 	if err := json.Unmarshal(manifestBytes, &manifest); err != nil {
@@ -489,6 +524,9 @@ func loadSelectionCandidates(
 	if mode.name == "pilot-lr1" || mode.name == "probe5m-lr1" || mode.name == "main-m1-lr1" || mode.name == "main-m1-lr1-32k" {
 		initialLR, finalLR = 0.0002, 0.00001
 	}
+	if mode.manifestMode == "archive" {
+		initialLR, finalLR = 0.001, 0.00001
+	}
 	entries, err := os.ReadDir(root)
 	if err != nil {
 		return nil, err
@@ -632,7 +670,7 @@ func chooseSelectionCandidateForMode(metrics []candidateMetric, mode selectionMo
 func runSelect(args []string, stdout, stderr io.Writer) error {
 	flags := flag.NewFlagSet("select", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	modeName := flags.String("mode", "pilot", "selection mode: pilot, pilot-s1, pilot-lr1, probe5m, probe5m-lr1, main-m1, main-m1-lr1, or main-m1-lr1-32k")
+	modeName := flags.String("mode", "pilot", "selection mode: pilot, pilot-s1, pilot-lr1, probe5m, probe5m-lr1, main-m1, main-m1-lr1, main-m1-lr1-32k, archive-a1-e1, or archive-a1-e10")
 	candidates := flags.String("candidates", "", "pilot candidate directory")
 	manifestPath := flags.String("manifest", "", "frozen finalized-pilot manifest")
 	validationPath := flags.String("validation", "", "frozen validation BF")

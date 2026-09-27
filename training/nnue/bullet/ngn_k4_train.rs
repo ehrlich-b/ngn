@@ -49,6 +49,8 @@ const INITIAL_LR: f32 = 0.001;
 const FINAL_LR: f32 = 0.00005;
 const LR1_INITIAL_LR: f32 = 0.0002;
 const LR1_FINAL_LR: f32 = 0.00001;
+const ARCHIVE_SCHEMA: &str = "ngn-k4-archive-corpus-v1";
+const ARCHIVE_FINAL_LR: f32 = 0.00001;
 const DEPLOYED_VALUES: usize = 2_372_360;
 const RAW_BYTES: usize = DEPLOYED_VALUES * 4;
 const QUANT_TENSOR_BYTES: usize = DEPLOYED_VALUES * 2;
@@ -89,6 +91,8 @@ impl Mode {
             || self.name == "main-m1-lr1-32k"
         {
             (LR1_INITIAL_LR, LR1_FINAL_LR)
+        } else if self.manifest_mode == "archive" {
+            (INITIAL_LR, ARCHIVE_FINAL_LR)
         } else {
             (INITIAL_LR, FINAL_LR)
         }
@@ -176,6 +180,23 @@ fn mode(value: &str) -> Option<Mode> {
             positions: 20_000_000,
             updates: 32_768,
             checkpoint_updates: 4_096,
+        }),
+        // Archive modes read their record count from the archive manifest.
+        "archive-a1-e1" => Some(Mode {
+            name: "archive-a1-e1",
+            manifest_mode: "archive",
+            corpus_name: "train-archive",
+            positions: 0,
+            updates: 163_840,
+            checkpoint_updates: 16_384,
+        }),
+        "archive-a1-e10" => Some(Mode {
+            name: "archive-a1-e10",
+            manifest_mode: "archive",
+            corpus_name: "train-archive",
+            positions: 0,
+            updates: 1_638_400,
+            checkpoint_updates: 16_384,
         }),
         _ => None,
     }
@@ -325,6 +346,44 @@ fn write_json_new<T: Serialize>(path: &Path, value: &T) {
         .unwrap_or_else(|error| fail(format!("create {}: {error}", path.display())));
     file.write_all(&bytes).unwrap_or_else(|error| fail(format!("write {}: {error}", path.display())));
     file.sync_all().unwrap_or_else(|error| fail(format!("sync {}: {error}", path.display())));
+}
+
+#[allow(dead_code)]
+#[derive(Clone, Debug, Deserialize)]
+struct ArchiveManifest {
+    schema: String,
+    state: String,
+    command: Vec<String>,
+    scatter: FileReceipt,
+    score_map: FileReceipt,
+    knots: Vec<[f64; 2]>,
+    score_contract: String,
+    shuffle_seed: u64,
+    records: u64,
+    record_bytes: usize,
+    dropped_sentinel: u64,
+    dropped_abs_score: u64,
+    train: FileReceipt,
+    elapsed_seconds: f64,
+}
+
+fn load_archive_input(path: &Path) -> (TrainingInput, u64) {
+    let manifest_receipt = file_receipt(path);
+    let manifest: ArchiveManifest = read_json(path);
+    if manifest.schema != ARCHIVE_SCHEMA
+        || manifest.state != "COMPLETE"
+        || manifest.record_bytes != 32
+        || manifest.records == 0
+        || manifest.train.bytes != manifest.records * 32
+        || manifest.knots.len() < 2
+        || manifest.knots.windows(2).any(|pair| pair[1][0] <= pair[0][0] || pair[1][1] < pair[0][1])
+    {
+        fail("archive corpus manifest contract mismatch");
+    }
+    verify_file_receipt(&manifest.scatter);
+    verify_file_receipt(&manifest.score_map);
+    verify_file_receipt(&manifest.train);
+    (TrainingInput { manifest: manifest_receipt, train: manifest.train }, manifest.records)
 }
 
 fn load_training_input(path: &Path, run_mode: Mode) -> TrainingInput {
@@ -1098,7 +1157,7 @@ fn main() {
     let resume = action.as_deref() == Some("resume");
     if (action.as_deref() != Some("start") && !resume) || (!resume && args.len() != 5) || (resume && args.len() != 6) {
         fail(
-            "usage: ngn_k4_train start smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1|main-m1-lr1|main-m1-lr1-32k FINALIZED_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1|main-m1-lr1|main-m1-lr1-32k FINALIZED_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
+            "usage: ngn_k4_train start smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1|main-m1-lr1|main-m1-lr1-32k|archive-a1-e1|archive-a1-e10 FINALIZED_OR_ARCHIVE_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1|main-m1-lr1|main-m1-lr1-32k|archive-a1-e1|archive-a1-e10 FINALIZED_OR_ARCHIVE_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
         );
     }
     let mode_text = args[2].to_string_lossy();
@@ -1115,7 +1174,12 @@ fn main() {
     } else {
         (None, PathBuf::from(&args[4]))
     };
-    let input = load_training_input(&manifest_path, run_mode);
+    let (input, run_mode) = if run_mode.manifest_mode == "archive" {
+        let (input, records) = load_archive_input(&manifest_path);
+        (input, Mode { positions: records, ..run_mode })
+    } else {
+        (load_training_input(&manifest_path, run_mode), run_mode)
+    };
     if input.train.bytes != run_mode.positions * 32 {
         fail("training BF size differs from frozen mode");
     }

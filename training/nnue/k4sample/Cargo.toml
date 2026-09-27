@@ -23,3 +23,7 @@ path = "src/bin/select.rs"
 [[bin]]
 name = "ngnk4sampleverify"
 path = "src/bin/verify.rs"
+
+[[bin]]
+name = "ngnk4archive"
+path = "src/bin/archive.rs"
