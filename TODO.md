@@ -23,21 +23,35 @@ with `EvalBackend ngn-k4-768-v1` and **`K4EvalScale 60`**, on source at or after
   not binding.
 - Vs Rodent V1.2 before E1 (200 games): +15.6 [−12.2, +43.7], parity.
 
-**Pending at handoff:** M6 (result-weight ramp 0→0.25), M7 (e20 schedule), M4
-(K8+W1024) and M8 (best owned configuration vs Rodent V1.2, 800 games) were
-queued as chained WSL user units `ngn-night-*`; read their `report.json`
-files under `/home/ehrli/nnue-owned-k4-20260920/night-20260927/` and the night
-record before acting.
+**Host blocker (owner action):** the WSL `ext4.vhdx` lives on C:, which
+reached 0 GB free overnight (see the night record's disk incident). About
+50 GB was deleted and trimmed inside WSL, but only an elevated compaction
+(`wsl --shutdown`, then `Optimize-VHD -Mode Full` or diskpart `compact vdisk`)
+returns it to Windows. Keep large new data off C: until then. The Windows
+scheduled task `ngn-wsl-keepalive` (`wsl.exe -e sleep infinity`) keeps the
+distro alive for SSH-launched `systemd-run --user` units; without it the
+distro stops when the last `wsl.exe` client exits.
+
+**Pending at handoff:** M8 (owned A1 at scale 60 vs Rodent V1.2, 800 games),
+M6 (result-weight ramp 0→0.25) and M4 (K8+W1024) are chained WSL user units
+`ngn-night-*`; read their `report.json` under
+`/home/ehrli/nnue-owned-k4-20260920/night-20260927/` and the night record.
+Several gate attempts were cut short by the shutdowns and are preserved as
+`*-aborted-*`, unscored. e20 training is unfinished (resume from
+`runs/e20/candidates/candidate-2375680`).
 
 **Next, in order:**
-1. Data scale: the documented next A1 step. Farseer T74/T75/T76 and
-   T60T70wIsRightFarseer (~106 GB, same pinned HF revision) are downloaded and
-   SHA-256-verified under `/home/ehrli/nnue-owned-k4-20260920/data-farseer-20260928/`
-   (check `verify.txt` shows `DOWNLOAD_DONE`). `ngnk4archive scatter` is pinned
-   to the T80 source (bytes/SHA/chain split). It needs a per-source pin table,
-   a fresh SF18 score-map calibration sample for each new producer (the T80
-   map came from T80-only calibration keys) and the sentinel check, then
-   gather into a combined corpus, train, and gate against A1 at scale 60.
+1. Data scale, the documented next A1 step, blocked on disk. The code is ready
+   in `613dc0f`: `ngnk4archive scatter` accepts the four pinned farseer
+   binpacks (same HF revision as T80), takes a key-hashed
+   `--keep-per-mille` sample, and records score-bin × result counts;
+   `gather` merges `DIR@RAW_SCALE` inputs; `fit_source_scale.py` fits each
+   source's raw scale to T80's score/result logistic slope. The binpacks were
+   deleted for space; re-download them (`data-farseer-20260928/download.sh`,
+   HTTP/1.1, resume, SHA check). A 150‰ farseer sample plus T80 is ~6.4B
+   records and needs ~350 GB of scatter plus gather space. Then train at the A1
+   schedule and gate against A1 at scale 60. Consider a fresh SF18 calibration
+   sample per producer if the logistic scales disagree strongly.
 2. A second eval-scale value (for example 50) only as its own predeclared gate.
 3. Search-margin retuning for the NNUE eval, which is games-heavy; consider only
    after data scale.
