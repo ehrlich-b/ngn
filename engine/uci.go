@@ -397,6 +397,7 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, "option name Threads type spin default 1 min 1 max 64")
 	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
 	uci.sendUCIMessage(output, "option name OwnBook type check default true")
+	uci.sendUCIMessage(output, fmt.Sprintf("option name K4EvalScale type spin default 100 min %d max %d", minK4EvalScalePercent, maxK4EvalScalePercent))
 	uci.sendUCIMessage(output, "option name SyzygyPath type string default <empty>")
 	if !researchEvaluatorLocked {
 		uci.sendUCIMessage(output, fmt.Sprintf("option name EvalBackend type combo default %s var hce var ngn-v1 var ngn-k4-768-v1 var sf18-big var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default", evalBackendDefault))
@@ -469,6 +470,13 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 				}
 			}
 		}
+	case "k4evalscale":
+		percent, err := strconv.Atoi(optionValue)
+		if err != nil || percent < minK4EvalScalePercent || percent > maxK4EvalScalePercent {
+			break
+		}
+		uci.joinSearch(true)
+		ngnK4EvalScalePercent.Store(int64(percent))
 	case "move overhead":
 		milliseconds, err := strconv.Atoi(optionValue)
 		if err != nil || milliseconds < minMoveOverheadMilliseconds || milliseconds > maxMoveOverheadMilliseconds {

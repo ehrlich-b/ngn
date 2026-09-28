@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"math/bits"
+	"sync/atomic"
 
 	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
@@ -827,7 +828,7 @@ func (e *workerEvaluator) SearchSTM(pos *Position) int {
 		if err != nil {
 			panic(fmt.Errorf("%w: NGN K4 evaluate: %v", errWorkerEvaluator, err))
 		}
-		return nnueSearchScore(raw, pos.HalfMoveClock)
+		return nnueSearchScore(scaleNGNK4(raw), pos.HalfMoveClock)
 	case evaluatorBackendRodentV12Default:
 		if e.rodentV12Context == nil {
 			panic(fmt.Errorf("%w: nil Rodent V1.2 context", errWorkerEvaluator))
@@ -921,7 +922,7 @@ func (e *workerEvaluator) LegacyUndampedSTM(pos *Position) int {
 		if err != nil {
 			panic(fmt.Errorf("%w: NGN K4 fresh evaluate: %v", errWorkerEvaluator, err))
 		}
-		return clampNNUEStatic(raw)
+		return clampNNUEStatic(scaleNGNK4(raw))
 	default:
 		panic(fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend))
 	}
@@ -955,6 +956,25 @@ func counterSearchScoreInputs(raw float32, whiteMove bool, halfMoveClock uint8, 
 		score = -score
 	}
 	return clampNNUEStatic(score)
+}
+
+// ngnK4EvalScalePercent rescales owned K4 raw scores onto the centipawn scale
+// the search margins were tuned for (UCI K4EvalScale). 100 is the identity.
+var ngnK4EvalScalePercent atomic.Int64
+
+const (
+	minK4EvalScalePercent = 10
+	maxK4EvalScalePercent = 400
+)
+
+func init() { ngnK4EvalScalePercent.Store(100) }
+
+func scaleNGNK4(raw int64) int64 {
+	percent := ngnK4EvalScalePercent.Load()
+	if percent == 100 {
+		return raw
+	}
+	return raw * percent / 100
 }
 
 func nnueSearchScore(raw int64, halfMoveClock uint8) int {
