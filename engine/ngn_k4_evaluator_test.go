@@ -12,6 +12,138 @@ import (
 	"github.com/ehrlich-b/ngn/nnue/ngnk4"
 )
 
+func TestUCIK4ScaleDoesNotChangeAnotherEngine(t *testing.T) {
+	model, _ := ngnK4TestModel(t, "scale isolation")
+	a, b := NewUCIEngine(), NewUCIEngine()
+	var output bytes.Buffer
+	a.handleCommand("setoption name K4EvalScale value 100", &output)
+	t.Cleanup(func() { a.handleCommand("setoption name K4EvalScale value 100", &output) })
+	for _, uci := range []*UCIEngine{a, b} {
+		if err := uci.searcher.SelectNGNK4Evaluator(model); err != nil {
+			t.Fatal(err)
+		}
+	}
+	pos := controlTestPosition(t)
+	before, _, err := b.searcher.EvaluateSelected(pos)
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.handleCommand("setoption name K4EvalScale value 60", &output)
+	aScore, _, err := a.searcher.EvaluateSelected(pos)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bScore, _, err := b.searcher.EvaluateSelected(pos)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if aScore == before {
+		t.Fatal("fixture does not distinguish scale 60 from 100")
+	}
+	if bScore != before {
+		t.Fatalf("engine A's scale changed engine B's score: %d -> %d", before, bScore)
+	}
+}
+
+func TestUCIK4ScaleInvalidatesCachedScores(t *testing.T) {
+	model, _ := ngnK4TestModel(t, "scale cache")
+	uci := NewUCIEngine()
+	var output bytes.Buffer
+	uci.handleCommand("setoption name K4EvalScale value 100", &output)
+	t.Cleanup(func() { uci.handleCommand("setoption name K4EvalScale value 100", &output) })
+	if err := uci.searcher.SelectNGNK4Evaluator(model); err != nil {
+		t.Fatal(err)
+	}
+	const hash = uint64(0x9f321)
+	uci.searcher.TTStore(hash, 0, 888, 7, Exact, false)
+	if _, _, _, _, found, _ := uci.searcher.TTProbe(hash); !found {
+		t.Fatal("fixture did not populate the TT")
+	}
+	uci.handleCommand("setoption name K4EvalScale value 60", &output)
+	if _, score, _, _, found, _ := uci.searcher.TTProbe(hash); found {
+		t.Fatalf("scale change retained stale TT score %d", score)
+	}
+}
+
+func TestK4ScalePreservesStateForSameValueAndInvalidRequests(t *testing.T) {
+	model, _ := ngnK4TestModel(t, "scale transaction")
+	searcher := NewSearchEngine()
+	if err := searcher.SetK4EvalScale(60); err != nil {
+		t.Fatal(err)
+	}
+	if err := searcher.SelectNGNK4Evaluator(model); err != nil {
+		t.Fatal(err)
+	}
+	const hash = uint64(0xa7261)
+	searcher.TTStore(hash, 0, 717, 6, Exact, false)
+	if err := searcher.SetK4EvalScale(60); err != nil {
+		t.Fatal(err)
+	}
+	for _, invalid := range []int{-1, 9, 401} {
+		if err := searcher.SetK4EvalScale(invalid); err == nil {
+			t.Fatalf("invalid scale %d succeeded", invalid)
+		}
+	}
+	if scale := searcher.K4EvalScale(); scale != 60 {
+		t.Fatalf("invalid request changed scale to %d", scale)
+	}
+	if _, score, _, _, found, _ := searcher.TTProbe(hash); !found || score != 717 {
+		t.Fatal("same-value or invalid scale request discarded valid TT state")
+	}
+	if err := searcher.SelectHCEEvaluator(); err != nil {
+		t.Fatal(err)
+	}
+	if err := searcher.SelectNGNK4Evaluator(model); err != nil {
+		t.Fatal(err)
+	}
+	searcher.NewGame()
+	if scale := searcher.K4EvalScale(); scale != 60 || searcher.worker.evaluator.Identity().ngnK4ScalePercent != 60 {
+		t.Fatal("backend switching or a new game reset the configured scale")
+	}
+}
+
+func TestK4ScaleInvalidatesRetainedWorkerHistories(t *testing.T) {
+	model, _ := ngnK4TestModel(t, "scale workers")
+	searcher := NewSearchEngine()
+	if err := searcher.SelectNGNK4Evaluator(model); err != nil {
+		t.Fatal(err)
+	}
+	if err := searcher.ConfigureThreads(3); err != nil {
+		t.Fatal(err)
+	}
+	for _, worker := range searcher.configuredWorkers() {
+		worker.history.historyTable[1][8] = 123
+		worker.history.pawnCorrectionHistory[0][0] = 456
+	}
+	if err := searcher.SetK4EvalScale(60); err != nil {
+		t.Fatal(err)
+	}
+	// Resize retains the existing workers. The next game admits every worker
+	// under the new model; correction history normally survives NewGame.
+	if err := searcher.ConfigureThreads(4); err != nil {
+		t.Fatal(err)
+	}
+	searcher.NewGame()
+	for index, worker := range searcher.configuredWorkers() {
+		if worker.evaluator.Identity().ngnK4ScalePercent != 60 ||
+			worker.history.historyTable[1][8] != 0 || worker.history.pawnCorrectionHistory[0][0] != 0 {
+			t.Fatalf("worker %d retained state from the old score scale", index)
+		}
+	}
+}
+
+func TestPendingK4ScaleDoesNotInvalidateHCE(t *testing.T) {
+	searcher := NewSearchEngine()
+	const hash = uint64(0xf8792)
+	searcher.TTStore(hash, 0, 313, 6, Exact, false)
+	if err := searcher.SetK4EvalScale(60); err != nil {
+		t.Fatal(err)
+	}
+	if _, score, _, _, found, _ := searcher.TTProbe(hash); !found || score != 313 {
+		t.Fatal("an inactive K4 option invalidated HCE search state")
+	}
+}
+
 func ngnK4TestModel(t *testing.T, identity string) (*ngnk4.Model, []byte) {
 	t.Helper()
 	tensors := new(ngnk4.Tensors)

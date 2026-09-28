@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"math/bits"
-	"sync/atomic"
 
 	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
@@ -52,6 +51,7 @@ type evaluatorModelIdentity struct {
 	rodentMetadata    rodenteval.Metadata
 	rodentV12Metadata rodentv12eval.Metadata
 	ngnK4Metadata     ngnk4.Metadata
+	ngnK4ScalePercent int64
 }
 
 // evaluatorModel is a cold immutable selection. Its NGN-v1 pointer is safe to
@@ -157,7 +157,7 @@ func rodentV12DefaultEvaluatorModel(model *rodentv12eval.Model, hceGeneration ui
 	}, nil
 }
 
-func ngnK4EvaluatorModel(model *ngnk4.Model, hceGeneration uint64) (evaluatorModel, error) {
+func ngnK4EvaluatorModel(model *ngnk4.Model, hceGeneration uint64, scalePercent int64) (evaluatorModel, error) {
 	if model == nil {
 		return evaluatorModel{}, fmt.Errorf("%w: nil NGN K4 model", errWorkerEvaluator)
 	}
@@ -173,10 +173,11 @@ func ngnK4EvaluatorModel(model *ngnk4.Model, hceGeneration uint64) (evaluatorMod
 	}
 	return evaluatorModel{
 		identity: evaluatorModelIdentity{
-			backend:         evaluatorBackendNGNK4,
-			adapterRevision: evaluatorAdapterRevision,
-			hceGeneration:   hceGeneration,
-			ngnK4Metadata:   metadata,
+			backend:           evaluatorBackendNGNK4,
+			adapterRevision:   evaluatorAdapterRevision,
+			hceGeneration:     hceGeneration,
+			ngnK4Metadata:     metadata,
+			ngnK4ScalePercent: scalePercent,
 		},
 		ngnK4: model,
 	}, nil
@@ -828,7 +829,7 @@ func (e *workerEvaluator) SearchSTM(pos *Position) int {
 		if err != nil {
 			panic(fmt.Errorf("%w: NGN K4 evaluate: %v", errWorkerEvaluator, err))
 		}
-		return nnueSearchScore(scaleNGNK4(raw), pos.HalfMoveClock)
+		return nnueSearchScore(scaleNGNK4(raw, e.model.identity.ngnK4ScalePercent), pos.HalfMoveClock)
 	case evaluatorBackendRodentV12Default:
 		if e.rodentV12Context == nil {
 			panic(fmt.Errorf("%w: nil Rodent V1.2 context", errWorkerEvaluator))
@@ -922,7 +923,7 @@ func (e *workerEvaluator) LegacyUndampedSTM(pos *Position) int {
 		if err != nil {
 			panic(fmt.Errorf("%w: NGN K4 fresh evaluate: %v", errWorkerEvaluator, err))
 		}
-		return clampNNUEStatic(scaleNGNK4(raw))
+		return clampNNUEStatic(scaleNGNK4(raw, e.model.identity.ngnK4ScalePercent))
 	default:
 		panic(fmt.Errorf("%w: unknown backend %d", errWorkerEvaluator, e.model.identity.backend))
 	}
@@ -958,19 +959,13 @@ func counterSearchScoreInputs(raw float32, whiteMove bool, halfMoveClock uint8, 
 	return clampNNUEStatic(score)
 }
 
-// ngnK4EvalScalePercent rescales owned K4 raw scores onto the centipawn scale
-// the search margins were tuned for (UCI K4EvalScale). 100 is the identity.
-var ngnK4EvalScalePercent atomic.Int64
-
 const (
 	minK4EvalScalePercent = 10
 	maxK4EvalScalePercent = 400
 )
 
-func init() { ngnK4EvalScalePercent.Store(100) }
-
-func scaleNGNK4(raw int64) int64 {
-	percent := ngnK4EvalScalePercent.Load()
+// scaleNGNK4 uses the scale frozen into this worker's evaluator identity.
+func scaleNGNK4(raw, percent int64) int64 {
 	if percent == 100 {
 		return raw
 	}

@@ -145,7 +145,7 @@ func (e *SearchEngine) SelectNGNK4Evaluator(model *ngnk4.Model) error {
 	}
 	defer releaseHCEModelUse()
 
-	candidate, err := ngnK4EvaluatorModel(model, generation)
+	candidate, err := ngnK4EvaluatorModel(model, generation, e.k4EvalScale())
 	if err != nil {
 		return err
 	}

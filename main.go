@@ -21,6 +21,8 @@ func run(args []string, input io.Reader, output, errorOutput io.Writer) int {
 	evalBackend := flags.String("eval-backend", engine.EvaluatorBackendHCEName,
 		"Evaluator backend: hce, ngn-v1, ngn-k4-768-v1, sf18-big, counter-5.5, rodent-v1.1-anand, or rodent-v1.2-default (non-HCE requires -eval-file)")
 	evalFile := flags.String("eval-file", "", "Evaluator model path for a non-HCE backend")
+	k4EvalScale := flags.Int("k4-eval-scale", 100, "Owned K4 evaluation scale in percent (10 to 400)")
+	ownBook := flags.Bool("own-book", true, "Use the engine's opening book")
 	if err := flags.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return 0
@@ -33,11 +35,16 @@ func run(args []string, input io.Reader, output, errorOutput io.Writer) int {
 	}
 
 	uciEngine := engine.NewUCIEngine()
+	if err := uciEngine.ConfigureStartupK4EvalScale(*k4EvalScale); err != nil {
+		fmt.Fprintf(errorOutput, "ngn: K4 score scale configuration failed: %v\n", err)
+		return 2
+	}
 	if err := uciEngine.ConfigureStartupEvaluator(*evalBackend, *evalFile); err != nil {
 		fmt.Fprintf(errorOutput, "ngn: evaluator startup configuration failed: %v\n", err)
 		return 2
 	}
 	uciEngine.SetResignationPolicy(*allowResignation)
+	uciEngine.ConfigureStartupOwnBook(*ownBook)
 	uciEngine.Run(input, output)
 	return 0
 }

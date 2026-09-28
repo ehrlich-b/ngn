@@ -155,6 +155,8 @@ type UCIEngine struct {
 	copyPosition            func(*Position) *Position
 	evaluatorConfig         uciEvaluatorConfig
 	startupDefaults         uciEvaluatorDefaults
+	startupK4EvalScale      int
+	startupOwnBook          bool
 	researchEvaluatorLocked bool
 	ownBook                 bool
 }
@@ -208,23 +210,25 @@ func NewUCIEngine() *UCIEngine {
 	}
 
 	return &UCIEngine{
-		position:         newUCIStartingPosition(),
-		searcher:         NewSearchEngine(),
-		debugMode:        false,
-		engineName:       "ngn",
-		engineAuthor:     "ngn team",
-		version:          "0.1.0",
-		timeManager:      newUCITimeManager(),
-		movesPlayed:      0,
-		lastScore:        0,
-		debugLogger:      logger,
-		rawUCILogger:     rawUCILogger,
-		allowResignation: false, // Default to no resignation
-		now:              time.Now,
-		copyPosition:     func(pos *Position) *Position { return pos.Copy() },
-		evaluatorConfig:  newUCIEvaluatorConfig(),
-		startupDefaults:  uciEvaluatorDefaults{backend: uciEvaluatorHCE},
-		ownBook:          true,
+		position:           newUCIStartingPosition(),
+		searcher:           NewSearchEngine(),
+		debugMode:          false,
+		engineName:         "ngn",
+		engineAuthor:       "ngn team",
+		version:            "0.1.0",
+		timeManager:        newUCITimeManager(),
+		movesPlayed:        0,
+		lastScore:          0,
+		debugLogger:        logger,
+		rawUCILogger:       rawUCILogger,
+		allowResignation:   false, // Default to no resignation
+		now:                time.Now,
+		copyPosition:       func(pos *Position) *Position { return pos.Copy() },
+		evaluatorConfig:    newUCIEvaluatorConfig(),
+		startupDefaults:    uciEvaluatorDefaults{backend: uciEvaluatorHCE},
+		ownBook:            true,
+		startupOwnBook:     true,
+		startupK4EvalScale: 100,
 	}
 }
 
@@ -242,6 +246,29 @@ func (uci *UCIEngine) sendUCIMessage(output io.Writer, message string) {
 func (uci *UCIEngine) SetResignationPolicy(allowResignation bool) {
 	uci.lifecycleMu.Lock()
 	uci.allowResignation = allowResignation
+	uci.lifecycleMu.Unlock()
+}
+
+// ConfigureStartupK4EvalScale records an explicit startup scale and advertises
+// it as the UCI default. Runtime options do not rewrite that startup default.
+func (uci *UCIEngine) ConfigureStartupK4EvalScale(percent int) error {
+	uci.joinSearch(true)
+	if err := uci.searcher.SetK4EvalScale(percent); err != nil {
+		return err
+	}
+	uci.lifecycleMu.Lock()
+	uci.startupK4EvalScale = percent
+	uci.lifecycleMu.Unlock()
+	return nil
+}
+
+// ConfigureStartupOwnBook lets an explicit launcher retain the audited
+// book-free configuration while ordinary startup keeps its historical default.
+func (uci *UCIEngine) ConfigureStartupOwnBook(enabled bool) {
+	uci.joinSearch(true)
+	uci.lifecycleMu.Lock()
+	uci.ownBook = enabled
+	uci.startupOwnBook = enabled
 	uci.lifecycleMu.Unlock()
 }
 
@@ -383,6 +410,8 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.lifecycleMu.Lock()
 	evalBackendDefault := uci.startupDefaults.backend
 	evalFileDefault := uci.startupDefaults.file
+	k4ScaleDefault := uci.startupK4EvalScale
+	ownBookDefault := uci.startupOwnBook
 	researchEvaluatorLocked := uci.researchEvaluatorLocked
 	uci.lifecycleMu.Unlock()
 	if evalBackendDefault == "" {
@@ -396,8 +425,8 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, "option name Hash type spin default 128 min 1 max 1024")
 	uci.sendUCIMessage(output, "option name Threads type spin default 1 min 1 max 64")
 	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
-	uci.sendUCIMessage(output, "option name OwnBook type check default true")
-	uci.sendUCIMessage(output, fmt.Sprintf("option name K4EvalScale type spin default 100 min %d max %d", minK4EvalScalePercent, maxK4EvalScalePercent))
+	uci.sendUCIMessage(output, fmt.Sprintf("option name OwnBook type check default %t", ownBookDefault))
+	uci.sendUCIMessage(output, fmt.Sprintf("option name K4EvalScale type spin default %d min %d max %d", k4ScaleDefault, minK4EvalScalePercent, maxK4EvalScalePercent))
 	uci.sendUCIMessage(output, "option name SyzygyPath type string default <empty>")
 	if !researchEvaluatorLocked {
 		uci.sendUCIMessage(output, fmt.Sprintf("option name EvalBackend type combo default %s var hce var ngn-v1 var ngn-k4-768-v1 var sf18-big var counter-5.5 var rodent-v1.1-anand var rodent-v1.2-default", evalBackendDefault))
@@ -476,7 +505,9 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 			break
 		}
 		uci.joinSearch(true)
-		ngnK4EvalScalePercent.Store(int64(percent))
+		if err := uci.searcher.SetK4EvalScale(percent); err != nil {
+			uci.sendEvalOptionError(output, "%v", err)
+		}
 	case "move overhead":
 		milliseconds, err := strconv.Atoi(optionValue)
 		if err != nil || milliseconds < minMoveOverheadMilliseconds || milliseconds > maxMoveOverheadMilliseconds {

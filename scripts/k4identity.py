@@ -13,6 +13,7 @@ Rounds alternate base/candidate on one pinned CPU and report wall time.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import statistics
@@ -31,13 +32,16 @@ def positions(pgn: Path, games: int, plies: list[int]) -> list[list[str]]:
 
 
 class Engine:
-    def __init__(self, binary: str, network: str, backend: str, cpu: int) -> None:
+    def __init__(self, binary: str, network: str, backend: str, cpu: int, scale: int) -> None:
         self.process = subprocess.Popen(
             ['taskset', '-c', str(cpu), 'env', 'GOMAXPROCS=1', binary], stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, text=True, bufsize=1, cwd='/tmp')
         self.send('uci')
         self.wait('uciok')
-        for name, value in (('Threads', 1), ('Hash', 16), ('EvalFile', network), ('EvalBackend', backend)):
+        options = [('Threads', 1), ('Hash', 16), ('OwnBook', 'false'), ('EvalFile', network), ('EvalBackend', backend)]
+        if backend == 'ngn-k4-768-v1':
+            options.append(('K4EvalScale', scale))
+        for name, value in options:
             self.send(f'setoption name {name} value {value}')
             self.send('isready')
             for line in self.wait('readyok'):
@@ -82,6 +86,7 @@ def main() -> None:
     parser.add_argument('--cand', required=True)
     parser.add_argument('--network', required=True)
     parser.add_argument('--backend', default='ngn-k4-768-v1')
+    parser.add_argument('--scale', type=int, default=100)
     parser.add_argument('--pgn', type=Path, required=True)
     parser.add_argument('--cpu', type=int, required=True)
     parser.add_argument('--depth', type=int, default=12)
@@ -90,13 +95,17 @@ def main() -> None:
     parser.add_argument('--rounds', type=int, default=3)
     parser.add_argument('--out', type=Path, required=True)
     args = parser.parse_args()
+    if not 10 <= args.scale <= 400:
+        parser.error('--scale must be between 10 and 400')
     fixtures = positions(args.pgn, args.games, [int(x) for x in args.plies.split(',')])
+    if not fixtures or args.rounds < 1:
+        parser.error('need at least one fixture and one round')
     times = {'base': [], 'cand': []}
     results = {}
     for round_index in range(args.rounds):
         order = ('base', 'cand') if round_index % 2 == 0 else ('cand', 'base')
         for role in order:
-            engine = Engine(getattr(args, role), args.network, args.backend, args.cpu)
+            engine = Engine(getattr(args, role), args.network, args.backend, args.cpu, args.scale)
             start = time.perf_counter()
             rows = [engine.search(moves, args.depth) for moves in fixtures]
             times[role].append(time.perf_counter() - start)
@@ -108,6 +117,9 @@ def main() -> None:
     nodes = sum(row['nodes'] for row in results['base'])
     report = {
         'schema': 'ngn-k4-identity-timing-v1', 'fixtures': len(fixtures), 'depth': args.depth,
+        'backend': args.backend, 'scale_percent': args.scale, 'own_book': False,
+        'sha256': {key: hashlib.sha256(Path(value).read_bytes()).hexdigest()
+                   for key, value in [('base', args.base), ('cand', args.cand), ('network', args.network), ('pgn', args.pgn)]},
         'identical': not mismatches, 'mismatch_indices': mismatches[:20], 'total_nodes': nodes,
         'seconds': times, 'median_seconds': {role: statistics.median(value) for role, value in times.items()},
         'nps_median': {role: nodes / statistics.median(value) for role, value in times.items()},
@@ -115,6 +127,8 @@ def main() -> None:
     report['speedup'] = report['median_seconds']['base'] / report['median_seconds']['cand']
     args.out.write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))
+    if mismatches:
+        raise SystemExit(1)
 
 
 if __name__ == '__main__':

@@ -257,18 +257,17 @@ func TestUCIMoveOverheadOptionAndNewGamePersistence(t *testing.T) {
 }
 
 func TestUCIK4EvalScaleOption(t *testing.T) {
-	t.Cleanup(func() { ngnK4EvalScalePercent.Store(100) })
-	if got := scaleNGNK4(-12345); got != -12345 {
+	if got := scaleNGNK4(-12345, 100); got != -12345 {
 		t.Fatalf("default K4 scale changed raw -12345 to %d", got)
 	}
 	engine := NewUCIEngine()
 	var output bytes.Buffer
 	engine.handleCommand("setoption name K4EvalScale value 60", &output)
-	if got := ngnK4EvalScalePercent.Load(); got != 60 {
+	if got := engine.searcher.K4EvalScale(); got != 60 {
 		t.Fatalf("K4EvalScale=%d, want 60", got)
 	}
 	for raw, want := range map[int64]int64{250: 150, -251: -150, 1: 0, 0: 0} {
-		if got := scaleNGNK4(raw); got != want {
+		if got := scaleNGNK4(raw, int64(engine.searcher.K4EvalScale())); got != want {
 			t.Fatalf("scale 60%% of %d = %d, want %d", raw, got, want)
 		}
 	}
@@ -278,7 +277,7 @@ func TestUCIK4EvalScaleOption(t *testing.T) {
 		"setoption name K4EvalScale value invalid",
 	} {
 		engine.handleCommand(command, &output)
-		if got := ngnK4EvalScalePercent.Load(); got != 60 {
+		if got := engine.searcher.K4EvalScale(); got != 60 {
 			t.Fatalf("%q changed K4EvalScale to %d", command, got)
 		}
 	}
