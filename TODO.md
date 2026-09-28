@@ -1,12 +1,13 @@
 # NGN current state — September 28 owned-NNUE night
 
-**Working owned configuration:** owned K4 **WDL25-e10** net (`1ec8fc17…`,
+**Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
 A1 corpus and schedule with the game-result weight ramped 0→0.25) with
 `EvalBackend ngn-k4-768-v1` and **`K4EvalScale 60`**, on source at or after
-`ccfb56a` (exact int16 kernels). It beat A1-e10 by **+20.9 Elo [+7.8, +34.0]**
-(M6, 800 games). A1-e10 at scale 60 measured parity with Rodent V1.2 (M8, 800
-games, +8.3 [−6.5, +23.1]). Full record:
+`ccfb56a`. It beat borrowed Rodent V1.2 by **+34.9 Elo [+20.0, +49.4]** (M11,
+800 games, same engine, 10+0.1) and A1-e10 by +20.9 [+7.8, +34.0] (M6). This is
+relative evidence only; there is no installation, default change or absolute
+rating. Full record:
 [the night session](experiments/2026-09-27-owned-nnue-night.md).
 
 - A1 (Sep 24, rescued from a purged `/tmp` worktree and committed): +57.9 vs
@@ -35,11 +36,9 @@ scheduled task `ngn-wsl-keepalive` (`wsl.exe -e sleep infinity`) keeps the
 distro alive for SSH-launched `systemd-run --user` units; without it the
 distro stops when the last `wsl.exe` client exits.
 
-**Pending at handoff:** M4 (K8+W1024 vs A1) and then M11 (WDL25 at scale 60
-vs Rodent V1.2, 800 games, the owned net replaces V1.2 as reference if the
-lower bound is above 0.5) are chained WSL user units `ngn-night-*`; read their
-`report.json` under
-`/home/ehrli/nnue-owned-k4-20260920/night-20260927/` and the night record.
+**Night gates are all complete** (M4 K8+W1024 shelved at +10.9 [−3.0, +24.8];
+see the summary table in the night record). Artifacts are under
+`/home/ehrli/nnue-owned-k4-20260920/night-20260927/`.
 Several gate attempts were cut short by the shutdowns and are preserved as
 `*-aborted-*`, unscored. e20 training is unfinished (resume from
 `runs/e20/candidates/candidate-2375680`).

@@ -295,3 +295,37 @@ Binaries from one source tree: `21ba3794…` (`-tags ngnk8,ngnw1024`) vs
 - Score 0.5156 [0.4956, 0.5356], **+10.9 Elo [−3.0, +24.8]** → rule not met;
   no extension. Capacity gains are consistent and small: K8 +4.8, W1024 +2.6,
   stacked +10.9, all inside noise on this 2.37B-position corpus.
+
+## M11 — owned WDL25 (scale 60) vs Rodent V1.2: **OWNED NET REPLACES V1.2**
+
+Identical to M8 except the owned role's net (WDL25-e10 `1ec8fc17…`, promoted
+by M6) and seed 2026092711. The launcher asserted M6's promotion before
+freezing the spec. [Spec](2026-09-27-m11-wdl25-vs-v12-spec.json),
+[report](2026-09-27-m11-wdl25-vs-v12-report.json).
+
+- Audit PASS, 800 games, 127,730 legal plies; 263/386/151 (white win, draw,
+  black win); penta `[11, 60, 185, 126, 18]`.
+- Owned score **0.550 [0.5288, 0.5706], +34.9 Elo [+20.0, +49.4]** → rule
+  met: the owned WDL25-e10 net at K4EvalScale 60 replaces Rodent V1.2 as the
+  working reference evaluator. This is relative to V1.2 in the same engine on
+  the shared host, not an absolute rating. No installation or default change
+  is made.
+- NPS: owned 1.205M vs V1.2 1.184M.
+
+## Night summary
+
+| Gate | Change | Games | Score [95%] | Elo [95%] | Verdict |
+| --- | --- | ---: | --- | --- | --- |
+| M1 | A1 vs V1.2 (old int32 binary) | 200 | 0.468 [0.430, 0.505] | −22.6 [−49.0, +3.5] | parity |
+| S1 | int16 kernels | 88 pos | identical search | 1.162x speed | accepted |
+| M1b | A1 vs V1.2 (S1 binary) | 200 | 0.523 [0.483, 0.563] | +15.6 [−12.2, +43.7] | parity |
+| M2 | K8 vs A1 | 800 | 0.507 [0.486, 0.528] | +4.8 [−10.0, +19.6] | shelved |
+| M3 | W1024 vs A1 | 800 | 0.504 [0.483, 0.525] | +2.6 [−11.7, +17.4] | shelved |
+| E1 | K4EvalScale 60 vs 100 | 800 | 0.522 [0.502, 0.543] | +15.2 [+1.3, +29.6] | **adopted** |
+| M5 | A1@60 vs Counter 5.5 | 400 | 0.735 [0.705, 0.765] | +177 [+151, +205] | anchor |
+| M8 | A1@60 vs V1.2 | 800 | 0.512 [0.491, 0.533] | +8.3 [−6.5, +23.1] | parity |
+| M6 | WDL25 vs A1 (@60) | 800 | 0.530 [0.511, 0.549] | +20.9 [+7.8, +34.0] | **promoted** |
+| M4 | K8+W1024 vs A1 (@60) | 800 | 0.516 [0.496, 0.536] | +10.9 [−3.0, +24.8] | shelved |
+| M11 | WDL25@60 vs V1.2 | 800 | 0.550 [0.529, 0.571] | +34.9 [+20.0, +49.4] | **owned replaces V1.2** |
+
+Not completed: e20 (resumable), F1 data scale (blocked on host disk).
