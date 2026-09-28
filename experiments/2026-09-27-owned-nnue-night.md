@@ -135,3 +135,24 @@ M7 (e20 schedule) → M4 (K8+W1024) → M8 (best owned configuration vs Rodent
 V1.2, 800 games). Every spec embeds its predeclared rule; later gates read
 earlier reports only through those rules (E1 scale; M8 candidate = best
 promoted variant, else A1). The GPU trains WDL25 then e20 in sequence.
+
+## E1 — K4EvalScale 60 vs 100: **ADOPTED (scale 60)**
+
+Same binary (`75b0afdb…`, tree committed as `ccfb56a`) and net (A1-e10) on
+both sides; only `K4EvalScale` differs (60 vs 100, sent after Move Overhead).
+Default-scale identity against the S1 binary held on 88 fixtures
+([receipt](2026-09-27-k4-evalscale-identity.json)); the engine short suite and
+race suite passed. Openings 4341–4740, seed 2026092704, 800 games.
+[Spec](2026-09-27-e1-k4-evalscale60-spec.json),
+[report](2026-09-27-e1-k4-evalscale60-report.json).
+
+- Audit PASS, 800 games; penta `[8, 83, 189, 106, 14]`.
+- Scale 60 score 0.5219 [0.5019, 0.5425], **+15.2 Elo [+1.3, +29.6]** → rule
+  met: adopt K4EvalScale=60 for A1-family nets. One value was tested and no
+  second value is tried this session, so 60 is a sanctioned setting, not a
+  tuned optimum.
+- The in-game magnitude now matches the HCE/V1.2 scale: scale-60 mean |score|
+  64.8 vs 104.7 at 100 (slope 0.600, as constructed).
+- The code default stays 100 (identity with every earlier K4 run); K4 is an
+  opt-in backend configured explicitly, so the working configuration sets
+  `K4EvalScale 60`.
