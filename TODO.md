@@ -1,4 +1,48 @@
-# NGN current state — September 23 owned-NNUE continuation
+# NGN current state — September 28 owned-NNUE night
+
+**Working owned configuration:** owned K4 archive-A1 e10 net
+(`7e7fe59b…`, WSL `/home/ehrli/nnue-owned-k4-20260920/archive-a1/runs/archive-a1-e10.nnue`)
+with `EvalBackend ngn-k4-768-v1` and **`K4EvalScale 60`**, on source at or after
+`ccfb56a` (exact int16 kernels). Full record:
+[the night session](experiments/2026-09-27-owned-nnue-night.md).
+
+- A1 (Sep 24, rescued from a purged `/tmp` worktree and committed): +57.9 vs
+  borrowed Rodent V1.1 at 10+0.1.
+- S1 accepted (pure speed): exact int16 accumulators and V1.2 kernels, identical
+  search, 1.162x faster; K4 now ~102% of V1.2's in-game NPS.
+- E1 **adopted**: K4 scores were ~1.7x the HCE/V1.2 centipawn scale all search
+  margins assume; `K4EvalScale 60` gained **+15.2 Elo [+1.3, +29.6]** (800
+  games). Code default stays 100; one value tested, so it is sanctioned, not
+  tuned.
+- External anchor M5: owned K4 at scale 60 scored **73.5%, +177 Elo
+  [+151, +205]** against the exact Counter 5.5 release (400 games, run-003
+  settings); paired with run-003's NGN-Rodent-V1.1 result, +0.194 score
+  [+0.148, +0.240]. Relative, shared host, one opponent; not a list rating.
+- Shelved (800 games each, predeclared rule): K8 buckets +4.8 [−10.0, +19.6];
+  1024 hidden +2.6 [−11.7, +17.4]. At 2.37B positions, first-layer capacity is
+  not binding.
+- Vs Rodent V1.2 before E1 (200 games): +15.6 [−12.2, +43.7], parity.
+
+**Pending at handoff:** M6 (result-weight ramp 0→0.25), M7 (e20 schedule), M4
+(K8+W1024) and M8 (best owned configuration vs Rodent V1.2, 800 games) were
+queued as chained WSL user units `ngn-night-*`; read their `report.json`
+files under `/home/ehrli/nnue-owned-k4-20260920/night-20260927/` and the night
+record before acting.
+
+**Next, in order:**
+1. Data scale: the documented next A1 step. Farseer T74/T75/T76 and
+   T60T70wIsRightFarseer (~106 GB, same pinned HF revision) are downloaded and
+   SHA-256-verified under `/home/ehrli/nnue-owned-k4-20260920/data-farseer-20260928/`
+   (check `verify.txt` shows `DOWNLOAD_DONE`). `ngnk4archive scatter` is pinned
+   to the T80 source (bytes/SHA/chain split). It needs a per-source pin table,
+   a fresh SF18 score-map calibration sample for each new producer (the T80
+   map came from T80-only calibration keys) and the sentinel check, then
+   gather into a combined corpus, train, and gate against A1 at scale 60.
+2. A second eval-scale value (for example 50) only as its own predeclared gate.
+3. Search-margin retuning for the NNUE eval, which is games-heavy; consider only
+   after data scale.
+
+# Earlier state — September 23 owned-NNUE continuation
 
 The user reopened owned-NNUE research toward at least 3000, superseding the
 September 13 deferral in `CLAUDE.md`. The original 20M K4 model scored
