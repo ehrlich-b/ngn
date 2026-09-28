@@ -106,3 +106,32 @@ V1.2 64.7 (M1b, n≈10.9k; through-origin slope 1.50); the older 20M K4 135.4 vs
 HCE 64.7 (Sep 22 confirmation PGN, n≈15.7k). HCE and V1.2 agree, so the owned
 K4 speaks a centipawn scale about 1.7x larger than the one every search margin
 (RFP, futility, razoring, aspiration, singular, qsearch delta) was tuned on.
+
+## M3 — W1024 vs K4 A1-e10: **W1024 SHELVED**
+
+Same openings/rule as M2, seed 2026092703; W1024 binary `c92e78e0…`
+(`-tags ngnw1024`). [Spec](2026-09-27-m3-w1024-vs-k4-spec.json),
+[report](2026-09-27-m3-w1024-vs-k4-report.json).
+
+- Audit PASS, 800 games; penta `[16, 83, 196, 89, 16]`.
+- W1024 score 0.5038 [0.4831, 0.5250], **+2.6 Elo [−11.7, +17.4]** → rule not
+  met; 768 hidden stays. No extension.
+- NPS: W1024 0.936M vs K4 1.021M (−8%).
+- With K8 (+4.8) and W1024 (+2.6) both inside noise, extra first-layer
+  capacity is not the binding constraint on 2.37B positions at this schedule.
+
+## K8+W1024 stacked net (queued as M4)
+
+Trainer `03b01f80…` (`NGN_K8` + `NGN_H1024`), selected update 1,458,176,
+integer validation MSE 0.004661 (best of the night; A1 0.004850). Model
+`88d377f4…`, parity PASS. Gated last in the night queue (M4) because its two
+components were each individually null.
+
+## Night queue (automatic, one gate at a time on CPUs 4–14 even)
+
+E1 (K4EvalScale 60 vs 100) → M5 (owned K4 vs exact Counter 5.5, run-003
+settings, scale per E1) → M6 (result-weight ramp 0→0.25, final checkpoint) →
+M7 (e20 schedule) → M4 (K8+W1024) → M8 (best owned configuration vs Rodent
+V1.2, 800 games). Every spec embeds its predeclared rule; later gates read
+earlier reports only through those rules (E1 scale; M8 candidate = best
+promoted variant, else A1). The GPU trains WDL25 then e20 in sequence.
