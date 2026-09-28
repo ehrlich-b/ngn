@@ -93,6 +93,18 @@ This makes the engine a credible competitive project. The important remaining
 uncertainties concern opponent breadth, clock/width transfer, useful multicore
 search, search/eval calibration, and delivery of the measured configuration.
 
+In response to the user's request for a present absolute range: a reasonable
+working judgment for the strongest WDL25 single-thread research configuration
+is about **3500**, with a broad plausible **3300–3600** range on a CCRL-like
+engine scale. This is not a measured confidence interval or an official list
+entry. Counter's author lists 5.5 at 3333 CCRL 40/15; A1's short-clock +177
+would imply roughly 3510 if it transferred. WDL25's current direct external
+measurement, longer-clock transfer and opponent breadth remain missing.
+Do not transfer the much tighter within-engine +35 interval into absolute
+precision. The older installed classical build's historical audited estimate
+remains 2884 [2834,2934] on its frozen calibration.
+Source: [Counter's published strength](https://github.com/ChizhovVadim/CounterGo#strength).
+
 The 23 completed research commits have now been pushed to the verified private
 tracked branch. The primary
 checkout remains the separate, shelved staged-picker branch. Default startup
@@ -233,3 +245,18 @@ or fatal stderr. No illegal-PV exception was introduced for native Rodent.
 See [compatibility controls](2026-09-28-owned-counter-controls.json),
 [instrument smokes](2026-09-28-owned-instrument-smokes.json), and the
 [launched match unit](2026-09-28-owned-match-unit.json).
+
+The first short-clock A/A stopped at 23:07 UTC and remains unscored. Twelve
+NGN processes plus supervision approached the service's 6 GiB memory limit:
+sampled process-tree RSS peaked at 6,287,364 KiB, only 4,092 KiB below that
+ceiling, which also accounts for file-backed cache. Two roles then showed
+522/682 ms response latency and each missed the clock by 100 ms. This points
+to pressure from the experiment's resource limit, rather than a measured
+strength failure. The revised instrument uses a 10 GiB process-tree ceiling,
+12 GiB service ceiling, and records cgroup memory pressure events as well as
+host capacity. Both procedure smokes and the compatibility controls passed
+again. At 23:27 UTC, unit `ngn-owned-matches-20260928-r2.service` restarted the
+complete A/A; all engine settings, clocks, openings, selections and game caps
+are unchanged. No partial games were pooled. See the
+[abort receipt](2026-09-28-owned-aa-abort-001.json) and
+[revised launch](2026-09-28-owned-match-unit-r2.json).

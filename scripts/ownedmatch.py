@@ -134,10 +134,13 @@ def admit_control(spec: dict, current_instrument: dict) -> None:
 
 def stage(out: Path, label: str, command: list[str], spec: dict, limit: float) -> None:
     command = supervisor_command(HELPERS / 'process_supervisor.py', label, out / label,
-                                 limit, 6 * 1024 * 1024, ','.join(map(str, spec['cpus'])),
+                                 limit, 10 * 1024 * 1024, ','.join(map(str, spec['cpus'])),
                                  command, 3, 1)
     process = subprocess.Popen(command, env=safe_environment())
     started = time.monotonic()
+    cgroup = next((line.split(':', 2)[2] for line in Path('/proc/self/cgroup').read_text().splitlines()
+                   if line.startswith('0::')), None)
+    cgroup_path = Path('/sys/fs/cgroup') / cgroup.lstrip('/') if cgroup else None
     try:
         with (out / label / 'host-capacity.jsonl').open('x', buffering=1) as samples:
             while process.poll() is None:
@@ -149,6 +152,10 @@ def stage(out: Path, label: str, command: list[str], spec: dict, limit: float) -
                           'memory_available_kib': int(memory['MemAvailable'].split()[0]),
                           'loadavg': Path('/proc/loadavg').read_text().strip(),
                           'cpu_stat': Path('/proc/stat').read_text().splitlines()[0]}
+                if cgroup_path:
+                    sample['cgroup_memory'] = {name: (cgroup_path / name).read_text().strip()
+                                              for name in ('memory.current', 'memory.peak', 'memory.events')
+                                              if (cgroup_path / name).is_file()}
                 samples.write(json.dumps(sample) + '\n')
                 if free_gib < spec.get('minimum_windows_free_gib', 25) or sample['memory_available_kib'] < 1 << 20:
                     raise CandidateMatchError('host capacity guard failed')
