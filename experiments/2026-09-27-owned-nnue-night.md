@@ -329,3 +329,11 @@ freezing the spec. [Spec](2026-09-27-m11-wdl25-vs-v12-spec.json),
 | M11 | WDL25@60 vs V1.2 | 800 | 0.550 [0.529, 0.571] | +34.9 [+20.0, +49.4] | **owned replaces V1.2** |
 
 Not completed: e20 (resumable), F1 data scale (blocked on host disk).
+
+## S12 — screen only: WDL25 at K4EvalScale 50 vs 60
+
+200 games (first 100 pairs of 4341–4740), seed 2026092712, same binary and
+net; no decision rule. Audit PASS; penta `[3, 21, 54, 21, 1]`; scale 50 scored
+0.490 [0.453, 0.528], −6.9 Elo [−33.1, +19.1]. There is no sign that 50 beats
+60, so a predeclared scale-50 gate is low priority.
+[Report](2026-09-27-s12-wdl25-scale50-screen-report.json).

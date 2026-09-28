@@ -55,9 +55,7 @@ Several gate attempts were cut short by the shutdowns and are preserved as
    records and needs ~350 GB of scatter plus gather space. Then train at the A1
    schedule and gate against A1 at scale 60. Consider a fresh SF18 calibration
    sample per producer if the logistic scales disagree strongly.
-2. A single lower `K4EvalScale` value for WDL25 (its scores run ~1.2x A1's at
-   the same scale, so 50 is the natural candidate) as its own predeclared gate.
-   Also a larger result weight (for example ramp to 0.4) as a separate
+2. A larger result weight (for example ramp to 0.4) as a separate
    training plus game gate; stacking K8 or W1024 only if the data-scale lane
    shows capacity starting to bind.
 3. Search-margin retuning for the NNUE eval, which is games-heavy; consider only
