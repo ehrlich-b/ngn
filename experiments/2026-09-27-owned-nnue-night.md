@@ -71,3 +71,38 @@ on the frozen SF18 holdout ≈0.00478 (final 0.004783) versus A1's selected
 Bullet float probe and the Go reference agree to 6.7e-7 z on all 12 parity
 FENs (so the Go K8 table matches Bullet's mirrored layout), quantization
 delta mean 5.2 cp / max 11.7 cp, **PASS**.
+
+## M2 — K8 vs K4 A1-e10: **K8 SHELVED**
+
+Binaries from the `d7501b6` tree: K8 `ef4e1a53…` (`-tags ngnk8`), K4
+`5d989a7f…` (default). Openings 4341–4740 frozen tonight from the pinned
+`sprt_openings.txt` (`974e4b5a…`; prefixes `c2531d2a…`, PGN `e9c2c2d0…` via the
+existing converter; disjoint from all earlier 4001–4340 slices). 800 games,
+10+0.1, c6 on CPUs 4/6/8/10/12/14, seed 2026092702. Predeclared rule in the
+[spec](2026-09-27-m2-k8-vs-k4-spec.json): promote K8 only if the paired 95%
+lower bound on score exceeds 0.5. [Report](2026-09-27-m2-k8-vs-k4-report.json).
+
+- Audit PASS, 800 games, 121,925 legal plies; penta `[14, 89, 181, 104, 12]`.
+- K8 score 0.5069 [0.4856, 0.5281], **+4.8 Elo [−10.0, +19.6]** → rule not
+  met; K4 remains the layout. No extension.
+- NPS: K8 0.997M vs K4 1.028M (−3%, extra king-bucket refreshes).
+- The 1.7% validation-MSE gain converted to at most a small Elo effect.
+
+## W1024 — 1024 hidden, same corpus and schedule
+
+Trainer built with `NGN_H1024` from harness `ba4f9c44…` (= `d7501b6`), binary
+`fa3caff2…`; ~7.3M positions/s. Selected update 1,458,176, integer validation
+MSE 0.004794 (A1 0.004850, K8 0.004767). Model `8c5de170…`.
+[Convert](2026-09-27-w1024-e10-convert.json),
+[parity](2026-09-27-w1024-e10-parity.json): probe Δz ≤ 7.2e-7, quantization
+mean 7.9 cp / max 16.5 cp, **PASS**. Its gate (M3, seed 2026092703, same rule
+and openings, binary `c92e78e0…`) is running.
+
+## Eval-scale diagnostic
+
+Consecutive-ply score pairs (both |score| ≤ 400) in PGNs give each engine's
+typical magnitude on shared positions: A1 K4 mean |score| 108.9 vs Rodent
+V1.2 64.7 (M1b, n≈10.9k; through-origin slope 1.50); the older 20M K4 135.4 vs
+HCE 64.7 (Sep 22 confirmation PGN, n≈15.7k). HCE and V1.2 agree, so the owned
+K4 speaks a centipawn scale about 1.7x larger than the one every search margin
+(RFP, futility, razoring, aspiration, singular, qsearch delta) was tuned on.
