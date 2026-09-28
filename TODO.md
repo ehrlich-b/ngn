@@ -11,7 +11,8 @@ record](experiments/2026-09-28-owned-nnue-state-review.md).
 
 The separate WDL25 candidate bundle passed actual Linux and Windows launcher
 smokes. Frozen WDL40/e20 training and fresh short/long-clock match queues are
-running on WSL; the final-checkpoint selections and game caps are fixed in the
+running on WSL; WDL40 export and the revised fresh short-clock A/A have passed.
+The final-checkpoint selections and game caps are fixed in the
 [overnight plan](experiments/2026-09-28-owned-overnight-plan.json). Report results
 only after full audits; no promotion from training loss or incomplete games.
 

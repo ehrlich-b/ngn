@@ -260,3 +260,22 @@ complete A/A; all engine settings, clocks, openings, selections and game caps
 are unchanged. No partial games were pooled. See the
 [abort receipt](2026-09-28-owned-aa-abort-001.json) and
 [revised launch](2026-09-28-owned-match-unit-r2.json).
+
+The revised A/A completed at 23:39 UTC: 128 games, 64 pairs and 19,285 legal
+plies, with every protocol/process/trace/terminal audit passing. Its paired
+score interval [0.46875,0.56640625] contains parity. Peak process-tree RSS was
+7.441 GiB, exceeding the old 6 GiB ceiling; the revised cgroup recorded zero
+pressure-limit or OOM events. The fresh 800-game reference cell then started.
+See the [completed A/A](2026-09-28-owned-aa-short-result.json).
+
+WDL40's final selected checkpoint completed conversion and parity at 23:43
+UTC. Its net is `41ffe3f372579705f0c199096e0967544aecf130afd0256793c53c3a55379364`.
+All 1,638,400 updates and 26,843,545,600 presentations are bound to the frozen
+attempt with result-weight endpoint 0.4. Trainer/raw float delta is at most
+5.36e-7 in the parity fixtures; scalar/context integer evaluations match,
+with mean quantization error 4.33cp and maximum 17.68cp within the predeclared
+8/32/64 gates. These are export checks, not game-strength evidence. The final
+resumable checkpoint and net plus the complete A/A trace/PGN/control records
+were copied off-worker and hash-checked. The original e20 resume then started.
+See [WDL40 eligibility](2026-09-28-owned-wdl40-e10-ready.json) and
+[parity evidence](2026-09-28-owned-wdl40-parity.json).
