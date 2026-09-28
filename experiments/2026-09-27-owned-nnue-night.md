@@ -58,8 +58,9 @@ unchanged, so pairing with M1 by round isolates the K4 speedup.
 
 ## K8 — eight king buckets, same corpus and schedule
 
-Trainer built with `NGN_K8` from the `d7501b6` harness source (binary
-`33ba487c…`), mode `archive-a1-e10` (1,638,400 updates, cosine 0.001→0.00001,
+Trainer built with `NGN_K8` from harness source `478f512f…` (the K8-switch
+revision; `d7501b6` only adds the unset-by-default `NGN_H1024` switch), binary
+`33ba487c…`, mode `archive-a1-e10` (1,638,400 updates, cosine 0.001→0.00001,
 seed 26092001) on the unchanged A1 corpus (`270f65bd…`, 2,374,290,033 records);
 ~6.2M positions/s (A1: 8.8M), about 58 minutes. Selector (`ngnk4bridge`
 built with `-tags ngnk8`) picked update **1,540,096**; integer validation MSE
