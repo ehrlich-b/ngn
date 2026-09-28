@@ -1,9 +1,12 @@
 # NGN current state — September 28 owned-NNUE night
 
-**Working owned configuration:** owned K4 archive-A1 e10 net
-(`7e7fe59b…`, WSL `/home/ehrli/nnue-owned-k4-20260920/archive-a1/runs/archive-a1-e10.nnue`)
-with `EvalBackend ngn-k4-768-v1` and **`K4EvalScale 60`**, on source at or after
-`ccfb56a` (exact int16 kernels). Full record:
+**Working owned configuration:** owned K4 **WDL25-e10** net (`1ec8fc17…`,
+WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
+A1 corpus and schedule with the game-result weight ramped 0→0.25) with
+`EvalBackend ngn-k4-768-v1` and **`K4EvalScale 60`**, on source at or after
+`ccfb56a` (exact int16 kernels). It beat A1-e10 by **+20.9 Elo [+7.8, +34.0]**
+(M6, 800 games). A1-e10 at scale 60 measured parity with Rodent V1.2 (M8, 800
+games, +8.3 [−6.5, +23.1]). Full record:
 [the night session](experiments/2026-09-27-owned-nnue-night.md).
 
 - A1 (Sep 24, rescued from a purged `/tmp` worktree and committed): +57.9 vs
@@ -32,9 +35,10 @@ scheduled task `ngn-wsl-keepalive` (`wsl.exe -e sleep infinity`) keeps the
 distro alive for SSH-launched `systemd-run --user` units; without it the
 distro stops when the last `wsl.exe` client exits.
 
-**Pending at handoff:** M8 (owned A1 at scale 60 vs Rodent V1.2, 800 games),
-M6 (result-weight ramp 0→0.25) and M4 (K8+W1024) are chained WSL user units
-`ngn-night-*`; read their `report.json` under
+**Pending at handoff:** M4 (K8+W1024 vs A1) and then M11 (WDL25 at scale 60
+vs Rodent V1.2, 800 games, the owned net replaces V1.2 as reference if the
+lower bound is above 0.5) are chained WSL user units `ngn-night-*`; read their
+`report.json` under
 `/home/ehrli/nnue-owned-k4-20260920/night-20260927/` and the night record.
 Several gate attempts were cut short by the shutdowns and are preserved as
 `*-aborted-*`, unscored. e20 training is unfinished (resume from
@@ -52,7 +56,11 @@ Several gate attempts were cut short by the shutdowns and are preserved as
    records and needs ~350 GB of scatter plus gather space. Then train at the A1
    schedule and gate against A1 at scale 60. Consider a fresh SF18 calibration
    sample per producer if the logistic scales disagree strongly.
-2. A second eval-scale value (for example 50) only as its own predeclared gate.
+2. A single lower `K4EvalScale` value for WDL25 (its scores run ~1.2x A1's at
+   the same scale, so 50 is the natural candidate) as its own predeclared gate.
+   Also a larger result weight (for example ramp to 0.4) as a separate
+   training plus game gate; stacking K8 or W1024 only if the data-scale lane
+   shows capacity starting to bind.
 3. Search-margin retuning for the NNUE eval, which is games-heavy; consider only
    after data scale.
 
