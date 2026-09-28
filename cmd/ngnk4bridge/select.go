@@ -33,6 +33,7 @@ const (
 	selectionSchemaMainM1LR132K = "ngn-k4-main-m1-lr1-32k-selection-v1"
 	selectionSchemaArchiveA1E1  = "ngn-k4-archive-a1-e1-selection-v1"
 	selectionSchemaArchiveA1E10 = "ngn-k4-archive-a1-e10-selection-v1"
+	selectionSchemaArchiveA1E20 = "ngn-k4-archive-a1-e20-selection-v1"
 	archiveCorpusSchema         = "ngn-k4-archive-corpus-v1"
 	checkpointSchema            = "ngn-k4-bullet-checkpoint-v1"
 	finalizedSchema             = "ngn-k4-finalized-corpus-v1"
@@ -210,6 +211,11 @@ func selectionModeFor(value string) (selectionMode, error) {
 		return selectionMode{
 			name: "archive-a1-e10", manifestMode: "archive", schema: selectionSchemaArchiveA1E10, totalUpdates: 1_638_400,
 			checkpointUpdates: 16_384, minimumUpdate: 819_200, patience: 8,
+		}, nil
+	case "archive-a1-e20":
+		return selectionMode{
+			name: "archive-a1-e20", manifestMode: "archive", schema: selectionSchemaArchiveA1E20, totalUpdates: 3_276_800,
+			checkpointUpdates: 16_384, minimumUpdate: 1_638_400, patience: 8,
 		}, nil
 	default:
 		return selectionMode{}, fmt.Errorf("unknown selection mode %q", value)
@@ -670,7 +676,7 @@ func chooseSelectionCandidateForMode(metrics []candidateMetric, mode selectionMo
 func runSelect(args []string, stdout, stderr io.Writer) error {
 	flags := flag.NewFlagSet("select", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	modeName := flags.String("mode", "pilot", "selection mode: pilot, pilot-s1, pilot-lr1, probe5m, probe5m-lr1, main-m1, main-m1-lr1, main-m1-lr1-32k, archive-a1-e1, or archive-a1-e10")
+	modeName := flags.String("mode", "pilot", "selection mode: pilot, pilot-s1, pilot-lr1, probe5m, probe5m-lr1, main-m1, main-m1-lr1, main-m1-lr1-32k, archive-a1-e1, archive-a1-e10, or archive-a1-e20")
 	candidates := flags.String("candidates", "", "pilot candidate directory")
 	manifestPath := flags.String("manifest", "", "frozen finalized-pilot manifest")
 	validationPath := flags.String("validation", "", "frozen validation BF")

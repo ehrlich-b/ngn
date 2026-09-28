@@ -10,7 +10,8 @@ trace log), the same independent chess auditor, and a report paired by round.
 
 Spec keys: fastchess, auditor, stockfish, openings_pgn, opening_prefixes (each
 {"path", "sha256"}), opening_plies, pairs, concurrency, cpus, seed, and exactly
-one of tc / nodes. roles: two entries {"name", "engine": {"path", "sha256"},
+one of tc / nodes; optional strict (default true) controls fastchess -strict.
+roles: two entries {"name", "engine": {"path", "sha256"},
 "options": [[UCI name, value], ...] sent in order, "network": {"path", "sha256"}
 | null}; an option value "$NETWORK" becomes the checked network path. The first
 role is the candidate; scores are reported from its side.
@@ -81,7 +82,7 @@ def run(spec_path: Path, out: Path) -> None:
         '-each', *budget,
         '-rounds', str(spec['pairs']), '-games', '2', '-repeat', '-concurrency', str(spec['concurrency']),
         '-use-affinity', ','.join(str(cpu) for cpu in spec['cpus']),
-        '-srand', str(spec['seed']), '-strict', '-show-latency',
+        '-srand', str(spec['seed']), *(['-strict'] if spec.get('strict', True) else []), '-show-latency',
         '-pgnout', f'file={out / "games.pgn"}', 'notation=uci', 'append=false', 'nodes=true', 'seldepth=true',
         'nps=true', 'hashfull=true', 'timeleft=true', 'latency=true', 'pv=true',
         '-epdout', f'file={out / "final.epd"}', 'append=false',

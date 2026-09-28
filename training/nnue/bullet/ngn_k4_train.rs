@@ -39,6 +39,9 @@ const IDENTITY_CONTRACT: &str = "sha256(ngn-k4-final-segments-v1\\0 || segment_n
 const MODEL_SEED: u64 = 26_092_001;
 // Compile with NGN_H1024 set (any value) for the 1024-wide research variant.
 const HIDDEN: usize = if option_env!("NGN_H1024").is_some() { 1024 } else { 768 };
+// Compile with NGN_WDL25 set for a game-result weight ramping linearly from 0
+// to 0.25 across superbatches; the default is the frozen pure-score target.
+const WDL_END: f32 = if option_env!("NGN_WDL25").is_some() { 0.25 } else { 0.0 };
 const OUTPUT_BUCKETS: usize = 8;
 const SCORE_SCALE: i16 = 400;
 const QA: i16 = 255;
@@ -215,6 +218,14 @@ fn mode(value: &str) -> Option<Mode> {
             corpus_name: "train-archive",
             positions: 0,
             updates: 1_638_400,
+            checkpoint_updates: 16_384,
+        }),
+        "archive-a1-e20" => Some(Mode {
+            name: "archive-a1-e20",
+            manifest_mode: "archive",
+            corpus_name: "train-archive",
+            positions: 0,
+            updates: 3_276_800,
             checkpoint_updates: 16_384,
         }),
         _ => None,
@@ -1176,7 +1187,7 @@ fn main() {
     let resume = action.as_deref() == Some("resume");
     if (action.as_deref() != Some("start") && !resume) || (!resume && args.len() != 5) || (resume && args.len() != 6) {
         fail(
-            "usage: ngn_k4_train start smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1|main-m1-lr1|main-m1-lr1-32k|archive-a1-e1|archive-a1-e10 FINALIZED_OR_ARCHIVE_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1|main-m1-lr1|main-m1-lr1-32k|archive-a1-e1|archive-a1-e10 FINALIZED_OR_ARCHIVE_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
+            "usage: ngn_k4_train start smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1|main-m1-lr1|main-m1-lr1-32k|archive-a1-e1|archive-a1-e10|archive-a1-e20 FINALIZED_OR_ARCHIVE_MANIFEST NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train resume smoke|pilot|pilot-s1|pilot-lr1|probe5m|probe5m-lr1|main|main-m1|main-m1-lr1|main-m1-lr1-32k|archive-a1-e1|archive-a1-e10|archive-a1-e20 FINALIZED_OR_ARCHIVE_MANIFEST PARENT_CHECKPOINT_RECEIPT NEW_ATTEMPT_DIRECTORY\n       ngn_k4_train probe CHECKPOINT_DIRECTORY FENS_FILE\n       ngn_k4_train compare CHECKPOINT_DIRECTORY CHECKPOINT_DIRECTORY",
         );
     }
     let mode_text = args[2].to_string_lossy();
@@ -1290,7 +1301,9 @@ fn main() {
                 start_superbatch: superbatch,
                 end_superbatch: superbatch,
             },
-            wdl_scheduler: wdl::ConstantWDL { value: 0.0 },
+            wdl_scheduler: wdl::ConstantWDL {
+                value: WDL_END * (superbatch - 1) as f32 / (total_superbatches - 1).max(1) as f32,
+            },
             lr_scheduler: lr::CosineDecayLR { initial_lr, final_lr, final_superbatch: total_superbatches },
             save_rate: 1,
         };
