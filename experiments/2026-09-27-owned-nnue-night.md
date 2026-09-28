@@ -232,3 +232,22 @@ outputs were deleted, and the downloads must be redone once there is room.
 e20 stays unfinished, resumable from `candidate-2375680`. The attempts cut off
 by the EIO (M8 third start) are preserved unscored. Only low-write match gates
 continue: M8 → M6 → M4.
+
+## M8 — owned A1 (scale 60) vs Rodent V1.2, 800 games: **parity**
+
+Same binary for both roles (`75b0afdb…`); owned A1-e10 with `K4EvalScale 60`,
+borrowed V1.2 default (`c35a1abc…`) unchanged. No night variant had been
+promoted, so the launcher picked A1. Openings 4341–4740, seed 2026092708, c6.
+This was the fourth start; three earlier starts were cut off by the WSL
+shutdowns and the disk-full I/O failure and are preserved unscored.
+[Spec](2026-09-27-m8-owned-vs-v12-spec.json),
+[report](2026-09-27-m8-owned-vs-v12-report.json).
+
+- Audit PASS, 800 games, 128,605 legal plies; 226/409/165 (white win, draw,
+  black win); penta `[6, 108, 165, 103, 18]`.
+- Owned score 0.5119 [0.4906, 0.5331], **+8.3 Elo [−6.5, +23.1]** → parity
+  under the predeclared rule (neither bound excludes 0.5). V1.2 formally stays
+  the working reference; the owned net is statistically level with the
+  strongest borrowed evaluator.
+- NPS: owned 1.273M vs V1.2 1.246M. At scale 60, score magnitudes on shared
+  positions are close (slope 1.03 owned~V1.2; mean |score| 83 vs 76).
