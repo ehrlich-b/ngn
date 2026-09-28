@@ -251,3 +251,33 @@ shutdowns and the disk-full I/O failure and are preserved unscored.
   strongest borrowed evaluator.
 - NPS: owned 1.273M vs V1.2 1.246M. At scale 60, score magnitudes on shared
   positions are close (slope 1.03 owned~V1.2; mean |score| 83 vs 76).
+
+## WDL25 — game-result weight ramping 0 → 0.25
+
+Trainer built with `NGN_WDL25` from harness `7bb8ddb4…` (= `dc26c18`), binary
+`273ea4b5…`: per superbatch, `ConstantWDL { value: 0.25 · (sb−1)/(total−1) }`,
+so the weight on the STM game result ramps linearly from 0 to 0.25 across the
+A1 e10 schedule (same corpus, seed, LR and graph). The selector ranks by
+pure-score validation MSE, which penalizes a result-blended net, so the
+**final** checkpoint (1,638,400) was converted directly, as declared before
+training: model `1ec8fc17…`. Parity PASS (probe Δz 3.9e-7, quantization mean
+4.6 cp / max 8.1 cp). [Convert](2026-09-27-wdl25-e10-convert.json),
+[parity](2026-09-27-wdl25-e10-parity.json).
+
+## M6 — WDL25 vs A1-e10 (both K4EvalScale 60): **WDL25 PROMOTED**
+
+Fourth start (earlier ones cut off by the shutdowns, preserved unscored).
+Binary `75b0afdb…` for both roles; openings 4341–4740, seed 2026092706, 800
+games. [Spec](2026-09-27-m6-wdl25-vs-a1-spec.json),
+[report](2026-09-27-m6-wdl25-vs-a1-report.json).
+
+- Audit PASS, 800 games; penta `[4, 72, 208, 104, 12]`.
+- WDL25 score 0.530 [0.5113, 0.5488], **+20.9 Elo [+7.8, +34.0]** → rule met:
+  WDL25-e10 replaces A1-e10 as the owned working net.
+- NPS equal (1.236M vs 1.239M). At the same scale, WDL25's scores are larger
+  than A1's (mean |score| 89 vs 73, slope 0.79 A1~WDL25). Blending in results
+  sharpens the evaluation, so K4EvalScale 60 was fitted to A1, not WDL25. A
+  lower scale for WDL25 is a natural next single-value gate.
+- The CPU slot after M4 now runs M11 (WDL25 at scale 60 vs Rodent V1.2, 800
+  games, M8 rule) in place of the planned M10 longer-clock diagnostic, which
+  had not started.
