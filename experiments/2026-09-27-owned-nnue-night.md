@@ -281,3 +281,17 @@ games. [Spec](2026-09-27-m6-wdl25-vs-a1-spec.json),
 - The CPU slot after M4 now runs M11 (WDL25 at scale 60 vs Rodent V1.2, 800
   games, M8 rule) in place of the planned M10 longer-clock diagnostic, which
   had not started.
+
+## M4 — stacked K8+W1024 vs A1-e10 (both scale 60): **SHELVED**
+
+Binaries from one source tree: `21ba3794…` (`-tags ngnk8,ngnw1024`) vs
+`75b0afdb…`; net `88d377f4…` (selected update 1,458,176, validation MSE
+0.004661). Openings 4341–4740, seed 2026092705, 800 games.
+[Spec](2026-09-27-m4-k8w1024-vs-a1-spec.json),
+[report](2026-09-27-m4-k8w1024-vs-a1-report.json),
+[convert](2026-09-27-k8w1024-e10-convert.json).
+
+- Audit PASS, 800 games; penta `[6, 91, 188, 102, 13]`.
+- Score 0.5156 [0.4956, 0.5356], **+10.9 Elo [−3.0, +24.8]** → rule not met;
+  no extension. Capacity gains are consistent and small: K8 +4.8, W1024 +2.6,
+  stacked +10.9, all inside noise on this 2.37B-position corpus.
