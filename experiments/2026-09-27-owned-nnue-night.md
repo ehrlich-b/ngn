@@ -156,3 +156,26 @@ race suite passed. Openings 4341–4740, seed 2026092704, 800 games.
 - The code default stays 100 (identity with every earlier K4 run); K4 is an
   opt-in backend configured explicitly, so the working configuration sets
   `K4EvalScale 60`.
+
+## M5 — owned K4 (scale 60) vs exact Counter 5.5: external anchor
+
+Owned K4 A1-e10 at K4EvalScale=60 (binary `75b0afdb…`) against the exact
+Counter 5.5 release (`6c48fb52…`, embedded NNUE, Threads=1, Hash=128,
+ExperimentSettings=false, no overhead option), reusing the accepted
+2026-09-18 run-003 opening set (`first200`: PGN `1ae6a65a…`, prefixes
+`2257ecfb…`), seed 20260912, 10+0.1, 400 games, c4 on CPUs 8/10/12/14,
+fastchess without `-strict` (as run-003 did for the external role).
+[Spec](2026-09-27-m5-owned-vs-counter55-spec.json),
+[report](2026-09-27-m5-owned-vs-counter55-report.json).
+
+- Audit PASS, 400 games, 66,680 legal plies, zero book-signature plies;
+  141 white mates / 117 black mates / 142 draws; penta `[0, 12, 43, 90, 55]`.
+- Owned K4 score **0.735 [0.705, 0.765], +177 Elo [+151, +205]** vs Counter 5.5.
+- Paired by round with run-003 (NGN at `52ee629` with borrowed Rodent V1.1
+  Anand vs the same Counter, 0.541): **+0.194 score [+0.148, +0.240]**. That
+  delta also contains search changes accepted since Sep 13, not only the net.
+- NPS: NGN 1.164M, Counter 2.629M; NGN wins while searching less than half
+  as many nodes per second.
+- Boundary: one external opponent, one clock, shared host; relative Elo, not a
+  list rating. The previous one-thread orientation put the Sep 12 NGN (HCE)
+  at −323 vs Counter; the owned-net configuration now scores +177 against it.
