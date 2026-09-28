@@ -179,3 +179,25 @@ fastchess without `-strict` (as run-003 did for the external role).
 - Boundary: one external opponent, one clock, shared host; relative Elo, not a
   list rating. The previous one-thread orientation put the Sep 12 NGN (HCE)
   at −323 vs Counter; the owned-net configuration now scores +177 against it.
+
+## Incident — WSL instance shutdowns (01:08–01:39)
+
+At 01:08:15 the WSL distro stopped (Windows host up since Sep 7, 18.7 GB
+free, no `.wslconfig`); every transient `systemd-run --user` unit died with
+it. The boot list then showed each new instance ending seconds to minutes
+after the SSH session that started it disconnected (01:09–01:12,
+01:13:03–01:13:23, 01:38:31). WSL terminates the distro when no `wsl.exe`
+client remains attached. Something that had held one attached all evening
+(apparently another long-lived session on the host) ended at 01:08; systemd
+user services do not keep the distro alive. **Fix:** Windows scheduled task
+`ngn-wsl-keepalive` running `wsl.exe -e sleep infinity` (created with a
+far-future one-shot trigger and started manually); verified that the instance
+survives with no SSH attached. Remove it with
+`schtasks /delete /tn ngn-wsl-keepalive /f` when no longer wanted.
+
+Losses and handling: M6's first attempt stopped at 84/800 games, and two M8
+starts stopped at 5 games or fewer. All are preserved as `*-aborted-*`
+directories, unscored and unpooled, and each gate reruns from game 1 with an
+unchanged spec. e20 training resumes from `candidate-2375680` (145/200) via the
+harness resume path. The farseer download resumes by byte range, and the partial
+F1 scatter outputs (≤72 KB) were deleted and restarted.
