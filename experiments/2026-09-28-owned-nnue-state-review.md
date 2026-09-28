@@ -93,7 +93,8 @@ This makes the engine a credible competitive project. The important remaining
 uncertainties concern opponent breadth, clock/width transfer, useful multicore
 search, search/eval calibration, and delivery of the measured configuration.
 
-Research source is 23 commits ahead of its recorded tracking ref. The primary
+The 23 completed research commits have now been pushed to the verified private
+tracked branch. The primary
 checkout remains the separate, shelved staged-picker branch. Default startup
 is HCE; the winning net and scale are opt-in. Live September 28 installed
 hashes match the recorded historical classical installs:
@@ -101,17 +102,27 @@ WSL `0c067627...`; Windows and repin `2c29f196...`. Thus an ordinary installed
 launch is not the winning research configuration. `make build-release` also
 does not request GOAMD64=v3, while the accepted fast kernels require it.
 
-One concrete delivery defect needs a regression test: K4EvalScale currently
-lives in a process-global atomic and is absent from evaluator identity. UCI
+One concrete delivery defect was reproduced: K4EvalScale lived in a
+process-global atomic and was absent from evaluator identity. UCI
 joins a search before changing it, but the model identity is unchanged, so
 `prepareTTGeneration` can retain TT scores/bounds and histories from the old
 scale. Independent search engines in one process also share that setting.
 The frozen night games configure each fresh process once and are not invalidated
-by this defect. Fix it before packaging mutable UCI scale selection; preserve
-fixed-60 behavior with exact search identity against the accepted binary.
-The trainer's result-weight mode is also missing from structured attempt/
-checkpoint receipts, and its completion line still says result_weight=0 for
-WDL25. Executable hashes distinguish the existing runs, but new variants should
+by this defect. Failure-before regressions showed engine A changing engine B's
+score from 1062 to 637, and scale changes retaining the cached TT score 888.
+The fix stores scale per engine and freezes it into worker/TT evaluator identity.
+Same-value/invalid requests preserve valid state; inactive K4 options preserve
+HCE state. Required engine/repository short and race suites pass on WSL.
+Configured-60 depth-12 searches match the accepted binary on all 88 fixtures
+over three alternating rounds: identical depths, 20,524,751 total nodes, scores
+and best moves. Median speed ratio is 1.0036, consistent with unchanged speed.
+Explicit startup flags advertise scale 60 and OwnBook false for a separate
+candidate launcher. Ordinary defaults and historical installations stay held.
+See the [verification receipt](2026-09-28-owned-scale-verification.json) and
+[identity receipt](2026-09-28-owned-scale-identity.json).
+The earlier trainer's result-weight mode was missing from structured attempt/
+checkpoint receipts, and its completion line said result_weight=0 for
+WDL25. Executable hashes distinguish the existing runs. New variants now
 record the actual target schedule explicitly.
 
 ## Live host capacity and maintenance
@@ -128,12 +139,17 @@ review. In particular, files touched in the past 24 hours stay untouched.
 Compaction may recover tens of GiB; it cannot create the approximately 350GB
 headroom required by the proposed 6.4B-record scatter/gather experiment.
 
-The keepalive task is running, with RestartCount 0 and a 72-hour execution
-limit. The NNUE queue is idle. The Arli hopper and three rootless Docker
-container scopes are running. WSL shutdown would interrupt them. Approval
-for a maintenance window is pending; current SSH token reports administrator
-membership, unlike the earlier night report. Hyper-V Optimize-VHD was not
-found in the current PowerShell session, so diskpart is the prepared route.
+The user approved a temporary maintenance interruption. Trim, WSL shutdown
+and read-only diskpart compaction succeeded at 21:54 UTC. VHDX length fell from
+430.078 to 380.702 GiB, recovering 49.376 GiB from that file. Windows C: had
+53.365 GiB free after service restoration (other Windows activity means this
+is not exactly the VHDX delta). No reboot was required. Docker and the hopper
+are enabled/active; both original worker tasks restarted in successor containers,
+and the relay and keepalive are running. The 72-hour keepalive limit remains.
+The current SSH token has administrator membership, unlike the old night
+report. Hyper-V Optimize-VHD was unavailable; diskpart was used. No training
+data or checkpoints were deleted in this continuation. Subsequent small-write
+jobs require a physical Windows capacity floor; the 350GB lane remains blocked.
 
 Microsoft documents that VHDs grow without automatically shrinking after
 file deletion and that diskpart compaction requires a detached/read-only VHD.
@@ -180,3 +196,40 @@ All engine/build/test/training execution stays on WSL.
    a routine push. Report measured gains, nulls, packaged artifacts and blocked
    work separately. The large-data lane waits for substantially more capacity
    or a separately validated pipeline that avoids materializing both copies.
+
+## Frozen queue launched
+
+The [overnight plan](2026-09-28-owned-overnight-plan.json) was written before
+training or scored games. WDL40 changes only the linear result-weight endpoint
+from 0.25 to 0.4; the final 1,638,400-update checkpoint is selected in advance.
+Conversion, full/incremental integer and trainer-probe parity must pass before
+its fixed 1,600-game gate against WDL25. Promotion requires a positive paired
+95% Elo lower bound. The original e20 executable separately resumes its bound
+parent to 3,276,800 updates; completing it is diagnostic, not promotion.
+
+GPU training started at 22:43 UTC in `ngn-owned-training-20260928.service`.
+The trainer passed real CUDA smoke/resume checks and rejected simultaneous
+target flags and a mismatched parent target. The exact harness/executable and
+opening sets are hash-bound in the accompanying build/smoke/opening receipts.
+
+The match queue started at 23:05 UTC in `ngn-owned-matches-20260928.service`:
+128-game short-clock A/A, fresh 800-game WDL25/borrowed-V1.2 confirmation,
+the 1,600-game WDL40 gate, 80-game long-clock A/A, and 400-game WDL25 versus
+the exact native Counter 5.5 release at 60+0.6. Six single-thread pairs use
+separate physical cores; training is pinned to cores outside that set. The
+host remains shared with the restored hopper, recorded explicitly in the plan.
+Both queues enforce a physical C: floor of 25 GiB and the morning deadline;
+interrupted cells remain unscored. C: had 46.08 GiB free at match launch.
+
+The final instrument passed two four-game legal/protocol/process/trace smokes,
+with 648 and 544 independently checked legal plies. These are procedure checks
+and carry no strength estimate. Counter's exact release emits two benign
+startup messages to stderr. Its SHA-specific allowance retains raw transcripts
+and requires one version and one embedded-weight record per witnessed process.
+Eight mutated traces (wrong revision/runtime/hash, duplicate or absent records,
+warning severity, illegal PV and messages attributed to NGN) were rejected;
+four protocol-reader fixtures preserve raw output and reject foreign, duplicate
+or fatal stderr. No illegal-PV exception was introduced for native Rodent.
+See [compatibility controls](2026-09-28-owned-counter-controls.json),
+[instrument smokes](2026-09-28-owned-instrument-smokes.json), and the
+[launched match unit](2026-09-28-owned-match-unit.json).

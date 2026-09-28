@@ -41,7 +41,12 @@ const MODEL_SEED: u64 = 26_092_001;
 const HIDDEN: usize = if option_env!("NGN_H1024").is_some() { 1024 } else { 768 };
 // Compile with NGN_WDL25 set for a game-result weight ramping linearly from 0
 // to 0.25 across superbatches; the default is the frozen pure-score target.
-const WDL_END: f32 = if option_env!("NGN_WDL25").is_some() { 0.25 } else { 0.0 };
+const WDL_END: f32 = match (option_env!("NGN_WDL25").is_some(), option_env!("NGN_WDL40").is_some()) {
+    (false, false) => 0.0,
+    (true, false) => 0.25,
+    (false, true) => 0.4,
+    (true, true) => panic!("select only one result-weight target"),
+};
 const OUTPUT_BUCKETS: usize = 8;
 const SCORE_SCALE: i16 = 400;
 const QA: i16 = 255;
@@ -926,6 +931,10 @@ struct AttemptContract {
     hidden: usize,
     output_buckets: usize,
     score_scale: i16,
+    // Legacy pure-score attempts did not record this field. Their executable
+    // hash still binds the old harness; new weighted attempts record it.
+    #[serde(default)]
+    result_weight_end: f32,
     initial_lr: f32,
     final_lr: f32,
     loader_threads: usize,
@@ -1096,6 +1105,7 @@ fn load_parent_checkpoint(
         || parent_attempt.hidden != HIDDEN
         || parent_attempt.output_buckets != OUTPUT_BUCKETS
         || parent_attempt.score_scale != SCORE_SCALE
+        || parent_attempt.result_weight_end != WDL_END
         || parent_attempt.initial_lr != initial_lr
         || parent_attempt.final_lr != final_lr
         || parent_attempt.loader_threads != LOADER_THREADS
@@ -1264,6 +1274,7 @@ fn main() {
         hidden: HIDDEN,
         output_buckets: OUTPUT_BUCKETS,
         score_scale: SCORE_SCALE,
+        result_weight_end: WDL_END,
         initial_lr,
         final_lr,
         loader_threads: LOADER_THREADS,
@@ -1356,8 +1367,9 @@ fn main() {
     };
     write_json_new(&output.join("completion.json"), &completion);
     println!(
-        "NGN_K4_TRAIN_PASS bullet_commit={BULLET_COMMIT} patch={BULLET_PATCH_SHA256} mode={} seed={MODEL_SEED} input_buckets={INPUT_BUCKETS} hidden={HIDDEN} output_buckets={OUTPUT_BUCKETS} result_weight=0 score_weight=1 score_scale={SCORE_SCALE} batch_size={BATCH_SIZE} updates={} presentations={} train_positions={} loader_threads={LOADER_THREADS} queue={BATCH_QUEUE_SIZE} checkpoints={} resumed_from={start_updates}",
+        "NGN_K4_TRAIN_PASS bullet_commit={BULLET_COMMIT} patch={BULLET_PATCH_SHA256} mode={} seed={MODEL_SEED} input_buckets={INPUT_BUCKETS} hidden={HIDDEN} output_buckets={OUTPUT_BUCKETS} result_weight_start=0 result_weight_end={WDL_END} score_weight_end={} score_scale={SCORE_SCALE} batch_size={BATCH_SIZE} updates={} presentations={} train_positions={} loader_threads={LOADER_THREADS} queue={BATCH_QUEUE_SIZE} checkpoints={} resumed_from={start_updates}",
         run_mode.name,
+        1.0 - WDL_END,
         run_mode.updates,
         presentations,
         run_mode.positions,

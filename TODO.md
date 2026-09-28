@@ -1,5 +1,20 @@
 # NGN current state — September 28 owned-NNUE night
 
+September 28 continuation: the night PGNs/hashes were independently recounted;
+M11's +34.9 result is supported. The private research branch is pushed. A
+receiver-local K4 score-scale fix passes required WSL short/race suites and
+88-position, three-round depth-12 identity at scale 60. Candidate Linux/Windows
+v3 builds exist; installations remain held. The user authorized all three
+overnight outcomes: stronger owned weights, broader competitive measurements,
+and a usable validated configuration. See the [state review and live continuation
+record](experiments/2026-09-28-owned-nnue-state-review.md).
+
+The separate WDL25 candidate bundle passed actual Linux and Windows launcher
+smokes. Frozen WDL40/e20 training and fresh short/long-clock match queues are
+running on WSL; the final-checkpoint selections and game caps are fixed in the
+[overnight plan](experiments/2026-09-28-owned-overnight-plan.json). Report results
+only after full audits; no promotion from training loss or incomplete games.
+
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
 A1 corpus and schedule with the game-result weight ramped 0→0.25) with
@@ -18,20 +33,21 @@ rating. Full record:
   margins assume; `K4EvalScale 60` gained **+15.2 Elo [+1.3, +29.6]** (800
   games). Code default stays 100; one value tested, so it is sanctioned, not
   tuned.
-- External anchor M5: owned K4 at scale 60 scored **73.5%, +177 Elo
+- External anchor M5: earlier **A1-e10** at scale 60 scored **73.5%, +177 Elo
   [+151, +205]** against the exact Counter 5.5 release (400 games, run-003
   settings); paired with run-003's NGN-Rodent-V1.1 result, +0.194 score
   [+0.148, +0.240]. Relative, shared host, one opponent; not a list rating.
 - Shelved (800 games each, predeclared rule): K8 buckets +4.8 [−10.0, +19.6];
-  1024 hidden +2.6 [−11.7, +17.4]. At 2.37B positions, first-layer capacity is
-  not binding.
+  1024 hidden +2.6 [−11.7, +17.4]. These trials did not earn promotion;
+  several-Elo capacity effects remain unresolved.
 - Vs Rodent V1.2 before E1 (200 games): +15.6 [−12.2, +43.7], parity.
 
-**Host blocker (owner action):** the WSL `ext4.vhdx` lives on C:, which
-reached 0 GB free overnight (see the night record's disk incident). About
-50 GB was deleted and trimmed inside WSL, but only an elevated compaction
-(`wsl --shutdown`, then `Optimize-VHD -Mode Full` or diskpart `compact vdisk`)
-returns it to Windows. Keep large new data off C: until then. The Windows
+**Storage maintenance complete:** the user approved a brief interruption;
+read-only compaction reduced the VHDX from 430.078 to 380.702 GiB and C: had
+53.365 GiB free afterward. Docker, the hopper's two worker tasks, relay and
+keepalive are restored; no reboot was needed. Small-write runs require at
+least 25 GiB physical C: headroom. The 350GB data expansion is still blocked.
+The Windows
 scheduled task `ngn-wsl-keepalive` (`wsl.exe -e sleep infinity`) keeps the
 distro alive for SSH-launched `systemd-run --user` units; without it the
 distro stops when the last `wsl.exe` client exits.
@@ -43,7 +59,7 @@ Several gate attempts were cut short by the shutdowns and are preserved as
 `*-aborted-*`, unscored. e20 training is unfinished (resume from
 `runs/e20/candidates/candidate-2375680`).
 
-**Next, in order:**
+**Next after the active bounded continuation:**
 1. Data scale, the documented next A1 step, blocked on disk. The code is ready
    in `613dc0f`: `ngnk4archive scatter` accepts the four pinned farseer
    binpacks (same HF revision as T80), takes a key-hashed
@@ -53,10 +69,10 @@ Several gate attempts were cut short by the shutdowns and are preserved as
    deleted for space; re-download them (`data-farseer-20260928/download.sh`,
    HTTP/1.1, resume, SHA check). A 150‰ farseer sample plus T80 is ~6.4B
    records and needs ~350 GB of scatter plus gather space. Then train at the A1
-   schedule and gate against A1 at scale 60. Consider a fresh SF18 calibration
+   schedule and gate against the current owned reference at scale 60. Consider a fresh SF18 calibration
    sample per producer if the logistic scales disagree strongly.
-2. A larger result weight (for example ramp to 0.4) as a separate
-   training plus game gate; stacking K8 or W1024 only if the data-scale lane
+2. Finish and audit the already-running 0 to 0.4 result-weight experiment;
+   stacking K8 or W1024 only if the data-scale lane
    shows capacity starting to bind. A 200-game screen of WDL25 at
    `K4EvalScale 50` vs 60 was −6.9 [−33, +19], so another scale gate is low
    priority.
