@@ -201,3 +201,34 @@ directories, unscored and unpooled, and each gate reruns from game 1 with an
 unchanged spec. e20 training resumes from `candidate-2375680` (145/200) via the
 harness resume path. The farseer download resumes by byte range, and the partial
 F1 scatter outputs (≤72 KB) were deleted and restarted.
+
+## Incident — host C: drive full (≈02:05)
+
+The WSL distro's `ext4.vhdx` lives on the Windows C: drive
+(`C:\Users\ehrli\AppData\Local\wsl\{b04ba7d4-…}\ext4.vhdx`, 430 GB). Inside
+WSL `df` still showed ~540 GB free (the virtual disk's maximum), but tonight's
+~90 GB of downloads and checkpoints took **C: to 0 GB free**. The VHDX could
+not grow, WSL returned EIO even for `/etc/passwd`, and it could not start
+processes. This probably also caused the 01:08 shutdown; the keepalive fix
+above is still needed for SSH-launched units.
+
+Recovery: stopped the keepalive, `wsl --terminate Ubuntu`, restarted as root
+(no ext4 errors in dmesg), deleted only my own re-downloadable farseer
+binpacks (51 GB) and trimmed (`fstrim -v /`: 583.9 GiB). WSL `df` now shows
+367 GB used, but the VHDX file is still 430 GB and **C: has ~0.5 GB free**.
+Returning the trimmed space to Windows needs an elevated compaction, which
+this non-elevated SSH session cannot run. `wsl --manage Ubuntu --set-sparse
+true` is refused without `--allow-unsafe` (possible data corruption), so I
+did not force it.
+
+**Owner action (elevated):** `wsl --shutdown`, then either
+`Optimize-VHD -Path "<vhdx>" -Mode Full` (Hyper-V module) or diskpart
+`select vdisk file="<vhdx>"`, `attach vdisk readonly`, `compact vdisk`,
+`detach vdisk`.
+
+Consequences: the F1 data-scale pipeline is **cancelled**, because it needs
+~350 GB of scatter/gather space that this host does not have. The partial F1
+outputs were deleted, and the downloads must be redone once there is room.
+e20 stays unfinished, resumable from `candidate-2375680`. The attempts cut off
+by the EIO (M8 third start) are preserved unscored. Only low-write match gates
+continue: M8 → M6 → M4.
