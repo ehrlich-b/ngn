@@ -1,13 +1,14 @@
-# NGN current state — September 28 owned-NNUE night
+# NGN current state — September 29 morning
 
 September 28 continuation: the night PGNs/hashes were independently recounted;
 M11's +34.9 result is supported. The private research branch is pushed. A
 receiver-local K4 score-scale fix passes required WSL short/race suites and
-88-position, three-round depth-12 identity at scale 60. Candidate Linux/Windows
-v3 builds exist; installations remain held. The user authorized all three
+88-position, three-round depth-12 identity at scale 60. Owned-profile Linux/Windows
+v3 packages are publicly released; existing installations remain the older
+classical build. The user authorized all three
 overnight outcomes: stronger owned weights, broader competitive measurements,
-and a usable validated configuration. See the [state review and live continuation
-record](experiments/2026-09-28-owned-nnue-state-review.md).
+and a usable validated configuration. See the [morning assessment](experiments/2026-09-29-owned-morning-status.md)
+and [full state review](experiments/2026-09-28-owned-nnue-state-review.md).
 
 Fresh independent reference: WDL25 beats borrowed V1.2 by **+27.85
 [12.60,43.22]** over 800 audited games. WDL40 is **shelved** after its fixed
@@ -45,12 +46,15 @@ The separately frozen [WDL15 experiment](experiments/2026-09-29-owned-wdl15-plan
 passed real GPU smoke/resume, mutually exclusive flag and mismatched-weight
 resume controls and completed at 10:34 UTC. Its final 1,638,400-update checkpoint
 passed export parity; every checkpoint file and the net are hash-verified off
-the worker. A 128-game A/A and 800-game gate wait until the full fresh
-Counter queue ends; every cap, promotion rule and disk/deadline guard is fixed.
-That queue is now complete and the WDL15 control/gate started at 14:22 UTC.
-The fresh 80-game long-clock A/A passed at 10:28 UTC with all 11,805 plies legally
-audited and a paired score interval containing 50%. The full 400-game Counter
-anchor finished as described above; no partial score was inspected.
+the worker. After the fresh Counter queue, its 128-game A/A passed with a paired
+score interval containing 50%. The full 800-game gate completed at 15:45 UTC:
+**170W/480D/150L, +8.69 [−3.91,+21.31]** versus WDL25. All 119,280 plies,
+operational and process audits pass; independent PGN recount and off-worker
+hash checks match. **Shelve WDL15 and retain WDL25** under the fixed positive
+lower-bound rule; a small benefit remains unresolved. No extension or pooling.
+All continuation training/matches are complete. At 15:58 UTC there are no
+chess processes, C: has 30.01 GiB free, and Docker, both current hopper workers
+and the relay are running.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
@@ -58,7 +62,8 @@ A1 corpus and schedule with the game-result weight ramped 0→0.25) with
 `EvalBackend ngn-k4-768-v1` and **`K4EvalScale 60`**, on source at or after
 `ccfb56a`. It beat borrowed Rodent V1.2 by **+34.9 Elo [+20.0, +49.4]** (M11,
 800 games, same engine, 10+0.1) and A1-e10 by +20.9 [+7.8, +34.0] (M6). This is
-relative evidence only; there is no installation or absolute rating. The
+relative evidence; the separate native Counter anchor supports the current
+rating orientation, but there is no official list rating. The
 separate owned release profile selects this net and scale automatically; ordinary
 development startup retains its explicit research defaults. Full record:
 [the night session](experiments/2026-09-27-owned-nnue-night.md).
@@ -100,8 +105,13 @@ in the preceding `candidate-2359296` match their receipts, and the unchanged
 original trainer completed from that parent at the same fixed final update cap.
 See the [integrity audit](experiments/2026-09-28-owned-e20-parent-integrity.json).
 
-**Next after the active bounded continuation:**
-1. Data scale, the documented next A1 step, blocked on disk. The code is ready
+**Next after the completed bounded continuation:**
+
+1. Measure owned multicore playing strength and broaden independent, longer-clock
+   anchors in the target rating pool. Width-eight lifecycle checks are complete;
+   owned SMP Elo and a confirmed >3500 floor remain unmeasured. A public tested
+   Windows release is available to offer CCRL testers; no outreach has been sent.
+2. Data scale, the documented next A1 step, blocked on disk. The code is ready
    in `613dc0f`: `ngnk4archive scatter` accepts the four pinned farseer
    binpacks (same HF revision as T80), takes a key-hashed
    `--keep-per-mille` sample, and records score-bin × result counts;
@@ -112,13 +122,12 @@ See the [integrity audit](experiments/2026-09-28-owned-e20-parent-integrity.json
    records and needs ~350 GB of scatter plus gather space. Then train at the A1
    schedule and gate against the current owned reference at scale 60. Consider a fresh SF18 calibration
    sample per producer if the logistic scales disagree strongly.
-2. Finish the already-running 0 to 0.15 result-weight experiment and its fixed
-   playing gate. The 0 to 0.4 experiment and pure-score e20 gate are complete
-   and shelved. Consider stacking K8 or W1024 only if the data-scale lane
+3. WDL15, WDL40 and pure-score e20 gates are complete and shelved. Retain the
+   original WDL25 reference. Consider stacking K8 or W1024 only if the data-scale lane
    shows capacity starting to bind. A 200-game screen of WDL25 at
    `K4EvalScale 50` vs 60 was −6.9 [−33, +19], so another scale gate is low
    priority.
-3. Search-margin retuning for the NNUE eval, which is games-heavy; consider only
+4. Search-margin retuning for the NNUE eval, which is games-heavy; consider only
    after data scale.
 
 # Earlier state — September 23 owned-NNUE continuation
