@@ -279,3 +279,23 @@ resumable checkpoint and net plus the complete A/A trace/PGN/control records
 were copied off-worker and hash-checked. The original e20 resume then started.
 See [WDL40 eligibility](2026-09-28-owned-wdl40-e10-ready.json) and
 [parity evidence](2026-09-28-owned-wdl40-parity.json).
+
+The original e20 resume rejected `candidate-2375680` before taking any training
+steps. Its quantised export and all three optimizer tensors have the expected
+sizes but disagree with their original SHA-256 receipts; the three optimizer
+files are now byte-identical despite recording distinct expected hashes.
+Raw weights and the other checked files match. Thus the night recap's claim
+that this exact checkpoint was resumable is false in the observed current
+state. Its files and receipts are preserved unchanged; the cause is not
+independently established by these hashes alone.
+
+The immediately preceding checkpoint `candidate-2359296` passes every
+checkpoint-file hash. A [recovery plan](2026-09-28-owned-e20-recovery-plan.json)
+was frozen before launching the unchanged original executable at 00:20 UTC
+in `ngn-owned-training-20260928-r2.service`. It preserves the corpus, mode,
+seed, optimizer schedule and final 3,276,800-update cap, backing up exactly
+one 16,384-update checkpoint interval. This remains a completion diagnostic,
+with no promotion from loss or parent substitution. See the
+[parent integrity audit](2026-09-28-owned-e20-parent-integrity.json),
+[rejected attempt](2026-09-28-owned-e20-abort-001.json), and
+[recovery unit](2026-09-28-owned-e20-unit-r2.json).

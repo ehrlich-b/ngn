@@ -57,8 +57,11 @@ distro stops when the last `wsl.exe` client exits.
 see the summary table in the night record). Artifacts are under
 `/home/ehrli/nnue-owned-k4-20260920/night-20260927/`.
 Several gate attempts were cut short by the shutdowns and are preserved as
-`*-aborted-*`, unscored. e20 training is unfinished (resume from
-`runs/e20/candidates/candidate-2375680`).
+`*-aborted-*`, unscored. The e20 resume exposed four hash failures in
+`candidate-2375680`; it cannot be resumed under its original receipt. All files
+in the preceding `candidate-2359296` match their receipts, and the unchanged
+original trainer is resuming that parent to the same fixed final update cap.
+See the [integrity audit](experiments/2026-09-28-owned-e20-parent-integrity.json).
 
 **Next after the active bounded continuation:**
 1. Data scale, the documented next A1 step, blocked on disk. The code is ready
