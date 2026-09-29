@@ -145,6 +145,7 @@ type UCIEngine struct {
 	engineName              string
 	engineAuthor            string
 	version                 string
+	threadScheduler         func(int)
 	timeManager             *TimeManager
 	movesPlayed             int
 	lastScore               int
@@ -247,6 +248,30 @@ func (uci *UCIEngine) SetResignationPolicy(allowResignation bool) {
 	uci.lifecycleMu.Lock()
 	uci.allowResignation = allowResignation
 	uci.lifecycleMu.Unlock()
+}
+
+// ConfigureStartupVersion sets the release identity before Run. Metadata is
+// read under the same lifecycle lock, independently of search/evaluation state.
+func (uci *UCIEngine) ConfigureStartupVersion(version string) error {
+	if version == "" || strings.ContainsAny(version, "\r\n\x00") {
+		return fmt.Errorf("invalid UCI version")
+	}
+	uci.lifecycleMu.Lock()
+	uci.version = version
+	uci.lifecycleMu.Unlock()
+	return nil
+}
+
+// ConfigureStartupThreadScheduler lets the one-engine executable own its Go
+// scheduler. Library engines retain no process-global scheduling side effects.
+func (uci *UCIEngine) ConfigureStartupThreadScheduler(update func(int)) {
+	uci.joinSearch(true)
+	uci.lifecycleMu.Lock()
+	uci.threadScheduler = update
+	uci.lifecycleMu.Unlock()
+	if update != nil {
+		update(uci.searcher.ThreadCount())
+	}
 }
 
 // ConfigureStartupK4EvalScale records an explicit startup scale and advertises
@@ -404,16 +429,16 @@ func (uci *UCIEngine) handleCommand(command string, output io.Writer) (quit bool
 
 // handleUCI responds to the uci command
 func (uci *UCIEngine) handleUCI(output io.Writer) {
-	uci.sendUCIMessage(output, fmt.Sprintf("id name %s %s", uci.engineName, uci.version))
-	uci.sendUCIMessage(output, fmt.Sprintf("id author %s", uci.engineAuthor))
-
 	uci.lifecycleMu.Lock()
+	name, version, author := uci.engineName, uci.version, uci.engineAuthor
 	evalBackendDefault := uci.startupDefaults.backend
 	evalFileDefault := uci.startupDefaults.file
 	k4ScaleDefault := uci.startupK4EvalScale
 	ownBookDefault := uci.startupOwnBook
 	researchEvaluatorLocked := uci.researchEvaluatorLocked
 	uci.lifecycleMu.Unlock()
+	uci.sendUCIMessage(output, fmt.Sprintf("id name %s %s", name, version))
+	uci.sendUCIMessage(output, fmt.Sprintf("id author %s", author))
 	if evalBackendDefault == "" {
 		evalBackendDefault = uciEvaluatorHCE
 	}
@@ -542,6 +567,12 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 		uci.joinSearch(true)
 		if err := uci.searcher.ConfigureThreads(count); err != nil {
 			panic(err)
+		}
+		uci.lifecycleMu.Lock()
+		update := uci.threadScheduler
+		uci.lifecycleMu.Unlock()
+		if update != nil {
+			update(count)
 		}
 		uci.sendUCIMessage(output, fmt.Sprintf("info string threads configured %d effective %d", count, count))
 	case "ownbook":
