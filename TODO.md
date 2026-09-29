@@ -10,8 +10,8 @@ and a usable validated configuration. See the [state review and live continuatio
 record](experiments/2026-09-28-owned-nnue-state-review.md).
 
 The separate WDL25 candidate bundle passed actual Linux and Windows launcher
-smokes. Frozen WDL40/e20 training and fresh short/long-clock match queues are
-running on WSL; WDL40 export and the revised fresh short-clock A/A have passed.
+smokes. Frozen WDL40/e20 training is complete; fresh short/long-clock matches
+are running on WSL. Both exports and the fresh short-clock A/A have passed.
 The final-checkpoint selections and game caps are fixed in the
 [overnight plan](experiments/2026-09-28-owned-overnight-plan.json). Report results
 only after full audits; no promotion from training loss or incomplete games.
@@ -19,6 +19,10 @@ only after full audits; no promotion from training loss or incomplete games.
 Fresh independent reference: WDL25 beats borrowed V1.2 by **+27.85
 [12.60,43.22]** over 800 audited games. Recovered e20 is complete and exported,
 with its final checkpoint/net copied off-worker; no e20 strength verdict.
+A separately frozen 128-game A/A and 800-game e20/selected-winner gate are
+queued after the main matches, subject to the morning time/capacity floor.
+Native Rodent stays held: the exact saved warning was recovered, but its
+reporting boundary did not reproduce and the mechanism remains unproved.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
@@ -64,7 +68,7 @@ Several gate attempts were cut short by the shutdowns and are preserved as
 `*-aborted-*`, unscored. The e20 resume exposed four hash failures in
 `candidate-2375680`; it cannot be resumed under its original receipt. All files
 in the preceding `candidate-2359296` match their receipts, and the unchanged
-original trainer is resuming that parent to the same fixed final update cap.
+original trainer completed from that parent at the same fixed final update cap.
 See the [integrity audit](experiments/2026-09-28-owned-e20-parent-integrity.json).
 
 **Next after the active bounded continuation:**

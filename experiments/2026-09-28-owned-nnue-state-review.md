@@ -317,3 +317,34 @@ no playing-strength verdict yet. See
 [e20 completion](2026-09-28-owned-e20-resume-ready.json) and
 [parity](2026-09-28-owned-e20-parity.json). The fixed WDL40/current-WDL25 gate
 started immediately after the fresh reference at 00:53 UTC.
+
+The optional native Rodent gate is held. Its exact preserved release binary
+and original warning were recovered, and the complete 156-ply history was
+independently validated. The historical PV first fails at `g2g1`, where all
+four legal promotion suffixes exist. Appending a queen suffix is insufficient:
+the next `b5c5` is illegal. Cold depth-18 and two carried depth-20 searches at
+that saved position produced 74 independently legal PVs (942 plies) and did
+not reproduce the boundary. The pinned tag's formatter already emits suffixes
+for encoded promotions. A reporting-only or carried-state mechanism remains
+unproved, so no compatibility allowance or scored native run was introduced.
+The fixture, raw replay/oracle transcripts, tagged source and assessment have
+hash-checked off-worker copies. See the
+[boundary assessment](2026-09-28-owned-rodent-boundary.json).
+
+A separate [e20 follow-up plan](2026-09-28-owned-e20-followup-plan.json) was
+frozen before the main WDL40 verdict. After the entire main queue completes,
+it chooses WDL40 only if that existing gate promotes it, otherwise WDL25.
+An exact-configuration fresh 128-game A/A must pass before a fixed 800-game
+e20/selected-baseline gate. Only a positive paired 95% lower Elo bound can
+promote e20; there is no score-based extension. This compares complete
+candidates: e20 changes both nominal training duration and result weighting,
+so a gain cannot be attributed solely to more epochs. Its long-clock strength
+would remain unmeasured because the Counter anchor is fixed to WDL25.
+
+The bounded follow-up unit was queued at 01:27 UTC and silently waits for the
+main queue. It admits work only with at least 2.5 hours before the 12:00 UTC
+deadline and 25 GiB of physical C: headroom. Its driver passed WSL compilation,
+configuration and network-identity preflight without changing the current
+instrument. Actual Linux and Windows width-eight lifecycle smokes precede
+these games; they support no SMP Elo claim. See the
+[unit receipt](2026-09-28-owned-followup-unit.json).
