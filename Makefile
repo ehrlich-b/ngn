@@ -1,5 +1,6 @@
 # Chess Engine (ngn) - Makefile
 # Provides ergonomic commands for development, testing, and building
+.DEFAULT_GOAL := help
 
 # Variables
 BINARY_NAME=ngn
