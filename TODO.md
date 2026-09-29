@@ -19,9 +19,14 @@ result-weight recipe and the update count; it does not isolate training duration
 
 The first completed 400-game long-clock Counter cell remains **unscored** after
 its final draw-PV trace rejection. A separately proved, fingerprinted Counter
-compatibility checker has positive and negative controls. The fresh queue uses
-WDL25 for a new 80-game 60+0.6 A/A and full 400-game anchor, with no pooling or
-shortened cap. Native Rodent stays held: the saved malformed-promotion warning
+compatibility checker has positive and negative controls. The fresh queue
+completed its new 80-game 60+0.6 A/A and full 400-game anchor at 14:16 UTC:
+WDL25 scored **214W/151D/35L, 72.375%, +167.31 [144.10,192.01]** against
+the exact native Counter 5.5 artifact. All audits pass over 69,062 legal plies,
+and the full records are hash-verified off-worker. This supports the 3500
+ballpark; Counter's author-published 3333 plus the match interval gives
+[3477,3525] before clock/rating-pool uncertainty and does not establish a
+3500 floor. No old or partial cell is pooled. Native Rodent stays held: the saved malformed-promotion warning
 did not reproduce and its mechanism remains unproved.
 
 Actual owned-profile Linux and native Windows `0.2.0-rc.1` executables passed
@@ -42,9 +47,10 @@ resume controls and completed at 10:34 UTC. Its final 1,638,400-update checkpoin
 passed export parity; every checkpoint file and the net are hash-verified off
 the worker. A 128-game A/A and 800-game gate wait until the full fresh
 Counter queue ends; every cap, promotion rule and disk/deadline guard is fixed.
+That queue is now complete and the WDL15 control/gate started at 14:22 UTC.
 The fresh 80-game long-clock A/A passed at 10:28 UTC with all 11,805 plies legally
 audited and a paired score interval containing 50%. The full 400-game Counter
-anchor is running; its partial score is not inspected.
+anchor finished as described above; no partial score was inspected.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;

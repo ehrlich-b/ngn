@@ -16,8 +16,13 @@ fixed 1,638,400-update training cap at 10:34 UTC and passed float/int/context
 export parity (mean absolute quantization delta 4.14 cp, maximum 13.82 cp).
 The full checkpoint's six file hashes and attempt contract, plus the exported
 network, are verified in off-worker copies. Its playing gate remains queued
-after the external anchor. These are readiness/control milestones, not a new
-strength verdict. The user explicitly approved the GPLv3 code/model grant and
+after the external anchor. At 14:16 UTC the fresh full 400-game Counter anchor
+finished at **214W/151D/35L, 72.375%, +167.31 [144.10,192.01]**, with 69,062
+legal plies and all operational/process audits passing. All raw records are
+preserved off-worker, and an independent PGN recount confirms 200 reversed-color
+pairs and pentanomial `[0,8,50,97,45]`. The old rejected 400-game cell remains
+unscored and separate. WDL15's control/gate began at 14:22 UTC.
+The user explicitly approved the GPLv3 code/model grant and
 exact publication text. The first owned [public prerelease](https://github.com/ehrlich-b/ngn-releases/releases/tag/v0.2.0-rc.1)
 was published at 12:35 UTC with eight verified assets. Its corresponding model
 source includes the original WDL25 float weights and optimizer checkpoint; all
@@ -113,11 +118,16 @@ search, search/eval calibration, and delivery of the measured configuration.
 
 In response to the user's request for a present absolute range: a reasonable
 working judgment for the strongest WDL25 single-thread research configuration
-is about **3500**, with a broad plausible **3300–3600** range on a CCRL-like
+is about **3500**, with an initial broad plausible **3300–3600** range on a CCRL-like
 engine scale. This is not a measured confidence interval or an official list
 entry. Counter's author lists 5.5 at 3333 CCRL 40/15; A1's short-clock +177
-would imply roughly 3510 if it transferred. WDL25's current direct external
-measurement, longer-clock transfer and opponent breadth remain missing.
+would imply roughly 3510 if it transferred. The now-completed WDL25 60+0.6
+anchor independently supports the orientation: 3333 + 167.31 = 3500.31,
+with sampling-only arithmetic endpoints [3477.10,3525.01]. These endpoints
+exclude opponent-rating, clock and rating-pool uncertainty. Current working
+judgment remains around 3500, broadly 3400–3600 after this longer-clock check;
+it is not an absolute confidence interval. Opponent breadth and calibration
+to the exact target list remain missing, and a confirmed >3500 floor remains open.
 Do not transfer the much tighter within-engine +35 interval into absolute
 precision. The older installed classical build's historical audited estimate
 remains 2884 [2834,2934] on its frozen calibration.
