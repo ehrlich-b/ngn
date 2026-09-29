@@ -58,6 +58,11 @@ def package(args):
     for name, expected in build['source_files'].items():
         if name not in files or hashlib.sha256(files[name][0]).hexdigest() != expected:
             raise ValueError('application source differs from verified build: ' + name)
+    if args.approved_distribution:
+        for name in ('LICENSE', 'LICENSE-GRANT.txt', 'README.md'):
+            files[name] = (git(args.repo, 'show', args.source_commit + ':' + name), 0o644)
+        if b'GPL-3.0-only' not in files['LICENSE-GRANT.txt'][0]:
+            raise ValueError('approved GPL grant is missing')
     for notice in sorted(args.notices.iterdir()):
         if notice.is_file():
             files['LICENSES/' + notice.name] = (notice.read_bytes(), 0o644)
@@ -66,7 +71,9 @@ def package(args):
         'application_source_commit': build['source_commit'],
         'build_manifest_sha256': hashlib.sha256(args.build_manifest.read_bytes()).hexdigest(),
         'application_source_files_verified': len(build['source_files']),
-        'publication_state': 'DRAFT_PENDING_LICENSE_AND_APPROVAL',
+        'publication_state': 'APPROVED_RELEASE_CANDIDATE' if args.approved_distribution else 'DRAFT_PENDING_LICENSE_AND_APPROVAL',
+        'project_license': 'GPL-3.0-only' if args.approved_distribution else 'NOASSERTION',
+        'model_license': 'GPL-3.0-only' if args.approved_distribution else 'NOASSERTION',
     }, indent=2) + '\n').encode(), 0o644)
     readme = (
         f'NGN {version} corresponding source\n\n'
@@ -82,6 +89,8 @@ def package(args):
         'This prepared candidate is pending the project/model license decision and release approval.\n'
     )
     files['README.txt'] = (readme.encode(), 0o644)
+    if args.approved_distribution:
+        files['README.txt'] = files['README.md']
     stamp = int(git(args.repo, 'show', '-s', '--format=%ct', args.source_commit))
     prefix = 'ngn-' + version + '-source'
     args.out.parent.mkdir(parents=True, exist_ok=True)
@@ -107,6 +116,7 @@ def package(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source-commit', required=True)
+    parser.add_argument('--approved-distribution', action='store_true', help='Package the explicitly approved GPL release grant and README.')
     for name in ('repo', 'build-manifest', 'notices', 'out'):
         parser.add_argument('--' + name, type=Path, required=True)
     package(parser.parse_args())
