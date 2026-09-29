@@ -8,6 +8,18 @@ are evidence about their recorded builds, not the current configuration.
 
 ## Verified result
 
+September 29 continuation milestone: the fresh Counter instrument's 80-game
+60+0.6 A/A finished at 10:28 UTC. Its paired score interval [41.875%,50.625%]
+contains 50%; all legal, operational and process audits pass over 11,805 plies.
+The full frozen 400-game external anchor is now running. WDL15 completed its
+fixed 1,638,400-update training cap at 10:34 UTC and passed float/int/context
+export parity (mean absolute quantization delta 4.14 cp, maximum 13.82 cp).
+The full checkpoint's six file hashes and attempt contract, plus the exported
+network, are verified in off-worker copies. Its playing gate remains queued
+after the external anchor. These are readiness/control milestones, not a new
+strength verdict. The proposed first owned release has complete source and
+training-method assets; publication and the new license grant await approval.
+
 The central claim survives an independent recount of the copied PGNs. M11 is
 247 wins, 386 draws, 167 losses from WDL25's perspective: 440/800 points,
 55.0%, +34.860 Elo. All 400 pairs reverse colors; the independently computed

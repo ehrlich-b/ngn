@@ -34,9 +34,13 @@ ODbL data attribution are being packaged.
 
 The separately frozen [WDL15 experiment](experiments/2026-09-29-owned-wdl15-plan.json)
 passed real GPU smoke/resume, mutually exclusive flag and mismatched-weight
-resume controls and is training. Its final 1,638,400-update checkpoint is the
-only candidate. A 128-game A/A and 800-game gate wait until the full fresh
+resume controls and completed at 10:34 UTC. Its final 1,638,400-update checkpoint
+passed export parity; every checkpoint file and the net are hash-verified off
+the worker. A 128-game A/A and 800-game gate wait until the full fresh
 Counter queue ends; every cap, promotion rule and disk/deadline guard is fixed.
+The fresh 80-game long-clock A/A passed at 10:28 UTC with all 11,805 plies legally
+audited and a paired score interval containing 50%. The full 400-game Counter
+anchor is running; its partial score is not inspected.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
