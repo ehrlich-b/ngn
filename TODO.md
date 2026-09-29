@@ -23,6 +23,9 @@ A separately frozen 128-game A/A and 800-game e20/selected-winner gate are
 queued after the main matches, subject to the morning time/capacity floor.
 Native Rodent stays held: the exact saved warning was recovered, but its
 reporting boundary did not reproduce and the mechanism remains unproved.
+WDL40 is **shelved** after its completed 1,600-game gate: **−8.69
+[−18.69,+1.30]** against WDL25, all audits pass. The long-clock A/A and Counter
+anchor remain active/queued; the e20 follow-up baseline is now fixed to WDL25.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;

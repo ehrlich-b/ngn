@@ -348,3 +348,13 @@ configuration and network-identity preflight without changing the current
 instrument. Actual Linux and Windows width-eight lifecycle smokes precede
 these games; they support no SMP Elo claim. See the
 [unit receipt](2026-09-28-owned-followup-unit.json).
+
+The fixed WDL40/WDL25 gate completed at 03:20 UTC: 1,600 games, 800 pairs,
+246,259 independently legal plies and every operational/control audit passing.
+WDL40 scored 48.75%, **−8.69 Elo [−18.69,+1.30]**, pentanomial
+`[28,197,377,183,15]`. It fails the predeclared promotion rule; retain WDL25.
+The full gate's PGNs, raw traces, process witnesses and controls have
+hash-checked off-worker copies. This holds WDL40 rather than extending a null
+gate, and fixes the conditional e20 baseline to WDL25. See the
+[completed gate](2026-09-28-owned-wdl40-result.json). The long-clock A/A began
+immediately afterward; Counter remains queued behind that control.
