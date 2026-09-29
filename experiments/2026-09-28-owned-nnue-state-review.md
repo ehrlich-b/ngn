@@ -11,17 +11,24 @@ are evidence about their recorded builds, not the current configuration.
 September 29 continuation milestone: the fresh Counter instrument's 80-game
 60+0.6 A/A finished at 10:28 UTC. Its paired score interval [41.875%,50.625%]
 contains 50%; all legal, operational and process audits pass over 11,805 plies.
-The full frozen 400-game external anchor is now running. WDL15 completed its
-fixed 1,638,400-update training cap at 10:34 UTC and passed float/int/context
+WDL15 completed its fixed 1,638,400-update training cap at 10:34 UTC and passed float/int/context
 export parity (mean absolute quantization delta 4.14 cp, maximum 13.82 cp).
 The full checkpoint's six file hashes and attempt contract, plus the exported
-network, are verified in off-worker copies. Its playing gate remains queued
-after the external anchor. At 14:16 UTC the fresh full 400-game Counter anchor
+network, are verified in off-worker copies. At 14:16 UTC the fresh full
+400-game Counter anchor
 finished at **214W/151D/35L, 72.375%, +167.31 [144.10,192.01]**, with 69,062
 legal plies and all operational/process audits passing. All raw records are
 preserved off-worker, and an independent PGN recount confirms 200 reversed-color
 pairs and pentanomial `[0,8,50,97,45]`. The old rejected 400-game cell remains
-unscored and separate. WDL15's control/gate began at 14:22 UTC.
+unscored and separate. WDL15's control/gate began at 14:22 UTC and completed
+at 15:45 UTC. Its fresh 128-game A/A passed; the 800-game comparison scored
+**170W/480D/150L, +8.69 [−3.91,+21.31]** against WDL25, with all 119,280
+plies and operational/process audits passing. Independent PGN recount verifies
+all 400 reversed-color pairs and pentanomial `[10,67,220,99,4]`; the complete
+records are hash-verified off-worker. The fixed promotion rule retains WDL25.
+All continuation training and matches are complete. See the
+[morning assessment](2026-09-29-owned-morning-status.md) and
+[WDL15 recount/verdict](2026-09-29-owned-wdl15-recount.json).
 The user explicitly approved the GPLv3 code/model grant and
 exact publication text. The first owned [public prerelease](https://github.com/ehrlich-b/ngn-releases/releases/tag/v0.2.0-rc.1)
 was published at 12:35 UTC with eight verified assets. Its corresponding model
@@ -29,7 +36,7 @@ source includes the original WDL25 float weights and optimizer checkpoint; all
 six original file hashes match. The public source tree preserves all 436 Go/
 assembly hashes from the tested build. An anonymous Windows-package download
 matches both tested executable and selected-net hashes. The absolute >3500
-objective remains open pending direct playing evidence and calibration.
+objective remains open pending broader playing evidence and calibration.
 
 The central claim survives an independent recount of the copied PGNs. M11 is
 247 wins, 386 draws, 167 losses from WDL25's perspective: 440/800 points,
@@ -60,9 +67,9 @@ available pretrained networks or to the strongest Go engine.
 ## Corrections and limits
 
 - Counter 5.5's +177.22 [+151,+205] external result belongs to **A1 at scale
-  60**, not WDL25. It is 223W/142D/35L = 294/400 points, 73.5%. WDL25's
-  external strength remains to be measured. Adding +20.9 or +34.9 to +177
-  would not substitute for that match.
+  60**, not WDL25. It is 223W/142D/35L = 294/400 points, 73.5%. The fresh
+  WDL25 60+0.6 match is separately measured at +167.31 [144.10,192.01]. Adding
+  +20.9 or +34.9 to +177 would not substitute for that match.
 - NNUE training progressed from 20M freshly SF18-labeled positions to **2.374B
   archive records** carrying calibrated archive scores. Ten-epoch training
   makes 26.84B presentations, about 11.3 passes. Record count is not a proof
@@ -95,8 +102,9 @@ available pretrained networks or to the strongest Go engine.
   evidence. These are omissions relative to CLAUDE.md's normal gate contract,
   not evidence that a game was illegal. Restore those controls for new gates
   instead of quietly calling the instruments equivalent.
-- Absolute 3300, strongest Go engine, longer-clock transfer and current owned
-  NNUE SMP strength remain unmeasured. The old README's 3000–3100 orientation
+- An official absolute rating, strongest-Go-engine status and current owned
+  NNUE SMP strength remain unmeasured. The fresh 60+0.6 Counter match now
+  provides longer-clock evidence. The old README's 3000–3100 orientation
   refers to much older Counter-backed source, not today's strongest setup.
 
 ## Current engineering position
@@ -111,10 +119,11 @@ SF18 BIG integration/reference work exists, but its strong HCE comparison is
 not a current owned-vs-BIG promotion result.
 
 The new weights beat the strongest previously adopted borrowed evaluator in
-NGN and the prior owned configuration beats the exact external Counter release.
+NGN and WDL25 itself now beats the exact external Counter release at 60+0.6.
 This makes the engine a credible competitive project. The important remaining
 uncertainties concern opponent breadth, clock/width transfer, useful multicore
-search, search/eval calibration, and delivery of the measured configuration.
+search and search/eval calibration. Delivery of the measured configuration is
+now complete in the separately published owned-profile release.
 
 In response to the user's request for a present absolute range: a reasonable
 working judgment for the strongest WDL25 single-thread research configuration
