@@ -38,6 +38,10 @@ def package(args):
         for relative, expected in build['source_files'].items():
             if relative not in files or hashlib.sha256(archive.extractfile(files[relative]).read()).hexdigest() != expected:
                 raise ValueError('corresponding source differs: ' + relative)
+        if args.approved_distribution:
+            for name in ['LICENSE', 'LICENSE-GRANT.txt', 'README.md']:
+                if name not in files or archive.extractfile(files[name]).read() != (args.approved_distribution / name).read_bytes():
+                    raise ValueError('approved source notice differs: ' + name)
     method = json.loads(args.training_method_receipt.read_text())
     if digest(args.training_method) != method['sha256'] or method['recipe']['network_sha256'] != network_sha:
         raise ValueError('training method differs from the selected network receipt')
@@ -78,7 +82,11 @@ def package(args):
         shutil.copy2(path, folder / names[platform]); shutil.copy2(args.network, folder / 'ngn.nnue')
         if platform == 'linux':
             (folder / 'ngn').chmod(0o755)
-        (folder / 'README.txt').write_text(readme)
+        if args.approved_distribution:
+            for name in ['README.md', 'LICENSE', 'LICENSE-GRANT.txt']:
+                shutil.copy2(args.approved_distribution / name, folder / name)
+        else:
+            (folder / 'README.txt').write_text(readme)
         for name, notice in notices.items():
             shutil.copy2(notice, folder / name)
         files = {p.name: {'bytes': p.stat().st_size, 'sha256': digest(p)} for p in folder.iterdir()}
@@ -87,8 +95,9 @@ def package(args):
                     'training_method_sha256': method['sha256'],
                     'build_manifest_sha256': digest(args.build_manifest), 'verification_sha256': digest(args.verification),
                     'network_name': args.network_name, 'startup': build['startup'], 'files': files,
-                    'publication_state': 'DRAFT_PENDING_LICENSE_AND_APPROVAL', 'project_license': 'NOASSERTION',
-                    'model_license': 'NOASSERTION', 'training_archive_license': 'ODbL-1.0'}
+                    'publication_state': 'APPROVED_RELEASE_CANDIDATE' if args.approved_distribution else 'DRAFT_PENDING_LICENSE_AND_APPROVAL',
+                    'project_license': 'GPL-3.0-only' if args.approved_distribution else 'NOASSERTION',
+                    'model_license': 'GPL-3.0-only' if args.approved_distribution else 'NOASSERTION', 'training_archive_license': 'ODbL-1.0'}
         (folder / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
         (folder / 'SHA256SUMS').write_text(''.join(f'{digest(p)}  {p.name}\n' for p in sorted(folder.iterdir())))
         expected = {p.name: digest(p) for p in folder.iterdir()}
@@ -113,7 +122,9 @@ def package(args):
                'network_sha256': network_sha, 'source_asset': {'file': 'ngn-' + version + '-source.tar.gz', 'sha256': digest(args.source)},
                'training_method_asset': {'file': 'ngn-' + version + '-training-method.tar.gz', 'bytes': args.training_method.stat().st_size,
                                          'sha256': method['sha256'], 'member_hashes_verified': len(method['recipe']['files'])},
-               'assets': archives, 'publication_state': 'DRAFT_PENDING_LICENSE_AND_APPROVAL'}
+               'assets': archives, 'publication_state': 'APPROVED_RELEASE_CANDIDATE' if args.approved_distribution else 'DRAFT_PENDING_LICENSE_AND_APPROVAL',
+               'project_license': 'GPL-3.0-only' if args.approved_distribution else 'NOASSERTION',
+               'model_license': 'GPL-3.0-only' if args.approved_distribution else 'NOASSERTION'}
     (out / 'assets.json').write_text(json.dumps(receipt, indent=2) + '\n')
     (out / 'SHA256SUMS').write_text(''.join(f'{digest(p)}  {p.name}\n' for p in sorted(out.iterdir()) if p.is_file()))
     print(json.dumps(receipt))
@@ -125,4 +136,5 @@ if __name__ == '__main__':
                  'training-method', 'training-method-receipt']:
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--network-name', required=True)
+    parser.add_argument('--approved-distribution', type=Path, help='Directory containing the explicitly approved LICENSE, LICENSE-GRANT.txt and README.md.')
     package(parser.parse_args())

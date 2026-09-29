@@ -3,8 +3,11 @@
 NGN's randomly initialized owned network is distinct from its compatibility
 backends and source dependencies. Selecting owned weights does not remove the
 other backends from the executable or settle the project's source license.
-There is currently no top-level NGN license. The following is a factual inventory
-for resolving distribution, rather than a new license grant.
+NGN's original source code and the packaged NGN-owned WDL25-e10 neural network
+are licensed under the GNU General Public License, version 3 only. The complete
+license text is supplied in LICENSE. Existing copyright notices and third-party
+licenses remain applicable to their respective components. See the approved
+[license grant](../LICENSE-GRANT.txt).
 
 | Component | Recorded origin | Preserved license evidence |
 | --- | --- | --- |
@@ -23,11 +26,12 @@ trainer and exports are recorded. The prepared distribution includes attribution
 and the exact transformation method/inputs. Sections 4.3 and 4.6 of the
 [ODbL](https://opendatacommons.org/licenses/odbl/1-0/) describe produced-work notices
 and access to a derivative database or its complete alteration method. This
-inventory does not select a license for the model. Retain the explicit project
-and model distribution decision with the release record. See the
+inventory preserves the source-data terms separately from the approved GPLv3
+engine/model grant. Retain the explicit distribution decision with the release
+record. See the
 [pinned API and notice receipt](../experiments/2026-09-29-owned-dataset-license.json).
 
 The compact [upstream receipt](../experiments/2026-09-29-owned-release-provenance.json)
 binds the exact fetched notices. Complete notice texts are archived with the
 release evidence. Preserve existing copyright notices in corresponding source;
-resolve any copied/derived GPL obligations before issuing a binary externally.
+retain the approved GPL grant and corresponding source with the binary packages.
