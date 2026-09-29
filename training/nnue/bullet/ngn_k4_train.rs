@@ -39,13 +39,14 @@ const IDENTITY_CONTRACT: &str = "sha256(ngn-k4-final-segments-v1\\0 || segment_n
 const MODEL_SEED: u64 = 26_092_001;
 // Compile with NGN_H1024 set (any value) for the 1024-wide research variant.
 const HIDDEN: usize = if option_env!("NGN_H1024").is_some() { 1024 } else { 768 };
-// Compile with NGN_WDL25 set for a game-result weight ramping linearly from 0
-// to 0.25 across superbatches; the default is the frozen pure-score target.
-const WDL_END: f32 = match (option_env!("NGN_WDL25").is_some(), option_env!("NGN_WDL40").is_some()) {
-    (false, false) => 0.0,
-    (true, false) => 0.25,
-    (false, true) => 0.4,
-    (true, true) => panic!("select only one result-weight target"),
+// Result-target research variants keep mutually exclusive, compile-time
+// endpoints. The default remains the frozen pure-score target.
+const WDL_END: f32 = match (option_env!("NGN_WDL15").is_some(), option_env!("NGN_WDL25").is_some(), option_env!("NGN_WDL40").is_some()) {
+    (false, false, false) => 0.0,
+    (true, false, false) => 0.15,
+    (false, true, false) => 0.25,
+    (false, false, true) => 0.4,
+    _ => panic!("select only one result-weight target"),
 };
 const OUTPUT_BUCKETS: usize = 8;
 const SCORE_SCALE: i16 = 400;

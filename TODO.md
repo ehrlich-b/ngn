@@ -98,8 +98,9 @@ See the [integrity audit](experiments/2026-09-28-owned-e20-parent-integrity.json
    records and needs ~350 GB of scatter plus gather space. Then train at the A1
    schedule and gate against the current owned reference at scale 60. Consider a fresh SF18 calibration
    sample per producer if the logistic scales disagree strongly.
-2. Finish and audit the already-running 0 to 0.4 result-weight experiment;
-   stacking K8 or W1024 only if the data-scale lane
+2. Finish the already-running 0 to 0.15 result-weight experiment and its fixed
+   playing gate. The 0 to 0.4 experiment and pure-score e20 gate are complete
+   and shelved. Consider stacking K8 or W1024 only if the data-scale lane
    shows capacity starting to bind. A 200-game screen of WDL25 at
    `K4EvalScale 50` vs 60 was −6.9 [−33, +19], so another scale gate is low
    priority.

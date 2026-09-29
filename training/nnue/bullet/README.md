@@ -48,8 +48,9 @@ zero-initialized, trained jointly, and merged into four transformer buckets on
 export.
 
 Archive A1 modes also support a linear game-result target ramp. Build with
-`NGN_WDL25=1` for 0 to 0.25, or `NGN_WDL40=1` for 0 to 0.4. Setting both is a
-compile error. Without either variable the target remains pure record score.
+`NGN_WDL15=1` for 0 to 0.15, `NGN_WDL25=1` for 0 to 0.25, or `NGN_WDL40=1`
+for 0 to 0.4. Selecting more than one is a compile error. Without these
+variables the target remains pure record score.
 The weight uses the global superbatch index, so a resumed run continues the
 same ramp. `attempt.json` records `result_weight_end`, which is checked on
 resume; checkpoint receipts bind that attempt by hash. Old pure-score attempts
