@@ -56,6 +56,21 @@ All continuation training/matches are complete. At 15:58 UTC there are no
 chess processes, C: has 30.01 GiB free, and Docker, both current hopper workers
 and the relay are running.
 
+The user continued the still-open >3500 goal. A separate [owned SMP plan](experiments/2026-09-29-owned-smp-plan.json)
+now freezes width 2 versus 1, then width 4 versus the immediately accepted
+width, each with 128 A/A and 800 scored games. It uses the exact public Linux
+binary/WDL25, Hash 256, real clocks and disjoint physical CPU teams. All new
+negative/live controls and the unchanged release's full short race suite pass;
+fresh two/four-worker procedure smokes pass all legal/process/operational audits.
+Per-go configured/effective worker receipts prove actual helper admission,
+including strict separation from Threads option acknowledgements. Fixed-node
+budgets are rejected because that search path deliberately uses one worker.
+See [validation and copied records](experiments/2026-09-29-owned-smp-validation.json).
+The original rejected smoke is preserved unscored. No SMP Elo or new absolute
+rating has yet been measured; these cells cannot be added to the old Hash-128
+external anchor. The queue retains the 25 GiB physical disk floor and ends by
+September 30 at 10:00 UTC.
+
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
 A1 corpus and schedule with the game-result weight ramped 0→0.25) with
