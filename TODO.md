@@ -25,7 +25,11 @@ Native Rodent stays held: the exact saved warning was recovered, but its
 reporting boundary did not reproduce and the mechanism remains unproved.
 WDL40 is **shelved** after its completed 1,600-game gate: **−8.69
 [−18.69,+1.30]** against WDL25, all audits pass. The long-clock A/A and Counter
-anchor remain active/queued; the e20 follow-up baseline is now fixed to WDL25.
+anchor followed; the e20 follow-up baseline is now fixed to WDL25.
+The 80-game long A/A passed, but Counter's completed 400-game run failed final
+PV draw-boundary trace auditing and remains **unscored**. The independent e20
+follow-up restarted under a pre-game admission revision; all game/control rules
+are unchanged. Actual Linux/Windows width-eight lifecycle smokes passed.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;

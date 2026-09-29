@@ -358,3 +358,62 @@ hash-checked off-worker copies. This holds WDL40 rather than extending a null
 gate, and fixes the conditional e20 baseline to WDL25. See the
 [completed gate](2026-09-28-owned-wdl40-result.json). The long-clock A/A began
 immediately afterward; Counter remains queued behind that control.
+
+The long-clock A/A completed at 04:07 UTC: 80 games, 40 pairs, 13,120 legal
+plies and every audit passing; paired score interval [0.44375,0.54375]
+contains parity. Its full records have checked off-worker copies. The
+WDL25/Counter 5.5 run then played all 400 games but failed its final operational
+trace audit at 07:52 UTC. Counter emitted PV continuations past the host's
+fifty-move or threefold draw boundary. The preserved run remains **unscored**:
+no accepted longer-clock anchor or absolute rating follows from it. See the
+[long control](2026-09-28-owned-aa-long-result.json) and
+[external rejection](2026-09-29-owned-counter-long-rejection.json).
+
+The e20 admission unit consequently held before any smoke or game. A separate
+[revision](2026-09-29-owned-e20-followup-plan-r2.json), fixed before e20 games,
+admits its independent owned comparison when all owned controls/gates passed
+and the main unit is inactive, even if that external trace audit is held.
+Every opening, clock, game cap, candidate selection and promotion rule is
+unchanged. The original admission state, unit receipt and exact driver are
+preserved. Revised unit `ngn-owned-followup-20260929-r2` started at 08:18 UTC.
+Its actual Linux and Windows Threads=8/GOMAXPROCS=8 smokes passed fixed-node
+searches, explicit stop, restart, new-game barriers, scale/width reconfiguration,
+legal root moves, normal exits and empty stderr. These establish lifecycle
+behavior only, not SMP Elo or scaling. The fresh e20 A/A followed. See the
+[revised unit](2026-09-29-owned-followup-unit-r2.json) and
+[width-eight evidence](2026-09-29-owned-width8-lifecycle.json).
+
+Primary-source inspection of exact Counter commit
+`63c487ca724c620f71c129d62129c6fb9109c872` finds `isDraw` using `Rule50 > 100`.
+Independent cold searches with the exact release at halfmove clocks 98/99/100
+returned three/two/one-move zero-score PVs respectively: one ply beyond the
+host's 100-halfmove boundary. This explains the fifty-move report boundary;
+it is not permission to retrospectively score the rejected run. Threefold
+warning semantics and narrow positive/negative controls still need validation
+before a fresh external instrument can be admitted.
+
+The separate Counter draw-PV instrument subsequently passed all 546 preserved
+positive diagnostics (540 fifty-move, six threefold) against pinned independent
+`chess` 1.11.2. It checks the recorded Counter artifact/role, info record and
+root history, legality of every history/PV move including the post-draw tail,
+and the exact first independently drawn boundary named by the warning.
+Eleven negative controls reject foreign artifacts/roles, unbound info/history,
+illegal prefixes/tails, wrong boundary moves/draw kinds/grammar/severity and
+preserve unrelated illegal-PV warnings for rejection. Every other operational
+audit still passes on that diagnostic fixture. The rejected run remains
+unscored; no gate decision or rating was recomputed. The wrapper and semantic
+checker plus independent core are fingerprinted, with the live e20 instrument
+unchanged. See [controls](2026-09-29-owned-counter-draw-controls.json) and
+[exact-release reproduction](2026-09-29-owned-counter-draw-probe.json).
+
+The new instrument's four-game node-budget smoke passed 544 independent legal
+plies and all operational audits. At 08:46 UTC a
+[fresh full external queue](2026-09-29-owned-counter-fresh-unit.json) began
+waiting for the owned follow-up. Its [plan](2026-09-29-owned-counter-fresh-plan.json)
+fixes a new 80-game 60+0.6 A/A and then 400 selected-owned/Counter games on
+unused opening blocks. E20 is selected only if its already frozen gate
+promotes it, otherwise WDL25. The queue requires the previous unit inactive,
+at least 4.5 hours to its 16:00 UTC deadline, and 25 GiB physical C: headroom.
+It should finish later this morning. This is the full replacement experiment,
+with no shortened cap or retrospective pooling. A single anchor still cannot
+prove an official CCRL rating or the full >3500 release objective.

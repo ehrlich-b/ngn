@@ -101,7 +101,21 @@ def run(root: Path, plan_path: Path) -> None:
     while True:
         state=json.loads((root/'matches/STATE.json').read_text())
         if state['state']=='FAILED':
-            raise RuntimeError('main queue failed; follow-up is held')
+            if not plan.get('allow_held_external_anchor',False):
+                raise RuntimeError('main queue failed; follow-up is held')
+            external=json.loads((root/'matches/external-long/STATE.json').read_text())
+            if external['state']!='FAILED' or not external['error'].startswith('trace audit failures:'):
+                raise RuntimeError('main failure is not the admitted held external audit')
+            for name in ['aa-short','reference','wdl40','aa-long']:
+                terminal=json.loads((root/'matches'/name/'STATE.json').read_text())
+                control=json.loads((root/'matches'/name/'control.json').read_text())
+                if terminal['state']!='COMPLETE' or not control['pass']:
+                    raise RuntimeError('owned controls or completed gate failed')
+            unit=json.loads((root/'matches/unit.json').read_text())['unit']
+            status=subprocess.run(['systemctl','--user','show',unit,'-p','ActiveState','--value'],capture_output=True,text=True,check=True)
+            if status.stdout.strip()=='active':
+                raise RuntimeError('main match unit remains active')
+            break
         if state['state']=='COMPLETE':
             break
         if time.time()>=deadline-plan['minimum_remaining_seconds']:
