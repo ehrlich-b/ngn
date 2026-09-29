@@ -17,8 +17,14 @@ export parity (mean absolute quantization delta 4.14 cp, maximum 13.82 cp).
 The full checkpoint's six file hashes and attempt contract, plus the exported
 network, are verified in off-worker copies. Its playing gate remains queued
 after the external anchor. These are readiness/control milestones, not a new
-strength verdict. The proposed first owned release has complete source and
-training-method assets; publication and the new license grant await approval.
+strength verdict. The user explicitly approved the GPLv3 code/model grant and
+exact publication text. The first owned [public prerelease](https://github.com/ehrlich-b/ngn-releases/releases/tag/v0.2.0-rc.1)
+was published at 12:35 UTC with eight verified assets. Its corresponding model
+source includes the original WDL25 float weights and optimizer checkpoint; all
+six original file hashes match. The public source tree preserves all 436 Go/
+assembly hashes from the tested build. An anonymous Windows-package download
+matches both tested executable and selected-net hashes. The absolute >3500
+objective remains open pending direct playing evidence and calibration.
 
 The central claim survives an independent recount of the copied PGNs. M11 is
 247 wins, 386 draws, 167 losses from WDL25's perspective: 440/800 points,

@@ -28,9 +28,13 @@ Actual owned-profile Linux and native Windows `0.2.0-rc.1` executables passed
 outside-directory startup, missing-model failure, version output and Threads=8
 stop/restart/newgame/reconfiguration checks. All 88 configured depth-12 results
 match the accepted gate binary exactly. See [release procedure and receipts](docs/RELEASING.md).
-There is no official CCRL rating or confirmed >3500 claim. Distribution needs
-the project/model license decision and exact release-text approval; source and
-ODbL data attribution are being packaged.
+The user approved GPL-3.0-only for NGN's original code and WDL25 network and
+the exact public-release text. [v0.2.0-rc.1 is published](https://github.com/ehrlich-b/ngn-releases/releases/tag/v0.2.0-rc.1)
+with both binaries, corresponding source, original model checkpoint, complete
+training alteration method, playing evidence and preserved notices. All eight
+remote asset hashes match; an anonymous Windows download contains the verified
+executable and exact selected net. There is no official CCRL rating or confirmed
+>3500 claim. See the [publication receipt](experiments/2026-09-29-owned-release-publication.json).
 
 The separately frozen [WDL15 experiment](experiments/2026-09-29-owned-wdl15-plan.json)
 passed real GPU smoke/resume, mutually exclusive flag and mismatched-weight
