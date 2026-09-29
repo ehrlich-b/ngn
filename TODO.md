@@ -16,6 +16,10 @@ The final-checkpoint selections and game caps are fixed in the
 [overnight plan](experiments/2026-09-28-owned-overnight-plan.json). Report results
 only after full audits; no promotion from training loss or incomplete games.
 
+Fresh independent reference: WDL25 beats borrowed V1.2 by **+27.85
+[12.60,43.22]** over 800 audited games. Recovered e20 is complete and exported,
+with its final checkpoint/net copied off-worker; no e20 strength verdict.
+
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
 A1 corpus and schedule with the game-result weight ramped 0→0.25) with

@@ -299,3 +299,21 @@ with no promotion from loss or parent substitution. See the
 [parent integrity audit](2026-09-28-owned-e20-parent-integrity.json),
 [rejected attempt](2026-09-28-owned-e20-abort-001.json), and
 [recovery unit](2026-09-28-owned-e20-unit-r2.json).
+
+The fresh WDL25/borrowed-V1.2 reference completed at 00:53 UTC: 800 games,
+400 pairs, 128,754 legal plies and every audit passing. WDL25 scored 54.0%,
+**+27.85 Elo [12.60,43.22]**, pentanomial `[13,73,171,123,20]`. The interval's
+positive lower bound independently confirms the short-clock advantage on the
+new opening block; it is compatible with the original +34.86 estimate. These
+are separate completed runs and are not silently pooled. See the
+[fresh reference result](2026-09-28-owned-reference-result.json).
+
+Recovered e20 completed at 00:59 UTC with the same final 3,276,800-update cap.
+Net `e8b1bde89dc87363b521da4681983acb5dec4973569ad8faa9a302131ef93374`
+passes export parity (mean quantization error 5.47cp, maximum 13.93cp in the
+bound fixtures). Its final resumable checkpoint and net, together with the
+complete fresh reference match, have hash-checked off-worker copies. It has
+no playing-strength verdict yet. See
+[e20 completion](2026-09-28-owned-e20-resume-ready.json) and
+[parity](2026-09-28-owned-e20-parity.json). The fixed WDL40/current-WDL25 gate
+started immediately after the fresh reference at 00:53 UTC.
