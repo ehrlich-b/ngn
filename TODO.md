@@ -9,27 +9,34 @@ overnight outcomes: stronger owned weights, broader competitive measurements,
 and a usable validated configuration. See the [state review and live continuation
 record](experiments/2026-09-28-owned-nnue-state-review.md).
 
-The separate WDL25 candidate bundle passed actual Linux and Windows launcher
-smokes. Frozen WDL40/e20 training is complete; fresh short/long-clock matches
-are running on WSL. Both exports and the fresh short-clock A/A have passed.
-The final-checkpoint selections and game caps are fixed in the
-[overnight plan](experiments/2026-09-28-owned-overnight-plan.json). Report results
-only after full audits; no promotion from training loss or incomplete games.
-
 Fresh independent reference: WDL25 beats borrowed V1.2 by **+27.85
-[12.60,43.22]** over 800 audited games. Recovered e20 is complete and exported,
-with its final checkpoint/net copied off-worker; no e20 strength verdict.
-A separately frozen 128-game A/A and 800-game e20/selected-winner gate are
-queued after the main matches, subject to the morning time/capacity floor.
-Native Rodent stays held: the exact saved warning was recovered, but its
-reporting boundary did not reproduce and the mechanism remains unproved.
-WDL40 is **shelved** after its completed 1,600-game gate: **−8.69
-[−18.69,+1.30]** against WDL25, all audits pass. The long-clock A/A and Counter
-anchor followed; the e20 follow-up baseline is now fixed to WDL25.
-The 80-game long A/A passed, but Counter's completed 400-game run failed final
-PV draw-boundary trace auditing and remains **unscored**. The independent e20
-follow-up restarted under a pre-game admission revision; all game/control rules
-are unchanged. Actual Linux/Windows width-eight lifecycle smokes passed.
+[12.60,43.22]** over 800 audited games. WDL40 is **shelved** after its fixed
+1,600-game gate at **−8.69 [−18.69,+1.30]**. Recovered pure-score e20 is also
+**shelved**: its independently controlled 800-game gate ended at **−10.86
+[−24.80,+3.04]** versus WDL25. All owned gates passed legal, operational and
+process audits. WDL25 remains selected. The e20 comparison changes both the
+result-weight recipe and the update count; it does not isolate training duration.
+
+The first completed 400-game long-clock Counter cell remains **unscored** after
+its final draw-PV trace rejection. A separately proved, fingerprinted Counter
+compatibility checker has positive and negative controls. The fresh queue uses
+WDL25 for a new 80-game 60+0.6 A/A and full 400-game anchor, with no pooling or
+shortened cap. Native Rodent stays held: the saved malformed-promotion warning
+did not reproduce and its mechanism remains unproved.
+
+Actual owned-profile Linux and native Windows `0.2.0-rc.1` executables passed
+outside-directory startup, missing-model failure, version output and Threads=8
+stop/restart/newgame/reconfiguration checks. All 88 configured depth-12 results
+match the accepted gate binary exactly. See [release procedure and receipts](docs/RELEASING.md).
+There is no official CCRL rating or confirmed >3500 claim. Distribution needs
+the project/model license decision and exact release-text approval; source and
+ODbL data attribution are being packaged.
+
+The separately frozen [WDL15 experiment](experiments/2026-09-29-owned-wdl15-plan.json)
+passed real GPU smoke/resume, mutually exclusive flag and mismatched-weight
+resume controls and is training. Its final 1,638,400-update checkpoint is the
+only candidate. A 128-game A/A and 800-game gate wait until the full fresh
+Counter queue ends; every cap, promotion rule and disk/deadline guard is fixed.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
@@ -37,8 +44,9 @@ A1 corpus and schedule with the game-result weight ramped 0→0.25) with
 `EvalBackend ngn-k4-768-v1` and **`K4EvalScale 60`**, on source at or after
 `ccfb56a`. It beat borrowed Rodent V1.2 by **+34.9 Elo [+20.0, +49.4]** (M11,
 800 games, same engine, 10+0.1) and A1-e10 by +20.9 [+7.8, +34.0] (M6). This is
-relative evidence only; there is no installation, default change or absolute
-rating. Full record:
+relative evidence only; there is no installation or absolute rating. The
+separate owned release profile selects this net and scale automatically; ordinary
+development startup retains its explicit research defaults. Full record:
 [the night session](experiments/2026-09-27-owned-nnue-night.md).
 
 - A1 (Sep 24, rescued from a purged `/tmp` worktree and committed): +57.9 vs
@@ -47,8 +55,8 @@ rating. Full record:
   search, 1.162x faster; K4 now ~102% of V1.2's in-game NPS.
 - E1 **adopted**: K4 scores were ~1.7x the HCE/V1.2 centipawn scale all search
   margins assume; `K4EvalScale 60` gained **+15.2 Elo [+1.3, +29.6]** (800
-  games). Code default stays 100; one value tested, so it is sanctioned, not
-  tuned.
+  games). Research default stays 100 and the owned release profile uses 60;
+  one value tested, so it is sanctioned, not tuned.
 - External anchor M5: earlier **A1-e10** at scale 60 scored **73.5%, +177 Elo
   [+151, +205]** against the exact Counter 5.5 release (400 games, run-003
   settings); paired with run-003's NGN-Rodent-V1.1 result, +0.194 score

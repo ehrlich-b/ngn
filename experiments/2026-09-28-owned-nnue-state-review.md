@@ -417,3 +417,27 @@ at least 4.5 hours to its 16:00 UTC deadline, and 25 GiB physical C: headroom.
 It should finish later this morning. This is the full replacement experiment,
 with no shortened cap or retrospective pooling. A single anchor still cannot
 prove an official CCRL rating or the full >3500 release objective.
+
+The recovered pure-score e20 gate completed at 09:43 UTC: 800 games, 400 pairs,
+126,468 independent legal plies, score 48.4375%, **−10.86 Elo
+[−24.80,+3.04]** versus WDL25. Its fresh A/A passed and every final audit passed.
+The preregistered positive-lower-bound rule retains WDL25, which the fresh
+Counter queue selects automatically. The recovered checkpoint/net remain
+preserved, but neither training completion nor a longer schedule earns promotion.
+Because e20 also omits WDL25's result blend, this is a candidate comparison,
+not an isolated epoch-count experiment. See the
+[fixed e20 gate](2026-09-28-owned-e20-gate-result.json).
+
+Owned-profile `0.2.0-rc.1` Linux and native Windows builds from application commit
+`8b440bf959bc527d74bd44dc39f994718453d1b3` now load `ngn.nnue` beside the executable,
+advertise scale 60/book false, fail closed without the model, and synchronize
+Go's scheduler with accepted UCI Threads unless GOMAXPROCS is explicitly supplied.
+Required short/race/oracle/startup tests pass. Every one of the 436 recorded
+Go/assembly source files matches that Git commit. Actual executables pass
+outside-directory/space-containing-path startup, missing-model/version checks,
+and width-eight lifecycle checks with no environment override. With WDL25,
+88 depth-12 fixtures across three alternating rounds match the gate binary's
+depth, nodes, score and bestmove exactly. Timing ratio 0.978 is descriptive,
+not a speed gain. Artifacts and raw transcripts are copied and hash-checked
+off-worker. [Release procedure](../docs/RELEASING.md) and
+[actual verification](2026-09-29-owned-release-executables.json) are durable.
