@@ -1,4 +1,4 @@
-# NGN current state — September 29 morning
+# NGN current state — September 29
 
 September 28 continuation: the night PGNs/hashes were independently recounted;
 M11's +34.9 result is supported. The private research branch is pushed. A
@@ -66,10 +66,15 @@ Per-go configured/effective worker receipts prove actual helper admission,
 including strict separation from Threads option acknowledgements. Fixed-node
 budgets are rejected because that search path deliberately uses one worker.
 See [validation and copied records](experiments/2026-09-29-owned-smp-validation.json).
-The original rejected smoke is preserved unscored. No SMP Elo or new absolute
-rating has yet been measured; these cells cannot be added to the old Hash-128
-external anchor. The queue retains the 25 GiB physical disk floor and ends by
-September 30 at 10:00 UTC.
+The original rejected smoke is preserved unscored. The two-core 128-game A/A
+passed at **+5.43 [−24.47,+35.41]**. Its full 800-game gate then accepted width
+two: **262W/453D/85L, +78.16 [64.57,91.52]** versus width one, with all 121,603
+plies and operational/process audits passing. The raw records are hash-verified
+off-worker and the independent PGN recount matches; see the [two-core result](experiments/2026-09-29-owned-smp-width2-result.json).
+The four-core A/A is running as of 20:28 UTC; its fixed 800-game comparison
+against width two follows only if parity passes. These relative cells cannot
+be added to the old Hash-128 external anchor. The queue retains the 25 GiB
+physical disk floor and ends by September 30 at 10:00 UTC.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
