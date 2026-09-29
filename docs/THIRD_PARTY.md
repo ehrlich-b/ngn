@@ -14,13 +14,18 @@ for resolving distribution, rather than a new license grant.
 | Stockfish compatibility and reference work | [Stockfish 18](https://github.com/official-stockfish/Stockfish/tree/sf_18); pinned source/network receipts in the experiment records | Source Copying.txt is GPLv3; same text hash as the Rodent notice above. Stockfish model licenses have their own artifact-specific provenance. No Stockfish model is in the owned bundle. |
 | Owned K4 kernels | NGN's own Rodent-backend kernels, including commit `9f5f4982f310283f1f69534b06b81740be2bea09`, copied into `nnue/ngnk4` with renamed symbols and independent bounds/parity tests | Architecture compatibility and internal kernel reuse are disclosed. The repository record does not claim that every Go assembly routine is copied from upstream Rodent. |
 | Bullet training toolchain | [Bullet](https://github.com/jw1912/bullet/tree/629ee50000b2afb7b3337595401c830d3b1e0f42), with recorded NGN patch/harness | Exact source LICENSE is MIT; SHA-256 `57809ec584029c063fc7052102ebcf4dcc09bab5b3e5358481ac193f7b709ec8`. Training tooling is separate from the Go engine binary. |
+| Go runtime and standard library | Go 1.25.5 used for both release executables | The installed compiler's BSD-style LICENSE is preserved; SHA-256 `911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad`. |
+| T80 training archive | [official-stockfish/master-binpacks](https://huggingface.co/datasets/official-stockfish/master-binpacks/tree/1e095a758c630bc58d0b6dac4da44fcd38ac89c2), exact revision `1e095a758c630bc58d0b6dac4da44fcd38ac89c2` | The official pinned API declares `odbl`. The 10,809,713,086-byte T80 file hashes to `0d22957b8d4f0f8e6f2913be7b744b2dab5178c3563e0f916312d0d94c28b92b`. |
 
-The owned A1/WDL25 family uses mapped search scores and game results from the
-pinned T80 archive. The corpus, transformations, quarantines, initialization,
-trainer and exports are recorded. That training provenance does not by itself
-establish the archive's distribution terms or select a license for the resulting
-model. Retain the archive origin/terms and explicit model distribution decision
-with the release record.
+The owned A1/WDL25 family uses mapped search scores and game results from that
+pinned ODbL archive. The corpus, transformations, quarantines, initialization,
+trainer and exports are recorded. The prepared distribution includes attribution
+and the exact transformation method/inputs. Sections 4.3 and 4.6 of the
+[ODbL](https://opendatacommons.org/licenses/odbl/1-0/) describe produced-work notices
+and access to a derivative database or its complete alteration method. This
+inventory does not select a license for the model. Retain the explicit project
+and model distribution decision with the release record. See the
+[pinned API and notice receipt](../experiments/2026-09-29-owned-dataset-license.json).
 
 The compact [upstream receipt](../experiments/2026-09-29-owned-release-provenance.json)
 binds the exact fetched notices. Complete notice texts are archived with the
