@@ -38,6 +38,17 @@ def package(args):
         for relative, expected in build['source_files'].items():
             if relative not in files or hashlib.sha256(archive.extractfile(files[relative]).read()).hexdigest() != expected:
                 raise ValueError('corresponding source differs: ' + relative)
+    method = json.loads(args.training_method_receipt.read_text())
+    if digest(args.training_method) != method['sha256'] or method['recipe']['network_sha256'] != network_sha:
+        raise ValueError('training method differs from the selected network receipt')
+    with tarfile.open(args.training_method, 'r:*') as archive:
+        files = {member.name.split('/', 1)[-1]: member for member in archive.getmembers() if member.isfile()}
+        for relative, expected in method['recipe']['files'].items():
+            if relative not in files:
+                raise ValueError('training-method input missing: ' + relative)
+            data = archive.extractfile(files[relative]).read()
+            if len(data) != expected['bytes'] or hashlib.sha256(data).hexdigest() != expected['sha256']:
+                raise ValueError('training-method input differs: ' + relative)
     notices = {path.name: path for path in args.notices.iterdir() if path.is_file()}
     for name in ['Zahak-MIT.txt', 'Go-LICENSE.txt', 'CounterGo-GPL.txt', 'Rodent-V-GPL.txt', 'Stockfish-GPL.txt', 'TRAINING-DATA.txt']:
         if name not in notices:
@@ -45,6 +56,7 @@ def package(args):
     out = args.out.resolve(); out.mkdir(exist_ok=False, parents=True)
     version = build['version']
     shutil.copy2(args.source, out / ('ngn-' + version + '-source.tar.gz'))
+    shutil.copy2(args.training_method, out / ('ngn-' + version + '-training-method.tar.gz'))
     readme = (
         f'NGN {version} — owned NNUE release candidate\n\n'
         'Install ngn.exe in a Windows UCI chess GUI, or ngn on Linux. Keep ngn.nnue beside it.\n'
@@ -56,7 +68,8 @@ def package(args):
         f'Network: {args.network_name}\nSHA-256: {network_sha}\n\n'
         'The playing measurements are for one worker. Threads=8 lifecycle checks establish reliability,\n'
         'and do not establish an SMP Elo gain. No official CCRL rating or >3500 certification is claimed.\n'
-        'Source, training-data attribution, applicable notices and integrity records accompany this candidate.\n'
+        'Source, the complete training alteration method and its inputs, training-data attribution,\n'
+        'applicable notices and integrity records accompany this candidate.\n'
         'This prepared candidate is pending the project/model license decision and release approval.\n'
     )
     archives = []
@@ -71,6 +84,7 @@ def package(args):
         files = {p.name: {'bytes': p.stat().st_size, 'sha256': digest(p)} for p in folder.iterdir()}
         manifest = {'schema': 'ngn-owned-release-package-v1', 'version': version, 'platform': platform,
                     'application_source_commit': build['source_commit'], 'corresponding_source_sha256': digest(args.source),
+                    'training_method_sha256': method['sha256'],
                     'build_manifest_sha256': digest(args.build_manifest), 'verification_sha256': digest(args.verification),
                     'network_name': args.network_name, 'startup': build['startup'], 'files': files,
                     'publication_state': 'DRAFT_PENDING_LICENSE_AND_APPROVAL', 'project_license': 'NOASSERTION',
@@ -97,6 +111,8 @@ def package(args):
         archives.append({'file': asset.name, 'bytes': asset.stat().st_size, 'sha256': digest(asset), 'member_hashes_verified': len(expected)})
     receipt = {'schema': 'ngn-owned-release-assets-v1', 'version': version, 'pass': True, 'source_files_verified': len(build['source_files']),
                'network_sha256': network_sha, 'source_asset': {'file': 'ngn-' + version + '-source.tar.gz', 'sha256': digest(args.source)},
+               'training_method_asset': {'file': 'ngn-' + version + '-training-method.tar.gz', 'bytes': args.training_method.stat().st_size,
+                                         'sha256': method['sha256'], 'member_hashes_verified': len(method['recipe']['files'])},
                'assets': archives, 'publication_state': 'DRAFT_PENDING_LICENSE_AND_APPROVAL'}
     (out / 'assets.json').write_text(json.dumps(receipt, indent=2) + '\n')
     (out / 'SHA256SUMS').write_text(''.join(f'{digest(p)}  {p.name}\n' for p in sorted(out.iterdir()) if p.is_file()))
@@ -105,7 +121,8 @@ def package(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ['build-manifest', 'verification', 'linux', 'windows', 'network', 'source', 'notices', 'out']:
+    for name in ['build-manifest', 'verification', 'linux', 'windows', 'network', 'source', 'notices', 'out',
+                 'training-method', 'training-method-receipt']:
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--network-name', required=True)
     package(parser.parse_args())

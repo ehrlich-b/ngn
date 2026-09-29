@@ -35,6 +35,10 @@ The release procedure is:
    manifest, checksums, applicable notices and corresponding source. Read the
    archives back and verify their member hashes. Retain the playing records and
    rejected attempts outside Git; commit the compact receipts.
+   `scripts/package_owned_release.py` also verifies and includes the complete
+   training alteration-method archive and its exact filter/map inputs. Include
+   the compact build, test, executable and provenance receipts in the source
+   archive so its documentation links remain usable after extraction.
 5. Resolve the project's license and model distribution provenance before an
    external release. Draft the exact release text and destination for Bryan's
    approval, following the external communication agreement. Do not turn a
