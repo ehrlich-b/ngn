@@ -37,7 +37,8 @@ def mask_text(team):
 def validate_layout(spec):
     # SearchFixed's node budget deliberately selects the primary worker only.
     # Such a run cannot witness Lazy SMP, even if UCI Threads advertises >1.
-    if spec.get('schema') != 'ngn-owned-multicore-spec-v1' or 'tc' not in spec or 'nodes' in spec:
+    external = spec.get('schema') == 'ngn-owned-multicore-counter-spec-v1'
+    if spec.get('schema') not in ('ngn-owned-multicore-spec-v1', 'ngn-owned-multicore-counter-spec-v1') or 'tc' not in spec or 'nodes' in spec:
         raise base.CandidateMatchError('invalid multicore schema/budget')
     minimum = spec.get('minimum_full_width_fraction')
     if type(minimum) not in [int, float] or not 0 < minimum <= 1:
@@ -58,10 +59,16 @@ def validate_layout(spec):
             raise base.CandidateMatchError('invalid or duplicate width options')
         if options['Threads'] > len(teams[0]):
             raise base.CandidateMatchError('width exceeds CPU team')
-        if options.get('EvalBackend') != 'ngn-k4-768-v1' or not role.get('network'):
-            raise base.CandidateMatchError('this instrument admits owned K4 roles only')
-        if options.get('OwnBook') is not False or spec.get('strict') is not True:
-            raise base.CandidateMatchError('require book-free strict games')
+        counter = role.get('engine', {}).get('sha256') == base.COUNTER55_SHA256
+        if counter:
+            if not external or options['Threads'] != 1 or role.get('network') or set(options) != {'Threads', 'Hash', 'ExperimentSettings'} or options['ExperimentSettings'] is not False:
+                raise base.CandidateMatchError('external mode admits only exact Counter 5.5 at width one')
+        elif options.get('EvalBackend') != 'ngn-k4-768-v1' or not role.get('network') or options.get('OwnBook') is not False:
+            raise base.CandidateMatchError('require book-free owned K4 role')
+    if spec.get('strict') is not (not external):
+        raise base.CandidateMatchError('strict setting differs from declared match mode')
+    if external and spec['purpose'] == 'anchor' and sum(role.get('engine', {}).get('sha256') == base.COUNTER55_SHA256 for role in spec['roles']) != 1:
+        raise base.CandidateMatchError('external anchor requires one exact Counter role')
 
 
 def admit_control(spec, hashes):
@@ -80,6 +87,7 @@ def admit_control(spec, hashes):
 
 def audit_width_receipts(lines, roles, minimum_fraction):
     widths = {role['name']: int(dict(role['options'])['Threads']) for role in roles}
+    owned = {role['name'] for role in roles if role.get('ngn', True)}
     receipt_re = re.compile(r'info string threads configured (\d+) effective (\d+)')
     pending, pending_options = {}, {}
     counts = {name: collections.Counter() for name in widths}
@@ -93,7 +101,7 @@ def audit_width_receipts(lines, roles, minimum_fraction):
         if ' <--- ' in body:
             name, payload = body.split(' <--- ', 1)
             key = (thread, name)
-            if name in widths and payload.startswith('setoption name Threads value '):
+            if name in owned and payload.startswith('setoption name Threads value '):
                 if key in pending or key in pending_options or int(payload.rsplit(' ', 1)[1]) != widths[name]:
                     raise base.CandidateMatchError('invalid/nested Threads configuration')
                 pending_options[key] = widths[name]
@@ -138,7 +146,7 @@ def audit_width_receipts(lines, roles, minimum_fraction):
     report = {}
     for name, width in widths.items():
         total = sum(counts[name].values())
-        if not total or not option_counts[name]:
+        if not total or (name in owned and not option_counts[name]):
             raise base.CandidateMatchError('role has no witnessed searches/configuration')
         fraction = counts[name][width] / total
         if width > 1 and (fraction < minimum_fraction or any(count == 0 for (thread, actor), count in slot_full.items() if actor == name)):
@@ -152,6 +160,13 @@ def run(spec_path, out):
     base.require_wsl()
     spec = json.loads(spec_path.read_text())
     validate_layout(spec)
+    external = spec['schema'] == 'ngn-owned-multicore-counter-spec-v1'
+    if external:
+        # Counter's exact release emits a post-draw PV warning under fastchess.
+        # The independently validated wrapper accepts only that proven case.
+        import ownedmatch_counterdraw  # noqa: F401
+        base.COUNTER55_BANNER = re.compile(base.COUNTER55_BANNER.pattern.replace(
+            'NumCPU 1$', f'NumCPU {len(spec["cpu_teams"][0])}$'))
     if not set(spec['cpus']).issubset(os.sched_getaffinity(0)):
         raise base.CandidateMatchError('declared CPUs unavailable')
     siblings = [(Path('/sys/devices/system/cpu') / f'cpu{cpu}' / 'topology/thread_siblings_list').read_text().strip() for cpu in spec['cpus']]
@@ -171,19 +186,24 @@ def run(spec_path, out):
     for index, role in enumerate(spec['roles']):
         cwd = out / f'role{index}'; cwd.mkdir()
         binary = cwd / 'engine'; shutil.copy2(quickmatch.checked(role['engine']), binary)
-        network = cwd / 'ngn.nnue'; shutil.copy2(quickmatch.checked(role['network']), network)
+        network = None
+        if role.get('network'):
+            network = cwd / 'ngn.nnue'; shutil.copy2(quickmatch.checked(role['network']), network)
         options = [(name, str(network) if value == '$NETWORK' else value) for name, value in role['options']]
+        if any(value is None for _, value in options):
+            raise base.CandidateMatchError('$NETWORK without network')
         launcher = cwd / 'smp_role_exec.py'; shutil.copy2(base.HELPERS / 'smp_role_exec.py', launcher); launcher.chmod(0o555)
         width = str(dict(options)['Threads'])
         base.atomic_json(cwd / 'role-config.json', {'schema': 'ngn-smp-role-exec-v1', 'engine': str(binary),
             'engine_sha256': role['engine']['sha256'], 'gomaxprocs': width, 'expected_cwd': str(cwd), 'cpu_teams': spec['cpu_teams']})
         receipt = base.preflight(launcher, cwd, options, role, out / f'preflight{index}.jsonl', mask_text(spec['cpu_teams'][0]))
-        if not receipt['ngn']:
-            raise base.CandidateMatchError('owned evaluator preflight absent')
+        if receipt['ngn'] == (role['engine']['sha256'] == base.COUNTER55_SHA256):
+            raise base.CandidateMatchError('evaluator preflight identity differs')
         base.atomic_json(out / f'preflight{index}.json', receipt)
-        crash = cwd / 'ngn_crashes.log'; crashes.append(base.crash_lines(crash, crash, 1)); shutil.move(crash, out / f'preflight{index}-crashes.log')
+        if receipt['ngn']:
+            crash = cwd / 'ngn_crashes.log'; crashes.append(base.crash_lines(crash, crash, 1)); shutil.move(crash, out / f'preflight{index}-crashes.log')
         roles.append({'id': str(index), 'name': role['name'], 'engine': str(binary), 'launcher': str(launcher),
-                      'cwd': str(cwd), 'options': options, 'ngn': True, 'sha256': role['engine']['sha256'], 'gomaxprocs': width})
+                      'cwd': str(cwd), 'options': options, 'ngn': receipt['ngn'], 'sha256': role['engine']['sha256'], 'gomaxprocs': width})
     command = [str(frozen['fastchess'])]
     for role in roles:
         command += ['-engine', f'cmd={role["launcher"]}', f'name={role["name"]}', f'dir={role["cwd"]}']
@@ -191,7 +211,8 @@ def run(spec_path, out):
     budget = [f'tc={spec["tc"]}', 'timemargin=0']
     command += ['-openings', f'file={frozen["openings_pgn"]}', 'format=pgn', 'order=sequential', 'start=1', f'plies={spec["opening_plies"]}',
         '-each', *budget, '-rounds', str(spec['pairs']), '-games', '2', '-repeat', '-concurrency', str(spec['concurrency']),
-        '-use-affinity', ','.join(str(team[0]) for team in spec['cpu_teams']), '-srand', str(spec['seed']), '-strict', '-show-latency',
+        '-use-affinity', ','.join(str(team[0]) for team in spec['cpu_teams']), '-srand', str(spec['seed']),
+        *(['-strict'] if spec['strict'] else []), '-show-latency',
         '-pgnout', f'file={out / "games.pgn"}', 'notation=uci', 'append=false', 'nodes=true', 'seldepth=true', 'nps=true', 'hashfull=true',
         'timeleft=true', 'latency=true', 'pv=true', '-epdout', f'file={out / "final.epd"}', 'append=false',
         '-log', f'file={out / "fastchess.log"}', 'level=trace', 'engine=true', 'realtime=false', 'append=false']
@@ -218,10 +239,11 @@ def run(spec_path, out):
     trace_lines = (out / 'fastchess.log').read_text().splitlines()
     trace = base.operational_trace(trace_lines, trace_roles, roles)
     widths = audit_width_receipts(trace_lines, roles, spec['minimum_full_width_fraction'])
-    if any(row['configuration_acknowledgements'] != 2 * spec['pairs'] for row in widths['roles'].values()):
+    if any(row['configuration_acknowledgements'] != 2 * spec['pairs'] for name, row in widths['roles'].items() if name in {role['name'] for role in roles if role['ngn']}):
         raise base.CandidateMatchError('Threads acknowledgement count differs from game refreshes')
     for role in roles:
-        crash = Path(role['cwd']) / 'ngn_crashes.log'; crashes.append(base.crash_lines(crash, crash, spec['concurrency']))
+        if role['ngn']:
+            crash = Path(role['cwd']) / 'ngn_crashes.log'; crashes.append(base.crash_lines(crash, crash, spec['concurrency']))
     base.atomic_json(out / 'audit-operational.json', {'pass': True, 'trace': trace, 'crash_logs': crashes,
         'unfiltered_trace_sha256': base.sha256(out / 'fastchess.log'), 'process_witness_sha256': base.sha256(out / 'child-processes.json'),
         'effective_widths': widths})

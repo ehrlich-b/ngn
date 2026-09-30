@@ -71,10 +71,24 @@ passed at **+5.43 [−24.47,+35.41]**. Its full 800-game gate then accepted widt
 two: **262W/453D/85L, +78.16 [64.57,91.52]** versus width one, with all 121,603
 plies and operational/process audits passing. The raw records are hash-verified
 off-worker and the independent PGN recount matches; see the [two-core result](experiments/2026-09-29-owned-smp-width2-result.json).
-The four-core A/A is running as of 20:28 UTC; its fixed 800-game comparison
-against width two follows only if parity passes. These relative cells cannot
+The four-core A/A completed and the fixed 800-game comparison against width
+two is running as of September 30 at 00:14 UTC; no final result is available.
+These relative cells cannot
 be added to the old Hash-128 external anchor. The queue retains the 25 GiB
 physical disk floor and ends by September 30 at 10:00 UTC.
+
+A separately frozen [two-core Counter calibration](experiments/2026-09-29-owned-smp-counter-plan.json)
+started at 20:30 UTC on the spare physical cores 12 and 14. Its extended
+instrument retains the exact Counter draw-PV checker and independently
+witnesses each role's CPU mask and GOMAXPROCS. All eight negative/live controls
+pass. The eight-game procedure smoke completed and passed; its fresh 128-game
+A/A remains running as of September 30 at 00:14 UTC. The fixed 400-game
+released-WDL25/Counter comparison follows at 60+0.6,
+Hash 128 and scale 60. No result from this queue is available yet. Deadline
+or time/capacity admission failures preserve incomplete cells unscored;
+do not pool with the earlier one-core anchor or infer an official list rating.
+The [read-only validation recheck](experiments/2026-09-29-owned-smp-counter-validation.json)
+matches all 29 frozen source files and the local controller/plan to the running queue.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
