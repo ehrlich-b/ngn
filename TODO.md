@@ -131,6 +131,12 @@ the [fresh four-versus-accepted-two trial](experiments/2026-09-30-owned-smp-widt
 started at 03:27 UTC. The native Maelstrom procedure is [preserved unscored](experiments/2026-09-30-owned-maelstrom-draw-pv-rejection.json):
 strict fastchess rejected PV continuations after threefold repetition. Prove
 exact-artifact draw-PV compatibility controls before admitting any fresh benchmark.
+Those [independent compatibility controls now pass](experiments/2026-09-30-owned-maelstrom-compatibility-validation.json):
+all 31 saved warnings have legal history/PV moves and the exact first drawn
+boundary, all 13 changed negative fixtures reject, and all 61 Python controls
+plus the WSL short race suite pass. The separate [fresh Maelstrom trial](experiments/2026-09-30-owned-maelstrom-plan-v4.json)
+started at 03:44 UTC with disjoint new morning openings, a new procedure and
+128-game A/A before its fixed 400-game anchor. No prior cell becomes scored.
 Both final caps and the September 30 13:00 UTC deadline are fixed;
 the 25 GiB physical disk guard remains in force. Retain width two pending a
 complete, audited four-core decision.
