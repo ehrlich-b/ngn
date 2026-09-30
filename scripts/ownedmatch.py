@@ -28,6 +28,11 @@ from trace_audit import TRACE_RE, audit_trace, crash_lines
 from uci_preflight import EVAL_RE, Protocol, parse_advertised_options
 
 COUNTER55_SHA256 = '6c48fb52934d49d3774633e32f0b4fb4796b1e2c63925f24167ef0f0c0d761c8'
+# Unmodified Maelstrom v3.3.0, source b71b738509b431b8d1e7fb60f448f796b09d743b,
+# built on WSL with Go 1.25.5, CGO=1, GOAMD64=v3 and -trimpath.
+# Its UCI manager owns one Searcher and exposes Hash/Ponder only. The existing
+# launcher and live process witness still require GOMAXPROCS=1 and one CPU.
+MAELSTROM330_SHA256 = '66ea969530d63f5904114079f518ba618b0deb4e269eb0c95d7496960379ea53'
 COUNTER55_BANNER = re.compile(
     r'^\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2} main\.go:39: Counter VersionName 5\.5 '
     r'BuildDate 2024-01-12 GitRevision 63c487ca724c620f71c129d62129c6fb9109c872 '
@@ -104,6 +109,43 @@ def instrument() -> dict:
 
 def value_text(value) -> str:
     return str(value).lower() if isinstance(value, bool) else str(value)
+
+
+def validate_one_worker_role(role: dict) -> None:
+    options = dict(role['options'])
+    if len(options) != len(role['options']):
+        raise CandidateMatchError('duplicate role option')
+    if role['engine']['sha256'] == MAELSTROM330_SHA256:
+        if role.get('network') or set(options) != {'Hash', 'Ponder'} or options['Ponder'] is not False:
+            raise CandidateMatchError('exact Maelstrom role requires Hash and Ponder=false only')
+        if type(options['Hash']) is not int or not 1 <= options['Hash'] <= 4096:
+            raise CandidateMatchError('Maelstrom Hash outside advertised domain')
+    elif type(options.get('Threads')) is not int or options['Threads'] != 1:
+        raise CandidateMatchError('this instrument admits Threads=1 or exact single-worker Maelstrom only')
+
+
+def validate_maelstrom_handshake(lines: list[str], advertised: dict) -> None:
+    if [line for line in lines if line.startswith('id name ')] != ['id name Maelstrom v3.3.0'] or \
+       [line for line in lines if line.startswith('id author ')] != ['id author Saigautam Bonam']:
+        raise CandidateMatchError('exact Maelstrom UCI identity differs')
+    if set(advertised) != {'Hash', 'Ponder'} or advertised['Hash']['type'] != 'spin' or \
+       advertised['Hash'].get('min') != 1 or advertised['Hash'].get('max') != 4096 or \
+       advertised['Ponder']['type'] != 'check':
+        raise CandidateMatchError('exact Maelstrom UCI option set differs')
+
+
+def stage_role_inputs(role: dict, cwd: Path) -> tuple[Path, list]:
+    binary = cwd / 'engine'
+    shutil.copy2(quickmatch.checked(role['engine']), binary)
+    network = None
+    if role.get('network'):
+        # The owned release loads this sibling before its first UCI command.
+        network = cwd / 'ngn.nnue'
+        shutil.copy2(quickmatch.checked(role['network']), network)
+    options = [(name, str(network) if value == '$NETWORK' else value) for name, value in role['options']]
+    if any(value is None for _, value in options):
+        raise CandidateMatchError('$NETWORK without network')
+    return binary, options
 
 
 def role_identity(role: dict) -> dict:
@@ -187,7 +229,11 @@ def preflight(launcher: Path, cwd: Path, options: list, role: dict, out: Path, c
             counter55 = role['engine']['sha256'] == COUNTER55_SHA256
             protocol = CheckedProtocol(process, transcript, counter55)
             protocol.send('uci')
-            advertised = parse_advertised_options(protocol.until(lambda line: line == 'uciok', 30, 'uciok'))
+            uci_lines = protocol.until(lambda line: line == 'uciok', 30, 'uciok')
+            advertised = parse_advertised_options(uci_lines)
+            if role['engine']['sha256'] == MAELSTROM330_SHA256:
+                validate_one_worker_role(role)
+                validate_maelstrom_handshake(uci_lines, advertised)
             ngn = any(name == 'EvalBackend' for name, _ in options)
             if ngn:
                 protocol.send('debug on')
@@ -243,7 +289,8 @@ def preflight(launcher: Path, cwd: Path, options: list, role: dict, out: Path, c
                 stream, line, _ = protocol.events.get_nowait()
                 if stream == 'stderr' and line != '<EOF>' or line.startswith('info string error'):
                     raise CandidateMatchError(f'late preflight error: {line}')
-            return {'pass': True, 'advertised': advertised, 'barriers': barriers,
+            return {'pass': True, 'uci_identity': [line for line in uci_lines if line.startswith('id ')],
+                    'advertised': advertised, 'barriers': barriers,
                     'diagnostics': diagnostics, 'search': search, 'ngn': ngn,
                     'allowed_exact_counter55_startup_stderr': protocol.allowed_stderr}
         finally:
@@ -267,8 +314,7 @@ def run(spec_path: Path, out: Path) -> None:
     if spec['concurrency'] > len(spec['cpus']) or len(set(spec['cpus'])) != len(spec['cpus']):
         raise CandidateMatchError('invalid one-worker concurrency/affinity')
     for role in spec['roles']:
-        if dict(role['options']).get('Threads') != 1:
-            raise CandidateMatchError('this instrument admits Threads=1 only')
+        validate_one_worker_role(role)
     admit_control(spec, current_instrument)
     out.mkdir(parents=True, exist_ok=False)
     atomic_json(out / 'spec.json', spec)
@@ -285,15 +331,7 @@ def run(spec_path: Path, out: Path) -> None:
     for index, role in enumerate(spec['roles']):
         cwd = out / f'role{index}'
         cwd.mkdir()
-        binary = cwd / 'engine'
-        shutil.copy2(quickmatch.checked(role['engine']), binary)
-        network = None
-        if role.get('network'):
-            network = cwd / 'network'
-            shutil.copy2(quickmatch.checked(role['network']), network)
-        options = [(name, str(network) if value == '$NETWORK' else value) for name, value in role['options']]
-        if any(value is None for _, value in options):
-            raise CandidateMatchError('$NETWORK without network')
+        binary, options = stage_role_inputs(role, cwd)
         launcher = cwd / 'role_exec.py'
         shutil.copy2(HELPERS / 'role_exec.py', launcher)
         launcher.chmod(0o555)
