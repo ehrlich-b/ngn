@@ -139,7 +139,14 @@ started at 03:44 UTC with disjoint new morning openings, a new procedure and
 128-game A/A before its fixed 400-game anchor. Both controls now pass: the
 Maelstrom procedure covers 1,045 legal plies, and its A/A covers 19,403 plies
 with a paired score interval containing parity. The 400-game anchor started
-at 04:20 UTC. The four-core A/A also passed over 18,920 plies with parity in
+at 04:20 UTC and completed at 06:02 UTC: **261W/125D/14L, 80.875%,
++250.49 [223.69,280.11]** versus the unmodified pinned Maelstrom v3.3.0 build,
+one physical CPU per game, Hash128 and 10+0.1. All 58,590 legal plies and
+operational/process audits pass; independent WSL color-pair/penta recounts
+and all 182 copied record hashes match. See the [completed result](experiments/2026-09-30-owned-maelstrom-result.json).
+This is a second independently controlled external win, not an official CCRL
+rating, a world rank or a transfer of its list Elo to this clock.
+The four-core A/A also passed over 18,920 plies with parity in
 its interval; the 800-game four-versus-two gate started at 04:34 UTC.
 No prior cell becomes scored. A [live, byte-preserving tool deduplication](experiments/2026-09-30-owned-terminal-tool-dedup.json)
 reclaimed 3.333 GiB of Linux file allocation in terminal cells without stopping
