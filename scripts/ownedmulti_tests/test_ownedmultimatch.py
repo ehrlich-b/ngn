@@ -49,6 +49,30 @@ class LayoutTests(unittest.TestCase):
         row['tasks'][1]['cpus_allowed_list'] = '12,14'
         self.assertFalse(witness.observation_violations(role, row))
 
+    def test_exact_counter_external_mode_and_mixed_receipts(self):
+        spec = self.spec()
+        spec.update(schema='ngn-owned-multicore-counter-spec-v1', purpose='anchor', strict=False)
+        spec['roles'][1] = {'name': 'Counter', 'engine': {'sha256': match.base.COUNTER55_SHA256},
+            'network': None, 'options': [['Threads', 1], ['Hash', 128], ['ExperimentSettings', False]]}
+        match.validate_layout(spec)
+        changed = copy.deepcopy(spec); changed['roles'][1]['engine']['sha256'] = '0' * 64
+        with self.assertRaises(match.base.CandidateMatchError): match.validate_layout(changed)
+        changed = copy.deepcopy(spec); changed['roles'][1]['options'][0][1] = 2
+        with self.assertRaises(match.base.CandidateMatchError): match.validate_layout(changed)
+        changed = copy.deepcopy(spec); changed['strict'] = True
+        with self.assertRaises(match.base.CandidateMatchError): match.validate_layout(changed)
+        def line(body): return '[Engine] [00:00:00] < 1> ' + body
+        trace = [line('A <--- setoption name Threads value 2'),
+                 line('A ---> info string threads configured 2 effective 2'),
+                 line('A <--- go wtime 10000 btime 10000'),
+                 line('A ---> info string threads configured 2 effective 2'),
+                 line('A ---> bestmove e2e4'),
+                 line('Counter <--- go wtime 10000 btime 10000'),
+                 line('Counter ---> bestmove e7e5')]
+        roles = [{'name': 'A', 'ngn': True, 'options': [['Threads', 2]]},
+                 {'name': 'Counter', 'ngn': False, 'options': [['Threads', 1]]}]
+        self.assertTrue(match.audit_width_receipts(trace, roles, .8)['pass'])
+
     def test_aa_binds_cpu_teams_instrument_and_participating_width(self):
         with tempfile.TemporaryDirectory() as raw:
             path = pathlib.Path(raw) / 'control.json'
