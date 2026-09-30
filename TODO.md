@@ -81,12 +81,14 @@ A separately frozen [two-core Counter calibration](experiments/2026-09-29-owned-
 started at 20:30 UTC on the spare physical cores 12 and 14. Its extended
 instrument retains the exact Counter draw-PV checker and independently
 witnesses each role's CPU mask and GOMAXPROCS. All eight negative/live controls
-pass. The eight-game procedure smoke completed and passed; its fresh 128-game
-A/A remains running as of September 30 at 00:14 UTC. The fixed 400-game
-released-WDL25/Counter comparison follows at 60+0.6,
-Hash 128 and scale 60. No result from this queue is available yet. Deadline
-or time/capacity admission failures preserve incomplete cells unscored;
-do not pool with the earlier one-core anchor or infer an official list rating.
+pass. The eight-game procedure smoke completed and passed. Its fresh 128-game
+A/A reached the fixed four-hour stage timeout on September 30 at 00:54 UTC;
+the queue failed, and the 400-game Counter anchor was never launched.
+The supervisor confirms no surviving processes, and the stopped unit has
+MainPID=0. Preserve the incomplete A/A **unscored**, without restarting,
+extending or pooling it with the earlier one-core anchor. The saved failure
+receipt and copied records are [hash-verified off-worker](experiments/2026-09-30-owned-smp-counter2-failure.json).
+This queue provides no playing-strength result or official list rating.
 The [read-only validation recheck](experiments/2026-09-29-owned-smp-counter-validation.json)
 matches all 29 frozen source files and the local controller/plan to the running queue.
 
