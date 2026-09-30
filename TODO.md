@@ -198,7 +198,9 @@ See the [integrity audit](experiments/2026-09-28-owned-e20-parent-integrity.json
    Windows release is available. Bryan's approved testing request was submitted
    to CCRL Public on September 30 at 00:47 UTC, including interest in the 127th
    Amateur Series and disclosure of AI tools used in engine development. The
-   forum confirmed successful submission pending moderator approval; do not resubmit.
+   request is now [publicly visible](https://kirill-kryukov.com/chess/discussion-board/viewtopic.php?t=19325)
+   in a guest view, checked September 30 at 03:49 UTC; no replies yet. See the
+   [public-topic receipt](experiments/2026-09-30-ccrl-public-topic.json). Do not resubmit.
 2. Data scale, the documented next A1 step, blocked on disk. The code is ready
    in `613dc0f`: `ngnk4archive scatter` accepts the four pinned farseer
    binpacks (same HF revision as T80), takes a key-hashed
