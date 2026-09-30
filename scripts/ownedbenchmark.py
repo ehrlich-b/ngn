@@ -24,11 +24,30 @@ def free_gib():
     return capacity.f_bavail * capacity.f_frsize / (1 << 30)
 
 
+def activate_compatibility(plan):
+    compatibility = plan.get('compatibility')
+    if compatibility is None:
+        return Path(match.__file__)
+    if compatibility.get('kind') != 'exact-maelstrom330-post-draw-pv-v1' or plan['common']['strict'] is not False:
+        raise match.CandidateMatchError('unsupported native compatibility instrument')
+    runner = checked(compatibility['runner'])
+    if runner != Path(__file__).with_name('ownedmatch_maelstromdraw.py'):
+        raise match.CandidateMatchError('native compatibility runner differs')
+    import ownedmatch_maelstromdraw as wrapper
+    controls = json.loads(checked(compatibility['controls']).read_text())
+    if controls.get('pass') is not True or controls['instrument'] != match.instrument() or \
+       controls['independently_validated_warning_count'] < 1 or len(controls['negative_fixtures']) < 10 or \
+       not all(row['rejected'] for row in controls['negative_fixtures']):
+        raise match.CandidateMatchError('native compatibility controls differ or failed')
+    return Path(wrapper.__file__)
+
+
 def run(root, plan_path):
     match.require_wsl()
     plan = json.loads(plan_path.read_text())
     if plan['schema'] != 'ngn-owned-external-benchmark-plan-v1':
         raise match.CandidateMatchError('external benchmark plan schema differs')
+    runner = activate_compatibility(plan)
     checked(plan['controller'])
     checked(plan['source_receipt'])
     if plan['instrument'] != match.instrument():
@@ -69,7 +88,7 @@ def run(root, plan_path):
         match.atomic_json(spec_path, spec)
         match.atomic_json(out / 'STATE.json', {'state': 'RUNNING', 'name': name,
                                               'started': time.time(), 'completed_cells': completed})
-        command = [sys.executable, str(Path(match.__file__)), '--spec', str(spec_path), '--out', str(out / name)]
+        command = [sys.executable, str(runner), '--spec', str(spec_path), '--out', str(out / name)]
         with (out / (name + '.stdout')).open('wb') as stdout, (out / (name + '.stderr')).open('wb') as stderr:
             result = subprocess.run(command, cwd=root, env=match.safe_environment(), stdout=stdout, stderr=stderr,
                                     timeout=max(1, int(deadline - time.time() - 60)))

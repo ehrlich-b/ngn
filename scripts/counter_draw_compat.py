@@ -64,9 +64,9 @@ class DrawPVChecker:
         return result
 
 
-def filter_draw_warnings(lines, roles, trace_re):
-    allowed = {role['name'] for role in roles if role['sha256'] == COUNTER_SHA}
-    checker = DrawPVChecker()
+def filter_draw_warnings(lines, roles, trace_re, *, artifact_sha256=COUNTER_SHA, checker=None):
+    allowed = {role['name'] for role in roles if role['sha256'] == artifact_sha256}
+    checker = checker if checker is not None else DrawPVChecker()
     live = {}
     filtered, accepted = [], []
     index = 0
