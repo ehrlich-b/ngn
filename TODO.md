@@ -161,15 +161,24 @@ The September 30 13:00 UTC deadline and both final caps remain unchanged.
 Retain accepted width two; no partial four-core strength result is admitted.
 Both chess units are terminal. The [approved morning compaction and restoration](experiments/2026-09-30-owned-morning-storage-restoration.json)
 succeeded, restoring Docker, both hopper workers, the relay and keepalive.
-The [top-three Go goal](experiments/2026-09-30-owned-top3-go-goal.json) now calls for
-a fresh 400-game native Zahak 10 match at 120+1, one physical CPU and Hash128
-each, after matching smoke/A/A controls. Rodent V and current GoChess NNUE
-remain part of the wider frontier. [Verified lossless record preservation and
-tool/cache recovery](experiments/2026-09-30-owned-top3-storage-recovery.json) has
-reclaimed Linux allocation, but physical C: remains below the unchanged 25 GiB
-floor. A verified off-worker archive of old scatter intermediates is in progress;
-the gathered training corpus stays on WSL. Hold new matches until a fresh
-physical-capacity check admits at least 30 GiB, keeping the ongoing 25 GiB guard.
+The [top-three Go goal](experiments/2026-09-30-owned-top3-go-goal.json) now has a
+[fresh native Zahak 10 trial](experiments/2026-09-30-owned-top3-zahak-plan-v3.json)
+running at 120+1, one physical CPU and Hash128 each: 12-game smoke, 128-game
+fresh A/A, then one fixed 400-game anchor. The strict first smoke stopped
+unscored on a fully legal post-fifty-move analysis continuation. The
+[exact-artifact rule](experiments/2026-09-30-owned-top3-zahak-compatibility.json)
+passes 13 rejection cases, the preserved positive fixture, both Python control
+suites and the full WSL short race suite. All new six-ply prefixes are disjoint
+from the complete declarations of both recent morning trials and the first
+Zahak attempt; no stopped games are pooled.
+[Lossless preservation and approved compaction](experiments/2026-09-30-owned-top3-capacity-restoration.json)
+restored both hopper workers, Docker, relay and keepalive, with 125.745 GiB of
+physical C: free space measured afterward. Gathered training/validation corpora,
+models and checkpoints stay on WSL; old scatter intermediates have a fully
+verified off-worker archive and recorded restoration steps. Keep the ongoing
+25 GiB guard. [Rodent and GoChess mechanism evidence](experiments/2026-09-30-owned-top3-frontier-mechanisms.json)
+includes verified GoChess NNUE activation; their native calibration remains
+part of the wider frontier. No new source or network strength change is promoted.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
