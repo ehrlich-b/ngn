@@ -143,8 +143,11 @@ See the [integrity audit](experiments/2026-09-28-owned-e20-parent-integrity.json
 
 1. Measure owned multicore playing strength and broaden independent, longer-clock
    anchors in the target rating pool. Width-eight lifecycle checks are complete;
-   owned SMP Elo and a confirmed >3500 floor remain unmeasured. A public tested
-   Windows release is available to offer CCRL testers; no outreach has been sent.
+   further owned SMP gains and a confirmed >3500 floor remain unmeasured. A public tested
+   Windows release is available. Bryan's approved testing request was submitted
+   to CCRL Public on September 30 at 00:47 UTC, including interest in the 127th
+   Amateur Series and disclosure of AI tools used in engine development. The
+   forum confirmed successful submission pending moderator approval; do not resubmit.
 2. Data scale, the documented next A1 step, blocked on disk. The code is ready
    in `613dc0f`: `ngnk4archive scatter` accepts the four pinned farseer
    binpacks (same HF revision as T80), takes a key-hashed

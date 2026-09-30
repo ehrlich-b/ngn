@@ -39,6 +39,7 @@ of this module.
   `experiments/2026-09-23-owned-nnue-next-step-diagnosis.md` for the latest
   evidence and next gate. Do not infer absolute rating from relative matches.
 - **Explicit user restriction, September5:** never run NGN on this Mac. It is a battery-powered user computer. Run engines, matches, search tests, benchmarks, tuning and heavy chess validation on the authorized Windows/WSL box only. Background scheduling, efficiency cores or reduced concurrency do not make local execution acceptable. Local editing and lightweight read-only inspection are fine. Do not restart any stopped Mac controller or allow a remote collector to launch local engine validation.
+- **September29 user reminder:** use the WSL machine's GPU for NNUE training. Keep builds, tests, and playing-strength matches on WSL as above.
 
 - The at-least-2800 target without NNUE is verified on the fixed historical calibration; see `experiments/2026-09-05-2800-result.md`.
 - September5 user direction: the completed2800 goal is succeeded by verified NNUE and real multicore search, toward the strongest Go-based engine. NNUE is now allowed in principle. All implementation, training, builds, profiles, engines and matches run on WSL only. See experiments/2026-09-05-next-stage-roadmap.md. The Mac is a remote terminal; no local project computation.
