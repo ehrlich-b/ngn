@@ -71,8 +71,10 @@ passed at **+5.43 [−24.47,+35.41]**. Its full 800-game gate then accepted widt
 two: **262W/453D/85L, +78.16 [64.57,91.52]** versus width one, with all 121,603
 plies and operational/process audits passing. The raw records are hash-verified
 off-worker and the independent PGN recount matches; see the [two-core result](experiments/2026-09-29-owned-smp-width2-result.json).
-The four-core A/A completed and the fixed 800-game comparison against width
-two is running as of September 30 at 00:14 UTC; no final result is available.
+The four-core A/A completed. Its fixed 800-game comparison against width
+two stopped at September 30 02:07 UTC when physical C: space crossed the
+25 GiB floor. Preserve that incomplete cell **unscored**; width two remains
+selected, and there is no accepted four-core playing-strength result.
 These relative cells cannot
 be added to the old Hash-128 external anchor. The queue retains the 25 GiB
 physical disk floor and ends by September 30 at 10:00 UTC.
@@ -97,15 +99,25 @@ started on September 30 at 01:31 UTC, with a 13:00 UTC (9 a.m. EDT) deadline.
 It uses the unchanged public NGN/WDL25 binary versus a pinned, unmodified Linux
 build of Maelstrom, Hash 128, 10+0.1 and two simultaneous games on physical
 CPUs 12 and 14; both roles receive one CPU and GOMAXPROCS=1 per game.
-The fixed queue requires an eight-game procedure smoke and fresh 128-game A/A
-before its 400-game external comparison. All 47 Python controls, including a
+Its eight-game procedure smoke passed over 970 legal plies, and its fresh
+128-game A/A passed all audits with the paired interval containing parity.
+The 400-game external comparison stopped at 02:08 UTC when physical C: space
+crossed the 25 GiB floor; preserve the incomplete comparison **unscored**.
+All 47 Python controls, including a
 live owned-release startup regression, and the WSL short race suite pass;
 [all 31 harness files match their frozen receipts](experiments/2026-09-30-owned-maelstrom-validation-v2.json).
 The first procedure attempt started no games: the one-worker harness staged
 the release network under the wrong filename. That
 [rejection is preserved unscored](experiments/2026-09-30-owned-maelstrom-startup-rejection.json);
-the corrected instrument uses a fresh plan and opening slice. No benchmark
-result is available yet, and this comparison cannot confer an official rating.
+the corrected instrument used a fresh plan and opening slice. No external
+benchmark result is available, and this comparison cannot confer an official rating.
+Both capacity-stopped cells have [copied, hash-verified records and clean
+process-supervisor termination receipts](experiments/2026-09-30-owned-match-capacity-failures.json).
+The approved read-only WSL compaction/restoration procedure completed at
+02:30 UTC. Physical C: space rose from 24.903 to 27.117 GiB; Docker, both
+hopper workers, relay and keepalive are restored. See the [maintenance
+receipt](experiments/2026-09-30-owned-storage-maintenance.json). New matches
+need a fresh capacity receipt and a validated reduction in trace/tool writes.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
@@ -136,7 +148,7 @@ development startup retains its explicit research defaults. Full record:
   several-Elo capacity effects remain unresolved.
 - Vs Rodent V1.2 before E1 (200 games): +15.6 [−12.2, +43.7], parity.
 
-**Storage maintenance complete:** the user approved a brief interruption;
+**September 28 storage maintenance:** the user approved a brief interruption;
 read-only compaction reduced the VHDX from 430.078 to 380.702 GiB and C: had
 53.365 GiB free afterward. Docker, the hopper's two worker tasks, relay and
 keepalive are restored; no reboot was needed. Small-write runs require at
