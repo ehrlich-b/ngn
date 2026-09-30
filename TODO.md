@@ -92,6 +92,21 @@ This queue provides no playing-strength result or official list rating.
 The [read-only validation recheck](experiments/2026-09-29-owned-smp-counter-validation.json)
 matches all 29 frozen source files and the local controller/plan to the running queue.
 
+A fresh [Maelstrom v3.3.0 benchmark](experiments/2026-09-30-owned-maelstrom-plan-v2.json)
+started on September 30 at 01:31 UTC, with a 13:00 UTC (9 a.m. EDT) deadline.
+It uses the unchanged public NGN/WDL25 binary versus a pinned, unmodified Linux
+build of Maelstrom, Hash 128, 10+0.1 and two simultaneous games on physical
+CPUs 12 and 14; both roles receive one CPU and GOMAXPROCS=1 per game.
+The fixed queue requires an eight-game procedure smoke and fresh 128-game A/A
+before its 400-game external comparison. All 47 Python controls, including a
+live owned-release startup regression, and the WSL short race suite pass;
+[all 31 harness files match their frozen receipts](experiments/2026-09-30-owned-maelstrom-validation-v2.json).
+The first procedure attempt started no games: the one-worker harness staged
+the release network under the wrong filename. That
+[rejection is preserved unscored](experiments/2026-09-30-owned-maelstrom-startup-rejection.json);
+the corrected instrument uses a fresh plan and opening slice. No benchmark
+result is available yet, and this comparison cannot confer an official rating.
+
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
 A1 corpus and schedule with the game-result weight ramped 0→0.25) with
