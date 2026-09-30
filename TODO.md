@@ -161,8 +161,15 @@ The September 30 13:00 UTC deadline and both final caps remain unchanged.
 Retain accepted width two; no partial four-core strength result is admitted.
 Both chess units are terminal. The [approved morning compaction and restoration](experiments/2026-09-30-owned-morning-storage-restoration.json)
 succeeded, restoring Docker, both hopper workers, the relay and keepalive.
-Fresh physical C: headroom is 24.448 GiB, still below the unchanged 25 GiB
-floor. Hold new chess and training runs until capacity is available.
+The [top-three Go goal](experiments/2026-09-30-owned-top3-go-goal.json) now calls for
+a fresh 400-game native Zahak 10 match at 120+1, one physical CPU and Hash128
+each, after matching smoke/A/A controls. Rodent V and current GoChess NNUE
+remain part of the wider frontier. [Verified lossless record preservation and
+tool/cache recovery](experiments/2026-09-30-owned-top3-storage-recovery.json) has
+reclaimed Linux allocation, but physical C: remains below the unchanged 25 GiB
+floor. A verified off-worker archive of old scatter intermediates is in progress;
+the gathered training corpus stays on WSL. Hold new matches until a fresh
+physical-capacity check admits at least 30 GiB, keeping the ongoing 25 GiB guard.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
