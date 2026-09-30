@@ -1,4 +1,4 @@
-# NGN current state — September 29
+# NGN current state — September 30
 
 September 28 continuation: the night PGNs/hashes were independently recounted;
 M11's +34.9 result is supported. The private research branch is pushed. A
@@ -136,7 +136,15 @@ all 31 saved warnings have legal history/PV moves and the exact first drawn
 boundary, all 13 changed negative fixtures reject, and all 61 Python controls
 plus the WSL short race suite pass. The separate [fresh Maelstrom trial](experiments/2026-09-30-owned-maelstrom-plan-v4.json)
 started at 03:44 UTC with disjoint new morning openings, a new procedure and
-128-game A/A before its fixed 400-game anchor. No prior cell becomes scored.
+128-game A/A before its fixed 400-game anchor. Both controls now pass: the
+Maelstrom procedure covers 1,045 legal plies, and its A/A covers 19,403 plies
+with a paired score interval containing parity. The 400-game anchor started
+at 04:20 UTC. The four-core A/A also passed over 18,920 plies with parity in
+its interval; the 800-game four-versus-two gate started at 04:34 UTC.
+No prior cell becomes scored. A [live, byte-preserving tool deduplication](experiments/2026-09-30-owned-terminal-tool-dedup.json)
+reclaimed 3.333 GiB of Linux file allocation in terminal cells without stopping
+services or matches; physical C: headroom stayed at 25.772 GiB, so no physical
+Windows recovery is claimed.
 Both final caps and the September 30 13:00 UTC deadline are fixed;
 the 25 GiB physical disk guard remains in force. Retain width two pending a
 complete, audited four-core decision.
