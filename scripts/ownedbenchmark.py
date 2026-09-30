@@ -28,12 +28,17 @@ def activate_compatibility(plan):
     compatibility = plan.get('compatibility')
     if compatibility is None:
         return Path(match.__file__)
-    if compatibility.get('kind') != 'exact-maelstrom330-post-draw-pv-v1' or plan['common']['strict'] is not False:
+    kind = compatibility.get('kind')
+    if kind not in {'exact-maelstrom330-post-draw-pv-v1', 'exact-zahak10-post-draw-pv-v1'} or plan['common']['strict'] is not False:
         raise match.CandidateMatchError('unsupported native compatibility instrument')
     runner = checked(compatibility['runner'])
-    if runner != Path(__file__).with_name('ownedmatch_maelstromdraw.py'):
+    filename = 'ownedmatch_maelstromdraw.py' if kind == 'exact-maelstrom330-post-draw-pv-v1' else 'ownedmatch_zahakdraw.py'
+    if runner != Path(__file__).with_name(filename):
         raise match.CandidateMatchError('native compatibility runner differs')
-    import ownedmatch_maelstromdraw as wrapper
+    if kind == 'exact-maelstrom330-post-draw-pv-v1':
+        import ownedmatch_maelstromdraw as wrapper
+    else:
+        import ownedmatch_zahakdraw as wrapper
     controls = json.loads(checked(compatibility['controls']).read_text())
     if controls.get('pass') is not True or controls['instrument'] != match.instrument() or \
        controls['independently_validated_warning_count'] < 1 or len(controls['negative_fixtures']) < 10 or \
