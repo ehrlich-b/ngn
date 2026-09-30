@@ -26,6 +26,7 @@ sys.path.insert(0, str(HELPERS))
 from common import CandidateMatchError, atomic_json, require_wsl, safe_environment, sha256, supervisor_command, validate_supervisor_receipt
 from trace_audit import TRACE_RE, audit_trace, crash_lines
 from uci_preflight import EVAL_RE, Protocol, parse_advertised_options
+import ownedstorage
 
 COUNTER55_SHA256 = '6c48fb52934d49d3774633e32f0b4fb4796b1e2c63925f24167ef0f0c0d761c8'
 # Unmodified Maelstrom v3.3.0, source b71b738509b431b8d1e7fb60f448f796b09d743b,
@@ -102,7 +103,7 @@ def operational_trace(lines: list[str], trace_roles: list[dict], roles: list[dic
 
 
 def instrument() -> dict:
-    paths = [Path(__file__), Path(quickmatch.__file__)] + [HELPERS / name for name in
+    paths = [Path(__file__), Path(quickmatch.__file__), Path(ownedstorage.__file__)] + [HELPERS / name for name in
              ('common.py', 'uci_preflight.py', 'trace_audit.py', 'role_exec.py', 'run_match_stage.py', 'process_supervisor.py')]
     return {path.name: sha256(path) for path in paths}
 
@@ -153,7 +154,8 @@ def role_identity(role: dict) -> dict:
 
 
 def configuration(spec: dict) -> dict:
-    return {key: spec.get(key) for key in ('tc', 'nodes', 'concurrency', 'cpus', 'strict')}
+    return {key: spec.get(key) for key in ('tc', 'nodes', 'concurrency', 'cpus', 'strict',
+                                         'input_pool', 'trace_storage', 'maximum_trace_bytes')}
 
 
 def admit_control(spec: dict, current_instrument: dict) -> None:
@@ -174,7 +176,7 @@ def admit_control(spec: dict, current_instrument: dict) -> None:
         raise CandidateMatchError('invalid match purpose')
 
 
-def stage(out: Path, label: str, command: list[str], spec: dict, limit: float) -> None:
+def stage(out: Path, label: str, command: list[str], spec: dict, limit: float, trace_path=None) -> None:
     command = supervisor_command(HELPERS / 'process_supervisor.py', label, out / label,
                                  limit, 10 * 1024 * 1024, ','.join(map(str, spec['cpus'])),
                                  command, 3, 1)
@@ -201,6 +203,9 @@ def stage(out: Path, label: str, command: list[str], spec: dict, limit: float) -
                 samples.write(json.dumps(sample) + '\n')
                 if free_gib < spec.get('minimum_windows_free_gib', 25) or sample['memory_available_kib'] < 1 << 20:
                     raise CandidateMatchError('host capacity guard failed')
+                if trace_path is not None and spec.get('trace_storage') == 'ram-gzip' and trace_path.exists() and \
+                   trace_path.stat().st_size > spec['maximum_trace_bytes']:
+                    raise CandidateMatchError('trace exceeds declared byte budget')
                 if time.monotonic() - started > limit + 30:
                     raise CandidateMatchError('stage supervisor exceeded its outer deadline')
                 try:
@@ -320,12 +325,7 @@ def run(spec_path: Path, out: Path) -> None:
     atomic_json(out / 'spec.json', spec)
     state = {'state': 'PREPARING', 'started': time.time()}
     atomic_json(out / 'STATE.json', state)
-    frozen = {}
-    for key in ('fastchess', 'auditor', 'stockfish', 'openings_pgn', 'opening_prefixes'):
-        original = quickmatch.checked(spec[key])
-        target = out / (key + original.suffix)
-        shutil.copy2(original, target)
-        frozen[key] = target
+    frozen = ownedstorage.stage_inputs(spec, out, quickmatch.checked)
     roles = []
     crash_reports = []
     for index, role in enumerate(spec['roles']):
@@ -345,6 +345,7 @@ def run(spec_path: Path, out: Path) -> None:
             shutil.move(crash, out / f'preflight{index}-crashes.log')
         roles.append({'id': str(index), 'name': role['name'], 'engine': str(binary), 'launcher': str(launcher),
                       'cwd': str(cwd), 'options': options, 'ngn': receipt['ngn'], 'sha256': role['engine']['sha256']})
+    storage = ownedstorage.TraceStorage(out, spec)
     command = [str(frozen['fastchess'])]
     for role in roles:
         command += ['-engine', f'cmd={role["launcher"]}', f'name={role["name"]}', f'dir={role["cwd"]}']
@@ -356,7 +357,7 @@ def run(spec_path: Path, out: Path) -> None:
                 '-srand', str(spec['seed']), *(['-strict'] if spec.get('strict', True) else []), '-show-latency',
                 '-pgnout', f'file={out / "games.pgn"}', 'notation=uci', 'append=false', 'nodes=true',
                 'seldepth=true', 'nps=true', 'hashfull=true', 'timeleft=true', 'latency=true', 'pv=true',
-                '-epdout', f'file={out / "final.epd"}', 'append=false', '-log', f'file={out / "fastchess.log"}',
+                '-epdout', f'file={out / "final.epd"}', 'append=false', '-log', f'file={storage.path}',
                 'level=trace', 'engine=true', 'realtime=false', 'append=false']
     atomic_json(out / 'command.json', command)
     stage_config = out / 'match-stage.json'
@@ -368,19 +369,21 @@ def run(spec_path: Path, out: Path) -> None:
         'witness': str(out / 'child-processes.json')})
     state['state'] = 'MATCH_RUNNING'
     atomic_json(out / 'STATE.json', state)
-    stage(out, 'supervised-match', [sys.executable, str(HELPERS / 'run_match_stage.py'), '--config', str(stage_config)], spec, spec['limit_seconds'])
+    with storage:
+        stage(out, 'supervised-match', [sys.executable, str(HELPERS / 'run_match_stage.py'), '--config', str(stage_config)], spec, spec['limit_seconds'], storage.path)
     witness = json.loads((out / 'child-processes.json').read_text())
     if witness['state'] != 'COMPLETE' or witness['violations'] or (out / 'match.stderr').stat().st_size:
         raise CandidateMatchError('match process witness failed')
     trace_roles = [{'display_name': role['name'], 'resolved_options': [{'name': name, 'value': value_text(value)} for name, value in role['options']],
                     'expected_refreshes': 2 * spec['pairs'], 'expected_processes': len(witness['observed_instances'][role['id']])} for role in roles]
-    trace = operational_trace((out / 'fastchess.log').read_text().splitlines(), trace_roles, roles)
+    trace_lines, trace_sha256 = ownedstorage.read_trace(out, spec)
+    trace = operational_trace(trace_lines, trace_roles, roles)
     for role in roles:
         if role['ngn']:
             crash = Path(role['cwd']) / 'ngn_crashes.log'
             crash_reports.append(crash_lines(crash, crash, len(witness['observed_instances'][role['id']])))
     atomic_json(out / 'audit-operational.json', {'pass': True, 'trace': trace, 'crash_logs': crash_reports,
-                                             'unfiltered_trace_sha256': sha256(out / 'fastchess.log')})
+                                             'unfiltered_trace_sha256': trace_sha256})
     audit = [sys.executable, str(frozen['auditor']), '--pgn', str(out / 'games.pgn'), '--final-epd', str(out / 'final.epd'),
              '--opening-prefixes', str(frozen['opening_prefixes']), '--opening-prefixes-sha256', spec['opening_prefixes']['sha256'],
              '--opening-pgn', str(frozen['openings_pgn']), '--opening-pgn-sha256', spec['openings_pgn']['sha256'],

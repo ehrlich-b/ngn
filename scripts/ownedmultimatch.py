@@ -27,7 +27,8 @@ def instrument():
 
 
 def configuration(spec):
-    return {key: spec.get(key) for key in ('tc', 'nodes', 'concurrency', 'cpus', 'cpu_teams', 'strict', 'opening_plies', 'minimum_full_width_fraction')}
+    return {key: spec.get(key) for key in ('tc', 'nodes', 'concurrency', 'cpus', 'cpu_teams', 'strict', 'opening_plies', 'minimum_full_width_fraction',
+                                         'input_pool', 'trace_storage', 'maximum_trace_bytes')}
 
 
 def mask_text(team):
@@ -178,10 +179,7 @@ def run(spec_path, out):
     base.atomic_json(out / 'spec.json', spec)
     state = {'state': 'PREPARING', 'started': time.time()}
     base.atomic_json(out / 'STATE.json', state)
-    frozen = {}
-    for key in ('fastchess', 'auditor', 'stockfish', 'openings_pgn', 'opening_prefixes'):
-        original = quickmatch.checked(spec[key]); target = out / (key + original.suffix)
-        shutil.copy2(original, target); frozen[key] = target
+    frozen = base.ownedstorage.stage_inputs(spec, out, quickmatch.checked)
     roles, crashes = [], []
     for index, role in enumerate(spec['roles']):
         cwd = out / f'role{index}'; cwd.mkdir()
@@ -204,6 +202,7 @@ def run(spec_path, out):
             crash = cwd / 'ngn_crashes.log'; crashes.append(base.crash_lines(crash, crash, 1)); shutil.move(crash, out / f'preflight{index}-crashes.log')
         roles.append({'id': str(index), 'name': role['name'], 'engine': str(binary), 'launcher': str(launcher),
                       'cwd': str(cwd), 'options': options, 'ngn': receipt['ngn'], 'sha256': role['engine']['sha256'], 'gomaxprocs': width})
+    storage = base.ownedstorage.TraceStorage(out, spec)
     command = [str(frozen['fastchess'])]
     for role in roles:
         command += ['-engine', f'cmd={role["launcher"]}', f'name={role["name"]}', f'dir={role["cwd"]}']
@@ -215,7 +214,7 @@ def run(spec_path, out):
         *(['-strict'] if spec['strict'] else []), '-show-latency',
         '-pgnout', f'file={out / "games.pgn"}', 'notation=uci', 'append=false', 'nodes=true', 'seldepth=true', 'nps=true', 'hashfull=true',
         'timeleft=true', 'latency=true', 'pv=true', '-epdout', f'file={out / "final.epd"}', 'append=false',
-        '-log', f'file={out / "fastchess.log"}', 'level=trace', 'engine=true', 'realtime=false', 'append=false']
+        '-log', f'file={storage.path}', 'level=trace', 'engine=true', 'realtime=false', 'append=false']
     base.atomic_json(out / 'command.json', command)
     stage_path = out / 'match-stage.json'
     masks = [mask_text(team) for team in spec['cpu_teams']]
@@ -224,7 +223,8 @@ def run(spec_path, out):
             'cwd': role['cwd'], 'gomaxprocs': role['gomaxprocs'], 'allowed_cpu_masks': masks, 'launcher': role['launcher']} for role in roles],
         'match_stdout': str(out / 'match.stdout'), 'match_stderr': str(out / 'match.stderr'), 'witness': str(out / 'child-processes.json')})
     state['state'] = 'MATCH_RUNNING'; base.atomic_json(out / 'STATE.json', state)
-    base.stage(out, 'supervised-match', [sys.executable, str(base.HELPERS / 'smp_match_stage.py'), '--config', str(stage_path)], spec, spec['limit_seconds'])
+    with storage:
+        base.stage(out, 'supervised-match', [sys.executable, str(base.HELPERS / 'smp_match_stage.py'), '--config', str(stage_path)], spec, spec['limit_seconds'], storage.path)
     witness = json.loads((out / 'child-processes.json').read_text())
     if witness['schema'] != 'ngn-smp-child-process-witness-v1' or witness['state'] != 'COMPLETE' or witness['violations'] or (out / 'match.stderr').stat().st_size:
         raise base.CandidateMatchError('SMP process witness failed')
@@ -236,7 +236,7 @@ def run(spec_path, out):
             raise base.CandidateMatchError('a declared CPU team was never observed')
     trace_roles = [{'display_name': role['name'], 'resolved_options': [{'name': name, 'value': base.value_text(value)} for name, value in role['options']],
         'expected_refreshes': 2 * spec['pairs'], 'expected_processes': len(witness['observed_instances'][role['id']])} for role in roles]
-    trace_lines = (out / 'fastchess.log').read_text().splitlines()
+    trace_lines, trace_sha256 = base.ownedstorage.read_trace(out, spec)
     trace = base.operational_trace(trace_lines, trace_roles, roles)
     widths = audit_width_receipts(trace_lines, roles, spec['minimum_full_width_fraction'])
     if any(row['configuration_acknowledgements'] != 2 * spec['pairs'] for name, row in widths['roles'].items() if name in {role['name'] for role in roles if role['ngn']}):
@@ -245,7 +245,7 @@ def run(spec_path, out):
         if role['ngn']:
             crash = Path(role['cwd']) / 'ngn_crashes.log'; crashes.append(base.crash_lines(crash, crash, spec['concurrency']))
     base.atomic_json(out / 'audit-operational.json', {'pass': True, 'trace': trace, 'crash_logs': crashes,
-        'unfiltered_trace_sha256': base.sha256(out / 'fastchess.log'), 'process_witness_sha256': base.sha256(out / 'child-processes.json'),
+        'unfiltered_trace_sha256': trace_sha256, 'process_witness_sha256': base.sha256(out / 'child-processes.json'),
         'effective_widths': widths})
     audit_command = [sys.executable, str(frozen['auditor']), '--pgn', str(out / 'games.pgn'), '--final-epd', str(out / 'final.epd'),
         '--opening-prefixes', str(frozen['opening_prefixes']), '--opening-prefixes-sha256', spec['opening_prefixes']['sha256'],

@@ -119,6 +119,22 @@ hopper workers, relay and keepalive are restored. See the [maintenance
 receipt](experiments/2026-09-30-owned-storage-maintenance.json). New matches
 need a fresh capacity receipt and a validated reduction in trace/tool writes.
 
+A [fresh morning Maelstrom trial](experiments/2026-09-30-owned-maelstrom-plan-v3.json)
+started at 03:17 UTC. The corrected storage instrument buffers full traces on
+RAM, saves them losslessly compressed before unchanged audits, and shares one
+read-only private copy of audit tools. All [55 Python controls and the WSL full
+short race suite pass](experiments/2026-09-30-owned-storage-instrument-validation.json).
+The new fixed opening draw is disjoint within these trials; historical corpus
+entries may recur, and no old games are pooled. Both four-core procedure cells
+passed all audits over 1,199 legal plies, with full traces hash-verified off-worker;
+the [fresh four-versus-accepted-two trial](experiments/2026-09-30-owned-smp-width4-plan.json)
+started at 03:27 UTC. The native Maelstrom procedure is [preserved unscored](experiments/2026-09-30-owned-maelstrom-draw-pv-rejection.json):
+strict fastchess rejected PV continuations after threefold repetition. Prove
+exact-artifact draw-PV compatibility controls before admitting any fresh benchmark.
+Both final caps and the September 30 13:00 UTC deadline are fixed;
+the 25 GiB physical disk guard remains in force. Retain width two pending a
+complete, audited four-core decision.
+
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
 A1 corpus and schedule with the game-result weight ramped 0→0.25) with
