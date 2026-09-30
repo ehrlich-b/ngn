@@ -7,7 +7,8 @@ receiver-local K4 score-scale fix passes required WSL short/race suites and
 v3 packages are publicly released; existing installations remain the older
 classical build. The user authorized all three
 overnight outcomes: stronger owned weights, broader competitive measurements,
-and a usable validated configuration. See the [morning assessment](experiments/2026-09-29-owned-morning-status.md)
+and a usable validated configuration. See the [September 30 morning assessment](experiments/2026-09-30-owned-morning-status.md),
+the [September 29 assessment](experiments/2026-09-29-owned-morning-status.md)
 and [full state review](experiments/2026-09-28-owned-nnue-state-review.md).
 
 Fresh independent reference: WDL25 beats borrowed V1.2 by **+27.85
@@ -147,14 +148,21 @@ and all 182 copied record hashes match. See the [completed result](experiments/2
 This is a second independently controlled external win, not an official CCRL
 rating, a world rank or a transfer of its list Elo to this clock.
 The four-core A/A also passed over 18,920 plies with parity in
-its interval; the 800-game four-versus-two gate started at 04:34 UTC.
+its interval. The 800-game four-versus-two gate started at 04:34 UTC and
+stopped at 08:31 UTC when physical Windows free space crossed the 25 GiB floor.
+It remains [unscored](experiments/2026-09-30-owned-smp-morning-capacity-failure.json):
+the supervisor terminated cleanly with no surviving processes, and all 122
+preserved record hashes and both full lossless traces verify off-worker.
 No prior cell becomes scored. A [live, byte-preserving tool deduplication](experiments/2026-09-30-owned-terminal-tool-dedup.json)
 reclaimed 3.333 GiB of Linux file allocation in terminal cells without stopping
 services or matches; physical C: headroom stayed at 25.772 GiB, so no physical
 Windows recovery is claimed.
-Both final caps and the September 30 13:00 UTC deadline are fixed;
-the 25 GiB physical disk guard remains in force. Retain width two pending a
-complete, audited four-core decision.
+The September 30 13:00 UTC deadline and both final caps remain unchanged.
+Retain accepted width two; no partial four-core strength result is admitted.
+Both chess units are terminal. The [approved morning compaction and restoration](experiments/2026-09-30-owned-morning-storage-restoration.json)
+succeeded, restoring Docker, both hopper workers, the relay and keepalive.
+Fresh physical C: headroom is 24.448 GiB, still below the unchanged 25 GiB
+floor. Hold new chess and training runs until capacity is available.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
