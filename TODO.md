@@ -163,8 +163,9 @@ Both chess units are terminal. The [approved morning compaction and restoration]
 succeeded, restoring Docker, both hopper workers, the relay and keepalive.
 The [top-three Go goal](experiments/2026-09-30-owned-top3-go-goal.json) now has a
 [fresh native Zahak 10 trial](experiments/2026-09-30-owned-top3-zahak-plan-v3.json)
-running at 120+1, one physical CPU and Hash128 each: 12-game smoke, 128-game
-fresh A/A, then one fixed 400-game anchor. The strict first smoke stopped
+running at 120+1, one physical CPU and Hash128 each. The
+[12-game smoke and fresh 128-game A/A passed](experiments/2026-09-30-owned-top3-zahak-controls.json);
+the single fixed 400-game anchor is now running. The strict first smoke stopped
 unscored on a fully legal post-fifty-move analysis continuation. The
 [exact-artifact rule](experiments/2026-09-30-owned-top3-zahak-compatibility.json)
 passes 13 rejection cases, the preserved positive fixture, both Python control
