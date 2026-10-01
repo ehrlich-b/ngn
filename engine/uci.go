@@ -210,24 +210,25 @@ func NewUCIEngine() *UCIEngine {
 	}
 
 	return &UCIEngine{
-		position:         newUCIStartingPosition(),
-		searcher:         NewSearchEngine(),
-		debugMode:        false,
-		engineName:       "ngn",
-		engineAuthor:     "ngn team",
-		version:          "0.1.0",
-		timeManager:      newUCITimeManager(),
-		movesPlayed:      0,
-		lastScore:        0,
-		debugLogger:      logger,
-		rawUCILogger:     rawUCILogger,
-		allowResignation: false, // Default to no resignation
-		now:              time.Now,
-		copyPosition:     func(pos *Position) *Position { return pos.Copy() },
-		evaluatorConfig:  newUCIEvaluatorConfig(),
-		startupDefaults:  uciEvaluatorDefaults{backend: uciEvaluatorHCE},
-		ownBook:          true,
-		startupOwnBook:   true,
+		position:                newUCIStartingPosition(),
+		searcher:                NewSearchEngine(),
+		debugMode:               false,
+		engineName:              "ngn",
+		engineAuthor:            "ngn team",
+		version:                 "0.1.0",
+		timeManager:             newUCITimeManager(),
+		movesPlayed:             0,
+		lastScore:               0,
+		debugLogger:             logger,
+		rawUCILogger:            rawUCILogger,
+		allowResignation:        false, // Default to no resignation
+		now:                     time.Now,
+		copyPosition:            func(pos *Position) *Position { return pos.Copy() },
+		evaluatorConfig:         newUCIEvaluatorConfig(),
+		startupDefaults:         uciEvaluatorDefaults{backend: uciEvaluatorHCE},
+		researchEvaluatorLocked: true,
+		ownBook:                 true,
+		startupOwnBook:          true,
 	}
 }
 

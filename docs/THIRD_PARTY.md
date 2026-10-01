@@ -107,3 +107,22 @@ replaced; historical notices remain. PeSTO-derived values and other documented
 source/data provenance gates remain open. This is not a claim of legal
 clean-room certification or complete originality.
 Evidence: experiments/2026-10-01-independent-position/report.md.
+
+## Current independent HCE release candidate
+
+The current candidate removes the complete old HCE, PeSTO and legacy tables,
+explicit Counter draw scaling, inherited magic constants and all generic,
+Counter/Stockfish NNUE packages/adapters. Its new classical core has original
+analytic tables and hand-chosen values, with no training corpus or network.
+Fresh coordinate rays replace the old magic implementation. Old tuning/model
+features and their specific tools/tests are retired; legality, key/repetition,
+restoration, accumulator, ownership/cancellation and independent search-stack
+controls remain. No playing-strength claim is made. The old published release
+and all preceding notices stay historical evidence.
+
+Canonical Polyglot constants remain disclosed interoperability data under the
+verified pinned Disservin MIT permission; this release does not pretend to have
+invented that format data or standard chess algorithms. No foreign evaluator or
+NNUE package appears in the compiled main dependency closure. This documents
+the identified replacements and test evidence, not blanket legal certification.
+Evidence: experiments/2026-10-01-original-hce-release/report.md.

@@ -1,3 +1,16 @@
+# Current independent HCE release candidate — 2026-10-01
+
+Prioritize a reviewed, usable independent runtime release; defer Elo work.
+The old HCE/tables, Counter draw factor, magic constants and all NNUE/reference
+evaluator packages/adapters are removed. All seven identified Zahak core
+components have been independently regenerated. Canonical MIT Polyglot data and
+historical notices remain. Correctness/race/dependency evidence is recorded in
+experiments/2026-10-01-original-hce-release. Prepare exact matching packages;
+public release, tag/merge and CCRL resubmission await concrete review/authority.
+
+The older notebook below is historical; its models, tools, ratings and queued
+research are not the current runtime or an instruction to resume Elo work.
+
 # Private recovery branch — 2026-10-01
 
 This task branch adds named attribution before deleting Rodent/K4 runtime and
