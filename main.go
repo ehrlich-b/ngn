@@ -18,8 +18,6 @@ func releaseDefaults() (backend, model string, book bool, err error) {
 	switch releaseProfile {
 	case "hce":
 		return engine.EvaluatorBackendHCEName, "", false, nil
-	case "research":
-		return engine.EvaluatorBackendHCEName, "", true, nil
 	default:
 		return "", "", false, fmt.Errorf("unknown or retired build profile %q", releaseProfile)
 	}
@@ -40,7 +38,7 @@ func run(args []string, input io.Reader, output, errorOutput io.Writer) int {
 	showVersion := flags.Bool("version", false, "Print the engine version and exit")
 	allowResignation := flags.Bool("allow-resignation", false, "Allow engine to resign in hopeless positions")
 	evalBackend := flags.String("eval-backend", defaultBackend, "Evaluator backend (hce in the default build)")
-	evalFile := flags.String("eval-file", defaultModel, "Evaluator model path (research builds only)")
+	evalFile := flags.String("eval-file", defaultModel, "External evaluator files are unsupported")
 	ownBook := flags.Bool("own-book", defaultBook, "Use the engine's opening book")
 	if err := flags.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {

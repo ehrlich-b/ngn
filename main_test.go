@@ -66,23 +66,13 @@ func TestRunRetiredOwnedProfileFailsClosed(t *testing.T) {
 	}
 }
 
-func TestRunResearchRetainsRemainingExplicitBackends(t *testing.T) {
+func TestRunRetiredResearchProfileFailsClosed(t *testing.T) {
 	profile := releaseProfile
 	t.Cleanup(func() { releaseProfile = profile })
 	releaseProfile = "research"
 	var output, errorOutput bytes.Buffer
-	if exit := run(nil, strings.NewReader("uci\nquit\n"), &output, &errorOutput); exit != 0 || errorOutput.Len() != 0 {
-		t.Fatalf("research exit=%d stderr=%q", exit, errorOutput.String())
-	}
-	if !strings.Contains(output.String(), "option name EvalBackend type combo default hce var hce var ngn-v1 var sf18-big var counter-5.5\n") {
-		t.Fatalf("remaining research options: %s", output.String())
-	}
-	for _, args := range [][]string{{"-eval-backend", "counter-5.5"}, {"-eval-backend", "rodent-v1.1-anand"},
-		{"-eval-backend", "ngn-k4-768-v1"}, {"-eval-backend", "hce", "-eval-file", "missing.nn"}, {"stray"}} {
-		output.Reset()
-		errorOutput.Reset()
-		if exit := run(args, strings.NewReader("uci\nquit\n"), &output, &errorOutput); exit != 2 || output.Len() != 0 {
-			t.Fatalf("research rejection args=%q exit=%d stdout=%q stderr=%q", args, exit, output.String(), errorOutput.String())
-		}
+	if exit := run(nil, strings.NewReader("uci\nquit\n"), &output, &errorOutput); exit != 2 || output.Len() != 0 ||
+		!strings.Contains(errorOutput.String(), "retired build profile") {
+		t.Fatalf("retired research exit=%d stdout=%q stderr=%q", exit, output.String(), errorOutput.String())
 	}
 }

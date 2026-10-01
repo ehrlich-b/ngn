@@ -1,19 +1,31 @@
 # NGN
 
-This private recovery candidate defaults to the classical HCE evaluator with
-evaluator switching locked. It has no Rodent/K4 runtime evaluator or automatic
-model loading. The old `owned` build profile is retired and fails closed.
+NGN is an experimental Go chess engine. This candidate uses a new original
+classical HCE with hand-chosen, analytic material/square values. No neural model,
+foreign evaluator, borrowed HCE table or training corpus is part of the runtime.
+Elo work is deferred; this version has no measured playing strength. The older
+neural-release estimates and historical HCE matches do not rate this candidate.
 
-It is an experimental Go chess engine licensed under GPL-3.0-only. See
-[NOTICE](NOTICE), [third-party origins](docs/THIRD_PARTY.md), and the
-[recovery evidence](experiments/2026-10-01-attribution-first-runtime-cleanup/report.md).
-The seven identified Zahak-derived core components have been independently
-replaced. PeSTO-derived classical tables and other documented provenance
-questions remain. This candidate is not claimed to be wholly
-original and has no new verified rating. Public historical releases are retained.
+The seven identified Zahak-derived core components were independently generated
+from behavior contracts and verified before this stage. The old HCE/PeSTO arrays,
+explicit Counter draw scaling, inherited magic constants and generic/Counter/
+Stockfish NNUE packages/adapters are removed additively. Fresh coordinate-based
+sliding attacks passed independent replay against every relevant blocker subset.
+The engine still uses published chess techniques and the Go standard library.
+Canonical Polyglot format data is retained from the precisely pinned Disservin
+MIT source, with full attribution. This is not a claim that every algorithm or
+format constant was invented by NGN or a blanket legal certification.
 
-A separately created and tested neural evaluator is available as a private
-standalone experiment; it has no strength validation and is not selected here.
+GPL-3.0-only. [NOTICE](NOTICE), [third-party history](docs/THIRD_PARTY.md) and
+[recovery evidence](experiments/2026-10-01-original-hce-release/report.md) retain
+historical attribution and the generation/test process. Existing public releases,
+source history and experiments remain preserved. Old tuning/model features are
+retired. The only playable build profile is HCE; retired owned/research profiles
+fail closed. No evaluator model is loaded automatically or through UCI switching.
 
-Build on the authorized WSL host with `go build -o build/ngn main.go`. Existing
-owned-release packaging targets are historical and cannot build this candidate.
+A separate original neural-evaluator experiment is tested but untrained and
+inactive. This candidate has not been released or resubmitted to CCRL.
+
+Build on the authorized WSL host: `go build -o build/ngn .`.
+Default startup is locked HCE and OwnBook=false. Matching source/binary manifests
+record the exact commit, Go version, platform and verification limits.

@@ -140,3 +140,15 @@ candidate. Historical origins and MIT notices remain; PeSTO-derived values and
 the other documented source/data permission questions remain unresolved. This
 generation process is not a legal clean-room certification or a claim that
 every remaining source expression is original.
+
+Private current-candidate modification dated 2026-10-01: the old HCE,
+PeSTO/legacy square arrays, explicitly ported Counter draw-factor routine,
+inherited magic constants and generic/Counter/Stockfish NNUE implementations
+and adapters are removed. The new HCE and coordinate sliding attacks were
+generated independently from typed contracts without prior source or data.
+Old tuning/model APIs and tools are retired. All seven identified Zahak core
+components were independently replaced in preceding stages. Historical notices
+remain. Current canonical Polyglot format data retains the precisely pinned
+Disservin MIT source and full permission text. Published chess techniques and
+Go's standard library remain in use; this is not an assertion that every
+algorithm/constant was invented by NGN or a blanket legal certification.
