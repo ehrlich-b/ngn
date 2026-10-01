@@ -1,0 +1,214 @@
+{
+  "cells": [
+    {
+      "limit_seconds": 1800,
+      "minimum_remaining_seconds": 46800,
+      "name": "smoke",
+      "pairs": 6,
+      "purpose": "smoke"
+    },
+    {
+      "limit_seconds": 10800,
+      "minimum_remaining_seconds": 45000,
+      "name": "aa",
+      "pairs": 64,
+      "purpose": "aa"
+    },
+    {
+      "limit_seconds": 32400,
+      "minimum_remaining_seconds": 34200,
+      "name": "anchor",
+      "pairs": 200,
+      "purpose": "anchor"
+    }
+  ],
+  "claim_boundary": "Released NGN 0.2.0-rc.1 versus unmodified GoChess source 2c0974e390c85ea1e6f6b08862f38ba748c917d3, built on WSL Go1.25.5 CGO1 GOAMD64v3, with its pinned official v0.5.0 NNUE. Threads1 Hash128 equal 100 ms overhead at 120+1 on the same host. Exact model SHA-256 and fingerprint bind startup and every refresh. Relative strength evidence only; no official or absolute CCRL Elo transfer.",
+  "common": {
+    "auditor": {
+      "path": "/home/ehrli/nnue-owned-k4-20260920/integration-v1/k4-pilot-screen-40-v1/inputs/source/audit_fastchess_match.py",
+      "sha256": "4c4d7374c16fe7fa9104429aecbb22ea582e1525d70712c6769d6ae28d16d224"
+    },
+    "concurrency": 6,
+    "cpus": [
+      4,
+      6,
+      8,
+      10,
+      12,
+      14
+    ],
+    "fastchess": {
+      "path": "/home/ehrli/nnue-owned-k4-20260920/integration-v1/k4-pilot-screen-40-v1/inputs/tools/fastchess",
+      "sha256": "e61220f6651599b2a40a7bd1d7535cf59be8e3eaa1f74dd2f6d5dc2fb1c0bc00"
+    },
+    "input_pool": {
+      "auditor": {
+        "path": "/home/ehrli/nnue-owned-morning-20260930/inputs/audit_fastchess_match.py",
+        "sha256": "4c4d7374c16fe7fa9104429aecbb22ea582e1525d70712c6769d6ae28d16d224"
+      },
+      "fastchess": {
+        "path": "/home/ehrli/nnue-owned-morning-20260930/inputs/fastchess",
+        "sha256": "e61220f6651599b2a40a7bd1d7535cf59be8e3eaa1f74dd2f6d5dc2fb1c0bc00"
+      },
+      "stockfish": {
+        "path": "/home/ehrli/nnue-owned-morning-20260930/inputs/stockfish18",
+        "sha256": "6b087694916228c905a5e14db74cca8c7e5643602226af1fa5d42353c455b9f9"
+      }
+    },
+    "maximum_trace_bytes": 2147483648,
+    "minimum_windows_free_gib": 25,
+    "opening_plies": 6,
+    "seed": 2026100122,
+    "stockfish": {
+      "path": "/home/ehrli/nnue-owned-k4-20260920/integration-v1/k4-pilot-screen-40-v1/inputs/tools/stockfish18",
+      "sha256": "6b087694916228c905a5e14db74cca8c7e5643602226af1fa5d42353c455b9f9"
+    },
+    "strict": false,
+    "tc": "120+1",
+    "trace_storage": "ram-gzip"
+  },
+  "controller": {
+    "path": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/benchmark-source/scripts/ownedbenchmark.py",
+    "sha256": "12f0a0325241c596d1ea5d71acb3cd0af13258c21fbe1387411e6b2041f574e4"
+  },
+  "deadline_utc": "2026-10-01T18:00:00Z",
+  "frontier_analysis": "Report the existing fixed-cap 95% paired verdict and independently recount the final PGN. In the wider top-three assessment also compute a 99% paired confidence interval as predeclared here; do not convert the result into a official absolute rating.",
+  "initial_remaining_seconds": 46800,
+  "instrument": {
+    "common.py": "bdece7f8d066253f995a4ee98d1dbce692d03274054a9a3a1d8af16ce16c1807",
+    "counter_draw_compat.py": "ada29da47b4f8855fd5565ce60d68b53812571ded7845843c9452ebeff236c87",
+    "ownedmatch.py": "76c9f2e972de789bdc203971f33eea53bbea7dbb403bbffa469ca80568638690",
+    "ownedmatch_gochess.py": "9ff406112da43d1587384bf87ae8aed7d5e74d5b734d326c1ccf68b39a059dc5",
+    "ownedstorage.py": "a3a892cede5d2b0a65291bbc38829bf566f288ca7b23b419df754678c60f23f2",
+    "process_supervisor.py": "4771585ee567615467cbf5eb3255a78dd234efe6f8fc9fe02885bb9815a7209f",
+    "python_chess_core_1.11.2": "1fde6a8e932508d14b31f6a584497b49c2969fc3c7cdc675347f819f0d667a5b",
+    "quickmatch.py": "4c0390fb9ba8cd67e269dd41bd131084651dd639ef60096bfd96676634268aa3",
+    "role_exec.py": "2562ed5ae7a021c93258056422156d49dfc3209647cf1f36e64f1179ba2cfdd4",
+    "run_match_stage.py": "95cc51423602c812eb250566bb827014df137d072e414a5fff32d3a4edaccb40",
+    "trace_audit.py": "9e78cfd91a9ff36358de9af931b48d7dd5d56ae595a9b5753e184a5cdabc909b",
+    "uci_preflight.py": "33b9ac8b0360b1e7b42cffc76da0e5fa37ea67509cca421d2c5cbcd244c1f171"
+  },
+  "minimum_windows_free_gib": 30,
+  "native_profile": {
+    "controls": {
+      "path": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/activation-controls.json",
+      "sha256": "fbfa1e4520e40ef5277c3a3d4c15f66b2d2b133bd7e9079cbcaea4e09eb804e1"
+    },
+    "kind": "exact-gochess-v5-post-draw-v2",
+    "runner": {
+      "path": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/benchmark-source/scripts/ownedmatch_gochess.py",
+      "sha256": "9ff406112da43d1587384bf87ae8aed7d5e74d5b734d326c1ccf68b39a059dc5"
+    }
+  },
+  "opening_receipt": {
+    "path": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/openings/receipt.json",
+    "sha256": "195ad9611983fceb29b7ea1aab7d270969800403c9e4d1f4d2087179fdcab7e1"
+  },
+  "opening_selection_receipt": {
+    "path": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/openings/selection.json",
+    "sha256": "ae28f26ecd8e4886b3fbe088b45c7a74d5cce6b86f5816c0a76e9358581f6adb"
+  },
+  "opponent_download_receipt": {
+    "path": "/home/ehrli/nnue-owned-top3-20260930/opponents/download-receipt.json",
+    "sha256": "43610cb75519bf427c4940e6b65c12393f4ad1a0db4edb9d47e14902693bf3b4"
+  },
+  "roles": [
+    {
+      "engine": {
+        "path": "/home/ehrli/nnue-owned-continuation-20260928/release-build-0.2.0-rc.1/ngn",
+        "sha256": "de86da92c75ada0f5449ae47d66d55879e221054731190e0c7c885d02123937f"
+      },
+      "name": "NGN-0.2.0-rc.1",
+      "network": {
+        "path": "/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue",
+        "sha256": "1ec8fc1737ddfdd5f8b6ff0b4e26778085fb563f7c5e82c1fc5d3ea454b6ec29"
+      },
+      "options": [
+        [
+          "Threads",
+          1
+        ],
+        [
+          "OwnBook",
+          false
+        ],
+        [
+          "EvalFile",
+          "$NETWORK"
+        ],
+        [
+          "EvalBackend",
+          "ngn-k4-768-v1"
+        ],
+        [
+          "Hash",
+          128
+        ],
+        [
+          "Move Overhead",
+          100
+        ],
+        [
+          "K4EvalScale",
+          60
+        ]
+      ]
+    },
+    {
+      "engine": {
+        "path": "/home/ehrli/nnue-owned-top3-20260930/opponents/gochess/gochess-pinned",
+        "sha256": "f98888b058dfb62060f0bf992adab2f6ae59eeb47f795a463ffae0b9f846c96c"
+      },
+      "name": "GoChess-2c0974e-v5",
+      "network": {
+        "path": "/home/ehrli/nnue-owned-top3-20260930/opponents/gochess/net-v5-120sb-sb120.nnue",
+        "sha256": "be22a20bfde78d7915cc0cc5fe84e917a76d5df130b9555884a570a04b3ab2fc"
+      },
+      "options": [
+        [
+          "Threads",
+          1
+        ],
+        [
+          "Hash",
+          128
+        ],
+        [
+          "Ponder",
+          false
+        ],
+        [
+          "OwnBook",
+          false
+        ],
+        [
+          "BookFile",
+          "<empty>"
+        ],
+        [
+          "NNUEFile",
+          "$NETWORK"
+        ],
+        [
+          "UseNNUE",
+          true
+        ],
+        [
+          "MoveOverhead",
+          100
+        ]
+      ]
+    }
+  ],
+  "schema": "ngn-owned-external-benchmark-plan-v1",
+  "source_receipt": {
+    "path": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/source-receipt.json",
+    "sha256": "322ad60d2bf9cc3cf2340b20817283cae243b5b8f98053cad327f47d16441eb8"
+  },
+  "stop_rules": "Any failed control, played-move/process/operational audit, unknown warning, missing/changed model acknowledgement, declared cap, deadline or capacity guard leaves the trial unscored. No extension, partial verdict, restart or pooling. Only the exact fingerprinted native NNUE startup banner and fully legal post-draw PVs bound to the exact artifact, witnessed info line, played root and independently verified draw boundary pass their separate checkers. Every other diagnostic remains rejected.",
+  "trial": "One fresh fixed 400-game anchor after a 12-game smoke and 128-game matching A/A. All 270 six-ply opening prefixes exclude all 2084 entries and equal prefixes in both recent morning books, both Zahak trial declarations and both complete earlier GoChess declarations. Both earlier smoke attempts remain unscored. No partial, stopped or old games are pooled.",
+  "validation": {
+    "path": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/validation/report.json",
+    "sha256": "cd7380a5acf3d479d434c49777cbe589985d772a7115da6b5376094f5e642b4b"
+  }
+}

@@ -49,6 +49,39 @@ class NativeGoChessTraceTests(unittest.TestCase):
         self.assertTrue(result['pass'])
         self.assertEqual(len(result['verified_exact_gochess_v5_startup_banners']), 1)
 
+    def test_normal_exit_can_be_emitted_from_the_cleanup_thread(self):
+        lines, trace_roles, roles, banner = self.fixture()
+        lines[-1] = lines[-1].replace('<1>', '<cleanup>')
+        with patch.object(wrapper, 'check_staged_network', return_value=banner):
+            self.assertTrue(wrapper.operational_trace(lines, trace_roles, roles)['pass'])
+
+    def test_saved_real_six_worker_trace_matches_its_process_witness(self):
+        out = Path('/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v2/matches/smoke')
+        spec = json.loads((out / 'spec.json').read_text())
+        witness = json.loads((out / 'child-processes.json').read_text())
+        stage = json.loads((out / 'match-stage.json').read_text())
+        self.assertEqual(witness['state'], 'COMPLETE')
+        self.assertEqual(witness['violations'], [])
+        roles, trace_roles = [], []
+        for index, r in enumerate(spec['roles']):
+            frozen = stage['roles'][index]
+            options = [(name, str(Path(frozen['cwd']) / 'ngn.nnue') if value == '$NETWORK' else value)
+                       for name, value in r['options']]
+            roles.append({'name': r['name'], 'engine': frozen['engine'], 'cwd': frozen['cwd'],
+                          'sha256': r['engine']['sha256']})
+            trace_roles.append({'display_name': r['name'], 'expected_refreshes': 2 * spec['pairs'],
+                                'expected_processes': len(witness['observed_instances'][str(index)]),
+                                'resolved_options': [{'name': n, 'value': wrapper.base.value_text(v)} for n, v in options]})
+        with gzip.open(out / 'fastchess.log.gz', 'rt') as source:
+            lines = source.read().splitlines()
+        result = wrapper.operational_trace(lines, trace_roles, roles)
+        self.assertTrue(result['pass'])
+        self.assertEqual(len(result['verified_exact_gochess_v5_startup_banners']), 6)
+        print('GOCHESS_TRACE_CONTROL ' + json.dumps({'pass': True, 'startup_banners': 6,
+              'normal_exits': result['normal_exits'][spec['roles'][1]['name']],
+              'trace_sha256': wrapper.base.sha256(out / 'fastchess.log.gz'),
+              'draw_pvs_verified': len(result['independently_verified_exact_gochess_post_draw_pvs'])}))
+
     def test_fallback_wrong_binding_and_operational_failures_are_rejected(self):
         original, trace_roles, original_roles, banner = self.fixture()
         names = ('artifact', 'fingerprint', 'disabled', 'missing-banner', 'duplicate-banner',
@@ -172,7 +205,7 @@ class GoChessDrawTests(unittest.TestCase):
         self.assertEqual(filtered, lines)
         self.assertEqual(accepted, [])
 
-    def test_default_counter_filter_still_rejects_the_zahak_artifact(self):
+    def test_default_counter_filter_still_rejects_the_gochess_artifact(self):
         with self.assertRaises(ValueError):
             counter_draw_compat.filter_draw_warnings(self.lines, self.roles, wrapper.base.TRACE_RE)
 

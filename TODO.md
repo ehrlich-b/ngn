@@ -185,10 +185,14 @@ passed 15 activation rejection fixtures. Its first strict smoke stopped
 unscored on 39 fully legal post-threefold analysis continuations. The
 [exact-artifact draw checker](experiments/2026-10-01-owned-top3-gochess-draw-compatibility.json)
 passes all 13 additional rejection fixtures and the complete WSL short race
-suite. A [fresh native trial](experiments/2026-10-01-owned-top3-gochess-plan-v2.json)
-is running: 12-game smoke, 128-game A/A, then a fixed 400-game anchor at
-120+1. All new six-ply prefixes exclude both morning books, both Zahak
-declarations and the complete stopped GoChess declaration. No new NGN source or network
+suite. A second smoke stayed unscored when the checker assumed normal
+exits use the startup thread. The [real six-worker regression and lifecycle
+correction](experiments/2026-10-01-owned-top3-gochess-lifecycle-compatibility.json)
+pass all controls and the complete WSL short race suite. A
+[fresh native trial](experiments/2026-10-01-owned-top3-gochess-plan-v3.json) is
+running: 12-game smoke, 128-game A/A, then a fixed 400-game anchor at 120+1.
+All new six-ply prefixes exclude both morning books, both Zahak declarations
+and both complete stopped GoChess declarations. No new NGN source or network
 strength change is promoted.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,

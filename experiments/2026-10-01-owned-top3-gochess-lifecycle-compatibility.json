@@ -1,0 +1,433 @@
+{
+  "claim": "The preceding 12-game smoke remains unscored after an incorrect per-thread exit assumption rejected its operational audit. Real fastchess records show six worker-thread startup/model sequences and all normal exits on a cleanup thread. The corrected checker keeps per-worker startup/refresh/model checks and compares aggregate normal exits to the process witness. The entire saved six-worker trace is a passing regression fixture. All 15 activation and 13 draw rejection fixtures, cleanup-thread regression and complete WSL short race suite pass. A fresh trial excludes every prior declaration; no stopped game is pooled.",
+  "controls": {
+    "draw_controls": {
+      "core_sha256": "1fde6a8e932508d14b31f6a584497b49c2969fc3c7cdc675347f819f0d667a5b",
+      "independently_validated_warning_count": 39,
+      "negative_fixtures": [
+        {
+          "name": "artifact",
+          "rejected": true
+        },
+        {
+          "name": "actor",
+          "rejected": true
+        },
+        {
+          "name": "info-binding",
+          "rejected": true
+        },
+        {
+          "name": "root-binding",
+          "rejected": true
+        },
+        {
+          "name": "prefix",
+          "rejected": true
+        },
+        {
+          "name": "tail",
+          "rejected": true
+        },
+        {
+          "name": "boundary",
+          "rejected": true
+        },
+        {
+          "name": "draw-kind",
+          "rejected": true
+        },
+        {
+          "name": "grammar",
+          "rejected": true
+        },
+        {
+          "name": "severity",
+          "rejected": true
+        },
+        {
+          "name": "position",
+          "rejected": true
+        },
+        {
+          "name": "missing-block",
+          "rejected": true
+        },
+        {
+          "name": "terminal-root",
+          "rejected": true
+        }
+      ],
+      "pass": true,
+      "trace_sha256": "b220419e52dc3e2bfb6f74dc4e57a9203ba58602be398e1bbc1fb44ee9276ebc"
+    },
+    "engine_sha256": "f98888b058dfb62060f0bf992adab2f6ae59eeb47f795a463ffae0b9f846c96c",
+    "fingerprint": "9b04e49c9c567240",
+    "instrument": {
+      "common.py": "bdece7f8d066253f995a4ee98d1dbce692d03274054a9a3a1d8af16ce16c1807",
+      "counter_draw_compat.py": "ada29da47b4f8855fd5565ce60d68b53812571ded7845843c9452ebeff236c87",
+      "ownedmatch.py": "76c9f2e972de789bdc203971f33eea53bbea7dbb403bbffa469ca80568638690",
+      "ownedmatch_gochess.py": "9ff406112da43d1587384bf87ae8aed7d5e74d5b734d326c1ccf68b39a059dc5",
+      "ownedstorage.py": "a3a892cede5d2b0a65291bbc38829bf566f288ca7b23b419df754678c60f23f2",
+      "process_supervisor.py": "4771585ee567615467cbf5eb3255a78dd234efe6f8fc9fe02885bb9815a7209f",
+      "python_chess_core_1.11.2": "1fde6a8e932508d14b31f6a584497b49c2969fc3c7cdc675347f819f0d667a5b",
+      "quickmatch.py": "4c0390fb9ba8cd67e269dd41bd131084651dd639ef60096bfd96676634268aa3",
+      "role_exec.py": "2562ed5ae7a021c93258056422156d49dfc3209647cf1f36e64f1179ba2cfdd4",
+      "run_match_stage.py": "95cc51423602c812eb250566bb827014df137d072e414a5fff32d3a4edaccb40",
+      "trace_audit.py": "9e78cfd91a9ff36358de9af931b48d7dd5d56ae595a9b5753e184a5cdabc909b",
+      "uci_preflight.py": "33b9ac8b0360b1e7b42cffc76da0e5fa37ea67509cca421d2c5cbcd244c1f171"
+    },
+    "legal_bestmove": "d2d4",
+    "missing_net_txt_rejected": true,
+    "negative_fixtures": [
+      {
+        "name": "artifact",
+        "rejected": true
+      },
+      {
+        "name": "fingerprint",
+        "rejected": true
+      },
+      {
+        "name": "disabled",
+        "rejected": true
+      },
+      {
+        "name": "missing-banner",
+        "rejected": true
+      },
+      {
+        "name": "duplicate-banner",
+        "rejected": true
+      },
+      {
+        "name": "missing-fingerprint",
+        "rejected": true
+      },
+      {
+        "name": "missing-use",
+        "rejected": true
+      },
+      {
+        "name": "wrong-path",
+        "rejected": true
+      },
+      {
+        "name": "foreign-actor",
+        "rejected": true
+      },
+      {
+        "name": "cross-thread",
+        "rejected": true
+      },
+      {
+        "name": "missing-exit",
+        "rejected": true
+      },
+      {
+        "name": "extra-fingerprint",
+        "rejected": true
+      },
+      {
+        "name": "warning",
+        "rejected": true
+      },
+      {
+        "name": "uppercase-error",
+        "rejected": true
+      },
+      {
+        "name": "illegal-move",
+        "rejected": true
+      }
+    ],
+    "network_sha256": "be22a20bfde78d7915cc0cc5fe84e917a76d5df130b9555884a570a04b3ab2fc",
+    "pass": true,
+    "positive_activation_count": 1,
+    "runtime_trace_control": {
+      "draw_pvs_verified": 659,
+      "normal_exits": 6,
+      "pass": true,
+      "startup_banners": 6,
+      "trace_sha256": "1b330493b06280eb91e734030ed9132ba99c6c9c17c9782be5dad689bfe68a88"
+    }
+  },
+  "launch": {
+    "command": [
+      "systemd-run",
+      "--user",
+      "--unit=ngn-owned-top3-gochess-120p1-v3-20261001",
+      "--property=WorkingDirectory=/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3",
+      "--property=KillMode=control-group",
+      "--property=TimeoutStopSec=30",
+      "--property=RuntimeMaxSec=55322",
+      "--property=MemoryMax=8G",
+      "--property=CPUAffinity=4 6 8 10 12 14",
+      "/usr/bin/python3",
+      "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/benchmark-source/scripts/ownedbenchmark.py",
+      "--root",
+      "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3",
+      "--plan",
+      "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/plan.json"
+    ],
+    "initial_status": "MainPID=620702\nActiveState=active\nSubState=running\n",
+    "memory_available_gib": 13.046009063720703,
+    "plan": {
+      "path": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/plan.json",
+      "sha256": "ac158b8b50bcc3b14a8f7ea2087cefadeae6a9948198d4a1ead90d0bb34eafdb"
+    },
+    "scope": "Smoke, fresh matching A/A, then one fixed 400-game anchor. Both hopper workers retain CPUs0,2; no simultaneous engine build or training on the six match CPUs.",
+    "started_at_unix": 1790822277.7775626,
+    "unit": "ngn-owned-top3-gochess-120p1-v3-20261001",
+    "windows_free_gib": 118.41550064086914
+  },
+  "observed_thread_mapping": {
+    "pgn_games": 12,
+    "process_instances": {
+      "0": 6,
+      "1": 6
+    },
+    "threads": {
+      "123468213376704": {
+        "banner": 1,
+        "fingerprint": 3,
+        "id_author": 1,
+        "id_name": 1,
+        "refresh": 2,
+        "use_nnue": 2
+      },
+      "123468221769408": {
+        "banner": 1,
+        "fingerprint": 3,
+        "id_author": 1,
+        "id_name": 1,
+        "refresh": 2,
+        "use_nnue": 2
+      },
+      "123468230162112": {
+        "banner": 1,
+        "fingerprint": 3,
+        "id_author": 1,
+        "id_name": 1,
+        "refresh": 2,
+        "use_nnue": 2
+      },
+      "123468307748544": {
+        "banner": 1,
+        "fingerprint": 3,
+        "id_author": 1,
+        "id_name": 1,
+        "refresh": 2,
+        "use_nnue": 2
+      },
+      "123468316141248": {
+        "banner": 1,
+        "fingerprint": 3,
+        "id_author": 1,
+        "id_name": 1,
+        "refresh": 2,
+        "use_nnue": 2
+      },
+      "123468324533952": {
+        "banner": 1,
+        "fingerprint": 3,
+        "id_author": 1,
+        "id_name": 1,
+        "refresh": 2,
+        "use_nnue": 2
+      },
+      "123468331353984": {
+        "exit": 6
+      }
+    },
+    "violations": [],
+    "witness_state": "COMPLETE"
+  },
+  "opening_selection": {
+    "algorithm": "Python 3.12 random.Random(2026100121).sample(ascending master indices retaining the first occurrence of each unique six-ply prefix after excluding all 2084 entries and all equal six-ply prefixes in the six declared receipts,270). Fixed before any new games.",
+    "converter": {
+      "path": "/home/ehrli/repos/ngn-next/output/nnue-smp-b0-20260905/opening-pgn-conversion/convert_uci_openings",
+      "sha256": "3c99382a07760ac72e7cf0461f5d04a3ff9614338a9058dbcd6f3dcf49cdbcb5"
+    },
+    "created_at_unix": 1790822186.3844056,
+    "eligible_unique_prefixes": 2916,
+    "excluded_indices": 2084,
+    "excluded_receipts": [
+      {
+        "path": "/home/ehrli/nnue-owned-morning-20260930/openings-v2/receipt.json",
+        "sha256": "a691dc9349d56c14cfb989867897a1ea65a98f30af3aac1b9ae182e66038f0e4"
+      },
+      {
+        "path": "/home/ehrli/nnue-owned-morning-20260930/native-v4/openings/receipt.json",
+        "sha256": "8cb97b6536cf2e4a931151154a1e8206c80539429ed8c67a11501becbcf3b21d"
+      },
+      {
+        "path": "/home/ehrli/nnue-owned-top3-20260930/zahak-120p1/openings/receipt.json",
+        "sha256": "3a8fcb8e386907eb3ec9b78e70f6d1d6ac76dcc9816bd79c85e520dba5216e16"
+      },
+      {
+        "path": "/home/ehrli/nnue-owned-top3-20260930/zahak-120p1-v2/openings/receipt.json",
+        "sha256": "c9edd7ad4ef61dda7c3216bcd854630c723ee236a7af55670aa4eebe7337fa97"
+      },
+      {
+        "path": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1/openings/receipt.json",
+        "sha256": "63778baf1204b0d486087982da4c5e0046c6b1ce0ff232dbbc1da8956ee2e6af"
+      },
+      {
+        "path": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v2/openings/receipt.json",
+        "sha256": "edec9978bbc3c539efb270b891d90fc4a66cd50a6a3f43c184f4cc138bf3845c"
+      }
+    ],
+    "excluded_unique_six_ply_prefixes": 2084,
+    "freshness": "All three new cells are disjoint from each other and both recent morning trials, all 540 declared Zahak entries and the both complete stopped GoChess declarations and the complete fresh Zahak v3 trial declaration. Older historical/training book entries may recur. No prior or stopped games are pooled.",
+    "master_sha256": "974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222",
+    "pairs": 270,
+    "seed": 2026100121
+  },
+  "previous_trial": {
+    "state": {
+      "completed": 1790820946.7737684,
+      "error": "external benchmark cell lacks accepted terminal: smoke",
+      "state": "FAILED"
+    },
+    "status": "MainPID=0\nResult=exit-code\nActiveState=failed\nSubState=failed\n",
+    "unit": "ngn-owned-top3-gochess-120p1-v2-20261001",
+    "windows_free_gib": 118.44955062866211
+  },
+  "schema": "ngn-owned-native-gochess-lifecycle-controls-v3",
+  "source_receipt": {
+    "scripts/candidate-match/common.py": "bdece7f8d066253f995a4ee98d1dbce692d03274054a9a3a1d8af16ce16c1807",
+    "scripts/candidate-match/manifest.py": "a7ce8f4a6141e963688eefac273a9b9822f87d57674ce7191f288701af492b3b",
+    "scripts/candidate-match/process_supervisor.py": "4771585ee567615467cbf5eb3255a78dd234efe6f8fc9fe02885bb9815a7209f",
+    "scripts/candidate-match/role_exec.py": "2562ed5ae7a021c93258056422156d49dfc3209647cf1f36e64f1179ba2cfdd4",
+    "scripts/candidate-match/run_candidate_match.py": "9ba8aa75a917923b01a456d30e513f7793ebc585a75522765275f6db2ef89a6a",
+    "scripts/candidate-match/run_match_stage.py": "95cc51423602c812eb250566bb827014df137d072e414a5fff32d3a4edaccb40",
+    "scripts/candidate-match/smp_match_stage.py": "22ea985b6b242d2cf7ad3a61d08e5f4b4ac4a89d860b769c08d718358f9dfe15",
+    "scripts/candidate-match/smp_role_exec.py": "a003aa7fc1272a573b544475e595c0bf653622313b8450063f587e2a6b0dc0c4",
+    "scripts/candidate-match/tests/fixture_match_parent.py": "114f449ec835185b27ba3a1df89067ffe8c74fd57bb9f3b127c8f2de96a73fb2",
+    "scripts/candidate-match/tests/fixture_signal_runner.py": "c226c3b5be3b3ac9a1b5dd647170a5f20bfbbcdbec0cbaa7f384f610576914b1",
+    "scripts/candidate-match/tests/fixture_signal_stage.py": "8dbad2a4721e6a7e61c72f7287f9ea8e5fc36e95e2a855d20523110681773e3a",
+    "scripts/candidate-match/tests/fixture_uci_engine.py": "55cc95bf31e1ab98c11efecb63efec8da2fde507c3239f08fd1216d1ef2994ab",
+    "scripts/candidate-match/tests/test_common.py": "b8efa50e816ee853032be09f3bb3788600acfa5669604f7f18c6e8c28430f8f4",
+    "scripts/candidate-match/tests/test_manifest.py": "6484db80c7acc9464cccbc55f51798a790a3b65ac14b0347db786a75c3a69bb9",
+    "scripts/candidate-match/tests/test_match_stage.py": "fb7ff803362cd2d8215b51203fd40ee3d323b018290794fb63f89095e678a567",
+    "scripts/candidate-match/tests/test_role_exec.py": "6e80c4cfed90752a5e0fe8f6d9c10b1dbf67c74573e9e094ef0b421736e414fd",
+    "scripts/candidate-match/tests/test_signal_cleanup.py": "e7f462a18eb9c417f49bed60345f2fa3176384df22369f9fe87d880b5029a6da",
+    "scripts/candidate-match/tests/test_trace_audit.py": "ddf9856a3d5bf02670a6a45eb41df7b2436554c637e5cfba619d3f428305e742",
+    "scripts/candidate-match/tests/test_uci_preflight.py": "7c3128f9b7a84c342bc5a7cbc2d3f75bc36f16fc6817348556210ebd92db65b5",
+    "scripts/candidate-match/trace_audit.py": "9e78cfd91a9ff36358de9af931b48d7dd5d56ae595a9b5753e184a5cdabc909b",
+    "scripts/candidate-match/uci_preflight.py": "33b9ac8b0360b1e7b42cffc76da0e5fa37ea67509cca421d2c5cbcd244c1f171",
+    "scripts/counter_draw_compat.py": "ada29da47b4f8855fd5565ce60d68b53812571ded7845843c9452ebeff236c87",
+    "scripts/ownedbenchmark.py": "12f0a0325241c596d1ea5d71acb3cd0af13258c21fbe1387411e6b2041f574e4",
+    "scripts/ownedmatch.py": "76c9f2e972de789bdc203971f33eea53bbea7dbb403bbffa469ca80568638690",
+    "scripts/ownedmatch_counterdraw.py": "ba881c5dd3823b9d8bd1ee356f7607b842fd7ddea42827fc6233909d6560e5ea",
+    "scripts/ownedmatch_gochess.py": "9ff406112da43d1587384bf87ae8aed7d5e74d5b734d326c1ccf68b39a059dc5",
+    "scripts/ownedmatch_zahakdraw.py": "f399cdf1384333a70d1b31fd4c3ecc8aa514763dc0be3b2c5149bfde50cc1716",
+    "scripts/ownedmulti_tests/fixture_parent.py": "2d9f6969bdcee81862dfd92ad466dc1bf354d88113c97e90bc7799765ea032b1",
+    "scripts/ownedmulti_tests/test_gochess_native.py": "2a6d63f3a5e0c058f49d8189962dc1b325353f51ba757e9dbbf7e3740f082600",
+    "scripts/ownedmulti_tests/test_ownedmatch_native.py": "ed67c493852477388e70eeb3beb56e6bad0be01dbb73e1c41e147aa2dd3cc078",
+    "scripts/ownedmulti_tests/test_ownedmultimatch.py": "cd574022ef4eb3afa11650a1e7742a37d86baa25fca0092fb7033bd9fef17c61",
+    "scripts/ownedmulti_tests/test_ownedstorage.py": "3343c7474b363ac3934e347c55214b66ce13929cc0125f113d95c1bf50dfcd62",
+    "scripts/ownedmulti_tests/test_zahak_draw.py": "4cf6f38ea2c3b31854240a03a00ace2061f6eb5ce5481704e4bcb552c0ceb19f",
+    "scripts/ownedmultimatch.py": "1efc31373ce4d8937186122bc7ed84bef2f9b373da948837f36f52970f1c39ff",
+    "scripts/ownedsmp.py": "4ed87fa26cad8d3857a1a0a8a27670a726e6b16a96a0f8e99d0eb1e11be371fe",
+    "scripts/ownedstorage.py": "a3a892cede5d2b0a65291bbc38829bf566f288ca7b23b419df754678c60f23f2",
+    "scripts/quickmatch.py": "4c0390fb9ba8cd67e269dd41bd131084651dd639ef60096bfd96676634268aa3"
+  },
+  "validation": {
+    "completed": 1790822020.7297075,
+    "instrument": {
+      "common.py": "bdece7f8d066253f995a4ee98d1dbce692d03274054a9a3a1d8af16ce16c1807",
+      "counter_draw_compat.py": "ada29da47b4f8855fd5565ce60d68b53812571ded7845843c9452ebeff236c87",
+      "ownedmatch.py": "76c9f2e972de789bdc203971f33eea53bbea7dbb403bbffa469ca80568638690",
+      "ownedmatch_gochess.py": "9ff406112da43d1587384bf87ae8aed7d5e74d5b734d326c1ccf68b39a059dc5",
+      "ownedstorage.py": "a3a892cede5d2b0a65291bbc38829bf566f288ca7b23b419df754678c60f23f2",
+      "process_supervisor.py": "4771585ee567615467cbf5eb3255a78dd234efe6f8fc9fe02885bb9815a7209f",
+      "python_chess_core_1.11.2": "1fde6a8e932508d14b31f6a584497b49c2969fc3c7cdc675347f819f0d667a5b",
+      "quickmatch.py": "4c0390fb9ba8cd67e269dd41bd131084651dd639ef60096bfd96676634268aa3",
+      "role_exec.py": "2562ed5ae7a021c93258056422156d49dfc3209647cf1f36e64f1179ba2cfdd4",
+      "run_match_stage.py": "95cc51423602c812eb250566bb827014df137d072e414a5fff32d3a4edaccb40",
+      "trace_audit.py": "9e78cfd91a9ff36358de9af931b48d7dd5d56ae595a9b5753e184a5cdabc909b",
+      "uci_preflight.py": "33b9ac8b0360b1e7b42cffc76da0e5fa37ea67509cca421d2c5cbcd244c1f171"
+    },
+    "multicore_instrument": {
+      "common.py": "bdece7f8d066253f995a4ee98d1dbce692d03274054a9a3a1d8af16ce16c1807",
+      "counter_draw_compat.py": "ada29da47b4f8855fd5565ce60d68b53812571ded7845843c9452ebeff236c87",
+      "ownedmatch.py": "76c9f2e972de789bdc203971f33eea53bbea7dbb403bbffa469ca80568638690",
+      "ownedmatch_gochess.py": "9ff406112da43d1587384bf87ae8aed7d5e74d5b734d326c1ccf68b39a059dc5",
+      "ownedmultimatch.py": "1efc31373ce4d8937186122bc7ed84bef2f9b373da948837f36f52970f1c39ff",
+      "ownedstorage.py": "a3a892cede5d2b0a65291bbc38829bf566f288ca7b23b419df754678c60f23f2",
+      "process_supervisor.py": "4771585ee567615467cbf5eb3255a78dd234efe6f8fc9fe02885bb9815a7209f",
+      "python_chess_core_1.11.2": "1fde6a8e932508d14b31f6a584497b49c2969fc3c7cdc675347f819f0d667a5b",
+      "quickmatch.py": "4c0390fb9ba8cd67e269dd41bd131084651dd639ef60096bfd96676634268aa3",
+      "role_exec.py": "2562ed5ae7a021c93258056422156d49dfc3209647cf1f36e64f1179ba2cfdd4",
+      "run_match_stage.py": "95cc51423602c812eb250566bb827014df137d072e414a5fff32d3a4edaccb40",
+      "smp_match_stage.py": "22ea985b6b242d2cf7ad3a61d08e5f4b4ac4a89d860b769c08d718358f9dfe15",
+      "smp_role_exec.py": "a003aa7fc1272a573b544475e595c0bf653622313b8450063f587e2a6b0dc0c4",
+      "trace_audit.py": "9e78cfd91a9ff36358de9af931b48d7dd5d56ae595a9b5753e184a5cdabc909b",
+      "uci_preflight.py": "33b9ac8b0360b1e7b42cffc76da0e5fa37ea67509cca421d2c5cbcd244c1f171"
+    },
+    "native_controls": {
+      "path": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/activation-controls.json",
+      "sha256": "fbfa1e4520e40ef5277c3a3d4c15f66b2d2b133bd7e9079cbcaea4e09eb804e1"
+    },
+    "pass": true,
+    "phase": "go-short-race-all",
+    "state": "COMPLETE",
+    "steps": [
+      {
+        "command": [
+          "/usr/bin/python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/benchmark-source/scripts/ownedmulti_tests",
+          "-v"
+        ],
+        "cwd": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/benchmark-source",
+        "elapsed_seconds": 3.684702157974243,
+        "name": "owned-controls",
+        "pass": true,
+        "returncode": 0,
+        "stderr_sha256": "28ab71c0950055d132465499a3f4ded3e901802521127016b54599174fe07444",
+        "stdout_sha256": "c51188f33d63417f39ef685626f6a606c60f4bdf618b3640b940793fea641145"
+      },
+      {
+        "command": [
+          "/usr/bin/python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/benchmark-source/scripts/candidate-match/tests",
+          "-v"
+        ],
+        "cwd": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/benchmark-source",
+        "elapsed_seconds": 3.429556369781494,
+        "name": "candidate-controls",
+        "pass": true,
+        "returncode": 0,
+        "stderr_sha256": "99daa874c289de87645b776734c90e74b22b6903811a4c5a8ca26df32e350d2a",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": [
+          "/usr/local/go/bin/go",
+          "test",
+          "-short",
+          "-race",
+          "./...",
+          "-count=1"
+        ],
+        "cwd": "/home/ehrli/nnue-owned-continuation-20260928/source",
+        "elapsed_seconds": 44.98928236961365,
+        "name": "go-short-race-all",
+        "pass": true,
+        "returncode": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "76e6ae74b212235c9a2b083a3d8f9c9d082c0c637fc0b0fee5da78a76213f968"
+      }
+    ]
+  }
+}

@@ -201,11 +201,12 @@ def check_trace(lines, trace_roles, roles):
         role = expected[name]
         threads = {thread for thread, _ in tally}
         if sum(tally[(t, 'banner')] for t in threads) != role['expected_processes'] or \
-                sum(tally[(t, 'refresh')] for t in threads) != role['expected_refreshes']:
+                sum(tally[(t, 'refresh')] for t in threads) != role['expected_refreshes'] or \
+                sum(tally[(t, 'exit')] for t in threads) != role['expected_processes']:
             raise base.CandidateMatchError('GoChess trace process/refresh count differs')
         for thread in threads:
-            if tally[(thread, 'banner')] != tally[(thread, 'exit')] or \
-                    tally[(thread, 'fingerprint')] != tally[(thread, 'banner')] + tally[(thread, 'refresh')] or \
+            # Fastchess performs final process cleanup from a different thread.
+            if tally[(thread, 'fingerprint')] != tally[(thread, 'banner')] + tally[(thread, 'refresh')] or \
                     tally[(thread, 'use_nnue')] != tally[(thread, 'refresh')]:
                 raise base.CandidateMatchError('GoChess per-thread model acknowledgements differ')
     return filtered, accepted
