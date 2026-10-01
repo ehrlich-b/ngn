@@ -1,11 +1,18 @@
 # NGN
 
-NGN is a UCI chess engine written in Go. This repository provides frozen release source and downloadable Windows and Linux packages.
+This private recovery candidate defaults to the classical HCE evaluator with
+evaluator switching locked. It has no Rodent/K4 runtime evaluator or automatic
+model loading. The old `owned` build profile is retired and fails closed.
 
-Download an owned NNUE package from [Releases](https://github.com/ehrlich-b/ngn-releases/releases), extract it, and register `ngn.exe` or `ngn` with your chess GUI. Keep `ngn.nnue` beside the executable.
+It is an experimental Go chess engine licensed under GPL-3.0-only. See
+[NOTICE](NOTICE), [third-party origins](docs/THIRD_PARTY.md), and the
+[recovery evidence](experiments/2026-10-01-attribution-first-runtime-cleanup/report.md).
+The engine still includes credited Zahak-derived board/position/hash/cache code
+and PeSTO-derived classical tables. This candidate is not claimed to be wholly
+original and has no new verified rating. Public historical releases are retained.
 
-The owned profile selects the packaged network automatically. Defaults are Threads 1, Hash 128 MiB, K4EvalScale 60, OwnBook false and Move Overhead 100 ms. The amd64-v3 packages require a compatible x86-64 CPU.
+A separately created and tested neural evaluator is available as a private
+standalone experiment; it has no strength validation and is not selected here.
 
-NGN has no official CCRL rating. Playing comparisons and their limits are recorded in each release. See `docs/RELEASING.md` for the build and verification procedure, and `docs/THIRD_PARTY.md` for provenance.
-
-NGN's original source and the packaged owned network are licensed under GPL-3.0-only. Preserve the existing third-party notices. Training data and altered-database inputs retain their ODbL-1.0 terms. The complete alteration method accompanies each network release.
+Build on the authorized WSL host with `go build -o build/ngn main.go`. Existing
+owned-release packaging targets are historical and cannot build this candidate.
