@@ -130,3 +130,13 @@ Mirror's declared MIT text: LICENSES/ChessTrainingSets-MIT.txt. The May 28 NGN
 tuning record identifies this mirror and EPD conversion/PST tuning. Exact local
 training-file identity and original contributor permission chain remain open;
 this mirror notice does not establish separate PeSTO table permission.
+
+Private modification dated 2026-10-01, subsequent position stage: the position
+layer was regenerated from a typed behavior contract and verified against
+move/undo/null/castling/promotion/EP/repetition/copy/draw replay, prior board and
+hash controls, HCE node/perft and all required short/race checks. All seven
+identified Zahak-derived core components have now been replaced in this
+candidate. Historical origins and MIT notices remain; PeSTO-derived values and
+the other documented source/data permission questions remain unresolved. This
+generation process is not a legal clean-room certification or a claim that
+every remaining source expression is original.
