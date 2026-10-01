@@ -57,6 +57,10 @@ const (
 	InCheck
 	BlackToMove
 	WhiteToMove
+	// enPassantHash marks a raw adjacent EP target that has at least one legal
+	// capture. It is reversible metadata for the ordinary incremental key, not
+	// a castling/check/turn rule flag and not part of PolyglotHash.
+	enPassantHash
 )
 
 func (p *Position) SetTag(tag PositionTag)      { p.Tag |= tag }
@@ -76,6 +80,10 @@ func (p *Position) Turn() Color {
 }
 
 func (p *Position) MakeNullMove() Square {
+	// A hand-built/cold position may not have initialized the reversible EP-key
+	// bit yet. Null moves keep that bit while temporarily clearing the raw target
+	// so UnMakeNullMove can restore the old key without the old board.
+	p.ensureEnPassantHash()
 	ep := p.EnPassant
 	p.EnPassant = NoSquare
 	p.HalfMoveClock += 1
@@ -182,6 +190,9 @@ func (p *Position) MakeMove(move Move) (Square, PositionTag, uint8, bool) {
 }
 
 func (p *Position) makeMoveHelper(move Move) (Square, PositionTag, uint8, bool) {
+	// updateHash runs on the post-move board, so the saved tag must carry the
+	// pre-move EP eligibility that can no longer be derived after the move.
+	p.ensureEnPassantHash()
 	hc := p.HalfMoveClock
 	ep := p.EnPassant
 	tag := p.Tag
@@ -268,13 +279,14 @@ func (p *Position) makeMoveHelper(move Move) (Square, PositionTag, uint8, bool) 
 		p.ClearTag(InCheck)
 	}
 
-	// En passant only distinguishes a position when an enemy pawn can actually
-	// capture; drop a non-capturable target (p.Turn() is post-ToggleTurn, i.e. the
-	// side that could capture) so phantom EP squares do not split the hash and
-	// repetition signature of otherwise-identical positions. Mirrors PolyglotHash.
+	// Retain the raw target whenever Polyglot's adjacency contract can use it.
+	// Ordinary repetition/TT hashing has the stricter legal-capture bit, updated
+	// separately below, so a pinned or non-evasion EP target stays available to
+	// PolyglotHash without splitting FIDE repetition identity.
 	if p.EnPassant != NoSquare && !canCaptureEnPassant(p) {
 		p.EnPassant = NoSquare
 	}
+	p.refreshEnPassantHash()
 
 	updateHash(p, move, captureSquare, p.EnPassant, ep, promoPiece, tag)
 
@@ -463,6 +475,7 @@ func (p *Position) IsFIDEDrawRule() bool {
 
 func (p *Position) Hash() uint64 {
 	if p.hash == 0 {
+		p.ensureEnPassantHash()
 		hash := generateZobristHash(p)
 		p.hash = hash
 	}
