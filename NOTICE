@@ -92,3 +92,18 @@ from behavior contracts and independently verified against the historical ABI.
 The normal candidate build uses locked HCE; HCE still contains derived PeSTO
 tables, and board/position/hash/cache still retain their Zahak origin and MIT
 notices. This stage does not claim a wholly independent engine or a new rating.
+
+Private modification dated 2026-10-01, subsequent cache stage: the cache
+implementation was replaced by a fresh-context implementation from its behavior
+contract. Hidden replay, synchronized coherence, HCE node/perft identity and
+required regression/race checks passed. Historical Zahak notices remain for
+derived copies. The board, position and hash implementations remain derived
+and credited; PeSTO-derived classical values remain.
+
+Canonical Polyglot constants — Disservin/chess-library
+Copyright (c) 2023 disservin
+Source: https://github.com/Disservin/chess-library/tree/53e6a841dcda7059a2af363d85f785ef1817304a
+MIT permission/copyright: LICENSES/chess-library-MIT.txt, with a source header
+in engine/polyglot_random.go. The candidate's 781 constants and retained license
+text were checked against Git-verified pinned source blobs. These values are
+fixed external protocol data required for interoperable Polyglot book keys.
