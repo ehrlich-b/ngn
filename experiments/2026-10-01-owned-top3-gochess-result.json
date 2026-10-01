@@ -1,0 +1,550 @@
+{
+  "admission": "Complete fixed 400-game cap, fresh matched smoke/A/A and all audits passed. Independent WSL replay checked every played move and natural terminal outcome, with a separate PGN/color-pair/result recount and the predeclared 99% interval. All 204 declared files and full decompressed traces have a separately verified off-worker archive. Neither stopped GoChess attempt is scored or pooled.",
+  "claim": "Released NGN 0.2.0-rc.1 versus unmodified GoChess source 2c0974e390c85ea1e6f6b08862f38ba748c917d3, built on WSL Go1.25.5 CGO1 GOAMD64v3, with its pinned official v0.5.0 NNUE. Threads1 Hash128 equal 100 ms overhead at 120+1 on the same host. Exact model SHA-256 and fingerprint bind startup and every refresh. Relative strength evidence only; no official or absolute CCRL Elo transfer.",
+  "manifest_sha256": "2e1075f446146d89ce2b99dfec72dd2ace0c9313b26521e1d1db8e5f006443bc",
+  "off_worker_archive": {
+    "archive": {
+      "bytes": 468715520,
+      "path": "/Users/ehrlich/Documents/Codex/2026-09-29/find/outputs/20261001-gochess-final-records.tar",
+      "sha256": "ade574825ecfd3a8cd10e284af5a142702aa56587325334fb111ab669a25cb6a"
+    },
+    "checked_at_unix": 1790854860.1259909,
+    "declared_files_verified": 204,
+    "manifest_sha256": "2e1075f446146d89ce2b99dfec72dd2ace0c9313b26521e1d1db8e5f006443bc",
+    "off_worker_verified": true,
+    "pass": true,
+    "verification": "Every declared file matches its WSL byte count and SHA-256. Each complete smoke, A/A and anchor trace also matches its full decompressed byte count and SHA-256. Exactly the declared files plus the fingerprinted manifest are present."
+  },
+  "plan_sha256": "ac158b8b50bcc3b14a8f7ea2087cefadeae6a9948198d4a1ead90d0bb34eafdb",
+  "receipt": {
+    "cells": {
+      "aa": {
+        "control": {
+          "audit_sha256": "4f61c94b0f866d15259c39eda2b53569bc68b850256d80f06f5614f2a819b03b",
+          "configuration": {
+            "concurrency": 6,
+            "cpus": [
+              4,
+              6,
+              8,
+              10,
+              12,
+              14
+            ],
+            "input_pool": {
+              "auditor": {
+                "path": "/home/ehrli/nnue-owned-morning-20260930/inputs/audit_fastchess_match.py",
+                "sha256": "4c4d7374c16fe7fa9104429aecbb22ea582e1525d70712c6769d6ae28d16d224"
+              },
+              "fastchess": {
+                "path": "/home/ehrli/nnue-owned-morning-20260930/inputs/fastchess",
+                "sha256": "e61220f6651599b2a40a7bd1d7535cf59be8e3eaa1f74dd2f6d5dc2fb1c0bc00"
+              },
+              "stockfish": {
+                "path": "/home/ehrli/nnue-owned-morning-20260930/inputs/stockfish18",
+                "sha256": "6b087694916228c905a5e14db74cca8c7e5643602226af1fa5d42353c455b9f9"
+              }
+            },
+            "maximum_trace_bytes": 2147483648,
+            "nodes": null,
+            "strict": false,
+            "tc": "120+1",
+            "trace_storage": "ram-gzip"
+          },
+          "instrument": {
+            "common.py": "bdece7f8d066253f995a4ee98d1dbce692d03274054a9a3a1d8af16ce16c1807",
+            "counter_draw_compat.py": "ada29da47b4f8855fd5565ce60d68b53812571ded7845843c9452ebeff236c87",
+            "ownedmatch.py": "76c9f2e972de789bdc203971f33eea53bbea7dbb403bbffa469ca80568638690",
+            "ownedmatch_gochess.py": "9ff406112da43d1587384bf87ae8aed7d5e74d5b734d326c1ccf68b39a059dc5",
+            "ownedstorage.py": "a3a892cede5d2b0a65291bbc38829bf566f288ca7b23b419df754678c60f23f2",
+            "process_supervisor.py": "4771585ee567615467cbf5eb3255a78dd234efe6f8fc9fe02885bb9815a7209f",
+            "python_chess_core_1.11.2": "1fde6a8e932508d14b31f6a584497b49c2969fc3c7cdc675347f819f0d667a5b",
+            "quickmatch.py": "4c0390fb9ba8cd67e269dd41bd131084651dd639ef60096bfd96676634268aa3",
+            "role_exec.py": "2562ed5ae7a021c93258056422156d49dfc3209647cf1f36e64f1179ba2cfdd4",
+            "run_match_stage.py": "95cc51423602c812eb250566bb827014df137d072e414a5fff32d3a4edaccb40",
+            "trace_audit.py": "9e78cfd91a9ff36358de9af931b48d7dd5d56ae595a9b5753e184a5cdabc909b",
+            "uci_preflight.py": "33b9ac8b0360b1e7b42cffc76da0e5fa37ea67509cca421d2c5cbcd244c1f171"
+          },
+          "operational_sha256": "09f42fd3ce91ba35e59b978dd935f8bdba1a96d110bb8190008ccbee3739ce7b",
+          "pass": true,
+          "purpose": "aa",
+          "report_sha256": "99aba1920b5fa55b03f9165ae85ff481b14cf7106dd8db852784bc74bb441885",
+          "role_identity": {
+            "engine": {
+              "path": "/home/ehrli/nnue-owned-continuation-20260928/release-build-0.2.0-rc.1/ngn",
+              "sha256": "de86da92c75ada0f5449ae47d66d55879e221054731190e0c7c885d02123937f"
+            },
+            "network": {
+              "path": "/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue",
+              "sha256": "1ec8fc1737ddfdd5f8b6ff0b4e26778085fb563f7c5e82c1fc5d3ea454b6ec29"
+            },
+            "options": [
+              [
+                "Threads",
+                1
+              ],
+              [
+                "OwnBook",
+                false
+              ],
+              [
+                "EvalFile",
+                "$NETWORK"
+              ],
+              [
+                "EvalBackend",
+                "ngn-k4-768-v1"
+              ],
+              [
+                "Hash",
+                128
+              ],
+              [
+                "Move Overhead",
+                100
+              ],
+              [
+                "K4EvalScale",
+                60
+              ]
+            ]
+          }
+        },
+        "independently_verified_post_draw_pv_count": 0,
+        "process_witness_pass": true,
+        "report": {
+          "audit_sha256": "4f61c94b0f866d15259c39eda2b53569bc68b850256d80f06f5614f2a819b03b",
+          "bootstrap": "percentile over pair scores, 20000 resamples, seed 2026092701",
+          "candidate": "Owned-1-A",
+          "elo": -16.297987076023777,
+          "elo_interval_95": [
+            -46.41800937932698,
+            10.86089841744591
+          ],
+          "games": 128,
+          "legal_plies": 20075,
+          "pairs": 64,
+          "penta_0_to_4": [
+            1,
+            14,
+            39,
+            10,
+            0
+          ],
+          "pgn_sha256": "3356a9578877b1ffdab7e5200dbfc3b30fa306e081df0018a533490c1cb29683",
+          "reasons": {
+            "Black mates": 14,
+            "Draw by 3-fold repetition": 73,
+            "Draw by fifty moves rule": 6,
+            "Draw by insufficient mating material": 8,
+            "Draw by stalemate": 1,
+            "White mates": 26
+          },
+          "results": {
+            "0-1": 14,
+            "1-0": 26,
+            "1/2-1/2": 88
+          },
+          "schema": "ngn-quickmatch-report-v1",
+          "score": 0.4765625,
+          "score_interval_95": [
+            0.43359375,
+            0.515625
+          ]
+        },
+        "state": {
+          "completed": 1790830958.759782,
+          "started": 1790823168.4852052,
+          "state": "COMPLETE"
+        },
+        "trace_storage": {
+          "compressed_bytes": 25243521,
+          "compressed_sha256": "e81ca34a3adeb887cb0330eb43eafe994f5c1cd3edf3b1fc9de67382ab9740ff",
+          "mode": "ram-gzip",
+          "raw_bytes": 138366260,
+          "raw_path": "/dev/shm/ngn-owned-trace-_obnz_rn/fastchess.log",
+          "raw_sha256": "d6a6b60a18539be4b3b135c745c4dec96d13e18ca66deda66e52935f5ecdacdc",
+          "stage_failed": false,
+          "state": "ARCHIVED"
+        }
+      },
+      "anchor": {
+        "control": {
+          "audit_sha256": "0644a54ae2c37c1152ef2156e349b717fe9b0664b8a229834e2c97e0a719df4e",
+          "configuration": {
+            "concurrency": 6,
+            "cpus": [
+              4,
+              6,
+              8,
+              10,
+              12,
+              14
+            ],
+            "input_pool": {
+              "auditor": {
+                "path": "/home/ehrli/nnue-owned-morning-20260930/inputs/audit_fastchess_match.py",
+                "sha256": "4c4d7374c16fe7fa9104429aecbb22ea582e1525d70712c6769d6ae28d16d224"
+              },
+              "fastchess": {
+                "path": "/home/ehrli/nnue-owned-morning-20260930/inputs/fastchess",
+                "sha256": "e61220f6651599b2a40a7bd1d7535cf59be8e3eaa1f74dd2f6d5dc2fb1c0bc00"
+              },
+              "stockfish": {
+                "path": "/home/ehrli/nnue-owned-morning-20260930/inputs/stockfish18",
+                "sha256": "6b087694916228c905a5e14db74cca8c7e5643602226af1fa5d42353c455b9f9"
+              }
+            },
+            "maximum_trace_bytes": 2147483648,
+            "nodes": null,
+            "strict": false,
+            "tc": "120+1",
+            "trace_storage": "ram-gzip"
+          },
+          "instrument": {
+            "common.py": "bdece7f8d066253f995a4ee98d1dbce692d03274054a9a3a1d8af16ce16c1807",
+            "counter_draw_compat.py": "ada29da47b4f8855fd5565ce60d68b53812571ded7845843c9452ebeff236c87",
+            "ownedmatch.py": "76c9f2e972de789bdc203971f33eea53bbea7dbb403bbffa469ca80568638690",
+            "ownedmatch_gochess.py": "9ff406112da43d1587384bf87ae8aed7d5e74d5b734d326c1ccf68b39a059dc5",
+            "ownedstorage.py": "a3a892cede5d2b0a65291bbc38829bf566f288ca7b23b419df754678c60f23f2",
+            "process_supervisor.py": "4771585ee567615467cbf5eb3255a78dd234efe6f8fc9fe02885bb9815a7209f",
+            "python_chess_core_1.11.2": "1fde6a8e932508d14b31f6a584497b49c2969fc3c7cdc675347f819f0d667a5b",
+            "quickmatch.py": "4c0390fb9ba8cd67e269dd41bd131084651dd639ef60096bfd96676634268aa3",
+            "role_exec.py": "2562ed5ae7a021c93258056422156d49dfc3209647cf1f36e64f1179ba2cfdd4",
+            "run_match_stage.py": "95cc51423602c812eb250566bb827014df137d072e414a5fff32d3a4edaccb40",
+            "trace_audit.py": "9e78cfd91a9ff36358de9af931b48d7dd5d56ae595a9b5753e184a5cdabc909b",
+            "uci_preflight.py": "33b9ac8b0360b1e7b42cffc76da0e5fa37ea67509cca421d2c5cbcd244c1f171"
+          },
+          "operational_sha256": "731d8a6f3f4839b6f675cf62c1b224bc8cd0c32026e1750639361c32cda4c2bf",
+          "pass": true,
+          "purpose": "anchor",
+          "report_sha256": "16393b78c61b2a5d63295ddfe18335e3bd419ae38071647aaa69ceb781cc883d",
+          "role_identity": {
+            "engine": {
+              "path": "/home/ehrli/nnue-owned-continuation-20260928/release-build-0.2.0-rc.1/ngn",
+              "sha256": "de86da92c75ada0f5449ae47d66d55879e221054731190e0c7c885d02123937f"
+            },
+            "network": {
+              "path": "/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue",
+              "sha256": "1ec8fc1737ddfdd5f8b6ff0b4e26778085fb563f7c5e82c1fc5d3ea454b6ec29"
+            },
+            "options": [
+              [
+                "Threads",
+                1
+              ],
+              [
+                "OwnBook",
+                false
+              ],
+              [
+                "EvalFile",
+                "$NETWORK"
+              ],
+              [
+                "EvalBackend",
+                "ngn-k4-768-v1"
+              ],
+              [
+                "Hash",
+                128
+              ],
+              [
+                "Move Overhead",
+                100
+              ],
+              [
+                "K4EvalScale",
+                60
+              ]
+            ]
+          }
+        },
+        "independently_verified_post_draw_pv_count": 22841,
+        "process_witness_pass": true,
+        "report": {
+          "audit_sha256": "0644a54ae2c37c1152ef2156e349b717fe9b0664b8a229834e2c97e0a719df4e",
+          "bootstrap": "percentile over pair scores, 20000 resamples, seed 2026092701",
+          "candidate": "NGN-0.2.0-rc.1",
+          "elo": 117.16484217672065,
+          "elo_interval_95": [
+            99.00922295126597,
+            135.95944918762154
+          ],
+          "games": 400,
+          "legal_plies": 60515,
+          "pairs": 200,
+          "penta_0_to_4": [
+            0,
+            6,
+            76,
+            100,
+            18
+          ],
+          "pgn_sha256": "a050f06f95fac225bf9071aecba9a156478ead12566f2beff855746c49a43f52",
+          "reasons": {
+            "Black mates": 74,
+            "Draw by 3-fold repetition": 176,
+            "Draw by fifty moves rule": 20,
+            "Draw by insufficient mating material": 25,
+            "Draw by stalemate": 1,
+            "White mates": 104
+          },
+          "results": {
+            "0-1": 74,
+            "1-0": 104,
+            "1/2-1/2": 222
+          },
+          "schema": "ngn-quickmatch-report-v1",
+          "score": 0.6625,
+          "score_interval_95": [
+            0.63875,
+            0.68625
+          ]
+        },
+        "state": {
+          "completed": 1790853915.8982162,
+          "started": 1790830958.8819616,
+          "state": "COMPLETE"
+        },
+        "trace_storage": {
+          "compressed_bytes": 87989344,
+          "compressed_sha256": "4999467d1cbe734e8dcfa455511a1a869462587085aa92b2716ec1a5fdc0a1cf",
+          "mode": "ram-gzip",
+          "raw_bytes": 505953140,
+          "raw_path": "/dev/shm/ngn-owned-trace-yg6w84ta/fastchess.log",
+          "raw_sha256": "1647b23a93404b75f06376eff9fd1e2f2948e64e475e047bc177b1e8113cbefa",
+          "stage_failed": false,
+          "state": "ARCHIVED"
+        }
+      },
+      "smoke": {
+        "control": {
+          "audit_sha256": "9c42925fb9b7cffea0235c780a027282c75b0aebccc5b9cd68782b5779053269",
+          "configuration": {
+            "concurrency": 6,
+            "cpus": [
+              4,
+              6,
+              8,
+              10,
+              12,
+              14
+            ],
+            "input_pool": {
+              "auditor": {
+                "path": "/home/ehrli/nnue-owned-morning-20260930/inputs/audit_fastchess_match.py",
+                "sha256": "4c4d7374c16fe7fa9104429aecbb22ea582e1525d70712c6769d6ae28d16d224"
+              },
+              "fastchess": {
+                "path": "/home/ehrli/nnue-owned-morning-20260930/inputs/fastchess",
+                "sha256": "e61220f6651599b2a40a7bd1d7535cf59be8e3eaa1f74dd2f6d5dc2fb1c0bc00"
+              },
+              "stockfish": {
+                "path": "/home/ehrli/nnue-owned-morning-20260930/inputs/stockfish18",
+                "sha256": "6b087694916228c905a5e14db74cca8c7e5643602226af1fa5d42353c455b9f9"
+              }
+            },
+            "maximum_trace_bytes": 2147483648,
+            "nodes": null,
+            "strict": false,
+            "tc": "120+1",
+            "trace_storage": "ram-gzip"
+          },
+          "instrument": {
+            "common.py": "bdece7f8d066253f995a4ee98d1dbce692d03274054a9a3a1d8af16ce16c1807",
+            "counter_draw_compat.py": "ada29da47b4f8855fd5565ce60d68b53812571ded7845843c9452ebeff236c87",
+            "ownedmatch.py": "76c9f2e972de789bdc203971f33eea53bbea7dbb403bbffa469ca80568638690",
+            "ownedmatch_gochess.py": "9ff406112da43d1587384bf87ae8aed7d5e74d5b734d326c1ccf68b39a059dc5",
+            "ownedstorage.py": "a3a892cede5d2b0a65291bbc38829bf566f288ca7b23b419df754678c60f23f2",
+            "process_supervisor.py": "4771585ee567615467cbf5eb3255a78dd234efe6f8fc9fe02885bb9815a7209f",
+            "python_chess_core_1.11.2": "1fde6a8e932508d14b31f6a584497b49c2969fc3c7cdc675347f819f0d667a5b",
+            "quickmatch.py": "4c0390fb9ba8cd67e269dd41bd131084651dd639ef60096bfd96676634268aa3",
+            "role_exec.py": "2562ed5ae7a021c93258056422156d49dfc3209647cf1f36e64f1179ba2cfdd4",
+            "run_match_stage.py": "95cc51423602c812eb250566bb827014df137d072e414a5fff32d3a4edaccb40",
+            "trace_audit.py": "9e78cfd91a9ff36358de9af931b48d7dd5d56ae595a9b5753e184a5cdabc909b",
+            "uci_preflight.py": "33b9ac8b0360b1e7b42cffc76da0e5fa37ea67509cca421d2c5cbcd244c1f171"
+          },
+          "operational_sha256": "781f667046cc35519d17d13e99b7a4a528ce958d98186bfaf1d2ac7b131b25b8",
+          "pass": true,
+          "purpose": "smoke",
+          "report_sha256": "d5fb912d88daa52b46d6e3a9339146785d880f8d8c13091c3b3ef008f2391c14",
+          "role_identity": {
+            "engine": {
+              "path": "/home/ehrli/nnue-owned-continuation-20260928/release-build-0.2.0-rc.1/ngn",
+              "sha256": "de86da92c75ada0f5449ae47d66d55879e221054731190e0c7c885d02123937f"
+            },
+            "network": {
+              "path": "/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue",
+              "sha256": "1ec8fc1737ddfdd5f8b6ff0b4e26778085fb563f7c5e82c1fc5d3ea454b6ec29"
+            },
+            "options": [
+              [
+                "Threads",
+                1
+              ],
+              [
+                "OwnBook",
+                false
+              ],
+              [
+                "EvalFile",
+                "$NETWORK"
+              ],
+              [
+                "EvalBackend",
+                "ngn-k4-768-v1"
+              ],
+              [
+                "Hash",
+                128
+              ],
+              [
+                "Move Overhead",
+                100
+              ],
+              [
+                "K4EvalScale",
+                60
+              ]
+            ]
+          }
+        },
+        "independently_verified_post_draw_pv_count": 1056,
+        "process_witness_pass": true,
+        "report": {
+          "audit_sha256": "9c42925fb9b7cffea0235c780a027282c75b0aebccc5b9cd68782b5779053269",
+          "games": 12,
+          "legal_plies": 1875,
+          "pairs": 6,
+          "pass": true,
+          "pgn_sha256": "8ddd122992228d92f6a86d672b663ef78f297fbcf7a9550ceda2cb94698e0d85",
+          "purpose": "smoke",
+          "schema": "ngn-owned-instrument-smoke-v1"
+        },
+        "state": {
+          "completed": 1790823168.4009159,
+          "started": 1790822277.8910987,
+          "state": "COMPLETE"
+        },
+        "trace_storage": {
+          "compressed_bytes": 2828869,
+          "compressed_sha256": "846122274482b4b599c9a8388618f8077f6bf050ee22efc0b6ec746075838814",
+          "mode": "ram-gzip",
+          "raw_bytes": 16945494,
+          "raw_path": "/dev/shm/ngn-owned-trace-q4zn9rbi/fastchess.log",
+          "raw_sha256": "71f7dd8c6286703a9f8374eec12da70f9ead6117c9dc86eb9ab09ea7b98e7864",
+          "stage_failed": false,
+          "state": "ARCHIVED"
+        }
+      }
+    },
+    "checked_at_unix": 1790854785.1739466,
+    "frontier_confidence99": {
+      "confidence": 0.99,
+      "lower_bound_above_parity": true,
+      "method": "Percentile bootstrap over complete color-pair scores, 20000 resamples, seed 2026092701. Predeclared 99% frontier interval; same resamples as the fixed 95% report.",
+      "relative_elo_interval": [
+        94.3212745710567,
+        142.05075950325747
+      ],
+      "score_interval": [
+        0.6325,
+        0.69375
+      ]
+    },
+    "independent_legal_validator": {
+      "core_sha256": "1fde6a8e932508d14b31f6a584497b49c2969fc3c7cdc675347f819f0d667a5b",
+      "version": "1.11.2"
+    },
+    "independent_recounts": {
+      "aa": {
+        "candidate": "Owned-1-A",
+        "candidate_WDL": {
+          "draws": 88,
+          "losses": 23,
+          "wins": 17
+        },
+        "games": 128,
+        "legal_plies": 20075,
+        "pairs": 64,
+        "pass": true,
+        "penta_0_to_4": [
+          1,
+          14,
+          39,
+          10,
+          0
+        ],
+        "pgn_sha256": "3356a9578877b1ffdab7e5200dbfc3b30fa306e081df0018a533490c1cb29683",
+        "score": 0.4765625
+      },
+      "anchor": {
+        "candidate": "NGN-0.2.0-rc.1",
+        "candidate_WDL": {
+          "draws": 222,
+          "losses": 24,
+          "wins": 154
+        },
+        "games": 400,
+        "legal_plies": 60515,
+        "pairs": 200,
+        "pass": true,
+        "penta_0_to_4": [
+          0,
+          6,
+          76,
+          100,
+          18
+        ],
+        "pgn_sha256": "a050f06f95fac225bf9071aecba9a156478ead12566f2beff855746c49a43f52",
+        "score": 0.6625
+      },
+      "smoke": {
+        "candidate": "NGN-0.2.0-rc.1",
+        "candidate_WDL": {
+          "draws": 5,
+          "losses": 3,
+          "wins": 4
+        },
+        "games": 12,
+        "legal_plies": 1875,
+        "pairs": 6,
+        "pass": true,
+        "penta_0_to_4": [
+          0,
+          0,
+          5,
+          1,
+          0
+        ],
+        "pgn_sha256": "8ddd122992228d92f6a86d672b663ef78f297fbcf7a9550ceda2cb94698e0d85",
+        "score": 0.5416666666666666
+      }
+    },
+    "pass": true,
+    "recount_method": "Independent Python-chess replay and standard-library PGN tag, move, color-pair, result, penta and point recount on WSL. Every normal TC game and repeated opening pair matches the separately verified legal audit and paired report. No old game is pooled.",
+    "unit_status": "MainPID=0\nActiveState=inactive\nSubState=dead\n",
+    "verdict": {
+      "claim": "Released NGN 0.2.0-rc.1 versus unmodified GoChess source 2c0974e390c85ea1e6f6b08862f38ba748c917d3, built on WSL Go1.25.5 CGO1 GOAMD64v3, with its pinned official v0.5.0 NNUE. Threads1 Hash128 equal 100 ms overhead at 120+1 on the same host. Exact model SHA-256 and fingerprint bind startup and every refresh. Relative strength evidence only; no official or absolute CCRL Elo transfer.",
+      "decision": "WIN_PROVED",
+      "elo": 117.16484217672065,
+      "elo_interval_95": [
+        99.00922295126597,
+        135.95944918762154
+      ],
+      "games": 400,
+      "report": {
+        "path": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1-v3/matches/anchor/report.json",
+        "sha256": "16393b78c61b2a5d63295ddfe18335e3bd419ae38071647aaa69ceb781cc883d"
+      },
+      "score_interval_95": [
+        0.63875,
+        0.68625
+      ],
+      "state": "COMPLETE"
+    }
+  },
+  "remaining_frontier": "Rodent V1.2 remains a credible unrated challenger. Its held promotion-PV notation issue is not a chess loss. The broader conclusion and explicit route toward number one are recorded in the top-three assessment.",
+  "schema": "ngn-owned-top3-gochess-fixed-cap-result-v1"
+}

@@ -191,7 +191,17 @@ correction](experiments/2026-10-01-owned-top3-gochess-lifecycle-compatibility.js
 pass all controls and the complete WSL short race suite. A
 [fresh native trial](experiments/2026-10-01-owned-top3-gochess-plan-v3.json)
 [passed its 12-game smoke and matching 128-game A/A](experiments/2026-10-01-owned-top3-gochess-controls.json);
-the fixed 400-game anchor at 120+1 is running.
+the [complete 400-game result](experiments/2026-10-01-owned-top3-gochess-result.json)
+is 154W/222D/24L, +117.16 [99.01,135.96], with a predeclared 99%
+interval [94.32,142.05]. All audits, independent legal replay/recount and
+204-file off-worker archive verification passed. The
+[top-three assessment](experiments/2026-10-01-owned-top3-go-assessment.json)
+supports a qualified top-three placement among identified Go families. It
+counts held Rodent and unmeasured Combusken as potentially above NGN, and
+does not transfer these margins to an official rating. GoChess is the closest
+measured challenger at 120+1. Next toward #1: reproduce Rodent’s exact
+promotion-PV artifact issue, then obtain an admissible native comparison and
+confirm the remaining frontier at the same longer clock. Number one remains open.
 All new six-ply prefixes exclude both morning books, both Zahak declarations
 and both complete stopped GoChess declarations. No new NGN source or network
 strength change is promoted.

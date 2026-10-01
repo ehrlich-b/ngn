@@ -1,0 +1,175 @@
+{
+  "admitted_head_to_head_evidence": [
+    {
+      "ci95": [
+        144.1,
+        192.01
+      ],
+      "clock": "60+0.6",
+      "draws": 151,
+      "games": 400,
+      "losses": 35,
+      "opponent": "Counter 5.5",
+      "relative_elo": 167.31,
+      "wins": 214
+    },
+    {
+      "ci95": [
+        223.69,
+        280.11
+      ],
+      "clock": "10+0.1",
+      "draws": 125,
+      "games": 400,
+      "losses": 14,
+      "opponent": "Maelstrom 3.3.0",
+      "relative_elo": 250.49,
+      "wins": 261
+    },
+    {
+      "ci95": [
+        185.10524186911817,
+        234.11591243122777
+      ],
+      "ci99": [
+        177.2165860589548,
+        243.55117644577226
+      ],
+      "clock": "120+1",
+      "draws": 143,
+      "games": 400,
+      "losses": 21,
+      "opponent": "Zahak 10",
+      "relative_elo": 208.68135494896117,
+      "wins": 236
+    },
+    {
+      "ci95": [
+        99.00922295126597,
+        135.95944918762154
+      ],
+      "ci99": [
+        94.3212745710567,
+        142.05075950325747
+      ],
+      "clock": "120+1",
+      "draws": 222,
+      "games": 400,
+      "losses": 24,
+      "opponent": "GoChess pinned source with official v0.5.0 NNUE",
+      "relative_elo": 117.16484217672065,
+      "wins": 154
+    }
+  ],
+  "completed_at_utc": "2026-10-01T11:43:26.920871+00:00",
+  "completion_audit": [
+    {
+      "evidence": "Pinned CCRL snapshots, source-backed frontier survey and explicit limits retained in the goal and mechanism records.",
+      "met": true,
+      "requirement": "Current frontier catalog is documented with pinned primary sources and explicit coverage limits."
+    },
+    {
+      "evidence": "Complete Counter/Maelstrom records plus new complete longer-clock Zahak controls, audits, independent replay and verified archive. Clock dependence explicitly limited.",
+      "met": true,
+      "requirement": "The released or newly verified NGN build has complete admissible results against the rated leading Go families, including the missing Zahak benchmark at the primary longer clock. Clock dependence and confidence limits are explicitly assessed."
+    },
+    {
+      "evidence": "Native pinned-NNUE GoChess win admitted; Rodent counted as possibly above NGN and never as a win. Unmeasured Combusken conservatively allowed above too.",
+      "met": true,
+      "requirement": "Credible unrated NNUE challengers are included in the conclusion; unresolved protocol failures do not count as chess wins. Confidence in top three must survive those challengers rather than silently excluding them."
+    },
+    {
+      "evidence": "GoChess is the closest measured opponent at the primary clock. No admitted deficit; native Rodent reproduction and same-clock frontier comparisons are the evidence-based next steps. GPU lane has a defined trigger and storage gate.",
+      "met": true,
+      "requirement": "The strongest measured Go challenger and remaining gap toward number one are identified. An evidence-based next optimization or GPU-training lane is selected if a gap remains."
+    }
+  ],
+  "compute": "All engine execution, builds, tests, legal chess replay and match computation ran on WSL. The Mac performed orchestration, record I/O and byte/hash/archive verification only. No GPU training or engine/network strength change was launched or promoted.",
+  "conclusion": "Evidence supports confidence that released NGN 0.2.0-rc.1 would place among the top three identified Go chess-engine families if independently rated. This is a qualified research conclusion, not an official rating, a proof of a complete world catalog or a statistical probability of rank.",
+  "evidence_files": [
+    {
+      "path": "/Users/ehrlich/repos/ngn/output/owned-continuation-20260928/experiments/2026-09-30-owned-top3-go-goal.json",
+      "sha256": "eaa4543d8f3d9917ae8bc26d1412c4e9025a2af7f3cefcf133af220ff14e4e56"
+    },
+    {
+      "path": "/Users/ehrlich/repos/ngn/output/owned-continuation-20260928/experiments/2026-09-30-owned-top3-frontier-mechanisms.json",
+      "sha256": "5120826c58a688e9891d188d3b58c72414027fd72795f1f12aee3f743486c97e"
+    },
+    {
+      "path": "/Users/ehrlich/repos/ngn/output/owned-continuation-20260928/experiments/2026-10-01-owned-top3-zahak-result.json",
+      "sha256": "5152ec4d5c2ca80a8d630e959d240c0565c76a77d381cdcae0d5fb79d9a33070"
+    },
+    {
+      "path": "/Users/ehrlich/repos/ngn/output/owned-continuation-20260928/experiments/2026-10-01-owned-top3-gochess-result.json",
+      "sha256": "26431f93c4336992c0c37259c9a8a1566829504e0e1da3ab0add6bd0000f9b5d"
+    }
+  ],
+  "limits": [
+    "The separate match intervals concern each fixed head-to-head comparison; they are not a confidence interval or a 99% probability for worldwide rank.",
+    "Counter was tested at 60+0.6 and Maelstrom at 10+0.1. Their large margins support the case but clock dependence remains untested at 120+1. Margins from different clocks are neither pooled nor used to add Elo to CCRL ratings.",
+    "The current trials use a common WSL host and nominal 120+1 clock, not CCRL host calibration. Independent rating may differ through hardware, clock, openings or engine configuration.",
+    "Fresh new six-ply prefixes exclude prior declared morning/Zahak/GoChess trials. Historical or training-corpus opening overlap is disclosed in the frozen plans; no claim of a training-held-out test is made.",
+    "The accepted two-CPU self-play gain is separate SMP evidence and is not added to one-CPU external scores. All stopped, timed-out or protocol-failed matches remain unscored."
+  ],
+  "objective": "Prove or improve NGN until the evidence supports confidence that an independent rating would place it among the top three Go chess-engine families; retain a measured route toward number one.",
+  "released_engine": {
+    "engine_sha256": "de86da92c75ada0f5449ae47d66d55879e221054731190e0c7c885d02123937f",
+    "name": "NGN 0.2.0-rc.1",
+    "network_sha256": "1ec8fc1737ddfdd5f8b6ff0b4e26778085fb563f7c5e82c1fc5d3ea454b6ec29",
+    "source_or_network_strength_change_promoted": false
+  },
+  "route_to_number_one": {
+    "first_step": "Resolve the exact Rodent V1.2 promotion-PV artifact mismatch on WSL, then obtain a fresh native fixed-cap 120+1 result only after protocol controls and matching A/A pass.",
+    "gpu_lane": "GPU training remains conditional on a diagnosed evaluator weakness and the existing broader-data plan. Preserve current corpora/models; restore archived scatter inputs by exact hash if needed. The approximately 350 GiB capacity requirement remains unmet despite storage recovery, and the small-recipe sweep remains shelved.",
+    "next_native_comparison_when_admissible": {
+      "anchor_games": 400,
+      "clock": "120+1",
+      "concurrent_games": 6,
+      "hash_mib_each": 128,
+      "matching_aa_games": 128,
+      "opponent": "Rodent V1.2",
+      "physical_cpus": [
+        4,
+        6,
+        8,
+        10,
+        12,
+        14
+      ],
+      "requirements": "Freeze exact artifacts, source, clock, caps and fresh opening pairs before execution; preserve 25 GiB physical C guard. No partial result, extension or pooling. All legal, operational, process and independent recount checks must pass.",
+      "smoke_games": 12,
+      "threads_each": 1
+    },
+    "optimization_trigger": "If a valid frontier result shows an actual deficit, choose one isolated search/evaluation change from the diagnosed losses and gate it with fresh A/A and fixed self-play plus frontier validation. The existing engine has no demonstrated deficit against the completed set, so an arbitrary strength change is not justified.",
+    "rodent_reproduction": [
+      "Compare the binary/source/network hashes from the held historical attempt with the official unmodified V1.2 release and pinned source.",
+      "Replay both preserved positions and histories with bounded native searches. Determine why the old analysis PV omitted the promotion suffix while the pinned formatter writes one. Preserve raw diagnostics and independently validate actual bestmoves.",
+      "If the exact mechanism cannot be established with a sound legal interpretation, retain the trial as held. Do not infer a unique promotion piece, suppress all illegal PVs, alter opponent search code or call the protocol failure a chess win."
+    ],
+    "status": "Concrete next verification step selected; not launched as part of this completed top-three milestone. Number one remains open.",
+    "then": "Compare Combusken 2.0.0 and confirm Counter 5.5 and Maelstrom 3.3.0 at the same 120+1 primary clock, using fresh matching controls and fixed caps. Seek independent CCRL results before any official #1 claim."
+  },
+  "schema": "ngn-owned-top3-go-assessment-v1",
+  "scope": {
+    "language": "Go/Golang engines; one best published version per family, with credible unrated NNUE releases included.",
+    "primary_comparison": "One physical CPU per engine, equal Hash128, native pinned opponents, same host and opening pairs, primary new clock 120+1.",
+    "ranking_caution": "CCRL does not publish a language-filtered world ranking. A shortlist derived from known Go families is conditional on catalog coverage. A head-to-head result is relative evidence and is not an official CCRL Elo or a transferable absolute rating. Multi-CPU results are a separate comparison."
+  },
+  "strongest_measured_challenger": {
+    "clock": "120+1",
+    "family": "GoChess",
+    "measured_strength_deficit_requiring_new_ngn_optimization": false,
+    "ngn_ci95": [
+      99.00922295126597,
+      135.95944918762154
+    ],
+    "ngn_relative_elo": 117.16484217672065,
+    "reason": "GoChess has the smallest observed NGN advantage among these comparisons. Among directly comparable new 120+1 trials, it is closer than Zahak. This does not order all engines at every clock."
+  },
+  "top_three_reasoning": [
+    "The identified independent one-CPU rated leaders are Counter, Maelstrom and Zahak. Complete admitted NGN wins against each have 95% lower bounds well above parity. The new Zahak longer-clock result also clears the predeclared 99% lower bound.",
+    "The catalog also includes credible unrated GoChess and Rodent V, rather than silently treating absence from CCRL as weakness. GoChess is now beaten in a complete native pinned-NNUE match at 120+1, with its 99% lower bound above parity.",
+    "Rodent remains unresolved and is counted as a possible engine above NGN. Fourth-rated Combusken also has no new admitted head-to-head result here and is conservatively allowed to be above NGN. Even allowing both above NGN leaves a top-three placement within this catalog, conditional on the measured leaders and coverage assumptions.",
+    "The source-backed survey of 60 Go repositories identified no additional credible leader at this frontier. Lower rated identified families remain catalog evidence rather than newly measured head-to-head wins. Unknown or newly improved engines can change this conclusion."
+  ]
+}
