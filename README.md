@@ -1,6 +1,6 @@
 # NGN
 
-NGN is an experimental Go chess engine. This candidate uses a new original
+NGN 0.2.0 is an experimental Go chess engine. This release uses a new original
 classical HCE with hand-chosen, analytic material/square values. No neural model,
 foreign evaluator, borrowed HCE table or training corpus is part of the runtime.
 Elo work is deferred; this version has no measured playing strength. The older
@@ -24,8 +24,8 @@ retired. The only playable build profile is HCE; retired owned/research profiles
 fail closed. No evaluator model is loaded automatically or through UCI switching.
 
 A separate original neural-evaluator experiment is tested but untrained and
-inactive. This candidate has not been released or resubmitted to CCRL.
+inactive. The release includes matching source, full notices and verification evidence.
 
-Build on the authorized WSL host: `go build -o build/ngn .`.
+Build on the authorized WSL host: `go build -trimpath -ldflags "-X main.releaseProfile=hce -X main.releaseVersion=0.2.0" -o build/ngn .`.
 Default startup is locked HCE and OwnBook=false. Matching source/binary manifests
 record the exact commit, Go version, platform and verification limits.

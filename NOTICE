@@ -156,3 +156,23 @@ algorithm/constant was invented by NGN or a blanket legal certification.
 Subsequent current-tree cleanup dated 2026-10-01: the retired K4/Bullet neural
 training scaffold is removed as well. It is not used by the independent HCE.
 Bullet copyright/permission notices and the complete earlier history remain.
+
+Search-technique acknowledgements for NGN 0.2.0
+NGN's search, move ordering and time management use published alpha-beta,
+pruning, correction-history and budget formulas researched in these projects:
+CounterGo by Vadim Chizhov: https://github.com/ChizhovVadim/CounterGo
+Stockfish by the Stockfish developers: https://github.com/official-stockfish/Stockfish
+Ethereal by Andrew Grant: https://github.com/AndyGrant/Ethereal
+Weiss by Terje Kirstihagen: https://github.com/TerjeKir/weiss
+Stash by Morgan Houppin: https://github.com/mhouppin/stash-bot
+These acknowledge algorithm/formula inspiration; they do not claim that the
+current evaluator is one of those implementations. No external neural model
+or evaluation backend is bundled or selected. GPLv3 text is retained in LICENSE.
+
+Historical Rodent mechanism probe
+experiments/2026-10-01-rodent-pv-identity-probe retains a source-derived move/TT/
+pawn-validation model and archived source evidence from Rodent V, by Naman
+Thanki and Pawel Koziol, under GPLv3. Its SOURCE-LICENSE-GPL-3.0, origin receipts
+and added directory NOTICE apply. It is an independent diagnostic executable,
+not imported by NGN's main dependency closure or used in the evaluation hot path.
+Its source/evidence is preserved with attribution rather than hidden.
