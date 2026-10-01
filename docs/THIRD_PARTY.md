@@ -52,3 +52,17 @@ Piece/square/move implementations were independently regenerated from interface
 contracts and verified against hidden baseline byte/score/node/perft oracles.
 Four credited Zahak core files and PeSTO-derived classical values remain.
 See the experiment record for completed checks and remaining provenance gates.
+
+## Subsequent private cache replacement
+
+The cache implementation has now also been independently regenerated from its
+interface/behavior contract and passed hidden cache-record, replacement, age,
+HCE node/perft, concurrency and regression/race checks. Three credited Zahak
+core implementations remain: board, position and hash. PeSTO values remain.
+See experiments/2026-10-01-independent-cache/report.md.
+
+The canonical Polyglot table in engine/polyglot_random.go is from the pinned
+MIT Disservin/chess-library source cited in its header and NOTICE. All 781
+values and the retained LICENSES/chess-library-MIT.txt were independently
+verified. Its defined values are preserved for external book interoperability;
+the independent python-chess oracle is separate from this table source.
