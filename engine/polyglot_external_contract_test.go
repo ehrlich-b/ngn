@@ -2,6 +2,7 @@ package engine
 
 import (
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -15,9 +16,9 @@ import (
 )
 
 const (
-	polyglotContractEnv       = "NGN_POLYGLOT_EXTERNAL_CONTRACT"
 	polyglotContractFixture   = "testdata/polyglot_special_move_oracle.json"
 	polyglotContractFixtureID = "3e7acd53328562ab5fb6943441d586f8bb3723e269c1904c4f128ecee63d05fc"
+	polyglotCanonicalTableID  = "9aee840377ba74c9a7fe8e254958ad312aa15766257d18823f866b070cbcc9e8"
 )
 
 type polyglotContractOracle struct {
@@ -215,11 +216,20 @@ func assertPolyglotContractCopyMapIndependent(t *testing.T, pos *Position) {
 	delete(copyPos.Positions, sentinel)
 }
 
+func TestCanonicalPolyglotRandomTable(t *testing.T) {
+	hash := sha256.New()
+	var encoded [8]byte
+	for _, value := range polyglotRandom {
+		binary.BigEndian.PutUint64(encoded[:], value)
+		_, _ = hash.Write(encoded[:])
+	}
+	if got := hex.EncodeToString(hash.Sum(nil)); got != polyglotCanonicalTableID {
+		t.Fatalf("canonical Polyglot table SHA-256 = %s, want %s", got, polyglotCanonicalTableID)
+	}
+}
+
 func TestExternalPolyglotSpecialMoveContract(t *testing.T) {
 	oracle := loadPolyglotContractOracle(t)
-	if os.Getenv(polyglotContractEnv) != "1" {
-		t.Skipf("set %s=1 to run the known-failing external Polyglot contract diagnostic", polyglotContractEnv)
-	}
 	if oracle.Schema != "ngn-independent-polyglot-special-move-oracle-v1" ||
 		oracle.PythonChessVersion != "1.11.2" ||
 		oracle.ChessCoreSHA256 != "1fde6a8e932508d14b31f6a584497b49c2969fc3c7cdc675347f819f0d667a5b" ||
@@ -337,7 +347,7 @@ func TestExternalPolyglotSpecialMoveContract(t *testing.T) {
 		for _, mismatch := range tracker.mismatches[:limit] {
 			t.Logf("Polyglot mismatch %s: got=%016x want=%016x", mismatch.label, mismatch.got, mismatch.want)
 		}
-		t.Errorf("external Polyglot numeric contract mismatches=%d/%d checks; generated-table book keys are not standard Polyglot keys",
+		t.Errorf("external Polyglot numeric contract mismatches=%d/%d checks",
 			len(tracker.mismatches), tracker.checks)
 	}
 }
