@@ -107,3 +107,10 @@ MIT permission/copyright: LICENSES/chess-library-MIT.txt, with a source header
 in engine/polyglot_random.go. The candidate's 781 constants and retained license
 text were checked against Git-verified pinned source blobs. These values are
 fixed external protocol data required for interoperable Polyglot book keys.
+
+Private modification dated 2026-10-01, subsequent hash stage: the position
+hashing implementation was independently regenerated from its behavior/key-data
+contract and verified against stream, move/null restoration, legal EP, Polyglot
+and HCE node/perft controls, including zero-allocation real-engine EP probes.
+Historical Zahak notices remain for derived copies. Two credited core
+implementations remain: board and position; PeSTO-derived values remain.

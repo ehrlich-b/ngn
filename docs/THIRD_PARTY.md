@@ -66,3 +66,11 @@ MIT Disservin/chess-library source cited in its header and NOTICE. All 781
 values and the retained LICENSES/chess-library-MIT.txt were independently
 verified. Its defined values are preserved for external book interoperability;
 the independent python-chess oracle is separate from this table source.
+
+## Subsequent private hash replacement
+
+The hash implementation has also been regenerated from its behavior contract.
+All key values and the incremental/restoration proof match the immediate base;
+existing independent EP/repetition/Polyglot oracles and full required regression/
+race checks passed. Two credited Zahak core implementations remain: board and
+position. PeSTO values remain. Evidence: experiments/2026-10-01-independent-hash/report.md.
