@@ -1,5 +1,9 @@
 # Third-party provenance for release preparation
 
+The inventory below records the historical 0.2.0-rc.1 release. Subsequent
+replacement sections record the current recovery candidate; normal builds use
+locked HCE and load no owned neural model. Historical notices are retained.
+
 NGN's randomly initialized owned network is distinct from its compatibility
 backends and source dependencies. Selecting owned weights does not remove the
 other backends from the executable or settle the project's source license.
@@ -74,3 +78,18 @@ All key values and the incremental/restoration proof match the immediate base;
 existing independent EP/repetition/Polyglot oracles and full required regression/
 race checks passed. Two credited Zahak core implementations remain: board and
 position. PeSTO values remain. Evidence: experiments/2026-10-01-independent-hash/report.md.
+
+## Subsequent private board replacement
+
+The board container was regenerated from a behavior contract and passed hidden
+occupancy/accumulator/castling/capture, hash restoration, HCE node/perft and
+all required short/race checks. Position is the one remaining credited Zahak
+core implementation. PeSTO-derived values remain with unresolved precise
+original permission; the unsupported public-domain assertion is corrected.
+Evidence: experiments/2026-10-01-independent-board/report.md.
+
+The May 28 classical-tuning record names KierenP/ChessTrainingSets. Its pinned
+mirror declares MIT, Copyright (c) 2020 Kieren Pearson, and credits Alexandru
+Moșoi for quiet-labeled.epd. The full license is retained in LICENSES and NOTICE.
+Exact training-file match and original contributor permission chain still need
+verification; this evidence does not license the separately borrowed tables.
