@@ -2,11 +2,16 @@
 """Verify the pinned native GoChess v5 model at startup and every refresh."""
 import json
 import os
+import re
+import sys
 from collections import Counter
 from pathlib import Path
 import time
 
 import ownedmatch as base
+sys.path.insert(0, '/home/ehrli/nnue-owned-continuation-20260928/counterdraw-deps/chess-1.11.2')
+import chess
+from counter_draw_compat import DrawPVChecker, filter_draw_warnings
 
 ENGINE_SHA = 'f98888b058dfb62060f0bf992adab2f6ae59eeb47f795a463ffae0b9f846c96c'
 NETWORK_SHA = 'be22a20bfde78d7915cc0cc5fe84e917a76d5df130b9555884a570a04b3ab2fc'
@@ -15,12 +20,31 @@ NETWORK_NAME = 'net-v5-120sb-sb120.nnue'
 NET_TXT = 'https://github.com/adamtwiss/gochess/releases/download/v0.5.0/' + NETWORK_NAME + '\n'
 FINGERPRINT_LINE = 'info string SetNNUEV5 fingerprint ' + FINGERPRINT
 USE_LINE = 'info string UseNNUE = true'
+CORE_SHA = '1fde6a8e932508d14b31f6a584497b49c2969fc3c7cdc675347f819f0d667a5b'
+if chess.__version__ != '1.11.2' or base.sha256(Path(chess.__file__)) != CORE_SHA:
+    raise RuntimeError('independent chess validator differs from the pinned dependency')
+INFO = re.compile(r'^info depth (\d+) score cp (-?\d+) nodes (\d+) nps (\d+) time (\d+) hashfull (\d+) pv (.+)$')
 
 original_validate = base.validate_one_worker_role
 original_stage = base.stage_role_inputs
 original_preflight = base.preflight
 original_trace = base.operational_trace
 original_instrument = base.instrument
+
+
+class GoChessPVChecker(DrawPVChecker):
+    def verify(self, history, info, kind, warning_move):
+        match = INFO.fullmatch(info)
+        if not match:
+            raise ValueError('unrecognized exact GoChess info grammar')
+        depth, score, nodes, nps, elapsed, _, pv = match.groups()
+        canonical = f'info depth {depth} score cp {score} nodes {nodes} time {elapsed} nps {nps} pv {pv}'
+        return super().verify(history, canonical, kind, warning_move)
+
+
+def filter_gochess_draw_warnings(lines, roles):
+    return filter_draw_warnings(lines, roles, base.TRACE_RE,
+                                artifact_sha256=ENGINE_SHA, checker=GoChessPVChecker())
 
 
 def is_gochess(role):
@@ -188,17 +212,21 @@ def check_trace(lines, trace_roles, roles):
 
 
 def operational_trace(lines, trace_roles, roles):
-    filtered, accepted = check_trace(lines, trace_roles, roles)
+    drawn, verified_draws = filter_gochess_draw_warnings(lines, roles)
+    filtered, accepted = check_trace(drawn, trace_roles, roles)
     report = original_trace(filtered, trace_roles, roles)
     report['verified_exact_gochess_v5_startup_banners'] = accepted
     report['verified_gochess_network_sha256'] = NETWORK_SHA
     report['verified_gochess_model_fingerprint'] = FINGERPRINT
+    report['independently_verified_exact_gochess_post_draw_pvs'] = verified_draws
     report['unfiltered_trace_lines'] = len(lines)
     return report
 
 
 def instrument():
-    return dict(original_instrument(), **{Path(__file__).name: base.sha256(Path(__file__))})
+    return dict(original_instrument(), **{Path(__file__).name: base.sha256(Path(__file__)),
+        'counter_draw_compat.py': base.sha256(Path(__file__).with_name('counter_draw_compat.py')),
+        'python_chess_core_1.11.2': CORE_SHA})
 
 
 def activate():

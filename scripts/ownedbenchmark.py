@@ -28,7 +28,9 @@ def activate_compatibility(plan):
     profile = plan.get('native_profile')
     compatibility = plan.get('compatibility')
     if profile is not None:
-        if compatibility is not None or profile.get('kind') != 'exact-gochess-v5-activation-v1' or plan['common']['strict'] is not True:
+        kind = profile.get('kind')
+        strict = kind == 'exact-gochess-v5-activation-v1'
+        if compatibility is not None or kind not in {'exact-gochess-v5-activation-v1', 'exact-gochess-v5-post-draw-v2'} or plan['common']['strict'] is not strict:
             raise match.CandidateMatchError('unsupported native activation profile')
         runner = checked(profile['runner'])
         if runner != Path(__file__).with_name('ownedmatch_gochess.py'):
@@ -43,6 +45,12 @@ def activate_compatibility(plan):
            controls['fingerprint'] != wrapper.FINGERPRINT or controls['positive_activation_count'] < 1 or \
            len(controls['negative_fixtures']) < 10 or not all(row['rejected'] for row in controls['negative_fixtures']):
             raise match.CandidateMatchError('native activation controls differ or failed')
+        if not strict:
+            draw = controls['draw_controls']
+            if draw.get('pass') is not True or draw['independently_validated_warning_count'] < 1 or \
+               draw['core_sha256'] != wrapper.CORE_SHA or len(draw['negative_fixtures']) < 10 or \
+               not all(row['rejected'] for row in draw['negative_fixtures']):
+                raise match.CandidateMatchError('native GoChess draw controls differ or failed')
         return Path(wrapper.__file__)
     if compatibility is None:
         return Path(match.__file__)

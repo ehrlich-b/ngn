@@ -181,10 +181,14 @@ models and checkpoints stay on WSL; old scatter intermediates have a fully
 verified off-worker archive and recorded restoration steps. Keep the ongoing
 25 GiB guard. [Rodent and GoChess mechanism evidence](experiments/2026-09-30-owned-top3-frontier-mechanisms.json)
 includes the held Rodent diagnostic. [GoChess native activation controls](experiments/2026-10-01-owned-top3-gochess-activation.json)
-passed 15 rejection fixtures and the full WSL short race suite. Its
-[fresh native trial](experiments/2026-10-01-owned-top3-gochess-plan.json) is running:
-12-game smoke, 128-game A/A, then a fixed 400-game anchor at 120+1, with all
-new six-ply prefixes excluding both morning books and both Zahak declarations. No new NGN source or network
+passed 15 activation rejection fixtures. Its first strict smoke stopped
+unscored on 39 fully legal post-threefold analysis continuations. The
+[exact-artifact draw checker](experiments/2026-10-01-owned-top3-gochess-draw-compatibility.json)
+passes all 13 additional rejection fixtures and the complete WSL short race
+suite. A [fresh native trial](experiments/2026-10-01-owned-top3-gochess-plan-v2.json)
+is running: 12-game smoke, 128-game A/A, then a fixed 400-game anchor at
+120+1. All new six-ply prefixes exclude both morning books, both Zahak
+declarations and the complete stopped GoChess declaration. No new NGN source or network
 strength change is promoted.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
