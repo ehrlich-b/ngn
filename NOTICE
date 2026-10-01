@@ -152,3 +152,7 @@ remain. Current canonical Polyglot format data retains the precisely pinned
 Disservin MIT source and full permission text. Published chess techniques and
 Go's standard library remain in use; this is not an assertion that every
 algorithm/constant was invented by NGN or a blanket legal certification.
+
+Subsequent current-tree cleanup dated 2026-10-01: the retired K4/Bullet neural
+training scaffold is removed as well. It is not used by the independent HCE.
+Bullet copyright/permission notices and the complete earlier history remain.

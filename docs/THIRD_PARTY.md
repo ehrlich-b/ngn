@@ -126,3 +126,7 @@ invented that format data or standard chess algorithms. No foreign evaluator or
 NNUE package appears in the compiled main dependency closure. This documents
 the identified replacements and test evidence, not blanket legal certification.
 Evidence: experiments/2026-10-01-original-hce-release/report.md.
+
+The final source-package sweep also removed the inactive training/nnue K4/Bullet
+scaffold from the current tree. Historical Bullet MIT attribution is retained.
+No Go runtime source changed after the verified 629bd170 engine stage.
