@@ -83,3 +83,12 @@ Modification notice dated 2026-10-01: these author/source notices and the
 THIRD_PARTY inventory are corrected privately before the requested removal and
 replacement work. This notice does not claim that published copies have changed
 or that the current audit is a complete legal determination.
+
+Private modification dated 2026-10-01: Rodent V1.1/V1.2 and derived K4
+runtime adapters and generation tooling were removed after the attribution
+correction. The source history, old releases and original provenance remain.
+The piece/square/move primitives were replaced by fresh-context implementations
+from behavior contracts and independently verified against the historical ABI.
+The normal candidate build uses locked HCE; HCE still contains derived PeSTO
+tables, and board/position/hash/cache still retain their Zahak origin and MIT
+notices. This stage does not claim a wholly independent engine or a new rating.

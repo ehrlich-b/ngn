@@ -1,3 +1,15 @@
+# Private recovery branch — 2026-10-01
+
+This task branch adds named attribution before deleting Rodent/K4 runtime and
+generation paths, selects locked HCE, and replaces piece/square/move primitives
+from independent interface contracts. Its hidden compatibility, HCE node/score
+and perft proofs and required short/race regressions pass. Existing owned
+benchmarks, default branches and published history are preserved. Remaining
+work: PeSTO values/permission, four Zahak core rewrites, reference-backend and
+other provenance gates, and a separately validated original evaluator. No
+current rating or release/submission authority is inferred from these checks.
+Details: experiments/2026-10-01-attribution-first-runtime-cleanup/report.md.
+
 # NGN current state — September 30
 
 September 28 continuation: the night PGNs/hashes were independently recounted;

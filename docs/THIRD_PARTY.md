@@ -39,3 +39,16 @@ release evidence. Preserve existing copyright notices in corresponding source;
 retain the approved GPL grant and corresponding source with the binary packages.
 
 This inventory includes direct adaptation, internal reuse, trained weights and separate data/tool dependencies. “Owned” describes the initialization and training of the distributed weights; it does not claim original evaluator source. The private 2026-10-01 audit found that the published source and Windows/Linux packages omitted the names of the Rodent authors, the Counter copyright notice and the Stockfish developers copyright notice. Those omissions are corrected here before any code removal; released artifacts and historical evidence remain unchanged. See `NOTICE` for author and modification notices.
+
+## Private replacement stage, 2026-10-01
+
+The Rodent V1.1/V1.2 and derived K4 runtime packages/adapters, and their K4
+bridge/label/pack/finalizer/sampler path, have been removed on this task branch
+after adding the notices above. The inventory is retained for historical copies.
+Normal builds now default to HCE and lock evaluator switching. Counter/Stockfish
+reference backends still require an explicit research build; this is an HCE
+fallback, not a declaration that every source component is independently written.
+Piece/square/move implementations were independently regenerated from interface
+contracts and verified against hidden baseline byte/score/node/perft oracles.
+Four credited Zahak core files and PeSTO-derived classical values remain.
+See the experiment record for completed checks and remaining provenance gates.

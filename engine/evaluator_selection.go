@@ -5,10 +5,7 @@ import (
 
 	"github.com/ehrlich-b/ngn/countereval"
 	"github.com/ehrlich-b/ngn/nnue"
-	"github.com/ehrlich-b/ngn/nnue/ngnk4"
 	"github.com/ehrlich-b/ngn/nnue/sf18big"
-	"github.com/ehrlich-b/ngn/rodenteval"
-	"github.com/ehrlich-b/ngn/rodentv12eval"
 )
 
 // selectedEvaluatorModel returns the receiver's immutable evaluator selection
@@ -134,30 +131,6 @@ func (e *SearchEngine) SelectNGNV1Evaluator(model *nnue.Model) error {
 	return nil
 }
 
-// SelectNGNK4Evaluator transactionally selects one strict-loader-validated
-// NGN-owned king-bucketed model. Mutable accumulator state remains worker-local.
-func (e *SearchEngine) SelectNGNK4Evaluator(model *ngnk4.Model) error {
-	e.sessionMu.Lock()
-	defer e.sessionMu.Unlock()
-	generation, err := acquireHCEModelUse()
-	if err != nil {
-		return err
-	}
-	defer releaseHCEModelUse()
-
-	candidate, err := ngnK4EvaluatorModel(model, generation, e.k4EvalScale())
-	if err != nil {
-		return err
-	}
-	worker, err := candidate.newWorker(nil)
-	if err != nil {
-		return err
-	}
-	e.evaluatorModel = candidate
-	e.worker.evaluator = worker
-	return nil
-}
-
 // SelectSF18BIGEvaluator transactionally selects one exact validated
 // Stockfish 18 BIG model. The backend is opt-in and never changes the default
 // evaluator.
@@ -213,64 +186,12 @@ func (e *SearchEngine) SelectCounter55Evaluator(model *countereval.Model) error 
 	return nil
 }
 
-// SelectRodentV11AnandEvaluator transactionally selects the exact
-// strict-loader-validated Anand artifact. Each worker receives private state.
-func (e *SearchEngine) SelectRodentV11AnandEvaluator(model *rodenteval.Model) error {
-	e.sessionMu.Lock()
-	defer e.sessionMu.Unlock()
-	generation, err := acquireHCEModelUse()
-	if err != nil {
-		return err
-	}
-	defer releaseHCEModelUse()
-
-	candidate, err := rodentV11AnandEvaluatorModel(model, generation)
-	if err != nil {
-		return err
-	}
-	worker, err := candidate.newWorker(nil)
-	if err != nil {
-		return err
-	}
-	e.evaluatorModel = candidate
-	e.worker.evaluator = worker
-	return nil
-}
-
-// SelectRodentV12DefaultEvaluator transactionally selects the exact
-// strict-loader-validated V1.2 default artifact. Each worker receives private
-// dynamically growing state.
-func (e *SearchEngine) SelectRodentV12DefaultEvaluator(model *rodentv12eval.Model) error {
-	e.sessionMu.Lock()
-	defer e.sessionMu.Unlock()
-	generation, err := acquireHCEModelUse()
-	if err != nil {
-		return err
-	}
-	defer releaseHCEModelUse()
-
-	candidate, err := rodentV12DefaultEvaluatorModel(model, generation)
-	if err != nil {
-		return err
-	}
-	worker, err := candidate.newWorker(nil)
-	if err != nil {
-		return err
-	}
-	e.evaluatorModel = candidate
-	e.worker.evaluator = worker
-	return nil
-}
-
 const (
-	EvaluatorBackendHCEName              = "hce"
-	EvaluatorBackendNGNV1Name            = "ngn-v1"
-	EvaluatorBackendSF18BIGName          = "sf18-big"
-	EvaluatorBackendSF18BIGResearchName  = EvaluatorBackendSF18BIGName
-	EvaluatorBackendCounter55Name        = "counter-5.5"
-	EvaluatorBackendRodentV11AnandName   = "rodent-v1.1-anand"
-	EvaluatorBackendRodentV12DefaultName = "rodent-v1.2-default"
-	EvaluatorBackendNGNK4Name            = "ngn-k4-768-v1"
+	EvaluatorBackendHCEName             = "hce"
+	EvaluatorBackendNGNV1Name           = "ngn-v1"
+	EvaluatorBackendSF18BIGName         = "sf18-big"
+	EvaluatorBackendSF18BIGResearchName = EvaluatorBackendSF18BIGName
+	EvaluatorBackendCounter55Name       = "counter-5.5"
 )
 
 func evaluatorBackendName(backend evaluatorBackend) string {
@@ -283,12 +204,6 @@ func evaluatorBackendName(backend evaluatorBackend) string {
 		return EvaluatorBackendSF18BIGName
 	case evaluatorBackendCounter55:
 		return EvaluatorBackendCounter55Name
-	case evaluatorBackendRodentV11Anand:
-		return EvaluatorBackendRodentV11AnandName
-	case evaluatorBackendRodentV12Default:
-		return EvaluatorBackendRodentV12DefaultName
-	case evaluatorBackendNGNK4:
-		return EvaluatorBackendNGNK4Name
 	default:
 		return fmt.Sprintf("unknown-%d", backend)
 	}
