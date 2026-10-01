@@ -77,7 +77,7 @@ func generateZobristHash(pos *Position) uint64 {
 
 	/* En passant */
 	enPassant := pos.EnPassant
-	if enPassant != NoSquare {
+	if enPassant != NoSquare && pos.HasTag(enPassantHash) {
 		if pos.Turn() == Black {
 			/* Next mov Black -> Current pos White -> White en passant square */
 			if enPassant >= 16 && enPassant <= 23 {
@@ -114,7 +114,10 @@ func updateHashForNullMove(pos *Position, newEnPassant Square, oldEnPassant Squa
 
 	turn := pos.Turn()
 	/* En passant */
-	if newEnPassant != NoSquare {
+	// Null moves preserve enPassantHash as reversible metadata while the raw
+	// target is temporarily absent. Both branches therefore use the same bit;
+	// current callers always have exactly one non-NoSquare side (the old side).
+	if newEnPassant != NoSquare && pos.HasTag(enPassantHash) {
 		if turn == Black {
 			/* Next mov Black -> Current pos White -> White en passant square */
 			if newEnPassant >= 16 && newEnPassant <= 23 {
@@ -128,7 +131,7 @@ func updateHashForNullMove(pos *Position, newEnPassant Square, oldEnPassant Squa
 		}
 	}
 
-	if oldEnPassant != NoSquare {
+	if oldEnPassant != NoSquare && pos.HasTag(enPassantHash) {
 		if turn == Black {
 			/* Previous mov Black -> Current pos White -> Black en passant square */
 			if oldEnPassant >= 40 && oldEnPassant <= 47 {
@@ -198,7 +201,7 @@ func updateHash(pos *Position, move Move, captureSquare Square,
 	}
 
 	/* En passant */
-	if newEnPassant != NoSquare {
+	if newEnPassant != NoSquare && pos.HasTag(enPassantHash) {
 		if turn == Black {
 			/* Next mov Black -> Current pos White -> White en passant square */
 			if newEnPassant >= 16 && newEnPassant <= 23 {
@@ -212,7 +215,7 @@ func updateHash(pos *Position, move Move, captureSquare Square,
 		}
 	}
 
-	if oldEnPassant != NoSquare {
+	if oldEnPassant != NoSquare && oldPositionTag&enPassantHash != 0 {
 		if turn == Black {
 			/* Previous mov Black -> Current pos White -> Black en passant square */
 			if oldEnPassant >= 40 && oldEnPassant <= 47 {
@@ -249,4 +252,76 @@ func updateHash(pos *Position, move Move, captureSquare Square,
 	}
 
 	pos.hash = hash
+}
+
+// refreshEnPassantHash records whether the current raw EP target contributes to
+// the ordinary position key. The raw target itself intentionally retains the
+// adjacency semantics used by move generation and PolyglotHash.
+func (p *Position) refreshEnPassantHash() {
+	p.ClearTag(enPassantHash)
+	if hasLegalEnPassant(p) {
+		p.SetTag(enPassantHash)
+	}
+}
+
+// ensureEnPassantHash initializes reversible metadata on cold/hand-built EP
+// positions. With no raw target it deliberately leaves the bit alone: a null
+// position temporarily has no target but must retain the pre-null eligibility
+// needed by UnMakeNullMove.
+func (p *Position) ensureEnPassantHash() {
+	if p.EnPassant != NoSquare {
+		p.refreshEnPassantHash()
+	}
+}
+
+// hasLegalEnPassant reports whether at least one adjacent pawn can legally
+// capture the raw EP target. It copies the board for at most two candidates and
+// tests king safety directly: no production position is mutated, no move list or
+// hash recursion is involved, and no heap-backed collection is created.
+func hasLegalEnPassant(pos *Position) bool {
+	ep := pos.EnPassant
+	if ep == NoSquare || pos.Board.PieceAt(ep) != NoPiece {
+		return false
+	}
+
+	turn := pos.Turn()
+	var pawn, victim Piece
+	var sourceRank Rank
+	if turn == White {
+		if ep.Rank() != Rank6 {
+			return false
+		}
+		pawn, victim, sourceRank = WhitePawn, BlackPawn, Rank5
+	} else {
+		if ep.Rank() != Rank3 {
+			return false
+		}
+		pawn, victim, sourceRank = BlackPawn, WhitePawn, Rank4
+	}
+
+	captureSquare := SquareOf(ep.File(), sourceRank)
+	if pos.Board.PieceAt(captureSquare) != victim {
+		return false
+	}
+
+	for _, fileDelta := range [2]File{-1, 1} {
+		file := ep.File() + fileDelta
+		if file < FileA || file > FileH {
+			continue
+		}
+		source := SquareOf(file, sourceRank)
+		if pos.Board.PieceAt(source) != pawn {
+			continue
+		}
+
+		board := pos.Board
+		board.Move(source, ep, pawn, NoPiece)
+		board.Clear(captureSquare, victim)
+		probe := Position{Board: board}
+		if !isInCheck(&probe, turn) {
+			return true
+		}
+	}
+
+	return false
 }
