@@ -1,0 +1,60 @@
+{
+  "aa": {
+    "audit_sha256": "4f61c94b0f866d15259c39eda2b53569bc68b850256d80f06f5614f2a819b03b",
+    "bootstrap": "percentile over pair scores, 20000 resamples, seed 2026092701",
+    "candidate": "Owned-1-A",
+    "elo": -16.297987076023777,
+    "elo_interval_95": [
+      -46.41800937932698,
+      10.86089841744591
+    ],
+    "games": 128,
+    "legal_plies": 20075,
+    "pairs": 64,
+    "penta_0_to_4": [
+      1,
+      14,
+      39,
+      10,
+      0
+    ],
+    "pgn_sha256": "3356a9578877b1ffdab7e5200dbfc3b30fa306e081df0018a533490c1cb29683",
+    "reasons": {
+      "Black mates": 14,
+      "Draw by 3-fold repetition": 73,
+      "Draw by fifty moves rule": 6,
+      "Draw by insufficient mating material": 8,
+      "Draw by stalemate": 1,
+      "White mates": 26
+    },
+    "results": {
+      "0-1": 14,
+      "1-0": 26,
+      "1/2-1/2": 88
+    },
+    "schema": "ngn-quickmatch-report-v1",
+    "score": 0.4765625,
+    "score_interval_95": [
+      0.43359375,
+      0.515625
+    ]
+  },
+  "anchor_started_unix": 1790830958.8361943,
+  "checked_at_unix": 1790831055.8711693,
+  "claim": "The controller admitted the anchor after accepted smoke and matching A/A terminals. The calibration interval includes parity. No partial anchor score or opponent strength verdict is admitted.",
+  "physical_windows_free_gib": 117.81256103515625,
+  "plan_sha256": "ac158b8b50bcc3b14a8f7ea2087cefadeae6a9948198d4a1ead90d0bb34eafdb",
+  "schema": "ngn-owned-top3-native-gochess-controls-completed-v1",
+  "smoke": {
+    "audit_sha256": "9c42925fb9b7cffea0235c780a027282c75b0aebccc5b9cd68782b5779053269",
+    "games": 12,
+    "legal_plies": 1875,
+    "pairs": 6,
+    "pass": true,
+    "pgn_sha256": "8ddd122992228d92f6a86d672b663ef78f297fbcf7a9550ceda2cb94698e0d85",
+    "purpose": "smoke",
+    "schema": "ngn-owned-instrument-smoke-v1"
+  },
+  "state": "SMOKE_AND_AA_PASSED_ANCHOR_RUNNING",
+  "unit": "ngn-owned-top3-gochess-120p1-v3-20261001"
+}
