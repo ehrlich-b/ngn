@@ -93,3 +93,17 @@ mirror declares MIT, Copyright (c) 2020 Kieren Pearson, and credits Alexandru
 Moșoi for quiet-labeled.epd. The full license is retained in LICENSES and NOTICE.
 Exact training-file match and original contributor permission chain still need
 verification; this evidence does not license the separately borrowed tables.
+
+## Subsequent private position replacement
+
+The position layer was independently generated from a typed behavior contract,
+fresh helper implementations and synthetic callbacks/values. A controller
+mistake about the legacy bare-kings draw case was corrected in the same saved
+native context before integration; initial and corrected contracts are retained.
+Hidden move/undo/null/EP/castling/promotion/repetition/draw/copy replay, prior
+board/hash controls, fixed HCE node/perft outputs and all required short/race
+checks passed. All seven identified Zahak-derived core components have been
+replaced; historical notices remain. PeSTO-derived values and other documented
+source/data provenance gates remain open. This is not a claim of legal
+clean-room certification or complete originality.
+Evidence: experiments/2026-10-01-independent-position/report.md.
