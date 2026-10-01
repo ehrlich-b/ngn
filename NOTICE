@@ -114,3 +114,19 @@ contract and verified against stream, move/null restoration, legal EP, Polyglot
 and HCE node/perft controls, including zero-allocation real-engine EP probes.
 Historical Zahak notices remain for derived copies. Two credited core
 implementations remain: board and position; PeSTO-derived values remain.
+
+Private modification dated 2026-10-01, subsequent board stage: the board
+container was regenerated from its behavior contract and verified against
+occupancy/mailbox/accumulator/castling/capture replay, hash restoration, HCE
+node/perft and all required regression/race checks. Position is the remaining
+credited Zahak core implementation; historical notices remain. PeSTO-derived
+values remain, and their precise original permission is unresolved.
+
+Classical tuning-data mirror — KierenP/ChessTrainingSets
+Copyright (c) 2020 Kieren Pearson
+README contributor: Alexandru Moșoi (quiet-labeled.epd)
+Source: https://github.com/KierenP/ChessTrainingSets/tree/ef85c314b9f0c0ff814a0d870f6b0b7c7c7f4b87
+Mirror's declared MIT text: LICENSES/ChessTrainingSets-MIT.txt. The May 28 NGN
+tuning record identifies this mirror and EPD conversion/PST tuning. Exact local
+training-file identity and original contributor permission chain remain open;
+this mirror notice does not establish separate PeSTO table permission.

@@ -1,9 +1,8 @@
 package engine
 
 // PeSTO evaluation: Texel-tuned tapered piece-square tables and material values
-// Source: Ronald Friederich's PeSTO engine (public domain) — one of the best-known
-// classical evaluations. Having correct, tuned PSTs is worth 200+ ELO over
-// hand-tuned PSTs.
+// Derived from Ronald Friederich's PeSTO tables; precise original permission
+// remains unverified. See NOTICE and docs/THIRD_PARTY.md.
 
 // Material values (middlegame and endgame)
 var pestoMGMaterial = [7]int{0, 82, 337, 365, 477, 1025, 0}

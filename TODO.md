@@ -5,7 +5,7 @@ generation paths, selects locked HCE, and replaces piece/square/move primitives
 from independent interface contracts. Its hidden compatibility, HCE node/score
 and perft proofs and required short/race regressions pass. Existing owned
 benchmarks, default branches and published history are preserved. Remaining
-work: PeSTO values/permission, two Zahak core rewrites, reference-backend and
+work: PeSTO values/permission, one Zahak core rewrite, reference-backend and
 other provenance gates, and a separately validated original evaluator. No
 current rating or release/submission authority is inferred from these checks.
 Details: experiments/2026-10-01-attribution-first-runtime-cleanup/report.md.
@@ -833,3 +833,5 @@ must not claim per-fix Elo from the combined result.
 Private cache replacement is now verified against replay and HCE node/perft identity; required regression/race checks passed. Evidence: experiments/2026-10-01-independent-cache/report.md.
 
 Private hash replacement is verified against key/move/null/EP and HCE node/perft controls; required short/race checks passed. Evidence: experiments/2026-10-01-independent-hash/report.md.
+
+Private board replacement passed occupancy/castling/accumulator, hash/HCE and all required short/race controls. Position is the remaining credited Zahak core implementation. Evidence: experiments/2026-10-01-independent-board/report.md.

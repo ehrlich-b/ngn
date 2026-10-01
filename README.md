@@ -7,7 +7,7 @@ model loading. The old `owned` build profile is retired and fails closed.
 It is an experimental Go chess engine licensed under GPL-3.0-only. See
 [NOTICE](NOTICE), [third-party origins](docs/THIRD_PARTY.md), and the
 [recovery evidence](experiments/2026-10-01-attribution-first-runtime-cleanup/report.md).
-The engine still includes credited Zahak-derived board/position code
+The engine still includes credited Zahak-derived position code
 and PeSTO-derived classical tables. This candidate is not claimed to be wholly
 original and has no new verified rating. Public historical releases are retained.
 
