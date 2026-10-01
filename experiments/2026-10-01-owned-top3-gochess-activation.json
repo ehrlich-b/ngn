@@ -1,0 +1,238 @@
+{
+  "claim": "Exact unmodified pinned GoChess and v0.5.0 NNUE startup/refresh activation profile. No scored strength verdict yet. Every unknown stderr/warning remains rejected; played moves and process/clock checks retain their normal audits.",
+  "controls": {
+    "engine_sha256": "f98888b058dfb62060f0bf992adab2f6ae59eeb47f795a463ffae0b9f846c96c",
+    "fingerprint": "9b04e49c9c567240",
+    "instrument": {
+      "common.py": "bdece7f8d066253f995a4ee98d1dbce692d03274054a9a3a1d8af16ce16c1807",
+      "ownedmatch.py": "76c9f2e972de789bdc203971f33eea53bbea7dbb403bbffa469ca80568638690",
+      "ownedmatch_gochess.py": "9b0ad11f04a1af96d854995f98cb70b2cc2960739df8822d6222081d925d755b",
+      "ownedstorage.py": "a3a892cede5d2b0a65291bbc38829bf566f288ca7b23b419df754678c60f23f2",
+      "process_supervisor.py": "4771585ee567615467cbf5eb3255a78dd234efe6f8fc9fe02885bb9815a7209f",
+      "quickmatch.py": "4c0390fb9ba8cd67e269dd41bd131084651dd639ef60096bfd96676634268aa3",
+      "role_exec.py": "2562ed5ae7a021c93258056422156d49dfc3209647cf1f36e64f1179ba2cfdd4",
+      "run_match_stage.py": "95cc51423602c812eb250566bb827014df137d072e414a5fff32d3a4edaccb40",
+      "trace_audit.py": "9e78cfd91a9ff36358de9af931b48d7dd5d56ae595a9b5753e184a5cdabc909b",
+      "uci_preflight.py": "33b9ac8b0360b1e7b42cffc76da0e5fa37ea67509cca421d2c5cbcd244c1f171"
+    },
+    "legal_bestmove": "d2d4",
+    "missing_net_txt_rejected": true,
+    "negative_fixtures": [
+      {
+        "name": "artifact",
+        "rejected": true
+      },
+      {
+        "name": "fingerprint",
+        "rejected": true
+      },
+      {
+        "name": "disabled",
+        "rejected": true
+      },
+      {
+        "name": "missing-banner",
+        "rejected": true
+      },
+      {
+        "name": "duplicate-banner",
+        "rejected": true
+      },
+      {
+        "name": "missing-fingerprint",
+        "rejected": true
+      },
+      {
+        "name": "missing-use",
+        "rejected": true
+      },
+      {
+        "name": "wrong-path",
+        "rejected": true
+      },
+      {
+        "name": "foreign-actor",
+        "rejected": true
+      },
+      {
+        "name": "cross-thread",
+        "rejected": true
+      },
+      {
+        "name": "missing-exit",
+        "rejected": true
+      },
+      {
+        "name": "extra-fingerprint",
+        "rejected": true
+      },
+      {
+        "name": "warning",
+        "rejected": true
+      },
+      {
+        "name": "uppercase-error",
+        "rejected": true
+      },
+      {
+        "name": "illegal-move",
+        "rejected": true
+      }
+    ],
+    "network_sha256": "be22a20bfde78d7915cc0cc5fe84e917a76d5df130b9555884a570a04b3ab2fc",
+    "pass": true,
+    "positive_activation_count": 1
+  },
+  "full_protocol_binding": "Original net.txt and named network are staged before startup. Both network names hash to the pinned artifact. Startup and every option refresh acknowledge the exact model fingerprint; UseNNUE=true is witnessed at every refresh. Per-thread banner/normal-exit/refresh/fingerprint counts must agree with process witnesses.",
+  "native_source_net_txt": "https://github.com/adamtwiss/gochess/releases/download/v0.5.0/net-v5-120sb-sb120.nnue",
+  "schema": "ngn-owned-native-gochess-activation-controls-v1",
+  "source_commit": "2c0974e390c85ea1e6f6b08862f38ba748c917d3",
+  "source_receipt": {
+    "scripts/candidate-match/common.py": "bdece7f8d066253f995a4ee98d1dbce692d03274054a9a3a1d8af16ce16c1807",
+    "scripts/candidate-match/manifest.py": "a7ce8f4a6141e963688eefac273a9b9822f87d57674ce7191f288701af492b3b",
+    "scripts/candidate-match/process_supervisor.py": "4771585ee567615467cbf5eb3255a78dd234efe6f8fc9fe02885bb9815a7209f",
+    "scripts/candidate-match/role_exec.py": "2562ed5ae7a021c93258056422156d49dfc3209647cf1f36e64f1179ba2cfdd4",
+    "scripts/candidate-match/run_candidate_match.py": "9ba8aa75a917923b01a456d30e513f7793ebc585a75522765275f6db2ef89a6a",
+    "scripts/candidate-match/run_match_stage.py": "95cc51423602c812eb250566bb827014df137d072e414a5fff32d3a4edaccb40",
+    "scripts/candidate-match/smp_match_stage.py": "22ea985b6b242d2cf7ad3a61d08e5f4b4ac4a89d860b769c08d718358f9dfe15",
+    "scripts/candidate-match/smp_role_exec.py": "a003aa7fc1272a573b544475e595c0bf653622313b8450063f587e2a6b0dc0c4",
+    "scripts/candidate-match/tests/fixture_match_parent.py": "114f449ec835185b27ba3a1df89067ffe8c74fd57bb9f3b127c8f2de96a73fb2",
+    "scripts/candidate-match/tests/fixture_signal_runner.py": "c226c3b5be3b3ac9a1b5dd647170a5f20bfbbcdbec0cbaa7f384f610576914b1",
+    "scripts/candidate-match/tests/fixture_signal_stage.py": "8dbad2a4721e6a7e61c72f7287f9ea8e5fc36e95e2a855d20523110681773e3a",
+    "scripts/candidate-match/tests/fixture_uci_engine.py": "55cc95bf31e1ab98c11efecb63efec8da2fde507c3239f08fd1216d1ef2994ab",
+    "scripts/candidate-match/tests/test_common.py": "b8efa50e816ee853032be09f3bb3788600acfa5669604f7f18c6e8c28430f8f4",
+    "scripts/candidate-match/tests/test_manifest.py": "6484db80c7acc9464cccbc55f51798a790a3b65ac14b0347db786a75c3a69bb9",
+    "scripts/candidate-match/tests/test_match_stage.py": "fb7ff803362cd2d8215b51203fd40ee3d323b018290794fb63f89095e678a567",
+    "scripts/candidate-match/tests/test_role_exec.py": "6e80c4cfed90752a5e0fe8f6d9c10b1dbf67c74573e9e094ef0b421736e414fd",
+    "scripts/candidate-match/tests/test_signal_cleanup.py": "e7f462a18eb9c417f49bed60345f2fa3176384df22369f9fe87d880b5029a6da",
+    "scripts/candidate-match/tests/test_trace_audit.py": "ddf9856a3d5bf02670a6a45eb41df7b2436554c637e5cfba619d3f428305e742",
+    "scripts/candidate-match/tests/test_uci_preflight.py": "7c3128f9b7a84c342bc5a7cbc2d3f75bc36f16fc6817348556210ebd92db65b5",
+    "scripts/candidate-match/trace_audit.py": "9e78cfd91a9ff36358de9af931b48d7dd5d56ae595a9b5753e184a5cdabc909b",
+    "scripts/candidate-match/uci_preflight.py": "33b9ac8b0360b1e7b42cffc76da0e5fa37ea67509cca421d2c5cbcd244c1f171",
+    "scripts/counter_draw_compat.py": "ada29da47b4f8855fd5565ce60d68b53812571ded7845843c9452ebeff236c87",
+    "scripts/ownedbenchmark.py": "6ff81281abc928080395bb16e05284873aad7232637be832d2f423db801be253",
+    "scripts/ownedmatch.py": "76c9f2e972de789bdc203971f33eea53bbea7dbb403bbffa469ca80568638690",
+    "scripts/ownedmatch_counterdraw.py": "ba881c5dd3823b9d8bd1ee356f7607b842fd7ddea42827fc6233909d6560e5ea",
+    "scripts/ownedmatch_gochess.py": "9b0ad11f04a1af96d854995f98cb70b2cc2960739df8822d6222081d925d755b",
+    "scripts/ownedmatch_zahakdraw.py": "f399cdf1384333a70d1b31fd4c3ecc8aa514763dc0be3b2c5149bfde50cc1716",
+    "scripts/ownedmulti_tests/fixture_parent.py": "2d9f6969bdcee81862dfd92ad466dc1bf354d88113c97e90bc7799765ea032b1",
+    "scripts/ownedmulti_tests/test_gochess_native.py": "f552eb9766d562d35e5eab0c0e00e0326bdca33b4ae0ccfbee1907cc9e44efd0",
+    "scripts/ownedmulti_tests/test_ownedmatch_native.py": "ed67c493852477388e70eeb3beb56e6bad0be01dbb73e1c41e147aa2dd3cc078",
+    "scripts/ownedmulti_tests/test_ownedmultimatch.py": "cd574022ef4eb3afa11650a1e7742a37d86baa25fca0092fb7033bd9fef17c61",
+    "scripts/ownedmulti_tests/test_ownedstorage.py": "3343c7474b363ac3934e347c55214b66ce13929cc0125f113d95c1bf50dfcd62",
+    "scripts/ownedmulti_tests/test_zahak_draw.py": "4cf6f38ea2c3b31854240a03a00ace2061f6eb5ce5481704e4bcb552c0ceb19f",
+    "scripts/ownedmultimatch.py": "1efc31373ce4d8937186122bc7ed84bef2f9b373da948837f36f52970f1c39ff",
+    "scripts/ownedsmp.py": "4ed87fa26cad8d3857a1a0a8a27670a726e6b16a96a0f8e99d0eb1e11be371fe",
+    "scripts/ownedstorage.py": "a3a892cede5d2b0a65291bbc38829bf566f288ca7b23b419df754678c60f23f2",
+    "scripts/quickmatch.py": "4c0390fb9ba8cd67e269dd41bd131084651dd639ef60096bfd96676634268aa3"
+  },
+  "validation": {
+    "completed": 1790818233.3491163,
+    "instrument": {
+      "common.py": "bdece7f8d066253f995a4ee98d1dbce692d03274054a9a3a1d8af16ce16c1807",
+      "ownedmatch.py": "76c9f2e972de789bdc203971f33eea53bbea7dbb403bbffa469ca80568638690",
+      "ownedmatch_gochess.py": "9b0ad11f04a1af96d854995f98cb70b2cc2960739df8822d6222081d925d755b",
+      "ownedstorage.py": "a3a892cede5d2b0a65291bbc38829bf566f288ca7b23b419df754678c60f23f2",
+      "process_supervisor.py": "4771585ee567615467cbf5eb3255a78dd234efe6f8fc9fe02885bb9815a7209f",
+      "quickmatch.py": "4c0390fb9ba8cd67e269dd41bd131084651dd639ef60096bfd96676634268aa3",
+      "role_exec.py": "2562ed5ae7a021c93258056422156d49dfc3209647cf1f36e64f1179ba2cfdd4",
+      "run_match_stage.py": "95cc51423602c812eb250566bb827014df137d072e414a5fff32d3a4edaccb40",
+      "trace_audit.py": "9e78cfd91a9ff36358de9af931b48d7dd5d56ae595a9b5753e184a5cdabc909b",
+      "uci_preflight.py": "33b9ac8b0360b1e7b42cffc76da0e5fa37ea67509cca421d2c5cbcd244c1f171"
+    },
+    "multicore_instrument": {
+      "common.py": "bdece7f8d066253f995a4ee98d1dbce692d03274054a9a3a1d8af16ce16c1807",
+      "ownedmatch.py": "76c9f2e972de789bdc203971f33eea53bbea7dbb403bbffa469ca80568638690",
+      "ownedmatch_gochess.py": "9b0ad11f04a1af96d854995f98cb70b2cc2960739df8822d6222081d925d755b",
+      "ownedmultimatch.py": "1efc31373ce4d8937186122bc7ed84bef2f9b373da948837f36f52970f1c39ff",
+      "ownedstorage.py": "a3a892cede5d2b0a65291bbc38829bf566f288ca7b23b419df754678c60f23f2",
+      "process_supervisor.py": "4771585ee567615467cbf5eb3255a78dd234efe6f8fc9fe02885bb9815a7209f",
+      "quickmatch.py": "4c0390fb9ba8cd67e269dd41bd131084651dd639ef60096bfd96676634268aa3",
+      "role_exec.py": "2562ed5ae7a021c93258056422156d49dfc3209647cf1f36e64f1179ba2cfdd4",
+      "run_match_stage.py": "95cc51423602c812eb250566bb827014df137d072e414a5fff32d3a4edaccb40",
+      "smp_match_stage.py": "22ea985b6b242d2cf7ad3a61d08e5f4b4ac4a89d860b769c08d718358f9dfe15",
+      "smp_role_exec.py": "a003aa7fc1272a573b544475e595c0bf653622313b8450063f587e2a6b0dc0c4",
+      "trace_audit.py": "9e78cfd91a9ff36358de9af931b48d7dd5d56ae595a9b5753e184a5cdabc909b",
+      "uci_preflight.py": "33b9ac8b0360b1e7b42cffc76da0e5fa37ea67509cca421d2c5cbcd244c1f171"
+    },
+    "native_controls": {
+      "path": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1/activation-controls.json",
+      "sha256": "9171e4578982d0ffa70d4cc6c380a90d4165963f88a68104fec73c25758bb856"
+    },
+    "pass": true,
+    "phase": "go-short-race-all",
+    "state": "COMPLETE",
+    "steps": [
+      {
+        "command": [
+          "/usr/bin/python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1/benchmark-source/scripts/ownedmulti_tests",
+          "-v"
+        ],
+        "cwd": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1/benchmark-source",
+        "elapsed_seconds": 2.9246535301208496,
+        "name": "owned-controls",
+        "pass": true,
+        "returncode": 0,
+        "stderr_sha256": "8693d7dac6c1a3c8403d29b59005841e6e5f43502ca02fcf3152e1d5bc443525",
+        "stdout_sha256": "febcb9fe2c70d73fb3931954307d8b1517e780e443bb1a1287e27cf097cc29cf"
+      },
+      {
+        "command": [
+          "/usr/bin/python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1/benchmark-source/scripts/candidate-match/tests",
+          "-v"
+        ],
+        "cwd": "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1/benchmark-source",
+        "elapsed_seconds": 3.428760290145874,
+        "name": "candidate-controls",
+        "pass": true,
+        "returncode": 0,
+        "stderr_sha256": "e81872d1e2b41bd0c49abc150a990ea9a08748f96ad2e6b7b9102bbf9b0b2cf4",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": [
+          "/usr/local/go/bin/go",
+          "test",
+          "-short",
+          "-race",
+          "./...",
+          "-count=1"
+        ],
+        "cwd": "/home/ehrli/nnue-owned-continuation-20260928/source",
+        "elapsed_seconds": 46.82544445991516,
+        "name": "go-short-race-all",
+        "pass": true,
+        "returncode": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "9e821b8444df46af00c30921800dd2b7a4355cf05c73b914d80ce2f9416cda9f"
+      }
+    ]
+  },
+  "validation_unit": {
+    "command": [
+      "systemd-run",
+      "--user",
+      "--unit=ngn-owned-top3-gochess-validation-20261001",
+      "--property=WorkingDirectory=/home/ehrli/nnue-owned-top3-20260930/gochess-120p1",
+      "--property=KillMode=control-group",
+      "--property=TimeoutStopSec=30",
+      "--property=RuntimeMaxSec=2400",
+      "--property=MemoryMax=4G",
+      "--property=CPUAffinity=12 14",
+      "/usr/bin/python3",
+      "/home/ehrli/nnue-owned-top3-20260930/gochess-120p1/validation-run.py"
+    ],
+    "started_at_unix": 1790818180.1308608,
+    "unit": "ngn-owned-top3-gochess-validation-20261001"
+  }
+}

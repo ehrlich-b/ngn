@@ -163,9 +163,11 @@ Both chess units are terminal. The [approved morning compaction and restoration]
 succeeded, restoring Docker, both hopper workers, the relay and keepalive.
 The [top-three Go goal](experiments/2026-09-30-owned-top3-go-goal.json) now has a
 [fresh native Zahak 10 trial](experiments/2026-09-30-owned-top3-zahak-plan-v3.json)
-running at 120+1, one physical CPU and Hash128 each. The
-[12-game smoke and fresh 128-game A/A passed](experiments/2026-09-30-owned-top3-zahak-controls.json);
-the single fixed 400-game anchor is now running. The strict first smoke stopped
+complete at 120+1, one physical CPU and Hash128 each. The
+[fixed 400-game result](experiments/2026-10-01-owned-top3-zahak-result.json) is
+236W/143D/21L, +208.68 [185.11,234.12]; its predeclared 99% paired interval
+is [177.22,243.55]. The matched smoke/A/A, all audits, independent legal
+replay/recount and 189-file off-worker archive verification passed. The strict first smoke stopped
 unscored on a fully legal post-fifty-move analysis continuation. The
 [exact-artifact rule](experiments/2026-09-30-owned-top3-zahak-compatibility.json)
 passes 13 rejection cases, the preserved positive fixture, both Python control
@@ -178,8 +180,12 @@ physical C: free space measured afterward. Gathered training/validation corpora,
 models and checkpoints stay on WSL; old scatter intermediates have a fully
 verified off-worker archive and recorded restoration steps. Keep the ongoing
 25 GiB guard. [Rodent and GoChess mechanism evidence](experiments/2026-09-30-owned-top3-frontier-mechanisms.json)
-includes verified GoChess NNUE activation; their native calibration remains
-part of the wider frontier. No new source or network strength change is promoted.
+includes the held Rodent diagnostic. [GoChess native activation controls](experiments/2026-10-01-owned-top3-gochess-activation.json)
+passed 15 rejection fixtures and the full WSL short race suite. Its
+[fresh native trial](experiments/2026-10-01-owned-top3-gochess-plan.json) is running:
+12-game smoke, 128-game A/A, then a fixed 400-game anchor at 120+1, with all
+new six-ply prefixes excluding both morning books and both Zahak declarations. No new NGN source or network
+strength change is promoted.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
 WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;

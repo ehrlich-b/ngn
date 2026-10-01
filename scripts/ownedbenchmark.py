@@ -25,7 +25,25 @@ def free_gib():
 
 
 def activate_compatibility(plan):
+    profile = plan.get('native_profile')
     compatibility = plan.get('compatibility')
+    if profile is not None:
+        if compatibility is not None or profile.get('kind') != 'exact-gochess-v5-activation-v1' or plan['common']['strict'] is not True:
+            raise match.CandidateMatchError('unsupported native activation profile')
+        runner = checked(profile['runner'])
+        if runner != Path(__file__).with_name('ownedmatch_gochess.py'):
+            raise match.CandidateMatchError('native activation runner differs')
+        import ownedmatch_gochess as wrapper
+        if sum(role['engine']['sha256'] == wrapper.ENGINE_SHA for role in plan['roles']) != 1:
+            raise match.CandidateMatchError('native activation requires the exact GoChess opponent')
+        wrapper.activate()
+        controls = json.loads(checked(profile['controls']).read_text())
+        if controls.get('pass') is not True or controls['instrument'] != match.instrument() or \
+           controls['engine_sha256'] != wrapper.ENGINE_SHA or controls['network_sha256'] != wrapper.NETWORK_SHA or \
+           controls['fingerprint'] != wrapper.FINGERPRINT or controls['positive_activation_count'] < 1 or \
+           len(controls['negative_fixtures']) < 10 or not all(row['rejected'] for row in controls['negative_fixtures']):
+            raise match.CandidateMatchError('native activation controls differ or failed')
+        return Path(wrapper.__file__)
     if compatibility is None:
         return Path(match.__file__)
     kind = compatibility.get('kind')
