@@ -15,42 +15,6 @@ import (
 	"time"
 )
 
-// Global opening book instance
-var globalOpeningBook *PolyglotBook
-
-// InitOpeningBook loads an opening book from the given path
-func InitOpeningBook(path string) error {
-	book, err := LoadPolyglotBook(path)
-	if err != nil {
-		return err
-	}
-	globalOpeningBook = book
-	return nil
-}
-
-// GetOpeningBook returns the global opening book
-func GetOpeningBook() *PolyglotBook {
-	return globalOpeningBook
-}
-
-// TryLoadDefaultBook attempts to load a book from common locations
-func TryLoadDefaultBook() {
-	// Try common book locations
-	bookPaths := []string{
-		"book.bin",
-		"opening.bin",
-		"openings.bin",
-		"./book/book.bin",
-		"./book/opening.bin",
-	}
-
-	for _, path := range bookPaths {
-		if err := InitOpeningBook(path); err == nil {
-			return
-		}
-	}
-}
-
 type uciSearchState uint8
 
 const (
@@ -81,7 +45,6 @@ type uciSearchSession struct {
 	debugMode         bool
 	allowResignation  bool
 	copyPosition      func(*Position) *Position
-	openingBook       *PolyglotBook
 	ownBook           bool
 	configuredThreads int
 
@@ -201,14 +164,6 @@ func NewUCIEngine() *UCIEngine {
 	rawUCILogger.Println("=== RAW UCI MESSAGE LOG ===")
 	rawUCILogger.Println("Format: >>> = sent to engine, <<< = sent from engine")
 
-	// Try to load opening book
-	TryLoadDefaultBook()
-	if book := GetOpeningBook(); book != nil {
-		logger.Printf("Opening book loaded: %d entries", book.Size())
-	} else {
-		logger.Println("No opening book found")
-	}
-
 	return &UCIEngine{
 		position:                newUCIStartingPosition(),
 		searcher:                NewSearchEngine(),
@@ -227,8 +182,8 @@ func NewUCIEngine() *UCIEngine {
 		evaluatorConfig:         newUCIEvaluatorConfig(),
 		startupDefaults:         uciEvaluatorDefaults{backend: uciEvaluatorHCE},
 		researchEvaluatorLocked: true,
-		ownBook:                 true,
-		startupOwnBook:          true,
+		ownBook:                 false,
+		startupOwnBook:          false,
 	}
 }
 
@@ -815,7 +770,6 @@ func (uci *UCIEngine) beginSearchSession(receivedAt time.Time, params SearchPara
 		debugMode:         uci.debugMode,
 		allowResignation:  uci.allowResignation,
 		copyPosition:      uci.copyPosition,
-		openingBook:       GetOpeningBook(),
 		ownBook:           uci.ownBook,
 		configuredThreads: uci.searcher.ThreadCount(),
 	}
@@ -1004,17 +958,10 @@ func (uci *UCIEngine) searchSession(session *uciSearchSession, output io.Writer,
 		fmt.Fprintf(output, "info string starting search, maxDepth=%d\n", maxDepth)
 	}
 
-	// Check opening books first when enabled for this immutable search session.
-	// OwnBook=false bypasses both external Polyglot and embedded fallback books.
+	// The NGN-authored embedded book is opt-in for this search session.
 	bookMove, bookFound := EmptyMove, false
 	if session.ownBook {
-		if book := session.openingBook; book != nil {
-			bookMove, bookFound = book.ProbeBook(session.root)
-		}
-		// Fallback to embedded book if no external book or no hit.
-		if !bookFound {
-			bookMove, bookFound = ProbeEmbeddedBook(session.root)
-		}
+		bookMove, bookFound = ProbeEmbeddedBook(session.root)
 	}
 
 	if bookFound {

@@ -69,7 +69,6 @@ var fixtures = []fixture{
 type state struct {
 	FEN             string   `json:"fen"`
 	Hash            string   `json:"hash"`
-	PolyglotHash    string   `json:"polyglot_hash"`
 	EnPassant       string   `json:"en_passant"`
 	LegalMoves      []string `json:"legal_moves"`
 	Perft2          uint64   `json:"perft_2"`
@@ -175,7 +174,6 @@ func inspect(pos *engine.Position) state {
 	hash := pos.Hash()
 	return state{
 		FEN: engine.GenerateFEN(pos), Hash: fmt.Sprintf("%016X", hash),
-		PolyglotHash: fmt.Sprintf("%016X", engine.PolyglotHash(pos)),
 		EnPassant:    pos.EnPassant.Name(), LegalMoves: legalMoves(pos), Perft2: perft(pos, 2),
 		FIDEIdentity: identity, FIDEHasLegalEP: hasLegalEP,
 		RepetitionCount: pos.Positions[hash], IsFIDEDrawRule: pos.IsFIDEDrawRule(),
@@ -293,7 +291,6 @@ func main() {
 					incremental.Perft2 == fenEP.Perft2 && fenEP.Perft2 == fenNoEP.Perft2 &&
 					incremental.FIDEIdentity == fenNoEP.FIDEIdentity &&
 					incremental.Hash == fenEP.Hash && incremental.Hash != fenNoEP.Hash &&
-					incremental.PolyglotHash == fenEP.PolyglotHash && incremental.PolyglotHash != fenNoEP.PolyglotHash &&
 					result.TrueOccurrences == 3 && result.NGNOccurrences == 2 && !played.IsFIDEDrawRule() &&
 					result.Restoration.SearchMakeUnmake && result.Restoration.GameMakeUnmake && result.Restoration.NullMakeUnmake
 			allDefects = allDefects && result.DefectReproduced

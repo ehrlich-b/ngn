@@ -257,8 +257,8 @@ func ValidatePerftResult(t *testing.T, testCase PerftTestCase, actualResult Perf
 	}
 }
 
-// BenchmarkFunction is a helper for benchmarking chess engine functions
-func BenchmarkFunction(b *testing.B, fn func()) {
+// benchmarkFunction is a helper for benchmarking chess engine functions
+func benchmarkFunction(b *testing.B, fn func()) {
 	b.Helper()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

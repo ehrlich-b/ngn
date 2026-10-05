@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/ehrlich-b/ngn/engine"
+	"github.com/ehrlich-b/ngn/internal/oracle"
 )
 
 const startposFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -84,12 +85,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	var sf *engine.StockfishClient
+	var sf *oracle.StockfishClient
 	var err error
 	if *lowPower {
-		sf, err = engine.NewStockfishClientArgs("taskpolicy", "-b", *sfPath)
+		sf, err = oracle.NewStockfishClientArgs("taskpolicy", "-b", *sfPath)
 	} else {
-		sf, err = engine.NewStockfishClientArgs(*sfPath)
+		sf, err = oracle.NewStockfishClientArgs(*sfPath)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "stockfish: %v\n", err)
@@ -147,7 +148,7 @@ func main() {
 // error, OR the position is already decided (even best play is hopeless or
 // already crushing) so a "blunder" there isn't meaningful and only pollutes the
 // corpus — this is what filtered out the K+B+N-vs-K forced-loss false positives.
-func analyze(sf *engine.StockfishClient, fen string, movetime, sfMovetime int) (b Blunder, ok bool) {
+func analyze(sf *oracle.StockfishClient, fen string, movetime, sfMovetime int) (b Blunder, ok bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Fprintf(os.Stderr, "\nENGINE PANIC on FEN: %s\n  %v\n", fen, r)
@@ -216,7 +217,7 @@ func analyze(sf *engine.StockfishClient, fen string, movetime, sfMovetime int) (
 // evalAfterMove applies uciMove to fen and returns Stockfish's eval of the
 // resulting position in the MOVER's POV (centipawns). Terminal results are
 // scored without calling Stockfish.
-func evalAfterMove(sf *engine.StockfishClient, fen, uciMove string, sfMovetime int) (int, bool) {
+func evalAfterMove(sf *oracle.StockfishClient, fen, uciMove string, sfMovetime int) (int, bool) {
 	pos, err := engine.ParseFEN(fen)
 	if err != nil {
 		return 0, false

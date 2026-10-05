@@ -1,3 +1,8 @@
+Current binary note (2026-10-05): this inventory preserves attribution for past
+versions. The present HCE binary has no foreign evaluator, PeSTO tables,
+Polyglot random constants or external book loading. Stockfish subprocess
+support is tooling-only. See README.md for the current dependency boundary.
+
 # Third-party provenance for release preparation
 
 The inventory below records the historical 0.2.0-rc.1 release. Subsequent
