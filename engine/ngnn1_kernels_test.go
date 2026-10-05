@@ -129,7 +129,10 @@ func TestNGNN1KernelOutputDifferential(t *testing.T) {
 					n.output[i] = int16(rng.Uint32())
 					if sample < 4 {
 						acc[i] = 255
-						n.output[i] = []int16{-32768, 32767, -32768, 32767}[(i/h+sample)%4]
+						n.output[i] = []int16{-32768, 32767}[sample%2]
+						if sample >= 2 && i >= h {
+							n.output[i] = []int16{32767, -32768}[sample%2]
+						}
 					}
 				}
 				if !n.valid() {
@@ -147,7 +150,10 @@ func TestNGNN1KernelOutputDifferential(t *testing.T) {
 					n.output[i] = int16(rng.Intn(257) - 128)
 					if sample < 4 {
 						acc[i] = 255
-						n.output[i] = []int16{-128, 128}[(i/h+sample/2)%2]
+						n.output[i] = []int16{-128, 128}[sample%2]
+						if sample >= 2 && i >= h {
+							n.output[i] = -n.output[i]
+						}
 					}
 				}
 				n.smallOutput = true
@@ -195,5 +201,32 @@ func TestNGNN1OutputDispatchBounds(t *testing.T) {
 			acc[i] = 255
 		}
 		ngnn1AssertKernelEvaluation(t, n, acc)
+	}
+}
+
+func TestNGNN1AccumulatorFullInt16Range(t *testing.T) {
+	for _, h := range []int{16, 256, 512, 2048} {
+		for _, w := range []int16{-32768, 32767} {
+			data := ngnn1TestBytes(h, 13, false)
+			for offset := 24; offset < 24+(ngnn1Features+1)*h*2; offset += 2 {
+				binary.LittleEndian.PutUint16(data[offset:], uint16(w))
+			}
+			binary.LittleEndian.PutUint32(data[len(data)-4:], crc32.ChecksumIEEE(data[:len(data)-4]))
+			n, err := ReadNGNN1(bytes.NewReader(data))
+			if err != nil {
+				t.Fatal(err)
+			}
+			pos := &Position{EnPassant: NoSquare}
+			for square := 0; square < 64; square++ {
+				pos.Board.UpdateSquare(Square(square), WhitePawn, NoPiece)
+			}
+			acc := make([]int32, 2*h)
+			n.refresh(pos, acc)
+			for _, x := range acc {
+				if want := int32(w) * 65; x != want {
+					t.Fatalf("H=%d weight=%d got=%d want=%d", h, w, x, want)
+				}
+			}
+		}
 	}
 }
