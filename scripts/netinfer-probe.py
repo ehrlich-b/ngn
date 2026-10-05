@@ -15,6 +15,12 @@ POSITIONS = (
     ("endgame", "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"),
 )
 
+MIDDLEGAMES = (
+    POSITIONS[1],
+    ("italian", "r1bq1rk1/ppp2ppp/2np1n2/2b1p3/2B1P3/2PP1N2/PP3PPP/RNBQ1RK1 w - - 2 7"),
+    ("queens-gambit", "r2q1rk1/pb1nbpp1/1p2pn1p/2pp4/2PP3B/2NBPN2/PPQ2PPP/R4RK1 w - - 0 11"),
+)
+
 
 def run(binary, fen, go, network, threads, deadline):
     env = dict(os.environ, GOAMD64="v3", GOMAXPROCS=str(threads))
@@ -106,9 +112,10 @@ def main():
     parser.add_argument("--depth", type=int, default=8)
     parser.add_argument("--seconds", type=float, default=0)
     parser.add_argument("--deadline", type=float, default=300)
+    parser.add_argument("--middlegames", action="store_true")
     args = parser.parse_args()
     go = f"go movetime {round(args.seconds*1000)}" if args.seconds else f"go depth {args.depth}"
-    for name, fen in POSITIONS:
+    for name, fen in MIDDLEGAMES if args.middlegames else POSITIONS:
         result = run(args.binary, fen, go, args.network, args.threads, args.deadline)
         print(json.dumps(dict(position=name, go=go, threads=args.threads, network=bool(args.network), **result)), flush=True)
 
