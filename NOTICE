@@ -185,3 +185,9 @@ closure; test utilities are test-only. The borrowed aspiration score divisor
 and pawn-correction calibration are replaced by neutral NGN placeholders
 (80 and 3/64) pending NGN tuning. Earlier source/data attributions and exact
 license texts above remain historical records.
+
+Current-tree slider modification dated 2026-10-05: cmd/magicgen independently
+finds the committed magic multipliers using an NGN-authored PRNG and fixed seed
+0x4e474e4d41474943. Every relevant blocker subset is verified against NGN's
+coordinate rays. No Counter multiplier is used. The historical Counter
+attribution remains applicable to earlier derived copies.
