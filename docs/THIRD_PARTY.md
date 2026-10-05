@@ -135,3 +135,9 @@ Evidence: experiments/2026-10-01-original-hce-release/report.md.
 The final source-package sweep also removed the inactive training/nnue K4/Bullet
 scaffold from the current tree. Historical Bullet MIT attribution is retained.
 No Go runtime source changed after the verified 629bd170 engine stage.
+
+Current binary update, 2026-10-05: external Polyglot loading and its canonical
+constants are removed, with their dependent tests and fixtures. Historical
+Disservin notices and licenses remain. Current sliding multipliers are generated
+by NGN's cmd/magicgen from a recorded NGN seed, not from an external table.
+The older candidate-state paragraphs above document stages, not current contents.
