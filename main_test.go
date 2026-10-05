@@ -6,15 +6,20 @@ import (
 	"testing"
 )
 
-func TestRunDefaultHCEIgnoresAdjacentModelsAndLocksEvaluator(t *testing.T) {
+func TestRunDefaultHCEIgnoresAdjacentModelsAndOffersNGNN1(t *testing.T) {
 	var output, errorOutput bytes.Buffer
 	input := "uci\neval\nsetoption name EvalFile value ngn.nnue\nsetoption name EvalBackend value ngn-v1\nucinewgame\neval\nquit\n"
 	if exit := run(nil, strings.NewReader(input), &output, &errorOutput); exit != 0 || errorOutput.Len() != 0 {
 		t.Fatalf("HCE startup exit=%d stderr=%q", exit, errorOutput.String())
 	}
-	for _, option := range []string{"option name EvalBackend", "option name EvalFile", "option name K4EvalScale"} {
+	for _, option := range []string{"option name EvalBackend", "option name K4EvalScale"} {
 		if strings.Contains(output.String(), option) {
 			t.Fatalf("HCE startup advertised evaluator switching: %s", output.String())
+		}
+	}
+	for _, option := range []string{"option name EvalFile type string default <empty>\n", "option name UseNNUE type check default false\n"} {
+		if !strings.Contains(output.String(), option) {
+			t.Fatalf("missing NGNN1 option %q", option)
 		}
 	}
 	if strings.Count(output.String(), "info string eval backend hce ") != 2 {

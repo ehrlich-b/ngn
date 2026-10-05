@@ -9,10 +9,19 @@ import (
 const uciEvaluatorHCE = "hce"
 
 type uciEvaluatorDefaults struct{ backend, file string }
-type uciEvaluatorConfig struct{ backend, file string }
+type uciEvaluatorConfig struct {
+	backend, file string
+	useNNUE       bool
+	network       *NGNN1Network
+}
 
-func newUCIEvaluatorConfig() uciEvaluatorConfig  { return uciEvaluatorConfig{backend: uciEvaluatorHCE} }
-func (c uciEvaluatorConfig) backendName() string { return uciEvaluatorHCE }
+func newUCIEvaluatorConfig() uciEvaluatorConfig { return uciEvaluatorConfig{backend: uciEvaluatorHCE} }
+func (c uciEvaluatorConfig) backendName() string {
+	if c.useNNUE && c.network != nil {
+		return EvaluatorBackendNGNN1Name
+	}
+	return uciEvaluatorHCE
+}
 
 func (uci *UCIEngine) ConfigureStartupEvaluator(backend, path string) error {
 	backend = strings.ToLower(strings.TrimSpace(backend))
@@ -52,7 +61,54 @@ func (uci *UCIEngine) handleEvalBackendOption(value string, output io.Writer) {
 	uci.sendEvalOptionError(output, "evaluator selection is locked to hce")
 }
 func (uci *UCIEngine) handleEvalFileOption(value string, output io.Writer) {
-	uci.sendEvalOptionError(output, "external evaluator files are unsupported")
+	uci.joinSearch(true)
+	path := strings.TrimSpace(value)
+	if strings.EqualFold(path, "<empty>") {
+		path = ""
+	}
+	var network *NGNN1Network
+	var err error
+	if path != "" {
+		network, err = LoadNGNN1(path)
+	}
+	uci.lifecycleMu.Lock()
+	uci.evaluatorConfig.file = path
+	uci.evaluatorConfig.network = network
+	config := uci.evaluatorConfig
+	uci.lifecycleMu.Unlock()
+	uci.applyNNUEConfig(config, output)
+	if err != nil {
+		uci.sendEvalOptionError(output, "%v; using hce", err)
+	}
+}
+
+func (uci *UCIEngine) handleUseNNUEOption(value string, output io.Writer) {
+	value = strings.ToLower(strings.TrimSpace(value))
+	if value != "true" && value != "false" {
+		uci.sendEvalOptionError(output, "UseNNUE expects true or false")
+		return
+	}
+	uci.joinSearch(true)
+	uci.lifecycleMu.Lock()
+	uci.evaluatorConfig.useNNUE = value == "true"
+	config := uci.evaluatorConfig
+	uci.lifecycleMu.Unlock()
+	uci.applyNNUEConfig(config, output)
+	if config.useNNUE && config.network == nil {
+		uci.sendEvalOptionError(output, "UseNNUE has no valid EvalFile; using hce")
+	}
+}
+
+func (uci *UCIEngine) applyNNUEConfig(config uciEvaluatorConfig, output io.Writer) {
+	var err error
+	if config.useNNUE && config.network != nil {
+		err = uci.searcher.SelectNGNN1Evaluator(config.network)
+	} else {
+		err = uci.searcher.SelectHCEEvaluator()
+	}
+	if err != nil {
+		uci.sendEvalOptionError(output, "%v", err)
+	}
 }
 
 func (uci *UCIEngine) handleEvalDiagnostic(output io.Writer) {
@@ -63,7 +119,7 @@ func (uci *UCIEngine) handleEvalDiagnostic(output io.Writer) {
 		return
 	}
 	uci.sendUCIMessage(output, fmt.Sprintf(
-		"info string eval backend %s score_cp %d pov side-to-move policy base-SearchSTM rule50-and-backend-adapter correction-history excluded",
+		"info string eval backend %s score_cp %d pov side-to-move policy base-SearchSTM correction-history excluded",
 		backend, score,
 	))
 }
