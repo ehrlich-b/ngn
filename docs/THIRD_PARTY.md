@@ -1,3 +1,8 @@
+Current binary note (2026-10-05): this inventory preserves attribution for past
+versions. The present HCE binary has no foreign evaluator, PeSTO tables,
+Polyglot random constants or external book loading. Stockfish subprocess
+support is tooling-only. See README.md for the current dependency boundary.
+
 # Third-party provenance for release preparation
 
 The inventory below records the historical 0.2.0-rc.1 release. Subsequent
@@ -130,3 +135,9 @@ Evidence: experiments/2026-10-01-original-hce-release/report.md.
 The final source-package sweep also removed the inactive training/nnue K4/Bullet
 scaffold from the current tree. Historical Bullet MIT attribution is retained.
 No Go runtime source changed after the verified 629bd170 engine stage.
+
+Current binary update, 2026-10-05: external Polyglot loading and its canonical
+constants are removed, with their dependent tests and fixtures. Historical
+Disservin notices and licenses remain. Current sliding multipliers are generated
+by NGN's cmd/magicgen from a recorded NGN seed, not from an external table.
+The older candidate-state paragraphs above document stages, not current contents.
