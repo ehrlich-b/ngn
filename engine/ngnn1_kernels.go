@@ -21,7 +21,7 @@ func ngnn1SubRowGo(acc []int32, row []int16) {
 	}
 }
 
-// The usual move shapes each touch the child once after its parent copy.
+// The usual move shapes copy and update each child lane in one traversal.
 func ngnn1MoveRowsGo(acc, src []int32, remove, add []int16) {
 	if len(add) == 256 {
 		a, parent := (*[256]int32)(acc), (*[256]int32)(src)
