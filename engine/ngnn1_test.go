@@ -353,9 +353,6 @@ func TestNGNN1OracleAndMirror(t *testing.T) {
 func TestNGNN1TrainerParity(t *testing.T) {
 	root := filepath.Join("..", "testdata", "ngnn1")
 	data, err := os.ReadFile(filepath.Join(root, "random_h32_evals.json"))
-	if os.IsNotExist(err) {
-		t.Skip("own/trainer NGNN1 integer parity fixture is pending")
-	}
 	if err != nil {
 		t.Fatal(err)
 	}

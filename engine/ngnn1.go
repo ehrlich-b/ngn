@@ -129,6 +129,7 @@ func (n *NGNN1Network) refresh(pos *Position, accum []int32) {
 // These row and output kernels are the future architecture-specific boundary.
 // Validated widths are multiples of 16. Array views check each block once,
 // keeping the scalar neuron loops free of per-element slice bounds checks.
+// The initial H=256 networks use one full row view in the move/output kernels.
 func ngnn1AddRow(acc []int32, row []int16) {
 	for offset := 0; offset < len(row); offset += 16 {
 		a, r := (*[16]int32)(acc[offset:]), (*[16]int16)(row[offset:])
