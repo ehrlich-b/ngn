@@ -40,6 +40,11 @@ record exactly once per pass, including a partial last batch. It is not a
 uniform global permutation; increase `--block-records` for more mixing.
 One CPU prefetch thread overlaps shard reads with GPU work.
 
+Pass disjoint held-out shard globs with `--validation-data` to log a full
+float32 validation loss after every epoch. Validation uses the same filters
+and objective, includes the final partial batch, and never updates weights.
+For a record-range split, write separate copies and keep source shards immutable.
+
 ```bash
 "$PY" -m trainer.train --data '/home/ehrli/ngn-data/pilot/*.ngnp' \
   --hidden 256 --batch 16384 --lr 0.001 --epochs 10 \
