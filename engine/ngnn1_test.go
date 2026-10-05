@@ -430,7 +430,12 @@ func TestNGNN1SearchSmoke(t *testing.T) {
 		} {
 			u.handleCommand(command, &out)
 		}
-		u.joinSearch(false)
+		u.lifecycleMu.Lock()
+		session := u.activeSearch
+		u.lifecycleMu.Unlock()
+		if session != nil {
+			<-session.done
+		}
 		s, n := u.searcher, u.evaluatorConfigSnapshot().network
 		if s.SelectedEvaluatorBackend() != "ngnn1" || s.ThreadCount() != threads ||
 			!strings.Contains(out.String(), fmt.Sprintf("info depth %d ", depth)) ||
