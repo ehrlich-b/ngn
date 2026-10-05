@@ -103,4 +103,21 @@ func TestNGNN1UCITransitionsAndModelIdentity(t *testing.T) {
 	if u.searcher.worker.history.lastMovePlayed != EmptyMove {
 		t.Fatal("reload retained old history")
 	}
+	// Loading different widths while a search is active must join that search
+	// and rebuild the private stack before the next evaluation.
+	for _, h := range []int{16, 256, 2048} {
+		if err := os.WriteFile(path, ngnn1TestBytes(h, 23, false), 0600); err != nil {
+			t.Fatal(err)
+		}
+		u.handleCommand("go infinite", &out)
+		u.handleCommand("setoption name EvalFile value "+path, &out)
+		n := u.evaluatorConfigSnapshot().network
+		score, backend, err := u.searcher.EvaluateSelected(u.position)
+		if err != nil || n == nil || n.hidden != h || backend != "ngnn1" || score != ngnn1Oracle(n, u.position) {
+			t.Fatalf("H=%d reload: score=%d backend=%s err=%v", h, score, backend, err)
+		}
+		if e := u.searcher.worker.evaluator; e.depth != 0 || e.nnue.network != n {
+			t.Fatalf("H=%d reload retained stale accumulator state", h)
+		}
+	}
 }
