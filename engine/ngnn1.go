@@ -163,16 +163,29 @@ type ngnn1Delta struct {
 	removes, adds int
 }
 
+// Packed moves have sixteen possible piece fields. Derive both perspective
+// bases once, retaining even the empty/invalid low-nibble classification.
+var ngnn1MoveFeatureBases = func() (bases [16][2]uint16) {
+	for p := range bases {
+		bases[p][0] = uint16(ngnn1Feature(Piece(p), A1, White))
+		bases[p][1] = uint16(ngnn1Feature(Piece(p), A8, Black))
+	}
+	return
+}()
+
+func ngnn1MoveFeatures(piece Piece, square Square) (white, black uint16) {
+	base := &ngnn1MoveFeatureBases[uint8(piece)&15]
+	return base[0] + uint16(square), base[1] + (uint16(square) ^ 56)
+}
+
 func ngnn1MoveDelta(move Move) ngnn1Delta {
 	var d ngnn1Delta
 	remove := func(piece Piece, square Square) {
-		d.remove[0][d.removes] = uint16(ngnn1Feature(piece, square, White))
-		d.remove[1][d.removes] = uint16(ngnn1Feature(piece, square, Black))
+		d.remove[0][d.removes], d.remove[1][d.removes] = ngnn1MoveFeatures(piece, square)
 		d.removes++
 	}
 	add := func(piece Piece, square Square) {
-		d.add[0][d.adds] = uint16(ngnn1Feature(piece, square, White))
-		d.add[1][d.adds] = uint16(ngnn1Feature(piece, square, Black))
+		d.add[0][d.adds], d.add[1][d.adds] = ngnn1MoveFeatures(piece, square)
 		d.adds++
 	}
 	moving := move.MovingPiece()
