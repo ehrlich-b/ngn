@@ -417,16 +417,11 @@ func (uci *UCIEngine) handleCommand(command string, output io.Writer) (quit bool
 func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.lifecycleMu.Lock()
 	name, version, author := uci.engineName, uci.version, uci.engineAuthor
-	evalBackendDefault := uci.startupDefaults.backend
 	evalFileDefault := uci.startupDefaults.file
 	ownBookDefault := uci.startupOwnBook
-	researchEvaluatorLocked := uci.researchEvaluatorLocked
 	uci.lifecycleMu.Unlock()
 	uci.sendUCIMessage(output, fmt.Sprintf("id name %s %s", name, version))
 	uci.sendUCIMessage(output, fmt.Sprintf("id author %s", author))
-	if evalBackendDefault == "" {
-		evalBackendDefault = uciEvaluatorHCE
-	}
 	if evalFileDefault == "" {
 		evalFileDefault = "<empty>"
 	}
@@ -437,10 +432,8 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
 	uci.sendUCIMessage(output, fmt.Sprintf("option name OwnBook type check default %t", ownBookDefault))
 	uci.sendUCIMessage(output, "option name SyzygyPath type string default <empty>")
-	if !researchEvaluatorLocked {
-		uci.sendUCIMessage(output, fmt.Sprintf("option name EvalBackend type combo default %s var hce var ngn-v1 var sf18-big var counter-5.5", evalBackendDefault))
-		uci.sendUCIMessage(output, fmt.Sprintf("option name EvalFile type string default %s", evalFileDefault))
-	}
+	uci.sendUCIMessage(output, fmt.Sprintf("option name EvalFile type string default %s", evalFileDefault))
+	uci.sendUCIMessage(output, "option name UseNNUE type check default false")
 
 	// Tunable search parameters (for SPSA / manual A/B; defaults == shipped values).
 	for _, p := range TunableSearchParams {
@@ -567,11 +560,10 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 		uci.handleEvalBackendOption(optionValue, output)
 		return
 	case "evalfile":
-		if uci.researchEvaluatorIsLocked() {
-			uci.sendEvalOptionError(output, "research startup evaluator is locked")
-			return
-		}
 		uci.handleEvalFileOption(optionValue, output)
+		return
+	case "usennue":
+		uci.handleUseNNUEOption(optionValue, output)
 		return
 	default:
 		if isTunableParam(optionName) {
