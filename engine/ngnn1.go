@@ -57,7 +57,7 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 		return nil, fmt.Errorf("NGNN1: unsupported version")
 	}
 	h := int(binary.LittleEndian.Uint32(header[8:12]))
-	if h == 0 || h > ngnn1MaxHidden || h%16 != 0 {
+	if h <= 0 || h > ngnn1MaxHidden || h%16 != 0 {
 		return nil, fmt.Errorf("NGNN1: invalid hidden size %d", h)
 	}
 	if binary.LittleEndian.Uint32(header[12:16]) != ngnn1QA || binary.LittleEndian.Uint32(header[16:20]) != ngnn1QB || binary.LittleEndian.Uint32(header[20:24]) != ngnn1Scale {
@@ -127,28 +127,71 @@ func (n *NGNN1Network) refresh(pos *Position, accum []int32) {
 }
 
 // These row and output kernels are the future architecture-specific boundary.
+// Validated widths are multiples of 16. Array views check each block once,
+// keeping the scalar neuron loops free of per-element slice bounds checks.
 func ngnn1AddRow(acc []int32, row []int16) {
-	for i, weight := range row {
-		acc[i] += int32(weight)
+	for offset := 0; offset < len(row); offset += 16 {
+		a, r := (*[16]int32)(acc[offset:]), (*[16]int16)(row[offset:])
+		for i := range a {
+			a[i] += int32(r[i])
+		}
 	}
 }
 
 func ngnn1SubRow(acc []int32, row []int16) {
-	for i, weight := range row {
-		acc[i] -= int32(weight)
+	for offset := 0; offset < len(row); offset += 16 {
+		a, r := (*[16]int32)(acc[offset:]), (*[16]int16)(row[offset:])
+		for i := range a {
+			a[i] -= int32(r[i])
+		}
+	}
+}
+
+// The usual move shapes each touch the child once after its parent copy.
+func ngnn1MoveRows(acc []int32, remove, add []int16) {
+	for offset := 0; offset < len(add); offset += 16 {
+		a := (*[16]int32)(acc[offset:])
+		r, s := (*[16]int16)(remove[offset:]), (*[16]int16)(add[offset:])
+		for i := range a {
+			a[i] += int32(s[i]) - int32(r[i])
+		}
+	}
+}
+
+func ngnn1CaptureRows(acc []int32, remove, capture, add []int16) {
+	for offset := 0; offset < len(add); offset += 16 {
+		a := (*[16]int32)(acc[offset:])
+		r, c, s := (*[16]int16)(remove[offset:]), (*[16]int16)(capture[offset:]), (*[16]int16)(add[offset:])
+		for i := range a {
+			a[i] += int32(s[i]) - int32(r[i]) - int32(c[i])
+		}
+	}
+}
+
+func ngnn1CastleRows(acc []int32, removeKing, removeRook, addKing, addRook []int16) {
+	for offset := 0; offset < len(addKing); offset += 16 {
+		a := (*[16]int32)(acc[offset:])
+		rk, rr := (*[16]int16)(removeKing[offset:]), (*[16]int16)(removeRook[offset:])
+		sk, sr := (*[16]int16)(addKing[offset:]), (*[16]int16)(addRook[offset:])
+		for i := range a {
+			a[i] += int32(sk[i]) + int32(sr[i]) - int32(rk[i]) - int32(rr[i])
+		}
 	}
 }
 
 func ngnn1Dot(acc []int32, weights []int16) int64 {
 	var sum int64
-	for i, weight := range weights {
-		x := acc[i]
-		if x < 0 {
-			x = 0
-		} else if x > ngnn1QA {
-			x = ngnn1QA
+	for offset := 0; offset < len(weights); offset += 16 {
+		a, w := (*[16]int32)(acc[offset:]), (*[16]int16)(weights[offset:])
+		for i := range a {
+			x := a[i]
+			if x < 0 {
+				x = 0
+			} else if x > ngnn1QA {
+				x = ngnn1QA
+			}
+			sum += int64(x*x) * int64(w[i])
 		}
-		sum += int64(x*x) * int64(weight)
 	}
 	return sum
 }
@@ -253,13 +296,26 @@ func (s *ngnn1State) push(depth int, delta ngnn1Delta) {
 	s.ensure(depth)
 	parent, child := s.at(depth-1), s.at(depth)
 	copy(child, parent)
+	if delta.removes == 0 && delta.adds == 0 {
+		return // Null move: the turn changes; the features do not.
+	}
+	n := s.network
 	for p := 0; p < 2; p++ {
-		a := child[p*s.network.hidden : (p+1)*s.network.hidden]
-		for i := 0; i < delta.removes; i++ {
-			ngnn1SubRow(a, s.network.row(int(delta.remove[p][i])))
-		}
-		for i := 0; i < delta.adds; i++ {
-			ngnn1AddRow(a, s.network.row(int(delta.add[p][i])))
+		a := child[p*n.hidden : (p+1)*n.hidden]
+		switch {
+		case delta.removes == 1 && delta.adds == 1:
+			ngnn1MoveRows(a, n.row(int(delta.remove[p][0])), n.row(int(delta.add[p][0])))
+		case delta.removes == 2 && delta.adds == 1:
+			ngnn1CaptureRows(a, n.row(int(delta.remove[p][0])), n.row(int(delta.remove[p][1])), n.row(int(delta.add[p][0])))
+		case delta.removes == 2 && delta.adds == 2:
+			ngnn1CastleRows(a, n.row(int(delta.remove[p][0])), n.row(int(delta.remove[p][1])), n.row(int(delta.add[p][0])), n.row(int(delta.add[p][1])))
+		default:
+			for i := 0; i < delta.removes; i++ {
+				ngnn1SubRow(a, n.row(int(delta.remove[p][i])))
+			}
+			for i := 0; i < delta.adds; i++ {
+				ngnn1AddRow(a, n.row(int(delta.add[p][i])))
+			}
 		}
 	}
 }
