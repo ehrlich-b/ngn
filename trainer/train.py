@@ -38,6 +38,24 @@ def prefetched(batches):
             yield raw
 
 
+@torch.no_grad()
+def validation_loss(model, shards, batch, device, lam, k):
+    """Visit every held-out record, including the tail, without updating weights."""
+    model.eval()
+    total = torch.zeros((), device=device)
+    seen = 0
+    for raw_numpy in shards.batches(batch, 0, shuffle=False):
+        raw = torch.from_numpy(np.ascontiguousarray(raw_numpy)).to(device)
+        features, stm, score, result = decode_gpu(raw)
+        total += blended_loss(model(features, stm), score, result, lam, k) * len(raw_numpy)
+        seen += len(raw_numpy)
+    model.train()
+    loss = total.item() / seen
+    if not math.isfinite(loss):
+        raise RuntimeError("Non-finite validation loss; checkpoint not written")
+    return loss
+
+
 def learning_rate(args, step: int, total: int) -> float:
     if args.decay == "step":
         return args.lr * args.gamma ** (step // args.decay_steps)
@@ -50,6 +68,7 @@ def learning_rate(args, step: int, total: int) -> float:
 def parser() -> argparse.ArgumentParser:
     cli = argparse.ArgumentParser(description=__doc__)
     cli.add_argument("--data", nargs="+", required=True, help="One or more quoted shard globs")
+    cli.add_argument("--validation-data", nargs="+", help="Disjoint held-out shard globs; never optimized")
     cli.add_argument("--out", type=Path, required=True)
     cli.add_argument("--hidden", type=int, default=256)
     cli.add_argument("--batch", type=int, default=16384)
@@ -91,6 +110,11 @@ def main() -> None:
         raise RuntimeError("CUDA is unavailable; use --device cpu explicitly for tests")
     use_amp = args.precision == "bf16" and device.type == "cuda"
     shards = Shards(args.data, args.drop_flags, args.min_ply, args.block_records)
+    validation = (Shards(args.validation_data, args.drop_flags, args.min_ply, args.block_records)
+                  if args.validation_data else None)
+    if validation and set(map(lambda p: Path(p).resolve(), shards.paths)) & set(
+            map(lambda p: Path(p).resolve(), validation.paths)):
+        raise ValueError("Training and validation shards overlap")
     positions = args.positions_per_epoch or shards.count
     # epoch_batches may have partial batches at pass boundaries.
     steps_per_pass = math.ceil(shards.count / args.batch)
@@ -111,6 +135,8 @@ def main() -> None:
                 "weight_decay", "drop_flags", "min_ply", "block_records", "positions_per_epoch",
                 "seed", "precision", "data")
         differences = [key for key in same if saved[key] != getattr(args, key)]
+        if saved.get("validation_data") != args.validation_data:
+            differences.append("validation_data")
         if differences:
             raise ValueError("Resume options differ: " + ", ".join(differences))
         if checkpoint["filtered_records"] != shards.count or checkpoint["raw_records"] != shards.raw_count:
@@ -134,6 +160,7 @@ def main() -> None:
 
     print(json.dumps({"device": str(device), "torch": torch.__version__, "raw_records": shards.raw_count,
                       "filtered_records": shards.count, "positions_per_epoch": positions,
+                      "validation_records": validation.count if validation else 0,
                       "steps_per_epoch": steps_per_epoch, "config": config}), flush=True)
     model.train()
     for epoch in range(first_epoch, args.epochs):
@@ -177,6 +204,8 @@ def main() -> None:
                "positions_per_second": seen / (finished - started),
                "steady_positions_per_second": ((seen - warmup_positions) / (finished - steady_started)
                                                if steady_started and seen > warmup_positions else None)}
+        if validation:
+            row["validation_loss"] = validation_loss(model, validation, args.batch, device, args.wdl, args.k)
         history.append(row)
         print(json.dumps(row), flush=True)
         checkpoint = {"format": "NGN-trainer-1", "model": model.state_dict(), "optimizer": optimizer.state_dict(),

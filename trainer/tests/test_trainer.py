@@ -20,7 +20,7 @@ from trainer.ngnp import (Position, RECORD_DTYPE, Shards, decode_record, decode_
                          encode_record, feature_indices, parse_fen, to_fen)
 from trainer.refeval import Network, trunc_div
 from trainer.tests.synthetic import random_fens, random_records
-from trainer.train import epoch_batches, learning_rate, parser
+from trainer.train import epoch_batches, learning_rate, parser, validation_loss
 
 
 def mirrored(position):
@@ -217,6 +217,23 @@ class TrainerTests(unittest.TestCase):
         expected = np.mean((1 / (1 + np.exp(-evaluation.numpy() / 400)) - target) ** 2)
         self.assertAlmostEqual(blended_loss(evaluation, score, result).item(), float(expected), places=7)
 
+    def test_validation_tail_and_no_updates(self):
+        records = random_records(19, np.random.default_rng(67))
+        records.tofile(self.path / "heldout.ngnp")
+        shards = Shards([str(self.path / "heldout.ngnp")], drop_flags=0)
+        model = NGNN(16)
+        before = {name: value.clone() for name, value in model.state_dict().items()}
+        raw = torch.from_numpy(records.view(np.uint8).reshape(-1, 32))
+        features, stm, score, result = decode_gpu(raw)
+        with torch.no_grad():
+            expected = blended_loss(model(features, stm), score, result).item()
+        actual = validation_loss(model, shards, 8, torch.device("cpu"), 0.75, 400)
+        self.assertAlmostEqual(actual, expected, places=7)
+        self.assertTrue(model.training)
+        for name, value in model.state_dict().items():
+            self.assertTrue(torch.equal(value, before[name]), name)
+            self.assertIsNone(dict(model.named_parameters())[name].grad)
+
     def test_fixture_reproducible(self):
         payload = generate(self.path / "a.nnue", self.path / "a.json")
         generate(self.path / "b.nnue", self.path / "b.json")
@@ -233,8 +250,11 @@ class TrainerTests(unittest.TestCase):
         records = random_records(64, np.random.default_rng(91))
         data = self.path / "data.ngnp"
         records.tofile(data)
+        validation = self.path / "validation.ngnp"
+        random_records(11, np.random.default_rng(92)).tofile(validation)
         common = [sys.executable, "-m", "trainer.train", "--data", str(data), "--hidden", "16",
-                  "--batch", "32", "--device", "cpu", "--precision", "fp32", "--threads", "2", "--decay", "none"]
+                  "--batch", "32", "--device", "cpu", "--precision", "fp32", "--threads", "2", "--decay", "none",
+                  "--validation-data", str(validation)]
         for out, epochs, resume in [("full", "2", None), ("resumed", "1", None),
                                      ("resumed", "2", self.path / "resumed/epoch-0001.pt")]:
             command = common + ["--out", str(self.path / out), "--epochs", epochs]
@@ -247,6 +267,7 @@ class TrainerTests(unittest.TestCase):
             self.assertTrue(torch.equal(a["model"][key], b["model"][key]), key)
         self.assertEqual(a["step"], 4)
         self.assertEqual(a["history"][-1]["loss"], b["history"][-1]["loss"])
+        self.assertEqual(a["history"][-1]["validation_loss"], b["history"][-1]["validation_loss"])
 
     def test_superbatch_cycles_without_dropping_positions(self):
         records = random_records(5, np.random.default_rng(90))
