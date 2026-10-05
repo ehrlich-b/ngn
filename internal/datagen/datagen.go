@@ -1,13 +1,16 @@
-// Package datagen produces self-play labels using only NGN's HCE and rules.
+// Package datagen produces self-play labels using NGN's evaluator and rules.
 package datagen
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/bits"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/ehrlich-b/ngn/engine"
@@ -17,6 +20,7 @@ import (
 const StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 type Settings struct {
+	NetPath           string `json:"net,omitempty"`
 	Seed              int64  `json:"seed"`
 	Games             uint64 `json:"games"` // Zero means run until canceled.
 	Nodes             uint64 `json:"nodes"`
@@ -54,6 +58,39 @@ func (s Settings) Validate() error {
 }
 
 type Provenance struct{ EngineCommit, BinarySHA256 string }
+
+// Load and hash one stream so the digest identifies the weights actually used.
+// Validate before reserving output files; an invalid request never falls back.
+func newSearcher(s Settings) (*engine.SearchEngine, string, error) {
+	var network *engine.NGNN1Network
+	var digest string
+	if s.NetPath != "" {
+		f, err := os.Open(s.NetPath)
+		if err != nil {
+			return nil, "", fmt.Errorf("load -net: %w", err)
+		}
+		defer f.Close()
+		h := sha256.New()
+		network, err = engine.ReadNGNN1(io.TeeReader(f, h))
+		if err != nil {
+			return nil, "", fmt.Errorf("load -net: %w", err)
+		}
+		digest = fmt.Sprintf("%x", h.Sum(nil))
+	}
+	e, err := engine.NewSearchEngineWithHash(s.HashMB)
+	if err != nil {
+		return nil, "", err
+	}
+	if network != nil {
+		err = e.SelectNGNN1Evaluator(network)
+	} else {
+		err = e.SelectHCEEvaluator()
+	}
+	if err != nil {
+		return nil, "", err
+	}
+	return e, digest, nil
+}
 
 type adjudicator struct{ winSign, winStreak, drawStreak int }
 
@@ -248,12 +285,16 @@ func Run(ctx context.Context, out string, s Settings, provenance Provenance) (me
 	if out == "" {
 		return meta, fmt.Errorf("-out must name a new shard file")
 	}
+	e, netSHA256, err := newSearcher(s)
+	if err != nil {
+		return meta, err
+	}
 	settings, err := json.Marshal(s)
 	if err != nil {
 		return meta, err
 	}
 	meta = ngnp.Metadata{Format: ngnp.Format, EngineCommit: provenance.EngineCommit,
-		BinarySHA256: provenance.BinarySHA256, Settings: settings, Seed: s.Seed,
+		BinarySHA256: provenance.BinarySHA256, NetSHA256: netSHA256, Settings: settings, Seed: s.Seed,
 		StartedAt: time.Now().UTC(), Status: "running", Filtered: make(map[string]uint64), Terminations: make(map[string]uint64)}
 	shard, err := ngnp.Create(out, meta)
 	if err != nil {
@@ -265,13 +306,6 @@ func Run(ctx context.Context, out string, s Settings, provenance Provenance) (me
 		}
 		runErr = errors.Join(runErr, shard.Close(&meta))
 	}()
-	e, err := engine.NewSearchEngineWithHash(s.HashMB)
-	if err != nil {
-		return meta, err
-	}
-	if err := e.SelectHCEEvaluator(); err != nil {
-		return meta, err
-	}
 	random := rand.New(rand.NewSource(s.Seed))
 	for s.Games == 0 || meta.Games < s.Games {
 		if ctx.Err() != nil {
