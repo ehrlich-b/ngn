@@ -18,6 +18,7 @@ POSITIONS = (
 
 def run(binary, fen, go, network, threads, deadline):
     env = dict(os.environ, GOAMD64="v3", GOMAXPROCS=str(threads))
+    cpu_start = os.times()
     process = subprocess.Popen([binary], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE, text=True, env=env)
     lines = queue.Queue()
@@ -76,7 +77,6 @@ def run(binary, fen, go, network, threads, deadline):
         values["nodes"] = int(re.search(r"\bnodes (\d+)", stats[-1]).group(1))
         values["nps"] = round(values["nodes"]/elapsed)
         values.update(elapsed_s=round(elapsed, 4), bestmove=output[-1].split()[1])
-        return values
     finally:
         if process.poll() is None:
             send("quit")
@@ -89,6 +89,13 @@ def run(binary, fen, go, network, threads, deadline):
         process.stdout.close()
         process.stderr.close()
         reader.join(timeout=1)
+    # Reaped child CPU time exposes scheduling pressure on the shared WSL box.
+    cpu_end = os.times()
+    cpu_seconds = (cpu_end.children_user + cpu_end.children_system
+                   - cpu_start.children_user - cpu_start.children_system)
+    values.update(child_cpu_s=round(cpu_seconds, 4),
+                  cpu_nps=round(values["nodes"]/cpu_seconds) if cpu_seconds else 0)
+    return values
 
 
 def main():
