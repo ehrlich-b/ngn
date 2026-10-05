@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One NGN-owned HCE worker per process. Each invocation reserves a new run dir.
+# One NGN-owned search worker per process. Each invocation reserves a new run dir.
 set -euo pipefail
 
 repo=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
@@ -9,7 +9,7 @@ workers=14
 seed=$(date +%s%N)
 args=()
 usage() {
-  printf '%s\n' 'Usage: datagen_run.sh -out DIR [-workers 14] [-seed BASE] [-bin PATH] [-games N] [-nodes 5000] [-random-plies N] [-maxply 400] [-hash 16]'
+  printf '%s\n' 'Usage: datagen_run.sh -out DIR [-workers 14] [-seed BASE] [-bin PATH] [-net PATH] [-games N] [-nodes 5000] [-random-plies N] [-maxply 400] [-hash 16]'
 }
 while (($#)); do
   if (($# < 2)); then usage >&2; exit 2; fi
@@ -18,7 +18,7 @@ while (($#)); do
     -workers|-n) workers=$2 ;;
     -seed) seed=$2 ;;
     -bin) binary=$2 ;;
-    -games|-nodes|-random-plies|-maxply|-hash) args+=("$1" "$2") ;;
+    -net|-games|-nodes|-random-plies|-maxply|-hash) args+=("$1" "$2") ;;
     *) usage >&2; exit 2 ;;
   esac
   shift 2

@@ -2,7 +2,9 @@ package datagen
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -171,6 +173,128 @@ func TestCanceledRunClosesCleanly(t *testing.T) {
 	meta, err := Run(ctx, path, Defaults(), Provenance{strings.Repeat("a", 40), strings.Repeat("b", 64)})
 	if err != nil || !meta.Closed || meta.Games != 0 || meta.Positions != 0 || meta.Status != "interrupted" {
 		t.Fatalf("%+v %v", meta, err)
+	}
+	if meta.NetSHA256 != "" {
+		t.Fatal("HCE shard claims network provenance")
+	}
+}
+
+func fixtureNetwork(t *testing.T) (string, []byte) {
+	t.Helper()
+	path := filepath.Join("..", "..", "testdata", "ngnn1", "random_h32.nnue")
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return path, raw
+}
+
+func TestNetworkSearchMatchesEngineSelection(t *testing.T) {
+	path, raw := fixtureNetwork(t)
+	s := Defaults()
+	s.HashMB, s.NetPath = 1, path
+	e, digest, err := newSearcher(s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if digest != fmt.Sprintf("%x", sha256.Sum256(raw)) || e.SelectedEvaluatorBackend() != engine.EvaluatorBackendNGNN1Name {
+		t.Fatalf("network not selected/identified: %s %s", e.SelectedEvaluatorBackend(), digest)
+	}
+	network, err := engine.LoadNGNN1(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reference, err := engine.NewSearchEngineWithHash(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := reference.SelectNGNN1Evaluator(network); err != nil {
+		t.Fatal(err)
+	}
+	for _, stm := range []string{"w", "b"} {
+		pos := board(t, strings.Replace(StartFEN, " w ", " "+stm+" ", 1))
+		before := engine.GenerateFEN(pos)
+		e.NewGame()
+		reference.NewGame()
+		reference.SetMaxNodes(512)
+		info := reference.Search(pos, engine.MaximumDepth)
+		meta := ngnp.Metadata{}
+		found, err := search(e, pos, 512, &meta)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := info.BestScore
+		if stm == "b" {
+			want = -want
+		}
+		if found.whiteScore != want || found.move != info.BestMove || meta.SearchNodes != info.Nodes || info.EffectiveThreads != 1 || engine.GenerateFEN(pos) != before {
+			t.Fatalf("NNUE search/perspective/root mismatch: %+v want %d nodes %d/%d", found, want, meta.SearchNodes, info.Nodes)
+		}
+	}
+}
+
+func TestNetworkRunRecordsSidecar(t *testing.T) {
+	netPath, raw := fixtureNetwork(t)
+	s := Defaults()
+	s.NetPath, s.HashMB, s.Games = netPath, 1, 1
+	s.Nodes, s.RandomPlies, s.MaxPly, s.OpeningLimitCP = 512, 0, 12, 30000
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	path := filepath.Join(t.TempDir(), "nnue.ngnp")
+	meta, err := Run(ctx, path, s, Provenance{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !meta.Closed || meta.Status != "complete" || meta.Games != 1 || meta.Positions == 0 {
+		t.Fatalf("incomplete NNUE shard: %+v", meta)
+	}
+	jsonBytes, err := os.ReadFile(path + ".json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stored ngnp.Metadata
+	if err := json.Unmarshal(jsonBytes, &stored); err != nil {
+		t.Fatal(err)
+	}
+	var settings Settings
+	if err := json.Unmarshal(stored.Settings, &settings); err != nil {
+		t.Fatal(err)
+	}
+	want := fmt.Sprintf("%x", sha256.Sum256(raw))
+	if stored.NetSHA256 != want || meta.NetSHA256 != want || settings.NetPath != netPath || stored.SHA256 != meta.SHA256 {
+		t.Fatalf("sidecar lost network/shard provenance: %+v", stored)
+	}
+}
+
+func TestInvalidNetworkCreatesNoShard(t *testing.T) {
+	_, raw := fixtureNetwork(t)
+	corrupt := append([]byte(nil), raw...)
+	corrupt[len(corrupt)-1] ^= 1
+	for _, tc := range []struct {
+		name string
+		data []byte
+	}{{"missing", nil}, {"truncated", raw[:20]}, {"checksum", corrupt}, {"trailing", append(append([]byte(nil), raw...), 0)}} {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			s := Defaults()
+			s.NetPath = filepath.Join(dir, "invalid.nnue")
+			if tc.data != nil {
+				if err := os.WriteFile(s.NetPath, tc.data, 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			path := filepath.Join(dir, "rejected.ngnp")
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+			if _, err := Run(ctx, path, s, Provenance{}); err == nil {
+				t.Fatal("invalid network accepted")
+			}
+			for _, output := range []string{path, path + ".json"} {
+				if _, err := os.Stat(output); !os.IsNotExist(err) {
+					t.Fatalf("invalid network reserved %s: %v", output, err)
+				}
+			}
+		})
 	}
 }
 

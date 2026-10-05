@@ -17,6 +17,7 @@ type Metadata struct {
 	Format           string            `json:"format"`
 	EngineCommit     string            `json:"engine_commit"`
 	BinarySHA256     string            `json:"binary_sha256"`
+	NetSHA256        string            `json:"net_sha256,omitempty"`
 	Settings         json.RawMessage   `json:"settings"`
 	Seed             int64             `json:"seed"`
 	StartedAt        time.Time         `json:"started_at"`
