@@ -176,3 +176,18 @@ Thanki and Pawel Koziol, under GPLv3. Its SOURCE-LICENSE-GPL-3.0, origin receipt
 and added directory NOTICE apply. It is an independent diagnostic executable,
 not imported by NGN's main dependency closure or used in the evaluation hot path.
 Its source/evidence is preserved with attribution rather than hidden.
+
+Current-tree modification dated 2026-10-05: external Polyglot book support,
+canonical random constants and dependent tests/fixtures are removed. The
+NGN-authored embedded FEN book remains opt-in with OwnBook=false by default.
+Stockfish subprocess tooling moved to internal/oracle, outside main's dependency
+closure; test utilities are test-only. The borrowed aspiration score divisor
+and pawn-correction calibration are replaced by neutral NGN placeholders
+(80 and 3/64) pending NGN tuning. Earlier source/data attributions and exact
+license texts above remain historical records.
+
+Current-tree slider modification dated 2026-10-05: cmd/magicgen independently
+finds the committed magic multipliers using an NGN-authored PRNG and fixed seed
+0x4e474e4d41474943. Every relevant blocker subset is verified against NGN's
+coordinate rays. No Counter multiplier is used. The historical Counter
+attribution remains applicable to earlier derived copies.
