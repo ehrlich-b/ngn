@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"hash/crc32"
 	"math/rand"
 	"os"
@@ -406,20 +407,36 @@ func TestNGNN1TrainerParity(t *testing.T) {
 }
 
 func TestNGNN1SearchSmoke(t *testing.T) {
-	n := ngnn1TestNetwork(t, 256, false)
+	path := filepath.Join(t.TempDir(), "random.nnue")
+	if err := os.WriteFile(path, ngnn1TestBytes(256, 19, false), 0600); err != nil {
+		t.Fatal(err)
+	}
 	depth := 10
 	if testing.Short() {
 		depth = 3
 	}
 	for _, threads := range []int{1, 4} {
-		s := newSMPTestEngine(t, threads)
-		if err := s.SelectNGNN1Evaluator(n); err != nil {
+		u := NewUCIEngine()
+		if err := u.searcher.ResizeHash(1); err != nil {
 			t.Fatal(err)
 		}
-		pos := newUCIStartingPosition()
-		result := s.SearchIterativeDeepening(pos, depth, nil)
-		if result.Depth != depth || result.BestMove == EmptyMove || result.EffectiveThreads != threads {
-			t.Fatalf("threads=%d depth=%d: %+v", threads, depth, result)
+		var out bytes.Buffer
+		for _, command := range []string{
+			"setoption name OwnBook value false",
+			fmt.Sprintf("setoption name Threads value %d", threads),
+			"setoption name EvalFile value " + path,
+			"setoption name UseNNUE value true",
+			fmt.Sprintf("go depth %d", depth),
+		} {
+			u.handleCommand(command, &out)
+		}
+		u.joinSearch(false)
+		s, n := u.searcher, u.evaluatorConfigSnapshot().network
+		if s.SelectedEvaluatorBackend() != "ngnn1" || s.ThreadCount() != threads ||
+			!strings.Contains(out.String(), fmt.Sprintf("info depth %d ", depth)) ||
+			!strings.Contains(out.String(), "bestmove ") || strings.Contains(out.String(), "bestmove 0000") ||
+			strings.Contains(out.String(), "info string error") {
+			t.Fatalf("threads=%d depth=%d: %s", threads, depth, out.String())
 		}
 		for i, w := range s.configuredWorkers() {
 			if w.evaluator.depth != 0 || w.evaluator.nnue.network != n {
