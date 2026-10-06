@@ -140,6 +140,17 @@ class GenerationTests(unittest.TestCase):
             self.assertFalse(root.exists())
             self.assertEqual(json.loads(output.getvalue())["stage"], stage)
 
+    def test_venv_python_path_keeps_its_symlink(self):
+        target = self.root / "system-python"
+        target.touch()
+        interpreter = self.root / "venv/bin/python"
+        interpreter.parent.mkdir(parents=True)
+        interpreter.symlink_to(target)
+        with contextlib.redirect_stdout(io.StringIO()) as output:
+            g.main(["train", "--generation", str(self.root / "generation"),
+                    "--python", str(interpreter), "--dry-run"])
+        self.assertEqual(json.loads(output.getvalue())["options"]["python"], str(interpreter))
+
 
 if __name__ == "__main__":
     unittest.main()
