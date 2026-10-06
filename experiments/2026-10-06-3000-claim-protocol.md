@@ -10,9 +10,10 @@ excluded from this sample. No claim run or multi-hour job is authorized here.
 ## Candidate and frozen inputs
 
 Use the independently produced NGN engine on `indep/main`, built on WSL with
-Go 1.25.5, GOAMD64=v3. All engine, trainer and match-runner implementation,
-opening bytes, training data and candidate weights must be NGN-produced; general
-purpose stdlib, NumPy and PyTorch are allowed. Opponent executables serve only
+Go 1.25.5, GOAMD64=v3. All engine, trainer and match-runner implementation and
+candidate weights must be NGN-produced; general purpose stdlib, NumPy and PyTorch
+are allowed. Third-party-evaluated positions are allowed as training data
+(user, 2026-10-06). Opponent executables serve only
 as rating anchors. Do not read, port or derive NGN implementation from them.
 
 Before the screening games, save a dated immutable receipt giving the exact

@@ -1,10 +1,10 @@
 # NGN live state — 2026-10-05: independence goal
 
 **Goal (user, stop-hook enforced): NGN over 3000 Elo with NO third-party scaffolding.**
-Engine code, weights, training data and trainer must all be NGN-produced. Published
-ideas are fine; third-party engines appear only as measurement opponents/oracles
-outside the binary. Never reintroduce Counter/Rodent/Stockfish/Zahak/PeSTO/Bullet/
-binpack material. Work is done by Sol sub-agents (gpt-6.1-sol via wingthing); all
+Banned (user, 2026-10-06): wholesale copying of other people's code or NNUE nets.
+Third-party-evaluated positions (e.g. Leela/Stockfish binpacks) are allowed training
+data. Published ideas are fine; third-party engines appear only as measurement
+opponents/oracles outside the binary. Work is done by Sol sub-agents (gpt-6.1-sol via wingthing); all
 execution on the WSL box; the Mac runs nothing.
 
 Integration branch: `indep/main` (this branch). It contains the Oct 1 independent
