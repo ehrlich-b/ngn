@@ -135,22 +135,35 @@ class Shards:
     """
 
     def __init__(self, patterns: list[str], drop_flags: int = DROP_FLAGS,
-                 min_ply: int = 0, block_records: int = 262144, require_kings: bool = False):
+                 min_ply: int = 0, block_records: int = 262144, require_kings: bool = False,
+                 record_counts: dict[str, int] | None = None):
         if not 0 <= drop_flags <= 255 or not 0 <= min_ply <= 65535 or block_records < 1:
             raise ValueError("Invalid filter or block size")
         paths = sorted({p for pattern in patterns for p in glob.glob(pattern)})
         if not paths:
             raise ValueError("No NGNP1 shards match --data")
+        caps = None
+        if record_counts is not None:
+            if not isinstance(record_counts, dict) or any(
+                    not isinstance(p, str) or type(n) is not int or n < 0
+                    for p, n in record_counts.items()):
+                raise ValueError("Record counts must map shard paths to nonnegative integers")
+            caps = {str(Path(p).resolve()): n for p, n in record_counts.items()}
+            if len(caps) != len(record_counts) or set(caps) != {str(Path(p).resolve()) for p in paths}:
+                raise ValueError("Record counts must cover exactly the selected shards")
         self.maps, self.blocks = [], []
         self.paths, self.drop_flags, self.min_ply = paths, drop_flags, min_ply
         self.raw_count, self.count = 0, 0
         for path in paths:
             size = Path(path).stat().st_size
-            if size % RECORD_DTYPE.itemsize:
+            count = caps[str(Path(path).resolve())] if caps is not None else size // RECORD_DTYPE.itemsize
+            if caps is None and size % RECORD_DTYPE.itemsize:
                 raise ValueError(f"{path}: size is not a multiple of 32 (raw NGNP1 expected)")
-            if not size:
+            if count * RECORD_DTYPE.itemsize > size:
+                raise ValueError(f"{path}: shorter than the requested record count")
+            if not count:
                 continue
-            records = np.memmap(path, dtype=RECORD_DTYPE, mode="r")
+            records = np.memmap(path, dtype=RECORD_DTYPE, mode="r", shape=(count,))
             shard = len(self.maps)
             self.maps.append(records)
             self.raw_count += len(records)

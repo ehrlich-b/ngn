@@ -43,7 +43,16 @@ One CPU prefetch thread overlaps shard reads with GPU work.
 Pass disjoint held-out shard globs with `--validation-data` to log a full
 float32 validation loss after every epoch. Validation uses the same filters
 and objective, includes the final partial batch, and never updates weights.
-For a record-range split, write separate copies and keep source shards immutable.
+History also records loss at lambda=0.75 and pure game-result loss (lambda=0)
+from the same predictions, so trials with different training objectives can
+be compared. These are probability MSE values, with float64 batch aggregation.
+
+For growing training shards, pass `--record-counts /path/counts.json`: a JSON
+object mapping every selected training shard path to its snapshot record count.
+Snapshot each byte length once and use `length // 32`. The reader maps only that
+prefix, ignores later appends/partial tails, and rejects short files or missing
+or extra manifest paths. Resume checks the actual cap values. Validation shards
+must be separate, closed files; no data copies are required.
 
 ```bash
 "$PY" -m trainer.train --data '/home/ehrli/ngn-data/pilot/*.ngnp' \
@@ -76,6 +85,9 @@ and ends at `--min-lr-ratio` (default 0.1) of the initial LR.
 Each epoch writes `epoch-NNNN.pt`, `epoch-NNNN.nnue`, and updates
 `history.json`. The `.pt` file contains model/optimizer state, objective and
 data configuration, epoch/update counters, loss history, and RNG states.
+`--keep-best-only` instead retains `latest.pt/.nnue` and `best.pt/.nnue`,
+selecting the best by validation loss at the training lambda (or training loss
+when there is no holdout). All epochs remain in `history.json`.
 Resume at an epoch boundary with the same options plus
 `--resume /path/epoch-NNNN.pt`. `--epochs` is the total desired count, not
 additional epochs. Cosine resume requires the original total count; step
