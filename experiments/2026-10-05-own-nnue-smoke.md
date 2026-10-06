@@ -129,3 +129,86 @@ Large data/checkpoints/binaries stay on WSL. Active check/training/match work
 was about 27 minutes, below the 60-minute bound.
 `match.log` SHA256: `732dbd835a258b0f8363023cb061e3cfc248b6b817a2049a07461d8460ddfcee`.
 `match-stats.json` SHA256: `b3d6e04f454299e698344649c68fe175bbdbec5faf1a70437f2788634d96b9be`.
+
+## Merged AVX2 validation and repeat
+
+Tested source `b1c404a3` on `indep/main`, including `own/avx2` and
+`own/clean`. Mac edits only; all builds, checks, searches and games used WSL
+`/home/ehrli/wt/int`, Go 1.25.5 and `GOAMD64=v3`. No external sources,
+tools, openings, data or weights were introduced. Compact raw evidence:
+[verification receipt](2026-10-05-int-avx2-verification.json).
+
+Datagen now accepts `-net PATH` through `SelectNGNN1Evaluator`, the same
+search-worker path used by UCI `UseNNUE`. It hashes the exact validated input
+stream and writes `net_sha256` in each shard's JSON sidecar; settings also
+record the path. Missing, truncated, corrupt or trailing-data networks fail
+before creating a shard, with no HCE fallback. Empty `-net` keeps HCE and
+omits the network digest. The process launcher forwards `-net`; search remains
+one thread per process. Tests cover engine-selection/search equivalence for
+both colors, sidecar provenance, invalid inputs and HCE provenance.
+
+WSL checks, with `GOMAXPROCS=2` and Go package parallelism at most two:
+`go vet -p 2 ./...`, `go test -p 2 -short -count=1 ./...`, and
+`go test -p 2 -short -race -count=1 ./engine/... ./internal/...` all passed.
+The six-position perft suite, exhaustive magic checks, all 128 NGNN1 kernel
+widths and 64-FEN trainer parity fixture passed in the ordinary AVX2 build;
+NGNN1 tests also passed with `-tags purego`. All **16 trainer tests** passed.
+No merge repair was needed. HCE depth-four dumps match `origin/own/clean`
+(`d33f6639`) byte-for-byte, including nodes **1184 / 4620 / 274 / 553 / 387 /
+332** on the verification document's six positions.
+
+Datagen CLI smoke: one 12-ply game, 512 nodes/move, no random opening, Hash=1;
+**10 records**, closed complete, correct pilot network digest. Invalid-net
+CLI smoke rejected before reserving either output file. Datagen was built
+with `-ldflags "-X main.engineCommit=$(git rev-parse HEAD)"` to supply the
+required provenance; this worktree's ordinary Go build omitted VCS metadata.
+
+Pinned throughput: CPU **14**, `GOMAXPROCS=1`, Threads=1, Hash=16 MiB,
+OwnBook=false, Move Overhead=0, fresh process/TT for each 10-second search.
+FENs are `scripts/netinfer-probe.py --middlegames`, also stored in the receipt.
+Backend order alternated between positions. Wall NPS uses final debug nodes,
+including the unfinished iteration, divided by measured search time
+(10.0003–10.0004 s).
+
+| Position | HCE wall NPS | Pilot NNUE AVX2 wall NPS | NNUE/HCE |
+|---|---:|---:|---:|
+| Kiwipete | 1,255,426 | 1,615,753 | 1.29x |
+| Italian | 1,167,206 | 1,832,495 | 1.57x |
+| Queen's Gambit | 1,183,967 | 1,770,373 | 1.50x |
+| Arithmetic mean | 1,202,200 | 1,739,540 | 1.45x |
+
+These are single samples on different evaluator search trees on a shared
+host; affinity does not reserve the CPU. Mean NNUE throughput was 44.7%
+higher than HCE in this panel.
+
+Repeated match: same AVX2 binary on both sides, pilot NNUE versus HCE, exact
+original opening file/hash above, **10+0.1**, concurrency **4**, Threads=1,
+Hash=32, OwnBook=false, default 100 ms Move Overhead. Identical foreground
+`tee` wrappers set `GOMAXPROCS=1`. Caps: 200 games / **30 minutes**;
+`mingames=201`, per-game watchdog 120 seconds, no score adjudication and the
+default 200-ply cap. The receipt records the full command.
+
+Completed **200 games / 100 pairs** in **25m33s**, exit 0:
+**104 W / 47 D / 49 L**, score **63.75%**, **+98.1 Elo** versus HCE;
+paired 95% CI **[+63, +135]**, Wilson game-score CI **[+48, +148]**.
+Pentanomial `[LL, LD, {LW/DD}, WD, WW] = [2, 9, 41, 28, 20]`.
+Both intervals exclude zero in this comparison; this does not establish an
+absolute rating. SPRT stopping was disabled, so its generic inconclusive
+verdict is not a fixed-match confidence assessment. This tree also includes
+`own/clean`, so the difference from the earlier scalar smoke cannot isolate
+AVX2's effect on Elo.
+
+Integrity: **0 observed crashes, illegal-move reports, watchdog voids, UCI
+configuration errors or time losses**. End reasons: 153 checkmates, 22
+draw-rule, 25 ply-cap draws. All eight engine transcripts were present; no
+run engine/wrapper/harness process remained. Excluding the first search in
+each process and zero-time/NPS samples, transcript median NPS was
+**1,780,588 NNUE / 1,468,925 HCE**; aggregate nodes/time was
+**1,757,408 / 1,451,166** across **12,603 / 12,563** timed searches.
+
+Engine SHA256: `27a7ef1bbfcf67143e8962af95ac27c91879fcee522a5b04d66142b0e3b15768`.
+Match log SHA256: `8bee21af4b0a31e74da68d01174d300cececf25d8a17e488acecb1d6a06a40e5`.
+Network SHA256 remained unchanged. Logs, binaries and the tiny CLI shard stay
+under `/home/ehrli/ngn-data/int-avx2-20261005/`, about **58 MiB** total.
+Checks, throughput and match occupied about **28 minutes** of foreground box
+work; no detached jobs or unrelated process kills.
