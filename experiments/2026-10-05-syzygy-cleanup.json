@@ -1,0 +1,74 @@
+{
+  "baseline_commit": "228987e2f4d16fda33890b862adb84e2cd265658",
+  "tested_engine_tree": "378219e2052dc1b3a949341ac9030bc3368d22fd",
+  "removal": "Deleted the disabled tablebase implementation and its tests, UCI path option and handler, unreachable root probe branch, and remaining engine references.",
+  "gate_verification": "=== RUN   TestTempSyzygyGate\n    temp_gate_test.go:21: false trust gate forces WDL, DTZ and root misses even with loaded state\n--- PASS: TestTempSyzygyGate (0.00s)\nPASS\nok  \tgithub.com/ehrlich-b/ngn/engine\t0.005s\n",
+  "gate_source_sha256": "0497fd2c734643b3c68dafcc46c76a639e68999a757887a6c7d16595a2b3c763",
+  "position_source": "experiments/2026-10-05-indep-verification.json:hce_identity",
+  "depth": 4,
+  "hash_mib": 16,
+  "threads": 1,
+  "own_book": false,
+  "nnue": {
+    "backend": "ngnn1",
+    "path": "/home/ehrli/ngn-data/nets/pilot-h256/pilot-h256.nnue",
+    "sha256": "3c6973541ea70ccbbdc82e1eb282e7f967c300be99f7e9ed513a49da286d77e5",
+    "provenance": "experiments/2026-10-05-own-nnue-smoke.md"
+  },
+  "identity": "All 24 before/after records match byte-for-byte: six FENs, two evaluators, SearchFixed and UCI. UCI records retain every iteration with depth, seldepth, score, nodes, hashfull, PV and bestmove; only time and nps are removed. Both drivers also assert root FEN/hash restoration.",
+  "before_sha256": "7f6008e4df52270da8430fa8ec71217b0d683ba3f7e4251e75b8d768e96b0952",
+  "after_sha256": "7f6008e4df52270da8430fa8ec71217b0d683ba3f7e4251e75b8d768e96b0952",
+  "identity_source_sha256": "0b8d59d0a770c15edfaa76640970f67a14ad50d50b9dca08f8528d27fe69bf6f",
+  "replay_logs": {
+    "before": "=== RUN   TestTempCleanupIdentity\n--- PASS: TestTempCleanupIdentity (0.07s)\nPASS\nok  \tgithub.com/ehrlich-b/ngn/engine\t0.078s\n",
+    "after": "=== RUN   TestTempCleanupIdentity\n--- PASS: TestTempCleanupIdentity (0.07s)\nPASS\nok  \tgithub.com/ehrlich-b/ngn/engine\t0.081s\n"
+  },
+  "wsl": {
+    "worktree": "/home/ehrli/wt/indep-syzygy-20261005",
+    "go": "go1.25.5 linux/amd64",
+    "GOAMD64": "v3",
+    "GOMAXPROCS": 2,
+    "package_parallelism": 4
+  },
+  "checks": {
+    "go vet -p 4 ./...": {
+      "passed": true,
+      "log": ""
+    },
+    "go test -p 4 -short -count=1 ./...": {
+      "passed": true,
+      "log": "ok  \tgithub.com/ehrlich-b/ngn\t0.051s\n?   \tgithub.com/ehrlich-b/ngn/cmd/analyze_position\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/benchmark\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/blunder-finder\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/combined-report\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/datagen\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/cmd/datastat\t0.059s\n?   \tgithub.com/ehrlich-b/ngn/cmd/elo-assess\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/eval_breakdown\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/gametest\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/gauntlet\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/lossxray\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/magicgen\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/moves_to_fen\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn_to_fens\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgnify\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-analysis\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-comparison\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/sfpv\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/simple-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/smoke\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/cmd/speedprobe\t0.004s\nok  \tgithub.com/ehrlich-b/ngn/cmd/sprt\t0.005s\n?   \tgithub.com/ehrlich-b/ngn/cmd/spsa\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/tactical-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/test-harness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/trace_move\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/zzbias\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/engine\t10.334s\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-ep-repetition-correctness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-rodent-pv-identity-probe\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/datagen\t0.059s\n?   \tgithub.com/ehrlich-b/ngn/internal/history\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/ngnp\t0.044s\n?   \tgithub.com/ehrlich-b/ngn/internal/oracle\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/uci\t0.059s\n"
+    },
+    "go test -p 4 -short -race -count=1 ./engine/...": {
+      "passed": true,
+      "log": "ok  \tgithub.com/ehrlich-b/ngn/engine\t75.514s\n"
+    }
+  },
+  "artifacts": "/home/ehrli/ngn-data/indep-syzygy-20261005 (about 56 KiB, including raw before/after JSON, gate and replay sources, and check logs)",
+  "before_and_after": [
+    {"backend":"hce","bestmove":"b1c3","depth":4,"driver":"SearchFixed","fen":"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1","nodes":1184,"score":10},
+    {"backend":"hce","driver":"UCI","fen":"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1","lines":["info depth 1 seldepth 1 score cp 13 nodes 42 hashfull 0 pv b1c3","info depth 2 seldepth 2 score cp 10 nodes 142 hashfull 0 pv b1c3 b8c6","info depth 3 seldepth 3 score cp 13 nodes 268 hashfull 0 pv b1c3 b8c6 g1f3","info depth 4 seldepth 5 score cp 10 nodes 545 hashfull 0 pv b1c3 b8c6 g1f3 g8f6","bestmove b1c3"]},
+    {"backend":"hce","bestmove":"e2a6","depth":4,"driver":"SearchFixed","fen":"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1","nodes":4620,"score":23},
+    {"backend":"hce","driver":"UCI","fen":"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1","lines":["info depth 1 seldepth 9 score cp 23 nodes 195 hashfull 0 pv e2a6","info depth 2 seldepth 15 score cp 23 nodes 770 hashfull 0 pv e2a6 b4c3","info depth 3 seldepth 9 score cp 23 nodes 1142 hashfull 0 pv e2a6 b4c3 d2c3","info depth 4 seldepth 18 score cp 23 nodes 1988 hashfull 0 pv e2a6 b4c3 d2c3 e6d5","bestmove e2a6"]},
+    {"backend":"hce","bestmove":"f1f3","depth":4,"driver":"SearchFixed","fen":"5k2/8/8/8/8/5q2/8/4KR2 w - - 0 1","nodes":274,"score":554},
+    {"backend":"hce","driver":"UCI","fen":"5k2/8/8/8/8/5q2/8/4KR2 w - - 0 1","lines":["info depth 1 seldepth 2 score cp 557 nodes 14 hashfull 0 pv f1f3","info depth 2 seldepth 2 score cp 557 nodes 27 hashfull 0 pv f1f3 f8e7","info depth 3 seldepth 4 score cp 551 nodes 92 hashfull 0 pv f1f3 f8e7 f3e3","info depth 4 seldepth 6 score cp 554 nodes 283 hashfull 0 pv f1f3 f8e7 f3f5 e7d6","bestmove f1f3"]},
+    {"backend":"hce","bestmove":"b4f4","depth":4,"driver":"SearchFixed","fen":"8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1","nodes":553,"score":120},
+    {"backend":"hce","driver":"UCI","fen":"8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1","lines":["info depth 1 seldepth 2 score cp 129 nodes 31 hashfull 0 pv b4f4","info depth 2 seldepth 2 score cp 129 nodes 52 hashfull 0 pv b4f4 h4g5","info depth 3 seldepth 6 score cp 132 nodes 134 hashfull 0 pv b4f4 h4g5 g2g4","info depth 4 seldepth 6 score cp 123 nodes 567 hashfull 0 pv b4f4 h4g3 f4c4 c7c5","bestmove b4f4"]},
+    {"backend":"hce","bestmove":"a7a8q","depth":4,"driver":"SearchFixed","fen":"4k3/P7/8/8/8/8/7p/4K3 w - - 0 1","nodes":387,"score":950},
+    {"backend":"hce","driver":"UCI","fen":"4k3/P7/8/8/8/8/7p/4K3 w - - 0 1","lines":["info depth 1 seldepth 2 score cp 819 nodes 22 hashfull 0 pv a7a8q","info depth 2 seldepth 2 score cp 819 nodes 39 hashfull 0 pv a7a8q e8d7","info depth 3 seldepth 4 score cp 831 nodes 236 hashfull 0 pv a7a8q e8e7 a8e4","info depth 4 seldepth 8 score cp 967 nodes 1205 hashfull 0 pv a7a8q e8e7 a8e4 e7d6 e4f4","bestmove a7a8q"]},
+    {"backend":"hce","bestmove":"e1d2","depth":4,"driver":"SearchFixed","fen":"4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1","nodes":332,"score":17},
+    {"backend":"hce","driver":"UCI","fen":"4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1","lines":["info depth 1 seldepth 1 score cp 154 nodes 14 hashfull 0 pv e5d6","info depth 2 seldepth 2 score cp 167 nodes 29 hashfull 0 pv e5d6 e8d7","info depth 3 seldepth 4 score cp 0 nodes 136 hashfull 0 pv e5d6 e8d7 e1d1","info depth 4 seldepth 4 score cp 0 nodes 191 hashfull 0 pv e5d6 e8d7 e1d1 d7d6","bestmove e5d6"]},
+    {"backend":"ngnn1","bestmove":"e2e3","depth":4,"driver":"SearchFixed","fen":"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1","nodes":2342,"score":2},
+    {"backend":"ngnn1","driver":"UCI","fen":"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1","lines":["info depth 1 seldepth 1 score cp 41 nodes 43 hashfull 0 pv e2e4","info depth 2 seldepth 4 score cp -4 nodes 204 hashfull 0 pv d2d4 d7d5","info depth 3 seldepth 4 score cp 30 nodes 330 hashfull 0 pv d2d4 d7d5 e2e3","info depth 4 seldepth 7 score cp 11 nodes 885 hashfull 0 pv e2e4 e7e5 d2d4 e5d4","bestmove e2e4"]},
+    {"backend":"ngnn1","bestmove":"e2a6","depth":4,"driver":"SearchFixed","fen":"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1","nodes":4697,"score":-67},
+    {"backend":"ngnn1","driver":"UCI","fen":"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1","lines":["info depth 1 seldepth 7 score cp 50 nodes 217 hashfull 0 pv e2a6","info depth 2 seldepth 5 score cp 50 nodes 435 hashfull 0 pv e2a6 b4c3","info depth 3 seldepth 9 score cp -67 nodes 1020 hashfull 0 pv e2a6 b4c3 d2c3","info depth 4 seldepth 15 score cp -67 nodes 1720 hashfull 0 pv e2a6 b4c3 d2c3 h3g2","bestmove e2a6"]},
+    {"backend":"ngnn1","bestmove":"f1f3","depth":4,"driver":"SearchFixed","fen":"5k2/8/8/8/8/5q2/8/4KR2 w - - 0 1","nodes":467,"score":585},
+    {"backend":"ngnn1","driver":"UCI","fen":"5k2/8/8/8/8/5q2/8/4KR2 w - - 0 1","lines":["info depth 1 seldepth 2 score cp 537 nodes 14 hashfull 0 pv f1f3","info depth 2 seldepth 2 score cp 537 nodes 28 hashfull 0 pv f1f3 f8g7","info depth 3 seldepth 4 score cp 578 nodes 97 hashfull 0 pv f1f3 f8g7 f3f5","info depth 4 seldepth 4 score cp 585 nodes 209 hashfull 0 pv f1f3 f8g7 e1d2 g7h7","bestmove f1f3"]},
+    {"backend":"ngnn1","bestmove":"b4f4","depth":4,"driver":"SearchFixed","fen":"8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1","nodes":535,"score":56},
+    {"backend":"ngnn1","driver":"UCI","fen":"8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1","lines":["info depth 1 seldepth 2 score cp 139 nodes 31 hashfull 0 pv b4f4","info depth 2 seldepth 2 score cp 139 nodes 51 hashfull 0 pv b4f4 h4g3","info depth 3 seldepth 5 score cp 56 nodes 159 hashfull 0 pv b4f4 h4g3 f4c4","info depth 4 seldepth 5 score cp 55 nodes 317 hashfull 0 pv b4f4 h4g3 f4c4 g3g2","bestmove b4f4"]},
+    {"backend":"ngnn1","bestmove":"a7a8q","depth":4,"driver":"SearchFixed","fen":"4k3/P7/8/8/8/8/7p/4K3 w - - 0 1","nodes":680,"score":942},
+    {"backend":"ngnn1","driver":"UCI","fen":"4k3/P7/8/8/8/8/7p/4K3 w - - 0 1","lines":["info depth 1 seldepth 2 score cp 912 nodes 22 hashfull 0 pv a7a8q","info depth 2 seldepth 2 score cp 912 nodes 39 hashfull 0 pv a7a8q e8d7","info depth 3 seldepth 4 score cp 953 nodes 194 hashfull 0 pv a7a8q e8f7 e1f2","info depth 4 seldepth 8 score cp 923 nodes 625 hashfull 0 pv a7a8q e8f7 a8h8 f7e6","bestmove a7a8q"]},
+    {"backend":"ngnn1","bestmove":"e5d6","depth":4,"driver":"SearchFixed","fen":"4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1","nodes":241,"score":0},
+    {"backend":"ngnn1","driver":"UCI","fen":"4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1","lines":["info depth 1 seldepth 1 score cp 244 nodes 14 hashfull 0 pv e5d6","info depth 2 seldepth 2 score cp 215 nodes 29 hashfull 0 pv e5d6 e8d7","info depth 3 seldepth 4 score cp 12 nodes 134 hashfull 0 pv e1d2 e8d7 d2c3","info depth 4 seldepth 4 score cp 0 nodes 207 hashfull 0 pv e5d6 e8d7 e1d1 d7d6","bestmove e5d6"]}
+  ]
+}
