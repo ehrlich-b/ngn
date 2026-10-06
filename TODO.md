@@ -1,3 +1,40 @@
+# NGN live state — 2026-10-05: independence goal
+
+**Goal (user, stop-hook enforced): NGN over 3000 Elo with NO third-party scaffolding.**
+Engine code, weights, training data and trainer must all be NGN-produced. Published
+ideas are fine; third-party engines appear only as measurement opponents/oracles
+outside the binary. Never reintroduce Counter/Rodent/Stockfish/Zahak/PeSTO/Bullet/
+binpack material. Work is done by Sol sub-agents (gpt-6.1-sol via wingthing); all
+execution on the WSL box; the Mac runs nothing.
+
+Integration branch: `indep/main` (this branch). It contains the Oct 1 independent
+core + new HCE, plus:
+- own datagen (`cmd/datagen`, `internal/ngnp`, NGNP1 32-byte records, `-net` for NNUE
+  self-play; ~8M positions/hour on 14 workers) — experiments/2026-10-05-own-datagen.md
+- own PyTorch trainer (`trainer/`, NGNN1 768->Hx2 SCReLU, 5M pos/s on RTX 5080) —
+  experiments/2026-10-05-own-trainer.md
+- own NNUE inference (EvalFile/UseNNUE, exact trainer parity) + fresh AVX2 kernels
+  (1.7-1.9x) — experiments/2026-10-05-own-netinfer.md, -own-nnue-avx2.md
+- cleanup: canonical Polyglot data/external books removed, NGN magics, borrowed
+  search constants replaced by placeholders — experiments/2026-10-05-indep-verification.md
+- node-identical speed (+20% HCE, +3% NNUE) — experiments/2026-10-05-own-speed.md
+
+Facts: clean HCE ~-413 Elo vs old derived main HCE (100-game orientation). Pilot
+net (1.33M HCE positions, 12 s training) = **+98 [+63,+135]** vs clean HCE at
+10+0.1 (200 games). NNUE NPS 1.6-1.8M vs HCE 1.2M.
+
+Ranked queue:
+1. gen0: bulk HCE self-play data (100M positions, ~3.2 GB) — **blocked on user
+   approval for detached multi-hour box jobs** (auto-mode denied the launch).
+2. net1: train H=256..512 on gen0, gate vs pilot net; then gen1 self-play with net1,
+   iterate generations.
+3. Absolute measurement: anchors that bracket 50% near 3000 (current set tops out at
+   Counter 3.8 = 2994 CCRL Blitz); claim requires lower 95% bound > 3000.
+4. Retune placeholder search constants (80, 3/64) and NNUE-scale-sensitive margins
+   by NGN games.
+
+Everything below is historical evidence from before the independence reset.
+
 # Current independent HCE release candidate — 2026-10-01
 
 Prioritize a reviewed, usable independent runtime release; defer Elo work.
