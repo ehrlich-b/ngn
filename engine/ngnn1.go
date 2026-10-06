@@ -17,24 +17,36 @@ const (
 	ngnn1ScoreLimit = 24999
 )
 
-// NGNN1Network owns validated, immutable NGN weights. Workers share this
+// NGNN1Network owns validated, immutable NGNN1 or NGNN2 weights. Workers share this
 // object; their accumulators never live here. All arithmetic remains exact
 // even for the full int16 weight range permitted by the file format.
 type NGNN1Network struct {
 	hidden      int
+	version     int
+	buckets     int // zero means one for existing in-package single-row networks
 	weights     []int16
 	bias        []int16
 	output      []int16
-	outputBias  int32
+	outputBias  int32 // first bucket, also the sole NGNN1 output bias
+	otherBiases []int32
 	smallOutput bool // immutable loader-derived bound: every output weight is within [-128, 128]
 }
 
 func (n *NGNN1Network) valid() bool {
 	return n != nil && n.hidden > 0 && n.hidden <= ngnn1MaxHidden && n.hidden%16 == 0 &&
-		len(n.weights) == ngnn1Features*n.hidden && len(n.bias) == n.hidden && len(n.output) == 2*n.hidden
+		(n.bucketCount() == 1 || n.buckets == 2 || n.buckets == 4 || n.buckets == 8) &&
+		len(n.weights) == ngnn1Features*n.hidden && len(n.bias) == n.hidden &&
+		len(n.output) == n.bucketCount()*2*n.hidden && len(n.otherBiases) == n.bucketCount()-1
 }
 
-// LoadNGNN1 loads only the NGNN version-1 format. No partial network is
+func (n *NGNN1Network) bucketCount() int {
+	if n.buckets == 0 {
+		return 1
+	}
+	return n.buckets
+}
+
+// LoadNGNN1 accepts NGNN1 and NGNN2, preserving the original API. No partial network is
 // returned after an I/O, header, length, or checksum error.
 func LoadNGNN1(path string) (*NGNN1Network, error) {
 	f, err := os.Open(path)
@@ -47,27 +59,38 @@ func LoadNGNN1(path string) (*NGNN1Network, error) {
 
 // ReadNGNN1 bounds allocation from a validated header before reading weights.
 func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
-	var header [24]byte
-	if _, err := io.ReadFull(r, header[:]); err != nil {
+	var storage [28]byte
+	header := storage[:24]
+	if _, err := io.ReadFull(r, header); err != nil {
 		return nil, fmt.Errorf("NGNN1 header: %w", err)
 	}
-	if string(header[:4]) != "NGNN" {
-		return nil, fmt.Errorf("NGNN1: invalid magic")
-	}
-	if binary.LittleEndian.Uint32(header[4:8]) != 1 {
-		return nil, fmt.Errorf("NGNN1: unsupported version")
+	version, nb, constants := int(binary.LittleEndian.Uint32(header[4:8])), 1, 12
+	switch {
+	case string(header[:4]) == "NGNN" && version == 1:
+	case string(header[:4]) == "NGN2" && version == 2:
+		header = storage[:28]
+		if _, err := io.ReadFull(r, header[24:]); err != nil {
+			return nil, fmt.Errorf("NGNN2 header: %w", err)
+		}
+		nb = int(binary.LittleEndian.Uint32(header[12:16]))
+		if nb != 1 && nb != 2 && nb != 4 && nb != 8 {
+			return nil, fmt.Errorf("NGNN2: invalid bucket count %d", nb)
+		}
+		constants = 16
+	default:
+		return nil, fmt.Errorf("NGNN: unsupported magic/version")
 	}
 	h := int(binary.LittleEndian.Uint32(header[8:12]))
 	if h <= 0 || h > ngnn1MaxHidden || h%16 != 0 {
 		return nil, fmt.Errorf("NGNN1: invalid hidden size %d", h)
 	}
-	if binary.LittleEndian.Uint32(header[12:16]) != ngnn1QA || binary.LittleEndian.Uint32(header[16:20]) != ngnn1QB || binary.LittleEndian.Uint32(header[20:24]) != ngnn1Scale {
+	if binary.LittleEndian.Uint32(header[constants:]) != ngnn1QA || binary.LittleEndian.Uint32(header[constants+4:]) != ngnn1QB || binary.LittleEndian.Uint32(header[constants+8:]) != ngnn1Scale {
 		return nil, fmt.Errorf("NGNN1: invalid quantization constants")
 	}
-	size := 24 + 2*(ngnn1Features*h+h+2*h) + 4 + 4
+	size := len(header) + 2*(ngnn1Features*h+h+nb*2*h) + nb*4 + 4
 	data := make([]byte, size)
-	copy(data, header[:])
-	if _, err := io.ReadFull(r, data[24:]); err != nil {
+	copy(data, header)
+	if _, err := io.ReadFull(r, data[len(header):]); err != nil {
 		return nil, fmt.Errorf("NGNN1 weights: %w", err)
 	}
 	var extra [1]byte
@@ -77,7 +100,7 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 	if crc32.ChecksumIEEE(data[:size-4]) != binary.LittleEndian.Uint32(data[size-4:]) {
 		return nil, fmt.Errorf("NGNN1: CRC mismatch")
 	}
-	offset := 24
+	offset := len(header)
 	readWeights := func(count int) []int16 {
 		values := make([]int16, count)
 		for i := range values {
@@ -86,10 +109,10 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 		}
 		return values
 	}
-	n := &NGNN1Network{hidden: h}
+	n := &NGNN1Network{hidden: h, version: version, buckets: nb}
 	n.weights = readWeights(ngnn1Features * h)
 	n.bias = readWeights(h)
-	n.output = readWeights(2 * h)
+	n.output = readWeights(nb * 2 * h)
 	n.smallOutput = true
 	for _, w := range n.output {
 		if w < -128 || w > 128 {
@@ -98,6 +121,11 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 		}
 	}
 	n.outputBias = int32(binary.LittleEndian.Uint32(data[offset : offset+4]))
+	n.otherBiases = make([]int32, nb-1)
+	for i := range n.otherBiases {
+		offset += 4
+		n.otherBiases[i] = int32(binary.LittleEndian.Uint32(data[offset : offset+4]))
+	}
 	return n, nil
 }
 
@@ -135,18 +163,40 @@ func (n *NGNN1Network) refresh(pos *Position, accum []int32) {
 }
 
 func (n *NGNN1Network) evaluate(acc []int32, turn Color) int {
+	return n.evaluateBucket(acc, turn, 0)
+}
+
+// bucket uses b = min(NB-1, (popcount(all pieces)-2)*NB/32), with integer
+// division. Both kings are counted. Malformed positions below two pieces map
+// to zero defensively; positions above 32 pieces saturate at the last bucket.
+func (n *NGNN1Network) bucket(pos *Position) int {
+	nb := n.bucketCount()
+	if nb == 1 {
+		return 0
+	}
+	count := PopCount(pos.Board.whitePieces | pos.Board.blackPieces)
+	return min(nb-1, max(0, (count-2)*nb/32))
+}
+
+func (n *NGNN1Network) evaluateBucket(acc []int32, turn Color, bucket int) int {
 	us, them := acc[:n.hidden], acc[n.hidden:2*n.hidden]
 	if turn == Black {
 		us, them = them, us
 	}
+	start := bucket * 2 * n.hidden
+	output := n.output[start : start+2*n.hidden]
+	bias := n.outputBias
+	if bucket > 0 {
+		bias = n.otherBiases[bucket-1]
+	}
 	// At H=2048 even extreme output weights give |sum| < 2^44.
 	var sum int64
 	if n.smallOutput {
-		sum = ngnn1OutputSmall(us, them, n.output)
+		sum = ngnn1OutputSmall(us, them, output)
 	} else {
-		sum = ngnn1Dot(us, n.output[:n.hidden]) + ngnn1Dot(them, n.output[n.hidden:])
+		sum = ngnn1Dot(us, output[:n.hidden]) + ngnn1Dot(them, output[n.hidden:])
 	}
-	v := sum/ngnn1QA + int64(n.outputBias)
+	v := sum/ngnn1QA + int64(bias)
 	cp := v * ngnn1Scale / (ngnn1QA * ngnn1QB)
 	if cp > ngnn1ScoreLimit {
 		return ngnn1ScoreLimit
