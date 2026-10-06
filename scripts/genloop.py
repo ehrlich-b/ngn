@@ -225,6 +225,10 @@ class Manifest:
             if old["status"] == "complete":
                 verify(old.get("artifacts", []))
                 verify(old.get("sidecars", []))
+                if old.get("split"):
+                    verify([old["split"]])
+                    split = read_json(old["split"]["path"])
+                    verify(split["training"] + split["validation"])
                 for step in old.get("steps", {}).values():
                     verify(step.get("artifacts", []))
                 return False

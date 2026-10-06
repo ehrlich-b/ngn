@@ -268,6 +268,15 @@ class TrainerTests(unittest.TestCase):
         self.assertEqual(a["step"], 4)
         self.assertEqual(a["history"][-1]["loss"], b["history"][-1]["loss"])
         self.assertEqual(a["history"][-1]["validation_loss"], b["history"][-1]["validation_loss"])
+        # Simulate a crash between the final checkpoint and history publication.
+        checkpoint_path = self.path / "resumed/epoch-0002.pt"
+        before = checkpoint_path.read_bytes()
+        (self.path / "resumed/history.json").write_text("{")
+        subprocess.run(common + ["--out", str(self.path / "resumed"), "--epochs", "2",
+                                 "--resume", str(checkpoint_path)], check=True,
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
+        self.assertEqual(json.loads((self.path / "resumed/history.json").read_text()), b["history"])
+        self.assertEqual(checkpoint_path.read_bytes(), before)
 
     def test_superbatch_cycles_without_dropping_positions(self):
         records = random_records(5, np.random.default_rng(90))
