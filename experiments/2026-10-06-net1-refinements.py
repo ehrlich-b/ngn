@@ -44,8 +44,8 @@ def write(path, value):
     temporary.replace(path)
 
 
-def event(name, **fields):
-    print(json.dumps(dict(event=name, **fields), allow_nan=False), flush=True)
+def event(kind, **fields):
+    print(json.dumps(dict(event=kind, **fields), allow_nan=False), flush=True)
 
 
 def disk(stage, root):
