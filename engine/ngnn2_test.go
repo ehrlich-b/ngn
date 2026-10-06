@@ -320,3 +320,44 @@ func TestNGNN2UCIAndFailClosed(t *testing.T) {
 		t.Fatal("corrupt reload retained stale NGNN2 weights")
 	}
 }
+
+func TestNGNN2SearchWorkers(t *testing.T) {
+	u := NewUCIEngine()
+	if err := u.searcher.ResizeHash(1); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), "buckets.nnue")
+	if err := os.WriteFile(path, ngnn2TestBytes(256, 8, false), 0600); err != nil {
+		t.Fatal(err)
+	}
+	var out bytes.Buffer
+	for _, command := range []string{
+		"setoption name OwnBook value false", "setoption name Threads value 4",
+		"setoption name EvalFile value " + path, "setoption name UseNNUE value true",
+		"position fen r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1", "go depth 3",
+	} {
+		u.handleCommand(command, &out)
+	}
+	u.lifecycleMu.Lock()
+	session := u.activeSearch
+	u.lifecycleMu.Unlock()
+	if session != nil {
+		<-session.done
+	}
+	if !strings.Contains(out.String(), "info depth 3 ") || !strings.Contains(out.String(), "bestmove ") ||
+		strings.Contains(out.String(), "info string error") || u.searcher.SelectedEvaluatorBackend() != "ngnn2" {
+		t.Fatal(out.String())
+	}
+	n := u.evaluatorConfigSnapshot().network
+	for i, worker := range u.searcher.configuredWorkers() {
+		if worker.evaluator.depth != 0 || worker.evaluator.nnue.network != n {
+			t.Fatal("worker did not restore root/share network")
+		}
+		ngnn2AssertRefresh(t, worker.evaluator, u.position)
+		for j := 0; j < i; j++ {
+			if &worker.evaluator.nnue.stack[0] == &u.searcher.configuredWorkers()[j].evaluator.nnue.stack[0] {
+				t.Fatal("workers share mutable accumulators")
+			}
+		}
+	}
+}
