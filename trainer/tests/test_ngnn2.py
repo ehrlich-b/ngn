@@ -196,6 +196,25 @@ class BucketTests(unittest.TestCase):
         self.assertNotEqual(rejected.returncode, 0)
         self.assertIn(b"Resume options differ: buckets", rejected.stderr)
 
+    def test_single_bucket_format2_cli(self):
+        random_records(32, np.random.default_rng(73)).tofile(self.path / "data.ngnp")
+        command = [sys.executable, "-m", "trainer.train", "--data", str(self.path / "data.ngnp"),
+                   "--out", str(self.path / "trained"), "--hidden", "16", "--buckets", "1", "--format", "2",
+                   "--epochs", "1", "--batch", "16", "--threads", "2", "--device", "cpu"]
+        subprocess.run(command, check=True, capture_output=True, timeout=60)
+        path = self.path / "trained/epoch-0001.nnue"
+        network = Network(path)
+        self.assertEqual((network.version, network.buckets), (2, 1))
+        checkpoint = self.path / "trained/epoch-0001.pt"
+        subprocess.run([sys.executable, "-m", "trainer.export", str(checkpoint), str(self.path / "copy.nnue")],
+                       check=True, capture_output=True, timeout=60)
+        self.assertEqual(path.read_bytes(), (self.path / "copy.nnue").read_bytes())
+        subprocess.run([sys.executable, "-m", "trainer.export", str(checkpoint), str(self.path / "legacy.nnue"),
+                        "--format", "1"], check=True, capture_output=True, timeout=60)
+        legacy = Network(self.path / "legacy.nnue")
+        for position in material_positions():
+            self.assertEqual(network.evaluate(position), legacy.evaluate(position))
+
 
 if __name__ == "__main__":
     torch.set_num_threads(4)
