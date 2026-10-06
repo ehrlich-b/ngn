@@ -558,7 +558,9 @@ def main(argv=None):
     args = parser().parse_args(argv)
     for key, value in vars(args).items():
         if isinstance(value, Path):
-            setattr(args, key, value.resolve())
+            # A venv interpreter is commonly a symlink to the system Python.
+            # Its lexical path selects pyvenv.cfg and must survive normalization.
+            setattr(args, key, value.absolute() if key == "python" else value.resolve())
     if args.stage == "status":
         status(args.generation)
         return 0
