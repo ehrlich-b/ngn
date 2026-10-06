@@ -20,7 +20,7 @@ from trainer.ngnp import (Position, RECORD_DTYPE, Shards, decode_record, decode_
                          encode_record, feature_indices, parse_fen, to_fen)
 from trainer.refeval import Network, trunc_div
 from trainer.tests.synthetic import random_fens, random_records
-from trainer.train import epoch_batches, learning_rate, parser, validation_loss
+from trainer.train import epoch_batches, learning_rate, parser, validation_loss, validation_metrics
 
 
 def mirrored(position):
@@ -108,6 +108,30 @@ class TrainerTests(unittest.TestCase):
             Shards([str(self.path / "bad.ngnp")])
         with self.assertRaises(ValueError):
             decode_records(record)
+
+    def test_shard_prefix_is_frozen_across_growth_and_partial_tail(self):
+        records = random_records(19, np.random.default_rng(17))
+        records["flags"] = 0
+        records["score"] = np.arange(19)
+        path = self.path / "growing.ngnp"
+        path.write_bytes(records[:7].tobytes() + records[7].tobytes()[:5])
+        caps = {str(path): 7}
+        frozen = Shards([str(path)], block_records=3, record_counts=caps)
+        with path.open("ab") as out:
+            out.write(records[7].tobytes()[5:] + records[8:].tobytes() + b"partial")
+        reopened = Shards([str(path)], block_records=3, record_counts=caps)
+        for shards in (frozen, reopened):
+            self.assertEqual((shards.raw_count, shards.count), (7, 7))
+            raw = np.concatenate(list(shards.batches(4, 1, shuffle=False)))
+            np.testing.assert_array_equal(raw.reshape(-1).view(RECORD_DTYPE), records[:7])
+        with self.assertRaisesRegex(ValueError, "multiple of 32"):
+            Shards([str(path)])
+        with self.assertRaisesRegex(ValueError, "shorter"):
+            Shards([str(path)], record_counts={str(path): 20})
+        for invalid in ({}, {str(path): True}, {str(path): -1}, {str(path): 1.5},
+                        {str(path): 7, str(self.path / "missing.ngnp"): 1}):
+            with self.assertRaisesRegex(ValueError, "Record counts"):
+                Shards([str(path)], record_counts=invalid)
 
     def check_device_decode(self, device):
         records = random_records(23, np.random.default_rng(2))
@@ -229,6 +253,12 @@ class TrainerTests(unittest.TestCase):
             expected = blended_loss(model(features, stm), score, result).item()
         actual = validation_loss(model, shards, 8, torch.device("cpu"), 0.75, 400)
         self.assertAlmostEqual(actual, expected, places=7)
+        metrics = validation_metrics(model, shards, 8, torch.device("cpu"), 0.5, 400)
+        for key, lam in (("validation_loss", 0.5), ("validation_loss_lambda_075", 0.75),
+                         ("validation_loss_result", 0.0)):
+            with torch.no_grad():
+                expected = blended_loss(model(features, stm), score, result, lam, 400).item()
+            self.assertAlmostEqual(metrics[key], expected, places=7)
         self.assertTrue(model.training)
         for name, value in model.state_dict().items():
             self.assertTrue(torch.equal(value, before[name]), name)
@@ -250,17 +280,22 @@ class TrainerTests(unittest.TestCase):
         records = random_records(64, np.random.default_rng(91))
         data = self.path / "data.ngnp"
         records.tofile(data)
+        counts = self.path / "counts.json"
+        counts.write_text(json.dumps({str(data): 64}))
         validation = self.path / "validation.ngnp"
         random_records(11, np.random.default_rng(92)).tofile(validation)
         common = [sys.executable, "-m", "trainer.train", "--data", str(data), "--hidden", "16",
                   "--batch", "32", "--device", "cpu", "--precision", "fp32", "--threads", "2", "--decay", "none",
-                  "--validation-data", str(validation)]
+                  "--validation-data", str(validation), "--record-counts", str(counts)]
         for out, epochs, resume in [("full", "2", None), ("resumed", "1", None),
                                      ("resumed", "2", self.path / "resumed/epoch-0001.pt")]:
             command = common + ["--out", str(self.path / out), "--epochs", epochs]
             if resume:
                 command += ["--resume", str(resume)]
             subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
+            if out == "full":
+                with data.open("ab") as stream:
+                    stream.write(records[:2].tobytes() + b"growing")
         a = torch.load(self.path / "full/epoch-0002.pt", weights_only=True)
         b = torch.load(self.path / "resumed/epoch-0002.pt", weights_only=True)
         for key in a["model"]:
@@ -277,6 +312,30 @@ class TrainerTests(unittest.TestCase):
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
         self.assertEqual(json.loads((self.path / "resumed/history.json").read_text()), b["history"])
         self.assertEqual(checkpoint_path.read_bytes(), before)
+        counts.write_text(json.dumps({str(data): 63}))
+        rejected = subprocess.run(common + ["--out", str(self.path / "resumed"), "--epochs", "2",
+                                             "--resume", str(checkpoint_path)],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
+        self.assertNotEqual(rejected.returncode, 0)
+        self.assertIn(b"Resume options differ: shard_record_counts", rejected.stderr)
+
+    def test_retention_keeps_best_and_latest_exports(self):
+        data, heldout, out = self.path / "data.ngnp", self.path / "heldout.ngnp", self.path / "run"
+        random_records(32, np.random.default_rng(73)).tofile(data)
+        random_records(11, np.random.default_rng(74)).tofile(heldout)
+        subprocess.run([sys.executable, "-m", "trainer.train", "--data", str(data),
+                        "--validation-data", str(heldout), "--out", str(out), "--hidden", "16",
+                        "--batch", "16", "--epochs", "3", "--threads", "2", "--device", "cpu",
+                        "--precision", "fp32", "--keep-best-only"], check=True,
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
+        history = json.loads((out / "history.json").read_text())
+        best = torch.load(out / "best.pt", weights_only=True)
+        latest = torch.load(out / "latest.pt", weights_only=True)
+        self.assertEqual(best["epoch"], min(history, key=lambda row: row["validation_loss"])["epoch"])
+        self.assertEqual(latest["epoch"], 3)
+        self.assertEqual(sorted(p.name for p in out.glob("*.pt")), ["best.pt", "latest.pt"])
+        export_state(best["model"], self.path / "best.nnue")
+        self.assertEqual((out / "best.nnue").read_bytes(), (self.path / "best.nnue").read_bytes())
 
     def test_superbatch_cycles_without_dropping_positions(self):
         records = random_records(5, np.random.default_rng(90))

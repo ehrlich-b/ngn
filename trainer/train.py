@@ -40,21 +40,28 @@ def prefetched(batches):
 
 
 @torch.no_grad()
-def validation_loss(model, shards, batch, device, lam, k):
+def validation_metrics(model, shards, batch, device, lam, k):
     """Visit every held-out record, including the tail, without updating weights."""
     model.eval()
-    total = torch.zeros((), device=device)
+    lambdas = (lam, 0.75, 0.0)
+    total = torch.zeros(3, device=device, dtype=torch.float64)
     seen = 0
     for raw_numpy in shards.batches(batch, 0, shuffle=False):
         raw = torch.from_numpy(np.ascontiguousarray(raw_numpy)).to(device)
         features, stm, score, result, bucket = decode_gpu(raw, model.buckets, model.king_map, model.king_buckets)
-        total += blended_loss(model(features, stm, bucket), score, result, lam, k) * len(raw_numpy)
+        evaluation = model(features, stm, bucket)
+        for i, objective_lambda in enumerate(lambdas):
+            total[i] += blended_loss(evaluation, score, result, objective_lambda, k).double() * len(raw_numpy)
         seen += len(raw_numpy)
     model.train()
-    loss = total.item() / seen
-    if not math.isfinite(loss):
+    losses = (total / seen).tolist()
+    if not all(math.isfinite(loss) for loss in losses):
         raise RuntimeError("Non-finite validation loss; checkpoint not written")
-    return loss
+    return dict(zip(("validation_loss", "validation_loss_lambda_075", "validation_loss_result"), losses))
+
+
+def validation_loss(model, shards, batch, device, lam, k):
+    return validation_metrics(model, shards, batch, device, lam, k)["validation_loss"]
 
 
 def learning_rate(args, step: int, total: int) -> float:
@@ -76,6 +83,8 @@ def parser() -> argparse.ArgumentParser:
     cli = argparse.ArgumentParser(description=__doc__)
     cli.add_argument("--data", nargs="+", required=True, help="One or more quoted shard globs")
     cli.add_argument("--validation-data", nargs="+", help="Disjoint held-out shard globs; never optimized")
+    cli.add_argument("--record-counts", type=Path,
+                     help="JSON mapping of every training shard path to its frozen prefix record count")
     cli.add_argument("--out", type=Path, required=True)
     cli.add_argument("--hidden", type=int, default=256)
     cli.add_argument("--buckets", type=int, choices=(1, 2, 4, 8), default=1)
@@ -101,6 +110,8 @@ def parser() -> argparse.ArgumentParser:
     cli.add_argument("--threads", type=int, default=4)
     cli.add_argument("--precision", choices=("fp32", "bf16"), default="bf16")
     cli.add_argument("--resume", type=Path)
+    cli.add_argument("--keep-best-only", action="store_true",
+                     help="Retain latest and best checkpoints/exports instead of every epoch")
     return cli
 
 
@@ -126,7 +137,10 @@ def main() -> None:
     if device.type == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("CUDA is unavailable; use --device cpu explicitly for tests")
     use_amp = args.precision == "bf16" and device.type == "cuda"
-    shards = Shards(args.data, args.drop_flags, args.min_ply, args.block_records, args.format == 3)
+    record_counts = json.loads(args.record_counts.read_text()) if args.record_counts else None
+    shards = Shards(args.data, args.drop_flags, args.min_ply, args.block_records, args.format == 3, record_counts)
+    if record_counts is not None:
+        record_counts = {str(Path(p).resolve()): n for p, n in record_counts.items()}
     validation = (Shards(args.validation_data, args.drop_flags, args.min_ply, args.block_records, args.format == 3)
                   if args.validation_data else None)
     if validation and set(map(lambda p: Path(p).resolve(), shards.paths)) & set(
@@ -160,6 +174,8 @@ def main() -> None:
                 differences.append("king_map")
         if saved.get("validation_data") != args.validation_data:
             differences.append("validation_data")
+        if saved.get("shard_record_counts") != record_counts:
+            differences.append("shard_record_counts")
         if differences:
             raise ValueError("Resume options differ: " + ", ".join(differences))
         if checkpoint["filtered_records"] != shards.count or checkpoint["raw_records"] != shards.raw_count:
@@ -176,6 +192,8 @@ def main() -> None:
     if king_map is not None:
         config["king_map"] = list(king_map)
     config["out"], config["resume"] = str(args.out), str(args.resume) if args.resume else None
+    config["record_counts"] = str(args.record_counts) if args.record_counts else None
+    config["shard_record_counts"] = record_counts
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "config.json").write_text(json.dumps(config, indent=2) + "\n")
     # A crash can leave the final atomic checkpoint ahead of its history file.
@@ -233,7 +251,9 @@ def main() -> None:
                "steady_positions_per_second": ((seen - warmup_positions) / (finished - steady_started)
                                                if steady_started and seen > warmup_positions else None)}
         if validation:
-            row["validation_loss"] = validation_loss(model, validation, args.batch, device, args.wdl, args.k)
+            row.update(validation_metrics(model, validation, args.batch, device, args.wdl, args.k))
+        selection_key = "validation_loss" if validation else "loss"
+        improved = not history or row[selection_key] < min(previous[selection_key] for previous in history)
         history.append(row)
         print(json.dumps(row), flush=True)
         checkpoint = {"format": "NGN-trainer-1", "model": model.state_dict(), "optimizer": optimizer.state_dict(),
@@ -241,11 +261,18 @@ def main() -> None:
                       "raw_records": shards.raw_count, "filtered_records": shards.count,
                       "torch_rng": torch.get_rng_state(),
                       "cuda_rng": torch.cuda.get_rng_state_all() if device.type == "cuda" else []}
-        destination = args.out / f"epoch-{epoch + 1:04d}.pt"
+        stem = "latest" if args.keep_best_only else f"epoch-{epoch + 1:04d}"
+        destination = args.out / f"{stem}.pt"
         temporary = destination.with_suffix(".pt.tmp")
         torch.save(checkpoint, temporary)
         temporary.replace(destination)
-        export_state(model.state_dict(), args.out / f"epoch-{epoch + 1:04d}.nnue", args.format)
+        export_state(model.state_dict(), args.out / f"{stem}.nnue", args.format)
+        if args.keep_best_only and improved:
+            best = args.out / "best.pt"
+            temporary = best.with_suffix(".pt.tmp")
+            torch.save(checkpoint, temporary)
+            temporary.replace(best)
+            export_state(model.state_dict(), args.out / "best.nnue", args.format)
         write_history(args.out / "history.json", history)
 
 
