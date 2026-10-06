@@ -135,7 +135,8 @@ func (e *workerEvaluator) SearchSTM(pos *Position) int {
 		return e.staticOracle(pos)
 	}
 	if e.nnue != nil {
-		return e.nnue.network.evaluate(e.nnue.at(e.depth), pos.Turn())
+		n := e.nnue.network
+		return n.evaluateBucket(e.nnue.at(e.depth), pos.Turn(), n.bucket(pos))
 	}
 	return e.hce.SearchSTM(pos)
 }
@@ -147,7 +148,8 @@ func (e *workerEvaluator) LegacyUndampedSTM(pos *Position) int {
 		return e.staticOracle(pos)
 	}
 	if e.nnue != nil {
-		return e.nnue.network.evaluate(e.nnue.at(e.depth), pos.Turn())
+		n := e.nnue.network
+		return n.evaluateBucket(e.nnue.at(e.depth), pos.Turn(), n.bucket(pos))
 	}
 	return e.hce.LegacyUndampedSTM(pos)
 }

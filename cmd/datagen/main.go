@@ -59,7 +59,7 @@ func run() error {
 	s := datagen.Defaults()
 	var out string
 	flag.StringVar(&out, "out", "", "new shard file (never overwritten)")
-	flag.StringVar(&s.NetPath, "net", "", "NGNN1 network file; empty uses HCE")
+	flag.StringVar(&s.NetPath, "net", "", "NGNN1 or NGNN2 network file; empty uses HCE")
 	flag.Int64Var(&s.Seed, "seed", s.Seed, "opening RNG seed")
 	flag.Uint64Var(&s.Games, "games", 0, "completed games; 0 runs until SIGTERM/SIGINT")
 	flag.Uint64Var(&s.Nodes, "nodes", s.Nodes, "exact maximum search nodes per move")
