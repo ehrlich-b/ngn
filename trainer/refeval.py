@@ -82,7 +82,8 @@ class Network:
         total = int(us @ weights[:self.hidden] + them @ weights[self.hidden:])
         value = trunc_div(total, self.qa) + bias
         cp = trunc_div(value * self.scale, self.qa * self.qb)
-        return max(-24999, min(24999, cp))
+        # Preserve the legacy reference's unbounded diagnostic scores.
+        return max(-24999, min(24999, cp)) if self.version == 3 else cp
 
     def evaluate_fen(self, fen: str) -> int:
         return self.evaluate(parse_fen(fen))
