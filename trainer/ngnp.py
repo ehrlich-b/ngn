@@ -135,7 +135,7 @@ class Shards:
     """
 
     def __init__(self, patterns: list[str], drop_flags: int = DROP_FLAGS,
-                 min_ply: int = 0, block_records: int = 262144):
+                 min_ply: int = 0, block_records: int = 262144, require_kings: bool = False):
         if not 0 <= drop_flags <= 255 or not 0 <= min_ply <= 65535 or block_records < 1:
             raise ValueError("Invalid filter or block size")
         paths = sorted({p for pattern in patterns for p in glob.glob(pattern)})
@@ -169,6 +169,11 @@ class Shards:
                 if (np.any(counts > 32) or np.any(block["stm"] > 1) or np.any(block["result"] > 2)
                         or np.any((codes > 11) & (nibble < counts[:, None]))):
                     raise ValueError(f"{path}: invalid NGNP1 occupancy, piece, side, or result")
+                if require_kings:
+                    present = nibble < counts[:, None]
+                    for king in (5, 11):
+                        if np.any(((codes == king) & present).sum(axis=1) != 1):
+                            raise ValueError(f"{path}: NGNN3 requires one king per side")
                 accepted = int(self.mask(block).sum())
                 if accepted:
                     self.blocks.append((shard, start, end))
