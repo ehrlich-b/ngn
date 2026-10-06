@@ -17,13 +17,15 @@ const (
 	ngnn1ScoreLimit = 24999
 )
 
-// NGNN1Network owns validated, immutable NGNN1 or NGNN2 weights. Workers share this
+// NGNN1Network owns validated, immutable NGNN1, NGNN2 or NGNN3 weights. Workers share this
 // object; their accumulators never live here. All arithmetic remains exact
 // even for the full int16 weight range permitted by the file format.
 type NGNN1Network struct {
 	hidden      int
 	version     int
 	buckets     int // zero means one for existing in-package single-row networks
+	kingBuckets int
+	kingMap     [64]uint8
 	weights     []int16
 	bias        []int16
 	output      []int16
@@ -35,7 +37,7 @@ type NGNN1Network struct {
 func (n *NGNN1Network) valid() bool {
 	return n != nil && n.hidden > 0 && n.hidden <= ngnn1MaxHidden && n.hidden%16 == 0 &&
 		(n.bucketCount() == 1 || n.buckets == 2 || n.buckets == 4 || n.buckets == 8) &&
-		len(n.weights) == ngnn1Features*n.hidden && len(n.bias) == n.hidden &&
+		n.validKingLayout() && len(n.weights) == n.featureCount()*n.hidden && len(n.bias) == n.hidden &&
 		len(n.output) == n.bucketCount()*2*n.hidden && len(n.otherBiases) == n.bucketCount()-1
 }
 
@@ -46,7 +48,7 @@ func (n *NGNN1Network) bucketCount() int {
 	return n.buckets
 }
 
-// LoadNGNN1 accepts NGNN1 and NGNN2, preserving the original API. No partial network is
+// LoadNGNN1 accepts NGNN1/2/3, preserving the original API. No partial network is
 // returned after an I/O, header, length, or checksum error.
 func LoadNGNN1(path string) (*NGNN1Network, error) {
 	f, err := os.Open(path)
@@ -59,12 +61,13 @@ func LoadNGNN1(path string) (*NGNN1Network, error) {
 
 // ReadNGNN1 bounds allocation from a validated header before reading weights.
 func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
-	var storage [28]byte
+	var storage [96]byte
 	header := storage[:24]
 	if _, err := io.ReadFull(r, header); err != nil {
 		return nil, fmt.Errorf("NGNN1 header: %w", err)
 	}
-	version, nb, constants := int(binary.LittleEndian.Uint32(header[4:8])), 1, 12
+	version, nb, kb, constants := int(binary.LittleEndian.Uint32(header[4:8])), 1, 1, 12
+	var kingMap [64]uint8
 	switch {
 	case string(header[:4]) == "NGNN" && version == 1:
 	case string(header[:4]) == "NGN2" && version == 2:
@@ -77,6 +80,23 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 			return nil, fmt.Errorf("NGNN2: invalid bucket count %d", nb)
 		}
 		constants = 16
+	case string(header[:4]) == "NGN3" && version == 3:
+		header = storage[:96]
+		if _, err := io.ReadFull(r, header[24:]); err != nil {
+			return nil, fmt.Errorf("NGNN3 header: %w", err)
+		}
+		kb = int(binary.LittleEndian.Uint32(header[12:16]))
+		nb = int(binary.LittleEndian.Uint32(header[16:20]))
+		if kb < 1 || kb > 8 || (nb != 1 && nb != 2 && nb != 4 && nb != 8) {
+			return nil, fmt.Errorf("NGNN3: invalid king/output bucket counts %d/%d", kb, nb)
+		}
+		copy(kingMap[:], header[32:96])
+		for _, bucket := range kingMap {
+			if int(bucket) >= kb {
+				return nil, fmt.Errorf("NGNN3: king bucket map entry out of range")
+			}
+		}
+		constants = 20
 	default:
 		return nil, fmt.Errorf("NGNN: unsupported magic/version")
 	}
@@ -87,7 +107,7 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 	if binary.LittleEndian.Uint32(header[constants:]) != ngnn1QA || binary.LittleEndian.Uint32(header[constants+4:]) != ngnn1QB || binary.LittleEndian.Uint32(header[constants+8:]) != ngnn1Scale {
 		return nil, fmt.Errorf("NGNN1: invalid quantization constants")
 	}
-	size := len(header) + 2*(ngnn1Features*h+h+nb*2*h) + nb*4 + 4
+	size := len(header) + 2*(kb*ngnn1Features*h+h+nb*2*h) + nb*4 + 4
 	data := make([]byte, size)
 	copy(data, header)
 	if _, err := io.ReadFull(r, data[len(header):]); err != nil {
@@ -109,8 +129,8 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 		}
 		return values
 	}
-	n := &NGNN1Network{hidden: h, version: version, buckets: nb}
-	n.weights = readWeights(ngnn1Features * h)
+	n := &NGNN1Network{hidden: h, version: version, buckets: nb, kingBuckets: kb, kingMap: kingMap}
+	n.weights = readWeights(kb * ngnn1Features * h)
 	n.bias = readWeights(h)
 	n.output = readWeights(nb * 2 * h)
 	n.smallOutput = true
@@ -150,13 +170,17 @@ func (n *NGNN1Network) row(feature int) []int16 {
 // int32 covers B1 + all 64 squares at the extreme int16 weight values.
 func (n *NGNN1Network) refresh(pos *Position, accum []int32) {
 	for p, color := range [...]Color{White, Black} {
+		context := ngnn3Context{}
+		if n.version == 3 {
+			context = n.kingContext(pos, color)
+		}
 		a := accum[p*n.hidden : (p+1)*n.hidden]
 		for i, b := range n.bias {
 			a[i] = int32(b)
 		}
 		for square, piece := range pos.Board.mailbox {
 			if validPiece(piece) {
-				ngnn1AddRow(a, n.row(ngnn1Feature(piece, Square(square), color)))
+				ngnn1AddRow(a, n.row(context.feature(ngnn1Feature(piece, Square(square), color))))
 			}
 		}
 	}
@@ -211,6 +235,8 @@ type ngnn1Delta struct {
 	remove        [2][3]uint16
 	add           [2][2]uint16
 	removes, adds int
+	refreshMask   uint8
+	contexts      [2]ngnn3Context
 }
 
 func ngnn1MoveDelta(move Move) ngnn1Delta {
@@ -255,8 +281,9 @@ func ngnn1MoveDelta(move Move) ngnn1Delta {
 }
 
 type ngnn1State struct {
-	network *NGNN1Network
-	stack   []int32
+	network      *NGNN1Network
+	stack        []int32
+	refreshCache []ngnn3CacheEntry
 }
 
 func (s *ngnn1State) at(depth int) []int32 {
@@ -282,10 +309,20 @@ func (s *ngnn1State) ensure(depth int) {
 
 func (s *ngnn1State) reset(pos *Position) {
 	s.ensure(0)
+	if s.network.version == 3 {
+		for p, color := range [...]Color{White, Black} {
+			s.cachedRefresh(p, s.network.kingContext(pos, color), pos, s.at(0)[p*s.network.hidden:(p+1)*s.network.hidden])
+		}
+		return
+	}
 	s.network.refresh(pos, s.at(0))
 }
 
 func (s *ngnn1State) push(depth int, delta ngnn1Delta) {
+	s.pushPosition(depth, delta, nil)
+}
+
+func (s *ngnn1State) pushPosition(depth int, delta ngnn1Delta, pos *Position) {
 	s.ensure(depth)
 	parent, child := s.at(depth-1), s.at(depth)
 	if delta.removes == 0 && delta.adds == 0 {
@@ -295,6 +332,10 @@ func (s *ngnn1State) push(depth int, delta ngnn1Delta) {
 	n := s.network
 	for p := 0; p < 2; p++ {
 		a := child[p*n.hidden : (p+1)*n.hidden]
+		if delta.refreshMask&(1<<p) != 0 {
+			s.cachedRefresh(p, delta.contexts[p], pos, a)
+			continue
+		}
 		src := parent[p*n.hidden : (p+1)*n.hidden]
 		switch {
 		case delta.removes == 1 && delta.adds == 1:

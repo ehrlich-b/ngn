@@ -88,7 +88,11 @@ func (e *workerEvaluator) PrepareMove(pos *Position, move Move) (workerEvalMove,
 		if pos == nil || !validPiece(move.MovingPiece()) {
 			return workerEvalMove{}, errWorkerEvaluator
 		}
-		return workerEvalMove{delta: ngnn1MoveDelta(move)}, nil
+		delta := ngnn1MoveDelta(move)
+		if e.nnue.network.version == 3 {
+			delta = e.nnue.network.kingMoveDelta(pos, move, delta)
+		}
+		return workerEvalMove{delta: delta}, nil
 	}
 	return workerEvalMove{}, nil
 }
@@ -98,7 +102,7 @@ func (e *workerEvaluator) PushMove(pos *Position, transition workerEvalMove) err
 	}
 	e.depth++
 	if e.nnue != nil {
-		e.nnue.push(e.depth, transition.delta)
+		e.nnue.pushPosition(e.depth, transition.delta, pos)
 	}
 	e.observeTransition(pos)
 	return nil

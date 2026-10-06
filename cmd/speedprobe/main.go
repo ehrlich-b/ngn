@@ -48,7 +48,7 @@ func main() {
 	depth := flag.Int("depth", 9, "identity search depth")
 	seconds := flag.Duration("duration", 10*time.Second, "timed search duration per position")
 	position := flag.Int("position", -1, "position index, or -1 for all six")
-	net := flag.String("net", "", "NGN-produced NGNN1 file; empty selects HCE")
+	net := flag.String("net", "", "NGN-produced NGNN1/2/3 file; empty selects HCE")
 	profile := flag.String("profile", "", "CPU profile output file")
 	flag.Parse()
 	if (*mode != "identity" && *mode != "timed") || *depth < 1 || *depth > 32 || *seconds <= 0 || *position < -1 || *position >= len(positions) {

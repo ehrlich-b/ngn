@@ -3,6 +3,8 @@
 import torch
 from torch import nn
 
+from trainer.king_buckets import validate_map
+
 QA, QB, SCALE = 255, 64, 400
 
 
@@ -16,7 +18,8 @@ def validate_buckets(buckets: int) -> None:
         raise ValueError("Buckets must be one of 1, 2, 4, 8")
 
 
-def decode_gpu(raw: torch.Tensor, buckets: int | None = None) -> tuple:
+def decode_gpu(raw: torch.Tensor, buckets: int | None = None,
+               king_map: torch.Tensor | None = None, king_buckets: int = 8) -> tuple:
     """Return dense white/black perspectives and STM-relative labels on device.
 
     Input is contiguous uint8 [B,32]. Signed shifts still extract bit 63 exactly.
@@ -34,8 +37,16 @@ def decode_gpu(raw: torch.Tensor, buckets: int | None = None) -> tuple:
     board = torch.where(occupied.bool(), codes.gather(1, order), 0)
     white = (board // 6) * 384 + (board % 6) * 64 + squares
     black = (1 - board // 6) * 384 + (board % 6) * 64 + (squares ^ 56)
+    if king_map is not None:
+        white_king = ((board == 5) & occupied.bool()).to(torch.int64).argmax(dim=1)
+        black_king = ((board == 11) & occupied.bool()).to(torch.int64).argmax(dim=1) ^ 56
+        white_mirror = torch.where((white_king & 7) >= 4, 7, 0)
+        black_mirror = torch.where((black_king & 7) >= 4, 7, 0)
+        white = (white ^ white_mirror[:, None]) + king_map[white_king ^ white_mirror][:, None] * 768
+        black = (black ^ black_mirror[:, None]) + king_map[black_king ^ black_mirror][:, None] * 768
     indices = torch.cat((white, black), dim=0)
-    features = torch.zeros((2 * batch, 768), device=raw.device, dtype=torch.float32)
+    features = torch.zeros((2 * batch, 768 * (king_buckets if king_map is not None else 1)),
+                           device=raw.device, dtype=torch.float32)
     features.scatter_add_(1, indices, occupied.float().repeat(2, 1))
     stm = raw[:, 27].to(torch.int64)
     score = raw[:, 24:26].view(torch.int16).reshape(batch).float() * (1 - 2 * stm)
@@ -50,12 +61,19 @@ def decode_gpu(raw: torch.Tensor, buckets: int | None = None) -> tuple:
 
 
 class NGNN(nn.Module):
-    def __init__(self, hidden: int = 256, buckets: int = 1):
+    def __init__(self, hidden: int = 256, buckets: int = 1, king_map=None):
         super().__init__()
         validate_hidden(hidden)
         validate_buckets(buckets)
         self.hidden, self.buckets = hidden, buckets
-        self.w1 = nn.Parameter(torch.empty(768, hidden))
+        self.king_buckets = 1
+        self.king_map = None
+        if king_map is not None:
+            mapping = validate_map(king_map)
+            self.king_buckets = max(mapping) + 1
+            del self.king_map
+            self.register_buffer("king_map", torch.tensor(mapping, dtype=torch.int64))
+        self.w1 = nn.Parameter(torch.empty(768 * self.king_buckets, hidden))
         self.b1 = nn.Parameter(torch.full((hidden,), 0.25))
         # Keep single-bucket checkpoint shapes and floating arithmetic unchanged.
         self.o = nn.Parameter(torch.empty(2 * hidden if buckets == 1 else (buckets, 2 * hidden)))

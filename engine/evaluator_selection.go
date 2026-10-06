@@ -73,7 +73,7 @@ func (e *SearchEngine) SelectHCEEvaluator() error {
 	return nil
 }
 
-// SelectNGNN1Evaluator selects validated NGNN1 or NGNN2 weights while no search is active.
+// SelectNGNN1Evaluator selects validated NGNN1/2/3 weights while no search is active.
 // The network's pointer is part of model identity, so reloading invalidates TT
 // and every worker's evaluation-dependent history even if the path is unchanged.
 func (e *SearchEngine) SelectNGNN1Evaluator(network *NGNN1Network) error {
@@ -93,8 +93,12 @@ func (e *SearchEngine) SelectNGNN1Evaluator(network *NGNN1Network) error {
 const EvaluatorBackendHCEName = "hce"
 const EvaluatorBackendNGNN1Name = "ngnn1"
 const EvaluatorBackendNGNN2Name = "ngnn2"
+const EvaluatorBackendNGNN3Name = "ngnn3"
 
 func (n *NGNN1Network) backendName() string {
+	if n.version == 3 {
+		return EvaluatorBackendNGNN3Name
+	}
 	if n.version == 2 {
 		return EvaluatorBackendNGNN2Name
 	}
