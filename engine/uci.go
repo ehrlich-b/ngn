@@ -386,7 +386,6 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, "option name Threads type spin default 1 min 1 max 64")
 	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
 	uci.sendUCIMessage(output, fmt.Sprintf("option name OwnBook type check default %t", ownBookDefault))
-	uci.sendUCIMessage(output, "option name SyzygyPath type string default <empty>")
 	uci.sendUCIMessage(output, fmt.Sprintf("option name EvalFile type string default %s", evalFileDefault))
 	uci.sendUCIMessage(output, "option name UseNNUE type check default false")
 
@@ -440,22 +439,6 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 
 	// Handle specific options
 	switch strings.ToLower(optionName) {
-	case "syzygypath":
-		uci.joinSearch(true)
-		if optionValue != "" && optionValue != "<empty>" {
-			err := InitSyzygy(optionValue)
-			if err != nil {
-				uci.debugLogger.Printf("Failed to initialize Syzygy tablebases: %v", err)
-				if uci.debugMode {
-					fmt.Fprintf(output, "info string syzygy init failed: %v\n", err)
-				}
-			} else {
-				uci.debugLogger.Printf("Syzygy tablebases loaded from: %s (max %d pieces)", optionValue, TBLargestPieceCount())
-				if uci.debugMode {
-					fmt.Fprintf(output, "info string syzygy loaded: %s (%d pieces)\n", optionValue, TBLargestPieceCount())
-				}
-			}
-		}
 	case "move overhead":
 		milliseconds, err := strconv.Atoi(optionValue)
 		if err != nil || milliseconds < minMoveOverheadMilliseconds || milliseconds > maxMoveOverheadMilliseconds {
@@ -970,42 +953,6 @@ func (uci *UCIEngine) searchSession(session *uciSearchSession, output io.Writer,
 		// Output the book move result
 		fmt.Fprintf(output, "info depth 1 score cp %d nodes 1 time 0 nps 0 pv %s\n",
 			bestScore, bestMove.ToString())
-	} else if tbMove, tbResult := ProbeRoot(session.root); tbResult.Found && tbMove != EmptyMove {
-		uci.emitThreadReceipt(session, output, 1)
-		// Syzygy tablebase hit - perfect endgame play
-		uci.debugLogger.Printf("Syzygy tablebase hit! WDL=%d DTZ=%d Move=%s", tbResult.WDL, tbResult.DTZ, tbMove.ToString())
-		if session.debugMode {
-			fmt.Fprintf(output, "info string tablebase move: %s (WDL=%d)\n", tbMove.ToString(), tbResult.WDL)
-		}
-
-		bestMove = tbMove
-		// Convert WDL to centipawn score
-		switch tbResult.WDL {
-		case WDL_Win:
-			bestScore = MATE_VALUE - 100 - tbResult.DTZ // Winning
-		case WDL_CursedWin:
-			bestScore = 500 // Theoretically winning but 50-move draw
-		case WDL_Draw:
-			bestScore = 0
-		case WDL_BlessedLoss:
-			bestScore = -500 // Theoretically losing but 50-move draw
-		case WDL_Loss:
-			bestScore = -MATE_VALUE + 100 + tbResult.DTZ // Losing
-		}
-
-		uci.debugLogger.Printf("Using tablebase move: %v with score %d", bestMove.ToString(), bestScore)
-
-		// Output the tablebase result
-		var scoreStr string
-		if bestScore >= MATE_IN_MAX {
-			scoreStr = fmt.Sprintf("mate %d", (MATE_VALUE-bestScore+1)/2)
-		} else if bestScore <= -MATE_IN_MAX {
-			scoreStr = fmt.Sprintf("mate %d", -(MATE_VALUE+bestScore+1)/2)
-		} else {
-			scoreStr = fmt.Sprintf("cp %d", bestScore)
-		}
-		fmt.Fprintf(output, "info depth 1 score %s nodes 1 time 0 nps 0 tbhits 1 pv %s\n",
-			scoreStr, bestMove.ToString())
 	} else {
 		uci.debugLogger.Printf("No opening book move found for current position")
 		if session.debugMode {
@@ -1047,7 +994,7 @@ func (uci *UCIEngine) searchSession(session *uciSearchSession, output io.Writer,
 				mate := (MATE_VALUE - score + 1) / 2
 				scoreStr = fmt.Sprintf("mate %d", mate)
 			} else if score <= -MATE_IN_MAX {
-				// Mirror the winning branch (and the tablebase path at line ~610):
+				// Mirror the winning branch:
 				// plies-to-mate is MATE_VALUE+score, reported as a negative "mate -N".
 				// The old `-score - MATE_VALUE` underflowed for real losing mates and
 				// clamped to the garbage "mate -501" seen 25k+ times in the logs.
