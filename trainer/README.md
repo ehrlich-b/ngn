@@ -82,6 +82,8 @@ additional epochs. Cosine resume requires the original total count; step
 or fixed schedules permit increasing it. Training-relevant options and
 record counts are checked on resume. Keep shards immutable for reproducible
 continuation. Write to a distinct output directory for separate runs.
+History is atomically published and restored from the selected checkpoint on
+resume, even when that checkpoint has already reached the desired epoch count.
 
 Epoch throughput includes reads, shuffle, transfers, feature construction,
 forward/backward, AdamW, and clipping, but excludes shard validation and

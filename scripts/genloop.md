@@ -51,6 +51,8 @@ with fresh seeds, retaining earlier closed shards and counting their records.
 Training freezes a seeded split of whole nonempty shards, with at least one
 shard in each partition. Shards stay immutable. Fit resumes from the last
 atomic epoch checkpoint; completed export/parity steps are verified and skipped.
+Completed training also rechecks its upstream shard hashes. Resume restores
+history from the checkpoint, including after a crash during final publication.
 One-bucket models export both NGNN1 and equivalent NGNN2; multi-bucket models
 export NGNN2 because NGNN1 cannot represent their heads. Twenty evenly spaced
 held-out records become board/STM FENs with neutral move rights. `trainer.refeval`
@@ -81,3 +83,7 @@ or poll continually. Unit tests require only stdlib, on WSL:
 ```bash
 python3 -m unittest discover -s scripts/genloop_tests -v
 ```
+
+The [tiny WSL validation receipt](../experiments/2026-10-06-genloop-validation.md)
+records the builds, unit checks, one-minute generation, one-epoch fit, both
+exports/parity checks, fixed eight-game match and disk-refusal/idempotence checks.
