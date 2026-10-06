@@ -65,6 +65,12 @@ def learning_rate(args, step: int, total: int) -> float:
     return args.lr
 
 
+def write_history(path, history):
+    temporary = path.with_suffix(".json.tmp")
+    temporary.write_text(json.dumps(history, indent=2, allow_nan=False) + "\n")
+    temporary.replace(path)
+
+
 def parser() -> argparse.ArgumentParser:
     cli = argparse.ArgumentParser(description=__doc__)
     cli.add_argument("--data", nargs="+", required=True, help="One or more quoted shard globs")
@@ -162,6 +168,9 @@ def main() -> None:
     config["out"], config["resume"] = str(args.out), str(args.resume) if args.resume else None
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "config.json").write_text(json.dumps(config, indent=2) + "\n")
+    # A crash can leave the final atomic checkpoint ahead of its history file.
+    # Restore this metadata even when resume has no further epochs to execute.
+    write_history(args.out / "history.json", history)
 
     def objective(raw):
         features, stm, score, result, bucket = decode_gpu(raw, args.buckets)
@@ -227,7 +236,7 @@ def main() -> None:
         torch.save(checkpoint, temporary)
         temporary.replace(destination)
         export_state(model.state_dict(), args.out / f"epoch-{epoch + 1:04d}.nnue", args.format)
-        (args.out / "history.json").write_text(json.dumps(history, indent=2) + "\n")
+        write_history(args.out / "history.json", history)
 
 
 if __name__ == "__main__":

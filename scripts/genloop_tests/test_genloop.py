@@ -51,6 +51,18 @@ class GenerationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Changed artifact"):
             g.Manifest(self.root).begin("train", {}, True)
 
+    def test_completed_training_rechecks_its_upstream_shards(self):
+        shard = self.shard("a.ngnp", 3)
+        split_path = self.root / "split.json"
+        g.atomic_json(split_path, {"training": [g.identity(shard)], "validation": []})
+        m = g.Manifest(self.root)
+        m.begin("train", {}, False)
+        m.state["split"] = g.identity(split_path)
+        m.finish()
+        shard.write_bytes(b"changed" + bytes(89))
+        with self.assertRaisesRegex(ValueError, "Changed artifact"):
+            g.Manifest(self.root).begin("train", {}, True)
+
     def test_resume_refuses_a_live_recorded_child(self):
         m = g.Manifest(self.root)
         m.begin("gate", {}, False)
