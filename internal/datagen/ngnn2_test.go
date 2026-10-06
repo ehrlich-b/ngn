@@ -13,7 +13,15 @@ import (
 )
 
 func TestBucketNetworkSearchMatchesEngineSelection(t *testing.T) {
-	path := filepath.Join("..", "..", "testdata", "ngnn2", "random_h32_b8.nnue")
+	assertBucketNetworkSearch(t, filepath.Join("..", "..", "testdata", "ngnn2", "random_h32_b8.nnue"), engine.EvaluatorBackendNGNN2Name)
+}
+
+func TestKingBucketNetworkSearchMatchesEngineSelection(t *testing.T) {
+	assertBucketNetworkSearch(t, filepath.Join("..", "..", "testdata", "ngnn3", "random_h32_k8_b8.nnue"), engine.EvaluatorBackendNGNN3Name)
+}
+
+func assertBucketNetworkSearch(t *testing.T, path, backend string) {
+	t.Helper()
 	raw, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
@@ -24,8 +32,8 @@ func TestBucketNetworkSearchMatchesEngineSelection(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if digest != fmt.Sprintf("%x", sha256.Sum256(raw)) || e.SelectedEvaluatorBackend() != engine.EvaluatorBackendNGNN2Name {
-		t.Fatal("NGNN2 network not selected/identified")
+	if digest != fmt.Sprintf("%x", sha256.Sum256(raw)) || e.SelectedEvaluatorBackend() != backend {
+		t.Fatal("bucket network not selected/identified")
 	}
 	network, err := engine.LoadNGNN1(path)
 	if err != nil {
@@ -55,7 +63,7 @@ func TestBucketNetworkSearchMatchesEngineSelection(t *testing.T) {
 			want = -want
 		}
 		if found.whiteScore != want || found.move != info.BestMove || meta.SearchNodes != info.Nodes || engine.GenerateFEN(pos) != before {
-			t.Fatal("NGNN2 datagen search/perspective/root mismatch")
+			t.Fatal("bucket network datagen search/perspective/root mismatch")
 		}
 	}
 	raw[99] ^= 1
@@ -64,6 +72,6 @@ func TestBucketNetworkSearchMatchesEngineSelection(t *testing.T) {
 		t.Fatal(err)
 	}
 	if failed, _, err := newSearcher(s); err == nil || failed != nil || !strings.Contains(err.Error(), "CRC") {
-		t.Fatal("datagen accepted corrupt NGNN2 or fell back to HCE")
+		t.Fatal("datagen accepted corrupt network or fell back to HCE")
 	}
 }
