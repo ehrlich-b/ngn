@@ -20,34 +20,53 @@ class Network:
     def __init__(self, path: str | Path):
         data = Path(path).read_bytes()
         if len(data) < 32:
-            raise ValueError("Truncated NGNN1 file")
-        magic, version, hidden, qa, qb, scale = struct.unpack_from("<4s5I", data)
-        if magic != b"NGNN" or version != 1:
+            raise ValueError("Truncated NGN file")
+        magic, version, hidden = struct.unpack_from("<4s2I", data)
+        if (magic, version) == (b"NGNN", 1):
+            offset, buckets = 24, 1
+            qa, qb, scale = struct.unpack_from("<3I", data, 12)
+        elif (magic, version) == (b"NGN2", 2):
+            offset = 28
+            buckets, qa, qb, scale = struct.unpack_from("<4I", data, 12)
+        else:
             raise ValueError("Unsupported NGNN magic/version")
+        if buckets not in (1, 2, 4, 8):
+            raise ValueError("Invalid NGNN2 bucket count")
         if not 16 <= hidden <= 2048 or hidden % 16:
             raise ValueError("Invalid NGNN1 hidden size")
         if (qa, qb, scale) != (255, 64, 400):
             raise ValueError("Invalid NGNN1 quantization constants")
-        expected = 24 + (768 * hidden + 3 * hidden) * 2 + 4 + 4
+        count = 769 * hidden + buckets * 2 * hidden
+        expected = offset + count * 2 + buckets * 4 + 4
         if len(data) != expected:
             raise ValueError("Wrong NGNN1 payload length")
         stored_crc = struct.unpack_from("<I", data, len(data) - 4)[0]
         if zlib.crc32(data[:-4]) != stored_crc:
             raise ValueError("NGNN1 CRC mismatch")
         self.hidden, self.qa, self.qb, self.scale = hidden, qa, qb, scale
+        self.version, self.buckets = version, buckets
         # Widen before any arithmetic; valid int16 endpoints cannot overflow.
-        weights = np.frombuffer(data, dtype="<i2", count=768 * hidden + 3 * hidden, offset=24).astype(np.int64)
+        weights = np.frombuffer(data, dtype="<i2", count=count, offset=offset).astype(np.int64)
         self.w1 = weights[:768 * hidden].reshape(768, hidden)
         self.b1 = weights[768 * hidden:769 * hidden]
         self.o = weights[769 * hidden:]
-        self.ob = struct.unpack_from("<i", data, len(data) - 8)[0]
+        biases = np.frombuffer(data, dtype="<i4", count=buckets, offset=offset + count * 2).astype(np.int64)
+        self.ob = int(biases[0]) if buckets == 1 else biases
+        if buckets > 1:
+            self.o = self.o.reshape(buckets, 2 * hidden)
+
+    def bucket(self, position: Position) -> int:
+        return max(0, min(self.buckets - 1, (len(position.squares) - 2) * self.buckets // 32))
 
     def evaluate(self, position: Position) -> int:
         acc = [self.b1 + self.w1[feature_indices(position, p)].sum(axis=0, dtype=np.int64) for p in (0, 1)]
         us = np.clip(acc[position.stm], 0, self.qa) ** 2
         them = np.clip(acc[1 - position.stm], 0, self.qa) ** 2
-        total = int(us @ self.o[:self.hidden] + them @ self.o[self.hidden:])
-        value = trunc_div(total, self.qa) + self.ob
+        bucket = self.bucket(position)
+        weights = self.o if self.buckets == 1 else self.o[bucket]
+        bias = self.ob if self.buckets == 1 else int(self.ob[bucket])
+        total = int(us @ weights[:self.hidden] + them @ weights[self.hidden:])
+        value = trunc_div(total, self.qa) + bias
         return trunc_div(value * self.scale, self.qa * self.qb)
 
     def evaluate_fen(self, fen: str) -> int:

@@ -1,4 +1,4 @@
-"""Train NGNN1 on NGN-produced NGNP1 shards; checkpoint and export each epoch."""
+"""Train NGNN1/NGNN2 on NGN-produced NGNP1 shards; checkpoint/export each epoch."""
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor
@@ -11,7 +11,7 @@ import numpy as np
 import torch
 
 from trainer.export import export_state
-from trainer.model import NGNN, blended_loss, decode_gpu, validate_hidden
+from trainer.model import NGNN, blended_loss, decode_gpu, validate_buckets, validate_hidden
 from trainer.ngnp import Shards
 
 
@@ -46,8 +46,8 @@ def validation_loss(model, shards, batch, device, lam, k):
     seen = 0
     for raw_numpy in shards.batches(batch, 0, shuffle=False):
         raw = torch.from_numpy(np.ascontiguousarray(raw_numpy)).to(device)
-        features, stm, score, result = decode_gpu(raw)
-        total += blended_loss(model(features, stm), score, result, lam, k) * len(raw_numpy)
+        features, stm, score, result, bucket = decode_gpu(raw, model.buckets)
+        total += blended_loss(model(features, stm, bucket), score, result, lam, k) * len(raw_numpy)
         seen += len(raw_numpy)
     model.train()
     loss = total.item() / seen
@@ -71,6 +71,8 @@ def parser() -> argparse.ArgumentParser:
     cli.add_argument("--validation-data", nargs="+", help="Disjoint held-out shard globs; never optimized")
     cli.add_argument("--out", type=Path, required=True)
     cli.add_argument("--hidden", type=int, default=256)
+    cli.add_argument("--buckets", type=int, choices=(1, 2, 4, 8), default=1)
+    cli.add_argument("--format", type=int, choices=(1, 2), help="Default: 1 for NB=1, otherwise 2")
     cli.add_argument("--batch", type=int, default=16384)
     cli.add_argument("--lr", type=float, default=0.001)
     cli.add_argument("--epochs", "--superbatches", dest="epochs", type=int, default=10)
@@ -97,6 +99,10 @@ def parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = parser().parse_args()
     validate_hidden(args.hidden)
+    validate_buckets(args.buckets)
+    args.format = args.format or (2 if args.buckets > 1 else 1)
+    if args.format == 1 and args.buckets != 1:
+        raise ValueError("NGNN1 requires --buckets 1")
     if (args.batch < 1 or args.epochs < 1 or args.threads < 1 or args.lr <= 0 or args.k <= 0
             or not 0 <= args.wdl <= 1 or args.positions_per_epoch < 0 or args.weight_decay < 0
             or args.decay_steps < 1 or not 0 < args.gamma <= 1 or not 0 <= args.min_lr_ratio <= 1):
@@ -121,7 +127,7 @@ def main() -> None:
     passes, remainder = divmod(positions, shards.count)
     steps_per_epoch = passes * steps_per_pass + math.ceil(remainder / args.batch)
     total_steps = args.epochs * steps_per_epoch
-    model = NGNN(args.hidden).to(device)
+    model = NGNN(args.hidden, args.buckets).to(device)
     optimizer = torch.optim.AdamW([
         {"params": [model.w1, model.o], "weight_decay": args.weight_decay},
         {"params": [model.b1, model.ob], "weight_decay": 0.0},
@@ -135,6 +141,9 @@ def main() -> None:
                 "weight_decay", "drop_flags", "min_ply", "block_records", "positions_per_epoch",
                 "seed", "precision", "data")
         differences = [key for key in same if saved[key] != getattr(args, key)]
+        for key, default in (("buckets", 1), ("format", 1)):
+            if saved.get(key, default) != getattr(args, key):
+                differences.append(key)
         if saved.get("validation_data") != args.validation_data:
             differences.append("validation_data")
         if differences:
@@ -155,8 +164,8 @@ def main() -> None:
     (args.out / "config.json").write_text(json.dumps(config, indent=2) + "\n")
 
     def objective(raw):
-        features, stm, score, result = decode_gpu(raw)
-        return blended_loss(model(features, stm), score, result, args.wdl, args.k)
+        features, stm, score, result, bucket = decode_gpu(raw, args.buckets)
+        return blended_loss(model(features, stm, bucket), score, result, args.wdl, args.k)
 
     print(json.dumps({"device": str(device), "torch": torch.__version__, "raw_records": shards.raw_count,
                       "filtered_records": shards.count, "positions_per_epoch": positions,
@@ -217,7 +226,7 @@ def main() -> None:
         temporary = destination.with_suffix(".pt.tmp")
         torch.save(checkpoint, temporary)
         temporary.replace(destination)
-        export_state(model.state_dict(), args.out / f"epoch-{epoch + 1:04d}.nnue")
+        export_state(model.state_dict(), args.out / f"epoch-{epoch + 1:04d}.nnue", args.format)
         (args.out / "history.json").write_text(json.dumps(history, indent=2) + "\n")
 
 

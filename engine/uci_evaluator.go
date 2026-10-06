@@ -18,7 +18,7 @@ type uciEvaluatorConfig struct {
 func newUCIEvaluatorConfig() uciEvaluatorConfig { return uciEvaluatorConfig{backend: uciEvaluatorHCE} }
 func (c uciEvaluatorConfig) backendName() string {
 	if c.useNNUE && c.network != nil {
-		return EvaluatorBackendNGNN1Name
+		return c.network.backendName()
 	}
 	return uciEvaluatorHCE
 }
