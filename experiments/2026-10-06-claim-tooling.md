@@ -334,3 +334,33 @@ Receipt/result files are exclusive and read-only; these output paths already
 exist. The commands are a run receipt, not instructions to repeat games. Future launches take a new frozen candidate
 identity and fresh output directory. Confirmation additionally requires the
 matching admitted screen receipt/analysis and separate user authorization.
+
+## Prospective v2 run configuration — 2026-10-07
+
+The [v2 protocol](2026-10-07-3000-claim-protocol-v2.md) adds the official Linux
+Viridithas 10.0.0 / historical CCRL Blitz 1CPU 3557 anchor, pinning its embedded
+network through binary SHA-256
+`35b32c4acc3216fd9d1084bebad90452cee2e8725af4bdd0f175cc42c4e3def3`.
+The original three versions, labels and digests are unchanged. Screen and
+confirmation plans now contain four anchors and still require exactly 80 and
+160 games per anchor, respectively. All decision statistics and legal/terminal
+rules remain identical; the whole-opening bootstrap includes all four anchors.
+
+Restricted preparation remains CPU13,15/nice19. Once the T80 worker exits,
+live receipts and games require the exclusive rig CPU0–15/nice19; the Windows
+bridge proves job affinity0xffff and Idle priority before any UCI input reaches
+Counter3.8. The process guard additionally rejects training/datagen. The old
+Counter-only tooling mode stays Counter-only. Two explicitly unscored
+Viridithas stability modes declare four games each, 10+0.1 and 120+1, indices0–1
+both colors, with the same full replay and terminal audit. They never become
+screen/claim evidence. The execution lock and all new artifacts are under
+`/home/ehrli/ngn-data/claim-run-20261007/`.
+
+Owned claim fixtures passed on restricted WSL before committing this revision,
+including new-anchor substitution rejection, fixed counts, strict boundaries,
+joint bootstrap, legal/terminal and Windows scheduling controls. Preparation
+log: `preparation-tests.log`. Full baseline checks, clean builds, both four-anchor
+dry runs and free-rig stability checks precede any screen launch. Bryan's
+October6 goal/overnight instructions and October7 task supply the screen and
+confirmation authorization recorded in v2; the older report's lack of run
+authorization describes the historical tooling-only task.

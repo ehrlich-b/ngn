@@ -212,7 +212,7 @@ func validateSession(s SessionRecord, identity SessionRecord) error {
 				options[f[0]] = f[1]
 			}
 		case "stderr":
-			const prefix = "NGN claimbridge affinity 0xa000 priority 0x40 pid "
+			const prefix = "NGN claimbridge affinity 0xffff priority 0x40 pid "
 			if strings.HasPrefix(e.Line, prefix) {
 				pid, err := strconv.Atoi(strings.TrimPrefix(e.Line, prefix))
 				if err != nil || pid <= 0 {

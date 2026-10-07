@@ -22,7 +22,7 @@ func sessionCommand(a Artifact) *exec.Cmd {
 
 func schedulingFor(a Artifact) string {
 	if strings.HasSuffix(strings.ToLower(a.Path), ".exe") {
-		return "Windows job affinity 0xa000 (13,15), Idle priority, kill on bridge close"
+		return "Windows job affinity 0xffff (0-15), Idle priority, kill on bridge close"
 	}
-	return "inherited taskset 13,15, nice 19; GOMAXPROCS=1"
+	return "inherited taskset 0-15, nice 19; GOMAXPROCS=1"
 }

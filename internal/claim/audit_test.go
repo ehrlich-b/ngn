@@ -183,13 +183,13 @@ func TestAuditWindowsSchedulingReceipt(t *testing.T) {
 	if e := validateSession(s, identity); e == nil {
 		t.Fatal("Windows session without actual affinity receipt admitted")
 	}
-	s.Events = append(s.Events[:8], Event{8, "stderr", "NGN claimbridge affinity 0xa000 priority 0x40 pid 42"}, Event{9, "stdin", "quit"})
+	s.Events = append(s.Events[:8], Event{8, "stderr", "NGN claimbridge affinity 0xffff priority 0x40 pid 42"}, Event{9, "stdin", "quit"})
 	if e := validateSession(s, identity); e != nil {
 		t.Fatalf("valid Windows affinity receipt: %v", e)
 	}
-	s.Events[8].Line = "NGN claimbridge affinity 0xffff priority 0x40 pid 42"
+	s.Events[8].Line = "NGN claimbridge affinity 0xa000 priority 0x40 pid 42"
 	if e := validateSession(s, identity); e == nil {
-		t.Fatal("unrestricted Windows affinity admitted")
+		t.Fatal("wrong Windows affinity admitted")
 	}
 }
 
@@ -206,7 +206,7 @@ func TestAuditRejectsOwnRecoveredPanicAndUCIErrors(t *testing.T) {
 			}
 		})
 	}
-	for _, line := range []string{"", "info string eval backend ngnn1 score_cp 0", "info string threads configured 1 effective 1", "NGN claimbridge affinity 0xa000 priority 0x40 pid 42"} {
+	for _, line := range []string{"", "info string eval backend ngnn1 score_cp 0", "info string threads configured 1 effective 1", "NGN claimbridge affinity 0xffff priority 0x40 pid 42"} {
 		if engineError(line) {
 			t.Fatalf("successful startup/probe considered error: %q", line)
 		}
