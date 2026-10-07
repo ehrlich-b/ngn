@@ -1880,10 +1880,12 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			continue
 		}
 
-		// Check time before evaluating each move (now cheap to call)
+		// Check time before evaluating each move (now cheap to call). A stopped node
+		// returns like every other stop site: its partial result must not reach the
+		// TT or correction history.
 		if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(depth) {
 			info.Stopped = true
-			break
+			return stoppedSearchScore
 		}
 
 		// Futility pruning - skip quiet moves if position is hopeless (but never prune
