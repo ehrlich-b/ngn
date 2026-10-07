@@ -149,7 +149,10 @@ def run(root, stage, command, env=None, timeout=None):
             process.wait()
             ACTIVE_GROUP = None
     receipt = dict(stage=stage, command=command, wall_seconds=time.monotonic() - started,
-                   log_sha256=sha(log), returncode=process.returncode)
+                   log_sha256=sha(log), returncode=process.returncode,
+                   environment={key:(env or os.environ).get(key) for key in
+                                ('GOAMD64','GOMAXPROCS','GOTOOLCHAIN','GOPROXY','OMP_NUM_THREADS',
+                                 'MKL_NUM_THREADS','OPENBLAS_NUM_THREADS','PYTHONPATH','WSL_INTEROP','WSLENV')})
     with (root / 'commands.jsonl').open('a') as stream:
         stream.write(json.dumps(receipt) + '\n')
     return receipt
@@ -322,7 +325,15 @@ def train_gate(root, epochs, positions, hidden):
                '--epochs',str(epochs),'--positions-per-epoch',str(positions),'--wdl','.75','--k','400',
                '--decay','cosine','--min-lr-ratio','.1','--threads','2','--precision','bf16',
                '--seed','20261006','--keep-best-only']
-    write(root/'plan.json',dict(command=command,training_budget='about 3 GPU hours',gate_games=400,
+    import platform
+    metadata=dict(commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+                  script_sha256=sha(Path(__file__)),host=platform.node(),os=platform.platform(),
+                  go_version=subprocess.check_output([GO,'version'],text=True).strip(),
+                  torch_version=torch.__version__,gpu=torch.cuda.get_device_name(),
+                  cpu_count=os.cpu_count(),started_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                  corpus_digest_verified=json.loads((root/'corpus-digest.json').read_text()))
+    write(root/('metadata-'+name+'.json'),metadata)
+    write(root/('plan-'+name+'.json'),dict(command=command,training_budget='about 3 GPU hours',gate_games=400,
              gate_rule='paired CI lower > 0 with zero anomalies',deadline_utc='2026-10-07T10:55:00Z',
              corpus_sha256_from_manifest=json.loads(CORPUS.with_name('manifest.json').read_text())['train']['sha256']))
     timing = run(root,'train-'+name,command,env,14400)
