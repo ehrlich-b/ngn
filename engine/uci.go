@@ -122,6 +122,7 @@ type UCIEngine struct {
 	startupOwnBook          bool
 	researchEvaluatorLocked bool
 	ownBook                 bool
+	embeddedNet             *NGNN1Network
 }
 
 const defaultUCIMoveOverheadMilliseconds = 100
@@ -169,7 +170,7 @@ func NewUCIEngine() *UCIEngine {
 		searcher:                NewSearchEngine(),
 		debugMode:               false,
 		engineName:              "ngn",
-		engineAuthor:            "ngn team",
+		engineAuthor:            "Bryan Ehrlich",
 		version:                 "0.1.0",
 		timeManager:             newUCITimeManager(),
 		movesPlayed:             0,
@@ -373,6 +374,7 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.lifecycleMu.Lock()
 	name, version, author := uci.engineName, uci.version, uci.engineAuthor
 	evalFileDefault := uci.startupDefaults.file
+	useNNUEDefault := uci.startupDefaults.useNNUE
 	ownBookDefault := uci.startupOwnBook
 	uci.lifecycleMu.Unlock()
 	uci.sendUCIMessage(output, fmt.Sprintf("id name %s %s", name, version))
@@ -387,7 +389,7 @@ func (uci *UCIEngine) handleUCI(output io.Writer) {
 	uci.sendUCIMessage(output, "option name Move Overhead type spin default 100 min 0 max 5000")
 	uci.sendUCIMessage(output, fmt.Sprintf("option name OwnBook type check default %t", ownBookDefault))
 	uci.sendUCIMessage(output, fmt.Sprintf("option name EvalFile type string default %s", evalFileDefault))
-	uci.sendUCIMessage(output, "option name UseNNUE type check default false")
+	uci.sendUCIMessage(output, fmt.Sprintf("option name UseNNUE type check default %t", useNNUEDefault))
 
 	// Tunable search parameters (for SPSA / manual A/B; defaults == shipped values).
 	for _, p := range TunableSearchParams {

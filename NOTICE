@@ -1,5 +1,20 @@
 NGN source attribution and modification notices
 
+NGN 0.3.0 contents (2026-10-07)
+The 0.3.0 executable contains NGN code, the NGN-trained embedded network and the
+Go runtime/standard library (BSD-style, LICENSES/Go-LICENSE.txt). It contains no
+Zahak, Counter, Rodent, Stockfish, PeSTO, Polyglot or Bullet code or data; the
+sections below that name them describe earlier versions (<=0.2.0-rc.1) and are
+kept for historical copies. The network was trained by NGN's trainer/ (Python
+standard library, NumPy, PyTorch) on ODbL T80 data; see LICENSES/TRAINING-DATA.txt.
+Its 768-input SCReLU layout, 255/64/400 quantization and material output buckets
+are common published NNUE design choices, popularized by the Bullet and
+Stockfish communities. Search-technique acknowledgements are listed below.
+Outside the executable, scripts/counter55-oracle (GPL-3.0-or-later, build tag
+ngn_counter_oracle) and experiments/2026-10-01-rodent-pv-identity-probe (GPLv3,
+own NOTICE) are research tools that remain in the source tree.
+
+Historical record
 This notice records origins of code and tooling present in NGN 0.2.0-rc.1.
 It remains applicable to historical copies even after components are removed.
 The NGN source and model grant is GPL-3.0-only. That grant does not replace
