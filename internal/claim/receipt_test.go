@@ -282,3 +282,20 @@ func TestReceiptStaticProbeDistinguishesNNUEFormats(t *testing.T) {
 		}
 	}
 }
+
+func TestMaelstromUsesVerifiedExecutableDigest(t *testing.T) {
+	p, e := MakePlan("screen", Identity{}, Artifact{}, "/owned/openings.txt")
+	if e != nil {
+		t.Fatal(e)
+	}
+	if p.Anchors[1].Engine.SHA256 != MaelstromSHA {
+		t.Fatal("Maelstrom identity unresolved")
+	}
+	if e = validatePlan(p); e != nil {
+		t.Fatal(e)
+	}
+	p.Anchors[1].Engine.SHA256 = strings.Repeat("f", 64)
+	if e = validatePlan(p); e == nil {
+		t.Fatal("substituted Maelstrom executable admitted")
+	}
+}

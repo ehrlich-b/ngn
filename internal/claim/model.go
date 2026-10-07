@@ -13,6 +13,9 @@ import (
 
 const StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 const OpeningSHA = "974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222"
+
+// Verified by the zero-game identity receipt: UCI Maelstrom v3.3.0.
+const MaelstromSHA = "66ea969530d63f5904114079f518ba618b0deb4e269eb0c95d7496960379ea53"
 const Schema = "NGN-CLAIM-1"
 
 type Artifact struct {
@@ -37,7 +40,7 @@ type Anchor struct {
 func Anchors() []Anchor {
 	return []Anchor{
 		{Name: "Counter 3.8", Label: 2994, Engine: Artifact{"/mnt/c/Users/ehrli/ngn/repin/anchors/counter_38.exe", "d260174182ea10c5b902a8d25e217166f5b5b54dc4fa64c220b498acce6dec11"}},
-		{Name: "Maelstrom 3.3.0", Label: 3317, Engine: Artifact{Path: "/home/ehrli/nnue-owned-maelstrom-20260930-v2/maelstrom-3.3.0"}},
+		{Name: "Maelstrom 3.3.0", Label: 3317, Engine: Artifact{Path: "/home/ehrli/nnue-owned-maelstrom-20260930-v2/maelstrom-3.3.0", SHA256: MaelstromSHA}},
 		{Name: "Counter 5.5", Label: 3359, Engine: Artifact{"/home/ehrli/repos/ngn-next/output/go-opponent-preflight-20260906/counter-5.5-linux-amd64", "6c48fb52934d49d3774633e32f0b4fb4796b1e2c63925f24167ef0f0c0d761c8"}},
 	}
 }
