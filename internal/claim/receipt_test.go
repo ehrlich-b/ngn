@@ -241,3 +241,26 @@ func TestRecheckBindsEveryArtifactBeforeAndAfter(t *testing.T) {
 		t.Fatal("changed post-run artifact admitted")
 	}
 }
+
+func TestMatchGuardExcludesOwnWrappersAndRejectsForeignJobs(t *testing.T) {
+	ours := map[string]bool{"10": true, "11": true}
+	if e := foreignMatch("10 timeout 120s claimtool prepare\n11 claimtool prepare\n", ours); e != nil {
+		t.Fatal(e)
+	}
+	for _, job := range []string{"sprt", "cutechess-cli", "fastchess", "claimtool run", "timeout 120s claimtool prepare"} {
+		if e := foreignMatch("12 "+job, ours); e == nil {
+			t.Fatalf("foreign %s admitted", job)
+		}
+	}
+}
+
+func TestHostLoadRequiresFiniteNonnegativeBound(t *testing.T) {
+	for _, load := range []string{"", "NaN", "+Inf", "-1", "16.01"} {
+		if e := checkLoad(Host{Load: load}, 16); e == nil {
+			t.Fatalf("load %q admitted", load)
+		}
+	}
+	if e := checkLoad(Host{Load: "16.00 1 1"}, 16); e != nil {
+		t.Fatal(e)
+	}
+}

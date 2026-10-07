@@ -153,10 +153,33 @@ func NoOtherMatch() error {
 		}
 		return e
 	}
-	for _, l := range strings.Split(strings.TrimSpace(string(b)), "\n") {
-		f := strings.Fields(l)
-		if len(f) > 0 && f[0] != strconv.Itoa(os.Getpid()) {
-			return fmt.Errorf("other match running: %s", l)
+	// A timeout/taskset wrapper repeats our own command in its argv. Exclude
+	// our process ancestry, while retaining every other matching process.
+	ours := map[string]bool{}
+	for pid := os.Getpid(); pid > 0; {
+		ours[strconv.Itoa(pid)] = true
+		stat, err := os.ReadFile(fmt.Sprintf("/proc/%d/stat", pid))
+		if err != nil {
+			break
+		}
+		fields := strings.Fields(string(stat)[strings.LastIndex(string(stat), ")")+1:])
+		if len(fields) < 2 {
+			break
+		}
+		parent, err := strconv.Atoi(fields[1])
+		if err != nil || parent == pid {
+			break
+		}
+		pid = parent
+	}
+	return foreignMatch(string(b), ours)
+}
+
+func foreignMatch(output string, ours map[string]bool) error {
+	for _, line := range strings.Split(strings.TrimSpace(output), "\n") {
+		fields := strings.Fields(line)
+		if len(fields) > 0 && !ours[fields[0]] {
+			return fmt.Errorf("other match running: %s", line)
 		}
 	}
 	return nil
