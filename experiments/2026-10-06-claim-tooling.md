@@ -359,8 +359,19 @@ screen/claim evidence. The execution lock and all new artifacts are under
 Owned claim fixtures passed on restricted WSL before committing this revision,
 including new-anchor substitution rejection, fixed counts, strict boundaries,
 joint bootstrap, legal/terminal and Windows scheduling controls. Preparation
-log: `preparation-tests.log`. Full baseline checks, clean builds, both four-anchor
-dry runs and free-rig stability checks precede any screen launch. Bryan's
+log: `preparation-tests.log`. Clean Go1.25.5/v3 builds and both four-anchor
+dry runs passed at `d4110d5`; plans are `dry-screen-pool/dry-run.json` and
+`dry-confirmation-pool/dry-run.json`. Their counts are 40/80 indices, eight
+total game workers and labels 2994/3317/3359/3557. Full baseline checks and
+free-rig stability checks precede any screen launch. Bryan's
 October6 goal/overnight instructions and October7 task supply the screen and
 confirmation authorization recorded in v2; the older report's lack of run
 authorization describes the historical tooling-only task.
+
+The sequential `scripts/claim/run-queue.sh` admits confirmation only after the
+screen analysis and post-run hash recheck pass. The claimtool independently
+replays that screen again when admitting confirmation. Any operational error
+ends the queue and writes an immutable explicit NO CLAIM disposition; a failed
+statistical screen ends successfully without launching confirmation. There is
+no job deadline, score stop, replay, extension or sample pooling. The queue's
+shell syntax passed on restricted WSL before admission.
