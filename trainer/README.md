@@ -58,7 +58,9 @@ Scores/results and unused padding do not affect partitioning, so duplicate
 model inputs cannot cross training and holdout. Initialization scans the board
 bytes to count both partitions exactly and stores sparse indexes in RAM.
 Training and validation share the read-only maps; no full-corpus output is
-written. Every validation epoch visits all reserved rows. Archive data has no
+written. The finite holdout is cached lazily in RAM (32 bytes per reserved row)
+after its first read; training blocks remain a direct stream. Every validation
+epoch visits all reserved rows. Archive data has no
 NGNP flags/ply, so custom NGNP filters, `--record-counts` and
 `--validation-data` are rejected. Split metadata is stored in the checkpoint
 and compared during resume.
