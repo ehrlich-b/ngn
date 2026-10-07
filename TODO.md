@@ -1,4 +1,4 @@
-# NGN live state — 2026-10-05: independence goal
+# NGN live state — 2026-10-06: independence goal
 
 **Goal (user, stop-hook enforced): NGN over 3000 Elo with NO third-party scaffolding.**
 Banned (user, 2026-10-06): wholesale copying of other people's code or NNUE nets.
@@ -19,17 +19,23 @@ core + new HCE, plus:
   search constants replaced by placeholders — experiments/2026-10-05-indep-verification.md
 - node-identical speed (+20% HCE, +3% NNUE) — experiments/2026-10-05-own-speed.md
 
-Facts: clean HCE ~-413 Elo vs old derived main HCE (100-game orientation). Pilot
-net (1.33M HCE positions, 12 s training) = **+98 [+63,+135]** vs clean HCE at
-10+0.1 (200 games). NNUE NPS 1.6-1.8M vs HCE 1.2M.
+Accepted net1: NGNN2 H256/NB8, trained by NGN on gen0 HCE data; it beat the
+pilot by **+436.43 [387.74,500.53]** at 10+0.1. Three-anchor orientation is
+**2947.76 [2891.92,3003.60]**, without a >3000 claim. See
+[net1 gates](experiments/2026-10-06-net1-gates.md). The refinements runner exited
+after c1 training; its next Windows disk check failed, so no refinement gate
+ran and no net1b was selected. See [refinement audit](experiments/2026-10-06-net1-refinements.md).
 
 Ranked queue:
-1. gen0: bulk HCE self-play data (100M positions, ~3.2 GB) — **blocked on user
-   approval for detached multi-hour box jobs** (auto-mode denied the launch).
-2. net1: train H=256..512 on gen0, gate vs pilot net; then gen1 self-play with net1,
-   iterate generations.
-3. Absolute measurement: anchors that bracket 50% near 3000 (current set tops out at
-   Counter 3.8 = 2994 CCRL Blitz); claim requires lower 95% bound > 3000.
+1. T80: authorized direct-reader/training/gate experiment on the existing
+   2.374B-position archive, NGN-written reader/trainer and fresh H256/NB8
+   weights; compare with net1 under the fixed 400-game paired protocol.
+   WSL receipts `/home/ehrli/ngn-data/t80-20261006/`; stop by Oct 7 07:00 EDT.
+2. gen1: owned self-play with the best accepted net, then train and gate the next
+   generation. Finished gen0/gen0b data and its closed holdout remain available.
+3. Absolute measurement: continue the fixed anchor orientation; a >3000 claim
+   requires its separate claim protocol and lower 95% bound >3000. No claim
+   protocol games are authorized in the current T80 task.
 4. Retune placeholder search constants (80, 3/64) and NNUE-scale-sensitive margins
    by NGN games.
 
