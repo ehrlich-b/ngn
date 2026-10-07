@@ -19,26 +19,24 @@ core + new HCE, plus:
   search constants replaced by placeholders — experiments/2026-10-05-indep-verification.md
 - node-identical speed (+20% HCE, +3% NNUE) — experiments/2026-10-05-own-speed.md
 
-Accepted T80 H256/NB8: NGN-trained on the existing public corpus through the
-NGN-written direct reader; **+365.43 [323.30,417.50]** versus net1 at 10+0.1,
-400 games/200 pairs. Three-anchor orientation is
-**3350.81 [3298.39,3403.24]**, nominal match-only, without a claim-protocol result.
-Selected net: `/home/ehrli/ngn-data/t80-20261006/h256/best.nnue` (`a8a17c82…`).
+Accepted T80 H512/NB8: NGN-trained on the existing public corpus through the
+NGN-written direct reader. Primary H256 beat net1 **+365.43 [323.30,417.50]**;
+the sole H512 follow-up beat H256 **+74.97 [52.91,97.65]**. Both fixed gates
+used 10+0.1, 400 games/200 pairs and had zero anomalies. H512 three-anchor
+orientation is **3360.33 [3313.95,3406.71]**, four-anchor
+**3378.26 [3341.85,3414.67]**, nominal match-only, without a claim-protocol result.
+Selected net: `/home/ehrli/ngn-data/t80-20261006/h512/best.nnue` (`c6c12796…`).
 See [T80 evidence](experiments/2026-10-06-t80-net.md). The refinements runner exited
 after c1 training; its next Windows disk check failed, so no refinement gate
 ran and no net1b was selected. See [refinement audit](experiments/2026-10-06-net1-refinements.md).
 
 Ranked queue:
-1. Finish the one authorized T80 H512 follow-up against accepted H256; same
-   58×256M recipe and fixed 400-game paired gate. H256 is accepted; H512 is
-   not yet selected. WSL receipts `/home/ehrli/ngn-data/t80-20261006/`;
-   stop by Oct 7 07:00 EDT.
-2. gen1: owned self-play with the best accepted net, then train and gate the next
+1. gen1: owned self-play with accepted T80 H512, then train and gate the next
    generation. Finished gen0/gen0b data and its closed holdout remain available.
-3. Absolute measurement: continue the fixed anchor orientation; a >3000 claim
+2. Absolute measurement: a >3000 claim
    requires its separate claim protocol and lower 95% bound >3000. No claim
    protocol games are authorized in the current T80 task.
-4. Retune placeholder search constants (80, 3/64) and NNUE-scale-sensitive margins
+3. Retune placeholder search constants (80, 3/64) and NNUE-scale-sensitive margins
    by NGN games.
 
 Everything below is historical evidence from before the independence reset.
