@@ -104,6 +104,8 @@ class Archive:
     Each read validates labels and king metadata before yielding NGNP bytes.
     No file proportional to corpus size is written. Memory is O(block size +
     holdout records), about 9 MiB of sparse indexes for this 2.37B-row corpus.
+    Validation lazily retains its canonical rows in RAM (32 bytes per held-out
+    record), avoiding sparse corpus reads on subsequent validation passes.
     """
 
     def __init__(self, patterns, block_records=262144, seed=20261006, holdout_modulus=1024):
@@ -145,6 +147,9 @@ class Archive:
                               "contract": "identical occupied boards share partition; labels excluded"}
         if not self.count or not holdout_count:
             raise ValueError("Archive split has an empty training or holdout partition")
+        # Only the sparse finite holdout is cached. Views share this RAM-only
+        # list; the training path never populates it or caches corpus blocks.
+        self._holdout_cache = [None] * len(self.blocks)
 
     def holdout(self):
         view = object.__new__(Archive)
@@ -166,13 +171,24 @@ class Archive:
                 keep = np.ones(end - start, dtype=bool)
                 keep[selected] = False
                 indexes = np.flatnonzero(keep)
+                if not len(indexes):
+                    continue
+                if shuffle:
+                    rng.shuffle(indexes)
+                records = canonical_records(self.maps[shard][start + indexes])
             else:
-                indexes = selected.copy()
-            if not len(indexes):
-                continue
-            if shuffle:
-                rng.shuffle(indexes)
-            records = canonical_records(self.maps[shard][start + indexes])
+                if not len(selected):
+                    continue
+                # First materialize each block in source order. This makes
+                # later order/shuffle choices independent of cache warmup.
+                records = self._holdout_cache[block_id]
+                if records is None:
+                    records = canonical_records(self.maps[shard][start + selected])
+                    self._holdout_cache[block_id] = records
+                if shuffle:
+                    indexes = np.arange(len(records))
+                    rng.shuffle(indexes)
+                    records = records[indexes]
             if len(pending):
                 take = min(batch_size - len(pending), len(records))
                 pending = np.concatenate((pending, records[:take]))

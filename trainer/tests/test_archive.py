@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 import torch
@@ -161,6 +162,36 @@ class ArchiveTests(unittest.TestCase):
                                              capture_output=True, text=True, timeout=60)
             self.assertNotEqual(rejected_filter.returncode, 0)
             self.assertIn("lacks NGNP flags/ply", rejected_filter.stderr)
+
+    def test_holdout_cache_preserves_rows_and_avoids_source_on_later_passes(self):
+        source = random_records(256, np.random.default_rng(733))
+        records = np.asarray([archive_fixture(record) for record in source], dtype=ARCHIVE_DTYPE)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "archive.bf"
+            records.tofile(path)
+            train = Archive([str(path)], block_records=31, seed=992, holdout_modulus=4)
+            holdout = train.holdout()
+            first = np.concatenate(list(holdout.batches(19, 144, shuffle=False)))
+            self.assertEqual(len(first), holdout.count)
+            self.assertEqual(sum(block.nbytes for block in holdout._holdout_cache if block is not None),
+                             holdout.count * 32)
+            cold = Archive([str(path)], block_records=31, seed=992, holdout_modulus=4).holdout()
+            cold_shuffled = np.concatenate(list(cold.batches(19, 144, shuffle=True)))
+            # A second view shares the same cache. Removing all source maps and
+            # making conversion fail proves later validation never rereads it.
+            second_view = train.holdout()
+            second_view.maps = None
+            with patch("trainer.archive.canonical_records", side_effect=AssertionError("source conversion")):
+                second = np.concatenate(list(second_view.batches(19, 144, shuffle=False)))
+                shuffled = np.concatenate(list(second_view.batches(19, 144, shuffle=True)))
+                repeated = np.concatenate(list(second_view.batches(19, 144, shuffle=True)))
+                np.testing.assert_array_equal(first, second)
+                np.testing.assert_array_equal(cold_shuffled, shuffled)
+                np.testing.assert_array_equal(shuffled, repeated)
+                self.assertEqual({bytes(row) for row in first}, {bytes(row) for row in shuffled})
+                # Training still streams/converts records instead of caching.
+                with self.assertRaisesRegex(AssertionError, "source conversion"):
+                    next(train.batches(19, 144, shuffle=False))
 
 
 if __name__ == "__main__":
