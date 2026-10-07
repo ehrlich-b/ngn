@@ -16,7 +16,7 @@ const OpeningSHA = "974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b
 
 // Verified by the zero-game identity receipt: UCI Maelstrom v3.3.0.
 const MaelstromSHA = "66ea969530d63f5904114079f518ba618b0deb4e269eb0c95d7496960379ea53"
-const Schema = "NGN-CLAIM-1"
+const Schema = "NGN-CLAIM-2"
 
 type Artifact struct {
 	Path   string
@@ -85,6 +85,7 @@ type Ply struct {
 }
 type Game struct {
 	Schema, ID, PairID, Anchor, CandidateColor string
+	AttemptID, StartedUTC, EndedUTC            string
 	Opening                                    Opening
 	BaseNS, IncrementNS                        int64
 	Cap                                        int

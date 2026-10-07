@@ -19,8 +19,8 @@ func fixtureSession(name string) SessionRecord {
 func fixtureGame(t *testing.T, opening, played []string) (Game, Receipt, Opening) {
 	t.Helper()
 	o := Opening{Index: 0, FEN: StartFEN, History: append([]string{}, opening...), Line: strings.Join(opening, " ")}
-	r := Receipt{Plan: Plan{BaseNS: 120e9, IncrementNS: 1e9, Cap: 400}, Probes: map[string]SessionRecord{}, Selected: map[string]map[string]string{}}
-	g := Game{Schema: Schema, ID: "fixture-00-white", PairID: "fixture-00", Anchor: "fixture", CandidateColor: "white", Opening: o, BaseNS: r.Plan.BaseNS, IncrementNS: r.Plan.IncrementNS, Cap: 400, Candidate: fixtureSession("candidate"), Opponent: fixtureSession("fixture"), Plies: []Ply{}}
+	r := Receipt{AttemptID: strings.Repeat("c", 32), CreatedUTC: "2026-10-06T00:00:00Z", Plan: Plan{BaseNS: 120e9, IncrementNS: 1e9, Cap: 400}, Probes: map[string]SessionRecord{}, Selected: map[string]map[string]string{}}
+	g := Game{AttemptID: r.AttemptID, StartedUTC: "2026-10-06T00:00:01Z", EndedUTC: "2026-10-06T00:00:02Z", Schema: Schema, ID: "fixture-00-white", PairID: "fixture-00", Anchor: "fixture", CandidateColor: "white", Opening: o, BaseNS: r.Plan.BaseNS, IncrementNS: r.Plan.IncrementNS, Cap: 400, Candidate: fixtureSession("candidate"), Opponent: fixtureSession("fixture"), Plies: []Ply{}}
 	r.Probes["candidate"] = g.Candidate
 	r.Probes["fixture"] = g.Opponent
 	r.Selected["candidate"] = g.Candidate.Selected
@@ -209,6 +209,25 @@ func TestAuditRejectsOwnRecoveredPanicAndUCIErrors(t *testing.T) {
 	for _, line := range []string{"", "info string eval backend ngnn1 score_cp 0", "info string threads configured 1 effective 1", "NGN claimbridge affinity 0xa000 priority 0x40 pid 42"} {
 		if engineError(line) {
 			t.Fatalf("successful startup/probe considered error: %q", line)
+		}
+	}
+}
+
+func TestAuditRejectsCrossAttemptAndPriorGameRecords(t *testing.T) {
+	for _, change := range []func(*Game){
+		func(g *Game) { g.AttemptID = strings.Repeat("d", 32) },
+		func(g *Game) { g.AttemptID = "" },
+		func(g *Game) { g.StartedUTC = "2026-10-05T23:59:59Z" },
+		func(g *Game) { g.EndedUTC = "" },
+		func(g *Game) { g.EndedUTC = "2026-10-06T00:00:00Z" },
+	} {
+		g, r, o := fixtureGame(t, nil, []string{"f2f3", "e7e5", "g2g4", "d8h4"})
+		if e := AuditGame(g, r, o); e != nil {
+			t.Fatal(e)
+		}
+		change(&g)
+		if e := AuditGame(g, r, o); e == nil {
+			t.Fatal("mixed/older/incomplete attempt record admitted")
 		}
 	}
 }

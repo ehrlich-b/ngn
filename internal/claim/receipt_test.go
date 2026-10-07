@@ -80,7 +80,7 @@ func receiptFixture(t *testing.T) Receipt {
 		t.Fatal(e)
 	}
 	host := Host{Hostname: "fixture", OS: "linux", Kernel: "fixture kernel", CPUStatus: "13,15", Nice: "19", Load: "0.01 0.02 0.03 1/20 1", Scheduling: "fixture scheduling", AtUTC: "2026-10-06T00:00:00Z"}
-	r := Receipt{Schema: Schema, CreatedUTC: "2026-10-06T00:00:00Z", Plan: p, ToolSourceRoot: "/owned/source", ToolSourceCommit: strings.Repeat("b", 40), ToolGoVersion: "go1.25.5", ToolBuildArgv: []string{"/usr/local/go/bin/go", "build", "-p", "2", "-o", "/owned/claimtool", "./cmd/claimtool"}, SourceClean: true, CandidateSourceClean: true, NetFormat: "HCE", OpeningCount: 80, FrozenOpenings: Artifact{Path: "/owned/first-80-openings.txt", SHA256: sha}, Host: host, AfterClockHost: host, Probes: map[string]SessionRecord{}, Selected: map[string]map[string]string{}}
+	r := Receipt{AttemptID: strings.Repeat("c", 32), Schema: Schema, CreatedUTC: "2026-10-06T00:00:00Z", Plan: p, ToolSourceRoot: "/owned/source", ToolSourceCommit: strings.Repeat("b", 40), ToolGoVersion: "go1.25.5", ToolBuildArgv: []string{"/usr/local/go/bin/go", "build", "-p", "2", "-o", "/owned/claimtool", "./cmd/claimtool"}, SourceClean: true, CandidateSourceClean: true, NetFormat: "HCE", OpeningCount: 80, FrozenOpenings: Artifact{Path: "/owned/first-80-openings.txt", SHA256: sha}, Host: host, AfterClockHost: host, Probes: map[string]SessionRecord{}, Selected: map[string]map[string]string{}}
 	r.Probes["candidate"] = receiptFixtureSession(id.Engine, &id, true, r.NetFormat)
 	r.Selected["candidate"] = r.Probes["candidate"].Selected
 	for _, a := range p.Anchors {
@@ -113,6 +113,7 @@ func TestReceiptRejectsChangedClockCoverageAndIdentity(t *testing.T) {
 		name   string
 		change func(*Receipt)
 	}{
+		{"missing-attempt", func(r *Receipt) { r.AttemptID = "" }},
 		{"wrong-increment", func(r *Receipt) { r.ClockCheck[0].AfterNS -= r.Plan.IncrementNS }},
 		{"missing-role", func(r *Receipt) { r.ClockCheck = r.ClockCheck[:1] }},
 		{"duplicate-role", func(r *Receipt) { r.ClockCheck[1].Role = "A" }},
