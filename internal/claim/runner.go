@@ -171,6 +171,13 @@ func Run(receiptPath, dir string) error {
 	if e := NoOtherMatch(); e != nil {
 		return e
 	}
+	host, e := HostNow()
+	if e != nil {
+		return e
+	}
+	if e = checkLoad(host, r.Plan.MaxLoad); e != nil {
+		return e
+	}
 	if e := os.Mkdir(dir, 0755); e != nil {
 		return e
 	}
