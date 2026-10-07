@@ -2,11 +2,50 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"strings"
 	"testing"
+
+	"github.com/ehrlich-b/ngn/engine"
 )
 
+func useProfile(t *testing.T, name string) {
+	profile := releaseProfile
+	t.Cleanup(func() { releaseProfile = profile })
+	releaseProfile = name
+}
+
+func TestRunDefaultEmbedsNNUEAndKeepsItForEchoedDefaults(t *testing.T) {
+	var output, errorOutput bytes.Buffer
+	input := "uci\neval\nsetoption name EvalFile value <embedded>\nsetoption name EvalFile value <empty>\nsetoption name EvalFile value\nsetoption name UseNNUE value true\nucinewgame\neval\n" +
+		"setoption name EvalFile value missing.nnue\neval\nsetoption name UseNNUE value false\neval\nquit\n"
+	if exit := run(nil, strings.NewReader(input), &output, &errorOutput); exit != 0 || errorOutput.Len() != 0 {
+		t.Fatalf("NNUE startup exit=%d stderr=%q", exit, errorOutput.String())
+	}
+	for _, option := range []string{"option name EvalFile type string default <embedded>\n", "option name UseNNUE type check default true\n",
+		"option name OwnBook type check default false\n", "id author Bryan Ehrlich\n"} {
+		if !strings.Contains(output.String(), option) {
+			t.Fatalf("missing %q in %s", option, output.String())
+		}
+	}
+	if got := strings.Count(output.String(), "info string eval backend ngnn2 "); got != 3 {
+		t.Fatalf("embedded network evaluations=%d, want 3: %s", got, output.String())
+	}
+	if !strings.Contains(output.String(), "using embedded network") || strings.Count(output.String(), "info string eval backend hce ") != 1 {
+		t.Fatalf("missing-file fallback or UseNNUE=false wrong: %s", output.String())
+	}
+}
+
+func TestEmbeddedNetDigest(t *testing.T) {
+	sum := sha256.Sum256(engine.DefaultNetBytes())
+	if hex.EncodeToString(sum[:]) != engine.DefaultNetSHA256 {
+		t.Fatalf("embedded network digest %x, want %s", sum, engine.DefaultNetSHA256)
+	}
+}
+
 func TestRunDefaultHCEIgnoresAdjacentModelsAndOffersNGNN1(t *testing.T) {
+	useProfile(t, "hce")
 	var output, errorOutput bytes.Buffer
 	input := "uci\neval\nsetoption name EvalFile value ngn.nnue\nsetoption name EvalBackend value ngn-v1\nucinewgame\neval\nquit\n"
 	if exit := run(nil, strings.NewReader(input), &output, &errorOutput); exit != 0 || errorOutput.Len() != 0 {
@@ -31,6 +70,7 @@ func TestRunDefaultHCEIgnoresAdjacentModelsAndOffersNGNN1(t *testing.T) {
 }
 
 func TestRunHCERejectsExplicitExternalEvaluatorBeforeUCI(t *testing.T) {
+	useProfile(t, "hce")
 	for _, args := range [][]string{
 		{"-eval-backend", "ngn-v1"},
 		{"-eval-backend", "counter-5.5", "-eval-file", "missing.nn"},

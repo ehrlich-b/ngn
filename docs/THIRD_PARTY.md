@@ -1,7 +1,12 @@
-Current binary note (2026-10-05): this inventory preserves attribution for past
-versions. The present HCE binary has no foreign evaluator, PeSTO tables,
-Polyglot random constants or external book loading. Stockfish subprocess
-support is tooling-only. See README.md for the current dependency boundary.
+Current binary note (NGN 0.3.0, 2026-10-07): this inventory preserves
+attribution for past versions; the table below describes 0.2.0-rc.1, not 0.3.0.
+The 0.3.0 executable contains NGN code, the NGN-trained embedded network
+(`c6c12796…`) and the Go runtime only: no foreign evaluator or network, PeSTO
+tables, Polyglot constants, Zahak-derived files or external book loading. Its
+training data and alteration method are described in
+[LICENSES/TRAINING-DATA.txt](../LICENSES/TRAINING-DATA.txt); the license grant is
+[LICENSE-GRANT.txt](../LICENSE-GRANT.txt). Stockfish subprocess support is
+tooling-only. See the top of NOTICE for the 0.3.0 summary.
 
 # Third-party provenance for release preparation
 

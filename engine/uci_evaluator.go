@@ -8,7 +8,10 @@ import (
 
 const uciEvaluatorHCE = "hce"
 
-type uciEvaluatorDefaults struct{ backend, file string }
+type uciEvaluatorDefaults struct {
+	backend, file string
+	useNNUE       bool
+}
 type uciEvaluatorConfig struct {
 	backend, file string
 	useNNUE       bool
@@ -43,6 +46,26 @@ func (uci *UCIEngine) ConfigureStartupEvaluator(backend, path string) error {
 	return nil
 }
 
+// ConfigureEmbeddedNNUEStartup selects the embedded network before Run. An empty,
+// <empty> or <embedded> EvalFile reselects it, so GUIs that echo option defaults
+// keep the network; UseNNUE=false still selects the HCE.
+func (uci *UCIEngine) ConfigureEmbeddedNNUEStartup() error {
+	network, err := LoadDefaultNet()
+	if err != nil {
+		return err
+	}
+	if err := uci.searcher.SelectNGNN1Evaluator(network); err != nil {
+		return err
+	}
+	uci.lifecycleMu.Lock()
+	uci.evaluatorConfig = uciEvaluatorConfig{backend: uciEvaluatorHCE, file: DefaultNetName, useNNUE: true, network: network}
+	uci.startupDefaults = uciEvaluatorDefaults{backend: uciEvaluatorHCE, file: DefaultNetName, useNNUE: true}
+	uci.embeddedNet = network
+	uci.researchEvaluatorLocked = true
+	uci.lifecycleMu.Unlock()
+	return nil
+}
+
 func (uci *UCIEngine) evaluatorConfigSnapshot() uciEvaluatorConfig {
 	uci.lifecycleMu.Lock()
 	defer uci.lifecycleMu.Unlock()
@@ -66,10 +89,18 @@ func (uci *UCIEngine) handleEvalFileOption(value string, output io.Writer) {
 	if strings.EqualFold(path, "<empty>") {
 		path = ""
 	}
+	uci.lifecycleMu.Lock()
+	embedded := uci.embeddedNet
+	uci.lifecycleMu.Unlock()
 	var network *NGNN1Network
 	var err error
-	if path != "" {
+	if embedded != nil && (path == "" || strings.EqualFold(path, DefaultNetName)) {
+		network, path = embedded, DefaultNetName
+	} else if path != "" {
 		network, err = LoadNGNN1(path)
+		if err != nil && embedded != nil {
+			network, path = embedded, DefaultNetName
+		}
 	}
 	uci.lifecycleMu.Lock()
 	uci.evaluatorConfig.file = path
@@ -77,7 +108,9 @@ func (uci *UCIEngine) handleEvalFileOption(value string, output io.Writer) {
 	config := uci.evaluatorConfig
 	uci.lifecycleMu.Unlock()
 	uci.applyNNUEConfig(config, output)
-	if err != nil {
+	if err != nil && embedded != nil {
+		uci.sendEvalOptionError(output, "%v; using embedded network", err)
+	} else if err != nil {
 		uci.sendEvalOptionError(output, "%v; using hce", err)
 	}
 }
