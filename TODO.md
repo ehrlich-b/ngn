@@ -1,4 +1,4 @@
-# NGN live state — 2026-10-06: independence goal
+# NGN live state — 2026-10-07: prospective >3000 claim run
 
 **Goal (user, stop-hook enforced): NGN over 3000 Elo with NO third-party scaffolding.**
 Banned (user, 2026-10-06): wholesale copying of other people's code or NNUE nets.
@@ -7,7 +7,8 @@ data. Published ideas are fine; third-party engines appear only as measurement
 opponents/oracles outside the binary. Work is done by Sol sub-agents (gpt-6.1-sol via wingthing); all
 execution on the WSL box; the Mac runs nothing.
 
-Integration branch: `indep/main` (this branch). It contains the Oct 1 independent
+Integration source: `indep/main`; claim work is local `claim/run`, merged from
+accepted T80 commit `36a3657`. Nothing is pushed from this claim task. It contains the Oct 1 independent
 core + new HCE, plus:
 - own datagen (`cmd/datagen`, `internal/ngnp`, NGNP1 32-byte records, `-net` for NNUE
   self-play; ~8M positions/hour on 14 workers) — experiments/2026-10-05-own-datagen.md
@@ -31,13 +32,17 @@ after c1 training; its next Windows disk check failed, so no refinement gate
 ran and no net1b was selected. See [refinement audit](experiments/2026-10-06-net1-refinements.md).
 
 Ranked queue:
-1. gen1: owned self-play with accepted T80 H512, then train and gate the next
-   generation. Finished gen0/gen0b data and its closed holdout remain available.
-2. Absolute measurement: a >3000 claim
-   requires its separate claim protocol and lower 95% bound >3000. No claim
-   protocol games are authorized in the current T80 task.
-3. Retune placeholder search constants (80, 3/64) and NNUE-scale-sensitive margins
-   by NGN games.
+1. Complete the explicitly authorized [v2 claim protocol](experiments/2026-10-07-3000-claim-protocol-v2.md):
+   unchanged Counter3.8/2994, Maelstrom3.3/3317, Counter5.5/3359 plus official
+   Viridithas10/3557 CCRL Blitz1CPU. Pool committed at `d4110d5` before any
+   claim game. T80 worker exited 09:27:15UTC; clean build, identity/provenance,
+   stability checks and screen precede the conditional 120+1 confirmation.
+   Candidate is gated H512/NB8, net `c6c127966d1cd984…`; receipts under
+   `/home/ehrli/ngn-data/claim-run-20261007/`. Bryan's October6 goal/overnight
+   instructions authorize both fixed samples. No claim games have started.
+2. After the claim result, gen1 owned self-play with accepted T80 H512, then
+   train and gate the next generation; retain finished gen0/gen0b and holdout.
+3. Retune placeholder search constants by NGN games.
 
 Everything below is historical evidence from before the independence reset.
 
