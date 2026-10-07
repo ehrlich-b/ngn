@@ -514,7 +514,7 @@ func validateProbe(s SessionRecord, candidate bool, format string) error {
 	effective := false
 	backend := "hce"
 	if format != "HCE" {
-		backend = "ngnn1"
+		backend = strings.ToLower(format)
 	}
 	for _, ev := range s.Events {
 		if ev.Stream == "stdout" {
@@ -527,7 +527,7 @@ func validateProbe(s SessionRecord, candidate bool, format string) error {
 		}
 	}
 	if candidate && (evals != 2 || !effective) {
-		return fmt.Errorf("unproved evaluator/threads")
+		return fmt.Errorf("unproved evaluator/threads: expected %s, probes %d, effective Threads=1 %t", backend, evals, effective)
 	}
 	return nil
 }
@@ -948,6 +948,7 @@ func CreateReceipt(p Plan, dir, sourceRoot string, toolBuild []string, screenRec
 		WindowsBridge = p.WindowsBridge
 	}
 	if e = ValidateReceipt(r); e != nil {
+		WriteJSON(filepath.Join(dir, "preflight-failure.json"), map[string]any{"error": e.Error(), "receipt": r})
 		return r, e
 	}
 	if e = Recheck(r); e != nil {
