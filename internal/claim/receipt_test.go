@@ -79,7 +79,7 @@ func receiptFixture(t *testing.T) Receipt {
 	if e != nil {
 		t.Fatal(e)
 	}
-	host := Host{Hostname: "fixture", OS: "linux", Kernel: "fixture kernel", CPUStatus: "13,15", Nice: "19", Load: "0.01 0.02 0.03 1/20 1", Scheduling: "fixture scheduling", AtUTC: "2026-10-06T00:00:00Z"}
+	host := Host{Hostname: "fixture", OS: "linux", Kernel: "fixture kernel", CPUStatus: "0-15", Nice: "19", Load: "0.01 0.02 0.03 1/20 1", Scheduling: "fixture scheduling", AtUTC: "2026-10-06T00:00:00Z"}
 	r := Receipt{AttemptID: strings.Repeat("c", 32), Schema: Schema, CreatedUTC: "2026-10-06T00:00:00Z", Plan: p, ToolSourceRoot: "/owned/source", ToolSourceCommit: strings.Repeat("b", 40), ToolGoVersion: "go1.25.5", ToolBuildArgv: []string{"/usr/local/go/bin/go", "build", "-p", "2", "-o", "/owned/claimtool", "./cmd/claimtool"}, SourceClean: true, CandidateSourceClean: true, NetFormat: "HCE", OpeningCount: 80, FrozenOpenings: Artifact{Path: "/owned/first-80-openings.txt", SHA256: sha}, Host: host, AfterClockHost: host, Probes: map[string]SessionRecord{}, Selected: map[string]map[string]string{}}
 	r.Probes["candidate"] = receiptFixtureSession(id.Engine, &id, true, r.NetFormat)
 	r.Selected["candidate"] = r.Probes["candidate"].Selected
@@ -248,7 +248,7 @@ func TestMatchGuardExcludesOwnWrappersAndRejectsForeignJobs(t *testing.T) {
 	if e := foreignMatch("10 timeout 120s claimtool prepare\n11 claimtool prepare\n", ours); e != nil {
 		t.Fatal(e)
 	}
-	for _, job := range []string{"sprt", "cutechess-cli", "fastchess", "claimtool run", "timeout 120s claimtool prepare"} {
+	for _, job := range []string{"sprt", "cutechess-cli", "fastchess", "trainer.train", "datagen", "claimtool run", "timeout 120s claimtool prepare"} {
 		if e := foreignMatch("12 "+job, ours); e == nil {
 			t.Fatalf("foreign %s admitted", job)
 		}
@@ -298,5 +298,21 @@ func TestMaelstromUsesVerifiedExecutableDigest(t *testing.T) {
 	p.Anchors[1].Engine.SHA256 = strings.Repeat("f", 64)
 	if e = validatePlan(p); e == nil {
 		t.Fatal("substituted Maelstrom executable admitted")
+	}
+}
+
+func TestRevisedPoolPinsNewAnchorAndFixedSamples(t *testing.T) {
+	for _, mode := range []string{"screen", "confirmation"} {
+		p, e := MakePlan(mode, Identity{}, Artifact{}, "/owned/openings.txt")
+		if e != nil || len(p.Anchors) != 4 || p.Anchors[3].Label != 3557 || p.Anchors[3].Engine.SHA256 != ViridithasSHA {
+			t.Fatalf("bad v2 pool: %+v %v", p, e)
+		}
+		if p.Concurrency != 8 || p.Cap != 400 || (mode == "screen" && p.Count != 40) || (mode == "confirmation" && p.Count != 80) {
+			t.Fatal("changed sample")
+		}
+		p.Anchors[3].Engine.SHA256 = strings.Repeat("f", 64)
+		if validatePlan(p) == nil {
+			t.Fatal("substituted new anchor admitted")
+		}
 	}
 }

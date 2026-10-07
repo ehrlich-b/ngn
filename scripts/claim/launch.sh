@@ -38,7 +38,9 @@ if [[ $mode == confirmation ]]; then
   args+=(--screen-receipt "$screen_receipt" --screen-analysis "$screen_analysis")
 fi
 if $dry; then args+=(--dry-run); fi
-pinned=(taskset -c 13,15 nice -n 19)
+if $dry; then pinned=(taskset -c 13,15 nice -n 19)
+else pinned=(taskset -c 0-15 nice -n 19)
+fi
 "${pinned[@]}" "$tool" "${args[@]}"
 if $dry; then exit 0; fi
 # Receipt and external digest seal now exist; the game directory cannot exist.

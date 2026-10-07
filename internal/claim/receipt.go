@@ -117,7 +117,7 @@ func buildIdentity(a Artifact, commit, version string, argv []string) error {
 	return Check(a)
 }
 func HostNow() (Host, error) {
-	h := Host{OS: runtime.GOOS, AtUTC: time.Now().UTC().Format(time.RFC3339Nano), Scheduling: "taskset -c 13,15 nice -n 19; engines GOMAXPROCS=1; Windows anchors via pinned Idle bridge"}
+	h := Host{OS: runtime.GOOS, AtUTC: time.Now().UTC().Format(time.RFC3339Nano)}
 	h.Hostname, _ = os.Hostname()
 	h.Kernel, _ = command("uname", "-a")
 	b, e := os.ReadFile("/proc/self/status")
@@ -143,13 +143,16 @@ func HostNow() (Host, error) {
 		return h, e
 	}
 	h.Load = strings.TrimSpace(string(b))
-	if h.OS != "linux" || h.CPUStatus != "13,15" || h.Nice != "19" {
-		return h, fmt.Errorf("need Linux CPU 13,15 and nice 19, got %s/%s/%s", h.OS, h.CPUStatus, h.Nice)
+	h.Scheduling = "taskset " + h.CPUStatus + " nice 19; engines GOMAXPROCS=1; Windows anchors via pinned Idle bridge"
+	// The restricted mask admits editing/build/dry-run preparation only.
+	// A live receipt requires the exclusive rig below.
+	if h.OS != "linux" || (h.CPUStatus != "13,15" && h.CPUStatus != "0-15") || h.Nice != "19" {
+		return h, fmt.Errorf("need Linux CPU 13,15 (preparation) or 0-15 (exclusive rig), nice 19, got %s/%s/%s", h.OS, h.CPUStatus, h.Nice)
 	}
 	return h, nil
 }
 func NoOtherMatch() error {
-	b, e := exec.Command("pgrep", "-af", "sprt|cutechess|fastchess|claimtool (run|prepare)").Output()
+	b, e := exec.Command("pgrep", "-af", "sprt|cutechess|fastchess|trainer\\.train|datagen|claimtool (run|prepare)").Output()
 	if e != nil {
 		if x, ok := e.(*exec.ExitError); ok && x.ExitCode() == 1 {
 			return nil
@@ -207,7 +210,16 @@ func MakePlan(mode string, id Identity, runner Artifact, openingPath string) (Pl
 		p.Concurrency = 1
 		p.BaseNS = 1e9
 		p.IncrementNS = 2e7
-		p.Anchors = p.Anchors[2:]
+		p.Anchors = p.Anchors[2:3]
+	case "stability-screen", "stability-confirmation":
+		p.Count = 2
+		p.BaseNS = 10e9
+		p.IncrementNS = 1e8
+		if mode == "stability-confirmation" {
+			p.BaseNS = 120e9
+			p.IncrementNS = 1e9
+		}
+		p.Anchors = p.Anchors[3:4]
 	default:
 		return p, fmt.Errorf("unknown mode")
 	}
@@ -309,7 +321,7 @@ func ValidateReceipt(r Receipt) error {
 			return fmt.Errorf("missing %s provenance", role)
 		}
 	}
-	if r.Host.CPUStatus != "13,15" || r.Host.Nice != "19" || r.AfterClockHost.CPUStatus != "13,15" || r.AfterClockHost.Nice != "19" {
+	if r.Host.CPUStatus != "0-15" || r.Host.Nice != "19" || r.AfterClockHost.CPUStatus != "0-15" || r.AfterClockHost.Nice != "19" {
 		return fmt.Errorf("unproved scheduling")
 	}
 	for _, h := range []Host{r.Host, r.AfterClockHost} {
@@ -349,7 +361,7 @@ func ValidateReceipt(r Receipt) error {
 		if strings.HasSuffix(strings.ToLower(a.Path), ".exe") {
 			found := false
 			for _, ev := range s.Events {
-				if ev.Stream == "stderr" && strings.HasPrefix(ev.Line, "NGN claimbridge affinity 0xa000 priority 0x40 pid ") {
+				if ev.Stream == "stderr" && strings.HasPrefix(ev.Line, "NGN claimbridge affinity 0xffff priority 0x40 pid ") {
 					found = true
 				}
 			}
@@ -821,6 +833,9 @@ func CreateReceipt(p Plan, dir, sourceRoot string, toolBuild []string, screenRec
 	r.Host, e = HostNow()
 	if e != nil {
 		return r, e
+	}
+	if r.Host.CPUStatus != "0-15" {
+		return r, fmt.Errorf("live receipt requires exclusive rig CPU 0-15 after T80 worker exits")
 	}
 	if e = checkLoad(r.Host, p.MaxLoad); e != nil {
 		return r, e

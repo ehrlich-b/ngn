@@ -36,7 +36,7 @@ func run() error {
 	}
 	k := syscall.NewLazyDLL("kernel32.dll")
 	self, _, _ := k.NewProc("GetCurrentProcess").Call()
-	ok, _, e := k.NewProc("SetProcessAffinityMask").Call(self, 0xa000)
+	ok, _, e := k.NewProc("SetProcessAffinityMask").Call(self, 0xffff)
 	if ok == 0 {
 		return fmt.Errorf("bridge affinity: %w", e)
 	}
@@ -50,7 +50,7 @@ func run() error {
 		return fmt.Errorf("CreateJobObject: %w", e)
 	}
 	defer syscall.CloseHandle(syscall.Handle(job))
-	limits := extendedLimits{Basic: basicLimits{Flags: 0x2000 | 0x10 | 0x20, Affinity: 0xa000, Priority: 0x40}}
+	limits := extendedLimits{Basic: basicLimits{Flags: 0x2000 | 0x10 | 0x20, Affinity: 0xffff, Priority: 0x40}}
 	ok, _, e = k.NewProc("SetInformationJobObject").Call(job, 9, uintptr(unsafe.Pointer(&limits)), unsafe.Sizeof(limits))
 	if ok == 0 {
 		return fmt.Errorf("job limits: %w", e)
@@ -79,14 +79,14 @@ func run() error {
 	}
 	var mask, system uintptr
 	ok, _, e = k.NewProc("GetProcessAffinityMask").Call(process, uintptr(unsafe.Pointer(&mask)), uintptr(unsafe.Pointer(&system)))
-	if ok == 0 || mask != 0xa000 {
+	if ok == 0 || mask != 0xffff {
 		return fail(fmt.Errorf("affinity mask=%x: %v", mask, e))
 	}
 	priority, _, e := k.NewProc("GetPriorityClass").Call(process)
 	if priority != 0x40 {
 		return fail(fmt.Errorf("priority=%x: %v", priority, e))
 	}
-	fmt.Fprintf(os.Stderr, "NGN claimbridge affinity 0xa000 priority 0x40 pid %d\n", cmd.Process.Pid)
+	fmt.Fprintf(os.Stderr, "NGN claimbridge affinity 0xffff priority 0x40 pid %d\n", cmd.Process.Pid)
 	// No UCI input reaches the anchor until its job limits are verified.
 	go func() { io.Copy(stdin, os.Stdin); stdin.Close() }()
 	return cmd.Wait()

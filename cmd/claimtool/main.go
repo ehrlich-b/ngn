@@ -16,7 +16,7 @@ import (
 )
 
 const openingPath = "/home/ehrli/repos/ngn/output/corrected-pin-20260905/results-r0905matepin/inputs/sprt_openings.txt"
-const lockPath = "/home/ehrli/ngn-data/claim-tooling-20261006/.execution-lock"
+const lockPath = "/home/ehrli/ngn-data/claim-run-20261007/.execution-lock"
 
 func lock() (*os.File, error) {
 	if e := os.MkdirAll(filepath.Dir(lockPath), 0755); e != nil {
@@ -61,7 +61,7 @@ func run(args []string) error {
 	net := fs.String("net", "", "absolute NGN net, or empty for explicit HCE")
 	netSHA := fs.String("net-sha", "", "frozen net SHA-256")
 	provenance := fs.String("provenance", "", "JSON map binding manifest/data/training/export/parity artifacts")
-	mode := fs.String("mode", "", "screen, confirmation, tooling-check, or zero-game identity-check")
+	mode := fs.String("mode", "", "screen, confirmation, tooling-check, zero-game identity-check, or anchor stability checks")
 	bridge := fs.String("windows-bridge", "", "NGN-owned claimbridge.exe")
 	openings := fs.String("openings", openingPath, "owned opening file; required full SHA is fixed")
 	receipt := fs.String("receipt", "", "pre-game immutable receipt")
