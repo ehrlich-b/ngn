@@ -1,4 +1,4 @@
-# NGN live state — 2026-10-07: prospective >3000 claim run
+# NGN live state — 2026-10-07: 0.3.0 release candidate
 
 **Goal (user, stop-hook enforced): NGN over 3000 Elo with NO third-party scaffolding.**
 Banned (user, 2026-10-06): wholesale copying of other people's code or NNUE nets.
@@ -7,42 +7,27 @@ data. Published ideas are fine; third-party engines appear only as measurement
 opponents/oracles outside the binary. Work is done by Sol sub-agents (gpt-6.1-sol via wingthing); all
 execution on the WSL box; the Mac runs nothing.
 
-Integration source: `indep/main`; claim work is local `claim/run`, merged from
-accepted T80 commit `36a3657`. Nothing is pushed from this claim task. It contains the Oct 1 independent
-core + new HCE, plus:
-- own datagen (`cmd/datagen`, `internal/ngnp`, NGNP1 32-byte records, `-net` for NNUE
-  self-play; ~8M positions/hour on 14 workers) — experiments/2026-10-05-own-datagen.md
-- own PyTorch trainer (`trainer/`, NGNN1 768->Hx2 SCReLU, 5M pos/s on RTX 5080) —
-  experiments/2026-10-05-own-trainer.md
-- own NNUE inference (EvalFile/UseNNUE, exact trainer parity) + fresh AVX2 kernels
-  (1.7-1.9x) — experiments/2026-10-05-own-netinfer.md, -own-nnue-avx2.md
-- cleanup: canonical Polyglot data/external books removed, NGN magics, borrowed
-  search constants replaced by placeholders — experiments/2026-10-05-indep-verification.md
-- node-identical speed (+20% HCE, +3% NNUE) — experiments/2026-10-05-own-speed.md
+**Claim passed:** the v2 protocol's 120+1 confirmation pooled
+**3461.56 [3429.68, 3493.43]** over 640 games against Counter 3.8/5.5,
+Maelstrom 3.3 and Viridithas 10 (fixed CCRL Blitz 1CPU labels), scores
+bracketing 50%, zero exclusions. Local historical-label calibration, not an
+official rating. See [the claim result](experiments/2026-10-07-3000-claim-result.md).
 
-Accepted T80 H512/NB8: NGN-trained on the existing public corpus through the
-NGN-written direct reader. Primary H256 beat net1 **+365.43 [323.30,417.50]**;
-the sole H512 follow-up beat H256 **+74.97 [52.91,97.65]**. Both fixed gates
-used 10+0.1, 400 games/200 pairs and had zero anomalies. H512 three-anchor
-orientation is **3360.33 [3313.95,3406.71]**, four-anchor
-**3378.26 [3341.85,3414.67]**, nominal match-only, without a claim-protocol result.
-Selected net: `/home/ehrli/ngn-data/t80-20261006/h512/best.nnue` (`c6c12796…`).
-See [T80 evidence](experiments/2026-10-06-t80-net.md). The refinements runner exited
-after c1 training; its next Windows disk check failed, so no refinement gate
-ran and no net1b was selected. See [refinement audit](experiments/2026-10-06-net1-refinements.md).
+**Release candidate `release/0.3.0`:** the claimed H512 net embedded
+(`engine/nets/ngn-h512-c6c12796.nnue`), UseNNUE default true, version 0.3.0,
+author Bryan Ehrlich, GOMAXPROCS follows Threads, docs/notices corrected, and
+one audited correctness fix (move-loop clock stop no longer stores partial TT /
+correction-history results; non-regression +7.8 [−11, +26]). Embedded default
+is node-identical to the claimed EvalFile configuration. See
+[the release record](experiments/2026-10-07-release-0.3.0.md).
 
 Ranked queue:
-1. Complete the explicitly authorized [v2 claim protocol](experiments/2026-10-07-3000-claim-protocol-v2.md):
-   unchanged Counter3.8/2994, Maelstrom3.3/3317, Counter5.5/3359 plus official
-   Viridithas10/3557 CCRL Blitz1CPU. Pool committed at `d4110d5` before any
-   claim game. T80 worker exited 09:27:15UTC; clean build, identity/provenance,
-   stability checks and screen precede the conditional 120+1 confirmation.
-   Candidate is gated H512/NB8, net `c6c127966d1cd984…`; receipts under
-   `/home/ehrli/ngn-data/claim-run-20261007/`. Bryan's October6 goal/overnight
-   instructions authorize both fixed samples. No claim games have started.
-2. After the claim result, gen1 owned self-play with accepted T80 H512, then
-   train and gate the next generation; retain finished gen0/gen0b and holdout.
-3. Retune placeholder search constants by NGN games.
+1. Publish 0.3.0 (GitHub release in ngn-releases) and reply in the CCRL thread
+   t=19325 — both need Bryan's explicit approval of the exact assets and text.
+2. gen1 owned self-play with the H512 net, then train and gate the next
+   generation; retain finished gen0/gen0b and holdout.
+3. Retune placeholder search constants by NGN games; consider a movestogo≤3
+   time cap (currently bank − 200 ms) with real-clock repeating-TC games.
 
 Everything below is historical evidence from before the independence reset.
 
