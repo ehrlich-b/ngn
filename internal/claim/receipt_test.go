@@ -55,7 +55,7 @@ func receiptFixtureSession(a Artifact, id *Identity, candidate bool, format stri
 	if candidate {
 		backend := "hce"
 		if format != "HCE" {
-			backend = "ngnn1"
+			backend = strings.ToLower(format)
 		}
 		for _, fen := range []string{StartFEN, "4k3/8/8/8/8/8/4P3/4K3 w - - 0 1"} {
 			add("stdin", PositionCommand(fen, nil))
@@ -262,5 +262,23 @@ func TestHostLoadRequiresFiniteNonnegativeBound(t *testing.T) {
 	}
 	if e := checkLoad(Host{Load: "16.00 1 1"}, 16); e != nil {
 		t.Fatal(e)
+	}
+}
+
+func TestReceiptStaticProbeDistinguishesNNUEFormats(t *testing.T) {
+	for _, format := range []string{"NGNN1", "NGNN2", "NGNN3"} {
+		id := Identity{Net: Artifact{Path: "/owned/fixture.nnue"}}
+		s := receiptFixtureSession(Artifact{Path: "/owned/ngn"}, &id, true, format)
+		if e := validateProbe(s, true, format); e != nil {
+			t.Fatalf("%s: %v", format, e)
+		}
+		for i := range s.Events {
+			if strings.HasPrefix(s.Events[i].Line, "info string eval backend ") {
+				s.Events[i].Line = "info string eval backend hce score_cp 0"
+			}
+		}
+		if e := validateProbe(s, true, format); e == nil {
+			t.Fatalf("%s silently admitted HCE", format)
+		}
 	}
 }
