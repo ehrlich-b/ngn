@@ -2,9 +2,11 @@ package claim
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"debug/buildinfo"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"math"
 	"os"
@@ -34,6 +36,7 @@ type ClockProbe struct {
 }
 type Receipt struct {
 	Schema, CreatedUTC                              string
+	AttemptID                                       string
 	Plan                                            Plan
 	ToolSourceRoot, ToolSourceCommit, ToolGoVersion string
 	ToolBuildArgv                                   []string
@@ -285,6 +288,12 @@ func ReadReceipt(path string) (Receipt, error) {
 	return r, ValidateReceipt(r)
 }
 func ValidateReceipt(r Receipt) error {
+	if b, e := hex.DecodeString(r.AttemptID); e != nil || len(b) != 16 {
+		return fmt.Errorf("missing/invalid pre-run attempt identity")
+	}
+	if _, e := time.Parse(time.RFC3339Nano, r.CreatedUTC); e != nil {
+		return fmt.Errorf("invalid receipt timestamp")
+	}
 	if r.Schema != Schema || r.CreatedUTC == "" || r.OpeningCount != 80 || len(r.ToolSourceCommit) != 40 || r.ToolGoVersion != "go1.25.5" || !r.SourceClean || !r.CandidateSourceClean {
 		return fmt.Errorf("incomplete receipt")
 	}
@@ -794,6 +803,11 @@ func CreateReceipt(p Plan, dir, sourceRoot string, toolBuild []string, screenRec
 		"Bounded A/A is a same-clock/concurrency 50ms stop-response control, max 500ms response and 250ms paired asymmetry, not a strength/parity match.",
 		"Host load bound is 16 on this 16-logical-CPU rig; probes must also pass. This is an operational bound, not a correction to statistics.",
 	}}
+	var nonce [16]byte
+	if _, e := rand.Read(nonce[:]); e != nil {
+		return r, e
+	}
+	r.AttemptID = fmt.Sprintf("%x", nonce)
 	var e error
 	p, e = PreflightPlan(p, sourceRoot, toolBuild)
 	if e != nil {

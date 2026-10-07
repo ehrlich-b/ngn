@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ehrlich-b/ngn/engine"
 )
@@ -282,6 +283,21 @@ func rawSearches(s SessionRecord) ([]rawSearch, error) {
 	return out, nil
 }
 func AuditGame(g Game, r Receipt, o Opening) error {
+	if r.AttemptID == "" || g.AttemptID != r.AttemptID {
+		return fmt.Errorf("game belongs to another pre-run attempt")
+	}
+	created, e := time.Parse(time.RFC3339Nano, r.CreatedUTC)
+	if e != nil {
+		return e
+	}
+	started, e := time.Parse(time.RFC3339Nano, g.StartedUTC)
+	if e != nil {
+		return fmt.Errorf("missing/invalid game start: %w", e)
+	}
+	ended, e := time.Parse(time.RFC3339Nano, g.EndedUTC)
+	if e != nil || started.Before(created) || ended.Before(started) {
+		return fmt.Errorf("game predates receipt or has invalid end timestamp")
+	}
 	p := r.Plan
 	if g.Schema != Schema || g.Error != "" || g.BaseNS != p.BaseNS || g.IncrementNS != p.IncrementNS || g.Cap != p.Cap || p.Cap != 400 || !reflect.DeepEqual(g.Opening, o) {
 		return fmt.Errorf("game header/opening/error mismatch")

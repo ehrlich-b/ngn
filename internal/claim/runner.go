@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/ehrlich-b/ngn/engine"
 )
@@ -28,6 +29,7 @@ func PositionCommand(fen string, history []string) string {
 }
 func Play(p Plan, a Anchor, o Opening, color string, selected map[string]map[string]string) (g Game, err error) {
 	g = Game{Schema: Schema, ID: fmt.Sprintf("%s-%02d-%s", a.Name, o.Index, color), PairID: fmt.Sprintf("%s-%02d", a.Name, o.Index), Anchor: a.Name, CandidateColor: color, Opening: o, BaseNS: p.BaseNS, IncrementNS: p.IncrementNS, Cap: p.Cap, Plies: []Ply{}}
+	g.StartedUTC = time.Now().UTC().Format(time.RFC3339Nano)
 	if color != "white" && color != "black" {
 		return g, fmt.Errorf("invalid candidate color")
 	}
@@ -42,6 +44,7 @@ func Play(p Plan, a Anchor, o Opening, color string, selected map[string]map[str
 	}
 	var c, b *Session
 	defer func() {
+		defer func() { g.EndedUTC = time.Now().UTC().Format(time.RFC3339Nano) }()
 		for _, s := range []*Session{c, b} {
 			if s != nil {
 				if e := s.Close(); e != nil && err == nil {
@@ -207,6 +210,7 @@ func Run(receiptPath, dir string) error {
 					continue
 				}
 				g, e := Play(r.Plan, j.a, j.o, j.color, r.Selected)
+				g.AttemptID = r.AttemptID
 				path := filepath.Join(dir, g.ID+".json")
 				if w := WriteJSON(path, g); w != nil {
 					e = w
