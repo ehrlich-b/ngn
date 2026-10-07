@@ -1,4 +1,4 @@
-# NGN live state — 2026-10-05: independence goal
+# NGN live state — 2026-10-06: independence goal
 
 **Goal (user, stop-hook enforced): NGN over 3000 Elo with NO third-party scaffolding.**
 Banned (user, 2026-10-06): wholesale copying of other people's code or NNUE nets.
@@ -19,18 +19,24 @@ core + new HCE, plus:
   search constants replaced by placeholders — experiments/2026-10-05-indep-verification.md
 - node-identical speed (+20% HCE, +3% NNUE) — experiments/2026-10-05-own-speed.md
 
-Facts: clean HCE ~-413 Elo vs old derived main HCE (100-game orientation). Pilot
-net (1.33M HCE positions, 12 s training) = **+98 [+63,+135]** vs clean HCE at
-10+0.1 (200 games). NNUE NPS 1.6-1.8M vs HCE 1.2M.
+Accepted T80 H512/NB8: NGN-trained on the existing public corpus through the
+NGN-written direct reader. Primary H256 beat net1 **+365.43 [323.30,417.50]**;
+the sole H512 follow-up beat H256 **+74.97 [52.91,97.65]**. Both fixed gates
+used 10+0.1, 400 games/200 pairs and had zero anomalies. H512 three-anchor
+orientation is **3360.33 [3313.95,3406.71]**, four-anchor
+**3378.26 [3341.85,3414.67]**, nominal match-only, without a claim-protocol result.
+Selected net: `/home/ehrli/ngn-data/t80-20261006/h512/best.nnue` (`c6c12796…`).
+See [T80 evidence](experiments/2026-10-06-t80-net.md). The refinements runner exited
+after c1 training; its next Windows disk check failed, so no refinement gate
+ran and no net1b was selected. See [refinement audit](experiments/2026-10-06-net1-refinements.md).
 
 Ranked queue:
-1. gen0: bulk HCE self-play data (100M positions, ~3.2 GB) — **blocked on user
-   approval for detached multi-hour box jobs** (auto-mode denied the launch).
-2. net1: train H=256..512 on gen0, gate vs pilot net; then gen1 self-play with net1,
-   iterate generations.
-3. Absolute measurement: anchors that bracket 50% near 3000 (current set tops out at
-   Counter 3.8 = 2994 CCRL Blitz); claim requires lower 95% bound > 3000.
-4. Retune placeholder search constants (80, 3/64) and NNUE-scale-sensitive margins
+1. gen1: owned self-play with accepted T80 H512, then train and gate the next
+   generation. Finished gen0/gen0b data and its closed holdout remain available.
+2. Absolute measurement: a >3000 claim
+   requires its separate claim protocol and lower 95% bound >3000. No claim
+   protocol games are authorized in the current T80 task.
+3. Retune placeholder search constants (80, 3/64) and NNUE-scale-sensitive margins
    by NGN games.
 
 Everything below is historical evidence from before the independence reset.
