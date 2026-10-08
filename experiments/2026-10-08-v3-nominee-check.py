@@ -54,7 +54,8 @@ def source_inputs(s, commit):
     evidence = read(s/'engine-source-evidence.json')
     files = subprocess.check_output(['git', '-C', str(s/'source'), 'ls-files'], text=True).splitlines()
     actual = {p: digest(s/'source'/p) for p in files
-              if p.endswith(('.go', '.s', '.h', '.c', '.nnue', '.pgo')) or p in ('go.mod', 'go.sum')}
+              if p.endswith(('.go', '.s', '.h', '.c', '.nnue', '.pgo'))
+              or p.startswith('testdata/') or p in ('go.mod', 'go.sum')}
     assert len(actual) == len(evidence['inputs']) == 230
     assert actual == {p: v['candidate'] for p, v in evidence['inputs'].items()}
     assert digest(s/'source/default.pgo') == PGO_SHA
@@ -284,7 +285,7 @@ def finish(s, commit):
 if __name__ == '__main__':
     action, root, commit = sys.argv[1:]
     s = Path(root)
-    assert sys.platform == 'linux' and s == Path('/home/ehrli/ngn-data/claim-v3-20261008/nominee-session10')
+    assert sys.platform == 'linux' and s == Path('/home/ehrli/ngn-data/claim-v3-20261008/nominee-session10b')
     if action == 'inputs':
         write(s/'checks/source-receipt.json', source_inputs(s, commit))
     elif action == 'artifacts':

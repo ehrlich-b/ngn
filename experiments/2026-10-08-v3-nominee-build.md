@@ -13,7 +13,7 @@ source and development control used by queued admission.
 
 ## Prospective preparation contract
 
-New root: `/home/ehrli/ngn-data/claim-v3-20261008/nominee-session10/`.
+New root: `/home/ehrli/ngn-data/claim-v3-20261008/nominee-session10b/`.
 Fetch a local Git bundle into a private checkout, detach at the recorded exact
 commit and require a completely clean tree. Reconcile the complete set of
 **230** compilation/test/fixture/profile inputs against the accepted delta
@@ -56,7 +56,7 @@ and campaign `status.jsonl`; the [verification helper](2026-10-08-v3-nominee-che
 runs only on WSL. Launch once after committing this manifest/controller:
 
 ```bash
-cd /home/ehrli/ngn-data/claim-v3-20261008/nominee-session10
+cd /home/ehrli/ngn-data/claim-v3-20261008/nominee-session10b
 setsid nohup timeout 1800 bash controller.sh source.bundle "$(cat source-commit.txt)" \
   < /dev/null > controller.log 2>&1 &
 echo $! > controller.pid
@@ -83,3 +83,16 @@ strictly bracketed raw anchor scores and primary lower95 >3600. Prefer the
 prepared factorizer trial before a strength screen if the immediate accepted
 net remains short of the strict screen threshold. No live screen/claim or
 automatic nomination is chained by this preparation.
+
+## Preserved initial preparation failure
+
+Initial wrapper **584273** / controller **584276**, root `nominee-session10/`,
+started **15:02:35 EDT** and stopped **15:02:37 EDT**, exit one, before any
+build or engine execution. The new input-set selector counted **227** source
+files but omitted the three `testdata/ngnn*/random*_evals.json` parity fixtures
+included in the accepted **230**-input receipt. The exact set difference proves
+the cause. Correct the selector to include all tracked `testdata/` inputs;
+preserve every original file/log and use a fresh `nominee-session10b/` root.
+No engine/trainer behavior or evidence rule changes, and no running job was
+interrupted. The corrected preparation performs the complete declared checks
+once; it reuses no partial search/build result from the failed directory.
