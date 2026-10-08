@@ -55,7 +55,7 @@ assert (root/'factorized.nnue').read_bytes()==(root/'folded.nnue').read_bytes()
 net=Network(root/'factorized.nnue')
 cases=[dict(fen=to_fen(pos),eval_cp=net.evaluate(pos),bucket=net.bucket(pos)) for pos in positions()]
 assert len(cases)==64
-receipt=dict(format=3,hidden=16,buckets=8,king_buckets=8,
+receipt=dict(format='NGNN3',hidden=16,buckets=8,king_buckets=8,
              network_sha256=hashlib.sha256((root/'factorized.nnue').read_bytes()).hexdigest(),cases=cases)
 (root/'factorized-evals.json').write_text(json.dumps(receipt,indent=2)+'\n')
 print(json.dumps(dict(cases=len(cases),folded_byte_identical=True,network_sha256=receipt['network_sha256'])))
