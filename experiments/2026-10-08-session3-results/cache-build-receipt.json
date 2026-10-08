@@ -1,0 +1,28 @@
+{
+  "source_commit": "f47335159871e5c672e554ea3b08a61d3d03d614",
+  "source_archive_sha256": "5dea4f9332118b234138b3931374b75d8432764d0e85c7ba068602e14e43294f",
+  "patch_sha256": "06ce5633e9a4d4d7ef9d5126130d1dc7b667a16f37c7b80cf4126adb5932e2a6",
+  "binary_sha256": {
+    "baseline": "1fa4577db2004177e5f65b9b847b904824295d891fa38c944f05953b5b8b9f7a",
+    "candidate": "c5441e2e0f3e868c8085497f277307fcbde4067fb086d8f328abd1accfc429d8"
+  },
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "old_net_sha256": "c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "build_argv": [
+    "go",
+    "build",
+    "-p",
+    "2",
+    "-pgo=/home/ehrli/ngn-data/night-20261007/session4/baseline/default.pgo",
+    "-o",
+    "OUTPUT",
+    "./cmd/speedprobe"
+  ],
+  "goamd64": "v3",
+  "build_test_cpus": [
+    13,
+    15
+  ],
+  "tests_pass": true
+}

@@ -12,10 +12,16 @@ Accepted working net: NGNN3 KB8 H512 `be34532c`, +35.7 [+15,+56] over 400 paired
 PGO is merged after 12 identities and +4.0% [2.9%, 5.1%] NPS on the accepted net. The 116-epoch
 H512 candidate is training, with parity/A/A40/gate400 queued by its existing controller.
 [Manifest and controller](experiments/2026-10-08-campaign-session1.md).
+NGNN3 refresh-cache row pairing now passes 36 exact identities, required tests and 40 fixed
+timing blocks: **+1.81% [1.26%, 2.37%] NPS**. The loop-unroll trial was inconclusive and restored.
+[Speed verdicts](experiments/2026-10-08-nnue-cache-pair.md). Frozen running binaries are unchanged.
 
 The v3 claim instrument now binds schema 3, threshold 3600, and the four-anchor pool with
 Berserk 12 (3713). Required short/race tests and clean build/dry plans pass; operational stability
-and the final prospective claim manifest remain pending. [Instrument record](experiments/2026-10-08-v3-instrument.md).
+and the final prospective claim manifest remain pending. The 12-game operational controller
+**552631** waits natively for the existing training/gate controller **522940**; preserve that
+exclusive window before another trainer. [Admission queue](experiments/2026-10-08-v3-operational-admission.md),
+[instrument record](experiments/2026-10-08-v3-instrument.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

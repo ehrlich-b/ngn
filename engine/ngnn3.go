@@ -106,11 +106,22 @@ func (s *ngnn1State) cachedRefresh(p int, context ngnn3Context, pos *Position, d
 	}
 	for piece := WhitePawn; piece <= BlackKing; piece++ {
 		before, after := entry.pieces[piece], pos.Board.pieces[piece]
-		for removed := before &^ after; removed != 0; removed &= removed - 1 {
+		removed, added := before&^after, after&^before
+		// Pair changed squares of the same piece type to read and write the
+		// accumulator once. The cache can come from any previous search branch;
+		// unmatched removals/additions still use the independent row kernels.
+		for removed != 0 && added != 0 {
+			r := context.feature(ngnn1Feature(piece, Square(bitScanForward(removed)), color))
+			a := context.feature(ngnn1Feature(piece, Square(bitScanForward(added)), color))
+			ngnn1MoveRows(entry.acc, entry.acc, n.row(r), n.row(a))
+			removed &= removed - 1
+			added &= added - 1
+		}
+		for ; removed != 0; removed &= removed - 1 {
 			feature := context.feature(ngnn1Feature(piece, Square(bitScanForward(removed)), color))
 			ngnn1SubRow(entry.acc, n.row(feature))
 		}
-		for added := after &^ before; added != 0; added &= added - 1 {
+		for ; added != 0; added &= added - 1 {
 			feature := context.feature(ngnn1Feature(piece, Square(bitScanForward(added)), color))
 			ngnn1AddRow(entry.acc, n.row(feature))
 		}
