@@ -13,7 +13,7 @@ source and development control used by queued admission.
 
 ## Prospective preparation contract
 
-New root: `/home/ehrli/ngn-data/claim-v3-20261008/nominee-session10b/`.
+New root: `/home/ehrli/ngn-data/claim-v3-20261008/nominee-session10c/`.
 Fetch a local Git bundle into a private checkout, detach at the recorded exact
 commit and require a completely clean tree. Reconcile the complete set of
 **230** compilation/test/fixture/profile inputs against the accepted delta
@@ -22,8 +22,9 @@ log hashes, unchanged original v3 tool `4cdf39aa` and its clean source
 `376671f842aad7841cd2c743c834c61f702eb0ae`.
 
 On WSL CPUs **13,15**, nice **19**, Go **1.25.5**, amd64/v3, build NGN and a
-private speedprobe with `-buildvcs=true -p 2`, automatic accepted PGO, stdlib
-dependencies only. Require build metadata to identify the recorded commit and
+private speedprobe with `-buildvcs=true -p 2`, automatic accepted PGO for NGN
+and explicit `-pgo=<clean source>/default.pgo` for speedprobe, stdlib dependencies
+only. Require build metadata to identify the recorded commit and
 `vcs.modified=false`. No engine source changes, no timing measurement and no
 tuner interruption. GPU remains with the existing trainer; hopper is untouched.
 Require host C: free >=25 GiB. Preparation has a single 30-minute bound;
@@ -56,7 +57,7 @@ and campaign `status.jsonl`; the [verification helper](2026-10-08-v3-nominee-che
 runs only on WSL. Launch once after committing this manifest/controller:
 
 ```bash
-cd /home/ehrli/ngn-data/claim-v3-20261008/nominee-session10b
+cd /home/ehrli/ngn-data/claim-v3-20261008/nominee-session10c
 setsid nohup timeout 1800 bash controller.sh source.bundle "$(cat source-commit.txt)" \
   < /dev/null > controller.log 2>&1 &
 echo $! > controller.pid
@@ -96,3 +97,12 @@ preserve every original file/log and use a fresh `nominee-session10b/` root.
 No engine/trainer behavior or evidence rule changes, and no running job was
 interrupted. The corrected preparation performs the complete declared checks
 once; it reuses no partial search/build result from the failed directory.
+
+The second wrapper **584384**, `nominee-session10b/`, started **15:05:41 EDT**
+and stopped **15:05:55 EDT**, exit one. All 230 input checks and both builds
+passed; the artifact check correctly rejected missing PGO metadata on the
+speedprobe. Go's automatic lookup uses the main package directory, so the root
+profile applies automatically to NGN but not `cmd/speedprobe`. Add the same
+explicit accepted profile used by the historical probe to this probe build
+and its recorded argv. No search, game or dry plan ran. Preserve both initial
+roots; the final fresh preparation root is `nominee-session10c/`.
