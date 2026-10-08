@@ -17,8 +17,10 @@ timing blocks: **+1.81% [1.26%, 2.37%] NPS**. The loop-unroll trial was inconclu
 [Speed verdicts](experiments/2026-10-08-nnue-cache-pair.md). Packed output clamping also passes
 36 identities, required WSL tests and 40 fixed blocks: **+1.21% [0.72%, 1.69%] NPS**.
 [Output verdict](experiments/2026-10-08-nnue-output-pack.md). Frozen running binaries are unchanged.
-SPSA resumed as 566718/566722; let it advance beyond its 3,600-game checkpoint before another
-optional timing pause, since interruptions discard uncheckpointed iterations.
+SPSA is 566718/566722 with 3,600 retained games. Direct NGNN3 delta speed controller **566961**
+first runs required checks, then waits with inotify/pidfd for iteration >=325 before its fixed
+36-identity/40-block timing gate. [Pending manifest](experiments/2026-10-08-nnue-delta-fusion.md).
+Do not launch another speed gate while it is pending; no speculative runtime source is committed.
 
 The v3 claim instrument now binds schema 3, threshold 3600, and the four-anchor pool with
 Berserk 12 (3713). Required short/race tests and clean build/dry plans pass; operational stability
