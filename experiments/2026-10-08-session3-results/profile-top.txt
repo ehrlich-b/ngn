@@ -1,0 +1,34 @@
+File: probe-pgo
+Build ID: 34d525aedae9a02d7abd256afa8e1a7e7a43097e
+Type: cpu
+Time: 2026-10-08 11:31:17 EDT
+Duration: 30.23s, Total samples = 30.04s (99.37%)
+Showing nodes accounting for 21.52s, 71.64% of 30.04s total
+Dropped 145 nodes (cum <= 0.15s)
+Showing top 25 nodes out of 75
+      flat  flat%   sum%        cum   cum%
+     2.99s  9.95%  9.95%     29.96s 99.73%  github.com/ehrlich-b/ngn/engine.alphaBetaPV
+     2.81s  9.35% 19.31%      2.82s  9.39%  github.com/ehrlich-b/ngn/engine.selectNextMove (inline)
+     2.67s  8.89% 28.20%      2.68s  8.92%  github.com/ehrlich-b/ngn/engine.(*CachedEval).LoadData (inline)
+     1.90s  6.32% 34.52%      1.90s  6.32%  github.com/ehrlich-b/ngn/engine.ngnn1MoveRows
+     1.40s  4.66% 39.18%      1.76s  5.86%  github.com/ehrlich-b/ngn/engine.(*workerHistory).scoreMovesIntoBuffer (inline)
+     1.37s  4.56% 43.74%      1.37s  4.56%  github.com/ehrlich-b/ngn/engine.ngnn1OutputSmall
+     0.81s  2.70% 46.44%      0.81s  2.70%  github.com/ehrlich-b/ngn/engine.ngnn1CaptureRows
+     0.66s  2.20% 48.64%         1s  3.33%  github.com/ehrlich-b/ngn/engine.isInCheck
+     0.66s  2.20% 50.83%      0.66s  2.20%  github.com/ehrlich-b/ngn/engine.ngnn1AddRow
+     0.64s  2.13% 52.96%      0.64s  2.13%  github.com/ehrlich-b/ngn/engine.ngnn1SubRow
+     0.54s  1.80% 54.76%      0.84s  2.80%  github.com/ehrlich-b/ngn/engine.(*NGNN1Network).kingMoveDelta
+     0.54s  1.80% 56.56%      2.23s  7.42%  github.com/ehrlich-b/ngn/engine.(*workerEvaluator).PrepareMove
+     0.46s  1.53% 58.09%      0.57s  1.90%  github.com/ehrlich-b/ngn/engine.ngnn1Feature
+     0.44s  1.46% 59.55%      0.70s  2.33%  github.com/ehrlich-b/ngn/engine.updateHash (inline)
+     0.40s  1.33% 60.89%      0.46s  1.53%  github.com/ehrlich-b/ngn/engine.(*Bitboard).Move
+     0.39s  1.30% 62.18%      2.21s  7.36%  github.com/ehrlich-b/ngn/engine.(*ngnn1State).cachedRefresh
+     0.39s  1.30% 63.48%      1.46s  4.86%  github.com/ehrlich-b/ngn/engine.staticExchangeEvaluation
+     0.37s  1.23% 64.71%      0.37s  1.23%  github.com/ehrlich-b/ngn/engine.(*Bitboard).GetBitboardOf (inline)
+     0.37s  1.23% 65.95%      1.74s  5.79%  github.com/ehrlich-b/ngn/engine.(*NGNN1Network).evaluateBucket (partial-inline)
+     0.37s  1.23% 67.18%      4.41s 14.68%  github.com/ehrlich-b/ngn/engine.quiescenceWithDepth
+     0.34s  1.13% 68.31%      5.47s 18.21%  github.com/ehrlich-b/ngn/engine.(*ngnn1State).pushPosition
+     0.28s  0.93% 69.24%      0.28s  0.93%  github.com/ehrlich-b/ngn/engine.getBishopAttacksBB (inline)
+     0.27s   0.9% 70.14%      0.27s   0.9%  runtime.memmove
+     0.23s  0.77% 70.91%      0.23s  0.77%  github.com/ehrlich-b/ngn/engine.Move.Destination (inline)
+     0.22s  0.73% 71.64%      0.51s  1.70%  github.com/ehrlich-b/ngn/engine.generateSlidingMovesIntoBuffer (inline)
