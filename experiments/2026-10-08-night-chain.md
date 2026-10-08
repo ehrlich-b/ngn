@@ -39,6 +39,26 @@ screened 3386.78). No 120+1 games tonight.
 
 Machine: 9800X3D, WSL2 Linux 6.6.87.2, RTX 5080, Go 1.25.5 linux/amd64 GOAMD64=v3, PyTorch 2.7.0+cu128.
 
+### Result: candidate 1 ACCEPTED (2026-10-08 03:45 EDT)
+
+Training finished 03:15 EDT, best epoch 56, net `be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a`
+(checkpoint `d7dabf70…`), validation loss .008520 at epoch 52 (`c6c12796` final .008935). Parity 20/20,
+reexport identical. A/A (40 games, `c6c12796` both sides): penta -34.9 [-113, +40], 0 flag-outs.
+Gate (400 games, `gate-kb8h512.log`, 27m23s): W-D-L 117-207-76, 55.1%, pentanomial [4, 32, 94, 59, 11],
+**penta Elo +35.7, 95% CI [+15, +56]**, flag-outs 0/0, no crashes, illegal or no-move results (ends: 193
+checkmate, 204 draw-rule, 2 max-moves, 1 stalemate). Rule met; `be34532c` is the new immediate base.
+
+The screen could not run while `kb8h1024` trains: `claimtool` refuses any live screen while a
+`trainer.train` process exists, stopped or not (`internal/claim/receipt.go` `NoOtherMatch`). The refused
+attempt is kept as `screen-kb8h512-refused/`. The screen moves to after `kb8h1024` finishes (controller 2).
+
+## Controller 2
+
+[2026-10-08-night-chain2.sh](2026-10-08-night-chain2.sh) (`e538f1fc…`), started 03:54 EDT: wait for the `kb8h1024`
+trainer; SIGINT the tuner; parity; A/A (`be34532c` both sides, 40 games); gate `kb8h1024` vs `be34532c`, 400
+games, same command and rule as above; v2 screen of `be34532c`; v2 screen of `kb8h1024` if its gate CI lower
+bound > 0 with 0 flag-outs; resume the tuner with `-resume`. No trainer is started, so the screens can run.
+
 ## Speed: profile-guided build (branch `night/nnspeed`)
 
 `default.pgo` (`616b1ebe…`) = CPU profile of `cmd/speedprobe -mode timed -duration 10s` with `c6c12796`
@@ -64,3 +84,10 @@ GOMAXPROCS=1, out `/home/ehrli/ngn-data/night-20261007/spsa/spsa.jsonl` (checkpo
 continue with `-resume`). Started 2026-10-07 23:09 EDT under `timeout --signal=INT` to stop at 03:00 EDT,
 before the gate. An aborted 90-second start with `-iters 12000` is kept as `spsa-aborted-12000.log`.
 Evidence rule (CLAUDE.md): only the converged vector after >= 20k games, verified by games.
+
+That run stopped at 03:00 EDT after 175 iterations (2,100 games, 0 forfeits) and is abandoned: the base net
+changed. Restarted from the 0.3.0 defaults against the new base at 03:54 EDT, same command except the engine
+`kb8bin/ngn-kb8` (`f09b76b7…`): the 0.3.0 source with `be34532c` embedded instead of `c6c12796`
+(`engine/default_net.go` name and digest only). Identity vs `pub-ngn-linux` + `EvalFile=be34532c`: depth 13 on
+three positions (startpos, an Italian middlegame, a rook endgame), identical nodes, score, PV and bestmove.
+Out `spsa/kb8/spsa.jsonl`; controller 2 pauses and resumes it around the games.
