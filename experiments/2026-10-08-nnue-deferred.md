@@ -56,4 +56,8 @@ setsid nohup bash "$S/controller.sh" < /dev/null > "$S/controller.log" 2>&1 &
 echo $! > "$S/controller.pid"
 ```
 
-Result: pending.
+Launched **16:53:37 EDT**, observed controller **598985**. First launcher
+598958 produced no start event or work; its empty log/PID are preserved.
+All new and existing narrow tests pass in **2.531 s**; engine short **12.366 s**,
+engine short/race **151.597 s**, full short/race and vet pass. The fixed check
+started **17:00:11 EDT**. Timing result remains pending; no mid-run verdict.
