@@ -1,0 +1,18 @@
+{
+  "utc": "2026-10-08T19:24:08.799631+00:00",
+  "checks": {
+    "/home/ehrli/ngn-data/night-20261007/session11/session8b-dependency-inputs-v2.txt": {
+      "entries": 27,
+      "sha256": "628d2ea66b13c09598d33ea1363e22b52e6941bbd9e824c096025edb8b50f423"
+    },
+    "/home/ehrli/ngn-data/night-20261007/session11/admission-session3-dependency-inputs-v2.txt": {
+      "entries": 3,
+      "sha256": "b4287b9c5f3204ac27eb9e412ad135460a83252bb9bcf91d1207715656a6a050"
+    },
+    "/home/ehrli/ngn-data/night-20261007/session11/session1-dependency-inputs-v2.txt": {
+      "entries": 14,
+      "sha256": "a63f580288a08d610746f58bc56848d50ce0f05ee15488fddd10250212bc8b31"
+    }
+  },
+  "engines_launched": false
+}

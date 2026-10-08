@@ -1,0 +1,144 @@
+[
+  {
+    "name": "NullMoveR",
+    "variable": "NULL_MOVE_R",
+    "default": 3,
+    "minimum": 2,
+    "maximum": 5,
+    "read_lines": [
+      1694
+    ]
+  },
+  {
+    "name": "NullMoveMinDepth",
+    "variable": "NULL_MOVE_MIN_DEPTH",
+    "default": 2,
+    "minimum": 1,
+    "maximum": 6,
+    "read_lines": [
+      1677
+    ]
+  },
+  {
+    "name": "LMRFullDepth",
+    "variable": "LMR_FULL_DEPTH",
+    "default": 3,
+    "minimum": 1,
+    "maximum": 6,
+    "read_lines": [
+      859,
+      2116
+    ]
+  },
+  {
+    "name": "LMRMoveThreshold",
+    "variable": "LMR_MOVE_THRESHOLD",
+    "default": 2,
+    "minimum": 1,
+    "maximum": 8,
+    "read_lines": [
+      2116
+    ]
+  },
+  {
+    "name": "FutilityMargin",
+    "variable": "FUTILITY_MARGIN",
+    "default": 103,
+    "minimum": 50,
+    "maximum": 160,
+    "read_lines": [
+      1655
+    ]
+  },
+  {
+    "name": "FutilityMaxDepth",
+    "variable": "FUTILITY_MAX_DEPTH",
+    "default": 8,
+    "minimum": 1,
+    "maximum": 8,
+    "read_lines": [
+      1650
+    ]
+  },
+  {
+    "name": "ReverseFutilityMargin",
+    "variable": "REVERSE_FUTILITY_MARGIN",
+    "default": 88,
+    "minimum": 40,
+    "maximum": 300,
+    "read_lines": [
+      1638
+    ]
+  },
+  {
+    "name": "DeltaMargin",
+    "variable": "DELTA_MARGIN",
+    "default": 96,
+    "minimum": 0,
+    "maximum": 400,
+    "read_lines": [
+      2667
+    ]
+  },
+  {
+    "name": "SingularDepth",
+    "variable": "SINGULAR_DEPTH",
+    "default": 6,
+    "minimum": 4,
+    "maximum": 12,
+    "read_lines": [
+      1794
+    ]
+  },
+  {
+    "name": "SingularMargin",
+    "variable": "SINGULAR_MARGIN",
+    "default": 48,
+    "minimum": 16,
+    "maximum": 256,
+    "read_lines": [
+      2044
+    ]
+  },
+  {
+    "name": "ExtensionBudget",
+    "variable": "EXTENSION_BUDGET",
+    "default": 26,
+    "minimum": 4,
+    "maximum": 64,
+    "read_lines": [
+      2100
+    ]
+  },
+  {
+    "name": "AspInit",
+    "variable": "ASP_INIT",
+    "default": 13,
+    "minimum": 4,
+    "maximum": 40,
+    "read_lines": [
+      763
+    ]
+  },
+  {
+    "name": "AspMult",
+    "variable": "ASP_MULT",
+    "default": 154,
+    "minimum": 110,
+    "maximum": 250,
+    "read_lines": [
+      975,
+      989
+    ]
+  },
+  {
+    "name": "LMPBase",
+    "variable": "LMP_BASE",
+    "default": 4,
+    "minimum": 2,
+    "maximum": 16,
+    "read_lines": [
+      93
+    ]
+  }
+]

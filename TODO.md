@@ -23,6 +23,9 @@ short/race/vet, 230 source/fixture/profile hashes, and 40 fixed blocks give **+0
 Controller 566961 restored SPSA **577981/577984**, durable iteration 375 / **4,500** games
 at **15:01:04 EDT**; it was not interrupted by session 10 preparation.
 Let it advance without repeated pauses; no tuning-strength verdict before >=20k and paired games.
+All 14 SPSA options now have source/runtime witnesses on the actual frozen NNUE
+engine, **180** bounded searches and exact repeated defaults; training/tuning were
+not interrupted. [Wiring audit and resume limits](experiments/2026-10-08-spsa-live-audit.md).
 
 Optional king-bucket training factorizer **6926457** is CPU-tested: six new controls,
 full trainer suite **53 passes / 4 CUDA skips**, 64 exact Go integer cases and 25 reconciled
