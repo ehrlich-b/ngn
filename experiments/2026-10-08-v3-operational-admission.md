@@ -65,4 +65,21 @@ record and controller before queuing the live controller. No new GPU trainer
 should start until admission is complete or failed; its short exclusive window
 is required by the measurement instrument. No production or publication occurs.
 
-Launch custody and dry-plan results: pending.
+**Queued**, **11:38:23 EDT**, controller **552631**. The exact record/controller
+were committed and pushed as **862afa1** before launch. Linux pidfd support was
+proved against the live existing controller; the
+[waiter receipt](2026-10-08-session3-results/admission-waiter-ready.json) binds
+522940 and its exact command. No v3 games have begun. Estimated trigger around
+**22:15 EDT**, with results roughly **22:30 EDT**, conditional on training/gate
+completion. A failed dependency or expired wait halts admission without retry.
+
+All three fresh dry plans **PASS**, including exact mode/anchor/count/concurrency/
+clock fields and absence of game directories or pre-run receipts. `bash -n`
+passes. Frozen queued controller SHA-256
+`c306d1d0eeade42ab6985291d46dc8b0dcadf4e6a7569355c416788ddb9eb8f1`;
+original prospective manifest
+`c0b25cdd60b385e987fdfca10aa631b42c4e8e5dcfd0b1b5d736a467457c9c19`.
+Their immutable box copies and the originating commit are hash-checked before
+the wait, before games and after completion. This result annotation is separate
+from the original prospective box manifest. The source/tool/development identity
+stay at their original pins even if a later net or speed change is accepted.
