@@ -1,0 +1,18 @@
+{
+  "tests_pass": true,
+  "cuda_executed": false,
+  "patch_sha256": "165be469b9738d6a6e93974e877f2545a835af8e86bf5184c472e05422517e91",
+  "binary_sha256": "248b70a43b8173ceda7d8662a935e4328d7d86a9de977fb03d7fba50a105578f",
+  "fixture": {
+    "network": "testdata/ngnn4/random_h16_l16_k8_b8.nnue",
+    "sha256": "c91adc11128dd1698e12976f967f0e81892533710acc632510cdfc6ac5e9d99c",
+    "cases": 320
+  },
+  "cpu": [
+    13,
+    15
+  ],
+  "nice": 19,
+  "candidate_accepted": false,
+  "training_or_games_queued": false
+}
