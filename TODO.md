@@ -20,8 +20,8 @@ timing blocks: **+1.81% [1.26%, 2.37%] NPS**. The loop-unroll trial was inconclu
 Direct NGNN3 move-delta fusion is now accepted, **5b882e2**: 36 identities, required full
 short/race/vet, 230 source/fixture/profile hashes, and 40 fixed blocks give **+0.80%
 [0.27%, 1.33%] NPS**, both order strata positive. [Completed record](experiments/2026-10-08-nnue-delta-fusion.md).
-Controller 566961 restored SPSA **577981/577984**, durable iteration 400 / **4,800** games
-at **15:31:02 EDT**; it was not interrupted by session 10 preparation.
+Controller 566961 restored SPSA **577981/577984**, durable iteration 450 / **5,400** games
+at **16:30:01 EDT**; session 14 preserved the running tune and pending evidence windows.
 Let it advance without repeated pauses; no tuning-strength verdict before >=20k and paired games.
 All 14 SPSA options now have source/runtime witnesses on the actual frozen NNUE
 engine, **180** bounded searches and exact repeated defaults; training/tuning were
