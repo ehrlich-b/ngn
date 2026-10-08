@@ -1,0 +1,60 @@
+{
+  "observed_at": "2026-10-08T18:05:36.987024-04:00",
+  "training": {
+    "epochs": 91,
+    "total": 116,
+    "last_seconds": 286.1990197300038,
+    "last_five_mean_seconds": 290.68749135979454,
+    "rough_training_eta_utc": "2026-10-09T00:06:43.626720+00:00"
+  },
+  "spsa": {
+    "iter": 525,
+    "time": "2026-10-08T18:00:19-04:00",
+    "retained_games": 6300
+  },
+  "gpu": "70 %, 4257 MiB",
+  "host_c_free_bytes": 157310013440,
+  "host_c_free_gib": 146.50636672973633,
+  "processes": {
+    "1168": {
+      "command": "/usr/bin/python3 /home/ehrli/hopper/hopper.py run ",
+      "cpus": "0-15"
+    },
+    "522940": {
+      "command": "bash /home/ehrli/ngn-data/night-20261007/session1/controller.sh ",
+      "cpus": "0-15"
+    },
+    "541005": {
+      "command": "bash /home/ehrli/ngn-data/night-20261007/session1/kb8h512-long.cmd ",
+      "cpus": "0-15"
+    },
+    "541007": {
+      "command": "/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/kb8h512-long --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 116 --positions-per-epoch 256000000 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only ",
+      "cpus": "12,14"
+    },
+    "577981": {
+      "command": "bash /home/ehrli/ngn-data/night-20261007/session1/spsa-resume.cmd ",
+      "cpus": "0-15"
+    },
+    "577984": {
+      "command": "/home/ehrli/ngn-data/night-20261007/spsa/spsa -engine /home/ehrli/ngn-data/night-20261007/kb8bin/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/net1-gates-20261006/openings.txt -out /home/ehrli/ngn-data/night-20261007/spsa/kb8/spsa.jsonl -lowpower=false -seed 20261008 -resume ",
+      "cpus": "0-11"
+    },
+    "552631": {
+      "command": "bash /home/ehrli/ngn-data/claim-v3-20261008/admission-session3/controller.sh ",
+      "cpus": "0-15"
+    },
+    "577875": {
+      "command": "bash /home/ehrli/ngn-data/night-20261007/session8b/cuda-controller.sh ",
+      "cpus": "0-15"
+    },
+    "622811": {
+      "command": "bash /home/ehrli/ngn-data/night-20261007/session15h2/cuda-controller.sh ",
+      "cpus": "0-15"
+    }
+  },
+  "accepted_engine": "5b882e2",
+  "accepted_net": "be34532c",
+  "goal_met": false,
+  "new_trained_net": false
+}

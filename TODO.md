@@ -20,8 +20,9 @@ timing blocks: **+1.81% [1.26%, 2.37%] NPS**. The loop-unroll trial was inconclu
 Direct NGNN3 move-delta fusion is now accepted, **5b882e2**: 36 identities, required full
 short/race/vet, 230 source/fixture/profile hashes, and 40 fixed blocks give **+0.80%
 [0.27%, 1.33%] NPS**, both order strata positive. [Completed record](experiments/2026-10-08-nnue-delta-fusion.md).
-Controller 566961 restored SPSA **577981/577984**, durable iteration 450 / **5,400** games
-at **16:30:01 EDT**; session 14 preserved the running tune and pending evidence windows.
+SPSA **577981/577984** continues, durable iteration **525 / 6,300** games
+saved **18:00:19 EDT**; session 15 did not pause it or the existing trainer.
+Controller 566961's last resume remains **14:01 EDT**.
 Let it advance without repeated pauses; no tuning-strength verdict before >=20k and paired games.
 All 14 SPSA options now have source/runtime witnesses on the actual frozen NNUE
 engine, **180** bounded searches and exact repeated defaults; training/tuning were
@@ -76,6 +77,21 @@ commit the prospective protocol before any game. Reuse `candidate-inputs.sha256`
 (114 entries); the preserved completion snapshot also contains a mutable startup log.
 No final nomination, screen or claim is queued.
 [Build, evidence and reuse boundary](experiments/2026-10-08-v3-nominee-build.md).
+
+Session 15 implemented original NGNN4 hidden-layer trainer/export/reference/Go
+and AVX2 code on pushed topic **night/hidden-layer**, **9b6a3d6**. Full CPU
+trainer suite **58 passes / 5 CUDA skips**, **320 exact integer cases**, required
+short/race/vet and 48 identities pass. Exact input packing gives **+52.93%
+[48.68%,57.31%] NPS** versus its own unoptimized prototype; no trained net,
+accepted runtime change or Elo claim. CUDA controller **622811** waits for
+**577875**; preserve that brief extra control window before next training.
+[Architecture and next real gate](experiments/2026-10-08-hidden-layer.md).
+Deferred accumulators are **shelved**, −8.73% NPS, after 36 identities and
+40 complete blocks; preserved on **night/lazy-accumulator**, **1b403d6**.
+[Negative verdict](experiments/2026-10-08-nnue-deferred.md). Accepted line stays
+**5b882e2 / be34532c**. At **18:05 EDT**, longer-net training **91/116**,
+SPSA durable **525 / 6,300 games**; none paused. Next campaign session not
+before **20:40 EDT** for the pending completed net/admission/CUDA results.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
