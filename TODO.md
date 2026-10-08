@@ -1,4 +1,17 @@
-# NGN live state — 2026-10-07: 0.3.0 release candidate
+# NGN live state — 2026-10-08: 3600 campaign
+
+The current session contract and ranked queue are in
+[the 3600 campaign log](experiments/2026-10-08-3600-campaign.md); that campaign supersedes
+the older queues below. Target: pooled lower 95% bound >3600, bracketed scores, stronger top
+anchor, no direct third-party code or nets. No publication is authorized.
+
+Accepted working net: NGNN3 KB8 H512 `be34532c`, +35.7 [+15,+56] over 400 paired games versus
+0.3.0's `c6c12796`. KB8 H1024 was neutral and is rejected. The embedded release default remains
+`c6c12796`; campaign gates explicitly load the accepted net. Session 1 repairs the WSL bridge
+endpoint and queues a fresh screen, then a 116-epoch H512 candidate and parity/A/A40/gate400.
+[Manifest and controller](experiments/2026-10-08-campaign-session1.md).
+
+# Previous live state — 2026-10-07: 0.3.0 release candidate
 
 **Goal (user, stop-hook enforced): NGN over 3000 Elo with NO third-party scaffolding.**
 Banned (user, 2026-10-06): wholesale copying of other people's code or NNUE nets.
