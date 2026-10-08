@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 R=/home/ehrli/ngn-data/night-20261007
-S=$R/session15h
+S=$R/session15h2
 PY=/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python
 export PATH=/usr/local/go/bin:$PATH
 export GOAMD64=v3 GOMAXPROCS=2 GOPROXY=off GOTOOLCHAIN=local GOCACHE=$S/go-cache
@@ -53,7 +53,8 @@ taskset -c 13,15 nice -n 19 go test -p 2 -short -race ./... -count=1 > "$S/full-
 taskset -c 13,15 nice -n 19 go vet -p 2 ./engine > "$S/vet.log" 2>&1
 taskset -c 13,15 nice -n 19 go test -p 2 ./engine -run '^$' -bench '^BenchmarkNGNN(1|4)Output$' -benchtime 1s -count=3 > "$S/inference-bench.log" 2>&1
 taskset -c 13,15 nice -n 19 go build -p 2 -pgo="$S/source/default.pgo" -o "$S/ngn-hidden" . > "$S/build.log" 2>&1
-sha256sum -c "$S/frozen-inputs.sha256" > "$S/input-check-after.txt"
+cd "$S"
+sha256sum -c frozen-inputs.sha256 > input-check-after.txt
 st tests-pass 'new AVX2/Go/scalar parity, engine/full short/race, vet and build; no strength verdict'
 python3 - "$S" <<'PY'
 import hashlib,json,sys

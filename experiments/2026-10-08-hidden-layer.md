@@ -60,4 +60,7 @@ fresh A/A40 and fixed paired gate400 at 10+0.1 are mandatory. Accept only
 penta lower95 >0 with zero operational failures; otherwise shelve without
 extension. No training, claim or playing-strength gate is queued here.
 
-CPU results: pending.
+Controller **608741** queued **17:06:13 EDT**, native dependency **598985**,
+results under `session15h2/`. Initial waiter **608645** in `session15h/` was
+cancelled before tests to strengthen the negative signed-division control;
+its original frozen inputs/logs are preserved. CPU results remain pending.
