@@ -272,8 +272,23 @@ IEEE CRC32 of everything preceding it. Header length is 96 bytes. KB=1..8,
 all map entries must be below KB; H and NB retain existing bounds. A JSON
 array of 64 IDs supplied as `--kb-map path.json` chooses another layout;
 export stores the actual map and resume compares its contents. The GPU builds
-both bucketed feature vectors directly from packed records. No factorizer is
-used. NGNN3 shard validation requires exactly one king of each color.
+both bucketed feature vectors directly from packed records. NGNN3 shard
+validation requires exactly one king of each color.
+
+Optional `--king-factorizer` learns shared [768,H] feature rows plus the usual
+king-bucket residual rows. It requires NGNN3 with at least two input buckets.
+Shared rows start at zero, preserving the original initialization and RNG;
+AdamW updates/decays both components. Forward uses their float32 sum. Export
+folds that same sum before quantizing once into the unchanged NGNN3 layout,
+so inference needs no additional parameters or computation. Clipping bounds
+the merged rows, with residual bounds relative to the shared component.
+
+Factorized checkpoints retain both tensors and bind the flag on resume;
+changing it is rejected. Legacy checkpoints without the flag remain ordinary
+models. This capability has CPU gradient, clipping, export, resume and integer
+parity controls. Run its CUDA FP32/BF16 control before a real training trial:
+`python -m unittest trainer.tests.test_king_factorizer.KingFactorizerTests.test_cuda_forward_gradients_and_bf16_step -v`.
+No playing-strength improvement is established by tooling checks.
 
 Workers own caches keyed by perspective, bucket and mirror state. A king move
 that changes either context refreshes only the moving side from the cached
