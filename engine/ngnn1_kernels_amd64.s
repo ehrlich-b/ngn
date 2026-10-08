@@ -156,8 +156,9 @@ Dot_loop:
 	VZEROUPPER
 	RET
 
-// Packed path for loader-verified weights within [-128,128]. Clamp int32
-// before packing. Reorder the lane-local pack into neuron order. x*w fits
+// Packed path for loader-verified weights within [-128,128]. Saturating to
+// int16 before clamping to [0,255] preserves the clamp for every int32 input.
+// Reorder the lane-local pack into neuron order. x*w fits
 // signed int16, so madd(x, x*w) gives exact int32 pair sums. Keep White/Black
 // sums separate until sign extension: H/8 products per int32 lane, <=2^31-1.
 TEXT ·ngnn1OutputSmall(SB), NOSPLIT, $0-80
@@ -171,26 +172,22 @@ TEXT ·ngnn1OutputSmall(SB), NOSPLIT, $0-80
 	VPXOR Y7, Y7, Y7
 	MOVL $255, AX
 	MOVD AX, X4
-	VPBROADCASTD X4, Y4
+	VPBROADCASTW X4, Y4
 OutputSmall_loop:
 	VMOVDQU (SI), Y0
 	VMOVDQU 32(SI), Y1
-	VPMAXSD Y5, Y0, Y0
-	VPMAXSD Y5, Y1, Y1
-	VPMINSD Y4, Y0, Y0
-	VPMINSD Y4, Y1, Y1
 	VPACKSSDW Y1, Y0, Y2
+	VPMAXSW Y5, Y2, Y2
+	VPMINSW Y4, Y2, Y2
 	VPERMQ $0xd8, Y2, Y2
 	VPMULLW (R8), Y2, Y3
 	VPMADDWD Y2, Y3, Y3
 	VPADDD Y3, Y6, Y6
 	VMOVDQU (DI), Y0
 	VMOVDQU 32(DI), Y1
-	VPMAXSD Y5, Y0, Y0
-	VPMAXSD Y5, Y1, Y1
-	VPMINSD Y4, Y0, Y0
-	VPMINSD Y4, Y1, Y1
 	VPACKSSDW Y1, Y0, Y2
+	VPMAXSW Y5, Y2, Y2
+	VPMINSW Y4, Y2, Y2
 	VPERMQ $0xd8, Y2, Y2
 	VPMULLW (R9), Y2, Y3
 	VPMADDWD Y2, Y3, Y3

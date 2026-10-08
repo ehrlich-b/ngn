@@ -50,4 +50,31 @@ These are immutable box copies; this launch annotation is separate from its
 pre-run manifest. Results expected about **13:08 EDT** at
 `session5/timing/receipt.json`. Completion, not the ETA, controls review.
 
-Result: pending. Candidate assembly remains uncommitted until its verdict.
+**ACCEPTED**, reviewed **13:08 EDT** after complete receipt/formula/source
+reconciliation. All **36/36** search identities match. The forty blocks give
+geometric NPS ratio **1.012059 [1.007220, 1.016922]**, AB/BA strata
+**1.011232 / 1.012888**. Both predeclared conditions pass. This is **+1.21%
+search throughput**, not a measured Elo increment or an absolute strength claim.
+
+Output/NGNN2/3 controls pass (**1.158 s**); engine short **13.511 s**, engine
+short/race **143.542 s**, full short and engine vet pass. All **227** compiled,
+test, embedded-net and profile inputs match the tested candidate; only the
+assembly file differs from the accepted base. Existing extreme-width tests
+exercise the unchanged overflow/reduction guarantees. No extra runtime change
+was added after the fixed sample.
+
+Controller **559907** completed **13:06:30 EDT**, preserved both input hash
+checks and restored SPSA as wrapper **566718**, tuner **566722**. Raw records,
+both source trees, exact patch and immutable manifest remain in `session5/`.
+Exact [build receipt](2026-10-08-session4-results/output-build-receipt.json),
+[source/tests](2026-10-08-session4-results/output-source-tests-receipt.json),
+and [full identity/timing receipt](2026-10-08-session4-results/output-timing-receipt.json).
+Independent reconciliation recomputed every ratio, fixed interval and order
+stratum, checked all forty indices, and compared every compilation input to the
+local source. Existing long-net gate and v3 artifacts retain their original pins.
+
+Operational observation: SPSA still has only iteration 300 / **3,600 retained
+games** at review. The prior speed-controller pauses discard uncheckpointed
+iterations; the driver writes every 25 iterations. Let it advance to a fresh
+durable checkpoint before another optional timing interruption. No mid-run
+parameter vector or discarded games are counted as tuning strength evidence.

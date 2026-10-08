@@ -14,7 +14,11 @@ H512 candidate is training, with parity/A/A40/gate400 queued by its existing con
 [Manifest and controller](experiments/2026-10-08-campaign-session1.md).
 NGNN3 refresh-cache row pairing now passes 36 exact identities, required tests and 40 fixed
 timing blocks: **+1.81% [1.26%, 2.37%] NPS**. The loop-unroll trial was inconclusive and restored.
-[Speed verdicts](experiments/2026-10-08-nnue-cache-pair.md). Frozen running binaries are unchanged.
+[Speed verdicts](experiments/2026-10-08-nnue-cache-pair.md). Packed output clamping also passes
+36 identities, required WSL tests and 40 fixed blocks: **+1.21% [0.72%, 1.69%] NPS**.
+[Output verdict](experiments/2026-10-08-nnue-output-pack.md). Frozen running binaries are unchanged.
+SPSA resumed as 566718/566722; let it advance beyond its 3,600-game checkpoint before another
+optional timing pause, since interruptions discard uncheckpointed iterations.
 
 The v3 claim instrument now binds schema 3, threshold 3600, and the four-anchor pool with
 Berserk 12 (3713). Required short/race tests and clean build/dry plans pass; operational stability
