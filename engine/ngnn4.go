@@ -41,10 +41,7 @@ func (n *NGNN1Network) evaluateLayer2(acc []int32, turn Color, bucket int) int {
 	}
 	var hidden [64]int32
 	var input [2 * ngnn1MaxHidden]uint8
-	for i := 0; i < n.hidden; i++ {
-		input[i] = uint8(min(max(us[i], 0), ngnn1QA))
-		input[n.hidden+i] = uint8(min(max(them[i], 0), ngnn1QA))
-	}
+	ngnn4PackInput(input[:2*n.hidden], us, them)
 	start := bucket * n.hidden2
 	ngnn4Linear(hidden[:n.hidden2], input[:2*n.hidden], n.packed2[start*2*n.hidden:(start+n.hidden2)*2*n.hidden])
 	for j := 0; j < n.hidden2; j++ {
@@ -57,6 +54,13 @@ func (n *NGNN1Network) evaluateLayer2(acc []int32, turn Color, bucket int) int {
 	}
 	cp := (sum/ngnn1QA + int64(bias)) * ngnn1Scale / (ngnn1QA * ngnn1QB)
 	return int(min(ngnn1ScoreLimit, max(-ngnn1ScoreLimit, cp)))
+}
+
+func ngnn4PackInputGo(dst []uint8, us, them []int32) {
+	for i := range us {
+		dst[i] = uint8(min(max(us[i], 0), ngnn1QA))
+		dst[len(us)+i] = uint8(min(max(them[i], 0), ngnn1QA))
+	}
 }
 
 func ngnn4LinearGo(dst []int32, input []uint8, weights []int8) {

@@ -8,6 +8,54 @@ import (
 	"testing"
 )
 
+func TestNGNN4InputPackDifferential(t *testing.T) {
+	values := []int32{-2147483648, -32768, -1, 0, 1, 127, 254, 255, 256, 32767, 2147483647}
+	for h := 16; h <= 2048; h += 16 {
+		a, b := make([]int32, h+7), make([]int32, h+9)
+		us, them := a[3:3+h], b[5:5+h]
+		for i := range us {
+			us[i] = values[i%len(values)]
+			them[i] = values[(i+4)%len(values)]
+		}
+		beforeA, beforeB := append([]int32(nil), a...), append([]int32(nil), b...)
+		for swap := 0; swap < 2; swap++ {
+			if swap == 1 {
+				us, them = them, us
+			}
+			storage := make([]uint8, 2*h+11)
+			for i := range storage {
+				storage[i] = 173
+			}
+			dst := storage[5 : 5+2*h]
+			want := make([]uint8, 2*h)
+			for i, x := range append(append([]int32(nil), us...), them...) {
+				if x > 255 {
+					want[i] = 255
+				} else if x > 0 {
+					want[i] = uint8(x)
+				}
+			}
+			ngnn4PackInput(dst, us, them)
+			if !reflect.DeepEqual(dst, want) {
+				t.Fatalf("AVX2 pack H=%d swap=%d", h, swap)
+			}
+			goOutput := make([]uint8, 2*h)
+			ngnn4PackInputGo(goOutput, us, them)
+			if !reflect.DeepEqual(goOutput, want) {
+				t.Fatalf("Go pack H=%d swap=%d", h, swap)
+			}
+			for _, x := range append(append([]uint8(nil), storage[:5]...), storage[5+2*h:]...) {
+				if x != 173 {
+					t.Fatal("input pack changed guard")
+				}
+			}
+		}
+		if !reflect.DeepEqual(a, beforeA) || !reflect.DeepEqual(b, beforeB) {
+			t.Fatal("input pack changed source")
+		}
+	}
+}
+
 func TestNGNN4LinearDifferential(t *testing.T) {
 	rng := rand.New(rand.NewSource(41008))
 	for h := 16; h <= 2048; h += 16 {

@@ -9,3 +9,9 @@ package engine
 //
 //go:noescape
 func ngnn4Linear(dst []int32, input []uint8, weights []int8)
+
+// Clamp int32 lanes before packing; arbitrary int32 endpoints are supported.
+// Both perspectives have the validated H, a multiple of 16. dst is disjoint.
+//
+//go:noescape
+func ngnn4PackInput(dst []uint8, us, them []int32)

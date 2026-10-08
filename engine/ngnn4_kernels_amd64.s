@@ -36,3 +36,41 @@ Layer2_inputs:
 	JNZ Layer2_outputs
 	VZEROUPPER
 	RET
+
+// Each 16-lane block is clamped before narrowing. Permute qwords after
+// int16 packing to restore square order across AVX2's 128-bit lanes.
+TEXT ·ngnn4PackInput(SB), NOSPLIT, $0-72
+	MOVQ dst_base+0(FP), DI
+	MOVQ us_base+24(FP), SI
+	MOVQ them_base+48(FP), R8
+	MOVQ us_len+32(FP), CX
+	MOVQ CX, R9
+	MOVQ $2, R10
+	VPXOR Y5, Y5, Y5
+	MOVL $255, AX
+	MOVD AX, X6
+	VPBROADCASTD X6, Y6
+PackInput_loop:
+	VMOVDQU (SI), Y0
+	VMOVDQU 32(SI), Y1
+	VPMAXSD Y5, Y0, Y0
+	VPMAXSD Y5, Y1, Y1
+	VPMINSD Y6, Y0, Y0
+	VPMINSD Y6, Y1, Y1
+	VPACKSSDW Y1, Y0, Y0
+	VPERMQ $0xD8, Y0, Y0
+	VEXTRACTI128 $1, Y0, X1
+	VPACKUSWB X1, X0, X0
+	VMOVDQU X0, (DI)
+	ADDQ $64, SI
+	ADDQ $16, DI
+	SUBQ $16, CX
+	JNZ PackInput_loop
+	SUBQ $1, R10
+	JZ PackInput_done
+	MOVQ R8, SI
+	MOVQ R9, CX
+	JMP PackInput_loop
+PackInput_done:
+	VZEROUPPER
+	RET
