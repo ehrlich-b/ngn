@@ -96,3 +96,16 @@ restore it without extension. Baseline **ca3637a**, same frozen owned random
 H512/L16 net on both sides; this refactor has no net-strength verdict.
 Scripts [controller](2026-10-08-ngnn4-pack-controller.sh) and
 [fixed check](2026-10-08-ngnn4-pack-check.py), box `session15h3/`.
+
+One bounded CUDA FP32/BF16/gradient/fused-AdamW/export test is separately
+queued after the existing factorizer CUDA controller **577875**, which
+itself follows admission **552631**. Preserve this short extra window before
+another trainer. The [CUDA controller](2026-10-08-hidden-layer-cuda.sh) uses
+the already CPU-tested Python source in `session15h2/source/`; the input-pack
+experiment changes only Go code. Require the prior CUDA receipt to pass,
+320-case CPU receipt, actual CUDA availability, no concurrent trainer/claim/
+match/datagen/probe, C: >=25 GiB, and the one test executed with zero skips.
+CPUs 13,15 / nice 19; timeout 180 seconds, native dependency timeout 12 hours.
+Results are `session15h2/cuda-{receipt.json,tests.log,controller.exit,controller.done}`.
+No real training or playing-strength gate follows automatically. CUDA failure
+stays preserved and blocks a real NGNN4 training trial.
