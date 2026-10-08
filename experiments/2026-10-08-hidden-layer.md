@@ -79,7 +79,7 @@ Verified candidate **ca3637a** is committed/pushed on `night/hidden-layer`.
 No accepted runtime change or trained net. CUDA validation remains pending.
 
 The initial output microbenchmarks show substantial added inference cost:
-H512/L16 is approximately 0.75–0.83 microseconds versus the direct output
+H512/L16 is approximately 0.75–0.87 microseconds versus the direct output
 kernel. A further original AVX2 int32-to-byte input clamp is being tested
 on the topic branch before any training. It keeps all integer values exact;
 new guarded comparisons cover signed int32 endpoints and lane permutations.
@@ -109,3 +109,32 @@ CPUs 13,15 / nice 19; timeout 180 seconds, native dependency timeout 12 hours.
 Results are `session15h2/cuda-{receipt.json,tests.log,controller.exit,controller.done}`.
 No real training or playing-strength gate follows automatically. CUDA failure
 stays preserved and blocks a real NGNN4 training trial.
+
+Input-pack controller **619122**, launched **17:39:10 EDT**, completed
+**18:03:25 EDT**. **KEEP ON TOPIC ONLY**: all 48 search identities and the
+complete 20-block rule pass, NPS ratio **1.529330 [1.486810,1.573066]**,
+**+52.93% [48.68%,57.31%]** against unoptimized NGNN4 on the same owned
+random H512/L16 test net `67043325`; AB/BA strata **1.588666 / 1.472210**.
+This is no comparison with the accepted playing net and no Elo result.
+New guarded input-pack controls, AVX2/purego, 320 H512 integer cases,
+engine short/race **14.122 / 171.585 s**, full short/race and vet pass.
+Independent review recomputes all raw records and the fixed df=19 rule;
+36 saved old-format searches also equal the immediate accepted runtime.
+All five local pack files equal the tested source. Exact topic tip
+**9b6a3d6** is pushed; it is not merged into the accepted runtime.
+[Build](2026-10-08-session15-results/hidden-pack-build.json),
+[fixed sample](2026-10-08-session15-results/hidden-pack-timing.json),
+[review](2026-10-08-session15-results/hidden-pack-review.json).
+
+Hidden-layer CUDA controller **622811** was observed waiting **17:40:49 EDT**,
+its native dependency is **577875**. This uses unchanged CPU-tested trainer
+source from `session15h2/` at **ca3637a**; the later input-pack edit is Go-only.
+Timeout **05:40 EDT October 9**. Review the actual GPU receipt before any
+real NGNN4 trial. Keep the prepared factorizer trial ahead of this architecture.
+
+For a future NGNN4 gate, test the candidate engine/net against the actual
+then-immediate accepted engine/net. A newly changed common engine on both
+sides could conceal its cost on the accepted net. Rebase the topic if the
+accepted source advances, verify old-format identity, and freeze both exact
+binaries and the selected trained export in the prospective game manifest.
+Fresh A/A40 at the exact machine/TC/concurrency/affinity remains mandatory.
