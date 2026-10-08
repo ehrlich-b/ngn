@@ -61,3 +61,23 @@ Launched **16:53:37 EDT**, observed controller **598985**. First launcher
 All new and existing narrow tests pass in **2.531 s**; engine short **12.366 s**,
 engine short/race **151.597 s**, full short/race and vet pass. The fixed check
 started **17:00:11 EDT**. Timing result remains pending; no mid-run verdict.
+
+Completed **17:25:23 EDT**, **SHELVED** by the prospective rule. All 36
+identities and the required tests pass, but the forty timing blocks give
+ratio **0.912687 [0.899307, 0.926266]**: **−8.73% [−10.07%, −7.37%] NPS**.
+AB/BA strata **0.911532 / 0.913844** are both negative. No extension, no
+accepted-runtime merge. This is a speed failure under the declared concurrent
+campaign workload; no Elo conclusion follows.
+
+The four tested files are preserved as **1b403d6** on pushed topic branch
+`night/lazy-accumulator`. Independent raw-record recomputation checks every
+identity, six-case block, order, duration, NPS aggregate, df=39 interval and
+stratum; local files equal the tested candidate. [Build](2026-10-08-session15-results/deferred-build.json),
+[fixed sample](2026-10-08-session15-results/deferred-timing.json),
+[review](2026-10-08-session15-results/deferred-review.json). Raw files remain
+in box `session15/timing/`. Existing tuner/trainer/admission/CUDA processes
+were never paused or replaced.
+
+Reopen only with a newly declared implementation that reduces the traversal
+and frame overhead while retaining the proved exact arithmetic; this sample
+cannot be extended or used to justify the current candidate.
