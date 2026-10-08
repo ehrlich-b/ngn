@@ -1,0 +1,169 @@
+{
+  "observed_at": "2026-10-08T15:53:09.467896-04:00",
+  "session_start": "2026-10-08T15:49:44-04:00",
+  "session_deadline": "2026-10-08T17:29:44-04:00",
+  "training": {
+    "completed_epochs": 64,
+    "total_epochs": 116,
+    "last_epoch": {
+      "epoch": 64,
+      "step": 1000000,
+      "positions": 256000000,
+      "updates": 15625,
+      "loss": 0.008701279296875,
+      "lr": 0.00047719844659233735,
+      "seconds": 287.37088814299204,
+      "positions_per_second": 890834.8429247214,
+      "steady_positions_per_second": 891426.8723114622,
+      "validation_loss": 0.008726331398284971,
+      "validation_loss_lambda_075": 0.008726331398284971,
+      "validation_loss_result": 0.06519629498099955
+    },
+    "last_five_mean_seconds": 289.26509961859557,
+    "history_mtime": "2026-10-08T15:51:56.965327-04:00"
+  },
+  "spsa": {
+    "last_checkpoint": {
+      "iter": 400,
+      "time": "2026-10-08T15:31:02-04:00",
+      "plus_pct": 50.833333333333336,
+      "theta": {
+        "AspInit": 13.825776481989681,
+        "AspMult": 156.34865682886522,
+        "DeltaMargin": 134.66816468756284,
+        "ExtensionBudget": 28.67586548122638,
+        "FutilityMargin": 104.46874156684196,
+        "FutilityMaxDepth": 7.870972842943037,
+        "LMPBase": 3.5281133335879735,
+        "LMRFullDepth": 3.222004101664295,
+        "LMRMoveThreshold": 1.9517527801010517,
+        "NullMoveMinDepth": 2.24434560665214,
+        "NullMoveR": 3.4410834048451,
+        "ReverseFutilityMargin": 73.87160026115203,
+        "SingularDepth": 6.1818056333578895,
+        "SingularMargin": 59.7972182592558
+      },
+      "rounded": {
+        "AspInit": 14,
+        "AspMult": 156,
+        "DeltaMargin": 135,
+        "ExtensionBudget": 29,
+        "FutilityMargin": 104,
+        "FutilityMaxDepth": 8,
+        "LMPBase": 4,
+        "LMRFullDepth": 3,
+        "LMRMoveThreshold": 2,
+        "NullMoveMinDepth": 2,
+        "NullMoveR": 3,
+        "ReverseFutilityMargin": 74,
+        "SingularDepth": 6,
+        "SingularMargin": 60
+      }
+    },
+    "retained_games": 4800
+  },
+  "processes": {
+    "522940": {
+      "command": "bash /home/ehrli/ngn-data/night-20261007/session1/controller.sh",
+      "state": "S (sleeping)",
+      "cpus": "0-15"
+    },
+    "541005": {
+      "command": "bash /home/ehrli/ngn-data/night-20261007/session1/kb8h512-long.cmd",
+      "state": "S (sleeping)",
+      "cpus": "0-15"
+    },
+    "541007": {
+      "command": "/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/kb8h512-long --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 116 --positions-per-epoch 256000000 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only",
+      "state": "S (sleeping)",
+      "cpus": "12,14"
+    },
+    "552631": {
+      "command": "bash /home/ehrli/ngn-data/claim-v3-20261008/admission-session3/controller.sh",
+      "state": "S (sleeping)",
+      "cpus": "0-15"
+    },
+    "552641": {
+      "command": "python3 - /home/ehrli/ngn-data/night-20261007/session1/controller.pid /home/ehrli/ngn-data/claim-v3-20261008/admission-session3",
+      "state": "S (sleeping)",
+      "cpus": "0-15"
+    },
+    "577875": {
+      "command": "bash /home/ehrli/ngn-data/night-20261007/session8b/cuda-controller.sh",
+      "state": "S (sleeping)",
+      "cpus": "0-15"
+    },
+    "577981": {
+      "command": "bash /home/ehrli/ngn-data/night-20261007/session1/spsa-resume.cmd",
+      "state": "S (sleeping)",
+      "cpus": "0-15"
+    },
+    "577984": {
+      "command": "/home/ehrli/ngn-data/night-20261007/spsa/spsa -engine /home/ehrli/ngn-data/night-20261007/kb8bin/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/net1-gates-20261006/openings.txt -out /home/ehrli/ngn-data/night-20261007/spsa/kb8/spsa.jsonl -lowpower=false -seed 20261008 -resume",
+      "state": "S (sleeping)",
+      "cpus": "0-11"
+    },
+    "1168": {
+      "command": "/usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+      "state": "S (sleeping)",
+      "cpus": "0-15"
+    }
+  },
+  "native_waits": {
+    "admission": {
+      "waiter_pid": 552641,
+      "mechanism": "pidfd",
+      "descriptors": [
+        {
+          "fd": 3,
+          "target_pid": 522940,
+          "fdinfo": "pos:\t0\nflags:\t02000002\nmnt_id:\t16\nino:\t1042\nPid:\t522940\nNSpid:\t522940\n"
+        }
+      ]
+    },
+    "cuda": {
+      "waiter_pid": 577880,
+      "mechanism": "pidfd",
+      "descriptors": [
+        {
+          "fd": 3,
+          "target_pid": 552631,
+          "fdinfo": "pos:\t0\nflags:\t02000002\nmnt_id:\t16\nino:\t1042\nPid:\t552631\nNSpid:\t552631\n"
+        }
+      ]
+    }
+  },
+  "input_checks": {
+    "/home/ehrli/ngn-data/night-20261007/session1/frozen-inputs.sha256": {
+      "entries": 14,
+      "passed": true,
+      "list_sha256": "c4336244d0fcf0a3f56286a5a64aae80941d0d5f4363502c1be548c8b253e42b"
+    },
+    "/home/ehrli/ngn-data/claim-v3-20261008/admission-session3/frozen-inputs.sha256": {
+      "entries": 3,
+      "passed": true,
+      "list_sha256": "435792a92ca3fac5114cacbdfad12b92d1a689c89e95c9fed8bd555be0e93bb9"
+    },
+    "/home/ehrli/ngn-data/night-20261007/session8b/cuda-inputs.sha256": {
+      "entries": 27,
+      "passed": true,
+      "list_sha256": "b8a7456473c894309e509061064c0a3e6ce3a2739cc3076030e1206202b560db"
+    }
+  },
+  "live_binary_hashes": {
+    "/home/ehrli/ngn-data/night-20261007/spsa/spsa": "67cf935d6072a990902030c22280703d084e80e0108282f8b5263eeb46c30300",
+    "/home/ehrli/ngn-data/night-20261007/kb8bin/ngn-kb8": "f09b76b7b877a3d15187d8d0eeabc150c2049419acf9df3479c458ebf52d5b3b"
+  },
+  "gpu": {
+    "utilization_percent": 66,
+    "used_mib": 4197,
+    "total_mib": 16303
+  },
+  "host_c_free_bytes": 157329608704,
+  "host_c_free_gib": 146.52461624145508,
+  "accepted_engine_commit": "5b882e2",
+  "accepted_net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "accepted_line_changed": false,
+  "new_jobs_launched": false,
+  "goal_met": false
+}
