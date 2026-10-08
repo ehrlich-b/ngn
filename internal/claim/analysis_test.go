@@ -68,12 +68,24 @@ func decisionAnchors(pairs int) []AnchorAnalysis {
 	return out
 }
 func TestClaimAndScreenDecisionBoundaries(t *testing.T) {
-	p := PoolAnalysis{CI95: [2]float64{3000, 3100}}
+	p := PoolAnalysis{CI95: [2]float64{3600, 3700}}
 	a := decisionAnchors(80)
 	if screen, claim := eligible("confirmation", a, p, true, 0); screen || claim {
-		t.Fatal("equality at 3000 admitted")
+		t.Fatal("equality at 3600 admitted")
 	}
-	p.CI95[0] = math.Nextafter(3000, math.Inf(1))
+	for _, lower := range []float64{3001, 3500, math.Nextafter(3600, math.Inf(-1)), math.NaN()} {
+		p.CI95[0] = lower
+		for _, mode := range []string{"screen", "confirmation"} {
+			pairs := 80
+			if mode == "screen" {
+				pairs = 40
+			}
+			if s, c := eligible(mode, decisionAnchors(pairs), p, true, 0); s || c {
+				t.Fatalf("%s admitted lower bound %v", mode, lower)
+			}
+		}
+	}
+	p.CI95[0] = math.Nextafter(3600, math.Inf(1))
 	if screen, claim := eligible("confirmation", a, p, true, 0); screen || !claim {
 		t.Fatal("strict lower bound rejected")
 	}
@@ -104,6 +116,11 @@ func TestClaimAndScreenDecisionBoundaries(t *testing.T) {
 	if s, c := eligible("screen", decisionAnchors(40), p, true, 0); !s || c {
 		t.Fatal("screen eligibility became a claim")
 	}
+	p.CI95[0] = 3600
+	if s, c := eligible("screen", decisionAnchors(40), p, true, 0); s || c {
+		t.Fatal("screen equality at 3600 admitted")
+	}
+	p.CI95[0] = math.Nextafter(3600, math.Inf(1))
 	a[0].Counts.Pairs = 79
 	if _, c := eligible("confirmation", a, p, true, 0); c {
 		t.Fatal("broken pair admitted")
@@ -170,13 +187,13 @@ func TestBootstrapConstantPairsHandComputed(t *testing.T) {
 		}
 	}
 	// Every selected pair is one win and one loss, so p=1/2 and all
-	// variances match. Every resample pool=(2994+3317+3359+3557)/4.
+	// variances match. Every resample pool=(3317+3359+3557+3713)/4.
 	b, e := Bootstrap(anchors, games, 80, 10000, 3000)
 	if e != nil {
 		t.Fatal(e)
 	}
-	closeValue(t, "bootstrap lower", b.CI95[0], 13227.0/4)
-	closeValue(t, "bootstrap upper", b.CI95[1], 13227.0/4)
+	closeValue(t, "bootstrap lower", b.CI95[0], 13946.0/4)
+	closeValue(t, "bootstrap upper", b.CI95[1], 13946.0/4)
 }
 func TestBootstrapQuantileHandComputed(t *testing.T) {
 	closeValue(t, "interpolated percentile", percentile([]float64{0, 10, 20, 30, 40}, 0.025), 1)

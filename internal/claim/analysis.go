@@ -36,6 +36,7 @@ type BootstrapAnalysis struct {
 }
 type Analysis struct {
 	Schema, Mode, ReceiptSHA256, Formula string
+	ClaimThreshold                       int
 	GameDirectory                        string
 	Audit                                Artifact
 	// Bind every replayed game to the saved audit, not the collector summary.
@@ -87,7 +88,7 @@ func bracketed(anchors []AnchorAnalysis) bool {
 	return above && below
 }
 func eligible(mode string, anchors []AnchorAnalysis, p PoolAnalysis, admitted bool, exclusions int) (bool, bool) {
-	if !admitted || exclusions != 0 || !bracketed(anchors) || !(p.CI95[0] > 3000) {
+	if !admitted || exclusions != 0 || !bracketed(anchors) || !(p.CI95[0] > ClaimThreshold) {
 		return false, false
 	}
 	expected := 80
@@ -239,7 +240,7 @@ func Bootstrap(anchors []Anchor, games []Game, indices, draws int, seed int64) (
 // Analyze accepts persisted, hash-bound evidence only. Replaying it anew prevents
 // an edited audit flag or collector summary from manufacturing admission.
 func Analyze(receiptPath, auditPath, gameDir string) (Analysis, error) {
-	out := Analysis{Schema: Schema, Formula: PrimaryFormula}
+	out := Analysis{Schema: Schema, Formula: PrimaryFormula, ClaimThreshold: ClaimThreshold}
 	absoluteDir, e := filepath.Abs(gameDir)
 	if e != nil {
 		return out, e
@@ -309,7 +310,7 @@ func Analyze(receiptPath, auditPath, gameDir string) (Analysis, error) {
 	out.Questions = []string{"Bootstrap interval construction is not specified; supplemental percentile interval uses linear interpolation (type 7)."}
 	if out.Mode == "screen" {
 		out.Questions = append(out.Questions, "Screen bootstrap index count is not specified; jointly resample the screen's frozen 40 indices, never the confirmation's 80.")
-		out.Interpretation = append(out.Interpretation, "A passing screen admits only the frozen candidate for separately authorized confirmation; it supplies no >3000 claim.")
+		out.Interpretation = append(out.Interpretation, "A passing screen admits only the frozen candidate for separately authorized confirmation; it supplies no >3600 claim.")
 	}
 	if out.Mode == "tooling-check" {
 		out.Interpretation = append(out.Interpretation, "Tooling check only; no screen or strength claim is eligible.")

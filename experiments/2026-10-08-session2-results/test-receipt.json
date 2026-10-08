@@ -1,0 +1,22 @@
+{
+  "utc": "2026-10-08T15:04:59.487795+00:00",
+  "passed": true,
+  "old_threshold_reproduced": true,
+  "cpu": "13,15",
+  "nice": 19,
+  "environment": {
+    "GOMAXPROCS": "2",
+    "GOAMD64": "v3",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOFLAGS": "-p=2"
+  },
+  "logs": {
+    "old-fail.log": "350e19c00067b7c2f19c3b901f4b6473aa70e821a0d9f3f14d8eac1608ae6ab8",
+    "claim-tests.log": "264433f3f279fe908e16c89323dd7418732abf8caaf001080383cdad4b2d3b51",
+    "engine-short.log": "c23abc49e1f739d431326e00b03603e550c6bc2d19a7ee19f3b0d1695b5b9d07",
+    "engine-race.log": "4671d99d72a862349125a9082720109a424f76c860fb245dcb743335f715042c",
+    "all-short.log": "8722475b121fc2e817682fdfcf5035ab5dfb94b0c547c8ed54c78fbd90c1d488",
+    "all-race.log": "72bcf99e45aee768679c626a3c7362babac733d2d8d467f4e80c0b769a58c7f7"
+  }
+}

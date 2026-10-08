@@ -127,6 +127,9 @@ func TestReceiptRejectsChangedClockCoverageAndIdentity(t *testing.T) {
 		{"selected-options", func(r *Receipt) { r.ClockCheck[0].Session.Selected = map[string]string{"Threads": "2"} }},
 		{"dirty-tool-source", func(r *Receipt) { r.SourceClean = false }},
 		{"dirty-candidate-source", func(r *Receipt) { r.CandidateSourceClean = false }},
+		{"v2-receipt", func(r *Receipt) { r.Schema = "NGN-CLAIM-2" }},
+		{"v2-plan", func(r *Receipt) { r.Plan.Schema = "NGN-CLAIM-2" }},
+		{"v2-threshold", func(r *Receipt) { r.Plan.ClaimThreshold = 3000 }},
 		{"changed-label", func(r *Receipt) { r.Plan.Anchors[0].Label = 3360 }},
 		{"changed-count", func(r *Receipt) { r.Plan.Count++ }},
 		{"changed-cap", func(r *Receipt) { r.Plan.Cap = 399 }},
@@ -289,13 +292,13 @@ func TestMaelstromUsesVerifiedExecutableDigest(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if p.Anchors[1].Engine.SHA256 != MaelstromSHA {
+	if p.Anchors[0].Engine.SHA256 != MaelstromSHA {
 		t.Fatal("Maelstrom identity unresolved")
 	}
 	if e = validatePlan(p); e != nil {
 		t.Fatal(e)
 	}
-	p.Anchors[1].Engine.SHA256 = strings.Repeat("f", 64)
+	p.Anchors[0].Engine.SHA256 = strings.Repeat("f", 64)
 	if e = validatePlan(p); e == nil {
 		t.Fatal("substituted Maelstrom executable admitted")
 	}
@@ -304,8 +307,8 @@ func TestMaelstromUsesVerifiedExecutableDigest(t *testing.T) {
 func TestRevisedPoolPinsNewAnchorAndFixedSamples(t *testing.T) {
 	for _, mode := range []string{"screen", "confirmation"} {
 		p, e := MakePlan(mode, Identity{}, Artifact{}, "/owned/openings.txt")
-		if e != nil || len(p.Anchors) != 4 || p.Anchors[3].Label != 3557 || p.Anchors[3].Engine.SHA256 != ViridithasSHA {
-			t.Fatalf("bad v2 pool: %+v %v", p, e)
+		if e != nil || p.Schema != "NGN-CLAIM-3" || p.ClaimThreshold != 3600 || len(p.Anchors) != 4 || p.Anchors[3].Label != 3713 || p.Anchors[3].Engine.SHA256 != BerserkSHA {
+			t.Fatalf("bad v3 pool: %+v %v", p, e)
 		}
 		if p.Concurrency != 8 || p.Cap != 400 || (mode == "screen" && p.Count != 40) || (mode == "confirmation" && p.Count != 80) {
 			t.Fatal("changed sample")
@@ -314,5 +317,88 @@ func TestRevisedPoolPinsNewAnchorAndFixedSamples(t *testing.T) {
 		if validatePlan(p) == nil {
 			t.Fatal("substituted new anchor admitted")
 		}
+	}
+}
+
+func TestV3PlanRejectsPoolSubstitution(t *testing.T) {
+	for i, want := range []Anchor{
+		{Name: "Maelstrom 3.3.0", Label: 3317},
+		{Name: "Counter 5.5", Label: 3359},
+		{Name: "Viridithas 10.0.0", Label: 3557},
+		{Name: "Berserk 12", Label: 3713},
+	} {
+		for _, field := range []string{"name", "label", "path", "sha"} {
+			p, e := MakePlan("screen", Identity{}, Artifact{}, "/owned/openings.txt")
+			if e != nil || p.Anchors[i].Name != want.Name || p.Anchors[i].Label != want.Label {
+				t.Fatalf("wrong pool: %+v %v", p, e)
+			}
+			switch field {
+			case "name":
+				p.Anchors[i].Name = "Counter 3.8"
+			case "label":
+				p.Anchors[i].Label++
+			case "path":
+				p.Anchors[i].Engine.Path = "/replacement"
+			case "sha":
+				p.Anchors[i].Engine.SHA256 = strings.Repeat("f", 64)
+			}
+			if validatePlan(p) == nil {
+				t.Fatalf("changed %s %s admitted", want.Name, field)
+			}
+		}
+	}
+	for _, mode := range []string{"tooling-check", "stability-screen", "stability-confirmation"} {
+		p, e := MakePlan(mode, Identity{}, Artifact{}, "/owned/openings.txt")
+		want := "Berserk 12"
+		if mode == "tooling-check" {
+			want = "Counter 5.5"
+		}
+		if e != nil || len(p.Anchors) != 1 || p.Anchors[0].Name != want || p.Count != 2 {
+			t.Fatalf("wrong operational sample: %+v %v", p, e)
+		}
+	}
+}
+
+func TestConfirmationRequiresSameV3ScreenIdentity(t *testing.T) {
+	fixture := func() (Receipt, Analysis, Receipt) {
+		id := Identity{Engine: Artifact{Path: "/owned/ngn", SHA256: strings.Repeat("a", 64)}, Net: Artifact{Path: "/owned/net", SHA256: strings.Repeat("b", 64)}, SourceCommit: strings.Repeat("c", 40)}
+		s, _ := MakePlan("screen", id, Artifact{Path: "/owned/tool", SHA256: strings.Repeat("d", 64)}, "/owned/openings.txt")
+		c, _ := MakePlan("confirmation", id, s.Runner, s.Openings.Path)
+		screen := Receipt{Schema: Schema, Plan: s, FrozenOpenings: Artifact{Path: "/screen/slice", SHA256: OpeningSHA}, Selected: map[string]map[string]string{"candidate": {"Threads": "1"}}}
+		confirmation := Receipt{Schema: Schema, Plan: c, FrozenOpenings: Artifact{Path: "/confirmation/slice", SHA256: OpeningSHA}, Selected: map[string]map[string]string{"candidate": {"Threads": "1"}}}
+		analysis := Analysis{Schema: Schema, Mode: "screen", ClaimThreshold: ClaimThreshold, ScreenEligible: true}
+		return screen, analysis, confirmation
+	}
+	s, a, c := fixture()
+	if !screenAdmitsConfirmation(s, a, c) {
+		t.Fatal("same identity with independently frozen slice paths rejected")
+	}
+	cases := []struct {
+		name   string
+		change func(*Receipt, *Analysis, *Receipt)
+	}{
+		{"v2-analysis", func(s *Receipt, a *Analysis, c *Receipt) { a.Schema = "NGN-CLAIM-2" }},
+		{"v2-threshold", func(s *Receipt, a *Analysis, c *Receipt) { a.ClaimThreshold = 3000 }},
+		{"ineligible", func(s *Receipt, a *Analysis, c *Receipt) { a.ScreenEligible = false }},
+		{"wrong-analysis-mode", func(s *Receipt, a *Analysis, c *Receipt) { a.Mode = "confirmation" }},
+		{"v2-screen", func(s *Receipt, a *Analysis, c *Receipt) { s.Schema = "NGN-CLAIM-2" }},
+		{"wrong-plan-threshold", func(s *Receipt, a *Analysis, c *Receipt) { c.Plan.ClaimThreshold = 3000 }},
+		{"different-net", func(s *Receipt, a *Analysis, c *Receipt) { c.Plan.Candidate.Net.SHA256 = strings.Repeat("f", 64) }},
+		{"different-engine", func(s *Receipt, a *Analysis, c *Receipt) { c.Plan.Candidate.Engine.SHA256 = strings.Repeat("f", 64) }},
+		{"different-source", func(s *Receipt, a *Analysis, c *Receipt) { c.Plan.Candidate.SourceCommit = strings.Repeat("f", 40) }},
+		{"different-tool", func(s *Receipt, a *Analysis, c *Receipt) { c.Plan.Runner.SHA256 = strings.Repeat("f", 64) }},
+		{"different-options", func(s *Receipt, a *Analysis, c *Receipt) { c.Selected["candidate"]["Threads"] = "2" }},
+		{"different-anchor", func(s *Receipt, a *Analysis, c *Receipt) { c.Plan.Anchors[3].Engine.SHA256 = strings.Repeat("f", 64) }},
+		{"different-openings", func(s *Receipt, a *Analysis, c *Receipt) { c.Plan.Openings.SHA256 = strings.Repeat("f", 64) }},
+		{"different-slice", func(s *Receipt, a *Analysis, c *Receipt) { c.FrozenOpenings.SHA256 = strings.Repeat("f", 64) }},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s, a, c := fixture()
+			tc.change(&s, &a, &c)
+			if screenAdmitsConfirmation(s, a, c) {
+				t.Fatal("changed confirmation identity admitted")
+			}
+		})
 	}
 }

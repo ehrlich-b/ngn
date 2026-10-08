@@ -104,3 +104,19 @@ still incomplete, GPU reserved idle until the screen ends, hopper 1168 untouched
 No candidate verdict or 3600 claim is drawn from this unfinished sample. Exact frozen-input manifest
 `session1/frozen-inputs.sha256` hashes to
 `c4336244d0fcf0a3f56286a5a64aae80941d0d5f4363502c1be548c8b253e42b`.
+
+## Completed screen, reviewed in session 2
+
+Finished **10:46:09 EDT**, all 320 games / 160 pairs audited, zero exclusions and unchanged
+post-run artifact hashes. Pooled **3434.60 [3388.26, 3480.94]**; whole-opening bootstrap
+**[3408.70, 3458.45]**, bracketed. Per-anchor W/D/L: Counter 3.8 **72/6/2**, Maelstrom **38/36/6**,
+Counter 5.5 **37/32/11**, Viridithas **4/28/48**; 0/1/1/1 cap draws. Exact
+[analysis](2026-10-08-session2-results/screen-analysis.json),
+[audit](2026-10-08-session2-results/screen-audit.json),
+[hash recheck](2026-10-08-session2-results/screen-post-run-hashes.json).
+
+This is orientation of the pre-clock-stop source `9fe2cb6` with accepted `be34532c`, about +48
+over the previous net's screen point estimate; the samples are separate, and that difference is
+not a paired gain estimate. The unchanged v2 ScreenEligible=true tests >3000. It supplies no
+3600 eligibility and queues no 120+1 claim. Training started **10:46:09 EDT**, wrapper PID **541005**,
+Python child **541007**; controller **522940** still owns parity/A/A/gate after 116 epochs.
