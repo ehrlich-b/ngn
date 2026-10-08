@@ -1,0 +1,31 @@
+{
+  "source_commit": "94d48b044bbad8144f7fce7a2848ac888812a1fd",
+  "build_argv": [
+    "taskset",
+    "-c",
+    "13,15",
+    "nice",
+    "-n",
+    "19",
+    "make",
+    "-C",
+    "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/source/src",
+    "basic"
+  ],
+  "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "binary": {
+    "path": "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/berserk-12-linux-native",
+    "sha256": "7b9b5898a781cbe0757caef0b7281df5cf5029d17e67ed3df4824f0eb1c0125d"
+  },
+  "network": {
+    "path": "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/source/src/networks/berserk-fb675dad41b4.nn",
+    "sha256": "fb675dad41b45f72a030379f1022412704a68554f703ccb407474043640bafc7"
+  },
+  "uci_stdout_sha256": "f4446cabcdde172053a895415605446b3c2048201471ffba97d115c31506250a",
+  "uci_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "probe_exit": 0,
+  "ccrl_label": 3713,
+  "ccrl_version": "Berserk 12 64-bit (1CPU)",
+  "ccrl_date": "2026-10-03",
+  "admission": "Build and UCI only; stability games and orientation are still required."
+}

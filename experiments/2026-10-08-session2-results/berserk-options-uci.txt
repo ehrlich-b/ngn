@@ -1,0 +1,23 @@
+id name Berserk 12
+id author Jay Honnold
+option name Hash type spin default 16 min 2 max 131072
+option name Threads type spin default 1 min 1 max 256
+option name SyzygyPath type string default <empty>
+option name MultiPV type spin default 1 min 1 max 256
+option name Ponder type check default false
+option name UCI_ShowWDL type check default true
+option name UCI_Chess960 type check default false
+option name MoveOverhead type spin default 300 min 100 max 10000
+option name Contempt type spin default 0 min -100 max 100
+option name EvalFile type string default <empty>
+uciok
+info string set EvalFile to value <empty>
+info string set Hash to value 64 (67108864 bytes) (6291456 entries)
+info string set MultiPV to value 1
+info string set Ponder to value false
+info string set SyzygyPath to value <empty>
+info string set Threads to value 1
+info string set UCI_Chess960 to value false
+info string Resetting board...
+info string set SHOW_WDL to value true
+readyok

@@ -65,3 +65,28 @@ Remaining work before a complete frozen v3 protocol:
    Run all required short/race tests on WSL. Preserve the frozen v2 tool for historical analysis.
 4. Nominate the immediate accepted engine/net after its game gate; freeze its exact clean source,
    build, net and provenance. Commit the final complete v3 protocol before any v3 screen game.
+
+## Session 2 build review — 10:57 EDT
+
+The build completed **10:46:36 EDT**, source commit and network pin match the prospective record.
+[Build receipt](2026-10-08-session2-results/berserk-build-receipt.json),
+[UCI transcript](2026-10-08-session2-results/berserk-uci.txt). Binary SHA-256:
+`7b9b5898a781cbe0757caef0b7281df5cf5029d17e67ed3df4824f0eb1c0125d`;
+embedded network SHA-256 `fb675dad41b45f72a030379f1022412704a68554f703ccb407474043640bafc7`,
+network submodule commit `dae8f890cecc27e66a7b8c30b0c5fbc9dcd5a5c1`. The probe from `/tmp`
+passed `uciok`/`readyok`, exited zero, and emitted no stderr. Its source/net stay outside NGN.
+
+Supported settings frozen for the operational samples and prospective v3 pool: **Threads 1,
+Hash 64, SyzygyPath <empty>, MultiPV 1, Ponder false, UCI_ShowWDL true, UCI_Chess960 false,
+MoveOverhead 300, Contempt 0, EvalFile <empty>**. There is no advertised book switch. The
+existing option-freezing code preserves the advertised MoveOverhead default (no space in this
+option's name), rather than sending NGN's separate `Move Overhead` option. Empty EvalFile selects
+the embedded, binary-bound opponent network. A second from-`/tmp` probe sends the **entire** frozen
+set in the claimtool's configuration order and passes readiness/exit with empty stderr:
+[option receipt](2026-10-08-session2-results/berserk-option-receipt.json),
+[transcript](2026-10-08-session2-results/berserk-options-uci.txt). No stability or orientation games
+have occurred.
+
+The [v3 instrument](2026-10-08-v3-instrument.md) now pins this exact executable, replaces
+Counter 3.8 with Berserk 12, and binds 3600 in a new schema. Full admission remains pending;
+the live longer-H512 trainer prevents exclusive operational games tonight until it finishes.

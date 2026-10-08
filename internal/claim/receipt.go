@@ -191,7 +191,7 @@ func foreignMatch(output string, ours map[string]bool) error {
 	return nil
 }
 func MakePlan(mode string, id Identity, runner Artifact, openingPath string) (Plan, error) {
-	p := Plan{Schema: Schema, Mode: mode, Candidate: id, Anchors: Anchors(), Openings: Artifact{openingPath, OpeningSHA}, Concurrency: 8, Cap: 400, Runner: runner, MoveOverhead: 100, MaxLoad: 16}
+	p := Plan{Schema: Schema, Mode: mode, ClaimThreshold: ClaimThreshold, Candidate: id, Anchors: Anchors(), Openings: Artifact{openingPath, OpeningSHA}, Concurrency: 8, Cap: 400, Runner: runner, MoveOverhead: 100, MaxLoad: 16}
 	switch mode {
 	case "screen":
 		p.Count = 40
@@ -210,7 +210,7 @@ func MakePlan(mode string, id Identity, runner Artifact, openingPath string) (Pl
 		p.Concurrency = 1
 		p.BaseNS = 1e9
 		p.IncrementNS = 2e7
-		p.Anchors = p.Anchors[2:3]
+		p.Anchors = p.Anchors[1:2]
 	case "stability-screen", "stability-confirmation":
 		p.Count = 2
 		p.BaseNS = 10e9
@@ -230,7 +230,7 @@ func validatePlan(p Plan) error {
 	if e != nil {
 		return e
 	}
-	if p.Schema != Schema || p.Count != expected.Count || p.Concurrency != expected.Concurrency || p.Cap != 400 || p.BaseNS != expected.BaseNS || p.IncrementNS != expected.IncrementNS || p.MoveOverhead != 100 || p.MaxLoad != expected.MaxLoad || p.Openings.SHA256 != OpeningSHA {
+	if p.Schema != Schema || p.ClaimThreshold != ClaimThreshold || p.Count != expected.Count || p.Concurrency != expected.Concurrency || p.Cap != 400 || p.BaseNS != expected.BaseNS || p.IncrementNS != expected.IncrementNS || p.MoveOverhead != 100 || p.MaxLoad != expected.MaxLoad || p.Openings.SHA256 != OpeningSHA {
 		return fmt.Errorf("protocol settings mismatch")
 	}
 	if len(p.Anchors) != len(expected.Anchors) {
@@ -960,7 +960,7 @@ func CreateReceipt(p Plan, dir, sourceRoot string, toolBuild []string, screenRec
 		if e != nil {
 			return r, e
 		}
-		if !reflect.DeepEqual(sa, verified) || !sa.ScreenEligible || sr.Plan.Mode != "screen" || !reflect.DeepEqual(sr.Plan.Candidate, p.Candidate) || !reflect.DeepEqual(sr.Selected, r.Selected) || sr.Plan.Runner != p.Runner || sr.Plan.WindowsBridge != p.WindowsBridge || !reflect.DeepEqual(sr.Plan.Anchors, r.Plan.Anchors) {
+		if !reflect.DeepEqual(sa, verified) || !screenAdmitsConfirmation(sr, sa, r) {
 			return r, fmt.Errorf("screen does not admit same frozen candidate/tool/options/anchors")
 		}
 		r.ScreenReceipt, e = Bind(screenReceipt)
@@ -996,6 +996,22 @@ func CreateReceipt(p Plan, dir, sourceRoot string, toolBuild []string, screenRec
 	}
 	return r, nil
 }
+
+// Analysis is independently recomputed before this identity comparison. Every
+// persistent input must carry over from screen to confirmation unchanged.
+func screenAdmitsConfirmation(screen Receipt, analysis Analysis, confirmation Receipt) bool {
+	s, c := screen.Plan, confirmation.Plan
+	return analysis.Schema == Schema && analysis.ClaimThreshold == ClaimThreshold &&
+		analysis.Mode == "screen" && analysis.ScreenEligible && !analysis.ClaimEligible &&
+		screen.Schema == Schema && confirmation.Schema == Schema &&
+		s.Schema == Schema && c.Schema == Schema && s.ClaimThreshold == ClaimThreshold && c.ClaimThreshold == ClaimThreshold &&
+		s.Mode == "screen" && c.Mode == "confirmation" &&
+		reflect.DeepEqual(s.Candidate, c.Candidate) && reflect.DeepEqual(screen.Selected, confirmation.Selected) &&
+		s.Runner == c.Runner && s.WindowsBridge == c.WindowsBridge &&
+		s.Openings == c.Openings && screen.FrozenOpenings.SHA256 != "" && screen.FrozenOpenings.SHA256 == confirmation.FrozenOpenings.SHA256 &&
+		reflect.DeepEqual(s.Anchors, c.Anchors)
+}
+
 func SaveRecheck(receiptPath, out string) error {
 	r, e := ReadReceipt(receiptPath)
 	if e != nil {

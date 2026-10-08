@@ -1,0 +1,34 @@
+{
+  "binary_sha256": "7b9b5898a781cbe0757caef0b7281df5cf5029d17e67ed3df4824f0eb1c0125d",
+  "options": {
+    "Threads": "1",
+    "Hash": "64",
+    "SyzygyPath": "<empty>",
+    "MultiPV": "1",
+    "Ponder": "false",
+    "UCI_ShowWDL": "true",
+    "UCI_Chess960": "false",
+    "MoveOverhead": "300",
+    "Contempt": "0",
+    "EvalFile": "<empty>"
+  },
+  "order": [
+    "EvalFile",
+    "Contempt",
+    "Hash",
+    "MoveOverhead",
+    "MultiPV",
+    "Ponder",
+    "SyzygyPath",
+    "Threads",
+    "UCI_Chess960",
+    "UCI_ShowWDL"
+  ],
+  "exit_code": 0,
+  "passed": true,
+  "transcripts": {
+    "options.stdin": "a8b0e836dcf699293288e50b4f8f745ac593e0f58170b69d403e1a53b6647e19",
+    "options.stdout": "85466f0947a790ea5b7a6fa96d94028ea49227fbc41110835ca121a3555a2828",
+    "options.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
