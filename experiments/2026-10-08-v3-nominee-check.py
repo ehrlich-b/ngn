@@ -77,7 +77,11 @@ def artifacts(s, commit):
             assert required in info, (name, required)
         assert not re.search(r'^\s*dep\s', info, re.M)
         target = '.' if name == 'ngn' else './cmd/speedprobe'
-        write(s/f'frozen/{name}-build.json', ['/usr/local/go/bin/go', 'build', '-buildvcs=true', '-p', '2', '-o', str(s/'frozen'/name), target])
+        argv = ['/usr/local/go/bin/go', 'build', '-buildvcs=true', '-p', '2']
+        if name == 'speedprobe':
+            argv.append(f'-pgo={s}/source/default.pgo')
+        argv += ['-o', str(s/'frozen'/name), target]
+        write(s/f'frozen/{name}-build.json', argv)
         (s/'frozen'/name).chmod(0o555)
     shutil.copyfile(ROOT/'kb8h512/best.nnue', s/'frozen/development-be34532c.nnue')
     assert digest(s/'frozen/development-be34532c.nnue') == NET_SHA
@@ -285,7 +289,7 @@ def finish(s, commit):
 if __name__ == '__main__':
     action, root, commit = sys.argv[1:]
     s = Path(root)
-    assert sys.platform == 'linux' and s == Path('/home/ehrli/ngn-data/claim-v3-20261008/nominee-session10b')
+    assert sys.platform == 'linux' and s == Path('/home/ehrli/ngn-data/claim-v3-20261008/nominee-session10c')
     if action == 'inputs':
         write(s/'checks/source-receipt.json', source_inputs(s, commit))
     elif action == 'artifacts':

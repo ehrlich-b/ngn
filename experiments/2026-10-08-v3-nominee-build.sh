@@ -4,7 +4,7 @@ set -euo pipefail
 [[ $# == 2 ]] || { echo 'Usage: controller.sh BUNDLE EXPECTED_COMMIT' >&2; exit 2; }
 BUNDLE=$1 EXPECTED=$2
 R=/home/ehrli/ngn-data/night-20261007
-S=/home/ehrli/ngn-data/claim-v3-20261008/nominee-session10b
+S=/home/ehrli/ngn-data/claim-v3-20261008/nominee-session10c
 V=/home/ehrli/ngn-data/claim-v3-20261008/tooling
 export PATH=/usr/local/go/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOAMD64=v3
 export GOMAXPROCS=2 GOCACHE=$S/go-cache PYTHONDONTWRITEBYTECODE=1
@@ -20,7 +20,7 @@ finish() {
   local rc=$?
   printf '%s\n' "$rc" > "$S/controller.exit"
   date -Is > "$S/controller.done"
-  if [[ $rc != 0 ]]; then st fail "rc $rc; preserve nominee-session10b; no retry or nomination"; fi
+  if [[ $rc != 0 ]]; then st fail "rc $rc; preserve nominee-session10c; no retry or nomination"; fi
 }
 trap finish EXIT
 cd "$S"
@@ -42,7 +42,7 @@ taskset -c 13,15 nice -n 19 python3 check.py inputs "$S" "$EXPECTED" > source-ch
 cd source
 [[ $(go version) == 'go version go1.25.5 linux/amd64' ]]
 taskset -c 13,15 nice -n 19 go build -buildvcs=true -p 2 -o "$S/frozen/ngn" . > "$S/ngn-build.log" 2>&1
-taskset -c 13,15 nice -n 19 go build -buildvcs=true -p 2 -o "$S/frozen/speedprobe" ./cmd/speedprobe > "$S/probe-build.log" 2>&1
+taskset -c 13,15 nice -n 19 go build -buildvcs=true -p 2 -pgo="$S/source/default.pgo" -o "$S/frozen/speedprobe" ./cmd/speedprobe > "$S/probe-build.log" 2>&1
 go version -m "$S/frozen/ngn" > "$S/frozen/ngn-buildinfo.txt"
 go version -m "$S/frozen/speedprobe" > "$S/frozen/speedprobe-buildinfo.txt"
 cd "$S"
