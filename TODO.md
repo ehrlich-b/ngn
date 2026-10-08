@@ -20,7 +20,7 @@ timing blocks: **+1.81% [1.26%, 2.37%] NPS**. The loop-unroll trial was inconclu
 Direct NGNN3 move-delta fusion is now accepted, **5b882e2**: 36 identities, required full
 short/race/vet, 230 source/fixture/profile hashes, and 40 fixed blocks give **+0.80%
 [0.27%, 1.33%] NPS**, both order strata positive. [Completed record](experiments/2026-10-08-nnue-delta-fusion.md).
-Controller 566961 restored SPSA **577981/577984**, durable iteration 325 / **3,900** games.
+Controller 566961 restored SPSA **577981/577984**, durable iteration 350 / **4,200** games.
 Let it advance without repeated pauses; no tuning-strength verdict before >=20k and paired games.
 
 Optional king-bucket training factorizer **6926457** is CPU-tested: six new controls,
@@ -44,6 +44,11 @@ trainer suite pass (47 passes, 3 existing CUDA checks skipped while the GPU is b
 A fixed 917,504-row gen0b sample exposes 1,830 boards shared across separate shard
 groups; the new split has zero shared boards. No new net or playing-strength verdict.
 [Tooling and sample receipts](experiments/2026-10-08-owned-data-holdout.md).
+The alternative owned-teacher calibration is now prepared in `session10/`: isolated
+datagen/datastat builds, short/race checks, 28 corruption/activation controls and frozen
+gen0b baseline metrics pass. Its fixed 5k/25k-node, 256-game run needs reviewed immediate-
+teacher activation after longer-net/admission/CUDA; no real datagen is queued.
+[Calibration preparation and activation](experiments/2026-10-08-owned-calibration.md).
 
 The v3 claim instrument now binds schema 3, threshold 3600, and the four-anchor pool with
 Berserk 12 (3713). Required short/race tests and clean build/dry plans pass; operational stability

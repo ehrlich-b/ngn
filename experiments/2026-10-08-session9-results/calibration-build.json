@@ -1,0 +1,77 @@
+{
+  "source_commit": "d4144602c6f0ca5b3cc3575e60a00c937ed75651",
+  "source_archive_sha256": "f3dffd84f1fef89b7fd1d4bccb5912cdaeb4f978790f0c0164362a402955bfba",
+  "source_reconciled": true,
+  "engine_inputs": 230,
+  "trainer_inputs": 25,
+  "tests_passed": true,
+  "binary_sha256": {
+    "datagen": "485eb86b1625307333acbb0c3b2eed586f03b8efb5d2516bcb68ad96d0271db1",
+    "datastat": "a8de2f8108632e256e9b8a80f59d9206bffa2e8e5a50b66a1b921c957ac08204"
+  },
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "cpu": [
+    13,
+    15
+  ],
+  "nice": 19,
+  "gpu_used": false,
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "build_argv": [
+    [
+      "go",
+      "build",
+      "-p",
+      "2",
+      "-trimpath",
+      "-buildvcs=false",
+      "-pgo=/home/ehrli/ngn-data/night-20261007/session10/source/default.pgo",
+      "-ldflags",
+      "-X main.engineCommit=d4144602c6f0ca5b3cc3575e60a00c937ed75651",
+      "-o",
+      "/home/ehrli/ngn-data/night-20261007/session10/frozen/datagen",
+      "./cmd/datagen"
+    ],
+    [
+      "go",
+      "build",
+      "-p",
+      "2",
+      "-trimpath",
+      "-buildvcs=false",
+      "-pgo=/home/ehrli/ngn-data/night-20261007/session10/source/default.pgo",
+      "-o",
+      "/home/ehrli/ngn-data/night-20261007/session10/frozen/datastat",
+      "./cmd/datastat"
+    ]
+  ],
+  "logs": {
+    "datagen-tests.log": {
+      "sha256": "6f6f456bda147ca26ad469782d3ee16d29b6a5f172218eca81432ab10959c352",
+      "tail": [
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/datagen\t0.176s",
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/ngnp\t0.072s",
+        "?   \tgithub.com/ehrlich-b/ngn/cmd/datagen\t[no test files]",
+        "ok  \tgithub.com/ehrlich-b/ngn/cmd/datastat\t0.069s"
+      ]
+    },
+    "datagen-race.log": {
+      "sha256": "8bb4873ecfd26ea5dad93625ee2996a6a266275afe1924335c6bd6821234835c",
+      "tail": [
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/datagen\t2.139s",
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/ngnp\t1.545s",
+        "?   \tgithub.com/ehrlich-b/ngn/cmd/datagen\t[no test files]",
+        "ok  \tgithub.com/ehrlich-b/ngn/cmd/datastat\t1.372s"
+      ]
+    },
+    "datagen-build.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tail": []
+    },
+    "datastat-build.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tail": []
+    }
+  }
+}
