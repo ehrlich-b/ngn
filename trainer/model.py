@@ -18,6 +18,11 @@ def validate_buckets(buckets: int) -> None:
         raise ValueError("Buckets must be one of 1, 2, 4, 8")
 
 
+def validate_hidden2(hidden2: int) -> None:
+    if hidden2 and (not 16 <= hidden2 <= 64 or hidden2 % 16):
+        raise ValueError("Second hidden size must be 0 or a multiple of 16 in [16,64]")
+
+
 def decode_gpu(raw: torch.Tensor, buckets: int | None = None,
                king_map: torch.Tensor | None = None, king_buckets: int = 8) -> tuple:
     """Return dense white/black perspectives and STM-relative labels on device.
@@ -62,10 +67,14 @@ def decode_gpu(raw: torch.Tensor, buckets: int | None = None,
 
 class NGNN(nn.Module):
     def __init__(self, hidden: int = 256, buckets: int = 1, king_map=None,
-                 king_factorizer: bool = False):
+                 king_factorizer: bool = False, hidden2: int = 0):
         super().__init__()
         validate_hidden(hidden)
         validate_buckets(buckets)
+        validate_hidden2(hidden2)
+        if hidden2 and king_map is None:
+            raise ValueError("Second hidden layer requires king inputs (NGNN4)")
+        self.hidden2 = hidden2
         self.hidden, self.buckets = hidden, buckets
         self.king_buckets = 1
         self.king_map = None
@@ -79,10 +88,17 @@ class NGNN(nn.Module):
         self.w1 = nn.Parameter(torch.empty(768 * self.king_buckets, hidden))
         self.b1 = nn.Parameter(torch.full((hidden,), 0.25))
         # Keep single-bucket checkpoint shapes and floating arithmetic unchanged.
-        self.o = nn.Parameter(torch.empty(2 * hidden if buckets == 1 else (buckets, 2 * hidden)))
+        self.o = nn.Parameter(torch.empty((buckets, hidden2) if hidden2 else
+                                         2 * hidden if buckets == 1 else (buckets, 2 * hidden)))
         self.ob = nn.Parameter(torch.zeros(() if buckets == 1 else (buckets,)))
         nn.init.normal_(self.w1, mean=0, std=0.02)
         nn.init.normal_(self.o, mean=0, std=0.05 / hidden ** 0.5)
+        self.register_parameter("w2", nn.Parameter(torch.empty(buckets, hidden2, 2 * hidden))
+                                if hidden2 else None)
+        self.register_parameter("b2", nn.Parameter(torch.full((buckets, hidden2), 0.25))
+                                if hidden2 else None)
+        if hidden2:
+            nn.init.normal_(self.w2, mean=0, std=0.5 / (2 * hidden) ** 0.5)
         # Zero initialization preserves the ordinary model's effective weights
         # and RNG stream. Each bucket learns a residual over the shared rows.
         self.register_parameter("w1_shared", nn.Parameter(torch.zeros(768, hidden))
@@ -97,6 +113,19 @@ class NGNN(nn.Module):
     def forward(self, features: torch.Tensor, stm: torch.Tensor,
                 bucket: torch.Tensor | None = None) -> torch.Tensor:
         acc = features @ self.effective_w1() + self.b1
+        if self.hidden2:
+            if bucket is None:
+                if self.buckets > 1:
+                    raise ValueError("Material bucket indices are required")
+                bucket = torch.zeros_like(stm)
+            white, black = acc.clamp(0, 1).chunk(2, dim=0)
+            us = torch.where((stm == 0)[:, None], white, black)
+            them = torch.where((stm == 0)[:, None], black, white)
+            ordered = torch.cat((us, them), dim=1)
+            middle = torch.bmm(self.w2[bucket], ordered.unsqueeze(2)).squeeze(2)
+            activation = (middle.float() + self.b2[bucket]).clamp(0, 1).square()
+            bias = self.ob if self.buckets == 1 else self.ob[bucket]
+            return ((activation * self.o[bucket]).sum(dim=1).float() + bias) * SCALE
         activation = acc.clamp(0, 1).square()
         # Compute both STM orderings without materializing a gathered [B,2H].
         white, black = activation.chunk(2, dim=0)
@@ -123,6 +152,9 @@ class NGNN(nn.Module):
             self.w1.reshape(self.king_buckets, 768, self.hidden).clamp_(
                 -32768 / QA - self.w1_shared, 32767 / QA - self.w1_shared)
         self.b1.clamp_(-32768 / QA, 32767 / QA)
+        if self.hidden2:
+            self.w2.clamp_(-1, 1)
+            self.b2.clamp_(-32768 / QA, 32767 / QA)
         self.o.clamp_(-1.98, 1.98)
         # Leave a representable float32 margin below int32's positive boundary.
         self.ob.clamp_(-2147483520 / (QA * QB), 2147483520 / (QA * QB))

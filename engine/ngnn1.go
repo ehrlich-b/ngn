@@ -17,7 +17,7 @@ const (
 	ngnn1ScoreLimit = 24999
 )
 
-// NGNN1Network owns validated, immutable NGNN1, NGNN2 or NGNN3 weights. Workers share this
+// NGNN1Network owns validated, immutable NGNN1, NGNN2, NGNN3 or NGNN4 weights. Workers share this
 // object; their accumulators never live here. All arithmetic remains exact
 // even for the full int16 weight range permitted by the file format.
 type NGNN1Network struct {
@@ -32,13 +32,17 @@ type NGNN1Network struct {
 	outputBias  int32 // first bucket, also the sole NGNN1 output bias
 	otherBiases []int32
 	smallOutput bool // immutable loader-derived bound: every output weight is within [-128, 128]
+	hidden2     int
+	layer2      []int8
+	packed2     []int8
+	bias2       []int16
 }
 
 func (n *NGNN1Network) valid() bool {
 	return n != nil && n.hidden > 0 && n.hidden <= ngnn1MaxHidden && n.hidden%16 == 0 &&
 		(n.bucketCount() == 1 || n.buckets == 2 || n.buckets == 4 || n.buckets == 8) &&
 		n.validKingLayout() && len(n.weights) == n.featureCount()*n.hidden && len(n.bias) == n.hidden &&
-		len(n.output) == n.bucketCount()*2*n.hidden && len(n.otherBiases) == n.bucketCount()-1
+		n.validOutputLayout() && len(n.otherBiases) == n.bucketCount()-1
 }
 
 func (n *NGNN1Network) bucketCount() int {
@@ -48,7 +52,7 @@ func (n *NGNN1Network) bucketCount() int {
 	return n.buckets
 }
 
-// LoadNGNN1 accepts NGNN1/2/3, preserving the original API. No partial network is
+// LoadNGNN1 accepts NGNN1/2/3/4, preserving the original API. No partial network is
 // returned after an I/O, header, length, or checksum error.
 func LoadNGNN1(path string) (*NGNN1Network, error) {
 	f, err := os.Open(path)
@@ -61,12 +65,12 @@ func LoadNGNN1(path string) (*NGNN1Network, error) {
 
 // ReadNGNN1 bounds allocation from a validated header before reading weights.
 func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
-	var storage [96]byte
+	var storage [100]byte
 	header := storage[:24]
 	if _, err := io.ReadFull(r, header); err != nil {
 		return nil, fmt.Errorf("NGNN1 header: %w", err)
 	}
-	version, nb, kb, constants := int(binary.LittleEndian.Uint32(header[4:8])), 1, 1, 12
+	version, nb, kb, constants, h2 := int(binary.LittleEndian.Uint32(header[4:8])), 1, 1, 12, 0
 	var kingMap [64]uint8
 	switch {
 	case string(header[:4]) == "NGNN" && version == 1:
@@ -80,8 +84,17 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 			return nil, fmt.Errorf("NGNN2: invalid bucket count %d", nb)
 		}
 		constants = 16
-	case string(header[:4]) == "NGN3" && version == 3:
-		header = storage[:96]
+	case (string(header[:4]) == "NGN3" && version == 3) || (string(header[:4]) == "NGN4" && version == 4):
+		size, mapOffset := 96, 32
+		constants = 20
+		if version == 4 {
+			size, mapOffset, constants = 100, 36, 24
+			h2 = int(binary.LittleEndian.Uint32(header[20:24]))
+			if h2 < 16 || h2 > 64 || h2%16 != 0 {
+				return nil, fmt.Errorf("NGNN4: invalid second hidden size %d", h2)
+			}
+		}
+		header = storage[:size]
 		if _, err := io.ReadFull(r, header[24:]); err != nil {
 			return nil, fmt.Errorf("NGNN3 header: %w", err)
 		}
@@ -90,13 +103,12 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 		if kb < 1 || kb > 8 || (nb != 1 && nb != 2 && nb != 4 && nb != 8) {
 			return nil, fmt.Errorf("NGNN3: invalid king/output bucket counts %d/%d", kb, nb)
 		}
-		copy(kingMap[:], header[32:96])
+		copy(kingMap[:], header[mapOffset:])
 		for _, bucket := range kingMap {
 			if int(bucket) >= kb {
 				return nil, fmt.Errorf("NGNN3: king bucket map entry out of range")
 			}
 		}
-		constants = 20
 	default:
 		return nil, fmt.Errorf("NGNN: unsupported magic/version")
 	}
@@ -108,6 +120,9 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 		return nil, fmt.Errorf("NGNN1: invalid quantization constants")
 	}
 	size := len(header) + 2*(kb*ngnn1Features*h+h+nb*2*h) + nb*4 + 4
+	if version == 4 {
+		size = len(header) + 2*(kb*ngnn1Features*h+h) + nb*(h2*2*h+4*h2+4) + 4
+	}
 	data := make([]byte, size)
 	copy(data, header)
 	if _, err := io.ReadFull(r, data[len(header):]); err != nil {
@@ -129,10 +144,25 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 		}
 		return values
 	}
-	n := &NGNN1Network{hidden: h, version: version, buckets: nb, kingBuckets: kb, kingMap: kingMap}
+	n := &NGNN1Network{hidden: h, version: version, buckets: nb, kingBuckets: kb, kingMap: kingMap, hidden2: h2}
 	n.weights = readWeights(kb * ngnn1Features * h)
 	n.bias = readWeights(h)
-	n.output = readWeights(nb * 2 * h)
+	if version == 4 {
+		n.layer2 = make([]int8, nb*h2*2*h)
+		for i := range n.layer2 {
+			w := int8(data[offset])
+			if w < -64 || w > 64 {
+				return nil, fmt.Errorf("NGNN4: second layer weight outside [-64,64]")
+			}
+			n.layer2[i] = w
+			offset++
+		}
+		n.bias2 = readWeights(nb * h2)
+		n.output = readWeights(nb * h2)
+		n.packLayer2()
+	} else {
+		n.output = readWeights(nb * 2 * h)
+	}
 	n.smallOutput = true
 	for _, w := range n.output {
 		if w < -128 || w > 128 {
@@ -171,7 +201,7 @@ func (n *NGNN1Network) row(feature int) []int16 {
 func (n *NGNN1Network) refresh(pos *Position, accum []int32) {
 	for p, color := range [...]Color{White, Black} {
 		context := ngnn3Context{}
-		if n.version == 3 {
+		if n.version >= 3 {
 			context = n.kingContext(pos, color)
 		}
 		a := accum[p*n.hidden : (p+1)*n.hidden]
@@ -203,6 +233,9 @@ func (n *NGNN1Network) bucket(pos *Position) int {
 }
 
 func (n *NGNN1Network) evaluateBucket(acc []int32, turn Color, bucket int) int {
+	if n.version == 4 {
+		return n.evaluateLayer2(acc, turn, bucket)
+	}
 	us, them := acc[:n.hidden], acc[n.hidden:2*n.hidden]
 	if turn == Black {
 		us, them = them, us
@@ -309,7 +342,7 @@ func (s *ngnn1State) ensure(depth int) {
 
 func (s *ngnn1State) reset(pos *Position) {
 	s.ensure(0)
-	if s.network.version == 3 {
+	if s.network.version >= 3 {
 		for p, color := range [...]Color{White, Black} {
 			s.cachedRefresh(p, s.network.kingContext(pos, color), pos, s.at(0)[p*s.network.hidden:(p+1)*s.network.hidden])
 		}

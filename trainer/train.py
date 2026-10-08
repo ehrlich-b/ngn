@@ -11,7 +11,7 @@ import numpy as np
 import torch
 
 from trainer.export import export_state
-from trainer.model import NGNN, blended_loss, decode_gpu, validate_buckets, validate_hidden
+from trainer.model import NGNN, blended_loss, decode_gpu, validate_buckets, validate_hidden, validate_hidden2
 from trainer.ngnp import Shards
 from trainer.ngnp_split import ContentShards
 from trainer.archive import Archive
@@ -98,8 +98,9 @@ def parser() -> argparse.ArgumentParser:
                      help="JSON mapping of every training shard path to its frozen prefix record count")
     cli.add_argument("--out", type=Path, required=True)
     cli.add_argument("--hidden", type=int, default=256)
+    cli.add_argument("--hidden2", type=int, default=0, help="NGNN4 second hidden size: 16, 32, 48 or 64")
     cli.add_argument("--buckets", type=int, choices=(1, 2, 4, 8), default=1)
-    cli.add_argument("--format", type=int, choices=(1, 2, 3), help="Default: 1 for NB=1, otherwise 2")
+    cli.add_argument("--format", type=int, choices=(1, 2, 3, 4), help="Default: 1 for NB=1, otherwise 2")
     cli.add_argument("--kb-map", default="default", help="NGNN3: default or JSON file with 64 bucket IDs")
     cli.add_argument("--king-factorizer", action="store_true",
                      help="NGNN3: learn shared feature rows plus king-bucket residuals; fold at export")
@@ -132,12 +133,15 @@ def main() -> None:
     args = parser().parse_args()
     validate_hidden(args.hidden)
     validate_buckets(args.buckets)
-    args.format = args.format or (2 if args.buckets > 1 else 1)
+    validate_hidden2(args.hidden2)
+    args.format = args.format or (4 if args.hidden2 else 2 if args.buckets > 1 else 1)
+    if (args.format == 4) != bool(args.hidden2):
+        raise ValueError("--format 4 requires --hidden2; other formats require --hidden2 0")
     if args.format == 1 and args.buckets != 1:
         raise ValueError("NGNN1 requires --buckets 1")
-    if args.format != 3 and args.kb_map != "default":
-        raise ValueError("--kb-map requires --format 3")
-    king_map = load_map(args.kb_map) if args.format == 3 else None
+    if args.format < 3 and args.kb_map != "default":
+        raise ValueError("--kb-map requires --format 3 or 4")
+    king_map = load_map(args.kb_map) if args.format >= 3 else None
     if args.king_factorizer and (king_map is None or max(king_map) < 1):
         raise ValueError("King factorizer requires NGNN3 with at least two king buckets")
     if (args.batch < 1 or args.epochs < 1 or args.threads < 1 or args.lr <= 0 or args.k <= 0
@@ -167,14 +171,14 @@ def main() -> None:
                 raise ValueError("NGNP content holdout cannot be combined with --validation-data")
             args.ngnp_split_seed = args.seed if args.ngnp_split_seed is None else args.ngnp_split_seed
             shards = ContentShards(args.data, args.drop_flags, args.min_ply, args.block_records,
-                                   args.format == 3, record_counts,
+                                   args.format >= 3, record_counts,
                                    args.ngnp_holdout_modulus, args.ngnp_split_seed)
             validation = shards.holdout()
         else:
             if args.ngnp_split_seed is not None:
                 raise ValueError("--ngnp-split-seed requires --ngnp-holdout-modulus")
-            shards = Shards(args.data, args.drop_flags, args.min_ply, args.block_records, args.format == 3, record_counts)
-            validation = (Shards(args.validation_data, args.drop_flags, args.min_ply, args.block_records, args.format == 3)
+            shards = Shards(args.data, args.drop_flags, args.min_ply, args.block_records, args.format >= 3, record_counts)
+            validation = (Shards(args.validation_data, args.drop_flags, args.min_ply, args.block_records, args.format >= 3)
                           if args.validation_data else None)
     if record_counts is not None:
         record_counts = {str(Path(p).resolve()): n for p, n in record_counts.items()}
@@ -187,13 +191,17 @@ def main() -> None:
     passes, remainder = divmod(positions, shards.count)
     steps_per_epoch = passes * steps_per_pass + math.ceil(remainder / args.batch)
     total_steps = args.epochs * steps_per_epoch
-    model = NGNN(args.hidden, args.buckets, king_map, args.king_factorizer).to(device)
+    model = NGNN(args.hidden, args.buckets, king_map, args.king_factorizer, args.hidden2).to(device)
     decayed = [model.w1, model.o]
     if model.w1_shared is not None:
         decayed.append(model.w1_shared)
+    biases = [model.b1, model.ob]
+    if model.hidden2:
+        decayed.append(model.w2)
+        biases.append(model.b2)
     optimizer = torch.optim.AdamW([
         {"params": decayed, "weight_decay": args.weight_decay},
-        {"params": [model.b1, model.ob], "weight_decay": 0.0},
+        {"params": biases, "weight_decay": 0.0},
     ], lr=args.lr, fused=device.type == "cuda")
     first_epoch, step, history = 0, 0, []
     if args.resume:
@@ -204,7 +212,7 @@ def main() -> None:
                 "weight_decay", "drop_flags", "min_ply", "block_records", "positions_per_epoch",
                 "seed", "precision", "data")
         differences = [key for key in same if saved[key] != getattr(args, key)]
-        for key, default in (("buckets", 1), ("format", 1), ("king_factorizer", False)):
+        for key, default in (("buckets", 1), ("format", 1), ("king_factorizer", False), ("hidden2", 0)):
             if saved.get(key, default) != getattr(args, key):
                 differences.append(key)
         if saved.get("data_format", "ngnp") != args.data_format:
@@ -221,7 +229,7 @@ def main() -> None:
                     differences.append(key)
             if args.ngnp_holdout_modulus and saved.get("ngnp_split") != shards.split_receipt:
                 differences.append("ngnp_split")
-        if args.format == 3:
+        if args.format >= 3:
             if saved.get("king_map") != list(king_map):
                 differences.append("king_map")
         if saved.get("validation_data") != args.validation_data:

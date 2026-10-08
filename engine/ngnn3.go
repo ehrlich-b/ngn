@@ -12,14 +12,14 @@ func (c ngnn3Context) feature(base int) int {
 }
 
 func (n *NGNN1Network) featureCount() int {
-	if n.version == 3 {
+	if n.version >= 3 {
 		return n.kingBuckets * ngnn1Features
 	}
 	return ngnn1Features
 }
 
 func (n *NGNN1Network) validKingLayout() bool {
-	if n.version != 3 {
+	if n.version < 3 {
 		return true
 	}
 	if n.kingBuckets < 1 || n.kingBuckets > 8 {
