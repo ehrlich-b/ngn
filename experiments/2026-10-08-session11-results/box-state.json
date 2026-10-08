@@ -1,0 +1,94 @@
+{
+  "utc": "2026-10-08T19:27:18.665353+00:00",
+  "epochs": 58,
+  "latest_epoch": {
+    "epoch": 58,
+    "step": 906250,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.00874786328125,
+    "lr": 0.0005500003899910275,
+    "seconds": 284.9467819870042,
+    "positions_per_second": 898413.3746478863,
+    "steady_positions_per_second": 898992.6838880992,
+    "validation_loss": 0.00876762141920388,
+    "validation_loss_lambda_075": 0.00876762141920388,
+    "validation_loss_result": 0.0652407130743421
+  },
+  "recent_epoch_seconds": [
+    289.78886919101933,
+    287.72159857998486,
+    282.4357140760112,
+    283.78283877202193,
+    284.9467819870042
+  ],
+  "spsa_checkpoint": {
+    "iter": 375,
+    "time": "2026-10-08T15:01:04-04:00",
+    "retained_games": 4500
+  },
+  "gpu": "69 %, 4197 MiB, 16303 MiB",
+  "host_c_free_bytes": 157334994944,
+  "processes": {
+    "1168": {
+      "command": "/usr/bin/python3 /home/ehrli/hopper/hopper.py run ",
+      "affinity": "Cpus_allowed_list:\t0-15"
+    },
+    "522940": {
+      "command": "bash /home/ehrli/ngn-data/night-20261007/session1/controller.sh ",
+      "affinity": "Cpus_allowed_list:\t0-15"
+    },
+    "541005": {
+      "command": "bash /home/ehrli/ngn-data/night-20261007/session1/kb8h512-long.cmd ",
+      "affinity": "Cpus_allowed_list:\t0-15"
+    },
+    "541007": {
+      "command": "/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/kb8h512-long --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 116 --positions-per-epoch 256000000 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only ",
+      "affinity": "Cpus_allowed_list:\t12,14"
+    },
+    "552631": {
+      "command": "bash /home/ehrli/ngn-data/claim-v3-20261008/admission-session3/controller.sh ",
+      "affinity": "Cpus_allowed_list:\t0-15"
+    },
+    "577875": {
+      "command": "bash /home/ehrli/ngn-data/night-20261007/session8b/cuda-controller.sh ",
+      "affinity": "Cpus_allowed_list:\t0-15"
+    },
+    "577981": {
+      "command": "bash /home/ehrli/ngn-data/night-20261007/session1/spsa-resume.cmd ",
+      "affinity": "Cpus_allowed_list:\t0-15"
+    },
+    "577984": {
+      "command": "/home/ehrli/ngn-data/night-20261007/spsa/spsa -engine /home/ehrli/ngn-data/night-20261007/kb8bin/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/net1-gates-20261006/openings.txt -out /home/ehrli/ngn-data/night-20261007/spsa/kb8/spsa.jsonl -lowpower=false -seed 20261008 -resume ",
+      "affinity": "Cpus_allowed_list:\t0-11"
+    }
+  },
+  "latest_status": [
+    {
+      "utc": "2026-10-08T19:08:40.111142+00:00",
+      "stage": "v3-nominee-preparation",
+      "event": "identities-pass",
+      "detail": "36 accepted-delta records and 18 actual UCI/common-engine cases exact; no timing or tuner pause"
+    },
+    {
+      "utc": "2026-10-08T19:08:40.810154+00:00",
+      "stage": "v3-nominee-preparation",
+      "event": "done",
+      "detail": "clean candidate build, inherited tests, 54 exact identities and dry controls pass; final nomination/protocol still required"
+    },
+    {
+      "utc": "2026-10-08T19:24:52.064967+00:00",
+      "stage": "spsa-live-audit",
+      "event": "start",
+      "detail": "CPU 13,15; 180 bounded searches; no tuner pause, GPU or games"
+    },
+    {
+      "utc": "2026-10-08T19:25:22.059281+00:00",
+      "stage": "spsa-live-audit",
+      "event": "done",
+      "detail": "rc 0; diagnostic only; training and tuner untouched"
+    }
+  ],
+  "audit_exit": "0",
+  "audit_done": "2026-10-08T15:25:22-04:00"
+}
