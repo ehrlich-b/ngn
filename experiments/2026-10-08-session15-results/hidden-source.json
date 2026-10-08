@@ -1,0 +1,19 @@
+{
+  "engine/evaluator_selection.go": "2f2d3d816fd0dcd5ab2d8eed0465a378bf797b0d6bd4f181b052a64494c57765",
+  "engine/ngnn1.go": "803918dbe01cac0b2abd6636deb5920c1a855e5ee7a134907050ebe140d3d8b0",
+  "engine/ngnn3.go": "0af6bc94dafc5418a6d8c72e3e0d694f136f0e85f7ebe4e57db95c1f63d53b1e",
+  "engine/worker_evaluator.go": "80838b930123141311718e742a34f36f5d9577e7ac3b3f3c70a2e1bb1b353914",
+  "engine/ngnn4.go": "ab76e8d97a100cd2a58c1876eee6991a7c65e8a24aac2631fe23bb8368e0fe8e",
+  "engine/ngnn4_test.go": "6fe38c87865ee9c1a0960cd99050703eaa220bbe5574dae8ad36050864175761",
+  "engine/ngnn4_kernels_amd64.go": "62fede615b1f318027938c383ff86151906566a5efae3d519752cf5cd05b1812",
+  "engine/ngnn4_kernels_amd64.s": "e6f12842ede3a51a6f3763a288fb604f7bd15f6677b8b6675e1b3447d1c26b21",
+  "engine/ngnn4_kernels_generic.go": "f1fdf02f1d8f0402a61d7ef0b88d9dd02275ad8440ac4a18f097dd7513ef370a",
+  "engine/ngnn4_kernels_test.go": "2c9d6fd88c74d5b73ff90ac02ffbbb3b5575c3079661025932cb0459cf9bbe62",
+  "trainer/model.py": "2f195fdcdc79857c6158ef3ce00e76b89518972647c1b0a204c62c1350707ec0",
+  "trainer/export.py": "3deeb6d1d734428956004cd9a32d8f019b7072d4c10ad7d5c1dca1a022a9eb1b",
+  "trainer/refeval.py": "a1962ad86cfe5018bacef0006c17b31d0317bed47341f249fed1c2c775804bcb",
+  "trainer/train.py": "6b2e8aac800513523cdca2b7da8020c795bb32acc80ce4b5629ff13921880da4",
+  "trainer/make_random_net.py": "c521b50d6ea08a4fbe5452834ef20ff0c425bd53f6239962bb2dc07255b8a622",
+  "trainer/tests/test_ngnn4.py": "efcb6c1cefb89ea0ce581807c148502326a9a011d90761446be077337583c91f",
+  "trainer/README.md": "e29dcb64abae005d7addab69359be63e328f8de12eceb09af852b3e4ad978630"
+}

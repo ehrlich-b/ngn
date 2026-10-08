@@ -64,3 +64,35 @@ Controller **608741** queued **17:06:13 EDT**, native dependency **598985**,
 results under `session15h2/`. Initial waiter **608645** in `session15h/` was
 cancelled before tests to strengthen the negative signed-division control;
 its original frozen inputs/logs are preserved. CPU results remain pending.
+
+CPU verification **PASS**, controller 608741 completed **17:35:00 EDT**.
+New trainer controls pass (five CPU tests, one CUDA skip); full suite has
+**63 tests / 58 passes / 5 CUDA skips**, 78.714 s. Go AVX2 and purego controls
+pass in 1.211/1.216 s, including **320 exact integer cases**, all widths,
+guarded buffers, extreme affine sums, both turns and worker/reload controls.
+Engine short/race **14.817 / 170.806 s**, full short/race, vet and build pass.
+All 17 changed local files equal the tested source. Fixture `c91adc11` is
+owned, seeded and reproducible. [CPU receipt](2026-10-08-session15-results/hidden-cpu.json),
+[source](2026-10-08-session15-results/hidden-source.json),
+[inference cost](2026-10-08-session15-results/hidden-inference.txt).
+Verified candidate **ca3637a** is committed/pushed on `night/hidden-layer`.
+No accepted runtime change or trained net. CUDA validation remains pending.
+
+The initial output microbenchmarks show substantial added inference cost:
+H512/L16 is approximately 0.75–0.83 microseconds versus the direct output
+kernel. A further original AVX2 int32-to-byte input clamp is being tested
+on the topic branch before any training. It keeps all integer values exact;
+new guarded comparisons cover signed int32 endpoints and lane permutations.
+
+Prospective input-pack rule, before launch: required NGNN4 AVX2/purego,
+engine/full short/race/vet checks; exact 320-case H512/L16 parity; **48 search
+identities** (NGNN4 H512/L16 depth 12, accepted NGNN3 and NGNN2 depth 14,
+HCE depth 11, twelve each). Then warm both probes and **20 fixed AB/BA timing
+blocks**, six positions × three seconds per side, CPU 13 / nice 19 /
+GOMAXPROCS=1, same explicit PGO. Use paired aggregate NPS, geometric mean
+and two-sided 95% t interval on log ratios, df=19. Keep the input-pack edit
+on the topic only if lower ratio >1 and both order strata >1; otherwise
+restore it without extension. Baseline **ca3637a**, same frozen owned random
+H512/L16 net on both sides; this refactor has no net-strength verdict.
+Scripts [controller](2026-10-08-ngnn4-pack-controller.sh) and
+[fixed check](2026-10-08-ngnn4-pack-check.py), box `session15h3/`.
