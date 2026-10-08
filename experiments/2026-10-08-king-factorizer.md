@@ -70,4 +70,10 @@ without extension. No candidate or recipe is queued by this preparation.
 
 ## Results
 
-Pending preparation checks; no strength verdict.
+Initial controller **577328**, box `session8/`, terminated with a fixture
+assertion failure. The unsupported NGNN1 case still requested eight output
+buckets and correctly failed the existing NGNN1 guard first. Five CPU
+controls passed; CUDA was skipped. Correct that case to request one output
+bucket, then rerun the complete preparation in a fresh `session8b/`. Preserve
+the original inputs, logs and failure; no runtime or optimization correction
+was needed. No strength verdict.
