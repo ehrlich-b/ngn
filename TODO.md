@@ -17,10 +17,18 @@ timing blocks: **+1.81% [1.26%, 2.37%] NPS**. The loop-unroll trial was inconclu
 [Speed verdicts](experiments/2026-10-08-nnue-cache-pair.md). Packed output clamping also passes
 36 identities, required WSL tests and 40 fixed blocks: **+1.21% [0.72%, 1.69%] NPS**.
 [Output verdict](experiments/2026-10-08-nnue-output-pack.md). Frozen running binaries are unchanged.
-SPSA is 566718/566722 with 3,600 retained games. Direct NGNN3 delta speed controller **566961**
-first runs required checks, then waits with inotify/pidfd for iteration >=325 before its fixed
-36-identity/40-block timing gate. [Pending manifest](experiments/2026-10-08-nnue-delta-fusion.md).
-Do not launch another speed gate while it is pending; no speculative runtime source is committed.
+Direct NGNN3 move-delta fusion is now accepted, **5b882e2**: 36 identities, required full
+short/race/vet, 230 source/fixture/profile hashes, and 40 fixed blocks give **+0.80%
+[0.27%, 1.33%] NPS**, both order strata positive. [Completed record](experiments/2026-10-08-nnue-delta-fusion.md).
+Controller 566961 restored SPSA **577981/577984**, durable iteration 325 / **3,900** games.
+Let it advance without repeated pauses; no tuning-strength verdict before >=20k and paired games.
+
+Optional king-bucket training factorizer **6926457** is CPU-tested: six new controls,
+full trainer suite **53 passes / 4 CUDA skips**, 64 exact Go integer cases and 25 reconciled
+trainer/fixture inputs. It folds shared rows into the unchanged NGNN3 export. CUDA control
+**577875** waits natively for v3 admission **552631**; preserve that brief window before
+new training/claims. No real factorizer training trial is queued or accepted.
+[Preparation, CUDA queue and experiment boundary](experiments/2026-10-08-king-factorizer.md).
 
 Owned self-play preparation now supports an optional board-content NGNP holdout,
 with split/prefix identity checked on resume. Six new controls and the full CPU
