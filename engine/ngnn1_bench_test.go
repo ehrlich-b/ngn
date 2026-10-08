@@ -34,6 +34,7 @@ func benchmarkNGNN1Push(b *testing.B, h int) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		s.push(1, delta)
+		s.at(1)
 	}
 }
 

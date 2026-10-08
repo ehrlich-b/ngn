@@ -283,12 +283,51 @@ func ngnn1MoveDelta(move Move) ngnn1Delta {
 type ngnn1State struct {
 	network      *NGNN1Network
 	stack        []int32
+	frames       []ngnn1Frame
 	refreshCache []ngnn3CacheEntry
 }
 
-func (s *ngnn1State) at(depth int) []int32 {
+// Frames retain move deltas until evaluation needs their accumulators. Only a
+// king-context crossing needs a board snapshot; ordinary moves use exact rows.
+type ngnn1Frame struct {
+	delta  ngnn1Delta
+	ready  uint8
+	pieces [13]uint64
+}
+
+func (s *ngnn1State) rawAt(depth int) []int32 {
 	width := 2 * s.network.hidden
 	return s.stack[depth*width : (depth+1)*width]
+}
+
+func (s *ngnn1State) at(depth int) []int32 {
+	for p := 0; p < 2; p++ {
+		mask := uint8(1 << p)
+		if s.frames[depth].ready&mask != 0 {
+			continue
+		}
+		// A saved refresh is an independent anchor: older pending deltas in
+		// that perspective need not be computed just to reach this frame.
+		start := depth
+		for s.frames[start].ready&mask == 0 && s.frames[start].delta.refreshMask&mask == 0 {
+			start--
+		}
+		if s.frames[start].ready&mask == 0 {
+			frame := &s.frames[start]
+			s.cachedRefreshPieces(p, frame.delta.contexts[p], &frame.pieces, s.halfAt(start, p))
+			frame.ready |= mask
+		}
+		for ply := start + 1; ply <= depth; ply++ {
+			s.applyRows(s.halfAt(ply, p), s.halfAt(ply-1, p), s.frames[ply].delta, p)
+			s.frames[ply].ready |= mask
+		}
+	}
+	return s.rawAt(depth)
+}
+
+func (s *ngnn1State) halfAt(depth, p int) []int32 {
+	h := s.network.hidden
+	return s.rawAt(depth)[p*h : (p+1)*h]
 }
 
 func (s *ngnn1State) ensure(depth int) {
@@ -304,14 +343,18 @@ func (s *ngnn1State) ensure(depth int) {
 		next := make([]int32, plies*width)
 		copy(next, s.stack)
 		s.stack = next
+		frames := make([]ngnn1Frame, plies)
+		copy(frames, s.frames)
+		s.frames = frames
 	}
 }
 
 func (s *ngnn1State) reset(pos *Position) {
 	s.ensure(0)
+	s.frames[0].ready = 3
 	if s.network.version == 3 {
 		for p, color := range [...]Color{White, Black} {
-			s.cachedRefresh(p, s.network.kingContext(pos, color), pos, s.at(0)[p*s.network.hidden:(p+1)*s.network.hidden])
+			s.cachedRefresh(p, s.network.kingContext(pos, color), pos, s.halfAt(0, p))
 		}
 		return
 	}
@@ -324,34 +367,34 @@ func (s *ngnn1State) push(depth int, delta ngnn1Delta) {
 
 func (s *ngnn1State) pushPosition(depth int, delta ngnn1Delta, pos *Position) {
 	s.ensure(depth)
-	parent, child := s.at(depth-1), s.at(depth)
+	frame := &s.frames[depth]
+	frame.delta = delta
+	frame.ready = 0
+	if delta.refreshMask != 0 {
+		frame.pieces = pos.Board.pieces
+	}
+}
+
+func (s *ngnn1State) applyRows(a, src []int32, delta ngnn1Delta, p int) {
 	if delta.removes == 0 && delta.adds == 0 {
-		copy(child, parent)
+		copy(a, src)
 		return // Null move: the turn changes; the features do not.
 	}
 	n := s.network
-	for p := 0; p < 2; p++ {
-		a := child[p*n.hidden : (p+1)*n.hidden]
-		if delta.refreshMask&(1<<p) != 0 {
-			s.cachedRefresh(p, delta.contexts[p], pos, a)
-			continue
+	switch {
+	case delta.removes == 1 && delta.adds == 1:
+		ngnn1MoveRows(a, src, n.row(int(delta.remove[p][0])), n.row(int(delta.add[p][0])))
+	case delta.removes == 2 && delta.adds == 1:
+		ngnn1CaptureRows(a, src, n.row(int(delta.remove[p][0])), n.row(int(delta.remove[p][1])), n.row(int(delta.add[p][0])))
+	case delta.removes == 2 && delta.adds == 2:
+		ngnn1CastleRows(a, src, n.row(int(delta.remove[p][0])), n.row(int(delta.remove[p][1])), n.row(int(delta.add[p][0])), n.row(int(delta.add[p][1])))
+	default:
+		copy(a, src)
+		for i := 0; i < delta.removes; i++ {
+			ngnn1SubRow(a, n.row(int(delta.remove[p][i])))
 		}
-		src := parent[p*n.hidden : (p+1)*n.hidden]
-		switch {
-		case delta.removes == 1 && delta.adds == 1:
-			ngnn1MoveRows(a, src, n.row(int(delta.remove[p][0])), n.row(int(delta.add[p][0])))
-		case delta.removes == 2 && delta.adds == 1:
-			ngnn1CaptureRows(a, src, n.row(int(delta.remove[p][0])), n.row(int(delta.remove[p][1])), n.row(int(delta.add[p][0])))
-		case delta.removes == 2 && delta.adds == 2:
-			ngnn1CastleRows(a, src, n.row(int(delta.remove[p][0])), n.row(int(delta.remove[p][1])), n.row(int(delta.add[p][0])), n.row(int(delta.add[p][1])))
-		default:
-			copy(a, src)
-			for i := 0; i < delta.removes; i++ {
-				ngnn1SubRow(a, n.row(int(delta.remove[p][i])))
-			}
-			for i := 0; i < delta.adds; i++ {
-				ngnn1AddRow(a, n.row(int(delta.add[p][i])))
-			}
+		for i := 0; i < delta.adds; i++ {
+			ngnn1AddRow(a, n.row(int(delta.add[p][i])))
 		}
 	}
 }

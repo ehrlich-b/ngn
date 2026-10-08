@@ -121,6 +121,10 @@ type ngnn3CacheEntry struct {
 }
 
 func (s *ngnn1State) cachedRefresh(p int, context ngnn3Context, pos *Position, dst []int32) {
+	s.cachedRefreshPieces(p, context, &pos.Board.pieces, dst)
+}
+
+func (s *ngnn1State) cachedRefreshPieces(p int, context ngnn3Context, pieces *[13]uint64, dst []int32) {
 	n := s.network
 	if s.refreshCache == nil {
 		s.refreshCache = make([]ngnn3CacheEntry, 4*n.kingBuckets)
@@ -141,7 +145,7 @@ func (s *ngnn1State) cachedRefresh(p int, context ngnn3Context, pos *Position, d
 		color = Black
 	}
 	for piece := WhitePawn; piece <= BlackKing; piece++ {
-		before, after := entry.pieces[piece], pos.Board.pieces[piece]
+		before, after := entry.pieces[piece], pieces[piece]
 		removed, added := before&^after, after&^before
 		// Pair changed squares of the same piece type to read and write the
 		// accumulator once. The cache can come from any previous search branch;
@@ -162,6 +166,6 @@ func (s *ngnn1State) cachedRefresh(p int, context ngnn3Context, pos *Position, d
 			ngnn1AddRow(entry.acc, n.row(feature))
 		}
 	}
-	entry.pieces = pos.Board.pieces
+	entry.pieces = *pieces
 	copy(dst, entry.acc)
 }
