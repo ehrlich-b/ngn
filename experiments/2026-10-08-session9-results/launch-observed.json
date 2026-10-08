@@ -1,0 +1,10 @@
+{
+  "pid": 580479,
+  "start": {
+    "utc": "2026-10-08T18:45:54.948750+00:00",
+    "stage": "owned-calibration-preparation",
+    "event": "start",
+    "detail": "pid 580479; CPU 13,15; isolated datagen builds/tests and frozen gen0b diagnostic; GPU and tuner untouched"
+  },
+  "native_start_observed": true
+}
