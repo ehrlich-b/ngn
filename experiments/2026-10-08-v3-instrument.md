@@ -51,18 +51,36 @@ archive SHA-256 `ac8d4134a37150057c22383f41fc61afbe4ce75723aa44718299e2aa33b2bff
 candidate patch `93b0b75e93af0132df536df400c0eb7bf9fcd54b3ad374364fe20ef22c81d9f7`.
 Local checks are limited to formatting, `bash -n`, receipt reconciliation and `git diff --check`.
 
-The [clean-source build procedure](2026-10-08-v3-freeze-build.sh) will verify every compilation
-input against that tested tree, carry the independently accepted `default.pgo`, build the new
-tool and NGN binary on WSL, and save dry plans for the four operational/screen modes. The
-development identity uses the immediate accepted `be34532c`; it is not a final claim nomination.
+The [clean-source build procedure](2026-10-08-v3-freeze-build.sh) verified all **226** compilation
+inputs against that tested tree, carried the independently accepted `default.pgo`, built the new
+tool and NGN binary on WSL, and saved dry plans for the four operational/screen modes. Exact
+[build receipt](2026-10-08-session2-results/v3-build-receipt.json) and
+[screen dry plan](2026-10-08-session2-results/v3-screen-dry-run.json). Clean source commit
+**376671f842aad7841cd2c743c834c61f702eb0ae** at
+`/home/ehrli/ngn-data/claim-v3-20261008/tooling/source`.
+
+Frozen tool **4cdf39aa…**, NGN **f36af8be…**, development net **be34532c…** under `tooling/frozen/`.
+The NGN build metadata confirms automatic PGO, Go 1.25.5, amd64/v3 and `vcs.modified=false`.
+The development identity uses the immediate accepted `be34532c`; it is not a final claim nomination.
+All four dry modes validate source/build/provenance/anchor pins and owned openings without engine
+searches, live clock probes or game creation. The separate full-option Berserk readiness probe passes.
+
+Build-launch custody: PID **543269** never began work and is terminal; preserve its empty
+`session2/build.log` and PID file. Observed replacement **543309** compiled and dry-checked once,
+then its final check incorrectly matched historical `receipt.json` files in the copied source tree.
+`session2/build2.log` retains that failure. Corrected the check to cover only the new output directories,
+verified the existing artifacts, and wrote the completion receipt **11:15:34 EDT**, without rebuilding,
+launching games, or altering any frozen artifact. The corrected procedure is committed for reuse in a
+new directory; do not rerun it over the existing `tooling/` root. Crash-handler log entries here are
+initialization messages from the dry tool invocations, not engine crashes, and are not frozen inputs.
 
 ## Remaining admission before v3 games
 
 1. Finish the stronger anchor's build receipt and freeze its advertised options. Operational stability
    is a fixed four games at each of 10+0.1 and 120+1 (indices 0–1, both colors), excluded from claim
    analysis; run only while no trainer, datagen or tuner/match process exists.
-2. Build the new tool from a clean committed WSL source and bind its exact binary/build metadata.
-   Exercise a fresh tooling sample and the existing bounded A/A clock control before v3 games.
+2. The clean committed tool/build binding is complete. Exercise a fresh tooling sample and the
+   existing bounded A/A clock control before v3 games; keep the artifact-bound source intact.
 3. Nominate the immediate accepted engine/net after the pending longer-H512 gate. Freeze its source,
    binary, net, provenance, supported options, openings, runner and audit identities.
 4. Commit a complete prospective v3 protocol/attempt manifest before any v3 screen game. A passing
