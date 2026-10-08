@@ -79,8 +79,9 @@ for mode in ('screen','stability-screen','stability-confirmation','tooling-check
     p=json.load(open(v/f'dry-{mode}/dry-run.json'))['Plan']
     assert p['Schema']=='NGN-CLAIM-3' and p['ClaimThreshold']==3600
     if mode=='screen':assert [a['Label'] for a in p['Anchors']]==[3317,3359,3557,3713]
-assert not any(v.rglob('receipt.json')) and not any(v.rglob('games'))
-artifacts={p.name:dict(path=str(p),sha256=hashlib.sha256(p.read_bytes()).hexdigest()) for p in f.iterdir() if p.is_file()}
+for root in (f,*(v/f'dry-{mode}' for mode in ('screen','stability-screen','stability-confirmation','tooling-check'))):
+    assert not any(root.rglob('receipt.json')) and not any(root.rglob('games'))
+artifacts={p.name:dict(path=str(p),sha256=hashlib.sha256(p.read_bytes()).hexdigest()) for p in f.iterdir() if p.is_file() and p.suffix!='.log'}
 with (v/'build-receipt.json').open('x') as out:
     json.dump(dict(source_commit=sys.argv[2],source_clean=True,artifacts=artifacts,go_version='go1.25.5',
                    environment=dict(GOAMD64='v3',GOTOOLCHAIN='local',GOPROXY='off',GOMAXPROCS='2'),
