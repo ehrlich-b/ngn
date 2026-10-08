@@ -1,0 +1,33 @@
+{
+  "utc": "2026-10-08T18:25:26.367657+00:00",
+  "epochs_complete": 45,
+  "last_epoch": {
+    "epoch": 45,
+    "step": 703125,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.0088434306640625,
+    "lr": 0.0007051812843010216,
+    "seconds": 284.15534935402684,
+    "positions_per_second": 900915.6455508134,
+    "steady_positions_per_second": 901656.0508764131,
+    "validation_loss": 0.008863422629185288,
+    "validation_loss_lambda_075": 0.008863422629185288,
+    "validation_loss_result": 0.06546826396249772
+  },
+  "tuner_checkpoint_iter": 325,
+  "retained_games": 3900,
+  "preparation_pid": 580297,
+  "preparation_exit": 0,
+  "input_count": 2016,
+  "input_list_sha256": "fcc92e9c4a36967b3ae466eccbe3151af187903df43839f99cdf7fda9c2eb430",
+  "required_nomination_refusal": true,
+  "real_trial_queued": false,
+  "artifact_sha256": {
+    "trial.py": "ed10e8511cc6a42e754f9f30407bbcfc4c4f24f38ab3568ea16d0036e725aea7",
+    "trial.sh": "400b43541a74525f9d0a3db2a0d414553ce2997639f79f752f8579ef508c407b",
+    "prepare.sh": "82e032ebf9aa949e87633db3dae86732dc51c8d133f1db81e48e4bad90a282e1",
+    "manifest.md": "090b699c821d401a867dee4c91048765520e265656109df5fae7eb0a16c94692",
+    "prepare-inputs.sha256": "6a2d7eb48ed618e916f32697b7220e650fc1dadfcc5370c44d26d96217d7d53f"
+  }
+}
