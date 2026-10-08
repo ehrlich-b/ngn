@@ -22,8 +22,8 @@ is node-identical to the claimed EvalFile configuration. See
 [the release record](experiments/2026-10-07-release-0.3.0.md).
 
 Ranked queue:
-1. Publish 0.3.0 (GitHub release in ngn-releases) and reply in the CCRL thread
-   t=19325 — both need Bryan's explicit approval of the exact assets and text.
+1. Published 0.3.0 on 2026-10-07; CCRL follow-up
+   https://kirill-kryukov.com/chess/discussion-board/viewtopic.php?p=155627#p155627.
 2. gen1 owned self-play with the H512 net, then train and gate the next
    generation; retain finished gen0/gen0b and holdout.
 3. Retune placeholder search constants by NGN games; consider a movestogo≤3
