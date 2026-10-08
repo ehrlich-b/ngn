@@ -68,18 +68,32 @@ pass; full short/race and vet remain under the controller. Actual Linux
 notification, already-ready, timeout, file-replacement and wrapper-exit fixtures
 all pass (`session6/checkpoint-controls.json`). SPSA has not been interrupted.
 
-The timing verdict is **PENDING**. The checkpoint event determines launch;
-after it, identities/warmup/fixed timing take about 25 minutes. If no iteration
->=325 arrives within 90 minutes of the wait, the controller fails without
-pausing or restarting the tuner. Do not infer a speed gain from successful
-builds/tests. No source edit or running binary is installed.
+## Completed fixed verdict — session 7
 
-Next session: read `session6/{controller.log,controller.done,build-receipt.json,
-checkpoint-ready.json,timing/receipt.json}` when present and terminal events.
-Require the complete 36 identities and forty-block rule, unchanged frozen input
-hashes, all required test exits, and exact candidate source inputs before deciding.
-On pass, apply only `session6/candidate.patch` after checking the local engine
-still equals baseline **df52dfc**, reconcile all compiled/test/profile inputs,
-commit/push and update the accepted line. On failure, retain the baseline and
-record the negative result without extending the sample. Detailed source/test
-receipt can be assembled at review from the frozen trees and existing test logs.
+**ACCEPTED**, after controller **566961** completes **14:01:00 EDT**. All
+**36** identities match and all **40** fixed blocks are present. Geometric
+NPS ratio **1.007972 [1.002689, 1.013282]**, order strata **1.006455 / 1.009491**:
+both predeclared conditions pass. This is **+0.80% [0.27%, 1.33%] search NPS**,
+not a measured Elo increment or an absolute-strength result. No extension.
+
+Independent review recomputed every aggregate NPS ratio from all raw six-case
+records, checked empty stderr, identities, block indices/orders/durations,
+the fixed df=39 interval and both order strata. Pre/post binary/net/input hashes
+are intact. Delta/NGNN2/3/row controls pass (**1.743 s**), engine short
+**13.167 s**, engine short/race **142.792 s**, full short/race and vet pass.
+All **230** Go/assembly/test/fixture/profile/embedded-net inputs match local
+baseline bytes before applying the patch and tested candidate bytes afterward.
+Only the three declared engine/test files differ. The optional trainer work
+from sessions 6/7 is outside this compilation closure and is preserved.
+
+Exact [build receipt](2026-10-08-session7-results/delta-build.json),
+[source and tests](2026-10-08-session7-results/delta-source-tests.json),
+[complete timing](2026-10-08-session7-results/delta-timing.json),
+[independent verification](2026-10-08-session7-results/delta-verification.json).
+Raw frozen source/patch/manifest and all records remain in box `session6/`;
+review script `review-session7.py` reproduces the verification without engines.
+No running campaign, gate, screen or admission binary was replaced.
+
+The controller restores SPSA from durable iteration **325 / 3,900 games**,
+wrapper **577981**, tuner **577984**, at **14:01:00 EDT**. Do not count discarded
+uncheckpointed iterations or the current parameter movement as strength evidence.
