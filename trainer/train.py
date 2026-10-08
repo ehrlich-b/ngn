@@ -13,6 +13,7 @@ import torch
 from trainer.export import export_state
 from trainer.model import NGNN, blended_loss, decode_gpu, validate_buckets, validate_hidden
 from trainer.ngnp import Shards
+from trainer.ngnp_split import ContentShards
 from trainer.archive import Archive
 from trainer.king_buckets import load_map
 
@@ -88,6 +89,10 @@ def parser() -> argparse.ArgumentParser:
                      help="Archive board-content hash holdout fraction 1/N; N is a power of two")
     cli.add_argument("--archive-split-seed", type=int,
                      help="Archive content partition seed; default is --seed")
+    cli.add_argument("--ngnp-holdout-modulus", type=int, default=0,
+                     help="Optional NGNP occupied-board holdout fraction 1/N; 0 keeps shard validation")
+    cli.add_argument("--ngnp-split-seed", type=int,
+                     help="NGNP content partition seed; default is --seed")
     cli.add_argument("--validation-data", nargs="+", help="Disjoint held-out shard globs; never optimized")
     cli.add_argument("--record-counts", type=Path,
                      help="JSON mapping of every training shard path to its frozen prefix record count")
@@ -145,19 +150,31 @@ def main() -> None:
     use_amp = args.precision == "bf16" and device.type == "cuda"
     record_counts = json.loads(args.record_counts.read_text()) if args.record_counts else None
     if args.data_format == "archive":
-        if args.record_counts or args.validation_data or args.min_ply or args.drop_flags != 0x0F:
+        if (args.record_counts or args.validation_data or args.min_ply or args.drop_flags != 0x0F
+                or args.ngnp_holdout_modulus or args.ngnp_split_seed is not None):
             raise ValueError("Archive uses its own content holdout and lacks NGNP flags/ply; "
-                             "--record-counts, --validation-data and custom filters are unsupported")
+                             "--record-counts, --validation-data, NGNP split options and custom filters are unsupported")
         args.archive_split_seed = args.seed if args.archive_split_seed is None else args.archive_split_seed
         shards = Archive(args.data, args.block_records, args.archive_split_seed, args.archive_holdout_modulus)
         validation = shards.holdout()
     else:
-        shards = Shards(args.data, args.drop_flags, args.min_ply, args.block_records, args.format == 3, record_counts)
-        validation = (Shards(args.validation_data, args.drop_flags, args.min_ply, args.block_records, args.format == 3)
-                      if args.validation_data else None)
+        if args.ngnp_holdout_modulus:
+            if args.validation_data:
+                raise ValueError("NGNP content holdout cannot be combined with --validation-data")
+            args.ngnp_split_seed = args.seed if args.ngnp_split_seed is None else args.ngnp_split_seed
+            shards = ContentShards(args.data, args.drop_flags, args.min_ply, args.block_records,
+                                   args.format == 3, record_counts,
+                                   args.ngnp_holdout_modulus, args.ngnp_split_seed)
+            validation = shards.holdout()
+        else:
+            if args.ngnp_split_seed is not None:
+                raise ValueError("--ngnp-split-seed requires --ngnp-holdout-modulus")
+            shards = Shards(args.data, args.drop_flags, args.min_ply, args.block_records, args.format == 3, record_counts)
+            validation = (Shards(args.validation_data, args.drop_flags, args.min_ply, args.block_records, args.format == 3)
+                          if args.validation_data else None)
     if record_counts is not None:
         record_counts = {str(Path(p).resolve()): n for p, n in record_counts.items()}
-    if args.data_format == "ngnp" and validation and set(map(lambda p: Path(p).resolve(), shards.paths)) & set(
+    if args.data_format == "ngnp" and not args.ngnp_holdout_modulus and validation and set(map(lambda p: Path(p).resolve(), shards.paths)) & set(
             map(lambda p: Path(p).resolve(), validation.paths)):
         raise ValueError("Training and validation shards overlap")
     positions = args.positions_per_epoch or shards.count
@@ -191,6 +208,12 @@ def main() -> None:
                     differences.append(key)
             if saved.get("archive_split") != shards.split_receipt:
                 differences.append("archive_split")
+        if args.data_format == "ngnp":
+            for key, default in (("ngnp_holdout_modulus", 0), ("ngnp_split_seed", None)):
+                if saved.get(key, default) != getattr(args, key):
+                    differences.append(key)
+            if args.ngnp_holdout_modulus and saved.get("ngnp_split") != shards.split_receipt:
+                differences.append("ngnp_split")
         if args.format == 3:
             if saved.get("king_map") != list(king_map):
                 differences.append("king_map")
@@ -218,6 +241,8 @@ def main() -> None:
     config["shard_record_counts"] = record_counts
     if args.data_format == "archive":
         config["archive_split"] = shards.split_receipt
+    if args.data_format == "ngnp" and args.ngnp_holdout_modulus:
+        config["ngnp_split"] = shards.split_receipt
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "config.json").write_text(json.dumps(config, indent=2) + "\n")
     # A crash can leave the final atomic checkpoint ahead of its history file.

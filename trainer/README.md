@@ -79,6 +79,22 @@ History also records loss at lambda=0.75 and pure game-result loss (lambda=0)
 from the same predictions, so trials with different training objectives can
 be compared. These are probability MSE values, with float64 batch aggregation.
 
+For owned self-play, `--ngnp-holdout-modulus 1024` instead reserves about
+1/1024 of eligible records by occupied-board content, across all selected
+shards. `--ngnp-split-seed` defaults to the training seed. Duplicate boards
+stay together even when their score, result, STM, ply, flags or inactive packed
+padding differ. This is a board holdout; adjacent game positions and symmetry
+equivalents can still enter different partitions. The original shard-based
+validation remains the default (`--ngnp-holdout-modulus 0`). Content splitting
+cannot be combined with `--validation-data` or archive input.
+
+Both partitions share read-only maps and apply the same flag/ply filters.
+The split uses bounded blocks, records exact raw/eligible/train/holdout counts,
+and visits every held-out record, including partial batches. Snapshot prefixes
+from `--record-counts` are supported; later appends do not change either
+partition. Checkpoints bind the split seed, modulus and receipt during resume.
+Keep selected prefixes immutable, as for ordinary NGNP training.
+
 For growing training shards, pass `--record-counts /path/counts.json`: a JSON
 object mapping every selected training shard path to its snapshot record count.
 Snapshot each byte length once and use `length // 32`. The reader maps only that
