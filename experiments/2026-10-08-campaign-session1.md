@@ -90,3 +90,17 @@ started 10:25:10 EDT; completed preflight and entered games. Original failed att
 untouched. Estimated screen finish ~10:55 EDT, then training ~10.5 hours and the ~30-minute gate.
 Three prior complete logs exercise the new gate parser: passing A/A, neutral rejected H1024,
 and accepted H512. Candidate configuration and copied scripts are hash-frozen before launch.
+
+Queued follow-ups are independent preparation, with no engine behavior changes: match-only Berserk 12
+source build controller **533425** waits until the screen ends; PGO revalidation controller **534228**
+waits for the screen and anchor build, then temporarily pauses SPSA for its fixed probe. The first PGO
+launcher produced no status or work; only the observed live controller 534228 is retained. Neither
+follow-up changes the accepted line automatically. The 155 actual WSL PGO source inputs match the
+profile parent by Git blob digest. See [anchor/protocol preparation](2026-10-08-3600-protocol-preparation.md)
+and [the speed manifest](2026-10-08-pgo-kb8.md).
+
+Final batch check at 10:39:54 EDT: controller/screen/build-wait/PGO-wait PIDs all live, screen sample
+still incomplete, GPU reserved idle until the screen ends, hopper 1168 untouched, C: free **151.7 GiB**.
+No candidate verdict or 3600 claim is drawn from this unfinished sample. Exact frozen-input manifest
+`session1/frozen-inputs.sha256` hashes to
+`c4336244d0fcf0a3f56286a5a64aae80941d0d5f4363502c1be548c8b253e42b`.
