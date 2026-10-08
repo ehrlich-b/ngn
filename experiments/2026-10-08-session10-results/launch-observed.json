@@ -1,0 +1,7 @@
+{
+  "utc": "2026-10-08T19:08:08.756863+00:00",
+  "wrapper_pid": 585978,
+  "started": "2026-10-08T15:08:08-04:00",
+  "command": "timeout 1800 bash controller.sh /home/ehrli/ngn-data/claim-v3-20261008/nominee-session10c/source.bundle 1d635447f833dd0c73e2eef057c8ecbb14edfc2e ",
+  "source_commit": "1d635447f833dd0c73e2eef057c8ecbb14edfc2e"
+}

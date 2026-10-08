@@ -269,7 +269,8 @@ def finish(s, commit):
     pins(s)
     assert read(s/'checks/identity-receipt.json')['passed']
     assert read(s/'checks/dry-receipt.json')['passed']
-    paths = [p for d in ('frozen','checks') for p in sorted((s/d).rglob('*')) if p.is_file()]
+    paths = [p for d in ('frozen','checks') for p in sorted((s/d).rglob('*'))
+             if p.is_file() and p.name != 'ngn_crashes.log']
     paths += [s/p for p in ('manifest.md','controller.sh','check.py','source-commit.txt',
                           'preparation-inputs.sha256','engine-source-evidence.json')]
     receipt = dict(passed=True, source_commit=commit, source_clean=True,

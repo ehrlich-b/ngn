@@ -106,3 +106,47 @@ profile applies automatically to NGN but not `cmd/speedprobe`. Add the same
 explicit accepted profile used by the historical probe to this probe build
 and its recorded argv. No search, game or dry plan ran. Preserve both initial
 roots; the final fresh preparation root is `nominee-session10c/`.
+
+## Completed preparation and review
+
+Final wrapper **585978**, clean source
+**1d635447f833dd0c73e2eef057c8ecbb14edfc2e**, started **15:08:08 EDT** and
+completed **15:08:40 EDT**, exit zero. Engine SHA-256
+**737c18bee49408ce8884655f7c2b1a0b322b7637c35974e75e1e737638525b48**;
+private speedprobe **4ca3d409**; development identity **4ae66de2**. Both
+build metadata checks pass, including the accepted profile, clean VCS revision,
+Go 1.25.5, Linux amd64/v3 and no third-party module dependencies.
+
+All **230** engine/test/fixture/profile inputs match the accepted tested tree,
+and inherited engine/full short/race/vet logs match their completed hashes.
+All **36** fresh probe records reproduce the accepted raw delta identities;
+all **18** UCI pairs match the frozen common engine exactly. Four positive
+v3 dry modes and six changed-identity rejection controls pass. The original
+v3 tool/source and queued operational control retain their original pins.
+
+Independent review recomputed every UCI final depth/nodes/score/PV/bestmove
+from raw stdout, compared all saved/fresh probe records, checked the four
+plans and every completion artifact, and reconciled all 230 local source
+inputs. [Build receipt](2026-10-08-session10-results/build-receipt.json),
+[source/test binding](2026-10-08-session10-results/source-receipt.json),
+[identities](2026-10-08-session10-results/identity-receipt.json),
+[dry controls](2026-10-08-session10-results/dry-receipt.json),
+[launch custody](2026-10-08-session10-results/launch-observed.json) and
+[final review](2026-10-08-session10-results/final-review.json).
+
+The completed snapshot initially included `frozen/ngn_crashes.log`. Its
+contents are only initialization lines, but later engine starts append to it.
+Preserve the original build receipt and `frozen-inputs.sha256` as historical
+completion snapshots; the reusable **114**-entry
+[`candidate-inputs.sha256`](2026-10-08-session10-results/candidate-inputs.sha256),
+SHA-256 **9cebb8a2**, removes exactly that runtime log and rechecks every other
+input. The helper now excludes this log in future preparations; its selection
+is verified against the corrected list without rebuilding or replaying search.
+Successful box scripts/manifests and both failed preparation roots remain
+unchanged. The common gate engine's generated log is outside its existing
+frozen list too; none of its bound inputs changed.
+
+No new accepted playing behavior, net, search vector, absolute strength result
+or live claim attempt. At review **15:12 EDT**, longer H512 has **55/116** epochs;
+SPSA has durable **375 / 4,500 games** at **15:01:04 EDT**. GPU snapshot **94% /
+4,197 MiB**, host C: **146.5 GiB free**; existing PIDs and hopper are unchanged.

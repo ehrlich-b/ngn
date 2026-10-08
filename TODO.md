@@ -20,7 +20,8 @@ timing blocks: **+1.81% [1.26%, 2.37%] NPS**. The loop-unroll trial was inconclu
 Direct NGNN3 move-delta fusion is now accepted, **5b882e2**: 36 identities, required full
 short/race/vet, 230 source/fixture/profile hashes, and 40 fixed blocks give **+0.80%
 [0.27%, 1.33%] NPS**, both order strata positive. [Completed record](experiments/2026-10-08-nnue-delta-fusion.md).
-Controller 566961 restored SPSA **577981/577984**, durable iteration 350 / **4,200** games.
+Controller 566961 restored SPSA **577981/577984**, durable iteration 375 / **4,500** games
+at **15:01:04 EDT**; it was not interrupted by session 10 preparation.
 Let it advance without repeated pauses; no tuning-strength verdict before >=20k and paired games.
 
 Optional king-bucket training factorizer **6926457** is CPU-tested: six new controls,
@@ -56,6 +57,16 @@ and the final prospective claim manifest remain pending. The 12-game operational
 **552631** waits natively for the existing training/gate controller **522940**; preserve that
 exclusive window before another trainer. [Admission queue](experiments/2026-10-08-v3-operational-admission.md),
 [instrument record](experiments/2026-10-08-v3-instrument.md).
+
+A clean v3-compatible accepted-engine build is now prepared, **737c18be / 1d63544**,
+in box `claim-v3-20261008/nominee-session10c/`. All 230 tested inputs, 54 exact search
+identities, four dry plans and six changed-identity refusals pass. Original admitted
+tool/source remain **4cdf39aa / 376671f**. After longer-net/admission/CUDA review,
+bind the immediate accepted net's actual provenance and a new final identity, then
+commit the prospective protocol before any game. Reuse `candidate-inputs.sha256`
+(114 entries); the preserved completion snapshot also contains a mutable startup log.
+No final nomination, screen or claim is queued.
+[Build, evidence and reuse boundary](experiments/2026-10-08-v3-nominee-build.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
