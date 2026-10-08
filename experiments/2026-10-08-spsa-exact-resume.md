@@ -53,4 +53,42 @@ notification for the short verification job. Existing hour-scale jobs are not po
 
 ## Result
 
-Pending verification. No accepted runtime, net or search vector changes.
+Manifest/controller **1d93cfd** was committed and pushed before execution.
+Detached controller **587761** started **15:38:06 EDT**, completed
+**15:44:50 EDT**, exit zero. All eight checks pass: narrow SPSA/race,
+engine short/race, full short/race, vet and isolated future-tool build.
+All **65** test/subtest pass rows reconcile: six exact full/interrupted
+trajectories, 28 recipe-mismatch and 24 corrupt-history subcases, plus RNG,
+write/stop and artifact controls. All **11** actual CLI refusals exit before
+executing the shell engine marker. Tests and builds ran exclusively on WSL.
+
+Future tuner SHA-256 **944a30a3**, retained in `session12/future-spsa`;
+it is not installed. All **2,040** extracted input hashes reconcile after
+verification. The three candidate Go files match the Mac working copy exactly.
+Mac tar added three `._*` metadata files; Go ignores them and they are excluded
+from the committed patch. No external source or network was added.
+Final review also verifies the unchanged live tuner/engine binaries and all
+**14** training, **3** admission and **27** CUDA dependency input pins.
+
+[Check receipt](2026-10-08-session12-results/test-receipt.json),
+[final raw-log/hash review](2026-10-08-session12-results/final-review.json),
+[CLI refusals](2026-10-08-session12-results/cli-receipt.json),
+[launch custody](2026-10-08-session12-results/launch-observed.json),
+[build settings](2026-10-08-session12-results/buildinfo.txt).
+Full logs, candidate source and hashes remain in box `session12/`.
+
+No accepted playing runtime, net, tune or strength result changes.
+The current frozen tuner still restarts its RNG on resume; do not replace it
+or feed its legacy JSONL to the new driver. Future tunes must preserve the
+exact built tuner/engine and use a fresh output path and prospective recipe.
+The output parent directory must already exist. Resume restores optimizer
+inputs from a complete checkpoint, not the uncheckpointed games since then.
+A partial/corrupt history is rejected and preserved; diagnose before any
+separately declared restart. No new tune or long job is queued.
+
+Final [box snapshot](2026-10-08-session12-results/box-state.json), **15:46 EDT**:
+longer H512 **62/116** epochs (last **295.41 s**), GPU **61% / 4,197 MiB**;
+SPSA durable **400 / 4,800 games**, saved **15:31:02 EDT**.
+Trainer **541007**, tuner **577984**, dependency controllers
+**522940 / 552631 / 577875** and hopper **1168** remain live and untouched.
+Host C: free **146.5 GiB**. No completed claim meets 3600.
