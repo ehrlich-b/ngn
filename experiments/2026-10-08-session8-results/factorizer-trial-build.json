@@ -1,0 +1,49 @@
+{
+  "source_commit": "d4144602c6f0ca5b3cc3575e60a00c937ed75651",
+  "source_archive_sha256": "f3dffd84f1fef89b7fd1d4bccb5912cdaeb4f978790f0c0164362a402955bfba",
+  "source_reconciled": true,
+  "engine_inputs": 230,
+  "trainer_inputs": 25,
+  "binary_sha256": {
+    "ngn": "8ad1c326ad4837da018b2154058f2f9865809cea2cceb2b3c977a4cf79605a2b",
+    "engine.test": "4544a3bef1570cb1d9f8e7a571b070db9fe463addfb17bcfd5da62482dffcaef",
+    "sprt": "9b0002f856849ebaf5e1d39487303d8e8f5406a8cc26d22fc2b409f9761aa83a"
+  },
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "build_cpu": [
+    13,
+    15
+  ],
+  "nice": 19,
+  "synthetic_integer_parity_cases": 64,
+  "reused_build_receipt_sha256": "e805c3814498a7fb281d1ba97afbbcf0beed62f9a23cde197c21f929e1562f54",
+  "engine_build_argv": [
+    "go",
+    "build",
+    "-p",
+    "2",
+    "-trimpath",
+    "-pgo=/home/ehrli/ngn-data/night-20261007/session9/source/default.pgo",
+    "-o",
+    "/home/ehrli/ngn-data/night-20261007/session9/frozen/ngn",
+    "."
+  ],
+  "parity_build_argv": [
+    "go",
+    "test",
+    "-p",
+    "2",
+    "-c",
+    "-o",
+    "/home/ehrli/ngn-data/night-20261007/session9/frozen/engine.test",
+    "./engine"
+  ],
+  "logs": {
+    "engine-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "parity-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "parity-control.log": "cdca86f849f1b4c4c56f2362d74070cafa582d9be2d64d22e317993a69319c4d",
+    "controls.json": "277dbcf3b1e2cf091221ba32ef291300e4cf4be2a8500cd51ecb81a541b16203"
+  }
+}

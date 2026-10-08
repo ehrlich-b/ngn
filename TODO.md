@@ -30,6 +30,14 @@ trainer/fixture inputs. It folds shared rows into the unchanged NGNN3 export. CU
 new training/claims. No real factorizer training trial is queued or accepted.
 [Preparation, CUDA queue and experiment boundary](experiments/2026-10-08-king-factorizer.md).
 
+The next factorizer trial is now prepared in box `session9b/`: accepted common
+engine **8ad1c326**, exact 230 engine/25 trainer inputs, 64 integer parity cases,
+52 failure/boundary controls, three historical gate controls and 2,016 input
+checks pass. No real trial is queued. After longer-net/admission/CUDA review,
+commit a base nomination and activation record, then launch its fixed
+from-scratch recipe + flag, parity/A/A40/gate400 controller.
+[Activation contract and receipts](experiments/2026-10-08-factorizer-trial.md).
+
 Owned self-play preparation now supports an optional board-content NGNP holdout,
 with split/prefix identity checked on resume. Six new controls and the full CPU
 trainer suite pass (47 passes, 3 existing CUDA checks skipped while the GPU is busy).
