@@ -51,5 +51,35 @@ frozen binaries and nets remain untouched; GPU training continues on CPUs 12,14.
 The minimum checkpoint is a progress requirement, not tuning strength evidence.
 Neither partial SPSA theta nor uncheckpointed games supply a strength verdict.
 
-Result and launch custody: pending. Exact PID, input hashes and final fixed
-receipt will be recorded here separately from the immutable pre-run manifest.
+**Queued 13:19:41 EDT**, detached controller **566961**. Prospective manifest,
+controller, check and native checkpoint waiter were committed/pushed as **34d0a5e**
+before launch. Startup and its start event were observed; no duplicate launcher.
+
+Frozen baseline archive SHA-256
+`114470ecc0e907bae00011800d8639a3b9404d3fd11c0235f0d379449062c1e4`,
+candidate patch `a3bce8c7664c6e57f07ed96cdce5f41de0532b1f08e01d74a305d42932b4eeb0`,
+controller `605dab332b97d0238396cc322cd846dc08ea44e103264c819d385f57c083c9fe`.
+The frozen-input list hashes to
+`64c5b0701322cfe870ba2e1993da7731214efcd86b29ed2fd17f26f279c78465`.
+
+At **13:22:51 EDT**, both builds and the delta/NGNN2/3/row controls pass
+(**1.743 s**), engine short **13.167 s** and engine short/race **142.792 s**
+pass; full short/race and vet remain under the controller. Actual Linux
+notification, already-ready, timeout, file-replacement and wrapper-exit fixtures
+all pass (`session6/checkpoint-controls.json`). SPSA has not been interrupted.
+
+The timing verdict is **PENDING**. The checkpoint event determines launch;
+after it, identities/warmup/fixed timing take about 25 minutes. If no iteration
+>=325 arrives within 90 minutes of the wait, the controller fails without
+pausing or restarting the tuner. Do not infer a speed gain from successful
+builds/tests. No source edit or running binary is installed.
+
+Next session: read `session6/{controller.log,controller.done,build-receipt.json,
+checkpoint-ready.json,timing/receipt.json}` when present and terminal events.
+Require the complete 36 identities and forty-block rule, unchanged frozen input
+hashes, all required test exits, and exact candidate source inputs before deciding.
+On pass, apply only `session6/candidate.patch` after checking the local engine
+still equals baseline **df52dfc**, reconcile all compiled/test/profile inputs,
+commit/push and update the accepted line. On failure, retain the baseline and
+record the negative result without extending the sample. Detailed source/test
+receipt can be assembled at review from the frozen trees and existing test logs.
