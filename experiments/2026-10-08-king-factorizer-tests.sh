@@ -2,7 +2,7 @@
 # Optional training-tool checks, CPU only; no active source or binary is changed.
 set -euo pipefail
 R=/home/ehrli/ngn-data/night-20261007
-S=$R/session8
+S=${NGN_FACTOR_TEST_ROOT:-$R/session8}
 PY=/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python
 st() {
   python3 - "$R/status.jsonl" "$1" "${2:-}" <<'PY'
