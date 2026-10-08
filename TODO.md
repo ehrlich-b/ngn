@@ -22,6 +22,13 @@ first runs required checks, then waits with inotify/pidfd for iteration >=325 be
 36-identity/40-block timing gate. [Pending manifest](experiments/2026-10-08-nnue-delta-fusion.md).
 Do not launch another speed gate while it is pending; no speculative runtime source is committed.
 
+Owned self-play preparation now supports an optional board-content NGNP holdout,
+with split/prefix identity checked on resume. Six new controls and the full CPU
+trainer suite pass (47 passes, 3 existing CUDA checks skipped while the GPU is busy).
+A fixed 917,504-row gen0b sample exposes 1,830 boards shared across separate shard
+groups; the new split has zero shared boards. No new net or playing-strength verdict.
+[Tooling and sample receipts](experiments/2026-10-08-owned-data-holdout.md).
+
 The v3 claim instrument now binds schema 3, threshold 3600, and the four-anchor pool with
 Berserk 12 (3713). Required short/race tests and clean build/dry plans pass; operational stability
 and the final prospective claim manifest remain pending. The 12-game operational controller

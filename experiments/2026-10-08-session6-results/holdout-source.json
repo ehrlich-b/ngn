@@ -1,0 +1,37 @@
+{
+  "source_sha256": {
+    "trainer/__init__.py": "d90620ff69499224bd842d52d9bf0a0be454eb7db829d196cb55c98882f1ce44",
+    "trainer/archive.py": "9f320787c6a04bb7d297bee19527221ebd4107889d49520455e548919f8b37c7",
+    "trainer/export.py": "17ecdc61cb0d0eb4f3c87a600a7b3388bc1b076f2302ce16b2446485e51b3997",
+    "trainer/king_buckets.py": "ea9e9743334947ab0ea18b2b23042e347383de2c733bc92323a162902a8b3bb8",
+    "trainer/make_random_net.py": "cc1b7549eeedaca2574f5e7bdec0fa60991a1a4437660be82e6f10b04f44183d",
+    "trainer/model.py": "40b45c29bbf49d2e8cd61a01daffed6d5425a9a5ca5358b6732bd347fd731987",
+    "trainer/ngnp.py": "dcda0383f3176f31413046fb163b4253a4b9d3bac0853a0309fa5c84313e219f",
+    "trainer/ngnp_split.py": "42bf96ae248cbfb8acd8ccb8e2df0e075153bb12fb7d8dea172a72fd30cf8fc4",
+    "trainer/refeval.py": "f5bf1814cfc7d624bae5fab99ff4aae859e645090831abaaf178dd69c66e1f10",
+    "trainer/tests/__init__.py": "9b85b80c571ecd1c20fdbf3acf1477fab91f155f87c1359234d1364b2d9349c1",
+    "trainer/tests/check_material.py": "5d5a28ed1cf774e95dfea69479d8700d53df56c7996b71cc159ec966be09c2b6",
+    "trainer/tests/synthetic.py": "ed36a7b285535453cf902a6d73de27d434cad9c02a2c6059a90b6138bee17519",
+    "trainer/tests/test_archive.py": "f84d8d6ae8008ccb67f86c0decdf2553178d337e44ea31b85ff7963dcf8e8222",
+    "trainer/tests/test_ngnn2.py": "87ee6f7d7295696cbe7b5af913ed98a5ba463759daf5d16f3860bfa9a65e6f4f",
+    "trainer/tests/test_ngnn3.py": "dd3df81a3f87afd4678d6e630b5a88f89b8d28b5b70d9e8267950cf8c07b85dc",
+    "trainer/tests/test_ngnp_split.py": "446a97329a83443416c637288dff6a376439149eaee521d7d6fa1a6e4ba07e84",
+    "trainer/tests/test_trainer.py": "6f6f65b298d3786b52f3b1c20b053061b4258fa11f7b28b02379f66895f46784",
+    "trainer/train.py": "d9c79e7fdbf8ccac16f741d449ffd6ce9989d223b915fb6826cc04e5e9deae5a",
+    "testdata/ngnn1/random_h32.nnue": "9bb171cd06035f7b77089fbd31b215812057a4b44950190fd741d133dd6f52c6",
+    "testdata/ngnn1/random_h32_evals.json": "d92dd1edd84cfcf6c8706653e3654771b0b65a45dabd4920a17d5e6209bc5a6f",
+    "testdata/ngnn2/random_h32_b8.nnue": "b08c8c2c88188fd3885d4fed4b95232c3da0fd733b7fea0711ecc7d78bb25992",
+    "testdata/ngnn2/random_h32_b8_evals.json": "797871eb64fa575c497486d929cd835fe5156668847030ceb815dd4ebf8d4122",
+    "testdata/ngnn3/random_h32_k8_b8.nnue": "2678a899e7a1fa44cf7e846bbd727149c32d63c1c7296f1b05593a34ebab7427",
+    "testdata/ngnn3/random_h32_k8_b8_evals.json": "e558ad79c67c33f40b8e3a2967c8e08a230c17967675a7b3037d45f496276fdb"
+  },
+  "controller_exit": "0",
+  "sample_script_sha256": "51ae1953261e9412949e222274786acc4f87d650f53ea3b5adc05cafc9583c55",
+  "input_check_before": "source.tar: OK\noverlay.tar: OK\ncontroller.sh: OK\nmanifest.md: OK\n",
+  "input_check_after": "source.tar: OK\noverlay.tar: OK\ncontroller.sh: OK\nmanifest.md: OK\n",
+  "excluded_packaging_metadata": {
+    "trainer/._ngnp_split.py": "dc777ea6eb9dde948c32a3d6990f57875e99f15ef2a631077d7c9d082b55a902",
+    "trainer/._train.py": "dc777ea6eb9dde948c32a3d6990f57875e99f15ef2a631077d7c9d082b55a902",
+    "trainer/tests/._test_ngnp_split.py": "dc777ea6eb9dde948c32a3d6990f57875e99f15ef2a631077d7c9d082b55a902"
+  }
+}

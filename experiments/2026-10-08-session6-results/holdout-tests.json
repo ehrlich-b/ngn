@@ -1,0 +1,40 @@
+{
+  "source_sha256": {
+    "trainer/train.py": "d9c79e7fdbf8ccac16f741d449ffd6ce9989d223b915fb6826cc04e5e9deae5a",
+    "trainer/ngnp_split.py": "42bf96ae248cbfb8acd8ccb8e2df0e075153bb12fb7d8dea172a72fd30cf8fc4",
+    "trainer/tests/test_ngnp_split.py": "446a97329a83443416c637288dff6a376439149eaee521d7d6fa1a6e4ba07e84",
+    "trainer/README.md": "6edbfd28f33266c326739bc1a790ccbe53c14e0a0b27a6cd68ebea634c0156c4"
+  },
+  "archive_sha256": "7908ddb1db6040013c562405a030ef7ae6919c17d5453724f931d81c83310c2f",
+  "overlay_sha256": "8d44f0ef944151277b8e7756d270d0e77bcf15ea5c692363ffad1c4c55853e40",
+  "tests_pass": true,
+  "cpu": [
+    13,
+    15
+  ],
+  "nice": 19,
+  "gpu_used": false,
+  "python": "Python 3.12.3",
+  "logs": {
+    "split-tests.log": {
+      "sha256": "dfb28f3634364ccab91117c037b23dcad13aca8d67506e7302ea64bf06017624",
+      "tail": [
+        "",
+        "----------------------------------------------------------------------",
+        "Ran 6 tests in 10.965s",
+        "",
+        "OK"
+      ]
+    },
+    "trainer-tests.log": {
+      "sha256": "8b5d694e31d4ff95ae70ff3198dd55975a5ad31b341e02c9d89813de647047c9",
+      "tail": [
+        "",
+        "----------------------------------------------------------------------",
+        "Ran 50 tests in 49.887s",
+        "",
+        "OK (skipped=3)"
+      ]
+    }
+  }
+}
