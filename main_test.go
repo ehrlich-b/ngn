@@ -73,9 +73,7 @@ func TestRunHCERejectsExplicitExternalEvaluatorBeforeUCI(t *testing.T) {
 	useProfile(t, "hce")
 	for _, args := range [][]string{
 		{"-eval-backend", "ngn-v1"},
-		{"-eval-backend", "counter-5.5", "-eval-file", "missing.nn"},
-		{"-eval-backend", "rodent-v1.2-default"},
-		{"-eval-backend", "ngn-k4-768-v1"},
+		{"-eval-backend", "external", "-eval-file", "missing.nn"},
 		{"-eval-file", "ngn.nnue"},
 	} {
 		var output, errorOutput bytes.Buffer
