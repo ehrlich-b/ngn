@@ -4,7 +4,7 @@ set -euo pipefail
 [[ $# == 2 ]] || { echo 'Usage: controller.sh BUNDLE EXPECTED_COMMIT' >&2; exit 2; }
 BUNDLE=$1 EXPECTED=$2
 R=/home/ehrli/ngn-data/night-20261007
-S=/home/ehrli/ngn-data/claim-v3-20261008/nominee-session10
+S=/home/ehrli/ngn-data/claim-v3-20261008/nominee-session10b
 V=/home/ehrli/ngn-data/claim-v3-20261008/tooling
 export PATH=/usr/local/go/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOAMD64=v3
 export GOMAXPROCS=2 GOCACHE=$S/go-cache PYTHONDONTWRITEBYTECODE=1
@@ -20,7 +20,7 @@ finish() {
   local rc=$?
   printf '%s\n' "$rc" > "$S/controller.exit"
   date -Is > "$S/controller.done"
-  if [[ $rc != 0 ]]; then st fail "rc $rc; preserve nominee-session10; no retry or nomination"; fi
+  if [[ $rc != 0 ]]; then st fail "rc $rc; preserve nominee-session10b; no retry or nomination"; fi
 }
 trap finish EXIT
 cd "$S"
