@@ -88,11 +88,10 @@ func (e *workerEvaluator) PrepareMove(pos *Position, move Move) (workerEvalMove,
 		if pos == nil || !validPiece(move.MovingPiece()) {
 			return workerEvalMove{}, errWorkerEvaluator
 		}
-		delta := ngnn1MoveDelta(move)
 		if e.nnue.network.version == 3 {
-			delta = e.nnue.network.kingMoveDelta(pos, move, delta)
+			return workerEvalMove{delta: e.nnue.network.ngnn3MoveDelta(pos, move)}, nil
 		}
-		return workerEvalMove{delta: delta}, nil
+		return workerEvalMove{delta: ngnn1MoveDelta(move)}, nil
 	}
 	return workerEvalMove{}, nil
 }

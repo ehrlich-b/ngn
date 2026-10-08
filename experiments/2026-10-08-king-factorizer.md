@@ -96,3 +96,12 @@ control with a 180-second timeout on CPUs 13,15: FP32/BF16 forward/gradients,
 fused AdamW and folded export. Skipping CUDA cannot pass. No long training,
 net nomination or game trial is queued; failure is preserved without retry.
 Results will be `session8b/cuda-{tests.log,receipt.json,controller.exit}`.
+
+CUDA controller **577875** launched **13:55:51 EDT**, from committed/pushed
+**6926457**. Its native waiter receipt confirms the exact live admission command
+and PID **552631**. Frozen controller SHA-256 **ecb9204c**; 27-entry source/
+receipt/controller hash list **b8a74564**. Expected check shortly after admission
+around **21:15 EDT** (allow ~22:30 if training slows); native timeout is
+**01:55 EDT, October 9**. Preserve this brief window before a new trainer or
+claim. CPU controller **577464** completed **13:50:35 EDT**. No real factorizer
+training or data generation is queued.

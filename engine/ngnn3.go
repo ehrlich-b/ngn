@@ -56,9 +56,15 @@ func (n *NGNN1Network) kingContext(pos *Position, perspective Color) ngnn3Contex
 	return n.contextAt(Square(k), perspective)
 }
 
-func (n *NGNN1Network) kingMoveDelta(pos *Position, move Move, d ngnn1Delta) ngnn1Delta {
+// Build bucket-relative rows directly instead of returning an ordinary delta
+// and then walking its rows again. Removed and added rows use the old king
+// context; a crossing king move refreshes that perspective in the new context.
+func (n *NGNN1Network) ngnn3MoveDelta(pos *Position, move Move) ngnn1Delta {
+	var d ngnn1Delta
+	var contexts [2]ngnn3Context
 	for p, color := range [...]Color{White, Black} {
 		context := n.kingContext(pos, color)
+		contexts[p] = context
 		if move.MovingPiece() == GetPiece(King, color) {
 			next := n.contextAt(move.Destination(), color)
 			if next != context {
@@ -66,12 +72,42 @@ func (n *NGNN1Network) kingMoveDelta(pos *Position, move Move, d ngnn1Delta) ngn
 				d.contexts[p] = next
 			}
 		}
-		for i := 0; i < d.removes; i++ {
-			d.remove[p][i] = uint16(context.feature(int(d.remove[p][i])))
+	}
+	remove := func(piece Piece, square Square) {
+		d.remove[0][d.removes] = uint16(contexts[0].feature(ngnn1Feature(piece, square, White)))
+		d.remove[1][d.removes] = uint16(contexts[1].feature(ngnn1Feature(piece, square, Black)))
+		d.removes++
+	}
+	add := func(piece Piece, square Square) {
+		d.add[0][d.adds] = uint16(contexts[0].feature(ngnn1Feature(piece, square, White)))
+		d.add[1][d.adds] = uint16(contexts[1].feature(ngnn1Feature(piece, square, Black)))
+		d.adds++
+	}
+	moving := move.MovingPiece()
+	remove(moving, move.Source())
+	placed := moving
+	if move.PromoType() != NoType {
+		placed = GetPiece(move.PromoType(), moving.Color())
+	}
+	add(placed, move.Destination())
+	if captured := move.CapturedPiece(); captured != NoPiece {
+		square := move.Destination()
+		if move.IsEnPassant() {
+			square = findEnPassantCaptureSquare(move)
 		}
-		for i := 0; i < d.adds; i++ {
-			d.add[p][i] = uint16(context.feature(int(d.add[p][i])))
+		remove(captured, square)
+	}
+	if move.IsCastle() {
+		from, to := H1, F1
+		if move.IsQueenSideCastle() {
+			from, to = A1, D1
 		}
+		if moving.Color() == Black {
+			from ^= 56
+			to ^= 56
+		}
+		remove(GetPiece(Rook, moving.Color()), from)
+		add(GetPiece(Rook, moving.Color()), to)
 	}
 	return d
 }

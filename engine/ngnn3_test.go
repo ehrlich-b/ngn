@@ -152,6 +152,28 @@ func ngnn3Assert(t *testing.T, e *workerEvaluator, pos *Position) {
 	}
 }
 
+// Frozen pre-fusion algorithm: build ordinary rows, then transform the delta.
+func ngnn3TwoPassDelta(n *NGNN1Network, pos *Position, move Move) ngnn1Delta {
+	d := ngnn1MoveDelta(move)
+	for p, color := range [...]Color{White, Black} {
+		context := n.kingContext(pos, color)
+		if move.MovingPiece() == GetPiece(King, color) {
+			next := n.contextAt(move.Destination(), color)
+			if next != context {
+				d.refreshMask |= 1 << p
+				d.contexts[p] = next
+			}
+		}
+		for i := 0; i < d.removes; i++ {
+			d.remove[p][i] = uint16(context.feature(int(d.remove[p][i])))
+		}
+		for i := 0; i < d.adds; i++ {
+			d.add[p][i] = uint16(context.feature(int(d.add[p][i])))
+		}
+	}
+	return d
+}
+
 func TestNGNN3Validation(t *testing.T) {
 	good := ngnn3TestBytes(32, 8, 8, false)
 	for _, field := range [][2]uint32{
@@ -233,6 +255,9 @@ func TestNGNN3KingTransitionsAndSpecialMoves(t *testing.T) {
 			ngnn3Assert(t, e, pos)
 			for _, move := range GenerateLegalMoves(pos) {
 				tr := e.mustPrepareMove(pos, move)
+				if want := ngnn3TwoPassDelta(n, pos, move); tr.delta != want {
+					t.Fatalf("direct delta differs from ordinary-then-bucket delta: %s %s", fen, move.ToString())
+				}
 				// The opponent's own king never moves; only the mover can refresh.
 				if move.MovingPiece().Type() != King && tr.delta.refreshMask != 0 {
 					t.Fatal("non-king move refreshed")
@@ -273,7 +298,7 @@ func TestNGNN3KingTransitionsAndSpecialMoves(t *testing.T) {
 			pos.Board.UpdateSquare(pair.from, WhiteKing, NoPiece)
 			pos.Board.UpdateSquare(H8, BlackKing, NoPiece)
 			move := NewMove(pair.from, pair.to, WhiteKing, NoPiece, NoType, 0)
-			d := n.kingMoveDelta(pos, move, ngnn1MoveDelta(move))
+			d := n.ngnn3MoveDelta(pos, move)
 			if d.refreshMask != pair.mask {
 				t.Fatalf("%v -> %v refresh mask %d, want %d", pair.from, pair.to, d.refreshMask, pair.mask)
 			}
@@ -347,6 +372,9 @@ func TestNGNN3RandomGamesAndSymmetry(t *testing.T) {
 						}
 					}
 					tr := e.mustPrepareMove(pos, move)
+					if want := ngnn3TwoPassDelta(n, pos, move); tr.delta != want {
+						t.Fatalf("direct delta mismatch at game %d ply %d move %s", game, ply, move.ToString())
+					}
 					if move.MovingPiece().Type() == King {
 						kingMoves++
 					}

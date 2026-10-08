@@ -1,0 +1,17 @@
+{
+  "complete": true,
+  "identities": 36,
+  "blocks": 40,
+  "ratios_from_raw": true,
+  "geometric_ratio": 1.0079715988968418,
+  "ci95": [
+    1.0026892163356653,
+    1.0132818101860708
+  ],
+  "order_strata_ratios": [
+    1.0064545401224465,
+    1.0094909443789157
+  ],
+  "fixed_rule_passed": true,
+  "compiled_test_profile_input_count": 230
+}
