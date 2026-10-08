@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "positive_modes": [
+    "screen",
+    "stability-screen",
+    "stability-confirmation",
+    "tooling-check"
+  ],
+  "rejections": {
+    "engine-digest": {
+      "rejected": true,
+      "error": "claimtool: hash mismatch: /home/ehrli/ngn-data/claim-v3-20261008/nominee-session10c/frozen/ngn: 737c18bee49408ce8884655f7c2b1a0b322b7637c35974e75e1e737638525b48 != 0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "net-digest": {
+      "rejected": true,
+      "error": "claimtool: hash mismatch: /home/ehrli/ngn-data/claim-v3-20261008/nominee-session10c/frozen/development-be34532c.nnue: be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a != 0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "source-commit": {
+      "rejected": true,
+      "error": "claimtool: source HEAD mismatch: 1d635447f833dd0c73e2eef057c8ecbb14edfc2e"
+    },
+    "go-version": {
+      "rejected": true,
+      "error": "claimtool: Go version mismatch go1.25.5"
+    },
+    "build-output": {
+      "rejected": true,
+      "error": "claimtool: build argv must bind -p 2 and exact output path"
+    },
+    "provenance-digest": {
+      "rejected": true,
+      "error": "claimtool: hash mismatch: /home/ehrli/ngn-data/night-20261007/screen-kb8h512-session1/prov/parity.json: 9f9bd5067ab041b99ae64857fec0e9d9e3e4a55daca96cb64ef83d39634ac414 != 0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "tool_sha256": "4cdf39aa3ae964ccbc7b0c7b7a65a4fe71f32992ee35a8326c1f7c0163d41e7c",
+  "live_games": false,
+  "final_nomination": false
+}
