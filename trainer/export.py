@@ -27,9 +27,25 @@ def quantize(value, multiplier: int, dtype: str) -> np.ndarray:
 
 
 def export_state(state: dict, path: str | Path, format: int | None = None) -> None:
-    w1 = quantize(state["w1"], QA, "<i2")
     king_map = validate_map(state["king_map"]) if "king_map" in state else None
     king_buckets = max(king_map) + 1 if king_map is not None else 1
+    transformer = state["w1"]
+    if "w1_shared" in state:
+        shared = state["w1_shared"]
+        if hasattr(transformer, "detach"):
+            transformer = transformer.detach().cpu().numpy()
+        if hasattr(shared, "detach"):
+            shared = shared.detach().cpu().numpy()
+        transformer, shared = np.asarray(transformer), np.asarray(shared)
+        if (king_map is None or king_buckets < 2 or transformer.ndim != 2
+                or transformer.shape[0] != king_buckets * 768
+                or shared.shape != (768, transformer.shape[1])
+                or transformer.dtype != np.float32 or shared.dtype != np.float32):
+            raise ValueError("King factorizer requires float32 W1 [KB*768,H] and shared [768,H]")
+        # Match the model's float32 sum, then quantize once. Quantizing the two
+        # components separately changes rounding and can overflow int16.
+        transformer = (transformer.reshape(king_buckets, *shared.shape) + shared).reshape(transformer.shape)
+    w1 = quantize(transformer, QA, "<i2")
     hidden = w1.shape[1] if w1.ndim == 2 else 0
     if w1.shape != (768 * king_buckets, hidden) or not 16 <= hidden <= 2048 or hidden % 16:
         raise ValueError("Expected W1 [KB*768,H], H a multiple of 16 in [16,2048]")

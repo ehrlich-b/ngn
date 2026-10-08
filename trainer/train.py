@@ -101,6 +101,8 @@ def parser() -> argparse.ArgumentParser:
     cli.add_argument("--buckets", type=int, choices=(1, 2, 4, 8), default=1)
     cli.add_argument("--format", type=int, choices=(1, 2, 3), help="Default: 1 for NB=1, otherwise 2")
     cli.add_argument("--kb-map", default="default", help="NGNN3: default or JSON file with 64 bucket IDs")
+    cli.add_argument("--king-factorizer", action="store_true",
+                     help="NGNN3: learn shared feature rows plus king-bucket residuals; fold at export")
     cli.add_argument("--batch", type=int, default=16384)
     cli.add_argument("--lr", type=float, default=0.001)
     cli.add_argument("--epochs", "--superbatches", dest="epochs", type=int, default=10)
@@ -136,6 +138,8 @@ def main() -> None:
     if args.format != 3 and args.kb_map != "default":
         raise ValueError("--kb-map requires --format 3")
     king_map = load_map(args.kb_map) if args.format == 3 else None
+    if args.king_factorizer and (king_map is None or max(king_map) < 1):
+        raise ValueError("King factorizer requires NGNN3 with at least two king buckets")
     if (args.batch < 1 or args.epochs < 1 or args.threads < 1 or args.lr <= 0 or args.k <= 0
             or not 0 <= args.wdl <= 1 or args.positions_per_epoch < 0 or args.weight_decay < 0
             or args.decay_steps < 1 or not 0 < args.gamma <= 1 or not 0 <= args.min_lr_ratio <= 1):
@@ -183,9 +187,12 @@ def main() -> None:
     passes, remainder = divmod(positions, shards.count)
     steps_per_epoch = passes * steps_per_pass + math.ceil(remainder / args.batch)
     total_steps = args.epochs * steps_per_epoch
-    model = NGNN(args.hidden, args.buckets, king_map).to(device)
+    model = NGNN(args.hidden, args.buckets, king_map, args.king_factorizer).to(device)
+    decayed = [model.w1, model.o]
+    if model.w1_shared is not None:
+        decayed.append(model.w1_shared)
     optimizer = torch.optim.AdamW([
-        {"params": [model.w1, model.o], "weight_decay": args.weight_decay},
+        {"params": decayed, "weight_decay": args.weight_decay},
         {"params": [model.b1, model.ob], "weight_decay": 0.0},
     ], lr=args.lr, fused=device.type == "cuda")
     first_epoch, step, history = 0, 0, []
@@ -197,7 +204,7 @@ def main() -> None:
                 "weight_decay", "drop_flags", "min_ply", "block_records", "positions_per_epoch",
                 "seed", "precision", "data")
         differences = [key for key in same if saved[key] != getattr(args, key)]
-        for key, default in (("buckets", 1), ("format", 1)):
+        for key, default in (("buckets", 1), ("format", 1), ("king_factorizer", False)):
             if saved.get(key, default) != getattr(args, key):
                 differences.append(key)
         if saved.get("data_format", "ngnp") != args.data_format:

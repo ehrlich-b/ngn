@@ -1,0 +1,82 @@
+{
+  "source_sha256": {
+    "testdata/ngnn1/random_h32.nnue": "9bb171cd06035f7b77089fbd31b215812057a4b44950190fd741d133dd6f52c6",
+    "testdata/ngnn1/random_h32_evals.json": "d92dd1edd84cfcf6c8706653e3654771b0b65a45dabd4920a17d5e6209bc5a6f",
+    "testdata/ngnn2/random_h32_b8.nnue": "b08c8c2c88188fd3885d4fed4b95232c3da0fd733b7fea0711ecc7d78bb25992",
+    "testdata/ngnn2/random_h32_b8_evals.json": "797871eb64fa575c497486d929cd835fe5156668847030ceb815dd4ebf8d4122",
+    "testdata/ngnn3/random_h32_k8_b8.nnue": "2678a899e7a1fa44cf7e846bbd727149c32d63c1c7296f1b05593a34ebab7427",
+    "testdata/ngnn3/random_h32_k8_b8_evals.json": "e558ad79c67c33f40b8e3a2967c8e08a230c17967675a7b3037d45f496276fdb",
+    "trainer/__init__.py": "d90620ff69499224bd842d52d9bf0a0be454eb7db829d196cb55c98882f1ce44",
+    "trainer/archive.py": "9f320787c6a04bb7d297bee19527221ebd4107889d49520455e548919f8b37c7",
+    "trainer/export.py": "4d87c6c7c8c39660b9ba6b0df40e32d6ebf8acfbbd783be106d59f3af22e23de",
+    "trainer/king_buckets.py": "ea9e9743334947ab0ea18b2b23042e347383de2c733bc92323a162902a8b3bb8",
+    "trainer/make_random_net.py": "cc1b7549eeedaca2574f5e7bdec0fa60991a1a4437660be82e6f10b04f44183d",
+    "trainer/model.py": "b1bbb27422b0a9855cbf0da56dc509a9209812ab6ad0514946bec6714dce274a",
+    "trainer/ngnp.py": "dcda0383f3176f31413046fb163b4253a4b9d3bac0853a0309fa5c84313e219f",
+    "trainer/ngnp_split.py": "42bf96ae248cbfb8acd8ccb8e2df0e075153bb12fb7d8dea172a72fd30cf8fc4",
+    "trainer/refeval.py": "f5bf1814cfc7d624bae5fab99ff4aae859e645090831abaaf178dd69c66e1f10",
+    "trainer/tests/__init__.py": "9b85b80c571ecd1c20fdbf3acf1477fab91f155f87c1359234d1364b2d9349c1",
+    "trainer/tests/check_material.py": "5d5a28ed1cf774e95dfea69479d8700d53df56c7996b71cc159ec966be09c2b6",
+    "trainer/tests/synthetic.py": "ed36a7b285535453cf902a6d73de27d434cad9c02a2c6059a90b6138bee17519",
+    "trainer/tests/test_archive.py": "f84d8d6ae8008ccb67f86c0decdf2553178d337e44ea31b85ff7963dcf8e8222",
+    "trainer/tests/test_king_factorizer.py": "72c25da775d8e0144511b3bad7f6092214eaf15f6802dbddb52cc77f29c9a876",
+    "trainer/tests/test_ngnn2.py": "87ee6f7d7295696cbe7b5af913ed98a5ba463759daf5d16f3860bfa9a65e6f4f",
+    "trainer/tests/test_ngnn3.py": "dd3df81a3f87afd4678d6e630b5a88f89b8d28b5b70d9e8267950cf8c07b85dc",
+    "trainer/tests/test_ngnp_split.py": "446a97329a83443416c637288dff6a376439149eaee521d7d6fa1a6e4ba07e84",
+    "trainer/tests/test_trainer.py": "6f6f65b298d3786b52f3b1c20b053061b4258fa11f7b28b02379f66895f46784",
+    "trainer/train.py": "8b067a5f65d6f1d10b12f23569d279df378655a97c41b74efae4d1ecc13ed3eb"
+  },
+  "archive_sha256": "d272839a1ff746df8301ec42c3448460bb0be07f57f77bbf9f13672af572c5ee",
+  "overlay_sha256": "62161b5c15af29fe98b48cc683b8ad6ed172890f69742e78ff4efcb20263501b",
+  "tests_pass": true,
+  "cpu": [
+    13,
+    15
+  ],
+  "nice": 19,
+  "gpu_used": false,
+  "cuda_factorizer_check": "pending; required before real training",
+  "integer_parity_cases": 64,
+  "folded_byte_identical": true,
+  "parity_binary_sha256": "bc3d6c2d5ae84d344597516ca15bf7d98977398c04b17b99ddf73f49a2a3f947",
+  "python": "Python 3.12.3",
+  "logs": {
+    "factorizer-tests.log": {
+      "sha256": "d862349489161de1cf5b7ea54084bc58d0637e140c21d880f7faf73377853707",
+      "tail": [
+        "test_zero_initialization_preserves_default_rng_and_export (trainer.tests.test_king_factorizer.KingFactorizerTests.test_zero_initialization_preserves_default_rng_and_export) ... ok",
+        "",
+        "----------------------------------------------------------------------",
+        "Ran 7 tests in 14.531s",
+        "",
+        "OK (skipped=1)"
+      ]
+    },
+    "trainer-tests.log": {
+      "sha256": "427d9cbc6dcee2b8e9ba623be824e902c5687578cdb9dbd5be8cf8cf385d4f32",
+      "tail": [
+        "test_validation_tail_and_no_updates (test_trainer.TrainerTests.test_validation_tail_and_no_updates) ... ok",
+        "",
+        "----------------------------------------------------------------------",
+        "Ran 57 tests in 55.201s",
+        "",
+        "OK (skipped=4)"
+      ]
+    },
+    "fixture.log": {
+      "sha256": "4bdd2161044f3060181a4d47b77757f07f20b7a790c0be6099a5c7f5ad518f7b",
+      "tail": [
+        "{\"cases\": 64, \"folded_byte_identical\": true, \"network_sha256\": \"d5eecc1f42ac4f9f81d17430a01f4091036cc5b81931ccf3ae34a73523b35cbb\"}"
+      ]
+    },
+    "parity.log": {
+      "sha256": "08ebd7c6c1e1358e213069a432a7d1461d46a74e9b765101a948cddf255f450e",
+      "tail": [
+        "=== RUN   TestNGNN3TrainerParity",
+        "    ngnn3_test.go:433: 64 exact trainer cases, H=16 KB=8 NB=8 kernel=avx2",
+        "--- PASS: TestNGNN3TrainerParity (0.00s)",
+        "PASS"
+      ]
+    }
+  }
+}

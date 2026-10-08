@@ -61,7 +61,8 @@ def decode_gpu(raw: torch.Tensor, buckets: int | None = None,
 
 
 class NGNN(nn.Module):
-    def __init__(self, hidden: int = 256, buckets: int = 1, king_map=None):
+    def __init__(self, hidden: int = 256, buckets: int = 1, king_map=None,
+                 king_factorizer: bool = False):
         super().__init__()
         validate_hidden(hidden)
         validate_buckets(buckets)
@@ -73,6 +74,8 @@ class NGNN(nn.Module):
             self.king_buckets = max(mapping) + 1
             del self.king_map
             self.register_buffer("king_map", torch.tensor(mapping, dtype=torch.int64))
+        if king_factorizer and (king_map is None or self.king_buckets < 2):
+            raise ValueError("King factorizer requires NGNN3 with at least two king buckets")
         self.w1 = nn.Parameter(torch.empty(768 * self.king_buckets, hidden))
         self.b1 = nn.Parameter(torch.full((hidden,), 0.25))
         # Keep single-bucket checkpoint shapes and floating arithmetic unchanged.
@@ -80,10 +83,20 @@ class NGNN(nn.Module):
         self.ob = nn.Parameter(torch.zeros(() if buckets == 1 else (buckets,)))
         nn.init.normal_(self.w1, mean=0, std=0.02)
         nn.init.normal_(self.o, mean=0, std=0.05 / hidden ** 0.5)
+        # Zero initialization preserves the ordinary model's effective weights
+        # and RNG stream. Each bucket learns a residual over the shared rows.
+        self.register_parameter("w1_shared", nn.Parameter(torch.zeros(768, hidden))
+                                if king_factorizer else None)
+
+    def effective_w1(self) -> torch.Tensor:
+        if self.w1_shared is None:
+            return self.w1
+        return (self.w1.reshape(self.king_buckets, 768, self.hidden)
+                + self.w1_shared).reshape(-1, self.hidden)
 
     def forward(self, features: torch.Tensor, stm: torch.Tensor,
                 bucket: torch.Tensor | None = None) -> torch.Tensor:
-        acc = features @ self.w1 + self.b1
+        acc = features @ self.effective_w1() + self.b1
         activation = acc.clamp(0, 1).square()
         # Compute both STM orderings without materializing a gathered [B,2H].
         white, black = activation.chunk(2, dim=0)
@@ -101,7 +114,14 @@ class NGNN(nn.Module):
 
     @torch.no_grad()
     def clip_quantized(self) -> None:
-        self.w1.clamp_(-32768 / QA, 32767 / QA)
+        if self.w1_shared is None:
+            self.w1.clamp_(-32768 / QA, 32767 / QA)
+        else:
+            self.w1_shared.clamp_(-32768 / QA, 32767 / QA)
+            # Bound the sum that is used by forward and export; independently
+            # clipping each component would allow an overflowing merged row.
+            self.w1.reshape(self.king_buckets, 768, self.hidden).clamp_(
+                -32768 / QA - self.w1_shared, 32767 / QA - self.w1_shared)
         self.b1.clamp_(-32768 / QA, 32767 / QA)
         self.o.clamp_(-1.98, 1.98)
         # Leave a representable float32 margin below int32's positive boundary.

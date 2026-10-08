@@ -77,3 +77,22 @@ controls passed; CUDA was skipped. Correct that case to request one output
 bucket, then rerun the complete preparation in a fresh `session8b/`. Preserve
 the original inputs, logs and failure; no runtime or optimization correction
 was needed. No strength verdict.
+
+Fresh controller **577464**, `session8b/`, completes with exit zero. Six
+factorizer CPU controls pass in **14.531 s** (one CUDA skip); the full suite
+has **53 passes / 4 CUDA skips** in **55.201 s**. All **64** independently
+evaluated H16/KB8/NB8 cases agree exactly with Go's AVX2 accumulator/output
+control. Factorized and folded export bytes are identical. All **25**
+trainer/fixture inputs reconcile with local bytes.
+[Test receipt](2026-10-08-session7-results/factorizer-tests.json),
+[source reconciliation](2026-10-08-session7-results/factorizer-source.json).
+
+Optional tooling is ready for CPU use; CUDA remains a separate pending check.
+The [bounded CUDA controller](2026-10-08-king-factorizer-cuda.sh) waits natively
+for admission controller **552631** (12 hours maximum), requires normal
+12-game admission completion, intact source/receipt hashes, no trainer/datagen/
+claim/match/speed probe, available CUDA and C: >=25 GiB. It runs exactly one
+control with a 180-second timeout on CPUs 13,15: FP32/BF16 forward/gradients,
+fused AdamW and folded export. Skipping CUDA cannot pass. No long training,
+net nomination or game trial is queued; failure is preserved without retry.
+Results will be `session8b/cuda-{tests.log,receipt.json,controller.exit}`.
