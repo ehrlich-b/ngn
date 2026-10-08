@@ -1,0 +1,39 @@
+{
+  "utc": "2026-10-08T19:46:15Z",
+  "train_last_complete": {
+    "epoch": 62,
+    "step": 968750,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.0087169892578125,
+    "lr": 0.0005013468026758575,
+    "seconds": 295.41208605101565,
+    "positions_per_second": 866586.074463421,
+    "steady_positions_per_second": 867166.0689289956,
+    "validation_loss": 0.008743433428899447,
+    "validation_loss_lambda_075": 0.008743433428899447,
+    "validation_loss_result": 0.06523989791770868
+  },
+  "tuner": {
+    "wrapper": 577981,
+    "pid": 577984,
+    "iteration": 400,
+    "retained_games": 4800,
+    "checkpoint_time": "2026-10-08T15:31:02-04:00"
+  },
+  "live_pids": [
+    1168,
+    522940,
+    541005,
+    541007,
+    552631,
+    577875,
+    577981,
+    577984
+  ],
+  "gpu_utilization_percent": 61,
+  "gpu_memory_mib": 4197,
+  "host_C_free_bytes": 157333438464,
+  "host_C_free_gib": 146.52818298339844,
+  "hopper_touched": false
+}

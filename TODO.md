@@ -20,12 +20,18 @@ timing blocks: **+1.81% [1.26%, 2.37%] NPS**. The loop-unroll trial was inconclu
 Direct NGNN3 move-delta fusion is now accepted, **5b882e2**: 36 identities, required full
 short/race/vet, 230 source/fixture/profile hashes, and 40 fixed blocks give **+0.80%
 [0.27%, 1.33%] NPS**, both order strata positive. [Completed record](experiments/2026-10-08-nnue-delta-fusion.md).
-Controller 566961 restored SPSA **577981/577984**, durable iteration 375 / **4,500** games
-at **15:01:04 EDT**; it was not interrupted by session 10 preparation.
+Controller 566961 restored SPSA **577981/577984**, durable iteration 400 / **4,800** games
+at **15:31:02 EDT**; it was not interrupted by session 10 preparation.
 Let it advance without repeated pauses; no tuning-strength verdict before >=20k and paired games.
 All 14 SPSA options now have source/runtime witnesses on the actual frozen NNUE
 engine, **180** bounded searches and exact repeated defaults; training/tuning were
 not interrupted. [Wiring audit and resume limits](experiments/2026-10-08-spsa-live-audit.md).
+Future SPSA exact checkpoint continuation now passes narrow/full short/race/vet,
+six exact resumed trajectories, recipe/corruption controls and 11 CLI refusals.
+[Repair and receipts](experiments/2026-10-08-spsa-exact-resume.md). The current
+frozen tuner retains its legacy format and RNG behavior; do not replace it.
+A future new tune requires a fresh output, exact binary/recipe pins and its own
+converged-vector games. No new tune or accepted playing change is queued.
 
 Optional king-bucket training factorizer **6926457** is CPU-tested: six new controls,
 full trainer suite **53 passes / 4 CUDA skips**, 64 exact Go integer cases and 25 reconciled

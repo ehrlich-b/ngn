@@ -1,0 +1,238 @@
+[
+  {
+    "case": "legacy",
+    "argv": [
+      "taskset",
+      "-c",
+      "13,15",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session12/future-spsa",
+      "-engine",
+      "/home/ehrli/ngn-data/night-20261007/session12/must-not-start",
+      "-lowpower=false",
+      "-resume",
+      "-out",
+      "/home/ehrli/ngn-data/night-20261007/session12/legacy.jsonl"
+    ],
+    "returncode": 1,
+    "engine_started": false,
+    "stderr": "2026/10/08 15:44:50 resume refused: checkpoint row 1 is legacy or unsupported; start a new tune\n"
+  },
+  {
+    "case": "missing",
+    "argv": [
+      "taskset",
+      "-c",
+      "13,15",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session12/future-spsa",
+      "-engine",
+      "/home/ehrli/ngn-data/night-20261007/session12/must-not-start",
+      "-lowpower=false",
+      "-resume",
+      "-out",
+      "/home/ehrli/ngn-data/night-20261007/session12/missing.jsonl"
+    ],
+    "returncode": 1,
+    "engine_started": false,
+    "stderr": "2026/10/08 15:44:50 resume refused: open /home/ehrli/ngn-data/night-20261007/session12/missing.jsonl: no such file or directory\n"
+  },
+  {
+    "case": "empty",
+    "argv": [
+      "taskset",
+      "-c",
+      "13,15",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session12/future-spsa",
+      "-engine",
+      "/home/ehrli/ngn-data/night-20261007/session12/must-not-start",
+      "-lowpower=false",
+      "-resume",
+      "-out",
+      "/home/ehrli/ngn-data/night-20261007/session12/empty.jsonl"
+    ],
+    "returncode": 1,
+    "engine_started": false,
+    "stderr": "2026/10/08 15:44:50 resume refused: checkpoint history is empty\n"
+  },
+  {
+    "case": "corrupt",
+    "argv": [
+      "taskset",
+      "-c",
+      "13,15",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session12/future-spsa",
+      "-engine",
+      "/home/ehrli/ngn-data/night-20261007/session12/must-not-start",
+      "-lowpower=false",
+      "-resume",
+      "-out",
+      "/home/ehrli/ngn-data/night-20261007/session12/corrupt.jsonl"
+    ],
+    "returncode": 1,
+    "engine_started": false,
+    "stderr": "2026/10/08 15:44:50 resume refused: checkpoint row 1: unexpected EOF\n"
+  },
+  {
+    "case": "mixed-fresh",
+    "argv": [
+      "taskset",
+      "-c",
+      "13,15",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session12/future-spsa",
+      "-engine",
+      "/home/ehrli/ngn-data/night-20261007/session12/must-not-start",
+      "-lowpower=false",
+      "-out",
+      "/home/ehrli/ngn-data/night-20261007/session12/legacy.jsonl"
+    ],
+    "returncode": 1,
+    "engine_started": false,
+    "stderr": "2026/10/08 15:44:50 checkpoint history /home/ehrli/ngn-data/night-20261007/session12/legacy.jsonl already contains data; use -resume or a new path\n"
+  },
+  {
+    "case": "bad-report",
+    "argv": [
+      "taskset",
+      "-c",
+      "13,15",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session12/future-spsa",
+      "-engine",
+      "/home/ehrli/ngn-data/night-20261007/session12/must-not-start",
+      "-lowpower=false",
+      "-report",
+      "0",
+      "-out",
+      "/home/ehrli/ngn-data/night-20261007/session12/bad-report.jsonl"
+    ],
+    "returncode": 1,
+    "engine_started": false,
+    "stderr": "2026/10/08 15:44:50 iters, pairs, report and rend must be positive; afrac must be finite and nonnegative\n"
+  },
+  {
+    "case": "bad-iters",
+    "argv": [
+      "taskset",
+      "-c",
+      "13,15",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session12/future-spsa",
+      "-engine",
+      "/home/ehrli/ngn-data/night-20261007/session12/must-not-start",
+      "-lowpower=false",
+      "-iters",
+      "0",
+      "-out",
+      "/home/ehrli/ngn-data/night-20261007/session12/bad-iters.jsonl"
+    ],
+    "returncode": 1,
+    "engine_started": false,
+    "stderr": "2026/10/08 15:44:50 iters, pairs, report and rend must be positive; afrac must be finite and nonnegative\n"
+  },
+  {
+    "case": "bad-pairs",
+    "argv": [
+      "taskset",
+      "-c",
+      "13,15",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session12/future-spsa",
+      "-engine",
+      "/home/ehrli/ngn-data/night-20261007/session12/must-not-start",
+      "-lowpower=false",
+      "-pairs",
+      "0",
+      "-out",
+      "/home/ehrli/ngn-data/night-20261007/session12/bad-pairs.jsonl"
+    ],
+    "returncode": 1,
+    "engine_started": false,
+    "stderr": "2026/10/08 15:44:50 iters, pairs, report and rend must be positive; afrac must be finite and nonnegative\n"
+  },
+  {
+    "case": "bad-rend",
+    "argv": [
+      "taskset",
+      "-c",
+      "13,15",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session12/future-spsa",
+      "-engine",
+      "/home/ehrli/ngn-data/night-20261007/session12/must-not-start",
+      "-lowpower=false",
+      "-rend",
+      "NaN",
+      "-out",
+      "/home/ehrli/ngn-data/night-20261007/session12/bad-rend.jsonl"
+    ],
+    "returncode": 1,
+    "engine_started": false,
+    "stderr": "2026/10/08 15:44:50 iters, pairs, report and rend must be positive; afrac must be finite and nonnegative\n"
+  },
+  {
+    "case": "bad-afrac",
+    "argv": [
+      "taskset",
+      "-c",
+      "13,15",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session12/future-spsa",
+      "-engine",
+      "/home/ehrli/ngn-data/night-20261007/session12/must-not-start",
+      "-lowpower=false",
+      "-afrac",
+      "Inf",
+      "-out",
+      "/home/ehrli/ngn-data/night-20261007/session12/bad-afrac.jsonl"
+    ],
+    "returncode": 1,
+    "engine_started": false,
+    "stderr": "2026/10/08 15:44:50 iters, pairs, report and rend must be positive; afrac must be finite and nonnegative\n"
+  },
+  {
+    "case": "selftest-resume",
+    "argv": [
+      "taskset",
+      "-c",
+      "13,15",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session12/future-spsa",
+      "-engine",
+      "/home/ehrli/ngn-data/night-20261007/session12/must-not-start",
+      "-lowpower=false",
+      "-selftest",
+      "-resume",
+      "-out",
+      "/home/ehrli/ngn-data/night-20261007/session12/legacy.jsonl"
+    ],
+    "returncode": 1,
+    "engine_started": false,
+    "stderr": "2026/10/08 15:44:50 selftest cannot resume a real-game campaign\n"
+  }
+]
