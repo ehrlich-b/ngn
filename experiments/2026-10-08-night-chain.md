@@ -46,3 +46,21 @@ Machine: 9800X3D, WSL2 Linux 6.6.87.2, RTX 5080, Go 1.25.5 linux/amd64 GOAMD64=v
 ngnn1MoveRows 8.1%, ngnn1OutputSmall 5.3%. PGO build vs plain build: identical speedprobe identity output at
 depth 14 (all six positions); interleaved timed NPS, 10 rounds, CPU 4: 1,869,678 → 1,929,608, ratio
 **1.0323 [1.0140, 1.0506]**. Pure speed change; keep.
+
+## Screen script
+
+[2026-10-08-night-screen.sh](2026-10-08-night-screen.sh): builds a claimtool identity for the night net with the
+frozen claim engine `8fb36cfb…` (source `9fe2cb6`, NGNN3-capable), claimtool, claimbridge, anchors and
+first-80 openings, then runs the unchanged `scripts/claim/screen.sh`. Any running trainer is SIGSTOPped for
+the screen and resumed after. Interop socket `/run/WSL/2_interop`. Dry run (`--dry-run`) on the epoch-13
+kb8h512 net: rc 0.
+
+## Joint search SPSA under NNUE (background, resumable)
+
+The 14 `TunableSearchParams` were last tuned under HCE. `cmd/spsa` from release/0.3.0 `6488235`
+(`67cf935d…`, selftest PASS), engine = 0.3.0 release binary `b0b36c9d…` (embedded `c6c12796`), 10+0.1,
+`-iters 2000 -pairs 6` (24,000 games total), openings `974e4b5a…`, seed 20261008, `taskset -c 0-11`,
+GOMAXPROCS=1, out `/home/ehrli/ngn-data/night-20261007/spsa/spsa.jsonl` (checkpoint every 25 iterations;
+continue with `-resume`). Started 2026-10-07 23:09 EDT under `timeout --signal=INT` to stop at 03:00 EDT,
+before the gate. An aborted 90-second start with `-iters 12000` is kept as `spsa-aborted-12000.log`.
+Evidence rule (CLAUDE.md): only the converged vector after >= 20k games, verified by games.
