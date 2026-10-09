@@ -1,0 +1,48 @@
+package engine
+
+import (
+    "encoding/json"
+    "os"
+    "reflect"
+    "testing"
+    "time"
+)
+
+// Opt-in observation on the accepted KB8 network; no search policy changes.
+func TestCampaignLongClockTrace(t *testing.T) {
+    path := os.Getenv("NGN_CAMPAIGN_TRACE_NET")
+    if path == "" { t.Skip("set NGN_CAMPAIGN_TRACE_NET on WSL") }
+    net, err := LoadNGNN1(path)
+    if err != nil { t.Fatal(err) }
+    searcher, err := NewSearchEngineWithHash(64)
+    if err != nil { t.Fatal(err) }
+    if err := searcher.SelectNGNN1Evaluator(net); err != nil { t.Fatal(err) }
+    if err := searcher.ConfigureThreads(1); err != nil { t.Fatal(err) }
+    fixtures := []struct {name, fen string; ply int}{
+        {"start", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 0},
+        {"middle", "r1bq1rk1/ppp2ppp/2np1n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 4 6", 10},
+        {"late-middle", "2rq1rk1/pb2bppp/1p2pn2/3p4/3P4/1PN1PN2/PB2BPPP/2RQ1RK1 w - - 0 15", 28},
+        {"ending", "8/4k3/2p3p1/1p1pP2p/1P1P3P/2P2KP1/8/8 w - - 1 40", 78},
+    }
+    for pass:=0; pass<3; pass++ {
+        for _, f := range fixtures {
+            p,err:=ParseFEN(f.fen); if err!=nil {t.Fatal(err)}
+            before:=snapshotPVPosition(p)
+            tm:=NewTimeManager()
+            tm.UpdateGameState(f.ply,0,0,p)
+            var observer searchTerminationObserver
+            tm.setSearchTerminationObserver(&observer)
+            tm.SetTimeControl(SearchParams{WhiteTime:120000,BlackTime:120000,WhiteInc:1000,BlackInc:1000},p.Turn()==White)
+            result:=searcher.SearchIterativeDeepening(p,MaximumDepth,tm)
+            if result.BestMove==EmptyMove || observer.FirstReason==searchTerminationNone || observer.IterationOverflow!=0 {t.Fatalf("invalid trace %+v", observer)}
+            legal:=false; for _,m:=range GenerateLegalMoves(p) {if m==result.BestMove {legal=true}}
+            if !legal {t.Fatal("illegal returned move")}
+            if got:=snapshotPVPosition(p); !reflect.DeepEqual(got,before) {t.Fatal("root changed")}
+            last:=time.Duration(0)
+            if observer.IterationCount>0 {last=observer.Iterations[observer.IterationCount-1].CompletedAtElapsed}
+            row:=map[string]interface{}{"pass":pass,"fixture":f.name,"reason":observer.FirstReason.String(),"stop_depth":observer.FirstDepth,"elapsed_ns":observer.FirstElapsed.Nanoseconds(),"soft_ns":tm.softTime.Nanoseconds(),"hard_ns":tm.hardTime.Nanoseconds(),"completed_depth":result.Depth,"nodes":result.Nodes,"tail_ns":(observer.FirstElapsed-last).Nanoseconds(),"move":result.BestMove.ToString(),"score":result.BestScore,"iterations":observer.Iterations[:observer.IterationCount]}
+            b,err:=json.Marshal(row); if err!=nil {t.Fatal(err)}
+            t.Log("CLOCKTRACE "+string(b))
+        }
+    }
+}

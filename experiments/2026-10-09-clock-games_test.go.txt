@@ -1,0 +1,66 @@
+package engine
+
+import (
+    "encoding/json"
+    "os"
+    "reflect"
+    "strings"
+    "testing"
+    "time"
+)
+
+func TestCampaignPlayedLongClockGames(t *testing.T) {
+    netPath:=os.Getenv("NGN_CAMPAIGN_TRACE_NET")
+    openingPath:=os.Getenv("NGN_CAMPAIGN_TRACE_OPENINGS")
+    if netPath=="" || openingPath=="" {t.Skip("WSL clock diagnostic only")}
+    net,err:=LoadNGNN1(netPath);if err!=nil {t.Fatal(err)}
+    data,err:=os.ReadFile(openingPath);if err!=nil {t.Fatal(err)}
+    lines:=strings.Split(strings.TrimSpace(string(data)),"\n")
+    if len(lines)<2 {t.Fatal("need two frozen opening lines")}
+    for game:=0;game<2;game++ {
+        var engines [2]*SearchEngine
+        managers:=[2]*TimeManager{NewTimeManager(),NewTimeManager()}
+        bank:=[2]time.Duration{120*time.Second,120*time.Second}
+        for side:=0;side<2;side++ {
+            engines[side],err=NewSearchEngineWithHash(64);if err!=nil {t.Fatal(err)}
+            if err=engines[side].SelectNGNN1Evaluator(net);err!=nil {t.Fatal(err)}
+            if err=engines[side].ConfigureThreads(1);err!=nil {t.Fatal(err)}
+        }
+        p:=newUCIStartingPosition();ply:=0
+        for _,name:=range strings.Fields(lines[game]) {
+            found:=EmptyMove
+            for _,m:=range GenerateLegalMoves(p) {if m.ToString()==name {found=m;break}}
+            if found==EmptyMove {t.Fatalf("bad book move %s",name)}
+            if _,_,_,legal:=p.GameMakeMove(found);!legal {t.Fatal("book make failed")};ply++
+        }
+        terminal:="diagnostic-max-ply"
+        for ;ply<400;ply++ {
+            legal:=GenerateLegalMoves(p)
+            if len(legal)==0 {terminal="no-legal-moves";break}
+            if p.IsDraw() {terminal="draw-rule";break}
+            side:=0;if p.Turn()==Black {side=1}
+            tm:=managers[side]
+            var observer searchTerminationObserver
+            tm.setSearchTerminationObserver(&observer)
+            before:=snapshotPVPosition(p);available:=bank[side];started:=time.Now()
+            params:=SearchParams{WhiteTime:int(bank[0].Milliseconds()),BlackTime:int(bank[1].Milliseconds()),WhiteInc:1000,BlackInc:1000}
+            // Match UCI's existing order, including its one-move-stale
+            // phase/move-count allocation, rather than repairing it here.
+            tm.SetTimeControlAt(params,p.Turn()==White,started)
+            tm.UpdateGameState(ply,0,0,p)
+            result:=engines[side].SearchIterativeDeepeningWithCallback(p,MaximumDepth,tm,func(info *SearchInfo){tm.UpdateGameState(ply,info.BestScore,info.BestScore,p)})
+            spent:=time.Since(started)
+            if spent>=available {t.Fatalf("clock flag game%d ply%d: %v >= %v",game,ply,spent,available)}
+            if !reflect.DeepEqual(snapshotPVPosition(p),before) {t.Fatal("root changed")}
+            valid:=false;for _,m:=range legal {if m==result.BestMove {valid=true}}
+            if !valid {t.Fatal("illegal/no-move result")}
+            bank[side]=available-spent+time.Second
+            last:=time.Duration(0)
+            if observer.IterationCount>0 {last=observer.Iterations[observer.IterationCount-1].CompletedAtElapsed}
+            row:=map[string]interface{}{"game":game,"ply":ply,"move":result.BestMove.ToString(),"score":result.BestScore,"depth":result.Depth,"reason":observer.FirstReason.String(),"available_ns":available.Nanoseconds(),"spent_ns":spent.Nanoseconds(),"bank_after_ns":bank[side].Nanoseconds(),"soft_ns":tm.softTime.Nanoseconds(),"hard_ns":tm.hardTime.Nanoseconds(),"observed_elapsed_ns":observer.FirstElapsed.Nanoseconds(),"tail_ns":(observer.FirstElapsed-last).Nanoseconds(),"nodes":result.Nodes}
+            encoded,err:=json.Marshal(row);if err!=nil {t.Fatal(err)};t.Log("CLOCKGAME "+string(encoded))
+            if _,_,_,ok:=p.GameMakeMove(result.BestMove);!ok {t.Fatal("played move failed")}
+        }
+        t.Logf("CLOCKGAME_END game=%d plies=%d reason=%s white_ns=%d black_ns=%d",game,ply,terminal,bank[0].Nanoseconds(),bank[1].Nanoseconds())
+    }
+}
