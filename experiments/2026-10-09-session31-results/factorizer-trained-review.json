@@ -1,0 +1,19 @@
+{
+  "full_epochs": 58,
+  "presentations": 14848000000,
+  "best_epoch": 57,
+  "parity": {
+    "network_sha256": "d55a5096f1ad3882a806d2af8d2c699f275f087f8cacd6070cd60b3a41e9f2ce",
+    "checkpoint_sha256": "7ee2f3ae686196f3b01c3304b7e7741b3b5fded98602955a25afe51c77337025",
+    "parity_cases": 20,
+    "reexport_identical": true,
+    "best_epoch": 57,
+    "full_epochs": 58,
+    "shared_rows_nonzero": true
+  },
+  "history_sha256": "a707464070dbc689e538e185117c86ce158b6b26d6369053fca49fb8024b1f69",
+  "parity_log_sha256": "d66c30120aa72d3d482e6b3c31491e5119f2dd7d0906748d0592821234070c7e",
+  "candidate_games": 0,
+  "verdict": "trained-and-parity-complete; no strength verdict",
+  "next": "freeze provenance first; then actual-base A/A40 and400 gate, standard lower95>0; no retraining"
+}

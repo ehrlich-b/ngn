@@ -6,20 +6,22 @@ Own TTb49ab5a remains a **provisional provenance keep**,400g−3.47[−25.45,+18
 zero failures under Bryan's upper95>0 rule; combined batch SPRT[0,+6] required.
 Own board representation and combined TT/board full checks/perft/identities pass.
 
-**Session30:** key-order A/A40 failed its fixed paired-CI requirement:
+**Session31:** key-order A/A40 failed its fixed paired-CI requirement:
 10/26/4,+52.5[+3,+104], zero flags/recovered crashes; candidate games0,
 no adoption/retry. Dependent data controller terminal before conversion.
 Fresh SEE-only A/A40 passes; gate400 **12263**,13,15 since16:44 in
 `session30-see-gate/`, upper95>0/zero-fault provenance rule, no automatic adoption.
-SPSA **1405**,0–11, durable1325/15,900 at17:39, old base;24k endpoint plus
-converged-vector games required. Host C: **32.72GiB**; hopper1211 untouched.
+SPSA **1405**,0–11, durable1350/16,200 at18:08, old base;24k endpoint plus
+converged-vector games required. Host C: **32.27GiB**; hopper1211 untouched.
 
 NGNN4 row-affine verified48 identities/full short/race/vet and fixed20 blocks:
 NPS1.15150[1.13250,1.17083], retained/pushed topic **aafa7fd**. Same-width
-budget0.81555[0.80717,0.82403] defers training. New original eight-row affine
-sharing **17872** reports full checks passed; identity/timing runs14 in
-`session30-eight-row/`; fixed identity/speed
-rule and12-block budget only on speed keep. No accepted hidden layer/trained net.
+budget0.81555[0.80717,0.82403] defers training. Eight-row48 identities/full
+checks pass but fixed20-block0.95774[0.93228,0.98390] fails: shelved/restored,
+no extension or budget run. New original runtime-selected VNNI/fallback
+passes narrow exact controls; **20321** runs full checks12,14 then fixed48
+identities/20 speed blocks14 in `session31-vnni/`; only speed keep permits12
+budget blocks. No accepted hidden layer/trained net.
 TT scan full checks/two traces/36 identities pass, speed0.99952 fails;
 shelved and local runtime topic restored. No sample extension.
 
@@ -32,11 +34,11 @@ A/A40/powered SPRT[0,+6] remains required; time60+0.6, others10+0.1.
 **Data:** T76 complete55.63GB/1.738B rows, T74 stats/keep194 complete but corpus
 incomplete. Unchanged T74 continuation needs70GiB host capacity and a new
 stage-correct launch after CPU release; no live data waiter/trainer. Factorizer
-58 epochs/parity complete, zero games; future actual-base A/A40/gate400,
+58 full epochs/selected57/reexport/20 parity cases reviewed, zero games; future actual-base A/A40/gate400,
 no retraining. Scout/H1024/longerH512/affine16/deferred accumulators/quiet unroll
 remain shelved. No3600 claim or publication.
-**Next session: not before18:15 EDT October9**, new eight-row receipt then SEE.
-[Session30 evidence/handoff](experiments/2026-10-09-session30.md).
+**Next session: not before18:35 EDT October9**, SEE terminal review then VNNI.
+[Session31 evidence/handoff](experiments/2026-10-09-session31.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
