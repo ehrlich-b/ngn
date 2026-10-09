@@ -18,24 +18,23 @@ V2 orientation **3434.6 [3388.3,3480.9]** supplies no3600 eligibility.
 Activated20:42 EDT by2fba7b1. GPU12,14/nice19/BF16; folded parity/reexport,
 fresh A/A40/gate400 follow. Accept only complete penta lower95>0 and zero
 operational failures. No automatic promotion. Unchanged SPSA630159/630163
-continues on CPU0–11, last retained600 iterations/7,200 games; no tuning
+continues on CPU0–11, last retained625 iterations/7,500 games; no tuning
 verdict before >=20k plus converged-vector paired games. Preserve its legacy
 resume/RNG; [future repair](experiments/2026-10-08-spsa-exact-resume.md) is separate.
 
-**Two unaccepted NGNN4 code topics implemented**, exact patches frozen on WSL.
-Affine tiling `night/ngnn4-affine16`, controller630484, `session16a/`:
-all AVX2/Go/scalar/320 parity and engine/full short/race/vet checks pass;
-48 identities and fixed20 AB/BA speed blocks running, result~21:15 EDT.
-Batched trainer `night/ngnn4-batched`, CPU640369 waits for that fixed sample;
-CUDA640370 waits for CPU pass then factorizer termination, `session16c/`.
-It replaces per-record W2 copies with one GEMM and head selection; new CPU/
-CUDA gradients and full-batch fixed throughput/memory rule are pending.
-[Affine rule](experiments/2026-10-08-ngnn4-affine.md),
-[batched rule and queued short CUDA window](experiments/2026-10-08-ngnn4-batched.md).
-Keep only on topics after verdicts; no real architecture net is trained.
-Original architecture `night/hidden-layer 9b6a3d6` now passes actual CUDA as
-well as CPU/integer/engine checks. It is the next GPU net lane after factorizer
-and cost review, against the actual immediate accepted engine/net.
+**Architecture cost topics in verification**, no real NGNN4 net trained.
+Affine16 is shelved:48 identities/20 blocks, ratio1.03902 [1.00863,1.07033]
+but AB stratum0.98929 fails. Original sample preserved, local patch restored.
+Batched trainer corrected CPU root `session17b/` passes65 tests/6 CUDA skips;
+CUDA641099 follows factorizer630389. New fused-output641437 (`session17f/`)
+passes new guarded AVX2/Go/scalar and320-case parity; full checks/fixed speed
+sample running. New optional sparse-transformer CPU651273 follows fused output;
+CUDA651274 follows CPU pass then batched CUDA641099 (`session17s/`).
+[Session17 work and rules](experiments/2026-10-08-session17.md).
+Keep source on topics until complete fixed verdicts. Preserve both short CUDA
+cost windows before another trainer or exclusive claim. Original architecture
+`night/hidden-layer 9b6a3d6` is CPU/integer/engine/CUDA-tested; select the next
+real NGNN4 recipe after factorizer and cost reviews against the actual base.
 
 V3 tool/source **4cdf39aa / 376671f**, schema3/threshold3600, now passes all12
 operational admission games. Clean accepted-engine preparation **737c18be / 1d63544**
@@ -45,7 +44,9 @@ qualification. Preserve batched CUDA window before another GPU trainer/claim.
 Owned-teacher calibration remains an alternative prepared lane, `session10/`;
 [activation contract](experiments/2026-10-08-owned-calibration.md). Deferred accumulators
 and quiet-move unroll remain shelved, no extension. Hopper untouched.
-Next campaign session **not before21:20 EDT** for affine/batched CPU results.
+Next campaign session **not before21:55 EDT** for fused-output/sparse CPU results.
+Factorizer8/58 epochs at21:30, complete-epoch mean352.96s; training ETA02:24
+EDT October9, then parity/checkpoint/A/A40/gate400.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

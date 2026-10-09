@@ -1,0 +1,18 @@
+{
+  "reviewed_utc": "2026-10-09T01:22:24.198181+00:00",
+  "verdict": "SHELVED",
+  "identity_cases": 48,
+  "blocks": 20,
+  "geometric_ratio": 1.0390218293997076,
+  "ci95": [
+    1.0086340619409557,
+    1.070325108683779
+  ],
+  "order_strata": [
+    0.989292244350913,
+    1.0912512133130408
+  ],
+  "reason": "AB order stratum below 1; fixed rule fails",
+  "receipt_sha256": "1513a7959761a0549c066c4a37c1012edadeab7c5c4055e3242afee6cae9a664",
+  "completed": "2026-10-08T21:07:48-04:00"
+}

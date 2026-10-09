@@ -43,3 +43,26 @@ parity/reexport and pass fresh A/A40/gate400 against the immediate base.
 Results: box `session16c/{cpu*,cuda*,benchmark.json}` and campaign status
 stage `ngnn4-batched`. Preserve this queued short CUDA window before the
 next real GPU trainer, datagen or claim. No game is launched here.
+
+## Corrected CPU setup — session 17
+
+Original corrected-patch root `session16c/` completed CPU with exit1 at
+**21:09:19 EDT**. New gradient/NGNN4 checks passed; the sole full-suite
+error was a source-relative NGNN3 fixture lookup from the controller root.
+The fixture was present in `source/testdata/ngnn3/`. Its CUDA waiter ended
+before any GPU tests or timing. Preserve all original logs; no cost verdict.
+
+Fresh `session17b/` uses the **same base and candidate patch**, with CPU
+unittests run from `source/`. No model/test/tolerance/sample change. CPU
+**641098** and CUDA **641099** launched **21:22:01 EDT**; CPU completed
+**21:23:32 EDT**, exit0, all65 tests pass (6 intentional CUDA skips), full
+suite76.051s. The two local candidate files equal the CPU-tested source.
+[CPU result and launch](2026-10-08-session17-results/batched-cpu.json).
+
+CUDA641099 waits natively for factorizer630389, timeout **09:22 EDT October9**.
+Actual CUDA tests and the unchanged four-architecture20-block fixed cost
+rule remain pending; no topic commit or real architecture training. Results
+`session17b/{cuda*,benchmark.json}`. Preserve this window, then the queued
+sparse-transformer CUDA window, before any new trainer or exclusive claim.
+[Corrected controller](2026-10-08-ngnn4-batched-recheck.sh),
+[same benchmark with fresh output root](2026-10-08-ngnn4-batched-recheck-speed.py).
