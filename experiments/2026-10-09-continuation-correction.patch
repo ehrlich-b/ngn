@@ -1,0 +1,445 @@
+diff --git a/engine/continuation_correction.go b/engine/continuation_correction.go
+new file mode 100644
+index 0000000..7b7aafe
+--- /dev/null
++++ b/engine/continuation_correction.go
+@@ -0,0 +1,76 @@
++package engine
++
++// A continuation residual describes the last two real moves on this search
++// path, rather than a board structure. Source squares and capture flags are
++// deliberately absent: the context is the resulting piece and its destination.
++// Promotions use the promoted piece. No played-game predecessor is imported at
++// the root, and a null move breaks the two-move context.
++func continuationMoveCode(move Move) (uint32, bool) {
++	if move == EmptyMove || move.MovingPiece() <= NoPiece || move.MovingPiece() > BlackKing {
++		return 0, false
++	}
++	piece := move.MovingPiece()
++	if promotion := move.PromoType(); promotion != NoType {
++		if promotion < Knight || promotion > Queen {
++			return 0, false
++		}
++		piece = GetPiece(promotion, piece.Color())
++	}
++	return uint32(piece)*64 + uint32(move.Destination()), true
++}
++
++func continuationCorrectionContext(info *SearchInfo, ply int, stm Color) (int, bool) {
++	if ply < 2 || ply > len(info.MoveStack) || (stm != White && stm != Black) {
++		return 0, false
++	}
++	older, newer := info.MoveStack[ply-2], info.MoveStack[ply-1]
++	a, validA := continuationMoveCode(older)
++	b, validB := continuationMoveCode(newer)
++	if !validA || !validB || older.MovingPiece().Color() != stm || newer.MovingPiece().Color() != stm.Other() {
++		return 0, false
++	}
++	// Fold the ordered ten-bit piece/to codes into the existing 14-bit table
++	// budget. Multiplication spreads nearby destinations across the table.
++	key := a<<10 | b
++	key ^= key >> 11
++	key *= 0x9e3779b1
++	return int((key ^ key>>16) & corrHistMask), true
++}
++
++func (h *workerHistory) continuationCorrectionValue(stm Color, idx int) int {
++	return int(h.continuationCorrectionHistory[stm][idx]) * 3 / 64
++}
++
++func (h *workerHistory) continuationStandPat(pos *Position, info *SearchInfo, ply int) int {
++	value := h.correctedStandPat(pos, info.evaluator)
++	if idx, valid := continuationCorrectionContext(info, ply, pos.Turn()); valid {
++		value += h.continuationCorrectionValue(pos.Turn(), idx)
++	}
++	return value
++}
++
++// Learn only a completed main-search residual, measured against the total
++// corrected static before TT refinement. Qsearch consumes this term but never
++// trains it. Reuse NGN's bounded depth-weighted update and conservative bound
++// direction rule; capture, promotion, mate and move-excluded results are skipped.
++func (h *workerHistory) maybeUpdateContinuationCorrection(stm Color, idx int, valid bool,
++	staticEval, bestScore, beta, depth int, bestMove Move, inCheck, inSingular, stopped bool) {
++	if !valid || stopped || inCheck || inSingular || depth <= 0 ||
++		abs(staticEval) >= MATE_IN_MAX || abs(bestScore) >= MATE_IN_MAX ||
++		(bestMove != EmptyMove && (bestMove.IsCapture() || bestMove.PromoType() != NoType)) {
++		return
++	}
++	if !((bestScore < staticEval && bestScore < beta) || (bestScore > staticEval && bestMove != EmptyMove)) {
++		return
++	}
++	bonus := (bestScore - staticEval) * depth / 8
++	if bonus > corrHistLimit/4 {
++		bonus = corrHistLimit / 4
++	} else if bonus < -corrHistLimit/4 {
++		bonus = -corrHistLimit / 4
++	}
++	entry := &h.continuationCorrectionHistory[stm][idx]
++	value := int(*entry)
++	value += bonus - value*abs(bonus)/corrHistLimit
++	*entry = int16(value)
++}
+diff --git a/engine/continuation_correction_test.go b/engine/continuation_correction_test.go
+new file mode 100644
+index 0000000..f40c265
+--- /dev/null
++++ b/engine/continuation_correction_test.go
+@@ -0,0 +1,258 @@
++package engine
++
++import (
++	"reflect"
++	"testing"
++)
++
++func continuationFixture(t *testing.T, stm Color) (*Position, *SearchInfo, int) {
++	t.Helper()
++	fen := "3k4/8/8/8/8/4P3/8/4K3 w - - 0 2"
++	older := NewMove(E2, E3, WhitePawn, NoPiece, NoType, 0)
++	newer := NewMove(E8, D8, BlackKing, NoPiece, NoType, 0)
++	if stm == Black {
++		fen = "4k3/8/4p3/8/8/8/8/3K4 b - - 0 2"
++		older = NewMove(E7, E6, BlackPawn, NoPiece, NoType, 0)
++		newer = NewMove(E1, D1, WhiteKing, NoPiece, NoType, 0)
++	}
++	pos := n3cPosition(t, fen)
++	info := newQSearchInfo()
++	info.history = &workerHistory{}
++	info.control = &SearchControl{}
++	info.tt = NewCache(1)
++	info.MoveStack[0], info.MoveStack[1] = older, newer
++	idx, valid := continuationCorrectionContext(info, 2, stm)
++	if !valid {
++		t.Fatal("fixture has no real-move context")
++	}
++	return pos, info, idx
++}
++
++func TestContinuationQuietHorizonWitness(t *testing.T) {
++	for _, stm := range []Color{White, Black} {
++		for _, sign := range []int16{-1, 1} {
++			pos, info, idx := continuationFixture(t, stm)
++			pawnIdx := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
++			info.history.pawnCorrectionHistory[stm][pawnIdx] = corrHistLimit / 2
++			raw := info.history.correctedStandPat(pos, info.evaluator)
++			info.history.continuationCorrectionHistory[stm][idx] = sign * corrHistLimit
++			before := snapshotPVPosition(pos)
++			history := info.history.continuationCorrectionHistory
++			got := quiescence(pos, -INFINITY, INFINITY, 2, info)
++			want := raw + int(sign)*48
++			if got != want {
++				t.Fatalf("quiet horizon ignored temporal residual: stm=%v sign=%d got=%d want=%d", stm, sign, got, want)
++			}
++			if !reflect.DeepEqual(snapshotPVPosition(pos), before) || history != info.history.continuationCorrectionHistory {
++				t.Fatal("quiet qsearch changed position or learned residuals")
++			}
++		}
++	}
++}
++
++func TestContinuationContextNullRootAndPromotion(t *testing.T) {
++	_, info, idx := continuationFixture(t, White)
++	for _, ply := range []int{-1, 0, 1, MaximumDepth + 1} {
++		if _, valid := continuationCorrectionContext(info, ply, White); valid {
++			t.Fatalf("context valid at ply %d", ply)
++		}
++	}
++	if _, valid := continuationCorrectionContext(info, 2, Black); valid {
++		t.Fatal("context accepted reversed colors")
++	}
++	for _, slot := range []int{0, 1} {
++		saved := info.MoveStack[slot]
++		info.MoveStack[slot] = EmptyMove
++		if _, valid := continuationCorrectionContext(info, 2, White); valid {
++			t.Fatal("null ancestry retained temporal context")
++		}
++		info.MoveStack[slot] = saved
++	}
++	// Source and capture flags are intentionally outside the context.
++	info.MoveStack[0] = NewMove(D2, E3, WhitePawn, BlackPawn, NoType, Capture)
++	if changed, valid := continuationCorrectionContext(info, 2, White); !valid || changed != idx {
++		t.Fatal("source/capture flag changed piece-to context")
++	}
++	promotion := NewMove(A7, A8, WhitePawn, NoPiece, Queen, 0)
++	queenMove := NewMove(B8, A8, WhiteQueen, NoPiece, NoType, 0)
++	promoted, valid := continuationMoveCode(promotion)
++	queen, _ := continuationMoveCode(queenMove)
++	if !valid || promoted != queen {
++		t.Fatal("promotion context did not name the resulting queen")
++	}
++	under, _ := continuationMoveCode(NewMove(A7, A8, WhitePawn, NoPiece, Knight, 0))
++	if under == queen {
++		t.Fatal("underpromotion aliased queen before hashing")
++	}
++	seen := map[int]bool{}
++	for to := Square(0); to < 64; to++ {
++		info.MoveStack[0] = NewMove(E2, to, WhitePawn, NoPiece, NoType, 0)
++		key, valid := continuationCorrectionContext(info, 2, White)
++		if !valid || key < 0 || key >= corrHistSize {
++			t.Fatalf("invalid index %d", key)
++		}
++		seen[key] = true
++	}
++	if len(seen) < 60 {
++		t.Fatalf("destination keys collapse: %d/64 distinct", len(seen))
++	}
++}
++
++func TestContinuationLearningBoundsAndGates(t *testing.T) {
++	quiet := NewMove(E3, E4, WhitePawn, NoPiece, NoType, 0)
++	capture := NewMove(E3, D4, WhitePawn, BlackPawn, NoType, Capture)
++	promotion := NewMove(A7, A8, WhitePawn, NoPiece, Queen, 0)
++	for _, tc := range []struct {
++		name                                   string
++		static, score, beta, depth             int
++		move                                   Move
++		valid, check, singular, stopped, learn bool
++	}{
++		{"quiet-fail-high", 0, 200, 50, 8, quiet, true, false, false, false, true},
++		{"upper-below-static", 0, -200, 50, 8, EmptyMove, true, false, false, false, true},
++		{"bound-above-static-without-move", 0, 200, 50, 8, EmptyMove, true, false, false, false, false},
++		{"lower-below-static", 200, 100, 50, 8, quiet, true, false, false, false, false},
++		{"capture", 0, 200, 50, 8, capture, true, false, false, false, false},
++		{"promotion", 0, 200, 50, 8, promotion, true, false, false, false, false},
++		{"check", 0, 200, 50, 8, quiet, true, true, false, false, false},
++		{"singular", 0, 200, 50, 8, quiet, true, false, true, false, false},
++		{"stopped", 0, 200, 50, 8, quiet, true, false, false, true, false},
++		{"null", 0, 200, 50, 8, quiet, false, false, false, false, false},
++		{"zero-depth", 0, 200, 50, 0, quiet, true, false, false, false, false},
++		{"mate", 0, MATE_IN_MAX, 50, 8, quiet, true, false, false, false, false},
++		{"negative-mate", 0, -MATE_IN_MAX, 50, 8, quiet, true, false, false, false, false},
++	} {
++		t.Run(tc.name, func(t *testing.T) {
++			h := &workerHistory{}
++			h.maybeUpdateContinuationCorrection(White, 7, tc.valid, tc.static, tc.score, tc.beta, tc.depth, tc.move, tc.check, tc.singular, tc.stopped)
++			if (h.continuationCorrectionHistory[White][7] != 0) != tc.learn {
++				t.Fatalf("learned=%d want learning=%v", h.continuationCorrectionHistory[White][7], tc.learn)
++			}
++		})
++	}
++	h := &workerHistory{}
++	for _, sign := range []int{-1, 1} {
++		for n := 0; n < 200; n++ {
++			h.maybeUpdateContinuationCorrection(White, 9, true, 0, sign*200, 300, 8, quiet, false, false, false)
++			entry := int(h.continuationCorrectionHistory[White][9])
++			if abs(entry) > corrHistLimit {
++				t.Fatalf("entry outside clamp: %d", entry)
++			}
++		}
++		if value := h.continuationCorrectionValue(White, 9); value*sign <= 0 || abs(value) > 48 {
++			t.Fatalf("wrong signed applied correction: %d", value)
++		}
++	}
++	if h.continuationCorrectionHistory[Black][9] != 0 || (&workerHistory{}).continuationCorrectionHistory[White][9] != 0 {
++		t.Fatal("residual leaked across side or worker")
++	}
++	h.ClearHistoryTable()
++	if h.continuationCorrectionHistory != ([2][corrHistSize]int16{}) {
++		t.Fatal("new-game reset retained residuals")
++	}
++}
++
++func TestContinuationMainStaticAndStoppedParent(t *testing.T) {
++	for _, stop := range []bool{false, true} {
++		pos, info := newProbcutContractStateForFEN(t, "3k4/8/8/8/8/4P3/8/4K3 w - - 0 2", 1)
++		_, seed, idx := continuationFixture(t, White)
++		info.MoveStack = seed.MoveStack
++		info.history.continuationCorrectionHistory[White][idx] = corrHistLimit
++		before := snapshotPVPosition(pos)
++		old := info.history.continuationCorrectionHistory
++		if stop {
++			info.maxNodes = 1 // parent completes its static eval; first child stops
++		}
++		score := alphaBetaPV(pos, 1, 2, -INFINITY, INFINITY, true, false, false, info)
++		if info.StaticEvalStack[2] != 48 {
++			t.Fatalf("main static ignored temporal residual: got %d", info.StaticEvalStack[2])
++		}
++		if !reflect.DeepEqual(before, snapshotPVPosition(pos)) || info.FrameDepth != 0 || info.RepStackLen != 0 {
++			t.Fatal("main search did not restore root/frame/path")
++		}
++		if stop && (score != stoppedSearchScore || !info.Stopped || old != info.history.continuationCorrectionHistory) {
++			t.Fatal("stopped parent learned or failed to unwind")
++		}
++	}
++}
++
++func TestContinuationQsearchRecordsEvasionsAndCaptures(t *testing.T) {
++	for _, fen := range []string{
++		"4k3/p7/8/8/8/8/8/R3K3 w - - 0 1",   // capture a1a7
++		"4k3/p7/8/8/8/8/4r2P/4K3 w - - 0 1", // checked king captures e2; pawns prevent terminal material draw
++	} {
++		pos, info := newProbcutContractStateForFEN(t, fen, 1)
++		stale := NewMove(H2, H3, WhitePawn, NoPiece, NoType, 0)
++		info.MoveStack[0] = stale
++		before := snapshotPVPosition(pos)
++		seen := false
++		info.evaluator.staticOracle = func(observed *Position) int {
++			if info.evaluator.evaluationDepth() == 1 {
++				seen = true
++				move := info.MoveStack[0]
++				if move == stale || move.MovingPiece().Color() != White || observed.Board.pieces[move.MovingPiece()]&(uint64(1)<<move.Destination()) == 0 {
++					t.Fatal("qsearch child read stale continuation ancestry")
++				}
++			}
++			return 0
++		}
++		quiescence(pos, -INFINITY, INFINITY, 0, info)
++		if !seen || !reflect.DeepEqual(before, snapshotPVPosition(pos)) {
++			t.Fatal("qsearch fixture missed child or changed root")
++		}
++	}
++}
++
++func TestContinuationTerminalAndCheckPrecedence(t *testing.T) {
++	pos, info, idx := continuationFixture(t, White)
++	info.history.continuationCorrectionHistory[White][idx] = corrHistLimit
++	pos.HalfMoveClock = 100
++	if got := quiescence(pos, -INFINITY, INFINITY, 2, info); got != 0 {
++		t.Fatalf("temporal residual changed a terminal draw: %d", got)
++	}
++	pos, info, idx = continuationFixture(t, White)
++	info.history.continuationCorrectionHistory[White][idx] = corrHistLimit
++	info.control.RequestStop()
++	old := info.history.continuationCorrectionHistory
++	if got := quiescence(pos, -INFINITY, INFINITY, 2, info); got != stoppedSearchScore || old != info.history.continuationCorrectionHistory {
++		t.Fatal("stop failed to precede temporal evaluation")
++	}
++	const checked = "4k3/p7/8/8/8/8/4r2P/4K3 w - - 0 1"
++	poisoned, poisonedInfo := newProbcutContractStateForFEN(t, checked, 1)
++	_, seed, idx := continuationFixture(t, White)
++	poisonedInfo.MoveStack = seed.MoveStack
++	poisonedInfo.history.continuationCorrectionHistory[White][idx] = corrHistLimit
++	rootHash, sawChild := poisoned.Hash(), false
++	poisonedInfo.evaluator.staticOracle = func(observed *Position) int {
++		if observed.Hash() == rootHash {
++			t.Fatal("checked node evaluated a temporal stand-pat")
++		}
++		sawChild = true
++		return 0
++	}
++	quiescence(poisoned, -INFINITY, INFINITY, 2, poisonedInfo)
++	if !sawChild {
++		t.Fatal("checked fixture did not search evasions")
++	}
++}
++
++func TestContinuationLearnedByRealSearch(t *testing.T) {
++	searcher, err := NewSearchEngineWithHash(1)
++	if err != nil {
++		t.Fatal(err)
++	}
++	pos := n3cPosition(t, "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4")
++	before := snapshotPVPosition(pos)
++	info := searcher.Search(pos, 5)
++	nonzero := 0
++	for _, side := range searcher.worker.history.continuationCorrectionHistory {
++		for _, entry := range side {
++			if entry != 0 {
++				nonzero++
++			}
++		}
++	}
++	if info.Stopped || info.BestMove == EmptyMove || nonzero == 0 || !reflect.DeepEqual(before, snapshotPVPosition(pos)) {
++		t.Fatalf("real search failed to learn cleanly: stopped=%v move=%s slots=%d", info.Stopped, info.BestMove.ToString(), nonzero)
++	}
++}
+diff --git a/engine/moveorder.go b/engine/moveorder.go
+index e14bc29..e21bdc5 100644
+--- a/engine/moveorder.go
++++ b/engine/moveorder.go
+@@ -20,13 +20,14 @@ type workerHistory struct {
+ 	continuationHistory [13][64][13][64]int
+ 	followupHistory     [13][64][13][64]int
+ 
+-	pawnCorrectionHistory    [2][corrHistSize]int
+-	nonPawnCorrectionHistory [2][corrHistSize]int
+-	minorCorrectionHistory   [2][corrHistSize]int
+-	captureHistory           [13][64][13]int
+-	killerMoves              [MaximumDepth][2]Move
+-	counterMoves             [64][64]Move
+-	lastMovePlayed           Move
++	pawnCorrectionHistory         [2][corrHistSize]int
++	nonPawnCorrectionHistory      [2][corrHistSize]int
++	minorCorrectionHistory        [2][corrHistSize]int
++	continuationCorrectionHistory [2][corrHistSize]int16
++	captureHistory                [13][64][13]int
++	killerMoves                   [MaximumDepth][2]Move
++	counterMoves                  [64][64]Move
++	lastMovePlayed                Move
+ }
+ 
+ // pawnCorrectionIndex hashes both colors' pawn bitboards into a correction-table slot.
+@@ -344,6 +345,7 @@ func (h *workerHistory) ClearHistoryTable() {
+ 			h.minorCorrectionHistory[i][j] = 0
+ 		}
+ 	}
++	h.continuationCorrectionHistory = [2][corrHistSize]int16{}
+ 	for i := range h.captureHistory {
+ 		for j := range h.captureHistory[i] {
+ 			for k := range h.captureHistory[i][j] {
+diff --git a/engine/search.go b/engine/search.go
+index 522f981..1320207 100644
+--- a/engine/search.go
++++ b/engine/search.go
+@@ -1587,6 +1587,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 	var corrIdx int        // pawn-correction slot; valid only when !inCheck
+ 	var nonPawnCorrIdx int // non-pawn-correction slot; valid only when !inCheck
+ 	var minorCorrIdx int   // minor-piece-correction slot; valid only when !inCheck
++	continuationCorrIdx, continuationCorrValid := continuationCorrectionContext(info, ply, stm)
+ 	// T4: corrStaticEval is the CORRECTED static (raw + correction) captured BEFORE the S7 TT-refinement
+ 	// overwrites staticEval — the corrhist learning target. NGN's corrhist uses the gravity update
+ 	// (updatePawnCorrection, same form as gravityUpdate), which converges to the full correction only when
+@@ -1603,7 +1604,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 		nonPawnCorrIdx = nonPawnCorrectionIndex(pos.Board.WhiteOccupancy()&^pos.Board.pieces[WhitePawn], pos.Board.BlackOccupancy()&^pos.Board.pieces[BlackPawn])
+ 		minorCorrIdx = minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
+ 		staticEval = info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
+-		corrStaticEval = staticEval // T4: capture the corrected static (raw + pawn + non-pawn + minor) BEFORE S7 overwrites it (all tables' learn target)
++		if continuationCorrValid {
++			staticEval += info.history.continuationCorrectionValue(stm, continuationCorrIdx)
++		}
++		corrStaticEval = staticEval // All four residuals learn from the total corrected static before TT refinement.
+ 		// S7: a search-refined TT score is a sharper static estimate than a fresh
+ 		// eval for the margin heuristics below (RFP/futility/NMP/improving). Use it
+ 		// when the stored bound brackets it. Skip mate scores (would distort margins)
+@@ -2348,6 +2352,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 			info.history.maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+ 			info.history.maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+ 			info.history.maybeUpdateMinorCorrection(stm, minorCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
++			info.history.maybeUpdateContinuationCorrection(stm, continuationCorrIdx, continuationCorrValid, corrStaticEval, bestScore, beta, depth, bestMove, inCheck, inSingular, info.Stopped)
+ 
+ 			// Store in transposition table as Lower Bound (Cut-Node). Skip at the
+ 			// singular verification root: its result is a move-excluded search and
+@@ -2393,6 +2398,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 	info.history.maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+ 	info.history.maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+ 	info.history.maybeUpdateMinorCorrection(stm, minorCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
++	info.history.maybeUpdateContinuationCorrection(stm, continuationCorrIdx, continuationCorrValid, corrStaticEval, bestScore, beta, depth, bestMove, inCheck, inSingular, info.Stopped)
+ 
+ 	// Store in transposition table
+ 	var nodeType NodeType
+@@ -2551,6 +2557,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
+ 			}
+ 			info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
+ 			legalMoves++
++			info.MoveStack[ply] = move
+ 
+ 			score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
+ 			info.evaluator.mustPop()
+@@ -2614,7 +2621,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
+ 	// route through (evaluateLazyStandPat) is pinned dead — qsearchLazyMargin=100000
+ 	// means lazyFailHigh never fires — so this is value-identical; re-route through a
+ 	// cache-aware lazy path if that margin is ever unpinned (SHELVED 2026-06-02).
+-	standPat := info.history.correctedStandPat(pos, info.evaluator)
++	standPat := info.history.continuationStandPat(pos, info, ply)
+ 	if standPat >= beta {
+ 		info.QStandPatCuts++
+ 		return beta
+@@ -2683,6 +2690,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
+ 		}
+ 		info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
+ 
++		info.MoveStack[ply] = move
+ 		score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
+ 		info.evaluator.mustPop()
+ 		pos.UnMakeMove(move, tag, ep, hc)

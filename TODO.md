@@ -21,6 +21,10 @@ Session23 queues current-base time-admission checks/four120+1 bank trajectories
 675346 after affine, then isolated qsearch TT stand-pat checks675352; both32GiB
 admission, no strength games/adoption. Original topics/patches remain pending
 box verification and actual-base powered gates. [Session23](experiments/2026-10-09-session23.md).
+Session24 queues original continuation correction on its own39eb128 topic;
+675472 follows qsearch then32GiB, full checks12,14 and fixed12 cost blocks14.
+No tests/games/adoption yet; future actual-base10+0.1 A/A40/SPRT[0,+6],
+H1/lower95>0/zero faults. [Manifest](experiments/2026-10-09-continuation-correction.md).
 [Affine manifest](experiments/2026-10-09-ngnn4-row-affine.md).
 [Session21](experiments/2026-10-09-session21.md).
 

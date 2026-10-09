@@ -1,0 +1,21 @@
+{
+  "directory": "/home/ehrli/ngn-data/night-20261007/session24-continuation",
+  "pid": 675472,
+  "launched_utc": "2026-10-09T15:25:47.121041+00:00",
+  "command": [
+    "setsid",
+    "nohup",
+    "bash",
+    "/home/ehrli/ngn-data/night-20261007/session24-continuation/controller.sh"
+  ],
+  "stdin": "/dev/null",
+  "stdout_stderr": "/home/ehrli/ngn-data/night-20261007/session24-continuation/controller.log",
+  "detached": true,
+  "files_sha256": {
+    "base.tar": "48eebb8c80b8ba437831991f4e5ec1e95b9146a2192f36a16d58675125e3f6b6",
+    "candidate.patch": "acee7bd99e2ccc3a7fe1873b2529e1d9b91e452db3aac2bfcf2a8bc62dce59b1",
+    "controller.sh": "e128f9468035239684600f2967e6451449c244ba9dd541b6f65b59ce8e6f7623",
+    "resource.py": "fca4bea3c1b1a12e0a34f32f88b80bc18f66cb67e5ba63a8d65270c4d303e390",
+    "manifest.md": "568d6a638fcf9d6b2d4d2aed34bc5c0a78fb383b97615b9acf07ce1f97ff9e66"
+  }
+}
