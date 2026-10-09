@@ -36,6 +36,7 @@ if not done.exists():
 assert done.is_file(),'dependency did not write a completion marker'
 PY
 }
+date -Is > "$MODE-controller.started"
 st wait "pid $$; native completion wait; 12h bound; no live jobs interrupted"
 if [[ $MODE == cpu ]]; then
   wait_for "$R/session16a/controller.done" "$R/session16a/controller.pid"
