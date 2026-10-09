@@ -1,0 +1,6 @@
+{
+  "utc": "2026-10-09T14:15:32.649205+00:00",
+  "reason": "incomplete campaign-created T74 scatter killed by own disk guard; discard partial buckets only",
+  "files": 256,
+  "bytes": 13153337344
+}

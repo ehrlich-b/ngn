@@ -1,0 +1,53 @@
+{
+  "games": 324,
+  "pairs": 162,
+  "wins": 41,
+  "draws": 189,
+  "losses": 94,
+  "score": 0.4182098765432099,
+  "penta": [
+    6,
+    62,
+    74,
+    19,
+    1
+  ],
+  "exact_elo_ci95": [
+    -57.34882373255484,
+    -78.25274584166434,
+    -36.848900746733214
+  ],
+  "flag_outs": {
+    "ngn": 0,
+    "opponent": 0
+  },
+  "failures": {},
+  "termination_reasons_all_recorded_games": {
+    "draw-rule": 185,
+    "checkmate": 135,
+    "max-moves": 4
+  },
+  "excluded_pairs": 0,
+  "excluded_recorded_games": 0,
+  "replay_pass": true,
+  "minimum160_met": true,
+  "controller_exit": 0,
+  "input_checks": {
+    "before": true,
+    "after": true
+  },
+  "summary_reconciled": true,
+  "raw_pairs_sha256": "eb53c03ea30990f1a4f4161068679c3e66d7f3dc3cce72b62e23262ebf656e9d",
+  "opponent_label": 3532,
+  "implied_performance_ci95": [
+    3474.651176267445,
+    3453.7472541583356,
+    3495.1510992532667
+  ],
+  "ci_method": "pair score moments; variance floor .001; normal 1.96 interval transformed to logistic Elo",
+  "limitation": "one opponent at one time control; not a rating or campaign claim; label uncertainty not included",
+  "observed_ngn_recovered_panics": 0,
+  "ngn_crash_log_present": true,
+  "crash_evidence": "NGN recovered panics counted from its crash log; no-move/startup failures recorded; opponent exit status/stderr unavailable",
+  "conclusion": "Rodent beats NGN in this match with negative upper95"
+}
