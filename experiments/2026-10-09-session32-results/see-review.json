@@ -1,0 +1,90 @@
+{
+  "reviewed_at": "2026-10-09T18:41:00.193927-04:00",
+  "verdict": "provisional-provenance-keep",
+  "rule": "Bryan upper95>0 and zero faults; combined batch SPRT [0,+6] still required",
+  "source_matches_tested": true,
+  "base_source": "39eb128",
+  "candidate_topic": "night/see-provenance-gate",
+  "source_sha256": {
+    "engine/independent_piece_test.go": "f57d60bed1fd7f9a2529d146c2ed71a3be996a5de585c5747766845d0ddc1598",
+    "engine/piece.go": "27af08e4671928e2904e534dce386914aaf7d143d322437a2f7af2b5ed11ac3c",
+    "engine/see_test.go": "aa5c2ef8cb950ada50fc8474ccc6674a2ddb6d2d019d57193d6876a97b0e4781"
+  },
+  "aa": {
+    "games": 40,
+    "pairs": 20,
+    "wdl": [
+      7,
+      20,
+      13
+    ],
+    "penta": [
+      2,
+      6,
+      8,
+      4,
+      0
+    ],
+    "exact_elo_ci95": [
+      -52.51156585572756,
+      -125.86914495491585,
+      16.418534588360913
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 18,
+      "checkmate": 20,
+      "max-moves": 2
+    }
+  },
+  "gate": {
+    "games": 400,
+    "pairs": 200,
+    "wdl": [
+      89,
+      205,
+      106
+    ],
+    "penta": [
+      7,
+      56,
+      89,
+      43,
+      5
+    ],
+    "exact_elo_ci95": [
+      -14.7749124020539,
+      -35.427510560677646,
+      5.773738859113918
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 191,
+      "checkmate": 195,
+      "max-moves": 11,
+      "stalemate": 3
+    }
+  },
+  "operational_failures": 0,
+  "input_checks_pass": true,
+  "files_sha256": {
+    "aa-summary.json": "8543ac5c8714c1edb7481d1c938e061fa41c4058be58b51603a6a982735133a2",
+    "candidate.patch": "f2ab4c1931b1ba1cdf796b47b2386ba6ebdc94c872e6540371bf318a63d39148",
+    "controller.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "controller.done": "ae8cd4ffea42b2348fffe26c95a8ec46f95a855c08cc4a78fcdff1ecc1c3abb8",
+    "ngn_crashes.log": "9548f3330e5f8aebcbcb3a8226d6b040c829a9c5fff930e79dfa262d9dba87e7",
+    "game-manifest.json": "956625b0ed6be924abb0df18e027fa3e833bc411196a5982d22339113cfefe56",
+    "input-check-before.txt": "a2e56831e03f6e1d44a1c4d638ac837a161aedab867140de0d34ab17a8d9c856",
+    "source-receipt.json": "9c78d0eeec88ee79f64616a3cc07895fedef7531a0afa3fba0ccdc29a2cfb7dd",
+    "input-check-after.txt": "a2e56831e03f6e1d44a1c4d638ac837a161aedab867140de0d34ab17a8d9c856",
+    "gate-summary.json": "84666081a109cd9e7374e157c407acd6c9026b07e92ed0ba6aded4631f53812d",
+    "aa.log": "39bab1a59978c7c0aa5a4883cdcdf729de016fac4518c04e1f7fb17a7ea0eb63",
+    "gate.log": "5e3a92d78f69973ae85e293235e73543cfa4fd28e888065db4479b3459c37ab6"
+  }
+}

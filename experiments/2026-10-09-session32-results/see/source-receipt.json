@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "completed_utc": "2026-10-09T19:41:15.118521+00:00",
+  "base_source": "39eb128",
+  "cpus": [
+    12,
+    14
+  ],
+  "source_sha256": {
+    "engine/independent_piece_test.go": "f57d60bed1fd7f9a2529d146c2ed71a3be996a5de585c5747766845d0ddc1598",
+    "engine/piece.go": "27af08e4671928e2904e534dce386914aaf7d143d322437a2f7af2b5ed11ac3c",
+    "engine/see_test.go": "aa5c2ef8cb950ada50fc8474ccc6674a2ddb6d2d019d57193d6876a97b0e4781"
+  },
+  "binaries": {
+    "baseline": "6519fed5887d083fda5d87365e87da51ad2a2cb6c885b75c83ad7915cb33880f",
+    "candidate": "5efd90d1769a9aa0fe3f2d7c6b024a10c0fb1063c517a192f2643d8ea1da88f9"
+  },
+  "games_launched": false
+}

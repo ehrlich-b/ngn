@@ -1,44 +1,40 @@
 # NGN live state — 2026-10-09: 3600 campaign
 
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns plan, handles and handoff.
-Accepted playing source **39eb128 /NGNN3 KB8 H512 be34532c**, unchanged58-epoch recipe.
-Own TTb49ab5a remains a **provisional provenance keep**,400g−3.47[−25.45,+18.47],
-zero failures under Bryan's upper95>0 rule; combined batch SPRT[0,+6] required.
-Own board representation and combined TT/board full checks/perft/identities pass.
+Accepted playing source **f8686be /NGNN3 KB8 H512 be34532c**, unchanged58-epoch recipe.
+Own TTb49ab5a and SEEf8686be are **provisional provenance keeps** by Bryan's
+upper95>0/zero-fault rule; combined batch SPRT[0,+6] vs5b882e2 required.
+SEE400 independently reconciles89/205/106,−14.77[−35.43,+5.77], zero faults,
+exact source/pins; integrated tested source, no Elo gain claimed. Board neutral
+checks/perft/identities remain proved.
 
-**Session31:** key-order A/A40 failed its fixed paired-CI requirement:
-10/26/4,+52.5[+3,+104], zero flags/recovered crashes; candidate games0,
-no adoption/retry. Dependent data controller terminal before conversion.
-Fresh SEE-only A/A40 passes; gate400 **12263**,13,15 since16:44 in
-`session30-see-gate/`, upper95>0/zero-fault provenance rule, no automatic adoption.
-SPSA **1405**,0–11, durable1350/16,200 at18:08, old base;24k endpoint plus
-converged-vector games required. Host C: **32.27GiB**; hopper1211 untouched.
+**Session32:** original key A/A failure remains preserved with zero candidate
+games/no retry. New immediate SEE base admits separately frozen existing-key
+experiment **22682**,13,15 since18:41; full checks then A/A40/gate400, same
+provenance rule, no automatic adoption. `session32-key/` owns receipts.
+SPSA **1405**,0–11,durable1350/16,200 at18:08, old base;24k endpoint and
+converged-vector games required. C: **28.63GiB**, hopper1211 untouched.
 
-NGNN4 row-affine verified48 identities/full short/race/vet and fixed20 blocks:
-NPS1.15150[1.13250,1.17083], retained/pushed topic **aafa7fd**. Same-width
-budget0.81555[0.80717,0.82403] defers training. Eight-row48 identities/full
-checks pass but fixed20-block0.95774[0.93228,0.98390] fails: shelved/restored,
-no extension or budget run. New original runtime-selected VNNI/fallback
-passes narrow exact controls; **20321** runs full checks12,14 then fixed48
-identities/20 speed blocks14 in `session31-vnni/`; only speed keep permits12
-budget blocks. No accepted hidden layer/trained net.
-TT scan full checks/two traces/36 identities pass, speed0.99952 fails;
-shelved and local runtime topic restored. No sample extension.
+NGNN4 four-row speed keepaafa7fd, same-width budget0.81555; eight-row and
+TT scan remain shelved. VNNI256 **20321** runs its fixed48 identities/20
+speed blocks and conditional12 cost blocks14, `session31-vnni/`. New original
+VNNI512 **22605** waits natively on20321, then all-width integer/purego/320
+parity/full short/race/vet/build12,14, `session32-vnni512/`. Prepared fixed
+speed stage needs reviewed actual retained architecture baseline before
+launch. No accepted hidden layer or trained NGNN4 net; no sample extension.
 
-Pawn/time/qsearch/continuation full checks and named old-fail/new-pass witnesses
-reviewed; exact formatted source retained on isolated topics, no strength games.
-Four120+1 bank trajectories reconcile (tail27.67% base/24.14% candidate),
-diagnostic only. Continuation's0.921 NPS cost is also diagnostic. Actual-base
-A/A40/powered SPRT[0,+6] remains required; time60+0.6, others10+0.1.
+Pawn/time/qsearch/continuation exact source/full checks/witnesses retained;
+no strength games. Rebase and actual-base A/A40/powered SPRT[0,+6] after
+higher priorities; time60+0.6, others10+0.1. Reviewed bank/NPS diagnostics
+remain diagnostics.
 
-**Data:** T76 complete55.63GB/1.738B rows, T74 stats/keep194 complete but corpus
-incomplete. Unchanged T74 continuation needs70GiB host capacity and a new
-stage-correct launch after CPU release; no live data waiter/trainer. Factorizer
-58 full epochs/selected57/reexport/20 parity cases reviewed, zero games; future actual-base A/A40/gate400,
-no retraining. Scout/H1024/longerH512/affine16/deferred accumulators/quiet unroll
-remain shelved. No3600 claim or publication.
-**Next session: not before18:35 EDT October9**, SEE terminal review then VNNI.
-[Session31 evidence/handoff](experiments/2026-10-09-session31.md).
+**Data:** T76 complete55.63GB/1.738B rows; T74 stats/keep194 complete but
+corpus incomplete. Conversion needs70GiB host capacity (~41.4GiB more),
+no live waiter/trainer. Factorizer58 epochs/selected57/reexport/20 parity
+cases reviewed, zero games; future actual-base A/A40/gate400 after provenance
+freezes, no retraining. Prior net/search negatives stay shelved. No3600 claim
+or publication. **Next session: not before19:00 EDT October9**, VNNI256
+review then VNNI512 checks/keyA/A. [Session32](experiments/2026-10-09-session32.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
