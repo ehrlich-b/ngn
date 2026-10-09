@@ -21,7 +21,7 @@ supplied3532 label. One opponent/TC, not an absolute rating. No more Rodent game
 **Factorizer58 epochs/parity complete**, but original controller failed capacity
 before any A/A/gate games. Retain trained net; future actual-base manifest/games,
 no retraining or strength verdict. **SPSA673954/673958 runs old base on0–11**,
-last975/11,700; endpoint24k plus converged-vector games required, no transfer
+last1000/12,000; endpoint24k plus converged-vector games required, no transfer
 of old-base evidence to new provenance source.
 
 **Data:** T76 mapped55.63GB/1.738B rows; T74 stats/keep194 complete, sampled corpus

@@ -103,3 +103,11 @@ runs the unchanged queued CUDA cost windows on12,14 directly after full training
 Data dispatcher655799 is held by666748 until TT's13,15 game window ends, then
 continues its existing sparse-CUDA/download dependency and corpus/coverage chain.
 No actual trainer is queued. C:111.5GiB free at01:22; guard656725 remains active.
+
+Session21: T76 is complete55.63GB/1.738B mapped rows; T74 scatter ended143
+on the32GiB space guard, and coverage failed its dependency. Removed only
+13.15GB of incomplete campaign T74 buckets. HostC:10.96GiB did not recover
+through WSL trim. Continuation675046 waits natively for provenance675044,
+then70GiB free before the same194-per-mille T74 sample/score mapping and
+distinct-coverage scan. No trainer follows automatically.
+[Continuation and disk receipt](2026-10-09-session21.md).

@@ -71,3 +71,9 @@ source equals the reviewed receipt. A/A40 passes6/31/3, no failures. Detached
 standard gate664657/664659 starts400 paired games01:23:36 in session19-tt-gate.
 [Code review](2026-10-09-session19-results/tt-review.json). No automatic source
 adoption; game verdict and factorizer's frozen immediate-base review remain.
+
+Session21 integrates the exact tested TT as b49ab5a (topic eba3544), under
+Bryan's updated provenance-only upper95>0 rule.400g −3.47[−25.45,+18.47],
+zero failures; provisional, later combined batch SPRT[0,+6] vs pre-replacement
+5b882e2/be34532c. Original manifest/parser lower95 verdict is preserved.
+[Decision](2026-10-09-session21.md).

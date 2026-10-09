@@ -23,3 +23,10 @@ Write the exact manifest before **10+0.1 A/A40 then400 paired games** by the
 standard rule required by plan0b(c): penta lower95>0, complete200 pairs, zero
 flags/crashes/illegal/no-move results, intact pins; otherwise shelve without
 extension. Preserve the old-base tune and require its own converged-vector games.
+
+Session21 retains the initial stale-arithmetic failures, corrects all crafted
+SEE expectations without changing FEN/move semantics, and rebases the table
+onto39eb128 on night/see-provenance-gate. Corrected full checks are675045,
+held for disk recovery. Future provenance games use Bryan's updated upper95>0
+rule, provisional with later combined certification; the standard lower95
+rule still applies to Elo candidates. [Current record](2026-10-09-session21.md).
