@@ -1,0 +1,182 @@
+diff --git a/engine/cache.go b/engine/cache.go
+index 6e96d15..1f3e145 100644
+--- a/engine/cache.go
++++ b/engine/cache.go
+@@ -104,16 +104,17 @@ func (c *Cache) generation() uint16 {
+ // by two plies; an exact bound and PV add half/quarter ply respectively.
+ // The capped modular distance makes wraparound deterministic.
+ func ttRetention(data uint64, current uint16) int {
+-	_, _, depth, bound, age, pv := Unpack(data)
++	depth := int(data >> 16 & 127)
++	age := uint16(data >> 23 & 255)
+ 	distance := int((current - age) & 255)
+ 	if distance > 31 {
+ 		distance = 31
+ 	}
+-	value := 4*int(depth) - 8*distance
+-	if bound == Exact {
++	value := 4*depth - 8*distance
++	if NodeType(data>>59&3) == Exact {
+ 		value += 2
+ 	}
+-	if pv {
++	if data&(1<<31) != 0 {
+ 		value++
+ 	}
+ 	return value
+@@ -128,10 +129,12 @@ func (c *Cache) Set(hash uint64, move Move, score int16, depth int8, bound NodeT
+ 		defer lock.Unlock()
+ 	}
+ 	incoming := Pack(move, score, depth, bound, current, pv)
+-	victim := first
++	// Bound the cluster once so each slot access uses the same four-record span.
++	cluster := c.items[first : first+ttWays]
++	victim := 0
+ 	weakest := int(^uint(0) >> 1)
+-	for i := first; i < first+ttWays; i++ {
+-		old := c.items[i]
++	for i := range cluster {
++		old := cluster[i]
+ 		if old.payload&ttOccupied == 0 {
+ 			victim = i
+ 			weakest = -1 << 30
+@@ -143,10 +146,10 @@ func (c *Cache) Set(hash uint64, move Move, score int16, depth int8, bound NodeT
+ 				if move == EmptyMove {
+ 					incoming |= old.payload & (ttMoveMask << 32)
+ 				}
+-				c.items[i] = ttRecord{hash, incoming}
++				cluster[i] = ttRecord{hash, incoming}
+ 			} else {
+ 				// A rejected shallow update still proves the entry is current.
+-				c.items[i].payload = (old.payload &^ (uint64(255) << 23)) | uint64(current)<<23
++				cluster[i].payload = (old.payload &^ (uint64(255) << 23)) | uint64(current)<<23
+ 			}
+ 			return
+ 		}
+@@ -156,7 +159,7 @@ func (c *Cache) Set(hash uint64, move Move, score int16, depth int8, bound NodeT
+ 		}
+ 	}
+ 	if ttRetention(incoming, current) >= weakest {
+-		c.items[victim] = ttRecord{hash, incoming}
++		cluster[victim] = ttRecord{hash, incoming}
+ 	}
+ }
+ 
+@@ -167,9 +170,11 @@ func (c *Cache) Get(hash uint64) (Move, int16, int8, NodeType, bool, bool) {
+ 		lock.Lock()
+ 		defer lock.Unlock()
+ 	}
+-	for i := first; i < first+ttWays; i++ {
+-		record := c.items[i]
+-		if record.payload&ttOccupied != 0 && record.hash == hash {
++	cluster := c.items[first : first+ttWays]
++	for i := range cluster {
++		record := &cluster[i]
++		// Misses need only the key. Zero still needs the occupied bit checked.
++		if record.hash == hash && record.payload&ttOccupied != 0 {
+ 			move, score, depth, bound, _, pv := Unpack(record.payload)
+ 			return move, score, depth, bound, true, pv
+ 		}
+diff --git a/engine/tt_scan_test.go b/engine/tt_scan_test.go
+new file mode 100644
+index 0000000..3f9cb7f
+--- /dev/null
++++ b/engine/tt_scan_test.go
+@@ -0,0 +1,97 @@
++package engine
++
++import (
++	"bytes"
++	"encoding/binary"
++	"os"
++	"testing"
++)
++
++// Exercise every retention field, modular age wrap and the distance cap against
++// the public decoder. Score/move/occupied/reserved bits must have no influence.
++func TestTTScanRetentionFields(t *testing.T) {
++	state := uint64(0x642071f3a891bcde)
++	for i := 0; i < 100000; i++ {
++		state ^= state << 13
++		state ^= state >> 7
++		state ^= state << 17
++		data, current := state, uint16(state>>37)
++		_, _, depth, bound, age, pv := Unpack(data)
++		distance := min(int((current-age)&255), 31)
++		want := 4*int(depth) - 8*distance
++		if bound == Exact {
++			want += 2
++		}
++		if pv {
++			want++
++		}
++		if got := ttRetention(data, current); got != want {
++			t.Fatalf("data %x generation %d: retention %d, want %d", data, current, got, want)
++		}
++	}
++}
++
++// This identical fixture runs on the pristine base and candidate on the box.
++// Dense colliding keys, zero keys, empty moves, repeated keys, generation wraps
++// and clears exercise the replacement path, including empty-slot tie order.
++func TestTTScanCollisionDump(t *testing.T) {
++	path := os.Getenv("NGN_TT_SCAN_DUMP")
++	if path == "" {
++		t.Skip("paired baseline/candidate trace only")
++	}
++	var out bytes.Buffer
++	put := func(value any) {
++		if err := binary.Write(&out, binary.LittleEndian, value); err != nil {
++			t.Fatal(err)
++		}
++	}
++	state := uint64(0x67c8be3490521adf)
++	next := func() uint64 {
++		state ^= state << 13
++		state ^= state >> 7
++		state ^= state << 17
++		return state
++	}
++	for _, mode := range []TTMode{TTDirect, TTSynchronized} {
++		c := newCacheWithMode(1, mode)
++		for i := 0; i < 20000; i++ {
++			v := next()
++			bucket, key := v&7, v>>8&15
++			hash := key*uint64(c.mask+1) | bucket
++			if i%7 == 0 {
++				c.AdvanceAge()
++			}
++			if i%7001 == 7000 {
++				c.Clear()
++			}
++			move := Move(next())
++			if i%5 == 0 {
++				move = EmptyMove
++			}
++			score, depth := int16(next()), int8(next())
++			bound, pv := NodeType(1+next()%3), next()&1 != 0
++			c.Set(hash, move, score, depth, bound, pv)
++			for key := uint64(0); key < 16; key++ {
++				m, score, depth, bound, hit, pv := c.Get(key*uint64(c.mask+1) | bucket)
++				put(uint32(m))
++				put(score)
++				put(depth)
++				put(uint8(bound))
++				put(hit)
++				put(pv)
++			}
++			first := c.index(hash)
++			for _, slot := range c.items[first : first+ttWays] {
++				put(slot.hash)
++				put(slot.payload)
++			}
++			if i%97 == 0 {
++				put(c.age)
++				put(int32(c.Consumed()))
++			}
++		}
++	}
++	if err := os.WriteFile(path, out.Bytes(), 0600); err != nil {
++		t.Fatal(err)
++	}
++}

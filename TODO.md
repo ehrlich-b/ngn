@@ -25,6 +25,11 @@ Session24 queues original continuation correction on its own39eb128 topic;
 675472 follows qsearch then32GiB, full checks12,14 and fixed12 cost blocks14.
 No tests/games/adoption yet; future actual-base10+0.1 A/A40/SPRT[0,+6],
 H1/lower95>0/zero faults. [Manifest](experiments/2026-10-09-continuation-correction.md).
+Session25 queues a pure-speed own-TT scan on a separate39eb128 topic;
+675562 follows continuation, then32GiB. Exact TT/collision traces, full
+checks12,14,36 identities and20 fixed speed blocks14; lower NPS95>1 and
+both order strata>1 required. No heavy stage/verdict/adoption.
+[Manifest](experiments/2026-10-09-tt-scan.md).
 [Affine manifest](experiments/2026-10-09-ngnn4-row-affine.md).
 [Session21](experiments/2026-10-09-session21.md).
 
@@ -34,7 +39,7 @@ supplied3532 label. One opponent/TC, not an absolute rating. No more Rodent game
 **Factorizer58 epochs/parity complete**, but original controller failed capacity
 before any A/A/gate games. Retain trained net; future actual-base manifest/games,
 no retraining or strength verdict. **SPSA673954/673958 runs old base on0–11**,
-last1025/12,300 at11:00 EDT; endpoint24k plus converged-vector games required, no transfer
+last1050/12,600 at11:30 EDT; endpoint24k plus converged-vector games required, no transfer
 of old-base evidence to new provenance source.
 
 **Data:** T76 mapped55.63GB/1.738B rows; T74 stats/keep194 complete, sampled corpus
