@@ -15,3 +15,9 @@ func ngnn4Linear(dst []int32, input []uint8, weights []int8)
 //
 //go:noescape
 func ngnn4PackInput(dst []uint8, us, them []int32)
+
+// Fused signed division by 64, bias, clipping, square and wide-weight dot.
+// All slices have the validated L (16..64, a multiple of 16).
+//
+//go:noescape
+func ngnn4Output(affine []int32, bias, weights []int16) int64

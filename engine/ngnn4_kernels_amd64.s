@@ -2,6 +2,55 @@
 
 #include "textflag.h"
 
+// Signed division toward zero: (x + ((x >> 31) & 63)) >> 6.
+// Adding the correction cannot overflow int32 because it is zero for x>=0.
+// Bias is sign-extended before the [0,255] clamp. Each squared weighted
+// product fits int32 (255^2*32768); widen before adding any two products.
+TEXT ·ngnn4Output(SB), NOSPLIT, $0-80
+	MOVQ affine_base+0(FP), SI
+	MOVQ bias_base+24(FP), DI
+	MOVQ weights_base+48(FP), R8
+	MOVQ affine_len+8(FP), CX
+	VPXOR Y5, Y5, Y5
+	VPXOR Y6, Y6, Y6
+	MOVL $255, AX
+	MOVD AX, X7
+	VPBROADCASTD X7, Y7
+	MOVL $63, AX
+	MOVD AX, X4
+	VPBROADCASTD X4, Y4
+Layer2Output_loop:
+	VMOVDQU (SI), Y0
+	VPSRAD $31, Y0, Y1
+	VPAND Y4, Y1, Y1
+	VPADDD Y1, Y0, Y0
+	VPSRAD $6, Y0, Y0
+	VPMOVSXWD (DI), Y1
+	VPADDD Y1, Y0, Y0
+	VPMAXSD Y5, Y0, Y0
+	VPMINSD Y7, Y0, Y0
+	VPMULLD Y0, Y0, Y0
+	VPMOVSXWD (R8), Y1
+	VPMULLD Y1, Y0, Y0
+	VPMOVSXDQ X0, Y2
+	VEXTRACTI128 $1, Y0, X1
+	VPMOVSXDQ X1, Y3
+	VPADDQ Y2, Y6, Y6
+	VPADDQ Y3, Y6, Y6
+	ADDQ $32, SI
+	ADDQ $16, DI
+	ADDQ $16, R8
+	SUBQ $8, CX
+	JNZ Layer2Output_loop
+	VEXTRACTI128 $1, Y6, X0
+	VPADDQ X0, X6, X6
+	VPSHUFD $0x4e, X6, X0
+	VPADDQ X0, X6, X6
+	MOVQ X6, AX
+	MOVQ AX, ret+72(FP)
+	VZEROUPPER
+	RET
+
 // Original NGN affine kernel, derived from unsigned activations and the
 // [-64,64] weight bound. Four inputs times eight outputs per register.
 TEXT ·ngnn4Linear(SB), NOSPLIT, $0-72

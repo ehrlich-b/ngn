@@ -44,16 +44,25 @@ func (n *NGNN1Network) evaluateLayer2(acc []int32, turn Color, bucket int) int {
 	ngnn4PackInput(input[:2*n.hidden], us, them)
 	start := bucket * n.hidden2
 	ngnn4Linear(hidden[:n.hidden2], input[:2*n.hidden], n.packed2[start*2*n.hidden:(start+n.hidden2)*2*n.hidden])
-	for j := 0; j < n.hidden2; j++ {
-		hidden[j] = hidden[j]/ngnn1QB + int32(n.bias2[start+j])
-	}
-	sum := ngnn1Dot(hidden[:n.hidden2], n.output[start:start+n.hidden2])
+	sum := ngnn4Output(hidden[:n.hidden2], n.bias2[start:start+n.hidden2], n.output[start:start+n.hidden2])
 	bias := n.outputBias
 	if bucket > 0 {
 		bias = n.otherBiases[bucket-1]
 	}
 	cp := (sum/ngnn1QA + int64(bias)) * ngnn1Scale / (ngnn1QA * ngnn1QB)
 	return int(min(ngnn1ScoreLimit, max(-ngnn1ScoreLimit, cp)))
+}
+
+// Divide each affine sum toward zero before bias and clamp. Widen each
+// squared, weighted product before summing: unrestricted int16 output weights
+// can exceed int32 in aggregate even for L=16.
+func ngnn4OutputGo(affine []int32, bias, weights []int16) int64 {
+	var total int64
+	for j, x := range affine {
+		a := int64(min(max(x/ngnn1QB+int32(bias[j]), 0), ngnn1QA))
+		total += a * a * int64(weights[j])
+	}
+	return total
 }
 
 func ngnn4PackInputGo(dst []uint8, us, them []int32) {

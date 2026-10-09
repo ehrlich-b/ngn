@@ -128,6 +128,68 @@ func TestNGNN4LinearDifferential(t *testing.T) {
 	}
 }
 
+func TestNGNN4OutputDifferential(t *testing.T) {
+	rng := rand.New(rand.NewSource(17008))
+	values := []int32{-2147483648, -66846720, -16385, -129, -128, -127, -65, -64, -63, -1, 0, 1, 63, 64, 65, 16319, 16320, 16383, 66846720, 2147483647}
+	biases := []int16{-32768, -255, -2, -1, 0, 1, 2, 254, 255, 256, 32767}
+	weights := []int16{-32768, -32767, -129, -64, -1, 0, 1, 64, 129, 32767}
+	for _, l := range []int{16, 32, 48, 64} {
+		for trial := 0; trial < 200; trial++ {
+			a, b, w := make([]int32, l+7), make([]int16, l+9), make([]int16, l+11)
+			for i := range a {
+				a[i] = 0x12345678
+			}
+			for i := range b {
+				b[i] = 12345
+			}
+			for i := range w {
+				w[i] = -12345
+			}
+			affine, bias, output := a[3:3+l], b[5:5+l], w[7:7+l]
+			for j := range affine {
+				affine[j] = values[(j+trial)%len(values)]
+				bias[j] = biases[(j+trial/3)%len(biases)]
+				output[j] = weights[(j+trial/7)%len(weights)]
+				if trial%5 == 0 {
+					affine[j] = int32(rng.Uint32())
+					bias[j] = int16(rng.Uint32())
+					output[j] = int16(rng.Uint32())
+				}
+				if trial == 1 || trial == 2 {
+					affine[j], bias[j], output[j] = 16320, 0, 32767
+					if trial == 2 {
+						output[j] = -32768
+					}
+				}
+				if trial == 3 {
+					// Arithmetic shift alone maps -65/64 to -2 instead of -1.
+					affine[j], bias[j], output[j] = -65, 2, 32767
+				}
+			}
+			beforeA, beforeB, beforeW := append([]int32(nil), a...), append([]int16(nil), b...), append([]int16(nil), w...)
+			var want int64
+			for j, x := range affine {
+				v := int64(x)/64 + int64(bias[j])
+				if v < 0 {
+					v = 0
+				} else if v > 255 {
+					v = 255
+				}
+				want += v * v * int64(output[j])
+			}
+			if got := ngnn4Output(affine, bias, output); got != want {
+				t.Fatalf("backend %s L=%d trial=%d got=%d want=%d", ngnn1KernelBackend, l, trial, got, want)
+			}
+			if got := ngnn4OutputGo(affine, bias, output); got != want {
+				t.Fatalf("Go L=%d trial=%d got=%d want=%d", l, trial, got, want)
+			}
+			if !reflect.DeepEqual(a, beforeA) || !reflect.DeepEqual(b, beforeB) || !reflect.DeepEqual(w, beforeW) {
+				t.Fatal("output kernel changed source or guards")
+			}
+		}
+	}
+}
+
 func BenchmarkNGNN4Output(b *testing.B) {
 	for _, h := range []int{256, 512} {
 		for _, l := range []int{16, 32} {
