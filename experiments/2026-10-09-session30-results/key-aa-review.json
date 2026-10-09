@@ -1,0 +1,27 @@
+{
+  "games": 40,
+  "pairs": 20,
+  "wdl": [
+    10,
+    26,
+    4
+  ],
+  "penta": [
+    0,
+    2,
+    10,
+    8,
+    0
+  ],
+  "exact_elo_ci95": [
+    52.51156585572756,
+    3.3651417182329815,
+    103.85191384229087
+  ],
+  "flags": [
+    0,
+    0
+  ],
+  "decision": "failed A/A: paired95 interval excludes0; candidate games0; no strength verdict or retry",
+  "aa_log_sha256": "1406fec727d368465bfa535ade5148aed1a9015b89414ef0722aed6b239efa6e"
+}

@@ -1,0 +1,184 @@
+{
+  "passed": true,
+  "completed_utc": "2026-10-09T19:46:29.987364+00:00",
+  "base_source": "39eb128",
+  "cpus": [
+    12,
+    14
+  ],
+  "source_sha256": {
+    "engine/moveorder.go": "6625fcc5863a1774b4ddf3fd4e65374c6abc637cade79a624627c9fef5bb25d8",
+    "engine/pawn_quiet_history.go": "c9c95d9176863d41f32f71b55fac72b6d0ee072492d9e68b18d3f7a3658608df",
+    "engine/pawn_quiet_history_test.go": "506a18edf8e6b39af95da7178565cdbdda147c89ea6d0f8d60962f21f25c45ed",
+    "engine/pawn_quiet_ordering_test.go": "19c1f3804720b040c1010cf3fd7c17e10c2c8d1ac58076e5195e6169cbada96a",
+    "engine/search.go": "9229fe93567bdcb7b809c776cd7a9e3ef61ceaede340592bd00553feae6f75b8"
+  },
+  "binaries": {
+    "baseline": "6593bcf511807dd136b9a29f5f8b6286a4ad153c1a4c488f95112e75bb092c8e",
+    "candidate": "dca4a5ef811fa81734ae99aa9f28c1d8c066e09d8baca7f2f4d715bcf0e8a92e"
+  },
+  "games_launched": false,
+  "resource": {
+    "blocks": [
+      {
+        "block": 0,
+        "order": [
+          "baseline",
+          "candidate"
+        ],
+        "nps": {
+          "baseline": 1530770.8698424248,
+          "candidate": 1514278.435743451
+        },
+        "ratio": 0.9892260596122583
+      },
+      {
+        "block": 1,
+        "order": [
+          "candidate",
+          "baseline"
+        ],
+        "nps": {
+          "candidate": 1554650.2396842914,
+          "baseline": 1515678.811260852
+        },
+        "ratio": 1.0257121945189827
+      },
+      {
+        "block": 2,
+        "order": [
+          "baseline",
+          "candidate"
+        ],
+        "nps": {
+          "baseline": 1554870.521446812,
+          "candidate": 1624898.949341826
+        },
+        "ratio": 1.045038108915881
+      },
+      {
+        "block": 3,
+        "order": [
+          "candidate",
+          "baseline"
+        ],
+        "nps": {
+          "candidate": 1732653.2010849523,
+          "baseline": 1627340.895666615
+        },
+        "ratio": 1.0647143482344539
+      },
+      {
+        "block": 4,
+        "order": [
+          "baseline",
+          "candidate"
+        ],
+        "nps": {
+          "baseline": 1522108.8298708668,
+          "candidate": 1543521.5280671592
+        },
+        "ratio": 1.0140677839692376
+      },
+      {
+        "block": 5,
+        "order": [
+          "candidate",
+          "baseline"
+        ],
+        "nps": {
+          "candidate": 1561848.8499671298,
+          "baseline": 1515865.1376383041
+        },
+        "ratio": 1.0303349626474474
+      },
+      {
+        "block": 6,
+        "order": [
+          "baseline",
+          "candidate"
+        ],
+        "nps": {
+          "baseline": 1471653.5206620889,
+          "candidate": 1529353.8642045085
+        },
+        "ratio": 1.0392078316888478
+      },
+      {
+        "block": 7,
+        "order": [
+          "candidate",
+          "baseline"
+        ],
+        "nps": {
+          "candidate": 1506042.6793442522,
+          "baseline": 1590095.367535178
+        },
+        "ratio": 0.9471398446237745
+      },
+      {
+        "block": 8,
+        "order": [
+          "baseline",
+          "candidate"
+        ],
+        "nps": {
+          "baseline": 1653558.772954774,
+          "candidate": 1589722.749846936
+        },
+        "ratio": 0.9613947661541123
+      },
+      {
+        "block": 9,
+        "order": [
+          "candidate",
+          "baseline"
+        ],
+        "nps": {
+          "candidate": 1734333.8699262952,
+          "baseline": 1820058.0665583783
+        },
+        "ratio": 0.9529002957613422
+      },
+      {
+        "block": 10,
+        "order": [
+          "baseline",
+          "candidate"
+        ],
+        "nps": {
+          "baseline": 1477307.1953595001,
+          "candidate": 1498935.8012477974
+        },
+        "ratio": 1.0146405608503342
+      },
+      {
+        "block": 11,
+        "order": [
+          "candidate",
+          "baseline"
+        ],
+        "nps": {
+          "candidate": 1568204.352518832,
+          "baseline": 1548413.7568303132
+        },
+        "ratio": 1.01278120631596
+      }
+    ],
+    "sample_blocks": 12,
+    "seconds_per_position": 1,
+    "geometric_ratio": 1.0074390387414502,
+    "ci95": [
+      0.9835128025021542,
+      1.0319473363216074
+    ],
+    "t_df": 11,
+    "order_strata": [
+      1.0101871529318476,
+      1.004698400523779
+    ],
+    "worker_table_bytes": 851968,
+    "diagnostic_only": true,
+    "limitation": "changed search paths and concurrent workload; no pure-speed or Elo verdict"
+  }
+}

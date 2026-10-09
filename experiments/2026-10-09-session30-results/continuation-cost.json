@@ -1,0 +1,162 @@
+{
+  "blocks": [
+    {
+      "block": 0,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1533006.5394874462,
+        "candidate": 1468130.7519565509
+      },
+      "ratio": 0.9576806844199202
+    },
+    {
+      "block": 1,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1416990.6800130787,
+        "baseline": 1527728.6940763015
+      },
+      "ratio": 0.927514607474086
+    },
+    {
+      "block": 2,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1498415.5096119458,
+        "candidate": 1434272.3451043249
+      },
+      "ratio": 0.9571926717948664
+    },
+    {
+      "block": 3,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1442760.1092829178,
+        "baseline": 1696886.7769784452
+      },
+      "ratio": 0.8502394672742768
+    },
+    {
+      "block": 4,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1740327.66616961,
+        "candidate": 1511085.5477865057
+      },
+      "ratio": 0.868276461473685
+    },
+    {
+      "block": 5,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1447509.18871665,
+        "baseline": 1541199.0325932691
+      },
+      "ratio": 0.9392097698640689
+    },
+    {
+      "block": 6,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1536677.2735577892,
+        "candidate": 1427888.1516067092
+      },
+      "ratio": 0.9292049646187542
+    },
+    {
+      "block": 7,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1456992.0056723426,
+        "baseline": 1514090.7136347925
+      },
+      "ratio": 0.9622884497948103
+    },
+    {
+      "block": 8,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1577231.1073764563,
+        "candidate": 1629197.5562658543
+      },
+      "ratio": 1.0329478975188604
+    },
+    {
+      "block": 9,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1670997.3032838672,
+        "baseline": 1782128.1086352933
+      },
+      "ratio": 0.9376415170082654
+    },
+    {
+      "block": 10,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1860499.1690582484,
+        "candidate": 1466897.1668524318
+      },
+      "ratio": 0.7884427960239021
+    },
+    {
+      "block": 11,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1444765.4417736747,
+        "baseline": 1560610.5369092175
+      },
+      "ratio": 0.9257693752568316
+    }
+  ],
+  "sample_blocks": 12,
+  "geometric_ratio": 0.9210339699846103,
+  "ci95": [
+    0.8813084274622816,
+    0.9625501668108329
+  ],
+  "t_df": 11,
+  "order_strata": [
+    0.9189806661400374,
+    0.9230918615825859
+  ],
+  "added_worker_table_bytes": 65536,
+  "diagnostic_only": true,
+  "limitation": "changed search paths and concurrent workload; no speed or Elo verdict"
+}

@@ -1,47 +1,42 @@
 # NGN live state — 2026-10-09: 3600 campaign
 
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns plan, handles and handoff.
-Accepted source **39eb128 /NGNN3 KB8 H512 be34532c**, unchanged58-epoch recipe.
-Own TTb49ab5a is a **provisional provenance keep**,400g −3.47[−25.45,+18.47],
-zero failures, under Bryan's explicit upper95>0 rule; combined batch SPRT[0,+6]
-remains required. Tested neutral board representation8a565d1 is integrated39eb128;
-combined TT/board full short/race/vet,6 perfts,12+3 exact identities pass session29.
+Accepted playing source **39eb128 /NGNN3 KB8 H512 be34532c**, unchanged58-epoch recipe.
+Own TTb49ab5a remains a **provisional provenance keep**,400g−3.47[−25.45,+18.47],
+zero failures under Bryan's upper95>0 rule; combined batch SPRT[0,+6] required.
+Own board representation and combined TT/board full checks/perft/identities pass.
 
-**WSL recovery applied session29:** approved compaction recovered C:34.84GiB.
-SPSA **1405** resumes legacy old-base checkpoint1225/14,700 on0–11.
-Eight wait-only controllers relaunched15:38:40 in original dependency order:
-provenance **1408**13,15; SEE/pawn **1410**12,14; data **1412** after provenance
-and70GiB; affine **1414**, time **1416**, qsearch **1418**, continuation **1424**,
-TT speed **1430** follow the existing12,14 lane. Board/SEE full checks pass; keys/pawn checks run.
-No completed stage repeated; old shutdown exit0 markers are preserved separately
-and do not establish success. All nine jobs alive at15:42:59; C:34.25GiB,
-GPU0%, hopper **1211** independently restarted and untouched. No new playing verdict.
-**Next session: not before16:30 EDT October9** for short-check/affine receipts.
-T74 remains capacity-blocked at70GiB; no trainer queued. Current plan/order and
-all original fixed verdict rules remain unchanged. [Recovery/handoff](experiments/2026-10-09-session29.md).
-Source candidates stay isolated pending their exact tests/gates; no3600 claim.
+**Session30:** key-order A/A40 failed its fixed paired-CI requirement:
+10/26/4,+52.5[+3,+104], zero flags/recovered crashes; candidate games0,
+no adoption/retry. Dependent data controller terminal before conversion.
+Fresh SEE-only A/A40 passes; gate400 **12263**,13,15 since16:44 in
+`session30-see-gate/`, upper95>0/zero-fault provenance rule, no automatic adoption.
+SPSA **1405**,0–11, durable1325/15,900 at17:39, old base;24k endpoint plus
+converged-vector games required. Host C: **32.72GiB**; hopper1211 untouched.
 
-**Rodent V1.2 completed324 games**,41/189/94, zero flags/observed NGN panics,
-legal replay pass;120+1 implied performance3474.65[3453.75,3495.15] against
-supplied3532 label. One opponent/TC, not an absolute rating. No more Rodent games.
-**Factorizer58 epochs/parity complete**, but original controller failed capacity
-before any A/A/gate games. Retain trained net; future actual-base manifest/games,
-no retraining or strength verdict. **SPSA1405 resumes old base on0–11**,
-last durable1225/14,700 at15:01 EDT; endpoint24k plus converged-vector games required, no transfer
-of old-base evidence to new provenance source.
+NGNN4 row-affine verified48 identities/full short/race/vet and fixed20 blocks:
+NPS1.15150[1.13250,1.17083], retained/pushed topic **aafa7fd**. Same-width
+budget0.81555[0.80717,0.82403] defers training. New original eight-row affine
+sharing **17872** reports full checks passed; identity/timing runs14 in
+`session30-eight-row/`; fixed identity/speed
+rule and12-block budget only on speed keep. No accepted hidden layer/trained net.
+TT scan full checks/two traces/36 identities pass, speed0.99952 fails;
+shelved and local runtime topic restored. No sample extension.
 
-**Data:** T76 mapped55.63GB/1.738B rows; T74 stats/keep194 complete, sampled corpus
-incomplete; original dispatcher exit143 and coverage dependency failure preserved.
-New continuation uses same converter/seeds/score map, then reviews distinct
-expansion before unchanged58-epoch KB8/H512 data-only nomination. No trainer queued.
-CUDA batched/sparse tests and fixed cost windows pass, remain isolated from recipe.
+Pawn/time/qsearch/continuation full checks and named old-fail/new-pass witnesses
+reviewed; exact formatted source retained on isolated topics, no strength games.
+Four120+1 bank trajectories reconcile (tail27.67% base/24.14% candidate),
+diagnostic only. Continuation's0.921 NPS cost is also diagnostic. Actual-base
+A/A40/powered SPRT[0,+6] remains required; time60+0.6, others10+0.1.
 
-SEE stale value fixtures corrected; SEE/pawn rebased on39eb128, code checks queued,
-no games/adoption. Key-order/SEE provenance gates use upper95>0/zero faults,
-provisional, later batch certification. Pawn/time retain powered [0,+6] rules;
-time uses60+0.6 only after actual-base replay. Scout,H1024,longerH512,affine16,
-deferred accumulators,quiet unroll shelved; NGNN4 training deferred at0.8451 NPS.
-No3600 claim or publication. Exact launch PIDs/results live in the campaign log.
+**Data:** T76 complete55.63GB/1.738B rows, T74 stats/keep194 complete but corpus
+incomplete. Unchanged T74 continuation needs70GiB host capacity and a new
+stage-correct launch after CPU release; no live data waiter/trainer. Factorizer
+58 epochs/parity complete, zero games; future actual-base A/A40/gate400,
+no retraining. Scout/H1024/longerH512/affine16/deferred accumulators/quiet unroll
+remain shelved. No3600 claim or publication.
+**Next session: not before18:15 EDT October9**, new eight-row receipt then SEE.
+[Session30 evidence/handoff](experiments/2026-10-09-session30.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
