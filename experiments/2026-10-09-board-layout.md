@@ -53,3 +53,9 @@ complete new key order, or retain key assignment while choosing another neutral
 design. The requested neutral rule cannot admit this measured variant. Until
 then, keep both topics separate and make no claim that all inherited design
 fingerprints are removed. No publication or disclosure is sent.
+
+Session21 integrates the tested representation as39eb128 after accepted
+provisional TTb49ab5a. Combined compatibility checks are queued, followed by
+a separately authorized own-key A/A40/gate400 using Bryan's upper95>0
+provenance rule. The prior Needs Bryan key-gate question is resolved by the
+updated plan; no key adoption yet. [Current manifest](2026-10-09-session21.md).
