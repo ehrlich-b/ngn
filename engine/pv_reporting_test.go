@@ -300,7 +300,9 @@ func TestExtractPVFromTTBoundMissIllegalAndMaxLength(t *testing.T) {
 				if test.illegal {
 					ttMove = moves[0]
 				}
-				defaultSearchEngine.TTStore(pos.Hash(), ttMove, 0, 1, test.nodeType, true)
+				// Use a deeper entry so this tests PV bound handling rather than
+				// the TT's preference between equally deep exact/non-exact records.
+				defaultSearchEngine.TTStore(pos.Hash(), ttMove, 0, 2, test.nodeType, true)
 				pos.UnMakeMove(moves[0], tag, ep, hc)
 			}
 			got := ExtractPVFromTT(pos, moves[0], test.max)

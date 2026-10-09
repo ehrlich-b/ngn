@@ -81,8 +81,8 @@ func TestPrivateCacheCompatibilityDump(t *testing.T) {
 			}
 		}
 		for _, value := range c.items {
-			put(value.LoadKey())
-			put(value.LoadData())
+			put(value.hash)
+			put(value.payload)
 		}
 		c.Clear()
 		put(c.age)
@@ -120,7 +120,7 @@ func TestIndependentCacheSynchronizedCoherence(t *testing.T) {
 				score, depth, pv := int16(hash>>8), int8(hash%100), hash&1 != 0
 				c.Set(hash, move, score, depth, Exact, pv)
 				gotMove, gotScore, gotDepth, gotBound, hit, gotPV := c.Get(hash)
-				if hit && (gotMove != move&Move(MOVE_MASK) || gotScore != score || gotDepth != depth || gotBound != Exact || gotPV != pv) {
+				if hit && (gotMove != move&Move(ttMoveMask) || gotScore != score || gotDepth != depth || gotBound != Exact || gotPV != pv) {
 					t.Errorf("incoherent cache record for %x", hash)
 					return
 				}
