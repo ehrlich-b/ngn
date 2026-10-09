@@ -1,50 +1,41 @@
 # NGN live state — 2026-10-09: 3600 campaign
 
-[Campaign log](experiments/2026-10-08-3600-campaign.md) owns the current plan,
-box handles and handoff. Accepted runtime **5b882e2 /NGNN3 KB8 H512 be34532c**,
-58-epoch recipe, unchanged. No3600 claim or publication. V2 orientation
-3434.6[3388.3,3480.9] supplies no new claim eligibility.
+[Campaign log](experiments/2026-10-08-3600-campaign.md) owns plan, handles and handoff.
+Accepted source **39eb128 /NGNN3 KB8 H512 be34532c**, unchanged58-epoch recipe.
+Own TTb49ab5a is a **provisional provenance keep**,400g −3.47[−25.45,+18.47],
+zero failures, under Bryan's explicit upper95>0 rule; combined batch SPRT[0,+6]
+remains required. Tested neutral board representation8a565d1 is integrated39eb128;
+combined TT/board compatibility checks are queued before any new-key games.
 
-**Rodent V1.2 head-to-head QUEUED**,667005 /session19-rodent3,120+1,
-concurrency6/CPU0–11, deadline07:45EDT, >=160 complete paired games.
-Waits SPSA's durable850; pauses/restores the old-base tune. Factorizer's
-**controller630389 is intentionally held**, trainer630440 continues12,14/GPU,
-54/58 at01:44, ETA~02:06; parity/A/A/gate wait for Rodent's end.
-SPSA666877/666880 remains unchanged,825/9900 durable; >=20k plus converged-vector
-paired games required. [Match record](experiments/2026-10-09-rodent-head-to-head.md).
+**HostC: blocked at10.96GiB**, below25GiB. Campaign partial T74 buckets13.15GB
+were removed; WSL trim did not reclaim host VHD space. Bryan has been asked to
+free space. Detached session21 controllers wait silently:>=32GiB releases
+combined board checks/new-key A/A40/gate400 on13,15 and corrected SEE/pawn checks
+on12,14;>=70GiB releases unchanged T74 continuation/coverage after provenance.
+No new heavy job starts below the floor; hopper1168 stays untouched.
+[Session21](experiments/2026-10-09-session21.md).
 
-**Scout-depth SHELVED**,400 games86/238/76, penta+8.69[−9.77,+27.20], zero failures.
-**Own TT gate RUNNING**,664657/session19-tt-gate, full code checks pass,
-A/A40 pass,400 paired10+0.1 games on13,15 start01:23:36; lower95>0/no failures
-required. No automatic promotion or old-net evidence transfer if factorizer wins.
-**Board refactor8a565d1 kept/pushed on topic**, full checks,12+3 exact identities,
-6 perfts. Complete new key draw order passes hash/perft but changes12/12 searches;
-neutral admission fails, separate behavior-gate decision needs Bryan. No main merge.
+**Rodent V1.2 completed324 games**,41/189/94, zero flags/observed NGN panics,
+legal replay pass;120+1 implied performance3474.65[3453.75,3495.15] against
+supplied3532 label. One opponent/TC, not an absolute rating. No more Rodent games.
+**Factorizer58 epochs/parity complete**, but original controller failed capacity
+before any A/A/gate games. Retain trained net; future actual-base manifest/games,
+no retraining or strength verdict. **SPSA673954/673958 runs old base on0–11**,
+last975/11,700; endpoint24k plus converged-vector games required, no transfer
+of old-base evidence to new provenance source.
 
-**Data expansion preparing**, T76/T74 downloads complete, T80 statistics and
-byte-identical consume-gather pass. Dispatcher655799 is held until TT ends by
-resumer666748, then follows CUDA/corpus/coverage; no trainer queued.
-**GPU cost admission666724** follows trainer, runs original batched/sparse fixed
-windows on newly free12,14; original unstarted641099/651274 waiters are stopped/
-superseded. Own space guard656725 active, C:109.0GiB free at01:44.
-[Data recipe](experiments/2026-10-09-data-volume.md).
+**Data:** T76 mapped55.63GB/1.738B rows; T74 stats/keep194 complete, sampled corpus
+incomplete; original dispatcher exit143 and coverage dependency failure preserved.
+New continuation uses same converter/seeds/score map, then reviews distinct
+expansion before unchanged58-epoch KB8/H512 data-only nomination. No trainer queued.
+CUDA batched/sparse tests and fixed cost windows pass, remain isolated from recipe.
 
-**Time-admission candidate tested**, full suites/builds pass; future60+0.6
-A/A40 +poweredSPRT[0,+6]/cap4000, H1/lower95>0/zero failures required.
-Accepted actual120+1 trajectories:453 searches,22.59% aggregate discarded tail,
-23.20% at moves15–40, legal/no flags; mechanism only.
-**Own SEE values candidate prepared**,100/300/340/500/950; CPU tests667047 follow
-CUDA windows on12,14; no games/source adoption.
-**NGNN4 real training DEFERRED**, H512 full-search ratio0.8451[0.8194,0.8717]
-fails the declared0.85 training budget threshold. Fused14a203a remains on topic.
-
-H1024, longer H512, affine16, deferred accumulators and quiet unroll remain shelved.
-Claim/stronger-anchor tools are reusable, no claim queued in this window.
-**Pawn-context quiet ordering prepared**, CPU/resource checks667498 follow SEE
-on12,14; no games/adoption. Terminal Rodent recount/replay667300 is queued,
-statistical/legal/fault fixtures pass. [New candidate](experiments/2026-10-09-pawn-quiet-history.md).
-Hopper1168 untouched. Next session **not before02:25EDT** for Rodent stage and
-CUDA/SEE/pawn checks; then TT verdict/data nomination. No repeated pinned-input audits.
+SEE stale value fixtures corrected; SEE/pawn rebased on39eb128, code checks queued,
+no games/adoption. Key-order/SEE provenance gates use upper95>0/zero faults,
+provisional, later batch certification. Pawn/time retain powered [0,+6] rules;
+time uses60+0.6 only after actual-base replay. Scout,H1024,longerH512,affine16,
+deferred accumulators,quiet unroll shelved; NGNN4 training deferred at0.8451 NPS.
+No3600 claim or publication. Exact launch PIDs/results live in the campaign log.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
