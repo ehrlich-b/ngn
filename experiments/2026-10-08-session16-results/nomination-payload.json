@@ -1,0 +1,15 @@
+{
+  "reviewed": true,
+  "review_record": "experiments/2026-10-08-factorizer-activation.md",
+  "longer_verdict": "shelved",
+  "base": "kb8h512",
+  "base_net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "evidence_sha256": {
+    "aa": "c1bd7ee501d13753c8b1e814268cb06146c88a41e793294eac4f0c3d744ce2a5",
+    "gate": "f19554647fc9dede64588dd00a6fa1d67ae10073f06920d7357fe97425c60cde",
+    "parity": "be8427c8f75f177ba9e91f64243380987b4a6c7c57c5d5e7f6446fb976a86fac",
+    "post_gate": "a63f580288a08d610746f58bc56848d50ce0f05ee15488fddd10250212bc8b31",
+    "admission": "0699624328f419c64e2d23460193d00d3ee02fd54d4ecf221bb9da334710ebf0",
+    "cuda": "1d9113bb274a7bf36c0abd7df589573590a929976177f52d5f248cc454208f79"
+  }
+}

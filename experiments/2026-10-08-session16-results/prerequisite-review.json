@@ -1,0 +1,94 @@
+{
+  "aa": {
+    "mode": "aa",
+    "games": 40,
+    "pairs": 20,
+    "wins": 9,
+    "draws": 22,
+    "losses": 9,
+    "penta": [
+      0,
+      6,
+      8,
+      6,
+      0
+    ],
+    "elo": -0.0,
+    "ci95": [
+      -60.0,
+      60.0
+    ],
+    "exact_elo_ci95": [
+      0.0,
+      -59.55044068468087,
+      59.55044068468089
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "checkmate": 18,
+      "draw-rule": 21,
+      "stalemate": 1
+    },
+    "verdict": "aa-pass"
+  },
+  "gate": {
+    "mode": "gate",
+    "games": 400,
+    "pairs": 200,
+    "wins": 87,
+    "draws": 205,
+    "losses": 108,
+    "penta": [
+      8,
+      49,
+      104,
+      34,
+      5
+    ],
+    "elo": -18.3,
+    "ci95": [
+      -38.0,
+      1.0
+    ],
+    "exact_elo_ci95": [
+      -18.257154347038384,
+      -38.00957828947442,
+      1.377933046486211
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 200,
+      "checkmate": 195,
+      "max-moves": 5
+    },
+    "verdict": "shelved"
+  },
+  "full_epochs": 116,
+  "best_epoch": 113,
+  "parity": {
+    "network_sha256": "61dbd7ef0ec57585093f2cedb9dc68c9b5073528230a74f1d7b125679c8562f1",
+    "checkpoint_sha256": "1222215d36af9e8350e120346ee0b5b53dca6cc0c55450f39c330aebb49a8447",
+    "parity_cases": 20,
+    "reexport_identical": true,
+    "best_epoch": 113
+  },
+  "post_gate_pins": 14,
+  "admission_games": 12,
+  "admission": true,
+  "factorizer_cuda": true,
+  "ngnn4_cuda": true,
+  "evidence_sha256": {
+    "aa": "c1bd7ee501d13753c8b1e814268cb06146c88a41e793294eac4f0c3d744ce2a5",
+    "gate": "f19554647fc9dede64588dd00a6fa1d67ae10073f06920d7357fe97425c60cde",
+    "parity": "be8427c8f75f177ba9e91f64243380987b4a6c7c57c5d5e7f6446fb976a86fac",
+    "post_gate": "a63f580288a08d610746f58bc56848d50ce0f05ee15488fddd10250212bc8b31",
+    "admission": "0699624328f419c64e2d23460193d00d3ee02fd54d4ecf221bb9da334710ebf0",
+    "cuda": "1d9113bb274a7bf36c0abd7df589573590a929976177f52d5f248cc454208f79"
+  }
+}
