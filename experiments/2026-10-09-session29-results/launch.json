@@ -1,0 +1,17 @@
+{
+  "utc": "2026-10-09T19:38:40.357432+00:00",
+  "stage": "session29-recovery",
+  "event": "relaunched",
+  "detail": "WSL compaction interrupted wait-only controllers; same manifests/scripts/inputs, no completed work repeated; SPSA legacy resume from iter1225; data waits for70GiB",
+  "pids": {
+    "spsa/kb8/spsa.pid": 1405,
+    "session21/controller.pid": 1408,
+    "session21/checks.pid": 1410,
+    "session21/data.pid": 1412,
+    "session22-row/controller.pid": 1414,
+    "session23-time/controller.pid": 1416,
+    "session23-qstatic/controller.pid": 1418,
+    "session24-continuation/controller.pid": 1424,
+    "session25-tt-scan/controller.pid": 1430
+  }
+}

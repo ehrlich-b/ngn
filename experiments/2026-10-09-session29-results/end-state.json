@@ -1,0 +1,210 @@
+{
+  "utc": "2026-10-09T19:42:59.984970+00:00",
+  "host_c_free_bytes": 36772884480,
+  "gpu_csv": "0 %, 1507 MiB",
+  "jobs": {
+    "spsa/kb8/spsa.pid": {
+      "pid": 1405,
+      "alive": true,
+      "args": "/home/ehrli/ngn-data/night-20261007/spsa/spsa -engine /home/ehrli/ngn-data/night-20261007/kb8bin/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/net1-gates-20261006/openings.txt -out /home/ehrli/ngn-data/night-20261007/spsa/kb8/spsa.jsonl -lowpower=false -seed 20261008 -resume"
+    },
+    "session21/controller.pid": {
+      "pid": 1408,
+      "alive": true,
+      "args": "bash controller.sh"
+    },
+    "session21/checks.pid": {
+      "pid": 1410,
+      "alive": true,
+      "args": "bash checks.sh"
+    },
+    "session21/data.pid": {
+      "pid": 1412,
+      "alive": true,
+      "args": "bash data.sh"
+    },
+    "session22-row/controller.pid": {
+      "pid": 1414,
+      "alive": true,
+      "args": "bash controller.sh"
+    },
+    "session23-time/controller.pid": {
+      "pid": 1416,
+      "alive": true,
+      "args": "bash controller.sh"
+    },
+    "session23-qstatic/controller.pid": {
+      "pid": 1418,
+      "alive": true,
+      "args": "bash controller.sh"
+    },
+    "session24-continuation/controller.pid": {
+      "pid": 1424,
+      "alive": true,
+      "args": "bash controller.sh"
+    },
+    "session25-tt-scan/controller.pid": {
+      "pid": 1430,
+      "alive": true,
+      "args": "bash controller.sh"
+    }
+  },
+  "completion_exits": {},
+  "receipts": {
+    "session21/board/receipt.json": {
+      "passed": true,
+      "completed_utc": "2026-10-09T19:41:36.861679+00:00",
+      "base": "b49ab5a",
+      "candidate": "39eb128",
+      "fixed_depth_identities": 12,
+      "nodecheck_identities": 3,
+      "perft_positions": 6,
+      "binaries": {
+        "baseline": "ea5f072387170a19dd83bd2f3bcf81aded7099759d2871f8af3e5f53b43b48b8",
+        "candidate": "11927188ba6e1c833579a3959fb0370ffd984f73af5519e2630367404f16b1f2"
+      }
+    },
+    "session21/see/receipt.json": {
+      "passed": true,
+      "completed_utc": "2026-10-09T19:41:15.118521+00:00",
+      "base_source": "39eb128",
+      "cpus": [
+        12,
+        14
+      ],
+      "source_sha256": {
+        "engine/independent_piece_test.go": "f57d60bed1fd7f9a2529d146c2ed71a3be996a5de585c5747766845d0ddc1598",
+        "engine/piece.go": "27af08e4671928e2904e534dce386914aaf7d143d322437a2f7af2b5ed11ac3c",
+        "engine/see_test.go": "aa5c2ef8cb950ada50fc8474ccc6674a2ddb6d2d019d57193d6876a97b0e4781"
+      },
+      "binaries": {
+        "baseline": "6519fed5887d083fda5d87365e87da51ad2a2cb6c885b75c83ad7915cb33880f",
+        "candidate": "5efd90d1769a9aa0fe3f2d7c6b024a10c0fb1063c517a192f2643d8ea1da88f9"
+      },
+      "games_launched": false
+    }
+  },
+  "latest_spsa": {
+    "iter": 1225,
+    "time": "2026-10-09T15:01:31-04:00",
+    "plus_pct": 49,
+    "theta": {
+      "AspInit": 15.128344894865295,
+      "AspMult": 159.7057963437236,
+      "DeltaMargin": 176.6028082647256,
+      "ExtensionBudget": 28.887712681346503,
+      "FutilityMargin": 106.42457854123982,
+      "FutilityMaxDepth": 7.711165195511956,
+      "LMPBase": 3.48099114398699,
+      "LMRFullDepth": 3.4028200773306287,
+      "LMRMoveThreshold": 2.0286312448656694,
+      "NullMoveMinDepth": 2.183252564891417,
+      "NullMoveR": 4.070950186913206,
+      "ReverseFutilityMargin": 64.02916690272303,
+      "SingularDepth": 6.397708734049796,
+      "SingularMargin": 59.19938553790867
+    },
+    "rounded": {
+      "AspInit": 15,
+      "AspMult": 160,
+      "DeltaMargin": 177,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 106,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 3,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 64,
+      "SingularDepth": 6,
+      "SingularMargin": 59
+    }
+  },
+  "status_tail": [
+    {
+      "utc": "2026-10-09T19:38:40.357369+00:00",
+      "stage": "session21-checks",
+      "event": "capacity-wait",
+      "detail": "C: recovery to32GiB; silent five-minute checks; full candidate checks on12,14"
+    },
+    {
+      "utc": "2026-10-09T19:38:40.357432+00:00",
+      "stage": "session29-recovery",
+      "event": "relaunched",
+      "detail": "WSL compaction interrupted wait-only controllers; same manifests/scripts/inputs, no completed work repeated; SPSA legacy resume from iter1225; data waits for70GiB",
+      "pids": {
+        "spsa/kb8/spsa.pid": 1405,
+        "session21/controller.pid": 1408,
+        "session21/checks.pid": 1410,
+        "session21/data.pid": 1412,
+        "session22-row/controller.pid": 1414,
+        "session23-time/controller.pid": 1416,
+        "session23-qstatic/controller.pid": 1418,
+        "session24-continuation/controller.pid": 1424,
+        "session25-tt-scan/controller.pid": 1430
+      }
+    },
+    {
+      "utc": "2026-10-09T19:38:40.358755+00:00",
+      "stage": "time-current",
+      "event": "wait",
+      "detail": "native row-affine completion; then C:>=32GiB; tests12,14 and trajectory14"
+    },
+    {
+      "utc": "2026-10-09T19:38:40.358812+00:00",
+      "stage": "qsearch-tt-static",
+      "event": "wait",
+      "detail": "native time-current completion; then C:>=32GiB; CPU12,14 tests"
+    },
+    {
+      "utc": "2026-10-09T19:38:40.358812+00:00",
+      "stage": "session21-data",
+      "event": "wait",
+      "detail": "native provenance-controller completion; then C:70GiB capacity; unchanged194-per-mille T74 sample"
+    },
+    {
+      "utc": "2026-10-09T19:38:40.359763+00:00",
+      "stage": "tt-scan-speed",
+      "event": "wait",
+      "detail": "native continuation-controller completion; then C:>=32GiB; tests12,14 / exact identity and fixed20 speed blocks14"
+    },
+    {
+      "utc": "2026-10-09T19:38:40.381822+00:00",
+      "stage": "session21-provenance",
+      "event": "board-start",
+      "detail": "TT-only base b49ab5a vs board39eb128; full short/race/vet and exact search identities on13,15"
+    },
+    {
+      "utc": "2026-10-09T19:38:40.386720+00:00",
+      "stage": "session21-checks",
+      "event": "see-start",
+      "detail": "immediate39eb128/be34532c; full short/race/vet/PGO, no games"
+    },
+    {
+      "utc": "2026-10-09T19:41:15.141666+00:00",
+      "stage": "session21-checks",
+      "event": "see-pass",
+      "detail": "full checks/builds terminal; actual-base review needed before any games"
+    },
+    {
+      "utc": "2026-10-09T19:41:15.157629+00:00",
+      "stage": "session21-checks",
+      "event": "pawn-start",
+      "detail": "immediate39eb128/be34532c; full short/race/vet/PGO, no games"
+    },
+    {
+      "utc": "2026-10-09T19:41:36.881222+00:00",
+      "stage": "session21-provenance",
+      "event": "board-pass",
+      "detail": "12+3 exact identities and full checks; neutral representation adopted over accepted TT"
+    },
+    {
+      "utc": "2026-10-09T19:41:36.959419+00:00",
+      "stage": "session21-provenance",
+      "event": "key-tests",
+      "detail": "only own key seed/draw order changes; full checks on13,15"
+    }
+  ],
+  "hopper": "1211 /usr/bin/python3 /home/ehrli/hopper/hopper.py run"
+}
