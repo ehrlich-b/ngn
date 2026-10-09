@@ -1,97 +1,51 @@
 # NGN live state — 2026-10-08: 3600 campaign
 
-The current session contract and ranked queue are in
-[the 3600 campaign log](experiments/2026-10-08-3600-campaign.md); that campaign supersedes
-the older queues below. Target: pooled lower 95% bound >3600, bracketed scores, stronger top
-anchor, no direct third-party code or nets. No publication is authorized.
+The session contract and ranked queue are in
+[the campaign log](experiments/2026-10-08-3600-campaign.md), superseding the older queue.
+Target: pooled lower95 >3600, bracketed scores, stronger top anchor, no direct
+third-party code/nets. No publication authorized.
 
-Accepted working net: NGNN3 KB8 H512 `be34532c`, +35.7 [+15,+56] over 400 paired games versus
-0.3.0's `c6c12796`. KB8 H1024 was neutral and is rejected. The embedded release default remains
-`c6c12796`; campaign gates explicitly load the accepted net. The repaired v2 screen is complete:
-3434.6 [3388.3, 3480.9] at 10+0.1, bracketed and clean; its >3000 flag is orientation only.
-PGO is merged after 12 identities and +4.0% [2.9%, 5.1%] NPS on the accepted net. The 116-epoch
-H512 candidate is training, with parity/A/A40/gate400 queued by its existing controller.
-[Manifest and controller](experiments/2026-10-08-campaign-session1.md).
-NGNN3 refresh-cache row pairing now passes 36 exact identities, required tests and 40 fixed
-timing blocks: **+1.81% [1.26%, 2.37%] NPS**. The loop-unroll trial was inconclusive and restored.
-[Speed verdicts](experiments/2026-10-08-nnue-cache-pair.md). Packed output clamping also passes
-36 identities, required WSL tests and 40 fixed blocks: **+1.21% [0.72%, 1.69%] NPS**.
-[Output verdict](experiments/2026-10-08-nnue-output-pack.md). Frozen running binaries are unchanged.
-Direct NGNN3 move-delta fusion is now accepted, **5b882e2**: 36 identities, required full
-short/race/vet, 230 source/fixture/profile hashes, and 40 fixed blocks give **+0.80%
-[0.27%, 1.33%] NPS**, both order strata positive. [Completed record](experiments/2026-10-08-nnue-delta-fusion.md).
-SPSA **577981/577984** continues, durable iteration **525 / 6,300** games
-saved **18:00:19 EDT**; session 15 did not pause it or the existing trainer.
-Controller 566961's last resume remains **14:01 EDT**.
-Let it advance without repeated pauses; no tuning-strength verdict before >=20k and paired games.
-All 14 SPSA options now have source/runtime witnesses on the actual frozen NNUE
-engine, **180** bounded searches and exact repeated defaults; training/tuning were
-not interrupted. [Wiring audit and resume limits](experiments/2026-10-08-spsa-live-audit.md).
-Future SPSA exact checkpoint continuation now passes narrow/full short/race/vet,
-six exact resumed trajectories, recipe/corruption controls and 11 CLI refusals.
-[Repair and receipts](experiments/2026-10-08-spsa-exact-resume.md). The current
-frozen tuner retains its legacy format and RNG behavior; do not replace it.
-A future new tune requires a fresh output, exact binary/recipe pins and its own
-converged-vector games. No new tune or accepted playing change is queued.
+Accepted runtime **5b882e2 / NGNN3 KB8 H512 be34532c**, 58-epoch recipe.
+H1024 and the completed116-epoch H512 net are shelved. Longer gate400:
+**−18.3 [−38,+1]**, 87/205/108, zero flags, full parity and intact inputs.
+[Reviewed prerequisite results](experiments/2026-10-08-factorizer-activation.md).
+PGO, cache row pairing, packed output and direct move-delta speed edits remain
+accepted; speed gains supply no Elo or new absolute strength claim.
+V2 orientation **3434.6 [3388.3,3480.9]** supplies no3600 eligibility.
 
-Optional king-bucket training factorizer **6926457** is CPU-tested: six new controls,
-full trainer suite **53 passes / 4 CUDA skips**, 64 exact Go integer cases and 25 reconciled
-trainer/fixture inputs. It folds shared rows into the unchanged NGNN3 export. CUDA control
-**577875** waits natively for v3 admission **552631**; preserve that brief window before
-new training/claims. No real factorizer training trial is queued or accepted.
-[Preparation, CUDA queue and experiment boundary](experiments/2026-10-08-king-factorizer.md).
+**Factorizer training/gate RUNNING**, controller630389/trainer630440,
+`night-20261007/session9b/`, exact58-epoch recipe + `--king-factorizer`.
+Activated20:42 EDT by2fba7b1. GPU12,14/nice19/BF16; folded parity/reexport,
+fresh A/A40/gate400 follow. Accept only complete penta lower95>0 and zero
+operational failures. No automatic promotion. Unchanged SPSA630159/630163
+continues on CPU0–11, last retained600 iterations/7,200 games; no tuning
+verdict before >=20k plus converged-vector paired games. Preserve its legacy
+resume/RNG; [future repair](experiments/2026-10-08-spsa-exact-resume.md) is separate.
 
-The next factorizer trial is now prepared in box `session9b/`: accepted common
-engine **8ad1c326**, exact 230 engine/25 trainer inputs, 64 integer parity cases,
-52 failure/boundary controls, three historical gate controls and 2,016 input
-checks pass. No real trial is queued. After longer-net/admission/CUDA review,
-commit a base nomination and activation record, then launch its fixed
-from-scratch recipe + flag, parity/A/A40/gate400 controller.
-[Activation contract and receipts](experiments/2026-10-08-factorizer-trial.md).
+**Two unaccepted NGNN4 code topics implemented**, exact patches frozen on WSL.
+Affine tiling `night/ngnn4-affine16`, controller630484, `session16a/`:
+all AVX2/Go/scalar/320 parity and engine/full short/race/vet checks pass;
+48 identities and fixed20 AB/BA speed blocks running, result~21:15 EDT.
+Batched trainer `night/ngnn4-batched`, CPU640369 waits for that fixed sample;
+CUDA640370 waits for CPU pass then factorizer termination, `session16c/`.
+It replaces per-record W2 copies with one GEMM and head selection; new CPU/
+CUDA gradients and full-batch fixed throughput/memory rule are pending.
+[Affine rule](experiments/2026-10-08-ngnn4-affine.md),
+[batched rule and queued short CUDA window](experiments/2026-10-08-ngnn4-batched.md).
+Keep only on topics after verdicts; no real architecture net is trained.
+Original architecture `night/hidden-layer 9b6a3d6` now passes actual CUDA as
+well as CPU/integer/engine checks. It is the next GPU net lane after factorizer
+and cost review, against the actual immediate accepted engine/net.
 
-Owned self-play preparation now supports an optional board-content NGNP holdout,
-with split/prefix identity checked on resume. Six new controls and the full CPU
-trainer suite pass (47 passes, 3 existing CUDA checks skipped while the GPU is busy).
-A fixed 917,504-row gen0b sample exposes 1,830 boards shared across separate shard
-groups; the new split has zero shared boards. No new net or playing-strength verdict.
-[Tooling and sample receipts](experiments/2026-10-08-owned-data-holdout.md).
-The alternative owned-teacher calibration is now prepared in `session10/`: isolated
-datagen/datastat builds, short/race checks, 28 corruption/activation controls and frozen
-gen0b baseline metrics pass. Its fixed 5k/25k-node, 256-game run needs reviewed immediate-
-teacher activation after longer-net/admission/CUDA; no real datagen is queued.
-[Calibration preparation and activation](experiments/2026-10-08-owned-calibration.md).
-
-The v3 claim instrument now binds schema 3, threshold 3600, and the four-anchor pool with
-Berserk 12 (3713). Required short/race tests and clean build/dry plans pass; operational stability
-and the final prospective claim manifest remain pending. The 12-game operational controller
-**552631** waits natively for the existing training/gate controller **522940**; preserve that
-exclusive window before another trainer. [Admission queue](experiments/2026-10-08-v3-operational-admission.md),
-[instrument record](experiments/2026-10-08-v3-instrument.md).
-
-A clean v3-compatible accepted-engine build is now prepared, **737c18be / 1d63544**,
-in box `claim-v3-20261008/nominee-session10c/`. All 230 tested inputs, 54 exact search
-identities, four dry plans and six changed-identity refusals pass. Original admitted
-tool/source remain **4cdf39aa / 376671f**. After longer-net/admission/CUDA review,
-bind the immediate accepted net's actual provenance and a new final identity, then
-commit the prospective protocol before any game. Reuse `candidate-inputs.sha256`
-(114 entries); the preserved completion snapshot also contains a mutable startup log.
-No final nomination, screen or claim is queued.
-[Build, evidence and reuse boundary](experiments/2026-10-08-v3-nominee-build.md).
-
-Session 15 implemented original NGNN4 hidden-layer trainer/export/reference/Go
-and AVX2 code on pushed topic **night/hidden-layer**, **9b6a3d6**. Full CPU
-trainer suite **58 passes / 5 CUDA skips**, **320 exact integer cases**, required
-short/race/vet and 48 identities pass. Exact input packing gives **+52.93%
-[48.68%,57.31%] NPS** versus its own unoptimized prototype; no trained net,
-accepted runtime change or Elo claim. CUDA controller **622811** waits for
-**577875**; preserve that brief extra control window before next training.
-[Architecture and next real gate](experiments/2026-10-08-hidden-layer.md).
-Deferred accumulators are **shelved**, −8.73% NPS, after 36 identities and
-40 complete blocks; preserved on **night/lazy-accumulator**, **1b403d6**.
-[Negative verdict](experiments/2026-10-08-nnue-deferred.md). Accepted line stays
-**5b882e2 / be34532c**. At **18:05 EDT**, longer-net training **91/116**,
-SPSA durable **525 / 6,300 games**; none paused. Next campaign session not
-before **20:40 EDT** for the pending completed net/admission/CUDA results.
+V3 tool/source **4cdf39aa / 376671f**, schema3/threshold3600, now passes all12
+operational admission games. Clean accepted-engine preparation **737c18be / 1d63544**
+is reusable. Final nomination/provenance/prospective protocol still pending;
+no screen/claim queued. Operational and v2 orientation games supply no claim
+qualification. Preserve batched CUDA window before another GPU trainer/claim.
+Owned-teacher calibration remains an alternative prepared lane, `session10/`;
+[activation contract](experiments/2026-10-08-owned-calibration.md). Deferred accumulators
+and quiet-move unroll remain shelved, no extension. Hopper untouched.
+Next campaign session **not before21:20 EDT** for affine/batched CPU results.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
