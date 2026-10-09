@@ -217,7 +217,7 @@ func TestNGNN1IncrementalRandomGames(t *testing.T) {
 		type undo struct {
 			move  Move
 			ep    Square
-			tag   PositionTag
+			tag   PositionState
 			clock uint8
 		}
 		var undos []undo
@@ -321,9 +321,9 @@ func TestNGNN1OracleAndMirror(t *testing.T) {
 				}
 				mirrored := &Position{EnPassant: NoSquare}
 				if pos.Turn() == White {
-					mirrored.Tag = BlackToMove
+					mirrored.Side = Black
 				} else {
-					mirrored.Tag = WhiteToMove
+					mirrored.Side = White
 				}
 				for square, piece := range pos.Board.mailbox {
 					if validPiece(piece) {

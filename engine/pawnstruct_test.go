@@ -75,8 +75,8 @@ func TestPawnStructureCounts(t *testing.T) {
 			t.Errorf("%s: bad FEN: %v", c.name, err)
 			continue
 		}
-		own := pos.Board.GetBitboardOf(WhitePawn)
-		opp := pos.Board.GetBitboardOf(BlackPawn)
+		own := pos.Board.PieceOccupancy(WhitePawn)
+		opp := pos.Board.PieceOccupancy(BlackPawn)
 		if c.color == Black {
 			own, opp = opp, own
 		}

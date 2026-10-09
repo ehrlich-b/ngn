@@ -50,17 +50,17 @@ func countMaterial(pos *engine.Position, color engine.Color) int {
 
 	var pawns, knights, bishops, rooks, queens uint64
 	if color == engine.White {
-		pawns = pos.Board.GetBitboardOf(engine.WhitePawn)
-		knights = pos.Board.GetBitboardOf(engine.WhiteKnight)
-		bishops = pos.Board.GetBitboardOf(engine.WhiteBishop)
-		rooks = pos.Board.GetBitboardOf(engine.WhiteRook)
-		queens = pos.Board.GetBitboardOf(engine.WhiteQueen)
+		pawns = pos.Board.PieceOccupancy(engine.WhitePawn)
+		knights = pos.Board.PieceOccupancy(engine.WhiteKnight)
+		bishops = pos.Board.PieceOccupancy(engine.WhiteBishop)
+		rooks = pos.Board.PieceOccupancy(engine.WhiteRook)
+		queens = pos.Board.PieceOccupancy(engine.WhiteQueen)
 	} else {
-		pawns = pos.Board.GetBitboardOf(engine.BlackPawn)
-		knights = pos.Board.GetBitboardOf(engine.BlackKnight)
-		bishops = pos.Board.GetBitboardOf(engine.BlackBishop)
-		rooks = pos.Board.GetBitboardOf(engine.BlackRook)
-		queens = pos.Board.GetBitboardOf(engine.BlackQueen)
+		pawns = pos.Board.PieceOccupancy(engine.BlackPawn)
+		knights = pos.Board.PieceOccupancy(engine.BlackKnight)
+		bishops = pos.Board.PieceOccupancy(engine.BlackBishop)
+		rooks = pos.Board.PieceOccupancy(engine.BlackRook)
+		queens = pos.Board.PieceOccupancy(engine.BlackQueen)
 	}
 
 	material += popcount(pawns) * 100

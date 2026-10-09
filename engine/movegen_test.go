@@ -9,8 +9,8 @@ import (
 func TestBasicMoveGeneration(t *testing.T) {
 	// Test move generation from starting position
 	pos := &Position{
-		Board:     StartingBoard(),
-		Tag:       WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide | WhiteToMove,
+		Board: StartingBoard(),
+		Tag:   WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide, Side: White,
 		EnPassant: NoSquare, // Make sure en passant is properly initialized
 	}
 
@@ -56,7 +56,7 @@ func TestPawnMoves(t *testing.T) {
 			setupBoard: func() *Position {
 				return &Position{
 					Board:     StartingBoard(),
-					Tag:       WhiteToMove,
+					Side:      White,
 					EnPassant: NoSquare,
 				}
 			},
@@ -82,7 +82,7 @@ func TestKnightMoves(t *testing.T) {
 	// Create position with single knight on E4
 	pos := &Position{
 		Board:     Bitboard{},
-		Tag:       WhiteToMove,
+		Side:      White,
 		EnPassant: NoSquare,
 	}
 	pos.Board.UpdateSquare(E4, WhiteKnight, NoPiece)
@@ -120,7 +120,7 @@ func TestBishopMoves(t *testing.T) {
 	// Create position with single bishop on E4
 	pos := &Position{
 		Board:     Bitboard{},
-		Tag:       WhiteToMove,
+		Side:      White,
 		EnPassant: NoSquare,
 	}
 	pos.Board.UpdateSquare(E4, WhiteBishop, NoPiece)
@@ -138,7 +138,7 @@ func TestRookMoves(t *testing.T) {
 	// Create position with single rook on E4
 	pos := &Position{
 		Board:     Bitboard{},
-		Tag:       WhiteToMove,
+		Side:      White,
 		EnPassant: NoSquare,
 	}
 	pos.Board.UpdateSquare(E4, WhiteRook, NoPiece)
@@ -156,7 +156,7 @@ func TestQueenMoves(t *testing.T) {
 	// Create position with single queen on E4
 	pos := &Position{
 		Board:     Bitboard{},
-		Tag:       WhiteToMove,
+		Side:      White,
 		EnPassant: NoSquare,
 	}
 	pos.Board.UpdateSquare(E4, WhiteQueen, NoPiece)
@@ -174,7 +174,7 @@ func TestKingMoves(t *testing.T) {
 	// Create position with single king on E4
 	pos := &Position{
 		Board:     Bitboard{},
-		Tag:       WhiteToMove,
+		Side:      White,
 		EnPassant: NoSquare,
 	}
 	pos.Board.UpdateSquare(E4, WhiteKing, NoPiece)
@@ -192,7 +192,7 @@ func TestCastlingMoves(t *testing.T) {
 	// Test white castling
 	pos := &Position{
 		Board: Bitboard{},
-		Tag:   WhiteToMove | WhiteCanCastleKingSide | WhiteCanCastleQueenSide,
+		Tag:   WhiteCanCastleKingSide | WhiteCanCastleQueenSide, Side: White,
 	}
 	// Set up for castling: King on E1, Rooks on A1 and H1
 	pos.Board.UpdateSquare(E1, WhiteKing, NoPiece)
@@ -218,7 +218,7 @@ func TestMoveWithCaptures(t *testing.T) {
 	// Create position with white pawn that can capture
 	pos := &Position{
 		Board:     Bitboard{},
-		Tag:       WhiteToMove,
+		Side:      White,
 		EnPassant: NoSquare,
 	}
 	pos.Board.UpdateSquare(E4, WhitePawn, NoPiece)
@@ -250,7 +250,7 @@ func TestEnPassant(t *testing.T) {
 	// Create position with en passant possibility
 	pos := &Position{
 		Board:     Bitboard{},
-		Tag:       WhiteToMove,
+		Side:      White,
 		EnPassant: D6, // Black pawn just moved D7-D5
 	}
 	pos.Board.UpdateSquare(C5, WhitePawn, NoPiece)
@@ -277,7 +277,7 @@ func TestPromotionMoves(t *testing.T) {
 	// Create position with pawn about to promote
 	pos := &Position{
 		Board:     Bitboard{},
-		Tag:       WhiteToMove,
+		Side:      White,
 		EnPassant: NoSquare,
 	}
 	pos.Board.UpdateSquare(E7, WhitePawn, NoPiece)
@@ -307,8 +307,8 @@ func TestPromotionMoves(t *testing.T) {
 func TestPerftStartingPosition(t *testing.T) {
 	// Test perft for starting position
 	pos := &Position{
-		Board:     StartingBoard(),
-		Tag:       WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide | WhiteToMove,
+		Board: StartingBoard(),
+		Tag:   WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide, Side: White,
 		EnPassant: NoSquare,
 	}
 
@@ -361,8 +361,8 @@ func TestPerftStandardSuite(t *testing.T) {
 
 func BenchmarkMoveGeneration(b *testing.B) {
 	pos := &Position{
-		Board:     StartingBoard(),
-		Tag:       WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide | WhiteToMove,
+		Board: StartingBoard(),
+		Tag:   WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide, Side: White,
 		EnPassant: NoSquare,
 	}
 
@@ -375,7 +375,7 @@ func TestLegalMoveValidation(t *testing.T) {
 	// Test position where king is in check - should filter out moves that don't address check
 	pos := &Position{
 		Board:     Bitboard{},
-		Tag:       WhiteToMove,
+		Side:      White,
 		EnPassant: NoSquare,
 	}
 
@@ -403,8 +403,8 @@ func TestLegalMoveValidation(t *testing.T) {
 func TestLegalMovesStartingPosition(t *testing.T) {
 	// Test starting position - all pseudo-legal moves should be legal
 	pos := &Position{
-		Board:     StartingBoard(),
-		Tag:       WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide | WhiteToMove,
+		Board: StartingBoard(),
+		Tag:   WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide, Side: White,
 		EnPassant: NoSquare,
 	}
 
@@ -428,7 +428,7 @@ func TestPinnedPieceMoves(t *testing.T) {
 	// Test position with a pinned piece
 	pos := &Position{
 		Board:     Bitboard{},
-		Tag:       WhiteToMove,
+		Side:      White,
 		EnPassant: NoSquare,
 	}
 
@@ -461,8 +461,8 @@ func TestPinnedPieceMoves(t *testing.T) {
 func TestCastlingThroughCheck(t *testing.T) {
 	// Test castling through check (should be illegal)
 	pos := &Position{
-		Board:     Bitboard{},
-		Tag:       WhiteToMove | WhiteCanCastleKingSide,
+		Board: Bitboard{},
+		Tag:   WhiteCanCastleKingSide, Side: White,
 		EnPassant: NoSquare,
 	}
 
@@ -492,7 +492,7 @@ func TestEnPassantPinDiscovery(t *testing.T) {
 	// Test en passant that would discover check (should be illegal)
 	pos := &Position{
 		Board:     Bitboard{},
-		Tag:       WhiteToMove,
+		Side:      White,
 		EnPassant: D6,
 	}
 
@@ -605,8 +605,8 @@ func TestPawnCheckDetection(t *testing.T) {
 
 func BenchmarkLegalMoveGeneration(b *testing.B) {
 	pos := &Position{
-		Board:     StartingBoard(),
-		Tag:       WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide | WhiteToMove,
+		Board: StartingBoard(),
+		Tag:   WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide, Side: White,
 		EnPassant: NoSquare,
 	}
 
@@ -617,8 +617,8 @@ func BenchmarkLegalMoveGeneration(b *testing.B) {
 
 func BenchmarkPerftDepth3(b *testing.B) {
 	pos := &Position{
-		Board:     StartingBoard(),
-		Tag:       WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide | WhiteToMove,
+		Board: StartingBoard(),
+		Tag:   WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide, Side: White,
 		EnPassant: NoSquare,
 	}
 

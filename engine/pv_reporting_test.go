@@ -11,7 +11,8 @@ const pvStartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 type pvPositionSnapshot struct {
 	board          Bitboard
 	enPassant      Square
-	tag            PositionTag
+	tag            PositionState
+	side           Color
 	hash           uint64
 	halfMoveClock  uint8
 	positions      map[uint64]int
@@ -27,7 +28,7 @@ func snapshotPVPosition(pos *Position) pvPositionSnapshot {
 	positionsIsNil := pos.Positions == nil
 	pos.positionsMutex.RUnlock()
 	return pvPositionSnapshot{
-		board: pos.Board, enPassant: pos.EnPassant, tag: pos.Tag, hash: pos.hash,
+		side: pos.Side, board: pos.Board, enPassant: pos.EnPassant, tag: pos.Tag, hash: pos.hash,
 		halfMoveClock: pos.HalfMoveClock, positions: positions, positionsIsNil: positionsIsNil,
 	}
 }
@@ -35,7 +36,7 @@ func snapshotPVPosition(pos *Position) pvPositionSnapshot {
 func assertPVPositionRestored(t *testing.T, pos *Position, before pvPositionSnapshot) {
 	t.Helper()
 	after := snapshotPVPosition(pos)
-	if after.board != before.board || after.enPassant != before.enPassant || after.tag != before.tag ||
+	if after.side != before.side || after.board != before.board || after.enPassant != before.enPassant || after.tag != before.tag ||
 		after.hash != before.hash || after.halfMoveClock != before.halfMoveClock ||
 		after.positionsIsNil != before.positionsIsNil || !reflect.DeepEqual(after.positions, before.positions) {
 		t.Fatalf("position changed during PV extraction\nbefore: %+v\nafter:  %+v", before, after)
@@ -60,7 +61,7 @@ func mustPVMove(t *testing.T, pos *Position, text string) Move {
 	return move
 }
 
-func makePVMove(t *testing.T, pos *Position, move Move) (Square, PositionTag, uint8) {
+func makePVMove(t *testing.T, pos *Position, move Move) (Square, PositionState, uint8) {
 	t.Helper()
 	ep, tag, hc, ok := pos.MakeMove(move)
 	if !ok {
@@ -74,7 +75,7 @@ func seedExactPV(t *testing.T, pos *Position, texts []string) []Move {
 	type undoEntry struct {
 		move Move
 		ep   Square
-		tag  PositionTag
+		tag  PositionState
 		hc   uint8
 	}
 	moves := make([]Move, 0, len(texts))

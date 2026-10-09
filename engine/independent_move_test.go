@@ -4,11 +4,11 @@ import "testing"
 
 func TestIndependentPrimitiveNewMovePacksFieldBoundaries(t *testing.T) {
 	got := NewMove(Square(63), Square(0), Piece(15), Piece(15), PieceType(7), MoveTag(255))
-	want := Move(63) | Move(0)<<6 | Move(15)<<12 | Move(15)<<16 | Move(7)<<20 | Move(255)<<23
+	want := Move(15) | Move(7)<<4 | Move(15)<<7 | Move(15)<<11 | Move(63)<<15 | Move(0)<<21
 	if got != want {
 		t.Fatalf("NewMove boundary value = %#x, want %#x", got, want)
 	}
-	if got.Source() != 63 || got.Destination() != 0 || got.MovingPiece() != 15 || got.CapturedPiece() != 15 || got.PromoType() != 7 || got.Tag() != 255 {
+	if got.Source() != 63 || got.Destination() != 0 || got.MovingPiece() != 15 || got.CapturedPiece() != 15 || got.PromoType() != 7 || got.Tag() != 15 {
 		t.Fatal("boundary fields did not round-trip")
 	}
 }
@@ -29,14 +29,14 @@ func TestIndependentPrimitiveMoveRoundTripAndFlags(t *testing.T) {
 
 func TestIndependentPrimitiveOpaqueMoveExtractionAndUnusedBit(t *testing.T) {
 	all := Move(0xffffffff)
-	if all.Source() != 63 || all.Destination() != 63 || all.MovingPiece() != 15 || all.CapturedPiece() != 15 || all.PromoType() != 7 || all.Tag() != 255 {
+	if all.Source() != 63 || all.Destination() != 63 || all.MovingPiece() != 15 || all.CapturedPiece() != 15 || all.PromoType() != 7 || all.Tag() != 15 {
 		t.Fatal("opaque all-bit move did not extract masked fields")
 	}
 	if Move(1<<31).Tag() != 0 {
 		t.Fatal("bit 31 was not discarded from Tag")
 	}
-	if move := Move(0x7f << 23); move.Tag() != 127 {
-		t.Fatalf("opaque tag = %d, want 127", move.Tag())
+	if move := Move(0x7f); move.Tag() != 15 {
+		t.Fatalf("opaque tag = %d, want 15", move.Tag())
 	}
 }
 

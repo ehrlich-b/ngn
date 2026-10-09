@@ -121,9 +121,9 @@ func TestNGNN2BucketsAndSingleBucketEquivalence(t *testing.T) {
 			}
 			e := ngnn1NewWorker(t, n, pos)
 			for _, turn := range []Color{White, Black} {
-				pos.Tag = BlackToMove
+				pos.Side = Black
 				if turn == White {
-					pos.Tag = WhiteToMove
+					pos.Side = White
 				}
 				if got := e.SearchSTM(pos); got != ngnn2Oracle(n, pos) {
 					t.Fatalf("NB=%d pieces=%d oracle mismatch", nb, count)

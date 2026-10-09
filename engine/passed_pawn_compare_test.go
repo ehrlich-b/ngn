@@ -25,8 +25,8 @@ func TestPassedPawnSlowVsFast(t *testing.T) {
 				t.Fatalf("ParseFEN: %v", err)
 			}
 			b := &pos.Board
-			wp := b.GetBitboardOf(WhitePawn)
-			bp := b.GetBitboardOf(BlackPawn)
+			wp := b.PieceOccupancy(WhitePawn)
+			bp := b.PieceOccupancy(BlackPawn)
 			whiteSlow := countPassedPawns(b, White)
 			whiteFast := countPassedPawnsFast(wp, bp, White)
 			blackSlow := countPassedPawns(b, Black)

@@ -96,7 +96,7 @@ func TestAlgebraicMoveCapture(t *testing.T) {
 	pos.Board.UpdateSquare(E8, BlackKing, NoPiece)
 	pos.Board.UpdateSquare(E4, WhitePawn, NoPiece)
 	pos.Board.UpdateSquare(D5, BlackPawn, NoPiece)
-	pos.SetTag(WhiteToMove)
+	pos.Side = White
 	pos.EnPassant = NoSquare
 
 	// Test pawn capture
@@ -121,7 +121,7 @@ func TestAlgebraicMovePromotion(t *testing.T) {
 	pos.Board.UpdateSquare(A1, WhiteKing, NoPiece) // Move king away from e1
 	pos.Board.UpdateSquare(A8, BlackKing, NoPiece) // Move black king away from e8
 	pos.Board.UpdateSquare(E7, WhitePawn, NoPiece) // White pawn ready to promote
-	pos.SetTag(WhiteToMove)
+	pos.Side = White
 	pos.EnPassant = NoSquare
 
 	tests := []struct {
@@ -158,7 +158,7 @@ func TestAlgebraicMoveCastling(t *testing.T) {
 	pos.Board.UpdateSquare(A1, WhiteRook, NoPiece)
 	pos.Board.UpdateSquare(H1, WhiteRook, NoPiece)
 	pos.Board.UpdateSquare(E8, BlackKing, NoPiece)
-	pos.SetTag(WhiteToMove)
+	pos.Side = White
 	pos.SetTag(WhiteCanCastleKingSide)
 	pos.SetTag(WhiteCanCastleQueenSide)
 	pos.EnPassant = NoSquare
@@ -194,7 +194,7 @@ func TestAlgebraicMoveEnPassant(t *testing.T) {
 	pos.Board.UpdateSquare(E8, BlackKing, NoPiece)
 	pos.Board.UpdateSquare(E5, WhitePawn, NoPiece)
 	pos.Board.UpdateSquare(D5, BlackPawn, NoPiece) // This pawn just moved d7-d5
-	pos.SetTag(WhiteToMove)
+	pos.Side = White
 	pos.EnPassant = D6 // En passant square behind the pawn
 
 	move, err := ParseAlgebraicMove("e5d6", pos)

@@ -96,16 +96,16 @@ type PositionInfo struct {
 // isInsufficientMaterial checks if the position has insufficient material for checkmate
 func (pa *PositionAnalyzer) isInsufficientMaterial(pos *engine.Position) bool {
 	// Get piece counts
-	whitePawns := engine.PopCount(pos.Board.GetBitboardOf(engine.WhitePawn))
-	blackPawns := engine.PopCount(pos.Board.GetBitboardOf(engine.BlackPawn))
-	whiteQueens := engine.PopCount(pos.Board.GetBitboardOf(engine.WhiteQueen))
-	blackQueens := engine.PopCount(pos.Board.GetBitboardOf(engine.BlackQueen))
-	whiteRooks := engine.PopCount(pos.Board.GetBitboardOf(engine.WhiteRook))
-	blackRooks := engine.PopCount(pos.Board.GetBitboardOf(engine.BlackRook))
-	whiteBishops := engine.PopCount(pos.Board.GetBitboardOf(engine.WhiteBishop))
-	blackBishops := engine.PopCount(pos.Board.GetBitboardOf(engine.BlackBishop))
-	whiteKnights := engine.PopCount(pos.Board.GetBitboardOf(engine.WhiteKnight))
-	blackKnights := engine.PopCount(pos.Board.GetBitboardOf(engine.BlackKnight))
+	whitePawns := engine.PopCount(pos.Board.PieceOccupancy(engine.WhitePawn))
+	blackPawns := engine.PopCount(pos.Board.PieceOccupancy(engine.BlackPawn))
+	whiteQueens := engine.PopCount(pos.Board.PieceOccupancy(engine.WhiteQueen))
+	blackQueens := engine.PopCount(pos.Board.PieceOccupancy(engine.BlackQueen))
+	whiteRooks := engine.PopCount(pos.Board.PieceOccupancy(engine.WhiteRook))
+	blackRooks := engine.PopCount(pos.Board.PieceOccupancy(engine.BlackRook))
+	whiteBishops := engine.PopCount(pos.Board.PieceOccupancy(engine.WhiteBishop))
+	blackBishops := engine.PopCount(pos.Board.PieceOccupancy(engine.BlackBishop))
+	whiteKnights := engine.PopCount(pos.Board.PieceOccupancy(engine.WhiteKnight))
+	blackKnights := engine.PopCount(pos.Board.PieceOccupancy(engine.BlackKnight))
 
 	// Any pawns, queens, or rooks = sufficient material
 	if whitePawns > 0 || blackPawns > 0 || whiteQueens > 0 || blackQueens > 0 || whiteRooks > 0 || blackRooks > 0 {
