@@ -49,3 +49,11 @@ no real training, games, auto-merge or promotion. Preserve the factorizer and
 batched cost window before this short CUDA window, and all queued CUDA windows
 before a new real trainer or exclusive claim. Local uncommitted source stays
 on the topic until the complete fixed rule is reviewed.
+
+CPU controller651273 completed **21:49:52 EDT**, exit0: **68 tests /6
+intentional CUDA skips**,82.299s full suite; all narrow feature/gradient/
+initialization/export/resume controls pass. The three local files equal
+the tested source once at session18 review. CUDA651274 remains waiting
+for batched641099 after factorizer630389. CPU evidence alone supplies no
+cost verdict; the candidate stays uncommitted on its topic.
+[CPU receipt](2026-10-08-session18-results/completed-topics.json).

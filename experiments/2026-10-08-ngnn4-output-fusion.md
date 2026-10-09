@@ -31,3 +31,16 @@ Results `/home/ehrli/ngn-data/night-20261007/session17f/`, status stage
 controller641098, preserving its tests. GPU factorizer and CPU0–11 SPSA stay
 active. Freeze source archive, five-file patch, binaries, PGO and net before
 identity/timing. No automatic merge, net training, or games follow.
+
+## Completed verdict — session 18
+
+Controller641437 completed **21:48:15 EDT**, exit0. **KEEP ON TOPIC**:
+all48 search identities and exactly20 fixed timing blocks pass. Independent
+raw recomputation gives NPS ratio **1.108407 [1.077645,1.140047]**,
+AB/BA **1.164587 /1.054937**. Thus **+10.84% [7.76%,14.00%]** against
+the immediate NGNN4 architecture base on its owned random H512/L16 net.
+Guarded AVX2/portable/scalar and320-case integer parity, engine/full
+short/race and vet pass. All five local source files equal tested source.
+Exact topic commit **14a203a** is pushed on `night/ngnn4-output-fusion`.
+No main merge, trained net, accepted-runtime change or Elo interpretation.
+[Retained receipts and review](2026-10-08-session18-results/completed-topics.json).
