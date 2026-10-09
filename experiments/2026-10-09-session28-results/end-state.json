@@ -1,0 +1,90 @@
+{
+  "checked_utc": "2026-10-09T15:51:41.159211+00:00",
+  "host_c_free_bytes": 9651613696,
+  "gpu_csv": "0, 1471",
+  "pids_alive": {
+    "1168": true,
+    "673954": true,
+    "673958": true,
+    "675044": true,
+    "675045": true,
+    "675046": true,
+    "675213": true,
+    "675346": true,
+    "675352": true,
+    "675472": true,
+    "675562": true
+  },
+  "completion_receipts": {},
+  "status_tail": [
+    "{\"utc\": \"2026-10-09T11:29:42.994396+00:00\", \"stage\": \"rodent-head-to-head\", \"event\": \"factorizer-release\", \"detail\": \"controller630389 resumes parity/A/A/gate; trainer was never stopped\"}",
+    "{\"utc\": \"2026-10-09T11:29:43.007938+00:00\", \"stage\": \"rodent-head-to-head\", \"event\": \"end\", \"detail\": \"rc 0; report complete pairs only, no rating or campaign claim\"}",
+    "{\"utc\": \"2026-10-09T11:29:43.008676+00:00\", \"stage\": \"factorizer-trial\", \"event\": \"train-done\", \"detail\": \"full declared schedule complete; lowest-validation checkpoint proceeds to parity, no loss-based strength verdict\"}",
+    "{\"utc\": \"2026-10-09T11:29:43.542261+00:00\", \"stage\": \"rodent-recount\", \"event\": \"done\", \"detail\": \"rc 0; session20/rodent-review.json and rodent-report.log; completed pairs only\"}",
+    "{\"utc\": \"2026-10-09T11:29:46.200818+00:00\", \"stage\": \"factorizer-trial\", \"event\": \"parity-done\", \"detail\": \"20 exact engine/reference cases and byte-identical folded reexport\"}",
+    "{\"utc\": \"2026-10-09T11:29:46.954869+00:00\", \"stage\": \"factorizer-trial\", \"event\": \"checkpoint-wait\", \"detail\": \"native inotify/pidfd; tuner 673362; iteration >=875; 90min timeout\"}",
+    "{\"utc\": \"2026-10-09T12:00:07.252214+00:00\", \"stage\": \"factorizer-trial\", \"event\": \"spsa-resume\", \"detail\": \"pid 673954; frozen old-base tuner; no transfer to a promoted net\"}",
+    "{\"utc\": \"2026-10-09T12:00:07.266003+00:00\", \"stage\": \"factorizer-trial\", \"event\": \"fail\", \"detail\": \"rc 1; preserve artifacts, no retry or extension\"}",
+    "{\"utc\": \"2026-10-09T14:30:45.317926+00:00\", \"stage\": \"session21-checks\", \"event\": \"capacity-wait\", \"detail\": \"C: recovery to32GiB; silent five-minute checks; full candidate checks on12,14\"}",
+    "{\"utc\": \"2026-10-09T14:30:45.318756+00:00\", \"stage\": \"session21-data\", \"event\": \"wait\", \"detail\": \"native provenance-controller completion; then C:70GiB capacity; unchanged194-per-mille T74 sample\"}",
+    "{\"utc\": \"2026-10-09T14:30:45.318926+00:00\", \"stage\": \"session21-provenance\", \"event\": \"capacity-wait\", \"detail\": \"C: must recover to32GiB; silent five-minute capacity checks,12h bound; no WSL shutdown or hopper interruption\"}",
+    "{\"utc\": \"2026-10-09T14:45:52.762687+00:00\", \"stage\": \"ngnn4-row-affine\", \"event\": \"wait\", \"detail\": \"native session21 checks completion; C:>=32GiB; CPU12,14 tests / CPU14 fixed sample\"}",
+    "{\"utc\": \"2026-10-09T15:08:28.362379+00:00\", \"stage\": \"time-current\", \"event\": \"wait\", \"detail\": \"native row-affine completion; then C:>=32GiB; tests12,14 and trajectory14\"}",
+    "{\"utc\": \"2026-10-09T15:08:28.389916+00:00\", \"stage\": \"qsearch-tt-static\", \"event\": \"wait\", \"detail\": \"native time-current completion; then C:>=32GiB; CPU12,14 tests\"}",
+    "{\"utc\": \"2026-10-09T15:25:47.106872+00:00\", \"stage\": \"continuation-correction\", \"event\": \"wait\", \"detail\": \"native qsearch-controller completion; then C:>=32GiB; tests12,14 / fixed cost sample14\"}",
+    "{\"utc\": \"2026-10-09T15:36:36.217443+00:00\", \"stage\": \"tt-scan-speed\", \"event\": \"wait\", \"detail\": \"native continuation-controller completion; then C:>=32GiB; tests12,14 / exact identity and fixed20 speed blocks14\"}"
+  ],
+  "spsa_files": [
+    {
+      "name": "spsa.log",
+      "size": 19583
+    },
+    {
+      "name": "spsa.jsonl",
+      "size": 34903
+    }
+  ],
+  "latest_spsa": {
+    "iter": 1050,
+    "games": 12600,
+    "time": "2026-10-09T11:30:22-04:00"
+  },
+  "spsa_recent_checkpoints": [
+    {
+      "iter": 975,
+      "time": "2026-10-09T10:00:24-04:00"
+    },
+    {
+      "iter": 1000,
+      "time": "2026-10-09T10:29:41-04:00"
+    },
+    {
+      "iter": 1025,
+      "time": "2026-10-09T11:00:00-04:00"
+    },
+    {
+      "iter": 1050,
+      "time": "2026-10-09T11:30:22-04:00"
+    }
+  ],
+  "accepted_source": "39eb128",
+  "accepted_net": "be34532c",
+  "session28_new_jobs": [],
+  "verdicts": [],
+  "next_capacity_thresholds_GiB": {
+    "code_and_games": 32,
+    "t74_conversion": 70
+  },
+  "next_actionable_event": "host C: capacity recovery; no recovery ETA",
+  "next_session_not_before_EDT": "2026-10-09 19:45",
+  "backoff_reason": "Priority code is already prepared; avoid repeated idle agent sessions while detached controllers wait for capacity.",
+  "process_snapshot": [
+    "   1168     221  0.3   5  2-17:37:47 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    " 673958  673954  2.0   6    03:52:55 /home/ehrli/ngn-data/night-20261007/spsa/spsa -engine /home/ehrli/ngn-data/night-20261007/kb8bin/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/net1-gates-20261006/openings.txt -out /home/ehrli/ngn-data/night-20261007/spsa/kb8/spsa.jsonl -lowpower=false -seed 20261008 -resume",
+    " 675213  675202  0.0  15    01:05:48 bash /home/ehrli/ngn-data/night-20261007/session22-row/controller.sh",
+    " 675346  675339  0.0  15       43:12 bash /home/ehrli/ngn-data/night-20261007/session23-time/controller.sh",
+    " 675352  675339  0.0  11       43:12 bash /home/ehrli/ngn-data/night-20261007/session23-qstatic/controller.sh",
+    " 675472  675466  0.0  12       25:54 bash /home/ehrli/ngn-data/night-20261007/session24-continuation/controller.sh",
+    " 675562  675558  0.0  12       15:04 bash /home/ehrli/ngn-data/night-20261007/session25-tt-scan/controller.sh"
+  ]
+}

@@ -30,12 +30,11 @@ Session25 queues a pure-speed own-TT scan on a separate39eb128 topic;
 checks12,14,36 identities and20 fixed speed blocks14; lower NPS95>1 and
 both order strata>1 required. No heavy stage/verdict/adoption.
 [Manifest](experiments/2026-10-09-tt-scan.md).
-Session26 confirms capacity still8.99GiB; all eight detached controllers are
-alive, no eligible native campaign cleanup, no new code/job/verdict. Capacity
-recovery is the next actionable event. [Session26](experiments/2026-10-09-session26.md).
-Session27 confirms the same state at11:47 EDT, with no new completion receipt;
-no duplicate jobs or monitoring. Resume after capacity recovery, no ETA.
-[Session27](experiments/2026-10-09-session27.md).
+Sessions 26–28 confirm capacity remains 8.99 GiB, all eight controllers alive,
+no new receipts and no eligible native campaign cleanup. All priority code/data
+work is prepared. **Next session: not before 19:45 EDT October 9** backs off
+idle driver sessions; detached jobs still release on capacity recovery sooner.
+No recovery ETA. [Latest state](experiments/2026-10-09-session28.md).
 [Affine manifest](experiments/2026-10-09-ngnn4-row-affine.md).
 [Session21](experiments/2026-10-09-session21.md).
 
