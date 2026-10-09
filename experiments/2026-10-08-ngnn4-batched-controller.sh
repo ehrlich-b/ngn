@@ -4,7 +4,7 @@ set -euo pipefail
 [[ ${1:-} == cpu || ${1:-} == cuda ]]
 MODE=$1
 R=/home/ehrli/ngn-data/night-20261007
-S=$R/session16b
+S=$R/session16c
 PY=/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python
 export PYTHONPATH=$S/source PYTHONDONTWRITEBYTECODE=1
 export OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2

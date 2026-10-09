@@ -14,7 +14,7 @@ from trainer.tests.test_ngnn4_batched import gathered_forward
 
 torch.set_num_threads(2)
 assert torch.cuda.is_available()
-root = Path('/home/ehrli/ngn-data/night-20261007/session16b')
+root = Path('/home/ehrli/ngn-data/night-20261007/session16c')
 started = time.time()
 results = []
 batch = 16384
