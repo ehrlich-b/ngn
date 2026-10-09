@@ -3,8 +3,8 @@ package engine
 import "testing"
 
 // TestSEECorrectness checks staticExchangeEvaluation against hand-computed
-// exchange values on crafted positions. Piece weights: P=100 N=320 B=330 R=525
-// Q=1000. SEE feeds capture ordering AND pruning (SEE-prune, probcut, qsearch
+// exchange values on crafted positions. Piece weights: P=100 N=300 B=340 R=500
+// Q=950. SEE feeds capture ordering AND pruning (SEE-prune, probcut, qsearch
 // delta), so a bug here corrupts the search quietly across the board.
 func TestSEECorrectness(t *testing.T) {
 	cases := []struct {
@@ -16,7 +16,7 @@ func TestSEECorrectness(t *testing.T) {
 		{
 			name: "pawn takes undefended knight",
 			fen:  "4k3/8/8/3n4/4P3/8/8/4K3 w - - 0 1",
-			uci:  "e4d5", want: 320,
+			uci:  "e4d5", want: 300,
 		},
 		{
 			name: "pawn takes pawn defended by pawn (equal)",
@@ -26,12 +26,12 @@ func TestSEECorrectness(t *testing.T) {
 		{
 			name: "queen takes pawn defended by pawn (lose queen for pawn)",
 			fen:  "4k3/8/2p5/3p4/8/8/8/3QK3 w - - 0 1",
-			uci:  "d1d5", want: 100 - 1000,
+			uci:  "d1d5", want: 100 - 950,
 		},
 		{
 			name: "knight takes pawn defended by pawn",
 			fen:  "4k3/8/4p3/3p4/8/2N5/8/4K3 w - - 0 1",
-			uci:  "c3d5", want: 100 - 320,
+			uci:  "c3d5", want: 100 - 300,
 		},
 		{
 			name: "rook battery x-ray recapture (win pawn, trade rooks)",
@@ -41,7 +41,7 @@ func TestSEECorrectness(t *testing.T) {
 		{
 			name: "pawn promotes capturing undefended rook",
 			fen:  "r5k1/1P6/8/8/8/8/8/6K1 w - - 0 1",
-			uci:  "b7a8q", want: 525 + (1000 - 100),
+			uci:  "b7a8q", want: 500 + (950 - 100),
 		},
 		{
 			name: "en passant captures undefended pawn",
@@ -55,17 +55,17 @@ func TestSEECorrectness(t *testing.T) {
 		{
 			name: "rook takes h-file pawn defended by g-pawn (h-file recapture)",
 			fen:  "4k3/8/6p1/7p/8/8/8/4K2R w - - 0 1",
-			uci:  "h1h5", want: 100 - 525,
+			uci:  "h1h5", want: 100 - 500,
 		},
 		{
 			name: "rook takes a-file pawn defended by b-pawn (a-file recapture)",
 			fen:  "4k3/8/1p6/p7/8/8/8/R3K3 w - - 0 1",
-			uci:  "a1a5", want: 100 - 525,
+			uci:  "a1a5", want: 100 - 500,
 		},
 		{
 			name: "kiwipete Qxh3: g2 pawn recaptures the rook (h-file, was -900)",
 			fen:  "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
-			uci:  "f3h3", want: 100 - 1000 + 525,
+			uci:  "f3h3", want: 100 - 950 + 500,
 		},
 	}
 
@@ -114,14 +114,14 @@ func TestSEEQuietMoves(t *testing.T) {
 			// Queen onto c4, attacked by the d5 pawn and undefended — loses the queen.
 			name: "queen onto pawn-attacked undefended square",
 			fen:  "4k3/8/8/3p4/8/8/Q7/4K3 w - - 0 1",
-			uci:  "a2c4", want: -1000,
+			uci:  "a2c4", want: -950,
 		},
 		{
 			// Knight onto e4, attacked by the d5 pawn but defended by the d3 pawn:
-			// ...dxe4, dxe4 — lose knight (320), win back a pawn (100) = -220.
+			// ...dxe4, dxe4 — lose knight (300), win back a pawn (100) = -200.
 			name: "knight onto pawn-attacked pawn-defended square",
 			fen:  "4k3/8/8/3p4/8/2NP4/8/4K3 w - - 0 1",
-			uci:  "c3e4", want: 100 - 320,
+			uci:  "c3e4", want: 100 - 300,
 		},
 		{
 			// Bishop onto e4, attacked only by the h7 queen but defended by the g3
