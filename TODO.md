@@ -7,12 +7,17 @@ zero failures, under Bryan's explicit upper95>0 rule; combined batch SPRT[0,+6]
 remains required. Tested neutral board representation8a565d1 is integrated39eb128;
 combined TT/board compatibility checks are queued before any new-key games.
 
-**HostC: blocked at10.96GiB**, below25GiB. Campaign partial T74 buckets13.15GB
+**HostC: blocked at8.99GiB**, below25GiB. Campaign partial T74 buckets13.15GB
 were removed; WSL trim did not reclaim host VHD space. Bryan has been asked to
 free space. Detached session21 controllers wait silently:>=32GiB releases
 combined board checks/new-key A/A40/gate400 on13,15 and corrected SEE/pawn checks
 on12,14;>=70GiB releases unchanged T74 continuation/coverage after provenance.
-No new heavy job starts below the floor; hopper1168 stays untouched.
+Session22 adds original NGNN4 row-affine code on an uncommitted topic;
+controller675213 follows the current code checks and32GiB admission,
+full parity/identity plus20 speed blocks, then12 architecture-cost blocks
+only on speed keep. Tests12,14/sample14 preserve other lanes; no new
+build/test/training/game starts below the floor. Hopper1168 stays untouched.
+[Affine manifest](experiments/2026-10-09-ngnn4-row-affine.md).
 [Session21](experiments/2026-10-09-session21.md).
 
 **Rodent V1.2 completed324 games**,41/189/94, zero flags/observed NGN panics,
