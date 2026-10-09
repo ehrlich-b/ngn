@@ -36,3 +36,14 @@ stage `ngnn4-affine`; [controller](2026-10-08-ngnn4-affine-controller.sh),
 and two-file candidate patch are separate from all live jobs. A positive
 verdict retains only an architecture-topic optimization; real training
 and its fresh A/A40/gate400 remain required before strength acceptance.
+
+## Completed verdict — session 17
+
+Controller630484 completed **21:07:48 EDT**, exit0. **SHELVED**: all48
+identities and20 fixed blocks pass completeness, geometric NPS ratio
+**1.03902 [1.00863,1.07033]**, but AB/BA strata **0.98929 /1.09125** fail
+the required both-positive rule. No extension or Elo interpretation. The
+independent raw-record recomputation agrees; original box sample remains
+in `session16a/`. The two-file local patch is preserved in the frozen box
+source/patch and local scratch, then restored on the topic. No topic commit
+or accepted-runtime change. [Reviewed result](2026-10-08-session17-results/affine-review.json).

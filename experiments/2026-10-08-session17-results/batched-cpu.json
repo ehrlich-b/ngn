@@ -1,0 +1,33 @@
+{
+  "completed_utc": "2026-10-09T01:23:32.453979+00:00",
+  "passed": true,
+  "cpu": [
+    13,
+    15
+  ],
+  "nice": 19,
+  "cuda_excluded": true,
+  "logs": {
+    "cpu-narrow.log": "ce113fa9a9376263bfd59c95e25107ff10a623d9f96e15267633ceb91f735d64",
+    "cpu-full.log": "bdfdd4139672e12252b0f49056c384c6cce84afead5cf2e6dc6a959274dc0817"
+  },
+  "source": {
+    "trainer/model.py": "9844e55895489f5f130d971aa0a4c0e027b2d2a4c421d4e5826115edc00a56ee",
+    "trainer/tests/test_ngnn4_batched.py": "6a30b568292fb1d302da57a036317661fbfa9c5d4577140e43688115f30ff270"
+  },
+  "launch": {
+    "observed_utc": "2026-10-09T01:22:01.221266+00:00",
+    "controllers": {
+      "cpu": {
+        "pid": 641098,
+        "cmdline": "bash /home/ehrli/ngn-data/night-20261007/session17b/controller.sh cpu "
+      },
+      "cuda": {
+        "pid": 641099,
+        "cmdline": "bash /home/ehrli/ngn-data/night-20261007/session17b/controller.sh cuda "
+      }
+    }
+  },
+  "full_tail": "alidation_tail_and_no_updates) ... ok\n\n----------------------------------------------------------------------\nRan 65 tests in 76.051s\n\nOK (skipped=6)\n",
+  "exit": "0"
+}
