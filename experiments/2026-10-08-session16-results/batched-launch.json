@@ -1,0 +1,13 @@
+{
+  "observed_utc": "2026-10-09T00:49:20.730200+00:00",
+  "controllers": {
+    "cpu": {
+      "pid": 640369,
+      "cmdline": "bash /home/ehrli/ngn-data/night-20261007/session16c/controller.sh cpu "
+    },
+    "cuda": {
+      "pid": 640370,
+      "cmdline": "bash /home/ehrli/ngn-data/night-20261007/session16c/controller.sh cuda "
+    }
+  }
+}
