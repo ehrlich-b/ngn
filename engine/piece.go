@@ -127,13 +127,13 @@ func (p Piece) weight() int16 {
 	case Pawn:
 		return 100
 	case Knight:
-		return 320
+		return 300
 	case Bishop:
-		return 330
+		return 340
 	case Rook:
-		return 525
+		return 500
 	case Queen:
-		return 1000
+		return 950
 	case King:
 		return KingExchangeValue
 	default:
