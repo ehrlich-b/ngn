@@ -1,0 +1,35 @@
+{
+  "created_utc": "2026-10-09T14:45:52.737715+00:00",
+  "runtime_base": "39eb128",
+  "architecture_base": "14a203a",
+  "manifest_commit": "3c0621d",
+  "files_sha256": {
+    "base.tar": "9977b61113e544d04060e4d081a776d7135a104b8ec64d6044c3d334bc589a60",
+    "candidate.patch": "e38cdbc5f3e2cf23056b2857ec0b89b3b219afe989baeca0c900467e419efacb",
+    "controller.sh": "84ef2d41619637466c5c70dc8a04830bb216a61bc0d5aa0e3f31ea4a0ee83c8b",
+    "check.py": "9212aabfd056982901f3b25a31d15de9f3b8b64e1274fc9b55de967d6fcf5a78",
+    "random-h512-l16.nnue": "6704332592ddd5819e9259517c544a053eefab9a9e12f52e2eb5c9a7e6f8bc0a",
+    "random-h512-l16.json": "3c3191c8b974aeffcdbcc1df7ea6fb60270bbff884ddb73b5155894d1db086d0",
+    "accepted-kb8.nnue": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a"
+  },
+  "cpus": {
+    "tests": [
+      12,
+      14
+    ],
+    "sample": [
+      14
+    ]
+  },
+  "nice": 19,
+  "dependency": {
+    "checks_pid": 675045,
+    "completion": "/home/ehrli/ngn-data/night-20261007/session21/checks.done"
+  },
+  "capacity_admission_bytes": 34359738368,
+  "automatic_adoption": false,
+  "training_launched": false,
+  "pid": 675213,
+  "launched_utc": "2026-10-09T14:45:52.754759+00:00",
+  "c_free_bytes": 9655103488
+}

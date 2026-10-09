@@ -54,7 +54,7 @@ CPU lane but do not imply that either candidate is accepted.
 The new kernel is the explicit reopen condition for the old architecture
 cost deferral. No trained net, GPU trial, games, accepted-runtime merge,
 net/default promotion or claim follows automatically. Any future architecture
-trial still follows the data lane and needs its own actual-base manifestation,
+trial still follows the data lane and needs its own actual-base manifest,
 parity/reexport, fresh A/A40 and standard lower95>0 gate400.
 
 ## Frozen inputs and completion signal
@@ -81,3 +81,11 @@ attempts; a capacity-wait timeout is no engine failure and permits no restart.
 
 Local checks are shell/Python syntax and patch application only. Builds,
 engine tests, searches and timing remain pending on the rig.
+
+
+Launched **10:45:52 EDT**, controller **675213**; at10:46:57 it is alive
+and waiting for675045, with no heavy stage started. C: **8.99GiB**, GPU0%,
+SPSA673954/673958 retains its1000-iteration/12k checkpoint; all three
+session21 controllers and hopper1168 remain alive. [Launch receipt](2026-10-09-session22-results/launch.json),
+[end state](2026-10-09-session22-results/end-state.json). Repository privacy
+and origin were verified through the stored GitHub account before pushing.
