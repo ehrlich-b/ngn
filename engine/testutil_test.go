@@ -100,6 +100,7 @@ func PositionEqual(a, b *Position) bool {
 
 	return a.Board == b.Board &&
 		a.Tag == b.Tag &&
+		a.Side == b.Side &&
 		a.EnPassant == b.EnPassant &&
 		a.HalfMoveClock == b.HalfMoveClock &&
 		a.hash == b.hash

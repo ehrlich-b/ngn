@@ -22,8 +22,8 @@ func TestIndependentPrimitivePieceValuesAndNames(t *testing.T) {
 		if piece.Name() != want {
 			t.Errorf("Piece(%d).Name() = %q, want %q", piece, piece.Name(), want)
 		}
-		if pieceFromName([]rune(want)[0]) != piece {
-			t.Errorf("pieceFromName(%q) did not return %d", want, piece)
+		if parsePieceGlyph([]rune(want)[0]) != piece {
+			t.Errorf("parsePieceGlyph(%q) did not return %d", want, piece)
 		}
 	}
 	for _, piece := range []Piece{NoPiece, Piece(13), Piece(-1)} {
@@ -32,8 +32,8 @@ func TestIndependentPrimitivePieceValuesAndNames(t *testing.T) {
 		}
 	}
 	for _, r := range []rune{' ', 'x', 'X', '\x00'} {
-		if pieceFromName(r) != NoPiece {
-			t.Errorf("pieceFromName(%q) = %d, want NoPiece", r, pieceFromName(r))
+		if parsePieceGlyph(r) != NoPiece {
+			t.Errorf("parsePieceGlyph(%q) = %d, want NoPiece", r, parsePieceGlyph(r))
 		}
 	}
 }
@@ -51,13 +51,13 @@ func TestIndependentPrimitivePieceClassificationUsesLowNibble(t *testing.T) {
 		{Piece(3), Bishop, White, 330},
 		{Piece(4), Rook, White, 525},
 		{Piece(5), Queen, White, 1000},
-		{Piece(6), King, White, MAX_INT},
+		{Piece(6), King, White, KingExchangeValue},
 		{Piece(7), Pawn, Black, 100},
 		{Piece(8), Knight, Black, 320},
 		{Piece(9), Bishop, Black, 330},
 		{Piece(10), Rook, Black, 525},
 		{Piece(11), Queen, Black, 1000},
-		{Piece(12), King, Black, MAX_INT},
+		{Piece(12), King, Black, KingExchangeValue},
 		{Piece(13), NoType, Black, 0},
 		{Piece(14), NoType, Black, 0},
 		{Piece(15), NoType, Black, 0},

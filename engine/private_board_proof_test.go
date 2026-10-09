@@ -46,7 +46,7 @@ func TestPrivateBoardCompatibilityDump(t *testing.T) {
 				t.Fatal("map includes empty square")
 			}
 		}
-		if board.pieces != masks || board.whitePieces != white || board.blackPieces != black {
+		if board.pieces != masks || board.occupiedByColor[White] != white || board.occupiedByColor[Black] != black {
 			t.Fatal("occupancy invariant")
 		}
 		if board.accMG != mg || board.accEG != eg || board.accPhase != phase {
@@ -56,8 +56,8 @@ func TestPrivateBoardCompatibilityDump(t *testing.T) {
 			t.Fatal("map population invariant")
 		}
 		put(board.pieces)
-		put(board.GetWhitePieces())
-		put(board.GetBlackPieces())
+		put(board.WhiteOccupancy())
+		put(board.BlackOccupancy())
 		put(int64(board.accMG))
 		put(int64(board.accEG))
 		put(int64(board.accPhase))

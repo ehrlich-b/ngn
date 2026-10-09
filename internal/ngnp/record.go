@@ -141,10 +141,9 @@ func excess(count, initial int) int {
 
 func (r Record) position() *engine.Position {
 	pos := &engine.Position{EnPassant: engine.NoSquare, Positions: make(map[uint64]int)}
-	pos.SetTag(engine.WhiteToMove)
+	pos.Side = engine.White
 	if r.STM == 1 {
-		pos.ClearTag(engine.WhiteToMove)
-		pos.SetTag(engine.BlackToMove)
+		pos.Side = engine.Black
 	}
 	occupied := r.Occupancy
 	for i := 0; occupied != 0; i++ {

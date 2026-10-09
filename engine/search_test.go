@@ -6,8 +6,8 @@ import (
 
 func newStartingPosition() *Position {
 	return &Position{
-		Board:     StartingBoard(),
-		Tag:       WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide | WhiteToMove,
+		Board: StartingBoard(),
+		Tag:   WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide, Side: White,
 		EnPassant: NoSquare,
 	}
 }
@@ -95,7 +95,7 @@ func TestSearchTacticalPosition(t *testing.T) {
 	pos.Board.UpdateSquare(B7, BlackPawn, NoPiece)
 	pos.Board.UpdateSquare(A8, BlackRook, NoPiece)
 
-	pos.SetTag(WhiteToMove)
+	pos.Side = White
 	pos.EnPassant = NoSquare
 	pos.HalfMoveClock = 0
 
@@ -127,7 +127,7 @@ func TestSearchAvoidMate(t *testing.T) {
 	// Place white queen threatening mate
 	pos.Board.UpdateSquare(D1, WhiteQueen, NoPiece)
 
-	pos.SetTag(BlackToMove)
+	pos.Side = Black
 	pos.EnPassant = NoSquare
 	pos.HalfMoveClock = 0
 
@@ -279,7 +279,7 @@ func TestQuiescenceSearch(t *testing.T) {
 	// Add a black piece that can recapture
 	pos.Board.UpdateSquare(C8, BlackBishop, NoPiece)
 
-	pos.SetTag(WhiteToMove)
+	pos.Side = White
 	pos.EnPassant = NoSquare
 	pos.HalfMoveClock = 0
 

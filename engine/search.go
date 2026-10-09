@@ -218,7 +218,7 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
 	var gain [32]int // Exchange gains on stack
 	depth := 0
 	color := movingPiece.Color().Other() // Side to move after initial capture
-	occupied := pos.Board.GetWhitePieces() | pos.Board.GetBlackPieces()
+	occupied := pos.Board.WhiteOccupancy() | pos.Board.BlackOccupancy()
 	occupied &^= SquareMask[int(from)] // mover left its square -> reveals x-ray attackers behind it
 
 	// gain[0] is the value of the piece initially captured. pieceOnSquare tracks
@@ -277,8 +277,8 @@ func getAttackers(pos *Position, square Square) uint64 {
 	attackers := uint64(0)
 
 	// Pawn attacks
-	whitePawns := pos.Board.GetBitboardOf(WhitePawn)
-	blackPawns := pos.Board.GetBitboardOf(BlackPawn)
+	whitePawns := pos.Board.PieceOccupancy(WhitePawn)
+	blackPawns := pos.Board.PieceOccupancy(BlackPawn)
 
 	// White pawn attacks. A white pawn attacking `square` sits one rank below it:
 	// at square-9 (its file one LEFT of the target, valid when target file > A) or
@@ -319,32 +319,32 @@ func getAttackers(pos *Position, square Square) uint64 {
 	}
 
 	// Knight attacks
-	whiteKnights := pos.Board.GetBitboardOf(WhiteKnight)
-	blackKnights := pos.Board.GetBitboardOf(BlackKnight)
+	whiteKnights := pos.Board.PieceOccupancy(WhiteKnight)
+	blackKnights := pos.Board.PieceOccupancy(BlackKnight)
 	knightAttacks := KnightAttacks[square]
 	attackers |= (whiteKnights | blackKnights) & knightAttacks
 
 	// King attacks
-	whiteKing := pos.Board.GetBitboardOf(WhiteKing)
-	blackKing := pos.Board.GetBitboardOf(BlackKing)
+	whiteKing := pos.Board.PieceOccupancy(WhiteKing)
+	blackKing := pos.Board.PieceOccupancy(BlackKing)
 	kingAttacks := KingAttacks[square]
 	attackers |= (whiteKing | blackKing) & kingAttacks
 
 	// Bishop/Queen diagonal attacks
-	whiteBishops := pos.Board.GetBitboardOf(WhiteBishop)
-	blackBishops := pos.Board.GetBitboardOf(BlackBishop)
-	whiteQueens := pos.Board.GetBitboardOf(WhiteQueen)
-	blackQueens := pos.Board.GetBitboardOf(BlackQueen)
+	whiteBishops := pos.Board.PieceOccupancy(WhiteBishop)
+	blackBishops := pos.Board.PieceOccupancy(BlackBishop)
+	whiteQueens := pos.Board.PieceOccupancy(WhiteQueen)
+	blackQueens := pos.Board.PieceOccupancy(BlackQueen)
 
 	diagonalAttackers := whiteBishops | blackBishops | whiteQueens | blackQueens
-	attackers |= diagonalAttackers & seeGetBishopAttacks(square, pos.Board.GetWhitePieces()|pos.Board.GetBlackPieces())
+	attackers |= diagonalAttackers & seeGetBishopAttacks(square, pos.Board.WhiteOccupancy()|pos.Board.BlackOccupancy())
 
 	// Rook/Queen straight attacks
-	whiteRooks := pos.Board.GetBitboardOf(WhiteRook)
-	blackRooks := pos.Board.GetBitboardOf(BlackRook)
+	whiteRooks := pos.Board.PieceOccupancy(WhiteRook)
+	blackRooks := pos.Board.PieceOccupancy(BlackRook)
 
 	straightAttackers := whiteRooks | blackRooks | whiteQueens | blackQueens
-	attackers |= straightAttackers & seeGetRookAttacks(square, pos.Board.GetWhitePieces()|pos.Board.GetBlackPieces())
+	attackers |= straightAttackers & seeGetRookAttacks(square, pos.Board.WhiteOccupancy()|pos.Board.BlackOccupancy())
 
 	return attackers
 }
@@ -379,7 +379,7 @@ func findLeastValuableAttacker(pos *Position, attackers uint64, color Color) (Sq
 	}
 	for pt := Pawn; pt <= King; pt++ {
 		piece := Piece(pt) + base
-		pieceBB := pos.Board.GetBitboardOf(piece) & attackers
+		pieceBB := pos.Board.PieceOccupancy(piece) & attackers
 		if pieceBB != 0 {
 			return Square(bits.TrailingZeros64(pieceBB)), piece
 		}
@@ -398,8 +398,8 @@ func seeNonSliderAttackers(pos *Position, targetSquare Square) uint64 {
 	nonSlider := uint64(0)
 
 	// Pawn attacks (file guards paired with the matching offset — see getAttackers).
-	whitePawns := pos.Board.GetBitboardOf(WhitePawn)
-	blackPawns := pos.Board.GetBitboardOf(BlackPawn)
+	whitePawns := pos.Board.PieceOccupancy(WhitePawn)
+	blackPawns := pos.Board.PieceOccupancy(BlackPawn)
 	if targetSquare.Rank() > Rank1 {
 		if targetSquare.File() > FileA {
 			nonSlider |= whitePawns & SquareMask[int(targetSquare)-9]
@@ -418,8 +418,8 @@ func seeNonSliderAttackers(pos *Position, targetSquare Square) uint64 {
 	}
 
 	// Knight + king attacks (occupancy-independent patterns).
-	nonSlider |= (pos.Board.GetBitboardOf(WhiteKnight) | pos.Board.GetBitboardOf(BlackKnight)) & KnightAttacks[targetSquare]
-	nonSlider |= (pos.Board.GetBitboardOf(WhiteKing) | pos.Board.GetBitboardOf(BlackKing)) & KingAttacks[targetSquare]
+	nonSlider |= (pos.Board.PieceOccupancy(WhiteKnight) | pos.Board.PieceOccupancy(BlackKnight)) & KnightAttacks[targetSquare]
+	nonSlider |= (pos.Board.PieceOccupancy(WhiteKing) | pos.Board.PieceOccupancy(BlackKing)) & KingAttacks[targetSquare]
 	return nonSlider
 }
 
@@ -432,17 +432,17 @@ func getAttackersAfterMove(pos *Position, nonSlider uint64, occupied uint64, tar
 	tempAttackers := nonSlider & occupied
 
 	// Bishop/Queen diagonal attacks
-	whiteBishops := pos.Board.GetBitboardOf(WhiteBishop) & occupied
-	blackBishops := pos.Board.GetBitboardOf(BlackBishop) & occupied
-	whiteQueens := pos.Board.GetBitboardOf(WhiteQueen) & occupied
-	blackQueens := pos.Board.GetBitboardOf(BlackQueen) & occupied
+	whiteBishops := pos.Board.PieceOccupancy(WhiteBishop) & occupied
+	blackBishops := pos.Board.PieceOccupancy(BlackBishop) & occupied
+	whiteQueens := pos.Board.PieceOccupancy(WhiteQueen) & occupied
+	blackQueens := pos.Board.PieceOccupancy(BlackQueen) & occupied
 
 	diagonalAttackers := whiteBishops | blackBishops | whiteQueens | blackQueens
 	tempAttackers |= diagonalAttackers & seeGetBishopAttacks(targetSquare, occupied)
 
 	// Rook/Queen straight attacks
-	whiteRooks := pos.Board.GetBitboardOf(WhiteRook) & occupied
-	blackRooks := pos.Board.GetBitboardOf(BlackRook) & occupied
+	whiteRooks := pos.Board.PieceOccupancy(WhiteRook) & occupied
+	blackRooks := pos.Board.PieceOccupancy(BlackRook) & occupied
 
 	straightAttackers := whiteRooks | blackRooks | whiteQueens | blackQueens
 	tempAttackers |= straightAttackers & seeGetRookAttacks(targetSquare, occupied)
@@ -1097,7 +1097,7 @@ func extractPVFromTT(tt *Cache, pos *Position, firstMove Move, maxLength int) []
 	type undoEntry struct {
 		move Move
 		ep   Square
-		tag  PositionTag
+		tag  PositionState
 		hc   uint8
 	}
 	pv := make([]Move, 0, maxLength)
@@ -1376,7 +1376,7 @@ func seedRootStaticEval(pos *Position, info *SearchInfo) {
 	}
 	stm := pos.Turn()
 	corrIdx := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
-	nonPawnCorrIdx := nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])
+	nonPawnCorrIdx := nonPawnCorrectionIndex(pos.Board.WhiteOccupancy()&^pos.Board.pieces[WhitePawn], pos.Board.BlackOccupancy()&^pos.Board.pieces[BlackPawn])
 	minorCorrIdx := minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
 	info.StaticEvalStack[0] = info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
 }
@@ -1600,7 +1600,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 	} else {
 		corrIdx = pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
-		nonPawnCorrIdx = nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])
+		nonPawnCorrIdx = nonPawnCorrectionIndex(pos.Board.WhiteOccupancy()&^pos.Board.pieces[WhitePawn], pos.Board.BlackOccupancy()&^pos.Board.pieces[BlackPawn])
 		minorCorrIdx = minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
 		staticEval = info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
 		corrStaticEval = staticEval // T4: capture the corrected static (raw + pawn + non-pawn + minor) BEFORE S7 overwrites it (all tables' learn target)
@@ -2020,9 +2020,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			if (color == White && destRank >= 6) || (color == Black && destRank <= 1) {
 				var oppPawns uint64
 				if color == White {
-					oppPawns = pos.Board.GetBitboardOf(BlackPawn)
+					oppPawns = pos.Board.PieceOccupancy(BlackPawn)
 				} else {
-					oppPawns = pos.Board.GetBitboardOf(WhitePawn)
+					oppPawns = pos.Board.PieceOccupancy(WhitePawn)
 				}
 				if passedPawnFrontSpan[color][dest]&oppPawns == 0 && nextDepth+1 <= depth {
 					nextDepth++

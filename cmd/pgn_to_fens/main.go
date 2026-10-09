@@ -25,8 +25,8 @@ func main() {
 
 	// Start with initial position
 	pos := &engine.Position{
-		Board:     engine.StartingBoard(),
-		Tag:       engine.WhiteCanCastleKingSide | engine.WhiteCanCastleQueenSide | engine.BlackCanCastleKingSide | engine.BlackCanCastleQueenSide | engine.WhiteToMove,
+		Board: engine.StartingBoard(),
+		Tag:   engine.WhiteCanCastleKingSide | engine.WhiteCanCastleQueenSide | engine.BlackCanCastleKingSide | engine.BlackCanCastleQueenSide, Side: engine.White,
 		EnPassant: engine.NoSquare,
 	}
 

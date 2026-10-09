@@ -533,17 +533,17 @@ func countMaterial(board *Bitboard, color Color) int {
 	score := 0
 
 	if color == White {
-		score += PopCount(board.GetBitboardOf(WhitePawn)) * 100
-		score += PopCount(board.GetBitboardOf(WhiteKnight)) * 300
-		score += PopCount(board.GetBitboardOf(WhiteBishop)) * 300
-		score += PopCount(board.GetBitboardOf(WhiteRook)) * 500
-		score += PopCount(board.GetBitboardOf(WhiteQueen)) * 900
+		score += PopCount(board.PieceOccupancy(WhitePawn)) * 100
+		score += PopCount(board.PieceOccupancy(WhiteKnight)) * 300
+		score += PopCount(board.PieceOccupancy(WhiteBishop)) * 300
+		score += PopCount(board.PieceOccupancy(WhiteRook)) * 500
+		score += PopCount(board.PieceOccupancy(WhiteQueen)) * 900
 	} else {
-		score += PopCount(board.GetBitboardOf(BlackPawn)) * 100
-		score += PopCount(board.GetBitboardOf(BlackKnight)) * 300
-		score += PopCount(board.GetBitboardOf(BlackBishop)) * 300
-		score += PopCount(board.GetBitboardOf(BlackRook)) * 500
-		score += PopCount(board.GetBitboardOf(BlackQueen)) * 900
+		score += PopCount(board.PieceOccupancy(BlackPawn)) * 100
+		score += PopCount(board.PieceOccupancy(BlackKnight)) * 300
+		score += PopCount(board.PieceOccupancy(BlackBishop)) * 300
+		score += PopCount(board.PieceOccupancy(BlackRook)) * 500
+		score += PopCount(board.PieceOccupancy(BlackQueen)) * 900
 	}
 
 	return score

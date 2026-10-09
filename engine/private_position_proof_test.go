@@ -23,7 +23,7 @@ func TestPrivatePositionCompatibilityDump(t *testing.T) {
 	record := func(p *Position) {
 		put(p.Hash())
 		put(p.hash)
-		put(generateZobristHash(p))
+		put(computePositionKey(p))
 		put(uint8(p.Tag))
 		put(int8(p.EnPassant))
 		put(p.HalfMoveClock)
@@ -75,7 +75,7 @@ func TestPrivatePositionCompatibilityDump(t *testing.T) {
 				t.Fatal("legal full move rejected")
 			}
 			p.partialMakeMove(move)
-			if !reflect.DeepEqual(p.Board, full.Board) || p.Tag != tag^(BlackToMove|WhiteToMove) || p.EnPassant != ep || p.HalfMoveClock != clock || p.hash != hash {
+			if !reflect.DeepEqual(p.Board, full.Board) || p.Tag != tag || p.Side != original.Side.Other() || p.EnPassant != ep || p.HalfMoveClock != clock || p.hash != hash {
 				t.Fatal("partial move contract")
 			}
 			p.partialUnMakeMove(move)
@@ -97,7 +97,7 @@ func TestPrivatePositionCompatibilityDump(t *testing.T) {
 		original := p.Copy()
 		var moves []Move
 		var targets []Square
-		var tags []PositionTag
+		var tags []PositionState
 		var clocks []uint8
 		random := uint32(0x3aef2271)
 		for ply := 0; ply < 100; ply++ {
@@ -131,7 +131,7 @@ func TestPrivatePositionCompatibilityDump(t *testing.T) {
 	for _, pieces := range placements {
 		for _, clock := range []uint8{0, 99, 100, 101, 255} {
 			for count := 0; count <= 3; count++ {
-				p := &Position{EnPassant: NoSquare, Tag: WhiteToMove, HalfMoveClock: clock}
+				p := &Position{EnPassant: NoSquare, Side: White, HalfMoveClock: clock}
 				p.Board.UpdateSquare(E1, WhiteKing, NoPiece)
 				p.Board.UpdateSquare(E8, BlackKing, NoPiece)
 				for i, piece := range pieces {
@@ -151,11 +151,11 @@ func TestPrivatePositionCompatibilityDump(t *testing.T) {
 		}
 	}
 	for tag := 0; tag < 256; tag++ {
-		p := &Position{Tag: PositionTag(tag)}
+		p := &Position{Tag: PositionState(tag)}
 		put(int8(p.Turn()))
 		put(p.HasCastling())
 		put(p.IsInCheck())
-		for _, mask := range []PositionTag{0, 1, 8, 15, 16, 32, 64, 128, 255} {
+		for _, mask := range []PositionState{0, 1, 8, 15, 16, 32, 64, 128, 255} {
 			put(p.HasTag(mask))
 			original := p.Tag
 			p.SetTag(mask)

@@ -19,16 +19,16 @@ func TestPrivateHashCompatibilityDump(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	put(whiteTurnZC)
-	for _, row := range piecesZC {
+	put(whiteSideKey)
+	for _, row := range occupantKeys {
 		for _, key := range row {
 			put(key)
 		}
 	}
-	for _, key := range castleRightsZC {
+	for _, key := range castlingKeys {
 		put(key)
 	}
-	for _, key := range enPassantZC {
+	for _, key := range epTargetKeys {
 		put(key)
 	}
 	fens := []string{
@@ -44,7 +44,7 @@ func TestPrivateHashCompatibilityDump(t *testing.T) {
 	record := func(position *Position) {
 		put(position.Hash())
 		put(position.hash)
-		put(generateZobristHash(position))
+		put(computePositionKey(position))
 		put(uint8(position.Tag))
 		put(int8(position.EnPassant))
 		put(position.HalfMoveClock)
@@ -69,7 +69,7 @@ func TestPrivateHashCompatibilityDump(t *testing.T) {
 			}
 			put(uint32(move))
 			record(position)
-			if position.Hash() != generateZobristHash(position) {
+			if position.Hash() != computePositionKey(position) {
 				t.Fatalf("incremental key mismatch after %s", move.ToString())
 			}
 			position.UnMakeMove(move, tag, ep, clock)
@@ -82,7 +82,7 @@ func TestPrivateHashCompatibilityDump(t *testing.T) {
 		before := position.Hash()
 		ep := position.MakeNullMove()
 		record(position)
-		if position.Hash() != generateZobristHash(position) {
+		if position.Hash() != computePositionKey(position) {
 			t.Fatal("null incremental key mismatch")
 		}
 		position.UnMakeNullMove(ep)
@@ -92,7 +92,7 @@ func TestPrivateHashCompatibilityDump(t *testing.T) {
 		}
 		var moves []Move
 		var targets []Square
-		var tags []PositionTag
+		var tags []PositionState
 		var clocks []uint8
 		random := uint32(0x389a17e4)
 		for ply := 0; ply < 160; ply++ {
@@ -114,7 +114,7 @@ func TestPrivateHashCompatibilityDump(t *testing.T) {
 			clocks = append(clocks, clock)
 			put(uint32(move))
 			record(position)
-			if position.Hash() != generateZobristHash(position) {
+			if position.Hash() != computePositionKey(position) {
 				t.Fatalf("walk key mismatch at %d", ply)
 			}
 		}

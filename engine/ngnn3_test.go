@@ -294,7 +294,7 @@ func TestNGNN3KingTransitionsAndSpecialMoves(t *testing.T) {
 		}{
 			{E1, F1, 0}, {D1, E1, 1}, {B1, C1, 1}, {D3, E3, 1}, {E4, F4, 0},
 		} {
-			pos := &Position{Tag: WhiteToMove, EnPassant: NoSquare}
+			pos := &Position{Side: White, EnPassant: NoSquare}
 			pos.Board.UpdateSquare(pair.from, WhiteKing, NoPiece)
 			pos.Board.UpdateSquare(H8, BlackKing, NoPiece)
 			move := NewMove(pair.from, pair.to, WhiteKing, NoPiece, NoType, 0)
@@ -322,14 +322,14 @@ func TestNGNN3RandomGamesAndSymmetry(t *testing.T) {
 				type undo struct {
 					move  Move
 					ep    Square
-					tag   PositionTag
+					tag   PositionState
 					clock uint8
 				}
 				var undos []undo
 				for ply := 0; ply < 120; ply++ {
 					ngnn3Assert(t, e, pos)
 					for _, flip := range []int{7, 56, 63} {
-						transformed := &Position{Tag: pos.Tag, EnPassant: NoSquare}
+						transformed := &Position{Tag: pos.Tag, Side: pos.Side, EnPassant: NoSquare}
 						if flip&56 != 0 {
 							transformed.ToggleTurn()
 						}
