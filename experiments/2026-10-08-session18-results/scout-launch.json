@@ -1,0 +1,27 @@
+{
+  "root": "/home/ehrli/ngn-data/night-20261007/session18d",
+  "wrapper_pid": 652150,
+  "inner_pid": 652152,
+  "launch_utc": "2026-10-09T02:02:01.402108+00:00",
+  "source_commit": "65a2a59449deecd6fbb52bde0a6a8cac738780cd",
+  "accepted_runtime": "5b882e2",
+  "files_sha256": {
+    "base.tar": "6b0ec0b0296dc8ce55f2f9b66910af12ac5d437af5c6fb240d1e5afc5d2fc83e",
+    "candidate.patch": "facf3be91e98b7672ae0284495adc1d1cbfd3b8d4fe0a458a2ff1de20930a58f",
+    "controller.sh": "0275c6e481df07ba5d6b69c7d16272905c409cf9c2d19fb9214992aa2c1c5b10",
+    "manifest.md": "bd73744229a339202d2085db0d1d6a93b15ba5790c95f83ed277ba6e2e568dcc",
+    "frozen-inputs.sha256": "04a9657a64f4d8b30719b5243aa7006bbc73d7241fdd674dbc2142a2c8cc0eba"
+  },
+  "source_sha256": {
+    "engine/search.go": "7a8934d80b81ecc26450753417f1b869b08a13ababdc7ca45217bacb46d058cb",
+    "engine/search_scout_depth_test.go": "f09178d17e3de19a55e39c109e3813cd98023cc1e583e14077eb4b92215230c0"
+  },
+  "candidate_regression_log": "=== RUN   TestLaterMoveScoutPreservesExtensions\n=== RUN   TestLaterMoveScoutPreservesExtensions/check\n=== RUN   TestLaterMoveScoutPreservesExtensions/passed-pawn\n--- PASS: TestLaterMoveScoutPreservesExtensions (0.01s)\n    --- PASS: TestLaterMoveScoutPreservesExtensions/check (0.00s)\n    --- PASS: TestLaterMoveScoutPreservesExtensions/passed-pawn (0.00s)\nPASS\nok  \tgithub.com/ehrlich-b/ngn/engine\t0.014s\n",
+  "baseline_negative_log": "=== RUN   TestLaterMoveScoutPreservesExtensions\n=== RUN   TestLaterMoveScoutPreservesExtensions/check\n    search_scout_depth_test.go:50: later a1a8: target=true reply=false stopped=false score=0; shallow TT entry must not cover the extended scout\n=== RUN   TestLaterMoveScoutPreservesExtensions/passed-pawn\n    search_scout_depth_test.go:50: later a6a7: target=true reply=false stopped=false score=0; shallow TT entry must not cover the extended scout\n--- FAIL: TestLaterMoveScoutPreservesExtensions (0.01s)\n    --- FAIL: TestLaterMoveScoutPreservesExtensions/check (0.00s)\n    --- FAIL: TestLaterMoveScoutPreservesExtensions/passed-pawn (0.00s)\nFAIL\nFAIL\tgithub.com/ehrlich-b/ngn/engine\t0.014s\nFAIL\n",
+  "cpus": [
+    13,
+    15
+  ],
+  "whole_deadline_edt": "2026-10-09 01:17",
+  "automatic_promotion": false
+}

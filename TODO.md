@@ -18,35 +18,38 @@ V2 orientation **3434.6 [3388.3,3480.9]** supplies no3600 eligibility.
 Activated20:42 EDT by2fba7b1. GPU12,14/nice19/BF16; folded parity/reexport,
 fresh A/A40/gate400 follow. Accept only complete penta lower95>0 and zero
 operational failures. No automatic promotion. Unchanged SPSA630159/630163
-continues on CPU0–11, last retained625 iterations/7,500 games; no tuning
+continues on CPU0–11, last durable675 iterations/8,100 games at22:07:07; no tuning
 verdict before >=20k plus converged-vector paired games. Preserve its legacy
 resume/RNG; [future repair](experiments/2026-10-08-spsa-exact-resume.md) is separate.
 
-**Architecture cost topics in verification**, no real NGNN4 net trained.
-Affine16 is shelved:48 identities/20 blocks, ratio1.03902 [1.00863,1.07033]
-but AB stratum0.98929 fails. Original sample preserved, local patch restored.
-Batched trainer corrected CPU root `session17b/` passes65 tests/6 CUDA skips;
-CUDA641099 follows factorizer630389. New fused-output641437 (`session17f/`)
-passes new guarded AVX2/Go/scalar and320-case parity; full checks/fixed speed
-sample running. New optional sparse-transformer CPU651273 follows fused output;
-CUDA651274 follows CPU pass then batched CUDA641099 (`session17s/`).
-[Session17 work and rules](experiments/2026-10-08-session17.md).
-Keep source on topics until complete fixed verdicts. Preserve both short CUDA
-cost windows before another trainer or exclusive claim. Original architecture
-`night/hidden-layer 9b6a3d6` is CPU/integer/engine/CUDA-tested; select the next
-real NGNN4 recipe after factorizer and cost reviews against the actual base.
+**Fused NGNN4 output KEPT ON TOPIC 14a203a**,48 identities/20 fixed blocks,
+NPS ratio1.108407 [1.077645,1.140047], both order strata>1; full tests/parity
+pass. No main merge or Elo result. Sparse CPU passes68 tests/6 CUDA skips;
+batched CPU passes65/6. CUDA641099 then651274 follow factorizer630389;
+preserve both fixed cost windows before another trainer or exclusive claim.
+[Completed review](experiments/2026-10-08-session18.md).
 
-V3 tool/source **4cdf39aa / 376671f**, schema3/threshold3600, now passes all12
-operational admission games. Clean accepted-engine preparation **737c18be / 1d63544**
-is reusable. Final nomination/provenance/prospective protocol still pending;
-no screen/claim queued. Operational and v2 orientation games supply no claim
-qualification. Preserve batched CUDA window before another GPU trainer/claim.
-Owned-teacher calibration remains an alternative prepared lane, `session10/`;
-[activation contract](experiments/2026-10-08-owned-calibration.md). Deferred accumulators
-and quiet-move unroll remain shelved, no extension. Hopper untouched.
-Next campaign session **not before21:55 EDT** for fused-output/sparse CPU results.
-Factorizer8/58 epochs at21:30, complete-epoch mean352.96s; training ETA02:24
-EDT October9, then parity/checkpoint/A/A40/gate400.
+**Scout-depth source candidate RUNNING**, detached652150/652152,
+`night-20261007/session18d/`, launched22:02:01. Initial later-move scout uses
+computed child depth before LMR, preserving extensions/path budget. Both
+integration regressions fail on base and pass on candidate; all engine/full
+short/race/vet and PGO builds pass. A/A40 started22:07:25, then gate400 at
+10+0.1/concurrency2,
+CPU13,15/nice19/GOMAXPROCS1. Topic `night/scout-depth`, two uncommitted files
+in `output/campaign-scout-depth/`; no automatic promotion. Require complete
+penta lower95>0/zero failures/intact inputs. Hold until factorizer verdict;
+if its net wins, re-gate scout on the actual new base. [Manifest](experiments/2026-10-08-scout-depth.md).
+Expected terminal~00:00 October9; whole bound01:17 before factorizer ETA02:24.
+
+Next actual GPU architecture remains NGNN4,9b6a3d6 +retained fusion14a203a,
+no real net trained. Choose H/L recipe after both trainer CUDA cost reviews;
+review combined cost if both pass, then freeze actual immediate base and recipe.
+Affine16, deferred accumulators and quiet-move unroll remain shelved.
+V3 tool/source4cdf39aa/376671f passes12 operational admission games; reusable
+accepted preparation737c18be/1d63544 needs no new custody audit. Final nomination/
+prospective protocol and strength games remain pending. Owned calibration is
+prepared in `session10/`. Hopper untouched. Next campaign session **not before
+00:00 EDT October9** for scout terminal review; factorizer follows later.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
