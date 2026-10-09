@@ -30,6 +30,9 @@ Session25 queues a pure-speed own-TT scan on a separate39eb128 topic;
 checks12,14,36 identities and20 fixed speed blocks14; lower NPS95>1 and
 both order strata>1 required. No heavy stage/verdict/adoption.
 [Manifest](experiments/2026-10-09-tt-scan.md).
+Session26 confirms capacity still8.99GiB; all eight detached controllers are
+alive, no eligible native campaign cleanup, no new code/job/verdict. Capacity
+recovery is the next actionable event. [Session26](experiments/2026-10-09-session26.md).
 [Affine manifest](experiments/2026-10-09-ngnn4-row-affine.md).
 [Session21](experiments/2026-10-09-session21.md).
 

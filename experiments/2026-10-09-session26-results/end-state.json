@@ -1,0 +1,65 @@
+{
+  "checked_utc": "2026-10-09T15:44:13.427708+00:00",
+  "host_c_free_bytes": 9652273152,
+  "gpu_utilization_percent": 0,
+  "pids_alive": {
+    "1168": true,
+    "673954": true,
+    "673958": true,
+    "675044": true,
+    "675045": true,
+    "675046": true,
+    "675213": true,
+    "675346": true,
+    "675352": true,
+    "675472": true,
+    "675562": true
+  },
+  "latest_spsa": {
+    "iter": 1050,
+    "time": "2026-10-09T11:30:22-04:00",
+    "plus_pct": 47.833333333333336,
+    "theta": {
+      "AspInit": 14.838170071155446,
+      "AspMult": 158.90590449065624,
+      "DeltaMargin": 169.94405382118353,
+      "ExtensionBudget": 28.632928510031743,
+      "FutilityMargin": 105.65771223293012,
+      "FutilityMaxDepth": 7.666970681620314,
+      "LMPBase": 3.3938784110140716,
+      "LMRFullDepth": 3.364424662988253,
+      "LMRMoveThreshold": 2.0831630746057788,
+      "NullMoveMinDepth": 2.231691246466698,
+      "NullMoveR": 3.8685374626060445,
+      "ReverseFutilityMargin": 63.65168297620234,
+      "SingularDepth": 6.459778969219217,
+      "SingularMargin": 58.529776925225256
+    },
+    "rounded": {
+      "AspInit": 15,
+      "AspMult": 159,
+      "DeltaMargin": 170,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 106,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 3,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 64,
+      "SingularDepth": 6,
+      "SingularMargin": 59
+    }
+  },
+  "session26_new_jobs": [],
+  "campaign_owned_native_cleanup_found": false,
+  "native_ngn_total": "<0.5GiB; pre-campaign artifacts; retained",
+  "accepted_source": "39eb128",
+  "accepted_net": "be34532c",
+  "verdicts": [],
+  "next_capacity_thresholds_GiB": {
+    "code_and_games": 32,
+    "t74_conversion": 70
+  }
+}
