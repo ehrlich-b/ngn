@@ -9,7 +9,7 @@ box handles and handoff. Accepted runtime **5b882e2 /NGNN3 KB8 H512 be34532c**,
 concurrency6/CPU0–11, deadline07:45EDT, >=160 complete paired games.
 Waits SPSA's durable850; pauses/restores the old-base tune. Factorizer's
 **controller630389 is intentionally held**, trainer630440 continues12,14/GPU,
-50/58 at01:22, ETA~02:08; parity/A/A/gate wait for Rodent's end.
+54/58 at01:44, ETA~02:06; parity/A/A/gate wait for Rodent's end.
 SPSA666877/666880 remains unchanged,825/9900 durable; >=20k plus converged-vector
 paired games required. [Match record](experiments/2026-10-09-rodent-head-to-head.md).
 
@@ -26,7 +26,7 @@ byte-identical consume-gather pass. Dispatcher655799 is held until TT ends by
 resumer666748, then follows CUDA/corpus/coverage; no trainer queued.
 **GPU cost admission666724** follows trainer, runs original batched/sparse fixed
 windows on newly free12,14; original unstarted641099/651274 waiters are stopped/
-superseded. Own space guard656725 active, C:111.5GiB free at01:22.
+superseded. Own space guard656725 active, C:109.0GiB free at01:44.
 [Data recipe](experiments/2026-10-09-data-volume.md).
 
 **Time-admission candidate tested**, full suites/builds pass; future60+0.6
@@ -40,8 +40,11 @@ fails the declared0.85 training budget threshold. Fused14a203a remains on topic.
 
 H1024, longer H512, affine16, deferred accumulators and quiet unroll remain shelved.
 Claim/stronger-anchor tools are reusable, no claim queued in this window.
-Hopper1168 untouched. Next session **not before01:45EDT** for Rodent launch state;
-then the declared verdicts/next data nomination. No repeated pinned-input audits.
+**Pawn-context quiet ordering prepared**, CPU/resource checks667498 follow SEE
+on12,14; no games/adoption. Terminal Rodent recount/replay667300 is queued,
+statistical/legal/fault fixtures pass. [New candidate](experiments/2026-10-09-pawn-quiet-history.md).
+Hopper1168 untouched. Next session **not before02:25EDT** for Rodent stage and
+CUDA/SEE/pawn checks; then TT verdict/data nomination. No repeated pinned-input audits.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

@@ -1,0 +1,52 @@
+{
+  "utc": "2026-10-09T05:44:53.231684+00:00",
+  "factorizer_epochs": 54,
+  "training_eta_utc": "2026-10-09T06:06:15.185610+00:00",
+  "last5_epoch_mean_seconds": 320.48848161941277,
+  "spsa_iterations": 825,
+  "spsa_games": 9900,
+  "c_free_bytes": 117076570112,
+  "handles": {
+    "session19-rodent3": {
+      "pid": 667005,
+      "terminal": false
+    },
+    "session19-tt-gate": {
+      "pid": 664657,
+      "terminal": false
+    },
+    "session19-gpu-release2": {
+      "pid": 666724,
+      "terminal": false
+    },
+    "session19-data-resume": {
+      "pid": 666748,
+      "terminal": false
+    },
+    "session19-see": {
+      "pid": 667047,
+      "terminal": false
+    },
+    "session20-pawn-history": {
+      "pid": 667498,
+      "terminal": false
+    },
+    "session20": {
+      "pid": 667300,
+      "terminal": false
+    }
+  },
+  "factorizer_controller_held": true,
+  "accepted_runtime": "5b882e2",
+  "net": "be34532c",
+  "rodent_binary_symlink": false,
+  "rodent_launched": false,
+  "pawn_history_startup_edt": "2026-10-09T01:45:45-04:00",
+  "pawn_history_initial_launch": {
+    "pid": 667420,
+    "started": false,
+    "controller_started_absent": true,
+    "log_empty": true,
+    "receipt_preserved": "session20-pawn-history/controller-launch-initial.pid"
+  }
+}

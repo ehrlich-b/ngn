@@ -1,0 +1,1 @@
+{"passed": true, "checks": ["five penta bins and WDL", "independent closed-form CI", "wrong mate/color rejection", "incomplete pair flag retained", "terminal-only full report"], "elo_ci95": [0.0, -251.7833355442057, 251.78333554420567]}
