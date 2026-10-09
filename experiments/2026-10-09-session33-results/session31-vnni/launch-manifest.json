@@ -1,0 +1,24 @@
+{
+  "utc": "2026-10-09T22:19:20.577340+00:00",
+  "architecture_base": "aafa7fd",
+  "runtime_base": "39eb128",
+  "topic": "night/ngnn4-vnni",
+  "one_change": "runtime-selected EVEX256 VNNI row dot",
+  "sha256": {
+    "base.tar": "8e77205f1e01726de1f59fc7b03513c8634f3a42d60af24f54a7ffcb9534ed17",
+    "candidate.patch": "f3dbb021c1bad588ba89de46068c0edbe131ada9b62243c60a21ee1bbd986de7",
+    "controller.sh": "1df6b5dfeec62f762f3898ecb2c5b4039ba33f56e82305372bf6e47100a611d5",
+    "check.py": "0cd256bf8f09f41fd0dbb582efe0c2fb15ae92dab37ac1589a0708d55a149459",
+    "manifest.md": "5d61ff661e901d9d77f781a4332e80ea3fb41577d0451fa7882e7d2b33955c6a",
+    "accepted-kb8.nnue": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+    "random-h512-l16.nnue": "6704332592ddd5819e9259517c544a053eefab9a9e12f52e2eb5c9a7e6f8bc0a",
+    "random-h512-l16.json": "3c3191c8b974aeffcdbcc1df7ea6fb60270bbff884ddb73b5155894d1db086d0"
+  },
+  "rule": "48 identities; exactly20 AB/BA blocks; lower95 NPS>1 and both strata>1; only speed keep permits12 budget blocks; point>=0.85; no auto-adoption/training",
+  "cpus": [
+    12,
+    14
+  ],
+  "timing_cpu": 14,
+  "expected_minutes": 30
+}

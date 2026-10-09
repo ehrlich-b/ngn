@@ -1,0 +1,139 @@
+{
+  "completed": "2026-10-09T18:45:59-04:00",
+  "logs": {
+    "vet.log": {
+      "bytes": 0,
+      "tail": []
+    },
+    "candidate-build.log": {
+      "bytes": 0,
+      "tail": []
+    },
+    "baseline-ngnn4-tests.log": {
+      "bytes": 768,
+      "tail": [
+        "--- PASS: TestNGNN4TrainerParity (0.04s)",
+        "PASS",
+        "ok  \tgithub.com/ehrlich-b/ngn/engine\t1.622s"
+      ]
+    },
+    "baseline-build.log": {
+      "bytes": 0,
+      "tail": []
+    },
+    "differential-purego.log": {
+      "bytes": 768,
+      "tail": [
+        "--- PASS: TestNGNN4TrainerParity (0.05s)",
+        "PASS",
+        "ok  \tgithub.com/ehrlich-b/ngn/engine\t1.424s"
+      ]
+    },
+    "full-short.log": {
+      "bytes": 2579,
+      "tail": [
+        "?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]",
+        "?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]",
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/uci\t0.055s"
+      ]
+    },
+    "ngn_crashes.log": {
+      "bytes": 17936,
+      "tail": [
+        "[NGN CRASH] 2026/10/09 18:45:26.285819 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session31-vnni/ngn_crashes.log",
+        "[NGN CRASH] 2026/10/09 18:45:43.858112 crash_handler.go:64: === NGN Crash Handler Initialized ===",
+        "[NGN CRASH] 2026/10/09 18:45:43.858197 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session31-vnni/ngn_crashes.log"
+      ]
+    },
+    "differential-avx2.log": {
+      "bytes": 987,
+      "tail": [
+        "--- PASS: TestNGNN4VNNIDirectAndFallback (0.95s)",
+        "PASS",
+        "ok  \tgithub.com/ehrlich-b/ngn/engine\t2.325s"
+      ]
+    },
+    "check.log": {
+      "bytes": 1334,
+      "tail": [
+        "{\"identity\": {\"ngnn4\": {\"depth\": 12, \"equal\": true, \"cases\": 12}, \"ngnn3\": {\"depth\": 14, \"equal\": true, \"cases\": 12}, \"ngnn2\": {\"depth\": 14, \"equal\": true, \"cases\": 12}, \"hce\": {\"depth\": 11, \"equal\": true, \"cases\": 12}}, \"binary_sha256\": {\"baseline\": \"f8502bdac3d4435df1227e739087a99171cb789d788f5641a5652a6e910497c0\", \"candidate\": \"5cdf3c43fc46318c0c637502e17725fdb6e0517d23f0d2bcf31d09737715ef2c\"}, \"net_sha256\": \"6704332592ddd5819e9259517c544a053eefab9a9e12f52e2eb5c9a7e6f8bc0a\", \"old_net_sha256\": \"c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2\", \"cpu\": 14, \"environment\": {\"GOMAXPROCS\": \"1\"}, \"nice\": 19, \"seconds\": 909.393881559372, \"geometric_ratio\": 1.0690761849237538, \"ci95\": [1.0451706069652411, 1.0935285412299562], \"order_strata_ratios\": [1.1133592057499047, 1.0265544877776533], \"repeatable_gain\": true}",
+        "{\"geometric_ratio\": 0.8764955547301986, \"ci95\": [0.8536101606343147, 0.8999945090753355], \"order_strata_ratios\": [0.8606211438230765, 0.8926627738299344], \"ratio_threshold\": 0.85, \"budget_admitted\": true, \"cpu\": 14, \"net_sha256\": {\"ngnn4\": \"6704332592ddd5819e9259517c544a053eefab9a9e12f52e2eb5c9a7e6f8bc0a\", \"ngnn3\": \"be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a\"}, \"limitation\": \"same H512, owned random NGNN4 fixture vs trained NGNN3; tree mix differs; budget only, not Elo\"}"
+      ]
+    },
+    "controller.log": {
+      "bytes": 0,
+      "tail": []
+    },
+    "full-race.log": {
+      "bytes": 2580,
+      "tail": [
+        "?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]",
+        "?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]",
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/uci\t1.094s"
+      ]
+    }
+  },
+  "build": {
+    "runtime_base": "39eb128",
+    "architecture_base": "aafa7fd",
+    "source_archive_sha256": "8e77205f1e01726de1f59fc7b03513c8634f3a42d60af24f54a7ffcb9534ed17",
+    "patch_sha256": "f3dbb021c1bad588ba89de46068c0edbe131ada9b62243c60a21ee1bbd986de7",
+    "binary_sha256": {
+      "baseline": "f8502bdac3d4435df1227e739087a99171cb789d788f5641a5652a6e910497c0",
+      "candidate": "5cdf3c43fc46318c0c637502e17725fdb6e0517d23f0d2bcf31d09737715ef2c"
+    },
+    "net_sha256": "6704332592ddd5819e9259517c544a053eefab9a9e12f52e2eb5c9a7e6f8bc0a",
+    "old_net_sha256": "c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2",
+    "ngnn3_net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+    "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+    "source_sha256": {
+      "engine/ngnn4.go": "fd6acf9f8e562870c39d8708bbc7fe59c85426e7c80e7ec7badfb5333e60294c",
+      "engine/ngnn4_kernels_amd64.go": "406801356fe6c83a7bd3ac21737c1324f459d508c602a97c1dea41bd3e1623e5",
+      "engine/ngnn4_kernels_amd64.s": "86e9f3deaee0c582080b5ad686e95f14b9a065d975f448a7d5b96406a71a6801",
+      "engine/ngnn4_kernels_generic.go": "e04be45e7ab1807ed60be279f51ea21a20634d6e1a90ed801565e867b6d0e7c9",
+      "engine/ngnn4_rows_test.go": "b47371a4dfb70cd4bc1150a80cd6e1980539687293c38912ef87b8286f7c7fdd",
+      "engine/ngnn4_vnni_test.go": "1ad3e7a79cf29f94f0c7c9fd5cc3aeb93418aedcb0cede6889bd5a2d56e73443"
+    },
+    "go_version": "go version go1.25.5 linux/amd64",
+    "build_argv": [
+      "go",
+      "build",
+      "-p",
+      "2",
+      "-pgo=/home/ehrli/ngn-data/night-20261007/session31-vnni/baseline/default.pgo",
+      "-o",
+      "OUTPUT",
+      "./cmd/speedprobe"
+    ],
+    "goamd64": "v3",
+    "build_test_cpus": [
+      12,
+      14
+    ],
+    "tests_pass": true
+  },
+  "real_vnni_execution": true,
+  "verdict": "speed-keep",
+  "identity_cases": 48,
+  "blocks": 20,
+  "geometric_ratio": 1.0690761849237538,
+  "ci95": [
+    1.0451706069652411,
+    1.0935285412299562
+  ],
+  "order_strata_ratios": [
+    1.1133592057499047,
+    1.0265544877776533
+  ],
+  "budget": {
+    "geometric_ratio": 0.8764955547301986,
+    "ci95": [
+      0.8536101606343147,
+      0.8999945090753355
+    ],
+    "blocks": 12,
+    "budget_admitted": true
+  },
+  "source_and_binary_match": true,
+  "local_tested_source_match": true
+}

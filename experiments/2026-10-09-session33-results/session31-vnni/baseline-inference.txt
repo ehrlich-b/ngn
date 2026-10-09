@@ -1,0 +1,18 @@
+goos: linux
+goarch: amd64
+pkg: github.com/ehrlich-b/ngn/engine
+cpu: AMD Ryzen 7 9800X3D 8-Core Processor           
+BenchmarkNGNN4Output/H256/L16         	 4796671	       124.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H256/L16         	 5292864	       118.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H256/L16         	 4888926	       114.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H256/L32         	 3262736	       181.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H256/L32         	 3058095	       200.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H256/L32         	 3105811	       190.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H512/L16         	 2855151	       204.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H512/L16         	 3157124	       200.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H512/L16         	 2964500	       189.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H512/L32         	 1584313	       318.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H512/L32         	 1638884	       341.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H512/L32         	 1724864	       328.3 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	12.834s

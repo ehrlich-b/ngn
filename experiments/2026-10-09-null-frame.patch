@@ -1,0 +1,167 @@
+diff --git a/engine/ngnn1.go b/engine/ngnn1.go
+index 439c277..a41f0b9 100644
+--- a/engine/ngnn1.go
++++ b/engine/ngnn1.go
+@@ -280,15 +280,22 @@ func ngnn1MoveDelta(move Move) ngnn1Delta {
+ 	return d
+ }
+ 
++// A logical search ply can read an earlier slot after a null move. Every real
++// move writes its own slot, so sharing never changes an ancestor accumulator.
++type ngnn1Frame struct {
++	values []int32
++	slot   int
++}
++
+ type ngnn1State struct {
+ 	network      *NGNN1Network
+ 	stack        []int32
++	frames       []ngnn1Frame
+ 	refreshCache []ngnn3CacheEntry
+ }
+ 
+ func (s *ngnn1State) at(depth int) []int32 {
+-	width := 2 * s.network.hidden
+-	return s.stack[depth*width : (depth+1)*width]
++	return s.frames[depth].values
+ }
+ 
+ func (s *ngnn1State) ensure(depth int) {
+@@ -303,7 +310,16 @@ func (s *ngnn1State) ensure(depth int) {
+ 		}
+ 		next := make([]int32, plies*width)
+ 		copy(next, s.stack)
++		frames := make([]ngnn1Frame, plies)
++		for ply := range frames {
++			slot := ply
++			if ply < len(s.frames) {
++				slot = s.frames[ply].slot
++			}
++			frames[ply] = ngnn1Frame{next[slot*width : (slot+1)*width], slot}
++		}
+ 		s.stack = next
++		s.frames = frames
+ 	}
+ }
+ 
+@@ -324,11 +340,14 @@ func (s *ngnn1State) push(depth int, delta ngnn1Delta) {
+ 
+ func (s *ngnn1State) pushPosition(depth int, delta ngnn1Delta, pos *Position) {
+ 	s.ensure(depth)
+-	parent, child := s.at(depth-1), s.at(depth)
+ 	if delta.removes == 0 && delta.adds == 0 {
+-		copy(child, parent)
++		s.frames[depth] = s.frames[depth-1]
+ 		return // Null move: the turn changes; the features do not.
+ 	}
++	width := 2 * s.network.hidden
++	child := s.stack[depth*width : (depth+1)*width]
++	s.frames[depth] = ngnn1Frame{child, depth}
++	parent := s.at(depth - 1)
+ 	n := s.network
+ 	for p := 0; p < 2; p++ {
+ 		a := child[p*n.hidden : (p+1)*n.hidden]
+diff --git a/engine/ngnn1_null_frame_test.go b/engine/ngnn1_null_frame_test.go
+new file mode 100644
+index 0000000..779ff2f
+--- /dev/null
++++ b/engine/ngnn1_null_frame_test.go
+@@ -0,0 +1,98 @@
++package engine
++
++import (
++	"bytes"
++	"reflect"
++	"testing"
++)
++
++func TestNGNNNullFrameOwnership(t *testing.T) {
++	for _, version := range []int{1, 2, 3} {
++		for _, hidden := range []int{16, 512, 2048} {
++			n := ngnn1TestNetwork(t, hidden, true)
++			if version == 2 {
++				var err error
++				n, err = ReadNGNN1(bytes.NewReader(ngnn2TestBytes(hidden, 8, true)))
++				if err != nil {
++					t.Fatal(err)
++				}
++			} else if version == 3 {
++				n = ngnn3TestNetwork(t, hidden, true)
++			}
++			pos := newUCIStartingPosition()
++			e := ngnn1NewWorker(t, n, pos)
++			assert := func() {
++				if version == 3 {
++					ngnn3Assert(t, e, pos)
++				} else if version == 2 {
++					ngnn2AssertRefresh(t, e, pos)
++				} else {
++					ngnn1AssertRefresh(t, e, pos)
++				}
++			}
++			root := append([]int32(nil), e.nnue.at(0)...)
++			first := GenerateLegalMoves(pos)[0]
++			trFirst := e.mustPrepareMove(pos, first)
++			epFirst, tagFirst, clockFirst, _ := pos.MakeMove(first)
++			e.mustPushMadeMove(pos, trFirst, first, tagFirst, epFirst, clockFirst)
++			anchor := append([]int32(nil), e.nnue.at(1)...)
++			// Cross two reallocations while every null ply shares a non-root slot.
++			var nullEP []Square
++			for ply := 2; ply <= 261; ply++ {
++				tr := e.mustPrepareNull(pos)
++				ep := pos.MakeNullMove()
++				e.mustPushMadeNull(pos, tr, ep)
++				nullEP = append(nullEP, ep)
++				if &e.nnue.at(ply)[0] != &e.nnue.at(1)[0] {
++					t.Fatalf("NGNN%d H%d ply%d copied a null accumulator", version, hidden, ply)
++				}
++				if !reflect.DeepEqual(anchor, e.nnue.at(ply)) {
++					t.Fatal("growth changed an aliased accumulator")
++				}
++			}
++			// A real descendant must materialize its own frame; revisiting the
++			// same logical ply after a null must do the same for every sibling.
++			for _, move := range GenerateLegalMoves(pos) {
++				tr := e.mustPrepareMove(pos, move)
++				ep, tag, clock, _ := pos.MakeMove(move)
++				e.mustPushMadeMove(pos, tr, move, tag, ep, clock)
++				if &e.nnue.at(e.depth)[0] == &e.nnue.at(1)[0] {
++					t.Fatal("real descendant shares writable ancestor storage")
++				}
++				assert()
++				if !reflect.DeepEqual(root, e.nnue.at(0)) || !reflect.DeepEqual(anchor, e.nnue.at(1)) {
++					t.Fatal("real descendant changed root accumulator")
++				}
++				e.mustPop()
++				pos.UnMakeMove(move, tag, ep, clock)
++				trNull := e.mustPrepareNull(pos)
++				epNull := pos.MakeNullMove()
++				e.mustPushMadeNull(pos, trNull, epNull)
++				e.mustPop()
++				pos.UnMakeNullMove(epNull)
++			}
++			for i := len(nullEP) - 1; i >= 0; i-- {
++				e.mustPop()
++				pos.UnMakeNullMove(nullEP[i])
++				assert()
++			}
++			e.mustPop()
++			pos.UnMakeMove(first, tagFirst, epFirst, clockFirst)
++			if err := e.Reset(pos); err != nil {
++				t.Fatal(err)
++			}
++			assert()
++			for _, move := range GenerateLegalMoves(pos) {
++				tr := e.mustPrepareMove(pos, move)
++				ep, tag, clock, _ := pos.MakeMove(move)
++				e.mustPushMadeMove(pos, tr, move, tag, ep, clock)
++				assert()
++				if &e.nnue.at(1)[0] == &e.nnue.at(0)[0] {
++					t.Fatal("reset left a writable sibling aliased to the root")
++				}
++				e.mustPop()
++				pos.UnMakeMove(move, tag, ep, clock)
++			}
++		}
++	}
++}
