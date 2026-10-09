@@ -5,46 +5,29 @@ Accepted source **39eb128 /NGNN3 KB8 H512 be34532c**, unchanged58-epoch recipe.
 Own TTb49ab5a is a **provisional provenance keep**,400g −3.47[−25.45,+18.47],
 zero failures, under Bryan's explicit upper95>0 rule; combined batch SPRT[0,+6]
 remains required. Tested neutral board representation8a565d1 is integrated39eb128;
-combined TT/board compatibility checks are queued before any new-key games.
+combined TT/board full short/race/vet,6 perfts,12+3 exact identities pass session29.
 
-**HostC: blocked at8.99GiB**, below25GiB. Campaign partial T74 buckets13.15GB
-were removed; WSL trim did not reclaim host VHD space. Bryan has been asked to
-free space. Detached session21 controllers wait silently:>=32GiB releases
-combined board checks/new-key A/A40/gate400 on13,15 and corrected SEE/pawn checks
-on12,14;>=70GiB releases unchanged T74 continuation/coverage after provenance.
-Session22 adds original NGNN4 row-affine code on an uncommitted topic;
-controller675213 follows the current code checks and32GiB admission,
-full parity/identity plus20 speed blocks, then12 architecture-cost blocks
-only on speed keep. Tests12,14/sample14 preserve other lanes; no new
-build/test/training/game starts below the floor. Hopper1168 stays untouched.
-Session23 queues current-base time-admission checks/four120+1 bank trajectories
-675346 after affine, then isolated qsearch TT stand-pat checks675352; both32GiB
-admission, no strength games/adoption. Original topics/patches remain pending
-box verification and actual-base powered gates. [Session23](experiments/2026-10-09-session23.md).
-Session24 queues original continuation correction on its own39eb128 topic;
-675472 follows qsearch then32GiB, full checks12,14 and fixed12 cost blocks14.
-No tests/games/adoption yet; future actual-base10+0.1 A/A40/SPRT[0,+6],
-H1/lower95>0/zero faults. [Manifest](experiments/2026-10-09-continuation-correction.md).
-Session25 queues a pure-speed own-TT scan on a separate39eb128 topic;
-675562 follows continuation, then32GiB. Exact TT/collision traces, full
-checks12,14,36 identities and20 fixed speed blocks14; lower NPS95>1 and
-both order strata>1 required. No heavy stage/verdict/adoption.
-[Manifest](experiments/2026-10-09-tt-scan.md).
-Sessions 26–28 confirm capacity remains 8.99 GiB, all eight controllers alive,
-no new receipts and no eligible native campaign cleanup. All priority code/data
-work is prepared. **Next session: not before 19:45 EDT October 9** backs off
-idle driver sessions; detached jobs still release on capacity recovery sooner.
-No recovery ETA. [Latest state](experiments/2026-10-09-session28.md).
-[Affine manifest](experiments/2026-10-09-ngnn4-row-affine.md).
-[Session21](experiments/2026-10-09-session21.md).
+**WSL recovery applied session29:** approved compaction recovered C:34.84GiB.
+SPSA **1405** resumes legacy old-base checkpoint1225/14,700 on0–11.
+Eight wait-only controllers relaunched15:38:40 in original dependency order:
+provenance **1408**13,15; SEE/pawn **1410**12,14; data **1412** after provenance
+and70GiB; affine **1414**, time **1416**, qsearch **1418**, continuation **1424**,
+TT speed **1430** follow the existing12,14 lane. Board/SEE full checks pass; keys/pawn checks run.
+No completed stage repeated; old shutdown exit0 markers are preserved separately
+and do not establish success. All nine jobs alive at15:42:59; C:34.25GiB,
+GPU0%, hopper **1211** independently restarted and untouched. No new playing verdict.
+**Next session: not before16:30 EDT October9** for short-check/affine receipts.
+T74 remains capacity-blocked at70GiB; no trainer queued. Current plan/order and
+all original fixed verdict rules remain unchanged. [Recovery/handoff](experiments/2026-10-09-session29.md).
+Source candidates stay isolated pending their exact tests/gates; no3600 claim.
 
 **Rodent V1.2 completed324 games**,41/189/94, zero flags/observed NGN panics,
 legal replay pass;120+1 implied performance3474.65[3453.75,3495.15] against
 supplied3532 label. One opponent/TC, not an absolute rating. No more Rodent games.
 **Factorizer58 epochs/parity complete**, but original controller failed capacity
 before any A/A/gate games. Retain trained net; future actual-base manifest/games,
-no retraining or strength verdict. **SPSA673954/673958 runs old base on0–11**,
-last1050/12,600 at11:30 EDT; endpoint24k plus converged-vector games required, no transfer
+no retraining or strength verdict. **SPSA1405 resumes old base on0–11**,
+last durable1225/14,700 at15:01 EDT; endpoint24k plus converged-vector games required, no transfer
 of old-base evidence to new provenance source.
 
 **Data:** T76 mapped55.63GB/1.738B rows; T74 stats/keep194 complete, sampled corpus

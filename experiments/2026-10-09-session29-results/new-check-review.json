@@ -1,0 +1,117 @@
+{
+  "board": {
+    "receipt": {
+      "passed": true,
+      "completed_utc": "2026-10-09T19:41:36.861679+00:00",
+      "base": "b49ab5a",
+      "candidate": "39eb128",
+      "fixed_depth_identities": 12,
+      "nodecheck_identities": 3,
+      "perft_positions": 6,
+      "binaries": {
+        "baseline": "ea5f072387170a19dd83bd2f3bcf81aded7099759d2871f8af3e5f53b43b48b8",
+        "candidate": "11927188ba6e1c833579a3959fb0370ffd984f73af5519e2630367404f16b1f2"
+      }
+    },
+    "logs": {
+      "full-short.log": "ok  \tgithub.com/ehrlich-b/ngn\t0.209s\n?   \tgithub.com/ehrlich-b/ngn/cmd/analyze_position\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/benchmark\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/blunder-finder\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/claimbridge\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/claimtool\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/combined-report\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/datagen\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/cmd/datastat\t0.088s\n?   \tgithub.com/ehrlich-b/ngn/cmd/elo-assess\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/eval_breakdown\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/gametest\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/gauntlet\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/lossxray\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/magicgen\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/moves_to_fen\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pairmatch\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn_to_fens\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgnify\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-analysis\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-comparison\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/sfpv\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/simple-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/smoke\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/cmd/speedprobe\t0.009s\nok  \tgithub.com/ehrlich-b/ngn/cmd/sprt\t0.016s\nok  \tgithub.com/ehrlich-b/ngn/cmd/spsa\t0.335s\n?   \tgithub.com/ehrlich-b/ngn/cmd/tactical-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/test-harness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/trace_move\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/zzbias\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/engine\t13.039s\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-ep-repetition-correctness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-rodent-pv-identity-probe\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/claim\t0.051s\nok  \tgithub.com/ehrlich-b/ngn/internal/datagen\t0.111s\n?   \tgithub.com/ehrlich-b/ngn/internal/history\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/ngnp\t0.049s\n?   \tgithub.com/ehrlich-b/ngn/internal/oracle\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/uci\t0.061s\n",
+      "full-race.log": "ok  \tgithub.com/ehrlich-b/ngn\t1.444s\n?   \tgithub.com/ehrlich-b/ngn/cmd/analyze_position\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/benchmark\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/blunder-finder\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/claimbridge\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/claimtool\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/combined-report\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/datagen\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/cmd/datastat\t1.340s\n?   \tgithub.com/ehrlich-b/ngn/cmd/elo-assess\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/eval_breakdown\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/gametest\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/gauntlet\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/lossxray\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/magicgen\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/moves_to_fen\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pairmatch\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn_to_fens\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgnify\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-analysis\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-comparison\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/sfpv\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/simple-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/smoke\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/cmd/speedprobe\t1.039s\nok  \tgithub.com/ehrlich-b/ngn/cmd/sprt\t1.040s\nok  \tgithub.com/ehrlich-b/ngn/cmd/spsa\t1.573s\n?   \tgithub.com/ehrlich-b/ngn/cmd/tactical-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/test-harness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/trace_move\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/zzbias\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/engine\t127.153s\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-ep-repetition-correctness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-rodent-pv-identity-probe\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/claim\t1.468s\nok  \tgithub.com/ehrlich-b/ngn/internal/datagen\t2.058s\n?   \tgithub.com/ehrlich-b/ngn/internal/history\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/ngnp\t1.462s\n?   \tgithub.com/ehrlich-b/ngn/internal/oracle\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/uci\t1.092s\n",
+      "vet.log": "",
+      "baseline-build.log": "",
+      "candidate-build.log": "",
+      "baseline-probe-build.log": "",
+      "candidate-probe-build.log": "",
+      "baseline-perft.log": "=== RUN   TestPerftReferenceSuite\n=== RUN   TestPerftReferenceSuite/start\n    perft_reference_test.go:34: depth=5 nodes=4865609\n=== RUN   TestPerftReferenceSuite/kiwipete\n    perft_reference_test.go:34: depth=4 nodes=4085603\n=== RUN   TestPerftReferenceSuite/rook-ending\n    perft_reference_test.go:34: depth=4 nodes=43238\n=== RUN   TestPerftReferenceSuite/promotions-castling\n    perft_reference_test.go:34: depth=4 nodes=422333\n=== RUN   TestPerftReferenceSuite/tactical-promotions\n    perft_reference_test.go:34: depth=4 nodes=2103487\n=== RUN   TestPerftReferenceSuite/middlegame\n    perft_reference_test.go:34: depth=4 nodes=3894594\n--- PASS: TestPerftReferenceSuite (1.95s)\n    --- PASS: TestPerftReferenceSuite/start (0.70s)\n    --- PASS: TestPerftReferenceSuite/kiwipete (0.49s)\n    --- PASS: TestPerftReferenceSuite/rook-ending (0.01s)\n    --- PASS: TestPerftReferenceSuite/promotions-castling (0.05s)\n    --- PASS: TestPerftReferenceSuite/tactical-promotions (0.26s)\n    --- PASS: TestPerftReferenceSuite/middlegame (0.45s)\nPASS\nok  \tgithub.com/ehrlich-b/ngn/engine\t1.955s\n",
+      "candidate-perft.log": "=== RUN   TestPerftReferenceSuite\n=== RUN   TestPerftReferenceSuite/start\n    perft_reference_test.go:34: depth=5 nodes=4865609\n=== RUN   TestPerftReferenceSuite/kiwipete\n    perft_reference_test.go:34: depth=4 nodes=4085603\n=== RUN   TestPerftReferenceSuite/rook-ending\n    perft_reference_test.go:34: depth=4 nodes=43238\n=== RUN   TestPerftReferenceSuite/promotions-castling\n    perft_reference_test.go:34: depth=4 nodes=422333\n=== RUN   TestPerftReferenceSuite/tactical-promotions\n    perft_reference_test.go:34: depth=4 nodes=2103487\n=== RUN   TestPerftReferenceSuite/middlegame\n    perft_reference_test.go:34: depth=4 nodes=3894594\n--- PASS: TestPerftReferenceSuite (1.98s)\n    --- PASS: TestPerftReferenceSuite/start (0.70s)\n    --- PASS: TestPerftReferenceSuite/kiwipete (0.46s)\n    --- PASS: TestPerftReferenceSuite/rook-ending (0.01s)\n    --- PASS: TestPerftReferenceSuite/promotions-castling (0.05s)\n    --- PASS: TestPerftReferenceSuite/tactical-promotions (0.27s)\n    --- PASS: TestPerftReferenceSuite/middlegame (0.50s)\nPASS\nok  \tgithub.com/ehrlich-b/ngn/engine\t1.986s\n"
+    },
+    "all_required_logs_pass": true,
+    "nodecheck": {
+      "identical": true,
+      "rows": {
+        "baseline": [
+          {
+            "name": "kiwipete",
+            "depth": 12,
+            "nodes": 281785,
+            "score": "score cp -203",
+            "pv": "e2a6 b4c3 d2c3",
+            "best": "bestmove e2a6"
+          },
+          {
+            "name": "mid",
+            "depth": 12,
+            "nodes": 100667,
+            "score": "score cp 99",
+            "pv": "d4c5 e7c5 f1d1 c5b6 b2b3 d8e7",
+            "best": "bestmove d4c5"
+          },
+          {
+            "name": "end",
+            "depth": 16,
+            "nodes": 923748,
+            "score": "score cp 184",
+            "pv": "b4f4 h4g3 f4c4",
+            "best": "bestmove b4f4"
+          }
+        ],
+        "candidate": [
+          {
+            "name": "kiwipete",
+            "depth": 12,
+            "nodes": 281785,
+            "score": "score cp -203",
+            "pv": "e2a6 b4c3 d2c3",
+            "best": "bestmove e2a6"
+          },
+          {
+            "name": "mid",
+            "depth": 12,
+            "nodes": 100667,
+            "score": "score cp 99",
+            "pv": "d4c5 e7c5 f1d1 c5b6 b2b3 d8e7",
+            "best": "bestmove d4c5"
+          },
+          {
+            "name": "end",
+            "depth": 16,
+            "nodes": 923748,
+            "score": "score cp 184",
+            "pv": "b4f4 h4g3 f4c4",
+            "best": "bestmove b4f4"
+          }
+        ]
+      }
+    },
+    "fixed_depth_identity_recomputed": true
+  },
+  "see": {
+    "receipt": {
+      "passed": true,
+      "completed_utc": "2026-10-09T19:41:15.118521+00:00",
+      "base_source": "39eb128",
+      "cpus": [
+        12,
+        14
+      ],
+      "source_sha256": {
+        "engine/independent_piece_test.go": "f57d60bed1fd7f9a2529d146c2ed71a3be996a5de585c5747766845d0ddc1598",
+        "engine/piece.go": "27af08e4671928e2904e534dce386914aaf7d143d322437a2f7af2b5ed11ac3c",
+        "engine/see_test.go": "aa5c2ef8cb950ada50fc8474ccc6674a2ddb6d2d019d57193d6876a97b0e4781"
+      },
+      "binaries": {
+        "baseline": "6519fed5887d083fda5d87365e87da51ad2a2cb6c885b75c83ad7915cb33880f",
+        "candidate": "5efd90d1769a9aa0fe3f2d7c6b024a10c0fb1063c517a192f2643d8ea1da88f9"
+      },
+      "games_launched": false
+    },
+    "logs": {
+      "full-short.log": "ok  \tgithub.com/ehrlich-b/ngn\t0.186s\n?   \tgithub.com/ehrlich-b/ngn/cmd/analyze_position\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/benchmark\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/blunder-finder\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/claimbridge\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/claimtool\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/combined-report\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/datagen\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/cmd/datastat\t0.069s\n?   \tgithub.com/ehrlich-b/ngn/cmd/elo-assess\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/eval_breakdown\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/gametest\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/gauntlet\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/lossxray\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/magicgen\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/moves_to_fen\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pairmatch\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn_to_fens\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgnify\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-analysis\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-comparison\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/sfpv\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/simple-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/smoke\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/cmd/speedprobe\t0.009s\nok  \tgithub.com/ehrlich-b/ngn/cmd/sprt\t0.003s\nok  \tgithub.com/ehrlich-b/ngn/cmd/spsa\t0.323s\n?   \tgithub.com/ehrlich-b/ngn/cmd/tactical-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/test-harness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/trace_move\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/zzbias\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/engine\t12.721s\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-ep-repetition-correctness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-rodent-pv-identity-probe\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/claim\t0.050s\nok  \tgithub.com/ehrlich-b/ngn/internal/datagen\t0.100s\n?   \tgithub.com/ehrlich-b/ngn/internal/history\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/ngnp\t0.062s\n?   \tgithub.com/ehrlich-b/ngn/internal/oracle\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/uci\t0.055s\n",
+      "full-race.log": "ok  \tgithub.com/ehrlich-b/ngn\t1.369s\n?   \tgithub.com/ehrlich-b/ngn/cmd/analyze_position\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/benchmark\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/blunder-finder\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/claimbridge\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/claimtool\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/combined-report\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/datagen\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/cmd/datastat\t1.328s\n?   \tgithub.com/ehrlich-b/ngn/cmd/elo-assess\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/eval_breakdown\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/gametest\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/gauntlet\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/lossxray\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/magicgen\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/moves_to_fen\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pairmatch\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn_to_fens\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgnify\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-analysis\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-comparison\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/sfpv\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/simple-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/smoke\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/cmd/speedprobe\t1.043s\nok  \tgithub.com/ehrlich-b/ngn/cmd/sprt\t1.039s\nok  \tgithub.com/ehrlich-b/ngn/cmd/spsa\t1.567s\n?   \tgithub.com/ehrlich-b/ngn/cmd/tactical-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/test-harness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/trace_move\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/zzbias\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/engine\t126.030s\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-ep-repetition-correctness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-rodent-pv-identity-probe\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/claim\t1.434s\nok  \tgithub.com/ehrlich-b/ngn/internal/datagen\t2.011s\n?   \tgithub.com/ehrlich-b/ngn/internal/history\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/ngnp\t1.415s\n?   \tgithub.com/ehrlich-b/ngn/internal/oracle\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/uci\t1.098s\n",
+      "vet.log": "",
+      "baseline-build.log": "",
+      "candidate-build.log": ""
+    },
+    "all_required_logs_pass": true,
+    "local_topic_source_matches": true
+  }
+}
