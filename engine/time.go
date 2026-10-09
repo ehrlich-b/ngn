@@ -641,10 +641,10 @@ func (tm *TimeManager) determineGamePhase(position *Position) GamePhase {
 
 	// Count material to determine phase
 	totalMaterial := 0
-	queens := PopCount(position.Board.GetBitboardOf(WhiteQueen)) + PopCount(position.Board.GetBitboardOf(BlackQueen))
-	rooks := PopCount(position.Board.GetBitboardOf(WhiteRook)) + PopCount(position.Board.GetBitboardOf(BlackRook))
-	minors := PopCount(position.Board.GetBitboardOf(WhiteBishop)) + PopCount(position.Board.GetBitboardOf(BlackBishop)) +
-		PopCount(position.Board.GetBitboardOf(WhiteKnight)) + PopCount(position.Board.GetBitboardOf(BlackKnight))
+	queens := PopCount(position.Board.PieceOccupancy(WhiteQueen)) + PopCount(position.Board.PieceOccupancy(BlackQueen))
+	rooks := PopCount(position.Board.PieceOccupancy(WhiteRook)) + PopCount(position.Board.PieceOccupancy(BlackRook))
+	minors := PopCount(position.Board.PieceOccupancy(WhiteBishop)) + PopCount(position.Board.PieceOccupancy(BlackBishop)) +
+		PopCount(position.Board.PieceOccupancy(WhiteKnight)) + PopCount(position.Board.PieceOccupancy(BlackKnight))
 
 	totalMaterial = queens*9 + rooks*5 + minors*3
 
@@ -663,7 +663,7 @@ func (tm *TimeManager) calculatePositionComplexity(position *Position) float64 {
 		return 0.5 // Default complexity
 	}
 
-	allPiecesBitboard := position.Board.GetWhitePieces() | position.Board.GetBlackPieces()
+	allPiecesBitboard := position.Board.WhiteOccupancy() | position.Board.BlackOccupancy()
 	totalPieces := PopCount(allPiecesBitboard)
 	if totalPieces == 0 {
 		return 0.0
@@ -683,7 +683,7 @@ func (tm *TimeManager) calculatePositionComplexity(position *Position) float64 {
 	pieceTypes := 0
 	for _, piece := range []Piece{WhiteQueen, BlackQueen, WhiteRook, BlackRook,
 		WhiteBishop, BlackBishop, WhiteKnight, BlackKnight} {
-		if PopCount(position.Board.GetBitboardOf(piece)) > 0 {
+		if PopCount(position.Board.PieceOccupancy(piece)) > 0 {
 			pieceTypes++
 		}
 	}

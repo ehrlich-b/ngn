@@ -181,7 +181,7 @@ func (e *workerEvaluator) mustPushMadeMove(
 	pos *Position,
 	transition workerEvalMove,
 	move Move,
-	undoTag PositionTag,
+	undoTag PositionState,
 	undoEP Square,
 	undoClock uint8,
 ) {

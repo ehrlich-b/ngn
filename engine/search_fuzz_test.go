@@ -139,8 +139,8 @@ func generateRandomValidPosition(rng *rand.Rand) *Position {
 	if err != nil {
 		// Fallback to starting position
 		return &Position{
-			Board:     StartingBoard(),
-			Tag:       WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide | WhiteToMove,
+			Board: StartingBoard(),
+			Tag:   WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide, Side: White,
 			EnPassant: NoSquare,
 		}
 	}
@@ -170,7 +170,7 @@ func isPositionValid(pos *Position) bool {
 	whiteInCheck := isInCheck(pos, White)
 	blackInCheck := isInCheck(pos, Black)
 
-	if pos.Tag&WhiteToMove != 0 {
+	if pos.Turn() == White {
 		// White to move - Black cannot be in check
 		return !blackInCheck
 	} else {
@@ -217,7 +217,7 @@ func TestFuzzMoveGenerationLegality(t *testing.T) {
 			// Check if the king is in check after the move
 			// If so, the move was illegal
 			playerColor := White
-			if tag&WhiteToMove == 0 { // Original position had black to move
+			if pos.Turn() == White { // After the move, the original player was Black
 				playerColor = Black
 			}
 

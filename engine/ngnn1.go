@@ -198,7 +198,7 @@ func (n *NGNN1Network) bucket(pos *Position) int {
 	if nb == 1 {
 		return 0
 	}
-	count := PopCount(pos.Board.whitePieces | pos.Board.blackPieces)
+	count := PopCount(pos.Board.occupiedByColor[White] | pos.Board.occupiedByColor[Black])
 	return min(nb-1, max(0, (count-2)*nb/32))
 }
 
@@ -261,7 +261,7 @@ func ngnn1MoveDelta(move Move) ngnn1Delta {
 	if captured := move.CapturedPiece(); captured != NoPiece {
 		square := move.Destination()
 		if move.IsEnPassant() {
-			square = findEnPassantCaptureSquare(move)
+			square = enPassantVictimSquare(move)
 		}
 		remove(captured, square)
 	}

@@ -249,8 +249,8 @@ func (uci *UCIEngine) nowTime() time.Time {
 // Helper function to create starting position
 func newUCIStartingPosition() *Position {
 	pos := &Position{
-		Board:         StartingBoard(),
-		Tag:           WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide | WhiteToMove,
+		Board: StartingBoard(),
+		Tag:   WhiteCanCastleKingSide | WhiteCanCastleQueenSide | BlackCanCastleKingSide | BlackCanCastleQueenSide, Side: White,
 		EnPassant:     NoSquare,
 		HalfMoveClock: 0,
 		Positions:     make(map[uint64]int),

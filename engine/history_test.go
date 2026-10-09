@@ -18,7 +18,7 @@ func TestHistoryHeuristic(t *testing.T) {
 	}
 
 	// Update history table with a cutoff at depth 3
-	UpdateHistoryTable(move, EmptyMove, EmptyMove,3)
+	UpdateHistoryTable(move, EmptyMove, EmptyMove, 3)
 
 	// History score should now be depth^2 = 9
 	updatedScore := GetHistoryScore(move, EmptyMove, EmptyMove)
@@ -28,7 +28,7 @@ func TestHistoryHeuristic(t *testing.T) {
 	}
 
 	// Update again at depth 2
-	UpdateHistoryTable(move, EmptyMove, EmptyMove,2)
+	UpdateHistoryTable(move, EmptyMove, EmptyMove, 2)
 
 	// History score should now be 9 + 4 = 13
 	finalScore := GetHistoryScore(move, EmptyMove, EmptyMove)
@@ -51,7 +51,7 @@ func TestHistoryHeuristic(t *testing.T) {
 func TestHistoryTableClear(t *testing.T) {
 	// Create and update a move
 	move := NewMove(D2, D4, WhitePawn, NoPiece, NoType, 0)
-	UpdateHistoryTable(move, EmptyMove, EmptyMove,4)
+	UpdateHistoryTable(move, EmptyMove, EmptyMove, 4)
 
 	// Verify it has a score
 	score := GetHistoryScore(move, EmptyMove, EmptyMove)
@@ -80,7 +80,7 @@ func TestHistoryInMoveOrdering(t *testing.T) {
 	pos.Board = Bitboard{}
 	pos.Board.UpdateSquare(E1, WhiteKing, NoPiece)
 	pos.Board.UpdateSquare(E8, BlackKing, NoPiece)
-	pos.SetTag(WhiteToMove)
+	pos.Side = White
 	pos.EnPassant = NoSquare
 	pos.HalfMoveClock = 0
 

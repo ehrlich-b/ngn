@@ -57,8 +57,8 @@ const (
 	White   Color = 1
 )
 
-// MAX_INT is the maximum signed int16 value used as the king weight.
-const MAX_INT int16 = 32767
+// KingExchangeValue is the maximum signed int16 value used as the king weight.
+const KingExchangeValue int16 = 32767
 
 // Other returns the opposite supported color.
 func (c Color) Other() Color {
@@ -135,7 +135,7 @@ func (p Piece) weight() int16 {
 	case Queen:
 		return 1000
 	case King:
-		return MAX_INT
+		return KingExchangeValue
 	default:
 		return 0
 	}
@@ -182,7 +182,7 @@ func (p Piece) Name() string {
 	}
 }
 
-func pieceFromName(r rune) Piece {
+func parsePieceGlyph(r rune) Piece {
 	switch r {
 	case 'P':
 		return WhitePawn

@@ -37,7 +37,7 @@ func Insufficient(p *engine.Position) bool {
 		return false
 	}
 	n := engine.PopCount(p.Board.Knights())
-	b := p.Board.GetBitboardOf(engine.WhiteBishop) | p.Board.GetBitboardOf(engine.BlackBishop)
+	b := p.Board.PieceOccupancy(engine.WhiteBishop) | p.Board.PieceOccupancy(engine.BlackBishop)
 	if n+engine.PopCount(b) <= 1 {
 		return true
 	}

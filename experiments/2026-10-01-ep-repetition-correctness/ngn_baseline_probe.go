@@ -184,7 +184,7 @@ type snapshot struct {
 	FEN       string
 	Hash      uint64
 	EP        engine.Square
-	Tag       engine.PositionTag
+	Tag       engine.PositionState
 	Clock     uint8
 	Positions map[uint64]int
 }

@@ -10,7 +10,7 @@ func TestMoveOrdering(t *testing.T) {
 	pos.Board = Bitboard{}
 	pos.Board.UpdateSquare(E1, WhiteKing, NoPiece)
 	pos.Board.UpdateSquare(E8, BlackKing, NoPiece)
-	pos.SetTag(WhiteToMove)
+	pos.Side = White
 	pos.EnPassant = NoSquare
 	pos.HalfMoveClock = 0
 
@@ -78,7 +78,7 @@ func TestMoveOrderingWithSearch(t *testing.T) {
 	pos.Board.UpdateSquare(D7, BlackRook, NoPiece)
 	pos.Board.UpdateSquare(F5, BlackPawn, NoPiece)
 
-	pos.SetTag(WhiteToMove)
+	pos.Side = White
 	pos.EnPassant = NoSquare
 	pos.HalfMoveClock = 0
 

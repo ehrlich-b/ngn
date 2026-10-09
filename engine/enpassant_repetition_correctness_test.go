@@ -92,14 +92,14 @@ func mustParseEnPassantPosition(t *testing.T, fen string) *Position {
 	return pos
 }
 
-func mustPlayEnPassantMove(t *testing.T, pos *Position, text string, game bool) (Move, Square, PositionTag, uint8) {
+func mustPlayEnPassantMove(t *testing.T, pos *Position, text string, game bool) (Move, Square, PositionState, uint8) {
 	t.Helper()
 	for _, move := range GenerateLegalMoves(pos) {
 		if move.ToString() != text {
 			continue
 		}
 		var ep Square
-		var tag PositionTag
+		var tag PositionState
 		var clock uint8
 		var ok bool
 		if game {
@@ -149,7 +149,7 @@ func perft2Nodes(pos *Position) uint64 {
 
 type enPassantPositionSnapshot struct {
 	board     Bitboard
-	tag       PositionTag
+	tag       PositionState
 	ep        Square
 	hash      uint64
 	clock     uint8

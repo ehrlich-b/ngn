@@ -93,7 +93,7 @@ func (n *NGNN1Network) ngnn3MoveDelta(pos *Position, move Move) ngnn1Delta {
 	if captured := move.CapturedPiece(); captured != NoPiece {
 		square := move.Destination()
 		if move.IsEnPassant() {
-			square = findEnPassantCaptureSquare(move)
+			square = enPassantVictimSquare(move)
 		}
 		remove(captured, square)
 	}

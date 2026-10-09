@@ -59,8 +59,8 @@ func TestIndependentPrimitiveCoordinateNames(t *testing.T) {
 }
 
 func TestIndependentPrimitiveSquareColorsAndMap(t *testing.T) {
-	if DarkSquares != 0xAA55AA55AA55AA55 {
-		t.Fatalf("DarkSquares = %#x", DarkSquares)
+	if DarkSquareMask != 0xAA55AA55AA55AA55 {
+		t.Fatalf("DarkSquareMask = %#x", DarkSquareMask)
 	}
 	for _, test := range []struct {
 		square Square

@@ -216,7 +216,7 @@ func TestNonPawnCorrectionAppliedAtQsearchStandPat(t *testing.T) {
 	defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
 
 	stm := pos.Turn()
-	idx := nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])
+	idx := nonPawnCorrectionIndex(pos.Board.WhiteOccupancy()&^pos.Board.pieces[WhitePawn], pos.Board.BlackOccupancy()&^pos.Board.pieces[BlackPawn])
 	defaultSearchEngine.worker.history.nonPawnCorrectionHistory[stm][idx] = corrHistLimit / 2 // poison the slot -> a clear, in-bounds non-zero correction
 	corr := nonPawnCorrectionValue(stm, idx)
 	if corr == 0 {
