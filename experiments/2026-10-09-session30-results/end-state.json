@@ -1,0 +1,92 @@
+{
+  "at": "2026-10-09T17:41:52.080523-04:00",
+  "host_c_free_gib": 32.71592712402344,
+  "accepted_source": "39eb128",
+  "accepted_net": "be34532c",
+  "jobs": {
+    "session30-see-gate": {
+      "pid": 12263,
+      "exit": null,
+      "alive": true,
+      "build_receipt_present": false
+    },
+    "session30-eight-row": {
+      "pid": 17872,
+      "exit": null,
+      "alive": true,
+      "build_receipt_present": true
+    }
+  },
+  "spsa_pid": 1405,
+  "spsa": {
+    "iter": 1325,
+    "time": "2026-10-09T17:39:02-04:00",
+    "plus_pct": 51.666666666666664,
+    "theta": {
+      "AspInit": 15.082644726365137,
+      "AspMult": 159.3115598762595,
+      "DeltaMargin": 179.7391322204554,
+      "ExtensionBudget": 29.26974582483665,
+      "FutilityMargin": 106.50534346880181,
+      "FutilityMaxDepth": 7.800189223858928,
+      "LMPBase": 3.5423342106955533,
+      "LMRFullDepth": 3.395072438980307,
+      "LMRMoveThreshold": 2.0765207243884873,
+      "NullMoveMinDepth": 2.1960142959599183,
+      "NullMoveR": 4.0539391090068095,
+      "ReverseFutilityMargin": 62.51652050886715,
+      "SingularDepth": 6.420098477228077,
+      "SingularMargin": 57.550869629199426
+    },
+    "rounded": {
+      "AspInit": 15,
+      "AspMult": 159,
+      "DeltaMargin": 180,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 107,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 4,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 63,
+      "SingularDepth": 6,
+      "SingularMargin": 58
+    }
+  },
+  "gpu": "0 %, 1507 MiB",
+  "hopper_pid": 1211,
+  "status_tail": [
+    {
+      "utc": "2026-10-09T21:02:54.144157+00:00",
+      "stage": "tt-scan-speed",
+      "event": "end",
+      "detail": "rc 0; review fixed speed verdict before any adoption"
+    },
+    {
+      "utc": "2026-10-09T21:38:03.373893+00:00",
+      "stage": "ngnn4-eight-row",
+      "event": "wait",
+      "detail": "native session25 TT scan completion; C:>=32GiB; CPU12,14 tests / CPU14 fixed sample"
+    },
+    {
+      "utc": "2026-10-09T21:38:03.437255+00:00",
+      "stage": "ngnn4-eight-row",
+      "event": "test-start",
+      "detail": "verified aafa7fd NGNN4 four-row base; only eight-output sharing changes candidate"
+    },
+    {
+      "utc": "2026-10-09T21:41:25.251502+00:00",
+      "stage": "ngnn4-eight-row",
+      "event": "tests-pass",
+      "detail": "all widths guarded rows/packed/scalar;320 integer cases; full short/race/vet"
+    },
+    {
+      "utc": "2026-10-09T21:41:51.918901+00:00",
+      "stage": "ngnn4-eight-row",
+      "event": "timing-start",
+      "detail": "48 exact identities, exactly20 balanced3s AB/BA blocks CPU14; if keep,12 architecture-cost blocks"
+    }
+  ]
+}

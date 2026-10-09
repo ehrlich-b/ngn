@@ -1,0 +1,142 @@
+{
+  "complete": true,
+  "diagnostic_only": true,
+  "strength_verdict": null,
+  "games": [
+    {
+      "variant": "baseline",
+      "case": 0,
+      "plies": 140,
+      "end_reason": "draw-rule",
+      "reasons": {
+        "soft-abort": 137,
+        "soft-admission": 1,
+        "depth-complete": 2
+      },
+      "elapsed_ns": 363985017187,
+      "tail_ns": 112730154059,
+      "tail_fraction": 0.30971097362802724,
+      "bank_checkpoints_seconds": {
+        "black": {
+          "10": 79.845360806,
+          "20": 42.714200531,
+          "30": 23.978284207,
+          "40": 12.526948226,
+          "60": 7.771212529
+        },
+        "white": {
+          "10": 84.538266743,
+          "20": 37.908143082,
+          "30": 18.512305633,
+          "40": 9.551952366,
+          "60": 6.907669031
+        }
+      },
+      "minimum_bank_before_seconds": 6.582018949,
+      "score_drops_ge100": 0,
+      "log_sha256": "ec9d97914e31e27c16bd63314f9138c6e9c8733a5fd4f633dd72cdff60329920"
+    },
+    {
+      "variant": "candidate",
+      "case": 0,
+      "plies": 42,
+      "end_reason": "draw-rule",
+      "reasons": {
+        "soft-abort": 35,
+        "soft-admission": 6,
+        "depth-complete": 1
+      },
+      "elapsed_ns": 184137544404,
+      "tail_ns": 43135980816,
+      "tail_fraction": 0.2342595637169959,
+      "bank_checkpoints_seconds": {
+        "black": {
+          "10": 82.674143588,
+          "20": 53.538531514
+        },
+        "white": {
+          "10": 80.743159378,
+          "20": 46.453715078
+        }
+      },
+      "minimum_bank_before_seconds": 46.453715078,
+      "score_drops_ge100": 0,
+      "log_sha256": "50d9e91d84dfa7be6fb2447dc00f1e6cbb181f92b3a0f04bf3951385be94414b"
+    },
+    {
+      "variant": "candidate",
+      "case": 1,
+      "plies": 88,
+      "end_reason": "draw-rule",
+      "reasons": {
+        "soft-abort": 63,
+        "soft-admission": 25
+      },
+      "elapsed_ns": 310924626184,
+      "tail_ns": 76372189595,
+      "tail_fraction": 0.245629272059667,
+      "bank_checkpoints_seconds": {
+        "black": {
+          "10": 80.953367566,
+          "20": 33.220795674,
+          "30": 14.445585162,
+          "40": 7.782812912
+        },
+        "white": {
+          "10": 80.49772967,
+          "20": 40.980209536,
+          "30": 19.38757095,
+          "40": 11.881335016
+        }
+      },
+      "minimum_bank_before_seconds": 6.475036684,
+      "score_drops_ge100": 1,
+      "log_sha256": "ff34e93c5e269781d532227fab2cdeb4a9a8d0e5ff0352d70d419de268da80e3"
+    },
+    {
+      "variant": "baseline",
+      "case": 1,
+      "plies": 160,
+      "end_reason": "ply-cap",
+      "reasons": {
+        "soft-abort": 159,
+        "hard-deadline": 1
+      },
+      "elapsed_ns": 389423432319,
+      "tail_ns": 95721638970,
+      "tail_fraction": 0.2458034905603438,
+      "bank_checkpoints_seconds": {
+        "black": {
+          "10": 76.24432401,
+          "20": 34.707059078,
+          "30": 15.059124395,
+          "40": 8.305620443,
+          "60": 5.894312546,
+          "80": 6.280881682
+        },
+        "white": {
+          "10": 81.937168383,
+          "20": 39.887639283,
+          "30": 16.021791111,
+          "40": 8.550276655,
+          "60": 4.999925857,
+          "80": 4.288183889
+        }
+      },
+      "minimum_bank_before_seconds": 3.897650726,
+      "score_drops_ge100": 0,
+      "log_sha256": "61f090c767aa5ec4da0d4667d40521ecb61288db2fac1b524f1fe16deede06b4"
+    }
+  ],
+  "variants": {
+    "baseline": {
+      "plies": 300,
+      "tail_fraction": 0.2766783318738715
+    },
+    "candidate": {
+      "plies": 130,
+      "tail_fraction": 0.24140032810234038
+    }
+  },
+  "limitation": "Four divergent self-play trajectories on39eb128, each ending naturally or capped at160 plies. Checkpoints count searched moves from the fixture. No rating, significance claim or allocator selection. Rebase and revalidate before strength games if the accepted source changes."
+}

@@ -1,0 +1,89 @@
+{
+  "source_match": true,
+  "logs": {
+    "baseline-ngnn4-tests.log": {
+      "bytes": 678,
+      "tail": [
+        "    ngnn4_test.go:281: 320 exact NGNN4 trainer cases",
+        "--- PASS: TestNGNN4TrainerParity (0.03s)",
+        "PASS",
+        "ok  \tgithub.com/ehrlich-b/ngn/engine\t1.067s"
+      ]
+    },
+    "differential-avx2.log": {
+      "bytes": 768,
+      "tail": [
+        "    ngnn4_test.go:281: 320 exact NGNN4 trainer cases",
+        "--- PASS: TestNGNN4TrainerParity (0.04s)",
+        "PASS",
+        "ok  \tgithub.com/ehrlich-b/ngn/engine\t1.652s"
+      ]
+    },
+    "differential-purego.log": {
+      "bytes": 768,
+      "tail": [
+        "    ngnn4_test.go:281: 320 exact NGNN4 trainer cases",
+        "--- PASS: TestNGNN4TrainerParity (0.06s)",
+        "PASS",
+        "ok  \tgithub.com/ehrlich-b/ngn/engine\t1.741s"
+      ]
+    },
+    "full-short.log": {
+      "bytes": 2579,
+      "tail": [
+        "?   \tgithub.com/ehrlich-b/ngn/internal/oracle\t[no test files]",
+        "?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]",
+        "?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]",
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/uci\t0.056s"
+      ]
+    },
+    "full-race.log": {
+      "bytes": 2580,
+      "tail": [
+        "?   \tgithub.com/ehrlich-b/ngn/internal/oracle\t[no test files]",
+        "?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]",
+        "?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]",
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/uci\t1.082s"
+      ]
+    },
+    "vet.log": {
+      "bytes": 0,
+      "tail": []
+    },
+    "baseline-build.log": {
+      "bytes": 0,
+      "tail": []
+    },
+    "candidate-build.log": {
+      "bytes": 0,
+      "tail": []
+    }
+  },
+  "timing/receipt.json": {
+    "blocks": 20,
+    "ratio": 1.1515027566335079,
+    "ci95": [
+      1.132498518640922,
+      1.1708259010579647
+    ],
+    "order_strata": [
+      1.1359433519360156,
+      1.1672752838200113
+    ],
+    "verdict": "speed-keep"
+  },
+  "architecture-cost.json": {
+    "blocks": 12,
+    "ratio": 0.8155540292731925,
+    "ci95": [
+      0.8071695300560037,
+      0.8240256227432061
+    ],
+    "order_strata": [
+      0.8117177490807236,
+      0.8194084402084374
+    ],
+    "verdict": "budget-deferred"
+  },
+  "identities": 48
+}

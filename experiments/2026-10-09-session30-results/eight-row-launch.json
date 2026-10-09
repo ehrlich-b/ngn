@@ -1,0 +1,24 @@
+{
+  "created_utc": "2026-10-09T21:38:03.325312+00:00",
+  "record": "experiments/2026-10-09-ngnn4-eight-row.md",
+  "base": "aafa7fd",
+  "candidate_topic": "night/ngnn4-eight-row",
+  "one_change": "eight instead of four output rows sharing each input load",
+  "cpus": [
+    12,
+    14
+  ],
+  "timing_cpu": 14,
+  "files_sha256": {
+    "base.tar": "8e77205f1e01726de1f59fc7b03513c8634f3a42d60af24f54a7ffcb9534ed17",
+    "candidate.patch": "356f06cf0617011c0935a62402eb5698c910d5a65386a6c806b8e40be009384c",
+    "controller.sh": "b4f112438cf2b7a3d20305068440bf666c28b60e3a321cb59553c863f842ec55",
+    "check.py": "40e0202a763347b933f36406ecf14afef86c8c9d1d50d578c88015782da6211c",
+    "random-h512-l16.nnue": "6704332592ddd5819e9259517c544a053eefab9a9e12f52e2eb5c9a7e6f8bc0a",
+    "random-h512-l16.json": "3c3191c8b974aeffcdbcc1df7ea6fb60270bbff884ddb73b5155894d1db086d0",
+    "accepted-kb8.nnue": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a"
+  },
+  "speed_rule": "48 exact identities; exactly20 balanced blocks; df19 lower95>1 and both strata>1; otherwise shelve without extension",
+  "budget_rule": "only on speed keep: exactly12 balanced same-width blocks; point ratio>=0.85 permits later training after data",
+  "automatic_promotion": false
+}

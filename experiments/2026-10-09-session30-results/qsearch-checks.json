@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "base_source": "39eb128",
+  "net_for_future_gate": "be34532c",
+  "utc": "2026-10-09T20:39:33.852427+00:00",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "machine": "WSL Ryzen9800X3D",
+  "cpus": [
+    12,
+    14
+  ],
+  "nice": 19,
+  "source_sha256": {
+    "engine/search.go": "fb072de83f556c7ea6ca68d2cdd2d06442b458824e638b14e97e3c9d8fecee60",
+    "engine/qsearch_tt_static_test.go": "dab3aab2572c909caca0b7565ec8fef9962946cf8f5f4089d18424decf79b3ca"
+  },
+  "binaries": {
+    "baseline-ngn": "7d41d511dc66a6872519a75972681516be49362d0af4b3d55cc9e347f52d00b5",
+    "candidate-ngn": "ade7c624ba7ea8248635f2a6a9aec04f59a668046ae4fd018d410614103655c8"
+  },
+  "inputs": {
+    "base.tar": "48eebb8c80b8ba437831991f4e5ec1e95b9146a2192f36a16d58675125e3f6b6",
+    "candidate.patch": "55d1314489b37e7461da46164d5e12faf729a3fbf4aae6aecd4d8f7da75392bd",
+    "baseline/default.pgo": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0"
+  },
+  "games_launched": false,
+  "strength_verdict": null
+}

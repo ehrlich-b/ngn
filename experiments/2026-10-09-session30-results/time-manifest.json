@@ -1,0 +1,57 @@
+{
+  "base_source": "39eb128",
+  "net": "be34532c",
+  "utc": "2026-10-09T20:16:04.577299+00:00",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "machine": "WSL Ryzen9800X3D",
+  "cpus_build": [
+    12,
+    14
+  ],
+  "cpus_trace": [
+    14
+  ],
+  "nice": 19,
+  "source_sha256": {
+    "engine/time.go": "cd4ec330a27ed59096a6d6938795083dcd8f5ac56f7e045378132fbcf67c0a79",
+    "engine/time_admission_test.go": "88efd1aa1e0af8bfa9b9053622fb8e2c63d1c05bdafdb8c6b7df743126d2a2e3",
+    "engine/campaign_clock_trajectory_test.go": "cf6ec69828668d86151721e1ad78a4f5eb9fb4329d2f6a7890fe5b17c7d925fb"
+  },
+  "binaries": {
+    "baseline-ngn": "869ea992a0395fdb60cad23de6ae6e65f8dd123fbb923dbdcd067192e3df5f3e",
+    "candidate-ngn": "de22229f85738d742010400d50a07e22e03e5b4c365b37de691a235d61ee467e",
+    "baseline-trace": "c8b7da89b89d91c45a7be6b21003ddf4afdaa28e3093b73ac425e13fe0745ffc",
+    "candidate-trace": "e41b3109f5dbb9ac6528cca59f6f82f3ddc203334d5f22555a7958462c4a3423"
+  },
+  "inputs": {
+    "base.tar": "48eebb8c80b8ba437831991f4e5ec1e95b9146a2192f36a16d58675125e3f6b6",
+    "candidate.patch": "de2f899798df02e2a7d032f60382f559496e26af6d63a7c017885b9eae3523d4",
+    "clock-trajectory_test.go.txt": "cf6ec69828668d86151721e1ad78a4f5eb9fb4329d2f6a7890fe5b17c7d925fb",
+    "net.nnue": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+    "baseline/default.pgo": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0"
+  },
+  "schedule": [
+    [
+      "baseline",
+      0
+    ],
+    [
+      "candidate",
+      0
+    ],
+    [
+      "candidate",
+      1
+    ],
+    [
+      "baseline",
+      1
+    ]
+  ],
+  "tc": "120+1",
+  "max_plies": 160,
+  "strength_games": false,
+  "decision_rule": "diagnostic only; games decide strength later on the then-current accepted base"
+}

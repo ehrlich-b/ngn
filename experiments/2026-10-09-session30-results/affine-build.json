@@ -1,0 +1,38 @@
+{
+  "runtime_base": "39eb128",
+  "architecture_base": "14a203a",
+  "source_archive_sha256": "9977b61113e544d04060e4d081a776d7135a104b8ec64d6044c3d334bc589a60",
+  "patch_sha256": "e38cdbc5f3e2cf23056b2857ec0b89b3b219afe989baeca0c900467e419efacb",
+  "binary_sha256": {
+    "baseline": "1b5509ed55b4a5cece8d70e363f1c922672eba23d05c1ff9dd38100cd25e1bb9",
+    "candidate": "30c90c5b128669eb0d35e39202e91b819670d63ffa84594228460f2f717103d6"
+  },
+  "net_sha256": "6704332592ddd5819e9259517c544a053eefab9a9e12f52e2eb5c9a7e6f8bc0a",
+  "old_net_sha256": "c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2",
+  "ngnn3_net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "source_sha256": {
+    "engine/ngnn4.go": "fd6acf9f8e562870c39d8708bbc7fe59c85426e7c80e7ec7badfb5333e60294c",
+    "engine/ngnn4_kernels_amd64.go": "47d65df5c4d3c5e90e82896242fe811c12142d8b144c45c79d895d6783165bf3",
+    "engine/ngnn4_kernels_amd64.s": "2f33cfcfa949378126b40dc538fe0d80f4dd50859449168cfb8b5d6b09f768be",
+    "engine/ngnn4_kernels_generic.go": "e04be45e7ab1807ed60be279f51ea21a20634d6e1a90ed801565e867b6d0e7c9",
+    "engine/ngnn4_rows_test.go": "b47371a4dfb70cd4bc1150a80cd6e1980539687293c38912ef87b8286f7c7fdd"
+  },
+  "go_version": "go version go1.25.5 linux/amd64",
+  "build_argv": [
+    "go",
+    "build",
+    "-p",
+    "2",
+    "-pgo=/home/ehrli/ngn-data/night-20261007/session22-row/baseline/default.pgo",
+    "-o",
+    "OUTPUT",
+    "./cmd/speedprobe"
+  ],
+  "goamd64": "v3",
+  "build_test_cpus": [
+    12,
+    14
+  ],
+  "tests_pass": true
+}

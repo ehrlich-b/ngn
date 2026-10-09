@@ -1,0 +1,521 @@
+{
+  "session21/pawn": {
+    "logs": {
+      "resource.log": {
+        "sha256": "74a5701522e6d8e290169da388e43ce83993e8ec3fec5a52abf7fcc9bb65a679",
+        "bytes": 2192
+      },
+      "vet.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "baseline-witness.log": {
+        "expected_baseline_failure": true,
+        "tail": [
+          "--- FAIL: TestPawnQuietOrderingConsumesCompletedRoot (0.01s)",
+          "    pawn_quiet_ordering_test.go:32: completed root did not train its pawn context: trained=16 other=16",
+          "FAIL",
+          "FAIL\tgithub.com/ehrlich-b/ngn/engine\t0.012s",
+          "FAIL"
+        ]
+      },
+      "candidate-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "baseline-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "full-short.log": {
+        "sha256": "a76a141b17cd406825955599858a1e587132e21058b364f6d1a2717f5421e2f7",
+        "bytes": 2579
+      },
+      "ngn_crashes.log": {
+        "sha256": "30d8a51763c918cb3f51a0a4a78eb46253940e0f233745e6302bc5f9cb16f2a0",
+        "bytes": 6136
+      },
+      "baseline-probe-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "narrow.log": {
+        "sha256": "3578bcfcbd9fa01fe6d7299cac987e8ebc03130da01b1b1f29e5a0b632253d83",
+        "bytes": 44
+      },
+      "full-race.log": {
+        "sha256": "f470c688bfb1429de5d83e49c129bcba3d48294ff8fbc6962b460c5f0c463daf",
+        "bytes": 2580
+      },
+      "candidate-probe-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    "adopted": false
+  },
+  "session23-time": {
+    "logs": {
+      "candidate-narrow.log": {
+        "sha256": "b06568705d43ea5b2690c62c87adb322e68fba0e7948ab967039aff643ab7b80",
+        "bytes": 569
+      },
+      "vet.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "candidate-observer.log": {
+        "sha256": "3d2f2ae81739fe55557608f780cd61ae57d6f96541daed0742f7de70e23cbe3f",
+        "bytes": 44
+      },
+      "trajectory-candidate-1.log": {
+        "sha256": "ff34e93c5e269781d532227fab2cdeb4a9a8d0e5ff0352d70d419de268da80e3",
+        "bytes": 205101
+      },
+      "candidate-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "trajectory-candidate-0.log": {
+        "sha256": "50d9e91d84dfa7be6fb2447dc00f1e6cbb181f92b3a0f04bf3951385be94414b",
+        "bytes": 119496
+      },
+      "trajectory-baseline-1.log": {
+        "sha256": "61f090c767aa5ec4da0d4667d40521ecb61288db2fac1b524f1fe16deede06b4",
+        "bytes": 323037
+      },
+      "trajectory-baseline-0.log": {
+        "sha256": "ec9d97914e31e27c16bd63314f9138c6e9c8733a5fd4f633dd72cdff60329920",
+        "bytes": 362583
+      },
+      "baseline-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "baseline-regression.log": {
+        "expected_baseline_failure": true,
+        "tail": [
+          "--- FAIL: TestIterationAdmissionChecksClockWithoutThrottle (0.00s)",
+          "    time_admission_test.go:16: expired soft projection admitted another depth",
+          "--- FAIL: TestIterationAdmissionChecksHardDeadlineWithoutThrottle (0.00s)",
+          "    time_admission_test.go:31: missed hard admission deadline: {FirstReason:none FirstDepth:0 FirstElapsed:0s Iterations:[{Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0} {Depth:0 Duration:0s CompletedAtElapsed:0s AspirationAttempts:0}] IterationCount:0 IterationOverflow:0}",
+          "FAIL",
+          "FAIL\tgithub.com/ehrlich-b/ngn/engine\t0.004s",
+          "FAIL"
+        ]
+      },
+      "baseline-trace-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "full-short.log": {
+        "sha256": "902877f6c776a788b48407b2888bda8c8003658d9a7414ce984fa9366fa92e3a",
+        "bytes": 2579
+      },
+      "ngn_crashes.log": {
+        "sha256": "cb106923b02f131a8de3f46db0e12ea8650631d950c1cb22a9a320196ce66075",
+        "bytes": 944
+      },
+      "candidate-trace-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "trajectory-review.log": {
+        "sha256": "d879f3ed30f3b1d6c465ce89209c3bc2cabad180ae08cbcf1da61dd165cdce21",
+        "bytes": 3932
+      },
+      "baseline-observer.log": {
+        "sha256": "3a962fdc2a4c53e282eaa018bf0ad42f585b7a15f145369589fb9de5aba741d3",
+        "bytes": 44
+      },
+      "controller.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "full-race.log": {
+        "sha256": "1ca8138e2417d041a741798c0d6883b7f530212cb070fb34691d046c60099deb",
+        "bytes": 2580
+      }
+    },
+    "adopted": false,
+    "trajectory": {
+      "complete": true,
+      "diagnostic_only": true,
+      "strength_verdict": null,
+      "games": [
+        {
+          "variant": "baseline",
+          "case": 0,
+          "plies": 140,
+          "end_reason": "draw-rule",
+          "reasons": {
+            "soft-abort": 137,
+            "soft-admission": 1,
+            "depth-complete": 2
+          },
+          "elapsed_ns": 363985017187,
+          "tail_ns": 112730154059,
+          "tail_fraction": 0.30971097362802724,
+          "bank_checkpoints_seconds": {
+            "black": {
+              "10": 79.845360806,
+              "20": 42.714200531,
+              "30": 23.978284207,
+              "40": 12.526948226,
+              "60": 7.771212529
+            },
+            "white": {
+              "10": 84.538266743,
+              "20": 37.908143082,
+              "30": 18.512305633,
+              "40": 9.551952366,
+              "60": 6.907669031
+            }
+          },
+          "minimum_bank_before_seconds": 6.582018949,
+          "score_drops_ge100": 0,
+          "log_sha256": "ec9d97914e31e27c16bd63314f9138c6e9c8733a5fd4f633dd72cdff60329920"
+        },
+        {
+          "variant": "candidate",
+          "case": 0,
+          "plies": 42,
+          "end_reason": "draw-rule",
+          "reasons": {
+            "soft-abort": 35,
+            "soft-admission": 6,
+            "depth-complete": 1
+          },
+          "elapsed_ns": 184137544404,
+          "tail_ns": 43135980816,
+          "tail_fraction": 0.2342595637169959,
+          "bank_checkpoints_seconds": {
+            "black": {
+              "10": 82.674143588,
+              "20": 53.538531514
+            },
+            "white": {
+              "10": 80.743159378,
+              "20": 46.453715078
+            }
+          },
+          "minimum_bank_before_seconds": 46.453715078,
+          "score_drops_ge100": 0,
+          "log_sha256": "50d9e91d84dfa7be6fb2447dc00f1e6cbb181f92b3a0f04bf3951385be94414b"
+        },
+        {
+          "variant": "candidate",
+          "case": 1,
+          "plies": 88,
+          "end_reason": "draw-rule",
+          "reasons": {
+            "soft-abort": 63,
+            "soft-admission": 25
+          },
+          "elapsed_ns": 310924626184,
+          "tail_ns": 76372189595,
+          "tail_fraction": 0.245629272059667,
+          "bank_checkpoints_seconds": {
+            "black": {
+              "10": 80.953367566,
+              "20": 33.220795674,
+              "30": 14.445585162,
+              "40": 7.782812912
+            },
+            "white": {
+              "10": 80.49772967,
+              "20": 40.980209536,
+              "30": 19.38757095,
+              "40": 11.881335016
+            }
+          },
+          "minimum_bank_before_seconds": 6.475036684,
+          "score_drops_ge100": 1,
+          "log_sha256": "ff34e93c5e269781d532227fab2cdeb4a9a8d0e5ff0352d70d419de268da80e3"
+        },
+        {
+          "variant": "baseline",
+          "case": 1,
+          "plies": 160,
+          "end_reason": "ply-cap",
+          "reasons": {
+            "soft-abort": 159,
+            "hard-deadline": 1
+          },
+          "elapsed_ns": 389423432319,
+          "tail_ns": 95721638970,
+          "tail_fraction": 0.2458034905603438,
+          "bank_checkpoints_seconds": {
+            "black": {
+              "10": 76.24432401,
+              "20": 34.707059078,
+              "30": 15.059124395,
+              "40": 8.305620443,
+              "60": 5.894312546,
+              "80": 6.280881682
+            },
+            "white": {
+              "10": 81.937168383,
+              "20": 39.887639283,
+              "30": 16.021791111,
+              "40": 8.550276655,
+              "60": 4.999925857,
+              "80": 4.288183889
+            }
+          },
+          "minimum_bank_before_seconds": 3.897650726,
+          "score_drops_ge100": 0,
+          "log_sha256": "61f090c767aa5ec4da0d4667d40521ecb61288db2fac1b524f1fe16deede06b4"
+        }
+      ],
+      "variants": {
+        "baseline": {
+          "plies": 300,
+          "tail_fraction": 0.2766783318738715
+        },
+        "candidate": {
+          "plies": 130,
+          "tail_fraction": 0.24140032810234038
+        }
+      },
+      "limitation": "Four divergent self-play trajectories on39eb128, each ending naturally or capped at160 plies. Checkpoints count searched moves from the fixture. No rating, significance claim or allocator selection. Rebase and revalidate before strength games if the accepted source changes."
+    }
+  },
+  "session23-qstatic": {
+    "logs": {
+      "candidate-narrow.log": {
+        "sha256": "5e5d4b1ce7309ff9fe659b46299017cf8d38095e4a4e1073ab6d94dad418ca3d",
+        "bytes": 543
+      },
+      "vet.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "baseline-witness.log": {
+        "expected_baseline_failure": true,
+        "tail": [
+          "=== RUN   TestQStaticCompatibleBoundChangesQuietHorizon",
+          "    qsearch_tt_static_test.go:37: quiet horizon ignored compatible bound: turn=1 bound=3 got=131 want=211 direct cutoffs=0",
+          "--- FAIL: TestQStaticCompatibleBoundChangesQuietHorizon (0.00s)",
+          "FAIL",
+          "FAIL\tgithub.com/ehrlich-b/ngn/engine\t0.006s",
+          "FAIL"
+        ]
+      },
+      "candidate-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "baseline-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "full-short.log": {
+        "sha256": "e609f253be8854f0cca3cf78ebd7ab1126133e4135794f40358a1fcf9488ef76",
+        "bytes": 2579
+      },
+      "controller.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "full-race.log": {
+        "sha256": "d5e35b7e496b3cf5c1cdb44bc4c4a9a4194b8c69972c8e68110403673c2c4e5f",
+        "bytes": 2580
+      }
+    },
+    "adopted": false,
+    "receipt": {
+      "passed": true,
+      "base_source": "39eb128",
+      "net_for_future_gate": "be34532c",
+      "utc": "2026-10-09T20:39:33.852427+00:00",
+      "go_version": "go version go1.25.5 linux/amd64",
+      "goamd64": "v3",
+      "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+      "machine": "WSL Ryzen9800X3D",
+      "cpus": [
+        12,
+        14
+      ],
+      "nice": 19,
+      "source_sha256": {
+        "engine/search.go": "fb072de83f556c7ea6ca68d2cdd2d06442b458824e638b14e97e3c9d8fecee60",
+        "engine/qsearch_tt_static_test.go": "dab3aab2572c909caca0b7565ec8fef9962946cf8f5f4089d18424decf79b3ca"
+      },
+      "binaries": {
+        "baseline-ngn": "7d41d511dc66a6872519a75972681516be49362d0af4b3d55cc9e347f52d00b5",
+        "candidate-ngn": "ade7c624ba7ea8248635f2a6a9aec04f59a668046ae4fd018d410614103655c8"
+      },
+      "inputs": {
+        "base.tar": "48eebb8c80b8ba437831991f4e5ec1e95b9146a2192f36a16d58675125e3f6b6",
+        "candidate.patch": "55d1314489b37e7461da46164d5e12faf729a3fbf4aae6aecd4d8f7da75392bd",
+        "baseline/default.pgo": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0"
+      },
+      "games_launched": false,
+      "strength_verdict": null
+    }
+  },
+  "session24-continuation": {
+    "logs": {
+      "candidate-narrow.log": {
+        "sha256": "1c66b37c86933031988c71918df408f5eb81f2219d5c82fa136d99f54a07db05",
+        "bytes": 2581
+      },
+      "resource.log": {
+        "sha256": "99e8b73713ab394c373e48cf632dcf2ef079c31b1ac6ca2f610fcb32c0190fee",
+        "bytes": 2172
+      },
+      "vet.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "baseline-witness.log": {
+        "expected_baseline_failure": true,
+        "tail": [
+          "=== RUN   TestContinuationQuietHorizonWitness",
+          "    continuation_correction_test.go:44: quiet horizon ignored temporal residual: stm=1 sign=-1 got=167 want=119",
+          "--- FAIL: TestContinuationQuietHorizonWitness (0.00s)",
+          "FAIL",
+          "FAIL\tgithub.com/ehrlich-b/ngn/engine\t0.005s",
+          "FAIL"
+        ]
+      },
+      "candidate-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "baseline-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "full-short.log": {
+        "sha256": "cc8ae682cdb6e89646c7e624fef4f450c7fbcc529a7f0454c90b3ad76f0e71fe",
+        "bytes": 2579
+      },
+      "ngn_crashes.log": {
+        "sha256": "bcf7efc977399abae26d815badc41a82151c47bff5143aeab815bfcd5a193719",
+        "bytes": 6344
+      },
+      "baseline-probe-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "controller.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "full-race.log": {
+        "sha256": "eb1e1f19eda96799c18dc51c144aa636b7e2c221553343742f35a28f30cb58d4",
+        "bytes": 2580
+      },
+      "candidate-probe-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    "adopted": false,
+    "receipt": {
+      "code_checks_passed": true,
+      "base_source": "39eb128",
+      "utc": "2026-10-09T20:42:12.300732+00:00",
+      "go_version": "go version go1.25.5 linux/amd64",
+      "goamd64": "v3",
+      "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+      "machine": "WSL Ryzen9800X3D",
+      "cpus": [
+        12,
+        14
+      ],
+      "nice": 19,
+      "source_sha256": {
+        "engine/continuation_correction.go": "85fd79e39ccaf921f30acd6dff684c58040bdff239008a71c3363d761f547410",
+        "engine/continuation_correction_test.go": "60dd7cfb5c727f29dfb29b306abc60cf98f05541b7a4aca393dee044edd7eb5f",
+        "engine/moveorder.go": "46298fb85b6c714fff1639819fd673381e26e45b02a5505c219ce1054226cfcf",
+        "engine/search.go": "9ff0c35180a97bcf1f8a9515d5b7df458ca37205914be145999581b124eb8064"
+      },
+      "binaries": {
+        "baseline-ngn": "2b0fb679c7430c2e59fe89cd27aae1f1d8b8ac2edf41d0488eb49dec1991647e",
+        "candidate-ngn": "0e9f7d8e406f430abb3419c09507cfaaf276b3f9a6c4fa8cde2a16e98d29c8c4",
+        "baseline-probe": "4ad79456189e665c63764b965fe046555af23371df661e1b3404417c9ee329c6",
+        "candidate-probe": "897dc2a8bfa641d8a099db43fedafe494b8be8288c88e1a30641f19fe9b74f49"
+      },
+      "inputs": {
+        "base.tar": "48eebb8c80b8ba437831991f4e5ec1e95b9146a2192f36a16d58675125e3f6b6",
+        "candidate.patch": "acee7bd99e2ccc3a7fe1873b2529e1d9b91e452db3aac2bfcf2a8bc62dce59b1",
+        "baseline/default.pgo": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0"
+      },
+      "games_launched": false,
+      "strength_verdict": null
+    }
+  },
+  "session25-tt-scan": {
+    "logs": {
+      "vet.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "engine-race.log": {
+        "sha256": "f0470fa66ae855e6d84b1ba2bdd43c1cde83526eb403a789d016b713096a423f",
+        "bytes": 46
+      },
+      "baseline-tt.log": {
+        "sha256": "2cf230c545bce23dd8a7a83db4b15626ac997219ad5fe921ad7b86fcc1cff931",
+        "bytes": 1143
+      },
+      "candidate-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "candidate-tt.log": {
+        "sha256": "9e83679144883f446b06fb133d925014a4e3cef6dd40db1d30fe60d0424d156c",
+        "bytes": 1143
+      },
+      "baseline-build.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "full-short.log": {
+        "sha256": "9c2e641a7434ff273c04ff112eedd57f49fa80c4658f2639d9c84848f5065423",
+        "bytes": 2579
+      },
+      "ngn_crashes.log": {
+        "sha256": "d70c323f7855f3ea59de213bbd99ad2a885f57c6cd0d5041cd4ffeae6eaf5edc",
+        "bytes": 11472
+      },
+      "check.log": {
+        "sha256": "0e047eeea9216d1d128c025acd51bb76eaf15891adab718f17e451999cf73bd9",
+        "bytes": 1044
+      },
+      "controller.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "full-race.log": {
+        "sha256": "89fd41faa8533cf2d6d8972658fc4b1b7e03c6b38c9a1844948b677983782457",
+        "bytes": 2580
+      },
+      "engine-short.log": {
+        "sha256": "48492193e83ff68f45ca50e16cc6f038be732dccf9a5d1ef529b967499e50455",
+        "bytes": 45
+      }
+    },
+    "adopted": false,
+    "verdict": {
+      "ratio": 0.9995173279672158,
+      "ci95": [
+        0.9766904819403563,
+        1.0228776745340813
+      ],
+      "order_strata": [
+        1.0172691290770028,
+        0.9820753037233868
+      ],
+      "identities": 36,
+      "decision": "shelved; complete fixed rule failed; no extension"
+    }
+  },
+  "time_bank_reconciliation": "all four raw logs exactly reconcile with independently rerun bank review",
+  "baseline_witnesses": "all named mechanism failures verified",
+  "tt_trace_review": "both raw binary compatibility and collision dumps compared byte-identical on box",
+  "formatted_sources": "exact receipt-pinned pawn/time/qsearch/continuation sources copied into isolated topics; no adoption"
+}
