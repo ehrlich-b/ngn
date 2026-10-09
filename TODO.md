@@ -8,33 +8,35 @@ SEE400 independently reconciles89/205/106,−14.77[−35.43,+5.77], zero faults,
 exact source/pins; integrated tested source, no Elo gain claimed. Board neutral
 checks/perft/identities remain proved.
 
-**Session32:** original key A/A failure remains preserved with zero candidate
-games/no retry. New immediate SEE base admits separately frozen existing-key
-experiment **22682**,13,15 since18:41; full checks then A/A40/gate400, same
-provenance rule, no automatic adoption. `session32-key/` owns receipts.
-SPSA **1405**,0–11,durable1350/16,200 at18:08, old base;24k endpoint and
-converged-vector games required. C: **28.63GiB**, hopper1211 untouched.
+**Session33:** original VNNI256 **d6e576b** retained on architecture topic:
+48 identities/full checks, fixed20-block NPS **+6.91%[+4.52%,+9.35%]**,
+both strata positive. Exactly12 same-width NGNN4/NGNN3 blocks give
+**0.87650[0.85361,0.89999]**, above0.85; training stays after data/factorizer.
+Real VNNI512/all-width oracle/purego/320 parity/full short/race/vet pass;
+fixed speed **26077** on14 since19:02 vs retained256d6e576b,48 identities/
+exactly20 blocks/conditional12 budget blocks. No automatic adoption.
+Original null-frame sharing onf8686be is prepared in isolated topic;
+**26156** waits natively for26077, then full checks12,14/36 identities/
+exactly40 speed blocks14. Both complete rules require lower95>1 and both
+strata>1; no extension. Patches/stages are durable, runtime uncommitted.
 
-NGNN4 four-row speed keepaafa7fd, same-width budget0.81555; eight-row and
-TT scan remain shelved. VNNI256 **20321** runs its fixed48 identities/20
-speed blocks and conditional12 cost blocks14, `session31-vnni/`. New original
-VNNI512 **22605** waits natively on20321, then all-width integer/purego/320
-parity/full short/race/vet/build12,14, `session32-vnni512/`. Prepared fixed
-speed stage needs reviewed actual retained architecture baseline before
-launch. No accepted hidden layer or trained NGNN4 net; no sample extension.
+Key **22682** on immediate SEE base: full checks/A/A40 pass5/24/11,
+CI includes0/zero flags;400 gate13,15 since18:54:31, no mid-run verdict.
+Original39eb128 key A/A failure stays preserved with zero candidate games.
+SPSA **1405**,0–11,durable1375/16,500 at18:38;24k endpoint and final-vector
+games required on frozen old base. C: **28.38GiB**, hopper1211 untouched.
 
-Pawn/time/qsearch/continuation exact source/full checks/witnesses retained;
+Pawn/time/qsearch/continuation exact checks/witnesses reviewed on39eb128,
 no strength games. Rebase and actual-base A/A40/powered SPRT[0,+6] after
-higher priorities; time60+0.6, others10+0.1. Reviewed bank/NPS diagnostics
-remain diagnostics.
+higher priorities; time60+0.6, others10+0.1. TT-scan/eight-row negatives
+stay shelved. No trained NGNN4 net or accepted playing architecture.
 
 **Data:** T76 complete55.63GB/1.738B rows; T74 stats/keep194 complete but
-corpus incomplete. Conversion needs70GiB host capacity (~41.4GiB more),
+corpus incomplete. Conversion needs70GiB host capacity (~41.62GiB more),
 no live waiter/trainer. Factorizer58 epochs/selected57/reexport/20 parity
-cases reviewed, zero games; future actual-base A/A40/gate400 after provenance
-freezes, no retraining. Prior net/search negatives stay shelved. No3600 claim
-or publication. **Next session: not before19:00 EDT October9**, VNNI256
-review then VNNI512 checks/keyA/A. [Session32](experiments/2026-10-09-session32.md).
+reviewed, zero games; actual-base A/A40/gate400 after provenance freezes.
+No3600 claim/publication. **Next session: not before20:10 EDT October9**:
+VNNI512 speed/null-frame results then key gate. [Session33](experiments/2026-10-09-session33.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
