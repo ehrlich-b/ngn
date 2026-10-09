@@ -1,0 +1,23 @@
+{
+  "utc": "2026-10-09T05:22:23.190802+00:00",
+  "factorizer_epochs": 50,
+  "training_eta_utc": "2026-10-09T06:07:56.235986+00:00",
+  "last5_epoch_mean_seconds": 341.63064802080044,
+  "spsa_iterations": 825,
+  "spsa_games": 9900,
+  "c_free_bytes": 119694610432,
+  "raw_sizes": {
+    "farseerT76.binpack": 6141321549,
+    "farseerT74.binpack": 20144023865
+  },
+  "handles": {
+    "session19-rodent3": 667005,
+    "session19-tt-gate": 664657,
+    "session19-gpu-release2": 666724,
+    "session19-data-resume": 666748,
+    "session19-see": 667047
+  },
+  "factorizer_controller_held": true,
+  "accepted_runtime": "5b882e2",
+  "net": "be34532c"
+}

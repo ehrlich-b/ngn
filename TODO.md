@@ -1,55 +1,47 @@
-# NGN live state — 2026-10-08: 3600 campaign
+# NGN live state — 2026-10-09: 3600 campaign
 
-The session contract and ranked queue are in
-[the campaign log](experiments/2026-10-08-3600-campaign.md), superseding the older queue.
-Target: pooled lower95 >3600, bracketed scores, stronger top anchor, no direct
-third-party code/nets. No publication authorized.
+[Campaign log](experiments/2026-10-08-3600-campaign.md) owns the current plan,
+box handles and handoff. Accepted runtime **5b882e2 /NGNN3 KB8 H512 be34532c**,
+58-epoch recipe, unchanged. No3600 claim or publication. V2 orientation
+3434.6[3388.3,3480.9] supplies no new claim eligibility.
 
-Accepted runtime **5b882e2 / NGNN3 KB8 H512 be34532c**, 58-epoch recipe.
-H1024 and the completed116-epoch H512 net are shelved. Longer gate400:
-**−18.3 [−38,+1]**, 87/205/108, zero flags, full parity and intact inputs.
-[Reviewed prerequisite results](experiments/2026-10-08-factorizer-activation.md).
-PGO, cache row pairing, packed output and direct move-delta speed edits remain
-accepted; speed gains supply no Elo or new absolute strength claim.
-V2 orientation **3434.6 [3388.3,3480.9]** supplies no3600 eligibility.
+**Rodent V1.2 head-to-head QUEUED**,667005 /session19-rodent3,120+1,
+concurrency6/CPU0–11, deadline07:45EDT, >=160 complete paired games.
+Waits SPSA's durable850; pauses/restores the old-base tune. Factorizer's
+**controller630389 is intentionally held**, trainer630440 continues12,14/GPU,
+50/58 at01:22, ETA~02:08; parity/A/A/gate wait for Rodent's end.
+SPSA666877/666880 remains unchanged,825/9900 durable; >=20k plus converged-vector
+paired games required. [Match record](experiments/2026-10-09-rodent-head-to-head.md).
 
-**Factorizer training/gate RUNNING**, controller630389/trainer630440,
-`night-20261007/session9b/`, exact58-epoch recipe + `--king-factorizer`.
-Activated20:42 EDT by2fba7b1. GPU12,14/nice19/BF16; folded parity/reexport,
-fresh A/A40/gate400 follow. Accept only complete penta lower95>0 and zero
-operational failures. No automatic promotion. Unchanged SPSA630159/630163
-continues on CPU0–11, last durable675 iterations/8,100 games at22:07:07; no tuning
-verdict before >=20k plus converged-vector paired games. Preserve its legacy
-resume/RNG; [future repair](experiments/2026-10-08-spsa-exact-resume.md) is separate.
+**Scout-depth SHELVED**,400 games86/238/76, penta+8.69[−9.77,+27.20], zero failures.
+**Own TT gate RUNNING**,664657/session19-tt-gate, full code checks pass,
+A/A40 pass,400 paired10+0.1 games on13,15 start01:23:36; lower95>0/no failures
+required. No automatic promotion or old-net evidence transfer if factorizer wins.
+**Board refactor8a565d1 kept/pushed on topic**, full checks,12+3 exact identities,
+6 perfts. Complete new key draw order passes hash/perft but changes12/12 searches;
+neutral admission fails, separate behavior-gate decision needs Bryan. No main merge.
 
-**Fused NGNN4 output KEPT ON TOPIC 14a203a**,48 identities/20 fixed blocks,
-NPS ratio1.108407 [1.077645,1.140047], both order strata>1; full tests/parity
-pass. No main merge or Elo result. Sparse CPU passes68 tests/6 CUDA skips;
-batched CPU passes65/6. CUDA641099 then651274 follow factorizer630389;
-preserve both fixed cost windows before another trainer or exclusive claim.
-[Completed review](experiments/2026-10-08-session18.md).
+**Data expansion preparing**, T76/T74 downloads complete, T80 statistics and
+byte-identical consume-gather pass. Dispatcher655799 is held until TT ends by
+resumer666748, then follows CUDA/corpus/coverage; no trainer queued.
+**GPU cost admission666724** follows trainer, runs original batched/sparse fixed
+windows on newly free12,14; original unstarted641099/651274 waiters are stopped/
+superseded. Own space guard656725 active, C:111.5GiB free at01:22.
+[Data recipe](experiments/2026-10-09-data-volume.md).
 
-**Scout-depth source candidate RUNNING**, detached652150/652152,
-`night-20261007/session18d/`, launched22:02:01. Initial later-move scout uses
-computed child depth before LMR, preserving extensions/path budget. Both
-integration regressions fail on base and pass on candidate; all engine/full
-short/race/vet and PGO builds pass. A/A40 started22:07:25, then gate400 at
-10+0.1/concurrency2,
-CPU13,15/nice19/GOMAXPROCS1. Topic `night/scout-depth`, two uncommitted files
-in `output/campaign-scout-depth/`; no automatic promotion. Require complete
-penta lower95>0/zero failures/intact inputs. Hold until factorizer verdict;
-if its net wins, re-gate scout on the actual new base. [Manifest](experiments/2026-10-08-scout-depth.md).
-Expected terminal~00:00 October9; whole bound01:17 before factorizer ETA02:24.
+**Time-admission candidate tested**, full suites/builds pass; future60+0.6
+A/A40 +poweredSPRT[0,+6]/cap4000, H1/lower95>0/zero failures required.
+Accepted actual120+1 trajectories:453 searches,22.59% aggregate discarded tail,
+23.20% at moves15–40, legal/no flags; mechanism only.
+**Own SEE values candidate prepared**,100/300/340/500/950; CPU tests667047 follow
+CUDA windows on12,14; no games/source adoption.
+**NGNN4 real training DEFERRED**, H512 full-search ratio0.8451[0.8194,0.8717]
+fails the declared0.85 training budget threshold. Fused14a203a remains on topic.
 
-Next actual GPU architecture remains NGNN4,9b6a3d6 +retained fusion14a203a,
-no real net trained. Choose H/L recipe after both trainer CUDA cost reviews;
-review combined cost if both pass, then freeze actual immediate base and recipe.
-Affine16, deferred accumulators and quiet-move unroll remain shelved.
-V3 tool/source4cdf39aa/376671f passes12 operational admission games; reusable
-accepted preparation737c18be/1d63544 needs no new custody audit. Final nomination/
-prospective protocol and strength games remain pending. Owned calibration is
-prepared in `session10/`. Hopper untouched. Next campaign session **not before
-00:00 EDT October9** for scout terminal review; factorizer follows later.
+H1024, longer H512, affine16, deferred accumulators and quiet unroll remain shelved.
+Claim/stronger-anchor tools are reusable, no claim queued in this window.
+Hopper1168 untouched. Next session **not before01:45EDT** for Rodent launch state;
+then the declared verdicts/next data nomination. No repeated pinned-input audits.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

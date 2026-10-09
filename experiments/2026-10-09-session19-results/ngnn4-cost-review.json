@@ -1,0 +1,563 @@
+{
+  "completed_utc": "2026-10-09T04:42:27.126942+00:00",
+  "source": "14a203a",
+  "pins": {
+    "binary": "d79ade3526f8991e3966ab466a05cb2cb3c0364ea5134f2fa4aae7a67aaa072c",
+    "ngnn3": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+    "ngnn4": "6704332592ddd5819e9259517c544a053eefab9a9e12f52e2eb5c9a7e6f8bc0a"
+  },
+  "width": 512,
+  "ngnn4_hidden2": 16,
+  "ratio": 0.8451412321286474,
+  "ci95": [
+    0.819397191279932,
+    0.8716941061614077
+  ],
+  "order_strata_ratios": [
+    0.8666876074958489,
+    0.8241305126165075
+  ],
+  "budget_rule": "geometric ratio >=0.85",
+  "gpu_architecture_admitted": false,
+  "elo_verdict": null,
+  "limits": "seeded random NGNN4 fixture versus accepted NGNN3; tree mix differs; no trained-net strength evidence",
+  "commands": [
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/kb8h512/best.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/session17f/random-h512-l16.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/kb8h512/best.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/session17f/random-h512-l16.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/session17f/random-h512-l16.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/kb8h512/best.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/kb8h512/best.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/session17f/random-h512-l16.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/session17f/random-h512-l16.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/kb8h512/best.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/kb8h512/best.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/session17f/random-h512-l16.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/session17f/random-h512-l16.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/kb8h512/best.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/kb8h512/best.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/session17f/random-h512-l16.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/session17f/random-h512-l16.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/kb8h512/best.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/kb8h512/best.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/session17f/random-h512-l16.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/session17f/random-h512-l16.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/kb8h512/best.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/kb8h512/best.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/session17f/random-h512-l16.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/session17f/random-h512-l16.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "13",
+      "nice",
+      "-n",
+      "19",
+      "/home/ehrli/ngn-data/night-20261007/session17f/candidate-probe",
+      "-net",
+      "/home/ehrli/ngn-data/night-20261007/kb8h512/best.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ]
+  ],
+  "rounds": [
+    {
+      "index": 0,
+      "order": [
+        "ngnn3",
+        "ngnn4"
+      ],
+      "nps": {
+        "ngnn3": 1394229.392987205,
+        "ngnn4": 1308665.1189212778
+      },
+      "ratio": 0.938629701470716
+    },
+    {
+      "index": 1,
+      "order": [
+        "ngnn4",
+        "ngnn3"
+      ],
+      "nps": {
+        "ngnn4": 1123241.2955697537,
+        "ngnn3": 1444068.6520753463
+      },
+      "ratio": 0.7778309528120323
+    },
+    {
+      "index": 2,
+      "order": [
+        "ngnn3",
+        "ngnn4"
+      ],
+      "nps": {
+        "ngnn3": 1414948.6645982272,
+        "ngnn4": 1221884.0979694373
+      },
+      "ratio": 0.8635536599600874
+    },
+    {
+      "index": 3,
+      "order": [
+        "ngnn4",
+        "ngnn3"
+      ],
+      "nps": {
+        "ngnn4": 1160062.0316865165,
+        "ngnn3": 1408035.0899639237
+      },
+      "ratio": 0.8238871601674638
+    },
+    {
+      "index": 4,
+      "order": [
+        "ngnn3",
+        "ngnn4"
+      ],
+      "nps": {
+        "ngnn3": 1442025.435358841,
+        "ngnn4": 1168698.4621849882
+      },
+      "ratio": 0.8104562052292533
+    },
+    {
+      "index": 5,
+      "order": [
+        "ngnn4",
+        "ngnn3"
+      ],
+      "nps": {
+        "ngnn4": 1178258.4348399204,
+        "ngnn3": 1360983.8645582823
+      },
+      "ratio": 0.8657401939311993
+    },
+    {
+      "index": 6,
+      "order": [
+        "ngnn3",
+        "ngnn4"
+      ],
+      "nps": {
+        "ngnn3": 1394069.5458670554,
+        "ngnn4": 1174090.9053725451
+      },
+      "ratio": 0.8422039695604336
+    },
+    {
+      "index": 7,
+      "order": [
+        "ngnn4",
+        "ngnn3"
+      ],
+      "nps": {
+        "ngnn4": 1123034.9913687343,
+        "ngnn3": 1366786.6275110082
+      },
+      "ratio": 0.8216607982284998
+    },
+    {
+      "index": 8,
+      "order": [
+        "ngnn3",
+        "ngnn4"
+      ],
+      "nps": {
+        "ngnn3": 1447510.8005292788,
+        "ngnn4": 1285367.8742701318
+      },
+      "ratio": 0.8879849972795645
+    },
+    {
+      "index": 9,
+      "order": [
+        "ngnn4",
+        "ngnn3"
+      ],
+      "nps": {
+        "ngnn4": 1144436.0926391268,
+        "ngnn3": 1397952.7800705614
+      },
+      "ratio": 0.8186514658823896
+    },
+    {
+      "index": 10,
+      "order": [
+        "ngnn3",
+        "ngnn4"
+      ],
+      "nps": {
+        "ngnn3": 1419995.6032894365,
+        "ngnn4": 1224972.7684121453
+      },
+      "ratio": 0.86265955019472
+    },
+    {
+      "index": 11,
+      "order": [
+        "ngnn4",
+        "ngnn3"
+      ],
+      "nps": {
+        "ngnn4": 1184280.1991572168,
+        "ngnn3": 1410622.0023089105
+      },
+      "ratio": 0.8395446811539755
+    }
+  ],
+  "independent_fixed_sample_review": true
+}
