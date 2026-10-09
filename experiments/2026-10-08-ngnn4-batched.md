@@ -40,6 +40,6 @@ This is a training-cost verdict for an unaccepted architecture, no Elo or
 exact floating trajectory claim. A future architecture trial must freeze
 its chosen trainer and still train the full owned recipe, verify integer
 parity/reexport and pass fresh A/A40/gate400 against the immediate base.
-Results: box `session16b/{cpu*,cuda*,benchmark.json}` and campaign status
+Results: box `session16c/{cpu*,cuda*,benchmark.json}` and campaign status
 stage `ngnn4-batched`. Preserve this queued short CUDA window before the
 next real GPU trainer, datagen or claim. No game is launched here.
