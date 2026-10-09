@@ -33,6 +33,9 @@ both order strata>1 required. No heavy stage/verdict/adoption.
 Session26 confirms capacity still8.99GiB; all eight detached controllers are
 alive, no eligible native campaign cleanup, no new code/job/verdict. Capacity
 recovery is the next actionable event. [Session26](experiments/2026-10-09-session26.md).
+Session27 confirms the same state at11:47 EDT, with no new completion receipt;
+no duplicate jobs or monitoring. Resume after capacity recovery, no ETA.
+[Session27](experiments/2026-10-09-session27.md).
 [Affine manifest](experiments/2026-10-09-ngnn4-row-affine.md).
 [Session21](experiments/2026-10-09-session21.md).
 
