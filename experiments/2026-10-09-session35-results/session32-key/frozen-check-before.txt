@@ -1,0 +1,9 @@
+base.tar: OK
+baseline-ngn: OK
+sprt: OK
+openings.txt: OK
+base.nnue: OK
+gate-parser.py: OK
+candidate.patch: OK
+controller.sh: OK
+nomination.json: OK

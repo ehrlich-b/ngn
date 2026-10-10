@@ -1,0 +1,17 @@
+{
+  "ngnn3": {
+    "cases": 12,
+    "depth": 14,
+    "equal": true
+  },
+  "ngnn2": {
+    "cases": 12,
+    "depth": 14,
+    "equal": true
+  },
+  "hce": {
+    "cases": 12,
+    "depth": 11,
+    "equal": true
+  }
+}
