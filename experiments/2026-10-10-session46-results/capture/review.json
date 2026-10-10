@@ -1,0 +1,19 @@
+{
+  "verdict": "KEEP current-base capture pairing",
+  "base_source": "56b35ef",
+  "geometric_ratio": 1.0141906224937958,
+  "ci95": [
+    1.0072456480503404,
+    1.0211834826442914
+  ],
+  "order_strata_ratios": [
+    1.0150952918285427,
+    1.0132867594149855
+  ],
+  "raw_rounds_verified": 40,
+  "source_hashes_match": true,
+  "identities": 36,
+  "source_receipt_sha256": "21082eb29e92a38e09f524f257886ca93e86d1e72566f45809dd65a8de3dcd48",
+  "rule": "36 exact identities, 40 balanced blocks, lower95 ratio>1 and both order strata>1; otherwise shelve without extension",
+  "elo_claim": false
+}

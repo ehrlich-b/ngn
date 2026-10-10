@@ -1,0 +1,48 @@
+{
+  "base_source": "de148b96d1bc2d9577b66299b24d5bce653a7150",
+  "utc": "2026-10-10T12:55:31.785827+00:00",
+  "source_archive_sha256": "46c0cb85d13a9cf51e3d909b29be193758049f93708f0adbe509204fac209bff",
+  "patch_sha256": "95f7f599c5492ecabae1987d5a539dabb50c75a2238b1f8f09df5ce17e44eeb7",
+  "source_sha256": {
+    "engine/ngnn1.go": "2b15ae5242db27aa3ad408e76f51d1ff9e58f3b576b574fdb5fa416c752f6b72",
+    "engine/ngnn3.go": "c9f82cdfdc5659abe05cb5efe369983f1a59370518584c5a373e4bd1f62a4f97",
+    "engine/worker_evaluator.go": "2773eb8ac10c9f017b9e7d527085ca69264efe70da25fdd083cd485f73543299",
+    "engine/ngnn_compact.go": "885abde48b54f28834081feeb1e206a7e62712dd1f490c38c078c53c6807431a",
+    "engine/ngnn_compact_kernels_amd64.go": "f9d9a61e634d6b5e3b7a78ca6f87a0df44dde8a0d0e07f852d50012018029ee4",
+    "engine/ngnn_compact_kernels_amd64.s": "f0465fb380e8afce8be6b8ca0b9b242feb8babad4558721b534e9e4c8511c802",
+    "engine/ngnn_compact_kernels_generic.go": "08e5d48afae12b0fd5635c6fb6052e4f2e1a2ef6369610a592bf78d31bb5dc19",
+    "engine/ngnn_compact_test.go": "ea9f7573bf0ff47bac54436f6b37ab8fdb29fc73a734c20bc62bde658529c72e"
+  },
+  "binary_sha256": {
+    "baseline": "113e879e388e1e0f002dc72e879728afdd8353feeda90c7ffa05ef502d383c20",
+    "candidate": "741fa053652d4edca5cb280df096ed6eb669980cd68906caa914f1ec2bb33d1d"
+  },
+  "uci_sha256": {
+    "baseline": "58664d96cf71a765c6fccadbbe521d7f2a5369f57f1e505a9d022314ce6907b6",
+    "candidate": "84431b35d3ae8ef92c6e9f1b967cc01ad35b400a1f812c347fe6f0dcbe55c2e1"
+  },
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "old_net_sha256": "c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "os": "Linux-6.12.111+deb13-cloud-amd64-x86_64-with-glibc2.41",
+  "machine": "forge Debian13",
+  "build_test_cpus": [
+    8,
+    9,
+    10,
+    11
+  ],
+  "nice": 10,
+  "tests_pass": true,
+  "memory_max": 2147483648,
+  "checks": [
+    "compact bound/kernel/oracle/cache/null normal controls",
+    "compact purego controls",
+    "full short ./...",
+    "full race ./...",
+    "vet",
+    "explicit PGO builds"
+  ],
+  "strength_games": 0
+}

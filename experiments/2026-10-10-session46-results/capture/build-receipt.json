@@ -1,0 +1,45 @@
+{
+  "base_source": "56b35ef",
+  "utc": "2026-10-10T11:59:25.185698+00:00",
+  "source_archive_sha256": "13d91fa5ff24eba3cf782b860717789c6e1bce85821fe733147f7a28c950fa16",
+  "patch_sha256": "1af65213242e8589af863bf9479f142891c7b0a533b79b2d291ba20ea0121632",
+  "source_sha256": {
+    "engine/ngnn1.go": "151ff82ae7321449c422cab55697f4a89a404c7a614a885fd8cd5357742dc5fe",
+    "engine/ngnn1_capture_pair_test.go": "3555cb436693c40e66cc6a0a0890c4fb021457fadb82e3e60f022fe3648a832c",
+    "engine/ngnn1_kernels_amd64.go": "ea24f0a8c4ec22964c106e1584f58fab3601d1870a56b9b1fbc3309309866638",
+    "engine/ngnn1_kernels_amd64.s": "9bfcdbedfe728dc5cb10758544bda74a2ec85102d1295e5ada89d97b4fc00cd0",
+    "engine/ngnn1_kernels_generic.go": "082e3422d87b739d10a04eec3f6c8bdff148157fe01d3a8df3c5e8490fb97d4e"
+  },
+  "binary_sha256": {
+    "baseline": "f6ce8f7f1f382d4db3b39b07eb023a3918009d3f29e6318dc993e68884d17794",
+    "candidate": "d8d7db9186a37f6bd33c58c5b4623f7f2f0133b8b33861f9fa0753bf88130e37"
+  },
+  "uci_sha256": {
+    "baseline": "002452bde39059d143a5b373eba8d6cf07ad74c1d508606618c361a7f6624468",
+    "candidate": "3996f6ef056076d7470628c0514b9444df71f95e111b0face7d11f9873f833a8"
+  },
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "old_net_sha256": "c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "os": "Linux-6.12.111+deb13-cloud-amd64-x86_64-with-glibc2.41",
+  "machine": "forge Debian13",
+  "build_test_cpus": [
+    8,
+    9,
+    10,
+    11
+  ],
+  "nice": 10,
+  "tests_pass": true,
+  "memory_max": 2147483648,
+  "checks": [
+    "quiet/capture normal controls",
+    "quiet/capture purego controls",
+    "full short ./...",
+    "full race ./...",
+    "vet",
+    "explicit PGO builds"
+  ],
+  "strength_games": 0
+}

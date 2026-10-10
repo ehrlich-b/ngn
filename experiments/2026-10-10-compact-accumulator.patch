@@ -1,0 +1,814 @@
+diff --git a/engine/ngnn1.go b/engine/ngnn1.go
+index a9f37f3..3e07031 100644
+--- a/engine/ngnn1.go
++++ b/engine/ngnn1.go
+@@ -21,17 +21,18 @@ const (
+ // object; their accumulators never live here. All arithmetic remains exact
+ // even for the full int16 weight range permitted by the file format.
+ type NGNN1Network struct {
+-	hidden      int
+-	version     int
+-	buckets     int // zero means one for existing in-package single-row networks
+-	kingBuckets int
+-	kingMap     [64]uint8
+-	weights     []int16
+-	bias        []int16
+-	output      []int16
+-	outputBias  int32 // first bucket, also the sole NGNN1 output bias
+-	otherBiases []int32
+-	smallOutput bool // immutable loader-derived bound: every output weight is within [-128, 128]
++	hidden       int
++	version      int
++	buckets      int // zero means one for existing in-package single-row networks
++	kingBuckets  int
++	kingMap      [64]uint8
++	weights      []int16
++	bias         []int16
++	output       []int16
++	outputBias   int32 // first bucket, also the sole NGNN1 output bias
++	otherBiases  []int32
++	compactInput bool // loader-proved int16 accumulator bounds and small output
++	smallOutput  bool // immutable loader-derived bound: every output weight is within [-128, 128]
+ }
+ 
+ func (n *NGNN1Network) valid() bool {
+@@ -146,6 +147,7 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
+ 		offset += 4
+ 		n.otherBiases[i] = int32(binary.LittleEndian.Uint32(data[offset : offset+4]))
+ 	}
++	n.compactInput = n.version == 3 && n.smallOutput && n.compactInputBound()
+ 	return n, nil
+ }
+ 
+@@ -283,22 +285,32 @@ func ngnn1MoveDelta(move Move) ngnn1Delta {
+ // A logical search ply can read an earlier slot after a null move. Every real
+ // move writes its own slot, so sharing never changes an ancestor accumulator.
+ type ngnn1Frame struct {
+-	values []int32
+-	slot   int
++	values  []int32
++	slot    int
++	compact []int16
+ }
+ 
+ type ngnn1State struct {
+ 	network      *NGNN1Network
+ 	stack        []int32
++	compactStack []int16
++	wideView     []int32 // diagnostic access only; search reads compact frames directly
+ 	frames       []ngnn1Frame
+ 	refreshCache []ngnn3CacheEntry
+ }
+ 
+ func (s *ngnn1State) at(depth int) []int32 {
++	if s.network.compactInput {
++		return s.compactView(depth)
++	}
+ 	return s.frames[depth].values
+ }
+ 
+ func (s *ngnn1State) ensure(depth int) {
++	if s.network.compactInput {
++		s.ensureCompact(depth)
++		return
++	}
+ 	width := 2 * s.network.hidden
+ 	if (depth+1)*width > len(s.stack) {
+ 		plies := 128
+@@ -316,7 +328,7 @@ func (s *ngnn1State) ensure(depth int) {
+ 			if ply < len(s.frames) {
+ 				slot = s.frames[ply].slot
+ 			}
+-			frames[ply] = ngnn1Frame{next[slot*width : (slot+1)*width], slot}
++			frames[ply] = ngnn1Frame{values: next[slot*width : (slot+1)*width], slot: slot}
+ 		}
+ 		s.stack = next
+ 		s.frames = frames
+@@ -325,6 +337,10 @@ func (s *ngnn1State) ensure(depth int) {
+ 
+ func (s *ngnn1State) reset(pos *Position) {
+ 	s.ensure(0)
++	if s.network.compactInput {
++		s.resetCompact(pos)
++		return
++	}
+ 	if s.network.version == 3 {
+ 		for p, color := range [...]Color{White, Black} {
+ 			s.cachedRefresh(p, s.network.kingContext(pos, color), pos, s.at(0)[p*s.network.hidden:(p+1)*s.network.hidden])
+@@ -340,13 +356,17 @@ func (s *ngnn1State) push(depth int, delta ngnn1Delta) {
+ 
+ func (s *ngnn1State) pushPosition(depth int, delta ngnn1Delta, pos *Position) {
+ 	s.ensure(depth)
++	if s.network.compactInput {
++		s.pushCompact(depth, delta, pos)
++		return
++	}
+ 	if delta.removes == 0 && delta.adds == 0 {
+ 		s.frames[depth] = s.frames[depth-1]
+ 		return // Null move: the turn changes; the features do not.
+ 	}
+ 	width := 2 * s.network.hidden
+ 	child := s.stack[depth*width : (depth+1)*width]
+-	s.frames[depth] = ngnn1Frame{child, depth}
++	s.frames[depth] = ngnn1Frame{values: child, slot: depth}
+ 	parent := s.at(depth - 1)
+ 	n := s.network
+ 	if delta.refreshMask == 0 && delta.removes == 1 && delta.adds == 1 {
+diff --git a/engine/ngnn3.go b/engine/ngnn3.go
+index 4345d12..d00315b 100644
+--- a/engine/ngnn3.go
++++ b/engine/ngnn3.go
+@@ -116,8 +116,9 @@ func (n *NGNN1Network) ngnn3MoveDelta(pos *Position, move Move) ngnn1Delta {
+ // The masks are in board coordinates; only changed pieces touch input rows.
+ // Cache entries may describe any previous branch, independent of stack undo.
+ type ngnn3CacheEntry struct {
+-	acc    []int32
+-	pieces [13]uint64
++	acc     []int32
++	compact []int16
++	pieces  [13]uint64
+ }
+ 
+ func (s *ngnn1State) cachedRefresh(p int, context ngnn3Context, pos *Position, dst []int32) {
+diff --git a/engine/worker_evaluator.go b/engine/worker_evaluator.go
+index 693c10a..d4fe4a5 100644
+--- a/engine/worker_evaluator.go
++++ b/engine/worker_evaluator.go
+@@ -139,7 +139,7 @@ func (e *workerEvaluator) SearchSTM(pos *Position) int {
+ 	}
+ 	if e.nnue != nil {
+ 		n := e.nnue.network
+-		return n.evaluateBucket(e.nnue.at(e.depth), pos.Turn(), n.bucket(pos))
++		return e.nnue.evaluatePosition(e.depth, pos, n)
+ 	}
+ 	return e.hce.SearchSTM(pos)
+ }
+@@ -152,7 +152,7 @@ func (e *workerEvaluator) LegacyUndampedSTM(pos *Position) int {
+ 	}
+ 	if e.nnue != nil {
+ 		n := e.nnue.network
+-		return n.evaluateBucket(e.nnue.at(e.depth), pos.Turn(), n.bucket(pos))
++		return e.nnue.evaluatePosition(e.depth, pos, n)
+ 	}
+ 	return e.hce.LegacyUndampedSTM(pos)
+ }
+--- /dev/null
++++ b/engine/ngnn_compact.go
+@@ -0,0 +1,176 @@
++package engine
++
++// Every square contains either no feature or one of twelve piece features.
++// Summing each square's independent extrema overbounds even malformed boards.
++// Bucket, rank and file transforms only permute these square terms. Once the
++// complete accumulator fits int16, modular word adds/subtracts recover it
++// exactly even if an intermediate update wraps. Saturating adds cannot do so.
++func (n *NGNN1Network) compactInputBound() bool {
++	for bucket := 0; bucket < n.kingBuckets; bucket++ {
++		for lane, bias := range n.bias {
++			low, high := int(bias), int(bias)
++			for square := 0; square < 64; square++ {
++				lo, hi := 0, 0
++				for piece := 0; piece < 12; piece++ {
++					w := int(n.weights[(bucket*768+piece*64+square)*n.hidden+lane])
++					lo, hi = min(lo, w), max(hi, w)
++				}
++				low, high = low+lo, high+hi
++			}
++			if low < -32768 || high > 32767 {
++				return false
++			}
++		}
++	}
++	return true
++}
++
++func (s *ngnn1State) ensureCompact(depth int) {
++	width := 2 * s.network.hidden
++	if (depth+1)*width <= len(s.compactStack) {
++		return
++	}
++	plies := max(128, 2*len(s.compactStack)/width, depth+1)
++	next := make([]int16, plies*width)
++	copy(next, s.compactStack)
++	frames := make([]ngnn1Frame, plies)
++	for ply := range frames {
++		slot := ply
++		if ply < len(s.frames) {
++			slot = s.frames[ply].slot
++		}
++		frames[ply] = ngnn1Frame{slot: slot, compact: next[slot*width : (slot+1)*width]}
++	}
++	s.compactStack, s.frames = next, frames
++}
++
++// Existing diagnostics read int32 accumulators. This view is never touched
++// by search, and aliases by physical slot just as null frames do.
++func (s *ngnn1State) compactView(depth int) []int32 {
++	if len(s.wideView) < len(s.compactStack) {
++		s.wideView = make([]int32, len(s.compactStack))
++	}
++	frame := s.frames[depth]
++	width := 2 * s.network.hidden
++	view := s.wideView[frame.slot*width : (frame.slot+1)*width]
++	for i, x := range frame.compact {
++		view[i] = int32(x)
++	}
++	return view
++}
++
++func (s *ngnn1State) resetCompact(pos *Position) {
++	h := s.network.hidden
++	// Reset the root slot after prior searches containing null aliases.
++	s.frames[0] = ngnn1Frame{slot: 0, compact: s.compactStack[:2*h]}
++	for p, color := range [...]Color{White, Black} {
++		s.cachedRefreshCompact(p, s.network.kingContext(pos, color), pos, s.frames[0].compact[p*h:(p+1)*h])
++	}
++}
++
++func (s *ngnn1State) pushCompact(depth int, delta ngnn1Delta, pos *Position) {
++	if delta.removes == 0 && delta.adds == 0 {
++		s.frames[depth] = s.frames[depth-1]
++		return
++	}
++	n := s.network
++	width := 2 * n.hidden
++	child := s.compactStack[depth*width : (depth+1)*width]
++	s.frames[depth] = ngnn1Frame{slot: depth, compact: child}
++	parent := s.frames[depth-1].compact
++	if delta.refreshMask == 0 && delta.removes == 1 && delta.adds == 1 {
++		ngnn16MovePair(child, parent,
++			n.row(int(delta.remove[0][0])), n.row(int(delta.add[0][0])),
++			n.row(int(delta.remove[1][0])), n.row(int(delta.add[1][0])))
++		return
++	}
++	if delta.refreshMask == 0 && delta.removes == 2 && delta.adds == 1 {
++		ngnn16CapturePair(child, parent,
++			n.row(int(delta.remove[0][0])), n.row(int(delta.remove[0][1])), n.row(int(delta.add[0][0])),
++			n.row(int(delta.remove[1][0])), n.row(int(delta.remove[1][1])), n.row(int(delta.add[1][0])))
++		return
++	}
++	for p := 0; p < 2; p++ {
++		a := child[p*n.hidden : (p+1)*n.hidden]
++		if delta.refreshMask&(1<<p) != 0 {
++			s.cachedRefreshCompact(p, delta.contexts[p], pos, a)
++			continue
++		}
++		src := parent[p*n.hidden : (p+1)*n.hidden]
++		switch {
++		case delta.removes == 1 && delta.adds == 1:
++			ngnn16MoveRows(a, src, n.row(int(delta.remove[p][0])), n.row(int(delta.add[p][0])))
++		case delta.removes == 2 && delta.adds == 2:
++			ngnn16CastleRows(a, src, n.row(int(delta.remove[p][0])), n.row(int(delta.remove[p][1])), n.row(int(delta.add[p][0])), n.row(int(delta.add[p][1])))
++		default:
++			copy(a, src)
++			for i := 0; i < delta.removes; i++ {
++				ngnn16SubRow(a, n.row(int(delta.remove[p][i])))
++			}
++			for i := 0; i < delta.adds; i++ {
++				ngnn16AddRow(a, n.row(int(delta.add[p][i])))
++			}
++		}
++	}
++}
++
++func (s *ngnn1State) cachedRefreshCompact(p int, context ngnn3Context, pos *Position, dst []int16) {
++	n := s.network
++	if s.refreshCache == nil {
++		s.refreshCache = make([]ngnn3CacheEntry, 4*n.kingBuckets)
++	}
++	index := (p*n.kingBuckets + int(context.bucket)) * 2
++	if context.mirror != 0 {
++		index++
++	}
++	entry := &s.refreshCache[index]
++	if entry.compact == nil {
++		entry.compact = append([]int16(nil), n.bias...)
++	}
++	color := White
++	if p == 1 {
++		color = Black
++	}
++	for piece := WhitePawn; piece <= BlackKing; piece++ {
++		before, after := entry.pieces[piece], pos.Board.pieces[piece]
++		removed, added := before&^after, after&^before
++		for removed != 0 && added != 0 {
++			r := context.feature(ngnn1Feature(piece, Square(bitScanForward(removed)), color))
++			a := context.feature(ngnn1Feature(piece, Square(bitScanForward(added)), color))
++			ngnn16MoveRows(entry.compact, entry.compact, n.row(r), n.row(a))
++			removed &= removed - 1
++			added &= added - 1
++		}
++		for ; removed != 0; removed &= removed - 1 {
++			feature := context.feature(ngnn1Feature(piece, Square(bitScanForward(removed)), color))
++			ngnn16SubRow(entry.compact, n.row(feature))
++		}
++		for ; added != 0; added &= added - 1 {
++			feature := context.feature(ngnn1Feature(piece, Square(bitScanForward(added)), color))
++			ngnn16AddRow(entry.compact, n.row(feature))
++		}
++	}
++	entry.pieces = pos.Board.pieces
++	copy(dst, entry.compact)
++}
++
++func (s *ngnn1State) evaluatePosition(depth int, pos *Position, n *NGNN1Network) int {
++	if !n.compactInput {
++		return n.evaluateBucket(s.at(depth), pos.Turn(), n.bucket(pos))
++	}
++	acc := s.frames[depth].compact
++	us, them := acc[:n.hidden], acc[n.hidden:]
++	if pos.Turn() == Black {
++		us, them = them, us
++	}
++	bucket := n.bucket(pos)
++	start := bucket * 2 * n.hidden
++	sum := ngnn16OutputSmall(us, them, n.output[start:start+2*n.hidden])
++	bias := n.outputBias
++	if bucket > 0 {
++		bias = n.otherBiases[bucket-1]
++	}
++	v := sum/ngnn1QA + int64(bias)
++	cp := v * ngnn1Scale / (ngnn1QA * ngnn1QB)
++	return int(min(ngnn1ScoreLimit, max(-ngnn1ScoreLimit, cp)))
++}
+--- /dev/null
++++ b/engine/ngnn_compact_kernels_amd64.go
+@@ -0,0 +1,30 @@
++//go:build amd64 && amd64.v3 && !purego && !race
++
++package engine
++
++// Exact word arithmetic, including modular intermediate overflow. Each row
++// has H elements, H is a positive multiple of16. Source and destination
++// either alias exactly or are disjoint; accesses may be unaligned.
++//
++//go:noescape
++func ngnn16AddRow(acc, row []int16)
++
++//go:noescape
++func ngnn16SubRow(acc, row []int16)
++
++//go:noescape
++func ngnn16MoveRows(dst, src, remove, add []int16)
++
++//go:noescape
++func ngnn16MovePair(dst, src, removeUs, addUs, removeThem, addThem []int16)
++
++//go:noescape
++func ngnn16CapturePair(dst, src, removeUs, captureUs, addUs, removeThem, captureThem, addThem []int16)
++
++//go:noescape
++func ngnn16CastleRows(dst, src, removeKing, removeRook, addKing, addRook []int16)
++
++// Same loader-proved output[-128,128] and H<=2048 lane-sum bound as ngnn1OutputSmall.
++//
++//go:noescape
++func ngnn16OutputSmall(us, them, weights []int16) int64
+--- /dev/null
++++ b/engine/ngnn_compact_kernels_amd64.s
+@@ -0,0 +1,216 @@
++//go:build amd64 && amd64.v3 && !purego && !race
++
++#include "textflag.h"
++
++// NGN-owned compact accumulator kernels. Word operations wrap, never saturate.
++
++TEXT ·ngnn16AddRow(SB), NOSPLIT, $0-48
++	MOVQ acc_base+0(FP), DI
++	MOVQ acc_base+0(FP), SI
++	MOVQ row_base+24(FP), R8
++	MOVQ row_len+32(FP), CX
++CompactAddRow_loop:
++	VMOVDQU (SI), Y0
++	VMOVDQU (R8), Y1
++	VPADDW Y1, Y0, Y0
++	VMOVDQU Y0, (DI)
++	ADDQ $32, SI
++	ADDQ $32, DI
++	ADDQ $32, R8
++	SUBQ $16, CX
++	JNZ CompactAddRow_loop
++	VZEROUPPER
++	RET
++
++TEXT ·ngnn16SubRow(SB), NOSPLIT, $0-48
++	MOVQ acc_base+0(FP), DI
++	MOVQ acc_base+0(FP), SI
++	MOVQ row_base+24(FP), R8
++	MOVQ row_len+32(FP), CX
++CompactSubRow_loop:
++	VMOVDQU (SI), Y0
++	VMOVDQU (R8), Y1
++	VPSUBW Y1, Y0, Y0
++	VMOVDQU Y0, (DI)
++	ADDQ $32, SI
++	ADDQ $32, DI
++	ADDQ $32, R8
++	SUBQ $16, CX
++	JNZ CompactSubRow_loop
++	VZEROUPPER
++	RET
++
++TEXT ·ngnn16MoveRows(SB), NOSPLIT, $0-96
++	MOVQ dst_base+0(FP), DI
++	MOVQ src_base+24(FP), SI
++	MOVQ remove_base+48(FP), R8
++	MOVQ add_base+72(FP), R9
++	MOVQ add_len+80(FP), CX
++CompactMoveRows_loop:
++	VMOVDQU (SI), Y0
++	VMOVDQU (R8), Y1
++	VPSUBW Y1, Y0, Y0
++	VMOVDQU (R9), Y1
++	VPADDW Y1, Y0, Y0
++	VMOVDQU Y0, (DI)
++	ADDQ $32, SI
++	ADDQ $32, DI
++	ADDQ $32, R8
++	ADDQ $32, R9
++	SUBQ $16, CX
++	JNZ CompactMoveRows_loop
++	VZEROUPPER
++	RET
++
++TEXT ·ngnn16MovePair(SB), NOSPLIT, $0-144
++	MOVQ dst_base+0(FP), DI
++	MOVQ src_base+24(FP), SI
++	MOVQ removeUs_base+48(FP), R8
++	MOVQ addUs_base+72(FP), R9
++	MOVQ removeThem_base+96(FP), R10
++	MOVQ addThem_base+120(FP), R11
++	MOVQ addUs_len+80(FP), CX
++	LEAQ (DI)(CX*2), R12
++	LEAQ (SI)(CX*2), R13
++CompactMovePair_loop:
++	VMOVDQU (SI), Y0
++	VMOVDQU (R13), Y2
++	VMOVDQU (R8), Y1
++	VMOVDQU (R10), Y3
++	VPSUBW Y1, Y0, Y0
++	VPSUBW Y3, Y2, Y2
++	VMOVDQU (R9), Y1
++	VMOVDQU (R11), Y3
++	VPADDW Y1, Y0, Y0
++	VPADDW Y3, Y2, Y2
++	VMOVDQU Y0, (DI)
++	VMOVDQU Y2, (R12)
++	ADDQ $32, SI
++	ADDQ $32, DI
++	ADDQ $32, R12
++	ADDQ $32, R13
++	ADDQ $32, R8
++	ADDQ $32, R9
++	ADDQ $32, R10
++	ADDQ $32, R11
++	SUBQ $16, CX
++	JNZ CompactMovePair_loop
++	VZEROUPPER
++	RET
++
++TEXT ·ngnn16CastleRows(SB), NOSPLIT, $0-144
++	MOVQ dst_base+0(FP), DI
++	MOVQ src_base+24(FP), SI
++	MOVQ removeKing_base+48(FP), R8
++	MOVQ removeRook_base+72(FP), R9
++	MOVQ addKing_base+96(FP), R10
++	MOVQ addRook_base+120(FP), R11
++	MOVQ addRook_len+128(FP), CX
++CompactCastleRows_loop:
++	VMOVDQU (SI), Y0
++	VMOVDQU (R8), Y1
++	VPSUBW Y1, Y0, Y0
++	VMOVDQU (R9), Y1
++	VPSUBW Y1, Y0, Y0
++	VMOVDQU (R10), Y1
++	VPADDW Y1, Y0, Y0
++	VMOVDQU (R11), Y1
++	VPADDW Y1, Y0, Y0
++	VMOVDQU Y0, (DI)
++	ADDQ $32, SI
++	ADDQ $32, DI
++	ADDQ $32, R8
++	ADDQ $32, R9
++	ADDQ $32, R10
++	ADDQ $32, R11
++	SUBQ $16, CX
++	JNZ CompactCastleRows_loop
++	VZEROUPPER
++	RET
++
++TEXT ·ngnn16CapturePair(SB), NOSPLIT, $0-192
++	MOVQ dst_base+0(FP), DI
++	MOVQ src_base+24(FP), SI
++	MOVQ removeUs_base+48(FP), R8
++	MOVQ captureUs_base+72(FP), R9
++	MOVQ addUs_base+96(FP), R10
++	MOVQ removeThem_base+120(FP), R11
++	MOVQ captureThem_base+144(FP), R12
++	MOVQ addThem_base+168(FP), R13
++	MOVQ addUs_len+104(FP), CX
++	LEAQ (DI)(CX*2), BX
++	LEAQ (SI)(CX*2), DX
++CompactCapturePair_loop:
++	VMOVDQU (SI), Y0
++	VMOVDQU (DX), Y2
++	VPSUBW (R8), Y0, Y0
++	VPSUBW (R11), Y2, Y2
++	VPSUBW (R9), Y0, Y0
++	VPSUBW (R12), Y2, Y2
++	VPADDW (R10), Y0, Y0
++	VPADDW (R13), Y2, Y2
++	VMOVDQU Y0, (DI)
++	VMOVDQU Y2, (BX)
++	ADDQ $32, SI
++	ADDQ $32, DI
++	ADDQ $32, BX
++	ADDQ $32, DX
++	ADDQ $32, R8
++	ADDQ $32, R9
++	ADDQ $32, R10
++	ADDQ $32, R11
++	ADDQ $32, R12
++	ADDQ $32, R13
++	SUBQ $16, CX
++	JNZ CompactCapturePair_loop
++	VZEROUPPER
++	RET
++
++TEXT ·ngnn16OutputSmall(SB), NOSPLIT, $0-80
++	MOVQ us_base+0(FP), SI
++	MOVQ them_base+24(FP), DI
++	MOVQ weights_base+48(FP), R8
++	MOVQ us_len+8(FP), CX
++	LEAQ (R8)(CX*2), R9
++	VPXOR Y5, Y5, Y5
++	VPXOR Y6, Y6, Y6
++	VPXOR Y7, Y7, Y7
++	MOVL $255, AX
++	MOVD AX, X4
++	VPBROADCASTW X4, Y4
++CompactOutputSmall_loop:
++	VMOVDQU (SI), Y2
++	VPMAXSW Y5, Y2, Y2
++	VPMINSW Y4, Y2, Y2
++	VPMULLW (R8), Y2, Y3
++	VPMADDWD Y2, Y3, Y3
++	VPADDD Y3, Y6, Y6
++	VMOVDQU (DI), Y2
++	VPMAXSW Y5, Y2, Y2
++	VPMINSW Y4, Y2, Y2
++	VPMULLW (R9), Y2, Y3
++	VPMADDWD Y2, Y3, Y3
++	VPADDD Y3, Y7, Y7
++	ADDQ $32, SI
++	ADDQ $32, DI
++	ADDQ $32, R8
++	ADDQ $32, R9
++	SUBQ $16, CX
++	JNZ CompactOutputSmall_loop
++	VPMOVSXDQ X6, Y0
++	VEXTRACTI128 $1, Y6, X1
++	VPMOVSXDQ X1, Y1
++	VPMOVSXDQ X7, Y2
++	VEXTRACTI128 $1, Y7, X3
++	VPMOVSXDQ X3, Y3
++	VPADDQ Y1, Y0, Y0
++	VPADDQ Y3, Y2, Y2
++	VPADDQ Y2, Y0, Y0
++	VEXTRACTI128 $1, Y0, X1
++	VPADDQ X1, X0, X0
++	VPSHUFD $0x4e, X0, X1
++	VPADDQ X1, X0, X0
++	MOVQ X0, AX
++	MOVQ AX, ret+72(FP)
++	VZEROUPPER
++	RET
+--- /dev/null
++++ b/engine/ngnn_compact_kernels_generic.go
+@@ -0,0 +1,44 @@
++//go:build !amd64 || !amd64.v3 || purego || race
++
++package engine
++
++func ngnn16AddRow(acc, row []int16) {
++	for i, x := range row {
++		acc[i] += x
++	}
++}
++func ngnn16SubRow(acc, row []int16) {
++	for i, x := range row {
++		acc[i] -= x
++	}
++}
++func ngnn16MoveRows(dst, src, remove, add []int16) {
++	for i := range add {
++		dst[i] = src[i] - remove[i] + add[i]
++	}
++}
++func ngnn16MovePair(dst, src, removeUs, addUs, removeThem, addThem []int16) {
++	h := len(addUs)
++	ngnn16MoveRows(dst[:h], src[:h], removeUs, addUs)
++	ngnn16MoveRows(dst[h:], src[h:], removeThem, addThem)
++}
++func ngnn16CapturePair(dst, src, removeUs, captureUs, addUs, removeThem, captureThem, addThem []int16) {
++	h := len(addUs)
++	for i := range addUs {
++		dst[i] = src[i] - removeUs[i] - captureUs[i] + addUs[i]
++		dst[h+i] = src[h+i] - removeThem[i] - captureThem[i] + addThem[i]
++	}
++}
++func ngnn16CastleRows(dst, src, removeKing, removeRook, addKing, addRook []int16) {
++	for i := range addKing {
++		dst[i] = src[i] - removeKing[i] - removeRook[i] + addKing[i] + addRook[i]
++	}
++}
++func ngnn16OutputSmall(us, them, weights []int16) int64 {
++	var sum int64
++	for i := range us {
++		x, y := int64(min(255, max(0, us[i]))), int64(min(255, max(0, them[i])))
++		sum += x*x*int64(weights[i]) + y*y*int64(weights[len(us)+i])
++	}
++	return sum
++}
+--- /dev/null
++++ b/engine/ngnn_compact_test.go
+@@ -0,0 +1,179 @@
++package engine
++
++import (
++	"bytes"
++	"encoding/binary"
++	"hash/crc32"
++	"math/rand"
++	"reflect"
++	"testing"
++)
++
++func TestNGNNCompactLoaderBound(t *testing.T) {
++	for _, tc := range []struct {
++		name         string
++		bias, weight int16
++		want         bool
++	}{
++		{"upper_exact", 32703, 1, true}, {"upper_over", 32704, 1, false},
++		{"lower_exact", -32704, -1, true}, {"lower_over", -32705, -1, false},
++	} {
++		t.Run(tc.name, func(t *testing.T) {
++			data := ngnn3TestBytes(16, 8, 8, false)
++			// All rows in all buckets: one unit per occupied square in lane0.
++			for row := 0; row < 8*768; row++ {
++				binary.LittleEndian.PutUint16(data[96+2*row*16:], uint16(tc.weight))
++			}
++			binary.LittleEndian.PutUint16(data[96+2*8*768*16:], uint16(tc.bias))
++			binary.LittleEndian.PutUint32(data[len(data)-4:], crc32.ChecksumIEEE(data[:len(data)-4]))
++			n, err := ReadNGNN1(bytes.NewReader(data))
++			if err != nil {
++				t.Fatal(err)
++			}
++			if n.compactInput != tc.want {
++				t.Fatalf("loader compact=%v, want %v", n.compactInput, tc.want)
++			}
++		})
++	}
++	if ngnn3TestNetwork(t, 16, true).compactInput {
++		t.Fatal("extreme network chose compact accumulators")
++	}
++}
++
++func TestNGNNCompactKernels(t *testing.T) {
++	rng := rand.New(rand.NewSource(2026101006))
++	for _, h := range []int{16, 32, 512, 2048} {
++		rows := make([][]int16, 6)
++		for k := range rows {
++			back := make([]int16, h+2)
++			rows[k] = back[1 : h+1] // intentionally unaligned
++			for i := range rows[k] {
++				rows[k][i] = int16(rng.Uint32())
++			}
++		}
++		src := make([]int16, 2*h+2)[1 : 2*h+1]
++		for i := range src {
++			src[i] = int16(rng.Uint32())
++		}
++		for _, alias := range []bool{false, true} {
++			for _, kind := range []string{"add", "sub", "move", "pair", "capture", "castle"} {
++				back := make([]int16, 2*h+2)
++				back[0], back[len(back)-1] = 12345, -12345
++				dst := back[1 : len(back)-1]
++				copy(dst, src)
++				input := append([]int16(nil), src...)
++				if alias {
++					input = dst
++				}
++				want := append([]int16(nil), src...)
++				for i := 0; i < h; i++ {
++					x := int64(src[i])
++					switch kind {
++					case "add":
++						x += int64(rows[0][i])
++					case "sub":
++						x -= int64(rows[0][i])
++					case "move", "pair":
++						x += -int64(rows[0][i]) + int64(rows[1][i])
++					case "capture":
++						x += -int64(rows[0][i]) - int64(rows[1][i]) + int64(rows[2][i])
++					case "castle":
++						x += -int64(rows[0][i]) - int64(rows[1][i]) + int64(rows[2][i]) + int64(rows[3][i])
++					}
++					want[i] = int16(x)
++					if kind == "pair" {
++						want[h+i] = int16(int64(src[h+i]) - int64(rows[2][i]) + int64(rows[3][i]))
++					}
++					if kind == "capture" {
++						want[h+i] = int16(int64(src[h+i]) - int64(rows[3][i]) - int64(rows[4][i]) + int64(rows[5][i]))
++					}
++				}
++				switch kind {
++				case "add":
++					ngnn16AddRow(dst[:h], rows[0])
++				case "sub":
++					ngnn16SubRow(dst[:h], rows[0])
++				case "move":
++					ngnn16MoveRows(dst[:h], input[:h], rows[0], rows[1])
++				case "pair":
++					ngnn16MovePair(dst, input, rows[0], rows[1], rows[2], rows[3])
++				case "capture":
++					ngnn16CapturePair(dst, input, rows[0], rows[1], rows[2], rows[3], rows[4], rows[5])
++				case "castle":
++					ngnn16CastleRows(dst[:h], input[:h], rows[0], rows[1], rows[2], rows[3])
++				}
++				if !reflect.DeepEqual(dst, want) || back[0] != 12345 || back[len(back)-1] != -12345 {
++					t.Fatalf("H%d alias%v %s mismatch or guard overwrite", h, alias, kind)
++				}
++			}
++		}
++		weights := make([]int16, 2*h)
++		var want int64
++		for i := range weights {
++			weights[i] = int16(rng.Intn(257) - 128)
++			x := int64(min(255, max(0, src[i])))
++			want += x * x * int64(weights[i])
++		}
++		if got := ngnn16OutputSmall(src[:h], src[h:], weights); got != want {
++			t.Fatalf("H%d output=%d want%d", h, got, want)
++		}
++	}
++}
++
++func TestNGNNCompactNullGrowth(t *testing.T) {
++	n := ngnn3TestNetwork(t, 512, false)
++	if !n.compactInput {
++		t.Fatal("bounded fixture did not choose compact path")
++	}
++	pos := newUCIStartingPosition()
++	e := ngnn1NewWorker(t, n, pos)
++	root := append([]int16(nil), e.nnue.frames[0].compact...)
++	var eps []Square
++	for ply := 1; ply <= 261; ply++ {
++		tr := e.mustPrepareNull(pos)
++		ep := pos.MakeNullMove()
++		e.mustPushMadeNull(pos, tr, ep)
++		eps = append(eps, ep)
++		if &e.nnue.frames[ply].compact[0] != &e.nnue.frames[0].compact[0] {
++			t.Fatal("null growth lost root alias")
++		}
++	}
++	for _, move := range GenerateLegalMoves(pos) {
++		tr := e.mustPrepareMove(pos, move)
++		ep, tag, clock, _ := pos.MakeMove(move)
++		e.mustPushMadeMove(pos, tr, move, tag, ep, clock)
++		ngnn3Assert(t, e, pos)
++		if !reflect.DeepEqual(root, e.nnue.frames[0].compact) || &e.nnue.frames[e.depth].compact[0] == &e.nnue.frames[0].compact[0] {
++			t.Fatal("real child changed or aliased root")
++		}
++		e.mustPop()
++		pos.UnMakeMove(move, tag, ep, clock)
++	}
++	for i := len(eps) - 1; i >= 0; i-- {
++		e.mustPop()
++		pos.UnMakeNullMove(eps[i])
++		ngnn3Assert(t, e, pos)
++	}
++	if len(e.nnue.stack) != 0 || len(e.nnue.compactStack) == 0 {
++		t.Fatal("compact path retained wide accumulator stack")
++	}
++}
++
++func TestNGNNCompactOutputExtremes(t *testing.T) {
++	for _, h := range []int{16, 512, 2048} {
++		for _, weight := range []int16{-128, 128} {
++			for _, activation := range []int16{-32768, 0, 255, 32767} {
++				a := make([]int16, 2*h+2)[1 : 2*h+1]
++				w := make([]int16, 2*h+2)[1 : 2*h+1]
++				for i := range a {
++					a[i], w[i] = activation, weight
++				}
++				x := int64(min(255, max(0, activation)))
++				want := int64(2*h) * x * x * int64(weight)
++				if got := ngnn16OutputSmall(a[:h], a[h:], w); got != want {
++					t.Fatalf("H%d activation%d weight%d got%d want%d", h, activation, weight, got, want)
++				}
++			}
++		}
++	}
++}

@@ -1,0 +1,3 @@
+{"utc": "2026-10-10T12:50:50.122480+00:00", "stage": "session46-compact", "event": "checks-start", "detail": "loader-proved compact accumulators on nominated base; forge8-11/2GiB"}
+{"utc": "2026-10-10T12:55:31.850874+00:00", "stage": "session46-compact", "event": "checks-pass", "detail": "compact source checks/builds complete; rig36-identity/fixed40-block speed later"}
+{"utc": "2026-10-10T12:55:31.875331+00:00", "stage": "session46-compact", "event": "end", "detail": "rc 0; compact source checks only; rig speed verdict required"}

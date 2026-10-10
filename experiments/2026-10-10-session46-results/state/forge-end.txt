@@ -1,0 +1,11 @@
+2026-10-10T09:01:22-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              17           4           2           0          11          13
+Swap:              3           0           3
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda        500G   90G  411G  18% /work
+    PID    PPID ELAPSED   RSS %CPU COMMAND
+  88166       1   32890  3192  0.0 bash /work/lanes/ngn-spsa-20261009/controller.sh
+  88178   88166   32890 26012  0.7 ./spsa-forge -engine /work/lanes/ngn-spsa-20261009/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -concurrency 2 -openings /work/lanes/ngn-spsa-20261009/openings.txt -out /work/lanes/ngn-spsa-20261009/spsa.jsonl -lowpower=false -seed 20261008 -resume
+ 117631       1   11176 25552  0.9 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+{"iter":1775,"time":"2026-10-10T08:02:28-04:00","plus_pct":49.833333333333336,"theta":{"AspInit":16.578495971222715,"AspMult":162.39367511568946,"DeltaMargin":196.48035459367216,"ExtensionBudget":29.20819228533677,"FutilityMargin":104.41797451399601,"FutilityMaxDepth":7.698299007785022,"LMPBase":3.4688443825772493,"LMRFullDepth":3.425091273369193,"LMRMoveThreshold":2.037649514967351,"NullMoveMinDepth":2.2229778900889468,"NullMoveR":4.039459347782755,"ReverseFutilityMargin":61.47999583217483,"SingularDepth":6.629695008443926,"SingularMargin":56.9435279171145},"rounded":{"AspInit":17,"AspMult":162,"DeltaMargin":196,"ExtensionBudget":29,"FutilityMargin":104,"FutilityMaxDepth":8,"LMPBase":3,"LMRFullDepth":3,"LMRMoveThreshold":2,"NullMoveMinDepth":2,"NullMoveR":4,"ReverseFutilityMargin":61,"SingularDepth":7,"SingularMargin":57}}

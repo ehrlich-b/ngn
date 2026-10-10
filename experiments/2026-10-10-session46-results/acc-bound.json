@@ -1,0 +1,58 @@
+{
+  "utc": "2026-10-10T12:38:21.816090+00:00",
+  "net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "method": "bias plus per-square min/max over empty and all12 pieces, summed over64 squares; conservative bound for every board occupancy and both perspectives",
+  "buckets": [
+    {
+      "bucket": 0,
+      "lower": -12445,
+      "upper": 9343,
+      "unsafe_lanes": 0
+    },
+    {
+      "bucket": 1,
+      "lower": -15436,
+      "upper": 8757,
+      "unsafe_lanes": 0
+    },
+    {
+      "bucket": 2,
+      "lower": -19347,
+      "upper": 9988,
+      "unsafe_lanes": 0
+    },
+    {
+      "bucket": 3,
+      "lower": -17900,
+      "upper": 9410,
+      "unsafe_lanes": 0
+    },
+    {
+      "bucket": 4,
+      "lower": -19315,
+      "upper": 9476,
+      "unsafe_lanes": 0
+    },
+    {
+      "bucket": 5,
+      "lower": -15816,
+      "upper": 9149,
+      "unsafe_lanes": 0
+    },
+    {
+      "bucket": 6,
+      "lower": -19521,
+      "upper": 9725,
+      "unsafe_lanes": 0
+    },
+    {
+      "bucket": 7,
+      "lower": -13574,
+      "upper": 8290,
+      "unsafe_lanes": 0
+    }
+  ],
+  "provably_int16": true,
+  "max_abs_weight": 724,
+  "meaning": "numerical eligibility only; no speed or Elo verdict"
+}

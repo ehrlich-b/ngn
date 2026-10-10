@@ -1,0 +1,7 @@
+{
+  "base_source": "de148b96d1bc2d9577b66299b24d5bce653a7150",
+  "change": "loader-proved compact int16 accumulator and refresh cache only",
+  "topic": "night/compact-accumulator",
+  "playing_base_frozen_for_time_gate": true,
+  "automatic_speed_games": false
+}

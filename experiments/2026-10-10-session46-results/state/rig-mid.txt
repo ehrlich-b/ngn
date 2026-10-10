@@ -1,0 +1,5 @@
+2026-10-10T08:52:12-04:00
+Running as unit: ngn-s45-time-admission.scope; invocation ID: 5d5485384c814a6498aa0dff2fb0a2dd
+G579  87W 371D 121L   47.1%  elo  -20.4 [-49,+8]  LLR  -1.89  pLLR  -2.86  draw-rule   
+{"epochs": 0, "last": []}
+0 %, 4306 MiB
