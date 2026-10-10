@@ -1,0 +1,36 @@
+{
+  "source": "30b8d4d",
+  "base": "9bfbae4",
+  "machine": "forge",
+  "cpu_mask": "5-7",
+  "nice": 10,
+  "memory_max_bytes": 2147483648,
+  "host_pinning": "on",
+  "exit": 0,
+  "exact_source_files": [
+    "engine/uci.go",
+    "engine/uci_clock_trace_off.go",
+    "engine/uci_clock_trace_on.go",
+    "engine/uci_clock_trace_on_test.go",
+    "internal/uci/uci.go",
+    "internal/uci/recording.go",
+    "internal/uci/recording_test.go",
+    "cmd/blackboxmatch/main.go",
+    "cmd/blackboxmatch/main_test.go",
+    "cmd/blackboxmatch/clock_identity.py",
+    "cmd/blackboxmatch/review.py",
+    "cmd/blackboxmatch/review_test.py",
+    "cmd/blackboxmatch/positions.txt"
+  ],
+  "checks": [
+    "full short",
+    "full short race",
+    "ngnclocktrace full short race",
+    "normal and tagged vet",
+    "PGO builds",
+    "three reviewer tests",
+    "12 actual UCI 50000-node accepted/normal/clock identities; exact observer counts"
+  ],
+  "playing_adoption": false,
+  "rodent_probes_or_games": 0
+}

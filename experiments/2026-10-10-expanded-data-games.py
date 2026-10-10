@@ -7,13 +7,14 @@ from pathlib import Path
 import platform
 import subprocess
 
-root = Path('/home/ehrli/ngn-data/night-20261007')
+root = Path('/work/lanes/ngn-s47')
 p = Path.cwd()
-t = root / 'session44-expanded-data'
+t = root / 'expanded-data'
 sha = lambda f: hashlib.sha256(f.read_bytes()).hexdigest()
 nom = json.loads((p / 'nomination.json').read_text())
 training = json.loads((t / 'training-receipt.json').read_text())
-assert (t / 'controller.done').exists() and int((t / 'controller.exit').read_text()) == 0
+assert (t / 'postprocess.done').exists() and int((t / 'postprocess.exit').read_text()) == 0
+assert training['postprocessing_machine'] == 'forge'
 assert training['epochs'] == 58 and training['total_positions'] == 14848000000
 assert training['reexport_identical'] and training['parity_cases'] == 20
 assert nom['reviewed_training_receipt_sha256'] == sha(t / 'training-receipt.json')
@@ -29,7 +30,7 @@ cpus, concurrency = nom['cpu_mask'], nom['concurrency']
 common = ['-tc', '10+0.1', '-concurrency', str(concurrency), '-mingames', '1000000',
           '-maxmoves', '400', '-gametimeout', '180', '-openings', str(p / 'openings.txt'), '-lowpower=false']
 def argv(net, count):
-    a = ['taskset', '-c', cpus, 'nice', '-n', '19', str(p / 'sprt'),
+    a = ['taskset', '-c', cpus, 'nice', '-n', '10', str(p / 'sprt'),
          '-new', str(p / 'ngn'), '-base', str(p / 'ngn'), *common, '-maxgames', str(count)]
     for side, file in [('new', net), ('base', 'base.nnue')]:
         for name, value in [('EvalFile', str(p / file)), ('UseNNUE', 'true'),
@@ -46,8 +47,8 @@ j = dict(created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
          training_recipe_record='experiments/2026-10-10-expanded-data.md',
          training_review=nom['training_review'], candidate_net_sha256=training['net_sha256'],
          base_net_sha256=nom['base_net_sha256'], tc='10+0.1', cpu_mask=cpus,
-         concurrency=concurrency, nice=19, memory_max_bytes=nom['memory_max_bytes'],
-         environment={'GOMAXPROCS': '1', 'GOAMD64': 'v3'}, machine='Ryzen9800X3D/WSL2',
+         concurrency=concurrency, nice=10, host_pinning=nom['host_pinning'], memory_max_bytes=nom['memory_max_bytes'],
+         environment={'GOMAXPROCS': '1', 'GOAMD64': 'v3'}, machine='forge Debian13 / Ryzen6900HX VM',
          os=platform.platform(), profile_sha256=nom['profile_sha256'],
          go_version=nom['go_version'], concurrent_workloads=nom['concurrent_workloads'],
          aa_argv=argv('base.nnue', 40), gate_argv=argv('candidate.nnue', 400), files_sha256=hashes,
@@ -62,7 +63,7 @@ for mode, net, count, limit in [('aa', 'base.nnue', 40, 3600), ('gate', 'candida
         subprocess.run(['sha256sum', '-c', 'game-inputs.sha256'], check=True, stdout=(p/'input-check-after-aa.txt').open('w'))
     with (root / 'status.jsonl').open('a') as f:
         f.write(json.dumps(dict(utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                                stage='session46-expanded-data-games', event=mode+'-start',
+                                stage='session47-expanded-data-games-forge', event=mode+'-start',
                                 detail='reviewed data-only gate; actual accepted source frozen'))+'\n')
     with (p / (mode + '.log')).open('w') as log:
         subprocess.run(['timeout', '--signal=TERM', '--kill-after=15s', str(limit), *argv(net, count)],

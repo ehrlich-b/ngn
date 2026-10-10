@@ -1,0 +1,22 @@
+{
+  "verdict": "KEEP",
+  "geometric_ratio": 1.0476537563988786,
+  "ci95": [
+    1.0254306698854656,
+    1.0703584606254013
+  ],
+  "strata": [
+    1.0557746905240866,
+    1.0395952878467307
+  ],
+  "identities": 36,
+  "blocks": 40,
+  "machine": "forge/6900HX VM",
+  "host_pinning": "on",
+  "playing_base": "de148b96d1bc2d9577b66299b24d5bce653a7150",
+  "speed_only": true,
+  "elo_claim": false,
+  "raw_aggregates_reconciled": 40,
+  "raw_identities_reconciled": 36,
+  "zero_probe_stderr": true
+}

@@ -34,3 +34,25 @@ remaining batch or alter the playing base. Keep the earlier time gate's
 nominated source frozen. Training12,14/4GiB and time13,15/2500MiB may overlap.
 The detached waiter uses pidfd completion, with one48h deadline and no
 polling loop. A/A limit90min, diagnostic gate12h.
+
+Session47 applies the09:00 all-CPU-to-forge plan. The rig A/A completes40;
+its diagnostic gate is interrupted after25 games at09:47:23, with no
+verdict or pooling. Frozen original TT-only binaries/patch/check receipt
+are transferred unchanged to `/work/lanes/ngn-s47/tt`. New manifest precedes
+fresh forge4–11/c2/nice10/3GiB/swap0/host_pinningON A/A40 and exactly400
+60+0.6 games. A/A deadline4h, diagnostic deadline48h. Same diagnostic
+upper<0/lower>0/overlap0 rule; no source adoption, rollback or sample
+extension. Controller314562 waits natively for compact completion and
+SPSA's next durable1825 checkpoint, pauses its process group with SIGSTOP
+and preserves its live RNG. It resumes SPSA with SIGCONT at any terminal.
+Bounded tool checks and subsequent CPU parity dependency setup are included
+in the pre-game workload supplement before any forge games.
+
+
+Forge A/A starts10:48:50 after durable1825 pause; controller314562/harness
+325885, latest4 games10:57. Rough A/A ETA12:15–12:45;400-game gate may
+finish overnight. Same original archived compared binaries: compact's later
+playing-base integration changes neither scored side. Bounded residual
+prepare/control additionally overlaps early A/A10:48–10:53 on5–7/1GiB;
+this actual workload note leaves the pinned manifest unchanged. No other
+NGN games, no pinning change, no sample extension or automatic adoption.

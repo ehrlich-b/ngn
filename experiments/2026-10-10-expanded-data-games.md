@@ -1,26 +1,38 @@
-# Expanded-data strength admission — prepared session46
+# Expanded-data strength admission — forge preparation, session47
 
-No launch or concrete source/net nomination yet. First review the complete
-session44-expanded-data58-epoch/reexport/20-parity terminal. Then nominate
-the actual accepted playing source and an available rig topology. Settle the
-earlier time gate or provenance investigation before this new behavior gate;
-freeze the source for A/A and games. Use the identical accepted PGO-built
-engine on both sides, basebe34532c versus the reviewed expanded-data net.
+No launch or concrete source/net nomination yet. First review the completed
+session44-expanded-data58-epoch terminal, forge reexport and20 exact integer
+parity. Then nominate the actual accepted playing source/net and available
+forge topology. Settle the provenance diagnosis before this new behavior
+gate; freeze source and binary for its own A/A and games. Use the identical
+accepted PGO-built engine on both sides, basebe34532c versus the reviewed
+expanded-data network. No recipe change or residual-selected checkpoint.
 
-Stage the current engine/source/build receipt, accepted net, unchanged
-sprt9b0002f8, openings974e4b5a, original fixed-gate parser and this controller.
-Nomination records full base commit, engine/net/profile hashes, Go version,
-reviewed training receipt hash/review path, CPU mask, concurrency, memory cap
-and concurrent work. Each engine has GOMAXPROCS1/Threads1/Hash64/book-off/
-NNUE-on/nice19. Scope CPU mask/concurrency must match the nomination and
-leave existing jobs/hopper alone. The Python runner writes exact commands,
-all game input hashes and machine/environment before any games.
+The current stage is `/work/lanes/ngn-s47/data-games`. Acceptedcompact
+9bfbae4 UCI binary/build receipt, accepted net, unchangedsprt9b0002f8,
+openings974e4b5a, original fixed-gate parser and forge controller are staged.
+Candidate net and nomination remain absent. Nomination records the full base
+commit, engine/net/profile hashes, Go version, reviewed training receipt hash/
+review path,4–11 CPU mask, concurrency2, scope memory cap, host pinningON
+until amended by the current plan, and all concurrent workloads. Each engine
+uses GOMAXPROCS1/Threads1/Hash64/book-off/NNUE-on/nice10. User-systemd scope
+must stay inside4–11/total8GiB/swap0 and leave all unrelated work alone.
+Pause SPSA at a durable checkpoint and wait for other games to finish;
+at most2 simultaneous games across NGN. No rig games or cross-machine pooling.
 
-Fresh A/A40 at10+0.1 must contain0 in printed/unrounded paired intervals
-with zero faults, then exactly400/200 reversed pairs at identical topology.
-Keep only completed printed AND unrounded penta lower95>0, zero flags/
-crashes/illegal/no-move results and intact pre/post inputs. Otherwise shelve
-without extension. Interrupted stages have no verdict and no automatic
-restart or adoption. Review operational/crash logs once at the terminal.
-The rig stage is prepared at session46-expanded-data-games; it has no engine,
-nomination or trained net yet. No automatic wait-to-launch controller.
+The runner requires successful forge `postprocess.done/exit`, reviewed full58/
+reexport20-parity receipt and selected-net hash. It writes exact commands,
+all game input hashes and machine/environment before any games. Fresh A/A40
+at10+0.1 must contain0 in printed/unrounded paired intervals with zero faults,
+then exactly400/200 reversed pairs at identical topology. Declared deadlines
+are1h A/A and4h gate. Keep only completed printed AND unrounded penta
+lower95>0, zero flags/crashes/illegal/no-move results and intact pre/post
+inputs. Otherwise shelve without extension. Interrupted stages have no
+verdict, automatic restart or adoption. Review operational/crash logs once
+at terminal; no automatic net/default promotion or wait-to-launch controller.
+
+Historical session46 rig preparation remains unlaunched and is superseded.
+The intentionally interrupted rig postprocessor exit is separate from the
+trainer result; forge admission does not require that obsolete parent exit0.
+[Runner](2026-10-10-expanded-data-games.py),
+[finalizer](2026-10-10-expanded-data-forge-finalize.py).

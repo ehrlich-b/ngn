@@ -1,0 +1,34 @@
+{
+  "games": 610,
+  "pairs": 305,
+  "unpaired_games": 0,
+  "wins": 93,
+  "draws": 391,
+  "losses": 126,
+  "penta": [
+    3,
+    77,
+    179,
+    42,
+    4
+  ],
+  "exact_elo_ci95": [
+    -18.814063907396246,
+    -32.257708994177236,
+    -5.426494482275455
+  ],
+  "penta_llr": -2.810253105248708,
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 384,
+    "checkmate": 219,
+    "max-moves": 6,
+    "stalemate": 1
+  },
+  "harness_verdict": "H0 ACCEPTED: new is NOT better (<= 0 ELO)",
+  "verdict": "requires-bisect",
+  "automatic_promotion": false
+}

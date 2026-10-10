@@ -43,3 +43,19 @@ overlap its engines with another job on those CPUs. Accept only completed
 printed AND unrounded paired lower95>0 and zero flag-outs/crashes/illegal/
 no-move results, intact inputs. Otherwise shelve without extension. No
 automatic games, default-net change, claim or publication follows training.
+
+Session47 preserves trainer13201 unchanged and moves finalization to forge
+under the09:00 routing directive. Only waiting parent trial.py13172 is
+SIGSTOPped; trainer and disk watchdog remain active. Native training
+watcher15998 records `training-terminal-session47.json` at child completion
+and retires only that stopped parent, preventing its old rig Go parity
+command. The original controller's resulting nonzero exit is an intentional
+postprocessor interruption, not a new trainer verdict. Do not resume it.
+After full58, copy terminal/history/config/best.pt/best.nnue and original
+20 parity records to forge; run the separately staged
+[finalizer](2026-10-10-expanded-data-forge-finalize.py) inside the allocation.
+Require identical reexport and20 exact integer Go parity cases there before
+review/nomination. CPU dependencies retain torch2.7.0 (CPU wheel)/numpy2.5.3;
+no corpus, recipe, initialization, checkpoint or selection changes.
+Strength admission now uses a fresh forge A/A at the exact game topology;
+there is no new rig CPU stage.

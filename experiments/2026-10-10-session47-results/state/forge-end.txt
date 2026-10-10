@@ -1,0 +1,28 @@
+2026-10-10T10:57:15-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              17           5           1           0          11          12
+Swap:              3           0           3
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda        500G   92G  409G  19% /work
+    PID    PGID S ELAPSED COMMAND
+  88166   88166 T   39843 bash /work/lanes/ngn-spsa-20261009/controller.sh
+  88178   88166 T   39843 ./spsa-forge -engine /work/lanes/ngn-spsa-20261009/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -concurrency 2 -openings /work/lanes/ngn-spsa-20261009/openings.txt -out /work/lanes/ngn-spsa-20261009/spsa.jsonl -lowpower=false -seed 20261008 -resume
+ 117631  117631 S   18129 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+ 314562  314562 S    4017 bash controller.sh
+ 325884  325884 S     505 timeout --signal=TERM --kill-after=15s 4h taskset -c 4-11 nice -n 10 ./sprt -new ./baseline-ngn -base ./baseline-ngn -tc 60+0.6 -concurrency 2 -mingames 1000000 -maxmoves 400 -gametimeout 900 -openings /work/lanes/ngn-s47/tt/openings.txt -lowpower=false -maxgames 40 -newoption EvalFile=/work/lanes/ngn-s47/tt/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/work/lanes/ngn-s47/tt/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false
+ 325885  325884 S     505 ./sprt -new ./baseline-ngn -base ./baseline-ngn -tc 60+0.6 -concurrency 2 -mingames 1000000 -maxmoves 400 -gametimeout 900 -openings /work/lanes/ngn-s47/tt/openings.txt -lowpower=false -maxgames 40 -newoption EvalFile=/work/lanes/ngn-s47/tt/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/work/lanes/ngn-s47/tt/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false
+{"utc": "2026-10-10T13:50:18.007669+00:00", "stage": "session47-tt-forge", "event": "wait", "detail": "native compact completion and SPSA inotify-close-write checkpoint1825; no polling"}
+{"utc": "2026-10-10T14:48:50.055527+00:00", "stage": "session47-tt-forge", "event": "aa-start", "detail": "forge4-11/c2/host_pinning:on; fresh A/A40 at60+0.6"}
+{"iter":1825,"time":"2026-10-10T10:48:50-04:00","plus_pct":50.5,"theta":{"AspInit":16.766515833415585,"AspMult":162.51822296209608,"DeltaMargin":197.70283351213206,"ExtensionBudget":29.05133923279399,"FutilityMargin":104.03307574484765,"FutilityMaxDepth":7.693930325717037,"LMPBase":3.4197937670101908,"LMRFullDepth":3.3901388688118983,"LMRMoveThreshold":2.0289525040897316,"NullMoveMinDepth":2.2579417254937715,"NullMoveR":4.026474916244961,"ReverseFutilityMargin":61.819933236190025,"SingularDepth":6.620823314081469,"SingularMargin":56.944501367722545},"rounded":{"AspInit":17,"AspMult":163,"DeltaMargin":198,"ExtensionBudget":29,"FutilityMargin":104,"FutilityMaxDepth":8,"LMPBase":3,"LMRFullDepth":3,"LMRMoveThreshold":2,"NullMoveMinDepth":2,"NullMoveR":4,"ReverseFutilityMargin":62,"SingularDepth":7,"SingularMargin":57}}
+base options: [setoption name EvalFile value /work/lanes/ngn-s47/tt/base.nnue setoption name UseNNUE value true setoption name Hash value 64 setoption name Threads value 1 setoption name OwnBook value false]
+mode: real clock 60s+0.6s (concurrency 2) | openings: 5000 (x2 colors) | concurrency: 2
+H0: elo<=-3.0   H1: elo>=3.0   (alpha=0.05 beta=0.05 -> LLR bounds [-2.94, 2.94])
+
+G1     0W  0D  1L    0.0%  elo -800.0 [-800,+234]  LLR  -0.09  pLLR  +0.00  checkmate   
+G2     0W  1D  1L   25.0%  elo -190.8 [-625,+243]  LLR  -0.07  pLLR  -2.16  draw-rule   
+G3     1W  1D  1L   50.0%  elo   +0.0 [-338,+338]  LLR  +0.00  pLLR  -2.16  checkmate   
+G4     1W  1D  2L   37.5%  elo  -88.7 [-398,+220]  LLR  -0.03  pLLR  -0.14  checkmate   
+CPUQuotaPerSecUSec=8s
+AllowedCPUs=4-11
+MemoryMax=3221225472
+MemorySwapMax=0

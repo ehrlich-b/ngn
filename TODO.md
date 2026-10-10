@@ -1,47 +1,42 @@
 # NGN live state — 2026-10-10: 3600 campaign
 
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **de148b9 / NGNN3 KB8 H512 be34532c**. Capture pairing's current-base
-rule passes36 identities/40 reconciled blocks: **+1.42%[+0.72%,+2.12%]**,
-both strata>1; committed/pushed. Old capture-only sample remains separate.
+Playing **9bfbae4 / NGNN3 KB8 H512 be34532c**. Compact accumulators pass
+36 identities/40 balanced forge blocks: **+4.77%[+2.54%,+7.04%] NPS**,
+both order strata>1; committed/pushed. Capture +1.42% remains retained.
+Speed measurements do not establish a new Elo or absolute strength result.
 
-Time13805 has full actualde148b9 checks and fresh60+0.6 A/A40 on13,15/c2/
-2500MiB since08:52:36; then original SPRT[0,+6]/min400/cap4000. Keep only
-completedH1/printed-unrounded lower95>0/zero faults/intact inputs. Freeze
-playing source through this gate; no clock stack or repeated trajectories.
-[Time record](experiments/2026-10-10-time-after-capture.md).
-
-TT/key/SEE remain provisional. Original combined provenance3465/3643 on
-0–11/c6/3GiB vs5b882e2 reaches599 at09:01/no terminal. Completed rule alone
-certifies. Native waiter15617 conditionally runs a fresh TT-only60+0.6
-A/A40/fixed400 diagnostic after a valid requires-bisect terminal; no
-automatic source changes, repeated old sample or game pooling.
+Combined provenance terminates H0:610 games, **−18.81[−32.26,−5.43]**,
+zero faults. TT/key/SEE remain uncertified; bisect without restoring derived
+code. Fresh archived TT-only forge diagnosis314562 starts its own A/A40 at
+10:48:50 on4–11/c2/3GiB/host pinningON; then exact40060+0.6. A/A forecast
+12:15–12:45, fixed gate possibly overnight. No automatic adoption/pooling.
 [Bisect](experiments/2026-10-10-provenance-tt-bisect.md).
 
-Unchanged expanded-data retry13164/13201 continues on12,14/4GiB. Initial
-split scan is complete; zero epochs at09:01, full ETA unmeasured. Inspect
-first epochs once. Full58/reexport20 parity/review precede data-only
-A/A40/fixed400 against actual accepted source. Its game controller is
-staged without engine/net/nomination. Keep forge reader117631; no IO/corpus
-re-audit, automatic restart or net/default adoption.
+Unchanged expanded-data trainer13201 reaches20/58 epochs at10:57, full ETA
+14:30–14:45. Parent13172 is stopped; never resume it. Native watcher15998
+records the real training terminal then retires that obsolete rig parity
+postprocessor. CPU Torch environment/finalizer/game stages are prepared on
+forge. Full58/reexport20 parity/review precede the new concrete data-only
+A/A40/fixed40010+0.1 nomination againstbe34532c; no rescue games. Per-source/
+phase residual samples and exact same-net control are prepared, no candidate
+result. [Training](experiments/2026-10-10-expanded-data.md).
 
-Original loader-proved compact int16 accumulators on isolatedde148b9 pass
-normal/purego/oracle/cache/null/full short/race/vet/PGO checks, exact eight
-source hashes. Rig speed inputs staged atsession46-compact, unlaunched.
-Require own36 identities/fixed40/lower95ratio>1/both strata>1 on actual
-base when hardware/time disposition permits. Wide fallback preserves
-other nets. [Record](experiments/2026-10-10-compact-accumulator.md).
+Rodent black-box tool **30b8d4d** is checked on actual9bfbae4 and pushed on
+`night/rodent-blackbox`: full normal/tagged race/vet/PGO/reviewer checks and
+12 UCI accepted/normal/clock identities pass. No Rodent probes/games yet;
+settled package nomination follows the higher-priority data/provenance review.
+[Plan](experiments/2026-10-10-rodent-blackbox.md). Then iteration admission,
+SPSA final vector and one separate search candidate; stop new preparations.
 
-New deep non-PV check cap and earlier NMP/double-singular remain separate
-checked56b35ef candidates, tracked exact patches; actual-base compatibility
-and fresh rig strength gates follow priority lanes. No code-only adoption.
-[Cap](experiments/2026-10-10-check-extension-cap.md).
-
-SPSA88178/forge durable1775/21,300; nominal24k endpoint20:09Oct10 rough,
-final-vector rig games required. C:280.53GiB, WSL5GiB used/9GiB available;
-GPU0%/4306MiB at first-epoch snapshot; forge/work411GB free, permitted
-8–11/5GiB only, SPSA2.5GiB+reader128MiB. Hopper1170 untouched.
-[Session46](experiments/2026-10-10-session46.md). Next session not before09:45EDT.
+Rig time A/A32/no candidate and TT gate25 stop09:47 under forge routing;
+neither has a verdict or pools with forge. All future CPU work is forge4–11/
+8GiB/nice10/swap0, scoped, max2 games; rig runs only training/data loading.
+SPSA88178 is STOPped at durable1825/21,900 with live RNG preserved; TT EXIT
+trap continues group88166. About9h50 compute remains after resume, final-
+vector forge games mandatory. Reader117631 and hopper1170 remain untouched.
+C:279.86GiB; GPU75%/4306MiB; forge/work409GB free at10:57.
+[Session47](experiments/2026-10-10-session47.md). Next session not before12:15EDT.
 No3600 claim/default-net promotion/publication.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate

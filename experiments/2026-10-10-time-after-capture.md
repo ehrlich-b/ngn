@@ -33,3 +33,10 @@ the local untracked test was corrected to76efa526, the unchanged staged
 patch including all four tests. Original nomination/pins are preserved;
 source/patch/binary inputs were unchanged and corrected stage checks pass.
 [Manifest](2026-10-10-session46-results/time/game-manifest.json).
+
+Session47 stops the rig sample at09:47:23 under the newer CPU-routing plan:
+A/A has32 games, candidate games have not begun. Preserve raw A/A and
+interruption receipt; no verdict, pooling or playing adoption. Immediate
+admission moves behind expanded data/Rodent diagnostics per the09:30 plan,
+on forge with a fresh actual-source/net nomination and its own A/A40.
+Capture and compact are separately accepted pure speed changes.
