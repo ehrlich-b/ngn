@@ -1,0 +1,6 @@
+=== RUN   TestNGNN1CapturePairExact
+--- PASS: TestNGNN1CapturePairExact (0.11s)
+=== RUN   TestNGNN1MovePairExact
+--- PASS: TestNGNN1MovePairExact (0.10s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.210s
