@@ -1,0 +1,25 @@
+{
+  "utc": "2026-10-10T07:22:48.363955+00:00",
+  "host_c_free_bytes": 29391613952,
+  "training_epoch": 36,
+  "estimated_training_parity_cost_complete_utc": "2026-10-10T08:54:31.608316+00:00",
+  "batch_pid": 3465,
+  "batch_terminal": null,
+  "batch_aa": null,
+  "batch_events": [
+    {
+      "utc": "2026-10-10T07:12:14.938066+00:00",
+      "stage": "session39-provenance-batch",
+      "event": "aa-start",
+      "detail": "fresh A/A40 at60+0.6/concurrency6/0-11/nice19; combined certification topology"
+    }
+  ],
+  "architecture_game_controller_started": false,
+  "gpu": "55 %, 4179 MiB, 16303 MiB",
+  "scope_memory": {
+    "ngn-gpu-s38.scope": "MemoryCurrent=4093218816\nMemoryMax=4294967296\nActiveState=active",
+    "ngn-provenance-s39.scope": "MemoryCurrent=2370236416\nMemoryMax=3221225472\nActiveState=active"
+  },
+  "hopper_pid": 1170,
+  "hopper_alive": true
+}

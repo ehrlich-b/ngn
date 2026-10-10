@@ -1,0 +1,6 @@
+base.tar: OK
+pre-batch.tar: OK
+architecture.patch: OK
+controller.sh: OK
+base.nnue: OK
+baseline-ngn: OK

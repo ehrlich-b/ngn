@@ -1,0 +1,82 @@
+{
+  "completed_utc": "2026-10-10T07:09:47.704562+00:00",
+  "base_source": "6c0fc26a17e359442098802f9f33ee673c118c90",
+  "architecture_parent": "2acf834945d48378209853464b86cefe72587ccc",
+  "checks": [
+    "AVX2/purego NGNN tests",
+    "full-short ./...",
+    "full-race ./...",
+    "go vet ./...",
+    "explicit PGO UCI/probes",
+    "36 old-format exact identities on current keys"
+  ],
+  "identity": {
+    "ngnn3": {
+      "cases": 12,
+      "depth": 14,
+      "equal": true
+    },
+    "ngnn2": {
+      "cases": 12,
+      "depth": 14,
+      "equal": true
+    },
+    "hce": {
+      "cases": 12,
+      "depth": 11,
+      "equal": true
+    }
+  },
+  "machine": "forge / Ryzen6900HX Debian13 VM",
+  "os": "Linux-6.12.111+deb13-cloud-amd64-x86_64-with-glibc2.41",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "cpus": [
+    8,
+    9,
+    10,
+    11
+  ],
+  "nice": 10,
+  "memory_max": 2684354560,
+  "files_sha256": {
+    "candidate-ngn": "6b4772bcf32a49461c0a294a524ce657b8b772665b978546330200492e0e2aa1",
+    "candidate-probe": "44864194f5386e7a59195cdce6409739fe61e407379010ec0f9723232a3d391b",
+    "baseline-probe": "86bdbc1cb856ec737e8aebd7dd509ede4670c5399cc61d289270fd59f68d8d84",
+    "pre-batch-ngn": "53caa7c45fa0c3edfc0603ec97fa6026df99e6f8da37e92aae25a26fc33befc1",
+    "architecture.patch": "bd36a8b0ed658d461daa49d0d50786d5d3c526c2a1c793d18c36e5a7234290aa",
+    "base.tar": "2b976449f9630e4307ced53c135c0a5ad0b9f7f0ff2497476cab9e9f7840ac4c",
+    "pre-batch.tar": "d5254e49309fc68ec875cc8822eeea11d350f3a2b897c775c1e93bca137d838d",
+    "source/default.pgo": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+    "source/engine/hash.go": "48f94110e870c6e19c17ee0b3033d77d994a018e2b7bff87d161b8a508f2c31e",
+    "source/engine/uci_process_test.go": "c83644d5381f5fb28e1fa0b1c682bd013bea939607473d2fd37229fc68b8650d"
+  },
+  "architecture_source_sha256": {
+    "engine/evaluator_selection.go": "2f2d3d816fd0dcd5ab2d8eed0465a378bf797b0d6bd4f181b052a64494c57765",
+    "engine/ngnn1.go": "f75ae83afdc9f3fcca6e46ec7637c031127cf9022dc1d01a6260e7a8498bc293",
+    "engine/ngnn3.go": "d519d730938dffd590b67e4cec60b211e3808bc78505b3505ca5ccb944874bf9",
+    "engine/ngnn4.go": "fd6acf9f8e562870c39d8708bbc7fe59c85426e7c80e7ec7badfb5333e60294c",
+    "engine/ngnn4_kernels_amd64.go": "b157e209ad433ae8dd64588088a450ed297fb1862a1175cfe76b09513128abab",
+    "engine/ngnn4_kernels_amd64.s": "07012b5c6a2250d6f24f62b8d55fdd78435a6c09b0ef573691d5a694b9702066",
+    "engine/ngnn4_kernels_generic.go": "e04be45e7ab1807ed60be279f51ea21a20634d6e1a90ed801565e867b6d0e7c9",
+    "engine/ngnn4_kernels_test.go": "7ad4382e1f721f36b8bdcecbd7865c983dfa5dee6e66d6409ea0ac581118907d",
+    "engine/ngnn4_rows_test.go": "b47371a4dfb70cd4bc1150a80cd6e1980539687293c38912ef87b8286f7c7fdd",
+    "engine/ngnn4_test.go": "6fe38c87865ee9c1a0960cd99050703eaa220bbe5574dae8ad36050864175761",
+    "engine/ngnn4_vnni_test.go": "42c75e7d3ac26757753ecfc51e4a1dae46c33191d901a904d656dd1fad840ec0",
+    "engine/worker_evaluator.go": "48d3cb1a6182f532e45248d40094a8f553dfa92d8db6a6daddde287b65c4ead3",
+    "testdata/ngnn4/random_h16_l16_k8_b8.nnue": "c91adc11128dd1698e12976f967f0e81892533710acc632510cdfc6ac5e9d99c",
+    "testdata/ngnn4/random_h16_l16_k8_b8_evals.json": "6ccf7c42283e51bdffdd05f25cc5d5c9a1038516989cc7d54af2c23d774c092c",
+    "trainer/README.md": "e29dcb64abae005d7addab69359be63e328f8de12eceb09af852b3e4ad978630",
+    "trainer/export.py": "3deeb6d1d734428956004cd9a32d8f019b7072d4c10ad7d5c1dca1a022a9eb1b",
+    "trainer/make_random_net.py": "c521b50d6ea08a4fbe5452834ef20ff0c425bd53f6239962bb2dc07255b8a622",
+    "trainer/model.py": "9844e55895489f5f130d971aa0a4c0e027b2d2a4c421d4e5826115edc00a56ee",
+    "trainer/refeval.py": "a1962ad86cfe5018bacef0006c17b31d0317bed47341f249fed1c2c775804bcb",
+    "trainer/tests/test_ngnn4.py": "efcb6c1cefb89ea0ce581807c148502326a9a011d90761446be077337583c91f",
+    "trainer/tests/test_ngnn4_batched.py": "6a30b568292fb1d302da57a036317661fbfa9c5d4577140e43688115f30ff270",
+    "trainer/train.py": "6b2e8aac800513523cdca2b7da8020c795bb32acc80ce4b5629ff13921880da4"
+  },
+  "trainer_unchanged": true,
+  "training_or_games": false,
+  "playing_adoption": false,
+  "source_reviewed": true,
+  "trainer_source_identical_to_2acf834": true
+}

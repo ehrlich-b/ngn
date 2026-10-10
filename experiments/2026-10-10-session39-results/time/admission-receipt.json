@@ -1,0 +1,36 @@
+{
+  "completed_utc": "2026-10-10T07:15:45.012351+00:00",
+  "base_source": "6c0fc26a17e359442098802f9f33ee673c118c90",
+  "change": "admission",
+  "checks": [
+    "existing narrow controls",
+    "full-short ./...",
+    "full-race ./...",
+    "go vet ./...",
+    "explicit PGO build"
+  ],
+  "machine": "forge / Ryzen6900HX Debian13 VM",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "os": "Linux-6.12.111+deb13-cloud-amd64-x86_64-with-glibc2.41",
+  "cpus": [
+    8,
+    9,
+    10,
+    11
+  ],
+  "memory_max": 2684354560,
+  "nice": 10,
+  "files_sha256": {
+    "admission.patch": "76efa5266d49c5bf3f8106d2f9907a1e55066efa0637ac8c84b1cb0bcdc01dd7",
+    "base.tar": "2b976449f9630e4307ced53c135c0a5ad0b9f7f0ff2497476cab9e9f7840ac4c",
+    "admission-ngn": "4f7d1ef3aaf4dafcaac1488d13da3462f02ed903771596f24075d4e7ed762879",
+    "admission/default.pgo": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+    "admission/engine/hash.go": "48f94110e870c6e19c17ee0b3033d77d994a018e2b7bff87d161b8a508f2c31e"
+  },
+  "changed_source_sha256": {
+    "engine/time.go": "cd4ec330a27ed59096a6d6938795083dcd8f5ac56f7e045378132fbcf67c0a79",
+    "engine/time_admission_test.go": "88efd1aa1e0af8bfa9b9053622fb8e2c63d1c05bdafdb8c6b7df743126d2a2e3"
+  },
+  "strength_games": 0,
+  "automatic_promotion": false
+}
