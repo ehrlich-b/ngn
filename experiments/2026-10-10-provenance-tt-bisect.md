@@ -56,3 +56,11 @@ playing-base integration changes neither scored side. Bounded residual
 prepare/control additionally overlaps early A/A10:48–10:53 on5–7/1GiB;
 this actual workload note leaves the pinned manifest unchanged. No other
 NGN games, no pinning change, no sample extension or automatic adoption.
+
+Session48: forge A/A40 finishes11:56:06 with12W/22D/6L,
+paired **+52.51[+9.73,+96.95]** (printed [+10,+97]), zero faults and intact
+terminal inputs. Its interval excludes zero, so the controller stops with
+exit1 and **zero candidate games**. TT remains unresolved; no retry or
+pooling. SPSA resumes at that terminal. The current plan's11:20 amendment
+selects [SEE isolation](2026-10-10-see-isolation.md) next, subject to
+expanded-data game priority. [Failed-control review](2026-10-10-session48-results/tt/aa-failure-review.json).
