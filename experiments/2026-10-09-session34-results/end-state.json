@@ -1,0 +1,69 @@
+{
+  "utc": "2026-10-10T00:15:54.602957+00:00",
+  "root": "/home/ehrli/ngn-data/night-20261007",
+  "host_c_free_bytes": 30279118848,
+  "gpu": "NVIDIA GeForce RTX 5080, 0 %, 1507 MiB",
+  "processes": [
+    "   1211     270   16870  0.3  10 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    "   1405    1396   16748  2.1  11 /home/ehrli/ngn-data/night-20261007/spsa/spsa -engine /home/ehrli/ngn-data/night-20261007/kb8bin/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/net1-gates-20261006/openings.txt -out /home/ehrli/ngn-data/night-20261007/spsa/kb8/spsa.jsonl -lowpower=false -seed 20261008 -resume",
+    "  22682   22667    5739  0.0  12 bash /home/ehrli/ngn-data/night-20261007/session32-key/controller.sh",
+    "  25942   22682    4944  0.0  15 timeout --signal=TERM --kill-after=15s 3h taskset -c 13,15 nice -n 19 ./sprt -new ./candidate-ngn -base ./baseline-ngn -tc 10+0.1 -concurrency 2 -mingames 1000000 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session32-key/openings.txt -lowpower=false -maxgames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session32-key/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session32-key/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false",
+    "  25943   25942    4944  0.4  13 ./sprt -new ./candidate-ngn -base ./baseline-ngn -tc 10+0.1 -concurrency 2 -mingames 1000000 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session32-key/openings.txt -lowpower=false -maxgames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session32-key/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session32-key/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false",
+    "  28683   28676      52  0.0  12 bash /home/ehrli/ngn-data/night-20261007/session34-architecture/controller.sh"
+  ],
+  "spsa_checkpoint": {
+    "iter": 1450,
+    "time": "2026-10-09T20:08:11-04:00",
+    "plus_pct": 50.166666666666664,
+    "theta": {
+      "AspInit": 15.505933929599227,
+      "AspMult": 159.5209348007967,
+      "DeltaMargin": 186.17022678802402,
+      "ExtensionBudget": 29.1590544512799,
+      "FutilityMargin": 105.75723352306441,
+      "FutilityMaxDepth": 7.854471090006459,
+      "LMPBase": 3.5137129495131822,
+      "LMRFullDepth": 3.356507518966963,
+      "LMRMoveThreshold": 1.9988491558763162,
+      "NullMoveMinDepth": 2.234961826289041,
+      "NullMoveR": 4.0395643360243305,
+      "ReverseFutilityMargin": 61.358860748645725,
+      "SingularDepth": 6.512499026303935,
+      "SingularMargin": 58.72602532714264
+    },
+    "rounded": {
+      "AspInit": 16,
+      "AspMult": 160,
+      "DeltaMargin": 186,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 106,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 4,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 61,
+      "SingularDepth": 7,
+      "SingularMargin": 59
+    }
+  },
+  "status_tail": [
+    "{\"utc\": \"2026-10-09T23:24:57.397358+00:00\", \"stage\": \"ngnn4-vnni512-speed\", \"event\": \"end\", \"detail\": \"rc 0; review exact fixed sample before topic retention\"}",
+    "{\"utc\": \"2026-10-09T23:24:57.426163+00:00\", \"stage\": \"null-frame-speed\", \"event\": \"tests-start\", \"detail\": \"f8686be accepted base; null-frame ownership only; no other candidate overlay\"}",
+    "{\"utc\": \"2026-10-09T23:28:00.590729+00:00\", \"stage\": \"null-frame-speed\", \"event\": \"tests-pass\", \"detail\": \"old-fail/new-pass; AVX2/purego/full short/race/vet; then36 exact identities and40 balanced speed blocks\"}",
+    "{\"utc\": \"2026-10-09T23:52:45.823419+00:00\", \"stage\": \"null-frame-speed\", \"event\": \"speed-keep\", \"detail\": \"fixed rule passes; raw/source review required before commit and integration\"}",
+    "{\"utc\": \"2026-10-09T23:52:45.853340+00:00\", \"stage\": \"null-frame-speed\", \"event\": \"end\", \"detail\": \"rc 0; review fixed evidence before retention\"}",
+    "{\"utc\": \"2026-10-10T00:15:02.284014+00:00\", \"stage\": \"session34-architecture\", \"event\": \"checks-start\", \"detail\": \"retained512 + current playing null frames + reviewed batched trainer;12,14/nice19\"}"
+  ],
+  "session32-key": {
+    "gate_tail": [
+      "G302  64W 156D 82L   47.0%  elo  -20.7 [-60,+18]  LLR  -0.65  pLLR  -0.85  draw-rule   ",
+      "G303  64W 157D 82L   47.0%  elo  -20.7 [-60,+18]  LLR  -0.65  pLLR  -0.85  draw-rule   ",
+      "G304  64W 158D 82L   47.0%  elo  -20.6 [-60,+18]  LLR  -0.65  pLLR  -0.86  draw-rule   "
+    ]
+  },
+  "session34-architecture": {
+    "launch.json": "{\n  \"pid\": 28683,\n  \"utc\": \"2026-10-10T00:15:02.190314+00:00\",\n  \"command\": \"setsid nohup bash /home/ehrli/ngn-data/night-20261007/session34-architecture/controller.sh < /dev/null > controller.log 2>&1 &\",\n  \"signal\": \"controller.done + controller.exit + receipt.json\",\n  \"cpu\": [\n    12,\n    14\n  ],\n  \"ETA\": \"2026-10-09 20:30 EDT\",\n  \"no_training_or_games\": true\n}\n"
+  }
+}

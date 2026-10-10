@@ -1,0 +1,13 @@
+{
+  "pid": 26156,
+  "started": "2026-10-09T23:05:50.131245+00:00",
+  "dir": "/home/ehrli/ngn-data/night-20261007/session33-null-frame",
+  "base_source": "f8686be",
+  "native_dependency": 26077,
+  "cpus": [
+    12,
+    14
+  ],
+  "timing_cpu": 14,
+  "expected_completion": "around20:00-20:10 EDT; controller.done"
+}

@@ -1,0 +1,48 @@
+{
+  "run": "session32-vnni512",
+  "blocks": 20,
+  "exact_identities": 48,
+  "source_sha256": {
+    "engine/ngnn4.go": "fd6acf9f8e562870c39d8708bbc7fe59c85426e7c80e7ec7badfb5333e60294c",
+    "engine/ngnn4_kernels_amd64.go": "b157e209ad433ae8dd64588088a450ed297fb1862a1175cfe76b09513128abab",
+    "engine/ngnn4_kernels_amd64.s": "07012b5c6a2250d6f24f62b8d55fdd78435a6c09b0ef573691d5a694b9702066",
+    "engine/ngnn4_kernels_generic.go": "e04be45e7ab1807ed60be279f51ea21a20634d6e1a90ed801565e867b6d0e7c9",
+    "engine/ngnn4_rows_test.go": "b47371a4dfb70cd4bc1150a80cd6e1980539687293c38912ef87b8286f7c7fdd",
+    "engine/ngnn4_vnni_test.go": "42c75e7d3ac26757753ecfc51e4a1dae46c33191d901a904d656dd1fad840ec0"
+  },
+  "binary_sha256": {
+    "baseline": "5cdf3c43fc46318c0c637502e17725fdb6e0517d23f0d2bcf31d09737715ef2c",
+    "candidate": "357204697fe5a88306ec0e7c6b890bdf57e7bee0f8badacf214ba2551a4feca1"
+  },
+  "terminal": "2026-10-09T19:24:57-04:00",
+  "full_short_race_vet": true,
+  "input_pins": true,
+  "raw_nps_reconciled": true,
+  "geometric_ratio": 1.0930281368309895,
+  "ci95": [
+    1.0742429937746436,
+    1.1121417731627792
+  ],
+  "order_strata_ratios": [
+    1.1268628958978333,
+    1.0602092874416043
+  ],
+  "verdict": "pure-speed-keep",
+  "no_elo_claim": true,
+  "architecture_budget": {
+    "blocks": 12,
+    "geometric_ratio": 0.8582562919758812,
+    "ci95": [
+      0.833901316031963,
+      0.8833225809274958
+    ],
+    "order_strata_ratios": [
+      0.8860315164149893,
+      0.8313517624029829
+    ],
+    "threshold": 0.85,
+    "admitted": true,
+    "limitation": "same H512, owned random NGNN4 fixture vs trained NGNN3; tree mix differs; budget only, not Elo"
+  },
+  "adoption": "architecture topic only; no training before data/factorizer sequence"
+}
