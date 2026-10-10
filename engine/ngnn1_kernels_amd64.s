@@ -90,6 +90,52 @@ CaptureRows_loop:
 	VZEROUPPER
 	RET
 
+// Interleave independent capture arithmetic for both accumulator perspectives.
+// All subtraction/addition retains int32 wrapping; addresses may be unaligned.
+TEXT ·ngnn1CapturePair(SB), NOSPLIT, $0-192
+	MOVQ dst_base+0(FP), DI
+	MOVQ src_base+24(FP), SI
+	MOVQ removeUs_base+48(FP), R8
+	MOVQ captureUs_base+72(FP), R9
+	MOVQ addUs_base+96(FP), R10
+	MOVQ removeThem_base+120(FP), R11
+	MOVQ captureThem_base+144(FP), R12
+	MOVQ addThem_base+168(FP), R13
+	MOVQ addUs_len+104(FP), CX
+	LEAQ (DI)(CX*4), BX
+	LEAQ (SI)(CX*4), DX
+CapturePair_loop:
+	VMOVDQU (SI), Y0
+	VMOVDQU (DX), Y2
+	VPMOVSXWD (R8), Y1
+	VPMOVSXWD (R11), Y3
+	VPSUBD Y1, Y0, Y0
+	VPSUBD Y3, Y2, Y2
+	VPMOVSXWD (R9), Y1
+	VPMOVSXWD (R12), Y3
+	VPSUBD Y1, Y0, Y0
+	VPSUBD Y3, Y2, Y2
+	VPMOVSXWD (R10), Y1
+	VPMOVSXWD (R13), Y3
+	VPADDD Y1, Y0, Y0
+	VPADDD Y3, Y2, Y2
+	VMOVDQU Y0, (DI)
+	VMOVDQU Y2, (BX)
+	ADDQ $32, SI
+	ADDQ $32, DI
+	ADDQ $32, BX
+	ADDQ $32, DX
+	ADDQ $16, R8
+	ADDQ $16, R9
+	ADDQ $16, R10
+	ADDQ $16, R11
+	ADDQ $16, R12
+	ADDQ $16, R13
+	SUBQ $8, CX
+	JNZ CapturePair_loop
+	VZEROUPPER
+	RET
+
 TEXT ·ngnn1CastleRows(SB), NOSPLIT, $0-144
 	MOVQ dst_base+0(FP), DI
 	MOVQ src_base+24(FP), SI

@@ -13,6 +13,12 @@ func ngnn1MoveRows(dst, src []int32, remove, add []int16) {
 func ngnn1CaptureRows(dst, src []int32, remove, capture, add []int16) {
 	ngnn1CaptureRowsGo(dst, src, remove, capture, add)
 }
+func ngnn1CapturePair(dst, src []int32, removeUs, captureUs, addUs, removeThem, captureThem, addThem []int16) {
+	h := len(addUs)
+	ngnn1CaptureRowsGo(dst[:h], src[:h], removeUs, captureUs, addUs)
+	ngnn1CaptureRowsGo(dst[h:], src[h:], removeThem, captureThem, addThem)
+}
+
 func ngnn1CastleRows(dst, src []int32, removeKing, removeRook, addKing, addRook []int16) {
 	ngnn1CastleRowsGo(dst, src, removeKing, removeRook, addKing, addRook)
 }
