@@ -1,0 +1,13 @@
+2026-10-10T08:17:48-04:00
+Mem:              17           4           2           0          10          13
+Swap:              3           0           3
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda        500G   89G  411G  18% /work
+    PID    PPID    PGID ELAPSED   RSS %CPU COMMAND
+  88166       1   88166   30276  3192  0.0 bash /work/lanes/ngn-spsa-20261009/controller.sh
+  88178   88166   88166   30276 26012  0.7 ./spsa-forge -engine /work/lanes/ngn-spsa-20261009/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -concurrency 2 -openings /work/lanes/ngn-spsa-20261009/openings.txt -out /work/lanes/ngn-spsa-20261009/spsa.jsonl -lowpower=false -seed 20261008 -resume
+  88182   88178   88166   30275 351860 47.6 /work/lanes/ngn-spsa-20261009/ngn-kb8
+  88185   88178   88166   30275 351752 47.6 /work/lanes/ngn-spsa-20261009/ngn-kb8
+  88188   88178   88166   30275 350896 48.1 /work/lanes/ngn-spsa-20261009/ngn-kb8
+  88191   88178   88166   30275 351964 48.1 /work/lanes/ngn-spsa-20261009/ngn-kb8
+ 117631       1  117631    8561 25548  0.4 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767

@@ -3,47 +3,42 @@
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
 Playing engine **56b35ef / NGNN3 KB8 H512 be34532c**. TT/key/SEE remain
 provisional; original combined60+0.6 SPRT[0,+6] vs5b882e2 continues on
-rig0–11,3465/3643; latest494/no terminal. Only its completed rule certifies.
+rig0–11,3465/3643; latest536/no terminal. Completed rule alone certifies.
 
-Original capture9929 reviewed **KEEP isolated c66fbc1**:36 identities,
-fixed40 blocks, NPS+3.16%[+2.52%,+3.80%], both strata>1. New actual56b35ef
-capture+quiet combination passes full forge checks/builds,250221 terminal0.
-Its distinct rig36-identity/fixed40-block speed gate is staged at
-session44-capture-quiet but capacity-blocked. No playing integration yet.
+Capacity recovers to286.01GiB at08:22; closing**285.79GiB**. Unchanged
+manual expanded-data retry13164/13201 starts08:23 on12,14/nice19/4GiB;
+split-index initialization/zero epochs at08:28, roughfullcompletion14–15EDT.
+Keep forge reader117631. Full58/reexport20 parity and review precede fresh
+actual-base A/A40/fixed400 games. No automatic restart, corpus re-audit or
+net adoption. Original training/time interruptions stay preserved.
+
+Distinct current56b35ef capture+quiet speed13178 starts08:23 on13,15/CPU15/
+nice19/2GiB; expected08:50. Review36 identities/fixed40 blocks once under
+lower95ratio>1/both strata>1; integrate only on pass, otherwise shelve without
+extension. Oldisolatedcapturec66fbc1 is KEEP,+3.16%, separate from this gate.
 [Manifest](experiments/2026-10-10-capture-quiet-current.md).
 
-**C:22.20GiB**, below25GiB floor. Training12215/12225 stops07:29:30 at its
-disk guard before epoch1/checkpoint; time12364 stops07:36:07 before checks
-or any games. Both interruptions are preserved, no verdict/automatic retry.
-Removed3.884GB disposable campaign caches older than24h; trim did not return
-Windows capacity. Bryan asked to free>=5GiB without stopping WSL. Unchanged
-manual data retry prepared atsession44-expanded-data; launch selector is
-[session44-launch.sh](experiments/2026-10-10-session44-launch.sh).
-Launch training12,14/4GiB and capture13,15/2GiB only atC:>=25.5GiB. Original
-58×256M/KB8H512/BF16/factorizer-off recipe and T80/T76/T74 pins remain;
-full58/reexport20 parity/review precede fresh actual-base A/A40/fixed400 games.
-Keep immutable forge reader117631 alive; no descriptor token in Git.
+After capture settles, nominate actual-base unchanged time admission.
+Newsession45-time-admission controller/parsers/patch are staged, not launched;
+write concrete source nomination/archive/stage pins then full combination
+checks, fresh60+0.6 A/A40/SPRT[0,+6]/min400/cap4000/c2/2500MiB. Freeze playing
+base through that gate; horizon/partial/search stay separate.
+[Preparation](experiments/2026-10-10-time-after-capture.md).
 
-Capture decision precedes a new actual-base time-admission nomination:
-unchanged patch, new combination checks, fresh60+0.6 A/A40/SPRT[0,+6]/
-min400/cap4000/c2. Original time controller played zero games, so boundary
-is clean. Freeze the nominated playing base through that gate. Horizon/
-partial/search candidates stay separate, no repeated diagnostic trajectories.
+Original NMP eval-depth and new bounded double-singular extension are separate
+isolated/uncommitted56b35ef candidates with exact tracked patches. Both pass
+old-fail/new-pass/full short/race/vet/PGO checks on forge. Double270961 finishes
+08:26:35; live depth64/65cp,5/6/12/13,PV,budget and stop controls pass. Actual-
+base rig games follow priority lanes; no code-only adoption.
+[Manifest](experiments/2026-10-10-singular-double.md).
 
-New original **NMP eval-depth** candidate on isolated uncommitted56b35ef:
-one extra reduction ply per192cp staticEval-beta, cap3; existing guards/
-qsearch floor retained. Forge252237 completes08:03:34, old-fail/new-pass,
-full short/race/vet/PGO checks; local source hashes match. Exact patch is
-tracked; actual-base rig games follow priority lanes. No code-only adoption.
-[Manifest](experiments/2026-10-10-nmp-eval-margin.md).
-
-Frozen forge SPSA88178 durable1775/21,300 at08:04; earlier nominal24k
-endpoint20:09Oct10 remains rough. Final-vector rig games decide. WSL3GiB
-used/11GiB available, GPU0%; forge/work411GB free, SPSA2.5GiB+reader128MiB
-below5GiB/8–11. Hopper1170 untouched. NGNN4, selection, factorizer and old
-key22682 remain shelved; no sample extension or repeated corpus/IO audits.
-[Session44](experiments/2026-10-10-session44.md). No3600 claim/default-net
-promotion/publication.
+Frozen forge SPSA88178 durable1775/21,300 at08:28; earlier nominal24k endpoint
+20:09Oct10 remains rough. Converged-vector rig games decide. WSL4GiB used/
+11GiB available, GPUidle during split scan; forge/work411GB free, SPSA2.5GiB+
+reader128MiB within5GiB/8–11. Hopper1170 untouched. NGNN4/selection/factorizer
+and oldkey22682 stay shelved; no sample extension or repeated IO audits.
+[Session45](experiments/2026-10-10-session45.md). Next session not before08:55EDT.
+No3600 claim/default-net promotion/publication.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
