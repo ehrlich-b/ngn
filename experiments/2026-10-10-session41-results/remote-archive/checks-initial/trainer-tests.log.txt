@@ -1,0 +1,81 @@
+test_black_normalization_preserves_features_and_label_sign (test_archive.ArchiveTests.test_black_normalization_preserves_features_and_label_sign) ... ok
+test_cpu_training_resume_and_archive_config (test_archive.ArchiveTests.test_cpu_training_resume_and_archive_config) ... ok
+test_holdout_cache_preserves_rows_and_avoids_source_on_later_passes (test_archive.ArchiveTests.test_holdout_cache_preserves_rows_and_avoids_source_on_later_passes) ... ok
+test_padding_is_ignored_and_hash_excludes_labels (test_archive.ArchiveTests.test_padding_is_ignored_and_hash_excludes_labels) ... ok
+test_real_archive_record_and_opponent_king_square_convention (test_archive.ArchiveTests.test_real_archive_record_and_opponent_king_square_convention) ... ok
+test_rejects_bad_piece_result_missing_king_and_metadata (test_archive.ArchiveTests.test_rejects_bad_piece_result_missing_king_and_metadata) ... ok
+test_split_counts_global_duplicate_exclusion_seed_and_tails (test_archive.ArchiveTests.test_split_counts_global_duplicate_exclusion_seed_and_tails) ... ok
+test_cli_resume_exactness_reexport_and_changed_flag (test_king_factorizer.KingFactorizerTests.test_cli_resume_exactness_reexport_and_changed_flag) ... ok
+test_clipping_bounds_effective_rows_at_both_limits (test_king_factorizer.KingFactorizerTests.test_clipping_bounds_effective_rows_at_both_limits) ... ok
+test_cpu_forward_and_shared_gradient (test_king_factorizer.KingFactorizerTests.test_cpu_forward_and_shared_gradient) ... ok
+test_cuda_forward_gradients_and_bf16_step (test_king_factorizer.KingFactorizerTests.test_cuda_forward_gradients_and_bf16_step) ... ok
+test_invalid_configuration_shapes_and_nonfinite_sum (test_king_factorizer.KingFactorizerTests.test_invalid_configuration_shapes_and_nonfinite_sum) ... ok
+test_merge_before_rounding_and_integer_reference (test_king_factorizer.KingFactorizerTests.test_merge_before_rounding_and_integer_reference) ... ok
+test_zero_initialization_preserves_default_rng_and_export (test_king_factorizer.KingFactorizerTests.test_zero_initialization_preserves_default_rng_and_export) ... ok
+test_bucket_resume_and_export_cli (test_ngnn2.BucketTests.test_bucket_resume_and_export_cli) ... ok
+test_bucket_validation_tail_and_fixture (test_ngnn2.BucketTests.test_bucket_validation_tail_and_fixture) ... ok
+test_cpu_buckets (test_ngnn2.BucketTests.test_cpu_buckets) ... ok
+test_gpu_buckets (test_ngnn2.BucketTests.test_gpu_buckets) ... ok
+test_layout_validation_and_full_weight_range (test_ngnn2.BucketTests.test_layout_validation_and_full_weight_range) ... ok
+test_reference_float_and_selected_gradients (test_ngnn2.BucketTests.test_reference_float_and_selected_gradients) ... ok
+test_single_bucket_exact_equivalence (test_ngnn2.BucketTests.test_single_bucket_exact_equivalence) ... ok
+test_single_bucket_format2_cli (test_ngnn2.BucketTests.test_single_bucket_format2_cli) ... ok
+test_cli_resume_and_map_guard (test_ngnn3.NGNN3Tests.test_cli_resume_and_map_guard) ... ok
+test_cpu_decode (test_ngnn3.NGNN3Tests.test_cpu_decode) ... ok
+test_cuda_decode (test_ngnn3.NGNN3Tests.test_cuda_decode) ... ok
+test_custom_map_export (test_ngnn3.NGNN3Tests.test_custom_map_export) ... ok
+test_default_layout (test_ngnn3.NGNN3Tests.test_default_layout) ... ok
+test_export_shapes_header_and_reference (test_ngnn3.NGNN3Tests.test_export_shapes_header_and_reference) ... ok
+test_features_symmetry (test_ngnn3.NGNN3Tests.test_features_symmetry) ... ok
+test_fixture_reproducible (test_ngnn3.NGNN3Tests.test_fixture_reproducible) ... ERROR
+test_missing_kings_rejected (test_ngnn3.NGNN3Tests.test_missing_kings_rejected) ... ok
+test_reference_rejects_invalid_files (test_ngnn3.NGNN3Tests.test_reference_rejects_invalid_files) ... ok
+test_selected_input_and_output_gradients (test_ngnn3.NGNN3Tests.test_selected_input_and_output_gradients) ... ok
+test_bad_modulus_empty_partition_and_filtered_validation (test_ngnp_split.ContentShardsTests.test_bad_modulus_empty_partition_and_filtered_validation) ... ok
+test_duplicates_across_shards_labels_stm_padding_and_filters (test_ngnp_split.ContentShardsTests.test_duplicates_across_shards_labels_stm_padding_and_filters) ... ok
+test_entire_holdout_blocks_and_partial_batches_are_retained (test_ngnp_split.ContentShardsTests.test_entire_holdout_blocks_and_partial_batches_are_retained) ... ok
+test_prefix_appends_do_not_change_split_or_receipt (test_ngnp_split.ContentShardsTests.test_prefix_appends_do_not_change_split_or_receipt) ... ok
+test_training_resume_binds_partition_and_legacy_default (test_ngnp_split.ContentShardsTests.test_training_resume_binds_partition_and_legacy_default) ... ok
+test_unused_nibbles_and_metadata_do_not_change_hash (test_ngnp_split.ContentShardsTests.test_unused_nibbles_and_metadata_do_not_change_hash) ... ok
+test_exact_partition_batch_boundaries_shuffle_and_cache (test_remote_archive.RemoteArchiveTests.test_exact_partition_batch_boundaries_shuffle_and_cache) ... ok
+test_range_read_preserves_duplicate_indexes_and_rejects_changed_file (test_remote_archive.RemoteArchiveTests.test_range_read_preserves_duplicate_indexes_and_rejects_changed_file) ... ok
+test_wrong_digest_and_partial_response_fail_before_decoding (test_remote_archive.RemoteArchiveTests.test_wrong_digest_and_partial_response_fail_before_decoding) ... ok
+test_clipping_and_quantization (test_trainer.TrainerTests.test_clipping_and_quantization) ... ok
+test_cpu_decode (test_trainer.TrainerTests.test_cpu_decode) ... ok
+test_crc_layout_and_corruption (test_trainer.TrainerTests.test_crc_layout_and_corruption) ... ok
+test_feature_mapping (test_trainer.TrainerTests.test_feature_mapping) ... ok
+test_fixture_reproducible (test_trainer.TrainerTests.test_fixture_reproducible) ... ok
+test_float_quantized_mirror_roundtrip (test_trainer.TrainerTests.test_float_quantized_mirror_roundtrip) ... max float/quantized disagreement: 3.7268 cp
+ok
+test_gpu_decode (test_trainer.TrainerTests.test_gpu_decode) ... ok
+test_hand_built_record_and_pov (test_trainer.TrainerTests.test_hand_built_record_and_pov) ... ok
+test_invalid_record_rejected (test_trainer.TrainerTests.test_invalid_record_rejected) ... ok
+test_loss (test_trainer.TrainerTests.test_loss) ... ok
+test_resume_matches_uninterrupted (test_trainer.TrainerTests.test_resume_matches_uninterrupted) ... ok
+test_retention_keeps_best_and_latest_exports (test_trainer.TrainerTests.test_retention_keeps_best_and_latest_exports) ... ok
+test_schedule_endpoints (test_trainer.TrainerTests.test_schedule_endpoints) ... ok
+test_shard_prefix_is_frozen_across_growth_and_partial_tail (test_trainer.TrainerTests.test_shard_prefix_is_frozen_across_growth_and_partial_tail) ... ok
+test_shards_filters_shuffle_and_tails (test_trainer.TrainerTests.test_shards_filters_shuffle_and_tails) ... ok
+test_signed_division_and_overflow (test_trainer.TrainerTests.test_signed_division_and_overflow) ... ok
+test_superbatch_cycles_without_dropping_positions (test_trainer.TrainerTests.test_superbatch_cycles_without_dropping_positions) ... ok
+test_validation_tail_and_no_updates (test_trainer.TrainerTests.test_validation_tail_and_no_updates) ... ok
+
+======================================================================
+ERROR: test_fixture_reproducible (test_ngnn3.NGNN3Tests.test_fixture_reproducible)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/ehrli/ngn-data/night-20261007/session41-remote-archive/source/trainer/tests/test_ngnn3.py", line 175, in test_fixture_reproducible
+    self.assertEqual(path.read_bytes(), committed.read_bytes())
+                                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1021, in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'testdata/ngnn3/random_h32_k8_b8.nnue'
+
+----------------------------------------------------------------------
+Ran 60 tests in 66.837s
+
+FAILED (errors=1)
