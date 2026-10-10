@@ -1,0 +1,66 @@
+{
+  "coverage": {
+    "method": "bottom-65536 distinct occupied-board hashes; ngn-board-mix64-v1/20261006",
+    "sources": {
+      "t80": {
+        "path": "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+        "bytes": 75977281056,
+        "records": 2374290033,
+        "remote_sha256": null,
+        "distinct": 2329018205.974476,
+        "approx_ci95": [
+          2311186388.2409625,
+          2346850023.707989
+        ],
+        "relative_standard_error": 0.003906309606009052,
+        "exact_below_k": false
+      },
+      "t76": {
+        "path": "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+        "bytes": 55627628064,
+        "records": 1738363377,
+        "remote_sha256": null,
+        "distinct": 1448572134.4683807,
+        "approx_ci95": [
+          1437481334.8303938,
+          1459662934.1063676
+        ],
+        "relative_standard_error": 0.003906309606009052,
+        "exact_below_k": false
+      },
+      "t74": {
+        "path": "/home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json",
+        "bytes": 35902850688,
+        "records": 1121964084,
+        "remote_sha256": "2024df427c42c2409ec815e93a98672f1863b58d6e8d50c49e15a7b8541add37",
+        "distinct": 916437527.8672658,
+        "approx_ci95": [
+          909420945.9791722,
+          923454109.7553594
+        ],
+        "relative_standard_error": 0.003906309606009052,
+        "exact_below_k": false
+      }
+    },
+    "combined": {
+      "distinct": 4625841241.681954,
+      "approx_ci95": [
+        4590424104.248574,
+        4661258379.1153345
+      ],
+      "relative_standard_error": 0.003906309606009052,
+      "exact_below_k": false
+    },
+    "estimated_unique_ratio": 1.9861765055402276,
+    "record_ratio": 2.2047085323379276,
+    "seconds": 967.1816450460028,
+    "limits": "occupied boards, not game groups or mirrored inputs; approximate correlated source/union errors",
+    "training_launched": false
+  },
+  "decision": "Admit matched data-only training at approximately2x estimated occupied-board coverage",
+  "target_review": "1.9861765x nominal,0.69% below2x; approximate correlated estimator errors; no >=2x claim",
+  "source_scale_review": "T76 raw scale1.0104557623; T74 .9827691877; outcome-fit transfer of same calibrated T80 map, no new per-source SF calibration",
+  "limitations": "occupied boards, not game groups or mirrored inputs; approximate correlated source/union errors",
+  "architecture": "NGNN3/KB8/H512/NB8/factorizer-off",
+  "records_total": 5234617494
+}

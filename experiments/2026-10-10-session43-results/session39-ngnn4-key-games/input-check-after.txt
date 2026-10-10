@@ -1,0 +1,11 @@
+baseline-ngn: OK
+candidate-ngn: OK
+base.nnue: OK
+sprt: OK
+openings.txt: OK
+gate-parser.py: OK
+source-check-receipt.json: OK
+nomination.json: OK
+architecture.patch: OK
+controller.sh: OK
+manifest.md: OK

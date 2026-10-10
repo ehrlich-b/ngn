@@ -1,0 +1,109 @@
+{
+  "created_utc": "2026-10-10T11:13:30.839330+00:00",
+  "format": 3,
+  "accepted_engine_source": "56b35efaaa147d594add941d82448779c27d4a72",
+  "base_net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "trainer_io_commit": "09d53c7",
+  "source_archive_sha256": "566f57c79753b8538766c762aff4ea96f98e8014b1e5c688ae802bc8ee35157f",
+  "data_paths": [
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+    "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+    "/home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json"
+  ],
+  "corpus_pins": {
+    "t80": {
+      "bytes": 75977281056,
+      "sha256": "270f65bdf9f5c948160cae5330030a60f99e94383de2a290b565ae7aad7cde26"
+    },
+    "t76": {
+      "bytes": 55627628064,
+      "sha256": "a9ad07afcfeefca0d3080a2ac06657e334bf47645448ca183b51202f4412f8b3"
+    },
+    "t74": {
+      "bytes": 35902850688,
+      "sha256": "2024df427c42c2409ec815e93a98672f1863b58d6e8d50c49e15a7b8541add37"
+    }
+  },
+  "coverage_review": "experiments/2026-10-10-session43-results/coverage-review.json",
+  "estimated_distinct_ratio": 1.9861765055402276,
+  "architecture_review": "SHELVED NGNN4 original400; retain NGNN3",
+  "recipe_record": "experiments/2026-10-10-expanded-data.md",
+  "machine": "Ryzen9800X3D WSL2",
+  "os": "Linux6.6.87.2-microsoft-standard-WSL2/glibc2.39",
+  "go_version": "go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "pgo_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "concurrent_workloads": [
+    "provenance0-11/3GiB",
+    "capture13,15/2500MiB",
+    "hopper untouched",
+    "forge SPSA and immutable reader"
+  ],
+  "large_input_verification": "retain previously checked immutable local pins; remote reader verifies pin at use; no repeat full corpus hash scan",
+  "source_change": "accepted quiet speed only; unchanged NGNN3 trainer numerical recipe plus reviewed exact archive IO",
+  "argv": [
+    "/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python",
+    "-m",
+    "trainer.train",
+    "--data",
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+    "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+    "/home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json",
+    "--data-format",
+    "archive",
+    "--archive-holdout-modulus",
+    "1024",
+    "--archive-split-seed",
+    "20261006",
+    "--out",
+    "/home/ehrli/ngn-data/night-20261007/session42-expanded-data/trained",
+    "--format",
+    "3",
+    "--kb-map",
+    "default",
+    "--hidden",
+    "512",
+    "--buckets",
+    "8",
+    "--batch",
+    "16384",
+    "--lr",
+    ".001",
+    "--epochs",
+    "58",
+    "--positions-per-epoch",
+    "256000000",
+    "--weight-decay",
+    ".01",
+    "--wdl",
+    ".75",
+    "--k",
+    "400",
+    "--decay",
+    "cosine",
+    "--min-lr-ratio",
+    ".1",
+    "--threads",
+    "2",
+    "--precision",
+    "bf16",
+    "--seed",
+    "20261006",
+    "--keep-best-only"
+  ],
+  "source_paths_sorted": [
+    "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+    "/home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json",
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf"
+  ],
+  "cpus": [
+    12,
+    14
+  ],
+  "nice": 19,
+  "memory_max_bytes": 4294967296,
+  "selection": "minimum full content-holdout validation_loss over58 complete epochs",
+  "initialization": "fresh seeded random initialization; no warm start",
+  "change": "data only; accepted architecture and original recipe retained",
+  "automatic_games": false
+}

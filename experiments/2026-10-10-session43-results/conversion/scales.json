@@ -1,0 +1,27 @@
+{
+  "reference": {
+    "path": "/work/lanes/ngn-data-volume-20261010/t80-statistics.json",
+    "k": 280.3838524979452,
+    "rmse": 0.030413171265855493,
+    "bins": 80,
+    "records": 1983826701
+  },
+  "sources": {
+    "t76": {
+      "path": "/work/lanes/ngn-data-volume-20261010/t76-statistics.json",
+      "k": 277.48256081036016,
+      "rmse": 0.02802847258062491,
+      "bins": 80,
+      "records": 1466684871,
+      "raw_scale": 1.010455762261643
+    },
+    "t74": {
+      "path": "/work/lanes/ngn-data-volume-20261010/scatter-t74/scatter.json",
+      "k": 285.29979978609754,
+      "rmse": 0.023252392320295176,
+      "bins": 80,
+      "records": 4743086440,
+      "raw_scale": 0.9827691877392202
+    }
+  }
+}
