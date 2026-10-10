@@ -1,0 +1,32 @@
+=== RUN   TestNGNNNullFrameOwnership
+--- PASS: TestNGNNNullFrameOwnership (1.38s)
+=== RUN   TestNGNN3Validation
+--- PASS: TestNGNN3Validation (0.54s)
+=== RUN   TestNGNN3KingTransitionsAndSpecialMoves
+--- PASS: TestNGNN3KingTransitionsAndSpecialMoves (0.06s)
+=== RUN   TestNGNN3RandomGamesAndSymmetry
+    ngnn3_test.go:408: 2929 king moves, 2198 bucket/mirror transitions
+--- PASS: TestNGNN3RandomGamesAndSymmetry (0.71s)
+=== RUN   TestNGNN3TrainerParity
+    ngnn3_test.go:461: 320 exact trainer cases, H=32 KB=8 NB=8 kernel=go
+--- PASS: TestNGNN3TrainerParity (0.01s)
+=== RUN   TestNGNN3UCIWorkersAndReload
+--- PASS: TestNGNN3UCIWorkersAndReload (0.09s)
+=== RUN   TestNGNNCompactLoaderBound
+=== RUN   TestNGNNCompactLoaderBound/upper_exact
+=== RUN   TestNGNNCompactLoaderBound/upper_over
+=== RUN   TestNGNNCompactLoaderBound/lower_exact
+=== RUN   TestNGNNCompactLoaderBound/lower_over
+--- PASS: TestNGNNCompactLoaderBound (0.02s)
+    --- PASS: TestNGNNCompactLoaderBound/upper_exact (0.00s)
+    --- PASS: TestNGNNCompactLoaderBound/upper_over (0.00s)
+    --- PASS: TestNGNNCompactLoaderBound/lower_exact (0.00s)
+    --- PASS: TestNGNNCompactLoaderBound/lower_over (0.00s)
+=== RUN   TestNGNNCompactKernels
+--- PASS: TestNGNNCompactKernels (0.00s)
+=== RUN   TestNGNNCompactNullGrowth
+--- PASS: TestNGNNCompactNullGrowth (0.18s)
+=== RUN   TestNGNNCompactOutputExtremes
+--- PASS: TestNGNNCompactOutputExtremes (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	3.005s
