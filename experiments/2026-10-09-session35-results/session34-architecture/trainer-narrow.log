@@ -1,0 +1,13 @@
+test_clipping_and_signed_integer_division (trainer.tests.test_ngnn4.NGNN4Tests.test_clipping_and_signed_integer_division) ... ok
+test_cpu_forward_gradients_and_optimizer (trainer.tests.test_ngnn4.NGNN4Tests.test_cpu_forward_gradients_and_optimizer) ... ok
+test_cpu_training_resume_and_reexport (trainer.tests.test_ngnn4.NGNN4Tests.test_cpu_training_resume_and_reexport) ... ok
+test_cuda_fp32_bf16_gradients_and_fused_step (trainer.tests.test_ngnn4.NGNN4Tests.test_cuda_fp32_bf16_gradients_and_fused_step) ... skipped 'CUDA unavailable'
+test_fixture_reproducibility (trainer.tests.test_ngnn4.NGNN4Tests.test_fixture_reproducibility) ... ok
+test_invalid_architecture_and_exports (trainer.tests.test_ngnn4.NGNN4Tests.test_invalid_architecture_and_exports) ... ok
+test_cpu_forward_backward_all_bucket_counts (trainer.tests.test_ngnn4_batched.NGNN4BatchedTests.test_cpu_forward_backward_all_bucket_counts) ... ok
+test_cuda_fp32_bf16_forward_backward_all_bucket_counts (trainer.tests.test_ngnn4_batched.NGNN4BatchedTests.test_cuda_fp32_bf16_forward_backward_all_bucket_counts) ... skipped 'CUDA unavailable'
+
+----------------------------------------------------------------------
+Ran 8 tests in 10.293s
+
+OK (skipped=2)

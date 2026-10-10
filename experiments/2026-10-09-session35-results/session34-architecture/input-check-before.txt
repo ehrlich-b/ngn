@@ -1,0 +1,6 @@
+base.tar: OK
+candidate.patch: OK
+manifest.md: OK
+controller.sh: OK
+baseline-probe: OK
+base.nnue: OK

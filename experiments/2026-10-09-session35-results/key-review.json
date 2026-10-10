@@ -1,0 +1,81 @@
+{
+  "aa": {
+    "mode": "aa",
+    "games": 40,
+    "pairs": 20,
+    "wins": 5,
+    "draws": 24,
+    "losses": 11,
+    "penta": [
+      0,
+      9,
+      9,
+      1,
+      1
+    ],
+    "elo": -52.5,
+    "ci95": [
+      -116.0,
+      7.0
+    ],
+    "exact_elo_ci95": [
+      -52.51156585572756,
+      -115.67118406869126,
+      7.349234215379767
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 23,
+      "checkmate": 16,
+      "stalemate": 1
+    },
+    "verdict": "aa-pass"
+  },
+  "gate": {
+    "mode": "gate",
+    "games": 400,
+    "pairs": 200,
+    "wins": 82,
+    "draws": 213,
+    "losses": 105,
+    "penta": [
+      8,
+      51,
+      103,
+      32,
+      6
+    ],
+    "elo": -20.0,
+    "ci95": [
+      -40.0,
+      -0.0
+    ],
+    "exact_elo_ci95": [
+      -19.9996068676998,
+      -40.03330284524182,
+      -0.09802533594286562
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "checkmate": 187,
+      "draw-rule": 208,
+      "max-moves": 4,
+      "stalemate": 1
+    },
+    "verdict": "shelved"
+  },
+  "source_matches": true,
+  "input_pins": true,
+  "full_short_race_vet": true,
+  "terminal": "2026-10-09T20:42:15-04:00",
+  "verdict": "shelved",
+  "rule": "unrounded upper95 > 0; zero operational faults",
+  "retry_or_extension": false,
+  "playing_source": "ac658e2"
+}
