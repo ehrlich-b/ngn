@@ -18,10 +18,10 @@ base options: [setoption name EvalFile value /work/lanes/ngn-s47/tt/base.nnue se
 mode: real clock 60s+0.6s (concurrency 2) | openings: 5000 (x2 colors) | concurrency: 2
 H0: elo<=-3.0   H1: elo>=3.0   (alpha=0.05 beta=0.05 -> LLR bounds [-2.94, 2.94])
 
-G1     0W  0D  1L    0.0%  elo -800.0 [-800,+234]  LLR  -0.09  pLLR  +0.00  checkmate   
-G2     0W  1D  1L   25.0%  elo -190.8 [-625,+243]  LLR  -0.07  pLLR  -2.16  draw-rule   
-G3     1W  1D  1L   50.0%  elo   +0.0 [-338,+338]  LLR  +0.00  pLLR  -2.16  checkmate   
-G4     1W  1D  2L   37.5%  elo  -88.7 [-398,+220]  LLR  -0.03  pLLR  -0.14  checkmate   
+G1     0W  0D  1L    0.0%  elo -800.0 [-800,+234]  LLR  -0.09  pLLR  +0.00  checkmate
+G2     0W  1D  1L   25.0%  elo -190.8 [-625,+243]  LLR  -0.07  pLLR  -2.16  draw-rule
+G3     1W  1D  1L   50.0%  elo   +0.0 [-338,+338]  LLR  +0.00  pLLR  -2.16  checkmate
+G4     1W  1D  2L   37.5%  elo  -88.7 [-398,+220]  LLR  -0.03  pLLR  -0.14  checkmate
 CPUQuotaPerSecUSec=8s
 AllowedCPUs=4-11
 MemoryMax=3221225472
