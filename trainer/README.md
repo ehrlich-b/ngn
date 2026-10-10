@@ -310,3 +310,25 @@ python -m trainer.make_random_net --format 3 --kb-map default --seed 20261006 \
 
 Existing loader/selection APIs and UCI EvalFile accept all three formats;
 NGNN3 reports backend `ngnn3`. NGNN1/2 retain their feature and weight layouts.
+
+## Archives on another campaign host
+
+`--data-format archive` also accepts a local `*.archive.json` descriptor with
+`url`, `bytes`, and lowercase `sha256` fields. The serving host verifies the
+file digest before publishing and uses the quoted digest as its ETag. Each read
+requires an exact HTTP206 byte range, matching size and ETag. Changes or short
+reads fail before records reach the model. Requests cover one existing archive
+block; neither training nor validation copies the corpus to local disk.
+
+The descriptor participates in the same sorted source list, content split,
+block shuffle and batching as ordinary archives. A descriptor substituted for
+the corresponding file produces identical batches when source order is kept.
+Resume binds its size and digest in the archive split receipt. Source ordering
+is part of the training recipe and must be frozen in the manifest.
+
+`python -m trainer.archive_server` serves files listed in a private campaign
+directory's `files.json`, with each entry containing `bytes`, `sha256`, and
+`mtime_ns`. Use an access token file and an explicit LAN bind inside the host's
+CPU and memory scope. `--uploads` permits initial transfer into that new lane;
+stop the upload server after transfer and retain the read service for training.
+URLs containing tokens and private descriptors stay out of Git and public logs.
