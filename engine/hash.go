@@ -14,23 +14,23 @@ var (
 )
 
 func init() {
-	digest := sha256.Sum256([]byte("ehrlich"))
+	digest := sha256.Sum256([]byte("NGN board keys v1"))
 	seed := int64(binary.LittleEndian.Uint64(digest[:8]))
 	random := rand.New(rand.NewSource(seed))
-
-	whiteSideKey = random.Uint64()
-	for piece := 1; piece <= 12; piece++ {
-		for square := 0; square < 64; square++ {
-			occupantKeys[square][piece] = random.Uint64()
-		}
+	for index := range epTargetKeys {
+		epTargetKeys[index] = random.Uint64()
 	}
 	for index := range castlingKeys {
 		castlingKeys[index] = random.Uint64()
 	}
-	for index := range epTargetKeys {
-		epTargetKeys[index] = random.Uint64()
+	for square := 63; square >= 0; square-- {
+		for piece := 12; piece >= 1; piece-- {
+			occupantKeys[square][piece] = random.Uint64()
+		}
 	}
+	whiteSideKey = random.Uint64()
 }
+
 
 func epTargetKey(square Square, turn Color) uint64 {
 	switch turn {
