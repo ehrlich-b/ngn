@@ -1,40 +1,39 @@
 # NGN live state — 2026-10-10: 3600 campaign
 
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing runtime **ac658e2 / NGNN3 KB8 H512 be34532c**, unchanged58-epoch recipe.
-OwnTT/SEE are provisional; combined batchSPRT[0,+6] vs5b882e2 remains required.
-Completed22682 stays SHELVED. Current plan explicitly orders one follow-up key
-confirmation after diagnostics, with the same initializer/no pooling/seed change.
+Playing runtime **6c0fc26 / NGNN3 KB8 H512 be34532c**, unchanged58-epoch net.
+TT/key/SEE are provisional; combined60+0.6 batchSPRT[0,+6] against5b882e2
+runs on rig0–11, wrapper3465. Fresh A/A40 then min400/cap4000, H1 AND final
+paired lower95>0/zero faults/intact inputs. No automatic certification/revert.
 
-**Session38:** factorizer actual-base400 completes **+13.90[−7.14,+35.05]**,
-zero faults; SHELVED by its frozen gain rule. CPU work moves to forge8–11:
-legacy SPSA **88178** resumes1625/19,500 with pairs6/update/concurrency2,
-unchanged24k endpoint and known legacy RNG reset. Frozen engine rebuild is
-byte-identical. No optimizer acceptance; final-vector rig games still required.
+**Session39:** the one plan-authorized key follow-up completes400 clean
+**−6.08[−25.89,+13.69]** and passes Bryan upper95>0 provenance rule. Source
+integrated/pushed6c0fc26; original22682 remains SHELVED with no sample pooling,
+seed change or repeat. Factorizer remains SHELVED +13.90[−7.14,+35.05].
 
-All three isolated time candidates pass actual-source narrow/full-short/
-full-race/vet/PGO checks on forge. An existing test's cancellation/TryLock race
-is repaired without engine changes:20 race repetitions, intended negative
-control failure, baseline full-short/full-race pass. Runtime candidates remain
-uncommitted/unadopted; each needs its own60+0.6 powered game verdict.
+Current-key NGNN4 compatibility passes36 exact old-format identities,
+AVX2/purego/full-short/full-race/vet/explicit PGO on forge. Trainer unchanged
+from2acf834; checked isolated source **1e4187d** is pushed. Current-base game
+controller/binaries are staged at`session39-ngnn4-key-games/`, NOT launched:
+first review completed training/reexport/20 parity/four cost blocks, then fresh
+A/A40/exactly400 by original lower95>0/zero-fault rule. No repeated admission,
+training recipe change or playing adoption.
 
-789-key diagnostics show no duplicates/zeros or gross bit imbalance; eight
-depth8 cases have identical112,742nodes/22,055hits, with88 vs76 occupied index
-mismatches and no evictions. Diagnostic only. Current-base key checks97535 pass; rig controller**2847** starts00:43:55
-with fresh A/A40 then400; provenance upper95>0 rule, no automatic adoption.
+FullNGNN4 training2791/2804 stays active under4GiB/12,14/swap0,36/58 at03:22;
+estimated training/parity/cost04:54 EDT. Rig C:27.373GiB, hopper untouched.
+Three unchanged time candidates are separately checked on new6c0fc26 by
+forge109399/2.5GiB/8–11; admission/horizon checks reviewed PASS, partial active.
+Their exact patches are preserved uncommitted on Mac topics based on6c0fc26.
+Each needs a separate60+0.6 powered game gate after higher priorities.
 
-Rig C: restored to28.326GiB. Full NGNN4 training **2791**/trainer2804
-starts00:41 in`session38-ngnn4-bounded/`, hard4GiB memory/swap0/12,14,
-fresh58x256M H512/L16/dense/BF16, unchanged admitted recipe. Initial2637
-stopped after zero epochs when clean file cache pushed C: below25GiB;
-original logs preserved, no data deletion. Games are held for the key-source
-disposition. [Active training stage](experiments/2026-10-10-ngnn4-bounded.md).
-Next session not before03:00 EDT October10; review only newly finished jobs.
+Frozen legacy SPSA88178 remains on forge8–11/2.5GiB alongside check scope:
+durable1675/20,100 at02:35; nominal24k endpoint20:07Oct10. No optimizer
+acceptance; only final-vector rig games can accept parameters. No cross-machine
+strength pooling. T74 still70GiB-capacity-blocked; T76 complete, no waiter.
 
-T76 complete55.63GB/1.738B rows; T74 still needs70GiB. No data waiter.
-No3600 claim/default-net promotion/publication. Check the live handles once,
-review only new terminal evidence, and freeze the actual architecture game
-base after the key decision. [Session38](experiments/2026-10-09-session38.md).
+Next session not before05:00 EDT October10. Review only new terminal evidence;
+launch the already staged actual-base architecture gate after training review.
+No3600 claim/default-net promotion/publication. [Session39](experiments/2026-10-10-session39.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
