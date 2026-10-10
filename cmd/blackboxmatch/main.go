@@ -130,7 +130,7 @@ func main() {
 	openingsFile := flag.String("openings", "", "frozen opening file")
 	positionsFile := flag.String("positions", "", "frozen FENs, one per line")
 	count := flag.Int("pairs", 100, "exact complete reversed pairs")
-	conc := flag.Int("concurrency", 2, "parallel pair workers (1..2)")
+	conc := flag.Int("concurrency", 2, "parallel pair workers (1..6)")
 	nodes := flag.Int("nodes", 0, "common per-move node limit")
 	movetime := flag.Int("movetime", 0, "common per-move milliseconds")
 	bank := flag.Int("bank", 0, "initial clock milliseconds")
@@ -141,7 +141,7 @@ func main() {
 	flag.Var(&ao, "ngnoption", "NAME=VALUE")
 	flag.Var(&bo, "opponentoption", "NAME=VALUE")
 	flag.Parse()
-	if *ngn == "" || *opponent == "" || *out == "" || *conc < 1 || *conc > 2 || *count < 1 || *inc < 0 || *reps < 1 {
+	if *ngn == "" || *opponent == "" || *out == "" || *conc < 1 || *conc > 6 || *count < 1 || *inc < 0 || *reps < 1 {
 		panic("invalid arguments")
 	}
 	if *mode != "probe" && *mode != "match" && *mode != "compliance" {
