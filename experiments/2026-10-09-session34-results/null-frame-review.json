@@ -1,0 +1,31 @@
+{
+  "run": "session33-null-frame",
+  "blocks": 40,
+  "exact_identities": 36,
+  "source_sha256": {
+    "engine/ngnn1.go": "4bf5f667956c891404bc27320c372d0e66cb2401b8646d1155b7088bfec596a2",
+    "engine/ngnn1_null_frame_test.go": "990a2f43a3a39ad024aa5fdef8a78e96b7442806ca0c905c6d9570094a05d4c2"
+  },
+  "binary_sha256": {
+    "baseline": "a7e0ea02f8a7df4068212c3792397b6f401bb2fb1827b8bb9b7d9c416fef0e69",
+    "candidate": "9a47183e79f585fd973ed324b00fa1a0c6e0e25fc14d68875a1b659bb897ad40"
+  },
+  "terminal": "2026-10-09T19:52:45-04:00",
+  "full_short_race_vet": true,
+  "input_pins": true,
+  "raw_nps_reconciled": true,
+  "geometric_ratio": 1.038820355341876,
+  "ci95": [
+    1.0276078456961704,
+    1.0501552077402976
+  ],
+  "order_strata_ratios": [
+    1.0423626421509846,
+    1.035290106373851
+  ],
+  "verdict": "pure-speed-keep",
+  "no_elo_claim": true,
+  "ownership_old_fail_new_pass": true,
+  "base_source": "f8686be",
+  "adoption": "exact tested playing-base patch"
+}

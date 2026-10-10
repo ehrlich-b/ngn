@@ -1,42 +1,41 @@
 # NGN live state — 2026-10-09: 3600 campaign
 
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns plan, handles and handoff.
-Accepted playing source **f8686be /NGNN3 KB8 H512 be34532c**, unchanged58-epoch recipe.
+Accepted playing source **ac658e2 /NGNN3 KB8 H512 be34532c**, unchanged58-epoch recipe.
 Own TTb49ab5a and SEEf8686be are **provisional provenance keeps** by Bryan's
 upper95>0/zero-fault rule; combined batch SPRT[0,+6] vs5b882e2 required.
-SEE400 independently reconciles89/205/106,−14.77[−35.43,+5.77], zero faults,
-exact source/pins; integrated tested source, no Elo gain claimed. Board neutral
-checks/perft/identities remain proved.
+Null-frame speed **b31a817**, integratedac658e2: full checks/36 exact identities,
+fixed40-block NPS **+3.88%[+2.76%,+5.02%]**, both strata positive.
 
-**Session33:** original VNNI256 **d6e576b** retained on architecture topic:
-48 identities/full checks, fixed20-block NPS **+6.91%[+4.52%,+9.35%]**,
-both strata positive. Exactly12 same-width NGNN4/NGNN3 blocks give
-**0.87650[0.85361,0.89999]**, above0.85; training stays after data/factorizer.
-Real VNNI512/all-width oracle/purego/320 parity/full short/race/vet pass;
-fixed speed **26077** on14 since19:02 vs retained256d6e576b,48 identities/
-exactly20 blocks/conditional12 budget blocks. No automatic adoption.
-Original null-frame sharing onf8686be is prepared in isolated topic;
-**26156** waits natively for26077, then full checks12,14/36 identities/
-exactly40 speed blocks14. Both complete rules require lower95>1 and both
-strata>1; no extension. Patches/stages are durable, runtime uncommitted.
+**Session34:** original VNNI512 **e0f4fb9** retained on architecture topic:
+48 identities/full checks, exactly20 blocks vs256d6e576b,
+**+9.30%[+7.42%,+11.21%]**, both strata positive. Conditional12-block
+same-width NGNN4/NGNN3 budget **0.858256[0.833901,0.883323]**, point>=0.85.
+Rebased ontoac658e2 in isolated `night/ngnn4-current`, original trainer
+NGNN4 test restored, previously reviewed batched-affine trainer included.
+Detached compatibility **28683** since20:15,12,14/full checks/36 old-format
+identities/short CUDA, ETA20:30, `session34-architecture/receipt.json`.
+Full patch durable; isolated source stays uncommitted pending checks.
+No training/playing architecture adoption; data/factorizer remain ahead.
+Completed speed/correctness samples need no repeats.
 
-Key **22682** on immediate SEE base: full checks/A/A40 pass5/24/11,
-CI includes0/zero flags;400 gate13,15 since18:54:31, no mid-run verdict.
-Original39eb128 key A/A failure stays preserved with zero candidate games.
-SPSA **1405**,0–11,durable1375/16,500 at18:38;24k endpoint and final-vector
-games required on frozen old base. C: **28.38GiB**, hopper1211 untouched.
+Key **22682** on frozenf8686be: full checks/A/A40 reviewed pass,
+400 gate13,15 since18:54:31,304 games at20:15; no interim verdict.
+Original39eb128 key A/A failure preserved/zero candidate games.
+SPSA **1405**,0–11,durable1450/17,400;24k endpoint/final-vector games required
+on frozen old base. C: **28.20GiB**, hopper1211 untouched.
 
 Pawn/time/qsearch/continuation exact checks/witnesses reviewed on39eb128,
-no strength games. Rebase and actual-base A/A40/powered SPRT[0,+6] after
-higher priorities; time60+0.6, others10+0.1. TT-scan/eight-row negatives
-stay shelved. No trained NGNN4 net or accepted playing architecture.
+no strength games. Rebase/actual-base A/A40/powered SPRT[0,+6] after higher
+priorities; time60+0.6, others10+0.1. Earlier negatives remain shelved.
 
 **Data:** T76 complete55.63GB/1.738B rows; T74 stats/keep194 complete but
-corpus incomplete. Conversion needs70GiB host capacity (~41.62GiB more),
-no live waiter/trainer. Factorizer58 epochs/selected57/reexport/20 parity
-reviewed, zero games; actual-base A/A40/gate400 after provenance freezes.
-No3600 claim/publication. **Next session: not before20:10 EDT October9**:
-VNNI512 speed/null-frame results then key gate. [Session33](experiments/2026-10-09-session33.md).
+corpus incomplete. Conversion needs70GiB (~41.80GiB more), no waiter/trainer.
+Factorizer58 epochs/selected57/reexport/20 parity already reviewed,
+zero games; fresh actual-base A/A40/gate400 after provenance disposition.
+No3600 claim/publication. **Next session: not before20:45 EDT October9**:
+current-base architecture compatibility then key gate, followed by factorizer.
+[Session34](experiments/2026-10-09-session34.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

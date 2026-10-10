@@ -1,0 +1,7 @@
+base.tar: OK
+baseline-probe: OK
+random-h512-l16.nnue: OK
+random-h512-l16.json: OK
+accepted-kb8.nnue: OK
+candidate.patch: OK
+controller.sh: OK

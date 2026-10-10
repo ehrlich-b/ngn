@@ -1,0 +1,5 @@
+base.tar: OK
+candidate.patch: OK
+manifest.md: OK
+controller.sh: OK
+check.py: OK

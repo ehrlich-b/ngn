@@ -1,0 +1,10 @@
+build-receipt.json: OK
+selected-baseline-probe: OK
+candidate-probe: OK
+random-h512-l16.nnue: OK
+random-h512-l16.json: OK
+accepted-kb8.nnue: OK
+baseline/engine/nets/ngn-h512-c6c12796.nnue: OK
+speed-manifest.json: OK
+speed.py: OK
+speed-controller.sh: OK
