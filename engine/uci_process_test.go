@@ -217,11 +217,22 @@ func TestUCICompletionFollowsFinalOutputWithoutHoldingLifecycleLock(t *testing.T
 		t.Fatal("stop returned before the final output write completed")
 	default:
 	}
-	if !uci.lifecycleMu.TryLock() {
+	// Cancellation is signaled inside stopSearchSession's critical section.
+	// Wait for that brief section to finish; TryLock can fail merely because
+	// this goroutine wakes before the cancelling goroutine unlocks. The output
+	// remains blocked, so a join holding lifecycleMu cannot satisfy this check.
+	lockAcquired := make(chan struct{})
+	go func() {
+		uci.lifecycleMu.Lock()
+		uci.lifecycleMu.Unlock()
+		close(lockAcquired)
+	}()
+	select {
+	case <-lockAcquired:
+	case <-time.After(5 * time.Second):
 		output.unblock()
 		t.Fatal("final output or join held lifecycleMu while blocking")
 	}
-	uci.lifecycleMu.Unlock()
 
 	output.unblock()
 	select {
