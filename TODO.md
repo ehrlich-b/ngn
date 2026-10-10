@@ -1,44 +1,48 @@
 # NGN live state — 2026-10-10: 3600 campaign
 
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing engine **56b35ef / NGNN3 KB8 H512 be34532c**. Quiet-perspective speed
-is integrated after NGNN4 shelves:36 identities/fixed20 blocks,
-NPS1.015162[1.010578,1.019767], reviewed session42; exact cherry-pick session43.
-TT/key/SEE remain provisional; original combined60+0.6 SPRT[0,+6] vs5b882e2
-runs on rig0–11,3465/3643. Only completedH1/lower95>0/zero faults certifies.
+Playing engine **56b35ef / NGNN3 KB8 H512 be34532c**. TT/key/SEE remain
+provisional; original combined60+0.6 SPRT[0,+6] vs5b882e2 continues on
+rig0–11,3465/3643; latest494/no terminal. Only its completed rule certifies.
 
-NGNN4 original400 finishes86/204/110, **−20.8712[−43.7327,+1.8110]**,
-zero faults/intact inputs: **SHELVED**, no extension. Training/parity/cost
-already reviewed. [Review](experiments/2026-10-10-session43-results/architecture-review.json).
+Original capture9929 reviewed **KEEP isolated c66fbc1**:36 identities,
+fixed40 blocks, NPS+3.16%[+2.52%,+3.80%], both strata>1. New actual56b35ef
+capture+quiet combination passes full forge checks/builds,250221 terminal0.
+Its distinct rig36-identity/fixed40-block speed gate is staged at
+session44-capture-quiet but capacity-blocked. No playing integration yet.
+[Manifest](experiments/2026-10-10-capture-quiet-current.md).
 
-T74 conversion/coverage complete:5.234617B records,4.625841B estimated
-occupied boards,1.9861765× (approximately doubled, not>=2×). Matched data-only
-NGNN3 training launches07:13:29, **12215/12225**, rig12,14/nice19/4GiB/swap0,
-original58×256M/BF16/seed20261006/factorizer-off. Initial split scan at07:20;
-first epoch refines rough6–10h ETA. Keep immutable forge reader117631 alive.
-Full58/reexport/20 parity/session review precedes fresh actual-base A/A40/
-fixed400 games; CPUs12,14 can run them once training releases the lane.
-[Nomination](experiments/2026-10-10-session43-results/nomination.json).
+**C:22.20GiB**, below25GiB floor. Training12215/12225 stops07:29:30 at its
+disk guard before epoch1/checkpoint; time12364 stops07:36:07 before checks
+or any games. Both interruptions are preserved, no verdict/automatic retry.
+Removed3.884GB disposable campaign caches older than24h; trim did not return
+Windows capacity. Bryan asked to free>=5GiB without stopping WSL. Unchanged
+manual data retry prepared atsession44-expanded-data; launch selector is
+[session44-launch.sh](experiments/2026-10-10-session44-launch.sh).
+Launch training12,14/4GiB and capture13,15/2GiB only atC:>=25.5GiB. Original
+58×256M/KB8H512/BF16/factorizer-off recipe and T80/T76/T74 pins remain;
+full58/reexport20 parity/review precede fresh actual-base A/A40/fixed400 games.
+Keep immutable forge reader117631 alive; no descriptor token in Git.
 
-Capture9929 full checks pass07:11;36 identities/fixed40 timing blocks follow
-on13,15. Keep only lower95 ratio>1/both strata>1; no extension. Any pass stays
-on isolated topic until actual56b35ef compatibility/speed evidence and a clean
-game boundary. [Manifest](experiments/2026-10-10-capture-perspective.md).
-New time-admission **12364** waits natively for9929, then new combination
-checks/builds/A/A40 and paired60+0.6 SPRT[0,+6]/min400/cap4000 on13,15/c2/
-2500MiB. CompletedH1 AND printed/unrounded lower95>0/zero faults decides;
-no automatic adoption/extension. Runtime uncommitted; tracked patch preserves
-it. Freeze playing base through gate. [Manifest](experiments/2026-10-10-time-quiet-admission.md).
+Capture decision precedes a new actual-base time-admission nomination:
+unchanged patch, new combination checks, fresh60+0.6 A/A40/SPRT[0,+6]/
+min400/cap4000/c2. Original time controller played zero games, so boundary
+is clean. Freeze the nominated playing base through that gate. Horizon/
+partial/search candidates stay separate, no repeated diagnostic trajectories.
 
-Frozen forge SPSA88178 durable1750/21,000, nominal24k endpoint20:09Oct10;
-final-vector rig games decide. C:25.759GiB/WSL3GiB used/11GiB available;
-trainer own-group60s guard25.25GiB, no auto restart. Forge/work412GB free,
-tune2.5GiB+reader128MiB below5GiB/8–11; hopper untouched. IO61 tests/exact
-66–81MiB/s is already reviewed, no repeated suites or local T74 copy.
-Selection/factorizer/originalkey22682 remain shelved. Horizon/partial/search
-candidates stay separate, reviewed old checks; actual-base games later.
-Next session not before07:50 EDT for capture/training startup/time stage.
-[Session43](experiments/2026-10-10-session43.md). No3600 claim/default-net
+New original **NMP eval-depth** candidate on isolated uncommitted56b35ef:
+one extra reduction ply per192cp staticEval-beta, cap3; existing guards/
+qsearch floor retained. Forge252237 completes08:03:34, old-fail/new-pass,
+full short/race/vet/PGO checks; local source hashes match. Exact patch is
+tracked; actual-base rig games follow priority lanes. No code-only adoption.
+[Manifest](experiments/2026-10-10-nmp-eval-margin.md).
+
+Frozen forge SPSA88178 durable1775/21,300 at08:04; earlier nominal24k
+endpoint20:09Oct10 remains rough. Final-vector rig games decide. WSL3GiB
+used/11GiB available, GPU0%; forge/work411GB free, SPSA2.5GiB+reader128MiB
+below5GiB/8–11. Hopper1170 untouched. NGNN4, selection, factorizer and old
+key22682 remain shelved; no sample extension or repeated corpus/IO audits.
+[Session44](experiments/2026-10-10-session44.md). No3600 claim/default-net
 promotion/publication.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate

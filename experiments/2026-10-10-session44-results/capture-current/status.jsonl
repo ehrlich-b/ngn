@@ -1,0 +1,3 @@
+{"utc": "2026-10-10T11:55:25.803129+00:00", "stage": "session44-capture-quiet", "event": "checks-start", "detail": "capture pairing on56b35ef; forge8-11/2GiB; SPSA and reader unchanged"}
+{"utc": "2026-10-10T11:59:25.246519+00:00", "stage": "session44-capture-quiet", "event": "checks-pass", "detail": "combined source checks/builds complete; rig36-identity/fixed40-block speed still required"}
+{"utc": "2026-10-10T11:59:25.266332+00:00", "stage": "session44-capture-quiet", "event": "end", "detail": "rc 0; new-source checks only; rig speed verdict required"}

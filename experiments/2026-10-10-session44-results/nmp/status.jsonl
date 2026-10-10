@@ -1,0 +1,4 @@
+{"utc": "2026-10-10T11:59:37.645729+00:00", "stage": "session44-nmp-eval-margin", "event": "wait", "detail": "native completion of250221/capture checks to preserve forge memory allocation"}
+{"utc": "2026-10-10T11:59:37.945893+00:00", "stage": "session44-nmp-eval-margin", "event": "checks-start", "detail": "single eval-dependent null depth on56b35ef; old-fail/new-pass and full checks"}
+{"utc": "2026-10-10T12:03:34.175677+00:00", "stage": "session44-nmp-eval-margin", "event": "checks-pass", "detail": "old-fail/new-pass and full source checks; isolated/uncommitted; priority gates decide first"}
+{"utc": "2026-10-10T12:03:34.193412+00:00", "stage": "session44-nmp-eval-margin", "event": "end", "detail": "rc 0; code only, actual-base games remain required"}

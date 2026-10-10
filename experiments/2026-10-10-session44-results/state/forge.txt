@@ -1,0 +1,9 @@
+durable SPSA 1775 None None games 21300
+    PID    PPID     ELAPSED   RSS COMMAND
+  88166       1    08:11:29  3192 bash /work/lanes/ngn-spsa-20261009/controller.sh
+  88178   88166    08:11:28 26012 ./spsa-forge -engine /work/lanes/ngn-spsa-20261009/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -concurrency 2 -openings /work/lanes/ngn-spsa-20261009/openings.txt -out /work/lanes/ngn-spsa-20261009/spsa.jsonl -lowpower=false -seed 20261008 -resume
+ 117631       1    02:09:34 25548 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda        500G   89G  411G  18% /work
+

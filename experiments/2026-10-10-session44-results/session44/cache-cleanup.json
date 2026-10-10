@@ -1,0 +1,57 @@
+[
+  {
+    "path": "/home/ehrli/ngn-data/night-20261007/session3/go-cache",
+    "bytes": 423500422,
+    "latest_mtime": 1791473749.7396476
+  },
+  {
+    "path": "/home/ehrli/ngn-data/night-20261007/session4/go-cache",
+    "bytes": 288215306,
+    "latest_mtime": 1791475118.7446194
+  },
+  {
+    "path": "/home/ehrli/ngn-data/night-20261007/session5/go-cache",
+    "bytes": 288221024,
+    "latest_mtime": 1791477684.3336654
+  },
+  {
+    "path": "/home/ehrli/ngn-data/night-20261007/session6/go-cache",
+    "bytes": 436623452,
+    "latest_mtime": 1791480224.3204122
+  },
+  {
+    "path": "/home/ehrli/ngn-data/night-20261007/session9/go-cache",
+    "bytes": 106297827,
+    "latest_mtime": 1791483542.397937
+  },
+  {
+    "path": "/home/ehrli/ngn-data/night-20261007/session10/go-cache",
+    "bytes": 170934862,
+    "latest_mtime": 1791485184.6545954
+  },
+  {
+    "path": "/home/ehrli/ngn-data/night-20261007/session12/go-cache",
+    "bytes": 417305525,
+    "latest_mtime": 1791488690.3598645
+  },
+  {
+    "path": "/home/ehrli/ngn-data/night-20261007/session15/go-cache",
+    "bytes": 427392575,
+    "latest_mtime": 1791493070.0871372
+  },
+  {
+    "path": "/home/ehrli/ngn-data/night-20261007/session15h2/go-cache",
+    "bytes": 431366134,
+    "latest_mtime": 1791495300.0223207
+  },
+  {
+    "path": "/home/ehrli/ngn-data/night-20261007/session15h3/go-cache",
+    "bytes": 441592888,
+    "latest_mtime": 1791495827.455659
+  },
+  {
+    "path": "/home/ehrli/ngn-data/night-20261007/session16a/go-cache",
+    "bytes": 452082492,
+    "latest_mtime": 1791507119.105292
+  }
+]
