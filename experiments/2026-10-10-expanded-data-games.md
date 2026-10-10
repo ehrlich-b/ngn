@@ -36,3 +36,11 @@ The intentionally interrupted rig postprocessor exit is separate from the
 trainer result; forge admission does not require that obsolete parent exit0.
 [Runner](2026-10-10-expanded-data-games.py),
 [finalizer](2026-10-10-expanded-data-forge-finalize.py).
+
+Session49 routing amendment (plan11:50/13:05): rig games0–11/c6 are open
+again. Full-training finalization/parity stays on forge; after session review,
+nominate one first-free game lane: this forge stage with a durable SPSA pause
+and its own passing A/A, or the [prepared rig stage](2026-10-10-expanded-data-games-rig.md)
+after SEE is terminal. Expanded-data slot priority supersedes the older
+instruction to settle provenance first. No scored games are pooled or
+extended, and the data acceptance rule remains unchanged.

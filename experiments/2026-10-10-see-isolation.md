@@ -42,3 +42,8 @@ The parser reuses the existing checked fixed-gate implementation, changing
 only its expected diagnostic count400→1000; a small wrapper labels the
 diagnostic interval rather than treating it as an adoption rule.
 [Controller](2026-10-10-see-isolation.sh).
+
+Session49 routing amendment: forge waiter331057 was policy-interrupted
+13:04:40 before any games under plan13:05. No verdict/pooling; SPSA stayed
+active. Fresh independent rig A/A40/fixed1000 now runs0–11/c6/nice19 with
+the unchanged diagnostic rule. [Rig manifest](2026-10-10-see-isolation-rig.md).

@@ -1,0 +1,11 @@
+{
+  "utc": "2026-10-10T17:08:54.008147+00:00",
+  "playing_source": "9bfbae4",
+  "engine_sha256": "84431b35d3ae8ef92c6e9f1b967cc01ad35b400a1f812c347fe6f0dcbe55c2e1",
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "source_build_review": "experiments/2026-10-10-session47.md",
+  "syntax_checks": true,
+  "nomination": false,
+  "launched": false
+}

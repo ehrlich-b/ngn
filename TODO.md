@@ -1,38 +1,38 @@
 # NGN live state — 2026-10-10: 3600 campaign
 
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **9bfbae4 / NGNN3 KB8 H512 be34532c**; no session48 adoption.
-Compact +4.77% and capture +1.42% speed evidence stay retained; no new Elo
-or absolute strength claim.
+Playing **9bfbae4 / NGNN3 KB8 H512 be34532c**; no session49 adoption.
+Compact/capture speed evidence retained; no new Elo/absolute claim.
 
-Combined provenance H0/610, **−18.81[−32.26,−5.43]**, zero faults remains
-uncertified. TT-only forge A/A40 fails +52.51[+9.73,+96.95], no candidate
-games, unresolved/no retry. Updated plan11:20 prioritizes SEE isolation:
-forge controller331057 waits natively for SPSA durable1850, then its own
-A/A40/fixed1000 at10+0.1,4–11/c2/3GiB/host pinningON. Data gate preempts
-it without verdict/pooling as soon as reviewed parity passes.
-[Isolation](experiments/2026-10-10-see-isolation.md).
+Plan13:05 reopens **rig0–11/c6/nice19/swap0 games**, training12,14/GPU
+keeps priority. Fresh rig SEE controller17221/`ngn-see-s49.scope`:
+A/A40 PASS **−26.11[−102.23,+47.56]**, zero faults/intact pins; fixed1000
+10+0.1 launched13:10:35/harness17408, diagnosis ETA15:00. Forge SEE waiter
+331057 interrupted before any games; no verdict/pooling; SPSA stays RUNNING.
+Combined provenanceH0/610 remains uncertified; never restore derived code.
+Forge TT A/A fails+52.51[+9.73,+96.95], no candidate games/unresolved/no
+retry. Cause unproved; every new forge verdict requires a passing fresh A/A.
+[Session49](experiments/2026-10-10-session49.md).
 
-Unchanged expanded-data trainer13201 is35/58 at12:21; full ETA14:30–14:40.
-Parent13172 remains stopped; never resume it. Watcher15998 records the real
-training terminal then retires obsolete rig postprocessing. Lightweight SSH
-relay/tool session28697 waits once, copies artifacts and launches detached
-forge5–7/2GiB reexport20-parity, expected14:40–14:50. Review full58/receipt,
-then manual fixed residual diagnostic and concrete data-only A/A40/fixed400
-10+0.1 againstbe34532c. No recipe change/rescue games/automatic adoption.
-[Session48](experiments/2026-10-10-session48.md).
+Unchanged expanded-data trainer13201 is43/58 at13:09, full ETA14:40–14:50.
+Parent13172 stays stopped; watcher15998 records actual terminal. Existing
+relay28697/native waiter16569 copies artifacts and starts forge5–7/2GiB
+reexport20-parity, expected14:45–15:00. Review58/receipt, manually evaluate
+fixed residuals, then nominate one first-free lane for unchanged A/A40/
+fixed40010+0.1 versusbe34532c: forge4–11/c2 with durable SPSA pause, or
+rig0–11/c6 after SEE. Both stages are prepared; neither net nominated or
+launched. No recipe change/rescue games/automatic promotion.
 
-SPSA88178 resumed11:56 with live RNG, durable1825/21,900; SEE native waiter
-pauses group88166 at1850 and EXIT continues it. Roughly9h compute remains
-plus future pauses; final-vector forge games mandatory. Reader117631 and
-hopper1170 stay untouched. Rig only trains; all CPU chess work uses scoped
-forge4–11/8GiB/nice10/swap0, max2 games, current host pinningON.
-C:279.40GiB; GPU84%/4306MiB; forge/work409GB free at12:21.
+SPSA88166/88178 RUNNING, durable1825/21,900, forge8–11/2.5GiB/two games,
+about8–9h compute left plus pauses; final24k/vector games mandatory.
+Forge4–11/8GiB/host pinningON/max2 games, builds/tests/parity there;
+rig and forge samples never pool. Reader117631/hopper1170 untouched.
+C:279.17GiB; GPU82%; WSL5.7GiB used at13:09. SEE/trainer caps total10GiB.
 
-Checked isolated Rodent tool30b8d4d waits for settled-package nomination,
-then immediate admission, SPSA final vector and one separate search
-candidate; stop new preparations. Next session not before14:45EDT.
-No3600 claim/default-net promotion/publication/derived-code restoration.
+After data/provenance: nominate checked Rodent tool30b8d4d on settled
+package, then admission60+0.6, final SPSA vector, one prepared search
+candidate. No useful extra code candidate ahead of the queue. Next session
+not before14:50 EDT. No3600 claim/default-net change/publication.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

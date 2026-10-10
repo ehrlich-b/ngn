@@ -59,3 +59,9 @@ review/nomination. CPU dependencies retain torch2.7.0 (CPU wheel)/numpy2.5.3;
 no corpus, recipe, initialization, checkpoint or selection changes.
 Strength admission now uses a fresh forge A/A at the exact game topology;
 there is no new rig CPU stage.
+
+Session49 amendment: Bryan11:50/root13:05 reopen rig games0–11/c6. CPU
+finalization/parity remains on forge. Reviewed expanded data gates on the
+first-free lane, rig after SEE or forge with a durable SPSA pause; each gets
+its own fresh A/A40/fixed400, same original rule, never pool machines.
+[Rig preparation](2026-10-10-expanded-data-games-rig.md).
