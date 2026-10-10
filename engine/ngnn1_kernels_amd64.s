@@ -64,6 +64,45 @@ MoveRows_loop:
 	VZEROUPPER
 	RET
 
+// Quiet moves with no king-context refresh update two independent frames.
+// Pair their arithmetic at the same neuron index and share one loop/call.
+// Each frame keeps its own int32 wrap semantics and unaligned addresses.
+TEXT ·ngnn1MovePair(SB), NOSPLIT, $0-144
+	MOVQ dst_base+0(FP), DI
+	MOVQ src_base+24(FP), SI
+	MOVQ removeUs_base+48(FP), R8
+	MOVQ addUs_base+72(FP), R9
+	MOVQ removeThem_base+96(FP), R10
+	MOVQ addThem_base+120(FP), R11
+	MOVQ addUs_len+80(FP), CX
+	LEAQ (DI)(CX*4), R12
+	LEAQ (SI)(CX*4), R13
+MovePair_loop:
+	VMOVDQU (SI), Y0
+	VMOVDQU (R13), Y2
+	VPMOVSXWD (R8), Y1
+	VPMOVSXWD (R10), Y3
+	VPSUBD Y1, Y0, Y0
+	VPSUBD Y3, Y2, Y2
+	VPMOVSXWD (R9), Y1
+	VPMOVSXWD (R11), Y3
+	VPADDD Y1, Y0, Y0
+	VPADDD Y3, Y2, Y2
+	VMOVDQU Y0, (DI)
+	VMOVDQU Y2, (R12)
+	ADDQ $32, SI
+	ADDQ $32, DI
+	ADDQ $32, R12
+	ADDQ $32, R13
+	ADDQ $16, R8
+	ADDQ $16, R9
+	ADDQ $16, R10
+	ADDQ $16, R11
+	SUBQ $8, CX
+	JNZ MovePair_loop
+	VZEROUPPER
+	RET
+
 TEXT ·ngnn1CaptureRows(SB), NOSPLIT, $0-120
 	MOVQ dst_base+0(FP), DI
 	MOVQ src_base+24(FP), SI

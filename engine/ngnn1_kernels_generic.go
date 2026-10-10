@@ -10,6 +10,11 @@ func ngnn1SubRow(acc []int32, row []int16) { ngnn1SubRowGo(acc, row) }
 func ngnn1MoveRows(dst, src []int32, remove, add []int16) {
 	ngnn1MoveRowsGo(dst, src, remove, add)
 }
+func ngnn1MovePair(dst, src []int32, removeUs, addUs, removeThem, addThem []int16) {
+	h := len(addUs)
+	ngnn1MoveRowsGo(dst[:h], src[:h], removeUs, addUs)
+	ngnn1MoveRowsGo(dst[h:], src[h:], removeThem, addThem)
+}
 func ngnn1CaptureRows(dst, src []int32, remove, capture, add []int16) {
 	ngnn1CaptureRowsGo(dst, src, remove, capture, add)
 }
