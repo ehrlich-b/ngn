@@ -80,9 +80,10 @@ type AdjConfig struct {
 
 // Engine is a persistent UCI subprocess.
 type Engine struct {
-	cmd    *exec.Cmd
-	stdin  *bufio.Writer
-	stdout *bufio.Scanner
+	cmd      *exec.Cmd
+	stdin    *bufio.Writer
+	stdout   *bufio.Scanner
+	recorded *recordedEngine // opt-in external diagnostic transport
 	// Moves/Overshoots track movetime-mode compliance for the gauntlet's integrity
 	// guard; Overshoots counts moves that arrived well after the `stop` deadline
 	// (the engine ignored `stop`). Reset per anchor via ResetCounters. Touched only
@@ -178,6 +179,9 @@ func Reset(e *Engine) {
 
 // Send writes a single UCI command line to the engine.
 func Send(e *Engine, cmd string) {
+	if e.recorded != nil {
+		e.recorded.trace("stdin", cmd)
+	}
 	e.stdin.WriteString(cmd + "\n")
 	e.stdin.Flush()
 }
@@ -186,14 +190,16 @@ func Send(e *Engine, cmd string) {
 func WaitFor(e *Engine, expected string, timeout time.Duration) bool {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
-		if e.stdout.Scan() {
-			if expected == "readyok" && strings.HasPrefix(e.stdout.Text(), "info string error") {
-				log.Printf("engine rejected configuration: %s", e.stdout.Text())
+		if line, ok := nextLine(e, deadline); ok {
+			if expected == "readyok" && strings.HasPrefix(line, "info string error") {
+				log.Printf("engine rejected configuration: %s", line)
 				return false
 			}
-			if strings.Contains(e.stdout.Text(), expected) {
+			if strings.Contains(line, expected) {
 				return true
 			}
+		} else if e.recorded != nil {
+			return false
 		}
 	}
 	return false
@@ -217,8 +223,11 @@ func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
 			Send(e, "stop")
 			stopSent = true
 		}
-		if e.stdout.Scan() {
-			line := e.stdout.Text()
+		readUntil := deadline
+		if e.recorded != nil && !stopSent && !stopAt.IsZero() && stopAt.Before(readUntil) {
+			readUntil = stopAt
+		}
+		if line, ok := nextLine(e, readUntil); ok {
 			if strings.HasPrefix(line, "info ") {
 				if sc, ok := parseScore(line); ok {
 					e.LastScoreCp = sc
@@ -241,6 +250,13 @@ func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
 				}
 			}
 		}
+		if e.recorded != nil {
+			select {
+			case <-e.recorded.exited:
+				return ""
+			default:
+			}
+		}
 	}
 	return ""
 }
@@ -253,12 +269,13 @@ func Analyze(e *Engine, goCmd string, timeout time.Duration) []string {
 	deadline := time.Now().Add(timeout)
 	var lines []string
 	for time.Now().Before(deadline) {
-		if e.stdout.Scan() {
-			line := e.stdout.Text()
+		if line, ok := nextLine(e, deadline); ok {
 			lines = append(lines, line)
 			if strings.HasPrefix(line, "bestmove ") {
 				return lines
 			}
+		} else if e.recorded != nil {
+			return lines
 		}
 	}
 	return lines
@@ -289,6 +306,10 @@ func RespectsMovetime(e *Engine, movetimeMs int) (bool, time.Duration) {
 // Stop quits the engine and kills the process.
 func Stop(e *Engine) {
 	if e == nil { // a failed (re)start returns nil; tolerate stopping it
+		return
+	}
+	if e.recorded != nil {
+		stopRecorded(e)
 		return
 	}
 	Send(e, "quit")

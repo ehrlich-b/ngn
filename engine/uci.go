@@ -874,6 +874,7 @@ func (uci *UCIEngine) prepareSearchSession(session *uciSearchSession, output io.
 	if session.debugMode {
 		fmt.Fprintln(output, "info string setting up time management")
 	}
+	startClockTrace(session)
 	session.timeManager.SetTimeControlAt(session.params, session.rootSource.Turn() == White, session.receivedAt)
 	uci.debugLogger.Println("Time management set, about to update game state")
 	if session.debugMode {
@@ -1044,6 +1045,7 @@ func (uci *UCIEngine) searchSession(session *uciSearchSession, output io.Writer,
 			uci.emitThreadReceipt(session, output, effective)
 		})
 
+		completeClockTrace(session, info, output)
 		uci.debugLogger.Printf("SearchIterativeDeepeningWithCallback completed: depth=%d, bestMove=%v, bestScore=%d, nodes=%d",
 			info.Depth, info.BestMove, info.BestScore, info.Nodes)
 
