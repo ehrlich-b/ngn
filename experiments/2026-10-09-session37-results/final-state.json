@@ -1,0 +1,165 @@
+{
+  "utc": "2026-10-10T01:31:45.594727+00:00",
+  "host_c_free_bytes": 21716348928,
+  "gpu": "0 %, 1507 MiB",
+  "latest_spsa": {
+    "iter": 1500,
+    "time": "2026-10-09T21:08:59-04:00",
+    "plus_pct": 49.166666666666664,
+    "theta": {
+      "AspInit": 15.634218880852822,
+      "AspMult": 159.88975277370432,
+      "DeltaMargin": 187.4127117884582,
+      "ExtensionBudget": 29.086528331259622,
+      "FutilityMargin": 105.10325276068944,
+      "FutilityMaxDepth": 7.818923825857068,
+      "LMPBase": 3.5170876258196873,
+      "LMRFullDepth": 3.4207553125911865,
+      "LMRMoveThreshold": 1.958526252550507,
+      "NullMoveMinDepth": 2.2753731041906655,
+      "NullMoveR": 4.0086290705700005,
+      "ReverseFutilityMargin": 60.681741598072804,
+      "SingularDepth": 6.538760291385715,
+      "SingularMargin": 57.982184413417514
+    },
+    "rounded": {
+      "AspInit": 16,
+      "AspMult": 160,
+      "DeltaMargin": 187,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 105,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 4,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 61,
+      "SingularDepth": 7,
+      "SingularMargin": 58
+    }
+  },
+  "status_tail": [
+    {
+      "utc": "2026-10-10T01:14:22.045167+00:00",
+      "stage": "session36-time-checks",
+      "event": "wait",
+      "detail": "native session35 pilot completion; then tests/builds12,14; no strength games"
+    },
+    {
+      "utc": "2026-10-10T01:14:24.582126+00:00",
+      "stage": "session35-factorizer",
+      "event": "aa-start",
+      "detail": "fresh actual-base A/A40;13,15/concurrency2; SPSA unchanged0\u201311"
+    },
+    {
+      "utc": "2026-10-10T01:17:58.501031+00:00",
+      "stage": "session37-partial-root",
+      "event": "wait",
+      "detail": "native session36 time-check completion; then12,14/nice19; no games"
+    },
+    {
+      "utc": "2026-10-10T01:22:34.770441+00:00",
+      "stage": "session37-ngnn4-full",
+      "event": "wait",
+      "detail": "native pilot/time-check/partial-root/factorizer completion; admit only pilot<=10h and clean factorizer shelve"
+    },
+    {
+      "utc": "2026-10-10T01:24:17.579726+00:00",
+      "stage": "session35-ngnn4-pilot",
+      "event": "pilot-done",
+      "detail": "{\n  \"source_commit\": \"2acf834945d48378209853464b86cefe72587ccc\",\n  \"architecture\": \"NGNN4 KB8 H512 L16 NB8\",\n  \"factorizer\": false,\n  \"argv\": [\n    \"/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python\",\n    \"-m\",\n    \"trainer.train\",\n    \"--data\",\n    \"/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf\",\n    \"--data-format\",\n    \"archive\",\n    \"--archive-holdout-modulus\",\n    \"1024\",\n    \"--archive-split-seed\",\n    \"20261006\",\n    \"--out\",\n    \"/home/ehrli/ngn-data/night-20261007/session35-ngnn4-pilot/scratch\",\n    \"--format\",\n    \"4\",\n    \"--hidden2\",\n    \"16\",\n    \"--kb-map\",\n    \"default\",\n    \"--hidden\",\n    \"512\",\n    \"--buckets\",\n    \"8\",\n    \"--batch\",\n    \"16384\",\n    \"--lr\",\n    \".001\",\n    \"--epochs\",\n    \"3\",\n    \"--positions-per-epoch\",\n    \"16000000\",\n    \"--wdl\",\n    \".75\",\n    \"--k\",\n    \"400\",\n    \"--decay\",\n    \"cosine\",\n    \"--min-lr-ratio\",\n    \".1\",\n    \"--threads\",\n    \"2\",\n    \"--precision\",\n    \"bf16\",\n    \"--seed\",\n    \"20261006\",\n    \"--keep-best-only\"\n  ],\n  \"epochs\": [\n    {\n      \"elapsed\": 558.5431375430001,\n      \"epoch\": 1,\n      \"step\": 977,\n      \"positions\": 16000000,\n      \"updates\": 977,\n      \"loss\": 0.02660230859375,\n      \"lr\": 0.0007752785123621575,\n      \"seconds\": 17.27879247200002,\n      \"positions_per_second\": 925990.6342371852,\n      \"steady_positions_per_second\": 976606.219557683,\n      \"validation_loss\": 0.020899226539811036,\n      \"validation_loss_lambda_075\": 0.020899226539811036,\n      \"validation_loss_result\": 0.08310343924482827\n    },\n    {\n      \"elapsed\": 575.761316492,\n      \"epoch\": 2,\n      \"step\": 1954,\n      \"positions\": 16000000,\n      \"updates\": 977,\n      \"loss\": 0.0196082265625,\n      \"lr\": 0.0003251392993017355,\n      \"seconds\": 16.012749478999922,\n      \"positions_per_second\": 999203.7920148165,\n      \"steady_positions_per_second\": 1009666.9979567907,\n      \"validation_loss\": 0.01880928393876174,\n      \"validation_loss_lambda_075\": 0.01880928393876174,\n      \"validation_loss_result\": 0.07921982442233506\n    },\n    {\n      \"elapsed\": 594.235129414,\n      \"epoch\": 3,\n      \"step\": 2931,\n      \"positions\": 16000000,\n      \"updates\": 977,\n      \"loss\": 0.018471845703125,\n      \"lr\": 0.0001,\n      \"seconds\": 17.251673501000027,\n      \"positions_per_second\": 927446.2561021994,\n      \"steady_positions_per_second\": 936468.0299829257,\n      \"validation_loss\": 0.01824998629649729,\n      \"validation_loss_lambda_075\": 0.01824998629649729,\n      \"validation_loss_result\": 0.07827825009888781\n    }\n  ],\n  \"total_seconds\": 595.65888388,\n  \"startup_seconds\": 239.166141917,\n  \"first_validation_checkpoint_seconds\": 302.09820315400003,\n  \"recurring_validation_checkpoint_seconds\": 1.2221394209999517,\n  \"minimum_steady_positions_per_second\": 936468.0299829257,\n  \"full_recipe_epochs\": 58,\n  \"full_recipe_positions_per_epoch\": 256000000,\n  \"projected_full_hours\": 4.574296701943059,\n  \"budget_hours\": 10,\n  \"budget_admitted\": true,\n  \"pilot_checkpoint_adoption\": false,\n  \"completed_utc\": \"2026-10-10T01:24:17.550886+00:00\"\n}; cost only; factorizer verdict remains ahead of full training"
+    },
+    {
+      "utc": "2026-10-10T01:24:17.597928+00:00",
+      "stage": "session35-ngnn4-pilot",
+      "event": "end",
+      "detail": "rc 0; cost pilot only, no net adoption"
+    },
+    {
+      "utc": "2026-10-10T01:24:17.716755+00:00",
+      "stage": "session36-time-checks",
+      "event": "end",
+      "detail": "rc 1; current-source checks only; games remain required"
+    },
+    {
+      "utc": "2026-10-10T01:24:17.786100+00:00",
+      "stage": "session37-partial-root",
+      "event": "end",
+      "detail": "rc 1; isolated code checks only; long-clock games required"
+    },
+    {
+      "utc": "2026-10-10T01:25:42.622401+00:00",
+      "stage": "session35-factorizer",
+      "event": "gate-start",
+      "detail": "exactly400 paired10+0.1; factorizer only; lower95>0 rule; no extension"
+    }
+  ],
+  "jobs": {
+    "spsa/kb8": {
+      "pid": 1360,
+      "alive": true
+    },
+    "session35-factorizer": {
+      "pid": 1381,
+      "alive": true,
+      "aa-summary.json": {
+        "mode": "aa",
+        "games": 40,
+        "pairs": 20,
+        "wins": 9,
+        "draws": 21,
+        "losses": 10,
+        "penta": [
+          0,
+          6,
+          11,
+          1,
+          2
+        ],
+        "elo": -8.7,
+        "ci95": [
+          -76.0,
+          58.0
+        ],
+        "exact_elo_ci95": [
+          -8.687699877294502,
+          -75.68582825678838,
+          57.6627981585495
+        ],
+        "flags": [
+          0,
+          0
+        ],
+        "reasons": {
+          "checkmate": 19,
+          "draw-rule": 19,
+          "max-moves": 2
+        },
+        "verdict": "aa-pass"
+      }
+    },
+    "session35-ngnn4-pilot": {
+      "pid": 1390,
+      "alive": false,
+      "controller.exit": "0",
+      "controller.done": "2026-10-09T21:24:17-04:00"
+    },
+    "session36-time-checks": {
+      "pid": 1421,
+      "alive": false,
+      "controller.exit": "1",
+      "controller.done": "2026-10-09T21:24:17-04:00"
+    },
+    "session37-partial-root": {
+      "pid": 1598,
+      "alive": false,
+      "controller.exit": "1",
+      "controller.done": "2026-10-09T21:24:17-04:00"
+    },
+    "session37-ngnn4-full": {
+      "pid": 1660,
+      "alive": true
+    }
+  }
+}

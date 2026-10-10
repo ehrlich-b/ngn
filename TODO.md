@@ -1,52 +1,37 @@
 # NGN live state — 2026-10-09: 3600 campaign
 
-[Campaign log](experiments/2026-10-08-3600-campaign.md) owns plan/handles/handoff.
+[Campaign log](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
 Playing source **ac658e2 / NGNN3 KB8 H512 be34532c**, unchanged58-epoch recipe.
-Own TTb49ab5a/SEEf8686be are provisional provenance keeps; combined
-batchSPRT[0,+6] vs5b882e2 is required. Null frames already pass full checks/
-36 identities/40 blocks **+3.88%[+2.76%,+5.02%]**; no repeat.
+Own TT/SEE are provisional provenance keeps; combined batchSPRT[0,+6] vs
+5b882e2 remains required. Key22682 is SHELVED; no retry/adoption/extension.
+Completed null-frame speed/architecture compatibility evidence needs no repeat.
 
-**Session35:** key22682 completes400 games **−20.00[−40.03,−0.0980]**,
-82/213/105/zero faults: **SHELVED**, no retry/adoption/extension. Original
-39eb128 failed A/A stays preserved. Accepted playing source unchanged.
-NGNN4 current-source compatibility28683 is reviewed pass: full engine/
-65 trainer checks,36 old-format identities, two actual CUDA/no skips.
-Exact source committed/pushed **2acf834** on isolated `night/ngnn4-current`.
-Retained512 speed/cost evidence is reused; no playing architecture adoption.
+**Session37:** WSL entry restored after a fresh restart before entry. SPSA
+**1360** resumes durable1500/18,000 on0–11. Actual-base factorizer **1381**
+launches freshA/A40 then400 paired10+0.1 games on13,15. NGNN4 pilot1390
+completes all three16M epochs: reviewed frozen projection **4.5743GPU hours**,
+budget PASS. Full trial **1660** waits natively for a clean factorizer shelf
+and capacity, then58x256M/reexport/20 parity/actual cost/A/A40/gate400.
+[Full trial](experiments/2026-10-09-ngnn4-full.md). No training/adoption yet.
 
-**Session36:** separate bank-allocation candidate `night/time-horizon`
-on ac658e2 raises only the estimated remaining-move floor10→25; four
-unrun tests and a durable patch/predeclared60+0.6 powered gate.
-[Manifest](experiments/2026-10-09-time-horizon.md). No stacked admission
-change or adoption. Both isolated time candidates' current-source
-narrow/full short/full race/vet/PGO checks are staged behind the pilot
-on12,14; no confirmed launch/test pass.
+Host C: fell from29.25GiB to **20.22GiB**; new heavy stages require25.5GiB.
+Time checks1421 and completed-root checks1598 stopped at capacity before any
+source extraction/Go tests/builds. No test failure or test pass is claimed.
+At least5.28GiB more capacity is needed; no restart/configuration/unrelated
+cleanup was performed. Existing SPSA/factorizer continue; hopper1170 untouched.
 
-**WSL entry fails with0x8007274c** via rig and LAN; Windows SSH works.
-Factorizer current-base A/A40/gate400 (13,15) and bounded NGNN4 training
-pilot (GPU/12,14) are prepared/staged on Windows; **no new launch confirmed**.
-First restore entry/inspect markers/PIDs, then execute the campaign handoff's
-session36 one-entry launcher once. No WSL/service restart or hopper interruption.
-C: **25.59GiB**; jobs reserve0.5GiB over the25GiB floor. Pilot is three16M
-H512/L16/dense/BF16 epochs with frozen10h full-recipe cost admission;
-full training waits for factorizer disposition/accepted setting.
+Three isolated time topics onac658e2: immediate admission, remaining-move
+floor10→25, and new `night/partial-root` retaining a finished exact root
+improvement at tournament clock stop. Actual-source checks are unrun; each
+requires separate60+0.6 powered games after higher priorities, no stacked
+policy or10+0.1 time verdict. Durable patches/manifests preserve uncommitted
+runtime candidates. [Session37](experiments/2026-10-09-session37.md).
 
-Last successful Linux snapshot20:45:19: SPSA1405 on0–11, durable1475/
-17,700 games;24k endpoint/converged-vector games required on frozen old base.
-Hopper1211/GPU0% last observed. No present Linux state inferred from timeouts.
-[Session35](experiments/2026-10-09-session35.md).
-[Session36](experiments/2026-10-09-session36.md). Resume hardware work
-after WSL entry is restored; do not start idle retries.
-
-Time admission is rebased ontoac658e2 on isolated `night/time-playing`,
-durable patch; actual-source tests/games unrun,60+0.6 gate only. Prior pawn/
-time/qsearch/continuation witnesses/diagnostics reviewed on39eb128;
-actual-base A/A/poweredSPRT after higher priorities. No repeat trajectories.
-
-Data: T76 complete55.63GB/1.738B rows; T74 keep194/stats complete, corpus
-incomplete. Needs70GiB (~44.41GiB more), no data waiter/trainer. Factorizer
-58 epochs/selected57/reexport/20 parity already reviewed, zero strength games;
-fresh actual-base gate is staged, no retraining. No3600 claim/publication.
+Data: T76 complete55.63GB/1.738B rows; T74 corpus incomplete, requires70GiB
+(~49.78GiB beyond current free). No data waiter/trainer. Source2acf834 is
+verified/pushed on isolated `night/ngnn4-current`; no playing architecture
+adoption. No3600 claim/publication. Check factorizer terminal and full-trial
+stage first around23:35, or act earlier only if capacity/free CPU lane returns.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

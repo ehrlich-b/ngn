@@ -1,0 +1,266 @@
+{
+  "utc": "2026-10-10T01:25:07.359039+00:00",
+  "host_c_free_bytes": 21953568768,
+  "uptime": "21:25:07 up 12 min,  1 user,  load average: 7.39, 7.17, 4.16",
+  "gpu": "0 %, 1507 MiB",
+  "jobs": {
+    "spsa/kb8": {
+      "pid": 1360,
+      "alive": true,
+      "args": "/home/ehrli/ngn-data/night-20261007/spsa/spsa -engine /home/ehrli/ngn-data/night-20261007/kb8bin/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/net1-gates-20261006/openings.txt -out /home/ehrli/ngn-data/night-20261007/spsa/kb8/spsa.jsonl -lowpower=false -seed 20261008 -resume "
+    },
+    "session35-factorizer": {
+      "pid": 1381,
+      "alive": true,
+      "args": "bash controller.sh ",
+      "controller.started": "2026-10-09T21:14:21-04:00"
+    },
+    "session35-ngnn4-pilot": {
+      "pid": 1390,
+      "alive": false,
+      "args": "",
+      "controller.started": "2026-10-09T21:14:21-04:00",
+      "controller.exit": "0",
+      "controller.done": "2026-10-09T21:24:17-04:00",
+      "receipt.json": {
+        "source_commit": "2acf834945d48378209853464b86cefe72587ccc",
+        "architecture": "NGNN4 KB8 H512 L16 NB8",
+        "factorizer": false,
+        "argv": [
+          "/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python",
+          "-m",
+          "trainer.train",
+          "--data",
+          "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+          "--data-format",
+          "archive",
+          "--archive-holdout-modulus",
+          "1024",
+          "--archive-split-seed",
+          "20261006",
+          "--out",
+          "/home/ehrli/ngn-data/night-20261007/session35-ngnn4-pilot/scratch",
+          "--format",
+          "4",
+          "--hidden2",
+          "16",
+          "--kb-map",
+          "default",
+          "--hidden",
+          "512",
+          "--buckets",
+          "8",
+          "--batch",
+          "16384",
+          "--lr",
+          ".001",
+          "--epochs",
+          "3",
+          "--positions-per-epoch",
+          "16000000",
+          "--wdl",
+          ".75",
+          "--k",
+          "400",
+          "--decay",
+          "cosine",
+          "--min-lr-ratio",
+          ".1",
+          "--threads",
+          "2",
+          "--precision",
+          "bf16",
+          "--seed",
+          "20261006",
+          "--keep-best-only"
+        ],
+        "epochs": [
+          {
+            "elapsed": 558.5431375430001,
+            "epoch": 1,
+            "step": 977,
+            "positions": 16000000,
+            "updates": 977,
+            "loss": 0.02660230859375,
+            "lr": 0.0007752785123621575,
+            "seconds": 17.27879247200002,
+            "positions_per_second": 925990.6342371852,
+            "steady_positions_per_second": 976606.219557683,
+            "validation_loss": 0.020899226539811036,
+            "validation_loss_lambda_075": 0.020899226539811036,
+            "validation_loss_result": 0.08310343924482827
+          },
+          {
+            "elapsed": 575.761316492,
+            "epoch": 2,
+            "step": 1954,
+            "positions": 16000000,
+            "updates": 977,
+            "loss": 0.0196082265625,
+            "lr": 0.0003251392993017355,
+            "seconds": 16.012749478999922,
+            "positions_per_second": 999203.7920148165,
+            "steady_positions_per_second": 1009666.9979567907,
+            "validation_loss": 0.01880928393876174,
+            "validation_loss_lambda_075": 0.01880928393876174,
+            "validation_loss_result": 0.07921982442233506
+          },
+          {
+            "elapsed": 594.235129414,
+            "epoch": 3,
+            "step": 2931,
+            "positions": 16000000,
+            "updates": 977,
+            "loss": 0.018471845703125,
+            "lr": 0.0001,
+            "seconds": 17.251673501000027,
+            "positions_per_second": 927446.2561021994,
+            "steady_positions_per_second": 936468.0299829257,
+            "validation_loss": 0.01824998629649729,
+            "validation_loss_lambda_075": 0.01824998629649729,
+            "validation_loss_result": 0.07827825009888781
+          }
+        ],
+        "total_seconds": 595.65888388,
+        "startup_seconds": 239.166141917,
+        "first_validation_checkpoint_seconds": 302.09820315400003,
+        "recurring_validation_checkpoint_seconds": 1.2221394209999517,
+        "minimum_steady_positions_per_second": 936468.0299829257,
+        "full_recipe_epochs": 58,
+        "full_recipe_positions_per_epoch": 256000000,
+        "projected_full_hours": 4.574296701943059,
+        "budget_hours": 10,
+        "budget_admitted": true,
+        "pilot_checkpoint_adoption": false,
+        "completed_utc": "2026-10-10T01:24:17.550886+00:00"
+      }
+    },
+    "session36-time-checks": {
+      "pid": 1421,
+      "alive": false,
+      "args": "",
+      "controller.started": "2026-10-09T21:14:22-04:00",
+      "controller.exit": "1",
+      "controller.done": "2026-10-09T21:24:17-04:00"
+    },
+    "session37-partial-root": {
+      "pid": 1598,
+      "alive": false,
+      "args": "",
+      "controller.started": "2026-10-09T21:17:58-04:00",
+      "controller.exit": "1",
+      "controller.done": "2026-10-09T21:24:17-04:00"
+    },
+    "session37-ngnn4-full": {
+      "pid": 1660,
+      "alive": true,
+      "args": "bash controller.sh ",
+      "controller.started": "2026-10-09T21:22:34-04:00"
+    }
+  },
+  "latest_spsa": {
+    "iter": 1500,
+    "time": "2026-10-09T21:08:59-04:00",
+    "plus_pct": 49.166666666666664,
+    "theta": {
+      "AspInit": 15.634218880852822,
+      "AspMult": 159.88975277370432,
+      "DeltaMargin": 187.4127117884582,
+      "ExtensionBudget": 29.086528331259622,
+      "FutilityMargin": 105.10325276068944,
+      "FutilityMaxDepth": 7.818923825857068,
+      "LMPBase": 3.5170876258196873,
+      "LMRFullDepth": 3.4207553125911865,
+      "LMRMoveThreshold": 1.958526252550507,
+      "NullMoveMinDepth": 2.2753731041906655,
+      "NullMoveR": 4.0086290705700005,
+      "ReverseFutilityMargin": 60.681741598072804,
+      "SingularDepth": 6.538760291385715,
+      "SingularMargin": 57.982184413417514
+    },
+    "rounded": {
+      "AspInit": 16,
+      "AspMult": 160,
+      "DeltaMargin": 187,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 105,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 4,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 61,
+      "SingularDepth": 7,
+      "SingularMargin": 58
+    }
+  },
+  "processes": [
+    "   1170     256   4     747 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    "   1360    1355   2     645 /home/ehrli/ngn-data/night-20261007/spsa/spsa -engine /home/ehrli/ngn-data/night-20261007/kb8bin/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/net1-gates-20261006/openings.txt -out /home/ehrli/ngn-data/night-20261007/spsa/kb8/spsa.jsonl -lowpower=false -seed 20261008 -resume",
+    "   1502    1381  14     642 timeout --signal=TERM --kill-after=15s 30m taskset -c 13,15 nice -n 19 ./sprt -new ./ngn -base ./ngn -tc 10+0.1 -concurrency 2 -mingames 1000000 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session35-factorizer/openings.txt -lowpower=false -maxgames 40 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session35-factorizer/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session35-factorizer/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false",
+    "   1503    1502  13     642 ./sprt -new ./ngn -base ./ngn -tc 10+0.1 -concurrency 2 -mingames 1000000 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session35-factorizer/openings.txt -lowpower=false -maxgames 40 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session35-factorizer/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session35-factorizer/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false"
+  ],
+  "status_tail": [
+    {
+      "utc": "2026-10-10T01:14:21.865614+00:00",
+      "stage": "session35-ngnn4-pilot",
+      "event": "pilot-start",
+      "detail": "three complete16M epochs/H512L16/dense/BF16;12,14; then fixed10h budget receipt"
+    },
+    {
+      "utc": "2026-10-10T01:14:21.867573+00:00",
+      "stage": "session35-factorizer",
+      "event": "build-start",
+      "detail": "clean accepted ac658e2 source;13,15; explicit original PGO; no behavior overlay"
+    },
+    {
+      "utc": "2026-10-10T01:14:22.045167+00:00",
+      "stage": "session36-time-checks",
+      "event": "wait",
+      "detail": "native session35 pilot completion; then tests/builds12,14; no strength games"
+    },
+    {
+      "utc": "2026-10-10T01:14:24.582126+00:00",
+      "stage": "session35-factorizer",
+      "event": "aa-start",
+      "detail": "fresh actual-base A/A40;13,15/concurrency2; SPSA unchanged0\u201311"
+    },
+    {
+      "utc": "2026-10-10T01:17:58.501031+00:00",
+      "stage": "session37-partial-root",
+      "event": "wait",
+      "detail": "native session36 time-check completion; then12,14/nice19; no games"
+    },
+    {
+      "utc": "2026-10-10T01:22:34.770441+00:00",
+      "stage": "session37-ngnn4-full",
+      "event": "wait",
+      "detail": "native pilot/time-check/partial-root/factorizer completion; admit only pilot<=10h and clean factorizer shelve"
+    },
+    {
+      "utc": "2026-10-10T01:24:17.579726+00:00",
+      "stage": "session35-ngnn4-pilot",
+      "event": "pilot-done",
+      "detail": "{\n  \"source_commit\": \"2acf834945d48378209853464b86cefe72587ccc\",\n  \"architecture\": \"NGNN4 KB8 H512 L16 NB8\",\n  \"factorizer\": false,\n  \"argv\": [\n    \"/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python\",\n    \"-m\",\n    \"trainer.train\",\n    \"--data\",\n    \"/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf\",\n    \"--data-format\",\n    \"archive\",\n    \"--archive-holdout-modulus\",\n    \"1024\",\n    \"--archive-split-seed\",\n    \"20261006\",\n    \"--out\",\n    \"/home/ehrli/ngn-data/night-20261007/session35-ngnn4-pilot/scratch\",\n    \"--format\",\n    \"4\",\n    \"--hidden2\",\n    \"16\",\n    \"--kb-map\",\n    \"default\",\n    \"--hidden\",\n    \"512\",\n    \"--buckets\",\n    \"8\",\n    \"--batch\",\n    \"16384\",\n    \"--lr\",\n    \".001\",\n    \"--epochs\",\n    \"3\",\n    \"--positions-per-epoch\",\n    \"16000000\",\n    \"--wdl\",\n    \".75\",\n    \"--k\",\n    \"400\",\n    \"--decay\",\n    \"cosine\",\n    \"--min-lr-ratio\",\n    \".1\",\n    \"--threads\",\n    \"2\",\n    \"--precision\",\n    \"bf16\",\n    \"--seed\",\n    \"20261006\",\n    \"--keep-best-only\"\n  ],\n  \"epochs\": [\n    {\n      \"elapsed\": 558.5431375430001,\n      \"epoch\": 1,\n      \"step\": 977,\n      \"positions\": 16000000,\n      \"updates\": 977,\n      \"loss\": 0.02660230859375,\n      \"lr\": 0.0007752785123621575,\n      \"seconds\": 17.27879247200002,\n      \"positions_per_second\": 925990.6342371852,\n      \"steady_positions_per_second\": 976606.219557683,\n      \"validation_loss\": 0.020899226539811036,\n      \"validation_loss_lambda_075\": 0.020899226539811036,\n      \"validation_loss_result\": 0.08310343924482827\n    },\n    {\n      \"elapsed\": 575.761316492,\n      \"epoch\": 2,\n      \"step\": 1954,\n      \"positions\": 16000000,\n      \"updates\": 977,\n      \"loss\": 0.0196082265625,\n      \"lr\": 0.0003251392993017355,\n      \"seconds\": 16.012749478999922,\n      \"positions_per_second\": 999203.7920148165,\n      \"steady_positions_per_second\": 1009666.9979567907,\n      \"validation_loss\": 0.01880928393876174,\n      \"validation_loss_lambda_075\": 0.01880928393876174,\n      \"validation_loss_result\": 0.07921982442233506\n    },\n    {\n      \"elapsed\": 594.235129414,\n      \"epoch\": 3,\n      \"step\": 2931,\n      \"positions\": 16000000,\n      \"updates\": 977,\n      \"loss\": 0.018471845703125,\n      \"lr\": 0.0001,\n      \"seconds\": 17.251673501000027,\n      \"positions_per_second\": 927446.2561021994,\n      \"steady_positions_per_second\": 936468.0299829257,\n      \"validation_loss\": 0.01824998629649729,\n      \"validation_loss_lambda_075\": 0.01824998629649729,\n      \"validation_loss_result\": 0.07827825009888781\n    }\n  ],\n  \"total_seconds\": 595.65888388,\n  \"startup_seconds\": 239.166141917,\n  \"first_validation_checkpoint_seconds\": 302.09820315400003,\n  \"recurring_validation_checkpoint_seconds\": 1.2221394209999517,\n  \"minimum_steady_positions_per_second\": 936468.0299829257,\n  \"full_recipe_epochs\": 58,\n  \"full_recipe_positions_per_epoch\": 256000000,\n  \"projected_full_hours\": 4.574296701943059,\n  \"budget_hours\": 10,\n  \"budget_admitted\": true,\n  \"pilot_checkpoint_adoption\": false,\n  \"completed_utc\": \"2026-10-10T01:24:17.550886+00:00\"\n}; cost only; factorizer verdict remains ahead of full training"
+    },
+    {
+      "utc": "2026-10-10T01:24:17.597928+00:00",
+      "stage": "session35-ngnn4-pilot",
+      "event": "end",
+      "detail": "rc 0; cost pilot only, no net adoption"
+    },
+    {
+      "utc": "2026-10-10T01:24:17.716755+00:00",
+      "stage": "session36-time-checks",
+      "event": "end",
+      "detail": "rc 1; current-source checks only; games remain required"
+    },
+    {
+      "utc": "2026-10-10T01:24:17.786100+00:00",
+      "stage": "session37-partial-root",
+      "event": "end",
+      "detail": "rc 1; isolated code checks only; long-clock games required"
+    }
+  ]
+}
