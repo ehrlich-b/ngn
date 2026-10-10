@@ -1,0 +1,14 @@
+=== RUN   TestNMPEvalMarginRoutesNullChild
+=== RUN   TestNMPEvalMarginRoutesNullChild/191
+=== RUN   TestNMPEvalMarginRoutesNullChild/192
+=== RUN   TestNMPEvalMarginRoutesNullChild/576
+=== RUN   TestNMPEvalMarginRoutesNullChild/2000
+--- PASS: TestNMPEvalMarginRoutesNullChild (0.02s)
+    --- PASS: TestNMPEvalMarginRoutesNullChild/191 (0.00s)
+    --- PASS: TestNMPEvalMarginRoutesNullChild/192 (0.01s)
+    --- PASS: TestNMPEvalMarginRoutesNullChild/576 (0.00s)
+    --- PASS: TestNMPEvalMarginRoutesNullChild/2000 (0.00s)
+=== RUN   TestNMPEvalMarginPreservesPawnOnlyGuard
+--- PASS: TestNMPEvalMarginPreservesPawnOnlyGuard (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.029s

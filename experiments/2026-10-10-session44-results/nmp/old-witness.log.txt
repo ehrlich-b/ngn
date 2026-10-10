@@ -1,0 +1,8 @@
+=== RUN   TestNMPEvalMarginRoutesNullChild
+=== RUN   TestNMPEvalMarginRoutesNullChild/192
+    search_nmp_eval_margin_test.go:25: gap=192 main move loops=1; want null child in qsearch iff gap>=192
+--- FAIL: TestNMPEvalMarginRoutesNullChild (0.00s)
+    --- FAIL: TestNMPEvalMarginRoutesNullChild/192 (0.00s)
+FAIL
+FAIL	github.com/ehrlich-b/ngn/engine	0.008s
+FAIL

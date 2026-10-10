@@ -1,0 +1,4 @@
+Running as unit: ngn-s43-time-admission.scope; invocation ID: 31807e24fc0c4bf2bab6b03fd5d0322a
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+AssertionError
