@@ -14,12 +14,20 @@ NGNN4 current-source compatibility28683 is reviewed pass: full engine/
 Exact source committed/pushed **2acf834** on isolated `night/ngnn4-current`.
 Retained512 speed/cost evidence is reused; no playing architecture adoption.
 
+**Session36:** separate bank-allocation candidate `night/time-horizon`
+on ac658e2 raises only the estimated remaining-move floor10→25; four
+unrun tests and a durable patch/predeclared60+0.6 powered gate.
+[Manifest](experiments/2026-10-09-time-horizon.md). No stacked admission
+change or adoption. Both isolated time candidates' current-source
+narrow/full short/full race/vet/PGO checks are staged behind the pilot
+on12,14; no confirmed launch/test pass.
+
 **WSL entry fails with0x8007274c** via rig and LAN; Windows SSH works.
 Factorizer current-base A/A40/gate400 (13,15) and bounded NGNN4 training
 pilot (GPU/12,14) are prepared/staged on Windows; **no new launch confirmed**.
 First restore entry/inspect markers/PIDs, then execute the campaign handoff's
-one-entry launcher once. No WSL/service restart or hopper interruption.
-C: **25.96GiB**; jobs reserve0.5GiB over the25GiB floor. Pilot is three16M
+session36 one-entry launcher once. No WSL/service restart or hopper interruption.
+C: **25.59GiB**; jobs reserve0.5GiB over the25GiB floor. Pilot is three16M
 H512/L16/dense/BF16 epochs with frozen10h full-recipe cost admission;
 full training waits for factorizer disposition/accepted setting.
 
@@ -27,6 +35,8 @@ Last successful Linux snapshot20:45:19: SPSA1405 on0–11, durable1475/
 17,700 games;24k endpoint/converged-vector games required on frozen old base.
 Hopper1211/GPU0% last observed. No present Linux state inferred from timeouts.
 [Session35](experiments/2026-10-09-session35.md).
+[Session36](experiments/2026-10-09-session36.md). Resume hardware work
+after WSL entry is restored; do not start idle retries.
 
 Time admission is rebased ontoac658e2 on isolated `night/time-playing`,
 durable patch; actual-source tests/games unrun,60+0.6 gate only. Prior pawn/
@@ -34,7 +44,7 @@ time/qsearch/continuation witnesses/diagnostics reviewed on39eb128;
 actual-base A/A/poweredSPRT after higher priorities. No repeat trajectories.
 
 Data: T76 complete55.63GB/1.738B rows; T74 keep194/stats complete, corpus
-incomplete. Needs70GiB (~44.04GiB more), no data waiter/trainer. Factorizer
+incomplete. Needs70GiB (~44.41GiB more), no data waiter/trainer. Factorizer
 58 epochs/selected57/reexport/20 parity already reviewed, zero strength games;
 fresh actual-base gate is staged, no retraining. No3600 claim/publication.
 
