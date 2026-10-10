@@ -1,0 +1,41 @@
+{
+  "mode": "aa",
+  "games": 40,
+  "pairs": 20,
+  "wins": 12,
+  "draws": 22,
+  "losses": 6,
+  "penta": [
+    0,
+    1,
+    12,
+    7,
+    0
+  ],
+  "elo": 52.5,
+  "ci95": [
+    10.0,
+    97.0
+  ],
+  "exact_elo_ci95": [
+    52.51156585572756,
+    9.727604935991973,
+    96.94567557982654
+  ],
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "checkmate": 18,
+    "draw-rule": 22
+  },
+  "verdict": "aa-failed; zero candidate games; TT unresolved",
+  "reviewed_utc": "2026-10-10T16:21:12.576435+00:00",
+  "controller_exit": 1,
+  "candidate_games": 0,
+  "input_checks_pass": true,
+  "spsa_resumed_at_terminal": true,
+  "automatic_retry": false,
+  "playing_adoption": false
+}

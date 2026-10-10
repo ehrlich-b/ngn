@@ -1,0 +1,14 @@
+2026-10-10T12:21:47-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              15           3           0           0          11          11
+Swap:              4           0           3
+   1170     256 Ssl   10  0.3 17704 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+  13171   13164 SN    12  0.0 11392 python3 -
+  13172   13171 TNsl  14  0.0 464340 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python trial.py
+  13201   13172 SNl   14 84.6 7040248 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/session44-expanded-data/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 58 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only
+  15998   15994 SNs   12  0.0  3456 bash controller.sh
+  16001   15998 SN    14  0.0 11648 python3 - /home/ehrli/ngn-data/night-20261007/session44-expanded-data /home/ehrli/ngn-data/night-20261007/status.jsonl
+  16553   16549 R+    11  0.0  5972 rg trainer.train|trial.py|hopper.py|15998|16001|find /home -name status.jsonl|python3 -$
+utilization.gpu [%], memory.used [MiB]
+84 %, 4306 MiB
+{"epochs": 35, "latest": {"epoch": 35, "step": 546875, "positions": 256000000, "updates": 15625, "loss": 0.0091235986328125, "lr": 0.00040631489766363907, "seconds": 348.20386463100294, "positions_per_second": 735201.4897114574, "steady_positions_per_second": 735641.8695282439, "validation_loss": 0.00916225004091905, "validation_loss_lambda_075": 0.00916225004091905, "validation_loss_result": 0.07995049792428911}, "terminal_exists": false}

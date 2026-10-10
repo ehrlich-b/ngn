@@ -1,43 +1,38 @@
 # NGN live state — 2026-10-10: 3600 campaign
 
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **9bfbae4 / NGNN3 KB8 H512 be34532c**. Compact accumulators pass
-36 identities/40 balanced forge blocks: **+4.77%[+2.54%,+7.04%] NPS**,
-both order strata>1; committed/pushed. Capture +1.42% remains retained.
-Speed measurements do not establish a new Elo or absolute strength result.
+Playing **9bfbae4 / NGNN3 KB8 H512 be34532c**; no session48 adoption.
+Compact +4.77% and capture +1.42% speed evidence stay retained; no new Elo
+or absolute strength claim.
 
-Combined provenance terminates H0:610 games, **−18.81[−32.26,−5.43]**,
-zero faults. TT/key/SEE remain uncertified; bisect without restoring derived
-code. Fresh archived TT-only forge diagnosis314562 starts its own A/A40 at
-10:48:50 on4–11/c2/3GiB/host pinningON; then exact40060+0.6. A/A forecast
-12:15–12:45, fixed gate possibly overnight. No automatic adoption/pooling.
-[Bisect](experiments/2026-10-10-provenance-tt-bisect.md).
+Combined provenance H0/610, **−18.81[−32.26,−5.43]**, zero faults remains
+uncertified. TT-only forge A/A40 fails +52.51[+9.73,+96.95], no candidate
+games, unresolved/no retry. Updated plan11:20 prioritizes SEE isolation:
+forge controller331057 waits natively for SPSA durable1850, then its own
+A/A40/fixed1000 at10+0.1,4–11/c2/3GiB/host pinningON. Data gate preempts
+it without verdict/pooling as soon as reviewed parity passes.
+[Isolation](experiments/2026-10-10-see-isolation.md).
 
-Unchanged expanded-data trainer13201 reaches20/58 epochs at10:57, full ETA
-14:30–14:45. Parent13172 is stopped; never resume it. Native watcher15998
-records the real training terminal then retires that obsolete rig parity
-postprocessor. CPU Torch environment/finalizer/game stages are prepared on
-forge. Full58/reexport20 parity/review precede the new concrete data-only
-A/A40/fixed40010+0.1 nomination againstbe34532c; no rescue games. Per-source/
-phase residual samples and exact same-net control are prepared, no candidate
-result. [Training](experiments/2026-10-10-expanded-data.md).
+Unchanged expanded-data trainer13201 is35/58 at12:21; full ETA14:30–14:40.
+Parent13172 remains stopped; never resume it. Watcher15998 records the real
+training terminal then retires obsolete rig postprocessing. Lightweight SSH
+relay/tool session28697 waits once, copies artifacts and launches detached
+forge5–7/2GiB reexport20-parity, expected14:40–14:50. Review full58/receipt,
+then manual fixed residual diagnostic and concrete data-only A/A40/fixed400
+10+0.1 againstbe34532c. No recipe change/rescue games/automatic adoption.
+[Session48](experiments/2026-10-10-session48.md).
 
-Rodent black-box tool **30b8d4d** is checked on actual9bfbae4 and pushed on
-`night/rodent-blackbox`: full normal/tagged race/vet/PGO/reviewer checks and
-12 UCI accepted/normal/clock identities pass. No Rodent probes/games yet;
-settled package nomination follows the higher-priority data/provenance review.
-[Plan](experiments/2026-10-10-rodent-blackbox.md). Then iteration admission,
-SPSA final vector and one separate search candidate; stop new preparations.
+SPSA88178 resumed11:56 with live RNG, durable1825/21,900; SEE native waiter
+pauses group88166 at1850 and EXIT continues it. Roughly9h compute remains
+plus future pauses; final-vector forge games mandatory. Reader117631 and
+hopper1170 stay untouched. Rig only trains; all CPU chess work uses scoped
+forge4–11/8GiB/nice10/swap0, max2 games, current host pinningON.
+C:279.40GiB; GPU84%/4306MiB; forge/work409GB free at12:21.
 
-Rig time A/A32/no candidate and TT gate25 stop09:47 under forge routing;
-neither has a verdict or pools with forge. All future CPU work is forge4–11/
-8GiB/nice10/swap0, scoped, max2 games; rig runs only training/data loading.
-SPSA88178 is STOPped at durable1825/21,900 with live RNG preserved; TT EXIT
-trap continues group88166. About9h50 compute remains after resume, final-
-vector forge games mandatory. Reader117631 and hopper1170 remain untouched.
-C:279.86GiB; GPU75%/4306MiB; forge/work409GB free at10:57.
-[Session47](experiments/2026-10-10-session47.md). Next session not before12:15EDT.
-No3600 claim/default-net promotion/publication.
+Checked isolated Rodent tool30b8d4d waits for settled-package nomination,
+then immediate admission, SPSA final vector and one separate search
+candidate; stop new preparations. Next session not before14:45EDT.
+No3600 claim/default-net promotion/publication/derived-code restoration.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
