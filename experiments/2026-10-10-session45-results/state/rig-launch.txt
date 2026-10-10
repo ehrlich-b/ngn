@@ -1,0 +1,22 @@
+2026-10-10T08:23:07-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              15           3           5           0           6          11
+Swap:              4           0           3
+0 %, 1522 MiB, 16303 MiB
+{"utc": "2026-10-10T11:05:47.854941+00:00", "stage": "session42-capture-perspective", "event": "tests-start", "detail": "current6c0fc26 paired capture perspective updates; rig13,15; existing gates untouched"}
+{"utc": "2026-10-10T11:11:00.322585+00:00", "stage": "session42-capture-perspective", "event": "tests-pass", "detail": "paired arithmetic/full checks pass;36 exact identities and fixed40 timing blocks next"}
+{"utc": "2026-10-10T11:13:29.922126+00:00", "stage": "session42-expanded-data", "event": "training-start", "detail": "reviewed expanded corpus; matched58x256M/KB8H512/NB8/BF16/factorizer-off; rig12,14/4GiB"}
+{"utc": "2026-10-10T11:19:15.526874+00:00", "stage": "session43-time-admission", "event": "capture-wait", "detail": "native wait for9929 to release13,15; unchanged time-admission candidate on56b35ef"}
+{"utc": "2026-10-10T11:25:53.010073+00:00", "stage": "session43-handoff", "event": "detach", "detail": "f4bb55470162acda9d8f1338937d521c9a3f67df pushed; accepted56b35ef/be34532c; NGNN4 original400 shelved; approximately2x data58-epoch training12215/12225 on12,14; capture9929 then time12364 on13,15; provenance3465/SPSA88178/reader117631 unchanged; next session not before07:50EDT; no automatic adoption"}
+{"utc": "2026-10-10T11:29:30.048073+00:00", "stage": "session42-expanded-data", "event": "end", "detail": "rc 1; review training/parity before fresh actual-base games; no automatic adoption"}
+{"utc": "2026-10-10T11:36:07.188009+00:00", "stage": "session42-capture-perspective", "event": "speed-keep", "detail": "complete fixed rule passes; review before isolated topic commit; architecture base held"}
+{"utc": "2026-10-10T11:36:07.201000+00:00", "stage": "session42-capture-perspective", "event": "end", "detail": "rc 0; review fixed speed verdict before adoption; no extension"}
+{"utc": "2026-10-10T11:36:07.277188+00:00", "stage": "session43-time-admission", "event": "end", "detail": "rc 1; session review required; no automatic adoption"}
+{"utc": "2026-10-10T12:08:52.831778+00:00", "stage": "session44-handoff", "event": "detach", "detail": "bef7809c6b2be96a5e5ea445b2333ac2cfd4e0b4 pushed; playing56b35ef/be34532c unchanged; isolated capturec66fbc1 kept; capture+quiet and NMP full forge checks pass; staged rig timing and manual data retry blocked C22.20GiB; provenance3465/SPSA88178/reader117631 live; no automatic restart/adoption/publication"}
+{"utc": "2026-10-10T12:23:06.634681+00:00", "stage": "session44-expanded-data", "event": "training-start", "detail": "reviewed expanded corpus; matched58x256M/KB8H512/NB8/BF16/factorizer-off; rig12,14/4GiB"}
+{"utc": "2026-10-10T12:23:06.781584+00:00", "stage": "session44-capture-quiet", "event": "speed-start", "detail": "forge current-source checks passed; rig CPU15 fixed36 identities/40 blocks; time games held"}
+G529  84W 333D 112L   47.4%  elo  -18.4 [-48,+11]  LLR  -1.53  pLLR  -2.36  draw-rule   
+session44-expanded-data
+13164
+session44-capture-quiet
+13178
