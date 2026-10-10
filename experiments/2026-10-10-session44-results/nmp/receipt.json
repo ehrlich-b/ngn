@@ -1,0 +1,35 @@
+{
+  "completed_utc": "2026-10-10T12:03:34.148725+00:00",
+  "base_source": "56b35ef",
+  "patch_sha256": "382b501d6e3125b999ba5b367c7ffa28025a4216313710e583fdaa223cc29edb",
+  "source_sha256": {
+    "engine/search.go": "f40630cdb183fc824b86784a99e2493e492fd5aead59b96c47c5297023ee2da3",
+    "engine/search_nmp_eval_margin_test.go": "9ea8ac7f0221226e1b3fbf2a059058ffdc9a77b05f085a55463c34627644781e"
+  },
+  "binary_sha256": "ac7f3f308b43e3efb0fc3d5b240bf3e7b16e2766ebc8717a00753a76d0c071f4",
+  "old_fail_new_pass": true,
+  "tests_pass": true,
+  "checks": [
+    "live null child191/192cp and larger gaps",
+    "pawn-only guard",
+    "full short ./...",
+    "full race ./...",
+    "vet",
+    "explicit accepted PGO build"
+  ],
+  "machine": "forge Debian13",
+  "os": "Linux-6.12.111+deb13-cloud-amd64-x86_64-with-glibc2.41",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "cpus": [
+    8,
+    9,
+    10,
+    11
+  ],
+  "nice": 10,
+  "memory_max": 2147483648,
+  "strength_games": 0,
+  "automatic_games": false,
+  "automatic_adoption": false
+}

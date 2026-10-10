@@ -1,0 +1,70 @@
+diff --git a/engine/search.go b/engine/search.go
+index 522f981..d6b8067 100644
+--- a/engine/search.go
++++ b/engine/search.go
+@@ -1691,7 +1691,14 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 		// reduction depth-NULL_MOVE_R-1 = -1 trips the negative-depth guard and
+ 		// verifies the null move with a raw static eval (tactically blind) instead
+ 		// of quiescence; flooring routes it through qsearch like the depth>=4 path.
+-		nullDepth := depth - (NULL_MOVE_R + 1 + depth/6) // NMP reduction: tunable base NULL_MOVE_R (def 3 => R+1=4) + depth-scaling; CG/Ethereal/Weiss converge
++		// An eval comfortably beyond this cut threshold permits a shallower
++		// null verification. NGN's candidate uses one extra ply per 192 cp,
++		// capped at three; the existing depth term and qsearch floor remain.
++		extraReduction := (staticEval - beta) / 192
++		if extraReduction > 3 {
++			extraReduction = 3
++		}
++		nullDepth := depth - (NULL_MOVE_R + 1 + depth/6 + extraReduction)
+ 		if nullDepth < 0 {
+ 			nullDepth = 0
+ 		}
+diff --git a/engine/search_nmp_eval_margin_test.go b/engine/search_nmp_eval_margin_test.go
+new file mode 100644
+index 0000000..88bd3db
+--- /dev/null
++++ b/engine/search_nmp_eval_margin_test.go
+@@ -0,0 +1,44 @@
++package engine
++
++import (
++	"strconv"
++	"testing"
++)
++
++// At depth six the old null child has depth one. An eval gap of 192 cp
++// routes it straight to qsearch, while the adjacent 191 cp control still
++// enters a main-search move loop. This witnesses the live call site without
++// adding a diagnostic branch or counter to ordinary search.
++func TestNMPEvalMarginRoutesNullChild(t *testing.T) {
++	for _, gap := range []int{191, 192, 576, 2000} {
++		t.Run(strconv.Itoa(gap), func(t *testing.T) {
++			pos, info := newProbcutContractState(t, 6)
++			before := snapshotPVPosition(pos)
++			old := SearchToggles
++			SearchToggles.RFP = false
++			t.Cleanup(func() { SearchToggles = old })
++			got := alphaBetaPV(pos, 6, 0, -gap-1, -gap, false, true, true, info)
++			if info.Stopped || info.NullMoveTries != 1 || info.NullMoveCutoffs != 1 || got != -gap {
++				t.Fatalf("gap=%d score=%d stopped=%v null tries/cuts=%d/%d", gap, got, info.Stopped, info.NullMoveTries, info.NullMoveCutoffs)
++			}
++			if (info.MoveLoopNodes == 0) != (gap >= 192) {
++				t.Fatalf("gap=%d main move loops=%d; want null child in qsearch iff gap>=192", gap, info.MoveLoopNodes)
++			}
++			if info.QNodes == 0 {
++				t.Fatal("null verification skipped quiescence")
++			}
++			requireProbcutSearchUnwound(t, pos, before, info, EmptyMove, 0, 0)
++		})
++	}
++}
++
++func TestNMPEvalMarginPreservesPawnOnlyGuard(t *testing.T) {
++	pos, info := newProbcutContractStateForFEN(t, "4k3/p7/8/8/8/8/7P/4K3 w - - 0 1", 6)
++	old := SearchToggles
++	SearchToggles.RFP = false
++	t.Cleanup(func() { SearchToggles = old })
++	alphaBetaPV(pos, 6, 0, -577, -576, false, true, true, info)
++	if info.Stopped || info.NullMoveTries != 0 {
++		t.Fatalf("pawn-only search stopped=%v null tries=%d", info.Stopped, info.NullMoveTries)
++	}
++}
