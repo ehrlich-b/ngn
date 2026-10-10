@@ -21,17 +21,18 @@ const (
 // object; their accumulators never live here. All arithmetic remains exact
 // even for the full int16 weight range permitted by the file format.
 type NGNN1Network struct {
-	hidden      int
-	version     int
-	buckets     int // zero means one for existing in-package single-row networks
-	kingBuckets int
-	kingMap     [64]uint8
-	weights     []int16
-	bias        []int16
-	output      []int16
-	outputBias  int32 // first bucket, also the sole NGNN1 output bias
-	otherBiases []int32
-	smallOutput bool // immutable loader-derived bound: every output weight is within [-128, 128]
+	hidden       int
+	version      int
+	buckets      int // zero means one for existing in-package single-row networks
+	kingBuckets  int
+	kingMap      [64]uint8
+	weights      []int16
+	bias         []int16
+	output       []int16
+	outputBias   int32 // first bucket, also the sole NGNN1 output bias
+	otherBiases  []int32
+	compactInput bool // loader-proved int16 accumulator bounds and small output
+	smallOutput  bool // immutable loader-derived bound: every output weight is within [-128, 128]
 }
 
 func (n *NGNN1Network) valid() bool {
@@ -146,6 +147,7 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 		offset += 4
 		n.otherBiases[i] = int32(binary.LittleEndian.Uint32(data[offset : offset+4]))
 	}
+	n.compactInput = n.version == 3 && n.smallOutput && n.compactInputBound()
 	return n, nil
 }
 
@@ -283,22 +285,32 @@ func ngnn1MoveDelta(move Move) ngnn1Delta {
 // A logical search ply can read an earlier slot after a null move. Every real
 // move writes its own slot, so sharing never changes an ancestor accumulator.
 type ngnn1Frame struct {
-	values []int32
-	slot   int
+	values  []int32
+	slot    int
+	compact []int16
 }
 
 type ngnn1State struct {
 	network      *NGNN1Network
 	stack        []int32
+	compactStack []int16
+	wideView     []int32 // diagnostic access only; search reads compact frames directly
 	frames       []ngnn1Frame
 	refreshCache []ngnn3CacheEntry
 }
 
 func (s *ngnn1State) at(depth int) []int32 {
+	if s.network.compactInput {
+		return s.compactView(depth)
+	}
 	return s.frames[depth].values
 }
 
 func (s *ngnn1State) ensure(depth int) {
+	if s.network.compactInput {
+		s.ensureCompact(depth)
+		return
+	}
 	width := 2 * s.network.hidden
 	if (depth+1)*width > len(s.stack) {
 		plies := 128
@@ -316,7 +328,7 @@ func (s *ngnn1State) ensure(depth int) {
 			if ply < len(s.frames) {
 				slot = s.frames[ply].slot
 			}
-			frames[ply] = ngnn1Frame{next[slot*width : (slot+1)*width], slot}
+			frames[ply] = ngnn1Frame{values: next[slot*width : (slot+1)*width], slot: slot}
 		}
 		s.stack = next
 		s.frames = frames
@@ -325,6 +337,10 @@ func (s *ngnn1State) ensure(depth int) {
 
 func (s *ngnn1State) reset(pos *Position) {
 	s.ensure(0)
+	if s.network.compactInput {
+		s.resetCompact(pos)
+		return
+	}
 	if s.network.version == 3 {
 		for p, color := range [...]Color{White, Black} {
 			s.cachedRefresh(p, s.network.kingContext(pos, color), pos, s.at(0)[p*s.network.hidden:(p+1)*s.network.hidden])
@@ -340,13 +356,17 @@ func (s *ngnn1State) push(depth int, delta ngnn1Delta) {
 
 func (s *ngnn1State) pushPosition(depth int, delta ngnn1Delta, pos *Position) {
 	s.ensure(depth)
+	if s.network.compactInput {
+		s.pushCompact(depth, delta, pos)
+		return
+	}
 	if delta.removes == 0 && delta.adds == 0 {
 		s.frames[depth] = s.frames[depth-1]
 		return // Null move: the turn changes; the features do not.
 	}
 	width := 2 * s.network.hidden
 	child := s.stack[depth*width : (depth+1)*width]
-	s.frames[depth] = ngnn1Frame{child, depth}
+	s.frames[depth] = ngnn1Frame{values: child, slot: depth}
 	parent := s.at(depth - 1)
 	n := s.network
 	if delta.refreshMask == 0 && delta.removes == 1 && delta.adds == 1 {

@@ -116,8 +116,9 @@ func (n *NGNN1Network) ngnn3MoveDelta(pos *Position, move Move) ngnn1Delta {
 // The masks are in board coordinates; only changed pieces touch input rows.
 // Cache entries may describe any previous branch, independent of stack undo.
 type ngnn3CacheEntry struct {
-	acc    []int32
-	pieces [13]uint64
+	acc     []int32
+	compact []int16
+	pieces  [13]uint64
 }
 
 func (s *ngnn1State) cachedRefresh(p int, context ngnn3Context, pos *Position, dst []int32) {
