@@ -1,0 +1,17 @@
+{
+  "tests_pass": true,
+  "passed_initial_tests": 59,
+  "recovered_fixture_pass": true,
+  "remote_tests_pass": 4,
+  "cpus": [
+    12,
+    14
+  ],
+  "memory_max": 2621440000,
+  "source_sha256": {
+    "trainer/archive.py": "317db710674548c8d2211fffc96e6581d8015af2ca584a68b3e659600c6c3138",
+    "trainer/remote_archive.py": "153134e8821cc4d36d1d44c85c33a6b318f2a65388d2cf16a156f437c2426dc3",
+    "trainer/archive_server.py": "30d8da4cdf559640d7fbf86820a6fc6ea98486f70bbedb4d3b7d332f72fd20af",
+    "trainer/tests/test_remote_archive.py": "7ec45e45348c4b68e04b759703db81d9361281150729afc543a275266807588b"
+  }
+}

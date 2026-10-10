@@ -1,0 +1,31 @@
+{
+  "verdict": "SHELVED",
+  "cases": {
+    "ngnn3": {
+      "depth": 14,
+      "equal": true,
+      "cases": 12
+    },
+    "ngnn2": {
+      "depth": 14,
+      "equal": true,
+      "cases": 12
+    },
+    "hce": {
+      "depth": 11,
+      "equal": true,
+      "cases": 12
+    }
+  },
+  "ratio": 0.9532024206864096,
+  "ci95": [
+    0.9473573203209477,
+    0.9590835847392992
+  ],
+  "strata": [
+    0.9527814767331636,
+    0.953623550614946
+  ],
+  "controller_exit": "0",
+  "raw_rounds_reconciled": 20
+}
