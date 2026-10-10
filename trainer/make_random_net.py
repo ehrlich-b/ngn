@@ -15,7 +15,7 @@ from trainer.king_buckets import load_map
 
 
 def generate(path: Path, evals: Path, hidden: int = 32, seed: int = 20261005,
-             buckets: int = 1, format: int | None = None, kb_map: str = "default") -> dict:
+             buckets: int = 1, format: int | None = None, kb_map: str = "default", hidden2: int = 0) -> dict:
     rng = np.random.default_rng(seed)
     # The random fixture exercises signs, saturation, and both STM orderings.
     state = {"w1": rng.normal(0, 0.07, (768, hidden)),
@@ -24,10 +24,14 @@ def generate(path: Path, evals: Path, hidden: int = 32, seed: int = 20261005,
     if buckets != 1:
         state["o"] = rng.uniform(-0.3, 0.3, (buckets, 2 * hidden))
         state["ob"] = rng.uniform(-0.1, 0.1, buckets)
-    if format == 3:
+    if format in (3, 4):
         mapping = load_map(kb_map)
         state["king_map"] = np.asarray(mapping, dtype=np.int64)
         state["w1"] = rng.normal(0, 0.07, ((max(mapping) + 1) * 768, hidden))
+    if format == 4:
+        state["w2"] = rng.uniform(-1, 1, (buckets, hidden2, 2 * hidden))
+        state["b2"] = rng.uniform(-0.2, 0.6, (buckets, hidden2))
+        state["o"] = rng.uniform(-0.3, 0.3, (buckets, hidden2))
     export_state(state, path, format)
     network = Network(path)
     fens = random_fens(30, seed + 1)
@@ -39,7 +43,7 @@ def generate(path: Path, evals: Path, hidden: int = 32, seed: int = 20261005,
         for i, count in enumerate((2, 5, 6, 9, 10, 13, 14, 17, 18, 21, 22, 25, 26, 29, 30, 32)):
             indices = np.concatenate((kings, others[:count - 2]))
             fens[i] = to_fen(Position(start.squares[indices], start.pieces[indices], i % 2))
-    if network.version == 3:
+    if network.version >= 3:
         # Every own-king square in both perspectives; includes both mirror states.
         fens = []
         for square in range(64):
@@ -57,8 +61,10 @@ def generate(path: Path, evals: Path, hidden: int = 32, seed: int = 20261005,
         payload["buckets"] = buckets
         for case in payload["cases"]:
             case["bucket"] = network.bucket(parse_fen(case["fen"]))
-    if network.version == 3:
+    if network.version >= 3:
         payload["king_buckets"] = network.king_buckets
+    if network.version == 4:
+        payload["hidden2"] = hidden2
     evals.parent.mkdir(parents=True, exist_ok=True)
     evals.write_text(json.dumps(payload, indent=2) + "\n")
     return payload
@@ -71,10 +77,11 @@ def main() -> None:
     cli.add_argument("--hidden", type=int, default=32)
     cli.add_argument("--seed", type=int, default=20261005)
     cli.add_argument("--buckets", type=int, choices=(1, 2, 4, 8), default=1)
-    cli.add_argument("--format", type=int, choices=(1, 2, 3))
+    cli.add_argument("--format", type=int, choices=(1, 2, 3, 4))
+    cli.add_argument("--hidden2", type=int, default=0)
     cli.add_argument("--kb-map", default="default")
     args = cli.parse_args()
-    payload = generate(args.out, args.evals, args.hidden, args.seed, args.buckets, args.format, args.kb_map)
+    payload = generate(args.out, args.evals, args.hidden, args.seed, args.buckets, args.format, args.kb_map, args.hidden2)
     print(json.dumps({"network": str(args.out), "sha256": payload["network_sha256"], "cases": len(payload["cases"])}))
 
 

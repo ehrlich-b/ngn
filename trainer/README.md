@@ -310,3 +310,18 @@ python -m trainer.make_random_net --format 3 --kb-map default --seed 20261006 \
 
 Existing loader/selection APIs and UCI EvalFile accept all three formats;
 NGNN3 reports backend `ngnn3`. NGNN1/2 retain their feature and weight layouts.
+
+## NGNN4 narrow hidden layer (experimental topic branch)
+
+`--format 4 --hidden2 16/32/48/64` adds a material-specific affine layer
+after clipped linear accumulator activations, followed by squared clipped
+activation and an output row. W2 is quantized by 64 into int8 [-64,64],
+B2 by 255 into int16. The independent integer reference and engine use
+truncation toward zero before adding B2. The 100-byte header and full
+arithmetic are specified in `experiments/2026-10-08-hidden-layer.md`.
+Defaults and NGNN1/2/3 export bytes remain unchanged.
+
+This is unaccepted architecture code, with no trained net or strength result.
+CPU parity is necessary; a CUDA FP32/BF16 control, a declared real GPU trial,
+byte-identical reexport, exact integer parity, fresh A/A40 and the completed
+paired 400-game gate are still required before any playing-strength claim.
