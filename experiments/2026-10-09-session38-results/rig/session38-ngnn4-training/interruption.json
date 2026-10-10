@@ -1,0 +1,11 @@
+{
+  "utc": "2026-10-10T04:40:06.252906+00:00",
+  "reason": "C: below25GiB; unconstrained training file cache filled guest memory",
+  "stopped_group": 2637,
+  "completed_epochs": 0,
+  "checkpoint_exists": false,
+  "corpus_bytes_unchanged": true,
+  "cache_advice_file": "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+  "hopper_untouched": true,
+  "next": "fresh full recipe under4GiB job scope; no completed training evidence to repeat"
+}

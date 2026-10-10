@@ -1,0 +1,10 @@
+ngn: OK
+sprt: OK
+openings.txt: OK
+base.nnue: OK
+candidate.nnue: OK
+gate-parser.py: OK
+base.tar: OK
+controller.sh: OK
+manifest.md: OK
+game-manifest.json: OK

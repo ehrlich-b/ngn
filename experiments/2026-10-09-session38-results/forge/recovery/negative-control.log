@@ -1,0 +1,5 @@
+--- FAIL: TestUCICompletionFollowsFinalOutputWithoutHoldingLifecycleLock (5.30s)
+    uci_process_test.go:234: final output or join held lifecycleMu while blocking
+FAIL
+FAIL	github.com/ehrlich-b/ngn/engine	5.444s
+FAIL

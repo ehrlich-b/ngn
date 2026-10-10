@@ -1,0 +1,31 @@
+{
+  "utc": "2026-10-10T04:31:49.725287+00:00",
+  "base_source": "ac658e2ce509154775d9567807a5ccf8485b6dca",
+  "candidate_topic": "night/key-plan-current",
+  "machine": "forge / Ryzen6900HX Debian13 VM",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "os": "Linux-6.12.111+deb13-cloud-amd64-x86_64-with-glibc2.41",
+  "goamd64": "v3",
+  "cpus": [
+    8,
+    9,
+    10,
+    11
+  ],
+  "memory_max": 2684354560,
+  "nice": 10,
+  "checks": [
+    "full-short ./...",
+    "full-race ./...",
+    "go vet ./...",
+    "explicit accepted-PGO build"
+  ],
+  "files_sha256": {
+    "source/engine/hash.go": "48f94110e870c6e19c17ee0b3033d77d994a018e2b7bff87d161b8a508f2c31e",
+    "source/engine/uci_process_test.go": "c83644d5381f5fb28e1fa0b1c682bd013bea939607473d2fd37229fc68b8650d",
+    "source/default.pgo": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+    "candidate-ngn": "122b43691e6557cab8eb79e890afbf6d0bdfb4adbc60d66a35d999dc79ac40d9"
+  },
+  "patch_sha256": "f9ee82e18c1bfa2d2044557dc0c47e2521d356fc91bfffd44338dce144cbf930",
+  "strength_games": 0
+}

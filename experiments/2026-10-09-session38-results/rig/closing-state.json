@@ -1,0 +1,38 @@
+{
+  "utc": "2026-10-10T04:50:20.928793+00:00",
+  "jobs": {
+    "session38-key-plan": {
+      "controller.pid": "2847",
+      "controller.started": "2026-10-10T00:43:55-04:00",
+      "controller.exit": null,
+      "controller.done": null,
+      "aa_log_tail": [
+        "G21    6W 11D  4L   54.8%  elo  +33.2 [-112,+178]  LLR  +0.07  pLLR  +0.38  checkmate   ",
+        "G22    6W 12D  4L   54.5%  elo  +31.7 [-110,+173]  LLR  +0.08  pLLR  +0.46  draw-rule   ",
+        "G23    6W 13D  4L   54.3%  elo  +30.3 [-109,+169]  LLR  +0.08  pLLR  +0.46  draw-rule   "
+      ]
+    },
+    "session38-ngnn4-bounded": {
+      "controller.pid": "2791",
+      "controller.started": "2026-10-10T00:41:23-04:00",
+      "controller.exit": null,
+      "controller.done": null,
+      "completed_epochs": 0,
+      "train_log_tail": [
+        "{\"device\": \"cuda\", \"torch\": \"2.7.0+cu128\", \"raw_records\": 2374290033, \"filtered_records\": 2371970389, \"positions_per_epoch\": 256000000, \"validation_records\": 2319644, \"steps_per_epoch\": 15625, \"config\": {\"data\": [\"/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf\"], \"data_format\": \"archive\", \"archive_holdout_modulus\": 1024, \"archive_split_seed\": 20261006, \"ngnp_holdout_modulus\": 0, \"ngnp_split_seed\": null, \"validation_data\": null, \"record_counts\": null, \"out\": \"/home/ehrli/ngn-data/night-20261007/session38-ngnn4-bounded/trained\", \"hidden\": 512, \"hidden2\": 16, \"buckets\": 8, \"format\": 4, \"kb_map\": \"default\", \"king_factorizer\": false, \"batch\": 16384, \"lr\": 0.001, \"epochs\": 58, \"positions_per_epoch\": 256000000, \"decay\": \"cosine\", \"decay_steps\": 1000, \"gamma\": 0.5, \"min_lr_ratio\": 0.1, \"wdl\": 0.75, \"k\": 400.0, \"weight_decay\": 0.01, \"drop_flags\": 15, \"min_ply\": 0, \"block_records\": 262144, \"seed\": 20261006, \"device\": \"cuda\", \"threads\": 2, \"precision\": \"bf16\", \"resume\": null, \"keep_best_only\": true, \"king_map\": [0, 0, 1, 1, 1, 1, 0, 0, 2, 2, 3, 3, 3, 3, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7], \"shard_record_counts\": null, \"archive_split\": {\"hash\": \"ngn-board-mix64-v1\", \"seed\": 20261006, \"modulus\": 1024, \"holdout_remainder\": 0, \"block_records\": 262144, \"sources\": [{\"path\": \"/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf\", \"bytes\": 75977281056, \"records\": 2374290033}], \"raw_records\": 2374290033, \"training_records\": 2371970389, \"holdout_records\": 2319644, \"contract\": \"identical occupied boards share partition; labels excluded\"}}}"
+      ]
+    }
+  },
+  "processes": [
+    "   1170    1170    03:37:41  0.3 17828 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    "   2791    2791       08:57  0.0  3456 bash /home/ehrli/ngn-data/night-20261007/session38-ngnn4-bounded/controller.sh",
+    "   2804    2791       08:55 78.9 3586128 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/session38-ngnn4-bounded/trained --format 4 --hidden2 16 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 58 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only",
+    "   2847    2847       06:25  0.0  3328 bash /home/ehrli/ngn-data/night-20261007/session38-key-plan/controller.sh",
+    "   2860    2860       06:25  0.0  1920 timeout --signal=TERM --kill-after=15s 30m taskset -c 13,15 nice -n 19 ./sprt -new ./baseline-ngn -base ./baseline-ngn -tc 10+0.1 -concurrency 2 -mingames 1000000 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session38-key-plan/openings.txt -lowpower=false -maxgames 40 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session38-key-plan/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session38-key-plan/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false",
+    "   2861    2860       06:25  0.4 19024 ./sprt -new ./baseline-ngn -base ./baseline-ngn -tc 10+0.1 -concurrency 2 -mingames 1000000 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session38-key-plan/openings.txt -lowpower=false -maxgames 40 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session38-key-plan/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session38-key-plan/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false"
+  ],
+  "gpu": "0 %, 4177 MiB",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:     16267808768  4026802176  9741742080    91922432  2842501120 12241006592\nSwap:     4294967296    24264704  4270702592\n",
+  "host_c_free_bytes": 30417068032,
+  "scopes": "MemoryCurrent=4294938624\nMemoryPeak=4295122944\nCPUQuotaPerSecUSec=2s\nAllowedCPUs=12 14\nMemoryMax=4294967296\nMemorySwapMax=0\nId=ngn-gpu-s38.scope\nActiveState=active\n\nMemoryCurrent=888647680\nMemoryPeak=888889344\nCPUQuotaPerSecUSec=2s\nAllowedCPUs=13 15\nMemoryMax=2147483648\nMemorySwapMax=0\nId=ngn-key-s38.scope\nActiveState=active\n"
+}

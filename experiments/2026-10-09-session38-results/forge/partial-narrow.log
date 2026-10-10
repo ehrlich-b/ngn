@@ -1,0 +1,40 @@
+=== RUN   TestPartialRootRetainsCompletedImprovementOnly
+--- PASS: TestPartialRootRetainsCompletedImprovementOnly (0.00s)
+=== RUN   TestPartialRootRejectsUnprovedComparisons
+=== RUN   TestPartialRootRejectsUnprovedComparisons/incumbent_fail_low
+=== RUN   TestPartialRootRejectsUnprovedComparisons/incumbent_fail_high
+=== RUN   TestPartialRootRejectsUnprovedComparisons/incumbent_not_first
+=== RUN   TestPartialRootRejectsUnprovedComparisons/no_completed_depth
+=== RUN   TestPartialRootRejectsUnprovedComparisons/equal_alternative
+=== RUN   TestPartialRootRejectsUnprovedComparisons/worse_alternative
+=== RUN   TestPartialRootRejectsUnprovedComparisons/alternative_fail_high
+=== RUN   TestPartialRootRejectsUnprovedComparisons/alternative_upper_bound
+--- PASS: TestPartialRootRejectsUnprovedComparisons (0.00s)
+    --- PASS: TestPartialRootRejectsUnprovedComparisons/incumbent_fail_low (0.00s)
+    --- PASS: TestPartialRootRejectsUnprovedComparisons/incumbent_fail_high (0.00s)
+    --- PASS: TestPartialRootRejectsUnprovedComparisons/incumbent_not_first (0.00s)
+    --- PASS: TestPartialRootRejectsUnprovedComparisons/no_completed_depth (0.00s)
+    --- PASS: TestPartialRootRejectsUnprovedComparisons/equal_alternative (0.00s)
+    --- PASS: TestPartialRootRejectsUnprovedComparisons/worse_alternative (0.00s)
+    --- PASS: TestPartialRootRejectsUnprovedComparisons/alternative_fail_high (0.00s)
+    --- PASS: TestPartialRootRejectsUnprovedComparisons/alternative_upper_bound (0.00s)
+=== RUN   TestPartialRootPreservesOtherStopPolicies
+=== RUN   TestPartialRootPreservesOtherStopPolicies/whole_iteration
+=== RUN   TestPartialRootPreservesOtherStopPolicies/external_stop
+=== RUN   TestPartialRootPreservesOtherStopPolicies/coincident_external_and_clock
+=== RUN   TestPartialRootPreservesOtherStopPolicies/node_stop
+=== RUN   TestPartialRootPreservesOtherStopPolicies/fixed_move_time
+=== RUN   TestPartialRootPreservesOtherStopPolicies/fixed_depth
+=== RUN   TestPartialRootPreservesOtherStopPolicies/infinite
+--- PASS: TestPartialRootPreservesOtherStopPolicies (0.00s)
+    --- PASS: TestPartialRootPreservesOtherStopPolicies/whole_iteration (0.00s)
+    --- PASS: TestPartialRootPreservesOtherStopPolicies/external_stop (0.00s)
+    --- PASS: TestPartialRootPreservesOtherStopPolicies/coincident_external_and_clock (0.00s)
+    --- PASS: TestPartialRootPreservesOtherStopPolicies/node_stop (0.00s)
+    --- PASS: TestPartialRootPreservesOtherStopPolicies/fixed_move_time (0.00s)
+    --- PASS: TestPartialRootPreservesOtherStopPolicies/fixed_depth (0.00s)
+    --- PASS: TestPartialRootPreservesOtherStopPolicies/infinite (0.00s)
+=== RUN   TestPartialRootClockUnwindsPositionAndTT
+--- PASS: TestPartialRootClockUnwindsPositionAndTT (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.012s

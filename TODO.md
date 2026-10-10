@@ -1,37 +1,40 @@
-# NGN live state — 2026-10-09: 3600 campaign
+# NGN live state — 2026-10-10: 3600 campaign
 
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing source **ac658e2 / NGNN3 KB8 H512 be34532c**, unchanged58-epoch recipe.
-Own TT/SEE are provisional provenance keeps; combined batchSPRT[0,+6] vs
-5b882e2 remains required. Key22682 is SHELVED; no retry/adoption/extension.
-Completed null-frame speed/architecture compatibility evidence needs no repeat.
+Playing runtime **ac658e2 / NGNN3 KB8 H512 be34532c**, unchanged58-epoch recipe.
+OwnTT/SEE are provisional; combined batchSPRT[0,+6] vs5b882e2 remains required.
+Completed22682 stays SHELVED. Current plan explicitly orders one follow-up key
+confirmation after diagnostics, with the same initializer/no pooling/seed change.
 
-**Session37:** WSL entry restored after a fresh restart before entry. SPSA
-**1360** resumes durable1500/18,000 on0–11. Actual-base factorizer **1381**
-launches freshA/A40 then400 paired10+0.1 games on13,15. NGNN4 pilot1390
-completes all three16M epochs: reviewed frozen projection **4.5743GPU hours**,
-budget PASS. Full trial **1660** waits natively for a clean factorizer shelf
-and capacity, then58x256M/reexport/20 parity/actual cost/A/A40/gate400.
-[Full trial](experiments/2026-10-09-ngnn4-full.md). No training/adoption yet.
+**Session38:** factorizer actual-base400 completes **+13.90[−7.14,+35.05]**,
+zero faults; SHELVED by its frozen gain rule. CPU work moves to forge8–11:
+legacy SPSA **88178** resumes1625/19,500 with pairs6/update/concurrency2,
+unchanged24k endpoint and known legacy RNG reset. Frozen engine rebuild is
+byte-identical. No optimizer acceptance; final-vector rig games still required.
 
-Host C: fell from29.25GiB to **20.22GiB**; new heavy stages require25.5GiB.
-Time checks1421 and completed-root checks1598 stopped at capacity before any
-source extraction/Go tests/builds. No test failure or test pass is claimed.
-At least5.28GiB more capacity is needed; no restart/configuration/unrelated
-cleanup was performed. Existing SPSA/factorizer continue; hopper1170 untouched.
+All three isolated time candidates pass actual-source narrow/full-short/
+full-race/vet/PGO checks on forge. An existing test's cancellation/TryLock race
+is repaired without engine changes:20 race repetitions, intended negative
+control failure, baseline full-short/full-race pass. Runtime candidates remain
+uncommitted/unadopted; each needs its own60+0.6 powered game verdict.
 
-Three isolated time topics onac658e2: immediate admission, remaining-move
-floor10→25, and new `night/partial-root` retaining a finished exact root
-improvement at tournament clock stop. Actual-source checks are unrun; each
-requires separate60+0.6 powered games after higher priorities, no stacked
-policy or10+0.1 time verdict. Durable patches/manifests preserve uncommitted
-runtime candidates. [Session37](experiments/2026-10-09-session37.md).
+789-key diagnostics show no duplicates/zeros or gross bit imbalance; eight
+depth8 cases have identical112,742nodes/22,055hits, with88 vs76 occupied index
+mismatches and no evictions. Diagnostic only. Current-base key checks97535 pass; rig controller**2847** starts00:43:55
+with fresh A/A40 then400; provenance upper95>0 rule, no automatic adoption.
 
-Data: T76 complete55.63GB/1.738B rows; T74 corpus incomplete, requires70GiB
-(~49.78GiB beyond current free). No data waiter/trainer. Source2acf834 is
-verified/pushed on isolated `night/ngnn4-current`; no playing architecture
-adoption. No3600 claim/publication. Check factorizer terminal and full-trial
-stage first around23:35, or act earlier only if capacity/free CPU lane returns.
+Rig C: restored to28.326GiB. Full NGNN4 training **2791**/trainer2804
+starts00:41 in`session38-ngnn4-bounded/`, hard4GiB memory/swap0/12,14,
+fresh58x256M H512/L16/dense/BF16, unchanged admitted recipe. Initial2637
+stopped after zero epochs when clean file cache pushed C: below25GiB;
+original logs preserved, no data deletion. Games are held for the key-source
+disposition. [Active training stage](experiments/2026-10-10-ngnn4-bounded.md).
+Next session not before03:00 EDT October10; review only newly finished jobs.
+
+T76 complete55.63GB/1.738B rows; T74 still needs70GiB. No data waiter.
+No3600 claim/default-net promotion/publication. Check the live handles once,
+review only new terminal evidence, and freeze the actual architecture game
+base after the key decision. [Session38](experiments/2026-10-09-session38.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
