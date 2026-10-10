@@ -30,3 +30,10 @@ That leaves a clean game boundary: integrate capture only after its own
 current-base result passes, then nominate time-admission on that actual
 accepted base. If capture shelves, retain 56b35ef. Do not start a time gate
 while this playing-source decision remains pending.
+
+Session46 reviews the complete terminal08:48:15/exit0:36 identities and
+all40 raw blocks reconcile. NPS ratio1.0141906[1.0072456,1.0211835],
+both strata1.0150953/1.0132868. KEEP as isolatedf1168e6 and integrated
+de148b9, committed/pushed to the verified private origin. This is the
+marginal current-base speed result; the older capture-only sample remains
+separate. [Review](2026-10-10-session46-results/capture/review.json).

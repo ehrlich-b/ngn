@@ -1,43 +1,47 @@
 # NGN live state — 2026-10-10: 3600 campaign
 
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing engine **56b35ef / NGNN3 KB8 H512 be34532c**. TT/key/SEE remain
-provisional; original combined60+0.6 SPRT[0,+6] vs5b882e2 continues on
-rig0–11,3465/3643; latest536/no terminal. Completed rule alone certifies.
+Playing **de148b9 / NGNN3 KB8 H512 be34532c**. Capture pairing's current-base
+rule passes36 identities/40 reconciled blocks: **+1.42%[+0.72%,+2.12%]**,
+both strata>1; committed/pushed. Old capture-only sample remains separate.
 
-Capacity recovers to286.01GiB at08:22; closing**285.79GiB**. Unchanged
-manual expanded-data retry13164/13201 starts08:23 on12,14/nice19/4GiB;
-split-index initialization/zero epochs at08:28, roughfullcompletion14–15EDT.
-Keep forge reader117631. Full58/reexport20 parity and review precede fresh
-actual-base A/A40/fixed400 games. No automatic restart, corpus re-audit or
-net adoption. Original training/time interruptions stay preserved.
+Time13805 has full actualde148b9 checks and fresh60+0.6 A/A40 on13,15/c2/
+2500MiB since08:52:36; then original SPRT[0,+6]/min400/cap4000. Keep only
+completedH1/printed-unrounded lower95>0/zero faults/intact inputs. Freeze
+playing source through this gate; no clock stack or repeated trajectories.
+[Time record](experiments/2026-10-10-time-after-capture.md).
 
-Distinct current56b35ef capture+quiet speed13178 starts08:23 on13,15/CPU15/
-nice19/2GiB; expected08:50. Review36 identities/fixed40 blocks once under
-lower95ratio>1/both strata>1; integrate only on pass, otherwise shelve without
-extension. Oldisolatedcapturec66fbc1 is KEEP,+3.16%, separate from this gate.
-[Manifest](experiments/2026-10-10-capture-quiet-current.md).
+TT/key/SEE remain provisional. Original combined provenance3465/3643 on
+0–11/c6/3GiB vs5b882e2 reaches599 at09:01/no terminal. Completed rule alone
+certifies. Native waiter15617 conditionally runs a fresh TT-only60+0.6
+A/A40/fixed400 diagnostic after a valid requires-bisect terminal; no
+automatic source changes, repeated old sample or game pooling.
+[Bisect](experiments/2026-10-10-provenance-tt-bisect.md).
 
-After capture settles, nominate actual-base unchanged time admission.
-Newsession45-time-admission controller/parsers/patch are staged, not launched;
-write concrete source nomination/archive/stage pins then full combination
-checks, fresh60+0.6 A/A40/SPRT[0,+6]/min400/cap4000/c2/2500MiB. Freeze playing
-base through that gate; horizon/partial/search stay separate.
-[Preparation](experiments/2026-10-10-time-after-capture.md).
+Unchanged expanded-data retry13164/13201 continues on12,14/4GiB. Initial
+split scan is complete; zero epochs at09:01, full ETA unmeasured. Inspect
+first epochs once. Full58/reexport20 parity/review precede data-only
+A/A40/fixed400 against actual accepted source. Its game controller is
+staged without engine/net/nomination. Keep forge reader117631; no IO/corpus
+re-audit, automatic restart or net/default adoption.
 
-Original NMP eval-depth and new bounded double-singular extension are separate
-isolated/uncommitted56b35ef candidates with exact tracked patches. Both pass
-old-fail/new-pass/full short/race/vet/PGO checks on forge. Double270961 finishes
-08:26:35; live depth64/65cp,5/6/12/13,PV,budget and stop controls pass. Actual-
-base rig games follow priority lanes; no code-only adoption.
-[Manifest](experiments/2026-10-10-singular-double.md).
+Original loader-proved compact int16 accumulators on isolatedde148b9 pass
+normal/purego/oracle/cache/null/full short/race/vet/PGO checks, exact eight
+source hashes. Rig speed inputs staged atsession46-compact, unlaunched.
+Require own36 identities/fixed40/lower95ratio>1/both strata>1 on actual
+base when hardware/time disposition permits. Wide fallback preserves
+other nets. [Record](experiments/2026-10-10-compact-accumulator.md).
 
-Frozen forge SPSA88178 durable1775/21,300 at08:28; earlier nominal24k endpoint
-20:09Oct10 remains rough. Converged-vector rig games decide. WSL4GiB used/
-11GiB available, GPUidle during split scan; forge/work411GB free, SPSA2.5GiB+
-reader128MiB within5GiB/8–11. Hopper1170 untouched. NGNN4/selection/factorizer
-and oldkey22682 stay shelved; no sample extension or repeated IO audits.
-[Session45](experiments/2026-10-10-session45.md). Next session not before08:55EDT.
+New deep non-PV check cap and earlier NMP/double-singular remain separate
+checked56b35ef candidates, tracked exact patches; actual-base compatibility
+and fresh rig strength gates follow priority lanes. No code-only adoption.
+[Cap](experiments/2026-10-10-check-extension-cap.md).
+
+SPSA88178/forge durable1775/21,300; nominal24k endpoint20:09Oct10 rough,
+final-vector rig games required. C:280.53GiB, WSL5GiB used/9GiB available;
+GPU0%/4306MiB at first-epoch snapshot; forge/work411GB free, permitted
+8–11/5GiB only, SPSA2.5GiB+reader128MiB. Hopper1170 untouched.
+[Session46](experiments/2026-10-10-session46.md). Next session not before09:45EDT.
 No3600 claim/default-net promotion/publication.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate

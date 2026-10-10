@@ -24,3 +24,12 @@ No clock-policy stack,10+0.1 verdict or automatic adoption. Training12,14/
 4GiB and provenance0–11/3GiB may overlap without assigned-CPU overlap.
 The controller and original parsers are staged at session45-time-admission;
 concrete source nomination and manual launch follow the reviewed speed result.
+
+Session46 nominatesde148b9 after the passing capture decision and manually
+launches13805 at08:50 EDT. Actual-source four-control/full short/race/vet/
+PGO checks pass; game manifest is written and A/A40 begins08:52:36. The source
+remains frozen. Before any games, one nomination metadata hash that omitted
+the local untracked test was corrected to76efa526, the unchanged staged
+patch including all four tests. Original nomination/pins are preserved;
+source/patch/binary inputs were unchanged and corrected stage checks pass.
+[Manifest](2026-10-10-session46-results/time/game-manifest.json).

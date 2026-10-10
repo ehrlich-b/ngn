@@ -1,0 +1,3 @@
+{"utc": "2026-10-10T12:35:44.736369+00:00", "stage": "session46-check-cap", "event": "checks-start", "detail": "single deep non-PV check cap on56b35ef; old-fail/new-pass and full checks"}
+{"utc": "2026-10-10T12:39:53.738739+00:00", "stage": "session46-check-cap", "event": "checks-pass", "detail": "old-fail/new-pass and full source checks; isolated/uncommitted; actual-base rig games later"}
+{"utc": "2026-10-10T12:39:53.756425+00:00", "stage": "session46-check-cap", "event": "end", "detail": "rc 0; code only, actual-base rig games required"}

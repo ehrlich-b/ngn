@@ -1,0 +1,12 @@
+base.tar: OK
+candidate.patch: OK
+base.nnue: OK
+sprt: OK
+openings.txt: OK
+controller.sh: OK
+manifest.py: OK
+aa-parser.py: OK
+paired-parser.py: OK
+gate-review.py: OK
+nomination.json: OK
+manifest.md: OK

@@ -1,0 +1,124 @@
+diff --git a/engine/search.go b/engine/search.go
+index 522f981..5023d50 100644
+--- a/engine/search.go
++++ b/engine/search.go
+@@ -1995,9 +1995,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 		// cached tag instead of rescanning the board (N2, node-identical).
+ 		givesCheck := pos.IsInCheck()
+ 
+-		// Compute next depth with check extension
++		// Keep shallow and PV checking depth, but let deep non-PV checks
++		// decrement normally instead of holding a cut-node line flat.
+ 		nextDepth := depth - 1
+-		if givesCheck && depth > 1 {
++		if givesCheck && depth > 1 && (isPV || depth <= 6) {
+ 			nextDepth++
+ 			info.CheckExtensions++
+ 		}
+--- /dev/null
++++ b/engine/search_check_cap_test.go
+@@ -0,0 +1,104 @@
++package engine
++
++import "testing"
++
++// An exact depth-(d-1) entry at the checking child covers an ordinary
++// decrement. Extending forces the live search to replace it at depth d.
++func TestCheckExtensionCapChildDepth(t *testing.T) {
++	for _, tc := range []struct {
++		name                     string
++		depth, budget, wantDepth int
++		wantExtensions           uint64
++	}{
++		{"depth2", 2, 26, 2, 1},
++		{"depth6", 6, 26, 6, 1},
++		{"depth7", 7, 26, 6, 0},
++		{"depth12", 12, 26, 11, 0},
++		{"path_budget", 6, 0, 5, 1},
++	} {
++		t.Run(tc.name, func(t *testing.T) {
++			pos, info, child := checkCapState(t, tc.depth)
++			before := snapshotPVPosition(pos)
++			oldBudget := EXTENSION_BUDGET
++			EXTENSION_BUDGET = tc.budget
++			t.Cleanup(func() { EXTENSION_BUDGET = oldBudget })
++			got := alphaBetaPV(pos, tc.depth, 0, 999, 1000, false, false, false, info)
++			if info.Stopped || got != 2000 {
++				t.Fatalf("score=%d stopped=%v", got, info.Stopped)
++			}
++			_, _, depth, _, hit, _ := info.tt.Get(child.Hash())
++			if !hit || int(depth) != tc.wantDepth {
++				t.Fatalf("live checking child depth=%d hit=%v, want %d", depth, hit, tc.wantDepth)
++			}
++			if info.CheckExtensions != tc.wantExtensions {
++				t.Fatalf("check extensions=%d, want %d", info.CheckExtensions, tc.wantExtensions)
++			}
++			if tc.name == "path_budget" && info.ExtBudgetClamps != 1 {
++				t.Fatalf("path clamps=%d, want 1", info.ExtBudgetClamps)
++			}
++			requireProbcutSearchUnwound(t, pos, before, info, EmptyMove, 0, 0)
++		})
++	}
++}
++
++func TestCheckExtensionCapPreservesPV(t *testing.T) {
++	pos, info, child := checkCapState(t, 7)
++	before := snapshotPVPosition(pos)
++	// Grandchild PV evaluations also return the frozen winning score.
++	info.evaluator.staticOracle = func(*Position) int { return 2000 }
++	alphaBetaPV(pos, 7, 0, 999, 1000, true, false, false, info)
++	_, _, depth, _, hit, _ := info.tt.Get(child.Hash())
++	if info.Stopped || info.CheckExtensions == 0 || !hit || depth != 7 {
++		t.Fatalf("PV stopped=%v extensions=%d child depth=%d hit=%v", info.Stopped, info.CheckExtensions, depth, hit)
++	}
++	requireProbcutSearchUnwound(t, pos, before, info, EmptyMove, 0, 0)
++}
++
++func TestCheckExtensionCapStoppedChild(t *testing.T) {
++	pos, info, _ := checkCapState(t, 7)
++	before := snapshotPVPosition(pos)
++	info.tt.Clear()
++	move := adapterLegalMove(t, pos, "a1a8")
++	info.tt.Set(pos.Hash(), move, 0, 0, LowerBound, false)
++	observed := false
++	info.evaluator.transitionObserver = func(_ *Position, evaluator *workerEvaluator) {
++		if evaluator.evaluationDepth() == 2 {
++			observed = true
++			info.control.RequestStop()
++		}
++	}
++	got := alphaBetaPV(pos, 7, 0, 999, 1000, false, false, false, info)
++	if !observed || !info.Stopped || got != stoppedSearchScore {
++		t.Fatalf("child stop observed=%v stopped=%v score=%d", observed, info.Stopped, got)
++	}
++	requireProbcutSearchUnwound(t, pos, before, info, EmptyMove, 0, 0)
++}
++
++func checkCapState(t *testing.T, depth int) (*Position, *SearchInfo, *Position) {
++	t.Helper()
++	pos, info := newProbcutContractStateForFEN(t, "4k3/8/8/8/8/8/8/R3K3 w - - 0 1", depth)
++	old := SearchToggles
++	SearchToggles.NullMove = false
++	SearchToggles.Futility = false
++	SearchToggles.RFP = false
++	SearchToggles.Probcut = false
++	SearchToggles.LMP = false
++	SearchToggles.SEEPrune = false
++	SearchToggles.LMR = false
++	SearchToggles.HistPrune = false
++	SearchToggles.IID = false
++	SearchToggles.Singular = false
++	t.Cleanup(func() { SearchToggles = old })
++	move := adapterLegalMove(t, pos, "a1a8")
++	child := probcutChild(t, pos, move)
++	if !child.IsInCheck() {
++		t.Fatal("fixture move does not give check")
++	}
++	for _, reply := range GenerateLegalMoves(child) {
++		p := probcutChild(t, child, reply)
++		info.tt.Set(p.Hash(), EmptyMove, scoreToTT(2000, 2), 127, Exact, false)
++	}
++	info.tt.Set(child.Hash(), EmptyMove, scoreToTT(-2000, 1), int8(depth-1), Exact, false)
++	info.tt.Set(pos.Hash(), move, 0, 0, LowerBound, false)
++	return pos, info, child
++}
