@@ -1,0 +1,36 @@
+2026-10-10T07:20:29-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              15           3           3           0           7          11
+Swap:              4           0           3
+0 %, 1522 MiB, 16303 MiB
+27658756096
+   1170     256    1170    10:09:03 17972 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+   3465    3458    3465    04:09:27  3456 bash /home/ehrli/ngn-data/night-20261007/session39-provenance-batch/controller.sh
+   3642    3465    3642    03:47:00  1920 timeout --signal=TERM --kill-after=15s 48h taskset -c 0-11 nice -n 19 ./sprt -new ./candidate-ngn -base ./baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session39-provenance-batch/openings.txt -lowpower=false -elo0 0 -elo1 6 -alpha .05 -beta .05 -maxgames 4000 -mingames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false
+   3643    3642    3642    03:47:00 20100 ./sprt -new ./candidate-ngn -base ./baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session39-provenance-batch/openings.txt -lowpower=false -elo0 0 -elo1 6 -alpha .05 -beta .05 -maxgames 4000 -mingames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false
+   9929    9916    9929       40:18  3328 /usr/bin/bash controller.sh
+  12215   12203   12215       06:59  3456 /usr/bin/bash controller.sh
+  12223   12222   12223       06:59 464688 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python trial.py
+  12225   12223   12223       06:58 5219244 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/session42-expanded-data/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 58 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only
+  12364   12359   12364       01:13  3456 /usr/bin/bash controller.sh
+  12399   12392   12392       00:00  6084 rg hopper|trainer.train|trial.py|sprt|controller.sh|go test|speedprobe
+session42-expanded-data
+12215
+2026-10-10T07:13:29-04:00
+Running as unit: ngn-s43-expanded-data.scope; invocation ID: 16e8976d9262479eb1555d993f546481
+session43-time-admission
+12364
+2026-10-10T07:19:15-04:00
+Running as unit: ngn-s43-time-admission.scope; invocation ID: 31807e24fc0c4bf2bab6b03fd5d0322a
+session42-capture-perspective
+9929
+2026-10-10T06:40:11-04:00
+Running as unit: ngn-s42-capture-perspective-final.scope; invocation ID: 4aa51576d133434bbcf2bbf7141c3793
+{"utc": "2026-10-10T10:40:11.371227+00:00", "stage": "session42-capture-perspective", "event": "architecture-wait", "detail": "native wait for4007 to release13,15; no gate log polling"}
+{"utc": "2026-10-10T11:00:01.531944+00:00", "stage": "session41-remote-data", "event": "coverage-done", "detail": "review unique expansion/source scale/actual accepted base before data-only training", "estimated_unique_ratio": 1.9861765055402276}
+{"utc": "2026-10-10T11:05:47.817907+00:00", "stage": "session39-ngnn4-key-games", "event": "gate-done", "detail": "{\"mode\": \"gate\", \"games\": 400, \"pairs\": 200, \"wins\": 86, \"draws\": 204, \"losses\": 110, \"penta\": [13, 58, 74, 50, 5], \"elo\": -20.9, \"ci95\": [-44.0, 2.0], \"exact_elo_ci95\": [-20.871204666028646, -43.73274046137533, 1.8109738931304742], \"flags\": [0, 0], \"reasons\": {\"checkmate\": 196, \"draw-rule\": 197, \"max-moves\": 6, \"stalemate\": 1}, \"verdict\": \"shelved\"}; session review required before any architecture/net adoption"}
+{"utc": "2026-10-10T11:05:47.835644+00:00", "stage": "session39-ngnn4-key-games", "event": "end", "detail": "rc 0; review before architecture/net adoption; no retry or extension"}
+{"utc": "2026-10-10T11:05:47.854941+00:00", "stage": "session42-capture-perspective", "event": "tests-start", "detail": "current6c0fc26 paired capture perspective updates; rig13,15; existing gates untouched"}
+{"utc": "2026-10-10T11:11:00.322585+00:00", "stage": "session42-capture-perspective", "event": "tests-pass", "detail": "paired arithmetic/full checks pass;36 exact identities and fixed40 timing blocks next"}
+{"utc": "2026-10-10T11:13:29.922126+00:00", "stage": "session42-expanded-data", "event": "training-start", "detail": "reviewed expanded corpus; matched58x256M/KB8H512/NB8/BF16/factorizer-off; rig12,14/4GiB"}
+{"utc": "2026-10-10T11:19:15.526874+00:00", "stage": "session43-time-admission", "event": "capture-wait", "detail": "native wait for9929 to release13,15; unchanged time-admission candidate on56b35ef"}

@@ -1,0 +1,100 @@
+2026-10-10T07:10:59-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              15           3           7           0           4          12
+Swap:              4           0           3
+0 %, 1522 MiB, 16303 MiB
+27655942144
+   1170     256    1170    09:59:33 17376 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+   3465    3458    3465    03:59:57  3456 bash /home/ehrli/ngn-data/night-20261007/session39-provenance-batch/controller.sh
+   3642    3465    3642    03:37:31  1920 timeout --signal=TERM --kill-after=15s 48h taskset -c 0-11 nice -n 19 ./sprt -new ./candidate-ngn -base ./baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session39-provenance-batch/openings.txt -lowpower=false -elo0 0 -elo1 6 -alpha .05 -beta .05 -maxgames 4000 -mingames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false
+   3643    3642    3642    03:37:31 16572 ./sprt -new ./candidate-ngn -base ./baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session39-provenance-batch/openings.txt -lowpower=false -elo0 0 -elo1 6 -alpha .05 -beta .05 -maxgames 4000 -mingames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false
+  11916   11778   11778       00:00  5832 rg hopper|trainer.train|sprt|datagen|session39|session4[012]|coverage
+{"utc": "2026-10-10T09:13:01.039913+00:00", "stage": "session39-ngnn4-key-games", "event": "gate-start", "detail": "exactly400 paired10+0.1 vs current key base; architecture lower95>0 rule"}
+{"utc": "2026-10-10T09:14:57.571290+00:00", "stage": "session40-handoff", "event": "detach", "detail": "111cedc pushed; accepted6c0fc26/be34532c unchanged; architecture4007/selection4585/provenance3465 and forge88178 detached; next review not before05:45EDT; training58/parity20/cost4 reviewed; no automatic adoption", "host_c_free_bytes_at_0510": 29089095680}
+{"utc": "2026-10-10T09:15:11.597990+00:00", "stage": "session40-move-select", "event": "tests-pass", "detail": "scalar ordering/full checks pass;36 exact identities and fixed20 timing blocks next"}
+{"utc": "2026-10-10T09:28:16.942588+00:00", "stage": "session40-move-select", "event": "speed-shelve", "detail": "complete fixed sample fails rule; no extension"}
+{"utc": "2026-10-10T09:28:16.956926+00:00", "stage": "session40-move-select", "event": "end", "detail": "rc 0; review fixed speed verdict before adoption; no extension"}
+{"utc": "2026-10-10T10:00:06.186762+00:00", "stage": "session41-dual-perspective", "event": "tests-start", "detail": "current6c0fc26 paired perspective move updates; rig12,14; existing gates untouched"}
+{"utc": "2026-10-10T10:01:03.548722+00:00", "stage": "session41-remote-data", "event": "detach", "detail": "originalT74 sample converts onforge117502/2GiB and served by117631/128MiB; exact IO sourcec439acd/checks61/cross-host66-81MiBps; rigcoverage7300 waits natively; no automatic training/source adoption; dual perspective7770 on12,14"}
+{"utc": "2026-10-10T10:05:51.762590+00:00", "stage": "session41-dual-perspective", "event": "tests-pass", "detail": "paired arithmetic/full checks pass;36 exact identities and fixed20 timing blocks next"}
+{"utc": "2026-10-10T10:11:03.754027+00:00", "stage": "session41-handoff", "event": "detach", "detail": "6694b1b pushed; acceptedengine6c0fc26/be34532c unchanged; T74forge117502/reader117631/rigcoverage7300; dual7770 fullchecks36identitiesPASS/fixed20timings active; architecture4007/provenance3465/SPSA88178 unchanged; next session not before06:30EDT; no automatic training/adoption"}
+{"utc": "2026-10-10T10:18:56.392390+00:00", "stage": "session41-dual-perspective", "event": "speed-keep", "detail": "complete fixed rule passes; review before isolated topic commit; architecture base held"}
+{"utc": "2026-10-10T10:18:56.407070+00:00", "stage": "session41-dual-perspective", "event": "end", "detail": "rc 0; review fixed speed verdict before adoption; no extension"}
+{"utc": "2026-10-10T10:37:23.313895+00:00", "stage": "session42-capture-perspective", "event": "architecture-wait", "detail": "native wait for4007 to release13,15; no gate log polling"}
+{"utc": "2026-10-10T10:40:11.306187+00:00", "stage": "session42-capture-perspective", "event": "end", "detail": "rc 0; review fixed speed verdict before adoption; no extension"}
+{"utc": "2026-10-10T10:40:11.371227+00:00", "stage": "session42-capture-perspective", "event": "architecture-wait", "detail": "native wait for4007 to release13,15; no gate log polling"}
+{"utc": "2026-10-10T11:00:01.531944+00:00", "stage": "session41-remote-data", "event": "coverage-done", "detail": "review unique expansion/source scale/actual accepted base before data-only training", "estimated_unique_ratio": 1.9861765055402276}
+{"utc": "2026-10-10T11:05:47.817907+00:00", "stage": "session39-ngnn4-key-games", "event": "gate-done", "detail": "{\"mode\": \"gate\", \"games\": 400, \"pairs\": 200, \"wins\": 86, \"draws\": 204, \"losses\": 110, \"penta\": [13, 58, 74, 50, 5], \"elo\": -20.9, \"ci95\": [-44.0, 2.0], \"exact_elo_ci95\": [-20.871204666028646, -43.73274046137533, 1.8109738931304742], \"flags\": [0, 0], \"reasons\": {\"checkmate\": 196, \"draw-rule\": 197, \"max-moves\": 6, \"stalemate\": 1}, \"verdict\": \"shelved\"}; session review required before any architecture/net adoption"}
+{"utc": "2026-10-10T11:05:47.835644+00:00", "stage": "session39-ngnn4-key-games", "event": "end", "detail": "rc 0; review before architecture/net adoption; no retry or extension"}
+{"utc": "2026-10-10T11:05:47.854941+00:00", "stage": "session42-capture-perspective", "event": "tests-start", "detail": "current6c0fc26 paired capture perspective updates; rig13,15; existing gates untouched"}
+session39-ngnn4-key-games/controller.exit
+0
+session39-ngnn4-key-games/controller.done
+2026-10-10T07:05:47-04:00
+session39-ngnn4-key-games/aa-summary.json
+{"mode": "aa", "games": 40, "pairs": 20, "wins": 8, "draws": 26, "losses": 6, "penta": [1, 3, 9, 7, 0], "elo": 17.4, "ci95": [-46.0, 82.0], "exact_elo_ci95": [17.386277512436138, -46.14019991060772, 82.10968059986796], "flags": [0, 0], "reasons": {"draw-rule": 25, "checkmate": 14, "stalemate": 1}, "verdict": "aa-pass"}
+session39-ngnn4-key-games/gate-summary.json
+{"mode": "gate", "games": 400, "pairs": 200, "wins": 86, "draws": 204, "losses": 110, "penta": [13, 58, 74, 50, 5], "elo": -20.9, "ci95": [-44.0, 2.0], "exact_elo_ci95": [-20.871204666028646, -43.73274046137533, 1.8109738931304742], "flags": [0, 0], "reasons": {"checkmate": 196, "draw-rule": 197, "max-moves": 6, "stalemate": 1}, "verdict": "shelved"}
+session41-remote-archive/coverage.exit
+0
+session41-remote-archive/coverage.done
+2026-10-10T07:00:01-04:00
+session41-remote-archive/coverage.json
+{
+  "method": "bottom-65536 distinct occupied-board hashes; ngn-board-mix64-v1/20261006",
+  "sources": {
+    "t80": {
+      "path": "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+      "bytes": 75977281056,
+      "records": 2374290033,
+      "remote_sha256": null,
+      "distinct": 2329018205.974476,
+      "approx_ci95": [
+        2311186388.2409625,
+        2346850023.707989
+      ],
+      "relative_standard_error": 0.003906309606009052,
+      "exact_below_k": false
+    },
+    "t76": {
+      "path": "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+      "bytes": 55627628064,
+      "records": 1738363377,
+      "remote_sha256": null,
+      "distinct": 1448572134.4683807,
+      "approx_ci95": [
+        1437481334.8303938,
+        1459662934.1063676
+      ],
+      "relative_standard_error": 0.003906309606009052,
+      "exact_below_k": false
+    },
+    "t74": {
+      "path": "/home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json",
+      "bytes": 35902850688,
+      "records": 1121964084,
+      "remote_sha256": "2024df427c42c2409ec815e93a98672f1863b58d6e8d50c49e15a7b8541add37",
+      "distinct": 916437527.8672658,
+      "approx_ci95": [
+        909420945.9791722,
+        923454109.7553594
+      ],
+      "relative_standard_error": 0.003906309606009052,
+      "exact_below_k": false
+    }
+  },
+  "combined": {
+    "distinct": 4625841241.681954,
+    "approx_ci95": [
+      4590424104.248574,
+      4661258379.1153345
+    ],
+    "relative_standard_error": 0.003906309606009052,
+    "exact_below_k": false
+  },
+  "estimated_unique_ratio": 1.9861765055402276,
+  "record_ratio": 2.2047085323379276,
+  "seconds": 967.1816450460028,
+  "limits": "occupied boards, not game groups or mirrored inputs; approximate correlated source/union errors",
+  "training_launched": false
+}

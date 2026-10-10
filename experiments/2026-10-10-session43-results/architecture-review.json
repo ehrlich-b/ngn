@@ -1,0 +1,76 @@
+{
+  "review": "completed original fixed architecture gate; raw game counts,penta,interval,faults,input checks reconciled once",
+  "aa": {
+    "mode": "aa",
+    "games": 40,
+    "pairs": 20,
+    "wins": 8,
+    "draws": 26,
+    "losses": 6,
+    "penta": [
+      1,
+      3,
+      9,
+      7,
+      0
+    ],
+    "elo": 17.4,
+    "ci95": [
+      -46.0,
+      82.0
+    ],
+    "exact_elo_ci95": [
+      17.386277512436138,
+      -46.14019991060772,
+      82.10968059986796
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 25,
+      "checkmate": 14,
+      "stalemate": 1
+    },
+    "verdict": "aa-pass"
+  },
+  "gate": {
+    "mode": "gate",
+    "games": 400,
+    "pairs": 200,
+    "wins": 86,
+    "draws": 204,
+    "losses": 110,
+    "penta": [
+      13,
+      58,
+      74,
+      50,
+      5
+    ],
+    "elo": -20.9,
+    "ci95": [
+      -44.0,
+      2.0
+    ],
+    "exact_elo_ci95": [
+      -20.87120466602865,
+      -43.73274046137533,
+      1.8109738931304746
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "checkmate": 196,
+      "draw-rule": 197,
+      "max-moves": 6,
+      "stalemate": 1
+    },
+    "verdict": "shelved"
+  },
+  "decision": "SHELVED; lower95 is negative; no extension",
+  "training_parity_cost": "already reviewed session40; not repeated"
+}

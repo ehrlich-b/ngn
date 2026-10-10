@@ -1,0 +1,10 @@
+2026-10-10T07:20:29-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              17           4           3           0          10          13
+Swap:              3           0           3
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda        500G   89G  412G  18% /work
+  88178   88166   88166    07:27:17 26012 ./spsa-forge -engine /work/lanes/ngn-spsa-20261009/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -concurrency 2 -openings /work/lanes/ngn-spsa-20261009/openings.txt -out /work/lanes/ngn-spsa-20261009/spsa.jsonl -lowpower=false -seed 20261008 -resume
+ 117631       1  117631    01:25:23 25544 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+ 247474  247469  247469       00:00  6328 rg spsa-forge|archive_server_read
+{"iter":1750,"time":"2026-10-10T06:40:05-04:00","plus_pct":50.666666666666664,"theta":{"AspInit":16.538690824104822,"AspMult":162.30114620539533,"DeltaMargin":195.51386179637504,"ExtensionBudget":29.168938979448292,"FutilityMargin":104.68419588377803,"FutilityMaxDepth":7.722526157174278,"LMPBase":3.4719103813706944,"LMRFullDepth":3.453707121769149,"LMRMoveThreshold":2.0398395004202294,"NullMoveMinDepth":2.2164246814370654,"NullMoveR":4.063638258183356,"ReverseFutilityMargin":61.65049574873261,"SingularDepth":6.605510601739612,"SingularMargin":57.41831245082739},"rounded":{"AspInit":17,"AspMult":162,"DeltaMargin":196,"ExtensionBudget":29,"FutilityMargin":105,"FutilityMaxDepth":8,"LMPBase":3,"LMRFullDepth":3,"LMRMoveThreshold":2,"NullMoveMinDepth":2,"NullMoveR":4,"ReverseFutilityMargin":62,"SingularDepth":7,"SingularMargin":57}}
