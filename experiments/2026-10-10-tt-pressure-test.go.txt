@@ -1,0 +1,137 @@
+package engine
+
+import (
+    "crypto/sha256"
+    "encoding/binary"
+    "encoding/json"
+    "fmt"
+    "math/rand"
+    "os"
+    "testing"
+    "time"
+)
+
+// Diagnostic-only counters: raw cache operations remain unchanged. Run with
+// one search worker, without a clock limit. No instrumented binary plays games.
+type campaignPressureCounters struct {
+    Probes, Hits, Stores, MatchingStores, MissStores uint64
+    UnchangedMatchingStores, RejectedMissStores uint64
+    Inserts, Evictions, SameKeyWrites uint64
+    StoreOccupancy [5]uint64
+}
+type campaignPressureEntry struct { Hash, Data uint64; Occupied bool }
+var campaignPressureActive bool
+var campaignPressure campaignPressureCounters
+
+func (c *Cache) Get(hash uint64) (Move, int16, int8, NodeType, bool, bool) {
+    move, score, depth, bound, hit, pv := c.campaignPressureGetRaw(hash)
+    if campaignPressureActive {
+        campaignPressure.Probes++
+        if hit { campaignPressure.Hits++ }
+    }
+    return move, score, depth, bound, hit, pv
+}
+func (c *Cache) Set(hash uint64, move Move, score int16, depth int8, bound NodeType, pv bool) {
+    if !campaignPressureActive { c.campaignPressureSetRaw(hash, move, score, depth, bound, pv); return }
+    before := c.campaignPressureBucket(hash)
+    campaignPressure.Stores++
+    occupied, matching := 0, false
+    for _, row := range before {
+        if row.Occupied { occupied++; matching = matching || row.Hash == hash }
+    }
+    campaignPressure.StoreOccupancy[occupied]++
+    if matching { campaignPressure.MatchingStores++ } else { campaignPressure.MissStores++ }
+    c.campaignPressureSetRaw(hash, move, score, depth, bound, pv)
+    after := c.campaignPressureBucket(hash)
+    if before == after {
+        if matching { campaignPressure.UnchangedMatchingStores++ } else { campaignPressure.RejectedMissStores++ }
+        return
+    }
+    for i, row := range after {
+        old := before[i]
+        if row == old { continue }
+        if !old.Occupied && row.Occupied { campaignPressure.Inserts++
+        } else if old.Occupied && row.Occupied && old.Hash != row.Hash { campaignPressure.Evictions++
+        } else if old.Occupied && row.Occupied { campaignPressure.SameKeyWrites++ }
+    }
+}
+
+func campaignPressureKeySet(name string) {
+    if name == "old" { return } // Archived key assignment, with no mutation.
+    if name != "new" { panic("unexpected key set") }
+    // Map NGN's own current key assignment into the archived board interface.
+    // Numeric piece codes stay1..12; only the storage names/layout differ.
+    digest := sha256.Sum256([]byte("NGN board keys v1"))
+    random := rand.New(rand.NewSource(int64(binary.LittleEndian.Uint64(digest[:8]))))
+    for i := range enPassantZC { enPassantZC[i] = random.Uint64() }
+    for i := range castleRightsZC { castleRightsZC[i] = random.Uint64() }
+    for square := 63; square >= 0; square-- {
+        for piece := 11; piece >= 0; piece-- { piecesZC[piece][square] = random.Uint64() }
+    }
+    whiteTurnZC = random.Uint64()
+}
+
+func TestCampaignPressureControls(t *testing.T) {
+    c := NewCache(1)
+    campaignPressureActive = true
+    defer func() { campaignPressureActive = false }()
+    campaignPressure = campaignPressureCounters{}
+    for i:=0; i<4; i++ { c.Set(uint64(1)+uint64(i)*c.length, EmptyMove, int16(i+1), 8, Exact, false) }
+    _, _, _, _, hit, _ := c.Get(1)
+    if campaignPressure.Stores != 4 || campaignPressure.Probes != 1 || campaignPressure.Hits != uint64(boolInt(hit)) {
+        t.Fatalf("counter reconciliation: %+v hit=%v", campaignPressure, hit)
+    }
+    if campaignPressure.Inserts + campaignPressure.Evictions + campaignPressure.SameKeyWrites + campaignPressure.UnchangedMatchingStores + campaignPressure.RejectedMissStores != campaignPressure.Stores {
+        t.Fatalf("store reconciliation: %+v", campaignPressure)
+    }
+    net, err := LoadNGNN1(os.Getenv("NGN_PRESSURE_NET")); if err != nil { t.Fatal(err) }
+    fen := "r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10"
+    var nodes [2]uint64; var scores [2]int; var moves [2]Move
+    for i:=0; i<2; i++ {
+        campaignPressureActive = i == 1
+        p, err := ParseFEN(fen); if err != nil { t.Fatal(err) }
+        e, err := NewSearchEngineWithHash(64); if err != nil { t.Fatal(err) }
+        if err = e.SelectNGNN1Evaluator(net); err != nil { t.Fatal(err) }
+        info := e.SearchIterativeDeepening(p,10,nil)
+        nodes[i], scores[i], moves[i] = info.Nodes, info.BestScore, info.BestMove
+    }
+    if nodes[0]!=nodes[1] || scores[0]!=scores[1] || moves[0]!=moves[1] { t.Fatalf("instrumentation changed search: %v %v %v",nodes,scores,moves) }
+    t.Logf("raw/count identity nodes=%d score=%d best=%s",nodes[0],scores[0],moves[0].ToString())
+}
+func boolInt(value bool) int { if value { return 1 }; return 0 }
+
+func TestCampaignPressureSearch(t *testing.T) {
+    keySet:=os.Getenv("NGN_PRESSURE_KEYS")
+    campaignPressureKeySet(keySet)
+    net, err := LoadNGNN1(os.Getenv("NGN_PRESSURE_NET")); if err != nil { t.Fatal(err) }
+    fens := []string{
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10",
+        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+        "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
+        "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+        "8/5k2/2p2p2/3p4/3P1P2/2P2K2/8/8 w - - 0 1",
+        "6k1/5pp1/7p/3q4/8/3Q2P1/5P1P/6K1 w - - 0 1",
+        "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1",
+    }
+    out,err:=os.OpenFile(os.Getenv("NGN_PRESSURE_OUT"),os.O_WRONLY|os.O_CREATE|os.O_EXCL,0600);if err!=nil{t.Fatal(err)}
+    defer out.Close()
+    encode:=json.NewEncoder(out)
+    campaignPressureActive=true
+    defer func(){campaignPressureActive=false}()
+    for _,fen:=range fens{
+        p,err:=ParseFEN(fen);if err!=nil{t.Fatal(err)}
+        e,err:=NewSearchEngineWithHash(64);if err!=nil{t.Fatal(err)}
+        if err=e.SelectNGNN1Evaluator(net);err!=nil{t.Fatal(err)}
+        campaignPressure=campaignPressureCounters{}
+        start:=time.Now()
+        info:=e.SearchIterativeDeepeningWithCallback(p,20,nil,func(info *SearchInfo){
+            if info.Depth!=16 && info.Depth!=20{return}
+            histogram:=e.tt.campaignPressureOccupancy()
+            row:=map[string]any{"fen":fen,"tt_design":os.Getenv("NGN_PRESSURE_TT"),"keys":keySet,"hash_mb":64,"depth":info.Depth,"nodes":info.Nodes,"score":info.BestScore,"best":info.BestMove.ToString(),"seconds":time.Since(start).Seconds(),"counters":campaignPressure,"bucket_occupancy_histogram":histogram,"ways":campaignPressureWays,"allocated_records":len(e.tt.items)}
+            if err:=encode.Encode(row);err!=nil{t.Fatal(err)}
+            fmt.Printf("PRESSURE %s/%s depth%d nodes%d probes%d hits%d evictions%d refusals%d\n",os.Getenv("NGN_PRESSURE_TT"),keySet,info.Depth,info.Nodes,campaignPressure.Probes,campaignPressure.Hits,campaignPressure.Evictions,campaignPressure.RejectedMissStores)
+        })
+        if info.Depth!=20{t.Fatalf("incomplete fixed-depth search: %d",info.Depth)}
+    }
+}

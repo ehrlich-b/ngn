@@ -1,0 +1,4 @@
+=== RUN   TestCampaignPressureControls
+    campaign_pressure_test.go:152: raw/count identity nodes=69888 score=108 best=d4c5
+--- PASS: TestCampaignPressureControls (0.17s)
+PASS

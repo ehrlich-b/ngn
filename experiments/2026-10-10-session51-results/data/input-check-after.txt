@@ -1,0 +1,12 @@
+ngn: OK
+base.nnue: OK
+candidate.nnue: OK
+sprt: OK
+openings.txt: OK
+nomination.json: OK
+training-receipt.json: OK
+controller.sh: OK
+games.py: OK
+gate-parser.py: OK
+manifest.md: OK
+game-manifest.json: OK
