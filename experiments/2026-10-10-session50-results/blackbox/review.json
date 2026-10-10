@@ -1,0 +1,23 @@
+{
+  "reviewed_utc": "2026-10-10T19:01:57.686439+00:00",
+  "tool_source": "b57f73a",
+  "playing_source": "9bfbae4",
+  "change": "parallel worker ceiling2 to6 only; default2 preserved",
+  "machine": "forge",
+  "cpu_mask": "5-7",
+  "memory_max_bytes": 2147483648,
+  "host_pinning": "on",
+  "checks": [
+    "wrapper and UCI transport short race",
+    "wrapper vet",
+    "explicit PGO build",
+    "controller Python syntax",
+    "rig controller Bash syntax"
+  ],
+  "wrapper_sha256": "c76498ade22ff41209cce86a37c6314f4cea82b355615a74b2594164cfc82fcc",
+  "expanded_net": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "expanded_net_clock_identity": "12 actual UCI50k-node cases PASS; exact accepted/normal/clock info and bestmove, exact observer counts",
+  "nomination": false,
+  "diagnostic_launched": false,
+  "playing_adoption": false
+}

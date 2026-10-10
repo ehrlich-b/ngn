@@ -1,38 +1,35 @@
 # NGN live state — 2026-10-10: 3600 campaign
 
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **9bfbae4 / NGNN3 KB8 H512 be34532c**; no session49 adoption.
-Compact/capture speed evidence retained; no new Elo/absolute claim.
+Playing **9bfbae4 / NGNN3 KB8 H512 be34532c**; no session50 adoption.
 
-Plan13:05 reopens **rig0–11/c6/nice19/swap0 games**, training12,14/GPU
-keeps priority. Fresh rig SEE controller17221/`ngn-see-s49.scope`:
-A/A40 PASS **−26.11[−102.23,+47.56]**, zero faults/intact pins; fixed1000
-10+0.1 launched13:10:35/harness17408, diagnosis ETA15:00. Forge SEE waiter
-331057 interrupted before any games; no verdict/pooling; SPSA stays RUNNING.
+Expanded-data full58/14.848B/best58/reexport20-parity reviewed; candidate
+**a4d90b41**. Own rig A/A40 PASS **+17.39[−46.14,+82.11]**, zero faults;
+fixed40010+0.1 running controller17879/harness18003/`ngn-data-s49.scope`,
+0–11/c6/4GiB/swap0/nice19, start14:56:45, ETA15:35–15:45. Keep only printed
+AND unrounded lower95>0/zero faults/intact inputs, else shelve/no rescue.
+Forge alternate gate stays unlaunched. Residual diagnostic complete, no
+recipe/checkpoint selection. GPU idle after training; follow-up awaits gate.
+
+Fresh rig SEE fixed1000 completes **+1.74[−10.95,+14.43]**,218/569/213,
+zero faults/intact pins: **UNRESOLVED**, no redesign/adoption/extension.
 Combined provenanceH0/610 remains uncertified; never restore derived code.
-Forge TT A/A fails+52.51[+9.73,+96.95], no candidate games/unresolved/no
-retry. Cause unproved; every new forge verdict requires a passing fresh A/A.
-[Session49](experiments/2026-10-10-session49.md).
+Forge TT failed A/A remains preserved/zero candidate games; every new forge
+verdict needs a passing fresh control. [Session50](experiments/2026-10-10-session50.md).
 
-Unchanged expanded-data trainer13201 is43/58 at13:09, full ETA14:40–14:50.
-Parent13172 stays stopped; watcher15998 records actual terminal. Existing
-relay28697/native waiter16569 copies artifacts and starts forge5–7/2GiB
-reexport20-parity, expected14:45–15:00. Review58/receipt, manually evaluate
-fixed residuals, then nominate one first-free lane for unchanged A/A40/
-fixed40010+0.1 versusbe34532c: forge4–11/c2 with durable SPSA pause, or
-rig0–11/c6 after SEE. Both stages are prepared; neither net nominated or
-launched. No recipe change/rescue games/automatic promotion.
+Rodent black-box wrapper c6 extension **b57f73a** passes forge short race/
+transport tests/vet/PGO. Rig stage `session50-rodent-blackbox` prepared;
+nominate settled engine/net after data terminal, then384 probes,64 compliance,
+own A/A40/200 nodes/200 time and tagged120+1 A/A40/24 profiles. No source/net
+inspection, automatic launch, adoption or pooling. Admission alone60+0.6,
+final SPSA vector, then one prepared search candidate follow.
 
-SPSA88166/88178 RUNNING, durable1825/21,900, forge8–11/2.5GiB/two games,
-about8–9h compute left plus pauses; final24k/vector games mandatory.
-Forge4–11/8GiB/host pinningON/max2 games, builds/tests/parity there;
-rig and forge samples never pool. Reader117631/hopper1170 untouched.
-C:279.17GiB; GPU82%; WSL5.7GiB used at13:09. SEE/trainer caps total10GiB.
-
-After data/provenance: nominate checked Rodent tool30b8d4d on settled
-package, then admission60+0.6, final SPSA vector, one prepared search
-candidate. No useful extra code candidate ahead of the queue. Next session
-not before14:50 EDT. No3600 claim/default-net change/publication.
+SPSA88166/88178 RUNNING, durable1875/22,500, forge8–11/2.5GiB/two games,
+about6–7h compute left; final24k/vector games mandatory. Forge4–11/8GiB/
+host pinningON/max2 games; builds/tests/parity there. Rig games0–11/c6;
+training12,14/GPU keeps priority. Reader117631/hopper1170 untouched.
+C:281.85GiB; WSL3GiB used at14:57. No new claim/default-net change/publication.
+Next session not before15:45 EDT; no useful extra candidate ahead of queue.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

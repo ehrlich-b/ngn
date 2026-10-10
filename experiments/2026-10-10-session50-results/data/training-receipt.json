@@ -1,0 +1,56 @@
+{
+  "completed_utc": "2026-10-10T18:50:56.078097+00:00",
+  "training_machine": "rig WSL2",
+  "postprocessing_machine": "forge",
+  "epochs": 58,
+  "total_positions": 14848000000,
+  "best_epoch": 58,
+  "best": {
+    "epoch": 58,
+    "step": 906250,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.0088998369140625,
+    "lr": 0.0001,
+    "seconds": 368.62861560099554,
+    "positions_per_second": 694465.8910503438,
+    "steady_positions_per_second": 694642.9109252996,
+    "validation_loss": 0.008918781737832665,
+    "validation_loss_lambda_075": 0.008918781737832665,
+    "validation_loss_result": 0.07960039820436023
+  },
+  "reexport_identical": true,
+  "parity_cases": 20,
+  "net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "checkpoint_sha256": "b60e59d0798a74a97166025bff8beb99159ad7573c8856cb6e74f1dc00d4abcb",
+  "archive_split": {
+    "hash": "ngn-board-mix64-v1",
+    "seed": 20261006,
+    "modulus": 1024,
+    "holdout_remainder": 0,
+    "block_records": 262144,
+    "sources": [
+      {
+        "path": "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+        "bytes": 55627628064,
+        "records": 1738363377
+      },
+      {
+        "path": "/home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json",
+        "bytes": 35902850688,
+        "records": 1121964084,
+        "sha256": "2024df427c42c2409ec815e93a98672f1863b58d6e8d50c49e15a7b8541add37"
+      },
+      {
+        "path": "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+        "bytes": 75977281056,
+        "records": 2374290033
+      }
+    ],
+    "raw_records": 5234617494,
+    "training_records": 5229493997,
+    "holdout_records": 5123497,
+    "contract": "identical occupied boards share partition; labels excluded"
+  },
+  "automatic_games": false
+}

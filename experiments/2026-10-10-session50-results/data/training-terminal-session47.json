@@ -1,0 +1,9 @@
+{
+  "utc": "2026-10-10T18:42:08.403831+00:00",
+  "event": "training-terminal",
+  "epochs": 58,
+  "full58": true,
+  "postprocessing_machine": "forge",
+  "original_parent_stopped_then_terminated": true,
+  "automatic_games": false
+}
