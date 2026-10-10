@@ -1,0 +1,4 @@
+=== RUN   TestMoveSelectScalarIdentity
+--- PASS: TestMoveSelectScalarIdentity (0.06s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.068s
