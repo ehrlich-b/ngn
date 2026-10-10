@@ -1,0 +1,35 @@
+{
+  "mode": "gate",
+  "games": 400,
+  "pairs": 200,
+  "wins": 82,
+  "draws": 229,
+  "losses": 89,
+  "penta": [
+    4,
+    54,
+    92,
+    45,
+    5
+  ],
+  "elo": -6.1,
+  "ci95": [
+    -26.0,
+    14.0
+  ],
+  "exact_elo_ci95": [
+    -6.080743539917347,
+    -25.890483020713027,
+    13.689499845892525
+  ],
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 226,
+    "checkmate": 171,
+    "max-moves": 3
+  },
+  "verdict": "provisional-provenance-keep"
+}

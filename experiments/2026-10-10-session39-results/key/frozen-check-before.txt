@@ -1,0 +1,12 @@
+controller.sh: OK
+manifest.md: OK
+candidate.patch: OK
+base.tar: OK
+baseline-ngn: OK
+candidate-ngn: OK
+code-check-receipt.json: OK
+nomination.json: OK
+sprt: OK
+openings.txt: OK
+base.nnue: OK
+gate-parser.py: OK
