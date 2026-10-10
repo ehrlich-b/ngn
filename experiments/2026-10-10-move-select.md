@@ -33,3 +33,13 @@ status and terminal files; review results once before any topic commit or
 integration. Estimated runtime20–30min, detached throughout. Preserve the
 playing package while architecture games use their frozen immediate base;
 a passing speed topic can be committed/pushed separately pending that verdict.
+
+**SHELVED, reviewed session41:** controller4585 completes05:28:16, terminal0.
+All scalar ordering/full short/race/vet checks and36 exact identities pass.
+The complete20-block sample gives geometric NPS ratio **0.953202
+[0.947357,0.959084]**, AB/BA strata0.952781/0.953624. Recomputed every block
+from its six raw records and reconciled the receipt. The lower95 and both-order
+rule fails; no extension. Restored the isolated runtime patch and removed its
+owned test file; exact rejected patch/raw receipts remain durable in experiments
+and on rig. Playing source is unchanged.
+[Review](2026-10-10-session41-results/move-select/review.json).

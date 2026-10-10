@@ -1,0 +1,12 @@
+PAIR
+-rw-r--r-- 1 ehrli ehrli 1925 Oct 10 06:05 /home/ehrli/ngn-data/night-20261007/session41-dual-perspective/build-receipt.json
+-rw-r--r-- 1 ehrli ehrli   26 Oct 10 06:00 /home/ehrli/ngn-data/night-20261007/session41-dual-perspective/controller.started
+-rw-r--r-- 1 ehrli ehrli  211 Oct 10 06:06 /home/ehrli/ngn-data/night-20261007/session41-dual-perspective/timing/identity-receipt.json
+ok  	github.com/ehrlich-b/ngn/engine	148.649s
+?   	github.com/ehrlich-b/ngn/internal/rating	[no test files]
+?   	github.com/ehrlich-b/ngn/internal/sliderray	[no test files]
+ok  	github.com/ehrlich-b/ngn/internal/uci	0.056s
+?   	github.com/ehrlich-b/ngn/internal/rating	[no test files]
+?   	github.com/ehrlich-b/ngn/internal/sliderray	[no test files]
+ok  	github.com/ehrlich-b/ngn/internal/uci	1.092s
+NEW TERMINALS

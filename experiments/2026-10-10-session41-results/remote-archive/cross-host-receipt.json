@@ -1,0 +1,25 @@
+{
+  "sha256": "7d212b9c884f5c77896de960ae17cc341cda43b14d6a971f34ca29ebd4badf7f",
+  "bytes": 8388608,
+  "exact_full_reads": 4,
+  "exact_irregular_indexes": true,
+  "mib_per_second": [
+    65.96262122432533,
+    75.18223092082383,
+    77.45993984878767,
+    80.90020325983554
+  ],
+  "admission_min_mib_per_second": 25,
+  "passed": true,
+  "rig_cpus": [
+    12,
+    14
+  ],
+  "forge_cpus": [
+    8,
+    9,
+    10,
+    11
+  ],
+  "forge_server_cpu_quota": 50
+}

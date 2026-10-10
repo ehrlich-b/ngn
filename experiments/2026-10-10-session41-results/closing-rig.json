@@ -1,0 +1,33 @@
+{
+  "utc": "2026-10-10T10:02:43.840092+00:00",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:              15           4           8           0           2          10\nSwap:              4           0           3\n",
+  "gpu": "0 %, 1522 MiB, 16303 MiB",
+  "jobs": {
+    "session39-provenance-batch": {
+      "controller.pid": "3465",
+      "controller.started": "2026-10-10T03:12:14-04:00"
+    },
+    "session39-ngnn4-key-games": {
+      "controller.pid": "4007",
+      "controller.started": "2026-10-10T05:01:49-04:00"
+    },
+    "session41-dual-perspective": {
+      "controller.pid": "7770",
+      "controller.started": "2026-10-10T06:00:06-04:00",
+      "pair-controls.log": "=== RUN   TestNGNN1MovePairExact\n--- PASS: TestNGNN1MovePairExact (0.08s)\nPASS\nok  \tgithub.com/ehrlich-b/ngn/engine\t0.083s\n",
+      "pair-purego.log": "=== RUN   TestNGNN1MovePairExact\n--- PASS: TestNGNN1MovePairExact (0.06s)\nPASS\nok  \tgithub.com/ehrlich-b/ngn/engine\t0.070s\n",
+      "engine-short.log": "ok  \tgithub.com/ehrlich-b/ngn/engine\t14.008s\n",
+      "engine-race.log": "",
+      "controller.log": "Running as unit: ngn-s41-dual-perspective.scope; invocation ID: 2e9508bf2ecf450e9540b899d13785da\n"
+    },
+    "session41-remote-archive": {
+      "checks.pid": "7299",
+      "checks.exit": "0",
+      "checks.done": "2026-10-10T05:55:09-04:00",
+      "coverage.pid": "7300",
+      "transfer.exit": "0",
+      "transfer.done": "2026-10-10T05:56:42-04:00"
+    }
+  },
+  "processes": "   1170     256    08:51:17  0.3 18088 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n   3465    3458    02:51:42  0.0  3456 bash /home/ehrli/ngn-data/night-20261007/session39-provenance-batch/controller.sh\n   3642    3465    02:29:15  0.0  1920 timeout --signal=TERM --kill-after=15s 48h taskset -c 0-11 nice -n 19 ./sprt -new ./candidate-ngn -base ./baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session39-provenance-batch/openings.txt -lowpower=false -elo0 0 -elo1 6 -alpha .05 -beta .05 -maxgames 4000 -mingames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false\n   3643    3642    02:29:15  0.6 17860 ./sprt -new ./candidate-ngn -base ./baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session39-provenance-batch/openings.txt -lowpower=false -elo0 0 -elo1 6 -alpha .05 -beta .05 -maxgames 4000 -mingames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false\n   4007    4000    01:00:54  0.0  3456 bash /home/ehrli/ngn-data/night-20261007/session39-ngnn4-key-games/controller.sh\n   6037    4007       49:42  0.0  1920 timeout --signal=TERM --kill-after=15s 4h taskset -c 13,15 nice -n 19 ./sprt -new ./candidate-ngn -base ./baseline-ngn -tc 10+0.1 -concurrency 2 -mingames 1000000 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session39-ngnn4-key-games/openings.txt -lowpower=false -maxgames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-ngnn4-key-games/candidate.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-ngnn4-key-games/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false\n   6038    6037       49:42  0.4 19884 ./sprt -new ./candidate-ngn -base ./baseline-ngn -tc 10+0.1 -concurrency 2 -mingames 1000000 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session39-ngnn4-key-games/openings.txt -lowpower=false -maxgames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-ngnn4-key-games/candidate.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-ngnn4-key-games/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false"
+}

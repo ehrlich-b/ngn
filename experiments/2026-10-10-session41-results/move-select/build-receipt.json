@@ -1,0 +1,44 @@
+{
+  "base_source": "6c0fc26",
+  "utc": "2026-10-10T09:15:11.526739+00:00",
+  "source_archive_sha256": "2b976449f9630e4307ced53c135c0a5ad0b9f7f0ff2497476cab9e9f7840ac4c",
+  "patch_sha256": "e443ac5609d156fb57e89d601596e0d4000d105f6067f37716edcad7b83118db",
+  "source_sha256": {
+    "engine/moveorder.go": "24b50451dbcac75f4a059b5ad40fde68f3402a7dea502fe5fc99089f6ced7157",
+    "engine/move_select_test.go": "68db30e9d50080faf94c91e5a40d238e48d35b4a7f5e40901d062d33501f3b87"
+  },
+  "binary_sha256": {
+    "baseline": "86bdbc1cb856ec737e8aebd7dd509ede4670c5399cc61d289270fd59f68d8d84",
+    "candidate": "d889176ecacf8ad51d0fcd9b2adf2ca64b30e009a1597a259ee0da0675994045"
+  },
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "old_net_sha256": "c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2",
+  "candidate_uci_sha256": "47ca25c5813ca825a79b7a067eb55a6fb8b58cef506b39a91cb8cd09b1389bfa",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "machine": "WSL Ryzen9800X3D",
+  "build_test_cpus": [
+    12,
+    14
+  ],
+  "nice": 19,
+  "tests_pass": true,
+  "baseline_probe_reused_from": "forge current-key source check106279",
+  "concurrent_workloads": [
+    "provenance0-11/3GiB",
+    "architecture13,15/2GiB",
+    "hopper unchanged"
+  ],
+  "memory_max": 2684354560,
+  "build_argv": [
+    "go",
+    "build",
+    "-p",
+    "2",
+    "-pgo=/home/ehrli/ngn-data/night-20261007/session40-move-select/baseline/default.pgo",
+    "-o",
+    "OUTPUT",
+    "PACKAGE"
+  ]
+}
