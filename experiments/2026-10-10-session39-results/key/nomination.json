@@ -1,0 +1,12 @@
+{
+  "diagnostics_reviewed": true,
+  "diagnostic_defects": 0,
+  "base_source": "ac658e2ce509154775d9567807a5ccf8485b6dca",
+  "candidate_topic": "night/key-plan-current",
+  "candidate_change": "existing-key-initializer-only",
+  "baseline_binary_sha256": "0755d7bb4bea4be37554cc1b953ef1591e8919585bf111ba9fab3ed9d3c40c10",
+  "base_net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "candidate_patch_sha256": "f9ee82e18c1bfa2d2044557dc0c47e2521d356fc91bfffd44338dce144cbf930",
+  "code_checks_reviewed": true,
+  "code_check_receipt_sha256": "7845423f9f9f7afa1009339dcc09dfdb5ea65c51c896d7940102cac9ff3f17b1"
+}
