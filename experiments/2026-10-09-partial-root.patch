@@ -1,0 +1,225 @@
+diff --git a/engine/partial_root_test.go b/engine/partial_root_test.go
+new file mode 100644
+index 0000000..a87b19e
+--- /dev/null
++++ b/engine/partial_root_test.go
+@@ -0,0 +1,136 @@
++package engine
++
++import (
++	"slices"
++	"testing"
++	"time"
++)
++
++func partialRootMoves(t *testing.T) (Move, Move, Move) {
++	t.Helper()
++	p := controlTestPosition(t)
++	moves := GenerateMoves(p)
++	if len(moves) < 3 {
++		t.Fatal("opening fixture has fewer than three moves")
++	}
++	return moves[0], moves[1], moves[2]
++}
++
++func TestPartialRootRetainsCompletedImprovementOnly(t *testing.T) {
++	old, better, worse := partialRootMoves(t)
++	choice := completedRootChoice{previous: old, alpha: -20, beta: 20}
++	choice.record(old, -5, true)
++	choice.record(better, 8, false)
++	choice.record(worse, 2, false)
++	tm := NewTimeManager()
++	tm.timeControl, tm.shouldStop = Tournament, true
++	info := &SearchInfo{BestMove: old, BestScore: 15, Depth: 4, RootDepth: 5,
++		Stopped: true, TimeManager: tm, control: &SearchControl{}, AspFailHighs: 2}
++	choice.retainOnClockStop(info)
++	if info.BestMove != better || info.BestScore != 8 || info.Depth != 4 || info.RootDepth != 5 || info.AspFailHighs != 2 {
++		t.Fatalf("finished improvement or completed-depth accounting lost: %+v", info)
++	}
++}
++
++func TestPartialRootRejectsUnprovedComparisons(t *testing.T) {
++	old, better, other := partialRootMoves(t)
++	for _, test := range []struct {
++		name                  string
++		first                 Move
++		previous              Move
++		firstScore, nextScore int
++	}{
++		{"incumbent fail low", old, old, -20, 8},
++		{"incumbent fail high", old, old, 20, 21},
++		{"incumbent not first", other, old, -5, 8},
++		{"no completed depth", old, EmptyMove, -5, 8},
++		{"equal alternative", old, old, 8, 8},
++		{"worse alternative", old, old, 8, 7},
++		{"alternative fail high", old, old, -5, 20},
++		{"alternative upper bound", old, old, -5, -20},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			choice := completedRootChoice{previous: test.previous, alpha: -20, beta: 20}
++			choice.record(test.first, test.firstScore, true)
++			choice.record(better, test.nextScore, false)
++			if choice.move != EmptyMove {
++				t.Fatalf("unproved comparison retained %v", choice.move)
++			}
++		})
++	}
++}
++
++func TestPartialRootPreservesOtherStopPolicies(t *testing.T) {
++	old, better, _ := partialRootMoves(t)
++	choice := completedRootChoice{previous: old, alpha: -20, beta: 20}
++	choice.record(old, -5, true)
++	choice.record(better, 8, false)
++	for _, test := range []struct {
++		name                            string
++		control                         TimeControl
++		stopped, clockStopped, external bool
++	}{
++		{"whole iteration", Tournament, false, false, false},
++		{"external stop", Tournament, true, false, true},
++		{"coincident external and clock", Tournament, true, true, true},
++		{"node stop", Tournament, true, false, true},
++		{"fixed move time", TimePerMove, true, true, false},
++		{"fixed depth", FixedDepth, true, true, false},
++		{"infinite", Infinite, true, true, false},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			tm := NewTimeManager()
++			tm.timeControl, tm.shouldStop = test.control, test.clockStopped
++			info := &SearchInfo{BestMove: old, BestScore: 15, Depth: 4, Stopped: test.stopped,
++				TimeManager: tm, control: &SearchControl{}}
++			if test.external {
++				info.control.RequestStop()
++			}
++			choice.retainOnClockStop(info)
++			if info.BestMove != old || info.BestScore != 15 || info.Depth != 4 {
++				t.Fatal("non-tournament-clock policy changed")
++			}
++		})
++	}
++}
++
++func TestPartialRootClockUnwindsPositionAndTT(t *testing.T) {
++	p := controlTestPosition(t)
++	before := snapshotEnPassantPosition(p)
++	searcher, err := NewSearchEngineWithHash(1)
++	if err != nil {
++		t.Fatal(err)
++	}
++	start := time.Unix(20261009, 0)
++	armed := false
++	checks := 0
++	tm := newTimeManager(func() time.Time {
++		if armed {
++			checks++
++			if checks >= 5 {
++				return start.Add(2 * time.Hour)
++			}
++		}
++		return start
++	})
++	tm.timeControl = Tournament
++	tm.startTime = start
++	tm.baseTime, tm.softTime, tm.hardTime = 3*time.Hour, time.Hour, 2*time.Hour
++	var completedDepth int
++	result := searcher.SearchIterativeDeepeningWithCallback(p, 8, tm, func(info *SearchInfo) {
++		completedDepth = info.Depth
++		if info.Depth == 4 {
++			armed = true
++		}
++	})
++	if !result.Stopped || result.Depth != completedDepth || completedDepth < 4 {
++		t.Fatalf("clock stop changed whole-depth accounting: stopped=%v depth=%d completed=%d", result.Stopped, result.Depth, completedDepth)
++	}
++	assertEnPassantPositionRestored(t, p, before)
++	if _, _, _, _, hit, _ := searcher.tt.Get(p.Hash()); hit {
++		t.Fatal("interrupted root stored a root TT entry")
++	}
++	if !slices.Contains(GenerateMoves(p), result.BestMove) {
++		t.Fatal("clock stop returned an unavailable root move")
++	}
++}
+diff --git a/engine/search.go b/engine/search.go
+index 522f981..7e7456b 100644
+--- a/engine/search.go
++++ b/engine/search.go
+@@ -644,6 +644,42 @@ func (info *SearchInfo) countNode() bool {
+ // DepthCallback is called after each depth completes during iterative deepening
+ type DepthCallback func(info *SearchInfo)
+ 
++// completedRootChoice retains only exact, finished comparisons from this
++// aspiration attempt. The previous completed depth's move must finish first
++// inside the window before a later in-window improvement can replace it.
++type completedRootChoice struct {
++	previous Move
++	alpha    int
++	beta     int
++	ready    bool
++	move     Move
++	score    int
++}
++
++func (choice *completedRootChoice) record(move Move, score int, first bool) {
++	if first {
++		choice.ready = move == choice.previous && move != EmptyMove && score > choice.alpha && score < choice.beta
++		choice.score = score
++		return
++	}
++	if choice.ready && score > choice.score && score < choice.beta {
++		choice.move = move
++		choice.score = score
++	}
++}
++
++func (choice *completedRootChoice) retainOnClockStop(info *SearchInfo) {
++	if choice.move == EmptyMove || !info.Stopped || info.TimeManager == nil ||
++		info.TimeManager.timeControl != Tournament || !info.TimeManager.shouldStop ||
++		info.control.StopRequested() {
++		return
++	}
++	// Depth and completed-iteration accounting remain at the last whole depth.
++	// No partial root score is stored in the TT or fed to history learning.
++	info.BestMove = choice.move
++	info.BestScore = choice.score
++}
++
+ type iterativeSearchOptions struct {
+ 	advanceTTAge     bool
+ 	effectiveThreads int
+@@ -809,6 +845,7 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
+ 			attemptStartNodes := info.Nodes // T1e: node baseline for this attempt's per-move attribution
+ 			rootInCheck := pos.IsInCheck()  // root position: don't root-LMR while in check
+ 			legalRoot := 0                  // count of LEGAL root moves (PVS first-move + LMR index)
++			completedChoice := completedRootChoice{previous: info.BestMove, alpha: windowAlpha, beta: windowBeta}
+ 
+ 			for oi := 0; oi < orderedCount; oi++ {
+ 				move := orderedRoot[oi]
+@@ -909,6 +946,7 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
+ 					break
+ 				}
+ 				moveNodes := info.Nodes - nodesBefore // T1e: this root move's subtree node cost
++				completedChoice.record(move, score, legalRoot == 1)
+ 
+ 				if score > iterationBestScore {
+ 					iterationBestScore = score
+@@ -926,14 +964,12 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
+ 				}
+ 			}
+ 
+-			// If the clock interrupted this iteration mid-flight, its results are
+-			// partial: child searches were cut off and returned unreliable scores, so
+-			// iterationBestMove may be a half-searched (often blundering) move. Discard
+-			// the interrupted iteration entirely and keep the last fully-completed
+-			// iteration's best move. Without this guard a partial iteration can still
+-			// land in the in-window branch below and overwrite the good move — the root
+-			// cause of catastrophic time-pressure blunders.
++			// Interrupted children never enter completedChoice. A tournament clock
++			// stop can retain a later fully searched improvement over the fully
++			// searched incumbent in this same window; every other partial result
++			// keeps the last whole iteration. Do not classify or learn this attempt.
+ 			if info.Stopped {
++				completedChoice.retainOnClockStop(info)
+ 				break
+ 			}
+ 			// Pseudo-legal generation can be non-empty even when every move is

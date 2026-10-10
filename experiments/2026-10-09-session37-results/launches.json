@@ -1,0 +1,85 @@
+{
+  "session37/spsa-resume.json": {
+    "utc": "2026-10-10T01:14:21.657149+00:00",
+    "stage": "session37-recovery",
+    "event": "spsa-resume",
+    "pid": 1360,
+    "checkpoint": {
+      "iter": 1500,
+      "time": "2026-10-09T21:08:59-04:00",
+      "plus_pct": 49.166666666666664,
+      "theta": {
+        "AspInit": 15.634218880852822,
+        "AspMult": 159.88975277370432,
+        "DeltaMargin": 187.4127117884582,
+        "ExtensionBudget": 29.086528331259622,
+        "FutilityMargin": 105.10325276068944,
+        "FutilityMaxDepth": 7.818923825857068,
+        "LMPBase": 3.5170876258196873,
+        "LMRFullDepth": 3.4207553125911865,
+        "LMRMoveThreshold": 1.958526252550507,
+        "NullMoveMinDepth": 2.2753731041906655,
+        "NullMoveR": 4.0086290705700005,
+        "ReverseFutilityMargin": 60.681741598072804,
+        "SingularDepth": 6.538760291385715,
+        "SingularMargin": 57.982184413417514
+      },
+      "rounded": {
+        "AspInit": 16,
+        "AspMult": 160,
+        "DeltaMargin": 187,
+        "ExtensionBudget": 29,
+        "FutilityMargin": 105,
+        "FutilityMaxDepth": 8,
+        "LMPBase": 4,
+        "LMRFullDepth": 3,
+        "LMRMoveThreshold": 2,
+        "NullMoveMinDepth": 2,
+        "NullMoveR": 4,
+        "ReverseFutilityMargin": 61,
+        "SingularDepth": 7,
+        "SingularMargin": 58
+      }
+    },
+    "detail": "WSL restarted before session entry; frozen legacy command resumes iter1500; no engine/tuner migration"
+  },
+  "session35-launch.json": {
+    "utc": "2026-10-10T01:14:21.853874+00:00",
+    "jobs": [
+      {
+        "root": "/home/ehrli/ngn-data/night-20261007/session35-factorizer",
+        "pid": 1381,
+        "cpus": [
+          13,
+          15
+        ]
+      },
+      {
+        "root": "/home/ehrli/ngn-data/night-20261007/session35-ngnn4-pilot",
+        "pid": 1390,
+        "cpus": [
+          12,
+          14
+        ]
+      }
+    ]
+  },
+  "session36-launch.json": {
+    "utc": "2026-10-10T01:14:22.042151+00:00",
+    "root": "/home/ehrli/ngn-data/night-20261007/session36-time-checks",
+    "pid": 1421,
+    "cpus": [
+      12,
+      14
+    ],
+    "stage": "time code checks only"
+  },
+  "session37-partial-root": {
+    "pid": 1598,
+    "inputs": "890e64956c2292da612b3f57924becad74d5a50400a7481b0650fa4653fcc54b  base.tar\n5ebbed6e348912663ace67159d73452536b5959ebaa1fcca0f640cd11831590d  candidate.patch\nb1ece47289fa73390e02096a9f5722006b814c51f8804844c08da9cc59ac95e6  controller.sh\n6d0e7f6fa902277b8c286b069c028e05995920d629f122aa49db760159bf7bdf  manifest.md\n"
+  },
+  "session37-ngnn4-full": {
+    "pid": 1660,
+    "inputs": "32f89011a221503aa212190e0f9c56541c0f738b9040f435a827d8e1b04252d8  manifest.md\neca9dc5b3cce6ace8ec62c9cc2f80dc31e3c605ed4bc826a5266a540ea3e5006  trial.py\n546e579a9e86ecc11a9d9b01849257c721757bc2a8d26d22a87f381c5f9f7ad8  controller.sh\n"
+  }
+}
