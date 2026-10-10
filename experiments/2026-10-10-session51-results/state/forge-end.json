@@ -1,0 +1,51 @@
+{
+  "utc": "2026-10-10T20:02:37.145434+00:00",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:              17           6           0           0          10          10\nSwap:              3           0           3\n",
+  "checks_exit": null,
+  "checks_stage_files": [
+    "checks-controller.log",
+    "narrow.log",
+    "engine-short.log",
+    "engine-race.log",
+    "full-short.log",
+    "full-race.log"
+  ],
+  "latest_spsa": {
+    "iter": 1900,
+    "time": "2026-10-10T16:00:13-04:00",
+    "plus_pct": 52.666666666666664,
+    "theta": {
+      "AspInit": 16.641953967073995,
+      "AspMult": 162.39840285312803,
+      "DeltaMargin": 200.9749064200918,
+      "ExtensionBudget": 28.845823582979193,
+      "FutilityMargin": 103.89086153358554,
+      "FutilityMaxDepth": 7.7497421588993705,
+      "LMPBase": 3.407514817114685,
+      "LMRFullDepth": 3.4720074661619065,
+      "LMRMoveThreshold": 2.0416228800159106,
+      "NullMoveMinDepth": 2.2532973396308584,
+      "NullMoveR": 4.039374420589934,
+      "ReverseFutilityMargin": 63.1554427229985,
+      "SingularDepth": 6.603656558444653,
+      "SingularMargin": 55.18414001677929
+    },
+    "rounded": {
+      "AspInit": 17,
+      "AspMult": 162,
+      "DeltaMargin": 201,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 104,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 3,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 63,
+      "SingularDepth": 7,
+      "SingularMargin": 55
+    }
+  },
+  "host_pinning": "on"
+}

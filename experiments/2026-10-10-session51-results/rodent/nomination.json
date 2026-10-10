@@ -1,0 +1,14 @@
+{
+  "nominated_utc": "2026-10-10T19:53:04.823869+00:00",
+  "playing_source": "9bfbae4",
+  "playing_net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "playing_review": "experiments/2026-10-10-session51-results/data/review.json",
+  "decision": "black-box diagnosis only; no adoption or pooling",
+  "concurrent_workloads": [
+    "GPU expanded-factorizer12,14/4GiB/priority",
+    "hopper1170 untouched",
+    "forge SPSA and diagnostic/code checks separate machine"
+  ],
+  "launch_dependency": "valid session51 TT isolation terminal reviewed by a session; no rig game overlap",
+  "source_and_clock_identity": "reuse reviewed both-net actual UCI50k-node identity from session50; no repeat checks"
+}

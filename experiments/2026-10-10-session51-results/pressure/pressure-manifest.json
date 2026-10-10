@@ -1,0 +1,145 @@
+{
+  "created_utc": "2026-10-10T19:52:25.157216+00:00",
+  "source_snapshot": "a49ebfc",
+  "purpose": "archived TT/key fixed-position diagnosis only",
+  "machine": "forge Debian13 VM/Ryzen6900HX",
+  "os": "Linux-6.12.111+deb13-cloud-amd64-x86_64-with-glibc2.41",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "pgo_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "cpus": [
+    5,
+    6,
+    7
+  ],
+  "nice": 10,
+  "memory_max_bytes": 2147483648,
+  "host_pinning": "on",
+  "hash_mb": 64,
+  "net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "concurrent_workloads": [
+    "SPSA88166/88178 forge8-11/2.5GiB/two games",
+    "reader117631 unchanged",
+    "rig TT games and factorizer separate machine"
+  ],
+  "cells": [
+    {
+      "tt": "legacy",
+      "keys": "old",
+      "depth": 20,
+      "reports_at_depths": [
+        16,
+        20
+      ],
+      "fens": 8,
+      "argv": [
+        "./legacy-test",
+        "-test.run",
+        "^TestCampaignPressureSearch$",
+        "-test.v",
+        "-test.timeout",
+        "29m"
+      ],
+      "environment": {
+        "GOMAXPROCS": "1",
+        "NGN_PRESSURE_TT": "legacy",
+        "NGN_PRESSURE_KEYS": "old",
+        "NGN_PRESSURE_OUT": "/work/lanes/ngn-s51/legacy-old.jsonl"
+      }
+    },
+    {
+      "tt": "legacy",
+      "keys": "new",
+      "depth": 20,
+      "reports_at_depths": [
+        16,
+        20
+      ],
+      "fens": 8,
+      "argv": [
+        "./legacy-test",
+        "-test.run",
+        "^TestCampaignPressureSearch$",
+        "-test.v",
+        "-test.timeout",
+        "29m"
+      ],
+      "environment": {
+        "GOMAXPROCS": "1",
+        "NGN_PRESSURE_TT": "legacy",
+        "NGN_PRESSURE_KEYS": "new",
+        "NGN_PRESSURE_OUT": "/work/lanes/ngn-s51/legacy-new.jsonl"
+      }
+    },
+    {
+      "tt": "own",
+      "keys": "old",
+      "depth": 20,
+      "reports_at_depths": [
+        16,
+        20
+      ],
+      "fens": 8,
+      "argv": [
+        "./own-test",
+        "-test.run",
+        "^TestCampaignPressureSearch$",
+        "-test.v",
+        "-test.timeout",
+        "29m"
+      ],
+      "environment": {
+        "GOMAXPROCS": "1",
+        "NGN_PRESSURE_TT": "own",
+        "NGN_PRESSURE_KEYS": "old",
+        "NGN_PRESSURE_OUT": "/work/lanes/ngn-s51/own-old.jsonl"
+      }
+    },
+    {
+      "tt": "own",
+      "keys": "new",
+      "depth": 20,
+      "reports_at_depths": [
+        16,
+        20
+      ],
+      "fens": 8,
+      "argv": [
+        "./own-test",
+        "-test.run",
+        "^TestCampaignPressureSearch$",
+        "-test.v",
+        "-test.timeout",
+        "29m"
+      ],
+      "environment": {
+        "GOMAXPROCS": "1",
+        "NGN_PRESSURE_TT": "own",
+        "NGN_PRESSURE_KEYS": "new",
+        "NGN_PRESSURE_OUT": "/work/lanes/ngn-s51/own-new.jsonl"
+      }
+    }
+  ],
+  "raw_counted_depth10_identity": true,
+  "files_sha256": {
+    "base.tar": "0925acd860294cf42b0dbbd44899c21800c37d219c15aeafadd48ba3d4b5c6dc",
+    "candidate.patch": "e8440ba3115b0e77458a04fdf7a6fc235153f0c7cf907714891b6c8df6bf1a2c",
+    "pressure-stage.py": "0b938dbe1e737115e3de2b8b9f7a7a23c312ccf14932399c96b867ab6104ff1d",
+    "pressure-test.go.txt": "32eaf9c963ef0bfa3f1909bc5cebedb64a66bb296c545fa46b3e0f2905c6bb1d",
+    "pressure.md": "c5766342645cefdd1f588962b8a35d7d50bd62bd75dcf4493045bdb9234d001e",
+    "pressure.sh": "27bd76a3595528a3d18810a6526ab74825d5fc91988e1ee1b277497c49026824",
+    "legacy-test": "91b20c6d3811f979726921b9662a9d65efd0260d16e21d66d30cc64a05e3e5d4",
+    "own-test": "508cd28019a422ff9f27b65e0d93a4b3f883de5a6bfc9699f49fe60d301a5a9e",
+    "legacy-controls.log": "c2187ec496b47bfbcada35b5c742dee2b0d4e4448f3981e879bfd19bca72062d",
+    "own-controls.log": "80528dbebc3a864e3b30e264454620140c6227e1f7ba317e9d2f06ed272f0dd1",
+    "legacy/engine/cache.go": "a9abe37fdb1ea5edec65f14fc8e784df3e6aaf3972bd0710703a125cc961d006",
+    "legacy/engine/hash.go": "916c87c4f4a38ffe10c0b2523162789c73b30f3f3378b6c564a2f2456a88b5eb",
+    "legacy/engine/campaign_pressure_test.go": "c57ce20dbb44b8f7a70ab959ad8e9a015f4abee8f4f05a7e4ca3cda6afe11bf9",
+    "legacy/engine/campaign_pressure_support_test.go": "bc37df7ed4bb15f37dced7d86c0f3b41cf55fcdcc4afeecf41f2ce18ca0cc9d4",
+    "own/engine/cache.go": "df084b08e64466f8d5ca9cdf3be80df2278902a53264fe5b361fbd22410fd248",
+    "own/engine/hash.go": "916c87c4f4a38ffe10c0b2523162789c73b30f3f3378b6c564a2f2456a88b5eb",
+    "own/engine/campaign_pressure_test.go": "c57ce20dbb44b8f7a70ab959ad8e9a015f4abee8f4f05a7e4ca3cda6afe11bf9",
+    "own/engine/campaign_pressure_support_test.go": "df573874c6bc1d58e948b6ae917f23999c00a48e75fedc94a755c1e65a5e19a7"
+  },
+  "decision": "diagnostic only; no acceptance threshold, adoption, sample extension or retry"
+}

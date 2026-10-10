@@ -1,0 +1,130 @@
+{
+  "created_utc": "2026-10-10T19:49:09.320507+00:00",
+  "record": "experiments/2026-10-10-expanded-factorizer.md",
+  "accepted_engine_source": "9bfbae4",
+  "base_net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "trainer_source": "/home/ehrli/ngn-data/night-20261007/session44-expanded-data/source",
+  "trainer_io_commit": "09d53c7",
+  "source_archive_sha256": "566f57c79753b8538766c762aff4ea96f98e8014b1e5c688ae802bc8ee35157f",
+  "trainer_files_sha256": {
+    "trainer/__init__.py": "d90620ff69499224bd842d52d9bf0a0be454eb7db829d196cb55c98882f1ce44",
+    "trainer/archive.py": "317db710674548c8d2211fffc96e6581d8015af2ca584a68b3e659600c6c3138",
+    "trainer/archive_server.py": "30d8da4cdf559640d7fbf86820a6fc6ea98486f70bbedb4d3b7d332f72fd20af",
+    "trainer/export.py": "4d87c6c7c8c39660b9ba6b0df40e32d6ebf8acfbbd783be106d59f3af22e23de",
+    "trainer/king_buckets.py": "ea9e9743334947ab0ea18b2b23042e347383de2c733bc92323a162902a8b3bb8",
+    "trainer/make_random_net.py": "cc1b7549eeedaca2574f5e7bdec0fa60991a1a4437660be82e6f10b04f44183d",
+    "trainer/model.py": "b1bbb27422b0a9855cbf0da56dc509a9209812ab6ad0514946bec6714dce274a",
+    "trainer/ngnp.py": "dcda0383f3176f31413046fb163b4253a4b9d3bac0853a0309fa5c84313e219f",
+    "trainer/ngnp_split.py": "42bf96ae248cbfb8acd8ccb8e2df0e075153bb12fb7d8dea172a72fd30cf8fc4",
+    "trainer/refeval.py": "f5bf1814cfc7d624bae5fab99ff4aae859e645090831abaaf178dd69c66e1f10",
+    "trainer/remote_archive.py": "153134e8821cc4d36d1d44c85c33a6b318f2a65388d2cf16a156f437c2426dc3",
+    "trainer/train.py": "8b067a5f65d6f1d10b12f23569d279df378655a97c41b74efae4d1ecc13ed3eb"
+  },
+  "data_paths": [
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+    "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+    "/home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json"
+  ],
+  "corpus_pins": {
+    "t80": {
+      "bytes": 75977281056,
+      "sha256": "270f65bdf9f5c948160cae5330030a60f99e94383de2a290b565ae7aad7cde26"
+    },
+    "t76": {
+      "bytes": 55627628064,
+      "sha256": "a9ad07afcfeefca0d3080a2ac06657e334bf47645448ca183b51202f4412f8b3"
+    },
+    "t74": {
+      "bytes": 35902850688,
+      "sha256": "2024df427c42c2409ec815e93a98672f1863b58d6e8d50c49e15a7b8541add37"
+    }
+  },
+  "large_input_verification": "retain previously checked immutable local pins; remote reader verifies pin at use; no repeat full corpus hash scan",
+  "argv": [
+    "/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python",
+    "-m",
+    "trainer.train",
+    "--data",
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+    "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+    "/home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json",
+    "--data-format",
+    "archive",
+    "--archive-holdout-modulus",
+    "1024",
+    "--archive-split-seed",
+    "20261006",
+    "--out",
+    "/home/ehrli/ngn-data/night-20261007/session51-expanded-factorizer/trained",
+    "--format",
+    "3",
+    "--kb-map",
+    "default",
+    "--hidden",
+    "512",
+    "--buckets",
+    "8",
+    "--batch",
+    "16384",
+    "--lr",
+    ".001",
+    "--epochs",
+    "58",
+    "--positions-per-epoch",
+    "256000000",
+    "--weight-decay",
+    ".01",
+    "--wdl",
+    ".75",
+    "--k",
+    "400",
+    "--decay",
+    "cosine",
+    "--min-lr-ratio",
+    ".1",
+    "--threads",
+    "2",
+    "--precision",
+    "bf16",
+    "--seed",
+    "20261006",
+    "--keep-best-only",
+    "--king-factorizer"
+  ],
+  "cpus": [
+    12,
+    14
+  ],
+  "nice": 19,
+  "memory_max_bytes": 4294967296,
+  "environment": {
+    "GOMAXPROCS": "2",
+    "GOAMD64": "v3",
+    "PYTHONPATH": "/home/ehrli/ngn-data/night-20261007/session44-expanded-data/source",
+    "OMP_NUM_THREADS": "2",
+    "MKL_NUM_THREADS": "2",
+    "OPENBLAS_NUM_THREADS": "2"
+  },
+  "machine": "rig Ryzen9800X3D/WSL2",
+  "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "concurrent_workloads": [
+    "TT archived diagnostic rig0-11/c6/3GiB",
+    "hopper1170 untouched",
+    "forge SPSA and immutable reader separate machine",
+    "forge fixed-position diagnostics5-7/2GiB planned"
+  ],
+  "change": "king_factorizer false->true only; output path changes",
+  "initialization": "fresh seeded random initialization, no warm start",
+  "selection": "minimum full content-holdout validation_loss over58 complete epochs",
+  "postprocessing_machine": "forge",
+  "automatic_games": false,
+  "decision": "full58 identical folded reexport20integer parity then reviewed actual-base freshAA40/fixed400; printedANDunrounded lower95>0/zero faults/intact inputs only",
+  "files_sha256": {
+    "controller.sh": "1e8f7fa01b0112d7c0b94a42155a133896787780914d52470511feb0fb6353e4",
+    "trial.py": "64c5c585328dd6912d034e26d18414b039ac43120a4a18776e58d4d26e7af576",
+    "manifest.md": "292cf4dda472011b20a41bbc679481dfa9541275fceab9b76af3e4c628071e2d",
+    "baseline-config.json": "33e8ed8200768d43a9db16016dfaf76ece5aeb453246d145ff6ac375bcb1af3f",
+    "baseline-training-manifest.json": "bd6397ea4ce63882feddc5ec177250a55a6fcd6d807069aa12b871fd58425b29",
+    "accepted-data-review.json": "fca6143ec73d26cdc6bcd87c7fbd8dbe9d78e1ca7e41bb003a1b39b12d5f7565"
+  }
+}
