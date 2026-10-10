@@ -349,6 +349,12 @@ func (s *ngnn1State) pushPosition(depth int, delta ngnn1Delta, pos *Position) {
 	s.frames[depth] = ngnn1Frame{child, depth}
 	parent := s.at(depth - 1)
 	n := s.network
+	if delta.refreshMask == 0 && delta.removes == 1 && delta.adds == 1 {
+		ngnn1MovePair(child, parent,
+			n.row(int(delta.remove[0][0])), n.row(int(delta.add[0][0])),
+			n.row(int(delta.remove[1][0])), n.row(int(delta.add[1][0])))
+		return
+	}
 	for p := 0; p < 2; p++ {
 		a := child[p*n.hidden : (p+1)*n.hidden]
 		if delta.refreshMask&(1<<p) != 0 {
