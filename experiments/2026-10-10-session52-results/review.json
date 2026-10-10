@@ -1,0 +1,48 @@
+{
+  "session": 52,
+  "snapshot_edt": "2026-10-10T16:20:28-04:00",
+  "accepted_package": {"source": "9bfbae4", "net": "a4d90b41"},
+  "tt_control": {
+    "verdict": "aa-pass",
+    "games": 40,
+    "wdl": [7, 30, 3],
+    "penta": [0, 1, 14, 5, 0],
+    "exact_elo_ci95": [34.860070287560106, -4.0781053324286205, 74.69496063066374],
+    "flags": [0, 0],
+    "operational_reasons": {"draw-rule": 30, "checkmate": 10},
+    "terminal_input_check": "all OK",
+    "evidence": "tt/aa-summary.json",
+    "candidate_sample": "running; no verdict",
+    "gate_started_edt": "2026-10-10T16:11:05-04:00",
+    "controller_pid": 18279,
+    "harness_pid": 18579
+  },
+  "admission_checks": {
+    "exit": 0,
+    "completed_edt": "2026-10-10T16:02:58-04:00",
+    "candidate_binary_sha256": "17b08fecd1884958cea3d8b5a3dc4cabfacd6c8c5068d17218fef22aa9fad24f",
+    "reviewed": ["four controls", "engine short/race", "full short/race", "vet", "accepted-PGO build"],
+    "evidence": "admission/checks-receipt.json",
+    "games_launched": false,
+    "adoption": false
+  },
+  "factorizer": {
+    "controller_pid": 18398,
+    "trainer_pid": 18406,
+    "terminal": false,
+    "epoch_receipt": false,
+    "oom": 0,
+    "oom_kill": 0,
+    "scope_memory_max_bytes": 4294967296,
+    "scope_swap_current_bytes": 0,
+    "relay_tool_handle": "48300 unavailable",
+    "native_waiter_pids": [18513, 18534],
+    "native_waiter_target": 18398,
+    "transfer_completion": "unconfirmed; check at training terminal before any manual transfer"
+  },
+  "spsa": {"controller_pid": 88166, "tuner_pid": 88178, "durable_iter": 1900, "durable_games": 22800, "frozen_endpoint_games": 24000},
+  "host_c_free_bytes": 302647095296,
+  "next_session_not_before_edt": "2026-10-10T20:15:00-04:00",
+  "new_engine_change": false,
+  "new_strength_verdict": false
+}
