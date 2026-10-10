@@ -280,15 +280,22 @@ func ngnn1MoveDelta(move Move) ngnn1Delta {
 	return d
 }
 
+// A logical search ply can read an earlier slot after a null move. Every real
+// move writes its own slot, so sharing never changes an ancestor accumulator.
+type ngnn1Frame struct {
+	values []int32
+	slot   int
+}
+
 type ngnn1State struct {
 	network      *NGNN1Network
 	stack        []int32
+	frames       []ngnn1Frame
 	refreshCache []ngnn3CacheEntry
 }
 
 func (s *ngnn1State) at(depth int) []int32 {
-	width := 2 * s.network.hidden
-	return s.stack[depth*width : (depth+1)*width]
+	return s.frames[depth].values
 }
 
 func (s *ngnn1State) ensure(depth int) {
@@ -303,7 +310,16 @@ func (s *ngnn1State) ensure(depth int) {
 		}
 		next := make([]int32, plies*width)
 		copy(next, s.stack)
+		frames := make([]ngnn1Frame, plies)
+		for ply := range frames {
+			slot := ply
+			if ply < len(s.frames) {
+				slot = s.frames[ply].slot
+			}
+			frames[ply] = ngnn1Frame{next[slot*width : (slot+1)*width], slot}
+		}
 		s.stack = next
+		s.frames = frames
 	}
 }
 
@@ -324,11 +340,14 @@ func (s *ngnn1State) push(depth int, delta ngnn1Delta) {
 
 func (s *ngnn1State) pushPosition(depth int, delta ngnn1Delta, pos *Position) {
 	s.ensure(depth)
-	parent, child := s.at(depth-1), s.at(depth)
 	if delta.removes == 0 && delta.adds == 0 {
-		copy(child, parent)
+		s.frames[depth] = s.frames[depth-1]
 		return // Null move: the turn changes; the features do not.
 	}
+	width := 2 * s.network.hidden
+	child := s.stack[depth*width : (depth+1)*width]
+	s.frames[depth] = ngnn1Frame{child, depth}
+	parent := s.at(depth - 1)
 	n := s.network
 	for p := 0; p < 2; p++ {
 		a := child[p*n.hidden : (p+1)*n.hidden]
