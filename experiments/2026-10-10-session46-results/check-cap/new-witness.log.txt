@@ -1,0 +1,18 @@
+=== RUN   TestCheckExtensionCapChildDepth
+=== RUN   TestCheckExtensionCapChildDepth/depth2
+=== RUN   TestCheckExtensionCapChildDepth/depth6
+=== RUN   TestCheckExtensionCapChildDepth/depth7
+=== RUN   TestCheckExtensionCapChildDepth/depth12
+=== RUN   TestCheckExtensionCapChildDepth/path_budget
+--- PASS: TestCheckExtensionCapChildDepth (0.02s)
+    --- PASS: TestCheckExtensionCapChildDepth/depth2 (0.00s)
+    --- PASS: TestCheckExtensionCapChildDepth/depth6 (0.00s)
+    --- PASS: TestCheckExtensionCapChildDepth/depth7 (0.00s)
+    --- PASS: TestCheckExtensionCapChildDepth/depth12 (0.00s)
+    --- PASS: TestCheckExtensionCapChildDepth/path_budget (0.00s)
+=== RUN   TestCheckExtensionCapPreservesPV
+--- PASS: TestCheckExtensionCapPreservesPV (0.00s)
+=== RUN   TestCheckExtensionCapStoppedChild
+--- PASS: TestCheckExtensionCapStoppedChild (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.032s

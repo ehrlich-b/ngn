@@ -16,7 +16,7 @@ Swap:              4           0           3
 {"utc": "2026-10-10T12:23:06.634681+00:00", "stage": "session44-expanded-data", "event": "training-start", "detail": "reviewed expanded corpus; matched58x256M/KB8H512/NB8/BF16/factorizer-off; rig12,14/4GiB"}
 {"utc": "2026-10-10T12:23:06.781584+00:00", "stage": "session44-capture-quiet", "event": "speed-start", "detail": "forge current-source checks passed; rig CPU15 fixed36 identities/40 blocks; time games held"}
 {"utc": "2026-10-10T12:30:48.850055+00:00", "stage": "session45-handoff", "event": "detach", "detail": "46bff0d pushed; playing56b35ef/be34532c unchanged; C285.79GiB resolves capacity; unchanged data retry13164/13201 on12,14 and capture timing13178 on13,15 live; double-singular270961 full forge checks pass; time stage prepared for capture review; provenance3465/SPSA88178/reader117631 untouched; next session not before08:55EDT; no automatic adoption/publication"}
-G544  85W 345D 114L   47.3%  elo  -18.5 [-48,+11]  LLR  -1.60  pLLR  -2.43  draw-rule   
-G545  85W 346D 114L   47.3%  elo  -18.5 [-48,+11]  LLR  -1.61  pLLR  -2.44  draw-rule   
+G544  85W 345D 114L   47.3%  elo  -18.5 [-48,+11]  LLR  -1.60  pLLR  -2.43  draw-rule
+G545  85W 346D 114L   47.3%  elo  -18.5 [-48,+11]  LLR  -1.61  pLLR  -2.44  draw-rule
 session44-capture-quiet
 session44-expanded-data

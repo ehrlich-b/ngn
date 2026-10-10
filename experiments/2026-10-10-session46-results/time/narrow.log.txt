@@ -1,0 +1,10 @@
+=== RUN   TestIterationAdmissionChecksClockWithoutThrottle
+--- PASS: TestIterationAdmissionChecksClockWithoutThrottle (0.00s)
+=== RUN   TestIterationAdmissionChecksHardDeadlineWithoutThrottle
+--- PASS: TestIterationAdmissionChecksHardDeadlineWithoutThrottle (0.00s)
+=== RUN   TestIterationAdmissionLeavesActiveChecksThrottled
+--- PASS: TestIterationAdmissionLeavesActiveChecksThrottled (0.00s)
+=== RUN   TestIterationAdmissionBeforeBudgetKeepsSearching
+--- PASS: TestIterationAdmissionBeforeBudgetKeepsSearching (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.004s

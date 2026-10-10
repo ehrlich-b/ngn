@@ -12,10 +12,10 @@ Swap:              4           0           3
   13201   13172    2295 7063340 32.2 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/session44-expanded-data/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 58 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only
   13805   13802     698  3456  0.0 bash controller.sh
 session39-provenance-batch
-G599  91W 384D 124L   47.2%  elo  -19.2 [-47,+9]  LLR  -1.85  pLLR  -2.83  draw-rule   
+G599  91W 384D 124L   47.2%  elo  -19.2 [-47,+9]  LLR  -1.85  pLLR  -2.83  draw-rule
 Verdict: INCONCLUSIVE (ran out of games — add openings or raise -maxgames)
 session45-time-admission
-G4     2W  0D  2L   50.0%  elo   +0.0 [-301,+301]  LLR  +0.00  pLLR  +0.00  checkmate   
+G4     2W  0D  2L   50.0%  elo   +0.0 [-301,+301]  LLR  +0.00  pLLR  +0.00  checkmate
 session46-tt-bisect
 {"epochs": 0, "last": []}
 {"utc": "2026-10-10T12:48:15.917452+00:00", "stage": "session44-capture-quiet", "event": "speed-keep", "detail": "complete current56b35ef sample passes; session review before integration"}
