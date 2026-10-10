@@ -1,0 +1,38 @@
+{
+  "completed_utc": "2026-10-10T07:23:57.239950+00:00",
+  "base_source": "6c0fc26a17e359442098802f9f33ee673c118c90",
+  "change": "partial",
+  "checks": [
+    "existing narrow controls",
+    "full-short ./...",
+    "full-race ./...",
+    "go vet ./...",
+    "explicit PGO build"
+  ],
+  "machine": "forge / Ryzen6900HX Debian13 VM",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "os": "Linux-6.12.111+deb13-cloud-amd64-x86_64-with-glibc2.41",
+  "cpus": [
+    8,
+    9,
+    10,
+    11
+  ],
+  "memory_max": 2684354560,
+  "nice": 10,
+  "files_sha256": {
+    "partial.patch": "5ebbed6e348912663ace67159d73452536b5959ebaa1fcca0f640cd11831590d",
+    "base.tar": "2b976449f9630e4307ced53c135c0a5ad0b9f7f0ff2497476cab9e9f7840ac4c",
+    "partial-ngn": "4cdf8acf03c7e8bf1c579decd17858453f9850edec5f2754a699f6b9cb314523",
+    "partial/default.pgo": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+    "partial/engine/hash.go": "48f94110e870c6e19c17ee0b3033d77d994a018e2b7bff87d161b8a508f2c31e"
+  },
+  "changed_source_sha256": {
+    "engine/partial_root_test.go": "8f1cc61fd87e76a4b2e93ec4f07bc00b3c36b843e42a1081d36165d5e7cc86b3",
+    "engine/search.go": "c51ce5f5352cbc0ade0d492058fec12bd3ce8d1a398f8a295614fa06b540db97"
+  },
+  "strength_games": 0,
+  "automatic_promotion": false,
+  "source_reviewed": true,
+  "verdict": "current-key checks PASS; strength games remain required"
+}

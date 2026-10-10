@@ -1,0 +1,8 @@
+{"utc": "2026-10-10T07:11:30.023306+00:00", "stage": "session39-time-key-checks", "event": "wait", "detail": "native completion of the separate forge integration scope; no polling"}
+{"utc": "2026-10-10T07:11:30.191251+00:00", "stage": "session39-time-key-checks", "event": "checks-start", "detail": "isolated admission on6c0fc26; current-key source changed since session38"}
+{"utc": "2026-10-10T07:15:45.072592+00:00", "stage": "session39-time-key-checks", "event": "checks-pass", "detail": "admission: current-source code ready; no behavior or strength acceptance"}
+{"utc": "2026-10-10T07:15:45.205131+00:00", "stage": "session39-time-key-checks", "event": "checks-start", "detail": "isolated horizon on6c0fc26; current-key source changed since session38"}
+{"utc": "2026-10-10T07:20:10.442678+00:00", "stage": "session39-time-key-checks", "event": "checks-pass", "detail": "horizon: current-source code ready; no behavior or strength acceptance"}
+{"utc": "2026-10-10T07:20:10.562887+00:00", "stage": "session39-time-key-checks", "event": "checks-start", "detail": "isolated partial on6c0fc26; current-key source changed since session38"}
+{"utc": "2026-10-10T07:23:57.283113+00:00", "stage": "session39-time-key-checks", "event": "checks-pass", "detail": "partial: current-source code ready; no behavior or strength acceptance"}
+{"utc": "2026-10-10T07:23:57.316192+00:00", "stage": "session39-time-key-checks", "event": "end", "detail": "rc 0; separate candidates only; long-clock games remain required"}

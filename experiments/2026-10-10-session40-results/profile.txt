@@ -1,0 +1,27 @@
+File: baseline-probe
+Build ID: 46e4f29348f37109e733edb545874380acb17f9b
+Type: cpu
+Time: 2026-10-10 05:03:11 EDT
+Duration: 30.27s, Total samples = 30.07s (99.34%)
+Showing nodes accounting for 19.91s, 66.21% of 30.07s total
+Dropped 130 nodes (cum <= 0.15s)
+Showing top 18 nodes out of 71
+      flat  flat%   sum%        cum   cum%
+     3.24s 10.77% 10.77%      3.24s 10.77%  github.com/ehrlich-b/ngn/engine.selectNextMove (inline)
+     3.10s 10.31% 21.08%      3.13s 10.41%  github.com/ehrlich-b/ngn/engine.(*Cache).Get
+     3.05s 10.14% 31.23%     29.96s 99.63%  github.com/ehrlich-b/ngn/engine.alphaBetaPV
+     2.59s  8.61% 39.84%      2.59s  8.61%  github.com/ehrlich-b/ngn/engine.ngnn1MoveRows
+     1.55s  5.15% 45.00%      1.85s  6.15%  github.com/ehrlich-b/ngn/engine.(*workerHistory).scoreMovesIntoBuffer (inline)
+     1.25s  4.16% 49.15%      1.25s  4.16%  github.com/ehrlich-b/ngn/engine.ngnn1OutputSmall
+     0.66s  2.19% 51.35%      0.98s  3.26%  github.com/ehrlich-b/ngn/engine.isInCheck
+     0.65s  2.16% 53.51%      1.83s  6.09%  github.com/ehrlich-b/ngn/engine.(*NGNN1Network).ngnn3MoveDelta
+     0.64s  2.13% 55.64%      0.85s  2.83%  github.com/ehrlich-b/ngn/engine.advanceMoveKey
+     0.62s  2.06% 57.70%      0.62s  2.06%  github.com/ehrlich-b/ngn/engine.ngnn1CaptureRows
+     0.36s  1.20% 58.90%      0.37s  1.23%  github.com/ehrlich-b/ngn/engine.(*Bitboard).PieceOccupancy (inline)
+     0.35s  1.16% 60.06%      0.40s  1.33%  github.com/ehrlich-b/ngn/engine.(*Bitboard).Move
+     0.33s  1.10% 61.16%      4.46s 14.83%  github.com/ehrlich-b/ngn/engine.(*ngnn1State).pushPosition
+     0.32s  1.06% 62.22%      2.15s  7.15%  github.com/ehrlich-b/ngn/engine.(*workerEvaluator).PrepareMove
+     0.31s  1.03% 63.25%      0.63s  2.10%  github.com/ehrlich-b/ngn/engine.generateSlidingMovesIntoBuffer (inline)
+     0.30s     1% 64.25%      0.30s     1%  github.com/ehrlich-b/ngn/engine.getBishopAttacksBB (inline)
+     0.30s     1% 65.25%      3.81s 12.67%  github.com/ehrlich-b/ngn/engine.quiescenceWithDepth
+     0.29s  0.96% 66.21%      0.61s  2.03%  github.com/ehrlich-b/ngn/engine.getAttackers (inline)
