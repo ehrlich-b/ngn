@@ -1,0 +1,177 @@
+--- a/cmd/spsa/main.go
++++ b/cmd/spsa/main.go
+@@ -65,6 +65,7 @@
+ 	iters := flag.Int("iters", 12000, "SPSA iterations (each = one color-balanced game pair unless -single)")
+ 	single := flag.Bool("single", false, "one game per iteration instead of a color-balanced pair (2x faster, noisier gradient)")
+ 	pairs := flag.Int("pairs", 1, "concurrent perturbations averaged per iteration — parallelizes wall-clock K× and cuts gradient variance ~1/K (T8 campaign uses 4); 1 = the original sequential SPSA (identical rng stream)")
++	concurrency := flag.Int("concurrency", 0, "simultaneous game pairs; 0 uses -pairs (perturbations per update remain unchanged)")
+ 	openingsFile := flag.String("openings", "", "opening book (one move-seq per line); default = built-in set")
+ 	outFile := flag.String("out", "output/spsa.jsonl", "checkpoint/history JSONL (also the -resume source)")
+ 	resume := flag.Bool("resume", false, "resume theta + iteration from the last checkpoint in -out")
+@@ -77,6 +78,13 @@
+ 	flag.Parse()
+ 
+ 	K := max(1, *pairs)
++	if *concurrency < 0 {
++		log.Fatal("concurrency must be nonnegative")
++	}
++	slots := K
++	if *concurrency > 0 {
++		slots = min(K, *concurrency)
++	}
+ 	rng := rand.New(rand.NewSource(*seed))
+ 
+ 	// Build the parameter vector from the engine registry (single source of truth).
+@@ -129,7 +137,7 @@
+ 	}
+ 
+ 	type worker struct{ plus, minus *uci.Engine }
+-	workers := make([]worker, K)
++	workers := make([]worker, slots)
+ 	for j := range workers {
+ 		p := uci.Start(*enginePath, fmt.Sprintf("plus%d", j), *lowPower)
+ 		m := uci.Start(*enginePath, fmt.Sprintf("minus%d", j), *lowPower)
+@@ -162,43 +170,37 @@
+ 	playBatch := func(plusV, minusV [][]int, opIdx []int) []float64 {
+ 		R := make([]float64, len(plusV))
+ 		var mu sync.Mutex
+-		var wg sync.WaitGroup
+-		for j := range plusV {
+-			wg.Add(1)
+-			go func(j int) {
+-				defer wg.Done()
+-				w := workers[j]
+-				setParams(w.plus, params, plusV[j])
+-				setParams(w.minus, params, minusV[j])
+-				op := openings[opIdx[j]]
+-				g1 := uci.PlayGame(w.plus, w.minus, op, true, cfg) // theta+ as White
+-				s := points(g1.Res)
+-				n, ff := 1, 0
+-				if g1.Reason == "time-forfeit" {
++		runGameJobs(len(plusV), slots, func(j, slot int) {
++			w := workers[slot]
++			setParams(w.plus, params, plusV[j])
++			setParams(w.minus, params, minusV[j])
++			op := openings[opIdx[j]]
++			g1 := uci.PlayGame(w.plus, w.minus, op, true, cfg) // theta+ as White
++			s := points(g1.Res)
++			n, ff := 1, 0
++			if g1.Reason == "time-forfeit" {
++				ff++
++			}
++			if !*single {
++				g2 := uci.PlayGame(w.plus, w.minus, op, false, cfg) // theta+ as Black
++				if g2.Reason == "time-forfeit" {
+ 					ff++
+ 				}
+-				if !*single {
+-					g2 := uci.PlayGame(w.plus, w.minus, op, false, cfg) // theta+ as Black
+-					if g2.Reason == "time-forfeit" {
+-						ff++
+-					}
+-					s += points(g2.Res)
+-					n = 2
+-				}
+-				// R in [-1,1]: pair s in [0,2] -> s-1; single s in {0,.5,1} -> 2s-1.
+-				if *single {
+-					R[j] = 2*s - 1
+-				} else {
+-					R[j] = s - 1
+-				}
+-				mu.Lock()
+-				plusPts += s
+-				games += n
+-				forfeits += ff
+-				mu.Unlock()
+-			}(j)
+-		}
+-		wg.Wait()
++				s += points(g2.Res)
++				n = 2
++			}
++			// R in [-1,1]: pair s in [0,2] -> s-1; single s in {0,.5,1} -> 2s-1.
++			if *single {
++				R[j] = 2*s - 1
++			} else {
++				R[j] = s - 1
++			}
++			mu.Lock()
++			plusPts += s
++			games += n
++			forfeits += ff
++			mu.Unlock()
++		})
+ 		return R
+ 	}
+ 
+--- /dev/null
++++ b/cmd/spsa/game_jobs.go
+@@ -0,0 +1,19 @@
++package main
++
++import "sync"
++
++// Each worker owns one engine pair. A six-perturbation update can therefore
++// finish in three waves on two workers without changing its gradient or RNG.
++func runGameJobs(jobs, slots int, play func(job, slot int)) {
++	var wg sync.WaitGroup
++	for slot := 0; slot < slots; slot++ {
++		wg.Add(1)
++		go func(slot int) {
++			defer wg.Done()
++			for job := slot; job < jobs; job += slots {
++				play(job, slot)
++			}
++		}(slot)
++	}
++	wg.Wait()
++}
+--- /dev/null
++++ b/cmd/spsa/game_jobs_test.go
+@@ -0,0 +1,46 @@
++package main
++
++import (
++	"sync/atomic"
++	"testing"
++)
++
++func TestGameJobsPreservesAllPerturbationsWithTwoEnginePairs(t *testing.T) {
++	var visits [6]atomic.Int32
++	var active [2]atomic.Int32
++	started := make(chan struct{}, 2)
++	release := make(chan struct{})
++	done := make(chan struct{})
++	go func() {
++		runGameJobs(6, 2, func(job, slot int) {
++			if slot < 0 || slot >= 2 || job < 0 || job >= 6 {
++				t.Errorf("invalid job/worker: %d/%d", job, slot)
++				return
++			}
++			if active[slot].Add(1) != 1 {
++				t.Errorf("engine pair %d used concurrently", slot)
++			}
++			if job < 2 {
++				started <- struct{}{}
++				<-release
++			}
++			visits[job].Add(1)
++			active[slot].Add(-1)
++		})
++		close(done)
++	}()
++	<-started
++	<-started
++	select {
++	case <-done:
++		t.Fatal("returned before the game pairs finished")
++	default:
++	}
++	close(release)
++	<-done
++	for job := range visits {
++		if got := visits[job].Load(); got != 1 {
++			t.Errorf("perturbation %d completed %d times, want one", job, got)
++		}
++	}
++}

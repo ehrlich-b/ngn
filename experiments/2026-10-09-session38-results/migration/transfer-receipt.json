@@ -1,0 +1,46 @@
+{
+  "utc": "2026-10-10T03:53:10.759314+00:00",
+  "stopped_rig_spsa_pid": 1360,
+  "stopped_group": 1360,
+  "checkpoint": {
+    "iter": 1625,
+    "time": "2026-10-09T23:44:48-04:00",
+    "plus_pct": 50.5,
+    "theta": {
+      "AspInit": 16.117239179589028,
+      "AspMult": 161.0596857476026,
+      "DeltaMargin": 192.2419294128603,
+      "ExtensionBudget": 29.036429438324333,
+      "FutilityMargin": 104.64300891012243,
+      "FutilityMaxDepth": 7.7448284869861,
+      "LMPBase": 3.4590784851142677,
+      "LMRFullDepth": 3.4581014618026367,
+      "LMRMoveThreshold": 1.9583587189978686,
+      "NullMoveMinDepth": 2.2614474951709735,
+      "NullMoveR": 4.050260057366806,
+      "ReverseFutilityMargin": 61.07104783197928,
+      "SingularDepth": 6.542341174243528,
+      "SingularMargin": 56.871810982699955
+    },
+    "rounded": {
+      "AspInit": 16,
+      "AspMult": 161,
+      "DeltaMargin": 192,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 105,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 3,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 61,
+      "SingularDepth": 7,
+      "SingularMargin": 57
+    }
+  },
+  "durable_games": 19500,
+  "reason": "current plan moves CPU-only work to forge",
+  "uncheckpointed_games_not_counted": true,
+  "hopper_untouched": true
+}
