@@ -27,6 +27,12 @@ func ngnn1MovePair(dst, src []int32, removeUs, addUs, removeThem, addThem []int1
 //go:noescape
 func ngnn1CaptureRows(dst, src []int32, remove, capture, add []int16)
 
+// Update both contiguous H-wide perspectives; source and destination may
+// alias exactly or be disjoint. Each feature row has H signed int16 lanes.
+//
+//go:noescape
+func ngnn1CapturePair(dst, src []int32, removeUs, captureUs, addUs, removeThem, captureThem, addThem []int16)
+
 //go:noescape
 func ngnn1CastleRows(dst, src []int32, removeKing, removeRook, addKing, addRook []int16)
 
