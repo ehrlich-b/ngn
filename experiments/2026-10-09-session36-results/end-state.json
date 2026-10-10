@@ -1,0 +1,32 @@
+{
+  "session": 36,
+  "started_edt": "2026-10-09 21:01:59",
+  "deadline_edt": "2026-10-09 22:41:59",
+  "captured_edt": "2026-10-09 21:07:35",
+  "playing_source": "ac658e2ce509154775d9567807a5ccf8485b6dca",
+  "accepted_net": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "wsl_entry_error": "Wsl/Service/0x8007274c",
+  "windows_ssh_available": true,
+  "host_c_free_bytes": 27477540864,
+  "last_successful_wsl_state_edt": "2026-10-09 20:45:19",
+  "last_observed_spsa_pid": 1405,
+  "last_observed_hopper_pid": 1211,
+  "last_observed_spsa_durable_iteration": 1475,
+  "last_observed_spsa_games": 17700,
+  "new_job_launch_confirmed": false,
+  "restart_or_shutdown": false,
+  "windows_payload": "C:/Users/ehrli/ngn-session36/",
+  "windows_launcher": "C:/Users/ehrli/ngn-session36/2026-10-09-session36-launch.sh",
+  "payload_sha256": {
+    "base.tar": "890e64956c2292da612b3f57924becad74d5a50400a7481b0650fa4653fcc54b",
+    "candidate.patch": "76efa5266d49c5bf3f8106d2f9907a1e55066efa0637ac8c84b1cb0bcdc01dd7",
+    "horizon.patch": "5beb46e6444a2db28377a7004475fe85ad62b878ed8677f0ce7fa2536847a407",
+    "controller.sh": "9a4cea58a8c19c9e554cd1404a52f400bb3f08eece36c69ee60a9e3f1373dc33",
+    "manifest.md": "3f116a0757ae75be3fa5dc8a1589298773e3c4b644e3f1993e4088fe584da819",
+    "2026-10-09-session36-launch.sh": "f82db6d56311c8432d8382658287a1ddd58152aa504bfe17a0d6724394733410"
+  },
+  "time_topics": ["night/time-playing", "night/time-horizon"],
+  "time_checked_on_current_source": false,
+  "new_strength_games": 0,
+  "new_jobs_c_admission_gib": 25.5
+}
