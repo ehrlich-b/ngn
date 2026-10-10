@@ -1,0 +1,1851 @@
+{
+  "identity": {
+    "ngnn3": {
+      "depth": 14,
+      "equal": true,
+      "cases": 12
+    },
+    "ngnn2": {
+      "depth": 14,
+      "equal": true,
+      "cases": 12
+    },
+    "hce": {
+      "depth": 11,
+      "equal": true,
+      "cases": 12
+    }
+  },
+  "base_source": "de148b96d1bc2d9577b66299b24d5bce653a7150",
+  "decision": "36 exact identities, 40 balanced blocks, lower95 ratio>1 and both order strata>1; otherwise shelve without extension",
+  "hash_mb": 16,
+  "degrees_of_freedom": 39,
+  "binary_sha256": {
+    "baseline": "113e879e388e1e0f002dc72e879728afdd8353feeda90c7ffa05ef502d383c20",
+    "candidate": "741fa053652d4edca5cb280df096ed6eb669980cd68906caa914f1ec2bb33d1d"
+  },
+  "net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "old_net_sha256": "c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2",
+  "cpu": 4,
+  "environment": {
+    "GOMAXPROCS": "1"
+  },
+  "nice": 10,
+  "machine": "forge Debian13 / Ryzen6900HX VM",
+  "host_pinning": "on",
+  "seconds": 1521.711139678955,
+  "rounds": [
+    {
+      "index": 0,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1243693.8876186684,
+        "candidate": 1274533.0188422615
+      },
+      "ratio": 1.0247964000873573
+    },
+    {
+      "index": 1,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1150417.7024741233,
+        "baseline": 1202745.385889614
+      },
+      "ratio": 0.9564931331024925
+    },
+    {
+      "index": 2,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1213864.1884152244,
+        "candidate": 1296664.38807911
+      },
+      "ratio": 1.0682120787927574
+    },
+    {
+      "index": 3,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1176907.8130135844,
+        "baseline": 1197452.309836125
+      },
+      "ratio": 0.9828431607223237
+    },
+    {
+      "index": 4,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1163869.5017147718,
+        "candidate": 1230849.0405322083
+      },
+      "ratio": 1.0575490110521437
+    },
+    {
+      "index": 5,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1379744.376918291,
+        "baseline": 1153761.2711246086
+      },
+      "ratio": 1.1958664339403673
+    },
+    {
+      "index": 6,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1233566.6623871354,
+        "candidate": 1170670.6262057312
+      },
+      "ratio": 0.9490128599457357
+    },
+    {
+      "index": 7,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1279042.3233972497,
+        "baseline": 1173911.8738657413
+      },
+      "ratio": 1.0895556573470113
+    },
+    {
+      "index": 8,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1069669.727577194,
+        "candidate": 1177285.5279321505
+      },
+      "ratio": 1.1006065681588528
+    },
+    {
+      "index": 9,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1220083.0605994528,
+        "baseline": 1260118.0529996904
+      },
+      "ratio": 0.9682291732072761
+    },
+    {
+      "index": 10,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1277364.7837565574,
+        "candidate": 1316505.6438778185
+      },
+      "ratio": 1.0306418813317784
+    },
+    {
+      "index": 11,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1370778.84658131,
+        "baseline": 1278945.0318296677
+      },
+      "ratio": 1.0718043484795152
+    },
+    {
+      "index": 12,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1273894.6534127744,
+        "candidate": 1346383.715224781
+      },
+      "ratio": 1.056903497960218
+    },
+    {
+      "index": 13,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1363545.2200367926,
+        "baseline": 1277293.2817934272
+      },
+      "ratio": 1.0675271211966764
+    },
+    {
+      "index": 14,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1296740.4243949782,
+        "candidate": 1382426.991580101
+      },
+      "ratio": 1.066078426779285
+    },
+    {
+      "index": 15,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1393639.4886326096,
+        "baseline": 1297398.48113097
+      },
+      "ratio": 1.074179990882789
+    },
+    {
+      "index": 16,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1298894.0423354646,
+        "candidate": 1420221.0827235314
+      },
+      "ratio": 1.0934079581810352
+    },
+    {
+      "index": 17,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1385158.1878472809,
+        "baseline": 1291261.0376977578
+      },
+      "ratio": 1.072717403691616
+    },
+    {
+      "index": 18,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1291757.0605857135,
+        "candidate": 1380053.0583387194
+      },
+      "ratio": 1.0683534082739756
+    },
+    {
+      "index": 19,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1378919.4226325366,
+        "baseline": 1303570.2365131623
+      },
+      "ratio": 1.0578021682367658
+    },
+    {
+      "index": 20,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1295156.6820301975,
+        "candidate": 1382683.6489748438
+      },
+      "ratio": 1.067580214933876
+    },
+    {
+      "index": 21,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1381626.05415602,
+        "baseline": 1324354.1527443214
+      },
+      "ratio": 1.0432451556051077
+    },
+    {
+      "index": 22,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1318335.4332918993,
+        "candidate": 1367260.5493544214
+      },
+      "ratio": 1.0371112805034417
+    },
+    {
+      "index": 23,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1371729.0673908687,
+        "baseline": 1291828.7999302915
+      },
+      "ratio": 1.0618505079503482
+    },
+    {
+      "index": 24,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1282562.8910999852,
+        "candidate": 1374017.037081646
+      },
+      "ratio": 1.071305778933948
+    },
+    {
+      "index": 25,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1379530.5556615132,
+        "baseline": 1295361.6036341998
+      },
+      "ratio": 1.06497718613179
+    },
+    {
+      "index": 26,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1310849.8678786207,
+        "candidate": 1382825.10451104
+      },
+      "ratio": 1.0549073073859316
+    },
+    {
+      "index": 27,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1382131.889603871,
+        "baseline": 1327332.3418887528
+      },
+      "ratio": 1.0412854761281114
+    },
+    {
+      "index": 28,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1301850.193792001,
+        "candidate": 1369681.948987194
+      },
+      "ratio": 1.0521041172929537
+    },
+    {
+      "index": 29,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1279520.7711976105,
+        "baseline": 1217641.5036677725
+      },
+      "ratio": 1.0508189539724506
+    },
+    {
+      "index": 30,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1202442.1729112398,
+        "candidate": 1287963.314732613
+      },
+      "ratio": 1.07112287288986
+    },
+    {
+      "index": 31,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1274166.8886469454,
+        "baseline": 1216230.283150274
+      },
+      "ratio": 1.047636213552095
+    },
+    {
+      "index": 32,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1199840.122329276,
+        "candidate": 1292287.6340633857
+      },
+      "ratio": 1.0770498585716897
+    },
+    {
+      "index": 33,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1324853.3662805846,
+        "baseline": 1224922.7507890256
+      },
+      "ratio": 1.0815811572012923
+    },
+    {
+      "index": 34,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1100933.1848027199,
+        "candidate": 1129893.8996203113
+      },
+      "ratio": 1.0263056062051406
+    },
+    {
+      "index": 35,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 951223.0028703398,
+        "baseline": 1170412.8960507757
+      },
+      "ratio": 0.8127243010393771
+    },
+    {
+      "index": 36,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1065404.8336901478,
+        "candidate": 1041106.7408967556
+      },
+      "ratio": 0.9771935587064748
+    },
+    {
+      "index": 37,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1073928.8721124902,
+        "baseline": 1156020.6597655762
+      },
+      "ratio": 0.9289876119776848
+    },
+    {
+      "index": 38,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "nps": {
+        "baseline": 1106080.7993254259,
+        "candidate": 1310804.1930928587
+      },
+      "ratio": 1.185089004250222
+    },
+    {
+      "index": 39,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "nps": {
+        "candidate": 1215771.9214059939,
+        "baseline": 1021443.1993084963
+      },
+      "ratio": 1.190249171201155
+    }
+  ],
+  "geometric_ratio": 1.0476537563988786,
+  "ci95": [
+    1.0254306698854656,
+    1.0703584606254013
+  ],
+  "order_strata_ratios": [
+    1.0557746905240866,
+    1.0395952878467307
+  ],
+  "repeatable_gain": true,
+  "commands": [
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "identity",
+      "-depth",
+      "14"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "identity",
+      "-depth",
+      "14"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/ngnn2.nnue",
+      "-mode",
+      "identity",
+      "-depth",
+      "14"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/ngnn2.nnue",
+      "-mode",
+      "identity",
+      "-depth",
+      "14"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "",
+      "-mode",
+      "identity",
+      "-depth",
+      "11"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "",
+      "-mode",
+      "identity",
+      "-depth",
+      "11"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/candidate-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ],
+    [
+      "taskset",
+      "-c",
+      "4",
+      "nice",
+      "-n",
+      "10",
+      "/work/lanes/ngn-s47/compact/baseline-probe",
+      "-net",
+      "/work/lanes/ngn-s47/compact/base.nnue",
+      "-mode",
+      "timed",
+      "-duration",
+      "3s"
+    ]
+  ]
+}

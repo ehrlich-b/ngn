@@ -1,0 +1,89 @@
+2026-10-10T10:57:16-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              15           3           3           0           8          11
+Swap:              4           0           3
+75 %, 4306 MiB, 16303 MiB
+    PID    PGID S ELAPSED COMMAND
+   1170    1170 S   49550 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+  13164   13164 S    9249 bash controller.sh
+  13172   13172 T    9249 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python trial.py
+  13201   13172 S    9248 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/session44-expanded-data/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 58 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only
+  15998   15998 S    3312 bash controller.sh
+{"utc": "2026-10-10T13:06:55.396178+00:00", "stage": "session39-provenance-batch", "event": "end", "detail": "rc 0; review before certification/bisect; no automatic source or net change"}
+{"utc": "2026-10-10T13:06:55.492122+00:00", "stage": "session46-tt-bisect", "event": "aa-start", "detail": "fresh TT-only diagnostic A/A40 at60+0.6/c6 on freed0-11"}
+{"utc": "2026-10-10T13:08:24.634250+00:00", "stage": "session46-handoff", "event": "detach", "detail": "de148b9/be34532c accepted capture +1.42%; session46 records pushed; compact297092 and check-cap293195 full forge checks pass/isolated; time13805 A/A active on frozen de148b9; provenance3465/SPSA88178/data13164+13201/reader117631 live; confirmed native conditional TT-bisect15617; next session not before09:45EDT; no default-net/claim/publication"}
+{"utc": "2026-10-10T13:30:31.784670+00:00", "stage": "session46-tt-bisect", "event": "gate-start", "detail": "exactly400 paired TT-only diagnostic60+0.6; no adoption or extension"}
+{"utc": "2026-10-10T13:47:23.966856+00:00", "reason": "2026-10-10 09:00 plan: all nontraining CPU jobs move to forge; interrupted samples have no verdict and cannot be pooled", "stage": "session45-time-admission", "playing_adoption": false, "event": "policy-interruption"}
+{"utc": "2026-10-10T13:47:23.995132+00:00", "reason": "2026-10-10 09:00 plan: all nontraining CPU jobs move to forge; interrupted samples have no verdict and cannot be pooled", "stage": "session46-tt-bisect", "playing_adoption": false, "event": "policy-interruption"}
+{"utc": "2026-10-10T13:47:24.020691+00:00", "stage": "session46-tt-bisect", "event": "end", "detail": "rc 0; diagnostic only; session review required; no source changes"}
+{"utc": "2026-10-10T13:47:24.029895+00:00", "stage": "session45-time-admission", "event": "end", "detail": "rc 0; session review required; no automatic adoption"}
+{"epoch": 13, "step": 203125, "positions": 256000000, "updates": 15625, "loss": 0.0094911337890625, "lr": 0.0008929737083492421, "seconds": 341.49075379699934, "positions_per_second": 749654.2648770523, "steady_positions_per_second": 749916.4472178086, "validation_loss": 0.00951828906195307, "validation_loss_lambda_075": 0.00951828906195307, "validation_loss_result": 0.08126201090144135}
+{"epoch": 14, "step": 218750, "positions": 256000000, "updates": 15625, "loss": 0.0094733818359375, "lr": 0.0008766987852027429, "seconds": 340.2425774930016, "positions_per_second": 752404.3636345473, "steady_positions_per_second": 752796.5553282613, "validation_loss": 0.009498607175804492, "validation_loss_lambda_075": 0.009498607175804492, "validation_loss_result": 0.0807151370326259}
+{"epoch": 15, "step": 234375, "positions": 256000000, "updates": 15625, "loss": 0.0094694765625, "lr": 0.000859465596115502, "seconds": 321.30494540400105, "positions_per_second": 796750.8862277603, "steady_positions_per_second": 797266.1758382305, "validation_loss": 0.00948464437821363, "validation_loss_lambda_075": 0.00948464437821363, "validation_loss_result": 0.08097735262695237}
+{"epoch": 16, "step": 250000, "positions": 256000000, "updates": 15625, "loss": 0.00943673046875, "lr": 0.000841324689111879, "seconds": 330.9249091899983, "positions_per_second": 773589.3941214904, "steady_positions_per_second": 773908.8303547082, "validation_loss": 0.009469326113437392, "validation_loss_lambda_075": 0.009469326113437392, "validation_loss_result": 0.08058280517789554}
+{"epoch": 17, "step": 265625, "positions": 256000000, "updates": 15625, "loss": 0.0093993642578125, "lr": 0.0008223292747151544, "seconds": 337.505357961003, "positions_per_second": 758506.4768944482, "steady_positions_per_second": 758915.3971622998, "validation_loss": 0.00944034288321633, "validation_loss_lambda_075": 0.00944034288321633, "validation_loss_result": 0.08041760321416055}
+{"epoch": 18, "step": 281250, "positions": 256000000, "updates": 15625, "loss": 0.0093906806640625, "lr": 0.0008025350698715526, "seconds": 336.93663696399744, "positions_per_second": 759786.7726903034, "steady_positions_per_second": 760069.7572858251, "validation_loss": 0.009434272904022857, "validation_loss_lambda_075": 0.009434272904022857, "validation_loss_result": 0.08046176320804348}
+{"epoch": 19, "step": 296875, "positions": 256000000, "updates": 15625, "loss": 0.009382314453125, "lr": 0.0007820001345224775, "seconds": 334.77133018000313, "positions_per_second": 764701.0867458435, "steady_positions_per_second": 764975.3946918212, "validation_loss": 0.009401306049211798, "validation_loss_lambda_075": 0.009401306049211798, "validation_loss_result": 0.08063053335046415}
+{"epoch": 20, "step": 312500, "positions": 256000000, "updates": 15625, "loss": 0.0093718291015625, "lr": 0.0007607847013043259, "seconds": 328.43987709700014, "positions_per_second": 779442.5033364446, "steady_positions_per_second": 779728.3621342257, "validation_loss": 0.009411742871783696, "validation_loss_lambda_075": 0.009411742871783696, "validation_loss_result": 0.08055137621135341}
+{
+  "epochs_completed": 20,
+  "last_epochs": [
+    {
+      "epoch": 17,
+      "step": 265625,
+      "positions": 256000000,
+      "updates": 15625,
+      "loss": 0.0093993642578125,
+      "lr": 0.0008223292747151544,
+      "seconds": 337.505357961003,
+      "positions_per_second": 758506.4768944482,
+      "steady_positions_per_second": 758915.3971622998,
+      "validation_loss": 0.00944034288321633,
+      "validation_loss_lambda_075": 0.00944034288321633,
+      "validation_loss_result": 0.08041760321416055
+    },
+    {
+      "epoch": 18,
+      "step": 281250,
+      "positions": 256000000,
+      "updates": 15625,
+      "loss": 0.0093906806640625,
+      "lr": 0.0008025350698715526,
+      "seconds": 336.93663696399744,
+      "positions_per_second": 759786.7726903034,
+      "steady_positions_per_second": 760069.7572858251,
+      "validation_loss": 0.009434272904022857,
+      "validation_loss_lambda_075": 0.009434272904022857,
+      "validation_loss_result": 0.08046176320804348
+    },
+    {
+      "epoch": 19,
+      "step": 296875,
+      "positions": 256000000,
+      "updates": 15625,
+      "loss": 0.009382314453125,
+      "lr": 0.0007820001345224775,
+      "seconds": 334.77133018000313,
+      "positions_per_second": 764701.0867458435,
+      "steady_positions_per_second": 764975.3946918212,
+      "validation_loss": 0.009401306049211798,
+      "validation_loss_lambda_075": 0.009401306049211798,
+      "validation_loss_result": 0.08063053335046415
+    },
+    {
+      "epoch": 20,
+      "step": 312500,
+      "positions": 256000000,
+      "updates": 15625,
+      "loss": 0.0093718291015625,
+      "lr": 0.0007607847013043259,
+      "seconds": 328.43987709700014,
+      "positions_per_second": 779442.5033364446,
+      "steady_positions_per_second": 779728.3621342257,
+      "validation_loss": 0.009411742871783696,
+      "validation_loss_lambda_075": 0.009411742871783696,
+      "validation_loss_result": 0.08055137621135341
+    }
+  ]
+}
+terminal_present False

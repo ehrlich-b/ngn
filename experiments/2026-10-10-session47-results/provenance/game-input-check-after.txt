@@ -1,0 +1,13 @@
+baseline-ngn: OK
+candidate-ngn: OK
+base.nnue: OK
+sprt: OK
+openings.txt: OK
+gate-parser.py: OK
+batch-parser.py: OK
+source-check-receipt.json: OK
+controller.sh: OK
+manifest.md: OK
+pre-batch.tar: OK
+base.tar: OK
+game-manifest.json: OK

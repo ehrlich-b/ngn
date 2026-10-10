@@ -1,0 +1,49 @@
+{
+  "created_utc": "2026-10-10T13:50:17.917913+00:00",
+  "machine": "forge Debian13 / Ryzen6900HX VM",
+  "os": "Linux-6.12.111+deb13-cloud-amd64-x86_64-with-glibc2.41",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "GOAMD64": "v3",
+  "environment": {
+    "GOMAXPROCS": "1"
+  },
+  "host_pinning": "on",
+  "allocation_cpus": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "allocation_memory_bytes": 8589934592,
+  "playing_base": "de148b96d1bc2d9577b66299b24d5bce653a7150",
+  "playing_net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "record": "experiments/2026-10-10-compact-accumulator.md",
+  "purpose": "first and only compact timing sample; migrated before any rig timing",
+  "cpu": 4,
+  "nice": 10,
+  "scope_memory_max_bytes": 1073741824,
+  "concurrent_workloads": [
+    "unchanged SPSA c2/8-11; no other NGN computation until speed completion",
+    "archive reader117631/128MiB",
+    "other work CPUs0-3"
+  ],
+  "identity_cases": 36,
+  "blocks": 40,
+  "duration_seconds": 3,
+  "positions_per_block": 6,
+  "files_sha256": {
+    "baseline-probe": "113e879e388e1e0f002dc72e879728afdd8353feeda90c7ffa05ef502d383c20",
+    "candidate-probe": "741fa053652d4edca5cb280df096ed6eb669980cd68906caa914f1ec2bb33d1d",
+    "base.nnue": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+    "ngnn2.nnue": "c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2",
+    "check.py": "37c5ae8ecae38d8b70fd80d3cf3909220dae5ce2c9fa12bb255dca8313925e2d",
+    "build-receipt.json": "dfc3f74cd9f8d99376f7861a88bf8427a2f470670dbc1daba026aae6220eb4ff",
+    "nomination.json": "d8aa75dc19f65c8f45bd6515986dceb0691cafd2a67cddf1855d04d6a5985ad1",
+    "controller.sh": "ec7422a37ee095f08fc4d1e3c10000d0809a3c8f882237026927f1dcb5cb6ed0"
+  },
+  "decision": "exact identity; fixed40 paired AB/BA blocks; Student-t df39 lower95ratio>1 and both strata>1; otherwise shelve without extension"
+}

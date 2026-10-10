@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "sources": 3,
+  "records": 1528,
+  "source_phase_cells": 24,
+  "same_net_metrics_exact": true,
+  "control_only": true
+}

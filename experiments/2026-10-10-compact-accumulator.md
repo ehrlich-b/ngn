@@ -47,3 +47,14 @@ tracked; isolated runtime remains uncommitted pending the rig speed rule.
 Binaries live at /work/lanes/ngn-s46-compact. Rig speed remains unlaunched
 while time occupies13,15 and provenance owns0–11.
 [Code review](2026-10-10-session46-results/compact/code-review.json).
+
+Session47 follows the newer CPU-routing directive: the rig sample never
+starts. Its first and only timing sample runs on forgeCPU4/nice10, host
+pinningON, while unchanged SPSA uses8–11. All36 identities and exactly40
+raw balanced blocks reconcile. **KEEP +4.77%[+2.54%,+7.04%] NPS**, strata
+1.055775/1.039595, zero probe stderr. Same exact eight source files and
+95f7f599 patch as the completed session46 checks; no source/check replay.
+Committed topic852c3b5 and integrated9bfbae4 on night/night after the rig
+time sample's policy interruption leaves its source unnominated for a
+future forge gate. No Elo inference or net/default change.
+[Raw review](2026-10-10-session47-results/compact/review.json).

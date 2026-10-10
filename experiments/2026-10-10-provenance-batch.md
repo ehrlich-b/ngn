@@ -41,3 +41,11 @@ opening/harness/profile hashes, machine/OS/Go/environment and checks receipt
 in `game-manifest.json`, then detach the controller. A/A should take about
 15 minutes; minimum400 about2-3 hours; cap4000 may take20-30 hours. Observe
 terminal/status notifications or inspect once next session, not a poll loop.
+
+Session47 reviews the original terminal at09:06:55 EDT:610 games/305 complete
+pairs,93W/391D/126L, penta[3,77,179,42,4], **−18.8141[−32.2577,−5.4265]**,
+H0, zero failures, intact post-input receipts. **REQUIRES BISECT**. The
+package is not certified; no third-party-derived code is restored. The
+independent archived TT-only isolation moves to a fresh forge instrument
+with its own A/A; its interrupted rig sample is never pooled.
+[Terminal evidence](2026-10-10-session47-results/provenance/gate-summary.json).
