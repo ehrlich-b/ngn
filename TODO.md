@@ -2,38 +2,40 @@
 
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
 Playing runtime **6c0fc26 / NGNN3 KB8 H512 be34532c**, unchanged58-epoch net.
-TT/key/SEE are provisional; combined60+0.6 batchSPRT[0,+6] against5b882e2
-runs on rig0–11, wrapper3465. Fresh A/A40 then min400/cap4000, H1 AND final
-paired lower95>0/zero faults/intact inputs. No automatic certification/revert.
+TT/key/SEE remain provisional; combined60+0.6 batchSPRT[0,+6] vs5b882e2
+runs on rig0–11, wrapper3465/harness3643. A/A40 passes; min400/cap4000,
+H1 AND paired lower95>0/zero faults/intact inputs certifies. No automatic revert.
 
-**Session39:** the one plan-authorized key follow-up completes400 clean
-**−6.08[−25.89,+13.69]** and passes Bryan upper95>0 provenance rule. Source
-integrated/pushed6c0fc26; original22682 remains SHELVED with no sample pooling,
-seed change or repeat. Factorizer remains SHELVED +13.90[−7.14,+35.05].
+**Session40:** fullNGNN4 completes58 epochs/best58, byte-identical reexport,
+20 integer parity cases and four original cost blocks (NPS ratio0.859426).
+Actual-base architecture controller **4007** starts05:01:49 on13,15/2GiB:
+fresh A/A40 then exactly400 paired10+0.1, original printed AND unrounded
+lower95>0/zero-fault rule. Source **1e4187d**, trained net **20717cdb**;
+training and source are already reviewed. No architecture adoption yet.
 
-Current-key NGNN4 compatibility passes36 exact old-format identities,
-AVX2/purego/full-short/full-race/vet/explicit PGO on forge. Trainer unchanged
-from2acf834; checked isolated source **1e4187d** is pushed. Current-base game
-controller/binaries are staged at`session39-ngnn4-key-games/`, NOT launched:
-first review completed training/reexport/20 parity/four cost blocks, then fresh
-A/A40/exactly400 by original lower95>0/zero-fault rule. No repeated admission,
-training recipe change or playing adoption.
+New original four-lane move-selection speed candidate is implemented on
+isolated `night/move-select`/6c0fc26, uncommitted runtime/exact tracked patch.
+Detached **4585** checks on12,14/2.5GiB, then36 identities/exactly20 blocks;
+lower95 speed ratio>1 AND both order strata>1, else shelve/no extension.
+A passing topic can be committed/pushed; hold playing base during architecture
+trial and verify on any newly accepted architecture/net before integration.
+[Manifest](experiments/2026-10-10-move-select.md).
 
-FullNGNN4 training2791/2804 stays active under4GiB/12,14/swap0,36/58 at03:22;
-estimated training/parity/cost04:54 EDT. Rig C:27.373GiB, hopper untouched.
-Three unchanged time candidates are separately checked on new6c0fc26 by
-forge109399/2.5GiB/8–11; admission/horizon checks reviewed PASS, partial active.
-Their exact patches are preserved uncommitted on Mac topics based on6c0fc26.
-Each needs a separate60+0.6 powered game gate after higher priorities.
+All three time candidates have reviewed full checks PASS on6c0fc26; partial
+ends03:23:57. Preserve separate uncommitted topics/exact experiment patches.
+Each needs a separate actual-base60+0.6 A/A40/poweredSPRT after higher priorities.
+No completed suite or trajectory replay. Factorizer and original key22682
+remain SHELVED; no extension/pooling/seed change.
 
-Frozen legacy SPSA88178 remains on forge8–11/2.5GiB alongside check scope:
-durable1675/20,100 at02:35; nominal24k endpoint20:07Oct10. No optimizer
-acceptance; only final-vector rig games can accept parameters. No cross-machine
-strength pooling. T74 still70GiB-capacity-blocked; T76 complete, no waiter.
+Frozen legacy SPSA88178 runs on forge8–11/2.5GiB, durable1700/20,400 at03:57;
+nominal24k endpoint20:26Oct10. Only final-vector rig games decide parameters.
+T74 remains70GiB-capacity-blocked; T76 complete, no waiter. Rig C:27.091GiB,
+WSL about5GiB used/10GiB available, GPU idle after completed training;
+all rig CPU lanes have detached evidence jobs, hopper1170 untouched.
 
-Next session not before05:00 EDT October10. Review only new terminal evidence;
-launch the already staged actual-base architecture gate after training review.
-No3600 claim/default-net promotion/publication. [Session39](experiments/2026-10-10-session39.md).
+Next session not before05:45 EDT October10: review selection terminal first,
+then newly terminal architecture/provenance. No3600 claim/default-net promotion/
+publication. [Session40](experiments/2026-10-10-session40.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

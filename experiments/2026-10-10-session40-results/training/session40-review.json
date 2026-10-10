@@ -1,0 +1,12 @@
+{
+  "reviewed_training_complete": true,
+  "epochs": 58,
+  "best_epoch": 58,
+  "validation_loss": 0.007967933879043224,
+  "reexport_identical": true,
+  "parity_cases": 20,
+  "actual_cost_blocks": 4,
+  "geometric_nps_ratio": 0.8594261219547558,
+  "net_sha256": "20717cdb9cb6839835ee666c888c26072af973576fbd706cac15978edde266c6",
+  "verdict": "training/parity/cost reviewed; original actual-base games may run; no strength acceptance"
+}

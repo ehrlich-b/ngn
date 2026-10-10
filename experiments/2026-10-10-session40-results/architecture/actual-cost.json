@@ -1,0 +1,55 @@
+{
+  "rounds": [
+    {
+      "index": 0,
+      "order": [
+        "base",
+        "candidate"
+      ],
+      "nps": {
+        "base": 1622210.3243934994,
+        "candidate": 1402111.0883119353
+      },
+      "ratio": 0.8643213936122289
+    },
+    {
+      "index": 1,
+      "order": [
+        "candidate",
+        "base"
+      ],
+      "nps": {
+        "candidate": 1382531.3478438142,
+        "base": 1652346.9494267672
+      },
+      "ratio": 0.8367076589595439
+    },
+    {
+      "index": 2,
+      "order": [
+        "base",
+        "candidate"
+      ],
+      "nps": {
+        "base": 1640520.2140116435,
+        "candidate": 1419340.9328045647
+      },
+      "ratio": 0.8651773508683454
+    },
+    {
+      "index": 3,
+      "order": [
+        "candidate",
+        "base"
+      ],
+      "nps": {
+        "candidate": 1431048.3991202808,
+        "base": 1641248.2344532553
+      },
+      "ratio": 0.8719268475539302
+    }
+  ],
+  "geometric_nps_ratio": 0.8594261219547558,
+  "decision": "cost report only; fresh400-game gate decides architecture",
+  "trained_net": "20717cdb9cb6839835ee666c888c26072af973576fbd706cac15978edde266c6"
+}

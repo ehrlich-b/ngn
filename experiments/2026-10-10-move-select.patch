@@ -1,0 +1,107 @@
+diff --git a/engine/moveorder.go b/engine/moveorder.go
+index e14bc29..1ca1aef 100644
+--- a/engine/moveorder.go
++++ b/engine/moveorder.go
+@@ -627,7 +627,39 @@ func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, depth int, previousMo
+ func selectNextMove(out []Move, scores []int, n, i int) {
+ 	maxIdx := i
+ 	maxScore := scores[i] // hoist out of the loop: avoids re-loading scores[maxIdx] each iteration
+-	for j := i + 1; j < n; j++ {
++	j := i + 1
++	if n-i >= 8 {
++		// Independent maxima shorten the dependency chain in a long scan. Each
++		// lane keeps its earliest tie; the merge also compares original indices
++		// so ties across lanes retain the scalar selection order.
++		idx0, idx1, idx2, idx3 := i, i, i, i
++		v0, v1, v2, v3 := maxScore, maxScore, maxScore, maxScore
++		for ; j+3 < n; j += 4 {
++			if scores[j] > v0 {
++				idx0, v0 = j, scores[j]
++			}
++			if scores[j+1] > v1 {
++				idx1, v1 = j+1, scores[j+1]
++			}
++			if scores[j+2] > v2 {
++				idx2, v2 = j+2, scores[j+2]
++			}
++			if scores[j+3] > v3 {
++				idx3, v3 = j+3, scores[j+3]
++			}
++		}
++		maxIdx, maxScore = idx0, v0
++		if v1 > maxScore || v1 == maxScore && idx1 < maxIdx {
++			maxIdx, maxScore = idx1, v1
++		}
++		if v2 > maxScore || v2 == maxScore && idx2 < maxIdx {
++			maxIdx, maxScore = idx2, v2
++		}
++		if v3 > maxScore || v3 == maxScore && idx3 < maxIdx {
++			maxIdx, maxScore = idx3, v3
++		}
++	}
++	for ; j < n; j++ {
+ 		if scores[j] > maxScore {
+ 			maxIdx = j
+ 			maxScore = scores[j]
+diff --git a/engine/move_select_test.go b/engine/move_select_test.go
+new file mode 100644
+index 0000000..2e0a88b
+--- /dev/null
++++ b/engine/move_select_test.go
+@@ -0,0 +1,56 @@
++package engine
++
++import (
++	"math/rand"
++	"slices"
++	"testing"
++)
++
++func TestMoveSelectScalarIdentity(t *testing.T) {
++	rng := rand.New(rand.NewSource(20261010))
++	for n := 1; n <= 256; n++ {
++		for pattern := 0; pattern < 8; pattern++ {
++			moves := make([]Move, n)
++			scores := make([]int, n)
++			for j := range moves {
++				moves[j] = Move(j + 1)
++				switch pattern {
++				case 0:
++					scores[j] = 7
++				case 1:
++					scores[j] = j
++				case 2:
++					scores[j] = -j
++				case 3:
++					scores[j] = j % 4
++				case 4:
++					scores[j] = (j / 4) % 4
++				case 5:
++					scores[j] = rng.Intn(3) - 1
++				case 6:
++					scores[j] = rng.Intn(1<<31) - (1 << 30)
++				default:
++					scores[j] = -1 << 30
++					if j%7 == 0 {
++						scores[j] = 100000
++					}
++				}
++			}
++			wantMoves, wantScores := slices.Clone(moves), slices.Clone(scores)
++			for i := 0; i < n; i++ {
++				best := i
++				for j := i + 1; j < n; j++ {
++					if wantScores[j] > wantScores[best] {
++						best = j
++					}
++				}
++				wantMoves[i], wantMoves[best] = wantMoves[best], wantMoves[i]
++				wantScores[i], wantScores[best] = wantScores[best], wantScores[i]
++				selectNextMove(moves, scores, n, i)
++				if !slices.Equal(moves, wantMoves) || !slices.Equal(scores, wantScores) {
++					t.Fatalf("n=%d pattern=%d step=%d: selection differs from scalar order", n, pattern, i)
++				}
++			}
++		}
++	}
++}
