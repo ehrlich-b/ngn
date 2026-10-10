@@ -2,45 +2,39 @@
 
 [Campaign log](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
 Playing engine **6c0fc26 / NGNN3 KB8 H512 be34532c**, unchanged58-epoch net.
-TT/key/SEE remain provisional; combined60+0.6 batchSPRT[0,+6] vs5b882e2
-runs on rig0–11, wrapper3465/harness3643. A/A40 passes; min400/cap4000,
-H1 AND paired lower95>0/zero faults/intact inputs certifies. No automatic revert.
+TT/key/SEE remain provisional; original combined60+0.6 SPRT[0,+6] vs5b882e2
+runs on rig0–11,3465/3643. Only completedH1 AND lower95>0/zero faults certifies.
 
-**Session41 unblocks data storage:** forge/work had464GB free; original fixed
-194-per-mille T74 sample converts as117502 on8–11/2GiB. Original remote archive
-IO c439acd is pushed/integrated09d53c7:61 trainer tests and exact66–81MiB/s
-cross-host reads. Immutable server117631/128MiB stays alive; native rig
-coverage7300 follows,12,14/1500MiB. Review source scales/sentinel drops/2–3×
-distinct expansion and actual accepted architecture before matched data-only
-GPU training. No automatic trainer or local T74 copy. [Record](experiments/2026-10-10-remote-archive.md).
+Session42 reviews quiet-pair speed: **KEEP isolated topic2c04926**, pushed,
+36 exact identities/fixed20 blocks, NPS1.015162[1.010578,1.019767]. Playing
+integration awaits architecture disposition; NGNN4 needs actual-net evidence.
+Separate original capture-pair runtime remains uncommitted on6c0fc26;
+detached9929 waits natively for architecture4007 to release13,15, then new
+full checks/36 identities/fixed40 blocks. Require lower95 ratio>1/both strata>1,
+no extension. [Manifest](experiments/2026-10-10-capture-perspective.md).
 
-Selection4585 is reviewed **SHELVED**,36 identities but NPS0.953202
-[0.947357,0.959084], no extension; isolated runtime restored. New original
-paired-perspective quiet-move speed candidate on `night/dual-perspective`
-remains uncommitted/exact tracked patch. Detached7770 starts06:00:06 on12,14/
-2500MiB; full checks/AVX2/purego controls/36 identities PASS06:08; exactly20
-timing blocks active. Keep only lower95 ratio>1/both strata>1.
-Hold playing integration through architecture verdict; verify on actualNGNN4
-net if architecture wins. [Manifest](experiments/2026-10-10-dual-perspective.md).
+T74 forge117502 reaches gather06:40:32, original194-per-mille sample/
+seed2026100903, raw scale0.9827691877. Immutable reader117631 stays alive;
+native rig coverage7300 follows on12,14. Review source scales/sentinels and
+2–3× estimated distinct expansion before matched data-only training.
+Original58-epoch training files are staged in rig `session42-expanded-data/`,
+no trainer/source nomination yet. [Preparation](experiments/2026-10-10-expanded-data.md).
+IO09d53c7/61 tests/exact66–81MiB/s are already reviewed; no replay/local T74 copy.
 
-Architecture4007/6038 runs fixed40010+0.1 on13,15/2GiB after freshA/A40,
-actual6c0fc26/be34532c versus1e4187d/20717cdb; printed AND unrounded
-lower95>0/zero faults decides. Training58/reexport/20 parity/cost0.859426
-already reviewed; no replay or adoption. Expected07:05–07:30.
+Architecture4007/6038 remains original fixed40010+0.1 on13,15/2GiB after A/A40,
+6c0fc26/be34532c versus1e4187d/20717cdb. Printed AND unrounded lower95>0/
+zero faults decides, no extension; expected07:05–07:15. Training58/reexport/
+20 parity/cost0.859426 already reviewed. All three separate current-key time
+candidates have full checks PASS; actual-base real-clock games follow higher
+priorities. Selection/factorizer/originalkey22682 remain SHELVED.
 
-All three separate current-key time candidates have reviewed full checks
-PASS. Actual-base60+0.6 A/A40/poweredSPRT follows higher-priority lanes;
-no suites/trajectories replay or stacked policies. Factorizer/originalkey22682
-remain SHELVED; no extension/pooling/seed changes.
-
-Frozen legacy SPSA88178 runs onforge8–11/2.5GiB; durable1725/20,700 at05:19,
-nominal24k endpoint20:26Oct10. TotalNGN scope memory stays below5GiB with
-conversion/reader. Final-vector rig games decide parameters. Final C:26.550GiB,
-WSL4GiB used/10GiB available, GPU idle pending corpus review; hopper untouched.
-
-Next session not before06:30 EDT October10: review paired-speed terminal,
-then data/architecture/provenance as newly terminal. No3600 claim/default-net
-promotion/publication. [Session41](experiments/2026-10-10-session41.md).
+Frozen SPSA88178 onforge8–11/2.5GiB is durable1750/21,000 at06:40:05,
+recent-rate nominal24k endpoint20:09Oct10; final-vector rig games decide.
+TotalNGN forge scopes remain below5GiB. C:26.166GiB, WSL4GiB used/11GiB
+available, forge/work412GB free. GPU awaits reviewed corpus; hopper untouched.
+Next session not before07:10 EDT October10: architecture, then data review/
+nomination/training; capture terminal later. [Session42](experiments/2026-10-10-session42.md).
+No3600 claim/default-net promotion/publication.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

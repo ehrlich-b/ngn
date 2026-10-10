@@ -1,0 +1,6 @@
+{"position":0,"kind":"iterative","depth":18,"nodes":3798128,"score":100,"best":"d4c5","pv":["d4c5"],"seconds":3.002434555,"nps":1265016.0829234128}
+{"position":1,"kind":"iterative","depth":17,"nodes":3468565,"score":-223,"best":"e2a6","pv":["e2a6"],"seconds":3.011125635,"nps":1151916.3995294403}
+{"position":2,"kind":"iterative","depth":19,"nodes":3988559,"score":349,"best":"c3d5","pv":["c3d5"],"seconds":3.013631328,"nps":1323505.9520857222}
+{"position":3,"kind":"iterative","depth":20,"nodes":4894838,"score":82,"best":"b4f4","pv":["b4f4"],"seconds":3.013303493,"nps":1624409.2277365571}
+{"position":4,"kind":"iterative","depth":41,"nodes":5962425,"score":0,"best":"f3g3","pv":["f3g3","f6f5","g3g2","f7g6","g2h2","g6h6","h2g2","h6g6","g2h2"],"seconds":3.018338137,"nps":1975399.9483723184}
+{"position":5,"kind":"iterative","depth":18,"nodes":4831258,"score":2934,"best":"d3d5","pv":["d3d5"],"seconds":3.019770752,"nps":1599875.7510980754}

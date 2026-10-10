@@ -1,0 +1,15 @@
+{
+  "verdict": "KEEP on isolated topic; playing integration awaits architecture disposition",
+  "reviewed_raw_blocks": 20,
+  "exact_search_identities": 36,
+  "geometric_ratio": 1.0151621334490546,
+  "ci95": [
+    1.010578267988211,
+    1.0197667907903776
+  ],
+  "order_strata_ratios": [
+    1.0116133191575685,
+    1.0187233972433662
+  ],
+  "extension": false
+}

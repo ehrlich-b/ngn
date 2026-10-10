@@ -38,3 +38,10 @@ and preserved with the receipt; runtime remains uncommitted.
 Metadata correction: the reused build-receipt template records a nominal
 2.5GiB memory cap; the exact launch uses2500MiB (2,621,440,000bytes), a tighter
 cap. Affinity, binaries, source and fixed timing contract are unchanged.
+
+Session42 reviews the complete terminal and all raw aggregates once:
+**KEEP** on isolated topic `2c04926`, committed/pushed.36 exact identities,
+fixed20 blocks, NPS ratio **1.015162[1.010578,1.019767]**, AB1.011613/BA1.018723.
+Local source matches the five checked rig files. No extension or playing
+integration; architecture disposition remains pending.
+[Review](2026-10-10-session42-results/dual-perspective/review.json).
