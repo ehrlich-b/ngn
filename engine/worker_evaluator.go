@@ -139,7 +139,7 @@ func (e *workerEvaluator) SearchSTM(pos *Position) int {
 	}
 	if e.nnue != nil {
 		n := e.nnue.network
-		return n.evaluateBucket(e.nnue.at(e.depth), pos.Turn(), n.bucket(pos))
+		return e.nnue.evaluatePosition(e.depth, pos, n)
 	}
 	return e.hce.SearchSTM(pos)
 }
@@ -152,7 +152,7 @@ func (e *workerEvaluator) LegacyUndampedSTM(pos *Position) int {
 	}
 	if e.nnue != nil {
 		n := e.nnue.network
-		return n.evaluateBucket(e.nnue.at(e.depth), pos.Turn(), n.bucket(pos))
+		return e.nnue.evaluatePosition(e.depth, pos, n)
 	}
 	return e.hce.LegacyUndampedSTM(pos)
 }
