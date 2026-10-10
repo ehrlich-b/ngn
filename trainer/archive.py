@@ -12,6 +12,7 @@ from pathlib import Path
 import numpy as np
 
 from trainer.ngnp import RECORD_DTYPE, _BYTE_COUNTS
+from trainer.remote_archive import RemoteArray
 
 
 ARCHIVE_DTYPE = np.dtype([
@@ -120,15 +121,19 @@ class Archive:
         self.raw_count, holdout_count = 0, 0
         sources = []
         for path in paths:
-            size = Path(path).stat().st_size
+            remote = RemoteArray(path, ARCHIVE_DTYPE) if path.endswith(".archive.json") else None
+            size = remote.size if remote is not None else Path(path).stat().st_size
             if size % 32:
                 raise ValueError(f"{path}: archive size is not a multiple of 32")
             count = size // 32
-            sources.append({"path": path, "bytes": size, "records": count})
+            source = {"path": path, "bytes": size, "records": count}
+            if remote is not None:
+                source["sha256"] = remote.descriptor["sha256"]
+            sources.append(source)
             if not count:
                 continue
             shard = len(self.maps)
-            records = np.memmap(path, dtype=ARCHIVE_DTYPE, mode="r", shape=(count,))
+            records = remote if remote is not None else np.memmap(path, dtype=ARCHIVE_DTYPE, mode="r", shape=(count,))
             self.maps.append(records)
             self.raw_count += count
             for start in range(0, count, block_records):
