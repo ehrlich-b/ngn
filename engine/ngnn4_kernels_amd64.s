@@ -5,7 +5,7 @@
 // Four independent row dots share each 32-byte input vector. Pair saturation
 // cannot occur at +/-64 weights. Lane sums and horizontal reductions are
 // bounded by the full absolute dot (66,846,720), so reassociation is exact.
-TEXT ·ngnn4LinearRows(SB), NOSPLIT, $0-72
+TEXT ·ngnn4LinearRowsAVX2(SB), NOSPLIT, $0-72
 	MOVQ dst_base+0(FP), DI
 	MOVQ dst_len+8(FP), CX
 	MOVQ input_len+32(FP), R12
@@ -61,6 +61,133 @@ Rows_inputs:
 	ADDQ $16, DI
 	SUBQ $4, CX
 	JNZ Rows_outputs
+	VZEROUPPER
+	RET
+
+// CPUID and XGETBV are queried once at package initialization. The latter
+// is called only when CPUID reports OSXSAVE.
+TEXT ·ngnn4CPUID(SB), NOSPLIT, $0-24
+	MOVL leaf+0(FP), AX
+	MOVL subleaf+4(FP), CX
+	CPUID
+	MOVL AX, eax+8(FP)
+	MOVL BX, ebx+12(FP)
+	MOVL CX, ecx+16(FP)
+	MOVL DX, edx+20(FP)
+	RET
+
+TEXT ·ngnn4XCR0(SB), NOSPLIT, $0-8
+	XORL CX, CX
+	XGETBV
+	SHLQ $32, DX
+	ORQ DX, AX
+	MOVQ AX, ret+0(FP)
+	RET
+
+// VNNI retains the four natural rows and 32-byte input loads. Each dot
+// instruction sums four unsigned/signed byte products without saturation.
+TEXT ·ngnn4LinearRowsVNNI(SB), NOSPLIT, $0-72
+	MOVQ dst_base+0(FP), DI
+	MOVQ dst_len+8(FP), CX
+	MOVQ input_len+32(FP), R12
+	MOVQ weights_base+48(FP), R8
+VNNI_outputs:
+	LEAQ (R8)(R12*1), R9
+	LEAQ (R9)(R12*1), R10
+	LEAQ (R10)(R12*1), R11
+	MOVQ input_base+24(FP), SI
+	MOVQ R12, DX
+	VPXOR Y0, Y0, Y0
+	VPXOR Y1, Y1, Y1
+	VPXOR Y2, Y2, Y2
+	VPXOR Y3, Y3, Y3
+VNNI_inputs:
+	VMOVDQU (SI), Y4
+	VPDPBUSD (R8), Y4, Y0
+	VPDPBUSD (R9), Y4, Y1
+	VPDPBUSD (R10), Y4, Y2
+	VPDPBUSD (R11), Y4, Y3
+	ADDQ $32, SI
+	ADDQ $32, R8
+	ADDQ $32, R9
+	ADDQ $32, R10
+	ADDQ $32, R11
+	SUBQ $32, DX
+	JNZ VNNI_inputs
+	VEXTRACTI128 $1, Y0, X4
+	VPADDD X4, X0, X0
+	VEXTRACTI128 $1, Y1, X4
+	VPADDD X4, X1, X1
+	VEXTRACTI128 $1, Y2, X4
+	VPADDD X4, X2, X2
+	VEXTRACTI128 $1, Y3, X4
+	VPADDD X4, X3, X3
+	VPHADDD X1, X0, X0
+	VPHADDD X3, X2, X2
+	VPHADDD X2, X0, X0
+	VMOVDQU X0, (DI)
+	MOVQ R11, R8
+	ADDQ $16, DI
+	SUBQ $4, CX
+	JNZ VNNI_outputs
+	VZEROUPPER
+	RET
+
+// Four sixteen-lane dots share each 64-byte input load. Only widths divisible
+// by 64 reach this routine; shorter or half-vector tails use the 256-bit path.
+// Merge the two 256-bit halves before the existing exact horizontal reduction.
+TEXT ·ngnn4LinearRowsVNNI512(SB), NOSPLIT, $0-72
+	MOVQ dst_base+0(FP), DI
+	MOVQ dst_len+8(FP), CX
+	MOVQ input_len+32(FP), R12
+	MOVQ weights_base+48(FP), R8
+VNNI512_outputs:
+	LEAQ (R8)(R12*1), R9
+	LEAQ (R9)(R12*1), R10
+	LEAQ (R10)(R12*1), R11
+	MOVQ input_base+24(FP), SI
+	MOVQ R12, DX
+	VPXORD Z0, Z0, Z0
+	VPXORD Z1, Z1, Z1
+	VPXORD Z2, Z2, Z2
+	VPXORD Z3, Z3, Z3
+VNNI512_inputs:
+	VMOVDQU32 (SI), Z4
+	VPDPBUSD (R8), Z4, Z0
+	VPDPBUSD (R9), Z4, Z1
+	VPDPBUSD (R10), Z4, Z2
+	VPDPBUSD (R11), Z4, Z3
+	ADDQ $64, SI
+	ADDQ $64, R8
+	ADDQ $64, R9
+	ADDQ $64, R10
+	ADDQ $64, R11
+	SUBQ $64, DX
+	JNZ VNNI512_inputs
+	VEXTRACTI64X4 $1, Z0, Y4
+	VPADDD Y4, Y0, Y0
+	VEXTRACTI64X4 $1, Z1, Y4
+	VPADDD Y4, Y1, Y1
+	VEXTRACTI64X4 $1, Z2, Y4
+	VPADDD Y4, Y2, Y2
+	VEXTRACTI64X4 $1, Z3, Y4
+	VPADDD Y4, Y3, Y3
+	VEXTRACTI128 $1, Y0, X4
+	VPADDD X4, X0, X0
+	VEXTRACTI128 $1, Y1, X4
+	VPADDD X4, X1, X1
+	VEXTRACTI128 $1, Y2, X4
+	VPADDD X4, X2, X2
+	VEXTRACTI128 $1, Y3, X4
+	VPADDD X4, X3, X3
+	VPHADDD X1, X0, X0
+	VPHADDD X3, X2, X2
+	VPHADDD X2, X0, X0
+	VMOVDQU X0, (DI)
+	MOVQ R11, R8
+	ADDQ $16, DI
+	SUBQ $4, CX
+	JNZ VNNI512_outputs
 	VZEROUPPER
 	RET
 
