@@ -1,0 +1,498 @@
+{
+  "completed_utc": "2026-10-11T06:03:49.257390+00:00",
+  "source": "ed34480",
+  "base_net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "binary_sha256": "c14f03d8db4d00a3c43a1944e389b60cd5c52b8649c665e370cea1dcb3c0b848",
+  "endpoint": {
+    "iter": 2000,
+    "time": "2026-10-10T21:30:06-04:00",
+    "plus_pct": 49.666666666666664,
+    "theta": {
+      "AspInit": 16.83173220867022,
+      "AspMult": 162.66062702453962,
+      "DeltaMargin": 202.23776853706008,
+      "ExtensionBudget": 28.90742085975219,
+      "FutilityMargin": 103.7698506211749,
+      "FutilityMaxDepth": 7.739272238818259,
+      "LMPBase": 3.32256374032916,
+      "LMRFullDepth": 3.4616676660332413,
+      "LMRMoveThreshold": 2.106909711314621,
+      "NullMoveMinDepth": 2.289154289375957,
+      "NullMoveR": 4.104613814154161,
+      "ReverseFutilityMargin": 62.764773790694264,
+      "SingularDepth": 6.597288225506877,
+      "SingularMargin": 57.155891447344324
+    },
+    "rounded": {
+      "AspInit": 17,
+      "AspMult": 163,
+      "DeltaMargin": 202,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 104,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 3,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 63,
+      "SingularDepth": 7,
+      "SingularMargin": 57
+    }
+  },
+  "machine": "forge Debian13/Ryzen6900HX",
+  "host_pinning": "on",
+  "cpus": "8-11",
+  "nice": 10,
+  "memory_max_bytes": 2147483648,
+  "parameters": [
+    {
+      "name": "NullMoveR",
+      "variable": "NULL_MOVE_R",
+      "default": 3,
+      "value": 4,
+      "read_lines": [
+        1694
+      ]
+    },
+    {
+      "name": "NullMoveMinDepth",
+      "variable": "NULL_MOVE_MIN_DEPTH",
+      "default": 2,
+      "value": 2,
+      "read_lines": [
+        1677
+      ]
+    },
+    {
+      "name": "LMRFullDepth",
+      "variable": "LMR_FULL_DEPTH",
+      "default": 3,
+      "value": 3,
+      "read_lines": [
+        859,
+        2116
+      ]
+    },
+    {
+      "name": "LMRMoveThreshold",
+      "variable": "LMR_MOVE_THRESHOLD",
+      "default": 2,
+      "value": 2,
+      "read_lines": [
+        2116
+      ]
+    },
+    {
+      "name": "FutilityMargin",
+      "variable": "FUTILITY_MARGIN",
+      "default": 103,
+      "value": 104,
+      "read_lines": [
+        1655
+      ]
+    },
+    {
+      "name": "FutilityMaxDepth",
+      "variable": "FUTILITY_MAX_DEPTH",
+      "default": 8,
+      "value": 8,
+      "read_lines": [
+        1650
+      ]
+    },
+    {
+      "name": "ReverseFutilityMargin",
+      "variable": "REVERSE_FUTILITY_MARGIN",
+      "default": 88,
+      "value": 63,
+      "read_lines": [
+        1638
+      ]
+    },
+    {
+      "name": "DeltaMargin",
+      "variable": "DELTA_MARGIN",
+      "default": 96,
+      "value": 202,
+      "read_lines": [
+        2667
+      ]
+    },
+    {
+      "name": "SingularDepth",
+      "variable": "SINGULAR_DEPTH",
+      "default": 6,
+      "value": 7,
+      "read_lines": [
+        1794
+      ]
+    },
+    {
+      "name": "SingularMargin",
+      "variable": "SINGULAR_MARGIN",
+      "default": 48,
+      "value": 57,
+      "read_lines": [
+        2044
+      ]
+    },
+    {
+      "name": "ExtensionBudget",
+      "variable": "EXTENSION_BUDGET",
+      "default": 26,
+      "value": 29,
+      "read_lines": [
+        2100
+      ]
+    },
+    {
+      "name": "AspInit",
+      "variable": "ASP_INIT",
+      "default": 13,
+      "value": 17,
+      "read_lines": [
+        763
+      ]
+    },
+    {
+      "name": "AspMult",
+      "variable": "ASP_MULT",
+      "default": 154,
+      "value": 163,
+      "read_lines": [
+        975,
+        989
+      ]
+    },
+    {
+      "name": "LMPBase",
+      "variable": "LMP_BASE",
+      "default": 4,
+      "value": 3,
+      "read_lines": [
+        93
+      ]
+    }
+  ],
+  "handler_test": "PASS all14 pointers match exact final values",
+  "searches": 12,
+  "depth_cap": 14,
+  "node_cap": 1000000,
+  "witnesses": [
+    {
+      "position": 0,
+      "fen": "r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10",
+      "base": {
+        "depth": 14,
+        "nodes": 262605,
+        "score_kind": "cp",
+        "score": 61,
+        "pv": [
+          "d4c5",
+          "e7c5",
+          "f1d1",
+          "c5d6",
+          "b2b3",
+          "a7a6",
+          "c1b2",
+          "c8e6",
+          "a1c1",
+          "d8e7",
+          "h2h3",
+          "h7h6",
+          "e2f1",
+          "f8d8",
+          "c3e2",
+          "f6e4"
+        ],
+        "bestmove": "d4c5"
+      },
+      "tuned": {
+        "depth": 14,
+        "nodes": 207954,
+        "score_kind": "cp",
+        "score": 99,
+        "pv": [
+          "d4c5",
+          "e7c5",
+          "f1d1",
+          "c5d6",
+          "c2b3",
+          "c6a5",
+          "b3a4",
+          "a5c6",
+          "b2b3",
+          "c8e6",
+          "c3b5",
+          "d6b4",
+          "c1a3",
+          "b4e7",
+          "a3e7",
+          "d8e7",
+          "b5d4",
+          "c6d4",
+          "f3d4"
+        ],
+        "bestmove": "d4c5"
+      }
+    },
+    {
+      "position": 1,
+      "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+      "base": {
+        "depth": 14,
+        "nodes": 671106,
+        "score_kind": "cp",
+        "score": -92,
+        "pv": [
+          "e2a6",
+          "h3g2",
+          "f3g2",
+          "b4c3",
+          "d2c3",
+          "e6d5"
+        ],
+        "bestmove": "e2a6"
+      },
+      "tuned": {
+        "depth": 14,
+        "nodes": 306393,
+        "score_kind": "cp",
+        "score": -213,
+        "pv": [
+          "e2a6",
+          "b4c3",
+          "d2c3",
+          "h3g2",
+          "f3g2",
+          "e6d5",
+          "e5g4",
+          "h8h4",
+          "f2f3",
+          "e8f8",
+          "g4f6",
+          "g7f6",
+          "c3f6",
+          "e7f6",
+          "e1c1"
+        ],
+        "bestmove": "e2a6"
+      }
+    },
+    {
+      "position": 2,
+      "fen": "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
+      "base": {
+        "depth": 14,
+        "nodes": 752293,
+        "score_kind": "cp",
+        "score": 351,
+        "pv": [
+          "c3d5",
+          "f6d5",
+          "g5e7",
+          "d5f4",
+          "e2d1",
+          "c6e7",
+          "h2h3",
+          "g4h5",
+          "g1h1",
+          "e7g6",
+          "g2g4",
+          "f4h3",
+          "g4h5",
+          "g6f4",
+          "d3d4"
+        ],
+        "bestmove": "c3d5"
+      },
+      "tuned": {
+        "depth": 14,
+        "nodes": 285576,
+        "score_kind": "cp",
+        "score": 355,
+        "pv": [
+          "c3d5",
+          "f6d5",
+          "g5e7",
+          "d5f4",
+          "e2d1",
+          "c6e7",
+          "h2h3",
+          "g4d7",
+          "g1h1",
+          "e7g6",
+          "f3g1",
+          "c5b6",
+          "c4a2",
+          "a6a5",
+          "g2g3",
+          "f4h3",
+          "g1h3",
+          "d7h3"
+        ],
+        "bestmove": "c3d5"
+      }
+    },
+    {
+      "position": 3,
+      "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+      "base": {
+        "depth": 14,
+        "nodes": 315903,
+        "score_kind": "cp",
+        "score": 135,
+        "pv": [
+          "b4f4",
+          "h4g3",
+          "f4c4",
+          "h5h7",
+          "a5a6",
+          "g3g2",
+          "c4c3",
+          "g2f2",
+          "e2e4",
+          "h7e7",
+          "a6b7",
+          "e7e4",
+          "b7c7",
+          "d6d5",
+          "c3c5",
+          "d5d4",
+          "b5b6",
+          "e4e8",
+          "b6b7",
+          "f2e1",
+          "c7c6",
+          "d4d3"
+        ],
+        "bestmove": "b4f4"
+      },
+      "tuned": {
+        "depth": 14,
+        "nodes": 97721,
+        "score_kind": "cp",
+        "score": 222,
+        "pv": [
+          "b4f4",
+          "h4g3",
+          "f4c4",
+          "h5h7",
+          "a5a6",
+          "g3g2",
+          "a6b7",
+          "h7h5",
+          "b7c7",
+          "h5b5",
+          "c7d6",
+          "b5b6"
+        ],
+        "bestmove": "b4f4"
+      }
+    },
+    {
+      "position": 4,
+      "fen": "8/5k2/2p2p2/3p4/3P1P2/2P2K2/8/8 w - - 0 1",
+      "base": {
+        "depth": 14,
+        "nodes": 16050,
+        "score_kind": "cp",
+        "score": 0,
+        "pv": [
+          "f3g3",
+          "f6f5",
+          "g3g2",
+          "f7g6",
+          "g2h2",
+          "g6f6",
+          "h2g3"
+        ],
+        "bestmove": "f3g3"
+      },
+      "tuned": {
+        "depth": 14,
+        "nodes": 15378,
+        "score_kind": "cp",
+        "score": 0,
+        "pv": [
+          "f3g3",
+          "f7g7",
+          "g3h4",
+          "g7h6",
+          "h4g4",
+          "h6g6"
+        ],
+        "bestmove": "f3g3"
+      }
+    },
+    {
+      "position": 5,
+      "fen": "6k1/5pp1/7p/3q4/8/3Q2P1/5P1P/6K1 w - - 0 1",
+      "base": {
+        "depth": 14,
+        "nodes": 406306,
+        "score_kind": "cp",
+        "score": 1756,
+        "pv": [
+          "d3d5",
+          "g7g6",
+          "d5a8",
+          "g8g7",
+          "g1f1",
+          "h6h5",
+          "f1e2",
+          "f7f5",
+          "a8a1",
+          "g7f7",
+          "a1a2",
+          "f7g7",
+          "a2b2",
+          "g7f7",
+          "b2b3",
+          "f7f6",
+          "b3c3",
+          "f6e6",
+          "c3c4",
+          "e6f6"
+        ],
+        "bestmove": "d3d5"
+      },
+      "tuned": {
+        "depth": 14,
+        "nodes": 150503,
+        "score_kind": "cp",
+        "score": 1671,
+        "pv": [
+          "d3d5",
+          "g7g6",
+          "g1g2",
+          "g8g7",
+          "g2f1",
+          "g7g8",
+          "f1e2",
+          "g8g7",
+          "d5a8",
+          "g7h7",
+          "a8g2",
+          "h7g8",
+          "e2d2",
+          "h6h5",
+          "g2e4"
+        ],
+        "bestmove": "d3d5"
+      }
+    }
+  ],
+  "normal_exits": true,
+  "verdict": "live-vector prerequisite PASS; manual nomination and controlled games still required",
+  "files_sha256": {
+    "vector.json": "69ef9e1960fdebad9ab87039afda61fea3d927e43590d11575b987d3812994bd",
+    "endpoint.json": "2a06f536aed0275cfeca4cc64fc497ab0d31c8f46fd108b395982c1cf948e1c9",
+    "ngn": "c14f03d8db4d00a3c43a1944e389b60cd5c52b8649c665e370cea1dcb3c0b848",
+    "base.nnue": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+    "handler.log": "b3d626ff1416f8a015f87b7924dfeada03fe3bbd28eef96129cff264dd7325ac",
+    "defaults.json": "4c7536a45ab8f92838664fa8f2a1066bfc18c8e76c3faaebd5c4104c88bed30c",
+    "final-vector.json": "cf014813f9fa7140c52225e414904b38e7d312eaa693a25898e265a03c56bc95"
+  }
+}

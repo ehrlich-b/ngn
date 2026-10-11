@@ -1,0 +1,15 @@
+--- FAIL: TestNGNN1TrainerParity (0.00s)
+    ngnn1_test.go:358: open ../testdata/ngnn1/random_h32_evals.json: no such file or directory
+--- FAIL: TestNGNN2TrainerParity (0.00s)
+    ngnn2_test.go:252: open ../testdata/ngnn2/random_h32_b8.nnue: no such file or directory
+--- FAIL: TestNGNN3TrainerParity (0.00s)
+    ngnn3_test.go:419: open ../testdata/ngnn3/random_h32_k8_b8.nnue: no such file or directory
+🚨 NGN ENGINE PANIC #1 in UCIEngine.searchSession: injected setup failure
+See ngn_crashes.log for full details
+🚨 NGN ENGINE PANIC #2 in UCIEngine.searchSession: injected pre-search output failure
+See ngn_crashes.log for full details
+🚨 NGN ENGINE PANIC #3 in UCIEngine.searchSession: injected pre-search output failure
+See ngn_crashes.log for full details
+FAIL
+FAIL	github.com/ehrlich-b/ngn/engine	13.621s
+FAIL
