@@ -1,0 +1,6 @@
+=== RUN   TestTTMatchingRefreshWindow
+    tt_refresh_test.go:16: mode=0 depth=8: refresh lost coherent tuple: 33816704 70 10 3 true false
+--- FAIL: TestTTMatchingRefreshWindow (0.00s)
+FAIL
+FAIL	github.com/ehrlich-b/ngn/engine	0.006s
+FAIL

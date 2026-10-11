@@ -1,0 +1,16 @@
+=== RUN   TestClusterTTRetainsFourFullKeysIncludingZero
+--- PASS: TestClusterTTRetainsFourFullKeysIncludingZero (0.00s)
+=== RUN   TestClusterTTMatchingKeyKeepsDepthAndRetainsMove
+--- PASS: TestClusterTTMatchingKeyKeepsDepthAndRetainsMove (0.00s)
+=== RUN   TestClusterTTEmptyMoveZeroScoreIsOccupied
+--- PASS: TestClusterTTEmptyMoveZeroScoreIsOccupied (0.00s)
+=== RUN   TestSynchronizedCacheReturnsOnlyCoherentRecords
+--- PASS: TestSynchronizedCacheReturnsOnlyCoherentRecords (0.00s)
+=== RUN   TestTTMatchingRefreshWindow
+--- PASS: TestTTMatchingRefreshWindow (0.00s)
+=== RUN   TestTTMatchingRefreshKeepsBoundQualityAndEmptyMove
+--- PASS: TestTTMatchingRefreshKeepsBoundQualityAndEmptyMove (0.00s)
+=== RUN   TestTTRefreshAllowanceDoesNotApplyToCollisions
+--- PASS: TestTTRefreshAllowanceDoesNotApplyToCollisions (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.009s
