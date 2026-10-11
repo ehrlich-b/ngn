@@ -1,0 +1,23 @@
+{
+  "verdict": "AA PASS; no strength verdict",
+  "games": 40,
+  "pairs": 20,
+  "penta": [
+    0,
+    2,
+    14,
+    4,
+    0
+  ],
+  "exact_elo_ci95": [
+    17.386277512436138,
+    -23.66479829341797,
+    58.93053340608988
+  ],
+  "zero_faults": true,
+  "terminal_input_check": "15/15 OK",
+  "gate_start_edt": "2026-10-11 03:24:13",
+  "gate_pid": 22048,
+  "controller_pid": 21669,
+  "rule": "existing manifest; H1 AND printed/exact lower95>0, zero faults and intact inputs"
+}
