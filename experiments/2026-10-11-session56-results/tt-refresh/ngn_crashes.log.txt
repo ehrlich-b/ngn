@@ -1,0 +1,52 @@
+[NGN CRASH] 2026/10/10 21:31:26.263403 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:31:26.263461 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:31:26.349057 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:31:26.349115 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:31:26.349458 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:31:26.349521 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:31:26.349684 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:31:26.349731 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:31:26.349815 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:31:26.349851 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:31:26.349877 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:31:26.349935 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:31:26.352856 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:31:26.352920 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:31:26.469739 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:31:26.469818 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:31:26.470223 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:31:26.470332 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:31:26.471052 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:31:26.471163 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:31:26.472734 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:31:26.472821 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:31:26.473187 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:31:26.473280 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:31:26.476666 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:31:26.476793 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:53:47.403574 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:53:47.403611 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:53:47.485296 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:53:47.485351 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:53:47.485308 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:53:47.485360 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:53:47.485531 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:53:47.485587 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:53:47.485888 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:53:47.485924 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:53:47.486172 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:53:47.486217 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:53:47.486928 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:53:47.486976 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:53:47.602040 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:53:47.602071 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:53:47.602104 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:53:47.602106 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:53:47.602368 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:53:47.602415 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:53:47.602696 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:53:47.602743 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:53:47.603061 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:53:47.603095 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log
+[NGN CRASH] 2026/10/10 21:53:47.604760 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 21:53:47.604790 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/ngn_crashes.log

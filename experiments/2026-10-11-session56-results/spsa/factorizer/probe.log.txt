@@ -1,0 +1,1 @@
+{"searches": 12, "changed_positions": 6, "verdict": "live-vector prerequisite PASS; manual nomination and controlled games still required"}

@@ -1,0 +1,42 @@
+{
+  "reviewed_utc": "2026-10-11T06:08:59.493191+00:00",
+  "control": "PASS",
+  "aa": {
+    "mode": "aa",
+    "games": 40,
+    "pairs": 20,
+    "wins": 7,
+    "draws": 22,
+    "losses": 11,
+    "penta": [
+      1,
+      4,
+      13,
+      2,
+      0
+    ],
+    "elo": -34.9,
+    "ci95": [
+      -88.0,
+      17.0
+    ],
+    "exact_elo_ci95": [
+      -34.86007028756008,
+      -88.22987657462872,
+      16.90716564476206
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 22,
+      "checkmate": 18
+    },
+    "verdict": "aa-pass"
+  },
+  "post_aa_inputs_intact": true,
+  "gate_started_utc": "2026-10-11T06:06:21.530027+00:00",
+  "gate_terminal": false,
+  "playing_adoption": false
+}

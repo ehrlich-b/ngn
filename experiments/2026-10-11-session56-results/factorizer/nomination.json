@@ -1,0 +1,39 @@
+{
+  "base_source": "ed34480",
+  "base_net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "base_engine_sha256": "c14f03d8db4d00a3c43a1944e389b60cd5c52b8649c665e370cea1dcb3c0b848",
+  "reviewed_training_receipt_sha256": "383b7a217e5407b09445aa8aa40c2d7d3d4850b9c127f1b15af71abaec09fab6",
+  "training_review": "experiments/2026-10-10-session55-results/factorizer/review.json",
+  "cpu_mask": "0-11",
+  "concurrency": 6,
+  "host_pinning": "not-applicable; physical rig",
+  "memory_max_bytes": 3221225472,
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "concurrent_workloads": [
+    "rig hopper1170 unchanged",
+    "rig GPU idle; no next eligible training recipe",
+    "forge admission/SPSA actual-source checks planned5-11; reader117631 unchanged"
+  ],
+  "launch_requires": "TT terminal reviewed KEEP16.5156[1.16285,31.9331]/400; exact integrationed34480; new combination20parityPASS",
+  "combination_receipt": {
+    "completed_utc": "2026-10-11T06:01:44.548234+00:00",
+    "accepted_source": "ed34480",
+    "accepted_binary_sha256": "c14f03d8db4d00a3c43a1944e389b60cd5c52b8649c665e370cea1dcb3c0b848",
+    "candidate_net_sha256": "1885d7f9d69e6389c133dcc3732c3eb16863bd3f75c45161a56f2fdc2e6851dc",
+    "parity_fixture_sha256": "f203f6d8b79ce1a84c335574bd5d27e725b01cc0c5c1eed77b513f898dd14620",
+    "integer_parity_cases": 20,
+    "parity": "PASS",
+    "machine": "forge",
+    "cpu_mask": "5-7",
+    "host_pinning": "on",
+    "memory_max_bytes": 2147483648,
+    "inference_source": "existing tested TT candidate; integrated tracked engine files match",
+    "concurrent_workloads": [
+      "reader117631 unchanged",
+      "no NGN games or SPSA",
+      "rig hopper1170 unchanged"
+    ]
+  },
+  "nomination_utc": "2026-10-11T06:02:20.948420+00:00"
+}

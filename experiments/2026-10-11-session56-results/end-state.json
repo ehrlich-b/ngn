@@ -1,0 +1,18 @@
+{
+  "rig": {
+    "snapshot_utc": "2026-10-11T06:07:47.122868+00:00",
+    "machine": "rig",
+    "memory": "               total        used        free      shared  buff/cache   available\nMem:     16267808768  3703521280  2137358336     3887104 10744938496 12564287488\nSwap:     4294967296    26898432  4268068864\n",
+    "gpu": "0 %, 1524 MiB, 16303 MiB",
+    "aa-summary.json": "{\"mode\": \"aa\", \"games\": 40, \"pairs\": 20, \"wins\": 7, \"draws\": 22, \"losses\": 11, \"penta\": [1, 4, 13, 2, 0], \"elo\": -34.9, \"ci95\": [-88.0, 17.0], \"exact_elo_ci95\": [-34.86007028756008, -88.22987657462872, 16.90716564476206], \"flags\": [0, 0], \"reasons\": {\"draw-rule\": 22, \"checkmate\": 18}, \"verdict\": \"aa-pass\"}\n",
+    "live_processes": "1170 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n21281 bash controller.sh\n21284 python3 games.py\n21429 timeout --signal=TERM --kill-after=15s 14400 taskset -c 0-11 nice -n 19 /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/sprt -new /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn -base /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn -tc 10+0.1 -concurrency 6 -mingames 1000000 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/openings.txt -lowpower=false -maxgames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session55-factorizer-games/candidate.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session55-factorizer-games/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false\n21430 /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/sprt -new /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn -base /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn -tc 10+0.1 -concurrency 6 -mingames 1000000 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/openings.txt -lowpower=false -maxgames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session55-factorizer-games/candidate.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session55-factorizer-games/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false\n"
+  },
+  "forge": {
+    "snapshot_utc": "2026-10-11T06:07:47.533613+00:00",
+    "machine": "forge",
+    "memory": "               total        used        free      shared  buff/cache   available\nMem:     18793242624  7128424448   412606464    31109120 11656224768 11664818176\nSwap:     4294963200  2679664640  1615298560\n",
+    "live_processes": "117631 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767\n957663 timeout 20m go test -p 2 -short -race ./engine -count=1\n957664 go test -p 2 -short -race ./engine -count=1\n"
+  },
+  "host_c_free_bytes": 300245123072,
+  "host_c_free_gib": 279.62506103515625
+}
