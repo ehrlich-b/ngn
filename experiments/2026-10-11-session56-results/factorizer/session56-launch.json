@@ -1,0 +1,9 @@
+{
+  "launched_utc": "2026-10-11T06:02:20.964642+00:00",
+  "pid": 21281,
+  "scope": "ngn-s55-factorizer-games",
+  "base_source": "ed34480",
+  "stage": "/home/ehrli/ngn-data/night-20261007/session55-factorizer-games",
+  "expected_terminal": "03:00\u201303:15EDT October11",
+  "rule": "ownAA40 then fixed40010+0.1 printedANDexactlower95>0/zero faults/intact pins only"
+}

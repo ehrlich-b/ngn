@@ -1,0 +1,19 @@
+{
+  "completed_utc": "2026-10-11T06:01:44.548234+00:00",
+  "accepted_source": "ed34480",
+  "accepted_binary_sha256": "c14f03d8db4d00a3c43a1944e389b60cd5c52b8649c665e370cea1dcb3c0b848",
+  "candidate_net_sha256": "1885d7f9d69e6389c133dcc3732c3eb16863bd3f75c45161a56f2fdc2e6851dc",
+  "parity_fixture_sha256": "f203f6d8b79ce1a84c335574bd5d27e725b01cc0c5c1eed77b513f898dd14620",
+  "integer_parity_cases": 20,
+  "parity": "PASS",
+  "machine": "forge",
+  "cpu_mask": "5-7",
+  "host_pinning": "on",
+  "memory_max_bytes": 2147483648,
+  "inference_source": "existing tested TT candidate; integrated tracked engine files match",
+  "concurrent_workloads": [
+    "reader117631 unchanged",
+    "no NGN games or SPSA",
+    "rig hopper1170 unchanged"
+  ]
+}

@@ -1,34 +1,36 @@
-# NGN live state — 2026-10-10: 3600 campaign
+# NGN live state — 2026-10-11: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **9bfbae4 / NGNN3 KB8 H512 a4d90b41**; expanded-data400 KEEP
-+33.98[+14.97,+53.20],zero faults/intact pins. No new absolute claim.
+Playing **ed34480 / NGNN3 KB8 H512 a4d90b41**. Owned matching TT refresh
+KEEP **+16.52[+1.16,+31.93]/40060+0.6**, zero faults/intact pins; exact
+0304d934 tested patch integrated/pushed. Expanded-data KEEP remains
++33.98[+14.97,+53.20]. Combined provenance remains uncertified; no claim.
 
-TT isolation−21.74[−36.88,−6.69]/40060+0.6 implicates owned TT cost;
-no derived code restored, combined provenance uncertified. One owned
-matching-refresh candidatec14f03d8/patch0304d934 runs fixed40060+0.6 onrig
-0–11/c6/3GiB, controller20265; ownA/A40 PASS−34.86[−81.91,+10.94], gate
-began21:53:47. Keep only printed AND exact lower95>0/zero faults/intact pins.
-No speculative-source commit/repeated checks. Terminal expected01:40–02:15.
+Factorizer1885d7f9/full58/selected58/folded reexport/20 parity PASS;
+newed34480-source20 parity PASS. Manual actual-base gate **21281** starts
+02:02:21, rig0–11/c6/3GiB/nice19/swap0. OwnA/A40 PASS7/22/11,
+−34.86[−88.23,+16.91]; fixed40010+0.1 began02:06:21,
+original printed AND exact lower95>0/zero faults/intact pins only. Expected
+03:00–03:15; no adoption, extension or old pooling.
 
-Expanded-data factorizer completes full58 at22:02:09; relay recovered once,
-forge390589 finalizerexit0 at22:11:00. Selected58/**1885d7f9**, recipe/
-folded reexport/20 integer parity PASS. Rigsession55-factorizer-games staged,
-syntax/pins PASS, no nomination/games. After TT terminal selects immediate
-source, update template/binary/hash/workloads and run changed-source parity
-if needed; manual ownA/A40/fixed40010+0.1, original lower95>0 rule.
-Residuals are diagnostic only; no eligible next GPU recipe yet.
+Admission unchanged76efa526 now oned34480 topicnight/time-tt-current;
+forgechecks938706/5–7/2GiB, candidate source uncommitted pending games.
+Rigsession56-time-tt-games prepared; settle factorizer net, copy checked
+binary/receipt, actual nomination then ownA/A40/SPRT[0,+6]/min400/cap4000/
+60+0.6/72h. H1 AND printed/exact lower95>0/zero faults/intact pins only;
+winner-only separatefixed400120+1 transfer. No admission games yet.
 
-SPSA2000/24k and final14-handler/12-search verification already terminal/PASS
-on9bfbae4/a4d90b41. Admission17b08fec also checked; games unlaunched.
-After higher-priority decisions, actual-base combination/nomination/gates;
-recheck only changed package. No extra candidate ahead of this queue.
-Rodent terminal node-compliance failure remains unscored; no retry/adoption.
+SPSA frozen2000/24k. New-source final14-handler/12-search checks terminal0
+02:03:56, PASS on each possible neta4d90b41/1885d7f9, sourceed34480.
+After admission decision nominate/gate actual package; repeat only for a
+further source behavior change. No optimizer extension/intermediate choice.
+Rodent node-compliance failure stays unscored; no retry/adoption.
 
-Forge4–11/8GiB/host pinningON/max2 games; reader117631/hopper1170 untouched.
-C:279.64GiB; rig3.33GiB used/11.82GiB available at22:14.
-Next session not before02:00 EDT October11, first TT terminal, then factorizer
-nomination/games. [Session55](experiments/2026-10-10-session55.md).
+Forge4–11/8GiB/host pinningON/max2games; reader117631/hopper1170 untouched.
+GPU idle; no eligible next recipe ahead of factorizer verdict. No additional
+candidate belongs ahead of existing games. Next session not before03:00EDT
+October11, first factorizer terminal then admission launch.
+[Session56](experiments/2026-10-11-session56.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

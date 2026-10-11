@@ -1,0 +1,1 @@
+{"mode": "aa", "games": 40, "pairs": 20, "wins": 7, "draws": 22, "losses": 11, "penta": [1, 4, 13, 2, 0], "elo": -34.9, "ci95": [-88.0, 17.0], "exact_elo_ci95": [-34.86007028756008, -88.22987657462872, 16.90716564476206], "flags": [0, 0], "reasons": {"draw-rule": 22, "checkmate": 18}, "verdict": "aa-pass"}
