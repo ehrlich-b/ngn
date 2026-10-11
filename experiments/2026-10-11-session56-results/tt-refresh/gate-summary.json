@@ -1,0 +1,36 @@
+{
+  "mode": "gate",
+  "games": 400,
+  "pairs": 200,
+  "wins": 64,
+  "draws": 291,
+  "losses": 45,
+  "penta": [
+    0,
+    29,
+    126,
+    42,
+    3
+  ],
+  "elo": 16.5,
+  "ci95": [
+    1.0,
+    32.0
+  ],
+  "exact_elo_ci95": [
+    16.515618916270434,
+    1.1628533805474899,
+    31.933148586556502
+  ],
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 280,
+    "checkmate": 109,
+    "max-moves": 10,
+    "stalemate": 1
+  },
+  "verdict": "eligible"
+}

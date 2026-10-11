@@ -139,7 +139,11 @@ func (c *Cache) Set(hash uint64, move Move, score int16, depth int8, bound NodeT
 		}
 		quality := ttRetention(old.payload, current)
 		if old.hash == hash {
-			if ttRetention(incoming, current) >= quality {
+			// A matching position gets a two-ply refresh window: its latest
+			// completed search can change the useful bound and move without
+			// needing to exceed the retained search depth. Collision victims
+			// still use the strict retention comparison below.
+			if ttRetention(incoming, current)+8 >= quality {
 				if move == EmptyMove {
 					incoming |= old.payload & (ttMoveMask << 32)
 				}

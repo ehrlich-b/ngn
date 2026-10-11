@@ -1,0 +1,50 @@
+{
+  "reviewed_utc": "2026-10-11T06:01:24.173526+00:00",
+  "verdict": "KEEP",
+  "base_source": "9bfbae4",
+  "base_net": "a4d90b41",
+  "candidate_patch_sha256": "0304d934d702fdd03497948c6371f5cc8548c431418c77c6e840be18a742ebae",
+  "accepted_binary_sha256": "c14f03d8db4d00a3c43a1944e389b60cd5c52b8649c665e370cea1dcb3c0b848",
+  "gate": {
+    "mode": "gate",
+    "games": 400,
+    "pairs": 200,
+    "wins": 64,
+    "draws": 291,
+    "losses": 45,
+    "penta": [
+      0,
+      29,
+      126,
+      42,
+      3
+    ],
+    "elo": 16.5,
+    "ci95": [
+      1.0,
+      32.0
+    ],
+    "exact_elo_ci95": [
+      16.515618916270434,
+      1.1628533805474899,
+      31.933148586556502
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 280,
+      "checkmate": 109,
+      "max-moves": 10,
+      "stalemate": 1
+    },
+    "verdict": "eligible"
+  },
+  "zero_operational_faults": true,
+  "terminal_inputs_intact": true,
+  "integrated_files_match_tested_source": true,
+  "required_code_checks": "completed session53 narrow/full short/race/vet/PGO; exact source integration requires no repeat",
+  "provenance_certified": false,
+  "absolute_claim": false
+}
