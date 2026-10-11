@@ -1,0 +1,56 @@
+=== RUN   TestPawnCorrectionIndex
+--- PASS: TestPawnCorrectionIndex (0.00s)
+=== RUN   TestCorrectionEMA
+--- PASS: TestCorrectionEMA (0.00s)
+=== RUN   TestCorrectionGate
+--- PASS: TestCorrectionGate (0.00s)
+=== RUN   TestCorrectionPopulatedByRealSearch
+    correction_history_test.go:149: correction slots populated after depth-10 search: 221
+--- PASS: TestCorrectionPopulatedByRealSearch (0.07s)
+=== RUN   TestPawnCorrectionAppliedAtQsearchStandPat
+--- PASS: TestPawnCorrectionAppliedAtQsearchStandPat (0.00s)
+=== RUN   TestNonPawnCorrectionAppliedAtQsearchStandPat
+--- PASS: TestNonPawnCorrectionAppliedAtQsearchStandPat (0.00s)
+=== RUN   TestMinorCorrectionAppliedAtQsearchStandPat
+--- PASS: TestMinorCorrectionAppliedAtQsearchStandPat (0.03s)
+=== RUN   TestSingularExtensionsFire
+    reentrancy_test.go:99: SingularExtensions: on=53 off=0  nodes on=119355 off=136095
+--- PASS: TestSingularExtensionsFire (0.19s)
+=== RUN   TestSingularVerificationSkipsProbcutAtExcludedPly
+--- PASS: TestSingularVerificationSkipsProbcutAtExcludedPly (0.00s)
+=== RUN   TestSingularVerificationDisablesWholeRootProbcut
+--- PASS: TestSingularVerificationDisablesWholeRootProbcut (0.01s)
+=== RUN   TestSingularCorrectionBounds
+=== RUN   TestSingularCorrectionBounds/white/restricted_fail_low
+    singular_correction_test.go:53: score=49 static=100 restricted=true corrections=[0 0 0]
+=== RUN   TestSingularCorrectionBounds/white/ordinary_fail_low
+    singular_correction_test.go:53: score=49 static=100 restricted=false corrections=[-6 -6 -6]
+=== RUN   TestSingularCorrectionBounds/white/restricted_fail_high
+    singular_correction_test.go:53: score=0 static=-100 restricted=true corrections=[12 12 12]
+=== RUN   TestSingularCorrectionBounds/white/ordinary_fail_high
+    singular_correction_test.go:53: score=0 static=-100 restricted=false corrections=[12 12 12]
+=== RUN   TestSingularCorrectionBounds/white/excluded_other_ply_fail_low
+    singular_correction_test.go:53: score=49 static=100 restricted=false corrections=[-6 -6 -6]
+=== RUN   TestSingularCorrectionBounds/black/restricted_fail_low
+    singular_correction_test.go:53: score=49 static=100 restricted=true corrections=[0 0 0]
+=== RUN   TestSingularCorrectionBounds/black/ordinary_fail_low
+    singular_correction_test.go:53: score=49 static=100 restricted=false corrections=[-6 -6 -6]
+=== RUN   TestSingularCorrectionBounds/black/restricted_fail_high
+    singular_correction_test.go:53: score=0 static=-100 restricted=true corrections=[12 12 12]
+=== RUN   TestSingularCorrectionBounds/black/ordinary_fail_high
+    singular_correction_test.go:53: score=-50 static=-100 restricted=false corrections=[6 6 6]
+=== RUN   TestSingularCorrectionBounds/black/excluded_other_ply_fail_low
+    singular_correction_test.go:53: score=49 static=100 restricted=false corrections=[-6 -6 -6]
+--- PASS: TestSingularCorrectionBounds (0.03s)
+    --- PASS: TestSingularCorrectionBounds/white/restricted_fail_low (0.01s)
+    --- PASS: TestSingularCorrectionBounds/white/ordinary_fail_low (0.01s)
+    --- PASS: TestSingularCorrectionBounds/white/restricted_fail_high (0.00s)
+    --- PASS: TestSingularCorrectionBounds/white/ordinary_fail_high (0.00s)
+    --- PASS: TestSingularCorrectionBounds/white/excluded_other_ply_fail_low (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/restricted_fail_low (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/ordinary_fail_low (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/restricted_fail_high (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/ordinary_fail_high (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/excluded_other_ply_fail_low (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.369s

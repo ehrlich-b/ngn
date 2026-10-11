@@ -1,0 +1,9 @@
+{
+  "completed_utc": "2026-10-11T20:38:31.718544+00:00",
+  "full58": true,
+  "epochs": 58,
+  "total_positions": 14848000000,
+  "king_factorizer": false,
+  "postprocessing_machine": "forge",
+  "automatic_games": false
+}

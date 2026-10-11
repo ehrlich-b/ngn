@@ -1,0 +1,18 @@
+2026-10-11T17:05:42-04:00
+3190821
+2026-10-11T16:48:15-04:00
+{"utc": "2026-10-11T20:48:15.384371+00:00", "stage": "session66-data-gate", "event": "gate-start", "detail": "manual selected4636de46 vs a4d90b41; final14 identical both sides; ownAA40 reused"}
+G62   13W 36D 13L   50.0%  elo   +0.0 [-86,+86]  LLR  +0.00  pLLR  +0.00  checkmate   
+ 117631       1   4  0.2 18256 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+1649185       1   0  0.8 18024 python3 /work/lanes/ngn-data-step2-20261011/archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768
+3190831 3190826   7  0.0  1768 timeout --signal=TERM --kill-after=15s 21600 taskset -c 4-11 nice -n 10 /work/lanes/ngn-s66-data-gate/sprt -new /work/lanes/ngn-s66-data-gate/ngn -base /work/lanes/ngn-s66-data-gate/ngn -tc 10+0.1 -concurrency 2 -maxmoves 400 -gametimeout 180 -openings /work/lanes/ngn-s66-data-gate/openings.txt -lowpower=false -mingames 1000000 -maxgames 400 -newoption EvalFile=/work/lanes/ngn-s66-data-gate/candidate.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/work/lanes/ngn-s66-data-gate/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false
+3190832 3190831   9  0.8 18808 /work/lanes/ngn-s66-data-gate/sprt -new /work/lanes/ngn-s66-data-gate/ngn -base /work/lanes/ngn-s66-data-gate/ngn -tc 10+0.1 -concurrency 2 -maxmoves 400 -gametimeout 180 -openings /work/lanes/ngn-s66-data-gate/openings.txt -lowpower=false -mingames 1000000 -maxgames 400 -newoption EvalFile=/work/lanes/ngn-s66-data-gate/candidate.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/work/lanes/ngn-s66-data-gate/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false
+3190837 3190832   5 50.1 206660 /work/lanes/ngn-s66-data-gate/ngn
+3190838 3190832   5 50.1 207664 /work/lanes/ngn-s66-data-gate/ngn
+3190844 3190832   9 50.0 207968 /work/lanes/ngn-s66-data-gate/ngn
+3190845 3190832   5 50.0 207004 /work/lanes/ngn-s66-data-gate/ngn
+Filesystem        1B-blocks         Used    Available Use% Mounted on
+/dev/sda       536608739328 423291654144 113317085184  79% /work
+               total        used        free      shared  buff/cache   available
+Mem:           17922       10301         293        1129        8804        7621
+Swap:           4095        4095           0

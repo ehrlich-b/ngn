@@ -1,0 +1,7 @@
+{"utc": "2026-10-11T20:52:05.035874+00:00", "stage": "session66-data-diagnostic", "event": "sample-start", "detail": "16 frozen blocks/source; original holdout partition"}
+{"utc": "2026-10-11T20:52:05.602808+00:00", "stage": "session66-data-diagnostic", "event": "source-sampled", "detail": {"source": 0, "panel": 2048}}
+{"utc": "2026-10-11T20:52:05.983661+00:00", "stage": "session66-data-diagnostic", "event": "source-sampled", "detail": {"source": 1, "panel": 2048}}
+{"utc": "2026-10-11T20:52:08.140541+00:00", "stage": "session66-data-diagnostic", "event": "source-sampled", "detail": {"source": 2, "panel": 2048}}
+{"utc": "2026-10-11T20:52:08.566949+00:00", "stage": "session66-data-diagnostic", "event": "source-sampled", "detail": {"source": 3, "panel": 2048}}
+{"utc": "2026-10-11T20:52:08.571450+00:00", "stage": "session66-data-diagnostic", "event": "panel-frozen", "detail": {"rows": 8192, "panel_sha256": "cf2e8935652a32974924d5413fa9b6ec896d21dc781f524f8b12465794fa2bdf"}}
+{"utc": "2026-10-11T20:52:10.689359+00:00", "stage": "session66-data-diagnostic", "event": "diagnostic-done", "detail": {"n": 8192, "mean_integer_minus_fp32_cp": -2.2411168726466713, "mae_cp": 6.016965257229458, "p95_absolute_cp": 15.161473083496093, "max_absolute_cp": 30.157459259033203, "loss": {"fp32": 0.009011208036211662, "bf16": 0.00900757755703021, "integer": 0.009033075700305473, "accepted_integer": 0.008936734578727195}, "result_loss": {"fp32": 0.08497477853199782, "bf16": 0.08496472643674238, "integer": 0.08502300342889516, "accepted_integer": 0.08418502481247539}}}

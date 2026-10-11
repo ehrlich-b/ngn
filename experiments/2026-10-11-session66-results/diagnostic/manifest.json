@@ -1,0 +1,113 @@
+{
+  "created_utc": "2026-10-11T20:52:04.999363+00:00",
+  "seed": 2026101106,
+  "block_records": 262144,
+  "blocks_per_source": 16,
+  "rows_per_source": 2048,
+  "sources": [
+    {
+      "path": "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+      "records": 1738363377,
+      "block_ids": [
+        2038,
+        3430,
+        3104,
+        5608,
+        5591,
+        4076,
+        62,
+        3908,
+        3869,
+        6010,
+        4860,
+        2020,
+        6418,
+        5032,
+        169,
+        4820
+      ]
+    },
+    {
+      "path": "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.archive.json",
+      "records": 5730363263,
+      "block_ids": [
+        1379,
+        5106,
+        5216,
+        1408,
+        20233,
+        3612,
+        19407,
+        11219,
+        20094,
+        12350,
+        13218,
+        4941,
+        10509,
+        6151,
+        18020,
+        7268
+      ]
+    },
+    {
+      "path": "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t75.archive.json",
+      "records": 1355011241,
+      "block_ids": [
+        3780,
+        697,
+        2500,
+        1809,
+        3271,
+        713,
+        1482,
+        4825,
+        2377,
+        3782,
+        1710,
+        2482,
+        141,
+        87,
+        3038,
+        662
+      ]
+    },
+    {
+      "path": "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+      "records": 2374290033,
+      "block_ids": [
+        692,
+        8740,
+        1835,
+        3364,
+        5125,
+        3369,
+        8977,
+        4195,
+        4345,
+        8679,
+        5771,
+        1563,
+        7335,
+        5236,
+        8674,
+        832
+      ]
+    }
+  ],
+  "split_seed": 20261006,
+  "split_modulus": 1024,
+  "checkpoint_epoch": 58,
+  "checkpoint_sha256": "a0b2da5c7497f7338db55d8f95d0795ec00aa92099a20aaf06179dff7097a750",
+  "net_sha256": "4636de46c8afb33227cff72831d3fa80b86b1c84d9394661f70b29f10ddc945f",
+  "baseline_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "diagnostic_sha256": "f4386227aff0e37fedb82005054f26371ba16b694cc0ef12f0a306843f12a868",
+  "cpus": [
+    12,
+    14
+  ],
+  "gpu": true,
+  "memory_max_bytes": 4294967296,
+  "instruction": "experiments/2026-10-11-data-step2-diagnostic.md",
+  "selection": "2048 holdout rows/source, frozen-seed uniform without replacement",
+  "purpose": "source/material/king-bucket prevalence and float/integer residuals; no training or games"
+}
