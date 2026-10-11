@@ -1,0 +1,26 @@
+2026-10-11T12:00:55-04:00
+               total        used        free      shared  buff/cache   available
+Mem:           15514        5642        4236          87        6130        9871
+Swap:           4096          25        4070
+75 %, 4317 MiB, 16303 MiB
+   1170     256  139841  0.3  0.1 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+  22047   21672   31068  0.0  0.0 timeout --signal=TERM --kill-after=15s 259200 taskset -c 0-11 nice -n 19 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/sprt -new /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn -base /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/openings.txt -lowpower=false -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session56-time-tt-games/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session56-time-tt-games/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -elo0 0 -elo1 6 -alpha .05 -beta .05 -mingames 400 -maxgames 4000
+  22048   22047   31068  0.6  0.1 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/sprt -new /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn -base /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/openings.txt -lowpower=false -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session56-time-tt-games/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session56-time-tt-games/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -elo0 0 -elo1 6 -alpha .05 -beta .05 -mingames 400 -maxgames 4000
+  22052   22048   31068 49.9  1.0 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn
+  22053   22048   31068 49.9  1.1 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn
+  22054   22048   31068 49.9  1.2 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn
+  22055   22048   31068 49.9  0.9 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn
+  22060   22048   31068 49.9  1.1 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn
+  22065   22048   31068 49.9  1.1 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn
+  22070   22048   31067 50.0  1.1 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn
+  22071   22048   31067 50.0  1.0 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn
+  22076   22048   31067 50.0  1.2 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn
+  22079   22048   31067 49.9  1.2 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn
+  22082   22048   31067 49.9  1.0 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn
+  22085   22048   31067 49.9  1.1 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn
+  22172   22169   30287  1.1  0.1 python3 local-reader.py --root /home/ehrli/ngn-data/night-20261007/session57-data-step2 --token-file /home/ehrli/ngn-data/night-20261007/session57-data-step2/token --bind 127.0.0.1 --port 8769
+  74604   74591    3404  0.0  0.0 bash /home/ehrli/ngn-data/night-20261007/session57-data-step2/training-controller-session62.sh
+  74608   74607    3404 34.3 36.4 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.archive.json /home/ehrli/ngn-data/night-20261007/session57-data-step2/t75.archive.json --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/session57-data-step2/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 58 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only
+ 119230  119224       0  0.0  0.0 rg trainer.train|sprt|ngn-s6|session56-time-tt|session57-data-step2|hopper|archive-reader
+
+DIRECTORY /home/ehrli/ngn-data/night-20261007/session57-data-step2

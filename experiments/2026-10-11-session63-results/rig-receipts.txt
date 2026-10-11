@@ -1,0 +1,102 @@
+
+DIRECTORY /home/ehrli/ngn-data/night-20261007/session57-data-step2
+
+FILE controller.exit
+0
+
+FILE trained/history.json
+[
+  {
+    "epoch": 1,
+    "step": 15625,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.0117430380859375,
+    "lr": 0.0009993401192290817,
+    "seconds": 274.4059551600076,
+    "positions_per_second": 932924.3596434525,
+    "steady_positions_per_second": 935549.4727966433,
+    "validation_loss": 0.010803857140581637,
+    "validation_loss_lambda_075": 0.010803857140581637,
+    "validation_loss_result": 0.09012981182580583
+  }
+]
+{"device": "cuda", "torch": "2.7.0+cu128", "raw_records": 11198027914, "filtered_records": 11187150963, "positions_per_epoch": 256000000, "validation_records": 10876951, "steps_per_epoch": 15625, "config": {"data": ["/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf", "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf", "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.archive.json", "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t75.archive.json"], "data_format": "archive", "archive_holdout_modulus": 1024, "archive_split_seed": 20261006, "ngnp_holdout_modulus": 0, "ngnp_split_seed": null, "validation_data": null, "record_counts": null, "out": "/home/ehrli/ngn-data/night-20261007/session57-data-step2/trained", "hidden": 512, "buckets": 8, "format": 3, "kb_map": "default", "king_factorizer": false, "batch": 16384, "lr": 0.001, "epochs": 58, "positions_per_epoch": 256000000, "decay": "cosine", "decay_steps": 1000, "gamma": 0.5, "min_lr_ratio": 0.1, "wdl": 0.75, "k": 400.0, "weight_decay": 0.01, "drop_flags": 15, "min_ply": 0, "block_records": 262144, "seed": 20261006, "device": "cuda", "threads": 2, "precision": "bf16", "resume": null, "keep_best_only": true, "king_map": [0, 0, 1, 1, 1, 1, 0, 0, 2, 2, 3, 3, 3, 3, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7], "shard_record_counts": null, "archive_split": {"hash": "ngn-board-mix64-v1", "seed": 20261006, "modulus": 1024, "holdout_remainder": 0, "block_records": 262144, "sources": [{"path": "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf", "bytes": 55627628064, "records": 1738363377}, {"path": "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.archive.json", "bytes": 183371624416, "records": 5730363263, "sha256": "dffe7f87cfc40b7e46bf2cf1fb0b1b203f6cc2eb63d94267d223f45bb6c2533d"}, {"path": "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t75.archive.json", "bytes": 43360359712, "records": 1355011241, "sha256": "90cc14845171f837957027db129f8246af768fe2e541e78efba2cf25f24371ee"}, {"path": "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf", "bytes": 75977281056, "records": 2374290033}], "raw_records": 11198027914, "training_records": 11187150963, "holdout_records": 10876951, "contract": "identical occupied boards share partition; labels excluded"}}}
+{"epoch": 1, "step": 15625, "positions": 256000000, "updates": 15625, "loss": 0.0117430380859375, "lr": 0.0009993401192290817, "seconds": 274.4059551600076, "positions_per_second": 932924.3596434525, "steady_positions_per_second": 935549.4727966433, "validation_loss": 0.010803857140581637, "validation_loss_lambda_075": 0.010803857140581637, "validation_loss_result": 0.09012981182580583}
+__pycache__
+controller.done
+controller.exit
+controller.log
+controller.pid
+controller.sh
+controller.started
+copy-controller.sh
+copy-launch.pid
+copy-recovery-controller.sh
+copy-startup-empty-exit.txt
+copy-startup-failed.log
+copy.done
+copy.exit
+copy.log
+copy.py
+corpus-receipt.json
+files.json
+interrupted-session58
+interrupted-session59
+interrupted-session60-descriptor
+interrupted-session60-notification
+interrupted-session62-loader
+local-reader-launch.pid
+local-reader.log
+
+DIRECTORY /home/ehrli/ngn-data/night-20261007/session56-time-tt-games
+G953  151W 672D 130L   51.1%  elo   +7.7 [-14,+30]  LLR  +0.75  pLLR  +1.03  draw-rule   
+G954  151W 672D 131L   51.0%  elo   +7.3 [-15,+29]  LLR  +0.69  pLLR  +1.03  checkmate   
+G955  152W 672D 131L   51.1%  elo   +7.6 [-14,+30]  LLR  +0.74  pLLR  +1.04  checkmate   
+aa-parser.py
+aa-summary.json
+aa.log
+base.nnue
+baseline-ngn
+candidate-ngn
+candidate.patch
+checks-receipt.json
+controller.log
+controller.pid
+controller.sh
+controller.started
+game-inputs.sha256
+game-manifest.json
+games.py
+gate-review.py
+gate.log
+input-check-after-aa.txt
+manifest.md
+ngn_crashes.log
+nomination.json
+openings.txt
+paired-parser.py
+sprt
+workload-supplement-session57.json
+
+ROOT STATUS
+{"utc": "2026-10-11T06:06:21.530027+00:00", "stage": "session55-expanded-factorizer-games-rig", "event": "gate-start", "detail": "reviewed factorizer-only gate; actual accepted source frozen"}
+{"utc": "2026-10-11T06:10:02.109045+00:00", "stage": "session56-handoff", "event": "detach", "detail": "Committed/pushed ed34480 TT gain KEEP16.5156[1.16285,31.9331]/40060+0.6 zero faults/intact pins and 683d40a handoff to private origin night/night; playing ed34480/a4d90b41, provenance uncertified/no absolute claim. Factorizer21281 ownAA40 PASS7/22/11 exact-34.8601[-88.2299,16.9072], fixed40010+0.1 began02:06:21/live rig0-11/c6/3GiB/swap0/nice19; next review not before03:00EDT October11. New-source20parityPASS. Admission938706 forge5-7/2GiB checks running; manual riggame stage session56-time-tt-games prepared/no nomination; copy final candidate/receipt then settle factorizer net and ownAA40/SPRT0,+6/min400/cap4000/60+0.6. SPSA959705 terminal0 at02:03:56, final14-handler/12 searches PASS on each ed34480/a4d90b41 and ed34480/1885d7f9; no optimizer extension or adoption. C279.63GiB; hopper1170/reader117631 untouched; GPU no eligible next recipe. Raw log whitespace retained verbatim; code/doc diff check passes."}
+{"utc": "2026-10-11T07:01:04.093132+00:00", "stage": "session56-time-tt-games", "event": "aa-start", "detail": "manual settled-package admission only; rig0-11/c6/3GiB"}
+{"utc": "2026-10-11T07:11:47.088742+00:00", "stage": "session57-data-step2", "event": "corpus-wait", "detail": "native forge descriptor notification; fixedT74full/T75sample/coverage; no polling"}
+{"utc": "2026-10-11T07:12:25.491462+00:00", "stage": "session57-data-step2", "event": "launch", "detail": {"recorded_utc": "2026-10-11T07:12:25.491462+00:00", "stage": "session57-data-step2", "jobs": {"forge_data_prepare_pid": 1356547, "forge_stream_receiver_pid": 1433866, "forge_new_reader_pid": 1489286, "rig_stream_pid": 21852, "rig_training_controller_pid": 21886, "rig_admission_controller_pid": 21669}, "source": "ed34480", "base_net": "a4d90b41", "recipe": "data only/fullT74 + fixed10%T75/original58x256M/KB8H512/factorizer-off", "rig_games": "0-11/c6/3GiB/nice19", "rig_training": "12,14/GPU/4GiB/nice19; waiting for corpus receipt", "forge": "4-11/8GiB total/host pinningON; preparation4GiB + stream1GiB + reader256MiB", "no_games_or_adoption_from_data": true}}
+{"utc": "2026-10-11T07:21:59.099356+00:00", "stage": "session57-handoff", "event": "detach", "detail": "Committed/pushed d807290 plus raw gate evidence to private origin night/night; playing ed34480/a4d90b41 unchanged. Factorizer21281 reviewed SHELVE +8.6877[-11.1350,28.5672]/400, zero faults/intact pins, no extension. Admission21669 started03:01:04 rig0-11/c6/3GiB/nice19/swap0, ownAA40 then60+0.6 SPRT0,+6/min400/cap4000; no verdict yet. Forge1356547 data-only fullT74+fixed10%T75/original conversion; bounded old-corpus stream rig21968 to forge1433866, new reader1489286/8768. Rig21886 native corpus wait then unchanged58x256M/KB8H512/factorizer-off iff coverage1.9-2.3x; no automatic games/adoption. Corpus+coverage ETA05:45-06:45, training11:00-14:00 if admitted; no restart deadlines. Next session not before03:30EDT for admission control then data stage. C279.62GiB; hopper1170/reader117631 untouched; no claim/publication or foreign restoration."}
+{"utc": "2026-10-11T07:24:13.439274+00:00", "stage": "session56-time-tt-games", "event": "gate-start", "detail": "manual settled-package admission only; rig0-11/c6/3GiB"}
+{"utc": "2026-10-11T07:57:17.944368+00:00", "stage": "session58-handoff", "event": "detach", "detail": "Committed/pushed a51431e to private origin night/night. Playing ed34480/a4d90b41 unchanged. Admission AA40 PASS +17.3863[-23.6648,58.9305], zero faults/15 intact pins; controller21669/sprt22048 frozen60+0.6 live. Original data controller stopped incomplete T74 at20GiB reserve03:43:58; preserved interruption. Manual recovery forge1535562/1535564 and rig22350/22352 preserve exact T75 raw on rig before rerunning incomplete T74; one forge T74 bottom sample, exact mapped T74 onto rig, raw T75 restored to forge, first fixed10%T75 conversion, same coverage/training/gate. Rig local reader22172/8769; forge1489286/8768; original GPU21886/21889 native wait. Old T80/T76 streams complete03:42:46, no rescans. Next session not before06:00EDT, new recovery.exit/recovery-copy.exit first. No automatic new retry, extra candidate, claim/publication or foreign restoration; hopper1170/reader117631 untouched."}
+{"utc": "2026-10-11T10:05:18.598327+00:00", "stage": "session59-data-recovery", "event": "manual-continuation", "detail": "Forge converter now running after empty-directory fix; completed T75 raw copy reused. Receiver startup connection-refused preceded any copy; preserved; listener confirmed and22738 receiver relaunched once. Original training21886/21889 still native corpus wait; no numerical changes, repeated sample/download, admission interruption, or automatic retry."}
+{"utc": "2026-10-11T10:09:19.739539+00:00", "stage": "session59-handoff", "event": "detach", "detail": "Committed/pushed75947b1 to verified private origin night/night. Reviewed03:59 converter empty-output-root failure; completed T75 raw SHA256/bytes/fsync receipt reused without recopy. Fixture/syntax PASS. Forge1621423/1621432/1621450 unchanged T74 scatter live; rig22738/22742 native mapped-T74 wait, then exact copy/raw restore. New terminals recovery-session59.exit and recovery-copy-session59.exit; old terminal1 files historical. Original GPU21886/21889 coverage1.9-2.3x wait and admission21669/22048 frozen60+0.6 SPRT continue; no verdict. Playing ed34480/a4d90b41 unchanged; SPSA final-vector games follow admission; no extra candidates. C239.01GiB, forge/work274.09GiB at06:05:47. Next session not before07:45EDT, new recovery/storage receipts then admission/corpus terminals. No automatic retry, repeated completed sample/download/copy, publication, claim or foreign restoration; hopper1170/reader117631 untouched."}
+{"utc": "2026-10-11T11:50:05.662111+00:00", "stage": "session57-data-step2", "event": "corpus-wait", "detail": "native forge descriptor notification; fixedT74full/T75sample/coverage; no polling"}
+{"utc": "2026-10-11T11:54:53.098535+00:00", "stage": "session60-handoff", "event": "detach", "detail": "Playinged34480/a4d90b41 unchanged; no strength verdict. Full T74 conversion/frozen sample complete06:57:13; stale descriptor receiver reconnected23591/23594 at07:48:31, exact183371624416 bytes copy then T75 raw restore; forge1621423/1621432 unchanged recovery. No completed conversion/sample/download/copy repeats. Checked accepted-socket TCP keepalive60/30/6; new reader1649185/8768, GPU native waiter23638/23641 before training, numerical recipe unchanged. Current terminals recovery-session59.exit on forge; recovery-copy-session60.exit/training-controller-session60.exit on rig; full58 training-terminal.json. Historical waits preserved; hopper1170/original reader117631/local reader22172 untouched. Admission21669/22048 frozen60+0.6 SPRT487 games at07:50:44/no verdict; SPSA final-vector games follow it. Copy08:17-08:22, restore08:25-08:35, coverage09:40-10:15, training16:00-19:00 if coverage1.9-2.3x; estimates not restart deadlines. C232.51GiB/projected73.46GiB; forge/work119.01GiB. Next session not before09:45EDT; storage/corpus terminals first. No extra candidate, claim, publication or foreign restoration."}
+{"utc": "2026-10-11T13:58:27.085329+00:00", "stage": "session61-dead-pst", "event": "checks-start", "detail": "lower-priority exact speed on spare13,15; separately complete correctness fullrace first"}
+{"utc": "2026-10-11T14:08:39.070048+00:00", "stage": "session61-dead-pst", "event": "timing-start", "detail": "36 exact identities then fixed40 balanced blocks; cpu15/currentnet; preserve all outcomes"}
+{"utc": "2026-10-11T14:10:11.099787+00:00", "stage": "session61-handoff", "event": "detach", "detail": "Accepteded34480/a4d90b41 unchanged; SEEbbac8ce and singular739a23f separate checked/pushed topics, engine/fullshort/race/vet/PGO PASS; games still owed. T74 exact copy/rawT75 restoration complete08:42:34; first fixed10percentT75 scatter live onforge. GPU23638/23641 native coverage wait unchanged58x256M iff1.9-2.3x. Forge2114966/2114971 native conversion/coverage wait then oneAA20010+0.1/c2 and conditional fixed400 finalSPSA14 before12:00, otherwise manual window hold; finalizer reserved16:00. Rig29587 spare13,15/2GiB runs dead-PST fullchecks/36identity/fixed40NPS; no auto-adoption. Admission21669/22048 frozen60+0.6 SPRT730games10:04:46/no verdict. C73GiB/work169.39GiB; readers/hopper unchanged. Nextsession not before11:00EDT; speedterminal first, current data/GPU/forge controls next; no extra heuristics/claim/publication."}
+{"utc": "2026-10-11T14:24:11.686851+00:00", "stage": "session57-data-step2", "event": "training-start", "detail": "reviewed by frozen coverage rule; unchanged58x256M/KB8H512/NB8/factorizer-off; rig12,14/4GiB"}
+{"utc": "2026-10-11T14:33:48.061811+00:00", "stage": "session61-dead-pst", "event": "speed-eligible", "detail": "manual complete evidence review required"}
+{"utc": "2026-10-11T14:33:48.075140+00:00", "stage": "session61-dead-pst", "event": "end", "detail": "rc0; review required; no automatic adoption"}
+{"utc": "2026-10-11T15:04:11.182363+00:00", "stage": "session57-data-step2", "event": "training-recovery-start", "detail": "manually reviewed failed validation overflow; no durable epoch/checkpoint; identical data/seed/58x256M/recipe with widened absolute holdout indexes; rig12,14/4GiB"}
+{"utc": "2026-10-11T15:10:09.005991+00:00", "stage": "session62-handoff", "event": "detach", "detail": "Dead-PST KEEP integrated7bbb2bf/a4d90b41:36identity/40blocks NPS+0.675pct lower+0.260pct; no Elo. Data preparation/coverage exit0/2.000913x. First trainer validation failed absolute uint32 offset; no durable epoch/checkpoint. IO fix2b3ea07/12checks PASS, original source untouched; identical seed/58x256M recovery74604/74608 since11:04:11 on12,14/GPU/4GiB/swap0/nice19. New training-controller-session62 terminal, then training-terminal.json; failed attempt preserved. ForgeAA2002140873 under2114966/2114971 live since10:24:11, conditional final14 gate before12 or manualwindowhold; no competing NGN CPU work. Admission21669/22048 frozen60+0.6 SPRT840games11:00/no verdict. Correctness topics separately checked/no games, explicit old-source results need actual combination. C72.78GiB/work168.63GiB; readers/hopper unchanged. Next session not before12:00EDT; forge control then recovered trainer. No new heuristics/claim/publication."}

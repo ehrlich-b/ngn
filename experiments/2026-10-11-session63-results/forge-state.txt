@@ -1,0 +1,64 @@
+2026-10-11T12:00:55-04:00
+               total        used        free      shared  buff/cache   available
+Mem:           17922       11311         642        1202        7603        6610
+Swap:           4095        4095           0
+Filesystem        1B-blocks         Used    Available Use% Mounted on
+/dev/sda       536608739328 366672941056 169935798272  69% /work
+1649185       1   15050  1.4  0.0 python3 /work/lanes/ngn-data-step2-20261011/archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768
+2180346 2114971    2485  0.0  0.0 timeout --signal=TERM --kill-after=15s 14400 taskset -c 4-11 nice -n 10 /work/lanes/ngn-s61/forge-games/sprt -new /work/lanes/ngn-s61/forge-games/ngn -base /work/lanes/ngn-s61/forge-games/ngn -tc 10+0.1 -concurrency 2 -maxmoves 400 -gametimeout 180 -openings /work/lanes/ngn-s61/forge-games/openings.txt -lowpower=false -mingames 1000000 -newoption EvalFile=/work/lanes/ngn-s61/forge-games/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/work/lanes/ngn-s61/forge-games/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -maxgames 400 -newoption AspInit=17 -newoption AspMult=163 -newoption DeltaMargin=202 -newoption ExtensionBudget=29 -newoption FutilityMargin=104 -newoption FutilityMaxDepth=8 -newoption LMPBase=3 -newoption LMRFullDepth=3 -newoption LMRMoveThreshold=2 -newoption NullMoveMinDepth=2 -newoption NullMoveR=4 -newoption ReverseFutilityMargin=63 -newoption SingularDepth=7 -newoption SingularMargin=57
+2180347 2180346    2485  1.7  0.1 /work/lanes/ngn-s61/forge-games/sprt -new /work/lanes/ngn-s61/forge-games/ngn -base /work/lanes/ngn-s61/forge-games/ngn -tc 10+0.1 -concurrency 2 -maxmoves 400 -gametimeout 180 -openings /work/lanes/ngn-s61/forge-games/openings.txt -lowpower=false -mingames 1000000 -newoption EvalFile=/work/lanes/ngn-s61/forge-games/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/work/lanes/ngn-s61/forge-games/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -maxgames 400 -newoption AspInit=17 -newoption AspMult=163 -newoption DeltaMargin=202 -newoption ExtensionBudget=29 -newoption FutilityMargin=104 -newoption FutilityMaxDepth=8 -newoption LMPBase=3 -newoption LMRFullDepth=3 -newoption LMRMoveThreshold=2 -newoption NullMoveMinDepth=2 -newoption NullMoveR=4 -newoption ReverseFutilityMargin=63 -newoption SingularDepth=7 -newoption SingularMargin=57
+2180359 2180347    2485 45.0  1.1 /work/lanes/ngn-s61/forge-games/ngn
+2180360 2180347    2485 45.2  1.1 /work/lanes/ngn-s61/forge-games/ngn
+2180369 2180347    2485 45.1  1.1 /work/lanes/ngn-s61/forge-games/ngn
+2180374 2180347    2485 45.2  1.1 /work/lanes/ngn-s61/forge-games/ngn
+2367738 2367733       0  0.0  0.0 rg sprt|ngn-s61|ngn-data-step2|spsa|archive-reader
+
+DIRECTORY /work/lanes/ngn-s61/forge-games
+
+FILE status.jsonl
+{"utc": "2026-10-11T13:55:16.585315+00:00", "stage": "session61-forge-games", "event": "conversion-wait", "detail": "native completion notification; no competing CPU work; A/A200 then conditional final14 gate"}
+{"utc": "2026-10-11T14:24:11.958453+00:00", "stage": "session61-forge-games", "event": "aa-start", "detail": "forge4-11/c2/nice10/host pinningON; no concurrent NGN conversion, tests or parity"}
+{"utc": "2026-10-11T15:19:29.315799+00:00", "stage": "session61-forge-games", "event": "aa-done", "detail": "{\"mode\": \"aa\", \"games\": 200, \"pairs\": 100, \"wins\": 52, \"draws\": 95, \"losses\": 53, \"penta\": [6, 25, 39, 24, 6], \"elo\": -1.7, \"ci95\": [-35.0, 32.0], \"exact_elo_ci95\": [-1.7371924043128806, -35.39142347351162, 31.884369366396136], \"flags\": [0, 0], \"reasons\": {\"draw-rule\": 92, \"checkmate\": 105, \"max-moves\": 2, \"stalemate\": 1}, \"verdict\": \"aa-pass\"}"}
+{"utc": "2026-10-11T15:19:29.337993+00:00", "stage": "session61-forge-games", "event": "gate-start", "detail": "forge4-11/c2/nice10/host pinningON; no concurrent NGN conversion, tests or parity"}
+
+FILE aa-summary.json
+    0
+  ],
+  "reasons": {
+    "draw-rule": 92,
+    "checkmate": 105,
+    "max-moves": 2,
+    "stalemate": 1
+  },
+  "verdict": "aa-pass"
+}
+total 14408
+drwxrwxr-x 2 ehrlich ehrlich     108 Oct 11 09:55 __pycache__
+-rw-rw-r-- 1 ehrlich ehrlich     459 Oct 11 11:19 aa-summary.json
+-rw-rw-r-- 1 ehrlich ehrlich   18808 Oct 11 11:19 aa.log
+-rw-r--r-- 1 ehrlich ehrlich   21241 Oct 11 09:52 aa200-parser.py
+-rw-rw-r-- 1 ehrlich ehrlich     456 Oct 11 10:24 background-before-aa.txt
+-rw-r--r-- 1 ehrlich ehrlich 6308996 Oct 11 09:52 base.nnue
+-rw-rw-r-- 1 ehrlich ehrlich     381 Oct 11 10:24 capacity-before-aa.json
+-rw-rw-r-- 1 ehrlich ehrlich      92 Oct 11 09:55 controller.log
+-rw-rw-r-- 1 ehrlich ehrlich       8 Oct 11 09:55 controller.pid
+-rw-r--r-- 1 ehrlich ehrlich     278 Oct 11 09:54 controller.sh
+-rw-rw-r-- 1 ehrlich ehrlich      26 Oct 11 09:55 controller.started
+-rw-rw-r-- 1 ehrlich ehrlich    1975 Oct 11 10:24 conversion-ready.json
+-rw-rw-r-- 1 ehrlich ehrlich    1030 Oct 11 09:52 endpoint.json
+-rw-rw-r-- 1 ehrlich ehrlich    1021 Oct 11 09:55 game-inputs.sha256
+-rw-rw-r-- 1 ehrlich ehrlich    5161 Oct 11 09:55 game-manifest.json
+-rw-r--r-- 1 ehrlich ehrlich    8172 Oct 11 09:55 games.py
+-rw-rw-r-- 1 ehrlich ehrlich   14632 Oct 11 12:00 gate.log
+-rw-rw-r-- 1 ehrlich ehrlich     215 Oct 11 11:19 input-check-after-aa.txt
+-rw-rw-r-- 1 ehrlich ehrlich     215 Oct 11 10:24 input-check-before-aa.txt
+-rw-rw-r-- 1 ehrlich ehrlich     215 Oct 11 11:19 input-check-before-gate.txt
+-rw-rw-r-- 1 ehrlich ehrlich   10524 Oct 11 09:52 live-receipt.json
+-rw-r--r-- 1 ehrlich ehrlich    2647 Oct 11 09:54 manifest.md
+-rwxrwxr-x 1 ehrlich ehrlich 4380330 Oct 11 09:52 ngn
+-rw-rw-r-- 1 ehrlich ehrlich    2170 Oct 11 11:19 ngn_crashes.log
+-rw-r--r-- 1 ehrlich ehrlich  150000 Oct 11 09:52 openings.txt
+-rw-r--r-- 1 ehrlich ehrlich   21240 Oct 11 09:52 paired-parser.py
+-rwxr-xr-x 1 ehrlich ehrlich 3723165 Oct 11 09:52 sprt
+-rw-rw-r-- 1 ehrlich ehrlich    1097 Oct 11 11:19 status.jsonl
+-rw-rw-r-- 1 ehrlich ehrlich     317 Oct 11 09:52 vector.json

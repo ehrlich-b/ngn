@@ -1,0 +1,39 @@
+{
+  "games": 200,
+  "pairs": 100,
+  "wins": 52,
+  "draws": 95,
+  "losses": 53,
+  "penta": [
+    6,
+    25,
+    39,
+    24,
+    6
+  ],
+  "exact_elo_ci95": [
+    -1.7371924043128806,
+    -35.39142347351163,
+    31.884369366396136
+  ],
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 92,
+    "checkmate": 105,
+    "max-moves": 2,
+    "stalemate": 1
+  },
+  "input_checks": "all13 before/after A/A and before gate OK",
+  "machine": "forge",
+  "cpus": "4-11",
+  "concurrency": 2,
+  "host_pinning": "on",
+  "verdict": "aa-pass",
+  "strength_verdict": false,
+  "limitation": "One passing admission control does not explain the older failed A/A or establish absence of bias.",
+  "gate_started_edt": "2026-10-11T11:19:29-04:00",
+  "gate_pid": 2180347
+}
