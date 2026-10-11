@@ -9,10 +9,10 @@ import (
 // individual piece bitboards and the two colour bitboards are kept alongside
 // a mailbox so that both kinds of lookup are inexpensive.
 type Bitboard struct {
-	pieces                 [13]uint64
-	occupiedByColor        [2]uint64
-	accMG, accEG, accPhase int
-	mailbox                [64]Piece
+	pieces          [13]uint64
+	occupiedByColor [2]uint64
+	accPhase        int
+	mailbox         [64]Piece
 }
 
 // SquareMask contains one bit for every square, using A1 as bit zero.
@@ -76,8 +76,6 @@ func (b *Bitboard) addPiece(square Square, piece Piece) {
 	} else {
 		b.occupiedByColor[Black] |= mask
 	}
-	b.accMG += mgPST[piece][uint8(square)]
-	b.accEG += egPST[piece][uint8(square)]
 	b.accPhase += piecePhaseInc[piece]
 	b.mailbox[uint8(square)] = piece
 }
@@ -169,8 +167,6 @@ func (b *Bitboard) Clear(square Square, piece Piece) {
 	} else {
 		b.occupiedByColor[Black] &^= mask
 	}
-	b.accMG -= mgPST[piece][uint8(square)]
-	b.accEG -= egPST[piece][uint8(square)]
 	b.accPhase -= piecePhaseInc[piece]
 	if b.mailbox[uint8(square)] == piece {
 		b.mailbox[uint8(square)] = NoPiece
@@ -215,7 +211,7 @@ func (b *Bitboard) Move(src, dest Square, sourcePiece, destinationPiece Piece) {
 		b.mailbox[uint8(dest)] = NoPiece
 	} else if validPiece(sourcePiece) {
 		// Relocation preserves material phase. Update each occupancy once and
-		// add only the PST difference; Clear/addPiece would undo and redo the
+		// keep its phase unchanged; Clear/addPiece would undo and redo the
 		// same material contribution and repeat square/piece validation.
 		from, to := uint8(src), uint8(dest)
 		remove, add := SquareMask[from], SquareMask[to]
@@ -225,8 +221,6 @@ func (b *Bitboard) Move(src, dest Square, sourcePiece, destinationPiece Piece) {
 		} else {
 			b.occupiedByColor[Black] = (b.occupiedByColor[Black] &^ remove) | add
 		}
-		b.accMG += mgPST[sourcePiece][to] - mgPST[sourcePiece][from]
-		b.accEG += egPST[sourcePiece][to] - egPST[sourcePiece][from]
 		if b.mailbox[from] == sourcePiece {
 			b.mailbox[from] = NoPiece
 		}
@@ -277,18 +271,12 @@ func (b *Bitboard) copy() Bitboard {
 	return *b
 }
 
-// recomputeAccumulator rebuilds all additive evaluation fields from the
-// current piece masks and the current global value tables.
+// recomputeAccumulator rebuilds material phase from the current piece masks.
 func (b *Bitboard) recomputeAccumulator() {
-	b.accMG = 0
-	b.accEG = 0
 	b.accPhase = 0
 	for piece := WhitePawn; piece <= BlackKing; piece++ {
 		occupancy := b.pieces[piece]
 		for occupancy != 0 {
-			square := bitScanForward(occupancy)
-			b.accMG += mgPST[piece][square]
-			b.accEG += egPST[piece][square]
 			b.accPhase += piecePhaseInc[piece]
 			occupancy &= occupancy - 1
 		}
