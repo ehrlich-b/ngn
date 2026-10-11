@@ -1,0 +1,138 @@
+diff --git a/engine/search.go b/engine/search.go
+index 522f981..9595fde 100644
+--- a/engine/search.go
++++ b/engine/search.go
+@@ -180,7 +180,7 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
+ 	// infinite weight would poison the swap. Quiet (non-capture) moves DO flow
+ 	// through: gain[0] = 0 (nothing captured) and the swap then evaluates whether
+ 	// the moving piece survives on its destination square. This is what quiet-move
+-	// SEE pruning reads; capture/EP/promotion paths are unchanged.
++	// SEE pruning reads.
+ 	if move.IsCastle() {
+ 		return 0
+ 	}
+@@ -189,30 +189,15 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
+ 	to := move.Destination()
+ 	targetSquare := to
+ 
+-	// Handle en passant specially
+-	if move.IsEnPassant() {
+-		// For en passant, the captured pawn is on a different square
+-		if move.MovingPiece().Color() == White {
+-			targetSquare = Square(int(to) - 8) // Black pawn is one rank down
+-		} else {
+-			targetSquare = Square(int(to) + 8) // White pawn is one rank up
+-		}
+-	}
+-
+ 	// Get the initial captured piece value
+ 	capturedValue := move.CapturedPiece().seeWeight()
+ 
+-	// Get all attackers of the target square
+-	attackers := getAttackers(pos, targetSquare)
+-
+ 	// Pawn/knight/king attackers are occupancy-independent (their attack patterns
+ 	// can't be blocked or revealed), so derive them once and re-mask by occupancy
+ 	// each swap step instead of rebuilding them in getAttackersAfterMove.
+ 	nonSlider := seeNonSliderAttackers(pos, targetSquare)
+ 
+-	// Remove the moving piece from attackers (it just moved)
+ 	movingPiece := move.MovingPiece()
+-	attackers &^= SquareMask[int(from)]
+ 
+ 	// Initialize the exchange - use stack array to avoid allocation
+ 	var gain [32]int // Exchange gains on stack
+@@ -220,6 +205,18 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
+ 	color := movingPiece.Color().Other() // Side to move after initial capture
+ 	occupied := pos.Board.WhiteOccupancy() | pos.Board.BlackOccupancy()
+ 	occupied &^= SquareMask[int(from)] // mover left its square -> reveals x-ray attackers behind it
++	if move.IsEnPassant() {
++		// The exchange stays on the destination; only the captured pawn's
++		// original square is removed from occupancy.
++		capturedSquare := int(to) - 8
++		if movingPiece.Color() == Black {
++			capturedSquare = int(to) + 8
++		}
++		occupied &^= SquareMask[capturedSquare]
++	}
++	occupied |= SquareMask[int(to)]
++	// Even the first recapture must see sliders exposed by the initial move.
++	attackers := getAttackersAfterMove(pos, nonSlider, occupied, targetSquare)
+ 
+ 	// gain[0] is the value of the piece initially captured. pieceOnSquare tracks
+ 	// the value of whatever piece now stands on the target square (initially the
+diff --git a/engine/see_geometry_test.go b/engine/see_geometry_test.go
+new file mode 100644
+index 0000000..cb89e8a
+--- /dev/null
++++ b/engine/see_geometry_test.go
+@@ -0,0 +1,69 @@
++package engine
++
++import (
++	"reflect"
++	"strings"
++	"testing"
++)
++
++// Reflect ranks and swap colors: the material exchange must be unchanged.
++func seeGeometryReflection(fen, uci string) (string, string) {
++	parts := strings.Fields(fen)
++	ranks := strings.Split(parts[0], "/")
++	for i, j := 0, len(ranks)-1; i < j; i, j = i+1, j-1 {
++		ranks[i], ranks[j] = ranks[j], ranks[i]
++	}
++	parts[0] = strings.Map(func(r rune) rune {
++		if r >= 'A' && r <= 'Z' {
++			return r + ('a' - 'A')
++		}
++		if r >= 'a' && r <= 'z' {
++			return r - ('a' - 'A')
++		}
++		return r
++	}, strings.Join(ranks, "/"))
++	parts[1] = "b"
++	if parts[3] != "-" {
++		parts[3] = string([]byte{parts[3][0], '9' - parts[3][1] + '0'})
++	}
++	move := []byte(uci)
++	move[1], move[3] = '9'-move[1]+'0', '9'-move[3]+'0'
++	return strings.Join(parts, " "), string(move)
++}
++
++func TestSEEPostMoveGeometry(t *testing.T) {
++	cases := []struct {
++		name, fen, uci string
++		want           int
++	}{
++		{"source reveals rook", "7k/8/8/3p4/3R4/3r4/8/K7 w - - 0 1", "d4d5", -400},
++		{"quiet source reveals rook", "7k/8/8/8/3R4/3r4/8/K7 w - - 0 1", "d4d5", -500},
++		{"source reveals bishop", "7k/8/8/4p3/3B4/2b5/K7/8 w - - 0 1", "d4e5", -240},
++		{"EP ignores attack on captured square", "7k/8/4p3/3pP3/8/8/8/K7 w - d6 0 1", "e5d6", 100},
++		{"EP destination defended by pawn", "7k/2p5/8/3pP3/8/8/8/K7 w - d6 0 1", "e5d6", 0},
++		{"EP removal reveals rook", "7k/8/8/3pP3/8/3r4/8/K7 w - d6 0 1", "e5d6", 0},
++	}
++	for _, c := range cases {
++		for _, reflected := range []bool{false, true} {
++			fen, uci := c.fen, c.uci
++			name := c.name + "/white"
++			if reflected {
++				fen, uci = seeGeometryReflection(fen, uci)
++				name = c.name + "/black"
++			}
++			t.Run(name, func(t *testing.T) {
++				pos := n3cPosition(t, fen)
++				move := adapterLegalMove(t, pos, uci)
++				before := snapshotPVPosition(pos)
++				got := staticExchangeEvaluation(pos, move)
++				t.Logf("SEE(%s)=%d, want %d; %s", uci, got, c.want, fen)
++				if got != c.want {
++					t.Errorf("SEE=%d, want %d", got, c.want)
++				}
++				if !reflect.DeepEqual(before, snapshotPVPosition(pos)) {
++					t.Fatal("SEE changed the position")
++				}
++			})
++		}
++	}
++}

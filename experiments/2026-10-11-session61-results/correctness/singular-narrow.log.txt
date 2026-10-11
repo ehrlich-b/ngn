@@ -1,0 +1,57 @@
+=== RUN   TestCorrectionEMA
+--- PASS: TestCorrectionEMA (0.00s)
+=== RUN   TestCorrectionGate
+--- PASS: TestCorrectionGate (0.00s)
+=== RUN   TestCorrectionPopulatedByRealSearch
+    correction_history_test.go:149: correction slots populated after depth-10 search: 600
+--- PASS: TestCorrectionPopulatedByRealSearch (0.12s)
+=== RUN   TestProbcutMoveStackFeedsGrandchild
+--- PASS: TestProbcutMoveStackFeedsGrandchild (0.00s)
+=== RUN   TestProbcutMoveStackIsLiveBeforeQuiescence
+--- PASS: TestProbcutMoveStackIsLiveBeforeQuiescence (0.00s)
+=== RUN   TestProbcutMoveStackTracksCompletedSiblings
+--- PASS: TestProbcutMoveStackTracksCompletedSiblings (0.00s)
+=== RUN   TestSingularVerificationSkipsProbcutAtExcludedPly
+--- PASS: TestSingularVerificationSkipsProbcutAtExcludedPly (0.00s)
+=== RUN   TestSingularVerificationDisablesWholeRootProbcut
+--- PASS: TestSingularVerificationDisablesWholeRootProbcut (0.00s)
+=== RUN   TestProbcutRemainsEnabledOutsideExcludedPly
+=== RUN   TestProbcutRemainsEnabledOutsideExcludedPly/ordinary_search
+=== RUN   TestProbcutRemainsEnabledOutsideExcludedPly/descendant_of_excluded_ply
+--- PASS: TestProbcutRemainsEnabledOutsideExcludedPly (0.01s)
+    --- PASS: TestProbcutRemainsEnabledOutsideExcludedPly/ordinary_search (0.00s)
+    --- PASS: TestProbcutRemainsEnabledOutsideExcludedPly/descendant_of_excluded_ply (0.00s)
+=== RUN   TestSingularCorrectionBounds
+=== RUN   TestSingularCorrectionBounds/white/restricted_fail_low
+    singular_correction_test.go:53: score=49 static=100 restricted=true corrections=[0 0 0]
+=== RUN   TestSingularCorrectionBounds/white/ordinary_fail_low
+    singular_correction_test.go:53: score=49 static=100 restricted=false corrections=[-6 -6 -6]
+=== RUN   TestSingularCorrectionBounds/white/restricted_fail_high
+    singular_correction_test.go:53: score=0 static=-100 restricted=true corrections=[12 12 12]
+=== RUN   TestSingularCorrectionBounds/white/ordinary_fail_high
+    singular_correction_test.go:53: score=0 static=-100 restricted=false corrections=[12 12 12]
+=== RUN   TestSingularCorrectionBounds/white/excluded_other_ply_fail_low
+    singular_correction_test.go:53: score=49 static=100 restricted=false corrections=[-6 -6 -6]
+=== RUN   TestSingularCorrectionBounds/black/restricted_fail_low
+    singular_correction_test.go:53: score=49 static=100 restricted=true corrections=[0 0 0]
+=== RUN   TestSingularCorrectionBounds/black/ordinary_fail_low
+    singular_correction_test.go:53: score=49 static=100 restricted=false corrections=[-6 -6 -6]
+=== RUN   TestSingularCorrectionBounds/black/restricted_fail_high
+    singular_correction_test.go:53: score=0 static=-100 restricted=true corrections=[12 12 12]
+=== RUN   TestSingularCorrectionBounds/black/ordinary_fail_high
+    singular_correction_test.go:53: score=-50 static=-100 restricted=false corrections=[6 6 6]
+=== RUN   TestSingularCorrectionBounds/black/excluded_other_ply_fail_low
+    singular_correction_test.go:53: score=49 static=100 restricted=false corrections=[-6 -6 -6]
+--- PASS: TestSingularCorrectionBounds (0.02s)
+    --- PASS: TestSingularCorrectionBounds/white/restricted_fail_low (0.00s)
+    --- PASS: TestSingularCorrectionBounds/white/ordinary_fail_low (0.00s)
+    --- PASS: TestSingularCorrectionBounds/white/restricted_fail_high (0.00s)
+    --- PASS: TestSingularCorrectionBounds/white/ordinary_fail_high (0.00s)
+    --- PASS: TestSingularCorrectionBounds/white/excluded_other_ply_fail_low (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/restricted_fail_low (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/ordinary_fail_low (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/restricted_fail_high (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/ordinary_fail_high (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/excluded_other_ply_fail_low (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.165s

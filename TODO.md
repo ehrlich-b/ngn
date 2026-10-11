@@ -2,43 +2,58 @@
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
 Playing **ed34480 / NGNN3 KB8 H512 a4d90b41**. TT refresh KEEP
-+16.52[+1.16,+31.93]/40060+0.6; expanded-data KEEP+33.98[+14.97,+53.20].
-Combined provenance uncertified; no claim. Factorizer SHELVE, stays off.
++16.52[+1.16,+31.93]/400 at60+0.6; expanded-data KEEP+33.98[+14.97,+53.20].
+Combined provenance remains uncertified; no claim. Factorizer stays off.
+Root's09:00 October11 plan amendment and the full Astra24h review govern.
 
-Admission alone76efa526 oned34480/a4d90b41: own A/A40 PASS;
-frozen60+0.6 SPRT0,+6/min400/cap4000/72h live since03:24:13,
-rig21669/22048/0–11/c6/3GiB. H1 AND printed/exact lower95>0/zero
-faults/intact pins only. Winner alone getsfixed400120+1 transfer.
-487 games at07:50:44, no terminal/verdict or integration.
+Data: exact full T74183.37GB acknowledged on rig08:31:43; raw T75 restored
+and receiver23591/23594 exit0 at08:42:34. First fixed10% T75 scatter runs
+as forge1852805 under1621423/1621432. No completed conversion/sample/copy
+repeats. GPU23638/23641 waits natively; same coverage1.9–2.3x/58x256M/
+KB8H512/NB8/factorizer-off recipe. Full58/config, identical reexport/20 parity
+then manual actual-base own A/A40/fixed40010+0.1 gain gate. Old readiness
+ETA passed; healthy jobs stay live, with no sampling adjustment.
 
-Data step keeps full T74 replacement and fixed10% T75. Full T74 gather
-and its frozen sample completed06:57:13. Old receiver's descriptor socket
-stalled before any copy; fresh probe returned the complete pin. Identical
-receiver23591/23594 reconnects07:48:31, copies183.37GB to rig then restores
-raw T75 to forge. Forge1621423/1621432 continues; no conversion/sample/
-completed copy repeats. Own reader1649185/8768 now enables checked TCP
-keepalive for native corpus notification; waiting GPU23638/23641 reconnects
-before any training starts. Old reader117631/rig reader22172 remain live.
-[Sequence and repair](experiments/2026-10-11-data-step2.md).
+Forge2114966/2114971 waits natively for conversion+coverage exit0/done,
+then **one fresh A/A20010+0.1/c2**,4–11/3GiB/swap0/nice10/host pinningON,
+exactc14f03d8/a4d90b41/harness9b0002f8/openings974e4b5a/defaults. Passing
+printed/unrounded intervals contain0/zero faults/intact pins admits frozen
+final14 **fixed400** only before12:00,4h cap/finalizer reserved from16:00;
+later pass writesgate-window-held.json for manual window review. Failure
+closes forge verdicts/Needs Bryan, no repeated controls. Frozen2000/24k/
+14-handler/12-search checks already PASS; no optimizer extension/midpoint.
+No forge source/parity work during scored games.
 
-Current terminals: **recovery-session59.exit** on forge;
-**recovery-copy-session60.exit** and **training-controller-session60.exit**
-on rig. Prior receiver/waiter/reader artifacts are historical/preserved.
-Full58 still requires **training-terminal.json**. Fixed converter/seeds/
-filters/scales/map/coverage1.9–2.3x/numerical58x256M/KB8H512/NB8/
-factorizer-off unchanged. Full58 then forge identical reexport/20parity/
-manual actual-base A/A40/fixed40010+0.1. Completed T80/T76/T74 samples reused.
-Coverage ETA09:40–10:15, training16:00–19:00 if admitted; no restart deadlines.
+Two separate correctness topics oned34480 are checked/pushed:
+**bbac8ce/night/see-geometry**: post-move attackers/EP destination,12 controls;
+**739a23f/night/singular-correction**: suppress restricted fail-low correction
+writes,10 controls preserving ordinary/fail-high/other-ply learning.
+Both engine/full short/race/vet/PGO builds PASS; no adoption/games yet.
+Queue: data gate,SPSA final14,SEE geometry,singular correction,then an
+admission winner's120+1 transfer; existing heuristic queue follows.
+Each behavior repair gets actual-base own A/A40/fixed40010+0.1,
+positive printed AND unrounded lower95/zero faults/complete pins only.
 
-SPSA frozen2000/24k/final14 and12-search checks PASS oned34480/a4d90b41;
-final-vector games follow admission. Existing candidates suffice; no extra
-preparation, optimizer extension or midpoint. Rodent diagnostic unscored/no retry.
+Admission21669/22048 stays frozen60+0.6 SPRT0,+6/min400/cap4000/72h,
+rig0–11/c6/3GiB;730 games10:04:46/no verdict. Own A/A40 already PASS.
+H1 AND positive printed/unrounded lower95/zero faults/intact pins alone
+keeps; H0/cap shelves. If data parity is ready and forge is untrusted,
+administratively end admission at that session boundary without verdict/
+continuation and give rig data. Readiness rule is independent of live score.
 
-Forge4–11/8GiB/host pinningON/max2games; rig games0–11/c6, GPU/loading12,14.
-C:232.51GiB during copy/projected73.46GiB; forge/work119.01GiB free at07:50:44.
-Existing25GiB C:/20GiB /work reserves; original reader117631/hopper1170
-untouched. Next session not before09:45EDT, new storage/corpus terminals
-first, then admission. [Session60](experiments/2026-10-11-session60.md).
+Spare rig13,15 exact-speed controller**29587** follows the completed
+correctness suites: remove unread accMG/accEG,retain liveaccPhase,
+board/phase/HCE/NNUE checks then36 exact identities/fixed40 NPS blocks.
+TimingCPU15/currenta4d90b41; lower95ratio>1 and both order strata>1 only.
+Separate uncommitted topicnight/drop-dead-pst; no NPS-as-Elo or integration
+before complete review. [Manifest](experiments/2026-10-11-drop-dead-pst.md).
+
+C:73.00GiB,/work169.39GiB free; original reader117631,newreader1649185,
+rigreader22172 andhopper1170 untouched. SEE values'+1.7[−11,+14] remains
+unresolved; TT repair does not certify the full owned provenance package.
+No additional heuristics,architecture,claim,publication or Rodent retry.
+Next session not before11:00EDT: speed terminal first,then current data/GPU/
+forge control receipts. [Session61](experiments/2026-10-11-session61.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

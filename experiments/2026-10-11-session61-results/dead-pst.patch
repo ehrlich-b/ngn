@@ -1,0 +1,153 @@
+diff --git a/engine/bitboard.go b/engine/bitboard.go
+index d7ef130..1ba1411 100644
+--- a/engine/bitboard.go
++++ b/engine/bitboard.go
+@@ -11,7 +11,7 @@ import (
+ type Bitboard struct {
+ 	pieces                 [13]uint64
+ 	occupiedByColor        [2]uint64
+-	accMG, accEG, accPhase int
++	accPhase               int
+ 	mailbox                [64]Piece
+ }
+ 
+@@ -76,8 +76,6 @@ func (b *Bitboard) addPiece(square Square, piece Piece) {
+ 	} else {
+ 		b.occupiedByColor[Black] |= mask
+ 	}
+-	b.accMG += mgPST[piece][uint8(square)]
+-	b.accEG += egPST[piece][uint8(square)]
+ 	b.accPhase += piecePhaseInc[piece]
+ 	b.mailbox[uint8(square)] = piece
+ }
+@@ -169,8 +167,6 @@ func (b *Bitboard) Clear(square Square, piece Piece) {
+ 	} else {
+ 		b.occupiedByColor[Black] &^= mask
+ 	}
+-	b.accMG -= mgPST[piece][uint8(square)]
+-	b.accEG -= egPST[piece][uint8(square)]
+ 	b.accPhase -= piecePhaseInc[piece]
+ 	if b.mailbox[uint8(square)] == piece {
+ 		b.mailbox[uint8(square)] = NoPiece
+@@ -215,7 +211,7 @@ func (b *Bitboard) Move(src, dest Square, sourcePiece, destinationPiece Piece) {
+ 		b.mailbox[uint8(dest)] = NoPiece
+ 	} else if validPiece(sourcePiece) {
+ 		// Relocation preserves material phase. Update each occupancy once and
+-		// add only the PST difference; Clear/addPiece would undo and redo the
++		// keep its phase unchanged; Clear/addPiece would undo and redo the
+ 		// same material contribution and repeat square/piece validation.
+ 		from, to := uint8(src), uint8(dest)
+ 		remove, add := SquareMask[from], SquareMask[to]
+@@ -225,8 +221,6 @@ func (b *Bitboard) Move(src, dest Square, sourcePiece, destinationPiece Piece) {
+ 		} else {
+ 			b.occupiedByColor[Black] = (b.occupiedByColor[Black] &^ remove) | add
+ 		}
+-		b.accMG += mgPST[sourcePiece][to] - mgPST[sourcePiece][from]
+-		b.accEG += egPST[sourcePiece][to] - egPST[sourcePiece][from]
+ 		if b.mailbox[from] == sourcePiece {
+ 			b.mailbox[from] = NoPiece
+ 		}
+@@ -277,18 +271,12 @@ func (b *Bitboard) copy() Bitboard {
+ 	return *b
+ }
+ 
+-// recomputeAccumulator rebuilds all additive evaluation fields from the
+-// current piece masks and the current global value tables.
++// recomputeAccumulator rebuilds material phase from the current piece masks.
+ func (b *Bitboard) recomputeAccumulator() {
+-	b.accMG = 0
+-	b.accEG = 0
+ 	b.accPhase = 0
+ 	for piece := WhitePawn; piece <= BlackKing; piece++ {
+ 		occupancy := b.pieces[piece]
+ 		for occupancy != 0 {
+-			square := bitScanForward(occupancy)
+-			b.accMG += mgPST[piece][square]
+-			b.accEG += egPST[piece][square]
+ 			b.accPhase += piecePhaseInc[piece]
+ 			occupancy &= occupancy - 1
+ 		}
+diff --git a/engine/eval_accumulator_test.go b/engine/eval_accumulator_test.go
+index 57210de..001e411 100644
+--- a/engine/eval_accumulator_test.go
++++ b/engine/eval_accumulator_test.go
+@@ -6,7 +6,7 @@ import (
+ 
+ // TestEvalAccumulatorUnderMakeUnmake walks a deep move tree applying MakeMove
+ // then UnMakeMove. At every node — and after every unmake, including illegal-move
+-// undos — the incrementally-maintained eval accumulator (accMG/accEG/accPhase)
++// undos — the incrementally-maintained material phase (accPhase)
+ // must equal a full board rescan. This is the bit-exactness proof behind the
+ // node-identity gate: if any move type (capture, castle, en passant, promotion,
+ // capture-promotion) mishandles its delta, this fires.
+@@ -36,9 +36,8 @@ func assertAccumulator(t *testing.T, pos *Position, ctx string) {
+ 	t.Helper()
+ 	cp := pos.Board.copy()
+ 	cp.recomputeAccumulator()
+-	if pos.Board.accMG != cp.accMG || pos.Board.accEG != cp.accEG || pos.Board.accPhase != cp.accPhase {
+-		t.Fatalf("accumulator drift (%s): incremental mg=%d eg=%d ph=%d, scan mg=%d eg=%d ph=%d",
+-			ctx, pos.Board.accMG, pos.Board.accEG, pos.Board.accPhase, cp.accMG, cp.accEG, cp.accPhase)
++	if pos.Board.accPhase != cp.accPhase {
++		t.Fatalf("material phase drift (%s): incremental=%d scan=%d", ctx, pos.Board.accPhase, cp.accPhase)
+ 	}
+ }
+ 
+diff --git a/engine/evaluation_core_test.go b/engine/evaluation_core_test.go
+index e19ecf3..1c591d8 100644
+--- a/engine/evaluation_core_test.go
++++ b/engine/evaluation_core_test.go
+@@ -136,13 +136,11 @@ func TestEvaluationBoundedAndIndependentOfAccumulator(t *testing.T) {
+ 
+ 	board := StartingBoard()
+ 	want := evaluateRaw(&board)
+-	board.accMG = 123456
+-	board.accEG = -654321
+ 	board.accPhase = 777
+ 	if got := evaluateRaw(&board); got != want {
+ 		t.Fatalf("stale accumulators changed score: got %d want %d", got, want)
+ 	}
+-	if board.accMG != 123456 || board.accEG != -654321 || board.accPhase != 777 {
++	if board.accPhase != 777 {
+ 		t.Fatal("evaluation repaired or mutated cached accumulators")
+ 	}
+ 	if allocations := testing.AllocsPerRun(1000, func() {
+diff --git a/engine/private_board_proof_test.go b/engine/private_board_proof_test.go
+index 2de6ec1..f81dc39 100644
+--- a/engine/private_board_proof_test.go
++++ b/engine/private_board_proof_test.go
+@@ -24,7 +24,7 @@ func TestPrivateBoardCompatibilityDump(t *testing.T) {
+ 	record := func(board *Bitboard) {
+ 		var masks [13]uint64
+ 		var white, black uint64
+-		var mg, eg, phase int
++		var phase int
+ 		all := board.AllPieces()
+ 		for sq := Square(0); sq <= H8; sq++ {
+ 			piece := board.PieceAt(sq)
+@@ -36,8 +36,6 @@ func TestPrivateBoardCompatibilityDump(t *testing.T) {
+ 				} else {
+ 					black |= uint64(1) << uint(sq)
+ 				}
+-				mg += mgPST[piece][sq]
+-				eg += egPST[piece][sq]
+ 				phase += piecePhaseInc[piece]
+ 				if all[sq] != piece {
+ 					t.Fatalf("map/mailbox disagree at %d", sq)
+@@ -49,7 +47,7 @@ func TestPrivateBoardCompatibilityDump(t *testing.T) {
+ 		if board.pieces != masks || board.occupiedByColor[White] != white || board.occupiedByColor[Black] != black {
+ 			t.Fatal("occupancy invariant")
+ 		}
+-		if board.accMG != mg || board.accEG != eg || board.accPhase != phase {
++		if board.accPhase != phase {
+ 			t.Fatal("accumulator invariant")
+ 		}
+ 		if len(all) != bits.OnesCount64(white|black) {
+@@ -58,8 +56,6 @@ func TestPrivateBoardCompatibilityDump(t *testing.T) {
+ 		put(board.pieces)
+ 		put(board.WhiteOccupancy())
+ 		put(board.BlackOccupancy())
+-		put(int64(board.accMG))
+-		put(int64(board.accEG))
+ 		put(int64(board.accPhase))
+ 		put(board.Pawns())
+ 		put(board.Knights())
