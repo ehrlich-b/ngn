@@ -1,0 +1,37 @@
+{
+  "iter": 2000,
+  "time": "2026-10-10T21:30:06-04:00",
+  "plus_pct": 49.666666666666664,
+  "theta": {
+    "AspInit": 16.83173220867022,
+    "AspMult": 162.66062702453962,
+    "DeltaMargin": 202.23776853706008,
+    "ExtensionBudget": 28.90742085975219,
+    "FutilityMargin": 103.7698506211749,
+    "FutilityMaxDepth": 7.739272238818259,
+    "LMPBase": 3.32256374032916,
+    "LMRFullDepth": 3.4616676660332413,
+    "LMRMoveThreshold": 2.106909711314621,
+    "NullMoveMinDepth": 2.289154289375957,
+    "NullMoveR": 4.104613814154161,
+    "ReverseFutilityMargin": 62.764773790694264,
+    "SingularDepth": 6.597288225506877,
+    "SingularMargin": 57.155891447344324
+  },
+  "rounded": {
+    "AspInit": 17,
+    "AspMult": 163,
+    "DeltaMargin": 202,
+    "ExtensionBudget": 29,
+    "FutilityMargin": 104,
+    "FutilityMaxDepth": 8,
+    "LMPBase": 3,
+    "LMRFullDepth": 3,
+    "LMRMoveThreshold": 2,
+    "NullMoveMinDepth": 2,
+    "NullMoveR": 4,
+    "ReverseFutilityMargin": 63,
+    "SingularDepth": 7,
+    "SingularMargin": 57
+  }
+}
