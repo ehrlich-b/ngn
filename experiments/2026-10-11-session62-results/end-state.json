@@ -1,0 +1,40 @@
+{
+  "session": 62,
+  "observed_edt": "11:00-11:05 October11",
+  "playing_engine_source": "7bbb2bf",
+  "playing_net": "a4d90b41",
+  "trainer_io_fix": "2b3ea07",
+  "training": {
+    "controller_pid": 74604,
+    "trainer_pid": 74608,
+    "started_edt": "11:04:11",
+    "cpus": [
+      12,
+      14
+    ],
+    "memory_max_bytes": 4294967296,
+    "state": "archive initialization at11:05",
+    "estimated_full58_edt": "17:30-20:30 conditional",
+    "terminal": "session57-data-step2/training-terminal.json"
+  },
+  "forge_control": {
+    "controller_pid": 2114966,
+    "python_pid": 2114971,
+    "sprt_pid": 2140873,
+    "started_edt": "10:24:11",
+    "state": "AA200 live at11:00",
+    "machine": "forge",
+    "host_pinning": "on"
+  },
+  "admission": {
+    "controller_pid": 21669,
+    "sprt_pid": 22048,
+    "games": 840,
+    "state": "live, no terminal/verdict"
+  },
+  "host_c_free_bytes": 78145462272,
+  "forge_work_free_bytes": 181068365824,
+  "rig_used_mib": 3694,
+  "rig_available_mib": 11819,
+  "next_session_not_before_edt": "12:00 October11"
+}
