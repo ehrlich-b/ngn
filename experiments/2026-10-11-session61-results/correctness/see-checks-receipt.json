@@ -1,0 +1,39 @@
+{
+  "completed_utc": "2026-10-11T14:00:52.546155+00:00",
+  "base_source": "ed34480",
+  "base_net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "candidate": "see",
+  "machine": "rig WSL2/Ryzen9800X3D",
+  "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "cpus": [
+    13,
+    15
+  ],
+  "nice": 19,
+  "memory_max_bytes": 2147483648,
+  "swap_max": 0,
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "pgo_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "files_sha256": {
+    "see/engine/search.go": "4a760a3f1ca9fbcdd4516fb12372c8ef44091ceb877ba2cd48d0307c130d598f",
+    "see/engine/see_geometry_test.go": "87a52e7fcf87c2e755b845e34abc8084d14743c641cfcc99e40eeb8bcb314ffa",
+    "see-ngn": "dcda6ced6c989ae3febaed372179cac1a4ab0624e7bfd1fd99abcebb265ed79a",
+    "see-full-race.log": "718b18fa1df570f2cbae2602c50bc1ba0ffebbf12e96ba42274978c0892f2e6a"
+  },
+  "checks": [
+    "baseline regression failure",
+    "focused controls",
+    "engine-short/race",
+    "full-short",
+    "vet",
+    "accepted-PGO build",
+    "full-race"
+  ],
+  "full_race_pending": false,
+  "games_launched": false,
+  "automatic_promotion": false,
+  "full_race_completed": "2026-10-11T10:03:24-04:00",
+  "topic_commit": "bbac8ce",
+  "patch_sha256": "ed26c25658d213f16b5f92d21573d383eaa9f62cc8d86d5bf2d6a6bdd8560c2b"
+}

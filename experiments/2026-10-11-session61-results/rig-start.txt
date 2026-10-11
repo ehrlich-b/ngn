@@ -1,0 +1,52 @@
+2026-10-11T09:45:55-04:00
+               total        used        free      shared  buff/cache   available
+Mem:           15514        3271       11882           3         664       12243
+Swap:           4096          25        4070
+0 %, 1533 MiB, 16303 MiB
+    PID    PPID ELAPSED %CPU   RSS COMMAND
+  22082   22048   22968 49.9 205052 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn
+  22076   22048   22968 49.9 175572 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn
+  22060   22048   22968 49.9 168456 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn
+  22071   22048   22968 49.9 163772 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn
+  22070   22048   22968 49.9 166680 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn
+  22065   22048   22968 49.9 205940 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn
+  22079   22048   22968 49.9 205152 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn
+  22053   22048   22968 49.9 159744 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn
+  22052   22048   22968 49.9 157792 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn
+  22085   22048   22968 49.9 170228 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn
+  22054   22048   22968 49.8 176472 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn
+  22055   22048   22968 49.8 203892 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn
+  22048   22047   22968  0.6 18516 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/sprt -new /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn -base /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/openings.txt -lowpower=false -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session56-time-tt-games/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session56-time-tt-games/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -elo0 0 -elo1 6 -alpha .05 -beta .05 -mingames 400 -maxgames 4000
+   1170     256  131741  0.3 17648 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+    204       1  131744  0.0 279268 /opt/wingthing-agent-canaries/litellm-venv/bin/python /opt/wingthing-agent-canaries/litellm-venv/bin/litellm --config /opt/wingthing-agent-canaries/litellm-config.yaml --host 127.0.0.1 --port 4000
+    479     427  131743  0.0 29992 containerd --config /run/user/1000/docker/containerd/containerd.toml
+      1       0  131745  0.0 11084 /sbin/init
+    256       1  131744  0.0 10240 /usr/lib/systemd/systemd --user
+    427     372  131743  0.0 53548 dockerd
+  22172   22169   22187  0.0 21888 python3 local-reader.py --root /home/ehrli/ngn-data/night-20261007/session57-data-step2 --token-file /home/ehrli/ngn-data/night-20261007/session57-data-step2/token --bind 127.0.0.1 --port 8769
+    200       1  131744  0.0 30744 /snap/snapd/current/usr/lib/snapd/snapd
+   1052     256  131742  0.0  8628 /home/ehrli/bin/containerd-shim-runc-v2 -namespace moby -id e0ad11fe4f146ff7ec35a7280362269b6f45bc8c4db1cee881e0799f907c185b -address /run/user/1000/docker/containerd/containerd.sock
+session57-data-step2/recovery-copy-session60.exit
+0
+session57-data-step2/recovery-copy-session60.done
+2026-10-11T08:42:34-04:00
+session57-data-step2/t74full-copy-receipt.json
+{
+  "completed_utc": "2026-10-11T12:31:43.546457+00:00",
+  "bytes": 183371624416,
+  "sha256": "dffe7f87cfc40b7e46bf2cf1fb0b1b203f6cc2eb63d94267d223f45bb6c2533d",
+  "path": "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf",
+  "method": "streaming SHA256 during copy; fsync file and directory"
+}
+session57-data-step2/controller.exit
+0
+session57-data-step2/controller.done
+2026-10-11T07:50:04-04:00
+session56-time-tt-games/gate.log
+G688  110W 481D 97L   50.9%  elo   +6.6 [-19,+33]  LLR  +0.41  pLLR  +0.61  draw-rule   
+G689  110W 482D 97L   50.9%  elo   +6.6 [-19,+32]  LLR  +0.41  pLLR  +0.61  draw-rule   
+G690  110W 483D 97L   50.9%  elo   +6.5 [-19,+32]  LLR  +0.41  pLLR  +0.61  draw-rule   
+G691  110W 484D 97L   50.9%  elo   +6.5 [-19,+32]  LLR  +0.41  pLLR  +0.61  draw-rule   
+G692  110W 485D 97L   50.9%  elo   +6.5 [-19,+32]  LLR  +0.41  pLLR  +0.61  draw-rule   
+G693  110W 486D 97L   50.9%  elo   +6.5 [-19,+32]  LLR  +0.41  pLLR  +0.61  draw-rule   
+G694  110W 487D 97L   50.9%  elo   +6.5 [-19,+32]  LLR  +0.41  pLLR  +0.61  draw-rule   

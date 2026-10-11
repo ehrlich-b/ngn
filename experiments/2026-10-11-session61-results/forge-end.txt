@@ -1,0 +1,19 @@
+2026-10-11T10:04:47-04:00
+               total        used        free      shared  buff/cache   available
+Mem:           17922        8507         213        1614       11223        9414
+Swap:           4095        4094           1
+Filesystem        1B-blocks         Used    Available Use% Mounted on
+/dev/sda       536608739328 354732015616 181876723712  67% /work
+    PID    PPID ELAPSED %CPU   RSS COMMAND
+ 117631       1  101381  0.3 18412 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+1621432 1621423   14483  4.9 49680 /work/lanes/ngn-s47/parity-venv/bin/python recovery-session59.py --resume-after-raw
+1649185       1    8082  0.0 13420 python3 /work/lanes/ngn-data-step2-20261011/archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768
+1852805 1621432    4933  386 695076 /work/lanes/ngn-data-volume-20261010/converter scatter --input /work/lanes/ngn-data-step2-20261011/farseerT75.binpack --conflicts /work/lanes/ngn-data-volume-20261010/conflicts.bin --probe-keys /work/lanes/ngn-data-volume-20261010/calibration-probe.keys --output /work/lanes/ngn-data-step2-20261011/scatter-t75 --buckets 256 --workers 4 --seed 2026101101 --keep-per-mille 100
+/work/lanes/ngn-data-step2-20261011/controller.exit
+1
+/work/lanes/ngn-data-step2-20261011/controller.done
+2026-10-11T03:43:58-04:00
+{"utc": "2026-10-11T12:31:45.347491+00:00", "stage": "session58-data-recovery", "event": "t74-copy-confirmed", "detail": "durable exact rig copy; removed only new forge duplicate; restore T75 next"}
+{"utc": "2026-10-11T12:42:33.764286+00:00", "stage": "session58-data-recovery", "event": "conversion-resumed", "detail": "T75 exact raw bytes restored; first fixed10% T75 conversion starts"}
+{"utc": "2026-10-11T12:42:33.764625+00:00", "stage": "session57-data-step2", "event": "scatter-start", "detail": "t75; fixed keep100/1000; workers4; original pipeline"}
+{"utc": "2026-10-11T13:55:16.585315+00:00", "stage": "session61-forge-games", "event": "conversion-wait", "detail": "native completion notification; no competing CPU work; A/A200 then conditional final14 gate"}

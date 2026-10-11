@@ -1,0 +1,7 @@
+ngnk4archive: decoded=17272012800 emitted=1139932457 elapsed=4318s
+ngnk4archive: decoded=17443258368 emitted=1151172106 elapsed=4378s
+ngnk4archive: decoded=17635344384 emitted=1163778178 elapsed=4438s
+ngnk4archive: decoded=17821663232 emitted=1176005097 elapsed=4498s
+ngnk4archive: decoded=18029019136 emitted=1189619444 elapsed=4558s
+ngnk4archive: decoded=18239324160 emitted=1203418749 elapsed=4618s
+{"utc": "2026-10-11T13:55:16.585315+00:00", "stage": "session61-forge-games", "event": "conversion-wait", "detail": "native completion notification; no competing CPU work; A/A200 then conditional final14 gate"}

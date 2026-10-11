@@ -1,0 +1,90 @@
+diff --git a/engine/search.go b/engine/search.go
+index 522f981..76b36f9 100644
+--- a/engine/search.go
++++ b/engine/search.go
+@@ -2390,9 +2390,14 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 	}
+ 
+ 	// Learn the pawn-structure + non-pawn + minor corrections from the completed search of this node.
+-	info.history.maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+-	info.history.maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+-	info.history.maybeUpdateMinorCorrection(stm, minorCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
++	// A fail-low with one move excluded is not an upper bound for the ordinary
++	// position. Fail-high learning above remains valid: a restricted lower
++	// bound is also a lower bound for the full move set.
++	if !inSingular {
++		info.history.maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
++		info.history.maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
++		info.history.maybeUpdateMinorCorrection(stm, minorCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
++	}
+ 
+ 	// Store in transposition table
+ 	var nodeType NodeType
+diff --git a/engine/singular_correction_test.go b/engine/singular_correction_test.go
+new file mode 100644
+index 0000000..c895be5
+--- /dev/null
++++ b/engine/singular_correction_test.go
+@@ -0,0 +1,62 @@
++package engine
++
++import "testing"
++
++func TestSingularCorrectionBounds(t *testing.T) {
++	for _, side := range []struct{ name, fen, excluded string }{
++		{"white", "7k/8/8/8/8/8/8/KR6 w - - 0 1", "b1b8"},
++		{"black", "kr6/8/8/8/8/8/8/7K b - - 0 1", "b8b1"},
++	} {
++		for _, c := range []struct {
++			name                string
++			restricted          bool
++			oracle, alpha, beta int
++			wantWrite           bool
++		}{
++			{"restricted fail low", true, 100, 49, 50, false},
++			{"ordinary fail low", false, 100, 49, 50, true},
++			{"restricted fail high", true, -100, -51, -50, true},
++			{"ordinary fail high", false, -100, -51, -50, true},
++			{"excluded other ply fail low", false, 100, 49, 50, true},
++		} {
++			t.Run(side.name+"/"+c.name, func(t *testing.T) {
++				pos, info := newProbcutContractStateForFEN(t, side.fen, 1)
++				excluded := adapterLegalMove(t, pos, side.excluded)
++				rootHash := pos.Hash()
++				info.evaluator.staticOracle = func(p *Position) int {
++					if p.Hash() == rootHash {
++						return c.oracle
++					}
++					return 0
++				}
++				if c.restricted {
++					info.ExcludedMove, info.ExcludedPly = excluded, 0
++				}
++				if c.name == "excluded other ply fail low" {
++					info.ExcludedMove, info.ExcludedPly = excluded, 2
++				}
++				stm := pos.Turn()
++				p := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
++				n := nonPawnCorrectionIndex(pos.Board.WhiteOccupancy()&^pos.Board.pieces[WhitePawn], pos.Board.BlackOccupancy()&^pos.Board.pieces[BlackPawn])
++				m := minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
++				got := alphaBetaPV(pos, 1, 0, c.alpha, c.beta, true, true, false, info)
++				if info.Stopped {
++					t.Fatal("search stopped")
++				}
++				if c.oracle > 0 && got >= c.beta {
++					t.Fatalf("expected fail low, score=%d", got)
++				}
++				if c.oracle < 0 && got < c.beta {
++					t.Fatalf("expected fail high, score=%d", got)
++				}
++				values := []int{info.history.pawnCorrectionHistory[stm][p], info.history.nonPawnCorrectionHistory[stm][n], info.history.minorCorrectionHistory[stm][m]}
++				t.Logf("score=%d static=%d restricted=%v corrections=%v", got, c.oracle, c.restricted, values)
++				for i, value := range values {
++					if (value != 0) != c.wantWrite {
++						t.Errorf("corrector %d=%d, want write=%v", i, value, c.wantWrite)
++					}
++				}
++			})
++		}
++	}
++}

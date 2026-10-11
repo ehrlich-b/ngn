@@ -1,0 +1,90 @@
+{
+  "snapshot_edt": "2026-10-11T10:04:46-04:00",
+  "session_started_edt": "2026-10-11T09:45:08-04:00",
+  "session_deadline_edt": "2026-10-11T11:25:08-04:00",
+  "playing_source": "ed34480",
+  "playing_net": "a4d90b41",
+  "new_strength_verdict": null,
+  "rig": {
+    "host_c_free_bytes": 78385283072,
+    "host_c_free_gib": 73.00198364257812,
+    "used_mib": 4461,
+    "available_mib": 11053,
+    "gpu_utilization_percent": 0,
+    "gpu_memory_mib": 1533,
+    "admission": {
+      "controller_pid": 21669,
+      "sprt_pid": 22048,
+      "games": 730,
+      "terminal": false,
+      "cpus": "0-11",
+      "concurrency": 6,
+      "memory_max_gib": 3
+    },
+    "training": {
+      "controller_pid": 23638,
+      "waiter_pid": 23641,
+      "state": "native coverage wait; no manifest/trainer yet",
+      "cpus": "12,14",
+      "memory_max_gib": 4
+    },
+    "completed_receiver": {
+      "controller_pid": 23591,
+      "copy_pid": 23594,
+      "exit": 0,
+      "completed_edt": "2026-10-11T08:42:34-04:00",
+      "t74_bytes": 183371624416,
+      "t74_sha256": "dffe7f87cfc40b7e46bf2cf1fb0b1b203f6cc2eb63d94267d223f45bb6c2533d"
+    },
+    "speed": {
+      "controller_pid": 29587,
+      "cpus": "13,15",
+      "timing_cpu": 15,
+      "memory_max_gib": 2,
+      "state": "narrow PASS; engine race live then full checks/PGO/identity/fixed40",
+      "estimate_edt": "2026-10-11T10:40-10:50-04:00",
+      "terminal": "session61-dead-pst/controller.exit",
+      "result": "session61-dead-pst/timing/receipt.json"
+    },
+    "hopper_pid": 1170,
+    "reader_pid": 22172
+  },
+  "forge": {
+    "host_pinning": "on",
+    "allocation_cpus": "4-11",
+    "allocation_memory_gib": 8,
+    "used_mib": 8507,
+    "available_mib": 9414,
+    "work_free_bytes": 181876723712,
+    "work_free_gib": 169.3858985900879,
+    "data_controller_pid": 1621423,
+    "data_python_pid": 1621432,
+    "data_converter_pid": 1852805,
+    "data_state": "first fixed10% T75 scatter after completed T74/raw restore",
+    "reader_pid": 1649185,
+    "original_reader_pid": 117631,
+    "game_controller_pid": 2114966,
+    "game_python_pid": 2114971,
+    "game_state": "native conversion/coverage completion wait",
+    "game_memory_max_gib": 3,
+    "game_concurrency": 2,
+    "game_rule": "oneAA200; pass admits fixed400 finalSPSA14 before12:00; otherwise manual window hold; no automatic adoption"
+  },
+  "correctness": {
+    "check_controller_pid": 24433,
+    "exit": 0,
+    "checks_completed_edt": "2026-10-11T09:57:05-04:00",
+    "full_race_completed_edt": "2026-10-11T10:03:24-04:00",
+    "see_topic": "night/see-geometry",
+    "see_commit": "bbac8ce",
+    "see_controls": 12,
+    "singular_topic": "night/singular-correction",
+    "singular_commit": "739a23f",
+    "singular_controls": 10,
+    "adopted": false,
+    "games_pending": true
+  },
+  "next_session_not_before_edt": "2026-10-11T11:00:00-04:00",
+  "no_publication": true,
+  "no_claim": true
+}
