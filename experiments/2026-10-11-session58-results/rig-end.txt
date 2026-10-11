@@ -1,0 +1,23 @@
+2026-10-11T03:40:48-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              15           3           1           0          10          11
+Swap:              4           0           3
+your 131072x1 screen size is bogus. expect trouble
+0 %, 1531 MiB
+    PID    PPID STAT     ELAPSED %CPU   RSS COMMAND
+   1170     256 Ssl   1-06:29:28  0.3 17604 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+  21669   21664 SNs        39:44  0.0  3328 bash controller.sh
+  21886   21882 SNs        29:01  0.0  3456 bash controller.sh
+  21889   21886 SN         29:01  0.0 21888 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python train.py
+  21968   21959 SNs        27:36  0.0  3328 bash /home/ehrli/ngn-data/night-20261007/session57-data-step2/stream.sh
+  22048   22047 SNl        16:35  0.5 15596 /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/sprt -new /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/candidate-ngn -base /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session56-time-tt-games/openings.txt -lowpower=false -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session56-time-tt-games/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session56-time-tt-games/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -elo0 0 -elo1 6 -alpha .05 -beta .05 -mingames 400 -maxgames 4000
+  22172   22169 SNs        03:34  0.0 21888 python3 local-reader.py --root /home/ehrli/ngn-data/night-20261007/session57-data-step2 --token-file /home/ehrli/ngn-data/night-20261007/session57-data-step2/token --bind 127.0.0.1 --port 8769
+  22264   22257 SNs        01:29  0.0  3456 bash copy-controller.sh
+  22266   22264 SN         01:29  0.0 21760 python3 copy.py
+{"lane": "session57-data-step2", "file": "copy.log", "text": "Running as unit: ngn-s58-data-copy-ready.scope; invocation ID: 64e2c2fc551f4eaaa334a122eac5c15f\n"}
+{"lane": "session57-data-step2", "file": "local-reader.log", "text": "Running as unit: ngn-s58-local-data-reader.scope; invocation ID: b6bb1636dc4e4e5ba5e6121eead45ee1\n"}
+STATUS {"utc": "2026-10-11T07:01:04.093132+00:00", "stage": "session56-time-tt-games", "event": "aa-start", "detail": "manual settled-package admission only; rig0-11/c6/3GiB"}
+{"utc": "2026-10-11T07:11:47.088742+00:00", "stage": "session57-data-step2", "event": "corpus-wait", "detail": "native forge descriptor notification; fixedT74full/T75sample/coverage; no polling"}
+{"utc": "2026-10-11T07:12:25.491462+00:00", "stage": "session57-data-step2", "event": "launch", "detail": {"recorded_utc": "2026-10-11T07:12:25.491462+00:00", "stage": "session57-data-step2", "jobs": {"forge_data_prepare_pid": 1356547, "forge_stream_receiver_pid": 1433866, "forge_new_reader_pid": 1489286, "rig_stream_pid": 21852, "rig_training_controller_pid": 21886, "rig_admission_controller_pid": 21669}, "source": "ed34480", "base_net": "a4d90b41", "recipe": "data only/fullT74 + fixed10%T75/original58x256M/KB8H512/factorizer-off", "rig_games": "0-11/c6/3GiB/nice19", "rig_training": "12,14/GPU/4GiB/nice19; waiting for corpus receipt", "forge": "4-11/8GiB total/host pinningON; preparation4GiB + stream1GiB + reader256MiB", "no_games_or_adoption_from_data": true}}
+{"utc": "2026-10-11T07:21:59.099356+00:00", "stage": "session57-handoff", "event": "detach", "detail": "Committed/pushed d807290 plus raw gate evidence to private origin night/night; playing ed34480/a4d90b41 unchanged. Factorizer21281 reviewed SHELVE +8.6877[-11.1350,28.5672]/400, zero faults/intact pins, no extension. Admission21669 started03:01:04 rig0-11/c6/3GiB/nice19/swap0, ownAA40 then60+0.6 SPRT0,+6/min400/cap4000; no verdict yet. Forge1356547 data-only fullT74+fixed10%T75/original conversion; bounded old-corpus stream rig21968 to forge1433866, new reader1489286/8768. Rig21886 native corpus wait then unchanged58x256M/KB8H512/factorizer-off iff coverage1.9-2.3x; no automatic games/adoption. Corpus+coverage ETA05:45-06:45, training11:00-14:00 if admitted; no restart deadlines. Next session not before03:30EDT for admission control then data stage. C279.62GiB; hopper1170/reader117631 untouched; no claim/publication or foreign restoration."}
+{"utc": "2026-10-11T07:24:13.439274+00:00", "stage": "session56-time-tt-games", "event": "gate-start", "detail": "manual settled-package admission only; rig0-11/c6/3GiB"}

@@ -1,0 +1,17 @@
+2026-10-11T03:40:48-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              17           6           0           0          10          10
+Swap:              3           3           0
+Filesystem        1B-blocks         Used   Available Use% Mounted on
+/dev/sda       536608739328 492459659264 44149080064  92% /work
+    PID    PPID STAT     ELAPSED %CPU   RSS COMMAND
+ 117631       1 SNs     21:45:42  0.4 18932 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+1356547       1 SNs        34:51  0.0  1288 bash controller.sh
+1356607 1356547 SN         34:50  0.3 11256 python3 prepare.py
+1356623 1356607 SNsl       34:50  430 730648 /work/lanes/ngn-data-volume-20261010/converter scatter --input /work/lanes/ngn-data-volume-20261010/farseerT74.binpack --conflicts /work/lanes/ngn-data-volume-20261010/conflicts.bin --probe-keys /work/lanes/ngn-data-volume-20261010/calibration-probe.keys --output /work/lanes/ngn-data-step2-20261011/scatter-t74full --buckets 256 --workers 4 --seed 2026100903 --keep-per-mille 1000
+1433866       1 RNs        31:49 40.8 61200 /work/lanes/ngn-s47/parity-venv/bin/python stream.py
+1489286       1 SNsl       29:02  0.0 14576 python3 archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768
+1532624       1 SNsl       03:35  0.1 33476 /work/lanes/ngn-s47/parity-venv/bin/python relocate.py
+{"file": "relocate.log", "text": "Running as unit: ngn-s58-data-relocate.scope; invocation ID: 99fa64255ddb470580d6d2c256cea1a7"}
+{"file": "status.jsonl", "text": "{\"utc\": \"2026-10-11T07:05:57.967729+00:00\", \"stage\": \"session57-data-step2\", \"event\": \"scatter-start\", \"detail\": \"t74full; fixed keep1000/1000; workers4; original pipeline\"}"}
+{"file": "scatter-t74full.log", "text": "ngnk4archive: decoded=7101546496 emitted=4659169193 elapsed=1893s\nngnk4archive: decoded=7338590208 emitted=4815288641 elapsed=1953s\nngnk4archive: decoded=7583956992 emitted=4976832134 elapsed=2013s\nngnk4archive: decoded=7825391616 emitted=5135838932 elapsed=2073s"}

@@ -1,5 +1,6 @@
 """Measure the new occupied-board union once; retain bottom-k samples."""
 import datetime
+import hashlib
 import ctypes
 import json
 import math
@@ -57,6 +58,22 @@ for name in ['t80', 't76', 't74full', 't75']:
         union = update(union, sample)
         results[name] = dict(bytes=receipt['bytes'], records=receipt['bytes'] // 32,
                              **estimate(sample))
+        continue
+    elif name == 't74full' and (s / 'storage-resumed.json').exists():
+        receipt = json.loads((s / 't74full-rig-copy.json').read_text())
+        sample_pin = json.loads((s / 't74full-sample.json').read_text())
+        assert all(receipt[key] == sample_pin[key] for key in ['bytes', 'sha256'])
+        assert sample_pin['seed'] == 20261006 and sample_pin['k'] == K
+        assert hashlib.sha256((s / 't74full-bottom65536.npy').read_bytes()).hexdigest() == sample_pin['sample_sha256']
+        sample = np.load(s / 't74full-bottom65536.npy')
+        union = update(union, sample)
+        results[name] = dict(bytes=receipt['bytes'], records=receipt['bytes'] // 32,
+                             **estimate(sample))
+        token = (s / 'token').read_text().strip()
+        descriptor = dict(bytes=receipt['bytes'], sha256=receipt['sha256'],
+                          url='http://127.0.0.1:8769/' + token + '/t74full.bf')
+        (s / 't74full.archive.json').write_text(json.dumps(descriptor, indent=2) + '\n')
+        print(json.dumps(dict(source=name, storage='rig exact copy', **results[name])), flush=True)
         continue
     else:
         path = s / (name + '.bf')

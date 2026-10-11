@@ -1,0 +1,136 @@
+"""Move the completed new T74 corpus off forge without repeating conversion."""
+import ctypes
+import datetime
+import hashlib
+import json
+import os
+from pathlib import Path
+import select
+import signal
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+import numpy as np
+from trainer.archive import ARCHIVE_DTYPE, board_hash
+
+S = Path('/work/lanes/ngn-data-step2-20261011')
+TOKEN = (S / 'token').read_text().strip()
+READY = threading.Event()
+COPIED = threading.Event()
+PIN = {}
+
+
+def status(event, detail):
+    with (S / 'status.jsonl').open('a') as f:
+        f.write(json.dumps(dict(utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                               stage='session58-data-storage', event=event, detail=detail)) + '\n')
+
+
+def atomic(name, value):
+    p = S / name
+    p.with_suffix(p.suffix + '.tmp').write_text(json.dumps(value, indent=2) + '\n')
+    p.with_suffix(p.suffix + '.tmp').replace(p)
+
+
+class Handler(BaseHTTPRequestHandler):
+    def log_message(self, *_args):
+        pass
+
+    def do_GET(self):
+        if self.path not in ['/' + TOKEN + '/descriptor', '/' + TOKEN + '/t74full.bf']:
+            self.send_error(404)
+            return
+        if not READY.wait(6 * 3600):
+            self.send_error(504)
+            return
+        if self.path.endswith('/descriptor'):
+            raw = json.dumps(PIN).encode()
+            self.send_response(200)
+            self.send_header('Content-Length', str(len(raw)))
+            self.end_headers()
+            self.wfile.write(raw)
+            return
+        with (S / 't74full.bf').open('rb') as source:
+            self.send_response(200)
+            self.send_header('Content-Length', str(PIN['bytes']))
+            self.end_headers()
+            while block := source.read(1024**2):
+                self.wfile.write(block)
+
+    def do_POST(self):
+        if self.path != '/' + TOKEN + '/copied':
+            self.send_error(404)
+            return
+        size = int(self.headers.get('Content-Length', '0'))
+        if not READY.is_set() or not 0 < size < 4096:
+            self.send_error(409)
+            return
+        receipt = json.loads(self.rfile.read(size))
+        if any(receipt.get(key) != PIN[key] for key in ['bytes', 'sha256']):
+            self.send_error(412)
+            return
+        atomic('t74full-rig-copy.json', receipt)
+        self.send_response(200)
+        self.send_header('Content-Length', '0')
+        self.end_headers()
+        COPIED.set()
+
+
+def main():
+    server = ThreadingHTTPServer(('192.168.4.65', 8769), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    libc = ctypes.CDLL(None, use_errno=True)
+    fd = libc.inotify_init1(os.O_CLOEXEC)
+    assert fd >= 0 and libc.inotify_add_watch(fd, os.fsencode(S), 0x8 | 0x80) >= 0
+    poll = select.poll()
+    poll.register(fd, select.POLLIN)
+    while '"t75; fixed keep100/1000' not in (S / 'status.jsonl').read_text():
+        assert not (S / 'controller.exit').exists(), 'conversion stopped before T75'
+        assert poll.poll(6 * 3600 * 1000), 'T74 completion wait expired'
+        os.read(fd, 65536)
+    os.close(fd)
+    parent = 1356607
+    os.kill(parent, signal.SIGSTOP)
+    children = [int(v) for v in Path(f'/proc/{parent}/task/{parent}/children').read_text().split()]
+    for pid in children:
+        os.killpg(pid, signal.SIGSTOP)
+    atomic('storage-paused.json', dict(parent=parent, children=children))
+    status('paused-for-storage', f'completed T74 retained; same T75 processes paused: {children}')
+    pin = json.loads((S / 't74full-manifest.json').read_text())['train']
+    path = S / 't74full.bf'
+    assert path.stat().st_size == pin['bytes']
+    # Same frozen bottom-k scan, performed once before moving the bytes.
+    rows = np.memmap(path, dtype=ARCHIVE_DTYPE, mode='r')
+    sample = np.empty(0, dtype=np.uint64)
+    for start in range(0, len(rows), 262144):
+        hashes = board_hash(rows[start:start + 262144], 20261006)
+        if len(sample) == 65536:
+            hashes = hashes[hashes < sample[-1]]
+        if len(hashes):
+            sample = np.unique(np.concatenate((sample, hashes)))
+            if len(sample) > 65536:
+                sample = np.partition(sample, 65535)[:65536]
+                sample.sort()
+    np.save(S / 't74full-bottom65536.npy', sample)
+    del rows
+    atomic('t74full-sample.json', dict(bytes=pin['bytes'], sha256=pin['sha256'],
+                                      seed=20261006, k=65536,
+                                      sample_sha256=hashlib.sha256((S / 't74full-bottom65536.npy').read_bytes()).hexdigest()))
+    PIN.update(bytes=pin['bytes'], sha256=pin['sha256'],
+               url='http://192.168.4.65:8769/' + TOKEN + '/t74full.bf')
+    READY.set()
+    status('rig-copy-ready', f"T74 bytes{pin['bytes']}; original gather digest; bottom65536 retained")
+    assert COPIED.wait(6 * 3600), 'copy not confirmed; preserve paused processes and source'
+    # Delete only the new duplicate after the durable receiver confirms its digest.
+    path.unlink()
+    status('rig-copy-confirmed', 'durable exact T74 copy on rig; removed only new forge duplicate')
+    for pid in children:
+        os.killpg(pid, signal.SIGCONT)
+    os.kill(parent, signal.SIGCONT)
+    atomic('storage-resumed.json', dict(parent=parent, children=children))
+    status('conversion-resumed', 'same fixed T75 processes; no restart or repeated conversion')
+    server.shutdown()
+
+
+if __name__ == '__main__':
+    main()
