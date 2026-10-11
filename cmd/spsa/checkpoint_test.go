@@ -221,7 +221,7 @@ func TestCheckpointRejectsCorruptHistory(t *testing.T) {
 		"substituted-theta": func(c *checkpoint) { delete(c.Theta, "NullMoveR"); c.Theta["unknown"] = 3 },
 		"out-of-range":      func(c *checkpoint) { c.Theta["NullMoveR"] = 999 },
 		"missing-rounded":   func(c *checkpoint) { delete(c.Rounded, "NullMoveR") },
-		"wrong-rounded":     func(c *checkpoint) { c.Rounded["NullMoveR"] = 4 },
+		"wrong-rounded":     func(c *checkpoint) { c.Rounded["NullMoveR"]++ },
 		"rng":               func(c *checkpoint) { c.RNGDraws++ },
 	}
 	for name, mutate := range mutations {
@@ -240,7 +240,7 @@ func TestCheckpointRejectsCorruptHistory(t *testing.T) {
 		"corrupt-tail":   append(append(append([]byte{}, b...), '\n'), []byte("{\n")...),
 		"corrupt-middle": append([]byte("{\n"), append(b, '\n')...),
 		"duplicate-iter": append(append(append([]byte{}, b...), '\n'), append(b, '\n')...),
-		"nonfinite":      []byte(strings.Replace(string(b), `"NullMoveR":3`, `"NullMoveR":1e999`, 1) + "\n"),
+		"nonfinite":      []byte(strings.Replace(string(b), fmt.Sprintf(`"NullMoveR":%g`, cp.Theta["NullMoveR"]), `"NullMoveR":1e999`, 1) + "\n"),
 	} {
 		t.Run(name, func(t *testing.T) { assertBadHistory(t, data, recipe) })
 	}
