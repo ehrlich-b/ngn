@@ -1,0 +1,45 @@
+{
+  "utc": "2026-10-11T01:35:11.645096+00:00",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:     18793242624  3865100288  4303073280     5087232 10994294784 14928142336\nSwap:     4294963200     6291456  4288671744\n",
+  "host_pinning": "on",
+  "spsa_final_checks_exit": "0",
+  "spsa_final_checks_terminal": "2026-10-10T21:33:37-04:00",
+  "spsa_endpoint": {
+    "iter": 2000,
+    "time": "2026-10-10T21:30:06-04:00",
+    "plus_pct": 49.666666666666664,
+    "theta": {
+      "AspInit": 16.83173220867022,
+      "AspMult": 162.66062702453962,
+      "DeltaMargin": 202.23776853706008,
+      "ExtensionBudget": 28.90742085975219,
+      "FutilityMargin": 103.7698506211749,
+      "FutilityMaxDepth": 7.739272238818259,
+      "LMPBase": 3.32256374032916,
+      "LMRFullDepth": 3.4616676660332413,
+      "LMRMoveThreshold": 2.106909711314621,
+      "NullMoveMinDepth": 2.289154289375957,
+      "NullMoveR": 4.104613814154161,
+      "ReverseFutilityMargin": 62.764773790694264,
+      "SingularDepth": 6.597288225506877,
+      "SingularMargin": 57.155891447344324
+    },
+    "rounded": {
+      "AspInit": 17,
+      "AspMult": 163,
+      "DeltaMargin": 202,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 104,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 3,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 63,
+      "SingularDepth": 7,
+      "SingularMargin": 57
+    }
+  },
+  "processes": "    PID    PPID STAT ELAPSED COMMAND\n 117631       1 SNs    56405 python3\n"
+}

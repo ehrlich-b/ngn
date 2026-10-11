@@ -1,0 +1,63 @@
+{
+  "reviewed_utc": "2026-10-11T01:34:17.018469+00:00",
+  "terminal": "2026-10-10T20:36:16-04:00",
+  "controller_exit": 1,
+  "playing_source": "9bfbae4",
+  "playing_net": "a4d90b41",
+  "completed_movetime_probes": 384,
+  "throughput": {
+    "1000": {
+      "paired_probes": 96,
+      "median_ngn_over_rodent_reported_nodes_per_wall_second": 0.6351635095862864,
+      "median_ngn_reported_nodes": 1231932.0,
+      "median_rodent_reported_nodes": 1763810.5,
+      "median_ngn_wall_seconds": 0.900278259,
+      "median_rodent_wall_seconds": 0.8576195719999999
+    },
+    "5000": {
+      "paired_probes": 96,
+      "median_ngn_over_rodent_reported_nodes_per_wall_second": 0.6707652906556006,
+      "median_ngn_reported_nodes": 6684189.0,
+      "median_rodent_reported_nodes": 9269502.0,
+      "median_ngn_wall_seconds": 4.9002756430000005,
+      "median_rodent_wall_seconds": 4.860104186
+    }
+  },
+  "failed_stage": "node-compliance first position/opponent",
+  "compliance_rows": [
+    {
+      "bestmove": "bestmove d2d4",
+      "engine": "ngn",
+      "node_budget": 1231932,
+      "nodes": 1073906,
+      "position": 0,
+      "repetition": 0,
+      "wall_seconds": 0.852207597
+    },
+    {
+      "bestmove": "info depth 28 seldepth 43 multipv 1 time 39442 nodes 90861416 nps 2303671 hashfull 991 score cp 16 pv c2c4 e7e5 g1f3 e5e4 f3d4 b8c6 e2e3 g8f6 b1c3 f8b4 d1b3 c6d4 e3d4 b4a5 b3a3 c7c6 d2d3 d7d5 c4d5 a5c3 b2c3 d8d5 c1e3 e4d3 f1d3 c8f5 d3f5 d5f5",
+      "engine": "opponent",
+      "node_budget": 1231932,
+      "nodes": 90861416,
+      "position": 0,
+      "repetition": 0,
+      "wall_seconds": 60.100618
+    }
+  ],
+  "opponent_bestmove_after_quit": {
+    "utc": "2026-10-11T00:36:16.583691402Z",
+    "elapsed_ns": 60322717706,
+    "kind": "stdout",
+    "text": "bestmove c2c4 ponder e7e5"
+  },
+  "opponent_quit": {
+    "utc": "2026-10-11T00:36:16.563318597Z",
+    "elapsed_ns": 60302345284,
+    "kind": "stdin",
+    "text": "quit"
+  },
+  "inputs_unchanged": true,
+  "scored_games": 0,
+  "verdict": "operational failure; no comparison/clock/adoption verdict; no retry or extension",
+  "limitation": "These are reported completed-iteration nodes divided by wall time. Engines count work differently; NGN also has unreported unfinished iteration work. The node/time causal comparison and120+1 clock profiles did not run."
+}

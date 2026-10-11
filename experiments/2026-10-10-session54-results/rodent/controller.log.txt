@@ -1,0 +1,9 @@
+Running as unit: ngn-s50-rodent.scope; invocation ID: b615551ef29641c0a8ecc6e866ae7281
+Traceback (most recent call last):
+  File "/home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/controller.py", line 100, in <module>
+    run('compliance', argv('compliance', mode='compliance', repetitions=1, nodes=nodes), 1800)
+  File "/home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/controller.py", line 57, in run
+    subprocess.run(['timeout', '--signal=TERM', '--kill-after=15s', str(timeout),
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['timeout', '--signal=TERM', '--kill-after=15s', '1800', 'taskset', '-c', '0-11', 'nice', '-n', '19', '/home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/blackboxmatch', '-ngn', '/home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn', '-opponent', '/home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12', '-mode', 'compliance', '-concurrency', '6', '-out', '/home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/compliance', '-openings', '/home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/openings100.txt', '-positions', '/home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/cmd/blackboxmatch/positions.txt', '-ngnoption', 'EvalFile=/home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/net.nnue', '-ngnoption', 'UseNNUE=true', '-ngnoption', 'Hash=64', '-ngnoption', 'Threads=1', '-ngnoption', 'OwnBook=false', '-opponentoption', 'Hash=64', '-opponentoption', 'Threads=1', '-opponentoption', 'OwnBook=false', '-opponentoption', 'UCI_LimitStrength=false', '-repetitions', '1', '-nodes', '1231932']' returned non-zero exit status 2.

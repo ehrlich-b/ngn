@@ -1,0 +1,198 @@
+[NGN CRASH] 2026/10/10 20:16:40.908448 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:16:40.908473 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:16:40.912419 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:16:40.912458 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:16:53.002763 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:16:53.002817 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:17:04.527433 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:17:04.527485 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:17:15.669428 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:17:15.669481 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:17:26.492929 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:17:26.492985 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:17:38.131290 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:17:38.131356 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:17:49.256461 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:17:49.256513 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:18:01.329795 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:18:01.329848 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:18:13.226625 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:18:13.226683 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:18:24.051423 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:18:24.051477 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:18:35.032527 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:18:35.032588 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:18:46.874358 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:18:46.874413 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:18:58.758330 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:18:58.758422 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:19:10.642871 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:19:10.642928 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:19:22.721198 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:19:22.721251 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:19:34.094212 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:19:34.094267 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:19:46.164872 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:19:46.164928 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:19:57.694100 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:19:57.694156 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:20:09.597001 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:20:09.597054 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:20:21.247270 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:20:21.247324 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:20:32.574027 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:20:32.574076 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:20:44.645174 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:20:44.645251 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:20:56.628029 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:20:56.628087 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:21:08.519681 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:21:08.519736 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:21:19.421735 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:21:19.421792 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:21:30.999422 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:21:30.999510 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:21:41.871599 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:21:41.871663 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:21:53.950232 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:21:53.950283 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:22:05.776160 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:22:05.776212 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:22:17.728985 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:22:17.729038 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:22:28.465229 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:22:28.465285 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:22:39.199393 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:22:39.199453 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:22:56.024040 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:22:56.024108 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:23:07.912773 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:23:07.912839 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:23:19.018735 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:23:19.018795 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:23:29.902252 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:23:29.902307 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:23:41.553956 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:23:41.554027 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:23:52.888117 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:23:52.888174 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:24:04.962234 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:24:04.962287 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:24:16.735922 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:24:16.735975 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:24:27.804514 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:24:27.804566 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:24:39.760664 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:24:39.760715 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:24:51.641721 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:24:51.641788 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:25:03.595201 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:25:03.595254 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:25:15.448886 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:25:15.448943 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:25:27.516389 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:25:27.516442 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:25:39.024635 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:25:39.024687 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:25:51.101918 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:25:51.101978 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:26:02.559012 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:26:02.559067 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:26:14.459081 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:26:14.459135 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:26:26.147868 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:26:26.147919 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:26:37.758197 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:26:37.758253 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:26:49.810900 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:26:49.810953 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:27:01.804795 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:27:01.804883 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:27:13.672157 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:27:13.672256 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:27:24.541687 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:27:24.541745 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:27:36.467692 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:27:36.467781 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:27:48.285971 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:27:48.286080 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:28:00.360987 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:28:00.361077 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:28:12.240334 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:28:12.240392 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:28:24.197253 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:28:24.197309 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:28:35.266997 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:28:35.267053 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:28:46.015512 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:28:46.015582 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:28:57.899388 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:28:57.899475 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:29:03.838912 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:29:03.839007 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:29:15.905870 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:29:15.905956 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:29:27.431602 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:29:27.431664 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:29:38.258748 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:29:38.258803 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:29:48.929238 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:29:48.929289 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:30:00.411049 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:30:00.411108 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:30:12.489485 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:30:12.489541 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:30:24.557969 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:30:24.558023 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:30:36.409182 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:30:36.409246 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:30:47.353231 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:30:47.353283 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:30:59.284995 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:30:59.285049 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:31:11.169716 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:31:11.169768 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:31:22.974577 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:31:22.974631 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:31:34.873936 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:31:34.874042 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:31:46.946711 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:31:46.946774 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:31:58.792053 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:31:58.792133 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:32:10.861744 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:32:10.861801 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:32:21.982123 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:32:21.982235 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:32:33.898161 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:32:33.898249 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:32:45.614303 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:32:45.614369 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:32:57.014252 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:32:57.014321 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:33:09.089760 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:33:09.089816 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:33:20.995818 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:33:20.995875 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:33:32.925294 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:33:32.925350 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:33:43.965519 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:33:43.965587 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:33:55.550342 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:33:55.550431 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:34:07.247598 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:34:07.247654 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:34:19.315095 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:34:19.315245 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:34:31.004650 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:34:31.004706 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:34:42.940099 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:34:42.940174 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:34:53.731397 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:34:53.731452 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:35:04.493758 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:35:04.493813 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:35:15.274927 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:35:15.274978 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log
+[NGN CRASH] 2026/10/10 20:35:15.279319 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/10 20:35:15.279368 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn_crashes.log

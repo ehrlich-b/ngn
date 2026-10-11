@@ -1,0 +1,28 @@
+package engine
+
+import (
+    "encoding/json"
+    "io"
+    "os"
+    "strconv"
+    "testing"
+)
+
+func TestCampaignSPSAFinalLiveVector(t *testing.T) {
+    raw, err := os.ReadFile(os.Getenv("NGN_SPSA_FINAL_VECTOR"))
+    if err != nil { t.Fatal(err) }
+    var vector map[string]int
+    if err := json.Unmarshal(raw, &vector); err != nil { t.Fatal(err) }
+    if len(vector) != len(TunableSearchParams) { t.Fatal("registry/vector count mismatch") }
+    u := NewUCIEngine()
+    for _, p := range TunableSearchParams {
+        old := *p.Ptr
+        ptr := p.Ptr
+        t.Cleanup(func() { *ptr = old })
+        value, ok := vector[p.Name]
+        if !ok || value < p.Min || value > p.Max { t.Fatalf("%s absent/out of range", p.Name) }
+        u.handleCommand("setoption name " + p.Name + " value " + strconv.Itoa(value), io.Discard)
+        if *p.Ptr != value { t.Fatalf("%s: got %d want %d", p.Name, *p.Ptr, value) }
+        t.Logf("%s=%d search_variable_verified", p.Name, *p.Ptr)
+    }
+}

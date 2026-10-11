@@ -1,0 +1,30 @@
+{
+  "utc": "2026-10-11T01:35:11.699563+00:00",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:     16267808768  5539119104   573595648    91975680 10561245184 10728689664\nSwap:     4294967296    26898432  4268068864\n",
+  "gpu": "0 %, 4307 MiB, 16303 MiB",
+  "factorizer_last_epoch": {
+    "epoch": 53,
+    "step": 828125,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.008884,
+    "lr": 0.0001164025393435101,
+    "seconds": 334.19763535600214,
+    "positions_per_second": 766013.7981745366,
+    "steady_positions_per_second": 766346.7613280398,
+    "validation_loss": 0.008890535613326304,
+    "validation_loss_lambda_075": 0.008890535613326304,
+    "validation_loss_result": 0.07957098431087352
+  },
+  "factorizer_terminal": null,
+  "tt_refresh": {
+    "controller.pid": "20265",
+    "controller.started": "2026-10-10T21:31:26-04:00",
+    "last_log": [
+      "G3     0W  2D  1L   33.3%  elo -120.4 [-473,+233]  LLR  -0.08  pLLR  +0.00  checkmate   ",
+      "G4     0W  2D  2L   25.0%  elo -190.8 [-528,+147]  LLR  -0.14  pLLR  -2.16  checkmate   ",
+      "G5     1W  2D  2L   40.0%  elo  -70.4 [-350,+209]  LLR  -0.03  pLLR  -0.14  checkmate   "
+    ]
+  },
+  "processes": "    PID    PPID STAT ELAPSED COMMAND\n   1170     256 Ssl    87829 python3\n  18398   18390 SNs    20763 bash\n  18406   18405 RNsl   20763 python\n  18513   18510 S+     20242 python3\n  18534   18533 S+     20012 python3\n  20265   20260 SNs      225 bash\n"
+}

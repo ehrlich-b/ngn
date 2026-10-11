@@ -1,0 +1,3 @@
+{"utc": "2026-10-10T03:53:12.066746+00:00", "stage": "spsa-forge", "event": "wait", "detail": "native completion of the separate forge code-check scope; then frozen SPSA continuation"}
+{"utc": "2026-10-10T03:53:12.164521+00:00", "stage": "spsa-forge", "event": "start", "detail": "frozen old-base legacy tune; pairs6/update, two concurrent games; machine change recorded; no strength verdict"}
+{"utc": "2026-10-11T01:30:06.313988+00:00", "stage": "spsa-forge", "event": "end", "detail": "rc 0; final-vector games still required"}
