@@ -9,12 +9,14 @@ package uci
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ehrlich-b/ngn/engine"
@@ -80,9 +82,19 @@ type AdjConfig struct {
 
 // Engine is a persistent UCI subprocess.
 type Engine struct {
-	cmd    *exec.Cmd
-	stdin  *bufio.Writer
-	stdout *bufio.Scanner
+	cmd           *exec.Cmd
+	stdin         *bufio.Writer
+	stdout        *bufio.Scanner
+	output        io.Closer
+	readOnce      sync.Once
+	stopOnce      sync.Once
+	writeMu       sync.Mutex
+	lines         chan string
+	readerStop    chan struct{}
+	readerDone    chan struct{}
+	exited        chan struct{}
+	diagnosticsMu sync.Mutex
+	diagnostics   Diagnostics
 	// Moves/Overshoots track movetime-mode compliance for the gauntlet's integrity
 	// guard; Overshoots counts moves that arrived well after the `stop` deadline
 	// (the engine ignored `stop`). Reset per anchor via ResetCounters. Touched only
@@ -95,6 +107,59 @@ type Engine struct {
 	// single-goroutine ownership as Moves/Overshoots — no synchronization.
 	LastScoreCp    int
 	LastScoreValid bool
+}
+
+// Diagnostics preserves bounded stderr and the child's final status for match receipts.
+type Diagnostics struct {
+	Stderr          string `json:"stderr,omitempty"`
+	ReadError       string `json:"read_error,omitempty"`
+	ExitError       string `json:"exit_error,omitempty"`
+	Exited          bool   `json:"exited"`
+	StartupFailures int    `json:"startup_failures"`
+}
+
+type stderrCapture struct{ engine *Engine }
+
+func (w stderrCapture) Write(p []byte) (int, error) {
+	w.engine.diagnosticsMu.Lock()
+	defer w.engine.diagnosticsMu.Unlock()
+	s := w.engine.diagnostics.Stderr + string(p)
+	if len(s) > 16384 {
+		s = s[len(s)-16384:]
+	}
+	w.engine.diagnostics.Stderr = s
+	return len(p), nil
+}
+
+func (e *Engine) Diagnostics() Diagnostics {
+	e.diagnosticsMu.Lock()
+	defer e.diagnosticsMu.Unlock()
+	return e.diagnostics
+}
+
+// A single reader owns Scan; callers select on lines and real timer deadlines.
+func (e *Engine) startReader() {
+	e.readOnce.Do(func() {
+		e.lines = make(chan string, 128)
+		e.readerStop = make(chan struct{})
+		e.readerDone = make(chan struct{})
+		go func() {
+			defer close(e.readerDone)
+			defer close(e.lines)
+			for e.stdout.Scan() {
+				select {
+				case e.lines <- e.stdout.Text():
+				case <-e.readerStop:
+					return
+				}
+			}
+			if err := e.stdout.Err(); err != nil {
+				e.diagnosticsMu.Lock()
+				e.diagnostics.ReadError = err.Error()
+				e.diagnosticsMu.Unlock()
+			}
+		}()
+	})
 }
 
 // overshootGrace is how long past the stop deadline a move may arrive before we
@@ -132,18 +197,43 @@ func StartWithOptions(path, name string, lowPower bool, options []string) *Engin
 		} else {
 			cmd = exec.Command(path)
 		}
-		stdin, _ := cmd.StdinPipe()
-		stdout, _ := cmd.StdoutPipe()
+		stdin, err := cmd.StdinPipe()
+		if err != nil {
+			log.Printf("%s stdin: %v", name, err)
+			return nil
+		}
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+			stdin.Close()
+			log.Printf("%s stdout: %v", name, err)
+			return nil
+		}
+		e := &Engine{cmd: cmd, stdin: bufio.NewWriter(stdin), stdout: bufio.NewScanner(stdout), output: stdout, exited: make(chan struct{})}
+		cmd.Stderr = stderrCapture{e}
 		if err := cmd.Start(); err != nil {
+			stdin.Close()
+			stdout.Close()
 			log.Printf("failed to start %s (%s): %v", name, path, err)
 			return nil
 		}
-		e := &Engine{cmd: cmd, stdin: bufio.NewWriter(stdin), stdout: bufio.NewScanner(stdout)}
 		e.stdout.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+		e.startReader()
+		go func() {
+			<-e.readerDone
+			err := cmd.Wait()
+			e.diagnosticsMu.Lock()
+			e.diagnostics.Exited = true
+			if err != nil {
+				e.diagnostics.ExitError = err.Error()
+			}
+			e.diagnosticsMu.Unlock()
+			close(e.exited)
+		}()
 		Send(e, "uci")
 		if !WaitFor(e, "uciok", 15*time.Second) {
 			log.Printf("%s (%s): no uciok within 15s (attempt %d/3)", name, path, attempt)
 			Stop(e)
+			log.Printf("%s startup diagnostics: %+v", name, e.Diagnostics())
 			continue
 		}
 		for _, option := range options {
@@ -153,6 +243,7 @@ func StartWithOptions(path, name string, lowPower bool, options []string) *Engin
 		if !WaitFor(e, "readyok", 15*time.Second) {
 			log.Printf("%s (%s): no readyok within 15s (attempt %d/3)", name, path, attempt)
 			Stop(e)
+			log.Printf("%s startup diagnostics: %+v", name, e.Diagnostics())
 			continue
 		}
 		// Warmup probe: confirm the engine EMITS a move, not just that it handshakes.
@@ -162,41 +253,54 @@ func StartWithOptions(path, name string, lowPower bool, options []string) *Engin
 		if mv := GetMove(e, "go movetime 200", 10*time.Second, 1500*time.Millisecond); mv == "" {
 			log.Printf("%s (%s): handshakes but emitted no warmup move (attempt %d/3)", name, path, attempt)
 			Stop(e)
+			log.Printf("%s startup diagnostics: %+v", name, e.Diagnostics())
 			continue
 		}
+		e.diagnosticsMu.Lock()
+		e.diagnostics.StartupFailures = attempt - 1
+		e.diagnosticsMu.Unlock()
 		return e
 	}
 	return nil
 }
 
 // Reset issues ucinewgame between games.
-func Reset(e *Engine) {
+func Reset(e *Engine) bool {
 	Send(e, "ucinewgame")
 	Send(e, "isready")
-	WaitFor(e, "readyok", 5*time.Second)
+	return WaitFor(e, "readyok", 5*time.Second)
 }
 
 // Send writes a single UCI command line to the engine.
 func Send(e *Engine, cmd string) {
+	e.writeMu.Lock()
+	defer e.writeMu.Unlock()
 	e.stdin.WriteString(cmd + "\n")
 	e.stdin.Flush()
 }
 
 // WaitFor scans stdout until a line contains expected or the timeout elapses.
 func WaitFor(e *Engine, expected string, timeout time.Duration) bool {
-	deadline := time.Now().Add(timeout)
-	for time.Now().Before(deadline) {
-		if e.stdout.Scan() {
-			if expected == "readyok" && strings.HasPrefix(e.stdout.Text(), "info string error") {
-				log.Printf("engine rejected configuration: %s", e.stdout.Text())
+	e.startReader()
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	for {
+		select {
+		case <-timer.C:
+			return false
+		case line, ok := <-e.lines:
+			if !ok {
 				return false
 			}
-			if strings.Contains(e.stdout.Text(), expected) {
+			if expected == "readyok" && strings.HasPrefix(line, "info string error") {
+				log.Printf("engine rejected configuration: %s", line)
+				return false
+			}
+			if strings.Contains(line, expected) {
 				return true
 			}
 		}
 	}
-	return false
 }
 
 // GetMove sends goCmd and returns the bestmove. If stopAfter > 0 and no bestmove
@@ -205,20 +309,28 @@ func WaitFor(e *Engine, expected string, timeout time.Duration) bool {
 func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
 	Send(e, goCmd)
 	start := time.Now()
-	deadline := start.Add(timeout)
-	var stopAt time.Time
+	e.startReader()
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	var stopTimer *time.Timer
+	var stopC <-chan time.Time
 	if stopAfter > 0 {
-		stopAt = start.Add(stopAfter)
+		stopTimer = time.NewTimer(stopAfter)
+		stopC = stopTimer.C
+		defer stopTimer.Stop()
 	}
-	stopSent := false
 	e.LastScoreValid = false
-	for time.Now().Before(deadline) {
-		if stopAfter > 0 && !stopSent && time.Now().After(stopAt) {
+	for {
+		select {
+		case <-timer.C:
+			return ""
+		case <-stopC:
 			Send(e, "stop")
-			stopSent = true
-		}
-		if e.stdout.Scan() {
-			line := e.stdout.Text()
+			stopC = nil
+		case line, ok := <-e.lines:
+			if !ok {
+				return ""
+			}
 			if strings.HasPrefix(line, "info ") {
 				if sc, ok := parseScore(line); ok {
 					e.LastScoreCp = sc
@@ -242,7 +354,6 @@ func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
 			}
 		}
 	}
-	return ""
 }
 
 // Analyze sends goCmd and returns every stdout line up to and including the
@@ -250,18 +361,24 @@ func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
 // so callers can parse MultiPV scores — used for Stockfish oracle labelling.
 func Analyze(e *Engine, goCmd string, timeout time.Duration) []string {
 	Send(e, goCmd)
-	deadline := time.Now().Add(timeout)
+	e.startReader()
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
 	var lines []string
-	for time.Now().Before(deadline) {
-		if e.stdout.Scan() {
-			line := e.stdout.Text()
+	for {
+		select {
+		case <-timer.C:
+			return lines
+		case line, ok := <-e.lines:
+			if !ok {
+				return lines
+			}
 			lines = append(lines, line)
 			if strings.HasPrefix(line, "bestmove ") {
 				return lines
 			}
 		}
 	}
-	return lines
 }
 
 // ResetCounters zeroes the movetime-compliance counters; call it per anchor after
@@ -291,11 +408,22 @@ func Stop(e *Engine) {
 	if e == nil { // a failed (re)start returns nil; tolerate stopping it
 		return
 	}
-	Send(e, "quit")
-	time.Sleep(50 * time.Millisecond)
-	if e.cmd.Process != nil {
-		e.cmd.Process.Kill()
-	}
+	e.stopOnce.Do(func() {
+		if e.cmd == nil {
+			return
+		}
+		Send(e, "quit")
+		timer := time.NewTimer(50 * time.Millisecond)
+		defer timer.Stop()
+		select {
+		case <-e.exited:
+		case <-timer.C:
+			e.cmd.Process.Kill()
+		}
+		close(e.readerStop)
+		e.output.Close()
+		<-e.exited
+	})
 }
 
 // PowerNote describes the core-affinity routing, for display.
@@ -407,8 +535,9 @@ func (a *adjState) record(cfg AdjConfig, whitePov, ply int) (fired, whiteWins, i
 // alternating the two engines by color, and returns the result from NEW's point
 // of view. Game ends are detected authoritatively via the engine package.
 func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg GameConfig) GameResult {
-	Reset(newEng)
-	Reset(baseEng)
+	if !Reset(newEng) || !Reset(baseEng) {
+		return GameResult{Draw, "engine-error"}
+	}
 
 	// An opening is either a list of UCI moves from the standard start, or a single
 	// element that is a full FEN (detected by '/') seeding the game from a specific

@@ -1,0 +1,76 @@
+=== RUN   TestTerminalStatesWinAtAndBeforeMaxMoves
+=== RUN   TestTerminalStatesWinAtAndBeforeMaxMoves/new_white_mates
+=== RUN   TestTerminalStatesWinAtAndBeforeMaxMoves/base_white_mates
+=== RUN   TestTerminalStatesWinAtAndBeforeMaxMoves/new_black_mates
+=== RUN   TestTerminalStatesWinAtAndBeforeMaxMoves/base_black_mates
+--- PASS: TestTerminalStatesWinAtAndBeforeMaxMoves (0.00s)
+    --- PASS: TestTerminalStatesWinAtAndBeforeMaxMoves/new_white_mates (0.00s)
+    --- PASS: TestTerminalStatesWinAtAndBeforeMaxMoves/base_white_mates (0.00s)
+    --- PASS: TestTerminalStatesWinAtAndBeforeMaxMoves/new_black_mates (0.00s)
+    --- PASS: TestTerminalStatesWinAtAndBeforeMaxMoves/base_black_mates (0.00s)
+=== RUN   TestBoundaryStalemateRepetitionAndOrdinaryCap
+--- PASS: TestBoundaryStalemateRepetitionAndOrdinaryCap (0.00s)
+=== RUN   TestTerminalPrecedesEarlyAdjudication
+--- PASS: TestTerminalPrecedesEarlyAdjudication (0.00s)
+=== RUN   TestReadDeadlinesWithSilentOutput
+=== RUN   TestReadDeadlinesWithSilentOutput/ready
+=== RUN   TestReadDeadlinesWithSilentOutput/analyze
+=== RUN   TestReadDeadlinesWithSilentOutput/move
+--- PASS: TestReadDeadlinesWithSilentOutput (0.15s)
+    --- PASS: TestReadDeadlinesWithSilentOutput/ready (0.05s)
+    --- PASS: TestReadDeadlinesWithSilentOutput/analyze (0.05s)
+    --- PASS: TestReadDeadlinesWithSilentOutput/move (0.05s)
+=== RUN   TestEOFReturnsWithoutWaitingForDeadline
+--- PASS: TestEOFReturnsWithoutWaitingForDeadline (0.00s)
+=== RUN   TestStopReapsChildAndRecordsAbnormalExit
+--- PASS: TestStopReapsChildAndRecordsAbnormalExit (0.00s)
+=== RUN   TestStopKillsChildThatIgnoresQuit
+--- PASS: TestStopKillsChildThatIgnoresQuit (0.06s)
+=== RUN   TestStartupRetryRemainsAnOperationalFault
+2026/10/11 16:03:57 retry fixture (/tmp/TestStartupRetryRemainsAnOperationalFault258486678/001/fake-uci): no uciok within 15s (attempt 1/3)
+2026/10/11 16:03:57 retry fixture startup diagnostics: {Stderr:first startup failed
+ ReadError: ExitError:exit status 7 Exited:true StartupFailures:0}
+--- PASS: TestStartupRetryRemainsAnOperationalFault (0.00s)
+=== RUN   TestResetRejectsDeadEngine
+--- PASS: TestResetRejectsDeadEngine (0.00s)
+=== RUN   TestPlayGameRejectsIllegalMove
+--- PASS: TestPlayGameRejectsIllegalMove (0.00s)
+=== RUN   TestPlayGameCountsInitialPositionOnce
+=== RUN   TestPlayGameCountsInitialPositionOnce/second_occurrence_continues
+=== RUN   TestPlayGameCountsInitialPositionOnce/third_occurrence_draws
+--- PASS: TestPlayGameCountsInitialPositionOnce (0.00s)
+    --- PASS: TestPlayGameCountsInitialPositionOnce/second_occurrence_continues (0.00s)
+    --- PASS: TestPlayGameCountsInitialPositionOnce/third_occurrence_draws (0.00s)
+=== RUN   TestPlayGameAllowsBlackEnPassantEvasion
+--- PASS: TestPlayGameAllowsBlackEnPassantEvasion (0.00s)
+=== RUN   TestStartWithOptionsBeforeWarmup
+--- PASS: TestStartWithOptionsBeforeWarmup (0.01s)
+=== RUN   TestReadyRejectsConfigurationError
+2026/10/11 16:03:57 engine rejected configuration: info string error eval option: CRC mismatch; using hce
+--- PASS: TestReadyRejectsConfigurationError (0.00s)
+=== RUN   TestParseScore
+--- PASS: TestParseScore (0.00s)
+=== RUN   TestAdjWinTwoSided
+--- PASS: TestAdjWinTwoSided (0.00s)
+=== RUN   TestAdjWinResetsOnSignFlip
+--- PASS: TestAdjWinResetsOnSignFlip (0.00s)
+=== RUN   TestAdjDrawPastFloor
+--- PASS: TestAdjDrawPastFloor (0.00s)
+=== RUN   TestAdjZeroValueDisabled
+--- PASS: TestAdjZeroValueDisabled (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/internal/uci	0.239s
+=== RUN   TestPairQueueConcurrentBoundAndFailure
+--- PASS: TestPairQueueConcurrentBoundAndFailure (0.00s)
+=== RUN   TestPairLimitValidation
+--- PASS: TestPairLimitValidation (0.00s)
+=== RUN   TestFixedCountCommand
+=== RUN   TestFixedCountCommand/complete
+=== RUN   TestFixedCountCommand/deadline
+=== RUN   TestFixedCountCommand/fault
+--- PASS: TestFixedCountCommand (0.13s)
+    --- PASS: TestFixedCountCommand/complete (0.05s)
+    --- PASS: TestFixedCountCommand/deadline (0.05s)
+    --- PASS: TestFixedCountCommand/fault (0.03s)
+PASS
+ok  	github.com/ehrlich-b/ngn/cmd/pairmatch	0.136s

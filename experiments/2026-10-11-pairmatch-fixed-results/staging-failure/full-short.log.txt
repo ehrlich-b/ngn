@@ -1,0 +1,66 @@
+ok  	github.com/ehrlich-b/ngn	0.326s
+?   	github.com/ehrlich-b/ngn/cmd/analyze_position	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/benchmark	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/blunder-finder	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/claimbridge	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/claimtool	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/combined-report	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/datagen	[no test files]
+ok  	github.com/ehrlich-b/ngn/cmd/datastat	0.081s
+?   	github.com/ehrlich-b/ngn/cmd/elo-assess	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/eval_breakdown	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/gametest	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/gauntlet	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/lossxray	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/magicgen	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/moves_to_fen	[no test files]
+ok  	github.com/ehrlich-b/ngn/cmd/pairmatch	0.063s
+?   	github.com/ehrlich-b/ngn/cmd/pgn-test	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/pgn_to_fens	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/pgnify	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/pruning-analysis	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/pruning-comparison	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/sfpv	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/simple-test	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/smoke	[no test files]
+ok  	github.com/ehrlich-b/ngn/cmd/speedprobe	0.006s
+ok  	github.com/ehrlich-b/ngn/cmd/sprt	0.006s
+ok  	github.com/ehrlich-b/ngn/cmd/spsa	0.093s
+?   	github.com/ehrlich-b/ngn/cmd/tactical-test	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/test-harness	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/trace_move	[no test files]
+?   	github.com/ehrlich-b/ngn/cmd/zzbias	[no test files]
+--- FAIL: TestNGNN1TrainerParity (0.00s)
+    ngnn1_test.go:358: open ../testdata/ngnn1/random_h32_evals.json: no such file or directory
+--- FAIL: TestNGNN2TrainerParity (0.00s)
+    ngnn2_test.go:252: open ../testdata/ngnn2/random_h32_b8.nnue: no such file or directory
+--- FAIL: TestNGNN3TrainerParity (0.00s)
+    ngnn3_test.go:419: open ../testdata/ngnn3/random_h32_k8_b8.nnue: no such file or directory
+🚨 NGN ENGINE PANIC #1 in UCIEngine.searchSession: injected setup failure
+See ngn_crashes.log for full details
+🚨 NGN ENGINE PANIC #2 in UCIEngine.searchSession: injected pre-search output failure
+See ngn_crashes.log for full details
+🚨 NGN ENGINE PANIC #3 in UCIEngine.searchSession: injected pre-search output failure
+See ngn_crashes.log for full details
+FAIL
+FAIL	github.com/ehrlich-b/ngn/engine	18.366s
+ok  	github.com/ehrlich-b/ngn/internal/claim	0.060s
+--- FAIL: TestNetworkSearchMatchesEngineSelection (0.00s)
+    datagen_test.go:193: open ../../testdata/ngnn1/random_h32.nnue: no such file or directory
+--- FAIL: TestNetworkRunRecordsSidecar (0.00s)
+    datagen_test.go:237: open ../../testdata/ngnn1/random_h32.nnue: no such file or directory
+--- FAIL: TestInvalidNetworkCreatesNoShard (0.00s)
+    datagen_test.go:270: open ../../testdata/ngnn1/random_h32.nnue: no such file or directory
+--- FAIL: TestBucketNetworkSearchMatchesEngineSelection (0.00s)
+    ngnn2_test.go:16: open ../../testdata/ngnn2/random_h32_b8.nnue: no such file or directory
+--- FAIL: TestKingBucketNetworkSearchMatchesEngineSelection (0.00s)
+    ngnn2_test.go:20: open ../../testdata/ngnn3/random_h32_k8_b8.nnue: no such file or directory
+FAIL
+FAIL	github.com/ehrlich-b/ngn/internal/datagen	0.081s
+?   	github.com/ehrlich-b/ngn/internal/history	[no test files]
+ok  	github.com/ehrlich-b/ngn/internal/ngnp	0.096s
+?   	github.com/ehrlich-b/ngn/internal/oracle	[no test files]
+?   	github.com/ehrlich-b/ngn/internal/rating	[no test files]
+?   	github.com/ehrlich-b/ngn/internal/sliderray	[no test files]
+ok  	github.com/ehrlich-b/ngn/internal/uci	0.216s
+FAIL
