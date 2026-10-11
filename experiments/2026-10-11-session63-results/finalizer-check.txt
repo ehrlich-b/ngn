@@ -1,0 +1,4 @@
+2026-10-11T12:05:08-04:00
+Finalizer syntax PASS; new terminal argument retains original default.
+/home/ehrli/ngn-data/night-20261007/session57-data-step2/trained/history.json 2026-10-11 12:03:46.149409955 -0400 893 bytes
+/home/ehrli/ngn-data/night-20261007/session57-data-step2/trained/best.pt 2026-10-11 12:03:46.133358172 -0400 37867882 bytes

@@ -2,6 +2,8 @@
 
 Run inside the NGN forge allocation with the source on PYTHONPATH. This is a
 manual post-training stage, never a trainer restart or automatic game launch.
+Arguments: run directory, engine source, 20-record panel, optional terminal
+receipt filename (defaults to the original session47 receipt).
 """
 import datetime
 import hashlib
@@ -23,7 +25,8 @@ source=Path(sys.argv[2]).resolve()
 records_path=Path(sys.argv[3]).resolve()
 out=s/'trained'
 sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
-terminal=json.loads((s/'training-terminal-session47.json').read_text())
+terminal_name=sys.argv[4] if len(sys.argv)>4 else 'training-terminal-session47.json'
+terminal=json.loads((s/terminal_name).read_text())
 assert terminal['full58'] and terminal['postprocessing_machine']=='forge'
 history=json.loads((out/'history.json').read_text())
 assert [r['epoch'] for r in history]==list(range(1,59))

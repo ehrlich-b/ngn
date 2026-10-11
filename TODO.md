@@ -21,17 +21,21 @@ training-controller-session62.exit/done, then training-terminal.json.
 Full58/config, identical selected reexport/20 parity on forge, then manual
 actual-base own A/A40/fixed40010+0.1 positive-lower gain gate.
 
-Forge**2114966/2114971/2140873** runs its one fresh A/A20010+0.1/c2
-since10:24:11,4–11/3GiB/swap0/nice10/host pinningON, same frozened34480
-packagec14f03d8/a4d90b41/harness9b0002f8/openings974e4b5a/defaults.
-Printed/unrounded intervals contain0/zero faults/intact pins opens forge;
-failure closes verdicts/Needs Bryan, no fishing. Pass before12:00 admits
-frozen final14 fixed400/four-hour cap, finalizer reserved from16:00;
-later pass holds for manual window review. No competing forge CPU work
-during scored games. Data/parity readiness governs later capacity.
+Forge A/A200 **PASS**,52/95/53,penta[6,25,39,24,6],exact−1.737
+[−35.391,+31.884],all100 pairs/zero faults/all13 input pins. Same forge
+4–11/c2/3GiB/swap0/nice10/host pinningON topology now admitted; prior
+failed control remains unexplained. Frozen final14 fixed400 gate started
+11:19:29 as**2180347** under2114966/2114971, versused34480/a4d90b41/
+c14f03d8. Expected13:10–14:00; hard4h cap15:19. Positive printed AND
+unrounded lower95/complete400/200/clean pins only keeps on that reference;
+null/loss shelves, faults unscored. Finalizer reserved16:00; no competing
+forge CPU work during admitted games. Reusable finalizer takes fourth
+argument`training-terminal.json`; syntax PASS on rig13,15, actual reexport/
+20parity awaits full58 review. Recovered trainer has durable epoch1 and
+successful validation; GPU75%12:00, same recipe/source unchanged.
 
 Admission**21669/22048** continues frozen60+0.6 SPRT[0,+6], rig0–11/c6/
-3GiB;840 games11:00:52/no verdict, original A/A40 already PASS. H1 AND
+3GiB;955 games12:01/no verdict, original A/A40 already PASS. H1 AND
 positive printed/unrounded lower95/clean pins/operations only keeps;
 H0/cap shelves. Data parity ready plus untrusted forge administratively
 preempts it at a session boundary without verdict/continuation. Existing
@@ -48,11 +52,11 @@ A/A40/fixed40010+0.1 positive printed AND unrounded lower95/zero faults.
 Do only necessary changed-package checks after higher-priority results;
 no new heuristic preparation or repeated unchanged checks.
 
-C:72.78GiB,/work168.63GiB free; readers117631/1649185/22172 andhopper1170
+C:69.26GiB,/work158.27GiB free; readers117631/1649185/22172 andhopper1170
 untouched. SEE values+1.7[−11,+14] unresolved; TT repair does not certify
 full owned provenance package. No claim/publication/Rodent retry.
-Next session not before12:00EDT:forge control first,recovered trainer next.
-[Session62](experiments/2026-10-11-session62.md).
+Next session not before13:30EDT:final14 terminal first,recovered trainer next.
+[Session63](experiments/2026-10-11-session63.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
