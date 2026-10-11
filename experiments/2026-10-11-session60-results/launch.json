@@ -1,0 +1,38 @@
+{
+  "recorded_utc": "2026-10-11T11:50:44Z",
+  "cause": "T74 descriptor connection present only on rig, absent on forge; fresh request succeeded; no T74 copy had begun",
+  "completed_checkpoint": "full T74 gather183371624416 bytes and frozen bottom65536 sample completed06:57:13 EDT",
+  "forge_controller_pid": 1621423,
+  "forge_recovery_pid": 1621432,
+  "rig_copy_controller_pid": 23591,
+  "rig_copy_pid": 23594,
+  "rig_copy_scope": "ngn-s60-data-copy/12,14/512MiB/swap0/nice19",
+  "forge_reader_pid": 1649185,
+  "forge_reader_scope": "ngn-s60-new-data-reader/4-11/256MiB/swap0/nice10/host pinningON",
+  "rig_training_controller_pid": 23638,
+  "rig_corpus_waiter_pid": 23641,
+  "rig_training_scope": "ngn-s60-data-train/12,14/4GiB/swap0/nice19",
+  "stopped_waits": [
+    22738,
+    22742,
+    21886,
+    21889
+  ],
+  "replaced_reader_pid": 1489286,
+  "new_terminals": {
+    "rig_copy": "recovery-copy-session60.exit",
+    "rig_training_controller": "training-controller-session60.exit",
+    "full_training": "training-terminal.json",
+    "forge": "recovery-session59.exit"
+  },
+  "source_sha256": {
+    "trainer/archive_server.py": "fea31441fc2fe09327adb58805c340391bfbe1bccf8673c08c9850a231c8748b",
+    "experiments/2026-10-11-session60-results/copy-controller.sh": "0c2f34d18ad014aac14f296886c1debcbaa25be4468e93205e264afb26b671ba",
+    "experiments/2026-10-11-session60-results/train-controller.sh": "386f861c9e646ba3a7f563d0bf88e24b1f906980202d03f05069f96146445a77",
+    "experiments/2026-10-11-session60-results/check-notification.py": "cd6b211bcc5dfc8fbd78b4f93cd31e99072dc9e325580cce758746eec773e341"
+  },
+  "completed_work_repeated": false,
+  "automatic_retry": false,
+  "unchanged": "converter/source selection/seeds/filters/scales/map/coverage rule/numerical trainer/gates/playing package",
+  "notification": "accepted server sockets use TCP keepalive idle60s/interval30s/count6; fixture PASS"
+}

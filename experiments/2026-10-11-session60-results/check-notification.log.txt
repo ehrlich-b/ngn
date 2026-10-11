@@ -1,0 +1,2 @@
+Running as unit: ngn-s60-notification-check.scope; invocation ID: 600b170c24444c1baf94c770427cadf4
+PASS: accepted TCP keepalive 60/30/6; native wait; exact atomic descriptor delivery

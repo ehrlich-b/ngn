@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import re
 import select
+import socket
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
@@ -19,6 +20,15 @@ def make_server(root, token, address, uploads=False):
     root = Path(root)
 
     class Handler(BaseHTTPRequestHandler):
+        def setup(self):
+            # Descriptor requests can wait for hours across the rig's NAT.
+            # Keep that connection present until the corpus is published.
+            self.request.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60)
+            self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 30)
+            self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 6)
+            super().setup()
+
         def log_message(self, *_args):
             pass  # URLs contain the private campaign access token.
 
