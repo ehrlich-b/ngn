@@ -1,36 +1,36 @@
 # NGN live state — 2026-10-11: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **ed34480 / NGNN3 KB8 H512 a4d90b41**. Owned matching TT refresh
-KEEP **+16.52[+1.16,+31.93]/40060+0.6**, zero faults/intact pins; exact
-0304d934 tested patch integrated/pushed. Expanded-data KEEP remains
-+33.98[+14.97,+53.20]. Combined provenance remains uncertified; no claim.
+Playing **ed34480 / NGNN3 KB8 H512 a4d90b41**. Owned TT refresh KEEP
++16.52[+1.16,+31.93]/40060+0.6; expanded-data KEEP+33.98[+14.97,+53.20].
+Combined provenance remains uncertified; no claim.
 
-Factorizer1885d7f9/full58/selected58/folded reexport/20 parity PASS;
-newed34480-source20 parity PASS. Manual actual-base gate **21281** starts
-02:02:21, rig0–11/c6/3GiB/nice19/swap0. OwnA/A40 PASS7/22/11,
-−34.86[−88.23,+16.91]; fixed40010+0.1 began02:06:21,
-original printed AND exact lower95>0/zero faults/intact pins only. Expected
-03:00–03:15; no adoption, extension or old pooling.
+Expanded factorizer gate21281 terminal0/02:42: **SHELVE+8.69[−11.14,+28.57]**
+over40010+0.1, zero faults/intact pins. Retain factorizer off; no extension.
+Admission alone76efa526 oned34480 passes required checks/PGO, candidatea37b45eb.
+Actuala4d90b41 nomination/controller21669 starts03:01:04 rig0–11/c6/3GiB.
+Own A/A40 then60+0.6 SPRT[0,+6]/min400/cap4000/72h; H1 AND printed/exact
+lower95>0/zero faults/intact pins only. Winner-onlyfixed400120+1 transfer.
 
-Admission unchanged76efa526 now oned34480 topicnight/time-tt-current;
-forgechecks938706/5–7/2GiB, candidate source uncommitted pending games.
-Rigsession56-time-tt-games prepared; settle factorizer net, copy checked
-binary/receipt, actual nomination then ownA/A40/SPRT[0,+6]/min400/cap4000/
-60+0.6/72h. H1 AND printed/exact lower95>0/zero faults/intact pins only;
-winner-only separatefixed400120+1 transfer. No admission games yet.
+Latest plan02:20 data direction now active: full eligible T74 replaces19.4%
+T74, plus fixed10% T75 from the same public pinned sources. Forge1356547
+converts through existing filters/scales/map, then measures new union once.
+Rig21886 waits natively; at predeclared1.9–2.3x coverage, unchanged
+58x256M/KB8H512/NB8/factorizer-off starts12,14/GPU/4GiB. Corpus/coverage
+expected05:45–06:45; training approximately11:00–14:00 if admitted.
+Full58 then forge identical reexport/20 parity/manual actual-base A/A40/
+fixed40010+0.1 gain gate. [Manifest](experiments/2026-10-11-data-step2.md).
 
-SPSA frozen2000/24k. New-source final14-handler/12-search checks terminal0
-02:03:56, PASS on each possible neta4d90b41/1885d7f9, sourceed34480.
-After admission decision nominate/gate actual package; repeat only for a
-further source behavior change. No optimizer extension/intermediate choice.
-Rodent node-compliance failure stays unscored; no retry/adoption.
+SPSA frozen2000/24k; final14-handler/12-search checks PASS oned34480/a4d90b41.
+After admission/package decision nominate actual vector; own A/A40/fixed400
+10+0.1 gain rule. Only further accepted source/net changes need combination.
+Rodent opponent node-compliance failure remains unscored; no retry/adoption.
+Existing search candidates stay behind these gates; full provenance re-certification owed.
 
-Forge4–11/8GiB/host pinningON/max2games; reader117631/hopper1170 untouched.
-GPU idle; no eligible next recipe ahead of factorizer verdict. No additional
-candidate belongs ahead of existing games. Next session not before03:00EDT
-October11, first factorizer terminal then admission launch.
-[Session56](experiments/2026-10-11-session56.md).
+Forge4–11/8GiB/host pinningON/max2games, currently data CPU work only.
+Reader117631/hopper1170 untouched; C:279.62GiB. Next session not before
+03:30EDT October11, first admission A/A terminal then data stage.
+[Session57](experiments/2026-10-11-session57.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

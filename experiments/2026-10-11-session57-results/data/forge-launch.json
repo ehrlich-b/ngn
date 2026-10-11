@@ -1,0 +1,33 @@
+{
+  "recorded_utc": "2026-10-11T07:16:04.543005+00:00",
+  "machine": "forge Debian13/6900HX/host pinningON",
+  "cpus": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "allocation_memory_bytes": 8589934592,
+  "prepare_scope": "ngn-s57-data-prepare/4GiB/swap0/nice10",
+  "stream_scope": "ngn-s57-old-corpus-stream/1GiB/swap0/nice10",
+  "reader_scope": "ngn-s57-new-data-reader/256MiB/swap0/nice10",
+  "prepare_pid": 1356547,
+  "stream_receiver_pid": 1433866,
+  "reader_pid": 1489286,
+  "file_sha256": {
+    "prepare.py": "fa6791f8d792b2f544ffa4861a7650b187bab3a17ec9185f8f65237f3eee0cf8",
+    "controller.sh": "bef2229188e3b37daff69d33d4237a50815c4f72f83815c83b08c8561eebde03",
+    "coverage.py": "9714b4369c7d2f918bedc9338930c606785e9eb289773099e6a0a1778d735056",
+    "stream.py": "cc0f46f3279872ea1ad6e61c1533cb0b2ab568d0db1e500376d3625bb7fc6ccb",
+    "archive_server.py": "30d8da4cdf559640d7fbf86820a6fc6ea98486f70bbedb4d3b7d332f72fd20af",
+    "manifest.md": "dce52fa1eb0d4197e2fe7a489f48b42125bc252e66de11d9c97ff3384bef22b3"
+  },
+  "coverage_transport": "bounded POST from rig; no extra large files",
+  "old_reader_pid": 117631,
+  "automatic_training": "only if frozen1.9-2.3 coverage rule passes; own native descriptor notification",
+  "automatic_games": false
+}

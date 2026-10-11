@@ -1,0 +1,29 @@
+{
+  "recorded_utc": "2026-10-11T07:16:05.683239+00:00",
+  "stage": "session57-data-step2",
+  "jobs": {
+    "forge_data_prepare_pid": 1356547,
+    "forge_stream_receiver_pid": 1433866,
+    "forge_new_reader_pid": 1489286,
+    "rig_stream_pid": 21852,
+    "rig_training_controller_pid": 21886,
+    "rig_admission_controller_pid": 21669
+  },
+  "source": "ed34480",
+  "base_net": "a4d90b41",
+  "recipe": "data only/fullT74 + fixed10%T75/original58x256M/KB8H512/factorizer-off",
+  "rig_games": "0-11/c6/3GiB/nice19",
+  "rig_training": "12,14/GPU/4GiB/nice19; waiting for corpus receipt",
+  "forge": "4-11/8GiB total/host pinningON; preparation4GiB + stream1GiB + reader256MiB",
+  "no_games_or_adoption_from_data": true,
+  "rig_stream_pid": 21968,
+  "rig_training_controller_pid": 21886,
+  "rig_training_child_pid": 21889,
+  "initial_stream_startup": "21852 never reached systemd scope; empty log/PID preserved; recovered before any byte scan",
+  "file_sha256": {
+    "stream.sh": "2d1e25bf6d4eb5b3d998bcff0f93a259df1265e3304f81c03155924d08c1d296",
+    "train.py": "2dd96f95b616dd9db2844c09b7f2672d4f28d7fde603db483e029e0853c79703",
+    "controller.sh": "46e2266eb23be6d5696bce1d59e1cf2ddd5c4bb977ebd5cccf7e84a50322aae3",
+    "manifest.md": "dce52fa1eb0d4197e2fe7a489f48b42125bc252e66de11d9c97ff3384bef22b3"
+  }
+}

@@ -1,0 +1,17 @@
+2026-10-11T03:16:31-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              17           6           0           0          10          10
+Swap:              3           1           2
+       Avail
+215606251520
+ngnk4archive: decoded=2026242048 emitted=1327920558 elapsed=573s
+ngnk4archive: decoded=2266103808 emitted=1485124358 elapsed=633s
+44474097664
+ 117631       1    21:21:25 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+1356607 1356547       10:33 python3 prepare.py
+1356622 1356607       10:33 curl --fail --location --http1.1 --retry 3 --retry-delay 20 --speed-limit 100000 --speed-time 300 --max-time 14400 --output /work/lanes/ngn-data-step2-20261011/farseerT75.binpack https://huggingface.co/datasets/official-stockfish/master-binpacks/resolve/1e095a758c630bc58d0b6dac4da44fcd38ac89c2/farseerT75.binpack
+1356623 1356607       10:33 /work/lanes/ngn-data-volume-20261010/converter scatter --input /work/lanes/ngn-data-volume-20261010/farseerT74.binpack --conflicts /work/lanes/ngn-data-volume-20261010/conflicts.bin --probe-keys /work/lanes/ngn-data-volume-20261010/calibration-probe.keys --output /work/lanes/ngn-data-step2-20261011/scatter-t74full --buckets 256 --workers 4 --seed 2026100903 --keep-per-mille 1000
+1433866       1       07:32 /work/lanes/ngn-s47/parity-venv/bin/python stream.py
+1489286       1       04:45 python3 archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768
+1518617 1518616       00:00 bash -c date -Is; free -g; df -B1 --output=avail /work; cd /work/lanes/ngn-data-step2-20261011; cat controller.exit 2>/dev/null || true; tail -n 2 scatter-t74full.log; stat -c %s farseerT75.binpack; cat t80-stream.json t76-stream.json 2>/dev/null || true; ps -eo pid,ppid,etime,args | grep -E "prepare.py|converter scatter|ngn-data-step2|stream.py|archive_server_read" | head -15
+1518627 1518617       00:00 grep -E prepare.py|converter scatter|ngn-data-step2|stream.py|archive_server_read
