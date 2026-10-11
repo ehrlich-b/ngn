@@ -1,0 +1,393 @@
+{
+  "completed_utc": "2026-10-11T01:33:37.231265+00:00",
+  "source": "9bfbae4",
+  "base_net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "binary_sha256": "84431b35d3ae8ef92c6e9f1b967cc01ad35b400a1f812c347fe6f0dcbe55c2e1",
+  "endpoint": {
+    "iter": 2000,
+    "time": "2026-10-10T21:30:06-04:00",
+    "plus_pct": 49.666666666666664,
+    "theta": {
+      "AspInit": 16.83173220867022,
+      "AspMult": 162.66062702453962,
+      "DeltaMargin": 202.23776853706008,
+      "ExtensionBudget": 28.90742085975219,
+      "FutilityMargin": 103.7698506211749,
+      "FutilityMaxDepth": 7.739272238818259,
+      "LMPBase": 3.32256374032916,
+      "LMRFullDepth": 3.4616676660332413,
+      "LMRMoveThreshold": 2.106909711314621,
+      "NullMoveMinDepth": 2.289154289375957,
+      "NullMoveR": 4.104613814154161,
+      "ReverseFutilityMargin": 62.764773790694264,
+      "SingularDepth": 6.597288225506877,
+      "SingularMargin": 57.155891447344324
+    },
+    "rounded": {
+      "AspInit": 17,
+      "AspMult": 163,
+      "DeltaMargin": 202,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 104,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 3,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 63,
+      "SingularDepth": 7,
+      "SingularMargin": 57
+    }
+  },
+  "machine": "forge Debian13/Ryzen6900HX",
+  "host_pinning": "on",
+  "cpus": "5-7",
+  "nice": 10,
+  "memory_max_bytes": 2147483648,
+  "parameters": [
+    {
+      "name": "NullMoveR",
+      "variable": "NULL_MOVE_R",
+      "default": 3,
+      "value": 4,
+      "read_lines": [
+        1694
+      ]
+    },
+    {
+      "name": "NullMoveMinDepth",
+      "variable": "NULL_MOVE_MIN_DEPTH",
+      "default": 2,
+      "value": 2,
+      "read_lines": [
+        1677
+      ]
+    },
+    {
+      "name": "LMRFullDepth",
+      "variable": "LMR_FULL_DEPTH",
+      "default": 3,
+      "value": 3,
+      "read_lines": [
+        859,
+        2116
+      ]
+    },
+    {
+      "name": "LMRMoveThreshold",
+      "variable": "LMR_MOVE_THRESHOLD",
+      "default": 2,
+      "value": 2,
+      "read_lines": [
+        2116
+      ]
+    },
+    {
+      "name": "FutilityMargin",
+      "variable": "FUTILITY_MARGIN",
+      "default": 103,
+      "value": 104,
+      "read_lines": [
+        1655
+      ]
+    },
+    {
+      "name": "FutilityMaxDepth",
+      "variable": "FUTILITY_MAX_DEPTH",
+      "default": 8,
+      "value": 8,
+      "read_lines": [
+        1650
+      ]
+    },
+    {
+      "name": "ReverseFutilityMargin",
+      "variable": "REVERSE_FUTILITY_MARGIN",
+      "default": 88,
+      "value": 63,
+      "read_lines": [
+        1638
+      ]
+    },
+    {
+      "name": "DeltaMargin",
+      "variable": "DELTA_MARGIN",
+      "default": 96,
+      "value": 202,
+      "read_lines": [
+        2667
+      ]
+    },
+    {
+      "name": "SingularDepth",
+      "variable": "SINGULAR_DEPTH",
+      "default": 6,
+      "value": 7,
+      "read_lines": [
+        1794
+      ]
+    },
+    {
+      "name": "SingularMargin",
+      "variable": "SINGULAR_MARGIN",
+      "default": 48,
+      "value": 57,
+      "read_lines": [
+        2044
+      ]
+    },
+    {
+      "name": "ExtensionBudget",
+      "variable": "EXTENSION_BUDGET",
+      "default": 26,
+      "value": 29,
+      "read_lines": [
+        2100
+      ]
+    },
+    {
+      "name": "AspInit",
+      "variable": "ASP_INIT",
+      "default": 13,
+      "value": 17,
+      "read_lines": [
+        763
+      ]
+    },
+    {
+      "name": "AspMult",
+      "variable": "ASP_MULT",
+      "default": 154,
+      "value": 163,
+      "read_lines": [
+        975,
+        989
+      ]
+    },
+    {
+      "name": "LMPBase",
+      "variable": "LMP_BASE",
+      "default": 4,
+      "value": 3,
+      "read_lines": [
+        93
+      ]
+    }
+  ],
+  "handler_test": "PASS all14 pointers match exact final values",
+  "searches": 12,
+  "depth_cap": 14,
+  "node_cap": 1000000,
+  "witnesses": [
+    {
+      "position": 0,
+      "fen": "r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10",
+      "base": {
+        "depth": 14,
+        "nodes": 599579,
+        "score_kind": "cp",
+        "score": 69,
+        "pv": [
+          "d4c5",
+          "e7c5",
+          "f1d1"
+        ],
+        "bestmove": "d4c5"
+      },
+      "tuned": {
+        "depth": 14,
+        "nodes": 252277,
+        "score_kind": "cp",
+        "score": 66,
+        "pv": [
+          "d4c5",
+          "e7c5",
+          "f1d1",
+          "c5d6",
+          "b2b3",
+          "c8e6",
+          "e3e4",
+          "c6b4",
+          "c2d2",
+          "d6c5",
+          "e4d5"
+        ],
+        "bestmove": "d4c5"
+      }
+    },
+    {
+      "position": 1,
+      "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+      "base": {
+        "depth": 14,
+        "nodes": 844853,
+        "score_kind": "cp",
+        "score": -221,
+        "pv": [
+          "e2a6",
+          "b4c3",
+          "d2c3"
+        ],
+        "bestmove": "e2a6"
+      },
+      "tuned": {
+        "depth": 14,
+        "nodes": 371302,
+        "score_kind": "cp",
+        "score": -169,
+        "pv": [
+          "e2a6",
+          "h3g2",
+          "f3g2",
+          "b4c3",
+          "d2c3"
+        ],
+        "bestmove": "e2a6"
+      }
+    },
+    {
+      "position": 2,
+      "fen": "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
+      "base": {
+        "depth": 14,
+        "nodes": 724500,
+        "score_kind": "cp",
+        "score": 302,
+        "pv": [
+          "c3d5",
+          "f6d5",
+          "g5e7",
+          "d5f4"
+        ],
+        "bestmove": "c3d5"
+      },
+      "tuned": {
+        "depth": 14,
+        "nodes": 389734,
+        "score_kind": "cp",
+        "score": 354,
+        "pv": [
+          "c3d5",
+          "f6d5"
+        ],
+        "bestmove": "c3d5"
+      }
+    },
+    {
+      "position": 3,
+      "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+      "base": {
+        "depth": 14,
+        "nodes": 233367,
+        "score_kind": "cp",
+        "score": 167,
+        "pv": [
+          "b4f4",
+          "h4g3",
+          "f4c4"
+        ],
+        "bestmove": "b4f4"
+      },
+      "tuned": {
+        "depth": 14,
+        "nodes": 174436,
+        "score_kind": "cp",
+        "score": 309,
+        "pv": [
+          "b4f4",
+          "h4g3"
+        ],
+        "bestmove": "b4f4"
+      }
+    },
+    {
+      "position": 4,
+      "fen": "8/5k2/2p2p2/3p4/3P1P2/2P2K2/8/8 w - - 0 1",
+      "base": {
+        "depth": 14,
+        "nodes": 16221,
+        "score_kind": "cp",
+        "score": 0,
+        "pv": [
+          "f3g4",
+          "f7g6",
+          "f4f5",
+          "g6g7",
+          "g4g3",
+          "g7f7",
+          "g3f3"
+        ],
+        "bestmove": "f3g4"
+      },
+      "tuned": {
+        "depth": 14,
+        "nodes": 15045,
+        "score_kind": "cp",
+        "score": 0,
+        "pv": [
+          "f3g3",
+          "f7g7",
+          "g3h4",
+          "g7h6",
+          "f4f5",
+          "h6g7",
+          "h4g4",
+          "g7h6",
+          "g4h4",
+          "h6g7",
+          "h4g4",
+          "g7h6",
+          "g4h4"
+        ],
+        "bestmove": "f3g3"
+      }
+    },
+    {
+      "position": 5,
+      "fen": "6k1/5pp1/7p/3q4/8/3Q2P1/5P1P/6K1 w - - 0 1",
+      "base": {
+        "depth": 14,
+        "nodes": 169300,
+        "score_kind": "cp",
+        "score": 1649,
+        "pv": [
+          "d3d5",
+          "g7g6",
+          "g1g2",
+          "h6h5",
+          "d5d4",
+          "g8f8",
+          "g2f3",
+          "f8e7",
+          "d4e3"
+        ],
+        "bestmove": "d3d5"
+      },
+      "tuned": {
+        "depth": 14,
+        "nodes": 210783,
+        "score_kind": "cp",
+        "score": 1660,
+        "pv": [
+          "d3d5",
+          "g7g6",
+          "g1g2",
+          "h6h5"
+        ],
+        "bestmove": "d3d5"
+      }
+    }
+  ],
+  "normal_exits": true,
+  "verdict": "live-vector prerequisite PASS; manual nomination and controlled games still required",
+  "files_sha256": {
+    "vector.json": "69ef9e1960fdebad9ab87039afda61fea3d927e43590d11575b987d3812994bd",
+    "endpoint.json": "2a06f536aed0275cfeca4cc64fc497ab0d31c8f46fd108b395982c1cf948e1c9",
+    "ngn": "84431b35d3ae8ef92c6e9f1b967cc01ad35b400a1f812c347fe6f0dcbe55c2e1",
+    "base.nnue": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+    "handler.log": "97bc1b8f85f14bd916bf085c299c0cfdac8f5c67a1e4f16e837351778d22b75a",
+    "defaults.json": "47b78f91a9816409c1cf38824cf6bb386686dc053fec62e3e3c4e8e41a0e7f1a",
+    "final-vector.json": "88ad7ba863488a261dfef8c0f8ceab8641c4b5b168f839f3fd49cb00accf6dce"
+  }
+}

@@ -1,0 +1,71 @@
+{"utc":"2026-10-11T00:35:15.275661711Z","elapsed_ns":424109,"kind":"start","text":"pid=20039 path=/home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn"}
+{"utc":"2026-10-11T00:35:15.275686519Z","elapsed_ns":448059,"kind":"stdin","text":"uci"}
+{"utc":"2026-10-11T00:35:15.279437888Z","elapsed_ns":4205816,"kind":"stdout","text":"id name ngn 0.3.0-dev"}
+{"utc":"2026-10-11T00:35:15.279453491Z","elapsed_ns":4215021,"kind":"stdout","text":"id author Bryan Ehrlich"}
+{"utc":"2026-10-11T00:35:15.279454763Z","elapsed_ns":4216242,"kind":"stdout","text":"option name Hash type spin default 128 min 1 max 1024"}
+{"utc":"2026-10-11T00:35:15.279455783Z","elapsed_ns":4217231,"kind":"stdout","text":"option name Threads type spin default 1 min 1 max 64"}
+{"utc":"2026-10-11T00:35:15.27945657Z","elapsed_ns":4218029,"kind":"stdout","text":"option name Move Overhead type spin default 100 min 0 max 5000"}
+{"utc":"2026-10-11T00:35:15.279457418Z","elapsed_ns":4218866,"kind":"stdout","text":"option name OwnBook type check default false"}
+{"utc":"2026-10-11T00:35:15.279458134Z","elapsed_ns":4219583,"kind":"stdout","text":"option name EvalFile type string default \u003cembedded\u003e"}
+{"utc":"2026-10-11T00:35:15.279459002Z","elapsed_ns":4220441,"kind":"stdout","text":"option name UseNNUE type check default true"}
+{"utc":"2026-10-11T00:35:15.279459719Z","elapsed_ns":4221158,"kind":"stdout","text":"option name NullMoveR type spin default 3 min 2 max 5"}
+{"utc":"2026-10-11T00:35:15.279460445Z","elapsed_ns":4221884,"kind":"stdout","text":"option name NullMoveMinDepth type spin default 2 min 1 max 6"}
+{"utc":"2026-10-11T00:35:15.279461182Z","elapsed_ns":4222621,"kind":"stdout","text":"option name LMRFullDepth type spin default 3 min 1 max 6"}
+{"utc":"2026-10-11T00:35:15.279461889Z","elapsed_ns":4223328,"kind":"stdout","text":"option name LMRMoveThreshold type spin default 2 min 1 max 8"}
+{"utc":"2026-10-11T00:35:15.279462605Z","elapsed_ns":4224044,"kind":"stdout","text":"option name FutilityMargin type spin default 103 min 50 max 160"}
+{"utc":"2026-10-11T00:35:15.279463322Z","elapsed_ns":4224751,"kind":"stdout","text":"option name FutilityMaxDepth type spin default 8 min 1 max 8"}
+{"utc":"2026-10-11T00:35:15.279464059Z","elapsed_ns":4225497,"kind":"stdout","text":"option name ReverseFutilityMargin type spin default 88 min 40 max 300"}
+{"utc":"2026-10-11T00:35:15.279464785Z","elapsed_ns":4226224,"kind":"stdout","text":"option name DeltaMargin type spin default 96 min 0 max 400"}
+{"utc":"2026-10-11T00:35:15.279465502Z","elapsed_ns":4226941,"kind":"stdout","text":"option name SingularDepth type spin default 6 min 4 max 12"}
+{"utc":"2026-10-11T00:35:15.279466208Z","elapsed_ns":4227647,"kind":"stdout","text":"option name SingularMargin type spin default 48 min 16 max 256"}
+{"utc":"2026-10-11T00:35:15.279466945Z","elapsed_ns":4228384,"kind":"stdout","text":"option name ExtensionBudget type spin default 26 min 4 max 64"}
+{"utc":"2026-10-11T00:35:15.279467652Z","elapsed_ns":4229091,"kind":"stdout","text":"option name AspInit type spin default 13 min 4 max 40"}
+{"utc":"2026-10-11T00:35:15.279468348Z","elapsed_ns":4229787,"kind":"stdout","text":"option name AspMult type spin default 154 min 110 max 250"}
+{"utc":"2026-10-11T00:35:15.279469085Z","elapsed_ns":4230524,"kind":"stdout","text":"option name LMPBase type spin default 4 min 2 max 16"}
+{"utc":"2026-10-11T00:35:15.279469892Z","elapsed_ns":4231361,"kind":"stdout","text":"uciok"}
+{"utc":"2026-10-11T00:35:15.279480126Z","elapsed_ns":4241575,"kind":"stdin","text":"setoption name EvalFile value /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/net.nnue"}
+{"utc":"2026-10-11T00:35:15.279499252Z","elapsed_ns":4261287,"kind":"stdin","text":"setoption name UseNNUE value true"}
+{"utc":"2026-10-11T00:35:15.279504925Z","elapsed_ns":4266414,"kind":"stdin","text":"setoption name Hash value 64"}
+{"utc":"2026-10-11T00:35:15.279506116Z","elapsed_ns":4267575,"kind":"stdin","text":"setoption name Threads value 1"}
+{"utc":"2026-10-11T00:35:15.279507095Z","elapsed_ns":4268533,"kind":"stdin","text":"setoption name OwnBook value false"}
+{"utc":"2026-10-11T00:35:15.279513978Z","elapsed_ns":4275427,"kind":"stdin","text":"isready"}
+{"utc":"2026-10-11T00:35:15.290294519Z","elapsed_ns":15056735,"kind":"stdout","text":"info string threads configured 1 effective 1"}
+{"utc":"2026-10-11T00:35:15.290305127Z","elapsed_ns":15066727,"kind":"stdout","text":"readyok"}
+{"utc":"2026-10-11T00:35:15.290310779Z","elapsed_ns":15077385,"kind":"stdin","text":"position startpos"}
+{"utc":"2026-10-11T00:35:15.290334729Z","elapsed_ns":15096774,"kind":"stdin","text":"go movetime 200"}
+{"utc":"2026-10-11T00:35:15.296450936Z","elapsed_ns":21213092,"kind":"stdout","text":"info depth 1 seldepth 1 score cp 57 nodes 45 time 6 nps 7449 hashfull 0 pv e2e4"}
+{"utc":"2026-10-11T00:35:15.296853701Z","elapsed_ns":21615786,"kind":"stdout","text":"info depth 2 seldepth 4 score cp 52 nodes 184 time 6 nps 29207 hashfull 0 pv e2e4 e7e5"}
+{"utc":"2026-10-11T00:35:15.297047403Z","elapsed_ns":21809468,"kind":"stdout","text":"info depth 3 seldepth 5 score cp 40 nodes 333 time 6 nps 50227 hashfull 0 pv e2e4 e7e5 g1f3"}
+{"utc":"2026-10-11T00:35:15.297295485Z","elapsed_ns":22057459,"kind":"stdout","text":"info depth 4 seldepth 6 score cp 71 nodes 894 time 6 nps 129807 hashfull 0 pv e2e4 e7e5 g1f3 b8c6"}
+{"utc":"2026-10-11T00:35:15.29768189Z","elapsed_ns":22443954,"kind":"stdout","text":"info depth 5 seldepth 7 score cp 64 nodes 1328 time 7 nps 182702 hashfull 0 pv e2e4 e7e5 g1f3 b8c6 f1c4"}
+{"utc":"2026-10-11T00:35:15.298935118Z","elapsed_ns":23697092,"kind":"stdout","text":"info depth 6 seldepth 11 score cp 62 nodes 2815 time 8 nps 330142 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 d2d4 c5d4"}
+{"utc":"2026-10-11T00:35:15.303421196Z","elapsed_ns":28183241,"kind":"stdout","text":"info depth 7 seldepth 13 score cp 62 nodes 6018 time 13 nps 462561 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 f1b5 g8f6 e4e5 f6d5 e1g1"}
+{"utc":"2026-10-11T00:35:15.309516356Z","elapsed_ns":34278401,"kind":"stdout","text":"info depth 8 seldepth 16 score cp 70 nodes 10960 time 19 nps 573647 hashfull 0 pv e2e4 c7c5 g1f3 g7g6 d2d4 c5d4 d1d4 g8f6 e4e5 b8c6"}
+{"utc":"2026-10-11T00:35:15.316453826Z","elapsed_ns":41215861,"kind":"stdout","text":"info depth 9 seldepth 18 score cp 73 nodes 19653 time 26 nps 754685 hashfull 0 pv e2e4 e7e5 g1f3"}
+{"utc":"2026-10-11T00:35:15.355081686Z","elapsed_ns":79845203,"kind":"stdout","text":"info depth 10 seldepth 22 score cp 44 nodes 58821 time 64 nps 910170 hashfull 0 pv e2e4 e7e5 g1f3 g8f6 f3e5 f6e4 d1f3 e4g5 f3e3 f8e7 d2d4 e8g8 h2h4"}
+{"utc":"2026-10-11T00:35:15.390575035Z","elapsed_ns":115338411,"kind":"stdout","text":"bestmove e2e4"}
+{"utc":"2026-10-11T00:35:15.390611722Z","elapsed_ns":115373232,"kind":"stdin","text":"ucinewgame"}
+{"utc":"2026-10-11T00:35:15.390632291Z","elapsed_ns":115394316,"kind":"stdin","text":"isready"}
+{"utc":"2026-10-11T00:35:15.40340846Z","elapsed_ns":128171695,"kind":"stdout","text":"readyok"}
+{"utc":"2026-10-11T00:35:15.4034422Z","elapsed_ns":128203720,"kind":"stdin","text":"position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"}
+{"utc":"2026-10-11T00:35:15.403464798Z","elapsed_ns":128226641,"kind":"stdin","text":"go nodes 1231932"}
+{"utc":"2026-10-11T00:35:15.404676115Z","elapsed_ns":129438341,"kind":"stdout","text":"info depth 1 seldepth 1 score cp 57 nodes 45 time 1 nps 39692 hashfull 0 pv e2e4"}
+{"utc":"2026-10-11T00:35:15.404764467Z","elapsed_ns":129526552,"kind":"stdout","text":"info depth 2 seldepth 4 score cp 52 nodes 184 time 1 nps 148098 hashfull 0 pv e2e4 e7e5"}
+{"utc":"2026-10-11T00:35:15.404860501Z","elapsed_ns":129622434,"kind":"stdout","text":"info depth 3 seldepth 5 score cp 40 nodes 333 time 1 nps 249180 hashfull 0 pv e2e4 e7e5 g1f3"}
+{"utc":"2026-10-11T00:35:15.405094559Z","elapsed_ns":129857229,"kind":"stdout","text":"info depth 4 seldepth 6 score cp 71 nodes 894 time 1 nps 591019 hashfull 0 pv e2e4 e7e5 g1f3 b8c6"}
+{"utc":"2026-10-11T00:35:15.405299343Z","elapsed_ns":130062043,"kind":"stdout","text":"info depth 5 seldepth 7 score cp 64 nodes 1328 time 1 nps 774479 hashfull 0 pv e2e4 e7e5 g1f3 b8c6 f1c4"}
+{"utc":"2026-10-11T00:35:15.405929485Z","elapsed_ns":130691519,"kind":"stdout","text":"info depth 6 seldepth 11 score cp 62 nodes 2815 time 2 nps 1187405 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 d2d4 c5d4"}
+{"utc":"2026-10-11T00:35:15.407718144Z","elapsed_ns":132480168,"kind":"stdout","text":"info depth 7 seldepth 13 score cp 62 nodes 6018 time 4 nps 1443451 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 f1b5 g8f6 e4e5 f6d5 e1g1"}
+{"utc":"2026-10-11T00:35:15.41010904Z","elapsed_ns":134871064,"kind":"stdout","text":"info depth 8 seldepth 16 score cp 70 nodes 10960 time 6 nps 1670865 hashfull 0 pv e2e4 c7c5 g1f3 g7g6 d2d4 c5d4 d1d4 g8f6 e4e5 b8c6"}
+{"utc":"2026-10-11T00:35:15.414286812Z","elapsed_ns":139048766,"kind":"stdout","text":"info depth 9 seldepth 18 score cp 73 nodes 19653 time 10 nps 1830012 hashfull 0 pv e2e4 e7e5 g1f3"}
+{"utc":"2026-10-11T00:35:15.434455998Z","elapsed_ns":159218557,"kind":"stdout","text":"info depth 10 seldepth 22 score cp 44 nodes 58821 time 30 nps 1903854 hashfull 0 pv e2e4 e7e5 g1f3 g8f6 f3e5 f6e4 d1f3 e4g5 f3e3 f8e7 d2d4 e8g8 h2h4"}
+{"utc":"2026-10-11T00:35:15.467215516Z","elapsed_ns":191978459,"kind":"stdout","text":"info depth 11 seldepth 21 score cp 56 nodes 113962 time 63 nps 1790460 hashfull 0 pv d2d4 d7d5"}
+{"utc":"2026-10-11T00:35:15.52904264Z","elapsed_ns":253805330,"kind":"stdout","text":"info depth 12 seldepth 23 score cp 39 nodes 210115 time 125 nps 1674382 hashfull 3 pv d2d4 d7d5"}
+{"utc":"2026-10-11T00:35:15.561299615Z","elapsed_ns":286062153,"kind":"stdout","text":"info depth 13 seldepth 22 score cp 51 nodes 258949 time 157 nps 1641527 hashfull 4 pv d2d4 g8f6 g1f3 e7e6"}
+{"utc":"2026-10-11T00:35:15.57679633Z","elapsed_ns":301558637,"kind":"stdout","text":"info depth 14 seldepth 20 score cp 51 nodes 282601 time 173 nps 1631201 hashfull 8 pv d2d4 g8f6 g1f3 e7e6 c2c4"}
+{"utc":"2026-10-11T00:35:15.722579628Z","elapsed_ns":447343328,"kind":"stdout","text":"info depth 15 seldepth 27 score cp 53 nodes 479379 time 318 nps 1502782 hashfull 19 pv d2d4 g8f6 g1f3 e7e6 c2c4 f8e7 b1c3 d7d5 c1g5 e8g8 e2e3 b8d7 c4d5 f6d5 g5e7 d8e7 c3d5 e6d5"}
+{"utc":"2026-10-11T00:35:16.063008096Z","elapsed_ns":787771180,"kind":"stdout","text":"info depth 16 seldepth 28 score cp 42 nodes 966000 time 659 nps 1464985 hashfull 36 pv d2d4 g8f6 g1f3 e7e6 c2c4"}
+{"utc":"2026-10-11T00:35:16.148861106Z","elapsed_ns":873623887,"kind":"stdout","text":"info depth 17 seldepth 25 score cp 43 nodes 1073906 time 745 nps 1440900 hashfull 37 pv d2d4 g8f6 g1f3 e7e6 c2c4"}
+{"utc":"2026-10-11T00:35:16.255625076Z","elapsed_ns":980388947,"kind":"stdout","text":"bestmove d2d4"}
+{"utc":"2026-10-11T00:35:16.255776099Z","elapsed_ns":980538426,"kind":"stdin","text":"quit"}
+{"utc":"2026-10-11T00:35:16.260872051Z","elapsed_ns":985634984,"kind":"exit","text":"0"}

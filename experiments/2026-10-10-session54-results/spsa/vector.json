@@ -1,0 +1,16 @@
+{
+  "AspInit": 17,
+  "AspMult": 163,
+  "DeltaMargin": 202,
+  "ExtensionBudget": 29,
+  "FutilityMargin": 104,
+  "FutilityMaxDepth": 8,
+  "LMPBase": 3,
+  "LMRFullDepth": 3,
+  "LMRMoveThreshold": 2,
+  "NullMoveMinDepth": 2,
+  "NullMoveR": 4,
+  "ReverseFutilityMargin": 63,
+  "SingularDepth": 7,
+  "SingularMargin": 57
+}

@@ -1,0 +1,2 @@
+{"bestmove":"bestmove d2d4","engine":"ngn","node_budget":1231932,"nodes":1073906,"position":0,"repetition":0,"wall_seconds":0.852207597}
+{"bestmove":"info depth 28 seldepth 43 multipv 1 time 39442 nodes 90861416 nps 2303671 hashfull 991 score cp 16 pv c2c4 e7e5 g1f3 e5e4 f3d4 b8c6 e2e3 g8f6 b1c3 f8b4 d1b3 c6d4 e3d4 b4a5 b3a3 c7c6 d2d3 d7d5 c4d5 a5c3 b2c3 d8d5 c1e3 e4d3 f1d3 c8f5 d3f5 d5f5","engine":"opponent","node_budget":1231932,"nodes":90861416,"position":0,"repetition":0,"wall_seconds":60.100618}
