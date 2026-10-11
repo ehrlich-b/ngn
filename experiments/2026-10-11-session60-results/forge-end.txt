@@ -1,0 +1,33 @@
+SNAPSHOT 2026-10-11T07:50:44-04:00
+               total        used        free      shared  buff/cache   available
+Mem:           17922        3530        6867           0        7871       14392
+Swap:           4095        1694        2401
+Filesystem        1B-blocks         Used    Available Use% Mounted on
+/dev/sda       536608739328 408819617792 127789121536  77% /work
+    PID    PPID    PGID     ELAPSED %CPU   RSS COMMAND
+ 117631       1  117631  1-01:55:38  0.3 18876 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+1621423       1 1621423    01:47:20  0.0  2384 bash recovery-session59-controller.sh
+1621432 1621423 1621423    01:47:20  8.1 58176 /work/lanes/ngn-s47/parity-venv/bin/python recovery-session59.py --resume-after-raw
+1649185       1 1649185       00:39  0.1 20024 python3 /work/lanes/ngn-data-step2-20261011/archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768
+MemoryCurrent=4294123520
+AllowedCPUs=4-11
+MemoryMax=4294967296
+MemorySwapMax=0
+Id=ngn-s59-data-recovery.scope
+ActiveState=active
+
+MemoryCurrent=11108352
+AllowedCPUs=4-11
+MemoryMax=268435456
+MemorySwapMax=0
+Id=ngn-s60-new-data-reader.scope
+ActiveState=active
+ESTAB 0      4189512  192.168.4.65:8769    192.168.4.108:53162 users:(("python",pid=1621432,fd=4)) 
+ESTAB 0      0        192.168.4.65:8768    192.168.4.108:53218 users:(("python3",pid=1649185,fd=4))
+{"utc": "2026-10-11T10:03:24.516288+00:00", "stage": "session58-data-recovery", "event": "raw-storage-reused", "detail": "manual continuation; existing SHA256/bytes/fsync acknowledgment; no repeat copy"}
+{"utc": "2026-10-11T10:03:24.516732+00:00", "stage": "session58-data-recovery", "event": "discard-incomplete-buckets", "detail": "new-lane partial files0; retained interruption logs"}
+{"utc": "2026-10-11T10:03:24.521708+00:00", "stage": "session57-data-step2", "event": "scatter-start", "detail": "t74full; fixed keep1000/1000; workers4; original pipeline"}
+{"utc": "2026-10-11T10:05:18.181790+00:00", "stage": "session59-data-recovery", "event": "manual-continuation", "detail": "Reviewed03:59 converter output-dir exists failure; empty root removed; completed T75 raw copy reused; unchanged converter/seeds/scales/map/coverage/recipe. Recovery controller1621423/Python1621432/converter1621450; receiver22738, original GPU21886 native wait; no completed work repeated."}
+{"utc": "2026-10-11T10:31:30.973024+00:00", "stage": "session57-data-step2", "event": "gather-start", "detail": "t74full; raw scale0.9827691877392202; original map; consume own new buckets only"}
+{"utc": "2026-10-11T10:57:13.373956+00:00", "stage": "session58-data-recovery", "event": "t74-copy-ready", "detail": "completed fixed T74 bytes183371624416; frozen sample retained"}
+Running as unit: ngn-s60-new-data-reader.scope; invocation ID: 37bb0959e85a497496305fcf381454e9

@@ -1,0 +1,5 @@
+SNAPSHOT 2026-10-11T07:49:16-04:00
+  23591   23582   23591       00:43  0.0  3456 bash /home/ehrli/ngn-data/night-20261007/session57-data-step2/recovery-copy-session60-controller.sh
+  23594   23591   23591       00:43 11.4 24160 python3 recovery-copy-session59.py --resume-after-raw
+/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf.copying 4618977280 2026-10-11 07:49:16.141333738 -0400
+Running as unit: ngn-s60-data-copy.scope; invocation ID: d803708b5c524a09a97c3e63c4bcdd89

@@ -1,0 +1,37 @@
+SNAPSHOT 2026-10-11T07:45:54-04:00
+               total        used        free      shared  buff/cache   available
+Mem:           17922        3551        4861           0        9856       14371
+Swap:           4095        1691        2404
+Filesystem        1B-blocks         Used    Available Use% Mounted on
+/dev/sda       536608739328 408813682688 127795056640  77% /work
+ 117631       1  117631  1-01:50:48  0.3 18876 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+1489286       1 1489286    04:34:08  0.0 14612 python3 archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768
+1621423       1 1621423    01:42:30  0.0  3024 bash recovery-session59-controller.sh
+1621432 1621423 1621423    01:42:30  8.4 61456 /work/lanes/ngn-s47/parity-venv/bin/python recovery-session59.py --resume-after-raw
+MemoryCurrent=3936534528
+AllowedCPUs=4-11
+MemoryMax=4294967296
+MemorySwapMax=0
+ActiveState=active
+{"utc": "2026-10-11T07:05:57.967729+00:00", "stage": "session57-data-step2", "event": "scatter-start", "detail": "t74full; fixed keep1000/1000; workers4; original pipeline"}
+{"utc": "2026-10-11T07:50:57.493312+00:00", "stage": "session58-data-recovery", "event": "raw-storage-start", "detail": "preserve complete T75 on rig before rerunning interrupted T74 scatter"}
+{"utc": "2026-10-11T07:59:31.105682+00:00", "stage": "session58-data-recovery", "event": "discard-incomplete-buckets", "detail": "new-lane partial files258; retained interruption logs"}
+{"utc": "2026-10-11T07:59:31.167602+00:00", "stage": "session57-data-step2", "event": "scatter-start", "detail": "t74full; fixed keep1000/1000; workers4; original pipeline"}
+{"utc": "2026-10-11T10:03:24.516288+00:00", "stage": "session58-data-recovery", "event": "raw-storage-reused", "detail": "manual continuation; existing SHA256/bytes/fsync acknowledgment; no repeat copy"}
+{"utc": "2026-10-11T10:03:24.516732+00:00", "stage": "session58-data-recovery", "event": "discard-incomplete-buckets", "detail": "new-lane partial files0; retained interruption logs"}
+{"utc": "2026-10-11T10:03:24.521708+00:00", "stage": "session57-data-step2", "event": "scatter-start", "detail": "t74full; fixed keep1000/1000; workers4; original pipeline"}
+{"utc": "2026-10-11T10:05:18.181790+00:00", "stage": "session59-data-recovery", "event": "manual-continuation", "detail": "Reviewed03:59 converter output-dir exists failure; empty root removed; completed T75 raw copy reused; unchanged converter/seeds/scales/map/coverage/recipe. Recovery controller1621423/Python1621432/converter1621450; receiver22738, original GPU21886 native wait; no completed work repeated."}
+{"utc": "2026-10-11T10:31:30.973024+00:00", "stage": "session57-data-step2", "event": "gather-start", "detail": "t74full; raw scale0.9827691877392202; original map; consume own new buckets only"}
+{"utc": "2026-10-11T10:57:13.373956+00:00", "stage": "session58-data-recovery", "event": "t74-copy-ready", "detail": "completed fixed T74 bytes183371624416; frozen sample retained"}
+
+FILE recovery-session59.log
+Running as unit: ngn-s59-data-recovery.scope; invocation ID: 38960983608e42228d83594809cccd36
+
+FILE t74full-sample.json
+{
+  "bytes": 183371624416,
+  "sha256": "dffe7f87cfc40b7e46bf2cf1fb0b1b203f6cc2eb63d94267d223f45bb6c2533d",
+  "seed": 20261006,
+  "k": 65536,
+  "sample_sha256": "2a03530e758396d92e9815738a34951a3151a27256c53adb522b443058aec603"
+}

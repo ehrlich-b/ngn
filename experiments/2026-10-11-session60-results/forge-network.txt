@@ -1,0 +1,76 @@
+    PID     TID STAT WCHAN                              ELAPSED %CPU
+1621432 1621432 SNl  futex_wait_queue                  01:43:45  8.2
+1621432 1621445 SNl  futex_wait_queue                  01:43:45  0.0
+1621432 1621448 SNl  do_sys_poll                       01:43:45  0.0
+LISTEN 0      5       192.168.4.65:8769       0.0.0.0:*    users:(("python",pid=1621432,fd=3)) 
+        os.fsync(fd)
+        os.close(fd)
+        atomic('t75-restored.json', dict(**RAW_PIN, completed_utc=datetime.datetime.now(datetime.timezone.utc).isoformat()))
+        self.send_response(200)
+        self.send_header('Content-Length', '0')
+        self.end_headers()
+        RESTORED.set()
+
+
+T74_REMOVED = threading.Event()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--resume-after-raw', action='store_true',
+                        help='Manual continuation of the acknowledged raw-copy stage only')
+    args = parser.parse_args()
+    assert (S / 'controller.exit').read_text().strip() == '1'
+    assert not (S / 't74full.bf').exists() and not (S / 't75.bf').exists()
+    if args.resume_after_raw:
+        receipt = json.loads((S / 't75-rig-copy.json').read_text())
+        assert all(receipt[key] == RAW_PIN[key] for key in ['bytes', 'sha256'])
+        assert not (S / 'farseerT75.binpack').exists()
+        COPIED['raw'].set()
+    else:
+        assert (S / 'farseerT75.binpack').stat().st_size == RAW_PIN['bytes']
+    server = ThreadingHTTPServer(('192.168.4.65', 8769), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    if args.resume_after_raw:
+        status('raw-storage-reused', 'manual continuation; existing SHA256/bytes/fsync acknowledgment; no repeat copy')
+    else:
+        PINS['raw']['url'] = f'http://192.168.4.65:8769/{TOKEN}/raw/data'
+        READY['raw'].set()
+        status('raw-storage-start', 'preserve complete T75 on rig before rerunning interrupted T74 scatter')
+        assert COPIED['raw'].wait(6 * 3600), 'no raw copy acknowledgment; retain source'
+        (S / 'farseerT75.binpack').unlink()
+    bucket_dir = S / 'scatter-t74full'
+    status('discard-incomplete-buckets', f'new-lane partial files{len(list(bucket_dir.iterdir()))}; retained interruption logs')
+    subprocess.run(['find', str(bucket_dir), '-mindepth', '1', '-delete'], check=True)
+    bucket_dir.rmdir()  # The frozen converter creates its output directory itself.
+    spec = importlib.util.spec_from_file_location('frozen_prepare', S / 'prepare.py')
+    prepare = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(prepare)
+    pin = prepare.convert('t74full', prepare.old / 'farseerT74.binpack', 1000, 2026100903, 2026100912)
+    path = S / 't74full.bf'
+    rows = np.memmap(path, dtype=ARCHIVE_DTYPE, mode='r')
+    sample = np.empty(0, dtype=np.uint64)
+    for start in range(0, len(rows), 262144):
+        hashes = board_hash(rows[start:start + 262144], 20261006)
+        if len(sample) == 65536:
+            hashes = hashes[hashes < sample[-1]]
+        if len(hashes):
+            sample = np.unique(np.concatenate((sample, hashes)))
+            if len(sample) > 65536:
+                sample = np.partition(sample, 65535)[:65536]
+                sample.sort()
+    np.save(S / 't74full-bottom65536.npy', sample)
+    del rows
+    atomic('t74full-sample.json', dict(bytes=pin['bytes'], sha256=pin['sha256'], seed=20261006,
+                                      k=65536, sample_sha256=hashlib.sha256((S / 't74full-bottom65536.npy').read_bytes()).hexdigest()))
+    PINS['t74'].update(bytes=pin['bytes'], sha256=pin['sha256'], url=f'http://192.168.4.65:8769/{TOKEN}/t74/data')
+    READY['t74'].set()
+    status('t74-copy-ready', f"completed fixed T74 bytes{pin['bytes']}; frozen sample retained")
+    assert COPIED['t74'].wait(6 * 3600), 'T74 copy not confirmed; retain source'
+    path.unlink()
+    T74_REMOVED.set()
+    status('t74-copy-confirmed', 'durable exact rig copy; removed only new forge duplicate; restore T75 next')
+    assert RESTORED.wait(6 * 3600), 'raw restore incomplete; no T75 conversion'
+    atomic('storage-resumed.json', dict(mode='manual recovery after interrupted scatter', full_t74_on_rig=True, t75_restored=True))
+    status('conversion-resumed', 'T75 exact raw bytes restored; first fixed10% T75 conversion starts')
+    files = {'t74full.bf': pin, 't75.bf': prepare.convert('t75', S / 'farseerT75.binpack', 100, 2026101101, 2026101111)}
