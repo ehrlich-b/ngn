@@ -1,0 +1,8 @@
+{
+  "utc": "2026-10-11T19:53:08.941456+00:00",
+  "verdict": "administratively-stopped-unscored",
+  "reason": "plan14:10: current-source SPSA replication KEEP; prioritize60+0.6 tune transfer; old admission contrast remains pre-SPSA",
+  "continuation": false,
+  "pooling": false,
+  "scope": "ngn-s56-time-tt-games.scope"
+}

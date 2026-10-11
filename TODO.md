@@ -1,57 +1,43 @@
 # NGN live state — 2026-10-11: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **7bbb2bf / NGNN3 KB8 H512 a4d90b41 / default search options**.
-Dead-PST speed KEEP+0.675%; TT refresh KEEP+16.52[+1.16,+31.93]/400
-60+0.6; expanded-data KEEP+33.98[+14.97,+53.20]. No new absolute result,
-claim or provenance certification. Factorizer off; root09:00/Astra24h
-October11 plan governs until09:00October12.
+Playing **f1d0a03 / NGNN3 KB8 H512 a4d90b41 / final14 compiled defaults**.
+Current-source SPSA ownforgeA/A40 PASS, fixed400/200 **+37.49[+16.95,+58.30]**,
+116/211/73,zero faults/all15 pins; exact5023b1d integration. Older ed34480
++75.88 reference remains separate. No absolute result/claim/certification.
+Embedded fallbackc6c12796 remains; setEvalFile explicitly. Factorizer off.
+Current plan **14:10 October11 amendment** governs; fullAstra24h applies
+where not amended, until09:00October12.
 
-Frozen SPSA final14 completes13:08:18: **KEEP on explicited34480/a4d90b41**,
-400/200 pairs,143/200/57,penta[2,23,81,75,19],**+75.88265[+54.64335,
-+97.69608]**,zero faults/all13 pins. Endpoint2000/24k; no pooling/rescue.
-Actual-current package topic**5023b1d/night/spsa-final14-current** checked/
-pushed: compiled endpoint/UCI defaults and two stale checkpoint-fixture
-repairs only. Engine/runtime-module short/race,vet/PGO and12 exact node/
-score/PV/default-vs-override identities PASS. No tune playing promotion yet.
+Old admission21669/22048 administratively stopped15:53, unscored/no
+continuation, to prioritize tune transfer. **Rig145862/145869** own60+0.6
+A/A40 then fixed400 on exact current pre-tune4a83038a versus compiled-final14
+4f8f631f/samea4d90b41,0–11/c6/3GiB/swap0/nice19;24 games16:07/no verdict.
+Positive printed/unrounded lower95 confirms transfer; overlap0 leaves
+unconfirmed/promotion stands; upper95<0 reverts. Fault/incomplete unscored.
+Expected gate terminal20:00–21:00; healthy controller stays detached.
 
-Forge**2801948/controller,2801960/A/A** starts13:45:18, actualcurrent
-engine7bbb2bf/a4d90b41. OwnA/A40 then fixed40010+0.1,c2/4–11/3GiB/
-swap0/nice10/host pinningON; all15 before-A/A pins PASS. Expected15:40–
-15:55; absolute16:00 cap reserves finalizer. Positive printed AND unrounded
-lower95/complete400/200/zero faults/intact pins alone promotes exact5023b1d;
-null/loss shelves this nomination,timeout/fault unscored. No competing
-forge CPU work, rescue, continuation, pooling or automatic adoption.
+Data step2 preparation/coverage2.000913× complete, unchanged58×256M/
+KB8H512/NB8/factorizer-off seed/recipe/corpus/IO2b3ea07. Recovered rig
+**74604/74608** healthy51/58/validation0.00912832/GPU79%16:07; full58 roughly
+16:40–16:50. Native finalizer**146132/146134** waits for terminal then selected
+identical reexport/20integer parity onrig13,15/2GiB per14:10 amendment.
+No automatic net games. **Forge3089937/3089947** fresh promoted-package
+A/A40 starts16:04:35,11 games16:08; first trusted free lane gets manually
+reviewed fixed40010+0.1 data gate with identical acceptedsource/options
+BOTH sides. No repeats/fallback checkpoints/rescue/pooling.
 
-Data fullT74/fixed10%T75/coverage2.000913× complete. Recovered trainer
-**74604/74608**,same58×256M/KB8H512/NB8/factorizer-off recipe/seed/corpus,
-IO-only2b3ea07, healthy19/58 durable epochs13:31/GPU81%. Full58 roughly
-17:00–19:00,actual receipts govern. Full58/config, selected identical
-reexport/20integer parity on forge still owed; existing finalizer fourth
-argument`training-terminal.json`,recovered trainer source onPYTHONPATH.
-Then explicitly nominate identical accepted source/options on both net
-sides, ownA/A40/fixed40010+0.1 versus a4d90b41. No repeats/substitute
-checkpoint/automatic games. Finalizer capacity reserved16:00.
+Prepared/pushed **d24bc75/night/rodent-fixed-count**: exact even-count
+pairmatch, async UCI deadlines/stop/reaping/stderr/exit diagnostics. Full
+short/race/vet/build and final affected checks PASS onforge; no Rodent games.
+After transfer/data, final frozen package + own120+1 control before1000/500
+Rodent confirmation. [Instrument record](experiments/2026-10-11-pairmatch-fixed.md).
+Separate checked SEEbbac8ce/singular739a23f need actual-base checks/gates
+later; no stacking. Provenance certification/SEE values remain unresolved.
 
-Admission**21669/22048** continues frozen60+0.6 SPRT[0,+6],rig0–11/c6/
-3GiB;1118 games13:31/no terminal. OriginalA/A40 PASS; no repeat. H1 AND
-positive printed/unrounded lower95/clean pins/operations only keeps on
-explicited34480 reference; H0/cap shelves. Data parity ready plus untrusted
-forge administratively preempts at a boundary, unscored/no continuation.
-A winner still needs own120+1 transfer and any actual tune/net combination
-comparison; old games cannot silently promote a combination.
-
-Separate checked topics oned34480: SEE**bbac8ce**, singular**739a23f**;
-no games/adoption yet. Order: ready data gate/current SPSA outcome, SEE,
-singular, admission transfer, full repaired-provenance certification, then
-existing heuristic queue. Only necessary actual-base checks after higher
-results; no new heuristic preparation or repeated unchanged checks.
-
-C:69.27GiB,/work130.72GiB at13:30; scope limits unchanged. Readers117631/
-1649185/22172 andhopper1170 untouched. SEE values unresolved; repaired
-TT does not certify full owned package. No claim/publication/Rodent retry.
-Next session not before15:50EDT:current-SPSA terminal first, trainer next.
-[Session64](experiments/2026-10-11-session64.md).
+C:61.60GiB,/work110.40GiB16:07–16:08; old readers/hopper untouched.
+Next session not before16:45EDT: data-base AA terminal, full58/parity,
+then manual data nomination; transfer keepsrig. [Session65](experiments/2026-10-11-session65.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
