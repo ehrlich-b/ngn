@@ -1,0 +1,52 @@
+[NGN CRASH] 2026/10/11 02:02:21.063037 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:02:21.063075 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:02:21.146475 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:02:21.146520 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:02:21.146691 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:02:21.146730 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:02:21.146827 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:02:21.146869 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:02:21.147303 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:02:21.147358 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:02:21.147978 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:02:21.148084 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:02:21.148560 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:02:21.148604 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:02:21.264460 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:02:21.264573 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:02:21.264652 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:02:21.264723 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:02:21.264827 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:02:21.264895 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:02:21.265599 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:02:21.265687 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:02:21.267238 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:02:21.267319 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:02:21.268191 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:02:21.268283 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:06:21.534327 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:06:21.534372 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:06:21.617229 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:06:21.617310 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:06:21.617595 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:06:21.617634 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:06:21.617759 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:06:21.617800 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:06:21.618348 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:06:21.618400 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:06:21.618482 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:06:21.618481 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:06:21.618806 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:06:21.618864 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:06:21.734155 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:06:21.734235 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:06:21.735938 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:06:21.736001 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:06:21.737823 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:06:21.737924 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:06:21.737935 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:06:21.738012 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:06:21.738123 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:06:21.738193 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
+[NGN CRASH] 2026/10/11 02:06:21.738383 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 02:06:21.738466 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session55-factorizer-games/ngn_crashes.log
