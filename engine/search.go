@@ -180,7 +180,7 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
 	// infinite weight would poison the swap. Quiet (non-capture) moves DO flow
 	// through: gain[0] = 0 (nothing captured) and the swap then evaluates whether
 	// the moving piece survives on its destination square. This is what quiet-move
-	// SEE pruning reads; capture/EP/promotion paths are unchanged.
+	// SEE pruning reads.
 	if move.IsCastle() {
 		return 0
 	}
@@ -189,30 +189,15 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
 	to := move.Destination()
 	targetSquare := to
 
-	// Handle en passant specially
-	if move.IsEnPassant() {
-		// For en passant, the captured pawn is on a different square
-		if move.MovingPiece().Color() == White {
-			targetSquare = Square(int(to) - 8) // Black pawn is one rank down
-		} else {
-			targetSquare = Square(int(to) + 8) // White pawn is one rank up
-		}
-	}
-
 	// Get the initial captured piece value
 	capturedValue := move.CapturedPiece().seeWeight()
-
-	// Get all attackers of the target square
-	attackers := getAttackers(pos, targetSquare)
 
 	// Pawn/knight/king attackers are occupancy-independent (their attack patterns
 	// can't be blocked or revealed), so derive them once and re-mask by occupancy
 	// each swap step instead of rebuilding them in getAttackersAfterMove.
 	nonSlider := seeNonSliderAttackers(pos, targetSquare)
 
-	// Remove the moving piece from attackers (it just moved)
 	movingPiece := move.MovingPiece()
-	attackers &^= SquareMask[int(from)]
 
 	// Initialize the exchange - use stack array to avoid allocation
 	var gain [32]int // Exchange gains on stack
@@ -220,6 +205,18 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
 	color := movingPiece.Color().Other() // Side to move after initial capture
 	occupied := pos.Board.WhiteOccupancy() | pos.Board.BlackOccupancy()
 	occupied &^= SquareMask[int(from)] // mover left its square -> reveals x-ray attackers behind it
+	if move.IsEnPassant() {
+		// The exchange stays on the destination; only the captured pawn's
+		// original square is removed from occupancy.
+		capturedSquare := int(to) - 8
+		if movingPiece.Color() == Black {
+			capturedSquare = int(to) + 8
+		}
+		occupied &^= SquareMask[capturedSquare]
+	}
+	occupied |= SquareMask[int(to)]
+	// Even the first recapture must see sliders exposed by the initial move.
+	attackers := getAttackersAfterMove(pos, nonSlider, occupied, targetSquare)
 
 	// gain[0] is the value of the piece initially captured. pieceOnSquare tracks
 	// the value of whatever piece now stands on the target square (initially the
