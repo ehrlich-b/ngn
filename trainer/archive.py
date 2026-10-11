@@ -188,7 +188,8 @@ class Archive:
                 # later order/shuffle choices independent of cache warmup.
                 records = self._holdout_cache[block_id]
                 if records is None:
-                    records = canonical_records(self.maps[shard][start + selected])
+                    # Sparse offsets fit uint32; absolute rows can exceed 2^32.
+                    records = canonical_records(self.maps[shard][start + selected.astype(np.intp)])
                     self._holdout_cache[block_id] = records
                 if shuffle:
                     indexes = np.arange(len(records))
