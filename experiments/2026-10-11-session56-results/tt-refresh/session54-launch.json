@@ -1,0 +1,19 @@
+{
+  "utc": "2026-10-11T01:31:26.191510+00:00",
+  "playing_source": "9bfbae4",
+  "playing_net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "rodent_terminal_exit": 1,
+  "rodent_terminal": "2026-10-10T20:36:16-04:00",
+  "rodent_review": "node compliance fails first opponent at1231932; no scored cells launched; no retry",
+  "concurrent_workloads": [
+    "factorizer18398/18406 training12,14/GPU/4GiB",
+    "hopper1170 untouched",
+    "forge SPSA complete2000/24k; reader117631 untouched"
+  ],
+  "wsl_memory": "               total        used        free      shared  buff/cache   available\nMem:     16267808768  3355951104  2736050176    91971584 10581962752 12911857664\nSwap:     4294967296    26898432  4268068864\n",
+  "cpu_mask": "0-11",
+  "concurrency": 6,
+  "memory_max_bytes": 3221225472,
+  "nice": 19,
+  "automatic_adoption": false
+}
