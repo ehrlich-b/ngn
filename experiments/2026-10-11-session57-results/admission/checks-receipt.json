@@ -1,0 +1,51 @@
+{
+  "completed_utc": "2026-10-11T06:13:38.989903+00:00",
+  "source": "ed34480",
+  "candidate": "accepted TT refresh base plus unchanged admission patch76efa526 only",
+  "base_net": "a4d90b41",
+  "machine": "forge Debian13/Ryzen6900HX",
+  "os": "Linux-6.12.111+deb13-cloud-amd64-x86_64-with-glibc2.41",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "cpus": [
+    5,
+    6,
+    7
+  ],
+  "nice": 10,
+  "memory_max_bytes": 2147483648,
+  "host_pinning": "on",
+  "checks": [
+    "four existing admission controls",
+    "engine/full short/race",
+    "vet",
+    "explicit accepted-PGO candidate build"
+  ],
+  "concurrent_workloads": [
+    "SPSA final-vector combination checks8-11/2GiB",
+    "reader117631 untouched",
+    "rig factorizer games0-11/3GiB; no training"
+  ],
+  "files_sha256": {
+    "tt-refresh.patch": "0304d934d702fdd03497948c6371f5cc8548c431418c77c6e840be18a742ebae",
+    "base.tar": "29cb554871d5ed3bd013756de37857cc5e4e972e4ef6bbe714855ae74564c164",
+    "2026-10-10-time-quiet-admission.patch": "76efa5266d49c5bf3f8106d2f9907a1e55066efa0637ac8c84b1cb0bcdc01dd7",
+    "baseline-ngn": "c14f03d8db4d00a3c43a1944e389b60cd5c52b8649c665e370cea1dcb3c0b848",
+    "candidate-ngn": "a37b45eb9455cc950b2626cc204fc83c2a830314941e824b7c370c44706b14af",
+    "base.nnue": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+    "checks.sh": "b704d8f11efe6aeb12c352dc7c20082d6daba43913f895201333f3054b3a06ed",
+    "manifest.md": "a55178f8f88de4926a18005429a01b7695efab45894ca68411eb20bcb62330d5",
+    "candidate/default.pgo": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+    "candidate/engine/time.go": "cd4ec330a27ed59096a6d6938795083dcd8f5ac56f7e045378132fbcf67c0a79",
+    "candidate/engine/time_admission_test.go": "88efd1aa1e0af8bfa9b9053622fb8e2c63d1c05bdafdb8c6b7df743126d2a2e3",
+    "narrow.log": "c2995772a9f2925fe7693b081a9e794be47b73dc821ada232f8523733d4ca1fc",
+    "engine-short.log": "b1e7ce1ba7b0bb619202dde2b96a18a2d218758b861ac2247551e3ee60e70d6a",
+    "engine-race.log": "31807aca8d1847df9e7bcb8a10b8eb819372f1df304a2be694ade8fe37294035",
+    "full-short.log": "67dc30f562ba8fa5cd8a59dfa0c2bf849673699811909d99faace411e0af7fab",
+    "full-race.log": "0ae9236e48ca3a26766f9806eb987f25a1bc0f9932d1abfe82d17375f0b62842",
+    "vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "games_launched": false,
+  "decision": "manual nomination after TT/Rodent; rig freshAA40 then60+0.6 SPRT0,+6/min400/cap4000; H1ANDprintedANDunroundedlower95>0/zero faults/intact inputs"
+}

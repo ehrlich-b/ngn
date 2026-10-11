@@ -1,0 +1,14 @@
+{
+  "created_utc": "2026-10-11T07:01:04.016678+00:00",
+  "base_source": "ed34480",
+  "base_engine_sha256": "c14f03d8db4d00a3c43a1944e389b60cd5c52b8649c665e370cea1dcb3c0b848",
+  "candidate_engine_sha256": "a37b45eb9455cc950b2626cc204fc83c2a830314941e824b7c370c44706b14af",
+  "base_net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "concurrent_workloads": [
+    "hopper1170 untouched",
+    "forge reader117631 untouched",
+    "no other rig games; next data-only GPU training may use12,14/4GiB"
+  ],
+  "factorizer_verdict": "shelved +8.6877[-11.1350,28.5672]/400; retain accepted a4d90b41"
+}
