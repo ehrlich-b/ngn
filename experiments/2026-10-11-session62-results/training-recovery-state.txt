@@ -1,0 +1,27 @@
+2026-10-11T11:05:01-04:00
+{
+  "utc": "2026-10-11T15:04:11.112238+00:00",
+  "fault": "absolute holdout offset overflow at 2^32; first epoch validation; no durable epoch or checkpoint",
+  "before_sha256": "317db710674548c8d2211fffc96e6581d8015af2ca584a68b3e659600c6c3138",
+  "after_sha256": "4738e34f08e60c275f57f8f1f84d43bd1c23f52ec9e0cd75e7a97dd87af7190a",
+  "regression_test_sha256": "d330f4757878d6b4532be1dbbecb36bf7bc49c10ca93d950e62a141426f16160",
+  "checks": "new high-index witness fails before; old archive/local-remote/training-resume suites and new high-index controls pass after",
+  "recipe": "unchanged",
+  "resume": "fresh identical seed, no checkpoint available",
+  "coverage_ratio": 2.0009128203817186
+}
+Running as unit: ngn-s62-data-training.scope; invocation ID: 3157262678b14440b22c99f25a7574a4
+/home/ehrli/ngn-data/night-20261007/session57-data-step2/trainer.pid
+74608
+    PID    PPID ELAPSED %CPU   RSS COMMAND
+  74604   74591      50  0.0  3456 bash /home/ehrli/ngn-data/night-20261007/session57-data-step2/training-controller-session62.sh
+  74608   74607      50 53.1 4325800 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.archive.json /home/ehrli/ngn-data/night-20261007/session57-data-step2/t75.archive.json --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/session57-data-step2/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 58 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only
+               total        used        free      shared  buff/cache   available
+Mem:           15514        3694        4003           3        8119       11819
+Swap:           4096          25        4070
+0 %, 1533 MiB, 16303 MiB
+CPUQuotaPerSecUSec=2s
+AllowedCPUs=12 14
+MemoryMax=4294967296
+MemorySwapMax=0
+ActiveState=active

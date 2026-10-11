@@ -1,0 +1,35 @@
+total 8.0K
+-rw-r--r-- 1 ehrli ehrli 2.8K Oct 11 10:49 config.json
+-rw-r--r-- 1 ehrli ehrli    3 Oct 11 10:49 history.json
+[]
+2026-10-11T10:59:53-04:00
+"""Bounded reads of an immutable archive held on another campaign host."""
+
+import json
+from pathlib import Path
+from urllib.request import Request, urlopen
+
+import numpy as np
+
+
+class RemoteArray:
+    """Array-like record access using one exact HTTP byte range per read.
+
+    The descriptor pins the file's size and SHA-256. The serving host verifies
+    that digest when publishing the descriptor and uses it as the HTTP ETag.
+    Training indexes stay within one archive block, so no corpus-size cache or
+    local copy is needed. Errors fail the read rather than yielding partial rows.
+    """
+
+    def __init__(self, descriptor, dtype):
+        self.descriptor = json.loads(Path(descriptor).read_text())
+__init__.py
+check_material.py
+synthetic.py
+test_archive.py
+test_king_factorizer.py
+test_ngnn2.py
+test_ngnn3.py
+test_ngnp_split.py
+test_remote_archive.py
+test_trainer.py

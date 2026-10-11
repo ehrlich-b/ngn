@@ -1,0 +1,24 @@
+{
+  "verdict": "KEEP",
+  "identity_cases": 36,
+  "fixed_blocks": 40,
+  "nps_ratio": 1.006746141702641,
+  "ci95": [
+    1.0025963999577283,
+    1.0109130592089572
+  ],
+  "order_strata": [
+    1.0068456716945466,
+    1.0066466215496013
+  ],
+  "operational_faults": 0,
+  "base_source": "ed34480",
+  "net": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "checked_source": {
+    "engine/bitboard.go": "e9a6c27331bf8dc7102258f0e49c37efbc389146b2b3e90c3820b1f218962d6c",
+    "engine/eval_accumulator_test.go": "257d3a99a22e95371028aeae6c5e22cbf522e7c51b4510610e040f2bc80a395d",
+    "engine/evaluation_core_test.go": "a8f82a7d9d65e2f8047c19efb1171c504f67666de08ec737667aad27d813e883",
+    "engine/private_board_proof_test.go": "da7762efb230f2e96d6065929df7fea14c009ce2f2224d0be79b7b7e20d5ab26"
+  },
+  "notes": "Raw timings and identities independently reconciled; no Elo claim"
+}

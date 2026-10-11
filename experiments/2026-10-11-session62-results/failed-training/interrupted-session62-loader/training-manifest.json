@@ -1,0 +1,171 @@
+{
+  "created_utc": "2026-10-11T14:24:11.686243+00:00",
+  "record": "experiments/2026-10-11-data-step2.md",
+  "change": "data only",
+  "accepted_engine_source": "ed34480",
+  "base_net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "trainer_source": "/home/ehrli/ngn-data/night-20261007/session44-expanded-data/source",
+  "trainer_io_commit": "09d53c7",
+  "source_archive_sha256": "566f57c79753b8538766c762aff4ea96f98e8014b1e5c688ae802bc8ee35157f",
+  "data_paths": [
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+    "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+    "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.archive.json",
+    "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t75.archive.json"
+  ],
+  "corpus_pins": {
+    "t80": {
+      "bytes": 75977281056,
+      "sha256": "270f65bdf9f5c948160cae5330030a60f99e94383de2a290b565ae7aad7cde26"
+    },
+    "t76": {
+      "bytes": 55627628064,
+      "sha256": "a9ad07afcfeefca0d3080a2ac06657e334bf47645448ca183b51202f4412f8b3"
+    },
+    "t74full": {
+      "bytes": 183371624416,
+      "sha256": "dffe7f87cfc40b7e46bf2cf1fb0b1b203f6cc2eb63d94267d223f45bb6c2533d"
+    },
+    "t75": {
+      "bytes": 43360359712,
+      "sha256": "90cc14845171f837957027db129f8246af768fe2e541e78efba2cf25f24371ee"
+    }
+  },
+  "coverage": {
+    "completed_utc": "2026-10-11T14:24:11.554899+00:00",
+    "method": "bottom65536 occupied-board hashes; ngn-board-mix64-v1/seed20261006",
+    "sources": {
+      "t80": {
+        "bytes": 75977281056,
+        "records": 2374290033,
+        "distinct": 2329018205.974476,
+        "approx_ci95": [
+          2311186388.2409625,
+          2346850023.707989
+        ],
+        "relative_standard_error": 0.003906309606009052,
+        "exact_below_k": false
+      },
+      "t76": {
+        "bytes": 55627628064,
+        "records": 1738363377,
+        "distinct": 1448572134.4683807,
+        "approx_ci95": [
+          1437481334.8303938,
+          1459662934.1063676
+        ],
+        "relative_standard_error": 0.003906309606009052,
+        "exact_below_k": false
+      },
+      "t74full": {
+        "bytes": 183371624416,
+        "records": 5730363263,
+        "distinct": 4645884244.15887,
+        "approx_ci95": [
+          4610313650.146196,
+          4681454838.171543
+        ],
+        "relative_standard_error": 0.003906309606009052,
+        "exact_below_k": false
+      },
+      "t75": {
+        "bytes": 43360359712,
+        "records": 1355011241,
+        "distinct": 1047646327.0996987,
+        "approx_ci95": [
+          1039625162.5136493,
+          1055667491.6857481
+        ],
+        "relative_standard_error": 0.003906309606009052,
+        "exact_below_k": false
+      }
+    },
+    "combined": {
+      "distinct": 9255905045.53191,
+      "approx_ci95": [
+        9185038441.180239,
+        9326771649.883581
+      ],
+      "relative_standard_error": 0.003906309606009052,
+      "exact_below_k": false
+    },
+    "previous_distinct": 4625841241.681954,
+    "estimated_unique_ratio": 2.0009128203817186,
+    "records": 11198027914,
+    "seconds": 456.1516674380109,
+    "limits": "occupied boards, not games or symmetry classes; correlated approximate errors",
+    "training_eligible": true
+  },
+  "argv": [
+    "/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python",
+    "-m",
+    "trainer.train",
+    "--data",
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+    "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+    "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.archive.json",
+    "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t75.archive.json",
+    "--data-format",
+    "archive",
+    "--archive-holdout-modulus",
+    "1024",
+    "--archive-split-seed",
+    "20261006",
+    "--out",
+    "/home/ehrli/ngn-data/night-20261007/session57-data-step2/trained",
+    "--format",
+    "3",
+    "--kb-map",
+    "default",
+    "--hidden",
+    "512",
+    "--buckets",
+    "8",
+    "--batch",
+    "16384",
+    "--lr",
+    ".001",
+    "--epochs",
+    "58",
+    "--positions-per-epoch",
+    "256000000",
+    "--weight-decay",
+    ".01",
+    "--wdl",
+    ".75",
+    "--k",
+    "400",
+    "--decay",
+    "cosine",
+    "--min-lr-ratio",
+    ".1",
+    "--threads",
+    "2",
+    "--precision",
+    "bf16",
+    "--seed",
+    "20261006",
+    "--keep-best-only"
+  ],
+  "cpus": [
+    12,
+    14
+  ],
+  "nice": 19,
+  "memory_max_bytes": 4294967296,
+  "environment": {
+    "PYTHONPATH": "/home/ehrli/ngn-data/night-20261007/session44-expanded-data/source",
+    "OMP_NUM_THREADS": "2",
+    "MKL_NUM_THREADS": "2",
+    "OPENBLAS_NUM_THREADS": "2"
+  },
+  "concurrent_workloads": [
+    "rig immediate-admission games0-11/c6/3GiB",
+    "forge corpus reader8768; old reader117631 untouched",
+    "hopper1170 untouched"
+  ],
+  "initialization": "fresh seeded random initialization; no warm start",
+  "selection": "minimum full holdout loss across58 complete epochs",
+  "postprocessing_machine": "forge",
+  "automatic_games": false
+}
