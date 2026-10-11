@@ -101,7 +101,7 @@ while IFS= read -r line; do
  uci) printf 'uciok\n' ;;
  isready) printf 'readyok\n' ;;
  'go movetime 200') printf 'bestmove e2e4\n' ;;
- 'go wtime '*) printf 'bestmove a1a8\n' ;;
+ 'go wtime '*) printf 'bestmove g6g7\n' ;;
  quit) exit 0 ;;
  esac
 done
@@ -110,7 +110,7 @@ done
 		t.Fatal(err)
 	}
 	book := filepath.Join(dir, "openings")
-	if err := os.WriteFile(book, []byte(strings.Repeat("7k/6Q1/6K1/8/8/8/8/8 b - - 0 1\n", 8)), 0600); err != nil {
+	if err := os.WriteFile(book, []byte(strings.Repeat("7k/5K2/6Q1/8/8/8/8/8 w - - 0 1\n", 8)), 0600); err != nil {
 		t.Fatal(err)
 	}
 	exe, err := os.Executable()
@@ -166,6 +166,26 @@ done
 			}
 			if tc.ok && strings.Count(string(lines), "\n") != 5 {
 				t.Fatalf("raw pairs %s", lines)
+			}
+			if tc.ok {
+				for _, line := range strings.Split(strings.TrimSpace(string(lines)), "\n") {
+					var row pair
+					if err := json.Unmarshal([]byte(line), &row); err != nil {
+						t.Fatal(err)
+					}
+					for _, g := range row.Games {
+						if len(g.Clocks) != 1 || len(g.Moves) != 1 {
+							t.Fatalf("missing per-ply clock wire evidence: %+v", g)
+						}
+						clock := g.Clocks[0]
+						if clock.Go != "go wtime 120000 btime 120000 winc 1000 binc 1000" ||
+							clock.Ply != 1 || !clock.White || clock.Move != "g6g7" ||
+							clock.Flagged || clock.IncrementAppliedMs != 1000 ||
+							clock.WhiteAfterMs != 121000-clock.ElapsedMs || clock.BlackAfterMs != 120000 {
+							t.Fatalf("clock wire mismatch: %+v", clock)
+						}
+					}
+				}
 			}
 		})
 	}

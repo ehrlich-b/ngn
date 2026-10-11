@@ -57,9 +57,27 @@ type GameConfig struct {
 	// reconstruct/replay the game (e.g. the M1 loss-classification PGN capture).
 	// Opt-in: nil for callers that only need the result.
 	MovesOut *[]string
+	// ClockOut records the actual commands and charged wall milliseconds.
+	// Opening plies are free and omitted. Nil leaves clock tracing disabled.
+	ClockOut *[]ClockSample
 	// Adj configures early game adjudication. The zero value is fully disabled, so
 	// callers that leave it unset play games out exactly as before.
 	Adj AdjConfig
+}
+
+// ClockSample is one searched ply's complete tournament-clock ledger.
+type ClockSample struct {
+	Ply                int    `json:"ply"`
+	White              bool   `json:"white"`
+	Go                 string `json:"go"`
+	Move               string `json:"move"`
+	ElapsedMs          int    `json:"elapsed_ms"`
+	WhiteBeforeMs      int    `json:"white_before_ms"`
+	BlackBeforeMs      int    `json:"black_before_ms"`
+	WhiteAfterMs       int    `json:"white_after_ms"`
+	BlackAfterMs       int    `json:"black_after_ms"`
+	IncrementAppliedMs int    `json:"increment_applied_ms"`
+	Flagged            bool   `json:"flagged"`
 }
 
 // AdjConfig configures early game adjudication (cutechess/fastchess-style), the
@@ -642,14 +660,29 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 			if pos.Turn() == engine.White {
 				rem = &whiteMs
 			}
-			*rem -= int(time.Since(moveStart).Milliseconds())
-			if *rem < -int(tcFlagGrace.Milliseconds()) {
+			elapsed := int(time.Since(moveStart).Milliseconds())
+			whiteBefore, blackBefore := whiteMs, blackMs
+			*rem -= elapsed
+			flagged := *rem < -int(tcFlagGrace.Milliseconds())
+			incrementApplied := 0
+			if !flagged {
+				*rem += cfg.TCIncMs // Fischer increment for the completed move
+				incrementApplied = cfg.TCIncMs
+			}
+			if cfg.ClockOut != nil {
+				*cfg.ClockOut = append(*cfg.ClockOut, ClockSample{
+					Ply: len(moves) + 1, White: moverWhite, Go: goCmd, Move: mv,
+					ElapsedMs: elapsed, WhiteBeforeMs: whiteBefore, BlackBeforeMs: blackBefore,
+					WhiteAfterMs: whiteMs, BlackAfterMs: blackMs,
+					IncrementAppliedMs: incrementApplied, Flagged: flagged,
+				})
+			}
+			if flagged {
 				if newToMove {
 					return GameResult{Loss, "time-forfeit"}
 				}
 				return GameResult{Win, "time-forfeit"}
 			}
-			*rem += cfg.TCIncMs // Fischer increment for the completed move
 		}
 		if mv == "" || mv == "(none)" {
 			// Engine failed to produce a move though legal moves exist: count it

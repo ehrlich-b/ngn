@@ -29,9 +29,10 @@ func (o *options) Set(v string) error {
 }
 
 type game struct {
-	White  bool           `json:"ngn_white"`
-	Result uci.GameResult `json:"result"`
-	Moves  []string       `json:"moves"`
+	White  bool              `json:"ngn_white"`
+	Result uci.GameResult    `json:"result"`
+	Moves  []string          `json:"moves"`
+	Clocks []uci.ClockSample `json:"clocks"`
 }
 type pair struct {
 	ID      int    `json:"pair_id"`
@@ -99,10 +100,11 @@ func played(a, b *uci.Engine, op []string, white bool) (game, bool) {
 	done := make(chan game, 1)
 	go func() {
 		var moves []string
+		var clocks []uci.ClockSample
 		r := uci.PlayGame(a, b, op, white, uci.GameConfig{
-			TCTimeMs: 120000, TCIncMs: 1000, MaxMoves: 400, MovesOut: &moves,
+			TCTimeMs: 120000, TCIncMs: 1000, MaxMoves: 400, MovesOut: &moves, ClockOut: &clocks,
 		})
-		done <- game{white, r, moves}
+		done <- game{White: white, Result: r, Moves: moves, Clocks: clocks}
 	}()
 	select {
 	case g := <-done:
