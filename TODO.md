@@ -1,37 +1,36 @@
 # NGN live state — 2026-10-10: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **9bfbae4 / NGNN3 KB8 H512 a4d90b41**: expanded-data400 gate
-**+33.98[+14.97,+53.20]**,111/217/72,zero faults/intact pins, KEEP.
-Embeddedc6c12796 unchanged; no new absolute rating/claim/publication.
+Playing **9bfbae4 / NGNN3 KB8 H512 a4d90b41**; expanded-data400 KEEP
++33.98[+14.97,+53.20],zero faults/intact pins. No new absolute claim.
 
-15:15 plan amendment: fresh archived TT-only rig diagnosis precedes Rodent.
-Controller18279/gate18579 on0–11/c6/3GiB/nice19; own A/A40 PASS,
-**+34.86[-4.08,+74.69]**,7/30/3,zero faults/intact pins. Frozen40060+0.6
-began16:11:05; expected around20:10. Original5b882e2/a49ebfc pair/be34532c,
-no adoption/pooling. CombinedH0 uncertified; SEE1000 UNRESOLVED. Complete
-four-cell TT/key diagnosis remains diagnostic only; no extra depth sample.
+Fresh archived TT-only rig isolation completes40060+0.6 at19:51:07:
+**−21.74[−36.88,−6.69]**,49/277/74,zero faults/intact inputs; TT cost
+implicated by its original upper95<0 rule. No derived code restored.
+Combined provenance remains uncertified; SEE1000 unresolved.
 
-Expanded-data factorizer18398/18406 runs exact58x256M recipe plusoneflag
-onrig12,14/GPU/4GiB; first-epoch startup/noepoch at16:20, no OOM. Expected
-23:00–00:30 provisionally. Relaytool48300 unavailable; two native WSL waiters
-target18398 but transfer completion unconfirmed. Check original receipts at
-terminal before manual recovery; no duplicate waiting relay/trainer restart.
-Finalizer reexport/20 parity onforge; manual review/game nomination only.
+Rodent black-box controller19279 launched20:16:40,0–11/c6/4GiB/nice19,
+settled9bfbae4/a4d90b41. Frozen probes/controls/node-time/profile cells;
+expected23:15–02:15. No adoption or opponent source/net inspection.
 
-Admissionpatch76efa526 on9bfbae4/a4d90b41: forge342523 PASS/exit0,
-four controls/full short/race/vet/PGO, candidate17b08fec. After TT/Rodent,
-fresh rig nomination/A/A40/SPRT0,+6/min400/cap4000/72h, then winner-only
-120+1 transfer. No games/adoption/speculative source commit yet.
-Rodent settled-package nomination/net staged with checkedb57f73a wrapper;
-manual launch after TT terminal review, no opponent source/net inspection.
+One original TT matching-refresh candidatec14f03d8 on9bfbae4/a4d90b41:
+forge362581 PASS/exit0 at20:26:18, baseline witness/narrow/full short/race/
+vet/PGO. Topicnight/tt-refresh-current remains uncommitted pending games;
+exact0304d934 patch tracked and prospective rig files staged, unlaunched.
+After Rodent review, ownA/A40/fixed40060+0.6; printed/exact lower95>0 only.
+Existing admission17b08fec remains checked; nominate after provenance/
+Rodent decisions, recheck only if the actual playing package changes.
 
-SPSA88166/88178 runningforge8–11/2.5GiB/two games, durable1900/22,800,
-frozen2000/24k and final-vector games mandatory. Forge4–11/8GiB/hostpinningON/
-max2 games; builds/tests/parity there. Reader117631/hopper1170 untouched.
-C:281.86GiB; WSL5.2GiB used/9.9GiB available at16:20.
-Next session not before20:15 EDT; first TT terminal plus training health once.
-[Session52](experiments/2026-10-10-session52.md).
+Factorizer18398/18406 healthy41/58, exact expanded recipe plusoneflag,
+12,14/GPU/4GiB; expected22:00–22:15. At true terminal check original
+relay/finalizer receipts before recovering transfer once. No duplicate relay.
+
+SPSA88166/88178 forge8–11/2.5GiB/two games; durable1975/23,700 at20:07,
+frozen2000/24k around21:30. Final-vector verification/games still mandatory.
+Forge4–11/8GiB/host pinningON/max2 games; reader117631/hopper1170 untouched.
+C:281.10GiB; WSL3GiB used/11GiB available at20:27.
+Next session not before21:30 EDT; first batch-check SPSA terminal and
+Rodent/training health. [Session53](experiments/2026-10-10-session53.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

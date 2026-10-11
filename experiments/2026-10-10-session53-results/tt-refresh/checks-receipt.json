@@ -1,0 +1,52 @@
+{
+  "completed_utc": "2026-10-11T00:26:18.078514+00:00",
+  "source": "9bfbae4",
+  "candidate": "immediate source plus same-position retention allowance only",
+  "base_net": "a4d90b41",
+  "machine": "forge Debian13/Ryzen6900HX",
+  "os": "Linux-6.12.111+deb13-cloud-amd64-x86_64-with-glibc2.41",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "cpus": [
+    5,
+    6,
+    7
+  ],
+  "nice": 10,
+  "memory_max_bytes": 2147483648,
+  "host_pinning": "on",
+  "checks": [
+    "baseline test failure witness",
+    "new matching policy/cluster/concurrency controls",
+    "engine/full short/race",
+    "vet",
+    "explicit accepted-PGO build"
+  ],
+  "concurrent_workloads": [
+    "SPSA8-11/2.5GiB/two games",
+    "reader untouched",
+    "rig Rodent/factorizer separate"
+  ],
+  "files_sha256": {
+    "base.tar": "29cb554871d5ed3bd013756de37857cc5e4e972e4ef6bbe714855ae74564c164",
+    "candidate.patch": "0304d934d702fdd03497948c6371f5cc8548c431418c77c6e840be18a742ebae",
+    "baseline-ngn": "84431b35d3ae8ef92c6e9f1b967cc01ad35b400a1f812c347fe6f0dcbe55c2e1",
+    "candidate-ngn": "c14f03d8db4d00a3c43a1944e389b60cd5c52b8649c665e370cea1dcb3c0b848",
+    "base.nnue": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+    "checks.sh": "8c0d6e4c2fa7d143ecd75818ee7094e7989cc494977c3b998ed39f79233a7b7b",
+    "manifest.md": "a71b75721becec9b6ccc440aaf4c5996b0202a7e55cac8d9f4f4f31577abc2d9",
+    "candidate/default.pgo": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+    "candidate/engine/cache.go": "c593f7a709d7c16fb89a42bb4e157116957df16bae94aec6f35e086c56afa40d",
+    "candidate/engine/tt_refresh_test.go": "82dba7956d1e665aadc1af3ad25ea1d9bfc4651b8898041f25258430a27eac7b",
+    "baseline-witness.log": "1faa9f073c0e923d49d2b87bf18daa396c97f3ea1c1906239982a64053301437",
+    "narrow.log": "9fcea0243b8b80aacc2dbd0134edc4972f6d63860018fd4ffb881977b3666261",
+    "engine-short.log": "d3cafb53c09f1abd4e4b56b8f97850ee74e21162116a2b89a666fe7912ae978f",
+    "engine-race.log": "cf46ae7de47c087b4a1434b7366581e6c04b0c0062beeb50055990b2d1e6ea51",
+    "full-short.log": "a8f181d5b0cd84de0342bcc528c115b45c64550504bc99224c483b29c8edafd5",
+    "full-race.log": "d7126c3a57225d62adb6fafa34051d6fadba5160409fdefdeeae4667637912da",
+    "vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "games_launched": false,
+  "decision": "manual rig nomination after Rodent; ownAA40 then fixed400 at60+0.6; printedANDexact lower95>0/zero faults/intact inputs only"
+}

@@ -1,0 +1,57 @@
+{
+  "rig": {
+    "utc": "2026-10-11T00:27:31.228887+00:00",
+    "gpu": "90 %, 4307 MiB, 16303 MiB",
+    "memory": "               total        used        free      shared  buff/cache   available\nMem:              15           3           2           0           9          11\nSwap:              4           0           3\n",
+    "processes": [
+      "   1170     256   83769 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+      "  18398   18390   16702 bash /home/ehrli/ngn-data/night-20261007/session51-expanded-factorizer/controller.sh",
+      "  18405   18398   16702 python3 trial.py /home/ehrli/ngn-data/night-20261007/session51-expanded-factorizer",
+      "  18406   18405   16702 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/session51-expanded-factorizer/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 58 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only --king-factorizer",
+      "  19279   19275     650 bash /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/controller.sh",
+      "  19285   19282     650 timeout --signal=TERM --kill-after=15s 3600 taskset -c 0-11 nice -n 19 /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/blackboxmatch -ngn /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn -opponent /home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12 -mode probe -concurrency 6 -out /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/probe -openings /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/openings100.txt -positions /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/cmd/blackboxmatch/positions.txt -ngnoption EvalFile=/home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/net.nnue -ngnoption UseNNUE=true -ngnoption Hash=64 -ngnoption Threads=1 -ngnoption OwnBook=false -opponentoption Hash=64 -opponentoption Threads=1 -opponentoption OwnBook=false -opponentoption UCI_LimitStrength=false -repetitions 3",
+      "  19286   19285     650 /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/blackboxmatch -ngn /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/ngn -opponent /home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12 -mode probe -concurrency 6 -out /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/probe -openings /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/openings100.txt -positions /home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/cmd/blackboxmatch/positions.txt -ngnoption EvalFile=/home/ehrli/ngn-data/night-20261007/session50-rodent-blackbox/net.nnue -ngnoption UseNNUE=true -ngnoption Hash=64 -ngnoption Threads=1 -ngnoption OwnBook=false -opponentoption Hash=64 -opponentoption Threads=1 -opponentoption OwnBook=false -opponentoption UCI_LimitStrength=false -repetitions 3"
+    ],
+    "last_training_epoch": {
+      "epoch": 41,
+      "step": 640625,
+      "positions": 256000000,
+      "updates": 15625,
+      "loss": 0.0090136669921875,
+      "lr": 0.0002776719671614639,
+      "seconds": 338.44392651600356,
+      "positions_per_second": 756402.9960156335,
+      "steady_positions_per_second": 756847.347282775,
+      "validation_loss": 0.009026886283805304,
+      "validation_loss_lambda_075": 0.009026886283805304,
+      "validation_loss_result": 0.07989620600903655
+    },
+    "estimated_training_remaining_minutes": 94.87996700473057,
+    "rodent_latest_events": [
+      {
+        "utc": "2026-10-11T00:16:40.903469+00:00",
+        "stage": "session50-rodent-blackbox",
+        "event": "probe-start",
+        "detail": "frozen diagnostic; no playing adoption"
+      }
+    ],
+    "rodent_exit": null,
+    "training_exit": null,
+    "host_c_free_bytes": 301825937408
+  },
+  "forge": {
+    "utc": "2026-10-11T00:27:30.892143+00:00",
+    "memory": "               total        used        free      shared  buff/cache   available\nMem:              17           4           2           0          10          12\nSwap:              3           0           3\n",
+    "processes": [
+      "  88166       1   74058 bash /work/lanes/ngn-spsa-20261009/controller.sh",
+      "  88178   88166   74058 ./spsa-forge -engine /work/lanes/ngn-spsa-20261009/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -concurrency 2 -openings /work/lanes/ngn-spsa-20261009/openings.txt -out /work/lanes/ngn-spsa-20261009/spsa.jsonl -lowpower=false -seed 20261008 -resume",
+      " 117631       1   52344 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767"
+    ],
+    "durable_spsa_iter": 1975,
+    "durable_games": 23700,
+    "durable_time": "2026-10-10T20:07:43-04:00",
+    "tt_checks_exit": "0",
+    "tt_checks_done": "2026-10-10T20:26:18-04:00",
+    "spsa_exit": null
+  }
+}
