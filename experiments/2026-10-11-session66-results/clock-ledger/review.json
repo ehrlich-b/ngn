@@ -1,0 +1,24 @@
+{
+  "reviewed_utc": "2026-10-11T21:04:58.873300+00:00",
+  "topic_base": "d24bc75/f1d0a03",
+  "engine_behavior_changed": false,
+  "clock_ledger": true,
+  "checks": [
+    "4 real tournament-clock positive/flag controls, both POVs",
+    "10game/5pair CLI with wire ledger",
+    "affected short/race/vet/PGO build",
+    "2 legal color/opening and10 falsifying Python clock controls"
+  ],
+  "binary_sha256": "e6c2a22f97716db6b13e39d8636757801b3ec6dc39ac0154f0d34933e2455cb6",
+  "files_sha256": {
+    "/home/ehrli/ngn-data/night-20261007/session66-clock-ledger/pairmatch": "e6c2a22f97716db6b13e39d8636757801b3ec6dc39ac0154f0d34933e2455cb6",
+    "internal/uci/uci.go": "867dddee2bd7a61f1e831219939d7471cd1cdb536f3acb403dbafb263cb1053f",
+    "internal/uci/clock_test.go": "410e9f6a5a70b80d7de34704ec6f5ac7f830b42af744183ba8250c0f6933fb6d",
+    "cmd/pairmatch/main.go": "919921cdd667532bab576ff63a2670f1241c576e72bb4c881488cab77ccfa6c2"
+  },
+  "measurement_python": "/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python",
+  "initial_terminal": "1 after all Go checks pass, at system Python missing chess; preserved",
+  "python_repair": "same Python fixtures pass on installed training venv/chess1.11.2; no unchanged Go check repeated",
+  "games_launched": false,
+  "own_final_package_aa40_owed": true
+}

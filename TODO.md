@@ -2,42 +2,48 @@
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
 Playing **f1d0a03 / NGNN3 KB8 H512 a4d90b41 / final14 compiled defaults**.
-Current-source SPSA ownforgeA/A40 PASS, fixed400/200 **+37.49[+16.95,+58.30]**,
-116/211/73,zero faults/all15 pins; exact5023b1d integration. Older ed34480
-+75.88 reference remains separate. No absolute result/claim/certification.
-Embedded fallbackc6c12796 remains; setEvalFile explicitly. Factorizer off.
-Current plan **14:10 October11 amendment** governs; fullAstra24h applies
-where not amended, until09:00October12.
+Current-source SPSA400/200 +37.49[+16.95,+58.30]; older ed34480 reference
+separate. No new absolute result/claim/certification. Embedded fallbackc6c12796
+remains; setEvalFile explicitly. Factorizer off. Current14:10 plan amendment
+and fullAstra24h govern until09:00October12.
 
-Old admission21669/22048 administratively stopped15:53, unscored/no
-continuation, to prioritize tune transfer. **Rig145862/145869** own60+0.6
-A/A40 then fixed400 on exact current pre-tune4a83038a versus compiled-final14
-4f8f631f/samea4d90b41,0–11/c6/3GiB/swap0/nice19;24 games16:07/no verdict.
-Positive printed/unrounded lower95 confirms transfer; overlap0 leaves
-unconfirmed/promotion stands; upper95<0 reverts. Fault/incomplete unscored.
-Expected gate terminal20:00–21:00; healthy controller stays detached.
+Data step2 full58/config/epoch58, identical reexport/20integer parity PASS;
+selected **4636de46**. Promoted forgeA/A40 PASS9/23/8, zero faults/all9 pins.
+**Forge3190821/3190832** manually nominated fixed400/200 gate10+0.1 starts
+16:48:15: identical final14 4f8f631f BOTH sides,4636de46 vsa4d90b41,
+4–11/c2/3GiB/swap0/nice10/host pinningON;62 games17:05/no verdict.
+Positive printed AND unrounded lower95/zero faults/pins only keeps; otherwise
+shelf/incomplete unscored. ETA18:40–19:00, no rescue/extension/pooling.
 
-Data step2 preparation/coverage2.000913× complete, unchanged58×256M/
-KB8H512/NB8/factorizer-off seed/recipe/corpus/IO2b3ea07. Recovered rig
-**74604/74608** healthy51/58/validation0.00912832/GPU79%16:07; full58 roughly
-16:40–16:50. Native finalizer**146132/146134** waits for terminal then selected
-identical reexport/20integer parity onrig13,15/2GiB per14:10 amendment.
-No automatic net games. **Forge3089937/3089947** fresh promoted-package
-A/A40 starts16:04:35,11 games16:08; first trusted free lane gets manually
-reviewed fixed40010+0.1 data gate with identical acceptedsource/options
-BOTH sides. No repeats/fallback checkpoints/rescue/pooling.
+**Rig145862/148452** tune transfer own60+0.6 A/A40 PASS4/28/8, zero faults.
+Fixed400 live88 games17:05, exact current pre-tune4a83038a vsfinal14 4f8f631f/
+samea4d90b41,0–11/c6/3GiB/swap0/nice19; ETA20:00–21:00. Positive lower
+confirms transfer; overlap0 leaves unconfirmed/promotion stands; upper95<0
+reverts. Old admission is administratively stopped/unscored/no continuation.
 
-Prepared/pushed **d24bc75/night/rodent-fixed-count**: exact even-count
-pairmatch, async UCI deadlines/stop/reaping/stderr/exit diagnostics. Full
-short/race/vet/build and final affected checks PASS onforge; no Rodent games.
-After transfer/data, final frozen package + own120+1 control before1000/500
-Rodent confirmation. [Instrument record](experiments/2026-10-11-pairmatch-fixed.md).
-Separate checked SEEbbac8ce/singular739a23f need actual-base checks/gates
-later; no stacking. Provenance certification/SEE values remain unresolved.
+Frozen8192 source-stratified holdout diagnostic complete: integer/ideal-float
+MAE6.017cp,p9515.161cp; sampled new-net loss slightly worse than accepted.
+No loss-based gate/adoption or new training nomination; GPU idle after this
+bounded diagnostic underAstra's post-training direction. Source/material/king
+exposure estimates and precision limits recorded, not actual presentation counts.
 
-C:61.60GiB,/work110.40GiB16:07–16:08; old readers/hopper untouched.
-Next session not before16:45EDT: data-base AA terminal, full58/parity,
-then manual data nomination; transfer keepsrig. [Session65](experiments/2026-10-11-session65.md).
+Checked/pushed actualf1d0a03 topics **73fd6fe/night/see-geometry-final14** and
+**133b2f3/night/singular-correction-final14**; focused/full short/race/vet/PGO
+PASS, no adoption/games. After data/transfer comes Rodent confirmation, then
+these separate ownA/A40/fixed400 gates; provenance/SEE-value resolution owed.
+
+Rodent instrument **6341225/night/rodent-clock-ledger** adds actual per-ply
+go/bank/elapsed/increment/flag ledger to tested fixed-count d24bc75. Affected
+short/race/vet/PGO, subprocess/CLI ledger and Python audit controls PASS;
+binarye6c2a22f onrig. Initial system-Python missing-chess failure preserved,
+same audit passes installed training venv; launcher uses that interpreter.
+Prepared confirmation launcher/independent legal+clock audit, no final-package
+nomination/Rodent games. Own120+1 A/A40 then1000/500 complete/clean/lower95>0;
+fixed3532-label inference only. Resolve actual package if tune must revert.
+
+C:65.73GiB,/work105.53GiB17:05–17:06; readers/hopper untouched. Next session
+not before19:00EDT: harvest data gate, then tune terminal when ready; prepare
+frozen-package Rodent nomination after both reviews. [Session66](experiments/2026-10-11-session66.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

@@ -1,0 +1,32 @@
+{
+  "reviewed_utc": "2026-10-11T21:02:16.918766+00:00",
+  "base_source": "f1d0a03",
+  "base_net": "a4d90b41/final14 defaults",
+  "candidate": "see",
+  "machine": "rig WSL2",
+  "cpus": [
+    13,
+    15
+  ],
+  "memory_max_bytes": 2147483648,
+  "memory_swap_max": 0,
+  "nice": 19,
+  "go_version": "go1.25.5",
+  "goamd64": "v3",
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "files_sha256": {
+    "engine/search.go": "53075254688e31a4163fe67d49e78b26c8400bf4ae8487bc6ff380a3810b3728",
+    "engine/see_geometry_test.go": "87a52e7fcf87c2e755b845e34abc8084d14743c641cfcc99e40eeb8bcb314ffa",
+    "/home/ehrli/ngn-data/night-20261007/session66-correctness/see-ngn": "49497bd4c48993cf2140f24a98a7edc7fa5415060fd4d1cb9a3f4c4c37e05117"
+  },
+  "checks": [
+    "focused",
+    "engine-short/race",
+    "full-short/race",
+    "vet",
+    "PGO build"
+  ],
+  "playing_adoption": false,
+  "games_launched": false,
+  "receipt_relocation": "completed EXIT trap wrote markers in singular cwd; copied terminal0/done to root once, no checks repeated"
+}
