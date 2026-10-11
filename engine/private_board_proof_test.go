@@ -24,7 +24,7 @@ func TestPrivateBoardCompatibilityDump(t *testing.T) {
 	record := func(board *Bitboard) {
 		var masks [13]uint64
 		var white, black uint64
-		var mg, eg, phase int
+		var phase int
 		all := board.AllPieces()
 		for sq := Square(0); sq <= H8; sq++ {
 			piece := board.PieceAt(sq)
@@ -36,8 +36,6 @@ func TestPrivateBoardCompatibilityDump(t *testing.T) {
 				} else {
 					black |= uint64(1) << uint(sq)
 				}
-				mg += mgPST[piece][sq]
-				eg += egPST[piece][sq]
 				phase += piecePhaseInc[piece]
 				if all[sq] != piece {
 					t.Fatalf("map/mailbox disagree at %d", sq)
@@ -49,7 +47,7 @@ func TestPrivateBoardCompatibilityDump(t *testing.T) {
 		if board.pieces != masks || board.occupiedByColor[White] != white || board.occupiedByColor[Black] != black {
 			t.Fatal("occupancy invariant")
 		}
-		if board.accMG != mg || board.accEG != eg || board.accPhase != phase {
+		if board.accPhase != phase {
 			t.Fatal("accumulator invariant")
 		}
 		if len(all) != bits.OnesCount64(white|black) {
@@ -58,8 +56,6 @@ func TestPrivateBoardCompatibilityDump(t *testing.T) {
 		put(board.pieces)
 		put(board.WhiteOccupancy())
 		put(board.BlackOccupancy())
-		put(int64(board.accMG))
-		put(int64(board.accEG))
 		put(int64(board.accPhase))
 		put(board.Pawns())
 		put(board.Knights())

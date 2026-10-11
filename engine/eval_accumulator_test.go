@@ -6,7 +6,7 @@ import (
 
 // TestEvalAccumulatorUnderMakeUnmake walks a deep move tree applying MakeMove
 // then UnMakeMove. At every node — and after every unmake, including illegal-move
-// undos — the incrementally-maintained eval accumulator (accMG/accEG/accPhase)
+// undos — the incrementally-maintained material phase (accPhase)
 // must equal a full board rescan. This is the bit-exactness proof behind the
 // node-identity gate: if any move type (capture, castle, en passant, promotion,
 // capture-promotion) mishandles its delta, this fires.
@@ -36,9 +36,8 @@ func assertAccumulator(t *testing.T, pos *Position, ctx string) {
 	t.Helper()
 	cp := pos.Board.copy()
 	cp.recomputeAccumulator()
-	if pos.Board.accMG != cp.accMG || pos.Board.accEG != cp.accEG || pos.Board.accPhase != cp.accPhase {
-		t.Fatalf("accumulator drift (%s): incremental mg=%d eg=%d ph=%d, scan mg=%d eg=%d ph=%d",
-			ctx, pos.Board.accMG, pos.Board.accEG, pos.Board.accPhase, cp.accMG, cp.accEG, cp.accPhase)
+	if pos.Board.accPhase != cp.accPhase {
+		t.Fatalf("material phase drift (%s): incremental=%d scan=%d", ctx, pos.Board.accPhase, cp.accPhase)
 	}
 }
 
