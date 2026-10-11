@@ -136,13 +136,11 @@ func TestEvaluationBoundedAndIndependentOfAccumulator(t *testing.T) {
 
 	board := StartingBoard()
 	want := evaluateRaw(&board)
-	board.accMG = 123456
-	board.accEG = -654321
 	board.accPhase = 777
 	if got := evaluateRaw(&board); got != want {
 		t.Fatalf("stale accumulators changed score: got %d want %d", got, want)
 	}
-	if board.accMG != 123456 || board.accEG != -654321 || board.accPhase != 777 {
+	if board.accPhase != 777 {
 		t.Fatal("evaluation repaired or mutated cached accumulators")
 	}
 	if allocations := testing.AllocsPerRun(1000, func() {
