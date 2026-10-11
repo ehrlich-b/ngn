@@ -5,42 +5,41 @@ Playing **ed34480 / NGNN3 KB8 H512 a4d90b41**. TT refresh KEEP
 +16.52[+1.16,+31.93]/40060+0.6; expanded-data KEEP+33.98[+14.97,+53.20].
 Combined provenance uncertified; no claim. Factorizer SHELVE, stays off.
 
-Admission alone76efa526 oned34480/a4d90b41: own A/A40 PASS,
-6/30/4,+17.39[−23.66,+58.93], zero faults/15 intact pins. Frozen60+0.6
-SPRT0,+6/min400/cap4000/72h starts03:24:13, rig21669/22048/0–11/c6/3GiB;
-H1 AND printed/exact lower95>0/zero faults/intact pins only. Winner alone
-getsfixed400120+1 transfer. No strength verdict or integration.
+Admission alone76efa526 oned34480/a4d90b41: own A/A40 PASS;
+frozen60+0.6 SPRT0,+6/min400/cap4000/72h live since03:24:13,
+rig21669/22048/0–11/c6/3GiB. H1 AND printed/exact lower95>0/zero
+faults/intact pins only. Winner alone getsfixed400120+1 transfer.
+297 games at06:05:47, no terminal/verdict or integration.
 
-Data step keeps full T74 replacement and fixed10% T75. Original20GiB
-reserve stops incomplete T74 scatter03:43:58/controller.exit1. Manual
-recovery1535562/1535564 starts03:50:57 on forge4–11/4GiB. Rig22350/22352
-first stores completed T75 raw with pinned SHA256/bytes/fsync. Then reclaim
-only new duplicate/incomplete buckets, rerun incomplete T74 through frozen
-functions, measure its one bottom sample and move exact mapped T74 to rig.
-Restore T75 raw to forge with SHA256/fsync, remove temporary rig duplicate,
-then first fixed10% T75 conversion/unchanged coverage. No completed sample/
-conversion or download repeats; sources/seeds/filters/scales/map unchanged.
-Terminals: forge**recovery.exit**, rig**recovery-copy.exit**; old terminals
-are historical. [Recovery](experiments/2026-10-11-data-step2.md).
+Data step keeps full T74 replacement and fixed10% T75. Raw T75 copy
+completed03:59:31/pinned bytes+SHA256+fsync. Recovery then stopped because
+cleanup left an empty scatter output root the frozen converter requires
+absent. Session59 removes that root and explicitly reuses only the raw-copy
+receipt. Forge1621423/1621432/1621450 reruns incomplete T74 since06:03:24;
+rig22738/22742 natively waits since06:04:16. New terminals:
+**recovery-session59.exit** / **recovery-copy-session59.exit**;
+oldrecovery.exit1/recovery-copy.exit1 are historical. No completed work repeats.
+[Repair/sequence](experiments/2026-10-11-data-step2.md).
 
-Rig local reader22172/127.0.0.1:8769; T75 reader1489286/forge8768. Original
-21886 native wait admits unchanged58x256M/KB8H512/NB8/factorizer-off iff
-coverage1.9–2.3x. Full58 then forge identical reexport/20 parity/manual
-actual-base A/A40/fixed40010+0.1 gain gate. Storage milestone05:30–06:30,
-coverage07:30–09:00, training13:00–17:00 if admitted; refine from receipts.
-Old T80/T76 bottom streams completed03:42:46; no rescans or source re-audits.
+Then one frozen T74 bottom sample, exact mapped T74 to rig/SHA256+fsync
+acknowledgment, raw T75 restore to forge/SHA256+fsync acknowledgment,
+first fixed10% T75 conversion and unchanged coverage. Sources/seeds/filters/
+scales/map/recipe unchanged. Original GPU21886/21889 waits for coverage
+1.9–2.3x, then unchanged58x256M/KB8H512/NB8/factorizer-off. Full58 then
+forge identical reexport/20parity/manual actual-base A/A40/fixed40010+0.1.
+Rig reader22172/8769 and forge1489286/8768 remain live; completed T80/T76
+bottom samples need no rescan. Storage ETA07:30–08:30, coverage08:00–09:30,
+training14:00–18:00 if admitted; estimates are not restart deadlines.
 
 SPSA frozen2000/24k/final14 and12-search checks PASS oned34480/a4d90b41;
-actual-vector games follow admission. Changed accepted package needs only
-necessary combination. Existing candidates suffice; no extra preparation,
-optimizer extension or midpoint. Rodent diagnostic unscored, no retry.
+final-vector games follow admission. Existing candidates suffice; no extra
+preparation, optimizer extension or midpoint. Rodent diagnostic unscored/no retry.
 
-Forge4–11/8GiB/host pinningON/max2games; rig games0–11/c6,
-GPU/loading12,14. Original reader117631/hopper1170 untouched. C:275.12GiB
-with raw copy5.06GB at03:52; projected both new files leaveabout65GiB.
-Keep25GiB C: and existing20GiB `/work` reserves. Next session not before
-06:00EDT October11, first new recovery/storage receipt, then admission/corpus
-terminal. [Session58](experiments/2026-10-11-session58.md).
+Forge4–11/8GiB/host pinningON/max2games; rig games0–11/c6, GPU/loading12,14.
+C:239.01GiB; forge/work274.09GiB free at06:05:47. Existing25GiB C:/20GiB
+/work reserves; original reader117631/hopper1170 untouched. Next session
+not before07:45EDT, new recovery/storage receipts first, then admission/corpus
+terminals. [Session59](experiments/2026-10-11-session59.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

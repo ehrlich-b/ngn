@@ -1,0 +1,18 @@
+2026-10-11T06:03:56-04:00
+MemoryCurrent=2783432704
+EffectiveCPUs=
+ActiveState=active
+SubState=running
+ 117631       1  117631  1-00:08:50  0.3 18876 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+1489286       1 1489286    02:52:10  0.0 14612 python3 archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768
+1621423       1 1621423       00:32  0.0  3024 bash recovery-session59-controller.sh
+1621432 1621423 1621423       00:32  0.9 36640 /work/lanes/ngn-s47/parity-venv/bin/python recovery-session59.py --resume-after-raw
+1621450 1621432 1621450       00:32  190 701984 /work/lanes/ngn-data-volume-20261010/converter scatter --input /work/lanes/ngn-data-volume-20261010/farseerT74.binpack --conflicts /work/lanes/ngn-data-volume-20261010/conflicts.bin --probe-keys /work/lanes/ngn-data-volume-20261010/calibration-probe.keys --output /work/lanes/ngn-data-step2-20261011/scatter-t74full --buckets 256 --workers 4 --seed 2026100903 --keep-per-mille 1000
+{"utc": "2026-10-11T07:59:31.167602+00:00", "stage": "session57-data-step2", "event": "scatter-start", "detail": "t74full; fixed keep1000/1000; workers4; original pipeline"}
+{"utc": "2026-10-11T10:03:24.516288+00:00", "stage": "session58-data-recovery", "event": "raw-storage-reused", "detail": "manual continuation; existing SHA256/bytes/fsync acknowledgment; no repeat copy"}
+{"utc": "2026-10-11T10:03:24.516732+00:00", "stage": "session58-data-recovery", "event": "discard-incomplete-buckets", "detail": "new-lane partial files0; retained interruption logs"}
+{"utc": "2026-10-11T10:03:24.521708+00:00", "stage": "session57-data-step2", "event": "scatter-start", "detail": "t74full; fixed keep1000/1000; workers4; original pipeline"}
+Running as unit: ngn-s59-data-recovery.scope; invocation ID: 38960983608e42228d83594809cccd36
+ngnk4archive: conflicts=5271120 probes=107303 buckets=256 workers=4
+Filesystem        1B-blocks         Used    Available Use% Mounted on
+/dev/sda       536608739328 226181632000 310427107328  43% /work

@@ -1,4 +1,5 @@
 """Manually recover interrupted fixed conversion using rig temporary storage."""
+import argparse
 import datetime
 import hashlib
 import importlib.util
@@ -119,19 +120,33 @@ T74_REMOVED = threading.Event()
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--resume-after-raw', action='store_true',
+                        help='Manual continuation of the acknowledged raw-copy stage only')
+    args = parser.parse_args()
     assert (S / 'controller.exit').read_text().strip() == '1'
     assert not (S / 't74full.bf').exists() and not (S / 't75.bf').exists()
-    assert (S / 'farseerT75.binpack').stat().st_size == RAW_PIN['bytes']
+    if args.resume_after_raw:
+        receipt = json.loads((S / 't75-rig-copy.json').read_text())
+        assert all(receipt[key] == RAW_PIN[key] for key in ['bytes', 'sha256'])
+        assert not (S / 'farseerT75.binpack').exists()
+        COPIED['raw'].set()
+    else:
+        assert (S / 'farseerT75.binpack').stat().st_size == RAW_PIN['bytes']
     server = ThreadingHTTPServer(('192.168.4.65', 8769), Handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    PINS['raw']['url'] = f'http://192.168.4.65:8769/{TOKEN}/raw/data'
-    READY['raw'].set()
-    status('raw-storage-start', 'preserve complete T75 on rig before rerunning interrupted T74 scatter')
-    assert COPIED['raw'].wait(6 * 3600), 'no raw copy acknowledgment; retain source'
-    (S / 'farseerT75.binpack').unlink()
+    if args.resume_after_raw:
+        status('raw-storage-reused', 'manual continuation; existing SHA256/bytes/fsync acknowledgment; no repeat copy')
+    else:
+        PINS['raw']['url'] = f'http://192.168.4.65:8769/{TOKEN}/raw/data'
+        READY['raw'].set()
+        status('raw-storage-start', 'preserve complete T75 on rig before rerunning interrupted T74 scatter')
+        assert COPIED['raw'].wait(6 * 3600), 'no raw copy acknowledgment; retain source'
+        (S / 'farseerT75.binpack').unlink()
     bucket_dir = S / 'scatter-t74full'
     status('discard-incomplete-buckets', f'new-lane partial files{len(list(bucket_dir.iterdir()))}; retained interruption logs')
     subprocess.run(['find', str(bucket_dir), '-mindepth', '1', '-delete'], check=True)
+    bucket_dir.rmdir()  # The frozen converter creates its output directory itself.
     spec = importlib.util.spec_from_file_location('frozen_prepare', S / 'prepare.py')
     prepare = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(prepare)

@@ -1,4 +1,5 @@
 """Temporary raw storage, exact mapped T74 loading, and raw restoration."""
+import argparse
 import datetime
 import hashlib
 import http.client
@@ -45,10 +46,19 @@ def receive(endpoint, stage, target):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--resume-after-raw', action='store_true',
+                        help='Manual continuation of the completed raw copy only')
+    args = parser.parse_args()
     token = (S / 'token').read_text().strip()
     endpoint = 'http://192.168.4.65:8769/' + token
     raw = S / 'farseerT75.binpack'
-    pin = receive(endpoint, 'raw', raw)
+    if args.resume_after_raw:
+        pin = json.loads((S / 't75-copy-receipt.json').read_text())
+        assert pin['bytes'] == 46983203020 and raw.stat().st_size == pin['bytes']
+        assert pin['sha256'] == 'f1907be568d4a48297dd28c2060c53b07ee4170e4e9392faa525d6d697948441'
+    else:
+        pin = receive(endpoint, 'raw', raw)
     receive(endpoint, 't74', S / 't74full.bf')
     connection = http.client.HTTPConnection('192.168.4.65', 8769, timeout=21600)
     connection.putrequest('POST', '/' + token + '/raw/restore')

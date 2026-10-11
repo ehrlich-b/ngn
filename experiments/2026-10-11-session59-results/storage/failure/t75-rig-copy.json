@@ -1,0 +1,7 @@
+{
+  "completed_utc": "2026-10-11T07:59:31.048292+00:00",
+  "bytes": 46983203020,
+  "sha256": "f1907be568d4a48297dd28c2060c53b07ee4170e4e9392faa525d6d697948441",
+  "path": "/home/ehrli/ngn-data/night-20261007/session57-data-step2/farseerT75.binpack",
+  "method": "streaming SHA256 during copy; fsync file and directory"
+}
