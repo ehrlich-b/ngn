@@ -1,0 +1,7 @@
+{
+  "nameWithOwner": "ehrlich-b/ngn",
+  "isPrivate": true,
+  "defaultBranch": "main",
+  "destination": "origin night/night",
+  "verification": "existing installed keyring credentials; gh repo view"
+}

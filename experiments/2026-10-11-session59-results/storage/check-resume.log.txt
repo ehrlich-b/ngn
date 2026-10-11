@@ -1,0 +1,3 @@
+Running as unit: run-p1620222-i1620522.scope; invocation ID: 9726b0554ded444194e0c7cb018b935f
+PASS: completed raw copy reused; absent directory delivered to frozen converter; fixed arguments intact
+PASS: mismatched raw receipt cannot resume conversion

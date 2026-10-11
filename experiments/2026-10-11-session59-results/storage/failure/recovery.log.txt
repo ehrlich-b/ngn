@@ -1,0 +1,20 @@
+Running as unit: ngn-s58-data-recovery.scope; invocation ID: 92a8b4eeef6e4034b10d534c47f9bf67
+Traceback (most recent call last):
+  File "/work/lanes/ngn-data-step2-20261011/recovery.py", line 175, in <module>
+    main()
+    ~~~~^^
+  File "/work/lanes/ngn-data-step2-20261011/recovery.py", line 138, in main
+    pin = prepare.convert('t74full', prepare.old / 'farseerT74.binpack', 1000, 2026100903, 2026100912)
+  File "/work/lanes/ngn-data-step2-20261011/prepare.py", line 45, in convert
+    run([str(old / 'converter'), 'scatter', '--input', str(input_path),
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         '--conflicts', str(old / 'conflicts.bin'), '--probe-keys', str(old / 'calibration-probe.keys'),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         '--output', str(s / ('scatter-' + name)), '--buckets', '256', '--workers', '4',
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         '--seed', str(bucket_seed), '--keep-per-mille', str(keep)], 'scatter-' + name)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/lanes/ngn-data-step2-20261011/prepare.py", line 40, in run
+    assert rc == 0, (name, rc)
+           ^^^^^^^
+AssertionError: ('scatter-t74full', 1)
