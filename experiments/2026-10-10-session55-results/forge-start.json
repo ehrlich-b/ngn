@@ -1,0 +1,12 @@
+{
+  "utc": "2026-10-11T02:10:41.433841+00:00",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:     18793242624  4872048640  1338916864     5120000 12951490560 13921193984\nSwap:     4294963200     6291456  4288671744\n",
+  "processes": " 117631       1  117631 SNs    58535 26484 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767",
+  "factorizer_exists": false,
+  "factorizer": {
+    "finalizer.pid": null,
+    "finalizer.exit": null,
+    "finalizer.done": null,
+    "training-receipt.json": null
+  }
+}

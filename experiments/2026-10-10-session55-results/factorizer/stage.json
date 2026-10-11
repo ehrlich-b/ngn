@@ -1,0 +1,83 @@
+{
+  "staged_utc": "2026-10-11T02:13:53.361711+00:00",
+  "stage": "/home/ehrli/ngn-data/night-20261007/session55-factorizer-games",
+  "games_launched": false,
+  "actual_nomination_exists": false,
+  "training_receipt": {
+    "completed_utc": "2026-10-11T02:11:00.616429+00:00",
+    "training_machine": "rig WSL2",
+    "postprocessing_machine": "forge",
+    "epochs": 58,
+    "total_positions": 14848000000,
+    "best_epoch": 58,
+    "best": {
+      "epoch": 58,
+      "step": 906250,
+      "positions": 256000000,
+      "updates": 15625,
+      "loss": 0.0088491064453125,
+      "lr": 0.0001,
+      "seconds": 359.2150987230125,
+      "positions_per_second": 712664.9211296078,
+      "steady_positions_per_second": 712879.8115898493,
+      "validation_loss": 0.008870885622823465,
+      "validation_loss_lambda_075": 0.008870885622823465,
+      "validation_loss_result": 0.07949930733559257
+    },
+    "reexport_identical": true,
+    "parity_cases": 20,
+    "net_sha256": "1885d7f9d69e6389c133dcc3732c3eb16863bd3f75c45161a56f2fdc2e6851dc",
+    "checkpoint_sha256": "9c7e91fc83f8587d703efc78ccb6e0884f8e8f331567c90a15391b9533f410a2",
+    "archive_split": {
+      "hash": "ngn-board-mix64-v1",
+      "seed": 20261006,
+      "modulus": 1024,
+      "holdout_remainder": 0,
+      "block_records": 262144,
+      "sources": [
+        {
+          "path": "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+          "bytes": 55627628064,
+          "records": 1738363377
+        },
+        {
+          "path": "/home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json",
+          "bytes": 35902850688,
+          "records": 1121964084,
+          "sha256": "2024df427c42c2409ec815e93a98672f1863b58d6e8d50c49e15a7b8541add37"
+        },
+        {
+          "path": "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+          "bytes": 75977281056,
+          "records": 2374290033
+        }
+      ],
+      "raw_records": 5234617494,
+      "training_records": 5229493997,
+      "holdout_records": 5123497,
+      "contract": "identical occupied boards share partition; labels excluded"
+    },
+    "king_factorizer": true,
+    "configuration_matches_baseline_except_flag_and_output": true,
+    "automatic_games": false
+  },
+  "nomination_template": {
+    "base_source": "9bfbae4",
+    "base_net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+    "base_engine_sha256": "84431b35d3ae8ef92c6e9f1b967cc01ad35b400a1f812c347fe6f0dcbe55c2e1",
+    "reviewed_training_receipt_sha256": "383b7a217e5407b09445aa8aa40c2d7d3d4850b9c127f1b15af71abaec09fab6",
+    "training_review": "experiments/2026-10-10-session55-results/factorizer/review.json",
+    "cpu_mask": "0-11",
+    "concurrency": 6,
+    "host_pinning": "not-applicable; physical rig",
+    "memory_max_bytes": 3221225472,
+    "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+    "go_version": "go version go1.25.5 linux/amd64",
+    "concurrent_workloads": [
+      "REPLACE with actual workloads after terminal TT review"
+    ],
+    "launch_requires": "TT20265 terminal reviewed and immediate source selected; if TT kept replace binary/source/hash and complete changed-source combination; copy reviewed template to nomination.json only then"
+  },
+  "staged_inputs": "84431b35d3ae8ef92c6e9f1b967cc01ad35b400a1f812c347fe6f0dcbe55c2e1  ngn\na4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86  base.nnue\n1885d7f9d69e6389c133dcc3732c3eb16863bd3f75c45161a56f2fdc2e6851dc  factorizer/trained/best.nnue\n9b0002f856849ebaf5e1d39487303d8e8f5406a8cc26d22fc2b409f9761aa83a  sprt\n974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222  openings.txt\ned10e8511cc6a42e754f9f30407bbcfc4c4f24f38ab3568ea16d0036e725aea7  gate-parser.py\n0b274fb0ab6550b4b6722ed5dcd73a5179b73039cd786d84c3e8e16777383139  games.py\n236d666d752d2e71d39f1e554f45b77c97a6493b68625bcfa610df1e7be7dac3  controller.sh\n",
+  "syntax": "Python ast and bash -n PASS; no engine code change/harness rebuild"
+}

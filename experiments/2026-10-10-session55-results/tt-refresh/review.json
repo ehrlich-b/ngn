@@ -1,0 +1,43 @@
+{
+  "reviewed_utc": "2026-10-11T02:14:29.639761+00:00",
+  "verdict": "A/A PASS; candidate gate still running, no strength verdict",
+  "aa": {
+    "mode": "aa",
+    "games": 40,
+    "pairs": 20,
+    "wins": 3,
+    "draws": 30,
+    "losses": 7,
+    "penta": [
+      0,
+      6,
+      12,
+      2,
+      0
+    ],
+    "elo": -34.9,
+    "ci95": [
+      -82.0,
+      11.0
+    ],
+    "exact_elo_ci95": [
+      -34.86007028756008,
+      -81.90916818710751,
+      10.941164500210858
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 30,
+      "checkmate": 10
+    },
+    "verdict": "aa-pass"
+  },
+  "zero_faults": true,
+  "intact_after_aa_inputs": true,
+  "controller": 20265,
+  "gate_started": "2026-10-10T21:53:47-04:00",
+  "no_repeat": true
+}

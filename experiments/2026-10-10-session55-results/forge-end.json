@@ -1,0 +1,6 @@
+{
+  "utc": "2026-10-11T02:14:30.651675+00:00",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:     18793242624  4966481920  1121288192     5132288 13074690048 13826760704\nSwap:     4294963200     6291456  4288671744\n",
+  "processes": " 117631       1  117631 SNs    58764 26484 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767",
+  "host_pinning": "on"
+}
