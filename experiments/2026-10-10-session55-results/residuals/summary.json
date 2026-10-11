@@ -1,0 +1,33 @@
+{
+  "reviewed_utc": "2026-10-11T02:13:52.937458+00:00",
+  "source_summaries": {
+    "t80": {
+      "records": 501,
+      "base_blended_mse": 0.008839605981759023,
+      "candidate_blended_mse": 0.008752024376971208,
+      "relative_mse_percent": -0.9907862971329728,
+      "small_cells": [
+        {
+          "bucket": 7,
+          "records": 3
+        }
+      ]
+    },
+    "t76": {
+      "records": 499,
+      "base_blended_mse": 0.007606952981149596,
+      "candidate_blended_mse": 0.007980797202001405,
+      "relative_mse_percent": 4.914506791066198,
+      "small_cells": []
+    },
+    "t74": {
+      "records": 528,
+      "base_blended_mse": 0.00935095066447106,
+      "candidate_blended_mse": 0.009299259824630651,
+      "relative_mse_percent": -0.5527870020404335,
+      "small_cells": []
+    }
+  },
+  "population_interval": false,
+  "playing_verdict": false
+}

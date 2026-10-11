@@ -1,0 +1,17 @@
+{
+  "snapshot_utc": "2026-10-11T02:14:30.135055+00:00",
+  "host_c_free_bytes": 300257378304,
+  "host_c_free_gib": 279.636474609375,
+  "rig_memory": "               total        used        free      shared  buff/cache   available\nMem:     16267808768  3580227584  2329739264     3887104 10675851264 12687581184\nSwap:     4294967296    26898432  4268068864\n",
+  "rig_gpu": "0 %, 1524 MiB, 16303 MiB\n",
+  "forge_memory": "               total        used        free      shared  buff/cache   available\nMem:     18793242624  4966481920  1121288192     5132288 13074690048 13826760704\nSwap:     4294963200     6291456  4288671744\n",
+  "playing_source": "9bfbae4",
+  "playing_net": "a4d90b41",
+  "running_tt_controller": 20265,
+  "factorizer_training_terminal": 0,
+  "factorizer_finalizer_terminal": 0,
+  "factorizer_gate_staged": true,
+  "factorizer_games_launched": false,
+  "hardware_idle_reason": "GPU has no eligible next recipe before the factorizer game verdict; forge code/tuner work is complete. No further candidate may be prepared ahead of the existing games queue.",
+  "next_session_not_before": "2026-10-11 02:00 EDT"
+}

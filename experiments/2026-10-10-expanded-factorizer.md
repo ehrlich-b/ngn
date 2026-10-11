@@ -43,3 +43,14 @@ zero flags/crashes/illegal/no-move outcomes and intact inputs; otherwise
 shelve without extension. No automatic games/adoption, claim, embedded-net
 change or publication. Training is independent of the rig diagnostic queue;
 games follow already-nominated higher-priority TT/Rodent work when ready.
+
+Session55: full58/selected58, folded reexport and20 exact integer parity
+reviewed PASS; net1885d7f9. Prepared rigstage `session55-factorizer-games`,
+syntax/pins PASS, actual nomination/games still absent. After TT terminal
+review select the immediate source/binary, update its nomination template
+and workloads, and run changed-source combination parity if TT is kept.
+Then manually launch the prepared runner under0–11/c6/3GiB/swap0/nice19.
+Original A/A40/fixed400/lower95>0 rule remains unchanged.
+[Review](2026-10-10-session55-results/factorizer/review.json),
+[stage](2026-10-10-session55-results/factorizer/stage.json),
+[runner](2026-10-10-expanded-factorizer-games.py).

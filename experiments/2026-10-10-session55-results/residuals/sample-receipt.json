@@ -1,0 +1,29 @@
+{
+  "seed": 20261006,
+  "modulus": 1024,
+  "windows": 64,
+  "window_records": 8192,
+  "sources": [
+    {
+      "source": "t76",
+      "sample_records": 524288,
+      "holdout_records": 499,
+      "sample_sha256": "2cfde5295853e6633faf628cf1880f4aa81bcf667957c5312d2f2e5258c3c8f5",
+      "ngnp_sha256": "cbffc62ea48d9e10e1693ded28604f820fedc507d6438ff8fb6223cac6c78344"
+    },
+    {
+      "source": "t74",
+      "sample_records": 524288,
+      "holdout_records": 528,
+      "sample_sha256": "6e94cd9b07fa76666a9aa8ae6ac6785bfec46de265c3cf3b4f43551dd408488e",
+      "ngnp_sha256": "4877db0df44a767e4abf1288a4eb78de1fd8c2de04d25bcad9f5260c43b9f386"
+    },
+    {
+      "source": "t80",
+      "sample_records": 524288,
+      "holdout_records": 501,
+      "sample_sha256": "b3a5796899463c2c97888aa6dd5c8bed972026475740b6bbead871c655fe5ea3",
+      "ngnp_sha256": "feea01e07fd6bb666963c3792ed569ea8551ed632199d0adfa7e0d203e86fae9"
+    }
+  ]
+}

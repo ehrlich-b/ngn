@@ -4,35 +4,31 @@
 Playing **9bfbae4 / NGNN3 KB8 H512 a4d90b41**; expanded-data400 KEEP
 +33.98[+14.97,+53.20],zero faults/intact pins. No new absolute claim.
 
-Archived TT-only rig40060+0.6 **−21.74[−36.88,−6.69]** implicates TT cost.
-No derived code restored; combined provenance remains uncertified.
-One owned matching-refresh recoveryc14f03d8 now runs ownA/A40, then
-conditionally fixed40060+0.6 onrig0–11/c6/3GiB, controller20265 started
-21:31:26. Printed AND exact lower95>0/zero faults/intact pins only keeps.
-Existing code checks PASS; no repeat or speculative-source commit yet.
+TT isolation−21.74[−36.88,−6.69]/40060+0.6 implicates owned TT cost;
+no derived code restored, combined provenance uncertified. One owned
+matching-refresh candidatec14f03d8/patch0304d934 runs fixed40060+0.6 onrig
+0–11/c6/3GiB, controller20265; ownA/A40 PASS−34.86[−81.91,+10.94], gate
+began21:53:47. Keep only printed AND exact lower95>0/zero faults/intact pins.
+No speculative-source commit/repeated checks. Terminal expected01:40–02:15.
 
-Rodent diagnostic terminal1 at20:36:16:384 movetime probes complete,
-first opponent node-budget search fails, zero scored cells/profiles.
-No retry/extension/adoption. Reported throughput ratios0.635/0.671 do not
-establish the causal strength gap; [review](experiments/2026-10-10-session54-results/rodent/review.json).
+Expanded-data factorizer completes full58 at22:02:09; relay recovered once,
+forge390589 finalizerexit0 at22:11:00. Selected58/**1885d7f9**, recipe/
+folded reexport/20 integer parity PASS. Rigsession55-factorizer-games staged,
+syntax/pins PASS, no nomination/games. After TT terminal selects immediate
+source, update template/binary/hash/workloads and run changed-source parity
+if needed; manual ownA/A40/fixed40010+0.1, original lower95>0 rule.
+Residuals are diagnostic only; no eligible next GPU recipe yet.
 
-SPSA frozen2000/**24,000** endpoint completes21:30:06, exit0 onforge.
-Final14 values pass current UCI-handler/search-variable checks and12 bounded
-searches,6/6 changed positions;368365 terminal0 at21:33:37. Manual final-vector
-nomination/ownA/A40/exact40010+0.1 remains required after package decisions.
-No optimizer extension or intermediate adoption. Changed source/net needs
-new combination verification. [Rule](experiments/2026-10-10-spsa-final-vector.md).
-
-Factorizer18398/18406 healthy53/58 at21:35, expected22:05–22:10;
-12,14/GPU/4GiB. At full58 check original relay receipts before one manual
-transfer recovery; native waiters18513/18534 remain, no duplicate relay.
-Existing admission17b08fec checked/current, unlaunched; recheck only if
-actual package changes. No extra candidates ahead of the games queue.
+SPSA2000/24k and final14-handler/12-search verification already terminal/PASS
+on9bfbae4/a4d90b41. Admission17b08fec also checked; games unlaunched.
+After higher-priority decisions, actual-base combination/nomination/gates;
+recheck only changed package. No extra candidate ahead of this queue.
+Rodent terminal node-compliance failure remains unscored; no retry/adoption.
 
 Forge4–11/8GiB/host pinningON/max2 games; reader117631/hopper1170 untouched.
-C:279.63GiB; rig5.16GiB used/9.99GiB available at21:35.
-Next session not before22:10 EDT; first check factorizer terminal/relay and
-TT control. [Session54](experiments/2026-10-10-session54.md).
+C:279.64GiB; rig3.33GiB used/11.82GiB available at22:14.
+Next session not before02:00 EDT October11, first TT terminal, then factorizer
+nomination/games. [Session55](experiments/2026-10-10-session55.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

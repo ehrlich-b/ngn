@@ -1,0 +1,63 @@
+{
+  "utc": "2026-10-11T02:10:41.162852+00:00",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:     16267808768  3367497728  2633093120     3891200 10585231360 12900311040\nSwap:     4294967296    26898432  4268068864\n",
+  "gpu": "0 %, 1524 MiB, 16303 MiB\n",
+  "processes": "   1170     256    1170 Ssl    89960 17644 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n  20265   20260   20265 SNs     2355  3456 bash /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/controller.sh\n  20404   20265   20404 SN      1014  1920 timeout --signal=TERM --kill-after=15s 12h taskset -c 0-11 nice -n19 ./sprt -new ./candidate-ngn -base ./baseline-ngn -tc 60+0.6 -concurrency 6 -mingames 1000000 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/openings.txt -lowpower=false -maxgames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false\n  20405   20404   20404 SNl     1014 17168 ./sprt -new ./candidate-ngn -base ./baseline-ngn -tc 60+0.6 -concurrency 6 -mingames 1000000 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/openings.txt -lowpower=false -maxgames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session53-tt-refresh-games/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false\n  20409   20405   20404 SNl     1014 204420 ./candidate-ngn\n  20410   20405   20404 SNl     1014 161012 ./candidate-ngn\n  20411   20405   20404 SNl     1014 180260 ./candidate-ngn\n  20413   20405   20404 RNl     1014 203876 ./candidate-ngn\n  20417   20405   20404 SNl     1014 164280 ./candidate-ngn\n  20422   20405   20404 SNl     1014 160280 ./candidate-ngn\n  20427   20405   20404 SNl     1014 204400 ./baseline-ngn\n  20428   20405   20404 SNl     1014 167380 ./baseline-ngn\n  20429   20405   20404 SNl     1014 155556 ./baseline-ngn\n  20431   20405   20404 SNl     1014 186944 ./baseline-ngn\n  20439   20405   20404 RNl     1014 157036 ./baseline-ngn\n  20442   20405   20404 RNl     1014 170492 ./baseline-ngn\n  20511   20507   20511 Ss+        0  3456 bash -s\n  20512   20511   20511 S+         0 12544 python3 -",
+  "status_tail": [
+    "{\"utc\": \"2026-10-10T20:24:20.387149+00:00\", \"stage\": \"session52-handoff\", \"event\": \"detach\", \"detail\": \"playing9bfbae4/a4d90b41 unchanged; freshTT AA40 PASS7/30/3 exact+34.86[-4.08,+74.69] zero faults/pinsOK; controller18279/gate18579 archived40060+0.6 began16:11:05 expected20:10; admission342523 exit0 allchecks reviewed candidate17b08fec ready no games/adoption; factorizer18398/18406 startup noepoch16:20 scope4GiB/oom0; relaytool48300 unavailable nativewaiters18513/18534 target18398 transfercompletionunconfirmed checkterminalbeforemanualrecovery; SPSA88166/88178 durable1900/22800 liveRNG/frozen24k; C281.86GiB/WSL5.2used9.9available; allusefulcodeprepared nextsessionnotbefore20:15EDT; committed/pusheddef8606; no claim/publication\"}",
+    "{\"utc\": \"2026-10-10T23:51:07.190188+00:00\", \"stage\": \"session51-tt-isolation-rig\", \"event\": \"gate-done\", \"detail\": \"{\\n  \\\"mode\\\": \\\"gate\\\",\\n  \\\"games\\\": 400,\\n  \\\"pairs\\\": 200,\\n  \\\"wins\\\": 49,\\n  \\\"draws\\\": 277,\\n  \\\"losses\\\": 74,\\n  \\\"penta\\\": [\\n    4,\\n    41,\\n    131,\\n    24,\\n    0\\n  ],\\n  \\\"elo\\\": -21.7,\\n  \\\"ci95\\\": [\\n    -37.0,\\n    -7.0\\n  ],\\n  \\\"exact_elo_ci95\\\": [\\n    -21.74306492903708,\\n    -36.87601574788365,\\n    -6.692110833903088\\n  ],\\n  \\\"flags\\\": [\\n    0,\\n    0\\n  ],\\n  \\\"reasons\\\": {\\n    \\\"draw-rule\\\": 269,\\n    \\\"checkmate\\\": 123,\\n    \\\"max-moves\\\": 6,\\n    \\\"stalemate\\\": 2\\n  },\\n  \\\"verdict\\\": \\\"TT-regression-implicated\\\",\\n  \\\"playing_adoption\\\": false\\n}; no playing change\"}",
+    "{\"utc\": \"2026-10-10T23:51:07.202382+00:00\", \"stage\": \"session51-tt-isolation-rig\", \"event\": \"end\", \"detail\": \"rc 0; diagnostic only; review required; no adoption or pooling\"}",
+    "{\"utc\": \"2026-10-11T00:16:40.903469+00:00\", \"stage\": \"session50-rodent-blackbox\", \"event\": \"probe-start\", \"detail\": \"frozen diagnostic; no playing adoption\"}",
+    "{\"utc\": \"2026-10-11T00:29:36.244995+00:00\", \"stage\": \"session53-handoff\", \"event\": \"detach\", \"detail\": \"playing9bfbae4/a4d90b41 unchanged; freshTT isolation reviewed400/49-277-74 exact-21.74[-36.88,-6.69]/zero faults/pinsOK implicatesTT; Rodent19279 started20:16:40 frozen384 probes then controlled200nodes/200time/24profiles rig0-11/c6/4GiB; original TT refresh candidatec14f03d8 patch0304d934 checkedforge362581 exit0 narrow/fullshort/race/vet/PGO, prospective rig ownAA40/fixed40060+0.6 staged/unlaunched afterRodent manualreview; factorizer18398/18406 healthy41/58 at20:27 ETA22:00-22:15; originalrelaycompletionunconfirmed checktrue terminal beforemanualtransfer; SPSA88166/88178 durable1975/23700 expected24k21:30; nextsessionnotbefore21:30EDT; committed/pushednight/night; no claim/publication\"}",
+    "{\"utc\": \"2026-10-11T00:35:15.249575+00:00\", \"stage\": \"session50-rodent-blackbox\", \"event\": \"probe-done\", \"detail\": \"complete; preserve failures, no retries or extension\"}",
+    "{\"utc\": \"2026-10-11T00:35:15.269988+00:00\", \"stage\": \"session50-rodent-blackbox\", \"event\": \"compliance-start\", \"detail\": \"frozen diagnostic; no playing adoption\"}",
+    "{\"utc\": \"2026-10-11T01:31:26.256180+00:00\", \"stage\": \"session53-tt-refresh-games\", \"event\": \"aa-start\", \"detail\": \"fresh own-TT immediate-base A/A40; rig0-11/c6/nice19/3GiB\"}",
+    "{\"utc\": \"2026-10-11T01:38:38.436986+00:00\", \"stage\": \"session54-handoff\", \"event\": \"detach\", \"detail\": \"Committed/pushed 7509e88 to private origin night/night; playing 9bfbae4/a4d90b41 unchanged. Rodent controller19279 terminal1 at20:36:16: 384 completed movetime probes, first opponent node-compliance failure, zero scored games; no retry. TT refresh20265 started21:31:26 rig0-11/c6/3GiB ownAA40 then fixed40060+0.6 vs immediate base, printed/exact lower95>0 only. SPSA2000/24k terminal0 at21:30:06; final14 live values and12 searches PASS/6changed positions, forge368365 terminal0; no vector adoption. Factorizer18398/18406 healthy53/58 at21:35, ETA22:05-22:10; existing relay terminal review still required, no duplicate waiter. Next session not before22:10EDT for training/transfer and TT control. HostC279.63GiB; reader117631/hopper1170 untouched; no claim/publication.\"}",
+    "{\"utc\": \"2026-10-11T01:53:47.397164+00:00\", \"stage\": \"session53-tt-refresh-games\", \"event\": \"gate-start\", \"detail\": \"exactly400/200 pairs60+0.6; same-position refresh only vs9bfbae4/a4d90b41\"}",
+    "{\"utc\": \"2026-10-11T02:02:09.899002+00:00\", \"stage\": \"session51-expanded-factorizer\", \"event\": \"training-done\", \"detail\": \"full58/config matched; transfer to forge for reexport/20 integer parity; no automatic games or adoption\"}",
+    "{\"utc\": \"2026-10-11T02:02:09.912853+00:00\", \"stage\": \"session51-expanded-factorizer\", \"event\": \"end\", \"detail\": \"rc 0; finalize on forge, then manual review/nomination; no automatic games\"}"
+  ],
+  "factorizer": {
+    "controller.pid": "18398\n",
+    "controller.exit": "0\n",
+    "controller.done": "2026-10-10T22:02:09-04:00\n",
+    "training-terminal.json": "{\n  \"completed_utc\": \"2026-10-11T02:02:09.880791+00:00\",\n  \"full58\": true,\n  \"epochs\": 58,\n  \"total_positions\": 14848000000,\n  \"king_factorizer\": true,\n  \"postprocessing_machine\": \"forge\",\n  \"automatic_games\": false\n}\n"
+  },
+  "factorizer_epoch": {
+    "epoch": 58,
+    "step": 906250,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.0088491064453125,
+    "lr": 0.0001,
+    "seconds": 359.2150987230125,
+    "positions_per_second": 712664.9211296078,
+    "steady_positions_per_second": 712879.8115898493,
+    "validation_loss": 0.008870885622823465,
+    "validation_loss_lambda_075": 0.008870885622823465,
+    "validation_loss_result": 0.07949930733559257
+  },
+  "tt": {
+    "controller.pid": "20265\n",
+    "controller.exit": null,
+    "controller.done": null,
+    "aa-summary.json": "{\n  \"mode\": \"aa\",\n  \"games\": 40,\n  \"pairs\": 20,\n  \"wins\": 3,\n  \"draws\": 30,\n  \"losses\": 7,\n  \"penta\": [\n    0,\n    6,\n    12,\n    2,\n    0\n  ],\n  \"elo\": -34.9,\n  \"ci95\": [\n    -82.0,\n    11.0\n  ],\n  \"exact_elo_ci95\": [\n    -34.86007028756008,\n    -81.90916818710751,\n    10.941164500210858\n  ],\n  \"flags\": [\n    0,\n    0\n  ],\n  \"reasons\": {\n    \"draw-rule\": 30,\n    \"checkmate\": 10\n  },\n  \"verdict\": \"aa-pass\"\n}\n",
+    "gate-summary.json": null
+  },
+  "tt_log": [
+    "G25    6W 17D  2L   58.0%  elo  +56.1 [-79,+191]  LLR  +0.23  pLLR  +0.25  draw-rule   ",
+    "G26    6W 18D  2L   57.7%  elo  +53.9 [-78,+186]  LLR  +0.24  pLLR  +0.27  draw-rule   ",
+    "G27    6W 19D  2L   57.4%  elo  +51.9 [-78,+181]  LLR  +0.25  pLLR  +0.27  draw-rule   ",
+    "G28    6W 20D  2L   57.1%  elo  +50.0 [-77,+177]  LLR  +0.26  pLLR  +0.27  draw-rule   ",
+    "G29    6W 20D  3L   55.2%  elo  +36.1 [-88,+161]  LLR  +0.17  pLLR  +0.17  checkmate   ",
+    "G30    6W 21D  3L   55.0%  elo  +34.9 [-88,+157]  LLR  +0.18  pLLR  +0.19  draw-rule   "
+  ],
+  "aa_log": [
+    "Elo(new - base): -34.9   95% CI [-141, +72]",
+    "LLR: -0.29   bounds [-2.94, 2.94]",
+    "Pentanomial [LL 0  LD 6  {LW,DD} 12  WD 2  WW 0] over 20 pairs",
+    "Penta Elo: -34.9   95% CI [-82, +11]   pLLR -0.38  (THE decision stat; trinomial above is secondary)",
+    "Flag-outs (lost on time): new 0, base 0  of 40 games  (goal: 0)",
+    "Verdict: INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)"
+  ]
+}
