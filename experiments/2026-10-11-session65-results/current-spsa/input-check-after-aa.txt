@@ -1,0 +1,15 @@
+baseline-ngn: OK
+candidate-ngn: OK
+sprt: OK
+base.nnue: OK
+openings.txt: OK
+vector.json: OK
+default-parity.json: OK
+checks.exit: OK
+paired-parser.py: OK
+games.py: OK
+controller.sh: OK
+manifest.md: OK
+candidate.patch: OK
+build.sha256: OK
+game-manifest.json: OK

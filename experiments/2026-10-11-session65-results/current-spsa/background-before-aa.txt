@@ -1,0 +1,4 @@
+    PID    PPID PSR %CPU   RSS COMMAND
+ 117631       1   3  0.2 18280 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+1649185       1   0  1.1 17124 python3 /work/lanes/ngn-data-step2-20261011/archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768
+2801948       1   7  4.5  3168 bash /work/lanes/ngn-s64/current-spsa/controller.sh
