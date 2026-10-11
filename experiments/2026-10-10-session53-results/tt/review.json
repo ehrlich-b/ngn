@@ -1,0 +1,45 @@
+{
+  "mode": "gate",
+  "games": 400,
+  "pairs": 200,
+  "wins": 49,
+  "draws": 277,
+  "losses": 74,
+  "penta": [
+    4,
+    41,
+    131,
+    24,
+    0
+  ],
+  "elo": -21.7,
+  "ci95": [
+    -37.0,
+    -7.0
+  ],
+  "exact_elo_ci95": [
+    -21.74306492903708,
+    -36.87601574788365,
+    -6.692110833903088
+  ],
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 269,
+    "checkmate": 123,
+    "max-moves": 6,
+    "stalemate": 2
+  },
+  "verdict": "TT-regression-implicated",
+  "playing_adoption": false,
+  "reviewed_utc": "2026-10-11T00:16:40.382120+00:00",
+  "terminal": "2026-10-10T19:51:07-04:00",
+  "raw_outcomes_counted": true,
+  "terminal_inputs_intact": true,
+  "zero_crashes": true,
+  "rule": "printed AND unrounded upper95<0 implicates TT; no adoption",
+  "playing_package": "9bfbae4/a4d90b41 unchanged",
+  "interpretation": "Archived TT-only pair confirms a cost at60+0.6. Fixed-position retention counters motivate a new owned matching-store policy; no source restoration or extra sample."
+}

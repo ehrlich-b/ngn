@@ -1,0 +1,12 @@
+ngn: OK
+clock-ngn: OK
+blackboxmatch: OK
+net.nnue: OK
+openings100.txt: OK
+cmd/blackboxmatch/positions.txt: OK
+cmd/blackboxmatch/review.py: OK
+nomination.json: OK
+controller.sh: OK
+controller.py: OK
+manifest.md: OK
+game-manifest.json: OK

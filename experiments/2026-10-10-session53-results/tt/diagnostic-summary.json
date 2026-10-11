@@ -1,0 +1,37 @@
+{
+  "mode": "gate",
+  "games": 400,
+  "pairs": 200,
+  "wins": 49,
+  "draws": 277,
+  "losses": 74,
+  "penta": [
+    4,
+    41,
+    131,
+    24,
+    0
+  ],
+  "elo": -21.7,
+  "ci95": [
+    -37.0,
+    -7.0
+  ],
+  "exact_elo_ci95": [
+    -21.74306492903708,
+    -36.87601574788365,
+    -6.692110833903088
+  ],
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 269,
+    "checkmate": 123,
+    "max-moves": 6,
+    "stalemate": 2
+  },
+  "verdict": "TT-regression-implicated",
+  "playing_adoption": false
+}
