@@ -1,4 +1,4 @@
-# NGN live state — 2026-10-11: 3600 campaign
+# NGN live state — 2026-10-12: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
 Playing **f1d0a03 / NGNN3 KB8 H512 a4d90b41 / final14 compiled defaults**,
@@ -8,37 +8,28 @@ SPSA400 +37.49[+16.95,+58.30] and separate rig60+0.6 transfer400
 +2.61[−16.59,+21.82] SHELVED. No absolute/provenance certification.
 
 Plan19:55 October11 and fullAstra24h govern until09:00 October12.
+Singular correction fixed400/200 completed01:08:35/exit0:88/224/88,
+0.00[−19.73,+19.73],zero faults/all13 controls; **SHELVED**, no integration.
+Fresh actual-base admission on forge **1377514/1377520/1377526** starts
+own60+0.6 A/A40 at01:35:47, then conditional original SPRT[0,+6]/min400/
+cap4000. Checkeda093ac32 versus4f8f631f on unchangedf1d0a03/a4d90b41/
+final14; taskset4–11/c2/nice10/3GiB/swap0. H1 AND printed/unrounded
+lower95>0/zero faults/intact inputs only keeps; H0/cap shelves; faults
+unscored/no retry. Runtime topic uncommitted pending verdict; no repeated
+build/source checks. Control ETA02:35–03:05, gate min400 about8–12h later.
+
 Rig Rodent **155625/155628/159037**, frozenf1d0a03/a4d90b41/e6c2a22f:
-own120+1 A/A40 PASS3/34/3,zero faults/legal/actual clocks/all13 pins;
-fixed1000/500 live since20:48:17,0–11/c6/3GiB/swap0/nice19. ETA14:05–
-18:05 October12; fixed3532 label/superiority only, no rating floor or3600.
+own120+1 A/A40 PASS; fixed1000/500 live since20:48:17 October11,
+132 recorded pairs01:31. ETA14:05–18:05 October12; fixed3532 label/
+superiority only, no rating floor or3600. SEE remains operationally
+unscored after one baseline flag/no candidate games/no retry; separate
+24-game clock diagnostic clean but did not explain the old fault.
 
-Forge SEE73fd6fe ownA/A40 **OPERATIONALLY UNSCORED**20:17:19:
-one baseline flag, no candidate games. Retain playing source; no SEE
-retry. Forge reboot20:37/current16-vCPU/competing4–11 work leaves
-physical reservation/pinning unverified. Distinct singular1088298/1088310/
-1099427 passes fresh post-reboot A/A40 at23:19:45,9/24/7,zero faults;
-fixed400/200 live since then; checked133b2f3/a246ff5e on unchangedf1d0a03/4f8f631f/a4d90b41.
-Taskset4–11/c2/3GiB/swap0/nice10; zero faults/positive printed AND unrounded
-lower95/intact pins only keeps. No SEE retry or diagnostic-control reuse;
-any singular fault ends it, no retry. ETA01:15–02:00 October12.
-
-One separate clock diagnostic completed22:50:43/exit0,24/12,3393
-wire/bank/increment samples,zero faults,358ms minimum bank margin.
-Checked/pushed tool36de2b7/db2ef321; no Elo or lane reopening. Initial
-scope cpuset was not enforced; only this session's threads were taskset
-pinned before games, with the early correctness-check limitation recorded.
-Existing admission alone is now rebased to final14 on an isolated topic;
-forge1073390 terminal0 at23:04:24, all four/engine/full short/race/vet/PGO
-checks pass, source matches, candidatea093ac32. Runtime stays uncommitted
-pending games; singular stays ahead and a keep requires new-base checks.
-
-No more data-volume/architecture/full training. Dense profile and sparse
-primitive0.57755[0.57336,0.58177] nominate no trainer/net. RigGPU is busy
-with separate vLLM work; no interference. C:69.40GiB/forgework13.43GiB
-at23:01. Readers/hopper untouched, no cleanup. Old admission remains
-administratively unscored; actual-base nomination/provenance owed.
-[Session69](experiments/2026-10-11-session69.md).
+Forge16-vCPU/postreboot physical host pinning remains unverified. No new
+training/data-volume/architecture treatment. Separate GPUvLLM work busy;
+hopper/readers untouched. C:68.57GiB, forge/work about10GiB at01:31.
+[Session70](experiments/2026-10-12-session70.md). Next session not before
+03:00 EDT October12: admission control/stage first, then Rodent once.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

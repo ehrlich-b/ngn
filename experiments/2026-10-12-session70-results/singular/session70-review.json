@@ -1,0 +1,45 @@
+{
+  "mode": "gate",
+  "games": 400,
+  "pairs": 200,
+  "wins": 88,
+  "draws": 224,
+  "losses": 88,
+  "penta": [
+    8,
+    39,
+    102,
+    47,
+    4
+  ],
+  "elo": -0.0,
+  "ci95": [
+    -20.0,
+    20.0
+  ],
+  "exact_elo_ci95": [
+    0.0,
+    -19.728278303167425,
+    19.72827830316746
+  ],
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 218,
+    "checkmate": 176,
+    "max-moves": 5,
+    "stalemate": 1
+  },
+  "verdict": "SHELVED",
+  "controller_exit": 0,
+  "terminal": "2026-10-12T01:08:35-04:00",
+  "inputs_intact": true,
+  "input_controls": 13,
+  "zero_operational_faults": true,
+  "base": "f1d0a03/a4d90b41/final14",
+  "candidate": "133b2f3/a246ff5e",
+  "playing_adoption": false,
+  "session70_review": "raw400 increments/reasons/penta/printed and unrounded CI/flags/crash log/all before-after receipts"
+}
