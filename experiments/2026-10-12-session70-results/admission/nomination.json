@@ -1,0 +1,21 @@
+{
+  "base_source": "f1d0a035f8b4f0b7883fed0a859e5769d076089f",
+  "change": "immediate depth-admission clock check only",
+  "net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "defaults": "final14 compiled; factorizer off",
+  "manual_nomination": true,
+  "binary_inputs_sha256": {
+    "baseline-ngn": "4f8f631fe29eb010605b6eaec2d8c1fac769e39c416f3ff7f41e997feae7a61d",
+    "candidate-ngn": "a093ac329b8dcffecd0d41c26e04083a122586e9e6c0c6fa4e938a61dfcfc0f5",
+    "base.nnue": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+    "sprt": "9b0002f856849ebaf5e1d39487303d8e8f5406a8cc26d22fc2b409f9761aa83a",
+    "openings.txt": "974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222"
+  },
+  "source_checks": "experiments/2026-10-11-session69-results/admission/checks-review.json",
+  "rule": "experiments/2026-10-12-session70-admission.md",
+  "post_reboot_nomination": true,
+  "previous_SEE_nomination": "ended operationally unscored; no retry",
+  "clock_diagnostic": "not used as control or lane admission",
+  "candidate_topic": "night/time-admission-final14; tested runtime patch uncommitted",
+  "singular_verdict": "SHELVED 0.00[-19.7283,+19.7283]/400; zero faults/intact inputs"
+}

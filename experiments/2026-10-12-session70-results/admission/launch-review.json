@@ -1,0 +1,19 @@
+{
+  "controller_pid": 1377514,
+  "python_pid": 1377520,
+  "aa_sprt_pid": 1377526,
+  "aa_timeout_pid": 1377525,
+  "start": "2026-10-12T01:35:47-04:00",
+  "scope": "run-p1377514-i1377814.scope",
+  "actual_base": "f1d0a03/a4d90b41/final14",
+  "candidate": "a093ac32; immediate admission only",
+  "cpus": "4-11",
+  "concurrency": 2,
+  "nice": 10,
+  "memory_max_bytes": 3221225472,
+  "memory_swap_max": 0,
+  "stage": "fresh ownAA40 at60+0.6; conditional SPRT[0,+6]/min400/cap4000",
+  "physical_host_pinning": "unverified after reboot",
+  "automatic_adoption": false,
+  "checks_reused": "session69, unchanged actual base and candidate; no build/test repeated"
+}
