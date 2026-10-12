@@ -1,0 +1,1 @@
+Pinned all existing controller descendants and threads to4-11; existing correctness checks retained, no timing/game sample started.

@@ -1,0 +1,38 @@
+{
+  "target_games": 24,
+  "recorded_games": 24,
+  "recorded_pairs": 12,
+  "clock_samples": 3393,
+  "command_and_bank_conservation": true,
+  "minimum_bank_margin_ms": 358,
+  "flags": [],
+  "runner_errors": [],
+  "runner_complete": true,
+  "diagnostic_exit": 0,
+  "worker_receipts": [
+    {
+      "worker": 1,
+      "ngn": {
+        "exited": true,
+        "startup_failures": 0
+      },
+      "opponent": {
+        "exited": true,
+        "startup_failures": 0
+      }
+    },
+    {
+      "worker": 0,
+      "ngn": {
+        "exited": true,
+        "startup_failures": 0
+      },
+      "opponent": {
+        "exited": true,
+        "startup_failures": 0
+      }
+    }
+  ],
+  "verdict": "DIAGNOSTIC ONLY",
+  "limitation": "No Elo, no replayed SEE control, no automatic reopening of forge; absence of a reproduced fault does not explain the original flag."
+}

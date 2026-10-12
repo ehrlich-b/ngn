@@ -1,0 +1,20 @@
+{
+  "tool_source": "36de2b7",
+  "topic": "night/clock-fault-diagnostic",
+  "parent": "6341225",
+  "machine": "forge",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "binary_sha256": "db2ef321fd8e7240fe7b444a8a19b16516440d737f4a2c639cb07d566d68fc73",
+  "checks": [
+    "relevant short/race",
+    "full short/race",
+    "vet",
+    "PGO build"
+  ],
+  "terminal": "2026-10-11T22:44:01-04:00",
+  "tested_source_matches_topic": true,
+  "engine_change": false,
+  "game_verdict": false,
+  "affinity_limitation": "User scope recorded4-11 but did not apply cpuset. Narrow/short checks and part of full-race initially0-15; all own threads taskset4-11 at22:43:55, before diagnostic start22:44:01. Retained correctness evidence only, no timing claim."
+}

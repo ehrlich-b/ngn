@@ -2,40 +2,43 @@
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
 Playing **f1d0a03 / NGNN3 KB8 H512 a4d90b41 / final14 compiled defaults**,
-factorizer off, explicitEvalFile required; embedded fallbackc6c12796.
-Current-source SPSA400 +37.49[+16.95,+58.30] and separate rig60+0.6
-transfer400 **+32.23[+18.31,+46.26]**,72/293/35,zero faults/all15 pins:
-transfer CONFIRMED. No absolute result or repaired-provenance certification.
+factorizer off, explicitEvalFile; embedded fallbackc6c12796. Current-source
+SPSA400 +37.49[+16.95,+58.30] and separate rig60+0.6 transfer400
++32.23[+18.31,+46.26] CONFIRMED, zero faults. Data step2 fixed400
++2.61[−16.59,+21.82] SHELVED. No absolute/provenance certification.
 
-Data step2 full58/reexport/20integer parity passed, but its forge fixed400
-returns **+2.61[−16.59,+21.82]**,91/221/88,zero faults/all16 pins:
-**SHELVED** under the frozen rule. No rescue/extension/recipe lottery.
+Plan19:55 October11 and fullAstra24h govern until09:00 October12.
+Rig Rodent **155625/155628/159037**, frozenf1d0a03/a4d90b41/e6c2a22f:
+own120+1 A/A40 PASS3/34/3,zero faults/legal/actual clocks/all13 pins;
+fixed1000/500 live since20:48:17,0–11/c6/3GiB/swap0/nice19. ETA14:05–
+18:05 October12; fixed3532 label/superiority only, no rating floor or3600.
 
-Plan **19:55 October11** and fullAstra24h govern until09:00October12.
-Detached rig **155625/155628/155632** starts Rodent own120+1 A/A40 then
-conditional1000/500 at20:05:15, frozen f1d0a03/a4d90b41/e6c2a22f,
-0–11/c6/3GiB/swap0/nice19. Complete legal/actual clock/exit/pin audit,
-zero faults/paired lower95>0 only establish single-opponent superiority;
-fixed3532 historical label, no rating floor or3600 claim. ETAOctober12
-14:05–18:05; control failure ends nomination, no retry/pooling/extension.
+Forge SEE73fd6fe ownA/A40 **OPERATIONALLY UNSCORED**20:17:19:
+one baseline flag, no candidate games. Retain playing source; no SEE
+retry. Forge reboot20:37/current16-vCPU/competing4–11 work leaves
+physical reservation/pinning unverified. Distinct singular1088298/1088310/
+1088333 starts one fresh post-reboot A/A40 at23:08:25, then conditional
+400/200; checked133b2f3/a246ff5e on unchangedf1d0a03/4f8f631f/a4d90b41.
+Taskset4–11/c2/3GiB/swap0/nice10; zero faults/positive printed AND unrounded
+lower95/intact pins only keeps. No SEE retry or diagnostic-control reuse;
+any singular fault ends it, no retry. ETA01:15–02:00 October12.
 
-Detached forge **3796768/3796790/3796892** starts isolated SEE geometry
-ownA/A40/fixed400 at20:05:16: checked73fd6fe/49497bd4 versus current
-f1d0a03/4f8f631f, samea4d90b41/final14.4–11/c2/3GiB/swap0/nice10/
-host pinningON/10+0.1; positive printed AND unrounded lower95/zero
-faults/complete sample/pins only keeps. ETA22:10–22:40; singular follows
-on the actual base chosen after SEE. Separate checked133b2f3 is ready if
-SEE shelves; a SEE keep requires singular rebase/combination checks.
+One separate clock diagnostic completed22:50:43/exit0,24/12,3393
+wire/bank/increment samples,zero faults,358ms minimum bank margin.
+Checked/pushed tool36de2b7/db2ef321; no Elo or lane reopening. Initial
+scope cpuset was not enforced; only this session's threads were taskset
+pinned before games, with the early correctness-check limitation recorded.
+Existing admission alone is now rebased to final14 on an isolated topic;
+forge1073390 terminal0 at23:04:24, all four/engine/full short/race/vet/PGO
+checks pass, source matches, candidatea093ac32. Runtime stays uncommitted
+pending games; singular stays ahead and a keep requires new-base checks.
 
-Bounded dense GPU pipeline profile completed20:09:41:768MiB dense
-input,1.043M instrumented rows/s, substantial forward/backward GEMM;
-T75 remote latency excluded to preserve forge games. Sparse primitive
-preflight is SHELVED:0.57755[0.57336,0.58177] throughput, no trainer
-adoption/new net/checkpoint/automatic training.
-No further data-volume/architecture run under current plan. Old admission
-remains administratively unscored; later actual-base nomination owed.
-Readers/hopper untouched, no cleanup or resource request.
-[Session68](experiments/2026-10-11-session68.md).
+No more data-volume/architecture/full training. Dense profile and sparse
+primitive0.57755[0.57336,0.58177] nominate no trainer/net. RigGPU is busy
+with separate vLLM work; no interference. C:69.40GiB/forgework13.43GiB
+at23:01. Readers/hopper untouched, no cleanup. Old admission remains
+administratively unscored; actual-base nomination/provenance owed.
+[Session69](experiments/2026-10-11-session69.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

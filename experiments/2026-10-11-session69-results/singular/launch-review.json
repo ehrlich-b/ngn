@@ -1,0 +1,11 @@
+{
+  "controller_pid": 1088298,
+  "python_pid": 1088310,
+  "sprt_initial_pid": 1088333,
+  "start": "2026-10-11T23:08:25-04:00",
+  "candidate_source": "133b2f31f3d6267c7bf0b03066c9d02d1331baa0",
+  "control_stage": "fresh ownAA40 live; no verdict",
+  "actual_base": "f1d0a03/a4d90b41/final14",
+  "declared_new_topology": "post20:37 reboot16vCPU; taskset4-11/c2/3GiB/swap0/nice10; physical host pinning unverified",
+  "reason": "distinct singular nomination authorized19:55; no SEE retry or reuse of diagnostic as control"
+}
