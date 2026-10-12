@@ -4,32 +4,35 @@
 Playing **f1d0a03 / NGNN3 KB8 H512 a4d90b41 / final14 compiled defaults**,
 factorizer off, explicitEvalFile; embedded fallbackc6c12796. Current-source
 SPSA400 +37.49[+16.95,+58.30] and separate rig60+0.6 transfer400
-+32.23[+18.31,+46.26] CONFIRMED, zero faults. Data step2 fixed400
-+2.61[−16.59,+21.82] SHELVED. No absolute/provenance certification.
++32.23[+18.31,+46.26] CONFIRMED, zero faults. Data step2 and singular
+correction SHELVED. No absolute/provenance certification.
 
-Plan19:55 October11 and fullAstra24h govern until09:00 October12.
-Singular correction fixed400/200 completed01:08:35/exit0:88/224/88,
-0.00[−19.73,+19.73],zero faults/all13 controls; **SHELVED**, no integration.
-Fresh actual-base admission on forge **1377514/1377520/1377526** starts
-own60+0.6 A/A40 at01:35:47, then conditional original SPRT[0,+6]/min400/
-cap4000. Checkeda093ac32 versus4f8f631f on unchangedf1d0a03/a4d90b41/
-final14; taskset4–11/c2/nice10/3GiB/swap0. H1 AND printed/unrounded
-lower95>0/zero faults/intact inputs only keeps; H0/cap shelves; faults
-unscored/no retry. Runtime topic uncommitted pending verdict; no repeated
-build/source checks. Control ETA02:35–03:05, gate min400 about8–12h later.
+Plan19:55 October11/fullAstra24h govern until09:00 October12. Admission's
+fresh forge60+0.6 A/A40 ended02:45:38/exit1:9/29/2,+61.43[+11.03,+114.56],
+zero faults/all15 inputs. **AA FAILED**, zero candidate games, operationally
+unscored/no retry. Forge verdicts closed pending justified setup resolution;
+noise versus systematic bias is unknown. Checked admissiona093ac32 preserved.
 
 Rig Rodent **155625/155628/159037**, frozenf1d0a03/a4d90b41/e6c2a22f:
-own120+1 A/A40 PASS; fixed1000/500 live since20:48:17 October11,
-132 recorded pairs01:31. ETA14:05–18:05 October12; fixed3532 label/
-superiority only, no rating floor or3600. SEE remains operationally
-unscored after one baseline flag/no candidate games/no retry; separate
-24-game clock diagnostic clean but did not explain the old fault.
+own120+1 A/A40 PASS; fixed1000/500 since20:48:17 October11,
+178 recorded pairs03:04. ETA14:05–18:05 October12; fixed3532 label/
+superiority only, no general rating floor or3600.
 
-Forge16-vCPU/postreboot physical host pinning remains unverified. No new
-training/data-volume/architecture treatment. Separate GPUvLLM work busy;
-hopper/readers untouched. C:68.57GiB, forge/work about10GiB at01:31.
-[Session70](experiments/2026-10-12-session70.md). Next session not before
-03:00 EDT October12: admission control/stage first, then Rodent once.
+Repaired-provenance certification now queued: rig **215083/215088**, user
+service ngn-s71-provenance-repaired.service, native Rodent terminal wait,
+no engine load. Accepted4f8f631f versus archived53caa7c4, identicala4d90b41/
+explicitfinal14. Archived-reference12 bounded searches/6 equal eval triplets
+PASS. After Rodent: memory/disk admission, own60+0.6 A/A40 then conditional
+SPRT[0,+6]/min400/cap4000. NaturalH1 AND printed/unrounded lower95>0/
+zero faults/intact inputs certifies. H0/cap diagnosis; faults unscored/no retry.
+
+SEE geometry remains unscored after the old baseline flag/no candidate games;
+clean clock diagnostic did not explain it. No new training/data/architecture
+candidate. Separate GPU work busy/hopper and readers untouched. C:65.90GiB,
+rig availableRAM2135MiB; forge/work1.4GiB at03:01. Physical host pinning
+unverified. [Session71](experiments/2026-10-12-session71.md).
+Next session not before14:15 EDT October12: Rodent terminal, then queued
+certification stage/capacity receipt. No repeated checks or control fishing.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

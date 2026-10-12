@@ -1,0 +1,42 @@
+{
+  "utc": "2026-10-12T07:10:41.083067+00:00",
+  "games": 40,
+  "pairs": 20,
+  "wins": 9,
+  "draws": 29,
+  "losses": 2,
+  "penta": [
+    0,
+    2,
+    9,
+    9,
+    0
+  ],
+  "exact_elo_ci95": [
+    61.433567223132,
+    11.025093575567068,
+    114.55983039974736
+  ],
+  "printed_elo_ci95": [
+    61.4,
+    11.0,
+    115.0
+  ],
+  "reasons": {
+    "draw-rule": 27,
+    "checkmate": 11,
+    "max-moves": 2
+  },
+  "flags": [
+    0,
+    0
+  ],
+  "input_checks": "15 before and15 terminal checks PASS; original controller stopped before postcheck because AA rejected",
+  "controller_exit": 1,
+  "terminal": "2026-10-12T02:45:38-04:00",
+  "aa_summary_empty": true,
+  "candidate_games": 0,
+  "verdict": "AA FAILED; admission operationally unscored; no retry or adoption",
+  "cause": "paired CI excludes zero; statistical failure alone does not identify a harness bias",
+  "automatic_adoption": false
+}
