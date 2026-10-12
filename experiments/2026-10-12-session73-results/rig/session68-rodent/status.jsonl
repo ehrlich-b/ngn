@@ -1,0 +1,4 @@
+{"utc": "2026-10-12T00:05:15.395516+00:00", "stage": "rodent-confirmation", "event": "aa-start", "detail": {"games": 40, "pid": 155628}}
+{"utc": "2026-10-12T00:48:17.726385+00:00", "stage": "rodent-confirmation", "event": "aa-done", "detail": {"games": 40, "pairs": 20, "penta": [0, 1, 18, 1, 0], "exact_elo_ci95": [0.0, -24.114706898066736, 24.11470689806672], "verdict": "aa-pass"}}
+{"utc": "2026-10-12T00:48:17.742163+00:00", "stage": "rodent-confirmation", "event": "rodent-start", "detail": {"games": 1000, "pid": 155628}}
+{"utc": "2026-10-12T18:21:26.945910+00:00", "stage": "rodent-confirmation", "event": "rodent-done", "detail": {"games": 1000, "pairs": 500, "penta": [9, 146, 269, 72, 4], "exact_elo_ci95": [-29.2535234138071, -40.25698130264591, -18.30832041922598], "verdict": "not-confirmed"}}

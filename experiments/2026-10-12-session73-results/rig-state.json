@@ -1,0 +1,147 @@
+{
+  "snapshot_utc": "2026-10-12T18:16:31.824846+00:00",
+  "root": "/home/ehrli/ngn-data/night-20261007",
+  "runs": {
+    "session68-rodent": {
+      "controller.pid": 155625,
+      "controller.started": "2026-10-11T20:05:15-04:00\n",
+      "rodent-summary.json": "",
+      "aa-summary.json": {
+        "complete": true,
+        "draws": 34,
+        "elo": 0,
+        "elo_lower95": -24.114706898066753,
+        "elo_upper95": 24.114706898066714,
+        "games": 40,
+        "implied_lower95": 3507.8852931019333,
+        "implied_performance": 3532,
+        "implied_upper95": 3556.1147068980667,
+        "limitation": "one opponent at one time control; not a rating or campaign claim",
+        "losses": 3,
+        "minimum160_met": false,
+        "ngn_flag_outs": 0,
+        "operational_faults": 0,
+        "opponent_flag_outs": 0,
+        "opponent_label": 3532,
+        "pairs": 20,
+        "penta": [
+          0,
+          1,
+          18,
+          1,
+          0
+        ],
+        "requested_games": 40,
+        "score": 0.5,
+        "wins": 3,
+        "worker_receipts": [
+          {
+            "worker": 1,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 4,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 2,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 0,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 5,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 3,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          }
+        ]
+      },
+      "status_tail": [
+        "{\"utc\": \"2026-10-12T00:05:15.395516+00:00\", \"stage\": \"rodent-confirmation\", \"event\": \"aa-start\", \"detail\": {\"games\": 40, \"pid\": 155628}}",
+        "{\"utc\": \"2026-10-12T00:48:17.726385+00:00\", \"stage\": \"rodent-confirmation\", \"event\": \"aa-done\", \"detail\": {\"games\": 40, \"pairs\": 20, \"penta\": [0, 1, 18, 1, 0], \"exact_elo_ci95\": [0.0, -24.114706898066736, 24.11470689806672], \"verdict\": \"aa-pass\"}}",
+        "{\"utc\": \"2026-10-12T00:48:17.742163+00:00\", \"stage\": \"rodent-confirmation\", \"event\": \"rodent-start\", \"detail\": {\"games\": 1000, \"pid\": 155628}}"
+      ],
+      "recorded_pairs": 496,
+      "pairs_bytes": 40691467
+    },
+    "session71-provenance-repaired": {
+      "controller.started": "2026-10-12T03:14:43-04:00\n",
+      "status_tail": [
+        "{\"utc\": \"2026-10-12T07:14:43.027092+00:00\", \"stage\": \"session71-provenance-repaired\", \"event\": \"rodent-wait\", \"detail\": \"native controller.done notification; no polling or engine load\"}"
+      ]
+    },
+    "session72-see-rig": {
+      "controller.started": "2026-10-12T11:27:41-04:00\n",
+      "status_tail": [
+        "{\"utc\": \"2026-10-12T15:27:41.281914+00:00\", \"stage\": \"session72-see-rig\", \"event\": \"provenance-wait\", \"detail\": \"native controller.done notification; no polling or engine load\"}"
+      ]
+    }
+  },
+  "memory": {
+    "returncode": 0,
+    "output": "               total        used        free      shared  buff/cache   available\nMem:           15514        1838       13382           2         535       13676\nSwap:           4096         390        3705\n",
+    "stderr": ""
+  },
+  "disk": {
+    "returncode": 0,
+    "output": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sdd       1007G  729G  228G  77% /\n",
+    "stderr": ""
+  },
+  "gpu": {
+    "returncode": 0,
+    "output": "0 %, 1247 MiB, 16303 MiB\n",
+    "stderr": ""
+  },
+  "processes": {
+    "returncode": 0,
+    "output": "   1170     256    1170  14  0.4 12120   0  234382 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n  22172   22169   22172  15  0.4 16428  19  124828 python3 local-reader.py --root /home/ehrli/ngn-data/night-20261007/session57-data-step2 --token-file /home/ehrli/ngn-data/night-20261007/session57-data-step2/token --bind 127.0.0.1 --port 8769\n 155625  155617  155625   0  0.0  1152  19   65480 bash /home/ehrli/ngn-data/night-20261007/session68-rodent/controller.sh /home/ehrli/ngn-data/night-20261007/session68-rodent\n 155628  155625  155625   9  0.0 23920  19   65480 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python controller.py /home/ehrli/ngn-data/night-20261007/session68-rodent\n 159036  155628  159036  10  0.0   896  19   62898 timeout --signal=TERM --kill-after=15s 115200 taskset -c 0-11 nice -n 19 /home/ehrli/ngn-data/night-20261007/session68-rodent/pairmatch -ngn /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn -opponent /home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12 -openings /home/ehrli/ngn-data/night-20261007/session68-rodent/openings.txt -concurrency 6 -games 1000 -out /home/ehrli/ngn-data/night-20261007/session68-rodent/rodent-pairs.jsonl -ngnoption EvalFile=/home/ehrli/ngn-data/night-20261007/session68-rodent/net.nnue -ngnoption UseNNUE=true -ngnoption Hash=64 -ngnoption Threads=1 -ngnoption OwnBook=false -opponentoption Hash=64 -opponentoption Threads=1 -opponentoption OwnBook=false -opponentoption UCI_LimitStrength=false\n 159037  159036  159036   2  0.4 12760  19   62898 /home/ehrli/ngn-data/night-20261007/session68-rodent/pairmatch -ngn /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn -opponent /home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12 -openings /home/ehrli/ngn-data/night-20261007/session68-rodent/openings.txt -concurrency 6 -games 1000 -out /home/ehrli/ngn-data/night-20261007/session68-rodent/rodent-pairs.jsonl -ngnoption EvalFile=/home/ehrli/ngn-data/night-20261007/session68-rodent/net.nnue -ngnoption UseNNUE=true -ngnoption Hash=64 -ngnoption Threads=1 -ngnoption OwnBook=false -opponentoption Hash=64 -opponentoption Threads=1 -opponentoption OwnBook=false -opponentoption UCI_LimitStrength=false\n 159045  159037  159036   8 50.0 127268 19   62898 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn\n 159049  159037  159036   9 50.0 128512 19   62898 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn\n 159051  159037  159036   7 50.2 126804 19   62898 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn\n 159055  159037  159036   1 50.1 130004 19   62898 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn\n 159061  159037  159036   6 50.0 143804 19   62897 /home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12\n 159064  159037  159036  11 50.0 143948 19   62897 /home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12\n 159067  159037  159036   4 49.9 144528 19   62897 /home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12\n 159068  159037  159036   9 50.0 143304 19   62897 /home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12\n 215083     256  215083   0  0.0  1280  19   39712 bash /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/controller.sh /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired\n 248221     256  248221   0  0.0  3328  19   10130 bash /home/ehrli/ngn-data/night-20261007/session72-see-rig/controller.sh /home/ehrli/ngn-data/night-20261007/session72-see-rig",
+    "stderr": "your 131072x1 screen size is bogus. expect trouble\n"
+  }
+}

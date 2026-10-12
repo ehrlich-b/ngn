@@ -9,29 +9,33 @@ correction SHELVED. No new absolute/provenance certification.
 
 Latest plan **October12 04:25**: forge closed to scored games until Bryan
 restores reserved CPUs; no A/A retries or NGN-cause investigation. Rig order:
-Rodent confirmation → repaired provenance → fresh SEE geometry nomination.
+repaired provenance → conditional SEE geometry nomination.
 
-Rig Rodent **155625/155628/159037**, frozen f1d0a03/a4d90b41/e6c2a22f:
-own120+1 A/A40 PASS; fixed1000/500 since20:48 October11,
-416 recorded pairs11:22. ETA14:15–18:05 EDT; opponent superiority/fixed3532
-label only, no general rating floor or3600 claim.
+Rodent natural terminal **14:21:26 / exit0**, fixed1000/500:
+157W/602D/241L,45.8%,penta[9,146,269,72,4], **−29.25[−40.26,−18.31]**.
+**SUPERIORITY NOT CONFIRMED**; zero faults/exclusions, legal replay,
+161,658 actual-clock plies, all13 inputs and twelve child exits PASS.
+Fixed3532-label implied3502.75[3491.74,3513.69] is one matchup, no rating
+floor/3600 claim. Closed sample; no extension or repeat audit.
+[Review](experiments/2026-10-12-session73-results/session73-rodent-review.json).
 
-Repaired provenance **215083/215088** waits natively for Rodent terminal;
-accepted4f8f631f versus archived53caa7c4, identicala4d90b41/explicitfinal14.
-Fresh rig60+0.6 A/A40 then SPRT[0,+6]/min400/cap4000. NaturalH1 AND both
+Repaired provenance **215083/215088**, ownA/A40 SPRT **248569** live since
+14:21:27 on rig0–11/c6/nice19/3GiB/swap0; capacity PASS. Accepted4f8f631f
+versus archived53caa7c4, identicala4d90b41/explicitfinal14. Control pass
+alone chains original60+0.6 SPRT[0,+6]/min400/cap4000. NaturalH1 AND both
 positive lower95/zero faults/intact inputs certify; H0/cap diagnosis.
 
-Fresh SEE rig controller **248221/248226**, service ngn-s72-see-rig.service,
-waits natively for CERTIFIED provenance; other outcomes hold for review.
+SEE rig **248221/248226**, service ngn-s72-see-rig.service, still waits
+natively for CERTIFIED provenance; other outcomes hold for review.
 Checked73fd6fe/49497bd4 versus f1d0a03/4f8f631f; samea4d90b41/final14.
-Own10+0.1 A/A40 then fixed400/200 on0–11/c6/nice19/3GiB/swap0; standard
-positive-lower rule/zero faults. No games or adoption yet; old forge baseline
-flag preserved/unscored, never pooled. Reuse checks, no build/test repeat.
+Own10+0.1 A/A40 then fixed400/200/standard positive-lower rule/zero faults.
+No SEE games/adoption; old forge flag sample unscored, never pooled.
+Reuse checks; no build/test repeat.
 
-Rig C:77.98GiB/RAM13003MiB, forge/work947GiB at11:22. GPU idle after
-separate work ended; completed diagnostics admit no new training treatment.
-Hopper/readers/other lanes untouched. [Session72](experiments/2026-10-12-session72.md).
-Next session not before14:15 EDT: Rodent terminal, provenance stage, SEE waiter.
+Rig C:77.98GiB/RAM13,573MiB at14:22; forge/work931GiB at14:18. GPU idle;
+completed diagnostics admit no new training treatment. Hopper/readers/other
+jobs untouched. [Session73](experiments/2026-10-12-session73.md).
+Next session not before15:10 EDT: provenance control/stage, then SEE waiter.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

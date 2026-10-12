@@ -1,0 +1,372 @@
+{
+  "snapshot_utc": "2026-10-12T18:21:59.777700+00:00",
+  "root": "/home/ehrli/ngn-data/night-20261007",
+  "runs": {
+    "session68-rodent": {
+      "controller.pid": 155625,
+      "controller.started": "2026-10-11T20:05:15-04:00\n",
+      "controller.exit": 0,
+      "controller.done": "2026-10-12T14:21:26-04:00\n",
+      "rodent-summary.json": {
+        "complete": true,
+        "draws": 602,
+        "elo": -29.25352341380706,
+        "elo_lower95": -40.256981302645904,
+        "elo_upper95": -18.30832041922596,
+        "games": 1000,
+        "implied_lower95": 3491.7430186973543,
+        "implied_performance": 3502.746476586193,
+        "implied_upper95": 3513.6916795807742,
+        "limitation": "one opponent at one time control; not a rating or campaign claim",
+        "losses": 241,
+        "minimum160_met": true,
+        "ngn_flag_outs": 0,
+        "operational_faults": 0,
+        "opponent_flag_outs": 0,
+        "opponent_label": 3532,
+        "pairs": 500,
+        "penta": [
+          9,
+          146,
+          269,
+          72,
+          4
+        ],
+        "requested_games": 1000,
+        "score": 0.458,
+        "wins": 157,
+        "worker_receipts": [
+          {
+            "worker": 1,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 0,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 3,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 5,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 2,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 4,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          }
+        ]
+      },
+      "rodent-review.json": {
+        "games": 1000,
+        "pairs": 500,
+        "wins": 157,
+        "draws": 602,
+        "losses": 241,
+        "score": 0.458,
+        "penta": [
+          9,
+          146,
+          269,
+          72,
+          4
+        ],
+        "exact_elo_ci95": [
+          -29.2535234138071,
+          -40.25698130264591,
+          -18.30832041922598
+        ],
+        "flag_outs": {
+          "ngn": 0,
+          "opponent": 0
+        },
+        "failures": {},
+        "termination_reasons_all_recorded_games": {
+          "draw-rule": 587,
+          "checkmate": 398,
+          "max-moves": 14,
+          "stalemate": 1
+        },
+        "excluded_pairs": 0,
+        "excluded_recorded_games": 0,
+        "replay_pass": true,
+        "minimum160_met": true,
+        "clock_audit": {
+          "searched_plies": 161658,
+          "command_and_bank_conservation": true,
+          "tc": "120+1",
+          "opening_plies_free": true,
+          "flag_grace_ms": 300
+        },
+        "worker_receipts": [
+          {
+            "worker": 1,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 0,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 3,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 5,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 2,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 4,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          }
+        ],
+        "verdict": "not-confirmed",
+        "implied_performance_ci95": [
+          3502.746476586193,
+          3491.7430186973543,
+          3513.6916795807742
+        ],
+        "limitation": "fixed-label single-opponent match; normal paired CI; no general rating floor or3600 claim"
+      },
+      "aa-summary.json": {
+        "complete": true,
+        "draws": 34,
+        "elo": 0,
+        "elo_lower95": -24.114706898066753,
+        "elo_upper95": 24.114706898066714,
+        "games": 40,
+        "implied_lower95": 3507.8852931019333,
+        "implied_performance": 3532,
+        "implied_upper95": 3556.1147068980667,
+        "limitation": "one opponent at one time control; not a rating or campaign claim",
+        "losses": 3,
+        "minimum160_met": false,
+        "ngn_flag_outs": 0,
+        "operational_faults": 0,
+        "opponent_flag_outs": 0,
+        "opponent_label": 3532,
+        "pairs": 20,
+        "penta": [
+          0,
+          1,
+          18,
+          1,
+          0
+        ],
+        "requested_games": 40,
+        "score": 0.5,
+        "wins": 3,
+        "worker_receipts": [
+          {
+            "worker": 1,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 4,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 2,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 0,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 5,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          },
+          {
+            "worker": 3,
+            "ngn": {
+              "exited": true,
+              "startup_failures": 0
+            },
+            "opponent": {
+              "exited": true,
+              "startup_failures": 0
+            }
+          }
+        ]
+      },
+      "status_tail": [
+        "{\"utc\": \"2026-10-12T00:05:15.395516+00:00\", \"stage\": \"rodent-confirmation\", \"event\": \"aa-start\", \"detail\": {\"games\": 40, \"pid\": 155628}}",
+        "{\"utc\": \"2026-10-12T00:48:17.726385+00:00\", \"stage\": \"rodent-confirmation\", \"event\": \"aa-done\", \"detail\": {\"games\": 40, \"pairs\": 20, \"penta\": [0, 1, 18, 1, 0], \"exact_elo_ci95\": [0.0, -24.114706898066736, 24.11470689806672], \"verdict\": \"aa-pass\"}}",
+        "{\"utc\": \"2026-10-12T00:48:17.742163+00:00\", \"stage\": \"rodent-confirmation\", \"event\": \"rodent-start\", \"detail\": {\"games\": 1000, \"pid\": 155628}}",
+        "{\"utc\": \"2026-10-12T18:21:26.945910+00:00\", \"stage\": \"rodent-confirmation\", \"event\": \"rodent-done\", \"detail\": {\"games\": 1000, \"pairs\": 500, \"penta\": [9, 146, 269, 72, 4], \"exact_elo_ci95\": [-29.2535234138071, -40.25698130264591, -18.30832041922598], \"verdict\": \"not-confirmed\"}}"
+      ],
+      "recorded_pairs": 500,
+      "pairs_bytes": 41141589
+    },
+    "session71-provenance-repaired": {
+      "controller.started": "2026-10-12T03:14:43-04:00\n",
+      "capacity-before-aa.json": {
+        "nonavailable_memory_bytes": 763449344,
+        "new_job_budget_bytes": 3221225472,
+        "total_budget_limit_bytes": 12884901888,
+        "c_free_bytes": 83730436096,
+        "competing_chess_processes": []
+      },
+      "status_tail": [
+        "{\"utc\": \"2026-10-12T07:14:43.027092+00:00\", \"stage\": \"session71-provenance-repaired\", \"event\": \"rodent-wait\", \"detail\": \"native controller.done notification; no polling or engine load\"}",
+        "{\"utc\": \"2026-10-12T18:21:26.973684+00:00\", \"stage\": \"session71-provenance-repaired\", \"event\": \"rodent-terminal\", \"detail\": {\"done\": \"2026-10-12T14:21:26-04:00\", \"exit\": \"0\", \"score_used_for_admission\": false}}",
+        "{\"utc\": \"2026-10-12T18:21:27.002487+00:00\", \"stage\": \"session71-provenance-repaired\", \"event\": \"aa-start\", \"detail\": {\"cpus\": \"0-11\", \"concurrency\": 6, \"tc\": \"60+0.6\", \"nice\": 19}}"
+      ]
+    },
+    "session72-see-rig": {
+      "controller.started": "2026-10-12T11:27:41-04:00\n",
+      "status_tail": [
+        "{\"utc\": \"2026-10-12T15:27:41.281914+00:00\", \"stage\": \"session72-see-rig\", \"event\": \"provenance-wait\", \"detail\": \"native controller.done notification; no polling or engine load\"}"
+      ]
+    }
+  },
+  "memory": {
+    "returncode": 0,
+    "output": "               total        used        free      shared  buff/cache   available\nMem:           15514        1940       13253           2         561       13573\nSwap:           4096         390        3705\n",
+    "stderr": ""
+  },
+  "disk": {
+    "returncode": 0,
+    "output": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sdd       1007G  729G  228G  77% /\n",
+    "stderr": ""
+  },
+  "gpu": {
+    "returncode": 0,
+    "output": "0 %, 1247 MiB, 16303 MiB\n",
+    "stderr": ""
+  },
+  "processes": {
+    "returncode": 0,
+    "output": "   1170     256    1170  14  0.4 12724   0  234710 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n  22172   22169   22172  15  0.4 16428  19  125156 python3 local-reader.py --root /home/ehrli/ngn-data/night-20261007/session57-data-step2 --token-file /home/ehrli/ngn-data/night-20261007/session57-data-step2/token --bind 127.0.0.1 --port 8769\n 215083     256  215083   0  0.0  1280  19   40039 bash /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/controller.sh /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired\n 248221     256  248221   0  0.0  3328  19   10458 bash /home/ehrli/ngn-data/night-20261007/session72-see-rig/controller.sh /home/ehrli/ngn-data/night-20261007/session72-see-rig\n 248568  215088  248568  11  0.0  1920  19      32 timeout --signal=TERM --kill-after=15s 10800 taskset -c 0-11 nice -n 0 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/sprt -new /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn -base /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/openings.txt -lowpower=false -elo0 0 -elo1 6 -alpha .05 -beta .05 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -newoption AspInit=17 -newoption AspMult=163 -newoption DeltaMargin=202 -newoption ExtensionBudget=29 -newoption FutilityMargin=104 -newoption FutilityMaxDepth=8 -newoption LMPBase=3 -newoption LMRFullDepth=3 -newoption LMRMoveThreshold=2 -newoption NullMoveMinDepth=2 -newoption NullMoveR=4 -newoption ReverseFutilityMargin=63 -newoption SingularDepth=7 -newoption SingularMargin=57 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -baseoption AspInit=17 -baseoption AspMult=163 -baseoption DeltaMargin=202 -baseoption ExtensionBudget=29 -baseoption FutilityMargin=104 -baseoption FutilityMaxDepth=8 -baseoption LMPBase=3 -baseoption LMRFullDepth=3 -baseoption LMRMoveThreshold=2 -baseoption NullMoveMinDepth=2 -baseoption NullMoveR=4 -baseoption ReverseFutilityMargin=63 -baseoption SingularDepth=7 -baseoption SingularMargin=57 -mingames 1000000 -maxgames 40\n 248569  248568  248568   6  0.6 17236  19      32 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/sprt -new /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn -base /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/openings.txt -lowpower=false -elo0 0 -elo1 6 -alpha .05 -beta .05 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -newoption AspInit=17 -newoption AspMult=163 -newoption DeltaMargin=202 -newoption ExtensionBudget=29 -newoption FutilityMargin=104 -newoption FutilityMaxDepth=8 -newoption LMPBase=3 -newoption LMRFullDepth=3 -newoption LMRMoveThreshold=2 -newoption NullMoveMinDepth=2 -newoption NullMoveR=4 -newoption ReverseFutilityMargin=63 -newoption SingularDepth=7 -newoption SingularMargin=57 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -baseoption AspInit=17 -baseoption AspMult=163 -baseoption DeltaMargin=202 -baseoption ExtensionBudget=29 -baseoption FutilityMargin=104 -baseoption FutilityMaxDepth=8 -baseoption LMPBase=3 -baseoption LMRFullDepth=3 -baseoption LMRMoveThreshold=2 -baseoption NullMoveMinDepth=2 -baseoption NullMoveR=4 -baseoption ReverseFutilityMargin=63 -baseoption SingularDepth=7 -baseoption SingularMargin=57 -mingames 1000000 -maxgames 40\n 248573  248569  248568  11 50.1 104960 19      32 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn\n 248574  248569  248568   0 50.7 103296 19      32 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn\n 248575  248569  248568   2 50.0 103040 19      32 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn\n 248578  248569  248568  10 48.5 106112 19      32 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn\n 248583  248569  248568   5 47.2 102400 19      32 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn\n 248585  248569  248568   5 48.8 102272 19      32 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn\n 248592  248569  248568   7 49.9 104064 19      32 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn\n 248593  248569  248568  11 49.9 104960 19      32 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn\n 248598  248569  248568   2 49.3 103168 19      32 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn\n 248600  248569  248568   2 52.7 105600 19      32 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn\n 248602  248569  248568   2 51.1 105728 19      32 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn\n 248606  248569  248568  10 51.4 105472 19      32 /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn",
+    "stderr": "your 131072x1 screen size is bogus. expect trouble\n"
+  }
+}
