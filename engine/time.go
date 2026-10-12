@@ -355,9 +355,11 @@ func (tm *TimeManager) estimateMovesRemaining() int {
 	if remaining > 40 {
 		remaining = 40
 	}
-	// Always assume at least 10 moves remaining for safety
-	if remaining < 10 {
-		remaining = 10
+	// Keep at least a 25-move horizon when the GUI provides no moves-to-go.
+	// This spends at most 4% of the usable bank per normal target, retaining
+	// time for later decisions instead of exhausting it in the middlegame.
+	if remaining < 25 {
+		remaining = 25
 	}
 
 	return remaining
