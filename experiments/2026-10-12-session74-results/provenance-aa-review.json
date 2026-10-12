@@ -1,0 +1,32 @@
+{
+  "terminal_edt": "2026-10-12T14:44:35-04:00",
+  "games": 40,
+  "pairs": 20,
+  "penta": [
+    0,
+    4,
+    12,
+    4,
+    0
+  ],
+  "wdl": [
+    6,
+    28,
+    6
+  ],
+  "exact_elo_ci95": [
+    0.0,
+    -48.46402002715472,
+    48.46402002715474
+  ],
+  "flags": [
+    0,
+    0
+  ],
+  "input_checks_after": {
+    "count": 14,
+    "all_pass": true
+  },
+  "verdict": "A/A PASS; original provenance gate live, no interim verdict",
+  "verification": "Existing completed summary and post-stage receipts reconciled; no repeated hash audit or games"
+}

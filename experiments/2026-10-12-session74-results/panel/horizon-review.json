@@ -1,0 +1,42 @@
+{
+  "completed_edt": "2026-10-12T15:22:22-04:00",
+  "base_source": "f1d0a03",
+  "topic": "night/s74-horizon",
+  "candidate_source": "bc59c3f",
+  "change": "remaining-move floor10 to25 only",
+  "checks": [
+    "four regression tests",
+    "engine short/race",
+    "full short/race",
+    "vet",
+    "PGO build"
+  ],
+  "machine": "Ryzen9800X3D / WSL2",
+  "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "cpus": [
+    13,
+    15
+  ],
+  "nice": 19,
+  "memory_max_bytes": 2147483648,
+  "memory_swap_max": 0,
+  "go_version": "go version go1.25.5 linux/amd64",
+  "GOMAXPROCS": 2,
+  "GOAMD64": "v3",
+  "files_sha256": {
+    "horizon.patch": "5beb46e6444a2db28377a7004475fe85ad62b878ed8677f0ce7fa2536847a407",
+    "horizon-ngn": "e58482c415a40a1d7640b1ca1e6afa86b6bf7031dfa351dbc2573c775277fdcc",
+    "horizon/engine/time.go": "eee5d5bc38ddff1e404d654617746c43ec80f141583abdc09a0bd7afd79b0f48",
+    "horizon/engine/time_horizon_test.go": "bde9623884114aab8240dc8657d0f200a3ba3000731797a2303fc91e6cf2005f",
+    "horizon/default.pgo": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0"
+  },
+  "strength_games": 0,
+  "playing_adoption": false,
+  "receipt_relocation": {
+    "utc": "2026-10-12T19:27:39.976296+00:00",
+    "cause": "EXIT receipt paths followed final horizon cwd; successful original checks reused, no repeat",
+    "source": "horizon/checks.{exit,done}",
+    "destination": "checks.{exit,done}",
+    "exit": 0
+  }
+}
