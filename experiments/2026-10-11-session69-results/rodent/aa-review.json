@@ -1,0 +1,110 @@
+{
+  "games": 40,
+  "pairs": 20,
+  "wins": 3,
+  "draws": 34,
+  "losses": 3,
+  "score": 0.5,
+  "penta": [
+    0,
+    1,
+    18,
+    1,
+    0
+  ],
+  "exact_elo_ci95": [
+    0.0,
+    -24.114706898066736,
+    24.11470689806672
+  ],
+  "flag_outs": {
+    "ngn": 0,
+    "opponent": 0
+  },
+  "failures": {},
+  "termination_reasons_all_recorded_games": {
+    "draw-rule": 34,
+    "checkmate": 6
+  },
+  "excluded_pairs": 0,
+  "excluded_recorded_games": 0,
+  "replay_pass": true,
+  "minimum160_met": false,
+  "clock_audit": {
+    "searched_plies": 5819,
+    "command_and_bank_conservation": true,
+    "tc": "120+1",
+    "opening_plies_free": true,
+    "flag_grace_ms": 300
+  },
+  "worker_receipts": [
+    {
+      "worker": 1,
+      "ngn": {
+        "exited": true,
+        "startup_failures": 0
+      },
+      "opponent": {
+        "exited": true,
+        "startup_failures": 0
+      }
+    },
+    {
+      "worker": 4,
+      "ngn": {
+        "exited": true,
+        "startup_failures": 0
+      },
+      "opponent": {
+        "exited": true,
+        "startup_failures": 0
+      }
+    },
+    {
+      "worker": 2,
+      "ngn": {
+        "exited": true,
+        "startup_failures": 0
+      },
+      "opponent": {
+        "exited": true,
+        "startup_failures": 0
+      }
+    },
+    {
+      "worker": 0,
+      "ngn": {
+        "exited": true,
+        "startup_failures": 0
+      },
+      "opponent": {
+        "exited": true,
+        "startup_failures": 0
+      }
+    },
+    {
+      "worker": 5,
+      "ngn": {
+        "exited": true,
+        "startup_failures": 0
+      },
+      "opponent": {
+        "exited": true,
+        "startup_failures": 0
+      }
+    },
+    {
+      "worker": 3,
+      "ngn": {
+        "exited": true,
+        "startup_failures": 0
+      },
+      "opponent": {
+        "exited": true,
+        "startup_failures": 0
+      }
+    }
+  ],
+  "verdict": "aa-pass",
+  "limitation": "fixed-label single-opponent match; normal paired CI; no general rating floor or3600 claim"
+}

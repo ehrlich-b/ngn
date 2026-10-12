@@ -1,0 +1,27 @@
+{
+  "base_source": "f1d0a035f8b4f0b7883fed0a859e5769d076089f",
+  "change": "existing immediate admission only; no new policy",
+  "net": "a4d90b41/final14 compiled defaults",
+  "candidate_binary_sha256": "a093ac329b8dcffecd0d41c26e04083a122586e9e6c0c6fa4e938a61dfcfc0f5",
+  "topic": "night/time-admission-final14",
+  "worktree": "/private/tmp/ngn-s69-admission-final14",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "cpus": "4-11",
+  "memory_max_bytes": 3221225472,
+  "memory_swap_max": 0,
+  "nice": 10,
+  "checks": [
+    "four existing controls",
+    "engine short/race",
+    "full short/race",
+    "vet",
+    "accepted-PGO build"
+  ],
+  "terminal": "2026-10-11T23:04:24-04:00",
+  "tested_source_matches_worktree": true,
+  "verdict": "CHECKED ONLY; READY for later manual actual-base nomination",
+  "games_launched": false,
+  "playing_adoption": false,
+  "runtime_edits": "uncommitted pending game verdict; preserved in tracked patch"
+}

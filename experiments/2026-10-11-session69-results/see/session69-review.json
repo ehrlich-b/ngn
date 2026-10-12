@@ -1,0 +1,40 @@
+{
+  "reviewed_utc": "2026-10-12T02:41:59.874213+00:00",
+  "mode": "own AA40",
+  "games": 40,
+  "pairs": 20,
+  "wins": 10,
+  "draws": 15,
+  "losses": 15,
+  "penta": [
+    2,
+    6,
+    8,
+    3,
+    1
+  ],
+  "reported_paired_elo": -43.7,
+  "reported_paired_ci95": [
+    -124,
+    32
+  ],
+  "flags": {
+    "new": 1,
+    "base": 0
+  },
+  "flagged_completion_line": 35,
+  "reasons": {
+    "checkmate": 24,
+    "draw-rule": 15,
+    "time-forfeit": 1
+  },
+  "controller_exit": 1,
+  "terminal": "2026-10-11T20:17:19-04:00",
+  "candidate_games": 0,
+  "verdict": "OPERATIONALLY UNSCORED",
+  "playing_source": "f1d0a03",
+  "playing_net": "a4d90b41",
+  "input_controls": "13 before-AA checks passed; no after-AA receipt because parser rejected fault",
+  "cause": "Unknown: no move/bank/elapsed trace in frozen SPRT output; later forge reboot cannot explain earlier flag",
+  "next": "No SEE retry; forge strength nominations held; one separately declared clock diagnostic, never a control/adoption verdict"
+}

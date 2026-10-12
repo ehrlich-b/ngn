@@ -1,0 +1,18 @@
+2026-10-11T23:01:28-04:00
+{"utc": "2026-10-12T00:05:15.395516+00:00", "stage": "rodent-confirmation", "event": "aa-start", "detail": {"games": 40, "pid": 155628}}
+{"utc": "2026-10-12T00:48:17.726385+00:00", "stage": "rodent-confirmation", "event": "aa-done", "detail": {"games": 40, "pairs": 20, "penta": [0, 1, 18, 1, 0], "exact_elo_ci95": [0.0, -24.114706898066736, 24.11470689806672], "verdict": "aa-pass"}}
+{"utc": "2026-10-12T00:48:17.742163+00:00", "stage": "rodent-confirmation", "event": "rodent-start", "detail": {"games": 1000, "pid": 155628}}
+60 /home/ehrli/ngn-data/night-20261007/session68-rodent/rodent-pairs.jsonl
+    PID    PPID  NI PSR   RSS COMMAND
+   1170     256   0  10 15316 python3
+  22172   22169  19  13 23724 python3
+ 155625  155617  19   0  2944 bash
+ 155628  155625  19   9 30704 python
+ 159036  155628  19  10  1792 timeout
+ 159037  159036  19   0 16140 pairmatch
+ 174870  161041   0  13 1403500 vllm
+ 174900  174870   0  14 6375356 VLLM::EngineCor
+               total        used        free      shared  buff/cache   available
+Mem:           15514       10051         249          85        5538        5462
+Swap:           4096         339        3756
+38 %, 14527 MiB, 16303 MiB

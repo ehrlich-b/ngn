@@ -1,0 +1,3 @@
+{"utc": "2026-10-12T03:08:25.067303+00:00", "stage": "session69-singular-correction", "event": "waiting-for-cpu-release", "detail": "admission checks only; no game starts while NGN checks own forge"}
+{"utc": "2026-10-12T03:08:25.080406+00:00", "stage": "session69-singular-correction", "event": "cpu-released", "detail": {"admission_exit": "0", "automatic_admission_promotion": false}}
+{"utc": "2026-10-12T03:08:25.227280+00:00", "stage": "session69-singular-correction", "event": "aa-start", "detail": "forge4-11/c2/3GiB/swap0/nice10/taskset; postreboot16vCPU; external load recorded; no competing NGN CPU jobs"}

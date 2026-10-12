@@ -1,0 +1,6 @@
+{"utc":"2026-10-12T02:39:34Z","stage":"session69-clock-diagnostic","event":"checks-start","detail":"tool-only TC flags; forge4-11/3GiB/swap0/nice10"}
+{"utc":"2026-10-12T02:43:55Z","stage":"session69-clock-diagnostic","event":"affinity-corrected","detail":"scope AllowedCPUs recorded4-11 but unimplemented cpuset gave0-15; taskset applied to own controller descendants/threads before games, no restart or repeated checks"}
+{"utc":"2026-10-12T02:44:01Z","stage":"session69-clock-diagnostic","event":"checks-done","detail":"short/race/full-short/full-race/vet/PGO"}
+{"utc":"2026-10-12T02:44:01Z","stage":"session69-clock-diagnostic","event":"diagnostic-start","detail":"fixed target24/12 at10+0.1; diagnostic only, no automatic strength gate"}
+{"utc":"2026-10-12T02:50:43Z","stage":"session69-clock-diagnostic","event":"diagnostic-done","detail":"clock-review.json; no strength verdict or lane admission"}
+{"utc":"2026-10-12T02:50:43Z","stage":"session69-clock-diagnostic","event":"terminal","detail":"exit 0"}

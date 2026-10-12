@@ -1,0 +1,114 @@
+diff --git a/cmd/pairmatch/main.go b/cmd/pairmatch/main.go
+index 5df1bc6..6d1c7f2 100644
+--- a/cmd/pairmatch/main.go
++++ b/cmd/pairmatch/main.go
+@@ -96,14 +96,13 @@ type workerReceipt struct {
+ 	Opponent uci.Diagnostics `json:"opponent"`
+ }
+ 
+-func played(a, b *uci.Engine, op []string, white bool) (game, bool) {
++func played(a, b *uci.Engine, op []string, white bool, cfg uci.GameConfig) (game, bool) {
+ 	done := make(chan game, 1)
+ 	go func() {
+ 		var moves []string
+ 		var clocks []uci.ClockSample
+-		r := uci.PlayGame(a, b, op, white, uci.GameConfig{
+-			TCTimeMs: 120000, TCIncMs: 1000, MaxMoves: 400, MovesOut: &moves, ClockOut: &clocks,
+-		})
++		cfg.MovesOut, cfg.ClockOut = &moves, &clocks
++		r := uci.PlayGame(a, b, op, white, cfg)
+ 		done <- game{White: white, Result: r, Moves: moves, Clocks: clocks}
+ 	}()
+ 	select {
+@@ -123,6 +122,8 @@ func main() {
+ 	until := flag.String("until", "", "RFC3339 final deadline")
+ 	games := flag.Int("games", 0, "exact even game count; incomplete samples fail")
+ 	conc := flag.Int("concurrency", 6, "parallel pair workers")
++	timeMs := flag.Int("time-ms", 120000, "initial tournament clock in milliseconds")
++	incMs := flag.Int("increment-ms", 1000, "tournament increment in milliseconds")
+ 	out := flag.String("out", "", "append-only raw pair JSONL")
+ 	var ao, bo options
+ 	flag.Var(&ao, "ngnoption", "NAME=VALUE")
+@@ -139,6 +140,10 @@ func main() {
+ 	if *conc < 1 || *conc > 6 {
+ 		log.Fatal("concurrency 1..6 required")
+ 	}
++	if *timeMs <= 0 || *incMs < 0 {
++		log.Fatal("positive initial clock and nonnegative increment required")
++	}
++	gameConfig := uci.GameConfig{TCTimeMs: *timeMs, TCIncMs: *incMs, MaxMoves: 400}
+ 	openings, err := uci.LoadOpenings(*book)
+ 	if err != nil || len(openings) == 0 {
+ 		log.Fatal("opening load failed: ", err)
+@@ -192,7 +197,7 @@ func main() {
+ 				}
+ 				p := pair{ID: id, Opening: strings.Join(openings[id], " ")}
+ 				for _, white := range []bool{true, false} {
+-					g, ok := played(a, b, openings[id], white)
++					g, ok := played(a, b, openings[id], white, gameConfig)
+ 					if !ok || !validResult(g.Result) {
+ 						if ok {
+ 							p.Games = append(p.Games, g)
+@@ -282,6 +287,7 @@ func main() {
+ 		"score": score, "penta": penta, "elo": elo, "elo_lower95": lo, "elo_upper95": hi,
+ 		"ngn_flag_outs": ngnFlags, "opponent_flag_outs": opponentFlags, "operational_faults": faults,
+ 		"requested_games": *games, "complete": complete, "worker_receipts": receipts,
++		"time_ms": *timeMs, "increment_ms": *incMs,
+ 		"minimum160_met": w+d+l >= 160, "opponent_label": 3532,
+ 		"implied_performance": 3532 + elo, "implied_lower95": 3532 + lo, "implied_upper95": 3532 + hi,
+ 		"limitation": "one opponent at one time control; not a rating or campaign claim",
+diff --git a/cmd/pairmatch/main_test.go b/cmd/pairmatch/main_test.go
+index efa21ff..a898be0 100644
+--- a/cmd/pairmatch/main_test.go
++++ b/cmd/pairmatch/main_test.go
+@@ -3,6 +3,7 @@ package main
+ import (
+ 	"encoding/json"
+ 	"flag"
++	"fmt"
+ 	"os"
+ 	"os/exec"
+ 	"path/filepath"
+@@ -123,7 +124,9 @@ done
+ 		ok    bool
+ 		fault bool
+ 	}{
+-		{"complete", nil, true, false}, {"deadline", []string{"-until", time.Now().Add(time.Minute).Format(time.RFC3339)}, false, false},
++		{"complete", nil, true, false},
++		{"short-clock", []string{"-time-ms", "10000", "-increment-ms", "100"}, true, false},
++		{"deadline", []string{"-until", time.Now().Add(time.Minute).Format(time.RFC3339)}, false, false},
+ 		{"fault", nil, false, true},
+ 	} {
+ 		t.Run(tc.name, func(t *testing.T) {
+@@ -168,6 +171,16 @@ done
+ 				t.Fatalf("raw pairs %s", lines)
+ 			}
+ 			if tc.ok {
++				baseMs, incMs := 120000, 1000
++				if tc.name == "short-clock" {
++					baseMs, incMs = 10000, 100
++				}
++				var reportedBase, reportedInc int
++				json.Unmarshal(raw["time_ms"], &reportedBase)
++				json.Unmarshal(raw["increment_ms"], &reportedInc)
++				if reportedBase != baseMs || reportedInc != incMs {
++					t.Fatalf("reported clock %s", data)
++				}
+ 				for _, line := range strings.Split(strings.TrimSpace(string(lines)), "\n") {
+ 					var row pair
+ 					if err := json.Unmarshal([]byte(line), &row); err != nil {
+@@ -178,10 +191,11 @@ done
+ 							t.Fatalf("missing per-ply clock wire evidence: %+v", g)
+ 						}
+ 						clock := g.Clocks[0]
+-						if clock.Go != "go wtime 120000 btime 120000 winc 1000 binc 1000" ||
++						wantGo := fmt.Sprintf("go wtime %d btime %d winc %d binc %d", baseMs, baseMs, incMs, incMs)
++						if clock.Go != wantGo ||
+ 							clock.Ply != 1 || !clock.White || clock.Move != "g6g7" ||
+-							clock.Flagged || clock.IncrementAppliedMs != 1000 ||
+-							clock.WhiteAfterMs != 121000-clock.ElapsedMs || clock.BlackAfterMs != 120000 {
++							clock.Flagged || clock.IncrementAppliedMs != incMs ||
++							clock.WhiteAfterMs != baseMs+incMs-clock.ElapsedMs || clock.BlackAfterMs != baseMs {
+ 							t.Fatalf("clock wire mismatch: %+v", clock)
+ 						}
+ 					}

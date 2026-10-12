@@ -1,0 +1,2 @@
+pid 1088298's current affinity list: 4-11
+pid 1088298's new affinity list: 4-11

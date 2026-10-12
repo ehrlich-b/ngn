@@ -1,0 +1,32 @@
+{
+  "reviewed_utc": "2026-10-12T02:41:59.875112+00:00",
+  "verdict": "AA PASS",
+  "wins": 3,
+  "draws": 34,
+  "losses": 3,
+  "penta": [
+    0,
+    1,
+    18,
+    1,
+    0
+  ],
+  "exact_elo_ci95": [
+    0.0,
+    -24.114706898066736,
+    24.11470689806672
+  ],
+  "legal_and_clock_audit": {
+    "searched_plies": 5819,
+    "command_and_bank_conservation": true,
+    "tc": "120+1",
+    "opening_plies_free": true,
+    "flag_grace_ms": 300
+  },
+  "zero_faults": true,
+  "workers": 6,
+  "input_controls": 13,
+  "match_start": "2026-10-11T20:48:17-04:00",
+  "pairmatch_pid": 159037,
+  "limitation": "Control only; frozen1000-game Rodent result pending; no rating floor or3600 claim"
+}
