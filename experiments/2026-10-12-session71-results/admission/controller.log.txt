@@ -1,0 +1,24 @@
+Running as unit: run-p1377514-i1377814.scope; invocation ID: a168fd37997540b9b3ff70ee8b60ad49
+Traceback (most recent call last):
+  File "/work/lanes/ngn-s70-admission-final14/aa-parser.py", line 385, in <module>
+    main()
+    ~~~~^^
+  File "/work/lanes/ngn-s70-admission-final14/aa-parser.py", line 372, in main
+    result = gate(args.root.read_text(), args.gate_mode)
+  File "/work/lanes/ngn-s70-admission-final14/aa-parser.py", line 90, in gate
+    assert reported[1] <= 0 <= reported[2] and exact[1] <= 0 <= exact[2]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+Traceback (most recent call last):
+  File "/work/lanes/ngn-s70-admission-final14/games.py", line 99, in <module>
+    main()
+    ~~~~^^
+  File "/work/lanes/ngn-s70-admission-final14/games.py", line 84, in main
+    subprocess.run(['python3', 'aa-parser.py', 'gate', 'aa.log',
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    '--gate-mode', 'aa'], stdout=summary, check=True)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['python3', 'aa-parser.py', 'gate', 'aa.log', '--gate-mode', 'aa']' returned non-zero exit status 1.
