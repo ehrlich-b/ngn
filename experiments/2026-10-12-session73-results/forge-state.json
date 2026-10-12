@@ -1,0 +1,26 @@
+{
+  "snapshot_utc": "2026-10-12T18:18:03.005989+00:00",
+  "scored_games_closed": true,
+  "memory": {
+    "returncode": 0,
+    "output": "               total        used        free      shared  buff/cache   available\nMem:           17921        6237        5949          27        6109       11683\nSwap:          53247        1315       51932\n",
+    "stderr": ""
+  },
+  "work_disk": {
+    "returncode": 0,
+    "output": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sdb        1.5T  570G  931G  38% /work\n",
+    "stderr": ""
+  },
+  "user_slice": {
+    "returncode": 0,
+    "output": "AllowedCPUs=\n",
+    "stderr": ""
+  },
+  "processes": {
+    "returncode": 0,
+    "output": "928 1 13 0.0 4504 0 63604 /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal\n986 938 0 0.2 12044 10 63603 /usr/bin/python3.13 /work/lanes/acceptance/acceptance.py run\n988 938 15 16.2 131060 10 63603 python3 /home/ehrlich/repos/kalshi-shadow-20261010/shadow --db /work/lanes/kalshi-shadow/shadow.db collect --compact-books --max-gib 150\n    989     938   7  0.0 14112  10   63603 /usr/bin/python3 /work/lanes/ngn-data-step2-20261011/archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768\n992 938 11 37.0 45884 15 63603 /usr/bin/python3 /work/lanes/arli-feed/supervisor.py --only-model qwen38\n    994     938   2  0.0 14308  19   63603 /usr/bin/python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767\n1243 992 2 0.2 40512 15 63602 /usr/bin/python3 /work/lanes/arli-feed/verifier.py\n458750 938 14 0.0 19516 10 461 /usr/bin/python3 /work/lanes/acceptance/acceptance.py _worker --job /work/lanes/acceptance/evidence/bryan-watchdog--run-20261012-1355/20261012T181021530886Z/JOB.json\n460033 911826 12 0.6 51816 15 391 /usr/bin/python3 /work/lanes/arli-feed/client.py generate /work/lanes/arli-feed/state/attempts/0380de2dd644599b0ae67ea732262bcbd58899ea0594ba1eac036985c5973cc4/qwen38/1\n473957 911826 14 0.6 34548 15 149 /usr/bin/python3 /work/lanes/arli-feed/client.py generate /work/lanes/arli-feed/state/attempts/bb53cc356a687d38153ad24d2861d0be054244a480243f7122592aba7ff3b8f8/qwen38/3\n475666 475664 0 0.0 12036 10 48 python3 capture.py 35-browser-corrected.txt timeout --kill-after=5s 600s node browser-1248.cjs\n476661 476649 4 0.1 21792 10 15 /usr/bin/python3.13 /work/lanes/ops/ops.py --loop-child steward-176502d3082c4cb1ace647340cca6257\n477148 477147 1 25.0 11784 0 0 python3 -\n911826 992 0 24.5 79544 15 56330 /usr/bin/python3 /work/lanes/arli-feed/dispatcher.py --only-model qwen38\n1207854 938 8 1.2 71740 0 51071 /usr/bin/python3 /work/lanes/forge-apps/apps/portfolio-live/server.py\n3827160 938 15 0.0 13620 10 11237 /usr/bin/python3.13 /work/lanes/ops/ops.py",
+    "stderr": "",
+    "selection": "NGN readers and abbreviated Python worker commands; unrelated shell/sandbox payloads omitted"
+  },
+  "guest_vcpus": 16
+}

@@ -1,0 +1,13 @@
+/home/ehrli/ngn-data/night-20261007/session68-rodent/ngn: OK
+/home/ehrli/ngn-data/night-20261007/session68-rodent/net.nnue: OK
+/home/ehrli/ngn-data/night-20261007/session68-rodent/pairmatch: OK
+/home/ehrli/ngn-data/night-20261007/session68-rodent/openings.txt: OK
+/home/ehrli/ngn-data/night-20261007/session68-rodent/nomination.json: OK
+/home/ehrli/ngn-data/night-20261007/session68-rodent/manifest.md: OK
+/home/ehrli/ngn-data/night-20261007/session68-rodent/rodent-report.py: OK
+/home/ehrli/ngn-data/night-20261007/session68-rodent/controller.py: OK
+/home/ehrli/ngn-data/night-20261007/session68-rodent/controller.sh: OK
+/home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12: OK
+/home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent/nets/rodent_4kb_768hl_8ob_v2.bin: OK
+/home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent/personalities/rodent.txt: OK
+/home/ehrli/ngn-data/night-20261007/session68-rodent/game-manifest.json: OK
