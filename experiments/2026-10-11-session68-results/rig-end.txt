@@ -1,0 +1,24 @@
+2026-10-11T20:15:45-04:00
+{"utc": "2026-10-12T00:05:15.395516+00:00", "stage": "rodent-confirmation", "event": "aa-start", "detail": {"games": 40, "pid": 155628}}
+4 aa-pairs.jsonl
+   1170     256   0  1-23:05:32  0.3 16864 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+ 155625  155617  19       10:29  0.0  3328 bash /home/ehrli/ngn-data/night-20261007/session68-rodent/controller.sh /home/ehrli/ngn-data/night-20261007/session68-rodent
+ 155628  155625  19       10:29  0.0 26736 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python controller.py /home/ehrli/ngn-data/night-20261007/session68-rodent
+ 155631  155628  19       10:29  0.0  1920 timeout --signal=TERM --kill-after=15s 10800 taskset -c 0-11 nice -n 19 /home/ehrli/ngn-data/night-20261007/session68-rodent/pairmatch -ngn /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn -opponent /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn -openings /home/ehrli/ngn-data/night-20261007/session68-rodent/openings.txt -concurrency 6 -games 40 -out /home/ehrli/ngn-data/night-20261007/session68-rodent/aa-pairs.jsonl -ngnoption EvalFile=/home/ehrli/ngn-data/night-20261007/session68-rodent/net.nnue -ngnoption UseNNUE=true -ngnoption Hash=64 -ngnoption Threads=1 -ngnoption OwnBook=false -opponentoption EvalFile=/home/ehrli/ngn-data/night-20261007/session68-rodent/net.nnue -opponentoption UseNNUE=true -opponentoption Hash=64 -opponentoption Threads=1 -opponentoption OwnBook=false
+ 155632  155631  19       10:29  0.3 15416 /home/ehrli/ngn-data/night-20261007/session68-rodent/pairmatch -ngn /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn -opponent /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn -openings /home/ehrli/ngn-data/night-20261007/session68-rodent/openings.txt -concurrency 6 -games 40 -out /home/ehrli/ngn-data/night-20261007/session68-rodent/aa-pairs.jsonl -ngnoption EvalFile=/home/ehrli/ngn-data/night-20261007/session68-rodent/net.nnue -ngnoption UseNNUE=true -ngnoption Hash=64 -ngnoption Threads=1 -ngnoption OwnBook=false -opponentoption EvalFile=/home/ehrli/ngn-data/night-20261007/session68-rodent/net.nnue -opponentoption UseNNUE=true -opponentoption Hash=64 -opponentoption Threads=1 -opponentoption OwnBook=false
+ 155636  155632  19       10:29 49.4 125268 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn
+ 155637  155632  19       10:29 50.1 150568 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn
+ 155639  155632  19       10:29 50.5 132408 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn
+ 155642  155632  19       10:29 50.2 128844 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn
+ 155647  155632  19       10:29 50.5 124156 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn
+ 155648  155632  19       10:29 49.7 150656 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn
+ 155656  155632  19       10:29 50.6 125072 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn
+ 155657  155632  19       10:29 50.4 151680 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn
+ 155658  155632  19       10:29 49.6 134204 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn
+ 155660  155632  19       10:29 49.9 127304 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn
+ 155668  155632  19       10:29 49.6 127152 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn
+ 155669  155632  19       10:29 49.9 155912 /home/ehrli/ngn-data/night-20261007/session68-rodent/ngn
+               total        used        free      shared  buff/cache   available
+Mem:           15514        2869        5621           3        7434       12644
+Swap:           4096          25        4070
+0 %, 1534 MiB, 16303 MiB
