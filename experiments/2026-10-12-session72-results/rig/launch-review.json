@@ -1,0 +1,21 @@
+{
+  "utc": "2026-10-12T15:28:25.880626+00:00",
+  "unit": "ngn-s72-see-rig.service",
+  "scope": {
+    "MainPID": "248221",
+    "CPUQuotaPerSecUSec": "12s",
+    "AllowedCPUs": "0-11",
+    "MemoryMax": "3221225472",
+    "MemorySwapMax": "0",
+    "ActiveState": "active"
+  },
+  "controller": 248221,
+  "children": "    PID    PPID  NI   RSS COMMAND\n 248226  248221  19 17024 python3 games.py\n",
+  "status": {
+    "utc": "2026-10-12T15:27:41.281914+00:00",
+    "stage": "session72-see-rig",
+    "event": "provenance-wait",
+    "detail": "native controller.done notification; no polling or engine load"
+  },
+  "no_games_started": true
+}

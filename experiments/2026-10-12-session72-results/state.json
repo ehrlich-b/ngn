@@ -1,0 +1,42 @@
+{
+  "snapshot_edt": "2026-10-12 11:22",
+  "rig": {
+    "available_memory_mib": 13003,
+    "swap_used_mib": 391,
+    "c_free_bytes": 83724013568,
+    "gpu_utilization_percent": 0,
+    "gpu_memory_used_mib": 1247,
+    "gpu_memory_total_mib": 16303,
+    "ngn_trainer_running": false,
+    "rodent_controller": 155625,
+    "rodent_python": 155628,
+    "rodent_pairmatch": 159037,
+    "rodent_recorded_pairs": 416,
+    "rodent_expected_pairs": 500,
+    "provenance_controller": 215083,
+    "provenance_python": 215088,
+    "provenance_stage": "native Rodent terminal wait",
+    "hopper_untouched": 1170,
+    "reader_untouched": 22172
+  },
+  "forge": {
+    "available_memory_mib": 12280,
+    "work_free_gib_rounded": 947,
+    "guest_vcpus": 16,
+    "user_slice_allowed_cpus": "",
+    "scored_games_closed": true,
+    "reservation_requires_bryan_confirmation": true,
+    "other_work_untouched": true
+  },
+  "launch_edt": "2026-10-12 11:28",
+  "see_rig": {
+    "controller": 248221,
+    "python": 248226,
+    "service": "ngn-s72-see-rig.service",
+    "stage": "native provenance terminal wait",
+    "predecessor_required": "CERTIFIED",
+    "games_started": false
+  },
+  "playing": "f1d0a03/a4d90b41/final14",
+  "goal_met": false
+}
