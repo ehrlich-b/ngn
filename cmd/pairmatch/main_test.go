@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -123,7 +124,9 @@ done
 		ok    bool
 		fault bool
 	}{
-		{"complete", nil, true, false}, {"deadline", []string{"-until", time.Now().Add(time.Minute).Format(time.RFC3339)}, false, false},
+		{"complete", nil, true, false},
+		{"short-clock", []string{"-time-ms", "10000", "-increment-ms", "100"}, true, false},
+		{"deadline", []string{"-until", time.Now().Add(time.Minute).Format(time.RFC3339)}, false, false},
 		{"fault", nil, false, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -168,6 +171,16 @@ done
 				t.Fatalf("raw pairs %s", lines)
 			}
 			if tc.ok {
+				baseMs, incMs := 120000, 1000
+				if tc.name == "short-clock" {
+					baseMs, incMs = 10000, 100
+				}
+				var reportedBase, reportedInc int
+				json.Unmarshal(raw["time_ms"], &reportedBase)
+				json.Unmarshal(raw["increment_ms"], &reportedInc)
+				if reportedBase != baseMs || reportedInc != incMs {
+					t.Fatalf("reported clock %s", data)
+				}
 				for _, line := range strings.Split(strings.TrimSpace(string(lines)), "\n") {
 					var row pair
 					if err := json.Unmarshal([]byte(line), &row); err != nil {
@@ -178,10 +191,11 @@ done
 							t.Fatalf("missing per-ply clock wire evidence: %+v", g)
 						}
 						clock := g.Clocks[0]
-						if clock.Go != "go wtime 120000 btime 120000 winc 1000 binc 1000" ||
+						wantGo := fmt.Sprintf("go wtime %d btime %d winc %d binc %d", baseMs, baseMs, incMs, incMs)
+						if clock.Go != wantGo ||
 							clock.Ply != 1 || !clock.White || clock.Move != "g6g7" ||
-							clock.Flagged || clock.IncrementAppliedMs != 1000 ||
-							clock.WhiteAfterMs != 121000-clock.ElapsedMs || clock.BlackAfterMs != 120000 {
+							clock.Flagged || clock.IncrementAppliedMs != incMs ||
+							clock.WhiteAfterMs != baseMs+incMs-clock.ElapsedMs || clock.BlackAfterMs != baseMs {
 							t.Fatalf("clock wire mismatch: %+v", clock)
 						}
 					}
