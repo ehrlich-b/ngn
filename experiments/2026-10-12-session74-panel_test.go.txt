@@ -1,0 +1,178 @@
+package engine
+
+import (
+ "encoding/json"
+ "fmt"
+ "os"
+ "reflect"
+ "strings"
+ "testing"
+ "time"
+)
+
+type campaignPanelCase struct {
+ ID string `json:"id"`
+ FEN string `json:"fen"`
+ Moves []string `json:"moves"`
+ PlayedMove string `json:"played_move"`
+ WhiteMS int `json:"white_ms"`
+ BlackMS int `json:"black_ms"`
+ PriorOwnPly int `json:"prior_own_ply"`
+}
+
+func panelCases(t *testing.T) []campaignPanelCase {
+ t.Helper()
+ path := os.Getenv("NGN_PANEL_FILE")
+ if path == "" { t.Skip("opt-in rig diagnostic") }
+ data, err := os.ReadFile(path); if err != nil { t.Fatal(err) }
+ var rows []campaignPanelCase
+ if err := json.Unmarshal(data, &rows); err != nil { t.Fatal(err) }
+ return rows
+}
+
+func panelReplay(t *testing.T, row campaignPanelCase) (*Position, *Position, Move) {
+ t.Helper()
+ p := newUCIStartingPosition()
+ var prior *Position
+ last := EmptyMove
+ for i, text := range row.Moves {
+  if i == row.PriorOwnPly { prior = p.Copy() }
+  move, err := ParseAlgebraicMove(text, p); if err != nil { t.Fatal(row.ID, text, err) }
+  legal := false
+  for _, candidate := range GenerateLegalMoves(p) { if candidate == move { legal = true; break } }
+  if !legal { t.Fatal(row.ID, "illegal history", text) }
+  if _, _, _, ok := p.GameMakeMove(move); !ok { t.Fatal(row.ID, "history rejected", text) }
+  last = move
+ }
+ if prior == nil { t.Fatal(row.ID, "missing prior own position") }
+ if strings.Join(strings.Fields(GenerateFEN(p))[:4], " ") != strings.Join(strings.Fields(row.FEN)[:4], " ") {
+  t.Fatal(row.ID, "replay FEN mismatch", GenerateFEN(p), row.FEN)
+ }
+ return p, prior, last
+}
+
+func TestCampaignPanelControls(t *testing.T) {
+ for _, row := range panelCases(t) {
+  p, prior, _ := panelReplay(t, row)
+  tm := newUCITimeManager()
+  tm.UpdateGameState(row.PriorOwnPly, 0, 0, prior)
+  phase, moves := tm.gamePhase, tm.movesPlayed
+  tm.SetTimeControl(SearchParams{WhiteTime:row.WhiteMS, BlackTime:row.BlackMS, WhiteInc:1000, BlackInc:1000}, p.Turn() == White)
+  soft, hard := tm.softTime, tm.hardTime
+  tm.UpdateGameState(len(row.Moves),0,0,p)
+  if tm.softTime != soft || tm.hardTime != hard || tm.movesPlayed == moves || phase < Opening || phase > Endgame {
+   t.Fatal(row.ID,"allocator setup semantics changed")
+  }
+  legal := false
+  for _, m := range GenerateLegalMoves(p) { if m.ToString() == row.PlayedMove { legal = true } }
+  if !legal { t.Fatal(row.ID,"played move illegal") }
+ }
+ for _, witness := range []struct{fen, move string; want int}{
+  {"7k/8/8/3p4/3R4/3r4/8/K7 w - - 0 1","d4d5",-400},
+  {"7k/8/4p3/3pP3/8/8/8/K7 w - d6 0 1","e5d6",100},
+ } {
+  p,err:=ParseFEN(witness.fen);if err!=nil{t.Fatal(err)}
+  move,err:=ParseAlgebraicMove(witness.move,p);if err!=nil{t.Fatal(err)}
+  if got:=panelCorrectedSEE(p,move);got!=witness.want{t.Fatalf("diagnostic SEE %s=%d want%d",witness.move,got,witness.want)}
+ }
+}
+
+func panelEngine(t *testing.T, network *NGNN1Network, last Move) *SearchEngine {
+ t.Helper()
+ e,err:=NewSearchEngineWithHash(64);if err!=nil{t.Fatal(err)}
+ if err=e.SelectNGNN1Evaluator(network);err!=nil{t.Fatal(err)}
+ e.SetLastMovePlayed(last)
+ return e
+}
+
+func panelQScore(t *testing.T, p *Position, network *NGNN1Network, last Move) (int,int) {
+ t.Helper()
+ e:=panelEngine(t,network,last)
+ generation:=mustAcquireHCEModelUse();defer releaseHCEModelUse()
+ tt:=e.prepareTTGeneration(generation)
+ evaluator:=e.mustPreparePrimaryEvaluator(p,generation)
+ static:=evaluator.SearchSTM(p)
+ var mb [256]Move;var cb [64]Move;var ob [256]Move;var gains [32]int
+ info:=&SearchInfo{control:&e.worker.control,history:&e.worker.history,evaluator:evaluator,tt:tt,
+  MoveBuffer:&mb,CaptureBuffer:&cb,OrderedBuffer:&ob,SEEGains:&gains,Frames:make([]searchFrame,searchFramePoolSize)}
+ before:=snapshotPVPosition(p)
+ score:=quiescence(p,-INFINITY,INFINITY,0,info)
+ if info.Stopped || !reflect.DeepEqual(before,snapshotPVPosition(p)){t.Fatal("qsearch did not restore full-history root")}
+ return static,score
+}
+
+func panelEmit(t *testing.T,row map[string]interface{}) {
+ t.Helper();data,err:=json.Marshal(row);if err!=nil{t.Fatal(err)}
+ fmt.Println("CAMPAIGNPANEL "+string(data))
+}
+
+func panelSearch(t *testing.T, row campaignPanelCase, network *NGNN1Network, mode string, ms int, played bool) {
+ t.Helper()
+ p,prior,last:=panelReplay(t,row)
+ tm:=newUCITimeManager()
+ tm.UpdateGameState(row.PriorOwnPly,0,0,prior)
+ budgetPhase,budgetMoves:=tm.gamePhase,tm.movesPlayed
+ params:=SearchParams{MoveTime:ms}
+ if mode=="tournament"{params=SearchParams{WhiteTime:row.WhiteMS,BlackTime:row.BlackMS,WhiteInc:1000,BlackInc:1000}}
+ if played {
+  move,err:=ParseAlgebraicMove(row.PlayedMove,p);if err!=nil{t.Fatal(err)}
+  if _,_,_,ok:=p.GameMakeMove(move);!ok{t.Fatal("played move rejected")}
+  last=move
+ }
+ e:=panelEngine(t,network,last)
+ var observer searchTerminationObserver
+ tm.setSearchTerminationObserver(&observer)
+ start:=time.Now()
+ tm.SetTimeControlAt(params,p.Turn()==White,start)
+ tm.UpdateGameState(len(row.Moves),0,0,p)
+ root:=p.Copy();before:=snapshotPVPosition(root)
+ var completed []map[string]interface{}
+ result:=e.SearchIterativeDeepeningWithCallback(root,MaximumDepth,tm,func(info *SearchInfo){
+  tm.UpdateGameState(len(row.Moves),info.BestScore,info.BestScore,root)
+  completed=append(completed,map[string]interface{}{"depth":info.Depth,"score":info.BestScore,"move":info.BestMove.ToString(),
+   "elapsed_ns":tm.GetElapsedTime().Nanoseconds(),"nodes":info.Nodes,"effort":tm.bestMoveNodeFraction,"stable_iters":tm.stableIters})
+ })
+ elapsed:=time.Since(start)
+ if !reflect.DeepEqual(before,snapshotPVPosition(root)) || observer.IterationOverflow!=0{t.Fatal(row.ID,"search root/observer invalid")}
+ legal:=false;for _,move:=range GenerateLegalMoves(root){if move==result.BestMove{legal=true}}
+ if !legal{t.Fatal(row.ID,"illegal or no search move")}
+ lastComplete:=time.Duration(0)
+ if observer.IterationCount>0{lastComplete=observer.Iterations[observer.IterationCount-1].CompletedAtElapsed}
+ tail:=observer.FirstElapsed-lastComplete
+ // A terminal reason may precede a final completed mate iteration; no discarded tail then.
+ if tail<0 && observer.FirstReason==searchTerminationTerminal{tail=0}
+ if tail<0{t.Fatal(row.ID,"negative search tail")}
+ score:=result.BestScore;if played{score=-score}
+ panelEmit(t,map[string]interface{}{"id":row.ID,"variant":os.Getenv("NGN_PANEL_VARIANT"),"kind":"search","mode":mode,
+  "requested_ms":ms,"played_child":played,"score_root_stm":score,"move":result.BestMove.ToString(),"depth":result.Depth,
+  "elapsed_ns":elapsed.Nanoseconds(),"soft_ns":tm.softTime.Nanoseconds(),"hard_ns":tm.hardTime.Nanoseconds(),
+  "allocation_horizon":func()int{oldPhase,oldMoves:=tm.gamePhase,tm.movesPlayed;tm.gamePhase,tm.movesPlayed=budgetPhase,budgetMoves;h:=tm.estimateMovesRemaining();tm.gamePhase,tm.movesPlayed=oldPhase,oldMoves;return h}(),
+  "allocation_phase":budgetPhase,"allocation_moves_played":budgetMoves,"reason":observer.FirstReason.String(),
+  "stop_depth":observer.FirstDepth,"stop_elapsed_ns":observer.FirstElapsed.Nanoseconds(),"tail_ns":tail.Nanoseconds(),
+  "nodes":result.Nodes,"root_best_move_changes":result.RootBestMoveChanges,"see_quiet_prunes":result.SEEQuietPrunes,
+  "see_capture_prunes":result.SEECapPrunes,"qsee_prunes":result.QSEEPrunes,"completed":completed,"iterations":observer.Iterations[:observer.IterationCount]})
+}
+
+func TestCampaignPanelDiagnostic(t *testing.T) {
+ rows:=panelCases(t)
+ network,err:=LoadNGNN1(os.Getenv("NGN_PANEL_NET"));if err!=nil{t.Fatal(err)}
+ smoke:=os.Getenv("NGN_PANEL_SMOKE")=="1"
+ if smoke{rows=rows[:1]}
+ for _,row:=range rows{
+  p,_,last:=panelReplay(t,row)
+  static,qscore:=panelQScore(t,p,network,last)
+  disagreements:=[]map[string]interface{}{}
+  for _,move:=range GenerateLegalMoves(p){
+   old,fixed:=staticExchangeEvaluation(p,move),panelCorrectedSEE(p,move)
+   if old!=fixed{disagreements=append(disagreements,map[string]interface{}{"move":move.ToString(),"old":old,"fixed":fixed,"zero_threshold_changed":(old<0)!=(fixed<0)})}
+  }
+  panelEmit(t,map[string]interface{}{"id":row.ID,"variant":os.Getenv("NGN_PANEL_VARIANT"),"kind":"evaluation",
+   "static_root_stm":static,"q_root_stm":qscore,"see_disagreements":disagreements})
+  if smoke{panelSearch(t,row,network,"fixed",100,false);continue}
+  panelSearch(t,row,network,"tournament",0,false)
+  if os.Getenv("NGN_PANEL_VARIANT")=="base"{
+   for _,budget:=range []int{1000,4000,16000}{panelSearch(t,row,network,"fixed",budget,false)}
+   panelSearch(t,row,network,"fixed",16000,true)
+  }
+ }
+}

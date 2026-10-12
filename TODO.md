@@ -1,41 +1,32 @@
 # NGN live state — 2026-10-12: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **f1d0a03 / NGNN3 KB8 H512 a4d90b41 / final14 compiled defaults**,
-factorizer off, explicitEvalFile; embedded fallback c6c12796. Current-source
-SPSA400 +37.49[+16.95,+58.30] and separate rig60+0.6 transfer400
-+32.23[+18.31,+46.26] CONFIRMED, zero faults. Data step2 and singular
-correction SHELVED. No new absolute/provenance certification.
+Playing **f1d0a03 / NGNN3 KB8 H512 a4d90b41 / compiled final14**,
+factorizer off, explicitEvalFile; embedded fallback c6c12796.
+SPSA current-source400 +37.49[+16.95,+58.30] and separate60+0.6 transfer400
++32.23[+18.31,+46.26] confirmed, zero faults. No new acceptance or claim.
+Rodent1000 closed: **−29.25[−40.26,−18.31]**, superiority not confirmed.
 
-Latest plan **October12 04:25**: forge closed to scored games until Bryan
-restores reserved CPUs; no A/A retries or NGN-cause investigation. Rig order:
-repaired provenance → conditional SEE geometry nomination.
+Latest plan **October12 14:58 / Astra48h** governs until15:00 October14.
+Forge scored lane closed. Rig: bounded provenance → SEE → full-history
+CPU/GPU diagnosis → horizon alone120+1 → conditional transfer/admission.
+No unchanged data/architecture/SPSA rerun or3600 claim in this window.
 
-Rodent natural terminal **14:21:26 / exit0**, fixed1000/500:
-157W/602D/241L,45.8%,penta[9,146,269,72,4], **−29.25[−40.26,−18.31]**.
-**SUPERIORITY NOT CONFIRMED**; zero faults/exclusions, legal replay,
-161,658 actual-clock plies, all13 inputs and twelve child exits PASS.
-Fixed3532-label implied3502.75[3491.74,3513.69] is one matchup, no rating
-floor/3600 claim. Closed sample; no extension or repeat audit.
-[Review](experiments/2026-10-12-session73-results/session73-rodent-review.json).
+Provenance A/A40 PASS6/28/6,0[−48.464,+48.464], zero faults/all14 inputs;
+original gate248721 under215083/215088 since14:44:35. Supervisor248896
+sets score-independent **21:12 cutoff**; administrative stop unscored,
+certification owed. SEE amended waiter248899 follows clean terminal/intact
+administrative hold, keeping originalA/A40/fixed40010+0.1 rule.
 
-Repaired provenance **215083/215088**, ownA/A40 SPRT **248569** live since
-14:21:27 on rig0–11/c6/nice19/3GiB/swap0; capacity PASS. Accepted4f8f631f
-versus archived53caa7c4, identicala4d90b41/explicitfinal14. Control pass
-alone chains original60+0.6 SPRT[0,+6]/min400/cap4000. NaturalH1 AND both
-positive lower95/zero faults/intact inputs certify; H0/cap diagnosis.
+Isolated horizon **bc59c3f/e58482c4** checked/pushed, unadopted. Frozen54
+full-history controls/smokes and PGO diagnostics pass; panel250737 waits
+for SEE, then one reserved CPU/GPU block. Horizon waiter251206 chains
+prospective120+1 A/A40/fixed400 only on clean SEE shelf + panel admission;
+SEE win/fault holds for actual-base review. No automatic adoption.
 
-SEE rig **248221/248226**, service ngn-s72-see-rig.service, still waits
-natively for CERTIFIED provenance; other outcomes hold for review.
-Checked73fd6fe/49497bd4 versus f1d0a03/4f8f631f; samea4d90b41/final14.
-Own10+0.1 A/A40 then fixed400/200/standard positive-lower rule/zero faults.
-No SEE games/adoption; old forge flag sample unscored, never pooled.
-Reuse checks; no build/test repeat.
-
-Rig C:77.98GiB/RAM13,573MiB at14:22; forge/work931GiB at14:18. GPU idle;
-completed diagnostics admit no new training treatment. Hopper/readers/other
-jobs untouched. [Session73](experiments/2026-10-12-session73.md).
-Next session not before15:10 EDT: provenance control/stage, then SEE waiter.
+C:74.79GiB/RAM12,576MiB at15:31, GPU idle until declared post-SEE block.
+Hopper/readers untouched. Next session not before **21:15 EDT October12**.
+[Session74](experiments/2026-10-12-session74.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

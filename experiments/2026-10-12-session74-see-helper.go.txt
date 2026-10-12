@@ -1,0 +1,98 @@
+package engine
+
+// Diagnostic copy of the original NGN-owned, checked 73fd6fe SEE correction.
+func panelCorrectedSEE(pos *Position, move Move) int {
+	// Castling is a king move with no exchange — SEE is meaningless and the king's
+	// infinite weight would poison the swap. Quiet (non-capture) moves DO flow
+	// through: gain[0] = 0 (nothing captured) and the swap then evaluates whether
+	// the moving piece survives on its destination square. This is what quiet-move
+	// SEE pruning reads.
+	if move.IsCastle() {
+		return 0
+	}
+
+	from := move.Source()
+	to := move.Destination()
+	targetSquare := to
+
+	// Get the initial captured piece value
+	capturedValue := move.CapturedPiece().seeWeight()
+
+	// Pawn/knight/king attackers are occupancy-independent (their attack patterns
+	// can't be blocked or revealed), so derive them once and re-mask by occupancy
+	// each swap step instead of rebuilding them in getAttackersAfterMove.
+	nonSlider := seeNonSliderAttackers(pos, targetSquare)
+
+	movingPiece := move.MovingPiece()
+
+	// Initialize the exchange - use stack array to avoid allocation
+	var gain [32]int // Exchange gains on stack
+	depth := 0
+	color := movingPiece.Color().Other() // Side to move after initial capture
+	occupied := pos.Board.WhiteOccupancy() | pos.Board.BlackOccupancy()
+	occupied &^= SquareMask[int(from)] // mover left its square -> reveals x-ray attackers behind it
+	if move.IsEnPassant() {
+		// The exchange stays on the destination; only the captured pawn's
+		// original square is removed from occupancy.
+		capturedSquare := int(to) - 8
+		if movingPiece.Color() == Black {
+			capturedSquare = int(to) + 8
+		}
+		occupied &^= SquareMask[capturedSquare]
+	}
+	occupied |= SquareMask[int(to)]
+	// Even the first recapture must see sliders exposed by the initial move.
+	attackers := getAttackersAfterMove(pos, nonSlider, occupied, targetSquare)
+
+	// gain[0] is the value of the piece initially captured. pieceOnSquare tracks
+	// the value of whatever piece now stands on the target square (initially the
+	// moving piece) -- that is what the NEXT recapture wins. For a promotion-
+	// capture the pawn becomes the promoted piece, both for the material gain and
+	// as the piece now standing on the square.
+	gain[depth] = int(capturedValue)
+	pieceOnSquare := int(movingPiece.seeWeight())
+	if move.PromoType() != NoType {
+		promoPiece := GetPiece(move.PromoType(), movingPiece.Color())
+		gain[depth] += int(promoPiece.seeWeight()) - 100 // 100 = pawn seeWeight
+		pieceOnSquare = int(promoPiece.seeWeight())
+	}
+
+	for {
+		depth++
+		if depth >= 32 {
+			break // Prevent overflow of the gain array
+		}
+
+		// Find the least valuable attacker for the current side
+		attackerSquare, attackerPiece := findLeastValuableAttacker(pos, attackers, color)
+		if attackerSquare == NoSquare {
+			break // No more attackers; last valid swap entry is gain[depth-1]
+		}
+
+		// Remove this attacker from the occupied bitboard
+		occupied &^= SquareMask[int(attackerSquare)]
+
+		// Update attackers (reveal sliders that were behind the moved attacker)
+		attackers = getAttackersAfterMove(pos, nonSlider, occupied, targetSquare)
+
+		// This recapture wins the piece currently standing on the square; the
+		// recapturing piece then becomes the piece on the square for the next ply.
+		gain[depth] = pieceOnSquare - gain[depth-1]
+		pieceOnSquare = int(attackerPiece.seeWeight())
+
+		// Switch sides
+		color = color.Other()
+	}
+
+	// Negamax the swap list backward over the valid entries [0 .. depth-1]. Each
+	// side, working back, declines a recapture that would leave it worse off.
+	for depth--; depth > 0; depth-- {
+		if gain[depth-1] > -gain[depth] {
+			gain[depth-1] = -gain[depth]
+		}
+	}
+
+	return gain[0]
+}
+
+// getAttackers returns a bitboard of all pieces attacking the given square

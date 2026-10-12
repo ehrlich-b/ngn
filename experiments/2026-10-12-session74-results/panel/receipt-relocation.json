@@ -1,0 +1,7 @@
+{
+  "utc": "2026-10-12T19:27:39.976296+00:00",
+  "cause": "EXIT receipt paths followed final horizon cwd; successful original checks reused, no repeat",
+  "source": "horizon/checks.{exit,done}",
+  "destination": "checks.{exit,done}",
+  "exit": 0
+}
