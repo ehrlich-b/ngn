@@ -1,0 +1,14 @@
+baseline-ngn: OK
+candidate-ngn: OK
+base.nnue: OK
+sprt: OK
+openings.txt: OK
+nomination.json: OK
+vector.json: OK
+baseline-readiness.json: OK
+manifest.md: OK
+controller.sh: OK
+games.py: OK
+aa-parser.py: OK
+paired-parser.py: OK
+game-manifest.json: OK

@@ -1,0 +1,44 @@
+{
+  "utc": "2026-10-12T07:11:15.550352+00:00",
+  "ready": true,
+  "baseline_source": "5b882e2",
+  "candidate_source": "f1d0a03",
+  "searches": 12,
+  "positions": 6,
+  "evaluation_triplets_equal": true,
+  "backend": "ngnn3",
+  "vector": {
+    "AspInit": 17,
+    "AspMult": 163,
+    "DeltaMargin": 202,
+    "ExtensionBudget": 29,
+    "FutilityMargin": 104,
+    "FutilityMaxDepth": 8,
+    "LMPBase": 3,
+    "LMRFullDepth": 3,
+    "LMRMoveThreshold": 2,
+    "NullMoveMinDepth": 2,
+    "NullMoveR": 4,
+    "ReverseFutilityMargin": 63,
+    "SingularDepth": 7,
+    "SingularMargin": 57
+  },
+  "all14_advertised_in_range": true,
+  "handler": "archived and accepted original setTunableParam source; same registry names and limits",
+  "source_imported_or_rebuilt": false,
+  "current_source_checks_reused": true,
+  "changed_search_positions": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "files_sha256": {
+    "baseline-ngn": "53caa7c45fa0c3edfc0603ec97fa6026df99e6f8da37e92aae25a26fc33befc1",
+    "candidate-ngn": "4f8f631fe29eb010605b6eaec2d8c1fac769e39c416f3ff7f41e997feae7a61d",
+    "base.nnue": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+    "vector.json": "69ef9e1960fdebad9ab87039afda61fea3d927e43590d11575b987d3812994bd"
+  }
+}
