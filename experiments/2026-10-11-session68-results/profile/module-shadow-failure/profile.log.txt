@@ -1,0 +1,22 @@
+Running as unit: ngn-s68-training-profile.scope; invocation ID: 729706d0e6d34051b069fe7b102312dd
+Traceback (most recent call last):
+  File "/home/ehrli/ngn-data/night-20261007/session68-training-profile/profile.py", line 79, in <module>
+    optimizer = torch.optim.AdamW(model.parameters(), lr=.0001, weight_decay=.01)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ehrli/ngn-original-nnue-night-20261001/venv/lib/python3.12/site-packages/torch/optim/adamw.py", line 37, in __init__
+    super().__init__(
+  File "/home/ehrli/ngn-original-nnue-night-20261001/venv/lib/python3.12/site-packages/torch/optim/adam.py", line 100, in __init__
+    super().__init__(params, defaults)
+  File "/home/ehrli/ngn-original-nnue-night-20261001/venv/lib/python3.12/site-packages/torch/optim/optimizer.py", line 369, in __init__
+    self.add_param_group(cast(dict, param_group))
+  File "/home/ehrli/ngn-original-nnue-night-20261001/venv/lib/python3.12/site-packages/torch/_compile.py", line 46, in inner
+    import torch._dynamo
+  File "/home/ehrli/ngn-original-nnue-night-20261001/venv/lib/python3.12/site-packages/torch/_dynamo/__init__.py", line 13, in <module>
+    from . import config, convert_frame, eval_frame, resume_execution
+  File "/home/ehrli/ngn-original-nnue-night-20261001/venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 26, in <module>
+    import cProfile
+  File "/usr/lib/python3.12/cProfile.py", line 12, in <module>
+    import profile as _pyprofile
+  File "/home/ehrli/ngn-data/night-20261007/session68-training-profile/profile.py", line 71, in <module>
+    torch.set_num_interop_threads(1)
+RuntimeError: Error: cannot set number of interop threads after parallel work has started or set_num_interop_threads called
