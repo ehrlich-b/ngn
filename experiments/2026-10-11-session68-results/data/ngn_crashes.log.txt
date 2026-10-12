@@ -1,0 +1,10 @@
+[NGN CRASH] 2026/10/11 16:48:15.393333 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:48:15.393398 crash_handler.go:65: Crash log: /work/lanes/ngn-s66-data-gate/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:48:15.522341 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:48:15.522414 crash_handler.go:65: Crash log: /work/lanes/ngn-s66-data-gate/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:48:15.522617 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:48:15.522687 crash_handler.go:65: Crash log: /work/lanes/ngn-s66-data-gate/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:48:15.650213 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:48:15.650213 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:48:15.650296 crash_handler.go:65: Crash log: /work/lanes/ngn-s66-data-gate/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:48:15.650299 crash_handler.go:65: Crash log: /work/lanes/ngn-s66-data-gate/ngn_crashes.log
