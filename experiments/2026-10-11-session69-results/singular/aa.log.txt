@@ -1,0 +1,58 @@
+WARNING: real-clock mode at concurrency 2 — timing is load-dependent; only valid on a concurrency-null-tested rig. Watch the flag-out count.
+NGN self-play SPRT
+==================
+new=/work/lanes/ngn-s69-singular-correction/baseline-ngn  base=/work/lanes/ngn-s69-singular-correction/baseline-ngn
+new options: [setoption name EvalFile value /work/lanes/ngn-s69-singular-correction/base.nnue setoption name UseNNUE value true setoption name Hash value 64 setoption name Threads value 1 setoption name OwnBook value false]
+base options: [setoption name EvalFile value /work/lanes/ngn-s69-singular-correction/base.nnue setoption name UseNNUE value true setoption name Hash value 64 setoption name Threads value 1 setoption name OwnBook value false]
+mode: real clock 10s+0.1s (concurrency 2) | openings: 5000 (x2 colors) | concurrency: 2
+H0: elo<=-3.0   H1: elo>=3.0   (alpha=0.05 beta=0.05 -> LLR bounds [-2.94, 2.94])
+
+G1     0W  1D  0L   50.0%  elo   +0.0 [-495,+495]  LLR  +0.00  pLLR  +0.00  draw-rule   
+G2     0W  2D  0L   50.0%  elo   +0.0 [-393,+393]  LLR  +0.00  pLLR  +0.00  draw-rule   
+G3     1W  2D  0L   66.7%  elo +120.4 [-233,+473]  LLR  +0.08  pLLR  +0.00  checkmate   
+G4     1W  2D  1L   50.0%  elo   +0.0 [-301,+301]  LLR  +0.00  pLLR  +0.00  checkmate   
+G5     1W  3D  1L   50.0%  elo   +0.0 [-275,+275]  LLR  +0.00  pLLR  +0.00  draw-rule   
+G6     1W  3D  2L   41.7%  elo  -58.5 [-316,+199]  LLR  -0.04  pLLR  -0.16  checkmate   
+G7     1W  4D  2L   42.9%  elo  -50.0 [-290,+190]  LLR  -0.04  pLLR  -0.16  draw-rule   
+G8     1W  5D  2L   43.8%  elo  -43.7 [-270,+183]  LLR  -0.05  pLLR  -0.18  draw-rule   
+G9     1W  6D  2L   44.4%  elo  -38.8 [-253,+176]  LLR  -0.05  pLLR  -0.18  draw-rule   
+G10    1W  7D  2L   45.0%  elo  -34.9 [-239,+170]  LLR  -0.06  pLLR  -0.22  draw-rule   
+G11    2W  7D  2L   50.0%  elo   +0.0 [-195,+195]  LLR  +0.00  pLLR  -0.22  checkmate   
+G12    2W  8D  2L   50.0%  elo   +0.0 [-187,+187]  LLR  +0.00  pLLR  +0.00  draw-rule   
+G13    2W  9D  2L   50.0%  elo   +0.0 [-181,+181]  LLR  +0.00  pLLR  +0.00  draw-rule   
+G14    3W  9D  2L   53.6%  elo  +24.9 [-150,+200]  LLR  +0.05  pLLR  +0.00  checkmate   
+G15    3W  9D  3L   50.0%  elo   +0.0 [-169,+169]  LLR  +0.00  pLLR  -0.08  checkmate   
+G16    3W  9D  4L   46.9%  elo  -21.7 [-186,+143]  LLR  -0.04  pLLR  -0.10  checkmate   
+G17    4W  9D  4L   50.0%  elo   +0.0 [-159,+159]  LLR  +0.00  pLLR  -0.10  checkmate   
+G18    4W 10D  4L   50.0%  elo   +0.0 [-155,+155]  LLR  +0.00  pLLR  -0.10  draw-rule   
+G19    4W 10D  5L   47.4%  elo  -18.3 [-170,+133]  LLR  -0.04  pLLR  -0.11  checkmate   
+G20    4W 11D  5L   47.5%  elo  -17.4 [-165,+131]  LLR  -0.04  pLLR  -0.12  draw-rule   
+G21    4W 12D  5L   47.6%  elo  -16.6 [-161,+128]  LLR  -0.04  pLLR  -0.12  draw-rule   
+G22    4W 12D  6L   45.5%  elo  -31.7 [-173,+110]  LLR  -0.08  pLLR  -0.12  checkmate   
+G23    5W 12D  6L   47.8%  elo  -15.1 [-154,+123]  LLR  -0.04  pLLR  +0.00  checkmate   
+G24    5W 13D  6L   47.9%  elo  -14.5 [-150,+121]  LLR  -0.04  pLLR  +0.00  draw-rule   
+G25    5W 14D  6L   48.0%  elo  -13.9 [-147,+119]  LLR  -0.04  pLLR  -0.08  draw-rule   
+G26    5W 15D  6L   48.1%  elo  -13.4 [-144,+117]  LLR  -0.04  pLLR  -0.09  draw-rule   
+G27    5W 16D  6L   48.1%  elo  -12.9 [-141,+115]  LLR  -0.04  pLLR  -0.09  draw-rule   
+G28    5W 17D  6L   48.2%  elo  -12.4 [-138,+114]  LLR  -0.04  pLLR  -0.10  draw-rule   
+G29    5W 18D  6L   48.3%  elo  -12.0 [-136,+112]  LLR  -0.05  pLLR  -0.10  draw-rule   
+G30    5W 19D  6L   48.3%  elo  -11.6 [-133,+110]  LLR  -0.05  pLLR  -0.10  draw-rule   
+G31    5W 19D  7L   46.8%  elo  -22.4 [-143,+98]  LLR  -0.09  pLLR  -0.18  checkmate   
+G32    6W 19D  7L   48.4%  elo  -10.9 [-129,+107]  LLR  -0.04  pLLR  -0.08  checkmate   
+G33    6W 20D  7L   48.5%  elo  -10.5 [-127,+106]  LLR  -0.04  pLLR  -0.08  draw-rule   
+G34    7W 20D  7L   50.0%  elo   +0.0 [-115,+115]  LLR  +0.00  pLLR  +0.00  checkmate   
+G35    7W 21D  7L   50.0%  elo   +0.0 [-113,+113]  LLR  +0.00  pLLR  +0.00  draw-rule   
+G36    7W 22D  7L   50.0%  elo   +0.0 [-112,+112]  LLR  +0.00  pLLR  +0.00  draw-rule   
+G37    8W 22D  7L   51.4%  elo   +9.4 [-101,+120]  LLR  +0.04  pLLR  +0.07  checkmate   
+G38    8W 23D  7L   51.3%  elo   +9.1 [-100,+118]  LLR  +0.04  pLLR  +0.07  draw-rule   
+G39    8W 24D  7L   51.3%  elo   +8.9 [-98,+116]  LLR  +0.04  pLLR  +0.07  draw-rule   
+G40    9W 24D  7L   52.5%  elo  +17.4 [-89,+124]  LLR  +0.09  pLLR  +0.14  checkmate   
+
+=== RESULT (11m20s) ===
+Games: 40   W-D-L: 9-24-7   score: 52.5%
+Elo(new - base): +17.4   95% CI [-89, +124]
+LLR: +0.09   bounds [-2.94, 2.94]
+Pentanomial [LL 0  LD 4  {LW,DD} 10  WD 6  WW 0] over 20 pairs
+Penta Elo: +17.4   95% CI [-36, +72]   pLLR +0.14  (THE decision stat; trinomial above is secondary)
+Flag-outs (lost on time): new 0, base 0  of 40 games  (goal: 0)
+Verdict: INCONCLUSIVE (ran out of games — add openings or raise -maxgames)

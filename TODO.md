@@ -17,8 +17,8 @@ Forge SEE73fd6fe ownA/A40 **OPERATIONALLY UNSCORED**20:17:19:
 one baseline flag, no candidate games. Retain playing source; no SEE
 retry. Forge reboot20:37/current16-vCPU/competing4–11 work leaves
 physical reservation/pinning unverified. Distinct singular1088298/1088310/
-1088333 starts one fresh post-reboot A/A40 at23:08:25, then conditional
-400/200; checked133b2f3/a246ff5e on unchangedf1d0a03/4f8f631f/a4d90b41.
+1099427 passes fresh post-reboot A/A40 at23:19:45,9/24/7,zero faults;
+fixed400/200 live since then; checked133b2f3/a246ff5e on unchangedf1d0a03/4f8f631f/a4d90b41.
 Taskset4–11/c2/3GiB/swap0/nice10; zero faults/positive printed AND unrounded
 lower95/intact pins only keeps. No SEE retry or diagnostic-control reuse;
 any singular fault ends it, no retry. ETA01:15–02:00 October12.
