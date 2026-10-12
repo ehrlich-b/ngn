@@ -1,0 +1,17 @@
+{
+  "base_source": "f1d0a035f8b4f0b7883fed0a859e5769d076089f",
+  "candidate_source": "73fd6fef48e870b124b4b4677b6b41d2190c08f8",
+  "change": "SEE post-move geometry only; piece values unchanged",
+  "net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "defaults": "final14 compiled; factorizer off",
+  "manual_nomination": true,
+  "binary_inputs_sha256": {
+    "baseline-ngn": "4f8f631fe29eb010605b6eaec2d8c1fac769e39c416f3ff7f41e997feae7a61d",
+    "candidate-ngn": "49497bd4c48993cf2140f24a98a7edc7fa5415060fd4d1cb9a3f4c4c37e05117",
+    "base.nnue": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+    "sprt": "9b0002f856849ebaf5e1d39487303d8e8f5406a8cc26d22fc2b409f9761aa83a",
+    "openings.txt": "974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222"
+  },
+  "source_checks": "experiments/2026-10-11-session66-results/correctness/see-review.json",
+  "rule": "experiments/2026-10-11-session68-see-gate.md"
+}

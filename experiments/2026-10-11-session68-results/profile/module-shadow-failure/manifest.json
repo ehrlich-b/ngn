@@ -1,0 +1,130 @@
+{
+  "created_utc": "2026-10-12T00:08:35.428915+00:00",
+  "instruction": "experiments/2026-10-11-training-pipeline-profile.md",
+  "source": "/home/ehrli/ngn-data/night-20261007/session62-loader-index/source",
+  "script_sha256": "69a79c9390871ddfca230dfa5bac9963ca7c14970da4163d30119eefbd62947a",
+  "config_sha256": "7fdabde2d583230e7b47d95d25a599dd8479f9d82ff689ff193c12df238dbe59",
+  "checkpoint_sha256": "a0b2da5c7497f7338db55d8f95d0795ec00aa92099a20aaf06179dff7097a750",
+  "seed": 2026101108,
+  "sources": [
+    {
+      "path": "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+      "bytes": 55627628064,
+      "records": 1738363377
+    },
+    {
+      "path": "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.archive.json",
+      "bytes": 183371624416,
+      "records": 5730363263,
+      "sha256": "dffe7f87cfc40b7e46bf2cf1fb0b1b203f6cc2eb63d94267d223f45bb6c2533d"
+    },
+    {
+      "path": "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+      "bytes": 75977281056,
+      "records": 2374290033
+    }
+  ],
+  "excluded_source": "T75: avoid forge game-lane contention",
+  "selected_blocks": [
+    [
+      1,
+      1767899136,
+      1768161280
+    ],
+    [
+      1,
+      1791492096,
+      1791754240
+    ],
+    [
+      1,
+      5266472960,
+      5266735104
+    ],
+    [
+      0,
+      743964672,
+      744226816
+    ],
+    [
+      1,
+      2952265728,
+      2952527872
+    ],
+    [
+      2,
+      1695023104,
+      1695285248
+    ],
+    [
+      1,
+      3735552000,
+      3735814144
+    ],
+    [
+      1,
+      84934656,
+      85196800
+    ],
+    [
+      1,
+      3412590592,
+      3412852736
+    ],
+    [
+      0,
+      66846720,
+      67108864
+    ],
+    [
+      1,
+      103809024,
+      104071168
+    ],
+    [
+      0,
+      970981376,
+      971243520
+    ],
+    [
+      1,
+      5143003136,
+      5143265280
+    ],
+    [
+      1,
+      2295595008,
+      2295857152
+    ],
+    [
+      1,
+      2695888896,
+      2696151040
+    ],
+    [
+      1,
+      2022178816,
+      2022440960
+    ]
+  ],
+  "warmup_steps": 16,
+  "timed_steps": 128,
+  "operator_profile_steps": 8,
+  "batch": 16384,
+  "hidden": 512,
+  "king_buckets": 8,
+  "material_buckets": 8,
+  "precision": "bf16",
+  "float32_matmul_precision": "high",
+  "cpu_threads": 2,
+  "cpus": [
+    12,
+    14
+  ],
+  "memory_max_bytes": 4294967296,
+  "swap_max": 0,
+  "nice": 19,
+  "no_checkpoint_or_export": true,
+  "automatic_training": false,
+  "automatic_games": false
+}
