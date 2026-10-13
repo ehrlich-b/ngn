@@ -1,0 +1,23 @@
+{
+  "reviewed_utc": "2026-10-13T10:33:05.818640+00:00",
+  "natural_control_terminal_utc": "2026-10-13T10:20:14.241814+00:00",
+  "gate_start_utc": "2026-10-13T10:20:14.250593+00:00",
+  "verdict": "A/A PASS; original fixed400 gate live, no candidate verdict",
+  "control": {
+    "mode": "aa", "games": 40, "pairs": 20,
+    "wins": 9, "draws": 25, "losses": 6,
+    "penta": [1, 2, 10, 7, 0],
+    "elo": 26.1, "ci95": [-34.0, 88.0],
+    "exact_elo_ci95": [26.106692605036596, -34.36435990630487, 88.21615210135643],
+    "flags": [0, 0], "reasons": {"draw-rule": 25, "checkmate": 15},
+    "verdict": "aa-pass", "configuration_only": false
+  },
+  "widths": {
+    "processes": 2,
+    "effective_width_counts": {"new": {"4": 2961}, "base": {"4": 2961}},
+    "full_width_fraction": {"new": 1.0, "base": 1.0}
+  },
+  "input_integrity": "Original controller checked all14 manifest inputs after AA and before gate; no custody refresh.",
+  "child_exits": "Both AA role receipts naturally ended exit0, validated by original widths parser.",
+  "limits": "Control only; no Elo adoption, extension, retry or pooled sample."
+}

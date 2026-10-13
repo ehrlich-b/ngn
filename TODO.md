@@ -7,24 +7,24 @@ old two-v-one scale screen canceled administratively per October12 23:00 plan.
 All compute rig; forge unavailable; GPU HOLD under completed diagnostic.
 SMP target **Threads4/Hash256MiB**; separate resource-matched claim still owed.
 
-New plan-authorized SEE nomination rig0–11/c6/Threads1/Hash64/controller5372:
-fresh10+0.1 A/A40 PASS05:15:46, original400/200 live since then. Printed/exact
-positive lower95 and zero faults keep; no rescue/pooling. Winner owes120+1.
+Plan-authorized SEE closed05:52:20: full400/200 **SHELVED
++3.4745[−14.2192,+21.1862]**,zero faults; f1d0a03 stays the playing source.
 Hash256 panel6179 **PASS05:58:47**,288+48+288 rows,9/144 eligible cells/five
 frames,no mate misses/overflow; diagnostic only. No hook enters playing source.
 
 Original consensus topic**48d45d2/48d3765f**, unadopted: focused/full short
 race2/4/vet/PGO and36 Threads1 depth14 identities PASS; pushed privately.
-Native S controller**8494/10878/11070** own4-v-4 A/A40 live05:58:47,
-then conditional fixed400/200 at10+0.1/c1/Hash256/eight physical cores.
+Native S controller**8494/10878/11195** own4-v-4 A/A40 **PASS06:20:14**:
+9/25/6,+26.1067[−34.3644,+88.2162],zero faults,100% full width both roles.
+Original400/200 live06:20:14 at10+0.1/c1/Hash256/eight physical cores.
 Root tie diversity **8187c5e/be0ccbb2** also checked/pushed separately;
 helper depths **c930cb0/7bb1afe2** likewise pass. Native11014/11026 successors
 run their own S only after a clean unchanged-base shelf; winner/fault holds.
-All admitted code preparation done; next session not before **06:30 EDT**.
+All admitted code preparation done; next session not before **09:50 EDT**.
 
 Unlimited NGN keepalive task Running/PT0S/new sleep5287; old571/hopper1188
 untouched, no WSL bounce. Provenance certification still owed. Source policies
-are separate topics, no adoption/publication/claim. See [Session77](experiments/2026-10-13-session77.md).
+are separate topics, no adoption/publication/claim. See [Session78](experiments/2026-10-13-session78.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
