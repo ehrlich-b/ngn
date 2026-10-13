@@ -1,0 +1,6 @@
+    PID    PPID COMMAND
+  11026     245 bash /home/ehrli/ngn-data/night-20261007/session77-helper-depths-gate/controller.sh
+  11027   11026 python3 games.py
+    PID    PPID COMMAND
+  12835     245 bash /home/ehrli/ngn-data/night-20261007/session79-admission-see/controller.sh
+  12836   12835 python3 games.py

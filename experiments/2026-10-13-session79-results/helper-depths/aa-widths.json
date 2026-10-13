@@ -1,0 +1,15 @@
+{
+  "processes": 2,
+  "effective_width_counts": {
+    "new": {
+      "4": 2838
+    },
+    "base": {
+      "4": 2833
+    }
+  },
+  "full_width_fraction": {
+    "new": 1.0,
+    "base": 1.0
+  }
+}

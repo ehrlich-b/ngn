@@ -1,0 +1,32 @@
+{
+  "created_utc": "2026-10-13T19:01:57.501479+00:00",
+  "base_source": "f203e2f5c37861fee324a1cf486b5bfd5f6308d7",
+  "baseline_equivalence": "all engine/cmd files identical to original fully checked SEE topic73fd6fe; reuse49497bd4",
+  "change": "original admission patch only",
+  "tc": "120+1",
+  "concurrency": 6,
+  "cpus": "0-11",
+  "threads": 1,
+  "hash_mib": 64,
+  "nice": 19,
+  "checks_cpus": [
+    13,
+    15
+  ],
+  "files_sha256": {
+    "baseline-ngn": "49497bd4c48993cf2140f24a98a7edc7fa5415060fd4d1cb9a3f4c4c37e05117",
+    "base.nnue": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+    "sprt": "9b0002f856849ebaf5e1d39487303d8e8f5406a8cc26d22fc2b409f9761aa83a",
+    "openings.txt": "f2fed55a1645dba85a9ef3e047eb5183b5b6342878c6dc8483e6768973470acc",
+    "source.tar": "9ee8c828c77d413c45280cd1c33442a2967793a94d17f6ce333ee4de61f4da4d",
+    "candidate.patch": "76efa5266d49c5bf3f8106d2f9907a1e55066efa0637ac8c84b1cb0bcdc01dd7",
+    "manifest.md": "f0581fbd24e549c1e0d4c814b03873df1dbde56b97887d2c05093e9d2dc6727b",
+    "checks.sh": "3f6df9bd54702cac686556101c9c8be41e2c30e69a5e533479c2988857685b1d",
+    "games.py": "2d52bf5af63b1b78ab1e655bed1fcf69c249d4e476097b3fdfe4b593845bae6c",
+    "controller.sh": "0e69907fa5c0ef6779dddc8ffea541a8e174012635bc70fe5d03392b9bd0e1e6",
+    "paired-parser.py": "ed10e8511cc6a42e754f9f30407bbcfc4c4f24f38ab3568ea16d0036e725aea7"
+  },
+  "predecessor": "clean original helper-depth full400 shelf; winner/fault holds",
+  "decision": "fresh ownAA40 then fixed400/200; printed/exact lower95>0 and zero faults/intact inputs; otherwise shelf; control/fault unscored",
+  "automatic_adoption": false
+}

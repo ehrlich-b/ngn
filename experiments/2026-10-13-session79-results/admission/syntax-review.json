@@ -1,0 +1,6 @@
+{
+  "bash_syntax": "PASS",
+  "python_ast": "PASS",
+  "checks": "native post-SMP checks before any games",
+  "game_manifest": "created after checked binary, before ownAA40; prospective rule already frozen"
+}
