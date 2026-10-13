@@ -645,6 +645,7 @@ func (info *SearchInfo) countNode() bool {
 type DepthCallback func(info *SearchInfo)
 
 type iterativeSearchOptions struct {
+	rootTieWorker    int
 	advanceTTAge     bool
 	effectiveThreads int
 	nodePublisher    *searchNodePublisher
@@ -789,7 +790,12 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 
 			// Root search with aspiration window
 			var orderedRoot [256]Move
-			orderedCount := info.history.orderMovesIntoBufferWithDepth(moves, 0, orderedRoot[:], pos) // killers are ply-keyed; root is ply 0
+			orderedCount := 0
+			if options.rootTieWorker > 0 {
+				orderedCount = info.history.orderSMPHelperRootMoves(moves, orderedRoot[:], pos, options.rootTieWorker)
+			} else {
+				orderedCount = info.history.orderMovesIntoBufferWithDepth(moves, 0, orderedRoot[:], pos)
+			} // killers are ply-keyed; root is ply 0
 			// S6: search the previous iteration's best move first — a good alpha early
 			// tightens pruning and gives time management a best-move stability signal.
 			// info.BestMove holds the last COMPLETED depth's best move.
