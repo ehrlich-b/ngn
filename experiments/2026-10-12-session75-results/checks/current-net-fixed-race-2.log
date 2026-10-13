@@ -1,0 +1,8 @@
+=== RUN   TestCampaignCurrentNetSMP
+=== RUN   TestCampaignCurrentNetSMP/threads2
+=== RUN   TestCampaignCurrentNetSMP/threads4
+--- PASS: TestCampaignCurrentNetSMP (5.05s)
+    --- PASS: TestCampaignCurrentNetSMP/threads2 (1.75s)
+    --- PASS: TestCampaignCurrentNetSMP/threads4 (3.20s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	6.101s
