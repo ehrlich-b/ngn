@@ -1,0 +1,17 @@
+{
+  "binary": "/home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12",
+  "binary_sha256": "10dd722e730a70887fcaa07157b86c5ba3579618f858f7519d44f55036e00949",
+  "supports_threads": true,
+  "options": [
+    "option name Hash type spin default 16 min 1 max 4096",
+    "option name Clear Hash type button",
+    "option name UCI_Chess960 type check default false",
+    "option name UCI_LimitStrength type check default false",
+    "option name UCI_Elo type spin default 3000 min 800 max 3000",
+    "option name OwnBook type check default false",
+    "option name Threads type spin default 1 min 1 max 256",
+    "option name MultiPV type spin default 1 min 1 max 500",
+    "option name PersonalityFile type string default personalities/rodent.txt"
+  ],
+  "inspection": "uci handshake only"
+}

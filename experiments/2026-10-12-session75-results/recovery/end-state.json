@@ -1,0 +1,38 @@
+{
+  "utc": "2026-10-13T01:47:38.753709+00:00",
+  "processes": [
+    "    571     570  0.0  1664       30:11 sleep infinity",
+    "   1188     245  0.3 19440       30:09 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    "   3440    3430  0.0  7168       14:19 systemd-run --user --wait --unit=ngn-s75-horizon-gate-v2 -p AllowedCPUs=0-11 -p CPUQuota=1200% -p MemoryMax=3G -p MemorySwapMax=0 nice -n 19 taskset -c 0-11 bash /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/controller.sh",
+    "   3442     245  0.0  3456       14:19 bash /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/controller.sh",
+    "   3476    3444  0.0  1920       13:49 timeout --signal=TERM --kill-after=15s 10800 taskset -c 0-11 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/sprt -new /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn -base /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn -tc 120+1 -concurrency 6 -maxmoves 400 -gametimeout 1800 -openings /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/openings.txt -lowpower=false -mingames 1000000 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session75-horizon-gate/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -newoption Move Overhead=100 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session75-horizon-gate/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -baseoption Move Overhead=100 -maxgames 40",
+    "   3477    3476  0.3 16796       13:49 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/sprt -new /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn -base /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn -tc 120+1 -concurrency 6 -maxmoves 400 -gametimeout 1800 -openings /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/openings.txt -lowpower=false -mingames 1000000 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session75-horizon-gate/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -newoption Move Overhead=100 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session75-horizon-gate/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -baseoption Move Overhead=100 -maxgames 40",
+    "   3481    3477 50.4 193228      13:49 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn",
+    "   3482    3477 50.2 131768      13:49 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn",
+    "   3483    3477 49.8 204068      13:49 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn",
+    "   3485    3477 50.2 182356      13:49 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn",
+    "   3488    3477 49.9 145024      13:49 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn",
+    "   3491    3477 50.0 128724      13:49 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn",
+    "   3500    3477 49.9 184704      13:49 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn",
+    "   3503    3477 49.7 193184      13:49 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn",
+    "   3504    3477 50.2 203328      13:49 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn",
+    "   3509    3477 50.0 131464      13:49 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn",
+    "   3510    3477 49.8 135896      13:49 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn",
+    "   3515    3477 50.2 143608      13:49 /home/ehrli/ngn-data/night-20261007/session75-horizon-gate/baseline-ngn",
+    "   3686    3683  0.0  7168       00:44 systemd-run --user --wait --unit=ngn-s75-smp-scale-gate-v2 -p AllowedCPUs=0,2,4,6 -p CPUQuota=400% -p MemoryMax=2G -p MemorySwapMax=0 nice -n 19 taskset -c 0,2,4,6 bash /home/ehrli/ngn-data/night-20261007/session75-smp-scale-gate/controller.sh",
+    "   3688     245  0.0  3456       00:44 bash /home/ehrli/ngn-data/night-20261007/session75-smp-scale-gate/controller.sh"
+  ],
+  "units": "MainPID=3442\nId=ngn-s75-horizon-gate-v2.service\nActiveState=active\n\nMainPID=3688\nId=ngn-s75-smp-scale-gate-v2.service\nActiveState=active\n",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        2981       11901           4         866       12532\nSwap:           4096           0        4096\n",
+  "gpu": "utilization.gpu [%], memory.used [MiB], memory.total [MiB]\n0 %, 1249 MiB, 16303 MiB\n",
+  "playing_source": "f1d0a03",
+  "net": "a4d90b41",
+  "SPSA": "compiled final14",
+  "claim": "not run; goal not met",
+  "multi_thread_target": {
+    "Threads": 4,
+    "Hash_MiB": 256,
+    "status": "prospective candidate/claim resource target; accepted single-thread evidence unchanged; freeze resource-matched v2 multi-thread protocol before any claim"
+  },
+  "forge": "all NGN compute removed; campaign archive servers989/994 stopped because no rig readers remain; no data deleted"
+}

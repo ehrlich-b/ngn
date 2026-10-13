@@ -1,32 +1,31 @@
 # NGN live state — 2026-10-12: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **f1d0a03 / NGNN3 KB8 H512 a4d90b41 / compiled final14**,
-factorizer off, explicitEvalFile; embedded fallback c6c12796.
-SPSA current-source400 +37.49[+16.95,+58.30] and separate60+0.6 transfer400
-+32.23[+18.31,+46.26] confirmed, zero faults. No new acceptance or claim.
-Rodent1000 closed: **−29.25[−40.26,−18.31]**, superiority not confirmed.
+Playing **f1d0a03/a4d90b41/compiled final14**, unchanged, Threads1/Hash64;
+no3600 claim. October12 **19:55 plan** admits SMP results and removes all
+NGN compute from forge. Future candidate/claim target **Threads4/Hash256MiB**;
+resource-matched claim protocol still needs a prospective nomination.
 
-Latest plan **October12 14:58 / Astra48h** governs until15:00 October14.
-Forge scored lane closed. Rig: bounded provenance → SEE → full-history
-CPU/GPU diagnosis → horizon alone120+1 → conditional transfer/admission.
-No unchanged data/architecture/SPSA rerun or3600 claim in this window.
+Provenance21:12 cutoff unscored/certification owed. WSL shutdown21:12:49
+interrupts SEE ownAA after7 games, zero candidate games; unscored/no retry.
+Existing keepalive task restored. Fixed54-frame CPU/GPU panel complete:
+432 rows/all exits0, horizon admission PASS, baseline discarded tail22.518%;
+GPU HOLD, no admitted training treatment. Current-net SMP/full race2/4/vet
+PASS; fixed108-cell time-to-depth speedups2/4 **1.163878/1.344901**, not Elo.
+Rodent UCI advertises Threads1–256; no foreign source/net opened.
 
-Provenance A/A40 PASS6/28/6,0[−48.464,+48.464], zero faults/all14 inputs;
-original gate248721 under215083/215088 since14:44:35. Supervisor248896
-sets score-independent **21:12 cutoff**; administrative stop unscored,
-certification owed. SEE amended waiter248899 follows clean terminal/intact
-administrative hold, keeping originalA/A40/fixed40010+0.1 rule.
+Fresh horizon **bc59c3f/e58482c4**, unadopted: rig0–11/c6/controller3442/
+Python3444/SPRT3477, own120+1 A/A40 live21:33:48, then conditional400/200.
+Native3688 queues own2-v-2 AA40/fixed4002-v-1 at10+0.1/c1/Hash64 only
+after clean horizon shelf; winner/fault holds actual-base review. Effective
+width receipts required; no automatic engine adoption or cross-width pooling.
 
-Isolated horizon **bc59c3f/e58482c4** checked/pushed, unadopted. Frozen54
-full-history controls/smokes and PGO diagnostics pass; panel250737 waits
-for SEE, then one reserved CPU/GPU block. Horizon waiter251206 chains
-prospective120+1 A/A40/fixed400 only on clean SEE shelf + panel admission;
-SEE win/fault holds for actual-base review. No automatic adoption.
-
-C:74.79GiB/RAM12,576MiB at15:31, GPU idle until declared post-SEE block.
-Hopper/readers untouched. Next session not before **21:15 EDT October12**.
-[Session74](experiments/2026-10-12-session74.md).
+C:76.68GiB/RAM12,810MiB/swap0 at21:39; GPU idle/no training nomination.
+Hopper1188 untouched. Forge archive listeners989/994 stopped once rig readers
+ended; no data deleted. Next session not before **22:20 EDT October12** for
+horizon control; full decision approximately04:35–06:35 October13.
+[Session75](experiments/2026-10-12-session75.md),
+[SMP rule](experiments/2026-10-12-session75-smp.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

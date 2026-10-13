@@ -1,0 +1,547 @@
+{
+  "completed_utc": "2026-10-13T01:18:36.582334+00:00",
+  "gpu": "NVIDIA GeForce RTX 5080",
+  "outcome_rows": 54,
+  "archive_rows": 8192,
+  "deployed_integer_gpu_parity": true,
+  "groups": {
+    "('domain', 'Rodent-game')": {
+      "n": 54,
+      "target": "eventual result, descriptive only",
+      "mean_score_cp": {
+        "accepted": -75.94444444444444,
+        "shelved": -90.85185185185185
+      },
+      "brier": {
+        "accepted": 0.1202122167841859,
+        "shelved": 0.129095327080839
+      },
+      "saturation_share": {
+        "accepted": 0.7348813657407407,
+        "shelved": 0.7388961226851852
+      }
+    },
+    "('Rodent-game/color', 'black')": {
+      "n": 27,
+      "target": "eventual result, descriptive only",
+      "mean_score_cp": {
+        "accepted": -85.77777777777777,
+        "shelved": -81.88888888888889
+      },
+      "brier": {
+        "accepted": 0.10911726608791714,
+        "shelved": 0.11977869665353985
+      },
+      "saturation_share": {
+        "accepted": 0.7348090277777778,
+        "shelved": 0.7422598379629629
+      }
+    },
+    "('Rodent-game/outcome', 'draw')": {
+      "n": 18,
+      "target": "eventual result, descriptive only",
+      "mean_score_cp": {
+        "accepted": -43.77777777777778,
+        "shelved": -62.22222222222222
+      },
+      "brier": {
+        "accepted": 0.024718901975747234,
+        "shelved": 0.026230080511358306
+      },
+      "saturation_share": {
+        "accepted": 0.7438693576388888,
+        "shelved": 0.7471245659722222
+      }
+    },
+    "('Rodent-game/move_band', '16')": {
+      "n": 18,
+      "target": "eventual result, descriptive only",
+      "mean_score_cp": {
+        "accepted": -58.333333333333336,
+        "shelved": -75.5
+      },
+      "brier": {
+        "accepted": 0.12472771371639697,
+        "shelved": 0.13336067489122105
+      },
+      "saturation_share": {
+        "accepted": 0.7354058159722222,
+        "shelved": 0.7401801215277778
+      }
+    },
+    "('Rodent-game/material_stratum', 'advantage')": {
+      "n": 18,
+      "target": "eventual result, descriptive only",
+      "mean_score_cp": {
+        "accepted": 142.88888888888889,
+        "shelved": 134.77777777777777
+      },
+      "brier": {
+        "accepted": 0.10706424333620257,
+        "shelved": 0.11449210260679678
+      },
+      "saturation_share": {
+        "accepted": 0.7330186631944444,
+        "shelved": 0.7340494791666666
+      }
+    },
+    "('Rodent-game/material_stratum', 'balanced')": {
+      "n": 18,
+      "target": "eventual result, descriptive only",
+      "mean_score_cp": {
+        "accepted": 53.0,
+        "shelved": 43.888888888888886
+      },
+      "brier": {
+        "accepted": 0.129958241509202,
+        "shelved": 0.12994232278831125
+      },
+      "saturation_share": {
+        "accepted": 0.7318793402777778,
+        "shelved": 0.7366536458333334
+      }
+    },
+    "('Rodent-game/material_stratum', 'deficit')": {
+      "n": 18,
+      "target": "eventual result, descriptive only",
+      "mean_score_cp": {
+        "accepted": -423.72222222222223,
+        "shelved": -451.22222222222223
+      },
+      "brier": {
+        "accepted": 0.12361416550715315,
+        "shelved": 0.1428515558474091
+      },
+      "saturation_share": {
+        "accepted": 0.73974609375,
+        "shelved": 0.7459852430555556
+      }
+    },
+    "('Rodent-game/move_band', '32')": {
+      "n": 18,
+      "target": "eventual result, descriptive only",
+      "mean_score_cp": {
+        "accepted": -58.05555555555556,
+        "shelved": -67.72222222222223
+      },
+      "brier": {
+        "accepted": 0.10800920027710514,
+        "shelved": 0.11418878768998292
+      },
+      "saturation_share": {
+        "accepted": 0.7224934895833334,
+        "shelved": 0.7248806423611112
+      }
+    },
+    "('Rodent-game/move_band', '48')": {
+      "n": 18,
+      "target": "eventual result, descriptive only",
+      "mean_score_cp": {
+        "accepted": -111.44444444444444,
+        "shelved": -129.33333333333334
+      },
+      "brier": {
+        "accepted": 0.12789973635905558,
+        "shelved": 0.13973651866131304
+      },
+      "saturation_share": {
+        "accepted": 0.7467447916666666,
+        "shelved": 0.7516276041666666
+      }
+    },
+    "('Rodent-game/outcome', 'loss')": {
+      "n": 18,
+      "target": "eventual result, descriptive only",
+      "mean_score_cp": {
+        "accepted": -357.3888888888889,
+        "shelved": -336.05555555555554
+      },
+      "brier": {
+        "accepted": 0.16161329035996463,
+        "shelved": 0.16199818684210643
+      },
+      "saturation_share": {
+        "accepted": 0.728515625,
+        "shelved": 0.7337239583333334
+      }
+    },
+    "('Rodent-game/outcome', 'win')": {
+      "n": 18,
+      "target": "eventual result, descriptive only",
+      "mean_score_cp": {
+        "accepted": 173.33333333333334,
+        "shelved": 125.72222222222223
+      },
+      "brier": {
+        "accepted": 0.17430445801684588,
+        "shelved": 0.19905771388905233
+      },
+      "saturation_share": {
+        "accepted": 0.7322591145833334,
+        "shelved": 0.73583984375
+      }
+    },
+    "('Rodent-game/color', 'white')": {
+      "n": 27,
+      "target": "eventual result, descriptive only",
+      "mean_score_cp": {
+        "accepted": -66.11111111111111,
+        "shelved": -99.81481481481481
+      },
+      "brier": {
+        "accepted": 0.13130716748045465,
+        "shelved": 0.1384119575081382
+      },
+      "saturation_share": {
+        "accepted": 0.7349537037037037,
+        "shelved": 0.7355324074074074
+      }
+    },
+    "('domain', 'archive-holdout')": {
+      "n": 8192,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 15.650390625,
+        "shelved": 15.7022705078125
+      },
+      "brier": {
+        "accepted": 0.008936734578727195,
+        "shelved": 0.009033075700305473
+      },
+      "saturation_share": {
+        "accepted": 0.7458151578903198,
+        "shelved": 0.7506096363067627
+      }
+    },
+    "('archive-holdout/source', '0')": {
+      "n": 2048,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 11.04248046875,
+        "shelved": 14.28662109375
+      },
+      "brier": {
+        "accepted": 0.008717012252281766,
+        "shelved": 0.0088577028741803
+      },
+      "saturation_share": {
+        "accepted": 0.7456068992614746,
+        "shelved": 0.7506823539733887
+      }
+    },
+    "('archive-holdout/us_king_bucket', '0')": {
+      "n": 2869,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 26.325200418264203,
+        "shelved": 25.84280237016382
+      },
+      "brier": {
+        "accepted": 0.010411045618055096,
+        "shelved": 0.010473971964086264
+      },
+      "saturation_share": {
+        "accepted": 0.7240654409201812,
+        "shelved": 0.7267422228999652
+      }
+    },
+    "('archive-holdout/material_bucket', '6')": {
+      "n": 998,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 18.567134268537075,
+        "shelved": 13.490981963927856
+      },
+      "brier": {
+        "accepted": 0.011727322484531682,
+        "shelved": 0.011447468973071197
+      },
+      "saturation_share": {
+        "accepted": 0.7296722350951904,
+        "shelved": 0.7345188423722445
+      }
+    },
+    "('archive-holdout/material_bucket', '3')": {
+      "n": 1192,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": -2.2432885906040267,
+        "shelved": -0.6140939597315436
+      },
+      "brier": {
+        "accepted": 0.008319732126774376,
+        "shelved": 0.008451646897111404
+      },
+      "saturation_share": {
+        "accepted": 0.7394544358221476,
+        "shelved": 0.7426651308200504
+      }
+    },
+    "('archive-holdout/us_king_bucket', '2')": {
+      "n": 933,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": -0.7759914255091104,
+        "shelved": -5.718113612004287
+      },
+      "brier": {
+        "accepted": 0.00910359433784921,
+        "shelved": 0.00910144768257675
+      },
+      "saturation_share": {
+        "accepted": 0.7510247102759914,
+        "shelved": 0.7528647926714899
+      }
+    },
+    "('archive-holdout/us_king_bucket', '5')": {
+      "n": 463,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 102.78401727861771,
+        "shelved": 107.98704103671706
+      },
+      "brier": {
+        "accepted": 0.005468027462413277,
+        "shelved": 0.0059021131392847405
+      },
+      "saturation_share": {
+        "accepted": 0.7667302240820735,
+        "shelved": 0.7746777132829373
+      }
+    },
+    "('archive-holdout/material_bucket', '1')": {
+      "n": 1139,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 32.49078138718174,
+        "shelved": 30.763827919227392
+      },
+      "brier": {
+        "accepted": 0.00591739393933789,
+        "shelved": 0.006044326563766809
+      },
+      "saturation_share": {
+        "accepted": 0.7678764952809481,
+        "shelved": 0.7730825422519754
+      }
+    },
+    "('archive-holdout/us_king_bucket', '1')": {
+      "n": 1627,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": -13.689612784265519,
+        "shelved": -10.197910264290105
+      },
+      "brier": {
+        "accepted": 0.010809393753406522,
+        "shelved": 0.010994614030389569
+      },
+      "saturation_share": {
+        "accepted": 0.7547909784111863,
+        "shelved": 0.7636220565073756
+      }
+    },
+    "('archive-holdout/material_bucket', '5')": {
+      "n": 1029,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 13.960155490767736,
+        "shelved": 14.577259475218659
+      },
+      "brier": {
+        "accepted": 0.011879768825751622,
+        "shelved": 0.012012010548320589
+      },
+      "saturation_share": {
+        "accepted": 0.7221978635204082,
+        "shelved": 0.7253211552478134
+      }
+    },
+    "('archive-holdout/material_bucket', '7')": {
+      "n": 873,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 26.611683848797252,
+        "shelved": 22.117983963344788
+      },
+      "brier": {
+        "accepted": 0.011011762899009027,
+        "shelved": 0.011029911697414447
+      },
+      "saturation_share": {
+        "accepted": 0.7530963631156931,
+        "shelved": 0.7639258036225659
+      }
+    },
+    "('archive-holdout/material_bucket', '4')": {
+      "n": 1038,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 5.220616570327553,
+        "shelved": 9.135838150289016
+      },
+      "brier": {
+        "accepted": 0.011514207346212257,
+        "shelved": 0.012029183673815825
+      },
+      "saturation_share": {
+        "accepted": 0.7284638803588632,
+        "shelved": 0.7306682020712909
+      }
+    },
+    "('archive-holdout/us_king_bucket', '4')": {
+      "n": 876,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": -25.41552511415525,
+        "shelved": -35.885844748858446
+      },
+      "brier": {
+        "accepted": 0.006276774114758012,
+        "shelved": 0.006583635110171658
+      },
+      "saturation_share": {
+        "accepted": 0.7614935609303652,
+        "shelved": 0.7664856235730594
+      }
+    },
+    "('archive-holdout/material_bucket', '2')": {
+      "n": 1295,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 14.641698841698842,
+        "shelved": 11.847104247104246
+      },
+      "brier": {
+        "accepted": 0.007634461567733668,
+        "shelved": 0.00762169063596386
+      },
+      "saturation_share": {
+        "accepted": 0.7532991976351351,
+        "shelved": 0.7583102075289575
+      }
+    },
+    "('archive-holdout/us_king_bucket', '6')": {
+      "n": 464,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 154.08189655172413,
+        "shelved": 158.7198275862069
+      },
+      "brier": {
+        "accepted": 0.0057933072166167,
+        "shelved": 0.005340832748889521
+      },
+      "saturation_share": {
+        "accepted": 0.7669277848868534,
+        "shelved": 0.769415493669181
+      }
+    },
+    "('archive-holdout/material_bucket', '0')": {
+      "n": 628,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 21.286624203821656,
+        "shelved": 34.597133757961785
+      },
+      "brier": {
+        "accepted": 0.0018676804924091092,
+        "shelved": 0.0020217790624704954
+      },
+      "saturation_share": {
+        "accepted": 0.7853521845143312,
+        "shelved": 0.7905071282842356
+      }
+    },
+    "('archive-holdout/us_king_bucket', '7')": {
+      "n": 168,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 73.64880952380952,
+        "shelved": 99.08928571428571
+      },
+      "brier": {
+        "accepted": 0.0027367717452957056,
+        "shelved": 0.0031516033193620513
+      },
+      "saturation_share": {
+        "accepted": 0.7798723493303571,
+        "shelved": 0.7834356398809523
+      }
+    },
+    "('archive-holdout/us_king_bucket', '3')": {
+      "n": 792,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": -42.31565656565657,
+        "shelved": -40.957070707070706
+      },
+      "brier": {
+        "accepted": 0.007679140903260342,
+        "shelved": 0.0076536418731240384
+      },
+      "saturation_share": {
+        "accepted": 0.7508655894886364,
+        "shelved": 0.7580702039930556
+      }
+    },
+    "('archive-holdout/source', '1')": {
+      "n": 2048,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": -0.75,
+        "shelved": -1.13427734375
+      },
+      "brier": {
+        "accepted": 0.00909648504076152,
+        "shelved": 0.009134185283247866
+      },
+      "saturation_share": {
+        "accepted": 0.7454690933227539,
+        "shelved": 0.7504119873046875
+      }
+    },
+    "('archive-holdout/source', '2')": {
+      "n": 2048,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 25.1142578125,
+        "shelved": 22.85888671875
+      },
+      "brier": {
+        "accepted": 0.009414971124077517,
+        "shelved": 0.0093953420421588
+      },
+      "saturation_share": {
+        "accepted": 0.7463359832763672,
+        "shelved": 0.7515902519226074
+      }
+    },
+    "('archive-holdout/source', '3')": {
+      "n": 2048,
+      "target": "archive blended label",
+      "mean_score_cp": {
+        "accepted": 27.19482421875,
+        "shelved": 26.7978515625
+      },
+      "brier": {
+        "accepted": 0.008518469897787973,
+        "shelved": 0.008745072601634925
+      },
+      "saturation_share": {
+        "accepted": 0.7458486557006836,
+        "shelved": 0.7497539520263672
+      }
+    }
+  },
+  "verdict": "HOLD: no training treatment automatically admitted",
+  "limits": [
+    "Eventual game outcome is not a ground-truth value at an earlier position.",
+    "Two H512 nets cannot isolate representational capacity from distribution.",
+    "Archive split is occupied-board holdout; game/mirror split provenance is insufficient for pilot admission.",
+    "Outcome panel selection is stratified; its aggregate is not population calibration.",
+    "Compare deep-search residuals after CPU panel; deep NGN remains an owned diagnostic, not ground truth."
+  ],
+  "automatic_training": false,
+  "automatic_net_selection": false
+}
