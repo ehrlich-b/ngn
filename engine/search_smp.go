@@ -179,7 +179,7 @@ func (e *SearchEngine) searchLazySMPLocked(pos *Position, maxDepth int, timeMana
 			}
 			result.info = searchIterativeDeepeningWorkerUnsafe(root, maxDepth, nil, nil,
 				&worker.control, &worker.history, worker.evaluator, tt,
-				iterativeSearchOptions{effectiveThreads: workerCount, nodePublisher: publisher})
+				iterativeSearchOptions{effectiveThreads: workerCount, nodePublisher: publisher, helperDepthWorker: index})
 			if hooks := e.smpHooks; hooks != nil && hooks.workerFinished != nil {
 				hooks.workerFinished(index, result.info)
 			}

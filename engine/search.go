@@ -645,9 +645,10 @@ func (info *SearchInfo) countNode() bool {
 type DepthCallback func(info *SearchInfo)
 
 type iterativeSearchOptions struct {
-	advanceTTAge     bool
-	effectiveThreads int
-	nodePublisher    *searchNodePublisher
+	helperDepthWorker int
+	advanceTTAge      bool
+	effectiveThreads  int
+	nodePublisher     *searchNodePublisher
 }
 
 func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, control *SearchControl, history *workerHistory, evaluator *workerEvaluator, tt *Cache) *SearchInfo {
@@ -710,7 +711,7 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 	previousScore := 0 // Track previous iteration score for aspiration windows
 
 	terminalCompletion := false
-	for currentDepth := 1; currentDepth <= maxDepth && !info.Stopped; currentDepth++ {
+	for currentDepth := 1; currentDepth <= maxDepth && !info.Stopped; currentDepth = nextSMPHelperDepth(currentDepth, maxDepth, options.helperDepthWorker) {
 		// Honor an external UCI stop request even when no time manager is set
 		// (e.g. `go infinite`).
 		if info.control.StopRequested() {
