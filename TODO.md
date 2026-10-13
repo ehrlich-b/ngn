@@ -1,30 +1,30 @@
 # NGN live state — 2026-10-13: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **f1d0a03/a4d90b41/compiled final14**, unchanged; no3600 claim.
-Horizon120+1 fixed400/200 **SHELVED−10.426[−24.217,+3.332]**,zero faults;
-old two-v-one scale screen canceled administratively per October12 23:00 plan.
-All compute rig; forge unavailable; GPU HOLD under completed diagnostic.
-SMP target **Threads4/Hash256MiB**; separate resource-matched claim still owed.
+Playing **f203e2f/a4d90b41/compiled final14**; no3600 claim.
+SEE geometry is **CORRECTNESS KEEP** under October13 06:55 amendment:
+both-color old-fail/new-pass x-ray/EP proof, original full checks, fresh ownA/A
+and400/200 +3.4745[−14.2192,+21.1862],zero faults. No proved Elo gain;
+added to outstanding [batch ledger](experiments/batch-ledger.md).
 
-Plan-authorized SEE closed05:52:20: full400/200 **SHELVED
-+3.4745[−14.2192,+21.1862]**,zero faults; f1d0a03 stays the playing source.
-Hash256 panel6179 **PASS05:58:47**,288+48+288 rows,9/144 eligible cells/five
-frames,no mate misses/overflow; diagnostic only. No hook enters playing source.
+Consensus S **SHELVED+4.3432[−13.4275,+22.1366]**; root ties S
+**SHELVED−3.4745[−19.9951,+13.0304]**. Both400/200,zero faults/100% width.
+Original helper-depth topicc930cb0/7bb1afe2 still gates against frozenf1d0a03:
+own4-v-4/Hash256 A/A40 PASS14:12:28;400/200 live12521 under11026.
+Winner needs independent SEE integration; all samples remain separate.
 
-Original consensus topic**48d45d2/48d3765f**, unadopted: focused/full short
-race2/4/vet/PGO and36 Threads1 depth14 identities PASS; pushed privately.
-Native S controller**8494/10878/11195** own4-v-4 A/A40 **PASS06:20:14**:
-9/25/6,+26.1067[−34.3644,+88.2162],zero faults,100% full width both roles.
-Original400/200 live06:20:14 at10+0.1/c1/Hash256/eight physical cores.
-Root tie diversity **8187c5e/be0ccbb2** also checked/pushed separately;
-helper depths **c930cb0/7bb1afe2** likewise pass. Native11014/11026 successors
-run their own S only after a clean unchanged-base shelf; winner/fault holds.
-All admitted code preparation done; next session not before **09:50 EDT**.
+New detached admission waiter**12835** (`ngn-s79-admission-see.service`)
+queues the original iteration-admission-only patch on actualSEE basef203e2f.
+A clean helper-depth shelf admits checks13/15, then own120+1 A/A40/fixed400
+0–11/c6/Threads1/Hash64; winner/fault holds. No automatic adoption/sample reuse.
+[Rule](experiments/2026-10-13-session79-admission.md),
+[Session79](experiments/2026-10-13-session79.md).
 
-Unlimited NGN keepalive task Running/PT0S/new sleep5287; old571/hopper1188
-untouched, no WSL bounce. Provenance certification still owed. Source policies
-are separate topics, no adoption/publication/claim. See [Session78](experiments/2026-10-13-session78.md).
+All compute rig; forge unavailable; GPU diagnostic HOLD. Future SMP/claim
+target Threads4/Hash256; integrated long-clock/resource-matched claim still owed.
+Horizon remains shelved; two-v-one scale screen canceled administratively.
+Keepalive571/5287 and hopper1188 untouched. No further admitted source work;
+next session not before **17:50 EDT October13** for helper-depth terminal.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

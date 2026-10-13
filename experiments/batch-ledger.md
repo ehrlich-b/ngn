@@ -14,6 +14,30 @@ Rules:
 - Fail → bisect the batch (each provisional isolable via its commit) and drop the regressor(s).
 - Certified provisionals graduate to permanent keeps; the pre-batch base advances to the certified HEAD.
 
+## October2026 campaign — certification outstanding
+
+This scope is separate from the historical batches below. Reference is the
+archived pre-replacement5b882e2 binary53caa7c4, used only as a match opponent
+with identical a4d90b41/final14. Session71's repaired-package certification was
+administratively stopped at the score-independent October12 cutoff; it is
+unscored and cannot certify the batch. Never restore derived runtime code.
+
+| Change | Integration | Class / completed evidence |
+|---|---|---|
+| Original four-way full-key TT | b49ab5a | PROVISIONAL provenance keep,400g −3.47[−25.45,+18.47]; later matching-store repair ed34480 passed its independent gate |
+| Owned SEE/ordering values | f8686be | PROVISIONAL provenance keep,400g −14.77[−35.43,+5.77] |
+| Owned board-key assignment | 6c0fc26 | PROVISIONAL provenance keep,400g −6.08[−25.89,+13.69] |
+| SEE post-move geometry | f203e2f, exact topic73fd6fe | **CORRECTNESS KEEP; included in provisional certification scope** under October13 06:55 amendment. Source-xray/EP witnesses fail before and pass after in both colors; full checked patch reused. Fresh ownA/A40 PASS,400/200 +3.4745[−14.2192,+21.1862],77/250/73,penta[6,32,116,44,2],zero faults. No demonstrated Elo gain. |
+
+The four-item trigger is reached; powered batch certification remains owed.
+The next prospective SPRT[0,+6] must use the actual integrated package and its
+own control; do not resume or pool the stopped sample. The live SMP chain
+finishes on its original frozenf1d0a03 before any new nomination. Any SMP winner
+needs independent integration onto the SEE base. Correctness adoption follows
+CLAUDE.md's proved-fix class, rather than a speculative positive-sign keep.
+[Session79 proof and class correction](2026-10-13-session79.md),
+[archived repaired-certification protocol](2026-10-12-session71-provenance.md).
+
 ---
 
 ## Batch 1 — CERTIFIED 2026-07-18 (pre-batch base: `ea69ad6`, opened 2026-07-01, certified HEAD: `c514a2b`)

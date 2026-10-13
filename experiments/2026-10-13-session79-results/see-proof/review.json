@@ -1,0 +1,40 @@
+{
+  "reviewed_utc": "2026-10-13T19:02:58.614515+00:00",
+  "integration": "f203e2f5c37861fee324a1cf486b5bfd5f6308d7",
+  "tested_topic": "73fd6fef48e870b124b4b4677b6b41d2190c08f8",
+  "source_identity": "git diff --exit-code73fd6fe --engine cmd PASS",
+  "class_": "Provable correctness fix",
+  "verdict": "CORRECTNESS KEEP; added to outstanding provisional batch scope",
+  "prepatch": "10 of12 geometry subcases fail, including source-xray and EP destination in both colors",
+  "postpatch": "all12 subcases PASS; reuse session66 focused/engine short,race/full short,race/vet/PGO checks",
+  "proof_cpus": [
+    13,
+    15
+  ],
+  "proof_pid": 12701,
+  "proof_terminal_edt": "2026-10-13 14:58:25",
+  "nonregression": {
+    "games": 400,
+    "pairs": 200,
+    "wins": 77,
+    "draws": 250,
+    "losses": 73,
+    "penta": [
+      6,
+      32,
+      116,
+      44,
+      2
+    ],
+    "elo": 3.4744716740370483,
+    "ci95": [
+      -14.219240767666586,
+      21.186239734638345
+    ],
+    "faults": 0,
+    "own_aa": "PASS"
+  },
+  "prior_verdict": "original lower95 speculation screen shelved; preserved raw record; October13 06:55 amendment applies CLAUDE.md correctness class",
+  "elo_gain_claim": false,
+  "powered_certification": "outstanding; no resumption or pooling of stopped sample"
+}

@@ -1,0 +1,60 @@
+{
+  "mode": "gate",
+  "games": 400,
+  "pairs": 200,
+  "wins": 69,
+  "draws": 267,
+  "losses": 64,
+  "penta": [
+    2,
+    41,
+    112,
+    40,
+    5
+  ],
+  "elo": 4.3,
+  "ci95": [
+    -13.0,
+    22.0
+  ],
+  "exact_elo_ci95": [
+    4.343171035283314,
+    -13.427478599586227,
+    22.13659301059277
+  ],
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "checkmate": 133,
+    "draw-rule": 263,
+    "max-moves": 4
+  },
+  "verdict": "shelved",
+  "reviewed_utc": "2026-10-13T18:58:23.240917+00:00",
+  "controller_exit": 0,
+  "natural_terminal_edt": "2026-10-13T10:00:17-04:00",
+  "widths": {
+    "processes": 2,
+    "effective_width_counts": {
+      "new": {
+        "4": 31252
+      },
+      "base": {
+        "4": 31240
+      }
+    },
+    "full_width_fraction": {
+      "new": 1.0,
+      "base": 1.0
+    }
+  },
+  "input_checks": "original controller checks all14 inputs before and after each stage; natural exit0",
+  "faults": 0,
+  "crash_receipt": "initialization/path lines only",
+  "rule_verdict": "SHELVED",
+  "automatic_adoption": false,
+  "extension": false,
+  "pooling": false
+}
