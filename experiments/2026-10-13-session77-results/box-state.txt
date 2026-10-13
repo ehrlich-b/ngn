@@ -1,0 +1,33 @@
+2026-10-13T05:54:54-04:00
+MainPID=0
+Id=ngn-s77-see-rig.service
+ActiveState=inactive
+MainPID=6179
+Id=ngn-s77-smp-panel.service
+ActiveState=active
+MainPID=8494
+Id=ngn-s77-consensus-gate-v2.service
+ActiveState=active
+session77-see-rig
+{"utc": "2026-10-13T09:15:46.033332+00:00", "stage": "session77-see-rig", "event": "gate-start", "detail": {"cpus": "0-11", "concurrency": 6, "tc": "10+0.1", "nice": 19}}
+{"utc": "2026-10-13T09:52:20.979061+00:00", "stage": "session77-see-rig", "event": "gate-done", "detail": {"mode": "gate", "games": 400, "pairs": 200, "wins": 77, "draws": 250, "losses": 73, "penta": [6, 32, 116, 44, 2], "elo": 3.5, "ci95": [-14.0, 21.0], "exact_elo_ci95": [3.4744716740370483, -14.219240767666586, 21.186239734638345], "flags": [0, 0], "reasons": {"draw-rule": 244, "checkmate": 150, "max-moves": 6}, "verdict": "shelved"}}
+0
+2026-10-13T05:52:20-04:00
+session77-smp-panel
+{"utc": "2026-10-13T09:25:22.303598+00:00", "event": "see-wait", "detail": "native terminal; clean shelf only, winner/fault needs manual actual-base review"}
+{"utc": "2026-10-13T09:52:21.006482+00:00", "event": "panel-start", "detail": {"argv": ["taskset", "-c", "0,2,4,6", "/home/ehrli/ngn-data/night-20261007/session77-smp-panel/panel.test", "-test.run", "^TestS77WorkerPanel$", "-test.v", "-test.timeout", "30m"], "sampling": false}}
+session77-consensus-gate
+{"utc": "2026-10-13T09:40:57.330363+00:00", "event": "scheduling-amendment", "detail": "native spare-core preparation terminal added before S; zero AA/candidate games so far; identical nomination/rule; prevents test/game physical-core overlap"}
+{"utc": "2026-10-13T09:52:27.902876+00:00", "event": "predecessor-wait", "detail": "/home/ehrli/ngn-data/night-20261007/session77-smp-panel/controller.done native completion"}
+    571     570     571   31047  0.0  1664 sleep infinity
+   1188     245    1188   31046  0.3 18508 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+   5287    5285    5287    2775  0.0  1664 sleep infinity
+   6177    6173    6177    1772  0.0  7424 systemd-run --user --wait --unit=ngn-s77-smp-panel -p AllowedCPUs=0,2,4,6 -p CPUQuota=400% -p MemoryMax=3G -p MemorySwapMax=0 nice -n 19 taskset -c 0,2,4,6 bash /home/ehrli/ngn-data/night-20261007/session77-smp-panel/controller.sh
+   6179     245    6179    1772  0.0  3328 bash /home/ehrli/ngn-data/night-20261007/session77-smp-panel/controller.sh
+   8492    8486    8492     747  0.0  7168 systemd-run --user --wait --unit=ngn-s77-consensus-gate-v2 -p AllowedCPUs=0,2,4,6,8,10,12,14 -p CPUQuota=800% -p MemoryMax=3G -p MemorySwapMax=0 nice -n 19 taskset -c 0,2,4,6,8,10,12,14 bash /home/ehrli/ngn-data/night-20261007/session77-consensus-gate/controller.sh
+   8494     245    8494     747  0.0  3456 bash /home/ehrli/ngn-data/night-20261007/session77-consensus-gate/controller.sh
+  10921   10911   10911       0  0.0  5964 rg trainer.train|/sprt |datagen|hopper.py|sleep infinity|session77.*(controller|games.py)
+               total        used        free      shared  buff/cache   available
+Mem:           15514        1468       12735           4        1553       14046
+Swap:           4096           0        4096
+0 %, 1385 MiB, 16303 MiB

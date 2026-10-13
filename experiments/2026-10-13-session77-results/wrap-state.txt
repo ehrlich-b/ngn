@@ -1,0 +1,23 @@
+2026-10-13T06:02:00-04:00
+MainPID=8494
+ActiveState=active
+MainPID=11014
+ActiveState=active
+MainPID=11026
+ActiveState=active
+    571     570     571   31473  0.0  1664 sleep infinity
+   1188     245    1188   31472  0.3 19452 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+   5287    5285    5287    3201  0.0  1664 sleep infinity
+   8492    8486    8492    1173  0.0  7168 systemd-run --user --wait --unit=ngn-s77-consensus-gate-v2 -p AllowedCPUs=0,2,4,6,8,10,12,14 -p CPUQuota=800% -p MemoryMax=3G -p MemorySwapMax=0 nice -n 19 taskset -c 0,2,4,6,8,10,12,14 bash /home/ehrli/ngn-data/night-20261007/session77-consensus-gate/controller.sh
+   8494     245    8494    1173  0.0  3456 bash /home/ehrli/ngn-data/night-20261007/session77-consensus-gate/controller.sh
+  11012   11007   11012     217  0.0  7168 systemd-run --user --wait --unit=ngn-s77-root-ties-gate -p AllowedCPUs=0,2,4,6,8,10,12,14 -p CPUQuota=800% -p MemoryMax=3G -p MemorySwapMax=0 nice -n 19 taskset -c 0,2,4,6,8,10,12,14 bash /home/ehrli/ngn-data/night-20261007/session77-root-ties-gate/controller.sh
+  11014     245   11014     217  0.0  3328 bash /home/ehrli/ngn-data/night-20261007/session77-root-ties-gate/controller.sh
+  11024   11007   11024     215  0.0  7168 systemd-run --user --wait --unit=ngn-s77-helper-depths-gate -p AllowedCPUs=0,2,4,6,8,10,12,14 -p CPUQuota=800% -p MemoryMax=3G -p MemorySwapMax=0 nice -n 19 taskset -c 0,2,4,6,8,10,12,14 bash /home/ehrli/ngn-data/night-20261007/session77-helper-depths-gate/controller.sh
+  11026     245   11026     215  0.0  3328 bash /home/ehrli/ngn-data/night-20261007/session77-helper-depths-gate/controller.sh
+  11069   10878   11069     192  0.0  1920 timeout --signal=TERM --kill-after=15s 7200 taskset -c 0,2,4,6,8,10,12,14 /home/ehrli/ngn-data/night-20261007/session77-consensus-gate/sprt -new /home/ehrli/ngn-data/night-20261007/session77-consensus-gate/new.sh -base /home/ehrli/ngn-data/night-20261007/session77-consensus-gate/base.sh -tc 10+0.1 -concurrency 1 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session77-consensus-gate/openings.txt -lowpower=false -mingames 1000000 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session77-consensus-gate/base.nnue -newoption UseNNUE=true -newoption Hash=256 -newoption OwnBook=false -newoption Move Overhead=100 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session77-consensus-gate/base.nnue -baseoption UseNNUE=true -baseoption Hash=256 -baseoption OwnBook=false -baseoption Move Overhead=100 -newoption Threads=4 -baseoption Threads=4 -maxgames 40
+  11070   11069   11069     192  0.5 20320 /home/ehrli/ngn-data/night-20261007/session77-consensus-gate/sprt -new /home/ehrli/ngn-data/night-20261007/session77-consensus-gate/new.sh -base /home/ehrli/ngn-data/night-20261007/session77-consensus-gate/base.sh -tc 10+0.1 -concurrency 1 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session77-consensus-gate/openings.txt -lowpower=false -mingames 1000000 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session77-consensus-gate/base.nnue -newoption UseNNUE=true -newoption Hash=256 -newoption OwnBook=false -newoption Move Overhead=100 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session77-consensus-gate/base.nnue -baseoption UseNNUE=true -baseoption Hash=256 -baseoption OwnBook=false -baseoption Move Overhead=100 -newoption Threads=4 -baseoption Threads=4 -maxgames 40
+  11134   11128   11128       0  0.0  6340 rg /sprt |session77.*(controller|games.py)|hopper.py|sleep infinity
+               total        used        free      shared  buff/cache   available
+Mem:           15514        2639       11523           4        1594       12874
+Swap:           4096           0        4096
+0 %, 1385 MiB, 16303 MiB

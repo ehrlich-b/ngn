@@ -1,33 +1,30 @@
-# NGN live state — 2026-10-12: 3600 campaign
+# NGN live state — 2026-10-13: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **f1d0a03/a4d90b41/compiled final14**, unchanged, Threads1/Hash64;
-no3600 claim. October12 **19:55 plan** admits SMP results and removes all
-NGN compute from forge. Future candidate/claim target **Threads4/Hash256MiB**;
-resource-matched claim protocol still needs a prospective nomination.
+Playing **f1d0a03/a4d90b41/compiled final14**, unchanged; no3600 claim.
+Horizon120+1 fixed400/200 **SHELVED−10.426[−24.217,+3.332]**,zero faults;
+old two-v-one scale screen canceled administratively per October12 23:00 plan.
+All compute rig; forge unavailable; GPU HOLD under completed diagnostic.
+SMP target **Threads4/Hash256MiB**; separate resource-matched claim still owed.
 
-Provenance21:12 cutoff unscored/certification owed. WSL shutdown21:12:49
-interrupts SEE ownAA after7 games, zero candidate games; unscored/no retry.
-Existing keepalive task restored. Fixed54-frame CPU/GPU panel complete:
-432 rows/all exits0, horizon admission PASS, baseline discarded tail22.518%;
-GPU HOLD, no admitted training treatment. Current-net SMP/full race2/4/vet
-PASS; fixed108-cell time-to-depth speedups2/4 **1.163878/1.344901**, not Elo.
-Rodent UCI advertises Threads1–256; no foreign source/net opened.
+New plan-authorized SEE nomination rig0–11/c6/Threads1/Hash64/controller5372:
+fresh10+0.1 A/A40 PASS05:15:46, original400/200 live since then. Printed/exact
+positive lower95 and zero faults keep; no rescue/pooling. Winner owes120+1.
+Hash256 panel6179 **PASS05:58:47**,288+48+288 rows,9/144 eligible cells/five
+frames,no mate misses/overflow; diagnostic only. No hook enters playing source.
 
-Fresh horizon **bc59c3f/e58482c4**, unadopted: rig0–11/c6/controller3442/
-Python3444/SPRT3773, own120+1 A/A40 PASS22:14:35 (+8.69[−29.26,+46.84],
-6/29/5, zero faults); original fixed400/200 live since22:14:35.
-Native3688 queues own2-v-2 AA40/fixed4002-v-1 at10+0.1/c1/Hash64 only
-after clean horizon shelf; winner/fault holds actual-base review. Effective
-width receipts required; no automatic engine adoption or cross-width pooling.
+Original consensus topic**48d45d2/48d3765f**, unadopted: focused/full short
+race2/4/vet/PGO and36 Threads1 depth14 identities PASS; pushed privately.
+Native S controller**8494/10878/11070** own4-v-4 A/A40 live05:58:47,
+then conditional fixed400/200 at10+0.1/c1/Hash256/eight physical cores.
+Root tie diversity **8187c5e/be0ccbb2** also checked/pushed separately;
+helper depths **c930cb0/7bb1afe2** likewise pass. Native11014/11026 successors
+run their own S only after a clean unchanged-base shelf; winner/fault holds.
+All admitted code preparation done; next session not before **06:30 EDT**.
 
-C:76.68GiB/RAM12,327MiB/swap0 at22:22; GPU HOLD/no training nomination.
-Hopper1188 untouched. Forge archive listeners989/994 stopped once rig readers
-ended; no data deleted. Next session not before **05:05 EDT October13** for
-horizon terminal; estimate05:02, plausible04:35–06:35. All admitted code
-preparation is complete; leave the detached chain healthy.
-[Session76](experiments/2026-10-12-session76.md),
-[SMP rule](experiments/2026-10-12-session75-smp.md).
+Unlimited NGN keepalive task Running/PT0S/new sleep5287; old571/hopper1188
+untouched, no WSL bounce. Provenance certification still owed. Source policies
+are separate topics, no adoption/publication/claim. See [Session77](experiments/2026-10-13-session77.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

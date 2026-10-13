@@ -1,0 +1,34 @@
+=== RUN   TestSMPHelperRootTiesPreserveScoresAndTactics
+--- PASS: TestSMPHelperRootTiesPreserveScoresAndTactics (0.00s)
+=== RUN   TestSMPHelperRootTiesSeparateColdHelpers
+--- PASS: TestSMPHelperRootTiesSeparateColdHelpers (0.01s)
+=== RUN   TestLazySMPStartsPrivateWorkersAndMergesExactCounters
+--- PASS: TestLazySMPStartsPrivateWorkersAndMergesExactCounters (0.01s)
+=== RUN   TestLazySMPAdvancesAgeOnceAndNodesForcesOneWorker
+--- PASS: TestLazySMPAdvancesAgeOnceAndNodesForcesOneWorker (0.00s)
+=== RUN   TestLazySMPSetupCancellationAfterCopyAndReset
+=== RUN   TestLazySMPSetupCancellationAfterCopyAndReset/stop-after-copy
+=== RUN   TestLazySMPSetupCancellationAfterCopyAndReset/stop-after-reset
+--- PASS: TestLazySMPSetupCancellationAfterCopyAndReset (0.01s)
+    --- PASS: TestLazySMPSetupCancellationAfterCopyAndReset/stop-after-copy (0.01s)
+    --- PASS: TestLazySMPSetupCancellationAfterCopyAndReset/stop-after-reset (0.00s)
+=== RUN   TestLazySMPSetupDeadlineAfterCopyAndReset
+=== RUN   TestLazySMPSetupDeadlineAfterCopyAndReset/copy
+=== RUN   TestLazySMPSetupDeadlineAfterCopyAndReset/reset
+--- PASS: TestLazySMPSetupDeadlineAfterCopyAndReset (0.01s)
+    --- PASS: TestLazySMPSetupDeadlineAfterCopyAndReset/copy (0.00s)
+    --- PASS: TestLazySMPSetupDeadlineAfterCopyAndReset/reset (0.00s)
+=== RUN   TestLazySMPHelperCompletionDoesNotStopPrimary
+--- PASS: TestLazySMPHelperCompletionDoesNotStopPrimary (0.00s)
+=== RUN   TestLazySMPPanicCancelsAndJoins
+=== RUN   TestLazySMPPanicCancelsAndJoins/helper
+=== RUN   TestLazySMPPanicCancelsAndJoins/primary-callback
+--- PASS: TestLazySMPPanicCancelsAndJoins (0.01s)
+    --- PASS: TestLazySMPPanicCancelsAndJoins/helper (0.00s)
+    --- PASS: TestLazySMPPanicCancelsAndJoins/primary-callback (0.00s)
+=== RUN   TestLazySMPPrelaunchPanicCancelsAndJoinsLaunchedPrefix
+--- PASS: TestLazySMPPrelaunchPanicCancelsAndJoinsLaunchedPrefix (0.00s)
+=== RUN   TestLazySMPCancellationAfterFirstLaunchJoinsPrefix
+--- PASS: TestLazySMPCancellationAfterFirstLaunchJoinsPrefix (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.063s
