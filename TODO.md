@@ -15,16 +15,18 @@ PASS; fixed108-cell time-to-depth speedups2/4 **1.163878/1.344901**, not Elo.
 Rodent UCI advertises Threads1–256; no foreign source/net opened.
 
 Fresh horizon **bc59c3f/e58482c4**, unadopted: rig0–11/c6/controller3442/
-Python3444/SPRT3477, own120+1 A/A40 live21:33:48, then conditional400/200.
+Python3444/SPRT3773, own120+1 A/A40 PASS22:14:35 (+8.69[−29.26,+46.84],
+6/29/5, zero faults); original fixed400/200 live since22:14:35.
 Native3688 queues own2-v-2 AA40/fixed4002-v-1 at10+0.1/c1/Hash64 only
 after clean horizon shelf; winner/fault holds actual-base review. Effective
 width receipts required; no automatic engine adoption or cross-width pooling.
 
-C:76.68GiB/RAM12,810MiB/swap0 at21:39; GPU idle/no training nomination.
+C:76.68GiB/RAM12,327MiB/swap0 at22:22; GPU HOLD/no training nomination.
 Hopper1188 untouched. Forge archive listeners989/994 stopped once rig readers
-ended; no data deleted. Next session not before **22:20 EDT October12** for
-horizon control; full decision approximately04:35–06:35 October13.
-[Session75](experiments/2026-10-12-session75.md),
+ended; no data deleted. Next session not before **05:05 EDT October13** for
+horizon terminal; estimate05:02, plausible04:35–06:35. All admitted code
+preparation is complete; leave the detached chain healthy.
+[Session76](experiments/2026-10-12-session76.md),
 [SMP rule](experiments/2026-10-12-session75-smp.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
