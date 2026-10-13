@@ -237,5 +237,16 @@ func (e *SearchEngine) searchLazySMPLocked(pos *Position, maxDepth int, timeMana
 		addSearchMonotonicCounters(masterInfo, helperResults[i])
 	}
 	masterInfo.EffectiveThreads = activeCount
+	if selected := selectSMPConsensus(pos, masterInfo, helperResults[1:launched+1]); selected != masterInfo {
+		masterInfo.BestMove = selected.BestMove
+		masterInfo.BestScore = selected.BestScore
+		masterInfo.Depth = selected.Depth
+		masterInfo.RootDepth = selected.Depth
+		masterInfo.SelDepth = selected.SelDepth
+		refreshSearchReport(pos, masterInfo)
+		if callback != nil {
+			callback(masterInfo)
+		}
+	}
 	return masterInfo
 }
