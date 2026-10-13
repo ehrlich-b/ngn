@@ -1,0 +1,25 @@
+{
+  "fixed_rows": 54,
+  "recorded_rows": 432,
+  "cpu_exits": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "gpu_exit": 0,
+  "source_static_q_see_identity": true,
+  "median_soft_ratio": 0.6736446040704634,
+  "aggregate_elapsed_ratio": 0.6006679666698852,
+  "baseline_stop_reasons": {
+    "terminal": 1,
+    "soft-abort": 53
+  },
+  "baseline_discarded_tail_ns": 39216135015,
+  "horizon_admission": "ELIGIBLE FOR PROSPECTIVE GATE",
+  "limits": "cold cache/history frame replays, observed banks and prior allocator state; no closed-loop bank trajectory or Elo; deep NGN is not ground truth",
+  "automatic_games": false,
+  "automatic_adoption": false
+}

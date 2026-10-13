@@ -1,0 +1,63 @@
+{
+  "utc": "2026-10-13T01:35:36.326953+00:00",
+  "panel_complete": true,
+  "rows": 432,
+  "fixed_frames": 54,
+  "baseline_elapsed_seconds": 174.155300623,
+  "baseline_tail_seconds": 39.216135015,
+  "baseline_tail_fraction": 0.22517910666349755,
+  "horizon_tail_seconds": 15.505787339,
+  "root_see_disagreement_frames": 2,
+  "root_see_disagreements": 2,
+  "horizon_admission": "ELIGIBLE FOR PROSPECTIVE GATE",
+  "gpu": "HOLD; deployed GPU integer parity passed; two H512 nets and occupied-board holdout do not isolate capacity/distribution or establish independent game/mirror validation",
+  "next": "horizon real-clock gate; admission alone is justified only after that decision if discarded work still warrants it",
+  "limits": "Outcome strata are selected fixtures, not population calibration; deep NGN is not ground truth; no SEE strength or new GPU treatment follows.",
+  "mate_cutoff": 29000,
+  "owned_search_residuals_including_mates": {
+    "loss": {
+      "n": 18,
+      "mean_abs_static_to_owned_16s_cp": 3381.3333333333335,
+      "mean_abs_owned_1s_to_16s_cp": 1604.8333333333333,
+      "mean_abs_owned_4s_to_16s_cp": 1528.2777777777778
+    },
+    "draw": {
+      "n": 18,
+      "mean_abs_static_to_owned_16s_cp": 197.5,
+      "mean_abs_owned_1s_to_16s_cp": 47.166666666666664,
+      "mean_abs_owned_4s_to_16s_cp": 18.166666666666668
+    },
+    "win": {
+      "n": 18,
+      "mean_abs_static_to_owned_16s_cp": 193.5,
+      "mean_abs_owned_1s_to_16s_cp": 40.833333333333336,
+      "mean_abs_owned_4s_to_16s_cp": 39.72222222222222
+    }
+  },
+  "owned_search_residuals_nonmate": {
+    "loss": {
+      "n": 18,
+      "mate_contaminated_rows_excluded": 2,
+      "nonmate_n": 16,
+      "mean_abs_static_to_owned_16s_cp": 215.1875,
+      "mean_abs_owned_1s_to_16s_cp": 69.1875,
+      "mean_abs_owned_4s_to_16s_cp": 41.6875
+    },
+    "draw": {
+      "n": 18,
+      "mate_contaminated_rows_excluded": 0,
+      "nonmate_n": 18,
+      "mean_abs_static_to_owned_16s_cp": 197.5,
+      "mean_abs_owned_1s_to_16s_cp": 47.166666666666664,
+      "mean_abs_owned_4s_to_16s_cp": 18.166666666666668
+    },
+    "win": {
+      "n": 18,
+      "mate_contaminated_rows_excluded": 0,
+      "nonmate_n": 18,
+      "mean_abs_static_to_owned_16s_cp": 193.5,
+      "mean_abs_owned_1s_to_16s_cp": 40.833333333333336,
+      "mean_abs_owned_4s_to_16s_cp": 39.72222222222222
+    }
+  }
+}
