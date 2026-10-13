@@ -1,0 +1,26 @@
+{
+  "reviewed_utc": "2026-10-13T09:44:45.353787+00:00",
+  "base_source": "f1d0a03",
+  "candidate_source": "48d45d255d7b9f7367196ef26b93d1814d74dd1e",
+  "topic": "night/s77-smp-consensus",
+  "binary_sha256": "48d3765fb78b8fabea86e9c974cfa7afc083ed54655395c4a3b25eccb5e22b0b",
+  "net": "a4d90b41/final14",
+  "machine": "rig Ryzen9800X3D/WSL2",
+  "cpus": [
+    13,
+    15
+  ],
+  "checks": [
+    "13 focused vote cases and joined-report regression",
+    "engine-short",
+    "full-short-race-GOMAXPROCS2",
+    "full-short-race-GOMAXPROCS4",
+    "vet",
+    "PGO build",
+    "36 Threads1 node/score/move/PV identities"
+  ],
+  "checks_exit": 0,
+  "identity_exit": 0,
+  "playing_adoption": false,
+  "gates": "prospective S; waits for panel admission and no spare-core overlap"
+}

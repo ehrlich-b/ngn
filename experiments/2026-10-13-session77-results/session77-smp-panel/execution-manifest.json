@@ -1,0 +1,24 @@
+{
+  "utc": "2026-10-13T09:52:20.991924+00:00",
+  "source": "f1d0a03 plus diagnostic-only hooks",
+  "net": "a4d90b41",
+  "widths": [
+    1,
+    4
+  ],
+  "hash_mib": 256,
+  "physical_cpus": [
+    0,
+    2,
+    4,
+    6
+  ],
+  "background": "SEE terminal; no games/trainer",
+  "sha256": {
+    "panel.test": "3ad4521265a1c8e4347260f624acc19737877cf63edd0edaeee143d853cce6c0",
+    "panel.json": "dec3bcf78e66370c592d02c6fd24c4a38e6bc68be68c7242f48b85f9939098b9",
+    "manifest.md": "edce762ec78a88d33b24aa42487fa0dbedbdffb5dc2749d14898b35f58372ab5",
+    "diagnostic.patch": "bb6ec8c834ac2f364e0f58538bacc28362a207dd1d8b173af6a2020cb682d24f",
+    "controller.py": "7ea65bc75030b4851149e71730fb8a27f95618d6bc8e1c4334567c91ea12a248"
+  }
+}
