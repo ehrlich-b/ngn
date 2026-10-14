@@ -2,6 +2,15 @@
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
 Playing **f203e2f/a4d90b41/compiled final14**; no3600 claim.
+
+**2026-10-13 21:00, Bryan approved the Astra+Fable path review**
+(`ngn-campaign/{astra,fable}-{path,cross}-review-2026-10-13.md`). A new gate table
+replaces the fixed 400/lower95 gate, which has 7-9% power at +5. The GPU HOLD is over.
+The Threads4-vs-Threads1 width measurement runs before any SMP policy work.
+Provenance certification uses non-inferiority [−8,0] at 60+0.6. The ordered queue is
+in the plan's 2026-10-13 21:00 root note. GitHub is suspended, so no pull, fetch or push;
+commit locally. Helper-depth S **SHELVED +6.9 [−8.4, +22.4]** (17:52). The admission
+120+1 gate is live, verdict ~03:00-05:00 Oct 14.
 SEE geometry is **CORRECTNESS KEEP** under October13 06:55 amendment:
 both-color old-fail/new-pass x-ray/EP proof, original full checks, fresh ownA/A
 and400/200 +3.4745[−14.2192,+21.1862],zero faults. No proved Elo gain;

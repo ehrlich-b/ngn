@@ -50,6 +50,7 @@ of this module.
 - Do not stack changes unless the experiment is explicitly about an interaction.
 - Do not keep speculative search/eval changes on positive sign at an inconclusive cap.
 - Batch-certification path (2026-07-01, the only sanctioned alternative to shelving at cap): a capped-but-positive result (point est ≥ +1, LLR > 0, no regression signal) may enter main as a PROVISIONAL keep; after ≤4 provisionals or 2 weeks, one powered batch-vs-pre-batch-base real-clock SPRT [0,+6] certifies all of them or triggers a bisect.
+- October 13 user-approved gate table (detail in `ngn-campaign/plan-2026-10-09.md`, root note 2026-10-13 21:00): search/eval/time heuristics use a logistic SPRT [0,+5], min 1000, cap 8000 at 10+0.1, and a cap with point ≥ +1 and LLR > 0 enters the batch path above. Nets and SPSA vectors use fixed 1000 games with lower95 > 0. Provenance replacement packages certify by non-inferiority SPRT [−8,0] at 60+0.6 instead of [0,+6]. Run one A/A per topology and reuse it. Never stop a running predeclared gate administratively. The fixed 400-game lower95 > 0 gate is retired for changes expected below +15.
 - Pre-reset (before 2026-06-28) game verdicts are historical evidence only; they cannot close a lane or gate new work.
 - Proxies (FMC/ebfprobe/fixed-nodes/ACPL/MSE) may REJECT only pure ordering/EBF-mechanism changes, and every proxy rejection records a reopen condition. Anything touching eval values, time, or TC behavior gets a real-clock games gate.
 - Time-management and TC-sensitive changes are gated by real-clock games only.
