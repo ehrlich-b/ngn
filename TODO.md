@@ -1,51 +1,42 @@
 # NGN live state — 2026-10-14: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **f203e2f/a4d90b41/compiled final14**; no3600 claim or new adoption.
+Playing **9ec5d31/a4d90b41/compiled final14**; no3600 claim.
 
-**October13 21:00 Bryan-approved plan governs.** GPU HOLD lifted. New search
-and time heuristics: logistic[0,5]/min1000/cap8000,positive caps only through
-provisional batch. Nets/SPSA:fixed1000/lower95>0. Correctness:proved fix plus
-400-game non-regression. Provenance:non-inferiority[−8,0] at60+0.6/min1000/
-cap4000. One A/A per machine/topology/clock/harness,reused. No administrative
-kills. Detailed gate table and ordered queue are in the campaign log.
+**October13 21:00 Bryan-approved plan governs.** Search/time:logistic[0,5],
+min1000/cap8000,positivecaps only through provisionalbatch. Nets/SPSA:
+fixed1000/lower95>0. Correctness:proof plus400-game non-regression.
+Provenance:non-inferiority[−8,0]/60+0.6/min1000/cap4000. Reuse oneA/A per
+machine/topology/TC/harness. No administrative gate kills;zero faults always.
 
-**Helper-depth SHELVED**,full400/200,+6.95[−8.44,+22.37],zero faults/100% width.
-Consensus/root ties keep their original shelves. **Admission UNSCORED**:
-its120+1 A/A failed18:40,−34.9[−66,−4],zero flags; no candidate games/no retry.
-The previously advertised03:00–05:00 candidate terminal will not occur.
+**Singular correction accepted9ec5d31**,exact session80patch/proof/fullchecks
+reused. Rig400/200,+10.4262[−8.3270,+29.2403],87/238/75,zero faults;
+no demonstrated gain from overlap. Actual-package certificate includes it.
+Four search patches independently rebased on9ec5d31;full combinationchecks
+controller32062 on13,15,expected05:55–06:10. Remainisolated/unadopted.
 
-Session81 harvests original width400: **−118.14[−141.33,−95.92]**,zero
-faults. Both wrappers forcedGOMAXPROCS1;main disables UCI scheduler changes
-when that variable is set. Four workers shared oneexecution slot. Preserve
-MEASURED/rawresult;this is notfour-core uplift. Required5s/20s profile
-completes12cells: T4/P1 occupancy1.0008,T4/P4 3.9424,T1/P1 1.0035;
-mutex/GC small here,no speed/Elo adoption. Proposed true-width freshA/A40/
-400 and wrappers are ready,**pending user scheduler-rule clarification**.
+NewPGN-harness60+0.6/T1/c6 A/A40 runs32061/32066 on0–11,expected05:55–06:10;
+PASS reuses forprovenance/nettransfer. Shortclockcontrol passed session81.
+Detached `ngn-s82-net` controller32307 waits natively forlongcontrol and
+finalizer28820,then fixed1000/500 final115 versusaccepted a4d90b41 on9ec5d31.
+No automaticadoption;expected start06:15–06:30,terminal07:40–08:10.
 
-Detached **ngn-s81-games**31337/31571 runs fresh new-harnessT1/Hash64/c6
-A/A40 PASS04:01:50,+8.69[−57.66,+75.69],zero faults;singular fixed400
-correctness non-regression now31697 onf203e2f.
-Expected04:40–05:05. Exact session80proof/fullchecks reused;keep unless
-upper95<0/zero faults,manualintegration. No candidate games from the stopped
-original width queue. [Session81](experiments/2026-10-14-session81.md).
+115-epochT80+T76+fullT74 training17566/17569 continues on12,14,epoch107 at05:44.
+Final115 only;T75 omitted explicitly. Known metadata-only finalizer28820;
+ready only fromresult.json afterfull115/identicalreexport/20integerparity.
+Netwinner gets60+0.6 transfer thenSPSA≥20k;null admitsapproved matchedmixturepair.
 
-115-epochT80+T76+fullT74 training continues17566/17569;epoch86 at04:03,
-final115/reexport/20parity expected06:15–06:45. T75 absent locally and omitted
-explicitly. Loader12,14;native finalizer28820 handles only the known fixture
-metadata guard,original failure preserved. Ready onlyfromresult.json,
-then fixed1000 net gate onimmediateacceptedsource vs a4d90b41.
+Originalwidth400 remains MEASURED−118.14[−141.33,−95.92],zero faults,
+serializedGOMAXPROCS1. Profile12cells occupiedCPUs1.00 versus3.94 atP4;
+noSMP/speedadoption. True-widthproposal **pending Bryan scheduler exception**.
+Oldconsensus/root-tie/helper-depth shelves unchanged. AdmissionUNSCORED,
+failed120+1 control/no candidategames/retry. No newabsolute result/GOAL MET.
 
-PGN/calibration harness85cf984 and queue runner pass full/race/accounting
-checks. Native-LLR calibration done once:true0 H1=3.46%,true+5=67.62% at8000.
-Prepared singular,qsearch,continuation,pawnquiet,ProbCut patches all passfull
-checks on13,15;remainisolated/unadopted. Rebase relevantpatches afteraccepted
-sourcechange. Noextra speculativebundle;actual-packageprovenance thenpowered
-searchSPRTs stayqueued. Nextsession notbefore04:50 October14.
-
-All compute rig; forge unavailable. Keep hopper/keepalive untouched and C:
-free≥25GiB. GitHub suspended: no pull/fetch/push, gh writes or publication;
-commit locally. No new absolute result or GOAL MET.
+NativeLLRcalibration complete. Actual-packageprovenance thenqsearch,
+continuation,pawnquiet,ProbCutSPRTs remainordered;noextra speculativebundle.
+All compute rig;forgeclosed;hopper/keepalive untouched;C:≥25GiB.
+GitHub suspended:no pull/fetch/push,ghwrites/publication. Commitlocally.
+Next session notbefore06:05 October14. [Session82](experiments/2026-10-14-session82.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

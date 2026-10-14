@@ -28,8 +28,7 @@ unscored and cannot certify the batch. Never restore derived runtime code.
 | Owned SEE/ordering values | f8686be | PROVISIONAL provenance keep,400g −14.77[−35.43,+5.77] |
 | Owned board-key assignment | 6c0fc26 | PROVISIONAL provenance keep,400g −6.08[−25.89,+13.69] |
 | SEE post-move geometry | f203e2f, exact topic73fd6fe | **CORRECTNESS KEEP; included in provisional certification scope** under October13 06:55 amendment. Source-xray/EP witnesses fail before and pass after in both colors; full checked patch reused. Fresh ownA/A40 PASS,400/200 +3.4745[−14.2192,+21.1862],77/250/73,penta[6,32,116,44,2],zero faults. No demonstrated Elo gain. |
-
-| Singular restricted-bound correction | session82, exact session80 patch `1d666e17` | **CORRECTNESS KEEP; included in actual-package certification scope.** Both-color restricted fail-low witnesses fail before; all10 cases and full/race/vet/PGO checks pass after. Rig fixed400/200 **+10.4262[−8.3270,+29.2403]**,87/238/75,penta[4,37,108,45,6],zero faults; reused passing PGN-harness A/A. No demonstrated Elo gain. [Result](2026-10-14-session82-results/singular/singular-nonreg/result.json). |
+| Singular restricted-bound correction | 9ec5d31, exact session80 patch `1d666e17` | **CORRECTNESS KEEP; included in actual-package certification scope.** Both-color restricted fail-low witnesses fail before; all10 cases and full/race/vet/PGO checks pass after. Rig fixed400/200 **+10.4262[−8.3270,+29.2403]**,87/238/75,penta[4,37,108,45,6],zero faults; reused passing PGN-harness A/A. No demonstrated Elo gain. [Result](2026-10-14-session82-results/singular/singular-nonreg/result.json). |
 
 The four-item trigger is reached; certification remains owed. The approved
 October13 21:00 amendment prospectively replaces this campaign's superiority

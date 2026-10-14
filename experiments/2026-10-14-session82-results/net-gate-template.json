@@ -1,0 +1,47 @@
+{
+  "base_source": "9ec5d31",
+  "harness": "/home/ehrli/ngn-data/night-20261007/session80/sprt",
+  "book": "/home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt",
+  "tc": "10+0.1",
+  "cpus": "0-11",
+  "concurrency": 6,
+  "max_games": 1000,
+  "min_games": 1000,
+  "nice": 19,
+  "machine": "rig/WSL/9800X3D",
+  "go": "1.25.5/linux/amd64/v3",
+  "max_memory": "3GiB/swap0",
+  "candidate_options": [
+    "EvalFile=PENDING_FINAL115_READINESS",
+    "UseNNUE=true",
+    "Hash=64",
+    "Threads=1",
+    "OwnBook=false"
+  ],
+  "base_options": [
+    "EvalFile=/home/ehrli/ngn-data/night-20261007/session79-admission-see/base.nnue",
+    "UseNNUE=true",
+    "Hash=64",
+    "Threads=1",
+    "OwnBook=false"
+  ],
+  "control_key": "rig/0-11/c6/10+0.1/Threads1/Hash64/b5bddf27f2de5b6098105ce776591bff0ee46103ee9cdd55a8758c2e4b386cae",
+  "name": "s82-net-final115",
+  "class": "net",
+  "candidate": "/home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+  "base": "/home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+  "output": "/home/ehrli/ngn-data/night-20261007/session82/net-final115",
+  "decision": "fixed1000/500; printed and exact lower95>0 and zero faults keeps; otherwise shelf; no automatic adoption",
+  "affinity": "0-11/c6; GOMAXPROCS1 per engine; loader12,14",
+  "control_note": "reuse session81 passing T1/c6/10+0.1 PGN-harness control",
+  "artifacts": {
+    "/home/ehrli/ngn-data/night-20261007/session80/sprt": "b5bddf27f2de5b6098105ce776591bff0ee46103ee9cdd55a8758c2e4b386cae",
+    "/home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt": "f2fed55a1645dba85a9ef3e047eb5183b5b6342878c6dc8483e6768973470acc",
+    "/home/ehrli/ngn-data/night-20261007/session79-admission-see/base.nnue": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+    "/home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn": "84edb1a0bdc4e38f1bbc86b0d66d11e1baa67cb84a457d5e2294ade2cab5084b"
+  },
+  "review_after": true,
+  "base_net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "selection": "full115 latest.nnue only, identical reexport and20 integer parity, ready result.json; no checkpoint shopping",
+  "schedule": "native wait for session82 long A/A controller32061 and training finalizer28820; no administrative stop; no long certificate before net"
+}
