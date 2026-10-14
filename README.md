@@ -172,7 +172,7 @@ them work elsewhere.
 NGN requires Go 1.21.2 or newer.
 
 ```bash
-git clone https://github.com/ehrlich-b/ngn.git
+git clone https://gitlab.com/ehrlich-b/ngn.git
 cd ngn
 make build-release
 ./build/ngn
