@@ -1,0 +1,14 @@
+{
+  "base": "9ec5d31",
+  "candidate": "probcut",
+  "passed": [
+    "focused including singular witness",
+    "engine short/race",
+    "full short/race",
+    "vet",
+    "PGO build"
+  ],
+  "binary_sha256": "0cd89dc0ac6780135754e211328d3e9176ec1e13393236b0c21eaaf77b038cff",
+  "patch_sha256": "6fa8f92c382c7a1e2e73ea6a117a9e85b039685fad44d26ec138309dee0d5d0b",
+  "completed_utc": "2026-10-14T10:03:10.309377+00:00"
+}

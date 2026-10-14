@@ -37,7 +37,10 @@ min1000/cap4000**, on the actual integrated package with the same a4d90b41
 and final14 as archived reference5b882e2/53caa7c4. H1 certifies the declared
 margin; H0 bisects SEE values versus keys from scratch; cap leaves debt.
 A/A is reused only for an unchanged machine/topology/TC/harness; the new
-PGN-capable harness needs its first matching control. Never administratively
+PGN-capable harness long-clock control passed in session83 (40/20,zero faults)
+and is reusable. Fresh actual9ec5d31 certificate is detached behind the final115
+net decision; identical a4d90b41 on a shelf or identical winning net after
+its approved400-game transfer. [Session83](2026-10-14-session83.md). Never administratively
 stop the certificate, resume/pool the stopped sample, or restore derived code.
 The ordinary positive-cap heuristic batch route above remains[0,+6].
 Singular correctness and width measurements precede certification in the

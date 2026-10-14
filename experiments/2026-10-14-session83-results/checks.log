@@ -1,0 +1,19 @@
+test_exact_exposures_tails_cycles_and_expected_shares (trainer.tests.test_archive_mixture.ArchiveMixtureTests.test_exact_exposures_tails_cycles_and_expected_shares) ... ok
+test_matched_pair_keeps_other_sources_exact (trainer.tests.test_archive_mixture.ArchiveMixtureTests.test_matched_pair_keeps_other_sources_exact) ... ok
+test_seeded_bytes_and_unweighted_holdout_identity (trainer.tests.test_archive_mixture.ArchiveMixtureTests.test_seeded_bytes_and_unweighted_holdout_identity) ... ok
+test_training_resume_matches_and_binds_weight_contents (trainer.tests.test_archive_mixture.ArchiveMixtureTests.test_training_resume_matches_and_binds_weight_contents) ... ok
+test_weights_require_all_sources_and_valid_positive_values (trainer.tests.test_archive_mixture.ArchiveMixtureTests.test_weights_require_all_sources_and_valid_positive_values) ... ok
+test_black_normalization_preserves_features_and_label_sign (trainer.tests.test_archive.ArchiveTests.test_black_normalization_preserves_features_and_label_sign) ... ok
+test_cpu_training_resume_and_archive_config (trainer.tests.test_archive.ArchiveTests.test_cpu_training_resume_and_archive_config) ... ok
+test_holdout_cache_preserves_rows_and_avoids_source_on_later_passes (trainer.tests.test_archive.ArchiveTests.test_holdout_cache_preserves_rows_and_avoids_source_on_later_passes) ... ok
+test_padding_is_ignored_and_hash_excludes_labels (trainer.tests.test_archive.ArchiveTests.test_padding_is_ignored_and_hash_excludes_labels) ... ok
+test_real_archive_record_and_opponent_king_square_convention (trainer.tests.test_archive.ArchiveTests.test_real_archive_record_and_opponent_king_square_convention) ... ok
+test_rejects_bad_piece_result_missing_king_and_metadata (trainer.tests.test_archive.ArchiveTests.test_rejects_bad_piece_result_missing_king_and_metadata) ... ok
+test_split_counts_global_duplicate_exclusion_seed_and_tails (trainer.tests.test_archive.ArchiveTests.test_split_counts_global_duplicate_exclusion_seed_and_tails) ... ok
+test_source_counts_match_admitted_rows (trainer.tests.test_exposure.ExposureTest.test_source_counts_match_admitted_rows) ... ok
+test_holdout_absolute_rows_and_cache (trainer.tests.test_archive_index.ArchiveIndexTests.test_holdout_absolute_rows_and_cache) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 14.490s
+
+OK

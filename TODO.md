@@ -3,40 +3,39 @@
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
 Playing **9ec5d31/a4d90b41/compiled final14**; no3600 claim.
 
-**October13 21:00 Bryan-approved plan governs.** Search/time:logistic[0,5],
-min1000/cap8000,positivecaps only through provisionalbatch. Nets/SPSA:
-fixed1000/lower95>0. Correctness:proof plus400-game non-regression.
-Provenance:non-inferiority[−8,0]/60+0.6/min1000/cap4000. Reuse oneA/A per
-machine/topology/TC/harness. No administrative gate kills;zero faults always.
+October13 21:00 Bryan-approved plan governs. Search/time: logistic[0,5],
+min1000/cap8000,positive caps only through provisional batch. Nets/SPSA:
+fixed1000/lower95>0. Correctness: proof plus400-game non-regression.
+Provenance: non-inferiority[−8,0]/60+0.6/min1000/cap4000. Reuse one passing
+A/A per machine/topology/TC/harness. No administrative gate kills; zero faults.
 
-**Singular correction accepted9ec5d31**,exact session80patch/proof/fullchecks
-reused. Rig400/200,+10.4262[−8.3270,+29.2403],87/238/75,zero faults;
-no demonstrated gain from overlap. Actual-package certificate includes it.
-Four search patches independently rebased on9ec5d31;full combinationchecks
-controller32062 on13,15,expected05:55–06:10. Remainisolated/unadopted.
+Singular correction accepted9ec5d31; prior proof/checks/non-regression reused.
+All four independent search combinations on9ec5d31 PASS. New PGN-harness long
+A/A40 PASS06:03:04,zero faults; registry reusable. No new source/net adoption.
 
-NewPGN-harness60+0.6/T1/c6 A/A40 runs32061/32066 on0–11,expected05:55–06:10;
-PASS reuses forprovenance/nettransfer. Shortclockcontrol passed session81.
-Detached `ngn-s82-net` controller32307 waits natively forlongcontrol and
-finalizer28820,then fixed1000/500 final115 versusaccepted a4d90b41 on9ec5d31.
-No automaticadoption;expected start06:15–06:30,terminal07:40–08:10.
+Final115 training completes29.44B presentations; **81215229** passes identical
+reexport/20 integer parity. Original fixed1000 net gate39000 on0–11 runs since
+06:17:40; expected07:40–08:10. Do not duplicate/restart/pool it.
+Native game successor39843 waits32307: SHELVED dispatches actual-package
+provenance; KEEP dispatches400-game60+0.6 transfer(point>0/zero faults),then
+provenance on winning net only afterTRANSFER_PASS. No automatic log adoption.
 
-115-epochT80+T76+fullT74 training17566/17569 continues on12,14,epoch107 at05:44.
-Final115 only;T75 omitted explicitly. Known metadata-only finalizer28820;
-ready only fromresult.json afterfull115/identicalreexport/20integerparity.
-Netwinner gets60+0.6 transfer thenSPSA≥20k;null admitsapproved matchedmixturepair.
+New opt-in archive-mixture trainer,local topicc411391,passes68 CPU tests
+(4 CUDA-only skips). Exact sampledT74 rebuild39648/39655 runs13,15,expected
+07:00–07:15,with27GiB own-job guard. GPU successor39844 waitsnet terminal:
+KEEP skips; clean SHELVED plus exact sample readiness admits the approved
+sampled/full matched pair45.35/33.21/21.44,58×256M each,final58 only/parity20.
+Loader12,14; expected both ready16:00–20:00. No automatic games/adoption.
 
-Originalwidth400 remains MEASURED−118.14[−141.33,−95.92],zero faults,
-serializedGOMAXPROCS1. Profile12cells occupiedCPUs1.00 versus3.94 atP4;
-noSMP/speedadoption. True-widthproposal **pending Bryan scheduler exception**.
-Oldconsensus/root-tie/helper-depth shelves unchanged. AdmissionUNSCORED,
-failed120+1 control/no candidategames/retry. No newabsolute result/GOAL MET.
+Original width400 remains MEASURED−118.14[−141.33,−95.92] for serialized
+GOMAXPROCS1,zero faults. Profile occupancy1.00 versus3.94 atP4; true-width
+proposal awaits Bryan scheduler exception. No new SMP policy/source change.
+Admission UNSCORED/control failure,no candidate sample/retry. Native LLR
+calibration complete; provenance then four search SPRTs remain ordered.
 
-NativeLLRcalibration complete. Actual-packageprovenance thenqsearch,
-continuation,pawnquiet,ProbCutSPRTs remainordered;noextra speculativebundle.
-All compute rig;forgeclosed;hopper/keepalive untouched;C:≥25GiB.
-GitHub suspended:no pull/fetch/push,ghwrites/publication. Commitlocally.
-Next session notbefore06:05 October14. [Session82](experiments/2026-10-14-session82.md).
+All compute rig; forge closed; hopper/keepalive untouched; C:≥25GiB.
+GitHub suspended: no pull/fetch/push,external writes/publication. Commit locally.
+Next session not before07:50 EDT October14. [Session83](experiments/2026-10-14-session83.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

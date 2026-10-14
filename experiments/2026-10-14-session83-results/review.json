@@ -1,0 +1,17 @@
+{
+  "accepted": "9ec5d31/a4d90b41/compiled final14",
+  "trainer_topic": "night/s83-archive-mixture",
+  "trainer_commit": "c411391",
+  "trainer_focused_tests": 14,
+  "trainer_suite_tests": 68,
+  "trainer_suite_cuda_skips": 4,
+  "queue_tests": 6,
+  "controller_branch_checks": 4,
+  "original_singular_proof_reused": true,
+  "search_combination_checks": "all4 pass; binaries/patches remain isolated",
+  "long_control": "AA_PASS;40/20;zero faults;registry reused;no retry",
+  "net_ready": "full115/29.44B presentations/identical reexport/20 parity;only81215229 is eligible",
+  "accepted_engine_or_net_change": false,
+  "absolute_claim": false,
+  "goal_met": false
+}
