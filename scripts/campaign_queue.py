@@ -89,7 +89,7 @@ def summarize(log, pgn, job, returncode):
     unrounded_llr = exact_llr(penta, job.get('elo0', 0), job.get('elo1', 5))
     kind = job['class']
     full = games == job['max_games'] and sum(penta) * 2 == games
-    if kind in ('aa', 'measurement', 'net', 'correctness') and not full:
+    if kind in ('aa', 'measurement', 'net', 'net-transfer', 'correctness') and not full:
         faults.append('incomplete fixed sample')
     verdict = 'UNSCORED' if faults else 'SHELVED'
     if not faults:
@@ -99,6 +99,8 @@ def summarize(log, pgn, job, returncode):
             verdict = 'MEASURED'
         elif kind == 'correctness':
             verdict = 'REGRESSION' if exact[2] < 0 else 'CORRECTNESS_KEEP'
+        elif kind == 'net-transfer':
+            verdict = 'TRANSFER_PASS' if exact[0] > 0 else 'TRANSFER_FAIL'
         elif kind == 'net':
             verdict = 'KEEP' if low > 0 and exact[1] > 0 else 'SHELVED'
         elif kind in ('search', 'provenance'):
