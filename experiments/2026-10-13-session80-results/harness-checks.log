@@ -1,0 +1,4 @@
+Running as unit: run-r7a83d0ff7b1944fdbf54132bbceef640.scope; invocation ID: c9d697b4a2ee44ca98ffe6a16ec9a532
+ok  	github.com/ehrlich-b/ngn/cmd/sprt	1.035s
+ok  	github.com/ehrlich-b/ngn/internal/uci	1.091s
+?   	github.com/ehrlich-b/ngn/internal/rating	[no test files]

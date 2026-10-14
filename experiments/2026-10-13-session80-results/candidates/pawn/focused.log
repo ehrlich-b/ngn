@@ -1,0 +1,12 @@
+=== RUN   TestPawnQuietCompletedExamples
+--- PASS: TestPawnQuietCompletedExamples (0.00s)
+=== RUN   TestPawnQuietStoppedRootDoesNotLearn
+--- PASS: TestPawnQuietStoppedRootDoesNotLearn (0.00s)
+=== RUN   TestPawnQuietNoUnprovedSignal
+--- PASS: TestPawnQuietNoUnprovedSignal (0.00s)
+=== RUN   TestPawnQuietContextOwnershipAndReset
+--- PASS: TestPawnQuietContextOwnershipAndReset (0.00s)
+=== RUN   TestPawnQuietOrderingConsumesCompletedRoot
+--- PASS: TestPawnQuietOrderingConsumesCompletedRoot (0.01s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.018s

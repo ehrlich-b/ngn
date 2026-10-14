@@ -29,12 +29,18 @@ unscored and cannot certify the batch. Never restore derived runtime code.
 | Owned board-key assignment | 6c0fc26 | PROVISIONAL provenance keep,400g −6.08[−25.89,+13.69] |
 | SEE post-move geometry | f203e2f, exact topic73fd6fe | **CORRECTNESS KEEP; included in provisional certification scope** under October13 06:55 amendment. Source-xray/EP witnesses fail before and pass after in both colors; full checked patch reused. Fresh ownA/A40 PASS,400/200 +3.4745[−14.2192,+21.1862],77/250/73,penta[6,32,116,44,2],zero faults. No demonstrated Elo gain. |
 
-The four-item trigger is reached; powered batch certification remains owed.
-The next prospective SPRT[0,+6] must use the actual integrated package and its
-own control; do not resume or pool the stopped sample. The live SMP chain
-finishes on its original frozenf1d0a03 before any new nomination. Any SMP winner
-needs independent integration onto the SEE base. Correctness adoption follows
-CLAUDE.md's proved-fix class, rather than a speculative positive-sign keep.
+The four-item trigger is reached; certification remains owed. The approved
+October13 21:00 amendment prospectively replaces this campaign's superiority
+[0,+6] certificate with **non-inferiority logistic SPRT[−8,0] at60+0.6/c6,
+min1000/cap4000**, on the actual integrated package with the same a4d90b41
+and final14 as archived reference5b882e2/53caa7c4. H1 certifies the declared
+margin; H0 bisects SEE values versus keys from scratch; cap leaves debt.
+A/A is reused only for an unchanged machine/topology/TC/harness; the new
+PGN-capable harness needs its first matching control. Never administratively
+stop the certificate, resume/pool the stopped sample, or restore derived code.
+The ordinary positive-cap heuristic batch route above remains[0,+6].
+Singular correctness and width measurements precede certification in the
+approved queue; nominate the actual package when that slot opens.
 [Session79 proof and class correction](2026-10-13-session79.md),
 [archived repaired-certification protocol](2026-10-12-session71-provenance.md).
 

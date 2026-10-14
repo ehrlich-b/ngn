@@ -1,0 +1,5 @@
+{"utc": "2026-10-13T19:01:57.548771+00:00", "event": "predecessor-wait", "detail": "/home/ehrli/ngn-data/night-20261007/session77-helper-depths-gate/controller.done native completion; no polling"}
+{"utc": "2026-10-13T21:52:14.598131+00:00", "event": "predecessor-review", "detail": {"allowed": true, "gate": {"mode": "gate", "games": 400, "pairs": 200, "wins": 73, "draws": 262, "losses": 65, "penta": [1, 33, 124, 41, 1], "elo": 6.9, "ci95": [-8.0, 22.0], "exact_elo_ci95": [6.94963842776909, -8.439036610431378, 22.365643694086792], "flags": [0, 0], "reasons": {"draw-rule": 256, "checkmate": 138, "max-moves": 5, "stalemate": 1}, "verdict": "shelved", "configuration_only": false}, "action": "SEE-base admission only"}}
+{"utc": "2026-10-13T21:52:14.601629+00:00", "event": "checks-start", "detail": {"cpus": [13, 15], "base": "f203e2f", "candidate": "same base plus admission only"}}
+{"utc": "2026-10-13T21:57:06.038290+00:00", "event": "checks-done", "detail": "focused, engine short/race, full short/race, vet, PGO build PASS"}
+{"utc": "2026-10-13T21:57:06.097125+00:00", "event": "aa-start", "detail": {"tc": "120+1", "cpus": "0-11", "concurrency": 6, "nice": 19}}

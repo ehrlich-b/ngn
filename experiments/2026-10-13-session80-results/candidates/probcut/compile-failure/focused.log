@@ -1,0 +1,4 @@
+# github.com/ehrlich-b/ngn/engine [github.com/ehrlich-b/ngn/engine.test]
+engine/probcut_negative_tt_test.go:34:60: invalid operation: info.ProbcutPrunes != c.wantPrune (mismatched types uint64 and int)
+FAIL	github.com/ehrlich-b/ngn/engine [build failed]
+FAIL

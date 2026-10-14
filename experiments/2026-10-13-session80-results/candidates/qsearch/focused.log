@@ -1,0 +1,10 @@
+=== RUN   TestQStaticCompatibleBoundChangesQuietHorizon
+--- PASS: TestQStaticCompatibleBoundChangesQuietHorizon (0.00s)
+=== RUN   TestQStaticIgnoresOppositeDirectionAndMateBounds
+--- PASS: TestQStaticIgnoresOppositeDirectionAndMateBounds (0.00s)
+=== RUN   TestQStaticUsesCorrectedStandPatAsStartingEstimate
+--- PASS: TestQStaticUsesCorrectedStandPatAsStartingEstimate (0.00s)
+=== RUN   TestQStaticCheckDrawAndStopPrecedeRefinement
+--- PASS: TestQStaticCheckDrawAndStopPrecedeRefinement (0.03s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.042s

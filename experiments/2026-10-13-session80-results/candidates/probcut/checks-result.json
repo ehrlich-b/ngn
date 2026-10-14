@@ -1,0 +1,13 @@
+{
+  "base": "f203e2f",
+  "candidate": "probcut",
+  "passed": [
+    "focused",
+    "engine short/race",
+    "full short/race",
+    "vet",
+    "PGO build"
+  ],
+  "binary_sha256": "842f789d31fb4c455d0c0763a0f4f7f44afb72d4948afee48f1878594fe48079",
+  "completed_utc": "2026-10-14T01:43:38.594081+00:00"
+}

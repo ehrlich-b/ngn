@@ -1,0 +1,30 @@
+Scope command line contains environment variable, which is not expanded by default for now, but will be expanded by default in the future. Use --expand-environment=yes/no to explicitly control it as needed.
+Running as unit: run-rb1b09f596d04454abdca9e0bd3a769b1.scope; invocation ID: 4cc5bcc500e44d509a5c617d01a1ac76
+=== RUN   TestProbcutNegativeTTBound
+=== RUN   TestProbcutNegativeTTBound/white/upper_below_threshold
+=== RUN   TestProbcutNegativeTTBound/white/exact_below_threshold
+=== RUN   TestProbcutNegativeTTBound/white/lower_below_threshold
+=== RUN   TestProbcutNegativeTTBound/white/shallow_upper
+=== RUN   TestProbcutNegativeTTBound/white/upper_at_threshold
+=== RUN   TestProbcutNegativeTTBound/white/exact_above_threshold
+=== RUN   TestProbcutNegativeTTBound/black/upper_below_threshold
+=== RUN   TestProbcutNegativeTTBound/black/exact_below_threshold
+=== RUN   TestProbcutNegativeTTBound/black/lower_below_threshold
+=== RUN   TestProbcutNegativeTTBound/black/shallow_upper
+=== RUN   TestProbcutNegativeTTBound/black/upper_at_threshold
+=== RUN   TestProbcutNegativeTTBound/black/exact_above_threshold
+--- PASS: TestProbcutNegativeTTBound (0.03s)
+    --- PASS: TestProbcutNegativeTTBound/white/upper_below_threshold (0.00s)
+    --- PASS: TestProbcutNegativeTTBound/white/exact_below_threshold (0.00s)
+    --- PASS: TestProbcutNegativeTTBound/white/lower_below_threshold (0.00s)
+    --- PASS: TestProbcutNegativeTTBound/white/shallow_upper (0.00s)
+    --- PASS: TestProbcutNegativeTTBound/white/upper_at_threshold (0.00s)
+    --- PASS: TestProbcutNegativeTTBound/white/exact_above_threshold (0.00s)
+    --- PASS: TestProbcutNegativeTTBound/black/upper_below_threshold (0.00s)
+    --- PASS: TestProbcutNegativeTTBound/black/exact_below_threshold (0.00s)
+    --- PASS: TestProbcutNegativeTTBound/black/lower_below_threshold (0.00s)
+    --- PASS: TestProbcutNegativeTTBound/black/shallow_upper (0.00s)
+    --- PASS: TestProbcutNegativeTTBound/black/upper_at_threshold (0.00s)
+    --- PASS: TestProbcutNegativeTTBound/black/exact_above_threshold (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.035s

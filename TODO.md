@@ -1,39 +1,47 @@
 # NGN live state — 2026-10-13: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **f203e2f/a4d90b41/compiled final14**; no3600 claim.
+Playing **f203e2f/a4d90b41/compiled final14**; no3600 claim or new adoption.
 
-**2026-10-13 21:00, Bryan approved the Astra+Fable path review**
-(`ngn-campaign/{astra,fable}-{path,cross}-review-2026-10-13.md`). A new gate table
-replaces the fixed 400/lower95 gate, which has 7-9% power at +5. The GPU HOLD is over.
-The Threads4-vs-Threads1 width measurement runs before any SMP policy work.
-Provenance certification uses non-inferiority [−8,0] at 60+0.6. The ordered queue is
-in the plan's 2026-10-13 21:00 root note. GitHub is suspended, so no pull, fetch or push;
-commit locally. Helper-depth S **SHELVED +6.9 [−8.4, +22.4]** (17:52). The admission
-120+1 gate is live, verdict ~03:00-05:00 Oct 14.
-SEE geometry is **CORRECTNESS KEEP** under October13 06:55 amendment:
-both-color old-fail/new-pass x-ray/EP proof, original full checks, fresh ownA/A
-and400/200 +3.4745[−14.2192,+21.1862],zero faults. No proved Elo gain;
-added to outstanding [batch ledger](experiments/batch-ledger.md).
+**October13 21:00 Bryan-approved plan governs.** GPU HOLD lifted. New search
+and time heuristics: logistic[0,5]/min1000/cap8000,positive caps only through
+provisional batch. Nets/SPSA:fixed1000/lower95>0. Correctness:proved fix plus
+400-game non-regression. Provenance:non-inferiority[−8,0] at60+0.6/min1000/
+cap4000. One A/A per machine/topology/clock/harness,reused. No administrative
+kills. Detailed gate table and ordered queue are in the campaign log.
 
-Consensus S **SHELVED+4.3432[−13.4275,+22.1366]**; root ties S
-**SHELVED−3.4745[−19.9951,+13.0304]**. Both400/200,zero faults/100% width.
-Original helper-depth topicc930cb0/7bb1afe2 still gates against frozenf1d0a03:
-own4-v-4/Hash256 A/A40 PASS14:12:28;400/200 live12521 under11026.
-Winner needs independent SEE integration; all samples remain separate.
+**Helper-depth SHELVED**,full400/200,+6.95[−8.44,+22.37],zero faults/100% width.
+Consensus/root ties keep their original shelves. **Admission UNSCORED**:
+its120+1 A/A failed18:40,−34.9[−66,−4],zero flags; no candidate games/no retry.
+The previously advertised03:00–05:00 candidate terminal will not occur.
 
-New detached admission waiter**12835** (`ngn-s79-admission-see.service`)
-queues the original iteration-admission-only patch on actualSEE basef203e2f.
-A clean helper-depth shelf admits checks13/15, then own120+1 A/A40/fixed400
-0–11/c6/Threads1/Hash64; winner/fault holds. No automatic adoption/sample reuse.
-[Rule](experiments/2026-10-13-session79-admission.md),
-[Session79](experiments/2026-10-13-session79.md).
+Session80 launched **115-epoch T80+T76+fullT74 training**,fresh seed/same
+KB8/H512 recipe,final epoch only. T75 mapped bytes are absent on rig; its
+forge descriptor is not consumed. Exact source presentations are logged by
+trainer7ef9821. Loader12,14/nice19/4GiB,final reexport/20 parity on13,15.
+Known final-fixture metadata omission has a native after-controller finalizer:
+320 synthetic cases PASS; preserve original metadata failure, then20 final
+cases. No retraining or actual-evaluation retry; readiness only fromresult.json.
 
-All compute rig; forge unavailable; GPU diagnostic HOLD. Future SMP/claim
-target Threads4/Hash256; integrated long-clock/resource-matched claim still owed.
-Horizon remains shelved; two-v-one scale screen canceled administratively.
-Keepalive571/5287 and hopper1188 untouched. No further admitted source work;
-next session not before **17:50 EDT October13** for helper-depth terminal.
+PGN/calibration harness85cf984 and [queue runner](scripts/campaign_queue.py)
+pass focused/race/accounting checks. Native-LLR calibration:true0 H1=3.46%,
+true+5 H1=67.62% at cap8000,5000 trials/cell. Detached queue: fresh new-harness
+Threads4/Hash256/c1 A/A40,then fixed400 Threads4 versus1 on five distinct
+physical cores inside0–11. This is a width measurement, not a source candidate.
+Own new-harness A/A PASS21:26:32; width400 live23548,expected00:55–01:30
+Oct14. It conditionally chains Rodent's own width,singular correctness; low
+width holds for profile. GPU has3 durable epochs/exposure sums PASS at21:48,
+estimated final115/parity06:00–08:00. Next session not before01:15 Oct14.
+Then actual-package provenance certificate and search SPRTs.
+
+Singular,qsearch,continuation,pawn quiet and original negative-TT ProbCut
+are isolated unadopted patches onf203e2f; all full checks PASS on13,15. Prepared engine
+changes remain uncommitted; [session80](experiments/2026-10-13-session80.md)
+and durable patches preserve them. Rebase before games if accepted source changes.
+
+All compute rig; forge unavailable. Keep hopper/keepalive untouched and C:
+free≥25GiB. GitHub suspended: no pull/fetch/push, gh writes or publication;
+commit locally. No new absolute result or GOAL MET.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
