@@ -1,0 +1,46 @@
+{
+  "games": 1000,
+  "pairs": 500,
+  "orphan_games": 0,
+  "wdl": [
+    232,
+    588,
+    180
+  ],
+  "penta": [
+    10,
+    92,
+    253,
+    126,
+    19
+  ],
+  "printed_elo_ci95": [
+    18.1,
+    6.0,
+    30.0
+  ],
+  "exact_elo_ci95": [
+    18.0829609918616,
+    5.723084188776002,
+    30.488755656229234
+  ],
+  "final_pllr": 1.96,
+  "exact_pllr": 1.9621600530186127,
+  "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 569,
+    "checkmate": 412,
+    "max-moves": 17,
+    "stalemate": 2
+  },
+  "faults": [],
+  "verdict": "KEEP",
+  "name": "s82-net-final115",
+  "finished_utc": "2026-10-14T11:48:23.420432+00:00",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/manifest.json",
+  "automatic_adoption": false
+}

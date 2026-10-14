@@ -1,7 +1,7 @@
 # NGN live state — 2026-10-14: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **9ec5d31/a4d90b41/compiled final14**; no3600 claim.
+Playing **9ec5d31/81215229/compiled final14**; no3600 claim.
 
 October13 21:00 Bryan-approved plan governs. Search/time: logistic[0,5],
 min1000/cap8000,positive caps only through provisional batch. Nets/SPSA:
@@ -9,33 +9,36 @@ fixed1000/lower95>0. Correctness: proof plus400-game non-regression.
 Provenance: non-inferiority[−8,0]/60+0.6/min1000/cap4000. Reuse one passing
 A/A per machine/topology/TC/harness. No administrative gate kills; zero faults.
 
-Singular correction accepted9ec5d31; prior proof/checks/non-regression reused.
-All four independent search combinations on9ec5d31 PASS. New PGN-harness long
-A/A40 PASS06:03:04,zero faults; registry reusable. No new source/net adoption.
+Singular correction accepted9ec5d31; all four search combinations pass.
+New net **81215229** accepted:original fixed1000 +18.083[+5.723,+30.489],
+232/588/180,zero faults. Transfer400/60+0.6 passes +10.426[−5.299,+26.194]
+under its point-positive rule. Playing **9ec5d31/81215229/compiled final14**;
+external EvalFile convention,no new absolute result or3600 claim.
 
-Final115 training completes29.44B presentations; **81215229** passes identical
-reexport/20 integer parity. Original fixed1000 net gate39000 on0–11 runs since
-06:17:40; expected07:40–08:10. Do not duplicate/restart/pool it.
-Native game successor39843 waits32307: SHELVED dispatches actual-package
-provenance; KEEP dispatches400-game60+0.6 transfer(point>0/zero faults),then
-provenance on winning net only afterTRANSFER_PASS. No automatic log adoption.
+Actual-package provenanceSPRT81543 under39843/39845 runs since11:27:47:
+[−8,0]/60+0.6/c6,min1000/cap4000,same selected net/final14 versus archived
+reference. Generic campaign queue waits natively for cleanCERTIFIED then
+runs qsearch[0,5]/min1000/cap8000 on the ready9ec5d31 patch/current net.
+Other certificate outcomes hold;no extra game job,cutoff,retry or pooling.
+Then continuation,pawnquiet,ProbCut;one behavior/immediate accepted base.
 
-New opt-in archive-mixture trainer,local topicc411391,passes68 CPU tests
-(4 CUDA-only skips). Exact sampledT74 rebuild39648/39655 runs13,15,expected
-07:00–07:15,with27GiB own-job guard. GPU successor39844 waitsnet terminal:
-KEEP skips; clean SHELVED plus exact sample readiness admits the approved
-sampled/full matched pair45.35/33.21/21.44,58×256M each,final58 only/parity20.
-Loader12,14; expected both ready16:00–20:00. No automatic games/adoption.
+GPU final174 follow-up controller81599/trainer81604 is detached: same
+T80/T76/fullT74 corpus/recipe/fresh initialization with the same seed,174×256M=44.544B,
+final174 only/reexport/20 parity. Loader12,14/parity13,15/4GiB/swap0;
+expected01:30–03:30 EDT October15. Existing25.25GiB stop;no automatic games.
+Null-only mixture pair skipped;sample reconstruction own27GiB guard-stop
+06:56:07/exit143 retained without retry. Sampler topicc411391 stays isolated.
 
-Original width400 remains MEASURED−118.14[−141.33,−95.92] for serialized
-GOMAXPROCS1,zero faults. Profile occupancy1.00 versus3.94 atP4; true-width
-proposal awaits Bryan scheduler exception. No new SMP policy/source change.
-Admission UNSCORED/control failure,no candidate sample/retry. Native LLR
-calibration complete; provenance then four search SPRTs remain ordered.
+Tested407c604 adds SPSA external-net options and rejects game faults before
+updates. Rig short/race/build/vet,synthetic checks and live14-default/net
+probe pass. Warm restart24k nomination prepared only,behind four search
+SPRTs per ordered queue;no tuning games or auto adoption.
 
-All compute rig; forge closed; hopper/keepalive untouched; C:≥25GiB.
-GitHub suspended: no pull/fetch/push,external writes/publication. Commit locally.
-Next session not before07:50 EDT October14. [Session83](experiments/2026-10-14-session83.md).
+Serialized width−118.14 remains MEASURED;true-width scheduler exception
+pending. Admission control failure remains UNSCORED/no candidate sample.
+All compute rig;forge closed;hopper/keepalive untouched;C:≥25GiB.
+GitHub suspended:no pull/fetch/push,external writes/publication.Commit locally.
+Next session not before20:45 EDT October14.[Session84](experiments/2026-10-14-session84.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

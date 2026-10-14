@@ -1,0 +1,42 @@
+{
+  "utc": "2026-10-14T15:51:44.886498+00:00",
+  "accepted": "9ec5d31/81215229/compiled final14",
+  "services": {
+    "ngn-s84-training174": {
+      "MainPID": "81599",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    "ngn-s84-spsa-warm": {
+      "MainPID": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    "ngn-s83-followup": {
+      "MainPID": "39843",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    "ngn-campaign-queue": {
+      "MainPID": "83550",
+      "ActiveState": "active",
+      "SubState": "running"
+    }
+  },
+  "host_c_free_bytes": 35305676800,
+  "gpu": "0 %, 4234 MiB",
+  "free": "               total        used        free      shared  buff/cache   available\nMem:           15514        5421        6928          87        3491       10092\nSwap:           4096           1        4094\n",
+  "processes": [
+    "   1188     245    1188  1-14:35:15  0.3  0.1 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    "  39840   39834   39840    05:21:11  0.0  0.0 systemd-run --user --wait --unit=ngn-s83-followup -p AllowedCPUs=0-11 -p CPUQuota=1200% -p MemoryMax=3G -p MemorySwapMax=0 nice -n 19 bash /home/ehrli/ngn-data/night-20261007/session83/followup.sh",
+    "  39843     245   39843    05:21:11  0.0  0.0 bash /home/ehrli/ngn-data/night-20261007/session83/followup.sh",
+    "  39845   39843   39843    05:21:11  0.0  0.1 python3 /home/ehrli/ngn-data/night-20261007/session83/followup.py",
+    "  81543   39845   39843       23:57  0.6  0.1 /home/ehrli/ngn-data/night-20261007/session80/sprt -new /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -base /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn -tc 60+0.6 -concurrency 6 -mingames 1000 -maxgames 4000 -elo0 -8 -elo1 0 -alpha .05 -beta .05 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -lowpower=false -pgn /home/ehrli/ngn-data/night-20261007/session83/provenance/games.pgn -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -newoption AspInit=17 -newoption AspMult=163 -newoption DeltaMargin=202 -newoption ExtensionBudget=29 -newoption FutilityMargin=104 -newoption FutilityMaxDepth=8 -newoption LMPBase=3 -newoption LMRFullDepth=3 -newoption LMRMoveThreshold=2 -newoption NullMoveMinDepth=2 -newoption NullMoveR=4 -newoption ReverseFutilityMargin=63 -newoption SingularDepth=7 -newoption SingularMargin=57 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -baseoption AspInit=17 -baseoption AspMult=163 -baseoption DeltaMargin=202 -baseoption ExtensionBudget=29 -baseoption FutilityMargin=104 -baseoption FutilityMaxDepth=8 -baseoption LMPBase=3 -baseoption LMRFullDepth=3 -baseoption LMRMoveThreshold=2 -baseoption NullMoveMinDepth=2 -baseoption NullMoveR=4 -baseoption ReverseFutilityMargin=63 -baseoption SingularDepth=7 -baseoption SingularMargin=57",
+    "  81604   81601   81604       23:22 62.1 21.0 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/session84-training174/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 174 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only"
+  ],
+  "trainer_pid": 81604,
+  "provenance_sprt_pid": 81543,
+  "training_phase": "training",
+  "no_push": true,
+  "goal_met": false
+}

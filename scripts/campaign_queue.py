@@ -13,6 +13,7 @@ import math
 import os
 from pathlib import Path
 import re
+import select
 import subprocess
 
 
@@ -175,11 +176,29 @@ def run(job, registry_path, status_path):
     return result
 
 
+def wait_predecessor(dependency):
+    """Wait once on the lane owner, then admit only its declared clean verdict."""
+    try:
+        fd = os.pidfd_open(dependency['pid'])
+    except ProcessLookupError:
+        pass
+    else:
+        try:
+            select.select([fd], [], [])
+        finally:
+            os.close(fd)
+    result = json.loads(Path(dependency['result']).read_text())
+    if result['verdict'] not in dependency['verdicts'] or result['faults']:
+        raise RuntimeError(f"predecessor needs review: {result['verdict']}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('queue', type=Path)
     args = parser.parse_args()
     queue = json.loads(args.queue.read_text())
+    if queue.get('after'):
+        wait_predecessor(queue['after'])
     for job in queue['jobs']:
         result = run(job, Path(queue['controls']), Path(queue['status']))
         if result['verdict'] in ('UNSCORED', 'AA_FAIL', 'REGRESSION'):

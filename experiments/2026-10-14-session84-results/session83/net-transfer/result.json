@@ -1,0 +1,45 @@
+{
+  "games": 400,
+  "pairs": 200,
+  "orphan_games": 0,
+  "wdl": [
+    72,
+    268,
+    60
+  ],
+  "penta": [
+    0,
+    36,
+    117,
+    46,
+    1
+  ],
+  "printed_elo_ci95": [
+    10.4,
+    -5.0,
+    26.0
+  ],
+  "exact_elo_ci95": [
+    10.426196175570942,
+    -5.298843023899226,
+    26.19408426300847
+  ],
+  "final_pllr": 0.62,
+  "exact_pllr": 0.615696999893493,
+  "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 261,
+    "checkmate": 132,
+    "max-moves": 7
+  },
+  "faults": [],
+  "verdict": "TRANSFER_PASS",
+  "name": "s83-net-transfer",
+  "finished_utc": "2026-10-14T15:27:47.824906+00:00",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session83/net-transfer/manifest.json",
+  "automatic_adoption": false
+}
