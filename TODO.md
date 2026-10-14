@@ -1,4 +1,4 @@
-# NGN live state — 2026-10-13: 3600 campaign
+# NGN live state — 2026-10-14: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
 Playing **f203e2f/a4d90b41/compiled final14**; no3600 claim or new adoption.
@@ -15,29 +15,33 @@ Consensus/root ties keep their original shelves. **Admission UNSCORED**:
 its120+1 A/A failed18:40,−34.9[−66,−4],zero flags; no candidate games/no retry.
 The previously advertised03:00–05:00 candidate terminal will not occur.
 
-Session80 launched **115-epoch T80+T76+fullT74 training**,fresh seed/same
-KB8/H512 recipe,final epoch only. T75 mapped bytes are absent on rig; its
-forge descriptor is not consumed. Exact source presentations are logged by
-trainer7ef9821. Loader12,14/nice19/4GiB,final reexport/20 parity on13,15.
-Known final-fixture metadata omission has a native after-controller finalizer:
-320 synthetic cases PASS; preserve original metadata failure, then20 final
-cases. No retraining or actual-evaluation retry; readiness only fromresult.json.
+Session81 harvests original width400: **−118.14[−141.33,−95.92]**,zero
+faults. Both wrappers forcedGOMAXPROCS1;main disables UCI scheduler changes
+when that variable is set. Four workers shared oneexecution slot. Preserve
+MEASURED/rawresult;this is notfour-core uplift. Required5s/20s profile
+completes12cells: T4/P1 occupancy1.0008,T4/P4 3.9424,T1/P1 1.0035;
+mutex/GC small here,no speed/Elo adoption. Proposed true-width freshA/A40/
+400 and wrappers are ready,**pending user scheduler-rule clarification**.
 
-PGN/calibration harness85cf984 and [queue runner](scripts/campaign_queue.py)
-pass focused/race/accounting checks. Native-LLR calibration:true0 H1=3.46%,
-true+5 H1=67.62% at cap8000,5000 trials/cell. Detached queue: fresh new-harness
-Threads4/Hash256/c1 A/A40,then fixed400 Threads4 versus1 on five distinct
-physical cores inside0–11. This is a width measurement, not a source candidate.
-Own new-harness A/A PASS21:26:32; width400 live23548,expected00:55–01:30
-Oct14. It conditionally chains Rodent's own width,singular correctness; low
-width holds for profile. GPU has3 durable epochs/exposure sums PASS at21:48,
-estimated final115/parity06:00–08:00. Next session not before01:15 Oct14.
-Then actual-package provenance certificate and search SPRTs.
+Detached **ngn-s81-games**31337/31571 runs fresh new-harnessT1/Hash64/c6
+A/A40 PASS04:01:50,+8.69[−57.66,+75.69],zero faults;singular fixed400
+correctness non-regression now31697 onf203e2f.
+Expected04:40–05:05. Exact session80proof/fullchecks reused;keep unless
+upper95<0/zero faults,manualintegration. No candidate games from the stopped
+original width queue. [Session81](experiments/2026-10-14-session81.md).
 
-Singular,qsearch,continuation,pawn quiet and original negative-TT ProbCut
-are isolated unadopted patches onf203e2f; all full checks PASS on13,15. Prepared engine
-changes remain uncommitted; [session80](experiments/2026-10-13-session80.md)
-and durable patches preserve them. Rebase before games if accepted source changes.
+115-epochT80+T76+fullT74 training continues17566/17569;epoch86 at04:03,
+final115/reexport/20parity expected06:15–06:45. T75 absent locally and omitted
+explicitly. Loader12,14;native finalizer28820 handles only the known fixture
+metadata guard,original failure preserved. Ready onlyfromresult.json,
+then fixed1000 net gate onimmediateacceptedsource vs a4d90b41.
+
+PGN/calibration harness85cf984 and queue runner pass full/race/accounting
+checks. Native-LLR calibration done once:true0 H1=3.46%,true+5=67.62% at8000.
+Prepared singular,qsearch,continuation,pawnquiet,ProbCut patches all passfull
+checks on13,15;remainisolated/unadopted. Rebase relevantpatches afteraccepted
+sourcechange. Noextra speculativebundle;actual-packageprovenance thenpowered
+searchSPRTs stayqueued. Nextsession notbefore04:50 October14.
 
 All compute rig; forge unavailable. Keep hopper/keepalive untouched and C:
 free≥25GiB. GitHub suspended: no pull/fetch/push, gh writes or publication;

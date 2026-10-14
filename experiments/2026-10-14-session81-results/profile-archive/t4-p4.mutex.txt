@@ -1,0 +1,25 @@
+File: engine.test
+Build ID: b48664428a7aefc347e8d354cf7ddffd03195001
+Type: delay
+Time: 2026-10-14 03:56:44 EDT
+Showing nodes accounting for 559.46ms, 99.95% of 559.75ms total
+Dropped 41 nodes (cum <= 2.80ms)
+      flat  flat%   sum%        cum   cum%
+  559.46ms 99.95% 99.95%   559.46ms 99.95%  sync.(*Mutex).Unlock
+         0     0% 99.95%   355.26ms 63.47%  github.com/ehrlich-b/ngn/engine.(*Cache).Get
+         0     0% 99.95%   204.19ms 36.48%  github.com/ehrlich-b/ngn/engine.(*Cache).Set
+         0     0% 99.95%   174.43ms 31.16%  github.com/ehrlich-b/ngn/engine.(*Cache).generation
+         0     0% 99.95%   146.44ms 26.16%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).SearchIterativeDeepening (inline)
+         0     0% 99.95%   146.44ms 26.16%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).SearchIterativeDeepeningWithCallback
+         0     0% 99.95%   146.44ms 26.16%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).searchIterativeDeepeningLocked
+         0     0% 99.95%   146.44ms 26.16%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).searchLazySMPLocked
+         0     0% 99.95%   413.04ms 73.79%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).searchLazySMPLocked.func2
+         0     0% 99.95%   146.42ms 26.16%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).searchLazySMPLocked.func4
+         0     0% 99.95%   413.04ms 73.79%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).searchLazySMPLocked.gowrap1
+         0     0% 99.95%   146.44ms 26.16%  github.com/ehrlich-b/ngn/engine.TestS81SMPProfile
+         0     0% 99.95%   559.46ms 99.95%  github.com/ehrlich-b/ngn/engine.alphaBetaPV
+         0     0% 99.95%   155.88ms 27.85%  github.com/ehrlich-b/ngn/engine.quiescence (inline)
+         0     0% 99.95%   155.88ms 27.85%  github.com/ehrlich-b/ngn/engine.quiescenceWithDepth
+         0     0% 99.95%   559.46ms 99.95%  github.com/ehrlich-b/ngn/engine.searchIterativeDeepeningWorkerUnsafe
+         0     0% 99.95%   146.42ms 26.16%  testing.(*T).Run.gowrap1
+         0     0% 99.95%   146.44ms 26.16%  testing.tRunner

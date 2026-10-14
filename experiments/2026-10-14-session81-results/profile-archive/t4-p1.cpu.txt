@@ -1,0 +1,29 @@
+File: engine.test
+Build ID: b48664428a7aefc347e8d354cf7ddffd03195001
+Type: cpu
+Time: 2026-10-14 03:55:21 EDT
+Duration: 20.15s, Total samples = 19.92s (98.88%)
+Showing nodes accounting for 13.69s, 68.72% of 19.92s total
+Dropped 112 nodes (cum <= 0.10s)
+Showing top 20 nodes out of 84
+      flat  flat%   sum%        cum   cum%
+     2.86s 14.36% 14.36%      3.11s 15.61%  github.com/ehrlich-b/ngn/engine.(*Cache).Get
+     2.74s 13.76% 28.11%      2.75s 13.81%  github.com/ehrlich-b/ngn/engine.selectNextMove (inline)
+     1.86s  9.34% 37.45%     19.90s 99.90%  github.com/ehrlich-b/ngn/engine.alphaBetaPV
+     1.04s  5.22% 42.67%      1.20s  6.02%  github.com/ehrlich-b/ngn/engine.(*workerHistory).scoreMovesIntoBuffer
+     0.52s  2.61% 45.28%      0.52s  2.61%  github.com/ehrlich-b/ngn/engine.ngnn16OutputSmall
+     0.49s  2.46% 47.74%      0.49s  2.46%  github.com/ehrlich-b/ngn/engine.ngnn16MovePair
+     0.46s  2.31% 50.05%      0.72s  3.61%  github.com/ehrlich-b/ngn/engine.getAttackersAfterMove
+     0.43s  2.16% 52.21%      0.43s  2.16%  github.com/ehrlich-b/ngn/engine.ngnn16CapturePair
+     0.37s  1.86% 54.07%      0.97s  4.87%  github.com/ehrlich-b/ngn/engine.(*NGNN1Network).ngnn3MoveDelta
+     0.37s  1.86% 55.92%      0.37s  1.86%  github.com/ehrlich-b/ngn/engine.getBishopAttacksBB (inline)
+     0.36s  1.81% 57.73%      0.48s  2.41%  github.com/ehrlich-b/ngn/engine.advanceMoveKey
+     0.34s  1.71% 59.44%      1.82s  9.14%  github.com/ehrlich-b/ngn/engine.staticExchangeEvaluation
+     0.29s  1.46% 60.89%      3.75s 18.83%  github.com/ehrlich-b/ngn/engine.quiescenceWithDepth
+     0.27s  1.36% 62.25%      0.27s  1.36%  github.com/ehrlich-b/ngn/engine.getRookAttacksBB (inline)
+     0.23s  1.15% 63.40%      0.23s  1.15%  github.com/ehrlich-b/ngn/engine.(*workerHistory).nonPawnCorrectionValue (inline)
+     0.23s  1.15% 64.56%      0.25s  1.26%  github.com/ehrlich-b/ngn/engine.findLeastValuableAttacker (inline)
+     0.23s  1.15% 65.71%      0.43s  2.16%  github.com/ehrlich-b/ngn/engine.isInCheck
+     0.21s  1.05% 66.77%      0.98s  4.92%  github.com/ehrlich-b/ngn/engine.materializeCaptureScores
+     0.20s  1.00% 67.77%      1.18s  5.92%  github.com/ehrlich-b/ngn/engine.(*workerEvaluator).PrepareMove
+     0.19s  0.95% 68.72%      0.27s  1.36%  github.com/ehrlich-b/ngn/engine.(*Bitboard).Move

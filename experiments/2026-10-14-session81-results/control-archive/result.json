@@ -1,0 +1,44 @@
+{
+  "games": 40,
+  "pairs": 20,
+  "orphan_games": 0,
+  "wdl": [
+    6,
+    29,
+    5
+  ],
+  "penta": [
+    1,
+    3,
+    11,
+    4,
+    1
+  ],
+  "printed_elo_ci95": [
+    8.7,
+    -58.0,
+    76.0
+  ],
+  "exact_elo_ci95": [
+    8.687699877294484,
+    -57.66279815854952,
+    75.68582825678835
+  ],
+  "final_pllr": 0.03,
+  "exact_pllr": 0.02742107653273226,
+  "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 29,
+    "checkmate": 11
+  },
+  "faults": [],
+  "verdict": "AA_PASS",
+  "name": "s81-aa-single",
+  "finished_utc": "2026-10-14T08:01:50.336643+00:00",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session81/aa-single/manifest.json",
+  "automatic_adoption": false
+}

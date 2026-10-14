@@ -1,0 +1,2 @@
+#!/bin/bash
+exec taskset -c 8 env GOMAXPROCS=1 /home/ehrli/ngn-data/night-20261007/session79-admission-see/baseline-ngn "$@"

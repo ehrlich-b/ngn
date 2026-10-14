@@ -1,0 +1,50 @@
+package engine
+
+import (
+ "encoding/json"
+ "fmt"
+ "os"
+ "path/filepath"
+ "runtime"
+ "runtime/pprof"
+ "strconv"
+ "syscall"
+ "testing"
+ "time"
+)
+
+func TestS81SMPProfile(t *testing.T) {
+ dir:=os.Getenv("NGN_S81_PROFILE"); if dir=="" {t.Skip("rig-only diagnostic")}
+ width,err:=strconv.Atoi(os.Getenv("NGN_S81_THREADS"));if err!=nil {t.Fatal(err)}
+ scheduler:=runtime.GOMAXPROCS(0)
+ net,err:=LoadNGNN1(os.Getenv("NGN_CAMPAIGN_NET"));if err!=nil {t.Fatal(err)}
+ fens:=[]string{
+  "r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10",
+  "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
+ }
+ for i,fen:=range fens {for _,seconds:=range []int{5,20} {
+  e,err:=NewSearchEngineWithHash(256);if err!=nil {t.Fatal(err)}
+  if err=e.SelectNGNN1Evaluator(net);err!=nil {t.Fatal(err)}
+  if err=e.ConfigureThreads(width);err!=nil {t.Fatal(err)}
+  p,err:=ParseFEN(fen);if err!=nil {t.Fatal(err)}
+  runtime.GC()
+  prefix:=filepath.Join(dir,fmt.Sprintf("t%d-p%d-f%d-s%d",width,scheduler,i,seconds))
+  cpu,err:=os.Create(prefix+".cpu.pprof");if err!=nil {t.Fatal(err)}
+  runtime.SetMutexProfileFraction(1);runtime.SetBlockProfileRate(1000000)
+  if err=pprof.StartCPUProfile(cpu);err!=nil {t.Fatal(err)}
+  var before,after runtime.MemStats;runtime.ReadMemStats(&before)
+  var r0,r1 syscall.Rusage;syscall.Getrusage(syscall.RUSAGE_SELF,&r0)
+  tm:=NewTimeManager();tm.SetMoveOverhead(0)
+  start:=time.Now();tm.SetTimeControlAt(SearchParams{MoveTime:seconds*1000},p.Turn()==White,start)
+  info:=e.SearchIterativeDeepening(p,MaximumDepth,tm)
+  elapsed:=time.Since(start)
+  syscall.Getrusage(syscall.RUSAGE_SELF,&r1);runtime.ReadMemStats(&after)
+  pprof.StopCPUProfile();cpu.Close()
+  for _,kind:=range []string{"mutex","block"} {f,err:=os.Create(prefix+"."+kind+".pprof");if err!=nil {t.Fatal(err)};if err=pprof.Lookup(kind).WriteTo(f,0);err!=nil {t.Fatal(err)};f.Close()}
+  runtime.SetMutexProfileFraction(0);runtime.SetBlockProfileRate(0)
+  if info.EffectiveThreads!=width || !IsLegalMove(p,info.BestMove) {t.Fatal("width/legality",info.EffectiveThreads,info.BestMove)}
+  cpuNS:=r1.Utime.Nano()+r1.Stime.Nano()-r0.Utime.Nano()-r0.Stime.Nano()
+  row:=map[string]any{"threads":width,"gomaxprocs":scheduler,"fen":i,"budget_seconds":seconds,"seconds":elapsed.Seconds(),"cpu_seconds":float64(cpuNS)/1e9,"occupied_cpus":float64(cpuNS)/float64(elapsed.Nanoseconds()),"nodes":info.Nodes,"qnodes":info.QNodes,"depth":info.Depth,"bestmove":info.BestMove.ToString(),"score":info.BestScore,"mallocs":after.Mallocs-before.Mallocs,"allocated_bytes":after.TotalAlloc-before.TotalAlloc,"gc_cycles":after.NumGC-before.NumGC,"gc_pause_ns":after.PauseTotalNs-before.PauseTotalNs,"profile_prefix":prefix}
+  b,err:=json.Marshal(row);if err!=nil {t.Fatal(err)};fmt.Println("S81PROFILE "+string(b))
+ }}
+}

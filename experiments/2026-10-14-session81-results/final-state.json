@@ -1,0 +1,79 @@
+{
+  "utc": "2026-10-14T08:03:52.130205+00:00",
+  "training_epochs": 86,
+  "last_training_epoch": {
+    "epoch": 86,
+    "step": 1343750,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.0091283349609375,
+    "lr": 0.0002339826428677406,
+    "seconds": 281.43997318499896,
+    "positions_per_second": 909607.8183312059,
+    "steady_positions_per_second": 910192.7956959447,
+    "source_presentations_cumulative": {
+      "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf": 3888822208,
+      "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf": 12833326416,
+      "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf": 5293851376
+    },
+    "validation_loss": 0.00914712789381993,
+    "validation_loss_lambda_075": 0.00914712789381993,
+    "validation_loss_result": 0.08687026898343467
+  },
+  "services": "MainPID=31337\nId=ngn-s81-games.service\nActiveState=active\nSubState=running\n\nMainPID=17566\nId=ngn-s80-training.service\nActiveState=active\nSubState=running\n\nMainPID=28820\nId=ngn-s80-training-finalize.service\nActiveState=active\nSubState=running\n",
+  "gpu": "58 %, 4232 MiB, 16303 MiB",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        6068        1090          88        8682        9445\nSwap:           4096           0        4096\n",
+  "processes": "   1188     245  1-06:46:30  0.3 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n  17569   17568    07:06:17  112 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/session80-training/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 115 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only\n  31335   31333       07:16  0.0 systemd-run --user --wait --unit=ngn-s81-games -p AllowedCPUs=0-11 -p MemoryMax=3G -p MemorySwapMax=0 nice -n 19 bash /home/ehrli/ngn-data/night-20261007/session81/queue.sh\n  31337     245       07:16  0.0 bash /home/ehrli/ngn-data/night-20261007/session81/queue.sh\n  31571   31337       05:49  0.0 python3 /home/ehrli/ngn-data/night-20261007/session81/campaign_queue.py /home/ehrli/ngn-data/night-20261007/session81/queue.json\n  31697   31571       02:01  2.8 /home/ehrli/ngn-data/night-20261007/session80/sprt -new /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -base /home/ehrli/ngn-data/night-20261007/session79-admission-see/baseline-ngn -tc 10+0.1 -concurrency 6 -mingames 1000000 -maxgames 400 -elo0 0 -elo1 5 -alpha .05 -beta .05 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -lowpower=false -pgn /home/ehrli/ngn-data/night-20261007/session81/singular-nonreg/games.pgn -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session79-admission-see/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session79-admission-see/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false",
+  "aa-single": {
+    "games": 40,
+    "pairs": 20,
+    "orphan_games": 0,
+    "wdl": [
+      6,
+      29,
+      5
+    ],
+    "penta": [
+      1,
+      3,
+      11,
+      4,
+      1
+    ],
+    "printed_elo_ci95": [
+      8.7,
+      -58.0,
+      76.0
+    ],
+    "exact_elo_ci95": [
+      8.687699877294484,
+      -57.66279815854952,
+      75.68582825678835
+    ],
+    "final_pllr": 0.03,
+    "exact_pllr": 0.02742107653273226,
+    "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 29,
+      "checkmate": 11
+    },
+    "faults": [],
+    "verdict": "AA_PASS",
+    "name": "s81-aa-single",
+    "finished_utc": "2026-10-14T08:01:50.336643+00:00",
+    "manifest": "/home/ehrli/ngn-data/night-20261007/session81/aa-single/manifest.json",
+    "automatic_adoption": false,
+    "manifest_started_utc": "2026-10-14T07:58:02.279856+00:00"
+  },
+  "singular-nonreg": {
+    "stage": "running",
+    "match_pid": "31697",
+    "manifest_started_utc": "2026-10-14T08:01:50.350915+00:00"
+  },
+  "host_c_free_bytes": 67224911872,
+  "host_c_free_gib": 62.60807800292969
+}

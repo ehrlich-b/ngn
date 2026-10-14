@@ -1,0 +1,19 @@
+{
+  "base": "f203e2f/a4d90b41/final14",
+  "class_": "diagnostic",
+  "cells": [
+    "Threads4/GOMAXPROCS1",
+    "Threads4/GOMAXPROCS4",
+    "Threads1/GOMAXPROCS1"
+  ],
+  "budgets_seconds": [
+    5,
+    20
+  ],
+  "positions": "two fixed owned speedprobe FENs",
+  "hash_mib": 256,
+  "search_cpus": "0,2,4,6",
+  "build_cpus": "13,15",
+  "purpose": "attribute low-width measurement; CPU/mutex/block/GC/Cache.Get; no Elo verdict",
+  "no_engine_change": true
+}

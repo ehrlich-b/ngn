@@ -1,0 +1,26 @@
+File: engine.test
+Build ID: b48664428a7aefc347e8d354cf7ddffd03195001
+Type: delay
+Time: 2026-10-14 03:56:44 EDT
+Showing nodes accounting for 816.03ms, 100% of 816.03ms total
+      flat  flat%   sum%        cum   cum%
+  503.06ms 61.65% 61.65%   503.06ms 61.65%  sync.(*Mutex).Lock (inline)
+  312.97ms 38.35%   100%   312.97ms 38.35%  runtime.chanrecv1
+         0     0%   100%   329.06ms 40.32%  github.com/ehrlich-b/ngn/engine.(*Cache).Get
+         0     0%   100%      174ms 21.32%  github.com/ehrlich-b/ngn/engine.(*Cache).Set
+         0     0%   100%      165ms 20.22%  github.com/ehrlich-b/ngn/engine.(*Cache).generation
+         0     0%   100%      131ms 16.05%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).SearchIterativeDeepening (inline)
+         0     0%   100%      131ms 16.05%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).SearchIterativeDeepeningWithCallback
+         0     0%   100%      131ms 16.05%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).searchIterativeDeepeningLocked
+         0     0%   100%      131ms 16.05%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).searchLazySMPLocked
+         0     0%   100%   372.06ms 45.59%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).searchLazySMPLocked.func2
+         0     0%   100%      131ms 16.05%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).searchLazySMPLocked.func4
+         0     0%   100%   372.06ms 45.59%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).searchLazySMPLocked.gowrap1
+         0     0%   100%   443.97ms 54.41%  github.com/ehrlich-b/ngn/engine.TestS81SMPProfile
+         0     0%   100%   503.06ms 61.65%  github.com/ehrlich-b/ngn/engine.alphaBetaPV
+         0     0%   100%      145ms 17.77%  github.com/ehrlich-b/ngn/engine.quiescence (inline)
+         0     0%   100%      145ms 17.77%  github.com/ehrlich-b/ngn/engine.quiescenceWithDepth
+         0     0%   100%   503.06ms 61.65%  github.com/ehrlich-b/ngn/engine.searchIterativeDeepeningWorkerUnsafe
+         0     0%   100%   312.97ms 38.35%  runtime/pprof.StopCPUProfile
+         0     0%   100%   443.97ms 54.41%  testing.(*T).Run.gowrap1
+         0     0%   100%   443.97ms 54.41%  testing.tRunner
