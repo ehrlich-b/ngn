@@ -44,31 +44,33 @@ type parameterRecipe struct {
 	AGain   float64 `json:"a_gain"`
 }
 
-// Both executables are bound: the engine contains the net and default options,
-// and the tuner contains the game harness, registry, update rule and RNG library.
+// Bind both executables and ordered fixed UCI options. External network bytes
+// are also pinned by the campaign manifest before play. The tuner contains the
+// game harness, registry, update rule and RNG library.
 // Opening order matters; hash the effective list after parsing/filtering.
 type campaignRecipe struct {
-	EngineSHA   string            `json:"engine_sha256"`
-	TunerSHA    string            `json:"tuner_sha256"`
-	OpeningsSHA string            `json:"openings_sha256"`
-	Openings    int               `json:"openings"`
-	GoVersion   string            `json:"go_version"`
-	GOOS        string            `json:"goos"`
-	GOARCH      string            `json:"goarch"`
-	GOMAXPROCS  int               `json:"gomaxprocs"`
-	RNG         string            `json:"rng"`
-	Seed        int64             `json:"seed"`
-	Iterations  int               `json:"iterations"`
-	Pairs       int               `json:"pairs"`
-	Single      bool              `json:"single"`
-	TimeMs      int               `json:"time_ms"`
-	IncMs       int               `json:"inc_ms"`
-	MaxMoves    int               `json:"max_moves"`
-	REnd        float64           `json:"r_end"`
-	AFrac       float64           `json:"a_frac"`
-	Report      int               `json:"report"`
-	LowPower    bool              `json:"low_power"`
-	Params      []parameterRecipe `json:"params"`
+	EngineSHA     string            `json:"engine_sha256"`
+	EngineOptions []string          `json:"engine_options,omitempty"`
+	TunerSHA      string            `json:"tuner_sha256"`
+	OpeningsSHA   string            `json:"openings_sha256"`
+	Openings      int               `json:"openings"`
+	GoVersion     string            `json:"go_version"`
+	GOOS          string            `json:"goos"`
+	GOARCH        string            `json:"goarch"`
+	GOMAXPROCS    int               `json:"gomaxprocs"`
+	RNG           string            `json:"rng"`
+	Seed          int64             `json:"seed"`
+	Iterations    int               `json:"iterations"`
+	Pairs         int               `json:"pairs"`
+	Single        bool              `json:"single"`
+	TimeMs        int               `json:"time_ms"`
+	IncMs         int               `json:"inc_ms"`
+	MaxMoves      int               `json:"max_moves"`
+	REnd          float64           `json:"r_end"`
+	AFrac         float64           `json:"a_frac"`
+	Report        int               `json:"report"`
+	LowPower      bool              `json:"low_power"`
+	Params        []parameterRecipe `json:"params"`
 }
 
 func fileSHA(path string) (string, error) {
@@ -86,12 +88,13 @@ func fileSHA(path string) (string, error) {
 
 func makeRecipe(enginePath string, openings [][]string, params []*pvar,
 	iters, pairs int, single bool, timeMs, incMs int, rEnd, aFrac float64,
-	report int, seed int64, lowPower bool) (campaignRecipe, error) {
+	report int, seed int64, lowPower bool, engineOptions ...string) (campaignRecipe, error) {
 	r := campaignRecipe{Openings: len(openings), GoVersion: runtime.Version(),
 		GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, GOMAXPROCS: runtime.GOMAXPROCS(0),
 		RNG: "math/rand.NewSource/Int63-count-v1", Seed: seed, Iterations: iters,
 		Pairs: pairs, Single: single, TimeMs: timeMs, IncMs: incMs, MaxMoves: 200,
 		REnd: rEnd, AFrac: aFrac, Report: report, LowPower: lowPower}
+	r.EngineOptions = append([]string(nil), engineOptions...)
 	var err error
 	if r.EngineSHA, err = fileSHA(enginePath); err != nil {
 		return r, fmt.Errorf("hash engine: %w", err)

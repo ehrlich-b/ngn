@@ -330,4 +330,13 @@ func TestRecipeBindsEffectiveOpeningOrderAndEngine(t *testing.T) {
 	if a.EngineSHA == c.EngineSHA || a.OpeningsSHA != c.OpeningsSHA {
 		t.Fatal("engine bytes not bound independently")
 	}
+	options := []string{"setoption name EvalFile value new.nnue", "setoption name Threads value 1"}
+	d, err := makeRecipe(enginePath, [][]string{{"e2e4"}}, params, 100, 6, false, 10000, 100, .05, .1, 25, 1, false, options...)
+	if err != nil || !reflect.DeepEqual(d.EngineOptions, options) {
+		t.Fatalf("fixed options missing from recipe: %v %v", d.EngineOptions, err)
+	}
+	options[0] = "changed"
+	if d.EngineOptions[0] == "changed" {
+		t.Fatal("recipe aliases mutable option input")
+	}
 }

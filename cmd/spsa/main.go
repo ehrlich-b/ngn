@@ -62,6 +62,8 @@ func main() {
 }
 
 func run() error {
+	var engineOptions optionFlags
+	flag.Var(&engineOptions, "engineoption", "UCI NAME=VALUE on both engines before readiness (repeatable, ordered)")
 	enginePath := flag.String("engine", "./build/ngn", "engine binary to tune (one process plays theta+, one plays theta-)")
 	tc := flag.String("tc", "10+0.1", "real clock SECONDS[+INC] (e.g. 10+0.1); search params are node-spending so real clock is the correct ruler")
 	iters := flag.Int("iters", 12000, "SPSA iterations (each = one color-balanced game pair unless -single)")
@@ -123,7 +125,7 @@ func run() error {
 		return fmt.Errorf("loading openings: %v (got %d)", err, len(openings))
 	}
 	recipe, err := makeRecipe(*enginePath, openings, params, *iters, K, *single,
-		tcTimeMs, tcIncMs, *rEnd, *aFrac, *report, *seed, *lowPower)
+		tcTimeMs, tcIncMs, *rEnd, *aFrac, *report, *seed, *lowPower, engineOptions...)
 	if err != nil {
 		return err
 	}
@@ -158,8 +160,8 @@ func run() error {
 		}
 	}()
 	for j := range workers {
-		workers[j].plus = uci.Start(*enginePath, fmt.Sprintf("plus%d", j), *lowPower)
-		workers[j].minus = uci.Start(*enginePath, fmt.Sprintf("minus%d", j), *lowPower)
+		workers[j].plus = uci.StartWithOptions(*enginePath, fmt.Sprintf("plus%d", j), *lowPower, engineOptions)
+		workers[j].minus = uci.StartWithOptions(*enginePath, fmt.Sprintf("minus%d", j), *lowPower, engineOptions)
 		if workers[j].plus == nil || workers[j].minus == nil {
 			return fmt.Errorf("engine failed UCI handshake after retries (worker %d)", j)
 		}
@@ -192,17 +194,28 @@ func run() error {
 				setParams(w.minus, params, minusV[j])
 				op := openings[opIdx[j]]
 				g1 := uci.PlayGame(w.plus, w.minus, op, true, cfg) // theta+ as White
-				s := points(g1.Res)
+				s, err := validGamePoints(g1)
+				if err != nil {
+					log.Printf("worker %d: %v", j, err)
+					R[j] = math.NaN()
+					return
+				}
 				n, ff := 1, 0
 				if g1.Reason == "time-forfeit" {
 					ff++
 				}
 				if !*single {
 					g2 := uci.PlayGame(w.plus, w.minus, op, false, cfg) // theta+ as Black
+					second, err := validGamePoints(g2)
+					if err != nil {
+						log.Printf("worker %d: %v", j, err)
+						R[j] = math.NaN()
+						return
+					}
 					if g2.Reason == "time-forfeit" {
 						ff++
 					}
-					s += points(g2.Res)
+					s += second
 					n = 2
 				}
 				// R in [-1,1]: pair s in [0,2] -> s-1; single s in {0,.5,1} -> 2s-1.
@@ -281,6 +294,14 @@ func runCampaign(params []*pvar, startIter, iters int, A float64, rng *rand.Rand
 		}
 
 		R := playBatch(plusV, minusV, opIdx)
+		if len(R) != K {
+			return fmt.Errorf("iteration %d: incomplete game batch", k)
+		}
+		for j, score := range R {
+			if !finite(score) || score < -1 || score > 1 {
+				return fmt.Errorf("iteration %d worker %d: faulted game batch; theta and checkpoint unchanged", k, j)
+			}
+		}
 
 		// Averaged fishtest update: mean over the K perturbations' R*delta gradient
 		// estimates (variance ~1/K, expected direction unchanged). c is common to the
@@ -309,6 +330,15 @@ func runCampaign(params []*pvar, startIter, iters int, A float64, rng *rand.Rand
 		}
 	}
 	return nil
+}
+
+func validGamePoints(game uci.GameResult) (float64, error) {
+	switch game.Reason {
+	case "checkmate", "stalemate", "draw-rule", "max-moves", "insufficient-material":
+		return points(game.Res), nil
+	default:
+		return 0, fmt.Errorf("game fault: %s", game.Reason)
+	}
 }
 
 // runSelfTest drives the exact SPSA loop against a synthetic quadratic bowl with
