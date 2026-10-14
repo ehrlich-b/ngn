@@ -24,6 +24,8 @@ def epoch_batches(shards: Shards, batch: int, positions: int, seed: int):
     while seen < positions:
         for raw in shards.batches(batch, seed + cycle):
             take = min(len(raw), positions - seen)
+            if isinstance(shards, Archive):
+                shards.record_exposure(take)
             yield raw[:take]
             seen += take
             if seen == positions:
@@ -240,6 +242,9 @@ def main() -> None:
         if device.type == "cuda" and checkpoint["cuda_rng"]:
             torch.cuda.set_rng_state_all([state.cpu() for state in checkpoint["cuda_rng"]])
         first_epoch, step, history = checkpoint["epoch"], checkpoint["step"], checkpoint["history"]
+        if isinstance(shards, Archive) and history:
+            previous_exposure = history[-1].get("source_presentations_cumulative", {})
+            shards.exposure_counts = [previous_exposure.get(path, 0) for path in shards.source_paths]
     config = vars(args).copy()
     if king_map is not None:
         config["king_map"] = list(king_map)
@@ -306,6 +311,8 @@ def main() -> None:
                "positions_per_second": seen / (finished - started),
                "steady_positions_per_second": ((seen - warmup_positions) / (finished - steady_started)
                                                if steady_started and seen > warmup_positions else None)}
+        if isinstance(shards, Archive):
+            row["source_presentations_cumulative"] = dict(zip(shards.source_paths, shards.exposure_counts))
         if validation:
             row.update(validation_metrics(model, validation, args.batch, device, args.wdl, args.k))
         selection_key = "validation_loss" if validation else "loss"

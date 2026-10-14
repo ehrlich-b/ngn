@@ -144,6 +144,9 @@ class Archive:
                 self.heldout.append(selected)
                 holdout_count += len(selected)
         self.count = self.raw_count - holdout_count
+        self.source_paths = [source["path"] for source in sources if source["records"]]
+        self.exposure_counts = [0] * len(self.source_paths)
+        self.batch_source_spans = []
         self.split = "train"
         self.split_receipt = {"hash": HASH_VERSION, "seed": seed, "modulus": holdout_modulus,
                               "holdout_remainder": 0, "block_records": block_records,
@@ -169,6 +172,7 @@ class Archive:
         rng = np.random.default_rng(seed)
         order = rng.permutation(len(self.blocks)) if shuffle else range(len(self.blocks))
         pending = np.empty(0, dtype=RECORD_DTYPE)
+        pending_spans = []
         for block_id in order:
             shard, start, end = self.blocks[block_id]
             selected = self.heldout[block_id]
@@ -198,14 +202,36 @@ class Archive:
             if len(pending):
                 take = min(batch_size - len(pending), len(records))
                 pending = np.concatenate((pending, records[:take]))
+                pending_spans.append((shard, take))
                 records = records[take:]
                 if len(pending) == batch_size:
+                    self.batch_source_spans = pending_spans
                     yield pending.view(np.uint8).reshape(-1, 32)
                     pending = np.empty(0, dtype=RECORD_DTYPE)
+                    pending_spans = []
             full = len(records) // batch_size * batch_size
             for offset in range(0, full, batch_size):
+                self.batch_source_spans = [(shard, batch_size)]
                 yield records[offset:offset + batch_size].view(np.uint8).reshape(-1, 32)
             if full < len(records):
                 pending = np.concatenate((pending, records[full:]))
+                pending_spans.append((shard, len(records) - full))
         if len(pending):
+            self.batch_source_spans = pending_spans
             yield pending.view(np.uint8).reshape(-1, 32)
+
+    def record_exposure(self, take):
+        """Count only rows admitted to training, including a truncated final batch.
+
+        Called by epoch_batches in the same loader thread as batches; holdout
+        reads and prefetched-but-unused validation rows never enter this count.
+        Spans describe existing batch order without changing sampling or RNG.
+        """
+        for source, count in self.batch_source_spans:
+            admitted = min(take, count)
+            self.exposure_counts[source] += admitted
+            take -= admitted
+            if not take:
+                break
+        if take:
+            raise ValueError("Exposure spans do not cover the training batch")
