@@ -3,48 +3,49 @@
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
 Playing **9ec5d31/81215229/compiled final14**; no3600 claim.
 
-October13 21:00 Bryan-approved plan governs. Search/time: logistic[0,5],
-min1000/cap8000,positive caps only through provisional batch. Nets/SPSA:
-fixed1000/lower95>0. Correctness: proof plus400-game non-regression.
-Provenance: non-inferiority[−8,0]/60+0.6/min1000/cap4000. Reuse one passing
-A/A per machine/topology/TC/harness. No administrative gate kills; zero faults.
+October15 13:05 merged plan governs: provenance natural terminal, true width,
+Final174, warm24k SPSA, then search. Search/time logistic[0,5]/min1000/cap8000;
+nets/SPSA fixed1000/lower95>0; correctness400/non-regression; provenance
+[−8,0]/60+0.6/min1000/cap4000. Zero faults; no administrative gate kills.
+One A/A per topology/TC/harness,reused. Git local only; never pull/fetch/push.
 
-Singular correction accepted9ec5d31; all four search combinations pass.
-New net **81215229** accepted:original fixed1000 +18.083[+5.723,+30.489],
-232/588/180,zero faults. Transfer400/60+0.6 passes +10.426[−5.299,+26.194]
-under its point-positive rule. Playing **9ec5d31/81215229/compiled final14**;
-external EvalFile convention,no new absolute result or3600 claim.
+Accepted Final11581215229: original1000 +18.083[+5.723,+30.489],zero faults;
+transfer400/60+0.6 passes +10.426[−5.299,+26.194] by point-positive rule.
+No new absolute result. Singular correction9ec5d31 and search checks unchanged.
 
-Actual-package provenanceSPRT81543 under39843/39845 runs since11:27:47 October14;
-at05:18 October15 it has1981/4000 completed games and no terminal:
-[−8,0]/60+0.6/c6,min1000/cap4000,same selected net/final14 versus archived
-reference. Generic campaign queue waits natively for cleanCERTIFIED then
-runs qsearch[0,5]/min1000/cap8000 on the ready9ec5d31 patch/current net.
-Other certificate outcomes hold;no extra game job,cutoff,retry or pooling.
-Then continuation,pawnquiet,ProbCut;one behavior/immediate accepted base.
+At16:03 provenance81543 under39843/39845 has3170 completions,no terminal;
+cap roughly23:30 October15. H1 certifies,H0 diagnoses owned code,cap records
+debt; all clean outcomes release independent width/net/tune. Never restore
+third-party-derived code. Old qsearch waiter83550 disarmed before any game.
 
-Final174 is disk-paused after epoch92 (original19:08:22/exit1 preserved).
-C:23.33GiB at05:18 October15 remains below25GiB despite deleting32.5GiB of abandoned campaign
-sample buckets and trimming Linux;active VHD allocation did not shrink.
-Needs Bryan: free≥3GiB on host C:. Detached recovery86550 checks every300s,
-then resumes the same optimizer/RNG/epoch seeds/174-epoch schedule at≥25.5GiB.
-Continuation/final174 finalizer checks and actual checkpoint check PASS on rig13,15.
-82 epochs remain (~6–7h after space restoration/startup);final174 only/parity20,
-then ordinary net gate;no automatic games. Original data/recipe unchanged.
-Null-only mixture pair skipped;sample failure metadata retained,no retry.
+Final174 completed13:03 after06:08 disk recovery. Import-only finalizer repair
+passes identical reexport/20 parity; candidate **0b17ca29**,44.544B presentations.
+No retraining/adoption. Original fixed1000 gate is nominated after width.
+C:33.63GiB at16:03; old host-capacity request resolved.
 
-Tested407c604 adds SPSA external-net options and rejects game faults before
-updates. Rig short/race/build/vet,synthetic checks and live14-default/net
-probe pass. Warm restart24k nomination prepared only,behind four search
-SPRTs per ordered queue;no tuning games or auto adoption.
+Detached queue89720/controller89717 waits naturally on39843,then actual-launch
+five-second occupancy probe,fresh4-v-4 A/A40,fixed400 T4/Hash256-v-T1/Hash256,
+then Final1741000 on accepted9ec5d31/81215229/final14. Bryan approved scheduler
+GOMAXPROCS=Threads. A/A roles alternate on the same logical team0,2,4,6,
+ponderoff; measurement uses0,2,4,6 versus8. No SMT-sibling contention or trainer
+pause/completion dependency. Width≥+60 closesSMP,<+50 profiles,50–60 unresolved.
 
-Serialized width−118.14 remains MEASURED;true-width scheduler exception
-pending. Admission control failure remains UNSCORED/no candidate sample.
-All compute rig;forge closed;hopper/keepalive untouched;C: reserve BLOCKED.
-GitHub suspended:no pull/fetch/push,external writes/publication.Commit locally.
-Next session not before23:30 EDT October15,projected provenance cap.
-No admitted code work remains while the queue awaits verdicts.
-[Session86](experiments/2026-10-15-session86.md).
+GPU controlled family89579/trainer89581 runs volume control115,then moderated
+T74 cell115 only after cleanFinal174 terminal (≤2 ungated nets). Common tested
+c411391 sampler,fresh validation seed20261015,final115 only,source shares
+24.12/17.66/58.22 versus35/25/40. Loader12,14;peak-space admission27.5GiB;
+no data reconstruction. Between-cell contrast isolates weights; versus accepted
+Final115 sampler/holdout also change. No automatic games/adoption.
+
+WarmSPSA89726 native-waits behind89717; clean widthMEASURED plusFinal174SHELVED
+starts24k/final2000 on81215229,BEFORE search. NetKEEP holds for transfer/adoption/
+retarget. Tested407c604 tuner; endpoint needs fixed1000 vector gate. Then already
+checked qsearch,continuation,pawnquiet,ProbCut,one behavior/immediate accepted base.
+
+All compute rig;forge closed;hopper/keepalive untouched. No publication or
+remote writes. No further admitted code work while the queue awaits terminals.
+Next session not before23:30 EDT October15 unless a terminal/fault arrives.
+[Session87](experiments/2026-10-15-session87.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

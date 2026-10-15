@@ -30,8 +30,11 @@ def digest(path):
 
 def main():
     D.mkdir(exist_ok=True)
+    if sys.argv[1:] == ['--finalize-only']:
+        finalize()
+        return
     resume = sys.argv[1:] == ['--resume']
-    assert not sys.argv[1:] or resume, 'expected no arguments or --resume'
+    assert not sys.argv[1:] or resume, 'expected no arguments, --resume or --finalize-only'
     if resume:
         # Continue this run's own complete atomic checkpoint, with its original
         # optimizer/RNG states, epoch seeds and 174-epoch cosine horizon.
@@ -101,9 +104,19 @@ def main():
                 child.wait(timeout=30)
             raise
     assert rc == 0, f'trainer exited{rc}'
+    finalize()
+
+
+def finalize():
+    # systemd does not inherit the shell's PYTHONPATH. Use the immutable
+    # training source directly, including when finalizing an already complete run.
+    sys.path.insert(0, str(SOURCE))
+    manifest = json.loads((D / 'manifest.json').read_text())
+    epochs = int(manifest['argv'][manifest['argv'].index('--epochs') + 1])
+    assert epochs == 174
     out = D / 'trained'
     history = json.loads((out / 'history.json').read_text())
-    assert [row['epoch'] for row in history] == list(range(1, 175))
+    assert [row['epoch'] for row in history] == list(range(1, epochs + 1))
     assert all(row['positions'] == 256000000 and math.isfinite(row['validation_loss']) for row in history)
     exposure = history[-1]['source_presentations_cumulative']
     assert sum(exposure.values()) == 174 * 256000000

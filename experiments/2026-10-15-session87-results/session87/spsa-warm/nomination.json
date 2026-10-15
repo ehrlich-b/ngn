@@ -1,0 +1,107 @@
+{
+  "created_utc": "2026-10-15T19:57:55.153834+00:00",
+  "authority": "October15 13:05 root: width,Final174,then warm24kSPSA before search; clean provenance H0/cap does not hold independent lane",
+  "engine_source": "9ec5d31",
+  "tuner_source": "407c60455a8281116211561adc7788711a123272",
+  "predecessor_pid": 89717,
+  "predecessor": "session87 queue natural terminal with clean width MEASURED and clean Final174 SHELVED; KEEP holds for net transfer/adoption/retarget",
+  "net_sha256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22",
+  "artifacts": {
+    "/home/ehrli/ngn-data/night-20261007/session84/spsa": "59757b0e454f79a6ec871d4c92d0554d3059ab35318101d6c9b5ab06ea94f175",
+    "/home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn": "84edb1a0bdc4e38f1bbc86b0d66d11e1baa67cb84a457d5e2294ade2cab5084b",
+    "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22",
+    "/home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt": "f2fed55a1645dba85a9ef3e047eb5183b5b6342878c6dc8483e6768973470acc"
+  },
+  "argv": [
+    "taskset",
+    "-c",
+    "0-11",
+    "/home/ehrli/ngn-data/night-20261007/session84/spsa",
+    "-engine",
+    "/home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    "-tc",
+    "10+0.1",
+    "-iters",
+    "2000",
+    "-pairs",
+    "6",
+    "-openings",
+    "/home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt",
+    "-out",
+    "/home/ehrli/ngn-data/night-20261007/session87/spsa-warm/spsa.jsonl",
+    "-lowpower=false",
+    "-seed",
+    "2026101401",
+    "-rend",
+    ".05",
+    "-afrac",
+    ".1",
+    "-report",
+    "25",
+    "-engineoption",
+    "EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+    "-engineoption",
+    "UseNNUE=true",
+    "-engineoption",
+    "Hash=64",
+    "-engineoption",
+    "Threads=1",
+    "-engineoption",
+    "OwnBook=false"
+  ],
+  "engine_options": [
+    "EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+    "UseNNUE=true",
+    "Hash=64",
+    "Threads=1",
+    "OwnBook=false"
+  ],
+  "initial_vector": {
+    "AspInit": 17,
+    "AspMult": 163,
+    "DeltaMargin": 202,
+    "ExtensionBudget": 29,
+    "FutilityMargin": 104,
+    "FutilityMaxDepth": 8,
+    "LMPBase": 3,
+    "LMRFullDepth": 3,
+    "LMRMoveThreshold": 2,
+    "NullMoveMinDepth": 2,
+    "NullMoveR": 4,
+    "ReverseFutilityMargin": 63,
+    "SingularDepth": 7,
+    "SingularMargin": 57
+  },
+  "treatment": "new independent SPSA schedule from accepted rounded final14; no old campaign resume or midrun adoption",
+  "iterations": 2000,
+  "pairs_per_iteration": 6,
+  "games": 24000,
+  "tc": "10+0.1",
+  "max_plies": 200,
+  "machine": "rig/WSL/9800X3D",
+  "go": "1.25.5/linux/amd64/v3",
+  "cpus": "0-11",
+  "concurrent_games": 6,
+  "nice": 19,
+  "memory": "3GiB/swap0",
+  "gomaxprocs": 1,
+  "health": "first failed game batch stops before theta/checkpoint update; no automatic restart",
+  "decision": "24000 games and final2000 rounded vector only; after terminal prospectively nominate fixed1000/500 vs compiled final14 on identical accepted net, printed/exact lower95>0 and zero faults; tuning scores and movement have no Elo verdict",
+  "automatic_adoption": false,
+  "automatic_gate": false,
+  "schedule": "Armed native successor after width/Final174; before search; no games until clean unchanged-base shelf; KEEP/fault holds review",
+  "predecessor_results": [
+    {
+      "path": "/home/ehrli/ngn-data/night-20261007/session87/true-width/result.json",
+      "verdicts": [
+        "MEASURED"
+      ]
+    },
+    {
+      "path": "/home/ehrli/ngn-data/night-20261007/session87/net-final174/result.json",
+      "verdicts": [
+        "SHELVED"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "mode": "same-logical-team",
+  "trainer_paused": false,
+  "approval_required": false,
+  "rationale": "UCI alternates turns,ponderoff; both A/A roles0,2,4,6; no SMT-sibling contention; weekly review recommends same team per game"
+}

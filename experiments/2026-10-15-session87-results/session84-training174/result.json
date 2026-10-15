@@ -1,0 +1,14 @@
+{
+  "epochs": 174,
+  "total_positions": 44544000000,
+  "source_presentations": {
+    "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf": 7836266910,
+    "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf": 25961155741,
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf": 10746577349
+  },
+  "selection": "final174",
+  "reexport_identical": true,
+  "parity_cases": 20,
+  "net_sha256": "0b17ca294ec21d9cbbf681e8f87b1f6bff7b5cc58cd6e8d6a52ab9851ef9a218",
+  "checkpoint_sha256": "92427055e5f5952910477cbaf204866cbc00266b8a3831c9410fcfe426f458ec"
+}

@@ -199,6 +199,9 @@ def main():
     queue = json.loads(args.queue.read_text())
     if queue.get('after'):
         wait_predecessor(queue['after'])
+    if queue.get('preflight_argv'):
+        # A topology probe must use the same game launcher before its first A/A.
+        subprocess.run(queue['preflight_argv'], check=True)
     for job in queue['jobs']:
         result = run(job, Path(queue['controls']), Path(queue['status']))
         if result['verdict'] in ('UNSCORED', 'AA_FAIL', 'REGRESSION'):

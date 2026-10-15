@@ -1,4 +1,4 @@
-"""Warm restart final14 on accepted final115 after natural certification."""
+"""Warm restart final14 after the nomination's natural predecessor terminal."""
 import datetime
 import hashlib
 import json
@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import select
 import subprocess
+import sys
 
 R = Path('/home/ehrli/ngn-data/night-20261007')
 D = R / 'session84/spsa-warm'
@@ -28,7 +29,7 @@ def digest(path):
 def main():
     nomination = json.loads((D / 'nomination.json').read_text())
     status('waiting', {'predecessor_pid': nomination['predecessor_pid'],
-                       'requires': 'TRANSFER_PASS and CERTIFIED with zero faults'})
+                       'requires': nomination.get('predecessor', 'TRANSFER_PASS and CERTIFIED with zero faults')})
     try:
         fd = os.pidfd_open(nomination['predecessor_pid'])
     except ProcessLookupError:
@@ -36,12 +37,14 @@ def main():
     else:
         select.select([fd], [], [])
         os.close(fd)
-    transfer = json.loads((R / 'session83/net-transfer/result.json').read_text())
-    certification = json.loads((R / 'session83/provenance/result.json').read_text())
-    if (transfer['verdict'] != 'TRANSFER_PASS' or transfer['faults'] or
-            certification['verdict'] != 'CERTIFIED' or certification['faults']):
-        write(D / 'result.json', dict(state='HELD_PREDECESSOR', transfer=transfer['verdict'],
-                                     certification=certification['verdict'], games_started=False))
+    conditions = nomination.get('predecessor_results', [
+        dict(path=str(R / 'session83/net-transfer/result.json'), verdicts=['TRANSFER_PASS']),
+        dict(path=str(R / 'session83/provenance/result.json'), verdicts=['CERTIFIED'])])
+    predecessors = [(condition, json.loads(Path(condition['path']).read_text())) for condition in conditions]
+    if any(result['verdict'] not in condition['verdicts'] or result['faults'] for condition, result in predecessors):
+        write(D / 'result.json', dict(state='HELD_PREDECESSOR',
+                                     predecessors={condition['path']: result['verdict'] for condition, result in predecessors},
+                                     games_started=False))
         status('held', 'predecessor needs manual review; no tuning games')
         return
     for path, pin in nomination['artifacts'].items():
@@ -73,6 +76,8 @@ def main():
 
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        D = Path(sys.argv[1])
     try:
         main()
     except BaseException as error:
