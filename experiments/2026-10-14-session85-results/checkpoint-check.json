@@ -1,0 +1,8 @@
+{
+  "epoch": 92,
+  "step": 1437500,
+  "total_epochs": 174,
+  "optimizer_rng_present": true,
+  "exposure": 23552000000,
+  "cosine_horizon_preserved": true
+}

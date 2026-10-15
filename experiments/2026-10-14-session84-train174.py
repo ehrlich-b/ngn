@@ -1,4 +1,4 @@
-"""Predeclared 174-epoch follow-up after final174 KEEP; final epoch only."""
+"""Predeclared 174-epoch follow-up after final115 KEEP; final epoch only."""
 import datetime
 import hashlib
 import json
@@ -30,39 +30,58 @@ def digest(path):
 
 def main():
     D.mkdir(exist_ok=True)
-    old = json.loads((R / 'session80-training/manifest.json').read_text())
-    gate = json.loads((R / 'session82/net-final115/result.json').read_text())
-    assert gate['verdict'] == 'KEEP' and not gate['faults']
-    paths, corpus = old['data_paths'], old['corpus_pins']
-    argv = old['argv'].copy()[3:]
-    argv[argv.index('--out') + 1] = str(D / 'trained')
-    argv[argv.index('--epochs') + 1] = '174'
-    assert '--resume' not in argv and '--king-factorizer' not in argv
-    assert not (D / 'trained').exists()
-    total = sum(pin['bytes'] // 32 for pin in corpus.values())
-    manifest = dict(created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                    approval='Session scope: keep GPU producing evidence;174 win-path cell proposed in required Fable cross-review; existing net gate unchanged',
-                    accepted_engine_source='9ec5d31', base_net_sha256='812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22',
-                    treatment='174 vs115 training horizon: fresh initialization, same T80/T76/fullT74 corpus and recipe as accepted final115; only training duration and its cosine horizon change',
-                    omitted='mapped T75 descriptor points at closed forge; no forge access',
-                    corpus_pins=corpus, data_paths=paths, records=total,
-                    raw_source_shares={name: pin['bytes'] / (total * 32) for name, pin in corpus.items()},
-                    presentations=174 * 256000000, raw_passes=174 * 256000000 / total,
-                    argv=['taskset', '-c', '12,14', *argv], trainer_source=str(SOURCE),
-                    trainer_commit='7ef9821', source_archive_sha256=old['source_archive_sha256'],
-                    recipe='final115/KB8 H512 NB8; same seed20261006/AdamW/WDL/cosine/BF16; fresh initialization; no174 resume from115',
-                    selection='latest.pt/latest.nnue after epoch174 only; ignore best artifacts; no checkpoint shopping',
-                    exposure='exact source_presentations_cumulative in every history row',
-                    cpus=[12, 14], nice=19, memory_max_bytes=4 * 1024**3, swap=0,
-                    environment={key: os.environ.get(key) for key in ('PYTHONPATH', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS')},
-                    stop='nonfinite loss/export/parity failure or C: below25.25GiB; no performance cutoff',
-                    gate='fixed1000/500 at10+0.1 c6 vs immediate accepted81215229, printed/exact lower95>0 and zero faults; winning net transfer400 at60+0.6 before foreign games',
-                    automatic_games=False)
-    write(D / 'manifest.json', manifest)
+    resume = sys.argv[1:] == ['--resume']
+    assert not sys.argv[1:] or resume, 'expected no arguments or --resume'
+    if resume:
+        # Continue this run's own complete atomic checkpoint, with its original
+        # optimizer/RNG states, epoch seeds and 174-epoch cosine horizon.
+        manifest = json.loads((D / 'manifest.json').read_text())
+        history = json.loads((D / 'trained/history.json').read_text())
+        checkpoint = D / 'trained/latest.pt'
+        assert 0 < history[-1]['epoch'] < 174
+        assert manifest['argv'][manifest['argv'].index('--epochs') + 1] == '174'
+        manifest = dict(manifest, argv=[*manifest['argv'], '--resume', str(checkpoint)])
+        write(D / 'resume-manifest.json', dict(
+            created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            original_manifest=str(D / 'manifest.json'),
+            resume_checkpoint=str(checkpoint), resume_checkpoint_sha256=digest(checkpoint),
+            completed_epoch=history[-1]['epoch'], argv=manifest['argv'],
+            reason='Continue original final174 after its disk guard stopped it; same recipe/corpus/seed/horizon; final174 only',
+            original_failure_preserved=True))
+    else:
+        old = json.loads((R / 'session80-training/manifest.json').read_text())
+        gate = json.loads((R / 'session82/net-final115/result.json').read_text())
+        assert gate['verdict'] == 'KEEP' and not gate['faults']
+        paths, corpus = old['data_paths'], old['corpus_pins']
+        argv = old['argv'].copy()[3:]
+        argv[argv.index('--out') + 1] = str(D / 'trained')
+        argv[argv.index('--epochs') + 1] = '174'
+        assert '--resume' not in argv and '--king-factorizer' not in argv
+        assert not (D / 'trained').exists()
+        total = sum(pin['bytes'] // 32 for pin in corpus.values())
+        manifest = dict(created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                        approval='Session scope: keep GPU producing evidence;174 win-path cell proposed in required Fable cross-review; existing net gate unchanged',
+                        accepted_engine_source='9ec5d31', base_net_sha256='812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22',
+                        treatment='174 vs115 training horizon: fresh initialization, same T80/T76/fullT74 corpus and recipe as accepted final115; only training duration and its cosine horizon change',
+                        omitted='mapped T75 descriptor points at closed forge; no forge access',
+                        corpus_pins=corpus, data_paths=paths, records=total,
+                        raw_source_shares={name: pin['bytes'] / (total * 32) for name, pin in corpus.items()},
+                        presentations=174 * 256000000, raw_passes=174 * 256000000 / total,
+                        argv=['taskset', '-c', '12,14', *argv], trainer_source=str(SOURCE),
+                        trainer_commit='7ef9821', source_archive_sha256=old['source_archive_sha256'],
+                        recipe='final115/KB8 H512 NB8; same seed20261006/AdamW/WDL/cosine/BF16; fresh initialization; no174 resume from115',
+                        selection='latest.pt/latest.nnue after epoch174 only; ignore best artifacts; no checkpoint shopping',
+                        exposure='exact source_presentations_cumulative in every history row',
+                        cpus=[12, 14], nice=19, memory_max_bytes=4 * 1024**3, swap=0,
+                        environment={key: os.environ.get(key) for key in ('PYTHONPATH', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS')},
+                        stop='nonfinite loss/export/parity failure or C: below25.25GiB; no performance cutoff',
+                        gate='fixed1000/500 at10+0.1 c6 vs immediate accepted81215229, printed/exact lower95>0 and zero faults; winning net transfer400 at60+0.6 before foreign games',
+                        automatic_games=False)
+        write(D / 'manifest.json', manifest)
     disk = os.statvfs('/mnt/c')
     assert disk.f_bavail * disk.f_frsize >= 25.5 * 1024**3
-    status('start', {'manifest': str(D / 'manifest.json'), 'epochs': 174, 'cpus': [12, 14]})
-    with (D / 'train.log').open('w') as log:
+    status('resume' if resume else 'start', {'manifest': str(D / ('resume-manifest.json' if resume else 'manifest.json')), 'epochs': 174, 'cpus': [12, 14]})
+    with (D / ('resume-train.log' if resume else 'train.log')).open('w') as log:
         child = subprocess.Popen(manifest['argv'], cwd=SOURCE, stdout=log,
                                  stderr=subprocess.STDOUT, start_new_session=True)
         (D / 'trainer.pid').write_text(str(child.pid) + '\n')
@@ -84,7 +103,7 @@ def main():
     assert rc == 0, f'trainer exited{rc}'
     out = D / 'trained'
     history = json.loads((out / 'history.json').read_text())
-    assert [row['epoch'] for row in history] == list(range(1, 116))
+    assert [row['epoch'] for row in history] == list(range(1, 175))
     assert all(row['positions'] == 256000000 and math.isfinite(row['validation_loss']) for row in history)
     exposure = history[-1]['source_presentations_cumulative']
     assert sum(exposure.values()) == 174 * 256000000

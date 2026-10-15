@@ -22,12 +22,15 @@ runs qsearch[0,5]/min1000/cap8000 on the ready9ec5d31 patch/current net.
 Other certificate outcomes hold;no extra game job,cutoff,retry or pooling.
 Then continuation,pawnquiet,ProbCut;one behavior/immediate accepted base.
 
-GPU final174 follow-up controller81599/trainer81604 is detached: same
-T80/T76/fullT74 corpus/recipe/fresh initialization with the same seed,174×256M=44.544B,
-final174 only/reexport/20 parity. Loader12,14/parity13,15/4GiB/swap0;
-expected01:30–03:30 EDT October15. Existing25.25GiB stop;no automatic games.
-Null-only mixture pair skipped;sample reconstruction own27GiB guard-stop
-06:56:07/exit143 retained without retry. Sampler topicc411391 stays isolated.
+Final174 is disk-paused after epoch92 (original19:08:22/exit1 preserved).
+C:23.24GiB remains below25GiB despite deleting32.5GiB of abandoned campaign
+sample buckets and trimming Linux;active VHD allocation did not shrink.
+Needs Bryan: free≥3GiB on host C:. Detached recovery86550 checks every300s,
+then resumes the same optimizer/RNG/epoch seeds/174-epoch schedule at≥25.5GiB.
+Continuation/final174 finalizer checks and actual checkpoint check PASS on rig13,15.
+82 epochs remain (~6–7h after space restoration/startup);final174 only/parity20,
+then ordinary net gate;no automatic games. Original data/recipe unchanged.
+Null-only mixture pair skipped;sample failure metadata retained,no retry.
 
 Tested407c604 adds SPSA external-net options and rejects game faults before
 updates. Rig short/race/build/vet,synthetic checks and live14-default/net
@@ -36,9 +39,9 @@ SPRTs per ordered queue;no tuning games or auto adoption.
 
 Serialized width−118.14 remains MEASURED;true-width scheduler exception
 pending. Admission control failure remains UNSCORED/no candidate sample.
-All compute rig;forge closed;hopper/keepalive untouched;C:≥25GiB.
+All compute rig;forge closed;hopper/keepalive untouched;C: reserve BLOCKED.
 GitHub suspended:no pull/fetch/push,external writes/publication.Commit locally.
-Next session not before20:45 EDT October14.[Session84](experiments/2026-10-14-session84.md).
+Next session not before06:00 EDT October15.[Session85](experiments/2026-10-14-session85.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
