@@ -1,4 +1,4 @@
-# NGN live state — 2026-10-14: 3600 campaign
+# NGN live state — 2026-10-15: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
 Playing **9ec5d31/81215229/compiled final14**; no3600 claim.
@@ -15,7 +15,8 @@ New net **81215229** accepted:original fixed1000 +18.083[+5.723,+30.489],
 under its point-positive rule. Playing **9ec5d31/81215229/compiled final14**;
 external EvalFile convention,no new absolute result or3600 claim.
 
-Actual-package provenanceSPRT81543 under39843/39845 runs since11:27:47:
+Actual-package provenanceSPRT81543 under39843/39845 runs since11:27:47 October14;
+at05:18 October15 it has1981/4000 completed games and no terminal:
 [−8,0]/60+0.6/c6,min1000/cap4000,same selected net/final14 versus archived
 reference. Generic campaign queue waits natively for cleanCERTIFIED then
 runs qsearch[0,5]/min1000/cap8000 on the ready9ec5d31 patch/current net.
@@ -23,7 +24,7 @@ Other certificate outcomes hold;no extra game job,cutoff,retry or pooling.
 Then continuation,pawnquiet,ProbCut;one behavior/immediate accepted base.
 
 Final174 is disk-paused after epoch92 (original19:08:22/exit1 preserved).
-C:23.24GiB remains below25GiB despite deleting32.5GiB of abandoned campaign
+C:23.33GiB at05:18 October15 remains below25GiB despite deleting32.5GiB of abandoned campaign
 sample buckets and trimming Linux;active VHD allocation did not shrink.
 Needs Bryan: free≥3GiB on host C:. Detached recovery86550 checks every300s,
 then resumes the same optimizer/RNG/epoch seeds/174-epoch schedule at≥25.5GiB.
@@ -41,7 +42,9 @@ Serialized width−118.14 remains MEASURED;true-width scheduler exception
 pending. Admission control failure remains UNSCORED/no candidate sample.
 All compute rig;forge closed;hopper/keepalive untouched;C: reserve BLOCKED.
 GitHub suspended:no pull/fetch/push,external writes/publication.Commit locally.
-Next session not before06:00 EDT October15.[Session85](experiments/2026-10-14-session85.md).
+Next session not before23:30 EDT October15,projected provenance cap.
+No admitted code work remains while the queue awaits verdicts.
+[Session86](experiments/2026-10-15-session86.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
