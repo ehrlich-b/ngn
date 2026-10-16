@@ -1,0 +1,41 @@
+{
+  "state": "PREPARED_BLOCKED_ANCHOR",
+  "source_commit": "5f54c9c1eee7ffb3b2acdd5e60cf90f3c4cf605f",
+  "source_tree": "93bbe4d856390b05f9d6ae01b627a045f5e272a8",
+  "source_clean": true,
+  "runner": {
+    "path": "/home/ehrli/ngn-data/claim-v4-20261016/tooling/frozen/claimtool",
+    "sha256": "a2fb2dd09ab70074ca12dc2b36ec62bf1f7de16f2b8f8a05d7bac745a5ef2016"
+  },
+  "go_version": "go1.25.5",
+  "GOAMD64": "v3",
+  "GOMAXPROCS": 2,
+  "cpus": "13,15",
+  "nice": 19,
+  "dry_identity": "Existing v3 development-only fixture; no claim nomination or engine launch",
+  "dry_modes": {
+    "screen": {
+      "status": "BLOCKED_ANCHOR",
+      "diagnostic": "claimtool: unresolved artifact: {/home/ehrli/ngn-data/claim-v4-20261016/anchors/ethereal13/ethereal-13.00-nnue UNRESOLVED-COMMERCIAL-NNUE}"
+    },
+    "confirmation": {
+      "status": "BLOCKED_ANCHOR",
+      "diagnostic": "claimtool: unresolved artifact: {/home/ehrli/ngn-data/claim-v4-20261016/anchors/ethereal13/ethereal-13.00-nnue UNRESOLVED-COMMERCIAL-NNUE}"
+    },
+    "stability-screen": {
+      "status": "PASS",
+      "diagnostic": ""
+    },
+    "stability-confirmation": {
+      "status": "PASS",
+      "diagnostic": ""
+    },
+    "tooling-check": {
+      "status": "PASS",
+      "diagnostic": ""
+    }
+  },
+  "ready_for_games": false,
+  "games": 0,
+  "finished_utc": "2026-10-16T13:54:23.733944+00:00"
+}

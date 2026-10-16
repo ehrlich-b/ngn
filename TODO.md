@@ -2,36 +2,41 @@
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue,handles,handoff.
 Playing **9ec5d31/81215229/compiled final14**;no3600 claim.
-October16 08:45 plan amendment governs alongside October15 13:05 order.
+October16 **09:45** plan amendment now governs the claim track.
 Local Git only:never pull/fetch/push. All compute rig;forge closed.
 
-True-width measurement completed07:19:03:400/200,152W234D14L,
-**+124.9924[107.9047,142.6808]**,zero faults. >=+60 closes SMP policy lane
-pending integration;no behavior adoption or absolute rating. Final174
-completed08:50:49:1000/500,209W603D188L,**+7.2972[−4.9261,19.5386]**,
-zero faults,**SHELVED** by lower95>0. End same-corpus duration ladder.
+Bryan chose **Threads8/Hash256,8CPU Blitz labels**. No separateT8-vs-T4
+measurement. v4 tool **5f54c9c/a2fb2dd0** is prepared:full short/full race/
+vet/focused tests PASS;three operational dry modes PASS. Akimbo1.0.0,
+BlackMarlin9.0,Berserk12 smokes PASS. Ethereal13.00 free-source build is
+HCE and UNADMITTED for its commercial3581 row;screen/confirmation dry modes
+stop at its unresolved artifact. Needs Bryan:licensed NNUE artifact or
+prospective replacement approval(suggestedVelvet6.0.0,8CPU3590/965games).
+No scored games,pause or engine behavior change this session.
 
-WarmSPSA94467 under91862 started08:50:49 on81215229;24k/final2000,
-then separate fixed1000 vector gate versus compiledfinal14. Planning37–45h.
-Checked qsearch,continuation,pawnquiet,ProbCut follow tuning on immediate base.
-Search/time logistic[0,5],min1000/cap8000;nets/SPSA fixed1000,
-printed/exact lower95>0;correctness400/non-regression. Zero faults;
-no administrative gate kills. Reuse A/A per unchanged topology/TC/harness.
+WarmSPSA94467/controller91862 has50iterations/600games09:51,on81215229;
+24k/final2000,rough40h total unless paused. Moderated35/25/40trainer94537
+has5/115epochs09:53,GPU81%;ready18:40–19:30. Volume-control8acde096 READY;
+two-net limit,C:31.32GiB;hopper1188/keepalive untouched. When v4 is ready
+AND moderated ends naturally,pause tune at next verified checkpoint,then
+both fixed1000 net gates versus81215229,winning-net400/60+0.6 point>0,
+v4 strict3600 screen and conditional confirmation. Native SPSA`-resume`
+restores state;the current Python controller fresh-starts and must not be
+rerun on populated output. No pause is armed while the anchor is unresolved.
 
-Volume-control1158acde096 READY;moderated35/25/40cell115 trainer94537
-started08:54:16,12/14/GPU,finalonly,about9–10h plus startup.
-At mosttwo ungated nets;C:31.98GiB at09:15;hopper/keepalive untouched.
-Threads8 correctness prep on13/15 (worker lifecycle,Hash256,short race,UCI)
-passed09:14:40,exit0;receipt`session91/threads8/result.json`. No engine behavior change. Claim configuration
-A=Threads8/current8CPU anchors,B=Threads4/legacy4CPU,C=single-thread still
-needs Bryan. No claim,screen,anchor games or protocol change before choice.
+Width400 +124.9924[107.9047,142.6808],zero faults,closes SMP policy lane.
+Final1741000 +7.2972[−4.9261,19.5386],zero faults,SHELVED;end duration
+ladder. Qsearch,continuation,pawnquiet,ProbCut checked,queued after tuning/
+claim track. Search/time logistic[0,5],min1000/cap8000;nets/SPSA fixed1000,
+printed/exact lower95>0;correctness400/non-regression. Zero faults;no
+administrative gate kills. Reuse A/A per unchanged topology/TC/harness.
 
-Actual-package provenance natural **H0/BISECT**,3237games,
-−6.7649[−12.0194,−1.5135],zero faults remains separate debt;owned code stays.
-Existing key proofs,cold TT-pressure and matched persistent-TT panels reused;
-no causal invariant witness. No repeated panels,unchanged retry,extension,
-pooling or derived restoration. [Session91](experiments/2026-10-16-session91.md).
-Next session:not before19:00 EDT October16,unless choice/fault/new terminal.
+Actual-package provenance H0/BISECT3237,−6.7649[−12.0194,−1.5135],zero
+faults,remains separate debt;owned code stays. Key/cold/persistent TT panels
+are reviewed,no causal invariant witness;no repeated panel,unchanged retry,
+extension,pooling or derived restoration. [Session92](experiments/2026-10-16-session92.md).
+Next routine session:not before19:00 EDT October16,unless anchor decision/
+artifact,fault,new terminal or admitted implementation task arrives.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

@@ -58,6 +58,18 @@ Regression fixtures cover the new schema/pool/labels/resources, scheduler
 override, advertised ranges, effective Threads8, the strict3600 boundary,
 fixed counts and same-identity confirmation. Engine behavior is unchanged.
 
+Full short and full short race suites, focused claim fixtures and vet PASS
+at09:48:16 EDT. The final unresolved-anchor declaration passes the focused
+suite afterward. Source is committed locally as5f54c9c. An exact clean
+snapshot of that commit is reconstructed on WSL by archive, index/tree and
+commit bytes, without pull/fetch; tree93bbe4d8 matches. Built runner
+`a2fb2dd09ab70074ca12dc2b36ec62bf1f7de16f2b8f8a05d7bac745a5ef2016`
+is at `claim-v4-20261016/tooling/frozen/claimtool`. The three operational dry
+modes PASS. Screen and confirmation dry modes correctly stop on unresolved
+Ethereal; they create no receipt or game directory. These use the existing
+v3 development-only identity as a fixture and nominate no candidate.
+[Build and dry-mode receipt](2026-10-16-session92-results/v4/build-receipt.json).
+
 The October16 09:45 order is: finish preparation; after both v4 readiness
 and the moderated GPU cell's natural terminal, pause warm SPSA at its next
 verified checkpoint; gate volume-control and moderated-T74 by fixed1000
