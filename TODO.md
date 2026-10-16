@@ -5,46 +5,40 @@ Playing **9ec5d31/81215229/compiled final14**; no3600 claim.
 October16 plan through **11:20** governs. Local Git only; never pull/fetch/push.
 All compute rig; forge closed.
 
-v4 **READY_TOOLING**: source41d9f94/toola30408fc, overhead100 normalized
-including Berserk. Full short/race/vet, focused fixtures and five dry modes
-PASS. Clean metadata build0da45e7f on9ec5d31 matches84edb1a0 in36 depth12
-move/score/node/PV comparisons. Pool Koivisto3568,akimbo3614,BlackMarlin3623,
-Berserk3741; Threads8/Hash256/8CPU labels. No scored screen/claim game.
+At19:37,moderated net9324a004 is READY after natural18:40:13 training:
+final115/29.44B,identical reexport/20parity PASS. Original98730 pauses warm
+SPSA at verified500iterations/6000games18:55:13,then starts volume-control's
+fixed1000 vs81215229 as117018.463games complete;first terminal20:25–20:35.
+Moderated1000 follows;both about22:00–22:15. No game verdict or adoption.
+Exact native-resume argv/checkpoint/history are saved under`session93`.
+Old tune/training services inactive/success;never restart fresh-start wrapper.
 
-At11:29: SPSA94467/controller91862 has125iterations/1500games,24k/final2000
-on81215229. Moderated35/25/40 trainer94537/controller89579 has25/115epochs;
-ready18:40–19:30. Volume-control8acde096 READY. Original98730/native service
-waits for training, then next checkpoint, planned tune pause and both fixed1000
-net gates. No pause yet; do not duplicate or restart its fresh-start controller.
+Detached **102531/ngn-s94-claim-chain.service** waits natively on98730 in
+its unlimited0–15/3G/swap0/nice19 scope. Predeclared moderated priority if
+both KEEP;otherwise control or81215229. Selected new net gets400/60+0.6,
+point>0/zero faults;baseline reuses transfer. Then attempt001 occupancy proof,
+fixed320screen and automatic conditional640/120+1confirmation. No GPU/tune
+during claims. Only frozen v4a30408fc/source41d9f94 is armed. Existing full
+short/race/vet,five dry modes and36 metadata-build identities PASS,reused.
+Playing metadata0da45e7f serves claims;84edb1a0 serves current gates/tuning.
+Pool Koivisto3568,akimbo3614,BlackMarlin3623,Berserk3741;allThreads8/Hash256.
 
-Detached **102531/ngn-s94-claim-chain.service**, launcher102529, waits on98730
-in a separate unlimited CPU scope (`cpu.max=max100000`),3G/swap0/nice19.
-Prospective moderated priority if both KEEP; otherwise control or81215229.
-Selected new net gets400/60+0.6,point>0; baseline reuses its transfer. Then
-attempt001 runs the mandatory actual-launcher eight-core probe (>=7 CPU/wall,
-exact mask), screen320 and automatic conditional confirmation640/120+1.
-A600s descriptive sidecar records CPU/process activity without affecting games.
-No GPU/tune during claims. No new adoption yet.
+Failed screen uses D=3640−P:<=40 resumes native SPSA and predeclared GPU
+cell45.35/33.21/21.44;>40 first measures T8-vs-T4 with own probe/A/A/fixed400.
+Point<25 holds for profile;otherwise resume. Failed confirmation also resumes.
+Faults/failed transfer hold review. No duplicate queue or new GPU cell.
+Results:`session94/claim-chain-result.json` and
+`claim-v4-20261016/attempt-001/{screen,confirmation}/analysis.json`.
 
-Failed screen uses D=3640−P: <=40 resumes exact native SPSA-resume and the
-predeclared third source-weight cell45.35/33.21/21.44; >40 first measures
-T8-vs-T4 with own probe/A/A/fixed400. Point<25 holds for profile; otherwise
-resume. Failed confirmation also resumes. New GPU cell is final115 only,
-same tested trainer/recipe/fresh split,27.5GiB admission,one ungated net.
-Faults/failed transfer hold review. Results in`session94/claim-chain-result.json`
-and`claim-v4-20261016/attempt-001/{screen,confirmation}/analysis.json`.
-
-Width400+124.9924[107.9047,142.6808],zero faults,closes SMP policy lane
-unless the conditional T8-vs-T4 result opens its specific profile. Final174
-1000+7.2972[−4.9261,19.5386],zero faults,SHELVED; end duration ladder.
-Four checked search candidates remain after tuning/claim work. Search/time
-logistic[0,5],min1000/cap8000; nets/SPSA fixed1000,printed/exact lower95>0;
-correctness400/non-regression. Reuse A/A per unchanged topology/TC/harness.
-Zero faults; no administrative gate kills. Provenance H0 remains separate
-debt; owned code stays, no repeated panels/unchanged retry/derived restoration.
-C:30.878GiB; hopper1188/keepalive untouched.
-[Session94](experiments/2026-10-16-session94.md). Next routine session:not
-before22:30 EDT October16,or earlier on a fault. No additional code task admitted.
+Four checked search candidates remain behind tuning/claim;no new code task
+admitted. Search/time logistic[0,5],min1000/cap8000;nets/SPSA fixed1000,
+printed/exact lower95>0;correctness400/non-regression. Reuse A/A per unchanged
+topology/TC/harness;zero faults;no administrative gate kills. Width+125 closes
+SMP policy unless conditional T8-vs-T4 opens a profile. Final174 shelved;
+no duration ladder. Provenance H0 remains separate debt;owned code stays.
+C:31.804GiB;GPU idle with two ungated nets/claim next;hopper/keepalive untouched.
+[Session95](experiments/2026-10-16-session95.md). Next routine session:
+**not before20:30 EDT October16**,or earlier on a fault.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
