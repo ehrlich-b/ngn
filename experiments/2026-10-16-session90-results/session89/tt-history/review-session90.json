@@ -1,0 +1,54 @@
+{
+  "reviewed_utc": "2026-10-16T08:42:51.066327+00:00",
+  "source": "9ec5d31",
+  "net": "81215229",
+  "vector": "compiled final14",
+  "terminal": "2026-10-16 04:22:16 EDT; controller exit0",
+  "search_rows": 564,
+  "matched_roots": 282,
+  "instrumentation_identity": {
+    "passed": true,
+    "roots": 96,
+    "node_cap": 100000
+  },
+  "summary": [
+    {
+      "hash_mb": 64,
+      "post_control_pairs": 129,
+      "older_payload_hit_fraction": 0.49221245737712394,
+      "older_payload_rejected_store_fraction": 0.6052343889215964,
+      "warm_deeper": 84,
+      "cold_deeper": 24,
+      "same_depth": 21,
+      "move_disagreements": 36,
+      "nonmate_pairs": 115,
+      "nonmate_mean_abs_score_difference": 29.22608695652174,
+      "nonmate_median_abs_score_difference": 14,
+      "mate_range_pairs": 14,
+      "mate_range_score_gap_over_100_fixtures": [
+        5
+      ]
+    },
+    {
+      "hash_mb": 256,
+      "post_control_pairs": 129,
+      "older_payload_hit_fraction": 0.4885365062217337,
+      "older_payload_rejected_store_fraction": 0.6279510061037623,
+      "warm_deeper": 69,
+      "cold_deeper": 35,
+      "same_depth": 25,
+      "move_disagreements": 32,
+      "nonmate_pairs": 116,
+      "nonmate_mean_abs_score_difference": 57.189655172413794,
+      "nonmate_median_abs_score_difference": 16.5,
+      "mate_range_pairs": 13,
+      "mate_range_score_gap_over_100_fixtures": [
+        5
+      ]
+    }
+  ],
+  "finding": "Persistent TT usually completes a greater depth at the matched node budget. Roughly half of hits use a payload from an earlier search. Large aggregate score gaps are dominated by mate-range results in the queen fixture. Neither old payload reuse nor a warm/cold disagreement proves incorrect retention.",
+  "limitations": "Six selected trajectories, 2M nodes/root, up to24 plies. Descriptive, not randomized games, not 60+0.6, not an archived-TT comparison. Nominal depth is not strength or proof of correctness. The panel does not identify which replacement caused the certification loss.",
+  "decision": "No engine policy nomination or adoption from this panel; no new provenance games or unchanged certificate retry. Keep owned replacements and certification debt. Advance existing width, Final174 and tuning order.",
+  "reopen": "A concrete reproducible TT invariant violation, or a separately predeclared changed-policy experiment with mechanism evidence and the appropriate real-clock gate. Do not repeat cold/persistent panels simply to refresh custody."
+}

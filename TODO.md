@@ -12,17 +12,16 @@ Local Git only:never pull/fetch/push. All compute rig;forge closed.
 Actual-package provenance ended natural **H0/BISECT**,3237games,
 −6.7649[−12.0194,−1.5135],zero faults. Failed certification remains debt;
 owned code stays. No unchanged retry,extension,pooling or restoration.
-Cold TT-pressure panel complete;existing key proofs reused. Session89
-adds a bounded matched-history persistent-TT diagnostic:controller92351/
-service92356 on13,15,all96 instrumentation identities PASS;up to576roots
-running.
-`session89/tt-history/*`;true payload-write age versus touched generation,
-Hash64/256,persistent versus empty TT with copied pre-search histories.
-No correctness,policy or Elo verdict from this descriptive panel.
+Cold TT-pressure and matched persistent-TT panels are complete;existing
+key proofs reused. Session89 naturally finishes04:22:16/exit0,564rows/
+282matched roots,96identities PASS. Session90 finds no incorrect retention
+invariant or causal regressor;descriptive depth/score differences do not
+nominate a policy. No repeated panels or unchanged certificate retry.
+`session89/tt-history/{result.json,review-session90.json,history.jsonl}`.
 
 True-width A/A40 **PASS03:47:41**,7/28/5,
 +17.3863[−36.0517,+71.6658],zero faults. Original width400 now92229 under
-queue91825/controller91821. At04:11,47completions,no terminal;ETA07:10–08:00.
+queue91825/controller91821. At04:43,104completions,no terminal;ETA07:10–08:00.
 Then Final1741000 automatically. T4 masks0,2,4,6/GOMAX4,T1mask8/GOMAX1,
 Hash256/10+0.1/c1. Reuse actual-launcher probe and fresh passing control.
 
@@ -33,10 +32,10 @@ qsearch,continuation,pawnquiet,ProbCut follow tuning on immediate base.
 
 Final1740b17ca29 and volume-control1158acde096 ready/parity checked.
 GPU89579 waits for cleanFinal174 terminal,then moderated35/25/40cell115,
-at mosttwo ungated nets. No automatic games/adoption. C:35.90GiB;
-hopper and keepalive untouched. [Session89](experiments/2026-10-16-session89.md).
+at mosttwo ungated nets. No automatic games/adoption. C:35.89GiB;
+hopper and keepalive untouched. [Session90](experiments/2026-10-16-session90.md).
 
-Next session:not before04:40 EDT October16 for the diagnostic terminal.
+Next session:not before07:25 EDT October16 for the width terminal.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

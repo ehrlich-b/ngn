@@ -1,0 +1,40 @@
+{
+  "utc": "2026-10-16T08:43:11.245799+00:00",
+  "processes": [
+    "1188     245  286003  0.3 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    "89576   89571   46185  0.0 bash /home/ehrli/ngn-data/night-20261007/session87/train-mixture.sh",
+    "89579     245   46185  0.0 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python /home/ehrli/ngn-data/night-20261007/session87/train-mixture.py",
+    "91821   91815    4614  0.0 bash /home/ehrli/ngn-data/night-20261007/session88/queue.sh",
+    "91825     245    4614  0.0 python3 /home/ehrli/ngn-data/night-20261007/session88/campaign_queue.py /home/ehrli/ngn-data/night-20261007/session88/queue.json",
+    "91857   91851    4601  0.0 bash /home/ehrli/ngn-data/night-20261007/session88/spsa-warm.sh",
+    "91862     245    4601  0.0 python3 /home/ehrli/ngn-data/night-20261007/session87/2026-10-14-session84-spsa.py /home/ehrli/ngn-data/night-20261007/session88/spsa-warm",
+    "92229   91825    3330  0.5 /home/ehrli/ngn-data/night-20261007/session80/sprt -new /home/ehrli/ngn-data/night-20261007/session87/ngn4-a -base /home/ehrli/ngn-data/night-20261007/session87/ngn1-c -tc 10+0.1 -concurrency 1 -mingames 1000000 -maxgames 400 -elo0 0 -elo1 5 -alpha .05 -beta .05 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -lowpower=false -pgn /home/ehrli/ngn-data/night-20261007/session87/true-width/games.pgn -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -newoption UseNNUE=true -newoption Hash=256 -newoption Threads=4 -newoption OwnBook=false -newoption AspInit=17 -newoption AspMult=163 -newoption DeltaMargin=202 -newoption ExtensionBudget=29 -newoption FutilityMargin=104 -newoption FutilityMaxDepth=8 -newoption LMPBase=3 -newoption LMRFullDepth=3 -newoption LMRMoveThreshold=2 -newoption NullMoveMinDepth=2 -newoption NullMoveR=4 -newoption ReverseFutilityMargin=63 -newoption SingularDepth=7 -newoption SingularMargin=57 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -baseoption UseNNUE=true -baseoption Hash=256 -baseoption Threads=1 -baseoption OwnBook=false -baseoption AspInit=17 -baseoption AspMult=163 -baseoption DeltaMargin=202 -baseoption ExtensionBudget=29 -baseoption FutilityMargin=104 -baseoption FutilityMaxDepth=8 -baseoption LMPBase=3 -baseoption LMRFullDepth=3 -baseoption LMRMoveThreshold=2 -baseoption NullMoveMinDepth=2 -baseoption NullMoveR=4 -baseoption ReverseFutilityMargin=63 -baseoption SingularDepth=7 -baseoption SingularMargin=57"
+  ],
+  "width_completed_games": 104,
+  "width_terminal": false,
+  "final174_terminal": false,
+  "gpu": "0 %, 1477 MiB",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        2963       10400           4        2538       12551\nSwap:           4096           1        4094\n",
+  "status": [
+    {
+      "path": "status.jsonl",
+      "utc": "2026-10-16T08:10:45.737155+00:00",
+      "stage": "session89-tt-history",
+      "event": "start"
+    },
+    {
+      "path": "status.jsonl",
+      "utc": "2026-10-16T08:15:01.639223+00:00",
+      "stage": "session89",
+      "event": "handoff"
+    },
+    {
+      "path": "status.jsonl",
+      "utc": "2026-10-16T08:22:16.880177+00:00",
+      "stage": "session89-tt-history",
+      "event": "complete"
+    }
+  ],
+  "host_c_free_bytes": 38538874880,
+  "host_c_free_gib": 35.89212417602539
+}
