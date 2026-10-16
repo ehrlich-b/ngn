@@ -187,13 +187,13 @@ func TestBootstrapConstantPairsHandComputed(t *testing.T) {
 		}
 	}
 	// Every selected pair is one win and one loss, so p=1/2 and all
-	// variances match. Every resample pool=(3581+3614+3623+3741)/4.
+	// variances match. Every resample pool=(3568+3614+3623+3741)/4.
 	b, e := Bootstrap(anchors, games, 80, 10000, 3000)
 	if e != nil {
 		t.Fatal(e)
 	}
-	closeValue(t, "bootstrap lower", b.CI95[0], 14559.0/4)
-	closeValue(t, "bootstrap upper", b.CI95[1], 14559.0/4)
+	closeValue(t, "bootstrap lower", b.CI95[0], 14546.0/4)
+	closeValue(t, "bootstrap upper", b.CI95[1], 14546.0/4)
 }
 func TestBootstrapQuantileHandComputed(t *testing.T) {
 	closeValue(t, "interpolated percentile", percentile([]float64{0, 10, 20, 30, 40}, 0.025), 1)

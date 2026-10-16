@@ -322,7 +322,7 @@ func TestRevisedPoolPinsNewAnchorAndFixedSamples(t *testing.T) {
 
 func TestV4PlanRejectsPoolSubstitution(t *testing.T) {
 	for i, want := range []Anchor{
-		{Name: "Ethereal 13.00", Label: 3581},
+		{Name: "Koivisto 6.0", Label: 3568},
 		{Name: "akimbo 1.0.0", Label: 3614},
 		{Name: "Black Marlin 9.0", Label: 3623},
 		{Name: "Berserk 12", Label: 3741},

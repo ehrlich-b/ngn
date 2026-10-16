@@ -26,9 +26,8 @@ const HashMB = 256
 const CPUSet = "0,2,4,6,8,10,12,14"
 const BerserkSHA = "7b9b5898a781cbe0757caef0b7281df5cf5029d17e67ed3df4824f0eb1c0125d"
 
-// The public v13.00 source is HCE, not the commercial NNUE edition rated
-// by this pool. Resolve the correct artifact before any live v4 receipt.
-const EtherealSHA = "UNRESOLVED-COMMERCIAL-NNUE"
+// Official v6.0 Linux AVX2 release, admitted before any v4 games.
+const KoivistoSHA = "2b2bd642e8a317456516a9134b5b6faf674859b4666bf526a85cedfb31241581"
 const AkimboSHA = "879c769035d948068512eb9de02c0f356727b6045e10b95ac813497ebd8d7eee"
 const BlackMarlinSHA = "980bd51860fc1cc61fd2216d5ca25fbcef1b5488bde1bce379d022b38b750642"
 
@@ -53,7 +52,7 @@ type Anchor struct {
 
 func Anchors() []Anchor {
 	return []Anchor{
-		{Name: "Ethereal 13.00", Label: 3581, Engine: Artifact{Path: "/home/ehrli/ngn-data/claim-v4-20261016/anchors/ethereal13/ethereal-13.00-nnue", SHA256: EtherealSHA}},
+		{Name: "Koivisto 6.0", Label: 3568, Engine: Artifact{Path: "/home/ehrli/ngn-data/claim-v4-20261016/anchors/koivisto6/Koivisto_6.0-x64-linux-avx2", SHA256: KoivistoSHA}},
 		{Name: "akimbo 1.0.0", Label: 3614, Engine: Artifact{Path: "/home/ehrli/ngn-data/claim-v4-20261016/anchors/akimbo1/akimbo-1.0.0-avx2", SHA256: AkimboSHA}},
 		{Name: "Black Marlin 9.0", Label: 3623, Engine: Artifact{Path: "/home/ehrli/ngn-data/claim-v4-20261016/anchors/blackmarlin9/blackmarlin-linux-x86-64-v3", SHA256: BlackMarlinSHA}},
 		{Name: "Berserk 12", Label: 3741, Engine: Artifact{Path: "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/berserk-12-linux-native", SHA256: BerserkSHA}},
