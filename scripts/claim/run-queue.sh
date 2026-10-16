@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Authorized v3 fixed samples. A failed screen or operational failure ends the queue.
+# Authorized v4 fixed samples. A failed screen or operational failure ends the queue.
 set -Eeuo pipefail
 if [[ $# != 6 ]]; then
   printf 'Usage: run-queue.sh ID.json SOURCE TOOL BRIDGE TOOL_BUILD.json NEW_QUEUE_DIR\n' >&2
@@ -37,7 +37,7 @@ bash "$source/scripts/claim/screen.sh" "${common[@]}" --out "$queue/screen"
 if ! python3 - "$queue/screen/analysis.json" "$queue/screen/post-run-hashes.json" <<'PY'
 import json, sys
 a, h = [json.load(open(p)) for p in sys.argv[1:]]
-sys.exit(0 if a['Schema']=='NGN-CLAIM-3' and a['ClaimThreshold']==3600 and a['ScreenEligible'] and a['Bracketed'] and a['Primary']['CI95'][0]>3600 and h['Schema']=='NGN-CLAIM-3' and h['Unchanged'] else 1)
+sys.exit(0 if a['Schema']=='NGN-CLAIM-4' and a['ClaimThreshold']==3600 and a['ScreenEligible'] and a['Bracketed'] and a['Primary']['CI95'][0]>3600 and h['Schema']=='NGN-CLAIM-4' and h['Unchanged'] else 1)
 PY
 then
   stage=screen-rejected
@@ -49,7 +49,7 @@ bash "$source/scripts/claim/confirmation.sh" "${common[@]}" --out "$queue/confir
 if python3 - "$queue/confirmation/analysis.json" "$queue/confirmation/post-run-hashes.json" <<'PY'
 import json, sys
 a, h = [json.load(open(p)) for p in sys.argv[1:]]
-sys.exit(0 if a['Schema']=='NGN-CLAIM-3' and a['ClaimThreshold']==3600 and a['ClaimEligible'] and a['Bracketed'] and a['Primary']['CI95'][0]>3600 and h['Schema']=='NGN-CLAIM-3' and h['Unchanged'] else 1)
+sys.exit(0 if a['Schema']=='NGN-CLAIM-4' and a['ClaimThreshold']==3600 and a['ClaimEligible'] and a['Bracketed'] and a['Primary']['CI95'][0]>3600 and h['Schema']=='NGN-CLAIM-4' and h['Unchanged'] else 1)
 PY
 then
   verdict=CLAIM

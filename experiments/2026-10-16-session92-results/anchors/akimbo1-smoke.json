@@ -1,0 +1,271 @@
+{
+  "name": "akimbo 1.0.0",
+  "binary": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/akimbo1/akimbo-1.0.0-avx2",
+  "sha256": "879c769035d948068512eb9de02c0f356727b6045e10b95ac813497ebd8d7eee",
+  "status": "PASS",
+  "selected": {
+    "Threads": "8",
+    "Hash": "256",
+    "UCI_Chess960": "false"
+  },
+  "options": {
+    "Threads": "spin default 1 min 1 max 512",
+    "Hash": "spin default 16 min 1 max 1048576",
+    "Clear Hash": "button",
+    "UCI_Chess960": "check default false"
+  },
+  "moves": [
+    "e2e4",
+    "e2e4"
+  ],
+  "exit_code": 0,
+  "stderr": [],
+  "events": [
+    [
+      0.0003733609919436276,
+      "stdout",
+      "akimbo, created by Jamie Whiting"
+    ],
+    [
+      0.0004317099810577929,
+      "stdin",
+      "uci"
+    ],
+    [
+      0.0027878099936060607,
+      "stdout",
+      "id name akimbo 1.0.0"
+    ],
+    [
+      0.002811877988278866,
+      "stdout",
+      "id author Jamie Whiting"
+    ],
+    [
+      0.0028145519900135696,
+      "stdout",
+      "option name Threads type spin default 1 min 1 max 512"
+    ],
+    [
+      0.0028156780172139406,
+      "stdout",
+      "option name Hash type spin default 16 min 1 max 1048576"
+    ],
+    [
+      0.0028164730174466968,
+      "stdout",
+      "option name Clear Hash type button"
+    ],
+    [
+      0.0028171460144221783,
+      "stdout",
+      "option name UCI_Chess960 type check default false"
+    ],
+    [
+      0.002817698987200856,
+      "stdout",
+      "uciok"
+    ],
+    [
+      0.0030090659856796265,
+      "stdin",
+      "setoption name Hash value 256"
+    ],
+    [
+      0.0030337569769471884,
+      "stdin",
+      "setoption name Threads value 8"
+    ],
+    [
+      0.003036903974134475,
+      "stdin",
+      "setoption name UCI_Chess960 value false"
+    ],
+    [
+      0.0030380499665625393,
+      "stdin",
+      "isready"
+    ],
+    [
+      0.08583348797401413,
+      "stdout",
+      "readyok"
+    ],
+    [
+      0.0858980409684591,
+      "stdin",
+      "ucinewgame"
+    ],
+    [
+      0.08592361601768062,
+      "stdin",
+      "isready"
+    ],
+    [
+      0.09293237898964435,
+      "stdout",
+      "readyok"
+    ],
+    [
+      0.0929821619647555,
+      "stdin",
+      "position startpos"
+    ],
+    [
+      0.09300744597567245,
+      "stdin",
+      "go movetime 200"
+    ],
+    [
+      0.0967688980163075,
+      "stdout",
+      "info depth 1 seldepth 1 score cp 10 time 0 nodes 1024 nps 4294967295 pv d2d4"
+    ],
+    [
+      0.09679709700867534,
+      "stdout",
+      "info depth 2 seldepth 2 score cp 76 time 0 nodes 1024 nps 4294967295 pv d2d4 d7d5"
+    ],
+    [
+      0.10311810398707166,
+      "stdout",
+      "info depth 3 seldepth 5 score cp 50 time 0 nodes 1024 nps 4294967295 pv e2e4 c7c5 d2d4"
+    ],
+    [
+      0.10313244996359572,
+      "stdout",
+      "info depth 4 seldepth 6 score cp 65 time 0 nodes 1024 nps 4294967295 pv e2e4 c7c5 g1f3 b8c6"
+    ],
+    [
+      0.10313403798500076,
+      "stdout",
+      "info depth 5 seldepth 6 score cp 81 time 0 nodes 3072 nps 4294967295 pv e2e4 c7c5 g1f3 e7e6 d2d4"
+    ],
+    [
+      0.10313486302038655,
+      "stdout",
+      "info depth 6 seldepth 7 score cp 53 time 1 nodes 5120 nps 5120000 pv e2e4 c7c5 g1f3 e7e6 b1c3 b8c6"
+    ],
+    [
+      0.10313613899052143,
+      "stdout",
+      "info depth 7 seldepth 8 score cp 56 time 2 nodes 9216 nps 4608000 pv e2e4 e7e6 d2d4 d7d5 e4d5 e6d5 g1f3"
+    ],
+    [
+      0.10313699400285259,
+      "stdout",
+      "info depth 8 seldepth 12 score cp 67 time 3 nodes 13312 nps 4437333 pv e2e4 c7c5 g1f3 e7e6 d2d4 c5d4 f3d4 g8f6"
+    ],
+    [
+      0.10317210998618975,
+      "stdout",
+      "info depth 9 seldepth 12 score cp 62 time 6 nodes 28672 nps 4778666 pv e2e4 e7e6 d2d4 d7d5 e4d5 e6d5 g1f3 f8e7 f1e2"
+    ],
+    [
+      0.12705025199102238,
+      "stdout",
+      "info depth 10 seldepth 16 score cp 62 time 30 nodes 46080 nps 1536000 pv e2e4 e7e6 d2d4 d7d5 e4d5 e6d5 g1f3 f8e7 f1e2"
+    ],
+    [
+      0.2869114489876665,
+      "stdout",
+      "bestmove e2e4"
+    ],
+    [
+      0.28699387598317116,
+      "stdin",
+      "ucinewgame"
+    ],
+    [
+      0.28700884501449764,
+      "stdin",
+      "isready"
+    ],
+    [
+      0.2917488279636018,
+      "stdout",
+      "readyok"
+    ],
+    [
+      0.29177522799000144,
+      "stdin",
+      "position startpos"
+    ],
+    [
+      0.29178036499070004,
+      "stdin",
+      "go movetime 200"
+    ],
+    [
+      0.29279074497753754,
+      "stdout",
+      "info depth 1 seldepth 1 score cp 65 time 0 nodes 2048 nps 4294967295 pv e2e4"
+    ],
+    [
+      0.2928370509762317,
+      "stdout",
+      "info depth 2 seldepth 2 score cp 73 time 0 nodes 2048 nps 4294967295 pv e2e4 e7e6"
+    ],
+    [
+      0.2929114159778692,
+      "stdout",
+      "info depth 3 seldepth 6 score cp 67 time 0 nodes 2048 nps 4294967295 pv e2e4 d7d5 e4d5"
+    ],
+    [
+      0.30712219496490434,
+      "stdout",
+      "info depth 4 seldepth 6 score cp 54 time 6 nodes 1024 nps 170666 pv d2d4 d7d5 c2c4 e7e6"
+    ],
+    [
+      0.30714121600613,
+      "stdout",
+      "info depth 5 seldepth 7 score cp 52 time 6 nodes 1024 nps 170666 pv d2d4 d7d5 c2c4 e7e6 g1f3"
+    ],
+    [
+      0.3071426239912398,
+      "stdout",
+      "info depth 6 seldepth 9 score cp 54 time 7 nodes 4096 nps 585142 pv e2e4 e7e5 f1c4 g8f6 g1f3 b8c6"
+    ],
+    [
+      0.3071453580050729,
+      "stdout",
+      "info depth 7 seldepth 9 score cp 45 time 9 nodes 15360 nps 1706666 pv c2c4 c7c5 g1f3 g8f6 g2g3 g7g6 d2d4"
+    ],
+    [
+      0.3077076820190996,
+      "stdout",
+      "info depth 8 seldepth 13 score cp 38 time 14 nodes 3072 nps 219428 pv e2e4 e7e5 g1f3 b8c6 d2d4 e5d4 f3d4 f8c5"
+    ],
+    [
+      0.32312426797579974,
+      "stdout",
+      "info depth 9 seldepth 14 score cp 38 time 26 nodes 37888 nps 1457230 pv c2c4 g8f6 g1f3 g7g6 e2e3 f8g7 f1e2 e8g8 e1g1"
+    ],
+    [
+      0.3471136179869063,
+      "stdout",
+      "info depth 10 seldepth 15 score cp 53 time 50 nodes 133120 nps 2662400 pv e2e4 e7e5 g1f3 b8c6 f1b5 a7a6 b5c6 d7c6 b1c3"
+    ],
+    [
+      0.3631107920082286,
+      "stdout",
+      "info depth 11 seldepth 18 score cp 61 time 65 nodes 184320 nps 2835692 pv e2e4 e7e5 g1f3 b8c6 f1b5 g8f6 e1g1 f8c5 d2d3 d7d6 c1g5 e8g8"
+    ],
+    [
+      0.3951118179829791,
+      "stdout",
+      "info depth 12 seldepth 24 score cp 42 time 98 nodes 312320 nps 3186938 pv e2e4 e7e5 g1f3 b8c6 f1b5 g8f6 e1g1 f8c5 b5c6 d7c6 d2d3 d8e7 b1d2 c8g4"
+    ],
+    [
+      0.4828871369827539,
+      "stdout",
+      "bestmove e2e4"
+    ],
+    [
+      0.4829321859870106,
+      "stdin",
+      "quit"
+    ]
+  ],
+  "note": "Unscored start-position smoke on CPUs13,15; not an eight-core occupancy or strength measurement"
+}

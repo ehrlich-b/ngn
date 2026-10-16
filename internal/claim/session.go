@@ -115,7 +115,7 @@ func StartSession(a Artifact, selected map[string]string) (*Session, error) {
 	}
 	s := &Session{cmd: sessionCommand(a), lines: make(chan wireLine, 4096), done: make(chan error, 1), abort: make(chan struct{}), start: time.Now(), record: SessionRecord{Engine: a, Options: map[string]string{}, Selected: map[string]string{}, ExitCode: -1, LaunchArgv: sessionLaunch(a), Scheduling: schedulingFor(a)}}
 	s.cmd.Dir = filepath.Dir(a.Path)
-	s.cmd.Env = append(os.Environ(), "GOMAXPROCS=1")
+	s.cmd.Env = engineEnvironment(os.Environ())
 	var e error
 	s.in, e = s.cmd.StdinPipe()
 	if e != nil {
@@ -204,6 +204,9 @@ configured:
 	if len(selected) == 0 {
 		selected = FrozenOptions(s.record.Options, nil, 100)
 	}
+	if e := validateResources(s.record.Options, selected); e != nil {
+		return fail(e)
+	}
 	// EvalFile must precede UseNNUE. Every other persistent option is frozen.
 	keys := make([]string, 0, len(selected))
 	for k := range selected {
@@ -256,9 +259,9 @@ func FrozenOptions(options map[string]string, id *Identity, overhead int) map[st
 	for k := range options {
 		switch strings.ToLower(k) {
 		case "threads":
-			r[k] = "1"
+			r[k] = fmt.Sprint(Threads)
 		case "hash":
-			r[k] = "64"
+			r[k] = fmt.Sprint(HashMB)
 		case "ownbook", "usebook", "book", "ponder":
 			r[k] = "false"
 		case "move overhead":

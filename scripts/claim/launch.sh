@@ -39,7 +39,7 @@ if [[ $mode == confirmation ]]; then
 fi
 if $dry; then args+=(--dry-run); fi
 if $dry; then pinned=(taskset -c 13,15 nice -n 19)
-else pinned=(taskset -c 0-15 nice -n 19)
+else pinned=(taskset -c 0,2,4,6,8,10,12,14 nice -n 19)
 fi
 "${pinned[@]}" "$tool" "${args[@]}"
 if $dry; then exit 0; fi

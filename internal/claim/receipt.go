@@ -143,19 +143,19 @@ func HostNow() (Host, error) {
 		return h, e
 	}
 	h.Load = strings.TrimSpace(string(b))
-	h.Scheduling = "taskset " + h.CPUStatus + " nice 19; engines GOMAXPROCS=1; Windows anchors via pinned Idle bridge"
+	h.Scheduling = "taskset " + h.CPUStatus + " nice 19; engines GOMAXPROCS=8; Threads8/Hash256"
 	// The restricted mask admits editing/build/dry-run preparation only.
 	// A live receipt requires the exclusive rig below.
-	if h.OS != "linux" || (h.CPUStatus != "13,15" && h.CPUStatus != "0-15") || h.Nice != "19" {
-		return h, fmt.Errorf("need Linux CPU 13,15 (preparation) or 0-15 (exclusive rig), nice 19, got %s/%s/%s", h.OS, h.CPUStatus, h.Nice)
+	if h.OS != "linux" || (h.CPUStatus != "13,15" && h.CPUStatus != CPUSet) || h.Nice != "19" {
+		return h, fmt.Errorf("need Linux CPU 13,15 (preparation) or %s (exclusive rig), nice 19, got %s/%s/%s", CPUSet, h.OS, h.CPUStatus, h.Nice)
 	}
 	return h, nil
 }
 func NoOtherMatch() error {
-	b, e := exec.Command("pgrep", "-af", "sprt|cutechess|fastchess|trainer\\.train|datagen|claimtool (run|prepare)").Output()
+	b, e := exec.Command("pgrep", "-af", "sprt|spsa|cutechess|fastchess|trainer\\.train|datagen|claimtool (run|prepare)").Output()
 	if e != nil {
 		if x, ok := e.(*exec.ExitError); ok && x.ExitCode() == 1 {
-			return nil
+			return idleGPU()
 		}
 		return e
 	}
@@ -178,7 +178,18 @@ func NoOtherMatch() error {
 		}
 		pid = parent
 	}
-	return foreignMatch(string(b), ours)
+	if e := foreignMatch(string(b), ours); e != nil {
+		return e
+	}
+	return idleGPU()
+}
+
+func idleGPU() error {
+	b, e := exec.Command("nvidia-smi", "--query-compute-apps=pid", "--format=csv,noheader,nounits").CombinedOutput()
+	if e != nil || strings.TrimSpace(string(b)) != "" {
+		return fmt.Errorf("claim requires idle GPU: %s (%v)", strings.TrimSpace(string(b)), e)
+	}
+	return nil
 }
 
 func foreignMatch(output string, ours map[string]bool) error {
@@ -191,7 +202,7 @@ func foreignMatch(output string, ours map[string]bool) error {
 	return nil
 }
 func MakePlan(mode string, id Identity, runner Artifact, openingPath string) (Plan, error) {
-	p := Plan{Schema: Schema, Mode: mode, ClaimThreshold: ClaimThreshold, Candidate: id, Anchors: Anchors(), Openings: Artifact{openingPath, OpeningSHA}, Concurrency: 8, Cap: 400, Runner: runner, MoveOverhead: 100, MaxLoad: 16}
+	p := Plan{Schema: Schema, Mode: mode, ClaimThreshold: ClaimThreshold, Candidate: id, Anchors: Anchors(), Openings: Artifact{openingPath, OpeningSHA}, Concurrency: 1, Threads: Threads, HashMB: HashMB, CPUSet: CPUSet, Cap: 400, Runner: runner, MoveOverhead: 100, MaxLoad: 16}
 	switch mode {
 	case "screen":
 		p.Count = 40
@@ -230,7 +241,7 @@ func validatePlan(p Plan) error {
 	if e != nil {
 		return e
 	}
-	if p.Schema != Schema || p.ClaimThreshold != ClaimThreshold || p.Count != expected.Count || p.Concurrency != expected.Concurrency || p.Cap != 400 || p.BaseNS != expected.BaseNS || p.IncrementNS != expected.IncrementNS || p.MoveOverhead != 100 || p.MaxLoad != expected.MaxLoad || p.Openings.SHA256 != OpeningSHA {
+	if p.Schema != Schema || p.ClaimThreshold != ClaimThreshold || p.Count != expected.Count || p.Concurrency != expected.Concurrency || p.Threads != Threads || p.HashMB != HashMB || p.CPUSet != CPUSet || p.Cap != 400 || p.BaseNS != expected.BaseNS || p.IncrementNS != expected.IncrementNS || p.MoveOverhead != 100 || p.MaxLoad != expected.MaxLoad || p.Openings.SHA256 != OpeningSHA {
 		return fmt.Errorf("protocol settings mismatch")
 	}
 	if len(p.Anchors) != len(expected.Anchors) {
@@ -321,7 +332,7 @@ func ValidateReceipt(r Receipt) error {
 			return fmt.Errorf("missing %s provenance", role)
 		}
 	}
-	if r.Host.CPUStatus != "0-15" || r.Host.Nice != "19" || r.AfterClockHost.CPUStatus != "0-15" || r.AfterClockHost.Nice != "19" {
+	if r.Host.CPUStatus != CPUSet || r.Host.Nice != "19" || r.AfterClockHost.CPUStatus != CPUSet || r.AfterClockHost.Nice != "19" {
 		return fmt.Errorf("unproved scheduling")
 	}
 	for _, h := range []Host{r.Host, r.AfterClockHost} {
@@ -522,6 +533,9 @@ func preflightLifecycle(s SessionRecord, tail []string) error {
 	return nil
 }
 func validateProbe(s SessionRecord, candidate bool, format string) error {
+	if e := validateResources(s.Options, s.Selected); e != nil {
+		return e
+	}
 	tail := []string{}
 	if candidate {
 		for _, fen := range []string{StartFEN, "4k3/8/8/8/8/8/4P3/4K3 w - - 0 1"} {
@@ -542,13 +556,32 @@ func validateProbe(s SessionRecord, candidate bool, format string) error {
 			if strings.HasPrefix(ev.Line, "info string eval backend "+backend+" score_cp ") {
 				evals++
 			}
-			if ev.Line == "info string threads configured 1 effective 1" {
+			if ev.Line == "info string threads configured 8 effective 8" {
 				effective = true
 			}
 		}
 	}
 	if candidate && (evals != 2 || !effective) {
-		return fmt.Errorf("unproved evaluator/threads: expected %s, probes %d, effective Threads=1 %t", backend, evals, effective)
+		return fmt.Errorf("unproved evaluator/threads: expected %s, probes %d, effective Threads=8 %t", backend, evals, effective)
+	}
+	return nil
+}
+
+func validateResources(options, selected map[string]string) error {
+	for name, value := range map[string]int{"Threads": Threads, "Hash": HashMB} {
+		fields := strings.Fields(options[name])
+		minimum, maximum := -1, -1
+		for i := 1; i+1 < len(fields); i++ {
+			switch fields[i] {
+			case "min":
+				minimum, _ = strconv.Atoi(fields[i+1])
+			case "max":
+				maximum, _ = strconv.Atoi(fields[i+1])
+			}
+		}
+		if len(fields) == 0 || fields[0] != "spin" || minimum < 0 || value < minimum || value > maximum || selected[name] != strconv.Itoa(value) {
+			return fmt.Errorf("unproved %s=%d support/selection", name, value)
+		}
 	}
 	return nil
 }
@@ -834,8 +867,8 @@ func CreateReceipt(p Plan, dir, sourceRoot string, toolBuild []string, screenRec
 	if e != nil {
 		return r, e
 	}
-	if r.Host.CPUStatus != "0-15" {
-		return r, fmt.Errorf("live receipt requires exclusive rig CPU 0-15 after T80 worker exits")
+	if r.Host.CPUStatus != CPUSet {
+		return r, fmt.Errorf("live receipt requires exclusive rig CPU %s", CPUSet)
 	}
 	if e = checkLoad(r.Host, p.MaxLoad); e != nil {
 		return r, e

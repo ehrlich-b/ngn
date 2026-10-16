@@ -178,6 +178,9 @@ func Run(receiptPath, dir string) error {
 	if e != nil {
 		return e
 	}
+	if host.CPUStatus != CPUSet {
+		return fmt.Errorf("games require exclusive rig CPU %s", CPUSet)
+	}
 	if e = checkLoad(host, r.Plan.MaxLoad); e != nil {
 		return e
 	}

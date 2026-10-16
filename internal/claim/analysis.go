@@ -306,7 +306,7 @@ func Analyze(receiptPath, auditPath, gameDir string) (Analysis, error) {
 	if e != nil {
 		return out, e
 	}
-	out.Interpretation = []string{"Local historical-label calibration, conditional on fixed anchors; no official CCRL rating.", "Both intervals omit label uncertainty, OS/time-control transfer, shared openings, correlated Counter versions and non-transitivity.", "The supplemental bootstrap never replaces the primary decision rule."}
+	out.Interpretation = []string{"Local historical-label calibration at Threads8/Hash256 against fixed CCRL Blitz 8CPU labels; no official CCRL rating.", "Both intervals omit label uncertainty, OS/time-control transfer, shared openings and non-transitivity.", "The supplemental bootstrap never replaces the primary decision rule."}
 	out.Questions = []string{"Bootstrap interval construction is not specified; supplemental percentile interval uses linear interpolation (type 7)."}
 	if out.Mode == "screen" {
 		out.Questions = append(out.Questions, "Screen bootstrap index count is not specified; jointly resample the screen's frozen 40 indices, never the confirmation's 80.")

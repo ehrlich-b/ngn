@@ -47,7 +47,7 @@ func receiptFixtureSession(a Artifact, id *Identity, candidate bool, format stri
 	for _, k := range ordered {
 		add("stdin", "setoption name "+k+" value "+s.Selected[k])
 		if k == "Threads" && candidate {
-			add("stdout", "info string threads configured 1 effective 1")
+			add("stdout", "info string threads configured 8 effective 8")
 		}
 	}
 	add("stdin", "isready")
@@ -79,7 +79,7 @@ func receiptFixture(t *testing.T) Receipt {
 	if e != nil {
 		t.Fatal(e)
 	}
-	host := Host{Hostname: "fixture", OS: "linux", Kernel: "fixture kernel", CPUStatus: "0-15", Nice: "19", Load: "0.01 0.02 0.03 1/20 1", Scheduling: "fixture scheduling", AtUTC: "2026-10-06T00:00:00Z"}
+	host := Host{Hostname: "fixture", OS: "linux", Kernel: "fixture kernel", CPUStatus: CPUSet, Nice: "19", Load: "0.01 0.02 0.03 1/20 1", Scheduling: "fixture scheduling", AtUTC: "2026-10-06T00:00:00Z"}
 	r := Receipt{AttemptID: strings.Repeat("c", 32), Schema: Schema, CreatedUTC: "2026-10-06T00:00:00Z", Plan: p, ToolSourceRoot: "/owned/source", ToolSourceCommit: strings.Repeat("b", 40), ToolGoVersion: "go1.25.5", ToolBuildArgv: []string{"/usr/local/go/bin/go", "build", "-p", "2", "-o", "/owned/claimtool", "./cmd/claimtool"}, SourceClean: true, CandidateSourceClean: true, NetFormat: "HCE", OpeningCount: 80, FrozenOpenings: Artifact{Path: "/owned/first-80-openings.txt", SHA256: sha}, Host: host, AfterClockHost: host, Probes: map[string]SessionRecord{}, Selected: map[string]map[string]string{}}
 	r.Probes["candidate"] = receiptFixtureSession(id.Engine, &id, true, r.NetFormat)
 	r.Selected["candidate"] = r.Probes["candidate"].Selected
@@ -287,30 +287,30 @@ func TestReceiptStaticProbeDistinguishesNNUEFormats(t *testing.T) {
 	}
 }
 
-func TestMaelstromUsesVerifiedExecutableDigest(t *testing.T) {
+func TestBerserkUsesVerifiedExecutableDigest(t *testing.T) {
 	p, e := MakePlan("screen", Identity{}, Artifact{}, "/owned/openings.txt")
 	if e != nil {
 		t.Fatal(e)
 	}
-	if p.Anchors[0].Engine.SHA256 != MaelstromSHA {
-		t.Fatal("Maelstrom identity unresolved")
+	if p.Anchors[3].Engine.SHA256 != BerserkSHA {
+		t.Fatal("Berserk identity unresolved")
 	}
 	if e = validatePlan(p); e != nil {
 		t.Fatal(e)
 	}
-	p.Anchors[0].Engine.SHA256 = strings.Repeat("f", 64)
+	p.Anchors[3].Engine.SHA256 = strings.Repeat("f", 64)
 	if e = validatePlan(p); e == nil {
-		t.Fatal("substituted Maelstrom executable admitted")
+		t.Fatal("substituted Berserk executable admitted")
 	}
 }
 
 func TestRevisedPoolPinsNewAnchorAndFixedSamples(t *testing.T) {
 	for _, mode := range []string{"screen", "confirmation"} {
 		p, e := MakePlan(mode, Identity{}, Artifact{}, "/owned/openings.txt")
-		if e != nil || p.Schema != "NGN-CLAIM-3" || p.ClaimThreshold != 3600 || len(p.Anchors) != 4 || p.Anchors[3].Label != 3713 || p.Anchors[3].Engine.SHA256 != BerserkSHA {
-			t.Fatalf("bad v3 pool: %+v %v", p, e)
+		if e != nil || p.Schema != "NGN-CLAIM-4" || p.ClaimThreshold != 3600 || len(p.Anchors) != 4 || p.Anchors[3].Label != 3741 || p.Anchors[3].Engine.SHA256 != BerserkSHA {
+			t.Fatalf("bad v4 pool: %+v %v", p, e)
 		}
-		if p.Concurrency != 8 || p.Cap != 400 || (mode == "screen" && p.Count != 40) || (mode == "confirmation" && p.Count != 80) {
+		if p.Concurrency != 1 || p.Cap != 400 || (mode == "screen" && p.Count != 40) || (mode == "confirmation" && p.Count != 80) {
 			t.Fatal("changed sample")
 		}
 		p.Anchors[3].Engine.SHA256 = strings.Repeat("f", 64)
@@ -320,12 +320,12 @@ func TestRevisedPoolPinsNewAnchorAndFixedSamples(t *testing.T) {
 	}
 }
 
-func TestV3PlanRejectsPoolSubstitution(t *testing.T) {
+func TestV4PlanRejectsPoolSubstitution(t *testing.T) {
 	for i, want := range []Anchor{
-		{Name: "Maelstrom 3.3.0", Label: 3317},
-		{Name: "Counter 5.5", Label: 3359},
-		{Name: "Viridithas 10.0.0", Label: 3557},
-		{Name: "Berserk 12", Label: 3713},
+		{Name: "Ethereal 13.00", Label: 3581},
+		{Name: "akimbo 1.0.0", Label: 3614},
+		{Name: "Black Marlin 9.0", Label: 3623},
+		{Name: "Berserk 12", Label: 3741},
 	} {
 		for _, field := range []string{"name", "label", "path", "sha"} {
 			p, e := MakePlan("screen", Identity{}, Artifact{}, "/owned/openings.txt")
@@ -351,7 +351,7 @@ func TestV3PlanRejectsPoolSubstitution(t *testing.T) {
 		p, e := MakePlan(mode, Identity{}, Artifact{}, "/owned/openings.txt")
 		want := "Berserk 12"
 		if mode == "tooling-check" {
-			want = "Counter 5.5"
+			want = "akimbo 1.0.0"
 		}
 		if e != nil || len(p.Anchors) != 1 || p.Anchors[0].Name != want || p.Count != 2 {
 			t.Fatalf("wrong operational sample: %+v %v", p, e)
@@ -359,13 +359,13 @@ func TestV3PlanRejectsPoolSubstitution(t *testing.T) {
 	}
 }
 
-func TestConfirmationRequiresSameV3ScreenIdentity(t *testing.T) {
+func TestConfirmationRequiresSameV4ScreenIdentity(t *testing.T) {
 	fixture := func() (Receipt, Analysis, Receipt) {
 		id := Identity{Engine: Artifact{Path: "/owned/ngn", SHA256: strings.Repeat("a", 64)}, Net: Artifact{Path: "/owned/net", SHA256: strings.Repeat("b", 64)}, SourceCommit: strings.Repeat("c", 40)}
 		s, _ := MakePlan("screen", id, Artifact{Path: "/owned/tool", SHA256: strings.Repeat("d", 64)}, "/owned/openings.txt")
 		c, _ := MakePlan("confirmation", id, s.Runner, s.Openings.Path)
-		screen := Receipt{Schema: Schema, Plan: s, FrozenOpenings: Artifact{Path: "/screen/slice", SHA256: OpeningSHA}, Selected: map[string]map[string]string{"candidate": {"Threads": "1"}}}
-		confirmation := Receipt{Schema: Schema, Plan: c, FrozenOpenings: Artifact{Path: "/confirmation/slice", SHA256: OpeningSHA}, Selected: map[string]map[string]string{"candidate": {"Threads": "1"}}}
+		screen := Receipt{Schema: Schema, Plan: s, FrozenOpenings: Artifact{Path: "/screen/slice", SHA256: OpeningSHA}, Selected: map[string]map[string]string{"candidate": {"Threads": "8"}}}
+		confirmation := Receipt{Schema: Schema, Plan: c, FrozenOpenings: Artifact{Path: "/confirmation/slice", SHA256: OpeningSHA}, Selected: map[string]map[string]string{"candidate": {"Threads": "8"}}}
 		analysis := Analysis{Schema: Schema, Mode: "screen", ClaimThreshold: ClaimThreshold, ScreenEligible: true}
 		return screen, analysis, confirmation
 	}

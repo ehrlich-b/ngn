@@ -1,0 +1,31 @@
+{
+  "source": "https://computerchess.org.uk/404/rating_list_all.html",
+  "snapshot": "/home/ehrli/ngn-data/claim-v4-20261016/ccrl-blitz-all-2026-10-16.html",
+  "sha256": "464e79bb483e64753c75162d74e144b20423a67c0ed098b99f8e86e22d956354",
+  "rows": [
+    {
+      "name": "Ethereal 13.00 64-bit 8CPU",
+      "label": 3581,
+      "games": 1695,
+      "raw_row": "<tr class=\"even\"><td rowspan=2 class=\"number\">&nbsp;</td><td rowspan=2 class=\"name\"><span class=\"comm\"><b><a href=\"cgi/engine_details.cgi?print=Details&amp;each_game=1&amp;eng=Ethereal%2013.00%2064-bit%208CPU#Ethereal_13_00_64-bit_8CPU\">Ethereal 13.00 64-bit 8CPU</a></b></span></td><td rowspan=2 class=\"number\"><b>3581</b></td><td rowspan=2 class=number_2><b>+14</b></td><td rowspan=2 class=number_2><b>&#8722;14</b></td><td rowspan=2 class=number><b>47.3%</b></td><td rowspan=2 class=number><b>+18.7</b></td><td rowspan=2 class=number><b>63.6%</b></td><td rowspan=2 class=number><a href=\"games-by-engine/Ethereal_13_00_64-bit_8CPU.bare.[1695].pgn.7z\"><b>1695</b></a></td></tr>"
+    },
+    {
+      "name": "akimbo 1.0.0 64-bit 8CPU",
+      "label": 3614,
+      "games": 3229,
+      "raw_row": "<tr class=\"odd\"><td rowspan=2 class=\"number\"><b>70</b></td><td rowspan=2 class=\"name\"><span class=\"oss\"><b><a href=\"cgi/engine_details.cgi?print=Details&amp;each_game=1&amp;eng=akimbo%201.0.0%2064-bit%208CPU#akimbo_1_0_0_64-bit_8CPU\">akimbo 1.0.0 64-bit 8CPU</a></b></span></td><td rowspan=2 class=\"number\"><b>3614</b></td><td rowspan=2 class=number_2><b>+10</b></td><td rowspan=2 class=number_2><b>&#8722;10</b></td><td rowspan=2 class=number><b>36.4%</b></td><td rowspan=2 class=number><b>+86.6</b></td><td rowspan=2 class=number><b>66.1%</b></td><td rowspan=2 class=number><a href=\"games-by-engine/akimbo_1_0_0_64-bit_8CPU.bare.[3229].pgn.7z\"><b>3229</b></a></td></tr>"
+    },
+    {
+      "name": "Black Marlin 9.0 64-bit 8CPU",
+      "label": 3623,
+      "games": 3390,
+      "raw_row": "<tr class=\"even\"><td rowspan=2 class=\"number\"><b>67</b></td><td rowspan=2 class=\"name\"><span class=\"oss\"><b><a href=\"cgi/engine_details.cgi?print=Details&amp;each_game=1&amp;eng=Black%20Marlin%209.0%2064-bit%208CPU#Black_Marlin_9_0_64-bit_8CPU\">Black Marlin 9.0 64-bit 8CPU</a></b></span></td><td rowspan=2 class=\"number\"><b>3623</b></td><td rowspan=2 class=number_2><b>+10</b></td><td rowspan=2 class=number_2><b>&#8722;10</b></td><td rowspan=2 class=number><b>37.9%</b></td><td rowspan=2 class=number><b>+75.7</b></td><td rowspan=2 class=number><b>67.8%</b></td><td rowspan=2 class=number><a href=\"games-by-engine/Black_Marlin_9_0_64-bit_8CPU.bare.[3390].pgn.7z\"><b>3390</b></a></td></tr>"
+    },
+    {
+      "name": "Berserk 12 64-bit 8CPU",
+      "label": 3741,
+      "games": 2918,
+      "raw_row": "<tr class=\"odd\"><td rowspan=2 class=\"number\">&nbsp;</td><td rowspan=2 class=\"name\"><span class=\"oss\"><b><a href=\"cgi/engine_details.cgi?print=Details&amp;each_game=1&amp;eng=Berserk%2012%2064-bit%208CPU#Berserk_12_64-bit_8CPU\">Berserk 12 64-bit 8CPU</a></b></span></td><td rowspan=2 class=\"number\"><b>3741</b></td><td rowspan=2 class=number_2><b>+10</b></td><td rowspan=2 class=number_2><b>&#8722;10</b></td><td rowspan=2 class=number><b>56.2%</b></td><td rowspan=2 class=number><b>&#8722;38.5</b></td><td rowspan=2 class=number><b>81.4%</b></td><td rowspan=2 class=number><a href=\"games-by-engine/Berserk_12_64-bit_8CPU.bare.[2918].pgn.7z\"><b>2918</b></a></td></tr>"
+    }
+  ]
+}

@@ -24,5 +24,15 @@ func schedulingFor(a Artifact) string {
 	if strings.HasSuffix(strings.ToLower(a.Path), ".exe") {
 		return "Windows job affinity 0xffff (0-15), Idle priority, kill on bridge close"
 	}
-	return "inherited taskset 0-15, nice 19; GOMAXPROCS=1"
+	return "inherited taskset " + CPUSet + ", nice 19; GOMAXPROCS=8"
+}
+
+func engineEnvironment(parent []string) []string {
+	env := make([]string, 0, len(parent)+1)
+	for _, value := range parent {
+		if !strings.HasPrefix(value, "GOMAXPROCS=") {
+			env = append(env, value)
+		}
+	}
+	return append(env, "GOMAXPROCS=8")
 }

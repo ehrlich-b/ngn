@@ -18,10 +18,19 @@ const OpeningSHA = "974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b
 const MaelstromSHA = "66ea969530d63f5904114079f518ba618b0deb4e269eb0c95d7496960379ea53"
 const ViridithasSHA = "35b32c4acc3216fd9d1084bebad90452cee2e8725af4bdd0f175cc42c4e3def3"
 
-// The v2 executable/receipts remain frozen for historical >3000 analysis.
-const Schema = "NGN-CLAIM-3"
+// Earlier executables/receipts remain frozen for historical analysis.
+const Schema = "NGN-CLAIM-4"
 const ClaimThreshold = 3600
+const Threads = 8
+const HashMB = 256
+const CPUSet = "0,2,4,6,8,10,12,14"
 const BerserkSHA = "7b9b5898a781cbe0757caef0b7281df5cf5029d17e67ed3df4824f0eb1c0125d"
+
+// The public v13.00 source is HCE, not the commercial NNUE edition rated
+// by this pool. Resolve the correct artifact before any live v4 receipt.
+const EtherealSHA = "UNRESOLVED-COMMERCIAL-NNUE"
+const AkimboSHA = "879c769035d948068512eb9de02c0f356727b6045e10b95ac813497ebd8d7eee"
+const BlackMarlinSHA = "980bd51860fc1cc61fd2216d5ca25fbcef1b5488bde1bce379d022b38b750642"
 
 type Artifact struct {
 	Path   string
@@ -44,10 +53,10 @@ type Anchor struct {
 
 func Anchors() []Anchor {
 	return []Anchor{
-		{Name: "Maelstrom 3.3.0", Label: 3317, Engine: Artifact{Path: "/home/ehrli/nnue-owned-maelstrom-20260930-v2/maelstrom-3.3.0", SHA256: MaelstromSHA}},
-		{Name: "Counter 5.5", Label: 3359, Engine: Artifact{"/home/ehrli/repos/ngn-next/output/go-opponent-preflight-20260906/counter-5.5-linux-amd64", "6c48fb52934d49d3774633e32f0b4fb4796b1e2c63925f24167ef0f0c0d761c8"}},
-		{Name: "Viridithas 10.0.0", Label: 3557, Engine: Artifact{Path: "/home/ehrli/ngn-data/claim-run-20261007/anchors/viridithas10/viridithas-10.0.0-x86_64-linux-v3", SHA256: ViridithasSHA}},
-		{Name: "Berserk 12", Label: 3713, Engine: Artifact{Path: "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/berserk-12-linux-native", SHA256: BerserkSHA}},
+		{Name: "Ethereal 13.00", Label: 3581, Engine: Artifact{Path: "/home/ehrli/ngn-data/claim-v4-20261016/anchors/ethereal13/ethereal-13.00-nnue", SHA256: EtherealSHA}},
+		{Name: "akimbo 1.0.0", Label: 3614, Engine: Artifact{Path: "/home/ehrli/ngn-data/claim-v4-20261016/anchors/akimbo1/akimbo-1.0.0-avx2", SHA256: AkimboSHA}},
+		{Name: "Black Marlin 9.0", Label: 3623, Engine: Artifact{Path: "/home/ehrli/ngn-data/claim-v4-20261016/anchors/blackmarlin9/blackmarlin-linux-x86-64-v3", SHA256: BlackMarlinSHA}},
+		{Name: "Berserk 12", Label: 3741, Engine: Artifact{Path: "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/berserk-12-linux-native", SHA256: BerserkSHA}},
 	}
 }
 
@@ -63,6 +72,8 @@ type Plan struct {
 	Anchors                 []Anchor
 	Openings                Artifact
 	Count, Concurrency, Cap int
+	Threads, HashMB         int
+	CPUSet                  string
 	ClaimThreshold          int
 	BaseNS, IncrementNS     int64
 	Runner                  Artifact
