@@ -1,0 +1,114 @@
+{
+  "state": "READY_TOOLING",
+  "source_commit": "41d9f94552fe7296d4ad82954c635f6da880dbae",
+  "source_tree": "10d9a820a5713efa3717b5df1038d57c29daffea",
+  "source_clean": true,
+  "runner": {
+    "path": "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool",
+    "sha256": "a30408fc4c2de4d0df26d8a763d468d4707c6f58828ade2dc656eeee7d4f7c3c"
+  },
+  "go_version": "go1.25.5",
+  "GOAMD64": "v3",
+  "GOMAXPROCS": 2,
+  "cpus": "13,15",
+  "nice": 19,
+  "dry_identity": "Current accepted9ec5d31/81215229 metadata rebuild; no engine launch or scored games",
+  "dry_modes": {
+    "screen": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "screen",
+        "--candidate",
+        "/home/ehrli/ngn-data/night-20261007/session94/dry-inputs/candidate-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session94/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/dry-screen",
+        "--dry-run"
+      ]
+    },
+    "confirmation": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "confirmation",
+        "--candidate",
+        "/home/ehrli/ngn-data/night-20261007/session94/dry-inputs/candidate-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session94/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/dry-confirmation",
+        "--dry-run"
+      ]
+    },
+    "tooling-check": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "tooling-check",
+        "--candidate",
+        "/home/ehrli/ngn-data/night-20261007/session94/dry-inputs/candidate-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session94/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/dry-tooling-check",
+        "--dry-run"
+      ]
+    },
+    "stability-screen": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "stability-screen",
+        "--candidate",
+        "/home/ehrli/ngn-data/night-20261007/session94/dry-inputs/candidate-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session94/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/dry-stability-screen",
+        "--dry-run"
+      ]
+    },
+    "stability-confirmation": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "stability-confirmation",
+        "--candidate",
+        "/home/ehrli/ngn-data/night-20261007/session94/dry-inputs/candidate-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session94/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/dry-stability-confirmation",
+        "--dry-run"
+      ]
+    }
+  },
+  "ready_for_games": true,
+  "games": 0,
+  "caveat": "Tool and anchor preparation ready; candidate identity and live exclusive-rig receipt must follow net gates and transfer.",
+  "focused_tests": "/home/ehrli/ngn-data/night-20261007/session94/focused.log",
+  "reused_full_checks": "/home/ehrli/ngn-data/night-20261007/session92/checks-result.json",
+  "finished_utc": "2026-10-16T15:27:26.864119+00:00"
+}

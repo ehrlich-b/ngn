@@ -1,43 +1,50 @@
 # NGN live state — 2026-10-16: 3600 campaign
 
-[Campaign](experiments/2026-10-08-3600-campaign.md) owns queue,handles,handoff.
-Playing **9ec5d31/81215229/compiled final14**;no3600 claim.
-October16 **10:05** plan amendment now governs the claim track.
-Local Git only:never pull/fetch/push. All compute rig;forge closed.
+[Campaign](experiments/2026-10-08-3600-campaign.md) owns queue, handles and handoff.
+Playing **9ec5d31/81215229/compiled final14**; no3600 claim.
+October16 plan through **11:20** governs. Local Git only; never pull/fetch/push.
+All compute rig; forge closed.
 
-Threads8/Hash256,8CPU Blitz labels. v4 **READY_TOOLING**:
-source010c586/toolb2269e5c under`claim-v4-20261016/tooling-koivisto`.
-The prospective Koivisto6.0 replacement clears the Ethereal blocker before
-any game. Four anchors and all five dry modes PASS;focused fixtures PASS;
-full short/race/vet and Threads8 correctness reused. Final pool labels:
-Koivisto3568,akimbo3614,BlackMarlin3623,Berserk3741. No scored game,
-live playing identity,attempt receipt or behavior change.
+v4 **READY_TOOLING**: source41d9f94/toola30408fc, overhead100 normalized
+including Berserk. Full short/race/vet, focused fixtures and five dry modes
+PASS. Clean metadata build0da45e7f on9ec5d31 matches84edb1a0 in36 depth12
+move/score/node/PV comparisons. Pool Koivisto3568,akimbo3614,BlackMarlin3623,
+Berserk3741; Threads8/Hash256/8CPU labels. No scored screen/claim game.
 
-WarmSPSA94467/controller91862 has50iterations/600games09:51,on81215229;
-24k/final2000. Moderated35/25/40trainer94537/controller89579 has8/115epochs
-10:09,ready18:40–19:30. Volume-control8acde096 READY;two-net limit.
-Detached**98730/ngn-s93-net-chain.service** waits natively for training's
-natural terminal and both parity receipts,then the next checkpoint. It
-records a native`-resume`command/history,stops the authorized tune service,
-runs both fixed1000 gates vs81215229 serially via the existing queue,and
-holds review. No pause has occurred. Do not duplicate the pause/queue or
-restart the old fresh-start controller. Results under`session93/net-*`.
-A winning claim candidate needs400/60+0.6 point>0,then prospective v4
-identity/receipt/screen/conditional confirmation. No separateT8-vs-T4run.
+At11:29: SPSA94467/controller91862 has125iterations/1500games,24k/final2000
+on81215229. Moderated35/25/40 trainer94537/controller89579 has25/115epochs;
+ready18:40–19:30. Volume-control8acde096 READY. Original98730/native service
+waits for training, then next checkpoint, planned tune pause and both fixed1000
+net gates. No pause yet; do not duplicate or restart its fresh-start controller.
 
-Width400+124.9924[107.9047,142.6808],zero faults,closes SMP policy lane.
-Final1741000+7.2972[−4.9261,19.5386],zero faults,SHELVED;end duration
-ladder. Qsearch,continuation,pawnquiet,ProbCut checked,queued after tuning/
-claim track. Search/time logistic[0,5],min1000/cap8000;nets/SPSA fixed1000,
-printed/exact lower95>0;correctness400/non-regression. Zero faults;no
-administrative gate kills. Reuse A/A per unchanged topology/TC/harness.
+Detached **102531/ngn-s94-claim-chain.service**, launcher102529, waits on98730
+in a separate unlimited CPU scope (`cpu.max=max100000`),3G/swap0/nice19.
+Prospective moderated priority if both KEEP; otherwise control or81215229.
+Selected new net gets400/60+0.6,point>0; baseline reuses its transfer. Then
+attempt001 runs the mandatory actual-launcher eight-core probe (>=7 CPU/wall,
+exact mask), screen320 and automatic conditional confirmation640/120+1.
+A600s descriptive sidecar records CPU/process activity without affecting games.
+No GPU/tune during claims. No new adoption yet.
 
-Actual-package provenance H0/BISECT3237,−6.7649[−12.0194,−1.5135],zero
-faults,is separate debt;owned code stays. No repeated key/TT panel,
-unchanged retry,extension,pooling or derived restoration. C:31.325GiB;
-hopper1188/keepalive untouched. [Session93](experiments/2026-10-16-session93.md).
-Next routine session:not before21:00 EDT October16,or earlier on a fault.
-No additional implementation task is admitted.
+Failed screen uses D=3640−P: <=40 resumes exact native SPSA-resume and the
+predeclared third source-weight cell45.35/33.21/21.44; >40 first measures
+T8-vs-T4 with own probe/A/A/fixed400. Point<25 holds for profile; otherwise
+resume. Failed confirmation also resumes. New GPU cell is final115 only,
+same tested trainer/recipe/fresh split,27.5GiB admission,one ungated net.
+Faults/failed transfer hold review. Results in`session94/claim-chain-result.json`
+and`claim-v4-20261016/attempt-001/{screen,confirmation}/analysis.json`.
+
+Width400+124.9924[107.9047,142.6808],zero faults,closes SMP policy lane
+unless the conditional T8-vs-T4 result opens its specific profile. Final174
+1000+7.2972[−4.9261,19.5386],zero faults,SHELVED; end duration ladder.
+Four checked search candidates remain after tuning/claim work. Search/time
+logistic[0,5],min1000/cap8000; nets/SPSA fixed1000,printed/exact lower95>0;
+correctness400/non-regression. Reuse A/A per unchanged topology/TC/harness.
+Zero faults; no administrative gate kills. Provenance H0 remains separate
+debt; owned code stays, no repeated panels/unchanged retry/derived restoration.
+C:30.878GiB; hopper1188/keepalive untouched.
+[Session94](experiments/2026-10-16-session94.md). Next routine session:not
+before22:30 EDT October16,or earlier on a fault. No additional code task admitted.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
