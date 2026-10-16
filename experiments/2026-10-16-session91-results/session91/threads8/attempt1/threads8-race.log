@@ -1,0 +1,14 @@
+=== RUN   TestCampaignThreads8CurrentNetSMP
+=== RUN   TestCampaignThreads8CurrentNetSMP/threads2
+=== RUN   TestCampaignThreads8CurrentNetSMP/threads4
+=== RUN   TestCampaignThreads8CurrentNetSMP/threads8
+--- PASS: TestCampaignThreads8CurrentNetSMP (14.49s)
+    --- PASS: TestCampaignThreads8CurrentNetSMP/threads2 (2.44s)
+    --- PASS: TestCampaignThreads8CurrentNetSMP/threads4 (4.00s)
+    --- PASS: TestCampaignThreads8CurrentNetSMP/threads8 (7.92s)
+=== RUN   TestCampaignThreads8UCILifecycle
+    campaign_threads8_uci_test.go:26: net setup failed: 
+--- FAIL: TestCampaignThreads8UCILifecycle (0.18s)
+FAIL
+FAIL	github.com/ehrlich-b/ngn/engine	14.773s
+FAIL

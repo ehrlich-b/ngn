@@ -1,41 +1,37 @@
 # NGN live state — 2026-10-16: 3600 campaign
 
-[Campaign](experiments/2026-10-08-3600-campaign.md) owns queue, handles and handoff.
-Playing **9ec5d31 / 81215229 / compiled final14**;no 3600 claim.
-
-October15 13:05 merged plan governs:width,Final174,warm24kSPSA,then
-search. Search/time logistic[0,5],min1000/cap8000;nets/SPSA fixed1000,
-printed and exact lower95>0;correctness400/non-regression. Zero faults;
-no administrative gate kills. Reuse A/A per unchanged topology/TC/harness.
+[Campaign](experiments/2026-10-08-3600-campaign.md) owns queue,handles,handoff.
+Playing **9ec5d31/81215229/compiled final14**;no3600 claim.
+October16 08:45 plan amendment governs alongside October15 13:05 order.
 Local Git only:never pull/fetch/push. All compute rig;forge closed.
 
-Actual-package provenance ended natural **H0/BISECT**,3237games,
-−6.7649[−12.0194,−1.5135],zero faults. Failed certification remains debt;
-owned code stays. No unchanged retry,extension,pooling or restoration.
-Cold TT-pressure and matched persistent-TT panels are complete;existing
-key proofs reused. Session89 naturally finishes04:22:16/exit0,564rows/
-282matched roots,96identities PASS. Session90 finds no incorrect retention
-invariant or causal regressor;descriptive depth/score differences do not
-nominate a policy. No repeated panels or unchanged certificate retry.
-`session89/tt-history/{result.json,review-session90.json,history.jsonl}`.
+True-width measurement completed07:19:03:400/200,152W234D14L,
+**+124.9924[107.9047,142.6808]**,zero faults. >=+60 closes SMP policy lane
+pending integration;no behavior adoption or absolute rating. Final174
+completed08:50:49:1000/500,209W603D188L,**+7.2972[−4.9261,19.5386]**,
+zero faults,**SHELVED** by lower95>0. End same-corpus duration ladder.
 
-True-width A/A40 **PASS03:47:41**,7/28/5,
-+17.3863[−36.0517,+71.6658],zero faults. Original width400 now92229 under
-queue91825/controller91821. At04:43,104completions,no terminal;ETA07:10–08:00.
-Then Final1741000 automatically. T4 masks0,2,4,6/GOMAX4,T1mask8/GOMAX1,
-Hash256/10+0.1/c1. Reuse actual-launcher probe and fresh passing control.
+WarmSPSA94467 under91862 started08:50:49 on81215229;24k/final2000,
+then separate fixed1000 vector gate versus compiledfinal14. Planning37–45h.
+Checked qsearch,continuation,pawnquiet,ProbCut follow tuning on immediate base.
+Search/time logistic[0,5],min1000/cap8000;nets/SPSA fixed1000,
+printed/exact lower95>0;correctness400/non-regression. Zero faults;
+no administrative gate kills. Reuse A/A per unchanged topology/TC/harness.
 
-Warm SPSA91862 native-waits on clean widthMEASURED+Final174SHELVED;
-starts24k/final2000 on81215229. KEEP/fault holds transfer/adoption/retarget.
-`session88/spsa-warm/*`;endpoint needs fixed1000 vector games. Prepared
-qsearch,continuation,pawnquiet,ProbCut follow tuning on immediate base.
+Volume-control1158acde096 READY;moderated35/25/40cell115 trainer94537
+started08:54:16,12/14/GPU,finalonly,about9–10h plus startup.
+At mosttwo ungated nets;C:31.98GiB at09:15;hopper/keepalive untouched.
+Threads8 correctness prep on13/15 (worker lifecycle,Hash256,short race,UCI)
+passed09:14:40,exit0;receipt`session91/threads8/result.json`. No engine behavior change. Claim configuration
+A=Threads8/current8CPU anchors,B=Threads4/legacy4CPU,C=single-thread still
+needs Bryan. No claim,screen,anchor games or protocol change before choice.
 
-Final1740b17ca29 and volume-control1158acde096 ready/parity checked.
-GPU89579 waits for cleanFinal174 terminal,then moderated35/25/40cell115,
-at mosttwo ungated nets. No automatic games/adoption. C:35.89GiB;
-hopper and keepalive untouched. [Session90](experiments/2026-10-16-session90.md).
-
-Next session:not before07:25 EDT October16 for the width terminal.
+Actual-package provenance natural **H0/BISECT**,3237games,
+−6.7649[−12.0194,−1.5135],zero faults remains separate debt;owned code stays.
+Existing key proofs,cold TT-pressure and matched persistent-TT panels reused;
+no causal invariant witness. No repeated panels,unchanged retry,extension,
+pooling or derived restoration. [Session91](experiments/2026-10-16-session91.md).
+Next session:not before19:00 EDT October16,unless choice/fault/new terminal.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

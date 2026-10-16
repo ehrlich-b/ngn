@@ -1,0 +1,24 @@
+=== RUN   TestCampaignThreads8CurrentNetSMP
+=== RUN   TestCampaignThreads8CurrentNetSMP/threads2
+=== RUN   TestCampaignThreads8CurrentNetSMP/threads4
+=== RUN   TestCampaignThreads8CurrentNetSMP/threads8
+--- PASS: TestCampaignThreads8CurrentNetSMP (14.10s)
+    --- PASS: TestCampaignThreads8CurrentNetSMP/threads2 (2.43s)
+    --- PASS: TestCampaignThreads8CurrentNetSMP/threads4 (3.97s)
+    --- PASS: TestCampaignThreads8CurrentNetSMP/threads8 (7.60s)
+=== RUN   TestCampaignThreads8UCILifecycle
+=== RUN   TestCampaignThreads8UCILifecycle/threads2
+=== RUN   TestCampaignThreads8UCILifecycle/threads4
+=== RUN   TestCampaignThreads8UCILifecycle/threads8
+=== RUN   TestCampaignThreads8UCILifecycle/threads4#01
+=== RUN   TestCampaignThreads8UCILifecycle/threads8#01
+=== RUN   TestCampaignThreads8UCILifecycle/threads1
+--- PASS: TestCampaignThreads8UCILifecycle (1.31s)
+    --- PASS: TestCampaignThreads8UCILifecycle/threads2 (0.12s)
+    --- PASS: TestCampaignThreads8UCILifecycle/threads4 (0.19s)
+    --- PASS: TestCampaignThreads8UCILifecycle/threads8 (0.33s)
+    --- PASS: TestCampaignThreads8UCILifecycle/threads4#01 (0.07s)
+    --- PASS: TestCampaignThreads8UCILifecycle/threads8#01 (0.33s)
+    --- PASS: TestCampaignThreads8UCILifecycle/threads1 (0.09s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	16.495s

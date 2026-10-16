@@ -1,0 +1,13 @@
+{
+  "utc": "2026-10-16T13:15:44.544546+00:00",
+  "accepted": "9ec5d31/81215229/compiled final14",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        6221        5408          88        4355        9292\nSwap:           4096           1        4094\n",
+  "gpu": "0 %, 4261 MiB",
+  "processes": "    PID    PPID     ELAPSED %CPU   RSS COMMAND\n   1188     245  3-11:59:18  0.3 18296 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n  89579     245    17:22:20  0.0 491064 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python /home/ehrli/ngn-data/night-20261007/session87/train-mixture.py\n  91862     245    05:49:16  0.0 16744 python3 /home/ehrli/ngn-data/night-20261007/session87/2026-10-14-session84-spsa.py /home/ehrli/ngn-data/night-20261007/session88/spsa-warm\n  94467   91862       24:54  2.2 21152 /home/ehrli/ngn-data/night-20261007/session84/spsa -engine /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -out /home/ehrli/ngn-data/night-20261007/session88/spsa-warm/spsa.jsonl -lowpower=false -seed 2026101401 -rend .05 -afrac .1 -report 25 -engineoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -engineoption UseNNUE=true -engineoption Hash=64 -engineoption Threads=1 -engineoption OwnBook=false\n  94537   89579       21:28 65.2 3290272 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261015 --out /home/ehrli/ngn-data/night-20261007/session87/mixture/moderated-t74/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 115 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only --archive-source-weights /home/ehrli/ngn-data/night-20261007/session87/mixture/moderated-t74/source-weights.json\n",
+  "tuner_log_tail": [
+    "",
+    "start: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=104 FutilityMaxDepth=8 ReverseFutilityMargin=63 DeltaMargin=202 SingularDepth=7 SingularMargin=57 ExtensionBudget=29 AspInit=17 AspMult=163 LMPBase=3 "
+  ],
+  "durable_reports": 0,
+  "host_c_free_bytes": 34340466688
+}

@@ -1,0 +1,45 @@
+{
+  "state": "PASS",
+  "cases": [
+    {
+      "threads": 1,
+      "hash_mb": 256,
+      "timed": true,
+      "stop": true
+    },
+    {
+      "threads": 2,
+      "hash_mb": 256,
+      "timed": true,
+      "stop": true
+    },
+    {
+      "threads": 4,
+      "hash_mb": 256,
+      "timed": true,
+      "stop": true
+    },
+    {
+      "threads": 8,
+      "hash_mb": 256,
+      "timed": true,
+      "stop": true
+    },
+    {
+      "threads": 1,
+      "hash_mb": 256,
+      "timed": true,
+      "stop": true
+    },
+    {
+      "threads": 8,
+      "hash_mb": 256,
+      "timed": true,
+      "stop": true
+    }
+  ],
+  "live_reconfiguration": true,
+  "live_quit": true,
+  "scheduler": "main.go callback; inherited GOMAXPROCS removed",
+  "limitation": "CPUs13,15 correctness only; no eight-core occupancy or strength claim"
+}

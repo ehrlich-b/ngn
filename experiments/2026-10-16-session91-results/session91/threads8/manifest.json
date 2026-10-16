@@ -1,0 +1,29 @@
+{
+  "created_utc": "2026-10-16T13:11:30.409582+00:00",
+  "authority": "Root October16 08:45: option-independent Threads8 race/UCI/Hash256 prep on CPUs13,15",
+  "source": "9ec5d31",
+  "net": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22",
+  "accepted_binary": "84edb1a0bdc4e38f1bbc86b0d66d11e1baa67cb84a457d5e2294ade2cab5084b",
+  "artifacts": {
+    "uci-test.go.txt": "b6c25b80e9f43dce3541d1d64f9c00ae6b34acc86a2a0667ca948b52333280b3",
+    "uci-smoke.py": "b01500cc482490d39fd55db091d05e4f2e8e7ddfe5f8d0ca305181c0dfb456ed",
+    "work.sh": "ef950a1433cafa166fb465c1cb6b30fea26209cce25fb688353601faca58ab2a",
+    "source.tar": "0911501d082ec22522ef1d232c2c963cc11663196817af329c14bf3b312e5f93",
+    "current-net-test.go.txt": "f6ac9d1a8e85bd1f856c350f9c5a8c58c678d875beb8fca2aa07ad6b086dfc16",
+    "launch.sh": "aa0c7b8a5c07a728f71b07edd794db027d7a637bf495fdf87c4239cc60f2d06f"
+  },
+  "cpus": "13,15",
+  "gomaxprocs": 8,
+  "nice": 19,
+  "memory": "3GiB/swap0",
+  "cases": "Threads2/4/8 Hash256 accepted NNUE: 27 search/stop/restart cases across three positions; UCI widths2/4/8/4/8/1 with all workers admitted/joined and legal bestmoves; active Hash resize; full short race suite; accepted executable smoke",
+  "commands": [
+    "go test -p 1 -short -race ./engine -run ^TestCampaignThreads8 -count=1 -v",
+    "go test -p 1 -short -race ./... -count=1",
+    "python3 uci-smoke.py"
+  ],
+  "decision": "PASS only if all checks exit0; no engine behavior change, games, strength verdict, claim eligibility or eight-core throughput verdict",
+  "claim_configuration": "Pending Bryan; prep independent of selection",
+  "automatic_adoption": false,
+  "previous_attempt": "attempt1: worker correctness PASS; new UCI fixture expected ngnn1 but the accepted KB8 net correctly reports ngnn3; fixed test assertion only; no engine defect or games"
+}
