@@ -264,7 +264,8 @@ func FrozenOptions(options map[string]string, id *Identity, overhead int) map[st
 			r[k] = fmt.Sprint(HashMB)
 		case "ownbook", "usebook", "book", "ponder":
 			r[k] = "false"
-		case "move overhead":
+		}
+		if strings.NewReplacer(" ", "", "_", "").Replace(strings.ToLower(k)) == "moveoverhead" {
 			r[k] = fmt.Sprint(overhead)
 		}
 	}

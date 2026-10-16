@@ -34,6 +34,16 @@ func TestV4ResourcesAndScheduler(t *testing.T) {
 	}
 }
 
+func TestV4MoveOverheadSpellings(t *testing.T) {
+	for _, name := range []string{"MoveOverhead", "Move Overhead", "move_overhead"} {
+		// Berserk 12 advertises this exact descriptor with a 300 ms default.
+		options := map[string]string{name: "spin default 300 min 100 max 10000"}
+		if got := FrozenOptions(options, nil, 100); got[name] != "100" || len(got) != 1 {
+			t.Fatalf("%s: overhead not normalized: %v", name, got)
+		}
+	}
+}
+
 func TestV4ProbeRequiresEightThreadsAndHash256(t *testing.T) {
 	id := Identity{}
 	s := receiptFixtureSession(Artifact{Path: "/owned/ngn"}, &id, true, "HCE")

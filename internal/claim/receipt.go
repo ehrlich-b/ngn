@@ -50,6 +50,7 @@ type Receipt struct {
 	ClockCheck                                      []ClockProbe
 	Host, AfterClockHost                            Host
 	ScreenReceipt, ScreenAnalysis                   Artifact
+	Occupancy                                       Artifact // one-off real-launcher width proof, reused by confirmation
 	Questions                                       []string
 }
 type RecheckReceipt struct {
@@ -278,6 +279,9 @@ func allArtifacts(r Receipt) []Artifact {
 	if r.ScreenReceipt.Path != "" {
 		a = append(a, r.ScreenReceipt, r.ScreenAnalysis)
 	}
+	if r.Occupancy.Path != "" {
+		a = append(a, r.Occupancy)
+	}
 	return a
 }
 func Recheck(r Receipt) error {
@@ -311,6 +315,9 @@ func ReadReceipt(path string) (Receipt, error) {
 	return r, ValidateReceipt(r)
 }
 func ValidateReceipt(r Receipt) error {
+	if (r.Plan.Mode == "screen" || r.Plan.Mode == "confirmation") && (r.Occupancy.Path == "" || len(r.Occupancy.SHA256) != 64) {
+		return fmt.Errorf("missing real-launcher occupancy receipt")
+	}
 	if b, e := hex.DecodeString(r.AttemptID); e != nil || len(b) != 16 {
 		return fmt.Errorf("missing/invalid pre-run attempt identity")
 	}
@@ -977,6 +984,20 @@ func CreateReceipt(p Plan, dir, sourceRoot string, toolBuild []string, screenRec
 	if e != nil {
 		return r, e
 	}
+	if p.Mode == "screen" {
+		occupancy, probeErr := ProbeOccupancy(p, r.Selected)
+		path := filepath.Join(dir, "occupancy.json")
+		if e = WriteJSON(path, occupancy); e != nil {
+			return r, e
+		}
+		if probeErr != nil {
+			return r, probeErr
+		}
+		r.Occupancy, e = Bind(path)
+		if e != nil {
+			return r, e
+		}
+	}
 	if p.Mode == "confirmation" {
 		if screenReceipt == "" || screenAnalysis == "" {
 			return r, fmt.Errorf("confirmation requires admitted screen receipt and analysis")
@@ -996,6 +1017,7 @@ func CreateReceipt(p Plan, dir, sourceRoot string, toolBuild []string, screenRec
 		if !reflect.DeepEqual(sa, verified) || !screenAdmitsConfirmation(sr, sa, r) {
 			return r, fmt.Errorf("screen does not admit same frozen candidate/tool/options/anchors")
 		}
+		r.Occupancy = sr.Occupancy
 		r.ScreenReceipt, e = Bind(screenReceipt)
 		if e != nil {
 			return r, e
