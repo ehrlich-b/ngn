@@ -16,8 +16,12 @@ HZ = os.sysconf('SC_CLK_TCK')
 def probe(job, name, widths, masks):
     directory = D/name
     directory.mkdir()
+    # The harness counts book plies toward maxmoves. Leave two searched
+    # plies after the first book entry so both roles actually search.
+    opening = next(line for line in Path(job['book']).read_text().splitlines() if line.strip())
+    max_plies = len(opening.split()) + 2
     argv = ['taskset','-c','0-11',job['harness'],'-new',job['candidate'],'-base',job['base'],
-            '-movetime','5000','-maxgames','2','-mingames','1000000','-maxmoves','2',
+            '-movetime','5000','-maxgames','2','-mingames','1000000','-maxmoves',str(max_plies),
             '-concurrency','1','-lowpower=false','-gametimeout','60','-openings',job['book'],
             '-pgn',str(directory/'games.pgn')]
     for role, options in [('new',job['candidate_options']),('base',job['base_options'])]:

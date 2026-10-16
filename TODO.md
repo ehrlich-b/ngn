@@ -1,51 +1,46 @@
-# NGN live state — 2026-10-15: 3600 campaign
+# NGN live state — 2026-10-16: 3600 campaign
 
-[Campaign](experiments/2026-10-08-3600-campaign.md) owns queue/handles/handoff.
-Playing **9ec5d31/81215229/compiled final14**; no3600 claim.
+[Campaign](experiments/2026-10-08-3600-campaign.md) owns the queue, handles and handoff.
+Playing **9ec5d31 / 81215229 / compiled final14**; no 3600 claim.
 
-October15 13:05 merged plan governs: provenance natural terminal, true width,
-Final174, warm24k SPSA, then search. Search/time logistic[0,5]/min1000/cap8000;
-nets/SPSA fixed1000/lower95>0; correctness400/non-regression; provenance
-[−8,0]/60+0.6/min1000/cap4000. Zero faults; no administrative gate kills.
-One A/A per topology/TC/harness,reused. Git local only; never pull/fetch/push.
+October 15 13:05 merged plan governs: provenance terminal, true width,
+Final174, warm 24k SPSA, then search. Search/time logistic [0,5], min 1000,
+cap 8000; nets/SPSA fixed 1000, printed and exact lower95 > 0; correctness
+400/non-regression. Zero faults; no administrative gate kills. Reuse A/A
+per unchanged topology/TC/harness. Local Git only: never pull/fetch/push.
+All compute on rig; forge closed.
 
-Accepted Final11581215229: original1000 +18.083[+5.723,+30.489],zero faults;
-transfer400/60+0.6 passes +10.426[−5.299,+26.194] by point-positive rule.
-No new absolute result. Singular correction9ec5d31 and search checks unchanged.
+Provenance81543 naturally ended October 15 16:39:48: **H0 / BISECT**,
+3237 games, −6.7649 [−12.0194, −1.5135], LLR −3.08152, zero faults.
+Certification failed; owned code stays selected. No unchanged regate,
+extension or pooling. Independent width/net/tune proceed. The new owned
+TT-pressure diagnostic completed 24 cells at Hash64/256 and 2M/16M nodes;
+12 instrumentation identities pass. Hash64 had 430,883 evictions at 16M,
+versus 5,227 at Hash256; matching rejection persists at both sizes.
+No causal regressor or policy keep established; existing key proofs reused.
 
-At16:03 provenance81543 under39843/39845 has3170 completions,no terminal;
-cap roughly23:30 October15. H1 certifies,H0 diagnoses owned code,cap records
-debt; all clean outcomes release independent width/net/tune. Never restore
-third-party-derived code. Old qsearch waiter83550 disarmed before any game.
+Session87 probe searched zero moves (maxmoves2 < book6), failing before
+any A/A or scored gate. Corrected book+2 probe passes actual child occupancy:
+T4 CPU/wall 3.963/4.063; T4-v-T1 3.960/0.993, GOMAX4/1, exact masks.
+Recovered queue91825/controller91821 now runs A/A40 → width400 → Final1741000.
+Gate outputs stay `session87/{aa-true-width,true-width,net-final174}`;
+new probe/controller receipts are in `session88`. No running gate restarted.
+At 03:34, A/A has 12/40 completions and no terminal.
 
-Final174 completed13:03 after06:08 disk recovery. Import-only finalizer repair
-passes identical reexport/20 parity; candidate **0b17ca29**,44.544B presentations.
-No retraining/adoption. Original fixed1000 gate is nominated after width.
-C:33.63GiB at16:03; old host-capacity request resolved.
+Warm SPSA91862 waits natively on91821; clean width MEASURED and Final174
+SHELVED starts 24k/final2000 on81215229. KEEP/fault holds for transfer,
+adoption and retarget. New tune outputs `session88/spsa-warm/*`; endpoint
+needs its own fixed1000 vector gate. Then prechecked qsearch, continuation,
+pawn quiet and ProbCut, each against the immediate accepted base.
 
-Detached queue89720/controller89717 waits naturally on39843,then actual-launch
-five-second occupancy probe,fresh4-v-4 A/A40,fixed400 T4/Hash256-v-T1/Hash256,
-then Final1741000 on accepted9ec5d31/81215229/final14. Bryan approved scheduler
-GOMAXPROCS=Threads. A/A roles alternate on the same logical team0,2,4,6,
-ponderoff; measurement uses0,2,4,6 versus8. No SMT-sibling contention or trainer
-pause/completion dependency. Width≥+60 closesSMP,<+50 profiles,50–60 unresolved.
+Final1740b17ca29 is ready: 174 epochs/44.544B, identical reexport/20 parity PASS.
+Volume-control115 completed 01:29 October16:8acde096/29.44B/20 parity PASS.
+GPU controller89579 waits for a clean Final174 terminal before moderated
+35/25/40 cell115, keeping at most two ungated nets. No automatic games/adoption.
+C:36.11GiB at03:34; no host action needed. Hopper and keepalive untouched.
 
-GPU controlled family89579/trainer89581 runs volume control115,then moderated
-T74 cell115 only after cleanFinal174 terminal (≤2 ungated nets). Common tested
-c411391 sampler,fresh validation seed20261015,final115 only,source shares
-24.12/17.66/58.22 versus35/25/40. Loader12,14;peak-space admission27.5GiB;
-no data reconstruction. Between-cell contrast isolates weights; versus accepted
-Final115 sampler/holdout also change. No automatic games/adoption.
-
-WarmSPSA89726 native-waits behind89717; clean widthMEASURED plusFinal174SHELVED
-starts24k/final2000 on81215229,BEFORE search. NetKEEP holds for transfer/adoption/
-retarget. Tested407c604 tuner; endpoint needs fixed1000 vector gate. Then already
-checked qsearch,continuation,pawnquiet,ProbCut,one behavior/immediate accepted base.
-
-All compute rig;forge closed;hopper/keepalive untouched. No publication or
-remote writes. No further admitted code work while the queue awaits terminals.
-Next session not before23:30 EDT October15 unless a terminal/fault arrives.
-[Session87](experiments/2026-10-15-session87.md).
+Next session: not before 03:50 EDT October16, for topology A/A or a fault.
+[Session88](experiments/2026-10-16-session88.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

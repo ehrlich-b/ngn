@@ -1,0 +1,46 @@
+{
+  "games": 3237,
+  "pairs": 1618,
+  "orphan_games": 1,
+  "wdl": [
+    444,
+    2286,
+    507
+  ],
+  "penta": [
+    11,
+    301,
+    1056,
+    240,
+    10
+  ],
+  "printed_elo_ci95": [
+    -6.8,
+    -12.0,
+    -2.0
+  ],
+  "exact_elo_ci95": [
+    -6.764897377972676,
+    -12.019422959627885,
+    -1.5134644561877035
+  ],
+  "final_pllr": -3.08,
+  "exact_pllr": -3.0815223186478318,
+  "native_verdict": "H0 ACCEPTED: new is NOT better (<= -8 ELO)",
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 2236,
+    "checkmate": 951,
+    "max-moves": 47,
+    "stalemate": 3
+  },
+  "faults": [],
+  "verdict": "BISECT",
+  "name": "s83-provenance-actual",
+  "finished_utc": "2026-10-15T20:39:48.208587+00:00",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session83/provenance/manifest.json",
+  "automatic_adoption": false
+}

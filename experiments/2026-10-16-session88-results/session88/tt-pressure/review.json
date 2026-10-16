@@ -1,0 +1,134 @@
+{
+  "source": "9ec5d31",
+  "net": "81215229",
+  "summary": [
+    {
+      "hash_mb": 64,
+      "node_cap": 2000000,
+      "cells": 6,
+      "counts": {
+        "Stores": 2752349,
+        "Matching": 1340275,
+        "MatchingAccepted": 825182,
+        "MatchingRejected": 515093,
+        "OldMatchingRejected": 0,
+        "RejectedDifferentScore": 465220,
+        "RejectedDifferentMove": 175059,
+        "Evictions": 46,
+        "EmptyInserts": 1412017,
+        "CollisionRejected": 11,
+        "ProbeSlots": 45856366,
+        "OccupiedMismatches": 1148700
+      },
+      "occupancy_range": [
+        0.02822589874267578,
+        0.07982015609741211
+      ],
+      "completed_depths": [
+        18,
+        17,
+        19,
+        19,
+        35,
+        21
+      ]
+    },
+    {
+      "hash_mb": 256,
+      "node_cap": 2000000,
+      "cells": 6,
+      "counts": {
+        "Stores": 2752348,
+        "Matching": 1340276,
+        "MatchingAccepted": 825183,
+        "MatchingRejected": 515093,
+        "OldMatchingRejected": 0,
+        "RejectedDifferentScore": 465220,
+        "RejectedDifferentMove": 175059,
+        "Evictions": 1,
+        "EmptyInserts": 1412071,
+        "CollisionRejected": 0,
+        "ProbeSlots": 45973233,
+        "OccupiedMismatches": 283220
+      },
+      "occupancy_range": [
+        0.007056534290313721,
+        0.019956588745117188
+      ],
+      "completed_depths": [
+        18,
+        17,
+        19,
+        19,
+        35,
+        21
+      ]
+    },
+    {
+      "hash_mb": 64,
+      "node_cap": 16000000,
+      "cells": 6,
+      "counts": {
+        "Stores": 21917563,
+        "Matching": 10930132,
+        "MatchingAccepted": 5451430,
+        "MatchingRejected": 5478702,
+        "OldMatchingRejected": 0,
+        "RejectedDifferentScore": 5049450,
+        "RejectedDifferentMove": 1662587,
+        "Evictions": 430883,
+        "EmptyInserts": 10436288,
+        "CollisionRejected": 120260,
+        "ProbeSlots": 364336495,
+        "OccupiedMismatches": 70678873
+      },
+      "occupancy_range": [
+        0.1844487190246582,
+        0.5930626392364502
+      ],
+      "completed_depths": [
+        24,
+        23,
+        24,
+        25,
+        44,
+        26
+      ]
+    },
+    {
+      "hash_mb": 256,
+      "node_cap": 16000000,
+      "cells": 6,
+      "counts": {
+        "Stores": 22041513,
+        "Matching": 10890912,
+        "MatchingAccepted": 5306418,
+        "MatchingRejected": 5584494,
+        "OldMatchingRejected": 0,
+        "RejectedDifferentScore": 5051193,
+        "RejectedDifferentMove": 1944539,
+        "Evictions": 5227,
+        "EmptyInserts": 11144352,
+        "CollisionRejected": 1022,
+        "ProbeSlots": 369508653,
+        "OccupiedMismatches": 18821763
+      },
+      "occupancy_range": [
+        0.03901320695877075,
+        0.16442018747329712
+      ],
+      "completed_depths": [
+        24,
+        23,
+        24,
+        25,
+        43,
+        30
+      ]
+    }
+  ],
+  "identity_cases": 12,
+  "finding": "At16M nodes Hash64 has430883 evictions versus5227 atHash256; matching rejections remain frequent at both sizes. Depth response varies by position. No single causal regressor is established.",
+  "limitations": "Cold fixed-node positions,not persistent game histories or a strength gate; no old derived TT inspected; no source acceptance or unchanged certification retry",
+  "next": "Use current width/integration results and a focused persistent-history mechanism test before proposing any owned TT policy change; keep SEE/keys hypotheses open and reuse existing correctness proofs"
+}

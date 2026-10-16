@@ -16,6 +16,16 @@ Rules:
 
 ## October2026 campaign — certification outstanding
 
+Actual-package certification completed naturally **2026-10-15 16:39:48 EDT**:
+**H0 / BISECT**,3237games/1618pairs plus one natural-drain orphan,
+444W2286D507L,penta[11,301,1056,240,10],
+**−6.7649[−12.0194,−1.5135]**,exactLLR−3.08152,zero faults.
+This fails certification; it does not prove a loss of at least8Elo.
+Owned replacements remain selected. Under October15 13:05 authority,
+independent width/net/tuning continue while owned-code diagnosis proceeds.
+No unchanged regate,extension,pooling or derived-code restoration.
+[Original result](2026-10-16-session88-results/session83/provenance/result.json).
+
 This scope is separate from the historical batches below. Reference is the
 archived pre-replacement5b882e2 binary53caa7c4, used only as a match opponent
 with identical a4d90b41/final14. Session71's repaired-package certification was
@@ -38,9 +48,9 @@ and final14 as archived reference5b882e2/53caa7c4. H1 certifies the declared
 margin; H0 bisects SEE values versus keys from scratch; cap leaves debt.
 A/A is reused only for an unchanged machine/topology/TC/harness; the new
 PGN-capable harness long-clock control passed in session83 (40/20,zero faults)
-and is reusable. Fresh actual9ec5d31 certificate is detached behind the final115
-net decision; identical a4d90b41 on a shelf or identical winning net after
-its approved400-game transfer. [Session83](2026-10-14-session83.md). Never administratively
+and is reusable. Actual9ec5d31 certificate used identical winning81215229
+after its approved400-game transfer and endedH0 as recorded above.
+[Session83](2026-10-14-session83.md). Never administratively
 stop the certificate, resume/pool the stopped sample, or restore derived code.
 The ordinary positive-cap heuristic batch route above remains[0,+6].
 Singular correctness and width measurements precede certification in the

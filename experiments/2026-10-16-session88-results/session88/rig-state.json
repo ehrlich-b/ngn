@@ -1,0 +1,203 @@
+{
+  "observed_utc": "2026-10-16T07:33:58.874319+00:00",
+  "host_c_free_bytes": 38777180160,
+  "accepted": "9ec5d31/81215229/compiled final14",
+  "provenance": {
+    "games": 3237,
+    "pairs": 1618,
+    "orphan_games": 1,
+    "wdl": [
+      444,
+      2286,
+      507
+    ],
+    "penta": [
+      11,
+      301,
+      1056,
+      240,
+      10
+    ],
+    "printed_elo_ci95": [
+      -6.8,
+      -12.0,
+      -2.0
+    ],
+    "exact_elo_ci95": [
+      -6.764897377972676,
+      -12.019422959627885,
+      -1.5134644561877035
+    ],
+    "final_pllr": -3.08,
+    "exact_pllr": -3.0815223186478318,
+    "native_verdict": "H0 ACCEPTED: new is NOT better (<= -8 ELO)",
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 2236,
+      "checkmate": 951,
+      "max-moves": 47,
+      "stalemate": 3
+    },
+    "faults": [],
+    "verdict": "BISECT",
+    "name": "s83-provenance-actual",
+    "finished_utc": "2026-10-15T20:39:48.208587+00:00",
+    "manifest": "/home/ehrli/ngn-data/night-20261007/session83/provenance/manifest.json",
+    "automatic_adoption": false
+  },
+  "width_probe": [
+    {
+      "passed": true,
+      "children": [
+        {
+          "pid": 91836,
+          "gomaxprocs": "4",
+          "cpus": [
+            0,
+            2,
+            4,
+            6
+          ],
+          "command": "/home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn ",
+          "peak_5s_cpu_wall_ratio": 3.9631418808944727
+        },
+        {
+          "pid": 91843,
+          "gomaxprocs": "4",
+          "cpus": [
+            0,
+            2,
+            4,
+            6
+          ],
+          "command": "/home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn ",
+          "peak_5s_cpu_wall_ratio": 4.06278017230105
+        }
+      ],
+      "expected_widths": [
+        4,
+        4
+      ],
+      "expected_masks": [
+        [
+          0,
+          2,
+          4,
+          6
+        ],
+        [
+          0,
+          2,
+          4,
+          6
+        ]
+      ],
+      "method": "Peak measured CPU seconds / wall seconds over4.8\u20135.2s windows in go movetime5000 searches; no score verdict"
+    },
+    {
+      "passed": true,
+      "children": [
+        {
+          "pid": 91872,
+          "gomaxprocs": "4",
+          "cpus": [
+            0,
+            2,
+            4,
+            6
+          ],
+          "command": "/home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn ",
+          "peak_5s_cpu_wall_ratio": 3.960155309490729
+        },
+        {
+          "pid": 91879,
+          "gomaxprocs": "1",
+          "cpus": [
+            8
+          ],
+          "command": "/home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn ",
+          "peak_5s_cpu_wall_ratio": 0.9929411699797295
+        }
+      ],
+      "expected_widths": [
+        4,
+        1
+      ],
+      "expected_masks": [
+        [
+          0,
+          2,
+          4,
+          6
+        ],
+        [
+          8
+        ]
+      ],
+      "method": "Peak measured CPU seconds / wall seconds over4.8\u20135.2s windows in go movetime5000 searches; no score verdict"
+    }
+  ],
+  "aa_result": null,
+  "aa_completed_games": 12,
+  "aa_last_completion": "G12    1W  9D  2L   45.8%  elo  -29.0 [-217,+159]  LLR  -0.06  pLLR  -0.07  checkmate   ",
+  "units": {
+    "ngn-s88-queue.service": "MainPID=91825\nCPUQuotaPerSecUSec=8s\nAllowedCPUs=0-15\nMemoryMax=3221225472\nActiveState=active\n",
+    "ngn-s88-spsa-warm.service": "MainPID=91862\nCPUQuotaPerSecUSec=6s\nAllowedCPUs=0-11\nMemoryMax=3221225472\nActiveState=active\n",
+    "ngn-s87-mixture.service": "MainPID=89579\nCPUQuotaPerSecUSec=2s\nAllowedCPUs=12-15\nMemoryMax=4294967296\nActiveState=active\n",
+    "ngn-s88-tt-pressure.service": "MainPID=0\nCPUQuotaPerSecUSec=infinity\nAllowedCPUs=\nMemoryMax=infinity\nActiveState=inactive\n"
+  },
+  "controllers": {
+    "queue": "91821",
+    "spsa": "91857"
+  },
+  "tt_pressure": {
+    "state": "DIAGNOSED",
+    "cells": 24,
+    "identity_cases": 12,
+    "interpretation": "Counters and Hash64/256 sensitivity only; no Elo or policy acceptance verdict",
+    "finished_utc": "2026-10-16T07:31:46.298659+00:00"
+  },
+  "volume_control": {
+    "epochs": 115,
+    "total_positions": 29440000000,
+    "source_presentations": {
+      "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf": 5199327665,
+      "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf": 17139189142,
+      "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf": 7101483193
+    },
+    "selection": "final115",
+    "reexport_identical": true,
+    "parity_cases": 20,
+    "net_sha256": "8acde0967aca26251a54411911d509e4b3f1a9e70e4d6323fa162989b1d8ee12",
+    "checkpoint_sha256": "60f8fca59c8bd677e723e3b580a15f5d8e2b957858a927eb15efc5a8e387ed46"
+  },
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        3128       10316           4        2456       12386\nSwap:           4096           1        4094\n",
+  "gpu": "0 %, 1477 MiB, 16303 MiB\n",
+  "processes": [
+    "your 131072x1 screen size is bogus. expect trouble",
+    "    PID    PPID    PGID PSR  NI %CPU   RSS     ELAPSED COMMAND",
+    "  91886   91882   91825   6  19  198 753268      07:01 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    "  91903   91882   91825   4  19  197 776380      07:00 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    "  92182   92181   92181  12   0 12.5 12928       00:00 python3 -",
+    "  91882   91826   91825  10  19  0.6 18632       07:01 /home/ehrli/ngn-data/night-20261007/session80/sprt -new /home/ehrli/ngn-data/night-20261007/session87/ngn4-a -base /home/ehrli/ngn-data/night-20261007/session87/ngn4-b -tc 10+0.1 -concurrency 1 -mingames 1000000 -maxgames 40 -elo0 0 -elo1 5 -alpha .05 -beta .05 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -lowpower=false -pgn /home/ehrli/ngn-data/night-20261007/session87/aa-true-width/games.pgn -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -newoption UseNNUE=true -newoption Hash=256 -newoption Threads=4 -newoption OwnBook=false -newoption AspInit=17 -newoption AspMult=163 -newoption DeltaMargin=202 -newoption ExtensionBudget=29 -newoption FutilityMargin=104 -newoption FutilityMaxDepth=8 -newoption LMPBase=3 -newoption LMRFullDepth=3 -newoption LMRMoveThreshold=2 -newoption NullMoveMinDepth=2 -newoption NullMoveR=4 -newoption ReverseFutilityMargin=63 -newoption SingularDepth=7 -newoption SingularMargin=57 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -baseoption UseNNUE=true -baseoption Hash=256 -baseoption Threads=4 -baseoption OwnBook=false -baseoption AspInit=17 -baseoption AspMult=163 -baseoption DeltaMargin=202 -baseoption ExtensionBudget=29 -baseoption FutilityMargin=104 -baseoption FutilityMaxDepth=8 -baseoption LMPBase=3 -baseoption LMRFullDepth=3 -baseoption LMRMoveThreshold=2 -baseoption NullMoveMinDepth=2 -baseoption NullMoveR=4 -baseoption ReverseFutilityMargin=63 -baseoption SingularDepth=7 -baseoption SingularMargin=57",
+    "   1188     245    1188   0   0  0.3 18348  3-06:17:30 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    "    204       1     204  11   0  0.0 298484 3-06:17:33 /opt/wingthing-agent-canaries/litellm-venv/bin/python /opt/wingthing-agent-canaries/litellm-venv/bin/litellm --config /opt/wingthing-agent-canaries/litellm-config.yaml --host 127.0.0.1 --port 4000",
+    "    473     430     473   1   0  0.0 43752  3-06:17:32 containerd --config /run/user/1000/docker/containerd/containerd.toml",
+    "  89579     245   89579  12  19  0.0 491064   11:40:32 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python /home/ehrli/ngn-data/night-20261007/session87/train-mixture.py",
+    "      1       0       1   7   0  0.0 12408  3-06:17:34 /sbin/init",
+    "    245       1     245  14   0  0.0 11264  3-06:17:33 /usr/lib/systemd/systemd --user",
+    "    430     379     331  10   0  0.0 84112  3-06:17:33 dockerd",
+    "  91913       1   91913   7   0  0.0 12672       06:43 /usr/libexec/wsl-pro-service",
+    "  91826   91825   91825   2  19  0.0 17484       07:41 python3 /home/ehrli/ngn-data/night-20261007/session88/width-preflight.py",
+    "   1066     245    1066  15   0  0.0 10380  3-06:17:31 /home/ehrli/bin/containerd-shim-runc-v2 -namespace moby -id e0ad11fe4f146ff7ec35a7280362269b6f45bc8c4db1cee881e0799f907c185b -address /run/user/1000/docker/containerd/containerd.sock",
+    "    200       1     200   4   0  0.0 35656  3-06:17:33 /snap/snapd/current/usr/lib/snapd/snapd",
+    "    421     331     331   8   0  0.0  3328  3-06:17:33 slirp4netns --mtu 65520 -r 3 --disable-host-loopback --enable-seccomp --userns-path=/proc/379/ns/user --netns-type=path /proc/379/root/run/user/1000/dockerd-rootless/netns tap0",
+    "  91862     245   91862   8  19  0.0 16512       07:28 python3 /home/ehrli/ngn-data/night-20261007/session87/2026-10-14-session84-spsa.py /home/ehrli/ngn-data/night-20261007/session88/spsa-warm",
+    "  91825     245   91825  12  19  0.0 17792       07:41 python3 /home/ehrli/ngn-data/night-20261007/session88/campaign_queue.py /home/ehrli/ngn-data/night-20261007/session88/queue.json"
+  ],
+  "goal_met": false,
+  "push": false
+}
