@@ -2,41 +2,42 @@
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue,handles,handoff.
 Playing **9ec5d31/81215229/compiled final14**;no3600 claim.
-October16 **09:45** plan amendment now governs the claim track.
+October16 **10:05** plan amendment now governs the claim track.
 Local Git only:never pull/fetch/push. All compute rig;forge closed.
 
-Bryan chose **Threads8/Hash256,8CPU Blitz labels**. No separateT8-vs-T4
-measurement. v4 tool **5f54c9c/a2fb2dd0** is prepared:full short/full race/
-vet/focused tests PASS;three operational dry modes PASS. Akimbo1.0.0,
-BlackMarlin9.0,Berserk12 smokes PASS. Ethereal13.00 free-source build is
-HCE and UNADMITTED for its commercial3581 row;screen/confirmation dry modes
-stop at its unresolved artifact. Needs Bryan:licensed NNUE artifact or
-prospective replacement approval(suggestedVelvet6.0.0,8CPU3590/965games).
-No scored games,pause or engine behavior change this session.
+Threads8/Hash256,8CPU Blitz labels. v4 **READY_TOOLING**:
+source010c586/toolb2269e5c under`claim-v4-20261016/tooling-koivisto`.
+The prospective Koivisto6.0 replacement clears the Ethereal blocker before
+any game. Four anchors and all five dry modes PASS;focused fixtures PASS;
+full short/race/vet and Threads8 correctness reused. Final pool labels:
+Koivisto3568,akimbo3614,BlackMarlin3623,Berserk3741. No scored game,
+live playing identity,attempt receipt or behavior change.
 
 WarmSPSA94467/controller91862 has50iterations/600games09:51,on81215229;
-24k/final2000,rough40h total unless paused. Moderated35/25/40trainer94537
-has5/115epochs09:53,GPU81%;ready18:40–19:30. Volume-control8acde096 READY;
-two-net limit,C:31.32GiB;hopper1188/keepalive untouched. When v4 is ready
-AND moderated ends naturally,pause tune at next verified checkpoint,then
-both fixed1000 net gates versus81215229,winning-net400/60+0.6 point>0,
-v4 strict3600 screen and conditional confirmation. Native SPSA`-resume`
-restores state;the current Python controller fresh-starts and must not be
-rerun on populated output. No pause is armed while the anchor is unresolved.
+24k/final2000. Moderated35/25/40trainer94537/controller89579 has8/115epochs
+10:09,ready18:40–19:30. Volume-control8acde096 READY;two-net limit.
+Detached**98730/ngn-s93-net-chain.service** waits natively for training's
+natural terminal and both parity receipts,then the next checkpoint. It
+records a native`-resume`command/history,stops the authorized tune service,
+runs both fixed1000 gates vs81215229 serially via the existing queue,and
+holds review. No pause has occurred. Do not duplicate the pause/queue or
+restart the old fresh-start controller. Results under`session93/net-*`.
+A winning claim candidate needs400/60+0.6 point>0,then prospective v4
+identity/receipt/screen/conditional confirmation. No separateT8-vs-T4run.
 
-Width400 +124.9924[107.9047,142.6808],zero faults,closes SMP policy lane.
-Final1741000 +7.2972[−4.9261,19.5386],zero faults,SHELVED;end duration
+Width400+124.9924[107.9047,142.6808],zero faults,closes SMP policy lane.
+Final1741000+7.2972[−4.9261,19.5386],zero faults,SHELVED;end duration
 ladder. Qsearch,continuation,pawnquiet,ProbCut checked,queued after tuning/
 claim track. Search/time logistic[0,5],min1000/cap8000;nets/SPSA fixed1000,
 printed/exact lower95>0;correctness400/non-regression. Zero faults;no
 administrative gate kills. Reuse A/A per unchanged topology/TC/harness.
 
 Actual-package provenance H0/BISECT3237,−6.7649[−12.0194,−1.5135],zero
-faults,remains separate debt;owned code stays. Key/cold/persistent TT panels
-are reviewed,no causal invariant witness;no repeated panel,unchanged retry,
-extension,pooling or derived restoration. [Session92](experiments/2026-10-16-session92.md).
-Next routine session:not before19:00 EDT October16,unless anchor decision/
-artifact,fault,new terminal or admitted implementation task arrives.
+faults,is separate debt;owned code stays. No repeated key/TT panel,
+unchanged retry,extension,pooling or derived restoration. C:31.325GiB;
+hopper1188/keepalive untouched. [Session93](experiments/2026-10-16-session93.md).
+Next routine session:not before21:00 EDT October16,or earlier on a fault.
+No additional implementation task is admitted.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

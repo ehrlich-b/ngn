@@ -1,0 +1,28 @@
+{
+  "utc": "2026-10-16T14:12:31.447073+00:00",
+  "stage": "session93",
+  "event": "handoff",
+  "detail": {
+    "accepted": "9ec5d31/81215229/compiled final14",
+    "v4_source": "010c586",
+    "v4_tool": "b2269e5c5e96ea69f1366167a2892a963ba05eeb24bc393d3c0223b40c3427be",
+    "v4": "READY_TOOLING;Koivisto admitted,five dry modes PASS;no live candidate receipt or games",
+    "net_chain_pid": 98730,
+    "net_chain_launcher": 98728,
+    "net_chain_service": "ngn-s93-net-chain.service",
+    "net_chain": "native waiting on training89579;then verified next checkpoint,planned SPSA pause,both fixed1000 vs81215229,review",
+    "tuner": 94467,
+    "tuner_controller": 91862,
+    "trainer": 94537,
+    "gpu_controller": 89579,
+    "durable_iterations": 50,
+    "durable_games": 600,
+    "epochs": 8,
+    "host_c_free_bytes": 33634918400,
+    "next_session": "not before21:00 EDT October16 or on fault",
+    "no_pause_yet": true,
+    "no_push": true,
+    "goal_met": false,
+    "hopper_keepalive": "untouched"
+  }
+}

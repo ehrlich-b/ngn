@@ -5,7 +5,18 @@ The merged plan's October16 09:45 note records Bryan's choice:
 inherits v3's estimator, openings, clocks, counts, audits and decision rules.
 It does not nominate a candidate or authorize a sample with missing inputs.
 
-The initial frozen pool is Ethereal13.00 **3581**, akimbo1.0.0 **3614**,
+**October16 10:05 amendment applied in [Session93](2026-10-16-session93.md):**
+replace unavailable Ethereal with Koivisto6.0/8CPU3568±13/1929games before
+any game. The final pool is Koivisto3568,akimbo3614,BlackMarlin3623,
+Berserk3741. Koivisto's official AVX2 binary and Threads8/Hash256 smoke
+PASS. New source010c586/toolb2269e5c is frozen under
+`claim-v4-20261016/tooling-koivisto`;all five dry modes PASS10:04:54.
+**READY_TOOLING**;actual candidate identity and exclusive live receipt still
+follow net gates/transfer. The anchor blocker below is historical and resolved.
+The post-training checkpoint pause and both fixed1000 net gates are armed
+as98730/ngn-s93-net-chain.service;no tune stop or scored game has occurred.
+
+The initial frozen pool was Ethereal13.00 **3581**, akimbo1.0.0 **3614**,
 BlackMarlin9.0 **3623**, Berserk12 **3741**. The raw October16 full-list HTML
 is copied to `/home/ehrli/ngn-data/claim-v4-20261016/ccrl-blitz-all-2026-10-16.html`;
 `labels.json` beside it preserves its digest and exact rows, including the

@@ -1,0 +1,114 @@
+{
+  "state": "READY_TOOLING",
+  "source_commit": "010c58646be5728580ae95eb9cc0c6fa1ffc0b82",
+  "source_tree": "4a115c7e7ec982eec7103cc9c9bf87ab93a818b9",
+  "source_clean": true,
+  "runner": {
+    "path": "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool",
+    "sha256": "b2269e5c5e96ea69f1366167a2892a963ba05eeb24bc393d3c0223b40c3427be"
+  },
+  "go_version": "go1.25.5",
+  "GOAMD64": "v3",
+  "GOMAXPROCS": 2,
+  "cpus": "13,15",
+  "nice": 19,
+  "dry_identity": "Existing v3 development-only fixture; no claim nomination or engine launch",
+  "dry_modes": {
+    "screen": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "screen",
+        "--candidate",
+        "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/development-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session93/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/dry-screen",
+        "--dry-run"
+      ]
+    },
+    "confirmation": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "confirmation",
+        "--candidate",
+        "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/development-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session93/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/dry-confirmation",
+        "--dry-run"
+      ]
+    },
+    "tooling-check": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "tooling-check",
+        "--candidate",
+        "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/development-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session93/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/dry-tooling-check",
+        "--dry-run"
+      ]
+    },
+    "stability-screen": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "stability-screen",
+        "--candidate",
+        "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/development-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session93/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/dry-stability-screen",
+        "--dry-run"
+      ]
+    },
+    "stability-confirmation": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "stability-confirmation",
+        "--candidate",
+        "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/development-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session93/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/dry-stability-confirmation",
+        "--dry-run"
+      ]
+    }
+  },
+  "ready_for_games": true,
+  "games": 0,
+  "caveat": "Tool and anchor preparation ready; candidate identity and live exclusive-rig receipt must follow net gates and transfer.",
+  "focused_tests": "/home/ehrli/ngn-data/night-20261007/session93/claim-tests.log",
+  "reused_full_checks": "/home/ehrli/ngn-data/night-20261007/session92/checks-result.json",
+  "finished_utc": "2026-10-16T14:04:54.160205+00:00"
+}

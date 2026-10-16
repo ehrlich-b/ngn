@@ -1,0 +1,6 @@
+--- FAIL: TestBootstrapConstantPairsHandComputed (0.01s)
+    analysis_test.go:195: bootstrap lower: got 3636.5, want 3639.75
+FAIL
+FAIL	github.com/ehrlich-b/ngn/internal/claim	0.049s
+?   	github.com/ehrlich-b/ngn/cmd/claimtool	[no test files]
+FAIL

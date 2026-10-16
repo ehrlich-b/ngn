@@ -1,0 +1,10 @@
+{
+  "authority": "Merged plan October16 09:45 and10:05: v4 ready AND natural moderated terminal,then next-checkpoint SPSA pause,both fixed1000 vs81215229",
+  "training_controller_pid": 89579,
+  "tuner_pid": 94467,
+  "tuning_controller_pid": 91862,
+  "tuning_service": "ngn-s88-spsa-warm.service",
+  "base": "9ec5d31/81215229/compiled final14",
+  "automatic_adoption": false,
+  "checkpoint_interval_seconds": 300
+}

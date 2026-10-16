@@ -1,0 +1,12 @@
+{
+  "release": "https://api.github.com/repos/Luecx/Koivisto/releases/tags/v6.0",
+  "tag": "v6.0",
+  "published_at": "2021-07-21T11:54:01Z",
+  "asset": "Koivisto_6.0-x64-linux-avx2",
+  "url": "https://github.com/Luecx/Koivisto/releases/download/v6.0/Koivisto_6.0-x64-linux-avx2",
+  "bytes": 6892136,
+  "path": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/koivisto6/Koivisto_6.0-x64-linux-avx2",
+  "sha256": "2b2bd642e8a317456516a9134b5b6faf674859b4666bf526a85cedfb31241581",
+  "published_digest": null,
+  "release_checksum_note": "No separate checksum asset listed; release body and original asset metadata retained."
+}
