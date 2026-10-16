@@ -1,0 +1,18 @@
+{
+  "utc": "2026-10-16T08:15:01.639223+00:00",
+  "accepted": "9ec5d31/81215229/compiled final14",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        4613        8751           4        2536       10900\nSwap:           4096           1        4094\n",
+  "gpu": "0 %, 1477 MiB, 16303 MiB",
+  "processes": "    PID    PPID     ELAPSED %CPU %MEM COMMAND\n   1188     245  3-06:58:33  0.3  0.1 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n  89576   89571    12:21:35  0.0  0.0 bash /home/ehrli/ngn-data/night-20261007/session87/train-mixture.sh\n  89579     245    12:21:35  0.0  3.0 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python /home/ehrli/ngn-data/night-20261007/session87/train-mixture.py\n  91821   91815       48:44  0.0  0.0 bash /home/ehrli/ngn-data/night-20261007/session88/queue.sh\n  91825     245       48:44  0.0  0.1 python3 /home/ehrli/ngn-data/night-20261007/session88/campaign_queue.py /home/ehrli/ngn-data/night-20261007/session88/queue.json\n  91857   91851       48:31  0.0  0.0 bash /home/ehrli/ngn-data/night-20261007/session88/spsa-warm.sh\n  91862     245       48:31  0.0  0.1 python3 /home/ehrli/ngn-data/night-20261007/session87/2026-10-14-session84-spsa.py /home/ehrli/ngn-data/night-20261007/session88/spsa-warm\n  92229   91825       27:20  0.5  0.1 /home/ehrli/ngn-data/night-20261007/session80/sprt -new /home/ehrli/ngn-data/night-20261007/session87/ngn4-a -base /home/ehrli/ngn-data/night-20261007/session87/ngn1-c -tc 10+0.1 -concurrency 1 -mingames 1000000 -maxgames 400 -elo0 0 -elo1 5 -alpha .05 -beta .05 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -lowpower=false -pgn /home/ehrli/ngn-data/night-20261007/session87/true-width/games.pgn -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -newoption UseNNUE=true -newoption Hash=256 -newoption Threads=4 -newoption OwnBook=false -newoption AspInit=17 -newoption AspMult=163 -newoption DeltaMargin=202 -newoption ExtensionBudget=29 -newoption FutilityMargin=104 -newoption FutilityMaxDepth=8 -newoption LMPBase=3 -newoption LMRFullDepth=3 -newoption LMRMoveThreshold=2 -newoption NullMoveMinDepth=2 -newoption NullMoveR=4 -newoption ReverseFutilityMargin=63 -newoption SingularDepth=7 -newoption SingularMargin=57 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -baseoption UseNNUE=true -baseoption Hash=256 -baseoption Threads=1 -baseoption OwnBook=false -baseoption AspInit=17 -baseoption AspMult=163 -baseoption DeltaMargin=202 -baseoption ExtensionBudget=29 -baseoption FutilityMargin=104 -baseoption FutilityMaxDepth=8 -baseoption LMPBase=3 -baseoption LMRFullDepth=3 -baseoption LMRMoveThreshold=2 -baseoption NullMoveMinDepth=2 -baseoption NullMoveR=4 -baseoption ReverseFutilityMargin=63 -baseoption SingularDepth=7 -baseoption SingularMargin=57\n  92351   92339       03:08  0.0  0.0 bash /home/ehrli/ngn-data/night-20261007/session89/tt-history/controller.sh\n  92356     245       03:08  0.0  0.0 bash /home/ehrli/ngn-data/night-20261007/session89/tt-history/work.sh\n",
+  "identity": {
+    "passed": true,
+    "roots": 96,
+    "node_cap": 100000
+  },
+  "diagnostic": "matched persistent/empty TT panel active; no policy or Elo verdict",
+  "width": "original fixed400 active, no terminal",
+  "gpu_wait": "two ungated nets; moderated35/25/40 follows clean Final174 terminal",
+  "next_session": "not before04:40 EDT October16",
+  "push": false,
+  "host_c_free_bytes": 38541979648
+}

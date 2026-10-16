@@ -1,0 +1,95 @@
+package engine
+
+import (
+    "encoding/json"
+    "os"
+    "testing"
+)
+
+// Diagnostic-only metadata; the accepted TT's decisions remain unchanged.
+type campaignHistoryCounts struct {
+    Stores, MatchingAccepted, MatchingRejected, OldTouchRejected uint64
+    OldPayloadRejected, OlderPayloadRejected, ChangedOldScore uint64
+    Hits, OldPayloadHits, OlderPayloadHits, OldTouchHits uint64
+    Evictions, CollisionRejected uint64
+    MaxRejectedPayloadAge, MaxHitPayloadAge uint16
+}
+var campaignHistory campaignHistoryCounts
+
+func TestCampaignTTHistory(t *testing.T) {
+    net, err := LoadNGNN1(os.Getenv("NGN_HISTORY_NET"))
+    if err != nil { t.Fatal(err) }
+    fens := []string{
+        "r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10",
+        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+        "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
+        "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+        "8/5k2/2p2p2/3p4/3P1P2/2P2K2/8/8 w - - 0 1",
+        "6k1/5pp1/7p/3q4/8/3Q2P1/5P1P/6K1 w - - 0 1",
+    }
+    nodes, plies := uint64(2000000), 24
+    if os.Getenv("NGN_HISTORY_IDENTITY") == "1" { nodes, plies = 100000, 4 }
+    file, err := os.Create(os.Getenv("NGN_HISTORY_OUT"))
+    if err != nil { t.Fatal(err) }
+    defer file.Close()
+    enc := json.NewEncoder(file)
+    newEngine := func(hash int, p *Position) *SearchEngine {
+        e, err := NewSearchEngineWithHash(hash)
+        if err != nil { t.Fatal(err) }
+        if err := e.SelectNGNN1Evaluator(net); err != nil { t.Fatal(err) }
+        // Admit the model before copying history, so lifecycle initialization
+        // cannot discard the matched root's supplied history.
+        e.evaluateForPlayerCached(p)
+        e.SetMaxNodes(nodes)
+        return e
+    }
+    for fixture, fen := range fens {
+        var path []Move
+        for _, hash := range []int{64, 256} {
+            p, err := ParseFEN(fen)
+            if err != nil { t.Fatal(err) }
+            warm := [2]*SearchEngine{newEngine(hash,p),newEngine(hash,p)}
+            cold := newEngine(hash,p)
+            for ply := 0; ply < plies; ply++ {
+                if hash == 256 && ply >= len(path) { break }
+                if p.IsFIDEDrawRule() { break }
+                e := warm[int(p.Turn())]
+                history := e.worker.history // Arrays only: independent snapshot.
+                cold.ClearHash()
+                cold.worker.history = history
+                var chosen Move
+                var first map[string]any
+                for _, arm := range []string{"warm", "cold"} {
+                    active := e
+                    if arm == "cold" { active = cold }
+                    root := p.Copy()
+                    before := GenerateFEN(root)
+                    campaignHistory = campaignHistoryCounts{}
+                    info := active.SearchIterativeDeepening(root,64,nil)
+                    if GenerateFEN(root) != before { t.Fatal("search changed root") }
+                    if info.BestMove != EmptyMove && !IsLegalMove(p,info.BestMove) { t.Fatal("illegal best move") }
+                    occupied := 0
+                    for _, row := range active.tt.items { if row.payload&ttOccupied != 0 { occupied++ } }
+                    row := map[string]any{"fixture":fixture,"ply":ply,"fen":before,"hash_mb":hash,
+                        "arm":arm,"node_cap":nodes,"nodes":info.Nodes,"depth":info.Depth,
+                        "score":info.BestScore,"best":info.BestMove.ToString(),
+                        "tt_probes":info.TTProbes,"tt_hits":info.TTHits,"tt_cutoffs":info.TTCutoffs,
+                        "generation":active.tt.age,"occupied":occupied,"pressure":campaignHistory}
+                    if arm == "warm" { chosen,first = info.BestMove,row }
+                    if arm == "cold" && ply < 2 {
+                        for _, field := range []string{"nodes","depth","score","best","tt_probes","tt_hits","tt_cutoffs","occupied"} {
+                            if first[field] != row[field] { t.Fatalf("initial cold controls differ: fixture%d Hash%d ply%d %s",fixture,hash,ply,field) }
+                        }
+                    }
+                    if err := enc.Encode(row); err != nil { t.Fatal(err) }
+                }
+                if hash == 64 {
+                    if chosen == EmptyMove { break }
+                    path = append(path,chosen)
+                } else { chosen = path[ply] }
+                if !IsLegalMove(p,chosen) { t.Fatal("illegal replay") }
+                p.GameMakeMove(chosen)
+            }
+        }
+    }
+}

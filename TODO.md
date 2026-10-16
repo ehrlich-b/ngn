@@ -1,46 +1,42 @@
 # NGN live state — 2026-10-16: 3600 campaign
 
-[Campaign](experiments/2026-10-08-3600-campaign.md) owns the queue, handles and handoff.
-Playing **9ec5d31 / 81215229 / compiled final14**; no 3600 claim.
+[Campaign](experiments/2026-10-08-3600-campaign.md) owns queue, handles and handoff.
+Playing **9ec5d31 / 81215229 / compiled final14**;no 3600 claim.
 
-October 15 13:05 merged plan governs: provenance terminal, true width,
-Final174, warm 24k SPSA, then search. Search/time logistic [0,5], min 1000,
-cap 8000; nets/SPSA fixed 1000, printed and exact lower95 > 0; correctness
-400/non-regression. Zero faults; no administrative gate kills. Reuse A/A
-per unchanged topology/TC/harness. Local Git only: never pull/fetch/push.
-All compute on rig; forge closed.
+October15 13:05 merged plan governs:width,Final174,warm24kSPSA,then
+search. Search/time logistic[0,5],min1000/cap8000;nets/SPSA fixed1000,
+printed and exact lower95>0;correctness400/non-regression. Zero faults;
+no administrative gate kills. Reuse A/A per unchanged topology/TC/harness.
+Local Git only:never pull/fetch/push. All compute rig;forge closed.
 
-Provenance81543 naturally ended October 15 16:39:48: **H0 / BISECT**,
-3237 games, −6.7649 [−12.0194, −1.5135], LLR −3.08152, zero faults.
-Certification failed; owned code stays selected. No unchanged regate,
-extension or pooling. Independent width/net/tune proceed. The new owned
-TT-pressure diagnostic completed 24 cells at Hash64/256 and 2M/16M nodes;
-12 instrumentation identities pass. Hash64 had 430,883 evictions at 16M,
-versus 5,227 at Hash256; matching rejection persists at both sizes.
-No causal regressor or policy keep established; existing key proofs reused.
+Actual-package provenance ended natural **H0/BISECT**,3237games,
+−6.7649[−12.0194,−1.5135],zero faults. Failed certification remains debt;
+owned code stays. No unchanged retry,extension,pooling or restoration.
+Cold TT-pressure panel complete;existing key proofs reused. Session89
+adds a bounded matched-history persistent-TT diagnostic:controller92351/
+service92356 on13,15,all96 instrumentation identities PASS;up to576roots
+running.
+`session89/tt-history/*`;true payload-write age versus touched generation,
+Hash64/256,persistent versus empty TT with copied pre-search histories.
+No correctness,policy or Elo verdict from this descriptive panel.
 
-Session87 probe searched zero moves (maxmoves2 < book6), failing before
-any A/A or scored gate. Corrected book+2 probe passes actual child occupancy:
-T4 CPU/wall 3.963/4.063; T4-v-T1 3.960/0.993, GOMAX4/1, exact masks.
-Recovered queue91825/controller91821 now runs A/A40 → width400 → Final1741000.
-Gate outputs stay `session87/{aa-true-width,true-width,net-final174}`;
-new probe/controller receipts are in `session88`. No running gate restarted.
-At 03:34, A/A has 12/40 completions and no terminal.
+True-width A/A40 **PASS03:47:41**,7/28/5,
++17.3863[−36.0517,+71.6658],zero faults. Original width400 now92229 under
+queue91825/controller91821. At04:11,47completions,no terminal;ETA07:10–08:00.
+Then Final1741000 automatically. T4 masks0,2,4,6/GOMAX4,T1mask8/GOMAX1,
+Hash256/10+0.1/c1. Reuse actual-launcher probe and fresh passing control.
 
-Warm SPSA91862 waits natively on91821; clean width MEASURED and Final174
-SHELVED starts 24k/final2000 on81215229. KEEP/fault holds for transfer,
-adoption and retarget. New tune outputs `session88/spsa-warm/*`; endpoint
-needs its own fixed1000 vector gate. Then prechecked qsearch, continuation,
-pawn quiet and ProbCut, each against the immediate accepted base.
+Warm SPSA91862 native-waits on clean widthMEASURED+Final174SHELVED;
+starts24k/final2000 on81215229. KEEP/fault holds transfer/adoption/retarget.
+`session88/spsa-warm/*`;endpoint needs fixed1000 vector games. Prepared
+qsearch,continuation,pawnquiet,ProbCut follow tuning on immediate base.
 
-Final1740b17ca29 is ready: 174 epochs/44.544B, identical reexport/20 parity PASS.
-Volume-control115 completed 01:29 October16:8acde096/29.44B/20 parity PASS.
-GPU controller89579 waits for a clean Final174 terminal before moderated
-35/25/40 cell115, keeping at most two ungated nets. No automatic games/adoption.
-C:36.11GiB at03:34; no host action needed. Hopper and keepalive untouched.
+Final1740b17ca29 and volume-control1158acde096 ready/parity checked.
+GPU89579 waits for cleanFinal174 terminal,then moderated35/25/40cell115,
+at mosttwo ungated nets. No automatic games/adoption. C:35.90GiB;
+hopper and keepalive untouched. [Session89](experiments/2026-10-16-session89.md).
 
-Next session: not before 03:50 EDT October16, for topology A/A or a fault.
-[Session88](experiments/2026-10-16-session88.md).
+Next session:not before04:40 EDT October16 for the diagnostic terminal.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

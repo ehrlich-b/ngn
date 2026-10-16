@@ -1,0 +1,45 @@
+{
+  "created_utc": "2026-10-16T08:10:45.058693+00:00",
+  "source": "9ec5d31",
+  "net": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+  "net_sha256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22",
+  "vector": "compiled final14",
+  "purpose": "Provenance H0 separate lane: isolate persistent TT influence with matched root histories; measure payload-write age hidden by shallow rejected-store generation refresh",
+  "fixtures": "six existing speedprobe fixtures in session88 order",
+  "hash_mb": [
+    64,
+    256
+  ],
+  "node_cap": 2000000,
+  "max_plies": 24,
+  "roots_max": 576,
+  "trajectories": "Hash64 persistent engines choose path; Hash256 replays it; separate white/black engine owners each search every second ply",
+  "arms": [
+    "accepted persistent TT",
+    "empty TT at each root, identical copied pre-search workerHistory"
+  ],
+  "history": "Arrays only, copied before warm search; same network, root repetition history and node cap",
+  "instrumentation": "Counters only; per-slot diagnostic last payload-write generation is distinct from production touched generation; no policy changes",
+  "identity": "96 persistent/cold roots at 100k nodes before/after instrumentation, exact search/TT/occupancy identity; first two plies per fixture/hash warm and cold equal",
+  "decision": "Descriptive only; no Elo, correctness or policy adoption, no automatic games or unchanged provenance retry",
+  "cpus": "13,15",
+  "nice": 19,
+  "memory": "2GiB/swap0",
+  "threads": 1,
+  "gomaxprocs": 1,
+  "machine": "rig/WSL/9800X3D",
+  "go": "1.25.5/linux/amd64/v3",
+  "budget": "5m per identity executable, 25m panel timeout; no gate process touched",
+  "argv": [
+    "bash",
+    "/home/ehrli/ngn-data/night-20261007/session89/tt-history/work.sh"
+  ],
+  "artifacts": {
+    "controller.sh": "5bf5e41bd5da406b54d0bbd2f653109326bf7977bbf5cde4709070c8ae250644",
+    "history.go.txt": "4ae2cdc1e0aa0be11c27a660d05655ab434b058d1ecb86358a27cf7de4e41698",
+    "instrument.py": "2d09e0e49e28e78427b1bf1294a8a9b01f4b137cfc13c6f1c4feebbe233f7be6",
+    "review.py": "2cad555f851097d0f29e73f53ac4cafc78376ca3e7ac6d76cfe8898c8a6424a9",
+    "source.tar": "06555d66b13e404a859d689bd2a5358caf4559ba2d792baf15e68046d540ec6c",
+    "work.sh": "6af21efc77f4a79b55872e5d91a96ea979001d8c17291a39ea9f360b93decf40"
+  }
+}
