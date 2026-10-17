@@ -5,17 +5,19 @@ Playing **9ec5d31/81215229/compiled final14**; no3600 claim.
 October16 plan through **11:20** governs. Local Git only; never pull/fetch/push.
 All compute rig; forge closed.
 
-At19:37,moderated net9324a004 is READY after natural18:40:13 training:
-final115/29.44B,identical reexport/20parity PASS. Original98730 pauses warm
-SPSA at verified500iterations/6000games18:55:13,then starts volume-control's
-fixed1000 vs81215229 as117018.463games complete;first terminal20:25–20:35.
-Moderated1000 follows;both about22:00–22:15. No game verdict or adoption.
-Exact native-resume argv/checkpoint/history are saved under`session93`.
-Old tune/training services inactive/success;never restart fresh-start wrapper.
+At20:30,volume-control8acde096 is **SHELVED**: natural20:26:42 terminal,
+fixed1000/500,+11.8174[−0.1709,+23.8339],220/594/186,zero faults.
+Printed lower95−0 AND exact lower95<0 fail the predeclared net rule;
+no extension,provisional keep or pooling. Original98730 immediately starts
+moderated-T74 as120145;43/1000games,terminal22:00–22:15. Moderated9324a004
+is final115/29.44B,reexport-identical/20parity PASS,reused. Warm SPSA stays
+paused at verified500/6000;exact native resume argv/checkpoint/history remain
+under`session93`. Never restart the retired fresh-start tuner wrapper.
 
 Detached **102531/ngn-s94-claim-chain.service** waits natively on98730 in
-its unlimited0–15/3G/swap0/nice19 scope. Predeclared moderated priority if
-both KEEP;otherwise control or81215229. Selected new net gets400/60+0.6,
+its unlimited0–15/3G/swap0/nice19 scope. Predeclared selection now resolves to
+moderated if KEEP,else81215229,because volume-control is SHELVED.
+Selected new net gets400/60+0.6,
 point>0/zero faults;baseline reuses transfer. Then attempt001 occupancy proof,
 fixed320screen and automatic conditional640/120+1confirmation. No GPU/tune
 during claims. Only frozen v4a30408fc/source41d9f94 is armed. Existing full
@@ -36,9 +38,9 @@ printed/exact lower95>0;correctness400/non-regression. Reuse A/A per unchanged
 topology/TC/harness;zero faults;no administrative gate kills. Width+125 closes
 SMP policy unless conditional T8-vs-T4 opens a profile. Final174 shelved;
 no duration ladder. Provenance H0 remains separate debt;owned code stays.
-C:31.804GiB;GPU idle with two ungated nets/claim next;hopper/keepalive untouched.
-[Session95](experiments/2026-10-16-session95.md). Next routine session:
-**not before20:30 EDT October16**,or earlier on a fault.
+C:31.594GiB;GPU idle for claim track;hopper/keepalive untouched.
+[Session96](experiments/2026-10-16-session96.md). Next routine session:
+**not before22:00 EDT October16**,or earlier on a fault.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
