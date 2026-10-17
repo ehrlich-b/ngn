@@ -1,0 +1,11 @@
+{
+  "verdict": "PASS",
+  "reference": "/home/ehrli/ngn-data/night-20261007/session87/mixture/volume-control/manifest.json",
+  "argv_differences": [
+    "--wdl .75 -> .50",
+    "--out new isolated path"
+  ],
+  "training_executed": false,
+  "selection": "final115",
+  "required_free_gib": 37
+}

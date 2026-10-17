@@ -2,45 +2,39 @@
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue,handles and handoff.
 Accepted **9ec5d31/81215229/compiled final14** unchanged;no3600 claim.
-Plan through **October17 13:10** governs. Local`night/night` and isolated topics;
+Plan through **October17 13:10** governs. Localnight/night and isolated topics;
 never pull/fetch/push,publish or write remote APIs. All compute rig;forge closed.
 
-Attempt001 remains SCREEN FAIL3535.3656[3493.9310,3576.8003],320games,zero faults.
-Prospective screen point>=3555;confirmation640/120+1,strict pooled lower95>3600,
-raw scores bracket50%. New nomination needs a changed package and plausible+20
-pool gain. T8-vs-T4+60.54 selects the T1 queue;no SMP policy work.
+Rebalanced-T74 final115 completed18:02:56;net3b3a6bfa,identical reexport/20parity.
+Original fixed1000 gate306410 is916games at19:51;no verdict. SPSA checkpoint
+paused at1075/12900. Original boundary296299 runs S3 if net shelves,then native
+resumes unchanged tune once asngn-s101-spsa-resume. Net due20:00–20:10;
+conditional S3 due21:20–21:30. Next session:not before20:05 EDT October17.
 
-Exclusive speed panel MEASURED12:52:46. Per-core NPS T1/T4/T8=1.625/1.555/1.451M;
-selection13.24%flat. Latest order **S3,S2,S1**. **S3 topic29eec6f**
-(`night/s101-select-cmov`) passes randomized old-scan oracle,60exact identities,
-full short/race/vet,Linux-PGO/Windows builds and CMOV witness. Smoke PASS.
-No adoption or timing verdict. S2=817e715,S1=6a6c25d remain checked topics.
-Every speed gate:40paired20s blocks/topology,T1/H64,T1/H256,T8/H256,AB/BA,
-positive paired lower95 in BOTH order strata for EVERY topology. No extension;
-rebase/recheck the next candidate after any predecessor is accepted.
+New detached **310582/ngn-s102-speed-continuation** native-waits on296299.
+Only net/S3 clean shelves→next durable tune checkpoint→S2 timing→S1 ifS2shelves.
+Winners hold successors for immediate-base rebuild;clean timing resumes tune
+once asngn-s102-spsa-resume. Faults hold review. No manual/duplicate resume.
+S2 due23:00–23:20,conditionalS1 due00:20–00:40 October18.
+Existing checked topics:S3=29eec6f,S2=817e715,S1=6a6c25d;no adoption.
+Every speed gate:40paired20s blocks atT1/H64,T1/H256,T8/H256,AB/BA,
+positive paired lower95 in BOTH strata for EVERY topology;no extension.
 
-Native SPSA**293720/ngn-s100-spsa-resume** is825/9900 at13:22:41,target2000/24k.
-GPU**293725**,controller293724/ngn-root-gpu-capacity-resume,is the same59→115
-rebalanced-T74 continuation. MemoryMax raised4→6GiB after observed reclaim;
-recipe/checkpoint/argv/disk guard unchanged. At13:26 still59 completed,GPU0%
-snapshot during cold first resumed epoch;no throughput improvement asserted.
-C:**33.120GiB**,availableRAM9580MiB,swap2MiB;old free3GiB request resolved.
-Hopper1188 untouched. No deletion or restart.
+Only all-clean net/S3/S2/S1 shelves launch predeclared **wdl050** GPU recipe:
+score/result target75/25→50/50 versus completed volume-control;otherwise same
+corpus,weights,seed,split,recipe and final115.37GiB admission,6GiB/swap0,12/14;
+original25GiB floor/export/20parity. No automatic games/adoption. Future net
+gate fixed1000/lower95>0,transfer400/60+0.6/point>0 before foreign games.
+GPU stays idle during exclusive speed tests;do not launch another trainer.
 
-**296299/ngn-s101-boundary.service** native-waits on that GPU terminal.
-Final115/reexport/20parity→new SPSA checkpoint→fixed1000 net gate.
-Net SHELVED→exclusive80min S3 timing;net KEEP→hold S3 for new-base review.
-Both clean paths native-resume unchanged tune once asngn-s101-spsa-resume;
-faults hold review. Do not duplicate this boundary,tune or trainer.
-Results`session101-speed/{net-rebalanced-t74,s3-timing}/result.json` and
-`boundary-result.json`. Provisional GPU ETA18:15–19:00,net19:45–20:45,
-conditional S3 21:05–22:05. Next session:not before19:45 EDT October17.
-
-Final SPSA vector only,then fixed1000 vs compiledfinal14 on the accepted net.
-Winning net needs400/60+0.6 point>0 before foreign games. Prepared search
-SPRTs follow SPSA/nets/speed. Search/time logistic[0,5],min1000/cap8000;
-nets/SPSA fixed1000/lower95>0;reuse A/A;zero faults. Provenance H0 remains
-separate debt;owned replacements stay. [Session101](experiments/2026-10-17-session101.md).
+C:41.465GiB,RAM11902MiB available,swap2MiB at19:51;hopper1188 untouched.
+SPSA endpoint2000/24k only,then fixed1000 vs compiledfinal14 on same net;
+ETAOctober18 afternoon/evening with timing pauses. Search SPRTs follow.
+Search/time[0,5],min1000/cap8000;nets/SPSA fixed1000/lower95>0;reuseA/A;zero faults.
+Provenance H0 separate debt;owned code stays. Attempt001 remains SCREEN FAIL
+3535.3656[3493.9310,3576.8003]. New changed package needs plausible+20 pool;
+screen point>=3555,confirmation640/120+1/strictlower95>3600/bracketed.
+[Session102](experiments/2026-10-17-session102.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

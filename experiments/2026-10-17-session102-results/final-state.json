@@ -1,0 +1,41 @@
+{
+  "utc": "2026-10-17T23:51:24.128419+00:00",
+  "accepted": "9ec5d31/81215229/compiled final14",
+  "controller": {
+    "pid": 310582,
+    "service": "ngn-s102-speed-continuation.service",
+    "state": "WAITING_S101_BOUNDARY",
+    "result": "/home/ehrli/ngn-data/night-20261007/session102-speed/result.json",
+    "native_wait_pid": 296299
+  },
+  "spsa": {
+    "state": "PLANNED_PAUSE_FOR_NET_S3",
+    "iteration": 1075,
+    "games": 12900,
+    "time": "2026-10-17T22:25:25Z"
+  },
+  "host_c_free_bytes": 44522778624,
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        3611       11245           3         900       11902\nSwap:           4096           2        4093\n",
+  "gpu": "0 %, 1478 MiB",
+  "net_progress": "G916  192W 530D 194L   49.9%  elo   -0.8 [-23,+22]  LLR  -0.29  pLLR  -0.36  draw-rule   ",
+  "processes": [
+    "   1188     245  426897  0.3 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    " 296297  296291   23180  0.0 systemd-run --user --wait --unit=ngn-s101-boundary -p Type=exec -p AllowedCPUs=0-15 -p MemoryMax=4G -p MemorySwapMax=0 -p StandardOutput=append:/home/ehrli/ngn-data/night-20261007/session101-speed/boundary.log -p StandardError=inherit nice -n 19 python3 /home/ehrli/ngn-data/night-20261007/session101-speed/boundary.py",
+    " 296299     245   23180  0.0 python3 /home/ehrli/ngn-data/night-20261007/session101-speed/boundary.py",
+    " 306410  296299    5007  2.6 /home/ehrli/ngn-data/night-20261007/session80/sprt -new /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -base /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -tc 10+0.1 -concurrency 6 -mingames 1000000 -maxgames 1000 -elo0 0 -elo1 5 -alpha .05 -beta .05 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -lowpower=false -pgn /home/ehrli/ngn-data/night-20261007/session101-speed/net-rebalanced-t74/games.pgn -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session94/gpu-next/rebalanced-t74/trained/latest.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -newoption AspInit=17 -newoption AspMult=163 -newoption DeltaMargin=202 -newoption ExtensionBudget=29 -newoption FutilityMargin=104 -newoption FutilityMaxDepth=8 -newoption LMPBase=3 -newoption LMRFullDepth=3 -newoption LMRMoveThreshold=2 -newoption NullMoveMinDepth=2 -newoption NullMoveR=4 -newoption ReverseFutilityMargin=63 -newoption SingularDepth=7 -newoption SingularMargin=57 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -baseoption AspInit=17 -baseoption AspMult=163 -baseoption DeltaMargin=202 -baseoption ExtensionBudget=29 -baseoption FutilityMargin=104 -baseoption FutilityMaxDepth=8 -baseoption LMPBase=3 -baseoption LMRFullDepth=3 -baseoption LMRMoveThreshold=2 -baseoption NullMoveMinDepth=2 -baseoption NullMoveR=4 -baseoption ReverseFutilityMargin=63 -baseoption SingularDepth=7 -baseoption SingularMargin=57",
+    " 310582     245      49  0.0 python3 /home/ehrli/ngn-data/night-20261007/session102-speed/speed-continuation.py"
+  ],
+  "services": "MainPID=296299\nCPUQuotaPerSecUSec=infinity\nMemoryMax=4294967296\nActiveState=active\n\nMainPID=310582\nCPUQuotaPerSecUSec=infinity\nMemoryMax=4294967296\nActiveState=active\n",
+  "speed_rule": "Unchanged40paired20s/topology,bothorderstrata lower95>1 ateverytopology",
+  "recipe": {
+    "name": "wdl050",
+    "state": "PREDECLARED_NOT_STARTED",
+    "launch": "Only after all speed tests and net SHELVED",
+    "selection": "final115",
+    "required_free_gib": 37,
+    "gate": "fixed1000/lower95>0,transfer400/60+0.6/point>0"
+  },
+  "hopper": "1188 untouched",
+  "no_push": true,
+  "goal_met": false
+}

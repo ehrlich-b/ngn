@@ -1,0 +1,13 @@
+{
+  "candidate": "s2",
+  "profile_admitted": true,
+  "authority": "Merged plan October17 10:20 and13:10;timing orderS3,S2,S1",
+  "immediate_accepted_base": "9ec5d31/81215229/compiled final14;sourcea0ebe32 has identical engine",
+  "measured_profile": "/home/ehrli/ngn-data/night-20261007/session100-speed/panel/result.json",
+  "hotspot": "Move/history~20% CPU;continuation/followup tables consume84.5MiB atT8;int16 saves63.375MiB",
+  "treatment": "Store only continuation/followup asint16;widen reads,unchangedint/int64 arithmetic",
+  "prerequisite": "Net and all earlier speed candidates SHELVED;otherwise hold for immediate-base rebuild",
+  "topic_commit": "817e715",
+  "timing_rule": "Fixed40 paired20s blocks/topology,T1/H64,T1/H256,T8/H256,alternatingAB/BA;paired geometric NPS lower95>1 in BOTH order strata for EVERY topology;otherwise SHELVED,no extension",
+  "automatic_adoption": false
+}

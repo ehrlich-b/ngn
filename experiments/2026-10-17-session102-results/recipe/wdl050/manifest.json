@@ -1,0 +1,113 @@
+{
+  "created_utc": "2026-10-17T23:50:34.610982+00:00",
+  "authority": "October17 09:45 GPU data/recipe cells;session102 prospective target-blend nomination",
+  "name": "wdl050",
+  "argv": [
+    "taskset",
+    "-c",
+    "12,14",
+    "/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python",
+    "-m",
+    "trainer.train",
+    "--data",
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+    "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+    "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf",
+    "--data-format",
+    "archive",
+    "--archive-holdout-modulus",
+    "1024",
+    "--archive-split-seed",
+    "20261015",
+    "--out",
+    "/home/ehrli/ngn-data/night-20261007/session102-speed/recipe/wdl050/trained",
+    "--format",
+    "3",
+    "--kb-map",
+    "default",
+    "--hidden",
+    "512",
+    "--buckets",
+    "8",
+    "--batch",
+    "16384",
+    "--lr",
+    ".001",
+    "--epochs",
+    "115",
+    "--positions-per-epoch",
+    "256000000",
+    "--weight-decay",
+    ".01",
+    "--wdl",
+    ".50",
+    "--k",
+    "400",
+    "--decay",
+    "cosine",
+    "--min-lr-ratio",
+    ".1",
+    "--threads",
+    "2",
+    "--precision",
+    "bf16",
+    "--seed",
+    "20261006",
+    "--keep-best-only",
+    "--archive-source-weights",
+    "/home/ehrli/ngn-data/night-20261007/session87/mixture/volume-control/source-weights.json"
+  ],
+  "trainer_source": "/home/ehrli/ngn-data/night-20261007/session87/training-source",
+  "trainer_commit": "c411391",
+  "corpus_pins": {
+    "t80": {
+      "bytes": 75977281056,
+      "sha256": "270f65bdf9f5c948160cae5330030a60f99e94383de2a290b565ae7aad7cde26"
+    },
+    "t76": {
+      "bytes": 55627628064,
+      "sha256": "a9ad07afcfeefca0d3080a2ac06657e334bf47645448ca183b51202f4412f8b3"
+    },
+    "t74full": {
+      "bytes": 183371624416,
+      "sha256": "dffe7f87cfc40b7e46bf2cf1fb0b1b203f6cc2eb63d94267d223f45bb6c2533d"
+    }
+  },
+  "source_weights": {
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf": 0.24121568741347596,
+    "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf": 0.17660880142247828,
+    "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf": 0.5821755111640458
+  },
+  "common_recipe": "KB8/H512/NB8,115x256M,seed20261006,AdamW/lr.001/WD.01/WDL.50/K400/cosine/BF16; fresh initialization",
+  "scientific_contrast": "Only score-sigmoid target lambda changes.50vs.75 against completed volume-control;result share50%vs25%. Same fresh initialization,seed,sourceweights,sampler,split,115x256M,cosine and final115 selection",
+  "accepted_base_caveat": "As for volume-control,weighted sampler and fresh board split differ from accepted Final115. Games against immediate accepted package are decisive;no attribution solely tolambda versus that older net",
+  "validation": {
+    "seed": 20261015,
+    "modulus": 1024,
+    "selection": false,
+    "contract": "Fresh occupied-board holdout, excluded from both cells; separate from old seed20261006 selection panel; metrics descriptive only"
+  },
+  "selection": "latest epoch115 only; ignore best checkpoint; no checkpoint shopping",
+  "total_positions": 29440000000,
+  "gate": "Fixed1000/500 at10+0.1/c6 vs immediate accepted package, printed and exact lower95>0,zero faults; winning net transfer400 at60+0.6,point>0 before foreign games",
+  "storage": {
+    "floor_bytes": 26843545600,
+    "projected_peak_growth_bytes": 10737418240,
+    "margin_bytes": 2147483648,
+    "required_free_bytes": 39728447488,
+    "explanation": "Read existing corpora in place;allow10GiB host/WSL headroom plus2GiB margin after observed cold-read pressure;native disk guard stays25.25GiB;no reconstruction"
+  },
+  "cpus": [
+    12,
+    14
+  ],
+  "nice": 19,
+  "memory_max": "6GiB",
+  "swap": 0,
+  "outstanding_rule": "Launch only after rebalanced-T74 and S3,S2,S1 are all clean SHELVED;zero ungated nets then",
+  "automatic_games": false,
+  "automatic_adoption": false,
+  "hypothesis": "Source-weight trials have not displaced accepted81215229;test whether more game-result target weight improves playing generalization versus copied evaluation labels",
+  "paired_recipe_reference": "/home/ehrli/ngn-data/night-20261007/session87/mixture/volume-control/manifest.json",
+  "stop": "Existing trainer nonfinite/export/parity/disk rules only;final115 no shopping or duration variant"
+}
