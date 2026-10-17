@@ -1,0 +1,5 @@
+{
+  "state": "HELD_REVIEW",
+  "error": "Command '['taskset', '-c', '0,2,4,6,8,10,12,14', '/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool', 'prepare', '--mode', 'screen', '--candidate', '/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/candidate-identity.json', '--source', '/home/ehrli/ngn-data/night-20261007/session94/source', '--tool-build-argv', '/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json', '--out', '/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/screen']' returned non-zero exit status 1.",
+  "at_utc": "2026-10-17T01:58:18.717383+00:00"
+}

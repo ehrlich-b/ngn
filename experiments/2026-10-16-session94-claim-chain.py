@@ -240,6 +240,10 @@ def main():
           screen='fixed320/10+0.1;lower95>3600 andrawscores bracket50%',
           confirmation='automatic only on screen PASS;same identity;fixed640/120+1;strictlower95>3600 andbracketing',
           created_utc=now()))
+    continue_claim(candidate, attempt, runner)
+
+
+def continue_claim(candidate, attempt, runner):
     sidecar = subprocess.Popen(['python3', str(D / 'monitor.py'), str(os.getpid()), str(attempt / 'resources.jsonl')])
     try:
         screen = claim_stage('screen', candidate, attempt)
@@ -263,9 +267,27 @@ def main():
     write(D / 'claim-chain-result.json', dict(state='FAILED_CLAIM_WORK_RESUMED', attempt=str(attempt), finished_utc=now()))
 
 
+def resume_screen():
+    """Resume the zero-game PATH failure, preserving its original evidence."""
+    attempt = Path('/home/ehrli/ngn-data/claim-v4-20261016/attempt-001')
+    candidate = Path(read(D / 'selected-package.json')['identity'])
+    assert candidate.parent == attempt and not (attempt / 'screen').exists()
+    assert read(D / 'claim-chain-result.json')['state'] == 'HELD_REVIEW'
+    (D / 'claim-chain-result.json').rename(D / 'claim-chain-result-held-path.json')
+    (attempt / 'screen-prepare.log').rename(attempt / 'screen-prepare-missing-nvidia-smi.log')
+    status('resuming-screen', dict(attempt=str(attempt), reason='WSL nvidia-smi PATH fixed; zero prior games',
+                                  path=os.environ['PATH']))
+    runner = load_module('queue', R / 'session93/campaign_queue.py')
+    continue_claim(candidate, attempt, runner)
+
+
 if __name__ == '__main__':
+    import sys
     try:
-        main()
+        if sys.argv[1:] == ['--resume-screen']:
+            resume_screen()
+        else:
+            main()
     except BaseException as error:
         if not (D / 'claim-chain-result.json').exists():
             write(D / 'claim-chain-result.json', dict(state='HELD_REVIEW', error=str(error), at_utc=now()))

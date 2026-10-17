@@ -92,3 +92,26 @@ for scenario in ['pass', 'small-gap', 'large-gap-good-width', 'large-gap-poor-wi
             assert events[0] == 'transfer' and events[1] == ('identity', 'moderated-t74')
         assert 'monitor-stop' in events
 print('PASS: deterministic net selection, fixed400 transfer, conditional confirmation, both failure branches, width before work, fault hold; no live actions')
+
+with tempfile.TemporaryDirectory(prefix='ngn-s97-resume-') as temporary:
+    root = Path(temporary)
+    m.R = root / 'rig'; m.D = m.R / 'session94'
+    attempt = root / 'attempt'
+    attempt.mkdir(parents=True)
+    candidate = attempt / 'candidate-identity.json'
+    write(m.D / 'selected-package.json', dict(identity=str(candidate)))
+    write(m.D / 'claim-chain-result.json', dict(state='HELD_REVIEW', error='nvidia-smi missing from PATH'))
+    (attempt / 'screen-prepare.log').write_text('original PATH error\n')
+    def redirect_resume(path):
+        if str(path) == '/home/ehrli/ngn-data/claim-v4-20261016/attempt-001':
+            return attempt
+        return original_Path(path)
+    queue = SimpleNamespace()
+    with patch.object(m, 'Path', side_effect=redirect_resume), patch.object(m, 'load_module', return_value=queue), \
+         patch.object(m, 'continue_claim') as continuation:
+        m.resume_screen()
+        continuation.assert_called_once_with(candidate, attempt, queue)
+    assert not (m.D / 'claim-chain-result.json').exists()
+    assert json.loads((m.D / 'claim-chain-result-held-path.json').read_text())['state'] == 'HELD_REVIEW'
+    assert (attempt / 'screen-prepare-missing-nvidia-smi.log').read_text() == 'original PATH error\n'
+print('PASS: zero-game screen recovery preserves failed evidence and uses the unchanged continuation')
