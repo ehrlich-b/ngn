@@ -1,0 +1,91 @@
+{
+  "state": "MEASURED",
+  "widths": {
+    "1": {
+      "samples": 96,
+      "nps": 1625158.9768011044,
+      "nps_per_core": 1625158.9768011044,
+      "cpu_wall": 0.9991643868292018,
+      "mean_completed_depth": 26.0,
+      "hardware_counters": {
+        "cycles": 9642056335065.0,
+        "instructions": 26570266602721.0,
+        "cache_references": 1223817660185.0,
+        "cache_misses": 42474259529.0,
+        "dtlb_read_misses": 3583909516.0
+      },
+      "counters_per_node": {
+        "cycles": 3105.5693544869473,
+        "instructions": 8557.905371479255,
+        "cache_references": 394.17428076298785,
+        "cache_misses": 13.680355534543594,
+        "dtlb_read_misses": 1.1543263361433904
+      }
+    },
+    "4": {
+      "samples": 96,
+      "nps": 6221717.204353876,
+      "nps_per_core": 1555429.301088469,
+      "cpu_wall": 3.971082276854438,
+      "mean_completed_depth": 27.59375,
+      "hardware_counters": {
+        "cycles": 38462591059886.0,
+        "instructions": 100218906937940.0,
+        "cache_references": 4839403420987.0,
+        "cache_misses": 197558333191.0,
+        "dtlb_read_misses": 15052532069.0
+      },
+      "counters_per_node": {
+        "cycles": 3235.900215202844,
+        "instructions": 8431.527195423298,
+        "cache_references": 407.14434831088124,
+        "cache_misses": 16.620800504378884,
+        "dtlb_read_misses": 1.2663861279024602
+      }
+    },
+    "8": {
+      "samples": 96,
+      "nps": 11605466.427445408,
+      "nps_per_core": 1450683.303430676,
+      "cpu_wall": 7.808564817861362,
+      "mean_completed_depth": 28.479166666666668,
+      "hardware_counters": {
+        "cycles": 71683850235867.0,
+        "instructions": 185889937224311.0,
+        "cache_references": 9348793618961.0,
+        "cache_misses": 401271975810.0,
+        "dtlb_read_misses": 30414090252.0
+      },
+      "counters_per_node": {
+        "cycles": 3233.1405260448596,
+        "instructions": 8384.151903759495,
+        "cache_references": 421.6565296037746,
+        "cache_misses": 18.098479402104793,
+        "dtlb_read_misses": 1.3717598515282625
+      }
+    }
+  },
+  "profile_flat_cpu_percent": {
+    "1": {
+      "tt": 14.37,
+      "move_picking_history": 21.270599999999995,
+      "nnue": 19.124400000000005,
+      "gc": 0.0
+    },
+    "4": {
+      "tt": 13.545,
+      "move_picking_history": 20.589700000000004,
+      "nnue": 18.897,
+      "gc": 0.0
+    },
+    "8": {
+      "tt": 13.469999999999999,
+      "move_picking_history": 20.13548000000001,
+      "nnue": 18.387440000000005,
+      "gc": 0.0
+    }
+  },
+  "profiles": "profile-t{1,4,8}-{cpu,mutex}-top.txt and *.gc.json; inspect before timing a candidate",
+  "finished_utc": "2026-10-17T16:52:46.761844+00:00",
+  "automatic_adoption": false
+}

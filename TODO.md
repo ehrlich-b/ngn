@@ -1,44 +1,46 @@
 # NGN live state — 2026-10-17: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue,handles and handoff.
-Playing **9ec5d31/81215229/compiled final14** unchanged;no3600 claim.
-Plan through **October17 10:20** governs. Local `night/night` only;never
-pull/fetch/push,publish or write remote APIs. All compute rig;forge closed.
+Accepted **9ec5d31/81215229/compiled final14** unchanged;no3600 claim.
+Plan through **October17 13:10** governs. Local`night/night` and isolated topics;
+never pull/fetch/push,publish or write remote APIs. All compute rig;forge closed.
 
-Attempt001 stays SCREEN FAIL:3535.3656[3493.9310,3576.8003],320games,
-zero faults. Bryan prospectively set **screen point>=3555**; confirmation
-is unchanged640/120+1,strict pooled lower95>3600,bracketed. Instrument
-75062e3 records the new rule;focused/full short/race/vet/build PASS.
-No new screen until a changed package plausibly adds+20 on the pool.
-T8-vs-T4 +60.5379[43.5490,77.8187] selects the T1 queue;no SMP policy work.
+Attempt001 remains SCREEN FAIL3535.3656[3493.9310,3576.8003],320games,zero faults.
+Prospective screen point>=3555;confirmation640/120+1,strict pooled lower95>3600,
+raw scores bracket50%. New nomination needs a changed package and plausible+20
+pool gain. T8-vs-T4+60.54 selects the T1 queue;no SMP policy work.
 
-Native SPSA275233 is775/9300games at10:32:04. GPU275238 **DISK STOP59/115**
-at10:35:36;checkpoint preserved. C:**25.116GiB**. **Needs Bryan:free>=3GiB
-on host C:.** Live fstrim recovered only54MiB;no deletion/WSL restart/hopper change.
+Exclusive speed panel MEASURED12:52:46. Per-core NPS T1/T4/T8=1.625/1.555/1.451M;
+selection13.24%flat. Latest order **S3,S2,S1**. **S3 topic29eec6f**
+(`night/s101-select-cmov`) passes randomized old-scan oracle,60exact identities,
+full short/race/vet,Linux-PGO/Windows builds and CMOV witness. Smoke PASS.
+No adoption or timing verdict. S2=817e715,S1=6a6c25d remain checked topics.
+Every speed gate:40paired20s blocks/topology,T1/H64,T1/H256,T8/H256,AB/BA,
+positive paired lower95 in BOTH order strata for EVERY topology. No extension;
+rebase/recheck the next candidate after any predecessor is accepted.
 
-**288697/ngn-s100-panel-boundary.service** waits for a new SPSA checkpoint,
-pauses it for the approved exclusive~108-minute T1/T4/T8 speed panel,then
-resumes natively once asngn-s100-spsa-resume. Due12:55–13:10. Original283457
-held correctly with zero games after the GPU fault;never relaunch it.
-**288701/ngn-s100-gpu-capacity-resume.service** waits on the panel and
-C:>=27.5GiB,then resumes the same epoch59 training run to final115 with
-original guard/reexport/parity. Capacity checks900s;no duplicate trainer.
-The net's fixed1000 gate remains unstarted. No adoption/claim is automatic.
+Native SPSA**293720/ngn-s100-spsa-resume** is825/9900 at13:22:41,target2000/24k.
+GPU**293725**,controller293724/ngn-root-gpu-capacity-resume,is the same59→115
+rebalanced-T74 continuation. MemoryMax raised4→6GiB after observed reclaim;
+recipe/checkpoint/argv/disk guard unchanged. At13:26 still59 completed,GPU0%
+snapshot during cold first resumed epoch;no throughput improvement asserted.
+C:**33.120GiB**,availableRAM9580MiB,swap2MiB;old free3GiB request resolved.
+Hopper1188 untouched. No deletion or restart.
 
-Prepared independent speed topics:**S1 6a6c25d** (`night/s100-thp`) and
-**S2 817e715** (`night/s100-int16-history`). Full suites/builds and60 exact
-identities each PASS. FinalS1 `s1-prefault-ngn` proves256MiB actual huge pages;
-earlier two S1 probes showed0 and are preserved. S2 shrinks continuation
-storage4x without changing live policy11 arithmetic. Neither is adopted.
-Inspect the panel's PMU/cache/TLB/pprof evidence,then fixed balanced timing
-atT1/H64,T1/H256,T8/H256:positive paired lower95 in both order strata.
-S2 must rebase if S1 lands. Four checked search candidates wait behind this,
-SPSA's final24k/vector gate and nets. No intermediate tune verdict.
+**296299/ngn-s101-boundary.service** native-waits on that GPU terminal.
+Final115/reexport/20parity→new SPSA checkpoint→fixed1000 net gate.
+Net SHELVED→exclusive80min S3 timing;net KEEP→hold S3 for new-base review.
+Both clean paths native-resume unchanged tune once asngn-s101-spsa-resume;
+faults hold review. Do not duplicate this boundary,tune or trainer.
+Results`session101-speed/{net-rebalanced-t74,s3-timing}/result.json` and
+`boundary-result.json`. Provisional GPU ETA18:15–19:00,net19:45–20:45,
+conditional S3 21:05–22:05. Next session:not before19:45 EDT October17.
 
-Search/time logistic[0,5],min1000/cap8000;nets/SPSA fixed1000/lower95>0;
-correctness non-regression;reuse A/A;zero faults. Provenance H0 stays separate
-debt;owned code remains. No duration ladder or artifact re-audit.
-[Session100](experiments/2026-10-17-session100.md). Next session:not before13:15 EDT October17.
+Final SPSA vector only,then fixed1000 vs compiledfinal14 on the accepted net.
+Winning net needs400/60+0.6 point>0 before foreign games. Prepared search
+SPRTs follow SPSA/nets/speed. Search/time logistic[0,5],min1000/cap8000;
+nets/SPSA fixed1000/lower95>0;reuse A/A;zero faults. Provenance H0 remains
+separate debt;owned replacements stay. [Session101](experiments/2026-10-17-session101.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
