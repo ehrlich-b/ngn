@@ -78,7 +78,7 @@ func newCacheWithMode(megabytes int, mode TTMode) *Cache {
 		return nil
 	}
 	records := RoundPowerOfTwo(megabytes * 1024 * 1024 / ttRecordBytes)
-	return &Cache{items: make([]ttRecord, records), size: megabytes, length: uint64(records), mask: uint(records/ttWays - 1), mode: mode}
+	return &Cache{items: allocateTTRecords(records), size: megabytes, length: uint64(records), mask: uint(records/ttWays - 1), mode: mode}
 }
 func (c *Cache) Size() int              { return c.size }
 func (c *Cache) index(hash uint64) uint { return (uint(hash) & c.mask) * ttWays }
