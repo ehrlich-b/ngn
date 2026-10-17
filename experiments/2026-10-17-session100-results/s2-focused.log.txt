@@ -1,0 +1,38 @@
+=== RUN   TestCaptureHistoryUpdate
+--- PASS: TestCaptureHistoryUpdate (0.00s)
+=== RUN   TestCaptureHistoryPopulatedByRealSearch
+    capture_history_test.go:89: capture-history slots populated after depth-10 search: 353
+--- PASS: TestCaptureHistoryPopulatedByRealSearch (0.13s)
+=== RUN   TestHistoryPolicyIsAcceptedPolicy11
+--- PASS: TestHistoryPolicyIsAcceptedPolicy11 (0.00s)
+=== RUN   TestH1HistoryResponseRateAndBounds
+--- PASS: TestH1HistoryResponseRateAndBounds (0.00s)
+=== RUN   TestH1CompletedNodeLearnsOnlyQuietWinnerPrefix
+--- PASS: TestH1CompletedNodeLearnsOnlyQuietWinnerPrefix (0.00s)
+=== RUN   TestH1CompletedNodeRejectsFailLowNoisyAndMissingWinner
+=== RUN   TestH1CompletedNodeRejectsFailLowNoisyAndMissingWinner/fail_low
+=== RUN   TestH1CompletedNodeRejectsFailLowNoisyAndMissingWinner/noisy_winner
+=== RUN   TestH1CompletedNodeRejectsFailLowNoisyAndMissingWinner/winner_missing
+--- PASS: TestH1CompletedNodeRejectsFailLowNoisyAndMissingWinner (0.00s)
+    --- PASS: TestH1CompletedNodeRejectsFailLowNoisyAndMissingWinner/fail_low (0.00s)
+    --- PASS: TestH1CompletedNodeRejectsFailLowNoisyAndMissingWinner/noisy_winner (0.00s)
+    --- PASS: TestH1CompletedNodeRejectsFailLowNoisyAndMissingWinner/winner_missing (0.00s)
+=== RUN   TestH1NormalizedLMRTerm
+--- PASS: TestH1NormalizedLMRTerm (0.00s)
+=== RUN   TestH1DoesNotChangeCaptureHistoryArithmetic
+--- PASS: TestH1DoesNotChangeCaptureHistoryArithmetic (0.00s)
+=== RUN   TestHistoryLearnsCompletedRootWinner
+--- PASS: TestHistoryLearnsCompletedRootWinner (0.00s)
+=== RUN   TestCompactHistoryStorageBounds
+--- PASS: TestCompactHistoryStorageBounds (0.03s)
+=== RUN   TestHistoryHeuristic
+    history_test.go:48: ✓ History heuristic working: move e2e4 has score 13
+--- PASS: TestHistoryHeuristic (0.00s)
+=== RUN   TestHistoryTableClear
+    history_test.go:71: ✓ History table clearing working
+--- PASS: TestHistoryTableClear (0.00s)
+=== RUN   TestHistoryInMoveOrdering
+    history_test.go:111: ✓ History affects move ordering
+--- PASS: TestHistoryInMoveOrdering (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.177s

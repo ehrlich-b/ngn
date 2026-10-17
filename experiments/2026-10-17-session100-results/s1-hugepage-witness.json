@@ -1,0 +1,12 @@
+{
+  "pid": 281454,
+  "advised_regions": [
+    {
+      "mapping": "c003600000-c013600000 rw-p 00000000 00:00 0 ",
+      "Size": "262144 kB",
+      "AnonHugePages": "0 kB",
+      "VmFlags": "rd wr mr mw me ac sd hg"
+    }
+  ],
+  "anon_huge_kib": 0
+}

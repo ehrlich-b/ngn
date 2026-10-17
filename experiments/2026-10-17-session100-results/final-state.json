@@ -1,0 +1,26 @@
+{
+  "utc": "2026-10-17T14:39:51.061467+00:00",
+  "accepted": "9ec5d31/81215229/compiled final14",
+  "spsa": {
+    "pid": 275233,
+    "iteration": 775,
+    "games": 9300,
+    "time": "2026-10-17T14:32:04Z"
+  },
+  "gpu": {
+    "state": "DISK_STOP",
+    "completed_epochs": 59,
+    "last_epoch": 59,
+    "original_controller": 275237,
+    "original_trainer": 275238,
+    "checkpoint": "/home/ehrli/ngn-data/night-20261007/session94/gpu-next/rebalanced-t74/trained/latest.pt"
+  },
+  "panel_boundary_pid": 288697,
+  "gpu_capacity_waiter_pid": 288701,
+  "host_c_free_bytes": 26967998464,
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        3724        4846           3        7258       11789\nSwap:           4096           2        4093\n",
+  "services": "MainPID=275233\nId=ngn-s94-spsa-resume.service\nActiveState=active\n\nMainPID=288697\nId=ngn-s100-panel-boundary.service\nActiveState=active\n\nMainPID=288701\nId=ngn-s100-gpu-capacity-resume.service\nActiveState=active\n",
+  "goal_met": false,
+  "hopper": "1188 untouched",
+  "no_push": true
+}

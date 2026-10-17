@@ -1,0 +1,5 @@
+{
+  "state": "HELD_REVIEW",
+  "error": "[Errno 2] No such file or directory: '/home/ehrli/ngn-data/night-20261007/session94/gpu-next/rebalanced-t74/result.json'",
+  "automatic_adoption": false
+}

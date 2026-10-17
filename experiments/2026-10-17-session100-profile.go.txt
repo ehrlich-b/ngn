@@ -1,0 +1,41 @@
+// Diagnostic-only companion to the unchanged UCI main package, built on rig.
+package main
+
+import (
+	"encoding/json"
+	"os"
+	"runtime"
+	"runtime/pprof"
+)
+
+func profiledRun() int {
+	prefix := os.Getenv("NGN_S100_PROFILE_PREFIX")
+	if prefix == "" {
+		return run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr)
+	}
+	f, err := os.Create(prefix + ".cpu.pprof")
+	if err != nil { panic(err) }
+	if err = pprof.StartCPUProfile(f); err != nil { panic(err) }
+	runtime.SetMutexProfileFraction(1)
+	var before, after runtime.MemStats
+	runtime.ReadMemStats(&before)
+	rc := run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr)
+	pprof.StopCPUProfile()
+	if err = f.Close(); err != nil { panic(err) }
+	f, err = os.Create(prefix + ".mutex.pprof")
+	if err != nil { panic(err) }
+	if err = pprof.Lookup("mutex").WriteTo(f, 0); err != nil { panic(err) }
+	if err = f.Close(); err != nil { panic(err) }
+	runtime.ReadMemStats(&after)
+	f, err = os.Create(prefix + ".gc.json")
+	if err != nil { panic(err) }
+	err = json.NewEncoder(f).Encode(map[string]any{
+		"collections": after.NumGC-before.NumGC,
+		"pause_ns": after.PauseTotalNs-before.PauseTotalNs,
+		"allocated_bytes": after.TotalAlloc-before.TotalAlloc,
+		"heap_bytes_at_exit": after.HeapAlloc,
+	})
+	if err != nil { panic(err) }
+	if err = f.Close(); err != nil { panic(err) }
+	return rc
+}

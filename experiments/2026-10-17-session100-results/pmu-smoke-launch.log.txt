@@ -1,0 +1,1 @@
+Running as unit: ngn-s100-pmu-smoke.service; invocation ID: 10b814e49cf342bab348fe4f39df4d45

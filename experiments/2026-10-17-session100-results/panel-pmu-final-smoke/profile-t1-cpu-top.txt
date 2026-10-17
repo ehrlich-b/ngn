@@ -1,0 +1,91 @@
+File: profile-ngn
+Build ID: 8fcc82bc8ffc57193527c7756689e44430016479
+Type: cpu
+Time: 2026-10-17 10:32:12 EDT
+Duration: 627.34ms, Total samples = 460ms (73.33%)
+Showing nodes accounting for 460ms, 100% of 460ms total
+      flat  flat%   sum%        cum   cum%
+      60ms 13.04% 13.04%       60ms 13.04%  github.com/ehrlich-b/ngn/engine.selectNextMove (inline)
+      60ms 13.04% 26.09%       60ms 13.04%  runtime.memclrNoHeapPointers
+      50ms 10.87% 36.96%       50ms 10.87%  github.com/ehrlich-b/ngn/engine.(*Cache).Get
+      30ms  6.52% 43.48%       30ms  6.52%  github.com/ehrlich-b/ngn/engine.ngnn16OutputSmall
+      20ms  4.35% 47.83%       20ms  4.35%  github.com/ehrlich-b/ngn/engine.Piece.weight (inline)
+      20ms  4.35% 52.17%      370ms 80.43%  github.com/ehrlich-b/ngn/engine.alphaBetaPV
+      20ms  4.35% 56.52%       20ms  4.35%  github.com/ehrlich-b/ngn/engine.getAttackersAfterMove
+      20ms  4.35% 60.87%       20ms  4.35%  github.com/ehrlich-b/ngn/engine.ngnn16CapturePair
+      10ms  2.17% 63.04%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*Bitboard).Move
+      10ms  2.17% 65.22%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*NGNN1Network).compactInputBound
+      10ms  2.17% 67.39%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*NGNN1Network).row (inline)
+      10ms  2.17% 69.57%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*workerEvaluator).mustPop (inline)
+      10ms  2.17% 71.74%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*workerHistory).nonPawnCorrectionValue (inline)
+      10ms  2.17% 73.91%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*workerHistory).scoreMovesIntoBuffer (inline)
+      10ms  2.17% 76.09%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*workerHistory).updateNonPawnCorrection (inline)
+      10ms  2.17% 78.26%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.Move.CapturedPiece (inline)
+      10ms  2.17% 80.43%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.Move.IsKingSideCastle (inline)
+      10ms  2.17% 82.61%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.Move.MovingPiece (inline)
+      10ms  2.17% 84.78%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.Piece.Color (inline)
+      10ms  2.17% 86.96%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.advanceMoveKey
+      10ms  2.17% 89.13%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.gravityUpdate (inline)
+      10ms  2.17% 91.30%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.ngnn16MovePair
+      10ms  2.17% 93.48%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.ngnn3Context.feature (inline)
+      10ms  2.17% 95.65%      380ms 82.61%  github.com/ehrlich-b/ngn/engine.searchIterativeDeepeningWorkerUnsafe
+      10ms  2.17% 97.83%       10ms  2.17%  runtime.growslice
+      10ms  2.17%   100%       10ms  2.17%  sync/atomic.(*Bool).Load (inline)
+         0     0%   100%       60ms 13.04%  github.com/ehrlich-b/ngn/engine.(*Cache).Clear (inline)
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*NGNN1Network).ngnn3MoveDelta
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*NGNN1Network).ngnn3MoveDelta.func2
+         0     0%   100%       20ms  4.35%  github.com/ehrlich-b/ngn/engine.(*Position).MakeMove (inline)
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*Position).UnMakeMove (inline)
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*Position).applyMoveBoard (inline)
+         0     0%   100%       20ms  4.35%  github.com/ehrlich-b/ngn/engine.(*Position).makeMoveHelper
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*Position).unMakeMoveHelper
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*Position).undoMoveBoard
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*SearchControl).StopRequested (inline)
+         0     0%   100%       60ms 13.04%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).NewGame
+         0     0%   100%      380ms 82.61%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).searchIterativeDeepeningLocked
+         0     0%   100%      380ms 82.61%  github.com/ehrlich-b/ngn/engine.(*SearchEngine).searchIterativeDeepeningPreparedWithWidth
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*SearchInfo).shouldStopForControl (inline)
+         0     0%   100%       80ms 17.39%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).Run
+         0     0%   100%       80ms 17.39%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).Run.func1
+         0     0%   100%       80ms 17.39%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).handleCommand
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).handleEvalFileOption
+         0     0%   100%       60ms 13.04%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).handleNewGame
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).handlePosition
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).handleSetOption
+         0     0%   100%      380ms 82.61%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).runSearchSession
+         0     0%   100%      380ms 82.61%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).searchSession
+         0     0%   100%       30ms  6.52%  github.com/ehrlich-b/ngn/engine.(*ngnn1State).evaluatePosition
+         0     0%   100%       40ms  8.70%  github.com/ehrlich-b/ngn/engine.(*ngnn1State).pushCompact
+         0     0%   100%       40ms  8.70%  github.com/ehrlich-b/ngn/engine.(*ngnn1State).pushPosition
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*workerEvaluator).PrepareMove
+         0     0%   100%       40ms  8.70%  github.com/ehrlich-b/ngn/engine.(*workerEvaluator).PushMove
+         0     0%   100%       30ms  6.52%  github.com/ehrlich-b/ngn/engine.(*workerEvaluator).SearchSTM (partial-inline)
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*workerEvaluator).mustPrepareMove (inline)
+         0     0%   100%       40ms  8.70%  github.com/ehrlich-b/ngn/engine.(*workerEvaluator).mustPushMadeMove (partial-inline)
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*workerHistory).UpdateCaptureHistory (inline)
+         0     0%   100%       20ms  4.35%  github.com/ehrlich-b/ngn/engine.(*workerHistory).correctedStandPat (inline)
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.(*workerHistory).maybeUpdateNonPawnCorrection (inline)
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.GenerateFEN
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.GenerateLegalMoves (inline)
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.GenerateMovesIntoBuffer
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.LoadNGNN1
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.Move.IsCastle (inline)
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.ParseAlgebraicMove
+         0     0%   100%       20ms  4.35%  github.com/ehrlich-b/ngn/engine.Piece.seeWeight (inline)
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.ReadNGNN1
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.WrapMoveGeneration
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.generatePieceMovesIntoBuffer (inline)
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.generatePiecePlacement
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.generateRookMovesIntoBuffer
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.generateSlidingMovesIntoBuffer (inline)
+         0     0%   100%       30ms  6.52%  github.com/ehrlich-b/ngn/engine.materializeCaptureScores (inline)
+         0     0%   100%       80ms 17.39%  github.com/ehrlich-b/ngn/engine.quiescence (inline)
+         0     0%   100%       80ms 17.39%  github.com/ehrlich-b/ngn/engine.quiescenceWithDepth
+         0     0%   100%      380ms 82.61%  github.com/ehrlich-b/ngn/engine.searchIterativeDeepeningUnsafe (inline)
+         0     0%   100%       10ms  2.17%  github.com/ehrlich-b/ngn/engine.seeNonLosingByMVV (inline)
+         0     0%   100%       40ms  8.70%  github.com/ehrlich-b/ngn/engine.staticExchangeEvaluation (partial-inline)
+         0     0%   100%       80ms 17.39%  main.main
+         0     0%   100%       80ms 17.39%  main.profiledRun
+         0     0%   100%       80ms 17.39%  main.run
+         0     0%   100%       80ms 17.39%  runtime.main
+         0     0%   100%       10ms  2.17%  strings.(*Builder).WriteString (inline)

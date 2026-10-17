@@ -1,0 +1,37 @@
+{
+  "state": "SMOKE_PASS",
+  "widths": {
+    "1": {
+      "samples": 1,
+      "nps": 1261325.6352419925,
+      "nps_per_core": 1261325.6352419925,
+      "cpu_wall": 0.94862040713757,
+      "mean_completed_depth": 14.0,
+      "hardware_counters": {
+        "cycles": 1882071632.0,
+        "instructions": 3934252129.0,
+        "cache_references": 240788284.0,
+        "cache_misses": 7501797.0,
+        "dtlb_read_misses": 614323.0
+      },
+      "counters_per_node": {
+        "cycles": 3724.927230121283,
+        "instructions": 7786.527694433009,
+        "cache_references": 476.5593511510814,
+        "cache_misses": 14.847281817030305,
+        "dtlb_read_misses": 1.2158455777573705
+      }
+    }
+  },
+  "profile_flat_cpu_percent": {
+    "1": {
+      "tt": 10.87,
+      "move_picking_history": 19.549999999999997,
+      "nnue": 19.549999999999997,
+      "gc": 0.0
+    }
+  },
+  "profiles": "profile-t{1,4,8}-{cpu,mutex}-top.txt and *.gc.json; inspect before timing a candidate",
+  "finished_utc": "2026-10-17T14:32:13.591288+00:00",
+  "automatic_adoption": false
+}

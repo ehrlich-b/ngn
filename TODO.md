@@ -2,35 +2,43 @@
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue,handles and handoff.
 Playing **9ec5d31/81215229/compiled final14** unchanged;no3600 claim.
-Plan through **October17 01:15** governs. Local `night/night` only;never
+Plan through **October17 10:20** governs. Local `night/night` only;never
 pull/fetch/push,publish or write remote APIs. All compute rig;forge closed.
 
-Attempt001's fixed320 Threads8/Hash256 screen FAILED00:58:19 EDT:
-**3535.3656[3493.9310,3576.8003]**,44W142D134L,bracketed,zero faults.
-Further claim games await Bryan's screen-rule decision;no unchanged retry,
-confirmation,pooling or inferred clock-offset protocol change.
+Attempt001 stays SCREEN FAIL:3535.3656[3493.9310,3576.8003],320games,
+zero faults. Bryan prospectively set **screen point>=3555**; confirmation
+is unchanged640/120+1,strict pooled lower95>3600,bracketed. Instrument
+75062e3 records the new rule;focused/full short/race/vet/build PASS.
+No new screen until a changed package plausibly adds+20 on the pool.
+T8-vs-T4 +60.5379[43.5490,77.8187] selects the T1 queue;no SMP policy work.
 
-T8-vs-T4 scaling naturally MEASURED **05:00:36**:fixed400/200pairs,
-106W257D37L,penta[0,16,108,67,9], **+60.5379[43.5490,77.8187]**,
-zero faults. Point>=25 selects the T1 queue;no SMP profile/code nomination.
-Existing continuation is **FAILED_CLAIM_WORK_RESUMED**. Both successors
-started automatically once;never call resume_work or the fresh-start wrapper.
+Native SPSA275233 is775/9300games at10:32:04. GPU275238 **DISK STOP59/115**
+at10:35:36;checkpoint preserved. C:**25.116GiB**. **Needs Bryan:free>=3GiB
+on host C:.** Live fstrim recovered only54MiB;no deletion/WSL restart/hopper change.
 
-Native SPSA **275233/ngn-s94-spsa-resume.service**:durable525/6300games at
-05:30:29,up from500/6000;0–11/c6/GOMAX1. Endpoint2000/24k provisionally
-10:30–12:00 October18,then fixed1000 final-vector gate on unchanged net.
-GPU **275237 controller/275238 trainer/ngn-s94-gpu-next.service**:
-rebalanced-T74 shares45.35/33.21/21.44,loader12,14,final115 only,then
-reexport/parity. First epoch/validation pending05:32;readiness provisionally
-14:30–15:30 October17. No automatic games/adoption;do not interrupt tuning.
-Four checked search candidates wait:qsearch,continuation,pawn quiet,ProbCut.
-No new candidate work admitted while the evidence lanes are occupied.
+**288697/ngn-s100-panel-boundary.service** waits for a new SPSA checkpoint,
+pauses it for the approved exclusive~108-minute T1/T4/T8 speed panel,then
+resumes natively once asngn-s100-spsa-resume. Due12:55–13:10. Original283457
+held correctly with zero games after the GPU fault;never relaunch it.
+**288701/ngn-s100-gpu-capacity-resume.service** waits on the panel and
+C:>=27.5GiB,then resumes the same epoch59 training run to final115 with
+original guard/reexport/parity. Capacity checks900s;no duplicate trainer.
+The net's fixed1000 gate remains unstarted. No adoption/claim is automatic.
+
+Prepared independent speed topics:**S1 6a6c25d** (`night/s100-thp`) and
+**S2 817e715** (`night/s100-int16-history`). Full suites/builds and60 exact
+identities each PASS. FinalS1 `s1-prefault-ngn` proves256MiB actual huge pages;
+earlier two S1 probes showed0 and are preserved. S2 shrinks continuation
+storage4x without changing live policy11 arithmetic. Neither is adopted.
+Inspect the panel's PMU/cache/TLB/pprof evidence,then fixed balanced timing
+atT1/H64,T1/H256,T8/H256:positive paired lower95 in both order strata.
+S2 must rebase if S1 lands. Four checked search candidates wait behind this,
+SPSA's final24k/vector gate and nets. No intermediate tune verdict.
+
 Search/time logistic[0,5],min1000/cap8000;nets/SPSA fixed1000/lower95>0;
 correctness non-regression;reuse A/A;zero faults. Provenance H0 stays separate
 debt;owned code remains. No duration ladder or artifact re-audit.
-C:28.021GiB;9349MiB RAM available;existing disk guard active;hopper untouched.
-[Session99](experiments/2026-10-17-session99.md). Next session:
-**not before15:00 EDT October17**,or earlier on a fault/needed decision.
+[Session100](experiments/2026-10-17-session100.md). Next session:not before13:15 EDT October17.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

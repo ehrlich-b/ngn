@@ -1,0 +1,7 @@
+{
+  "verdict": "SMOKE_PASS",
+  "topologies": [],
+  "finished_utc": "2026-10-17T14:22:57.058229+00:00",
+  "automatic_adoption": false,
+  "next": "Review identity and immediate-base match before integration; no Elo gain inferred"
+}

@@ -1,0 +1,23 @@
+{
+  "state": "SMOKE_PASS",
+  "widths": {
+    "1": {
+      "samples": 1,
+      "nps": 1391451.080006664,
+      "nps_per_core": 1391451.080006664,
+      "cpu_wall": 0.9740469754590063,
+      "mean_completed_depth": 15.0
+    }
+  },
+  "profile_flat_cpu_percent": {
+    "1": {
+      "tt": 12.5,
+      "move_picking_history": 16.67,
+      "nnue": 22.9,
+      "gc": 0.0
+    }
+  },
+  "profiles": "profile-t{1,4,8}-{cpu,mutex}-top.txt and *.gc.json; inspect before timing a candidate",
+  "finished_utc": "2026-10-17T14:17:54.167598+00:00",
+  "automatic_adoption": false
+}
