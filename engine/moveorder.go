@@ -625,13 +625,15 @@ func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, depth int, previousMo
 // a beta cutoff fires instead of sorting the whole list. Strict > keeps ties at their earlier
 // index, matching the full-sort order — so the incremental path is node-identical.
 func selectNextMove(out []Move, scores []int, n, i int) {
-	maxIdx := i
-	maxScore := scores[i] // hoist out of the loop: avoids re-loading scores[maxIdx] each iteration
+	maxScore := scores[i]
 	for j := i + 1; j < n; j++ {
-		if scores[j] > maxScore {
-			maxIdx = j
-			maxScore = scores[j]
-		}
+		maxScore = max(maxScore, scores[j])
+	}
+	// Keep the first maximum, including ties at i. Separating the value scan
+	// from the index lookup lets amd64 select the maximum without a branch.
+	maxIdx := i
+	for scores[maxIdx] != maxScore {
+		maxIdx++
 	}
 	if maxIdx != i {
 		scores[i], scores[maxIdx] = scores[maxIdx], scores[i]
