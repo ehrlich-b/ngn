@@ -1,42 +1,36 @@
-# NGN live state — 2026-10-16: 3600 campaign
+# NGN live state — 2026-10-17: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue,handles and handoff.
-Playing **9ec5d31/81215229/compiled final14**;no3600 claim.
-October16 plan through **22:00** governs. Local Git only;never pull/fetch/push.
-All compute rig;forge closed.
+Playing **9ec5d31/81215229/compiled final14** unchanged;no3600 claim.
+Plan through **October17 01:15** governs. Local `night/night` only;never
+pull/fetch/push,publish or write remote APIs. All compute rig;forge closed.
 
-Both fixed1000 nets are **SHELVED**,zero faults:volume-control8acde096
-+11.8174[−0.1709,+23.8339];moderated9324a004 ends21:58:18,
-−3.8219[−16.1430,+8.4895],211/567/222. No extension,provisional keep or pooling.
-Accepted81215229 reuses its prior60+0.6 transfer. SPSA remains paused at
-verified500/6000;native resume argv/checkpoint/history under `session93`.
-Never restart the retired fresh-start tuner wrapper.
+Attempt001's original fixed320 Threads8/Hash256 screen naturally FAILED
+00:58:19 EDT: **3535.3656[3493.9310,3576.8003]**,SE21.1401,
+44W142D134L,raw bracket PASS,zero faults/exclusions. No confirmation,
+extension,pooling or unchanged retry. Further claim games await Bryan's
+screen-rule decision per01:15 plan;historical clock offsets are projections.
 
-Claim102531 fails before receipt/games on missing nvidia-smi in service PATH.
-The22:00 plan orders recovery;original failure/log preserved. Detached
-**123459/ngn-s97-claim-resume.service** resumes attempt001 at22:01:21 with
-`/usr/lib/wsl/lib` in PATH,the same frozen tool/package,and unlimited
-0–15/3G/swap0/nice19 scope. Five occupancy probes PASS7.757–8.042CPU/wall,
-exact physical8 masks,all ancestor cpu.max unlimited. Screen123715 runs
-fixed320/10+0.1 from22:01:48;PASS starts fixed640/120+1confirmation (~60h).
-No GPU/tune during claims. Only frozen v4a30408fc/source41d9f94 is armed;
-playing0da45e7f on9ec5d31/net81215229/final14. Existing tests/dry modes/36
-identities reused;mocked controller/recovery checks PASS.
-Pool Koivisto3568,akimbo3614,BlackMarlin3623,Berserk3741,allThreads8/Hash256.
-Results `session94/claim-chain-result.json` and
-`claim-v4-20261016/attempt-001/{screen,confirmation}/analysis.json`.
+D=104.6344>40 triggered T8-vs-T4 scaling. Initial zero-search probe hold is
+preserved;root's existing **274153/ngn-root-width-retry.service** uses the
+fixed session88 probe. Both occupancy probes PASS;freshT8 A/A40 PASS
+01:23:01,4W32D4L,zero faults. Fixed400/10+0.1/c1/Hash256 now **274351**,
+69/400 at02:01,expected05:00–06:00. No administrative stop or duplicate.
+Output `claim-v4-20261016/attempt-001/width-retry1/width8-vs4/measurement/result.json`;
+continuation `session94/claim-chain-result.json` appears at terminal.
 
-Failed screen uses D=3640−P:<=40 resumes native SPSA and predeclared GPU
-cell45.35/33.21/21.44;>40 first measures T8-vs-T4 with own probe/A/A/fixed400.
-Point<25 holds for profile;otherwise resume. Failed confirmation also resumes;
-faults hold review. No duplicate queue,GPU cell or unchanged scored retry.
-Four checked search candidates stay behind tuning/claim;no new code task admitted.
+Width point<25 holds for Threads8 profile before any code. Otherwise native
+SPSA `-resume` from verified500/6000 and GPU cell45.35/33.21/21.44 start
+automatically;never restart the retired fresh-start wrapper or resume twice.
+GPU/tuner idle for exclusive width window. Both prior nets are SHELVED.
+Afterward:warm24kSPSA/fixed1000vector gate,GPU data/recipe cells,then checked
+qsearch/continuation/pawn/ProbCut SPRTs. No new code task admitted before width.
 Search/time logistic[0,5],min1000/cap8000;nets/SPSA fixed1000/lower95>0;
-correctness non-regression;reuse A/A per unchanged topology;zero faults.
-Provenance H0 remains separate debt;owned code stays. No duration ladder.
-C:31.577GiB;GPU idle for claim track;hopper/keepalive untouched.
-[Session97](experiments/2026-10-16-session97.md). Next routine session:
-**not before02:00 EDT October17**,or earlier on a fault.
+correctness non-regression;reuse A/A;zero faults. Provenance H0 stays separate
+ledger debt;owned code remains. No duration ladder or artifact re-audit.
+C:31.542GiB,RAM12524MiB available;hopper1188/keepalive untouched.
+[Session98](experiments/2026-10-17-session98.md). Next session:
+**not before05:30 EDT October17**,or earlier on a fault/needed decision.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
