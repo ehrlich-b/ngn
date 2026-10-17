@@ -21,6 +21,10 @@ const ViridithasSHA = "35b32c4acc3216fd9d1084bebad90452cee2e8725af4bdd0f175cc42c
 // Earlier executables/receipts remain frozen for historical analysis.
 const Schema = "NGN-CLAIM-4"
 const ClaimThreshold = 3600
+
+// Bryan's October 17 screen rule is prospective. Confirmation keeps its
+// strict pooled lower95 > ClaimThreshold rule.
+const ScreenPointMinimum = 3555
 const Threads = 8
 const HashMB = 256
 const CPUSet = "0,2,4,6,8,10,12,14"
@@ -74,6 +78,7 @@ type Plan struct {
 	Threads, HashMB         int
 	CPUSet                  string
 	ClaimThreshold          int
+	ScreenPointMinimum      int
 	BaseNS, IncrementNS     int64
 	Runner                  Artifact
 	WindowsBridge           Artifact // NGN-written Windows affinity/priority bridge

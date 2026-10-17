@@ -68,21 +68,15 @@ func decisionAnchors(pairs int) []AnchorAnalysis {
 	return out
 }
 func TestClaimAndScreenDecisionBoundaries(t *testing.T) {
-	p := PoolAnalysis{CI95: [2]float64{3600, 3700}}
+	p := PoolAnalysis{Estimate: 3650, CI95: [2]float64{3600, 3700}}
 	a := decisionAnchors(80)
 	if screen, claim := eligible("confirmation", a, p, true, 0); screen || claim {
 		t.Fatal("equality at 3600 admitted")
 	}
 	for _, lower := range []float64{3001, 3500, math.Nextafter(3600, math.Inf(-1)), math.NaN()} {
 		p.CI95[0] = lower
-		for _, mode := range []string{"screen", "confirmation"} {
-			pairs := 80
-			if mode == "screen" {
-				pairs = 40
-			}
-			if s, c := eligible(mode, decisionAnchors(pairs), p, true, 0); s || c {
-				t.Fatalf("%s admitted lower bound %v", mode, lower)
-			}
+		if s, c := eligible("confirmation", decisionAnchors(80), p, true, 0); s || c {
+			t.Fatalf("confirmation admitted lower bound %v", lower)
 		}
 	}
 	p.CI95[0] = math.Nextafter(3600, math.Inf(1))
@@ -117,8 +111,8 @@ func TestClaimAndScreenDecisionBoundaries(t *testing.T) {
 		t.Fatal("screen eligibility became a claim")
 	}
 	p.CI95[0] = 3600
-	if s, c := eligible("screen", decisionAnchors(40), p, true, 0); s || c {
-		t.Fatal("screen equality at 3600 admitted")
+	if s, c := eligible("screen", decisionAnchors(40), p, true, 0); !s || c {
+		t.Fatal("screen incorrectly used the confirmation lower bound")
 	}
 	p.CI95[0] = math.Nextafter(3600, math.Inf(1))
 	a[0].Counts.Pairs = 79
@@ -133,6 +127,41 @@ func TestClaimAndScreenDecisionBoundaries(t *testing.T) {
 	a = decisionAnchors(80)
 	if _, c := eligible("confirmation", a[:2], p, true, 0); c {
 		t.Fatal("missing anchor admitted")
+	}
+}
+
+func TestScreenUsesApproved3555PointBoundary(t *testing.T) {
+	p := PoolAnalysis{Estimate: 3555, CI95: [2]float64{3510, 3600}}
+	if s, c := eligible("screen", decisionAnchors(40), p, true, 0); !s || c {
+		t.Fatal("point equality at 3555 must admit only the screen")
+	}
+	for _, point := range []float64{3535.365648330272, math.Nextafter(3555, math.Inf(-1)), math.NaN()} {
+		p.Estimate = point
+		if s, c := eligible("screen", decisionAnchors(40), p, true, 0); s || c {
+			t.Fatalf("screen admitted point %v", point)
+		}
+	}
+	p.Estimate = 3555
+	for _, test := range []struct {
+		anchors    []AnchorAnalysis
+		admitted   bool
+		exclusions int
+	}{
+		{decisionAnchors(39), true, 0}, {decisionAnchors(40), false, 0}, {decisionAnchors(40), true, 1},
+	} {
+		if s, c := eligible("screen", test.anchors, p, test.admitted, test.exclusions); s || c {
+			t.Fatal("screen relaxed sample, admission, or exclusion requirements")
+		}
+	}
+	a := decisionAnchors(40)
+	for i := range a {
+		a[i].RawScore = 0.5
+	}
+	if s, c := eligible("screen", a, p, true, 0); s || c {
+		t.Fatal("unbracketed screen admitted")
+	}
+	if s, c := eligible("confirmation", decisionAnchors(80), p, true, 0); s || c {
+		t.Fatal("screen threshold leaked into confirmation")
 	}
 }
 func scoreGame(anchor string, index int, color, result string) Game {

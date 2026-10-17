@@ -366,7 +366,7 @@ func TestConfirmationRequiresSameV4ScreenIdentity(t *testing.T) {
 		c, _ := MakePlan("confirmation", id, s.Runner, s.Openings.Path)
 		screen := Receipt{Schema: Schema, Plan: s, FrozenOpenings: Artifact{Path: "/screen/slice", SHA256: OpeningSHA}, Selected: map[string]map[string]string{"candidate": {"Threads": "8"}}}
 		confirmation := Receipt{Schema: Schema, Plan: c, FrozenOpenings: Artifact{Path: "/confirmation/slice", SHA256: OpeningSHA}, Selected: map[string]map[string]string{"candidate": {"Threads": "8"}}}
-		analysis := Analysis{Schema: Schema, Mode: "screen", ClaimThreshold: ClaimThreshold, ScreenEligible: true}
+		analysis := Analysis{Schema: Schema, Mode: "screen", ClaimThreshold: ClaimThreshold, ScreenPointMinimum: ScreenPointMinimum, ScreenEligible: true}
 		return screen, analysis, confirmation
 	}
 	s, a, c := fixture()
@@ -379,6 +379,9 @@ func TestConfirmationRequiresSameV4ScreenIdentity(t *testing.T) {
 	}{
 		{"v2-analysis", func(s *Receipt, a *Analysis, c *Receipt) { a.Schema = "NGN-CLAIM-2" }},
 		{"v2-threshold", func(s *Receipt, a *Analysis, c *Receipt) { a.ClaimThreshold = 3000 }},
+		{"old-screen-rule", func(s *Receipt, a *Analysis, c *Receipt) { a.ScreenPointMinimum = 0 }},
+		{"wrong-screen-plan-rule", func(s *Receipt, a *Analysis, c *Receipt) { s.Plan.ScreenPointMinimum = 3600 }},
+		{"wrong-confirmation-plan-rule", func(s *Receipt, a *Analysis, c *Receipt) { c.Plan.ScreenPointMinimum = 0 }},
 		{"ineligible", func(s *Receipt, a *Analysis, c *Receipt) { a.ScreenEligible = false }},
 		{"wrong-analysis-mode", func(s *Receipt, a *Analysis, c *Receipt) { a.Mode = "confirmation" }},
 		{"v2-screen", func(s *Receipt, a *Analysis, c *Receipt) { s.Schema = "NGN-CLAIM-2" }},

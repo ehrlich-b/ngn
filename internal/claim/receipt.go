@@ -203,7 +203,7 @@ func foreignMatch(output string, ours map[string]bool) error {
 	return nil
 }
 func MakePlan(mode string, id Identity, runner Artifact, openingPath string) (Plan, error) {
-	p := Plan{Schema: Schema, Mode: mode, ClaimThreshold: ClaimThreshold, Candidate: id, Anchors: Anchors(), Openings: Artifact{openingPath, OpeningSHA}, Concurrency: 1, Threads: Threads, HashMB: HashMB, CPUSet: CPUSet, Cap: 400, Runner: runner, MoveOverhead: 100, MaxLoad: 16}
+	p := Plan{Schema: Schema, Mode: mode, ClaimThreshold: ClaimThreshold, ScreenPointMinimum: ScreenPointMinimum, Candidate: id, Anchors: Anchors(), Openings: Artifact{openingPath, OpeningSHA}, Concurrency: 1, Threads: Threads, HashMB: HashMB, CPUSet: CPUSet, Cap: 400, Runner: runner, MoveOverhead: 100, MaxLoad: 16}
 	switch mode {
 	case "screen":
 		p.Count = 40
@@ -242,7 +242,7 @@ func validatePlan(p Plan) error {
 	if e != nil {
 		return e
 	}
-	if p.Schema != Schema || p.ClaimThreshold != ClaimThreshold || p.Count != expected.Count || p.Concurrency != expected.Concurrency || p.Threads != Threads || p.HashMB != HashMB || p.CPUSet != CPUSet || p.Cap != 400 || p.BaseNS != expected.BaseNS || p.IncrementNS != expected.IncrementNS || p.MoveOverhead != 100 || p.MaxLoad != expected.MaxLoad || p.Openings.SHA256 != OpeningSHA {
+	if p.Schema != Schema || p.ClaimThreshold != ClaimThreshold || p.ScreenPointMinimum != ScreenPointMinimum || p.Count != expected.Count || p.Concurrency != expected.Concurrency || p.Threads != Threads || p.HashMB != HashMB || p.CPUSet != CPUSet || p.Cap != 400 || p.BaseNS != expected.BaseNS || p.IncrementNS != expected.IncrementNS || p.MoveOverhead != 100 || p.MaxLoad != expected.MaxLoad || p.Openings.SHA256 != OpeningSHA {
 		return fmt.Errorf("protocol settings mismatch")
 	}
 	if len(p.Anchors) != len(expected.Anchors) {
@@ -1056,10 +1056,11 @@ func CreateReceipt(p Plan, dir, sourceRoot string, toolBuild []string, screenRec
 // persistent input must carry over from screen to confirmation unchanged.
 func screenAdmitsConfirmation(screen Receipt, analysis Analysis, confirmation Receipt) bool {
 	s, c := screen.Plan, confirmation.Plan
-	return analysis.Schema == Schema && analysis.ClaimThreshold == ClaimThreshold &&
+	return analysis.Schema == Schema && analysis.ClaimThreshold == ClaimThreshold && analysis.ScreenPointMinimum == ScreenPointMinimum &&
 		analysis.Mode == "screen" && analysis.ScreenEligible && !analysis.ClaimEligible &&
 		screen.Schema == Schema && confirmation.Schema == Schema &&
 		s.Schema == Schema && c.Schema == Schema && s.ClaimThreshold == ClaimThreshold && c.ClaimThreshold == ClaimThreshold &&
+		s.ScreenPointMinimum == ScreenPointMinimum && c.ScreenPointMinimum == ScreenPointMinimum &&
 		s.Mode == "screen" && c.Mode == "confirmation" &&
 		reflect.DeepEqual(s.Candidate, c.Candidate) && reflect.DeepEqual(screen.Selected, confirmation.Selected) &&
 		s.Runner == c.Runner && s.WindowsBridge == c.WindowsBridge &&

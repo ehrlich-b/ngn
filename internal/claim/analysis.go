@@ -37,6 +37,7 @@ type BootstrapAnalysis struct {
 type Analysis struct {
 	Schema, Mode, ReceiptSHA256, Formula string
 	ClaimThreshold                       int
+	ScreenPointMinimum                   int
 	GameDirectory                        string
 	Audit                                Artifact
 	// Bind every replayed game to the saved audit, not the collector summary.
@@ -88,13 +89,18 @@ func bracketed(anchors []AnchorAnalysis) bool {
 	return above && below
 }
 func eligible(mode string, anchors []AnchorAnalysis, p PoolAnalysis, admitted bool, exclusions int) (bool, bool) {
-	if !admitted || exclusions != 0 || !bracketed(anchors) || !(p.CI95[0] > ClaimThreshold) {
+	if !admitted || exclusions != 0 || !bracketed(anchors) {
 		return false, false
 	}
 	expected := 80
 	if mode == "screen" {
 		expected = 40
+		if !(p.Estimate >= ScreenPointMinimum) {
+			return false, false
+		}
 	} else if mode != "confirmation" {
+		return false, false
+	} else if !(p.CI95[0] > ClaimThreshold) {
 		return false, false
 	}
 	fixed := Anchors()
@@ -240,7 +246,7 @@ func Bootstrap(anchors []Anchor, games []Game, indices, draws int, seed int64) (
 // Analyze accepts persisted, hash-bound evidence only. Replaying it anew prevents
 // an edited audit flag or collector summary from manufacturing admission.
 func Analyze(receiptPath, auditPath, gameDir string) (Analysis, error) {
-	out := Analysis{Schema: Schema, Formula: PrimaryFormula, ClaimThreshold: ClaimThreshold}
+	out := Analysis{Schema: Schema, Formula: PrimaryFormula, ClaimThreshold: ClaimThreshold, ScreenPointMinimum: ScreenPointMinimum}
 	absoluteDir, e := filepath.Abs(gameDir)
 	if e != nil {
 		return out, e
