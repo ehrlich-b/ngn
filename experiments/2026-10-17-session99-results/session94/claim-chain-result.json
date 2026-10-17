@@ -1,0 +1,6 @@
+{
+  "state": "FAILED_CLAIM_WORK_RESUMED",
+  "attempt": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-001",
+  "width": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/width-retry1",
+  "finished_utc": "2026-10-17T09:00:36.063642+00:00"
+}

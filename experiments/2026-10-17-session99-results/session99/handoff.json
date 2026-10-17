@@ -1,0 +1,87 @@
+{
+  "utc": "2026-10-17T09:34:47.605322+00:00",
+  "stage": "session99",
+  "event": "handoff",
+  "detail": {
+    "accepted": "9ec5d31/81215229/compiled final14",
+    "width": {
+      "games": 400,
+      "pairs": 200,
+      "orphan_games": 0,
+      "wdl": [
+        106,
+        257,
+        37
+      ],
+      "penta": [
+        0,
+        16,
+        108,
+        67,
+        9
+      ],
+      "printed_elo_ci95": [
+        60.5,
+        44.0,
+        78.0
+      ],
+      "exact_elo_ci95": [
+        60.537939575745845,
+        43.54898330840046,
+        77.81865552678715
+      ],
+      "final_pllr": 4.0,
+      "exact_pllr": 3.99813399951321,
+      "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+      "flags": [
+        0,
+        0
+      ],
+      "reasons": {
+        "draw-rule": 252,
+        "checkmate": 143,
+        "max-moves": 5
+      },
+      "faults": [],
+      "verdict": "MEASURED",
+      "name": "s94-width8-vs4",
+      "finished_utc": "2026-10-17T09:00:36.020031+00:00",
+      "manifest": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/width-retry1/width8-vs4/measurement/manifest.json",
+      "automatic_adoption": false
+    },
+    "continuation": "FAILED_CLAIM_WORK_RESUMED",
+    "spsa": {
+      "pid": 275233,
+      "service": "ngn-s94-spsa-resume.service",
+      "iteration": 525,
+      "games": 6300,
+      "time": "2026-10-17T09:30:29Z",
+      "target_iterations": 2000,
+      "target_games": 24000,
+      "checkpoint": "/home/ehrli/ngn-data/night-20261007/session88/spsa-warm/spsa.jsonl",
+      "native_resume": true
+    },
+    "gpu": {
+      "controller_pid": 275237,
+      "trainer_pid": 275238,
+      "service": "ngn-s94-gpu-next.service",
+      "cell": "rebalanced-t74",
+      "completed_epochs": 0,
+      "last_epoch": null,
+      "result": "/home/ehrli/ngn-data/night-20261007/session94/gpu-next/rebalanced-t74/result.json",
+      "nvidia_smi": "6 %, 4259 MiB"
+    },
+    "host_c_free_bytes": 30087077888,
+    "available_ram_mib": 9349,
+    "swap_used_mib": 1,
+    "hopper_pid": 1188,
+    "new_jobs_this_session": 0,
+    "new_engine_changes": 0,
+    "goal_met": false,
+    "no_push": true,
+    "next_session": "not before15:00 EDT October17",
+    "estimated_gpu_ready_edt": "October17 14:30-15:30; revise from epoch history",
+    "estimated_spsa_endpoint_edt": "October18 10:30-12:00; from first resumed25iterations",
+    "needs_bryan": "screen rule; no further screen or confirmation until answer per01:15 plan"
+  }
+}

@@ -5,32 +5,32 @@ Playing **9ec5d31/81215229/compiled final14** unchanged;no3600 claim.
 Plan through **October17 01:15** governs. Local `night/night` only;never
 pull/fetch/push,publish or write remote APIs. All compute rig;forge closed.
 
-Attempt001's original fixed320 Threads8/Hash256 screen naturally FAILED
-00:58:19 EDT: **3535.3656[3493.9310,3576.8003]**,SE21.1401,
-44W142D134L,raw bracket PASS,zero faults/exclusions. No confirmation,
-extension,pooling or unchanged retry. Further claim games await Bryan's
-screen-rule decision per01:15 plan;historical clock offsets are projections.
+Attempt001's fixed320 Threads8/Hash256 screen FAILED00:58:19 EDT:
+**3535.3656[3493.9310,3576.8003]**,44W142D134L,bracketed,zero faults.
+Further claim games await Bryan's screen-rule decision;no unchanged retry,
+confirmation,pooling or inferred clock-offset protocol change.
 
-D=104.6344>40 triggered T8-vs-T4 scaling. Initial zero-search probe hold is
-preserved;root's existing **274153/ngn-root-width-retry.service** uses the
-fixed session88 probe. Both occupancy probes PASS;freshT8 A/A40 PASS
-01:23:01,4W32D4L,zero faults. Fixed400/10+0.1/c1/Hash256 now **274351**,
-69/400 at02:01,expected05:00–06:00. No administrative stop or duplicate.
-Output `claim-v4-20261016/attempt-001/width-retry1/width8-vs4/measurement/result.json`;
-continuation `session94/claim-chain-result.json` appears at terminal.
+T8-vs-T4 scaling naturally MEASURED **05:00:36**:fixed400/200pairs,
+106W257D37L,penta[0,16,108,67,9], **+60.5379[43.5490,77.8187]**,
+zero faults. Point>=25 selects the T1 queue;no SMP profile/code nomination.
+Existing continuation is **FAILED_CLAIM_WORK_RESUMED**. Both successors
+started automatically once;never call resume_work or the fresh-start wrapper.
 
-Width point<25 holds for Threads8 profile before any code. Otherwise native
-SPSA `-resume` from verified500/6000 and GPU cell45.35/33.21/21.44 start
-automatically;never restart the retired fresh-start wrapper or resume twice.
-GPU/tuner idle for exclusive width window. Both prior nets are SHELVED.
-Afterward:warm24kSPSA/fixed1000vector gate,GPU data/recipe cells,then checked
-qsearch/continuation/pawn/ProbCut SPRTs. No new code task admitted before width.
+Native SPSA **275233/ngn-s94-spsa-resume.service**:durable525/6300games at
+05:30:29,up from500/6000;0–11/c6/GOMAX1. Endpoint2000/24k provisionally
+10:30–12:00 October18,then fixed1000 final-vector gate on unchanged net.
+GPU **275237 controller/275238 trainer/ngn-s94-gpu-next.service**:
+rebalanced-T74 shares45.35/33.21/21.44,loader12,14,final115 only,then
+reexport/parity. First epoch/validation pending05:32;readiness provisionally
+14:30–15:30 October17. No automatic games/adoption;do not interrupt tuning.
+Four checked search candidates wait:qsearch,continuation,pawn quiet,ProbCut.
+No new candidate work admitted while the evidence lanes are occupied.
 Search/time logistic[0,5],min1000/cap8000;nets/SPSA fixed1000/lower95>0;
 correctness non-regression;reuse A/A;zero faults. Provenance H0 stays separate
-ledger debt;owned code remains. No duration ladder or artifact re-audit.
-C:31.542GiB,RAM12524MiB available;hopper1188/keepalive untouched.
-[Session98](experiments/2026-10-17-session98.md). Next session:
-**not before05:30 EDT October17**,or earlier on a fault/needed decision.
+debt;owned code remains. No duration ladder or artifact re-audit.
+C:28.021GiB;9349MiB RAM available;existing disk guard active;hopper untouched.
+[Session99](experiments/2026-10-17-session99.md). Next session:
+**not before15:00 EDT October17**,or earlier on a fault/needed decision.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
