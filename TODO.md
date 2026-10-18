@@ -5,32 +5,39 @@ Accepted **fe92ced/81215229/compiled final14** unchanged. Plan through
 **October18 11:25** governs. Local commits only; never pull/fetch/push,
 publish or remote API write. All chess compute on WSL. Hopper1188 untouched.
 
-**Next session: not before13:35 EDT October18.** WDL.50 SHELVED at12:10:49:
-fixed1000,−36.9670[−48.8945,−25.1258],zero faults. Existing335882 immediately
-started **S4 timing360131**, expected13:31/provisional. Read S4 result,
-Session109 overall result and status together; never stop a running gate.
-Full checks/60 identities/smoke PASS reused; integrate only after a timing
-KEEP. No second speed candidate while pending. Native SPSA1600/19,200 is
-cleanly paused;335882 resumes it once after a clean S4 terminal. Final2000/
-24k then prospective fixed1000 vector gate on immediate accepted source/net;
-vector gate unarmed. Four checked search SPRTs follow.
+**Next session: not before23:05 EDT October18.** S4 naturally **SHELVED
+13:30:39**: all six timing intervals include1. No extension/integration.
+Original335882 completed and resumed native SPSA **361831 /
+ngn-s109-spsa-resume.service** from1600/19,200/RNG144000. Endpoint2000/24k
+about21:30, provisional. **363369/ngn-s113-vector.scope** waits natively,
+then manifests/runs the required fixed1000 gate, final2000 vs explicitfinal14
+on identical acceptedfe92ced/81215229. Printed/exact lower95>0/zero faults;
+no extension/adoption. Results:`session113-vector/gate/result.json`, overall
+`session113-vector/result.json`; expected23:00/provisional. Read these,
+status and tune checkpoint together; never start a duplicate or stop a gate.
+Four checked search SPRTs follow review; retarget after accepted changes.
 
-**WDL.25 waiter356982 DISARMED at12:16:43**, no training started. Do not
-relaunch after capacity recovers. Root11:25 forbids further recipe cells
-on the existing corpus. GPU idle is allowed; CPU evidence proceeds.
-[Session112 data/storage plan](experiments/2026-10-18-session112-data-plan.md)
-awaits Bryan approval before deletion/download/bulk data work. Metadata
-inventory complete:241.171GiB allocated under ngn-data;222.585GiB T74/T76
-are accepted-net inputs. Six unselected snapshots offer only0.12349GiB.
-Large space option: archive/retire fullT74(170.778GiB), with explicit
-accepted-net retraining tradeoff. Three new-data options and exact paths
-are in the plan. C:**30.366GiB** at12:25; floor25GiB. No deletion/download,
-compaction or WSL restart occurred.
+**S5 single search epilogue** on`night/s113-search-epilogue` remains
+isolated/uncommitted. Full short/race/vet/Linux-PGO/Windows builds, normal/
+panic cleanup tests, **60 exact identities**, both compiler open-coded-defer
+witnesses and launcher smoke **PASS**. Reuse`session113-speed/checks-review.json`.
+Timing prepared, unarmed: fixed40 paired20s per topology, both strata lower95>1
+at allT1/H64,T1/H256,T8/H256. Run at a natural exclusive boundary after due
+vector/search gates. No second speed candidate while S5 pending; if shelved,
+close alpha-beta after two attempts and move to SEE. No timing/Elo credit yet.
 
-Goal unmet. Attempt001 SCREEN FAIL3535.3656[3493.9310,3576.8003]. Next changed
+**WDL.25 DISARMED**; WDL.50 SHELVED−36.967/1000. No more existing-corpus
+recipe cells. GPU idle allowed pending Bryan's approval of the completed
+[Session112 data/storage plan](experiments/2026-10-18-session112-data-plan.md).
+No deletion/download/bulk data job before approval. Inventory241.171GiB,
+T74/T76 accepted inputs222.585GiB. Six unselected snapshots offer0.12349GiB;
+fullT74 archive/retirement170.778GiB needs an explicit retraining tradeoff.
+C:**30.144GiB** at13:47; floor25GiB. No compaction or restart.
+
+Goal unmet. Attempt001 SCREEN FAIL3535.3656[3493.9310,3576.8003]. Fresh
 package needs plausible+20pool; S3+S1 planning credit roughly+6–7Elo.
-Screen point>=3555 then confirmation640/120+1 strictlower95>3600/bracketed.
-Provenance H0 separate debt. [Session112](experiments/2026-10-18-session112.md).
+Screen point>=3555 then640/120+1 strictlower95>3600/bracketed.
+Provenance H0 separate debt. [Session113](experiments/2026-10-18-session113.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

@@ -1,0 +1,25 @@
+{
+  "candidate": "s5",
+  "profile_admitted": true,
+  "authority": "Merged plan October18 00:50: standing speed lane, second alpha-beta/quiescence attempt after S4 shelf",
+  "measured_profile": "/home/ehrli/ngn-data/night-20261007/session108-speed/accepted.cpu.pprof",
+  "profile_source": "fe92ced/81215229/compiled final14, existing diagnostic wrapper",
+  "hotspot": "alphaBetaPV 10.05% flat; runtime.(*_panic).nextDefer 0.53% flat / 0.60% cumulative; both recursive searches have many return sites and one cleanup defer",
+  "treatment": "Consolidate post-reservation normal returns through one epilogue, retaining the same defer so Go can open-code it and preserve panic cleanup",
+  "identity_argument": "Every former return evaluates the same expression at the same point, then reaches the same cleanup defer exactly once; pre-reservation exits and every search operation retain their order",
+  "immediate_accepted_base": "fe92ced/81215229/compiled final14; source archive from session107",
+  "identity": "Required focused normal/panic cleanup tests, engine/full short/race, vet, Linux PGO/Windows builds, compiler open-coded-defer witness, and 60 exact fixed/iterative move/score/node/PV identities",
+  "timing": {
+    "topologies": [[1,64],[1,256],[8,256]],
+    "paired_blocks": 40,
+    "milliseconds_per_engine": 20000,
+    "order": "AB/BA alternating; frame=(block//2)%12; fixed sample, no extension",
+    "rule": "Every topology and both order strata must have paired geometric NPS lower95>1 using Student t df19; otherwise SHELVED"
+  },
+  "launcher": "taskset physical cores; nice19; GOMAXPROCS=Threads; inherited CPU set0-15; CPU quota1600%",
+  "admission": "Natural exclusive boundary after due final-vector and search gates; retarget/recheck if accepted package changes; no tune pause now",
+  "expected_gain": "Hypothesis only: 1-3% NPS; no Elo credit before measurement",
+  "automatic_adoption": false,
+  "automatic_timing": false,
+  "created_edt": "2026-10-18 13:42"
+}
