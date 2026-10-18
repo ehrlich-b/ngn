@@ -1,0 +1,33 @@
+{
+  "utc": "2026-10-18T00:06:28.168457+00:00",
+  "accepted": "9ec5d31/81215229/compiled final14",
+  "net": {
+    "state": "SHELVED",
+    "result": "/home/ehrli/ngn-data/night-20261007/session101-speed/net-rebalanced-t74/result.json"
+  },
+  "s3": {
+    "state": "RUNNING",
+    "controller_pid": 296299,
+    "timing_pid": 311027,
+    "result": "/home/ehrli/ngn-data/night-20261007/session101-speed/s3-timing/result.json",
+    "eta_edt": "2026-10-17 21:20-21:25"
+  },
+  "continuation": {
+    "pid": 310582,
+    "state": "WAITING_S101_BOUNDARY",
+    "result": "/home/ehrli/ngn-data/night-20261007/session102-speed/result.json"
+  },
+  "spsa": {
+    "state": "PAUSED_AT_VERIFIED_CHECKPOINT",
+    "iteration": 1075,
+    "games": 12900,
+    "time": "2026-10-17T22:25:25Z"
+  },
+  "services": "MainPID=296299\nCPUQuotaPerSecUSec=infinity\nMemoryMax=4294967296\nActiveState=active\n\nMainPID=310582\nCPUQuotaPerSecUSec=infinity\nMemoryMax=4294967296\nActiveState=active\n",
+  "gpu": "0 %, 1478 MiB",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        1473       13302           3         982       14041\nSwap:           4096           2        4093\n",
+  "host_c_free_bytes": "44518522880",
+  "hopper": "1188 untouched",
+  "goal_met": false,
+  "no_push": true
+}

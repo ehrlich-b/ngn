@@ -1,0 +1,46 @@
+{
+  "games": 1000,
+  "pairs": 500,
+  "orphan_games": 0,
+  "wdl": [
+    203,
+    586,
+    211
+  ],
+  "penta": [
+    14,
+    120,
+    239,
+    114,
+    13
+  ],
+  "printed_elo_ci95": [
+    -2.8,
+    -15.0,
+    10.0
+  ],
+  "exact_elo_ci95": [
+    -2.779543982131142,
+    -15.380579522486752,
+    9.814180227881996
+  ],
+  "final_pllr": -0.64,
+  "exact_pllr": -0.639595254787384,
+  "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 575,
+    "checkmate": 414,
+    "max-moves": 8,
+    "stalemate": 3
+  },
+  "faults": [],
+  "verdict": "SHELVED",
+  "name": "s101-net-rebalanced-t74",
+  "finished_utc": "2026-10-17T23:58:49.923122+00:00",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session101-speed/net-rebalanced-t74/manifest.json",
+  "automatic_adoption": false
+}
