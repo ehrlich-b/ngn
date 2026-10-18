@@ -7,11 +7,13 @@ positive. No new Elo/3600 claim. Plan throughOctober17 13:10 governs.
 Localnight/night/topics only;never pull/fetch/push,publish or write remote APIs.
 All builds,tests,engines and training onrig;forge closed;Mac runs nothing heavy.
 
-Next session:not before21:45 EDT October17 to review rebuilt checks.
-S2f527ab3 andS1fcc1432 rebuilt independently onS3. WSL checks315480 on13,15;
-ngn-s104-speed-continuation solely owns their next checkpoint boundary.
-S2 first;S1 only onS2shelf. Any winner holds successor for immediate-base
-rebuild. Timing:40paired20s/topology,T1/H64,T1/H256,T8/H256,AB/BA;
+Next session:not before23:25 EDT October17 to review S2timing.
+S2f527ab3 andS1fcc1432 rebuilt independently onS3. WSL checks315480
+completed21:38:34/exit0:required suites/builds and60identities each PASS;
+S1 hugepages256MiB. Saved inSession105results;do not rerun.
+ngn-s104-speed-continuation315686 solely owns next tune checkpoint boundary,
+then S2;S1 only onS2shelf. Any winner holds successor for immediate-base
+rebuild. Fixed40paired20s/topology,T1/H64,T1/H256,T8/H256,AB/BA;
 BOTH strata lower95>1 at EVERY topology. No extension or Elo conversion.
 Original296299/310582 completed;do not relaunch. Native tune314860 resumed
 from1075/12900;unchanged trajectory. Clean timing resumes once asngn-s104-spsa-resume.
@@ -26,7 +28,7 @@ search SPRTs follow. Search/time[0,5],min1000/cap8000;nets/SPSA fixed1000/
 lower95>0;reuseA/A;zero faults. ProvenanceH0 separate debt;owned code stays.
 Attempt001 SCREEN FAIL3535.3656[3493.9310,3576.8003]. New package needs
 plausible+20pool;screen point>=3555,confirmation640/120+1/strictlower95>3600/
-bracketed. [Session104](experiments/2026-10-17-session104.md).
+bracketed. [Session105](experiments/2026-10-17-session105.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
