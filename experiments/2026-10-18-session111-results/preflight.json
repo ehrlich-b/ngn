@@ -1,0 +1,20 @@
+{
+  "state": "PASS",
+  "syntax": "PASS",
+  "argv_differences": [
+    {
+      "index": 17,
+      "old": "/home/ehrli/ngn-data/night-20261007/session104-speed/recipe/wdl050/trained",
+      "new": "/home/ehrli/ngn-data/night-20261007/session111/recipe/wdl025/trained"
+    },
+    {
+      "index": 37,
+      "old": ".50",
+      "new": ".25"
+    }
+  ],
+  "reused_trainer_finalization": true,
+  "reused_storage_admission": true,
+  "new_go_code": false,
+  "new_games": false
+}

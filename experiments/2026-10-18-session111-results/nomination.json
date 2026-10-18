@@ -1,0 +1,17 @@
+{
+  "authority": "October17 09:45 controlled data/recipe cells;Session111 prospective target-blend nomination",
+  "boundary_pid": 335882,
+  "predecessor_result": "/home/ehrli/ngn-data/night-20261007/session109/result.json",
+  "predecessor_states": [
+    "NET_S4_COMPLETE_TUNE_RESUMED",
+    "REVIEW_NET_WINNER_TUNE_RESUMED"
+  ],
+  "cell": "wdl025",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session111/recipe/wdl025/manifest.json",
+  "ownership": "GPU cell only after prior exclusive boundary; no tune pause/resume, games, adoption or claim",
+  "storage": "Existing37GiB admission at dispatch;25.25GiB running floor;hold if insufficient",
+  "cpu_scope": "AllowedCPUs12-15/CPUQuota200%/MemoryMax6GiB/swap0/nice19;trainer12,14;final parity13,15",
+  "completion": "Full115/latest epoch115;identical export;20 integer parity;eventual fixed1000 immediate-base lower95>0 then fixed400/60+0.6 point>0 before foreign games",
+  "automatic_games": false,
+  "automatic_adoption": false
+}

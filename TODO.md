@@ -1,42 +1,37 @@
 # NGN live state — 2026-10-18: 3600 campaign
 
-[Campaign](experiments/2026-10-08-3600-campaign.md) owns queue, handles, handoff.
-Accepted **fe92ced/81215229/compiled final14** unchanged. S3+S1 pure-speed
-keeps; S2 SHELVED. Plan through **October18 00:50** governs: one speed
-candidate at a time. No new absolute rating/claim. Local commits only;
-never pull/fetch/push, publish or remote API write. All heavy work on rig.
+[Campaign](experiments/2026-10-08-3600-campaign.md) owns queue and handles.
+Accepted **fe92ced/81215229/compiled final14** unchanged; S3+S1 pure speed
+keeps, S2 SHELVED. Plan throughOctober18 00:50 governs. Local commits only;
+never pull/fetch/push, publish or remote API write. All chess compute on WSL.
 
-**Next session: not before 10:30 EDT October18.** At09:28 the sole boundary
-owner **335882/ngn-s109-boundary.scope** is alive in its native training wait;
-read `session109/{controller.log,result.json}` and status tail first. WDL.50
-controller325759/trainer325764 is at **103/115epochs**, about282–283s/epoch;
-final115/export/20parity roughly10:25–10:35, provisional. No terminal yet.
-Existing checkpoint pause→net fixed1000→KEEP transfer400 or SHELVED S4
-fixed40 timing remains unchanged. Clean terminal resumes native tune once
-as `ngn-s109-spsa-resume`; faults hold. No adoption/claim is automatic.
+**Next session: not before12:15 EDT October18.** WDL.50 completed115 epochs
+at10:24:45, netcc0f9948, identical reexport/20 parity PASS. Boundary
+**335882/ngn-s109-boundary.scope** owns the fixed1000 net gate and conditional KEEP→transfer400 or SHELVED→S4 timing80min.
+SPSA325755 paused cleanly at verified **1600/19,200** and the original
+net gate **357112 started10:39:45**. Read `session109/net-wdl050/result.json`,
+overall result and status first. No active gate may be stopped. Clean boundary resumes
+native tune once asngn-s109-spsa-resume; faults hold. No automatic adoption.
 
-S4 full suites/builds/60 identities/smoke already PASS; reuse Session109.
-Isolated `/private/tmp/ngn-s108-pruning-hoist`, topic `night/s108-pruning-hoist`,
-is uncommitted with durable Session108 patch. Integrate only after timing
-KEEP. Retarget unstarted jobs if source/net/vector changes first. Never
-stop a running predeclared gate. No further admitted code task is ready.
-Four Session107 search candidates already pass accepted-base checks;
-games stay behind net/final-vector gates.
+**WDL.25** is the next controlled target-blend recipe: only lambda.50→.25,
+same trainer/data/weights/seed/split/115x256M/final115. **356982/
+ngn-s111-gpu-next.scope** waits natively on335882 before training. Existing
+37GiB admission/25.25GiB running guard stay; insufficient capacity writes
+HELD_STORAGE without polling. No games/adoption armed. C:**30.599GiB**
+at10:40; Needs Bryan: free about7GiB on hostC. Only the obsolete campaign
+raw T74 download was removed; mapped training inputs retained. Online trim
+did not restore enough host capacity. Hopper1188 untouched.
 
-Native SPSA **325755/ngn-s104-spsa-resume** has durable **1525/18,300** at
-09:06:14. Preserve binary/net/RNG; final2000/24k then fixed1000 versus
-compiledfinal14 on immediate accepted source/net. No vector gate armed.
-If iter2000 precedes pause, the boundary holds for final-vector priority.
-Never verdict mid-run tuning scores. Endpoint lateOctober18 plus boundary.
+S4 full checks/60 identities/smoke PASS reused; isolated uncommitted topic
+`night/s108-pruning-hoist`, integrate only after timing KEEP. No second
+speed candidate while it is pending. Four search candidates are checked
+but wait for net/final-vector gates. Native SPSA final2000/24k then fixed1000
+versus compiledfinal14 on immediate accepted source/net; vector gate unarmed.
 
-C:**28.712GiB** at09:28 (floor25GiB); GPU46%/4261MiB, RAM6265MiB used/
-9248MiB available; hopper1188 untouched. No new jobs this early session.
-Net/SPSA fixed1000/lower95>0; search/time[0,5] min1000/cap8000 with batch
-path; reused topology A/A; zero faults. Provenance H0 remains separate debt.
-Attempt001 SCREEN FAIL3535.3656[3493.9310,3576.8003]. Fresh changed package
-needs plausible+20pool (S3+S1 credit roughly+6–7Elo); screen point>=3555,
-confirmation640/120+1/strictlower95>3600/bracketed. Goal unmet.
-[Session110](experiments/2026-10-18-session110.md).
+Goal unmet. Attempt001 SCREEN FAIL3535.3656[3493.9310,3576.8003]. Next changed
+package needs plausible+20pool; S3+S1 planning credit roughly+6–7Elo.
+Screen point>=3555 then confirmation640/120+1 strictlower95>3600/bracketed.
+Provenance H0 remains separate debt. [Session111](experiments/2026-10-18-session111.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

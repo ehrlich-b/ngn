@@ -1,0 +1,9 @@
+{
+  "utc": "2026-10-18T14:32:57.105014+00:00",
+  "path": "/home/ehrli/ngn-data/night-20261007/session19-data/raw/farseerT74.binpack",
+  "bytes": 20144023865,
+  "mtime": 1791522076.8220837,
+  "reason": "Obsolete campaign download; converted fullT74 retained; planned unlink in session21; last modified October9; no open descriptors",
+  "retained": "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf",
+  "authorization": "Campaign-only data cleanup; no WSL restart/compaction"
+}
