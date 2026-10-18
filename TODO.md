@@ -1,34 +1,39 @@
-# NGN live state — 2026-10-17: 3600 campaign
+# NGN live state — 2026-10-18: 3600 campaign
 
-[Campaign](experiments/2026-10-08-3600-campaign.md) owns queue,handles and handoff.
-Accepted **4958bc4/81215229/compiled final14**:S3 branchless selection adopted,
-node-identical and+6–7%NPS acrossT1/H64,T1/H256,T8/H256,both order strata
-positive. No new Elo/3600 claim. Plan throughOctober17 13:10 governs.
-Localnight/night/topics only;never pull/fetch/push,publish or write remote APIs.
-All builds,tests,engines and training onrig;forge closed;Mac runs nothing heavy.
+[Campaign](experiments/2026-10-08-3600-campaign.md) owns queue,handles,handoff.
+Accepted **fe92ced/81215229/compiled final14**:S3 branchless selection and
+S1 huge-page TT allocation. S1 natural terminal00:33:13 PASS atT1/H64,
+T1/H256,T8/H256,both order strata;NPS+1.4–2.0%. Reuse60identities/full
+checks/256MiB actual huge pages. S2 remains SHELVED;no extension.
+No speed-to-Elo conversion or new3600claim. Plan throughOct17 13:10 governs.
+Localnight/night/topics only;never pull/fetch/push,publish or remote APIwrite.
+All builds,tests,engines/training onrig;Mac runs nothing heavy;forge closed.
 
-Next session:not before00:35 EDT October18 to review S1timing.
-S2f527ab3 is **SHELVED**,natural terminal23:13:24 October17:required
-both-strata lower95>1 fails atT1/H64 andT8/H256. No extension/integration.
-S1fcc1432 started automatically onacceptedS3;runner322989,engines322990/322995.
-ngn-s104-speed-continuation315686 is the sole owner;terminal about00:33–00:40.
-Required suites/builds and60identities each PASS fromSession105;S1 hugepages
-256MiB. Reuse checks. Fixed40paired20s/topology,T1/H64,T1/H256,T8/H256,
-AB/BA;BOTH strata lower95>1 at EVERY topology. No extension or Elo conversion.
-Native tune PAUSED_AT_VERIFIED_CHECKPOINT1100/13200;clean S1terminal resumes
-once asngn-s104-spsa-resume,then launches the predeclaredGPU cell.
+Next session:not before01:00 EDT October18 to review combinationchecks.
+Same four search patches now check independently onfe92ced:
+qsearch,continuation,pawn quiet,ProbCut;325909/ngn-s107-checks,13,15,
+nice19/2GiB/swap0. `session107/checks-result.json`,per-candidate results,
+`checks.{exit,done}`. No games/adoption;originalS1checks are reused.
 
-Same predeclared **wdl050** GPU recipe follows clean S1terminal.
-Target75/25→50/50 versus completed volume-control,
-same corpus/weights/seeds/split/recipe/final115.37GiB admission,25GiB floor,
-6GiB/swap0,loader12,14,export/20parity. No automatic games/adoption.
-Rebalanced-T74 remains SHELVED:1000,−2.7795[−15.3806,+9.8142],zero faults.
-SPSA endpoint2000/24k only,then fixed1000 vscompiledfinal14 on same net;
-search SPRTs follow. Search/time[0,5],min1000/cap8000;nets/SPSA fixed1000/
-lower95>0;reuseA/A;zero faults. ProvenanceH0 separate debt;owned code stays.
-Attempt001 SCREEN FAIL3535.3656[3493.9310,3576.8003]. New package needs
-plausible+20pool;screen point>=3555,confirmation640/120+1/strictlower95>3600/
-bracketed. [Session106](experiments/2026-10-17-session106.md).
+OriginalSession104 is complete. Native tune resumed automatically once as
+325755/ngn-s104-spsa-resume,from1100/13200;preserve engine/net/RNG.
+Final2000/24k then fixed1000vscompiledfinal14 onacceptedsource/samenet.
+No vector gate currently armed;the resumed direct tuner may produce only
+its durable endpoint,not a new readiness JSON. SearchSPRTs follow.
+
+WDL.50 started00:33:13 as325759/ngn-s104-wdl050,trainer325764.
+Same75/25→50/50 target recipe againstvolume-control;corpus/weights/seeds/
+split/115x256M/final115/export/20parity unchanged. Loader12,14,6GiB/swap0,
+25GiB floor. Cold startup at00:37;no epoch yet,not a failure. Expected
+naturalterminal10:30–12:30EDT,provisional. No automaticgames/adoption.
+C:36.405GiB after39.907GiB launchadmission. Hopper1188 untouched.
+
+Gates:search/time[0,5],min1000/cap8000/provisional-on-cap;net/SPSA fixed1000/
+lower95>0;reuseA/A;zero faults. WDLnet needs400at60+0.6/point>0 transfer.
+ProvenanceH0 separate debt;owned code stays. Rebalanced-T74 SHELVED.
+Attempt001SCREEN FAIL3535.3656[3493.9310,3576.8003]. Freshchangedpackage
+needsplausible+20pool;screenpoint>=3555,confirmation640/120+1/strictlower95
+>3600/bracketed. [Session107](experiments/2026-10-18-session107.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
