@@ -1,50 +1,42 @@
 # NGN live state — 2026-10-18: 3600 campaign
 
-[Campaign](experiments/2026-10-08-3600-campaign.md) owns queue,handles,handoff.
+[Campaign](experiments/2026-10-08-3600-campaign.md) owns queue, handles, handoff.
 Accepted **fe92ced/81215229/compiled final14** unchanged. S3+S1 pure-speed
-keeps;S2 SHELVED. Plan through**October18 00:50** governs:standing speed
-lane,one candidate at a time. S3+S1 planning credit roughly+6–7Elo toward
-+20pool next-screen trigger;no new absolute rating/claim. Localonly,
-neverpull/fetch/push,publish or remoteAPIwrite. All heavywork onrig.
+keeps; S2 SHELVED. Plan through **October18 00:50** governs: one speed
+candidate at a time. No new absolute rating/claim. Local commits only;
+never pull/fetch/push, publish or remote API write. All heavy work on rig.
 
-**Next session: not before 10:30 EDT October18.** Read the sole boundary
-owner **335882/ngn-s109-boundary.scope**, `session109/{controller.log,result.json}`
-and status tail first. It waits natively on WDL.50 controller325759, then
-pauses the tune at its next durable checkpoint and runs fixed1000 net games.
-KEEP → fixed400 long-clock transfer; SHELVED → S4 exclusive fixed40 timing.
-Clean completion resumes the exact native tune once as`ngn-s109-spsa-resume`;
-faults hold review. If iter2000 arrives before pause, final-vector priority
-holds the new jobs without stopping anything. No adoption/claim is automatic.
+**Next session: not before 10:30 EDT October18.** At09:28 the sole boundary
+owner **335882/ngn-s109-boundary.scope** is alive in its native training wait;
+read `session109/{controller.log,result.json}` and status tail first. WDL.50
+controller325759/trainer325764 is at **103/115epochs**, about282–283s/epoch;
+final115/export/20parity roughly10:25–10:35, provisional. No terminal yet.
+Existing checkpoint pause→net fixed1000→KEEP transfer400 or SHELVED S4
+fixed40 timing remains unchanged. Clean terminal resumes native tune once
+as `ngn-s109-spsa-resume`; faults hold. No adoption/claim is automatic.
 
-S4 naturally PASSES all required suites/builds and60 identities at01:10:14;
-its s4 launcher smoke PASSES01:21:26. Reuse Session109 checks review.
-Isolated worktree`/private/tmp/ngn-s108-pruning-hoist`, topic
-`night/s108-pruning-hoist`, remains uncommitted; durable patch inSession108.
-Commit/integrate runtime only after timing KEEP. If base/net/vector changes
-first, retarget/recheck unstarted jobs; never stop a running predeclared gate.
-One speed candidate is in flight; no further admitted code task is ready.
+S4 full suites/builds/60 identities/smoke already PASS; reuse Session109.
+Isolated `/private/tmp/ngn-s108-pruning-hoist`, topic `night/s108-pruning-hoist`,
+is uncommitted with durable Session108 patch. Integrate only after timing
+KEEP. Retarget unstarted jobs if source/net/vector changes first. Never
+stop a running predeclared gate. No further admitted code task is ready.
+Four Session107 search candidates already pass accepted-base checks;
+games stay behind net/final-vector gates.
 
-All four Session107 search patches onfe92ced naturallyPASS01:01:42/exit0:
-qsearch,continuation,pawnquiet,ProbCut. Existing fullshort/race,vet,PGO
-checks reused;games remain afterSPSA/netgates. No adoption.
+Native SPSA **325755/ngn-s104-spsa-resume** has durable **1525/18,300** at
+09:06:14. Preserve binary/net/RNG; final2000/24k then fixed1000 versus
+compiledfinal14 on immediate accepted source/net. No vector gate armed.
+If iter2000 precedes pause, the boundary holds for final-vector priority.
+Never verdict mid-run tuning scores. Endpoint lateOctober18 plus boundary.
 
-NativeSPSA**325755/ngn-s104-spsa-resume** continuesfromdurable1125/13,500
-at01:03. Preserveengine/net/RNG. Final2000/24k thenfixed1000vscompiledfinal14
-onimmediateacceptedsource/samenet. No vector gate armed;neververdict
-mid-runtuningscores. EndpointlateOctober18,provisional.
-
-WDL.50**325759/ngn-s104-wdl050**, trainer325764, continues from00:33.
-Epochs1–2 complete at01:24, about4.7–4.9minutes/epoch after cold setup;
-GPU95%/4259MiB. Final115/export/20parity,loader12,14/6GiB/swap0/25GiBfloor.
-C:**30.239GiB**. Natural terminal roughly10:30–12:30, provisional.
-Boundary335882 owns the original fixed1000/lower95>0 gate and conditional
-400 at60+0.6/point>0 transfer. No duration variant. Hopper1188 untouched.
-
-Gates:search/time[0,5],min1000/cap8000/provisional-on-cap;net/SPSA fixed1000/
-lower95>0;reuseA/A;zerofaults. ProvenanceH0separatedebt;ownedcodestays.
-Attempt001SCREENFAIL3535.3656[3493.9310,3576.8003]. Freshchangedpackage
-needsplausible+20pool;screenpoint>=3555,confirmation640/120+1/strictlower95
->3600/bracketed. [Session109](experiments/2026-10-18-session109.md).
+C:**28.712GiB** at09:28 (floor25GiB); GPU46%/4261MiB, RAM6265MiB used/
+9248MiB available; hopper1188 untouched. No new jobs this early session.
+Net/SPSA fixed1000/lower95>0; search/time[0,5] min1000/cap8000 with batch
+path; reused topology A/A; zero faults. Provenance H0 remains separate debt.
+Attempt001 SCREEN FAIL3535.3656[3493.9310,3576.8003]. Fresh changed package
+needs plausible+20pool (S3+S1 credit roughly+6–7Elo); screen point>=3555,
+confirmation640/120+1/strictlower95>3600/bracketed. Goal unmet.
+[Session110](experiments/2026-10-18-session110.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
