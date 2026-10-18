@@ -7,19 +7,19 @@ positive. No new Elo/3600 claim. Plan throughOctober17 13:10 governs.
 Localnight/night/topics only;never pull/fetch/push,publish or write remote APIs.
 All builds,tests,engines and training onrig;forge closed;Mac runs nothing heavy.
 
-Next session:not before23:25 EDT October17 to review S2timing.
-S2f527ab3 andS1fcc1432 rebuilt independently onS3. WSL checks315480
-completed21:38:34/exit0:required suites/builds and60identities each PASS;
-S1 hugepages256MiB. Saved inSession105results;do not rerun.
-ngn-s104-speed-continuation315686 solely owns next tune checkpoint boundary,
-then S2;S1 only onS2shelf. Any winner holds successor for immediate-base
-rebuild. Fixed40paired20s/topology,T1/H64,T1/H256,T8/H256,AB/BA;
-BOTH strata lower95>1 at EVERY topology. No extension or Elo conversion.
-Original296299/310582 completed;do not relaunch. Native tune314860 resumed
-from1075/12900;unchanged trajectory. Clean timing resumes once asngn-s104-spsa-resume.
+Next session:not before00:35 EDT October18 to review S1timing.
+S2f527ab3 is **SHELVED**,natural terminal23:13:24 October17:required
+both-strata lower95>1 fails atT1/H64 andT8/H256. No extension/integration.
+S1fcc1432 started automatically onacceptedS3;runner322989,engines322990/322995.
+ngn-s104-speed-continuation315686 is the sole owner;terminal about00:33–00:40.
+Required suites/builds and60identities each PASS fromSession105;S1 hugepages
+256MiB. Reuse checks. Fixed40paired20s/topology,T1/H64,T1/H256,T8/H256,
+AB/BA;BOTH strata lower95>1 at EVERY topology. No extension or Elo conversion.
+Native tune PAUSED_AT_VERIFIED_CHECKPOINT1100/13200;clean S1terminal resumes
+once asngn-s104-spsa-resume,then launches the predeclaredGPU cell.
 
-Same predeclared **wdl050** GPU recipe follows clean S1terminal;S2winner
-holds forS1rebuild first. Target75/25→50/50 versus completed volume-control,
+Same predeclared **wdl050** GPU recipe follows clean S1terminal.
+Target75/25→50/50 versus completed volume-control,
 same corpus/weights/seeds/split/recipe/final115.37GiB admission,25GiB floor,
 6GiB/swap0,loader12,14,export/20parity. No automatic games/adoption.
 Rebalanced-T74 remains SHELVED:1000,−2.7795[−15.3806,+9.8142],zero faults.
@@ -28,7 +28,7 @@ search SPRTs follow. Search/time[0,5],min1000/cap8000;nets/SPSA fixed1000/
 lower95>0;reuseA/A;zero faults. ProvenanceH0 separate debt;owned code stays.
 Attempt001 SCREEN FAIL3535.3656[3493.9310,3576.8003]. New package needs
 plausible+20pool;screen point>=3555,confirmation640/120+1/strictlower95>3600/
-bracketed. [Session105](experiments/2026-10-17-session105.md).
+bracketed. [Session106](experiments/2026-10-17-session106.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

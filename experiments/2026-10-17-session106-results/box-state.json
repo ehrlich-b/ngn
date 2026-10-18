@@ -1,0 +1,462 @@
+{
+  "utc": "2026-10-18T03:26:25.269563+00:00",
+  "accepted": "4958bc4/81215229/compiled final14",
+  "host_c_free_bytes": 42879041536,
+  "host_c_free_gib": 39.93421936035156,
+  "gpu": "0 %, 1478 MiB, 16303 MiB",
+  "memory": "total        used        free      shared  buff/cache   available\nMem:           15514        1345       12811           3        1600       14168\nSwap:           4096           2        4093",
+  "processes": [
+    "   1188     245  439798   1  0.3 18576 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    " 315684  315680    7079   4  0.0  7296 systemd-run --user --wait --unit=ngn-s104-speed-continuation -p Type=exec -p AllowedCPUs=0-15 -p MemoryMax=4G -p MemorySwapMax=0 -p StandardOutput=append:/home/ehrli/ngn-data/night-20261007/session104-speed/continuation.log -p StandardError=inherit nice -n 19 python3 /home/ehrli/ngn-data/night-20261007/session104-speed/speed-continuation.py",
+    " 315686     245    7079   2  0.0 13320 python3 /home/ehrli/ngn-data/night-20261007/session104-speed/speed-continuation.py",
+    " 322989  315686     780   4  0.0 23360 python3 /home/ehrli/ngn-data/night-20261007/session101-speed/speed-gate.py --candidate s1 --profile-admission /home/ehrli/ngn-data/night-20261007/session104-speed/s1-profile-admission.json --out /home/ehrli/ngn-data/night-20261007/session104-speed/s1-timing --base-binary /home/ehrli/ngn-data/night-20261007/session101-speed/s3-ngn --candidate-binary /home/ehrli/ngn-data/night-20261007/session104-speed/s1-ngn --identity /home/ehrli/ngn-data/night-20261007/session104-speed/s1-identity.json",
+    " 322990  322989     780   0 48.7 100608 /home/ehrli/ngn-data/night-20261007/session101-speed/s3-ngn",
+    " 322995  322989     780   0 51.1 100776 /home/ehrli/ngn-data/night-20261007/session104-speed/s1-ngn"
+  ],
+  "services": "MainPID=315686\nId=ngn-s104-speed-continuation.service\nActiveState=active\n\nMainPID=0\nId=ngn-s104-spsa-resume.service\nActiveState=inactive\n\nMainPID=0\nId=ngn-s104-wdl050.service\nActiveState=inactive",
+  "recent_status": [
+    {
+      "utc": "2026-10-18T01:53:34.597137+00:00",
+      "stage": "session104-speed",
+      "event": "spsa-paused",
+      "detail": {
+        "iter": 1100,
+        "games": 13200
+      }
+    },
+    {
+      "utc": "2026-10-18T01:53:34.599780+00:00",
+      "stage": "session104-speed",
+      "event": "timing-start",
+      "detail": {
+        "candidate": "s2",
+        "expected_minutes": 80,
+        "base": "4958bc4/81215229/compiled final14",
+        "rule": "Fixed40 paired20s blocks/topology,T1/H64,T1/H256,T8/H256,alternatingAB/BA;paired geometric NPS lower95>1 in BOTH order strata for EVERY topology;otherwise SHELVED,no extension"
+      }
+    },
+    {
+      "utc": "2026-10-18T03:13:24.173907+00:00",
+      "stage": "session104-speed",
+      "event": "timing-complete",
+      "detail": {
+        "candidate": "s2",
+        "verdict": "SHELVED"
+      }
+    },
+    {
+      "utc": "2026-10-18T03:13:24.173988+00:00",
+      "stage": "session104-speed",
+      "event": "timing-start",
+      "detail": {
+        "candidate": "s1",
+        "expected_minutes": 80,
+        "base": "4958bc4/81215229/compiled final14",
+        "rule": "Fixed40 paired20s blocks/topology,T1/H64,T1/H256,T8/H256,alternatingAB/BA;paired geometric NPS lower95>1 in BOTH order strata for EVERY topology;otherwise SHELVED,no extension"
+      }
+    }
+  ],
+  "pause": {
+    "state": "PAUSED_AT_VERIFIED_CHECKPOINT",
+    "checkpoint": {
+      "version": 2,
+      "iter": 1100,
+      "time": "2026-10-18T01:48:42Z",
+      "plus_pct": 48.666666666666664,
+      "theta": {
+        "AspInit": 17.407828044770252,
+        "AspMult": 168.58903826326227,
+        "DeltaMargin": 246.09228835842293,
+        "ExtensionBudget": 28.598010366437244,
+        "FutilityMargin": 102.92116369653569,
+        "FutilityMaxDepth": 7.935805406279629,
+        "LMPBase": 2.3527526103619287,
+        "LMRFullDepth": 2.8019454203195004,
+        "LMRMoveThreshold": 2.1123934570751683,
+        "NullMoveMinDepth": 2.4205853360148204,
+        "NullMoveR": 4.306690276552229,
+        "ReverseFutilityMargin": 68.96951413656232,
+        "SingularDepth": 7.415568057620624,
+        "SingularMargin": 62.69566482339427
+      },
+      "rounded": {
+        "AspInit": 17,
+        "AspMult": 169,
+        "DeltaMargin": 246,
+        "ExtensionBudget": 29,
+        "FutilityMargin": 103,
+        "FutilityMaxDepth": 8,
+        "LMPBase": 2,
+        "LMRFullDepth": 3,
+        "LMRMoveThreshold": 2,
+        "NullMoveMinDepth": 2,
+        "NullMoveR": 4,
+        "ReverseFutilityMargin": 69,
+        "SingularDepth": 7,
+        "SingularMargin": 63
+      },
+      "recipe": {
+        "engine_sha256": "84edb1a0bdc4e38f1bbc86b0d66d11e1baa67cb84a457d5e2294ade2cab5084b",
+        "engine_options": [
+          "setoption name EvalFile value /home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+          "setoption name UseNNUE value true",
+          "setoption name Hash value 64",
+          "setoption name Threads value 1",
+          "setoption name OwnBook value false"
+        ],
+        "tuner_sha256": "59757b0e454f79a6ec871d4c92d0554d3059ab35318101d6c9b5ab06ea94f175",
+        "openings_sha256": "4c0d071eb9ba3790fc6c44f3731274bfab1534b022444364356e6cdc4b20d7ad",
+        "openings": 4947,
+        "go_version": "go1.25.5",
+        "goos": "linux",
+        "goarch": "amd64",
+        "gomaxprocs": 1,
+        "rng": "math/rand.NewSource/Int63-count-v1",
+        "seed": 2026101401,
+        "iterations": 2000,
+        "pairs": 6,
+        "single": false,
+        "time_ms": 10000,
+        "inc_ms": 100,
+        "max_moves": 200,
+        "r_end": 0.05,
+        "a_frac": 0.1,
+        "report": 25,
+        "low_power": false,
+        "params": [
+          {
+            "name": "NullMoveR",
+            "default": 4,
+            "min": 2,
+            "max": 5,
+            "c_end": 0.5,
+            "c_amp": 1.0773927131261787,
+            "a_gain": 1.285430104751657
+          },
+          {
+            "name": "NullMoveMinDepth",
+            "default": 2,
+            "min": 1,
+            "max": 6,
+            "c_end": 0.5,
+            "c_amp": 1.0773927131261787,
+            "a_gain": 1.285430104751657
+          },
+          {
+            "name": "LMRFullDepth",
+            "default": 3,
+            "min": 1,
+            "max": 6,
+            "c_end": 0.5,
+            "c_amp": 1.0773927131261787,
+            "a_gain": 1.285430104751657
+          },
+          {
+            "name": "LMRMoveThreshold",
+            "default": 2,
+            "min": 1,
+            "max": 8,
+            "c_end": 0.5,
+            "c_amp": 1.0773927131261787,
+            "a_gain": 1.285430104751657
+          },
+          {
+            "name": "FutilityMargin",
+            "default": 104,
+            "min": 50,
+            "max": 160,
+            "c_end": 5.5,
+            "c_amp": 11.851319844387966,
+            "a_gain": 155.5370426749505
+          },
+          {
+            "name": "FutilityMaxDepth",
+            "default": 8,
+            "min": 1,
+            "max": 8,
+            "c_end": 0.5,
+            "c_amp": 1.0773927131261787,
+            "a_gain": 1.285430104751657
+          },
+          {
+            "name": "ReverseFutilityMargin",
+            "default": 63,
+            "min": 40,
+            "max": 300,
+            "c_end": 13,
+            "c_amp": 28.012210541280645,
+            "a_gain": 868.9507508121201
+          },
+          {
+            "name": "DeltaMargin",
+            "default": 202,
+            "min": 0,
+            "max": 400,
+            "c_end": 20,
+            "c_amp": 43.095708525047144,
+            "a_gain": 2056.688167602651
+          },
+          {
+            "name": "SingularDepth",
+            "default": 7,
+            "min": 4,
+            "max": 12,
+            "c_end": 0.5,
+            "c_amp": 1.0773927131261787,
+            "a_gain": 1.285430104751657
+          },
+          {
+            "name": "SingularMargin",
+            "default": 57,
+            "min": 16,
+            "max": 256,
+            "c_end": 12,
+            "c_amp": 25.85742511502829,
+            "a_gain": 740.4077403369545
+          },
+          {
+            "name": "ExtensionBudget",
+            "default": 29,
+            "min": 4,
+            "max": 64,
+            "c_end": 3,
+            "c_amp": 6.464356278757072,
+            "a_gain": 46.275483771059655
+          },
+          {
+            "name": "AspInit",
+            "default": 17,
+            "min": 4,
+            "max": 40,
+            "c_end": 1.8,
+            "c_amp": 3.8786137672542433,
+            "a_gain": 16.659174157581475
+          },
+          {
+            "name": "AspMult",
+            "default": 163,
+            "min": 110,
+            "max": 250,
+            "c_end": 7,
+            "c_amp": 15.083497983766502,
+            "a_gain": 251.94430053132476
+          },
+          {
+            "name": "LMPBase",
+            "default": 3,
+            "min": 2,
+            "max": 16,
+            "c_end": 0.7,
+            "c_amp": 1.50834979837665,
+            "a_gain": 2.519443005313247
+          }
+        ]
+      },
+      "rng_draws": 99000
+    },
+    "tuning_service": "ngn-s101-spsa-resume.service",
+    "resume_argv": [
+      "taskset",
+      "-c",
+      "0-11",
+      "/home/ehrli/ngn-data/night-20261007/session84/spsa",
+      "-engine",
+      "/home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+      "-tc",
+      "10+0.1",
+      "-iters",
+      "2000",
+      "-pairs",
+      "6",
+      "-openings",
+      "/home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt",
+      "-out",
+      "/home/ehrli/ngn-data/night-20261007/session88/spsa-warm/spsa.jsonl",
+      "-lowpower=false",
+      "-seed",
+      "2026101401",
+      "-rend",
+      ".05",
+      "-afrac",
+      ".1",
+      "-report",
+      "25",
+      "-engineoption",
+      "EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+      "-engineoption",
+      "UseNNUE=true",
+      "-engineoption",
+      "Hash=64",
+      "-engineoption",
+      "Threads=1",
+      "-engineoption",
+      "OwnBook=false",
+      "-resume"
+    ],
+    "authority": "October17 13:10 S3,S2,S1 order;session104 adopts speed-certified S3 and rebuilds independent successors"
+  },
+  "s2_result": {
+    "verdict": "SHELVED",
+    "topologies": [
+      {
+        "width": 1,
+        "hash_mib": 64,
+        "strata": [
+          {
+            "ratio": 1.0021704510575695,
+            "ci95": [
+              0.999980165452331,
+              1.0043655341089959
+            ]
+          },
+          {
+            "ratio": 1.000746603426058,
+            "ci95": [
+              0.9987697614894476,
+              1.0027273580802865
+            ]
+          }
+        ],
+        "pass_rule": false
+      },
+      {
+        "width": 1,
+        "hash_mib": 256,
+        "strata": [
+          {
+            "ratio": 1.002825001876136,
+            "ci95": [
+              1.0013225971063633,
+              1.0043296608845513
+            ]
+          },
+          {
+            "ratio": 1.0017021977447387,
+            "ci95": [
+              1.0002167046733679,
+              1.0031898970276782
+            ]
+          }
+        ],
+        "pass_rule": true
+      },
+      {
+        "width": 8,
+        "hash_mib": 256,
+        "strata": [
+          {
+            "ratio": 0.9996801433767855,
+            "ci95": [
+              0.9902456943903722,
+              1.0092044779624811
+            ]
+          },
+          {
+            "ratio": 1.0073276045017932,
+            "ci95": [
+              1.0025463533819718,
+              1.0121316579211725
+            ]
+          }
+        ],
+        "pass_rule": false
+      }
+    ],
+    "finished_utc": "2026-10-18T03:13:24.168508+00:00",
+    "automatic_adoption": false,
+    "next": "Review identity and immediate-base match before integration; no Elo gain inferred"
+  },
+  "s2_manifest": {
+    "candidate": "s2",
+    "admission": {
+      "candidate": "s2",
+      "profile_admitted": true,
+      "immediate_base": "4958bc4/81215229/compiled final14",
+      "topic": "f527ab3",
+      "measured_panel": "/home/ehrli/ngn-data/night-20261007/session100-speed/panel/result.json",
+      "cpu_share_percent": 20,
+      "mechanism": "Shrink continuation/followup history footprint from 10.5625 to 2.640625MiB per worker",
+      "rule": "Fixed40 paired20s blocks/topology,T1/H64,T1/H256,T8/H256,alternatingAB/BA;paired geometric NPS lower95>1 in BOTH order strata for EVERY topology;otherwise SHELVED,no extension",
+      "new_identity_required": true,
+      "automatic_adoption": false
+    },
+    "binary_sha256": {
+      "base": "dd65aee7572f816958d654850d3a600b25a4f6c425e57b79c20309cc37f889ee",
+      "candidate": "3d0df08a184ac750e16eb28eafff668fa82b70557d7d67e68eb893413102fee8"
+    },
+    "identity_receipt": "/home/ehrli/ngn-data/night-20261007/session104-speed/s2-identity.json",
+    "identity_sha256": "a7cd46bc47e40336531245dc1031ea2c29ebb0e59fae60c7777ae2e75d2c6890",
+    "net": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+    "net_sha256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22",
+    "topologies": [
+      [
+        1,
+        64
+      ],
+      [
+        1,
+        256
+      ],
+      [
+        8,
+        256
+      ]
+    ],
+    "paired_blocks": 40,
+    "milliseconds_per_engine": 20000,
+    "frame": "(block//2)%12; one frame per block",
+    "order": "AB/BA alternating; both engines receive identical frame per pair",
+    "rule": "Every topology and both order strata: paired log-NPS Student-t lower95>0,df19; otherwise SHELVED; no extensions",
+    "smoke": false,
+    "utc": "2026-10-18T01:53:34.632882+00:00"
+  },
+  "s1_manifest": {
+    "candidate": "s1",
+    "admission": {
+      "candidate": "s1",
+      "profile_admitted": true,
+      "immediate_base": "4958bc4/81215229/compiled final14",
+      "topic": "fcc1432",
+      "measured_panel": "/home/ehrli/ngn-data/night-20261007/session100-speed/panel/result.json",
+      "cpu_share_percent": 14,
+      "mechanism": "Use actual huge-page TT backing; panel DTLB read misses 1.15-1.37 per node",
+      "rule": "Fixed40 paired20s blocks/topology,T1/H64,T1/H256,T8/H256,alternatingAB/BA;paired geometric NPS lower95>1 in BOTH order strata for EVERY topology;otherwise SHELVED,no extension",
+      "new_identity_required": true,
+      "automatic_adoption": false
+    },
+    "binary_sha256": {
+      "base": "dd65aee7572f816958d654850d3a600b25a4f6c425e57b79c20309cc37f889ee",
+      "candidate": "c1585259450de4c0697daf9fcc23f0b964042dbca9c838a7d5f1145f470e1974"
+    },
+    "identity_receipt": "/home/ehrli/ngn-data/night-20261007/session104-speed/s1-identity.json",
+    "identity_sha256": "b1d50a8d7f4171f68ff7c8634f1d3fefb1acf2f54a159a19e3ff59a5c28905d4",
+    "net": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+    "net_sha256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22",
+    "topologies": [
+      [
+        1,
+        64
+      ],
+      [
+        1,
+        256
+      ],
+      [
+        8,
+        256
+      ]
+    ],
+    "paired_blocks": 40,
+    "milliseconds_per_engine": 20000,
+    "frame": "(block//2)%12; one frame per block",
+    "order": "AB/BA alternating; both engines receive identical frame per pair",
+    "rule": "Every topology and both order strata: paired log-NPS Student-t lower95>0,df19; otherwise SHELVED; no extensions",
+    "smoke": false,
+    "utc": "2026-10-18T03:13:24.208310+00:00"
+  },
+  "s1_result": null,
+  "continuation_result": null,
+  "hopper": "1188 untouched",
+  "goal_met": false,
+  "no_push": true
+}
