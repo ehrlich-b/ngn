@@ -1,0 +1,62 @@
+{
+  "utc": "2026-10-18T05:24:33.730002+00:00",
+  "accepted_package": "fe92ced/81215229/compiled final14",
+  "host_c_free_bytes": 32467935232,
+  "memory": "total        used        free      shared  buff/cache   available\nMem:           15514        6240        4026          87        5714        9273\nSwap:           4096           2        4093",
+  "gpu": "95 %, 4259 MiB, 16303 MiB",
+  "spsa": {
+    "iter": 1125,
+    "time": "2026-10-18T05:03:17Z",
+    "rng_draws": 101250
+  },
+  "s4_checks": {
+    "exit": "0\n",
+    "done": "2026-10-18T01:10:14-04:00\n",
+    "identity": "PASS",
+    "uci_cases": 24,
+    "probe_cases": 36,
+    "smoke": "SMOKE_PASS"
+  },
+  "boundary": {
+    "pid": "335882\n",
+    "launcher_pid": "335882\n",
+    "control_group": "/user.slice/user-1000.slice/user@1000.service/app.slice/ngn-s109-boundary.scope",
+    "cpu_max": "1600000 100000\n",
+    "cpus": null,
+    "log": "Running as unit: ngn-s109-boundary.scope; invocation ID: 1867864f0ea24c7ba2f2a1d1168b9114\n",
+    "result": null
+  },
+  "training_tail": "rop_flags\": 15, \"min_ply\": 0, \"block_records\": 262144, \"seed\": 20261006, \"device\": \"cuda\", \"threads\": 2, \"precision\": \"bf16\", \"resume\": null, \"keep_best_only\": true, \"king_map\": [0, 0, 1, 1, 1, 1, 0, 0, 2, 2, 3, 3, 3, 3, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7], \"shard_record_counts\": null, \"archive_split\": {\"hash\": \"ngn-board-mix64-v1\", \"seed\": 20261015, \"modulus\": 1024, \"holdout_remainder\": 0, \"block_records\": 262144, \"sources\": [{\"path\": \"/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf\", \"bytes\": 55627628064, \"records\": 1738363377}, {\"path\": \"/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf\", \"bytes\": 183371624416, \"records\": 5730363263}, {\"path\": \"/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf\", \"bytes\": 75977281056, \"records\": 2374290033}], \"raw_records\": 9843016673, \"training_records\": 9833534475, \"holdout_records\": 9482198, \"contract\": \"identical occupied boards share partition; labels excluded\"}, \"archive_source_mixture\": [0.17660880142247828, 0.5821755111640458, 0.24121568741347596]}}\n{\"epoch\": 1, \"step\": 15625, \"positions\": 256000000, \"updates\": 15625, \"loss\": 0.0282263359375, \"lr\": 0.0009998321178706266, \"seconds\": 294.28732264903374, \"positions_per_second\": 869898.1583562976, \"steady_positions_per_second\": 874187.8336470802, \"source_presentations_cumulative\": {\"/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf\": 45209110, \"/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf\": 149031349, \"/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf\": 61759541}, \"validation_loss\": 0.02660356955563425, \"validation_loss_lambda_075\": 0.011435041924664213, \"validation_loss_result\": 0.08713535195039071}\n{\"epoch\": 2, \"step\": 31250, \"positions\": 256000000, \"updates\": 15625, \"loss\": 0.026451916015625, \"lr\": 0.0009993285537839916, \"seconds\": 282.7854551320197, \"positions_per_second\": 905279.9405135077, \"steady_positions_per_second\": 907045.9421603004, \"source_presentations_cumulative\": {\"/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf\": 90414713, \"/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf\": 298064403, \"/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf\": 123520884}, \"validation_loss\": 0.02591582675281689, \"validation_loss_lambda_075\": 0.010919242024835789, \"validation_loss_result\": 0.0861037236255622}\n",
+  "status_tail": [
+    "{\"utc\": \"2026-10-18T05:04:25.273258+00:00\", \"stage\": \"session108-speed\", \"event\": \"checks-start\", \"detail\": {\"base\": \"fe92ced\", \"candidate\": \"s4\", \"mechanism\": \"hoist node-invariant move-pruning eligibility\", \"cpus\": [13, 15], \"automatic_games\": false}}",
+    "{\"utc\": \"2026-10-18T05:07:12.363572+00:00\", \"stage\": \"session108\", \"event\": \"handoff\", \"detail\": {\"accepted\": \"fe92ced/81215229/compiled final14\", \"candidate\": \"s4\", \"checks_pid\": \"333547\\n\", \"checks_exit\": null, \"spsa_iteration\": 1125, \"timing_armed\": false, \"next_review_edt\": \"2026-10-18 01:20\", \"goal_met\": false, \"no_push\": true}}",
+    "{\"utc\": \"2026-10-18T05:24:04.337708+00:00\", \"stage\": \"session109-boundary\", \"event\": \"waiting-training\", \"detail\": {\"controller_pid\": 335882, \"pid\": 325759, \"completion\": \"Final115/export/20parity;next durable tune checkpoint;net gate first\"}}"
+  ],
+  "processes": [
+    "PID    PPID     ELAPSED %CPU %MEM COMMAND",
+    " 325764  325759       51:20 56.9 33.6 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261015 --out /home/ehrli/ngn-data/night-20261007/session104-speed/recipe/wdl050/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 115 --positions-per-epoch 256000000 --weight-decay .01 --wdl .50 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only --archive-source-weights /home/ehrli/ngn-data/night-20261007/session87/mixture/volume-control/source-weights.json",
+    " 325810  325755       51:19 45.2  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 325813  325755       51:18 45.1  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 325793  325755       51:19 43.9  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 325796  325755       51:19 43.9  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 325779  325755       51:19 43.9  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 325782  325755       51:19 43.8  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 325773  325755       51:20 43.0  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 325776  325755       51:19 42.9  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 325767  325755       51:20 42.7  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 325770  325755       51:20 42.6  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 325807  325755       51:19 41.7  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 325804  325755       51:19 41.7  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 335890  335889       00:00  2.3  0.0 python3 -",
+    " 325755     245       51:20  2.3  0.1 /home/ehrli/ngn-data/night-20261007/session84/spsa -engine /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -out /home/ehrli/ngn-data/night-20261007/session88/spsa-warm/spsa.jsonl -lowpower=false -seed 2026101401 -rend .05 -afrac .1 -report 25 -engineoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -engineoption UseNNUE=true -engineoption Hash=64 -engineoption Threads=1 -engineoption OwnBook=false -resume",
+    "   1188     245  5-04:08:07  0.3  0.1 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    "    204       1  5-04:08:10  0.0  1.8 /opt/wingthing-agent-canaries/litellm-venv/bin/python /opt/wingthing-agent-canaries/litellm-venv/bin/litellm --config /opt/wingthing-agent-canaries/litellm-config.yaml --host 127.0.0.1 --port 4000",
+    "    473     430  5-04:08:09  0.0  0.2 containerd --config /run/user/1000/docker/containerd/containerd.toml",
+    " 325759     245       51:20  0.0  0.1 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python /home/ehrli/ngn-data/night-20261007/session104-speed/gpu-recipe.py",
+    "      1       0  5-04:08:10  0.0  0.0 /usr/lib/systemd/systemd --system --deserialize=104",
+    "    245       1  5-04:08:10  0.0  0.0 /usr/lib/systemd/systemd --user --deserialize=8",
+    " 335882  335880       00:29  0.0  0.0 python3 /home/ehrli/ngn-data/night-20261007/session109/boundary.py",
+    "    430     379  5-04:08:09  0.0  0.3 dockerd",
+    "  93666       1  1-19:08:47  0.0  0.0 /usr/lib/systemd/systemd-udevd"
+  ]
+}

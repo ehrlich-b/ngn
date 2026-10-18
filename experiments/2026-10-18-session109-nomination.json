@@ -1,0 +1,21 @@
+{
+  "authority": "October17 09:45 GPU gate at natural tuning boundary;October18 00:50 standing speed lane;Session109 prospective scheduling",
+  "accepted_package": "fe92ced/81215229/compiled final14",
+  "gpu_controller_pid": 325759,
+  "tuner_pid": 325755,
+  "tuning_service": "ngn-s104-spsa-resume.service",
+  "base_binary": "/home/ehrli/ngn-data/night-20261007/session104-speed/s1-ngn",
+  "base_binary_sha256": "c1585259450de4c0697daf9fcc23f0b964042dbca9c838a7d5f1145f470e1974",
+  "base_net": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+  "net_gate": "Natural final115/export/20parity only;next durable checkpoint pause;fixed1000 games at10+0.1/c6 vs immediate accepted source/net/final14;printed AND exact lower95>0;zero faults;reused topology A/A",
+  "on_net_keep": "Fixed400 at60+0.6/c6,exact point>0,zero faults,reused long-clock A/A;hold S4 for accepted-net review/recheck;no automatic adoption",
+  "on_net_shelf": "Existing S4 timing.sh;fixed40 paired20s blocks atT1/H64,T1/H256,T8/H256;alternatingAB/BA;both order strata lower95 NPS ratio>1 at all topologies,otherwise shelf;no extension",
+  "endpoint_priority": "If durable iter2000/24k arrives before pause,hold for final-vector gate without stopping or restarting tuner",
+  "resume": "After clean net plus conditional transfer or S4 terminal,native exact original argv with-resume once asngn-s109-spsa-resume;preserve binary/net/RNG",
+  "scope": "AllowedCPUs0-15/CPUQuota1600%/MemoryMax3G/MemorySwapMax0/nice19;engines taskset physical subset,GOMAXPROCS=Threads during timing",
+  "fault": "HELD_REVIEW;never stop a running predeclared gate;no score cutoff,no extension,no automatic retry",
+  "automatic_adoption": false,
+  "claim_armed": false,
+  "estimated_training_terminal_edt": "2026-10-18 10:30-12:30;provisional",
+  "next": "If source/net/vector changes before dispatch,stop only the still-waiting controller and retarget/recheck the unstarted jobs"
+}

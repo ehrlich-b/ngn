@@ -7,17 +7,22 @@ lane,one candidate at a time. S3+S1 planning credit roughly+6–7Elo toward
 +20pool next-screen trigger;no new absolute rating/claim. Localonly,
 neverpull/fetch/push,publish or remoteAPIwrite. All heavywork onrig.
 
-**Next session:not before01:20 EDT October18.** Review S4's detached
-`session108-speed/{checks.exit,checks.done,identity.json}` first.
-**333547/ngn-s108-checks**,launcher333545,13,15/nice19/2GiB/swap0.
-Engine short/race PASS;full-project checks active at01:07. S4 hoists
-node-invariant move-pruning eligibility fromthealpha-beta siblingloop.
-Exactpatch/prospectivefixed40 timing rule saved;no timing/adoption armed.
-Source worktree`/private/tmp/ngn-s108-pruning-hoist`,topic
-`night/s108-pruning-hoist`,uncommitted speculativeedit;durablepatch in
-Session108. Commit/integrate runtimeonlyaftertimingKEEP. OnchecksPASS,
-smoke the runner'snews4name,then timing atnaturalexclusiveboundary after
-higher-prioritynet/final-vectorgates;rebuild/recheckifbase/net/vectorchanges.
+**Next session: not before 10:30 EDT October18.** Read the sole boundary
+owner **335882/ngn-s109-boundary.scope**, `session109/{controller.log,result.json}`
+and status tail first. It waits natively on WDL.50 controller325759, then
+pauses the tune at its next durable checkpoint and runs fixed1000 net games.
+KEEP → fixed400 long-clock transfer; SHELVED → S4 exclusive fixed40 timing.
+Clean completion resumes the exact native tune once as`ngn-s109-spsa-resume`;
+faults hold review. If iter2000 arrives before pause, final-vector priority
+holds the new jobs without stopping anything. No adoption/claim is automatic.
+
+S4 naturally PASSES all required suites/builds and60 identities at01:10:14;
+its s4 launcher smoke PASSES01:21:26. Reuse Session109 checks review.
+Isolated worktree`/private/tmp/ngn-s108-pruning-hoist`, topic
+`night/s108-pruning-hoist`, remains uncommitted; durable patch inSession108.
+Commit/integrate runtime only after timing KEEP. If base/net/vector changes
+first, retarget/recheck unstarted jobs; never stop a running predeclared gate.
+One speed candidate is in flight; no further admitted code task is ready.
 
 All four Session107 search patches onfe92ced naturallyPASS01:01:42/exit0:
 qsearch,continuation,pawnquiet,ProbCut. Existing fullshort/race,vet,PGO
@@ -28,18 +33,18 @@ at01:03. Preserveengine/net/RNG. Final2000/24k thenfixed1000vscompiledfinal14
 onimmediateacceptedsource/samenet. No vector gate armed;neververdict
 mid-runtuningscores. EndpointlateOctober18,provisional.
 
-WDL.50**325759/ngn-s104-wdl050**,trainer325764,continuesfrom00:33.
-GPUactivityconfirmedaftercoldsetup;noepochyetat01:07,sameactiveprocess.
-Final115/export/20parity,loader12,14/6GiB/swap0/25GiBfloor. C:**30.265GiB**.
-Naturalterminalroughly10:30–12:30,provisional. Then fixed1000/lower95>0
-netgate atnextdurabletuneboundary;winnerneeds400at60+0.6/point>0transfer.
-No automaticgames/adoption or durationvariant. Hopper1188untouched.
+WDL.50**325759/ngn-s104-wdl050**, trainer325764, continues from00:33.
+Epochs1–2 complete at01:24, about4.7–4.9minutes/epoch after cold setup;
+GPU95%/4259MiB. Final115/export/20parity,loader12,14/6GiB/swap0/25GiBfloor.
+C:**30.239GiB**. Natural terminal roughly10:30–12:30, provisional.
+Boundary335882 owns the original fixed1000/lower95>0 gate and conditional
+400 at60+0.6/point>0 transfer. No duration variant. Hopper1188 untouched.
 
 Gates:search/time[0,5],min1000/cap8000/provisional-on-cap;net/SPSA fixed1000/
 lower95>0;reuseA/A;zerofaults. ProvenanceH0separatedebt;ownedcodestays.
 Attempt001SCREENFAIL3535.3656[3493.9310,3576.8003]. Freshchangedpackage
 needsplausible+20pool;screenpoint>=3555,confirmation640/120+1/strictlower95
->3600/bracketed. [Session108](experiments/2026-10-18-session108.md).
+>3600/bracketed. [Session109](experiments/2026-10-18-session109.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
