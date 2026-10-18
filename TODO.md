@@ -1,37 +1,36 @@
 # NGN live state — 2026-10-18: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue and handles.
-Accepted **fe92ced/81215229/compiled final14** unchanged; S3+S1 pure speed
-keeps, S2 SHELVED. Plan throughOctober18 00:50 governs. Local commits only;
-never pull/fetch/push, publish or remote API write. All chess compute on WSL.
+Accepted **fe92ced/81215229/compiled final14** unchanged. Plan through
+**October18 11:25** governs. Local commits only; never pull/fetch/push,
+publish or remote API write. All chess compute on WSL. Hopper1188 untouched.
 
-**Next session: not before12:15 EDT October18.** WDL.50 completed115 epochs
-at10:24:45, netcc0f9948, identical reexport/20 parity PASS. Boundary
-**335882/ngn-s109-boundary.scope** owns the fixed1000 net gate and conditional KEEP→transfer400 or SHELVED→S4 timing80min.
-SPSA325755 paused cleanly at verified **1600/19,200** and the original
-net gate **357112 started10:39:45**. Read `session109/net-wdl050/result.json`,
-overall result and status first. No active gate may be stopped. Clean boundary resumes
-native tune once asngn-s109-spsa-resume; faults hold. No automatic adoption.
+**Next session: not before13:35 EDT October18.** WDL.50 SHELVED at12:10:49:
+fixed1000,−36.9670[−48.8945,−25.1258],zero faults. Existing335882 immediately
+started **S4 timing360131**, expected13:31/provisional. Read S4 result,
+Session109 overall result and status together; never stop a running gate.
+Full checks/60 identities/smoke PASS reused; integrate only after a timing
+KEEP. No second speed candidate while pending. Native SPSA1600/19,200 is
+cleanly paused;335882 resumes it once after a clean S4 terminal. Final2000/
+24k then prospective fixed1000 vector gate on immediate accepted source/net;
+vector gate unarmed. Four checked search SPRTs follow.
 
-**WDL.25** is the next controlled target-blend recipe: only lambda.50→.25,
-same trainer/data/weights/seed/split/115x256M/final115. **356982/
-ngn-s111-gpu-next.scope** waits natively on335882 before training. Existing
-37GiB admission/25.25GiB running guard stay; insufficient capacity writes
-HELD_STORAGE without polling. No games/adoption armed. C:**30.599GiB**
-at10:40; Needs Bryan: free about7GiB on hostC. Only the obsolete campaign
-raw T74 download was removed; mapped training inputs retained. Online trim
-did not restore enough host capacity. Hopper1188 untouched.
-
-S4 full checks/60 identities/smoke PASS reused; isolated uncommitted topic
-`night/s108-pruning-hoist`, integrate only after timing KEEP. No second
-speed candidate while it is pending. Four search candidates are checked
-but wait for net/final-vector gates. Native SPSA final2000/24k then fixed1000
-versus compiledfinal14 on immediate accepted source/net; vector gate unarmed.
+**WDL.25 waiter356982 DISARMED at12:16:43**, no training started. Do not
+relaunch after capacity recovers. Root11:25 forbids further recipe cells
+on the existing corpus. GPU idle is allowed; CPU evidence proceeds.
+[Session112 data/storage plan](experiments/2026-10-18-session112-data-plan.md)
+awaits Bryan approval before deletion/download/bulk data work. Metadata
+inventory complete:241.171GiB allocated under ngn-data;222.585GiB T74/T76
+are accepted-net inputs. Six unselected snapshots offer only0.12349GiB.
+Large space option: archive/retire fullT74(170.778GiB), with explicit
+accepted-net retraining tradeoff. Three new-data options and exact paths
+are in the plan. C:**30.366GiB** at12:25; floor25GiB. No deletion/download,
+compaction or WSL restart occurred.
 
 Goal unmet. Attempt001 SCREEN FAIL3535.3656[3493.9310,3576.8003]. Next changed
 package needs plausible+20pool; S3+S1 planning credit roughly+6–7Elo.
 Screen point>=3555 then confirmation640/120+1 strictlower95>3600/bracketed.
-Provenance H0 remains separate debt. [Session111](experiments/2026-10-18-session111.md).
+Provenance H0 separate debt. [Session112](experiments/2026-10-18-session112.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

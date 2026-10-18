@@ -1,0 +1,46 @@
+{
+  "games": 1000,
+  "pairs": 500,
+  "orphan_games": 0,
+  "wdl": [
+    146,
+    602,
+    252
+  ],
+  "penta": [
+    20,
+    153,
+    240,
+    87,
+    0
+  ],
+  "printed_elo_ci95": [
+    -37.0,
+    -49.0,
+    -25.0
+  ],
+  "exact_elo_ci95": [
+    -36.9670432691047,
+    -48.894534815363606,
+    -25.12576588423436
+  ],
+  "final_pllr": -5.47,
+  "exact_pllr": -5.474764472314342,
+  "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 589,
+    "checkmate": 398,
+    "max-moves": 10,
+    "stalemate": 3
+  },
+  "faults": [],
+  "verdict": "SHELVED",
+  "name": "s109-net-wdl050",
+  "finished_utc": "2026-10-18T16:10:49.930852+00:00",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session109/net-wdl050/manifest.json",
+  "automatic_adoption": false
+}

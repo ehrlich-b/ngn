@@ -1,0 +1,18 @@
+{
+  "utc": "2026-10-18T16:25:20.661368+00:00",
+  "processes": [
+    "   1188     245  5-15:08:54  0.3  0.1 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    " 335882  335880    11:01:16  0.0  0.1 python3 /home/ehrli/ngn-data/night-20261007/session109/boundary.py",
+    " 360131  335882       14:30  0.0  0.1 python3 /home/ehrli/ngn-data/night-20261007/session108-speed/speed-gate.py --candidate s4 --profile-admission /home/ehrli/ngn-data/night-20261007/session108-speed/s4-profile-admission.json --out /home/ehrli/ngn-data/night-20261007/session108-speed/s4-timing --base-binary /home/ehrli/ngn-data/night-20261007/session104-speed/s1-ngn --candidate-binary /home/ehrli/ngn-data/night-20261007/session108-speed/s4-ngn --identity /home/ehrli/ngn-data/night-20261007/session108-speed/identity.json",
+    " 360132  360131       14:30 49.4  0.6 /home/ehrli/ngn-data/night-20261007/session104-speed/s1-ngn",
+    " 360137  360131       14:30 50.4  0.6 /home/ehrli/ngn-data/night-20261007/session108-speed/s4-ngn"
+  ],
+  "host_c_free_bytes": 32605323264,
+  "host_c_free_gib": 30.366073608398438,
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        1987        2338           3       11572       13527\nSwap:           4096           2        4093\n",
+  "gpu": "0 %, 1478 MiB, 16303 MiB",
+  "wdl025_waiter_exists": false,
+  "s4_result_exists": false,
+  "boundary_result_exists": false,
+  "accepted_package": "fe92ced/81215229/compiled final14"
+}
