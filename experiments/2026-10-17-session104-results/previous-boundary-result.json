@@ -1,0 +1,124 @@
+{
+  "state": "NET_S3_COMPLETE_TUNE_RESUMED",
+  "net_result": {
+    "games": 1000,
+    "pairs": 500,
+    "orphan_games": 0,
+    "wdl": [
+      203,
+      586,
+      211
+    ],
+    "penta": [
+      14,
+      120,
+      239,
+      114,
+      13
+    ],
+    "printed_elo_ci95": [
+      -2.8,
+      -15.0,
+      10.0
+    ],
+    "exact_elo_ci95": [
+      -2.779543982131142,
+      -15.380579522486752,
+      9.814180227881996
+    ],
+    "final_pllr": -0.64,
+    "exact_pllr": -0.639595254787384,
+    "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 575,
+      "checkmate": 414,
+      "max-moves": 8,
+      "stalemate": 3
+    },
+    "faults": [],
+    "verdict": "SHELVED",
+    "name": "s101-net-rebalanced-t74",
+    "finished_utc": "2026-10-17T23:58:49.923122+00:00",
+    "manifest": "/home/ehrli/ngn-data/night-20261007/session101-speed/net-rebalanced-t74/manifest.json",
+    "automatic_adoption": false
+  },
+  "speed_result": {
+    "verdict": "KEEP_ELIGIBLE",
+    "topologies": [
+      {
+        "width": 1,
+        "hash_mib": 64,
+        "strata": [
+          {
+            "ratio": 1.0716752633464932,
+            "ci95": [
+              1.0668540535457522,
+              1.0765182606296604
+            ]
+          },
+          {
+            "ratio": 1.072276168517562,
+            "ci95": [
+              1.0691186876097862,
+              1.0754429745693075
+            ]
+          }
+        ],
+        "pass_rule": true
+      },
+      {
+        "width": 1,
+        "hash_mib": 256,
+        "strata": [
+          {
+            "ratio": 1.067550256979827,
+            "ci95": [
+              1.0635973572880686,
+              1.0715178477723726
+            ]
+          },
+          {
+            "ratio": 1.067678280991543,
+            "ci95": [
+              1.0636896634588675,
+              1.0716818550198663
+            ]
+          }
+        ],
+        "pass_rule": true
+      },
+      {
+        "width": 8,
+        "hash_mib": 256,
+        "strata": [
+          {
+            "ratio": 1.0603349612247004,
+            "ci95": [
+              1.052295272382405,
+              1.0684360744583972
+            ]
+          },
+          {
+            "ratio": 1.0605072310873342,
+            "ci95": [
+              1.0546666487725818,
+              1.0663801576521066
+            ]
+          }
+        ],
+        "pass_rule": true
+      }
+    ],
+    "finished_utc": "2026-10-18T01:18:39.592475+00:00",
+    "automatic_adoption": false,
+    "next": "Review identity and immediate-base match before integration; no Elo gain inferred"
+  },
+  "resume_service": "ngn-s101-spsa-resume.service",
+  "automatic_adoption": false,
+  "finished_utc": "2026-10-18T01:18:39.615803+00:00",
+  "next": "Review net winner then transfer400, or S3 timing then immediate-base S2/S1; no claim armed"
+}

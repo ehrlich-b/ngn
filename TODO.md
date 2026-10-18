@@ -1,40 +1,32 @@
 # NGN live state — 2026-10-17: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue,handles and handoff.
-Accepted **9ec5d31/81215229/compiled final14** unchanged;no3600 claim.
-Plan through **October17 13:10** governs. Localnight/night and isolated topics;
-never pull/fetch/push,publish or write remote APIs. All compute rig;forge closed.
+Accepted **4958bc4/81215229/compiled final14**:S3 branchless selection adopted,
+node-identical and+6–7%NPS acrossT1/H64,T1/H256,T8/H256,both order strata
+positive. No new Elo/3600 claim. Plan throughOctober17 13:10 governs.
+Localnight/night/topics only;never pull/fetch/push,publish or write remote APIs.
+All builds,tests,engines and training onrig;forge closed;Mac runs nothing heavy.
 
-Rebalanced-T74 final115/3b3a6bfa **SHELVED** at19:58:49:fixed1000,
-203W586D211L,−2.7795[−15.3806,+9.8142],zero faults. No extension or adoption.
-Original296299 now runs exclusive S3 timing311027;due21:20–21:25.
-SPSA checkpoint-paused1075/12900;296299 alone owns first native resume as
-ngn-s101-spsa-resume. Next session:not before21:25 EDT October17.
+Next session:not before21:45 EDT October17 to review rebuilt checks.
+S2f527ab3 andS1fcc1432 rebuilt independently onS3. WSL checks315480 on13,15;
+ngn-s104-speed-continuation solely owns their next checkpoint boundary.
+S2 first;S1 only onS2shelf. Any winner holds successor for immediate-base
+rebuild. Timing:40paired20s/topology,T1/H64,T1/H256,T8/H256,AB/BA;
+BOTH strata lower95>1 at EVERY topology. No extension or Elo conversion.
+Original296299/310582 completed;do not relaunch. Native tune314860 resumed
+from1075/12900;unchanged trajectory. Clean timing resumes once asngn-s104-spsa-resume.
 
-Original **310582/ngn-s102-speed-continuation** native-waits on296299.
-S3 clean shelf→next durable tune checkpoint→S2 timing→S1 ifS2shelves.
-Winners hold successors for immediate-base rebuild;clean timing resumes tune
-once asngn-s102-spsa-resume. Faults hold review. No manual/duplicate resume.
-S2 due23:00–23:20,conditionalS1 due00:20–00:40 October18.
-Existing checked topics:S3=29eec6f,S2=817e715,S1=6a6c25d;no adoption.
-Every speed gate:40paired20s blocks atT1/H64,T1/H256,T8/H256,AB/BA,
-positive paired lower95 in BOTH strata for EVERY topology;no extension.
-
-Only all-clean net/S3/S2/S1 shelves launch predeclared **wdl050** GPU recipe:
-score/result target75/25→50/50 versus completed volume-control;otherwise same
-corpus,weights,seed,split,recipe and final115.37GiB admission,6GiB/swap0,12/14;
-25GiB floor/export/20parity. No automatic games/adoption. Future net gate
-fixed1000/lower95>0,transfer400/60+0.6/point>0 before foreign games.
-GPU stays idle during exclusive speed tests;do not launch another trainer.
-
-C:41.461GiB,RAM14041MiB available,swap2MiB at20:06;hopper1188 untouched.
-SPSA endpoint2000/24k only,then fixed1000 vs compiledfinal14 on same net;
-ETAOctober18 afternoon/evening with timing pauses. Search SPRTs follow.
-Search/time[0,5],min1000/cap8000;nets/SPSA fixed1000/lower95>0;reuseA/A;zero faults.
-Provenance H0 separate debt;owned code stays. Attempt001 remains SCREEN FAIL
-3535.3656[3493.9310,3576.8003]. New changed package needs plausible+20 pool;
-screen point>=3555,confirmation640/120+1/strictlower95>3600/bracketed.
-[Session103](experiments/2026-10-17-session103.md).
+Same predeclared **wdl050** GPU recipe follows clean S1terminal;S2winner
+holds forS1rebuild first. Target75/25→50/50 versus completed volume-control,
+same corpus/weights/seeds/split/recipe/final115.37GiB admission,25GiB floor,
+6GiB/swap0,loader12,14,export/20parity. No automatic games/adoption.
+Rebalanced-T74 remains SHELVED:1000,−2.7795[−15.3806,+9.8142],zero faults.
+SPSA endpoint2000/24k only,then fixed1000 vscompiledfinal14 on same net;
+search SPRTs follow. Search/time[0,5],min1000/cap8000;nets/SPSA fixed1000/
+lower95>0;reuseA/A;zero faults. ProvenanceH0 separate debt;owned code stays.
+Attempt001 SCREEN FAIL3535.3656[3493.9310,3576.8003]. New package needs
+plausible+20pool;screen point>=3555,confirmation640/120+1/strictlower95>3600/
+bracketed. [Session104](experiments/2026-10-17-session104.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

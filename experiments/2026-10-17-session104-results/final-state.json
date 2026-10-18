@@ -1,0 +1,97 @@
+{
+  "utc": "2026-10-18T01:31:50.496443+00:00",
+  "accepted": "4958bc4/81215229/compiled final14",
+  "host_c_free_bytes": 42882834432,
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        4488        9676           3        1591       11025\nSwap:           4096           2        4093\n",
+  "gpu": "0 %, 1478 MiB",
+  "services": "MainPID=315480\nCPUQuotaPerSecUSec=infinity\nMemoryMax=2147483648\nId=ngn-s104-checks.service\nActiveState=active\n\nMainPID=315686\nCPUQuotaPerSecUSec=infinity\nMemoryMax=4294967296\nId=ngn-s104-speed-continuation.service\nActiveState=active\n\nMainPID=314860\nCPUQuotaPerSecUSec=6s\nMemoryMax=3221225472\nId=ngn-s101-spsa-resume.service\nActiveState=active\n",
+  "processes": [
+    "   1188     245  432924  0.3 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    " 314860     245     790  2.1 /home/ehrli/ngn-data/night-20261007/session84/spsa -engine /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -out /home/ehrli/ngn-data/night-20261007/session88/spsa-warm/spsa.jsonl -lowpower=false -seed 2026101401 -rend .05 -afrac .1 -report 25 -engineoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -engineoption UseNNUE=true -engineoption Hash=64 -engineoption Threads=1 -engineoption OwnBook=false -resume",
+    " 315477  315475     281  0.0 systemd-run --user --wait --unit=ngn-s104-checks -p Type=exec -p AllowedCPUs=13,15 -p MemoryMax=2G -p MemorySwapMax=0 -p StandardOutput=append:/home/ehrli/ngn-data/night-20261007/session104-speed/checks.log -p StandardError=inherit taskset -c 13,15 nice -n 19 bash /home/ehrli/ngn-data/night-20261007/session104-speed/checks.sh",
+    " 315480     245     281  0.0 bash /home/ehrli/ngn-data/night-20261007/session104-speed/checks.sh",
+    " 315684  315680     205  0.0 systemd-run --user --wait --unit=ngn-s104-speed-continuation -p Type=exec -p AllowedCPUs=0-15 -p MemoryMax=4G -p MemorySwapMax=0 -p StandardOutput=append:/home/ehrli/ngn-data/night-20261007/session104-speed/continuation.log -p StandardError=inherit nice -n 19 python3 /home/ehrli/ngn-data/night-20261007/session104-speed/speed-continuation.py",
+    " 315686     245     205  0.0 python3 /home/ehrli/ngn-data/night-20261007/session104-speed/speed-continuation.py"
+  ],
+  "spsa_checkpoint": {
+    "iter": 1075,
+    "games": null,
+    "time": "2026-10-17T22:25:25Z"
+  },
+  "recent_status": [
+    {
+      "utc": "2026-10-18T00:06:28.168457+00:00",
+      "stage": "session103",
+      "event": "handoff",
+      "detail": {
+        "utc": "2026-10-18T00:06:28.168457+00:00",
+        "accepted": "9ec5d31/81215229/compiled final14",
+        "net": {
+          "state": "SHELVED",
+          "result": "/home/ehrli/ngn-data/night-20261007/session101-speed/net-rebalanced-t74/result.json"
+        },
+        "s3": {
+          "state": "RUNNING",
+          "controller_pid": 296299,
+          "timing_pid": 311027,
+          "result": "/home/ehrli/ngn-data/night-20261007/session101-speed/s3-timing/result.json",
+          "eta_edt": "2026-10-17 21:20-21:25"
+        },
+        "continuation": {
+          "pid": 310582,
+          "state": "WAITING_S101_BOUNDARY",
+          "result": "/home/ehrli/ngn-data/night-20261007/session102-speed/result.json"
+        },
+        "spsa": {
+          "state": "PAUSED_AT_VERIFIED_CHECKPOINT",
+          "iteration": 1075,
+          "games": 12900,
+          "time": "2026-10-17T22:25:25Z"
+        },
+        "services": "MainPID=296299\nCPUQuotaPerSecUSec=infinity\nMemoryMax=4294967296\nActiveState=active\n\nMainPID=310582\nCPUQuotaPerSecUSec=infinity\nMemoryMax=4294967296\nActiveState=active\n",
+        "gpu": "0 %, 1478 MiB",
+        "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        1473       13302           3         982       14041\nSwap:           4096           2        4093\n",
+        "host_c_free_bytes": "44518522880",
+        "hopper": "1188 untouched",
+        "goal_met": false,
+        "no_push": true
+      }
+    },
+    {
+      "utc": "2026-10-18T01:18:39.616004+00:00",
+      "stage": "session101-boundary",
+      "event": "complete",
+      "detail": {
+        "state": "NET_S3_COMPLETE_TUNE_RESUMED",
+        "net_verdict": "SHELVED",
+        "speed_verdict": "KEEP_ELIGIBLE",
+        "resume_service": "ngn-s101-spsa-resume.service"
+      }
+    },
+    {
+      "utc": "2026-10-18T01:18:39.620854+00:00",
+      "stage": "session102-speed",
+      "event": "held-predecessor-review",
+      "detail": {
+        "state": "NET_S3_COMPLETE_TUNE_RESUMED"
+      }
+    },
+    {
+      "utc": "2026-10-18T01:28:25.206290+00:00",
+      "stage": "session104-speed",
+      "event": "waiting-successor-checks",
+      "detail": {
+        "pid": 315480,
+        "next": "Rebuilt S2 then S1 against accepted S3; winner holds successor"
+      }
+    }
+  ],
+  "files": {},
+  "check_progress": {
+    "s2-full-short.log": "oracle\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/uci\t0.056s\n",
+    "s2-full-race.log": "st\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/test-harness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/trace_move\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/zzbias\t[no test files]\n"
+  },
+  "hopper": "1188 untouched",
+  "goal_met": false,
+  "no_push": true
+}
