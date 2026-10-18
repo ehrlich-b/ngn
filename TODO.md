@@ -1,39 +1,45 @@
 # NGN live state — 2026-10-18: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue,handles,handoff.
-Accepted **fe92ced/81215229/compiled final14**:S3 branchless selection and
-S1 huge-page TT allocation. S1 natural terminal00:33:13 PASS atT1/H64,
-T1/H256,T8/H256,both order strata;NPS+1.4–2.0%. Reuse60identities/full
-checks/256MiB actual huge pages. S2 remains SHELVED;no extension.
-No speed-to-Elo conversion or new3600claim. Plan throughOct17 13:10 governs.
-Localnight/night/topics only;never pull/fetch/push,publish or remote APIwrite.
-All builds,tests,engines/training onrig;Mac runs nothing heavy;forge closed.
+Accepted **fe92ced/81215229/compiled final14** unchanged. S3+S1 pure-speed
+keeps;S2 SHELVED. Plan through**October18 00:50** governs:standing speed
+lane,one candidate at a time. S3+S1 planning credit roughly+6–7Elo toward
++20pool next-screen trigger;no new absolute rating/claim. Localonly,
+neverpull/fetch/push,publish or remoteAPIwrite. All heavywork onrig.
 
-Next session:not before01:00 EDT October18 to review combinationchecks.
-Same four search patches now check independently onfe92ced:
-qsearch,continuation,pawn quiet,ProbCut;325909/ngn-s107-checks,13,15,
-nice19/2GiB/swap0. `session107/checks-result.json`,per-candidate results,
-`checks.{exit,done}`. No games/adoption;originalS1checks are reused.
+**Next session:not before01:20 EDT October18.** Review S4's detached
+`session108-speed/{checks.exit,checks.done,identity.json}` first.
+**333547/ngn-s108-checks**,launcher333545,13,15/nice19/2GiB/swap0.
+Engine short/race PASS;full-project checks active at01:07. S4 hoists
+node-invariant move-pruning eligibility fromthealpha-beta siblingloop.
+Exactpatch/prospectivefixed40 timing rule saved;no timing/adoption armed.
+Source worktree`/private/tmp/ngn-s108-pruning-hoist`,topic
+`night/s108-pruning-hoist`,uncommitted speculativeedit;durablepatch in
+Session108. Commit/integrate runtimeonlyaftertimingKEEP. OnchecksPASS,
+smoke the runner'snews4name,then timing atnaturalexclusiveboundary after
+higher-prioritynet/final-vectorgates;rebuild/recheckifbase/net/vectorchanges.
 
-OriginalSession104 is complete. Native tune resumed automatically once as
-325755/ngn-s104-spsa-resume,from1100/13200;preserve engine/net/RNG.
-Final2000/24k then fixed1000vscompiledfinal14 onacceptedsource/samenet.
-No vector gate currently armed;the resumed direct tuner may produce only
-its durable endpoint,not a new readiness JSON. SearchSPRTs follow.
+All four Session107 search patches onfe92ced naturallyPASS01:01:42/exit0:
+qsearch,continuation,pawnquiet,ProbCut. Existing fullshort/race,vet,PGO
+checks reused;games remain afterSPSA/netgates. No adoption.
 
-WDL.50 started00:33:13 as325759/ngn-s104-wdl050,trainer325764.
-Same75/25→50/50 target recipe againstvolume-control;corpus/weights/seeds/
-split/115x256M/final115/export/20parity unchanged. Loader12,14,6GiB/swap0,
-25GiB floor. Cold startup at00:37;no epoch yet,not a failure. Expected
-naturalterminal10:30–12:30EDT,provisional. No automaticgames/adoption.
-C:36.405GiB after39.907GiB launchadmission. Hopper1188 untouched.
+NativeSPSA**325755/ngn-s104-spsa-resume** continuesfromdurable1125/13,500
+at01:03. Preserveengine/net/RNG. Final2000/24k thenfixed1000vscompiledfinal14
+onimmediateacceptedsource/samenet. No vector gate armed;neververdict
+mid-runtuningscores. EndpointlateOctober18,provisional.
+
+WDL.50**325759/ngn-s104-wdl050**,trainer325764,continuesfrom00:33.
+GPUactivityconfirmedaftercoldsetup;noepochyetat01:07,sameactiveprocess.
+Final115/export/20parity,loader12,14/6GiB/swap0/25GiBfloor. C:**30.265GiB**.
+Naturalterminalroughly10:30–12:30,provisional. Then fixed1000/lower95>0
+netgate atnextdurabletuneboundary;winnerneeds400at60+0.6/point>0transfer.
+No automaticgames/adoption or durationvariant. Hopper1188untouched.
 
 Gates:search/time[0,5],min1000/cap8000/provisional-on-cap;net/SPSA fixed1000/
-lower95>0;reuseA/A;zero faults. WDLnet needs400at60+0.6/point>0 transfer.
-ProvenanceH0 separate debt;owned code stays. Rebalanced-T74 SHELVED.
-Attempt001SCREEN FAIL3535.3656[3493.9310,3576.8003]. Freshchangedpackage
+lower95>0;reuseA/A;zerofaults. ProvenanceH0separatedebt;ownedcodestays.
+Attempt001SCREENFAIL3535.3656[3493.9310,3576.8003]. Freshchangedpackage
 needsplausible+20pool;screenpoint>=3555,confirmation640/120+1/strictlower95
->3600/bracketed. [Session107](experiments/2026-10-18-session107.md).
+>3600/bracketed. [Session108](experiments/2026-10-18-session108.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

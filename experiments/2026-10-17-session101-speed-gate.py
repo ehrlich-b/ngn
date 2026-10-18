@@ -18,7 +18,7 @@ from panel import NET, R, S, UCI, write
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--candidate',choices=['s1','s2','s3'],required=True)
+    parser.add_argument('--candidate',choices=['s1','s2','s3','s4'],required=True)
     parser.add_argument('--profile-admission',type=Path,required=True,
                         help='Short nomination stating the measured hotspot and immediate accepted base')
     parser.add_argument('--out',type=Path,required=True)

@@ -1,0 +1,25 @@
+{
+  "candidate": "s4",
+  "profile_admitted": true,
+  "authority": "Merged plan October18 00:50: standing speed lane, alpha-beta/quiescence first",
+  "measured_profile": "/home/ehrli/ngn-data/night-20261007/session108-speed/accepted.cpu.pprof",
+  "profile_source": "fe92ced/81215229/compiled final14, diagnostic wrapper only",
+  "hotspot": "alphaBetaPV 10.05% flat; node-invariant LMP eligibility line 0.240s/58.48s sampled CPU, plus repeated SEE/history/LMR gates",
+  "treatment": "Compute node-invariant LMP/SEE/history/LMR eligibility and the pure LMP threshold once before the sibling loop; retain move-dependent guards and their order",
+  "identity_argument": "depth, isPV, inCheck, improving and the pruning settings are fixed for this invocation's sibling loop; search recursion restores state and never changes these settings",
+  "immediate_accepted_base": "fe92ced/81215229/compiled final14; source archive from session107",
+  "identity": "Required engine/full short/race, vet, Linux PGO/Windows builds and 60 exact fixed/iterative move/score/node/PV identities",
+  "timing": {
+    "topologies": [[1,64],[1,256],[8,256]],
+    "paired_blocks": 40,
+    "milliseconds_per_engine": 20000,
+    "order": "AB/BA alternating; frame=(block//2)%12; fixed sample, no extension",
+    "rule": "Each topology and each order stratum must have paired geometric NPS lower95>1 using Student t df19; otherwise SHELVED"
+  },
+  "launcher": "taskset physical cores; nice19; GOMAXPROCS=Threads; inherited CPU set0-15; no CPU quota below1600%",
+  "admission": "Natural exclusive boundary only, after any due net/final-vector gate; no trainer or tuner interruption now",
+  "expected_gain": "Hypothesis only: about1% NPS, no Elo credit until measured",
+  "automatic_adoption": false,
+  "automatic_timing": false,
+  "created_edt": "2026-10-18 01:05"
+}
