@@ -2,42 +2,41 @@
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue and handles.
 Accepted **fe92ced/81215229/compiled final14** unchanged. Plan through
-**October18 11:25** governs. Local commits only; never pull/fetch/push,
-publish or remote API write. All chess compute on WSL. Hopper1188 untouched.
+**October18 17:30** governs; A/forge data storage approved. All compute
+onrig; forge stores/transfers only. No pull/fetch/push/publication.
 
-**Next session: not before23:05 EDT October18.** S4 naturally **SHELVED
-13:30:39**: all six timing intervals include1. No extension/integration.
-Original335882 completed and resumed native SPSA **361831 /
-ngn-s109-spsa-resume.service** from1600/19,200/RNG144000. Endpoint2000/24k
-about21:30, provisional. **363369/ngn-s113-vector.scope** waits natively,
-then manifests/runs the required fixed1000 gate, final2000 vs explicitfinal14
-on identical acceptedfe92ced/81215229. Printed/exact lower95>0/zero faults;
-no extension/adoption. Results:`session113-vector/gate/result.json`, overall
-`session113-vector/result.json`; expected23:00/provisional. Read these,
-status and tune checkpoint together; never start a duplicate or stop a gate.
-Four checked search SPRTs follow review; retarget after accepted changes.
+**Next session: not before23:10 EDT October18.** Native warm SPSA is
+COMPLETE final2000/24,000. Existing363369/SPRT367996 runs fixed1000 vector
+gate since21:33:44;250games at21:55:57, ETA23:05 provisional. Original
+result:`session113-vector/{result.json,gate/result.json}`. No duplicate gate.
 
-**S5 single search epilogue** on`night/s113-search-epilogue` remains
-isolated/uncommitted. Full short/race/vet/Linux-PGO/Windows builds, normal/
-panic cleanup tests, **60 exact identities**, both compiler open-coded-defer
-witnesses and launcher smoke **PASS**. Reuse`session113-speed/checks-review.json`.
-Timing prepared, unarmed: fixed40 paired20s per topology, both strata lower95>1
-at allT1/H64,T1/H256,T8/H256. Run at a natural exclusive boundary after due
-vector/search gates. No second speed candidate while S5 pending; if shelved,
-close alpha-beta after two attempts and move to SEE. No timing/Elo credit yet.
+**368257/ngn-s114-search.scope** waits natively: only a clean vector shelf
+starts checked qsearch, continuation, pawn quiet, ProbCut SPRTs serially.
+Logistic[0,5]/min1000/cap8000/c6/reused A/A; a KEEP/PROVISIONAL/fault holds
+for review/adoption/retargeting. `session114-search/NAME/result.json` and
+overall`result.json`. Only shelves continue; no automatic adoption.
 
-**WDL.25 DISARMED**; WDL.50 SHELVED−36.967/1000. No more existing-corpus
-recipe cells. GPU idle allowed pending Bryan's approval of the completed
-[Session112 data/storage plan](experiments/2026-10-18-session112-data-plan.md).
-No deletion/download/bulk data job before approval. Inventory241.171GiB,
-T74/T76 accepted inputs222.585GiB. Six unselected snapshots offer0.12349GiB;
-fullT74 archive/retirement170.778GiB needs an explicit retraining tradeoff.
-C:**30.144GiB** at13:47; floor25GiB. No compaction or restart.
+**368195/ngn-s114-data.scope**, converter368197, calibrates approved
+T60/T70 on13,15 using unchanged external converter/map: complete source
+counts plus key-stable1/1000 slice, then freeze <=1B fraction/scratch budget.
+`session114-data/{sample-plan.json,result.json}` expected23:05–23:30.
+C:**52.966GiB**; bulk may hold for about67GiB budget (exact after calibration).
+Read deficit before any bulk launch; no new cleanup/inventory/download.
+Then overlap with T80/T76 and frozen115-epoch recipe before GPU training.
+T74 already archived toforge; new raw already verified onrig. GPU idle
+permitted; WDL.25 disarmed; no existing-corpus recipe cells.
 
-Goal unmet. Attempt001 SCREEN FAIL3535.3656[3493.9310,3576.8003]. Fresh
-package needs plausible+20pool; S3+S1 planning credit roughly+6–7Elo.
-Screen point>=3555 then640/120+1 strictlower95>3600/bracketed.
-Provenance H0 separate debt. [Session113](experiments/2026-10-18-session113.md).
+**S5 single search epilogue** stays isolated/uncommitted on
+`night/s113-search-epilogue`. Full short/race/vet/builds, panic cleanup,
+60 exact identities, open-coded defer witnesses and launcher smoke PASS;
+reuse them.368257 runs unchanged fixed40 timing only after four search
+shelves and data terminal; any keep needs retarget/recheck first. No second
+speed candidate while S5 pending. Shelf closes alpha-beta; next SEE hotspot.
+
+Goal unmet. Screen0013535.3656[3493.9310,3576.8003]; plausible+20pool needed
+for fresh screen. S3+S1 planning credit+6–7Elo. Screen point>=3555, then
+640/120+1 strictlower95>3600/bracketed. Provenance H0 separate debt.
+[Session114](experiments/2026-10-18-session114.md). Hopper1188 untouched.
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

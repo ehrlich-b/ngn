@@ -1,0 +1,19 @@
+{
+  "authority": "Root plan October18 16:30: Bryan approved option A with forge data storage; 17:30 hold lasts until C recovers above25GiB with margin",
+  "source": "/home/ehrli/ngn-data/sources/T60T70wIsRightFarseer.binpack",
+  "source_sha256": "8c329b988c02bdf4ccc13b3cc627f69531b8b6bb1719f17f775f49476d045c70",
+  "source_bytes": 32981564118,
+  "source_receipt": "status.jsonl root-data-pull complete 2026-10-18T21:25:51Z; converter verifies at use",
+  "calibration_keep_per_mille": 1,
+  "calibration": "Full source statistics plus key-stable1/1000 record slice through unchanged scatter, per-source outcome scale and original T80 score map",
+  "sample_rule": "After source counts: keep=floor(995M*65536/(66*eligible_nonconflict)); sampler uint16 modulo1000, k<536; cap1B; no training-informed selection",
+  "cpus": "13,15",
+  "nice": 19,
+  "workers": 2,
+  "memory": "3GiB/swap0",
+  "disk": "Calibration admission30GiB; stop own data process below27.5GiB. Freeze actual full-sample scratch estimate; require25GiB floor+32GB output+scratch+10GiB training reserve before bulk conversion",
+  "automatic_training": false,
+  "automatic_games": false,
+  "no_old_data_deletion": true,
+  "no_download": true
+}
