@@ -2618,6 +2618,18 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// means lazyFailHigh never fires — so this is value-identical; re-route through a
 	// cache-aware lazy path if that margin is ever unpinned (SHELVED 2026-06-02).
 	standPat := info.history.correctedStandPat(pos, info.evaluator)
+	// A non-cutting bound can still improve the horizon estimate. A lower
+	// bound supplies a floor and an upper bound supplies a ceiling; each only
+	// replaces the estimate in that direction. Keep mate-distance scores out
+	// of static margins. Check, draw and cancellation handling precede this.
+	if ttHit {
+		boundScore := scoreFromTT(ttEvalRaw, ply)
+		if abs(boundScore) < MATE_IN_MAX &&
+			((ttNodeType == LowerBound && boundScore > standPat) ||
+				(ttNodeType == UpperBound && boundScore < standPat)) {
+			standPat = boundScore
+		}
+	}
 	if standPat >= beta {
 		info.QStandPatCuts++
 		return beta
