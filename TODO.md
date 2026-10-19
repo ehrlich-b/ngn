@@ -12,7 +12,8 @@ audit admitted,zero faults/exclusions. Frozen point>=3555 rule met;
 this admits confirmation,supplies no3600 claim. No pooling with001.
 Original detached **382077/ngn-s117-chain-retarget.scope** starts
 confirmation **542775**,fixed640/120+1/strictlower95>3600/bracketed/
-zero faults.14/640 at09:15,progress only. Sourcee8be8f2,binary7c7fa0b2,
+zero faults.104/640 at18:40,progress only;no terminal analysis.
+Sourcee8be8f2,binary7c7fa0b2,
 net81215229,warm2000,tool24233a10;receipt e69dbfbb,seal cb0af2cf.
 Exclusive0–15,nice19,noCPUquota,physical8/GOMAXPROCS8/Hash256.
 Monitor390546 remains descriptive only. No other compute during claim.
@@ -31,15 +32,15 @@ S5/S6 60 identities each;reuse until accepted base changes. Local topics
 durable patches committed. Prepared code queue is full.
 
 Data **CALIBRATED_CAPACITY_HOLD**:frozen107residues/expected987.322M,
-cap1B,scale0.9998157766,admission67.03899GiB. C:**49.84563GiB**,
-deficit**17.19336GiB**,Needs Bryan. No bulk/training,inventory,download,
+cap1B,scale0.9998157766,admission67.03899GiB. C:**48.559265GiB**,
+deficit**18.479723GiB**,Needs Bryan. No bulk/training,inventory,download,
 cleanup,restart. Once capacity fits AND claim ends:unchanged sample/gather,
 T80/T76 overlap,unchanged115-epoch manifest,thenGPU. GPU idle permitted;
 WDL.25 disarmed;hopper1188 untouched;host floor25GiB.
 
 Goal unmet;provenance H0 separate debt. Attempt001 stays failed under its
-original rule. [Session118](experiments/2026-10-19-session118.md),
-[screen review](experiments/2026-10-19-session118-results/review.json).
+original rule. [Session119](experiments/2026-10-19-session119.md),
+[checkpoint](experiments/2026-10-19-session119-results/checkpoint.json).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
