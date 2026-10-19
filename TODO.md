@@ -1,46 +1,45 @@
 # NGN live state — 2026-10-19: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue and handles.
-Accepted **e8be8f2/81215229/compiled warm2000**, after qsearch's original
-H1/3130 at04:10:01EDT: +8.3267[2.2202,14.4384], zero faults.
-Original warm24k/fixed1000 +21.5687[11.1210,32.0555] KEEP remains;
-never retune/regate either. All compute onrig;forge storage/transfer only.
-Plan throughOctober18 17:30 governs;no pull/fetch/push/publication.
+Accepted **e8be8f2/81215229/compiled warm2000** unchanged. Warm24k and
+qsearch are completed keeps;never retune/regate. All compute onrig;
+forge storage/transfer only. Plan throughOctober18 17:30 governs;
+no pull/fetch/push/publication.
 
-**Fresh attempt002** nominated by expected23.937–24.937pool gain since001:
-speed6–7 plus60% of warm21.5687 and qsearch8.3267;hypothesis only.
-Clean-source metadata/PGO rebuild matches winning qsearch on36 depth12
-identities. New-base checks naturally PASS**04:52:54 EDT**, former382073:
-continuation,pawn,ProbCut full suites;S5/S6 full suites and60 identities each.
-Detached **382077/ngn-s117-chain-retarget.scope** now owns live screen**390775**:
-exclusive v4 screen320/10+0.1/point>=3555/bracketed/zero faults;
-PASS automatically starts640/120+1/strictlower95>3600/bracketed.
-Claim sourcee8be8f2;tooling-s117;physical8/GOMAXPROCS8/nice19/noCPUquota.
-Sealed receipt0c81aa53;all occupancy samples PASS,ancestor CPU quotas unlimited.
-**Next session: not before08:00 EDT October19.**
-Results:`session117/result.json`, `claim-v4-20261016/attempt-002/`.
-No other compute while claim lives;never kill/restart a predeclared gate.
+**Attempt002 screen PASS07:49:05EDT October19:**320games/160pairs,
+60W150D110L,pooled **3582.3957[3541.8307,3622.9607]**,bracketed,
+audit admitted,zero faults/exclusions. Frozen point>=3555 rule met;
+this admits confirmation,supplies no3600 claim. No pooling with001.
+Original detached **382077/ngn-s117-chain-retarget.scope** starts
+confirmation **542775**,fixed640/120+1/strictlower95>3600/bracketed/
+zero faults.14/640 at09:15,progress only. Sourcee8be8f2,binary7c7fa0b2,
+net81215229,warm2000,tool24233a10;receipt e69dbfbb,seal cb0af2cf.
+Exclusive0–15,nice19,noCPUquota,physical8/GOMAXPROCS8/Hash256.
+Monitor390546 remains descriptive only. No other compute during claim.
+**Next session: not before19:45 EDT October21.** ETA60–70h from start;
+read`session117/result.json`,status tail,then completed confirmation
+`claim-v4-20261016/attempt-002/confirmation/analysis.json`. No restart from
+ETA;no session-side polling. GOAL_MET requires that completed analysis.
 
-Clean failed claim resumes serial continuation,pawn,ProbCut on0–11/c6,
-logistic[0,5]/min1000/cap8000/reused A/A unchanged. Clean shelves advance;
-KEEP/PROVISIONAL/fault stops for adoption/retarget/review.
-`session117-search/NAME/`,overall`result.json`. S5 unchanged fixed40 timing
-follows three clean shelves;S6 timing UNARMED until S5 review. All further
-accepted changes need retarget/recheck. Isolated source topics under
-`/private/tmp/ngn-s117-{continuation,epilogue}` stay uncommitted until verdict;
-durable patches committed as evidence. No additional speed nomination.
+Clean failed confirmation resumes continuation,pawn,ProbCut serially
+on0–11/c6,logistic[0,5]/min1000/cap8000/reusedA/A. Clean shelves advance;
+KEEP/PROVISIONAL/fault stops for review/adoption/retarget. Three clean
+shelves release S5's unchanged fixed40 timing;S6 remains unarmed until
+S5 review. New-base full checks naturally PASS04:52:54October19,
+S5/S6 60 identities each;reuse until accepted base changes. Local topics
+`/private/tmp/ngn-s117-{continuation,epilogue}` remain uncommitted;
+durable patches committed. Prepared code queue is full.
 
-Data **CALIBRATED_CAPACITY_HOLD**: frozen107 residues/expected987.322M,
-cap1B,scale0.9998157766. `session114-data/{sample-plan.json,result.json}`.
-Host C admission**67.03899GiB**,free50.55161GiB/deficit16.48738GiB;Needs Bryan.
-No bulk/training owner,inventory/download/cleanup/restart. Once capacity fits
-and exclusive claim ends: unchanged sample/gather,T80/T76 overlap and
-unchanged115-epoch recipe manifest,thenGPU. GPU idle permitted,WDL.25
-disarmed;hopper1188 untouched. Host floor25GiB.
+Data **CALIBRATED_CAPACITY_HOLD**:frozen107residues/expected987.322M,
+cap1B,scale0.9998157766,admission67.03899GiB. C:**49.84563GiB**,
+deficit**17.19336GiB**,Needs Bryan. No bulk/training,inventory,download,
+cleanup,restart. Once capacity fits AND claim ends:unchanged sample/gather,
+T80/T76 overlap,unchanged115-epoch manifest,thenGPU. GPU idle permitted;
+WDL.25 disarmed;hopper1188 untouched;host floor25GiB.
 
-Goal unmet. Screen001 remains3535.3656[3493.9310,3576.8003],failed under
-its original rule;no pooling/reanalysis. Provenance H0 separate debt.
-[Session117](experiments/2026-10-19-session117.md).
+Goal unmet;provenance H0 separate debt. Attempt001 stays failed under its
+original rule. [Session118](experiments/2026-10-19-session118.md),
+[screen review](experiments/2026-10-19-session118-results/review.json).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

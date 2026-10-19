@@ -1,0 +1,49 @@
+{
+  "state": "SCREEN_PASS_CONFIRMATION_RUNNING",
+  "observed_utc": "2026-10-19T13:15:35.052616+00:00",
+  "accepted_package": "e8be8f2/81215229/compiled warm2000",
+  "screen_finished_utc": "2026-10-19T11:49:05.637045+00:00",
+  "screen_primary": {
+    "Estimate": 3582.395681787092,
+    "SE": 20.69643573400493,
+    "CI95": [
+      3541.8306677484425,
+      3622.960695825742
+    ]
+  },
+  "screen_counts": {
+    "W": 60,
+    "D": 150,
+    "L": 110,
+    "N": 320,
+    "Pairs": 160,
+    "CapDraws": 3
+  },
+  "screen_bracketed": true,
+  "screen_admitted": true,
+  "screen_exclusions": 0,
+  "screen_eligible": true,
+  "claim_eligible": false,
+  "verdict_rule": "Fixed320 at10+0.1, pooled point>=3555, raw scores bracket50%, zero faults/exclusions",
+  "confirmation_started_utc": "2026-10-19T11:49:05.645512487Z",
+  "confirmation_attempt_id": "e69dbfbbddcd4811c046142a1328c7aa",
+  "confirmation_receipt_seal": {
+    "Path": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation/receipt.json",
+    "SHA256": "cb0af2cf94c00720646a4f9e4c577c16e8ecc808ba6cad79422a23dd5f7fa9cd"
+  },
+  "confirmation_pid": 542775,
+  "controller_pid": 382077,
+  "unit": "ngn-s117-chain-retarget.scope",
+  "monitor_pid": 390546,
+  "confirmation_completed_games": 14,
+  "progress_is_not_a_verdict": true,
+  "confirmation_rule": "Fixed640 at120+1, strict pooled primary lower95>3600, raw scores bracket50%, zero faults/exclusions; no extensions or optional stopping",
+  "host_c_free_gib": 49.84562683105469,
+  "host_c_data_admission_gib": 67.03898829873651,
+  "host_c_data_deficit_gib": 17.193361467681825,
+  "next_review_edt": "2026-10-21 19:45",
+  "eta_edt": "2026-10-21 19:49 to 2026-10-22 05:49 (60-70h planning estimate)",
+  "automatic_adoption": false,
+  "goal_met": false,
+  "new_jobs_launched": false
+}

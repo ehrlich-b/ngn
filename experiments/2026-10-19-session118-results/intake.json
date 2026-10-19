@@ -1,0 +1,327 @@
+{
+  "observed_utc": "2026-10-19T13:15:35.052616+00:00",
+  "controller": {
+    "state": "CONFIRMATION_RUNNING",
+    "utc": "2026-10-19T11:49:05.637171+00:00",
+    "automatic_adoption": false,
+    "screen_primary": {
+      "Estimate": 3582.395681787092,
+      "SE": 20.69643573400493,
+      "CI95": [
+        3541.8306677484425,
+        3622.960695825742
+      ]
+    }
+  },
+  "screen": {
+    "Schema": "NGN-CLAIM-4",
+    "Mode": "screen",
+    "ReceiptSHA256": "649f5bf4fb8c7d0e9a74233a76f03cd549168f5ca3ef8f0d4b18a6a2fed74d6b",
+    "Formula": "p_i = (W_i + 0.5*D_i + 0.5)/(N_i + 1)\nR_i = label_i + 400*log10(p_i/(1-p_i))\nv_i = (400/ln(10))^2/(N_i*p_i*(1-p_i))\nweight_i = 1/v_i\nR_pool = sum(weight_i*R_i)/sum(weight_i)\nSE_pool = 1/sqrt(sum(weight_i))\nCI95 = [R_pool - 1.96*SE_pool, R_pool + 1.96*SE_pool]",
+    "ClaimThreshold": 3600,
+    "ScreenPointMinimum": 3555,
+    "GameDirectory": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen/games",
+    "Audit": {
+      "Path": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen/audit.json",
+      "SHA256": "71d1aa4d554a037f21880e62229edb37754c85d66b7879721474d3b0b5b36500"
+    },
+    "Anchors": [
+      {
+        "Name": "Koivisto 6.0",
+        "Label": 3568,
+        "Counts": {
+          "W": 30,
+          "D": 39,
+          "L": 11,
+          "N": 80,
+          "Pairs": 40,
+          "CapDraws": 1
+        },
+        "RawScore": 0.61875,
+        "P": 0.6172839506172839,
+        "Performance": 3651.0433242006984,
+        "Variance": 1596.7501214105791,
+        "Weight": 0.0006262720676148086
+      },
+      {
+        "Name": "akimbo 1.0.0",
+        "Label": 3614,
+        "Counts": {
+          "W": 16,
+          "D": 41,
+          "L": 23,
+          "N": 80,
+          "Pairs": 40,
+          "CapDraws": 1
+        },
+        "RawScore": 0.45625,
+        "P": 0.4567901234567901,
+        "Performance": 3583.8996190323232,
+        "Variance": 1520.2473514658466,
+        "Weight": 0.0006577876942431665
+      },
+      {
+        "Name": "Black Marlin 9.0",
+        "Label": 3623,
+        "Counts": {
+          "W": 13,
+          "D": 43,
+          "L": 24,
+          "N": 80,
+          "Pairs": 40,
+          "CapDraws": 0
+        },
+        "RawScore": 0.43125,
+        "P": 0.43209876543209874,
+        "Performance": 3575.5240850674804,
+        "Variance": 1537.243905705837,
+        "Weight": 0.0006505148573289302
+      },
+      {
+        "Name": "Berserk 12",
+        "Label": 3741,
+        "Counts": {
+          "W": 1,
+          "D": 27,
+          "L": 52,
+          "N": 80,
+          "Pairs": 40,
+          "CapDraws": 1
+        },
+        "RawScore": 0.18125,
+        "P": 0.18518518518518517,
+        "Performance": 3483.6189294055253,
+        "Variance": 2499.9623112993922,
+        "Weight": 0.00040000603028300663
+      }
+    ],
+    "Primary": {
+      "Estimate": 3582.395681787092,
+      "SE": 20.69643573400493,
+      "CI95": [
+        3541.8306677484425,
+        3622.960695825742
+      ]
+    },
+    "Bootstrap": {
+      "Indices": 40,
+      "Draws": 10000,
+      "Seed": 3000,
+      "Method": "whole-opening jointly across anchors, both colors retained; percentile CI with linear interpolation (type 7)",
+      "CI95": [
+        3563.3778746989246,
+        3601.790119479545
+      ]
+    },
+    "Bracketed": true,
+    "ScreenEligible": true,
+    "ClaimEligible": false,
+    "Exclusions": 0,
+    "Interpretation": [
+      "Local historical-label calibration at Threads8/Hash256 against fixed CCRL Blitz 8CPU labels; no official CCRL rating.",
+      "Both intervals omit label uncertainty, OS/time-control transfer, shared openings and non-transitivity.",
+      "The supplemental bootstrap never replaces the primary decision rule.",
+      "A passing screen admits only the frozen candidate for separately authorized confirmation; it supplies no >3600 claim."
+    ],
+    "Questions": [
+      "Bootstrap interval construction is not specified; supplemental percentile interval uses linear interpolation (type 7).",
+      "Screen bootstrap index count is not specified; jointly resample the screen's frozen 40 indices, never the confirmation's 80."
+    ]
+  },
+  "screen_audit_fields": {
+    "Schema": "NGN-CLAIM-4",
+    "ReceiptSHA256": "649f5bf4fb8c7d0e9a74233a76f03cd549168f5ca3ef8f0d4b18a6a2fed74d6b",
+    "Counts": {
+      "Berserk 12": {
+        "W": 1,
+        "D": 27,
+        "L": 52,
+        "N": 80,
+        "Pairs": 40,
+        "CapDraws": 1
+      },
+      "Black Marlin 9.0": {
+        "W": 13,
+        "D": 43,
+        "L": 24,
+        "N": 80,
+        "Pairs": 40,
+        "CapDraws": 0
+      },
+      "Koivisto 6.0": {
+        "W": 30,
+        "D": 39,
+        "L": 11,
+        "N": 80,
+        "Pairs": 40,
+        "CapDraws": 1
+      },
+      "akimbo 1.0.0": {
+        "W": 16,
+        "D": 41,
+        "L": 23,
+        "N": 80,
+        "Pairs": 40,
+        "CapDraws": 1
+      }
+    },
+    "Admitted": true,
+    "Exclusions": 0
+  },
+  "confirmation_receipt_keys": [
+    "Schema",
+    "CreatedUTC",
+    "AttemptID",
+    "Plan",
+    "ToolSourceRoot",
+    "ToolSourceCommit",
+    "ToolGoVersion",
+    "ToolBuildArgv",
+    "SourceClean",
+    "CandidateSourceClean",
+    "NetFormat",
+    "Hidden",
+    "Buckets",
+    "KingBuckets",
+    "FrozenOpenings",
+    "OpeningCount",
+    "Probes",
+    "Selected",
+    "ClockCheck",
+    "Host",
+    "AfterClockHost",
+    "ScreenReceipt",
+    "ScreenAnalysis",
+    "Occupancy",
+    "Questions"
+  ],
+  "confirmation_seal": {
+    "Path": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation/receipt.json",
+    "SHA256": "cb0af2cf94c00720646a4f9e4c577c16e8ecc808ba6cad79422a23dd5f7fa9cd"
+  },
+  "confirmation_completed_games": 14,
+  "confirmation_first_file": "Koivisto 6.0-00-black.json",
+  "confirmation_last_mtime_utc": "2026-10-19T13:12:53.098677+00:00",
+  "jobs": "    PID    PPID  NI %CPU     ELAPSED COMMAND\n      1       0   0  0.0  6-11:59:11 /usr/lib/systemd/systemd --system --deserialize=104\n      2       1   0  0.0  6-11:59:11 /init\n      6       2   0  0.0  6-11:59:11 plan9 --control-socket 7 --log-level 4 --server-fd 8 --pipe-fd 10 --log-truncate\n    107       1   0  0.0  6-11:59:11 snapfuse /var/lib/snapd/snaps/core24_1643.snap /snap/core24/1643 -o ro,nodev,allow_other,suid\n    110       1   0  0.0  6-11:59:11 snapfuse /var/lib/snapd/snaps/core24_2124.snap /snap/core24/2124 -o ro,nodev,allow_other,suid\n    111       1   0  0.0  6-11:59:11 snapfuse /var/lib/snapd/snaps/snapd_28254.snap /snap/snapd/28254 -o ro,nodev,allow_other,suid\n    114       1   0  0.0  6-11:59:11 snapfuse /var/lib/snapd/snaps/snapd_27738.snap /snap/snapd/27738 -o ro,nodev,allow_other,suid\n    188       1   0  0.0  6-11:59:11 /usr/sbin/cron -f -P\n    189       1   0  0.0  6-11:59:11 @dbus-daemon --system --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only\n    193       1   0  0.0  6-11:59:11 /usr/local/bin/ollama serve\n    200       1   0  0.0  6-11:59:11 /snap/snapd/current/usr/lib/snapd/snapd\n    201       1   0  0.0  6-11:59:11 /usr/lib/systemd/systemd-logind\n    204       1   0  0.0  6-11:59:11 /opt/wingthing-agent-canaries/litellm-venv/bin/python /opt/wingthing-agent-canaries/litellm-venv/bin/litellm --config /opt/wingthing-agent-canaries/litellm-config.yaml --host 127.0.0.1 --port 4000\n    211       1   0  0.0  6-11:59:11 /usr/sbin/rsyslogd -n -iNONE\n    213       1   0  0.0  6-11:59:11 /sbin/agetty -o -p -- \\u --noclear --keep-baud - 115200,38400,9600 vt220\n    220       1   0  0.0  6-11:59:11 /sbin/agetty -o -p -- \\u --noclear - linux\n    227       1   0  0.0  6-11:59:11 /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal\n    245       1   0  0.0  6-11:59:11 /usr/lib/systemd/systemd --user --deserialize=8\n    264     245   0  0.0  6-11:59:11 (sd-pam)\n    331     245   0  0.0  6-11:59:10 rootlesskit --state-dir=/run/user/1000/dockerd-rootless --net=slirp4netns --mtu=65520 --slirp4netns-sandbox=auto --slirp4netns-seccomp=auto --disable-host-loopback --port-driver=builtin --copy-up=/etc --copy-up=/run --propagation=rslave --detach-netns /home/ehrli/bin/dockerd-rootless.sh\n    379     331   0  0.0  6-11:59:10 /proc/self/exe --state-dir=/run/user/1000/dockerd-rootless --net=slirp4netns --mtu=65520 --slirp4netns-sandbox=auto --slirp4netns-seccomp=auto --disable-host-loopback --port-driver=builtin --copy-up=/etc --copy-up=/run --propagation=rslave --detach-netns /home/ehrli/bin/dockerd-rootless.sh\n    421     331   0  0.0  6-11:59:10 slirp4netns --mtu 65520 -r 3 --disable-host-loopback --enable-seccomp --userns-path=/proc/379/ns/user --netns-type=path /proc/379/root/run/user/1000/dockerd-rootless/netns tap0\n    430     379   0  0.0  6-11:59:10 dockerd\n    473     430   0  0.0  6-11:59:10 containerd --config /run/user/1000/docker/containerd/containerd.toml\n    569       2   0  0.0  6-11:59:10 /init\n    570     569   0  0.0  6-11:59:10 /init\n    571     570   0  0.0  6-11:59:10 sleep infinity\n    574       2   0  0.0  6-11:59:10 /bin/login -f\n    657     574   0  0.0  6-11:59:09 -bash\n   1066     245   0  0.0  6-11:59:09 /home/ehrli/bin/containerd-shim-runc-v2 -namespace moby -id e0ad11fe4f146ff7ec35a7280362269b6f45bc8c4db1cee881e0799f907c185b -address /run/user/1000/docker/containerd/containerd.sock\n   1085     245   0  0.0  6-11:59:09 /usr/bin/dbus-daemon --session --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only\n   1093    1066   0  0.0  6-11:59:09 socat TCP-LISTEN:443,fork,reuseaddr TCP:202.138.238.126:443\n   1188     245   0  0.3  6-11:59:08 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n   4752       1   0  0.0  6-06:21:57 /usr/lib/polkit-1/polkitd --no-debug\n   5283       2   0  0.0  6-04:07:57 /init\n   5285    5283   0  0.0  6-04:07:57 /init\n   5287    5285   0  0.0  6-04:07:57 sleep infinity\n  86266       2   0  0.0  4-12:15:58 /bin/login -f\n  86312       1   0  0.0  4-12:15:58 /usr/lib/systemd/systemd --user --deserialize=23\n  86313   86312   0  0.0  4-12:15:58 (sd-pam)\n  86344   86266   0  0.0  4-12:15:58 -bash\n  93514       1  -1  0.0  3-02:59:49 /usr/lib/systemd/systemd-journald\n  93599       1   0  0.0  3-02:59:48 /usr/lib/systemd/systemd-timesyncd\n  93666       1   0  0.0  3-02:59:48 /usr/lib/systemd/systemd-udevd\n  93732       1   0  0.0  3-02:59:48 /usr/lib/systemd/systemd-resolved\n 365830     245   0  0.0    16:49:59 /usr/bin/gpg-agent --supervised\n 382063       1   0  0.0    04:50:06 /init\n 382077  382063  19  0.0    04:50:06 python3 /home/ehrli/ngn-data/night-20261007/session117/claim-chain.py\n 390546  382077  19  0.0    04:22:40 python3 /home/ehrli/ngn-data/night-20261007/session94/monitor.py 382077 /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/resources.jsonl\n 542775  382077  19  0.0    01:26:22 /home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool run --receipt /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation/receipt.json --games /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation/games --out /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation/run-status.json\n 550570       1   0  0.0       08:39 /usr/libexec/wsl-pro-service\n 551638  542775  19  372       02:41 /home/ehrli/ngn-data/night-20261007/session117/accepted-ngn\n 551645  542775  19  403       02:41 /home/ehrli/ngn-data/claim-v4-20261016/anchors/koivisto6/Koivisto_6.0-x64-linux-avx2\n 551839       2   0  0.0       00:00 /init\n 551840  551839   0  0.0       00:00 /init\n 551841   93666   0  0.0       00:00 (udev-worker)\n 551842   93666   0  0.0       00:00 (udev-worker)\n 551843   93666   0  0.0       00:00 (udev-worker)\n 551844   93666   0  0.0       00:00 (udev-worker)\n 551845  551840   0  0.0       00:00 bash -s\n 551846  551845   0 66.6       00:00 python3 -\n 551847  551846   0  0.0       00:00 ps -eo pid,ppid,ni,pcpu,etime,args\n",
+  "gpu": "0 %, 1444 MiB, 16303 MiB\n",
+  "status_tail": [
+    "{\"utc\": \"2026-10-19T08:52:54.917253+00:00\", \"stage\": \"session117-claim\", \"event\": \"SCREEN_RUNNING\", \"detail\": {\"attempt\": \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-002\"}}",
+    "{\"utc\": \"2026-10-19T08:52:54.917721+00:00\", \"stage\": \"session94-claim-chain\", \"event\": \"starting-screen\", \"detail\": {\"attempt\": \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-002\", \"argv\": [\"taskset\", \"-c\", \"0,2,4,6,8,10,12,14\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool\", \"prepare\", \"--mode\", \"screen\", \"--candidate\", \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/candidate-identity.json\", \"--source\", \"/home/ehrli/ngn-data/night-20261007/session117/source\", \"--tool-build-argv\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool-build.json\", \"--out\", \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen\"]}}",
+    "{\"utc\": \"2026-10-19T11:49:05.637045+00:00\", \"stage\": \"session94-claim-chain\", \"event\": \"screen-complete\", \"detail\": {\"primary\": {\"Estimate\": 3582.395681787092, \"SE\": 20.69643573400493, \"CI95\": [3541.8306677484425, 3622.960695825742]}, \"bracketed\": true, \"screen_eligible\": true, \"claim_eligible\": false, \"analysis\": \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen/analysis.json\"}}",
+    "{\"utc\": \"2026-10-19T11:49:05.637171+00:00\", \"stage\": \"session117-claim\", \"event\": \"CONFIRMATION_RUNNING\", \"detail\": {\"screen_primary\": {\"Estimate\": 3582.395681787092, \"SE\": 20.69643573400493, \"CI95\": [3541.8306677484425, 3622.960695825742]}}}",
+    "{\"utc\": \"2026-10-19T11:49:05.637464+00:00\", \"stage\": \"session94-claim-chain\", \"event\": \"starting-confirmation\", \"detail\": {\"attempt\": \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-002\", \"argv\": [\"taskset\", \"-c\", \"0,2,4,6,8,10,12,14\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool\", \"prepare\", \"--mode\", \"confirmation\", \"--candidate\", \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/candidate-identity.json\", \"--source\", \"/home/ehrli/ngn-data/night-20261007/session117/source\", \"--tool-build-argv\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool-build.json\", \"--out\", \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation\", \"--screen-receipt\", \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen/receipt.json\", \"--screen-analysis\", \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen/analysis.json\"]}}"
+  ],
+  "host_c_free_bytes": 53521334272,
+  "confirmation_plan": {
+    "Schema": "NGN-CLAIM-4",
+    "Mode": "confirmation",
+    "Candidate": {
+      "Engine": {
+        "Path": "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+        "SHA256": "7c7fa0b2d389707f5d139483875664a3249125bcaa0f60199ebc76512ab16ea8"
+      },
+      "Net": {
+        "Path": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+        "SHA256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22"
+      },
+      "SourceRoot": "/home/ehrli/ngn-data/night-20261007/session117/source",
+      "SourceCommit": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+      "GoVersion": "go1.25.5",
+      "BuildArgv": [
+        "/usr/local/go/bin/go",
+        "build",
+        "-buildvcs=true",
+        "-p",
+        "2",
+        "-pgo=/home/ehrli/ngn-data/night-20261007/session100-speed/baseline/default.pgo",
+        "-o",
+        "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+        "."
+      ],
+      "Provenance": {
+        "data": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/manifest.json",
+          "SHA256": "67e7ce45717c77ddf29a447f19c11eee44a0ad36a9d4649ef5505d9b2a3cd9b3"
+        },
+        "export": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/result.json",
+          "SHA256": "331437aef04aaf249411621cea5b08dece2ebcb5c24e9df686da74c873b5f9b9"
+        },
+        "manifest": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/manifest.json",
+          "SHA256": "67e7ce45717c77ddf29a447f19c11eee44a0ad36a9d4649ef5505d9b2a3cd9b3"
+        },
+        "parity": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/trained/parity.json",
+          "SHA256": "719edfa6c3e6a1ef80285219060e1958823b91c7a32c53c90d4bbabc7f39ec93"
+        },
+        "training": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/trained/history.json",
+          "SHA256": "ce2ae2b9fec3d52673752cb1de92f9d6bd2a598688a8a19029c9bca8dae55cc3"
+        }
+      }
+    },
+    "Anchors": [
+      {
+        "Name": "Koivisto 6.0",
+        "Label": 3568,
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/koivisto6/Koivisto_6.0-x64-linux-avx2",
+          "SHA256": "2b2bd642e8a317456516a9134b5b6faf674859b4666bf526a85cedfb31241581"
+        },
+        "Dependencies": null
+      },
+      {
+        "Name": "akimbo 1.0.0",
+        "Label": 3614,
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/akimbo1/akimbo-1.0.0-avx2",
+          "SHA256": "879c769035d948068512eb9de02c0f356727b6045e10b95ac813497ebd8d7eee"
+        },
+        "Dependencies": null
+      },
+      {
+        "Name": "Black Marlin 9.0",
+        "Label": 3623,
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/blackmarlin9/blackmarlin-linux-x86-64-v3",
+          "SHA256": "980bd51860fc1cc61fd2216d5ca25fbcef1b5488bde1bce379d022b38b750642"
+        },
+        "Dependencies": null
+      },
+      {
+        "Name": "Berserk 12",
+        "Label": 3741,
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/berserk-12-linux-native",
+          "SHA256": "7b9b5898a781cbe0757caef0b7281df5cf5029d17e67ed3df4824f0eb1c0125d"
+        },
+        "Dependencies": null
+      }
+    ],
+    "Openings": {
+      "Path": "/home/ehrli/repos/ngn/output/corrected-pin-20260905/results-r0905matepin/inputs/sprt_openings.txt",
+      "SHA256": "974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222"
+    },
+    "Count": 80,
+    "Concurrency": 1,
+    "Cap": 400,
+    "Threads": 8,
+    "HashMB": 256,
+    "CPUSet": "0,2,4,6,8,10,12,14",
+    "ClaimThreshold": 3600,
+    "ScreenPointMinimum": 3555,
+    "BaseNS": 120000000000,
+    "IncrementNS": 1000000000,
+    "Runner": {
+      "Path": "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool",
+      "SHA256": "24233a10c04c5f5cdcfa3a2f0d988f09248ab5e98995e13a9105b02e3532589d"
+    },
+    "WindowsBridge": {
+      "Path": "",
+      "SHA256": ""
+    },
+    "MoveOverhead": 100,
+    "MaxLoad": 16
+  }
+}
