@@ -3,7 +3,7 @@
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue and handles.
 Accepted **e8be8f2/81215229/compiled warm2000** unchanged. Warm24k and
 qsearch are completed keeps;never retune/regate. All compute onrig;
-forge storage/transfer only. Plan throughOctober18 17:30 governs;
+forge storage/transfer only. Plan throughOctober19 10:25 governs;
 no pull/fetch/push/publication.
 
 **Attempt002 screen PASS07:49:05EDT October19:**320games/160pairs,
@@ -12,7 +12,7 @@ audit admitted,zero faults/exclusions. Frozen point>=3555 rule met;
 this admits confirmation,supplies no3600 claim. No pooling with001.
 Original detached **382077/ngn-s117-chain-retarget.scope** starts
 confirmation **542775**,fixed640/120+1/strictlower95>3600/bracketed/
-zero faults.104/640 at18:40,progress only;no terminal analysis.
+zero faults.115/640 at19:47,progress only;no terminal analysis.
 Sourcee8be8f2,binary7c7fa0b2,
 net81215229,warm2000,tool24233a10;receipt e69dbfbb,seal cb0af2cf.
 Exclusive0–15,nice19,noCPUquota,physical8/GOMAXPROCS8/Hash256.
@@ -32,15 +32,19 @@ S5/S6 60 identities each;reuse until accepted base changes. Local topics
 durable patches committed. Prepared code queue is full.
 
 Data **CALIBRATED_CAPACITY_HOLD**:frozen107residues/expected987.322M,
-cap1B,scale0.9998157766,admission67.03899GiB. C:**48.559265GiB**,
-deficit**18.479723GiB**,Needs Bryan. No bulk/training,inventory,download,
-cleanup,restart. Once capacity fits AND claim ends:unchanged sample/gather,
+cap1B,scale0.9998157766,admission67.03899GiB. C:**46.770107GiB**,
+deficit**20.268881GiB** before approved compaction. Rig stays untouched
+until confirmation terminal/result. Then compact at a quiet boundary with
+no NGN job running;enable sparse mode,restart WSL/keepalive;leave hopper
+stopped and tell Bryan. If fallback games start,let them finish naturally.
+No bulk/training,inventory,download or cleanup. Once capacity fits AND
+claim ends:unchanged sample/gather,
 T80/T76 overlap,unchanged115-epoch manifest,thenGPU. GPU idle permitted;
 WDL.25 disarmed;hopper1188 untouched;host floor25GiB.
 
 Goal unmet;provenance H0 separate debt. Attempt001 stays failed under its
-original rule. [Session119](experiments/2026-10-19-session119.md),
-[checkpoint](experiments/2026-10-19-session119-results/checkpoint.json).
+original rule. [Session120](experiments/2026-10-19-session120.md),
+[checkpoint](experiments/2026-10-19-session120-results/checkpoint.json).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 
