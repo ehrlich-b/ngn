@@ -16,7 +16,8 @@ const (
 
 // Tunable search parameters. These are var, not const, so the SPSA driver and
 // UCI `setoption` can override them at runtime (rebuild-free A/B); the literals
-// below are the 24k-game SPSA endpoint verified against ed34480/a4d90b41.
+// below are the warm 24k-game SPSA endpoint verified on fe92ced/81215229
+// against the previous compiled final14 defaults (session113 fixed1000 gate).
 // TunableSearchParams below is the single source of truth tying each var to
 // its UCI name, default and spin range.
 var (
@@ -24,15 +25,15 @@ var (
 	NULL_MOVE_MIN_DEPTH     = 2   // Minimum depth for null move pruning
 	LMR_FULL_DEPTH          = 3   // Minimum depth for LMR
 	LMR_MOVE_THRESHOLD      = 2   // Start reducing after this many moves
-	FUTILITY_MARGIN         = 104 // Futility per-depth coefficient (margin = FUTILITY_MARGIN*(depth+improving), CG-grounded)
+	FUTILITY_MARGIN         = 101 // Futility per-depth coefficient (margin = FUTILITY_MARGIN*(depth+improving), CG-grounded)
 	FUTILITY_MAX_DEPTH      = 8   // Extended futility pruning depth (W1: was 3, CounterGo prunes quiets to depth 8)
-	REVERSE_FUTILITY_MARGIN = 63  // Reverse futility margin
-	DELTA_MARGIN            = 202 // Delta pruning margin in quiescence
-	SINGULAR_DEPTH          = 7   // Minimum depth for singular extensions
-	SINGULAR_MARGIN         = 57  // Margin for singular move detection
+	REVERSE_FUTILITY_MARGIN = 69  // Reverse futility margin
+	DELTA_MARGIN            = 261 // Delta pruning margin in quiescence
+	SINGULAR_DEPTH          = 8   // Minimum depth for singular extensions
+	SINGULAR_MARGIN         = 67  // Margin for singular move detection
 	EXTENSION_BUDGET        = 29  // Max net extensions on a single root-to-leaf path (anti-explosion)
-	ASP_INIT                = 17  // Aspiration initial half-window (cp); delta = ASP_INIT + |prevScore|/ASP_SCORE_DIV
-	ASP_MULT                = 163 // Aspiration widening multiplier in percent (150 => x1.5 delta growth per fail)
+	ASP_INIT                = 18  // Aspiration initial half-window (cp); delta = ASP_INIT + |prevScore|/ASP_SCORE_DIV
+	ASP_MULT                = 171 // Aspiration widening multiplier in percent (150 => x1.5 delta growth per fail)
 )
 
 // ASP_SCORE_DIV scales the aspiration init window by the previous score's
@@ -61,15 +62,15 @@ var TunableSearchParams = []TunableParam{
 	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 2, 1, 6},
 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
 	{"LMRMoveThreshold", &LMR_MOVE_THRESHOLD, 2, 1, 8},
-	{"FutilityMargin", &FUTILITY_MARGIN, 104, 50, 160},
+	{"FutilityMargin", &FUTILITY_MARGIN, 101, 50, 160},
 	{"FutilityMaxDepth", &FUTILITY_MAX_DEPTH, 8, 1, 8},
-	{"ReverseFutilityMargin", &REVERSE_FUTILITY_MARGIN, 63, 40, 300},
-	{"DeltaMargin", &DELTA_MARGIN, 202, 0, 400},
-	{"SingularDepth", &SINGULAR_DEPTH, 7, 4, 12},
-	{"SingularMargin", &SINGULAR_MARGIN, 57, 16, 256},
+	{"ReverseFutilityMargin", &REVERSE_FUTILITY_MARGIN, 69, 40, 300},
+	{"DeltaMargin", &DELTA_MARGIN, 261, 0, 400},
+	{"SingularDepth", &SINGULAR_DEPTH, 8, 4, 12},
+	{"SingularMargin", &SINGULAR_MARGIN, 67, 16, 256},
 	{"ExtensionBudget", &EXTENSION_BUDGET, 29, 4, 64},
-	{"AspInit", &ASP_INIT, 17, 4, 40},
-	{"AspMult", &ASP_MULT, 163, 110, 250},
+	{"AspInit", &ASP_INIT, 18, 4, 40},
+	{"AspMult", &ASP_MULT, 171, 110, 250},
 	{"LMPBase", &LMP_BASE, 3, 2, 16},
 }
 

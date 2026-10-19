@@ -1,0 +1,77 @@
+{
+  "verdict": "ACCEPTED",
+  "class_note": "SPSA vector; completed24k native tune and fixed1000 game verdict",
+  "immediate_base": "fe92ced/81215229/compiled final14",
+  "accepted_vector": "compiled warm2000",
+  "gate": {
+    "games": 1000,
+    "pairs": 500,
+    "orphan_games": 0,
+    "wdl": [
+      211,
+      640,
+      149
+    ],
+    "penta": [
+      2,
+      77,
+      285,
+      129,
+      7
+    ],
+    "printed_elo_ci95": [
+      21.6,
+      11.0,
+      32.0
+    ],
+    "exact_elo_ci95": [
+      21.568671346554353,
+      11.120965203890867,
+      32.05549251212131
+    ],
+    "final_pllr": 3.37,
+    "exact_pllr": 3.3658187814645353,
+    "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 625,
+      "checkmate": 360,
+      "stalemate": 4,
+      "max-moves": 11
+    },
+    "faults": [],
+    "verdict": "KEEP",
+    "name": "s113-spsa-final2000",
+    "finished_utc": "2026-10-19T03:03:52.274737+00:00",
+    "manifest": "/home/ehrli/ngn-data/night-20261007/session113-vector/gate/manifest.json",
+    "automatic_adoption": false
+  },
+  "checks": "defaults/checks-result.json",
+  "default_parity": "defaults/default-parity.json",
+  "vector": {
+    "AspInit": 18,
+    "AspMult": 171,
+    "DeltaMargin": 261,
+    "ExtensionBudget": 29,
+    "FutilityMargin": 101,
+    "FutilityMaxDepth": 8,
+    "LMPBase": 3,
+    "LMRFullDepth": 3,
+    "LMRMoveThreshold": 2,
+    "NullMoveMinDepth": 2,
+    "NullMoveR": 4,
+    "ReverseFutilityMargin": 69,
+    "SingularDepth": 8,
+    "SingularMargin": 67
+  },
+  "binary": "/home/ehrli/ngn-data/night-20261007/session115/accepted-ngn",
+  "binary_sha256": "2dc8718415fbc51da4bde360739bc16048c6adfc3e791fb90fa5b5c7fd729412",
+  "net_sha256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22",
+  "source_file_sha256": "c2e8b1709df6b7242914b3fcb17ebb515ea67c9dbf12a1b399f43dbb94d21093",
+  "absolute_claim": false,
+  "automatic_successor_adoption": false,
+  "utc": "2026-10-19T03:19:28.063905+00:00"
+}

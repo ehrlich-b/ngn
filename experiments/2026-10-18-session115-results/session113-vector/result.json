@@ -1,0 +1,52 @@
+{
+  "state": "REVIEW_VECTOR_GATE",
+  "gate_result": {
+    "games": 1000,
+    "pairs": 500,
+    "orphan_games": 0,
+    "wdl": [
+      211,
+      640,
+      149
+    ],
+    "penta": [
+      2,
+      77,
+      285,
+      129,
+      7
+    ],
+    "printed_elo_ci95": [
+      21.6,
+      11.0,
+      32.0
+    ],
+    "exact_elo_ci95": [
+      21.568671346554353,
+      11.120965203890867,
+      32.05549251212131
+    ],
+    "final_pllr": 3.37,
+    "exact_pllr": 3.3658187814645353,
+    "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 625,
+      "checkmate": 360,
+      "stalemate": 4,
+      "max-moves": 11
+    },
+    "faults": [],
+    "verdict": "KEEP",
+    "name": "s113-spsa-final2000",
+    "finished_utc": "2026-10-19T03:03:52.274737+00:00",
+    "manifest": "/home/ehrli/ngn-data/night-20261007/session113-vector/gate/manifest.json",
+    "automatic_adoption": false
+  },
+  "automatic_adoption": false,
+  "finished_utc": "2026-10-19T03:03:52.274958+00:00",
+  "next": "KEEP: review/adopt vector then retarget unstarted work; SHELVED: dispatch checked search SPRTs; S5 timing after due gates"
+}
