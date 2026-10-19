@@ -1,42 +1,42 @@
 # NGN live state — 2026-10-18: 3600 campaign
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue and handles.
-Accepted **fe92ced/81215229/compiled final14** unchanged. Plan through
-**October18 17:30** governs; A/forge data storage approved. All compute
-onrig; forge stores/transfers only. No pull/fetch/push/publication.
+Accepted **2b73995/81215229/compiled warm2000**: native24k endpoint's original
+fixed1000 gate KEEP **+21.5687[11.1210,32.0555]**,211/640/149,zero faults.
+Compiled-default engine/full short/race,vet,Linux-PGO/Windows,14 UCI defaults
+and24 exact option/default identities PASS23:19:09. Never rerun tune/gate.
+Plan throughOctober18 17:30 governs; all compute onrig,forge storage/transfer
+only. No pull/fetch/push/publication.
 
-**Next session: not before23:10 EDT October18.** Native warm SPSA is
-COMPLETE final2000/24,000. Existing363369/SPRT367996 runs fixed1000 vector
-gate since21:33:44;250games at21:55:57, ETA23:05 provisional. Original
-result:`session113-vector/{result.json,gate/result.json}`. No duplicate gate.
+**Next session: not before01:15 EDT October19.** Detached **370517/
+ngn-s115-checks.scope** on13,15 retargets the four existing isolated patches
+to warm2000. Qsearch checks PASS23:25:18; **372120/ngn-s115-search.scope**
+owns live SPRT**372132**. Checks continue for continuation,pawn,ProbCut and S5. Search chain uses
+logistic[0,5]/min1000/cap8000/c6/reused A/A; only clean shelves dispatch next.
+KEEP/PROVISIONAL/fault stops for review/adoption/retargeting. Results under
+`session115-search/NAME/`; overall`result.json`,aggregate`checks-result.json`.
+All source checks estimated23:50; first1000 gate boundary00:55–01:15,
+actual SPRT terminal later/cap about12h. Never stop/restart from an ETA.
 
-**368257/ngn-s114-search.scope** waits natively: only a clean vector shelf
-starts checked qsearch, continuation, pawn quiet, ProbCut SPRTs serially.
-Logistic[0,5]/min1000/cap8000/c6/reused A/A; a KEEP/PROVISIONAL/fault holds
-for review/adoption/retargeting. `session114-search/NAME/result.json` and
-overall`result.json`. Only shelves continue; no automatic adoption.
+S5 remains the only pending speed candidate. New-base full checks/60 exact
+identities run after search builds; then timing follows four search shelves
+and checks terminal. `session115-speed/{checks-result.json,s5-timing/}`.
+Unchanged fixed40/both-strata/all-topologies rule; no automatic adoption.
+Original local topic stays isolated; original patch applies to current base.
+S5 shelf closes alpha-beta; next speed hotspot SEE. No second candidate yet.
 
-**368195/ngn-s114-data.scope**, converter368197, calibrates approved
-T60/T70 on13,15 using unchanged external converter/map: complete source
-counts plus key-stable1/1000 slice, then freeze <=1B fraction/scratch budget.
-`session114-data/{sample-plan.json,result.json}` expected23:05–23:30.
-C:**52.966GiB**; bulk may hold for about67GiB budget (exact after calibration).
-Read deficit before any bulk launch; no new cleanup/inventory/download.
-Then overlap with T80/T76 and frozen115-epoch recipe before GPU training.
-T74 already archived toforge; new raw already verified onrig. GPU idle
-permitted; WDL.25 disarmed; no existing-corpus recipe cells.
+Data **CALIBRATED_CAPACITY_HOLD**: frozen107 sampler residues/expected987.322M,
+cap1B,scale0.9998157766. `session114-data/{sample-plan.json,result.json}`.
+Host C required**67.03899GiB**,available52.96102GiB,deficit**14.07797GiB**;
+Needs Bryan. No bulk/training owner. Preserve sample budget/argv; once space
+fits, convert/gather,measure T80/T76 overlap,freeze unchanged115-epoch recipe,
+then GPU. No inventory/download/cleanup/restart. GPU idle permitted,WDL.25
+disarmed. Hopper1188 untouched.
 
-**S5 single search epilogue** stays isolated/uncommitted on
-`night/s113-search-epilogue`. Full short/race/vet/builds, panic cleanup,
-60 exact identities, open-coded defer witnesses and launcher smoke PASS;
-reuse them.368257 runs unchanged fixed40 timing only after four search
-shelves and data terminal; any keep needs retarget/recheck first. No second
-speed candidate while S5 pending. Shelf closes alpha-beta; next SEE hotspot.
-
-Goal unmet. Screen0013535.3656[3493.9310,3576.8003]; plausible+20pool needed
-for fresh screen. S3+S1 planning credit+6–7Elo. Screen point>=3555, then
-640/120+1 strictlower95>3600/bracketed. Provenance H0 separate debt.
-[Session114](experiments/2026-10-18-session114.md). Hopper1188 untouched.
+Goal unmet. Screen0013535.3656[3493.9310,3576.8003]. Planning credit about
+19–20pool (speed6–7 +0.6×21.5687),near plausible+20 trigger; no new screen.
+Screen point>=3555 then640/120+1 strictlower95>3600/bracketed. Provenance H0
+separate debt. [Session115](experiments/2026-10-18-session115.md).
 
 # Previous live state — 2026-10-07: 0.3.0 release candidate
 

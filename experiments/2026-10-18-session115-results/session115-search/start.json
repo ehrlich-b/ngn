@@ -1,0 +1,10 @@
+{
+  "accepted_source": "2b73995f5df1085ddcbca313b2291195d413aba0",
+  "checks_pid": 370517,
+  "checks_scope": "ngn-s115-checks.scope",
+  "cpus": "13,15",
+  "first_gate": "qsearch after own passing checks",
+  "then": "continuation, pawn, ProbCut only on clean shelves; retargeted S5 timing after all four shelves and passing checks",
+  "automatic_adoption": false,
+  "utc": "2026-10-19T03:19:56.475294+00:00"
+}
