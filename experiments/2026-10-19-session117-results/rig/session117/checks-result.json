@@ -1,0 +1,15 @@
+{
+  "state": "ALL_RETARGET_CHECKS_PASS",
+  "base": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+  "search": [
+    "continuation",
+    "pawn",
+    "probcut"
+  ],
+  "speed": [
+    "s5",
+    "s6"
+  ],
+  "automatic_adoption": false,
+  "finished_utc": "2026-10-19T08:52:54.912722+00:00"
+}

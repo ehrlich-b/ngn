@@ -1,0 +1,14 @@
+G3126 602W 1997D 527L   51.2%  elo   +8.3 [-4,+21]  LLR  +2.10  pLLR  +3.00  checkmate   
+G3127 602W 1997D 528L   51.2%  elo   +8.2 [-4,+20]  LLR  +2.05  pLLR  +3.00  checkmate   
+G3128 602W 1998D 528L   51.2%  elo   +8.2 [-4,+20]  LLR  +2.05  pLLR  +3.00  draw-rule   
+G3129 602W 1999D 528L   51.2%  elo   +8.2 [-4,+20]  LLR  +2.05  pLLR  +3.00  draw-rule   
+G3130 603W 1999D 528L   51.2%  elo   +8.3 [-4,+20]  LLR  +2.09  pLLR  +3.00  checkmate   
+
+=== RESULT (4h44m42s) ===
+Games: 3130   W-D-L: 603-1999-528   score: 51.2%
+Elo(new - base): +8.3   95% CI [-4, +20]
+LLR: +2.09   bounds [-2.94, 2.94]
+Pentanomial [LL 11  LD 297  {LW,DD} 891  WD 338  WW 28] over 1565 pairs
+Penta Elo: +8.3   95% CI [+2, +14]   pLLR +3.00  (THE decision stat; trinomial above is secondary)
+Flag-outs (lost on time): new 0, base 0  of 3130 games  (goal: 0)
+Verdict: H1 ACCEPTED: new is stronger (>= 5 ELO)

@@ -1,0 +1,3 @@
+{"screen": false, "confirmation": false, "events": ["SCREEN_RUNNING", "stage-screen", "SCREEN_FAILED", "SEARCH_QUEUE_RUNNING", "REVIEW_SEARCH_OR_SPEED"], "search_fallback": true}
+{"screen": true, "confirmation": false, "events": ["SCREEN_RUNNING", "stage-screen", "CONFIRMATION_RUNNING", "stage-confirmation", "CONFIRMATION_FAILED", "SEARCH_QUEUE_RUNNING", "REVIEW_SEARCH_OR_SPEED"], "search_fallback": true}
+{"screen": true, "confirmation": true, "events": ["SCREEN_RUNNING", "stage-screen", "CONFIRMATION_RUNNING", "stage-confirmation", "GOAL_MET"], "search_fallback": false}

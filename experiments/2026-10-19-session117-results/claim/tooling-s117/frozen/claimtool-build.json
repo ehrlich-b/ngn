@@ -1,0 +1,10 @@
+[
+  "/usr/local/go/bin/go",
+  "build",
+  "-buildvcs=true",
+  "-p",
+  "2",
+  "-o",
+  "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool",
+  "./cmd/claimtool"
+]

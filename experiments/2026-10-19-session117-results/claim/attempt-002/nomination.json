@@ -1,0 +1,24 @@
+{
+  "authority": "Bryan Oct17 09:45 screen point>=3555; fresh attempt after plausible +20 pool accepted gains",
+  "candidate": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/candidate-identity.json",
+  "accepted_source": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+  "accepted_net": "81215229",
+  "vector": "compiled warm2000",
+  "prior_attempt": "attempt-001 remains failed; no reanalysis or pooling",
+  "expected_pool_gain": [
+    23.93723943423577,
+    24.93723943423577
+  ],
+  "expected_screen_point": [
+    3559.302887764508,
+    3560.302887764508
+  ],
+  "expectation": "Planning hypothesis: speed +6 to +7, 60% transfer of warm SPSA +21.5687 and qsearch +8.3267; no width credit",
+  "screen": "Fixed320 at10+0.1; pooled point>=3555 and raw scores bracket50%;zero faults/exclusions",
+  "confirmation": "On eligible screen only: fixed640 at120+1,strict pooled lower95>3600,raw scores bracket50%;zero faults/exclusions",
+  "resources": "Exclusive rig0-15,nice19,no CPU quota; engines physical8,GOMAXPROCS8;GPU idle;hopper untouched",
+  "occupancy": "Existing real-launcher occupancy probe before games; same scope, cpu.max recorded",
+  "monitor": "Existing descriptive resources.jsonl every600seconds;no score stop or verdict effect",
+  "successors": "On clean failed screen/confirmation: checked continuation,pawn,ProbCut serially; clean shelves advance;KEEP/PROVISIONAL/fault hold;then S5;no S6 auto-timing",
+  "created_utc": "2026-10-19T08:52:54.916485+00:00"
+}

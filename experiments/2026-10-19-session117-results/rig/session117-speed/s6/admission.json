@@ -1,0 +1,41 @@
+{
+  "candidate": "s6",
+  "state": "CODE_PREPARATION_TIMING_UNARMED",
+  "profile_admitted": true,
+  "authority": "Current session brief permits isolated code work while games run; merged plan October18 00:50 selects SEE after alpha-beta",
+  "immediate_accepted_base": "e8be8f2/81215229/compiled warm2000",
+  "topic": "night/s116-see-xray",
+  "local_worktree": "/private/tmp/ngn-s116-see-xray",
+  "profile_source": "/home/ehrli/ngn-data/night-20261007/session108-speed/accepted.cpu.pprof",
+  "hotspot": "SEE 8.24% cumulative; getAttackersAfterMove 1.62% flat / 2.84% cumulative in existing S3+S1 profile",
+  "treatment": "Hoist invariant diagonal/straight slider membership per exchange; retain surviving attackers and reveal only the line containing the removed attacker; skip both slider lookups after an attacking knight",
+  "identity_argument": "Removing occupancy cannot hide any surviving attack; a knight source is off both target slider rays; every other attacker lies on exactly one diagonal or straight target ray; original-board slider masks are intersected with current occupancy",
+  "patch_sha256": "a882da821632f4cf83daf03e86733247ffecac57ef8b025cc312e87ee141ccfb",
+  "identity": "Frozen accepted NGN SEE reference; exact evolving attack masks; geometry regression; engine/full short/race, vet, Linux-PGO/Windows builds; established60 fixed/iterative move-score-node-PV identities",
+  "timing": {
+    "topologies": [
+      [
+        1,
+        64
+      ],
+      [
+        1,
+        256
+      ],
+      [
+        8,
+        256
+      ]
+    ],
+    "paired_blocks": 40,
+    "milliseconds_per_engine": 20000,
+    "order": "AB/BA alternating; frame=(block//2)%12; fixed sample; no extension",
+    "rule": "Every topology and both order strata must have paired geometric NPS lower95>1 using Student t df19; otherwise SHELVED"
+  },
+  "admission": "Unarmed until S5 terminal review; retarget after any further accepted change",
+  "expected_gain": "Hypothesis only: 1-2% NPS; no Elo or speed credit before timing",
+  "automatic_timing": false,
+  "automatic_adoption": false,
+  "created_utc": "2026-10-19T05:49:54.230458+00:00",
+  "retarget_note": "Same isolated patch after completed qsearch H1; full new-base checks required before use"
+}
