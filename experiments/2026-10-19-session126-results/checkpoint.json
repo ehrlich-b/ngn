@@ -1,0 +1,80 @@
+{
+  "observed_utc": "2026-10-20T00:36:00.429998+00:00",
+  "controller": {
+    "state": "CONFIRMATION_RUNNING",
+    "utc": "2026-10-19T11:49:05.637171+00:00",
+    "automatic_adoption": false,
+    "screen_primary": {
+      "Estimate": 3582.395681787092,
+      "SE": 20.69643573400493,
+      "CI95": [
+        3541.8306677484425,
+        3622.960695825742
+      ]
+    }
+  },
+  "confirmation_completed_games": 122,
+  "latest_saved_game_utc": "2026-10-20T00:33:36.987183+00:00",
+  "terminal_files": {
+    "run-status.json": false,
+    "audit.json": false,
+    "analysis.json": false
+  },
+  "jobs": "   1188     245   0  0.3  6-23:19:34 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n 382077  382063  19  0.0    16:10:31 python3 /home/ehrli/ngn-data/night-20261007/session117/claim-chain.py\n 390546  382077  19  0.0    15:43:05 python3 /home/ehrli/ngn-data/night-20261007/session94/monitor.py 382077 /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/resources.jsonl\n 542775  382077  19  0.0    12:46:47 /home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool run --receipt /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation/receipt.json --games /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation/games --out /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation/run-status.json\n 628971  542775  19  434       02:23 /home/ehrli/ngn-data/night-20261007/session117/accepted-ngn\n 628978  542775  19  350       02:23 /home/ehrli/ngn-data/claim-v4-20261016/anchors/koivisto6/Koivisto_6.0-x64-linux-avx2",
+  "gpu": "0 %, 1449 MiB, 16303 MiB",
+  "memory": "total        used        free      shared  buff/cache   available\nMem:     16267804672  2290573312  1837142016     3534848 12399026176 13977231360\nSwap:     4294967296     3170304  4291796992",
+  "monitor_last": {
+    "utc": "2026-10-20T00:33:02.585461+00:00",
+    "interval_seconds": 600.0760904080234,
+    "physical_core_busy_percent_range": [
+      97.36806924902243,
+      98.08842696253718
+    ],
+    "existing_monitor_pid": 390546
+  },
+  "status_tail": [
+    {
+      "utc": "2026-10-19T08:52:54.917253+00:00",
+      "stage": "session117-claim",
+      "event": "SCREEN_RUNNING"
+    },
+    {
+      "utc": "2026-10-19T08:52:54.917721+00:00",
+      "stage": "session94-claim-chain",
+      "event": "starting-screen"
+    },
+    {
+      "utc": "2026-10-19T11:49:05.637045+00:00",
+      "stage": "session94-claim-chain",
+      "event": "screen-complete"
+    },
+    {
+      "utc": "2026-10-19T11:49:05.637171+00:00",
+      "stage": "session117-claim",
+      "event": "CONFIRMATION_RUNNING"
+    },
+    {
+      "utc": "2026-10-19T11:49:05.637464+00:00",
+      "stage": "session94-claim-chain",
+      "event": "starting-confirmation"
+    }
+  ],
+  "host_c_free_bytes": 50003427328,
+  "host_c_free_gib": 46.56932067871094,
+  "host_c_data_admission_bytes": 71982565575,
+  "host_c_data_deficit_gib": 20.469667620025575,
+  "session_started_edt": "2026-10-19T20:35:18-04:00",
+  "session_deadline_edt": "2026-10-19T22:15:18-04:00",
+  "governing_plan_note": "2026-10-19 10:25",
+  "accepted_package": "e8be8f2/81215229/compiled warm2000",
+  "controller_pid": 382077,
+  "confirmation_pid": 542775,
+  "confirmation_target_games": 640,
+  "data_state": "CALIBRATED_CAPACITY_HOLD",
+  "new_jobs_launched": false,
+  "new_engine_changes": false,
+  "goal_met": false,
+  "next_review_edt": "2026-10-21 19:45",
+  "planning_eta_edt": "2026-10-21 19:49 to 2026-10-22 05:49",
+  "progress_is_not_a_verdict": true
+}
