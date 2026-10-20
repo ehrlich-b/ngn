@@ -1,0 +1,184 @@
+{
+  "observed_utc": "2026-10-20T01:40:07.060864+00:00",
+  "controller": {
+    "state": "CONFIRMATION_RUNNING",
+    "utc": "2026-10-19T11:49:05.637171+00:00",
+    "automatic_adoption": false,
+    "screen_primary": {
+      "Estimate": 3582.395681787092,
+      "SE": 20.69643573400493,
+      "CI95": [
+        3541.8306677484425,
+        3622.960695825742
+      ]
+    }
+  },
+  "confirmation_completed_games": 132,
+  "latest_saved_game_utc": "2026-10-20T01:38:15.637661+00:00",
+  "terminal_files": {
+    "run-status.json": false,
+    "audit.json": false,
+    "analysis.json": false
+  },
+  "jobs": "   1188     245   0  0.3  7-00:23:40 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n 382077  382063  19  0.0    17:14:38 python3 /home/ehrli/ngn-data/night-20261007/session117/claim-chain.py\n 390546  382077  19  0.0    16:47:12 python3 /home/ehrli/ngn-data/night-20261007/session94/monitor.py 382077 /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/resources.jsonl\n 542775  382077  19  0.0    13:50:54 /home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool run --receipt /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation/receipt.json --games /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation/games --out /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation/run-status.json\n 636508  542775  19  447       01:51 /home/ehrli/ngn-data/night-20261007/session117/accepted-ngn\n 636514  542775  19  342       01:51 /home/ehrli/ngn-data/claim-v4-20261016/anchors/koivisto6/Koivisto_6.0-x64-linux-avx2",
+  "gpu": "0 %, 1449 MiB, 16303 MiB",
+  "memory": "total        used        free      shared  buff/cache   available\nMem:     16267804672  2288754688  1820577792     3534848 12417409024 13979049984\nSwap:     4294967296     3170304  4291796992",
+  "monitor_last": {
+    "utc": "2026-10-20T01:33:03.060248+00:00",
+    "interval_seconds": 600.0247560589341,
+    "cpu_busy_percent": {
+      "cpu0": 98.37572631825716,
+      "cpu1": 0.5262721009379928,
+      "cpu2": 97.80784753738718,
+      "cpu3": 0.07000466697779852,
+      "cpu4": 98.52443640505142,
+      "cpu5": 0.09000900090009001,
+      "cpu6": 98.4777948958403,
+      "cpu7": 0.13333777792593088,
+      "cpu8": 98.58015906236919,
+      "cpu9": 0.01833455563704247,
+      "cpu10": 98.61183208024246,
+      "cpu11": 0.1533537805040672,
+      "cpu12": 98.28088382992969,
+      "cpu13": 0.07501500300060011,
+      "cpu14": 98.3903386821212,
+      "cpu15": 0.2517002266968929
+    },
+    "top_non_engine": [
+      {
+        "pid": 635300,
+        "exe": "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+        "name": "accepted-ngn",
+        "cpu_percent": 247.0064751552399
+      },
+      {
+        "pid": 1188,
+        "exe": "/usr/bin/python3.12",
+        "name": "python3",
+        "cpu_percent": 0.3549853532694562
+      },
+      {
+        "pid": 204,
+        "exe": "/usr/bin/python3.12",
+        "name": "litellm",
+        "cpu_percent": 0.10332906996575719
+      }
+    ]
+  },
+  "status_tail": [
+    {
+      "utc": "2026-10-19T08:52:54.917253+00:00",
+      "stage": "session117-claim",
+      "event": "SCREEN_RUNNING",
+      "detail": {
+        "attempt": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002"
+      }
+    },
+    {
+      "utc": "2026-10-19T08:52:54.917721+00:00",
+      "stage": "session94-claim-chain",
+      "event": "starting-screen",
+      "detail": {
+        "attempt": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002",
+        "argv": [
+          "taskset",
+          "-c",
+          "0,2,4,6,8,10,12,14",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool",
+          "prepare",
+          "--mode",
+          "screen",
+          "--candidate",
+          "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/candidate-identity.json",
+          "--source",
+          "/home/ehrli/ngn-data/night-20261007/session117/source",
+          "--tool-build-argv",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool-build.json",
+          "--out",
+          "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen"
+        ]
+      }
+    },
+    {
+      "utc": "2026-10-19T11:49:05.637045+00:00",
+      "stage": "session94-claim-chain",
+      "event": "screen-complete",
+      "detail": {
+        "primary": {
+          "Estimate": 3582.395681787092,
+          "SE": 20.69643573400493,
+          "CI95": [
+            3541.8306677484425,
+            3622.960695825742
+          ]
+        },
+        "bracketed": true,
+        "screen_eligible": true,
+        "claim_eligible": false,
+        "analysis": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen/analysis.json"
+      }
+    },
+    {
+      "utc": "2026-10-19T11:49:05.637171+00:00",
+      "stage": "session117-claim",
+      "event": "CONFIRMATION_RUNNING",
+      "detail": {
+        "screen_primary": {
+          "Estimate": 3582.395681787092,
+          "SE": 20.69643573400493,
+          "CI95": [
+            3541.8306677484425,
+            3622.960695825742
+          ]
+        }
+      }
+    },
+    {
+      "utc": "2026-10-19T11:49:05.637464+00:00",
+      "stage": "session94-claim-chain",
+      "event": "starting-confirmation",
+      "detail": {
+        "attempt": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002",
+        "argv": [
+          "taskset",
+          "-c",
+          "0,2,4,6,8,10,12,14",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool",
+          "prepare",
+          "--mode",
+          "confirmation",
+          "--candidate",
+          "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/candidate-identity.json",
+          "--source",
+          "/home/ehrli/ngn-data/night-20261007/session117/source",
+          "--tool-build-argv",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool-build.json",
+          "--out",
+          "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation",
+          "--screen-receipt",
+          "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen/receipt.json",
+          "--screen-analysis",
+          "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen/analysis.json"
+        ]
+      }
+    }
+  ],
+  "host_c_free_bytes": 48392851456,
+  "host_c_free_gib": 45.06935501098633,
+  "host_c_data_admission_bytes": 71982565575,
+  "host_c_data_deficit_gib": 21.969633287750185,
+  "session_started_edt": "2026-10-19T21:39:02-04:00",
+  "session_deadline_edt": "2026-10-19T23:19:02-04:00",
+  "governing_plan_note": "2026-10-19 10:25",
+  "accepted_package": "e8be8f2/81215229/compiled warm2000",
+  "controller_pid": 382077,
+  "confirmation_pid": 542775,
+  "confirmation_target_games": 640,
+  "data_state": "CALIBRATED_CAPACITY_HOLD",
+  "new_jobs_launched": false,
+  "new_engine_changes": false,
+  "goal_met": false,
+  "next_review_edt": "2026-10-21 19:45",
+  "planning_eta_edt": "2026-10-21 19:49 to 2026-10-22 05:49",
+  "progress_is_not_a_verdict": true
+}
