@@ -1,0 +1,48 @@
+[
+  {
+    "id": "ngn-p1-r1",
+    "product": "ngn",
+    "title": "Implement the admitted reference staged move picker",
+    "why": "The accepted-H1 profile measures 6.91% ordinary whole-list generation/scoring cost. This is the highest-ranked unimplemented search candidate; the rejected TT-first/global fallback must not return.",
+    "acceptance": "Follow experiments/2026-09-19-p1-staged-picker-profile/prototype-plan-v1.md: emit every pseudo-legal move exactly once; preserve legality and lifecycle; cold/warm fixed-depth geometric-mean node ratio <=1.05 and every cell <=1.15; ten interleaved six-position 400000-node blocks with paired median time ratio <=0.97. Freeze one commit for the RIG-PLAN.md pilot and independent confirmation; no Elo or adoption from forge2 proxies.",
+    "gates": [
+      "nice -n 10 env GOMAXPROCS=8 go build -p=2 ./...",
+      "nice -n 10 env GOMAXPROCS=8 go test -p=2 -short ./... -count=1",
+      "nice -n 10 env GOMAXPROCS=8 go test -p=2 -short -race ./engine -count=1",
+      "nice -n 10 env GOMAXPROCS=8 bash -o pipefail -c 'go vet ./internal/... 2>&1 | tail -5'"
+    ],
+    "value": "high; measured cost opportunity, expected Elo unquantified",
+    "cost": 3,
+    "lane_class": "heavy"
+  },
+  {
+    "id": "ngn-n1-feasibility",
+    "product": "ngn",
+    "title": "Bound one richer existing-network feasibility study",
+    "why": "TODO.md links the Sol plan's N1 branch after V1.2 and search/runtime findings. A richer evaluator may offer more strength than more tiny kernels; model provenance remains unresolved.",
+    "acceptance": "After P1 disposition, choose exactly one Berserk-14 or SF18 BIG/dual feasibility study. Pin model/license provenance, independent oracle arithmetic, legal-move-trace feature/update and selected-head costs, worker memory/ownership, and a bounded integration plan. No production search integration, owned training, bundled weights, or strength claim in this lane.",
+    "gates": [
+      "nice -n 10 env GOMAXPROCS=8 go test -p=2 ./nnue/sf18big ./nnue/sf18small -count=1",
+      "nice -n 10 env GOMAXPROCS=8 go build -p=2 ./...",
+      "nice -n 10 env GOMAXPROCS=8 go test -p=2 -short ./... -count=1"
+    ],
+    "value": "high potential; provenance and integration cost unmeasured",
+    "cost": 3,
+    "lane_class": "heavy"
+  },
+  {
+    "id": "ngn-smp-profile",
+    "product": "ngn",
+    "title": "Measure accepted V1.2 SMP efficiency before another policy candidate",
+    "why": "TODO.md retains SMP-efficiency work but shelves initial-depth staggering, completed-helper selection, and per-stripe sequence publication. Current HCE throughput does not establish V1.2 scaling or playing efficiency.",
+    "acceptance": "On the immediate accepted source with the pinned V1.2 model, record 1/2/4/8-thread fixed-time throughput, profiles, duplication and TT contention under shared-host telemetry. Use fixed-node runs only as one-worker controls. Admit at most one materially different mechanism from measured cost, or close with a reopen condition; no timed matches on forge2 and no revival of shelved variants.",
+    "gates": [
+      "nice -n 10 env GOMAXPROCS=8 go test -p=2 -short ./engine -run 'TestLazySMP' -count=1",
+      "nice -n 10 env GOMAXPROCS=8 go test -p=2 -short -race ./engine -count=1",
+      "nice -n 10 env GOMAXPROCS=8 go build -p=2 ./..."
+    ],
+    "value": "medium; diagnose playing-efficiency limits before selecting changes",
+    "cost": 2,
+    "lane_class": "heavy"
+  }
+]
