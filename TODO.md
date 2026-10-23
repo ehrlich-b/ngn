@@ -1,5 +1,11 @@
 # NGN current state — September 19 Sol structural-strength handoff
 
+N1 now has one bounded [SF18 BIG/dual feasibility study](experiments/2026-10-23-sf18-dual-feasibility/README.md),
+following P1's recorded prototype-admission disposition. Offline legal-trace
+operation/memory bounds and the independent oracle contract are complete;
+exact model/license receipts, donor parity and runtime measurements remain
+prerequisites to incorporation. No production evaluator or search change.
+
 **Current handoff / ranked next work:** the user requested a full fix plan for
 resuming the 3300 goal with Sol. Follow
 [the Sol implementation plan](experiments/2026-09-19-sol-fix-plan.md), grounded in
