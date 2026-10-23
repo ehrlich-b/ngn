@@ -47,7 +47,9 @@ report when the model is missing or has the wrong identity.
   CPU top tables, mutex/block top tables and `Cache.Get`/`Cache.Set` annotated
   tables retain the TT stripe and age-lock call sites. Mutex and block delays
   are summed goroutine waiting time, not wall-time percentages; samples
-  attributed to unlock stacks must be interpreted as lock-holder sites.
+  attributed to unlock stacks must be interpreted as lock-holder sites. If no
+  TT lock stack was sampled, the annotation is marked `NO_TT_SAMPLES`; raw
+  profiles, top tables and the annotation command receipt are retained.
 - Separate diagnostic cells use the same fixed-time matrix and an external
   Go overlay, adding only a worker-local map of visited position hashes when
   `hash & 63 == 0`. Native throughput and profiles contain no map sampling.

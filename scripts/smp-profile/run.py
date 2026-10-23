@@ -83,6 +83,21 @@ def overlays(folder):
     return output
 
 
+def tt_annotation(binary, profile, folder):
+    """An unsynchronized one-worker search may have no TT lock samples."""
+    pattern = "Cache.*(Get|Set)"
+    try:
+        run(["go", "tool", "pprof", "-list="+pattern, str(binary), str(profile)],
+            folder, cwd=REPO)
+    except RuntimeError:
+        receipt = json.loads((folder / "time.json").read_text())
+        error = (folder / "stderr.txt").read_text().strip()
+        if receipt["exit_code"] != 2 or error != "no matches found for regexp: "+pattern:
+            raise
+        return "NO_TT_SAMPLES"
+    return "ANNOTATED"
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", type=Path, default=os.environ.get("RODENT_V12_DEFAULT_MODEL"))
@@ -176,9 +191,8 @@ def main():
                     run(command+[str(binaries[kind]),str(cell / (profile+".pprof"))],
                         cell / (profile+"-top"), cwd=REPO)
                     if profile != "cpu":
-                        run(["go", "tool", "pprof", "-text", "-list=Cache.*(Get|Set)",
-                             str(binaries[kind]),str(cell / (profile+".pprof"))],
-                            cell / (profile+"-tt"), cwd=REPO)
+                        row[profile+"_tt_annotation"] = tt_annotation(
+                            binaries[kind], cell / (profile+".pprof"), cell / (profile+"-tt"))
             rows.append(row)
             print(f"{index+1}/{len(schedule)} {mode} {width} {position['name']}", flush=True)
         summary = {}
