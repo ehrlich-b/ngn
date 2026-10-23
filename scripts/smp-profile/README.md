@@ -8,17 +8,17 @@ and V1.2 evaluator must remain byte-for-byte unchanged from
 The required external model is `rodent_4kb_768hl_8ob_v2.bin`, 4,744,768 bytes,
 SHA-256 `c35a1abc1b8c1cb1d5f4221454d494c1a6da1ed9088fd51ab27038bfa74b5053`.
 There is no downloader, fallback evaluator, synthetic model or checksum bypass.
-The repository does not bundle the artifact. The historical model path in
-`experiments/2026-09-19-e0-v12-anand-strength/manifest-release-v1.json` was absent
-on the measurement host on 2026-10-23. Consequently the requested measurement
-is **blocked**, with no V1.2 throughput, duplication or contention result yet.
+The repository does not bundle the artifact. Supply the exact model locally at
+`inputs/rodent_4kb_768hl_8ob_v2.bin`; this path is ignored by Git. The runner
+verifies its size and SHA-256 before building or measuring; the historical
+manifest path need not exist.
 
 Run from the repository root, with an existing model and evidence outside the
 checkout:
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 nice -n 10 python3 scripts/smp-profile/run.py \
-  --model /absolute/path/rodent_4kb_768hl_8ob_v2.bin \
+  --model inputs/rodent_4kb_768hl_8ob_v2.bin \
   --output /absolute/path/to/evidence
 ```
 
@@ -71,17 +71,13 @@ report when the model is missing or has the wrong identity.
 
 ## Decision and reopen condition
 
-The acceptance run failed at the model prerequisite, before any search. Harness
-compilation does not satisfy that acceptance and must not replace the matrix in
-an automated readiness plan. The next action is to supply the exact local
-artifact at the path passed to `--model`; do not repeat profiling attempts while
-that prerequisite remains absent. The runner verifies both its 4,744,768-byte
-size and pinned SHA-256 before building or measuring. Once supplied, execute the
-full command above and assess its generated report before selecting a mechanism.
+Harness compilation does not satisfy acceptance and must not replace the matrix
+in an automated readiness plan. Execute the full command above with the pinned
+local model and assess the generated report before selecting a mechanism.
+A missing or mismatched model remains a hard failure; use no substitute.
 
-No policy is admitted while the required model and measurements are absent.
-First provide the local pinned model and complete this matrix. Before claiming
-eight-core scaling, repeat under explicit authorization for at least eight Go
+The protocol closes without admitting a policy and records a reopen condition.
+Before claiming eight-core scaling, repeat under explicit authorization for at least eight Go
 execution slots and retain shared-host telemetry. Reopen mechanism selection
 only for a repeatable dominant measured cost and at most one materially different
 mechanism. Initial-depth staggering, completed-helper result selection and the
