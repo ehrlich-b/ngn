@@ -99,14 +99,22 @@ and model files already recorded on the rig. Missing/mismatched files are a
 blocker; do not download replacements, substitute nets, change paths inside an
 old manifest, or silently relax an audit.
 
-From the same WSL shell, after that review, run this Python block. It copies
+After that review, save the following block as `rig-p1-r1-match.sh` on the Mac
+and send it with
+`ssh -T ehrli@192.168.4.108 'wsl -d Ubuntu -e bash -s' < rig-p1-r1-match.sh`.
+It initializes its own run path and build environment in the new WSL shell. It copies
 frozen tools into a new run and reuses the accepted E0 supervision, per-role
 UCI preflight, process witness, independent legal/terminal audit, trace audit,
 and paired-bootstrap functions. It does **not** replay an old E0/H1 manifest.
-This new P1 orchestration is statically checked here; rig A/A and operational
-audits are required to validate its execution before candidate games.
+Shell syntax, frozen inputs and the Python phase handoff are checked here with
+local stand-ins for match operations; rig A/A and operational audits are required
+to validate actual execution before candidate games.
 
 ```bash
+set -euo pipefail
+RUN=/home/ehrli/ngn-rig-p1-r1-20261023
+export PATH=/usr/local/go/bin:/usr/bin:/bin
+export GOAMD64=v3 CGO_ENABLED=0
 nice -n 10 env GOMAXPROCS=1 python3 - "$RUN" <<'PY'
 import importlib.util, json, shutil, sys
 from pathlib import Path
@@ -157,6 +165,7 @@ for index, (label, pairs, seconds) in enumerate([('aa',50,1800),('pilot',64,1800
     command = e0.phase_command(tools, phase, roles, openings, pairs, protocol)
     e0.atomic_json(phase / 'exact-command.json', command)
     e0.supervise(tools, command, phase, roles, protocol['physical_cpu_mask'], seconds)
+    (phase / 'match.exit').write_text('0\n', encoding='utf-8')
     result = e0.audit(tools, tools, phase, roles, openings, prefixes, pairs*2, pairs)
     estimate = e0.paired_bootstrap(result['pair_audit'], 2026102301+index, 100000)
     e0.atomic_json(phase / 'estimate.json', estimate)

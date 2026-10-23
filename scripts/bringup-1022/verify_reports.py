@@ -5,8 +5,11 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
+from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[2]
 EVIDENCE = ROOT.parent / "evidence"
@@ -84,6 +87,65 @@ def state():
     print("A2: word cap, all local citations, H1 verdict, P1 admission and unchanged engine tree checked")
 
 
+def phase_handoff(tree):
+    """Execute the documented loop with local stand-ins, never engines or SSH."""
+    loop = next(node for node in tree.body if isinstance(node, ast.For)
+                and isinstance(node.target, ast.Tuple))
+    code = compile(ast.Module(body=[loop], type_ignores=[]), "RIG-PLAN.md", "exec")
+    for failure in (False, True):
+        with tempfile.TemporaryDirectory(prefix="rig-handoff-", dir=EVIDENCE) as tmp:
+            r = Path(tmp)
+            tools = r / "tools"
+            tools.mkdir()
+            for name in ("ngn-base", "ngn-p1-r1", "tools/role_exec.py"):
+                (r / name).write_text("local stand-in; never executed\n")
+            supervised, audited = [], []
+
+            def supervise(tools, command, phase, roles, masks, seconds):
+                assert not (phase / "match.exit").exists()
+                if failure:
+                    raise RuntimeError("injected supervision failure")
+                supervised.append(phase.name)
+
+            def audit(source, tools, phase, roles, openings, prefixes, games, pairs):
+                assert supervised[-1] == phase.name
+                # This is the real trace auditor's required input at entry.
+                assert (phase / "match.exit").read_text() == "0\n"
+                assert games == pairs * 2
+                audited.append(phase.name)
+                return {"pair_audit": []}
+
+            def atomic_json(path, value):
+                path.write_text(json.dumps(value))
+
+            e0 = SimpleNamespace(
+                sha256=sha, atomic_json=atomic_json,
+                role_config=lambda *args: None, preflight=lambda *args: None,
+                phase_command=lambda *args: [], supervise=supervise, audit=audit,
+            )
+            # A/A must include zero; the later phases exercise a positive result.
+            def bootstrap(rows, seed, replicates):
+                assert replicates == 100000
+                return {"elo": 1, "lower95_elo": -1 if seed == 2026102301 else 0.5,
+                        "upper95_elo": 2}
+            e0.paired_bootstrap = bootstrap
+            namespace = {"r": r, "tools": tools, "e0": e0, "shutil": shutil,
+                         "protocol": {"physical_cpu_mask": ["0", "2", "4", "6"]}}
+            try:
+                exec(code, namespace)
+            except RuntimeError as error:
+                assert failure and str(error) == "injected supervision failure"
+            else:
+                assert not failure, "supervision failure must abort the phase"
+            if failure:
+                assert audited == [] and not (r / "aa/match.exit").exists()
+                assert not (r / "decision.json").exists()
+            else:
+                assert supervised == audited == ["aa", "pilot", "confirmation"]
+                assert read_json(r / "decision.json")["verdict"] == "ACCEPT"
+                assert all((r / phase / "estimate.json").is_file() for phase in audited)
+
+
 def rig():
     text = report("RIG-PLAN.md")
     blocks = re.findall(r"```bash\n(.*?)```", text, re.S)
@@ -91,7 +153,15 @@ def rig():
     for block in blocks:
         subprocess.run(["bash", "-n"], input=block, text=True, check=True)
     python = re.search(r"<<'PY'\n(.*?)\nPY\n", blocks[-1], re.S)[1]
-    ast.parse(python)
+    tree = ast.parse(python)
+    preamble = blocks[-1].split("nice -n 10 env", 1)[0]
+    fresh = subprocess.check_output(
+        ["/bin/bash", "-c", preamble + 'printf "%s\\n" "$RUN" "$PATH" "$GOAMD64" "$CGO_ENABLED"'],
+        env={"PATH": "/usr/bin:/bin"}, text=True).splitlines()
+    assert fresh == ["/home/ehrli/ngn-rig-p1-r1-20261023",
+                     "/usr/local/go/bin:/usr/bin:/bin", "v3", "0"]
+    assert f"RUN={fresh[0]}\n" in blocks[1]
+    phase_handoff(tree)
     held = read_json(ROOT / "experiments/2026-09-19-h1-history-policy/manifest-release-v1.json")
     driver = ROOT / "experiments/2026-09-19-e0-v12-anand-strength/driver.py"
     assert sha(driver) == held["frozen_sources"]["e0_driver.py"]["sha256"]
@@ -100,7 +170,7 @@ def rig():
     assert held["frozen_sources"]["v12_model"]["sha256"] in text
     for token in ["P1_CANDIDATE:?", "Blocked on implementation", "10+0.1", "0,2,4,6", "628", "100,000", "lower95 Elo >0", "e0.supervise", "e0.audit", "e0.preflight", "<=0.97", "<=1.05", "1.15"]:
         assert token in text, token
-    print("A3: all shell/Python blocks parse; frozen driver and input names match; one conditional candidate and full protocol checked; no rig contacted")
+    print("A3: shell/Python syntax, fresh-shell environment, all three successful phase handoffs and supervision-failure abort checked with local stand-ins; frozen driver/input names and protocol checked; no rig contacted")
 
 
 def queue():

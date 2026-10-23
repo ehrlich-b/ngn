@@ -43,7 +43,8 @@ Six frozen V1.2-benchmark positions, executed here with HCE, each reached
 | asymmetric_black | d5a5 | 15 | 257 |
 
 Node limits deliberately force **effective Threads1**. All 24 outcomes match;
-see `../evidence/fixed-results-verified.json` and raw `fixed-*.uci.log`.
+these runs provide no fixed-node SMP scaling measurement.
+See `../evidence/fixed-results-verified.json` and raw `fixed-*.uci.log`.
 `searchsnapshot` additionally passed all 11 fixtures, cold/warm, with identical
 JSON across GOMAXPROCS 1/2/4/8; `snapshot-threads*.json`, `snapshot-compare-*.json`.
 
