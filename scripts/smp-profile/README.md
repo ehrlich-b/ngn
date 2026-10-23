@@ -71,6 +71,14 @@ report when the model is missing or has the wrong identity.
 
 ## Decision and reopen condition
 
+The acceptance run failed at the model prerequisite, before any search. Harness
+compilation does not satisfy that acceptance and must not replace the matrix in
+an automated readiness plan. The next action is to supply the exact local
+artifact at the path passed to `--model`; do not repeat profiling attempts while
+that prerequisite remains absent. The runner verifies both its 4,744,768-byte
+size and pinned SHA-256 before building or measuring. Once supplied, execute the
+full command above and assess its generated report before selecting a mechanism.
+
 No policy is admitted while the required model and measurements are absent.
 First provide the local pinned model and complete this matrix. Before claiming
 eight-core scaling, repeat under explicit authorization for at least eight Go
