@@ -8,6 +8,9 @@ import subprocess
 import tempfile
 import time
 
+from resources import capture_resource_evidence
+from resources import external_busy_cpu_estimate
+
 
 def environment():
     env = {k: v for k, v in os.environ.items()
@@ -57,6 +60,8 @@ def run(command, folder, env=None, cwd=None):
     with (folder / "stdout.txt").open("wb") as out, (folder / "stderr.txt").open("wb") as err:
         proc = subprocess.Popen(["nice", "-n", "10", *command], cwd=cwd, env=env,
                                 stdout=out, stderr=err)
+        resource_evidence = capture_resource_evidence(proc.pid)
+        resource_evidence["gomaxprocs"] = env.get("GOMAXPROCS")
         try:
             while True:
                 samples.append(telemetry(proc.pid))
@@ -75,13 +80,16 @@ def run(command, folder, env=None, cwd=None):
                "peak_rss_kib": usage.ru_maxrss,
                "voluntary_context_switches": usage.ru_nvcsw,
                "involuntary_context_switches": usage.ru_nivcsw}
+    receipt["measurement_interval_seconds"] = receipt["elapsed_seconds"]
+    receipt["resource_evidence"] = resource_evidence
     def host_busy(sample):
         ticks = list(map(int, sample["/proc/stat"].splitlines()[0].split()[1:]))
         # Guest counters are already included in user/nice; idle and iowait excluded.
         return sum(ticks[i] for i in [0, 1, 2, 5, 6, 7]) / os.sysconf("SC_CLK_TCK")
     busy = host_busy(samples[-1]) - host_busy(samples[0])
     receipt["host_busy_cpu_seconds"] = busy
-    receipt["non_owned_busy_cpu_seconds_estimate"] = max(0, busy-usage.ru_utime-usage.ru_stime)
+    receipt["non_owned_busy_cpu_seconds_estimate"] = external_busy_cpu_estimate(
+        busy, usage.ru_utime + usage.ru_stime)
     (folder / "time.json").write_text(json.dumps(receipt, indent=2)+"\n")
     (folder / "telemetry.json").write_text(json.dumps(samples, indent=2)+"\n")
     if proc.returncode:

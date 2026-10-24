@@ -64,12 +64,23 @@ report when the model is missing or has the wrong identity.
   switches. It samples host CPU counters, pressure, load, memory, cgroup limits,
   process/thread scheduler delay every 250 ms, preserving unavailable counters
   explicitly. Non-owned busy CPU is a coarse host-counter-minus-owned-CPU
-  estimate, not attribution to individual background jobs.
+  estimate over the recorded measurement interval, not attribution to individual
+  background jobs. Each cell and report includes parsed resource limits with raw
+  proc/cgroup evidence references: subprocess GOMAXPROCS, requested and effective
+  worker width, affinity and cpuset counts, and visible cgroup CPU quota. The
+  summary follows v1/v2 mount roots and visible ancestor limits. Missing or
+  malformed values remain unknown. Affinity and quota are scheduling limits, not
+  exclusive physical cores or permission to increase worker slots.
 - `GOMAXPROCS=2` is fixed by the execution contract, including width 4/8.
-  Logical-worker efficiency is speedup/Threads, with speedup relative to width
+  Logical-worker ratio is speedup/Threads, with speedup relative to width
   1 aggregate NPS. These are oversubscribed worker measurements, not 4/8-core
   hardware scaling or playing efficiency. Shared-host scheduling, staggered
   measurement times and search-tree variation limit causal inference.
+
+Run the offline resource and runner receipt tests with
+`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest scripts/smp-profile/test_resources.py`.
+They use fixtures and mocked receipts and never load the model or launch a
+search. `--check-harness` remains compilation-only evidence.
 
 ## Decision and reopen condition
 

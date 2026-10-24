@@ -13,6 +13,7 @@ import sys
 import tempfile
 
 from time_v import environment, run, telemetry
+from resources import capture_resource_evidence, summarize_resources
 
 BASE = "8ba878cb03a7eb81ca465b3d562953d0f45e81c7"
 MODEL_SHA = "c35a1abc1b8c1cb1d5f4221454d494c1a6da1ed9088fd51ab27038bfa74b5053"
@@ -22,6 +23,40 @@ REPO = HERE.parent.parent
 
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def validate_model(path):
+    if path is None or not Path(path).is_file():
+        raise ValueError("pinned V1.2 model unavailable; supply a local --model; no downloads permitted")
+    path = Path(path).resolve()
+    digest = sha(path)
+    if path.stat().st_size != 4744768 or digest != MODEL_SHA:
+        raise ValueError("pinned model identity mismatch")
+    return path, digest
+
+
+def wire_report_resources(report, evidence):
+    report["resources"] = summarize_resources(evidence, requested_width=None)
+    report["resources"]["evidence_reference"] = "initial_telemetry and raw_evidence references"
+    return report
+
+
+def wire_cell_resources(row, receipt, width, cell):
+    evidence = dict(receipt.get("resource_evidence") or {})
+    evidence["gomaxprocs"] = row.get("gomaxprocs")
+    evidence["effective_worker_width"] = row.get("effective_threads")
+    row["resources"] = summarize_resources(evidence, requested_width=width)
+    row["resources"]["evidence_reference"] = str(Path(cell) / "time.json")
+    row["non_owned_busy_cpu_seconds_estimate"] = receipt.get("non_owned_busy_cpu_seconds_estimate")
+    row["measurement_interval_seconds"] = receipt.get("measurement_interval_seconds")
+    row["shared_host_telemetry_reference"] = str(Path(cell) / "telemetry.json")
+    row["shared_host_load_caveat"] = (
+        "Non-owned busy CPU is a coarse host-counter-minus-owned-CPU estimate; it does not attribute "
+        "work to individual jobs, and shared-host scheduling and staggered measurements limit causal inference.")
+    if width in (4, 8) and row.get("gomaxprocs") == 2:
+        row["measurement_classification"] = "oversubscribed worker measurement"
+        row["scaling_interpretation"] = "not core scaling or playing efficiency"
+    return row
 
 
 def git(*args):
@@ -118,6 +153,9 @@ def main():
               "protocol": {"milliseconds": 2000, "repetitions": 3, "widths": [1,2,4,8],
                            "hash_mb": 128, "diagnostic_hash_mask": 63,
                            "control_nodes": 400000, "seed": 20261023}}
+    initial_resources = capture_resource_evidence()
+    initial_resources["gomaxprocs"] = None
+    wire_report_resources(report, initial_resources)
     try:
         for tree in ["engine", "rodentv12eval", "internal", "go.mod", "go.sum"]:
             if git("diff", BASE, "--", tree):
@@ -145,13 +183,9 @@ def main():
             report.update(status="HARNESS_COMPILED_ONLY", binaries={k:sha(v) for k,v in binaries.items()})
             print(json.dumps({"status":report["status"],"evidence":str(folder)}))
             return 0
-        if args.model is None or not args.model.is_file():
-            raise ValueError("pinned V1.2 model unavailable; supply a local --model; no downloads permitted")
-        args.model = args.model.resolve()
+        args.model, model_digest = validate_model(args.model)
         report["model_path"] = str(args.model)
-        report["model_sha256"] = sha(args.model)
-        if args.model.stat().st_size != 4744768 or report["model_sha256"] != MODEL_SHA:
-            raise ValueError("pinned model identity mismatch")
+        report["model_sha256"] = model_digest
         binaries = overlays(folder)
         report["binaries"] = {k:sha(v) for k,v in binaries.items()}
         positions = json.loads((HERE / "positions.json").read_text())
@@ -175,10 +209,12 @@ def main():
                        SMP_MS="2000", SMP_NODES="400000" if mode == "control" else "0",
                        SMP_FEN=position["fen"], SMP_OUT=str(cell),
                        SMP_PROFILES="1" if mode == "profile" else "0")
-            run([str(binaries[kind]), "-test.run=^TestSMPProfile$", "-test.count=1",
-                 "-test.timeout=20s", "-test.v"], cell, env, REPO)
+            command = [str(binaries[kind]), "-test.run=^TestSMPProfile$", "-test.count=1",
+                       "-test.timeout=20s", "-test.v"]
+            receipt = run(command, cell, env, REPO)
             row = json.loads((cell / "result.json").read_text())
             row.update(mode=mode, repetition=repetition, position=position["name"], evidence=str(cell))
+            wire_cell_resources(row, receipt, width, cell)
             if mode == "duplication":
                 row["duplication"] = duplication(row["workers"])
                 if row["duplication"]["sampled_visits"] == 0:
@@ -205,7 +241,10 @@ def main():
             summary[str(width)]["aggregate_nps"] = summary[str(width)]["nodes"]/summary[str(width)]["seconds"]
         for width in [1,2,4,8]:
             speedup = summary[str(width)]["aggregate_nps"]/summary["1"]["aggregate_nps"]
-            summary[str(width)].update(speedup=speedup, logical_worker_efficiency=speedup/width)
+            summary[str(width)].update(speedup=speedup)
+            summary[str(width)]["logical_worker_ratio"] = speedup / width
+            summary[str(width)]["interpretation"] = ("oversubscribed worker measurement; not core scaling or playing efficiency"
+                                                        if width in (4, 8) else "logical worker measurement")
         report.update(status="MEASURED_CLOSE_NO_POLICY", rows=rows, summary=summary,
                       reopen_condition="On a host authorized for >=8 Go execution slots, repeat the pinned "
                       "matrix; require a repeatable measured dominant cost and a mechanism distinct from "
