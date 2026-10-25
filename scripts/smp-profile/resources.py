@@ -1,4 +1,5 @@
 """Offline parsing and reporting for SMP execution capacity evidence."""
+import math
 import os
 from pathlib import Path
 
@@ -96,33 +97,80 @@ def _count_cpus(value):
         return None
 
 
+def _quota_summary(evidence):
+    """Return observed bounds and completeness of visible quota evidence only."""
+    files = evidence.get("files") or {}
+    paths = {p for p in files if os.path.basename(p) in
+             ("cpu.max", "cpu.cfs_quota_us", "cpu.cfs_period_us")}
+    levels = {os.path.join(os.path.dirname(p), "cpu.cfs_quota_us")
+              if os.path.basename(p).startswith("cpu.cfs_") else p for p in paths}
+    cgroup, mountinfo = evidence.get("cgroup"), evidence.get("mountinfo")
+    if isinstance(cgroup, str) and isinstance(mountinfo, str):
+        mounts = list(_mounts(mountinfo, cgroup))
+        v1_cpu = any(version == 1 and "cpu" in controllers
+                     for _, _, _, version, controllers in mounts)
+        if v1_cpu:
+            # A controller belongs to only one hierarchy on hybrid hosts.
+            levels = {p for p in levels if os.path.basename(p) != "cpu.max"}
+        for mount, root, rel, version, controllers in mounts:
+            if version == 1 and "cpu" not in controllers:
+                continue
+            if version == 2 and v1_cpu:
+                continue
+            current = os.path.normpath(os.path.join(mount, os.path.relpath(rel, root)))
+            while current == mount or current.startswith(mount.rstrip("/") + "/"):
+                path = os.path.join(current, "cpu.max" if version == 2 else "cpu.cfs_quota_us")
+                raw = files.get(path)
+                missing = path not in files or (isinstance(raw, dict) and
+                          str(raw.get("unavailable", "")).startswith("FileNotFoundError:"))
+                # cpu.max is not created at the v2 hierarchy root. A subtree
+                # mount still has a quota, and permission failures stay unknown.
+                if version == 2 and root == "/" and current == mount and missing:
+                    levels.discard(path)
+                else:
+                    levels.add(path)
+                if current == mount:
+                    break
+                current = os.path.dirname(current)
+    candidates, unknown = [], []
+    for path in sorted(levels):
+        value = _read_value(files.get(path))
+        try:
+            if os.path.basename(path) == "cpu.max":
+                fields = value.split() if value is not None else []
+                if len(fields) != 2:
+                    raise ValueError("invalid cpu.max")
+                token, period_token = fields
+                unlimited = token == "max"
+            else:
+                token = value
+                period_token = _read_value(files.get(os.path.join(os.path.dirname(path), "cpu.cfs_period_us")))
+                unlimited = token == "-1"
+            # Kernel counters use decimal integers; reject signs, floats and extra tokens.
+            if not period_token or not period_token.isascii() or not period_token.isdecimal() or int(period_token) <= 0:
+                raise ValueError("invalid period")
+            if not unlimited:
+                if not token or not token.isascii() or not token.isdecimal() or int(token) <= 0:
+                    raise ValueError("invalid quota")
+                bound = int(token) / int(period_token)
+                if not math.isfinite(bound) or bound <= 0:
+                    raise ValueError("unrepresentable quota bound")
+                candidates.append((bound, path))
+        except (TypeError, ValueError, OverflowError):
+            unknown.append(path)
+    complete = bool(levels) and not unknown
+    state = "limited" if candidates else "unlimited" if complete else "unknown"
+    return candidates, state, complete, unknown, sorted(paths | levels)
+
+
 def summarize_resources(evidence, requested_width):
     """Pure summary of captured raw evidence. Unknown inputs stay unknown."""
     files = evidence.get("files") or {}
-    quota_candidates = []
+    quota_candidates, quota_state, quota_complete, quota_unknown, quota_paths = _quota_summary(evidence)
     cpuset_counts = []
     for path, raw in files.items():
         name = os.path.basename(path)
-        value = _read_value(raw)
-        if name == "cpu.max" and value:
-            fields = value.split()
-            if len(fields) == 2 and fields[0] != "max":
-                try:
-                    quota, period = int(fields[0]), int(fields[1])
-                    if quota > 0 and period > 0:
-                        quota_candidates.append((quota / period, path))
-                except ValueError:
-                    pass
-        elif name == "cpu.cfs_quota_us":
-            period_path = os.path.join(os.path.dirname(path), "cpu.cfs_period_us")
-            period_raw = _read_value(files.get(period_path))
-            try:
-                quota, period = int(value), int(period_raw)
-                if quota > 0 and period > 0:
-                    quota_candidates.append((quota / period, path))
-            except (TypeError, ValueError):
-                pass
-        elif name in ("cpuset.cpus.effective", "cpuset.effective_cpus", "cpuset.cpus"):
+        if name in ("cpuset.cpus.effective", "cpuset.effective_cpus", "cpuset.cpus"):
             count = _count_cpus(raw)
             if count is not None:
                 cpuset_counts.append((count, path))
@@ -138,10 +186,6 @@ def summarize_resources(evidence, requested_width):
             gomax = None
     except (TypeError, ValueError):
         gomax = None
-    effective = min(x for x in (affinity_count, cpuset[0] if cpuset else None,
-                                quota[0] if quota else None) if x is not None) if any(
-                                    x is not None for x in (affinity_count, cpuset[0] if cpuset else None,
-                                                            quota[0] if quota else None)) else None
     unknowns = []
     if gomax is None:
         unknowns.append("subprocess_gomaxprocs")
@@ -149,7 +193,7 @@ def summarize_resources(evidence, requested_width):
         unknowns.append("affinity_cpu_count")
     if cpuset is None:
         unknowns.append("cpuset_cpu_count")
-    if quota is None:
+    if not quota_complete:
         unknowns.append("cgroup_cpu_quota_cores")
     return {
         "subprocess_gomaxprocs": gomax,
@@ -161,8 +205,10 @@ def summarize_resources(evidence, requested_width):
         "cpuset_evidence": [p for _, p in cpuset_counts] or
                            [p for p in files if os.path.basename(p).startswith("cpuset.")],
         "cgroup_cpu_quota_cores": quota[0] if quota else None,
-        "cgroup_quota_evidence": [p for _, p in quota_candidates] or
-                                 [p for p in files if os.path.basename(p) in ("cpu.max", "cpu.cfs_quota_us", "cpu.cfs_period_us")],
+        "cgroup_cpu_quota_state": quota_state,
+        "cgroup_cpu_quota_evidence_complete": quota_complete,
+        "cgroup_cpu_quota_unknown_levels": quota_unknown,
+        "cgroup_quota_evidence": quota_paths,
         "capacity_is_exclusive_physical_cores": False,
         "core_scaling_qualified": False,
         "unknown_capacity_fields": unknowns,

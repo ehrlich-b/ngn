@@ -104,3 +104,24 @@ mechanism. Initial-depth staggering, completed-helper result selection and the
 shelved per-stripe sequence publication protocol remain excluded. Any later
 playing-efficiency claim needs a separately authorized independent game gate on
 an appropriate host; this protocol supplies no strength or Elo claim.
+
+CPU quota receipts distinguish `cgroup_cpu_quota_state` (`limited`, `unlimited`,
+`unknown`) from the numeric `cgroup_cpu_quota_cores` observed bound. A finite
+bound is the minimum valid observed quota/period; it can coexist with incomplete
+ancestry. `cgroup_cpu_quota_evidence_complete` covers captured relevant levels
+and missing visible levels inferred from captured mount metadata, not ancestors
+hidden outside the mounted hierarchy. Unlimited requires every such level to
+have `max` (v2) or `-1` (v1) and a valid positive period. At the v2 hierarchy
+root (mount metadata root `/`), an absent `cpu.max` is expected and adds no
+quota level. Permission failures remain unknown, and missing quota files at
+subtree mount roots or other ancestors remain incomplete. On hybrid hosts,
+a mounted v1 CPU controller makes the v2 hierarchy irrelevant to CPU quota;
+a v1 cpuset mount alone does not. Captured paths and errors remain in raw
+evidence even when they are not relevant quota levels. Unknown levels are listed
+in `cgroup_cpu_quota_unknown_levels`; incomplete evidence keeps the quota in
+`unknown_capacity_fields`, even with a finite observed bound. Verified unlimited
+has a null numeric bound without an unknown quota field. Raw counters and paths
+remain in the receipt. None of these states establishes exclusive CPU ownership.
+
+Run synthetic quota controls with
+`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest scripts/smp-profile/test_quota_states.py`.

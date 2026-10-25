@@ -8,8 +8,6 @@ import unittest
 from unittest import mock
 
 HERE = Path(__file__).resolve().parent
-LANE_TMP = HERE.parents[2] / "tmp"
-LANE_TMP.mkdir(exist_ok=True)
 sys.path.insert(0, str(HERE))
 import resources
 import run as profile_run
@@ -97,14 +95,14 @@ class RunnerReceiptTests(unittest.TestCase):
     def test_missing_and_wrong_model_rejected_before_search(self):
         with self.assertRaisesRegex(ValueError, "unavailable"):
             profile_run.validate_model(None)
-        with tempfile.TemporaryDirectory(dir=LANE_TMP) as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             wrong = Path(tmp) / "wrong.bin"
             wrong.write_bytes(b"not a model")
             with self.assertRaisesRegex(ValueError, "identity mismatch"):
                 profile_run.validate_model(wrong)
 
     def test_main_blocks_before_search_when_model_missing(self):
-        with tempfile.TemporaryDirectory(dir=LANE_TMP) as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             wrong = Path(tmp) / "wrong.bin"
             wrong.write_bytes(b"not a model")
             for label, model in (("missing", None), ("wrong", wrong)):
@@ -124,7 +122,7 @@ class RunnerReceiptTests(unittest.TestCase):
                     self.assertEqual(report["status"], "BLOCKED")
 
     def test_no_tt_samples_annotation_and_corrupt_profile_receipt(self):
-        with tempfile.TemporaryDirectory(dir=LANE_TMP) as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
             with mock.patch.object(profile_run, "run", side_effect=RuntimeError("pprof failed")):
                 (folder / "time.json").write_text(json.dumps({"exit_code": 2}))
