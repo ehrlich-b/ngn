@@ -58,22 +58,29 @@ def run(command, folder, env=None, cwd=None):
     samples = []
     start = time.monotonic()
     with (folder / "stdout.txt").open("wb") as out, (folder / "stderr.txt").open("wb") as err:
-        proc = subprocess.Popen(["nice", "-n", "10", *command], cwd=cwd, env=env,
-                                stdout=out, stderr=err)
-        resource_evidence = capture_resource_evidence(proc.pid)
-        resource_evidence["gomaxprocs"] = env.get("GOMAXPROCS")
+        proc = None
         try:
+            proc = subprocess.Popen(["nice", "-n", "10", *command], cwd=cwd, env=env,
+                                    stdout=out, stderr=err)
+            resource_evidence = capture_resource_evidence(proc.pid)
+            resource_evidence["gomaxprocs"] = env.get("GOMAXPROCS")
             while True:
                 samples.append(telemetry(proc.pid))
                 pid, status, usage = os.wait4(proc.pid, os.WNOHANG)
                 if pid:
+                    proc.returncode = os.waitstatus_to_exitcode(status)
                     break
                 time.sleep(0.25)
-        except BaseException:
-            proc.kill()
-            os.wait4(proc.pid, 0)
-            raise
-        proc.returncode = os.waitstatus_to_exitcode(status)
+        finally:
+            # Own the child from spawn through native reap, including capture
+            # failures and BaseException interruptions. Popen.wait also handles
+            # a child that exits (or is reaped by Popen.kill) during cleanup.
+            if proc is not None and proc.returncode is None:
+                try:
+                    proc.kill()
+                except ProcessLookupError:
+                    pass
+                proc.wait()
     receipt = {"command": command, "exit_code": proc.returncode,
                "elapsed_seconds": time.monotonic()-start,
                "user_seconds": usage.ru_utime, "system_seconds": usage.ru_stime,
