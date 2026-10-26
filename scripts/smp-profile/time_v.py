@@ -4,7 +4,9 @@ import json
 import os
 from pathlib import Path
 import re
+import signal
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -49,6 +51,34 @@ def telemetry(pid=None):
     return result
 
 
+def stop_owned_group(proc):
+    """Stop our private session, including helpers whose parent already exited.
+
+    Helpers that deliberately create another session escape this ownership
+    contract. Never discover groups by name or use the caller's process group.
+    """
+    try:
+        try:
+            os.killpg(proc.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+        else:
+            # Give cooperative helpers a bounded grace period.
+            time.sleep(0.1)
+    finally:
+        # Escalate even if the grace period is interrupted. The original leader
+        # need not still be alive, and a helper may ignore TERM.
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        finally:
+            # Native wait4 sets returncode on success; wait tolerates ECHILD
+            # when a failure happened just after a native reap.
+            proc.wait(timeout=2)
+
+
+
 def run(command, folder, env=None, cwd=None):
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=False)
@@ -61,7 +91,7 @@ def run(command, folder, env=None, cwd=None):
         proc = None
         try:
             proc = subprocess.Popen(["nice", "-n", "10", *command], cwd=cwd, env=env,
-                                    stdout=out, stderr=err)
+                                    stdout=out, stderr=err, start_new_session=True)
             resource_evidence = capture_resource_evidence(proc.pid)
             resource_evidence["gomaxprocs"] = env.get("GOMAXPROCS")
             while True:
@@ -72,15 +102,15 @@ def run(command, folder, env=None, cwd=None):
                     break
                 time.sleep(0.25)
         finally:
-            # Own the child from spawn through native reap, including capture
-            # failures and BaseException interruptions. Popen.wait also handles
-            # a child that exits (or is reaped by Popen.kill) during cleanup.
-            if proc is not None and proc.returncode is None:
+            if proc is not None:
+                original = sys.exc_info()[1]
                 try:
-                    proc.kill()
-                except ProcessLookupError:
-                    pass
-                proc.wait()
+                    stop_owned_group(proc)
+                except BaseException:
+                    # A cleanup interruption must not replace the failure that
+                    # triggered cleanup. Without an earlier failure, report it.
+                    if original is None:
+                        raise
     receipt = {"command": command, "exit_code": proc.returncode,
                "elapsed_seconds": time.monotonic()-start,
                "user_seconds": usage.ru_utime, "system_seconds": usage.ru_stime,
