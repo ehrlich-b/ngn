@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Native wait4 timing and shared-host telemetry; never invokes /usr/bin/time."""
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 import json
 import math
 import os
@@ -106,9 +106,18 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
         or (isinstance(timeout_seconds, float) and not math.isfinite(timeout_seconds))
     ):
         raise ValueError("timeout_seconds must be None or a positive finite int or float (excluding bool)")
+    if env is None:
+        env = environment()
+    else:
+        if not isinstance(env, Mapping):
+            raise ValueError("env must be a mapping of strings to strings")
+        env = dict(env)
+        for key, value in env.items():
+            if (not isinstance(key, str) or not key or "=" in key or "\0" in key
+                    or not isinstance(value, str) or "\0" in value):
+                raise ValueError("env contains an invalid key or value")
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=False)
-    env = dict(environment() if env is None else env)
     env["TMPDIR"] = str(folder.resolve() / "tmp")
     Path(env["TMPDIR"]).mkdir()
     samples = []
