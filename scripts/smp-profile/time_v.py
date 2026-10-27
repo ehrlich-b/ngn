@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Native wait4 timing and shared-host telemetry; never invokes /usr/bin/time."""
+from collections.abc import Sequence
 import json
 import math
 import os
@@ -84,7 +85,18 @@ class CommandTimeoutError(TimeoutError):
     """A profiling command exceeded its wall-clock limit."""
 
 
+def validate_command(command):
+    if (isinstance(command, (str, bytes)) or not isinstance(command, Sequence)
+            or not command):
+        raise ValueError("command must be a nonempty sequence of string arguments")
+    if any(not isinstance(arg, str) for arg in command):
+        raise ValueError("command arguments must all be strings")
+    if not command[0]:
+        raise ValueError("command executable must be a nonempty string")
+
+
 def run(command, folder, env=None, cwd=None, timeout_seconds=None):
+    validate_command(command)
     if timeout_seconds is not None and (not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
         raise ValueError("timeout_seconds must be finite and positive")
     folder = Path(folder)
@@ -219,8 +231,10 @@ if __name__ == "__main__":
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     command = args.command[1:] if args.command[:1] == ["--"] else args.command
-    if not command:
-        parser.error("provide a command after --")
+    try:
+        validate_command(command)
+    except ValueError as exc:
+        parser.error(str(exc))
     if args.timeout_seconds is not None and (not math.isfinite(args.timeout_seconds) or args.timeout_seconds <= 0):
         parser.error("--timeout-seconds must be finite and positive")
     args.output.mkdir(parents=True, exist_ok=True)
