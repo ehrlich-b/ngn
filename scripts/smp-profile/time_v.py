@@ -160,14 +160,40 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
                "involuntary_context_switches": usage.ru_nivcsw}
     receipt["measurement_interval_seconds"] = receipt["elapsed_seconds"]
     receipt["resource_evidence"] = resource_evidence
-    def host_busy(sample):
-        ticks = list(map(int, sample["/proc/stat"].splitlines()[0].split()[1:]))
+    def host_counters(sample, endpoint):
+        stat = sample.get("/proc/stat")
+        if not isinstance(stat, str):
+            raise ValueError(f"{endpoint} /proc/stat unavailable: {stat!r}")
+        lines = stat.splitlines()
+        fields = lines[0].split() if lines else []
+        if len(fields) < 9 or fields[0] != "cpu":
+            raise ValueError(f"{endpoint} /proc/stat has a malformed aggregate CPU line")
+        try:
+            ticks = [int(value) for value in fields[1:9]]
+        except ValueError:
+            raise ValueError(f"{endpoint} /proc/stat has nonnumeric CPU counters") from None
+        if any(tick < 0 for tick in ticks):
+            raise ValueError(f"{endpoint} /proc/stat has negative CPU counters")
+        return ticks
+
+    try:
+        first = host_counters(samples[0], "start")
+        last = host_counters(samples[-1], "end")
         # Guest counters are already included in user/nice; idle and iowait excluded.
-        return sum(ticks[i] for i in [0, 1, 2, 5, 6, 7]) / os.sysconf("SC_CLK_TCK")
-    busy = host_busy(samples[-1]) - host_busy(samples[0])
-    receipt["host_busy_cpu_seconds"] = busy
-    receipt["non_owned_busy_cpu_seconds_estimate"] = external_busy_cpu_estimate(
-        busy, usage.ru_utime + usage.ru_stime)
+        busy_fields = [0, 1, 2, 5, 6, 7]
+        if any(last[i] < first[i] for i in busy_fields):
+            raise ValueError("host CPU counters decreased between start and end")
+        ticks_per_second = os.sysconf("SC_CLK_TCK")
+        busy = (sum(last[i] for i in busy_fields) / ticks_per_second -
+                sum(first[i] for i in busy_fields) / ticks_per_second)
+    except ValueError as exc:
+        receipt["host_busy_cpu_seconds"] = None
+        receipt["non_owned_busy_cpu_seconds_estimate"] = None
+        receipt["host_busy_cpu_seconds_unavailable_reason"] = str(exc)
+    else:
+        receipt["host_busy_cpu_seconds"] = busy
+        receipt["non_owned_busy_cpu_seconds_estimate"] = external_busy_cpu_estimate(
+            busy, usage.ru_utime + usage.ru_stime)
     (folder / "time.json").write_text(json.dumps(receipt, indent=2)+"\n")
     (folder / "telemetry.json").write_text(json.dumps(samples, indent=2)+"\n")
     if proc.returncode:
