@@ -32,7 +32,7 @@ def driver(mode, root):
     failure = KeyboardInterrupt('injected interrupt') if mode == 'keyboard' else RuntimeError('injected failure')
     # A TERM-resistant helper forces the escalation path; no shell/name killing.
     helper_code = 'import signal,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); time.sleep(60)'
-    code = ("import subprocess,sys,os,json,time; "
+    code = ("import subprocess,sys,os,json,time; print(\"stdout marker\", flush=True); print(\"stderr marker\", file=sys.stderr, flush=True); "
             f"p=subprocess.Popen([sys.executable,'-c',{helper_code!r}]); "
             "time.sleep(.08); "
             f"open({str(pids)!r},'w').write(json.dumps([os.getpid(),p.pid])); "
@@ -75,6 +75,7 @@ def driver(mode, root):
 
     sibling = real_popen([sys.executable, '-c', 'import time; time.sleep(60)'], start_new_session=True)
     try:
+        started = time.monotonic()
         with mock.patch.object(time_v.subprocess, 'Popen', spawn), mock.patch.object(time_v, 'capture_resource_evidence', ready):
             if mode == 'telemetry':
                 with mock.patch.object(time_v, 'telemetry', side_effect=failure):
@@ -84,9 +85,11 @@ def driver(mode, root):
                         observations.update(error=repr(exc), same_exception=exc is failure)
             else:
                 try:
-                    time_v.run([sys.executable, '-c', code], root/'execution')
+                    time_v.run([sys.executable, '-c', code], root/'execution',
+                               timeout_seconds=0.5 if mode == 'timeout' else None)
                 except BaseException as exc:
                     observations.update(error=repr(exc), same_exception=exc is failure)
+        observations['elapsed'] = time.monotonic() - started
         assert helper is not None, observations
         state = Path(f'/proc/{helper}/stat')
         deadline = time.monotonic() + 2
@@ -110,6 +113,14 @@ def driver(mode, root):
         if mode in ('success', 'nonzero'):
             receipt = json.loads((root/'execution'/'time.json').read_text())
             assert receipt['exit_code'] == (7 if mode == 'nonzero' else 0)
+        elif mode == 'timeout':
+            assert observations['error'].startswith('CommandTimeoutError'), observations
+            assert observations['elapsed'] < 3, observations
+            execution = root/'execution'
+            assert not (execution/'time.json').exists()
+            assert 'wall timeout' in json.loads((execution/'failure.json').read_text())['error']
+            assert 'stdout marker' in (execution/'stdout.txt').read_text()
+            assert 'stderr marker' in (execution/'stderr.txt').read_text()
         elif mode != 'sigint':
             assert observations['same_exception'], observations
         else:
@@ -145,6 +156,60 @@ class ProcessGroupTests(unittest.TestCase):
                                text=True, timeout=10)
             print(p.stdout, end='', flush=True)
             self.assertEqual(p.returncode, 0, p.stdout)
+
+    def test_timeout_with_helper(self):
+        self.scenario('timeout')
+
+    def test_invalid_timeouts_before_spawn(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import time_v
+        with tempfile.TemporaryDirectory() as root, mock.patch.object(time_v.subprocess, 'Popen') as spawn:
+            for value in (0, -1, float('inf'), float('-inf'), float('nan')):
+                with self.subTest(value=value), self.assertRaises(ValueError):
+                    time_v.run([sys.executable, '-c', 'pass'], Path(root)/'execution', timeout_seconds=value)
+            spawn.assert_not_called()
+            self.assertFalse((Path(root)/'execution').exists())
+
+    def test_cli_timeout_and_validation(self):
+        script = Path(__file__).resolve().parent/'time_v.py'
+        with tempfile.TemporaryDirectory() as root:
+            for value in ('0', '-1', 'nan', 'inf'):
+                p = subprocess.run([sys.executable, str(script), '--output', root,
+                                    '--timeout-seconds', value, '--', sys.executable, '-c', 'pass'],
+                                   capture_output=True, text=True)
+                self.assertNotEqual(p.returncode, 0)
+                self.assertIn('finite and positive', p.stderr)
+                self.assertEqual(list(Path(root).iterdir()), [])
+            p = subprocess.run([sys.executable, str(script), '--output', root,
+                                '--timeout-seconds', '0.3', '--', sys.executable, '-c',
+                                'import time; time.sleep(60)'], capture_output=True, text=True, timeout=5)
+            self.assertNotEqual(p.returncode, 0)
+            self.assertIn('CommandTimeoutError', p.stderr)
+            execution = next(Path(root).iterdir())/'execution'
+            self.assertTrue((execution/'failure.json').exists())
+            self.assertFalse((execution/'time.json').exists())
+
+    def test_timeout_during_telemetry(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import time_v
+        real_telemetry = time_v.telemetry
+        def slow_telemetry(pid):
+            sample = real_telemetry(pid)
+            time.sleep(0.3)
+            return sample
+        with tempfile.TemporaryDirectory() as root, mock.patch.object(time_v, 'telemetry', slow_telemetry):
+            execution = Path(root)/'execution'
+            with self.assertRaises(time_v.CommandTimeoutError):
+                time_v.run([sys.executable, '-c', 'pass'], execution, timeout_seconds=0.2)
+            self.assertFalse((execution/'time.json').exists())
+            self.assertTrue((execution/'failure.json').exists())
+
+    def test_success_with_timeout(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import time_v
+        with tempfile.TemporaryDirectory() as root:
+            receipt = time_v.run([sys.executable, '-c', 'pass'], Path(root)/'execution', timeout_seconds=5)
+            self.assertEqual(receipt['exit_code'], 0)
 
     def test_success_with_helper(self):
         self.scenario('success')

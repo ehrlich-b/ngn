@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Native wait4 timing and shared-host telemetry; never invokes /usr/bin/time."""
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -79,7 +80,13 @@ def stop_owned_group(proc):
 
 
 
-def run(command, folder, env=None, cwd=None):
+class CommandTimeoutError(TimeoutError):
+    """A profiling command exceeded its wall-clock limit."""
+
+
+def run(command, folder, env=None, cwd=None, timeout_seconds=None):
+    if timeout_seconds is not None and (not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
+        raise ValueError("timeout_seconds must be finite and positive")
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=False)
     env = dict(environment() if env is None else env)
@@ -95,12 +102,31 @@ def run(command, folder, env=None, cwd=None):
             resource_evidence = capture_resource_evidence(proc.pid)
             resource_evidence["gomaxprocs"] = env.get("GOMAXPROCS")
             while True:
+                if timeout_seconds is not None and time.monotonic() - start >= timeout_seconds:
+                    raise CommandTimeoutError(
+                        f"command exceeded wall timeout of {timeout_seconds} seconds: {command}; see {folder}")
                 samples.append(telemetry(proc.pid))
+                if timeout_seconds is not None and time.monotonic() - start >= timeout_seconds:
+                    raise CommandTimeoutError(
+                        f"command exceeded wall timeout of {timeout_seconds} seconds: {command}; see {folder}")
                 pid, status, usage = os.wait4(proc.pid, os.WNOHANG)
                 if pid:
                     proc.returncode = os.waitstatus_to_exitcode(status)
+                if timeout_seconds is not None and time.monotonic() - start >= timeout_seconds:
+                    raise CommandTimeoutError(
+                        f"command exceeded wall timeout of {timeout_seconds} seconds: {command}; see {folder}")
+                if pid:
                     break
-                time.sleep(0.25)
+                if timeout_seconds is None:
+                    time.sleep(0.25)
+                else:
+                    time.sleep(max(0, min(0.25, timeout_seconds - (time.monotonic() - start))))
+        except CommandTimeoutError as exc:
+            (folder / "failure.json").write_text(json.dumps({
+                "command": command, "error": str(exc), "timeout_seconds": timeout_seconds,
+                "elapsed_seconds": time.monotonic() - start,
+            }, indent=2) + "\n")
+            raise
         finally:
             if proc is not None:
                 original = sys.exc_info()[1]
@@ -138,12 +164,15 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--timeout-seconds", type=float, default=None)
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     command = args.command[1:] if args.command[:1] == ["--"] else args.command
     if not command:
         parser.error("provide a command after --")
+    if args.timeout_seconds is not None and (not math.isfinite(args.timeout_seconds) or args.timeout_seconds <= 0):
+        parser.error("--timeout-seconds must be finite and positive")
     args.output.mkdir(parents=True, exist_ok=True)
     folder = Path(tempfile.mkdtemp(prefix="run-", dir=args.output.resolve()))
-    receipt = run(command, folder / "execution")
+    receipt = run(command, folder / "execution", timeout_seconds=args.timeout_seconds)
     print(json.dumps({"evidence":str(folder / "execution"), **receipt}))

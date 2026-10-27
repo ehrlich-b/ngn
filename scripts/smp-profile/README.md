@@ -28,6 +28,13 @@ for V1.2 performance. Every invocation creates a new evidence directory,
 preserving earlier attempts. The full command fails with a recorded `BLOCKED`
 report when the model is missing or has the wrong identity.
 
+The standalone `time_v.py` command accepts `--timeout-seconds` before `--`;
+`run()` also accepts `timeout_seconds`. The optional limit must be finite and
+positive. A timeout stops the owned process group, preserves stdout and stderr,
+and writes `failure.json` instead of a timing receipt. Cleanup can add a short
+grace period after the limit; descendants that create their own session are
+outside the owned group.
+
 ## Frozen protocol
 
 - Six positions, including both sides to move, reuse the accepted V1/V2/V3
