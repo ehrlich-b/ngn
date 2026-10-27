@@ -68,8 +68,12 @@ def duplication(workers):
     union = set()
     memberships = 0
     visits = 0
-    for worker in workers:
+    for worker_index, worker in enumerate(workers):
         samples = worker.get("samples", {})
+        for sample, count in samples.items():
+            if isinstance(count, bool) or not isinstance(count, int) or count < 0:
+                raise ValueError(f"invalid sample count for worker {worker_index}, sample {sample!r}: "
+                                 "expected a nonnegative integer (excluding bool)")
         union.update(samples)
         memberships += len(samples)
         visits += sum(samples.values())
