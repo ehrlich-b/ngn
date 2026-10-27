@@ -277,8 +277,7 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
             valid_ticks = False
         if not valid_ticks:
             raise ValueError("SC_CLK_TCK must be a finite positive real number")
-        busy = (sum(last[i] for i in busy_fields) / ticks_per_second -
-                sum(first[i] for i in busy_fields) / ticks_per_second)
+        busy = sum(last[i] - first[i] for i in busy_fields) / ticks_per_second
     except ValueError as exc:
         receipt["host_busy_cpu_seconds"] = None
         receipt["non_owned_busy_cpu_seconds_estimate"] = None
