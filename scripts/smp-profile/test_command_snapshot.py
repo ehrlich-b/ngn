@@ -52,6 +52,14 @@ class CommandSnapshotTest(unittest.TestCase):
                     self.assertFalse(folder.exists())
                     spawn.assert_not_called()
 
+    def test_tuple_input_retains_return_type_and_json_snapshot(self):
+        with tempfile.TemporaryDirectory() as temp:
+            command = (sys.executable, "-c", "pass")
+            folder = Path(temp) / "run"
+            receipt = time_v.run(command, folder, timeout_seconds=5)
+            self.assertEqual(receipt["command"], command)
+            self.assertEqual(json.loads((folder / "time.json").read_text())["command"], list(command))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -100,6 +100,7 @@ def validate_command(command):
 def run(command, folder, env=None, cwd=None, timeout_seconds=None):
     if isinstance(command, (str, bytes)) or not isinstance(command, Sequence):
         raise ValueError("command must be a nonempty sequence of string arguments")
+    return_tuple_command = isinstance(command, tuple)
     command = list(command)
     validate_command(command)
     if timeout_seconds is not None and (
@@ -241,6 +242,8 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
     (folder / "telemetry.json").write_text(json.dumps(samples, indent=2)+"\n")
     if proc.returncode:
         raise RuntimeError(f"exit {proc.returncode}: {command}; see {folder}")
+    if return_tuple_command:
+        receipt["command"] = tuple(command)
     return receipt
 
 
