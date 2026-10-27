@@ -237,7 +237,8 @@ def summarize_resources(evidence, requested_width):
 
 def external_busy_cpu_estimate(host_busy_cpu_seconds, owned_cpu_seconds):
     """Coarse shared-host estimate; does not attribute work to a process."""
-    if host_busy_cpu_seconds is None or owned_cpu_seconds is None:
+    if (host_busy_cpu_seconds is None or owned_cpu_seconds is None or
+            isinstance(host_busy_cpu_seconds, bool) or isinstance(owned_cpu_seconds, bool)):
         return None
     try:
         host = float(host_busy_cpu_seconds)
