@@ -99,9 +99,15 @@ def _count_cpus(value):
         return None
 
 
+def _usable_files(evidence):
+    """Keep only string paths for parsing, without changing raw evidence."""
+    files = evidence.get("files")
+    return {path: value for path, value in files.items() if isinstance(path, str)} if isinstance(files, dict) else {}
+
+
 def _quota_summary(evidence):
     """Return observed bounds and completeness of visible quota evidence only."""
-    files = evidence.get("files") or {}
+    files = _usable_files(evidence)
     paths = {p for p in files if os.path.basename(p) in
              ("cpu.max", "cpu.cfs_quota_us", "cpu.cfs_period_us")}
     levels = {os.path.join(os.path.dirname(p), "cpu.cfs_quota_us")
@@ -167,7 +173,7 @@ def _quota_summary(evidence):
 
 def summarize_resources(evidence, requested_width):
     """Pure summary of captured raw evidence. Unknown inputs stay unknown."""
-    files = evidence.get("files") or {}
+    files = _usable_files(evidence)
     quota_candidates, quota_state, quota_complete, quota_unknown, quota_paths = _quota_summary(evidence)
     cpuset_counts = []
     for path, raw in files.items():
@@ -225,7 +231,7 @@ def summarize_resources(evidence, requested_width):
         "unknown_capacity_fields": unknowns,
         "raw_evidence": {"cgroup": evidence.get("cgroup_reference", "unknown"),
                           "mountinfo": evidence.get("mountinfo_reference", "unknown"),
-                          "files": files},
+                          "files": evidence.get("files", {})},
     }
 
 
