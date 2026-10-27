@@ -93,6 +93,8 @@ def validate_command(command):
         raise ValueError("command arguments must all be strings")
     if not command[0]:
         raise ValueError("command executable must be a nonempty string")
+    if any("\0" in arg for arg in command):
+        raise ValueError("command arguments must not contain NUL")
 
 
 def run(command, folder, env=None, cwd=None, timeout_seconds=None):
