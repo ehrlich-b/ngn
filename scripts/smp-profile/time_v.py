@@ -97,8 +97,13 @@ def validate_command(command):
 
 def run(command, folder, env=None, cwd=None, timeout_seconds=None):
     validate_command(command)
-    if timeout_seconds is not None and (not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
-        raise ValueError("timeout_seconds must be finite and positive")
+    if timeout_seconds is not None and (
+        isinstance(timeout_seconds, bool)
+        or not isinstance(timeout_seconds, (int, float))
+        or timeout_seconds <= 0
+        or (isinstance(timeout_seconds, float) and not math.isfinite(timeout_seconds))
+    ):
+        raise ValueError("timeout_seconds must be None or a positive finite int or float (excluding bool)")
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=False)
     env = dict(environment() if env is None else env)
@@ -149,7 +154,9 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
                         break
                     delay = next_sample - now
                     if timeout_seconds is not None:
-                        delay = min(delay, 0.01, timeout_seconds - (now - start))
+                        delay = min(delay, 0.01)
+                        if timeout_seconds <= now - start + delay:
+                            delay = min(delay, timeout_seconds - (now - start))
                     time.sleep(max(0, delay))
                 if pid:
                     break
