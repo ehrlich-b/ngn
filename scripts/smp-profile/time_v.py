@@ -98,6 +98,9 @@ def validate_command(command):
 
 
 def run(command, folder, env=None, cwd=None, timeout_seconds=None):
+    if isinstance(command, (str, bytes)) or not isinstance(command, Sequence):
+        raise ValueError("command must be a nonempty sequence of string arguments")
+    command = list(command)
     validate_command(command)
     if timeout_seconds is not None and (
         isinstance(timeout_seconds, bool)
