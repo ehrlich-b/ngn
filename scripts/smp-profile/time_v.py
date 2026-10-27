@@ -132,10 +132,13 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
                 if pid:
                     break
         except CommandTimeoutError as exc:
-            (folder / "failure.json").write_text(json.dumps({
-                "command": command, "error": str(exc), "timeout_seconds": timeout_seconds,
-                "elapsed_seconds": time.monotonic() - start,
-            }, indent=2) + "\n")
+            try:
+                (folder / "failure.json").write_text(json.dumps({
+                    "command": command, "error": str(exc), "timeout_seconds": timeout_seconds,
+                    "elapsed_seconds": time.monotonic() - start,
+                }, indent=2) + "\n")
+            except OSError as diagnostic_error:
+                exc.add_note(f"Could not write failure.json: {diagnostic_error!r}")
             raise
         finally:
             if proc is not None:
