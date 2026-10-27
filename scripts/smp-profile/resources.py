@@ -177,8 +177,11 @@ def summarize_resources(evidence, requested_width):
             if count is not None:
                 cpuset_counts.append((count, path))
     affinity = evidence.get("affinity")
-    affinity_count = len(affinity) if isinstance(affinity, (list, tuple, set)) else None
-    affinity_count = affinity_count if affinity_count and all(isinstance(x, int) for x in affinity) else None
+    affinity_count = None
+    if (isinstance(affinity, (list, tuple, set)) and affinity and
+            all(type(cpu) is int and cpu >= 0 for cpu in affinity) and
+            len(set(affinity)) == len(affinity)):
+        affinity_count = len(affinity)
     quota = min(quota_candidates, default=None, key=lambda item: item[0])
     cpuset = min(cpuset_counts, default=None, key=lambda item: item[0])
     gomax = evidence.get("gomaxprocs")
