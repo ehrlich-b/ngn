@@ -65,6 +65,45 @@ class MeasurementDiagnosticTest(unittest.TestCase):
             self.assertIs(raised.exception, failure)
             self.assertTrue(any('Could not write failure.json' in note for note in failure.__notes__))
 
+    def test_failed_note_attachment_preserves_primary_and_cleans_group(self):
+        class BrokenNoteError(RuntimeError):
+            def add_note(self, note):
+                raise RuntimeError('note failed')
+
+        for operation in ('capture_resource_evidence', 'telemetry'):
+            for broken_notes in (True, False):
+                with self.subTest(operation=operation, broken_notes=broken_notes), \
+                     tempfile.TemporaryDirectory() as temp:
+                    failure = RuntimeError('primary') if broken_notes else BrokenNoteError('primary')
+                    if broken_notes:
+                        failure.__notes__ = ('existing note',)
+                    folder = Path(temp) / 'run'
+                    pids = []
+                    spawn = subprocess.Popen
+                    write_text = Path.write_text
+
+                    def tracked_spawn(*args, **kwargs):
+                        proc = spawn(*args, **kwargs)
+                        pids.append(proc.pid)
+                        return proc
+
+                    def write(path, *args, **kwargs):
+                        if path.name == 'failure.json':
+                            raise OSError('write failed')
+                        return write_text(path, *args, **kwargs)
+
+                    with mock.patch.object(time_v.subprocess, 'Popen', side_effect=tracked_spawn), \
+                         mock.patch.object(time_v, operation, side_effect=failure), \
+                         mock.patch.object(Path, 'write_text', write):
+                        with self.assertRaises(RuntimeError) as raised:
+                            time_v.run([sys.executable, '-c', 'import time; time.sleep(30)'], folder)
+                    self.assertIs(raised.exception, failure)
+                    with self.assertRaises(ProcessLookupError):
+                        os.killpg(pids[0], 0)
+                    self.assertFalse((folder / 'failure.json').exists())
+                    self.assertFalse((folder / 'time.json').exists())
+                    self.assertFalse((folder / 'telemetry.json').exists())
+
     def test_instrumentation_timeout_is_not_command_timeout(self):
         failure = time_v.CommandTimeoutError('private payload')
         with tempfile.TemporaryDirectory() as temp, \

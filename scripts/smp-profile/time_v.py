@@ -151,7 +151,10 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
                     "stage": stage, "exception_class": type(exc).__name__[:128],
                 }, indent=2) + "\n")
             except BaseException:
-                exc.add_note("Could not write failure.json")
+                try:
+                    exc.add_note("Could not write failure.json")
+                except BaseException:
+                    pass
             raise
 
     samples = []
