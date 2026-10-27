@@ -97,8 +97,18 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
     with (folder / "stdout.txt").open("wb") as out, (folder / "stderr.txt").open("wb") as err:
         proc = None
         try:
-            proc = subprocess.Popen(["nice", "-n", "10", *command], cwd=cwd, env=env,
-                                    stdout=out, stderr=err, start_new_session=True)
+            try:
+                proc = subprocess.Popen(["nice", "-n", "10", *command], cwd=cwd, env=env,
+                                        stdout=out, stderr=err, start_new_session=True)
+            except OSError as exc:
+                try:
+                    (folder / "failure.json").write_text(json.dumps({
+                        "stage": "spawn", "exception_class": type(exc).__name__,
+                        "message": str(exc)[:1024],
+                    }, indent=2) + "\n")
+                except Exception as diagnostic_error:
+                    exc.add_note(f"Could not write failure.json: {diagnostic_error!r}")
+                raise
             resource_evidence = capture_resource_evidence(proc.pid)
             resource_evidence["gomaxprocs"] = env.get("GOMAXPROCS")
             while True:
