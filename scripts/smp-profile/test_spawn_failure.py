@@ -21,15 +21,17 @@ class SpawnFailureTests(unittest.TestCase):
         self.assertFalse((self.folder / "time.json").exists())
 
     def test_nonexistent_cwd(self):
-        with mock.patch.object(time_v, "stop_owned_group") as stop:
-            with self.assertRaises(FileNotFoundError) as caught:
+        missing = self.root / "missing"
+        with mock.patch.object(time_v.subprocess, "Popen") as popen, \
+             mock.patch.object(time_v, "stop_owned_group") as stop:
+            with self.assertRaisesRegex(ValueError, "invalid cwd") as caught:
                 time_v.run([sys.executable, "-c", "pass"], self.folder,
-                           cwd=self.root / "missing")
+                           cwd=missing)
+        popen.assert_not_called()
         stop.assert_not_called()
-        self.assert_spawn_artifacts()
-        failure = json.loads((self.folder / "failure.json").read_text())
-        self.assertEqual(failure, {"stage": "spawn", "exception_class": "FileNotFoundError",
-                                   "message": str(caught.exception)})
+        self.assertFalse(self.folder.exists())
+        self.assertIsInstance(caught.exception.__cause__, FileNotFoundError)
+        self.assertEqual(caught.exception.__cause__.filename, str(missing))
 
     def test_injected_spawn_error_preserves_identity_and_bounds_message(self):
         error = OSError("x" * 2000)
