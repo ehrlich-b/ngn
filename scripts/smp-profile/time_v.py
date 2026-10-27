@@ -109,18 +109,28 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
                 if timeout_seconds is not None and time.monotonic() - start >= timeout_seconds:
                     raise CommandTimeoutError(
                         f"command exceeded wall timeout of {timeout_seconds} seconds: {command}; see {folder}")
-                pid, status, usage = os.wait4(proc.pid, os.WNOHANG)
-                if pid:
-                    proc.returncode = os.waitstatus_to_exitcode(status)
-                if timeout_seconds is not None and time.monotonic() - start >= timeout_seconds:
-                    raise CommandTimeoutError(
-                        f"command exceeded wall timeout of {timeout_seconds} seconds: {command}; see {folder}")
+                next_sample = time.monotonic() + 0.25
+                while True:
+                    now = time.monotonic()
+                    if timeout_seconds is not None and now - start >= timeout_seconds:
+                        raise CommandTimeoutError(
+                            f"command exceeded wall timeout of {timeout_seconds} seconds: {command}; see {folder}")
+                    pid, status, usage = os.wait4(proc.pid, os.WNOHANG)
+                    if pid:
+                        proc.returncode = os.waitstatus_to_exitcode(status)
+                        break
+                    now = time.monotonic()
+                    if timeout_seconds is not None and now - start >= timeout_seconds:
+                        raise CommandTimeoutError(
+                            f"command exceeded wall timeout of {timeout_seconds} seconds: {command}; see {folder}")
+                    if now >= next_sample:
+                        break
+                    delay = next_sample - now
+                    if timeout_seconds is not None:
+                        delay = min(delay, 0.01, timeout_seconds - (now - start))
+                    time.sleep(max(0, delay))
                 if pid:
                     break
-                if timeout_seconds is None:
-                    time.sleep(0.25)
-                else:
-                    time.sleep(max(0, min(0.25, timeout_seconds - (time.monotonic() - start))))
         except CommandTimeoutError as exc:
             (folder / "failure.json").write_text(json.dumps({
                 "command": command, "error": str(exc), "timeout_seconds": timeout_seconds,

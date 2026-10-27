@@ -211,6 +211,32 @@ class ProcessGroupTests(unittest.TestCase):
             receipt = time_v.run([sys.executable, '-c', 'pass'], Path(root)/'execution', timeout_seconds=5)
             self.assertEqual(receipt['exit_code'], 0)
 
+    def test_short_success_with_timeout(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import time_v
+        with tempfile.TemporaryDirectory() as root:
+            execution = Path(root)/'execution'
+            receipt = time_v.run([sys.executable, '-c',
+                                  'import time; time.sleep(.03); print("completed")'],
+                                 execution, timeout_seconds=0.2)
+            self.assertEqual(receipt['exit_code'], 0)
+            self.assertIn('completed', (execution/'stdout.txt').read_text())
+            self.assertFalse((execution/'failure.json').exists())
+
+    def test_completion_after_deadline_is_timeout(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import time_v
+        real_sleep = time.sleep
+        def delayed_poll(delay):
+            real_sleep(max(delay, 0.2))
+        with tempfile.TemporaryDirectory() as root, mock.patch.object(time_v.time, 'sleep', delayed_poll):
+            execution = Path(root)/'execution'
+            with self.assertRaises(time_v.CommandTimeoutError):
+                time_v.run([sys.executable, '-c', 'import time; time.sleep(.1)'],
+                           execution, timeout_seconds=0.15)
+            self.assertFalse((execution/'time.json').exists())
+            self.assertTrue((execution/'failure.json').exists())
+
     def test_success_with_helper(self):
         self.scenario('success')
 
