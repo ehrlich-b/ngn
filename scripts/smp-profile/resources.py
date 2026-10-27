@@ -225,6 +225,10 @@ def external_busy_cpu_estimate(host_busy_cpu_seconds, owned_cpu_seconds):
     if host_busy_cpu_seconds is None or owned_cpu_seconds is None:
         return None
     try:
-        return max(0.0, float(host_busy_cpu_seconds) - float(owned_cpu_seconds))
-    except (TypeError, ValueError):
+        host = float(host_busy_cpu_seconds)
+        owned = float(owned_cpu_seconds)
+    except (TypeError, ValueError, OverflowError):
         return None
+    if not math.isfinite(host) or not math.isfinite(owned) or host < 0 or owned < 0:
+        return None
+    return max(0.0, host - owned)
