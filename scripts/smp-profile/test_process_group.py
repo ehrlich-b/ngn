@@ -207,24 +207,39 @@ class ProcessGroupTests(unittest.TestCase):
     def test_final_sample_accounts_for_completed_command(self):
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         import time_v
-        # A clock and counter controlled independently of the sampling loop.
-        # The command is real; counters advance only when a sample is taken.
+        # The fixture advances at cleanup completion, never on telemetry calls.
+        # A duplicate premature sample therefore cannot stand in for the endpoint.
+        state = {'clock': 10.0, 'ticks': 100, 'cleaned': False}
         samples = []
+        real_cleanup = time_v.stop_owned_group
+
+        def cleanup(proc):
+            self.assertIsNotNone(proc.returncode, 'command must be reaped before cleanup')
+            real_cleanup(proc)
+            state.update(clock=12.0, ticks=1100, cleaned=True)
+
         def counter(pid=None):
-            clock = len(samples) * 0.25
-            sample = {"monotonic": clock, "/proc/stat":
-                      f"cpu {100 + len(samples) * 100} 0 0 0 0 0 0 0\n"}
-            samples.append(sample)
+            sample = {"monotonic": state['clock'], "/proc/stat":
+                      f"cpu {state['ticks']} 0 0 0 0 0 0 0 0\n"}
+            samples.append((state['cleaned'], sample))
             return sample
-        with tempfile.TemporaryDirectory() as root, mock.patch.object(time_v, 'telemetry', counter):
+
+        with tempfile.TemporaryDirectory() as root, \
+                mock.patch.object(time_v, 'telemetry', counter), \
+                mock.patch.object(time_v, 'stop_owned_group', cleanup):
             execution = Path(root)/'execution'
             receipt = time_v.run([sys.executable, '-c', 'import time; time.sleep(.03)'], execution)
             stored = json.loads((execution/'telemetry.json').read_text())
+            self.assertTrue(state['cleaned'])
             self.assertGreaterEqual(len(stored), 2, 'completion must retain a final counter sample')
-            self.assertEqual(stored, samples)
-            expected = (len(samples) - 1) * 100 / os.sysconf('SC_CLK_TCK')
+            self.assertEqual(stored, [sample for _, sample in samples])
+            self.assertFalse(samples[0][0])
+            self.assertTrue(samples[-1][0], 'final sample must follow completion and cleanup')
+            self.assertEqual((stored[0]['monotonic'], stored[-1]['monotonic']), (10.0, 12.0))
+            expected = 1000 / os.sysconf('SC_CLK_TCK')
             self.assertAlmostEqual(receipt['host_busy_cpu_seconds'], expected)
-            self.assertEqual(stored[-1]['monotonic'], (len(samples) - 1) * 0.25)
+            self.assertAlmostEqual(receipt['non_owned_busy_cpu_seconds_estimate'],
+                                   max(0.0, expected - receipt['user_seconds'] - receipt['system_seconds']))
 
     def test_final_telemetry_exception_preserves_identity(self):
         sys.path.insert(0, str(Path(__file__).resolve().parent))
