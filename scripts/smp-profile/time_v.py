@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import signal
+import stat
 import subprocess
 import sys
 import tempfile
@@ -97,6 +98,18 @@ def validate_command(command):
         raise ValueError("command arguments must not contain NUL")
 
 
+def validate_cwd(cwd):
+    if cwd is None:
+        return None
+    try:
+        path = os.fspath(cwd)
+        if not stat.S_ISDIR(os.stat(path).st_mode):
+            raise NotADirectoryError(f"not a directory: {path!r}")
+    except (TypeError, ValueError, OSError) as exc:
+        raise ValueError(f"invalid cwd {cwd!r}: {exc}") from exc
+    return path
+
+
 def run(command, folder, env=None, cwd=None, timeout_seconds=None):
     if isinstance(command, (str, bytes)) or not isinstance(command, Sequence):
         raise ValueError("command must be a nonempty sequence of string arguments")
@@ -120,6 +133,7 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
             if (not isinstance(key, str) or not key or "=" in key or "\0" in key
                     or not isinstance(value, str) or "\0" in value):
                 raise ValueError("env contains an invalid key or value")
+    cwd = validate_cwd(cwd)
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=False)
     env["TMPDIR"] = str(folder.resolve() / "tmp")
