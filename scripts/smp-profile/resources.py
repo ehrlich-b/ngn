@@ -83,6 +83,8 @@ def _count_cpus(value):
         cpus = set()
         for chunk in value.split(","):
             bounds = chunk.split("-")
+            if not all(token and token.isascii() and token.isdecimal() for token in bounds):
+                return None
             if len(bounds) == 1:
                 cpus.add(int(bounds[0]))
             elif len(bounds) == 2:
