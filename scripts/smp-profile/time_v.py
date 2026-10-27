@@ -3,6 +3,7 @@
 from collections.abc import Mapping, Sequence
 import json
 import math
+from numbers import Real
 import os
 from pathlib import Path
 import re
@@ -263,7 +264,19 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
         busy_fields = [0, 1, 2, 5, 6, 7]
         if any(last[i] < first[i] for i in busy_fields):
             raise ValueError("host CPU counters decreased between start and end")
-        ticks_per_second = os.sysconf("SC_CLK_TCK")
+        try:
+            ticks_per_second = os.sysconf("SC_CLK_TCK")
+        except (OSError, ValueError):
+            raise ValueError("SC_CLK_TCK unavailable") from None
+        try:
+            valid_ticks = (not isinstance(ticks_per_second, bool)
+                           and isinstance(ticks_per_second, Real)
+                           and ticks_per_second > 0
+                           and math.isfinite(ticks_per_second))
+        except (OverflowError, ValueError):
+            valid_ticks = False
+        if not valid_ticks:
+            raise ValueError("SC_CLK_TCK must be a finite positive real number")
         busy = (sum(last[i] for i in busy_fields) / ticks_per_second -
                 sum(first[i] for i in busy_fields) / ticks_per_second)
     except ValueError as exc:
