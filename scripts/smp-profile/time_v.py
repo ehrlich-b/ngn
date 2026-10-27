@@ -147,6 +147,8 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
                     # triggered cleanup. Without an earlier failure, report it.
                     if original is None:
                         raise
+        # Include the completed command and owned-group cleanup in host accounting.
+        samples.append(telemetry(proc.pid))
     receipt = {"command": command, "exit_code": proc.returncode,
                "elapsed_seconds": time.monotonic()-start,
                "user_seconds": usage.ru_utime, "system_seconds": usage.ru_stime,

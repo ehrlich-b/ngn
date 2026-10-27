@@ -204,6 +204,46 @@ class ProcessGroupTests(unittest.TestCase):
             self.assertFalse((execution/'time.json').exists())
             self.assertTrue((execution/'failure.json').exists())
 
+    def test_final_sample_accounts_for_completed_command(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import time_v
+        # A clock and counter controlled independently of the sampling loop.
+        # The command is real; counters advance only when a sample is taken.
+        samples = []
+        def counter(pid=None):
+            clock = len(samples) * 0.25
+            sample = {"monotonic": clock, "/proc/stat":
+                      f"cpu {100 + len(samples) * 100} 0 0 0 0 0 0 0\n"}
+            samples.append(sample)
+            return sample
+        with tempfile.TemporaryDirectory() as root, mock.patch.object(time_v, 'telemetry', counter):
+            execution = Path(root)/'execution'
+            receipt = time_v.run([sys.executable, '-c', 'import time; time.sleep(.03)'], execution)
+            stored = json.loads((execution/'telemetry.json').read_text())
+            self.assertGreaterEqual(len(stored), 2, 'completion must retain a final counter sample')
+            self.assertEqual(stored, samples)
+            expected = (len(samples) - 1) * 100 / os.sysconf('SC_CLK_TCK')
+            self.assertAlmostEqual(receipt['host_busy_cpu_seconds'], expected)
+            self.assertEqual(stored[-1]['monotonic'], (len(samples) - 1) * 0.25)
+
+    def test_final_telemetry_exception_preserves_identity(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import time_v
+        failure = RuntimeError('final sample failed')
+        real_telemetry = time_v.telemetry
+        calls = []
+        def sample(pid):
+            calls.append(pid)
+            if len(calls) == 2:
+                raise failure
+            return real_telemetry(pid)
+        with tempfile.TemporaryDirectory() as root, mock.patch.object(time_v, 'telemetry', sample):
+            execution = Path(root)/'execution'
+            with self.assertRaises(RuntimeError) as caught:
+                time_v.run([sys.executable, '-c', 'pass'], execution)
+            self.assertIs(caught.exception, failure)
+            self.assertFalse((execution/'time.json').exists())
+
     def test_success_with_timeout(self):
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         import time_v
