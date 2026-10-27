@@ -185,11 +185,17 @@ def summarize_resources(evidence, requested_width):
     quota = min(quota_candidates, default=None, key=lambda item: item[0])
     cpuset = min(cpuset_counts, default=None, key=lambda item: item[0])
     gomax = evidence.get("gomaxprocs")
-    try:
-        gomax = int(gomax) if gomax is not None else None
-        if gomax <= 0:
+    if type(gomax) is int:
+        gomax = gomax if gomax > 0 else None
+    elif isinstance(gomax, str) and gomax.isascii() and gomax.isdecimal():
+        try:
+            gomax = int(gomax)
+            if gomax <= 0:
+                gomax = None
+        except ValueError:
+            # Python may reject excessively long decimal strings.
             gomax = None
-    except (TypeError, ValueError):
+    else:
         gomax = None
     unknowns = []
     if gomax is None:
