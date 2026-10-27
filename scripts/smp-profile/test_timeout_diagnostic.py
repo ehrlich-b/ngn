@@ -40,7 +40,7 @@ time.sleep(30)
                 created.append(self)
 
         real_write = Path.write_text
-        failure = OSError('injected failure.json write error')
+        failure = ValueError('injected failure.json write error')
 
         def write(path, *args, **kwargs):
             if path.name == 'failure.json':
@@ -64,10 +64,22 @@ time.sleep(30)
         self.assertFalse((self.folder / 'time.json').exists())
 
     def test_ordinary_timeout(self):
+        self.env['PRIVATE_ENV_MARKER'] = 'secret'
         with self.assertRaises(time_v.CommandTimeoutError):
-            time_v.run([sys.executable, '-c', 'import time; time.sleep(30)'],
+            time_v.run([sys.executable, '-c', 'import time; time.sleep(30)',
+                        'PRIVATE_COMMAND_MARKER'],
                        self.folder, env=self.env, timeout_seconds=0.2)
-        self.assertIn('wall timeout', json.loads((self.folder / 'failure.json').read_text())['error'])
+        raw = (self.folder / 'failure.json').read_text()
+        receipt = json.loads(raw)
+        self.assertEqual(set(receipt), {'stage', 'error', 'timeout_seconds', 'elapsed_seconds'})
+        self.assertEqual(receipt['stage'], 'timeout')
+        self.assertEqual(receipt['error'], 'wall timeout')
+        self.assertEqual(receipt['timeout_seconds'], 0.2)
+        self.assertGreaterEqual(receipt['elapsed_seconds'], 0.2)
+        self.assertLess(len(raw), 1024)
+        self.assertNotIn('PRIVATE_COMMAND_MARKER', raw)
+        self.assertNotIn('PRIVATE_ENV_MARKER', raw)
+        self.assertNotIn('secret', raw)
         self.assertFalse((self.folder / 'time.json').exists())
 
     def test_success(self):

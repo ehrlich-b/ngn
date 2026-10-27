@@ -192,10 +192,11 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
         except CommandTimeoutError as exc:
             try:
                 (folder / "failure.json").write_text(json.dumps({
-                    "command": command, "error": str(exc), "timeout_seconds": timeout_seconds,
+                    "stage": "timeout", "error": "wall timeout",
+                    "timeout_seconds": timeout_seconds,
                     "elapsed_seconds": time.monotonic() - start,
                 }, indent=2) + "\n")
-            except OSError as diagnostic_error:
+            except Exception as diagnostic_error:
                 exc.add_note(f"Could not write failure.json: {diagnostic_error!r}")
             raise
         finally:
