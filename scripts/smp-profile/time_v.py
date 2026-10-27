@@ -138,6 +138,22 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
     folder.mkdir(parents=True, exist_ok=False)
     env["TMPDIR"] = str(folder.resolve() / "tmp")
     Path(env["TMPDIR"]).mkdir()
+    measurement_failure = None
+
+    def measure(stage, operation, *args):
+        nonlocal measurement_failure
+        try:
+            return operation(*args)
+        except BaseException as exc:
+            measurement_failure = exc
+            try:
+                (folder / "failure.json").write_text(json.dumps({
+                    "stage": stage, "exception_class": type(exc).__name__[:128],
+                }, indent=2) + "\n")
+            except BaseException:
+                exc.add_note("Could not write failure.json")
+            raise
+
     samples = []
     start = time.monotonic()
     with (folder / "stdout.txt").open("wb") as out, (folder / "stderr.txt").open("wb") as err:
@@ -155,13 +171,13 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
                 except Exception as diagnostic_error:
                     exc.add_note(f"Could not write failure.json: {diagnostic_error!r}")
                 raise
-            resource_evidence = capture_resource_evidence(proc.pid)
+            resource_evidence = measure("capture_resource_evidence", capture_resource_evidence, proc.pid)
             resource_evidence["gomaxprocs"] = env.get("GOMAXPROCS")
             while True:
                 if timeout_seconds is not None and time.monotonic() - start >= timeout_seconds:
                     raise CommandTimeoutError(
                         f"command exceeded wall timeout of {timeout_seconds} seconds: {command}; see {folder}")
-                samples.append(telemetry(proc.pid))
+                samples.append(measure("telemetry", telemetry, proc.pid))
                 if timeout_seconds is not None and time.monotonic() - start >= timeout_seconds:
                     raise CommandTimeoutError(
                         f"command exceeded wall timeout of {timeout_seconds} seconds: {command}; see {folder}")
@@ -190,6 +206,8 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
                 if pid:
                     break
         except CommandTimeoutError as exc:
+            if exc is measurement_failure:
+                raise
             try:
                 (folder / "failure.json").write_text(json.dumps({
                     "stage": "timeout", "error": "wall timeout",
@@ -210,7 +228,7 @@ def run(command, folder, env=None, cwd=None, timeout_seconds=None):
                     if original is None:
                         raise
         # Include the completed command and owned-group cleanup in host accounting.
-        samples.append(telemetry(proc.pid))
+        samples.append(measure("telemetry", telemetry, proc.pid))
     receipt = {"command": command, "exit_code": proc.returncode,
                "elapsed_seconds": time.monotonic()-start,
                "user_seconds": usage.ru_utime, "system_seconds": usage.ru_stime,
