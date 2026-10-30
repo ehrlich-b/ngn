@@ -51,40 +51,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		var samples []sample
-		result := 0.5
-		failed := false
-		for ply := 0; ply < *cap; ply++ {
-			legal := engine.GenerateLegalMoves(pos)
-			if len(legal) == 0 {
-				if pos.IsInCheck() {
-					if pos.Turn() == engine.White {
-						result = 0
-					} else {
-						result = 1
-					}
-				}
-				break
-			}
-			if pos.IsFIDEDrawRule() {
-				break
-			}
-			if ply < *prefix {
-				pos.GameMakeMove(legal[rng.Intn(len(legal))])
-				continue
-			}
-			fen := engine.GenerateFEN(pos)
-			white := pos.Turn() == engine.White
-			engine.SetMaxNodes(uint64(*nodes))
-			info := engine.Search(pos, engine.MaximumDepth)
-			engine.SetMaxNodes(0)
-			if info.BestMove == engine.EmptyMove {
-				failed = true
-				break
-			}
-			samples = append(samples, sample{fen, info.BestScore, white})
-			pos.GameMakeMove(info.BestMove)
-		}
+		samples, result, failed := playGame(pos, rng, *prefix, *cap, *nodes)
 		if failed {
 			aborted++
 			continue
@@ -103,4 +70,48 @@ func main() {
 	}
 	elapsed := time.Since(start).Seconds()
 	fmt.Fprintf(os.Stderr, "games=%d positions=%d seconds=%.3f positions_per_hour=%.1f seed=%d nodes=%d aborted=%d\n", *games, count, elapsed, float64(count)*3600/elapsed, *seed, *nodes, aborted)
+}
+
+// playGame returns the outcome from White's perspective, including a mate
+// delivered by the last permitted move.
+func playGame(pos *engine.Position, rng *rand.Rand, prefix, cap, nodes int) ([]sample, float64, bool) {
+	var samples []sample
+	for ply := 0; ply < cap; ply++ {
+		legal := engine.GenerateLegalMoves(pos)
+		if len(legal) == 0 {
+			return samples, terminalResult(pos), false
+		}
+		if pos.IsFIDEDrawRule() {
+			return samples, 0.5, false
+		}
+		if ply < prefix {
+			pos.GameMakeMove(legal[rng.Intn(len(legal))])
+			continue
+		}
+		fen := engine.GenerateFEN(pos)
+		white := pos.Turn() == engine.White
+		engine.SetMaxNodes(uint64(nodes))
+		info := engine.Search(pos, engine.MaximumDepth)
+		engine.SetMaxNodes(0)
+		if info.BestMove == engine.EmptyMove {
+			return nil, 0.5, true
+		}
+		samples = append(samples, sample{fen, info.BestScore, white})
+		pos.GameMakeMove(info.BestMove)
+	}
+	if len(engine.GenerateLegalMoves(pos)) == 0 {
+		return samples, terminalResult(pos), false
+	}
+	return samples, 0.5, false
+}
+
+// terminalResult is called only when there are no legal moves.
+func terminalResult(pos *engine.Position) float64 {
+	if !pos.IsInCheck() {
+		return 0.5
+	}
+	if pos.Turn() == engine.White {
+		return 0
+	}
+	return 1
 }

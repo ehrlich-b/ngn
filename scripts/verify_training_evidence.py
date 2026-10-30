@@ -4,6 +4,7 @@ import csv
 import gzip
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -34,8 +35,8 @@ elif item == 'A3':
 elif item == 'A4':
     lines = list(csv.DictReader((evidence / 'loss.csv').open()))
     assert len(lines) >= 2 and all(float(r['train']) >= 0 and float(r['validation']) >= 0 for r in lines)
-    assert (evidence / 'loss.png').read_bytes().startswith(b'\x89PNG\r\n\x1a\n')
-    assert (evidence / 'ngn-v1.nnue').read_bytes().startswith(b'NGNNUE\0\0')
+    subprocess.run(['go', 'run', '-p', '2', './cmd/nnueverify',
+                    str(evidence / 'loss.png'), str(evidence / 'ngn-v1.nnue')], check=True)
     log = (evidence / 'training.log').read_text()
     assert 'NVIDIA GeForce RTX 5080' in log and 'epoch=' in log
     print('loss epochs:', len(lines), 'last:', lines[-1])
