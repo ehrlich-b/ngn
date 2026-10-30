@@ -15,10 +15,11 @@ for name,key in rows:
 (E/'comparison.md').write_text('\n'.join(lines)+'\n')
 validation=float(re.search(r'exported net holdout blend MSE=([\d.]+)',(E/'validation.log').read_text())[1])
 rss=int(re.search(r'Maximum resident set size \(kbytes\):\s*(\d+)',(E/'train.time').read_text())[1])*1024/1e9
-stage4=results['Stage 4 vs HCE'][0] > results['Stage 3 vs HCE'][0]
-chosen=results['Stage 4 vs HCE'] if stage4 else results['Stage 3 vs HCE']
-model='Stage 4' if stage4 else 'Stage 3'
-mse=validation if stage4 else .03108383
+model,chosen,mse=max(
+    [('Stage 2',results['Stage 2 vs HCE'],.03093784),
+     ('Stage 3',results['Stage 3 vs HCE'],.03108383),
+     ('Stage 4',results['Stage 4 vs HCE'],validation)],
+    key=lambda candidate: candidate[1][0])
 render(E/'comparison.png')
 showcase={'metrics':[
     {'label':'Elo of best net vs HCE','number':chosen[0],'unit':'Elo','better':'higher','target':0,'note':f'{model}; 1,000 games; paired 95% interval [{chosen[1]:+.0f}, {chosen[2]:+.0f}].'},

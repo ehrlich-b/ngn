@@ -82,8 +82,15 @@ def check(which):
         data=json.loads(Path('../SHOWCASE.json').read_text())
         require([x['label'] for x in data['metrics']] == ['Elo of best net vs HCE','Validation MSE on the shared holdout','Peak RSS'], 'metric labels differ')
         require((Path('..')/data['media']['hero']['path']).read_bytes().startswith(b'\x89PNG\r\n\x1a\n'), 'hero missing')
-        expected=max(match('stage3-ngn')[0],match('stage4-ngn')[0])
-        require(data['metrics'][0]['number'] == expected, 'Elo metric does not match results')
+        validation=re.search(r'exported net holdout blend MSE=([\d.]+)',(E/'validation.log').read_text())
+        require(validation is not None, 'stage 4 validation missing')
+        candidates=[('Stage 2',match('stage2-ngn'),.03093784),
+                    ('Stage 3',match('stage3-ngn'),.03108383),
+                    ('Stage 4',match('stage4-ngn'),float(validation[1]))]
+        model,expected,mse=max(candidates,key=lambda candidate: candidate[1][0])
+        require(data['metrics'][0]['number'] == expected[0], 'Elo metric does not match results')
+        require(data['metrics'][1]['number'] == mse, 'MSE metric does not match best network')
+        require(all(metric['note'].startswith(model) for metric in data['metrics'][:2]), 'metric notes do not identify best network')
         require(data['metrics'][2]['target'] == 8 and data['metrics'][0]['target'] == 0, 'targets differ')
     elif which == 'A10':
         for seed in (103041,103042):
