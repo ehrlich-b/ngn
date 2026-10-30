@@ -16,7 +16,8 @@ item = sys.argv[1]
 def result():
     text = (evidence / 'net-vs-hce.log').read_text()
     games = re.search(r'Games: (\d+)\s+W-D-L: (\d+)-(\d+)-(\d+)', text)
-    elo = re.search(r'Penta Elo: ([\d.-]+)\s+95% CI \[([\d.-]+),\s*([\d.-]+)\]', text)
+    number = r'[+-]?\d+(?:\.\d+)?'
+    elo = re.search(rf'Penta Elo: ({number})\s+95% CI \[({number}),\s*({number})\]', text)
     assert games and elo and 'mode: nodes 1000/move' in text
     counts = list(map(int, games.groups()))
     assert counts[0] == 1000 and sum(counts[1:]) == counts[0]
