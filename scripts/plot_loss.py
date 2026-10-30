@@ -36,6 +36,9 @@ def plot(csv_path, png_path):
     for j,col in [(0,(35,100,220)),(1,(220,70,50))]:
         pts=[(90+round(i*760/max(1,len(curve)-1)),445-round((v[j]-lo)*375/(hi-lo))) for i,v in enumerate(curve)]
         for p,q in zip(pts,pts[1:]): line(*p,*q,col)
+        for x,y in pts:
+            for dx in range(-2,3):
+                for dy in range(-2,3): pixel(x+dx,y+dy,col)
     text(95,475,'EPOCH 1',scale=2); text(755,475,f'EPOCH {len(curve)}',scale=2)
     text(510,45,'TRAIN', (35,100,220)); text(645,45,'VALIDATION',(220,70,50)); text(8,50,'MSE')
     def chunk(kind,data): return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)

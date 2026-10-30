@@ -67,3 +67,5 @@ gpt_review.md
 
 # Local pinned V1.2 evaluation model
 /inputs/rodent_4kb_768hl_8ob_v2.bin
+# Python bytecode
+__pycache__/
