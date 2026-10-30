@@ -17,10 +17,10 @@ from train_nnue_stage2 import features
 SPECS = [('lr002',128,.002,False), ('lr0005',128,.0005,False),
          ('hidden256',256,.002,False), ('search',128,.002,True)]
 
-def prepare(paths, root):
+def prepare(paths, root, start=0):
     root.mkdir(parents=True, exist_ok=True)
     sample_positions = sample_games = disagree = decisive = capped_positions = capped_games = 0
-    for number, path in enumerate(paths):
+    for number, path in enumerate(paths, start):
         rows = [(array('H'),array('H'),array('f'),array('f')) for _ in range(2)]
         last = None; count = 0; result = None; game_scores = []
         def sample_game():
@@ -51,7 +51,7 @@ def prepare(paths, root):
         print(f'shard={path} positions={count} train={len(rows[0][2])} holdout={len(rows[1][2])}',flush=True)
     stats = dict(positions=sample_positions,games=sample_games,decisive_nonzero_positions=decisive,
                  sign_disagreements=disagree,capped_games=capped_games,capped_positions=capped_positions)
-    (root/'sample.json').write_text(json.dumps(stats,indent=2)+'\n')
+    (root/('sample.json' if start == 0 else f'sample-{start}.json')).write_text(json.dumps(stats,indent=2)+'\n')
     print('labels:',json.dumps(stats),flush=True)
 
 class Net(nn.Module):
@@ -122,10 +122,10 @@ def train(root,n,out,epochs):
         print(f'{name} best={best:.8f}',flush=True)
 
 def main():
-    p=argparse.ArgumentParser(); p.add_argument('action',choices=['prepare','baseline','train']); p.add_argument('--root',type=Path,required=True); p.add_argument('--manifest',type=Path,required=True); p.add_argument('--output',type=Path); p.add_argument('--net',type=Path); p.add_argument('--epochs',type=int,default=10)
+    p=argparse.ArgumentParser(); p.add_argument('action',choices=['prepare','baseline','train']); p.add_argument('--root',type=Path,required=True); p.add_argument('--manifest',type=Path,required=True); p.add_argument('--output',type=Path); p.add_argument('--net',type=Path); p.add_argument('--epochs',type=int,default=10); p.add_argument('--start',type=int,default=0)
     a=p.parse_args(); paths=[s['path'] for s in json.loads(a.manifest.read_text())['shards']]
     torch.set_num_threads(2)
-    if a.action=='prepare': prepare(paths,a.root)
+    if a.action=='prepare': prepare(paths,a.root,a.start)
     elif a.action=='baseline': print(f'exported net holdout blend MSE={valid(Quantized(a.net).cuda(),a.root,len(paths)):.8f}',flush=True)
     else: train(a.root,len(paths),a.output,a.epochs)
 if __name__=='__main__': main()
