@@ -1,11 +1,51 @@
 package main
 
 import (
+	"flag"
 	"math/rand"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/ehrlich-b/ngn/engine"
 )
+
+func TestGeneratorCLI(t *testing.T) {
+	if os.Getenv("NGN_DATA_HELPER") == "1" {
+		flag.CommandLine = flag.NewFlagSet("nnuedata", flag.ExitOnError)
+		os.Args = append([]string{"nnuedata"}, strings.Split(os.Getenv("NGN_DATA_ARGS"), "|")...)
+		main()
+		return
+	}
+	for _, tc := range []struct {
+		name string
+		args []string
+		ok   bool
+	}{
+		{"default", nil, true},
+		{"empty", []string{"-nodes", "1"}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "data.tsv")
+			args := append([]string{"-games", "20", "-out", path}, tc.args...)
+			cmd := exec.Command(os.Args[0], "-test.run=^TestGeneratorCLI$")
+			cmd.Env = append(os.Environ(), "NGN_DATA_HELPER=1", "NGN_DATA_ARGS="+strings.Join(args, "|"))
+			output, err := cmd.CombinedOutput()
+			if (err == nil) != tc.ok {
+				t.Fatalf("error=%v output=%s", err, output)
+			}
+			info, err := os.Stat(path)
+			if err != nil || (info.Size() > 0) != tc.ok {
+				t.Fatalf("output file: %v, error=%v", info, err)
+			}
+			if !tc.ok && !strings.Contains(string(output), "no positions generated") {
+				t.Fatalf("missing diagnostic: %s", output)
+			}
+		})
+	}
+}
 
 func TestMateOnFinalAllowedPly(t *testing.T) {
 	pos, err := engine.ParseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")

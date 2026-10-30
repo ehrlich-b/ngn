@@ -12,6 +12,9 @@ import time
 import torch
 from torch import nn
 
+HARD_LIMIT_SECONDS = 1200
+EXPORT_RESERVE_SECONDS = 100
+
 
 def features(fen):
     board, side, *_ = fen.split()
@@ -42,8 +45,11 @@ def main():
     p.add_argument('--epochs', type=int, default=10)
     p.add_argument('--seed', type=int, default=1030)
     p.add_argument('--batch', type=int, default=4096)
-    p.add_argument('--seconds', type=int, default=1100)
+    p.add_argument('--seconds', type=int, default=HARD_LIMIT_SECONDS - EXPORT_RESERVE_SECONDS,
+                   help='training deadline in seconds, including GPU setup; validation and export follow')
     a = p.parse_args()
+    if not 0 < a.seconds <= HARD_LIMIT_SECONDS - EXPORT_RESERVE_SECONDS:
+        p.error(f'--seconds must be between 1 and {HARD_LIMIT_SECONDS - EXPORT_RESERVE_SECONDS}')
     random.seed(a.seed)
     torch.manual_seed(a.seed)
     torch.set_num_threads(2)
@@ -75,7 +81,7 @@ def main():
     def timeout_handler(signum, frame):
         raise TimeoutError('GPU time budget exhausted')
     signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(1100)
+    signal.alarm(HARD_LIMIT_SECONDS)
     start = time.monotonic()
     if not torch.cuda.is_available():
         raise RuntimeError('CUDA is required')
@@ -110,6 +116,8 @@ def main():
             ix = None
         partial = ix is not None
         if not seen:
+            if not curve:
+                raise RuntimeError('training deadline reached before the first batch; no checkpoint exported')
             break
         net.eval()
         with torch.no_grad():

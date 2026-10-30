@@ -20,7 +20,7 @@ type sample struct {
 
 func main() {
 	games := flag.Int("games", 1000, "number of games")
-	nodes := flag.Int("nodes", 100, "search nodes per move")
+	nodes := flag.Int("nodes", 1000, "search nodes per move")
 	seed := flag.Int64("seed", 1, "random seed")
 	prefix := flag.Int("prefix", 8, "random opening plies")
 	cap := flag.Int("maxplies", 200, "game ply cap, drawn")
@@ -70,6 +70,10 @@ func main() {
 	}
 	elapsed := time.Since(start).Seconds()
 	fmt.Fprintf(os.Stderr, "games=%d positions=%d seconds=%.3f positions_per_hour=%.1f seed=%d nodes=%d aborted=%d\n", *games, count, elapsed, float64(count)*3600/elapsed, *seed, *nodes, aborted)
+	if count == 0 {
+		fmt.Fprintln(os.Stderr, "no positions generated")
+		os.Exit(1)
+	}
 }
 
 // playGame returns the outcome from White's perspective, including a mate
