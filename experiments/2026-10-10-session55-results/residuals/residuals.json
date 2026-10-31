@@ -1,0 +1,642 @@
+{
+  "base_net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "candidate_net_sha256": "1885d7f9d69e6389c133dcc3732c3eb16863bd3f75c45161a56f2fdc2e6851dc",
+  "training_receipt_sha256": "383b7a217e5407b09445aa8aa40c2d7d3d4850b9c127f1b15af71abaec09fab6",
+  "sample_receipt": {
+    "seed": 20261006,
+    "modulus": 1024,
+    "windows": 64,
+    "window_records": 8192,
+    "sources": [
+      {
+        "source": "t76",
+        "sample_records": 524288,
+        "holdout_records": 499,
+        "sample_sha256": "2cfde5295853e6633faf628cf1880f4aa81bcf667957c5312d2f2e5258c3c8f5",
+        "ngnp_sha256": "cbffc62ea48d9e10e1693ded28604f820fedc507d6438ff8fb6223cac6c78344"
+      },
+      {
+        "source": "t74",
+        "sample_records": 524288,
+        "holdout_records": 528,
+        "sample_sha256": "6e94cd9b07fa76666a9aa8ae6ac6785bfec46de265c3cf3b4f43551dd408488e",
+        "ngnp_sha256": "4877db0df44a767e4abf1288a4eb78de1fd8c2de04d25bcad9f5260c43b9f386"
+      },
+      {
+        "source": "t80",
+        "sample_records": 524288,
+        "holdout_records": 501,
+        "sample_sha256": "b3a5796899463c2c97888aa6dd5c8bed972026475740b6bbead871c655fe5ea3",
+        "ngnp_sha256": "feea01e07fd6bb666963c3792ed569ea8551ed632199d0adfa7e0d203e86fae9"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "source": "t76",
+      "output_phase_bucket": 0,
+      "records": 40,
+      "small_cell": false,
+      "mean_teacher_probability": 0.5190919063292343,
+      "mean_result": 0.525,
+      "mean_blended_target": 0.5205689297469258,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.5211121675160557,
+          "mean_teacher_residual": 0.002020261186821367,
+          "mean_blended_residual": 0.0005432377691299575,
+          "blended_mse": 0.00040578832092944505
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.52101757465815,
+          "mean_teacher_residual": 0.0019256683289157347,
+          "mean_blended_residual": 0.0004486449112243248,
+          "blended_mse": 0.0003781060904032551
+        }
+      ]
+    },
+    {
+      "source": "t76",
+      "output_phase_bucket": 1,
+      "records": 68,
+      "small_cell": false,
+      "mean_teacher_probability": 0.4466473752527596,
+      "mean_result": 0.4411764705882353,
+      "mean_blended_target": 0.44527964908662854,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.43653477502128096,
+          "mean_teacher_residual": -0.010112600231478683,
+          "mean_blended_residual": -0.008744874065347602,
+          "blended_mse": 0.005061149312242246
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.4406093155066096,
+          "mean_teacher_residual": -0.00603805974615,
+          "mean_blended_residual": -0.004670333580018921,
+          "blended_mse": 0.004388591990648302
+        }
+      ]
+    },
+    {
+      "source": "t76",
+      "output_phase_bucket": 2,
+      "records": 62,
+      "small_cell": false,
+      "mean_teacher_probability": 0.5282545965514189,
+      "mean_result": 0.47580645161290325,
+      "mean_blended_target": 0.51514256031679,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.5183671886670045,
+          "mean_teacher_residual": -0.009887407884414275,
+          "mean_blended_residual": 0.003224628350214619,
+          "blended_mse": 0.006454581819168358
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.517660845084798,
+          "mean_teacher_residual": -0.010593751466620714,
+          "mean_blended_residual": 0.0025182847680081757,
+          "blended_mse": 0.00644379682258626
+        }
+      ]
+    },
+    {
+      "source": "t76",
+      "output_phase_bucket": 3,
+      "records": 69,
+      "small_cell": false,
+      "mean_teacher_probability": 0.5194758845468094,
+      "mean_result": 0.5144927536231884,
+      "mean_blended_target": 0.5182301018159039,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.5107624277419781,
+          "mean_teacher_residual": -0.008713456804831217,
+          "mean_blended_residual": -0.007467674073926023,
+          "blended_mse": 0.008518371487209124
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.4983254918991691,
+          "mean_teacher_residual": -0.021150392647640164,
+          "mean_blended_residual": -0.019904609916734976,
+          "blended_mse": 0.010590986578852093
+        }
+      ]
+    },
+    {
+      "source": "t76",
+      "output_phase_bucket": 4,
+      "records": 76,
+      "small_cell": false,
+      "mean_teacher_probability": 0.4917665716883337,
+      "mean_result": 0.4868421052631579,
+      "mean_blended_target": 0.49053545508203955,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.48966969806710464,
+          "mean_teacher_residual": -0.0020968736212288626,
+          "mean_blended_residual": -0.0008657570149349282,
+          "blended_mse": 0.00766377950200457
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.48652773364159774,
+          "mean_teacher_residual": -0.0052388380467359285,
+          "mean_blended_residual": -0.0040077214404419925,
+          "blended_mse": 0.008104454397971271
+        }
+      ]
+    },
+    {
+      "source": "t76",
+      "output_phase_bucket": 5,
+      "records": 56,
+      "small_cell": false,
+      "mean_teacher_probability": 0.47898091673558774,
+      "mean_result": 0.45535714285714285,
+      "mean_blended_target": 0.47307497326597653,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.47287811843315347,
+          "mean_teacher_residual": -0.0061027983024343,
+          "mean_blended_residual": -0.0001968548328230811,
+          "blended_mse": 0.00996076663237872
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.4646642548213761,
+          "mean_teacher_residual": -0.014316661914211631,
+          "mean_blended_residual": -0.008410718444600411,
+          "blended_mse": 0.010187106592885301
+        }
+      ]
+    },
+    {
+      "source": "t76",
+      "output_phase_bucket": 6,
+      "records": 76,
+      "small_cell": false,
+      "mean_teacher_probability": 0.51783352941213,
+      "mean_result": 0.5657894736842105,
+      "mean_blended_target": 0.52982251548015,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.5082120661498379,
+          "mean_teacher_residual": -0.009621463262291945,
+          "mean_blended_residual": -0.021610449330312115,
+          "blended_mse": 0.010296987726212884
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.5071696474076216,
+          "mean_teacher_residual": -0.010663882004508327,
+          "mean_blended_residual": -0.022652868072528486,
+          "blended_mse": 0.010669687976443278
+        }
+      ]
+    },
+    {
+      "source": "t76",
+      "output_phase_bucket": 7,
+      "records": 52,
+      "small_cell": false,
+      "mean_teacher_probability": 0.514722440183432,
+      "mean_result": 0.4519230769230769,
+      "mean_blended_target": 0.49902259936834326,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.5153529690023888,
+          "mean_teacher_residual": 0.0006305288189567548,
+          "mean_blended_residual": 0.016330369634045543,
+          "blended_mse": 0.010090517410776833
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.5144617941911563,
+          "mean_teacher_residual": -0.00026064599227570875,
+          "mean_blended_residual": 0.015439194822813083,
+          "blended_mse": 0.01040890458115887
+        }
+      ]
+    },
+    {
+      "source": "t74",
+      "output_phase_bucket": 0,
+      "records": 43,
+      "small_cell": false,
+      "mean_teacher_probability": 0.41129689692252724,
+      "mean_result": 0.4069767441860465,
+      "mean_blended_target": 0.410216858738407,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.40148928836857223,
+          "mean_teacher_residual": -0.009807608553955148,
+          "mean_blended_residual": -0.008727570369834951,
+          "blended_mse": 0.005371837930512987
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.4053783138031614,
+          "mean_teacher_residual": -0.00591858311936587,
+          "mean_blended_residual": -0.004838544935245675,
+          "blended_mse": 0.004101711316960018
+        }
+      ]
+    },
+    {
+      "source": "t74",
+      "output_phase_bucket": 1,
+      "records": 65,
+      "small_cell": false,
+      "mean_teacher_probability": 0.5083574712488586,
+      "mean_result": 0.5076923076923077,
+      "mean_blended_target": 0.5081911803597209,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.4925778506966085,
+          "mean_teacher_residual": -0.015779620552250077,
+          "mean_blended_residual": -0.015613329663112354,
+          "blended_mse": 0.006818051808873596
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.5030542865777347,
+          "mean_teacher_residual": -0.005303184671123894,
+          "mean_blended_residual": -0.005136893781986168,
+          "blended_mse": 0.006613372439393113
+        }
+      ]
+    },
+    {
+      "source": "t74",
+      "output_phase_bucket": 2,
+      "records": 83,
+      "small_cell": false,
+      "mean_teacher_probability": 0.4935842933389997,
+      "mean_result": 0.46987951807228917,
+      "mean_blended_target": 0.48765809952232203,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.48389197176083576,
+          "mean_teacher_residual": -0.009692321578163994,
+          "mean_blended_residual": -0.0037661277614863347,
+          "blended_mse": 0.005379427747881279
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.4790372214637306,
+          "mean_teacher_residual": -0.014547071875269124,
+          "mean_blended_residual": -0.00862087805859147,
+          "blended_mse": 0.005476747132988383
+        }
+      ]
+    },
+    {
+      "source": "t74",
+      "output_phase_bucket": 3,
+      "records": 50,
+      "small_cell": false,
+      "mean_teacher_probability": 0.48215607852425935,
+      "mean_result": 0.46,
+      "mean_blended_target": 0.4766170588931945,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.4802898332241565,
+          "mean_teacher_residual": -0.00186624530010274,
+          "mean_blended_residual": 0.003672774330962085,
+          "blended_mse": 0.00836889728477541
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.4806318737301447,
+          "mean_teacher_residual": -0.0015242047941146075,
+          "mean_blended_residual": 0.004014814836950218,
+          "blended_mse": 0.008055069111936574
+        }
+      ]
+    },
+    {
+      "source": "t74",
+      "output_phase_bucket": 4,
+      "records": 59,
+      "small_cell": false,
+      "mean_teacher_probability": 0.500587214082563,
+      "mean_result": 0.5,
+      "mean_blended_target": 0.5004404105619223,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.49807502009544635,
+          "mean_teacher_residual": -0.0025121939871166,
+          "mean_blended_residual": -0.002365390466475842,
+          "blended_mse": 0.00952468601724365
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.4913456586251728,
+          "mean_teacher_residual": -0.00924155545739027,
+          "mean_blended_residual": -0.009094751936749513,
+          "blended_mse": 0.010833868497041573
+        }
+      ]
+    },
+    {
+      "source": "t74",
+      "output_phase_bucket": 5,
+      "records": 67,
+      "small_cell": false,
+      "mean_teacher_probability": 0.52434692459828,
+      "mean_result": 0.5522388059701493,
+      "mean_blended_target": 0.5313198949412472,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.5219760812507713,
+          "mean_teacher_residual": -0.002370843347508689,
+          "mean_blended_residual": -0.00934381369047598,
+          "blended_mse": 0.013625598088678208
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.523286265130713,
+          "mean_teacher_residual": -0.0010606594675672415,
+          "mean_blended_residual": -0.008033629810534534,
+          "blended_mse": 0.01355520234099981
+        }
+      ]
+    },
+    {
+      "source": "t74",
+      "output_phase_bucket": 6,
+      "records": 103,
+      "small_cell": false,
+      "mean_teacher_probability": 0.5093193256111981,
+      "mean_result": 0.5048543689320388,
+      "mean_blended_target": 0.5082030864414083,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.5106948099765455,
+          "mean_teacher_residual": 0.0013754843653474604,
+          "mean_blended_residual": 0.00249172353513726,
+          "blended_mse": 0.012008088142595392
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.5049299248934567,
+          "mean_teacher_residual": -0.004389400717741487,
+          "mean_blended_residual": -0.003273161547951689,
+          "blended_mse": 0.01194131860835738
+        }
+      ]
+    },
+    {
+      "source": "t74",
+      "output_phase_bucket": 7,
+      "records": 58,
+      "small_cell": false,
+      "mean_teacher_probability": 0.510358186756388,
+      "mean_result": 0.4051724137931034,
+      "mean_blended_target": 0.4840617435155668,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.5104913313761877,
+          "mean_teacher_residual": 0.0001331446197996788,
+          "mean_blended_residual": 0.026429587860620808,
+          "blended_mse": 0.011836164815393456
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.5121190848241388,
+          "mean_teacher_residual": 0.0017608980677508359,
+          "mean_blended_residual": 0.028057341308571963,
+          "blended_mse": 0.011536039823224759
+        }
+      ]
+    },
+    {
+      "source": "t80",
+      "output_phase_bucket": 0,
+      "records": 38,
+      "small_cell": false,
+      "mean_teacher_probability": 0.49252221008387953,
+      "mean_result": 0.4868421052631579,
+      "mean_blended_target": 0.49110218387869903,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.49156214614453186,
+          "mean_teacher_residual": -0.0009600639393477195,
+          "mean_blended_residual": 0.0004599622658327047,
+          "blended_mse": 0.0012092069328825785
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.49870038780048837,
+          "mean_teacher_residual": 0.006178177716608768,
+          "mean_blended_residual": 0.007598203921789194,
+          "blended_mse": 0.0011249316587182865
+        }
+      ]
+    },
+    {
+      "source": "t80",
+      "output_phase_bucket": 1,
+      "records": 68,
+      "small_cell": false,
+      "mean_teacher_probability": 0.4936989385311801,
+      "mean_result": 0.4632352941176471,
+      "mean_blended_target": 0.4860830274277967,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.48159194524363225,
+          "mean_teacher_residual": -0.012106993287547763,
+          "mean_blended_residual": -0.004491082184164517,
+          "blended_mse": 0.005147660110298757
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.4821860836741366,
+          "mean_teacher_residual": -0.011512854857043486,
+          "mean_blended_residual": -0.003896943753660237,
+          "blended_mse": 0.004537184630030959
+        }
+      ]
+    },
+    {
+      "source": "t80",
+      "output_phase_bucket": 2,
+      "records": 93,
+      "small_cell": false,
+      "mean_teacher_probability": 0.5120452390208098,
+      "mean_result": 0.5268817204301075,
+      "mean_blended_target": 0.5157543593731343,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.5064365842821519,
+          "mean_teacher_residual": -0.005608654738657938,
+          "mean_blended_residual": -0.009317775090982373,
+          "blended_mse": 0.007954136740474595
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.5065903110077666,
+          "mean_teacher_residual": -0.005454928013043077,
+          "mean_blended_residual": -0.009164048365367513,
+          "blended_mse": 0.00908561637129947
+        }
+      ]
+    },
+    {
+      "source": "t80",
+      "output_phase_bucket": 3,
+      "records": 91,
+      "small_cell": false,
+      "mean_teacher_probability": 0.49177037483930763,
+      "mean_result": 0.510989010989011,
+      "mean_blended_target": 0.49657503387673346,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.4918523146482891,
+          "mean_teacher_residual": 8.193980898135569e-05,
+          "mean_blended_residual": -0.004722719228444478,
+          "blended_mse": 0.008874023990267293
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.4894977977886121,
+          "mean_teacher_residual": -0.0022725770506955402,
+          "mean_blended_residual": -0.0070772360881213746,
+          "blended_mse": 0.008871014029269635
+        }
+      ]
+    },
+    {
+      "source": "t80",
+      "output_phase_bucket": 4,
+      "records": 74,
+      "small_cell": false,
+      "mean_teacher_probability": 0.493947375493191,
+      "mean_result": 0.5,
+      "mean_blended_target": 0.4954605316198932,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.4892482536079246,
+          "mean_teacher_residual": -0.0046991218852663426,
+          "mean_blended_residual": -0.006212278011968606,
+          "blended_mse": 0.013682781723617272
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.4876647062176267,
+          "mean_teacher_residual": -0.006282669275564218,
+          "mean_blended_residual": -0.007795825402266484,
+          "blended_mse": 0.012405145505692475
+        }
+      ]
+    },
+    {
+      "source": "t80",
+      "output_phase_bucket": 5,
+      "records": 81,
+      "small_cell": false,
+      "mean_teacher_probability": 0.5072928919869306,
+      "mean_result": 0.48148148148148145,
+      "mean_blended_target": 0.5008400393605684,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.5060348104544535,
+          "mean_teacher_residual": -0.0012580815324771126,
+          "mean_blended_residual": 0.005194771093885181,
+          "blended_mse": 0.009712137646073659
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.5065861533911385,
+          "mean_teacher_residual": -0.0007067385957920566,
+          "mean_blended_residual": 0.005746114030570236,
+          "blended_mse": 0.009570590300451895
+        }
+      ]
+    },
+    {
+      "source": "t80",
+      "output_phase_bucket": 6,
+      "records": 53,
+      "small_cell": false,
+      "mean_teacher_probability": 0.5113183095600115,
+      "mean_result": 0.4716981132075472,
+      "mean_blended_target": 0.5014132604718954,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.5104354881039359,
+          "mean_teacher_residual": -0.0008828214560755119,
+          "mean_blended_residual": 0.009022227632040561,
+          "blended_mse": 0.012248269772252272
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.5084804071766157,
+          "mean_teacher_residual": -0.0028379023833956614,
+          "mean_blended_residual": 0.007067146704720409,
+          "blended_mse": 0.01238232075576982
+        }
+      ]
+    },
+    {
+      "source": "t80",
+      "output_phase_bucket": 7,
+      "records": 3,
+      "small_cell": true,
+      "mean_teacher_probability": 0.5189124498240626,
+      "mean_result": 0.8333333333333334,
+      "mean_blended_target": 0.5975176707013802,
+      "metrics": [
+        {
+          "net": "base",
+          "mean_probability": 0.511059258586355,
+          "mean_teacher_residual": -0.007853191237707502,
+          "mean_blended_residual": -0.08645841211502518,
+          "blended_mse": 0.012337883707980382
+        },
+        {
+          "net": "candidate",
+          "mean_probability": 0.5071736733030702,
+          "mean_teacher_residual": -0.011738776520992386,
+          "mean_blended_residual": -0.09034399739831006,
+          "blended_mse": 0.010600691327046998
+        }
+      ]
+    }
+  ],
+  "decision": "diagnostic only; no net selection, rescue games, source weighting or playing adoption",
+  "limitations": [
+    "Fixed clustered windows are a bounded selection-holdout sample, not an independent or population confidence interval.",
+    "Counts are records; repeated boards and tiny output-phase cells remain explicit.",
+    "Integer reference evaluation; original full-holdout selection and fixed400-game rule stay unchanged."
+  ]
+}

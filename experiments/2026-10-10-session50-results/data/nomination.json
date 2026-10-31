@@ -1,0 +1,22 @@
+{
+  "nominated_utc": "2026-10-10T18:52:08.190357+00:00",
+  "base_source": "9bfbae4",
+  "base_engine_sha256": "84431b35d3ae8ef92c6e9f1b967cc01ad35b400a1f812c347fe6f0dcbe55c2e1",
+  "base_net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "reviewed_training_receipt_sha256": "cd0c35f3050f26b27d4460c7d07c3b6cc3cfdf79bc0a11b6266cb923df5ab13e",
+  "training_review": "experiments/2026-10-10-session50-results/data/review.json",
+  "cpu_mask": "0-11",
+  "concurrency": 6,
+  "nice": 19,
+  "memory_max_bytes": 4294967296,
+  "swap_max": 0,
+  "host_pinning": "not-applicable; physical rig",
+  "concurrent_workloads": [
+    "hopper1170 unchanged",
+    "GPU training completed14:42; trainer12,14 allocation reserved/priority",
+    "forge SPSA separate machine, running",
+    "SEE diagnostic terminal14:43; no other rig games"
+  ]
+}

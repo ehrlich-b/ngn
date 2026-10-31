@@ -1,0 +1,66 @@
+{
+  "reviewed_utc": "2026-10-10T07:02:34.266985+00:00",
+  "terminal": 0,
+  "base_source": "ac658e2ce509154775d9567807a5ccf8485b6dca",
+  "candidate_source_sha256": {
+    "engine/hash.go": "48f94110e870c6e19c17ee0b3033d77d994a018e2b7bff87d161b8a508f2c31e",
+    "engine/uci_process_test.go": "c83644d5381f5fb28e1fa0b1c682bd013bea939607473d2fd37229fc68b8650d"
+  },
+  "raw_recount": {
+    "aa": {
+      "games": 40,
+      "pairs": 20,
+      "wdl": [
+        8,
+        24,
+        8
+      ],
+      "penta": [
+        0,
+        3,
+        14,
+        3,
+        0
+      ],
+      "exact_elo_ci95": [
+        0.0,
+        -41.90295211088785,
+        41.90295211088782
+      ],
+      "reasons": {
+        "checkmate": 16,
+        "draw-rule": 24
+      }
+    },
+    "gate": {
+      "games": 400,
+      "pairs": 200,
+      "wdl": [
+        82,
+        229,
+        89
+      ],
+      "penta": [
+        4,
+        54,
+        92,
+        45,
+        5
+      ],
+      "exact_elo_ci95": [
+        -6.080743539917347,
+        -25.890483020713027,
+        13.689499845892527
+      ],
+      "reasons": {
+        "draw-rule": 226,
+        "checkmate": 171,
+        "max-moves": 3
+      }
+    }
+  },
+  "all_input_checks_pass": true,
+  "zero_operational_faults": true,
+  "decision": "PROVISIONAL provenance keep under frozen upper95>0 rule; combined batch certification remains required",
+  "original_failed_22682": "SHELVED; never pooled or relabeled"
+}

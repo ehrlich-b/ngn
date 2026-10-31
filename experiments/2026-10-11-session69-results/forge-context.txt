@@ -1,0 +1,63 @@
+2026-10-11T22:42:00-04:00
+2026-10-11 20:37:45
+CPU CORE SOCKET ONLINE
+  0    0      0    yes
+  1    1      0    yes
+  2    2      0    yes
+  3    3      0    yes
+  4    4      0    yes
+  5    5      0    yes
+  6    6      0    yes
+  7    7      0    yes
+  8    8      0    yes
+  9    9      0    yes
+ 10   10      0    yes
+ 11   11      0    yes
+ 12   12      0    yes
+ 13   13      0    yes
+ 14   14      0    yes
+ 15   15      0    yes
+               total        used        free      shared  buff/cache   available
+Mem:           17921        7520         765         326       10308       10400
+Swap:          53247        1792       51455
+Filesystem        1B-blocks         Used   Available Use% Mounted on
+/dev/sdb       536608739328 520305143808 16303595520  97% /work
+    PID    PPID  NI PSR %CPU   RSS COMMAND
+ 933277  933271   0   8  300  4372 ps
+ 933258  877148  15   2  127 108432 link
+ 925038  922187  10  14  102 1291572 engine.test
+ 933214  877148  15   5  101 56516 store.test
+    992     938  15   6 34.5 42244 python3
+ 886951  886672  19  15 30.5 2392864 lean
+ 911826     992  15   7 23.4 75592 python3
+    988     938  10  13 18.5 131484 python3
+    980     938   0   9  8.6 59128 grafana
+    972     938   0  10  6.8 723308 dolt-2.2.0
+    155       2   0  13  6.4     0 kswapd0
+ 925319  925315   0   2  3.3 52956 python3
+ 933224     906   0  10  3.2 11212 sshd-session
+    132       2   0  15  2.7     0 kcompactd0
+ 914604  914484  10   4  1.4 150860 codex
+ 914474  914445  10   7  1.4 133076 codex
+    955       1   0   5  1.3 121004 dockerd
+ 816013  816002   0   9  1.2 268088 codex
+ 877148  877038  15   0  1.2 69860 go
+Before-AA direct Go/Lean workloads, command prefixes only:
+3740336 3740323 5 1.8 44040 go test -p=1 -count=1 -v ./internal/host ./internal/metering -run ^TestReview
+3740701 3708501 2 1.2 15432 go test -json -count=1 -timeout=15m ./cmd/wt ./internal/phonepair ./internal/pake ./internal/relay ./internal/wing ./internal/dash
+3742243 3742235 8 1.3 45188 go test -p=1 -count=1 -json ./...
+3742668 3742664 4 0.9 37528 go test -race -p=1 -count=1 -json ./internal/common ./internal/host ./internal/metering
+3765867 3765851 1 0.9 23848 go test -race ./mobile/android/bridge ./internal/phonepair ./internal/pake
+3766361 3766355 8 0.9 14188 go test -json -count=1 -run ^TestStoryboard -timeout 20m ./cmd/wt
+3790463 3790421 8 2.6 28696 go list -tags  -e -json=Name,ImportPath,Error,Dir,GoFiles,IgnoredGoFiles,IgnoredOtherFiles,CFiles,CgoFiles,CXXFiles,MFiles,HFiles,
+3795458 3748070 6 18.7 43692 go build -p 2 -buildvcs=false -o /work/lanes/wt-lead/code/.scratch/northstar-753764272/tmp-alias/bin/wt ./cmd/wt
+3796453 3796451 5 21.9 61752 /usr/libexec/gcc/x86_64-linux-gnu/14/cc1plus -quiet -I /work/lanes/wt-android/wingthing/internal/pake -I /tmp/go-build3576188842/b
+3796463 3796462 1 29.6 63908 /usr/libexec/gcc/x86_64-linux-gnu/14/cc1plus -quiet -I /work/lanes/wt-android/wingthing/internal/pake -I /tmp/go-build4162774654/b
+3796534 3796529 1 26.3 44692 /usr/libexec/gcc/x86_64-linux-gnu/14/cc1plus -quiet -I /work/lanes/wt-android/wingthing/internal/pake -I /tmp/go-build4162774654/b
+3796535 3796528 1 27.3 68720 /usr/libexec/gcc/x86_64-linux-gnu/14/cc1plus -quiet -I /work/lanes/wt-android/wingthing/internal/pake -I /tmp/go-build3576188842/b
+3796676 3796674 4 50.0 47168 /usr/libexec/gcc/x86_64-linux-gnu/14/cc1plus -quiet -I /work/lanes/wt-android/wingthing/internal/pake -I /tmp/go-build3576188842/b
+3796700 3796697 9 27.6 34988 /usr/libexec/gcc/x86_64-linux-gnu/14/cc1plus -quiet -I /work/lanes/wt-android/wingthing/internal/pake -I /tmp/go-build4162774654/b
+3796780 3796779 8 38.0 24872 /usr/libexec/gcc/x86_64-linux-gnu/14/cc1plus -quiet -I /work/lanes/wt-android/wingthing/internal/pake -I /tmp/go-build4162774654/b
+3796788 3796787 4 33.3 17724 /usr/libexec/gcc/x86_64-linux-gnu/14/cc1plus -quiet -I /work/lanes/wt-android/wingthing/internal/pake -I /tmp/go-build3576188842/b
+Oct 11 20:05:15 forge systemd[869]: Started ngn-s68-see-geometry.scope - [systemd-run] /usr/bin/nice -n 10 bash /work/lanes/ngn-s68-see-geometry/controller.sh /work/lanes/ngn-s68-see-geometry.
+Oct 11 20:17:19 forge systemd[869]: ngn-s68-see-geometry.scope: Consumed 9min 4.675s CPU time, 836M memory peak.

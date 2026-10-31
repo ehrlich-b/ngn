@@ -1,0 +1,24 @@
+{
+  "base_source": "f1d0a03",
+  "candidate_source": "c930cb0",
+  "topic": "night/s77-helper-depths",
+  "binary_sha256": "7bb1afe2915403e99466b28025a85fed635ab8ce9cdf811c1fca5eca3e3cf3f2",
+  "net": "a4d90b41/final14",
+  "checks": [
+    "focused",
+    "engine-short",
+    "full-short-race-GOMAXPROCS2",
+    "full-short-race-GOMAXPROCS4",
+    "vet",
+    "PGO",
+    "36 Threads1 depth14 move/score/node/PV identities"
+  ],
+  "checks_exit": 0,
+  "identity_verdict": "PASS",
+  "cpus": [
+    13,
+    15
+  ],
+  "playing_adoption": false,
+  "prospective_S": "ownAA40/fixed400 Threads4/Hash256/c1; only unchanged-base clean predecessor shelf; winner/fault holds"
+}

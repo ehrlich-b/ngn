@@ -1,0 +1,2255 @@
+diff --git a/engine/search.go b/engine/search.go
+index 95aca9b..481fb7b 100644
+--- a/engine/search.go
++++ b/engine/search.go
+@@ -1478,943 +1478,973 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 	info.FrameDepth++
+ 	// Pop repetition stack and release the buffer frame on function exit.
+ 	defer func() { info.RepStackLen--; info.FrameDepth-- }()
++	// One normal epilogue lets Go open-code the defer instead of dispatching it
++	// through the runtime at every recursive return; panic unwinding is retained.
++	var result int
++	{
++		// Probe transposition table
++		origAlpha := alpha
++
++		ttMove, ttEvalRaw, ttDepth, ttNodeType, ttHit, ttPvEntry := info.tt.Get(hash)
++
++		// T19: ttPv marks a node that has ever been searched as PV — either it is PV
++		// now, or a previous search stored it as such. It is STICKY (once true it is
++		// re-stored true) so the mark survives the node dropping out of the PV, which
++		// is the whole point: those nodes still deserve less reduction later.
++		nodeTTPv := isPV || (ttHit && ttPvEntry)
++		info.TTProbes++
++		ttEval := scoreFromTT(ttEvalRaw, ply)
+ 
+-	// Probe transposition table
+-	origAlpha := alpha
+-
+-	ttMove, ttEvalRaw, ttDepth, ttNodeType, ttHit, ttPvEntry := info.tt.Get(hash)
+-
+-	// T19: ttPv marks a node that has ever been searched as PV — either it is PV
+-	// now, or a previous search stored it as such. It is STICKY (once true it is
+-	// re-stored true) so the mark survives the node dropping out of the PV, which
+-	// is the whole point: those nodes still deserve less reduction later.
+-	nodeTTPv := isPV || (ttHit && ttPvEntry)
+-	info.TTProbes++
+-	ttEval := scoreFromTT(ttEvalRaw, ply)
+-
+-	// Singular verification root: this node is being re-searched with one move
+-	// excluded, so the cached entry (which reflects the full search INCLUDING the
+-	// excluded move) must not short-circuit it — otherwise the verification just
+-	// returns the original score and never proves singularity. Probe still runs
+-	// for move ordering; only the cutoff and the (corrupting) store are skipped.
+-	inSingular := info.ExcludedMove != EmptyMove && ply == info.ExcludedPly
++		// Singular verification root: this node is being re-searched with one move
++		// excluded, so the cached entry (which reflects the full search INCLUDING the
++		// excluded move) must not short-circuit it — otherwise the verification just
++		// returns the original score and never proves singularity. Probe still runs
++		// for move ordering; only the cutoff and the (corrupting) store are skipped.
++		inSingular := info.ExcludedMove != EmptyMove && ply == info.ExcludedPly
++
++		if ttHit && !isPV && ttDepth >= int8(depth) && !inSingular {
++			info.TTHits++
++			switch ttNodeType {
++			case Exact:
++				result = ttEval
++				goto searchComplete
++			case LowerBound:
++				if ttEval >= beta {
++					info.TTCutoffs++
++					result = ttEval
++					goto searchComplete
++				}
++			case UpperBound:
++				if ttEval <= alpha {
++					result = ttEval
++					goto searchComplete
++				}
++			}
++		}
+ 
+-	if ttHit && !isPV && ttDepth >= int8(depth) && !inSingular {
+-		info.TTHits++
+-		switch ttNodeType {
+-		case Exact:
+-			return ttEval
+-		case LowerBound:
+-			if ttEval >= beta {
+-				info.TTCutoffs++
+-				return ttEval
++		// Internal Iterative Deepening (IID)
++		// When we have no TT move at high depth, do a reduced search to find one
++		if SearchToggles.IID && ttMove == EmptyMove && depth >= 4 && isPV {
++			// Search at reduced depth to get a good move for ordering
++			iidDepth := depth - 2
++			if iidDepth < 1 {
++				iidDepth = 1
+ 			}
+-		case UpperBound:
+-			if ttEval <= alpha {
+-				return ttEval
++			// This re-enters alphaBetaPV on the SAME position (no move made). The
++			// current node already pushed its hash onto info.RepStack above, so the
++			// re-entry would otherwise hit its own hash in the search-path repetition
++			// scan and return a bogus draw (0). Hide our entry for the duration.
++			info.IIDSearches++
++			info.RepStackLen--
++			alphaBetaPV(pos, iidDepth, ply, alpha, beta, true, true, cutNode, info)
++			info.RepStackLen++
++			if info.Stopped {
++				result = stoppedSearchScore
++				goto searchComplete
+ 			}
++			// Re-probe TT to get the move we just found
++			ttMove, _, _, _, _, _ = info.tt.Get(hash)
+ 		}
+-	}
+ 
+-	// Internal Iterative Deepening (IID)
+-	// When we have no TT move at high depth, do a reduced search to find one
+-	if SearchToggles.IID && ttMove == EmptyMove && depth >= 4 && isPV {
+-		// Search at reduced depth to get a good move for ordering
+-		iidDepth := depth - 2
+-		if iidDepth < 1 {
+-			iidDepth = 1
++		// Internal Iterative Reduction (IIR): a cut-node that reaches this depth with no
++		// hash move is poorly explored — searching it at full depth pays for ordering we
++		// don't have. Trim one ply instead (the modern, search-free complement to the IID
++		// block above, which only helps PV nodes). It shrinks the EBF at the ~3/4 of
++		// middlegame nodes that carry no TT move (2026-06-29 sd_order data). Gated to
++		// cutNode (not all-nodes) and skipped in low-material positions (accPhase < 8):
++		// endgames are low-branching and need depth, where reducing no-TT-move nodes cost
++		// ~2-4 ply in the probe and turned the unguarded version net-negative.
++		if ttMove == EmptyMove && depth >= 4 && cutNode && pos.Board.accPhase >= 8 {
++			depth--
+ 		}
+-		// This re-enters alphaBetaPV on the SAME position (no move made). The
+-		// current node already pushed its hash onto info.RepStack above, so the
+-		// re-entry would otherwise hit its own hash in the search-path repetition
+-		// scan and return a bogus draw (0). Hide our entry for the duration.
+-		info.IIDSearches++
+-		info.RepStackLen--
+-		alphaBetaPV(pos, iidDepth, ply, alpha, beta, true, true, cutNode, info)
+-		info.RepStackLen++
+-		if info.Stopped {
+-			return stoppedSearchScore
+-		}
+-		// Re-probe TT to get the move we just found
+-		ttMove, _, _, _, _, _ = info.tt.Get(hash)
+-	}
+ 
+-	// Internal Iterative Reduction (IIR): a cut-node that reaches this depth with no
+-	// hash move is poorly explored — searching it at full depth pays for ordering we
+-	// don't have. Trim one ply instead (the modern, search-free complement to the IID
+-	// block above, which only helps PV nodes). It shrinks the EBF at the ~3/4 of
+-	// middlegame nodes that carry no TT move (2026-06-29 sd_order data). Gated to
+-	// cutNode (not all-nodes) and skipped in low-material positions (accPhase < 8):
+-	// endgames are low-branching and need depth, where reducing no-TT-move nodes cost
+-	// ~2-4 ply in the probe and turned the unguarded version net-negative.
+-	if ttMove == EmptyMove && depth >= 4 && cutNode && pos.Board.accPhase >= 8 {
+-		depth--
+-	}
++		// Mate distance pruning - don't look for mates that are too far away.
++		// Use ply (distance from root) directly. Earlier code computed
++		// `info.Depth - depth`, but info.Depth is only set after iteration
++		// completion (line 618), so during the tree walk it was either maxDepth
++		// (first iteration) or the prior completed depth — i.e. wrong.
++		mateAlpha := -MATE_VALUE + ply
++		mateBeta := MATE_VALUE - ply - 1
+ 
+-	// Mate distance pruning - don't look for mates that are too far away.
+-	// Use ply (distance from root) directly. Earlier code computed
+-	// `info.Depth - depth`, but info.Depth is only set after iteration
+-	// completion (line 618), so during the tree walk it was either maxDepth
+-	// (first iteration) or the prior completed depth — i.e. wrong.
+-	mateAlpha := -MATE_VALUE + ply
+-	mateBeta := MATE_VALUE - ply - 1
+-
+-	if alpha < mateAlpha {
+-		alpha = mateAlpha
+-	}
+-	if beta > mateBeta {
+-		beta = mateBeta
+-	}
+-	if alpha >= beta {
+-		return alpha
+-	}
+-
+-	// Check if we're in check before attempting null move. The InCheck tag is
+-	// maintained for the side to move on every entry path (ParseFEN at the root,
+-	// makeMoveHelper after a move, preserved across IID/singular re-entry, and
+-	// clear after a null move since NMP only fires when !inCheck), so read it
+-	// instead of rescanning (N2, node-identical).
+-	inCheck := pos.IsInCheck()
+-
+-	// Static eval for this node, computed once and reused by RFP/futility and the
+-	// improving heuristic. Undefined in check, so inherit the value from two plies
+-	// ago to keep the improving chain sane across checking plies.
+-	stm := pos.Turn()
+-	var staticEval int
+-	var corrIdx int        // pawn-correction slot; valid only when !inCheck
+-	var nonPawnCorrIdx int // non-pawn-correction slot; valid only when !inCheck
+-	var minorCorrIdx int   // minor-piece-correction slot; valid only when !inCheck
+-	// T4: corrStaticEval is the CORRECTED static (raw + correction) captured BEFORE the S7 TT-refinement
+-	// overwrites staticEval — the corrhist learning target. NGN's corrhist uses the gravity update
+-	// (updatePawnCorrection, same form as gravityUpdate), which converges to the full correction only when
+-	// it learns from the corrected value; learning from raw would saturate the entry to the clamp limit.
+-	var corrStaticEval int
+-	if inCheck {
+-		if ply >= 2 {
+-			staticEval = info.StaticEvalStack[ply-2]
+-		} else {
+-			staticEval = unknownStaticEval
+-		}
+-	} else {
+-		corrIdx = pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
+-		nonPawnCorrIdx = nonPawnCorrectionIndex(pos.Board.WhiteOccupancy()&^pos.Board.pieces[WhitePawn], pos.Board.BlackOccupancy()&^pos.Board.pieces[BlackPawn])
+-		minorCorrIdx = minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
+-		staticEval = info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
+-		corrStaticEval = staticEval // T4: capture the corrected static (raw + pawn + non-pawn + minor) BEFORE S7 overwrites it (all tables' learn target)
+-		// S7: a search-refined TT score is a sharper static estimate than a fresh
+-		// eval for the margin heuristics below (RFP/futility/NMP/improving). Use it
+-		// when the stored bound brackets it. Skip mate scores (would distort margins)
+-		// and the singular-verification root (keep its pruning behaviour unchanged).
+-		if ttHit && !inSingular && abs(ttEval) < MATE_IN_MAX {
+-			if ttNodeType == Exact ||
+-				(ttNodeType == LowerBound && ttEval > staticEval) ||
+-				(ttNodeType == UpperBound && ttEval < staticEval) {
+-				staticEval = ttEval
+-			}
+-		}
+-	}
+-	info.StaticEvalStack[ply] = staticEval
+-
+-	// improving: static eval better than two plies ago (our previous turn). When
+-	// the position is trending up we reduce one less ply in LMR below.
+-	improving := !inCheck && improvingVsPrevTurn(info, ply, staticEval)
+-
+-	// Extended futility pruning (depths 1-3) and reverse futility pruning
+-	var futilityPrune bool
+-
+-	// Reverse futility pruning - if position is very good, return early.
+-	// A2a: extended from depth<=3 to depth<=7 with the margin gated on
+-	// improving (SF11 217*(d-improving), Ethereal/Weiss equivalents) — every
+-	// reference engine prunes harder when the eval is NOT trending up; the
+-	// ungated depth<=8 extension inflated sharp-position trees (probe-rejected).
+-	if SearchToggles.RFP && depth <= 7 && !inCheck && beta-alpha == 1 {
+-		imp := 0
+-		if improving {
+-			imp = 1
+-		}
+-		margin := REVERSE_FUTILITY_MARGIN * (depth - imp)
+-		if staticEval-margin >= beta {
+-			info.RFPPrunes++
+-			return staticEval - margin
+-		}
+-	}
+-
+-	// Extended futility pruning. W1: reach extended from depth<=3 to depth<=8
+-	// (CounterGo prunes quiets this deep) with the CG-grounded margin
+-	// FUTILITY_MARGIN*(depth+improving). The improving term widens the margin
+-	// when the eval is trending up (prune less), mirroring the A2a RFP gate that
+-	// made the depth extension sound where the ungated A2 version inflated trees.
+-	if SearchToggles.Futility && depth <= FUTILITY_MAX_DEPTH && !inCheck && !isPV { // Don't prune in PV nodes
+-		imp := 0
+-		if improving {
+-			imp = 1
+-		}
+-		margin := FUTILITY_MARGIN * (depth + imp)
+-		if staticEval+margin <= alpha {
+-			futilityPrune = true
+-		}
+-	}
+-
+-	// Note: Razoring pruning removed - futility pruning already provides effective pruning
+-	// with better performance characteristics for this engine architecture
+-
+-	// Null-move pruning at cut nodes only. C3 fix: the prior gate required a full
+-	// window (beta-alpha>1), but PVS scouts every non-PV node with a null window, so
+-	// NMP fired only on the PV spine — almost never. Gate on !isPV (every cut node) +
+-	// staticEval>=beta (standard soundness/efficiency guard) + canNull (no two null
+-	// moves in a row, replacing the implicit beta-alpha>1 brake). Zugzwang guard:
+-	// in pawn-only endgames passing can be best, so require non-pawn material.
+-	// W8: skip NMP when the TT says this node fails low (UpperBound with ttEval < beta).
+-	// NMP's "node is already >= beta" premise is contradicted there, so the null search
+-	// is wasted (CG + Ethereal converge on this guard; NullMoveTries should drop).
+-	// T12: restrict to true cut nodes. `!isPV` admits BOTH cut and all nodes -- in PVS an
+-	// all-node is expected to fail low, so NMP's "this node is already >= beta" premise is
+-	// wrong there and the null search is speculative work against the node's own expectation.
+-	// This makes the code match the claim the comment above already makes.
+-	if SearchToggles.NullMove && !inCheck && depth >= NULL_MOVE_MIN_DEPTH && canNull && !isPV && cutNode && staticEval >= beta &&
+-		hasNonPawnMaterial(&pos.Board, pos.Turn()) &&
+-		!(ttHit && ttNodeType == UpperBound && ttEval < beta) {
+-		// Set lastMovePlayed to EmptyMove so children don't pick spurious
+-		// counter-move replies keyed on our own prior move.
+-		savedLast := info.history.GetLastMovePlayed()
+-		info.NullMoveTries++
+-		evalNull := info.evaluator.mustPrepareNull(pos)
+-		oldEP := pos.MakeNullMove()
+-		info.evaluator.mustPushMadeNull(pos, evalNull, oldEP)
+-		info.history.SetLastMovePlayed(EmptyMove)
+-		info.MoveStack[ply] = EmptyMove
+-
+-		// Floor the null child depth at 0. At depth==NULL_MOVE_MIN_DEPTH (3) the
+-		// reduction depth-NULL_MOVE_R-1 = -1 trips the negative-depth guard and
+-		// verifies the null move with a raw static eval (tactically blind) instead
+-		// of quiescence; flooring routes it through qsearch like the depth>=4 path.
+-		nullDepth := depth - (NULL_MOVE_R + 1 + depth/6) // NMP reduction: tunable base NULL_MOVE_R (def 3 => R+1=4) + depth-scaling; CG/Ethereal/Weiss converge
+-		if nullDepth < 0 {
+-			nullDepth = 0
+-		}
+-		score := -alphaBetaPV(pos, nullDepth, ply+1, -beta, -beta+1, false, false, !cutNode, info)
+-
+-		info.evaluator.mustPop()
+-		pos.UnMakeNullMove(oldEP)
+-		info.history.SetLastMovePlayed(savedLast)
+-		if info.Stopped {
+-			return stoppedSearchScore
++		if alpha < mateAlpha {
++			alpha = mateAlpha
+ 		}
+-
+-		if score >= beta {
+-			info.NullMoveCutoffs++
+-			return beta
++		if beta > mateBeta {
++			beta = mateBeta
+ 		}
+-	}
+-
+-	// Acquire this invocation's reusable buffers from the frame pool (used by probcut
+-	// below AND the main move loop); fall back to a fresh stack frame only when the pool
+-	// is exhausted by deep re-entrant nesting (correct, just not allocation-free).
+-	// Kept ABOVE probcut so probcut's generation is allocation-free too. docs/10 T1.
+-	var frame *searchFrame
+-	if info.Frames != nil && frameIdx < len(info.Frames) {
+-		frame = &info.Frames[frameIdx]
+-	} else {
+-		frame = new(searchFrame)
+-	}
+-
+-	// Probcut pruning: if a reduced-depth search at a higher beta fails high,
+-	// we can prune because the full search would likely also fail high
+-	if SearchToggles.Probcut && !inSingular && !isPV && !inCheck && depth >= 5 && abs(beta) < MATE_VALUE-100 {
+-		probcutBeta := beta + 200 // Higher beta threshold
+-
+-		// Generate into the reused frame buffer (NOT a per-node [256]Move that escapes
+-		// to the heap via the non-inlined GenerateMovesIntoBuffer — that was 34MB/run).
+-		var capBuffer [64]Move
+-		capCount := 0
+-		tempCount := GenerateMovesIntoBuffer(pos, frame.moveBuffer[:])
+-		for i := 0; i < tempCount && capCount < 64; i++ {
+-			if frame.moveBuffer[i].IsCapture() {
+-				capBuffer[capCount] = frame.moveBuffer[i]
+-				capCount++
++		if alpha >= beta {
++			result = alpha
++			goto searchComplete
++		}
++
++		// Check if we're in check before attempting null move. The InCheck tag is
++		// maintained for the side to move on every entry path (ParseFEN at the root,
++		// makeMoveHelper after a move, preserved across IID/singular re-entry, and
++		// clear after a null move since NMP only fires when !inCheck), so read it
++		// instead of rescanning (N2, node-identical).
++		inCheck := pos.IsInCheck()
++
++		// Static eval for this node, computed once and reused by RFP/futility and the
++		// improving heuristic. Undefined in check, so inherit the value from two plies
++		// ago to keep the improving chain sane across checking plies.
++		stm := pos.Turn()
++		var staticEval int
++		var corrIdx int        // pawn-correction slot; valid only when !inCheck
++		var nonPawnCorrIdx int // non-pawn-correction slot; valid only when !inCheck
++		var minorCorrIdx int   // minor-piece-correction slot; valid only when !inCheck
++		// T4: corrStaticEval is the CORRECTED static (raw + correction) captured BEFORE the S7 TT-refinement
++		// overwrites staticEval — the corrhist learning target. NGN's corrhist uses the gravity update
++		// (updatePawnCorrection, same form as gravityUpdate), which converges to the full correction only when
++		// it learns from the corrected value; learning from raw would saturate the entry to the clamp limit.
++		var corrStaticEval int
++		if inCheck {
++			if ply >= 2 {
++				staticEval = info.StaticEvalStack[ply-2]
++			} else {
++				staticEval = unknownStaticEval
++			}
++		} else {
++			corrIdx = pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
++			nonPawnCorrIdx = nonPawnCorrectionIndex(pos.Board.WhiteOccupancy()&^pos.Board.pieces[WhitePawn], pos.Board.BlackOccupancy()&^pos.Board.pieces[BlackPawn])
++			minorCorrIdx = minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
++			staticEval = info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
++			corrStaticEval = staticEval // T4: capture the corrected static (raw + pawn + non-pawn + minor) BEFORE S7 overwrites it (all tables' learn target)
++			// S7: a search-refined TT score is a sharper static estimate than a fresh
++			// eval for the margin heuristics below (RFP/futility/NMP/improving). Use it
++			// when the stored bound brackets it. Skip mate scores (would distort margins)
++			// and the singular-verification root (keep its pruning behaviour unchanged).
++			if ttHit && !inSingular && abs(ttEval) < MATE_IN_MAX {
++				if ttNodeType == Exact ||
++					(ttNodeType == LowerBound && ttEval > staticEval) ||
++					(ttNodeType == UpperBound && ttEval < staticEval) {
++					staticEval = ttEval
++				}
+ 			}
+ 		}
++		info.StaticEvalStack[ply] = staticEval
++
++		// improving: static eval better than two plies ago (our previous turn). When
++		// the position is trending up we reduce one less ply in LMR below.
++		improving := !inCheck && improvingVsPrevTurn(info, ply, staticEval)
++
++		// Extended futility pruning (depths 1-3) and reverse futility pruning
++		var futilityPrune bool
++
++		// Reverse futility pruning - if position is very good, return early.
++		// A2a: extended from depth<=3 to depth<=7 with the margin gated on
++		// improving (SF11 217*(d-improving), Ethereal/Weiss equivalents) — every
++		// reference engine prunes harder when the eval is NOT trending up; the
++		// ungated depth<=8 extension inflated sharp-position trees (probe-rejected).
++		if SearchToggles.RFP && depth <= 7 && !inCheck && beta-alpha == 1 {
++			imp := 0
++			if improving {
++				imp = 1
++			}
++			margin := REVERSE_FUTILITY_MARGIN * (depth - imp)
++			if staticEval-margin >= beta {
++				info.RFPPrunes++
++				result = staticEval - margin
++				goto searchComplete
++			}
++		}
++
++		// Extended futility pruning. W1: reach extended from depth<=3 to depth<=8
++		// (CounterGo prunes quiets this deep) with the CG-grounded margin
++		// FUTILITY_MARGIN*(depth+improving). The improving term widens the margin
++		// when the eval is trending up (prune less), mirroring the A2a RFP gate that
++		// made the depth extension sound where the ungated A2 version inflated trees.
++		if SearchToggles.Futility && depth <= FUTILITY_MAX_DEPTH && !inCheck && !isPV { // Don't prune in PV nodes
++			imp := 0
++			if improving {
++				imp = 1
++			}
++			margin := FUTILITY_MARGIN * (depth + imp)
++			if staticEval+margin <= alpha {
++				futilityPrune = true
++			}
++		}
++
++		// Note: Razoring pruning removed - futility pruning already provides effective pruning
++		// with better performance characteristics for this engine architecture
++
++		// Null-move pruning at cut nodes only. C3 fix: the prior gate required a full
++		// window (beta-alpha>1), but PVS scouts every non-PV node with a null window, so
++		// NMP fired only on the PV spine — almost never. Gate on !isPV (every cut node) +
++		// staticEval>=beta (standard soundness/efficiency guard) + canNull (no two null
++		// moves in a row, replacing the implicit beta-alpha>1 brake). Zugzwang guard:
++		// in pawn-only endgames passing can be best, so require non-pawn material.
++		// W8: skip NMP when the TT says this node fails low (UpperBound with ttEval < beta).
++		// NMP's "node is already >= beta" premise is contradicted there, so the null search
++		// is wasted (CG + Ethereal converge on this guard; NullMoveTries should drop).
++		// T12: restrict to true cut nodes. `!isPV` admits BOTH cut and all nodes -- in PVS an
++		// all-node is expected to fail low, so NMP's "this node is already >= beta" premise is
++		// wrong there and the null search is speculative work against the node's own expectation.
++		// This makes the code match the claim the comment above already makes.
++		if SearchToggles.NullMove && !inCheck && depth >= NULL_MOVE_MIN_DEPTH && canNull && !isPV && cutNode && staticEval >= beta &&
++			hasNonPawnMaterial(&pos.Board, pos.Turn()) &&
++			!(ttHit && ttNodeType == UpperBound && ttEval < beta) {
++			// Set lastMovePlayed to EmptyMove so children don't pick spurious
++			// counter-move replies keyed on our own prior move.
++			savedLast := info.history.GetLastMovePlayed()
++			info.NullMoveTries++
++			evalNull := info.evaluator.mustPrepareNull(pos)
++			oldEP := pos.MakeNullMove()
++			info.evaluator.mustPushMadeNull(pos, evalNull, oldEP)
++			info.history.SetLastMovePlayed(EmptyMove)
++			info.MoveStack[ply] = EmptyMove
++
++			// Floor the null child depth at 0. At depth==NULL_MOVE_MIN_DEPTH (3) the
++			// reduction depth-NULL_MOVE_R-1 = -1 trips the negative-depth guard and
++			// verifies the null move with a raw static eval (tactically blind) instead
++			// of quiescence; flooring routes it through qsearch like the depth>=4 path.
++			nullDepth := depth - (NULL_MOVE_R + 1 + depth/6) // NMP reduction: tunable base NULL_MOVE_R (def 3 => R+1=4) + depth-scaling; CG/Ethereal/Weiss converge
++			if nullDepth < 0 {
++				nullDepth = 0
++			}
++			score := -alphaBetaPV(pos, nullDepth, ply+1, -beta, -beta+1, false, false, !cutNode, info)
+ 
+-		for i := 0; i < capCount; i++ {
+-			move := capBuffer[i]
+-
+-			// Only consider captures with good SEE (skip the full swap when the
+-			// capture is provably non-losing — see seeNonLosingByMVV).
+-			if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < 0 {
+-				continue
++			info.evaluator.mustPop()
++			pos.UnMakeNullMove(oldEP)
++			info.history.SetLastMovePlayed(savedLast)
++			if info.Stopped {
++				result = stoppedSearchScore
++				goto searchComplete
+ 			}
+ 
+-			savedLast := info.history.GetLastMovePlayed()
+-			evalMove := info.evaluator.mustPrepareMove(pos, move)
+-			ep, tag, hc, _ := pos.MakeMove(move)
+-			if isInCheck(pos, move.MovingPiece().Color()) {
+-				pos.UnMakeMove(move, tag, ep, hc)
+-				continue
++			if score >= beta {
++				info.NullMoveCutoffs++
++				result = beta
++				goto searchComplete
+ 			}
+-			info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
+-			info.history.SetLastMovePlayed(move)
+-			info.MoveStack[ply] = move
++		}
+ 
+-			score := -quiescence(pos, -probcutBeta, -probcutBeta+1, ply+1, info)
+-			if info.Stopped {
+-				info.evaluator.mustPop()
+-				pos.UnMakeMove(move, tag, ep, hc)
+-				info.history.SetLastMovePlayed(savedLast)
+-				return stoppedSearchScore
++		// Acquire this invocation's reusable buffers from the frame pool (used by probcut
++		// below AND the main move loop); fall back to a fresh stack frame only when the pool
++		// is exhausted by deep re-entrant nesting (correct, just not allocation-free).
++		// Kept ABOVE probcut so probcut's generation is allocation-free too. docs/10 T1.
++		var frame *searchFrame
++		if info.Frames != nil && frameIdx < len(info.Frames) {
++			frame = &info.Frames[frameIdx]
++		} else {
++			frame = new(searchFrame)
++		}
++
++		// Probcut pruning: if a reduced-depth search at a higher beta fails high,
++		// we can prune because the full search would likely also fail high
++		if SearchToggles.Probcut && !inSingular && !isPV && !inCheck && depth >= 5 && abs(beta) < MATE_VALUE-100 {
++			probcutBeta := beta + 200 // Higher beta threshold
++
++			// Generate into the reused frame buffer (NOT a per-node [256]Move that escapes
++			// to the heap via the non-inlined GenerateMovesIntoBuffer — that was 34MB/run).
++			var capBuffer [64]Move
++			capCount := 0
++			tempCount := GenerateMovesIntoBuffer(pos, frame.moveBuffer[:])
++			for i := 0; i < tempCount && capCount < 64; i++ {
++				if frame.moveBuffer[i].IsCapture() {
++					capBuffer[capCount] = frame.moveBuffer[i]
++					capCount++
++				}
+ 			}
+ 
+-			if score >= probcutBeta {
+-				score = -alphaBetaPV(pos, depth-4, ply+1, -probcutBeta, -probcutBeta+1, false, true, !cutNode, info)
++			for i := 0; i < capCount; i++ {
++				move := capBuffer[i]
++
++				// Only consider captures with good SEE (skip the full swap when the
++				// capture is provably non-losing — see seeNonLosingByMVV).
++				if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < 0 {
++					continue
++				}
++
++				savedLast := info.history.GetLastMovePlayed()
++				evalMove := info.evaluator.mustPrepareMove(pos, move)
++				ep, tag, hc, _ := pos.MakeMove(move)
++				if isInCheck(pos, move.MovingPiece().Color()) {
++					pos.UnMakeMove(move, tag, ep, hc)
++					continue
++				}
++				info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
++				info.history.SetLastMovePlayed(move)
++				info.MoveStack[ply] = move
++
++				score := -quiescence(pos, -probcutBeta, -probcutBeta+1, ply+1, info)
+ 				if info.Stopped {
+ 					info.evaluator.mustPop()
+ 					pos.UnMakeMove(move, tag, ep, hc)
+ 					info.history.SetLastMovePlayed(savedLast)
+-					return stoppedSearchScore
++					result = stoppedSearchScore
++					goto searchComplete
+ 				}
+-			}
+-
+-			info.evaluator.mustPop()
+ 
+-			pos.UnMakeMove(move, tag, ep, hc)
+-			info.history.SetLastMovePlayed(savedLast)
++				if score >= probcutBeta {
++					score = -alphaBetaPV(pos, depth-4, ply+1, -probcutBeta, -probcutBeta+1, false, true, !cutNode, info)
++					if info.Stopped {
++						info.evaluator.mustPop()
++						pos.UnMakeMove(move, tag, ep, hc)
++						info.history.SetLastMovePlayed(savedLast)
++						result = stoppedSearchScore
++						goto searchComplete
++					}
++				}
+ 
+-			if score >= probcutBeta {
+-				info.ProbcutPrunes++
+-				return beta
+-			}
+-		}
+-	}
++				info.evaluator.mustPop()
+ 
+-	// Singular extension detection
+-	// If we have a TT move that's clearly best, extend its search
+-	singularMove := EmptyMove
+-	if SearchToggles.Singular && ttHit && ttMove != EmptyMove && depth >= SINGULAR_DEPTH &&
+-		info.ExcludedMove == EmptyMove && // Not already in singular search
+-		(ttNodeType == Exact || ttNodeType == LowerBound) &&
+-		ttDepth >= int8(depth-3) {
+-		singularMove = ttMove
+-	}
++				pos.UnMakeMove(move, tag, ep, hc)
++				info.history.SetLastMovePlayed(savedLast)
+ 
+-	// Use pseudo-legal moves for performance, check legality only when trying moves
+-	// (frame acquired above, before probcut, so all generation here is allocation-free).
+-	numMoves := GenerateMovesIntoBuffer(pos, frame.moveBuffer[:])
+-	moves := frame.moveBuffer[:numMoves]
+-	if numMoves == 0 {
+-		if inCheck {
+-			// Checkmate - distance from root is `ply` directly.
+-			mateDistance := ply
+-			if mateDistance > 1000 {
+-				mateDistance = 1000
++				if score >= probcutBeta {
++					info.ProbcutPrunes++
++					result = beta
++					goto searchComplete
++				}
+ 			}
+-			return -MATE_VALUE + mateDistance
+ 		}
+-		// Stalemate is a draw regardless of material balance. Scoring it -500
+-		// when "winning" breaks the zero-sum invariant — the opponent would read
+-		// the same drawn position as +500 and steer into it.
+-		return 0
+-	}
+ 
+-	// Order moves, prioritizing TT move if available. Scores are written eagerly; the sort
+-	// itself is driven incrementally inside the loop (selectNextMove) so the selection tail
+-	// past a beta cutoff is never paid. Node-identical to a full sort (docs/10 T2a).
+-	// prev2 (our side's previous move, for follow-up history) is constant for the
+-	// whole node: [ply-2] belongs to a live ancestor suspended mid-loop.
+-	prev2 := EmptyMove
+-	if ply >= 2 {
+-		prev2 = info.MoveStack[ply-2]
+-	}
+-	ordered := frame.ordered[:]
+-	scores := frame.scores[:]
+-	orderedCount, ttIndex := info.history.scoreMovesIntoBuffer(moves, ply, info.history.GetLastMovePlayed(), prev2, ttMove, ttHit, ordered, scores, pos, true)
+-	info.MoveLoopNodes++
+-	if ttIndex >= 0 {
+-		info.TTMoveListed++
+-	}
+-	bestScore := -INFINITY
+-	bestMove := EmptyMove
+-	moveCount := 0
+-	legalTried := 0
+-
+-	// Track quiet/capture moves searched for history penalization (reused frame buffers)
+-	searchedQuiets := frame.quiets[:]
+-	searchedQuietCount := 0
+-	searchedCaptures := frame.captures[:]
+-	searchedCaptureCount := 0
+-	completedHistoryQuietCount := 0
+-
+-	capturesScored := false // lazySEE: real capture scores not yet materialized
+-	for oi := 0; oi < orderedCount; oi++ {
+-		// Deferred selection sort: pull the next-best move into ordered[oi]. Doing this
+-		// per-iteration (rather than fully up front) skips the sort tail after a cutoff.
+-		if oi == 0 && ttIndex >= 0 {
+-			// The TT move carries the unique top score (100000), so selectNextMove(oi=0)
+-			// would scan the whole list only to find it. Swap it to the front in O(1) — the
+-			// identical result — skipping that O(n) scan on the ~88% of nodes that cut on the
+-			// TT move (node-identical: verified by scripts/nodecheck.sh).
+-			if ttIndex != 0 {
+-				ordered[0], ordered[ttIndex] = ordered[ttIndex], ordered[0]
+-				scores[0], scores[ttIndex] = scores[ttIndex], scores[0]
+-			}
+-		} else {
+-			// Capture SEE scores were deferred (lazySEE): materialize them once,
+-			// immediately before the first selection compare. All scores are final
+-			// before any comparison, so the emitted order is identical to eager
+-			// scoring — but the ~88% of cutting nodes that cut on the hoisted TT
+-			// move above never reach this line and skip ordering SEE entirely.
+-			if !capturesScored {
+-				materializeCaptureScores(ordered, scores, orderedCount, pos)
+-				capturesScored = true
+-			}
+-			selectNextMove(ordered, scores, orderedCount, oi)
+-		}
+-		move := ordered[oi]
+-		moveCount++
+-
+-		// Skip excluded move at the singular verification root only (ply-scoped so
+-		// a coincidentally-identical move deeper in the verification subtree isn't
+-		// also skipped).
+-		if inSingular && move == info.ExcludedMove {
+-			continue
++		// Singular extension detection
++		// If we have a TT move that's clearly best, extend its search
++		singularMove := EmptyMove
++		if SearchToggles.Singular && ttHit && ttMove != EmptyMove && depth >= SINGULAR_DEPTH &&
++			info.ExcludedMove == EmptyMove && // Not already in singular search
++			(ttNodeType == Exact || ttNodeType == LowerBound) &&
++			ttDepth >= int8(depth-3) {
++			singularMove = ttMove
+ 		}
+ 
+-		// Check time before evaluating each move (now cheap to call). A stopped node
+-		// returns like every other stop site: its partial result must not reach the
+-		// TT or correction history.
+-		if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(depth) {
+-			info.Stopped = true
+-			return stoppedSearchScore
++		// Use pseudo-legal moves for performance, check legality only when trying moves
++		// (frame acquired above, before probcut, so all generation here is allocation-free).
++		numMoves := GenerateMovesIntoBuffer(pos, frame.moveBuffer[:])
++		moves := frame.moveBuffer[:numMoves]
++		if numMoves == 0 {
++			if inCheck {
++				// Checkmate - distance from root is `ply` directly.
++				mateDistance := ply
++				if mateDistance > 1000 {
++					mateDistance = 1000
++				}
++				result = -MATE_VALUE + mateDistance
++				goto searchComplete
++			}
++			// Stalemate is a draw regardless of material balance. Scoring it -500
++			// when "winning" breaks the zero-sum invariant — the opponent would read
++			// the same drawn position as +500 and steer into it.
++			result = 0
++			goto searchComplete
++		}
++
++		// Order moves, prioritizing TT move if available. Scores are written eagerly; the sort
++		// itself is driven incrementally inside the loop (selectNextMove) so the selection tail
++		// past a beta cutoff is never paid. Node-identical to a full sort (docs/10 T2a).
++		// prev2 (our side's previous move, for follow-up history) is constant for the
++		// whole node: [ply-2] belongs to a live ancestor suspended mid-loop.
++		prev2 := EmptyMove
++		if ply >= 2 {
++			prev2 = info.MoveStack[ply-2]
+ 		}
+-
+-		// Futility pruning - skip quiet moves if position is hopeless (but never prune
+-		// the TT move or ANY promotion — a promotion is forcing and material-changing, beyond any
+-		// futility margin, so the "this quiet move can't reach alpha" premise is false).
+-		// legalTried > 0 guard (F1): never prune before a single legal move has been
+-		// searched, else a node whose every move is futile prunes them all, hits
+-		// legalTried==0, and returns 0 (false stalemate) instead of the true fail-low.
+-		// W1 exemptions: never futility-prune killers or the counter-move. At the
+-		// d3 reach these rarely mattered, but extending to d8 prunes quiet
+-		// maneuvering moves that hold alpha on closed positions — pruning a killer/
+-		// counter there fails the node low and triggers a re-search (the closed-
+-		// position tree inflation the EBF probe flagged). Keep searching them.
+-		if futilityPrune && !move.IsCapture() && move != ttMove && move.PromoType() == NoType && legalTried > 0 &&
+-			!info.history.IsKillerMove(move, ply) && move != info.history.GetCounterMove(info.history.GetLastMovePlayed()) {
+-			info.FutilityPrunes++
+-			continue
++		ordered := frame.ordered[:]
++		scores := frame.scores[:]
++		orderedCount, ttIndex := info.history.scoreMovesIntoBuffer(moves, ply, info.history.GetLastMovePlayed(), prev2, ttMove, ttHit, ordered, scores, pos, true)
++		info.MoveLoopNodes++
++		if ttIndex >= 0 {
++			info.TTMoveListed++
+ 		}
++		bestScore := -INFINITY
++		bestMove := EmptyMove
++		moveCount := 0
++		legalTried := 0
++
++		// Track quiet/capture moves searched for history penalization (reused frame buffers)
++		searchedQuiets := frame.quiets[:]
++		searchedQuietCount := 0
++		searchedCaptures := frame.captures[:]
++		searchedCaptureCount := 0
++		completedHistoryQuietCount := 0
++
++		capturesScored := false // lazySEE: real capture scores not yet materialized
++		for oi := 0; oi < orderedCount; oi++ {
++			// Deferred selection sort: pull the next-best move into ordered[oi]. Doing this
++			// per-iteration (rather than fully up front) skips the sort tail after a cutoff.
++			if oi == 0 && ttIndex >= 0 {
++				// The TT move carries the unique top score (100000), so selectNextMove(oi=0)
++				// would scan the whole list only to find it. Swap it to the front in O(1) — the
++				// identical result — skipping that O(n) scan on the ~88% of nodes that cut on the
++				// TT move (node-identical: verified by scripts/nodecheck.sh).
++				if ttIndex != 0 {
++					ordered[0], ordered[ttIndex] = ordered[ttIndex], ordered[0]
++					scores[0], scores[ttIndex] = scores[ttIndex], scores[0]
++				}
++			} else {
++				// Capture SEE scores were deferred (lazySEE): materialize them once,
++				// immediately before the first selection compare. All scores are final
++				// before any comparison, so the emitted order is identical to eager
++				// scoring — but the ~88% of cutting nodes that cut on the hoisted TT
++				// move above never reach this line and skip ordering SEE entirely.
++				if !capturesScored {
++					materializeCaptureScores(ordered, scores, orderedCount, pos)
++					capturesScored = true
++				}
++				selectNextMove(ordered, scores, orderedCount, oi)
++			}
++			move := ordered[oi]
++			moveCount++
+ 
+-		// Late Move Pruning (LMP) - skip very late quiet moves at low depths
+-		// Only apply in non-PV nodes, not in check, and for quiet moves
+-		// Use legalTried (not moveCount) since moveCount includes illegal moves
+-		if SearchToggles.LMP && !isPV && !inCheck && depth > 0 && depth < 9 &&
+-			!move.IsCapture() && move.PromoType() == NoType && move != ttMove && legalTried > 0 {
+-			threshold := lmpThresholdFor(depth, improving)
+-			if legalTried > threshold {
+-				info.LMPPrunes++
++			// Skip excluded move at the singular verification root only (ply-scoped so
++			// a coincidentally-identical move deeper in the verification subtree isn't
++			// also skipped).
++			if inSingular && move == info.ExcludedMove {
+ 				continue
+ 			}
+-		}
+ 
+-		// SEE pruning for bad captures in main search
+-		// Skip obviously losing captures at low depths (not in PV, not TT move).
+-		// legalTried > 0 guard (F1): never prune before one legal move is searched.
+-		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 && move.IsCapture() && move != ttMove && legalTried > 0 {
+-			// Skip the full swap when the capture is provably non-losing (SEE >= 0 > -100).
+-			if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < -100 { // losing more than a pawn
+-				info.SEECapPrunes++
++			// Check time before evaluating each move (now cheap to call). A stopped node
++			// returns like every other stop site: its partial result must not reach the
++			// TT or correction history.
++			if info.TimeManager != nil && info.TimeManager.ShouldStopSearch(depth) {
++				info.Stopped = true
++				result = stoppedSearchScore
++				goto searchComplete
++			}
++
++			// Futility pruning - skip quiet moves if position is hopeless (but never prune
++			// the TT move or ANY promotion — a promotion is forcing and material-changing, beyond any
++			// futility margin, so the "this quiet move can't reach alpha" premise is false).
++			// legalTried > 0 guard (F1): never prune before a single legal move has been
++			// searched, else a node whose every move is futile prunes them all, hits
++			// legalTried==0, and returns 0 (false stalemate) instead of the true fail-low.
++			// W1 exemptions: never futility-prune killers or the counter-move. At the
++			// d3 reach these rarely mattered, but extending to d8 prunes quiet
++			// maneuvering moves that hold alpha on closed positions — pruning a killer/
++			// counter there fails the node low and triggers a re-search (the closed-
++			// position tree inflation the EBF probe flagged). Keep searching them.
++			if futilityPrune && !move.IsCapture() && move != ttMove && move.PromoType() == NoType && legalTried > 0 &&
++				!info.history.IsKillerMove(move, ply) && move != info.history.GetCounterMove(info.history.GetLastMovePlayed()) {
++				info.FutilityPrunes++
+ 				continue
+ 			}
+-		}
+ 
+-		// SEE pruning of QUIET moves: at shallow depth, skip a quiet move whose
+-		// piece can be captured on its destination for a net material loss (a
+-		// "soft hang"). Threshold scales with depth so deeper nodes prune only
+-		// larger losses. Exclude the TT move, promotions (tactical), and king
+-		// moves — the king's infinite SEE weight poisons the swap, and a pinned
+-		// enemy "attacker" of a king square may not be a legal capture.
+-		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 &&
+-			!move.IsCapture() && move != ttMove && move.PromoType() == NoType && legalTried > 0 {
+-			if mp := move.MovingPiece(); mp != WhiteKing && mp != BlackKing {
+-				if staticExchangeEvaluation(pos, move) < -80*depth {
+-					info.SEEQuietPrunes++
++			// Late Move Pruning (LMP) - skip very late quiet moves at low depths
++			// Only apply in non-PV nodes, not in check, and for quiet moves
++			// Use legalTried (not moveCount) since moveCount includes illegal moves
++			if SearchToggles.LMP && !isPV && !inCheck && depth > 0 && depth < 9 &&
++				!move.IsCapture() && move.PromoType() == NoType && move != ttMove && legalTried > 0 {
++				threshold := lmpThresholdFor(depth, improving)
++				if legalTried > threshold {
++					info.LMPPrunes++
+ 					continue
+ 				}
+ 			}
+-		}
+ 
+-		// History pruning: skip quiet moves with very bad history at low depths
+-		if SearchToggles.HistPrune && !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move.PromoType() == NoType && move != ttMove {
+-			histScore := info.history.GetHistoryScore(move, info.history.GetLastMovePlayed(), prev2)
+-			if histScore < -1000 && legalTried > 3 { // Very bad history and not early move
+-				info.HistPrunes++
+-				continue
++			// SEE pruning for bad captures in main search
++			// Skip obviously losing captures at low depths (not in PV, not TT move).
++			// legalTried > 0 guard (F1): never prune before one legal move is searched.
++			if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 && move.IsCapture() && move != ttMove && legalTried > 0 {
++				// Skip the full swap when the capture is provably non-losing (SEE >= 0 > -100).
++				if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < -100 { // losing more than a pawn
++					info.SEECapPrunes++
++					continue
++				}
+ 			}
+-		}
+ 
+-		// MakeMove alone cannot validate castling: its rook relocation can shield an
+-		// attack on the king's original square. Validate the complete path first.
+-		if move.IsCastle() && !isLegalCastle(pos, move) {
+-			continue
+-		}
+-
+-		// Capture the predecessor move (the one that brought us into this node)
+-		// so children see the correct lastMovePlayed for counter-move lookups,
+-		// and extension logic uses the true parent move.
+-		savedLast := info.history.GetLastMovePlayed()
+-		evalMove := info.evaluator.mustPrepareMove(pos, move)
+-		ep, tag, hc, _ := pos.MakeMove(move)
+-		movingColor := move.MovingPiece().Color()
+-		if isInCheck(pos, movingColor) {
+-			pos.UnMakeMove(move, tag, ep, hc)
+-			continue
+-		}
+-		info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
+-		info.history.SetLastMovePlayed(move)
+-		info.MoveStack[ply] = move
+-		legalTried++
+-
+-		// Track quiet moves for history penalization
+-		if !move.IsCapture() && move.PromoType() == NoType && searchedQuietCount < 64 {
+-			searchedQuiets[searchedQuietCount] = move
+-			searchedQuietCount++
+-		}
+-		if h1NewHistoryProducer && h1QuietMove(move) {
+-			h1AppendCompletedQuiet(&frame.completedHistoryQuiets, &completedHistoryQuietCount, move)
+-		}
+-		// Track captures for capture-history penalization
+-		if move.IsCapture() && searchedCaptureCount < 64 {
+-			searchedCaptures[searchedCaptureCount] = move
+-			searchedCaptureCount++
+-		}
+-
+-		// Refined Check Extension logic - balance tactical strength with performance.
+-		// givesCheck == "is the side now to move in check" == exactly what makeMoveHelper
+-		// already computed and cached in the InCheck tag (position.go:263), so read the
+-		// cached tag instead of rescanning the board (N2, node-identical).
+-		givesCheck := pos.IsInCheck()
+-
+-		// Compute next depth with check extension
+-		nextDepth := depth - 1
+-		if givesCheck && depth > 1 {
+-			nextDepth++
+-			info.CheckExtensions++
+-		}
+-
+-		// A9: recapture extension REMOVED (probe). It was NGN's #1 extension source
+-		// (~14-19K/400K nodes); Counter 3.8 (2994 CCRL) ships none. Trimming it is a
+-		// simplification + tree-size cut; gated at [-5,0] non-regression on the cloud.
+-		// (savedLast is still read by the singular extension below.)
+-
+-		// Passed pawn extension: extend an actually-passed pawn pushed to the rank ONE
+-		// step from promotion (7th for White, 2nd for Black). Was 6th/7th rank, but the
+-		// 6th-rank half still extended quiet endgame pawn shuffles that storm the eg tree
+-		// (autopsy) without being immediate promotion threats; the real tactical urgency
+-		// is the about-to-queen push. pos is post-MakeMove, so the pushed pawn sits on its
+-		// destination; it is passed iff its front span is clear of enemy pawns.
+-		if move.MovingPiece().Type() == Pawn && !move.IsCapture() {
+-			dest := int(move.Destination())
+-			destRank := dest / 8
+-			color := move.MovingPiece().Color()
+-			if (color == White && destRank >= 6) || (color == Black && destRank <= 1) {
+-				var oppPawns uint64
+-				if color == White {
+-					oppPawns = pos.Board.PieceOccupancy(BlackPawn)
+-				} else {
+-					oppPawns = pos.Board.PieceOccupancy(WhitePawn)
+-				}
+-				if passedPawnFrontSpan[color][dest]&oppPawns == 0 && nextDepth+1 <= depth {
+-					nextDepth++
+-					info.PassedPawnExtensions++
++			// SEE pruning of QUIET moves: at shallow depth, skip a quiet move whose
++			// piece can be captured on its destination for a net material loss (a
++			// "soft hang"). Threshold scales with depth so deeper nodes prune only
++			// larger losses. Exclude the TT move, promotions (tactical), and king
++			// moves — the king's infinite SEE weight poisons the swap, and a pinned
++			// enemy "attacker" of a king square may not be a legal capture.
++			if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 &&
++				!move.IsCapture() && move != ttMove && move.PromoType() == NoType && legalTried > 0 {
++				if mp := move.MovingPiece(); mp != WhiteKing && mp != BlackKing {
++					if staticExchangeEvaluation(pos, move) < -80*depth {
++						info.SEEQuietPrunes++
++						continue
++					}
+ 				}
+ 			}
+-		}
+ 
+-		// Singular Extension: extend if this move is clearly the best
+-		if move == singularMove && singularMove != EmptyMove {
+-			// Unmake to do singular search at the parent position.
+-			// Restore lastMove to savedLast so the singular search (which is
+-			// evaluating other replies from the parent node) sees the correct
+-			// predecessor.
+-			info.evaluator.mustPop()
+-			pos.UnMakeMove(move, tag, ep, hc)
+-			info.history.SetLastMovePlayed(savedLast)
++			// History pruning: skip quiet moves with very bad history at low depths
++			if SearchToggles.HistPrune && !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move.PromoType() == NoType && move != ttMove {
++				histScore := info.history.GetHistoryScore(move, info.history.GetLastMovePlayed(), prev2)
++				if histScore < -1000 && legalTried > 3 { // Very bad history and not early move
++					info.HistPrunes++
++					continue
++				}
++			}
+ 
+-			singularBeta := int(ttEval) - (SINGULAR_MARGIN*depth)/32 // singular margin: tunable base SINGULAR_MARGIN (def 64 => 2*depth) depth-scaled; CG/Ethereal/Weiss converge here
+-			info.SingularTries++
+-			info.ExcludedMove = singularMove
+-			info.ExcludedPly = ply           // the verification re-searches THIS node's position
+-			singularDepth := (depth - 1) / 2 // singular-margin: half-depth verification (was depth-4), convergent
+-			if singularDepth < 1 {
+-				singularDepth = 1
+-			}
+-			// The verification search re-enters alphaBetaPV on the SAME (parent)
+-			// position with the singular move excluded. Hide this node's own
+-			// repetition-stack entry so the re-entry doesn't match its own hash
+-			// and bail out with a bogus draw (0) before doing any work.
+-			info.RepStackLen--
+-			singularScore := alphaBetaPV(pos, singularDepth, ply, singularBeta-1, singularBeta, false, true, cutNode, info)
+-			info.RepStackLen++
+-			info.ExcludedMove = EmptyMove
+-			if info.Stopped {
+-				return stoppedSearchScore
++			// MakeMove alone cannot validate castling: its rook relocation can shield an
++			// attack on the king's original square. Validate the complete path first.
++			if move.IsCastle() && !isLegalCastle(pos, move) {
++				continue
+ 			}
+ 
+-			// Re-make our move and restore the global to it for children.
+-			// The verification re-entry ran at this same ply and overwrote
+-			// MoveStack[ply] with its own moves; restore ours.
+-			ep, tag, hc, _ = pos.MakeMove(move)
++			// Capture the predecessor move (the one that brought us into this node)
++			// so children see the correct lastMovePlayed for counter-move lookups,
++			// and extension logic uses the true parent move.
++			savedLast := info.history.GetLastMovePlayed()
++			evalMove := info.evaluator.mustPrepareMove(pos, move)
++			ep, tag, hc, _ := pos.MakeMove(move)
++			movingColor := move.MovingPiece().Color()
++			if isInCheck(pos, movingColor) {
++				pos.UnMakeMove(move, tag, ep, hc)
++				continue
++			}
+ 			info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
+ 			info.history.SetLastMovePlayed(move)
+ 			info.MoveStack[ply] = move
++			legalTried++
++
++			// Track quiet moves for history penalization
++			if !move.IsCapture() && move.PromoType() == NoType && searchedQuietCount < 64 {
++				searchedQuiets[searchedQuietCount] = move
++				searchedQuietCount++
++			}
++			if h1NewHistoryProducer && h1QuietMove(move) {
++				h1AppendCompletedQuiet(&frame.completedHistoryQuiets, &completedHistoryQuietCount, move)
++			}
++			// Track captures for capture-history penalization
++			if move.IsCapture() && searchedCaptureCount < 64 {
++				searchedCaptures[searchedCaptureCount] = move
++				searchedCaptureCount++
++			}
+ 
+-			if singularScore < singularBeta {
++			// Refined Check Extension logic - balance tactical strength with performance.
++			// givesCheck == "is the side now to move in check" == exactly what makeMoveHelper
++			// already computed and cached in the InCheck tag (position.go:263), so read the
++			// cached tag instead of rescanning the board (N2, node-identical).
++			givesCheck := pos.IsInCheck()
++
++			// Compute next depth with check extension
++			nextDepth := depth - 1
++			if givesCheck && depth > 1 {
+ 				nextDepth++
+-				info.SingularExtensions++
+-			} else if !isPV && ttEval >= beta {
+-				// Singular-neg-ext (W-SE2): the verification failed high — another move
+-				// also reached singularBeta — and the TT eval already exceeds beta, so
+-				// this is very likely a multi-good-move cut-node. Shave a ply instead of
+-				// searching full depth (multicut-LITE; the return-beta multicut stays
+-				// rejected, the A3 lesson). Non-PV only — never reduce a PV node.
+-				nextDepth--
+-			}
+-		}
+-
+-		if nextDepth > depth+1 {
+-			// Guardrail: limit extensions to at most +1 beyond current depth
+-			nextDepth = depth + 1
+-		}
+-
+-		// Per-path extension budget (anti-explosion). The per-node guardrail above
+-		// caps a single node at +1, but a check extension only RESTORES the decrement
+-		// (nextDepth == depth), so a non-decaying checking line keeps depth flat and
+-		// can recurse toward MaximumDepth (the seldepth-111, ~20x-node explosion).
+-		// Bound the CUMULATIVE net extension on this root-to-leaf path: the child's
+-		// extensions == nextDepth + (ply+1) - RootDepth, so cap nextDepth to keep that
+-		// <= EXTENSION_BUDGET. Once the budget is spent, checks decrement normally and
+-		// the line terminates. Generous enough to leave normal tactical search
+-		// untouched (verified node-identical on Kiwipete d10-12), finite enough that
+-		// the C4/C5 LMR-rescan vectors can no longer recurse without bound.
+-		if maxNextDepth := info.RootDepth - (ply + 1) + EXTENSION_BUDGET; nextDepth > maxNextDepth {
+-			nextDepth = maxNextDepth
+-			info.ExtBudgetClamps++
+-		}
+-
+-		var score int
+-
+-		// Enhanced Principal Variation Search (PVS) with PV-node optimization
+-		if legalTried == 1 {
+-			// First move: search with full window and PV flag
+-			score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, !isPV && !cutNode, info)
+-		} else {
+-			// Non-first moves: enhanced PVS with PV-aware reductions
+-
+-			// PV-aware Late Move Reductions (use legalTried, not moveCount which includes illegal moves)
+-			reduction := 0
+-			if SearchToggles.LMR && depth >= LMR_FULL_DEPTH && legalTried > LMR_MOVE_THRESHOLD &&
+-				!move.IsCapture() && move.PromoType() == NoType && !inCheck && !givesCheck {
+-
+-				// Stockfish-style log-based base reduction; non-PV gets +1
+-				d := depth
+-				if d > 63 {
+-					d = 63
+-				}
+-				m := legalTried
+-				if m > 63 {
+-					m = 63
+-				}
+-				reduction = lmrTable[d][m]
+-				if !isPV {
+-					reduction++
+-				}
+-
+-				// Reduce one less ply when our position is improving.
+-				if !improving {
+-					reduction++
+-				}
+-				// History-based LMR adjustment:
+-				// Reduce more for moves with bad history, less for moves with good history
+-				histScore := info.history.GetHistoryScore(move, savedLast, prev2)
+-				if h1NormalizedLMRConsumer {
+-					reduction += h1NormalizedLMRTerm(histScore)
+-				} else if histScore < -500 {
+-					reduction++ // Bad history = reduce more
+-				} else if histScore > 1000 {
+-					reduction-- // Good history = reduce less
+-				}
+-				if reduction < 0 {
+-					reduction = 0
+-				}
+-
+-				// T19: reduce less at nodes that have ever been PV. NGN's FMC is ~84%
+-				// vs elite ~90% and T3a proved ADDING reduction hurts here, so this
+-				// moves with the measured weakness rather than against it.
+-				if nodeTTPv {
+-					reduction--
+-					if reduction < 0 {
+-						reduction = 0
++				info.CheckExtensions++
++			}
++
++			// A9: recapture extension REMOVED (probe). It was NGN's #1 extension source
++			// (~14-19K/400K nodes); Counter 3.8 (2994 CCRL) ships none. Trimming it is a
++			// simplification + tree-size cut; gated at [-5,0] non-regression on the cloud.
++			// (savedLast is still read by the singular extension below.)
++
++			// Passed pawn extension: extend an actually-passed pawn pushed to the rank ONE
++			// step from promotion (7th for White, 2nd for Black). Was 6th/7th rank, but the
++			// 6th-rank half still extended quiet endgame pawn shuffles that storm the eg tree
++			// (autopsy) without being immediate promotion threats; the real tactical urgency
++			// is the about-to-queen push. pos is post-MakeMove, so the pushed pawn sits on its
++			// destination; it is passed iff its front span is clear of enemy pawns.
++			if move.MovingPiece().Type() == Pawn && !move.IsCapture() {
++				dest := int(move.Destination())
++				destRank := dest / 8
++				color := move.MovingPiece().Color()
++				if (color == White && destRank >= 6) || (color == Black && destRank <= 1) {
++					var oppPawns uint64
++					if color == White {
++						oppPawns = pos.Board.PieceOccupancy(BlackPawn)
++					} else {
++						oppPawns = pos.Board.PieceOccupancy(WhitePawn)
+ 					}
+-				}
+-
+-				// Killer move reduction adjustment - don't reduce killer moves as much
+-				if info.history.IsKillerMove(move, ply) {
+-					reduction-- // Reduce less for killer moves
+-					if reduction < 0 {
+-						reduction = 0
++					if passedPawnFrontSpan[color][dest]&oppPawns == 0 && nextDepth+1 <= depth {
++						nextDepth++
++						info.PassedPawnExtensions++
+ 					}
+ 				}
++			}
++
++			// Singular Extension: extend if this move is clearly the best
++			if move == singularMove && singularMove != EmptyMove {
++				// Unmake to do singular search at the parent position.
++				// Restore lastMove to savedLast so the singular search (which is
++				// evaluating other replies from the parent node) sees the correct
++				// predecessor.
++				info.evaluator.mustPop()
++				pos.UnMakeMove(move, tag, ep, hc)
++				info.history.SetLastMovePlayed(savedLast)
+ 
+-				// Cap maximum reduction
+-				if reduction >= depth-1 {
+-					reduction = depth - 2
++				singularBeta := int(ttEval) - (SINGULAR_MARGIN*depth)/32 // singular margin: tunable base SINGULAR_MARGIN (def 64 => 2*depth) depth-scaled; CG/Ethereal/Weiss converge here
++				info.SingularTries++
++				info.ExcludedMove = singularMove
++				info.ExcludedPly = ply           // the verification re-searches THIS node's position
++				singularDepth := (depth - 1) / 2 // singular-margin: half-depth verification (was depth-4), convergent
++				if singularDepth < 1 {
++					singularDepth = 1
+ 				}
+-				if reduction < 0 {
+-					reduction = 0
++				// The verification search re-enters alphaBetaPV on the SAME (parent)
++				// position with the singular move excluded. Hide this node's own
++				// repetition-stack entry so the re-entry doesn't match its own hash
++				// and bail out with a bogus draw (0) before doing any work.
++				info.RepStackLen--
++				singularScore := alphaBetaPV(pos, singularDepth, ply, singularBeta-1, singularBeta, false, true, cutNode, info)
++				info.RepStackLen++
++				info.ExcludedMove = EmptyMove
++				if info.Stopped {
++					result = stoppedSearchScore
++					goto searchComplete
+ 				}
+-				// Track LMR usage
+-				if reduction > 0 {
+-					info.LMRReductions++
+-					info.LMRPliesSum += uint64(reduction)
++
++				// Re-make our move and restore the global to it for children.
++				// The verification re-entry ran at this same ply and overwrote
++				// MoveStack[ply] with its own moves; restore ours.
++				ep, tag, hc, _ = pos.MakeMove(move)
++				info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
++				info.history.SetLastMovePlayed(move)
++				info.MoveStack[ply] = move
++
++				if singularScore < singularBeta {
++					nextDepth++
++					info.SingularExtensions++
++				} else if !isPV && ttEval >= beta {
++					// Singular-neg-ext (W-SE2): the verification failed high — another move
++					// also reached singularBeta — and the TT eval already exceeds beta, so
++					// this is very likely a multi-good-move cut-node. Shave a ply instead of
++					// searching full depth (multicut-LITE; the return-beta multicut stays
++					// rejected, the A3 lesson). Non-PV only — never reduce a PV node.
++					nextDepth--
+ 				}
+ 			}
+ 
+-			// Compute reduced depth (check extension already applied via nextDepth)
+-			reducedDepth := depth - 1 - reduction
+-			if reducedDepth >= depth {
+-				reducedDepth = depth - 1 - reduction
++			if nextDepth > depth+1 {
++				// Guardrail: limit extensions to at most +1 beyond current depth
++				nextDepth = depth + 1
+ 			}
+ 
+-			// Search with null window first (not PV)
+-			info.NullWindowScouts++
+-			score = -alphaBetaPV(pos, reducedDepth, ply+1, -alpha-1, -alpha, false, true, true, info)
+-			if info.Stopped {
+-				info.evaluator.mustPop()
+-				pos.UnMakeMove(move, tag, ep, hc)
+-				info.history.SetLastMovePlayed(savedLast)
+-				return stoppedSearchScore
+-			}
+-
+-			// LMR re-search (C4): a reduced search that beats alpha may have
+-			// under-counted the move, so re-verify it at full depth with the null
+-			// window. This must NOT be gated by score<beta — in a non-PV node
+-			// beta==alpha+1, so that guard was never satisfiable and reduced fail-highs
+-			// went UNVERIFIED in ~99% of the tree (reduced cutoffs taken on faith, and
+-			// the check extension in nextDepth never actually applied off the PV). The
+-			// per-path extension budget bounds the check recursion this re-search opens.
+-			if reduction > 0 && score > alpha {
+-				info.LMRReSearches++
+-				score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, true, !cutNode, info)
+-				if info.Stopped {
+-					info.evaluator.mustPop()
+-					pos.UnMakeMove(move, tag, ep, hc)
+-					info.history.SetLastMovePlayed(savedLast)
+-					return stoppedSearchScore
+-				}
++			// Per-path extension budget (anti-explosion). The per-node guardrail above
++			// caps a single node at +1, but a check extension only RESTORES the decrement
++			// (nextDepth == depth), so a non-decaying checking line keeps depth flat and
++			// can recurse toward MaximumDepth (the seldepth-111, ~20x-node explosion).
++			// Bound the CUMULATIVE net extension on this root-to-leaf path: the child's
++			// extensions == nextDepth + (ply+1) - RootDepth, so cap nextDepth to keep that
++			// <= EXTENSION_BUDGET. Once the budget is spent, checks decrement normally and
++			// the line terminates. Generous enough to leave normal tactical search
++			// untouched (verified node-identical on Kiwipete d10-12), finite enough that
++			// the C4/C5 LMR-rescan vectors can no longer recurse without bound.
++			if maxNextDepth := info.RootDepth - (ply + 1) + EXTENSION_BUDGET; nextDepth > maxNextDepth {
++				nextDepth = maxNextDepth
++				info.ExtBudgetClamps++
+ 			}
+-			// PVS full-window re-search: only a PV node has a window wider than the null
+-			// window, so only there does an in-window score need its exact value.
+-			if isPV && score > alpha && score < beta {
+-				info.PVReSearches++
+-				score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, false, info)
++
++			var score int
++
++			// Enhanced Principal Variation Search (PVS) with PV-node optimization
++			if legalTried == 1 {
++				// First move: search with full window and PV flag
++				score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, !isPV && !cutNode, info)
++			} else {
++				// Non-first moves: enhanced PVS with PV-aware reductions
++
++				// PV-aware Late Move Reductions (use legalTried, not moveCount which includes illegal moves)
++				reduction := 0
++				if SearchToggles.LMR && depth >= LMR_FULL_DEPTH && legalTried > LMR_MOVE_THRESHOLD &&
++					!move.IsCapture() && move.PromoType() == NoType && !inCheck && !givesCheck {
++
++					// Stockfish-style log-based base reduction; non-PV gets +1
++					d := depth
++					if d > 63 {
++						d = 63
++					}
++					m := legalTried
++					if m > 63 {
++						m = 63
++					}
++					reduction = lmrTable[d][m]
++					if !isPV {
++						reduction++
++					}
++
++					// Reduce one less ply when our position is improving.
++					if !improving {
++						reduction++
++					}
++					// History-based LMR adjustment:
++					// Reduce more for moves with bad history, less for moves with good history
++					histScore := info.history.GetHistoryScore(move, savedLast, prev2)
++					if h1NormalizedLMRConsumer {
++						reduction += h1NormalizedLMRTerm(histScore)
++					} else if histScore < -500 {
++						reduction++ // Bad history = reduce more
++					} else if histScore > 1000 {
++						reduction-- // Good history = reduce less
++					}
++					if reduction < 0 {
++						reduction = 0
++					}
++
++					// T19: reduce less at nodes that have ever been PV. NGN's FMC is ~84%
++					// vs elite ~90% and T3a proved ADDING reduction hurts here, so this
++					// moves with the measured weakness rather than against it.
++					if nodeTTPv {
++						reduction--
++						if reduction < 0 {
++							reduction = 0
++						}
++					}
++
++					// Killer move reduction adjustment - don't reduce killer moves as much
++					if info.history.IsKillerMove(move, ply) {
++						reduction-- // Reduce less for killer moves
++						if reduction < 0 {
++							reduction = 0
++						}
++					}
++
++					// Cap maximum reduction
++					if reduction >= depth-1 {
++						reduction = depth - 2
++					}
++					if reduction < 0 {
++						reduction = 0
++					}
++					// Track LMR usage
++					if reduction > 0 {
++						info.LMRReductions++
++						info.LMRPliesSum += uint64(reduction)
++					}
++				}
++
++				// Compute reduced depth (check extension already applied via nextDepth)
++				reducedDepth := depth - 1 - reduction
++				if reducedDepth >= depth {
++					reducedDepth = depth - 1 - reduction
++				}
++
++				// Search with null window first (not PV)
++				info.NullWindowScouts++
++				score = -alphaBetaPV(pos, reducedDepth, ply+1, -alpha-1, -alpha, false, true, true, info)
+ 				if info.Stopped {
+ 					info.evaluator.mustPop()
+ 					pos.UnMakeMove(move, tag, ep, hc)
+ 					info.history.SetLastMovePlayed(savedLast)
+-					return stoppedSearchScore
++					result = stoppedSearchScore
++					goto searchComplete
+ 				}
+-			}
+-		}
+ 
+-		info.evaluator.mustPop()
++				// LMR re-search (C4): a reduced search that beats alpha may have
++				// under-counted the move, so re-verify it at full depth with the null
++				// window. This must NOT be gated by score<beta — in a non-PV node
++				// beta==alpha+1, so that guard was never satisfiable and reduced fail-highs
++				// went UNVERIFIED in ~99% of the tree (reduced cutoffs taken on faith, and
++				// the check extension in nextDepth never actually applied off the PV). The
++				// per-path extension budget bounds the check recursion this re-search opens.
++				if reduction > 0 && score > alpha {
++					info.LMRReSearches++
++					score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, true, !cutNode, info)
++					if info.Stopped {
++						info.evaluator.mustPop()
++						pos.UnMakeMove(move, tag, ep, hc)
++						info.history.SetLastMovePlayed(savedLast)
++						result = stoppedSearchScore
++						goto searchComplete
++					}
++				}
++				// PVS full-window re-search: only a PV node has a window wider than the null
++				// window, so only there does an in-window score need its exact value.
++				if isPV && score > alpha && score < beta {
++					info.PVReSearches++
++					score = -alphaBetaPV(pos, nextDepth, ply+1, -beta, -alpha, isPV, true, false, info)
++					if info.Stopped {
++						info.evaluator.mustPop()
++						pos.UnMakeMove(move, tag, ep, hc)
++						info.history.SetLastMovePlayed(savedLast)
++						result = stoppedSearchScore
++						goto searchComplete
++					}
++				}
++			}
+ 
+-		pos.UnMakeMove(move, tag, ep, hc)
+-		// Restore predecessor for the next sibling (and for the caller if we
+-		// return via a beta cutoff or loop exit below).
+-		info.history.SetLastMovePlayed(savedLast)
+-		if info.Stopped {
+-			return stoppedSearchScore
+-		}
+-		if !info.countNode() {
+-			return stoppedSearchScore
+-		}
++			info.evaluator.mustPop()
+ 
+-		if score > bestScore {
+-			bestScore = score
+-			bestMove = move
+-		}
++			pos.UnMakeMove(move, tag, ep, hc)
++			// Restore predecessor for the next sibling (and for the caller if we
++			// return via a beta cutoff or loop exit below).
++			info.history.SetLastMovePlayed(savedLast)
++			if info.Stopped {
++				result = stoppedSearchScore
++				goto searchComplete
++			}
++			if !info.countNode() {
++				result = stoppedSearchScore
++				goto searchComplete
++			}
+ 
+-		if score >= beta {
+-			if h1NewHistoryProducer {
+-				info.history.h1UpdateCompletedNode(
+-					h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
+-					bestMove,
+-					savedLast,
+-					prev2,
+-					depth,
+-					origAlpha,
+-					bestScore,
+-				)
++			if score > bestScore {
++				bestScore = score
++				bestMove = move
+ 			}
+-			info.BetaCutoffs++
+-			if legalTried == 1 {
+-				info.FirstMoveCutoffs++
+-			}
+-			// EBF-attribution: cut-index histogram, depth bands, and cut-move class.
+-			// Classified BEFORE the killer/counter updates below so the labels read
+-			// the tables as ordering saw them (still approximate — child searches
+-			// mutate them — exact for TT/capture/promo).
+-			switch {
+-			case legalTried <= 3:
+-				info.CutIdxHist[legalTried-1]++
+-			case legalTried <= 7:
+-				info.CutIdxHist[3]++
+-			default:
+-				info.CutIdxHist[4]++
+-			}
+-			info.CutTriedSum += uint64(legalTried)
+-			db := depthBand(depth)
+-			info.BcutBand[db]++
+-			if legalTried == 1 {
+-				info.FmcBand[db]++
+-			}
+-			var cutClass int
+-			switch {
+-			case ttHit && move == ttMove:
+-				cutClass = 0
+-				info.CutByTT++
+-			case move.IsCapture():
+-				cutClass = 1
+-				info.CutByCapture++
+-			case move.PromoType() != NoType:
+-				cutClass = 2
+-				info.CutByPromo++
+-			case info.history.IsKillerMove(move, ply):
+-				cutClass = 3
+-				info.CutByKiller++
+-			case move == info.history.GetCounterMove(savedLast):
+-				cutClass = 4
+-				info.CutByCounter++
+-			default:
+-				cutClass = 5
+-				info.CutByQuietHist++
+-			}
+-			// Among NON-first cutoffs (the ordering misses), record what class
+-			// of move actually deserved to be first, by how late it landed.
+-			// Diagnostic only — never read by search (node-identity preserved).
+-			if legalTried >= 2 {
+-				band := 2
+-				if legalTried == 2 {
+-					band = 0
+-				} else if legalTried == 3 {
+-					band = 1
+-				}
+-				info.CutMissByClass[cutClass][band]++
+-			}
+-			// Policy 00/01 retain cutoff-only gravity history. Policy 10/11 has
+-			// already applied the completed-winner response exactly once above.
+-			if !h1NewHistoryProducer {
+-				info.history.UpdateHistoryTable(move, savedLast, prev2, depth)
+-			}
+-			// Update killer moves for quiet moves that cause beta cutoffs
+-			info.history.UpdateKillerMoves(move, ply)
+-			// Counter move: the cutoff move is a good reply to savedLast,
+-			// the move that actually brought us into this node.
+-			info.history.UpdateCounterMove(move, savedLast)
+-
+-			// Penalize all quiet moves that were tried but didn't cause the cutoff
+-			if !h1NewHistoryProducer {
+-				for i := 0; i < searchedQuietCount; i++ {
+-					quietMove := searchedQuiets[i]
+-					if quietMove != move {
+-						info.history.PenalizeHistoryTable(quietMove, savedLast, prev2, depth)
++
++			if score >= beta {
++				if h1NewHistoryProducer {
++					info.history.h1UpdateCompletedNode(
++						h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
++						bestMove,
++						savedLast,
++						prev2,
++						depth,
++						origAlpha,
++						bestScore,
++					)
++				}
++				info.BetaCutoffs++
++				if legalTried == 1 {
++					info.FirstMoveCutoffs++
++				}
++				// EBF-attribution: cut-index histogram, depth bands, and cut-move class.
++				// Classified BEFORE the killer/counter updates below so the labels read
++				// the tables as ordering saw them (still approximate — child searches
++				// mutate them — exact for TT/capture/promo).
++				switch {
++				case legalTried <= 3:
++					info.CutIdxHist[legalTried-1]++
++				case legalTried <= 7:
++					info.CutIdxHist[3]++
++				default:
++					info.CutIdxHist[4]++
++				}
++				info.CutTriedSum += uint64(legalTried)
++				db := depthBand(depth)
++				info.BcutBand[db]++
++				if legalTried == 1 {
++					info.FmcBand[db]++
++				}
++				var cutClass int
++				switch {
++				case ttHit && move == ttMove:
++					cutClass = 0
++					info.CutByTT++
++				case move.IsCapture():
++					cutClass = 1
++					info.CutByCapture++
++				case move.PromoType() != NoType:
++					cutClass = 2
++					info.CutByPromo++
++				case info.history.IsKillerMove(move, ply):
++					cutClass = 3
++					info.CutByKiller++
++				case move == info.history.GetCounterMove(savedLast):
++					cutClass = 4
++					info.CutByCounter++
++				default:
++					cutClass = 5
++					info.CutByQuietHist++
++				}
++				// Among NON-first cutoffs (the ordering misses), record what class
++				// of move actually deserved to be first, by how late it landed.
++				// Diagnostic only — never read by search (node-identity preserved).
++				if legalTried >= 2 {
++					band := 2
++					if legalTried == 2 {
++						band = 0
++					} else if legalTried == 3 {
++						band = 1
++					}
++					info.CutMissByClass[cutClass][band]++
++				}
++				// Policy 00/01 retain cutoff-only gravity history. Policy 10/11 has
++				// already applied the completed-winner response exactly once above.
++				if !h1NewHistoryProducer {
++					info.history.UpdateHistoryTable(move, savedLast, prev2, depth)
++				}
++				// Update killer moves for quiet moves that cause beta cutoffs
++				info.history.UpdateKillerMoves(move, ply)
++				// Counter move: the cutoff move is a good reply to savedLast,
++				// the move that actually brought us into this node.
++				info.history.UpdateCounterMove(move, savedLast)
++
++				// Penalize all quiet moves that were tried but didn't cause the cutoff
++				if !h1NewHistoryProducer {
++					for i := 0; i < searchedQuietCount; i++ {
++						quietMove := searchedQuiets[i]
++						if quietMove != move {
++							info.history.PenalizeHistoryTable(quietMove, savedLast, prev2, depth)
++						}
+ 					}
+ 				}
+-			}
+ 
+-			// Capture history: reward a cutting capture, penalize tried captures that
+-			// didn't cut (whether the cutoff move was a capture or a quiet).
+-			if move.IsCapture() {
+-				info.history.UpdateCaptureHistory(move, depth)
+-			}
+-			for i := 0; i < searchedCaptureCount; i++ {
+-				if searchedCaptures[i] != move {
+-					info.history.PenalizeCaptureHistory(searchedCaptures[i], depth)
++				// Capture history: reward a cutting capture, penalize tried captures that
++				// didn't cut (whether the cutoff move was a capture or a quiet).
++				if move.IsCapture() {
++					info.history.UpdateCaptureHistory(move, depth)
+ 				}
++				for i := 0; i < searchedCaptureCount; i++ {
++					if searchedCaptures[i] != move {
++						info.history.PenalizeCaptureHistory(searchedCaptures[i], depth)
++					}
++				}
++
++				// Learn the pawn-structure + non-pawn + minor corrections from this fail-high before returning.
++				info.history.maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
++				info.history.maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
++				info.history.maybeUpdateMinorCorrection(stm, minorCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
++
++				// Store in transposition table as Lower Bound (Cut-Node). Skip at the
++				// singular verification root: its result is a move-excluded search and
++				// would corrupt the real entry for this position.
++				if !inSingular {
++					info.tt.Set(hash, move, scoreToTT(score, ply), int8(depth), LowerBound, nodeTTPv)
++				}
++				result = score
++				goto searchComplete
++			}
++
++			if score > alpha {
++				alpha = score
+ 			}
++		}
+ 
+-			// Learn the pawn-structure + non-pawn + minor corrections from this fail-high before returning.
++		// Check for checkmate/stalemate: no legal moves were found
++		if legalTried == 0 {
++			if inCheck {
++				// Checkmate - distance from root is `ply` directly.
++				mateDistance := ply
++				if mateDistance > 1000 {
++					mateDistance = 1000
++				}
++				result = -MATE_VALUE + mateDistance
++				goto searchComplete
++			}
++			// Stalemate is a draw
++			result = 0
++			goto searchComplete
++		}
++
++		if h1NewHistoryProducer && !info.Stopped {
++			info.history.h1UpdateCompletedNode(
++				h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
++				bestMove,
++				info.history.GetLastMovePlayed(),
++				prev2,
++				depth,
++				origAlpha,
++				bestScore,
++			)
++		}
++
++		// Learn the pawn-structure + non-pawn + minor corrections from the completed search of this node.
++		// A fail-low with one move excluded is not an upper bound for the ordinary
++		// position. Fail-high learning above remains valid: a restricted lower
++		// bound is also a lower bound for the full move set.
++		if !inSingular {
+ 			info.history.maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+ 			info.history.maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+ 			info.history.maybeUpdateMinorCorrection(stm, minorCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+-
+-			// Store in transposition table as Lower Bound (Cut-Node). Skip at the
+-			// singular verification root: its result is a move-excluded search and
+-			// would corrupt the real entry for this position.
+-			if !inSingular {
+-				info.tt.Set(hash, move, scoreToTT(score, ply), int8(depth), LowerBound, nodeTTPv)
+-			}
+-			return score
+ 		}
+ 
+-		if score > alpha {
+-			alpha = score
++		// Store in transposition table
++		var nodeType NodeType
++		if bestScore <= origAlpha {
++			// No move improved alpha - Upper Bound (All-Node)
++			nodeType = UpperBound
++			info.AllNodes++
++			info.AllTriedSum += uint64(legalTried)
++		} else {
++			// Best move improved alpha - Exact (PV-Node)
++			nodeType = Exact
++			info.PVNodesExact++
+ 		}
+-	}
+ 
+-	// Check for checkmate/stalemate: no legal moves were found
+-	if legalTried == 0 {
+-		if inCheck {
+-			// Checkmate - distance from root is `ply` directly.
+-			mateDistance := ply
+-			if mateDistance > 1000 {
+-				mateDistance = 1000
+-			}
+-			return -MATE_VALUE + mateDistance
++		// Skip the store at the singular verification root (move-excluded result must
++		// not overwrite the real entry for this position).
++		if !inSingular {
++			info.tt.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType, nodeTTPv)
+ 		}
+-		// Stalemate is a draw
+-		return 0
++		result = bestScore
++		goto searchComplete
+ 	}
+-
+-	if h1NewHistoryProducer && !info.Stopped {
+-		info.history.h1UpdateCompletedNode(
+-			h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
+-			bestMove,
+-			info.history.GetLastMovePlayed(),
+-			prev2,
+-			depth,
+-			origAlpha,
+-			bestScore,
+-		)
+-	}
+-
+-	// Learn the pawn-structure + non-pawn + minor corrections from the completed search of this node.
+-	// A fail-low with one move excluded is not an upper bound for the ordinary
+-	// position. Fail-high learning above remains valid: a restricted lower
+-	// bound is also a lower bound for the full move set.
+-	if !inSingular {
+-		info.history.maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+-		info.history.maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+-		info.history.maybeUpdateMinorCorrection(stm, minorCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+-	}
+-
+-	// Store in transposition table
+-	var nodeType NodeType
+-	if bestScore <= origAlpha {
+-		// No move improved alpha - Upper Bound (All-Node)
+-		nodeType = UpperBound
+-		info.AllNodes++
+-		info.AllTriedSum += uint64(legalTried)
+-	} else {
+-		// Best move improved alpha - Exact (PV-Node)
+-		nodeType = Exact
+-		info.PVNodesExact++
+-	}
+-
+-	// Skip the store at the singular verification root (move-excluded result must
+-	// not overwrite the real entry for this position).
+-	if !inSingular {
+-		info.tt.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType, nodeTTPv)
+-	}
+-	return bestScore
++searchComplete:
++	return result
+ }
+ 
+ // depthBand buckets remaining depth for the EBF-attribution counters:
+@@ -2514,37 +2544,180 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
+ 		info.RepStackLen++
+ 	}
+ 	defer func() { info.FrameDepth--; info.RepStackLen = savedRepLen }()
+-	var qframe *searchFrame
+-	if info.Frames != nil && qframeIdx < len(info.Frames) {
+-		qframe = &info.Frames[qframeIdx]
+-	} else {
+-		qframe = new(searchFrame)
+-	}
++	// One normal epilogue lets Go open-code the defer instead of dispatching it
++	// through the runtime at every recursive return; panic unwinding is retained.
++	var result int
++	{
++		var qframe *searchFrame
++		if info.Frames != nil && qframeIdx < len(info.Frames) {
++			qframe = &info.Frames[qframeIdx]
++		} else {
++			qframe = new(searchFrame)
++		}
++
++		// In-check branch: must search all evasions, stand-pat is illegal here.
++		if inCheck {
++			moveBuffer := qframe.moveBuffer[:]
++			moveCount := GenerateMovesIntoBuffer(pos, moveBuffer)
++
++			// Move ttMove to the front if it's among the legal moves. Cheap O(n)
++			// pass that pays off when the TT suggestion produces an early cutoff.
++			if ttMove != EmptyMove {
++				for i := 0; i < moveCount; i++ {
++					if moveBuffer[i] == ttMove {
++						moveBuffer[0], moveBuffer[i] = moveBuffer[i], moveBuffer[0]
++						break
++					}
++				}
++			}
+ 
+-	// In-check branch: must search all evasions, stand-pat is illegal here.
+-	if inCheck {
+-		moveBuffer := qframe.moveBuffer[:]
+-		moveCount := GenerateMovesIntoBuffer(pos, moveBuffer)
++			bestScore := -INFINITY
++			legalMoves := 0
+ 
+-		// Move ttMove to the front if it's among the legal moves. Cheap O(n)
+-		// pass that pays off when the TT suggestion produces an early cutoff.
+-		if ttMove != EmptyMove {
+ 			for i := 0; i < moveCount; i++ {
+-				if moveBuffer[i] == ttMove {
+-					moveBuffer[0], moveBuffer[i] = moveBuffer[i], moveBuffer[0]
+-					break
++				move := moveBuffer[i]
++				if move.IsCastle() && !isLegalCastle(pos, move) {
++					continue
+ 				}
++				evalMove := info.evaluator.mustPrepareMove(pos, move)
++				ep, tag, hc, _ := pos.MakeMove(move)
++				if isInCheck(pos, move.MovingPiece().Color()) {
++					pos.UnMakeMove(move, tag, ep, hc)
++					continue
++				}
++				info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
++				legalMoves++
++
++				score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
++				info.evaluator.mustPop()
++				pos.UnMakeMove(move, tag, ep, hc)
++				if info.Stopped {
++					result = stoppedSearchScore
++					goto searchComplete
++				}
++
++				if score > bestScore {
++					bestScore = score
++				}
++				if score >= beta {
++					info.QBetaCutoffs++
++					result = beta
++					goto searchComplete
++				}
++				if score > alpha {
++					alpha = score
++				}
++			}
++
++			if legalMoves == 0 {
++				// Checkmate at this node — distance from root is `ply` directly.
++				// Earlier code used info.Depth + qDepth, which was wrong because
++				// info.Depth is the last completed iteration depth, not the current
++				// search distance.
++				result = -MATE_VALUE + ply
++				goto searchComplete
+ 			}
++
++			result = bestScore
++
++			goto searchComplete
+ 		}
+ 
+-		bestScore := -INFINITY
+-		legalMoves := 0
++		// Not in check. A legal pawn push proves this is not stalemate without
++		// generating every piece's moves. Fall back to the full probe when needed.
++		if !hasLegalPawnPush(pos) {
++			moveBuffer := qframe.moveBuffer[:]
++			moveCount := GenerateMovesIntoBuffer(pos, moveBuffer)
++			hasLegalMove := false
++			for i := 0; i < moveCount && !hasLegalMove; i++ {
++				move := moveBuffer[i]
++				if move.IsCastle() {
++					hasLegalMove = isLegalCastle(pos, move)
++				} else {
++					// Board-only make: this legality probe reads nothing but the board
++					// (isInCheck), so the hash/tag/clock/InCheck-tag bookkeeping of the
++					// full MakeMove — paid at EVERY horizon entry — is skipped.
++					pos.partialMakeMove(move)
++					if !isInCheck(pos, move.MovingPiece().Color()) {
++						hasLegalMove = true
++					}
++					pos.partialUnMakeMove(move)
++				}
++			}
++			if !hasLegalMove {
++				// Stalemate is a draw regardless of material balance.
++				result = 0
++				goto searchComplete
++			}
++		}
+ 
+-		for i := 0; i < moveCount; i++ {
+-			move := moveBuffer[i]
+-			if move.IsCastle() && !isLegalCastle(pos, move) {
++		// Stand-pat via the exact eval cache (qsearch re-evaluates at ~every non-check
++		// qnode and is ~42% of middlegame nodes). The lazy-margin fast-out this used to
++		// route through (evaluateLazyStandPat) is pinned dead — qsearchLazyMargin=100000
++		// means lazyFailHigh never fires — so this is value-identical; re-route through a
++		// cache-aware lazy path if that margin is ever unpinned (SHELVED 2026-06-02).
++		standPat := info.history.correctedStandPat(pos, info.evaluator)
++		if standPat >= beta {
++			info.QStandPatCuts++
++			result = beta
++			goto searchComplete
++		}
++
++		bestScore := standPat
++		bestMove := EmptyMove
++		if standPat > alpha {
++			alpha = standPat
++		}
++
++		// Captures only. Quiet checks are dropped because moveGivesCheck misses
++		// discovered, en-passant, and promotion checks; an incomplete quiet-check
++		// path is worse than captures-only at the horizon.
++		captureCount := GenerateCapturesIntoBuffer(pos, info.CaptureBuffer[:])
++		var captures [64]Move
++		copy(captures[:], (*info.CaptureBuffer)[:captureCount])
++
++		// MVV/LVA scores for an INCREMENTAL selection-sort (select-max per iter, stop at
++		// cutoff — avoids the upfront full-sort cost the void "-129" comment cited).
++		// Encoding-only (victim/attacker seeWeight, no board access); ttMove forced top.
++		var capScore [64]int
++		for i := 0; i < captureCount; i++ {
++			capScore[i] = 8*int(captures[i].CapturedPiece().seeWeight()) - int(captures[i].MovingPiece().seeWeight())
++			if captures[i] == ttMove {
++				capScore[i] = 1 << 30
++			}
++		}
++
++		for i := 0; i < captureCount; i++ {
++			// incremental selection: pull the best-scored remaining capture to i
++			best := i
++			for j := i + 1; j < captureCount; j++ {
++				if capScore[j] > capScore[best] {
++					best = j
++				}
++			}
++			captures[i], captures[best] = captures[best], captures[i]
++			capScore[i], capScore[best] = capScore[best], capScore[i]
++			move := captures[i]
++
++			// Delta pruning: skip captures that cannot possibly raise alpha. For
++			// promotion-captures, include the promotion gain so we don't prune a
++			// winning Pxf8=Q that would actually deliver a queen.
++			gain := int(move.CapturedPiece().seeWeight())
++			if move.PromoType() != NoType {
++				promoPiece := GetPiece(move.PromoType(), move.MovingPiece().Color())
++				gain += int(promoPiece.seeWeight()) - 100
++			}
++			if standPat+gain+DELTA_MARGIN <= alpha {
++				info.QDeltaPrunes++
+ 				continue
+ 			}
++
++			// SEE pruning: skip losing captures (skip the full swap when provably non-losing).
++			if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < 0 {
++				info.QSEEPrunes++
++				continue
++			}
++
+ 			evalMove := info.evaluator.mustPrepareMove(pos, move)
+ 			ep, tag, hc, _ := pos.MakeMove(move)
+ 			if isInCheck(pos, move.MovingPiece().Color()) {
+@@ -2552,167 +2725,42 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
+ 				continue
+ 			}
+ 			info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
+-			legalMoves++
+ 
+ 			score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
+ 			info.evaluator.mustPop()
+ 			pos.UnMakeMove(move, tag, ep, hc)
+ 			if info.Stopped {
+-				return stoppedSearchScore
++				result = stoppedSearchScore
++				goto searchComplete
+ 			}
+ 
+ 			if score > bestScore {
+ 				bestScore = score
++				bestMove = move
+ 			}
+ 			if score >= beta {
+ 				info.QBetaCutoffs++
+-				return beta
++				// Fail-high: store a lower bound (the cutting capture) at depth 0 (S3).
++				// Only fail-highs are stored — the common non-failing-high case would
++				// flood the TT with depth-0 entries and evict deeper main-search ones.
++				// T19: carry the ttPv mark forward. Qsearch already probed this slot, so
++				// preserving it is free — and dropping it would let a depth-0 store erase a
++				// mark the main search had earned, silently weakening the LMR adjustment on
++				// exactly the nodes it is meant to protect. (SF preserves ttPv likewise.)
++				info.tt.Set(pos.Hash(), bestMove, scoreToTT(beta, ply), 0, LowerBound, ttHit && ttPvEntry)
++				info.QSearchTTStores++
++				result = beta
++				goto searchComplete
+ 			}
+ 			if score > alpha {
+ 				alpha = score
+ 			}
+ 		}
+ 
+-		if legalMoves == 0 {
+-			// Checkmate at this node — distance from root is `ply` directly.
+-			// Earlier code used info.Depth + qDepth, which was wrong because
+-			// info.Depth is the last completed iteration depth, not the current
+-			// search distance.
+-			return -MATE_VALUE + ply
+-		}
+-
+-		return bestScore
+-	}
+-
+-	// Not in check. A legal pawn push proves this is not stalemate without
+-	// generating every piece's moves. Fall back to the full probe when needed.
+-	if !hasLegalPawnPush(pos) {
+-		moveBuffer := qframe.moveBuffer[:]
+-		moveCount := GenerateMovesIntoBuffer(pos, moveBuffer)
+-		hasLegalMove := false
+-		for i := 0; i < moveCount && !hasLegalMove; i++ {
+-			move := moveBuffer[i]
+-			if move.IsCastle() {
+-				hasLegalMove = isLegalCastle(pos, move)
+-			} else {
+-				// Board-only make: this legality probe reads nothing but the board
+-				// (isInCheck), so the hash/tag/clock/InCheck-tag bookkeeping of the
+-				// full MakeMove — paid at EVERY horizon entry — is skipped.
+-				pos.partialMakeMove(move)
+-				if !isInCheck(pos, move.MovingPiece().Color()) {
+-					hasLegalMove = true
+-				}
+-				pos.partialUnMakeMove(move)
+-			}
+-		}
+-		if !hasLegalMove {
+-			// Stalemate is a draw regardless of material balance.
+-			return 0
+-		}
+-	}
+-
+-	// Stand-pat via the exact eval cache (qsearch re-evaluates at ~every non-check
+-	// qnode and is ~42% of middlegame nodes). The lazy-margin fast-out this used to
+-	// route through (evaluateLazyStandPat) is pinned dead — qsearchLazyMargin=100000
+-	// means lazyFailHigh never fires — so this is value-identical; re-route through a
+-	// cache-aware lazy path if that margin is ever unpinned (SHELVED 2026-06-02).
+-	standPat := info.history.correctedStandPat(pos, info.evaluator)
+-	if standPat >= beta {
+-		info.QStandPatCuts++
+-		return beta
+-	}
+-
+-	bestScore := standPat
+-	bestMove := EmptyMove
+-	if standPat > alpha {
+-		alpha = standPat
+-	}
+-
+-	// Captures only. Quiet checks are dropped because moveGivesCheck misses
+-	// discovered, en-passant, and promotion checks; an incomplete quiet-check
+-	// path is worse than captures-only at the horizon.
+-	captureCount := GenerateCapturesIntoBuffer(pos, info.CaptureBuffer[:])
+-	var captures [64]Move
+-	copy(captures[:], (*info.CaptureBuffer)[:captureCount])
+-
+-	// MVV/LVA scores for an INCREMENTAL selection-sort (select-max per iter, stop at
+-	// cutoff — avoids the upfront full-sort cost the void "-129" comment cited).
+-	// Encoding-only (victim/attacker seeWeight, no board access); ttMove forced top.
+-	var capScore [64]int
+-	for i := 0; i < captureCount; i++ {
+-		capScore[i] = 8*int(captures[i].CapturedPiece().seeWeight()) - int(captures[i].MovingPiece().seeWeight())
+-		if captures[i] == ttMove {
+-			capScore[i] = 1 << 30
+-		}
+-	}
+-
+-	for i := 0; i < captureCount; i++ {
+-		// incremental selection: pull the best-scored remaining capture to i
+-		best := i
+-		for j := i + 1; j < captureCount; j++ {
+-			if capScore[j] > capScore[best] {
+-				best = j
+-			}
+-		}
+-		captures[i], captures[best] = captures[best], captures[i]
+-		capScore[i], capScore[best] = capScore[best], capScore[i]
+-		move := captures[i]
+-
+-		// Delta pruning: skip captures that cannot possibly raise alpha. For
+-		// promotion-captures, include the promotion gain so we don't prune a
+-		// winning Pxf8=Q that would actually deliver a queen.
+-		gain := int(move.CapturedPiece().seeWeight())
+-		if move.PromoType() != NoType {
+-			promoPiece := GetPiece(move.PromoType(), move.MovingPiece().Color())
+-			gain += int(promoPiece.seeWeight()) - 100
+-		}
+-		if standPat+gain+DELTA_MARGIN <= alpha {
+-			info.QDeltaPrunes++
+-			continue
+-		}
+-
+-		// SEE pruning: skip losing captures (skip the full swap when provably non-losing).
+-		if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < 0 {
+-			info.QSEEPrunes++
+-			continue
+-		}
+-
+-		evalMove := info.evaluator.mustPrepareMove(pos, move)
+-		ep, tag, hc, _ := pos.MakeMove(move)
+-		if isInCheck(pos, move.MovingPiece().Color()) {
+-			pos.UnMakeMove(move, tag, ep, hc)
+-			continue
+-		}
+-		info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
+-
+-		score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
+-		info.evaluator.mustPop()
+-		pos.UnMakeMove(move, tag, ep, hc)
+-		if info.Stopped {
+-			return stoppedSearchScore
+-		}
++		result = bestScore
+ 
+-		if score > bestScore {
+-			bestScore = score
+-			bestMove = move
+-		}
+-		if score >= beta {
+-			info.QBetaCutoffs++
+-			// Fail-high: store a lower bound (the cutting capture) at depth 0 (S3).
+-			// Only fail-highs are stored — the common non-failing-high case would
+-			// flood the TT with depth-0 entries and evict deeper main-search ones.
+-			// T19: carry the ttPv mark forward. Qsearch already probed this slot, so
+-			// preserving it is free — and dropping it would let a depth-0 store erase a
+-			// mark the main search had earned, silently weakening the LMR adjustment on
+-			// exactly the nodes it is meant to protect. (SF preserves ttPv likewise.)
+-			info.tt.Set(pos.Hash(), bestMove, scoreToTT(beta, ply), 0, LowerBound, ttHit && ttPvEntry)
+-			info.QSearchTTStores++
+-			return beta
+-		}
+-		if score > alpha {
+-			alpha = score
+-		}
++		goto searchComplete
+ 	}
+-
+-	return bestScore
++searchComplete:
++	return result
+ }
+diff --git a/engine/search_epilogue_test.go b/engine/search_epilogue_test.go
+new file mode 100644
+index 0000000..f6f9644
+--- /dev/null
++++ b/engine/search_epilogue_test.go
+@@ -0,0 +1,43 @@
++package engine
++
++import "testing"
++
++func TestRecursiveSearchRestoresFrameState(t *testing.T) {
++	for _, mode := range []string{"main", "quiescence"} {
++		for _, panicEval := range []bool{false, true} {
++			name := mode + "/return"
++			if panicEval {
++				name = mode + "/panic"
++			}
++			t.Run(name, func(t *testing.T) {
++				pos, info := newProbcutContractState(t, 2)
++				before := snapshotPVPosition(pos)
++				info.FrameDepth = 2
++				info.RepStack[0], info.RepStack[1], info.RepStackLen = 0x1234, 0x5678, 2
++				const marker = "epilogue test evaluator panic"
++				if panicEval {
++					info.evaluator.staticOracle = func(*Position) int { panic(marker) }
++				}
++				var recovered any
++				func() {
++					defer func() { recovered = recover() }()
++					if mode == "main" {
++						alphaBetaPV(pos, 2, 2, -INFINITY, INFINITY, true, true, false, info)
++					} else {
++						quiescenceWithDepth(pos, -INFINITY, INFINITY, 2, info, 0)
++					}
++				}()
++				if panicEval && recovered != marker {
++					t.Fatalf("panic = %v, want %q", recovered, marker)
++				}
++				if !panicEval && recovered != nil {
++					t.Fatalf("unexpected panic: %v", recovered)
++				}
++				requireProbcutSearchUnwound(t, pos, before, info, EmptyMove, 2, 2)
++				if info.RepStack[0] != 0x1234 || info.RepStack[1] != 0x5678 {
++					t.Fatal("search overwrote the caller's repetition entries")
++				}
++			})
++		}
++	}
++}

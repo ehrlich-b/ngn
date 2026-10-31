@@ -1,0 +1,8 @@
+=== RUN   TestSingularDoubleChildDepth
+=== RUN   TestSingularDoubleChildDepth/gap65
+    search_singular_double_test.go:34: live singular child depth=6 hit=true, want 7
+--- FAIL: TestSingularDoubleChildDepth (0.00s)
+    --- FAIL: TestSingularDoubleChildDepth/gap65 (0.00s)
+FAIL
+FAIL	github.com/ehrlich-b/ngn/engine	0.009s
+FAIL

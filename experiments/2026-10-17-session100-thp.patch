@@ -1,0 +1,114 @@
+diff --git a/engine/cache.go b/engine/cache.go
+index 0ae668a..502db4b 100644
+--- a/engine/cache.go
++++ b/engine/cache.go
+@@ -81 +81 @@ func newCacheWithMode(megabytes int, mode TTMode) *Cache {
+-	return &Cache{items: make([]ttRecord, records), size: megabytes, length: uint64(records), mask: uint(records/ttWays - 1), mode: mode}
++	return &Cache{items: allocateTTRecords(records), size: megabytes, length: uint64(records), mask: uint(records/ttWays - 1), mode: mode}
+diff --git a/engine/cache_alloc_linux.go b/engine/cache_alloc_linux.go
+new file mode 100644
+index 0000000..3708111
+--- /dev/null
++++ b/engine/cache_alloc_linux.go
+@@ -0,0 +1,39 @@
++//go:build linux
++
++package engine
++
++import (
++	"syscall"
++	"unsafe"
++)
++
++const ttHugePageBytes = 2 * 1024 * 1024
++
++// Linux MADV_COLLAPSE (since 6.1) promotes already populated heap pages now,
++// rather than waiting for khugepaged. Older kernels may reject this hint.
++const ttMadvCollapse = 25
++
++// allocateTTRecords keeps the table on the Go heap, so resizing and releasing a
++// cache retain their ordinary GC lifetime. An aligned interior slice keeps the
++// complete pointer-free backing allocation live; no mmap finalizer is needed.
++func allocateTTRecords(records int) []ttRecord {
++	bytes := records * ttRecordBytes
++	if bytes < ttHugePageBytes {
++		return make([]ttRecord, records)
++	}
++	storage := make([]byte, bytes+ttHugePageBytes-1)
++	address := uintptr(unsafe.Pointer(&storage[0]))
++	offset := int(-address & (ttHugePageBytes - 1))
++	region := storage[offset : offset+bytes : offset+bytes]
++	// Huge pages are a best-effort hint. Failure leaves the same zeroed table
++	// and never changes capacity, indexing, replacement, or search behavior.
++	_ = syscall.Madvise(region, syscall.MADV_HUGEPAGE)
++	// Fresh Go heap spans can still be entirely unpopulated. Collapse requires
++	// a present page in each huge-page range; touching one byte also lets the
++	// ordinary first-write fault allocate a huge page directly.
++	for index := 0; index < len(region); index += ttHugePageBytes {
++		region[index] = 0
++	}
++	_ = syscall.Madvise(region, ttMadvCollapse)
++	return unsafe.Slice((*ttRecord)(unsafe.Pointer(&region[0])), records)
++}
+diff --git a/engine/cache_alloc_linux_test.go b/engine/cache_alloc_linux_test.go
+new file mode 100644
+index 0000000..bdc3eb0
+--- /dev/null
++++ b/engine/cache_alloc_linux_test.go
+@@ -0,0 +1,43 @@
++//go:build linux
++
++package engine
++
++import (
++	"runtime"
++	"testing"
++	"unsafe"
++)
++
++func TestTTAllocationAlignmentAndLifetime(t *testing.T) {
++	if unsafe.Sizeof(ttRecord{}) != ttRecordBytes {
++		t.Fatal("TT byte allocation no longer matches the record layout")
++	}
++	for _, megabytes := range []int{1, 2, 3, 5, 64, 256} {
++		func() {
++			c := NewCache(megabytes)
++			want := RoundPowerOfTwo(megabytes * 1024 * 1024 / ttRecordBytes)
++			if len(c.items) != want || cap(c.items) != want {
++				t.Fatalf("Hash%d: len/cap %d/%d, want %d", megabytes, len(c.items), cap(c.items), want)
++			}
++			address := uintptr(unsafe.Pointer(&c.items[0]))
++			if want*ttRecordBytes >= ttHugePageBytes && address%ttHugePageBytes != 0 {
++				t.Fatalf("Hash%d: unaligned TT at %#x", megabytes, address)
++			}
++			for index, item := range c.items {
++				if item != (ttRecord{}) {
++					t.Fatalf("Hash%d: nonzero initial record %d", megabytes, index)
++				}
++			}
++			c.items[0] = ttRecord{1, 2}
++			c.items[len(c.items)-1] = ttRecord{3, 4}
++			runtime.GC()
++			if c.items[0] != (ttRecord{1, 2}) || c.items[len(c.items)-1] != (ttRecord{3, 4}) {
++				t.Fatal("TT backing allocation did not survive GC")
++			}
++			c.Clear()
++			if c.items[0] != (ttRecord{}) || c.items[len(c.items)-1] != (ttRecord{}) {
++				t.Fatal("TT clear missed the allocation endpoints")
++			}
++		}()
++	}
++}
+diff --git a/engine/cache_alloc_other.go b/engine/cache_alloc_other.go
+new file mode 100644
+index 0000000..d6681ad
+--- /dev/null
++++ b/engine/cache_alloc_other.go
+@@ -0,0 +1,7 @@
++//go:build !linux
++
++package engine
++
++func allocateTTRecords(records int) []ttRecord {
++	return make([]ttRecord, records)
++}

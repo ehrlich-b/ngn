@@ -1,0 +1,1 @@
+PASS: same115-epoch argv plus native latest.pt resume; original trial/finalization/parity reused; disk log preserved; no live actions

@@ -1,0 +1,38 @@
+File: profile-ngn
+Build ID: 8fcc82bc8ffc57193527c7756689e44430016479
+Type: delay
+Time: 2026-10-17 10:32:13 EDT
+Showing nodes accounting for 5.33us, 100% of 5.33us total
+      flat  flat%   sum%        cum   cum%
+    5.33us   100%   100%     5.33us   100%  runtime.unlock (inline)
+         0     0%   100%     1.28us 24.07%  bufio.(*Scanner).Scan
+         0     0%   100%     2.63us 49.44%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).Run
+         0     0%   100%     1.35us 25.37%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).Run.func1
+         0     0%   100%     1.35us 25.37%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).handleCommand
+         0     0%   100%     1.35us 25.37%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).handleEvalFileOption
+         0     0%   100%     1.35us 25.37%  github.com/ehrlich-b/ngn/engine.(*UCIEngine).handleSetOption
+         0     0%   100%     1.35us 25.37%  github.com/ehrlich-b/ngn/engine.LoadNGNN1
+         0     0%   100%     1.35us 25.37%  github.com/ehrlich-b/ngn/engine.ReadNGNN1
+         0     0%   100%     2.63us 49.44%  internal/poll.(*FD).Read
+         0     0%   100%     2.63us 49.44%  internal/poll.ignoringEINTRIO (inline)
+         0     0%   100%     1.35us 25.37%  io.ReadAtLeast
+         0     0%   100%     1.35us 25.37%  io.ReadFull (inline)
+         0     0%   100%     2.63us 49.44%  main.main
+         0     0%   100%     2.63us 49.44%  main.profiledRun
+         0     0%   100%     2.63us 49.44%  main.run
+         0     0%   100%     2.63us 49.44%  os.(*File).Read
+         0     0%   100%     2.63us 49.44%  os.(*File).read (inline)
+         0     0%   100%     2.63us 49.44%  runtime.exitsyscall
+         0     0%   100%     2.63us 49.44%  runtime.exitsyscallfast
+         0     0%   100%     2.63us 49.44%  runtime.exitsyscallfast.func1
+         0     0%   100%     2.63us 49.44%  runtime.exitsyscallfast_pidle
+         0     0%   100%     2.69us 50.56%  runtime.gcBgMarkWorker
+         0     0%   100%     2.69us 50.56%  runtime.gcMarkDone
+         0     0%   100%     2.69us 50.56%  runtime.gcMarkTermination
+         0     0%   100%     2.69us 50.56%  runtime.gcMarkTermination.func3
+         0     0%   100%     2.63us 49.44%  runtime.main
+         0     0%   100%     2.69us 50.56%  runtime.startTheWorldWithSema
+         0     0%   100%     5.33us   100%  runtime.systemstack
+         0     0%   100%     2.63us 49.44%  syscall.Read (inline)
+         0     0%   100%     2.63us 49.44%  syscall.Syscall
+         0     0%   100%     2.63us 49.44%  syscall.read

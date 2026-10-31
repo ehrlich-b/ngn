@@ -1,0 +1,65 @@
+{
+  "source_commit": "376671f842aad7841cd2c743c834c61f702eb0ae",
+  "source_clean": true,
+  "artifacts": {
+    "development-identity.json": {
+      "path": "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/development-identity.json",
+      "sha256": "2509127a6eefedde73b7f2cbc648dfed96d1be6c75c1f2a8d66736e0c3aabf31"
+    },
+    "tested-source-inputs.json": {
+      "path": "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/tested-source-inputs.json",
+      "sha256": "f5b9a976193f5dcedcdb36ea9ff03b698bcfe1b70032c8d7f39d132fed38e93c"
+    },
+    "ngn-build.json": {
+      "path": "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/ngn-build.json",
+      "sha256": "cfd405d5bcb443f7a4d4b900f240ec79e954b23a6d6a526c377f1a9c22d03b50"
+    },
+    "claimtool-buildinfo.txt": {
+      "path": "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/claimtool-buildinfo.txt",
+      "sha256": "f586268aeacf61143c77301e66289b75b29d645f58c0d28ce1113160522f240e"
+    },
+    "claimtool-build.json": {
+      "path": "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/claimtool-build.json",
+      "sha256": "810b4dd420af4f1e71b1089ac56678694f0e15d37c027097072dfb0400925684"
+    },
+    "candidate-be34532c.nnue": {
+      "path": "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/candidate-be34532c.nnue",
+      "sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a"
+    },
+    "ngn": {
+      "path": "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/ngn",
+      "sha256": "f36af8be0f0d3c86a4e097ca1520f131801ffa0c20ab107966a30d2bc910efb6"
+    },
+    "claimtool": {
+      "path": "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/claimtool",
+      "sha256": "4cdf39aa3ae964ccbc7b0c7b7a65a4fe71f32992ee35a8326c1f7c0163d41e7c"
+    },
+    "ngn-buildinfo.txt": {
+      "path": "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/ngn-buildinfo.txt",
+      "sha256": "c63b64847823bda3504aabc4ae51b14e8400829635200d2d0bb407e39cac21f1"
+    },
+    "provenance.json": {
+      "path": "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/provenance.json",
+      "sha256": "f22787878068e6ce532579aef632e24bcf2ce840301bda89c3fd72a6f55c1e65"
+    }
+  },
+  "go_version": "go1.25.5",
+  "environment": {
+    "GOAMD64": "v3",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOMAXPROCS": "2"
+  },
+  "build_cpu": "13,15",
+  "nice": 19,
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "tested_compilation_inputs": 226,
+  "dry_modes": [
+    "screen",
+    "stability-screen",
+    "stability-confirmation",
+    "tooling-check"
+  ],
+  "completion_check": "New dry-output directories contain no live receipt or games; historical source receipts excluded.",
+  "admission": "Build and dry-run only; no operational games or final claim nomination."
+}

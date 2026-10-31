@@ -1,0 +1,32 @@
+{
+  "created_utc": "2026-10-16T07:29:38.231293+00:00",
+  "source": "9ec5d31",
+  "net": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+  "net_sha256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22",
+  "purpose": "Provenance H0 mechanism diagnosis: current owned TT pressure at meaningful search work; no derived implementation inspected or restored",
+  "positions": "six existing cmd/speedprobe positions, in original order",
+  "hash_mb": [
+    64,
+    256
+  ],
+  "node_caps": [
+    2000000,
+    16000000
+  ],
+  "cold_state": true,
+  "threads": 1,
+  "gomaxprocs": 1,
+  "cells": 24,
+  "instrumentation": "Count stores/matching accepted/rejected with changed score/move, old-generation reject, collision eviction/rejection and occupied probe mismatch; decisions unchanged",
+  "identity": "Twelve 100k-node identities, all fields except counters equal before panel; failure stops diagnostic",
+  "cpus": "13,15",
+  "nice": 19,
+  "memory": "2GiB/swap0",
+  "machine": "rig/WSL/9800X3D",
+  "decision": "Descriptive only; no strength verdict, no policy acceptance or automatic games; no unchanged provenance regate",
+  "budget": "15 minute diagnostic panel timeout; no game process touched",
+  "argv": [
+    "bash",
+    "/home/ehrli/ngn-data/night-20261007/session88/tt-pressure/work.sh"
+  ]
+}

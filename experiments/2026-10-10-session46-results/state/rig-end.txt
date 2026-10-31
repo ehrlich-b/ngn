@@ -1,0 +1,25 @@
+2026-10-10T09:01:22-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              15           5           0           0           8           9
+Swap:              4           0           3
+0 %, 4306 MiB, 16303 MiB
+301216108544
+    PID    PPID ELAPSED   RSS %CPU COMMAND
+   1170     256   42596 17996  0.3 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+   3465    3458   21021  3456  0.0 bash /home/ehrli/ngn-data/night-20261007/session39-provenance-batch/controller.sh
+   3643    3642   19674 19156  0.6 ./sprt -new ./candidate-ngn -base ./baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session39-provenance-batch/openings.txt -lowpower=false -elo0 0 -elo1 6 -alpha .05 -beta .05 -maxgames 4000 -mingames 400 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session39-provenance-batch/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false
+  13164   13160    2296  3456  0.0 bash controller.sh
+  13201   13172    2295 7063340 32.2 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session41-remote-archive/t74.archive.json --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/session44-expanded-data/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 58 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only
+  13805   13802     698  3456  0.0 bash controller.sh
+session39-provenance-batch
+G599  91W 384D 124L   47.2%  elo  -19.2 [-47,+9]  LLR  -1.85  pLLR  -2.83  draw-rule
+Verdict: INCONCLUSIVE (ran out of games — add openings or raise -maxgames)
+session45-time-admission
+G4     2W  0D  2L   50.0%  elo   +0.0 [-301,+301]  LLR  +0.00  pLLR  +0.00  checkmate
+session46-tt-bisect
+{"epochs": 0, "last": []}
+{"utc": "2026-10-10T12:48:15.917452+00:00", "stage": "session44-capture-quiet", "event": "speed-keep", "detail": "complete current56b35ef sample passes; session review before integration"}
+{"utc": "2026-10-10T12:48:15.932010+00:00", "stage": "session44-capture-quiet", "event": "end", "detail": "rc 0; review before playing integration; no extension"}
+{"utc": "2026-10-10T12:49:44.299938+00:00", "stage": "session45-time-admission", "event": "checks-start", "detail": "unchanged admission patch; actual source combination checks only"}
+{"utc": "2026-10-10T12:50:27.350118+00:00", "stage": "session45-time-admission", "event": "nomination-metadata-correction", "detail": {"old_patch_hash_omitted_untracked_test": "7f3f9180ba2c95adcb06c621e0560dbdc791fd056437ba37fef9717b157da7bb", "actual_unchanged_staged_patch": "76efa5266d49c5bf3f8106d2f9907a1e55066efa0637ac8c84b1cb0bcdc01dd7", "games_started": false}}
+{"utc": "2026-10-10T12:52:36.717935+00:00", "stage": "session45-time-admission", "event": "aa-start", "detail": "fresh actual-base A/A40 at60+0.6/concurrency2/rig13,15"}

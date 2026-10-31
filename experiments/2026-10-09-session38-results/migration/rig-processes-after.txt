@@ -1,0 +1,49 @@
+    PID    PPID    PGID     SID COMMAND
+      1       0       1       1 /sbin/init
+      2       1       0       0 /init
+      6       2       0       0 plan9 --control-socket 7 --log-level 4 --server-fd 8 --pipe-fd 10 --log-truncate
+     45       1      45      45 /usr/lib/systemd/systemd-journald
+     90       1      90      90 /usr/lib/systemd/systemd-udevd
+    103       1     103     103 snapfuse /var/lib/snapd/snaps/core24_2124.snap /snap/core24/2124 -o ro,nodev,allow_other,suid
+    104       1     104     104 snapfuse /var/lib/snapd/snaps/core24_1643.snap /snap/core24/1643 -o ro,nodev,allow_other,suid
+    106       1     106     106 snapfuse /var/lib/snapd/snaps/snapd_27738.snap /snap/snapd/27738 -o ro,nodev,allow_other,suid
+    112       1     112     112 snapfuse /var/lib/snapd/snaps/snapd_28254.snap /snap/snapd/28254 -o ro,nodev,allow_other,suid
+    178       1     178     178 /usr/lib/systemd/systemd-resolved
+    179       1     179     179 /usr/lib/systemd/systemd-timesyncd
+    188       1     188     188 /usr/sbin/cron -f -P
+    189       1     189     189 @dbus-daemon --system --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+    193       1     193     193 /usr/local/bin/ollama serve
+    200       1     200     200 /snap/snapd/current/usr/lib/snapd/snapd
+    201       1     201     201 /usr/lib/systemd/systemd-logind
+    204       1     204     204 /opt/wingthing-agent-canaries/litellm-venv/bin/python /opt/wingthing-agent-canaries/litellm-venv/bin/litellm --config /opt/wingthing-agent-canaries/litellm-config.yaml --host 127.0.0.1 --port 4000
+    210       1     210     210 /sbin/agetty -o -p -- \u --noclear --keep-baud - 115200,38400,9600 vt220
+    214       1     214     214 /sbin/agetty -o -p -- \u --noclear - linux
+    215       1     215     215 /usr/sbin/rsyslogd -n -iNONE
+    228       1     228     228 /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal
+    256       1     256     256 /usr/lib/systemd/systemd --user
+    269     256     256     256 (sd-pam)
+    341     256     341     341 rootlesskit --state-dir=/run/user/1000/dockerd-rootless --net=slirp4netns --mtu=65520 --slirp4netns-sandbox=auto --slirp4netns-seccomp=auto --disable-host-loopback --port-driver=builtin --copy-up=/etc --copy-up=/run --propagation=rslave --detach-netns /home/ehrli/bin/dockerd-rootless.sh
+    372     341     341     341 /proc/self/exe --state-dir=/run/user/1000/dockerd-rootless --net=slirp4netns --mtu=65520 --slirp4netns-sandbox=auto --slirp4netns-seccomp=auto --disable-host-loopback --port-driver=builtin --copy-up=/etc --copy-up=/run --propagation=rslave --detach-netns /home/ehrli/bin/dockerd-rootless.sh
+    418     341     341     341 slirp4netns --mtu 65520 -r 3 --disable-host-loopback --enable-seccomp --userns-path=/proc/372/ns/user --netns-type=path /proc/372/root/run/user/1000/dockerd-rootless/netns tap0
+    427     372     341     341 dockerd
+    479     427     479     479 containerd --config /run/user/1000/docker/containerd/containerd.toml
+    530       2     530     530 /init
+    533     530     530     530 /init
+    541     533     541     541 sleep infinity
+    542       2     542     542 /bin/login -f
+    606     542     606     542 -bash
+   1052     256    1052     479 /home/ehrli/bin/containerd-shim-runc-v2 -namespace moby -id e0ad11fe4f146ff7ec35a7280362269b6f45bc8c4db1cee881e0799f907c185b -address /run/user/1000/docker/containerd/containerd.sock
+   1072     256    1072    1072 /usr/bin/dbus-daemon --session --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+   1080    1052    1080    1080 socat TCP-LISTEN:443,fork,reuseaddr TCP:202.138.238.126:443
+   1170     256    1170    1170 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+   2305       1    2305    2305 /usr/libexec/wsl-pro-service
+   2332       2    2332    2332 /init
+   2333    2332    2332    2332 /init
+   2334      90      90      90 (udev-worker)
+   2335      90      90      90 (udev-worker)
+   2336      90      90      90 (udev-worker)
+   2337    2333    2337    2337 bash -s
+   2339    2337    2337    2337 python3 - /home/ehrli/ngn-data/night-20261007/session38-migration
+   2341    2339    2337    2337 ps -eo pid,ppid,pgid,sid,args
+   2342      90      90      90 (udev-worker)
+   2343      90      90      90 (udev-worker)

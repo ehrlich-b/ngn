@@ -1,0 +1,92 @@
+{
+  "completed_seconds": 11.597202062606812,
+  "torch": "2.7.0+cu128",
+  "cuda": "12.8",
+  "gpu": "NVIDIA GeForce RTX 5080",
+  "precision": "bf16",
+  "iterations_per_block": 5,
+  "blocks": 20,
+  "results": [
+    {
+      "hidden": 256,
+      "hidden2": 16,
+      "batch": 16384,
+      "buckets": 8,
+      "geometric_ratio": 1.9401746294716624,
+      "ci95": [
+        1.9031718780620457,
+        1.9778968133338417
+      ],
+      "order_strata": [
+        1.921687139343292,
+        1.9588399775271892
+      ],
+      "peak_bytes": {
+        "baseline": 2205521920,
+        "candidate": 1409914880
+      },
+      "passed": true
+    },
+    {
+      "hidden": 256,
+      "hidden2": 32,
+      "batch": 16384,
+      "buckets": 8,
+      "geometric_ratio": 2.5756271666270494,
+      "ci95": [
+        2.5610051728785237,
+        2.5903326442761334
+      ],
+      "order_strata": [
+        2.579106475783129,
+        2.572152551186533
+      ],
+      "peak_bytes": {
+        "baseline": 3011878912,
+        "candidate": 1420533760
+      },
+      "passed": true
+    },
+    {
+      "hidden": 512,
+      "hidden2": 16,
+      "batch": 16384,
+      "buckets": 8,
+      "geometric_ratio": 2.1140990737231524,
+      "ci95": [
+        2.1106078383396656,
+        2.1175960840896946
+      ],
+      "order_strata": [
+        2.1106260486014095,
+        2.1175778136912107
+      ],
+      "peak_bytes": {
+        "baseline": 3177291776,
+        "candidate": 1576509440
+      },
+      "passed": true
+    },
+    {
+      "hidden": 512,
+      "hidden2": 32,
+      "batch": 16384,
+      "buckets": 8,
+      "geometric_ratio": 2.9998872607491966,
+      "ci95": [
+        2.9843405959220846,
+        3.0155149145852636
+      ],
+      "order_strata": [
+        3.010491949290491,
+        2.989319928035772
+      ],
+      "peak_bytes": {
+        "baseline": 4789479424,
+        "candidate": 1587783680
+      },
+      "passed": true
+    }
+  ],
+  "passed": true
+}

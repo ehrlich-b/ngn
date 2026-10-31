@@ -1,0 +1,10 @@
+=== RUN   TestTimeHorizonRetainsBankInLateGame
+--- PASS: TestTimeHorizonRetainsBankInLateGame (0.00s)
+=== RUN   TestTimeHorizonHonorsExplicitMovesToGo
+--- PASS: TestTimeHorizonHonorsExplicitMovesToGo (0.00s)
+=== RUN   TestTimeHorizonPreservesInitialOpeningTarget
+--- PASS: TestTimeHorizonPreservesInitialOpeningTarget (0.00s)
+=== RUN   TestTimeHorizonReducedBankRemainsIncrementAware
+--- PASS: TestTimeHorizonReducedBankRemainsIncrementAware (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.010s

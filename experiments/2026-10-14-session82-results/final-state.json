@@ -1,0 +1,46 @@
+{
+  "time": "2026-10-14T05:44:34.748612-04:00",
+  "accepted": "9ec5d31/a4d90b41/final14",
+  "checks": {
+    "qsearch": "RUNNING_OR_QUEUED",
+    "continuation": "RUNNING_OR_QUEUED",
+    "pawn": "RUNNING_OR_QUEUED",
+    "probcut": "RUNNING_OR_QUEUED"
+  },
+  "handles": {
+    "checks": {
+      "pid": "32062"
+    },
+    "aa-long": {
+      "pid": "32061"
+    },
+    "net": {
+      "pid": "32307"
+    }
+  },
+  "training_durable_epochs": 107,
+  "training_last": {
+    "epoch": 107,
+    "step": 1671875,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.0090233154296875,
+    "lr": 0.00011070379490953394,
+    "seconds": 272.35649397100497,
+    "positions_per_second": 939944.5420502943,
+    "steady_positions_per_second": 940529.1286637047,
+    "source_presentations_cumulative": {
+      "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf": 4848140807,
+      "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf": 15956784509,
+      "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf": 6587074684
+    },
+    "validation_loss": 0.009059893248834753,
+    "validation_loss_lambda_075": 0.009059893248834753,
+    "validation_loss_result": 0.08653689323244898
+  },
+  "gpu": "60 %, 4232 MiB, 16303 MiB",
+  "memory": "total        used        free      shared  buff/cache   available\nMem:           15514        6970         665          88        8206        8543\nSwap:           4096           0        4095",
+  "processes": "PID    PPID %CPU     ELAPSED COMMAND\n   1188     245  0.3  1-08:27:13 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n  17569   17568  113    08:46:59 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261006 --out /home/ehrli/ngn-data/night-20261007/session80-training/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 115 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only\n  28820     245  0.0    07:42:37 bash /home/ehrli/ngn-data/night-20261007/session80-training/finalizer.sh\n  32061     245  0.0       05:28 bash /home/ehrli/ngn-data/night-20261007/session82/aa-long.sh\n  32062     245  0.0       05:28 bash /home/ehrli/ngn-data/night-20261007/session82/checks.sh\n  32307     245  0.0       03:52 bash /home/ehrli/ngn-data/night-20261007/session82/net.sh",
+  "host_c_free_bytes": 66997137408,
+  "host_c_free_gib": 62.39594650268555
+}

@@ -1,0 +1,47 @@
+{
+  "base_source": "6c0fc26",
+  "utc": "2026-10-10T10:05:51.690316+00:00",
+  "source_archive_sha256": "2b976449f9630e4307ced53c135c0a5ad0b9f7f0ff2497476cab9e9f7840ac4c",
+  "patch_sha256": "9385b013adc439e0ed5878070178ce3441378acd84def42427ce848a11413e53",
+  "source_sha256": {
+    "engine/ngnn1.go": "eab22f8da24da5e1bf4626a5fecf7ad465beab5c224fb346dc0859fdf1b46cd6",
+    "engine/ngnn1_kernels_amd64.go": "6d9eaa0c11af77eb3c490856eaf7d7b1c5fb3e3bc60a0000184487729bc227b9",
+    "engine/ngnn1_kernels_generic.go": "9e3e9707bd2087a7e757e6a93e44438f4b055178fc090f3fd0fd1e1077c84ab3",
+    "engine/ngnn1_kernels_amd64.s": "ccbac0f5fd69b65eac045e4933bcd6a7371182f6bc872cad39a9773c24138f40",
+    "engine/ngnn1_move_pair_test.go": "7f328297c6a620f0acfdc1fa02110a0958b4634f6c38d16b8b9f4c6a6fe3a06a"
+  },
+  "binary_sha256": {
+    "baseline": "86bdbc1cb856ec737e8aebd7dd509ede4670c5399cc61d289270fd59f68d8d84",
+    "candidate": "4eddd7818a7b2a059d15370126815eaa746aa78cc8c79574e3d3bec782f4bdb4"
+  },
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "old_net_sha256": "c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2",
+  "candidate_uci_sha256": "9cbc168e50efa2589e2b56adb92985a2e4f5805740207e50d913a535d512de6d",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "machine": "WSL Ryzen9800X3D",
+  "build_test_cpus": [
+    12,
+    14
+  ],
+  "nice": 19,
+  "tests_pass": true,
+  "baseline_probe_reused_from": "forge current-key source check106279",
+  "concurrent_workloads": [
+    "provenance0-11/3GiB",
+    "architecture13,15/2GiB",
+    "hopper unchanged"
+  ],
+  "memory_max": 2684354560,
+  "build_argv": [
+    "go",
+    "build",
+    "-p",
+    "2",
+    "-pgo=/home/ehrli/ngn-data/night-20261007/session41-dual-perspective/baseline/default.pgo",
+    "-o",
+    "OUTPUT",
+    "PACKAGE"
+  ]
+}

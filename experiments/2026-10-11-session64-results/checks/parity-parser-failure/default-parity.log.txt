@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/ehrli/ngn-data/night-20261007/session64-final14/default-parity.py", line 64, in <module>
+    baseline=probe('current-overrides','baseline-ngn',vector)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ehrli/ngn-data/night-20261007/session64-final14/default-parity.py", line 34, in probe
+    advertised = {line.split()[2]: int(line.split()[6]) for line in lines if line.startswith('option name ') and ' type spin default ' in line}
+                                   ^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: 'default'

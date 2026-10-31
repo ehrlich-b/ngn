@@ -1,0 +1,46 @@
+{
+  "Engine": {
+    "Path": "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+    "SHA256": "7c7fa0b2d389707f5d139483875664a3249125bcaa0f60199ebc76512ab16ea8"
+  },
+  "Net": {
+    "Path": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+    "SHA256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22"
+  },
+  "SourceRoot": "/home/ehrli/ngn-data/night-20261007/session117/source",
+  "SourceCommit": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+  "GoVersion": "go1.25.5",
+  "BuildArgv": [
+    "/usr/local/go/bin/go",
+    "build",
+    "-buildvcs=true",
+    "-p",
+    "2",
+    "-pgo=/home/ehrli/ngn-data/night-20261007/session100-speed/baseline/default.pgo",
+    "-o",
+    "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+    "."
+  ],
+  "Provenance": {
+    "manifest": {
+      "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/manifest.json",
+      "SHA256": "67e7ce45717c77ddf29a447f19c11eee44a0ad36a9d4649ef5505d9b2a3cd9b3"
+    },
+    "data": {
+      "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/manifest.json",
+      "SHA256": "67e7ce45717c77ddf29a447f19c11eee44a0ad36a9d4649ef5505d9b2a3cd9b3"
+    },
+    "training": {
+      "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/trained/history.json",
+      "SHA256": "ce2ae2b9fec3d52673752cb1de92f9d6bd2a598688a8a19029c9bca8dae55cc3"
+    },
+    "export": {
+      "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/result.json",
+      "SHA256": "331437aef04aaf249411621cea5b08dece2ebcb5c24e9df686da74c873b5f9b9"
+    },
+    "parity": {
+      "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/trained/parity.json",
+      "SHA256": "719edfa6c3e6a1ef80285219060e1958823b91c7a32c53c90d4bbabc7f39ec93"
+    }
+  }
+}

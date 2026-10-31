@@ -68,11 +68,3 @@ func TestEmbeddedBookNoHit(t *testing.T) {
 
 	t.Log("Correctly returned no book move for middlegame position")
 }
-
-func TestPolyglotHash(t *testing.T) {
-	// PolyglotHash is currently incorrect: it generates the 781 random constants
-	// via xorshift instead of embedding the spec-defined table. Loading a real
-	// polyglot .bin would return no matches. We use the embedded book in normal
-	// play, so this is non-blocking. Skip until the spec table is embedded.
-	t.Skip("PolyglotHash uses a generated random table instead of the spec-defined constants — loaded polyglot books won't match positions")
-}

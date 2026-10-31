@@ -1,0 +1,27 @@
+{
+  "recorded_utc": "2026-10-11T07:52:53.448304+00:00",
+  "manual_recovery": true,
+  "cause": "original guard stopped incomplete scatter at03:43:58",
+  "forge_controller_pid": 1535562,
+  "forge_recovery_pid": 1535564,
+  "forge_scope": "ngn-s58-data-recovery/4-11/4GiB/swap0/nice10/host pinning ON",
+  "rig_copy_controller_pid": 22350,
+  "rig_copy_pid": 22352,
+  "rig_scope": "ngn-s58-data-copy-recovery/12,14/512MiB/swap0/nice19",
+  "local_reader_pid": 22172,
+  "source_sha256": {
+    "2026-10-11-data-step2-relocate.py": "cc45d9797de41633cbb5b1e9c674ae7dd9c408a491be34153e9a739a1046c79e",
+    "2026-10-11-data-step2-copy.py": "62034d351e927ecdc6466bbbcf28c07c7e25fef46eaea6054511aaa7258cb308",
+    "2026-10-11-data-step2-coverage.py": "8eb8330b978dff1c395a8d71a483166df35dc1cc390bd73bac95c7378227234f"
+  },
+  "sequence": [
+    "exact T75 raw copy onto rig/fsync acknowledgment",
+    "remove only new forge raw duplicate and incomplete T74 buckets; retained interruption receipts",
+    "rerun incomplete T74 through frozen prepare.convert; no completed conversion repeated",
+    "one frozen T74 bottom sample on forge",
+    "exact mapped T74 to rig/fsync acknowledgment, remove new forge duplicate",
+    "exact T75 raw restore to forge/fsync acknowledgment, remove temporary rig raw",
+    "first fixed10% T75 conversion; unchanged coverage and GPU continuation"
+  ],
+  "unchanged": "data selection, converter functions, seeds, filtering, source scales/map, coverage rule, numerical training recipe and gate"
+}

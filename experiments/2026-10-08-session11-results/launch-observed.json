@@ -1,0 +1,6 @@
+{
+  "pid": 587464,
+  "utc": "2026-10-08T19:24:52.059734+00:00",
+  "mechanism": "native pidfd",
+  "command": "timeout 1800 bash controller.sh "
+}

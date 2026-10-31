@@ -1,0 +1,1 @@
+{"utc": "2026-10-12T05:35:47.830785+00:00", "stage": "session70-admission-final14", "event": "aa-start", "detail": {"cpus": "4-11", "concurrency": 2, "nice": 10, "tc": "60+0.6", "automatic_adoption": false}}

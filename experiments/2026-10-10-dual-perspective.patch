@@ -1,0 +1,158 @@
+diff --git a/engine/ngnn1.go b/engine/ngnn1.go
+index a41f0b9..c26c5c6 100644
+--- a/engine/ngnn1.go
++++ b/engine/ngnn1.go
+@@ -349,6 +349,12 @@ func (s *ngnn1State) pushPosition(depth int, delta ngnn1Delta, pos *Position) {
+ 	s.frames[depth] = ngnn1Frame{child, depth}
+ 	parent := s.at(depth - 1)
+ 	n := s.network
++	if delta.refreshMask == 0 && delta.removes == 1 && delta.adds == 1 {
++		ngnn1MovePair(child, parent,
++			n.row(int(delta.remove[0][0])), n.row(int(delta.add[0][0])),
++			n.row(int(delta.remove[1][0])), n.row(int(delta.add[1][0])))
++		return
++	}
+ 	for p := 0; p < 2; p++ {
+ 		a := child[p*n.hidden : (p+1)*n.hidden]
+ 		if delta.refreshMask&(1<<p) != 0 {
+diff --git a/engine/ngnn1_kernels_amd64.go b/engine/ngnn1_kernels_amd64.go
+index 0cc9d37..9a16b12 100644
+--- a/engine/ngnn1_kernels_amd64.go
++++ b/engine/ngnn1_kernels_amd64.go
+@@ -17,6 +17,13 @@ func ngnn1SubRow(acc []int32, row []int16)
+ //go:noescape
+ func ngnn1MoveRows(dst, src []int32, remove, add []int16)
+ 
++// Update both contiguous perspectives with their respective feature rows.
++// dst and src contain 2H int32 values, and each row contains H int16 values.
++// The exact-alias or disjoint-source contract also applies to the full frame.
++//
++//go:noescape
++func ngnn1MovePair(dst, src []int32, removeUs, addUs, removeThem, addThem []int16)
++
+ //go:noescape
+ func ngnn1CaptureRows(dst, src []int32, remove, capture, add []int16)
+ 
+diff --git a/engine/ngnn1_kernels_amd64.s b/engine/ngnn1_kernels_amd64.s
+index 48feb26..7d3971e 100644
+--- a/engine/ngnn1_kernels_amd64.s
++++ b/engine/ngnn1_kernels_amd64.s
+@@ -64,6 +64,45 @@ MoveRows_loop:
+ 	VZEROUPPER
+ 	RET
+ 
++// Quiet moves with no king-context refresh update two independent frames.
++// Pair their arithmetic at the same neuron index and share one loop/call.
++// Each frame keeps its own int32 wrap semantics and unaligned addresses.
++TEXT ·ngnn1MovePair(SB), NOSPLIT, $0-144
++	MOVQ dst_base+0(FP), DI
++	MOVQ src_base+24(FP), SI
++	MOVQ removeUs_base+48(FP), R8
++	MOVQ addUs_base+72(FP), R9
++	MOVQ removeThem_base+96(FP), R10
++	MOVQ addThem_base+120(FP), R11
++	MOVQ addUs_len+80(FP), CX
++	LEAQ (DI)(CX*4), R12
++	LEAQ (SI)(CX*4), R13
++MovePair_loop:
++	VMOVDQU (SI), Y0
++	VMOVDQU (R13), Y2
++	VPMOVSXWD (R8), Y1
++	VPMOVSXWD (R10), Y3
++	VPSUBD Y1, Y0, Y0
++	VPSUBD Y3, Y2, Y2
++	VPMOVSXWD (R9), Y1
++	VPMOVSXWD (R11), Y3
++	VPADDD Y1, Y0, Y0
++	VPADDD Y3, Y2, Y2
++	VMOVDQU Y0, (DI)
++	VMOVDQU Y2, (R12)
++	ADDQ $32, SI
++	ADDQ $32, DI
++	ADDQ $32, R12
++	ADDQ $32, R13
++	ADDQ $16, R8
++	ADDQ $16, R9
++	ADDQ $16, R10
++	ADDQ $16, R11
++	SUBQ $8, CX
++	JNZ MovePair_loop
++	VZEROUPPER
++	RET
++
+ TEXT ·ngnn1CaptureRows(SB), NOSPLIT, $0-120
+ 	MOVQ dst_base+0(FP), DI
+ 	MOVQ src_base+24(FP), SI
+diff --git a/engine/ngnn1_kernels_generic.go b/engine/ngnn1_kernels_generic.go
+index 09a8d4e..871513b 100644
+--- a/engine/ngnn1_kernels_generic.go
++++ b/engine/ngnn1_kernels_generic.go
+@@ -10,6 +10,11 @@ func ngnn1SubRow(acc []int32, row []int16) { ngnn1SubRowGo(acc, row) }
+ func ngnn1MoveRows(dst, src []int32, remove, add []int16) {
+ 	ngnn1MoveRowsGo(dst, src, remove, add)
+ }
++func ngnn1MovePair(dst, src []int32, removeUs, addUs, removeThem, addThem []int16) {
++	h := len(addUs)
++	ngnn1MoveRowsGo(dst[:h], src[:h], removeUs, addUs)
++	ngnn1MoveRowsGo(dst[h:], src[h:], removeThem, addThem)
++}
+ func ngnn1CaptureRows(dst, src []int32, remove, capture, add []int16) {
+ 	ngnn1CaptureRowsGo(dst, src, remove, capture, add)
+ }
+diff --git a/engine/ngnn1_move_pair_test.go b/engine/ngnn1_move_pair_test.go
+new file mode 100644
+index 0000000..56c852a
+--- /dev/null
++++ b/engine/ngnn1_move_pair_test.go
+@@ -0,0 +1,51 @@
++package engine
++
++import (
++	"math/rand"
++	"reflect"
++	"testing"
++)
++
++func TestNGNN1MovePairExact(t *testing.T) {
++	rng := rand.New(rand.NewSource(6101041))
++	for h := 16; h <= ngnn1MaxHidden; h += 16 {
++		for sample := 0; sample < 8; sample++ {
++			parentStorage, parent := ngnn1Guarded32(2*h, 1+sample%7)
++			for i := range parent {
++				parent[i] = int32(rng.Uint32())
++			}
++			beforeParent := append([]int32(nil), parentStorage...)
++			var rows [4][]int16
++			for r := range rows {
++				storage := make([]int16, h+16)
++				rows[r] = storage[1+r : 1+r+h]
++				for i := range rows[r] {
++					rows[r][i] = int16(rng.Uint32())
++					if sample < 2 {
++						rows[r][i] = []int16{-32768, 32767}[(i+r+sample)%2]
++					}
++				}
++			}
++			for _, alias := range []bool{false, true} {
++				storage, dst := ngnn1Guarded32(2*h, 1+(sample+3)%7)
++				wantStorage := append([]int32(nil), storage...)
++				want := wantStorage[1+(sample+3)%7 : 1+(sample+3)%7+2*h]
++				src, reference := parent, parent
++				if alias {
++					copy(dst, parent)
++					copy(want, parent)
++					src, reference = dst, want
++				}
++				ngnn1MovePair(dst, src, rows[0], rows[1], rows[2], rows[3])
++				ngnn1MoveRowsGo(want[:h], reference[:h], rows[0], rows[1])
++				ngnn1MoveRowsGo(want[h:], reference[h:], rows[2], rows[3])
++				if !reflect.DeepEqual(storage, wantStorage) {
++					t.Fatalf("width=%d sample=%d alias=%v backend=%s", h, sample, alias, ngnn1KernelBackend)
++				}
++			}
++			if !reflect.DeepEqual(parentStorage, beforeParent) {
++				t.Fatal("source frame changed")
++			}
++		}
++	}
++}

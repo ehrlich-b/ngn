@@ -1,0 +1,109 @@
+{
+  "data": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg",
+  "prefix_records_per_shard": 65536,
+  "shards": 14,
+  "scope": "first fixed prefix of each closed gen0b shard; not a full-corpus audit",
+  "prefix_sha256": {
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-0-seed-2026100700.ngnp": "f7738a5161ebb0846cf655a5c9c09a3f390a52d07969007e9dfe9046b173bb78",
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-1-seed-2026100701.ngnp": "7a3a0ee3c201597d12474297dfef3b22bcb290ae342edb4aff65ab3e28ff7fde",
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-10-seed-2026100710.ngnp": "b5c0be0b0de45a243a5bc3622b02b87f614ebd389d984bf4d9bde522e16436ce",
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-11-seed-2026100711.ngnp": "6c7ad48093b57d394467a0debdcc8b7c9d33dbb784297eaca4a6b36c9eddbc7a",
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-12-seed-2026100712.ngnp": "bfe5d5eac6b982dbf32c25a330256abe1959b80647888a4fc6fa03719a2cf292",
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-13-seed-2026100713.ngnp": "fc45847e49d2d557ee872c6208c36569e0c525e4a088e39bafad1cbdc73a797e",
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-2-seed-2026100702.ngnp": "8ad8dd7e9d130c85ba4c28f11cdc6d8f8d2df8c82e3f6d991c0922a7a550d6d7",
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-3-seed-2026100703.ngnp": "46f660cf046e7a7d25a065dfe2be648de9f41745f137c6f305ba54434089727c",
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-4-seed-2026100704.ngnp": "3d93d9c1923e242caa42ceab2494562b79394e487171cdd40492f43b0e94c5e8",
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-5-seed-2026100705.ngnp": "084738f472edf92f1960721c03bede228baae10b1582856121ee41cadd98fa21",
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-6-seed-2026100706.ngnp": "e706a490853be6a5eb2ddf92072116055caa08cc334e9416264d081a2635127a",
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-7-seed-2026100707.ngnp": "e58f089972c27475f9da560c2140cb556e3cfa1008fd5bfd7997ef5fb22775d7",
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-8-seed-2026100708.ngnp": "cff23b23077b81d61edfed41e98a8a621167bfd61c0f3e3bf0234b30ffbb0625",
+    "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-9-seed-2026100709.ngnp": "a616aa44f7d2db5ca9224ad54c11b64ae6c43b144ff12e1198feea19b094b297"
+  },
+  "unchanged_prefixes_and_sizes": true,
+  "split": {
+    "hash": "ngn-board-mix64-v1",
+    "seed": 20261008,
+    "modulus": 1024,
+    "holdout_remainder": 0,
+    "block_records": 262144,
+    "sources": [
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-0-seed-2026100700.ngnp",
+        "records": 65536
+      },
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-1-seed-2026100701.ngnp",
+        "records": 65536
+      },
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-10-seed-2026100710.ngnp",
+        "records": 65536
+      },
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-11-seed-2026100711.ngnp",
+        "records": 65536
+      },
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-12-seed-2026100712.ngnp",
+        "records": 65536
+      },
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-13-seed-2026100713.ngnp",
+        "records": 65536
+      },
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-2-seed-2026100702.ngnp",
+        "records": 65536
+      },
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-3-seed-2026100703.ngnp",
+        "records": 65536
+      },
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-4-seed-2026100704.ngnp",
+        "records": 65536
+      },
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-5-seed-2026100705.ngnp",
+        "records": 65536
+      },
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-6-seed-2026100706.ngnp",
+        "records": 65536
+      },
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-7-seed-2026100707.ngnp",
+        "records": 65536
+      },
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-8-seed-2026100708.ngnp",
+        "records": 65536
+      },
+      {
+        "path": "/home/ehrli/ngn-data/gen0b/data/run-20261006T032358Z-ewE9tg/worker-9-seed-2026100709.ngnp",
+        "records": 65536
+      }
+    ],
+    "raw_records": 917504,
+    "eligible_records": 917504,
+    "training_records": 916593,
+    "holdout_records": 911,
+    "contract": "identical occupied boards share partition; labels and STM excluded"
+  },
+  "legacy_seven_shards_each_unique_boards": [
+    446846,
+    445762
+  ],
+  "legacy_cross_shard_shared_boards": 1830,
+  "content_partition_unique_boards": [
+    889889,
+    889
+  ],
+  "content_partition_shared_boards": 0,
+  "seconds": 2.002356590004638,
+  "cpu": [
+    13,
+    15
+  ],
+  "nice": 19
+}

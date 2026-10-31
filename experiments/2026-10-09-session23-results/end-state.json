@@ -1,0 +1,78 @@
+{
+  "utc": "2026-10-09T15:08:30.035994+00:00",
+  "host_c_free_bytes": 9652109312,
+  "host_c_free_gib": 8.989227294921875,
+  "gpu": "0 %, 1470 MiB, 16303 MiB",
+  "processes": "    PID    PPID %CPU     ELAPSED COMMAND\n   1168     221  0.3  2-16:54:36 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n 673954  630381  0.0    03:09:43 bash /home/ehrli/ngn-data/night-20261007/session1/spsa-resume.cmd\n 673958  673954  2.0    03:09:43 /home/ehrli/ngn-data/night-20261007/spsa/spsa -engine /home/ehrli/ngn-data/night-20261007/kb8bin/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/net1-gates-20261006/openings.txt -out /home/ehrli/ngn-data/night-20261007/spsa/kb8/spsa.jsonl -lowpower=false -seed 20261008 -resume\n 675044  675040  0.0       37:45 bash controller.sh\n 675045  675040  0.0       37:45 bash checks.sh\n 675046  675040  0.0       37:45 bash data.sh\n 675213  675202  0.0       22:37 bash /home/ehrli/ngn-data/night-20261007/session22-row/controller.sh\n 675346  675339  0.0       00:01 bash /home/ehrli/ngn-data/night-20261007/session23-time/controller.sh\n 675352  675339  0.0       00:01 bash /home/ehrli/ngn-data/night-20261007/session23-qstatic/controller.sh\n",
+  "launches": [
+    {
+      "directory": "/home/ehrli/ngn-data/night-20261007/session23-time",
+      "pid": 675346,
+      "launched_utc": "2026-10-09T15:08:28.370258+00:00",
+      "command": [
+        "setsid",
+        "nohup",
+        "bash",
+        "/home/ehrli/ngn-data/night-20261007/session23-time/controller.sh"
+      ],
+      "stdin": "/dev/null",
+      "stdout_stderr": "/home/ehrli/ngn-data/night-20261007/session23-time/controller.log",
+      "detached": true
+    },
+    {
+      "directory": "/home/ehrli/ngn-data/night-20261007/session23-qstatic",
+      "pid": 675352,
+      "launched_utc": "2026-10-09T15:08:28.399064+00:00",
+      "command": [
+        "setsid",
+        "nohup",
+        "bash",
+        "/home/ehrli/ngn-data/night-20261007/session23-qstatic/controller.sh"
+      ],
+      "stdin": "/dev/null",
+      "stdout_stderr": "/home/ehrli/ngn-data/night-20261007/session23-qstatic/controller.log",
+      "detached": true
+    }
+  ],
+  "spsa_last_iteration": 1025,
+  "spsa_last_checkpoint_time": "2026-10-09T11:00:00-04:00",
+  "new_heavy_work_started": false,
+  "status_tail": [
+    {
+      "utc": "2026-10-09T14:30:45.317926+00:00",
+      "stage": "session21-checks",
+      "event": "capacity-wait",
+      "detail": "C: recovery to32GiB; silent five-minute checks; full candidate checks on12,14"
+    },
+    {
+      "utc": "2026-10-09T14:30:45.318756+00:00",
+      "stage": "session21-data",
+      "event": "wait",
+      "detail": "native provenance-controller completion; then C:70GiB capacity; unchanged194-per-mille T74 sample"
+    },
+    {
+      "utc": "2026-10-09T14:30:45.318926+00:00",
+      "stage": "session21-provenance",
+      "event": "capacity-wait",
+      "detail": "C: must recover to32GiB; silent five-minute capacity checks,12h bound; no WSL shutdown or hopper interruption"
+    },
+    {
+      "utc": "2026-10-09T14:45:52.762687+00:00",
+      "stage": "ngnn4-row-affine",
+      "event": "wait",
+      "detail": "native session21 checks completion; C:>=32GiB; CPU12,14 tests / CPU14 fixed sample"
+    },
+    {
+      "utc": "2026-10-09T15:08:28.362379+00:00",
+      "stage": "time-current",
+      "event": "wait",
+      "detail": "native row-affine completion; then C:>=32GiB; tests12,14 and trajectory14"
+    },
+    {
+      "utc": "2026-10-09T15:08:28.389916+00:00",
+      "stage": "qsearch-tt-static",
+      "event": "wait",
+      "detail": "native time-current completion; then C:>=32GiB; CPU12,14 tests"
+    }
+  ]
+}

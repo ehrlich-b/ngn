@@ -1,0 +1,90 @@
+{
+  "utc": "2026-10-08T19:46:15.319322+00:00",
+  "controller_pid": 587761,
+  "controller_exit": 0,
+  "completed": "2026-10-08T15:44:50-04:00",
+  "test_pass_rows": 65,
+  "subtests": {
+    "TestCampaignResumeTrajectory": 6,
+    "TestCheckpointRejectsChangedRecipe": 28,
+    "TestCheckpointRejectsCorruptHistory": 24
+  },
+  "checks": {
+    "spsa-tests": {
+      "exit": 0,
+      "sha256": "bb620d6a147d18a722d8f4d8a7510b0a87c69bd0346225c14faaa292d647f65b"
+    },
+    "spsa-race": {
+      "exit": 0,
+      "sha256": "dbe981883f59daae4c3d841b96d9d08c7be0dec26fddc54335e5d6fcb3fcda3d"
+    },
+    "engine-short": {
+      "exit": 0,
+      "sha256": "d5b91b8ee03d92e1d7f1d48cb6d5898c51d4f4668f82ae933d3442c87cb533db"
+    },
+    "engine-race": {
+      "exit": 0,
+      "sha256": "231e186ad3931c54057520144dc6622bdb9c5e4a5d77100be1b39134804ff71a"
+    },
+    "full-short": {
+      "exit": 0,
+      "sha256": "28faa12cbc06d46012aa6c9d8999cf72424eaf1aa8cfbbe4db73e5c47f1b14e8"
+    },
+    "full-race": {
+      "exit": 0,
+      "sha256": "27c8925605fa7cabde8e2b1c1c78b69f7c6cf17d5042a86088bab851d6bacc71"
+    },
+    "vet": {
+      "exit": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build": {
+      "exit": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "cli_refusals": 11,
+  "source_files": {
+    "cmd/spsa/checkpoint_test.go": "54de07271360d5f03f5a92f0df7bef108bff08d2db213f7f698dd51613ed847e",
+    "cmd/spsa/checkpoint.go": "9d893af35fcfe66da2c9addd9d5e363e1bdcab91d79914a89855072d1e53beb1",
+    "cmd/spsa/main.go": "3d62f8950187c309aa3ff9cf0ccafc1494c072fcb3877e21dec210dc8aa1622a"
+  },
+  "ignored_archive_metadata": [
+    "cmd/spsa/._main.go",
+    "cmd/spsa/._checkpoint.go",
+    "cmd/spsa/._checkpoint_test.go"
+  ],
+  "future_tuner_sha256": "944a30a3ed4b98d0b026b5e554cdd8a1a839c0da379b3067411ce3b5efc9d470",
+  "dependency_checks": {
+    "preparation-final-check": {
+      "entries": 4,
+      "sha256": "a00ac86948514bb866de90eae2756692a9258281837138fbbac0a9c21055adca"
+    },
+    "live-final-check": {
+      "entries": 2,
+      "sha256": "08c1976df8f630d1f43bc51bc9c5d1f8e42240e899163414c66f68e35f3a3c2d"
+    },
+    "session1-dependency-check": {
+      "entries": 14,
+      "sha256": "a63f580288a08d610746f58bc56848d50ce0f05ee15488fddd10250212bc8b31"
+    },
+    "admission-dependency-check": {
+      "entries": 3,
+      "sha256": "b4287b9c5f3204ac27eb9e412ad135460a83252bb9bcf91d1207715656a6a050"
+    },
+    "cuda-dependency-check": {
+      "entries": 27,
+      "sha256": "628d2ea66b13c09598d33ea1363e22b52e6941bbd9e824c096025edb8b50f423"
+    },
+    "source-final-check": {
+      "entries": 2040,
+      "sha256": "1f8358ca370c7141ede9d3c7de5493f04d3a011b039c9bc1a48209f1a0bffdcf"
+    }
+  },
+  "launch_sha256": "9bdbda60de5390d6eba6f73785ca6c1e0e419a46462d15e2ee9cb2c5bfc695cd",
+  "receipt_sha256": "a6f8469c98cb3e0f2b825fe558036affac4bd100c65c16116862df6673f76296",
+  "source_input_list_sha256": "31dd2967dd9386ea930db6dd4d7613ef6f6c5148d6cdba501c4c77d72cb6d313",
+  "live_tuner_changed": false,
+  "playing_behavior_changed": false,
+  "strength_verdict": false
+}

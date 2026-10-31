@@ -1,0 +1,72 @@
+package engine
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"os"
+	"strings"
+	"sync/atomic"
+	"testing"
+)
+
+// Runs only in an isolated accepted-source snapshot on the rig. Every search
+// must admit and join all configured workers before the next UCI operation.
+func TestCampaignThreads8UCILifecycle(t *testing.T) {
+	path := os.Getenv("NGN_CAMPAIGN_NET")
+	if path == "" { t.Skip("requires the accepted campaign net") }
+	u := newThreadsTestUCI(t)
+	var options bytes.Buffer
+	u.handleCommand("setoption name EvalFile value "+path, &options)
+	u.handleCommand("setoption name UseNNUE value true", &options)
+	u.handleCommand("setoption name Hash value 256", &options)
+	if strings.Contains(options.String(), "error") || u.searcher.SelectedEvaluatorBackend() != "ngnn3" {
+		t.Fatalf("net setup backend=%s output=%s", u.searcher.SelectedEvaluatorBackend(), options.String())
+	}
+	for _, width := range []int{2, 4, 8, 4, 8, 1} {
+		t.Run(fmt.Sprintf("threads%d", width), func(t *testing.T) {
+			u.handleCommand(fmt.Sprintf("setoption name Threads value %d", width), &options)
+			u.handleCommand("ucinewgame", &options)
+			u.handleCommand("position startpos", &options)
+			if u.searcher.ThreadCount() != width || u.searcher.hashMB != 256 {
+				t.Fatalf("configuration threads/hash=%d/%d", u.searcher.ThreadCount(), u.searcher.hashMB)
+			}
+			started := make(chan int, width)
+			var finished atomic.Uint32
+			u.searcher.smpHooks = &smpSearchHooks{
+				workerStarted: func(i int) { started <- i },
+				workerFinished: func(i int, _ *SearchInfo) { campaignMarkWorker(&finished, i) },
+			}
+			var search bytes.Buffer
+			u.handleGo([]string{"infinite"}, &search)
+			u.lifecycleMu.Lock()
+			session := u.activeSearch
+			u.lifecycleMu.Unlock()
+			if session == nil { t.Fatal("missing UCI search session") }
+			if width > 1 {
+				var mask uint32
+				for i := 0; i < width; i++ { mask |= 1 << waitSMPIndex(t, started, "all configured workers") }
+				if mask != uint32(1<<width-1) { t.Fatalf("worker mask %b", mask) }
+			}
+			u.handleStop(io.Discard)
+			waitUCIChannel(t, session.done, "Threads8 stop join")
+			if width > 1 && finished.Load() != uint32(1<<width-1) { t.Fatalf("unfinished helpers: %b", finished.Load()) }
+			lines := strings.Split(search.String(), "\n")
+			bestmoves := 0
+			for _, line := range lines {
+				if !strings.HasPrefix(line, "bestmove ") { continue }
+				bestmoves++
+				legal := false
+				for _, move := range session.legalMoves { if line == "bestmove "+move.ToString() { legal = true } }
+				if !legal { t.Fatalf("illegal result %q", line) }
+			}
+			if bestmoves != 1 || u.isSearching() { t.Fatalf("stop bestmoves=%d searching=%v", bestmoves, u.isSearching()) }
+			u.searcher.smpHooks = nil
+			// Resizing Hash during an active search must join before replacing TT.
+			u.handleGo([]string{"infinite"}, io.Discard)
+			u.handleCommand("setoption name Hash value 128", &options)
+			if u.isSearching() || u.searcher.hashMB != 128 { t.Fatal("active Hash resize did not join") }
+			u.handleCommand("setoption name Hash value 256", &options)
+		})
+	}
+}

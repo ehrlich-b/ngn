@@ -1,0 +1,101 @@
+{
+  "observed_utc": "2026-10-17T00:30:57.938472+00:00",
+  "host_c_free": "33923874816",
+  "gpu": "0 %, 1479 MiB, 16303 MiB\n",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        3782        6488           4        5631       11731\nSwap:           4096           1        4094\n",
+  "processes": [
+    "   1188     245  342871  0.3  0.1 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    "  98728   98724   37413  0.0  0.0 systemd-run --user --wait --collect --unit=ngn-s93-net-chain -p AllowedCPUs=0-11 -p CPUQuota=600% -p MemoryMax=3G -p MemorySwapMax=0 nice -n 19 taskset -c 0-11 python3 /home/ehrli/ngn-data/night-20261007/session93/net-chain.py",
+    "  98730     245   37413  0.0  0.1 python3 /home/ehrli/ngn-data/night-20261007/session93/net-chain.py",
+    " 102529  102523   32534  0.0  0.0 systemd-run --user --wait --collect --unit=ngn-s94-claim-chain -p AllowedCPUs=0-15 -p MemoryMax=3G -p MemorySwapMax=0 -p StandardOutput=append:/home/ehrli/ngn-data/night-20261007/session94/claim-chain.log -p StandardError=inherit nice -n 19 python3 /home/ehrli/ngn-data/night-20261007/session94/claim-chain.py",
+    " 102531     245   32534  0.0  0.1 python3 /home/ehrli/ngn-data/night-20261007/session94/claim-chain.py",
+    " 120145   98730     255  2.5  0.1 /home/ehrli/ngn-data/night-20261007/session80/sprt -new /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -base /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -tc 10+0.1 -concurrency 6 -mingames 1000000 -maxgames 1000 -elo0 0 -elo1 5 -alpha .05 -beta .05 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -lowpower=false -pgn /home/ehrli/ngn-data/night-20261007/session93/net-moderated-t74/games.pgn -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session87/mixture/moderated-t74/trained/latest.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -newoption AspInit=17 -newoption AspMult=163 -newoption DeltaMargin=202 -newoption ExtensionBudget=29 -newoption FutilityMargin=104 -newoption FutilityMaxDepth=8 -newoption LMPBase=3 -newoption LMRFullDepth=3 -newoption LMRMoveThreshold=2 -newoption NullMoveMinDepth=2 -newoption NullMoveR=4 -newoption ReverseFutilityMargin=63 -newoption SingularDepth=7 -newoption SingularMargin=57 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -baseoption AspInit=17 -baseoption AspMult=163 -baseoption DeltaMargin=202 -baseoption ExtensionBudget=29 -baseoption FutilityMargin=104 -baseoption FutilityMaxDepth=8 -baseoption LMPBase=3 -baseoption LMRFullDepth=3 -baseoption LMRMoveThreshold=2 -baseoption NullMoveMinDepth=2 -baseoption NullMoveR=4 -baseoption ReverseFutilityMargin=63 -baseoption SingularDepth=7 -baseoption SingularMargin=57"
+  ],
+  "services": "MainPID=98730\nResult=success\nActiveState=active\nSubState=running\n\nMainPID=102531\nResult=success\nActiveState=active\nSubState=running\n",
+  "results": {
+    "session93/net-chain-result.json": null,
+    "session93/net-volume-control/result.json": {
+      "games": 1000,
+      "pairs": 500,
+      "orphan_games": 0,
+      "wdl": [
+        220,
+        594,
+        186
+      ],
+      "penta": [
+        9,
+        99,
+        254,
+        125,
+        13
+      ],
+      "printed_elo_ci95": [
+        11.8,
+        -0.0,
+        24.0
+      ],
+      "exact_elo_ci95": [
+        11.817364936972153,
+        -0.17093508241346056,
+        23.83387106573807
+      ],
+      "final_pllr": 1.25,
+      "exact_pllr": 1.245534714343604,
+      "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+      "flags": [
+        0,
+        0
+      ],
+      "reasons": {
+        "draw-rule": 580,
+        "checkmate": 406,
+        "max-moves": 12,
+        "stalemate": 2
+      },
+      "faults": [],
+      "verdict": "SHELVED",
+      "name": "s93-net-volume-control",
+      "finished_utc": "2026-10-17T00:26:42.099581+00:00",
+      "manifest": "/home/ehrli/ngn-data/night-20261007/session93/net-volume-control/manifest.json",
+      "automatic_adoption": false
+    },
+    "session93/net-moderated-t74/result.json": null,
+    "session94/selected-package.json": null,
+    "session94/claim-chain-result.json": null
+  },
+  "status_tail": [
+    "{\"utc\": \"2026-10-16T14:07:24.238783+00:00\", \"stage\": \"session93-net-chain\", \"event\": \"waiting-training\", \"detail\": {\"pid\": 89579, \"result\": \"/home/ehrli/ngn-data/night-20261007/session87/mixture/moderated-t74/result.json\"}}",
+    "{\"utc\": \"2026-10-16T14:12:31.447073+00:00\", \"stage\": \"session93\", \"event\": \"handoff\", \"detail\": {\"accepted\": \"9ec5d31/81215229/compiled final14\", \"v4_source\": \"010c586\", \"v4_tool\": \"b2269e5c5e96ea69f1366167a2892a963ba05eeb24bc393d3c0223b40c3427be\", \"v4\": \"READY_TOOLING;Koivisto admitted,five dry modes PASS;no live candidate receipt or games\", \"net_chain_pid\": 98730, \"net_chain_launcher\": 98728, \"net_chain_service\": \"ngn-s93-net-chain.service\", \"net_chain\": \"native waiting on training89579;then verified next checkpoint,planned SPSA pause,both fixed1000 vs81215229,review\", \"tuner\": 94467, \"tuner_controller\": 91862, \"trainer\": 94537, \"gpu_controller\": 89579, \"durable_iterations\": 50, \"durable_games\": 600, \"epochs\": 8, \"host_c_free_bytes\": 33634918400, \"next_session\": \"not before21:00 EDT October16 or on fault\", \"no_pause_yet\": true, \"no_push\": true, \"goal_met\": false, \"hopper_keepalive\": \"untouched\"}}",
+    "{\"utc\": \"2026-10-16T15:27:26.864119+00:00\", \"stage\": \"session94-v4\", \"event\": \"ready\", \"detail\": {\"state\": \"READY_TOOLING\", \"source_commit\": \"41d9f94552fe7296d4ad82954c635f6da880dbae\", \"source_tree\": \"10d9a820a5713efa3717b5df1038d57c29daffea\", \"source_clean\": true, \"runner\": {\"path\": \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool\", \"sha256\": \"a30408fc4c2de4d0df26d8a763d468d4707c6f58828ade2dc656eeee7d4f7c3c\"}, \"go_version\": \"go1.25.5\", \"GOAMD64\": \"v3\", \"GOMAXPROCS\": 2, \"cpus\": \"13,15\", \"nice\": 19, \"dry_identity\": \"Current accepted9ec5d31/81215229 metadata rebuild; no engine launch or scored games\", \"dry_modes\": {\"screen\": {\"status\": \"PASS\", \"argv\": [\"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool\", \"prepare\", \"--mode\", \"screen\", \"--candidate\", \"/home/ehrli/ngn-data/night-20261007/session94/dry-inputs/candidate-identity.json\", \"--source\", \"/home/ehrli/ngn-data/night-20261007/session94/source\", \"--tool-build-argv\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json\", \"--out\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/dry-screen\", \"--dry-run\"]}, \"confirmation\": {\"status\": \"PASS\", \"argv\": [\"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool\", \"prepare\", \"--mode\", \"confirmation\", \"--candidate\", \"/home/ehrli/ngn-data/night-20261007/session94/dry-inputs/candidate-identity.json\", \"--source\", \"/home/ehrli/ngn-data/night-20261007/session94/source\", \"--tool-build-argv\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json\", \"--out\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/dry-confirmation\", \"--dry-run\"]}, \"tooling-check\": {\"status\": \"PASS\", \"argv\": [\"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool\", \"prepare\", \"--mode\", \"tooling-check\", \"--candidate\", \"/home/ehrli/ngn-data/night-20261007/session94/dry-inputs/candidate-identity.json\", \"--source\", \"/home/ehrli/ngn-data/night-20261007/session94/source\", \"--tool-build-argv\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json\", \"--out\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/dry-tooling-check\", \"--dry-run\"]}, \"stability-screen\": {\"status\": \"PASS\", \"argv\": [\"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool\", \"prepare\", \"--mode\", \"stability-screen\", \"--candidate\", \"/home/ehrli/ngn-data/night-20261007/session94/dry-inputs/candidate-identity.json\", \"--source\", \"/home/ehrli/ngn-data/night-20261007/session94/source\", \"--tool-build-argv\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json\", \"--out\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/dry-stability-screen\", \"--dry-run\"]}, \"stability-confirmation\": {\"status\": \"PASS\", \"argv\": [\"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool\", \"prepare\", \"--mode\", \"stability-confirmation\", \"--candidate\", \"/home/ehrli/ngn-data/night-20261007/session94/dry-inputs/candidate-identity.json\", \"--source\", \"/home/ehrli/ngn-data/night-20261007/session94/source\", \"--tool-build-argv\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json\", \"--out\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/dry-stability-confirmation\", \"--dry-run\"]}}, \"ready_for_games\": true, \"games\": 0, \"caveat\": \"Tool and anchor preparation ready; candidate identity and live exclusive-rig receipt must follow net gates and transfer.\", \"focused_tests\": \"/home/ehrli/ngn-data/night-20261007/session94/claim-tests.log\", \"reused_full_checks\": \"/home/ehrli/ngn-data/night-20261007/session92/checks-result.json\", \"finished_utc\": \"2026-10-16T15:27:26.864119+00:00\"}}",
+    "{\"utc\": \"2026-10-16T15:28:43.283434+00:00\", \"stage\": \"session94-claim-chain\", \"event\": \"waiting-net-chain\", \"detail\": {\"pid\": 98730, \"terminal\": \"/home/ehrli/ngn-data/night-20261007/session93/net-chain-result.json\"}}",
+    "{\"utc\": \"2026-10-16T15:35:31.178591+00:00\", \"stage\": \"session94\", \"event\": \"handoff\", \"detail\": {\"accepted\": \"9ec5d31/81215229/compiledfinal14\", \"tool\": \"41d9f94/a30408fc\", \"playing_metadata\": \"0da45e7f/36identitiesPASS\", \"claim_chain_pid\": 102531, \"claim_chain_launcher\": 102529, \"scope_cpu_max\": \"max 100000\", \"state\": \"native wait on98730;selected transfer,occupancy,screen,conditional confirmation\", \"trainer\": 94537, \"tuner\": 94467, \"host_c_free_bytes\": 33155239936, \"next_session\": \"not before22:30 EDT October16,or fault\", \"goal_met\": false, \"no_push\": true, \"hopper_keepalive\": \"untouched\"}}",
+    "{\"utc\": \"2026-10-16T22:40:13.071490+00:00\", \"stage\": \"session87-mixture\", \"event\": \"ready-for-gate\", \"detail\": {\"cell\": \"moderated-t74\", \"epochs\": 115, \"total_positions\": 29440000000, \"source_presentations\": {\"/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf\": 7359983364, \"/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf\": 11775979796, \"/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf\": 10304036840}, \"selection\": \"final115\", \"reexport_identical\": true, \"parity_cases\": 20, \"net_sha256\": \"9324a00462039b456e06fa4a7c09d6fd31a857b287ed08ba1057144a52846ce5\", \"checkpoint_sha256\": \"34160f3396eb20cad5ede40e7cead452a9247ec380218d7f53fca968b640a523\"}}",
+    "{\"utc\": \"2026-10-16T22:40:13.241243+00:00\", \"stage\": \"session93-net-chain\", \"event\": \"waiting-checkpoint\", \"detail\": {\"after_iter\": 475, \"interval_seconds\": 300, \"tuner_pid\": 94467}}",
+    "{\"utc\": \"2026-10-16T22:55:13.276932+00:00\", \"stage\": \"session93-net-chain\", \"event\": \"spsa-paused\", \"detail\": {\"iter\": 500, \"games\": 6000, \"disposition\": \"/home/ehrli/ngn-data/night-20261007/session93/spsa-planned-pause.json\"}}",
+    "{\"utc\": \"2026-10-16T22:55:13.304151+00:00\", \"stage\": \"campaign-queue\", \"event\": \"start\", \"detail\": {\"job\": \"s93-net-volume-control\", \"manifest\": \"/home/ehrli/ngn-data/night-20261007/session93/net-volume-control/manifest.json\"}}",
+    "{\"utc\": \"2026-10-16T23:38:59.182223+00:00\", \"stage\": \"session95\", \"event\": \"handoff\", \"detail\": {\"accepted\": \"9ec5d31/81215229/compiled final14\", \"moderated\": \"READY/final115/29.44B/9324a004/reexport-identical/parity20\", \"spsa\": \"PLANNED_PAUSE/iter500/6000games/native-resume-saved\", \"net_chain_pid\": 98730, \"gate_pid\": 117018, \"claim_waiter_pid\": 102531, \"next_session\": \"not before20:30 EDT October16;first fixed1000 terminal\", \"host_c_free_bytes_observed\": 34149613568, \"goal_met\": false, \"no_push\": true, \"hopper_keepalive\": \"untouched\"}}",
+    "{\"utc\": \"2026-10-17T00:26:42.099759+00:00\", \"stage\": \"campaign-queue\", \"event\": \"result\", \"detail\": {\"games\": 1000, \"pairs\": 500, \"orphan_games\": 0, \"wdl\": [220, 594, 186], \"penta\": [9, 99, 254, 125, 13], \"printed_elo_ci95\": [11.8, -0.0, 24.0], \"exact_elo_ci95\": [11.817364936972153, -0.17093508241346056, 23.83387106573807], \"final_pllr\": 1.25, \"exact_pllr\": 1.245534714343604, \"native_verdict\": \"INCONCLUSIVE (ran out of games \\u2014 add openings or raise -maxgames)\", \"flags\": [0, 0], \"reasons\": {\"draw-rule\": 580, \"checkmate\": 406, \"max-moves\": 12, \"stalemate\": 2}, \"faults\": [], \"verdict\": \"SHELVED\", \"name\": \"s93-net-volume-control\", \"finished_utc\": \"2026-10-17T00:26:42.099581+00:00\", \"manifest\": \"/home/ehrli/ngn-data/night-20261007/session93/net-volume-control/manifest.json\", \"automatic_adoption\": false}}",
+    "{\"utc\": \"2026-10-17T00:26:42.110328+00:00\", \"stage\": \"campaign-queue\", \"event\": \"start\", \"detail\": {\"job\": \"s93-net-moderated-t74\", \"manifest\": \"/home/ehrli/ngn-data/night-20261007/session93/net-moderated-t74/manifest.json\"}}"
+  ],
+  "volume-control_log_tail": [
+    "=== RESULT (1h31m28s) ===",
+    "Games: 1000   W-D-L: 220-594-186   score: 51.7%",
+    "Elo(new - base): +11.8   95% CI [-10, +33]",
+    "LLR: +0.95   bounds [-2.94, 2.94]",
+    "Pentanomial [LL 9  LD 99  {LW,DD} 254  WD 125  WW 13] over 500 pairs",
+    "Penta Elo: +11.8   95% CI [-0, +24]   pLLR +1.25  (THE decision stat; trinomial above is secondary)",
+    "Flag-outs (lost on time): new 0, base 0  of 1000 games  (goal: 0)",
+    "Verdict: INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)"
+  ],
+  "moderated-t74_log_tail": [
+    "G36    7W 15D 14L   40.3%  elo  -68.4 [-182,+45]  LLR  -0.19  pLLR  -0.22  checkmate   ",
+    "G37    7W 16D 14L   40.5%  elo  -66.5 [-179,+46]  LLR  -0.20  pLLR  -0.23  draw-rule   ",
+    "G38    7W 17D 14L   40.8%  elo  -64.7 [-175,+46]  LLR  -0.20  pLLR  -0.23  draw-rule   ",
+    "G39    7W 17D 15L   39.7%  elo  -72.3 [-182,+37]  LLR  -0.23  pLLR  -0.27  checkmate   ",
+    "G40    7W 17D 16L   38.8%  elo  -79.5 [-188,+29]  LLR  -0.25  pLLR  -0.32  checkmate   ",
+    "G41    7W 18D 16L   39.0%  elo  -77.5 [-185,+30]  LLR  -0.26  pLLR  -0.32  draw-rule   ",
+    "G42    7W 18D 17L   38.1%  elo  -84.3 [-191,+22]  LLR  -0.29  pLLR  -0.36  checkmate   ",
+    "G43    7W 19D 17L   38.4%  elo  -82.3 [-187,+23]  LLR  -0.29  pLLR  -0.36  draw-rule   "
+  ]
+}

@@ -124,7 +124,9 @@
         "backend": {
           "enum": [
             "hce",
-            "ngn-v1"
+            "ngn-v1",
+            "ngn-k4-768-v1",
+            "rodent-v1.1-anand"
           ]
         },
         "binary": {
@@ -198,7 +200,11 @@
               "additionalProperties": false,
               "properties": {
                 "format": {
-                  "const": "ngn-v1"
+                  "enum": [
+                    "ngn-v1",
+                    "ngn-k4-768-v1",
+                    "rodent-v1.1-anand"
+                  ]
                 },
                 "path": {
                   "minLength": 1,
@@ -430,6 +436,10 @@
     },
     "match": {
       "additionalProperties": false,
+      "oneOf": [
+        {"required": ["time_control"]},
+        {"required": ["node_limit"]}
+      ],
       "properties": {
         "affinity_cpus": {
           "items": {
@@ -491,6 +501,10 @@
           "minLength": 1,
           "type": "string"
         },
+        "node_limit": {
+          "minimum": 1,
+          "type": "integer"
+        },
         "use_affinity": {
           "const": true
         }
@@ -498,7 +512,6 @@
       "required": [
         "games",
         "pairs",
-        "time_control",
         "concurrency",
         "seed",
         "opening_plies",
@@ -573,7 +586,11 @@
       "type": "object"
     },
     "schema": {
-      "const": "ngn-candidate-match-v1"
+      "enum": [
+        "ngn-candidate-match-v1",
+        "ngn-candidate-match-borrowed-v1",
+        "ngn-candidate-match-borrowed-fixed-nodes-v1"
+      ]
     },
     "status": {
       "enum": [

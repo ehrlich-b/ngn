@@ -1,0 +1,59 @@
+{
+  "utc": "2026-10-10T04:47:02.743794+00:00",
+  "recovery_exit": "0",
+  "recovery_done": "2026-10-10T00:22:19-04:00",
+  "candidate_done": {
+    "admission": "2026-10-10T00:11:43-04:00",
+    "horizon": "2026-10-10T00:16:58-04:00",
+    "partial": "2026-10-10T00:22:08-04:00"
+  },
+  "spsa_wrapper_pid": "88166",
+  "spsa_exit": null,
+  "spsa_checkpoint": {
+    "iter": 1625,
+    "time": "2026-10-09T23:44:48-04:00",
+    "plus_pct": 50.5,
+    "theta": {
+      "AspInit": 16.117239179589028,
+      "AspMult": 161.0596857476026,
+      "DeltaMargin": 192.2419294128603,
+      "ExtensionBudget": 29.036429438324333,
+      "FutilityMargin": 104.64300891012243,
+      "FutilityMaxDepth": 7.7448284869861,
+      "LMPBase": 3.4590784851142677,
+      "LMRFullDepth": 3.4581014618026367,
+      "LMRMoveThreshold": 1.9583587189978686,
+      "NullMoveMinDepth": 2.2614474951709735,
+      "NullMoveR": 4.050260057366806,
+      "ReverseFutilityMargin": 61.07104783197928,
+      "SingularDepth": 6.542341174243528,
+      "SingularMargin": 56.871810982699955
+    },
+    "rounded": {
+      "AspInit": 16,
+      "AspMult": 161,
+      "DeltaMargin": 192,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 105,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 3,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 61,
+      "SingularDepth": 7,
+      "SingularMargin": 57
+    }
+  },
+  "spsa_processes": [
+    "  88166   88166       53:50  0.0  3192 bash /work/lanes/ngn-spsa-20261009/controller.sh",
+    "  88178   88166       53:50  0.8 25948 ./spsa-forge -engine /work/lanes/ngn-spsa-20261009/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -concurrency 2 -openings /work/lanes/ngn-spsa-20261009/openings.txt -out /work/lanes/ngn-spsa-20261009/spsa.jsonl -lowpower=false -seed 20261008 -resume",
+    "  88182   88166       53:50 47.4 349784 /work/lanes/ngn-spsa-20261009/ngn-kb8",
+    "  88185   88166       53:50 47.5 349692 /work/lanes/ngn-spsa-20261009/ngn-kb8",
+    "  88188   88166       53:50 48.5 348856 /work/lanes/ngn-spsa-20261009/ngn-kb8",
+    "  88191   88166       53:50 48.5 350152 /work/lanes/ngn-spsa-20261009/ngn-kb8"
+  ],
+  "scope": "MemoryCurrent=1429098496\nMemoryPeak=1429794816\nCPUQuotaPerSecUSec=4s\nAllowedCPUs=8-11\nMemoryMax=2684354560\nMemorySwapMax=0\nActiveState=active\n",
+  "crash_log": "[NGN CRASH] 2026/10/09 23:53:12.175994 crash_handler.go:64: === NGN Crash Handler Initialized ===\n[NGN CRASH] 2026/10/09 23:53:12.176059 crash_handler.go:65: Crash log: /work/lanes/ngn-spsa-20261009/ngn_crashes.log\n[NGN CRASH] 2026/10/09 23:53:12.316650 crash_handler.go:64: === NGN Crash Handler Initialized ===\n[NGN CRASH] 2026/10/09 23:53:12.316729 crash_handler.go:65: Crash log: /work/lanes/ngn-spsa-20261009/ngn_crashes.log\n[NGN CRASH] 2026/10/09 23:53:12.429424 crash_handler.go:64: === NGN Crash Handler Initialized ===\n[NGN CRASH] 2026/10/09 23:53:12.429511 crash_handler.go:65: Crash log: /work/lanes/ngn-spsa-20261009/ngn_crashes.log\n[NGN CRASH] 2026/10/09 23:53:12.544123 crash_handler.go:64: === NGN Crash Handler Initialized ===\n[NGN CRASH] 2026/10/09 23:53:12.544243 crash_handler.go:65: Crash log: /work/lanes/ngn-spsa-20261009/ngn_crashes.log\n[NGN CRASH] 2026/10/09 23:53:12.659349 crash_handler.go:64: === NGN Crash Handler Initialized ===\n[NGN CRASH] 2026/10/09 23:53:12.659445 crash_handler.go:65: Crash log: /work/lanes/ngn-spsa-20261009/ngn_crashes.log"
+}

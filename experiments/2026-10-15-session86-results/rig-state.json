@@ -1,0 +1,47 @@
+{
+  "observed_edt": "2026-10-15 05:18:28",
+  "accepted": "9ec5d31/81215229/compiled final14",
+  "host_c_free_bytes": 25050505216,
+  "provenance": {
+    "controller_pid": 39843,
+    "python_pid": 39845,
+    "sprt_pid": 81543,
+    "games_completed": 1981,
+    "terminal": false,
+    "result_path": "/home/ehrli/ngn-data/night-20261007/session83/provenance/result.json",
+    "rule": "logistic [-8,0], 60+0.6, c6, min1000/cap4000, natural terminal",
+    "cap_eta_edt": "2026-10-15 23:30",
+    "partial_score_is_verdict": false
+  },
+  "qsearch": {
+    "queue_pid": 83550,
+    "service": "ngn-campaign-queue.service",
+    "service_state": "active/running",
+    "state": "native wait for clean CERTIFIED predecessor39843",
+    "terminal": false
+  },
+  "final174": {
+    "recovery_pid": 86550,
+    "recovery_python_pid": 86553,
+    "state": "waiting for host C >=25.5GiB",
+    "minimum_host_c_bytes": 27380416512,
+    "checkpoint_epoch": 92,
+    "resume_started": false,
+    "automatic_games": false,
+    "recovery_exit_present": false,
+    "poll_interval_seconds": 300
+  },
+  "gpu": {
+    "utilization_percent": 0,
+    "memory_used_mib": 1367,
+    "memory_free_mib": 14611
+  },
+  "memory_available_mib": 12060,
+  "swap_used_mib": 1,
+  "linux_root_free_gib_rounded": 227,
+  "hopper_pid": 1188,
+  "hopper_keepalive": "untouched",
+  "new_compute_jobs": 0,
+  "goal_met": false,
+  "push": false
+}

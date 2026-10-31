@@ -1,0 +1,11 @@
+Running as unit: ngn-s47-tt.scope; invocation ID: 80f6590b82d94e8ca71aaf9d65cbb14e
+Traceback (most recent call last):
+  File "/work/lanes/ngn-s47/tt/gate-parser.py", line 385, in <module>
+    main()
+    ~~~~^^
+  File "/work/lanes/ngn-s47/tt/gate-parser.py", line 372, in main
+    result = gate(args.root.read_text(), args.gate_mode)
+  File "/work/lanes/ngn-s47/tt/gate-parser.py", line 90, in gate
+    assert reported[1] <= 0 <= reported[2] and exact[1] <= 0 <= exact[2]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

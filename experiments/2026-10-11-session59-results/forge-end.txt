@@ -1,0 +1,23 @@
+SNAPSHOT 2026-10-11T06:05:47-04:00
+               total        used        free      shared  buff/cache   available
+Mem:           17922        4648        4937           0        8684       13273
+Swap:           4095        2036        2059
+Filesystem        1B-blocks         Used    Available Use% Mounted on
+/dev/sda       536608739328 242306408448 294302330880  46% /work
+    PID    PPID    PGID     ELAPSED %CPU   RSS COMMAND
+ 117631       1  117631  1-00:10:40  0.3 18876 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+1489286       1 1489286    02:54:01  0.0 14612 python3 archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768
+1621423       1 1621423       02:22  0.0  3024 bash recovery-session59-controller.sh
+1621432 1621423 1621423       02:22  0.4 36656 /work/lanes/ngn-s47/parity-venv/bin/python recovery-session59.py --resume-after-raw
+1621450 1621432 1621450       02:22  399 714356 /work/lanes/ngn-data-volume-20261010/converter scatter --input /work/lanes/ngn-data-volume-20261010/farseerT74.binpack --conflicts /work/lanes/ngn-data-volume-20261010/conflicts.bin --probe-keys /work/lanes/ngn-data-volume-20261010/calibration-probe.keys --output /work/lanes/ngn-data-step2-20261011/scatter-t74full --buckets 256 --workers 4 --seed 2026100903 --keep-per-mille 1000
+MemoryCurrent=4211474432
+AllowedCPUs=4-11
+MemoryMax=4294967296
+MemorySwapMax=0
+ActiveState=active
+{"utc": "2026-10-11T10:03:24.516732+00:00", "stage": "session58-data-recovery", "event": "discard-incomplete-buckets", "detail": "new-lane partial files0; retained interruption logs"}
+{"utc": "2026-10-11T10:03:24.521708+00:00", "stage": "session57-data-step2", "event": "scatter-start", "detail": "t74full; fixed keep1000/1000; workers4; original pipeline"}
+{"utc": "2026-10-11T10:05:18.181790+00:00", "stage": "session59-data-recovery", "event": "manual-continuation", "detail": "Reviewed03:59 converter output-dir exists failure; empty root removed; completed T75 raw copy reused; unchanged converter/seeds/scales/map/coverage/recipe. Recovery controller1621423/Python1621432/converter1621450; receiver22738, original GPU21886 native wait; no completed work repeated."}
+Running as unit: ngn-s59-data-recovery.scope; invocation ID: 38960983608e42228d83594809cccd36
+ngnk4archive: conflicts=5271120 probes=107303 buckets=256 workers=4
+ngnk4archive: decoded=310181888 emitted=203220521 elapsed=83s

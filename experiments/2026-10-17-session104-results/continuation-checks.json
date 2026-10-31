@@ -1,0 +1,71 @@
+{
+  "verdict": "PASS",
+  "fixtures": [
+    {
+      "predecessor": "KEEP",
+      "s3": "KEEP_ELIGIBLE",
+      "verdicts": {},
+      "fault": false,
+      "timing": [],
+      "pass_fixture": true
+    },
+    {
+      "predecessor": "SHELVED",
+      "s3": "SHELVED",
+      "verdicts": {},
+      "fault": false,
+      "timing": [],
+      "pass_fixture": true
+    },
+    {
+      "predecessor": "SHELVED",
+      "s3": "KEEP_ELIGIBLE",
+      "verdicts": {
+        "s2": "KEEP_ELIGIBLE"
+      },
+      "fault": false,
+      "timing": [
+        "s2"
+      ],
+      "pass_fixture": true
+    },
+    {
+      "predecessor": "SHELVED",
+      "s3": "KEEP_ELIGIBLE",
+      "verdicts": {
+        "s2": "SHELVED",
+        "s1": "KEEP_ELIGIBLE"
+      },
+      "fault": false,
+      "timing": [
+        "s2",
+        "s1"
+      ],
+      "pass_fixture": true
+    },
+    {
+      "predecessor": "SHELVED",
+      "s3": "KEEP_ELIGIBLE",
+      "verdicts": {
+        "s2": "SHELVED",
+        "s1": "SHELVED"
+      },
+      "fault": false,
+      "timing": [
+        "s2",
+        "s1"
+      ],
+      "pass_fixture": true
+    },
+    {
+      "predecessor": "SHELVED",
+      "s3": "KEEP_ELIGIBLE",
+      "verdicts": {},
+      "fault": true,
+      "timing": [
+        "s2"
+      ],
+      "pass_fixture": true
+    }
+  ]
+}

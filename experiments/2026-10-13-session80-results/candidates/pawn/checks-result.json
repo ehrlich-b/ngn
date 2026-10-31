@@ -1,0 +1,14 @@
+{
+  "base": "f203e2f",
+  "candidate": "pawn",
+  "passed": [
+    "focused",
+    "engine short/race",
+    "full short/race",
+    "vet",
+    "PGO build"
+  ],
+  "binary_sha256": "9924f1fbe23d5e7e9c51951bcf178b34baea888e013fb13196312bcc3a45957b",
+  "patch_sha256": "d37b0a6ff602c862196d9ece12a3231cd6df6e77e1cdc46aa461772902b6d75d",
+  "completed_utc": "2026-10-14T01:33:44.255383+00:00"
+}

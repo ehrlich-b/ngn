@@ -1,0 +1,7 @@
+{
+  "state": "REVIEW_VECTOR_GATE",
+  "utc": "2026-10-19T03:03:52.279551+00:00",
+  "automatic_adoption": false,
+  "verdict": "KEEP",
+  "next": "Adopt only a clean KEEP, then retarget and recheck all unstarted candidates"
+}

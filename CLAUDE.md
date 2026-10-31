@@ -33,11 +33,13 @@ of this module.
 
 ## Active Policy
 
-- **September 13 user direction:** use existing networks and prioritize engine
-  speed and high-impact gaps against direct competitors. Defer NGN-owned NNUE
-  training, training-data generation and training-pipeline work. Compatibility
-  work for existing networks remains in scope when justified by measured benefit.
+- **September 20–23 user direction supersedes the September 13 NNUE deferral:**
+  pursue an NGN-owned NNUE toward at least 3000 and allow justified training,
+  data and pipeline work. The old deferral remains historical context. See
+  `experiments/2026-09-23-owned-nnue-next-step-diagnosis.md` for the latest
+  evidence and next gate. Do not infer absolute rating from relative matches.
 - **Explicit user restriction, September5:** never run NGN on this Mac. It is a battery-powered user computer. Run engines, matches, search tests, benchmarks, tuning and heavy chess validation on the authorized Windows/WSL box only. Background scheduling, efficiency cores or reduced concurrency do not make local execution acceptable. Local editing and lightweight read-only inspection are fine. Do not restart any stopped Mac controller or allow a remote collector to launch local engine validation.
+- **September29 user reminder:** use the WSL machine's GPU for NNUE training. Keep builds, tests, and playing-strength matches on WSL as above.
 
 - The at-least-2800 target without NNUE is verified on the fixed historical calibration; see `experiments/2026-09-05-2800-result.md`.
 - September5 user direction: the completed2800 goal is succeeded by verified NNUE and real multicore search, toward the strongest Go-based engine. NNUE is now allowed in principle. All implementation, training, builds, profiles, engines and matches run on WSL only. See experiments/2026-09-05-next-stage-roadmap.md. The Mac is a remote terminal; no local project computation.
@@ -48,6 +50,7 @@ of this module.
 - Do not stack changes unless the experiment is explicitly about an interaction.
 - Do not keep speculative search/eval changes on positive sign at an inconclusive cap.
 - Batch-certification path (2026-07-01, the only sanctioned alternative to shelving at cap): a capped-but-positive result (point est ≥ +1, LLR > 0, no regression signal) may enter main as a PROVISIONAL keep; after ≤4 provisionals or 2 weeks, one powered batch-vs-pre-batch-base real-clock SPRT [0,+6] certifies all of them or triggers a bisect.
+- October 13 user-approved gate table (detail in `ngn-campaign/plan-2026-10-09.md`, root note 2026-10-13 21:00): search/eval/time heuristics use a logistic SPRT [0,+5], min 1000, cap 8000 at 10+0.1, and a cap with point ≥ +1 and LLR > 0 enters the batch path above. Nets and SPSA vectors use fixed 1000 games with lower95 > 0. Provenance replacement packages certify by non-inferiority SPRT [−8,0] at 60+0.6 instead of [0,+6]. Run one A/A per topology and reuse it. Never stop a running predeclared gate administratively. The fixed 400-game lower95 > 0 gate is retired for changes expected below +15.
 - Pre-reset (before 2026-06-28) game verdicts are historical evidence only; they cannot close a lane or gate new work.
 - Proxies (FMC/ebfprobe/fixed-nodes/ACPL/MSE) may REJECT only pure ordering/EBF-mechanism changes, and every proxy rejection records a reopen condition. Anything touching eval values, time, or TC behavior gets a real-clock games gate.
 - Time-management and TC-sensitive changes are gated by real-clock games only.

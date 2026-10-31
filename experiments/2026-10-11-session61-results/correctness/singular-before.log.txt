@@ -1,0 +1,41 @@
+=== RUN   TestSingularCorrectionBounds
+=== RUN   TestSingularCorrectionBounds/white/restricted_fail_low
+    singular_correction_test.go:33: score=49 static=100 restricted=true corrections=[-6 -6 -6]
+    singular_correction_test.go:34: corrector 0=-6, want write=false
+    singular_correction_test.go:34: corrector 1=-6, want write=false
+    singular_correction_test.go:34: corrector 2=-6, want write=false
+=== RUN   TestSingularCorrectionBounds/white/ordinary_fail_low
+    singular_correction_test.go:33: score=49 static=100 restricted=false corrections=[-6 -6 -6]
+=== RUN   TestSingularCorrectionBounds/white/restricted_fail_high
+    singular_correction_test.go:33: score=0 static=-100 restricted=true corrections=[12 12 12]
+=== RUN   TestSingularCorrectionBounds/white/ordinary_fail_high
+    singular_correction_test.go:33: score=0 static=-100 restricted=false corrections=[12 12 12]
+=== RUN   TestSingularCorrectionBounds/white/excluded_other_ply_fail_low
+    singular_correction_test.go:33: score=49 static=100 restricted=false corrections=[-6 -6 -6]
+=== RUN   TestSingularCorrectionBounds/black/restricted_fail_low
+    singular_correction_test.go:33: score=49 static=100 restricted=true corrections=[-6 -6 -6]
+    singular_correction_test.go:34: corrector 0=-6, want write=false
+    singular_correction_test.go:34: corrector 1=-6, want write=false
+    singular_correction_test.go:34: corrector 2=-6, want write=false
+=== RUN   TestSingularCorrectionBounds/black/ordinary_fail_low
+    singular_correction_test.go:33: score=49 static=100 restricted=false corrections=[-6 -6 -6]
+=== RUN   TestSingularCorrectionBounds/black/restricted_fail_high
+    singular_correction_test.go:33: score=0 static=-100 restricted=true corrections=[12 12 12]
+=== RUN   TestSingularCorrectionBounds/black/ordinary_fail_high
+    singular_correction_test.go:33: score=-50 static=-100 restricted=false corrections=[6 6 6]
+=== RUN   TestSingularCorrectionBounds/black/excluded_other_ply_fail_low
+    singular_correction_test.go:33: score=49 static=100 restricted=false corrections=[-6 -6 -6]
+--- FAIL: TestSingularCorrectionBounds (0.01s)
+    --- FAIL: TestSingularCorrectionBounds/white/restricted_fail_low (0.00s)
+    --- PASS: TestSingularCorrectionBounds/white/ordinary_fail_low (0.00s)
+    --- PASS: TestSingularCorrectionBounds/white/restricted_fail_high (0.00s)
+    --- PASS: TestSingularCorrectionBounds/white/ordinary_fail_high (0.00s)
+    --- PASS: TestSingularCorrectionBounds/white/excluded_other_ply_fail_low (0.00s)
+    --- FAIL: TestSingularCorrectionBounds/black/restricted_fail_low (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/ordinary_fail_low (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/restricted_fail_high (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/ordinary_fail_high (0.00s)
+    --- PASS: TestSingularCorrectionBounds/black/excluded_other_ply_fail_low (0.00s)
+FAIL
+FAIL	github.com/ehrlich-b/ngn/engine	0.021s
+FAIL

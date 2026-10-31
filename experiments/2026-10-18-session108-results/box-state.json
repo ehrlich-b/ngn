@@ -1,0 +1,36 @@
+{
+  "utc": "2026-10-18T05:07:12.363572+00:00",
+  "accepted": "fe92ced/81215229/compiled final14",
+  "services": "MainPID=333547\nResult=success\nMemoryCurrent=360443904\nActiveState=active\nSubState=running\n\nMainPID=325755\nResult=success\nMemoryCurrent=2551214080\nActiveState=active\nSubState=running\n\nMainPID=325759\nResult=success\nMemoryCurrent=6442352640\nActiveState=active\nSubState=running",
+  "processes": [
+    "   1188     245  5-03:50:46  0.3 18460 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    " 325755     245       33:58  2.3 21044 /home/ehrli/ngn-data/night-20261007/session84/spsa -engine /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -out /home/ehrli/ngn-data/night-20261007/session88/spsa-warm/spsa.jsonl -lowpower=false -seed 2026101401 -rend .05 -afrac .1 -report 25 -engineoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -engineoption UseNNUE=true -engineoption Hash=64 -engineoption Threads=1 -engineoption OwnBook=false -resume",
+    " 325764  325759       33:58 49.7 5191724 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261015 --out /home/ehrli/ngn-data/night-20261007/session104-speed/recipe/wdl050/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 115 --positions-per-epoch 256000000 --weight-decay .01 --wdl .50 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only --archive-source-weights /home/ehrli/ngn-data/night-20261007/session87/mixture/volume-control/source-weights.json",
+    " 333545  333542       03:09  0.0  7552 systemd-run --user --wait --unit=ngn-s108-checks -p Type=exec -p AllowedCPUs=13,15 -p CPUQuota=200% -p MemoryMax=2G -p MemorySwapMax=0 -p StandardOutput=append:/home/ehrli/ngn-data/night-20261007/session108-speed/checks.log -p StandardError=inherit taskset -c 13,15 nice -n 19 bash /home/ehrli/ngn-data/night-20261007/session108-speed/checks.sh",
+    " 333547     245       03:09  0.0  3456 bash /home/ehrli/ngn-data/night-20261007/session108-speed/checks.sh"
+  ],
+  "checks_pid": "333547\n",
+  "checks_exit": null,
+  "checks_done": null,
+  "identity": null,
+  "check_stage": [
+    "full-short.log",
+    "engine-short.log",
+    "full-race.log",
+    "engine-race.log"
+  ],
+  "spsa": {
+    "iter": 1125,
+    "time": "2026-10-18T05:03:17Z",
+    "rng_draws": 101250
+  },
+  "trainer_last_epoch": null,
+  "gpu": "0 %, 4259 MiB, 16303 MiB",
+  "memory": "total        used        free      shared  buff/cache   available\nMem:           15514        6186        3754          87        6039        9327\nSwap:           4096           2        4093",
+  "host_c_free_bytes": 32496713728,
+  "source_topic": "night/s108-pruning-hoist",
+  "source_worktree": "/private/tmp/ngn-s108-pruning-hoist",
+  "timing_armed": false,
+  "goal_met": false,
+  "no_push": true
+}

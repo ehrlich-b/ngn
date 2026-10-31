@@ -1,0 +1,42 @@
+{
+  "observed_utc": "2026-10-15T20:03:35.708541+00:00",
+  "host_c_free_bytes": 36111011840,
+  "provenance_result": null,
+  "provenance_last_completed_game": 3170,
+  "final174": {
+    "epochs": 174,
+    "total_positions": 44544000000,
+    "source_presentations": {
+      "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf": 7836266910,
+      "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf": 25961155741,
+      "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf": 10746577349
+    },
+    "selection": "final174",
+    "reexport_identical": true,
+    "parity_cases": 20,
+    "net_sha256": "0b17ca294ec21d9cbbf681e8f87b1f6bff7b5cc58cd6e8d6a52ab9851ef9a218",
+    "checkpoint_sha256": "92427055e5f5952910477cbaf204866cbc00266b8a3831c9410fcfe426f458ec"
+  },
+  "final174_last_epoch_seconds": 270.2819325480086,
+  "units": {
+    "ngn-s83-followup.service": "MainPID=39843\nCPUQuotaPerSecUSec=12s\nAllowedCPUs=0-11\nMemoryMax=3221225472\nActiveState=active\n",
+    "ngn-s87-queue.service": "MainPID=89720\nCPUQuotaPerSecUSec=8s\nAllowedCPUs=0-15\nMemoryMax=3221225472\nActiveState=active\n",
+    "ngn-s87-mixture.service": "MainPID=89579\nCPUQuotaPerSecUSec=2s\nAllowedCPUs=12-15\nMemoryMax=4294967296\nActiveState=active\n",
+    "ngn-s87-spsa-warm.service": "MainPID=89726\nCPUQuotaPerSecUSec=6s\nAllowedCPUs=0-11\nMemoryMax=3221225472\nActiveState=active\n"
+  },
+  "controller_pids": {
+    "queue-controller": "89717",
+    "mixture-controller": "89576",
+    "spsa-controller": "89723"
+  },
+  "trainer_pid": "89581",
+  "width_policy": {
+    "mode": "same-logical-team",
+    "trainer_paused": false,
+    "approval_required": false,
+    "rationale": "UCI alternates turns,ponderoff; both A/A roles0,2,4,6; no SMT-sibling contention; weekly review recommends same team per game"
+  },
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        4269        2773           4        8823       11244\nSwap:           4096           1        4094\n",
+  "gpu": "0 %, 1368 MiB, 16303 MiB\n",
+  "training_log_tail": ""
+}

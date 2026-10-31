@@ -1,0 +1,71 @@
+{
+  "utc": "2026-10-09T22:20:33.269974+00:00",
+  "host_c_free_bytes": 34644295680,
+  "host_c_free_gib": 32.2650146484375,
+  "gpu": "NVIDIA GeForce RTX 5080, 0 %, 1507 MiB, 16303 MiB",
+  "pids": {
+    "spsa": 1405,
+    "see": 12263,
+    "vnni": 20321,
+    "hopper": 1211
+  },
+  "processes": {
+    "spsa": "1405    1396    9740 /home/ehrli/ngn-data/night-20261007/spsa/spsa -engine /home/ehrli/ngn-data/night-20261007/kb8bin/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/net1-gates-20261006/openings.txt -out /home/ehrli/ngn-data/night-20261007/spsa/kb8/spsa.jsonl -lowpower=false -seed 20261008 -resume",
+    "see": "12263   12254    6473 bash /home/ehrli/ngn-data/night-20261007/session30-see-gate/controller.sh",
+    "vnni": "20321   20312      73 bash /home/ehrli/ngn-data/night-20261007/session31-vnni/controller.sh",
+    "hopper": "1211     270    9863 /usr/bin/python3 /home/ehrli/hopper/hopper.py run"
+  },
+  "spsa": {
+    "iter": 1350,
+    "games": 16200,
+    "time": "2026-10-09T18:08:41-04:00"
+  },
+  "terminal": {
+    "session30-see-gate": {
+      "controller.exit": null,
+      "controller.done": null
+    },
+    "session31-vnni": {
+      "controller.exit": null,
+      "controller.done": null
+    }
+  },
+  "status": [
+    {
+      "utc": "2026-10-09T21:41:25.251502+00:00",
+      "stage": "ngnn4-eight-row",
+      "event": "tests-pass",
+      "detail": "all widths guarded rows/packed/scalar;320 integer cases; full short/race/vet"
+    },
+    {
+      "utc": "2026-10-09T21:41:51.918901+00:00",
+      "stage": "ngnn4-eight-row",
+      "event": "timing-start",
+      "detail": "48 exact identities, exactly20 balanced3s AB/BA blocks CPU14; if keep,12 architecture-cost blocks"
+    },
+    {
+      "utc": "2026-10-09T21:57:11.105983+00:00",
+      "stage": "ngnn4-eight-row",
+      "event": "speed-shelve",
+      "detail": "complete fixed sample failed rule; no extension"
+    },
+    {
+      "utc": "2026-10-09T21:57:11.141856+00:00",
+      "stage": "ngnn4-eight-row",
+      "event": "end",
+      "detail": "rc 0; speed/cost evidence only, no training or adoption"
+    },
+    {
+      "utc": "2026-10-09T22:19:20.619515+00:00",
+      "stage": "ngnn4-vnni",
+      "event": "wait",
+      "detail": "C:>=32GiB; CPU12,14 tests / CPU14 fixed sample; no match overlap on these CPUs"
+    },
+    {
+      "utc": "2026-10-09T22:19:20.662721+00:00",
+      "stage": "ngnn4-vnni",
+      "event": "test-start",
+      "detail": "verified aafa7fd NGNN4 four-row base; only runtime-selected VNNI dot changes candidate"
+    }
+  ]
+}

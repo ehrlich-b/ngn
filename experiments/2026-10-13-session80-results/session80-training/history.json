@@ -1,0 +1,59 @@
+[
+  {
+    "epoch": 1,
+    "step": 15625,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.0117321943359375,
+    "lr": 0.0009998321178706266,
+    "seconds": 270.1358070319984,
+    "positions_per_second": 947671.4798111751,
+    "steady_positions_per_second": 950523.1677099919,
+    "source_presentations_cumulative": {
+      "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf": 41640945,
+      "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf": 147577975,
+      "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf": 66781080
+    },
+    "validation_loss": 0.010749131036036448,
+    "validation_loss_lambda_075": 0.010749131036036448,
+    "validation_loss_result": 0.08995880313117699
+  },
+  {
+    "epoch": 2,
+    "step": 31250,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.0104464541015625,
+    "lr": 0.0009993285537839916,
+    "seconds": 273.5925399020052,
+    "positions_per_second": 935698.0277740523,
+    "steady_positions_per_second": 937136.2382734596,
+    "source_presentations_cumulative": {
+      "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf": 88653118,
+      "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf": 296069933,
+      "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf": 127276949
+    },
+    "validation_loss": 0.01029810498114501,
+    "validation_loss_lambda_075": 0.01029810498114501,
+    "validation_loss_result": 0.08885581203430422
+  },
+  {
+    "epoch": 3,
+    "step": 46875,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.0101605205078125,
+    "lr": 0.000998489683518219,
+    "seconds": 272.74849084499874,
+    "positions_per_second": 938593.6443017138,
+    "steady_positions_per_second": 939276.5491787858,
+    "source_presentations_cumulative": {
+      "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf": 131079785,
+      "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf": 447837980,
+      "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf": 189082235
+    },
+    "validation_loss": 0.01011426136192082,
+    "validation_loss_lambda_075": 0.01011426136192082,
+    "validation_loss_result": 0.08872372053862565
+  }
+]

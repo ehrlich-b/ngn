@@ -1,0 +1,23 @@
+{
+  "completed_edt": "2026-10-12T15:27:47-04:00",
+  "variants": [
+    "base",
+    "horizon"
+  ],
+  "full_history_rows": 54,
+  "checks": [
+    "all frame history and legal-played-move replay",
+    "prior-turn allocator setup semantics",
+    "checked SEE helper witnesses",
+    "one100ms owned-net smoke each variant",
+    "PGO diagnostic binaries"
+  ],
+  "cpus": [
+    13,
+    15
+  ],
+  "nice": 19,
+  "inputs": "54a33dc06db36750265b3f87c3b1f03bd66049aa3bcbfc6d9ff6198726169bd4  base-panel.test\nf2f9ad9d5502e06bc367d7bcd978fc1dbe2a6c8ea8b43f1c02afb1b788102758  horizon-panel.test\n71001d257d5f545c470e0931b7bc4d6c36a5dbb7c94dfffb5d419513e4047a16  panel.json\nd9cd0a84038df156e638a4e2cb27f078fa327a269ccf4ecc1cf5fc45687a8f6d  panel_test.go\n5914b9b877572290bb1bed69eeebc85306e9032c56e3f30359242988cb20bc65  panel_see_test.go\n",
+  "diagnostic_only": true,
+  "automatic_games": false
+}

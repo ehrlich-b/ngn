@@ -1,0 +1,14 @@
+2026-10-11T03:52:04-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              17           4           1           0          11          12
+Swap:              3           3           0
+Filesystem        1B-blocks         Used   Available Use% Mounted on
+/dev/sda       536608739328 451052617728 85556121600  85% /work
+    PID    PPID STAT     ELAPSED %CPU   RSS COMMAND
+ 117631       1 SNs     21:56:58  0.3 18880 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+1489286       1 SNsl       40:18  0.0 14116 python3 archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768
+1535562       1 SNs        01:07  0.0  3060 bash recovery-controller.sh
+1535564 1535562 SNl        01:07  4.3 37064 /work/lanes/ngn-s47/parity-venv/bin/python recovery.py
+{"utc": "2026-10-11T07:05:57.967729+00:00", "stage": "session57-data-step2", "event": "scatter-start", "detail": "t74full; fixed keep1000/1000; workers4; original pipeline"}
+{"utc": "2026-10-11T07:50:57.493312+00:00", "stage": "session58-data-recovery", "event": "raw-storage-start", "detail": "preserve complete T75 on rig before rerunning interrupted T74 scatter"}
+Running as unit: ngn-s58-data-recovery.scope; invocation ID: 92a8b4eeef6e4034b10d534c47f9bf67

@@ -1,0 +1,1058 @@
+{
+  "prepared_utc": "2026-10-16T13:46:30.713693+00:00",
+  "admitted_smokes": [
+    {
+      "name": "akimbo 1.0.0",
+      "binary": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/akimbo1/akimbo-1.0.0-avx2",
+      "sha256": "879c769035d948068512eb9de02c0f356727b6045e10b95ac813497ebd8d7eee",
+      "status": "PASS",
+      "selected": {
+        "Threads": "8",
+        "Hash": "256",
+        "UCI_Chess960": "false"
+      },
+      "options": {
+        "Threads": "spin default 1 min 1 max 512",
+        "Hash": "spin default 16 min 1 max 1048576",
+        "Clear Hash": "button",
+        "UCI_Chess960": "check default false"
+      },
+      "moves": [
+        "e2e4",
+        "e2e4"
+      ],
+      "exit_code": 0,
+      "stderr": [],
+      "events": [
+        [
+          0.0003733609919436276,
+          "stdout",
+          "akimbo, created by Jamie Whiting"
+        ],
+        [
+          0.0004317099810577929,
+          "stdin",
+          "uci"
+        ],
+        [
+          0.0027878099936060607,
+          "stdout",
+          "id name akimbo 1.0.0"
+        ],
+        [
+          0.002811877988278866,
+          "stdout",
+          "id author Jamie Whiting"
+        ],
+        [
+          0.0028145519900135696,
+          "stdout",
+          "option name Threads type spin default 1 min 1 max 512"
+        ],
+        [
+          0.0028156780172139406,
+          "stdout",
+          "option name Hash type spin default 16 min 1 max 1048576"
+        ],
+        [
+          0.0028164730174466968,
+          "stdout",
+          "option name Clear Hash type button"
+        ],
+        [
+          0.0028171460144221783,
+          "stdout",
+          "option name UCI_Chess960 type check default false"
+        ],
+        [
+          0.002817698987200856,
+          "stdout",
+          "uciok"
+        ],
+        [
+          0.0030090659856796265,
+          "stdin",
+          "setoption name Hash value 256"
+        ],
+        [
+          0.0030337569769471884,
+          "stdin",
+          "setoption name Threads value 8"
+        ],
+        [
+          0.003036903974134475,
+          "stdin",
+          "setoption name UCI_Chess960 value false"
+        ],
+        [
+          0.0030380499665625393,
+          "stdin",
+          "isready"
+        ],
+        [
+          0.08583348797401413,
+          "stdout",
+          "readyok"
+        ],
+        [
+          0.0858980409684591,
+          "stdin",
+          "ucinewgame"
+        ],
+        [
+          0.08592361601768062,
+          "stdin",
+          "isready"
+        ],
+        [
+          0.09293237898964435,
+          "stdout",
+          "readyok"
+        ],
+        [
+          0.0929821619647555,
+          "stdin",
+          "position startpos"
+        ],
+        [
+          0.09300744597567245,
+          "stdin",
+          "go movetime 200"
+        ],
+        [
+          0.0967688980163075,
+          "stdout",
+          "info depth 1 seldepth 1 score cp 10 time 0 nodes 1024 nps 4294967295 pv d2d4"
+        ],
+        [
+          0.09679709700867534,
+          "stdout",
+          "info depth 2 seldepth 2 score cp 76 time 0 nodes 1024 nps 4294967295 pv d2d4 d7d5"
+        ],
+        [
+          0.10311810398707166,
+          "stdout",
+          "info depth 3 seldepth 5 score cp 50 time 0 nodes 1024 nps 4294967295 pv e2e4 c7c5 d2d4"
+        ],
+        [
+          0.10313244996359572,
+          "stdout",
+          "info depth 4 seldepth 6 score cp 65 time 0 nodes 1024 nps 4294967295 pv e2e4 c7c5 g1f3 b8c6"
+        ],
+        [
+          0.10313403798500076,
+          "stdout",
+          "info depth 5 seldepth 6 score cp 81 time 0 nodes 3072 nps 4294967295 pv e2e4 c7c5 g1f3 e7e6 d2d4"
+        ],
+        [
+          0.10313486302038655,
+          "stdout",
+          "info depth 6 seldepth 7 score cp 53 time 1 nodes 5120 nps 5120000 pv e2e4 c7c5 g1f3 e7e6 b1c3 b8c6"
+        ],
+        [
+          0.10313613899052143,
+          "stdout",
+          "info depth 7 seldepth 8 score cp 56 time 2 nodes 9216 nps 4608000 pv e2e4 e7e6 d2d4 d7d5 e4d5 e6d5 g1f3"
+        ],
+        [
+          0.10313699400285259,
+          "stdout",
+          "info depth 8 seldepth 12 score cp 67 time 3 nodes 13312 nps 4437333 pv e2e4 c7c5 g1f3 e7e6 d2d4 c5d4 f3d4 g8f6"
+        ],
+        [
+          0.10317210998618975,
+          "stdout",
+          "info depth 9 seldepth 12 score cp 62 time 6 nodes 28672 nps 4778666 pv e2e4 e7e6 d2d4 d7d5 e4d5 e6d5 g1f3 f8e7 f1e2"
+        ],
+        [
+          0.12705025199102238,
+          "stdout",
+          "info depth 10 seldepth 16 score cp 62 time 30 nodes 46080 nps 1536000 pv e2e4 e7e6 d2d4 d7d5 e4d5 e6d5 g1f3 f8e7 f1e2"
+        ],
+        [
+          0.2869114489876665,
+          "stdout",
+          "bestmove e2e4"
+        ],
+        [
+          0.28699387598317116,
+          "stdin",
+          "ucinewgame"
+        ],
+        [
+          0.28700884501449764,
+          "stdin",
+          "isready"
+        ],
+        [
+          0.2917488279636018,
+          "stdout",
+          "readyok"
+        ],
+        [
+          0.29177522799000144,
+          "stdin",
+          "position startpos"
+        ],
+        [
+          0.29178036499070004,
+          "stdin",
+          "go movetime 200"
+        ],
+        [
+          0.29279074497753754,
+          "stdout",
+          "info depth 1 seldepth 1 score cp 65 time 0 nodes 2048 nps 4294967295 pv e2e4"
+        ],
+        [
+          0.2928370509762317,
+          "stdout",
+          "info depth 2 seldepth 2 score cp 73 time 0 nodes 2048 nps 4294967295 pv e2e4 e7e6"
+        ],
+        [
+          0.2929114159778692,
+          "stdout",
+          "info depth 3 seldepth 6 score cp 67 time 0 nodes 2048 nps 4294967295 pv e2e4 d7d5 e4d5"
+        ],
+        [
+          0.30712219496490434,
+          "stdout",
+          "info depth 4 seldepth 6 score cp 54 time 6 nodes 1024 nps 170666 pv d2d4 d7d5 c2c4 e7e6"
+        ],
+        [
+          0.30714121600613,
+          "stdout",
+          "info depth 5 seldepth 7 score cp 52 time 6 nodes 1024 nps 170666 pv d2d4 d7d5 c2c4 e7e6 g1f3"
+        ],
+        [
+          0.3071426239912398,
+          "stdout",
+          "info depth 6 seldepth 9 score cp 54 time 7 nodes 4096 nps 585142 pv e2e4 e7e5 f1c4 g8f6 g1f3 b8c6"
+        ],
+        [
+          0.3071453580050729,
+          "stdout",
+          "info depth 7 seldepth 9 score cp 45 time 9 nodes 15360 nps 1706666 pv c2c4 c7c5 g1f3 g8f6 g2g3 g7g6 d2d4"
+        ],
+        [
+          0.3077076820190996,
+          "stdout",
+          "info depth 8 seldepth 13 score cp 38 time 14 nodes 3072 nps 219428 pv e2e4 e7e5 g1f3 b8c6 d2d4 e5d4 f3d4 f8c5"
+        ],
+        [
+          0.32312426797579974,
+          "stdout",
+          "info depth 9 seldepth 14 score cp 38 time 26 nodes 37888 nps 1457230 pv c2c4 g8f6 g1f3 g7g6 e2e3 f8g7 f1e2 e8g8 e1g1"
+        ],
+        [
+          0.3471136179869063,
+          "stdout",
+          "info depth 10 seldepth 15 score cp 53 time 50 nodes 133120 nps 2662400 pv e2e4 e7e5 g1f3 b8c6 f1b5 a7a6 b5c6 d7c6 b1c3"
+        ],
+        [
+          0.3631107920082286,
+          "stdout",
+          "info depth 11 seldepth 18 score cp 61 time 65 nodes 184320 nps 2835692 pv e2e4 e7e5 g1f3 b8c6 f1b5 g8f6 e1g1 f8c5 d2d3 d7d6 c1g5 e8g8"
+        ],
+        [
+          0.3951118179829791,
+          "stdout",
+          "info depth 12 seldepth 24 score cp 42 time 98 nodes 312320 nps 3186938 pv e2e4 e7e5 g1f3 b8c6 f1b5 g8f6 e1g1 f8c5 b5c6 d7c6 d2d3 d8e7 b1d2 c8g4"
+        ],
+        [
+          0.4828871369827539,
+          "stdout",
+          "bestmove e2e4"
+        ],
+        [
+          0.4829321859870106,
+          "stdin",
+          "quit"
+        ]
+      ],
+      "note": "Unscored start-position smoke on CPUs13,15; not an eight-core occupancy or strength measurement"
+    },
+    {
+      "name": "Black Marlin 9.0",
+      "binary": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/blackmarlin9/blackmarlin-linux-x86-64-v3",
+      "sha256": "980bd51860fc1cc61fd2216d5ca25fbcef1b5488bde1bce379d022b38b750642",
+      "status": "PASS",
+      "selected": {
+        "Hash": "256",
+        "Threads": "8",
+        "UCI_ShowWDL": "false",
+        "UCI_Chess960": "false"
+      },
+      "options": {
+        "Hash": "spin default 16 min 1 max 65536",
+        "Threads": "spin default 1 min 1 max 255",
+        "UCI_ShowWDL": "check default false",
+        "UCI_Chess960": "check default false"
+      },
+      "moves": [
+        "e2e4",
+        "e2e4"
+      ],
+      "exit_code": 0,
+      "stderr": [],
+      "events": [
+        [
+          0.005903049954213202,
+          "stdin",
+          "uci"
+        ],
+        [
+          0.040105426975060254,
+          "stdout",
+          "id name Black Marlin 9.0"
+        ],
+        [
+          0.040133686969056726,
+          "stdout",
+          "id author Doruk S."
+        ],
+        [
+          0.04014086496317759,
+          "stdout",
+          "option name Hash type spin default 16 min 1 max 65536"
+        ],
+        [
+          0.04021354694850743,
+          "stdout",
+          "option name Threads type spin default 1 min 1 max 255"
+        ],
+        [
+          0.04024398897308856,
+          "stdout",
+          "option name UCI_ShowWDL type check default false"
+        ],
+        [
+          0.04024672298692167,
+          "stdout",
+          "option name UCI_Chess960 type check default false"
+        ],
+        [
+          0.040247798955533653,
+          "stdout",
+          "uciok"
+        ],
+        [
+          0.0403254340053536,
+          "stdin",
+          "setoption name Hash value 256"
+        ],
+        [
+          0.04035378398839384,
+          "stdin",
+          "setoption name Threads value 8"
+        ],
+        [
+          0.04035692097386345,
+          "stdin",
+          "setoption name UCI_Chess960 value false"
+        ],
+        [
+          0.04035809700144455,
+          "stdin",
+          "setoption name UCI_ShowWDL value false"
+        ],
+        [
+          0.040359413949772716,
+          "stdin",
+          "isready"
+        ],
+        [
+          0.10819169098977,
+          "stdout",
+          "readyok"
+        ],
+        [
+          0.10826237394940108,
+          "stdin",
+          "ucinewgame"
+        ],
+        [
+          0.10829484596615657,
+          "stdin",
+          "isready"
+        ],
+        [
+          0.11810036998940632,
+          "stdout",
+          "readyok"
+        ],
+        [
+          0.1181660769507289,
+          "stdin",
+          "position startpos"
+        ],
+        [
+          0.11819398496299982,
+          "stdin",
+          "go movetime 200"
+        ],
+        [
+          0.15777480095857754,
+          "stdout",
+          "info depth 1 seldepth 1 score cp 47 time 0 nodes 16985 nps 16985000 pv d2d4"
+        ],
+        [
+          0.1577870459877886,
+          "stdout",
+          "info depth 2 seldepth 3 score cp 33 time 0 nodes 17062 nps 17062000 pv d2d4 g8f6 c2c4"
+        ],
+        [
+          0.15778876497643068,
+          "stdout",
+          "info depth 3 seldepth 4 score cp 63 time 0 nodes 17106 nps 17106000 pv d2d4 g8f6 c2c4 e7e6"
+        ],
+        [
+          0.15778956899885088,
+          "stdout",
+          "info depth 4 seldepth 5 score cp 46 time 0 nodes 17181 nps 17181000 pv d2d4 g8f6 c2c4 e7e6 a2a3"
+        ],
+        [
+          0.157790302997455,
+          "stdout",
+          "info depth 5 seldepth 8 score cp 46 time 0 nodes 17504 nps 17504000 pv e2e4 c7c5 g1f3 d7d6 d2d4 c5d4"
+        ],
+        [
+          0.15779087599366903,
+          "stdout",
+          "info depth 6 seldepth 7 score cp 47 time 0 nodes 17772 nps 17772000 pv e2e4 c7c5 g1f3 d7d6 d2d4 c5d4"
+        ],
+        [
+          0.15779259498231113,
+          "stdout",
+          "info depth 7 seldepth 13 score cp 40 time 0 nodes 19535 nps 19535000 pv d2d4 g8f6 c2c4 e7e6 a2a3 c7c5 d4d5 e6d5"
+        ],
+        [
+          0.1577932289801538,
+          "stdout",
+          "info depth 8 seldepth 16 score cp 43 time 1 nodes 25680 nps 25680000 pv g1f3 g8f6 g2g3 d7d5 f1g2 e7e6 e1g1 f8e7 c2c4"
+        ],
+        [
+          0.16575465898495167,
+          "stdout",
+          "info depth 9 seldepth 17 score cp 44 time 30 nodes 188005 nps 6266833 pv g1f3 g8f6 e2e3 e7e6 d2d4 f8e7 f1e2 d7d5 e1g1"
+        ],
+        [
+          0.16576471197186038,
+          "stdout",
+          "info depth 10 seldepth 20 score cp 41 time 32 nodes 194849 nps 6089031 pv g1f3 g8f6 e2e3 e7e6 d2d4 f8e7 f1e2 d7d5 e1g1 e8g8 c2c4"
+        ],
+        [
+          0.18439954397035763,
+          "stdout",
+          "info depth 11 seldepth 21 score cp 42 time 53 nodes 301360 nps 5686037 pv g1f3 g8f6 e2e3 e7e6 d2d4 f8e7 f1e2 d7d5 e1g1 e8g8 c2c4 d5c4"
+        ],
+        [
+          0.2440438679768704,
+          "stdout",
+          "info depth 12 seldepth 26 score cp 40 time 112 nodes 578296 nps 5163357 pv e2e4 c7c5 c2c3 g8f6 e4e5 f6d5 d2d4 b8c6 d4c5 e7e6 g1f3 f8c5 b1d2"
+        ],
+        [
+          0.32067636400461197,
+          "stdout",
+          "bestmove e2e4"
+        ],
+        [
+          0.3207387919537723,
+          "stdin",
+          "ucinewgame"
+        ],
+        [
+          0.32076646899804473,
+          "stdin",
+          "isready"
+        ],
+        [
+          0.32928395696217194,
+          "stdout",
+          "readyok"
+        ],
+        [
+          0.32934238197049126,
+          "stdin",
+          "position startpos"
+        ],
+        [
+          0.3293684999807738,
+          "stdin",
+          "go movetime 200"
+        ],
+        [
+          0.3337567939888686,
+          "stdout",
+          "info depth 1 seldepth 1 score cp 47 time 0 nodes 752619 nps 752619000 pv d2d4"
+        ],
+        [
+          0.33376613300060853,
+          "stdout",
+          "info depth 2 seldepth 2 score cp 57 time 0 nodes 752650 nps 752650000 pv d2d4 d7d5"
+        ],
+        [
+          0.3337681039702147,
+          "stdout",
+          "info depth 3 seldepth 7 score cp 66 time 0 nodes 752764 nps 752764000 pv d2d4 d7d5 c2c4 d5c4"
+        ],
+        [
+          0.3337689379695803,
+          "stdout",
+          "info depth 4 seldepth 7 score cp 50 time 0 nodes 752948 nps 752948000 pv d2d4 d7d5 c2c4 d5c4 g1f3"
+        ],
+        [
+          0.33377037598984316,
+          "stdout",
+          "info depth 5 seldepth 8 score cp 47 time 0 nodes 753573 nps 753573000 pv d2d4 d7d5 g1f3 g8f6 c2c4"
+        ],
+        [
+          0.33377149200532585,
+          "stdout",
+          "info depth 6 seldepth 12 score cp 54 time 0 nodes 754790 nps 754790000 pv d2d4 d7d5 c2c4 d5c4 e2e3 c7c5 f1c4"
+        ],
+        [
+          0.3337720650015399,
+          "stdout",
+          "info depth 7 seldepth 15 score cp 55 time 1 nodes 758132 nps 758132000 pv d2d4 d7d5 c2c4 e7e6 g1f3 g8f6 e2e3 f8e7"
+        ],
+        [
+          0.3337726379977539,
+          "stdout",
+          "info depth 8 seldepth 16 score cp 43 time 3 nodes 770877 nps 256959000 pv g1f3 g8f6 e2e3 e7e6 f1e2 f8e7 e1g1 e8g8"
+        ],
+        [
+          0.3375129379564896,
+          "stdout",
+          "info depth 9 seldepth 23 score cp 39 time 7 nodes 633701 nps 90528714 pv e2e4 e7e5 g1f3 b8c6 f1b5 g8e7 e1g1 a7a6 b5c6 e7c6"
+        ],
+        [
+          0.34527571400394663,
+          "stdout",
+          "info depth 10 seldepth 22 score cp 40 time 15 nodes 490355 nps 32690333 pv g1f3 g8f6 e2e3 e7e6 f1e2 f8e7 c2c4 e8g8 e1g1 c7c5"
+        ],
+        [
+          0.35979257395956665,
+          "stdout",
+          "info depth 11 seldepth 24 score cp 56 time 29 nodes 140691 nps 4851413 pv e2e4 e7e5 g1f3 g8f6 f3e5 f6e4 d2d4 d7d5 f1d3 f8d6 e1g1"
+        ],
+        [
+          0.37385904596885666,
+          "stdout",
+          "info depth 12 seldepth 23 score cp 54 time 43 nodes 194575 nps 4525000 pv e2e4 e7e5 g1f3 b8c6 b1c3 g8f6 f1b5 f8d6 d2d3 e8g8 e1g1 f8e8 h2h3"
+        ],
+        [
+          0.5113465839531273,
+          "stdout",
+          "info depth 13 seldepth 29 score cp 40 time 181 nodes 802208 nps 4432088 pv e2e4 c7c5 c2c3 g8f6 e4e5 f6d5 f1c4 d5b6 c4b3 b8c6 g1f3 d7d5 e5d6 e7e6"
+        ],
+        [
+          0.5317798709729686,
+          "stdout",
+          "bestmove e2e4"
+        ],
+        [
+          0.5319116209866479,
+          "stdin",
+          "quit"
+        ]
+      ],
+      "note": "Unscored start-position smoke on CPUs13,15; not an eight-core occupancy or strength measurement"
+    },
+    {
+      "name": "Berserk 12",
+      "binary": "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/berserk-12-linux-native",
+      "sha256": "7b9b5898a781cbe0757caef0b7281df5cf5029d17e67ed3df4824f0eb1c0125d",
+      "status": "PASS",
+      "selected": {
+        "Hash": "256",
+        "Threads": "8",
+        "SyzygyPath": "<empty>",
+        "MultiPV": "1",
+        "Ponder": "false",
+        "UCI_ShowWDL": "true",
+        "UCI_Chess960": "false",
+        "MoveOverhead": "300",
+        "Contempt": "0",
+        "EvalFile": "<empty>"
+      },
+      "options": {
+        "Hash": "spin default 16 min 2 max 131072",
+        "Threads": "spin default 1 min 1 max 256",
+        "SyzygyPath": "string default <empty>",
+        "MultiPV": "spin default 1 min 1 max 256",
+        "Ponder": "check default false",
+        "UCI_ShowWDL": "check default true",
+        "UCI_Chess960": "check default false",
+        "MoveOverhead": "spin default 300 min 100 max 10000",
+        "Contempt": "spin default 0 min -100 max 100",
+        "EvalFile": "string default <empty>"
+      },
+      "moves": [
+        "e2e4",
+        "e2e4"
+      ],
+      "exit_code": 0,
+      "stderr": [],
+      "events": [
+        [
+          0.00031392998062074184,
+          "stdin",
+          "uci"
+        ],
+        [
+          0.061886405979748815,
+          "stdout",
+          "id name Berserk 12"
+        ],
+        [
+          0.061923197004944086,
+          "stdout",
+          "id author Jay Honnold"
+        ],
+        [
+          0.06192730995826423,
+          "stdout",
+          "option name Hash type spin default 16 min 2 max 131072"
+        ],
+        [
+          0.061929038958624005,
+          "stdout",
+          "option name Threads type spin default 1 min 1 max 256"
+        ],
+        [
+          0.061930406955070794,
+          "stdout",
+          "option name SyzygyPath type string default <empty>"
+        ],
+        [
+          0.06193134200293571,
+          "stdout",
+          "option name MultiPV type spin default 1 min 1 max 256"
+        ],
+        [
+          0.061932256969157606,
+          "stdout",
+          "option name Ponder type check default false"
+        ],
+        [
+          0.06193305097986013,
+          "stdout",
+          "option name UCI_ShowWDL type check default true"
+        ],
+        [
+          0.06193400698248297,
+          "stdout",
+          "option name UCI_Chess960 type check default false"
+        ],
+        [
+          0.06193526298739016,
+          "stdout",
+          "option name MoveOverhead type spin default 300 min 100 max 10000"
+        ],
+        [
+          0.0619366510072723,
+          "stdout",
+          "option name Contempt type spin default 0 min -100 max 100"
+        ],
+        [
+          0.06193757598521188,
+          "stdout",
+          "option name EvalFile type string default <empty>"
+        ],
+        [
+          0.06193892296869308,
+          "stdout",
+          "uciok"
+        ],
+        [
+          0.062069555977359414,
+          "stdin",
+          "setoption name EvalFile value <empty>"
+        ],
+        [
+          0.06210136995650828,
+          "stdin",
+          "setoption name Contempt value 0"
+        ],
+        [
+          0.06210501998430118,
+          "stdin",
+          "setoption name Hash value 256"
+        ],
+        [
+          0.06210653798189014,
+          "stdin",
+          "setoption name MoveOverhead value 300"
+        ],
+        [
+          0.06210775498766452,
+          "stdin",
+          "setoption name MultiPV value 1"
+        ],
+        [
+          0.06210893200477585,
+          "stdin",
+          "setoption name Ponder value false"
+        ],
+        [
+          0.06211013795109466,
+          "stdin",
+          "setoption name SyzygyPath value <empty>"
+        ],
+        [
+          0.06211133499164134,
+          "stdin",
+          "setoption name Threads value 8"
+        ],
+        [
+          0.06211265199817717,
+          "stdin",
+          "setoption name UCI_Chess960 value false"
+        ],
+        [
+          0.06211368797812611,
+          "stdin",
+          "setoption name UCI_ShowWDL value true"
+        ],
+        [
+          0.06211500498466194,
+          "stdin",
+          "isready"
+        ],
+        [
+          0.06345993396826088,
+          "stdout",
+          "info string set EvalFile to value <empty>"
+        ],
+        [
+          0.1103531249682419,
+          "stdout",
+          "info string set Hash to value 256 (268435456 bytes) (25165824 entries)"
+        ],
+        [
+          0.11037599999690428,
+          "stdout",
+          "info string set MultiPV to value 1"
+        ],
+        [
+          0.11037726700305939,
+          "stdout",
+          "info string set Ponder to value false"
+        ],
+        [
+          0.11053132300730795,
+          "stdout",
+          "info string set SyzygyPath to value <empty>"
+        ],
+        [
+          0.11201192595763132,
+          "stdout",
+          "info string set Threads to value 8"
+        ],
+        [
+          0.11202552996110171,
+          "stdout",
+          "info string set UCI_Chess960 to value false"
+        ],
+        [
+          0.11202683695591986,
+          "stdout",
+          "info string Resetting board..."
+        ],
+        [
+          0.11805954098235816,
+          "stdout",
+          "info string set SHOW_WDL to value true"
+        ],
+        [
+          0.1180821749730967,
+          "stdout",
+          "readyok"
+        ],
+        [
+          0.11811509396648034,
+          "stdin",
+          "ucinewgame"
+        ],
+        [
+          0.11814651597524062,
+          "stdin",
+          "isready"
+        ],
+        [
+          0.12224064295878634,
+          "stdout",
+          "readyok"
+        ],
+        [
+          0.12228940497152507,
+          "stdin",
+          "position startpos"
+        ],
+        [
+          0.122318715963047,
+          "stdin",
+          "go movetime 200"
+        ],
+        [
+          0.12239734700415283,
+          "stdout",
+          "info string time -1 start 1792158306259 alloc 2147483647 max 200 depth 200 timeset 1 searchmoves 0"
+        ],
+        [
+          0.13350151700433344,
+          "stdout",
+          "info depth 1 seldepth 1 multipv 1 score cp 52 wdl 164 825 11 nodes 48 nps 48000 hashfull 0 tbhits 0 time 1 pv d2d4 "
+        ],
+        [
+          0.13350889697903767,
+          "stdout",
+          "info depth 2 seldepth 2 multipv 1 score cp 83 wdl 315 680 5 nodes 134 nps 134000 hashfull 0 tbhits 0 time 1 pv c2c4 "
+        ],
+        [
+          0.13351057597901672,
+          "stdout",
+          "info depth 3 seldepth 3 multipv 1 score cp 58 wdl 187 804 9 nodes 173 nps 173000 hashfull 0 tbhits 0 time 1 pv c2c4 a7a6 a2a3 "
+        ],
+        [
+          0.1335116419941187,
+          "stdout",
+          "info depth 4 seldepth 4 multipv 1 score cp 61 wdl 198 793 9 nodes 260 nps 260000 hashfull 0 tbhits 0 time 1 pv c2c4 a7a6 a2a3 c7c6 "
+        ],
+        [
+          0.13351250695995986,
+          "stdout",
+          "info depth 5 seldepth 5 multipv 1 score cp 69 wdl 238 755 7 nodes 1232 nps 1232000 hashfull 0 tbhits 0 time 1 pv d2d4 d7d5 g1f3 "
+        ],
+        [
+          0.13351331098238006,
+          "stdout",
+          "info depth 6 seldepth 6 multipv 1 score cp 40 wdl 125 860 15 nodes 2073 nps 2073000 hashfull 0 tbhits 0 time 1 pv g1f3 g8f6 d2d4 c7c6 c2c4 "
+        ],
+        [
+          0.1335141760064289,
+          "stdout",
+          "info depth 7 seldepth 8 multipv 1 score cp 76 wdl 275 719 6 nodes 2948 nps 2948000 hashfull 0 tbhits 0 time 1 pv e2e4 d7d5 e4d5 "
+        ],
+        [
+          0.13351531198713928,
+          "stdout",
+          "info depth 8 seldepth 10 multipv 1 score cp 50 wdl 155 833 12 nodes 6374 nps 6374000 hashfull 0 tbhits 0 time 1 pv e2e4 c7c5 g1f3 e7e6 d2d4 c5d4 d1d4 g8f6 "
+        ],
+        [
+          0.13351676997262985,
+          "stdout",
+          "info depth 9 seldepth 11 multipv 1 score cp 57 wdl 182 808 10 nodes 9812 nps 4906000 hashfull 0 tbhits 0 time 2 pv e2e4 c7c5 g1f3 e7e6 f1e2 b8c6 "
+        ],
+        [
+          0.13351813796907663,
+          "stdout",
+          "info depth 10 seldepth 10 multipv 1 score cp 55 wdl 174 816 10 nodes 11107 nps 5553500 hashfull 0 tbhits 0 time 2 pv e2e4 c7c5 g1f3 b8c6 f1e2 g8f6 e4e5 f6d5 e1g1 d5f4 "
+        ],
+        [
+          0.14475812099408358,
+          "stdout",
+          "info depth 11 seldepth 16 multipv 1 score cp 40 wdl 125 860 15 nodes 120415 nps 5473409 hashfull 0 tbhits 0 time 22 pv c2c4 c7c5 g1f3 g7g6 e2e4 f8g7 d2d4 c5d4 "
+        ],
+        [
+          0.16949984797975048,
+          "stdout",
+          "info depth 12 seldepth 17 multipv 1 score cp 54 wdl 172 818 10 nodes 216638 nps 5283853 hashfull 2 tbhits 0 time 41 pv e2e4 e7e6 d2d4 d7d5 b1d2 c7c5 e4d5 e6d5 g1f3 g8f6 f1e2 c5d4 "
+        ],
+        [
+          0.20482392399571836,
+          "stdout",
+          "info depth 13 seldepth 22 multipv 1 score cp 42 wdl 131 855 14 nodes 470765 nps 5741036 hashfull 7 tbhits 0 time 82 pv e2e4 e7e6 d2d4 d7d5 b1d2 c7c5 e4d5 d8d5 d4c5 f8c5 g1f3 g8f6 f1c4 d5d6 e1g1 e8g8 d2b3 b8c6 b3c5 "
+        ],
+        [
+          0.22951947199180722,
+          "stdout",
+          "info depth 14 seldepth 22 multipv 1 score cp 46 wdl 141 846 13 nodes 600304 nps 5885333 hashfull 9 tbhits 0 time 102 pv e2e4 e7e6 d2d4 d7d5 e4e5 c7c5 c2c3 g8e7 g1f3 e7c6 f1d3 f8e7 e1g1 c5d4 c3d4 "
+        ],
+        [
+          0.2443255260004662,
+          "stdout",
+          "info depth 15 seldepth 20 multipv 1 score cp 41 wdl 127 858 15 nodes 732082 nps 6000672 hashfull 11 tbhits 0 time 122 pv e2e4 c7c5 c2c3 g8f6 e4e5 f6d5 g1f3 g7g6 d1b3 d5c7 d2d4 c5d4 c3d4 "
+        ],
+        [
+          0.28950341598829255,
+          "stdout",
+          "info depth 16 seldepth 22 multipv 1 score cp 37 wdl 115 869 16 nodes 999091 nps 6167228 hashfull 17 tbhits 0 time 162 pv e2e4 c7c5 g1f3 d7d6 c2c3 g8f6 d1c2 g7g6 d2d4 f8g7 f1e2 c5d4 c3d4 c8d7 b1c3 b8c6 e1g1 "
+        ],
+        [
+          0.32238065998535603,
+          "stdout",
+          "info depth 16 seldepth 24 multipv 1 score cp 39 wdl 94 899 7 nodes 1218097 nps 6090485 hashfull 21 tbhits 0 time 200 pv e2e4 c7c5 g1f3 d7d6 f1b5 c8d7 b5d7 b8d7 e1g1 g8f6 f1e1 e7e6 b2b3 f8e7 c1b2 a7a6 c2c4 e8g8 d2d4 c5d4 b2d4 "
+        ],
+        [
+          0.32242014596704394,
+          "stdout",
+          "bestmove e2e4 ponder c7c5"
+        ],
+        [
+          0.3224582449765876,
+          "stdin",
+          "ucinewgame"
+        ],
+        [
+          0.32249009900260717,
+          "stdin",
+          "isready"
+        ],
+        [
+          0.3265712049906142,
+          "stdout",
+          "readyok"
+        ],
+        [
+          0.32661634497344494,
+          "stdin",
+          "position startpos"
+        ],
+        [
+          0.3266404569731094,
+          "stdin",
+          "go movetime 200"
+        ],
+        [
+          0.3267016029567458,
+          "stdout",
+          "info string time -1 start 1792158306463 alloc 2147483647 max 200 depth 200 timeset 1 searchmoves 0"
+        ],
+        [
+          0.33747336600208655,
+          "stdout",
+          "info depth 1 seldepth 1 multipv 1 score cp 55 wdl 177 813 10 nodes 49138 nps 7019714 hashfull 0 tbhits 0 time 7 pv e2e4 "
+        ],
+        [
+          0.337478443980217,
+          "stdout",
+          "info depth 2 seldepth 2 multipv 1 score cp 55 wdl 177 813 10 nodes 49173 nps 7024714 hashfull 0 tbhits 0 time 7 pv e2e4 c7c5 "
+        ],
+        [
+          0.3374802839825861,
+          "stdout",
+          "info depth 3 seldepth 3 multipv 1 score cp 55 wdl 177 813 10 nodes 49213 nps 7030428 hashfull 0 tbhits 0 time 7 pv e2e4 c7c5 g1f3 "
+        ],
+        [
+          0.337481188995298,
+          "stdout",
+          "info depth 4 seldepth 4 multipv 1 score cp 55 wdl 177 813 10 nodes 49274 nps 7039142 hashfull 0 tbhits 0 time 7 pv e2e4 c7c5 g1f3 g7g6 "
+        ],
+        [
+          0.33748191298218444,
+          "stdout",
+          "info depth 5 seldepth 5 multipv 1 score cp 57 wdl 182 808 10 nodes 49352 nps 7050285 hashfull 0 tbhits 0 time 7 pv e2e4 c7c5 g1f3 g7g6 c2c3 "
+        ],
+        [
+          0.33748272695811465,
+          "stdout",
+          "info depth 6 seldepth 6 multipv 1 score cp 57 wdl 182 808 10 nodes 49463 nps 7066142 hashfull 0 tbhits 0 time 7 pv e2e4 c7c5 g1f3 g7g6 c2c3 d7d5 "
+        ],
+        [
+          0.3374913039733656,
+          "stdout",
+          "info depth 7 seldepth 9 multipv 1 score cp 57 wdl 182 808 10 nodes 49666 nps 7095142 hashfull 0 tbhits 0 time 7 pv e2e4 c7c5 g1f3 g7g6 c2c3 d7d5 e4e5 a7a6 d2d4 "
+        ],
+        [
+          0.3374924910021946,
+          "stdout",
+          "info depth 8 seldepth 12 multipv 1 score cp 54 wdl 172 818 10 nodes 50105 nps 7157857 hashfull 0 tbhits 0 time 7 pv e2e4 c7c5 g1f3 g7g6 c2c3 d7d5 e4e5 a7a6 d2d4 c5d4 c3d4 c8g4 "
+        ],
+        [
+          0.3374933049781248,
+          "stdout",
+          "info depth 9 seldepth 15 multipv 1 score cp 57 wdl 182 808 10 nodes 53546 nps 7649428 hashfull 1 tbhits 0 time 7 pv e2e4 c7c5 g1f3 g7g6 c2c3 d7d5 e4d5 d8d5 d2d4 f8g7 c1e3 "
+        ],
+        [
+          0.33749402896501124,
+          "stdout",
+          "info depth 10 seldepth 19 multipv 1 score cp 63 wdl 210 782 8 nodes 60360 nps 7545000 hashfull 1 tbhits 0 time 8 pv e2e4 c7c5 g1f3 b8c6 f1b5 g7g6 e1g1 f8g7 "
+        ],
+        [
+          0.33749471296323463,
+          "stdout",
+          "info depth 11 seldepth 15 multipv 1 score cp 63 wdl 210 782 8 nodes 72584 nps 7258400 hashfull 1 tbhits 0 time 10 pv e2e4 c7c5 g1f3 b8c6 f1b5 g7g6 e1g1 f8g7 b1c3 "
+        ],
+        [
+          0.3534864059765823,
+          "stdout",
+          "info depth 12 seldepth 16 multipv 1 score cp 55 wdl 174 816 10 nodes 167527 nps 7283782 hashfull 4 tbhits 0 time 23 pv e2e4 e7e5 g1f3 g8f6 f3e5 d7d6 e5f3 f6e4 d1e2 d8e7 d2d3 e4f6 c1e3 b8c6 b1c3 d6d5 "
+        ],
+        [
+          0.451359061000403,
+          "stdout",
+          "info depth 13 seldepth 23 multipv 1 score cp 44 wdl 137 850 13 nodes 742326 nps 5938608 hashfull 15 tbhits 0 time 125 pv e2e4 e7e5 g1f3 d7d6 f1c4 f8e7 e1g1 g8f6 f1e1 e8g8 d2d4 "
+        ],
+        [
+          0.4522825409658253,
+          "stdout",
+          "info depth 14 seldepth 14 multipv 1 score cp 44 wdl 137 850 13 nodes 749148 nps 5945619 hashfull 15 tbhits 0 time 126 pv e2e4 e7e5 g1f3 d7d6 f1c4 f8e7 e1g1 g8f6 f1e1 e8g8 d2d4 e5d4 f3d4 c7c6 "
+        ],
+        [
+          0.5297218699706718,
+          "stdout",
+          "info depth 16 seldepth 8 multipv 1 score cp 40 wdl 112 877 11 nodes 1233054 nps 6074157 hashfull 25 tbhits 0 time 203 pv e2e4 c7c5 "
+        ],
+        [
+          0.5297685259720311,
+          "stdout",
+          "bestmove e2e4 ponder c7c5"
+        ],
+        [
+          0.5298072469886392,
+          "stdin",
+          "quit"
+        ]
+      ],
+      "note": "Unscored start-position smoke on CPUs13,15; not an eight-core occupancy or strength measurement"
+    }
+  ],
+  "ethereal": {
+    "state": "BLOCKED_VARIANT",
+    "tag": "v13.00",
+    "commit": "2687b3834179fc3ebf52f0f13b96499f4f6977e9",
+    "source_url": "https://api.github.com/repos/AndyGrant/Ethereal/tarball/v13.00",
+    "archive_sha256": "e0d86f4e71c3e5e59660d84b26d46c532c7aa6c121381f5c32837f97b0f34919",
+    "build_argv": [
+      "make",
+      "pext",
+      "EXE=/home/ehrli/ngn-data/claim-v4-20261016/anchors/ethereal13/ethereal-13.00"
+    ],
+    "unadmitted_hce_sha256": "16b9df5da8d239eebd930ed721811f0ed8597bf75c98f8a84ea0bbc67cecc0b7",
+    "evidence": "Official release separates free Standard HCE and commercial NNUE; frozen CCRL row has class comm; free build emits NNUE disabled when its advertised default is sent.",
+    "release_url": "https://github.com/AndyGrant/Ethereal/releases/tag/v13.00"
+  },
+  "labels": {
+    "source": "https://computerchess.org.uk/404/rating_list_all.html",
+    "snapshot": "/home/ehrli/ngn-data/claim-v4-20261016/ccrl-blitz-all-2026-10-16.html",
+    "sha256": "464e79bb483e64753c75162d74e144b20423a67c0ed098b99f8e86e22d956354",
+    "rows": [
+      {
+        "name": "Ethereal 13.00 64-bit 8CPU",
+        "label": 3581,
+        "games": 1695,
+        "raw_row": "<tr class=\"even\"><td rowspan=2 class=\"number\">&nbsp;</td><td rowspan=2 class=\"name\"><span class=\"comm\"><b><a href=\"cgi/engine_details.cgi?print=Details&amp;each_game=1&amp;eng=Ethereal%2013.00%2064-bit%208CPU#Ethereal_13_00_64-bit_8CPU\">Ethereal 13.00 64-bit 8CPU</a></b></span></td><td rowspan=2 class=\"number\"><b>3581</b></td><td rowspan=2 class=number_2><b>+14</b></td><td rowspan=2 class=number_2><b>&#8722;14</b></td><td rowspan=2 class=number><b>47.3%</b></td><td rowspan=2 class=number><b>+18.7</b></td><td rowspan=2 class=number><b>63.6%</b></td><td rowspan=2 class=number><a href=\"games-by-engine/Ethereal_13_00_64-bit_8CPU.bare.[1695].pgn.7z\"><b>1695</b></a></td></tr>"
+      },
+      {
+        "name": "akimbo 1.0.0 64-bit 8CPU",
+        "label": 3614,
+        "games": 3229,
+        "raw_row": "<tr class=\"odd\"><td rowspan=2 class=\"number\"><b>70</b></td><td rowspan=2 class=\"name\"><span class=\"oss\"><b><a href=\"cgi/engine_details.cgi?print=Details&amp;each_game=1&amp;eng=akimbo%201.0.0%2064-bit%208CPU#akimbo_1_0_0_64-bit_8CPU\">akimbo 1.0.0 64-bit 8CPU</a></b></span></td><td rowspan=2 class=\"number\"><b>3614</b></td><td rowspan=2 class=number_2><b>+10</b></td><td rowspan=2 class=number_2><b>&#8722;10</b></td><td rowspan=2 class=number><b>36.4%</b></td><td rowspan=2 class=number><b>+86.6</b></td><td rowspan=2 class=number><b>66.1%</b></td><td rowspan=2 class=number><a href=\"games-by-engine/akimbo_1_0_0_64-bit_8CPU.bare.[3229].pgn.7z\"><b>3229</b></a></td></tr>"
+      },
+      {
+        "name": "Black Marlin 9.0 64-bit 8CPU",
+        "label": 3623,
+        "games": 3390,
+        "raw_row": "<tr class=\"even\"><td rowspan=2 class=\"number\"><b>67</b></td><td rowspan=2 class=\"name\"><span class=\"oss\"><b><a href=\"cgi/engine_details.cgi?print=Details&amp;each_game=1&amp;eng=Black%20Marlin%209.0%2064-bit%208CPU#Black_Marlin_9_0_64-bit_8CPU\">Black Marlin 9.0 64-bit 8CPU</a></b></span></td><td rowspan=2 class=\"number\"><b>3623</b></td><td rowspan=2 class=number_2><b>+10</b></td><td rowspan=2 class=number_2><b>&#8722;10</b></td><td rowspan=2 class=number><b>37.9%</b></td><td rowspan=2 class=number><b>+75.7</b></td><td rowspan=2 class=number><b>67.8%</b></td><td rowspan=2 class=number><a href=\"games-by-engine/Black_Marlin_9_0_64-bit_8CPU.bare.[3390].pgn.7z\"><b>3390</b></a></td></tr>"
+      },
+      {
+        "name": "Berserk 12 64-bit 8CPU",
+        "label": 3741,
+        "games": 2918,
+        "raw_row": "<tr class=\"odd\"><td rowspan=2 class=\"number\">&nbsp;</td><td rowspan=2 class=\"name\"><span class=\"oss\"><b><a href=\"cgi/engine_details.cgi?print=Details&amp;each_game=1&amp;eng=Berserk%2012%2064-bit%208CPU#Berserk_12_64-bit_8CPU\">Berserk 12 64-bit 8CPU</a></b></span></td><td rowspan=2 class=\"number\"><b>3741</b></td><td rowspan=2 class=number_2><b>+10</b></td><td rowspan=2 class=number_2><b>&#8722;10</b></td><td rowspan=2 class=number><b>56.2%</b></td><td rowspan=2 class=number><b>&#8722;38.5</b></td><td rowspan=2 class=number><b>81.4%</b></td><td rowspan=2 class=number><a href=\"games-by-engine/Berserk_12_64-bit_8CPU.bare.[2918].pgn.7z\"><b>2918</b></a></td></tr>"
+      }
+    ]
+  }
+}

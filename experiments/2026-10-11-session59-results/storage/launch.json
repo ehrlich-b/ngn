@@ -1,0 +1,23 @@
+{
+  "recorded_utc": "2026-10-11T10:06:51.371742+00:00",
+  "manual_continuation": true,
+  "cause": "empty scatter-t74full root left by cleanup; frozen converter requires absent output directory",
+  "resumed_checkpoint": "T75 raw copy acknowledged03:59:31/pinned bytes+SHA256/file+directory fsync",
+  "forge_controller_pid": 1621423,
+  "forge_recovery_pid": 1621432,
+  "forge_converter_pid": 1621450,
+  "forge_scope": "ngn-s59-data-recovery/4-11/4GiB/swap0/nice10/host pinning ON",
+  "rig_copy_controller_pid": 22738,
+  "rig_copy_pid": 22742,
+  "rig_scope": "ngn-s59-data-copy-ready/12,14/512MiB/swap0/nice19",
+  "startup_failure": "receiver22693 connection refused before T74 data access; preserved; TCP reachability confirmed before one manual relaunch",
+  "source_sha256": {
+    "2026-10-11-data-step2-relocate.py": "5d1e555f4937dc6d0c449168f59a6156d54817ef7ebc5a0999daf30f8510d7eb",
+    "2026-10-11-data-step2-copy.py": "bfd4444d32eb4018112b81397190b26b9ac1895d75bc8dfe0990ea62fcfec546",
+    "forge-controller.sh": "383f80896ed9a4f7049099d7ef5117e90524516df60646117e148943387707ca",
+    "rig-controller.sh": "0562f3710f0d58d65bf9035417fd3575bb72b46eb725cf8ba7b2a0fcad5703ad"
+  },
+  "unchanged": "scientific data selection/converter/seeds/filters/scales/map/coverage/training recipe/game rule",
+  "completed_work_repeated": false,
+  "automatic_retry": false
+}

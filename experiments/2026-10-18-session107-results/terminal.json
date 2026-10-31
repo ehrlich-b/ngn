@@ -1,0 +1,294 @@
+{
+  "utc": "2026-10-18T04:36:39.973015+00:00",
+  "s1-timing/result.json": {
+    "verdict": "KEEP_ELIGIBLE",
+    "topologies": [
+      {
+        "width": 1,
+        "hash_mib": 64,
+        "strata": [
+          {
+            "ratio": 1.0188056259906846,
+            "ci95": [
+              1.0165857814475432,
+              1.0210303178471423
+            ]
+          },
+          {
+            "ratio": 1.0191342896420033,
+            "ci95": [
+              1.016547074022626,
+              1.0217280899880816
+            ]
+          }
+        ],
+        "pass_rule": true
+      },
+      {
+        "width": 1,
+        "hash_mib": 256,
+        "strata": [
+          {
+            "ratio": 1.020146945242533,
+            "ci95": [
+              1.016680520420791,
+              1.0236251890190042
+            ]
+          },
+          {
+            "ratio": 1.019650699576368,
+            "ci95": [
+              1.0173530690269532,
+              1.0219535191858071
+            ]
+          }
+        ],
+        "pass_rule": true
+      },
+      {
+        "width": 8,
+        "hash_mib": 256,
+        "strata": [
+          {
+            "ratio": 1.014037016085095,
+            "ci95": [
+              1.0088276978090485,
+              1.0192732338970685
+            ]
+          },
+          {
+            "ratio": 1.019503380538339,
+            "ci95": [
+              1.0099798352792493,
+              1.029116727505477
+            ]
+          }
+        ],
+        "pass_rule": true
+      }
+    ],
+    "finished_utc": "2026-10-18T04:33:13.746805+00:00",
+    "automatic_adoption": false,
+    "next": "Review identity and immediate-base match before integration; no Elo gain inferred"
+  },
+  "s1-timing/manifest.json": {
+    "candidate": "s1",
+    "admission": {
+      "candidate": "s1",
+      "profile_admitted": true,
+      "immediate_base": "4958bc4/81215229/compiled final14",
+      "topic": "fcc1432",
+      "measured_panel": "/home/ehrli/ngn-data/night-20261007/session100-speed/panel/result.json",
+      "cpu_share_percent": 14,
+      "mechanism": "Use actual huge-page TT backing; panel DTLB read misses 1.15-1.37 per node",
+      "rule": "Fixed40 paired20s blocks/topology,T1/H64,T1/H256,T8/H256,alternatingAB/BA;paired geometric NPS lower95>1 in BOTH order strata for EVERY topology;otherwise SHELVED,no extension",
+      "new_identity_required": true,
+      "automatic_adoption": false
+    },
+    "binary_sha256": {
+      "base": "dd65aee7572f816958d654850d3a600b25a4f6c425e57b79c20309cc37f889ee",
+      "candidate": "c1585259450de4c0697daf9fcc23f0b964042dbca9c838a7d5f1145f470e1974"
+    },
+    "identity_receipt": "/home/ehrli/ngn-data/night-20261007/session104-speed/s1-identity.json",
+    "identity_sha256": "b1d50a8d7f4171f68ff7c8634f1d3fefb1acf2f54a159a19e3ff59a5c28905d4",
+    "net": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+    "net_sha256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22",
+    "topologies": [
+      [
+        1,
+        64
+      ],
+      [
+        1,
+        256
+      ],
+      [
+        8,
+        256
+      ]
+    ],
+    "paired_blocks": 40,
+    "milliseconds_per_engine": 20000,
+    "frame": "(block//2)%12; one frame per block",
+    "order": "AB/BA alternating; both engines receive identical frame per pair",
+    "rule": "Every topology and both order strata: paired log-NPS Student-t lower95>0,df19; otherwise SHELVED; no extensions",
+    "smoke": false,
+    "utc": "2026-10-18T03:13:24.208310+00:00"
+  },
+  "result.json": {
+    "state": "SPEED_COMPLETE_TUNE_RESUMED",
+    "results": [
+      {
+        "candidate": "s2",
+        "result": {
+          "verdict": "SHELVED",
+          "topologies": [
+            {
+              "width": 1,
+              "hash_mib": 64,
+              "strata": [
+                {
+                  "ratio": 1.0021704510575695,
+                  "ci95": [
+                    0.999980165452331,
+                    1.0043655341089959
+                  ]
+                },
+                {
+                  "ratio": 1.000746603426058,
+                  "ci95": [
+                    0.9987697614894476,
+                    1.0027273580802865
+                  ]
+                }
+              ],
+              "pass_rule": false
+            },
+            {
+              "width": 1,
+              "hash_mib": 256,
+              "strata": [
+                {
+                  "ratio": 1.002825001876136,
+                  "ci95": [
+                    1.0013225971063633,
+                    1.0043296608845513
+                  ]
+                },
+                {
+                  "ratio": 1.0017021977447387,
+                  "ci95": [
+                    1.0002167046733679,
+                    1.0031898970276782
+                  ]
+                }
+              ],
+              "pass_rule": true
+            },
+            {
+              "width": 8,
+              "hash_mib": 256,
+              "strata": [
+                {
+                  "ratio": 0.9996801433767855,
+                  "ci95": [
+                    0.9902456943903722,
+                    1.0092044779624811
+                  ]
+                },
+                {
+                  "ratio": 1.0073276045017932,
+                  "ci95": [
+                    1.0025463533819718,
+                    1.0121316579211725
+                  ]
+                }
+              ],
+              "pass_rule": false
+            }
+          ],
+          "finished_utc": "2026-10-18T03:13:24.168508+00:00",
+          "automatic_adoption": false,
+          "next": "Review identity and immediate-base match before integration; no Elo gain inferred"
+        }
+      },
+      {
+        "candidate": "s1",
+        "result": {
+          "verdict": "KEEP_ELIGIBLE",
+          "topologies": [
+            {
+              "width": 1,
+              "hash_mib": 64,
+              "strata": [
+                {
+                  "ratio": 1.0188056259906846,
+                  "ci95": [
+                    1.0165857814475432,
+                    1.0210303178471423
+                  ]
+                },
+                {
+                  "ratio": 1.0191342896420033,
+                  "ci95": [
+                    1.016547074022626,
+                    1.0217280899880816
+                  ]
+                }
+              ],
+              "pass_rule": true
+            },
+            {
+              "width": 1,
+              "hash_mib": 256,
+              "strata": [
+                {
+                  "ratio": 1.020146945242533,
+                  "ci95": [
+                    1.016680520420791,
+                    1.0236251890190042
+                  ]
+                },
+                {
+                  "ratio": 1.019650699576368,
+                  "ci95": [
+                    1.0173530690269532,
+                    1.0219535191858071
+                  ]
+                }
+              ],
+              "pass_rule": true
+            },
+            {
+              "width": 8,
+              "hash_mib": 256,
+              "strata": [
+                {
+                  "ratio": 1.014037016085095,
+                  "ci95": [
+                    1.0088276978090485,
+                    1.0192732338970685
+                  ]
+                },
+                {
+                  "ratio": 1.019503380538339,
+                  "ci95": [
+                    1.0099798352792493,
+                    1.029116727505477
+                  ]
+                }
+              ],
+              "pass_rule": true
+            }
+          ],
+          "finished_utc": "2026-10-18T04:33:13.746805+00:00",
+          "automatic_adoption": false,
+          "next": "Review identity and immediate-base match before integration; no Elo gain inferred"
+        }
+      }
+    ],
+    "resume_service": "ngn-s104-spsa-resume.service",
+    "gpu_recipe_launched": true,
+    "automatic_adoption": false,
+    "finished_utc": "2026-10-18T04:33:13.797239+00:00",
+    "next": "Review speed winner and rebuild successors, or continue SPSA and GPU recipe work"
+  },
+  "blocks": {
+    "(1, 64)": 40,
+    "(1, 256)": 40,
+    "(8, 256)": 40
+  },
+  "tuning_log_tail": [
+    "===========================",
+    "engine=/home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn  params=14  iters=2000 (game pair, 6/iter)  tc=10s+0.1s",
+    "openings=4947  out=/home/ehrli/ngn-data/night-20261007/session88/spsa-warm/spsa.jsonl  rend=0.050  afrac=0.10  seed=2026101401",
+    "",
+    "start: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=103 FutilityMaxDepth=8 ReverseFutilityMargin=69 DeltaMargin=246 SingularDepth=7 SingularMargin=63 ExtensionBudget=29 AspInit=17 AspMult=169 LMPBase=2 "
+  ],
+  "training_log_tail": [],
+  "recipe_files": [
+    "recipe/wdl050/train.log",
+    "recipe/wdl050/trainer.pid",
+    "recipe/wdl050/manifest.json"
+  ]
+}

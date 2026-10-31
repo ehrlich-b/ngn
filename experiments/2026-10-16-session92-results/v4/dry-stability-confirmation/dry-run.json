@@ -1,0 +1,93 @@
+{
+  "Status": "inputs checked; no pre-run receipt or games; live clock/identity probes still required",
+  "Plan": {
+    "Schema": "NGN-CLAIM-4",
+    "Mode": "stability-confirmation",
+    "Candidate": {
+      "Engine": {
+        "Path": "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/ngn",
+        "SHA256": "f36af8be0f0d3c86a4e097ca1520f131801ffa0c20ab107966a30d2bc910efb6"
+      },
+      "Net": {
+        "Path": "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/candidate-be34532c.nnue",
+        "SHA256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a"
+      },
+      "SourceRoot": "/home/ehrli/ngn-data/claim-v3-20261008/tooling/source",
+      "SourceCommit": "376671f842aad7841cd2c743c834c61f702eb0ae",
+      "GoVersion": "go1.25.5",
+      "BuildArgv": [
+        "/usr/local/go/bin/go",
+        "build",
+        "-buildvcs=true",
+        "-p",
+        "2",
+        "-o",
+        "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/ngn",
+        "."
+      ],
+      "Provenance": {
+        "data": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/screen-kb8h512-session1/prov/corpus-digest.json",
+          "SHA256": "652394d3a95d27b099e82362304df654dd00a4b50ac7f30f22b04c7e3ec1eff1"
+        },
+        "export": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/screen-kb8h512-session1/prov/training-config.json",
+          "SHA256": "962df62ebbb61a00470c695f6a5a419ded016bfa575a5c534868674ebf382739"
+        },
+        "manifest": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/screen-kb8h512-session1/prov/manifest-training-command.txt",
+          "SHA256": "e3d24a987b3381e9d8d8a8a4b6805f51f01282df5f42b25dc74a7ea34908e072"
+        },
+        "parity": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/screen-kb8h512-session1/prov/parity.json",
+          "SHA256": "9f9bd5067ab041b99ae64857fec0e9d9e3e4a55daca96cb64ef83d39634ac414"
+        },
+        "training": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/screen-kb8h512-session1/prov/training-history.json",
+          "SHA256": "803a54d2ded5351a9a9e0ff2a652f440baf0230112c18158b0e981b03724d774"
+        }
+      }
+    },
+    "Anchors": [
+      {
+        "Name": "Berserk 12",
+        "Label": 3741,
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/berserk-12-linux-native",
+          "SHA256": "7b9b5898a781cbe0757caef0b7281df5cf5029d17e67ed3df4824f0eb1c0125d"
+        },
+        "Dependencies": null
+      }
+    ],
+    "Openings": {
+      "Path": "/home/ehrli/repos/ngn/output/corrected-pin-20260905/results-r0905matepin/inputs/sprt_openings.txt",
+      "SHA256": "974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222"
+    },
+    "Count": 2,
+    "Concurrency": 1,
+    "Cap": 400,
+    "Threads": 8,
+    "HashMB": 256,
+    "CPUSet": "0,2,4,6,8,10,12,14",
+    "ClaimThreshold": 3600,
+    "BaseNS": 120000000000,
+    "IncrementNS": 1000000000,
+    "Runner": {
+      "Path": "/home/ehrli/ngn-data/claim-v4-20261016/tooling/frozen/claimtool",
+      "SHA256": "a2fb2dd09ab70074ca12dc2b36ec62bf1f7de16f2b8f8a05d7bac745a5ef2016"
+    },
+    "WindowsBridge": {
+      "Path": "",
+      "SHA256": ""
+    },
+    "MoveOverhead": 100,
+    "MaxLoad": 16
+  },
+  "Commands": [
+    "prepare (without --dry-run): writes receipt and seal before any game",
+    "run --receipt \u003cout\u003e/receipt.json --games \u003cout\u003e/games --out \u003cout\u003e/run-status.json",
+    "audit --receipt \u003cout\u003e/receipt.json --games \u003cout\u003e/games --out \u003cout\u003e/audit.json",
+    "analyze --receipt \u003cout\u003e/receipt.json --audit \u003cout\u003e/audit.json --games \u003cout\u003e/games --out \u003cout\u003e/analysis.json",
+    "recheck --receipt \u003cout\u003e/receipt.json --out \u003cout\u003e/post-run-hashes.json"
+  ]
+}

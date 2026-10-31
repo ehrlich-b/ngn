@@ -1,0 +1,29 @@
+2026-10-11T16:08:17.992672
+controller.pid 3089937
+
+controller.started 2026-10-11T16:04:35-04:00
+
+controller.exit pending
+controller.done pending
+status.jsonl {"utc": "2026-10-11T20:04:35.766111+00:00", "stage": "session65-data-aa", "event": "aa-start", "detail": "promoted final14 package; no competing NGN CPU work; training/reader load recorded"}
+
+aa-summary.json pending
+controller.log Running as unit: ngn-s65-data-aa.scope; invocation ID: dd03d2ca9ed34605a635388ca530178c
+
+live AA count ['11']
+PROCESSES  117631       1  123191  0.2 18256 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+1649185       1   29892  0.9 18024 python3 /work/lanes/ngn-data-step2-20261011/archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768
+3089937       1     222  0.0  3004 bash /work/lanes/ngn-s65-data-aa/controller.sh
+3089946 3089942     222  0.0  1820 timeout --signal=TERM --kill-after=15s 1800 taskset -c 4-11 nice -n 10 /work/lanes/ngn-s65-data-aa/sprt -new /work/lanes/ngn-s65-data-aa/ngn -base /work/lanes/ngn-s65-data-aa/ngn -tc 10+0.1 -concurrency 2 -maxmoves 400 -gametimeout 180 -openings /work/lanes/ngn-s65-data-aa/openings.txt -lowpower=false -mingames 1000000 -maxgames 40 -newoption EvalFile=/work/lanes/ngn-s65-data-aa/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/work/lanes/ngn-s65-data-aa/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false
+3089947 3089946     222  0.9 17648 /work/lanes/ngn-s65-data-aa/sprt -new /work/lanes/ngn-s65-data-aa/ngn -base /work/lanes/ngn-s65-data-aa/ngn -tc 10+0.1 -concurrency 2 -maxmoves 400 -gametimeout 180 -openings /work/lanes/ngn-s65-data-aa/openings.txt -lowpower=false -mingames 1000000 -maxgames 40 -newoption EvalFile=/work/lanes/ngn-s65-data-aa/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/work/lanes/ngn-s65-data-aa/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false
+3089995 3089947     222 49.9 204800 /work/lanes/ngn-s65-data-aa/ngn
+3089996 3089947     222 50.0 204984 /work/lanes/ngn-s65-data-aa/ngn
+3090016 3089947     221 50.0 206308 /work/lanes/ngn-s65-data-aa/ngn
+3090017 3089947     221 50.1 204308 /work/lanes/ngn-s65-data-aa/ngn
+               total        used        free      shared  buff/cache   available
+Mem:           17922        8062        2626        1132        8712        9860
+Swap:           4095        4095           0
+
+Filesystem        1B-blocks         Used    Available Use% Mounted on
+/dev/sda       536608739328 418066235392 118542503936  78% /work
+

@@ -1,0 +1,39 @@
+{
+  "base_source": "ed34480",
+  "utc": "2026-10-11T14:08:38.995022+00:00",
+  "source_archive_sha256": "350a3de9d5a9e6005fe6cd8168a78819ff807cb885a2a1bb147627220a1fd4a0",
+  "patch_sha256": "e5b493c17ff03b12ad4f6d903918ca5d01c646f3839bbcd7765cf69169231628",
+  "source_sha256": {
+    "engine/bitboard.go": "e9a6c27331bf8dc7102258f0e49c37efbc389146b2b3e90c3820b1f218962d6c",
+    "engine/eval_accumulator_test.go": "257d3a99a22e95371028aeae6c5e22cbf522e7c51b4510610e040f2bc80a395d",
+    "engine/evaluation_core_test.go": "a8f82a7d9d65e2f8047c19efb1171c504f67666de08ec737667aad27d813e883",
+    "engine/private_board_proof_test.go": "da7762efb230f2e96d6065929df7fea14c009ce2f2224d0be79b7b7e20d5ab26"
+  },
+  "binary_sha256": {
+    "baseline": "2417bdb111346f01b4c08fb19a942c03a26324daeb8d233a41c5d16e1f8d015c",
+    "candidate": "40a12676fa960545fe27d14dab51a27395643a49951d119465749d006b86dd61"
+  },
+  "uci_sha256": "77eab85b0dc99971a4755670035de33b8b5d9d55315601bebc5a4b7820055941",
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "old_net_sha256": "c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2",
+  "net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "machine": "rig WSL2/Ryzen9800X3D",
+  "build_test_cpus": [
+    13,
+    15
+  ],
+  "nice": 19,
+  "tests_pass": true,
+  "memory_max": 2147483648,
+  "checks": [
+    "private board invariant walk",
+    "phase/make-unmake/HCE/NNUE controls",
+    "engine/full short/race",
+    "vet",
+    "explicit accepted-PGO builds"
+  ],
+  "strength_games": 0
+}

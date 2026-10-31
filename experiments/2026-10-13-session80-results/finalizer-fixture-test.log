@@ -1,0 +1,7 @@
+Scope command line contains environment variable, which is not expanded by default for now, but will be expanded by default in the future. Use --expand-environment=yes/no to explicitly control it as needed.
+Running as unit: run-r8d7735b433b44638b043010a92a90508.scope; invocation ID: a4174fc39652469583e31017885d7abd
+=== RUN   TestNGNN3TrainerParity
+    ngnn3_test.go:461: 320 exact trainer cases, H=32 KB=8 NB=8 kernel=avx2
+--- PASS: TestNGNN3TrainerParity (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.007s

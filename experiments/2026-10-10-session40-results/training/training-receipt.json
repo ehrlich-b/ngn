@@ -1,0 +1,25 @@
+{
+  "completed_utc": "2026-10-10T08:53:48.215042+00:00",
+  "training_wall_seconds": 15214.777085974001,
+  "epochs": 58,
+  "total_positions": 14848000000,
+  "best_epoch": 58,
+  "best": {
+    "epoch": 58,
+    "step": 906250,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.007920873046875,
+    "lr": 0.0001,
+    "seconds": 259.3494910090012,
+    "positions_per_second": 987085.0295638908,
+    "steady_positions_per_second": 987708.5977773166,
+    "validation_loss": 0.007967933879043224,
+    "validation_loss_lambda_075": 0.007967933879043224,
+    "validation_loss_result": 0.06357603103065256
+  },
+  "reexport_identical": true,
+  "parity_cases": 20,
+  "net_sha256": "20717cdb9cb6839835ee666c888c26072af973576fbd706cac15978edde266c6",
+  "checkpoint_sha256": "34a9ed9822802fccdcfd410e212f3bb3e7ab22afe1b6bfe259acb05acf69b4ae"
+}

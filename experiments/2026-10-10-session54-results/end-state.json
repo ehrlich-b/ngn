@@ -1,0 +1,85 @@
+{
+  "snapshot_edt": "2026-10-10 21:35:11 EDT",
+  "rig": {
+    "utc": "2026-10-11T01:35:11.699563+00:00",
+    "memory": "               total        used        free      shared  buff/cache   available\nMem:     16267808768  5539119104   573595648    91975680 10561245184 10728689664\nSwap:     4294967296    26898432  4268068864\n",
+    "gpu": "0 %, 4307 MiB, 16303 MiB",
+    "factorizer_last_epoch": {
+      "epoch": 53,
+      "step": 828125,
+      "positions": 256000000,
+      "updates": 15625,
+      "loss": 0.008884,
+      "lr": 0.0001164025393435101,
+      "seconds": 334.19763535600214,
+      "positions_per_second": 766013.7981745366,
+      "steady_positions_per_second": 766346.7613280398,
+      "validation_loss": 0.008890535613326304,
+      "validation_loss_lambda_075": 0.008890535613326304,
+      "validation_loss_result": 0.07957098431087352
+    },
+    "factorizer_terminal": null,
+    "tt_refresh": {
+      "controller.pid": "20265",
+      "controller.started": "2026-10-10T21:31:26-04:00",
+      "last_log": [
+        "G3     0W  2D  1L   33.3%  elo -120.4 [-473,+233]  LLR  -0.08  pLLR  +0.00  checkmate   ",
+        "G4     0W  2D  2L   25.0%  elo -190.8 [-528,+147]  LLR  -0.14  pLLR  -2.16  checkmate   ",
+        "G5     1W  2D  2L   40.0%  elo  -70.4 [-350,+209]  LLR  -0.03  pLLR  -0.14  checkmate   "
+      ]
+    },
+    "processes": "    PID    PPID STAT ELAPSED COMMAND\n   1170     256 Ssl    87829 python3\n  18398   18390 SNs    20763 bash\n  18406   18405 RNsl   20763 python\n  18513   18510 S+     20242 python3\n  18534   18533 S+     20012 python3\n  20265   20260 SNs      225 bash\n"
+  },
+  "forge": {
+    "utc": "2026-10-11T01:35:11.645096+00:00",
+    "memory": "               total        used        free      shared  buff/cache   available\nMem:     18793242624  3865100288  4303073280     5087232 10994294784 14928142336\nSwap:     4294963200     6291456  4288671744\n",
+    "host_pinning": "on",
+    "spsa_final_checks_exit": "0",
+    "spsa_final_checks_terminal": "2026-10-10T21:33:37-04:00",
+    "spsa_endpoint": {
+      "iter": 2000,
+      "time": "2026-10-10T21:30:06-04:00",
+      "plus_pct": 49.666666666666664,
+      "theta": {
+        "AspInit": 16.83173220867022,
+        "AspMult": 162.66062702453962,
+        "DeltaMargin": 202.23776853706008,
+        "ExtensionBudget": 28.90742085975219,
+        "FutilityMargin": 103.7698506211749,
+        "FutilityMaxDepth": 7.739272238818259,
+        "LMPBase": 3.32256374032916,
+        "LMRFullDepth": 3.4616676660332413,
+        "LMRMoveThreshold": 2.106909711314621,
+        "NullMoveMinDepth": 2.289154289375957,
+        "NullMoveR": 4.104613814154161,
+        "ReverseFutilityMargin": 62.764773790694264,
+        "SingularDepth": 6.597288225506877,
+        "SingularMargin": 57.155891447344324
+      },
+      "rounded": {
+        "AspInit": 17,
+        "AspMult": 163,
+        "DeltaMargin": 202,
+        "ExtensionBudget": 29,
+        "FutilityMargin": 104,
+        "FutilityMaxDepth": 8,
+        "LMPBase": 3,
+        "LMRFullDepth": 3,
+        "LMRMoveThreshold": 2,
+        "NullMoveMinDepth": 2,
+        "NullMoveR": 4,
+        "ReverseFutilityMargin": 63,
+        "SingularDepth": 7,
+        "SingularMargin": 57
+      }
+    },
+    "processes": "    PID    PPID STAT ELAPSED COMMAND\n 117631       1 SNs    56405 python3\n"
+  },
+  "host_c_free_bytes": 300252131328,
+  "host_c_free_gib": 279.63158798217773,
+  "playing_source": "9bfbae4",
+  "playing_net": "a4d90b41",
+  "embedded_net": "c6c12796",
+  "factorizer_transfer": "original0byte Mac tar/no terminal receipt; native rigwaiters18513/18534 still waiting; no duplicate relay",
+  "next_session_not_before": "2026-10-10 22:10 EDT"
+}

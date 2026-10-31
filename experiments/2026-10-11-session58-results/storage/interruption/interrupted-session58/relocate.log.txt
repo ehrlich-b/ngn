@@ -1,0 +1,9 @@
+Running as unit: ngn-s58-data-relocate.scope; invocation ID: 99fa64255ddb470580d6d2c256cea1a7
+Traceback (most recent call last):
+  File "/work/lanes/ngn-data-step2-20261011/relocate.py", line 136, in <module>
+    main()
+    ~~~~^^
+  File "/work/lanes/ngn-data-step2-20261011/relocate.py", line 88, in main
+    assert not (S / 'controller.exit').exists(), 'conversion stopped before T75'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: conversion stopped before T75

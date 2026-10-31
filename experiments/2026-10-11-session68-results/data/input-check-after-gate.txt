@@ -1,0 +1,16 @@
+ngn: OK
+base.nnue: OK
+candidate.nnue: OK
+sprt: OK
+openings.txt: OK
+paired-parser.py: OK
+training-receipt.json: OK
+aa.log: OK
+aa-summary.json: OK
+aa-manifest.json: OK
+aa-input-check-before.txt: OK
+aa-input-check-after.txt: OK
+gate.py: OK
+controller.sh: OK
+manifest.md: OK
+game-manifest.json: OK

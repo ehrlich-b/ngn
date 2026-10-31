@@ -1,0 +1,166 @@
+{
+  "at_utc": "2026-10-16T14:09:00.685006+00:00",
+  "accepted": "9ec5d31/81215229/compiled final14",
+  "v4": {
+    "state": "READY_TOOLING",
+    "source_commit": "010c58646be5728580ae95eb9cc0c6fa1ffc0b82",
+    "source_tree": "4a115c7e7ec982eec7103cc9c9bf87ab93a818b9",
+    "source_clean": true,
+    "runner": {
+      "path": "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool",
+      "sha256": "b2269e5c5e96ea69f1366167a2892a963ba05eeb24bc393d3c0223b40c3427be"
+    },
+    "go_version": "go1.25.5",
+    "GOAMD64": "v3",
+    "GOMAXPROCS": 2,
+    "cpus": "13,15",
+    "nice": 19,
+    "dry_identity": "Existing v3 development-only fixture; no claim nomination or engine launch",
+    "dry_modes": {
+      "screen": {
+        "status": "PASS",
+        "argv": [
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool",
+          "prepare",
+          "--mode",
+          "screen",
+          "--candidate",
+          "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/development-identity.json",
+          "--source",
+          "/home/ehrli/ngn-data/night-20261007/session93/source",
+          "--tool-build-argv",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool-build.json",
+          "--out",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/dry-screen",
+          "--dry-run"
+        ]
+      },
+      "confirmation": {
+        "status": "PASS",
+        "argv": [
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool",
+          "prepare",
+          "--mode",
+          "confirmation",
+          "--candidate",
+          "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/development-identity.json",
+          "--source",
+          "/home/ehrli/ngn-data/night-20261007/session93/source",
+          "--tool-build-argv",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool-build.json",
+          "--out",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/dry-confirmation",
+          "--dry-run"
+        ]
+      },
+      "tooling-check": {
+        "status": "PASS",
+        "argv": [
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool",
+          "prepare",
+          "--mode",
+          "tooling-check",
+          "--candidate",
+          "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/development-identity.json",
+          "--source",
+          "/home/ehrli/ngn-data/night-20261007/session93/source",
+          "--tool-build-argv",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool-build.json",
+          "--out",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/dry-tooling-check",
+          "--dry-run"
+        ]
+      },
+      "stability-screen": {
+        "status": "PASS",
+        "argv": [
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool",
+          "prepare",
+          "--mode",
+          "stability-screen",
+          "--candidate",
+          "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/development-identity.json",
+          "--source",
+          "/home/ehrli/ngn-data/night-20261007/session93/source",
+          "--tool-build-argv",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool-build.json",
+          "--out",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/dry-stability-screen",
+          "--dry-run"
+        ]
+      },
+      "stability-confirmation": {
+        "status": "PASS",
+        "argv": [
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool",
+          "prepare",
+          "--mode",
+          "stability-confirmation",
+          "--candidate",
+          "/home/ehrli/ngn-data/claim-v3-20261008/tooling/frozen/development-identity.json",
+          "--source",
+          "/home/ehrli/ngn-data/night-20261007/session93/source",
+          "--tool-build-argv",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/frozen/claimtool-build.json",
+          "--out",
+          "/home/ehrli/ngn-data/claim-v4-20261016/tooling-koivisto/dry-stability-confirmation",
+          "--dry-run"
+        ]
+      }
+    },
+    "ready_for_games": true,
+    "games": 0,
+    "caveat": "Tool and anchor preparation ready; candidate identity and live exclusive-rig receipt must follow net gates and transfer.",
+    "focused_tests": "/home/ehrli/ngn-data/night-20261007/session93/claim-tests.log",
+    "reused_full_checks": "/home/ehrli/ngn-data/night-20261007/session92/checks-result.json",
+    "finished_utc": "2026-10-16T14:04:54.160205+00:00"
+  },
+  "spsa": {
+    "iter": 50,
+    "games": 600,
+    "time": "2026-10-16T13:51:02Z",
+    "tuner_pid": 94467,
+    "controller_pid": 91862
+  },
+  "trainer": {
+    "pid": 94537,
+    "controller_pid": 89579,
+    "completed_epochs": 8,
+    "last_epoch": {
+      "epoch": 8,
+      "step": 125000,
+      "positions": 256000000,
+      "updates": 15625,
+      "loss": 0.0096964775390625,
+      "lr": 0.0009892963756683206,
+      "seconds": 278.56896676303586,
+      "positions_per_second": 918982.4802622967,
+      "steady_positions_per_second": 920466.7305130304,
+      "source_presentations_cumulative": {
+        "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf": 512008897,
+        "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf": 819181217,
+        "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf": 716809886
+      },
+      "validation_loss": 0.00971031323792118,
+      "validation_loss_lambda_075": 0.00971031323792118,
+      "validation_loss_result": 0.08676191154827989
+    }
+  },
+  "net_chain": {
+    "pid": 98730,
+    "launcher_pid": 98728,
+    "state": "WAITING_TRAINING",
+    "service": "ngn-s93-net-chain.service"
+  },
+  "services": "MainPID=98730\nId=ngn-s93-net-chain.service\nActiveState=active\nSubState=running\n\nMainPID=91862\nId=ngn-s88-spsa-warm.service\nActiveState=active\nSubState=running\n\nMainPID=89579\nId=ngn-s87-mixture.service\nActiveState=active\nSubState=running\n",
+  "gpu": "59 %, 4261 MiB, 16303 MiB",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        6583        4887          88        4514        8930\nSwap:           4096           1        4094\n",
+  "processes": [
+    "   1188     245  305554  0.3  0.1 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    "  94467   91862    4691  2.2  0.1 /home/ehrli/ngn-data/night-20261007/session84/spsa -engine /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -out /home/ehrli/ngn-data/night-20261007/session88/spsa-warm/spsa.jsonl -lowpower=false -seed 2026101401 -rend .05 -afrac .1 -report 25 -engineoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -engineoption UseNNUE=true -engineoption Hash=64 -engineoption Threads=1 -engineoption OwnBook=false",
+    "  94537   89579    4484 77.6 20.3 /home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python -m trainer.train --data /home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf /home/ehrli/ngn-data/night-20261007/session19-data/t76.bf /home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf --data-format archive --archive-holdout-modulus 1024 --archive-split-seed 20261015 --out /home/ehrli/ngn-data/night-20261007/session87/mixture/moderated-t74/trained --format 3 --kb-map default --hidden 512 --buckets 8 --batch 16384 --lr .001 --epochs 115 --positions-per-epoch 256000000 --weight-decay .01 --wdl .75 --k 400 --decay cosine --min-lr-ratio .1 --threads 2 --precision bf16 --seed 20261006 --keep-best-only --archive-source-weights /home/ehrli/ngn-data/night-20261007/session87/mixture/moderated-t74/source-weights.json",
+    "  98728   98724      96  0.0  0.0 systemd-run --user --wait --collect --unit=ngn-s93-net-chain -p AllowedCPUs=0-11 -p CPUQuota=600% -p MemoryMax=3G -p MemorySwapMax=0 nice -n 19 taskset -c 0-11 python3 /home/ehrli/ngn-data/night-20261007/session93/net-chain.py",
+    "  98730     245      96  0.0  0.0 python3 /home/ehrli/ngn-data/night-20261007/session93/net-chain.py"
+  ],
+  "host_c_free_bytes": 33634918400
+}

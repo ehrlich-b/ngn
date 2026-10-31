@@ -1,0 +1,61 @@
+{
+  "observed_edt": "2026-10-19T18:40:38-04:00",
+  "session_started_edt": "2026-10-19T18:40:07-04:00",
+  "session_deadline_edt": "2026-10-19T20:20:07-04:00",
+  "state": "CONFIRMATION_RUNNING",
+  "accepted_package": "e8be8f2/81215229/compiled warm2000",
+  "controller": {
+    "pid": 382077,
+    "unit": "ngn-s117-chain-retarget.scope",
+    "result": "/home/ehrli/ngn-data/night-20261007/session117/result.json",
+    "state": "CONFIRMATION_RUNNING"
+  },
+  "confirmation": {
+    "pid": 542775,
+    "started_utc": "2026-10-19T11:49:05.645512487Z",
+    "completed_game_files": 104,
+    "latest_saved_game_edt": "2026-10-19T18:35:26.084894-04:00",
+    "target_games": 640,
+    "time_control": "120+1",
+    "progress_is_not_a_verdict": true,
+    "terminal_files_present": false,
+    "terminal_files": [
+      "run-status.json",
+      "audit.json",
+      "analysis.json"
+    ],
+    "output": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation",
+    "rule": "Fixed640; strict pooled primary lower95>3600; raw scores bracket50%; zero faults/exclusions; no extension/optional stopping",
+    "engine_pids_at_snapshot": [
+      614861,
+      614869
+    ]
+  },
+  "monitor": {
+    "pid": 390546,
+    "sample_utc": "2026-10-19T22:33:01.812926+00:00",
+    "interval_seconds": 600,
+    "physical_cpu_busy_percent_range": [
+      97.48995983935743,
+      98.20407344235979
+    ],
+    "descriptive_only": true
+  },
+  "resources": {
+    "host_c_free_gib_rounded": 48.559265,
+    "host_c_data_admission_gib": 67.03898829873651,
+    "host_c_data_deficit_gib": 18.47972329873651,
+    "gpu_percent": 0,
+    "gpu_used_mib": 1449,
+    "ram_used_gib_approx": 2,
+    "ram_available_gib_approx": 13
+  },
+  "data_state": "CALIBRATED_CAPACITY_HOLD",
+  "hopper_pid": 1188,
+  "new_jobs_launched": false,
+  "new_engine_changes": false,
+  "goal_met": false,
+  "next_review_edt": "2026-10-21 19:45",
+  "planning_eta_edt": "2026-10-21 19:49 to 2026-10-22 05:49",
+  "next_action": "Read session117/result.json and status tail once at scheduled terminal; inspect completed analysis if present; leave live gates untouched."
+}

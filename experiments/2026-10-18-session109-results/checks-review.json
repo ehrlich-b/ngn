@@ -1,0 +1,70 @@
+{
+  "state": "CHECKS_AND_SMOKE_PASS",
+  "checks_exit": "0\n",
+  "checks_done": "2026-10-18T01:10:14-04:00\n",
+  "logs": {
+    "engine-short": "ok  \tgithub.com/ehrlich-b/ngn/engine\t13.082s\n",
+    "engine-race": "ok  \tgithub.com/ehrlich-b/ngn/engine\t145.995s\n",
+    "full-short": "/cmd/pairmatch\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn_to_fens\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgnify\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-analysis\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-comparison\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/sfpv\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/simple-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/smoke\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/cmd/speedprobe\t0.004s\nok  \tgithub.com/ehrlich-b/ngn/cmd/sprt\t0.006s\nok  \tgithub.com/ehrlich-b/ngn/cmd/spsa\t0.264s\n?   \tgithub.com/ehrlich-b/ngn/cmd/tactical-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/test-harness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/trace_move\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/zzbias\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/engine\t12.981s\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-ep-repetition-correctness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-rodent-pv-identity-probe\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/claim\t0.050s\nok  \tgithub.com/ehrlich-b/ngn/internal/datagen\t0.073s\n?   \tgithub.com/ehrlich-b/ngn/internal/history\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/ngnp\t0.046s\n?   \tgithub.com/ehrlich-b/ngn/internal/oracle\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/uci\t0.057s\n",
+    "full-race": "cmd/pairmatch\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgn_to_fens\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pgnify\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-analysis\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/pruning-comparison\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/sfpv\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/simple-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/smoke\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/cmd/speedprobe\t1.037s\nok  \tgithub.com/ehrlich-b/ngn/cmd/sprt\t1.041s\nok  \tgithub.com/ehrlich-b/ngn/cmd/spsa\t1.608s\n?   \tgithub.com/ehrlich-b/ngn/cmd/tactical-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/test-harness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/trace_move\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/zzbias\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/engine\t146.750s\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-ep-repetition-correctness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-rodent-pv-identity-probe\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/claim\t1.365s\nok  \tgithub.com/ehrlich-b/ngn/internal/datagen\t1.996s\n?   \tgithub.com/ehrlich-b/ngn/internal/history\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/ngnp\t1.377s\n?   \tgithub.com/ehrlich-b/ngn/internal/oracle\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/uci\t1.097s\n",
+    "vet": "",
+    "build": "",
+    "probe-build": "",
+    "windows-build": ""
+  },
+  "identity_summary": {
+    "verdict": "PASS",
+    "candidate": "s4",
+    "immediate_base": "fe92ced/81215229/compiled final14",
+    "uci_cases": 24,
+    "probe_cases": 36,
+    "tests_pass": true,
+    "binary_sha256": {
+      "base": "c1585259450de4c0697daf9fcc23f0b964042dbca9c838a7d5f1145f470e1974",
+      "candidate": "6a5099f72c79944645fb66894697b35edbd7b172d4d78438e677b678d5139078"
+    },
+    "patch_sha256": "487e0389a5db7b845a059e3f44b67ee47b41a729f18dfb275735af8d3addc4e1",
+    "net_sha256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22",
+    "goamd64": "v3",
+    "check_cpus": [
+      13,
+      15
+    ],
+    "utc": "2026-10-18T05:10:14.284588+00:00",
+    "automatic_adoption": false,
+    "next": "Fixed40 balanced timing at a natural boundary; no adoption yet"
+  },
+  "smoke": {
+    "verdict": "SMOKE_PASS",
+    "topologies": [],
+    "finished_utc": "2026-10-18T05:21:26.234373+00:00",
+    "automatic_adoption": false,
+    "next": "Review identity and immediate-base match before integration; no Elo gain inferred"
+  },
+  "dispatch": {
+    "state": "PASS",
+    "scenarios": [
+      {
+        "net_verdict": "SHELVED",
+        "endpoint": false,
+        "passed": true
+      },
+      {
+        "net_verdict": "KEEP",
+        "endpoint": false,
+        "passed": true
+      },
+      {
+        "net_verdict": "UNSCORED",
+        "endpoint": false,
+        "passed": true
+      },
+      {
+        "net_verdict": "KEEP",
+        "endpoint": true,
+        "passed": true
+      }
+    ],
+    "templates": "Immediate accepted source;fixed1000;conditional400;reused controls;matching final14"
+  }
+}

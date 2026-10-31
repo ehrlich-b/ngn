@@ -1,0 +1,196 @@
+{
+  "cases": 12,
+  "node_limit": 50000,
+  "normal_matches_accepted": true,
+  "clock_matches_normal": true,
+  "observer_reports_actual_nodes": true,
+  "identity": [
+    {
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "info": [
+        "info depth 1 seldepth 1 score cp 57 nodes 45 hashfull 0 pv e2e4",
+        "info depth 2 seldepth 4 score cp 52 nodes 184 hashfull 0 pv e2e4 e7e5",
+        "info depth 3 seldepth 5 score cp 40 nodes 333 hashfull 0 pv e2e4 e7e5 g1f3",
+        "info depth 4 seldepth 6 score cp 71 nodes 894 hashfull 0 pv e2e4 e7e5 g1f3 b8c6",
+        "info depth 5 seldepth 7 score cp 64 nodes 1328 hashfull 0 pv e2e4 e7e5 g1f3 b8c6 f1c4",
+        "info depth 6 seldepth 11 score cp 62 nodes 2815 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 d2d4 c5d4",
+        "info depth 7 seldepth 13 score cp 62 nodes 6018 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 f1b5 g8f6 e4e5 f6d5 e1g1",
+        "info depth 8 seldepth 16 score cp 70 nodes 10960 hashfull 0 pv e2e4 c7c5 g1f3 g7g6 d2d4 c5d4 d1d4 g8f6 e4e5 b8c6",
+        "info depth 9 seldepth 18 score cp 73 nodes 19653 hashfull 0 pv e2e4 e7e5 g1f3"
+      ],
+      "bestmove": "bestmove e2e4"
+    },
+    {
+      "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
+      "info": [
+        "info depth 1 seldepth 3 score cp -52 nodes 47 hashfull 0 pv e7e5",
+        "info depth 2 seldepth 4 score cp -40 nodes 159 hashfull 0 pv e7e5 g1f3",
+        "info depth 3 seldepth 5 score cp -71 nodes 377 hashfull 0 pv e7e5 g1f3 b8c6",
+        "info depth 4 seldepth 6 score cp -64 nodes 609 hashfull 0 pv e7e5 g1f3 b8c6 f1c4",
+        "info depth 5 seldepth 10 score cp -62 nodes 1358 hashfull 0 pv c7c5 g1f3 b8c6 d2d4 c5d4",
+        "info depth 6 seldepth 8 score cp -62 nodes 2171 hashfull 0 pv c7c5 g1f3 b8c6 d2d4 c5d4 f3d4",
+        "info depth 7 seldepth 12 score cp -59 nodes 4496 hashfull 0 pv c7c5 g1f3 b8c6 d2d4 c5d4 f3d4 g8f6 b1c3 c6d4 d1d4",
+        "info depth 8 seldepth 16 score cp -71 nodes 14253 hashfull 0 pv c7c5 g1f3 g7g6 d2d4 c5d4 d1d4 g8f6 e4e5 b8c6",
+        "info depth 9 seldepth 16 score cp -76 nodes 34856 hashfull 0 pv e7e5 g1f3 b8c6 f1b5 g8f6 e1g1 a7a6 b5c6 d7c6"
+      ],
+      "bestmove": "bestmove e7e5"
+    },
+    {
+      "fen": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2",
+      "info": [
+        "info depth 1 seldepth 3 score cp 40 nodes 66 hashfull 0 pv g1f3",
+        "info depth 2 seldepth 4 score cp 71 nodes 188 hashfull 0 pv g1f3 b8c6",
+        "info depth 3 seldepth 5 score cp 64 nodes 340 hashfull 0 pv g1f3 b8c6 f1c4",
+        "info depth 4 seldepth 5 score cp 73 nodes 586 hashfull 0 pv g1f3 b8c6 f1c4 g8f6",
+        "info depth 5 seldepth 7 score cp 68 nodes 1182 hashfull 0 pv g1f3 b8c6 f1b5 g8f6 e1g1",
+        "info depth 6 seldepth 9 score cp 68 nodes 1886 hashfull 0 pv g1f3 b8c6 f1b5 g8f6 e1g1 f6e4",
+        "info depth 7 seldepth 15 score cp 76 nodes 5019 hashfull 0 pv g1f3 b8c6 f1b5",
+        "info depth 8 seldepth 20 score cp 45 nodes 25570 hashfull 1 pv g1f3 g8f6 b1c3 b8c6 f1b5 f8c5 e1g1 e8g8 b5c6",
+        "info depth 9 seldepth 20 score cp 34 nodes 38541 hashfull 1 pv g1f3 g8f6"
+      ],
+      "bestmove": "bestmove g1f3"
+    },
+    {
+      "fen": "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1",
+      "info": [
+        "info depth 1 seldepth 1 score cp -43 nodes 43 hashfull 0 pv d7d5",
+        "info depth 2 seldepth 3 score cp -35 nodes 143 hashfull 0 pv d7d5 c2c4",
+        "info depth 3 seldepth 6 score cp -49 nodes 329 hashfull 0 pv d7d5 c2c4 d5c4",
+        "info depth 4 seldepth 6 score cp -47 nodes 568 hashfull 0 pv d7d5 c2c4 d5c4 g1f3",
+        "info depth 5 seldepth 8 score cp -56 nodes 1250 hashfull 0 pv d7d5 c2c4 e7e6 g1f3 g8f6",
+        "info depth 6 seldepth 9 score cp -43 nodes 2503 hashfull 0 pv d7d5 c2c4 d5c4 g1f3 g8f6 b1c3",
+        "info depth 7 seldepth 14 score cp -47 nodes 5872 hashfull 0 pv d7d5 c2c4 d5c4 g1f3 c7c5 e2e3 c5d4 f1c4",
+        "info depth 8 seldepth 14 score cp -53 nodes 8905 hashfull 0 pv d7d5 c2c4 e7e6 g1f3 g8f6 b1c3 d5c4 e2e4",
+        "info depth 9 seldepth 20 score cp -43 nodes 23020 hashfull 0 pv d7d5 c2c4",
+        "info depth 10 seldepth 16 score cp -45 nodes 44381 hashfull 0 pv d7d5 c2c4 c7c6 g1f3 g8f6 c4d5 c6d5 b1c3 b8c6 c1f4 c8f5"
+      ],
+      "bestmove": "bestmove d7d5"
+    },
+    {
+      "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+      "info": [
+        "info depth 1 seldepth 2 score cp -33 nodes 44 hashfull 0 pv d7d5",
+        "info depth 2 seldepth 4 score cp -29 nodes 140 hashfull 0 pv d7d5 d2d4",
+        "info depth 3 seldepth 4 score cp -38 nodes 252 hashfull 0 pv d7d5 d2d4 c8f5",
+        "info depth 4 seldepth 5 score cp -36 nodes 550 hashfull 0 pv d7d5 d2d4 g8f6 c2c4",
+        "info depth 5 seldepth 9 score cp -54 nodes 1236 hashfull 0 pv d7d5 d2d4 c7c5 d4c5 g8f6",
+        "info depth 6 seldepth 9 score cp -51 nodes 2333 hashfull 0 pv d7d5 d2d4 e7e6 c2c4 g8f6 b1c3",
+        "info depth 7 seldepth 13 score cp -43 nodes 5394 hashfull 0 pv d7d5 d2d4 e7e6 c2c4 g8f6 b1c3 f8e7 c4d5 e6d5 c1f4",
+        "info depth 8 seldepth 13 score cp -48 nodes 8491 hashfull 0 pv d7d5 d2d4 e7e6 c2c4 g8f6 b1c3 f8e7 c4d5 e6d5 c1f4 e8g8",
+        "info depth 9 seldepth 17 score cp -43 nodes 16752 hashfull 0 pv d7d5 d2d4 e7e6 c2c4 g8f6 c1g5 f8e7 c4d5 e6d5 e2e3 h7h6 g5f6",
+        "info depth 10 seldepth 22 score cp -43 nodes 24071 hashfull 0 pv d7d5 d2d4 e7e6 c2c4 g8f6 c1g5 f8e7 c4d5 e6d5 e2e3 h7h6 g5f6"
+      ],
+      "bestmove": "bestmove d7d5"
+    },
+    {
+      "fen": "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2",
+      "info": [
+        "info depth 1 seldepth 3 score cp 66 nodes 66 hashfull 0 pv g1f3",
+        "info depth 2 seldepth 4 score cp 73 nodes 182 hashfull 0 pv g1f3 b8c6",
+        "info depth 3 seldepth 7 score cp 62 nodes 354 hashfull 0 pv g1f3 b8c6 d2d4",
+        "info depth 4 seldepth 9 score cp 62 nodes 667 hashfull 0 pv g1f3 b8c6 d2d4 c5d4",
+        "info depth 5 seldepth 7 score cp 62 nodes 1082 hashfull 0 pv g1f3 b8c6 d2d4 c5d4 f3d4",
+        "info depth 6 seldepth 9 score cp 59 nodes 1752 hashfull 0 pv g1f3 b8c6 d2d4 c5d4 f3d4 g8f6",
+        "info depth 7 seldepth 13 score cp 63 nodes 4337 hashfull 0 pv g1f3 b8c6",
+        "info depth 8 seldepth 13 score cp 74 nodes 9200 hashfull 0 pv g1f3 g7g6 d2d4 c5d4 d1d4 g8f6 e4e5 b8c6",
+        "info depth 9 seldepth 18 score cp 58 nodes 32943 hashfull 0 pv g1f3 g7g6 c2c3 d7d5 f1b5 c8d7 b5d7 d8d7 f3e5 d7e6 d1a4 b8c6 e5c6",
+        "info depth 10 seldepth 21 score cp 67 nodes 46540 hashfull 0 pv g1f3 g7g6"
+      ],
+      "bestmove": "bestmove g1f3"
+    },
+    {
+      "fen": "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+      "info": [
+        "info depth 1 seldepth 1 score cp 93 nodes 63 hashfull 0 pv d2d4",
+        "info depth 2 seldepth 5 score cp 94 nodes 206 hashfull 0 pv d2d4 d7d5",
+        "info depth 3 seldepth 5 score cp 70 nodes 447 hashfull 0 pv d2d4 d7d5 b1c3",
+        "info depth 4 seldepth 8 score cp 73 nodes 727 hashfull 0 pv d2d4 d7d5 b1c3 g8f6",
+        "info depth 5 seldepth 9 score cp 75 nodes 1253 hashfull 0 pv d2d4 d7d5 b1c3 d5e4 c3e4",
+        "info depth 6 seldepth 10 score cp 69 nodes 2172 hashfull 0 pv d2d4 d7d5 b1c3 g8f6 e4e5 f6d7",
+        "info depth 7 seldepth 15 score cp 60 nodes 5339 hashfull 0 pv d2d4 d7d5 b1c3",
+        "info depth 8 seldepth 15 score cp 45 nodes 23102 hashfull 0 pv g1f3 d7d5",
+        "info depth 9 seldepth 18 score cp 46 nodes 39543 hashfull 0 pv g1f3 d7d5 e4e5 d5d4 f1d3 g8e7 e1g1 c7c5 f1e1 e7g6"
+      ],
+      "bestmove": "bestmove g1f3"
+    },
+    {
+      "fen": "rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+      "info": [
+        "info depth 1 seldepth 1 score cp 129 nodes 64 hashfull 0 pv d2d4",
+        "info depth 2 seldepth 5 score cp 112 nodes 191 hashfull 0 pv d2d4 d7d5",
+        "info depth 3 seldepth 5 score cp 71 nodes 432 hashfull 0 pv d2d4 d7d5 b1d2",
+        "info depth 4 seldepth 8 score cp 71 nodes 711 hashfull 0 pv d2d4 d7d5 b1d2 d5e4",
+        "info depth 5 seldepth 6 score cp 71 nodes 1122 hashfull 0 pv d2d4 d7d5 b1d2 d5e4 d2e4",
+        "info depth 6 seldepth 9 score cp 66 nodes 2020 hashfull 0 pv d2d4 d7d5 b1d2 d5e4 d2e4 c8f5",
+        "info depth 7 seldepth 9 score cp 66 nodes 4873 hashfull 0 pv d2d4 d7d5",
+        "info depth 8 seldepth 14 score cp 102 nodes 13490 hashfull 0 pv d2d4 d7d5",
+        "info depth 9 seldepth 18 score cp 78 nodes 32533 hashfull 0 pv d2d4 d7d5 e4e5",
+        "info depth 10 seldepth 21 score cp 75 nodes 46813 hashfull 0 pv d2d4 d7d5 e4e5 c6c5 d4c5"
+      ],
+      "bestmove": "bestmove d2d4"
+    },
+    {
+      "fen": "rnbqkbnr/pppppp1p/6p1/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2",
+      "info": [
+        "info depth 1 seldepth 1 score cp 105 nodes 60 hashfull 0 pv e2e4",
+        "info depth 2 seldepth 4 score cp 110 nodes 161 hashfull 0 pv e2e4 f8g7",
+        "info depth 3 seldepth 4 score cp 98 nodes 313 hashfull 0 pv e2e4 f8g7 g1f3",
+        "info depth 4 seldepth 6 score cp 105 nodes 775 hashfull 0 pv e2e4 d7d6 g1f3 g8f6",
+        "info depth 5 seldepth 9 score cp 92 nodes 1604 hashfull 0 pv e2e4 d7d6 b1c3 g8f6 h2h3",
+        "info depth 6 seldepth 7 score cp 110 nodes 2653 hashfull 0 pv e2e4 d7d6 b1c3 g8f6 h2h3 f8g7",
+        "info depth 7 seldepth 12 score cp 118 nodes 6535 hashfull 0 pv e2e4 d7d6 b1c3",
+        "info depth 8 seldepth 15 score cp 98 nodes 16571 hashfull 0 pv e2e4 d7d6 g1f3 g8f6",
+        "info depth 9 seldepth 18 score cp 108 nodes 23945 hashfull 0 pv e2e4 d7d6 g1f3 g8f6 b1c3 f8g7 f1e2 e8g8 e1g1 c7c5 d4c5 d6c5",
+        "info depth 10 seldepth 20 score cp 97 nodes 42421 hashfull 0 pv e2e4 d7d6 b1c3 g8f6"
+      ],
+      "bestmove": "bestmove e2e4"
+    },
+    {
+      "fen": "rnbqkbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBQKBNR b KQkq c3 0 2",
+      "info": [
+        "info depth 1 seldepth 4 score cp -49 nodes 63 hashfull 0 pv d5c4",
+        "info depth 2 seldepth 4 score cp -47 nodes 216 hashfull 0 pv d5c4 g1f3",
+        "info depth 3 seldepth 6 score cp -56 nodes 537 hashfull 0 pv e7e6 g1f3 g8f6",
+        "info depth 4 seldepth 6 score cp -43 nodes 1223 hashfull 0 pv d5c4 g1f3 g8f6 b1c3",
+        "info depth 5 seldepth 8 score cp -58 nodes 2016 hashfull 0 pv d5c4 g1f3 g8f6 b1c3 e7e6",
+        "info depth 6 seldepth 12 score cp -47 nodes 3239 hashfull 0 pv d5c4 g1f3 c7c5 e2e3 c5d4 f1c4",
+        "info depth 7 seldepth 12 score cp -51 nodes 9233 hashfull 0 pv e7e6 g1f3 f8e7 c4d5 e6d5 b1c3 g8f6",
+        "info depth 8 seldepth 12 score cp -49 nodes 11986 hashfull 0 pv e7e6 g1f3 f8e7 c4d5 e6d5 b1c3 g8f6 c1f4 e8g8",
+        "info depth 9 seldepth 13 score cp -52 nodes 17159 hashfull 0 pv e7e6 g1f3 f8e7 c4d5 e6d5 b1c3 g8f6 c1f4 e8g8",
+        "info depth 10 seldepth 17 score cp -54 nodes 44384 hashfull 0 pv e7e6 g1f3 g8f6 b1c3 f8e7"
+      ],
+      "bestmove": "bestmove e7e6"
+    },
+    {
+      "fen": "rnbqkbnr/pppp1ppp/8/4p3/2P5/8/PP1PPPPP/RNBQKBNR w KQkq e6 0 2",
+      "info": [
+        "info depth 1 seldepth 3 score cp 16 nodes 49 hashfull 0 pv b1c3",
+        "info depth 2 seldepth 4 score cp 38 nodes 232 hashfull 0 pv g1f3 b8c6",
+        "info depth 3 seldepth 7 score cp 28 nodes 505 hashfull 0 pv g1f3 b8c6 b1c3",
+        "info depth 4 seldepth 6 score cp 22 nodes 1040 hashfull 0 pv g2g3 d7d5 c4d5 d8d5",
+        "info depth 5 seldepth 8 score cp 26 nodes 1912 hashfull 0 pv g2g3 g8f6 f1g2 d7d5 c4d5",
+        "info depth 6 seldepth 10 score cp 26 nodes 3001 hashfull 0 pv g2g3 g8f6 f1g2 d7d5 c4d5 f6d5",
+        "info depth 7 seldepth 10 score cp 30 nodes 4317 hashfull 0 pv g2g3 g8f6 f1g2 d7d5 c4d5 f6d5 g1f3",
+        "info depth 8 seldepth 15 score cp 29 nodes 7844 hashfull 0 pv g2g3 g8f6 f1g2 d7d5 c4d5",
+        "info depth 9 seldepth 17 score cp 14 nodes 31742 hashfull 1 pv d2d3 g8f6 g1f3 f8b4 c1d2 b4d2 d1d2 b8c6 g2g3 e8g8 f1g2 f8e8 b1c3",
+        "info depth 10 seldepth 20 score cp 18 nodes 46259 hashfull 1 pv g2g3 g8f6"
+      ],
+      "bestmove": "bestmove g2g3"
+    },
+    {
+      "fen": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/2N3P1/PP1PPP1P/R1BQKBNR b KQkq - 0 3",
+      "info": [
+        "info depth 1 seldepth 5 score cp -23 nodes 75 hashfull 0 pv d7d5",
+        "info depth 2 seldepth 4 score cp -20 nodes 295 hashfull 0 pv f8b4 f1g2",
+        "info depth 3 seldepth 4 score cp -19 nodes 446 hashfull 0 pv f8b4 f1g2 b4c3",
+        "info depth 4 seldepth 4 score cp -19 nodes 813 hashfull 0 pv f8b4 f1g2 b4c3 b2c3",
+        "info depth 5 seldepth 7 score cp -7 nodes 1592 hashfull 0 pv f8b4 g1f3 e5e4 f3d4 e8g8",
+        "info depth 6 seldepth 8 score cp -9 nodes 2270 hashfull 0 pv f8b4 g1f3 e5e4 f3d4 e8g8 f1g2",
+        "info depth 7 seldepth 10 score cp -2 nodes 3440 hashfull 0 pv f8b4 g1f3 e5e4 f3d4 e8g8 f1g2 f8e8",
+        "info depth 8 seldepth 14 score cp 27 nodes 10320 hashfull 0 pv f8b4 g1f3",
+        "info depth 9 seldepth 13 score cp 20 nodes 14715 hashfull 0 pv f8b4 g1f3 b4c3 b2c3 e5e4 f3d4 e8g8 f1g2 f8e8"
+      ],
+      "bestmove": "bestmove f8b4"
+    }
+  ]
+}

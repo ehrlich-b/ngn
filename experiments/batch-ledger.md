@@ -14,6 +14,50 @@ Rules:
 - Fail → bisect the batch (each provisional isolable via its commit) and drop the regressor(s).
 - Certified provisionals graduate to permanent keeps; the pre-batch base advances to the certified HEAD.
 
+## October2026 campaign — certification outstanding
+
+Actual-package certification completed naturally **2026-10-15 16:39:48 EDT**:
+**H0 / BISECT**,3237games/1618pairs plus one natural-drain orphan,
+444W2286D507L,penta[11,301,1056,240,10],
+**−6.7649[−12.0194,−1.5135]**,exactLLR−3.08152,zero faults.
+This fails certification; it does not prove a loss of at least8Elo.
+Owned replacements remain selected. Under October15 13:05 authority,
+independent width/net/tuning continue while owned-code diagnosis proceeds.
+No unchanged regate,extension,pooling or derived-code restoration.
+[Original result](2026-10-16-session88-results/session83/provenance/result.json).
+
+This scope is separate from the historical batches below. Reference is the
+archived pre-replacement5b882e2 binary53caa7c4, used only as a match opponent
+with identical a4d90b41/final14. Session71's repaired-package certification was
+administratively stopped at the score-independent October12 cutoff; it is
+unscored and cannot certify the batch. Never restore derived runtime code.
+
+| Change | Integration | Class / completed evidence |
+|---|---|---|
+| Original four-way full-key TT | b49ab5a | PROVISIONAL provenance keep,400g −3.47[−25.45,+18.47]; later matching-store repair ed34480 passed its independent gate |
+| Owned SEE/ordering values | f8686be | PROVISIONAL provenance keep,400g −14.77[−35.43,+5.77] |
+| Owned board-key assignment | 6c0fc26 | PROVISIONAL provenance keep,400g −6.08[−25.89,+13.69] |
+| SEE post-move geometry | f203e2f, exact topic73fd6fe | **CORRECTNESS KEEP; included in provisional certification scope** under October13 06:55 amendment. Source-xray/EP witnesses fail before and pass after in both colors; full checked patch reused. Fresh ownA/A40 PASS,400/200 +3.4745[−14.2192,+21.1862],77/250/73,penta[6,32,116,44,2],zero faults. No demonstrated Elo gain. |
+| Singular restricted-bound correction | 9ec5d31, exact session80 patch `1d666e17` | **CORRECTNESS KEEP; included in actual-package certification scope.** Both-color restricted fail-low witnesses fail before; all10 cases and full/race/vet/PGO checks pass after. Rig fixed400/200 **+10.4262[−8.3270,+29.2403]**,87/238/75,penta[4,37,108,45,6],zero faults; reused passing PGN-harness A/A. No demonstrated Elo gain. [Result](2026-10-14-session82-results/singular/singular-nonreg/result.json). |
+
+The four-item trigger is reached; certification remains owed. The approved
+October13 21:00 amendment prospectively replaces this campaign's superiority
+[0,+6] certificate with **non-inferiority logistic SPRT[−8,0] at60+0.6/c6,
+min1000/cap4000**, on the actual integrated package with the same a4d90b41
+and final14 as archived reference5b882e2/53caa7c4. H1 certifies the declared
+margin; H0 bisects SEE values versus keys from scratch; cap leaves debt.
+A/A is reused only for an unchanged machine/topology/TC/harness; the new
+PGN-capable harness long-clock control passed in session83 (40/20,zero faults)
+and is reusable. Actual9ec5d31 certificate used identical winning81215229
+after its approved400-game transfer and endedH0 as recorded above.
+[Session83](2026-10-14-session83.md). Never administratively
+stop the certificate, resume/pool the stopped sample, or restore derived code.
+The ordinary positive-cap heuristic batch route above remains[0,+6].
+Singular correctness and width measurements precede certification in the
+approved queue; nominate the actual package when that slot opens.
+[Session79 proof and class correction](2026-10-13-session79.md),
+[archived repaired-certification protocol](2026-10-12-session71-provenance.md).
+
 ---
 
 ## Batch 1 — CERTIFIED 2026-07-18 (pre-batch base: `ea69ad6`, opened 2026-07-01, certified HEAD: `c514a2b`)

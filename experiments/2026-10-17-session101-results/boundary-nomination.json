@@ -1,0 +1,32 @@
+{
+  "authority": "Merged plan October17 09:45 items2/3 and13:10 S3,S2,S1 order",
+  "accepted_package": "9ec5d31/81215229/compiled final14; unchanged",
+  "s3_topic": "night/s101-select-cmov",
+  "s3_topic_commit": "29eec6f36e3e83c8a7e990e92ced927083b90a78",
+  "s3_binary_sha256": "dd65aee7572f816958d654850d3a600b25a4f6c425e57b79c20309cc37f889ee",
+  "base_binary_sha256": "2bb42a2f5a7a39f2895afc867def5bc2717e2b28f626bd970e340f2a8e1eacdb",
+  "gpu_controller_pid": 293724,
+  "trainer_pid": 293725,
+  "checks_pid": 294255,
+  "tuner_pid": 293720,
+  "tuning_service": "ngn-s100-spsa-resume.service",
+  "order": [
+    "Natural rebalanced-T74 final115; original identical reexport and20parity",
+    "Next durable SPSA checkpoint; save original argv and pause existing tune service",
+    "Fixed1000/500 net gate,10+0.1/c6/Hash64/Threads1,accepted final14; reuse passing topology A/A; printed AND exact lower95>0;zero faults",
+    "Net KEEP:hold S3 for new-base review and400-game60+0.6 transfer;net SHELVED:exclusive S3 balanced timing",
+    "Clean terminals:resume exact unchanged native tune once asngn-s101-spsa-resume.service;no adoption/claim"
+  ],
+  "speed_rule": "Fixed40 paired20s blocks per topology,T1/H64,T1/H256,T8/H256,AB/BA;paired geometric NPS lower95>1 in both order strata for every topology;otherwise SHELVED;no extension",
+  "runtime": {
+    "cpus": "0-15;physical subsets for timing",
+    "nice": 19,
+    "cpu_quota": "infinity",
+    "memory_max": "4GiB",
+    "swap": 0
+  },
+  "on_fault": "HELD_REVIEW;no gate retry,adoption,claim or additional training",
+  "estimated_first_review_edt": "October17 19:30-21:00;revise after first resumed completed epoch",
+  "utc": "2026-10-17T17:25:03.137017+00:00",
+  "automatic_adoption": false
+}

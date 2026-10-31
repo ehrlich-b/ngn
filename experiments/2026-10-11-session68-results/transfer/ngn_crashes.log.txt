@@ -1,0 +1,52 @@
+[NGN CRASH] 2026/10/11 15:53:09.115433 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 15:53:09.115549 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 15:53:09.205103 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 15:53:09.205154 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 15:53:09.205539 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 15:53:09.205578 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 15:53:09.206220 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 15:53:09.206330 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 15:53:09.206373 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 15:53:09.206427 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 15:53:09.207068 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 15:53:09.207132 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 15:53:09.207570 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 15:53:09.207624 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 15:53:09.323104 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 15:53:09.323204 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 15:53:09.323325 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 15:53:09.323401 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 15:53:09.323416 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 15:53:09.323476 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 15:53:09.326604 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 15:53:09.326672 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 15:53:09.328029 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 15:53:09.328075 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 15:53:09.329149 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 15:53:09.329196 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:16:07.002720 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:16:07.002808 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:16:07.091828 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:16:07.091901 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:16:07.092140 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:16:07.092198 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:16:07.092512 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:16:07.092583 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:16:07.092968 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:16:07.093024 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:16:07.093018 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:16:07.093056 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:16:07.093724 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:16:07.093774 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:16:07.210502 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:16:07.210564 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:16:07.210571 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:16:07.210631 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:16:07.212340 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:16:07.212376 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:16:07.213169 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:16:07.213204 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:16:07.214867 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:16:07.214912 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log
+[NGN CRASH] 2026/10/11 16:16:07.215738 crash_handler.go:64: === NGN Crash Handler Initialized ===
+[NGN CRASH] 2026/10/11 16:16:07.215783 crash_handler.go:65: Crash log: /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/ngn_crashes.log

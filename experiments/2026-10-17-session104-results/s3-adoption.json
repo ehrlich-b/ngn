@@ -1,0 +1,20 @@
+{
+  "verdict": "ACCEPTED_PURE_SPEED",
+  "accepted_source": "4958bc4",
+  "topic": "29eec6f",
+  "previous_source": "9ec5d31",
+  "net": "81215229",
+  "parameters": "compiled final14 unchanged",
+  "mechanism": "Branchless maximum-value scan followed by first-equal index lookup preserves strict-greater tie semantics",
+  "source_review": "git diff 29eec6f^ ffd2364 -- engine is empty; cherry-pick applies exactly",
+  "reused_checks": "../2026-10-17-session101-results/identity.json",
+  "binary_sha256": {
+    "base": "2bb42a2f5a7a39f2895afc867def5bc2717e2b28f626bd970e340f2a8e1eacdb",
+    "candidate": "dd65aee7572f816958d654850d3a600b25a4f6c425e57b79c20309cc37f889ee"
+  },
+  "timing_result": "s3-result.json",
+  "timing_manifest": "s3-manifest.json",
+  "evidence": "60 exact identities, randomized full selection sequence oracle, required short/race/vet/PGO Linux/Windows checks, CMOV compiler witness; fixed40paired20s per topology and both order strata lower95>1",
+  "no_absolute_elo_inference": true,
+  "goal_met": false
+}

@@ -1,0 +1,15 @@
+{
+  "reviewed_utc": "2026-10-10T18:52:07.827555+00:00",
+  "training_receipt_sha256": "cd0c35f3050f26b27d4460c7d07c3b6cc3cfdf79bc0a11b6266cb923df5ab13e",
+  "net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "full58": true,
+  "total_positions": 14848000000,
+  "minimum_holdout_epoch": 58,
+  "unchanged_recipe": true,
+  "reexport_identical": true,
+  "integer_go_parity_cases": 20,
+  "terminal_parent_rc247": "intentional obsolete postprocessor termination; actual trainer full58, forge finalizer exit0",
+  "residuals": "diagnostic only; T80 blended MSE +3.88%, T76 -6.88%, T74 -1.14%; no selection or recipe change",
+  "nominate": "one rig freshAA40/fixed400 data-only gate versus 9bfbae4/be34532c",
+  "decision": "printed and unrounded lower95>0; complete sample/zero faults/intact inputs; otherwise shelve without extension"
+}

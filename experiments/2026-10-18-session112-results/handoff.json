@@ -1,0 +1,18 @@
+{
+  "utc": "2026-10-18T16:27:46.697148+00:00",
+  "accepted": "fe92ced/81215229/compiled final14",
+  "wdl050_verdict": "SHELVED",
+  "wdl025": "DISARMED_PLAN_20261018_1125",
+  "boundary_pid": 335882,
+  "s4_pid": 360131,
+  "spsa_iteration": 1600,
+  "spsa_games": 19200,
+  "gpu": "IDLE_AWAIT_APPROVED_NEW_DATA_PLAN",
+  "inventory": "COMPLETE",
+  "data_plan": "PROPOSAL_ONLY_AWAIT_BRYAN",
+  "no_deletions": true,
+  "no_training_data_downloads": true,
+  "next_review_edt": "2026-10-18 13:35",
+  "goal_met": false,
+  "no_push": true
+}

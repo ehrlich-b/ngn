@@ -1,28 +1,3 @@
-/*
-https://github.com/amanjpro/zahak/?tab=MIT-1-ov-file#readme
-MIT License
-
-Copyright (c) 2021 Amanj Sherwany
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-
 package engine
 
 import (
@@ -31,222 +6,222 @@ import (
 	"math/rand"
 )
 
-var piecesZC [12][64]uint64
-var castleRightsZC [4]uint64
-var enPassantZC [16]uint64
-var whiteTurnZC uint64
+var (
+	occupantKeys [64][13]uint64
+	castlingKeys [4]uint64
+	epTargetKeys [16]uint64
+	whiteSideKey uint64
+)
 
 func init() {
-	hash := sha256.Sum256([]byte("ehrlich"))
-	seed := binary.LittleEndian.Uint64(hash[:8])
-	var r = rand.New(rand.NewSource(int64(seed)))
-	whiteTurnZC = r.Uint64()
-	for i := 0; i < 12; i++ {
-		for j := 0; j < 64; j++ {
-			piecesZC[i][j] = r.Uint64()
+	digest := sha256.Sum256([]byte("NGN board keys v1"))
+	seed := int64(binary.LittleEndian.Uint64(digest[:8]))
+	random := rand.New(rand.NewSource(seed))
+	for index := range epTargetKeys {
+		epTargetKeys[index] = random.Uint64()
+	}
+	for index := range castlingKeys {
+		castlingKeys[index] = random.Uint64()
+	}
+	for square := 63; square >= 0; square-- {
+		for piece := 12; piece >= 1; piece-- {
+			occupantKeys[square][piece] = random.Uint64()
 		}
 	}
-	for i := 0; i < 4; i++ {
-		castleRightsZC[i] = r.Uint64()
-	}
-	for i := 0; i < 16; i++ {
-		enPassantZC[i] = r.Uint64()
-	}
+	whiteSideKey = random.Uint64()
 }
 
-func generateZobristHash(pos *Position) uint64 {
-	var hash uint64 = 0
-	/* Turn */
-	if pos.Turn() == White {
-		hash ^= whiteTurnZC
+
+func epTargetKey(square Square, turn Color) uint64 {
+	switch turn {
+	case Black:
+		if square >= A3 && square <= H3 {
+			return epTargetKeys[int(square-A3)]
+		}
+	case White:
+		if square >= A6 && square <= H6 {
+			return epTargetKeys[8+int(square-A6)]
+		}
+	}
+	return 0
+}
+
+func occupantKey(piece Piece, square Square) uint64 {
+	return occupantKeys[int(square)][int(piece)]
+}
+
+func computePositionKey(pos *Position) uint64 {
+	var hash uint64
+	turn := pos.Turn()
+	if turn == White {
+		hash ^= whiteSideKey
 	}
 
-	/* Castle */
-	if pos.HasTag(WhiteCanCastleKingSide) {
-		hash ^= castleRightsZC[0]
-	}
-	if pos.HasTag(WhiteCanCastleQueenSide) {
-		hash ^= castleRightsZC[1]
-	}
-	if pos.HasTag(BlackCanCastleKingSide) {
-		hash ^= castleRightsZC[2]
-	}
-	if pos.HasTag(BlackCanCastleQueenSide) {
-		hash ^= castleRightsZC[3]
-	}
-
-	/* En passant */
-	enPassant := pos.EnPassant
-	if enPassant != NoSquare {
-		if pos.Turn() == Black {
-			/* Next mov Black -> Current pos White -> White en passant square */
-			if enPassant >= 16 && enPassant <= 23 {
-				hash ^= enPassantZC[enPassant-16]
-			}
-		} else {
-			/* Next mov White -> Current pos Black -> Black en passant square */
-			if enPassant >= 40 && enPassant <= 47 {
-				hash ^= enPassantZC[enPassant-40+8]
-			}
+	for index := 0; index < 4; index++ {
+		if pos.Tag&PositionState(1<<index) != 0 {
+			hash ^= castlingKeys[index]
 		}
 	}
 
-	/* Board */
-	board := pos.Board
-	for sq := A1; sq <= H8; sq++ {
-		p := board.PieceAt(sq)
-		if p != NoPiece {
-			hash ^= piecesZC[int8(p)-1][sq]
+	for square := Square(0); square <= H8; square++ {
+		piece := pos.Board.PieceAt(square)
+		if piece != NoPiece {
+			hash ^= occupantKey(piece, square)
 		}
 	}
 
+	if pos.HasTag(enPassantHash) {
+		hash ^= epTargetKey(pos.EnPassant, turn)
+	}
 	return hash
 }
 
-func updateHashForNullMove(pos *Position, newEnPassant Square, oldEnPassant Square) {
+func advanceNullKey(pos *Position, newEnPassant Square, oldEnPassant Square) {
 	if pos.hash == 0 {
 		pos.Hash()
 		return
 	}
-	var hash uint64 = pos.hash
-	/* Turn */
-	hash ^= whiteTurnZC
 
-	turn := pos.Turn()
-	/* En passant */
-	if newEnPassant != NoSquare {
-		if turn == Black {
-			/* Next mov Black -> Current pos White -> White en passant square */
-			if newEnPassant >= 16 && newEnPassant <= 23 {
-				hash ^= enPassantZC[newEnPassant-16]
-			}
-		} else {
-			/* Next mov White -> Current pos Black -> Black en passant square */
-			if newEnPassant >= 40 && newEnPassant <= 47 {
-				hash ^= enPassantZC[newEnPassant-40+8]
-			}
+	hash := pos.hash ^ whiteSideKey
+	if pos.HasTag(enPassantHash) {
+		turn := pos.Turn()
+		hash ^= epTargetKey(newEnPassant, turn)
+		hash ^= epTargetKey(oldEnPassant, turn.Other())
+	}
+	pos.hash = hash
+}
+
+func advanceMoveKey(pos *Position, move Move, captureSquare Square, newEnPassant Square, oldEnPassant Square, promoPiece Piece, previousState PositionState) {
+	if pos.hash == 0 {
+		pos.Hash()
+		return
+	}
+	if move.MovingPiece() == NoPiece {
+		pos.Hash()
+		return
+	}
+
+	hash := pos.hash ^ whiteSideKey
+	source := move.Source()
+	if move.IsKingSideCastle() {
+		switch source {
+		case E1:
+			hash ^= occupantKey(WhiteRook, H1)
+			hash ^= occupantKey(WhiteRook, F1)
+		case E8:
+			hash ^= occupantKey(BlackRook, H8)
+			hash ^= occupantKey(BlackRook, F8)
+		}
+	} else if move.IsQueenSideCastle() {
+		switch source {
+		case E1:
+			hash ^= occupantKey(WhiteRook, A1)
+			hash ^= occupantKey(WhiteRook, D1)
+		case E8:
+			hash ^= occupantKey(BlackRook, A8)
+			hash ^= occupantKey(BlackRook, D8)
 		}
 	}
 
-	if oldEnPassant != NoSquare {
-		if turn == Black {
-			/* Previous mov Black -> Current pos White -> Black en passant square */
-			if oldEnPassant >= 40 && oldEnPassant <= 47 {
-				hash ^= enPassantZC[oldEnPassant-40+8]
-			}
-		} else {
-			/* Previous mov White -> Current pos Black -> White en passant square */
-			if oldEnPassant >= 16 && oldEnPassant <= 23 {
-				hash ^= enPassantZC[oldEnPassant-16]
-			}
+	changedCastle := previousState ^ pos.Tag
+	for index := 0; index < 4; index++ {
+		if changedCastle&PositionState(1<<index) != 0 {
+			hash ^= castlingKeys[index]
 		}
+	}
+
+	turn := pos.Turn()
+	if pos.HasTag(enPassantHash) {
+		hash ^= epTargetKey(newEnPassant, turn)
+	}
+	if previousState&enPassantHash != 0 {
+		hash ^= epTargetKey(oldEnPassant, turn.Other())
+	}
+
+	moving := move.MovingPiece()
+	hash ^= occupantKey(moving, source)
+	destinationPiece := moving
+	if promoPiece != NoPiece {
+		destinationPiece = promoPiece
+	}
+	hash ^= occupantKey(destinationPiece, move.Destination())
+
+	if captured := move.CapturedPiece(); captured != NoPiece {
+		hash ^= occupantKey(captured, captureSquare)
 	}
 
 	pos.hash = hash
 }
 
-// capture square is provided for the case of enpassant
-func updateHash(pos *Position, move Move, captureSquare Square,
-	newEnPassant Square, oldEnPassant Square, promoPiece Piece, oldPositionTag PositionTag) {
-	source := move.Source()
-	dest := move.Destination()
-	var hash uint64 = pos.hash
-	if hash == 0 {
-		pos.Hash()
-		return
+func hasLegalEnPassant(pos *Position) bool {
+	target := pos.EnPassant
+	if target == NoSquare || target < A1 || target > H8 {
+		return false
 	}
-	/* Turn */
-	hash ^= whiteTurnZC
+	if pos.Board.PieceAt(target) != NoPiece {
+		return false
+	}
+
 	turn := pos.Turn()
-
-	/* Castle */
-	if source == E1 { // White
-		if move.IsKingSideCastle() {
-			hash ^= piecesZC[int8(WhiteRook)-1][H1]
-			hash ^= piecesZC[int8(WhiteRook)-1][F1]
+	targetFile := int(target.File())
+	victim := NoSquare
+	candidateRank := Rank1
+	ownPawn := NoPiece
+	victimPawn := NoPiece
+	switch turn {
+	case White:
+		if target.Rank() != Rank6 {
+			return false
 		}
-		if move.IsQueenSideCastle() {
-			hash ^= piecesZC[int8(WhiteRook)-1][A1]
-			hash ^= piecesZC[int8(WhiteRook)-1][D1]
+		victim = SquareOf(File(targetFile), Rank5)
+		candidateRank = Rank5
+		ownPawn = WhitePawn
+		victimPawn = BlackPawn
+	case Black:
+		if target.Rank() != Rank3 {
+			return false
 		}
-	} else if source == E8 { // Black
-		if move.IsKingSideCastle() {
-			hash ^= piecesZC[int8(BlackRook)-1][H8]
-			hash ^= piecesZC[int8(BlackRook)-1][F8]
-		}
-		if move.IsQueenSideCastle() {
-			hash ^= piecesZC[int8(BlackRook)-1][A8]
-			hash ^= piecesZC[int8(BlackRook)-1][D8]
-		}
+		victim = SquareOf(File(targetFile), Rank4)
+		candidateRank = Rank4
+		ownPawn = BlackPawn
+		victimPawn = WhitePawn
+	default:
+		return false
 	}
-
-	// XOR the old/new tags once; a castle-right toggled iff its bit is set in the
-	// diff. Replaces eight ANDs + four cross-compares with one XOR + four bit tests
-	// (bit-identical: A&F != B&F  <=>  (A^B)&F != 0).
-	castleChanged := oldPositionTag ^ pos.Tag
-	if castleChanged&WhiteCanCastleKingSide != 0 {
-		hash ^= castleRightsZC[0]
-	}
-	if castleChanged&WhiteCanCastleQueenSide != 0 {
-		hash ^= castleRightsZC[1]
-	}
-	if castleChanged&BlackCanCastleKingSide != 0 {
-		hash ^= castleRightsZC[2]
-	}
-	if castleChanged&BlackCanCastleQueenSide != 0 {
-		hash ^= castleRightsZC[3]
+	if pos.Board.PieceAt(victim) != victimPawn {
+		return false
 	}
 
-	/* En passant */
-	if newEnPassant != NoSquare {
-		if turn == Black {
-			/* Next mov Black -> Current pos White -> White en passant square */
-			if newEnPassant >= 16 && newEnPassant <= 23 {
-				hash ^= enPassantZC[newEnPassant-16]
-			}
-		} else {
-			/* Next mov White -> Current pos Black -> Black en passant square */
-			if newEnPassant >= 40 && newEnPassant <= 47 {
-				hash ^= enPassantZC[newEnPassant-40+8]
-			}
+	for direction := -1; direction <= 1; direction += 2 {
+		candidateFile := targetFile + direction
+		if candidateFile < int(FileA) || candidateFile > int(FileH) {
+			continue
+		}
+		source := SquareOf(File(candidateFile), candidateRank)
+		if pos.Board.PieceAt(source) != ownPawn {
+			continue
+		}
+
+		board := pos.Board
+		board.Move(source, target, ownPawn, NoPiece)
+		board.Clear(victim, victimPawn)
+		candidate := Position{Board: board}
+		if !isInCheck(&candidate, turn) {
+			return true
 		}
 	}
+	return false
+}
 
-	if oldEnPassant != NoSquare {
-		if turn == Black {
-			/* Previous mov Black -> Current pos White -> Black en passant square */
-			if oldEnPassant >= 40 && oldEnPassant <= 47 {
-				hash ^= enPassantZC[oldEnPassant-40+8]
-			}
-		} else {
-			/* Previous mov White -> Current pos Black -> White en passant square */
-			if oldEnPassant >= 16 && oldEnPassant <= 23 {
-				hash ^= enPassantZC[oldEnPassant-16]
-			}
-		}
+func (pos *Position) refreshEnPassantHash() {
+	pos.ClearTag(enPassantHash)
+	if hasLegalEnPassant(pos) {
+		pos.SetTag(enPassantHash)
 	}
+}
 
-	movingPiece := move.MovingPiece()
-
-	// Safety check to prevent index out of range panic
-	if movingPiece == NoPiece {
-		// This should not happen in a valid move - recalculate hash from scratch
-		pos.Hash()
-		return
+func (pos *Position) ensureEnPassantHash() {
+	if pos.EnPassant != NoSquare {
+		pos.refreshEnPassantHash()
 	}
-
-	/* Board */
-	hash ^= piecesZC[int8(movingPiece)-1][source]
-	if promoPiece != NoPiece {
-		hash ^= piecesZC[int8(promoPiece)-1][dest]
-	} else {
-		hash ^= piecesZC[int8(movingPiece)-1][dest]
-	}
-
-	cp := move.CapturedPiece()
-	if cp != NoPiece {
-		hash ^= piecesZC[int8(cp)-1][captureSquare]
-	}
-
-	pos.hash = hash
 }

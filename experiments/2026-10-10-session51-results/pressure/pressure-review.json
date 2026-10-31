@@ -1,0 +1,105 @@
+{
+  "reviewed_utc": "2026-10-10T19:56:26.698179+00:00",
+  "complete": true,
+  "raw_counted_depth10_identity": true,
+  "cells": [
+    {
+      "tt": "legacy",
+      "keys": "old",
+      "depth": 20,
+      "positions": 8,
+      "nodes": 24858806,
+      "counters": {
+        "Probes": 23605225,
+        "Hits": 6088343,
+        "Stores": 5501267,
+        "MatchingStores": 2077632,
+        "MissStores": 3423635,
+        "UnchangedMatchingStores": 233331,
+        "RejectedMissStores": 154069,
+        "Inserts": 3116060,
+        "Evictions": 153506,
+        "SameKeyWrites": 1844301
+      },
+      "hit_rate": 0.2579235317604471,
+      "miss_store_refusal_rate": 0.045001584573121846,
+      "evictions_per_store": 0.027903753807986414,
+      "mean_record_occupancy": 0.09286582469940186,
+      "mean_full_bucket_fraction": 0.09286582469940186
+    },
+    {
+      "tt": "legacy",
+      "keys": "new",
+      "depth": 20,
+      "positions": 8,
+      "nodes": 26698418,
+      "counters": {
+        "Probes": 25079518,
+        "Hits": 5156022,
+        "Stores": 5904020,
+        "MatchingStores": 1850835,
+        "MissStores": 4053185,
+        "UnchangedMatchingStores": 145957,
+        "RejectedMissStores": 231296,
+        "Inserts": 3583920,
+        "Evictions": 237969,
+        "SameKeyWrites": 1704878
+      },
+      "hit_rate": 0.205586965427326,
+      "miss_store_refusal_rate": 0.05706524621994802,
+      "evictions_per_store": 0.04030626590018326,
+      "mean_record_occupancy": 0.10680913925170898,
+      "mean_full_bucket_fraction": 0.10680913925170898
+    },
+    {
+      "tt": "own",
+      "keys": "old",
+      "depth": 20,
+      "positions": 8,
+      "nodes": 33954640,
+      "counters": {
+        "Probes": 32383975,
+        "Hits": 10965785,
+        "Stores": 7645660,
+        "MatchingStores": 3779922,
+        "MissStores": 3865738,
+        "UnchangedMatchingStores": 2147382,
+        "RejectedMissStores": 1653,
+        "Inserts": 3856359,
+        "Evictions": 7726,
+        "SameKeyWrites": 1632540
+      },
+      "hit_rate": 0.338617634184809,
+      "miss_store_refusal_rate": 0.0004276026983722125,
+      "evictions_per_store": 0.0010105079221414501,
+      "mean_record_occupancy": 0.11492845416069031,
+      "mean_full_bucket_fraction": 0.004956960678100586
+    },
+    {
+      "tt": "own",
+      "keys": "new",
+      "depth": 20,
+      "positions": 8,
+      "nodes": 42387669,
+      "counters": {
+        "Probes": 40257866,
+        "Hits": 13294069,
+        "Stores": 9750332,
+        "MatchingStores": 4666185,
+        "MissStores": 5084147,
+        "UnchangedMatchingStores": 2679011,
+        "RejectedMissStores": 5535,
+        "Inserts": 5051830,
+        "Evictions": 26782,
+        "SameKeyWrites": 1987174
+      },
+      "hit_rate": 0.3302228935830826,
+      "miss_store_refusal_rate": 0.0010886781991158005,
+      "evictions_per_store": 0.0027467782635504103,
+      "mean_record_occupancy": 0.1505562663078308,
+      "mean_full_bucket_fraction": 0.012492537498474121
+    }
+  ],
+  "interpretation": "Fixed cold positions only. TT designs change searched nodes; hit rates and churn are mechanism diagnostics, never Elo or speed verdicts. Key assignment effects are also position-specific.",
+  "playing_adoption": false
+}

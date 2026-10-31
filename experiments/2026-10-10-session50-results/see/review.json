@@ -1,0 +1,28 @@
+{
+  "reviewed_utc": "2026-10-10T18:59:12.132306+00:00",
+  "verdict": "SEE-unresolved",
+  "games": 1000,
+  "pairs": 500,
+  "wdl": [
+    218,
+    569,
+    213
+  ],
+  "penta": [
+    18,
+    103,
+    249,
+    116,
+    14
+  ],
+  "exact_elo_ci95": [
+    1.7371924043128577,
+    -10.950668282039626,
+    14.429690274613169
+  ],
+  "zero_faults": true,
+  "intact_terminal_pins": true,
+  "playing_adoption": false,
+  "interpretation": "Does not implicate or exonerate SEE; no original-value redesign is triggered by the frozen rule. Combined provenance package remains uncertified.",
+  "sample": "fresh rig only; no pooling or extension"
+}

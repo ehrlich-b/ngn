@@ -1,0 +1,43 @@
+{
+  "games": 40,
+  "pairs": 20,
+  "orphan_games": 0,
+  "wdl": [
+    8,
+    23,
+    9
+  ],
+  "penta": [
+    2,
+    2,
+    11,
+    5,
+    0
+  ],
+  "printed_elo_ci95": [
+    -8.7,
+    -76.0,
+    58.0
+  ],
+  "exact_elo_ci95": [
+    -8.687699877294502,
+    -75.68582825678838,
+    57.6627981585495
+  ],
+  "final_pllr": -0.05,
+  "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "checkmate": 17,
+    "draw-rule": 23
+  },
+  "faults": [],
+  "verdict": "AA_PASS",
+  "name": "aa-width",
+  "finished_utc": "2026-10-14T01:26:32.582345+00:00",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session80/aa-width/manifest.json",
+  "automatic_adoption": false
+}

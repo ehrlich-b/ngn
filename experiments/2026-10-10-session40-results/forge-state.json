@@ -1,0 +1,44 @@
+{
+  "utc": "2026-10-10T09:10:15.950260+00:00",
+  "wrapper_pid": "88166",
+  "last_checkpoint": {
+    "iter": 1700,
+    "time": "2026-10-10T03:57:43-04:00",
+    "plus_pct": 49.5,
+    "theta": {
+      "AspInit": 16.442638677867507,
+      "AspMult": 161.1810682135687,
+      "DeltaMargin": 195.51228835020515,
+      "ExtensionBudget": 28.92767933198719,
+      "FutilityMargin": 104.24542426385581,
+      "FutilityMaxDepth": 7.713507490459489,
+      "LMPBase": 3.4718234680498856,
+      "LMRFullDepth": 3.471518305506258,
+      "LMRMoveThreshold": 2.035376698407025,
+      "NullMoveMinDepth": 2.2164321041996966,
+      "NullMoveR": 4.063780970713223,
+      "ReverseFutilityMargin": 60.605434968786625,
+      "SingularDepth": 6.587720687356687,
+      "SingularMargin": 57.632662279260764
+    },
+    "rounded": {
+      "AspInit": 16,
+      "AspMult": 161,
+      "DeltaMargin": 196,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 104,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 3,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 61,
+      "SingularDepth": 7,
+      "SingularMargin": 58
+    }
+  },
+  "nominal_endpoint": "2026-10-10T20:26:07-04:00",
+  "projection_interval_seconds": 4942.0,
+  "processes": "    PID    PPID    PGID ELAPSED COMMAND\n  88166       1   88166   19023 bash /work/lanes/ngn-spsa-20261009/controller.sh\n  88178   88166   88166   19023 ./spsa-forge -engine /work/lanes/ngn-spsa-20261009/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -concurrency 2 -openings /work/lanes/ngn-spsa-20261009/openings.txt -out /work/lanes/ngn-spsa-20261009/spsa.jsonl -lowpower=false -seed 20261008 -resume\n"
+}

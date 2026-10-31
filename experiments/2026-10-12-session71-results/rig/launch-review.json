@@ -1,0 +1,21 @@
+{
+  "utc": "2026-10-12T07:15:28.588520+00:00",
+  "unit": "ngn-s71-provenance-repaired.service",
+  "scope": {
+    "MainPID": "215083",
+    "ControlGroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/ngn-s71-provenance-repaired.service",
+    "MemoryMax": "3221225472",
+    "MemorySwapMax": "0",
+    "ActiveState": "active"
+  },
+  "controller": 215083,
+  "python": 215088,
+  "stage": "native Rodent controller.done wait",
+  "no_games_started": true,
+  "affinity": "0-11",
+  "nice": 19,
+  "processes": [
+    " 215088  215083  19 17280 python3 games.py"
+  ],
+  "failed_first_launch": "214809 exited before startup; no controller or games; preserved in failed-prestartup-launch"
+}

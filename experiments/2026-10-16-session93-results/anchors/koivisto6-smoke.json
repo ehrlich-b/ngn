@@ -1,0 +1,317 @@
+{
+  "name": "Koivisto 6.0",
+  "binary": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/koivisto6/Koivisto_6.0-x64-linux-avx2",
+  "sha256": "2b2bd642e8a317456516a9134b5b6faf674859b4666bf526a85cedfb31241581",
+  "status": "PASS",
+  "selected": {
+    "Hash": "256",
+    "Threads": "8",
+    "OwnBook": "false"
+  },
+  "options": {
+    "Hash": "spin default 16 min 1 max 65536",
+    "Threads": "spin default 1 min 1 max 256",
+    "OwnBook": "check default false",
+    "BookPath": "string",
+    "SyzygyPath": "string default"
+  },
+  "moves": [
+    "e2e4",
+    "e2e4"
+  ],
+  "exit_code": 0,
+  "stderr": [],
+  "events": [
+    [
+      0.0002874910132959485,
+      "stdin",
+      "uci"
+    ],
+    [
+      0.007036624010652304,
+      "stdout",
+      "Koivisto 6.0 by K. Kahre, F. Eggers"
+    ],
+    [
+      0.007072724984027445,
+      "stdout",
+      "id name Koivisto 6.0"
+    ],
+    [
+      0.007077376008965075,
+      "stdout",
+      "id author K. Kahre, F. Eggers"
+    ],
+    [
+      0.007079137023538351,
+      "stdout",
+      "option name Hash type spin default 16 min 1 max 65536"
+    ],
+    [
+      0.007080315030179918,
+      "stdout",
+      "option name Threads type spin default 1 min 1 max 256"
+    ],
+    [
+      0.007081135991029441,
+      "stdout",
+      "option name OwnBook type check default false"
+    ],
+    [
+      0.007081976975314319,
+      "stdout",
+      "option name BookPath type string"
+    ],
+    [
+      0.007082779018674046,
+      "stdout",
+      "option name SyzygyPath type string default"
+    ],
+    [
+      0.007083649979904294,
+      "stdout",
+      "uciok"
+    ],
+    [
+      0.007361506985034794,
+      "stdin",
+      "setoption name Hash value 256"
+    ],
+    [
+      0.00739239202812314,
+      "stdin",
+      "setoption name OwnBook value false"
+    ],
+    [
+      0.007396330998744816,
+      "stdin",
+      "setoption name Threads value 8"
+    ],
+    [
+      0.0073978250147774816,
+      "stdin",
+      "isready"
+    ],
+    [
+      0.1572575659956783,
+      "stdout",
+      "readyok"
+    ],
+    [
+      0.1573195870150812,
+      "stdin",
+      "ucinewgame"
+    ],
+    [
+      0.15734654001425952,
+      "stdin",
+      "isready"
+    ],
+    [
+      0.16288492397870868,
+      "stdout",
+      "readyok"
+    ],
+    [
+      0.16293175797909498,
+      "stdin",
+      "position startpos"
+    ],
+    [
+      0.16295739298220724,
+      "stdin",
+      "go movetime 200"
+    ],
+    [
+      0.17023115698248148,
+      "stdout",
+      "info depth 1 seldepth 6 score cp 9 nodes 1027 nps 513500 time 1 hashfull 0 pv d2d4 c7c6 c2c3"
+    ],
+    [
+      0.1702399030327797,
+      "stdout",
+      "info depth 2 seldepth 6 score cp 20 nodes 1188 nps 594000 time 1 hashfull 0 pv c2c3 c7c6"
+    ],
+    [
+      0.1702414500177838,
+      "stdout",
+      "info depth 3 seldepth 6 score cp 6 nodes 1566 nps 783000 time 1 hashfull 0 pv d2d4 c7c6 a2a3"
+    ],
+    [
+      0.1702424919931218,
+      "stdout",
+      "info depth 4 seldepth 6 score cp 18 nodes 2000 nps 1000000 time 1 hashfull 0 pv d2d4 d7d5 e2e3 c7c5 d4c5"
+    ],
+    [
+      0.1702430570148863,
+      "stdout",
+      "info depth 5 seldepth 6 score cp 25 nodes 2819 nps 1409500 time 1 hashfull 0 pv d2d4 c7c5 d4d5 g7g6 a2a3"
+    ],
+    [
+      0.17024583299644291,
+      "stdout",
+      "info depth 6 seldepth 7 score cp 28 nodes 6672 nps 2224000 time 2 hashfull 0 pv d2d4 g8f6 c2c4 c7c6 g1f3 d7d5"
+    ],
+    [
+      0.17024638899601996,
+      "stdout",
+      "info depth 7 seldepth 10 score cp 17 nodes 16625 nps 4156250 time 3 hashfull 0 pv d2d4 e7e6 e2e3 c7c5 c2c4 c5d4 e3d4"
+    ],
+    [
+      0.17130008997628465,
+      "stdout",
+      "info depth 8 seldepth 12 score cp 27 nodes 51664 nps 5166400 time 9 hashfull 0 pv e2e4 c7c5 g1f3 e7e6 c2c4 b8c6 b1c3 g8f6 e4e5"
+    ],
+    [
+      0.17184961499879137,
+      "stdout",
+      "info depth 9 seldepth 12 score cp 24 nodes 56178 nps 5617800 time 9 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 b1c3"
+    ],
+    [
+      0.19021259399596602,
+      "stdout",
+      "info depth 10 seldepth 14 score cp 27 nodes 109709 nps 6094944 time 17 hashfull 0 pv e2e4 c7c5 g1f3 e7e6 c2c4 b8c6 b1c3 a7a6 d2d4 c5d4"
+    ],
+    [
+      0.19420732301659882,
+      "stdout",
+      "info depth 11 seldepth 17 score cp 18 nodes 186274 nps 6423241 time 28 hashfull 0 pv e2e4"
+    ],
+    [
+      0.20223095000255853,
+      "stdout",
+      "info depth 12 seldepth 17 score cp 18 nodes 234645 nps 6341756 time 36 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 c2c3"
+    ],
+    [
+      0.21571331500308588,
+      "stdout",
+      "info depth 13 seldepth 19 score cp 27 nodes 339760 nps 6291851 time 53 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 d2d4 c5d4 f3d4 e7e6 f1e2 d7d5 d4c6 b7c6 e4d5 d8d5 d1d5"
+    ],
+    [
+      0.2742303389823064,
+      "stdout",
+      "info depth 14 seldepth 19 score cp 29 nodes 703747 nps 6456394 time 108 hashfull 0 pv e2e4 e7e6"
+    ],
+    [
+      0.32210424897493795,
+      "stdout",
+      "info depth 15 seldepth 20 score cp 29 nodes 1013630 nps 6335187 time 159 hashfull 0 pv e2e4 c7c5 g1f3 e7e6 f1e2 b8c6 d2d4 c5d4 f3d4 g8f6 b1c3 f8e7 e1g1 e8g8 d4c6 b7c6 e4e5"
+    ],
+    [
+      0.3347848349949345,
+      "stdout",
+      "bestmove e2e4"
+    ],
+    [
+      0.3348552720271982,
+      "stdin",
+      "ucinewgame"
+    ],
+    [
+      0.3348842089762911,
+      "stdin",
+      "isready"
+    ],
+    [
+      0.33954719197936356,
+      "stdout",
+      "readyok"
+    ],
+    [
+      0.3395964659866877,
+      "stdin",
+      "position startpos"
+    ],
+    [
+      0.3396216739783995,
+      "stdin",
+      "go movetime 200"
+    ],
+    [
+      0.34021266002673656,
+      "stdout",
+      "info depth 1 seldepth 1 score cp 19 nodes 51 nps 51000 time 0 hashfull 0 pv e2e4"
+    ],
+    [
+      0.3402249459759332,
+      "stdout",
+      "info depth 2 seldepth 2 score cp 36 nodes 151 nps 75500 time 1 hashfull 0 pv c2c4 c7c6"
+    ],
+    [
+      0.3403288220288232,
+      "stdout",
+      "info depth 3 seldepth 3 score cp 14 nodes 444 nps 222000 time 1 hashfull 0 pv e2e4 c7c6 c2c3"
+    ],
+    [
+      0.34043877600925043,
+      "stdout",
+      "info depth 4 seldepth 4 score cp 20 nodes 696 nps 348000 time 1 hashfull 0 pv e2e4 c7c5 c2c3 e7e6"
+    ],
+    [
+      0.34090269199805334,
+      "stdout",
+      "info depth 5 seldepth 6 score cp 5 nodes 2264 nps 1132000 time 1 hashfull 0 pv c2c4 c7c5 e2e3 e7e5 a2a3"
+    ],
+    [
+      0.3413064240012318,
+      "stdout",
+      "info depth 6 seldepth 7 score cp 13 nodes 3365 nps 1121666 time 2 hashfull 0 pv c2c4 c7c5 b1c3 g8f6 g2g3 d7d5"
+    ],
+    [
+      0.34280968498205766,
+      "stdout",
+      "info depth 7 seldepth 9 score cp 23 nodes 6989 nps 1747250 time 3 hashfull 0 pv e2e4 c7c5 g1f3 e7e6 b1c3 d7d5"
+    ],
+    [
+      0.34393647097749636,
+      "stdout",
+      "info depth 8 seldepth 10 score cp 14 nodes 9888 nps 1977600 time 4 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 d2d4 c5d4 f3d4 g8f6"
+    ],
+    [
+      0.3457933230092749,
+      "stdout",
+      "info depth 9 seldepth 11 score cp 21 nodes 14915 nps 2130714 time 6 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 d2d4 c5d4 f3d4 e7e5 d4c6"
+    ],
+    [
+      0.37821496301330626,
+      "stdout",
+      "info depth 10 seldepth 15 score cp 23 nodes 100381 nps 2788361 time 35 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 c2c3 d7d5 e4d5 d8d5 f1b5"
+    ],
+    [
+      0.3782334279967472,
+      "stdout",
+      "info depth 11 seldepth 15 score cp 25 nodes 108562 nps 2934108 time 36 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 b1c3 e7e6 f1e2 d7d5 e4d5 e6d5 d2d4"
+    ],
+    [
+      0.3822713230038062,
+      "stdout",
+      "info depth 12 seldepth 15 score cp 18 nodes 142121 nps 3230022 time 43 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 c2c3 d7d5 e4d5 d8d5 d2d4 c5d4 c3d4 e7e5"
+    ],
+    [
+      0.3971059549949132,
+      "stdout",
+      "info depth 13 seldepth 17 score cp 30 nodes 225790 nps 3892931 time 57 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 d2d4 c5d4 f3d4 g8f6 b1c3 d8b6 d4b5 e7e6"
+    ],
+    [
+      0.4542161659919657,
+      "stdout",
+      "info depth 14 seldepth 19 score cp 37 nodes 549411 nps 4819394 time 113 hashfull 0 pv e2e4 c7c5 g1f3 d7d6 b1c3 e7e5 f1b5 c8d7 b5d7 d8d7 e1g1 b8c6 d2d3 g8f6 f1e1 f8e7"
+    ],
+    [
+      0.5073353429907002,
+      "stdout",
+      "info depth 15 seldepth 19 score cp 36 nodes 874905 nps 5207767 time 167 hashfull 0 pv e2e4 c7c5 g1f3 g8f6 e4e5 f6d5 b1c3 d5c7 f1e2 g7g6 e1g1 f8g7 c3e4 e8g8 d2d4 d7d6 e5d6"
+    ],
+    [
+      0.5076480410061777,
+      "stdout",
+      "bestmove e2e4"
+    ],
+    [
+      0.5076751920278184,
+      "stdin",
+      "quit"
+    ]
+  ],
+  "note": "Unscored start-position smoke on CPUs13,15; not an eight-core occupancy or strength measurement"
+}

@@ -1,0 +1,66 @@
+{
+  "utc": "2026-10-19T08:53:17.343014+00:00",
+  "state": {
+    "state": "SCREEN_RUNNING",
+    "utc": "2026-10-19T08:52:54.917253+00:00",
+    "automatic_adoption": false,
+    "attempt": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002"
+  },
+  "package": {
+    "source_commit": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+    "engine": {
+      "Path": "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+      "SHA256": "7c7fa0b2d389707f5d139483875664a3249125bcaa0f60199ebc76512ab16ea8"
+    },
+    "identity": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/candidate-identity.json",
+    "metadata_identity": "/home/ehrli/ngn-data/night-20261007/session117/identity.json",
+    "tooling": "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117",
+    "attempt": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002",
+    "automatic_adoption": false
+  },
+  "checks": {
+    "state": "ALL_RETARGET_CHECKS_PASS",
+    "base": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+    "search": [
+      "continuation",
+      "pawn",
+      "probcut"
+    ],
+    "speed": [
+      "s5",
+      "s6"
+    ],
+    "automatic_adoption": false,
+    "finished_utc": "2026-10-19T08:52:54.912722+00:00"
+  },
+  "checks_exit": "0",
+  "process_lines": [
+    "   1188     245  545811  0.3   1 Ssl  /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    " 382077  382063    1668  0.0   4 SNs  python3 /home/ehrli/ngn-data/night-20261007/session117/claim-chain.py",
+    " 390547  382077      22  0.9  10 SNl  /home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool prepare --mode screen --candidate /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/candidate-identity.json --source /home/ehrli/ngn-data/night-20261007/session117/source --tool-build-argv /home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool-build.json --out /home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen"
+  ],
+  "gpu": "0 %, 1505 MiB, 16303 MiB",
+  "host_c_free_bytes": 54279372800,
+  "host_c_free_gib": 50.551605224609375,
+  "host_c_data_deficit_gib": 16.487383074127138,
+  "s5": {
+    "state": "S5_CHECKS_PASS",
+    "base": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+    "finished_utc": "2026-10-19T08:47:17.856758+00:00",
+    "identity_cases": 60,
+    "binary_sha256": {
+      "base": "7c7fa0b2d389707f5d139483875664a3249125bcaa0f60199ebc76512ab16ea8",
+      "candidate": "add9dbd92d67938ea83f0225da11188af4a748a27c71a5baea515a0e0a0333bb"
+    }
+  },
+  "s6": {
+    "state": "S6_CHECKS_PASS_TIMING_UNARMED",
+    "base": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+    "finished_utc": "2026-10-19T08:52:54.896853+00:00",
+    "identity_cases": 60,
+    "binary_sha256": {
+      "base": "7c7fa0b2d389707f5d139483875664a3249125bcaa0f60199ebc76512ab16ea8",
+      "candidate": "9dfe1c71dd34055dc94a6285a51e41b73de06a84bd7f060260cd4d9c1009b683"
+    }
+  }
+}

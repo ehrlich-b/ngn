@@ -1,0 +1,6 @@
+{
+  "utc": "2026-10-11T15:10:09.005991+00:00",
+  "stage": "session62-handoff",
+  "event": "detach",
+  "detail": "Dead-PST KEEP integrated7bbb2bf/a4d90b41:36identity/40blocks NPS+0.675pct lower+0.260pct; no Elo. Data preparation/coverage exit0/2.000913x. First trainer validation failed absolute uint32 offset; no durable epoch/checkpoint. IO fix2b3ea07/12checks PASS, original source untouched; identical seed/58x256M recovery74604/74608 since11:04:11 on12,14/GPU/4GiB/swap0/nice19. New training-controller-session62 terminal, then training-terminal.json; failed attempt preserved. ForgeAA2002140873 under2114966/2114971 live since10:24:11, conditional final14 gate before12 or manualwindowhold; no competing NGN CPU work. Admission21669/22048 frozen60+0.6 SPRT840games11:00/no verdict. Correctness topics separately checked/no games, explicit old-source results need actual combination. C72.78GiB/work168.63GiB; readers/hopper unchanged. Next session not before12:00EDT; forge control then recovered trainer. No new heuristics/claim/publication."
+}

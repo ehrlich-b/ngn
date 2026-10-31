@@ -1,0 +1,62 @@
+{
+  "completed_utc": "2026-10-11T20:38:32.859318+00:00",
+  "training_machine": "rig WSL2",
+  "postprocessing_machine": "rig",
+  "epochs": 58,
+  "total_positions": 14848000000,
+  "best_epoch": 58,
+  "best": {
+    "epoch": 58,
+    "step": 906250,
+    "positions": 256000000,
+    "updates": 15625,
+    "loss": 0.00906071484375,
+    "lr": 0.0001,
+    "seconds": 278.29668559500715,
+    "positions_per_second": 919881.5984914225,
+    "steady_positions_per_second": 920303.3020957275,
+    "validation_loss": 0.009090134643115587,
+    "validation_loss_lambda_075": 0.009090134643115587,
+    "validation_loss_result": 0.0870498035415291
+  },
+  "reexport_identical": true,
+  "parity_cases": 20,
+  "net_sha256": "4636de46c8afb33227cff72831d3fa80b86b1c84d9394661f70b29f10ddc945f",
+  "checkpoint_sha256": "a0b2da5c7497f7338db55d8f95d0795ec00aa92099a20aaf06179dff7097a750",
+  "archive_split": {
+    "hash": "ngn-board-mix64-v1",
+    "seed": 20261006,
+    "modulus": 1024,
+    "holdout_remainder": 0,
+    "block_records": 262144,
+    "sources": [
+      {
+        "path": "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+        "bytes": 55627628064,
+        "records": 1738363377
+      },
+      {
+        "path": "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.archive.json",
+        "bytes": 183371624416,
+        "records": 5730363263,
+        "sha256": "dffe7f87cfc40b7e46bf2cf1fb0b1b203f6cc2eb63d94267d223f45bb6c2533d"
+      },
+      {
+        "path": "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t75.archive.json",
+        "bytes": 43360359712,
+        "records": 1355011241,
+        "sha256": "90cc14845171f837957027db129f8246af768fe2e541e78efba2cf25f24371ee"
+      },
+      {
+        "path": "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+        "bytes": 75977281056,
+        "records": 2374290033
+      }
+    ],
+    "raw_records": 11198027914,
+    "training_records": 11187150963,
+    "holdout_records": 10876951,
+    "contract": "identical occupied boards share partition; labels excluded"
+  },
+  "automatic_games": false
+}

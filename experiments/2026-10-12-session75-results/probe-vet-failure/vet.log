@@ -1,0 +1,4 @@
+# github.com/ehrlich-b/ngn/engine
+# [github.com/ehrlich-b/ngn/engine]
+engine/campaign_smp_test.go:48:43: atomic.Or requires go1.23 or later (file is go1.21)
+engine/campaign_smp_test.go:53:17: atomic.Or requires go1.23 or later (file is go1.21)

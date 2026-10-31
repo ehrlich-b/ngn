@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "case": "all-shelves",
+      "state": "REVIEW_S5",
+      "search_calls": 4,
+      "timing_started": true
+    },
+    {
+      "case": "vector-keep",
+      "state": "REVIEW_VECTOR_GATE",
+      "search_calls": 0,
+      "timing_started": false
+    },
+    {
+      "case": "vector-fault",
+      "state": "REVIEW_VECTOR_GATE",
+      "search_calls": 0,
+      "timing_started": false
+    },
+    {
+      "case": "search-keep",
+      "state": "REVIEW_SEARCH_GATE",
+      "search_calls": 1,
+      "timing_started": false
+    },
+    {
+      "case": "search-provisional",
+      "state": "REVIEW_SEARCH_GATE",
+      "search_calls": 1,
+      "timing_started": false
+    },
+    {
+      "case": "search-fault",
+      "state": "REVIEW_SEARCH_GATE",
+      "search_calls": 1,
+      "timing_started": false
+    }
+  ],
+  "synthetic_only": true,
+  "engine_games_started": 0
+}

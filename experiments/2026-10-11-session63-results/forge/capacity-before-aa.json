@@ -1,0 +1,10 @@
+{
+  "utc": "2026-10-11T14:24:11.823435+00:00",
+  "load_average": [
+    17.85205078125,
+    16.73779296875,
+    18.4951171875
+  ],
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           17922        7093         412         849       11614       10828\nSwap:           4095        4093           2\n",
+  "host_pinning": "on"
+}

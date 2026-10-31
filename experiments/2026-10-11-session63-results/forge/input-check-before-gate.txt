@@ -1,0 +1,13 @@
+ngn: OK
+base.nnue: OK
+sprt: OK
+openings.txt: OK
+vector.json: OK
+endpoint.json: OK
+live-receipt.json: OK
+games.py: OK
+controller.sh: OK
+aa200-parser.py: OK
+paired-parser.py: OK
+manifest.md: OK
+game-manifest.json: OK

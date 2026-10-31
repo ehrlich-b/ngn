@@ -1,0 +1,58 @@
+{
+  "state": "ACCEPTED",
+  "source_commit": "e8be8f2",
+  "immediate_base": "2b73995f5df1085ddcbca313b2291195d413aba0",
+  "net_sha256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22",
+  "vector": "compiled warm2000",
+  "patch_sha256": "d5923498743dc1350ed81becb68b7f9eb5ce4a2f24120e0dd8e8e1db91e6436e",
+  "gated_binary_sha256": "8c40ba6ab5ca55d408855768ea30fbe0027b1ef93d8ee1725f5aa0dc9429a3b3",
+  "rule": "Logistic SPRT[0,5],alpha=beta=.05,min1000,cap8000;H1 KEEP,H0 SHELVED;cap point>=1 and LLR>0 PROVISIONAL else SHELVED;zero faults;no extension/adoption",
+  "result": {
+    "games": 3130,
+    "pairs": 1565,
+    "orphan_games": 0,
+    "wdl": [
+      603,
+      1999,
+      528
+    ],
+    "penta": [
+      11,
+      297,
+      891,
+      338,
+      28
+    ],
+    "printed_elo_ci95": [
+      8.3,
+      2.0,
+      14.0
+    ],
+    "exact_elo_ci95": [
+      8.326727710505265,
+      2.2201689074556286,
+      14.438434963184626
+    ],
+    "final_pllr": 3.0,
+    "exact_pllr": 3.001928158853724,
+    "native_verdict": "H1 ACCEPTED: new is stronger (>= 5 ELO)",
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 1956,
+      "checkmate": 1131,
+      "max-moves": 34,
+      "stalemate": 9
+    },
+    "faults": [],
+    "verdict": "KEEP",
+    "name": "s115-qsearch",
+    "finished_utc": "2026-10-19T08:10:01.693958+00:00",
+    "manifest": "/home/ehrli/ngn-data/night-20261007/session115-search/qsearch/manifest.json",
+    "automatic_adoption": false
+  },
+  "source_checks": "qsearch/session115-search/candidates/qsearch/checks-result.json",
+  "note": "Isolated patch exactly integrated; accepted-base WSL checks reused; clean metadata build gets separate identity proof; no absolute rating inference"
+}

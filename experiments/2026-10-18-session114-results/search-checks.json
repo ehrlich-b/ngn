@@ -1,0 +1,65 @@
+{
+  "state": "COMBINATION_CHECKS_PASS",
+  "base": "fe92ced",
+  "candidates": {
+    "qsearch": {
+      "base": "fe92ced",
+      "candidate": "qsearch",
+      "passed": [
+        "focused including singular witness",
+        "engine short/race",
+        "full short/race",
+        "vet",
+        "PGO build"
+      ],
+      "binary_sha256": "a40327df44be373fefa575662ed137507cb8ef2e6f68df7ee142d298d4759f95",
+      "patch_sha256": "d5923498743dc1350ed81becb68b7f9eb5ce4a2f24120e0dd8e8e1db91e6436e",
+      "completed_utc": "2026-10-18T04:43:26.141842+00:00"
+    },
+    "continuation": {
+      "base": "fe92ced",
+      "candidate": "continuation",
+      "passed": [
+        "focused including singular witness",
+        "engine short/race",
+        "full short/race",
+        "vet",
+        "PGO build"
+      ],
+      "binary_sha256": "5d964cc7721b80524df8a44c1d56fc1d2814d9d77c30536583d19c1ee26e8276",
+      "patch_sha256": "e1d38cf3a01d137877e3fd2770766f1ccf69e2e3ee8d66a5d293c193d7f340ec",
+      "completed_utc": "2026-10-18T04:49:40.657361+00:00"
+    },
+    "pawn": {
+      "base": "fe92ced",
+      "candidate": "pawn",
+      "passed": [
+        "focused including singular witness",
+        "engine short/race",
+        "full short/race",
+        "vet",
+        "PGO build"
+      ],
+      "binary_sha256": "411472a8af7e62bbea5f80c51349ee231fa09fdb3f0e60aeaa7a7d12f2bafb99",
+      "patch_sha256": "8f963d3a3d3d46489404cebff6177c6b045cfcfafcba35cc09c8117a8f9d5905",
+      "completed_utc": "2026-10-18T04:55:49.982539+00:00"
+    },
+    "probcut": {
+      "base": "fe92ced",
+      "candidate": "probcut",
+      "passed": [
+        "focused including singular witness",
+        "engine short/race",
+        "full short/race",
+        "vet",
+        "PGO build"
+      ],
+      "binary_sha256": "8579e2e7aa5d3fb5dac0df73aa78e733838727d507437d1432ee9f736e505cd3",
+      "patch_sha256": "6fa8f92c382c7a1e2e73ea6a117a9e85b039685fad44d26ec138309dee0d5d0b",
+      "completed_utc": "2026-10-18T05:01:42.232586+00:00"
+    }
+  },
+  "automatic_games": false,
+  "automatic_adoption": false,
+  "finished_utc": "2026-10-18T05:01:42.252080+00:00"
+}

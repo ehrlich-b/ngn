@@ -1,0 +1,14 @@
+{
+  "base": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+  "vector": "compiled warm2000",
+  "candidate": "probcut",
+  "passed": [
+    "focused including singular witness",
+    "engine/full short/race",
+    "vet",
+    "PGO build"
+  ],
+  "binary_sha256": "3bbfcabfe71240b9ed37d5fc776518b4f1ed978ea463f763d73b61c05f652655",
+  "patch_sha256": "6fa8f92c382c7a1e2e73ea6a117a9e85b039685fad44d26ec138309dee0d5d0b",
+  "completed_utc": "2026-10-19T08:41:39.804823+00:00"
+}

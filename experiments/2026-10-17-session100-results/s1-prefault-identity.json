@@ -1,0 +1,9 @@
+{
+  "verdict": "PASS",
+  "uci_cases": 24,
+  "probe_cases": 36,
+  "baseline_reference": "/home/ehrli/ngn-data/night-20261007/session100-speed/identity.json",
+  "hugepage_witness_kib": 262144,
+  "binary_sha256": "705d6e9b27c66715e638bee2226e8fe0f9ce2cf9d3bf343870eff8876ca2a89f",
+  "automatic_adoption": false
+}

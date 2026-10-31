@@ -1,0 +1,16 @@
+{
+  "fusion": {
+    "engine/ngnn4.go": "ce4dad42807922283d6e59afc7655c3387b986dfe2e6bc91758de22a42eebab2",
+    "engine/ngnn4_kernels_amd64.go": "812a3cdffd440f005fe82966654144445050352d325923517828d52823fb1231",
+    "engine/ngnn4_kernels_amd64.s": "1f989de9c54f18bd0f370d5d8f2cf9203930c0ab27245f15bf7958a3e772b87c",
+    "engine/ngnn4_kernels_generic.go": "264d9621f37eecd3514b9db682447e72e29777240655b1c81aafc6a3ca42e34e",
+    "engine/ngnn4_kernels_test.go": "7ad4382e1f721f36b8bdcecbd7865c983dfa5dee6e66d6409ea0ac581118907d",
+    "patch_sha256": "bff0b3ad13990b6d2f1c292d5ff88fb6c5ea0947d81252e9870baf6921945546"
+  },
+  "sparse": {
+    "trainer/model.py": "16766e831c42126dd50acbb3fb08d41f1a5d978cc35c88709f19d6d2a2179358",
+    "trainer/tests/test_sparse_transformer.py": "2306eb22f0c3a5831b79e9e41cfefecbf071c5058e7b99d6b1eb5259f105c61e",
+    "trainer/train.py": "ee436a43ac41a7c583c9c74965af054e8966e7e79bd1ac077b73c949bf9a2fb2",
+    "patch_sha256": "16d481b55a3613a7ea0ca2362302622e7f63239a47b63c6c4a3d6ef5547a3a4d"
+  }
+}

@@ -100,7 +100,7 @@ func TestKillerMoveInOrdering(t *testing.T) {
 	pos.Board = Bitboard{}
 	pos.Board.UpdateSquare(E1, WhiteKing, NoPiece)
 	pos.Board.UpdateSquare(E8, BlackKing, NoPiece)
-	pos.SetTag(WhiteToMove)
+	pos.Side = White
 	pos.EnPassant = NoSquare
 	pos.HalfMoveClock = 0
 

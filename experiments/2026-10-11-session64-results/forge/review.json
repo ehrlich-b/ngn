@@ -1,0 +1,41 @@
+{
+  "games": 400,
+  "pairs": 200,
+  "wins": 143,
+  "draws": 200,
+  "losses": 57,
+  "penta": [
+    2,
+    23,
+    81,
+    75,
+    19
+  ],
+  "exact_elo_ci95": [
+    75.88264847563141,
+    54.64334800697097,
+    97.69608389360886
+  ],
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "checkmate": 200,
+    "draw-rule": 194,
+    "stalemate": 2,
+    "max-moves": 4
+  },
+  "input_checks": "all13 before/after gate OK",
+  "base_source": "ed34480",
+  "net": "a4d90b41",
+  "endpoint_iterations": 2000,
+  "optimizer_games": 24000,
+  "machine": "forge",
+  "host_pinning": "on",
+  "cpus": "4-11",
+  "concurrency": 2,
+  "verdict": "KEEP on explicit ed34480/a4d90b41 reference; current-source promotion pending",
+  "statistical_interval": "paired normal approximation with variance floor; unrounded arithmetic",
+  "next_step": "current7bbb2bf package own A/A40/fixed400 comparison; no old game pooling"
+}

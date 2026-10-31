@@ -1,0 +1,46 @@
+{
+  "reviewed_utc": "2026-10-12T00:02:40.292216+00:00",
+  "raw_recount": {
+    "mode": "gate",
+    "games": 400,
+    "pairs": 200,
+    "wins": 72,
+    "draws": 293,
+    "losses": 35,
+    "penta": [
+      0,
+      17,
+      130,
+      52,
+      1
+    ],
+    "elo": 32.2,
+    "ci95": [
+      18.0,
+      46.0
+    ],
+    "exact_elo_ci95": [
+      32.22992477372374,
+      18.30784467224333,
+      46.256038344145836
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 282,
+      "checkmate": 107,
+      "max-moves": 11
+    },
+    "verdict": "eligible"
+  },
+  "input_controls": {
+    "input-check-before-gate.txt": 15,
+    "input-check-after-gate.txt": 15
+  },
+  "controller_exit": 0,
+  "verdict": "TRANSFER CONFIRMED",
+  "playing": "f1d0a03/a4d90b41/final14",
+  "limitation": "normal paired confidence interval; relative strength only; no pooling"
+}

@@ -1,0 +1,24 @@
+goos: linux
+goarch: amd64
+pkg: github.com/ehrlich-b/ngn/engine
+cpu: AMD Ryzen 7 9800X3D 8-Core Processor           
+BenchmarkNGNN1Output/H256-2         	54864942	        24.76 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN1Output/H256-2         	58225380	        24.82 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN1Output/H256-2         	48975474	        25.88 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN1Output/H512-2         	36595641	        44.18 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN1Output/H512-2         	26631066	        42.85 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN1Output/H512-2         	34823811	        40.74 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H256/L16-2     	 2506575	       483.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H256/L16-2     	 2425059	       458.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H256/L16-2     	 2596981	       446.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H256/L32-2     	 2147200	       546.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H256/L32-2     	 1986578	       554.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H256/L32-2     	 2099158	       558.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H512/L16-2     	 1381976	       871.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H512/L16-2     	 1532238	       827.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H512/L16-2     	 1593786	       745.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H512/L32-2     	 1231802	      1080 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H512/L32-2     	 1000000	      1276 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNGNN4Output/H512/L32-2     	  935827	      1217 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	33.737s

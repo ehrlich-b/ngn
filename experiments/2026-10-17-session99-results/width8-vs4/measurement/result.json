@@ -1,0 +1,45 @@
+{
+  "games": 400,
+  "pairs": 200,
+  "orphan_games": 0,
+  "wdl": [
+    106,
+    257,
+    37
+  ],
+  "penta": [
+    0,
+    16,
+    108,
+    67,
+    9
+  ],
+  "printed_elo_ci95": [
+    60.5,
+    44.0,
+    78.0
+  ],
+  "exact_elo_ci95": [
+    60.537939575745845,
+    43.54898330840046,
+    77.81865552678715
+  ],
+  "final_pllr": 4.0,
+  "exact_pllr": 3.99813399951321,
+  "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 252,
+    "checkmate": 143,
+    "max-moves": 5
+  },
+  "faults": [],
+  "verdict": "MEASURED",
+  "name": "s94-width8-vs4",
+  "finished_utc": "2026-10-17T09:00:36.020031+00:00",
+  "manifest": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/width-retry1/width8-vs4/measurement/manifest.json",
+  "automatic_adoption": false
+}

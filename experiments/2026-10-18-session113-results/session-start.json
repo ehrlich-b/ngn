@@ -1,0 +1,203 @@
+{
+  "utc": "2026-10-18T17:41:33.098839+00:00",
+  "accepted_package": "fe92ced/81215229/compiled final14",
+  "s4": {
+    "verdict": "SHELVED",
+    "topologies": [
+      {
+        "width": 1,
+        "hash_mib": 64,
+        "strata": [
+          {
+            "ratio": 0.998706865800476,
+            "ci95": [
+              0.9933398573542523,
+              1.0041028721565777
+            ]
+          },
+          {
+            "ratio": 0.9965929722145408,
+            "ci95": [
+              0.9916787895662729,
+              1.0015315066905928
+            ]
+          }
+        ],
+        "pass_rule": false
+      },
+      {
+        "width": 1,
+        "hash_mib": 256,
+        "strata": [
+          {
+            "ratio": 1.0017663220729007,
+            "ci95": [
+              0.9983410906069652,
+              1.005203305244446
+            ]
+          },
+          {
+            "ratio": 1.0027343173211305,
+            "ci95": [
+              0.9989081633119952,
+              1.0065751267861318
+            ]
+          }
+        ],
+        "pass_rule": false
+      },
+      {
+        "width": 8,
+        "hash_mib": 256,
+        "strata": [
+          {
+            "ratio": 1.0088530597990106,
+            "ci95": [
+              0.9960836668825536,
+              1.0217861512087532
+            ]
+          },
+          {
+            "ratio": 0.9992782149764047,
+            "ci95": [
+              0.9900089289960824,
+              1.0086342877119456
+            ]
+          }
+        ],
+        "pass_rule": false
+      }
+    ],
+    "finished_utc": "2026-10-18T17:30:39.514740+00:00",
+    "automatic_adoption": false,
+    "next": "Review identity and immediate-base match before integration; no Elo gain inferred"
+  },
+  "boundary": {
+    "state": "NET_S4_COMPLETE_TUNE_RESUMED",
+    "net_result": {
+      "games": 1000,
+      "pairs": 500,
+      "orphan_games": 0,
+      "wdl": [
+        146,
+        602,
+        252
+      ],
+      "penta": [
+        20,
+        153,
+        240,
+        87,
+        0
+      ],
+      "printed_elo_ci95": [
+        -37.0,
+        -49.0,
+        -25.0
+      ],
+      "exact_elo_ci95": [
+        -36.9670432691047,
+        -48.894534815363606,
+        -25.12576588423436
+      ],
+      "final_pllr": -5.47,
+      "exact_pllr": -5.474764472314342,
+      "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+      "flags": [
+        0,
+        0
+      ],
+      "reasons": {
+        "draw-rule": 589,
+        "checkmate": 398,
+        "max-moves": 10,
+        "stalemate": 3
+      },
+      "faults": [],
+      "verdict": "SHELVED",
+      "name": "s109-net-wdl050",
+      "finished_utc": "2026-10-18T16:10:49.930852+00:00",
+      "manifest": "/home/ehrli/ngn-data/night-20261007/session109/net-wdl050/manifest.json",
+      "automatic_adoption": false
+    },
+    "transfer_result": null,
+    "speed_result": {
+      "verdict": "SHELVED",
+      "topologies": [
+        {
+          "width": 1,
+          "hash_mib": 64,
+          "strata": [
+            {
+              "ratio": 0.998706865800476,
+              "ci95": [
+                0.9933398573542523,
+                1.0041028721565777
+              ]
+            },
+            {
+              "ratio": 0.9965929722145408,
+              "ci95": [
+                0.9916787895662729,
+                1.0015315066905928
+              ]
+            }
+          ],
+          "pass_rule": false
+        },
+        {
+          "width": 1,
+          "hash_mib": 256,
+          "strata": [
+            {
+              "ratio": 1.0017663220729007,
+              "ci95": [
+                0.9983410906069652,
+                1.005203305244446
+              ]
+            },
+            {
+              "ratio": 1.0027343173211305,
+              "ci95": [
+                0.9989081633119952,
+                1.0065751267861318
+              ]
+            }
+          ],
+          "pass_rule": false
+        },
+        {
+          "width": 8,
+          "hash_mib": 256,
+          "strata": [
+            {
+              "ratio": 1.0088530597990106,
+              "ci95": [
+                0.9960836668825536,
+                1.0217861512087532
+              ]
+            },
+            {
+              "ratio": 0.9992782149764047,
+              "ci95": [
+                0.9900089289960824,
+                1.0086342877119456
+              ]
+            }
+          ],
+          "pass_rule": false
+        }
+      ],
+      "finished_utc": "2026-10-18T17:30:39.514740+00:00",
+      "automatic_adoption": false,
+      "next": "Review identity and immediate-base match before integration; no Elo gain inferred"
+    },
+    "resume_service": "ngn-s109-spsa-resume.service",
+    "automatic_adoption": false,
+    "finished_utc": "2026-10-18T17:30:39.563728+00:00"
+  },
+  "checks_launcher": 361978,
+  "checks_pid": 361980,
+  "tuner_pid": 361831,
+  "tuning_service": "ngn-s109-spsa-resume.service"
+}

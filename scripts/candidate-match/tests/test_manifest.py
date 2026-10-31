@@ -9,6 +9,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
 from manifest import HELD_APPROVAL, ManifestError, review_subject_sha256, validate_manifest
+from run_candidate_match import budget_options
 
 SHA = "a" * 64
 
@@ -30,7 +31,7 @@ def binary_spec() -> dict:
 
 
 def role(role_id: str, backend: str) -> dict:
-    network = None if backend == "hce" else {**file_spec("/tmp/pilot network.ngn"), "format": "ngn-v1"}
+    network = None if backend == "hce" else {**file_spec("/tmp/pilot network.ngn"), "format": backend}
     eval_file = "<empty>" if backend == "hce" else "$FROZEN_NETWORK"
     return {
         "id": role_id,
@@ -99,6 +100,36 @@ def manifest() -> dict:
 
 
 class ManifestTests(unittest.TestCase):
+    def test_borrowed_comparison_requires_exact_k4_rodent_pair(self) -> None:
+        value = manifest()
+        value["inputs"]["roles"] = [role("k4", "ngn-k4-768-v1"), role("rodent", "rodent-v1.1-anand")]
+        with self.assertRaisesRegex(ManifestError, "v1 requires one HCE"):
+            validate_manifest(value)
+        value["schema"] = "ngn-candidate-match-borrowed-v1"
+        self.assertIs(validate_manifest(value), value)
+        value["inputs"]["roles"][0] = role("hce", "hce")
+        with self.assertRaisesRegex(ManifestError, "requires owned K4 and Rodent"):
+            validate_manifest(value)
+
+    def test_fixed_node_borrowed_contract_forbids_clock_and_mixed_budget(self) -> None:
+        value = manifest()
+        value["inputs"]["roles"] = [role("k4", "ngn-k4-768-v1"), role("rodent", "rodent-v1.1-anand")]
+        value["schema"] = "ngn-candidate-match-borrowed-fixed-nodes-v1"
+        value["match"].pop("time_control")
+        value["match"]["node_limit"] = 160_000
+        self.assertIs(validate_manifest(value), value)
+        self.assertEqual(budget_options(value["match"]), ["nodes=160000"])
+        value["match"]["time_control"] = "10+0.1"
+        with self.assertRaisesRegex(ManifestError, "unknown"):
+            validate_manifest(value)
+        value["match"].pop("time_control")
+        value["match"]["node_limit"] = 0
+        with self.assertRaisesRegex(ManifestError, "node_limit"):
+            validate_manifest(value)
+
+    def test_clock_budget_preserved(self) -> None:
+        self.assertEqual(budget_options(manifest()["match"]), ["tc=1+0.01", "timemargin=0"])
+
     def test_held_and_bound_approved_manifest(self) -> None:
         value = manifest()
         self.assertIs(validate_manifest(value), value)
@@ -159,6 +190,17 @@ class ManifestTests(unittest.TestCase):
         value = manifest()
         value["inputs"]["roles"][1]["uci_options"][2]["value"] = "<empty>"
         with self.assertRaisesRegex(ManifestError, "backend/thread/file mismatch"):
+            validate_manifest(value)
+
+    def test_k4_exact_network_role_is_supported(self) -> None:
+        value = manifest()
+        value["inputs"]["roles"][1] = role("k4", "ngn-k4-768-v1")
+        self.assertIs(validate_manifest(value), value)
+
+    def test_network_format_must_match_backend(self) -> None:
+        value = manifest()
+        value["inputs"]["roles"][1]["network"]["format"] = "ngn-k4-768-v1"
+        with self.assertRaisesRegex(ManifestError, "format must equal backend"):
             validate_manifest(value)
 
 

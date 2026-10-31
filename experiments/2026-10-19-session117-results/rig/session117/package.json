@@ -1,0 +1,12 @@
+{
+  "source_commit": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+  "engine": {
+    "Path": "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+    "SHA256": "7c7fa0b2d389707f5d139483875664a3249125bcaa0f60199ebc76512ab16ea8"
+  },
+  "identity": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/candidate-identity.json",
+  "metadata_identity": "/home/ehrli/ngn-data/night-20261007/session117/identity.json",
+  "tooling": "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117",
+  "attempt": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002",
+  "automatic_adoption": false
+}

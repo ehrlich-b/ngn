@@ -1,0 +1,12 @@
+{"position":0,"kind":"iterative","depth":11,"nodes":220162,"score":5,"best":"d4c5","pv":["d4c5","e7c5"],"seconds":0.151651106,"nps":1451766.5304729133}
+{"position":0,"kind":"fixed","depth":11,"nodes":468799,"score":1,"best":"d4c5","pv":["d4c5","e7c5","g2g3","g7g6","c2b3","b7b6","b3b5","c6a5","f3e5","c8f5","a2a4"],"seconds":0.248745767,"nps":1884651.1667472918}
+{"position":1,"kind":"iterative","depth":11,"nodes":346040,"score":-87,"best":"e2a6","pv":["e2a6","e6d5"],"seconds":0.216661932,"nps":1597142.5935590751}
+{"position":1,"kind":"fixed","depth":11,"nodes":1039479,"score":-110,"best":"d5e6","pv":["d5e6","e7e6","e2a6"],"seconds":0.615627356,"nps":1688487.3452569577}
+{"position":2,"kind":"iterative","depth":11,"nodes":142825,"score":32,"best":"b2b4","pv":["b2b4","b7b5","b4c5","b5c4"],"seconds":0.097472717,"nps":1465281.8182958828}
+{"position":2,"kind":"fixed","depth":11,"nodes":382325,"score":32,"best":"b2b4","pv":["b2b4","c6d4","e2d1","c5b6","c3d5","e7d8","g5f6","g7f6","d5b6","c7b6","c2c3"],"seconds":0.194492254,"nps":1965759.5206850758}
+{"position":3,"kind":"iterative","depth":11,"nodes":93923,"score":37,"best":"b4f4","pv":["b4f4","h4g3"],"seconds":0.032169993,"nps":2919584.098137665}
+{"position":3,"kind":"fixed","depth":11,"nodes":121042,"score":46,"best":"b4f4","pv":["b4f4","h4g3","f4c4","h5c5","c4c5","d6c5","e2e4","g3g2","a5a4","g2f1","a4a3"],"seconds":0.038448829,"nps":3148132.2877219487}
+{"position":4,"kind":"iterative","depth":11,"nodes":21681,"score":0,"best":"f3e3","pv":["f3e3","f6f5","e3d2","f7e7","d2d3","e7e6","d3e2"],"seconds":0.006460488,"nps":3355938.436848733}
+{"position":4,"kind":"fixed","depth":11,"nodes":41400,"score":0,"best":"f3g3","pv":["f3g3","f7e6","g3g4","e6e7","g4h4"],"seconds":0.011721654,"nps":3531924.7607888784}
+{"position":5,"kind":"iterative","depth":11,"nodes":43598,"score":1113,"best":"d3d5","pv":["d3d5","g7g6","h2h4","g8g7","d5e5","g7g8","f2f4","h6h5","e5b8","g8g7","b8c7"],"seconds":0.014754702,"nps":2954854.662601793}
+{"position":5,"kind":"fixed","depth":11,"nodes":40168,"score":1084,"best":"d3d5","pv":["d3d5","g7g6","d5d6","h6h5","f2f4","g8g7","h2h4","g7g8","d6f6","g8f8","f6d8"],"seconds":0.01296643,"nps":3097845.744742385}

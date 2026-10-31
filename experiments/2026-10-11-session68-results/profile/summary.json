@@ -1,0 +1,31 @@
+{
+  "completed_utc": "2026-10-12T00:09:41.590929+00:00",
+  "steps": 128,
+  "rows": 2097152,
+  "seconds": 2.011643620004179,
+  "positions_per_second": 1042506.723927394,
+  "cuda_stage_ms": {
+    "transfer": 8.042975965887308,
+    "decode": 241.56803178787231,
+    "forward_loss": 574.5300154685974,
+    "backward": 833.3022103309631,
+    "optimizer_clip": 21.83990368247032
+  },
+  "cpu_loader_wait_seconds": 0.8832362158282194,
+  "cpu_pin_seconds": 0.24816218827618286,
+  "cpu_enqueue_seconds": 0.8670622358331457,
+  "gpu_peak_allocated_bytes": 1706304000,
+  "dense_features_bytes": 805306368,
+  "sample_training_rows_by_source": [
+    785727,
+    3142647,
+    261885
+  ],
+  "sample_seconds": 0.20356646299478598,
+  "last_loss": 0.009293662384152412,
+  "torch": "2.7.0+cu128",
+  "gpu": "NVIDIA GeForce RTX 5080",
+  "limits": "bounded16-block T80/T76/T74 sample; excludes forge T75 network latency; diagnostic overhead; CPU/GPU times overlap; no numerical or Elo verdict",
+  "automatic_training": false,
+  "automatic_games": false
+}

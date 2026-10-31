@@ -1,0 +1,52 @@
+=== RUN   TestCheckpointRejectsCorruptHistory
+=== RUN   TestCheckpointRejectsCorruptHistory/zero-iter
+=== RUN   TestCheckpointRejectsCorruptHistory/negative-iter
+=== RUN   TestCheckpointRejectsCorruptHistory/ahead-iter
+=== RUN   TestCheckpointRejectsCorruptHistory/off-cadence
+=== RUN   TestCheckpointRejectsCorruptHistory/time
+=== RUN   TestCheckpointRejectsCorruptHistory/unknown-theta
+=== RUN   TestCheckpointRejectsCorruptHistory/substituted-theta
+=== RUN   TestCheckpointRejectsCorruptHistory/future-schema
+=== RUN   TestCheckpointRejectsCorruptHistory/out-of-range
+=== RUN   TestCheckpointRejectsCorruptHistory/missing-rounded
+=== RUN   TestCheckpointRejectsCorruptHistory/health
+=== RUN   TestCheckpointRejectsCorruptHistory/missing-theta
+=== RUN   TestCheckpointRejectsCorruptHistory/wrong-rounded
+=== RUN   TestCheckpointRejectsCorruptHistory/legacy
+=== RUN   TestCheckpointRejectsCorruptHistory/rng
+=== RUN   TestCheckpointRejectsCorruptHistory/blank
+=== RUN   TestCheckpointRejectsCorruptHistory/trailing-json
+=== RUN   TestCheckpointRejectsCorruptHistory/corrupt-tail
+=== RUN   TestCheckpointRejectsCorruptHistory/corrupt-middle
+=== RUN   TestCheckpointRejectsCorruptHistory/nonfinite
+=== RUN   TestCheckpointRejectsCorruptHistory/empty
+=== RUN   TestCheckpointRejectsCorruptHistory/partial
+=== RUN   TestCheckpointRejectsCorruptHistory/invalid
+=== RUN   TestCheckpointRejectsCorruptHistory/duplicate-iter
+--- PASS: TestCheckpointRejectsCorruptHistory (0.05s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/zero-iter (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/negative-iter (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/ahead-iter (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/off-cadence (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/time (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/unknown-theta (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/substituted-theta (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/future-schema (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/out-of-range (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/missing-rounded (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/health (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/missing-theta (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/wrong-rounded (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/legacy (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/rng (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/blank (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/trailing-json (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/corrupt-tail (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/corrupt-middle (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/nonfinite (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/empty (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/partial (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/invalid (0.00s)
+    --- PASS: TestCheckpointRejectsCorruptHistory/duplicate-iter (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/cmd/spsa	0.051s

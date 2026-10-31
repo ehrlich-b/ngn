@@ -1,0 +1,11 @@
+{
+  "net": "accepted-final115",
+  "identity": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/candidate-identity.json",
+  "base": "9ec5d31/81215229/compiled final14",
+  "source_changed": false,
+  "net_gates": {
+    "volume-control": "/home/ehrli/ngn-data/night-20261007/session93/net-volume-control/result.json",
+    "moderated-t74": "/home/ehrli/ngn-data/night-20261007/session93/net-moderated-t74/result.json"
+  },
+  "transfer": "accepted-final115 prior transfer reused"
+}

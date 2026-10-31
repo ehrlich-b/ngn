@@ -1,0 +1,84 @@
+{
+  "reviewed_utc": "2026-10-10T19:46:03.728834+00:00",
+  "verdict": "KEEP",
+  "playing_source": "9bfbae4",
+  "previous_net": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "accepted_net": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "complete_pairs": true,
+  "zero_faults": true,
+  "intact_terminal_pins": true,
+  "aa": {
+    "mode": "aa",
+    "games": 40,
+    "pairs": 20,
+    "wins": 8,
+    "draws": 26,
+    "losses": 6,
+    "penta": [
+      0,
+      6,
+      6,
+      8,
+      0
+    ],
+    "elo": 17.4,
+    "ci95": [
+      -46.0,
+      82.0
+    ],
+    "exact_elo_ci95": [
+      17.386277512436138,
+      -46.14019991060772,
+      82.10968059986796
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "draw-rule": 25,
+      "checkmate": 14,
+      "max-moves": 1
+    },
+    "verdict": "aa-pass"
+  },
+  "gate": {
+    "mode": "gate",
+    "games": 400,
+    "pairs": 200,
+    "wins": 111,
+    "draws": 217,
+    "losses": 72,
+    "penta": [
+      1,
+      34,
+      99,
+      57,
+      9
+    ],
+    "elo": 34.0,
+    "ci95": [
+      15.0,
+      53.0
+    ],
+    "exact_elo_ci95": [
+      33.98292733458534,
+      14.973029139867366,
+      53.19804624606608
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "checkmate": 183,
+      "draw-rule": 206,
+      "max-moves": 9,
+      "stalemate": 2
+    },
+    "verdict": "eligible"
+  },
+  "decision": "predeclared fixed400 printed AND unrounded lower95>0, zero faults, intact inputs",
+  "absolute_rating_claim": false,
+  "embedded_default_changed": false
+}

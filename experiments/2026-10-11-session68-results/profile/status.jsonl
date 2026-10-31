@@ -1,0 +1,5 @@
+{"utc": "2026-10-12T00:09:36.781771+00:00", "stage": "training-pipeline-profile", "event": "sample-start", "detail": "16 fixed blocks; bounded view, original loader mechanism"}
+{"utc": "2026-10-12T00:09:36.985559+00:00", "stage": "training-pipeline-profile", "event": "sample-done", "detail": {"training_rows_by_source": [785727, 3142647, 261885], "seconds": 0.20356646299478598}}
+{"utc": "2026-10-12T00:09:39.124116+00:00", "stage": "training-pipeline-profile", "event": "timing-start", "detail": {"steps": 128}}
+{"utc": "2026-10-12T00:09:41.143752+00:00", "stage": "training-pipeline-profile", "event": "operator-profile-start", "detail": {"steps": 8}}
+{"utc": "2026-10-12T00:09:41.591305+00:00", "stage": "training-pipeline-profile", "event": "profile-done", "detail": {"positions_per_second": 1042506.723927394, "cuda_stage_ms": {"transfer": 8.042975965887308, "decode": 241.56803178787231, "forward_loss": 574.5300154685974, "backward": 833.3022103309631, "optimizer_clip": 21.83990368247032}}}

@@ -1,0 +1,57 @@
+{
+  "controller_terminal_edt": "2026-10-12T14:21:26-04:00",
+  "controller_exit": 0,
+  "games": 1000,
+  "pairs": 500,
+  "wins": 157,
+  "draws": 602,
+  "losses": 241,
+  "score": 0.458,
+  "penta": [
+    9,
+    146,
+    269,
+    72,
+    4
+  ],
+  "relative_elo_ci95": [
+    -29.2535234138071,
+    -40.25698130264591,
+    -18.30832041922598
+  ],
+  "fixed_opponent_label": 3532,
+  "fixed_label_implied_performance_ci95": [
+    3502.746476586193,
+    3491.7430186973543,
+    3513.6916795807742
+  ],
+  "input_checks": {
+    "before": {
+      "count": 13,
+      "all_pass": true
+    },
+    "after": {
+      "count": 13,
+      "all_pass": true
+    }
+  },
+  "worker_count": 6,
+  "children_exited": 12,
+  "child_stderr_read_exit_errors": 0,
+  "instrument_stderr_bytes": 0,
+  "operational_faults": 0,
+  "flags": {
+    "ngn": 0,
+    "opponent": 0
+  },
+  "legal_replay_pass": true,
+  "searched_clock_plies": 161658,
+  "clock_conservation_pass": true,
+  "verification": "Existing terminal legal/clock replay reused; summary/penta interval, child diagnostics and stage input-check receipts reconciled; no repeated game, hash audit or chess replay.",
+  "rule": "Full1000/500, positive paired lower95 and zero faults; frozen normal approximation with variance floor",
+  "verdict": "NOT CONFIRMED: Rodent superiority observed under these match conditions (upper95<0)",
+  "playing_package": "f1d0a03/a4d90b41/final14",
+  "playing_package_changed": false,
+  "goal_met": false,
+  "limitation": "One opponent at120+1 on this topology and fixed3532 label; no general rating floor, label-uncertainty adjustment or3600 claim."
+}

@@ -1,0 +1,12 @@
+{
+  "base_source": "de148b96d1bc2d9577b66299b24d5bce653a7150",
+  "base_net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "change": "unchanged immediate new-depth clock admission only",
+  "capture_review": "experiments/2026-10-10-session46-results/capture/review.json",
+  "accepted_capture_source": "de148b9",
+  "source_archive_sha256": "46c0cb85d13a9cf51e3d909b29be193758049f93708f0adbe509204fac209bff",
+  "patch_sha256": "76efa5266d49c5bf3f8106d2f9907a1e55066efa0637ac8c84b1cb0bcdc01dd7",
+  "topic": "night/time-quiet-admission",
+  "rule": "completed H1 and printed/unrounded penta lower95>0 and zero faults/intact inputs; otherwise shelve/no extension",
+  "metadata_correction": "before any games: preserve original nomination; use unchanged staged patch hash including all four tests; no source or runtime input changed"
+}

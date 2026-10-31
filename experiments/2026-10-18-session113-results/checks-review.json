@@ -1,0 +1,30 @@
+{
+  "state": "S5_CHECKED_TIMING_UNARMED",
+  "accepted_package": "fe92ced/81215229/compiled final14",
+  "checks_done": "2026-10-18T13:45:40-04:00",
+  "passed": [
+    "focused normal and panic cleanup",
+    "engine short/race",
+    "project short/race",
+    "vet",
+    "Linux PGO and Windows builds",
+    "60 exact identities",
+    "s5 timing launcher smoke"
+  ],
+  "compiler_witness": [
+    "engine/search.go:685:2: open-coded defer",
+    "engine/search.go:687:3: open-coded defer",
+    "engine/search.go:1102:2: open-coded defer",
+    "engine/search.go:1480:2: open-coded defer",
+    "engine/search.go:2546:2: open-coded defer"
+  ],
+  "identity_cases": 60,
+  "binary_sha256": {
+    "base": "c1585259450de4c0697daf9fcc23f0b964042dbca9c838a7d5f1145f470e1974",
+    "candidate": "e5e784ea51fe1b750ab6dd746ba57ad98698bc3203f7f1dc2dfa099a6a97c18d"
+  },
+  "patch_sha256": "8ca014ac3cee3174f360a69a09d14f39ac0d998cfb1b4ad83708e16a156627ee",
+  "automatic_adoption": false,
+  "automatic_timing": false,
+  "utc": "2026-10-18T17:46:43.516893+00:00"
+}

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/ehrli/ngn-data/claim-v4-20261016/anchor-smoke.py", line 102, in <module>
+    assert not errors, (name, errors)
+           ^^^^^^^^^^
+AssertionError: ('Ethereal 13.00', ['info string Error: NNUE is disabled for this binary'])

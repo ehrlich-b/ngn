@@ -1,0 +1,20 @@
+{
+  "verified": true,
+  "prepare_exit": 0,
+  "prepare_done": "2026-10-08T14:46:24-04:00",
+  "calibration_queued": false,
+  "independent_wire_label_metrics": true,
+  "live_trainer_refused": true,
+  "valid_synthetic_plan": true,
+  "additional_plan_rejections": 6,
+  "frozen_inputs": 2019,
+  "inputs_sha256": "71d3a6ca101c68a0565d00e51aa1896f109eab79cd3540970e14c23d0d2cd38a",
+  "helpers_sha256": {
+    "calibration.py": "588c841426d88c4311aed1dc4146b8d1851be482503aeff7ca2f79355dae4443",
+    "calibration.sh": "b3890f4ebac4549bf4f11c8ad2cede029ff007c38a145367414c1d3ed1ccb521",
+    "base-review.py": "ed10e8511cc6a42e754f9f30407bbcfc4c4f24f38ab3568ea16d0036e725aea7",
+    "prepare.sh": "ff356c392040103b5de91bd8cc3f29f6deb01b47727db2dea773ab283458a19f",
+    "manifest.md": "ccee3cf8fe8b6b07825747da06154187b8799ceb9ad97c43b81a3444271a432e"
+  },
+  "at": "2026-10-08T14:50:26.081113-04:00"
+}

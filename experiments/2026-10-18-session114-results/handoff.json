@@ -1,0 +1,22 @@
+{
+  "utc": "2026-10-19T02:00:06.000475+00:00",
+  "stage": "session114",
+  "event": "handoff",
+  "detail": {
+    "accepted": "fe92ced/81215229/compiled final14",
+    "tune": "COMPLETE_FINAL2000_24000",
+    "vector_controller_pid": 363369,
+    "vector_sprt_pid": 367996,
+    "data_controller_pid": 368195,
+    "data_scope": "ngn-s114-data.scope",
+    "data": "CALIBRATION_RUNNING_THEN_FROZEN_BUDGET",
+    "search_controller_pid": 368257,
+    "search_scope": "ngn-s114-search.scope",
+    "search": "WAITING_VECTOR_SHELF_ONLY;stop_on_keep_provisional_fault",
+    "s5": "AFTER_FOUR_SEARCH_SHELVES_AND_DATA_TERMINAL",
+    "gpu": "IDLE_UNTIL_NEW_CORPUS_AND_MANIFEST",
+    "next_review_edt": "2026-10-18 23:10",
+    "goal_met": false,
+    "no_push": true
+  }
+}

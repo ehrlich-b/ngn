@@ -1,0 +1,4 @@
+{"utc": "2026-10-12T15:27:41.281914+00:00", "stage": "session72-see-rig", "event": "provenance-wait", "detail": "native controller.done notification; no polling or engine load"}
+{"utc": "2026-10-12T19:15:07.341897+00:00", "stage": "session72-see-rig", "event": "amended-provenance-wait", "detail": "session74 plan: natural clean terminal or intact administrative hold; faults block"}
+{"utc": "2026-10-13T01:12:00.112287+00:00", "stage": "session72-see-rig", "event": "amended-predecessor-review", "detail": {"exit": "143", "verdict": "ADMINISTRATIVE UNSCORED", "integrity_resolved": true, "certification_owed": true, "plan": "astra-48h-2026-10-12.md; no restoration, continuation or pooling"}}
+{"utc": "2026-10-13T01:12:00.147381+00:00", "stage": "session72-see-rig", "event": "aa-start", "detail": {"cpus": "0-11", "concurrency": 6, "tc": "10+0.1", "nice": 19}}

@@ -1,0 +1,97 @@
+{"utc":"2026-10-11T00:35:16.261265345Z","elapsed_ns":291842,"kind":"start","text":"pid=20043 path=/home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12"}
+{"utc":"2026-10-11T00:35:16.261293355Z","elapsed_ns":318964,"kind":"stdin","text":"uci"}
+{"utc":"2026-10-11T00:35:16.265507385Z","elapsed_ns":4543299,"kind":"stdout","text":""}
+{"utc":"2026-10-11T00:35:16.265530288Z","elapsed_ns":4555754,"kind":"stdout","text":"   ___          __         __   _   __"}
+{"utc":"2026-10-11T00:35:16.265531691Z","elapsed_ns":4557087,"kind":"stdout","text":"  / _ \\___  ___/ /__ ___  / /_ | | / /"}
+{"utc":"2026-10-11T00:35:16.265532801Z","elapsed_ns":4558177,"kind":"stdout","text":" / , _/ _ \\/ _  / -_) _ \\/ __/ | |/ /"}
+{"utc":"2026-10-11T00:35:16.26553381Z","elapsed_ns":4559196,"kind":"stdout","text":"/_/|_|\\___/\\_,_/\\__/_//_/\\__/  |___/"}
+{"utc":"2026-10-11T00:35:16.265534709Z","elapsed_ns":4560085,"kind":"stdout","text":""}
+{"utc":"2026-10-11T00:35:16.265535546Z","elapsed_ns":4560912,"kind":"stdout","text":"         Rodent V 1.2"}
+{"utc":"2026-10-11T00:35:16.265536404Z","elapsed_ns":4561770,"kind":"stdout","text":"      Type 'uci' or 'help'"}
+{"utc":"2026-10-11T00:35:16.2718788Z","elapsed_ns":10904772,"kind":"stdout","text":"id name Rodent V 1.2 AVX2"}
+{"utc":"2026-10-11T00:35:16.271892033Z","elapsed_ns":10917490,"kind":"stdout","text":"id author Naman Thanki, Pawel Koziol, based on Sungorus by Pablo Vazquez"}
+{"utc":"2026-10-11T00:35:16.271893487Z","elapsed_ns":10918883,"kind":"stdout","text":"option name Hash type spin default 16 min 1 max 4096"}
+{"utc":"2026-10-11T00:35:16.271894657Z","elapsed_ns":10920023,"kind":"stdout","text":"option name Clear Hash type button"}
+{"utc":"2026-10-11T00:35:16.271895505Z","elapsed_ns":10920871,"kind":"stdout","text":"option name UCI_Chess960 type check default false"}
+{"utc":"2026-10-11T00:35:16.271896333Z","elapsed_ns":10921709,"kind":"stdout","text":"option name UCI_LimitStrength type check default false"}
+{"utc":"2026-10-11T00:35:16.271897171Z","elapsed_ns":10922547,"kind":"stdout","text":"option name UCI_Elo type spin default 3000 min 800 max 3000"}
+{"utc":"2026-10-11T00:35:16.271897948Z","elapsed_ns":10923314,"kind":"stdout","text":"option name OwnBook type check default false"}
+{"utc":"2026-10-11T00:35:16.271898756Z","elapsed_ns":10924131,"kind":"stdout","text":"option name Threads type spin default 1 min 1 max 256"}
+{"utc":"2026-10-11T00:35:16.271899472Z","elapsed_ns":10924828,"kind":"stdout","text":"option name MultiPV type spin default 1 min 1 max 500"}
+{"utc":"2026-10-11T00:35:16.271900794Z","elapsed_ns":10926362,"kind":"stdout","text":"option name PersonalityFile type string default personalities/rodent.txt"}
+{"utc":"2026-10-11T00:35:16.271902228Z","elapsed_ns":10927644,"kind":"stdout","text":"info string Loaded NNUE network: nets/rodent_4kb_768hl_8ob_v2.bin"}
+{"utc":"2026-10-11T00:35:16.271903409Z","elapsed_ns":10928835,"kind":"stdout","text":"uciok"}
+{"utc":"2026-10-11T00:35:16.271918085Z","elapsed_ns":10943471,"kind":"stdin","text":"setoption name Hash value 64"}
+{"utc":"2026-10-11T00:35:16.271937405Z","elapsed_ns":10963376,"kind":"stdin","text":"setoption name Threads value 1"}
+{"utc":"2026-10-11T00:35:16.2719434Z","elapsed_ns":10968837,"kind":"stdin","text":"setoption name OwnBook value false"}
+{"utc":"2026-10-11T00:35:16.271944914Z","elapsed_ns":10970310,"kind":"stdin","text":"setoption name UCI_LimitStrength value false"}
+{"utc":"2026-10-11T00:35:16.271946025Z","elapsed_ns":10971401,"kind":"stdin","text":"isready"}
+{"utc":"2026-10-11T00:35:16.294195683Z","elapsed_ns":33222765,"kind":"stdout","text":"readyok"}
+{"utc":"2026-10-11T00:35:16.294222664Z","elapsed_ns":33248140,"kind":"stdin","text":"position startpos"}
+{"utc":"2026-10-11T00:35:16.294243194Z","elapsed_ns":33269156,"kind":"stdin","text":"go movetime 200"}
+{"utc":"2026-10-11T00:35:16.308448242Z","elapsed_ns":47474436,"kind":"stdout","text":"info depth 1 seldepth 1 multipv 1 time 1 nodes 2 nps 2000 hashfull 0 score cp -6 pv a2a4"}
+{"utc":"2026-10-11T00:35:16.308464816Z","elapsed_ns":47490253,"kind":"stdout","text":"info depth 1 seldepth 1 multipv 1 time 1 nodes 5 nps 5000 hashfull 0 score cp 9 pv c2c4"}
+{"utc":"2026-10-11T00:35:16.308476868Z","elapsed_ns":47502265,"kind":"stdout","text":"info depth 1 seldepth 1 multipv 1 time 1 nodes 7 nps 7000 hashfull 0 score cp 37 pv d2d4"}
+{"utc":"2026-10-11T00:35:16.308605271Z","elapsed_ns":47631152,"kind":"stdout","text":"info depth 2 seldepth 3 multipv 1 time 1 nodes 47 nps 47000 hashfull 0 score cp 19 pv d2d4 d7d5"}
+{"utc":"2026-10-11T00:35:16.308808903Z","elapsed_ns":47834804,"kind":"stdout","text":"info depth 3 seldepth 4 multipv 1 time 1 nodes 174 nps 174000 hashfull 0 score cp 9 pv d2d4 d7d5 e2e3"}
+{"utc":"2026-10-11T00:35:16.309018288Z","elapsed_ns":48044865,"kind":"stdout","text":"info depth 3 seldepth 6 multipv 1 time 1 nodes 343 nps 343000 hashfull 0 score cp 11 pv e2e3 c7c5 c2c4"}
+{"utc":"2026-10-11T00:35:16.309171059Z","elapsed_ns":48197091,"kind":"stdout","text":"info depth 4 seldepth 7 multipv 1 time 1 nodes 573 nps 573000 hashfull 0 score cp 15 pv e2e3 c7c5 d2d4 e7e6"}
+{"utc":"2026-10-11T00:35:16.309457309Z","elapsed_ns":48483199,"kind":"stdout","text":"info depth 5 seldepth 7 multipv 1 time 1 nodes 1062 nps 1062000 hashfull 0 score cp 10 pv e2e3 c7c5 d2d4 e7e6 c2c4"}
+{"utc":"2026-10-11T00:35:16.309859806Z","elapsed_ns":48885768,"kind":"stdout","text":"info depth 6 seldepth 11 multipv 1 time 1 nodes 1961 nps 1961000 hashfull 0 score cp 18 pv e2e3 c7c5 c2c4 b8c6 b1c3 g8f6"}
+{"utc":"2026-10-11T00:35:16.310650534Z","elapsed_ns":49676505,"kind":"stdout","text":"info depth 7 seldepth 12 multipv 1 time 2 nodes 3835 nps 1917500 hashfull 0 score cp 19 pv e2e3 c7c5 d2d4 d7d5 c2c4 d5c4 f1c4 c5d4 e3d4"}
+{"utc":"2026-10-11T00:35:16.312242181Z","elapsed_ns":51268061,"kind":"stdout","text":"info depth 8 seldepth 16 multipv 1 time 4 nodes 7823 nps 1955750 hashfull 0 score cp 19 pv e2e3 d7d5 c2c4 e7e6 d2d4 g8f6 g1f3 c7c5"}
+{"utc":"2026-10-11T00:35:16.313538527Z","elapsed_ns":52564529,"kind":"stdout","text":"info depth 9 seldepth 16 multipv 1 time 5 nodes 11295 nps 2259000 hashfull 0 score cp 25 pv e2e3 d7d5 c2c4 e7e6 d2d4 g8f6 g1f3 c7c5 b1c3"}
+{"utc":"2026-10-11T00:35:16.314907038Z","elapsed_ns":53932989,"kind":"stdout","text":"info depth 10 seldepth 16 multipv 1 time 6 nodes 15259 nps 2543166 hashfull 0 score cp 18 pv e2e3 d7d5 c2c4 e7e6 d2d4 g8f6 g1f3 c7c5 b1c3 b8c6"}
+{"utc":"2026-10-11T00:35:16.31785015Z","elapsed_ns":56876061,"kind":"stdout","text":"info depth 10 seldepth 18 multipv 1 time 9 nodes 22431 nps 2492333 hashfull 0 score cp 28 pv d2d4 d7d5 c2c4 e7e6 b1c3 g8f6 g1f3 c7c5 d4c5 f8c5 c4d5 e6d5"}
+{"utc":"2026-10-11T00:35:16.319725486Z","elapsed_ns":58751457,"kind":"stdout","text":"info depth 11 seldepth 18 multipv 1 time 11 nodes 27390 nps 2490000 hashfull 0 score cp 27 pv d2d4 d7d5 c2c4 e7e6 b1c3 g8f6 g1f3 c7c5 d4c5 f8c5 c4d5 e6d5"}
+{"utc":"2026-10-11T00:35:16.324263057Z","elapsed_ns":63288998,"kind":"stdout","text":"info depth 12 seldepth 22 multipv 1 time 16 nodes 39180 nps 2448750 hashfull 0 score cp 20 pv d2d4 d7d5 c2c4 e7e6 b1c3 g8f6 g1f3 f8e7 c1d2 d5c4 d1a4 c8d7 a4c4"}
+{"utc":"2026-10-11T00:35:16.340850831Z","elapsed_ns":79876782,"kind":"stdout","text":"info depth 13 seldepth 23 multipv 1 time 32 nodes 80783 nps 2524468 hashfull 1 score cp 3 pv d2d4 d7d5 c2c4 e7e6 g1f3 g8f6 e2e3 c7c5 c4d5 e6d5 f1e2 b8c6 e1g1"}
+{"utc":"2026-10-11T00:35:16.354001382Z","elapsed_ns":93027334,"kind":"stdout","text":"info depth 13 seldepth 23 multipv 1 time 45 nodes 114339 nps 2540866 hashfull 1 score cp 27 pv e2e4 c7c5 g1f3 e7e6 b1c3 f8e7 d2d4 c5d4 f3d4 b8c6 f1e2 g8f6 d4c6 b7c6"}
+{"utc":"2026-10-11T00:35:16.363323817Z","elapsed_ns":102349758,"kind":"stdout","text":"info depth 14 seldepth 23 multipv 1 time 55 nodes 137586 nps 2501563 hashfull 1 score cp 24 pv e2e4 c7c5 g1f3 e7e6 b1c3 f8e7 d2d4 c5d4 f3d4 a7a6 f1d3 d8c7 c1e3 g8f6"}
+{"utc":"2026-10-11T00:35:16.397370821Z","elapsed_ns":136396772,"kind":"stdout","text":"info depth 15 seldepth 24 multipv 1 time 89 nodes 219668 nps 2468179 hashfull 1 score cp 27 pv e2e4 c7c5 g1f3 e7e6 f1e2 b8c6 d2d4 c5d4 f3d4 g8f6 b1c3 f8e7 d4c6 b7c6 e4e5"}
+{"utc":"2026-10-11T00:35:16.43555405Z","elapsed_ns":174580052,"kind":"stdout","text":"info depth 16 seldepth 25 multipv 1 time 127 nodes 307617 nps 2422181 hashfull 3 score cp 19 pv e2e4 c7c5 g1f3 e7e6 f1e2 b8c6 c2c3 g8f6 e4e5 f6d5 d2d4 c5d4 c3d4 d7d6 e1g1 d6e5 f3e5"}
+{"utc":"2026-10-11T00:35:16.458174232Z","elapsed_ns":197200163,"kind":"stdout","text":"bestmove e2e4 ponder c7c5"}
+{"utc":"2026-10-11T00:35:16.458187313Z","elapsed_ns":197212730,"kind":"stdin","text":"ucinewgame"}
+{"utc":"2026-10-11T00:35:16.458207279Z","elapsed_ns":197233240,"kind":"stdin","text":"isready"}
+{"utc":"2026-10-11T00:35:16.462578918Z","elapsed_ns":201605121,"kind":"stdout","text":"readyok"}
+{"utc":"2026-10-11T00:35:16.462591928Z","elapsed_ns":201617355,"kind":"stdin","text":"position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"}
+{"utc":"2026-10-11T00:35:16.462613691Z","elapsed_ns":201639470,"kind":"stdin","text":"go nodes 1231932"}
+{"utc":"2026-10-11T00:35:16.477077386Z","elapsed_ns":216103377,"kind":"stdout","text":"info depth 1 seldepth 1 multipv 1 time 1 nodes 2 nps 2000 hashfull 0 score cp -6 pv a2a4"}
+{"utc":"2026-10-11T00:35:16.47708751Z","elapsed_ns":216112966,"kind":"stdout","text":"info depth 1 seldepth 1 multipv 1 time 1 nodes 5 nps 5000 hashfull 0 score cp 9 pv c2c4"}
+{"utc":"2026-10-11T00:35:16.477089387Z","elapsed_ns":216114783,"kind":"stdout","text":"info depth 1 seldepth 1 multipv 1 time 1 nodes 7 nps 7000 hashfull 0 score cp 37 pv d2d4"}
+{"utc":"2026-10-11T00:35:16.477091073Z","elapsed_ns":216116469,"kind":"stdout","text":"info depth 2 seldepth 3 multipv 1 time 1 nodes 47 nps 47000 hashfull 0 score cp 19 pv d2d4 d7d5"}
+{"utc":"2026-10-11T00:35:16.477128723Z","elapsed_ns":216154109,"kind":"stdout","text":"info depth 3 seldepth 4 multipv 1 time 1 nodes 174 nps 174000 hashfull 0 score cp 9 pv d2d4 d7d5 e2e3"}
+{"utc":"2026-10-11T00:35:16.477219768Z","elapsed_ns":216245659,"kind":"stdout","text":"info depth 3 seldepth 6 multipv 1 time 1 nodes 343 nps 343000 hashfull 0 score cp 11 pv e2e3 c7c5 c2c4"}
+{"utc":"2026-10-11T00:35:16.47729191Z","elapsed_ns":216317811,"kind":"stdout","text":"info depth 4 seldepth 7 multipv 1 time 1 nodes 573 nps 573000 hashfull 0 score cp 15 pv e2e3 c7c5 d2d4 e7e6"}
+{"utc":"2026-10-11T00:35:16.477508208Z","elapsed_ns":216534159,"kind":"stdout","text":"info depth 5 seldepth 7 multipv 1 time 1 nodes 1062 nps 1062000 hashfull 0 score cp 10 pv e2e3 c7c5 d2d4 e7e6 c2c4"}
+{"utc":"2026-10-11T00:35:16.477850626Z","elapsed_ns":216877163,"kind":"stdout","text":"info depth 6 seldepth 11 multipv 1 time 1 nodes 1961 nps 1961000 hashfull 0 score cp 18 pv e2e3 c7c5 c2c4 b8c6 b1c3 g8f6"}
+{"utc":"2026-10-11T00:35:16.478405968Z","elapsed_ns":217431960,"kind":"stdout","text":"info depth 7 seldepth 12 multipv 1 time 2 nodes 3835 nps 1917500 hashfull 0 score cp 19 pv e2e3 c7c5 d2d4 d7d5 c2c4 d5c4 f1c4 c5d4 e3d4"}
+{"utc":"2026-10-11T00:35:16.479794771Z","elapsed_ns":218820762,"kind":"stdout","text":"info depth 8 seldepth 16 multipv 1 time 3 nodes 7823 nps 2607666 hashfull 0 score cp 19 pv e2e3 d7d5 c2c4 e7e6 d2d4 g8f6 g1f3 c7c5"}
+{"utc":"2026-10-11T00:35:16.480963556Z","elapsed_ns":219989507,"kind":"stdout","text":"info depth 9 seldepth 16 multipv 1 time 4 nodes 11295 nps 2823750 hashfull 0 score cp 25 pv e2e3 d7d5 c2c4 e7e6 d2d4 g8f6 g1f3 c7c5 b1c3"}
+{"utc":"2026-10-11T00:35:16.482297779Z","elapsed_ns":221324356,"kind":"stdout","text":"info depth 10 seldepth 16 multipv 1 time 6 nodes 15259 nps 2543166 hashfull 0 score cp 18 pv e2e3 d7d5 c2c4 e7e6 d2d4 g8f6 g1f3 c7c5 b1c3 b8c6"}
+{"utc":"2026-10-11T00:35:16.484904057Z","elapsed_ns":223930039,"kind":"stdout","text":"info depth 10 seldepth 18 multipv 1 time 8 nodes 22431 nps 2803875 hashfull 0 score cp 28 pv d2d4 d7d5 c2c4 e7e6 b1c3 g8f6 g1f3 c7c5 d4c5 f8c5 c4d5 e6d5"}
+{"utc":"2026-10-11T00:35:16.486610188Z","elapsed_ns":225636098,"kind":"stdout","text":"info depth 11 seldepth 18 multipv 1 time 10 nodes 27390 nps 2739000 hashfull 0 score cp 27 pv d2d4 d7d5 c2c4 e7e6 b1c3 g8f6 g1f3 c7c5 d4c5 f8c5 c4d5 e6d5"}
+{"utc":"2026-10-11T00:35:16.490903847Z","elapsed_ns":229929768,"kind":"stdout","text":"info depth 12 seldepth 22 multipv 1 time 14 nodes 39180 nps 2798571 hashfull 0 score cp 20 pv d2d4 d7d5 c2c4 e7e6 b1c3 g8f6 g1f3 f8e7 c1d2 d5c4 d1a4 c8d7 a4c4"}
+{"utc":"2026-10-11T00:35:16.506139599Z","elapsed_ns":245165520,"kind":"stdout","text":"info depth 13 seldepth 23 multipv 1 time 30 nodes 80783 nps 2692766 hashfull 1 score cp 3 pv d2d4 d7d5 c2c4 e7e6 g1f3 g8f6 e2e3 c7c5 c4d5 e6d5 f1e2 b8c6 e1g1"}
+{"utc":"2026-10-11T00:35:16.519145007Z","elapsed_ns":258170989,"kind":"stdout","text":"info depth 13 seldepth 23 multipv 1 time 43 nodes 114339 nps 2659046 hashfull 1 score cp 27 pv e2e4 c7c5 g1f3 e7e6 b1c3 f8e7 d2d4 c5d4 f3d4 b8c6 f1e2 g8f6 d4c6 b7c6"}
+{"utc":"2026-10-11T00:35:16.528042971Z","elapsed_ns":267068872,"kind":"stdout","text":"info depth 14 seldepth 23 multipv 1 time 51 nodes 137586 nps 2697764 hashfull 1 score cp 24 pv e2e4 c7c5 g1f3 e7e6 b1c3 f8e7 d2d4 c5d4 f3d4 a7a6 f1d3 d8c7 c1e3 g8f6"}
+{"utc":"2026-10-11T00:35:16.55997862Z","elapsed_ns":299004591,"kind":"stdout","text":"info depth 15 seldepth 24 multipv 1 time 83 nodes 219668 nps 2646602 hashfull 1 score cp 27 pv e2e4 c7c5 g1f3 e7e6 f1e2 b8c6 d2d4 c5d4 f3d4 g8f6 b1c3 f8e7 d4c6 b7c6 e4e5"}
+{"utc":"2026-10-11T00:35:16.593855993Z","elapsed_ns":332881974,"kind":"stdout","text":"info depth 16 seldepth 25 multipv 1 time 117 nodes 307617 nps 2629205 hashfull 3 score cp 19 pv e2e4 c7c5 g1f3 e7e6 f1e2 b8c6 c2c3 g8f6 e4e5 f6d5 d2d4 c5d4 c3d4 d7d6 e1g1 d6e5 f3e5"}
+{"utc":"2026-10-11T00:35:16.687779083Z","elapsed_ns":426805640,"kind":"stdout","text":"info depth 17 seldepth 26 multipv 1 time 211 nodes 548445 nps 2599265 hashfull 11 score cp 26 pv e2e4 c7c5 g1f3 e7e6 f1e2 f8e7 e1g1 b8c6 d2d4 c5d4 f3d4 g8f6 b1c3 e8g8 d4c6 d7c6 e4e5"}
+{"utc":"2026-10-11T00:35:16.751812921Z","elapsed_ns":490838922,"kind":"stdout","text":"info depth 18 seldepth 28 multipv 1 time 275 nodes 715601 nps 2602185 hashfull 13 score cp 26 pv e2e4 c7c5 g1f3 e7e6 f1e2 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 f8e7 c1e3 a7a6 f2f4 d8c7"}
+{"utc":"2026-10-11T00:35:17.01732229Z","elapsed_ns":756348902,"kind":"stdout","text":"info depth 19 seldepth 29 multipv 1 time 541 nodes 1379867 nps 2550585 hashfull 26 score cp 13 pv e2e4 e7e6 d2d4 d7d5 b1c3 g8f6 e4d5 e6d5 g1f3 f8b4 f1d3 e8g8 e1g1 c8g4 c1g5 b4c3 b2c3"}
+{"utc":"2026-10-11T00:35:17.672060689Z","elapsed_ns":1411098781,"kind":"stdout","text":"info depth 20 seldepth 30 multipv 1 time 1195 nodes 3030920 nps 2536334 hashfull 62 score cp 15 pv e2e4 e7e6 d2d4 d7d5 b1c3 g8f6 e4d5 e6d5 g1f3 f8b4 f1d3 e8g8 e1g1 h7h6 c1f4 f8e8 h2h3 b4f8 c3e2 f6e4"}
+{"utc":"2026-10-11T00:35:17.929370115Z","elapsed_ns":1668397385,"kind":"stdout","text":"info depth 21 seldepth 32 multipv 1 time 1453 nodes 3646464 nps 2509610 hashfull 71 score cp 16 pv e2e4 e7e6 d2d4 d7d5 b1c3 g8f6 e4d5 e6d5 g1f3 f8b4 f1d3 e8g8 e1g1 h7h6 c1f4 f8e8 h2h3 b4f8 c3e2 b8d7 a2a4 f6e4"}
+{"utc":"2026-10-11T00:35:19.608624735Z","elapsed_ns":3347652388,"kind":"stdout","text":"info depth 22 seldepth 33 multipv 1 time 3132 nodes 7487098 nps 2390516 hashfull 163 score cp 9 pv e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 a7a6 f1e2 e7e5 d4b3 c8e6 f2f4 f8e7 f4f5 e6d7 c1g5 d7c6 g5f6 e7f6"}
+{"utc":"2026-10-11T00:35:20.495332618Z","elapsed_ns":4234359632,"kind":"stdout","text":"info depth 22 seldepth 34 multipv 1 time 4019 nodes 9555481 nps 2377576 hashfull 218 score cp 14 pv e2e3 e7e5 d2d4 e5d4 e3d4 g8f6 g1f3 d7d5 f1d3 f8d6 e1g1 e8g8 c1g5 h7h6 g5h4 c8g4 h2h3 g4h5 b1d2 b8d7 c2c4 c7c5 c4d5"}
+{"utc":"2026-10-11T00:35:22.351787335Z","elapsed_ns":6090814103,"kind":"stdout","text":"info depth 23 seldepth 37 multipv 1 time 5875 nodes 14094227 nps 2399017 hashfull 333 score cp 6 pv e2e3 e7e6 g1f3 g8f6 f1e2 f8e7 e1g1 e8g8 d2d4 d7d5 b2b3 b7b6 c1b2 b8d7 b1d2 c7c5 d4c5 d7c5 c2c4 c8b7 b3b4 c5d7 c4d5 f6d5"}
+{"utc":"2026-10-11T00:35:23.118050574Z","elapsed_ns":6857077604,"kind":"stdout","text":"info depth 23 seldepth 37 multipv 1 time 6641 nodes 15813473 nps 2381188 hashfull 367 score cp 9 pv e2e4 c7c5 g1f3 d7d6 c2c3 g8f6 f1d3 b8c6 e1g1 c8g4 f1e1 e7e6 d3b5 f8e7 d2d3 f6d7 h2h3 g4h5 d1e2 h7h6 g2g4 h5g6"}
+{"utc":"2026-10-11T00:35:27.163042174Z","elapsed_ns":10902069118,"kind":"stdout","text":"info depth 23 seldepth 37 multipv 1 time 10686 nodes 25478511 nps 2384288 hashfull 572 score cp 21 pv c2c4 e7e5 g2g3 g8f6 f1g2 f8c5 b1c3 e8g8 g1f3 d7d6 e1g1 b8c6 d2d3 h7h6 e2e3 a7a5 b2b3 c5b4 c1b2 b4c3 b2c3 c8g4"}
+{"utc":"2026-10-11T00:35:27.913192359Z","elapsed_ns":11652219193,"kind":"stdout","text":"info depth 24 seldepth 37 multipv 1 time 11437 nodes 27208059 nps 2378950 hashfull 612 score cp 20 pv c2c4 e7e5 g2g3 g8f6 f1g2 f8c5 b1c3 e8g8 g1f3 d7d6 e1g1 b8c6 d2d3 h7h6 e2e3 a7a5 b2b3 c5b4 c1b2 b4c3 b2c3 f8e8 h2h3 a5a4"}
+{"utc":"2026-10-11T00:35:30.82040055Z","elapsed_ns":14559427470,"kind":"stdout","text":"info depth 25 seldepth 39 multipv 1 time 14344 nodes 33900350 nps 2363381 hashfull 720 score cp 19 pv c2c4 e7e5 g2g3 g8f6 f1g2 f8c5 b1c3 e8g8 g1f3 d7d6 e1g1 b8c6 d2d3 c6d4 f3e1 c7c6 e2e3 d4e6 e1f3 h7h6 b2b3 e6g5 f3g5 h6g5"}
+{"utc":"2026-10-11T00:35:34.094201059Z","elapsed_ns":17833227963,"kind":"stdout","text":"info depth 26 seldepth 39 multipv 1 time 17618 nodes 41322993 nps 2345498 hashfull 791 score cp 18 pv c2c4 e7e5 g2g3 g8f6 f1g2 f8c5 b1c3 e8g8 g1f3 d7d6 e1g1 b8c6 d2d3 c6d4 f3e1 c7c6 e2e3 d4e6 e1f3 c5b6 b2b4 h7h6 c1b2 e6g5 f3g5 h6g5 a2a4"}
+{"utc":"2026-10-11T00:35:47.138631163Z","elapsed_ns":30877658254,"kind":"stdout","text":"info depth 27 seldepth 43 multipv 1 time 30662 nodes 70387218 nps 2295584 hashfull 962 score cp 18 pv c2c4 e7e5 g1f3 b8c6 d2d3 g8f6 a2a3 f8e7 e2e3 e8g8 f1e2 a7a5 e1g1 d7d5 c4d5 f6d5 d1c2 h7h6 h2h3 c8e6 b1c3 d5b6 f1d1 a5a4 d3d4 e5d4 e3d4"}
+{"utc":"2026-10-11T00:35:55.918713547Z","elapsed_ns":39657740840,"kind":"stdout","text":"info depth 28 seldepth 43 multipv 1 time 39442 nodes 90861416 nps 2303671 hashfull 991 score cp 16 pv c2c4 e7e5 g1f3 e5e4 f3d4 b8c6 e2e3 g8f6 b1c3 f8b4 d1b3 c6d4 e3d4 b4a5 b3a3 c7c6 d2d3 d7d5 c4d5 a5c3 b2c3 d8d5 c1e3 e4d3 f1d3 c8f5 d3f5 d5f5"}
+{"utc":"2026-10-11T00:36:16.563318597Z","elapsed_ns":60302345284,"kind":"stdin","text":"quit"}
+{"utc":"2026-10-11T00:36:16.583691402Z","elapsed_ns":60322717706,"kind":"stdout","text":"bestmove c2c4 ponder e7e5"}
+{"utc":"2026-10-11T00:36:16.589238319Z","elapsed_ns":60328264754,"kind":"exit","text":"0"}

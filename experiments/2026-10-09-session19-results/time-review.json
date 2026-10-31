@@ -1,0 +1,40 @@
+{
+  "completed_utc": "2026-10-09T04:34:39.850309+00:00",
+  "passed": true,
+  "cpus": [
+    13,
+    15
+  ],
+  "nice": 19,
+  "source_sha256": {
+    "engine/time.go": "0f72aefc883b1f834b38ab7e1e95baf3c62d79dee3ef8c61edd08293429d7113",
+    "engine/time_admission_test.go": "88efd1aa1e0af8bfa9b9053622fb8e2c63d1c05bdafdb8c6b7df743126d2a2e3"
+  },
+  "binary_sha256": {
+    "baseline": "ff77402c4c5d2e7fa579329a7122c3f06b14096ce8eb9ab3714af55b9779f176",
+    "candidate": "7cd74f7e4223d4a3bfd14fafd3c79e6e30a42f8ad7c26b157b0747ae0b384ba6"
+  },
+  "logs_sha256": {
+    "baseline-regression.log": "2303d143a4810a492a4155ca917944c647c18f9f11eb3469cd29b77d0d075006",
+    "candidate-narrow.log": "6daf060f3e8d75e635558981756704f0566b7a12dde6e383eae2f36d09a74c14",
+    "engine-short.log": "63fe44f54605c48f49c25a528d63d074066da288f0423d9b107265246e05bb2e",
+    "engine-race.log": "867a7933b7d25894bc5098d5bd6c99101c08f25ef9b0c8b8584f9c7cc2362452",
+    "full-short.log": "71bb228220df88744eb817eb5ff5f7f56bf92a6707d4509d099c4a1bfbac8322",
+    "full-race.log": "d4541f27ca2c1965deffb73d8de62a427e2af8be3ebac9d041521ccdade02727",
+    "vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "time-trace.log": "40db84cdfc75b1f348487bdb90cb856cf1d904edeb2d6369533ae0c5452b696e"
+  },
+  "games_launched": false,
+  "mechanism": {
+    "reasons": {
+      "soft-abort": 10,
+      "soft-admission": 2
+    },
+    "elapsed_ns": 87677216640,
+    "tail_ns": 17742294015,
+    "aggregate_tail_fraction": 0.20235922962574557,
+    "median_tail_fraction": 0.1620636398642759,
+    "limits": "same warm fixtures, different wall-time searches; no paired strength evidence"
+  },
+  "independent_log_review_passed": true
+}

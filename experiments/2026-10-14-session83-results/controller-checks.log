@@ -1,0 +1,9 @@
+test_failed_transfer_holds_and_net_fault_launches_nothing (__main__.ControllerChecks.test_failed_transfer_holds_and_net_fault_launches_nothing) ... ok
+test_shelf_launches_same_old_net_provenance_only (__main__.ControllerChecks.test_shelf_launches_same_old_net_provenance_only) ... ok
+test_winner_skips_pair_training_and_fault_does_not_retrain (__main__.ControllerChecks.test_winner_skips_pair_training_and_fault_does_not_retrain) ... ok
+test_winner_transfers_then_certifies_on_identical_winning_net (__main__.ControllerChecks.test_winner_transfers_then_certifies_on_identical_winning_net) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.012s
+
+OK

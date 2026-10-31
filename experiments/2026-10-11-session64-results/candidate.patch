@@ -1,0 +1,102 @@
+diff --git a/cmd/spsa/checkpoint_test.go b/cmd/spsa/checkpoint_test.go
+index ea60213..fd5d231 100644
+--- a/cmd/spsa/checkpoint_test.go
++++ b/cmd/spsa/checkpoint_test.go
+@@ -221,7 +221,7 @@ func TestCheckpointRejectsCorruptHistory(t *testing.T) {
+ 		"substituted-theta": func(c *checkpoint) { delete(c.Theta, "NullMoveR"); c.Theta["unknown"] = 3 },
+ 		"out-of-range":      func(c *checkpoint) { c.Theta["NullMoveR"] = 999 },
+ 		"missing-rounded":   func(c *checkpoint) { delete(c.Rounded, "NullMoveR") },
+-		"wrong-rounded":     func(c *checkpoint) { c.Rounded["NullMoveR"] = 4 },
++		"wrong-rounded":     func(c *checkpoint) { c.Rounded["NullMoveR"]++ },
+ 		"rng":               func(c *checkpoint) { c.RNGDraws++ },
+ 	}
+ 	for name, mutate := range mutations {
+@@ -240,7 +240,7 @@ func TestCheckpointRejectsCorruptHistory(t *testing.T) {
+ 		"corrupt-tail":   append(append(append([]byte{}, b...), '\n'), []byte("{\n")...),
+ 		"corrupt-middle": append([]byte("{\n"), append(b, '\n')...),
+ 		"duplicate-iter": append(append(append([]byte{}, b...), '\n'), append(b, '\n')...),
+-		"nonfinite":      []byte(strings.Replace(string(b), `"NullMoveR":3`, `"NullMoveR":1e999`, 1) + "\n"),
++		"nonfinite":      []byte(strings.Replace(string(b), fmt.Sprintf(`"NullMoveR":%g`, cp.Theta["NullMoveR"]), `"NullMoveR":1e999`, 1) + "\n"),
+ 	} {
+ 		t.Run(name, func(t *testing.T) { assertBadHistory(t, data, recipe) })
+ 	}
+diff --git a/engine/search.go b/engine/search.go
+index 522f981..799df11 100644
+--- a/engine/search.go
++++ b/engine/search.go
+@@ -16,23 +16,23 @@ const (
+ 
+ // Tunable search parameters. These are var, not const, so the SPSA driver and
+ // UCI `setoption` can override them at runtime (rebuild-free A/B); the literals
+-// below are the current hand-set defaults and MUST stay node-identical
+-// (scripts/nodecheck.sh). TunableSearchParams below is the single source of
+-// truth tying each var to its UCI name and spin range.
++// below are the 24k-game SPSA endpoint verified against ed34480/a4d90b41.
++// TunableSearchParams below is the single source of truth tying each var to
++// its UCI name, default and spin range.
+ var (
+-	NULL_MOVE_R             = 3   // Null move reduction depth
++	NULL_MOVE_R             = 4   // Null move reduction depth
+ 	NULL_MOVE_MIN_DEPTH     = 2   // Minimum depth for null move pruning
+ 	LMR_FULL_DEPTH          = 3   // Minimum depth for LMR
+ 	LMR_MOVE_THRESHOLD      = 2   // Start reducing after this many moves
+-	FUTILITY_MARGIN         = 103 // Futility per-depth coefficient (margin = FUTILITY_MARGIN*(depth+improving), CG-grounded)
++	FUTILITY_MARGIN         = 104 // Futility per-depth coefficient (margin = FUTILITY_MARGIN*(depth+improving), CG-grounded)
+ 	FUTILITY_MAX_DEPTH      = 8   // Extended futility pruning depth (W1: was 3, CounterGo prunes quiets to depth 8)
+-	REVERSE_FUTILITY_MARGIN = 88  // Reverse futility margin
+-	DELTA_MARGIN            = 96  // Delta pruning margin in quiescence
+-	SINGULAR_DEPTH          = 6   // Minimum depth for singular extensions
+-	SINGULAR_MARGIN         = 48  // Margin for singular move detection
+-	EXTENSION_BUDGET        = 26  // Max net extensions on a single root-to-leaf path (anti-explosion)
+-	ASP_INIT                = 13  // Aspiration initial half-window (cp); delta = ASP_INIT + |prevScore|/ASP_SCORE_DIV
+-	ASP_MULT                = 154 // Aspiration widening multiplier in percent (150 => x1.5 delta growth per fail)
++	REVERSE_FUTILITY_MARGIN = 63  // Reverse futility margin
++	DELTA_MARGIN            = 202 // Delta pruning margin in quiescence
++	SINGULAR_DEPTH          = 7   // Minimum depth for singular extensions
++	SINGULAR_MARGIN         = 57  // Margin for singular move detection
++	EXTENSION_BUDGET        = 29  // Max net extensions on a single root-to-leaf path (anti-explosion)
++	ASP_INIT                = 17  // Aspiration initial half-window (cp); delta = ASP_INIT + |prevScore|/ASP_SCORE_DIV
++	ASP_MULT                = 163 // Aspiration widening multiplier in percent (150 => x1.5 delta growth per fail)
+ )
+ 
+ // ASP_SCORE_DIV scales the aspiration init window by the previous score's
+@@ -57,20 +57,20 @@ type TunableParam struct {
+ // Min/Max bound both the spin advertisement and SPSA exploration; Def is the
+ // shipped default (== the literal above).
+ var TunableSearchParams = []TunableParam{
+-	{"NullMoveR", &NULL_MOVE_R, 3, 2, 5},
++	{"NullMoveR", &NULL_MOVE_R, 4, 2, 5},
+ 	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 2, 1, 6},
+ 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
+ 	{"LMRMoveThreshold", &LMR_MOVE_THRESHOLD, 2, 1, 8},
+-	{"FutilityMargin", &FUTILITY_MARGIN, 103, 50, 160},
++	{"FutilityMargin", &FUTILITY_MARGIN, 104, 50, 160},
+ 	{"FutilityMaxDepth", &FUTILITY_MAX_DEPTH, 8, 1, 8},
+-	{"ReverseFutilityMargin", &REVERSE_FUTILITY_MARGIN, 88, 40, 300},
+-	{"DeltaMargin", &DELTA_MARGIN, 96, 0, 400},
+-	{"SingularDepth", &SINGULAR_DEPTH, 6, 4, 12},
+-	{"SingularMargin", &SINGULAR_MARGIN, 48, 16, 256},
+-	{"ExtensionBudget", &EXTENSION_BUDGET, 26, 4, 64},
+-	{"AspInit", &ASP_INIT, 13, 4, 40},
+-	{"AspMult", &ASP_MULT, 154, 110, 250},
+-	{"LMPBase", &LMP_BASE, 4, 2, 16},
++	{"ReverseFutilityMargin", &REVERSE_FUTILITY_MARGIN, 63, 40, 300},
++	{"DeltaMargin", &DELTA_MARGIN, 202, 0, 400},
++	{"SingularDepth", &SINGULAR_DEPTH, 7, 4, 12},
++	{"SingularMargin", &SINGULAR_MARGIN, 57, 16, 256},
++	{"ExtensionBudget", &EXTENSION_BUDGET, 29, 4, 64},
++	{"AspInit", &ASP_INIT, 17, 4, 40},
++	{"AspMult", &ASP_MULT, 163, 110, 250},
++	{"LMPBase", &LMP_BASE, 3, 2, 16},
+ }
+ 
+ // Late Move Pruning thresholds, indexed [improving][depth] (S4, W11). Follows
+@@ -85,7 +85,7 @@ var TunableSearchParams = []TunableParam{
+ // therefore computed inline from the tunable base rather than kept as a frozen
+ // literal, which exposes it to SPSA without changing a single threshold at the
+ // default. Kept as a var (not const) so the UCI/SPSA path can write through it.
+-var LMP_BASE = 4
++var LMP_BASE = 3
+ 
+ // lmpThresholdFor returns the late-move-pruning move count for a depth, matching
+ // the historical table exactly at LMP_BASE == 5 (integer division intended).

@@ -1,0 +1,9 @@
+{
+  "host_c_free_bytes": 21718646784,
+  "pagefile": {
+    "Name": "C:\\pagefile.sys",
+    "AllocatedBaseSize": 9831,
+    "CurrentUsage": 469,
+    "PeakUsage": 2838
+  }
+}

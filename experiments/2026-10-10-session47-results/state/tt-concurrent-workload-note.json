@@ -1,0 +1,12 @@
+{
+  "recorded_after_start": true,
+  "pinned_game_manifest_unchanged": true,
+  "workload": "bounded residual prepare and same-net control",
+  "machine": "forge",
+  "cpu_mask": "5-7",
+  "memory_max_bytes": 1073741824,
+  "nice": 10,
+  "overlap_edt": "2026-10-10 10:48-10:53",
+  "games": 0,
+  "host_pinning": "on"
+}

@@ -1,0 +1,35 @@
+{
+  "state": "CHECKS_PASS_TIMING_PENDING",
+  "checks": {
+    "s2": {
+      "verdict": "PASS",
+      "topic": "f527ab3",
+      "immediate_base": "4958bc4/81215229/compiled final14",
+      "uci_cases": 24,
+      "probe_cases": 36,
+      "tests_pass": true,
+      "hugepage_witness_kib": null,
+      "binary_sha256": {
+        "base": "dd65aee7572f816958d654850d3a600b25a4f6c425e57b79c20309cc37f889ee",
+        "candidate": "3d0df08a184ac750e16eb28eafff668fa82b70557d7d67e68eb893413102fee8"
+      },
+      "utc": "2026-10-18T01:38:34.508307+00:00"
+    },
+    "s1": {
+      "verdict": "PASS",
+      "topic": "fcc1432",
+      "immediate_base": "4958bc4/81215229/compiled final14",
+      "uci_cases": 24,
+      "probe_cases": 36,
+      "tests_pass": true,
+      "hugepage_witness_kib": 262144,
+      "binary_sha256": {
+        "base": "dd65aee7572f816958d654850d3a600b25a4f6c425e57b79c20309cc37f889ee",
+        "candidate": "c1585259450de4c0697daf9fcc23f0b964042dbca9c838a7d5f1145f470e1974"
+      },
+      "utc": "2026-10-18T01:38:34.515833+00:00"
+    }
+  },
+  "checks_finished": "2026-10-17T21:38:34-04:00",
+  "automatic_adoption": false
+}

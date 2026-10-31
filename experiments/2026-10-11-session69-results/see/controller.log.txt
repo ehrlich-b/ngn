@@ -1,0 +1,11 @@
+Running as unit: ngn-s68-see-geometry.scope; invocation ID: d545030c3eda42f6938ec1d495527449
+Traceback (most recent call last):
+  File "/work/lanes/ngn-s68-see-geometry/games.py", line 83, in <module>
+    main()
+    ~~~~^^
+  File "/work/lanes/ngn-s68-see-geometry/games.py", line 71, in main
+    result = parser.gate((p / (mode + '.log')).read_text(), mode)
+  File "/work/lanes/ngn-s68-see-geometry/paired-parser.py", line 55, in gate
+    assert not re.search(r'(?im)panic|fatal|illegal|no.move|watchdog|timeout|crash|forfeit|engine.error', text)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

@@ -1,0 +1,14 @@
+2026-10-11T20:15:46-04:00
+{"utc": "2026-10-12T00:05:16.275311+00:00", "stage": "session68-see-geometry", "event": "aa-start", "detail": "forge4-11/c2/3GiB/swap0/nice10/host pinningON; no competing NGN CPU jobs"}
+3796768       1  10       10:30  0.0  2736 bash /work/lanes/ngn-s68-see-geometry/controller.sh /work/lanes/ngn-s68-see-geometry
+3796885 3796790  10       10:29  0.0  1716 timeout --signal=TERM --kill-after=15s 7200 taskset -c 4-11 nice -n 0 /work/lanes/ngn-s68-see-geometry/sprt -new /work/lanes/ngn-s68-see-geometry/baseline-ngn -base /work/lanes/ngn-s68-see-geometry/baseline-ngn -tc 10+0.1 -concurrency 2 -maxmoves 400 -gametimeout 180 -openings /work/lanes/ngn-s68-see-geometry/openings.txt -lowpower=false -mingames 1000000 -newoption EvalFile=/work/lanes/ngn-s68-see-geometry/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/work/lanes/ngn-s68-see-geometry/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -maxgames 40
+3796892 3796885  10       10:29  0.8 17484 /work/lanes/ngn-s68-see-geometry/sprt -new /work/lanes/ngn-s68-see-geometry/baseline-ngn -base /work/lanes/ngn-s68-see-geometry/baseline-ngn -tc 10+0.1 -concurrency 2 -maxmoves 400 -gametimeout 180 -openings /work/lanes/ngn-s68-see-geometry/openings.txt -lowpower=false -mingames 1000000 -newoption EvalFile=/work/lanes/ngn-s68-see-geometry/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/work/lanes/ngn-s68-see-geometry/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -maxgames 40
+3796942 3796892  10       10:29 19.7 204912 /work/lanes/ngn-s68-see-geometry/baseline-ngn
+3796943 3796892  10       10:29 19.1 208668 /work/lanes/ngn-s68-see-geometry/baseline-ngn
+3796964 3796892  10       10:29 19.4 205988 /work/lanes/ngn-s68-see-geometry/baseline-ngn
+3796975 3796892  10       10:29 19.5 205544 /work/lanes/ngn-s68-see-geometry/baseline-ngn
+               total        used        free      shared  buff/cache   available
+Mem:           17922       13427         299         303        5152        4495
+Swap:          53247       10703       42544
+Filesystem        1B-blocks         Used   Available Use% Mounted on
+/dev/sda       536608739328 491420045312 45188694016  92% /work

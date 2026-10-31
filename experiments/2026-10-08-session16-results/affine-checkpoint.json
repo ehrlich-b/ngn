@@ -1,0 +1,63 @@
+{
+  "at": "2026-10-09T00:52:18.463417+00:00",
+  "tests": {
+    "affine-test.log": {
+      "sha256": "25ddf8ca1ccf1b33a55561c132d84e7e7c25d2808914506d5204e4bfa2a25750",
+      "tail": "=== RUN   TestNGNN4InputPackDifferential\n--- PASS: TestNGNN4InputPackDifferential (0.00s)\n=== RUN   TestNGNN4LinearDifferential\n--- PASS: TestNGNN4LinearDifferential (0.64s)\n=== RUN   TestNGNN4LinearTilePhases\n--- PASS: TestNGNN4LinearTilePhases (0.01s)\n=== RUN   TestNGNN4Validation\n--- PASS: TestNGNN4Validation (0.00s)\n=== RUN   TestNGNN4LayerBoundsAndScalar\n--- PASS: TestNGNN4LayerBoundsAndScalar (0.29s)\n=== RUN   TestNGNN4IncrementalAndReload\n--- PASS: TestNGNN4IncrementalAndReload (0.06s)\n=== RUN   TestNGNN4TrainerParity\n    ngnn4_test.go:281: 320 exact NGNN4 trainer cases\n--- PASS: TestNGNN4TrainerParity (0.04s)\nPASS\nok  \tgithub.com/ehrlich-b/ngn/engine\t1.062s\n"
+    },
+    "affine-purego.log": {
+      "sha256": "aefe596e8ce171ecce7d7c8df98e7777a98354fc63c458b32c98b69def33cd24",
+      "tail": "=== RUN   TestNGNN4InputPackDifferential\n--- PASS: TestNGNN4InputPackDifferential (0.01s)\n=== RUN   TestNGNN4LinearDifferential\n--- PASS: TestNGNN4LinearDifferential (0.67s)\n=== RUN   TestNGNN4LinearTilePhases\n--- PASS: TestNGNN4LinearTilePhases (0.01s)\n=== RUN   TestNGNN4Validation\n--- PASS: TestNGNN4Validation (0.00s)\n=== RUN   TestNGNN4LayerBoundsAndScalar\n--- PASS: TestNGNN4LayerBoundsAndScalar (0.34s)\n=== RUN   TestNGNN4IncrementalAndReload\n--- PASS: TestNGNN4IncrementalAndReload (0.06s)\n=== RUN   TestNGNN4TrainerParity\n    ngnn4_test.go:281: 320 exact NGNN4 trainer cases\n--- PASS: TestNGNN4TrainerParity (0.05s)\nPASS\nok  \tgithub.com/ehrlich-b/ngn/engine\t1.169s\n"
+    },
+    "engine-short.log": {
+      "sha256": "7100287a82fa6ce8498fd5fd225c9ba486420ff70482ac8b6936033872a3ce61",
+      "tail": "ok  \tgithub.com/ehrlich-b/ngn/engine\t13.399s\n"
+    },
+    "engine-race.log": {
+      "sha256": "91e067b656f0feb065788c58b281c58f53939f3f7d50ce836fe77c6454a8b75e",
+      "tail": "ok  \tgithub.com/ehrlich-b/ngn/engine\t167.077s\n"
+    },
+    "full-short.log": {
+      "sha256": "cfed630343cb7d00091905e9d6181299b2d34bfc061f1e4bfa3b6480b284d05b",
+      "tail": "ical-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/test-harness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/trace_move\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/zzbias\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/engine\t15.155s\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-ep-repetition-correctness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-rodent-pv-identity-probe\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/claim\t0.074s\nok  \tgithub.com/ehrlich-b/ngn/internal/datagen\t0.127s\n?   \tgithub.com/ehrlich-b/ngn/internal/history\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/ngnp\t0.063s\n?   \tgithub.com/ehrlich-b/ngn/internal/oracle\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/uci\t0.059s\n"
+    },
+    "full-race.log": {
+      "sha256": "b54381bfd5d1e0448c597bf4e542ff476dfa26c58e52081bf5157e4639182b07",
+      "tail": "cal-test\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/test-harness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/trace_move\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/cmd/zzbias\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/engine\t171.387s\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-ep-repetition-correctness\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/experiments/2026-10-01-rodent-pv-identity-probe\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/claim\t1.455s\nok  \tgithub.com/ehrlich-b/ngn/internal/datagen\t2.029s\n?   \tgithub.com/ehrlich-b/ngn/internal/history\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/ngnp\t1.521s\n?   \tgithub.com/ehrlich-b/ngn/internal/oracle\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]\n?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]\nok  \tgithub.com/ehrlich-b/ngn/internal/uci\t1.112s\n"
+    },
+    "vet.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tail": ""
+    }
+  },
+  "source": {
+    "engine/ngnn4_kernels_amd64.s": "bba8bdba2ce5cf7ba80b9eb59d4dd28807d0f98d94d452cc77a9960eab6a201c",
+    "engine/ngnn4_kernels_test.go": "631554f0fe1726c0c02ccb1e9b5411bc4a1eb44f9b94ec0ccc3af7da701d40b1"
+  },
+  "events": [
+    {
+      "utc": "2026-10-09T00:44:30.665199+00:00",
+      "stage": "ngnn4-affine",
+      "event": "start",
+      "detail": "pid 630484; CPU 13,15 tests then CPU 13 identity/timing; live jobs untouched"
+    },
+    {
+      "utc": "2026-10-09T00:44:50.239609+00:00",
+      "stage": "ngnn4-affine",
+      "event": "differential-pass",
+      "detail": "NGNN4 guarded pack/affine/scalar and 320 H512 integer parity controls"
+    },
+    {
+      "utc": "2026-10-09T00:51:42.483457+00:00",
+      "stage": "ngnn4-affine",
+      "event": "tests-pass",
+      "detail": "engine short/race, full short/race and engine vet"
+    },
+    {
+      "utc": "2026-10-09T00:52:12.286298+00:00",
+      "stage": "ngnn4-affine",
+      "event": "timing-start",
+      "detail": "48 identities then 20 AB/BA blocks; CPU 13; SPSA and GPU feed stay active"
+    }
+  ]
+}

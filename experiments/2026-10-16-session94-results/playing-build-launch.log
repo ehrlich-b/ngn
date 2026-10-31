@@ -1,0 +1,7 @@
+Running as unit: ngn-s94-playing-build.service; invocation ID: 6337d7a5e8cb4cd0a905755176204be3
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 92ms
+CPU time consumed: 99ms
+Memory peak: 292.0K
+Memory swap peak: 0B

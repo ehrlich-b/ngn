@@ -1,0 +1,213 @@
+--- a/engine/ngnn4.go
++++ b/engine/ngnn4.go
+@@ -43,7 +43,7 @@
+ 	var input [2 * ngnn1MaxHidden]uint8
+ 	ngnn4PackInput(input[:2*n.hidden], us, them)
+ 	start := bucket * n.hidden2
+-	ngnn4Linear(hidden[:n.hidden2], input[:2*n.hidden], n.packed2[start*2*n.hidden:(start+n.hidden2)*2*n.hidden])
++	ngnn4LinearRows(hidden[:n.hidden2], input[:2*n.hidden], n.layer2[start*2*n.hidden:(start+n.hidden2)*2*n.hidden])
+ 	sum := ngnn4Output(hidden[:n.hidden2], n.bias2[start:start+n.hidden2], n.output[start:start+n.hidden2])
+ 	bias := n.outputBias
+ 	if bucket > 0 {
+@@ -81,3 +81,15 @@
+ 		dst[j] = sum
+ 	}
+ }
++
++// Natural serialized rows also support a contiguous-input AVX2 dot. Each
++// partial sum and its reduction fit int32 under the format's weight bound.
++func ngnn4LinearRowsGo(dst []int32, input []uint8, weights []int8) {
++	for j := range dst {
++		var sum int32
++		for i, x := range input {
++			sum += int32(x) * int32(weights[j*len(input)+i])
++		}
++		dst[j] = sum
++	}
++}
+--- a/engine/ngnn4_kernels_amd64.go
++++ b/engine/ngnn4_kernels_amd64.go
+@@ -10,6 +10,13 @@
+ //go:noescape
+ func ngnn4Linear(dst []int32, input []uint8, weights []int8)
+ 
++// Four natural weight rows share a 32-byte input load. All input lengths are
++// multiples of 32; L is 16..64 in multiples of 16. Operands are disjoint.
++// The same unsigned-input/signed-weight pair and complete-dot bounds apply.
++//
++//go:noescape
++func ngnn4LinearRows(dst []int32, input []uint8, weights []int8)
++
+ // Clamp int32 lanes before packing; arbitrary int32 endpoints are supported.
+ // Both perspectives have the validated H, a multiple of 16. dst is disjoint.
+ //
+--- a/engine/ngnn4_kernels_amd64.s
++++ b/engine/ngnn4_kernels_amd64.s
+@@ -1,6 +1,68 @@
+ //go:build amd64 && amd64.v3 && !purego && !race
+ 
+ #include "textflag.h"
++
++// Four independent row dots share each 32-byte input vector. Pair saturation
++// cannot occur at +/-64 weights. Lane sums and horizontal reductions are
++// bounded by the full absolute dot (66,846,720), so reassociation is exact.
++TEXT ·ngnn4LinearRows(SB), NOSPLIT, $0-72
++	MOVQ dst_base+0(FP), DI
++	MOVQ dst_len+8(FP), CX
++	MOVQ input_len+32(FP), R12
++	MOVQ weights_base+48(FP), R8
++	MOVL $0x00010001, AX
++	MOVD AX, X5
++	VPBROADCASTD X5, Y5
++Rows_outputs:
++	LEAQ (R8)(R12*1), R9
++	LEAQ (R9)(R12*1), R10
++	LEAQ (R10)(R12*1), R11
++	MOVQ input_base+24(FP), SI
++	MOVQ R12, DX
++	VPXOR Y0, Y0, Y0
++	VPXOR Y1, Y1, Y1
++	VPXOR Y2, Y2, Y2
++	VPXOR Y3, Y3, Y3
++Rows_inputs:
++	VMOVDQU (SI), Y4
++	VPMADDUBSW (R8), Y4, Y6
++	VPMADDWD Y5, Y6, Y6
++	VPADDD Y6, Y0, Y0
++	VPMADDUBSW (R9), Y4, Y6
++	VPMADDWD Y5, Y6, Y6
++	VPADDD Y6, Y1, Y1
++	VPMADDUBSW (R10), Y4, Y6
++	VPMADDWD Y5, Y6, Y6
++	VPADDD Y6, Y2, Y2
++	VPMADDUBSW (R11), Y4, Y6
++	VPMADDWD Y5, Y6, Y6
++	VPADDD Y6, Y3, Y3
++	ADDQ $32, SI
++	ADDQ $32, R8
++	ADDQ $32, R9
++	ADDQ $32, R10
++	ADDQ $32, R11
++	SUBQ $32, DX
++	JNZ Rows_inputs
++	// Reduce each eight-lane partial sum, then pack the four scalar dots.
++	VEXTRACTI128 $1, Y0, X4
++	VPADDD X4, X0, X0
++	VEXTRACTI128 $1, Y1, X4
++	VPADDD X4, X1, X1
++	VEXTRACTI128 $1, Y2, X4
++	VPADDD X4, X2, X2
++	VEXTRACTI128 $1, Y3, X4
++	VPADDD X4, X3, X3
++	VPHADDD X1, X0, X0
++	VPHADDD X3, X2, X2
++	VPHADDD X2, X0, X0
++	VMOVDQU X0, (DI)
++	MOVQ R11, R8
++	ADDQ $16, DI
++	SUBQ $4, CX
++	JNZ Rows_outputs
++	VZEROUPPER
++	RET
+ 
+ // Signed division toward zero: (x + ((x >> 31) & 63)) >> 6.
+ // Adding the correction cannot overflow int32 because it is zero for x>=0.
+--- a/engine/ngnn4_kernels_generic.go
++++ b/engine/ngnn4_kernels_generic.go
+@@ -10,6 +10,10 @@
+ 	ngnn4LinearGo(dst, input, weights)
+ }
+ 
++func ngnn4LinearRows(dst []int32, input []uint8, weights []int8) {
++	ngnn4LinearRowsGo(dst, input, weights)
++}
++
+ func ngnn4PackInput(dst []uint8, us, them []int32) {
+ 	ngnn4PackInputGo(dst, us, them)
+ }
+--- /dev/null
++++ b/engine/ngnn4_rows_test.go
+@@ -0,0 +1,83 @@
++package engine
++
++import (
++	"math/rand"
++	"reflect"
++	"testing"
++)
++
++func TestNGNN4RowAffineDifferential(t *testing.T) {
++	rng := rand.New(rand.NewSource(2026100922))
++	for h := 16; h <= ngnn1MaxHidden; h += 16 {
++		for _, l := range []int{16, 32, 48, 64} {
++			width := 2 * h
++			inputStore := make([]uint8, width+11)
++			weightStore := make([]int8, l*width+13)
++			dstStore := make([]int32, l+7)
++			for i := range inputStore {
++				inputStore[i] = 173
++			}
++			for i := range weightStore {
++				weightStore[i] = 127
++			}
++			for i := range dstStore {
++				dstStore[i] = 0x12345678
++			}
++			input := inputStore[3 : 3+width]
++			weights := weightStore[5 : 5+l*width]
++			dst := dstStore[1 : 1+l]
++			for i := range input {
++				input[i] = uint8(rng.Intn(256))
++			}
++			for i := range weights {
++				weights[i] = int8(rng.Intn(129) - 64)
++			}
++			// Cover reinforcing signed extrema, lane cancellation and row order
++			// at every width over the sweep. H=2048 reaches the full dot bound.
++			if h%64 == 0 || h%64 == 16 {
++				for i := range input {
++					input[i] = 255
++				}
++				for j := 0; j < l; j++ {
++					for i := 0; i < width; i++ {
++						w := int8(64)
++						if j%2 != 0 {
++							w = -64
++						}
++						if h%64 == 16 && (i/2)%2 != 0 {
++							w = -w
++						}
++						weights[j*width+i] = w
++					}
++				}
++			}
++			beforeInput := append([]uint8(nil), inputStore...)
++			beforeWeights := append([]int8(nil), weightStore...)
++			want := make([]int32, l)
++			for j := range want {
++				var sum int64
++				for i, x := range input {
++					sum += int64(x) * int64(weights[j*width+i])
++				}
++				want[j] = int32(sum)
++			}
++			ngnn4LinearRows(dst, input, weights)
++			if !reflect.DeepEqual(dst, want) {
++				t.Fatalf("row affine backend=%s H=%d L=%d got=%v want=%v", ngnn1KernelBackend, h, l, dst, want)
++			}
++			portable := make([]int32, l)
++			ngnn4LinearRowsGo(portable, input, weights)
++			if !reflect.DeepEqual(portable, want) {
++				t.Fatalf("portable row affine H=%d L=%d", h, l)
++			}
++			if !reflect.DeepEqual(inputStore, beforeInput) || !reflect.DeepEqual(weightStore, beforeWeights) {
++				t.Fatal("row affine changed input or weight guards")
++			}
++			for _, x := range append(append([]int32(nil), dstStore[:1]...), dstStore[1+l:]...) {
++				if x != 0x12345678 {
++					t.Fatal("row affine changed destination guard")
++				}
++			}
++		}
++	}
++}

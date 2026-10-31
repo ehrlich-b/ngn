@@ -1,0 +1,15 @@
+2026-10-10T06:40:45-04:00
+               total        used        free      shared  buff/cache   available
+Mem:            15Gi       4.0Gi       8.7Gi       3.7Mi       2.8Gi        11Gi
+Swap:          4.0Gi        23Mi       4.0Gi
+utilization.gpu [%], memory.used [MiB], memory.total [MiB]
+0 %, 1522 MiB, 16303 MiB
+   1170    09:29:19  0.3 18096 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+   3465    03:29:43  0.0  3456 bash /home/ehrli/ngn-data/night-20261007/session39-provenance-batch/controller.sh
+   4007    01:38:55  0.0  3456 bash /home/ehrli/ngn-data/night-20261007/session39-ngnn4-key-games/controller.sh
+   7300       45:38  0.0  3200 /usr/bin/bash coverage.sh
+   9954       00:00  0.0  5956 rg hopper.py|session39.*controller.sh|session42.*controller.sh|coverage.sh
+{"utc": "2026-10-10T10:18:56.407070+00:00", "stage": "session41-dual-perspective", "event": "end", "detail": "rc 0; review fixed speed verdict before adoption; no extension"}
+{"utc": "2026-10-10T10:37:23.313895+00:00", "stage": "session42-capture-perspective", "event": "architecture-wait", "detail": "native wait for4007 to release13,15; no gate log polling"}
+{"utc": "2026-10-10T10:40:11.306187+00:00", "stage": "session42-capture-perspective", "event": "end", "detail": "rc 0; review fixed speed verdict before adoption; no extension"}
+{"utc": "2026-10-10T10:40:11.371227+00:00", "stage": "session42-capture-perspective", "event": "architecture-wait", "detail": "native wait for4007 to release13,15; no gate log polling"}

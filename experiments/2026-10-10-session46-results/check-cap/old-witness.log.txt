@@ -1,0 +1,8 @@
+=== RUN   TestCheckExtensionCapChildDepth
+=== RUN   TestCheckExtensionCapChildDepth/depth7
+    search_check_cap_test.go:31: live checking child depth=7 hit=true, want 6
+--- FAIL: TestCheckExtensionCapChildDepth (0.00s)
+    --- FAIL: TestCheckExtensionCapChildDepth/depth7 (0.00s)
+FAIL
+FAIL	github.com/ehrlich-b/ngn/engine	0.011s
+FAIL

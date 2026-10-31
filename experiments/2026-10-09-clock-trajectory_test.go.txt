@@ -1,0 +1,173 @@
+package engine
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"reflect"
+	"strconv"
+	"testing"
+	"time"
+)
+
+// Account for the elapsed move before awarding Fischer increment. An increment
+// cannot rescue a move that already used up the player's bank.
+func trajectoryBankAfterMove(bank, spent, increment time.Duration) (time.Duration, bool) {
+	if spent >= bank {
+		return bank - spent, false
+	}
+	return bank - spent + increment, true
+}
+
+func TestCampaignTrajectoryBankAccounting(t *testing.T) {
+	for _, test := range []struct {
+		bank, spent, increment, want time.Duration
+		alive                        bool
+	}{
+		{120 * time.Second, 8 * time.Second, time.Second, 113 * time.Second, true},
+		{time.Second, time.Second, time.Second, 0, false},
+		{time.Second, 1100 * time.Millisecond, time.Second, -100 * time.Millisecond, false},
+	} {
+		got, alive := trajectoryBankAfterMove(test.bank, test.spent, test.increment)
+		if got != test.want || alive != test.alive {
+			t.Fatalf("bank=%v spent=%v: got %v/%v, want %v/%v", test.bank, test.spent, got, alive, test.want, test.alive)
+		}
+	}
+}
+
+// This opt-in diagnostic plays a complete self-play trajectory at 120+1.
+// It mirrors UCI's persistent per-side TimeManager, setup order, root copying,
+// callback and predecessor state. In particular, do not update the game state
+// before SetTimeControlAt: that would silently test a different allocator.
+// These games diagnose bank use and discarded iterations, never playing strength.
+func TestCampaignClockTrajectory(t *testing.T) {
+	netPath := os.Getenv("NGN_CLOCK_TRAJECTORY_NET")
+	if netPath == "" {
+		t.Skip("opt-in WSL clock diagnostic")
+	}
+	caseID, err := strconv.Atoi(os.Getenv("NGN_CLOCK_TRAJECTORY_CASE"))
+	if err != nil || caseID < 0 || caseID > 1 {
+		t.Fatal("NGN_CLOCK_TRAJECTORY_CASE must be 0 or 1")
+	}
+	variant := os.Getenv("NGN_CLOCK_TRAJECTORY_VARIANT")
+	fixtures := []string{
+		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+		"r1bq1rk1/ppp2ppp/2np1n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 4 6",
+	}
+	position, err := ParseFEN(fixtures[caseID])
+	if err != nil {
+		t.Fatal(err)
+	}
+	network, err := LoadNGNN1(netPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var players [2]*SearchEngine
+	var managers [2]*TimeManager
+	for side := range players {
+		players[side], err = NewSearchEngineWithHash(64)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err = players[side].ConfigureThreads(1); err != nil {
+			t.Fatal(err)
+		}
+		if err = players[side].SelectNGNN1Evaluator(network); err != nil {
+			t.Fatal(err)
+		}
+		managers[side] = newUCITimeManager()
+	}
+	banks := [2]time.Duration{120 * time.Second, 120 * time.Second}
+	lastScores := [2]int{}
+	previousMove := EmptyMove
+	maxPly := 160
+	reason, played := "ply-cap", 0
+	emit := func(kind string, row map[string]interface{}) {
+		row["variant"], row["case"], row["kind"] = variant, caseID, kind
+		encoded, err := json.Marshal(row)
+		if err != nil {
+			t.Fatal(err)
+		}
+		fmt.Println("CLOCKTRAJECTORY " + string(encoded))
+	}
+	for ply := 0; ply < maxPly; ply++ {
+		legalMoves := GenerateLegalMoves(position)
+		if len(legalMoves) == 0 {
+			reason = "stalemate"
+			if isInCheck(position, position.Turn()) {
+				reason = "checkmate"
+			}
+			break
+		}
+		if position.IsFIDEDrawRule() || position.IsDraw() {
+			reason = "draw-rule"
+			break
+		}
+		stm := position.Turn()
+		searcher, tm := players[stm], managers[stm]
+		searcher.ClearStop()
+		searcher.SetLastMovePlayed(previousMove)
+		var observer searchTerminationObserver
+		tm.setSearchTerminationObserver(&observer)
+		// Include legal fallback generation and root copying in the move's clock.
+		start := time.Now()
+		legalMoves = GenerateLegalMoves(position)
+		movesBeforeSetup, phaseBeforeSetup := tm.movesPlayed, tm.gamePhase
+		tm.SetTimeControlAt(SearchParams{
+			WhiteTime: int(banks[White] / time.Millisecond), BlackTime: int(banks[Black] / time.Millisecond),
+			WhiteInc: 1000, BlackInc: 1000,
+		}, stm == White, start)
+		tm.UpdateGameState(ply, lastScores[stm], lastScores[stm], position)
+		root := position.Copy()
+		before := snapshotPVPosition(root)
+		result := searcher.SearchIterativeDeepeningWithCallback(root, MaximumDepth, tm, func(info *SearchInfo) {
+			// Match UCI's current score update order, including its zero score delta.
+			tm.UpdateGameState(ply, info.BestScore, info.BestScore, root)
+		})
+		spent := time.Since(start)
+		if got := snapshotPVPosition(root); !reflect.DeepEqual(got, before) {
+			t.Fatal("search changed root")
+		}
+		moveIsLegal := false
+		for _, move := range legalMoves {
+			if move == result.BestMove {
+				moveIsLegal = true
+				break
+			}
+		}
+		if !moveIsLegal || observer.FirstReason == searchTerminationNone || observer.IterationOverflow != 0 {
+			t.Fatalf("invalid search: move=%v observation=%+v", result.BestMove, observer)
+		}
+		bankBefore := banks[stm]
+		bankAfter, alive := trajectoryBankAfterMove(bankBefore, spent, time.Second)
+		lastCompleted := time.Duration(0)
+		if observer.IterationCount > 0 {
+			lastCompleted = observer.Iterations[observer.IterationCount-1].CompletedAtElapsed
+		}
+		tail := observer.FirstElapsed - lastCompleted
+		if tail < 0 {
+			t.Fatal("termination preceded last completed iteration")
+		}
+		emit("move", map[string]interface{}{
+			"ply": ply, "side": stm, "bank_before_ns": bankBefore.Nanoseconds(),
+			"spent_ns": spent.Nanoseconds(), "bank_after_ns": bankAfter.Nanoseconds(), "alive": alive,
+			"soft_ns": tm.softTime.Nanoseconds(), "hard_ns": tm.hardTime.Nanoseconds(),
+			"budget_moves_played": movesBeforeSetup, "budget_phase": phaseBeforeSetup,
+			"current_moves_played": tm.movesPlayed, "current_phase": tm.gamePhase,
+			"reason": observer.FirstReason.String(), "stop_depth": observer.FirstDepth,
+			"stop_elapsed_ns": observer.FirstElapsed.Nanoseconds(), "tail_ns": tail.Nanoseconds(),
+			"depth": result.Depth, "score": result.BestScore, "move": result.BestMove.ToString(),
+			"nodes": result.Nodes, "iterations": observer.Iterations[:observer.IterationCount],
+		})
+		if !alive {
+			t.Fatal("clock trajectory flagged before increment")
+		}
+		banks[stm], lastScores[stm], previousMove = bankAfter, result.BestScore, result.BestMove
+		_, _, _, ok := position.GameMakeMove(result.BestMove)
+		if !ok {
+			t.Fatal("legal result failed GameMakeMove")
+		}
+		played++
+	}
+	emit("game", map[string]interface{}{"plies": played, "reason": reason, "white_bank_ns": banks[White].Nanoseconds(), "black_bank_ns": banks[Black].Nanoseconds()})
+}

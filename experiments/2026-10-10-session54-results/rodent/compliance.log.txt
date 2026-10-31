@@ -1,0 +1,9 @@
+panic: node compliance failed
+
+goroutine 1 [running]:
+main.probe.func1(0xc00005f960, {0xc00005f9b0, 0x2, 0x300000002?}, 0xc00005f918, {0x7ffd0d4aa8ee?, 0xc000002380?}, 0xc00005f920, 0xc00005f930, {0xc00005f990, ...}, ...)
+	/work/lanes/ngn-s47/blackbox-current/cmd/blackboxmatch/main.go:354 +0x1112
+main.probe({0x7ffd0d4aa82e, 0x41}, {0x7ffd0d4aa87a, 0x4e}, {0xc00009e000, 0x5, 0x8}, {0xc000078480, 0x4, 0x4}, ...)
+	/work/lanes/ngn-s47/blackbox-current/cmd/blackboxmatch/main.go:362 +0x766
+main.main()
+	/work/lanes/ngn-s47/blackbox-current/cmd/blackboxmatch/main.go:172 +0xb65

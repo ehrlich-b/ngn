@@ -1,0 +1,68 @@
+{
+  "state": "DIAGNOSED",
+  "roots": 564,
+  "matched_roots": 282,
+  "summary": [
+    {
+      "hash_mb": 64,
+      "matched_roots": 129,
+      "warm_counts": {
+        "Stores": 53854711,
+        "MatchingAccepted": 15869590,
+        "MatchingRejected": 9899188,
+        "OldTouchRejected": 506883,
+        "OldPayloadRejected": 5991329,
+        "OlderPayloadRejected": 1917768,
+        "ChangedOldScore": 5823756,
+        "Hits": 79670832,
+        "OldPayloadHits": 39214976,
+        "OlderPayloadHits": 16908732,
+        "OldTouchHits": 28415808,
+        "Evictions": 3359917,
+        "CollisionRejected": 3024,
+        "MaxRejectedPayloadAge": 11,
+        "MaxHitPayloadAge": 11
+      },
+      "depth_warm_minus_cold": 181,
+      "warm_deeper": 84,
+      "cold_deeper": 24,
+      "same_depth": 21,
+      "best_move_disagreements": 36,
+      "mean_abs_score_difference": 1518.6666666666667
+    },
+    {
+      "hash_mb": 256,
+      "matched_roots": 129,
+      "warm_counts": {
+        "Stores": 54976918,
+        "MatchingAccepted": 16256325,
+        "MatchingRejected": 10427503,
+        "OldTouchRejected": 484545,
+        "OldPayloadRejected": 6547961,
+        "OlderPayloadRejected": 2872271,
+        "ChangedOldScore": 6368212,
+        "Hits": 82295068,
+        "OldPayloadHits": 40204145,
+        "OlderPayloadHits": 19754960,
+        "OldTouchHits": 28154738,
+        "Evictions": 57207,
+        "CollisionRejected": 16,
+        "MaxRejectedPayloadAge": 11,
+        "MaxHitPayloadAge": 11
+      },
+      "depth_warm_minus_cold": 107,
+      "warm_deeper": 69,
+      "cold_deeper": 35,
+      "same_depth": 25,
+      "best_move_disagreements": 32,
+      "mean_abs_score_difference": 1329.4418604651162
+    }
+  ],
+  "identity": {
+    "passed": true,
+    "roots": 96,
+    "node_cap": 100000
+  },
+  "interpretation": "Persistent current-owned TT versus empty TT, identical root/history/node budget; no correctness, speed, Elo or policy verdict. Payload age is diagnostic metadata, not a proposed retention rule.",
+  "finished_utc": "2026-10-16T08:22:16.880177+00:00"
+}

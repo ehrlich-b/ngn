@@ -1,0 +1,512 @@
+{
+  "revision": "b1c404a3b265bd970972473b2bf0ab699b74e762",
+  "clean_revision": "d33f663998ca2766d795531bbaa8c73d4a417509",
+  "go": "go version go1.25.5 linux/amd64",
+  "GOAMD64": "v3",
+  "assembly_files": "[ngnn1_kernels_amd64.s]",
+  "checks": {
+    "vet": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "short": {
+      "sha256": "ab90cad2ca98775df25078103a82fe61e7b6bffa663f1451cec76410ac31b35c",
+      "bytes": 2302
+    },
+    "race": {
+      "sha256": "c42828c73c549f9ec0c3aaab864ab5fb1086fc2e9902920c6b7957330fdcfa91",
+      "bytes": 452
+    },
+    "exact": {
+      "sha256": "df9bc6ecfdf2ac898f77b74992424a2ad0d440128b57f6f3ed3aa5eca00766e5",
+      "bytes": 30789
+    },
+    "purego": {
+      "sha256": "6fb9520b691346c8b924a3b3b7d4330edb37c6eaa208db144c22a8dd43638733",
+      "bytes": 44
+    },
+    "trainer": {
+      "sha256": "757f39ce6a04bd2562dd8a3951c7e7aa0fdb6efd968cc15d928bc1726f8065ef",
+      "bytes": 1633
+    },
+    "hce-merged": {
+      "sha256": "61d61780c9d215f4b83e05abc45b2183da66b75d15b76285e895f8d76c88ed55",
+      "bytes": 44
+    },
+    "hce-clean": {
+      "sha256": "18f4b92bdc6bee8d6c2d5864daaee9192093120a789909c2c2572583b72b04ff",
+      "bytes": 44
+    },
+    "build-engine": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "build-sprt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "build-datagen": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "match_hce": {
+      "timed_searches": 12563,
+      "median_nps": 1468925,
+      "sum_nodes_over_time_nps": 1451166
+    },
+    "match_nnue": {
+      "timed_searches": 12603,
+      "median_nps": 1780588,
+      "sum_nodes_over_time_nps": 1757408
+    }
+  },
+  "hce_dump_sha256": "d6367e6c8610fce295ba67b71d10b945918099a28d293545e505c79b649374d8",
+  "hce_identity": [
+    {
+      "backend": "hce",
+      "best_move": "b1c3",
+      "depth": 4,
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "hash": "dc691cf3dd38d037",
+      "nodes": 1184,
+      "perft": {
+        "Depth": 3,
+        "Nodes": 8902,
+        "Captures": 0,
+        "EnPassant": 0,
+        "Castles": 0,
+        "Promotions": 0,
+        "Checks": 0,
+        "Checkmates": 0
+      },
+      "score": 10,
+      "static": 10
+    },
+    {
+      "backend": "hce",
+      "best_move": "e2a6",
+      "depth": 4,
+      "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+      "hash": "23d703f71ac6e2df",
+      "nodes": 4620,
+      "perft": {
+        "Depth": 3,
+        "Nodes": 97862,
+        "Captures": 0,
+        "EnPassant": 0,
+        "Castles": 0,
+        "Promotions": 0,
+        "Checks": 0,
+        "Checkmates": 0
+      },
+      "score": 23,
+      "static": 13
+    },
+    {
+      "backend": "hce",
+      "best_move": "f1f3",
+      "depth": 4,
+      "fen": "5k2/8/8/8/8/5q2/8/4KR2 w - - 0 1",
+      "hash": "726138cf51b8eaac",
+      "nodes": 274,
+      "perft": {
+        "Depth": 3,
+        "Nodes": 813,
+        "Captures": 0,
+        "EnPassant": 0,
+        "Castles": 0,
+        "Promotions": 0,
+        "Checks": 0,
+        "Checkmates": 0
+      },
+      "score": 554,
+      "static": -442
+    },
+    {
+      "backend": "hce",
+      "best_move": "b4f4",
+      "depth": 4,
+      "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+      "hash": "1bbefabe3be1eba5",
+      "nodes": 553,
+      "perft": {
+        "Depth": 3,
+        "Nodes": 2812,
+        "Captures": 0,
+        "EnPassant": 0,
+        "Castles": 0,
+        "Promotions": 0,
+        "Checks": 0,
+        "Checkmates": 0
+      },
+      "score": 120,
+      "static": -9
+    },
+    {
+      "backend": "hce",
+      "best_move": "a7a8q",
+      "depth": 4,
+      "fen": "4k3/P7/8/8/8/8/7p/4K3 w - - 0 1",
+      "hash": "305e504e18dc079f",
+      "nodes": 387,
+      "perft": {
+        "Depth": 3,
+        "Nodes": 699,
+        "Captures": 0,
+        "EnPassant": 0,
+        "Castles": 0,
+        "Promotions": 0,
+        "Checks": 0,
+        "Checkmates": 0
+      },
+      "score": 950,
+      "static": 10
+    },
+    {
+      "backend": "hce",
+      "best_move": "e1d2",
+      "depth": 4,
+      "fen": "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1",
+      "hash": "de18d6ac1e570be9",
+      "nodes": 332,
+      "perft": {
+        "Depth": 3,
+        "Nodes": 276,
+        "Captures": 0,
+        "EnPassant": 0,
+        "Castles": 0,
+        "Promotions": 0,
+        "Checks": 0,
+        "Checkmates": 0
+      },
+      "score": 17,
+      "static": 21
+    }
+  ],
+  "net_sha256": "3c6973541ea70ccbbdc82e1eb282e7f967c300be99f7e9ed513a49da286d77e5",
+  "binaries": {
+    "ngn-avx2": "27a7ef1bbfcf67143e8962af95ac27c91879fcee522a5b04d66142b0e3b15768",
+    "sprt": "08e5702d9168401ed081e2abf540eba7e35738d19bc478670cea49037aec5be0",
+    "datagen": "59fc3b950adeec328224712b56457121ce90aea883b3be303754e38a7f85c617"
+  },
+  "datagen": {
+    "format": "NGNP1",
+    "engine_commit": "b1c404a3b265bd970972473b2bf0ab699b74e762",
+    "binary_sha256": "59fc3b950adeec328224712b56457121ce90aea883b3be303754e38a7f85c617",
+    "net_sha256": "3c6973541ea70ccbbdc82e1eb282e7f967c300be99f7e9ed513a49da286d77e5",
+    "settings": {
+      "net": "/home/ehrli/ngn-data/nets/pilot-h256/pilot-h256.nnue",
+      "seed": 1,
+      "games": 1,
+      "nodes": 512,
+      "random_plies": 0,
+      "maxply": 12,
+      "hash_mb": 1,
+      "verification_nodes": 1000,
+      "opening_limit_cp": 400,
+      "win_cp": 2000,
+      "win_plies": 6,
+      "draw_cp": 8,
+      "draw_plies": 12,
+      "draw_min_ply": 80
+    },
+    "seed": 1,
+    "started_at": "2026-10-05T23:42:40.100716669Z",
+    "closed_at": "2026-10-05T23:42:40.108716556Z",
+    "elapsed_seconds": 0.007999887,
+    "closed": true,
+    "status": "complete",
+    "games": 1,
+    "positions": 10,
+    "game_plies": 12,
+    "game_results": [
+      0,
+      1,
+      0
+    ],
+    "attempts": 1,
+    "rejected_openings": 0,
+    "dropped_games": 0,
+    "searches": 13,
+    "search_nodes": 7144,
+    "early_searches": 0,
+    "unscored_searches": 0,
+    "filtered": {
+      "capture": 2
+    },
+    "terminations": {
+      "maxply": 1
+    },
+    "bytes": 320,
+    "sha256": "b127a7a98ff67961bbe1d6225f4b9223b55d4987b347ccd65691203c05bbc34c"
+  },
+  "datagen_invalid_error": "datagen: load -net: NGNN1 header: unexpected EOF",
+  "nps": [
+    {
+      "position": "kiwipete",
+      "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+      "backend": "hce",
+      "cpu": 14,
+      "hash_mb": 16,
+      "move_overhead_ms": 0,
+      "load_start": [
+        2.689453125,
+        1.2890625,
+        0.51025390625
+      ],
+      "depth": 19,
+      "nodes": 12554596,
+      "time": 8203,
+      "nps": 1255426,
+      "reported_nps": 1251734,
+      "elapsed_s": 10.0003,
+      "bestmove": "e2a6",
+      "child_cpu_s": 10.08,
+      "cpu_nps": 1245496
+    },
+    {
+      "position": "kiwipete",
+      "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+      "backend": "nnue",
+      "cpu": 14,
+      "hash_mb": 16,
+      "move_overhead_ms": 0,
+      "load_start": [
+        2.5830078125,
+        1.31298828125,
+        0.52685546875
+      ],
+      "depth": 21,
+      "nodes": 16158218,
+      "time": 7275,
+      "nps": 1615753,
+      "reported_nps": 1624203,
+      "elapsed_s": 10.0004,
+      "bestmove": "e2a6",
+      "child_cpu_s": 9.98,
+      "cpu_nps": 1619060
+    },
+    {
+      "position": "italian",
+      "fen": "r1bq1rk1/ppp2ppp/2np1n2/2b1p3/2B1P3/2PP1N2/PP3PPP/RNBQ1RK1 w - - 2 7",
+      "backend": "nnue",
+      "cpu": 14,
+      "hash_mb": 16,
+      "move_overhead_ms": 0,
+      "load_start": [
+        2.57373046875,
+        1.3525390625,
+        0.548828125
+      ],
+      "depth": 22,
+      "nodes": 18325553,
+      "time": 7283,
+      "nps": 1832495,
+      "reported_nps": 1871456,
+      "elapsed_s": 10.0003,
+      "bestmove": "d3d4",
+      "child_cpu_s": 9.95,
+      "cpu_nps": 1841764
+    },
+    {
+      "position": "italian",
+      "fen": "r1bq1rk1/ppp2ppp/2np1n2/2b1p3/2B1P3/2PP1N2/PP3PPP/RNBQ1RK1 w - - 2 7",
+      "backend": "hce",
+      "cpu": 14,
+      "hash_mb": 16,
+      "move_overhead_ms": 0,
+      "load_start": [
+        2.48486328125,
+        1.37451171875,
+        0.564453125
+      ],
+      "depth": 21,
+      "nodes": 11672545,
+      "time": 5883,
+      "nps": 1167206,
+      "reported_nps": 1164736,
+      "elapsed_s": 10.0004,
+      "bestmove": "a2a4",
+      "child_cpu_s": 10.07,
+      "cpu_nps": 1159141
+    },
+    {
+      "position": "queens-gambit",
+      "fen": "r2q1rk1/pb1nbpp1/1p2pn1p/2pp4/2PP3B/2NBPN2/PPQ2PPP/R4RK1 w - - 0 11",
+      "backend": "hce",
+      "cpu": 14,
+      "hash_mb": 16,
+      "move_overhead_ms": 0,
+      "load_start": [
+        2.564453125,
+        1.4287109375,
+        0.5908203125
+      ],
+      "depth": 20,
+      "nodes": 11840118,
+      "time": 8544,
+      "nps": 1183967,
+      "reported_nps": 1178490,
+      "elapsed_s": 10.0004,
+      "bestmove": "a1d1",
+      "child_cpu_s": 9.94,
+      "cpu_nps": 1191159
+    },
+    {
+      "position": "queens-gambit",
+      "fen": "r2q1rk1/pb1nbpp1/1p2pn1p/2pp4/2PP3B/2NBPN2/PPQ2PPP/R4RK1 w - - 0 11",
+      "backend": "nnue",
+      "cpu": 14,
+      "hash_mb": 16,
+      "move_overhead_ms": 0,
+      "load_start": [
+        2.859375,
+        1.5302734375,
+        0.63330078125
+      ],
+      "depth": 24,
+      "nodes": 17704452,
+      "time": 7416,
+      "nps": 1770373,
+      "reported_nps": 1793359,
+      "elapsed_s": 10.0004,
+      "bestmove": "c4d5",
+      "child_cpu_s": 9.95,
+      "cpu_nps": 1779342
+    }
+  ],
+  "match": {
+    "games": 200,
+    "wins": 104,
+    "draws": 47,
+    "losses": 49,
+    "score": 0.6375,
+    "elo": 98.1,
+    "paired_95_ci": [
+      63,
+      135
+    ],
+    "wilson_95_ci": [
+      48,
+      148
+    ],
+    "pentanomial": [
+      2,
+      9,
+      41,
+      28,
+      20
+    ],
+    "pairs": 100,
+    "wall_seconds": 1532.6,
+    "exit": 0,
+    "start_utc": "2026-10-05T23:44:10Z",
+    "end_utc": "2026-10-06T00:09:42Z",
+    "command": [
+      "/home/ehrli/ngn-data/int-avx2-20261005/sprt",
+      "-new",
+      "/home/ehrli/ngn-data/int-avx2-20261005/run-nnue",
+      "-base",
+      "/home/ehrli/ngn-data/int-avx2-20261005/run-hce",
+      "-tc",
+      "10+0.1",
+      "-concurrency",
+      "4",
+      "-maxgames",
+      "200",
+      "-mingames",
+      "201",
+      "-gametimeout",
+      "120",
+      "-lowpower=false",
+      "-openings",
+      "/home/ehrli/ngn-data/int-avx2-20261005/openings.txt",
+      "-newoption",
+      "EvalFile=/home/ehrli/ngn-data/nets/pilot-h256/pilot-h256.nnue",
+      "-newoption",
+      "UseNNUE=true",
+      "-newoption",
+      "OwnBook=false",
+      "-newoption",
+      "Threads=1",
+      "-newoption",
+      "Hash=32",
+      "-baseoption",
+      "UseNNUE=false",
+      "-baseoption",
+      "OwnBook=false",
+      "-baseoption",
+      "Threads=1",
+      "-baseoption",
+      "Hash=32"
+    ],
+    "sha256": "8bee21af4b0a31e74da68d01174d300cececf25d8a17e488acecb1d6a06a40e5",
+    "opening_sha256": "cc2e8f06c9a8a305941bfcefa64372e16f7c51e009e79f52870896984b887708",
+    "end_reasons": {
+      "checkmate": 153,
+      "draw-rule": 22,
+      "max-moves": 25
+    },
+    "nnue_time_losses": 0,
+    "hce_time_losses": 0,
+    "integrity": {
+      "watchdog_voids": 0,
+      "uci_configuration_errors": 0,
+      "panic_records": 0,
+      "crash_or_illegal_reports": 0
+    },
+    "remaining_processes": [],
+    "transcripts": [
+      {
+        "file": "uci-hce-14382.log",
+        "sha256": "79a1c972f754e8ce48ef08f081d5f126873cb11d563a111645d5ffde92251811",
+        "bytes": 5857273,
+        "timed_searches": 3093
+      },
+      {
+        "file": "uci-hce-14383.log",
+        "sha256": "b6295498e9bcf38cce952ff0778329b32630f39ff9d7874b5a40828be63dc547",
+        "bytes": 6120261,
+        "timed_searches": 3155
+      },
+      {
+        "file": "uci-hce-14384.log",
+        "sha256": "5062299b2c226d4bb56d43b437ffd1ce42f300c55605761ce75f461c0c512dd4",
+        "bytes": 5929636,
+        "timed_searches": 3203
+      },
+      {
+        "file": "uci-hce-14386.log",
+        "sha256": "d98530f43d05888c9b29a82be520801eb71805e27fbc00c716e361a958809ce8",
+        "bytes": 5990796,
+        "timed_searches": 3112
+      },
+      {
+        "file": "uci-nnue-14349.log",
+        "sha256": "b77635b9f2ba00769fd1d6be1172a3de803e93f5677c17d7de0cf00039624b9a",
+        "bytes": 6210188,
+        "timed_searches": 3107
+      },
+      {
+        "file": "uci-nnue-14350.log",
+        "sha256": "39680dfaa01c2ad2a0b0a510bdadfb9f3b9bcfb2ebf5416a4001950552102791",
+        "bytes": 6438809,
+        "timed_searches": 3166
+      },
+      {
+        "file": "uci-nnue-14351.log",
+        "sha256": "816fb67bbe3ddb088009145877ff6c385787946982ade1373e73c967c00a59ff",
+        "bytes": 6337256,
+        "timed_searches": 3112
+      },
+      {
+        "file": "uci-nnue-14353.log",
+        "sha256": "4982d629f587c7050cc1ed2292f5c572b373306be8715fc54a7085c6ec8459b6",
+        "bytes": 6323717,
+        "timed_searches": 3218
+      }
+    ]
+  },
+  "output_directory": "/home/ehrli/ngn-data/int-avx2-20261005",
+  "output_bytes": 60426798
+}

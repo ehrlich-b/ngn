@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed same-code NGN HCE versus NGN-v1 candidate match runner."""
+"""Fail-closed same-code HCE versus exact NGN-network candidate match runner."""
 from __future__ import annotations
 
 import argparse
@@ -34,6 +34,12 @@ SOURCE_KEYS = (
     "match_stage", "trace_auditor", "role_exec", "chess_auditor",
 )
 DEFAULT_BOOK_PATHS = ("book.bin", "opening.bin", "openings.bin", "book/book.bin", "book/opening.bin")
+
+
+def budget_options(match: dict[str, Any]) -> list[str]:
+    if "node_limit" in match:
+        return [f"nodes={match['node_limit']}"]
+    return [f"tc={match['time_control']}", "timemargin=0"]
 
 
 def write_state(output: Path, state: str, **extra: Any) -> None:
@@ -307,7 +313,7 @@ def main() -> int:
             command.extend(f"option.{option['name']}={option['value']}" for option in item["options"])
         command.extend([
             "-openings", f"file={frozen_openings}", "format=pgn", "order=sequential", "start=1", f"plies={match['opening_plies']}",
-            "-each", f"tc={match['time_control']}", "timemargin=0",
+            "-each", *budget_options(match),
             "-rounds", str(match["pairs"]), "-games", "2", "-repeat", "-concurrency", str(match["concurrency"]),
             "-use-affinity", ",".join(str(cpu) for cpu in match["affinity_cpus"]),
             "-srand", str(match["seed"]), "-strict", "-show-latency",

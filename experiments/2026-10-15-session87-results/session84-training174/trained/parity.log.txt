@@ -1,0 +1,5 @@
+=== RUN   TestNGNN3TrainerParity
+    ngnn3_test.go:461: 20 exact trainer cases, H=512 KB=8 NB=8 kernel=avx2
+--- PASS: TestNGNN3TrainerParity (0.02s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.021s

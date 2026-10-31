@@ -1,0 +1,60 @@
+=== RUN   TestSMPConsensusCompletedGroups
+=== RUN   TestSMPConsensusCompletedGroups/two-deeper-votes
+=== RUN   TestSMPConsensusCompletedGroups/same-depth-lowest-index
+=== RUN   TestSMPConsensusCompletedGroups/primary-group-tie
+=== RUN   TestSMPConsensusCompletedGroups/helper-groups-tie
+=== RUN   TestSMPConsensusCompletedGroups/shallower-vote-excluded
+=== RUN   TestSMPConsensusCompletedGroups/partial-empty-result-excluded
+=== RUN   TestSMPConsensusCompletedGroups/no-primary-completion
+=== RUN   TestSMPConsensusCompletedGroups/illegal-votes-excluded
+=== RUN   TestSMPConsensusCompletedGroups/keep-primary-winning-mate
+=== RUN   TestSMPConsensusCompletedGroups/do-not-select-losing-mate
+=== RUN   TestSMPConsensusCompletedGroups/escape-primary-losing-mate
+=== RUN   TestSMPConsensusCompletedGroups/unanimous-winning-mate
+=== RUN   TestSMPConsensusCompletedGroups/mixed-mate-category-holds
+--- PASS: TestSMPConsensusCompletedGroups (0.00s)
+    --- PASS: TestSMPConsensusCompletedGroups/two-deeper-votes (0.00s)
+    --- PASS: TestSMPConsensusCompletedGroups/same-depth-lowest-index (0.00s)
+    --- PASS: TestSMPConsensusCompletedGroups/primary-group-tie (0.00s)
+    --- PASS: TestSMPConsensusCompletedGroups/helper-groups-tie (0.00s)
+    --- PASS: TestSMPConsensusCompletedGroups/shallower-vote-excluded (0.00s)
+    --- PASS: TestSMPConsensusCompletedGroups/partial-empty-result-excluded (0.00s)
+    --- PASS: TestSMPConsensusCompletedGroups/no-primary-completion (0.00s)
+    --- PASS: TestSMPConsensusCompletedGroups/illegal-votes-excluded (0.00s)
+    --- PASS: TestSMPConsensusCompletedGroups/keep-primary-winning-mate (0.00s)
+    --- PASS: TestSMPConsensusCompletedGroups/do-not-select-losing-mate (0.00s)
+    --- PASS: TestSMPConsensusCompletedGroups/escape-primary-losing-mate (0.00s)
+    --- PASS: TestSMPConsensusCompletedGroups/unanimous-winning-mate (0.00s)
+    --- PASS: TestSMPConsensusCompletedGroups/mixed-mate-category-holds (0.00s)
+=== RUN   TestSMPConsensusRebuildsJoinedReport
+--- PASS: TestSMPConsensusRebuildsJoinedReport (0.00s)
+=== RUN   TestLazySMPStartsPrivateWorkersAndMergesExactCounters
+--- PASS: TestLazySMPStartsPrivateWorkersAndMergesExactCounters (0.00s)
+=== RUN   TestLazySMPAdvancesAgeOnceAndNodesForcesOneWorker
+--- PASS: TestLazySMPAdvancesAgeOnceAndNodesForcesOneWorker (0.02s)
+=== RUN   TestLazySMPSetupCancellationAfterCopyAndReset
+=== RUN   TestLazySMPSetupCancellationAfterCopyAndReset/stop-after-copy
+=== RUN   TestLazySMPSetupCancellationAfterCopyAndReset/stop-after-reset
+--- PASS: TestLazySMPSetupCancellationAfterCopyAndReset (0.01s)
+    --- PASS: TestLazySMPSetupCancellationAfterCopyAndReset/stop-after-copy (0.01s)
+    --- PASS: TestLazySMPSetupCancellationAfterCopyAndReset/stop-after-reset (0.00s)
+=== RUN   TestLazySMPSetupDeadlineAfterCopyAndReset
+=== RUN   TestLazySMPSetupDeadlineAfterCopyAndReset/copy
+=== RUN   TestLazySMPSetupDeadlineAfterCopyAndReset/reset
+--- PASS: TestLazySMPSetupDeadlineAfterCopyAndReset (0.01s)
+    --- PASS: TestLazySMPSetupDeadlineAfterCopyAndReset/copy (0.00s)
+    --- PASS: TestLazySMPSetupDeadlineAfterCopyAndReset/reset (0.00s)
+=== RUN   TestLazySMPHelperCompletionDoesNotStopPrimary
+--- PASS: TestLazySMPHelperCompletionDoesNotStopPrimary (0.00s)
+=== RUN   TestLazySMPPanicCancelsAndJoins
+=== RUN   TestLazySMPPanicCancelsAndJoins/helper
+=== RUN   TestLazySMPPanicCancelsAndJoins/primary-callback
+--- PASS: TestLazySMPPanicCancelsAndJoins (0.01s)
+    --- PASS: TestLazySMPPanicCancelsAndJoins/helper (0.00s)
+    --- PASS: TestLazySMPPanicCancelsAndJoins/primary-callback (0.00s)
+=== RUN   TestLazySMPPrelaunchPanicCancelsAndJoinsLaunchedPrefix
+--- PASS: TestLazySMPPrelaunchPanicCancelsAndJoinsLaunchedPrefix (0.00s)
+=== RUN   TestLazySMPCancellationAfterFirstLaunchJoinsPrefix
+--- PASS: TestLazySMPCancellationAfterFirstLaunchJoinsPrefix (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.060s

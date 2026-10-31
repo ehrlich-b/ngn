@@ -1,0 +1,2 @@
+ok  	github.com/ehrlich-b/ngn/internal/claim	0.054s
+?   	github.com/ehrlich-b/ngn/cmd/claimtool	[no test files]

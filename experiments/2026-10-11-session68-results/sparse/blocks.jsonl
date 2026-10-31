@@ -1,0 +1,12 @@
+{"block": 1, "dense_seconds": 0.8347351849952247, "dense_peak_allocated_bytes": 1757956608, "sparse_seconds": 1.4404584589938167, "sparse_peak_allocated_bytes": 675971072, "throughput_ratio": 0.5794927162136286}
+{"block": 2, "sparse_seconds": 1.4390800170076545, "sparse_peak_allocated_bytes": 675971072, "dense_seconds": 0.831278265977744, "dense_peak_allocated_bytes": 1757956608, "throughput_ratio": 0.5776456181403028}
+{"block": 3, "dense_seconds": 0.8248846450005658, "dense_peak_allocated_bytes": 1757956608, "sparse_seconds": 1.4681154490099289, "sparse_peak_allocated_bytes": 675971072, "throughput_ratio": 0.5618663338478275}
+{"block": 4, "sparse_seconds": 1.4837383800186217, "sparse_peak_allocated_bytes": 675971072, "dense_seconds": 0.8398190980078653, "dense_peak_allocated_bytes": 1757956608, "throughput_ratio": 0.5660156192746898}
+{"block": 5, "dense_seconds": 0.8259708790283184, "dense_peak_allocated_bytes": 1757956608, "sparse_seconds": 1.4038751180050895, "sparse_peak_allocated_bytes": 675971072, "throughput_ratio": 0.5883506790846365}
+{"block": 6, "sparse_seconds": 1.3991849859885406, "sparse_peak_allocated_bytes": 675971072, "dense_seconds": 0.8130246859800536, "dense_peak_allocated_bytes": 1757956608, "throughput_ratio": 0.5810701902333822}
+{"block": 7, "dense_seconds": 0.8171391199866775, "dense_peak_allocated_bytes": 1757956608, "sparse_seconds": 1.418130056001246, "sparse_peak_allocated_bytes": 675971072, "throughput_ratio": 0.5762088720485871}
+{"block": 8, "sparse_seconds": 1.4180844450020231, "sparse_peak_allocated_bytes": 675971072, "dense_seconds": 0.8226629160053562, "dense_peak_allocated_bytes": 1757956608, "throughput_ratio": 0.5801226569438765}
+{"block": 9, "dense_seconds": 0.8233390219975263, "dense_peak_allocated_bytes": 1757956608, "sparse_seconds": 1.420976719004102, "sparse_peak_allocated_bytes": 675971072, "throughput_ratio": 0.5794176716523316}
+{"block": 10, "sparse_seconds": 1.4176883009786252, "sparse_peak_allocated_bytes": 675971072, "dense_seconds": 0.8306500960025005, "dense_peak_allocated_bytes": 1757956608, "throughput_ratio": 0.5859187068335866}
+{"block": 11, "dense_seconds": 0.8332858009962365, "dense_peak_allocated_bytes": 1757956608, "sparse_seconds": 1.4379998979857191, "sparse_peak_allocated_bytes": 675971072, "throughput_ratio": 0.5794755633595406}
+{"block": 12, "sparse_seconds": 1.4280437550041825, "sparse_peak_allocated_bytes": 675971072, "dense_seconds": 0.8219566929910798, "dense_peak_allocated_bytes": 1757956608, "throughput_ratio": 0.5755822887854528}

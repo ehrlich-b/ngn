@@ -1,11 +1,22 @@
 # Chess Engine (ngn) - Makefile
 # Provides ergonomic commands for development, testing, and building
+.DEFAULT_GOAL := help
 
 # Variables
 BINARY_NAME=ngn
 MAIN_FILE=main.go
 BUILD_DIR=build
 COVERAGE_FILE=coverage.out
+RELEASE_VERSION?=0.2.0-rc.1
+RELEASE_SOURCE_COMMIT?=$(shell git rev-parse HEAD)
+RELEASE_VERIFICATION?=build/owned-verification/report.json
+OWNED_RELEASE_OUT?=build/owned-$(RELEASE_VERSION)
+
+.PHONY: build-owned-release
+build-owned-release: ## Build verified Linux/Windows executables with owned NNUE defaults (WSL)
+	python3 scripts/build_owned_release.py --version "$(RELEASE_VERSION)" \
+		--source-commit "$(RELEASE_SOURCE_COMMIT)" --verification "$(RELEASE_VERIFICATION)" \
+		--out "$(OWNED_RELEASE_OUT)"
 
 # Default target
 .PHONY: help

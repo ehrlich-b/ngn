@@ -1,0 +1,20 @@
+NGN self-play SPRT
+==================
+new=/home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12  base=/home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12
+new options: [setoption name Threads value 4 setoption name Hash value 256 setoption name OwnBook value false]
+base options: [setoption name Threads value 1 setoption name Hash value 256 setoption name OwnBook value false]
+mode: nodes 1000/move | openings: 4947 (x2 colors) | concurrency: 1
+H0: elo<=-3.0   H1: elo>=3.0   (alpha=0.05 beta=0.05 -> LLR bounds [-2.94, 2.94])
+
+G1     0W  0D  1L    0.0%  elo -800.0 [-800,+234]  LLR  -0.09  pLLR  +0.00  no-move     
+G2     1W  0D  1L   50.0%  elo   +0.0 [-393,+393]  LLR  +0.00  pLLR  +0.00  no-move     
+G3     1W  0D  2L   33.3%  elo -120.4 [-473,+233]  LLR  -0.02  pLLR  +0.00  no-move     
+G4     2W  0D  2L   50.0%  elo   +0.0 [-301,+301]  LLR  +0.00  pLLR  +0.00  no-move     
+
+=== RESULT (4m41s) ===
+Games: 4   W-D-L: 2-0-2   score: 50.0%
+Elo(new - base): +0.0   95% CI [-301, +301]
+LLR: +0.00   bounds [-2.94, 2.94]
+Pentanomial [LL 0  LD 0  {LW,DD} 2  WD 0  WW 0] over 2 pairs
+Penta Elo: -0.0   95% CI [-31, +31]   pLLR +0.00  (THE decision stat; trinomial above is secondary)
+Verdict: INCONCLUSIVE (ran out of games — add openings or raise -maxgames)

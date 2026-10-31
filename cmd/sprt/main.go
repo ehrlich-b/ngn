@@ -51,6 +51,8 @@ type spec struct {
 type gameOutcome struct {
 	pairID int
 	res    uci.GameResult
+	game   spec
+	moves  []string
 }
 
 // pairAcc accumulates the two games of a reversed-color opening pair.
@@ -59,7 +61,25 @@ type pairAcc struct {
 	games  int
 }
 
+// optionFlags keeps UCI options in command-line order, including paths with spaces.
+type optionFlags []string
+
+func (o *optionFlags) String() string { return strings.Join(*o, "; ") }
+
+func (o *optionFlags) Set(value string) error {
+	name, setting, ok := strings.Cut(value, "=")
+	name = strings.TrimSpace(name)
+	if !ok || name == "" || strings.ContainsAny(value, "\r\n") || strings.Contains(name, " value ") {
+		return fmt.Errorf("UCI option must be NAME=VALUE on one line")
+	}
+	*o = append(*o, "setoption name "+name+" value "+setting)
+	return nil
+}
+
 func main() {
+	var newOptions, baseOptions optionFlags
+	flag.Var(&newOptions, "newoption", "candidate UCI NAME=VALUE (repeatable, ordered)")
+	flag.Var(&baseOptions, "baseoption", "baseline UCI NAME=VALUE (repeatable, ordered)")
 	newPath := flag.String("new", "./build/ngn", "candidate engine binary")
 	basePath := flag.String("base", "./build/ngn_base", "baseline engine binary")
 	depth := flag.Int("depth", 9, "fixed search depth per move (0 = use -movetime)")
@@ -83,6 +103,9 @@ func main() {
 	balanceDepth := flag.Int("balancedepth", 8, "search depth used to score opening balance")
 	outFile := flag.String("out", "", "output file for -genbook")
 	seed := flag.Int64("seed", 1, "RNG seed for -genbook")
+	pgnPath := flag.String("pgn", "", "write all completed games as standard PGN")
+	calibrate := flag.Int("calibrate", 0, "simulate this many trials per hypothesis using the native penta LLR; no engines")
+	calibratePenta := flag.String("calibrate-penta", "6,32,116,44,2", "observed five-bin pair shape for calibration")
 	gameTimeout := flag.Int("gametimeout", 0, "per-game wall-clock watchdog deadline in seconds (0 = auto from mode); a hung game is dumped+killed+voided so the run survives the cmd/sprt I/O deadlock")
 	resignScore := flag.Int("resignscore", 0, "adjudicate a decisive game when |white-POV eval| >= this cp for -resignplies consecutive plies (0 = off); mill-throughput lever, needs an A/A before a run trusts it for a verdict")
 	resignPlies := flag.Int("resignplies", 4, "consecutive searched plies required for -resignscore (>=2 = two-sided)")
@@ -90,6 +113,10 @@ func main() {
 	drawPlies := flag.Int("drawplies", 8, "consecutive searched plies required for -drawscore")
 	drawMinPlies := flag.Int("drawminplies", 80, "no draw adjudication before this many plies (default 80 = move 40)")
 	flag.Parse()
+	if *calibrate > 0 {
+		runCalibration(*calibrate, *calibratePenta, *elo0, *elo1, *alpha, *beta, *minGames, *maxGames, *seed)
+		return
+	}
 
 	if *genBook > 0 {
 		runGenBook(*genBook, *genPlies, *balanceCp, *balanceDepth, *seed, *outFile)
@@ -165,6 +192,7 @@ func main() {
 	fmt.Printf("NGN self-play SPRT\n")
 	fmt.Printf("==================\n")
 	fmt.Printf("new=%s  base=%s\n", *newPath, *basePath)
+	fmt.Printf("new options: %v\nbase options: %v\n", []string(newOptions), []string(baseOptions))
 	fmt.Printf("mode: %s | openings: %d (x2 colors) | concurrency: %d%s\n",
 		mode, len(openings), *concurrency, uci.PowerNote(*lowPower))
 	fmt.Printf("H0: elo<=%.1f   H1: elo>=%.1f   (alpha=%.2f beta=%.2f -> LLR bounds [%.2f, %.2f])\n\n",
@@ -181,16 +209,20 @@ func main() {
 
 	runSPRT(runConfig{
 		newPath: *newPath, basePath: *basePath,
+		newOptions: newOptions, baseOptions: baseOptions,
 		newDepth: newDepth, baseDepth: baseD, movetime: *movetime, nodes: *nodes, maxMoves: *maxMoves,
 		tcTimeMs: tcTimeMs, tcIncMs: tcIncMs, gameTimeout: *gameTimeout,
 		elo0: *elo0, elo1: *elo1, lower: lower, upper: upper,
 		maxGames: *maxGames, minGames: *minGames, concurrency: *concurrency, lowPower: *lowPower,
-		adj: adj,
+		adj:     adj,
+		pgnPath: *pgnPath,
 	}, openings)
 }
 
 type runConfig struct {
+	pgnPath                         string
 	newPath, basePath               string
+	newOptions, baseOptions         []string
 	newDepth, baseDepth, movetime   int
 	nodes                           int
 	tcTimeMs, tcIncMs               int
@@ -202,6 +234,15 @@ type runConfig struct {
 }
 
 func runSPRT(cfg runConfig, openings [][]string) {
+	var pgn *os.File
+	if cfg.pgnPath != "" {
+		var err error
+		pgn, err = os.Create(cfg.pgnPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer pgn.Close()
+	}
 	// Build the work list: each opening twice with reversed colors. At fixed
 	// depth OR fixed nodes a repeated (opening,color) is a deterministic replay
 	// carrying no new information, so cap distinct work at 2*len(openings); only
@@ -249,8 +290,8 @@ func runSPRT(cfg runConfig, openings [][]string) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			newEng := uci.Start(cfg.newPath, "new", cfg.lowPower)
-			baseEng := uci.Start(cfg.basePath, "base", cfg.lowPower)
+			newEng := uci.StartWithOptions(cfg.newPath, "new", cfg.lowPower, cfg.newOptions)
+			baseEng := uci.StartWithOptions(cfg.basePath, "base", cfg.lowPower, cfg.baseOptions)
 			if newEng == nil || baseEng == nil {
 				log.Fatalf("engine failed UCI handshake after retries (new ok=%v, base ok=%v); aborting run instead of forfeiting every game as no-move", newEng != nil, baseEng != nil)
 			}
@@ -263,19 +304,24 @@ func runSPRT(cfg runConfig, openings [][]string) {
 					return
 				default:
 				}
-				res, ok := playWatch(newEng, baseEng, s.opening, s.newIsWhite, gameCfg, deadline)
+				localCfg := gameCfg
+				var moves []string
+				if pgn != nil {
+					localCfg.MovesOut = &moves
+				}
+				res, ok := playWatch(newEng, baseEng, s.opening, s.newIsWhite, localCfg, deadline)
 				if !ok {
 					// The watchdog killed both engines to break a wedge; bring up fresh
 					// ones and void this game — the run survives on the remaining games.
-					newEng = uci.Start(cfg.newPath, "new", cfg.lowPower)
-					baseEng = uci.Start(cfg.basePath, "base", cfg.lowPower)
+					newEng = uci.StartWithOptions(cfg.newPath, "new", cfg.lowPower, cfg.newOptions)
+					baseEng = uci.StartWithOptions(cfg.basePath, "base", cfg.lowPower, cfg.baseOptions)
 					if newEng == nil || baseEng == nil {
 						log.Printf("WATCHDOG: engine restart failed after a wedge; this worker exits, others continue")
 						return
 					}
 					continue
 				}
-				results <- gameOutcome{pairID: s.pairID, res: res}
+				results <- gameOutcome{pairID: s.pairID, res: res, game: s, moves: moves}
 			}
 		}()
 	}
@@ -291,6 +337,11 @@ func runSPRT(cfg runConfig, openings [][]string) {
 	verdict := "INCONCLUSIVE (ran out of games — add openings or raise -maxgames)"
 	for ro := range results {
 		r := ro.res
+		if pgn != nil {
+			if err := writeGamePGN(pgn, ro, cfg); err != nil {
+				log.Fatalf("PGN capture: %v", err)
+			}
+		}
 		switch r.Res {
 		case uci.Win:
 			w++

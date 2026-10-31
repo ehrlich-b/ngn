@@ -1,0 +1,7 @@
+{
+  "pid": 630389,
+  "observed_utc": "2026-10-09T00:42:30.343841+00:00",
+  "cmdline": "bash trial.sh ",
+  "started": "2026-10-08T20:42:14-04:00",
+  "activation_commit": "2fba7b190e30e56516a86faf6a0a1e77e37d565e"
+}

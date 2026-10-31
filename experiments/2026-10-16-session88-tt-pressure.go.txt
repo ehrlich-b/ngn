@@ -1,0 +1,56 @@
+package engine
+
+import (
+	"encoding/json"
+	"os"
+	"testing"
+)
+
+// Diagnostic only: fixed work, no clock/strength or policy acceptance verdict.
+func TestCampaignTTPressure(t *testing.T) {
+	net, err := LoadNGNN1(os.Getenv("NGN_PRESSURE_NET"))
+	if err != nil { t.Fatal(err) }
+	fens := []string{
+		"r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10",
+		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+		"r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
+		"8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+		"8/5k2/2p2p2/3p4/3P1P2/2P2K2/8/8 w - - 0 1",
+		"6k1/5pp1/7p/3q4/8/3Q2P1/5P1P/6K1 w - - 0 1",
+	}
+	f, err := os.Create(os.Getenv("NGN_PRESSURE_OUT"))
+	if err != nil { t.Fatal(err) }
+	defer f.Close()
+	enc := json.NewEncoder(f)
+	caps := []uint64{2000000, 16000000}
+	if os.Getenv("NGN_PRESSURE_IDENTITY") == "1" { caps = []uint64{100000} }
+	for index, fen := range fens {
+		for _, hash := range []int{64, 256} {
+			for _, nodes := range caps {
+				e, err := NewSearchEngineWithHash(hash)
+				if err != nil { t.Fatal(err) }
+				if err := e.SelectNGNN1Evaluator(net); err != nil { t.Fatal(err) }
+				p, err := ParseFEN(fen)
+				if err != nil { t.Fatal(err) }
+				e.SetMaxNodes(nodes)
+				campaignPressure = campaignPressureCounts{}
+				info := e.SearchIterativeDeepening(p, 64, nil)
+				occupied, current := 0, 0
+				for _, row := range e.tt.items {
+					if row.payload & ttOccupied != 0 {
+						occupied++
+						_, _, _, _, age, _ := Unpack(row.payload)
+						if age == e.tt.age { current++ }
+					}
+				}
+				row := map[string]any{"position": index, "fen": fen, "hash_mb": hash,
+					"node_cap": nodes, "nodes": info.Nodes, "depth": info.Depth,
+					"score": info.BestScore, "best": info.BestMove.ToString(),
+					"tt_probes": info.TTProbes, "tt_hits": info.TTHits, "tt_cutoffs": info.TTCutoffs,
+					"records": len(e.tt.items), "occupied": occupied, "current": current,
+					"pressure": campaignPressure}
+				if err := enc.Encode(row); err != nil { t.Fatal(err) }
+			}
+		}
+	}
+}

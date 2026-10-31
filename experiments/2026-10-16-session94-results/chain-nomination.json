@@ -1,0 +1,17 @@
+{
+  "authority": "Merged plan2026-10-16 09:45,10:05,10:35,10:55,11:20;screen then automatic confirmation,actual occupancy/unthrottled scope/descriptive monitor",
+  "net_chain_pid": 98730,
+  "net_chain_service": "ngn-s93-net-chain.service",
+  "net_selection": "moderated-t74 preferred if both fixed1000 KEEP;otherwise volume-control;otherwise accepted81215229;no observed score ranking",
+  "claim_scope": "AllowedCPUs0-15;CPUQuota unset/unlimited;MemoryMax3G/swap0;nice19;per-stage taskset;record cpu.max before occupancy",
+  "ready_before_launch": [
+    "fullshort/race/vet PASS",
+    "clean tool41d9f94/five drymodes PASS",
+    "accepted metadata rebuild36identities PASS"
+  ],
+  "failed_screen": "D<=40 resumes original SPSA via-resume and new GPUrecipe;D>40 ownprobe/AA/fixed400 T8vsT4 first;point<25 holds forprofile,otherwise resume",
+  "failed_confirmation": "Record full analysis,then original SPSA-resume and newGPUrecipe",
+  "faults": "HELD_REVIEW;no restart/extension;no running gate interrupted",
+  "monitor": "600seconds,descriptive only,ending with controller",
+  "scored_games_launched": 0
+}

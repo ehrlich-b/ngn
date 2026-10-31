@@ -1,0 +1,47 @@
+{
+  "mode": "gate",
+  "games": 400,
+  "pairs": 200,
+  "wins": 42,
+  "draws": 304,
+  "losses": 54,
+  "penta": [
+    0,
+    38,
+    137,
+    24,
+    1
+  ],
+  "elo": -10.4,
+  "ci95": [
+    -24.0,
+    3.0
+  ],
+  "exact_elo_ci95": [
+    -10.426196175570956,
+    -24.217206471312274,
+    3.3320300389687754
+  ],
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 295,
+    "checkmate": 96,
+    "max-moves": 8,
+    "stalemate": 1
+  },
+  "verdict": "SHELVED",
+  "reviewed_utc": "2026-10-13T09:31:44.792849+00:00",
+  "natural_terminal_edt": "2026-10-13 04:45:00",
+  "controller_exit": 0,
+  "rule": "printed AND exact paired lower95>0 and zero faults/intact inputs",
+  "input_checks": "all12 after-gate OK; original AA review reused",
+  "crash_log": "only initialization/path lines; no crash",
+  "faults": 0,
+  "extension": false,
+  "pooling": false,
+  "playing_source": "f1d0a03 unchanged",
+  "candidate_source": "bc59c3f unadopted"
+}

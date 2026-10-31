@@ -1,0 +1,13 @@
+{
+  "edt": "2026-10-12T15:31:36.504077-04:00",
+  "services": {
+    "ngn-s71-provenance-repaired.service": "MainPID=215083\nActiveState=active",
+    "ngn-s74-provenance-cutoff.service": "MainPID=248896\nActiveState=active",
+    "ngn-s74-see-rig.service": "MainPID=248899\nActiveState=active",
+    "ngn-s74-clock-panel.service": "MainPID=250737\nActiveState=active"
+  },
+  "gpu": "0 %, 1247 MiB, 16303 MiB",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        2938       11708           2        1109       12576\nSwap:           4096         390        3705\n",
+  "host_c_free_bytes": 80311943168,
+  "hopper": "1170 /usr/bin/python3 /home/ehrli/hopper/hopper.py run"
+}

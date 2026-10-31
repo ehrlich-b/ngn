@@ -1,0 +1,17 @@
+{
+  "base_source": "6c0fc26",
+  "verdict": "KEEP on isolated topic; current56b35ef combination requires its own evidence",
+  "identities": 36,
+  "blocks": 40,
+  "raw_aggregates_reconcile": true,
+  "geometric_ratio": 1.031612501452992,
+  "ci95": [
+    1.0252474951238946,
+    1.0380170234168626
+  ],
+  "order_strata_ratios": [
+    1.0291339626185223,
+    1.0340970095343984
+  ],
+  "accepted_line_changed": false
+}

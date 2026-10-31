@@ -1,0 +1,74 @@
+FEE
+======================================================================
+ERROR: test_holdout_absolute_rows_and_cache (__main__.ArchiveIndexTests.test_holdout_absolute_rows_and_cache) (start=4294967296)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/ehrli/ngn-data/night-20261007/session62-loader-index/source/trainer/tests/test_archive_index.py", line 40, in test_holdout_absolute_rows_and_cache
+    actual = np.concatenate(list(archive.batches(3, 0, shuffle=False)))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ehrli/ngn-data/night-20261007/session44-expanded-data/source/trainer/archive.py", line 191, in batches
+    records = canonical_records(self.maps[shard][start + selected])
+                                                 ~~~~~~^~~~~~~~~~
+OverflowError: Python integer 4294967296 out of bounds for uint32
+
+======================================================================
+ERROR: test_holdout_absolute_rows_and_cache (__main__.ArchiveIndexTests.test_holdout_absolute_rows_and_cache) (start=4295229440)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/ehrli/ngn-data/night-20261007/session62-loader-index/source/trainer/tests/test_archive_index.py", line 40, in test_holdout_absolute_rows_and_cache
+    actual = np.concatenate(list(archive.batches(3, 0, shuffle=False)))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ehrli/ngn-data/night-20261007/session44-expanded-data/source/trainer/archive.py", line 191, in batches
+    records = canonical_records(self.maps[shard][start + selected])
+                                                 ~~~~~~^~~~~~~~~~
+OverflowError: Python integer 4295229440 out of bounds for uint32
+
+======================================================================
+FAIL: test_holdout_absolute_rows_and_cache (__main__.ArchiveIndexTests.test_holdout_absolute_rows_and_cache) (start=4294967294)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/ehrli/ngn-data/night-20261007/session62-loader-index/source/trainer/tests/test_archive_index.py", line 40, in test_holdout_absolute_rows_and_cache
+    actual = np.concatenate(list(archive.batches(3, 0, shuffle=False)))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ehrli/ngn-data/night-20261007/session44-expanded-data/source/trainer/archive.py", line 191, in batches
+    records = canonical_records(self.maps[shard][start + selected])
+                                ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/ehrli/ngn-data/night-20261007/session62-loader-index/source/trainer/tests/test_archive_index.py", line 21, in __getitem__
+    np.testing.assert_array_equal(indexes, self.expected)
+  File "/home/ehrli/ngn-original-nnue-night-20261001/venv/lib/python3.12/site-packages/numpy/testing/_private/utils.py", line 1128, in assert_array_equal
+    assert_array_compare(operator.__eq__, actual, desired, err_msg=err_msg,
+  File "/home/ehrli/ngn-original-nnue-night-20261001/venv/lib/python3.12/site-packages/numpy/testing/_private/utils.py", line 988, in assert_array_compare
+    raise AssertionError(msg)
+AssertionError:
+Arrays are not equal
+
+Mismatched elements: 2 / 4 (50%)
+Mismatch at indices:
+ [2]: 0 (ACTUAL), 4294967296 (DESIRED)
+ [3]: 1 (ACTUAL), 4294967297 (DESIRED)
+Max absolute difference among violations: 4294967296
+Max relative difference among violations: 1.
+ ACTUAL: array([4294967294, 4294967295,          0,          1], dtype=uint32)
+ DESIRED: array([4294967294, 4294967295, 4294967296, 4294967297])
+
+----------------------------------------------------------------------
+Ran 1 test in 0.026s
+
+FAILED (failures=1, errors=2)
+test_holdout_absolute_rows_and_cache (trainer.tests.test_archive_index.ArchiveIndexTests.test_holdout_absolute_rows_and_cache) ... ok
+test_black_normalization_preserves_features_and_label_sign (trainer.tests.test_archive.ArchiveTests.test_black_normalization_preserves_features_and_label_sign) ... ok
+test_cpu_training_resume_and_archive_config (trainer.tests.test_archive.ArchiveTests.test_cpu_training_resume_and_archive_config) ... ok
+test_holdout_cache_preserves_rows_and_avoids_source_on_later_passes (trainer.tests.test_archive.ArchiveTests.test_holdout_cache_preserves_rows_and_avoids_source_on_later_passes) ... ok
+test_padding_is_ignored_and_hash_excludes_labels (trainer.tests.test_archive.ArchiveTests.test_padding_is_ignored_and_hash_excludes_labels) ... ok
+test_real_archive_record_and_opponent_king_square_convention (trainer.tests.test_archive.ArchiveTests.test_real_archive_record_and_opponent_king_square_convention) ... ok
+test_rejects_bad_piece_result_missing_king_and_metadata (trainer.tests.test_archive.ArchiveTests.test_rejects_bad_piece_result_missing_king_and_metadata) ... ok
+test_split_counts_global_duplicate_exclusion_seed_and_tails (trainer.tests.test_archive.ArchiveTests.test_split_counts_global_duplicate_exclusion_seed_and_tails) ... ok
+test_descriptor_publication_wakes_one_blocking_request (trainer.tests.test_remote_archive.RemoteArchiveTests.test_descriptor_publication_wakes_one_blocking_request) ... ok
+test_exact_partition_batch_boundaries_shuffle_and_cache (trainer.tests.test_remote_archive.RemoteArchiveTests.test_exact_partition_batch_boundaries_shuffle_and_cache) ... ok
+test_range_read_preserves_duplicate_indexes_and_rejects_changed_file (trainer.tests.test_remote_archive.RemoteArchiveTests.test_range_read_preserves_duplicate_indexes_and_rejects_changed_file) ... ok
+test_wrong_digest_and_partial_response_fail_before_decoding (trainer.tests.test_remote_archive.RemoteArchiveTests.test_wrong_digest_and_partial_response_fail_before_decoding) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 8.569s
+
+OK

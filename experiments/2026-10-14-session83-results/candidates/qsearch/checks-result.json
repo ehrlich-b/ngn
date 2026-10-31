@@ -1,0 +1,14 @@
+{
+  "base": "9ec5d31",
+  "candidate": "qsearch",
+  "passed": [
+    "focused including singular witness",
+    "engine short/race",
+    "full short/race",
+    "vet",
+    "PGO build"
+  ],
+  "binary_sha256": "06e3ad734c86ee12510ca354977a7be2312c6ff6a83ef1b80c094adbb4900dc3",
+  "patch_sha256": "d5923498743dc1350ed81becb68b7f9eb5ce4a2f24120e0dd8e8e1db91e6436e",
+  "completed_utc": "2026-10-14T09:45:14.521914+00:00"
+}

@@ -1,0 +1,313 @@
+diff --git a/trainer/README.md b/trainer/README.md
+index 2c160e4..a0bad7c 100644
+--- a/trainer/README.md
++++ b/trainer/README.md
+@@ -72,6 +72,18 @@ and compared during resume.
+   --keep-best-only --out /path/to/owned-t80-run
+ ```
+ 
++For a controlled source-mixture trial, `--archive-source-weights weights.json`
++accepts a JSON object mapping every nonempty resolved archive path to a positive
++presentation weight. Weights are normalized independently of archive sizes.
++Each training batch draws seeded multinomial source quotas and cycles each
++source through its own shuffled blocks. This preserves other sources' exact
++sampled rows in matched trials that replace one source (with the same batch,
++seed, source ordering and per-epoch budget below both corpora's row counts).
++History records actual admitted per-source presentations, including tails.
++Holdout still enumerates every reserved record once. Checkpoints bind the
++normalized mixture contents on resume. Omitting this option keeps the existing
++block-permutation sampler.
++
+ Pass disjoint held-out shard globs with `--validation-data` to log a full
+ float32 validation loss after every epoch. Validation uses the same filters
+ and objective, includes the final partial batch, and never updates weights.
+diff --git a/trainer/archive.py b/trainer/archive.py
+index 0e744dd..28d119d 100644
+--- a/trainer/archive.py
++++ b/trainer/archive.py
+@@ -7,6 +7,7 @@ No implementation or weights from another trainer are used here.
+ """
+ 
+ import glob
++import math
+ from pathlib import Path
+ 
+ import numpy as np
+@@ -148,6 +149,7 @@ class Archive:
+         self.exposure_counts = [0] * len(self.source_paths)
+         self.batch_source_spans = []
+         self.split = "train"
++        self.source_weights = None
+         self.split_receipt = {"hash": HASH_VERSION, "seed": seed, "modulus": holdout_modulus,
+                               "holdout_remainder": 0, "block_records": block_records,
+                               "sources": sources, "raw_records": self.raw_count,
+@@ -169,6 +171,9 @@ class Archive:
+     def batches(self, batch_size, seed, shuffle=True):
+         if batch_size < 1:
+             raise ValueError("Batch size must be positive")
++        if self.split == "train" and self.source_weights is not None:
++            yield from self._mixture_batches(batch_size, seed, shuffle)
++            return
+         rng = np.random.default_rng(seed)
+         order = rng.permutation(len(self.blocks)) if shuffle else range(len(self.blocks))
+         pending = np.empty(0, dtype=RECORD_DTYPE)
+@@ -220,6 +225,75 @@ class Archive:
+             self.batch_source_spans = pending_spans
+             yield pending.view(np.uint8).reshape(-1, 32)
+ 
++    def set_source_weights(self, weights):
++        """Select source presentation shares independently of archive lengths.
++
++        Keys are the resolved archive paths. The default block-permutation
++        sampler is unchanged unless this method is explicitly called.
++        """
++        resolved = {str(Path(path).resolve()): float(value) for path, value in weights.items()}
++        if len(resolved) != len(weights) or set(resolved) != set(self.source_paths):
++            raise ValueError("Source weights must name each nonempty archive exactly once")
++        values = [resolved[path] for path in self.source_paths]
++        if any(not math.isfinite(value) or value <= 0 for value in values):
++            raise ValueError("Source weights must be finite and positive")
++        total = math.fsum(values)
++        if not math.isfinite(total):
++            raise ValueError("Source weight sum must be finite")
++        self.source_weights = [value / total for value in values]
++        for source in range(len(values)):
++            available = sum(end - start - len(self.heldout[index])
++                            for index, (shard, start, end) in enumerate(self.blocks) if shard == source)
++            if not available:
++                raise ValueError("A weighted source has no training records")
++
++    def _source_batches(self, source, batch_size, seed, shuffle):
++        # Each source has its own shuffle stream. Changing another source's
++        # size or contents therefore preserves this source's sampled rows.
++        view = object.__new__(Archive)
++        view.__dict__ = self.__dict__.copy()
++        chosen = [index for index, block in enumerate(self.blocks) if block[0] == source]
++        view.blocks = [self.blocks[index] for index in chosen]
++        view.heldout = [self.heldout[index] for index in chosen]
++        view.source_weights = None
++        cycle = 0
++        while True:
++            yield from view.batches(batch_size, seed + source * 1000000007 + cycle, shuffle)
++            cycle += 1
++
++    def _mixture_batches(self, batch_size, seed, shuffle):
++        """Seeded multinomial row quotas, independent per-source cycling.
++
++        A finite iteration emits count rows (with source-local resampling).
++        Quotas and source rows are deterministic for the epoch seed. This
++        lets a matched pair share the exact T80/T76 rows batch by batch while
++        replacing only T74. Actual admitted shares are recorded as exposures.
++        Holdout retains its original finite, unweighted enumeration.
++        """
++        rng = np.random.default_rng(seed)
++        streams = [iter(self._source_batches(source, batch_size, seed, shuffle))
++                   for source in range(len(self.source_weights))]
++        pending = [np.empty((0, 32), dtype=np.uint8) for _ in streams]
++        emitted = 0
++        while emitted < self.count:
++            size = min(batch_size, self.count - emitted)
++            quotas = rng.multinomial(size, self.source_weights)
++            chunks, spans = [], []
++            for source, quota in enumerate(quotas):
++                left = int(quota)
++                if left:
++                    spans.append((source, left))
++                while left:
++                    if not len(pending[source]):
++                        pending[source] = next(streams[source])
++                    take = min(left, len(pending[source]))
++                    chunks.append(pending[source][:take])
++                    pending[source] = pending[source][take:]
++                    left -= take
++            self.batch_source_spans = spans
++            yield np.concatenate(chunks)
++            emitted += size
++
+     def record_exposure(self, take):
+         """Count only rows admitted to training, including a truncated final batch.
+ 
+diff --git a/trainer/tests/test_archive_mixture.py b/trainer/tests/test_archive_mixture.py
+new file mode 100644
+index 0000000..ea75ef5
+--- /dev/null
++++ b/trainer/tests/test_archive_mixture.py
+@@ -0,0 +1,130 @@
++"""Matched source exposure, deterministic cycling and trainer resume on WSL."""
++import json
++from pathlib import Path
++import subprocess
++import sys
++import tempfile
++import unittest
++
++import numpy as np
++import torch
++
++from trainer.archive import ARCHIVE_DTYPE, Archive
++from trainer.ngnp import RECORD_DTYPE
++from trainer.tests.synthetic import random_records
++from trainer.tests.test_archive import archive_fixture
++from trainer.train import epoch_batches, prefetched
++
++
++class ArchiveMixtureTests(unittest.TestCase):
++    def setUp(self):
++        self.temporary = tempfile.TemporaryDirectory()
++        self.root = Path(self.temporary.name)
++        self.paths = []
++        for source, count in enumerate((257, 521, 73)):
++            records = np.asarray([archive_fixture(row) for row in random_records(
++                count, np.random.default_rng(700 + source))], dtype=ARCHIVE_DTYPE)
++            records['score'] = source * 1000 + np.arange(count)
++            path = self.root / f'source-{source}.bf'
++            records.tofile(path)
++            self.paths.append(str(path))
++        self.weights = dict(zip(self.paths, (.4535, .3321, .2144)))
++
++    def tearDown(self):
++        self.temporary.cleanup()
++
++    def reader(self, weighted=True):
++        archive = Archive(self.paths, block_records=31, seed=992, holdout_modulus=8)
++        if weighted:
++            archive.set_source_weights(self.weights)
++        return archive
++
++    def test_exact_exposures_tails_cycles_and_expected_shares(self):
++        for batch, positions in ((1, 51), (17, 301), (97, 100003), (4096, 1801)):
++            with self.subTest(batch=batch, positions=positions):
++                archive = self.reader()
++                rows = np.concatenate(list(prefetched(epoch_batches(archive, batch, positions, 123))))
++                scores = rows.copy().view(RECORD_DTYPE).reshape(-1)['score']
++                expected = np.bincount(scores // 1000, minlength=3).tolist()
++                self.assertEqual(archive.exposure_counts, expected)
++                self.assertEqual(sum(expected), positions)
++                validation = np.concatenate(list(archive.holdout().batches(19, 0, shuffle=False)))
++                self.assertEqual(archive.exposure_counts, expected)
++                self.assertFalse({bytes(row[:24]) for row in rows} &
++                                 {bytes(row[:24]) for row in validation})
++                if positions > 100000:
++                    np.testing.assert_allclose(np.asarray(expected) / positions,
++                                               list(self.weights.values()), atol=.008)
++
++    def test_seeded_bytes_and_unweighted_holdout_identity(self):
++        a, b, unweighted = self.reader(), self.reader(), self.reader(False)
++        first = np.concatenate(list(epoch_batches(a, 19, 1103, 123)))
++        repeat = np.concatenate(list(epoch_batches(b, 19, 1103, 123)))
++        np.testing.assert_array_equal(first, repeat)
++        for shuffle in (False, True):
++            np.testing.assert_array_equal(
++                np.concatenate(list(a.holdout().batches(19, 144, shuffle))),
++                np.concatenate(list(unweighted.holdout().batches(19, 144, shuffle))))
++        changed = np.concatenate(list(epoch_batches(self.reader(), 19, 1103, 124)))
++        self.assertFalse(np.array_equal(first, changed))
++
++    def test_matched_pair_keeps_other_sources_exact(self):
++        control = self.reader()
++        before = np.concatenate(list(epoch_batches(control, 19, 503, 123)))
++        # Change only source 2's diversity/size, preserving sources 0/1.
++        path = Path(self.paths[2])
++        records = np.fromfile(path, dtype=ARCHIVE_DTYPE)
++        np.concatenate((records, records[::-1], records)).tofile(path)
++        treatment = self.reader()
++        after = np.concatenate(list(epoch_batches(treatment, 19, 503, 123)))
++        before_scores = before.copy().view(RECORD_DTYPE).reshape(-1)['score']
++        after_scores = after.copy().view(RECORD_DTYPE).reshape(-1)['score']
++        for source in (0, 1):
++            np.testing.assert_array_equal(before[before_scores // 1000 == source],
++                                          after[after_scores // 1000 == source])
++        self.assertFalse(np.array_equal(before[before_scores // 1000 == 2],
++                                        after[after_scores // 1000 == 2]))
++
++    def test_weights_require_all_sources_and_valid_positive_values(self):
++        archive = self.reader(False)
++        for weights in ({self.paths[0]: 1}, dict(self.weights, missing=1),
++                        dict(self.weights, **{self.paths[0]: 0}),
++                        dict(self.weights, **{self.paths[0]: -1}),
++                        dict(self.weights, **{self.paths[0]: float('nan')}),
++                        dict(self.weights, **{self.paths[0]: float('inf')})):
++            with self.assertRaises(ValueError):
++                archive.set_source_weights(weights)
++
++    def test_training_resume_matches_and_binds_weight_contents(self):
++        weights = self.root / 'weights.json'
++        weights.write_text(json.dumps(self.weights))
++        command = [sys.executable, '-m', 'trainer.train', '--data', *self.paths,
++                   '--data-format', 'archive', '--archive-source-weights', str(weights),
++                   '--archive-holdout-modulus', '8', '--archive-split-seed', '992',
++                   '--block-records', '31', '--hidden', '16', '--batch', '19',
++                   '--positions-per-epoch', '103', '--device', 'cpu', '--threads', '2',
++                   '--precision', 'fp32', '--decay', 'none']
++        for out, epochs, resume in [('full', 2, None), ('resumed', 1, None),
++                                    ('resumed', 2, self.root / 'resumed/epoch-0001.pt')]:
++            argv = command + ['--out', str(self.root / out), '--epochs', str(epochs)]
++            if resume:
++                argv += ['--resume', str(resume)]
++            run = subprocess.run(argv, capture_output=True, text=True, timeout=60)
++            self.assertEqual(run.returncode, 0, run.stderr)
++        full = torch.load(self.root / 'full/epoch-0002.pt', weights_only=True)
++        resumed = torch.load(self.root / 'resumed/epoch-0002.pt', weights_only=True)
++        for key in full['model']:
++            self.assertTrue(torch.equal(full['model'][key], resumed['model'][key]), key)
++        self.assertEqual(full['history'][-1]['loss'], resumed['history'][-1]['loss'])
++        self.assertEqual(full['history'][-1]['source_presentations_cumulative'],
++                         resumed['history'][-1]['source_presentations_cumulative'])
++        weights.write_text(json.dumps(dict(zip(self.paths, (.3, .4, .3)))))
++        rejected = subprocess.run(command + ['--out', str(self.root / 'resumed'), '--epochs', '2',
++                                              '--resume', str(self.root / 'resumed/epoch-0002.pt')],
++                                  capture_output=True, text=True, timeout=60)
++        self.assertNotEqual(rejected.returncode, 0)
++        self.assertIn('archive_source_mixture', rejected.stderr)
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/trainer/train.py b/trainer/train.py
+index 3d98143..4b556a2 100644
+--- a/trainer/train.py
++++ b/trainer/train.py
+@@ -89,6 +89,8 @@ def parser() -> argparse.ArgumentParser:
+     cli.add_argument("--data-format", choices=("ngnp", "archive"), default="ngnp")
+     cli.add_argument("--archive-holdout-modulus", type=int, default=1024,
+                      help="Archive board-content hash holdout fraction 1/N; N is a power of two")
++    cli.add_argument("--archive-source-weights", type=Path,
++                     help="JSON mapping of each nonempty archive path to its presentation share")
+     cli.add_argument("--archive-split-seed", type=int,
+                      help="Archive content partition seed; default is --seed")
+     cli.add_argument("--ngnp-holdout-modulus", type=int, default=0,
+@@ -162,8 +164,12 @@ def main() -> None:
+                              "--record-counts, --validation-data, NGNP split options and custom filters are unsupported")
+         args.archive_split_seed = args.seed if args.archive_split_seed is None else args.archive_split_seed
+         shards = Archive(args.data, args.block_records, args.archive_split_seed, args.archive_holdout_modulus)
++        if args.archive_source_weights:
++            shards.set_source_weights(json.loads(args.archive_source_weights.read_text()))
+         validation = shards.holdout()
+     else:
++        if args.archive_source_weights:
++            raise ValueError("--archive-source-weights requires --data-format archive")
+         if args.ngnp_holdout_modulus:
+             if args.validation_data:
+                 raise ValueError("NGNP content holdout cannot be combined with --validation-data")
+@@ -215,6 +221,8 @@ def main() -> None:
+             for key in ("archive_holdout_modulus", "archive_split_seed"):
+                 if saved.get(key) != getattr(args, key):
+                     differences.append(key)
++            if saved.get("archive_source_mixture") != shards.source_weights:
++                differences.append("archive_source_mixture")
+             if saved.get("archive_split") != shards.split_receipt:
+                 differences.append("archive_split")
+         if args.data_format == "ngnp":
+@@ -249,10 +257,12 @@ def main() -> None:
+     if king_map is not None:
+         config["king_map"] = list(king_map)
+     config["out"], config["resume"] = str(args.out), str(args.resume) if args.resume else None
++    config["archive_source_weights"] = str(args.archive_source_weights) if args.archive_source_weights else None
+     config["record_counts"] = str(args.record_counts) if args.record_counts else None
+     config["shard_record_counts"] = record_counts
+     if args.data_format == "archive":
+         config["archive_split"] = shards.split_receipt
++        config["archive_source_mixture"] = shards.source_weights
+     if args.data_format == "ngnp" and args.ngnp_holdout_modulus:
+         config["ngnp_split"] = shards.split_receipt
+     args.out.mkdir(parents=True, exist_ok=True)

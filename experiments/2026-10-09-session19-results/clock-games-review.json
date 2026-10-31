@@ -1,0 +1,58 @@
+{
+  "completed_utc": "2026-10-09T00:57:14-04:00",
+  "controller_exit": 0,
+  "games_log_sha256": "6333146df8e8830bb55d004e00304521894c07c59dff1fb2b46c3d8071272da1",
+  "overall": {
+    "searches": 453,
+    "spent_seconds": 895.896733915,
+    "tail_seconds": 202.417729951,
+    "aggregate_tail_fraction": 0.2259386849938051,
+    "median_tail_fraction": 0.137903041724715,
+    "soft_aborts": 440,
+    "soft_admissions": 0,
+    "minimum_bank_after_seconds": 5.380314819
+  },
+  "moves15_to40": {
+    "searches": 104,
+    "spent_seconds": 360.570300506,
+    "tail_seconds": 83.656684838,
+    "aggregate_tail_fraction": 0.2320121338906778,
+    "median_tail_fraction": 0.1420955052789853,
+    "soft_aborts": 104,
+    "soft_admissions": 0,
+    "minimum_bank_after_seconds": 10.890305117
+  },
+  "games": {
+    "0": {
+      "searches": 338,
+      "spent_seconds": 565.686083817,
+      "tail_seconds": 117.055121776,
+      "aggregate_tail_fraction": 0.20692593493932837,
+      "median_tail_fraction": 0.12404213966815947,
+      "soft_aborts": 338,
+      "soft_admissions": 0,
+      "minimum_bank_after_seconds": 5.380314819
+    },
+    "1": {
+      "searches": 115,
+      "spent_seconds": 330.210650098,
+      "tail_seconds": 85.362608175,
+      "aggregate_tail_fraction": 0.2585095548846352,
+      "median_tail_fraction": 0.18299803631728417,
+      "soft_aborts": 102,
+      "soft_admissions": 0,
+      "minimum_bank_after_seconds": 5.511975268
+    }
+  },
+  "end_lines": [
+    "campaign_clock_games_test.go:64: CLOCKGAME_END game=0 plies=344 reason=draw-rule white_ns=5380314819 black_ns=6933601364",
+    "campaign_clock_games_test.go:64: CLOCKGAME_END game=1 plies=121 reason=no-legal-moves white_ns=13575407921 black_ns=11213941981"
+  ],
+  "flags": 0,
+  "legal_and_root_restored": true,
+  "tc": "120+1",
+  "accepted_runtime": "5b882e2",
+  "net": "be34532c",
+  "claim_eligible": false,
+  "limitation": "two actual shrinking-clock trajectories, mechanism diagnostic only; UCI SetTimeControl-before-UpdateGameState order preserved"
+}

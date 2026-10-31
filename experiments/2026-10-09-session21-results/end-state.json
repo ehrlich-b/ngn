@@ -1,0 +1,32 @@
+{
+  "utc": "2026-10-09T14:31:54.985080+00:00",
+  "source": "39eb128",
+  "net": "be34532c",
+  "pids": {
+    "controller": 675044,
+    "checks": 675045,
+    "data": 675046,
+    "spsa_wrapper": 673954,
+    "spsa_tuner": 673958,
+    "hopper": 1168
+  },
+  "processes": "    PID    PPID    PGID STAT     ELAPSED COMMAND\n   1168     221    1168 Ssl   2-16:18:00 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n 673954  630381  673954 Ss      02:33:07 bash /home/ehrli/ngn-data/night-20261007/session1/spsa-resume.cmd\n 673958  673954  673954 Sl      02:33:07 /home/ehrli/ngn-data/night-20261007/spsa/spsa -engine /home/ehrli/ngn-data/night-20261007/kb8bin/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/net1-gates-20261006/openings.txt -out /home/ehrli/ngn-data/night-20261007/spsa/kb8/spsa.jsonl -lowpower=false -seed 20261008 -resume\n 675044  675040  675044 Ss         01:09 bash controller.sh\n 675045  675040  675045 Ss         01:09 bash checks.sh\n 675046  675040  675046 Ss         01:09 bash data.sh\n",
+  "host_c_free_bytes": 11769192448,
+  "gpu": "0 %, 1470 MiB, 16303 MiB",
+  "spsa_last_iteration": 1000,
+  "spsa_retained_games": 12000,
+  "heavy_session21_work_started": false,
+  "startup_markers": {
+    "controller.started": true,
+    "checks.started": true,
+    "data/controller.started": true
+  },
+  "next_results": {
+    "board": "/home/ehrli/ngn-data/night-20261007/session21/board/receipt.json",
+    "keys": "/home/ehrli/ngn-data/night-20261007/session21/key/gate-summary.json",
+    "see": "/home/ehrli/ngn-data/night-20261007/session21/see/receipt.json",
+    "pawn": "/home/ehrli/ngn-data/night-20261007/session21/pawn/receipt.json",
+    "data": "/home/ehrli/ngn-data/night-20261007/session21/data/coverage.json"
+  },
+  "next_check": "Capacity recovery, then terminal receipts; no duplicate monitoring"
+}

@@ -1,0 +1,1 @@
+["/usr/local/go/bin/go", "build", "-buildvcs=true", "-p", "2", "-o", "/home/ehrli/ngn-data/night-20261007/session94/playing/ngn", "."]

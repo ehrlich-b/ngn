@@ -1,0 +1,95 @@
+{
+  "verdict": "ACCEPTED_PURE_SPEED",
+  "accepted_commit": "fe92ceda6abb2170329e06c2143afe12a1fcc390",
+  "topic": "fcc143216cfb90c314eb46860234a375f4fe8f1a",
+  "immediate_base": "4958bc4/81215229/compiled final14",
+  "accepted_package": "fe92ced/81215229/compiled final14",
+  "natural_terminal_edt": "2026-10-18 00:33:13",
+  "rule": "Every topology and both order strata: paired log-NPS Student-t lower95>0,df19; otherwise SHELVED; no extensions",
+  "binary_sha256": {
+    "base": "dd65aee7572f816958d654850d3a600b25a4f6c425e57b79c20309cc37f889ee",
+    "candidate": "c1585259450de4c0697daf9fcc23f0b964042dbca9c838a7d5f1145f470e1974"
+  },
+  "topologies": [
+    {
+      "width": 1,
+      "hash_mib": 64,
+      "strata": [
+        {
+          "ratio": 1.0188056259906846,
+          "ci95": [
+            1.0165857814475432,
+            1.0210303178471423
+          ]
+        },
+        {
+          "ratio": 1.0191342896420033,
+          "ci95": [
+            1.016547074022626,
+            1.0217280899880816
+          ]
+        }
+      ],
+      "pass_rule": true
+    },
+    {
+      "width": 1,
+      "hash_mib": 256,
+      "strata": [
+        {
+          "ratio": 1.020146945242533,
+          "ci95": [
+            1.016680520420791,
+            1.0236251890190042
+          ]
+        },
+        {
+          "ratio": 1.019650699576368,
+          "ci95": [
+            1.0173530690269532,
+            1.0219535191858071
+          ]
+        }
+      ],
+      "pass_rule": true
+    },
+    {
+      "width": 8,
+      "hash_mib": 256,
+      "strata": [
+        {
+          "ratio": 1.014037016085095,
+          "ci95": [
+            1.0088276978090485,
+            1.0192732338970685
+          ]
+        },
+        {
+          "ratio": 1.019503380538339,
+          "ci95": [
+            1.0099798352792493,
+            1.029116727505477
+          ]
+        }
+      ],
+      "pass_rule": true
+    }
+  ],
+  "blocks": {
+    "(1, 64)": 40,
+    "(1, 256)": 40,
+    "(8, 256)": 40
+  },
+  "identity": {
+    "verdict": "PASS",
+    "uci_cases": 24,
+    "probe_cases": 36,
+    "hugepage_witness_kib": 262144,
+    "receipt": "../2026-10-17-session105-results/session104-speed/s1-identity.json"
+  },
+  "source_identity": "git diff fcc1432 HEAD -- engine trainer cmd internal go.mod go.sum default.pgo empty after integration",
+  "required_checks": "Reused Session105 engine/full short/race,vet,Linux-PGO/Windows; no new source edits",
+  "elo_gain_inferred": false,
+  "goal_met": false,
+  "no_push": true
+}

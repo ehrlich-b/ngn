@@ -1,0 +1,33 @@
+{
+  "checked_utc": "2026-10-09T15:47:21.822532+00:00",
+  "host_c_free_bytes": 9651662848,
+  "gpu_utilization_percent": 0,
+  "pids_alive": {
+    "1168": true,
+    "673954": true,
+    "673958": true,
+    "675044": true,
+    "675045": true,
+    "675046": true,
+    "675213": true,
+    "675346": true,
+    "675352": true,
+    "675472": true,
+    "675562": true
+  },
+  "latest_spsa": {
+    "iter": 1050,
+    "games": 12600,
+    "time": "2026-10-09T11:30:22-04:00"
+  },
+  "completion_receipts": {},
+  "session27_new_jobs": [],
+  "accepted_source": "39eb128",
+  "accepted_net": "be34532c",
+  "verdicts": [],
+  "next_capacity_thresholds_GiB": {
+    "code_and_games": 32,
+    "t74_conversion": 70
+  },
+  "next_actionable_event": "host C: capacity recovery; no ETA"
+}

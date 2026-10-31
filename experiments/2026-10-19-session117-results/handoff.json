@@ -1,0 +1,75 @@
+{
+  "state": "SCREEN_RUNNING",
+  "observed_edt": "2026-10-19 04:53:46",
+  "controller_pid": 382077,
+  "screen_pid": 390775,
+  "checks": "ALL_RETARGET_CHECKS_PASS",
+  "checks_finished_edt": "2026-10-19 04:52:54",
+  "source_commit": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+  "engine": {
+    "Path": "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+    "SHA256": "7c7fa0b2d389707f5d139483875664a3249125bcaa0f60199ebc76512ab16ea8"
+  },
+  "claimtool_sha256": "24233a10c04c5f5cdcfa3a2f0d988f09248ab5e98995e13a9105b02e3532589d",
+  "receipt_attempt_id": "0c81aa53b0241518ce2772d0cbc0dfec",
+  "cpu_set": "0,2,4,6,8,10,12,14",
+  "nice": "19",
+  "occupancy": [
+    {
+      "role": "candidate",
+      "cpu_per_wall": 7.817944649817548,
+      "mask": "0,2,4,6,8,10,12,14",
+      "error": ""
+    },
+    {
+      "role": "Koivisto 6.0",
+      "cpu_per_wall": 7.936492182852526,
+      "mask": "0,2,4,6,8,10,12,14",
+      "error": ""
+    },
+    {
+      "role": "akimbo 1.0.0",
+      "cpu_per_wall": 8.123138366765572,
+      "mask": "0,2,4,6,8,10,12,14",
+      "error": ""
+    },
+    {
+      "role": "Black Marlin 9.0",
+      "cpu_per_wall": 8.033030455337274,
+      "mask": "0,2,4,6,8,10,12,14",
+      "error": ""
+    },
+    {
+      "role": "Berserk 12",
+      "cpu_per_wall": 7.969778993246651,
+      "mask": "0,2,4,6,8,10,12,14",
+      "error": ""
+    }
+  ],
+  "quotas": [
+    {
+      "Path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/ngn-s117-chain-retarget.scope/cpu.max",
+      "Max": "max 100000"
+    },
+    {
+      "Path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/cpu.max",
+      "Max": "max 100000"
+    },
+    {
+      "Path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/cpu.max",
+      "Max": "max 100000"
+    },
+    {
+      "Path": "/sys/fs/cgroup/user.slice/user-1000.slice/cpu.max",
+      "Max": "max 100000"
+    },
+    {
+      "Path": "/sys/fs/cgroup/user.slice/cpu.max",
+      "Max": "max 100000"
+    }
+  ],
+  "host_c_free_gib": 50.551605224609375,
+  "host_c_data_deficit_gib": 16.487383074127138,
+  "next_review_edt": "2026-10-19 08:00",
+  "goal_met": false
+}

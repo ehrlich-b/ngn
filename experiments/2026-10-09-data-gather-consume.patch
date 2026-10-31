@@ -1,0 +1,27 @@
+--- a/src/bin/archive.rs
++++ b/src/bin/archive.rs
+@@ -529,6 +529,8 @@
+     let output = PathBuf::from(required(&values, "--output"));
+     let manifest_path = PathBuf::from(required(&values, "--manifest"));
+     let seed: u64 = required(&values, "--seed").parse()?;
++    // Optional space-bounded gather for newly created campaign buckets only.
++    let consume: bool = values.get("--consume-buckets").map_or(Ok(false), |v| v.parse())?;
+     let map: serde_json::Value = serde_json::from_slice(&fs::read(&map_path)?)?;
+     let knots: Vec<[f64; 2]> = serde_json::from_value(map["knots"].clone())?;
+     if knots.len() < 2
+@@ -601,6 +603,15 @@
+         for record in &kept {
+             writer.write_all(record)?;
+             digest.update(record);
++        }
++        // Durable output precedes deleting these source buckets. Conversion,
++        // shuffle RNG and byte order are identical to the ordinary gather.
++        if consume {
++            writer.flush()?;
++            writer.get_ref().sync_all()?;
++            for (dir, _) in &inputs {
++                fs::remove_file(dir.join(format!("bucket-{bucket:04}.bin")))?;
++            }
+         }
+         records += kept.len() as u64;
+         eprintln!("ngnk4archive: gathered bucket {bucket} records={records}");

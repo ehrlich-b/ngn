@@ -1,0 +1,14 @@
+2026-10-10T06:40:45-04:00
+               total        used        free      shared  buff/cache   available
+Mem:            17Gi       4.3Gi       3.5Gi       4.8Mi        10Gi        13Gi
+Swap:          4.0Gi       6.0Mi       4.0Gi
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda        500G   89G  412G  18% /work
+  88178    06:47:33  0.7 26012 ./spsa-forge -engine /work/lanes/ngn-spsa-20261009/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -concurrency 2 -openings /work/lanes/ngn-spsa-20261009/openings.txt -out /work/lanes/ngn-spsa-20261009/spsa.jsonl -lowpower=false -seed 20261008 -resume
+ 117502       48:25  0.0  3160 bash /work/lanes/ngn-data-volume-20261010/controller.sh
+ 117631       45:39  0.0 22928 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+ 240737       00:00  0.0  6312 rg spsa-forge|ngn-data-volume.*controller.sh|archive_server_read.py
+{"iter": 1750, "time": "2026-10-10T06:40:05-04:00", "plus_pct": 50.666666666666664}
+{"utc": "2026-10-10T09:52:20.211704+00:00", "stage": "session41-t74-forge", "event": "transfer-wait", "detail": "native file notification; no rig input deletion; original194-per-mille/seed2026100903"}
+{"utc": "2026-10-10T09:56:42.020845+00:00", "stage": "session41-t74-forge", "event": "scatter-start", "detail": "same source byte/hash pins enforced by existing decoder; CPUs8-11/nice19/workers2/2GiB"}
+{"utc": "2026-10-10T10:40:32.894908+00:00", "stage": "session41-t74-forge", "event": "gather-start", "detail": "same source scale 0.9827691877392202/calibrated map/seed2026100912; consume only own forge buckets"}

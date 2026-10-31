@@ -1,0 +1,16 @@
+{
+  "utc": "2026-10-17T17:19:18.689340+00:00",
+  "stage": "session101-speed",
+  "event": "trainer-memory-relief",
+  "detail": {
+    "service": "ngn-root-gpu-capacity-resume.service",
+    "trainer_pid": 293725,
+    "old_memory_max": "4GiB",
+    "new_memory_max": "6GiB",
+    "cause": "4GiB saturated; memory.events max2973897; file/page-table pressure; GPU waiting on I/O",
+    "recipe_checkpoint_argv_unchanged": true,
+    "scope_memory_max": "6442450944",
+    "memory_events": "low 0\nhigh 0\nmax 3043725\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "available_ram": "               total        used        free      shared  buff/cache   available\nMem:           15514        7056         417          87        8367        8458\nSwap:           4096           2        4093\n"
+  }
+}

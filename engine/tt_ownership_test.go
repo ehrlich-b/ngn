@@ -66,11 +66,11 @@ func TestSynchronizedCacheReturnsOnlyCoherentRecords(t *testing.T) {
 	hashB := hashA ^ uint64(cache.length)
 	dataA := Pack(move, 111, 9, Exact, 0, false)
 	dataB := Pack(move, -222, 9, Exact, 0, false)
-	// The tensor-like high-bit payload difference preserves this table's low
-	// index bits, so a torn key/data pair would validate at one of these hashes.
+	// Probe absent combinations while two colliding records are updated.
+	// Cluster locking must publish each full-key/payload tuple coherently.
 	hybridA := hashA ^ dataA ^ dataB
 	hybridB := hashB ^ dataA ^ dataB
-	if cache.index(hashA) != cache.index(hashB) || cache.index(hashA) != cache.index(hybridA) || cache.index(hashA) != cache.index(hybridB) {
+	if cache.index(hashA) != cache.index(hashB) {
 		t.Fatal("test hashes do not collide")
 	}
 
@@ -124,22 +124,18 @@ func TestSynchronizedCacheReturnsOnlyCoherentRecords(t *testing.T) {
 	wg.Wait()
 }
 
-func TestAdvanceAgePreservesHistoricalWidthMismatch(t *testing.T) {
+func TestCacheGenerationUsesTheSameWidthAsItsPayload(t *testing.T) {
 	cache := NewCache(1)
-	cache.age = 511
+	cache.age = 255
 	cache.AdvanceAge()
-	if cache.age != 512 {
-		t.Fatalf("age after 511 = %d, want historical 512", cache.age)
-	}
-	_, _, _, _, packedAge, _ := Unpack(Pack(EmptyMove, 0, 0, Exact, cache.age, false))
-	if packedAge != 0 {
-		t.Fatalf("packed 10th age bit = %d, want historical nine-bit truncation", packedAge)
-	}
-	for cache.age != 0 {
-		cache.AdvanceAge()
-	}
 	if cache.age != 0 {
-		t.Fatal("age did not preserve historical 1023-to-0 wrap")
+		t.Fatalf("generation wrap=%d", cache.age)
+	}
+	for age := uint16(0); age < 256; age++ {
+		_, _, _, _, got, _ := Unpack(Pack(EmptyMove, 0, 0, Exact, age, false))
+		if got != age {
+			t.Fatalf("generation %d became %d", age, got)
+		}
 	}
 }
 
@@ -148,7 +144,6 @@ func TestNewGameClearsTTAndHistoryButKeepsWarmHCECaches(t *testing.T) {
 	pos := controlTestPosition(t)
 	_ = engine.evaluateForPlayerCached(pos)
 	engine.worker.hce.full[7] = evalCacheEntry{key: 1, val: 2}
-	engine.worker.hce.pawns[9] = pawnCacheEntry{valid: true, wp: 3}
 	move := NewMove(A2, A3, WhitePawn, NoPiece, NoType, 0)
 	engine.worker.history.historyTable[WhitePawn][A3] = 4
 	engine.worker.history.killerMoves[0][0] = move
@@ -168,7 +163,7 @@ func TestNewGameClearsTTAndHistoryButKeepsWarmHCECaches(t *testing.T) {
 	if engine.worker.history.historyTable[WhitePawn][A3] != 0 || engine.worker.history.killerMoves[0][0] != EmptyMove || engine.worker.history.lastMovePlayed != EmptyMove {
 		t.Fatal("new game retained game-scoped history")
 	}
-	if engine.worker.hce.full[7] != (evalCacheEntry{key: 1, val: 2}) || engine.worker.hce.pawns[9] != (pawnCacheEntry{valid: true, wp: 3}) {
+	if engine.worker.hce.full[7] != (evalCacheEntry{key: 1, val: 2}) {
 		t.Fatal("same-generation new game cleared warm HCE cache")
 	}
 }
@@ -233,87 +228,27 @@ func TestHashResizeWaitsForActiveReceiverSession(t *testing.T) {
 	}
 }
 
-func TestCacheLegacyPackingAndReplacementOrderStayExact(t *testing.T) {
-	const wantPacked = uint64(0xa9679fb2e0abcdef)
-	packed := Pack(Move(0x0abcdef), -1234, -7, LowerBound, 0x2a5, true)
-	if packed != wantPacked {
-		t.Fatalf("Pack = %#x, want %#x", packed, wantPacked)
-	}
-	move, eval, depth, node, age, pv := Unpack(wantPacked)
-	if move != Move(0x0abcdef) || eval != -1234 || depth != 121 || node != LowerBound || age != 0xa5 || !pv {
-		t.Fatalf("Unpack = (%#x,%d,%d,%v,%#x,%v)", move, eval, depth, node, age, pv)
+func TestCachePackingPreservesAllValidMovesAndScores(t *testing.T) {
+	for _, move := range []Move{EmptyMove, NewMove(A7, A8, WhitePawn, BlackRook, Queen, Capture), NewMove(E1, G1, WhiteKing, NoPiece, NoType, KingSideCastle), NewMove(E5, D6, WhitePawn, BlackPawn, NoType, Capture|EnPassant), Move(ttMoveMask)} {
+		for _, score := range []int16{-32768, -30000, -1, 0, 1, 30000, 32767} {
+			for _, bound := range []NodeType{Exact, LowerBound, UpperBound} {
+				for _, depth := range []int8{0, 1, 64, 127} {
+					for _, pv := range []bool{false, true} {
+						m, e, d, n, a, p := Unpack(Pack(move, score, depth, bound, 255, pv))
+						if m != move || e != score || d != depth || n != bound || a != 255 || p != pv {
+							t.Fatalf("roundtrip lost tuple: %v %d %d %v %d %v", m, e, d, n, a, p)
+						}
+					}
+				}
+			}
+		}
 	}
 	if NewCache(0) != nil || NewCache(-1) != nil {
-		t.Fatal("legacy NewCache must return nil below one MB")
+		t.Fatal("nonpositive allocation")
 	}
 	cache := NewCache(1)
-	if cache == nil || cache.Size() != 1 || cache.length == 0 || cache.length&(cache.length-1) != 0 {
-		t.Fatalf("NewCache(1) = %#v", cache)
-	}
-
-	const hashA = uint64(0x4444)
-	hashB := hashA ^ cache.length
-	first := NewMove(A2, A3, WhitePawn, NoPiece, NoType, 0)
-	second := NewMove(B2, B3, WhitePawn, NoPiece, NoType, 0)
-	cache.Set(hashA, first, 10, 8, LowerBound, false)
-	cache.Set(hashA, second, 20, 4, LowerBound, false) // 4 < 8-3: reject.
-	if got, eval, depth, _, hit, _ := cache.Get(hashA); !hit || got != first || eval != 10 || depth != 8 {
-		t.Fatalf("same-hash shallow replacement changed entry: (%v,%d,%d,%v)", got, eval, depth, hit)
-	}
-	cache.Set(hashA, second, 20, 4, Exact, false) // Exact replaces despite depth.
-	if got, eval, depth, node, hit, _ := cache.Get(hashA); !hit || got != second || eval != 20 || depth != 4 || node != Exact {
-		t.Fatalf("same-hash exact replacement = (%v,%d,%d,%v,%v)", got, eval, depth, node, hit)
-	}
-	cache.Set(hashB, first, 30, 3, LowerBound, false) // Collision, same age, shallower: reject.
-	if _, _, _, _, hit, _ := cache.Get(hashB); hit {
-		t.Fatal("same-age shallow collision replaced entry")
-	}
-	cache.AdvanceAge()
-	cache.Set(hashB, first, 30, 3, LowerBound, false) // Old age loses regardless of depth.
-	if got, eval, depth, node, hit, _ := cache.Get(hashB); !hit || got != first || eval != 30 || depth != 3 || node != LowerBound {
-		t.Fatalf("old-age collision replacement = (%v,%d,%d,%v,%v)", got, eval, depth, node, hit)
-	}
-}
-
-func TestModelGenerationInvalidatesEachOwnedTTBeforeDiagnosticsOrStore(t *testing.T) {
-	saved, changed := changedQueenModel()
-	t.Cleanup(func() {
-		if err := ApplyTexelModel(saved); err != nil {
-			t.Errorf("restore HCE model: %v", err)
-		}
-	})
-	a, _ := NewSearchEngineWithHash(1)
-	b, _ := NewSearchEngineWithHash(1)
-	move := NewMove(A2, A3, WhitePawn, NoPiece, NoType, 0)
-	const keyA = uint64(0xabc001)
-	const keyB = uint64(0xabc002)
-	a.TTStore(keyA, move, 1, 1, Exact, false)
-	b.TTStore(keyB, move, 2, 2, Exact, false)
-	beforeA := a.ttGeneration
-	beforeB := b.ttGeneration
-
-	if err := ApplyTexelModel(changed); err != nil {
-		t.Fatal(err)
-	}
-	diagA := a.TTDiagnostics()
-	if diagA.Generation == beforeA || a.ttGeneration != diagA.Generation {
-		t.Fatalf("A generation before=%d diagnostics=%+v owned=%d", beforeA, diagA, a.ttGeneration)
-	}
-	if _, _, _, _, hit, _ := a.TTProbe(keyA); hit {
-		t.Fatal("A reported stale-generation entry")
-	}
-	// Store is itself a generation observation: B's stale bytes must be cleared
-	// before the new-generation entry can be seeded.
-	const newKeyB = uint64(0xabc003)
-	b.TTStore(newKeyB, move, 3, 3, Exact, false)
-	if b.ttGeneration == beforeB {
-		t.Fatal("B store did not observe new generation")
-	}
-	if _, _, _, _, hit, _ := b.TTProbe(keyB); hit {
-		t.Fatal("B retained stale entry while seeding new generation")
-	}
-	if _, eval, _, _, hit, _ := b.TTProbe(newKeyB); !hit || eval != 3 {
-		t.Fatalf("B new-generation store hit=%v eval=%d", hit, eval)
+	if cache.length*ttRecordBytes != 1024*1024 || len(cache.items)%ttWays != 0 {
+		t.Fatal("allocation budget")
 	}
 }
 

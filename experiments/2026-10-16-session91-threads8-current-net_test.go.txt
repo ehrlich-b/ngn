@@ -1,0 +1,105 @@
+package engine
+
+import (
+	"fmt"
+	"os"
+	"reflect"
+	"sync/atomic"
+	"testing"
+)
+
+func campaignMarkWorker(mask *atomic.Uint32, worker int) {
+	for {
+		old := mask.Load()
+		if mask.CompareAndSwap(old, old|1<<worker) {
+			return
+		}
+	}
+}
+
+// Installed into an isolated source snapshot on the rig. This uses the playing
+// KB8 net, rather than a tiny generated fixture, across joined stop/restart cycles.
+func TestCampaignThreads8CurrentNetSMP(t *testing.T) {
+	path := os.Getenv("NGN_CAMPAIGN_NET")
+	if path == "" {
+		t.Skip("requires the campaign net on the rig")
+	}
+	net, err := LoadNGNN1(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, width := range []int{2, 4, 8} {
+		t.Run(fmt.Sprintf("threads%d", width), func(t *testing.T) {
+			e, err := NewSearchEngineWithHash(256)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := e.SelectNGNN1Evaluator(net); err != nil {
+				t.Fatal(err)
+			}
+			if err := e.ConfigureThreads(width); err != nil {
+				t.Fatal(err)
+			}
+			for _, fen := range []string{
+				"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+				"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+				"8/5pk1/6p1/8/5P2/5K2/8/8 w - - 0 1",
+			} {
+				pos, err := ParseFEN(fen)
+				if err != nil {
+					t.Fatal(err)
+				}
+				before := snapshotPVPosition(pos)
+				for _, cancel := range []bool{false, true, false} {
+					var starts, finishes atomic.Uint32
+					pool := e.workerSnapshot()
+					e.smpHooks = &smpSearchHooks{
+						workerStarted: func(i int) { campaignMarkWorker(&starts, i) },
+						workerFinished: func(i int, _ *SearchInfo) {
+							if pool.workers[i].evaluator.depth != 0 {
+								t.Errorf("worker %d left a live evaluator frame", i)
+							}
+							campaignMarkWorker(&finishes, i)
+						},
+					}
+					depth := 4
+					if cancel {
+						depth = MaximumDepth
+					}
+					result := e.SearchIterativeDeepeningWithCallback(pos, depth, nil, func(info *SearchInfo) {
+						if cancel && info.RootDepth >= 2 {
+							e.RequestStop()
+						}
+					})
+					mask := uint32(1<<width - 1)
+					if starts.Load() != mask || finishes.Load() != mask || result.EffectiveThreads != width {
+						t.Fatalf("worker admission/join: starts=%b finishes=%b effective=%d", starts.Load(), finishes.Load(), result.EffectiveThreads)
+					}
+					if !IsLegalMove(pos, result.BestMove) || !reflect.DeepEqual(snapshotPVPosition(pos), before) {
+						t.Fatal("search failed legal result/root restoration")
+					}
+					if !cancel && result.Stopped {
+						t.Fatal("restart retained a previous stop")
+					}
+					for i, worker := range pool.workers {
+						if worker.evaluator.nnue == nil || worker.evaluator.nnue.network != net {
+							t.Fatalf("worker %d missed the playing network", i)
+						}
+						for j := 0; j < i; j++ {
+							if worker.evaluator == pool.workers[j].evaluator || worker.evaluator.nnue == pool.workers[j].evaluator.nnue {
+								t.Fatal("workers shared a mutable evaluator")
+							}
+						}
+					}
+				}
+				e.smpHooks = nil
+				e.NewGame()
+				for _, worker := range e.workerSnapshot().workers {
+					if !reflect.DeepEqual(worker.history, workerHistory{}) {
+						t.Fatal("new game retained worker-private search learning")
+					}
+				}
+			}
+		})
+	}
+}

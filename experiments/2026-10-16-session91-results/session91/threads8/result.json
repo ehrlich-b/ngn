@@ -1,0 +1,8 @@
+{
+  "state": "PASS",
+  "exit": 0,
+  "finished_utc": "2026-10-16T13:14:40.425902+00:00",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session91/threads8/manifest.json",
+  "behavior_changed": false,
+  "interpretation": "Correctness only on CPUs13,15; no strength or eight-core throughput verdict"
+}

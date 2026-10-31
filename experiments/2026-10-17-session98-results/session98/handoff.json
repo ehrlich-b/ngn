@@ -1,0 +1,63 @@
+{
+  "utc": "2026-10-17T06:03:09.560162+00:00",
+  "stage": "session98",
+  "event": "handoff",
+  "detail": {
+    "observed_edt": "2026-10-17 02:00\u201302:01 EDT",
+    "accepted": "9ec5d31/81215229/compiled final14",
+    "screen": {
+      "state": "FAILED",
+      "finished_utc": "2026-10-17T04:58:19.875822+00:00",
+      "games": 320,
+      "wdl": [
+        44,
+        142,
+        134
+      ],
+      "primary": {
+        "estimate": 3535.365648330272,
+        "ci95": [
+          3493.9309745769283,
+          3576.800322083616
+        ],
+        "se": 21.140139670073268
+      },
+      "bracketed": true,
+      "faults": 0,
+      "exclusions": 0
+    },
+    "width": {
+      "unit": "ngn-root-width-retry.service",
+      "main_pid": 274153,
+      "harness_pid": 274351,
+      "engine_pids": [
+        274355,
+        274366
+      ],
+      "aa": "PASS/40games/4W32D4L/zero faults",
+      "measurement": "RUNNING/fixed400/10+0.1/c1/Hash256",
+      "observed_games": 69,
+      "expected_terminal_edt": "2026-10-17 05:00\u201306:00",
+      "output": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/width-retry1/width8-vs4/measurement/result.json",
+      "cpu_quota": "infinity",
+      "scope_cpus": "0-15",
+      "next": "point<25 => profile before code;otherwise native SPSA/GPU automatically resume"
+    },
+    "host_c_free_bytes": 33867915264,
+    "host_c_free_gib": 31.541954040527344,
+    "available_ram_mib": 12524,
+    "swap_used_mib": 1,
+    "gpu_util_percent": 0,
+    "gpu_memory_mib": 1476,
+    "gpu_compute_processes": [],
+    "tuner": "PAUSED/verified500iterations/6000games/native-resume-saved",
+    "hopper_pid": 1188,
+    "hopper_keepalive": "untouched",
+    "new_jobs_this_session": 0,
+    "new_engine_changes": 0,
+    "goal_met": false,
+    "no_push": true,
+    "next_session": "not before05:30 EDT October17",
+    "needs_bryan": "screen rule;no further screen/confirmation until answer per01:15 plan"
+  }
+}

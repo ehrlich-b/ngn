@@ -1,0 +1,13 @@
+{
+  "authority": "Merged plan2026-10-16 09:45,10:05,10:35,10:55,11:20;screen then automatic confirmation,actual occupancy/unthrottled scope/descriptive monitor",
+  "candidate": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/candidate-identity.json",
+  "selected_net": "accepted-final115",
+  "selection": "moderated-t74 preferred if both fixed1000 KEEP;otherwise volume-control;otherwise accepted81215229;no observed score ranking",
+  "labels": "/home/ehrli/ngn-data/claim-v4-20261016/labels-koivisto.json",
+  "occupancy": "screen/occupancy.json; real game launcher, CPU/wall>=7 per engine, exact mask; inherited cpu.max recorded",
+  "monitor": "resources.jsonl every600seconds,descriptive only;no stop/verdict effect",
+  "resources": "unlimited CPUQuota in ngn-s94-claim-chain;GOMAX8;tasksetphysical8;nice19;exclusive",
+  "screen": "fixed320/10+0.1;lower95>3600 andrawscores bracket50%",
+  "confirmation": "automatic only on screen PASS;same identity;fixed640/120+1;strictlower95>3600 andbracketing",
+  "created_utc": "2026-10-17T01:58:18.630301+00:00"
+}

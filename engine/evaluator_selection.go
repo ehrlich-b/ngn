@@ -1,17 +1,7 @@
 package engine
 
-import (
-	"fmt"
+import "fmt"
 
-	"github.com/ehrlich-b/ngn/countereval"
-	"github.com/ehrlich-b/ngn/nnue"
-	"github.com/ehrlich-b/ngn/rodenteval"
-	"github.com/ehrlich-b/ngn/rodentv12eval"
-)
-
-// selectedEvaluatorModel returns the receiver's immutable evaluator selection
-// with the process HCE/PST generation admitted for this operation. A zero-value
-// SearchEngine preserves the historical HCE default.
 func (e *SearchEngine) selectedEvaluatorModel(generation uint64) evaluatorModel {
 	model := e.evaluatorModel
 	if model.identity.adapterRevision == 0 {
@@ -21,25 +11,8 @@ func (e *SearchEngine) selectedEvaluatorModel(generation uint64) evaluatorModel 
 	return model
 }
 
-// prepareWorkerEvaluator prepares one explicit worker against an already selected
-// immutable model. The caller holds the owning engine session lock and an HCE
-// model-use lease. Keeping the worker and model explicit lets pool construction
-// validate new workers off to the side before publishing a new immutable pool.
 func prepareWorkerEvaluator(worker *searchWorker, model evaluatorModel, pos *Position, generation uint64) (*workerEvaluator, error) {
-	var hce *hceEvaluator
-	if model.identity.backend == evaluatorBackendHCE {
-		hce = worker.prepareHCEGeneration(pos, generation)
-	} else {
-		// NNUE still needs the admitted process PST generation and an unconditional
-		// root accumulator rebuild, but it does not allocate the 16 MiB HCE cache.
-		if worker.hce != nil && worker.hce.seenGeneration != generation {
-			worker.hce.clearForGeneration(generation)
-			worker.history = workerHistory{}
-		}
-		if pos != nil {
-			pos.Board.recomputeAccumulator()
-		}
-	}
+	hce := worker.prepareHCEGeneration(pos, generation)
 	identity := model.identity
 	if worker.evaluatorIdentity != identity {
 		// A never-admitted zero-value/default-HCE worker has no stale model state.
@@ -74,9 +47,6 @@ func (e *SearchEngine) mustPreparePrimaryEvaluator(pos *Position, generation uin
 	return evaluator
 }
 
-// SelectHCEEvaluator transactionally selects the historical HCE backend for
-// this receiver. It is idle/session serialized and returns ErrHCEModelBusy
-// rather than waiting if a process-wide HCE mutation is active.
 func (e *SearchEngine) SelectHCEEvaluator() error {
 	e.sessionMu.Lock()
 	defer e.sessionMu.Unlock()
@@ -103,146 +73,63 @@ func (e *SearchEngine) SelectHCEEvaluator() error {
 	return nil
 }
 
-// SelectNGNV1Evaluator transactionally selects one exact validated NGN-v1
-// model for this receiver. The immutable model may be shared; the candidate
-// worker Context is built privately before publication. Arbitrary Stockfish
-// .nnue formats are outside this API and are rejected by nnue.Load.
-func (e *SearchEngine) SelectNGNV1Evaluator(model *nnue.Model) error {
+// SelectNGNN1Evaluator selects validated NGNN1/2/3 weights while no search is active.
+// The network's pointer is part of model identity, so reloading invalidates TT
+// and every worker's evaluation-dependent history even if the path is unchanged.
+func (e *SearchEngine) SelectNGNN1Evaluator(network *NGNN1Network) error {
+	if !network.valid() {
+		return fmt.Errorf("NGNN1: invalid network")
+	}
 	e.sessionMu.Lock()
 	defer e.sessionMu.Unlock()
-	generation, err := acquireHCEModelUse()
-	if err != nil {
-		return err
-	}
-	defer releaseHCEModelUse()
-
-	candidate, err := ngnV1EvaluatorModel(model, generation)
-	if err != nil {
-		return err
-	}
-	worker, err := candidate.newWorker(nil)
-	if err != nil {
-		return err
-	}
-
-	// Publication is one receiver-local critical section. TT/history invalidation
-	// occurs lazily before the next receiver operation observes this identity.
-	e.evaluatorModel = candidate
-	e.worker.evaluator = worker
+	e.evaluatorModel = evaluatorModel{identity: evaluatorModelIdentity{
+		backend:         evaluatorBackendNGNN1,
+		adapterRevision: evaluatorAdapterRevision,
+		network:         network,
+	}}
 	return nil
 }
 
-// SelectCounter55Evaluator transactionally selects one exact loader-validated
-// Counter 5.5 model. Each worker receives private dynamically growing state.
-func (e *SearchEngine) SelectCounter55Evaluator(model *countereval.Model) error {
-	e.sessionMu.Lock()
-	defer e.sessionMu.Unlock()
-	generation, err := acquireHCEModelUse()
-	if err != nil {
-		return err
-	}
-	defer releaseHCEModelUse()
+const EvaluatorBackendHCEName = "hce"
+const EvaluatorBackendNGNN1Name = "ngnn1"
+const EvaluatorBackendNGNN2Name = "ngnn2"
+const EvaluatorBackendNGNN3Name = "ngnn3"
 
-	candidate, err := counter55EvaluatorModel(model, generation)
-	if err != nil {
-		return err
+func (n *NGNN1Network) backendName() string {
+	if n.version == 3 {
+		return EvaluatorBackendNGNN3Name
 	}
-	worker, err := candidate.newWorker(nil)
-	if err != nil {
-		return err
+	if n.version == 2 {
+		return EvaluatorBackendNGNN2Name
 	}
-	e.evaluatorModel = candidate
-	e.worker.evaluator = worker
-	return nil
+	return EvaluatorBackendNGNN1Name
 }
 
-// SelectRodentV11AnandEvaluator transactionally selects the exact
-// strict-loader-validated Anand artifact. Each worker receives private state.
-func (e *SearchEngine) SelectRodentV11AnandEvaluator(model *rodenteval.Model) error {
-	e.sessionMu.Lock()
-	defer e.sessionMu.Unlock()
-	generation, err := acquireHCEModelUse()
-	if err != nil {
-		return err
+func (m evaluatorModelIdentity) backendName() string {
+	if m.backend == evaluatorBackendNGNN1 && m.network != nil {
+		return m.network.backendName()
 	}
-	defer releaseHCEModelUse()
-
-	candidate, err := rodentV11AnandEvaluatorModel(model, generation)
-	if err != nil {
-		return err
-	}
-	worker, err := candidate.newWorker(nil)
-	if err != nil {
-		return err
-	}
-	e.evaluatorModel = candidate
-	e.worker.evaluator = worker
-	return nil
+	return evaluatorBackendName(m.backend)
 }
-
-// SelectRodentV12DefaultEvaluator transactionally selects the exact
-// strict-loader-validated V1.2 default artifact. Each worker receives private
-// dynamically growing state.
-func (e *SearchEngine) SelectRodentV12DefaultEvaluator(model *rodentv12eval.Model) error {
-	e.sessionMu.Lock()
-	defer e.sessionMu.Unlock()
-	generation, err := acquireHCEModelUse()
-	if err != nil {
-		return err
-	}
-	defer releaseHCEModelUse()
-
-	candidate, err := rodentV12DefaultEvaluatorModel(model, generation)
-	if err != nil {
-		return err
-	}
-	worker, err := candidate.newWorker(nil)
-	if err != nil {
-		return err
-	}
-	e.evaluatorModel = candidate
-	e.worker.evaluator = worker
-	return nil
-}
-
-const (
-	EvaluatorBackendHCEName              = "hce"
-	EvaluatorBackendNGNV1Name            = "ngn-v1"
-	EvaluatorBackendCounter55Name        = "counter-5.5"
-	EvaluatorBackendRodentV11AnandName   = "rodent-v1.1-anand"
-	EvaluatorBackendRodentV12DefaultName = "rodent-v1.2-default"
-)
 
 func evaluatorBackendName(backend evaluatorBackend) string {
-	switch backend {
-	case evaluatorBackendHCE:
+	if backend == evaluatorBackendHCE {
 		return EvaluatorBackendHCEName
-	case evaluatorBackendNGNV1:
-		return EvaluatorBackendNGNV1Name
-	case evaluatorBackendCounter55:
-		return EvaluatorBackendCounter55Name
-	case evaluatorBackendRodentV11Anand:
-		return EvaluatorBackendRodentV11AnandName
-	case evaluatorBackendRodentV12Default:
-		return EvaluatorBackendRodentV12DefaultName
-	default:
-		return fmt.Sprintf("unknown-%d", backend)
 	}
+	if backend == evaluatorBackendNGNN1 {
+		return EvaluatorBackendNGNN1Name
+	}
+	return fmt.Sprintf("unknown-%d", backend)
 }
 
-// SelectedEvaluatorBackend reports the receiver's immutable evaluator selection.
-// It is session serialized and participates in the process HCE/PST read lease.
 func (e *SearchEngine) SelectedEvaluatorBackend() string {
 	e.sessionMu.Lock()
 	defer e.sessionMu.Unlock()
 	generation := mustAcquireHCEModelUse()
 	defer releaseHCEModelUse()
-	return evaluatorBackendName(e.selectedEvaluatorModel(generation).identity.backend)
+	return e.selectedEvaluatorModel(generation).identity.backendName()
 }
 
-// EvaluateSelected reports the selected backend's base SearchSTM score for pos:
-// side-to-move centipawns with the backend's declared rule-50/score adapter, and
-// without search correction-history terms.
 func (e *SearchEngine) EvaluateSelected(pos *Position) (score int, backend string, err error) {
 	if pos == nil {
 		return 0, "", fmt.Errorf("%w: nil evaluation position", errWorkerEvaluator)
@@ -259,5 +146,5 @@ func (e *SearchEngine) EvaluateSelected(pos *Position) (score int, backend strin
 	if err != nil {
 		return 0, "", err
 	}
-	return worker.SearchSTM(pos), evaluatorBackendName(worker.Identity().backend), nil
+	return worker.SearchSTM(pos), worker.Identity().backendName(), nil
 }

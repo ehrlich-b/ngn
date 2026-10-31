@@ -1,0 +1,7 @@
+{
+  "state": "DIAGNOSED",
+  "cells": 24,
+  "identity_cases": 12,
+  "interpretation": "Counters and Hash64/256 sensitivity only; no Elo or policy acceptance verdict",
+  "finished_utc": "2026-10-16T07:31:46.298659+00:00"
+}

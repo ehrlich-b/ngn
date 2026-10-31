@@ -1,0 +1,115 @@
+{
+  "completed": "2026-10-09T17:57:11-04:00",
+  "logs": {
+    "baseline-ngnn4-tests.log": {
+      "bytes": 768,
+      "tail": [
+        "--- PASS: TestNGNN4TrainerParity (0.03s)",
+        "PASS",
+        "ok  \tgithub.com/ehrlich-b/ngn/engine\t1.602s"
+      ]
+    },
+    "differential-avx2.log": {
+      "bytes": 768,
+      "tail": [
+        "--- PASS: TestNGNN4TrainerParity (0.03s)",
+        "PASS",
+        "ok  \tgithub.com/ehrlich-b/ngn/engine\t1.634s"
+      ]
+    },
+    "differential-purego.log": {
+      "bytes": 768,
+      "tail": [
+        "--- PASS: TestNGNN4TrainerParity (0.06s)",
+        "PASS",
+        "ok  \tgithub.com/ehrlich-b/ngn/engine\t1.709s"
+      ]
+    },
+    "full-short.log": {
+      "bytes": 2579,
+      "tail": [
+        "?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]",
+        "?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]",
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/uci\t0.057s"
+      ]
+    },
+    "full-race.log": {
+      "bytes": 2580,
+      "tail": [
+        "?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]",
+        "?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]",
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/uci\t1.123s"
+      ]
+    },
+    "vet.log": {
+      "bytes": 0,
+      "tail": []
+    },
+    "baseline-build.log": {
+      "bytes": 0,
+      "tail": []
+    },
+    "candidate-build.log": {
+      "bytes": 0,
+      "tail": []
+    }
+  },
+  "identity_cases": 48,
+  "blocks": 20,
+  "geometric_ratio": 0.9577418056331537,
+  "ci95": [
+    0.9322827668405512,
+    0.9838960869844489
+  ],
+  "order_strata_ratios": [
+    0.9528975599132036,
+    0.9626106780470766
+  ],
+  "verdict": "shelved",
+  "budget_run": false,
+  "source_sha256": {
+    "engine/ngnn4.go": "fd6acf9f8e562870c39d8708bbc7fe59c85426e7c80e7ec7badfb5333e60294c",
+    "engine/ngnn4_kernels_amd64.go": "47d65df5c4d3c5e90e82896242fe811c12142d8b144c45c79d895d6783165bf3",
+    "engine/ngnn4_kernels_amd64.s": "4f22696cf97a5cc9b900ad25128e4e0668674ba8a682ff3173d3105e36b29418",
+    "engine/ngnn4_kernels_generic.go": "e04be45e7ab1807ed60be279f51ea21a20634d6e1a90ed801565e867b6d0e7c9",
+    "engine/ngnn4_rows_test.go": "b47371a4dfb70cd4bc1150a80cd6e1980539687293c38912ef87b8286f7c7fdd"
+  },
+  "build": {
+    "runtime_base": "39eb128",
+    "architecture_base": "aafa7fd",
+    "source_archive_sha256": "8e77205f1e01726de1f59fc7b03513c8634f3a42d60af24f54a7ffcb9534ed17",
+    "patch_sha256": "356f06cf0617011c0935a62402eb5698c910d5a65386a6c806b8e40be009384c",
+    "binary_sha256": {
+      "baseline": "a0ab3f68d86a906db2b006e4ef5c954b7169ff036131aa02d074129a3aa10010",
+      "candidate": "5e652f7b94920bed765b3551e341288621415a20f0117582de2d4d8e5188f0e4"
+    },
+    "net_sha256": "6704332592ddd5819e9259517c544a053eefab9a9e12f52e2eb5c9a7e6f8bc0a",
+    "old_net_sha256": "c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2",
+    "ngnn3_net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+    "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+    "source_sha256": {
+      "engine/ngnn4.go": "fd6acf9f8e562870c39d8708bbc7fe59c85426e7c80e7ec7badfb5333e60294c",
+      "engine/ngnn4_kernels_amd64.go": "47d65df5c4d3c5e90e82896242fe811c12142d8b144c45c79d895d6783165bf3",
+      "engine/ngnn4_kernels_amd64.s": "4f22696cf97a5cc9b900ad25128e4e0668674ba8a682ff3173d3105e36b29418",
+      "engine/ngnn4_kernels_generic.go": "e04be45e7ab1807ed60be279f51ea21a20634d6e1a90ed801565e867b6d0e7c9",
+      "engine/ngnn4_rows_test.go": "b47371a4dfb70cd4bc1150a80cd6e1980539687293c38912ef87b8286f7c7fdd"
+    },
+    "go_version": "go version go1.25.5 linux/amd64",
+    "build_argv": [
+      "go",
+      "build",
+      "-p",
+      "2",
+      "-pgo=/home/ehrli/ngn-data/night-20261007/session30-eight-row/baseline/default.pgo",
+      "-o",
+      "OUTPUT",
+      "./cmd/speedprobe"
+    ],
+    "goamd64": "v3",
+    "build_test_cpus": [
+      12,
+      14
+    ],
+    "tests_pass": true
+  }
+}

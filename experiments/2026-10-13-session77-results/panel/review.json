@@ -1,0 +1,29 @@
+{
+  "controller_exit": 0,
+  "natural_terminal_edt": "2026-10-13T05:58:47-04:00",
+  "rows": [
+    288,
+    48,
+    288
+  ],
+  "consensus_admission": "PASS",
+  "eligible_cells": 9,
+  "eligible_frames": [
+    "1-b-32",
+    "193-w-63",
+    "272-w-63",
+    "440-b-64",
+    "92-b-32"
+  ],
+  "mate_misses": 0,
+  "sample_overflow": 0,
+  "nps_ratio4v1": 3.8090351481945013,
+  "cpu_occupancy": [
+    1.0013941201043928,
+    3.969249440674946
+  ],
+  "setup_fraction4": 0.00010948137004805057,
+  "join_fraction4": 3.112933568136332e-05,
+  "verdict": "DIAGNOSTIC PASS; prospectively admits original consensus S gate",
+  "limits": "fixed-time cold API panel; completed moves are not tactical labels; biased sampled alpha-beta overlap; no Elo/adoption claim"
+}

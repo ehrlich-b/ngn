@@ -1,0 +1,51 @@
+=== RUN   TestSEEPostMoveGeometry
+=== RUN   TestSEEPostMoveGeometry/source_reveals_rook/white
+    see_geometry_test.go:59: SEE(d4d5)=100, want -400; 7k/8/8/3p4/3R4/3r4/8/K7 w - - 0 1
+    see_geometry_test.go:61: SEE=100, want -400
+=== RUN   TestSEEPostMoveGeometry/source_reveals_rook/black
+    see_geometry_test.go:59: SEE(d5d4)=100, want -400; k7/8/3R4/3r4/3P4/8/8/7K b - - 0 1
+    see_geometry_test.go:61: SEE=100, want -400
+=== RUN   TestSEEPostMoveGeometry/quiet_source_reveals_rook/white
+    see_geometry_test.go:59: SEE(d4d5)=0, want -500; 7k/8/8/8/3R4/3r4/8/K7 w - - 0 1
+    see_geometry_test.go:61: SEE=0, want -500
+=== RUN   TestSEEPostMoveGeometry/quiet_source_reveals_rook/black
+    see_geometry_test.go:59: SEE(d5d4)=0, want -500; k7/8/3R4/3r4/8/8/8/7K b - - 0 1
+    see_geometry_test.go:61: SEE=0, want -500
+=== RUN   TestSEEPostMoveGeometry/source_reveals_bishop/white
+    see_geometry_test.go:59: SEE(d4e5)=100, want -240; 7k/8/8/4p3/3B4/2b5/K7/8 w - - 0 1
+    see_geometry_test.go:61: SEE=100, want -240
+=== RUN   TestSEEPostMoveGeometry/source_reveals_bishop/black
+    see_geometry_test.go:59: SEE(d5e4)=100, want -240; 8/k7/2B5/3b4/4P3/8/8/7K b - - 0 1
+    see_geometry_test.go:61: SEE=100, want -240
+=== RUN   TestSEEPostMoveGeometry/EP_ignores_attack_on_captured_square/white
+    see_geometry_test.go:59: SEE(e5d6)=0, want 100; 7k/8/4p3/3pP3/8/8/8/K7 w - d6 0 1
+    see_geometry_test.go:61: SEE=0, want 100
+=== RUN   TestSEEPostMoveGeometry/EP_ignores_attack_on_captured_square/black
+    see_geometry_test.go:59: SEE(e4d3)=0, want 100; k7/8/8/8/3Pp3/4P3/8/7K b - d3 0 1
+    see_geometry_test.go:61: SEE=0, want 100
+=== RUN   TestSEEPostMoveGeometry/EP_destination_defended_by_pawn/white
+    see_geometry_test.go:59: SEE(e5d6)=100, want 0; 7k/2p5/8/3pP3/8/8/8/K7 w - d6 0 1
+    see_geometry_test.go:61: SEE=100, want 0
+=== RUN   TestSEEPostMoveGeometry/EP_destination_defended_by_pawn/black
+    see_geometry_test.go:59: SEE(e4d3)=100, want 0; k7/8/8/8/3Pp3/8/2P5/7K b - d3 0 1
+    see_geometry_test.go:61: SEE=100, want 0
+=== RUN   TestSEEPostMoveGeometry/EP_removal_reveals_rook/white
+    see_geometry_test.go:59: SEE(e5d6)=0, want 0; 7k/8/8/3pP3/8/3r4/8/K7 w - d6 0 1
+=== RUN   TestSEEPostMoveGeometry/EP_removal_reveals_rook/black
+    see_geometry_test.go:59: SEE(e4d3)=0, want 0; k7/8/3R4/8/3Pp3/8/8/7K b - d3 0 1
+--- FAIL: TestSEEPostMoveGeometry (0.00s)
+    --- FAIL: TestSEEPostMoveGeometry/source_reveals_rook/white (0.00s)
+    --- FAIL: TestSEEPostMoveGeometry/source_reveals_rook/black (0.00s)
+    --- FAIL: TestSEEPostMoveGeometry/quiet_source_reveals_rook/white (0.00s)
+    --- FAIL: TestSEEPostMoveGeometry/quiet_source_reveals_rook/black (0.00s)
+    --- FAIL: TestSEEPostMoveGeometry/source_reveals_bishop/white (0.00s)
+    --- FAIL: TestSEEPostMoveGeometry/source_reveals_bishop/black (0.00s)
+    --- FAIL: TestSEEPostMoveGeometry/EP_ignores_attack_on_captured_square/white (0.00s)
+    --- FAIL: TestSEEPostMoveGeometry/EP_ignores_attack_on_captured_square/black (0.00s)
+    --- FAIL: TestSEEPostMoveGeometry/EP_destination_defended_by_pawn/white (0.00s)
+    --- FAIL: TestSEEPostMoveGeometry/EP_destination_defended_by_pawn/black (0.00s)
+    --- PASS: TestSEEPostMoveGeometry/EP_removal_reveals_rook/white (0.00s)
+    --- PASS: TestSEEPostMoveGeometry/EP_removal_reveals_rook/black (0.00s)
+FAIL
+FAIL	github.com/ehrlich-b/ngn/engine	0.005s
+FAIL

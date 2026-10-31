@@ -1,0 +1,12 @@
+=== RUN   TestTournamentClockLedger
+=== RUN   TestTournamentClockLedger/newWhite=true/flag=false
+=== RUN   TestTournamentClockLedger/newWhite=true/flag=true
+=== RUN   TestTournamentClockLedger/newWhite=false/flag=false
+=== RUN   TestTournamentClockLedger/newWhite=false/flag=true
+--- PASS: TestTournamentClockLedger (0.94s)
+    --- PASS: TestTournamentClockLedger/newWhite=true/flag=false (0.07s)
+    --- PASS: TestTournamentClockLedger/newWhite=true/flag=true (0.40s)
+    --- PASS: TestTournamentClockLedger/newWhite=false/flag=false (0.07s)
+    --- PASS: TestTournamentClockLedger/newWhite=false/flag=true (0.40s)
+PASS
+ok  	github.com/ehrlich-b/ngn/internal/uci	0.944s

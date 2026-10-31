@@ -1,0 +1,24 @@
+[Event "NGN campaign"]
+[Site "rig"]
+[Date "2026.10.15"]
+[Round "1.1"]
+[White "candidate"]
+[Black "base"]
+[Result "1/2-1/2"]
+[Termination "max-moves"]
+[TimeControl "0+0"]
+
+1. b3 h6 2. a4 d6 3. h4 f6 1/2-1/2
+
+[Event "NGN campaign"]
+[Site "rig"]
+[Date "2026.10.15"]
+[Round "1.2"]
+[White "base"]
+[Black "candidate"]
+[Result "1/2-1/2"]
+[Termination "max-moves"]
+[TimeControl "0+0"]
+
+1. b3 h6 2. a4 d6 3. h4 f6 1/2-1/2
+

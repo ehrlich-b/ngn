@@ -1,0 +1,74 @@
+diff --git a/engine/search.go b/engine/search.go
+index 95aca9b..44c5da6 100644
+--- a/engine/search.go
++++ b/engine/search.go
+@@ -1842,6 +1842,18 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 	searchedCaptureCount := 0
+ 	completedHistoryQuietCount := 0
+ 
++	// These eligibility checks depend only on this node, not on its moves.
++	// Keep the move-dependent guards below in their original order, while
++	// avoiding repeated toggle, PV, check and depth tests for every sibling.
++	lmpEligible := SearchToggles.LMP && !isPV && !inCheck && depth > 0 && depth < 9
++	seeEligible := SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4
++	histEligible := SearchToggles.HistPrune && !isPV && !inCheck && depth <= 3
++	lmrEligible := SearchToggles.LMR && depth >= LMR_FULL_DEPTH && !inCheck
++	lmpThreshold := 0
++	if lmpEligible {
++		lmpThreshold = lmpThresholdFor(depth, improving)
++	}
++
+ 	capturesScored := false // lazySEE: real capture scores not yet materialized
+ 	for oi := 0; oi < orderedCount; oi++ {
+ 		// Deferred selection sort: pull the next-best move into ordered[oi]. Doing this
+@@ -1905,10 +1917,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 		// Late Move Pruning (LMP) - skip very late quiet moves at low depths
+ 		// Only apply in non-PV nodes, not in check, and for quiet moves
+ 		// Use legalTried (not moveCount) since moveCount includes illegal moves
+-		if SearchToggles.LMP && !isPV && !inCheck && depth > 0 && depth < 9 &&
++		if lmpEligible &&
+ 			!move.IsCapture() && move.PromoType() == NoType && move != ttMove && legalTried > 0 {
+-			threshold := lmpThresholdFor(depth, improving)
+-			if legalTried > threshold {
++			if legalTried > lmpThreshold {
+ 				info.LMPPrunes++
+ 				continue
+ 			}
+@@ -1917,7 +1928,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 		// SEE pruning for bad captures in main search
+ 		// Skip obviously losing captures at low depths (not in PV, not TT move).
+ 		// legalTried > 0 guard (F1): never prune before one legal move is searched.
+-		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 && move.IsCapture() && move != ttMove && legalTried > 0 {
++		if seeEligible && move.IsCapture() && move != ttMove && legalTried > 0 {
+ 			// Skip the full swap when the capture is provably non-losing (SEE >= 0 > -100).
+ 			if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < -100 { // losing more than a pawn
+ 				info.SEECapPrunes++
+@@ -1931,7 +1942,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 		// larger losses. Exclude the TT move, promotions (tactical), and king
+ 		// moves — the king's infinite SEE weight poisons the swap, and a pinned
+ 		// enemy "attacker" of a king square may not be a legal capture.
+-		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 &&
++		if seeEligible &&
+ 			!move.IsCapture() && move != ttMove && move.PromoType() == NoType && legalTried > 0 {
+ 			if mp := move.MovingPiece(); mp != WhiteKing && mp != BlackKing {
+ 				if staticExchangeEvaluation(pos, move) < -80*depth {
+@@ -1942,7 +1953,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 		}
+ 
+ 		// History pruning: skip quiet moves with very bad history at low depths
+-		if SearchToggles.HistPrune && !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move.PromoType() == NoType && move != ttMove {
++		if histEligible && !move.IsCapture() && move.PromoType() == NoType && move != ttMove {
+ 			histScore := info.history.GetHistoryScore(move, info.history.GetLastMovePlayed(), prev2)
+ 			if histScore < -1000 && legalTried > 3 { // Very bad history and not early move
+ 				info.HistPrunes++
+@@ -2110,8 +2121,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 
+ 			// PV-aware Late Move Reductions (use legalTried, not moveCount which includes illegal moves)
+ 			reduction := 0
+-			if SearchToggles.LMR && depth >= LMR_FULL_DEPTH && legalTried > LMR_MOVE_THRESHOLD &&
+-				!move.IsCapture() && move.PromoType() == NoType && !inCheck && !givesCheck {
++			if lmrEligible && legalTried > LMR_MOVE_THRESHOLD &&
++				!move.IsCapture() && move.PromoType() == NoType && !givesCheck {
+ 
+ 				// Stockfish-style log-based base reduction; non-PV gets +1
+ 				d := depth

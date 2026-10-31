@@ -1,0 +1,15 @@
+{
+  "base": "2b73995f5df1085ddcbca313b2291195d413aba0",
+  "vector": "compiled warm2000",
+  "candidate": "pawn",
+  "passed": [
+    "focused including singular witness",
+    "engine short/race",
+    "full short/race",
+    "vet",
+    "PGO build"
+  ],
+  "binary_sha256": "b8206b73f3d6651ac65342c2bb73192ca0c846c30b5f26fe1d2ad092bf4b90cb",
+  "patch_sha256": "8f963d3a3d3d46489404cebff6177c6b045cfcfafcba35cc09c8117a8f9d5905",
+  "completed_utc": "2026-10-19T03:37:16.243914+00:00"
+}

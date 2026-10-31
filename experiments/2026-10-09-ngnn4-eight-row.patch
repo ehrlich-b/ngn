@@ -1,0 +1,132 @@
+diff --git a/engine/ngnn4_kernels_amd64.s b/engine/ngnn4_kernels_amd64.s
+index 2e94d3d..99dd513 100644
+--- a/engine/ngnn4_kernels_amd64.s
++++ b/engine/ngnn4_kernels_amd64.s
+@@ -2,41 +2,59 @@
+ 
+ #include "textflag.h"
+ 
+-// Four independent row dots share each 32-byte input vector. Pair saturation
++// Eight independent row dots share each 32-byte input vector. Pair saturation
+ // cannot occur at +/-64 weights. Lane sums and horizontal reductions are
+ // bounded by the full absolute dot (66,846,720), so reassociation is exact.
+ TEXT ·ngnn4LinearRows(SB), NOSPLIT, $0-72
+ 	MOVQ dst_base+0(FP), DI
+ 	MOVQ dst_len+8(FP), CX
+-	MOVQ input_len+32(FP), R12
++	MOVQ input_len+32(FP), R13
++	MOVQ R13, R12
++	SHLQ $2, R12
+ 	MOVQ weights_base+48(FP), R8
+ 	MOVL $0x00010001, AX
+-	MOVD AX, X5
+-	VPBROADCASTD X5, Y5
++	MOVD AX, X9
++	VPBROADCASTD X9, Y9
+ Rows_outputs:
+-	LEAQ (R8)(R12*1), R9
+-	LEAQ (R9)(R12*1), R10
+-	LEAQ (R10)(R12*1), R11
++	LEAQ (R8)(R13*1), R9
++	LEAQ (R9)(R13*1), R10
++	LEAQ (R10)(R13*1), R11
+ 	MOVQ input_base+24(FP), SI
+-	MOVQ R12, DX
++	MOVQ R13, DX
+ 	VPXOR Y0, Y0, Y0
+ 	VPXOR Y1, Y1, Y1
+ 	VPXOR Y2, Y2, Y2
+ 	VPXOR Y3, Y3, Y3
++	VPXOR Y4, Y4, Y4
++	VPXOR Y5, Y5, Y5
++	VPXOR Y6, Y6, Y6
++	VPXOR Y7, Y7, Y7
+ Rows_inputs:
+-	VMOVDQU (SI), Y4
+-	VPMADDUBSW (R8), Y4, Y6
+-	VPMADDWD Y5, Y6, Y6
+-	VPADDD Y6, Y0, Y0
+-	VPMADDUBSW (R9), Y4, Y6
+-	VPMADDWD Y5, Y6, Y6
+-	VPADDD Y6, Y1, Y1
+-	VPMADDUBSW (R10), Y4, Y6
+-	VPMADDWD Y5, Y6, Y6
+-	VPADDD Y6, Y2, Y2
+-	VPMADDUBSW (R11), Y4, Y6
+-	VPMADDWD Y5, Y6, Y6
+-	VPADDD Y6, Y3, Y3
++	VMOVDQU (SI), Y8
++	VPMADDUBSW (R8), Y8, Y10
++	VPMADDWD Y9, Y10, Y10
++	VPADDD Y10, Y0, Y0
++	VPMADDUBSW (R9), Y8, Y10
++	VPMADDWD Y9, Y10, Y10
++	VPADDD Y10, Y1, Y1
++	VPMADDUBSW (R10), Y8, Y10
++	VPMADDWD Y9, Y10, Y10
++	VPADDD Y10, Y2, Y2
++	VPMADDUBSW (R11), Y8, Y10
++	VPMADDWD Y9, Y10, Y10
++	VPADDD Y10, Y3, Y3
++	VPMADDUBSW (R8)(R12*1), Y8, Y10
++	VPMADDWD Y9, Y10, Y10
++	VPADDD Y10, Y4, Y4
++	VPMADDUBSW (R9)(R12*1), Y8, Y10
++	VPMADDWD Y9, Y10, Y10
++	VPADDD Y10, Y5, Y5
++	VPMADDUBSW (R10)(R12*1), Y8, Y10
++	VPMADDWD Y9, Y10, Y10
++	VPADDD Y10, Y6, Y6
++	VPMADDUBSW (R11)(R12*1), Y8, Y10
++	VPMADDWD Y9, Y10, Y10
++	VPADDD Y10, Y7, Y7
+ 	ADDQ $32, SI
+ 	ADDQ $32, R8
+ 	ADDQ $32, R9
+@@ -44,22 +62,34 @@ Rows_inputs:
+ 	ADDQ $32, R11
+ 	SUBQ $32, DX
+ 	JNZ Rows_inputs
+-	// Reduce each eight-lane partial sum, then pack the four scalar dots.
+-	VEXTRACTI128 $1, Y0, X4
+-	VPADDD X4, X0, X0
+-	VEXTRACTI128 $1, Y1, X4
+-	VPADDD X4, X1, X1
+-	VEXTRACTI128 $1, Y2, X4
+-	VPADDD X4, X2, X2
+-	VEXTRACTI128 $1, Y3, X4
+-	VPADDD X4, X3, X3
++	// Reduce the eight lanes of each dot, keeping both four-row groups.
++	VEXTRACTI128 $1, Y0, X10
++	VPADDD X10, X0, X0
++	VEXTRACTI128 $1, Y1, X10
++	VPADDD X10, X1, X1
++	VEXTRACTI128 $1, Y2, X10
++	VPADDD X10, X2, X2
++	VEXTRACTI128 $1, Y3, X10
++	VPADDD X10, X3, X3
++	VEXTRACTI128 $1, Y4, X10
++	VPADDD X10, X4, X4
++	VEXTRACTI128 $1, Y5, X10
++	VPADDD X10, X5, X5
++	VEXTRACTI128 $1, Y6, X10
++	VPADDD X10, X6, X6
++	VEXTRACTI128 $1, Y7, X10
++	VPADDD X10, X7, X7
+ 	VPHADDD X1, X0, X0
+ 	VPHADDD X3, X2, X2
+ 	VPHADDD X2, X0, X0
+ 	VMOVDQU X0, (DI)
+-	MOVQ R11, R8
+-	ADDQ $16, DI
+-	SUBQ $4, CX
++	VPHADDD X5, X4, X4
++	VPHADDD X7, X6, X6
++	VPHADDD X6, X4, X4
++	VMOVDQU X4, 16(DI)
++	LEAQ (R11)(R12*1), R8
++	ADDQ $32, DI
++	SUBQ $8, CX
+ 	JNZ Rows_outputs
+ 	VZEROUPPER
+ 	RET

@@ -1,0 +1,344 @@
+diff --git a/engine/search.go b/engine/search.go
+index 4bdda94..69fb4c0 100644
+--- a/engine/search.go
++++ b/engine/search.go
+@@ -195,7 +195,7 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
+ 
+ 	// Pawn/knight/king attackers are occupancy-independent (their attack patterns
+ 	// can't be blocked or revealed), so derive them once and re-mask by occupancy
+-	// each swap step instead of rebuilding them in getAttackersAfterMove.
++	// each swap step instead of rebuilding them.
+ 	nonSlider := seeNonSliderAttackers(pos, targetSquare)
+ 
+ 	movingPiece := move.MovingPiece()
+@@ -217,7 +217,8 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
+ 	}
+ 	occupied |= SquareMask[int(to)]
+ 	// Even the first recapture must see sliders exposed by the initial move.
+-	attackers := getAttackersAfterMove(pos, nonSlider, occupied, targetSquare)
++	sliders := newSEESliders(pos)
++	attackers := sliders.attackers(nonSlider, occupied, targetSquare)
+ 
+ 	// gain[0] is the value of the piece initially captured. pieceOnSquare tracks
+ 	// the value of whatever piece now stands on the target square (initially the
+@@ -248,7 +249,7 @@ func staticExchangeEvaluation(pos *Position, move Move) int {
+ 		occupied &^= SquareMask[int(attackerSquare)]
+ 
+ 		// Update attackers (reveal sliders that were behind the moved attacker)
+-		attackers = getAttackersAfterMove(pos, nonSlider, occupied, targetSquare)
++		attackers = sliders.afterRemoval(attackers, occupied, targetSquare, attackerSquare, attackerPiece)
+ 
+ 		// This recapture wins the piece currently standing on the square; the
+ 		// recapturing piece then becomes the piece on the square for the next ply.
+@@ -361,7 +362,7 @@ func seeGetRookAttacks(square Square, occupied uint64) uint64 {
+ 
+ // findLeastValuableAttacker finds the least valuable piece attacking the square.
+ // The `attackers` bitboard is already the EXACT set of pieces attacking `square`
+-// under the current `occupied` (getAttackers / getAttackersAfterMove filter each
++// under the current `occupied` (getAttackers / seeSliders filter each
+ // piece through its attack pattern against this same occupancy), so any member of
+ // a piece-type's slice is a genuine attacker — no per-candidate re-verification is
+ // needed. (Removing a used attacker only UNBLOCKS slider lines, so a set member can
+@@ -390,7 +391,7 @@ func findLeastValuableAttacker(pos *Position, attackers uint64, color Color) (Sq
+ // knight and king attackers of targetSquare. Pawn/knight/king attack PATTERNS
+ // don't depend on occupancy — removing pieces during the SEE swap can never block
+ // or reveal one — so this set is computed ONCE per SEE call and re-masked by the
+-// current occupancy each swap step (getAttackersAfterMove), instead of re-deriving
++// current occupancy each swap step, instead of re-deriving
+ // the file-guard branches and pattern ANDs every iteration.
+ func seeNonSliderAttackers(pos *Position, targetSquare Square) uint64 {
+ 	nonSlider := uint64(0)
+@@ -421,31 +422,41 @@ func seeNonSliderAttackers(pos *Position, targetSquare Square) uint64 {
+ 	return nonSlider
+ }
+ 
+-// getAttackersAfterMove returns the attacker set of targetSquare under the updated
+-// occupancy. The non-slider attackers (nonSlider, precomputed once) only need
+-// re-masking by occupied; only the sliders are recomputed, since removing the used
+-// attacker can reveal x-ray bishops/rooks/queens behind it. Bit-identical to a full
+-// rebuild but skips re-deriving the occupancy-independent pawn/knight/king masks.
+-func getAttackersAfterMove(pos *Position, nonSlider uint64, occupied uint64, targetSquare Square) uint64 {
+-	tempAttackers := nonSlider & occupied
+-
+-	// Bishop/Queen diagonal attacks
+-	whiteBishops := pos.Board.PieceOccupancy(WhiteBishop) & occupied
+-	blackBishops := pos.Board.PieceOccupancy(BlackBishop) & occupied
+-	whiteQueens := pos.Board.PieceOccupancy(WhiteQueen) & occupied
+-	blackQueens := pos.Board.PieceOccupancy(BlackQueen) & occupied
+-
+-	diagonalAttackers := whiteBishops | blackBishops | whiteQueens | blackQueens
+-	tempAttackers |= diagonalAttackers & seeGetBishopAttacks(targetSquare, occupied)
++// seeSliders keeps the invariant slider membership for one exchange. Only the
++// occupancy changes as attackers leave their source squares.
++type seeSliders struct {
++	diagonal uint64
++	straight uint64
++}
+ 
+-	// Rook/Queen straight attacks
+-	whiteRooks := pos.Board.PieceOccupancy(WhiteRook) & occupied
+-	blackRooks := pos.Board.PieceOccupancy(BlackRook) & occupied
++func newSEESliders(pos *Position) seeSliders {
++	queens := pos.Board.PieceOccupancy(WhiteQueen) | pos.Board.PieceOccupancy(BlackQueen)
++	return seeSliders{
++		diagonal: queens | pos.Board.PieceOccupancy(WhiteBishop) | pos.Board.PieceOccupancy(BlackBishop),
++		straight: queens | pos.Board.PieceOccupancy(WhiteRook) | pos.Board.PieceOccupancy(BlackRook),
++	}
++}
+ 
+-	straightAttackers := whiteRooks | blackRooks | whiteQueens | blackQueens
+-	tempAttackers |= straightAttackers & seeGetRookAttacks(targetSquare, occupied)
++func (s seeSliders) attackers(nonSlider, occupied uint64, target Square) uint64 {
++	return (nonSlider |
++		s.diagonal&seeGetBishopAttacks(target, occupied) |
++		s.straight&seeGetRookAttacks(target, occupied)) & occupied
++}
+ 
+-	return tempAttackers
++// afterRemoval preserves all surviving attackers and reveals only the ray that
++// contained the removed attacker. An attacking knight is on neither slider ray;
++// every other attacker is on exactly one diagonal or straight ray to the target.
++// Removing a piece cannot hide an existing attacker. Masking with occupied also
++// excludes original-board pieces that left the exchange on earlier steps.
++func (s seeSliders) afterRemoval(attackers, occupied uint64, target, removed Square, piece Piece) uint64 {
++	if piece.Type() != Knight {
++		if removed.File() == target.File() || removed.Rank() == target.Rank() {
++			attackers |= s.straight & seeGetRookAttacks(target, occupied)
++		} else {
++			attackers |= s.diagonal & seeGetBishopAttacks(target, occupied)
++		}
++	}
++	return attackers & occupied
+ }
+ 
+ // Search debug logging removed for production
+diff --git a/engine/see_incremental_test.go b/engine/see_incremental_test.go
+new file mode 100644
+index 0000000..ba8d497
+--- /dev/null
++++ b/engine/see_incremental_test.go
+@@ -0,0 +1,224 @@
++package engine
++
++import (
++	"math/bits"
++	"math/rand"
++	"reflect"
++	"testing"
++)
++
++// Frozen NGN accepted-base swap and attacker rebuild; no incremental helper is used.
++func seeFullRebuildReference(pos *Position, move Move) int {
++	// Castling is a king move with no exchange — SEE is meaningless and the king's
++	// infinite weight would poison the swap. Quiet (non-capture) moves DO flow
++	// through: gain[0] = 0 (nothing captured) and the swap then evaluates whether
++	// the moving piece survives on its destination square. This is what quiet-move
++	// SEE pruning reads.
++	if move.IsCastle() {
++		return 0
++	}
++
++	from := move.Source()
++	to := move.Destination()
++	targetSquare := to
++
++	// Get the initial captured piece value
++	capturedValue := move.CapturedPiece().seeWeight()
++
++	// Pawn/knight/king attackers are occupancy-independent (their attack patterns
++	// can't be blocked or revealed), so derive them once and re-mask by occupancy
++	// each swap step instead of rebuilding them in getAttackersAfterMove.
++	nonSlider := seeNonSliderAttackers(pos, targetSquare)
++
++	movingPiece := move.MovingPiece()
++
++	// Initialize the exchange - use stack array to avoid allocation
++	var gain [32]int // Exchange gains on stack
++	depth := 0
++	color := movingPiece.Color().Other() // Side to move after initial capture
++	occupied := pos.Board.WhiteOccupancy() | pos.Board.BlackOccupancy()
++	occupied &^= SquareMask[int(from)] // mover left its square -> reveals x-ray attackers behind it
++	if move.IsEnPassant() {
++		// The exchange stays on the destination; only the captured pawn's
++		// original square is removed from occupancy.
++		capturedSquare := int(to) - 8
++		if movingPiece.Color() == Black {
++			capturedSquare = int(to) + 8
++		}
++		occupied &^= SquareMask[capturedSquare]
++	}
++	occupied |= SquareMask[int(to)]
++	// Even the first recapture must see sliders exposed by the initial move.
++	attackers := seeFullRebuildAttackersReference(pos, nonSlider, occupied, targetSquare)
++
++	// gain[0] is the value of the piece initially captured. pieceOnSquare tracks
++	// the value of whatever piece now stands on the target square (initially the
++	// moving piece) -- that is what the NEXT recapture wins. For a promotion-
++	// capture the pawn becomes the promoted piece, both for the material gain and
++	// as the piece now standing on the square.
++	gain[depth] = int(capturedValue)
++	pieceOnSquare := int(movingPiece.seeWeight())
++	if move.PromoType() != NoType {
++		promoPiece := GetPiece(move.PromoType(), movingPiece.Color())
++		gain[depth] += int(promoPiece.seeWeight()) - 100 // 100 = pawn seeWeight
++		pieceOnSquare = int(promoPiece.seeWeight())
++	}
++
++	for {
++		depth++
++		if depth >= 32 {
++			break // Prevent overflow of the gain array
++		}
++
++		// Find the least valuable attacker for the current side
++		attackerSquare, attackerPiece := findLeastValuableAttacker(pos, attackers, color)
++		if attackerSquare == NoSquare {
++			break // No more attackers; last valid swap entry is gain[depth-1]
++		}
++
++		// Remove this attacker from the occupied bitboard
++		occupied &^= SquareMask[int(attackerSquare)]
++
++		// Update attackers (reveal sliders that were behind the moved attacker)
++		attackers = seeFullRebuildAttackersReference(pos, nonSlider, occupied, targetSquare)
++
++		// This recapture wins the piece currently standing on the square; the
++		// recapturing piece then becomes the piece on the square for the next ply.
++		gain[depth] = pieceOnSquare - gain[depth-1]
++		pieceOnSquare = int(attackerPiece.seeWeight())
++
++		// Switch sides
++		color = color.Other()
++	}
++
++	// Negamax the swap list backward over the valid entries [0 .. depth-1]. Each
++	// side, working back, declines a recapture that would leave it worse off.
++	for depth--; depth > 0; depth-- {
++		if gain[depth-1] > -gain[depth] {
++			gain[depth-1] = -gain[depth]
++		}
++	}
++
++	return gain[0]
++}
++
++func seeFullRebuildAttackersReference(pos *Position, nonSlider uint64, occupied uint64, targetSquare Square) uint64 {
++	tempAttackers := nonSlider & occupied
++
++	// Bishop/Queen diagonal attacks
++	whiteBishops := pos.Board.PieceOccupancy(WhiteBishop) & occupied
++	blackBishops := pos.Board.PieceOccupancy(BlackBishop) & occupied
++	whiteQueens := pos.Board.PieceOccupancy(WhiteQueen) & occupied
++	blackQueens := pos.Board.PieceOccupancy(BlackQueen) & occupied
++
++	diagonalAttackers := whiteBishops | blackBishops | whiteQueens | blackQueens
++	tempAttackers |= diagonalAttackers & seeGetBishopAttacks(targetSquare, occupied)
++
++	// Rook/Queen straight attacks
++	whiteRooks := pos.Board.PieceOccupancy(WhiteRook) & occupied
++	blackRooks := pos.Board.PieceOccupancy(BlackRook) & occupied
++
++	straightAttackers := whiteRooks | blackRooks | whiteQueens | blackQueens
++	tempAttackers |= straightAttackers & seeGetRookAttacks(targetSquare, occupied)
++
++	return tempAttackers
++}
++
++// Compare complete swap results against the pre-optimization NGN implementation
++// over legal game trajectories and deliberately crowded/special-move positions.
++func TestSEEIncrementalMatchesFullRebuild(t *testing.T) {
++	seeds := []string{
++		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
++		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
++		"7k/8/8/3p4/3R4/3r4/8/K7 w - - 0 1",
++		"7k/8/4p3/3pP3/8/8/8/K7 w - d6 0 1",
++		"7k/8/8/3pP3/8/3r4/8/K7 w - d6 0 1",
++		"1r5k/P7/8/8/8/8/7p/K5R1 w - - 0 1",
++		"3r3k/3q4/3r4/2bpb3/1rPNPPr1/2BPB3/3R4/K2Q4 w - - 0 1",
++	}
++	rng := rand.New(rand.NewSource(2026101901))
++	count, ep, promo, castle, quiet := 0, 0, 0, 0, 0
++	for game := 0; game < 28; game++ {
++		pos := n3cPosition(t, seeds[game%len(seeds)])
++		for ply := 0; ply < 100; ply++ {
++			moves := GenerateLegalMoves(pos)
++			if len(moves) == 0 {
++				break
++			}
++			before := snapshotPVPosition(pos)
++			for _, move := range moves {
++				got, want := staticExchangeEvaluation(pos, move), seeFullRebuildReference(pos, move)
++				if got != want {
++					t.Fatalf("game%d ply%d move%v: got%d want%d", game, ply, move, got, want)
++				}
++				count++
++				if move.IsEnPassant() {
++					ep++
++				}
++				if move.PromoType() != NoType {
++					promo++
++				}
++				if move.IsCastle() {
++					castle++
++				}
++				if move.CapturedPiece() == NoPiece {
++					quiet++
++				}
++			}
++			if !reflect.DeepEqual(before, snapshotPVPosition(pos)) {
++				t.Fatal("SEE mutated position")
++			}
++			if _, _, _, legal := pos.GameMakeMove(moves[rng.Intn(len(moves))]); !legal {
++				t.Fatal("legal move rejected")
++			}
++		}
++	}
++	if count < 10000 || ep == 0 || promo == 0 || castle == 0 || quiet == 0 {
++		t.Fatalf("insufficient coverage: moves%d ep%d promo%d castle%d quiet%d", count, ep, promo, castle, quiet)
++	}
++	t.Logf("full-swap identity: %d moves, %d EP, %d promotions, %d castles, %d quiets", count, ep, promo, castle, quiet)
++}
++
++// Removing any current attacker must preserve the entire exact attack mask,
++// including the newly exposed x-rays. Random removal order exercises more than
++// the cheapest-first order used by SEE, for all 64 targets and both colors.
++func TestSEEIncrementalAttackerMasks(t *testing.T) {
++	rng := rand.New(rand.NewSource(2026101902))
++	fens := []string{
++		"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
++		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
++		"3r3k/3q4/3r4/2bpb3/1rPNPPr1/2BPB3/3R4/K2Q4 w - - 0 1",
++	}
++	steps := 0
++	for _, fen := range fens {
++		pos := n3cPosition(t, fen)
++		sliders := newSEESliders(pos)
++		original := pos.Board.WhiteOccupancy() | pos.Board.BlackOccupancy()
++		for target := Square(0); target < 64; target++ {
++			nonSlider := seeNonSliderAttackers(pos, target)
++			for trial := 0; trial < 128; trial++ {
++				occupied := (original & rng.Uint64()) | SquareMask[target]
++				attackers := sliders.attackers(nonSlider, occupied, target)
++				want := seeFullRebuildAttackersReference(pos, nonSlider, occupied, target)
++				if attackers != want {
++					t.Fatalf("initial mask target%v: got%x want%x", target, attackers, want)
++				}
++				for attackers != 0 {
++					choices := attackers
++					for n := rng.Intn(bits.OnesCount64(choices)); n > 0; n-- {
++						choices &= choices - 1
++					}
++					removed := Square(bits.TrailingZeros64(choices))
++					occupied &^= SquareMask[removed]
++					attackers = sliders.afterRemoval(attackers, occupied, target, removed, pos.Board.PieceAt(removed))
++					want = seeFullRebuildAttackersReference(pos, nonSlider, occupied, target)
++					if attackers != want {
++						t.Fatalf("incremental mask target%v removed%v: got%x want%x", target, removed, attackers, want)
++					}
++					steps++
++				}
++			}
++		}
++	}
++	t.Logf("exact attacker-mask transitions: %d", steps)
++}

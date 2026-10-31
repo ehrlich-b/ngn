@@ -1,0 +1,7 @@
+2026-10-10T08:22:36-04:00
+               total        used        free      shared  buff/cache   available
+Mem:              15           3           5           0           6          11
+Swap:              4           0           3
+0 %, 1522 MiB, 16303 MiB
+C free bytes 307102445568
+Note: local per-stage status.jsonl was absent; campaign status is in parent status.jsonl. Collection stopped after the C reading; rig-launch/end contain completed snapshots.

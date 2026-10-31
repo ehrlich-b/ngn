@@ -1,0 +1,108 @@
+--- a/engine/search.go
++++ b/engine/search.go
+@@ -472,6 +472,9 @@
+ const searchFramePoolSize = 256
+ 
+ type SearchInfo struct {
++	diagnosticVisit func(uint64, int)
++	lastDiagnosticSample uint64
++
+ 	Nodes            uint64
+ 	EffectiveThreads int
+ 	Depth            int
+@@ -645,6 +648,9 @@
+ type DepthCallback func(info *SearchInfo)
+ 
+ type iterativeSearchOptions struct {
++	diagnosticIteration DepthCallback
++	diagnosticVisit func(uint64, int)
++
+ 	advanceTTAge     bool
+ 	effectiveThreads int
+ 	nodePublisher    *searchNodePublisher
+@@ -684,6 +690,7 @@
+ 		evaluator:        evaluator,
+ 		tt:               tt,
+ 		nodePublisher:    options.nodePublisher,
++		diagnosticVisit: options.diagnosticVisit,
+ 	}
+ 	defer info.publishNodesIfDue(true)
+ 	if callback != nil {
+@@ -1032,6 +1039,7 @@
+ 		// the previous completed depth/best move (info.AspAbandoned stays 0).
+ 		if iterationComplete {
+ 			info.Depth = currentDepth
++			if options.diagnosticIteration != nil { options.diagnosticIteration(info) }
+ 			info.publishNodesIfDue(true)
+ 			if callback != nil && info.BestMove != EmptyMove {
+ 				refreshSearchReport(pos, info)
+@@ -1463,6 +1471,10 @@
+ 
+ 	// Compute hash once and reuse for repetition detection and TT probe.
+ 	hash := pos.Hash()
++	if info.diagnosticVisit != nil && info.Nodes-info.lastDiagnosticSample >= 4096 {
++        info.lastDiagnosticSample = info.Nodes
++        info.diagnosticVisit(hash, depth)
++    }
+ 
+ 	if score, drawn := searchDrawScore(pos, ply, hash, info); drawn {
+ 		return score
+--- a/engine/search_smp.go
++++ b/engine/search_smp.go
+@@ -8,6 +8,9 @@
+ // smpSearchHooks are deterministic package-test observation points. They are
+ // configured only while the receiver is idle and run under its search session.
+ type smpSearchHooks struct {
++	diagnosticIteration func(int, *SearchInfo)
++	diagnosticVisit func(int, uint64, int)
++
+ 	afterRootCopy  func(worker int)
+ 	afterReset     func(worker int)
+ 	beforeLaunch   func(worker int)
+@@ -79,7 +82,15 @@
+ 		if onWidth != nil {
+ 			onWidth(1)
+ 		}
+-		return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback, &e.worker.control, &e.worker.history, evaluator, tt)
++		if h := e.smpHooks; h != nil && (h.diagnosticIteration != nil || h.diagnosticVisit != nil) {
++            opts := iterativeSearchOptions{advanceTTAge:true,effectiveThreads:1}
++            opts = campaignDiagnosticOptions(h, 0, opts)
++            if h.workerStarted != nil { h.workerStarted(0) }
++            info := searchIterativeDeepeningWorkerUnsafe(pos,maxDepth,timeManager,callback,&e.worker.control,&e.worker.history,evaluator,tt,opts)
++            if h.workerFinished != nil { h.workerFinished(0,info) }
++            return info
++        }
++        return searchIterativeDeepeningUnsafe(pos, maxDepth, timeManager, callback, &e.worker.control, &e.worker.history, evaluator, tt)
+ 	}
+ 	return e.searchLazySMPLocked(pos, maxDepth, timeManager, callback, onWidth, generation, tt, pool)
+ }
+@@ -126,7 +137,7 @@
+ 		}
+ 		cancelled = e.setupCancelled(pool, timeManager)
+ 	}
+-	masterOptions := iterativeSearchOptions{effectiveThreads: workerCount, nodePublisher: &publishers[0]}
++	masterOptions := campaignDiagnosticOptions(e.smpHooks, 0, iterativeSearchOptions{effectiveThreads: workerCount, nodePublisher: &publishers[0]})
+ 	if cancelled || e.setupCancelled(pool, timeManager) {
+ 		masterOptions.effectiveThreads = 1
+ 		if onWidth != nil {
+@@ -179,7 +190,7 @@
+ 			}
+ 			result.info = searchIterativeDeepeningWorkerUnsafe(root, maxDepth, nil, nil,
+ 				&worker.control, &worker.history, worker.evaluator, tt,
+-				iterativeSearchOptions{effectiveThreads: workerCount, nodePublisher: publisher})
++				campaignDiagnosticOptions(e.smpHooks, index, iterativeSearchOptions{effectiveThreads: workerCount, nodePublisher: publisher}))
+ 			if hooks := e.smpHooks; hooks != nil && hooks.workerFinished != nil {
+ 				hooks.workerFinished(index, result.info)
+ 			}
+@@ -239,3 +250,11 @@
+ 	masterInfo.EffectiveThreads = activeCount
+ 	return masterInfo
+ }
++
++// Campaign-only instrumentation; this file never enters a playing binary.
++func campaignDiagnosticOptions(h *smpSearchHooks, worker int, opts iterativeSearchOptions) iterativeSearchOptions {
++    if h == nil { return opts }
++    if h.diagnosticIteration != nil { opts.diagnosticIteration = func(i *SearchInfo){h.diagnosticIteration(worker,i)} }
++    if h.diagnosticVisit != nil { opts.diagnosticVisit = func(key uint64,d int){h.diagnosticVisit(worker,key,d)} }
++    return opts
++}

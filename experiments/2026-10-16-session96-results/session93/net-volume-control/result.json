@@ -1,0 +1,46 @@
+{
+  "games": 1000,
+  "pairs": 500,
+  "orphan_games": 0,
+  "wdl": [
+    220,
+    594,
+    186
+  ],
+  "penta": [
+    9,
+    99,
+    254,
+    125,
+    13
+  ],
+  "printed_elo_ci95": [
+    11.8,
+    -0.0,
+    24.0
+  ],
+  "exact_elo_ci95": [
+    11.817364936972153,
+    -0.17093508241346056,
+    23.83387106573807
+  ],
+  "final_pllr": 1.25,
+  "exact_pllr": 1.245534714343604,
+  "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 580,
+    "checkmate": 406,
+    "max-moves": 12,
+    "stalemate": 2
+  },
+  "faults": [],
+  "verdict": "SHELVED",
+  "name": "s93-net-volume-control",
+  "finished_utc": "2026-10-17T00:26:42.099581+00:00",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session93/net-volume-control/manifest.json",
+  "automatic_adoption": false
+}

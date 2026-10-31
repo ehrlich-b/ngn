@@ -1,0 +1,32 @@
+{
+  "snapshot_edt": "2026-10-11T07:50:44-04:00",
+  "accepted_source": "ed34480",
+  "accepted_net": "a4d90b41",
+  "host_c_free_bytes": 249653682176,
+  "host_c_free_gib": 232.50811004638672,
+  "forge_work_free_bytes": 127789121536,
+  "forge_work_free_gib": 119.01289367675781,
+  "rig_memory_used_mib": 3522,
+  "rig_memory_available_mib": 11991,
+  "forge_memory_used_mib": 3530,
+  "forge_memory_available_mib": 14392,
+  "gpu_utilization_percent": 0,
+  "gpu_memory_used_mib": 1532,
+  "t74_total_bytes": 183371624416,
+  "t74_copy_bytes": 12596543488,
+  "t74_copy_sample_edt": "2026-10-11T07:50:52-04:00",
+  "admission_games": 487,
+  "admission_terminal": false,
+  "preserved_processes": {
+    "hopper_rig": 1170,
+    "original_reader_forge": 117631,
+    "t74_reader_rig": 22172
+  },
+  "eta_edt": {
+    "t74_copy": "08:17-08:22",
+    "raw_t75_restore": "08:25-08:35",
+    "coverage": "09:40-10:15",
+    "full_training_if_admitted": "16:00-19:00"
+  },
+  "eta_note": "planning estimates from actual T74 conversion/copy throughput; not restart deadlines"
+}

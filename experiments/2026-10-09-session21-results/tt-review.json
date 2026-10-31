@@ -1,0 +1,36 @@
+{
+  "mode": "gate",
+  "games": 400,
+  "pairs": 200,
+  "wins": 95,
+  "draws": 206,
+  "losses": 99,
+  "penta": [
+    9,
+    50,
+    85,
+    48,
+    8
+  ],
+  "elo": -3.5,
+  "ci95": [
+    -25.0,
+    18.0
+  ],
+  "exact_elo_ci95": [
+    -3.474471674037067,
+    -25.448817600553355,
+    18.47207608611528
+  ],
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "checkmate": 194,
+    "draw-rule": 202,
+    "max-moves": 4
+  },
+  "verdict": "provisional-provenance-keep",
+  "authority": "Bryan 2026-10-09 plan: upper95>0/no failures; later combined batch SPRT [0,+6]"
+}

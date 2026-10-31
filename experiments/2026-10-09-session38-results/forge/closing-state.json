@@ -1,0 +1,107 @@
+{
+  "utc": "2026-10-10T04:16:57.698191+00:00",
+  "machine": "forge",
+  "recovery_pid": "88689",
+  "recovery_exit": null,
+  "recovery_done": null,
+  "candidate_done": {
+    "admission": "2026-10-10T00:11:43-04:00",
+    "horizon": null,
+    "partial": null
+  },
+  "spsa_wrapper_pid": "88166",
+  "spsa_exit": null,
+  "spsa_checkpoint": {
+    "iter": 1625,
+    "time": "2026-10-09T23:44:48-04:00",
+    "plus_pct": 50.5,
+    "theta": {
+      "AspInit": 16.117239179589028,
+      "AspMult": 161.0596857476026,
+      "DeltaMargin": 192.2419294128603,
+      "ExtensionBudget": 29.036429438324333,
+      "FutilityMargin": 104.64300891012243,
+      "FutilityMaxDepth": 7.7448284869861,
+      "LMPBase": 3.4590784851142677,
+      "LMRFullDepth": 3.4581014618026367,
+      "LMRMoveThreshold": 1.9583587189978686,
+      "NullMoveMinDepth": 2.2614474951709735,
+      "NullMoveR": 4.050260057366806,
+      "ReverseFutilityMargin": 61.07104783197928,
+      "SingularDepth": 6.542341174243528,
+      "SingularMargin": 56.871810982699955
+    },
+    "rounded": {
+      "AspInit": 16,
+      "AspMult": 161,
+      "DeltaMargin": 192,
+      "ExtensionBudget": 29,
+      "FutilityMargin": 105,
+      "FutilityMaxDepth": 8,
+      "LMPBase": 3,
+      "LMRFullDepth": 3,
+      "LMRMoveThreshold": 2,
+      "NullMoveMinDepth": 2,
+      "NullMoveR": 4,
+      "ReverseFutilityMargin": 61,
+      "SingularDepth": 7,
+      "SingularMargin": 57
+    }
+  },
+  "scopes": {
+    "ngn-spsa-s38.scope": "MemoryCurrent=1428488192\nMemoryPeak=1429516288\nCPUQuotaPerSecUSec=4s\nAllowedCPUs=8-11\nMemoryMax=2684354560\nMemorySwapMax=0\n",
+    "ngn-recovery-s38.scope": "MemoryCurrent=281518080\nMemoryPeak=2110283776\nCPUQuotaPerSecUSec=4s\nAllowedCPUs=8-11\nMemoryMax=2684354560\nMemorySwapMax=0\n"
+  },
+  "logs": {
+    "recovery/baseline-full-short.log": {
+      "bytes": 2579,
+      "tail": [
+        "?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]",
+        "?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]",
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/uci\t0.070s"
+      ],
+      "engine_package_pass": true,
+      "fail": false
+    },
+    "recovery/baseline-full-race.log": {
+      "bytes": 2580,
+      "tail": [
+        "?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]",
+        "?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]",
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/uci\t1.133s"
+      ],
+      "engine_package_pass": true,
+      "fail": false
+    },
+    "recovery/admission-full-race.log": {
+      "bytes": 2580,
+      "tail": [
+        "?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]",
+        "?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]",
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/uci\t1.130s"
+      ],
+      "engine_package_pass": true,
+      "fail": false
+    },
+    "horizon-full-short.log": {
+      "bytes": 2579,
+      "tail": [
+        "?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]",
+        "?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]",
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/uci\t0.063s"
+      ],
+      "engine_package_pass": true,
+      "fail": false
+    },
+    "horizon-full-race.log": {
+      "bytes": 2580,
+      "tail": [
+        "?   \tgithub.com/ehrlich-b/ngn/internal/rating\t[no test files]",
+        "?   \tgithub.com/ehrlich-b/ngn/internal/sliderray\t[no test files]",
+        "ok  \tgithub.com/ehrlich-b/ngn/internal/uci\t1.129s"
+      ],
+      "engine_package_pass": true,
+      "fail": false
+    }
+  }
+}

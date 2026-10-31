@@ -1,0 +1,9 @@
+baseline-ngn: OK
+base.nnue: OK
+openings.txt: OK
+pairmatch: OK
+controller.sh: OK
+clock-report.py: OK
+manifest.md: OK
+nomination.json: OK
+game-manifest.json: OK

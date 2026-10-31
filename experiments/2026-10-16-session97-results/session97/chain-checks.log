@@ -1,0 +1,2 @@
+PASS: deterministic net selection, fixed400 transfer, conditional confirmation, both failure branches, width before work, fault hold; no live actions
+PASS: zero-game screen recovery preserves failed evidence and uses the unchanged continuation

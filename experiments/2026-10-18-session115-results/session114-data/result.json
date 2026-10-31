@@ -1,0 +1,68 @@
+{
+  "state": "CALIBRATED_CAPACITY_HOLD",
+  "source": {
+    "path": "/home/ehrli/ngn-data/sources/T60T70wIsRightFarseer.binpack",
+    "bytes": 32981564118,
+    "sha256": "8c329b988c02bdf4ccc13b3cc627f69531b8b6bb1719f17f775f49476d045c70"
+  },
+  "calibration": {
+    "raw_records": 9280221,
+    "raw_bytes": 296967072,
+    "mapped": {
+      "path": "/home/ehrli/ngn-data/night-20261007/session114-data/calibration.bf",
+      "bytes": 296967072,
+      "sha256": "f2db720ccce838449b5b0eff205c014de8b386822db26410ccfbc5a87d544fc6"
+    },
+    "largest_bucket_records": 36848,
+    "converter_seconds": 3063.340704943,
+    "raw_scale": 0.9998157765557313
+  },
+  "eligible_nonconflict": 9162439258,
+  "keep_per_mille": 107,
+  "expected_retained_records": 987322174.6825562,
+  "maximum_records": 1000000000,
+  "sampling": "u16le(K4 key[0:2])%1000<keep; fraction frozen before training; no score selection",
+  "sample_argv": [
+    "/home/ehrli/ngn-data/night-20261007/session19-data/tool/target/release/ngnk4archive",
+    "scatter",
+    "--input",
+    "/home/ehrli/ngn-data/sources/T60T70wIsRightFarseer.binpack",
+    "--conflicts",
+    "/home/ehrli/nnue-owned-k4-20260920/runs/k4-production-pilot-20260921/selection/conflicts.bin",
+    "--probe-keys",
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/calibration-probe.keys",
+    "--output",
+    "/home/ehrli/ngn-data/night-20261007/session114-data/scatter-full",
+    "--buckets",
+    "256",
+    "--workers",
+    "2",
+    "--seed",
+    "2026101801",
+    "--keep-per-mille",
+    "107"
+  ],
+  "gather_argv": [
+    "/home/ehrli/ngn-data/night-20261007/session19-data/tool/target/release/ngnk4archive",
+    "gather",
+    "--scatter",
+    "/home/ehrli/ngn-data/night-20261007/session114-data/scatter-full@0.9998157765557313",
+    "--map",
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/score-map.json",
+    "--output",
+    "/home/ehrli/ngn-data/night-20261007/session114-data/t60t70.bf",
+    "--manifest",
+    "/home/ehrli/ngn-data/night-20261007/session114-data/t60t70-manifest.json",
+    "--seed",
+    "2026101811",
+    "--consume-buckets",
+    "true"
+  ],
+  "peak_new_output_bytes": 32000000000,
+  "scratch_budget_bytes": 2401601735,
+  "training_headroom_bytes": 10737418240,
+  "host_c_required_bytes": 71982565575,
+  "host_c_free_bytes": 56866463744,
+  "automatic_training": false,
+  "next": "Review calibrated source/scales and capacity; run frozen sample, then board overlap and unchanged115-epoch training manifest"
+}

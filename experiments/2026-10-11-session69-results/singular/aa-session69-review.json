@@ -1,0 +1,26 @@
+{
+  "verdict": "AA PASS",
+  "games": 40,
+  "pairs": 20,
+  "wins": 9,
+  "draws": 24,
+  "losses": 7,
+  "penta": [
+    0,
+    4,
+    10,
+    6,
+    0
+  ],
+  "exact_elo_ci95": [
+    17.386277512436138,
+    -36.05168334897684,
+    71.665802868228
+  ],
+  "zero_faults": true,
+  "input_controls": 13,
+  "terminal": "2026-10-11T23:19:45-04:00",
+  "gate_pid": 1099427,
+  "gate_start": "2026-10-11T23:19:45-04:00",
+  "limitation": "Admits only this post-reboot topology; does not explain the old SEE control fault or establish absent load/bias."
+}

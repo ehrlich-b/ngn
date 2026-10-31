@@ -1,0 +1,16 @@
+{
+  "verdict": "PASS",
+  "binary_sha256": {
+    "base": "2bb42a2f5a7a39f2895afc867def5bc2717e2b28f626bd970e340f2a8e1eacdb",
+    "candidate": "705d6e9b27c66715e638bee2226e8fe0f9ce2cf9d3bf343870eff8876ca2a89f"
+  },
+  "reused_receipts": [
+    "/home/ehrli/ngn-data/night-20261007/session100-speed/checks-result.json",
+    "/home/ehrli/ngn-data/night-20261007/session100-speed/identity.json",
+    "/home/ehrli/ngn-data/night-20261007/session100-speed/s1-prefault-identity.json"
+  ],
+  "uci_cases": 24,
+  "probe_cases": 36,
+  "automatic_adoption": false,
+  "note": "Existing completed exact identities and short/race/vet/build checks,not rerun;binary pair verified by timing runner at use"
+}

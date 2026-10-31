@@ -1,0 +1,79 @@
+{
+  "at_utc": "2026-10-17T02:02:11.072589+00:00",
+  "host_c_free_bytes": 33905889280,
+  "memory": "total        used        free      shared  buff/cache   available\nMem:           15514        2234        8015           4        5651       13279\nSwap:           4096           1        4094",
+  "gpu": "0, 1479, 16303",
+  "service": "MainPID=123459\nControlGroup=/user.slice/user-1000.slice/user@1000.service/app.slice/ngn-s97-claim-resume.service\nCPUQuotaPerSecUSec=infinity\nAllowedCPUs=0-15\nMemoryMax=3221225472\nMemorySwapMax=0\nEnvironment=PATH=/usr/lib/wsl/lib:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\nActiveState=active",
+  "processes": "your 131072x1 screen size is bogus. expect trouble\n    PID    PPID  NI ELAPSED %CPU COMMAND\n      1       0   0  348348  0.0 /usr/lib/systemd/systemd --system --deserialize=104\n      2       1   0  348348  0.0 /init\n      6       2   0  348348  0.0 plan9 --control-socket 7 --log-level 4 --server-fd 8 --pipe-fd 10 --log-truncate\n    107       1   0  348347  0.0 snapfuse /var/lib/snapd/snaps/core24_1643.snap /snap/core24/1643 -o ro,nodev,allow_other,suid\n    110       1   0  348347  0.0 snapfuse /var/lib/snapd/snaps/core24_2124.snap /snap/core24/2124 -o ro,nodev,allow_other,suid\n    111       1   0  348347  0.0 snapfuse /var/lib/snapd/snaps/snapd_28254.snap /snap/snapd/28254 -o ro,nodev,allow_other,suid\n    114       1   0  348347  0.0 snapfuse /var/lib/snapd/snaps/snapd_27738.snap /snap/snapd/27738 -o ro,nodev,allow_other,suid\n    188       1   0  348347  0.0 /usr/sbin/cron -f -P\n    189       1   0  348347  0.0 @dbus-daemon --system --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only\n    193       1   0  348347  0.0 /usr/local/bin/ollama serve\n    200       1   0  348347  0.0 /snap/snapd/current/usr/lib/snapd/snapd\n    201       1   0  348347  0.0 /usr/lib/systemd/systemd-logind\n    204       1   0  348347  0.0 /opt/wingthing-agent-canaries/litellm-venv/bin/python /opt/wingthing-agent-canaries/litellm-venv/bin/litellm --config /opt/wingthing-agent-canaries/litellm-config.yaml --host 127.0.0.1 --port 4000\n    211       1   0  348347  0.0 /usr/sbin/rsyslogd -n -iNONE\n    213       1   0  348347  0.0 /sbin/agetty -o -p -- \\u --noclear --keep-baud - 115200,38400,9600 vt220\n    220       1   0  348347  0.0 /sbin/agetty -o -p -- \\u --noclear - linux\n    227       1   0  348347  0.0 /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal\n    245       1   0  348347  0.0 /usr/lib/systemd/systemd --user --deserialize=8\n    264     245   0  348347  0.0 (sd-pam)\n    331     245   0  348347  0.0 rootlesskit --state-dir=/run/user/1000/dockerd-rootless --net=slirp4netns --mtu=65520 --slirp4netns-sandbox=auto --slirp4netns-seccomp=auto --disable-host-loopback --port-driver=builtin --copy-up=/etc --copy-up=/run --propagation=rslave --detach-netns /home/ehrli/bin/dockerd-rootless.sh\n    379     331   0  348347  0.0 /proc/self/exe --state-dir=/run/user/1000/dockerd-rootless --net=slirp4netns --mtu=65520 --slirp4netns-sandbox=auto --slirp4netns-seccomp=auto --disable-host-loopback --port-driver=builtin --copy-up=/etc --copy-up=/run --propagation=rslave --detach-netns /home/ehrli/bin/dockerd-rootless.sh\n    421     331   0  348347  0.0 slirp4netns --mtu 65520 -r 3 --disable-host-loopback --enable-seccomp --userns-path=/proc/379/ns/user --netns-type=path /proc/379/root/run/user/1000/dockerd-rootless/netns tap0\n    430     379   0  348347  0.0 dockerd\n    473     430   0  348346  0.0 containerd --config /run/user/1000/docker/containerd/containerd.toml\n    569       2   0  348346  0.0 /init\n    570     569   0  348346  0.0 /init\n    571     570   0  348346  0.0 sleep infinity\n    574       2   0  348346  0.0 /bin/login -f\n    657     574   0  348346  0.0 -bash\n   1066     245   0  348345  0.0 /home/ehrli/bin/containerd-shim-runc-v2 -namespace moby -id e0ad11fe4f146ff7ec35a7280362269b6f45bc8c4db1cee881e0799f907c185b -address /run/user/1000/docker/containerd/containerd.sock\n   1085     245   0  348345  0.0 /usr/bin/dbus-daemon --session --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only\n   1093    1066   0  348345  0.0 socat TCP-LISTEN:443,fork,reuseaddr TCP:202.138.238.126:443\n   1188     245   0  348345  0.3 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n   4752       1   0  328114  0.0 /usr/lib/polkit-1/polkitd --no-debug\n   5283       2   0  320074  0.0 /init\n   5285    5283   0  320074  0.0 /init\n   5287    5285   0  320074  0.0 sleep infinity\n  86266       2   0  176555  0.0 /bin/login -f\n  86312       1   0  176554  0.0 /usr/lib/systemd/systemd --user --deserialize=23\n  86313   86312   0  176554  0.0 (sd-pam)\n  86344   86266   0  176554  0.0 -bash\n  93514       1  -1   56785  0.0 /usr/lib/systemd/systemd-journald\n  93599       1   0   56785  0.0 /usr/lib/systemd/systemd-timesyncd\n  93666       1   0   56784  0.0 /usr/lib/systemd/systemd-udevd\n  93732       1   0   56784  0.0 /usr/lib/systemd/systemd-resolved\n 123452       1   0      49  0.0 /init\n 123457  123452   0      49  0.0 systemd-run --user --wait --collect --unit=ngn-s97-claim-resume -p AllowedCPUs=0-15 -p MemoryMax=3G -p MemorySwapMax=0 -p Environment=PATH=/usr/lib/wsl/lib:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -p StandardOutput=append:/home/ehrli/ngn-data/night-20261007/session97/claim-resume.log -p StandardError=inherit nice -n 19 python3 /home/ehrli/ngn-data/night-20261007/session94/claim-chain.py --resume-screen\n 123459     245  19      49  0.0 python3 /home/ehrli/ngn-data/night-20261007/session94/claim-chain.py --resume-screen\n 123460  123459  19      49  0.0 python3 /home/ehrli/ngn-data/night-20261007/session94/monitor.py 123459 /home/ehrli/ngn-data/claim-v4-20261016/attempt-001/resources.jsonl\n 123715  123459  19      24  0.4 /home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool run --receipt /home/ehrli/ngn-data/claim-v4-20261016/attempt-001/screen/receipt.json --games /home/ehrli/ngn-data/claim-v4-20261016/attempt-001/screen/games --out /home/ehrli/ngn-data/claim-v4-20261016/attempt-001/screen/run-status.json\n 123729  123715  19      23  404 /home/ehrli/ngn-data/night-20261007/session94/playing/ngn\n 123737  123715  19      23  357 /home/ehrli/ngn-data/claim-v4-20261016/anchors/koivisto6/Koivisto_6.0-x64-linux-avx2\n 124042       2   0       0  0.0 /init\n 124043  124042   0       0  0.0 /init\n 124044   93666   0       0  0.0 (udev-worker)\n 124045   93666   0       0  0.0 (udev-worker)\n 124046   93666   0       0  0.0 (udev-worker)\n 124047   93666   0       0  0.0 (udev-worker)\n 124048  124043   0       0  0.0 bash -s\n 124049  124048   0       0  2.3 python3 -\n 124052   93666   0       0  0.0 (udev-worker)\n 124056  124049   0       0  0.0 ps -eo pid,ppid,ni,etimes,pcpu,args",
+  "status_tail": [
+    "{\"utc\": \"2026-10-17T01:58:18.618947+00:00\", \"stage\": \"campaign-queue\", \"event\": \"result\", \"detail\": {\"games\": 1000, \"pairs\": 500, \"orphan_games\": 0, \"wdl\": [211, 567, 222], \"penta\": [14, 115, 251, 108, 12], \"printed_elo_ci95\": [-3.8, -16.0, 8.0], \"exact_elo_ci95\": [-3.8219455975286913, -16.14298514925603, 8.48948477802537], \"final_pllr\": -0.8, \"exact_pllr\": -0.8012969818611356, \"native_verdict\": \"INCONCLUSIVE (ran out of games \\u2014 add openings or raise -maxgames)\", \"flags\": [0, 0], \"reasons\": {\"draw-rule\": 558, \"checkmate\": 433, \"max-moves\": 9}, \"faults\": [], \"verdict\": \"SHELVED\", \"name\": \"s93-net-moderated-t74\", \"finished_utc\": \"2026-10-17T01:58:18.618759+00:00\", \"manifest\": \"/home/ehrli/ngn-data/night-20261007/session93/net-moderated-t74/manifest.json\", \"automatic_adoption\": false}}",
+    "{\"utc\": \"2026-10-17T01:58:18.619080+00:00\", \"stage\": \"session93-net-chain\", \"event\": \"complete\", \"detail\": {\"result\": \"/home/ehrli/ngn-data/night-20261007/session93/net-chain-result.json\", \"verdicts\": [\"SHELVED\", \"SHELVED\"]}}",
+    "{\"utc\": \"2026-10-17T01:58:18.630854+00:00\", \"stage\": \"session94-claim-chain\", \"event\": \"starting-screen\", \"detail\": {\"attempt\": \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-001\", \"argv\": [\"taskset\", \"-c\", \"0,2,4,6,8,10,12,14\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool\", \"prepare\", \"--mode\", \"screen\", \"--candidate\", \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/candidate-identity.json\", \"--source\", \"/home/ehrli/ngn-data/night-20261007/session94/source\", \"--tool-build-argv\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json\", \"--out\", \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/screen\"]}}",
+    "{\"utc\": \"2026-10-17T01:58:18.717731+00:00\", \"stage\": \"session94-claim-chain\", \"event\": \"held-review\", \"detail\": \"Command '['taskset', '-c', '0,2,4,6,8,10,12,14', '/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool', 'prepare', '--mode', 'screen', '--candidate', '/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/candidate-identity.json', '--source', '/home/ehrli/ngn-data/night-20261007/session94/source', '--tool-build-argv', '/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json', '--out', '/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/screen']' returned non-zero exit status 1.\"}",
+    "{\"utc\": \"2026-10-17T02:01:21.641936+00:00\", \"stage\": \"session94-claim-chain\", \"event\": \"resuming-screen\", \"detail\": {\"attempt\": \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-001\", \"reason\": \"WSL nvidia-smi PATH fixed; zero prior games\", \"path\": \"/usr/lib/wsl/lib:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"}}",
+    "{\"utc\": \"2026-10-17T02:01:21.643486+00:00\", \"stage\": \"session94-claim-chain\", \"event\": \"starting-screen\", \"detail\": {\"attempt\": \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-001\", \"argv\": [\"taskset\", \"-c\", \"0,2,4,6,8,10,12,14\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool\", \"prepare\", \"--mode\", \"screen\", \"--candidate\", \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/candidate-identity.json\", \"--source\", \"/home/ehrli/ngn-data/night-20261007/session94/source\", \"--tool-build-argv\", \"/home/ehrli/ngn-data/claim-v4-20261016/tooling-s94/frozen/claimtool-build.json\", \"--out\", \"/home/ehrli/ngn-data/claim-v4-20261016/attempt-001/screen\"]}}"
+  ],
+  "occupancy": {
+    "passed": true,
+    "quotas": [
+      {
+        "Path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/ngn-s97-claim-resume.service/cpu.max",
+        "Max": "max 100000"
+      },
+      {
+        "Path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/cpu.max",
+        "Max": "max 100000"
+      },
+      {
+        "Path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/cpu.max",
+        "Max": "max 100000"
+      },
+      {
+        "Path": "/sys/fs/cgroup/user.slice/user-1000.slice/cpu.max",
+        "Max": "max 100000"
+      },
+      {
+        "Path": "/sys/fs/cgroup/user.slice/cpu.max",
+        "Max": "max 100000"
+      }
+    ],
+    "samples": [
+      {
+        "Role": "candidate",
+        "Mask": "0,2,4,6,8,10,12,14",
+        "Threads": 11,
+        "CPUPerWall": 7.75655662450803,
+        "Error": ""
+      },
+      {
+        "Role": "Koivisto 6.0",
+        "Mask": "0,2,4,6,8,10,12,14",
+        "Threads": 1,
+        "CPUPerWall": 8.042340845876806,
+        "Error": ""
+      },
+      {
+        "Role": "akimbo 1.0.0",
+        "Mask": "0,2,4,6,8,10,12,14",
+        "Threads": 8,
+        "CPUPerWall": 8.014690072536998,
+        "Error": ""
+      },
+      {
+        "Role": "Black Marlin 9.0",
+        "Mask": "0,2,4,6,8,10,12,14",
+        "Threads": 2,
+        "CPUPerWall": 8.005300004435703,
+        "Error": ""
+      },
+      {
+        "Role": "Berserk 12",
+        "Mask": "0,2,4,6,8,10,12,14",
+        "Threads": 9,
+        "CPUPerWall": 7.972067410207607,
+        "Error": ""
+      }
+    ]
+  },
+  "games_written": 0
+}

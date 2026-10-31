@@ -1,0 +1,39 @@
+{
+  "utc": "2026-10-18T03:26:59.603578+00:00",
+  "candidate": "S2 int16 continuation/followup history",
+  "topic": "f527ab3",
+  "immediate_base": "4958bc4/81215229/compiled final14",
+  "binary_sha256": {
+    "base": "dd65aee7572f816958d654850d3a600b25a4f6c425e57b79c20309cc37f889ee",
+    "candidate": "3d0df08a184ac750e16eb28eafff668fa82b70557d7d67e68eb893413102fee8"
+  },
+  "finished_utc": "2026-10-18T03:13:24.168508+00:00",
+  "rule": "Every topology and both order strata: paired log-NPS Student-t lower95>0,df19; otherwise SHELVED; no extensions",
+  "verdict": "SHELVED",
+  "failed_strata": [
+    {
+      "threads": 1,
+      "hash_mib": 64,
+      "order": "AB",
+      "lower95": 0.999980165452331
+    },
+    {
+      "threads": 1,
+      "hash_mib": 64,
+      "order": "BA",
+      "lower95": 0.9987697614894476
+    },
+    {
+      "threads": 8,
+      "hash_mib": 256,
+      "order": "AB",
+      "lower95": 0.9902456943903722
+    }
+  ],
+  "accepted_package": "4958bc4/81215229/compiled final14",
+  "reused_checks": "Session105 complete checks review and S2 identity receipt; no rerun",
+  "extension": false,
+  "engine_changes": false,
+  "automatic_adoption": false,
+  "next": "Leave S1 timing/controller315686 untouched; review its terminal at00:35EDT October18"
+}

@@ -1,0 +1,25 @@
+{
+  "utc": "2026-10-18T17:47:36.756074+00:00",
+  "processes": [
+    "   1188     245  5-16:31:10  0.3  0.1 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    " 361831     245       16:56  2.1  0.1 /home/ehrli/ngn-data/night-20261007/session84/spsa -engine /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -tc 10+0.1 -iters 2000 -pairs 6 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -out /home/ehrli/ngn-data/night-20261007/session88/spsa-warm/spsa.jsonl -lowpower=false -seed 2026101401 -rend .05 -afrac .1 -report 25 -engineoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -engineoption UseNNUE=true -engineoption Hash=64 -engineoption Threads=1 -engineoption OwnBook=false -resume",
+    " 363369  363366       04:14  0.0  0.0 python3 /home/ehrli/ngn-data/night-20261007/session113-vector/vector-gate.py"
+  ],
+  "host_c_free_bytes": 32366817280,
+  "host_c_free_gib": 30.14394760131836,
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        3648        1977           3       10131       11866\nSwap:           4096           2        4093\n",
+  "gpu": "0 %, 1478 MiB, 16303 MiB",
+  "accepted_package": "fe92ced/81215229/compiled final14",
+  "spsa_checkpoint": {
+    "iter": 1600,
+    "time": "2026-10-18T14:35:58Z",
+    "rng_draws": 144000
+  },
+  "spsa_games": 19200,
+  "spsa_pid": 361831,
+  "vector_controller_pid": 363369,
+  "vector_state": "WAITING_NATIVE_TUNE_TERMINAL",
+  "s5_state": "CHECKED_TIMING_UNARMED",
+  "wdl025": "DISARMED_PLAN_20261018_1125",
+  "goal_met": false
+}

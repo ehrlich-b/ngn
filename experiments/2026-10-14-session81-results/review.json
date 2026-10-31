@@ -1,0 +1,53 @@
+{
+  "base": "f203e2f/a4d90b41/final14",
+  "original_width": "MEASURED serialized Threads4/GOMAXPROCS1 vs Threads1/GOMAXPROCS1; preserved original result, no rating claim",
+  "mechanism": "main.go registers threadScheduler only when GOMAXPROCS is unset; wrappers force1",
+  "profile": {
+    "(4, 1)": {
+      "seconds": 50.107523685000004,
+      "cpu_seconds": 50.145838,
+      "nodes": 70412171,
+      "occupied_cpus": 1.0007646419575802,
+      "nps": 1405221.5280612304,
+      "maximum_gc_pause_ms": 0.014043,
+      "depths": [
+        20,
+        24,
+        19,
+        22
+      ]
+    },
+    "(4, 4)": {
+      "seconds": 50.000336084,
+      "cpu_seconds": 197.12133799999998,
+      "nodes": 287741281,
+      "occupied_cpus": 3.9424002604470174,
+      "nps": 5754786.938163734,
+      "maximum_gc_pause_ms": 0.363317,
+      "depths": [
+        24,
+        28,
+        22,
+        28
+      ]
+    },
+    "(1, 1)": {
+      "seconds": 50.00025032,
+      "cpu_seconds": 50.17437,
+      "nodes": 68084581,
+      "occupied_cpus": 1.003482376165832,
+      "nps": 1361684.802861203,
+      "maximum_gc_pause_ms": 0.011977,
+      "depths": [
+        22,
+        26,
+        22,
+        25
+      ]
+    }
+  },
+  "profile_rule": "diagnostic only; no NPS/Elo adoption",
+  "scheduler_game_change": "pending user clarification",
+  "singular": "fresh T1/c6 new-harness AA40 then correctness fixed400; no automatic adoption",
+  "goal_met": false
+}

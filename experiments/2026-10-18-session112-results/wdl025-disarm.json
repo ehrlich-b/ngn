@@ -1,0 +1,10 @@
+{
+  "state": "DISARMED_PLAN_20261018_1125",
+  "utc": "2026-10-18T16:16:43.915147+00:00",
+  "pid": 356982,
+  "unit": "ngn-s111-gpu-next.scope",
+  "reason": "Root plan 2026-10-18 11:25 forbids further existing-corpus net cells",
+  "training_started": false,
+  "automatic_games": false,
+  "automatic_adoption": false
+}

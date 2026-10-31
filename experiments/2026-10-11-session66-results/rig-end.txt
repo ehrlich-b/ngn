@@ -1,0 +1,53 @@
+2026-10-11T17:05:42-04:00
+   1170     256  10  0.3 17880 /usr/bin/python3 /home/ehrli/hopper/hopper.py run
+  22172   22169  14  1.0 25900 python3 local-reader.py --root /home/ehrli/ngn-data/night-20261007/session57-data-step2 --token-file /home/ehrli/ngn-data/night-20261007/session57-data-step2/token --bind 127.0.0.1 --port 8769
+ 145862  145850   8  0.0  3328 bash /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/controller.sh
+ 148451  145865  11  0.0  1920 timeout --signal=TERM --kill-after=15s 57600 taskset -c 0-11 nice -n 19 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/sprt -new /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/candidate-ngn -base /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/openings.txt -lowpower=false -mingames 1000000 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -maxgames 400
+ 148452  148451  11  0.6 20056 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/sprt -new /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/candidate-ngn -base /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/baseline-ngn -tc 60+0.6 -concurrency 6 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/openings.txt -lowpower=false -mingames 1000000 -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/base.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/base.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -maxgames 400
+ 148457  148452   4 50.0 204756 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/candidate-ngn
+ 148458  148452   5 50.0 203736 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/candidate-ngn
+ 148459  148452   9 49.9 206152 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/candidate-ngn
+ 148460  148452   4 50.0 172628 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/candidate-ngn
+ 148465  148452   9 49.9 203524 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/candidate-ngn
+ 148468  148452   3 49.9 202892 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/candidate-ngn
+ 148475  148452   2 50.1 204516 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/baseline-ngn
+ 148476  148452  10 50.1 205140 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/baseline-ngn
+ 148481  148452   5 50.1 178408 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/baseline-ngn
+ 148483  148452   6 50.2 200516 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/baseline-ngn
+ 148486  148452   2 50.2 185080 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/baseline-ngn
+ 148491  148452  11 50.1 203544 /home/ehrli/ngn-data/night-20261007/session65-spsa-transfer/baseline-ngn
+session65-spsa-transfer
+checks.exit
+0
+
+status.jsonl
+{"utc": "2026-10-11T19:53:09.110892+00:00", "stage": "session65-spsa-transfer", "event": "aa-start", "detail": "rig0-11/c6/3GiB/nice19/swap0; data training retains priority"}
+{"utc": "2026-10-11T20:16:06.988644+00:00", "stage": "session65-spsa-transfer", "event": "aa-done", "detail": {"mode": "aa", "games": 40, "pairs": 20, "wins": 4, "draws": 28, "losses": 8, "penta": [0, 6, 12, 2, 0], "elo": -34.9, "ci95": [-82.0, 11.0], "exact_elo_ci95": [-34.86007028756008, -81.90916818710751, 10.941164500210858], "flags": [0, 0], "reasons": {"checkmate": 12, "draw-rule": 27, "max-moves": 1}, "verdict": "aa-pass"}}
+{"utc": "2026-10-11T20:16:06.998286+00:00", "stage": "session65-spsa-transfer", "event": "gate-start", "detail": "rig0-11/c6/3GiB/nice19/swap0; data training retains priority"}
+
+session66-correctness
+checks.exit
+0
+
+session66-clock-ledger
+source/checks.exit
+1
+
+session66-data-diagnostic
+diagnostic.exit
+0
+
+status.jsonl
+{"utc": "2026-10-11T20:52:05.035874+00:00", "stage": "session66-data-diagnostic", "event": "sample-start", "detail": "16 frozen blocks/source; original holdout partition"}
+{"utc": "2026-10-11T20:52:05.602808+00:00", "stage": "session66-data-diagnostic", "event": "source-sampled", "detail": {"source": 0, "panel": 2048}}
+{"utc": "2026-10-11T20:52:05.983661+00:00", "stage": "session66-data-diagnostic", "event": "source-sampled", "detail": {"source": 1, "panel": 2048}}
+{"utc": "2026-10-11T20:52:08.140541+00:00", "stage": "session66-data-diagnostic", "event": "source-sampled", "detail": {"source": 2, "panel": 2048}}
+{"utc": "2026-10-11T20:52:08.566949+00:00", "stage": "session66-data-diagnostic", "event": "source-sampled", "detail": {"source": 3, "panel": 2048}}
+{"utc": "2026-10-11T20:52:08.571450+00:00", "stage": "session66-data-diagnostic", "event": "panel-frozen", "detail": {"rows": 8192, "panel_sha256": "cf2e8935652a32974924d5413fa9b6ec896d21dc781f524f8b12465794fa2bdf"}}
+{"utc": "2026-10-11T20:52:10.689359+00:00", "stage": "session66-data-diagnostic", "event": "diagnostic-done", "detail": {"n": 8192, "mean_integer_minus_fp32_cp": -2.2411168726466713, "mae_cp": 6.016965257229458, "p95_absolute_cp": 15.161473083496093, "max_absolute_cp": 30.157459259033203, "loss": {"fp32": 0.009011208036211662, "bf16": 0.00900757755703021, "integer": 0.009033075700305473, "accepted_integer": 0.008936734578727195}, "result_loss": {"fp32": 0.08497477853199782, "bf16": 0.08496472643674238, "integer": 0.08502300342889516, "accepted_integer": 0.08418502481247539}}}
+
+G88   13W 62D 13L   50.0%  elo   +0.0 [-72,+72]  LLR  +0.00  pLLR  -0.10  draw-rule   
+               total        used        free      shared  buff/cache   available
+Mem:           15514        3599        5266           3        7059       11914
+Swap:           4096          25        4070
+0 %, 1534 MiB

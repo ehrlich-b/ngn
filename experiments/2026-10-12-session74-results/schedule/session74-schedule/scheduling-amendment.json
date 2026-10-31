@@ -1,0 +1,16 @@
+{
+  "adopted_edt": "2026-10-12T15:12:00-04:00",
+  "cutoff_edt": "2026-10-12T21:12:00-04:00",
+  "plan": "astra-48h-2026-10-12.md section6",
+  "score_independent": true,
+  "predecessor": "session71-provenance-repaired",
+  "successor": "session72-see-rig",
+  "release": "clean natural CERTIFIED/REQUIRES DIAGNOSIS, or post-stop intact-input administrative hold; control/fault/capacity failure blocks",
+  "original_sample_and_rule_unchanged": true,
+  "automatic_adoption": false,
+  "files_sha256": {
+    "schedule.py": "1b77c5626820ea59eaa76d5fc7153370268148e2aaf706efca9ffc9b4b2f755c",
+    "controller.sh": "6a7d10c4a571509e9f3c7e40bccb7f9ebd659b9a4bf060dc2897d7de01a6cd79",
+    "see-controller.sh": "01b1d6017095c14f04a75f1fbe63d04d38907d56944099330114f17a4c028e8e"
+  }
+}

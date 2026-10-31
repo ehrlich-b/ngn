@@ -1,0 +1,11 @@
+{
+  "/home/ehrli/ngn-data/night-20261007/kb8bin/ngn-kb8": "f09b76b7b877a3d15187d8d0eeabc150c2049419acf9df3479c458ebf52d5b3b",
+  "/home/ehrli/ngn-data/night-20261007/spsa/spsa": "67cf935d6072a990902030c22280703d084e80e0108282f8b5263eeb46c30300",
+  "/home/ehrli/ngn-data/night-20261007/session1/spsa-resume.cmd": "afb58189729d00206cb386cbb7b39253efa93d9086e37d248385f9806c5e5264",
+  "/home/ehrli/ngn-data/night-20261007/kb8bin/src/engine/search.go": "fceff546a912c1d3f45bcaf74696a264425d7b03cc5165508068053dab8aadb5",
+  "/home/ehrli/ngn-data/night-20261007/kb8bin/src/engine/uci.go": "327f863988a3d601950b4d661e82f8244d797a2495fe0d7b0f638c14162a3d22",
+  "/home/ehrli/ngn-data/night-20261007/kb8bin/src/engine/default_net.go": "55fc708eee0367bf548c6caadacf224ce4454e046f664258800bd31960b17ea2",
+  "/home/ehrli/ngn-data/night-20261007/kb8bin/src/internal/uci/uci.go": "4ded49186783b213252c3b728793bfec2eb96d0f837c222e767df055a52ac17a",
+  "/home/ehrli/ngn-data/night-20261007/kb8bin/src/cmd/spsa/main.go": "775ad7d125acc5090a1857c23d2316e346b0a49b05e71251d82282247701475c",
+  "/home/ehrli/ngn-data/night-20261007/kb8bin/src/engine/nets/ngn-kb8h512-be34532c.nnue": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a"
+}

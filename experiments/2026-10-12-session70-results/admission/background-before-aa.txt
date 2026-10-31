@@ -1,0 +1,283 @@
+    PID    PPID PSR %CPU   RSS COMMAND
+      1       0   3  0.7 10060 /sbin/init
+      2       0  14  0.0     0 [kthreadd]
+      3       2   1  0.0     0 [pool_workqueue_release]
+      4       2   0  0.0     0 [kworker/R-kvfree_rcu_reclaim]
+      5       2   0  0.0     0 [kworker/R-rcu_gp]
+      6       2   0  0.0     0 [kworker/R-sync_wq]
+      7       2   0  0.0     0 [kworker/R-slub_flushwq]
+      8       2   0  0.0     0 [kworker/R-netns]
+     10       2   0  0.0     0 [kworker/0:0H-events_highpri]
+     13       2   0  0.0     0 [kworker/R-mm_percpu_wq]
+     14       2   3  0.0     0 [rcu_tasks_kthread]
+     15       2   0  0.0     0 [rcu_tasks_rude_kthread]
+     16       2   0  0.0     0 [rcu_tasks_trace_kthread]
+     17       2   0  0.0     0 [ksoftirqd/0]
+     18       2  14  0.1     0 [rcu_preempt]
+     19       2   0  0.0     0 [rcu_exp_par_gp_kthread_worker/0]
+     20       2   8  0.0     0 [rcu_exp_gp_kthread_worker]
+     21       2   0  0.0     0 [migration/0]
+     22       2   0  0.0     0 [idle_inject/0]
+     23       2   0  0.0     0 [cpuhp/0]
+     24       2   1  0.0     0 [cpuhp/1]
+     25       2   1  0.0     0 [idle_inject/1]
+     26       2   1  0.0     0 [migration/1]
+     27       2   1  0.0     0 [ksoftirqd/1]
+     29       2   1  0.0     0 [kworker/1:0H-events_highpri]
+     30       2   2  0.0     0 [cpuhp/2]
+     31       2   2  0.0     0 [idle_inject/2]
+     32       2   2  0.0     0 [migration/2]
+     33       2   2  0.0     0 [ksoftirqd/2]
+     35       2   2  0.0     0 [kworker/2:0H-events_highpri]
+     36       2   3  0.0     0 [cpuhp/3]
+     37       2   3  0.0     0 [idle_inject/3]
+     38       2   3  0.0     0 [migration/3]
+     39       2   3  0.0     0 [ksoftirqd/3]
+     41       2   3  0.0     0 [kworker/3:0H-events_highpri]
+     42       2   4  0.0     0 [cpuhp/4]
+     43       2   4  0.0     0 [idle_inject/4]
+     44       2   4  0.0     0 [migration/4]
+     45       2   4  0.0     0 [ksoftirqd/4]
+     47       2   4  0.0     0 [kworker/4:0H-events_highpri]
+     48       2   5  0.0     0 [cpuhp/5]
+     49       2   5  0.0     0 [idle_inject/5]
+     50       2   5  0.0     0 [migration/5]
+     51       2   5  0.0     0 [ksoftirqd/5]
+     53       2   5  0.0     0 [kworker/5:0H-events_highpri]
+     54       2   6  0.0     0 [cpuhp/6]
+     55       2   6  0.0     0 [idle_inject/6]
+     56       2   6  0.0     0 [migration/6]
+     57       2   6  0.0     0 [ksoftirqd/6]
+     59       2   6  0.0     0 [kworker/6:0H-events_highpri]
+     60       2   7  0.0     0 [cpuhp/7]
+     61       2   7  0.0     0 [idle_inject/7]
+     62       2   7  0.0     0 [migration/7]
+     63       2   7  0.0     0 [ksoftirqd/7]
+     65       2   7  0.0     0 [kworker/7:0H-events_highpri]
+     66       2   8  0.0     0 [cpuhp/8]
+     67       2   8  0.0     0 [idle_inject/8]
+     68       2   8  0.0     0 [migration/8]
+     69       2   8  0.0     0 [ksoftirqd/8]
+     71       2   8  0.0     0 [kworker/8:0H-events_highpri]
+     72       2   9  0.0     0 [cpuhp/9]
+     73       2   9  0.0     0 [idle_inject/9]
+     74       2   9  0.0     0 [migration/9]
+     75       2   9  0.0     0 [ksoftirqd/9]
+     77       2   9  0.0     0 [kworker/9:0H-events_highpri]
+     78       2  10  0.0     0 [cpuhp/10]
+     79       2  10  0.0     0 [idle_inject/10]
+     80       2  10  0.0     0 [migration/10]
+     81       2  10  0.0     0 [ksoftirqd/10]
+     83       2  10  0.0     0 [kworker/10:0H-events_highpri]
+     84       2  11  0.0     0 [cpuhp/11]
+     85       2  11  0.0     0 [idle_inject/11]
+     86       2  11  0.0     0 [migration/11]
+     87       2  11  0.0     0 [ksoftirqd/11]
+     89       2  11  0.0     0 [kworker/11:0H-events_highpri]
+     90       2  12  0.0     0 [cpuhp/12]
+     91       2  12  0.0     0 [idle_inject/12]
+     92       2  12  0.0     0 [migration/12]
+     93       2  12  0.0     0 [ksoftirqd/12]
+     95       2  12  0.0     0 [kworker/12:0H-events_highpri]
+     96       2  13  0.0     0 [cpuhp/13]
+     97       2  13  0.0     0 [idle_inject/13]
+     98       2  13  0.0     0 [migration/13]
+     99       2  13  0.0     0 [ksoftirqd/13]
+    101       2  13  0.0     0 [kworker/13:0H-events_highpri]
+    102       2  14  0.0     0 [cpuhp/14]
+    103       2  14  0.0     0 [idle_inject/14]
+    104       2  14  0.0     0 [migration/14]
+    105       2  14  0.0     0 [ksoftirqd/14]
+    107       2  14  0.0     0 [kworker/14:0H-events_highpri]
+    108       2  15  0.0     0 [cpuhp/15]
+    109       2  15  0.0     0 [idle_inject/15]
+    110       2  15  0.0     0 [migration/15]
+    111       2  15  0.0     0 [ksoftirqd/15]
+    113       2  15  0.0     0 [kworker/15:0H-events_highpri]
+    126       2   6  0.0     0 [kdevtmpfs]
+    127       2  11  0.0     0 [kworker/R-inet_frag_wq]
+    128       2   3  0.0     0 [kauditd]
+    129       2  11  0.0     0 [khungtaskd]
+    130       2   1  0.0     0 [oom_reaper]
+    131       2  15  0.0     0 [kworker/R-writeback]
+    132       2  10  1.6     0 [kcompactd0]
+    133       2   4  0.0     0 [ksmd]
+    134       2   2  0.0     0 [khugepaged]
+    135       2   6  0.0     0 [kworker/R-kintegrityd]
+    136       2   9  0.0     0 [kworker/R-kblockd]
+    137       2  13  0.0     0 [kworker/R-blkcg_punt_bio]
+    138       2   0  0.0     0 [irq/9-acpi]
+    151       2  11  0.0     0 [kworker/R-tpm_dev_wq]
+    152       2  13  0.0     0 [kworker/R-quota_events_unbound]
+    154       2  12  0.0     0 [kworker/12:1H-kblockd]
+    155       2   2  2.8     0 [kswapd0]
+    162       2   4  0.0     0 [kworker/R-kthrotld]
+    166       2   1  0.0     0 [irq/24-aerdrv]
+    167       2   2  0.0     0 [irq/25-aerdrv]
+    168       2   3  0.0     0 [irq/26-aerdrv]
+    169       2   4  0.0     0 [irq/27-aerdrv]
+    170       2   0  0.0     0 [kworker/R-acpi_thermal_pm]
+    171       2  15  0.0     0 [kworker/R-nvme-wq]
+    172       2   7  0.0     0 [kworker/R-nvme-reset-wq]
+    173       2   2  0.0     0 [kworker/R-nvme-delete-wq]
+    174       2   1  0.0     0 [kworker/R-nvme-auth-wq]
+    178       2  13  0.0     0 [kworker/R-mld]
+    179       2   4  0.0     0 [kworker/4:1H-kblockd]
+    180       2   3  0.0     0 [kworker/R-ipv6_addrconf]
+    185       2   5  0.0     0 [kworker/R-kstrp]
+    187       2   8  0.0     0 [kworker/u65:0]
+    279       2   9  0.0     0 [kworker/9:1H-xfs-log/sdb]
+    280       2  10  0.0     0 [kworker/10:1H-kblockd]
+    290       2   5  0.0     0 [kworker/5:1H-kblockd]
+    291       2  15  0.0     0 [kworker/15:1H-xfs-log/sdb]
+    308       2   2  0.0     0 [kworker/2:1H-kblockd]
+    334       2   7  0.0     0 [kworker/7:1H-kblockd]
+    335       2  13  0.0     0 [kworker/13:1H-kblockd]
+    337       2   8  0.0     0 [kworker/8:1H-kblockd]
+    338       2   0  0.0     0 [kworker/0:1H-kblockd]
+    339       2   3  0.0     0 [kworker/3:1H-kblockd]
+    340       2   6  0.0     0 [kworker/6:1H-kblockd]
+    341       2  14  0.0     0 [kworker/14:1H-kblockd]
+    344       2  14  0.0     0 [scsi_eh_0]
+    345       2   2  0.0     0 [kworker/R-scsi_tmf_0]
+    346       2   5  0.0     0 [scsi_eh_1]
+    347       2   9  0.0     0 [kworker/R-scsi_tmf_1]
+    348       2   6  0.0     0 [kworker/R-ata_sff]
+    350       2   1  0.0     0 [scsi_eh_2]
+    351       2  11  0.0     0 [kworker/R-scsi_tmf_2]
+    352       2  12  0.0     0 [scsi_eh_3]
+    353       2   0  0.0     0 [kworker/R-scsi_tmf_3]
+    354       2   3  0.0     0 [scsi_eh_4]
+    355       2   6  0.0     0 [kworker/R-scsi_tmf_4]
+    356       2   6  0.0     0 [scsi_eh_5]
+    357       2   6  0.0     0 [kworker/R-scsi_tmf_5]
+    358       2   9  0.0     0 [scsi_eh_6]
+    359       2   6  0.0     0 [kworker/R-scsi_tmf_6]
+    360       2   8  0.0     0 [scsi_eh_7]
+    361       2   6  0.0     0 [kworker/R-scsi_tmf_7]
+    389       2  12  0.0     0 [jbd2/sda1-8]
+    390       2   2  0.0     0 [kworker/R-ext4-rsv-conversion]
+    452       2   5  0.0     0 [psimon]
+    463       1  14  0.0 46852 /usr/lib/systemd/systemd-journald
+    505       1   3  0.3  9792 /usr/lib/systemd/systemd-resolved
+    506       1  11  0.0  5572 /usr/lib/systemd/systemd-timesyncd
+    516       1   2  0.0  6224 /usr/lib/systemd/systemd-udevd
+    518       2   5  0.0     0 [psimon]
+    583       2  11  0.0     0 [kworker/R-cryptd]
+    700       2  14  0.0     0 [kworker/R-xfsalloc]
+    701       2  15  0.0     0 [kworker/R-xfs_mru_cache]
+    702       2  12  0.0     0 [kworker/R-xfs-buf/sdb]
+    703       2   3  0.0     0 [kworker/R-xfs-conv/sdb]
+    704       2   2  0.0     0 [kworker/R-xfs-reclaim/sdb]
+    705       2   3  0.0     0 [kworker/R-xfs-blockgc/sdb]
+    706       2   4  0.0     0 [kworker/R-xfs-inodegc/sdb]
+    707       2   5  0.0     0 [kworker/R-xfs-log/sdb]
+    708       2   6  0.0     0 [kworker/R-xfs-cil/sdb]
+    709       2   9  0.0     0 [xfsaild/sdb]
+    717       1  12  0.0  7088 /usr/lib/systemd/systemd-networkd
+    884       1   6  0.0  3392 /usr/bin/dbus-daemon --system --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+    885       1  12  0.0  5368 /usr/bin/ssh -NT -i /var/lib/forgetunnel/.ssh/id_ed25519 -o IdentitiesOnly=yes -o BatchMode=yes -o UserKnownHostsFile=/var/lib/forgetunnel/.ssh/known_hosts -o StrictHostKeyChecking=yes -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -R /home/forgetunnel/forge.sock:127.0.0.1:22 forgetunnel@104.131.94.68
+    891       1   6  0.0  2880 /usr/sbin/qemu-ga
+    895       1  13  0.0  6112 /usr/lib/systemd/systemd-logind
+    906       1   2  0.0  5652 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups
+    919       1  13  0.0  2056 /sbin/agetty -o -- \u --noreset --noclear - linux
+    920       1  12  0.0  2192 /sbin/agetty -o -- \u --noreset --noclear --keep-baud 115200,57600,38400,9600 - vt220
+    926       1  15  0.2 21468 /usr/bin/containerd
+    928       1   2  0.0  8052 /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal
+    938       1  13  0.7  9344 /usr/lib/systemd/systemd --user
+    941     938  10  0.0  1608 (sd-pam)
+    955       1   5  0.9 59784 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+    972     938   7  3.6 439324 tools/dolt-2.2.0 sql-server --config runtime/server.yaml
+    979     938   9  0.1 16052 /home/ehrlich/bin/wt-dev wing start --foreground --paths /work/lanes --local-only
+    980     938  11  9.1 68620 /work/lanes/telemetry/grafana/bin/grafana server --homepath=/work/lanes/telemetry/grafana --config=/work/lanes/telemetry/grafana/grafana.ini
+    986     938   9  0.3 13892 /usr/bin/python3.13 /work/lanes/acceptance/acceptance.py run
+    988     938   3 17.4 184704 python3 /home/ehrlich/repos/kalshi-shadow-20261010/shadow --db /work/lanes/kalshi-shadow/shadow.db collect --compact-books --max-gib 150
+    989     938   6  0.0 16456 /usr/bin/python3 /work/lanes/ngn-data-step2-20261011/archive_server.py --root /work/lanes/ngn-data-step2-20261011 --token-file /work/lanes/ngn-data-step2-20261011/token --bind 192.168.4.65 --port 8768
+    992     938   8 36.5 42456 /usr/bin/python3 /work/lanes/arli-feed/supervisor.py --only-model qwen38
+    994     938   3  0.0 16668 /usr/bin/python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+   1000     938   7  0.0 10744 /home/ehrlich/.local/bin/tunn-forge-ssh --verbosity=error tcp --account-only --name forge-ssh 127.0.0.1:22
+   1001     938   7  0.0 14616 /home/ehrlich/.local/bin/tunn-forge-ssh serve --name ehrlich-grafana --allow ehrlich.bryan@gmail.com 127.0.0.1:3000
+   1002     938   7  0.0 14460 /home/ehrlich/.local/bin/tunn-forge-ssh serve --name ehrlich-dash --allow ehrlich.bryan@gmail.com 127.0.0.1:8787
+   1243     992  15  0.3 46608 /usr/bin/python3 /work/lanes/arli-feed/verifier.py
+   1495       1  12  0.0  4636 /usr/bin/containerd-shim-runc-v2 -namespace moby -id 730dba7ee1cbde13d7141c7a91486a5d2e0aab8bcd960307335d4636d6cde2e5 -address /run/containerd/containerd.sock
+   1531    1495   2  0.0 15896 /bin/ollama serve
+   1563     955   5  0.0  1784 /usr/bin/docker-proxy -proto tcp -host-ip 127.0.0.1 -host-port 11434 -container-ip 172.17.0.2 -container-port 11434 -use-listen-fd
+   3784     906   6  0.0  5904 sshd-session: ehrlich [priv]
+   3792    3784  12  0.0  3392 sshd-session: ehrlich
+  40163     938   3  0.0  3184 /usr/bin/dbus-daemon --session --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+  40909       1   8  0.0  3288 adb -L tcp:5037 fork-server server --reply-fd 4
+  55824     938  14  0.0  4936 /usr/bin/ssh-agent -D
+ 156062       2  11  0.0     0 [kworker/11:2H-kblockd]
+ 425281     906   6  0.0  8188 sshd-session: ehrlich [priv]
+ 425318  425281  12  0.0  6640 sshd-session: ehrlich
+ 578302       1   5  0.0  5084 /usr/lib/polkit-1/polkitd --no-debug --log-level=notice
+ 677119     938   4  0.1  8868 /usr/bin/python3.13 /work/lanes/ops/ops.py
+ 911826     992   5 25.0 74536 /usr/bin/python3 /work/lanes/arli-feed/dispatcher.py --only-model qwen38
+1207854     938   9  2.4 59240 /usr/bin/python3 /work/lanes/forge-apps/apps/portfolio-live/server.py
+1250387       2  12  0.0     0 [kworker/u64:0-kvfree_rcu_reclaim]
+1262127       2   6  0.0     0 [kworker/u64:6-writeback]
+1266884       2   1  0.0     0 [kworker/1:2H-kblockd]
+1271542       2  11  0.0     0 [kworker/u64:1-writeback]
+1272042       2  12  0.0     0 [kworker/12:1-events]
+1272685       2  14  0.0     0 [kworker/14:16-events]
+1288661       2  13  0.0     0 [kworker/13:12-mm_percpu_wq]
+1310197       2   1  0.0     0 [kworker/u64:4-writeback]
+1333794       2   7  0.0     0 [kworker/7:0-events]
+1337314       2   0  0.0     0 [kworker/0:0-cgroup_free]
+1347201       2  14  0.0     0 [kworker/14:1-events]
+1350021       2   4  0.0     0 [kworker/4:6-events]
+1350272     938   1  0.0  3800 /usr/local/bin/wt egg run --session-id 7689d30c805248c4 --agent  --kind command --cwd /work/lanes/conveyor --rows 24 --cols 80 --outer-boundary --command-arg=/usr/bin/python3.13 --command-arg=/work/lanes/ops/ops.py --command-arg=--loop-child --command-arg=conveyor-dc5b4e82faa64f0ab16bee5e630feea5 --network * --agent-domains none --rendered-config base: none fs: [] network:     domains:         - '*'     agent_domains: none env:     - '*' resources:     cpu: ""     memory: ""     max_fds: 0     max_pids: 0 shell: "" dangerously_skip_permissions: false audit: false trace: false  --env-file-required
+1350284 1350272   6  0.0 10808 /usr/bin/python3.13 /work/lanes/ops/ops.py --loop-child conveyor-dc5b4e82faa64f0ab16bee5e630feea5
+1350285 1350284   8  0.0 38968 node /home/ehrlich/.local/bin/codex exec -s danger-full-access -c model_reasoning_effort="high" --skip-git-repo-check -m gpt-6.1-sol -o /work/lanes/conveyor/conveyor-final.md FIRST AND ONLY PRIORITY THIS PASS: read /work/lanes/conveyor/PR-FIXES.md and repair the open PRs in its order, producing READY-UPDATE packages (new-PR publishing is paused; do NOT skip a family just because it has PR-URL.txt; that skip applies to NEW publication only). Only if every listed PR already has a pending READY-UPDATE package awaiting review, then: read /home/ehrlich/briefs/conveyor.md IN FULL including every ADDENDUM and execute it: process the NEXT pending families and ALL unprocessed arli-feed packages under /work/lanes/arli-feed/out/pr-ready (consolidate same-module packages into one PR family). Skip anything with a PR-URL.txt or a terminal STATUS. Stop after 4 families or 90 minutes, whichever first, writing conveyor-final.md.
+1350297 1350285   2  0.9 142644 /home/ehrlich/.local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex exec -s danger-full-access -c model_reasoning_effort="high" --skip-git-repo-check -m gpt-6.1-sol -o /work/lanes/conveyor/conveyor-final.md FIRST AND ONLY PRIORITY THIS PASS: read /work/lanes/conveyor/PR-FIXES.md and repair the open PRs in its order, producing READY-UPDATE packages (new-PR publishing is paused; do NOT skip a family just because it has PR-URL.txt; that skip applies to NEW publication only). Only if every listed PR already has a pending READY-UPDATE package awaiting review, then: read /home/ehrlich/briefs/conveyor.md IN FULL including every ADDENDUM and execute it: process the NEXT pending families and ALL unprocessed arli-feed packages under /work/lanes/arli-feed/out/pr-ready (consolidate same-module packages into one PR family). Skip anything with a PR-URL.txt or a terminal STATUS. Stop after 4 families or 90 minutes, whichever first, writing conveyor-final.md.
+1350705 1350297   2  0.0 15896 /home/ehrlich/.local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex-code-mode-host
+1350707       2   2  0.0     0 [kworker/u64:3-kvfree_rcu_reclaim]
+1356178 1350297   4  0.0  2864 /bin/bash -c bash /home/ehrlich/bin/tauceti-gate.sh /work/lanes/conveyor2/buildwt fac38bc98a522c3e3fb947e205b6cb05656c342b e4f7a8e9a6f47eff0cbe140718042024fa7d6e1f > /work/lanes/conveyor/runs/20261012-0522/repair/pr-14864-gate.stdout 2>&1
+1356179 1356178   4  0.0  2928 bash /home/ehrlich/bin/tauceti-gate.sh /work/lanes/conveyor2/buildwt fac38bc98a522c3e3fb947e205b6cb05656c342b e4f7a8e9a6f47eff0cbe140718042024fa7d6e1f
+1359443       2   2  0.0     0 [kworker/2:8-events]
+1359449       2   3  0.0     0 [kworker/3:3-events]
+1359477       2   6  0.0     0 [kworker/6:7-events]
+1359480       2   6  0.0     0 [kworker/6:10-events]
+1359607       2   1  0.0     0 [kworker/1:5-cgwb_release]
+1359925 1356179  15  0.0 64608 /work/cache/elan/toolchains/leanprover--lean4---v4.35.0-rc3/bin/lake exe axioms
+1360060 1359925  15 40.9 1147588 /work/lanes/conveyor2/buildwt/.lake/build/bin/axioms
+1361675 1350297   3  0.0  2816 /bin/bash -c AXIOMS_ONLY_MODULES=/work/lanes/conveyor/runs/20261012-0351/repair/bounded-borel-axiom-scope.txt bash /home/ehrlich/bin/tauceti-gate.sh /work/lanes/w8/w8-conveyor-20261011/.scratch/carrier-upstream 7aacd4637143a45dd1c0374073dbe6eb0551bc9a e4f7a8e9a6f47eff0cbe140718042024fa7d6e1f > /work/lanes/conveyor/runs/20261012-0522/repair/pr-14874-gate.stdout 2>&1
+1361676 1361675   7  0.0  2928 bash /home/ehrlich/bin/tauceti-gate.sh /work/lanes/w8/w8-conveyor-20261011/.scratch/carrier-upstream 7aacd4637143a45dd1c0374073dbe6eb0551bc9a e4f7a8e9a6f47eff0cbe140718042024fa7d6e1f
+1361921       2   4  0.0     0 [kworker/4:11-xfs-conv/sdb]
+1361982       2   5  0.0     0 [kworker/5:6-events]
+1361990       2   5  0.0     0 [kworker/5:13-events]
+1362007       2   1  0.0     0 [kworker/1:10-events]
+1362013       2   3  0.0     0 [kworker/3:15-events]
+1362022       2  13  0.0     0 [kworker/13:2-mm_percpu_wq]
+1362028       2   8  0.0     0 [kworker/8:10-events]
+1362029       2  15  0.0     0 [kworker/15:11-events_freezable_pwr_efficient]
+1362031       2   8  0.0     0 [kworker/8:11-mm_percpu_wq]
+1362038       2  11  0.0     0 [kworker/11:4-events]
+1362041       2  10  0.0     0 [kworker/10:7-events]
+1362045       2  12  0.0     0 [kworker/12:10-cgroup_free]
+1362086       2  11  0.0     0 [kworker/11:6-events]
+1362430 1361676   7  0.1 64516 /work/cache/elan/toolchains/leanprover--lean4---v4.35.0-rc3/bin/lake exe axioms
+1362621 1362430   0 33.9 1138616 /work/lanes/w8/w8-conveyor-20261011/.scratch/carrier-upstream/.lake/build/bin/axioms
+1365436       2   7  0.0     0 [kworker/7:21-events]
+1369473 1350297  14  0.0  2808 /bin/bash -c cat > runs/20261012-0522/monitor.py <<'PY' import datetime,json,os,pathlib,signal,subprocess,time run=pathlib.Path(__file__).parent;path=run/'RUN-STATE.json';state=json.loads(path.read_text());rows=state['families'];deadline=datetime.datetime.fromisoformat(state['deadline'].replace('Z','+00:00')).timestamp()-20 wts={14864:pathlib.Path('/work/lanes/conveyor2/buildwt'),14874:pathlib.Path('/work/lanes/w8/w8-conveyor-20261011/.scratch/carrier-upstream')} started=time.time();active={14864:None,14874:None};outputs={};released=0 for row in rows:  if row['pr'] in wts: row['worktree']=str(wts[row['pr']]);row['gate_session']={14864:28488,14874:14160}[row['pr']] def save():  state['updated_at']=datetime.datetime.now(datetime.timezone.utc).isoformat();path.write_text(json.dumps(state,indent=2)+'\n') def start_orbits(wt):  row=rows[2];sha=row['sha'];env=dict(os.environ,AXIOMS_ONLY_MODULES=json.loads(pathlib.Path(row['config']).read_text())['axiom_scope'])  subprocess.run(['git','-C',str(wt),'checkout','--detach',sha],check=True,capture_output=True)  output=(run/'repair/pr-15137-gate.stdout').open('w');outputs[15137]=output  proc=subprocess.Popen(['bash','/home/ehrlich/bin/tauceti-gate.sh',str(wt),sha,row['base']],stdout=output,stderr=subprocess.STDOUT,env=env,start_new_session=True)  active[15137]=proc;wts[15137]=wt;row.update(state='GATING',worktree=str(wt),gate_pid=proc.pid);save();print('PR #15137 gate started',sha,flush=True) def release(row):  src=pathlib.Path(row['staged_package']);target=pathlib.Path('/work/lanes/conveyor/out')/row['slug']/'update-1'  # Refresh exactly the evidence used for source review; GET only.  for suffix,endpoint in [('state',f"pulls/{row['pr']}"),('issue-comments',f"issues/{row['pr']}/comments?per_page=100"),('review-comments',f"pulls/{row['pr']}/comments?per_page=100"),('reviews',f"pulls/{row['pr']}/reviews?per_page=100")]:   cmd=['gh','api','--method','GET',f'repos/TauCetiProject/TauCeti/{endpoint}'];cmd+=['--paginate','--slurp'] if suffix!='state' else []   data=json.loads(subprocess.check_output(cmd,text=True));data=sum(data,[]) if suffix!='state' else data   if suffix=='state': assert data['state']=='open' and data['head']['sha']==row['old_head']   else:    prior=json.loads((src/f'PR-{suffix.upper()}.json').read_text());fp=lambda xs:[(x['id'],x.get('body'),x.get('updated_at'),x.get('state')) for x in xs];assert fp(data)==fp(prior),'new review findings'  assert not target.exists();src.rename(target);(target/'STATUS.txt').write_text('READY-UPDATE\n');row.update(state='READY-UPDATE',package=str(target));save();print(f"PR #{row['pr']} READY-UPDATE: {target}",flush=True) try:  while any(row['state']!='READY-UPDATE' for row in rows):   if time.time()>=deadline: state['stop_reason']='90-minute deadline';break   for pr,proc in list(active.items()):    row=next(x for x in rows if x['pr']==pr);wt=wts[pr];receipt=wt.parent/f"tc-gate-{row['sha']}.json"    if not receipt.exists():     if proc is not None and proc.poll() is not None: raise RuntimeError(f'PR #{pr}: gate exited {proc.returncode} without receipt')     continue    gate=json.loads(receipt.read_text());assert gate['pass'],f'PR #{pr}: gate failed'    if proc is not None:     if proc.poll() is None: continue     assert proc.returncode==0    env=dict(os.environ,CONVEYOR_GATE_WT=str(wt),CONVEYOR_PACKAGE_ROOT=str(run/'staged'),CONVEYOR_PACKAGE_STATUS='LOCAL-VALIDATED-STAGED')    result=subprocess.run(['python3',str(run/'package_update.py'),row['config']],text=True,capture_output=True,env=env)    print(result.stdout+result.stderr,end='',flush=True);assert result.returncode==0,f'PR #{pr}: package check failed'    row.update(state='LOCAL-VALIDATED-STAGED',staged_package=str(run/'staged'/row['slug']/'update-1'));active.pop(pr);save()    if rows[2]['state']=='LOCAL-CHECKED': start_orbits(wt)   while released<len(rows) and rows[released]['state']=='LOCAL-VALIDATED-STAGED': release(rows[released]);released+=1   if released==len(rows): state['stop_reason']='four families: three updates and withdrawal/salvage assessment';break   time.sleep(3) except Exception as e:  state['stop_reason']=str(e);print('STOP:',e,flush=True);raise finally:  for pr,proc in active.items():   if proc is not None and proc.poll() is None:    os.killpg(proc.pid,signal.SIGTERM)    try:proc.wait(timeout=5)    except subprocess.TimeoutExpired:os.killpg(proc.pid,signal.SIGKILL)   row=next(x for x in rows if x['pr']==pr)   if row['state']=='GATING':row['state']='GATE-INCOMPLETE'  for f in outputs.values():f.close()  save() PY python3 runs/20261012-0522/monitor.py > runs/20261012-0522/monitor.stdout 2>&1
+1369475 1369473   2  0.0  7584 python3 runs/20261012-0522/monitor.py
+1371823       2   9  0.0     0 [kworker/9:0-events]
+1371824       2   9  0.0     0 [kworker/9:1-events]
+1374079       2   0  0.0     0 [kworker/0:2-events]
+1374549       2  10  0.0     0 [kworker/10:0-mm_percpu_wq]
+1374552       2  15  0.0     0 [kworker/15:0-events]
+1374558       2   2  0.0     0 [kworker/2:0-events]
+1376354       2   3  0.0     0 [kworker/3:0-events]
+1376412       2   7  0.0     0 [kworker/7:1-events]
+1376469       2   6  0.0     0 [kworker/6:0]
+1376639       2  13  0.0     0 [kworker/13:0-events]
+1376721  911826  12  1.3 42060 /usr/bin/python3 /work/lanes/arli-feed/client.py generate /work/lanes/arli-feed/state/attempts/7e97119a98393305b644a0534d068ef4c626f1abde5224966b10f9727ee0007a/qwen38/1
+1376825       2   9  0.0     0 [kworker/9:2-events]
+1376830       2  11  0.0     0 [kworker/11:0-events]
+1376888       2  12  0.1     0 [kworker/12:0-xfs-reclaim/sdb]
+1376920       2   5  0.0     0 [kworker/5:0-mm_percpu_wq]
+1377394  911826   8  1.3 26624 /usr/bin/python3 /work/lanes/arli-feed/client.py generate /work/lanes/arli-feed/state/attempts/6d343ce8a754bbb6b132513fa6b99d1ed3c8a1e1ef9dcecb0adce1cc2f9c2e2d/qwen38/1
+1377485    1243   1  100 1253480 /work/lanes/arli-feed/.lean-blanks/helpers/9b16ed23cf8feb5a8a69/.lake/build/bin/inspect inspect /work/lanes/arli-feed/.lean-blanks/job-ocvol4_f/candidate/TauCeti/Analysis/CompletelyMonotone/FiniteSamplingEstimates.lean - /work/lanes/arli-feed/.lean-blanks/job-ocvol4_f/candidate/.reports/94a8e997acfe00f48163847a11d700b2e4be5da2f12487cf0b9c9dc8e38c9a1f.json TauCeti.Analysis.CompletelyMonotone.FiniteSamplingEstimates /work/lanes/arli-feed/.lean-blanks/job-ocvol4_f/candidate/.build/TauCeti/Analysis/CompletelyMonotone/FiniteSamplingEstimates.olean 400000
+1377514       1   4  0.0  3196 bash /work/lanes/ngn-s70-admission-final14/controller.sh /work/lanes/ngn-s70-admission-final14
+1377520 1377514   6 62.5 23184 python3 games.py
+1377523 1377520   4  100  4012 ps -eo pid,ppid,psr,pcpu,rss,args

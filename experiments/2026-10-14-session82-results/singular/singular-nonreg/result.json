@@ -1,0 +1,46 @@
+{
+  "games": 400,
+  "pairs": 200,
+  "orphan_games": 0,
+  "wdl": [
+    87,
+    238,
+    75
+  ],
+  "penta": [
+    4,
+    37,
+    108,
+    45,
+    6
+  ],
+  "printed_elo_ci95": [
+    10.4,
+    -8.0,
+    29.0
+  ],
+  "exact_elo_ci95": [
+    10.426196175570942,
+    -8.32695932525128,
+    29.24034171305021
+  ],
+  "final_pllr": 0.43,
+  "exact_pllr": 0.4329373363367177,
+  "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 233,
+    "checkmate": 162,
+    "max-moves": 3,
+    "stalemate": 2
+  },
+  "faults": [],
+  "verdict": "CORRECTNESS_KEEP",
+  "name": "s81-singular-nonreg",
+  "finished_utc": "2026-10-14T08:37:40.248057+00:00",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session81/singular-nonreg/manifest.json",
+  "automatic_adoption": false
+}

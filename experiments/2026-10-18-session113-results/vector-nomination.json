@@ -1,0 +1,19 @@
+{
+  "authority": "October17 09:45 item1: warm final2000/24k then fixed1000; October18 11:25 CPU queue remains active",
+  "created_utc": "2026-10-18T17:43:02.197367+00:00",
+  "tuner_pid": 361831,
+  "tuning_service": "ngn-s109-spsa-resume.service",
+  "accepted_source": "fe92ced",
+  "accepted_package": "fe92ced/81215229/compiled final14",
+  "vector_selection": "native final2000 rounded only; no intermediate vector or checkpoint selection",
+  "decision": "Fixed1000/500 at10+0.1/c6 vs compiledfinal14 on identical accepted source/net; printed/exact lower95>0; zero faults; no extension",
+  "cpus": "0-11",
+  "gomaxprocs": 1,
+  "nice": 19,
+  "max_memory": "3GiB/swap0",
+  "reused_control": "session81/aa-single",
+  "automatic_adoption": false,
+  "automatic_training": false,
+  "automatic_claim": false,
+  "next": "Review KEEP before adoption/retarget; clean shelf proceeds to checked search queue; no speed timing here"
+}

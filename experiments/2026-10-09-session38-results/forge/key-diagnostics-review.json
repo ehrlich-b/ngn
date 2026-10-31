@@ -1,0 +1,33 @@
+{
+  "oldkey": {
+    "keys": 789,
+    "duplicates": 0,
+    "zero_keys": 0,
+    "worst_bit_z": 2.4564650480557204,
+    "totals": {
+      "probes": 94791,
+      "hits": 22055,
+      "occupied_index_collisions": 88,
+      "evictions": 0,
+      "nodes": 112742
+    },
+    "hit_rate": 0.23266976822694138,
+    "index_mismatches_per_probe": 0.0009283581774641053
+  },
+  "newkey": {
+    "keys": 789,
+    "duplicates": 0,
+    "zero_keys": 0,
+    "worst_bit_z": 2.598868818957501,
+    "totals": {
+      "probes": 94791,
+      "hits": 22055,
+      "occupied_index_collisions": 76,
+      "evictions": 0,
+      "nodes": 112742
+    },
+    "hit_rate": 0.23266976822694138,
+    "index_mismatches_per_probe": 0.0008017638805371818
+  },
+  "verdict": "no key-table defect found; fixed-depth counters diagnostic only; current-plan single follow-up gate remains required"
+}

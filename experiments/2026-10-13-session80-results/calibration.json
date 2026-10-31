@@ -1,0 +1,36 @@
+{
+  "alpha": 0.05,
+  "beta": 0.05,
+  "elo0": 0,
+  "elo1": 5,
+  "llr": "cmd/sprt.pentaStats",
+  "max_games": 8000,
+  "min_games": 1000,
+  "results": [
+    {
+      "capped": 1555,
+      "h0": 3272,
+      "h1": 173,
+      "h1_rate": 0.0346,
+      "mean_games": 5497.8088,
+      "true_elo": 0
+    },
+    {
+      "capped": 1473,
+      "h0": 146,
+      "h1": 3381,
+      "h1_rate": 0.6762,
+      "mean_games": 5380.5924,
+      "true_elo": 5
+    }
+  ],
+  "seed": 20261013,
+  "shape": [
+    6,
+    32,
+    116,
+    44,
+    2
+  ],
+  "trials_per_truth": 5000
+}

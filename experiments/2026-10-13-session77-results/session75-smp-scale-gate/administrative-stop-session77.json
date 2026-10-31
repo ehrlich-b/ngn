@@ -1,0 +1,7 @@
+{
+  "utc": "2026-10-13T09:07:35.853395+00:00",
+  "reason": "plan October12 23:00 cancels configuration screen independent of score; rig time assigned to SEE then Hash256 worker panel and S gate",
+  "verdict": "ADMINISTRATIVE UNSCORED",
+  "no_extension": true,
+  "no_pooling": true
+}

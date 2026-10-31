@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/ehrli/ngn-data/night-20261007/session100-speed/s1-identity.py", line 43, in <module>
+    assert huge_kib>=256*1024,witness
+           ^^^^^^^^^^^^^^^^^^
+AssertionError: {'pid': 285065, 'advised_regions': [{'mapping': 'c003600000-c013600000 rw-p 00000000 00:00 0 ', 'Size': '262144 kB', 'AnonHugePages': '0 kB', 'VmFlags': 'rd wr mr mw me ac sd hg'}], 'anon_huge_kib': 0}

@@ -1,0 +1,12 @@
+baseline-ngn: OK
+candidate-ngn: OK
+base.nnue: OK
+sprt: OK
+openings.txt: OK
+paired-parser.py: OK
+games.py: OK
+controller.sh: OK
+manifest.md: OK
+checks-review.json: OK
+manual-review.json: OK
+game-manifest.json: OK

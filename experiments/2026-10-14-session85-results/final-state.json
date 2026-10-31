@@ -1,0 +1,24 @@
+{
+  "utc": "2026-10-15T01:03:06.563597+00:00",
+  "accepted": "9ec5d31/81215229/compiled final14",
+  "host_c_free_bytes": 24952827904,
+  "processes": "PID    PPID STAT ELAPSED COMMAND\n   1188     245 Ssl   171996 /usr/bin/python3 /home/ehrli/hopper/hopper.py run\n  39843     245 SNs    52353 bash /home/ehrli/ngn-data/night-20261007/session83/followup.sh\n  39845   39843 SN     52353 python3 /home/ehrli/ngn-data/night-20261007/session83/followup.py\n  81543   39845 SNl    34518 /home/ehrli/ngn-data/night-20261007/session80/sprt -new /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -base /home/ehrli/ngn-data/night-20261007/session71-provenance-repaired/baseline-ngn -tc 60+0.6 -concurrency 6 -mingames 1000 -maxgames 4000 -elo0 -8 -elo1 0 -alpha .05 -beta .05 -maxmoves 400 -gametimeout 900 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -lowpower=false -pgn /home/ehrli/ngn-data/night-20261007/session83/provenance/games.pgn -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -newoption AspInit=17 -newoption AspMult=163 -newoption DeltaMargin=202 -newoption ExtensionBudget=29 -newoption FutilityMargin=104 -newoption FutilityMaxDepth=8 -newoption LMPBase=3 -newoption LMRFullDepth=3 -newoption LMRMoveThreshold=2 -newoption NullMoveMinDepth=2 -newoption NullMoveR=4 -newoption ReverseFutilityMargin=63 -newoption SingularDepth=7 -newoption SingularMargin=57 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -baseoption AspInit=17 -baseoption AspMult=163 -baseoption DeltaMargin=202 -baseoption ExtensionBudget=29 -baseoption FutilityMargin=104 -baseoption FutilityMaxDepth=8 -baseoption LMPBase=3 -baseoption LMRFullDepth=3 -baseoption LMRMoveThreshold=2 -baseoption NullMoveMinDepth=2 -baseoption NullMoveR=4 -baseoption ReverseFutilityMargin=63 -baseoption SingularDepth=7 -baseoption SingularMargin=57\n  83550     245 SNs    33357 python3 /home/ehrli/ngn-data/night-20261007/session84/source/scripts/campaign_queue.py /home/ehrli/ngn-data/night-20261007/session84/search-queue.json\n  86550   86544 Ss         0 bash /home/ehrli/ngn-data/night-20261007/session85/resume174.sh",
+  "recovery_children": "86553 python3 - /home/ehrli/ngn-data/night-20261007",
+  "queue": "MainPID=83550\nActiveState=active\nSubState=running",
+  "gpu": "0 %, 1466 MiB",
+  "memory": "total        used        free      shared  buff/cache   available\nMem:           15514        3355        7626           3        4775       12158\nSwap:           4096           1        4094",
+  "provenance_tail": [
+    "G1061 146W 750D 165L   49.1%  elo   -6.2 [-27,+15]  LLR  -0.53  pLLR  -0.83  draw-rule   ",
+    "G1062 147W 750D 165L   49.2%  elo   -5.9 [-27,+15]  LLR  -0.45  pLLR  -0.83  checkmate   ",
+    "G1063 147W 751D 165L   49.2%  elo   -5.9 [-27,+15]  LLR  -0.45  pLLR  -0.83  draw-rule   ",
+    "G1064 147W 751D 166L   49.1%  elo   -6.2 [-27,+15]  LLR  -0.53  pLLR  -0.83  checkmate   "
+  ],
+  "provenance_terminal": false,
+  "final174_original_exit": "1",
+  "final174_checkpoint_epoch": 92,
+  "final174_capacity_waiter": 86550,
+  "final174_minimum_host_c_bytes": 27380416512,
+  "recovery_automatic_games": false,
+  "hopper_keepalive": "untouched",
+  "goal_met": false
+}

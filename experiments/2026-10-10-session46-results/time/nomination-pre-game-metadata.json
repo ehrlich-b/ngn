@@ -1,0 +1,11 @@
+{
+  "base_source": "de148b96d1bc2d9577b66299b24d5bce653a7150",
+  "base_net_sha256": "be34532cf3d053d3901cc28eceb1fb03f1dc3bcafede23c4bc17128f48f5cd7a",
+  "change": "unchanged immediate new-depth clock admission only",
+  "capture_review": "experiments/2026-10-10-session46-results/capture/review.json",
+  "accepted_capture_source": "de148b9",
+  "source_archive_sha256": "46c0cb85d13a9cf51e3d909b29be193758049f93708f0adbe509204fac209bff",
+  "patch_sha256": "7f3f9180ba2c95adcb06c621e0560dbdc791fd056437ba37fef9717b157da7bb",
+  "topic": "night/time-quiet-admission",
+  "rule": "completed H1 and printed/unrounded penta lower95>0 and zero faults/intact inputs; otherwise shelve/no extension"
+}

@@ -1,0 +1,22 @@
+{
+  "snapshot_edt": "2026-10-11 03:16:31",
+  "host_c_free_bytes": 300234514432,
+  "rig_memory": "3GiB used/11GiB available; no active NNUE trainer yet",
+  "gpu": "0%/1531MiB; detached controller waits for corpus notification",
+  "forge_memory": "6GiB used/10GiB available globally",
+  "forge_work_free_bytes": 215606251520,
+  "playing_source": "ed34480",
+  "playing_net": "a4d90b41",
+  "admission_controller_pid": 21669,
+  "admission_state": "ownAA40 live; gate has not started; no terminal verdict",
+  "data_prepare_pid": 1356547,
+  "data_prepare_child_pid": 1356607,
+  "data_scatter_child_pid": 1356623,
+  "old_corpus_stream_pid": 21968,
+  "old_corpus_receiver_pid": 1433866,
+  "new_reader_pid": 1489286,
+  "gpu_controller_pid": 21886,
+  "gpu_waiter_pid": 21889,
+  "hopper_pid": 1170,
+  "old_reader_pid": 117631
+}

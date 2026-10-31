@@ -1,0 +1,12 @@
+{
+  "candidate": "s1",
+  "profile_admitted": true,
+  "immediate_base": "4958bc4/81215229/compiled final14",
+  "topic": "fcc1432",
+  "measured_panel": "/home/ehrli/ngn-data/night-20261007/session100-speed/panel/result.json",
+  "cpu_share_percent": 14,
+  "mechanism": "Use actual huge-page TT backing; panel DTLB read misses 1.15-1.37 per node",
+  "rule": "Fixed40 paired20s blocks/topology,T1/H64,T1/H256,T8/H256,alternatingAB/BA;paired geometric NPS lower95>1 in BOTH order strata for EVERY topology;otherwise SHELVED,no extension",
+  "new_identity_required": true,
+  "automatic_adoption": false
+}

@@ -1,0 +1,2609 @@
+{
+  "AtUTC": "2026-10-19T08:52:56.002492338Z",
+  "FEN": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+  "Command": "go movetime 5000",
+  "Quotas": [
+    {
+      "Path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/ngn-s117-chain-retarget.scope/cpu.max",
+      "Max": "max 100000"
+    },
+    {
+      "Path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/cpu.max",
+      "Max": "max 100000"
+    },
+    {
+      "Path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/cpu.max",
+      "Max": "max 100000"
+    },
+    {
+      "Path": "/sys/fs/cgroup/user.slice/user-1000.slice/cpu.max",
+      "Max": "max 100000"
+    },
+    {
+      "Path": "/sys/fs/cgroup/user.slice/cpu.max",
+      "Max": "max 100000"
+    }
+  ],
+  "Samples": [
+    {
+      "Role": "candidate",
+      "Mask": "0,2,4,6,8,10,12,14",
+      "Move": "d5e6",
+      "Error": "",
+      "BeforeTicks": 3,
+      "AfterTicks": 3834,
+      "ClockTicks": 100,
+      "Threads": 11,
+      "WallNS": 4900264931,
+      "CPUPerWall": 7.817944649817548,
+      "Session": {
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+          "SHA256": "7c7fa0b2d389707f5d139483875664a3249125bcaa0f60199ebc76512ab16ea8"
+        },
+        "Events": [
+          {
+            "AtNS": 383522,
+            "Stream": "stdin",
+            "Line": "uci"
+          },
+          {
+            "AtNS": 5175821,
+            "Stream": "stdout",
+            "Line": "id name ngn 0.3.0-dev"
+          },
+          {
+            "AtNS": 5197036,
+            "Stream": "stdout",
+            "Line": "id author Bryan Ehrlich"
+          },
+          {
+            "AtNS": 5211448,
+            "Stream": "stdout",
+            "Line": "option name Hash type spin default 128 min 1 max 1024"
+          },
+          {
+            "AtNS": 5212264,
+            "Stream": "stdout",
+            "Line": "option name Threads type spin default 1 min 1 max 64"
+          },
+          {
+            "AtNS": 5212857,
+            "Stream": "stdout",
+            "Line": "option name Move Overhead type spin default 100 min 0 max 5000"
+          },
+          {
+            "AtNS": 5213471,
+            "Stream": "stdout",
+            "Line": "option name OwnBook type check default false"
+          },
+          {
+            "AtNS": 5213793,
+            "Stream": "stdout",
+            "Line": "option name EvalFile type string default \u003cembedded\u003e"
+          },
+          {
+            "AtNS": 5214176,
+            "Stream": "stdout",
+            "Line": "option name UseNNUE type check default true"
+          },
+          {
+            "AtNS": 5214911,
+            "Stream": "stdout",
+            "Line": "option name NullMoveR type spin default 4 min 2 max 5"
+          },
+          {
+            "AtNS": 5215283,
+            "Stream": "stdout",
+            "Line": "option name NullMoveMinDepth type spin default 2 min 1 max 6"
+          },
+          {
+            "AtNS": 5215595,
+            "Stream": "stdout",
+            "Line": "option name LMRFullDepth type spin default 3 min 1 max 6"
+          },
+          {
+            "AtNS": 5215937,
+            "Stream": "stdout",
+            "Line": "option name LMRMoveThreshold type spin default 2 min 1 max 8"
+          },
+          {
+            "AtNS": 5216249,
+            "Stream": "stdout",
+            "Line": "option name FutilityMargin type spin default 101 min 50 max 160"
+          },
+          {
+            "AtNS": 5216601,
+            "Stream": "stdout",
+            "Line": "option name FutilityMaxDepth type spin default 8 min 1 max 8"
+          },
+          {
+            "AtNS": 5217034,
+            "Stream": "stdout",
+            "Line": "option name ReverseFutilityMargin type spin default 69 min 40 max 300"
+          },
+          {
+            "AtNS": 5217839,
+            "Stream": "stdout",
+            "Line": "option name DeltaMargin type spin default 261 min 0 max 400"
+          },
+          {
+            "AtNS": 5218181,
+            "Stream": "stdout",
+            "Line": "option name SingularDepth type spin default 8 min 4 max 12"
+          },
+          {
+            "AtNS": 5220798,
+            "Stream": "stdout",
+            "Line": "option name SingularMargin type spin default 67 min 16 max 256"
+          },
+          {
+            "AtNS": 5221110,
+            "Stream": "stdout",
+            "Line": "option name ExtensionBudget type spin default 29 min 4 max 64"
+          },
+          {
+            "AtNS": 5221412,
+            "Stream": "stdout",
+            "Line": "option name AspInit type spin default 18 min 4 max 40"
+          },
+          {
+            "AtNS": 5221684,
+            "Stream": "stdout",
+            "Line": "option name AspMult type spin default 171 min 110 max 250"
+          },
+          {
+            "AtNS": 5221956,
+            "Stream": "stdout",
+            "Line": "option name LMPBase type spin default 3 min 2 max 16"
+          },
+          {
+            "AtNS": 5222328,
+            "Stream": "stdout",
+            "Line": "uciok"
+          },
+          {
+            "AtNS": 5239407,
+            "Stream": "stdin",
+            "Line": "setoption name EvalFile value /home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue"
+          },
+          {
+            "AtNS": 5257583,
+            "Stream": "stdin",
+            "Line": "setoption name UseNNUE value true"
+          },
+          {
+            "AtNS": 5259596,
+            "Stream": "stdin",
+            "Line": "setoption name AspInit value 18"
+          },
+          {
+            "AtNS": 5259989,
+            "Stream": "stdin",
+            "Line": "setoption name AspMult value 171"
+          },
+          {
+            "AtNS": 5260421,
+            "Stream": "stdin",
+            "Line": "setoption name DeltaMargin value 261"
+          },
+          {
+            "AtNS": 5260723,
+            "Stream": "stdin",
+            "Line": "setoption name ExtensionBudget value 29"
+          },
+          {
+            "AtNS": 5261126,
+            "Stream": "stdin",
+            "Line": "setoption name FutilityMargin value 101"
+          },
+          {
+            "AtNS": 5261498,
+            "Stream": "stdin",
+            "Line": "setoption name FutilityMaxDepth value 8"
+          },
+          {
+            "AtNS": 5261941,
+            "Stream": "stdin",
+            "Line": "setoption name Hash value 256"
+          },
+          {
+            "AtNS": 5262958,
+            "Stream": "stdin",
+            "Line": "setoption name LMPBase value 3"
+          },
+          {
+            "AtNS": 5266651,
+            "Stream": "stdin",
+            "Line": "setoption name LMRFullDepth value 3"
+          },
+          {
+            "AtNS": 5267044,
+            "Stream": "stdin",
+            "Line": "setoption name LMRMoveThreshold value 2"
+          },
+          {
+            "AtNS": 5269681,
+            "Stream": "stdin",
+            "Line": "setoption name Move Overhead value 100"
+          },
+          {
+            "AtNS": 5270627,
+            "Stream": "stdin",
+            "Line": "setoption name NullMoveMinDepth value 2"
+          },
+          {
+            "AtNS": 5270989,
+            "Stream": "stdin",
+            "Line": "setoption name NullMoveR value 4"
+          },
+          {
+            "AtNS": 5271895,
+            "Stream": "stdin",
+            "Line": "setoption name OwnBook value false"
+          },
+          {
+            "AtNS": 5272307,
+            "Stream": "stdin",
+            "Line": "setoption name ReverseFutilityMargin value 69"
+          },
+          {
+            "AtNS": 5272670,
+            "Stream": "stdin",
+            "Line": "setoption name SingularDepth value 8"
+          },
+          {
+            "AtNS": 5272942,
+            "Stream": "stdin",
+            "Line": "setoption name SingularMargin value 67"
+          },
+          {
+            "AtNS": 5273254,
+            "Stream": "stdin",
+            "Line": "setoption name Threads value 8"
+          },
+          {
+            "AtNS": 5273515,
+            "Stream": "stdin",
+            "Line": "isready"
+          },
+          {
+            "AtNS": 40176644,
+            "Stream": "stdout",
+            "Line": "info string threads configured 8 effective 8"
+          },
+          {
+            "AtNS": 40202077,
+            "Stream": "stdout",
+            "Line": "readyok"
+          },
+          {
+            "AtNS": 40328082,
+            "Stream": "stdin",
+            "Line": "position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+          },
+          {
+            "AtNS": 40347929,
+            "Stream": "stdin",
+            "Line": "go movetime 5000"
+          },
+          {
+            "AtNS": 43068093,
+            "Stream": "stdout",
+            "Line": "info string threads configured 8 effective 8"
+          },
+          {
+            "AtNS": 43293381,
+            "Stream": "stdout",
+            "Line": "info depth 1 seldepth 7 score cp -69 nodes 246 time 2 nps 87154 hashfull 0 pv e2a6"
+          },
+          {
+            "AtNS": 43469831,
+            "Stream": "stdout",
+            "Line": "info depth 2 seldepth 7 score cp -69 nodes 877 time 2 nps 294659 hashfull 0 pv e2a6 b4c3"
+          },
+          {
+            "AtNS": 44762034,
+            "Stream": "stdout",
+            "Line": "info depth 3 seldepth 14 score cp -169 nodes 5165 time 3 nps 1344925 hashfull 0 pv e2a6 b4c3 d2c3 e6d5"
+          },
+          {
+            "AtNS": 44790295,
+            "Stream": "stdout",
+            "Line": "info depth 4 seldepth 9 score cp -169 nodes 9605 time 4 nps 2279584 hashfull 0 pv e2a6 b4c3 d2c3 e6d5"
+          },
+          {
+            "AtNS": 46850148,
+            "Stream": "stdout",
+            "Line": "info depth 5 seldepth 13 score cp -169 nodes 13710 time 4 nps 2770310 hashfull 0 pv e2a6 b4c3 d2c3 e6d5 e5g4"
+          },
+          {
+            "AtNS": 46871102,
+            "Stream": "stdout",
+            "Line": "info depth 6 seldepth 13 score cp -169 nodes 22244 time 5 nps 3931993 hashfull 0 pv e2a6 b4c3 d2c3 e6d5 e5g4 h3g2"
+          },
+          {
+            "AtNS": 47862709,
+            "Stream": "stdout",
+            "Line": "info depth 7 seldepth 14 score cp -130 nodes 33573 time 7 nps 4751977 hashfull 0 pv e2a6 b4c3 d2c3 e6d5 e5g4 h3g2 h1g1"
+          },
+          {
+            "AtNS": 53579279,
+            "Stream": "stdout",
+            "Line": "info depth 8 seldepth 17 score cp -196 nodes 88932 time 12 nps 7360996 hashfull 0 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1c1 f6e4"
+          },
+          {
+            "AtNS": 64654408,
+            "Stream": "stdout",
+            "Line": "info depth 9 seldepth 19 score cp -287 nodes 182008 time 21 nps 8547704 hashfull 0 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e5g4 h8h4 h2h3 d5e4"
+          },
+          {
+            "AtNS": 64959639,
+            "Stream": "stdout",
+            "Line": "info depth 10 seldepth 19 score cp -266 nodes 218611 time 24 nps 8908665 hashfull 0 pv e2a6 h3g2 f3g2 b4c3 d2c3"
+          },
+          {
+            "AtNS": 77520670,
+            "Stream": "stdout",
+            "Line": "info depth 11 seldepth 20 score cp -220 nodes 349757 time 37 nps 9429123 hashfull 0 pv e2a6 b4c3 d2c3 h3g2 h1g1 e6d5 e5g4 f6h5 c3g7 h5g7 g4f6 e8f8 e1c1 d5e4"
+          },
+          {
+            "AtNS": 83599730,
+            "Stream": "stdout",
+            "Line": "info depth 12 seldepth 20 score cp -200 nodes 419959 time 43 nps 9726456 hashfull 0 pv e2a6"
+          },
+          {
+            "AtNS": 107479204,
+            "Stream": "stdout",
+            "Line": "info depth 13 seldepth 27 score cp -199 nodes 685055 time 67 nps 10217940 hashfull 0 pv e2a6 h3g2 h1g1 b4c3 d2c3"
+          },
+          {
+            "AtNS": 148049939,
+            "Stream": "stdout",
+            "Line": "info depth 14 seldepth 23 score cp -201 nodes 1164978 time 107 nps 10824979 hashfull 2 pv e2a6"
+          },
+          {
+            "AtNS": 174634752,
+            "Stream": "stdout",
+            "Line": "info depth 15 seldepth 22 score cp -182 nodes 1477655 time 134 nps 11010096 hashfull 4 pv e2a6 b4c3"
+          },
+          {
+            "AtNS": 581394077,
+            "Stream": "stdout",
+            "Line": "info depth 16 seldepth 39 score cp -282 nodes 6338439 time 540 nps 11717356 hashfull 40 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e1g1"
+          },
+          {
+            "AtNS": 623506066,
+            "Stream": "stdout",
+            "Line": "info depth 17 seldepth 32 score cp -282 nodes 6843050 time 583 nps 11736496 hashfull 41 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5"
+          },
+          {
+            "AtNS": 698596833,
+            "Stream": "stdout",
+            "Line": "info depth 18 seldepth 33 score cp -267 nodes 7771962 time 658 nps 11808746 hashfull 42 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 d5e4 f2f4 e8f8 f4f5 g6g5 a1d1 b6d5 e5d7 f6d7"
+          },
+          {
+            "AtNS": 1213695494,
+            "Stream": "stdout",
+            "Line": "info depth 19 seldepth 40 score cp -282 nodes 14068176 time 1173 nps 11990915 hashfull 86 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e1g1 d5e4"
+          },
+          {
+            "AtNS": 1651298600,
+            "Stream": "stdout",
+            "Line": "info depth 20 seldepth 42 score cp -245 nodes 19285256 time 1610 nps 11973133 hashfull 121 pv e2a6"
+          },
+          {
+            "AtNS": 2368333893,
+            "Stream": "stdout",
+            "Line": "info depth 21 seldepth 39 score cp -288 nodes 27858615 time 2327 nps 11967412 hashfull 170 pv e2a6"
+          },
+          {
+            "AtNS": 4287210176,
+            "Stream": "stdout",
+            "Line": "info depth 22 seldepth 44 score cp -286 nodes 50379316 time 4246 nps 11863049 hashfull 304 pv d5e6 a6e2 c3e2 e7e6 d2f4 h3g2 f3g2 d7d6 e5d3 e6e4 g2e4 f6e4 f2f3 e4f6 d3b4 f6h5 b4d3 h5f4 e2f4 e8d7 e1g1 h8h4 c2c3 a7a5 f1f2 a8h8"
+          },
+          {
+            "AtNS": 4940558640,
+            "Stream": "stdout",
+            "Line": "bestmove d5e6"
+          },
+          {
+            "AtNS": 4940696840,
+            "Stream": "stdin",
+            "Line": "quit"
+          }
+        ],
+        "Options": {
+          "AspInit": "spin default 18 min 4 max 40",
+          "AspMult": "spin default 171 min 110 max 250",
+          "DeltaMargin": "spin default 261 min 0 max 400",
+          "EvalFile": "string default \u003cembedded\u003e",
+          "ExtensionBudget": "spin default 29 min 4 max 64",
+          "FutilityMargin": "spin default 101 min 50 max 160",
+          "FutilityMaxDepth": "spin default 8 min 1 max 8",
+          "Hash": "spin default 128 min 1 max 1024",
+          "LMPBase": "spin default 3 min 2 max 16",
+          "LMRFullDepth": "spin default 3 min 1 max 6",
+          "LMRMoveThreshold": "spin default 2 min 1 max 8",
+          "Move Overhead": "spin default 100 min 0 max 5000",
+          "NullMoveMinDepth": "spin default 2 min 1 max 6",
+          "NullMoveR": "spin default 4 min 2 max 5",
+          "OwnBook": "check default false",
+          "ReverseFutilityMargin": "spin default 69 min 40 max 300",
+          "SingularDepth": "spin default 8 min 4 max 12",
+          "SingularMargin": "spin default 67 min 16 max 256",
+          "Threads": "spin default 1 min 1 max 64",
+          "UseNNUE": "check default true"
+        },
+        "Selected": {
+          "AspInit": "18",
+          "AspMult": "171",
+          "DeltaMargin": "261",
+          "EvalFile": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+          "ExtensionBudget": "29",
+          "FutilityMargin": "101",
+          "FutilityMaxDepth": "8",
+          "Hash": "256",
+          "LMPBase": "3",
+          "LMRFullDepth": "3",
+          "LMRMoveThreshold": "2",
+          "Move Overhead": "100",
+          "NullMoveMinDepth": "2",
+          "NullMoveR": "4",
+          "OwnBook": "false",
+          "ReverseFutilityMargin": "69",
+          "SingularDepth": "8",
+          "SingularMargin": "67",
+          "Threads": "8",
+          "UseNNUE": "true"
+        },
+        "PID": 390695,
+        "ExitCode": 0,
+        "LaunchArgv": [
+          "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn"
+        ],
+        "Scheduling": "inherited taskset 0,2,4,6,8,10,12,14, nice 19; GOMAXPROCS=8"
+      }
+    },
+    {
+      "Role": "Koivisto 6.0",
+      "Mask": "0,2,4,6,8,10,12,14",
+      "Move": "e2a6",
+      "Error": "",
+      "BeforeTicks": 5,
+      "AfterTicks": 2374,
+      "ClockTicks": 100,
+      "Threads": 1,
+      "WallNS": 2984945925,
+      "CPUPerWall": 7.936492182852526,
+      "Session": {
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/koivisto6/Koivisto_6.0-x64-linux-avx2",
+          "SHA256": "2b2bd642e8a317456516a9134b5b6faf674859b4666bf526a85cedfb31241581"
+        },
+        "Events": [
+          {
+            "AtNS": 314993,
+            "Stream": "stdin",
+            "Line": "uci"
+          },
+          {
+            "AtNS": 7701443,
+            "Stream": "stdout",
+            "Line": "Koivisto 6.0 by K. Kahre, F. Eggers"
+          },
+          {
+            "AtNS": 7753014,
+            "Stream": "stdout",
+            "Line": "id name Koivisto 6.0"
+          },
+          {
+            "AtNS": 7764764,
+            "Stream": "stdout",
+            "Line": "id author K. Kahre, F. Eggers"
+          },
+          {
+            "AtNS": 7766395,
+            "Stream": "stdout",
+            "Line": "option name Hash type spin default 16 min 1 max 65536"
+          },
+          {
+            "AtNS": 7767824,
+            "Stream": "stdout",
+            "Line": "option name Threads type spin default 1 min 1 max 256"
+          },
+          {
+            "AtNS": 7768408,
+            "Stream": "stdout",
+            "Line": "option name OwnBook type check default false"
+          },
+          {
+            "AtNS": 7769033,
+            "Stream": "stdout",
+            "Line": "option name BookPath type string"
+          },
+          {
+            "AtNS": 7769617,
+            "Stream": "stdout",
+            "Line": "option name SyzygyPath type string default"
+          },
+          {
+            "AtNS": 7771439,
+            "Stream": "stdout",
+            "Line": "uciok"
+          },
+          {
+            "AtNS": 7788928,
+            "Stream": "stdin",
+            "Line": "setoption name Hash value 256"
+          },
+          {
+            "AtNS": 7826493,
+            "Stream": "stdin",
+            "Line": "setoption name OwnBook value false"
+          },
+          {
+            "AtNS": 7830430,
+            "Stream": "stdin",
+            "Line": "setoption name Threads value 8"
+          },
+          {
+            "AtNS": 7831236,
+            "Stream": "stdin",
+            "Line": "isready"
+          },
+          {
+            "AtNS": 55660629,
+            "Stream": "stdout",
+            "Line": "readyok"
+          },
+          {
+            "AtNS": 55820179,
+            "Stream": "stdin",
+            "Line": "position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+          },
+          {
+            "AtNS": 55856741,
+            "Stream": "stdin",
+            "Line": "go movetime 5000"
+          },
+          {
+            "AtNS": 56782640,
+            "Stream": "stdout",
+            "Line": "info depth 1 seldepth 5 score cp -46 nodes 4179 nps 4179000 time 0 hashfull 0 pv e2a6 e6d5 c3d5 f6d5"
+          },
+          {
+            "AtNS": 56793515,
+            "Stream": "stdout",
+            "Line": "info depth 2 seldepth 5 score cp -46 nodes 5010 nps 5010000 time 0 hashfull 0 pv e2a6 e6d5 c3d5 f6d5 a2a3"
+          },
+          {
+            "AtNS": 56796455,
+            "Stream": "stdout",
+            "Line": "info depth 3 seldepth 6 score cp -46 nodes 5464 nps 5464000 time 0 hashfull 0 pv e2a6 e6d5 c3d5 f6d5 a2a3 e7e5"
+          },
+          {
+            "AtNS": 59933080,
+            "Stream": "stdout",
+            "Line": "info depth 4 seldepth 7 score cp -193 nodes 29272 nps 14636000 time 1 hashfull 0 pv e2a6 e6d5 c3e2 e7e5 e4d5 e5b2"
+          },
+          {
+            "AtNS": 59939272,
+            "Stream": "stdout",
+            "Line": "info depth 5 seldepth 7 score cp -177 nodes 30749 nps 10249666 time 2 hashfull 0 pv e2a6"
+          },
+          {
+            "AtNS": 59940964,
+            "Stream": "stdout",
+            "Line": "info depth 6 seldepth 8 score cp -139 nodes 34190 nps 11396666 time 2 hashfull 0 pv e2a6 e6d5 d2f4"
+          },
+          {
+            "AtNS": 59942132,
+            "Stream": "stdout",
+            "Line": "info depth 7 seldepth 10 score cp 28 nodes 48240 nps 16080000 time 2 hashfull 0 pv d5e6 a6e2 e6f7 e7f7 c3e2"
+          },
+          {
+            "AtNS": 60239380,
+            "Stream": "stdout",
+            "Line": "info depth 8 seldepth 12 score cp 21 nodes 89160 nps 17832000 time 4 hashfull 0 pv d5e6 e7e6 e2a6 b4c3 d2c3 f6g8 e5d3 g7c3 b2c3 h3g2 f3g2"
+          },
+          {
+            "AtNS": 63383850,
+            "Stream": "stdout",
+            "Line": "info depth 9 seldepth 17 score cp -75 nodes 175258 nps 21907250 time 7 hashfull 0 pv d5e6 e7e6 e2a6 e6e5 a6b7 h3g2 f3g2 b4c3"
+          },
+          {
+            "AtNS": 72202407,
+            "Stream": "stdout",
+            "Line": "info depth 10 seldepth 20 score cp -217 nodes 393161 nps 23127117 time 16 hashfull 0 pv e2a6"
+          },
+          {
+            "AtNS": 73304814,
+            "Stream": "stdout",
+            "Line": "info depth 11 seldepth 20 score cp -149 nodes 422265 nps 23459166 time 17 hashfull 0 pv d5e6 e7e6 e2a6 h3g2 f3g2 e6e5 f2f4 e5c5 c3b5 c5c2"
+          },
+          {
+            "AtNS": 76662301,
+            "Stream": "stdout",
+            "Line": "info depth 12 seldepth 21 score cp -99 nodes 508468 nps 24212761 time 20 hashfull 0 pv d5e6 a6e2 c3e2"
+          },
+          {
+            "AtNS": 94483785,
+            "Stream": "stdout",
+            "Line": "info depth 13 seldepth 24 score cp -134 nodes 949502 nps 24346205 time 38 hashfull 0 pv e2a6 b4c3"
+          },
+          {
+            "AtNS": 112657854,
+            "Stream": "stdout",
+            "Line": "info depth 14 seldepth 25 score cp -137 nodes 1368334 nps 24005859 time 56 hashfull 10 pv e2a6 b4c3 d2c3 e6d5 e5g4 h3g2 h1g1"
+          },
+          {
+            "AtNS": 121983380,
+            "Stream": "stdout",
+            "Line": "info depth 15 seldepth 27 score cp -146 nodes 1573945 nps 23491716 time 66 hashfull 10 pv e2a6 b4c3 d2c3 e6d5 e5g4 h3g2 h1g1 f6g4 c3g7 g4h2 f3g2 e7e4 g2e4 d5e4 e1c1 h8h4 g1h1"
+          },
+          {
+            "AtNS": 140370677,
+            "Stream": "stdout",
+            "Line": "info depth 16 seldepth 27 score cp -96 nodes 2009024 nps 23635576 time 84 hashfull 30 pv e2a6 b4c3"
+          },
+          {
+            "AtNS": 220495320,
+            "Stream": "stdout",
+            "Line": "info depth 17 seldepth 33 score cp -91 nodes 3835037 nps 23242648 time 164 hashfull 40 pv e2a6 b4c3"
+          },
+          {
+            "AtNS": 483870751,
+            "Stream": "stdout",
+            "Line": "info depth 18 seldepth 39 score cp -150 nodes 9856529 nps 23029273 time 427 hashfull 110 pv e2a6 b4c3 d2c3 h3g2"
+          },
+          {
+            "AtNS": 538798380,
+            "Stream": "stdout",
+            "Line": "info depth 19 seldepth 39 score cp -126 nodes 11104129 nps 22989915 time 482 hashfull 130 pv e2a6 b4c3 d2c3 h3g2 f3g2"
+          },
+          {
+            "AtNS": 642290470,
+            "Stream": "stdout",
+            "Line": "info depth 20 seldepth 39 score cp -175 nodes 13487323 nps 22976700 time 586 hashfull 150 pv e2a6 h3g2 f3g2 b4c3 d2c3"
+          },
+          {
+            "AtNS": 727688043,
+            "Stream": "stdout",
+            "Line": "info depth 21 seldepth 39 score cp -146 nodes 15403632 nps 22922071 time 671 hashfull 180 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e5d3 b6a4 c3f6 e7f6 a6b7 a4b2 e1g1 b2d3 c2d3 a8b8 b7d5"
+          },
+          {
+            "AtNS": 1056653036,
+            "Stream": "stdout",
+            "Line": "info depth 22 seldepth 39 score cp -160 nodes 22775972 nps 22753218 time 1000 hashfull 310 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 f6e4 e5c6 d7c6 c3g7 h8h5 g1h1 e8d7 a6e2 h5h4 f2f3 e4c5 f1e1 a8g8 e2f1 c5e6 g7c3 d7c8 f1a6 c8b8 c3e5 e7b4"
+          },
+          {
+            "AtNS": 2096240095,
+            "Stream": "stdout",
+            "Line": "info depth 23 seldepth 45 score cp -214 nodes 45911653 nps 22494685 time 2040 hashfull 560 pv e2a6"
+          },
+          {
+            "AtNS": 2668136358,
+            "Stream": "stdout",
+            "Line": "info depth 24 seldepth 47 score cp -169 nodes 58503771 nps 22389502 time 2612 hashfull 610 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 f6e4 f2f4 e4c3 b2c3 e8f8 a6d3 g7e5 f4e5 f8g7 f1f6 h8h6 g2g3 a8f8 a1e1 d7d6 f6f1 h6h5 e5d6"
+          },
+          {
+            "AtNS": 3040375482,
+            "Stream": "stdout",
+            "Line": "info depth 25 seldepth 47 score cp -174 nodes 66882025 nps 22406038 time 2984 hashfull 650 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1"
+          },
+          {
+            "AtNS": 3040736082,
+            "Stream": "stdout",
+            "Line": "bestmove e2a6"
+          },
+          {
+            "AtNS": 3040860448,
+            "Stream": "stdin",
+            "Line": "quit"
+          }
+        ],
+        "Options": {
+          "BookPath": "string",
+          "Hash": "spin default 16 min 1 max 65536",
+          "OwnBook": "check default false",
+          "SyzygyPath": "string default",
+          "Threads": "spin default 1 min 1 max 256"
+        },
+        "Selected": {
+          "Hash": "256",
+          "OwnBook": "false",
+          "Threads": "8"
+        },
+        "PID": 390706,
+        "ExitCode": 0,
+        "LaunchArgv": [
+          "/home/ehrli/ngn-data/claim-v4-20261016/anchors/koivisto6/Koivisto_6.0-x64-linux-avx2"
+        ],
+        "Scheduling": "inherited taskset 0,2,4,6,8,10,12,14, nice 19; GOMAXPROCS=8"
+      }
+    },
+    {
+      "Role": "akimbo 1.0.0",
+      "Mask": "0,2,4,6,8,10,12,14",
+      "Move": "d5e6",
+      "Error": "",
+      "BeforeTicks": 4,
+      "AfterTicks": 4058,
+      "ClockTicks": 100,
+      "Threads": 8,
+      "WallNS": 4990681947,
+      "CPUPerWall": 8.123138366765572,
+      "Session": {
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/akimbo1/akimbo-1.0.0-avx2",
+          "SHA256": "879c769035d948068512eb9de02c0f356727b6045e10b95ac813497ebd8d7eee"
+        },
+        "Events": [
+          {
+            "AtNS": 259231,
+            "Stream": "stdin",
+            "Line": "uci"
+          },
+          {
+            "AtNS": 694103,
+            "Stream": "stdout",
+            "Line": "akimbo, created by Jamie Whiting"
+          },
+          {
+            "AtNS": 1996235,
+            "Stream": "stdout",
+            "Line": "id name akimbo 1.0.0"
+          },
+          {
+            "AtNS": 2014689,
+            "Stream": "stdout",
+            "Line": "id author Jamie Whiting"
+          },
+          {
+            "AtNS": 2020668,
+            "Stream": "stdout",
+            "Line": "option name Threads type spin default 1 min 1 max 512"
+          },
+          {
+            "AtNS": 2021928,
+            "Stream": "stdout",
+            "Line": "option name Hash type spin default 16 min 1 max 1048576"
+          },
+          {
+            "AtNS": 2022690,
+            "Stream": "stdout",
+            "Line": "option name Clear Hash type button"
+          },
+          {
+            "AtNS": 2022993,
+            "Stream": "stdout",
+            "Line": "option name UCI_Chess960 type check default false"
+          },
+          {
+            "AtNS": 2023637,
+            "Stream": "stdout",
+            "Line": "uciok"
+          },
+          {
+            "AtNS": 2034061,
+            "Stream": "stdin",
+            "Line": "setoption name Hash value 256"
+          },
+          {
+            "AtNS": 2063446,
+            "Stream": "stdin",
+            "Line": "setoption name Threads value 8"
+          },
+          {
+            "AtNS": 2065517,
+            "Stream": "stdin",
+            "Line": "setoption name UCI_Chess960 value false"
+          },
+          {
+            "AtNS": 2065986,
+            "Stream": "stdin",
+            "Line": "isready"
+          },
+          {
+            "AtNS": 11959980,
+            "Stream": "stdout",
+            "Line": "readyok"
+          },
+          {
+            "AtNS": 12074942,
+            "Stream": "stdin",
+            "Line": "position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+          },
+          {
+            "AtNS": 12093600,
+            "Stream": "stdin",
+            "Line": "go movetime 5000"
+          },
+          {
+            "AtNS": 12858077,
+            "Stream": "stdout",
+            "Line": "info depth 1 seldepth 7 score cp -176 time 0 nodes 1024 nps 4294967295 pv e2a6"
+          },
+          {
+            "AtNS": 12932048,
+            "Stream": "stdout",
+            "Line": "info depth 2 seldepth 7 score cp -176 time 0 nodes 1024 nps 4294967295 pv e2a6 b4c3"
+          },
+          {
+            "AtNS": 13111476,
+            "Stream": "stdout",
+            "Line": "info depth 3 seldepth 7 score cp -176 time 0 nodes 1024 nps 4294967295 pv e2a6 b4c3 d2c3"
+          },
+          {
+            "AtNS": 13358759,
+            "Stream": "stdout",
+            "Line": "info depth 4 seldepth 11 score cp -176 time 0 nodes 1024 nps 4294967295 pv e2a6 b4c3 d2c3 e6d5"
+          },
+          {
+            "AtNS": 13559053,
+            "Stream": "stdout",
+            "Line": "info depth 5 seldepth 11 score cp -142 time 0 nodes 3072 nps 4294967295 pv e2a6 b4c3 d2c3 e6d5 e5g4"
+          },
+          {
+            "AtNS": 14127864,
+            "Stream": "stdout",
+            "Line": "info depth 6 seldepth 11 score cp -213 time 1 nodes 2048 nps 2048000 pv e2a6 b4c3 d2c3 e6d5 e1g1 d5e4"
+          },
+          {
+            "AtNS": 14494178,
+            "Stream": "stdout",
+            "Line": "info depth 7 seldepth 11 score cp -213 time 1 nodes 2048 nps 2048000 pv e2a6 b4c3 d2c3 e6d5 e1g1 d5e4 f3g3"
+          },
+          {
+            "AtNS": 15566201,
+            "Stream": "stdout",
+            "Line": "info depth 8 seldepth 12 score cp -229 time 2 nodes 10240 nps 5120000 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e1c1 f6e4"
+          },
+          {
+            "AtNS": 20015449,
+            "Stream": "stdout",
+            "Line": "info depth 9 seldepth 16 score cp -277 time 5 nodes 52224 nps 10444800 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e1c1 f6e4"
+          },
+          {
+            "AtNS": 20033277,
+            "Stream": "stdout",
+            "Line": "info depth 10 seldepth 16 score cp -189 time 6 nodes 59392 nps 9898666 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e1c1"
+          },
+          {
+            "AtNS": 30855740,
+            "Stream": "stdout",
+            "Line": "info depth 11 seldepth 21 score cp -371 time 18 nodes 260096 nps 14449777 pv e2a6 b4c3 d2c3 e6d5 e5g4 f6g4 c3g7 h8h4 a6b7 h3g2 f3g2"
+          },
+          {
+            "AtNS": 31296977,
+            "Stream": "stdout",
+            "Line": "info depth 12 seldepth 21 score cp -248 time 18 nodes 267264 nps 14848000 pv e2a6 b4c3 d2c3 e6d5 e5g4 f6g4 c3g7 h8h4 e1c1"
+          },
+          {
+            "AtNS": 42504867,
+            "Stream": "stdout",
+            "Line": "info depth 13 seldepth 25 score cp -239 time 29 nodes 443392 nps 15289379 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e5g4 h8h4 h2h3 b6a4 c3f6 g7f6"
+          },
+          {
+            "AtNS": 90913301,
+            "Stream": "stdout",
+            "Line": "info depth 14 seldepth 37 score cp -257 time 78 nodes 1260544 nps 16160820 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e5g4 h8h4 h2h3 f6g4 h3g4 h4h1 g2h1 g7c3 b2c3 e7e4 h1e4 d5e4 a6b7 a8b8 b7e4 e8e7 e1d2 b8h8 d2e3 h8h3 f2f3 h3h2 e4d3"
+          },
+          {
+            "AtNS": 160904915,
+            "Stream": "stdout",
+            "Line": "info depth 15 seldepth 37 score cp -290 time 148 nodes 2435072 nps 16453189 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e5g4 e8f8 e1c1 f6g4 c3g7 f8g7 g2g4 d5e4 h2h4 h8h5 g4g3 e7e5 a6e2 e5g3 f2g3 h5e5 h4h5"
+          },
+          {
+            "AtNS": 264822982,
+            "Stream": "stdout",
+            "Line": "info depth 16 seldepth 39 score cp -284 time 252 nodes 4135936 nps 16412444 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e5g4 e8f8 e1c1 f6g4 c3g7 f8g7 g2g4 d5e4 h2h4 h8h5 g4g3 e7e5 f2f4 e4f3 g3f3"
+          },
+          {
+            "AtNS": 349127750,
+            "Stream": "stdout",
+            "Line": "info depth 17 seldepth 39 score cp -323 time 336 nodes 5493760 nps 16350476 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e5g4 e8f8 e1c1 f6g4 c3g7 f8g7 g2g4 d5e4 h2h4 h8h5 g4g3 e7e5 a6e2 e5g3 f2g3 h5a5 h4h5 g6h5 h1h4 a8e8"
+          },
+          {
+            "AtNS": 953444951,
+            "Stream": "stdout",
+            "Line": "info depth 18 seldepth 42 score cp -334 time 940 nodes 15254528 nps 16228221 pv d5e6 a6e2 c3e2 e7e6 d2f4 h3g2 f3g2 d7d6 e5d3 e6e4 g2e4 f6e4 f2f3 e4f6 d3b4 a7a5 b4d3 f6d5 f4g5 a5a4 e1c1 e8d7 e2f4 d5f4 g5f4"
+          },
+          {
+            "AtNS": 1370601133,
+            "Stream": "stdout",
+            "Line": "info depth 19 seldepth 42 score cp -379 time 1357 nodes 21866496 nps 16113851 pv d5e6 a6e2 c3e2 e7e6 d2f4 h3g2 f3g2 e8c8 e1g1 d8e8 e5d3 e6e4 g2e4 f6e4 a2a3 e4d2 f4d2 e8e2 d2f4 b4a3 a1a3 h8h5 f1c1 a7a5 f4g3 b6c4"
+          },
+          {
+            "AtNS": 1604033236,
+            "Stream": "stdout",
+            "Line": "info depth 20 seldepth 42 score cp -370 time 1587 nodes 25352192 nps 15974916 pv d5e6 a6e2 c3e2 e7e6 d2f4 f6e4 f3e4 h3g2 e4g2 g7e5 e1c1 e8c8 f4e5 e6e5 e2d4 d8e8 d4b3 e5f5 h1e1 e8e1 d1e1 f5d5 g2g3"
+          },
+          {
+            "AtNS": 2057885797,
+            "Stream": "stdout",
+            "Line": "info depth 21 seldepth 42 score cp -378 time 2045 nodes 32603136 nps 15942853 pv d5e6 a6e2 c3e2 e7e6 d2f4 f6e4 f3e4 h3g2 e4g2 g7e5 e1c1 e8c8 f4e5 e6e5 e2d4 d8e8 g2f3 e5d5 f3d5 b6d5 d4b5 h8h5 b5a7 c8b7 a7b5 e8e2"
+          },
+          {
+            "AtNS": 2437982854,
+            "Stream": "stdout",
+            "Line": "info depth 22 seldepth 42 score cp -388 time 2425 nodes 38913024 nps 16046607 pv d5e6 a6e2 c3e2 e7e6 d2f4 f6e4 f3e4 h3g2 e4g2 g7e5 e1c1 e8c8 f4e5 e6e5 e2d4 h8h5 g2f1 d8e8 f1a6 c8b8 h2h4 e8h8 c1b1 e5c5 d4b3 c5b5 a6b5 h5b5 d1d4 b8c8"
+          },
+          {
+            "AtNS": 5002719267,
+            "Stream": "stdout",
+            "Line": "bestmove d5e6"
+          },
+          {
+            "AtNS": 5002856977,
+            "Stream": "stdin",
+            "Line": "quit"
+          }
+        ],
+        "Options": {
+          "Clear Hash": "button",
+          "Hash": "spin default 16 min 1 max 1048576",
+          "Threads": "spin default 1 min 1 max 512",
+          "UCI_Chess960": "check default false"
+        },
+        "Selected": {
+          "Hash": "256",
+          "Threads": "8",
+          "UCI_Chess960": "false"
+        },
+        "PID": 390718,
+        "ExitCode": 0,
+        "LaunchArgv": [
+          "/home/ehrli/ngn-data/claim-v4-20261016/anchors/akimbo1/akimbo-1.0.0-avx2"
+        ],
+        "Scheduling": "inherited taskset 0,2,4,6,8,10,12,14, nice 19; GOMAXPROCS=8"
+      }
+    },
+    {
+      "Role": "Black Marlin 9.0",
+      "Mask": "0,2,4,6,8,10,12,14",
+      "Move": "e2a6",
+      "Error": "",
+      "BeforeTicks": 6,
+      "AfterTicks": 4024,
+      "ClockTicks": 100,
+      "Threads": 2,
+      "WallNS": 5001848334,
+      "CPUPerWall": 8.033030455337274,
+      "Session": {
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/blackmarlin9/blackmarlin-linux-x86-64-v3",
+          "SHA256": "980bd51860fc1cc61fd2216d5ca25fbcef1b5488bde1bce379d022b38b750642"
+        },
+        "Events": [
+          {
+            "AtNS": 306732,
+            "Stream": "stdin",
+            "Line": "uci"
+          },
+          {
+            "AtNS": 32555108,
+            "Stream": "stdout",
+            "Line": "id name Black Marlin 9.0"
+          },
+          {
+            "AtNS": 32585338,
+            "Stream": "stdout",
+            "Line": "id author Doruk S."
+          },
+          {
+            "AtNS": 32592152,
+            "Stream": "stdout",
+            "Line": "option name Hash type spin default 16 min 1 max 65536"
+          },
+          {
+            "AtNS": 32592856,
+            "Stream": "stdout",
+            "Line": "option name Threads type spin default 1 min 1 max 255"
+          },
+          {
+            "AtNS": 32593888,
+            "Stream": "stdout",
+            "Line": "option name UCI_ShowWDL type check default false"
+          },
+          {
+            "AtNS": 32594383,
+            "Stream": "stdout",
+            "Line": "option name UCI_Chess960 type check default false"
+          },
+          {
+            "AtNS": 32595068,
+            "Stream": "stdout",
+            "Line": "uciok"
+          },
+          {
+            "AtNS": 32609131,
+            "Stream": "stdin",
+            "Line": "setoption name Hash value 256"
+          },
+          {
+            "AtNS": 32628957,
+            "Stream": "stdin",
+            "Line": "setoption name Threads value 8"
+          },
+          {
+            "AtNS": 32630991,
+            "Stream": "stdin",
+            "Line": "setoption name UCI_Chess960 value false"
+          },
+          {
+            "AtNS": 32631437,
+            "Stream": "stdin",
+            "Line": "setoption name UCI_ShowWDL value false"
+          },
+          {
+            "AtNS": 32635226,
+            "Stream": "stdin",
+            "Line": "isready"
+          },
+          {
+            "AtNS": 78459619,
+            "Stream": "stdout",
+            "Line": "readyok"
+          },
+          {
+            "AtNS": 78580261,
+            "Stream": "stdin",
+            "Line": "position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+          },
+          {
+            "AtNS": 78599799,
+            "Stream": "stdin",
+            "Line": "go movetime 5000"
+          },
+          {
+            "AtNS": 79751616,
+            "Stream": "stdout",
+            "Line": "info depth 1 seldepth 2 score cp -175 time 0 nodes 3893 nps 3893000 pv e2a6"
+          },
+          {
+            "AtNS": 79759501,
+            "Stream": "stdout",
+            "Line": "info depth 2 seldepth 3 score cp -180 time 0 nodes 4527 nps 4527000 pv e2a6 b4c3 d2c3"
+          },
+          {
+            "AtNS": 86026688,
+            "Stream": "stdout",
+            "Line": "info depth 3 seldepth 15 score cp -203 time 0 nodes 6395 nps 6395000 pv d5e6 e7e6 e2a6"
+          },
+          {
+            "AtNS": 86036417,
+            "Stream": "stdout",
+            "Line": "info depth 4 seldepth 11 score cp -337 time 0 nodes 9248 nps 9248000 pv e2a6 b4c3 d2c3 e6d5 a2a3"
+          },
+          {
+            "AtNS": 86039204,
+            "Stream": "stdout",
+            "Line": "info depth 5 seldepth 7 score cp -201 time 0 nodes 12581 nps 12581000 pv e2a6 b4c3 d2c3 e6d5 e4d5"
+          },
+          {
+            "AtNS": 86042338,
+            "Stream": "stdout",
+            "Line": "info depth 6 seldepth 12 score cp -229 time 0 nodes 16727 nps 16727000 pv e2a6 b4c3 d2c3 e6d5 e1g1 d5e4 f3f4"
+          },
+          {
+            "AtNS": 86044034,
+            "Stream": "stdout",
+            "Line": "info depth 7 seldepth 13 score cp -172 time 2 nodes 41077 nps 20538500 pv e2a6 b4c3 d2c3 e6d5 e5g4 h3g2 f3g2 e8f8"
+          },
+          {
+            "AtNS": 86045383,
+            "Stream": "stdout",
+            "Line": "info depth 8 seldepth 16 score cp -176 time 4 nodes 82825 nps 20706250 pv e2a6 b4c3 d2c3 h3g2 h1g1 b6a4 g1g2 a4c3 f3c3"
+          },
+          {
+            "AtNS": 87083940,
+            "Stream": "stdout",
+            "Line": "info depth 9 seldepth 19 score cp -184 time 7 nodes 153317 nps 21902428 pv e2a6 b4c3 d2c3 e6d5 e5g4 h3g2 h1g1 f6g4 c3g7"
+          },
+          {
+            "AtNS": 89686606,
+            "Stream": "stdout",
+            "Line": "info depth 10 seldepth 24 score cp -171 time 9 nodes 208754 nps 23194888 pv e2a6 b4c3 d2c3 e6d5 e5g4 h3g2 h1g1 f6h5 c3g7 h5g7 e1c1"
+          },
+          {
+            "AtNS": 92240217,
+            "Stream": "stdout",
+            "Line": "info depth 11 seldepth 18 score cp -159 time 12 nodes 265594 nps 22132833 pv e2a6 b4c3 d2c3 e6d5 e5g4 h3g2 h1g1 f6h5 c3g7 h5g7 e1c1 d5e4"
+          },
+          {
+            "AtNS": 105941049,
+            "Stream": "stdout",
+            "Line": "info depth 12 seldepth 32 score cp -123 time 26 nodes 543439 nps 20901500 pv e2a6 b4c3 d2c3 e6d5 e5g4 h3g2 h1g1 f6h5 c3g7 h5g7 e1c1 d5e4 g4f6"
+          },
+          {
+            "AtNS": 124489679,
+            "Stream": "stdout",
+            "Line": "info depth 13 seldepth 31 score cp -195 time 44 nodes 909843 nps 20678250 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 d5e4 a6b7 a8b8 b7e4 f6e4 g2e4 h8h4"
+          },
+          {
+            "AtNS": 140427376,
+            "Stream": "stdout",
+            "Line": "info depth 14 seldepth 29 score cp -183 time 60 nodes 1226273 nps 20437883 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e1g1 d5e4 a6b7 a8b8 b7e4 f6e4 g2e4 d7d6 e4c6"
+          },
+          {
+            "AtNS": 169175440,
+            "Stream": "stdout",
+            "Line": "info depth 15 seldepth 41 score cp -150 time 89 nodes 1794556 nps 20163550 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 d5e4 a6b7 a8b8 b7e4 f6e4 g2e4 d7d6 e4c6 e8f8"
+          },
+          {
+            "AtNS": 186536462,
+            "Stream": "stdout",
+            "Line": "info depth 16 seldepth 41 score cp -184 time 106 nodes 2140115 nps 20189764 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e1g1 d5e4 a6b7 a8b8 b7e4 f6e4 g2e4 d7d6 e4c6 e8f8 e5f3"
+          },
+          {
+            "AtNS": 244725465,
+            "Stream": "stdout",
+            "Line": "info depth 17 seldepth 38 score cp -198 time 164 nodes 3304223 nps 20147701 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 d5e4 a6b7 a8b8 b7e4 f6e4 g2e4 d7d6 e4c6 e8f8 e5f3 h8h5"
+          },
+          {
+            "AtNS": 324548510,
+            "Stream": "stdout",
+            "Line": "info depth 18 seldepth 37 score cp -182 time 244 nodes 4845688 nps 19859377 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 d5e4 a1e1 e8g8 g1h1 f6d5 e1e4 d5c3 b2c3 g7e5 f2f4 e7a3 a6d3"
+          },
+          {
+            "AtNS": 531633625,
+            "Stream": "stdout",
+            "Line": "info depth 19 seldepth 37 score cp -200 time 451 nodes 8573771 nps 19010578 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 f6e4 f2f4 e8g8 a6d3 a8e8 e5g4 f7f5 g4e5 e4c3 b2c3 g7e5 f4e5 e7e6"
+          },
+          {
+            "AtNS": 886309108,
+            "Stream": "stdout",
+            "Line": "info depth 20 seldepth 40 score cp -199 time 806 nodes 15315950 nps 19002419 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 f6e4 f2f4 e8g8 a6d3 a8e8 e5g4 f7f5 g4e5 e4c3 b2c3 g7e5 f4e5 e7e6 a1e1"
+          },
+          {
+            "AtNS": 1117251232,
+            "Stream": "stdout",
+            "Line": "info depth 21 seldepth 44 score cp -197 time 1037 nodes 19791118 nps 19084973 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e1g1 f6e4 f2f4 e4c3 b2c3 g7e5 a1e1 h8h5 e1e5 h5e5 f4e5 e7e5 g2f2 e5g5 g1h1 f7f5"
+          },
+          {
+            "AtNS": 1177052299,
+            "Stream": "stdout",
+            "Line": "info depth 22 seldepth 49 score cp -215 time 1097 nodes 20935231 nps 19084075 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 f6e4 f2f4 e8g8 a6d3 a8e8 e5g4 e4c3 b2c3 f7f5 g4e5 g7e5 f4e5 e7e6 a1e1 b6c4 d3c4"
+          },
+          {
+            "AtNS": 1516835475,
+            "Stream": "stdout",
+            "Line": "info depth 23 seldepth 47 score cp -225 time 1437 nodes 27216851 nps 18940049 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 f6e4 f2f4 e4c3 b2c3 e8g8 a6d3 g7e5 f4e5 a8e8 a1e1 b6c4 d3c4 e7c5 g2f2 c5c4 f2g3 e8e6"
+          },
+          {
+            "AtNS": 2484764682,
+            "Stream": "stdout",
+            "Line": "info depth 24 seldepth 44 score cp -212 time 2405 nodes 45677322 nps 18992649 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e1g1 f6e4 f2f4 g7e5 c3e5 h8h4 g1h1 d7d6 e5d4 e8d7 f4f5 g6g5 a1e1 f7f6 d4f2 e4f2 g2f2 e7g7 f1g1"
+          },
+          {
+            "AtNS": 3207772109,
+            "Stream": "stdout",
+            "Line": "info depth 25 seldepth 49 score cp -230 time 3128 nodes 58925923 nps 18838210 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 f6e4 f2f4 g7e5 c3e5 h8h4 a1e1 e7e6 g1h1 f7f5 e5c7 e8f7 c7e5 b6c4 a6c4 d5c4 e1e4 f5e4 g2e4 a8e8"
+          },
+          {
+            "AtNS": 5080392620,
+            "Stream": "stdout",
+            "Line": "bestmove e2a6"
+          },
+          {
+            "AtNS": 5080530335,
+            "Stream": "stdin",
+            "Line": "quit"
+          }
+        ],
+        "Options": {
+          "Hash": "spin default 16 min 1 max 65536",
+          "Threads": "spin default 1 min 1 max 255",
+          "UCI_Chess960": "check default false",
+          "UCI_ShowWDL": "check default false"
+        },
+        "Selected": {
+          "Hash": "256",
+          "Threads": "8",
+          "UCI_Chess960": "false",
+          "UCI_ShowWDL": "false"
+        },
+        "PID": 390743,
+        "ExitCode": 0,
+        "LaunchArgv": [
+          "/home/ehrli/ngn-data/claim-v4-20261016/anchors/blackmarlin9/blackmarlin-linux-x86-64-v3"
+        ],
+        "Scheduling": "inherited taskset 0,2,4,6,8,10,12,14, nice 19; GOMAXPROCS=8"
+      }
+    },
+    {
+      "Role": "Berserk 12",
+      "Mask": "0,2,4,6,8,10,12,14",
+      "Move": "e2a6",
+      "Error": "",
+      "BeforeTicks": 15,
+      "AfterTicks": 4000,
+      "ClockTicks": 100,
+      "Threads": 9,
+      "WallNS": 5000138653,
+      "CPUPerWall": 7.969778993246651,
+      "Session": {
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/berserk-12-linux-native",
+          "SHA256": "7b9b5898a781cbe0757caef0b7281df5cf5029d17e67ed3df4824f0eb1c0125d"
+        },
+        "Events": [
+          {
+            "AtNS": 305753,
+            "Stream": "stdin",
+            "Line": "uci"
+          },
+          {
+            "AtNS": 16764727,
+            "Stream": "stdout",
+            "Line": "id name Berserk 12"
+          },
+          {
+            "AtNS": 16793241,
+            "Stream": "stdout",
+            "Line": "id author Jay Honnold"
+          },
+          {
+            "AtNS": 16799188,
+            "Stream": "stdout",
+            "Line": "option name Hash type spin default 16 min 2 max 131072"
+          },
+          {
+            "AtNS": 16799958,
+            "Stream": "stdout",
+            "Line": "option name Threads type spin default 1 min 1 max 256"
+          },
+          {
+            "AtNS": 16800637,
+            "Stream": "stdout",
+            "Line": "option name SyzygyPath type string default \u003cempty\u003e"
+          },
+          {
+            "AtNS": 16801017,
+            "Stream": "stdout",
+            "Line": "option name MultiPV type spin default 1 min 1 max 256"
+          },
+          {
+            "AtNS": 16801797,
+            "Stream": "stdout",
+            "Line": "option name Ponder type check default false"
+          },
+          {
+            "AtNS": 16802096,
+            "Stream": "stdout",
+            "Line": "option name UCI_ShowWDL type check default true"
+          },
+          {
+            "AtNS": 16803735,
+            "Stream": "stdout",
+            "Line": "option name UCI_Chess960 type check default false"
+          },
+          {
+            "AtNS": 16804145,
+            "Stream": "stdout",
+            "Line": "option name MoveOverhead type spin default 300 min 100 max 10000"
+          },
+          {
+            "AtNS": 16804565,
+            "Stream": "stdout",
+            "Line": "option name Contempt type spin default 0 min -100 max 100"
+          },
+          {
+            "AtNS": 16804885,
+            "Stream": "stdout",
+            "Line": "option name EvalFile type string default \u003cempty\u003e"
+          },
+          {
+            "AtNS": 16805255,
+            "Stream": "stdout",
+            "Line": "uciok"
+          },
+          {
+            "AtNS": 16819437,
+            "Stream": "stdin",
+            "Line": "setoption name EvalFile value \u003cempty\u003e"
+          },
+          {
+            "AtNS": 16838587,
+            "Stream": "stdin",
+            "Line": "setoption name Contempt value 0"
+          },
+          {
+            "AtNS": 16840605,
+            "Stream": "stdin",
+            "Line": "setoption name Hash value 256"
+          },
+          {
+            "AtNS": 16841085,
+            "Stream": "stdin",
+            "Line": "setoption name MoveOverhead value 100"
+          },
+          {
+            "AtNS": 16842334,
+            "Stream": "stdin",
+            "Line": "setoption name MultiPV value 1"
+          },
+          {
+            "AtNS": 16842774,
+            "Stream": "stdin",
+            "Line": "setoption name Ponder value false"
+          },
+          {
+            "AtNS": 16843174,
+            "Stream": "stdin",
+            "Line": "setoption name SyzygyPath value \u003cempty\u003e"
+          },
+          {
+            "AtNS": 16843454,
+            "Stream": "stdin",
+            "Line": "setoption name Threads value 8"
+          },
+          {
+            "AtNS": 16843804,
+            "Stream": "stdin",
+            "Line": "setoption name UCI_Chess960 value false"
+          },
+          {
+            "AtNS": 16844763,
+            "Stream": "stdin",
+            "Line": "setoption name UCI_ShowWDL value true"
+          },
+          {
+            "AtNS": 16845263,
+            "Stream": "stdin",
+            "Line": "isready"
+          },
+          {
+            "AtNS": 18138394,
+            "Stream": "stdout",
+            "Line": "info string set EvalFile to value \u003cempty\u003e"
+          },
+          {
+            "AtNS": 127266685,
+            "Stream": "stdout",
+            "Line": "info string set Hash to value 256 (268435456 bytes) (25165824 entries)"
+          },
+          {
+            "AtNS": 127290442,
+            "Stream": "stdout",
+            "Line": "info string set MultiPV to value 1"
+          },
+          {
+            "AtNS": 127295369,
+            "Stream": "stdout",
+            "Line": "info string set Ponder to value false"
+          },
+          {
+            "AtNS": 127296489,
+            "Stream": "stdout",
+            "Line": "info string set SyzygyPath to value \u003cempty\u003e"
+          },
+          {
+            "AtNS": 128764000,
+            "Stream": "stdout",
+            "Line": "info string set Threads to value 8"
+          },
+          {
+            "AtNS": 128785258,
+            "Stream": "stdout",
+            "Line": "info string set UCI_Chess960 to value false"
+          },
+          {
+            "AtNS": 128787987,
+            "Stream": "stdout",
+            "Line": "info string Resetting board..."
+          },
+          {
+            "AtNS": 133613636,
+            "Stream": "stdout",
+            "Line": "info string set SHOW_WDL to value true"
+          },
+          {
+            "AtNS": 133634415,
+            "Stream": "stdout",
+            "Line": "readyok"
+          },
+          {
+            "AtNS": 133725035,
+            "Stream": "stdin",
+            "Line": "position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+          },
+          {
+            "AtNS": 133752071,
+            "Stream": "stdin",
+            "Line": "go movetime 5000"
+          },
+          {
+            "AtNS": 133822326,
+            "Stream": "stdout",
+            "Line": "info string time -1 start 1792399994267 alloc 2147483647 max 5000 depth 200 timeset 1 searchmoves 0"
+          },
+          {
+            "AtNS": 137119273,
+            "Stream": "stdout",
+            "Line": "info depth 1 seldepth 1 multipv 1 score cp -138 wdl 1 327 672 nodes 1043 nps 1043000 hashfull 0 tbhits 0 time 1 pv e2a6 "
+          },
+          {
+            "AtNS": 137124850,
+            "Stream": "stdout",
+            "Line": "info depth 2 seldepth 2 multipv 1 score cp -138 wdl 1 327 672 nodes 1770 nps 1770000 hashfull 0 tbhits 0 time 1 pv e2a6 b4c3 "
+          },
+          {
+            "AtNS": 137127409,
+            "Stream": "stdout",
+            "Line": "info depth 3 seldepth 3 multipv 1 score cp -138 wdl 1 327 672 nodes 2292 nps 2292000 hashfull 0 tbhits 0 time 1 pv e2a6 b4c3 d2c3 "
+          },
+          {
+            "AtNS": 137128468,
+            "Stream": "stdout",
+            "Line": "info depth 4 seldepth 4 multipv 1 score cp -138 wdl 1 327 672 nodes 2875 nps 2875000 hashfull 0 tbhits 0 time 1 pv e2a6 b4c3 d2c3 e6d5 "
+          },
+          {
+            "AtNS": 137129627,
+            "Stream": "stdout",
+            "Line": "info depth 5 seldepth 5 multipv 1 score cp -138 wdl 1 327 672 nodes 3847 nps 3847000 hashfull 0 tbhits 0 time 1 pv e2a6 b4c3 d2c3 e6d5 e4d5 "
+          },
+          {
+            "AtNS": 137130777,
+            "Stream": "stdout",
+            "Line": "info depth 6 seldepth 6 multipv 1 score cp -138 wdl 1 327 672 nodes 5072 nps 5072000 hashfull 0 tbhits 0 time 1 pv e2a6 b4c3 d2c3 e6d5 e4d5 h3g2 "
+          },
+          {
+            "AtNS": 137132036,
+            "Stream": "stdout",
+            "Line": "info depth 7 seldepth 7 multipv 1 score cp -138 wdl 1 327 672 nodes 8126 nps 8126000 hashfull 0 tbhits 0 time 1 pv e2a6 b4c3 d2c3 e6d5 e4d5 h3g2 f3g2 "
+          },
+          {
+            "AtNS": 137132846,
+            "Stream": "stdout",
+            "Line": "info depth 8 seldepth 10 multipv 1 score cp -125 wdl 1 405 594 nodes 27806 nps 27806000 hashfull 0 tbhits 0 time 1 pv d5e6 b4c3 e6f7 e8d8 d2c3 a6e2 "
+          },
+          {
+            "AtNS": 137134005,
+            "Stream": "stdout",
+            "Line": "info depth 9 seldepth 9 multipv 1 score cp -125 wdl 1 405 594 nodes 30404 nps 30404000 hashfull 0 tbhits 0 time 1 pv d5e6 b4c3 e6f7 e8d8 d2c3 a6e2 e1e2 h3g2 f3g2 "
+          },
+          {
+            "AtNS": 139209796,
+            "Stream": "stdout",
+            "Line": "info depth 10 seldepth 12 multipv 1 score cp -139 wdl 1 319 680 nodes 158670 nps 31734000 hashfull 0 tbhits 0 time 5 pv e2a6 b4c3 d2c3 h3g2 h1g1 e6d5 e5g4 "
+          },
+          {
+            "AtNS": 142143348,
+            "Stream": "stdout",
+            "Line": "info depth 11 seldepth 18 multipv 1 score cp -146 wdl 1 282 717 nodes 247542 nps 30942750 hashfull 2 tbhits 0 time 8 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e5g4 e8f8 c3f6 "
+          },
+          {
+            "AtNS": 144614733,
+            "Stream": "stdout",
+            "Line": "info depth 12 seldepth 15 multipv 1 score cp -170 wdl 0 170 830 nodes 325679 nps 32567900 hashfull 3 tbhits 0 time 10 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e5g4 h8h4 h2h3 e8f8 e4e5 f6g4 "
+          },
+          {
+            "AtNS": 147915287,
+            "Stream": "stdout",
+            "Line": "info depth 13 seldepth 19 multipv 1 score cp -166 wdl 0 185 815 nodes 437500 nps 31250000 hashfull 4 tbhits 0 time 14 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 d5e4 a6b7 a8b8 b7e4 f6e4 e5c6 d7c6 c3g7 h8h4 f2f3 b6d5 a1e1 "
+          },
+          {
+            "AtNS": 149573265,
+            "Stream": "stdout",
+            "Line": "info depth 14 seldepth 20 multipv 1 score cp -164 wdl 1 192 807 nodes 491151 nps 32743400 hashfull 5 tbhits 0 time 15 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 d5e4 f1e1 b6d5 a6c4 d5f4 c4f7 e7f7 e5f7 f4g2 "
+          },
+          {
+            "AtNS": 151782363,
+            "Stream": "stdout",
+            "Line": "info depth 15 seldepth 20 multipv 1 score cp -133 wdl 1 359 640 nodes 574648 nps 33802823 hashfull 6 tbhits 0 time 17 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 d5e4 a1e1 b6d5 a6b7 d5f4 g2g3 f6h5 g3g4 "
+          },
+          {
+            "AtNS": 155296531,
+            "Stream": "stdout",
+            "Line": "info depth 16 seldepth 20 multipv 1 score cp -113 wdl 2 487 511 nodes 710247 nps 33821285 hashfull 7 tbhits 0 time 21 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e1g1 f6e4 e5c6 d7c6 c3g7 h8h7 f2f3 h7g7 f3e4 e8f8 e4d5 e7c5 g2f2 c5f2 "
+          },
+          {
+            "AtNS": 218046324,
+            "Stream": "stdout",
+            "Line": "info depth 17 seldepth 32 multipv 1 score cp -159 wdl 1 216 783 nodes 2521770 nps 30021071 hashfull 40 tbhits 0 time 84 pv d5e6 a6e2 c3e2 e7e6 d2f4 h3g2 f3g2 d7d6 e5d3 e6e4 g2e4 f6e4 f2f3 e4f6 d3b4 h8h3 e1g1 e8d7 e2g3 "
+          },
+          {
+            "AtNS": 236235947,
+            "Stream": "stdout",
+            "Line": "info depth 18 seldepth 32 multipv 1 score cp -191 wdl 0 102 898 nodes 2914209 nps 28570676 hashfull 45 tbhits 0 time 102 pv e2a6 h3g2 f3g2 b4c3 d2c3 e6d5 e1g1 f6e4 e5c6 d7c6 c3g7 h8h5 g1h1 h5g5 g2f3 e8d7 a1e1 f7f5 g7d4 g5h5 f3g2 e7h4 d4e5 a8e8 e5g3 h4g5 a6e2 h5h7 e2d3 e8h8 g3e5 g5g2 "
+          },
+          {
+            "AtNS": 279634131,
+            "Stream": "stdout",
+            "Line": "info depth 19 seldepth 35 multipv 1 score cp -191 wdl 0 102 898 nodes 4035564 nps 27831475 hashfull 69 tbhits 0 time 145 pv d5e6 a6e2 c3e2 e7e6 d2f4 h3g2 f3g2 d7d6 e5d3 e6e4 g2e4 f6e4 f2f3 e4f6 d3b4 a7a5 b4d3 f6d5 c2c3 a5a4 e1c1 d5f4 "
+          },
+          {
+            "AtNS": 303489503,
+            "Stream": "stdout",
+            "Line": "info depth 20 seldepth 32 multipv 1 score cp -182 wdl 0 127 873 nodes 4726493 nps 27967414 hashfull 83 tbhits 0 time 169 pv d5e6 a6e2 c3e2 e7e6 d2f4 h3g2 f3g2 d7d6 e5d3 e6e4 g2e4 f6e4 f2f3 e4f6 d3b4 a7a5 b4d3 f6d5 e1c1 d5f4 e2f4 h8h4 c1b1 a8b8 b2b3 g7h6 d1e1 e8f8 e1e4 "
+          },
+          {
+            "AtNS": 406723403,
+            "Stream": "stdout",
+            "Line": "info depth 21 seldepth 38 multipv 1 score cp -185 wdl 0 120 880 nodes 7405952 nps 27227764 hashfull 140 tbhits 0 time 272 pv d5e6 a6e2 c3e2 e7e6 d2f4 h3g2 f3g2 d7d6 e5d3 e6e4 g2e4 f6e4 f2f3 e4f6 d3b4 e8d7 e1c1 a8e8 e2g3 a7a5 b4d3 f6d5 f4g5 a5a4 a2a3 b6c4 h2h4 f7f6 "
+          },
+          {
+            "AtNS": 444903626,
+            "Stream": "stdout",
+            "Line": "info depth 22 seldepth 40 multipv 1 score cp -191 wdl 0 102 898 nodes 8375864 nps 27018916 hashfull 159 tbhits 0 time 310 pv d5e6 a6e2 c3e2 e7e6 d2f4 h3g2 f3g2 d7d6 e5d3 e6e4 g2e4 f6e4 f2f3 e4f6 d3b4 a7a5 b4d3 f6d5 e1c1 d5f4 e2f4 h8h4 d1e1 e8d7 e1e4 a8e8 c1b1 e8e4 "
+          },
+          {
+            "AtNS": 531600108,
+            "Stream": "stdout",
+            "Line": "info depth 23 seldepth 36 multipv 1 score cp -195 wdl 0 93 907 nodes 10605865 nps 26715025 hashfull 194 tbhits 0 time 397 pv d5e6 e7e6 e2a6 h3g2 f3g2 e6e5 c3b5 a8b8 d2e3 e8f8 e1g1 f6g4 e3d4 e5h2 g2h2 g4h2 d4g7 f8g7 f1d1 h8h5 d1d3 b8h8 b5c7 h5c5 c7d5 b6d5 d3d5 c5c2 d5d7 h2g4 a1f1 c2b2 d7c7 b2a2 a6c4 "
+          },
+          {
+            "AtNS": 854644105,
+            "Stream": "stdout",
+            "Line": "info depth 24 seldepth 40 multipv 1 score cp -186 wdl 0 116 884 nodes 18260370 nps 25361625 hashfull 357 tbhits 0 time 720 pv d5e6 e7e6 e2a6 h3g2 f3g2 e6e5 f2f4 e5a5 a6b7 b4c3 d2c3 a5h5 b7a8 h5h4 e1e2 f6h5 c3d2 h5f4 d2f4 h4f4 a8d5 b6d5 e4d5 f4c4 e2d2 g7b2 a1f1 c4d4 d2e2 h8h4 "
+          },
+          {
+            "AtNS": 1058470436,
+            "Stream": "stdout",
+            "Line": "info depth 25 seldepth 43 multipv 1 score cp -181 wdl 0 129 871 nodes 23023494 nps 24917201 hashfull 443 tbhits 0 time 924 pv d5e6 a6e2 c3e2 e7e6 d2f4 h3g2 f3g2 d7d6 e5d3 e6e4 g2e4 f6e4 f2f3 e4f6 d3b4 e8d7 a1d1 a7a5 b4d3 f6d5 f4g5 d5b4 c2c3 b4d3 d1d3 a5a4 b2b3 h8h5 g5c1 a8h8 c3c4 d7c8 "
+          },
+          {
+            "AtNS": 1258466721,
+            "Stream": "stdout",
+            "Line": "info depth 26 seldepth 37 multipv 1 score cp -174 wdl 0 155 845 nodes 27634614 nps 24585955 hashfull 531 tbhits 0 time 1124 pv d5e6 e7e6 e2a6 h3g2 f3g2 e6e5 f2f4 e5a5 a6b7 b4c3 d2c3 a5h5 b7a8 h5h4 e1d2 b6a8 a1f1 h4h3 g2e2 h3e6 d2e1 e6c6 h2h4 e8d8 h4h5 h8e8 c3f6 g7f6 e4e5 a8b6 h5g6 f7g6 e1d1 f6e7 "
+          },
+          {
+            "AtNS": 3301630031,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d5e6 currmovenumber 2"
+          },
+          {
+            "AtNS": 4178316880,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove c3b5 currmovenumber 3"
+          },
+          {
+            "AtNS": 4178934807,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e1c1 currmovenumber 4"
+          },
+          {
+            "AtNS": 4179099660,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e1g1 currmovenumber 5"
+          },
+          {
+            "AtNS": 4179314895,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove g2g3 currmovenumber 6"
+          },
+          {
+            "AtNS": 4179436156,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d5d6 currmovenumber 7"
+          },
+          {
+            "AtNS": 4180025091,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5d3 currmovenumber 8"
+          },
+          {
+            "AtNS": 4180057001,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e2d1 currmovenumber 9"
+          },
+          {
+            "AtNS": 4180154595,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove c3d1 currmovenumber 10"
+          },
+          {
+            "AtNS": 4180727974,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5c4 currmovenumber 11"
+          },
+          {
+            "AtNS": 4180884333,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e2f1 currmovenumber 12"
+          },
+          {
+            "AtNS": 4181638682,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove g2g4 currmovenumber 13"
+          },
+          {
+            "AtNS": 4181655288,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove c3a4 currmovenumber 14"
+          },
+          {
+            "AtNS": 4181899655,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e2c4 currmovenumber 15"
+          },
+          {
+            "AtNS": 4182022902,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e2b5 currmovenumber 16"
+          },
+          {
+            "AtNS": 4182204983,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d2g5 currmovenumber 17"
+          },
+          {
+            "AtNS": 4182325161,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5g4 currmovenumber 18"
+          },
+          {
+            "AtNS": 4182530629,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove h1f1 currmovenumber 19"
+          },
+          {
+            "AtNS": 4182580048,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3g3 currmovenumber 20"
+          },
+          {
+            "AtNS": 4182763834,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove a1d1 currmovenumber 21"
+          },
+          {
+            "AtNS": 4182844571,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove c3b1 currmovenumber 22"
+          },
+          {
+            "AtNS": 4183565718,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove a2a3 currmovenumber 23"
+          },
+          {
+            "AtNS": 4183656423,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d2e3 currmovenumber 24"
+          },
+          {
+            "AtNS": 4183756494,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5c6 currmovenumber 25"
+          },
+          {
+            "AtNS": 4183765119,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d2f4 currmovenumber 26"
+          },
+          {
+            "AtNS": 4183897330,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3d3 currmovenumber 27"
+          },
+          {
+            "AtNS": 4183947170,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3e3 currmovenumber 28"
+          },
+          {
+            "AtNS": 4184099208,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3g4 currmovenumber 29"
+          },
+          {
+            "AtNS": 4184123576,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e2d3 currmovenumber 30"
+          },
+          {
+            "AtNS": 4184239251,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d2c1 currmovenumber 31"
+          },
+          {
+            "AtNS": 4184411054,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove b2b3 currmovenumber 32"
+          },
+          {
+            "AtNS": 4184420180,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3h5 currmovenumber 33"
+          },
+          {
+            "AtNS": 4184432946,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove a1c1 currmovenumber 34"
+          },
+          {
+            "AtNS": 4184469889,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove h1g1 currmovenumber 35"
+          },
+          {
+            "AtNS": 4184523280,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3f5 currmovenumber 36"
+          },
+          {
+            "AtNS": 4184553224,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d2h6 currmovenumber 37"
+          },
+          {
+            "AtNS": 4184561788,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove a2a4 currmovenumber 38"
+          },
+          {
+            "AtNS": 4184572668,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3f4 currmovenumber 39"
+          },
+          {
+            "AtNS": 4184736740,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove a1b1 currmovenumber 40"
+          },
+          {
+            "AtNS": 4184807890,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e1d1 currmovenumber 41"
+          },
+          {
+            "AtNS": 4184821367,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e1f1 currmovenumber 42"
+          },
+          {
+            "AtNS": 4184923866,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3h3 currmovenumber 43"
+          },
+          {
+            "AtNS": 4184941405,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3f6 currmovenumber 44"
+          },
+          {
+            "AtNS": 4184952205,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5d7 currmovenumber 45"
+          },
+          {
+            "AtNS": 4185806416,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5g6 currmovenumber 46"
+          },
+          {
+            "AtNS": 4187074722,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5f7 currmovenumber 47"
+          },
+          {
+            "AtNS": 4188043595,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove g2h3 currmovenumber 48"
+          },
+          {
+            "AtNS": 4188212029,
+            "Stream": "stdout",
+            "Line": "info depth 27 seldepth 46 multipv 1 score cp -234 upperbound wdl 0 34 966 nodes 93149147 nps 22977095 hashfull 977 tbhits 0 time 4054 pv e2a6 b4c3 "
+          },
+          {
+            "AtNS": 4188222147,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e2a6 currmovenumber 1"
+          },
+          {
+            "AtNS": 4697963674,
+            "Stream": "stdout",
+            "Line": "info depth 27 seldepth 46 multipv 1 score cp -213 lowerbound wdl 0 59 941 nodes 104663743 nps 22932459 hashfull 986 tbhits 0 time 4564 pv e2a6 "
+          },
+          {
+            "AtNS": 4697985144,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e2a6 currmovenumber 1"
+          },
+          {
+            "AtNS": 4742577424,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d5e6 currmovenumber 2"
+          },
+          {
+            "AtNS": 4742622983,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove c3b5 currmovenumber 3"
+          },
+          {
+            "AtNS": 4743106162,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e1g1 currmovenumber 4"
+          },
+          {
+            "AtNS": 4743122869,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3g3 currmovenumber 5"
+          },
+          {
+            "AtNS": 4743218090,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d5d6 currmovenumber 6"
+          },
+          {
+            "AtNS": 4743235589,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e1c1 currmovenumber 7"
+          },
+          {
+            "AtNS": 4743292148,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3f4 currmovenumber 8"
+          },
+          {
+            "AtNS": 4743294455,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e2f1 currmovenumber 9"
+          },
+          {
+            "AtNS": 4743295127,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove c3d1 currmovenumber 10"
+          },
+          {
+            "AtNS": 4743295648,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e2d1 currmovenumber 11"
+          },
+          {
+            "AtNS": 4743296129,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5c4 currmovenumber 12"
+          },
+          {
+            "AtNS": 4743296450,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove g2g3 currmovenumber 13"
+          },
+          {
+            "AtNS": 4743296841,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5d3 currmovenumber 14"
+          },
+          {
+            "AtNS": 4743297122,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove g2g4 currmovenumber 15"
+          },
+          {
+            "AtNS": 4743297413,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove c3a4 currmovenumber 16"
+          },
+          {
+            "AtNS": 4743297774,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e2c4 currmovenumber 17"
+          },
+          {
+            "AtNS": 4743298596,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e2b5 currmovenumber 18"
+          },
+          {
+            "AtNS": 4743298987,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5g4 currmovenumber 19"
+          },
+          {
+            "AtNS": 4743299278,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d2f4 currmovenumber 20"
+          },
+          {
+            "AtNS": 4743299579,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e1f1 currmovenumber 21"
+          },
+          {
+            "AtNS": 4743299880,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove c3b1 currmovenumber 22"
+          },
+          {
+            "AtNS": 4743300151,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5c6 currmovenumber 23"
+          },
+          {
+            "AtNS": 4743300853,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d2g5 currmovenumber 24"
+          },
+          {
+            "AtNS": 4743301184,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3d3 currmovenumber 25"
+          },
+          {
+            "AtNS": 4743301454,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove a1d1 currmovenumber 26"
+          },
+          {
+            "AtNS": 4743302006,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3e3 currmovenumber 27"
+          },
+          {
+            "AtNS": 4743302337,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove h1f1 currmovenumber 28"
+          },
+          {
+            "AtNS": 4743302858,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove a2a4 currmovenumber 29"
+          },
+          {
+            "AtNS": 4743303400,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d2c1 currmovenumber 30"
+          },
+          {
+            "AtNS": 4743346220,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e2d3 currmovenumber 31"
+          },
+          {
+            "AtNS": 4743348356,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d2e3 currmovenumber 32"
+          },
+          {
+            "AtNS": 4743548133,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3h5 currmovenumber 33"
+          },
+          {
+            "AtNS": 4743564980,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3g4 currmovenumber 34"
+          },
+          {
+            "AtNS": 4743566264,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove b2b3 currmovenumber 35"
+          },
+          {
+            "AtNS": 4743566906,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove a1c1 currmovenumber 36"
+          },
+          {
+            "AtNS": 4743567377,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3f5 currmovenumber 37"
+          },
+          {
+            "AtNS": 4743567929,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove a1b1 currmovenumber 38"
+          },
+          {
+            "AtNS": 4743568370,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove a2a3 currmovenumber 39"
+          },
+          {
+            "AtNS": 4743568791,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove d2h6 currmovenumber 40"
+          },
+          {
+            "AtNS": 4743581477,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e1d1 currmovenumber 41"
+          },
+          {
+            "AtNS": 4743581958,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove h1g1 currmovenumber 42"
+          },
+          {
+            "AtNS": 4743582369,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3f6 currmovenumber 43"
+          },
+          {
+            "AtNS": 4743584615,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5g6 currmovenumber 44"
+          },
+          {
+            "AtNS": 4743585147,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5d7 currmovenumber 45"
+          },
+          {
+            "AtNS": 4743585618,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove e5f7 currmovenumber 46"
+          },
+          {
+            "AtNS": 4743586150,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove f3h3 currmovenumber 47"
+          },
+          {
+            "AtNS": 4743586741,
+            "Stream": "stdout",
+            "Line": "info depth 27 currmove g2h3 currmovenumber 48"
+          },
+          {
+            "AtNS": 4743589138,
+            "Stream": "stdout",
+            "Line": "info depth 27 seldepth 46 multipv 1 score cp -204 wdl 0 74 926 nodes 105594956 nps 22910600 hashfull 987 tbhits 0 time 4609 pv e2a6 b4c3 d2c3 h3g2 f3g2 e6d5 e1g1 f6e4 f2f4 e8f8 a6d3 d7d6 e5c6 e7d7 f4f5 e4c3 f5g6 f7f6 c6d4 c3e4 a1e1 h8h5 g2f3 h5g5 g1h1 c7c5 d4f5 g5f5 f3f5 d7f5 f1f5 a8e8 d3b5 e8e7 e1g1 c5c4 b5c6 "
+          },
+          {
+            "AtNS": 4743592668,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e2a6 currmovenumber 1"
+          },
+          {
+            "AtNS": 4845145676,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d5e6 currmovenumber 2"
+          },
+          {
+            "AtNS": 4886616404,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove c3b5 currmovenumber 3"
+          },
+          {
+            "AtNS": 4886645964,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e1g1 currmovenumber 4"
+          },
+          {
+            "AtNS": 4886662560,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e1c1 currmovenumber 5"
+          },
+          {
+            "AtNS": 4886671993,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d5d6 currmovenumber 6"
+          },
+          {
+            "AtNS": 4886696897,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3g3 currmovenumber 7"
+          },
+          {
+            "AtNS": 4886705888,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e2d1 currmovenumber 8"
+          },
+          {
+            "AtNS": 4886714808,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove g2g3 currmovenumber 9"
+          },
+          {
+            "AtNS": 4886723437,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d2e3 currmovenumber 10"
+          },
+          {
+            "AtNS": 4886921240,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove c3d1 currmovenumber 11"
+          },
+          {
+            "AtNS": 4886930451,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5c4 currmovenumber 12"
+          },
+          {
+            "AtNS": 4887195120,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove g2g4 currmovenumber 13"
+          },
+          {
+            "AtNS": 4887222192,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5d3 currmovenumber 14"
+          },
+          {
+            "AtNS": 4887237073,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e2f1 currmovenumber 15"
+          },
+          {
+            "AtNS": 4887246264,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove c3a4 currmovenumber 16"
+          },
+          {
+            "AtNS": 4887255064,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3f4 currmovenumber 17"
+          },
+          {
+            "AtNS": 4887263734,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e2c4 currmovenumber 18"
+          },
+          {
+            "AtNS": 4887274570,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e2b5 currmovenumber 19"
+          },
+          {
+            "AtNS": 4887283160,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5g4 currmovenumber 20"
+          },
+          {
+            "AtNS": 4887303609,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove c3b1 currmovenumber 21"
+          },
+          {
+            "AtNS": 4887318710,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d2f4 currmovenumber 22"
+          },
+          {
+            "AtNS": 4887327410,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5c6 currmovenumber 23"
+          },
+          {
+            "AtNS": 4887341528,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3d3 currmovenumber 24"
+          },
+          {
+            "AtNS": 4887350107,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d2g5 currmovenumber 25"
+          },
+          {
+            "AtNS": 4887358767,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3e3 currmovenumber 26"
+          },
+          {
+            "AtNS": 4887367556,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove a1d1 currmovenumber 27"
+          },
+          {
+            "AtNS": 4887379557,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove h1f1 currmovenumber 28"
+          },
+          {
+            "AtNS": 4887396123,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove a2a3 currmovenumber 29"
+          },
+          {
+            "AtNS": 4887404883,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e1f1 currmovenumber 30"
+          },
+          {
+            "AtNS": 4887413543,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e2d3 currmovenumber 31"
+          },
+          {
+            "AtNS": 4887422142,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3h5 currmovenumber 32"
+          },
+          {
+            "AtNS": 4887430631,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d2c1 currmovenumber 33"
+          },
+          {
+            "AtNS": 4887439079,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove a2a4 currmovenumber 34"
+          },
+          {
+            "AtNS": 4887447639,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3f5 currmovenumber 35"
+          },
+          {
+            "AtNS": 4887456027,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove a1c1 currmovenumber 36"
+          },
+          {
+            "AtNS": 4887470446,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d2h6 currmovenumber 37"
+          },
+          {
+            "AtNS": 4887479186,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3g4 currmovenumber 38"
+          },
+          {
+            "AtNS": 4887487685,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove a1b1 currmovenumber 39"
+          },
+          {
+            "AtNS": 4887505706,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove b2b3 currmovenumber 40"
+          },
+          {
+            "AtNS": 4887519954,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e1d1 currmovenumber 41"
+          },
+          {
+            "AtNS": 4887534474,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove h1g1 currmovenumber 42"
+          },
+          {
+            "AtNS": 4887543384,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3f6 currmovenumber 43"
+          },
+          {
+            "AtNS": 4887552073,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5g6 currmovenumber 44"
+          },
+          {
+            "AtNS": 4887560743,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5d7 currmovenumber 45"
+          },
+          {
+            "AtNS": 4887573005,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5f7 currmovenumber 46"
+          },
+          {
+            "AtNS": 4887722402,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3h3 currmovenumber 47"
+          },
+          {
+            "AtNS": 4887730951,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove g2h3 currmovenumber 48"
+          },
+          {
+            "AtNS": 4887770145,
+            "Stream": "stdout",
+            "Line": "info depth 28 seldepth 43 multipv 1 score cp -210 upperbound wdl 0 64 936 nodes 108606930 nps 22845378 hashfull 988 tbhits 0 time 4754 pv e2a6 b4c3 "
+          },
+          {
+            "AtNS": 4887779928,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e2a6 currmovenumber 1"
+          },
+          {
+            "AtNS": 4904698616,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d5e6 currmovenumber 2"
+          },
+          {
+            "AtNS": 4911198395,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove c3b5 currmovenumber 3"
+          },
+          {
+            "AtNS": 4911448074,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d5d6 currmovenumber 4"
+          },
+          {
+            "AtNS": 4911472055,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e1g1 currmovenumber 5"
+          },
+          {
+            "AtNS": 4911493308,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e1c1 currmovenumber 6"
+          },
+          {
+            "AtNS": 4911511469,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3g3 currmovenumber 7"
+          },
+          {
+            "AtNS": 4911529099,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e2d1 currmovenumber 8"
+          },
+          {
+            "AtNS": 4911548866,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove g2g4 currmovenumber 9"
+          },
+          {
+            "AtNS": 4911631597,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove g2g3 currmovenumber 10"
+          },
+          {
+            "AtNS": 4911655168,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove c3d1 currmovenumber 11"
+          },
+          {
+            "AtNS": 4911673400,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5c4 currmovenumber 12"
+          },
+          {
+            "AtNS": 4911689223,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5d3 currmovenumber 13"
+          },
+          {
+            "AtNS": 4911706030,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e2f1 currmovenumber 14"
+          },
+          {
+            "AtNS": 4911720580,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d2e3 currmovenumber 15"
+          },
+          {
+            "AtNS": 4911911044,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove a2a3 currmovenumber 16"
+          },
+          {
+            "AtNS": 4911940956,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove c3a4 currmovenumber 17"
+          },
+          {
+            "AtNS": 4911957693,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3f4 currmovenumber 18"
+          },
+          {
+            "AtNS": 4911972764,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e2c4 currmovenumber 19"
+          },
+          {
+            "AtNS": 4912018810,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e2b5 currmovenumber 20"
+          },
+          {
+            "AtNS": 4912100488,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d2f4 currmovenumber 21"
+          },
+          {
+            "AtNS": 4912117626,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5g4 currmovenumber 22"
+          },
+          {
+            "AtNS": 4912133440,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove c3b1 currmovenumber 23"
+          },
+          {
+            "AtNS": 4912153689,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5c6 currmovenumber 24"
+          },
+          {
+            "AtNS": 4912172081,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3d3 currmovenumber 25"
+          },
+          {
+            "AtNS": 4912186540,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d2g5 currmovenumber 26"
+          },
+          {
+            "AtNS": 4912200879,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove a2a4 currmovenumber 27"
+          },
+          {
+            "AtNS": 4912262027,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3e3 currmovenumber 28"
+          },
+          {
+            "AtNS": 4912279235,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove a1d1 currmovenumber 29"
+          },
+          {
+            "AtNS": 4912294307,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d2c1 currmovenumber 30"
+          },
+          {
+            "AtNS": 4912308936,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove h1f1 currmovenumber 31"
+          },
+          {
+            "AtNS": 4912328071,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e2d3 currmovenumber 32"
+          },
+          {
+            "AtNS": 4912357421,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3h5 currmovenumber 33"
+          },
+          {
+            "AtNS": 4912371800,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3f5 currmovenumber 34"
+          },
+          {
+            "AtNS": 4912385868,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove a1c1 currmovenumber 35"
+          },
+          {
+            "AtNS": 4912404130,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3g4 currmovenumber 36"
+          },
+          {
+            "AtNS": 4912418860,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e1f1 currmovenumber 37"
+          },
+          {
+            "AtNS": 4912437824,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove b2b3 currmovenumber 38"
+          },
+          {
+            "AtNS": 4912455565,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d2h6 currmovenumber 39"
+          },
+          {
+            "AtNS": 4912470566,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove a1b1 currmovenumber 40"
+          },
+          {
+            "AtNS": 4912488727,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e1d1 currmovenumber 41"
+          },
+          {
+            "AtNS": 4912508113,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove h1g1 currmovenumber 42"
+          },
+          {
+            "AtNS": 4912523164,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5g6 currmovenumber 43"
+          },
+          {
+            "AtNS": 4912537754,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3f6 currmovenumber 44"
+          },
+          {
+            "AtNS": 4912559939,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5d7 currmovenumber 45"
+          },
+          {
+            "AtNS": 4912823846,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e5f7 currmovenumber 46"
+          },
+          {
+            "AtNS": 4912850928,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove f3h3 currmovenumber 47"
+          },
+          {
+            "AtNS": 4912861866,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove g2h3 currmovenumber 48"
+          },
+          {
+            "AtNS": 4912899604,
+            "Stream": "stdout",
+            "Line": "info depth 28 seldepth 43 multipv 1 score cp -216 upperbound wdl 0 55 945 nodes 109181831 nps 22846166 hashfull 988 tbhits 0 time 4779 pv e2a6 h3g2 "
+          },
+          {
+            "AtNS": 4912913019,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove e2a6 currmovenumber 1"
+          },
+          {
+            "AtNS": 4956284872,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d5e6 currmovenumber 2"
+          },
+          {
+            "AtNS": 4996154571,
+            "Stream": "stdout",
+            "Line": "info depth 28 seldepth 43 multipv 1 score cp -210 lowerbound wdl 0 64 936 nodes 111079443 nps 22846450 hashfull 989 tbhits 0 time 4862 pv d5e6 "
+          },
+          {
+            "AtNS": 4996185737,
+            "Stream": "stdout",
+            "Line": "info depth 28 currmove d5e6 currmovenumber 1"
+          },
+          {
+            "AtNS": 5133823344,
+            "Stream": "stdout",
+            "Line": "info depth 28 seldepth 42 multipv 1 score cp -201 wdl 0 16 984 nodes 114243366 nps 22848673 hashfull 991 tbhits 0 time 5000 pv e2a6 b4c3 "
+          },
+          {
+            "AtNS": 5133849112,
+            "Stream": "stdout",
+            "Line": "bestmove e2a6 ponder b4c3"
+          },
+          {
+            "AtNS": 5133969350,
+            "Stream": "stdin",
+            "Line": "quit"
+          }
+        ],
+        "Options": {
+          "Contempt": "spin default 0 min -100 max 100",
+          "EvalFile": "string default \u003cempty\u003e",
+          "Hash": "spin default 16 min 2 max 131072",
+          "MoveOverhead": "spin default 300 min 100 max 10000",
+          "MultiPV": "spin default 1 min 1 max 256",
+          "Ponder": "check default false",
+          "SyzygyPath": "string default \u003cempty\u003e",
+          "Threads": "spin default 1 min 1 max 256",
+          "UCI_Chess960": "check default false",
+          "UCI_ShowWDL": "check default true"
+        },
+        "Selected": {
+          "Contempt": "0",
+          "EvalFile": "\u003cempty\u003e",
+          "Hash": "256",
+          "MoveOverhead": "100",
+          "MultiPV": "1",
+          "Ponder": "false",
+          "SyzygyPath": "\u003cempty\u003e",
+          "Threads": "8",
+          "UCI_Chess960": "false",
+          "UCI_ShowWDL": "true"
+        },
+        "PID": 390752,
+        "ExitCode": 0,
+        "LaunchArgv": [
+          "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/berserk-12-linux-native"
+        ],
+        "Scheduling": "inherited taskset 0,2,4,6,8,10,12,14, nice 19; GOMAXPROCS=8"
+      }
+    }
+  ],
+  "Passed": true,
+  "Error": ""
+}

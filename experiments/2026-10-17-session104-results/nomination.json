@@ -1,0 +1,64 @@
+{
+  "authority": "October17 13:10 S3,S2,S1 order;session104 adopts speed-certified S3 and rebuilds independent successors",
+  "boundary_pid": 296299,
+  "accepted_package": "4958bc4/81215229/compiled final14",
+  "base_binary": "/home/ehrli/ngn-data/night-20261007/session101-speed/s3-ngn",
+  "rule": "Fixed40 paired20s blocks/topology,T1/H64,T1/H256,T8/H256,alternatingAB/BA;paired geometric NPS lower95>1 in BOTH order strata for EVERY topology;otherwise SHELVED,no extension",
+  "candidates": [
+    {
+      "candidate": "s2",
+      "binary": "/home/ehrli/ngn-data/night-20261007/session104-speed/s2-ngn",
+      "topic": "f527ab3"
+    },
+    {
+      "candidate": "s1",
+      "binary": "/home/ehrli/ngn-data/night-20261007/session104-speed/s1-ngn",
+      "topic": "fcc1432"
+    }
+  ],
+  "parent_result": "/home/ehrli/ngn-data/night-20261007/session101-speed/boundary-result.json",
+  "stop_on_winner": "No adoption;resume native tune once and hold successor for rebuild",
+  "fault": "Hold review;do not resume or duplicate tune/trainer",
+  "runtime": {
+    "cpus": "0-15;actualphysical subsets viaexisting launcher",
+    "cpu_quota": "infinity",
+    "memory_max": "4GiB",
+    "swap": 0,
+    "nice": 19
+  },
+  "utc": "2026-10-18T01:28:00Z",
+  "checks_pid": 315480,
+  "gpu_after_speed_argv": [
+    "systemd-run",
+    "--user",
+    "--unit=ngn-s104-wdl050",
+    "-p",
+    "Type=exec",
+    "-p",
+    "AllowedCPUs=12-15",
+    "-p",
+    "CPUQuota=200%",
+    "-p",
+    "MemoryMax=6G",
+    "-p",
+    "MemorySwapMax=0",
+    "-p",
+    "Environment=PYTHONPATH=/home/ehrli/ngn-data/night-20261007/session87/training-source",
+    "-p",
+    "Environment=OMP_NUM_THREADS=2",
+    "-p",
+    "Environment=MKL_NUM_THREADS=2",
+    "-p",
+    "Environment=OPENBLAS_NUM_THREADS=2",
+    "-p",
+    "StandardOutput=append:/home/ehrli/ngn-data/night-20261007/session104-speed/recipe/controller.log",
+    "-p",
+    "StandardError=inherit",
+    "nice",
+    "-n",
+    "19",
+    "/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python",
+    "/home/ehrli/ngn-data/night-20261007/session104-speed/gpu-recipe.py"
+  ],
+  "gpu_schedule": "Launch unchanged wdl050 after S1 finishes clean, including S1 winner; S2 winner holds GPU for S1 rebuild/timing. Accepted S3 changes no training recipe."
+}

@@ -24,18 +24,14 @@
 package main
 
 import (
-	"bufio"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"math"
 	"math/rand"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/ehrlich-b/ngn/engine"
 	"github.com/ehrlich-b/ngn/internal/uci"
@@ -60,6 +56,14 @@ type pvar struct {
 }
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
+	var engineOptions optionFlags
+	flag.Var(&engineOptions, "engineoption", "UCI NAME=VALUE on both engines before readiness (repeatable, ordered)")
 	enginePath := flag.String("engine", "./build/ngn", "engine binary to tune (one process plays theta+, one plays theta-)")
 	tc := flag.String("tc", "10+0.1", "real clock SECONDS[+INC] (e.g. 10+0.1); search params are node-spending so real clock is the correct ruler")
 	iters := flag.Int("iters", 12000, "SPSA iterations (each = one color-balanced game pair unless -single)")
@@ -67,7 +71,7 @@ func main() {
 	pairs := flag.Int("pairs", 1, "concurrent perturbations averaged per iteration — parallelizes wall-clock K× and cuts gradient variance ~1/K (T8 campaign uses 4); 1 = the original sequential SPSA (identical rng stream)")
 	openingsFile := flag.String("openings", "", "opening book (one move-seq per line); default = built-in set")
 	outFile := flag.String("out", "output/spsa.jsonl", "checkpoint/history JSONL (also the -resume source)")
-	resume := flag.Bool("resume", false, "resume theta + iteration from the last checkpoint in -out")
+	resume := flag.Bool("resume", false, "resume the exact recipe, theta and RNG from a versioned checkpoint in -out")
 	rEnd := flag.Float64("rend", 0.05, "SPSA end learning-rate scale (bigger = faster but noisier param movement)")
 	aFrac := flag.Float64("afrac", 0.1, "SPSA stability constant A as a fraction of -iters")
 	report := flag.Int("report", 25, "log + checkpoint theta every N iterations")
@@ -76,8 +80,14 @@ func main() {
 	selftest := flag.Bool("selftest", false, "validate the SPSA math against a synthetic quadratic objective (no games), then exit")
 	flag.Parse()
 
-	K := max(1, *pairs)
-	rng := rand.New(rand.NewSource(*seed))
+	if *iters < 1 || *pairs < 1 || *report < 1 || !finite(*rEnd) || *rEnd <= 0 || !finite(*aFrac) || *aFrac < 0 {
+		return fmt.Errorf("iters, pairs, report and rend must be positive; afrac must be finite and nonnegative")
+	}
+	if *selftest && *resume {
+		return fmt.Errorf("selftest cannot resume a real-game campaign")
+	}
+	K := *pairs
+	rng, source := newCampaignRNG(*seed)
 
 	// Build the parameter vector from the engine registry (single source of truth).
 	params := make([]*pvar, 0, len(engine.TunableSearchParams))
@@ -90,7 +100,7 @@ func main() {
 		})
 	}
 	if len(params) == 0 {
-		log.Fatal("no tunable params in engine.TunableSearchParams")
+		return fmt.Errorf("no tunable params in engine.TunableSearchParams")
 	}
 
 	// Precompute the fishtest schedule: c_k = cEnd*(iters/k)^gamma shrinks to cEnd
@@ -103,47 +113,59 @@ func main() {
 		p.aGain = *rEnd * p.cEnd * p.cEnd * math.Pow(A+float64(*iters), spsaAlpha)
 	}
 
-	startIter := 1
-	if *resume {
-		if it, ok := loadCheckpoint(*outFile, params); ok {
-			startIter = it + 1
-			fmt.Printf("resumed from iter %d (%s)\n", it, *outFile)
-		} else {
-			fmt.Printf("no checkpoint in %s; starting fresh\n", *outFile)
-		}
-	}
-
 	if *selftest {
 		runSelfTest(params, *iters, K, A, rng)
-		return
+		return nil
 	}
 
 	// --- real-game objective ---
 	tcTimeMs, tcIncMs := parseTC(*tc)
 	openings, err := uci.LoadOpenings(*openingsFile)
 	if err != nil || len(openings) == 0 {
-		log.Fatalf("loading openings: %v (got %d)", err, len(openings))
+		return fmt.Errorf("loading openings: %v (got %d)", err, len(openings))
 	}
-	if _, err := os.Stat(*enginePath); err != nil {
-		log.Fatalf("engine binary not found: %s (build it first)", *enginePath)
+	recipe, err := makeRecipe(*enginePath, openings, params, *iters, K, *single,
+		tcTimeMs, tcIncMs, *rEnd, *aFrac, *report, *seed, *lowPower, engineOptions...)
+	if err != nil {
+		return err
+	}
+	startIter := 1
+	if *resume {
+		var saved int
+		saved, rng, source, err = loadCheckpoint(*outFile, params, recipe)
+		if err != nil {
+			return fmt.Errorf("resume refused: %w", err)
+		}
+		startIter = saved + 1
+		fmt.Printf("resumed exact recipe from iter %d (%s), RNG draws=%d\n", saved, *outFile, source.draws)
+	} else if err := prepareHistory(*outFile); err != nil {
+		return err
+	}
+	if startIter > *iters {
+		fmt.Println("campaign already complete; gate the saved vector before accepting it")
+		printSetoptions(params)
+		return nil
 	}
 
 	type worker struct{ plus, minus *uci.Engine }
 	workers := make([]worker, K)
-	for j := range workers {
-		p := uci.Start(*enginePath, fmt.Sprintf("plus%d", j), *lowPower)
-		m := uci.Start(*enginePath, fmt.Sprintf("minus%d", j), *lowPower)
-		if p == nil || m == nil {
-			log.Fatalf("engine failed UCI handshake after retries (worker %d: plus ok=%v, minus ok=%v); aborting", j, p != nil, m != nil)
-		}
-		workers[j] = worker{p, m}
-	}
 	defer func() {
 		for _, w := range workers {
-			uci.Stop(w.plus)
-			uci.Stop(w.minus)
+			if w.plus != nil {
+				uci.Stop(w.plus)
+			}
+			if w.minus != nil {
+				uci.Stop(w.minus)
+			}
 		}
 	}()
+	for j := range workers {
+		workers[j].plus = uci.StartWithOptions(*enginePath, fmt.Sprintf("plus%d", j), *lowPower, engineOptions)
+		workers[j].minus = uci.StartWithOptions(*enginePath, fmt.Sprintf("minus%d", j), *lowPower, engineOptions)
+		if workers[j].plus == nil || workers[j].minus == nil {
+			return fmt.Errorf("engine failed UCI handshake after retries (worker %d)", j)
+		}
+	}
 
 	cfg := uci.GameConfig{TCTimeMs: tcTimeMs, TCIncMs: tcIncMs, MaxMoves: 200}
 
@@ -172,17 +194,28 @@ func main() {
 				setParams(w.minus, params, minusV[j])
 				op := openings[opIdx[j]]
 				g1 := uci.PlayGame(w.plus, w.minus, op, true, cfg) // theta+ as White
-				s := points(g1.Res)
+				s, err := validGamePoints(g1)
+				if err != nil {
+					log.Printf("worker %d: %v", j, err)
+					R[j] = math.NaN()
+					return
+				}
 				n, ff := 1, 0
 				if g1.Reason == "time-forfeit" {
 					ff++
 				}
 				if !*single {
 					g2 := uci.PlayGame(w.plus, w.minus, op, false, cfg) // theta+ as Black
+					second, err := validGamePoints(g2)
+					if err != nil {
+						log.Printf("worker %d: %v", j, err)
+						R[j] = math.NaN()
+						return
+					}
 					if g2.Reason == "time-forfeit" {
 						ff++
 					}
-					s += points(g2.Res)
+					s += second
 					n = 2
 				}
 				// R in [-1,1]: pair s in [0,2] -> s-1; single s in {0,.5,1} -> 2s-1.
@@ -202,21 +235,27 @@ func main() {
 		return R
 	}
 
-	onReport := func(k int) {
+	onReport := func(k int) error {
 		pct := 50.0
 		if games > 0 {
 			pct = 100 * plusPts / float64(games)
 		}
 		fmt.Printf("[iter %d] theta+ %.1f%% over last %d games (%d forfeits)  ", k, pct, games, forfeits)
 		printTheta(params, "now")
-		writeCheckpoint(*outFile, k, params, pct)
+		if err := writeCheckpoint(*outFile, k, params, pct, recipe, source.draws); err != nil {
+			return err
+		}
 		plusPts, games, forfeits = 0, 0, 0
+		return nil
 	}
 
-	runCampaign(params, startIter, *iters, A, rng, *report, K, len(openings), playBatch, onReport)
+	if err := runCampaign(params, startIter, *iters, A, rng, *report, K, len(openings), playBatch, onReport); err != nil {
+		return err
+	}
 
 	fmt.Printf("\n=== FINAL VECTOR (gate on the GAUNTLET, not this run's score) ===\n")
 	printSetoptions(params)
+	return nil
 }
 
 // runCampaign is the SPSA loop shared by the real and selftest objectives.
@@ -224,7 +263,7 @@ func main() {
 // label; onReport(k) is called every `report` iters and at the end.
 func runCampaign(params []*pvar, startIter, iters int, A float64, rng *rand.Rand,
 	report, K, nOpenings int,
-	playBatch func(plusV, minusV [][]int, opIdx []int) []float64, onReport func(k int)) {
+	playBatch func(plusV, minusV [][]int, opIdx []int) []float64, onReport func(k int) error) error {
 
 	for k := startIter; k <= iters; k++ {
 		kf := float64(k)
@@ -255,6 +294,14 @@ func runCampaign(params []*pvar, startIter, iters int, A float64, rng *rand.Rand
 		}
 
 		R := playBatch(plusV, minusV, opIdx)
+		if len(R) != K {
+			return fmt.Errorf("iteration %d: incomplete game batch", k)
+		}
+		for j, score := range R {
+			if !finite(score) || score < -1 || score > 1 {
+				return fmt.Errorf("iteration %d worker %d: faulted game batch; theta and checkpoint unchanged", k, j)
+			}
+		}
 
 		// Averaged fishtest update: mean over the K perturbations' R*delta gradient
 		// estimates (variance ~1/K, expected direction unchanged). c is common to the
@@ -277,8 +324,20 @@ func runCampaign(params []*pvar, startIter, iters int, A float64, rng *rand.Rand
 		}
 
 		if k%report == 0 || k == iters {
-			onReport(k)
+			if err := onReport(k); err != nil {
+				return err
+			}
 		}
+	}
+	return nil
+}
+
+func validGamePoints(game uci.GameResult) (float64, error) {
+	switch game.Reason {
+	case "checkmate", "stalemate", "draw-rule", "max-moves", "insufficient-material":
+		return points(game.Res), nil
+	default:
+		return 0, fmt.Errorf("game fault: %s", game.Reason)
 	}
 }
 
@@ -306,9 +365,10 @@ func runSelfTest(params []*pvar, iters, K int, A float64, rng *rand.Rand) {
 		return R
 	}
 	fmt.Printf("SPSA selftest: %d params, %d iters, %d/iter, synthetic quadratic\n", len(params), iters, K)
-	runCampaign(params, 1, iters, A, rng, max(iters/10, 1), K, 0, playBatch, func(k int) {
+	runCampaign(params, 1, iters, A, rng, max(iters/10, 1), K, 0, playBatch, func(k int) error {
 		fmt.Printf("[iter %d] ", k)
 		printTheta(params, "now")
+		return nil
 	})
 	fmt.Println("\n=== SELFTEST: theta vs hidden target ===")
 	maxErr := 0.0
@@ -403,70 +463,4 @@ func defaultOf(name string) int {
 		}
 	}
 	return 0
-}
-
-type checkpoint struct {
-	Iter    int                `json:"iter"`
-	Time    string             `json:"time"`
-	PlusPct float64            `json:"plus_pct"`
-	Theta   map[string]float64 `json:"theta"`
-	Rounded map[string]int     `json:"rounded"`
-}
-
-func writeCheckpoint(path string, iter int, params []*pvar, plusPct float64) {
-	if path == "" {
-		return
-	}
-	cp := checkpoint{
-		Iter: iter, Time: time.Now().Format(time.RFC3339), PlusPct: plusPct,
-		Theta: map[string]float64{}, Rounded: map[string]int{},
-	}
-	for _, p := range params {
-		cp.Theta[p.name] = p.theta
-		cp.Rounded[p.name] = clampRound(p.theta, p.min, p.max)
-	}
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
-	if err != nil {
-		log.Printf("checkpoint open failed: %v", err)
-		return
-	}
-	defer f.Close()
-	enc := json.NewEncoder(f)
-	if err := enc.Encode(cp); err != nil {
-		log.Printf("checkpoint write failed: %v", err)
-	}
-}
-
-// loadCheckpoint reads the LAST JSONL record from path and restores each param's
-// theta from it, returning the saved iter. Missing/unknown params keep their def.
-func loadCheckpoint(path string, params []*pvar) (int, bool) {
-	f, err := os.Open(path)
-	if err != nil {
-		return 0, false
-	}
-	defer f.Close()
-	var last checkpoint
-	found := false
-	sc := bufio.NewScanner(f)
-	sc.Buffer(make([]byte, 0, 1<<20), 1<<20)
-	for sc.Scan() {
-		line := strings.TrimSpace(sc.Text())
-		if line == "" {
-			continue
-		}
-		var cp checkpoint
-		if err := json.Unmarshal([]byte(line), &cp); err == nil {
-			last = cp
-			found = true
-		}
-	}
-	if !found {
-		return 0, false
-	}
-	for _, p := range params {
-		if v, ok := last.Theta[p.name]; ok {
-			p.theta = v
-		}
-	}
-	return last.Iter, true
 }

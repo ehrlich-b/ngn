@@ -1,0 +1,38 @@
+{
+  "candidate": "s3",
+  "profile_admitted": true,
+  "authority": "Merged plan October17 13:10",
+  "measured_profile": "/home/ehrli/ngn-data/night-20261007/session100-speed/panel/result.json",
+  "hotspot": "selectNextMove,13.24% flat CPU atThreads1; data-dependent maximum/index branch",
+  "treatment": "Builtin max reduction using CMOV, then first-equal index lookup; same swap and tie order",
+  "immediate_accepted_base": "9ec5d31/81215229/compiled final14; source2f39a41 has identical engine",
+  "identity": "Required:60exact fixed/iterative move/score/node/PV identities,randomized old-scan oracle,CMOV assembly witness",
+  "timing": {
+    "topologies": [
+      [
+        1,
+        64
+      ],
+      [
+        1,
+        256
+      ],
+      [
+        8,
+        256
+      ]
+    ],
+    "paired_blocks": 40,
+    "milliseconds_per_engine": 20000,
+    "order": "AB/BA alternating; frame=(block//2)%12; fixed sample, no extension",
+    "rule": "Each topology and each order stratum must have paired geometric NPS lower95>1; otherwise SHELVED"
+  },
+  "utc": "2026-10-17T17:23:49.189389+00:00",
+  "automatic_adoption": false,
+  "topic_commit": "29eec6f36e3e83c8a7e990e92ced927083b90a78",
+  "identity_receipt": "/home/ehrli/ngn-data/night-20261007/session101-speed/identity.json",
+  "binary_sha256": {
+    "base": "2bb42a2f5a7a39f2895afc867def5bc2717e2b28f626bd970e340f2a8e1eacdb",
+    "candidate": "dd65aee7572f816958d654850d3a600b25a4f6c425e57b79c20309cc37f889ee"
+  }
+}

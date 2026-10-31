@@ -1,0 +1,78 @@
+{
+  "aa": {
+    "mode": "aa",
+    "games": 40,
+    "pairs": 20,
+    "wins": 9,
+    "draws": 21,
+    "losses": 10,
+    "penta": [
+      0,
+      6,
+      11,
+      1,
+      2
+    ],
+    "elo": -8.7,
+    "ci95": [
+      -76.0,
+      58.0
+    ],
+    "exact_elo_ci95": [
+      -8.687699877294502,
+      -75.68582825678838,
+      57.6627981585495
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "checkmate": 19,
+      "draw-rule": 19,
+      "max-moves": 2
+    },
+    "verdict": "aa-pass"
+  },
+  "gate": {
+    "mode": "gate",
+    "games": 400,
+    "pairs": 200,
+    "wins": 103,
+    "draws": 210,
+    "losses": 87,
+    "penta": [
+      5,
+      43,
+      94,
+      47,
+      11
+    ],
+    "elo": 13.9,
+    "ci95": [
+      -7.0,
+      35.0
+    ],
+    "exact_elo_ci95": [
+      13.904842503684801,
+      -7.142255134213888,
+      35.05456352341157
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "reasons": {
+      "checkmate": 190,
+      "draw-rule": 203,
+      "max-moves": 7
+    },
+    "verdict": "shelved"
+  },
+  "verdict": "shelved",
+  "reason": "printed and unrounded lower95 are below zero",
+  "terminal": "2026-10-09T23:17:57-04:00",
+  "input_pins": true,
+  "zero_operational_faults": true,
+  "retry_or_extension": false
+}

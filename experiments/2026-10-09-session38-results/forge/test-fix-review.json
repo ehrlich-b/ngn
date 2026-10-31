@@ -1,0 +1,8 @@
+{
+  "race_repetitions": 20,
+  "negative_control_rejected": true,
+  "baseline_full_short": true,
+  "baseline_full_race": true,
+  "runtime_change": false,
+  "test_sha256": "c83644d5381f5fb28e1fa0b1c682bd013bea939607473d2fd37229fc68b8650d"
+}

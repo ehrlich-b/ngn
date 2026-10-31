@@ -1,0 +1,37 @@
+{
+  "created": "2026-10-09T23:02:09.692065+00:00",
+  "baseline_source": "d6e576b",
+  "baseline_topic": "night/ngnn4-vnni",
+  "candidate_source": "aafa7fd plus original session32-vnni512 patch",
+  "candidate_patch_sha256": "b4c4f446a7720803ce841067dd72bf3b3d4597d1a40173550d5fb0f93434bd8e",
+  "binary_sha256": {
+    "baseline": "5cdf3c43fc46318c0c637502e17725fdb6e0517d23f0d2bcf31d09737715ef2c",
+    "candidate": "357204697fe5a88306ec0e7c6b890bdf57e7bee0f8badacf214ba2551a4feca1"
+  },
+  "cpu": 14,
+  "GOMAXPROCS": 1,
+  "nice": 19,
+  "identities": {
+    "ngnn4": [
+      12,
+      12
+    ],
+    "ngnn3": [
+      12,
+      14
+    ],
+    "ngnn2": [
+      12,
+      14
+    ],
+    "hce": [
+      12,
+      11
+    ]
+  },
+  "blocks": 20,
+  "seconds_per_position": 3,
+  "positions_per_binary": 6,
+  "rule": "df19 geometric NPS lower95>1 and both AB/BA strata>1; no extension; only keep admits exactly12 NGNN4/NGNN3 budget blocks with point>=0.85",
+  "no_training_or_adoption": true
+}

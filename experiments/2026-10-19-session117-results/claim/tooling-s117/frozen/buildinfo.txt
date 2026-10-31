@@ -1,0 +1,18 @@
+/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool: go1.25.5
+	path	github.com/ehrlich-b/ngn/cmd/claimtool
+	mod	github.com/ehrlich-b/ngn	v0.0.0-20261019081728-e8be8f2700e4	
+	build	-buildmode=exe
+	build	-compiler=gc
+	build	DefaultGODEBUG=asynctimerchan=1,containermaxprocs=0,decoratemappings=0,gotestjsonbuildtext=1,gotypesalias=0,httpcookiemaxnum=0,httplaxcontentlength=1,httpmuxgo121=1,httpservecontentkeepheaders=1,multipathtcp=0,randseednop=0,rsa1024min=0,tls10server=1,tls3des=1,tlsmlkem=0,tlsrsakex=1,tlssha1=1,tlsunsafeekm=1,updatemaxprocs=0,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509usepolicies=0
+	build	CGO_ENABLED=1
+	build	CGO_CFLAGS=
+	build	CGO_CPPFLAGS=
+	build	CGO_CXXFLAGS=
+	build	CGO_LDFLAGS=
+	build	GOARCH=amd64
+	build	GOOS=linux
+	build	GOAMD64=v3
+	build	vcs=git
+	build	vcs.revision=e8be8f2700e49cffc894d483a83d5c67171e7005
+	build	vcs.time=2026-10-19T08:17:28Z
+	build	vcs.modified=false

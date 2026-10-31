@@ -1,0 +1,18 @@
+=== RUN   TestCampaignSPSAFinalLiveVector
+    spsa_final_live_test.go:26: NullMoveR=4 search_variable_verified
+    spsa_final_live_test.go:26: NullMoveMinDepth=2 search_variable_verified
+    spsa_final_live_test.go:26: LMRFullDepth=3 search_variable_verified
+    spsa_final_live_test.go:26: LMRMoveThreshold=2 search_variable_verified
+    spsa_final_live_test.go:26: FutilityMargin=104 search_variable_verified
+    spsa_final_live_test.go:26: FutilityMaxDepth=8 search_variable_verified
+    spsa_final_live_test.go:26: ReverseFutilityMargin=63 search_variable_verified
+    spsa_final_live_test.go:26: DeltaMargin=202 search_variable_verified
+    spsa_final_live_test.go:26: SingularDepth=7 search_variable_verified
+    spsa_final_live_test.go:26: SingularMargin=57 search_variable_verified
+    spsa_final_live_test.go:26: ExtensionBudget=29 search_variable_verified
+    spsa_final_live_test.go:26: AspInit=17 search_variable_verified
+    spsa_final_live_test.go:26: AspMult=163 search_variable_verified
+    spsa_final_live_test.go:26: LMPBase=3 search_variable_verified
+--- PASS: TestCampaignSPSAFinalLiveVector (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.019s

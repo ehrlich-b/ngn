@@ -1,0 +1,45 @@
+{
+  "observed_utc": "2026-10-16T23:37:17.289974+00:00",
+  "host_c_free_bytes": 34149613568,
+  "gpu": "0 %, 1479 MiB, 16303 MiB",
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        3821        6458           4        5622       11692\nSwap:           4096           1        4094\n",
+  "processes": [
+    "   1188     245  339650  0.3  0.1 /usr/bin/python3 /home/ehrli/hopper/hopper.py run",
+    "  98730     245   34192  0.0  0.1 python3 /home/ehrli/ngn-data/night-20261007/session93/net-chain.py",
+    " 102531     245   29313  0.0  0.1 python3 /home/ehrli/ngn-data/night-20261007/session94/claim-chain.py",
+    " 117018   98730    2523  2.6  0.1 /home/ehrli/ngn-data/night-20261007/session80/sprt -new /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -base /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn -tc 10+0.1 -concurrency 6 -mingames 1000000 -maxgames 1000 -elo0 0 -elo1 5 -alpha .05 -beta .05 -maxmoves 400 -gametimeout 180 -openings /home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt -lowpower=false -pgn /home/ehrli/ngn-data/night-20261007/session93/net-volume-control/games.pgn -newoption EvalFile=/home/ehrli/ngn-data/night-20261007/session87/mixture/volume-control/trained/latest.nnue -newoption UseNNUE=true -newoption Hash=64 -newoption Threads=1 -newoption OwnBook=false -newoption AspInit=17 -newoption AspMult=163 -newoption DeltaMargin=202 -newoption ExtensionBudget=29 -newoption FutilityMargin=104 -newoption FutilityMaxDepth=8 -newoption LMPBase=3 -newoption LMRFullDepth=3 -newoption LMRMoveThreshold=2 -newoption NullMoveMinDepth=2 -newoption NullMoveR=4 -newoption ReverseFutilityMargin=63 -newoption SingularDepth=7 -newoption SingularMargin=57 -baseoption EvalFile=/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue -baseoption UseNNUE=true -baseoption Hash=64 -baseoption Threads=1 -baseoption OwnBook=false -baseoption AspInit=17 -baseoption AspMult=163 -baseoption DeltaMargin=202 -baseoption ExtensionBudget=29 -baseoption FutilityMargin=104 -baseoption FutilityMaxDepth=8 -baseoption LMPBase=3 -baseoption LMRFullDepth=3 -baseoption LMRMoveThreshold=2 -baseoption NullMoveMinDepth=2 -baseoption NullMoveR=4 -baseoption ReverseFutilityMargin=63 -baseoption SingularDepth=7 -baseoption SingularMargin=57",
+    " 117022  117018    2523 49.7  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 117023  117018    2523 49.7  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 117024  117018    2523 49.7  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 117029  117018    2523 49.8  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 117032  117018    2523 49.7  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 117036  117018    2523 49.7  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 117042  117018    2523 49.8  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 117043  117018    2523 49.8  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 117048  117018    2523 49.7  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 117049  117018    2523 49.8  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 117054  117018    2523 49.7  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn",
+    " 117057  117018    2523 49.7  1.3 /home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn"
+  ],
+  "service_state": "MainPID=0\nResult=success\nId=ngn-s88-spsa-warm.service\nActiveState=inactive\nSubState=dead\n\nMainPID=0\nResult=success\nId=ngn-s87-mixture.service\nActiveState=inactive\nSubState=dead\n\nMainPID=98730\nResult=success\nId=ngn-s93-net-chain.service\nActiveState=active\nSubState=running\n\nMainPID=102531\nResult=success\nId=ngn-s94-claim-chain.service\nActiveState=active\nSubState=running\n",
+  "results": {
+    "session93/net-chain-result.json": null,
+    "session93/net-volume-control/result.json": null,
+    "session93/net-moderated-t74/result.json": null,
+    "session94/selected-package.json": null,
+    "session94/claim-chain-result.json": null
+  },
+  "gate_progress": "G463  105W 277D 81L   52.6%  elo  +18.0 [-14,+50]  LLR  +0.75  pLLR  +1.03  draw-rule   ",
+  "pause": {
+    "state": "PAUSED_AT_VERIFIED_CHECKPOINT",
+    "iteration": 500,
+    "games": 6000,
+    "stopped_utc": "2026-10-16T22:55:13.276568+00:00"
+  },
+  "status_tail": [
+    "{\"utc\": \"2026-10-16T22:40:13.071490+00:00\", \"stage\": \"session87-mixture\", \"event\": \"ready-for-gate\", \"detail\": {\"cell\": \"moderated-t74\", \"epochs\": 115, \"total_positions\": 29440000000, \"source_presentations\": {\"/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf\": 7359983364, \"/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf\": 11775979796, \"/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf\": 10304036840}, \"selection\": \"final115\", \"reexport_identical\": true, \"parity_cases\": 20, \"net_sha256\": \"9324a00462039b456e06fa4a7c09d6fd31a857b287ed08ba1057144a52846ce5\", \"checkpoint_sha256\": \"34160f3396eb20cad5ede40e7cead452a9247ec380218d7f53fca968b640a523\"}}",
+    "{\"utc\": \"2026-10-16T22:40:13.241243+00:00\", \"stage\": \"session93-net-chain\", \"event\": \"waiting-checkpoint\", \"detail\": {\"after_iter\": 475, \"interval_seconds\": 300, \"tuner_pid\": 94467}}",
+    "{\"utc\": \"2026-10-16T22:55:13.276932+00:00\", \"stage\": \"session93-net-chain\", \"event\": \"spsa-paused\", \"detail\": {\"iter\": 500, \"games\": 6000, \"disposition\": \"/home/ehrli/ngn-data/night-20261007/session93/spsa-planned-pause.json\"}}",
+    "{\"utc\": \"2026-10-16T22:55:13.304151+00:00\", \"stage\": \"campaign-queue\", \"event\": \"start\", \"detail\": {\"job\": \"s93-net-volume-control\", \"manifest\": \"/home/ehrli/ngn-data/night-20261007/session93/net-volume-control/manifest.json\"}}"
+  ]
+}

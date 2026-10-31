@@ -1,0 +1,85 @@
+"""Warm restart final14 after the nomination's natural predecessor terminal."""
+import datetime
+import hashlib
+import json
+import os
+from pathlib import Path
+import select
+import subprocess
+import sys
+
+R = Path('/home/ehrli/ngn-data/night-20261007')
+D = R / 'session84/spsa-warm'
+
+
+def write(path, value):
+    path.write_text(json.dumps(value, indent=2, allow_nan=False) + '\n')
+
+
+def status(event, detail):
+    with (R / 'status.jsonl').open('a') as stream:
+        stream.write(json.dumps(dict(utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                                     stage='session84-spsa-warm', event=event, detail=detail)) + '\n')
+
+
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def main():
+    nomination = json.loads((D / 'nomination.json').read_text())
+    status('waiting', {'predecessor_pid': nomination['predecessor_pid'],
+                       'requires': nomination.get('predecessor', 'TRANSFER_PASS and CERTIFIED with zero faults')})
+    try:
+        fd = os.pidfd_open(nomination['predecessor_pid'])
+    except ProcessLookupError:
+        pass
+    else:
+        select.select([fd], [], [])
+        os.close(fd)
+    conditions = nomination.get('predecessor_results', [
+        dict(path=str(R / 'session83/net-transfer/result.json'), verdicts=['TRANSFER_PASS']),
+        dict(path=str(R / 'session83/provenance/result.json'), verdicts=['CERTIFIED'])])
+    predecessors = [(condition, json.loads(Path(condition['path']).read_text())) for condition in conditions]
+    if any(result['verdict'] not in condition['verdicts'] or result['faults'] for condition, result in predecessors):
+        write(D / 'result.json', dict(state='HELD_PREDECESSOR',
+                                     predecessors={condition['path']: result['verdict'] for condition, result in predecessors},
+                                     games_started=False))
+        status('held', 'predecessor needs manual review; no tuning games')
+        return
+    for path, pin in nomination['artifacts'].items():
+        assert digest(path) == pin, path
+    env = os.environ.copy()
+    env['GOMAXPROCS'] = '1'
+    manifest = dict(nomination, environment={'GOMAXPROCS': '1'},
+                    started_utc=datetime.datetime.now(datetime.timezone.utc).isoformat())
+    write(D / 'manifest.json', manifest)
+    status('start', {'manifest': str(D / 'manifest.json'), 'games': 24000})
+    with (D / 'tune.log').open('w') as log:
+        child = subprocess.Popen(nomination['argv'], env=env, stdout=log, stderr=subprocess.STDOUT)
+        (D / 'tuner.pid').write_text(str(child.pid) + '\n')
+        rc = child.wait()
+    assert rc == 0, f'SPSA exit{rc}'
+    rows = [json.loads(line) for line in (D / 'spsa.jsonl').read_text().splitlines()]
+    endpoint = rows[-1]
+    assert endpoint['iter'] == 2000
+    assert endpoint['recipe']['pairs'] == 6 and not endpoint['recipe']['single']
+    assert endpoint['recipe']['iterations'] == 2000
+    faults = 'forfeits' in (D / 'tune.log').read_text() and any(
+        '(0 forfeits)' not in line for line in (D / 'tune.log').read_text().splitlines() if 'forfeits)' in line)
+    assert not faults, 'tuning reported forfeits; no converged-vector gate'
+    write(D / 'result.json', dict(state='READY_FOR_VECTOR_GATE', games=24000, endpoint=endpoint,
+                                 source=nomination['engine_source'], net_sha256=nomination['net_sha256'],
+                                 automatic_adoption=False, automatic_games=False,
+                                 verdict='No Elo verdict; nominate fixed1000 against compiled final14 on the same accepted net'))
+    status('ready-for-vector-gate', {'result': str(D / 'result.json'), 'games': 24000})
+
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        D = Path(sys.argv[1])
+    try:
+        main()
+    except BaseException as error:
+        status('failed', str(error))
+        raise

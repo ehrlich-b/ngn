@@ -1,0 +1,49 @@
+{
+  "observed_utc": "2026-10-18T13:28:42.259951+00:00",
+  "accepted_package": "fe92ced/81215229/compiled final14",
+  "host_c_free_bytes": 30829588480,
+  "host_c_free_gib": 28.712291717529297,
+  "memory_mib": {
+    "used": 6265,
+    "available": 9248
+  },
+  "gpu": {
+    "utilization_percent": 46,
+    "memory_used_mib": 4261,
+    "memory_total_mib": 16303
+  },
+  "spsa": {
+    "pid": 325755,
+    "service": "ngn-s104-spsa-resume.service",
+    "iteration": 1525,
+    "games": 18300,
+    "checkpoint_utc": "2026-10-18T13:06:14Z",
+    "rng_draws": 137250,
+    "target_iteration": 2000,
+    "target_games": 24000
+  },
+  "wdl050": {
+    "controller_pid": 325759,
+    "trainer_pid": 325764,
+    "epoch": 103,
+    "target_epochs": 115,
+    "step": 1609375,
+    "last_epoch_seconds": 282.32080324401613,
+    "result": null,
+    "terminal_edt_estimate": "2026-10-18 10:25-10:35; provisional including export/parity"
+  },
+  "boundary": {
+    "pid": 335882,
+    "scope": "ngn-s109-boundary.scope",
+    "live": true,
+    "result": null,
+    "state": "WAITING_TRAINING",
+    "log": "Running as unit: ngn-s109-boundary.scope; invocation ID: 1867864f0ea24c7ba2f2a1d1168b9114"
+  },
+  "s4": "Existing checks/60 identities/smoke PASS reused; timing remains conditional and unstarted",
+  "hopper_pid": 1188,
+  "hopper_untouched": true,
+  "new_jobs_launched": false,
+  "goal_met": false,
+  "source": "Read-only SSH snapshot of status.jsonl, ps, free, nvidia-smi, trainer log, native tune checkpoint and host Get-PSDrive C; no artifact re-audit"
+}

@@ -1,0 +1,79 @@
+package engine
+
+import (
+ "encoding/json"
+ "fmt"
+ "os"
+ "reflect"
+ "runtime"
+ "strconv"
+ "strings"
+ "syscall"
+ "testing"
+ "time"
+)
+
+type s77Frame struct { ID string `json:"id"`; FEN string `json:"fen"`; Moves []string `json:"moves"` }
+type s77Iteration struct { Depth int `json:"depth"`; Move string `json:"move"`; Score int `json:"score"`; Nodes uint64 `json:"nodes"`; AtNS int64 `json:"at_ns"` }
+type s77Visit struct { Key uint64 `json:"key"`; Depth int `json:"depth"` }
+type s77Worker struct {
+ StartNS int64 `json:"start_ns"`; FinishNS int64 `json:"finish_ns"`
+ Nodes uint64 `json:"nodes"`; QNodes uint64 `json:"qnodes"`
+ Iterations []s77Iteration `json:"iterations"`; Visits []s77Visit `json:"visits"`
+ Overflow int `json:"sample_overflow"`
+}
+func s77Emit(v any) { b,err:=json.Marshal(v);if err!=nil{panic(err)};fmt.Println("S77PANEL "+string(b)) }
+func s77CPU() int64 { var r syscall.Rusage;if err:=syscall.Getrusage(syscall.RUSAGE_SELF,&r);err!=nil{panic(err)};return r.Utime.Nano()+r.Stime.Nano() }
+func s77Replay(t *testing.T, f s77Frame) (*Position,Move) {
+ t.Helper();p:=newUCIStartingPosition();last:=EmptyMove
+ for _,text:=range f.Moves { m,err:=ParseAlgebraicMove(text,p);if err!=nil||!IsLegalMove(p,m){t.Fatal(f.ID,text,err)};if _,_,_,ok:=p.GameMakeMove(m);!ok{t.Fatal(f.ID,text)};last=m }
+ if strings.Join(strings.Fields(GenerateFEN(p))[:4]," ")!=strings.Join(strings.Fields(f.FEN)[:4]," "){t.Fatal(f.ID,"history mismatch")};return p,last
+}
+func s77Search(t *testing.T, f s77Frame, net *NGNN1Network, width,ms,block int) {
+ t.Helper();p,last:=s77Replay(t,f);before:=snapshotPVPosition(p)
+ e,err:=NewSearchEngineWithHash(256);if err!=nil{t.Fatal(err)}
+ if err=e.SelectNGNN1Evaluator(net);err!=nil{t.Fatal(err)};if err=e.ConfigureThreads(width);err!=nil{t.Fatal(err)};e.SetLastMovePlayed(last);e.TTDiagnostics()
+ workers:=make([]s77Worker,width);for i:=range workers{workers[i].Visits=make([]s77Visit,0,4096);workers[i].Iterations=make([]s77Iteration,0,MaximumDepth)}
+ sampling:=os.Getenv("NGN_S77_SAMPLING")=="1"
+ start:=time.Now();e.smpHooks=&smpSearchHooks{
+  workerStarted:func(i int){workers[i].StartNS=time.Since(start).Nanoseconds()},
+  workerFinished:func(i int,info *SearchInfo){workers[i].FinishNS=time.Since(start).Nanoseconds();workers[i].Nodes=info.Nodes;workers[i].QNodes=info.QNodes},
+  diagnosticIteration:func(i int,info *SearchInfo){workers[i].Iterations=append(workers[i].Iterations,s77Iteration{info.Depth,info.BestMove.ToString(),info.BestScore,info.Nodes,time.Since(start).Nanoseconds()})},
+ }
+ if sampling {e.smpHooks.diagnosticVisit=func(i int,key uint64,d int){w:=&workers[i];if len(w.Visits)<cap(w.Visits){w.Visits=append(w.Visits,s77Visit{key,d})}else{w.Overflow++}}}
+ tm:=NewTimeManager();if err:=tm.SetMoveOverhead(0);err!=nil{t.Fatal(err)}
+ cpu:=s77CPU();start=time.Now();tm.SetTimeControlAt(SearchParams{MoveTime:ms},p.Turn()==White,start)
+ depthLimit:=MaximumDepth;if os.Getenv("NGN_S77_SMOKE")=="1"{depthLimit=3}
+ result:=e.SearchIterativeDeepeningWithCallback(p,depthLimit,tm,nil)
+ elapsed:=time.Since(start).Nanoseconds();cpu=s77CPU()-cpu
+ if !reflect.DeepEqual(before,snapshotPVPosition(p))||!IsLegalMove(p,result.BestMove)||result.EffectiveThreads!=width{t.Fatal(f.ID,"root/result/width failure")}
+ var nodes,qnodes uint64;for _,w:=range workers{nodes+=w.Nodes;qnodes+=w.QNodes;}
+ if len(workers[0].Iterations)==0{t.Fatal(f.ID,"no primary completed iteration")}
+ if nodes!=result.Nodes||qnodes!=result.QNodes{t.Fatal(f.ID,"counter mismatch")}
+ s77Emit(map[string]any{"id":f.ID,"block":block,"width":width,"hash_mib":256,"budget_ms":ms,"elapsed_ns":elapsed,"cpu_ns":cpu,"nodes":nodes,"qnodes":qnodes,"move":result.BestMove.ToString(),"score":result.BestScore,"depth":result.Depth,"workers":workers,"sampling":sampling,"setup_ns":workers[0].StartNS,"join_ns":elapsed-workers[0].FinishNS})
+ e.smpHooks=nil;runtime.GC()
+}
+func TestS77WorkerPanel(t *testing.T) {
+ path:=os.Getenv("NGN_S77_PANEL");if path==""{t.Skip("opt-in rig only")};b,err:=os.ReadFile(path);if err!=nil{t.Fatal(err)};var frames []s77Frame;if err=json.Unmarshal(b,&frames);err!=nil{t.Fatal(err)};if len(frames)!=12{t.Fatal("panel must have12 frames")}
+ net,err:=LoadNGNN1(os.Getenv("NGN_CAMPAIGN_NET"));if err!=nil{t.Fatal(err)}
+ blocks:=6;if s:=os.Getenv("NGN_S77_BLOCKS");s!=""{blocks,err=strconv.Atoi(s);if err!=nil{t.Fatal(err)}}
+ for block:=0;block<blocks;block++{order:=[]int{1,4};if block%2==1{order=[]int{4,1}};for _,f:=range frames{for _,ms:=range []int{250,2000}{for _,width:=range order{runtime.GOMAXPROCS(width);s77Search(t,f,net,width,ms,block)}}}}
+}
+// Mate labels use exhaustive legal one-ply replies, independent of NNUE and search.
+// The24 fixtures are square symmetries of three owned elementary mate positions.
+func TestS77HeldOutMateStability(t *testing.T) {
+ if os.Getenv("NGN_S77_SOLVES")==""{t.Skip("opt-in rig only")};net,err:=LoadNGNN1(os.Getenv("NGN_CAMPAIGN_NET"));if err!=nil{t.Fatal(err)}
+ seeds:=[]string{"7k/R7/6K1/8/8/8/8/8 w - - 0 1","7k/8/5KQ1/8/8/8/8/8 w - - 0 1","k7/8/2K5/1Q6/8/8/8/8 w - - 0 1"}
+ for seed,fen:=range seeds {for symmetry:=0;symmetry<8;symmetry++{fen=s77Symmetry(seeds[seed],symmetry);p,err:=ParseFEN(fen);if err!=nil{t.Fatal(err)}
+  mates:=map[Move]bool{};for _,m:=range GenerateLegalMoves(p){copy:=p.Copy();if _,_,_,ok:=copy.GameMakeMove(m);!ok{t.Fatal("legal make")};if copy.IsInCheck()&&!copy.HasLegalMove(){mates[m]=true}}
+  if len(mates)==0{t.Fatal(fen,"no exhaustive mate label")}
+  for repeat:=0;repeat<3;repeat++{for _,ms:=range []int{250,2000}{for _,width:=range []int{1,4}{e,_:=NewSearchEngineWithHash(256);if err:=e.SelectNGNN1Evaluator(net);err!=nil{t.Fatal(err)};if err:=e.ConfigureThreads(width);err!=nil{t.Fatal(err)};runtime.GOMAXPROCS(width);tm:=NewTimeManager();tm.SetMoveOverhead(0);tm.SetTimeControl(SearchParams{MoveTime:ms},true)
+   result:=e.SearchIterativeDeepening(p.Copy(),MaximumDepth,tm);s77Emit(map[string]any{"solve_id":fmt.Sprintf("mate%d-sym%d",seed,symmetry),"repeat":repeat,"width":width,"budget_ms":ms,"move":result.BestMove.ToString(),"correct":mates[result.BestMove],"score":result.BestScore,"depth":result.Depth});runtime.GC()
+  }}}
+ }}
+}
+func s77Symmetry(fen string,sym int) string {
+ var board [8][8]byte;rank:=7;file:=0
+ for _,c:=range strings.Fields(fen)[0]{if c=='/'{rank--;file=0;continue};if c>='1'&&c<='8'{file+=int(c-'0');continue};x,y:=file,rank;if sym&1!=0{x=7-x};if sym&2!=0{y=7-y};if sym&4!=0{x,y=y,x};board[y][x]=byte(c);file++}
+ var b strings.Builder;for y:=7;y>=0;y--{empty:=0;for x:=0;x<8;x++{if board[y][x]==0{empty++;continue};if empty>0{b.WriteByte(byte('0'+empty));empty=0};b.WriteByte(board[y][x])};if empty>0{b.WriteByte(byte('0'+empty))};if y>0{b.WriteByte('/')}};return b.String()+" w - - 0 1"
+}

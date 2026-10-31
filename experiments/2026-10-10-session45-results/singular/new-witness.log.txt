@@ -1,0 +1,20 @@
+=== RUN   TestSingularDoubleChildDepth
+=== RUN   TestSingularDoubleChildDepth/depth5
+=== RUN   TestSingularDoubleChildDepth/gap64
+=== RUN   TestSingularDoubleChildDepth/gap65
+=== RUN   TestSingularDoubleChildDepth/depth12
+=== RUN   TestSingularDoubleChildDepth/depth13
+=== RUN   TestSingularDoubleChildDepth/path_budget
+--- PASS: TestSingularDoubleChildDepth (0.03s)
+    --- PASS: TestSingularDoubleChildDepth/depth5 (0.00s)
+    --- PASS: TestSingularDoubleChildDepth/gap64 (0.00s)
+    --- PASS: TestSingularDoubleChildDepth/gap65 (0.01s)
+    --- PASS: TestSingularDoubleChildDepth/depth12 (0.00s)
+    --- PASS: TestSingularDoubleChildDepth/depth13 (0.00s)
+    --- PASS: TestSingularDoubleChildDepth/path_budget (0.00s)
+=== RUN   TestSingularDoublePreservesPVDepth
+--- PASS: TestSingularDoublePreservesPVDepth (0.00s)
+=== RUN   TestSingularDoubleStoppedVerification
+--- PASS: TestSingularDoubleStoppedVerification (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.041s

@@ -1,0 +1,1 @@
+Running as unit: ngn-s100-speed-smoke.service; invocation ID: 1db8e2b2b85d499d868cfc0a82080253

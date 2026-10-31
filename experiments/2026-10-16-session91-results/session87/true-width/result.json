@@ -1,0 +1,45 @@
+{
+  "games": 400,
+  "pairs": 200,
+  "orphan_games": 0,
+  "wdl": [
+    152,
+    234,
+    14
+  ],
+  "penta": [
+    0,
+    3,
+    72,
+    109,
+    16
+  ],
+  "printed_elo_ci95": [
+    125.0,
+    108.0,
+    143.0
+  ],
+  "exact_elo_ci95": [
+    124.99239373865747,
+    107.90473965002417,
+    142.68081867521542
+  ],
+  "final_pllr": 9.63,
+  "exact_pllr": 9.628260416232909,
+  "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "checkmate": 166,
+    "draw-rule": 227,
+    "max-moves": 7
+  },
+  "faults": [],
+  "verdict": "MEASURED",
+  "name": "s87-true-width",
+  "finished_utc": "2026-10-16T11:19:03.007524+00:00",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session87/true-width/manifest.json",
+  "automatic_adoption": false
+}

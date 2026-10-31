@@ -1,0 +1,8 @@
+test_exact_partition_batch_boundaries_shuffle_and_cache (trainer.tests.test_remote_archive.RemoteArchiveTests.test_exact_partition_batch_boundaries_shuffle_and_cache) ... ok
+test_range_read_preserves_duplicate_indexes_and_rejects_changed_file (trainer.tests.test_remote_archive.RemoteArchiveTests.test_range_read_preserves_duplicate_indexes_and_rejects_changed_file) ... ok
+test_wrong_digest_and_partial_response_fail_before_decoding (trainer.tests.test_remote_archive.RemoteArchiveTests.test_wrong_digest_and_partial_response_fail_before_decoding) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.855s
+
+OK

@@ -1,0 +1,1035 @@
+{
+  "utc": "2026-10-15T00:59:25.449576+00:00",
+  "reason": "Abandoned session83 sample scratch blocks the approved final174 training continuation; final115 KEEP skipped the null-only pair",
+  "path": "/home/ehrli/ngn-data/night-20261007/session83/sample/scatter-t74",
+  "files": [
+    {
+      "name": "bucket-0000.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0001.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0002.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0003.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0004.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0005.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0006.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0007.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0008.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0009.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0010.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0011.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0012.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0013.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0014.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0015.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0016.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0017.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0018.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0019.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0020.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0021.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0022.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0023.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0024.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0025.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0026.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0027.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0028.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0029.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0030.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0031.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0032.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0033.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0034.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0035.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0036.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0037.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0038.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0039.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0040.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0041.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0042.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0043.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0044.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0045.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0046.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0047.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0048.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0049.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0050.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0051.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0052.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0053.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0054.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0055.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0056.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0057.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0058.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0059.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0060.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0061.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0062.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0063.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0064.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0065.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0066.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0067.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0068.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0069.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0070.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0071.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0072.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0073.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0074.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0075.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0076.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0077.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0078.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0079.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0080.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0081.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0082.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0083.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0084.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0085.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0086.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0087.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0088.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0089.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0090.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0091.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0092.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0093.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0094.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0095.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0096.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0097.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0098.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0099.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0100.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0101.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0102.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0103.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0104.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0105.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0106.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0107.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0108.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0109.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0110.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0111.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0112.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0113.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0114.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0115.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0116.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0117.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0118.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0119.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0120.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0121.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0122.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0123.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0124.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0125.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0126.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0127.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0128.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0129.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0130.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0131.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0132.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0133.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0134.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0135.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0136.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0137.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0138.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0139.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0140.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0141.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0142.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0143.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0144.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0145.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0146.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0147.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0148.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0149.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0150.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0151.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0152.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0153.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0154.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0155.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0156.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0157.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0158.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0159.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0160.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0161.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0162.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0163.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0164.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0165.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0166.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0167.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0168.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0169.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0170.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0171.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0172.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0173.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0174.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0175.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0176.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0177.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0178.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0179.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0180.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0181.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0182.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0183.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0184.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0185.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0186.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0187.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0188.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0189.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0190.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0191.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0192.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0193.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0194.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0195.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0196.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0197.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0198.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0199.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0200.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0201.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0202.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0203.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0204.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0205.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0206.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0207.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0208.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0209.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0210.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0211.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0212.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0213.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0214.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0215.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0216.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0217.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0218.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0219.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0220.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0221.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0222.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0223.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0224.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0225.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0226.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0227.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0228.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0229.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0230.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0231.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0232.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0233.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0234.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0235.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0236.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0237.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0238.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0239.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0240.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0241.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0242.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0243.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0244.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0245.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0246.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0247.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0248.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0249.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0250.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0251.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0252.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0253.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0254.bin",
+      "bytes": 136314880
+    },
+    {
+      "name": "bucket-0255.bin",
+      "bytes": 136314880
+    }
+  ],
+  "host_c_free_before": 24954245120,
+  "preserve": "original manifests, controller exit143, logs, raw input and all trained checkpoints",
+  "host_c_free_after": 24954253312,
+  "deleted_bytes": 34896609280
+}

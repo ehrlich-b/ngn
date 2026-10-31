@@ -1,0 +1,191 @@
+diff --git a/engine/ngnn4_kernels_amd64.go b/engine/ngnn4_kernels_amd64.go
+index e9f1863..51ad74e 100644
+--- a/engine/ngnn4_kernels_amd64.go
++++ b/engine/ngnn4_kernels_amd64.go
+@@ -13,9 +13,50 @@ func ngnn4Linear(dst []int32, input []uint8, weights []int8)
+ // Four natural weight rows share a 32-byte input load. All input lengths are
+ // multiples of 32; L is 16..64 in multiples of 16. Operands are disjoint.
+ // The same unsigned-input/signed-weight pair and complete-dot bounds apply.
++func ngnn4LinearRows(dst []int32, input []uint8, weights []int8) {
++	if ngnn4UseVNNI {
++		ngnn4LinearRowsVNNI(dst, input, weights)
++	} else {
++		ngnn4LinearRowsAVX2(dst, input, weights)
++	}
++}
++
++//go:noescape
++func ngnn4LinearRowsAVX2(dst []int32, input []uint8, weights []int8)
++
++// Four unsigned bytes times four signed weights accumulate directly into
++// each int32 lane. The full-dot bound above also bounds every partial sum.
+ //
+ //go:noescape
+-func ngnn4LinearRows(dst []int32, input []uint8, weights []int8)
++func ngnn4LinearRowsVNNI(dst []int32, input []uint8, weights []int8)
++
++var ngnn4UseVNNI = ngnn4HasVNNI()
++
++func ngnn4HasVNNI() bool {
++	maxLeaf, _, _, _ := ngnn4CPUID(0, 0)
++	if maxLeaf < 7 {
++		return false
++	}
++	_, _, features, _ := ngnn4CPUID(1, 0)
++	if features&(1<<27) == 0 { // OSXSAVE permits XGETBV.
++		return false
++	}
++	_, hardware, vector, _ := ngnn4CPUID(7, 0)
++	return ngnn4VNNIState(hardware, vector, ngnn4XCR0())
++}
++
++// The EVEX 256-bit dot requires AVX512F, AVX512VL and AVX512VNNI.
++// XCR0 must enable XMM, YMM, opmask and both ZMM state components.
++func ngnn4VNNIState(hardware, vector uint32, xcr0 uint64) bool {
++	const required = uint32(1<<16 | 1<<31)
++	return hardware&required == required && vector&(1<<11) != 0 && xcr0&0xe6 == 0xe6
++}
++
++//go:noescape
++func ngnn4CPUID(leaf, subleaf uint32) (eax, ebx, ecx, edx uint32)
++
++//go:noescape
++func ngnn4XCR0() uint64
+ 
+ // Clamp int32 lanes before packing; arbitrary int32 endpoints are supported.
+ // Both perspectives have the validated H, a multiple of 16. dst is disjoint.
+diff --git a/engine/ngnn4_kernels_amd64.s b/engine/ngnn4_kernels_amd64.s
+index 2e94d3d..3ae1b83 100644
+--- a/engine/ngnn4_kernels_amd64.s
++++ b/engine/ngnn4_kernels_amd64.s
+@@ -5,7 +5,7 @@
+ // Four independent row dots share each 32-byte input vector. Pair saturation
+ // cannot occur at +/-64 weights. Lane sums and horizontal reductions are
+ // bounded by the full absolute dot (66,846,720), so reassociation is exact.
+-TEXT ·ngnn4LinearRows(SB), NOSPLIT, $0-72
++TEXT ·ngnn4LinearRowsAVX2(SB), NOSPLIT, $0-72
+ 	MOVQ dst_base+0(FP), DI
+ 	MOVQ dst_len+8(FP), CX
+ 	MOVQ input_len+32(FP), R12
+@@ -64,6 +64,75 @@ Rows_inputs:
+ 	VZEROUPPER
+ 	RET
+ 
++// CPUID and XGETBV are queried once at package initialization. The latter
++// is called only when CPUID reports OSXSAVE.
++TEXT ·ngnn4CPUID(SB), NOSPLIT, $0-24
++	MOVL leaf+0(FP), AX
++	MOVL subleaf+4(FP), CX
++	CPUID
++	MOVL AX, eax+8(FP)
++	MOVL BX, ebx+12(FP)
++	MOVL CX, ecx+16(FP)
++	MOVL DX, edx+20(FP)
++	RET
++
++TEXT ·ngnn4XCR0(SB), NOSPLIT, $0-8
++	XORL CX, CX
++	XGETBV
++	SHLQ $32, DX
++	ORQ DX, AX
++	MOVQ AX, ret+0(FP)
++	RET
++
++// VNNI retains the four natural rows and 32-byte input loads. Each dot
++// instruction sums four unsigned/signed byte products without saturation.
++TEXT ·ngnn4LinearRowsVNNI(SB), NOSPLIT, $0-72
++	MOVQ dst_base+0(FP), DI
++	MOVQ dst_len+8(FP), CX
++	MOVQ input_len+32(FP), R12
++	MOVQ weights_base+48(FP), R8
++VNNI_outputs:
++	LEAQ (R8)(R12*1), R9
++	LEAQ (R9)(R12*1), R10
++	LEAQ (R10)(R12*1), R11
++	MOVQ input_base+24(FP), SI
++	MOVQ R12, DX
++	VPXOR Y0, Y0, Y0
++	VPXOR Y1, Y1, Y1
++	VPXOR Y2, Y2, Y2
++	VPXOR Y3, Y3, Y3
++VNNI_inputs:
++	VMOVDQU (SI), Y4
++	VPDPBUSD (R8), Y4, Y0
++	VPDPBUSD (R9), Y4, Y1
++	VPDPBUSD (R10), Y4, Y2
++	VPDPBUSD (R11), Y4, Y3
++	ADDQ $32, SI
++	ADDQ $32, R8
++	ADDQ $32, R9
++	ADDQ $32, R10
++	ADDQ $32, R11
++	SUBQ $32, DX
++	JNZ VNNI_inputs
++	VEXTRACTI128 $1, Y0, X4
++	VPADDD X4, X0, X0
++	VEXTRACTI128 $1, Y1, X4
++	VPADDD X4, X1, X1
++	VEXTRACTI128 $1, Y2, X4
++	VPADDD X4, X2, X2
++	VEXTRACTI128 $1, Y3, X4
++	VPADDD X4, X3, X3
++	VPHADDD X1, X0, X0
++	VPHADDD X3, X2, X2
++	VPHADDD X2, X0, X0
++	VMOVDQU X0, (DI)
++	MOVQ R11, R8
++	ADDQ $16, DI
++	SUBQ $4, CX
++	JNZ VNNI_outputs
++	VZEROUPPER
++	RET
++
+ // Signed division toward zero: (x + ((x >> 31) & 63)) >> 6.
+ // Adding the correction cannot overflow int32 because it is zero for x>=0.
+ // Bias is sign-extended before the [0,255] clamp. Each squared weighted
+diff --git a/engine/ngnn4_vnni_test.go b/engine/ngnn4_vnni_test.go
+new file mode 100644
+index 0000000..fc8b6c1
+--- /dev/null
++++ b/engine/ngnn4_vnni_test.go
+@@ -0,0 +1,40 @@
++//go:build amd64 && amd64.v3 && !purego && !race
++
++package engine
++
++import "testing"
++
++func TestNGNN4VNNIState(t *testing.T) {
++	const hardware = uint32(1<<16 | 1<<31)
++	const vector = uint32(1 << 11)
++	if !ngnn4VNNIState(hardware, vector, 0xe6) {
++		t.Fatal("complete hardware and OS state rejected")
++	}
++	for _, bit := range []uint32{1 << 16, 1 << 31} {
++		if ngnn4VNNIState(hardware&^bit, vector, 0xe6) {
++			t.Fatal("missing hardware feature admitted")
++		}
++	}
++	if ngnn4VNNIState(hardware, 0, 0xe6) {
++		t.Fatal("missing dot instruction admitted")
++	}
++	for _, bit := range []uint64{2, 4, 32, 64, 128} {
++		if ngnn4VNNIState(hardware, vector, 0xe6&^bit) {
++			t.Fatal("missing OS vector state admitted")
++		}
++	}
++}
++
++func TestNGNN4VNNIDirectAndFallback(t *testing.T) {
++	if !ngnn4UseVNNI {
++		t.Skip("VNNI unavailable")
++	}
++	t.Log("VNNI hardware and OS state admitted")
++	// Each full all-width guarded differential sweep uses the int64 oracle.
++	// Force fallback separately, even though this rig selects VNNI normally.
++	TestNGNN4RowAffineDifferential(t)
++	prior := ngnn4UseVNNI
++	ngnn4UseVNNI = false
++	defer func() { ngnn4UseVNNI = prior }()
++	TestNGNN4RowAffineDifferential(t)
++}

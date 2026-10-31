@@ -1,0 +1,11 @@
+{
+  "verdict": "PASS",
+  "scenarios": [
+    "final2000 accepted",
+    "1975 refused",
+    "missing terminal refused",
+    "forfeit refused",
+    "same source/net only final vector differs"
+  ],
+  "automatic_games": false
+}

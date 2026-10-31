@@ -1,0 +1,32 @@
+{
+  "utc": "2026-10-09T04:55:12.639754+00:00",
+  "tag": "Rodent_v_1.2",
+  "commit": "b53ffaf670590932957cb63b7b6d871f6f33b7d8",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "gomaxprocs": "1",
+  "rodent_build_argv": [
+    "taskset",
+    "-c",
+    "15",
+    "nice",
+    "-n",
+    "19",
+    "go",
+    "build",
+    "-p",
+    "1",
+    "-o",
+    "/home/ehrli/ngn-data/night-20261007/session19-rodent/opponent-only/rodent-v12",
+    "."
+  ],
+  "rodent_binary_sha256": "10dd722e730a70887fcaa07157b86c5ba3579618f858f7519d44f55036e00949",
+  "net_sha256": "c35a1abc1b8c1cb1d5f4221454d494c1a6da1ed9088fd51ab27038bfa74b5053",
+  "pairmatch_build_pass": true,
+  "pairmatch_vet_pass": true,
+  "build_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "pairmatch_build_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "pairmatch_vet_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "advertised_options_sha256": "de2dc848f0d6d2fa98712f315367965cd00d754ff0da37170ab61cb88a63bc4d",
+  "match_only": true
+}

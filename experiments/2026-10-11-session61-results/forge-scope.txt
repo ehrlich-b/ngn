@@ -1,0 +1,13 @@
+● ngn-s61-forge-games.scope - [systemd-run] /usr/bin/nice -n 10 taskset -c 4-11 bash controller.sh
+     Loaded: loaded (/run/user/1000/systemd/transient/ngn-s61-forge-games.scope; transient)
+  Transient: yes
+     Active: active (running) since Sun 2026-10-11 09:55:16 EDT; 10min ago
+ Invocation: ca3cffa34f14400f9fd4ca1a508ae7f0
+      Tasks: 2 (limit: 21419)
+     Memory: 16.9M (max: 3G, swap max: 0B, available: 2.9G, peak: 29.5M)
+        CPU: 164ms
+     CGroup: /user.slice/user-1000.slice/user@1000.service/app.slice/ngn-s61-forge-games.scope
+             ├─2114966 bash controller.sh
+             └─2114971 python3 games.py
+
+Oct 11 09:55:16 forge systemd[869]: Started ngn-s61-forge-games.scope - [systemd-run] /usr/bin/nice -n 10 taskset -c 4-11 bash controller.sh.

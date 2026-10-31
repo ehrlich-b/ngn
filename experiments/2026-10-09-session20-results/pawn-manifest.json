@@ -1,0 +1,25 @@
+{
+  "created_utc": "2026-10-09T05:43:25.881671+00:00",
+  "base_source": "f97f55c",
+  "accepted_runtime": "5b882e2",
+  "accepted_net": "be34532c",
+  "topic": "night/pawn-history",
+  "record": "experiments/2026-10-09-pawn-quiet-history.md",
+  "inputs_sha256": {
+    "base.tar": "41494665899fdc853e1c5efd30c6234b7190eba83e54b6f695a43c51e9b2f867",
+    "candidate.patch": "2efb941698d7b02cf57eb742742555597f4b698afa952f7e94119dfaae91b2bd",
+    "controller.sh": "c1c2baedbafd900eabe31b5e3b3aa55fda9611a2abc91734a8f3969bc0eaaa67",
+    "resource-sample.py": "684a54fd4ffbaa7416e0bd8b9f5b608b65225122306dfa90923ce5476aeca153"
+  },
+  "cpus": [
+    12,
+    14
+  ],
+  "nice": 19,
+  "native_dependency": 667047,
+  "resource_blocks": 12,
+  "resource_seconds_per_position": 1,
+  "resource_cpu": 12,
+  "automatic_games": false,
+  "automatic_adoption": false
+}

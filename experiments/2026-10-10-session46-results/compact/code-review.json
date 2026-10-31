@@ -1,0 +1,8 @@
+{
+  "code_checks_pass": true,
+  "base_source": "de148b96d1bc2d9577b66299b24d5bce653a7150",
+  "all_checked_source_hashes_match": true,
+  "checked_patch_sha256": "95f7f599c5492ecabae1987d5a539dabb50c75a2238b1f8f09df5ce17e44eeb7",
+  "speed_verdict": "pending rig36 identities/fixed40 blocks",
+  "playing_adoption": false
+}

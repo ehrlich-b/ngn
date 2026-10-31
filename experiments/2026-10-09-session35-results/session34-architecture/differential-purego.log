@@ -1,0 +1,608 @@
+=== RUN   TestNGNN1KernelRowsDifferential
+=== RUN   TestNGNN1KernelRowsDifferential/16
+=== RUN   TestNGNN1KernelRowsDifferential/32
+=== RUN   TestNGNN1KernelRowsDifferential/48
+=== RUN   TestNGNN1KernelRowsDifferential/64
+=== RUN   TestNGNN1KernelRowsDifferential/80
+=== RUN   TestNGNN1KernelRowsDifferential/96
+=== RUN   TestNGNN1KernelRowsDifferential/112
+=== RUN   TestNGNN1KernelRowsDifferential/128
+=== RUN   TestNGNN1KernelRowsDifferential/144
+=== RUN   TestNGNN1KernelRowsDifferential/160
+=== RUN   TestNGNN1KernelRowsDifferential/176
+=== RUN   TestNGNN1KernelRowsDifferential/192
+=== RUN   TestNGNN1KernelRowsDifferential/208
+=== RUN   TestNGNN1KernelRowsDifferential/224
+=== RUN   TestNGNN1KernelRowsDifferential/240
+=== RUN   TestNGNN1KernelRowsDifferential/256
+=== RUN   TestNGNN1KernelRowsDifferential/272
+=== RUN   TestNGNN1KernelRowsDifferential/288
+=== RUN   TestNGNN1KernelRowsDifferential/304
+=== RUN   TestNGNN1KernelRowsDifferential/320
+=== RUN   TestNGNN1KernelRowsDifferential/336
+=== RUN   TestNGNN1KernelRowsDifferential/352
+=== RUN   TestNGNN1KernelRowsDifferential/368
+=== RUN   TestNGNN1KernelRowsDifferential/384
+=== RUN   TestNGNN1KernelRowsDifferential/400
+=== RUN   TestNGNN1KernelRowsDifferential/416
+=== RUN   TestNGNN1KernelRowsDifferential/432
+=== RUN   TestNGNN1KernelRowsDifferential/448
+=== RUN   TestNGNN1KernelRowsDifferential/464
+=== RUN   TestNGNN1KernelRowsDifferential/480
+=== RUN   TestNGNN1KernelRowsDifferential/496
+=== RUN   TestNGNN1KernelRowsDifferential/512
+=== RUN   TestNGNN1KernelRowsDifferential/528
+=== RUN   TestNGNN1KernelRowsDifferential/544
+=== RUN   TestNGNN1KernelRowsDifferential/560
+=== RUN   TestNGNN1KernelRowsDifferential/576
+=== RUN   TestNGNN1KernelRowsDifferential/592
+=== RUN   TestNGNN1KernelRowsDifferential/608
+=== RUN   TestNGNN1KernelRowsDifferential/624
+=== RUN   TestNGNN1KernelRowsDifferential/640
+=== RUN   TestNGNN1KernelRowsDifferential/656
+=== RUN   TestNGNN1KernelRowsDifferential/672
+=== RUN   TestNGNN1KernelRowsDifferential/688
+=== RUN   TestNGNN1KernelRowsDifferential/704
+=== RUN   TestNGNN1KernelRowsDifferential/720
+=== RUN   TestNGNN1KernelRowsDifferential/736
+=== RUN   TestNGNN1KernelRowsDifferential/752
+=== RUN   TestNGNN1KernelRowsDifferential/768
+=== RUN   TestNGNN1KernelRowsDifferential/784
+=== RUN   TestNGNN1KernelRowsDifferential/800
+=== RUN   TestNGNN1KernelRowsDifferential/816
+=== RUN   TestNGNN1KernelRowsDifferential/832
+=== RUN   TestNGNN1KernelRowsDifferential/848
+=== RUN   TestNGNN1KernelRowsDifferential/864
+=== RUN   TestNGNN1KernelRowsDifferential/880
+=== RUN   TestNGNN1KernelRowsDifferential/896
+=== RUN   TestNGNN1KernelRowsDifferential/912
+=== RUN   TestNGNN1KernelRowsDifferential/928
+=== RUN   TestNGNN1KernelRowsDifferential/944
+=== RUN   TestNGNN1KernelRowsDifferential/960
+=== RUN   TestNGNN1KernelRowsDifferential/976
+=== RUN   TestNGNN1KernelRowsDifferential/992
+=== RUN   TestNGNN1KernelRowsDifferential/1008
+=== RUN   TestNGNN1KernelRowsDifferential/1024
+=== RUN   TestNGNN1KernelRowsDifferential/1040
+=== RUN   TestNGNN1KernelRowsDifferential/1056
+=== RUN   TestNGNN1KernelRowsDifferential/1072
+=== RUN   TestNGNN1KernelRowsDifferential/1088
+=== RUN   TestNGNN1KernelRowsDifferential/1104
+=== RUN   TestNGNN1KernelRowsDifferential/1120
+=== RUN   TestNGNN1KernelRowsDifferential/1136
+=== RUN   TestNGNN1KernelRowsDifferential/1152
+=== RUN   TestNGNN1KernelRowsDifferential/1168
+=== RUN   TestNGNN1KernelRowsDifferential/1184
+=== RUN   TestNGNN1KernelRowsDifferential/1200
+=== RUN   TestNGNN1KernelRowsDifferential/1216
+=== RUN   TestNGNN1KernelRowsDifferential/1232
+=== RUN   TestNGNN1KernelRowsDifferential/1248
+=== RUN   TestNGNN1KernelRowsDifferential/1264
+=== RUN   TestNGNN1KernelRowsDifferential/1280
+=== RUN   TestNGNN1KernelRowsDifferential/1296
+=== RUN   TestNGNN1KernelRowsDifferential/1312
+=== RUN   TestNGNN1KernelRowsDifferential/1328
+=== RUN   TestNGNN1KernelRowsDifferential/1344
+=== RUN   TestNGNN1KernelRowsDifferential/1360
+=== RUN   TestNGNN1KernelRowsDifferential/1376
+=== RUN   TestNGNN1KernelRowsDifferential/1392
+=== RUN   TestNGNN1KernelRowsDifferential/1408
+=== RUN   TestNGNN1KernelRowsDifferential/1424
+=== RUN   TestNGNN1KernelRowsDifferential/1440
+=== RUN   TestNGNN1KernelRowsDifferential/1456
+=== RUN   TestNGNN1KernelRowsDifferential/1472
+=== RUN   TestNGNN1KernelRowsDifferential/1488
+=== RUN   TestNGNN1KernelRowsDifferential/1504
+=== RUN   TestNGNN1KernelRowsDifferential/1520
+=== RUN   TestNGNN1KernelRowsDifferential/1536
+=== RUN   TestNGNN1KernelRowsDifferential/1552
+=== RUN   TestNGNN1KernelRowsDifferential/1568
+=== RUN   TestNGNN1KernelRowsDifferential/1584
+=== RUN   TestNGNN1KernelRowsDifferential/1600
+=== RUN   TestNGNN1KernelRowsDifferential/1616
+=== RUN   TestNGNN1KernelRowsDifferential/1632
+=== RUN   TestNGNN1KernelRowsDifferential/1648
+=== RUN   TestNGNN1KernelRowsDifferential/1664
+=== RUN   TestNGNN1KernelRowsDifferential/1680
+=== RUN   TestNGNN1KernelRowsDifferential/1696
+=== RUN   TestNGNN1KernelRowsDifferential/1712
+=== RUN   TestNGNN1KernelRowsDifferential/1728
+=== RUN   TestNGNN1KernelRowsDifferential/1744
+=== RUN   TestNGNN1KernelRowsDifferential/1760
+=== RUN   TestNGNN1KernelRowsDifferential/1776
+=== RUN   TestNGNN1KernelRowsDifferential/1792
+=== RUN   TestNGNN1KernelRowsDifferential/1808
+=== RUN   TestNGNN1KernelRowsDifferential/1824
+=== RUN   TestNGNN1KernelRowsDifferential/1840
+=== RUN   TestNGNN1KernelRowsDifferential/1856
+=== RUN   TestNGNN1KernelRowsDifferential/1872
+=== RUN   TestNGNN1KernelRowsDifferential/1888
+=== RUN   TestNGNN1KernelRowsDifferential/1904
+=== RUN   TestNGNN1KernelRowsDifferential/1920
+=== RUN   TestNGNN1KernelRowsDifferential/1936
+=== RUN   TestNGNN1KernelRowsDifferential/1952
+=== RUN   TestNGNN1KernelRowsDifferential/1968
+=== RUN   TestNGNN1KernelRowsDifferential/1984
+=== RUN   TestNGNN1KernelRowsDifferential/2000
+=== RUN   TestNGNN1KernelRowsDifferential/2016
+=== RUN   TestNGNN1KernelRowsDifferential/2032
+=== RUN   TestNGNN1KernelRowsDifferential/2048
+--- PASS: TestNGNN1KernelRowsDifferential (0.41s)
+    --- PASS: TestNGNN1KernelRowsDifferential/16 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/32 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/48 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/64 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/80 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/96 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/112 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/128 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/144 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/160 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/176 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/192 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/208 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/224 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/240 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/256 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/272 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/288 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/304 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/320 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/336 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/352 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/368 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/384 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/400 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/416 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/432 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/448 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/464 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/480 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/496 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/512 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/528 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/544 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/560 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/576 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/592 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/608 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/624 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/640 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/656 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/672 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/688 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/704 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/720 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/736 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/752 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/768 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/784 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/800 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/816 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/832 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/848 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/864 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/880 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/896 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/912 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/928 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/944 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/960 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/976 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/992 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1008 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1024 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1040 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1056 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1072 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1088 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1104 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1120 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1136 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1152 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1168 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1184 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1200 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1216 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1232 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1248 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1264 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1280 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1296 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1312 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1328 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1344 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1360 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1376 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1392 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1408 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1424 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1440 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1456 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1472 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1488 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1504 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1520 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1536 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1552 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1568 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1584 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1600 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1616 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1632 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1648 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1664 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1680 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1696 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1712 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1728 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1744 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1760 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1776 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1792 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1808 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1824 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1840 (0.00s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1856 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1872 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1888 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1904 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1920 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1936 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1952 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1968 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/1984 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/2000 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/2016 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/2032 (0.01s)
+    --- PASS: TestNGNN1KernelRowsDifferential/2048 (0.01s)
+=== RUN   TestNGNN1KernelOutputDifferential
+=== RUN   TestNGNN1KernelOutputDifferential/16
+=== RUN   TestNGNN1KernelOutputDifferential/32
+=== RUN   TestNGNN1KernelOutputDifferential/48
+=== RUN   TestNGNN1KernelOutputDifferential/64
+=== RUN   TestNGNN1KernelOutputDifferential/80
+=== RUN   TestNGNN1KernelOutputDifferential/96
+=== RUN   TestNGNN1KernelOutputDifferential/112
+=== RUN   TestNGNN1KernelOutputDifferential/128
+=== RUN   TestNGNN1KernelOutputDifferential/144
+=== RUN   TestNGNN1KernelOutputDifferential/160
+=== RUN   TestNGNN1KernelOutputDifferential/176
+=== RUN   TestNGNN1KernelOutputDifferential/192
+=== RUN   TestNGNN1KernelOutputDifferential/208
+=== RUN   TestNGNN1KernelOutputDifferential/224
+=== RUN   TestNGNN1KernelOutputDifferential/240
+=== RUN   TestNGNN1KernelOutputDifferential/256
+=== RUN   TestNGNN1KernelOutputDifferential/272
+=== RUN   TestNGNN1KernelOutputDifferential/288
+=== RUN   TestNGNN1KernelOutputDifferential/304
+=== RUN   TestNGNN1KernelOutputDifferential/320
+=== RUN   TestNGNN1KernelOutputDifferential/336
+=== RUN   TestNGNN1KernelOutputDifferential/352
+=== RUN   TestNGNN1KernelOutputDifferential/368
+=== RUN   TestNGNN1KernelOutputDifferential/384
+=== RUN   TestNGNN1KernelOutputDifferential/400
+=== RUN   TestNGNN1KernelOutputDifferential/416
+=== RUN   TestNGNN1KernelOutputDifferential/432
+=== RUN   TestNGNN1KernelOutputDifferential/448
+=== RUN   TestNGNN1KernelOutputDifferential/464
+=== RUN   TestNGNN1KernelOutputDifferential/480
+=== RUN   TestNGNN1KernelOutputDifferential/496
+=== RUN   TestNGNN1KernelOutputDifferential/512
+=== RUN   TestNGNN1KernelOutputDifferential/528
+=== RUN   TestNGNN1KernelOutputDifferential/544
+=== RUN   TestNGNN1KernelOutputDifferential/560
+=== RUN   TestNGNN1KernelOutputDifferential/576
+=== RUN   TestNGNN1KernelOutputDifferential/592
+=== RUN   TestNGNN1KernelOutputDifferential/608
+=== RUN   TestNGNN1KernelOutputDifferential/624
+=== RUN   TestNGNN1KernelOutputDifferential/640
+=== RUN   TestNGNN1KernelOutputDifferential/656
+=== RUN   TestNGNN1KernelOutputDifferential/672
+=== RUN   TestNGNN1KernelOutputDifferential/688
+=== RUN   TestNGNN1KernelOutputDifferential/704
+=== RUN   TestNGNN1KernelOutputDifferential/720
+=== RUN   TestNGNN1KernelOutputDifferential/736
+=== RUN   TestNGNN1KernelOutputDifferential/752
+=== RUN   TestNGNN1KernelOutputDifferential/768
+=== RUN   TestNGNN1KernelOutputDifferential/784
+=== RUN   TestNGNN1KernelOutputDifferential/800
+=== RUN   TestNGNN1KernelOutputDifferential/816
+=== RUN   TestNGNN1KernelOutputDifferential/832
+=== RUN   TestNGNN1KernelOutputDifferential/848
+=== RUN   TestNGNN1KernelOutputDifferential/864
+=== RUN   TestNGNN1KernelOutputDifferential/880
+=== RUN   TestNGNN1KernelOutputDifferential/896
+=== RUN   TestNGNN1KernelOutputDifferential/912
+=== RUN   TestNGNN1KernelOutputDifferential/928
+=== RUN   TestNGNN1KernelOutputDifferential/944
+=== RUN   TestNGNN1KernelOutputDifferential/960
+=== RUN   TestNGNN1KernelOutputDifferential/976
+=== RUN   TestNGNN1KernelOutputDifferential/992
+=== RUN   TestNGNN1KernelOutputDifferential/1008
+=== RUN   TestNGNN1KernelOutputDifferential/1024
+=== RUN   TestNGNN1KernelOutputDifferential/1040
+=== RUN   TestNGNN1KernelOutputDifferential/1056
+=== RUN   TestNGNN1KernelOutputDifferential/1072
+=== RUN   TestNGNN1KernelOutputDifferential/1088
+=== RUN   TestNGNN1KernelOutputDifferential/1104
+=== RUN   TestNGNN1KernelOutputDifferential/1120
+=== RUN   TestNGNN1KernelOutputDifferential/1136
+=== RUN   TestNGNN1KernelOutputDifferential/1152
+=== RUN   TestNGNN1KernelOutputDifferential/1168
+=== RUN   TestNGNN1KernelOutputDifferential/1184
+=== RUN   TestNGNN1KernelOutputDifferential/1200
+=== RUN   TestNGNN1KernelOutputDifferential/1216
+=== RUN   TestNGNN1KernelOutputDifferential/1232
+=== RUN   TestNGNN1KernelOutputDifferential/1248
+=== RUN   TestNGNN1KernelOutputDifferential/1264
+=== RUN   TestNGNN1KernelOutputDifferential/1280
+=== RUN   TestNGNN1KernelOutputDifferential/1296
+=== RUN   TestNGNN1KernelOutputDifferential/1312
+=== RUN   TestNGNN1KernelOutputDifferential/1328
+=== RUN   TestNGNN1KernelOutputDifferential/1344
+=== RUN   TestNGNN1KernelOutputDifferential/1360
+=== RUN   TestNGNN1KernelOutputDifferential/1376
+=== RUN   TestNGNN1KernelOutputDifferential/1392
+=== RUN   TestNGNN1KernelOutputDifferential/1408
+=== RUN   TestNGNN1KernelOutputDifferential/1424
+=== RUN   TestNGNN1KernelOutputDifferential/1440
+=== RUN   TestNGNN1KernelOutputDifferential/1456
+=== RUN   TestNGNN1KernelOutputDifferential/1472
+=== RUN   TestNGNN1KernelOutputDifferential/1488
+=== RUN   TestNGNN1KernelOutputDifferential/1504
+=== RUN   TestNGNN1KernelOutputDifferential/1520
+=== RUN   TestNGNN1KernelOutputDifferential/1536
+=== RUN   TestNGNN1KernelOutputDifferential/1552
+=== RUN   TestNGNN1KernelOutputDifferential/1568
+=== RUN   TestNGNN1KernelOutputDifferential/1584
+=== RUN   TestNGNN1KernelOutputDifferential/1600
+=== RUN   TestNGNN1KernelOutputDifferential/1616
+=== RUN   TestNGNN1KernelOutputDifferential/1632
+=== RUN   TestNGNN1KernelOutputDifferential/1648
+=== RUN   TestNGNN1KernelOutputDifferential/1664
+=== RUN   TestNGNN1KernelOutputDifferential/1680
+=== RUN   TestNGNN1KernelOutputDifferential/1696
+=== RUN   TestNGNN1KernelOutputDifferential/1712
+=== RUN   TestNGNN1KernelOutputDifferential/1728
+=== RUN   TestNGNN1KernelOutputDifferential/1744
+=== RUN   TestNGNN1KernelOutputDifferential/1760
+=== RUN   TestNGNN1KernelOutputDifferential/1776
+=== RUN   TestNGNN1KernelOutputDifferential/1792
+=== RUN   TestNGNN1KernelOutputDifferential/1808
+=== RUN   TestNGNN1KernelOutputDifferential/1824
+=== RUN   TestNGNN1KernelOutputDifferential/1840
+=== RUN   TestNGNN1KernelOutputDifferential/1856
+=== RUN   TestNGNN1KernelOutputDifferential/1872
+=== RUN   TestNGNN1KernelOutputDifferential/1888
+=== RUN   TestNGNN1KernelOutputDifferential/1904
+=== RUN   TestNGNN1KernelOutputDifferential/1920
+=== RUN   TestNGNN1KernelOutputDifferential/1936
+=== RUN   TestNGNN1KernelOutputDifferential/1952
+=== RUN   TestNGNN1KernelOutputDifferential/1968
+=== RUN   TestNGNN1KernelOutputDifferential/1984
+=== RUN   TestNGNN1KernelOutputDifferential/2000
+=== RUN   TestNGNN1KernelOutputDifferential/2016
+=== RUN   TestNGNN1KernelOutputDifferential/2032
+=== RUN   TestNGNN1KernelOutputDifferential/2048
+--- PASS: TestNGNN1KernelOutputDifferential (0.24s)
+    --- PASS: TestNGNN1KernelOutputDifferential/16 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/32 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/48 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/64 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/80 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/96 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/112 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/128 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/144 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/160 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/176 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/192 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/208 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/224 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/240 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/256 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/272 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/288 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/304 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/320 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/336 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/352 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/368 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/384 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/400 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/416 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/432 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/448 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/464 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/480 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/496 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/512 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/528 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/544 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/560 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/576 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/592 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/608 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/624 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/640 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/656 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/672 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/688 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/704 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/720 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/736 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/752 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/768 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/784 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/800 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/816 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/832 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/848 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/864 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/880 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/896 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/912 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/928 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/944 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/960 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/976 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/992 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1008 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1024 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1040 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1056 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1072 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1088 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1104 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1120 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1136 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1152 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1168 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1184 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1200 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1216 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1232 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1248 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1264 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1280 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1296 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1312 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1328 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1344 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1360 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1376 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1392 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1408 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1424 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1440 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1456 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1472 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1488 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1504 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1520 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1536 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1552 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1568 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1584 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1600 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1616 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1632 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1648 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1664 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1680 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1696 (0.01s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1712 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1728 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1744 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1760 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1776 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1792 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1808 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1824 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1840 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1856 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1872 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1888 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1904 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1920 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1936 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1952 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1968 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/1984 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/2000 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/2016 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/2032 (0.00s)
+    --- PASS: TestNGNN1KernelOutputDifferential/2048 (0.00s)
+=== RUN   TestNGNN1OutputDispatchBounds
+--- PASS: TestNGNN1OutputDispatchBounds (0.00s)
+=== RUN   TestNGNN1AccumulatorFullInt16Range
+--- PASS: TestNGNN1AccumulatorFullInt16Range (0.08s)
+=== RUN   TestNGNNNullFrameOwnership
+--- PASS: TestNGNNNullFrameOwnership (0.84s)
+=== RUN   TestNGNN1Validation
+=== RUN   TestNGNN1Validation/magic
+=== RUN   TestNGNN1Validation/version
+=== RUN   TestNGNN1Validation/zero
+=== RUN   TestNGNN1Validation/unaligned
+=== RUN   TestNGNN1Validation/oversize
+=== RUN   TestNGNN1Validation/huge
+=== RUN   TestNGNN1Validation/qa
+=== RUN   TestNGNN1Validation/qb
+=== RUN   TestNGNN1Validation/scale
+--- PASS: TestNGNN1Validation (0.03s)
+    --- PASS: TestNGNN1Validation/magic (0.00s)
+    --- PASS: TestNGNN1Validation/version (0.00s)
+    --- PASS: TestNGNN1Validation/zero (0.00s)
+    --- PASS: TestNGNN1Validation/unaligned (0.00s)
+    --- PASS: TestNGNN1Validation/oversize (0.00s)
+    --- PASS: TestNGNN1Validation/huge (0.00s)
+    --- PASS: TestNGNN1Validation/qa (0.00s)
+    --- PASS: TestNGNN1Validation/qb (0.00s)
+    --- PASS: TestNGNN1Validation/scale (0.00s)
+=== RUN   TestNGNN1ArithmeticLimits
+--- PASS: TestNGNN1ArithmeticLimits (0.00s)
+=== RUN   TestNGNN1IncrementalRandomGames
+    ngnn1_test.go:259: 6313 random legal plies and inverse transitions, with null moves
+--- PASS: TestNGNN1IncrementalRandomGames (0.06s)
+=== RUN   TestNGNN1SpecialMoves
+--- PASS: TestNGNN1SpecialMoves (0.07s)
+=== RUN   TestNGNN1OracleAndMirror
+--- PASS: TestNGNN1OracleAndMirror (0.12s)
+=== RUN   TestNGNN1TrainerParity
+--- PASS: TestNGNN1TrainerParity (0.00s)
+=== RUN   TestNGNN1SearchSmoke
+--- PASS: TestNGNN1SearchSmoke (0.22s)
+=== RUN   TestNGNN1WriteProbeNetwork
+    ngnn1_test.go:462: set NGN_NETINFER_NET_PATH to export the NGN random H=256 probe network
+--- SKIP: TestNGNN1WriteProbeNetwork (0.00s)
+=== RUN   TestNGNN1UCIOptionsAndFailClosed
+--- PASS: TestNGNN1UCIOptionsAndFailClosed (0.00s)
+=== RUN   TestNGNN1UCITransitionsAndModelIdentity
+--- PASS: TestNGNN1UCITransitionsAndModelIdentity (0.04s)
+=== RUN   TestNGNN2Validation
+--- PASS: TestNGNN2Validation (0.14s)
+=== RUN   TestNGNN2BucketsAndSingleBucketEquivalence
+--- PASS: TestNGNN2BucketsAndSingleBucketEquivalence (0.10s)
+=== RUN   TestNGNN2BucketKernelRows
+--- PASS: TestNGNN2BucketKernelRows (0.07s)
+=== RUN   TestNGNN2CaptureBoundaryAndSpecialMoves
+--- PASS: TestNGNN2CaptureBoundaryAndSpecialMoves (0.02s)
+=== RUN   TestNGNN2TrainerParity
+    ngnn2_test.go:294: 64 exact trainer cases, H=32 NB=8 kernel=go
+--- PASS: TestNGNN2TrainerParity (0.00s)
+=== RUN   TestNGNN2UCIAndFailClosed
+--- PASS: TestNGNN2UCIAndFailClosed (0.00s)
+=== RUN   TestNGNN2SearchWorkers
+--- PASS: TestNGNN2SearchWorkers (0.02s)
+=== RUN   TestNGNN3Validation
+--- PASS: TestNGNN3Validation (0.34s)
+=== RUN   TestNGNN3KingTransitionsAndSpecialMoves
+--- PASS: TestNGNN3KingTransitionsAndSpecialMoves (0.02s)
+=== RUN   TestNGNN3RandomGamesAndSymmetry
+    ngnn3_test.go:408: 2929 king moves, 2198 bucket/mirror transitions
+--- PASS: TestNGNN3RandomGamesAndSymmetry (0.31s)
+=== RUN   TestNGNN3TrainerParity
+    ngnn3_test.go:461: 320 exact trainer cases, H=32 KB=8 NB=8 kernel=go
+--- PASS: TestNGNN3TrainerParity (0.00s)
+=== RUN   TestNGNN3UCIWorkersAndReload
+--- PASS: TestNGNN3UCIWorkersAndReload (0.05s)
+=== RUN   TestNGNN4InputPackDifferential
+--- PASS: TestNGNN4InputPackDifferential (0.00s)
+=== RUN   TestNGNN4LinearDifferential
+--- PASS: TestNGNN4LinearDifferential (0.54s)
+=== RUN   TestNGNN4OutputDifferential
+--- PASS: TestNGNN4OutputDifferential (0.00s)
+=== RUN   TestNGNN4RowAffineDifferential
+--- PASS: TestNGNN4RowAffineDifferential (0.49s)
+=== RUN   TestNGNN4Validation
+--- PASS: TestNGNN4Validation (0.00s)
+=== RUN   TestNGNN4LayerBoundsAndScalar
+--- PASS: TestNGNN4LayerBoundsAndScalar (0.29s)
+=== RUN   TestNGNN4IncrementalAndReload
+--- PASS: TestNGNN4IncrementalAndReload (0.05s)
+=== RUN   TestNGNN4TrainerParity
+    ngnn4_test.go:281: 320 exact NGNN4 trainer cases
+--- PASS: TestNGNN4TrainerParity (0.01s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	4.581s

@@ -1,10 +1,411 @@
-# NGN current state — September 19 Sol structural-strength handoff
+# NGN live state — 2026-10-19: 3600 campaign
 
-N1 now has one bounded [SF18 BIG/dual feasibility study](experiments/2026-10-23-sf18-dual-feasibility/README.md),
-following P1's recorded prototype-admission disposition. Offline legal-trace
-operation/memory bounds and the independent oracle contract are complete;
-exact model/license receipts, donor parity and runtime measurements remain
-prerequisites to incorporation. No production evaluator or search change.
+[Campaign](experiments/2026-10-08-3600-campaign.md) owns queue and handles.
+Accepted **e8be8f2/81215229/compiled warm2000** unchanged. Warm24k and
+qsearch are completed keeps;never retune/regate. All compute onrig;
+forge storage/transfer only. Plan throughOctober19 10:25 governs;
+no pull/fetch/push/publication.
+
+**Attempt002 screen PASS07:49:05EDT October19:**320games/160pairs,
+60W150D110L,pooled **3582.3957[3541.8307,3622.9607]**,bracketed,
+audit admitted,zero faults/exclusions. Frozen point>=3555 rule met;
+this admits confirmation,supplies no3600 claim. No pooling with001.
+Original detached **382077/ngn-s117-chain-retarget.scope** starts
+confirmation **542775**,fixed640/120+1/strictlower95>3600/bracketed/
+zero faults.134/640 at21:57,progress only;no terminal analysis.
+Sourcee8be8f2,binary7c7fa0b2,
+net81215229,warm2000,tool24233a10;receipt e69dbfbb,seal cb0af2cf.
+Exclusive0–15,nice19,noCPUquota,physical8/GOMAXPROCS8/Hash256.
+Monitor390546 remains descriptive only. No other compute during claim.
+**Next session: not before19:45 EDT October21.** ETA60–70h from start;
+read`session117/result.json`,status tail,then completed confirmation
+`claim-v4-20261016/attempt-002/confirmation/analysis.json`. No restart from
+ETA;no session-side polling. GOAL_MET requires that completed analysis.
+
+Clean failed confirmation resumes continuation,pawn,ProbCut serially
+on0–11/c6,logistic[0,5]/min1000/cap8000/reusedA/A. Clean shelves advance;
+KEEP/PROVISIONAL/fault stops for review/adoption/retarget. Three clean
+shelves release S5's unchanged fixed40 timing;S6 remains unarmed until
+S5 review. New-base full checks naturally PASS04:52:54October19,
+S5/S6 60 identities each;reuse until accepted base changes. Local topics
+`/private/tmp/ngn-s117-{continuation,epilogue}` remain uncommitted;
+durable patches committed. Prepared code queue is full.
+
+Data **CALIBRATED_CAPACITY_HOLD**:frozen107residues/expected987.322M,
+cap1B,scale0.9998157766,admission67.03899GiB. C:**44.835117GiB**,
+deficit**22.203871GiB** before approved compaction. Rig stays untouched
+until confirmation terminal/result. Then compact at a quiet boundary with
+no NGN job running;enable sparse mode,restart WSL/keepalive;leave hopper
+stopped and tell Bryan. If fallback games start,let them finish naturally.
+No bulk/training,inventory,download or cleanup. Once capacity fits AND
+claim ends:unchanged sample/gather,
+T80/T76 overlap,unchanged115-epoch manifest,thenGPU. GPU idle permitted;
+WDL.25 disarmed;hopper1188 untouched;host floor25GiB.
+
+Goal unmet;provenance H0 separate debt. Attempt001 stays failed under its
+original rule. [Session137](experiments/2026-10-19-session137.md),
+[checkpoint](experiments/2026-10-19-session137-results/checkpoint.json).
+
+# Previous live state — 2026-10-07: 0.3.0 release candidate
+
+**Goal (user, stop-hook enforced): NGN over 3000 Elo with NO third-party scaffolding.**
+Banned (user, 2026-10-06): wholesale copying of other people's code or NNUE nets.
+Third-party-evaluated positions (e.g. Leela/Stockfish binpacks) are allowed training
+data. Published ideas are fine; third-party engines appear only as measurement
+opponents/oracles outside the binary. Work is done by Sol sub-agents (gpt-6.1-sol via wingthing); all
+execution on the WSL box; the Mac runs nothing.
+
+**Claim passed:** the v2 protocol's 120+1 confirmation pooled
+**3461.56 [3429.68, 3493.43]** over 640 games against Counter 3.8/5.5,
+Maelstrom 3.3 and Viridithas 10 (fixed CCRL Blitz 1CPU labels), scores
+bracketing 50%, zero exclusions. Local historical-label calibration, not an
+official rating. See [the claim result](experiments/2026-10-07-3000-claim-result.md).
+
+**Release candidate `release/0.3.0`:** the claimed H512 net embedded
+(`engine/nets/ngn-h512-c6c12796.nnue`), UseNNUE default true, version 0.3.0,
+author Bryan Ehrlich, GOMAXPROCS follows Threads, docs/notices corrected, and
+one audited correctness fix (move-loop clock stop no longer stores partial TT /
+correction-history results; non-regression +7.8 [−11, +26]). Embedded default
+is node-identical to the claimed EvalFile configuration. See
+[the release record](experiments/2026-10-07-release-0.3.0.md).
+
+Ranked queue:
+1. Published 0.3.0 on 2026-10-07; CCRL follow-up
+   https://kirill-kryukov.com/chess/discussion-board/viewtopic.php?p=155627#p155627.
+2. gen1 owned self-play with the H512 net, then train and gate the next
+   generation; retain finished gen0/gen0b and holdout.
+3. Retune placeholder search constants by NGN games; consider a movestogo≤3
+   time cap (currently bank − 200 ms) with real-clock repeating-TC games.
+
+Everything below is historical evidence from before the independence reset.
+
+# Current independent HCE release candidate — 2026-10-01
+
+Prioritize a reviewed, usable independent runtime release; defer Elo work.
+The old HCE/tables, Counter draw factor, magic constants and all NNUE/reference
+evaluator packages/adapters are removed. All seven identified Zahak core
+components have been independently regenerated. Canonical MIT Polyglot data and
+historical notices remain. Correctness/race/dependency evidence is recorded in
+experiments/2026-10-01-original-hce-release. Prepare exact matching packages;
+public release, tag/merge and CCRL resubmission await concrete review/authority.
+
+The older notebook below is historical; its models, tools, ratings and queued
+research are not the current runtime or an instruction to resume Elo work.
+
+# Private recovery branch — 2026-10-01
+
+This task branch adds named attribution before deleting Rodent/K4 runtime and
+generation paths, selects locked HCE, and replaces piece/square/move primitives
+from independent interface contracts. Its hidden compatibility, HCE node/score
+and perft proofs and required short/race regressions pass. Existing owned
+benchmarks, default branches and published history are preserved. Remaining
+work: PeSTO values/permission, reference-backend and
+other provenance gates, and a separately validated original evaluator. No
+current rating or release/submission authority is inferred from these checks.
+Details: experiments/2026-10-01-attribution-first-runtime-cleanup/report.md.
+
+# NGN current state — September 30
+
+September 28 continuation: the night PGNs/hashes were independently recounted;
+M11's +34.9 result is supported. The private research branch is pushed. A
+receiver-local K4 score-scale fix passes required WSL short/race suites and
+88-position, three-round depth-12 identity at scale 60. Owned-profile Linux/Windows
+v3 packages are publicly released; existing installations remain the older
+classical build. The user authorized all three
+overnight outcomes: stronger owned weights, broader competitive measurements,
+and a usable validated configuration. See the [September 30 morning assessment](experiments/2026-09-30-owned-morning-status.md),
+the [September 29 assessment](experiments/2026-09-29-owned-morning-status.md)
+and [full state review](experiments/2026-09-28-owned-nnue-state-review.md).
+
+Fresh independent reference: WDL25 beats borrowed V1.2 by **+27.85
+[12.60,43.22]** over 800 audited games. WDL40 is **shelved** after its fixed
+1,600-game gate at **−8.69 [−18.69,+1.30]**. Recovered pure-score e20 is also
+**shelved**: its independently controlled 800-game gate ended at **−10.86
+[−24.80,+3.04]** versus WDL25. All owned gates passed legal, operational and
+process audits. WDL25 remains selected. The e20 comparison changes both the
+result-weight recipe and the update count; it does not isolate training duration.
+
+The first completed 400-game long-clock Counter cell remains **unscored** after
+its final draw-PV trace rejection. A separately proved, fingerprinted Counter
+compatibility checker has positive and negative controls. The fresh queue
+completed its new 80-game 60+0.6 A/A and full 400-game anchor at 14:16 UTC:
+WDL25 scored **214W/151D/35L, 72.375%, +167.31 [144.10,192.01]** against
+the exact native Counter 5.5 artifact. All audits pass over 69,062 legal plies,
+and the full records are hash-verified off-worker. This supports the 3500
+ballpark; Counter's author-published 3333 plus the match interval gives
+[3477,3525] before clock/rating-pool uncertainty and does not establish a
+3500 floor. No old or partial cell is pooled. Native Rodent stays held: the saved malformed-promotion warning
+did not reproduce and its mechanism remains unproved.
+
+Actual owned-profile Linux and native Windows `0.2.0-rc.1` executables passed
+outside-directory startup, missing-model failure, version output and Threads=8
+stop/restart/newgame/reconfiguration checks. All 88 configured depth-12 results
+match the accepted gate binary exactly. See [release procedure and receipts](docs/RELEASING.md).
+The user approved GPL-3.0-only for NGN's original code and WDL25 network and
+the exact public-release text. [v0.2.0-rc.1 is published](https://github.com/ehrlich-b/ngn-releases/releases/tag/v0.2.0-rc.1)
+with both binaries, corresponding source, original model checkpoint, complete
+training alteration method, playing evidence and preserved notices. All eight
+remote asset hashes match; an anonymous Windows download contains the verified
+executable and exact selected net. There is no official CCRL rating or confirmed
+>3500 claim. See the [publication receipt](experiments/2026-09-29-owned-release-publication.json).
+
+The separately frozen [WDL15 experiment](experiments/2026-09-29-owned-wdl15-plan.json)
+passed real GPU smoke/resume, mutually exclusive flag and mismatched-weight
+resume controls and completed at 10:34 UTC. Its final 1,638,400-update checkpoint
+passed export parity; every checkpoint file and the net are hash-verified off
+the worker. After the fresh Counter queue, its 128-game A/A passed with a paired
+score interval containing 50%. The full 800-game gate completed at 15:45 UTC:
+**170W/480D/150L, +8.69 [−3.91,+21.31]** versus WDL25. All 119,280 plies,
+operational and process audits pass; independent PGN recount and off-worker
+hash checks match. **Shelve WDL15 and retain WDL25** under the fixed positive
+lower-bound rule; a small benefit remains unresolved. No extension or pooling.
+All continuation training/matches are complete. At 15:58 UTC there are no
+chess processes, C: has 30.01 GiB free, and Docker, both current hopper workers
+and the relay are running.
+
+The user continued the still-open >3500 goal. A separate [owned SMP plan](experiments/2026-09-29-owned-smp-plan.json)
+now freezes width 2 versus 1, then width 4 versus the immediately accepted
+width, each with 128 A/A and 800 scored games. It uses the exact public Linux
+binary/WDL25, Hash 256, real clocks and disjoint physical CPU teams. All new
+negative/live controls and the unchanged release's full short race suite pass;
+fresh two/four-worker procedure smokes pass all legal/process/operational audits.
+Per-go configured/effective worker receipts prove actual helper admission,
+including strict separation from Threads option acknowledgements. Fixed-node
+budgets are rejected because that search path deliberately uses one worker.
+See [validation and copied records](experiments/2026-09-29-owned-smp-validation.json).
+The original rejected smoke is preserved unscored. The two-core 128-game A/A
+passed at **+5.43 [−24.47,+35.41]**. Its full 800-game gate then accepted width
+two: **262W/453D/85L, +78.16 [64.57,91.52]** versus width one, with all 121,603
+plies and operational/process audits passing. The raw records are hash-verified
+off-worker and the independent PGN recount matches; see the [two-core result](experiments/2026-09-29-owned-smp-width2-result.json).
+The four-core A/A completed. Its fixed 800-game comparison against width
+two stopped at September 30 02:07 UTC when physical C: space crossed the
+25 GiB floor. Preserve that incomplete cell **unscored**; width two remains
+selected, and there is no accepted four-core playing-strength result.
+These relative cells cannot
+be added to the old Hash-128 external anchor. The queue retains the 25 GiB
+physical disk floor and ends by September 30 at 10:00 UTC.
+
+A separately frozen [two-core Counter calibration](experiments/2026-09-29-owned-smp-counter-plan.json)
+started at 20:30 UTC on the spare physical cores 12 and 14. Its extended
+instrument retains the exact Counter draw-PV checker and independently
+witnesses each role's CPU mask and GOMAXPROCS. All eight negative/live controls
+pass. The eight-game procedure smoke completed and passed. Its fresh 128-game
+A/A reached the fixed four-hour stage timeout on September 30 at 00:54 UTC;
+the queue failed, and the 400-game Counter anchor was never launched.
+The supervisor confirms no surviving processes, and the stopped unit has
+MainPID=0. Preserve the incomplete A/A **unscored**, without restarting,
+extending or pooling it with the earlier one-core anchor. The saved failure
+receipt and copied records are [hash-verified off-worker](experiments/2026-09-30-owned-smp-counter2-failure.json).
+This queue provides no playing-strength result or official list rating.
+The [read-only validation recheck](experiments/2026-09-29-owned-smp-counter-validation.json)
+matches all 29 frozen source files and the local controller/plan to the running queue.
+
+A fresh [Maelstrom v3.3.0 benchmark](experiments/2026-09-30-owned-maelstrom-plan-v2.json)
+started on September 30 at 01:31 UTC, with a 13:00 UTC (9 a.m. EDT) deadline.
+It uses the unchanged public NGN/WDL25 binary versus a pinned, unmodified Linux
+build of Maelstrom, Hash 128, 10+0.1 and two simultaneous games on physical
+CPUs 12 and 14; both roles receive one CPU and GOMAXPROCS=1 per game.
+Its eight-game procedure smoke passed over 970 legal plies, and its fresh
+128-game A/A passed all audits with the paired interval containing parity.
+The 400-game external comparison stopped at 02:08 UTC when physical C: space
+crossed the 25 GiB floor; preserve the incomplete comparison **unscored**.
+All 47 Python controls, including a
+live owned-release startup regression, and the WSL short race suite pass;
+[all 31 harness files match their frozen receipts](experiments/2026-09-30-owned-maelstrom-validation-v2.json).
+The first procedure attempt started no games: the one-worker harness staged
+the release network under the wrong filename. That
+[rejection is preserved unscored](experiments/2026-09-30-owned-maelstrom-startup-rejection.json);
+the corrected instrument used a fresh plan and opening slice. No external
+benchmark result is available, and this comparison cannot confer an official rating.
+Both capacity-stopped cells have [copied, hash-verified records and clean
+process-supervisor termination receipts](experiments/2026-09-30-owned-match-capacity-failures.json).
+The approved read-only WSL compaction/restoration procedure completed at
+02:30 UTC. Physical C: space rose from 24.903 to 27.117 GiB; Docker, both
+hopper workers, relay and keepalive are restored. See the [maintenance
+receipt](experiments/2026-09-30-owned-storage-maintenance.json). New matches
+need a fresh capacity receipt and a validated reduction in trace/tool writes.
+
+A [fresh morning Maelstrom trial](experiments/2026-09-30-owned-maelstrom-plan-v3.json)
+started at 03:17 UTC. The corrected storage instrument buffers full traces on
+RAM, saves them losslessly compressed before unchanged audits, and shares one
+read-only private copy of audit tools. All [55 Python controls and the WSL full
+short race suite pass](experiments/2026-09-30-owned-storage-instrument-validation.json).
+The new fixed opening draw is disjoint within these trials; historical corpus
+entries may recur, and no old games are pooled. Both four-core procedure cells
+passed all audits over 1,199 legal plies, with full traces hash-verified off-worker;
+the [fresh four-versus-accepted-two trial](experiments/2026-09-30-owned-smp-width4-plan.json)
+started at 03:27 UTC. The native Maelstrom procedure is [preserved unscored](experiments/2026-09-30-owned-maelstrom-draw-pv-rejection.json):
+strict fastchess rejected PV continuations after threefold repetition. Prove
+exact-artifact draw-PV compatibility controls before admitting any fresh benchmark.
+Those [independent compatibility controls now pass](experiments/2026-09-30-owned-maelstrom-compatibility-validation.json):
+all 31 saved warnings have legal history/PV moves and the exact first drawn
+boundary, all 13 changed negative fixtures reject, and all 61 Python controls
+plus the WSL short race suite pass. The separate [fresh Maelstrom trial](experiments/2026-09-30-owned-maelstrom-plan-v4.json)
+started at 03:44 UTC with disjoint new morning openings, a new procedure and
+128-game A/A before its fixed 400-game anchor. Both controls now pass: the
+Maelstrom procedure covers 1,045 legal plies, and its A/A covers 19,403 plies
+with a paired score interval containing parity. The 400-game anchor started
+at 04:20 UTC and completed at 06:02 UTC: **261W/125D/14L, 80.875%,
++250.49 [223.69,280.11]** versus the unmodified pinned Maelstrom v3.3.0 build,
+one physical CPU per game, Hash128 and 10+0.1. All 58,590 legal plies and
+operational/process audits pass; independent WSL color-pair/penta recounts
+and all 182 copied record hashes match. See the [completed result](experiments/2026-09-30-owned-maelstrom-result.json).
+This is a second independently controlled external win, not an official CCRL
+rating, a world rank or a transfer of its list Elo to this clock.
+The four-core A/A also passed over 18,920 plies with parity in
+its interval. The 800-game four-versus-two gate started at 04:34 UTC and
+stopped at 08:31 UTC when physical Windows free space crossed the 25 GiB floor.
+It remains [unscored](experiments/2026-09-30-owned-smp-morning-capacity-failure.json):
+the supervisor terminated cleanly with no surviving processes, and all 122
+preserved record hashes and both full lossless traces verify off-worker.
+No prior cell becomes scored. A [live, byte-preserving tool deduplication](experiments/2026-09-30-owned-terminal-tool-dedup.json)
+reclaimed 3.333 GiB of Linux file allocation in terminal cells without stopping
+services or matches; physical C: headroom stayed at 25.772 GiB, so no physical
+Windows recovery is claimed.
+The September 30 13:00 UTC deadline and both final caps remain unchanged.
+Retain accepted width two; no partial four-core strength result is admitted.
+Both chess units are terminal. The [approved morning compaction and restoration](experiments/2026-09-30-owned-morning-storage-restoration.json)
+succeeded, restoring Docker, both hopper workers, the relay and keepalive.
+The [top-three Go goal](experiments/2026-09-30-owned-top3-go-goal.json) now has a
+[fresh native Zahak 10 trial](experiments/2026-09-30-owned-top3-zahak-plan-v3.json)
+running at 120+1, one physical CPU and Hash128 each. The
+[12-game smoke and fresh 128-game A/A passed](experiments/2026-09-30-owned-top3-zahak-controls.json);
+the single fixed 400-game anchor is now running. The strict first smoke stopped
+unscored on a fully legal post-fifty-move analysis continuation. The
+[exact-artifact rule](experiments/2026-09-30-owned-top3-zahak-compatibility.json)
+passes 13 rejection cases, the preserved positive fixture, both Python control
+suites and the full WSL short race suite. All new six-ply prefixes are disjoint
+from the complete declarations of both recent morning trials and the first
+Zahak attempt; no stopped games are pooled.
+[Lossless preservation and approved compaction](experiments/2026-09-30-owned-top3-capacity-restoration.json)
+restored both hopper workers, Docker, relay and keepalive, with 125.745 GiB of
+physical C: free space measured afterward. Gathered training/validation corpora,
+models and checkpoints stay on WSL; old scatter intermediates have a fully
+verified off-worker archive and recorded restoration steps. Keep the ongoing
+25 GiB guard. [Rodent and GoChess mechanism evidence](experiments/2026-09-30-owned-top3-frontier-mechanisms.json)
+includes verified GoChess NNUE activation; their native calibration remains
+part of the wider frontier. No new source or network strength change is promoted.
+
+**Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
+WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
+A1 corpus and schedule with the game-result weight ramped 0→0.25) with
+`EvalBackend ngn-k4-768-v1` and **`K4EvalScale 60`**, on source at or after
+`ccfb56a`. It beat borrowed Rodent V1.2 by **+34.9 Elo [+20.0, +49.4]** (M11,
+800 games, same engine, 10+0.1) and A1-e10 by +20.9 [+7.8, +34.0] (M6). This is
+relative evidence; the separate native Counter anchor supports the current
+rating orientation, but there is no official list rating. The
+separate owned release profile selects this net and scale automatically; ordinary
+development startup retains its explicit research defaults. Full record:
+[the night session](experiments/2026-09-27-owned-nnue-night.md).
+
+- A1 (Sep 24, rescued from a purged `/tmp` worktree and committed): +57.9 vs
+  borrowed Rodent V1.1 at 10+0.1.
+- S1 accepted (pure speed): exact int16 accumulators and V1.2 kernels, identical
+  search, 1.162x faster; K4 now ~102% of V1.2's in-game NPS.
+- E1 **adopted**: K4 scores were ~1.7x the HCE/V1.2 centipawn scale all search
+  margins assume; `K4EvalScale 60` gained **+15.2 Elo [+1.3, +29.6]** (800
+  games). Research default stays 100 and the owned release profile uses 60;
+  one value tested, so it is sanctioned, not tuned.
+- External anchor M5: earlier **A1-e10** at scale 60 scored **73.5%, +177 Elo
+  [+151, +205]** against the exact Counter 5.5 release (400 games, run-003
+  settings); paired with run-003's NGN-Rodent-V1.1 result, +0.194 score
+  [+0.148, +0.240]. Relative, shared host, one opponent; not a list rating.
+- Shelved (800 games each, predeclared rule): K8 buckets +4.8 [−10.0, +19.6];
+  1024 hidden +2.6 [−11.7, +17.4]. These trials did not earn promotion;
+  several-Elo capacity effects remain unresolved.
+- Vs Rodent V1.2 before E1 (200 games): +15.6 [−12.2, +43.7], parity.
+
+**September 28 storage maintenance:** the user approved a brief interruption;
+read-only compaction reduced the VHDX from 430.078 to 380.702 GiB and C: had
+53.365 GiB free afterward. Docker, the hopper's two worker tasks, relay and
+keepalive are restored; no reboot was needed. Small-write runs require at
+least 25 GiB physical C: headroom. The 350GB data expansion is still blocked.
+The Windows
+scheduled task `ngn-wsl-keepalive` (`wsl.exe -e sleep infinity`) keeps the
+distro alive for SSH-launched `systemd-run --user` units; without it the
+distro stops when the last `wsl.exe` client exits.
+
+**Night gates are all complete** (M4 K8+W1024 shelved at +10.9 [−3.0, +24.8];
+see the summary table in the night record). Artifacts are under
+`/home/ehrli/nnue-owned-k4-20260920/night-20260927/`.
+Several gate attempts were cut short by the shutdowns and are preserved as
+`*-aborted-*`, unscored. The e20 resume exposed four hash failures in
+`candidate-2375680`; it cannot be resumed under its original receipt. All files
+in the preceding `candidate-2359296` match their receipts, and the unchanged
+original trainer completed from that parent at the same fixed final update cap.
+See the [integrity audit](experiments/2026-09-28-owned-e20-parent-integrity.json).
+
+**Next after the completed bounded continuation:**
+
+1. Measure owned multicore playing strength and broaden independent, longer-clock
+   anchors in the target rating pool. Width-eight lifecycle checks are complete;
+   further owned SMP gains and a confirmed >3500 floor remain unmeasured. A public tested
+   Windows release is available. Bryan's approved testing request was submitted
+   to CCRL Public on September 30 at 00:47 UTC, including interest in the 127th
+   Amateur Series and disclosure of AI tools used in engine development. The
+   request is now [publicly visible](https://kirill-kryukov.com/chess/discussion-board/viewtopic.php?t=19325)
+   in a guest view, checked September 30 at 03:49 UTC; no replies yet. See the
+   [public-topic receipt](experiments/2026-09-30-ccrl-public-topic.json). Do not resubmit.
+2. Data scale, the documented next A1 step, blocked on disk. The code is ready
+   in `613dc0f`: `ngnk4archive scatter` accepts the four pinned farseer
+   binpacks (same HF revision as T80), takes a key-hashed
+   `--keep-per-mille` sample, and records score-bin × result counts;
+   `gather` merges `DIR@RAW_SCALE` inputs; `fit_source_scale.py` fits each
+   source's raw scale to T80's score/result logistic slope. The binpacks were
+   deleted for space; re-download them (`data-farseer-20260928/download.sh`,
+   HTTP/1.1, resume, SHA check). A 150‰ farseer sample plus T80 is ~6.4B
+   records and needs ~350 GB of scatter plus gather space. Then train at the A1
+   schedule and gate against the current owned reference at scale 60. Consider a fresh SF18 calibration
+   sample per producer if the logistic scales disagree strongly.
+3. WDL15, WDL40 and pure-score e20 gates are complete and shelved. Retain the
+   original WDL25 reference. Consider stacking K8 or W1024 only if the data-scale lane
+   shows capacity starting to bind. A 200-game screen of WDL25 at
+   `K4EvalScale 50` vs 60 was −6.9 [−33, +19], so another scale gate is low
+   priority.
+4. Search-margin retuning for the NNUE eval, which is games-heavy; consider only
+   after data scale.
+
+# Earlier state — September 23 owned-NNUE continuation
+
+The user reopened owned-NNUE research toward at least 3000, superseding the
+September 13 deferral in `CLAUDE.md`. The original 20M K4 model scored
+323.5/400 versus HCE at 30+0.3, then 34.5/200 versus borrowed Rodent V1.1
+Anand at 10+0.1 in the same engine (−272 relative Elo, paired 95% interval
+[−319, −230]). The short-cosine checkpoint improved validation loss but has no
+game-strength promotion. A same-opening 200-game equal-node follow-up scored
+37/200 (18.5%), versus 17.25% under the clock; the paired difference interval
+is [−3.75, +6.5] percentage points. The large Rodent gap persists with equal
+nodes. Selected models and checkpoints and all three match archives have
+verified off-worker copies. The [current diagnosis and next
+gate](experiments/2026-09-23-owned-nnue-next-step-diagnosis.md) takes priority
+for this owned-NNUE lane: audit match-reached errors and sibling move ranking,
+then compare a small existing scored-data shard at equal size before a longer
+data run. Absolute 3000 remains unmeasured.
+
+## Earlier N1 richer-model lane
+
+P1-R1's valid 128-game pilot on its isolated branch scored 56.5/128 with a
+paired-bootstrap 95% Elo interval of `[-71.57,-10.86]`; the frozen rule shelves
+it without confirmation or rerun. Its candidate engine code remains isolated
+from `main`. N1 is therefore the active architectural lane. The first bounded
+[N1 feasibility slice](experiments/2026-09-20-n1-sf18-feasibility/README.md)
+selects Stockfish 18 BIG/dual over Berserk 14: the exact Berserk network lacks
+an explicit model-license/provenance binding, while the official SF18 BIG file
+is hash/size-bound under CC0 and NGN's strict loader is already validated.
+N1a adds no search wiring; it proves a trace-free material-selected SMALL head
+against 145 full-refresh and 703 incremental upstream rows. The selected output
+is 15.22x faster from live incremental state than the old all-eight-head oracle.
+N1b is now complete as well: scalar BIG base/threat accumulators, FullThreats
+enumeration/diff, transform and selected output match pinned Stockfish across
+1,203 rows. Representative game prefixes have median 36 active and 7 changed
+threat rows per perspective; refreshes are bounded and rare. The scalar
+measured-kernel ceiling is finite but far too expensive for eager edge updates.
+Next is N1c only: a non-search-integrated demand-driven BIG context with lazy
+donor updates and no full-frame copying. No engine integration, games, default
+change or 3300 claim is authorized by this feasibility result.
+
+# September 19 Sol structural-strength handoff
 
 **Current handoff / ranked next work:** the user requested a full fix plan for
 resuming the 3300 goal with Sol. Follow
@@ -522,3 +923,11 @@ Search/eval heuristics need completed predeclared paired games against their
 immediate base. Proxies do not establish Elo. A correctness repair with several
 interacting entry points may use an explicitly combined integration test, but
 must not claim per-fix Elo from the combined result.
+
+Private cache replacement is now verified against replay and HCE node/perft identity; required regression/race checks passed. Evidence: experiments/2026-10-01-independent-cache/report.md.
+
+Private hash replacement is verified against key/move/null/EP and HCE node/perft controls; required short/race checks passed. Evidence: experiments/2026-10-01-independent-hash/report.md.
+
+Private board replacement passed occupancy/castling/accumulator, hash/HCE and all required short/race controls. Position is the remaining credited Zahak core implementation. Evidence: experiments/2026-10-01-independent-board/report.md.
+
+Private position replacement passed move/undo/null/EP/castling/promotion/repetition/copy/draw, prior board/hash/HCE and all required short/race controls. All seven identified Zahak core components are replaced. Evidence: experiments/2026-10-01-independent-position/report.md. Remaining source/data provenance questions are still open.

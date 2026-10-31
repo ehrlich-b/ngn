@@ -1,51 +1,16 @@
-/*
-https://github.com/amanjpro/zahak/?tab=MIT-1-ov-file#readme
-MIT License
-
-Copyright (c) 2021 Amanj Sherwany
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-
 package engine
 
 import (
+	"math/bits"
 	"sync"
-	"unsafe"
-	// 	"fmt"
 )
-
-type CachedEval struct {
-	Key  uint64 // 8
-	Data uint64 // 8
-	// Plain uint64 fields preserve the 16-byte record and historical direct-mode
-	// cost. TTSynchronized protects the whole key/data record with one stripe;
-	// callers must never read or update its fields separately while shared.
-	// The XOR relation (Key=Data^hash) remains the collision checksum.
-}
 
 type NodeType uint8
 
 const (
-	Exact      NodeType = 1 << iota // PV-Node
-	UpperBound                      // All-Node
-	LowerBound                      // Cut-Node
+	Exact      NodeType = 1
+	UpperBound NodeType = 2
+	LowerBound NodeType = 3
 )
 
 type TTMode uint8
@@ -55,11 +20,25 @@ const (
 	TTSynchronized
 )
 
-const ttStripeCount = 256
+const (
+	DEFAULT_CACHE_SIZE        = 128
+	ttWays                    = 4
+	ttRecordBytes             = 16
+	ttStripeCount             = 256
+	ttMoveMask         uint64 = 1<<27 - 1
+	ttOccupied         uint64 = 1 << 61
+)
 
-// Cache must not be copied after first use because synchronized mode owns mutexes.
+// A cluster contains four full-key records in 64 bytes. The engine's valid
+// moves use 27 bits. Full keys avoid introducing truncated-key false hits.
+// Payload: score[0:16], depth[16:23], generation[23:31], PV[31],
+// move[32:59], bound[59:61], occupied[61]. The last two bits are unused.
+// This layout and retention rule were designed for NGN, without source code
+// from another engine. Clusters and depth/recency preference are public ideas.
+type ttRecord struct{ hash, payload uint64 }
+
 type Cache struct {
-	items   []CachedEval
+	items   []ttRecord
 	size    int
 	length  uint64
 	mask    uint
@@ -69,187 +48,161 @@ type Cache struct {
 	stripes [ttStripeCount]sync.Mutex
 }
 
-const OldAge = uint16(5)
-const DEFAULT_CACHE_SIZE = 128
-const MAX_CACHE_SIZE = 120_000
-
-var CACHE_ENTRY_SIZE = int(unsafe.Sizeof(CachedEval{}))
-
-func (c *CachedEval) LoadKey() uint64 {
-	return c.Key
-}
-
-func (c *CachedEval) LoadData() uint64 {
-	return c.Data
-}
-
-const MOVE_MASK uint64 = 0b1111111111111111111111111111 // move << 0, 28 bits
-const EVAL_MASK uint64 = 0b1111111111111111             // eval << 28, 16 bits
-const DEPTH_MASK uint64 = 0b1111111                     // depth << 44, 7 bits
-const TYPE_MASK uint64 = 0b111                          // type << 51, 3 bits
-const AGE_MASK uint64 = 0b111111111                     // age << 54, 9 bits (T19: 1 bit ceded to ttPv)
-const TTPV_MASK uint64 = 0b1                            // ttPv << 63, 1 bit
-
-func Pack(hashmove Move, eval int16, depth int8, nodeType NodeType, age uint16, ttPv bool) uint64 {
-	var pv uint64
-	if ttPv {
-		pv = 1
+func Pack(move Move, score int16, depth int8, bound NodeType, age uint16, pv bool) uint64 {
+	if depth < 0 {
+		depth = 0
 	}
-	return (uint64(hashmove) & MOVE_MASK) |
-		((uint64(eval) & EVAL_MASK) << 28) |
-		((uint64(depth) & DEPTH_MASK) << 44) |
-		((uint64(nodeType) & TYPE_MASK) << 51) |
-		((uint64(age) & AGE_MASK) << 54) |
-		((pv & TTPV_MASK) << 63)
+	data := uint64(uint16(score)) | uint64(depth)<<16 | uint64(age&255)<<23 |
+		(uint64(move)&ttMoveMask)<<32 | uint64(bound&3)<<59 | ttOccupied
+	if pv {
+		data |= 1 << 31
+	}
+	return data
 }
 
-func Unpack(data uint64) (hashmove Move, eval int16, depth int8, nodeType NodeType, age uint16, ttPv bool) {
-	hashmove = Move(data & MOVE_MASK)
-	eval = int16((data >> 28) & EVAL_MASK)
-	depth = int8((data >> 44) & DEPTH_MASK)
-	nodeType = NodeType((data >> 51) & TYPE_MASK)
-	age = uint16((data >> 54) & AGE_MASK)
-	ttPv = ((data >> 63) & TTPV_MASK) != 0
-	return
+func Unpack(data uint64) (Move, int16, int8, NodeType, uint16, bool) {
+	return Move(data >> 32 & ttMoveMask), int16(data), int8(data >> 16 & 127),
+		NodeType(data >> 59 & 3), uint16(data >> 23 & 255), data&(1<<31) != 0
 }
 
-func (c *CachedEval) Update(key uint64, data uint64) {
-	c.Key = key
-	c.Data = data
+func RoundPowerOfTwo(n int) int {
+	if n <= 1 {
+		return 1
+	}
+	return 1 << (bits.Len(uint(n)) - 1)
 }
 
+func NewCache(megabytes int) *Cache { return newCacheWithMode(megabytes, TTDirect) }
+func newCacheWithMode(megabytes int, mode TTMode) *Cache {
+	if megabytes <= 0 {
+		return nil
+	}
+	records := RoundPowerOfTwo(megabytes * 1024 * 1024 / ttRecordBytes)
+	return &Cache{items: allocateTTRecords(records), size: megabytes, length: uint64(records), mask: uint(records/ttWays - 1), mode: mode}
+}
+func (c *Cache) Size() int              { return c.size }
+func (c *Cache) index(hash uint64) uint { return (uint(hash) & c.mask) * ttWays }
+
+// Clear is called only with the receiver's search session quiescent.
+func (c *Cache) Clear() { clear(c.items); c.age = 0 }
 func (c *Cache) AdvanceAge() {
 	if c.mode == TTSynchronized {
 		c.ageMu.Lock()
 		defer c.ageMu.Unlock()
 	}
-	c.age += 1
-	// Deliberately preserve the historical 10-bit wrap even though Pack stores
-	// only nine age bits. That mismatch is a separate behavior change.
-	if c.age > uint16(0b1111111111) {
-		c.age = 0
-	}
+	c.age = (c.age + 1) & 255
 }
-
-func (c *Cache) Consumed() int {
-	used := 0
-	samples := 1000
-
-	for i := 0; i < samples; i++ {
-		if c.mode == TTSynchronized {
-			stripe := &c.stripes[uint(i)%ttStripeCount]
-			stripe.Lock()
-			data := c.items[i].LoadData()
-			stripe.Unlock()
-			if data != 0 {
-				used++
-			}
-		} else if c.items[i].LoadData() != 0 {
-			used++
-		}
-	}
-
-	return used / (samples / 1000)
-}
-
-func (c *Cache) index(hash uint64) uint {
-	return uint(hash) & c.mask
-}
-
-func (c *Cache) Set(hash uint64, hashmove Move, eval int16, depth int8, nodeType NodeType, ttPv bool) {
-	index := c.index(hash)
+func (c *Cache) generation() uint16 {
 	if c.mode == TTSynchronized {
 		c.ageMu.Lock()
-		age := c.age
-		c.ageMu.Unlock()
-		stripe := &c.stripes[index%ttStripeCount]
-		stripe.Lock()
-		defer stripe.Unlock()
-		c.setAt(index, age, hash, hashmove, eval, depth, nodeType, ttPv)
-		return
+		defer c.ageMu.Unlock()
 	}
-	c.setAt(index, c.age, hash, hashmove, eval, depth, nodeType, ttPv)
+	return c.age
 }
 
-func (c *Cache) setAt(index uint, age uint16, hash uint64, hashmove Move, eval int16, depth int8, nodeType NodeType, ttPv bool) {
-	oldValue := &c.items[index]
-	oldKey := oldValue.LoadKey()
-	oldData := oldValue.LoadData()
-	oldHash := oldKey ^ oldData
-
-	// very good for debugging hash issues
-	// newHashmove, newEval, newDepth, newNodeType, newAge := Unpack(newData)
-	// if hashmove != newHashmove || eval != newEval || depth != newDepth || nodeType != newNodeType || age != newAge {
-	// 	panic(fmt.Sprintf(
-	// 		"Culprits are: %d %d %d %d %d\nSomehow became: %d %d %d %d %d\n", hashmove, eval, depth, nodeType, age, newHashmove, newEval, newDepth, newNodeType, newAge))
-	// }
-
-	_, _, oldDepth, _, oldAge, _ := Unpack(oldData)
-	var replace bool
-	if oldData == 0 {
-		replace = true
-	} else if oldHash == hash {
-		replace = depth >= oldDepth-3 || nodeType == Exact
-	} else {
-		replace = oldAge != age || depth >= oldDepth
+// Retention is measured in quarter-plies. Each elapsed search ages a record
+// by two plies; an exact bound and PV add half/quarter ply respectively.
+// The capped modular distance makes wraparound deterministic.
+func ttRetention(data uint64, current uint16) int {
+	_, _, depth, bound, age, pv := Unpack(data)
+	distance := int((current - age) & 255)
+	if distance > 31 {
+		distance = 31
 	}
-	if replace {
-
-		newData := Pack(hashmove, eval, depth, nodeType, age, ttPv)
-		newKey := newData ^ hash
-		c.items[index].Update(newKey, newData)
+	value := 4*int(depth) - 8*distance
+	if bound == Exact {
+		value += 2
 	}
+	if pv {
+		value++
+	}
+	return value
 }
 
-func (c *Cache) Size() int {
-	return c.size
-}
-
-// Clear invalidates every entry while preserving the configured allocation.
-// Callers must hold exclusive idle ownership in both direct and synchronized modes.
-func (c *Cache) Clear() {
-	clear(c.items)
-	c.age = 0
+func (c *Cache) Set(hash uint64, move Move, score int16, depth int8, bound NodeType, pv bool) {
+	current := c.generation()
+	first := c.index(hash)
+	if c.mode == TTSynchronized {
+		lock := &c.stripes[(first/ttWays)%ttStripeCount]
+		lock.Lock()
+		defer lock.Unlock()
+	}
+	incoming := Pack(move, score, depth, bound, current, pv)
+	victim := first
+	weakest := int(^uint(0) >> 1)
+	for i := first; i < first+ttWays; i++ {
+		old := c.items[i]
+		if old.payload&ttOccupied == 0 {
+			victim = i
+			weakest = -1 << 30
+			continue
+		}
+		quality := ttRetention(old.payload, current)
+		if old.hash == hash {
+			// A matching position gets a two-ply refresh window: its latest
+			// completed search can change the useful bound and move without
+			// needing to exceed the retained search depth. Collision victims
+			// still use the strict retention comparison below.
+			if ttRetention(incoming, current)+8 >= quality {
+				if move == EmptyMove {
+					incoming |= old.payload & (ttMoveMask << 32)
+				}
+				c.items[i] = ttRecord{hash, incoming}
+			} else {
+				// A rejected shallow update still proves the entry is current.
+				c.items[i].payload = (old.payload &^ (uint64(255) << 23)) | uint64(current)<<23
+			}
+			return
+		}
+		if quality < weakest {
+			victim = i
+			weakest = quality
+		}
+	}
+	if ttRetention(incoming, current) >= weakest {
+		c.items[victim] = ttRecord{hash, incoming}
+	}
 }
 
 func (c *Cache) Get(hash uint64) (Move, int16, int8, NodeType, bool, bool) {
-	index := c.index(hash)
+	first := c.index(hash)
 	if c.mode == TTSynchronized {
-		stripe := &c.stripes[index%ttStripeCount]
-		stripe.Lock()
-		defer stripe.Unlock()
+		lock := &c.stripes[(first/ttWays)%ttStripeCount]
+		lock.Lock()
+		defer lock.Unlock()
 	}
-	value := &c.items[index]
-	data := value.LoadData()
-	key := value.LoadKey()
-	ok := hash == (key ^ data)
-	if ok {
-		move, eval, depth, nType, _, ttPv := Unpack(data)
-		return move, eval, depth, nType, true, ttPv
+	for i := first; i < first+ttWays; i++ {
+		record := c.items[i]
+		if record.payload&ttOccupied != 0 && record.hash == hash {
+			move, score, depth, bound, _, pv := Unpack(record.payload)
+			return move, score, depth, bound, true, pv
+		}
 	}
-	return 0, 0, 0, 0, false, false
+	return EmptyMove, 0, 0, 0, false, false
 }
 
-func NewCache(megabytes int) *Cache {
-	return newCacheWithMode(megabytes, TTDirect)
-}
-
-func newCacheWithMode(megabytes int, mode TTMode) *Cache {
-	if megabytes < 1 {
-		return nil
+// UCI hashfull samples 256 evenly spaced clusters across the allocation,
+// reporting the per-mille fraction carrying this search's generation.
+func (c *Cache) Consumed() int {
+	current := c.generation()
+	clusters := len(c.items) / ttWays
+	samples := min(256, clusters)
+	stride := clusters / samples
+	occupied := 0
+	for bucket := 0; bucket < clusters; bucket += stride {
+		first := bucket * ttWays
+		if c.mode == TTSynchronized {
+			c.stripes[bucket%ttStripeCount].Lock()
+		}
+		for i := first; i < first+ttWays; i++ {
+			data := c.items[i].payload
+			if data&ttOccupied != 0 && uint16(data>>23&255) == current {
+				occupied++
+			}
+		}
+		if c.mode == TTSynchronized {
+			c.stripes[bucket%ttStripeCount].Unlock()
+		}
 	}
-	size := int((megabytes * 1024 * 1024) / CACHE_ENTRY_SIZE)
-	length := RoundPowerOfTwo(size)
-	return &Cache{
-		items: make([]CachedEval, length), size: megabytes, length: uint64(length),
-		mask: uint(length - 1), mode: mode,
-	}
-}
-
-func RoundPowerOfTwo(size int) int {
-	var x = 1
-	for (x << 1) <= size {
-		x <<= 1
-	}
-	return x
+	return occupied * 1000 / (samples * ttWays)
 }

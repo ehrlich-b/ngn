@@ -1,0 +1,29 @@
+File: engine.test
+Build ID: b48664428a7aefc347e8d354cf7ddffd03195001
+Type: cpu
+Time: 2026-10-14 03:57:15 EDT
+Duration: 20.16s, Total samples = 20.07s (99.54%)
+Showing nodes accounting for 14.02s, 69.86% of 20.07s total
+Dropped 113 nodes (cum <= 0.10s)
+Showing top 20 nodes out of 75
+      flat  flat%   sum%        cum   cum%
+     3.30s 16.44% 16.44%      3.32s 16.54%  github.com/ehrlich-b/ngn/engine.(*Cache).Get
+     2.57s 12.81% 29.25%      2.57s 12.81%  github.com/ehrlich-b/ngn/engine.selectNextMove (inline)
+     2.12s 10.56% 39.81%     20.05s 99.90%  github.com/ehrlich-b/ngn/engine.alphaBetaPV
+     0.79s  3.94% 43.75%      1.01s  5.03%  github.com/ehrlich-b/ngn/engine.(*workerHistory).scoreMovesIntoBuffer
+     0.61s  3.04% 46.79%      0.61s  3.04%  github.com/ehrlich-b/ngn/engine.ngnn16MovePair
+     0.58s  2.89% 49.68%      0.58s  2.89%  github.com/ehrlich-b/ngn/engine.ngnn16OutputSmall
+     0.53s  2.64% 52.32%      0.53s  2.64%  github.com/ehrlich-b/ngn/engine.ngnn16CapturePair
+     0.43s  2.14% 54.46%      0.68s  3.39%  github.com/ehrlich-b/ngn/engine.getAttackersAfterMove
+     0.40s  1.99% 56.45%      0.47s  2.34%  github.com/ehrlich-b/ngn/engine.advanceMoveKey
+     0.32s  1.59% 58.05%      0.32s  1.59%  github.com/ehrlich-b/ngn/engine.getBishopAttacksBB (inline)
+     0.31s  1.54% 59.59%      0.32s  1.59%  github.com/ehrlich-b/ngn/engine.findLeastValuableAttacker (inline)
+     0.29s  1.44% 61.04%      1.96s  9.77%  github.com/ehrlich-b/ngn/engine.staticExchangeEvaluation
+     0.27s  1.35% 62.38%      1.10s  5.48%  github.com/ehrlich-b/ngn/engine.(*workerEvaluator).PrepareMove
+     0.26s  1.30% 63.68%      0.37s  1.84%  github.com/ehrlich-b/ngn/engine.isInCheck
+     0.26s  1.30% 64.97%      0.31s  1.54%  github.com/ehrlich-b/ngn/engine.seeNonSliderAttackers
+     0.22s  1.10% 66.07%      0.25s  1.25%  github.com/ehrlich-b/ngn/engine.ngnn1Feature
+     0.20s     1% 67.07%      0.49s  2.44%  github.com/ehrlich-b/ngn/engine.generateSlidingMovesIntoBuffer
+     0.19s  0.95% 68.01%      0.19s  0.95%  github.com/ehrlich-b/ngn/engine.NewMove (inline)
+     0.19s  0.95% 68.96%      3.42s 17.04%  github.com/ehrlich-b/ngn/engine.quiescenceWithDepth
+     0.18s   0.9% 69.86%      0.83s  4.14%  github.com/ehrlich-b/ngn/engine.(*NGNN1Network).ngnn3MoveDelta

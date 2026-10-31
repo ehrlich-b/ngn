@@ -1,0 +1,106 @@
+{
+  "state": "READY_TOOLING",
+  "source_commit": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+  "source_clean": true,
+  "runner": {
+    "Path": "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool",
+    "SHA256": "24233a10c04c5f5cdcfa3a2f0d988f09248ab5e98995e13a9105b02e3532589d"
+  },
+  "screen_point_minimum": 3555,
+  "confirmation_lower95_strict": 3600,
+  "dry_modes": {
+    "screen": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "screen",
+        "--candidate",
+        "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/candidate-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session117/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/dry-screen",
+        "--dry-run"
+      ]
+    },
+    "confirmation": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "confirmation",
+        "--candidate",
+        "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/candidate-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session117/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/dry-confirmation",
+        "--dry-run"
+      ]
+    },
+    "tooling-check": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "tooling-check",
+        "--candidate",
+        "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/candidate-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session117/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/dry-tooling-check",
+        "--dry-run"
+      ]
+    },
+    "stability-screen": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "stability-screen",
+        "--candidate",
+        "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/candidate-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session117/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/dry-stability-screen",
+        "--dry-run"
+      ]
+    },
+    "stability-confirmation": {
+      "status": "PASS",
+      "argv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool",
+        "prepare",
+        "--mode",
+        "stability-confirmation",
+        "--candidate",
+        "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/candidate-identity.json",
+        "--source",
+        "/home/ehrli/ngn-data/night-20261007/session117/source",
+        "--tool-build-argv",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool-build.json",
+        "--out",
+        "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/dry-stability-confirmation",
+        "--dry-run"
+      ]
+    }
+  },
+  "reused_full_checks": "/home/ehrli/ngn-data/night-20261007/session115-search/candidates/qsearch/checks-result.json",
+  "reused_rule_checks": "/home/ehrli/ngn-data/night-20261007/session100-speed/claim-checks.exit",
+  "focused_tests": "/home/ehrli/ngn-data/night-20261007/session117/claim-focused.log"
+}

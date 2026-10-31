@@ -1,0 +1,7 @@
+Running as unit: ngn-s94-playing-build-fixed.service; invocation ID: a30b371ad7fb44a0b428790989610869
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 9.899s
+CPU time consumed: 10.190s
+Memory peak: 520.0K
+Memory swap peak: 0B

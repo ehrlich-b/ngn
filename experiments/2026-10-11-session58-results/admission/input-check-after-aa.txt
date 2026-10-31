@@ -1,0 +1,15 @@
+baseline-ngn: OK
+candidate-ngn: OK
+base.nnue: OK
+candidate.patch: OK
+checks-receipt.json: OK
+sprt: OK
+openings.txt: OK
+nomination.json: OK
+controller.sh: OK
+games.py: OK
+aa-parser.py: OK
+paired-parser.py: OK
+gate-review.py: OK
+manifest.md: OK
+game-manifest.json: OK

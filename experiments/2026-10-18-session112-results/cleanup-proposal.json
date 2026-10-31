@@ -1,0 +1,65 @@
+{
+  "state": "PROPOSAL_ONLY_NO_DELETION",
+  "observed_utc": "2026-10-18T16:20:21.227064+00:00",
+  "candidates": [
+    {
+      "path": "/home/ehrli/ngn-data/night-20261007/session84-training174/trained/best.pt",
+      "bytes": "37898282",
+      "allocated_bytes": "37900288",
+      "mtime_utc": "2026-10-15T17:03:33.414828+00:00",
+      "creating_session": "session84 (path inference)",
+      "live_references": "[]",
+      "historical_references": "[]"
+    },
+    {
+      "path": "/home/ehrli/ngn-data/night-20261007/session84-training174/trained/best.nnue",
+      "bytes": "6308996",
+      "allocated_bytes": "6311936",
+      "mtime_utc": "2026-10-15T17:03:33.434918+00:00",
+      "creating_session": "session84 (path inference)",
+      "live_references": "[]",
+      "historical_references": "[]"
+    },
+    {
+      "path": "/home/ehrli/ngn-data/night-20261007/session87/mixture/volume-control/trained/best.pt",
+      "bytes": "37885162",
+      "allocated_bytes": "37888000",
+      "mtime_utc": "2026-10-16T05:24:36.114243+00:00",
+      "creating_session": "session87 (path inference)",
+      "live_references": "[]",
+      "historical_references": "[]"
+    },
+    {
+      "path": "/home/ehrli/ngn-data/night-20261007/session87/mixture/volume-control/trained/best.nnue",
+      "bytes": "6308996",
+      "allocated_bytes": "6311936",
+      "mtime_utc": "2026-10-16T05:24:36.130233+00:00",
+      "creating_session": "session87 (path inference)",
+      "live_references": "[]",
+      "historical_references": "[]"
+    },
+    {
+      "path": "/home/ehrli/ngn-data/night-20261007/session87/mixture/moderated-t74/trained/best.pt",
+      "bytes": "37885162",
+      "allocated_bytes": "37888000",
+      "mtime_utc": "2026-10-16T22:35:23.132200+00:00",
+      "creating_session": "session87 (path inference)",
+      "live_references": "[]",
+      "historical_references": "[]"
+    },
+    {
+      "path": "/home/ehrli/ngn-data/night-20261007/session87/mixture/moderated-t74/trained/best.nnue",
+      "bytes": "6308996",
+      "allocated_bytes": "6311936",
+      "mtime_utc": "2026-10-16T22:35:23.152214+00:00",
+      "creating_session": "session87 (path inference)",
+      "live_references": "[]",
+      "historical_references": "[]"
+    }
+  ],
+  "bytes": 132595594,
+  "allocated_bytes": 132612096,
+  "keep": "Each cell latest.pt/latest.nnue and all manifests/results/PGNs; accepted Final115 checkpoint/net/all corpora; all files modified in last24h",
+  "reason": "All three cells selected the final epoch, not best; shelved under original gates. Alternate best snapshots are unselected intermediates, not proved byte duplicates.",
+  "requires": "Bryan approval under root2026-10-18 11:25; recheck only proposed paths at actual deletion, no bulk glob"
+}

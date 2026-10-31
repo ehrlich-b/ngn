@@ -37,10 +37,10 @@ func pawnCorrectionIndex(whitePawns, blackPawns uint64) int {
 }
 
 // correctionValue returns the centipawn adjustment to add to the static eval. The
-// 6245/131072 weight mirrors Stockfish's pawn-correction term, so a saturated entry
-// (±corrHistLimit) yields at most ±49 cp.
+// NGN chooses 3/64 as a neutral round placeholder for later NGN tuning.
+// A saturated entry (±corrHistLimit) yields at most ±48 cp.
 func (h *workerHistory) correctionValue(stm Color, idx int) int {
-	return h.pawnCorrectionHistory[stm][idx] * 6245 / 131072
+	return h.pawnCorrectionHistory[stm][idx] * 3 / 64
 }
 
 // correctedStandPat is the raw eval plus the side-to-move's pawn-structure, non-pawn AND
@@ -54,7 +54,7 @@ func (h *workerHistory) correctedStandPat(pos *Position, evaluator *workerEvalua
 	stm := pos.Turn()
 	return evaluator.SearchSTM(pos) +
 		h.correctionValue(stm, pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])) +
-		h.nonPawnCorrectionValue(stm, nonPawnCorrectionIndex(pos.Board.GetWhitePieces()&^pos.Board.pieces[WhitePawn], pos.Board.GetBlackPieces()&^pos.Board.pieces[BlackPawn])) +
+		h.nonPawnCorrectionValue(stm, nonPawnCorrectionIndex(pos.Board.WhiteOccupancy()&^pos.Board.pieces[WhitePawn], pos.Board.BlackOccupancy()&^pos.Board.pieces[BlackPawn])) +
 		h.minorCorrectionValue(stm, minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop]))
 }
 
@@ -110,7 +110,7 @@ func nonPawnCorrectionIndex(whiteNonPawn, blackNonPawn uint64) int {
 }
 
 func (h *workerHistory) nonPawnCorrectionValue(stm Color, idx int) int {
-	return h.nonPawnCorrectionHistory[stm][idx] * 6245 / 131072
+	return h.nonPawnCorrectionHistory[stm][idx] * 3 / 64
 }
 
 func (h *workerHistory) updateNonPawnCorrection(stm Color, idx, diff, depth int) {
@@ -158,7 +158,7 @@ func minorCorrectionIndex(whiteMinors, blackMinors uint64) int {
 }
 
 func (h *workerHistory) minorCorrectionValue(stm Color, idx int) int {
-	return h.minorCorrectionHistory[stm][idx] * 6245 / 131072
+	return h.minorCorrectionHistory[stm][idx] * 3 / 64
 }
 
 func (h *workerHistory) updateMinorCorrection(stm Color, idx, diff, depth int) {
@@ -625,13 +625,15 @@ func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, depth int, previousMo
 // a beta cutoff fires instead of sorting the whole list. Strict > keeps ties at their earlier
 // index, matching the full-sort order — so the incremental path is node-identical.
 func selectNextMove(out []Move, scores []int, n, i int) {
-	maxIdx := i
-	maxScore := scores[i] // hoist out of the loop: avoids re-loading scores[maxIdx] each iteration
+	maxScore := scores[i]
 	for j := i + 1; j < n; j++ {
-		if scores[j] > maxScore {
-			maxIdx = j
-			maxScore = scores[j]
-		}
+		maxScore = max(maxScore, scores[j])
+	}
+	// Keep the first maximum, including ties at i. Separating the value scan
+	// from the index lookup lets amd64 select the maximum without a branch.
+	maxIdx := i
+	for scores[maxIdx] != maxScore {
+		maxIdx++
 	}
 	if maxIdx != i {
 		scores[i], scores[maxIdx] = scores[maxIdx], scores[i]

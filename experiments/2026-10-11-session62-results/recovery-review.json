@@ -1,0 +1,14 @@
+{
+  "unchanged_argv": true,
+  "unchanged_corpus_pins": true,
+  "unchanged_coverage": true,
+  "coverage_ratio": 2.0009128203817186,
+  "only_trainer_delta": "absolute holdout index widened before adding block start",
+  "saved_epochs": 0,
+  "checkpoint_available": false,
+  "trainer_fix_commit": "2b3ea07",
+  "controller_pid": 74604,
+  "trainer_pid": 74608,
+  "terminal": "session57-data-step2/training-terminal.json",
+  "verdict": "eligible unchanged data experiment, strength unmeasured"
+}

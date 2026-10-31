@@ -1,0 +1,33 @@
+{
+  "authority": "October17 09:45 item3; first exclusive boundary after actual GPU disk stop, no net result/games",
+  "accepted_package": "9ec5d31/81215229/compiled final14; unchanged",
+  "gpu_controller_pid": 275237,
+  "tuner_pid": 275233,
+  "tuning_service": "ngn-s94-spsa-resume.service",
+  "estimated_gpu_ready_edt": "DISK STOP epoch59; panel first; native trainer resume waits until after panel and C>=27.5GiB",
+  "order": [
+    "Wait on the already stopped GPU controller; preserve disk fault and epoch59",
+    "Next native SPSA checkpoint; planned pause",
+    "Exclusive T1/T4/T8 speed diagnosis only; no net games",
+    "Resume native SPSA once; no adoption; separate GPU capacity-resume waiter"
+  ],
+  "on_fault": "HELD_REVIEW; no automatic gate retry, adoption, claim, or additional training",
+  "speed_gate": {
+    "order": [
+      "S1 huge pages",
+      "S2 int16 continuation/followup histories"
+    ],
+    "admission": "Profile evidence first; S1 additionally needs actual AnonHugePages witness. No timing is armed by this nomination.",
+    "identity": "Each independent candidate vs immediate accepted base, exact T1 move/score/nodes/PV on current net at Hash64 and256; usual HCE/NGNN2/NGNN3 fixed and iterative panel; short/race suites",
+    "topologies": [
+      "Threads1/Hash64",
+      "Threads1/Hash256",
+      "Threads8/Hash256"
+    ],
+    "timing": "Exclusive rig, nice19, correct GOMAXPROCS and physical mask;40 paired A/B blocks per topology,20seconds per engine and ONE frame per block (frame=(block//2)%12),alternating AB/BA;~80minutes per candidate total; no optional extension",
+    "acceptance": "Paired geometric NPS lower95>1 in each order stratum for every topology; otherwise shelve; no games or Elo claim",
+    "integration": "S2 is independently prepared on current base. If S1 is accepted, rebase S2, repeat identity and certify it against S1. Never stack their isolated measurements."
+  },
+  "claims": "Fresh changed-package attempt after expected +20 pool transfer; screen point>=3555;640-game120+1 confirmation strict lower95>3600 and raw scores bracketing50%; no claim armed",
+  "panel_only": true
+}

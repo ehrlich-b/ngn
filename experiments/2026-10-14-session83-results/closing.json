@@ -1,0 +1,23 @@
+{
+  "utc": "2026-10-14T10:42:08.382983+00:00",
+  "stage": "session83-closing",
+  "event": "handoff",
+  "detail": {
+    "accepted": "9ec5d31/a4d90b41/final14",
+    "net_sprt": 39000,
+    "net_controller": 32307,
+    "sample_controller": 39648,
+    "sample_writer": 39655,
+    "sample_guard": 39920,
+    "followup_controller": 39843,
+    "pair_controller": 39844,
+    "host_c_free_bytes": 43679768576,
+    "commits": [
+      "c411391",
+      "6927a16"
+    ],
+    "next_session": "not before07:50 EDT October14",
+    "goal_met": false,
+    "no_push": true
+  }
+}

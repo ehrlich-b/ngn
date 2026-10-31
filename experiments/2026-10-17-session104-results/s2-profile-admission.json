@@ -1,0 +1,12 @@
+{
+  "candidate": "s2",
+  "profile_admitted": true,
+  "immediate_base": "4958bc4/81215229/compiled final14",
+  "topic": "f527ab3",
+  "measured_panel": "/home/ehrli/ngn-data/night-20261007/session100-speed/panel/result.json",
+  "cpu_share_percent": 20,
+  "mechanism": "Shrink continuation/followup history footprint from 10.5625 to 2.640625MiB per worker",
+  "rule": "Fixed40 paired20s blocks/topology,T1/H64,T1/H256,T8/H256,alternatingAB/BA;paired geometric NPS lower95>1 in BOTH order strata for EVERY topology;otherwise SHELVED,no extension",
+  "new_identity_required": true,
+  "automatic_adoption": false
+}

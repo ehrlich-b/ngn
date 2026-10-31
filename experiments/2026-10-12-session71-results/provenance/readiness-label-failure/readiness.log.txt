@@ -1,0 +1,9 @@
+Running as unit: run-p1658505-i1658805.scope; invocation ID: 58ee9f6fc04044b99d025b02a2c2a3f3
+Traceback (most recent call last):
+  File "/work/lanes/ngn-s71-provenance-repaired/readiness.py", line 100, in <module>
+    defaults_eval, defaults = probe('archived-defaults', 'baseline-ngn', {}, True)
+                              ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/lanes/ngn-s71-provenance-repaired/readiness.py", line 71, in probe
+    assert match and match[1] == 'ngn', evaluation
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: info string eval backend ngnn3 score_cp 32 pov side-to-move policy base-SearchSTM correction-history excluded

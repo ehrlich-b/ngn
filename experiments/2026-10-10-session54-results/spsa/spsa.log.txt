@@ -1,0 +1,38 @@
+resumed from iter 1625 (/work/lanes/ngn-spsa-20261009/spsa.jsonl)
+NGN joint search-param SPSA
+===========================
+engine=/work/lanes/ngn-spsa-20261009/ngn-kb8  params=14  iters=2000 (game pair, 6/iter)  tc=10s+0.1s
+openings=5000  out=/work/lanes/ngn-spsa-20261009/spsa.jsonl  rend=0.050  afrac=0.10  seed=20261008
+
+start: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=105 FutilityMaxDepth=8 ReverseFutilityMargin=61 DeltaMargin=192 SingularDepth=7 SingularMargin=57 ExtensionBudget=29 AspInit=16 AspMult=161 LMPBase=3 
+[iter 1650] theta+ 48.0% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=105 FutilityMaxDepth=8 ReverseFutilityMargin=61 DeltaMargin=194 SingularDepth=7 SingularMargin=57 ExtensionBudget=29 AspInit=16 AspMult=161 LMPBase=3 
+[iter 1675] theta+ 52.5% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=104 FutilityMaxDepth=8 ReverseFutilityMargin=62 DeltaMargin=195 SingularDepth=7 SingularMargin=57 ExtensionBudget=29 AspInit=16 AspMult=161 LMPBase=3 
+[iter 1700] theta+ 49.5% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=104 FutilityMaxDepth=8 ReverseFutilityMargin=61 DeltaMargin=196 SingularDepth=7 SingularMargin=58 ExtensionBudget=29 AspInit=16 AspMult=161 LMPBase=3 
+[iter 1725] theta+ 47.7% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=104 FutilityMaxDepth=8 ReverseFutilityMargin=62 DeltaMargin=196 SingularDepth=7 SingularMargin=57 ExtensionBudget=29 AspInit=16 AspMult=162 LMPBase=3 
+[iter 1750] theta+ 50.7% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=105 FutilityMaxDepth=8 ReverseFutilityMargin=62 DeltaMargin=196 SingularDepth=7 SingularMargin=57 ExtensionBudget=29 AspInit=17 AspMult=162 LMPBase=3 
+[iter 1775] theta+ 49.8% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=104 FutilityMaxDepth=8 ReverseFutilityMargin=61 DeltaMargin=196 SingularDepth=7 SingularMargin=57 ExtensionBudget=29 AspInit=17 AspMult=162 LMPBase=3 
+[iter 1800] theta+ 50.5% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=104 FutilityMaxDepth=8 ReverseFutilityMargin=61 DeltaMargin=197 SingularDepth=7 SingularMargin=57 ExtensionBudget=29 AspInit=17 AspMult=163 LMPBase=3 
+[iter 1825] theta+ 50.5% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=104 FutilityMaxDepth=8 ReverseFutilityMargin=62 DeltaMargin=198 SingularDepth=7 SingularMargin=57 ExtensionBudget=29 AspInit=17 AspMult=163 LMPBase=3 
+[iter 1850] theta+ 49.7% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=104 FutilityMaxDepth=8 ReverseFutilityMargin=62 DeltaMargin=199 SingularDepth=7 SingularMargin=56 ExtensionBudget=29 AspInit=17 AspMult=162 LMPBase=3 
+[iter 1875] theta+ 50.3% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=104 FutilityMaxDepth=8 ReverseFutilityMargin=62 DeltaMargin=200 SingularDepth=7 SingularMargin=56 ExtensionBudget=29 AspInit=17 AspMult=163 LMPBase=3 
+[iter 1900] theta+ 52.7% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=104 FutilityMaxDepth=8 ReverseFutilityMargin=63 DeltaMargin=201 SingularDepth=7 SingularMargin=55 ExtensionBudget=29 AspInit=17 AspMult=162 LMPBase=3 
+[iter 1925] theta+ 50.7% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=104 FutilityMaxDepth=8 ReverseFutilityMargin=63 DeltaMargin=201 SingularDepth=7 SingularMargin=56 ExtensionBudget=29 AspInit=17 AspMult=162 LMPBase=3 
+[iter 1950] theta+ 49.7% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=103 FutilityMaxDepth=8 ReverseFutilityMargin=63 DeltaMargin=202 SingularDepth=7 SingularMargin=56 ExtensionBudget=29 AspInit=17 AspMult=162 LMPBase=3 
+[iter 1975] theta+ 50.8% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=103 FutilityMaxDepth=8 ReverseFutilityMargin=62 DeltaMargin=202 SingularDepth=7 SingularMargin=57 ExtensionBudget=29 AspInit=17 AspMult=163 LMPBase=3 
+[iter 2000] theta+ 49.7% over last 300 games (0 forfeits)  now: NullMoveR=4 NullMoveMinDepth=2 LMRFullDepth=3 LMRMoveThreshold=2 FutilityMargin=104 FutilityMaxDepth=8 ReverseFutilityMargin=63 DeltaMargin=202 SingularDepth=7 SingularMargin=57 ExtensionBudget=29 AspInit=17 AspMult=163 LMPBase=3 
+
+=== FINAL VECTOR (gate on the GAUNTLET, not this run's score) ===
+setoption name NullMoveR value 4   (was 3)
+setoption name NullMoveMinDepth value 2
+setoption name LMRFullDepth value 3
+setoption name LMRMoveThreshold value 2
+setoption name FutilityMargin value 104   (was 103)
+setoption name FutilityMaxDepth value 8
+setoption name ReverseFutilityMargin value 63   (was 88)
+setoption name DeltaMargin value 202   (was 96)
+setoption name SingularDepth value 7   (was 6)
+setoption name SingularMargin value 57   (was 48)
+setoption name ExtensionBudget value 29   (was 26)
+setoption name AspInit value 17   (was 13)
+setoption name AspMult value 163   (was 154)
+setoption name LMPBase value 3   (was 4)

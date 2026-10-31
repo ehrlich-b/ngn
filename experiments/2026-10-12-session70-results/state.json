@@ -1,0 +1,68 @@
+{
+  "start": "2026-10-12T01:30:20-04:00",
+  "deadline": "2026-10-12T03:10:20-04:00",
+  "rig_snapshot": "2026-10-12T01:31:28-04:00",
+  "host_c_free_bytes": 73630728192,
+  "host_c_free_gib": 68.57395935058594,
+  "rig_available_ram_mib": 9616,
+  "rig_gpu": {
+    "model": "RTX5080",
+    "utilization_percent": 56,
+    "memory_used_mib": 12598,
+    "memory_total_mib": 16303,
+    "workload": "separate vLLM199159 and benchmark200850; untouched"
+  },
+  "rig_rodent": {
+    "controller": 155625,
+    "python": 155628,
+    "pairmatch": 159037,
+    "completed_pairs": 132,
+    "required_pairs": 500,
+    "eta": "14:05-18:05 EDT October12",
+    "frozen_package": "f1d0a03/a4d90b41/final14"
+  },
+  "forge_snapshot": "2026-10-12T01:31:31-04:00",
+  "forge_available_ram_mib": 11995,
+  "forge_work_free_gib_rounded": 10,
+  "forge_singular": {
+    "terminal": "01:08:35 EDT",
+    "exit": 0,
+    "verdict": "SHELVED",
+    "games": 400,
+    "pairs": 200,
+    "penta": [
+      8,
+      39,
+      102,
+      47,
+      4
+    ],
+    "elo_ci95": [
+      0.0,
+      -19.728278303167425,
+      19.72827830316746
+    ]
+  },
+  "forge_admission": {
+    "controller_pid": 1377514,
+    "python_pid": 1377520,
+    "aa_sprt_pid": 1377526,
+    "aa_timeout_pid": 1377525,
+    "start": "2026-10-12T01:35:47-04:00",
+    "scope": "run-p1377514-i1377814.scope",
+    "actual_base": "f1d0a03/a4d90b41/final14",
+    "candidate": "a093ac32; immediate admission only",
+    "cpus": "4-11",
+    "concurrency": 2,
+    "nice": 10,
+    "memory_max_bytes": 3221225472,
+    "memory_swap_max": 0,
+    "stage": "fresh ownAA40 at60+0.6; conditional SPRT[0,+6]/min400/cap4000",
+    "physical_host_pinning": "unverified after reboot",
+    "automatic_adoption": false,
+    "checks_reused": "session69, unchanged actual base and candidate; no build/test repeated"
+  },
+  "hopper_pid": 1170,
+  "readers_untouched": true,
+  "claim_completed": false
+}

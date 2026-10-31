@@ -1,0 +1,15 @@
+{
+  "base": "2b73995f5df1085ddcbca313b2291195d413aba0",
+  "vector": "compiled warm2000",
+  "candidate": "qsearch",
+  "passed": [
+    "focused including singular witness",
+    "engine short/race",
+    "full short/race",
+    "vet",
+    "PGO build"
+  ],
+  "binary_sha256": "8c40ba6ab5ca55d408855768ea30fbe0027b1ef93d8ee1725f5aa0dc9429a3b3",
+  "patch_sha256": "d5923498743dc1350ed81becb68b7f9eb5ce4a2f24120e0dd8e8e1db91e6436e",
+  "completed_utc": "2026-10-19T03:25:18.818198+00:00"
+}

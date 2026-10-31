@@ -1,0 +1,110 @@
+{
+  "created_utc": "2026-10-14T15:28:22.574755+00:00",
+  "approval": "Session scope: keep GPU producing evidence;174 win-path cell proposed in required Fable cross-review; existing net gate unchanged",
+  "accepted_engine_source": "9ec5d31",
+  "base_net_sha256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22",
+  "treatment": "174 vs115 training horizon: fresh initialization, same T80/T76/fullT74 corpus and recipe as accepted final115; only training duration and its cosine horizon change",
+  "omitted": "mapped T75 descriptor points at closed forge; no forge access",
+  "corpus_pins": {
+    "t80": {
+      "bytes": 75977281056,
+      "sha256": "270f65bdf9f5c948160cae5330030a60f99e94383de2a290b565ae7aad7cde26"
+    },
+    "t76": {
+      "bytes": 55627628064,
+      "sha256": "a9ad07afcfeefca0d3080a2ac06657e334bf47645448ca183b51202f4412f8b3"
+    },
+    "t74full": {
+      "bytes": 183371624416,
+      "sha256": "dffe7f87cfc40b7e46bf2cf1fb0b1b203f6cc2eb63d94267d223f45bb6c2533d"
+    }
+  },
+  "data_paths": [
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+    "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+    "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf"
+  ],
+  "records": 9843016673,
+  "raw_source_shares": {
+    "t80": 0.24121568741347596,
+    "t76": 0.17660880142247828,
+    "t74full": 0.5821755111640458
+  },
+  "presentations": 44544000000,
+  "raw_passes": 4.525441892442073,
+  "argv": [
+    "taskset",
+    "-c",
+    "12,14",
+    "/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python",
+    "-m",
+    "trainer.train",
+    "--data",
+    "/home/ehrli/nnue-owned-k4-20260920/archive-a1/corpus-a1/train-archive.bf",
+    "/home/ehrli/ngn-data/night-20261007/session19-data/t76.bf",
+    "/home/ehrli/ngn-data/night-20261007/session57-data-step2/t74full.bf",
+    "--data-format",
+    "archive",
+    "--archive-holdout-modulus",
+    "1024",
+    "--archive-split-seed",
+    "20261006",
+    "--out",
+    "/home/ehrli/ngn-data/night-20261007/session84-training174/trained",
+    "--format",
+    "3",
+    "--kb-map",
+    "default",
+    "--hidden",
+    "512",
+    "--buckets",
+    "8",
+    "--batch",
+    "16384",
+    "--lr",
+    ".001",
+    "--epochs",
+    "174",
+    "--positions-per-epoch",
+    "256000000",
+    "--weight-decay",
+    ".01",
+    "--wdl",
+    ".75",
+    "--k",
+    "400",
+    "--decay",
+    "cosine",
+    "--min-lr-ratio",
+    ".1",
+    "--threads",
+    "2",
+    "--precision",
+    "bf16",
+    "--seed",
+    "20261006",
+    "--keep-best-only"
+  ],
+  "trainer_source": "/home/ehrli/ngn-data/night-20261007/session80/source",
+  "trainer_commit": "7ef9821",
+  "source_archive_sha256": "957148dc0af3c69b07ef0c1a0a0c5f31c5f4118f0d8d5458a2a43dddc0d8bf51",
+  "recipe": "final115/KB8 H512 NB8; same seed20261006/AdamW/WDL/cosine/BF16; fresh initialization; no174 resume from115",
+  "selection": "latest.pt/latest.nnue after epoch174 only; ignore best artifacts; no checkpoint shopping",
+  "exposure": "exact source_presentations_cumulative in every history row",
+  "cpus": [
+    12,
+    14
+  ],
+  "nice": 19,
+  "memory_max_bytes": 4294967296,
+  "swap": 0,
+  "environment": {
+    "PYTHONPATH": "/home/ehrli/ngn-data/night-20261007/session80/source",
+    "OMP_NUM_THREADS": "2",
+    "MKL_NUM_THREADS": "2",
+    "OPENBLAS_NUM_THREADS": "2"
+  },
+  "stop": "nonfinite loss/export/parity failure or C: below25.25GiB; no performance cutoff",
+  "gate": "fixed1000/500 at10+0.1 c6 vs immediate accepted81215229, printed/exact lower95>0 and zero faults; winning net transfer400 at60+0.6 before foreign games",
+  "automatic_games": false
+}

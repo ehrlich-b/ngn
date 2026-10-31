@@ -1,0 +1,29 @@
+{
+  "session_start": "2026-10-09T18:35:07-04:00",
+  "session_deadline": "2026-10-09T20:15:07-04:00",
+  "key": {
+    "pid": 22682,
+    "started": "2026-10-09T18:41:28-04:00",
+    "directory": "/home/ehrli/ngn-data/night-20261007/session32-key",
+    "base_source": "f8686be",
+    "candidate_topic": "night/key-after-see",
+    "cpus": [13, 15],
+    "launch": "setsid nohup bash /home/ehrli/ngn-data/night-20261007/session32-key/controller.sh < /dev/null > controller.log 2>&1 &",
+    "completion": "controller.exit and controller.done; review complete A/A and gate before retention",
+    "candidate_patch_sha256": "258fe603c6dd1fbcbbfde219963056409b6c1ace1d8a218804582c9a45325a66"
+  },
+  "vnni512_checks": {
+    "pid": 22605,
+    "started": "2026-10-09T18:39:16-04:00",
+    "directory": "/home/ehrli/ngn-data/night-20261007/session32-vnni512",
+    "architecture_base": "aafa7fd",
+    "candidate_topic": "night/ngnn4-vnni512",
+    "dependency_pid": 20321,
+    "wait": "one native pidfd wait, one-hour bound, no assistant polling",
+    "cpus": [12, 14],
+    "launch": "setsid nohup bash /home/ehrli/ngn-data/night-20261007/session32-vnni512/controller.sh < /dev/null > controller.log 2>&1 &",
+    "completion": "controller.exit and controller.done; correctness/build only, speed stage not launched",
+    "candidate_patch_sha256": "b4c4f446a7720803ce841067dd72bf3b3d4597d1a40173550d5fb0f93434bd8e",
+    "controller_sha256": "dedd34b8572e5b30df2ef6f4745cd73c92ef8220bd7808771e9d44d07cad56ff"
+  }
+}

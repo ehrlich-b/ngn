@@ -1,0 +1,23 @@
+{
+  "created_utc": "2026-10-12T00:12:54.492752+00:00",
+  "script_sha256": "97638bfb2711280c13bde61cb170b3e7ad90eddcd30b457a29c8cea289dc14af",
+  "panel_sha256": "cf2e8935652a32974924d5413fa9b6ec896d21dc781f524f8b12465794fa2bdf",
+  "panel_rows": 8192,
+  "instruction": "experiments/2026-10-11-sparse-trainer-preflight.md",
+  "batch": 16384,
+  "warmup_steps": 8,
+  "blocks": 12,
+  "steps_per_block": 64,
+  "cpus": [
+    12,
+    14
+  ],
+  "memory_max_bytes": 4294967296,
+  "swap_max": 0,
+  "nice": 19,
+  "mechanism": "original sparse feature decode + embedding_bag sum; unchanged output heads",
+  "proposal_rule": "point throughput gain>=20%; paired log-ratio lower95>0",
+  "automatic_training": false,
+  "automatic_games": false,
+  "save_checkpoint": false
+}

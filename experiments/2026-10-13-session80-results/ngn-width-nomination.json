@@ -1,0 +1,46 @@
+{
+  "base_source": "f203e2f",
+  "net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "harness": "/home/ehrli/ngn-data/night-20261007/session80/sprt",
+  "book": "/home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt",
+  "tc": "10+0.1",
+  "cpus": "0-11",
+  "concurrency": 1,
+  "max_games": 400,
+  "min_games": 1000,
+  "nice": 19,
+  "machine": "rig/WSL/9800X3D",
+  "go": "1.25.5/linux/amd64/v3",
+  "max_memory": "3GiB/swap0",
+  "candidate_options": [
+    "EvalFile=/home/ehrli/ngn-data/night-20261007/session79-admission-see/base.nnue",
+    "UseNNUE=true",
+    "Hash=256",
+    "Threads=4",
+    "OwnBook=false"
+  ],
+  "base_options": [
+    "EvalFile=/home/ehrli/ngn-data/night-20261007/session79-admission-see/base.nnue",
+    "UseNNUE=true",
+    "Hash=256",
+    "Threads=1",
+    "OwnBook=false"
+  ],
+  "control_key": "rig/0-11/c1/10+0.1/Threads4/Hash256/b5bddf27f2de5b6098105ce776591bff0ee46103ee9cdd55a8758c2e4b386cae",
+  "name": "ngn-width",
+  "class": "measurement",
+  "candidate": "/home/ehrli/ngn-data/night-20261007/session80/ngn4-a",
+  "base": "/home/ehrli/ngn-data/night-20261007/session80/ngn1-c",
+  "output": "/home/ehrli/ngn-data/night-20261007/session80/ngn-width",
+  "decision": "full400/200; >=+60 closes SMP policy work pending long-clock; <+50 opens 5-20s T4 profile;50-60 unresolved; no source adoption",
+  "affinity": "candidate0,2,4,6; base8: five distinct physical cores inside0-11; training12,14",
+  "control_note": "fresh symmetric4-v-4 harness control; unequal-width measurement intentionally changes baseline width",
+  "artifacts": {
+    "/home/ehrli/ngn-data/night-20261007/session80/sprt": "b5bddf27f2de5b6098105ce776591bff0ee46103ee9cdd55a8758c2e4b386cae",
+    "/home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt": "f2fed55a1645dba85a9ef3e047eb5183b5b6342878c6dc8483e6768973470acc",
+    "/home/ehrli/ngn-data/night-20261007/session79-admission-see/base.nnue": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+    "/home/ehrli/ngn-data/night-20261007/session79-admission-see/baseline-ngn": "49497bd4c48993cf2140f24a98a7edc7fa5415060fd4d1cb9a3f4c4c37e05117",
+    "/home/ehrli/ngn-data/night-20261007/session80/ngn4-a": "08876b326e0c15595de7a695fad2461f235a24b7cc0e93be7f94ce2db48a86f9",
+    "/home/ehrli/ngn-data/night-20261007/session80/ngn1-c": "cc7aaf015aefc63337b07bfbde425e25335b7a2a90d61002b426b896dd4a7516"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "start": "2026-10-12T03:00:25-04:00",
+  "deadline": "2026-10-12T04:40:25-04:00",
+  "rig_snapshot": "2026-10-12T03:01:39-04:00",
+  "forge_snapshot": "2026-10-12T03:01:37-04:00",
+  "host_c_free_bytes": 70759776256,
+  "host_c_free_gib": 65.90017700195312,
+  "rig_available_ram_mib": 2135,
+  "rig_swap_used_mib": 1664,
+  "rig_gpu": {
+    "utilization_percent": 39,
+    "memory_used_mib": 15459,
+    "memory_total_mib": 16303,
+    "workload": "separate vLLM211445/benchmark213057; untouched"
+  },
+  "rig_rodent": {
+    "controller": 155625,
+    "python": 155628,
+    "pairmatch": 159037,
+    "recorded_pairs": 178,
+    "pair_count_time": "03:04 EDT",
+    "required_pairs": 500,
+    "eta": "14:05-18:05 EDT October12",
+    "package": "f1d0a03/a4d90b41/final14"
+  },
+  "forge_available_ram_mib": 11521,
+  "forge_work_free_gib_rounded": 1.4,
+  "forge_admission": {
+    "controller": 1377514,
+    "python": 1377520,
+    "aa_sprt": 1377526,
+    "terminal": "02:45:38 EDT",
+    "exit": 1,
+    "games": 40,
+    "pairs": 20,
+    "penta": [
+      0,
+      2,
+      9,
+      9,
+      0
+    ],
+    "exact_elo_ci95": [
+      61.433567223132,
+      11.025093575567068,
+      114.55983039974736
+    ],
+    "flags": [
+      0,
+      0
+    ],
+    "candidate_games": 0,
+    "verdict": "AA FAILED; admission unscored; forge closed to verdicts; no retry"
+  },
+  "hopper": 1170,
+  "readers_untouched": true,
+  "claim_completed": false,
+  "automatic_adoption": false,
+  "provenance": {
+    "utc": "2026-10-12T07:15:28.588520+00:00",
+    "unit": "ngn-s71-provenance-repaired.service",
+    "scope": {
+      "MainPID": "215083",
+      "ControlGroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/ngn-s71-provenance-repaired.service",
+      "MemoryMax": "3221225472",
+      "MemorySwapMax": "0",
+      "ActiveState": "active"
+    },
+    "controller": 215083,
+    "python": 215088,
+    "stage": "native Rodent controller.done wait",
+    "no_games_started": true,
+    "affinity": "0-11",
+    "nice": 19,
+    "processes": [
+      " 215088  215083  19 17280 python3 games.py"
+    ],
+    "failed_first_launch": "214809 exited before startup; no controller or games; preserved in failed-prestartup-launch"
+  }
+}

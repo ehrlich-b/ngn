@@ -1,0 +1,8 @@
+{
+  "pid": 26077,
+  "started": "2026-10-09T23:02:09.728932+00:00",
+  "dir": "/home/ehrli/ngn-data/night-20261007/session32-vnni512",
+  "baseline_source": "d6e576b",
+  "cpu": 14,
+  "expected_completion": "19:30-19:40 EDT; speed-controller.done"
+}

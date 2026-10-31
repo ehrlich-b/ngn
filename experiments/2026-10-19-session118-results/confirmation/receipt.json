@@ -1,0 +1,1905 @@
+{
+  "Schema": "NGN-CLAIM-4",
+  "CreatedUTC": "2026-10-19T11:49:05.645512487Z",
+  "AttemptID": "e69dbfbbddcd4811c046142a1328c7aa",
+  "Plan": {
+    "Schema": "NGN-CLAIM-4",
+    "Mode": "confirmation",
+    "Candidate": {
+      "Engine": {
+        "Path": "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+        "SHA256": "7c7fa0b2d389707f5d139483875664a3249125bcaa0f60199ebc76512ab16ea8"
+      },
+      "Net": {
+        "Path": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+        "SHA256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22"
+      },
+      "SourceRoot": "/home/ehrli/ngn-data/night-20261007/session117/source",
+      "SourceCommit": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+      "GoVersion": "go1.25.5",
+      "BuildArgv": [
+        "/usr/local/go/bin/go",
+        "build",
+        "-buildvcs=true",
+        "-p",
+        "2",
+        "-pgo=/home/ehrli/ngn-data/night-20261007/session100-speed/baseline/default.pgo",
+        "-o",
+        "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+        "."
+      ],
+      "Provenance": {
+        "data": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/manifest.json",
+          "SHA256": "67e7ce45717c77ddf29a447f19c11eee44a0ad36a9d4649ef5505d9b2a3cd9b3"
+        },
+        "export": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/result.json",
+          "SHA256": "331437aef04aaf249411621cea5b08dece2ebcb5c24e9df686da74c873b5f9b9"
+        },
+        "manifest": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/manifest.json",
+          "SHA256": "67e7ce45717c77ddf29a447f19c11eee44a0ad36a9d4649ef5505d9b2a3cd9b3"
+        },
+        "parity": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/trained/parity.json",
+          "SHA256": "719edfa6c3e6a1ef80285219060e1958823b91c7a32c53c90d4bbabc7f39ec93"
+        },
+        "training": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/session80-training/trained/history.json",
+          "SHA256": "ce2ae2b9fec3d52673752cb1de92f9d6bd2a598688a8a19029c9bca8dae55cc3"
+        }
+      }
+    },
+    "Anchors": [
+      {
+        "Name": "Koivisto 6.0",
+        "Label": 3568,
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/koivisto6/Koivisto_6.0-x64-linux-avx2",
+          "SHA256": "2b2bd642e8a317456516a9134b5b6faf674859b4666bf526a85cedfb31241581"
+        },
+        "Dependencies": null
+      },
+      {
+        "Name": "akimbo 1.0.0",
+        "Label": 3614,
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/akimbo1/akimbo-1.0.0-avx2",
+          "SHA256": "879c769035d948068512eb9de02c0f356727b6045e10b95ac813497ebd8d7eee"
+        },
+        "Dependencies": null
+      },
+      {
+        "Name": "Black Marlin 9.0",
+        "Label": 3623,
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/blackmarlin9/blackmarlin-linux-x86-64-v3",
+          "SHA256": "980bd51860fc1cc61fd2216d5ca25fbcef1b5488bde1bce379d022b38b750642"
+        },
+        "Dependencies": null
+      },
+      {
+        "Name": "Berserk 12",
+        "Label": 3741,
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/berserk-12-linux-native",
+          "SHA256": "7b9b5898a781cbe0757caef0b7281df5cf5029d17e67ed3df4824f0eb1c0125d"
+        },
+        "Dependencies": null
+      }
+    ],
+    "Openings": {
+      "Path": "/home/ehrli/repos/ngn/output/corrected-pin-20260905/results-r0905matepin/inputs/sprt_openings.txt",
+      "SHA256": "974e4b5ab871a9e106d0c766bfa39fc83676222337fb7702f61782e2ac5b3222"
+    },
+    "Count": 80,
+    "Concurrency": 1,
+    "Cap": 400,
+    "Threads": 8,
+    "HashMB": 256,
+    "CPUSet": "0,2,4,6,8,10,12,14",
+    "ClaimThreshold": 3600,
+    "ScreenPointMinimum": 3555,
+    "BaseNS": 120000000000,
+    "IncrementNS": 1000000000,
+    "Runner": {
+      "Path": "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool",
+      "SHA256": "24233a10c04c5f5cdcfa3a2f0d988f09248ab5e98995e13a9105b02e3532589d"
+    },
+    "WindowsBridge": {
+      "Path": "",
+      "SHA256": ""
+    },
+    "MoveOverhead": 100,
+    "MaxLoad": 16
+  },
+  "ToolSourceRoot": "/home/ehrli/ngn-data/night-20261007/session117/source",
+  "ToolSourceCommit": "e8be8f2700e49cffc894d483a83d5c67171e7005",
+  "ToolGoVersion": "go1.25.5",
+  "ToolBuildArgv": [
+    "/usr/local/go/bin/go",
+    "build",
+    "-buildvcs=true",
+    "-p",
+    "2",
+    "-o",
+    "/home/ehrli/ngn-data/claim-v4-20261016/tooling-s117/frozen/claimtool",
+    "./cmd/claimtool"
+  ],
+  "SourceClean": true,
+  "CandidateSourceClean": true,
+  "NetFormat": "NGNN3",
+  "Hidden": 512,
+  "Buckets": 8,
+  "KingBuckets": 8,
+  "FrozenOpenings": {
+    "Path": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/confirmation/first-80-openings.txt",
+    "SHA256": "6e42b15c5c57c17905d28c1c0cb7e83d558f8092bd5fc672c421ccf25e419919"
+  },
+  "OpeningCount": 80,
+  "Probes": {
+    "Berserk 12": {
+      "Engine": {
+        "Path": "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/berserk-12-linux-native",
+        "SHA256": "7b9b5898a781cbe0757caef0b7281df5cf5029d17e67ed3df4824f0eb1c0125d"
+      },
+      "Events": [
+        {
+          "AtNS": 248284,
+          "Stream": "stdin",
+          "Line": "uci"
+        },
+        {
+          "AtNS": 10958987,
+          "Stream": "stdout",
+          "Line": "id name Berserk 12"
+        },
+        {
+          "AtNS": 10985372,
+          "Stream": "stdout",
+          "Line": "id author Jay Honnold"
+        },
+        {
+          "AtNS": 10987365,
+          "Stream": "stdout",
+          "Line": "option name Hash type spin default 16 min 2 max 131072"
+        },
+        {
+          "AtNS": 10988106,
+          "Stream": "stdout",
+          "Line": "option name Threads type spin default 1 min 1 max 256"
+        },
+        {
+          "AtNS": 10988667,
+          "Stream": "stdout",
+          "Line": "option name SyzygyPath type string default \u003cempty\u003e"
+        },
+        {
+          "AtNS": 10989038,
+          "Stream": "stdout",
+          "Line": "option name MultiPV type spin default 1 min 1 max 256"
+        },
+        {
+          "AtNS": 10989499,
+          "Stream": "stdout",
+          "Line": "option name Ponder type check default false"
+        },
+        {
+          "AtNS": 10989819,
+          "Stream": "stdout",
+          "Line": "option name UCI_ShowWDL type check default true"
+        },
+        {
+          "AtNS": 10990741,
+          "Stream": "stdout",
+          "Line": "option name UCI_Chess960 type check default false"
+        },
+        {
+          "AtNS": 10991091,
+          "Stream": "stdout",
+          "Line": "option name MoveOverhead type spin default 300 min 100 max 10000"
+        },
+        {
+          "AtNS": 10991502,
+          "Stream": "stdout",
+          "Line": "option name Contempt type spin default 0 min -100 max 100"
+        },
+        {
+          "AtNS": 10991853,
+          "Stream": "stdout",
+          "Line": "option name EvalFile type string default \u003cempty\u003e"
+        },
+        {
+          "AtNS": 10992353,
+          "Stream": "stdout",
+          "Line": "uciok"
+        },
+        {
+          "AtNS": 11012117,
+          "Stream": "stdin",
+          "Line": "setoption name EvalFile value \u003cempty\u003e"
+        },
+        {
+          "AtNS": 11031049,
+          "Stream": "stdin",
+          "Line": "setoption name Contempt value 0"
+        },
+        {
+          "AtNS": 11033092,
+          "Stream": "stdin",
+          "Line": "setoption name Hash value 256"
+        },
+        {
+          "AtNS": 11033543,
+          "Stream": "stdin",
+          "Line": "setoption name MoveOverhead value 100"
+        },
+        {
+          "AtNS": 11038722,
+          "Stream": "stdin",
+          "Line": "setoption name MultiPV value 1"
+        },
+        {
+          "AtNS": 11039022,
+          "Stream": "stdin",
+          "Line": "setoption name Ponder value false"
+        },
+        {
+          "AtNS": 11039443,
+          "Stream": "stdin",
+          "Line": "setoption name SyzygyPath value \u003cempty\u003e"
+        },
+        {
+          "AtNS": 11039813,
+          "Stream": "stdin",
+          "Line": "setoption name Threads value 8"
+        },
+        {
+          "AtNS": 11040104,
+          "Stream": "stdin",
+          "Line": "setoption name UCI_Chess960 value false"
+        },
+        {
+          "AtNS": 11041076,
+          "Stream": "stdin",
+          "Line": "setoption name UCI_ShowWDL value true"
+        },
+        {
+          "AtNS": 11041416,
+          "Stream": "stdin",
+          "Line": "isready"
+        },
+        {
+          "AtNS": 11958212,
+          "Stream": "stdout",
+          "Line": "info string set EvalFile to value \u003cempty\u003e"
+        },
+        {
+          "AtNS": 25776468,
+          "Stream": "stdout",
+          "Line": "info string set Hash to value 256 (268435456 bytes) (25165824 entries)"
+        },
+        {
+          "AtNS": 25805877,
+          "Stream": "stdout",
+          "Line": "info string set MultiPV to value 1"
+        },
+        {
+          "AtNS": 25808301,
+          "Stream": "stdout",
+          "Line": "info string set Ponder to value false"
+        },
+        {
+          "AtNS": 25809594,
+          "Stream": "stdout",
+          "Line": "info string set SyzygyPath to value \u003cempty\u003e"
+        },
+        {
+          "AtNS": 27417125,
+          "Stream": "stdout",
+          "Line": "info string set Threads to value 8"
+        },
+        {
+          "AtNS": 27437619,
+          "Stream": "stdout",
+          "Line": "info string set UCI_Chess960 to value false"
+        },
+        {
+          "AtNS": 27440144,
+          "Stream": "stdout",
+          "Line": "info string Resetting board..."
+        },
+        {
+          "AtNS": 32446316,
+          "Stream": "stdout",
+          "Line": "info string set SHOW_WDL to value true"
+        },
+        {
+          "AtNS": 32466560,
+          "Stream": "stdout",
+          "Line": "readyok"
+        },
+        {
+          "AtNS": 32475044,
+          "Stream": "stdin",
+          "Line": "quit"
+        }
+      ],
+      "Options": {
+        "Contempt": "spin default 0 min -100 max 100",
+        "EvalFile": "string default \u003cempty\u003e",
+        "Hash": "spin default 16 min 2 max 131072",
+        "MoveOverhead": "spin default 300 min 100 max 10000",
+        "MultiPV": "spin default 1 min 1 max 256",
+        "Ponder": "check default false",
+        "SyzygyPath": "string default \u003cempty\u003e",
+        "Threads": "spin default 1 min 1 max 256",
+        "UCI_Chess960": "check default false",
+        "UCI_ShowWDL": "check default true"
+      },
+      "Selected": {
+        "Contempt": "0",
+        "EvalFile": "\u003cempty\u003e",
+        "Hash": "256",
+        "MoveOverhead": "100",
+        "MultiPV": "1",
+        "Ponder": "false",
+        "SyzygyPath": "\u003cempty\u003e",
+        "Threads": "8",
+        "UCI_Chess960": "false",
+        "UCI_ShowWDL": "true"
+      },
+      "PID": 542725,
+      "ExitCode": 0,
+      "LaunchArgv": [
+        "/home/ehrli/ngn-data/claim-v3-20261008/anchors/berserk12/berserk-12-linux-native"
+      ],
+      "Scheduling": "inherited taskset 0,2,4,6,8,10,12,14, nice 19; GOMAXPROCS=8"
+    },
+    "Black Marlin 9.0": {
+      "Engine": {
+        "Path": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/blackmarlin9/blackmarlin-linux-x86-64-v3",
+        "SHA256": "980bd51860fc1cc61fd2216d5ca25fbcef1b5488bde1bce379d022b38b750642"
+      },
+      "Events": [
+        {
+          "AtNS": 295929,
+          "Stream": "stdin",
+          "Line": "uci"
+        },
+        {
+          "AtNS": 27969487,
+          "Stream": "stdout",
+          "Line": "id name Black Marlin 9.0"
+        },
+        {
+          "AtNS": 28020563,
+          "Stream": "stdout",
+          "Line": "id author Doruk S."
+        },
+        {
+          "AtNS": 28030840,
+          "Stream": "stdout",
+          "Line": "option name Hash type spin default 16 min 1 max 65536"
+        },
+        {
+          "AtNS": 28032102,
+          "Stream": "stdout",
+          "Line": "option name Threads type spin default 1 min 1 max 255"
+        },
+        {
+          "AtNS": 28033374,
+          "Stream": "stdout",
+          "Line": "option name UCI_ShowWDL type check default false"
+        },
+        {
+          "AtNS": 28034326,
+          "Stream": "stdout",
+          "Line": "option name UCI_Chess960 type check default false"
+        },
+        {
+          "AtNS": 28035328,
+          "Stream": "stdout",
+          "Line": "uciok"
+        },
+        {
+          "AtNS": 28053789,
+          "Stream": "stdin",
+          "Line": "setoption name Hash value 256"
+        },
+        {
+          "AtNS": 28091442,
+          "Stream": "stdin",
+          "Line": "setoption name Threads value 8"
+        },
+        {
+          "AtNS": 28095669,
+          "Stream": "stdin",
+          "Line": "setoption name UCI_Chess960 value false"
+        },
+        {
+          "AtNS": 28096851,
+          "Stream": "stdin",
+          "Line": "setoption name UCI_ShowWDL value false"
+        },
+        {
+          "AtNS": 28097543,
+          "Stream": "stdin",
+          "Line": "isready"
+        },
+        {
+          "AtNS": 75807380,
+          "Stream": "stdout",
+          "Line": "readyok"
+        },
+        {
+          "AtNS": 75860950,
+          "Stream": "stdin",
+          "Line": "quit"
+        }
+      ],
+      "Options": {
+        "Hash": "spin default 16 min 1 max 65536",
+        "Threads": "spin default 1 min 1 max 255",
+        "UCI_Chess960": "check default false",
+        "UCI_ShowWDL": "check default false"
+      },
+      "Selected": {
+        "Hash": "256",
+        "Threads": "8",
+        "UCI_Chess960": "false",
+        "UCI_ShowWDL": "false"
+      },
+      "PID": 542714,
+      "ExitCode": 0,
+      "LaunchArgv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/anchors/blackmarlin9/blackmarlin-linux-x86-64-v3"
+      ],
+      "Scheduling": "inherited taskset 0,2,4,6,8,10,12,14, nice 19; GOMAXPROCS=8"
+    },
+    "Koivisto 6.0": {
+      "Engine": {
+        "Path": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/koivisto6/Koivisto_6.0-x64-linux-avx2",
+        "SHA256": "2b2bd642e8a317456516a9134b5b6faf674859b4666bf526a85cedfb31241581"
+      },
+      "Events": [
+        {
+          "AtNS": 319980,
+          "Stream": "stdin",
+          "Line": "uci"
+        },
+        {
+          "AtNS": 7412924,
+          "Stream": "stdout",
+          "Line": "Koivisto 6.0 by K. Kahre, F. Eggers"
+        },
+        {
+          "AtNS": 7451378,
+          "Stream": "stdout",
+          "Line": "id name Koivisto 6.0"
+        },
+        {
+          "AtNS": 7457264,
+          "Stream": "stdout",
+          "Line": "id author K. Kahre, F. Eggers"
+        },
+        {
+          "AtNS": 7458085,
+          "Stream": "stdout",
+          "Line": "option name Hash type spin default 16 min 1 max 65536"
+        },
+        {
+          "AtNS": 7459977,
+          "Stream": "stdout",
+          "Line": "option name Threads type spin default 1 min 1 max 256"
+        },
+        {
+          "AtNS": 7460308,
+          "Stream": "stdout",
+          "Line": "option name OwnBook type check default false"
+        },
+        {
+          "AtNS": 7460658,
+          "Stream": "stdout",
+          "Line": "option name BookPath type string"
+        },
+        {
+          "AtNS": 7460938,
+          "Stream": "stdout",
+          "Line": "option name SyzygyPath type string default"
+        },
+        {
+          "AtNS": 7462530,
+          "Stream": "stdout",
+          "Line": "uciok"
+        },
+        {
+          "AtNS": 7491805,
+          "Stream": "stdin",
+          "Line": "setoption name Hash value 256"
+        },
+        {
+          "AtNS": 7512348,
+          "Stream": "stdin",
+          "Line": "setoption name OwnBook value false"
+        },
+        {
+          "AtNS": 7514350,
+          "Stream": "stdin",
+          "Line": "setoption name Threads value 8"
+        },
+        {
+          "AtNS": 7514801,
+          "Stream": "stdin",
+          "Line": "isready"
+        },
+        {
+          "AtNS": 54580335,
+          "Stream": "stdout",
+          "Line": "readyok"
+        },
+        {
+          "AtNS": 54605474,
+          "Stream": "stdin",
+          "Line": "quit"
+        }
+      ],
+      "Options": {
+        "BookPath": "string",
+        "Hash": "spin default 16 min 1 max 65536",
+        "OwnBook": "check default false",
+        "SyzygyPath": "string default",
+        "Threads": "spin default 1 min 1 max 256"
+      },
+      "Selected": {
+        "Hash": "256",
+        "OwnBook": "false",
+        "Threads": "8"
+      },
+      "PID": 542677,
+      "ExitCode": 0,
+      "LaunchArgv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/anchors/koivisto6/Koivisto_6.0-x64-linux-avx2"
+      ],
+      "Scheduling": "inherited taskset 0,2,4,6,8,10,12,14, nice 19; GOMAXPROCS=8"
+    },
+    "akimbo 1.0.0": {
+      "Engine": {
+        "Path": "/home/ehrli/ngn-data/claim-v4-20261016/anchors/akimbo1/akimbo-1.0.0-avx2",
+        "SHA256": "879c769035d948068512eb9de02c0f356727b6045e10b95ac813497ebd8d7eee"
+      },
+      "Events": [
+        {
+          "AtNS": 303611,
+          "Stream": "stdin",
+          "Line": "uci"
+        },
+        {
+          "AtNS": 750757,
+          "Stream": "stdout",
+          "Line": "akimbo, created by Jamie Whiting"
+        },
+        {
+          "AtNS": 1984965,
+          "Stream": "stdout",
+          "Line": "id name akimbo 1.0.0"
+        },
+        {
+          "AtNS": 2004347,
+          "Stream": "stdout",
+          "Line": "id author Jamie Whiting"
+        },
+        {
+          "AtNS": 2006019,
+          "Stream": "stdout",
+          "Line": "option name Threads type spin default 1 min 1 max 512"
+        },
+        {
+          "AtNS": 2007110,
+          "Stream": "stdout",
+          "Line": "option name Hash type spin default 16 min 1 max 1048576"
+        },
+        {
+          "AtNS": 2007821,
+          "Stream": "stdout",
+          "Line": "option name Clear Hash type button"
+        },
+        {
+          "AtNS": 2008111,
+          "Stream": "stdout",
+          "Line": "option name UCI_Chess960 type check default false"
+        },
+        {
+          "AtNS": 2008622,
+          "Stream": "stdout",
+          "Line": "uciok"
+        },
+        {
+          "AtNS": 2019354,
+          "Stream": "stdin",
+          "Line": "setoption name Hash value 256"
+        },
+        {
+          "AtNS": 2038345,
+          "Stream": "stdin",
+          "Line": "setoption name Threads value 8"
+        },
+        {
+          "AtNS": 2040358,
+          "Stream": "stdin",
+          "Line": "setoption name UCI_Chess960 value false"
+        },
+        {
+          "AtNS": 2040828,
+          "Stream": "stdin",
+          "Line": "isready"
+        },
+        {
+          "AtNS": 14946641,
+          "Stream": "stdout",
+          "Line": "readyok"
+        },
+        {
+          "AtNS": 14996387,
+          "Stream": "stdin",
+          "Line": "quit"
+        }
+      ],
+      "Options": {
+        "Clear Hash": "button",
+        "Hash": "spin default 16 min 1 max 1048576",
+        "Threads": "spin default 1 min 1 max 512",
+        "UCI_Chess960": "check default false"
+      },
+      "Selected": {
+        "Hash": "256",
+        "Threads": "8",
+        "UCI_Chess960": "false"
+      },
+      "PID": 542695,
+      "ExitCode": 0,
+      "LaunchArgv": [
+        "/home/ehrli/ngn-data/claim-v4-20261016/anchors/akimbo1/akimbo-1.0.0-avx2"
+      ],
+      "Scheduling": "inherited taskset 0,2,4,6,8,10,12,14, nice 19; GOMAXPROCS=8"
+    },
+    "candidate": {
+      "Engine": {
+        "Path": "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+        "SHA256": "7c7fa0b2d389707f5d139483875664a3249125bcaa0f60199ebc76512ab16ea8"
+      },
+      "Events": [
+        {
+          "AtNS": 257424,
+          "Stream": "stdin",
+          "Line": "uci"
+        },
+        {
+          "AtNS": 5703439,
+          "Stream": "stdout",
+          "Line": "id name ngn 0.3.0-dev"
+        },
+        {
+          "AtNS": 5722892,
+          "Stream": "stdout",
+          "Line": "id author Bryan Ehrlich"
+        },
+        {
+          "AtNS": 5738298,
+          "Stream": "stdout",
+          "Line": "option name Hash type spin default 128 min 1 max 1024"
+        },
+        {
+          "AtNS": 5739100,
+          "Stream": "stdout",
+          "Line": "option name Threads type spin default 1 min 1 max 64"
+        },
+        {
+          "AtNS": 5739671,
+          "Stream": "stdout",
+          "Line": "option name Move Overhead type spin default 100 min 0 max 5000"
+        },
+        {
+          "AtNS": 5740171,
+          "Stream": "stdout",
+          "Line": "option name OwnBook type check default false"
+        },
+        {
+          "AtNS": 5740482,
+          "Stream": "stdout",
+          "Line": "option name EvalFile type string default \u003cembedded\u003e"
+        },
+        {
+          "AtNS": 5740913,
+          "Stream": "stdout",
+          "Line": "option name UseNNUE type check default true"
+        },
+        {
+          "AtNS": 5741594,
+          "Stream": "stdout",
+          "Line": "option name NullMoveR type spin default 4 min 2 max 5"
+        },
+        {
+          "AtNS": 5741964,
+          "Stream": "stdout",
+          "Line": "option name NullMoveMinDepth type spin default 2 min 1 max 6"
+        },
+        {
+          "AtNS": 5742265,
+          "Stream": "stdout",
+          "Line": "option name LMRFullDepth type spin default 3 min 1 max 6"
+        },
+        {
+          "AtNS": 5742606,
+          "Stream": "stdout",
+          "Line": "option name LMRMoveThreshold type spin default 2 min 1 max 8"
+        },
+        {
+          "AtNS": 5742966,
+          "Stream": "stdout",
+          "Line": "option name FutilityMargin type spin default 101 min 50 max 160"
+        },
+        {
+          "AtNS": 5743327,
+          "Stream": "stdout",
+          "Line": "option name FutilityMaxDepth type spin default 8 min 1 max 8"
+        },
+        {
+          "AtNS": 5743878,
+          "Stream": "stdout",
+          "Line": "option name ReverseFutilityMargin type spin default 69 min 40 max 300"
+        },
+        {
+          "AtNS": 5744719,
+          "Stream": "stdout",
+          "Line": "option name DeltaMargin type spin default 261 min 0 max 400"
+        },
+        {
+          "AtNS": 5745050,
+          "Stream": "stdout",
+          "Line": "option name SingularDepth type spin default 8 min 4 max 12"
+        },
+        {
+          "AtNS": 5746692,
+          "Stream": "stdout",
+          "Line": "option name SingularMargin type spin default 67 min 16 max 256"
+        },
+        {
+          "AtNS": 5746993,
+          "Stream": "stdout",
+          "Line": "option name ExtensionBudget type spin default 29 min 4 max 64"
+        },
+        {
+          "AtNS": 5747323,
+          "Stream": "stdout",
+          "Line": "option name AspInit type spin default 18 min 4 max 40"
+        },
+        {
+          "AtNS": 5747584,
+          "Stream": "stdout",
+          "Line": "option name AspMult type spin default 171 min 110 max 250"
+        },
+        {
+          "AtNS": 5747874,
+          "Stream": "stdout",
+          "Line": "option name LMPBase type spin default 3 min 2 max 16"
+        },
+        {
+          "AtNS": 5748335,
+          "Stream": "stdout",
+          "Line": "uciok"
+        },
+        {
+          "AtNS": 5765174,
+          "Stream": "stdin",
+          "Line": "setoption name EvalFile value /home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue"
+        },
+        {
+          "AtNS": 5784857,
+          "Stream": "stdin",
+          "Line": "setoption name UseNNUE value true"
+        },
+        {
+          "AtNS": 5786850,
+          "Stream": "stdin",
+          "Line": "setoption name AspInit value 18"
+        },
+        {
+          "AtNS": 5787241,
+          "Stream": "stdin",
+          "Line": "setoption name AspMult value 171"
+        },
+        {
+          "AtNS": 5787742,
+          "Stream": "stdin",
+          "Line": "setoption name DeltaMargin value 261"
+        },
+        {
+          "AtNS": 5788102,
+          "Stream": "stdin",
+          "Line": "setoption name ExtensionBudget value 29"
+        },
+        {
+          "AtNS": 5788393,
+          "Stream": "stdin",
+          "Line": "setoption name FutilityMargin value 101"
+        },
+        {
+          "AtNS": 5792309,
+          "Stream": "stdin",
+          "Line": "setoption name FutilityMaxDepth value 8"
+        },
+        {
+          "AtNS": 5792750,
+          "Stream": "stdin",
+          "Line": "setoption name Hash value 256"
+        },
+        {
+          "AtNS": 5793862,
+          "Stream": "stdin",
+          "Line": "setoption name LMPBase value 3"
+        },
+        {
+          "AtNS": 5794263,
+          "Stream": "stdin",
+          "Line": "setoption name LMRFullDepth value 3"
+        },
+        {
+          "AtNS": 5794573,
+          "Stream": "stdin",
+          "Line": "setoption name LMRMoveThreshold value 2"
+        },
+        {
+          "AtNS": 5796056,
+          "Stream": "stdin",
+          "Line": "setoption name Move Overhead value 100"
+        },
+        {
+          "AtNS": 5796336,
+          "Stream": "stdin",
+          "Line": "setoption name NullMoveMinDepth value 2"
+        },
+        {
+          "AtNS": 5796637,
+          "Stream": "stdin",
+          "Line": "setoption name NullMoveR value 4"
+        },
+        {
+          "AtNS": 5806874,
+          "Stream": "stdin",
+          "Line": "setoption name OwnBook value false"
+        },
+        {
+          "AtNS": 5807465,
+          "Stream": "stdin",
+          "Line": "setoption name ReverseFutilityMargin value 69"
+        },
+        {
+          "AtNS": 5808467,
+          "Stream": "stdin",
+          "Line": "setoption name SingularDepth value 8"
+        },
+        {
+          "AtNS": 5808787,
+          "Stream": "stdin",
+          "Line": "setoption name SingularMargin value 67"
+        },
+        {
+          "AtNS": 5809088,
+          "Stream": "stdin",
+          "Line": "setoption name Threads value 8"
+        },
+        {
+          "AtNS": 5809478,
+          "Stream": "stdin",
+          "Line": "isready"
+        },
+        {
+          "AtNS": 41428822,
+          "Stream": "stdout",
+          "Line": "info string threads configured 8 effective 8"
+        },
+        {
+          "AtNS": 41451621,
+          "Stream": "stdout",
+          "Line": "readyok"
+        },
+        {
+          "AtNS": 41467417,
+          "Stream": "stdin",
+          "Line": "position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+        },
+        {
+          "AtNS": 41486449,
+          "Stream": "stdin",
+          "Line": "eval"
+        },
+        {
+          "AtNS": 41488343,
+          "Stream": "stdin",
+          "Line": "isready"
+        },
+        {
+          "AtNS": 44020096,
+          "Stream": "stdout",
+          "Line": "info string eval backend ngnn3 score_cp 51 pov side-to-move policy base-SearchSTM correction-history excluded"
+        },
+        {
+          "AtNS": 44043706,
+          "Stream": "stdout",
+          "Line": "readyok"
+        },
+        {
+          "AtNS": 44053763,
+          "Stream": "stdin",
+          "Line": "position fen 4k3/8/8/8/8/8/4P3/4K3 w - - 0 1"
+        },
+        {
+          "AtNS": 44072704,
+          "Stream": "stdin",
+          "Line": "eval"
+        },
+        {
+          "AtNS": 44075269,
+          "Stream": "stdin",
+          "Line": "isready"
+        },
+        {
+          "AtNS": 44139895,
+          "Stream": "stdout",
+          "Line": "info string eval backend ngnn3 score_cp 174 pov side-to-move policy base-SearchSTM correction-history excluded"
+        },
+        {
+          "AtNS": 44159387,
+          "Stream": "stdout",
+          "Line": "readyok"
+        },
+        {
+          "AtNS": 44166009,
+          "Stream": "stdin",
+          "Line": "quit"
+        }
+      ],
+      "Options": {
+        "AspInit": "spin default 18 min 4 max 40",
+        "AspMult": "spin default 171 min 110 max 250",
+        "DeltaMargin": "spin default 261 min 0 max 400",
+        "EvalFile": "string default \u003cembedded\u003e",
+        "ExtensionBudget": "spin default 29 min 4 max 64",
+        "FutilityMargin": "spin default 101 min 50 max 160",
+        "FutilityMaxDepth": "spin default 8 min 1 max 8",
+        "Hash": "spin default 128 min 1 max 1024",
+        "LMPBase": "spin default 3 min 2 max 16",
+        "LMRFullDepth": "spin default 3 min 1 max 6",
+        "LMRMoveThreshold": "spin default 2 min 1 max 8",
+        "Move Overhead": "spin default 100 min 0 max 5000",
+        "NullMoveMinDepth": "spin default 2 min 1 max 6",
+        "NullMoveR": "spin default 4 min 2 max 5",
+        "OwnBook": "check default false",
+        "ReverseFutilityMargin": "spin default 69 min 40 max 300",
+        "SingularDepth": "spin default 8 min 4 max 12",
+        "SingularMargin": "spin default 67 min 16 max 256",
+        "Threads": "spin default 1 min 1 max 64",
+        "UseNNUE": "check default true"
+      },
+      "Selected": {
+        "AspInit": "18",
+        "AspMult": "171",
+        "DeltaMargin": "261",
+        "EvalFile": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+        "ExtensionBudget": "29",
+        "FutilityMargin": "101",
+        "FutilityMaxDepth": "8",
+        "Hash": "256",
+        "LMPBase": "3",
+        "LMRFullDepth": "3",
+        "LMRMoveThreshold": "2",
+        "Move Overhead": "100",
+        "NullMoveMinDepth": "2",
+        "NullMoveR": "4",
+        "OwnBook": "false",
+        "ReverseFutilityMargin": "69",
+        "SingularDepth": "8",
+        "SingularMargin": "67",
+        "Threads": "8",
+        "UseNNUE": "true"
+      },
+      "PID": 542741,
+      "ExitCode": 0,
+      "LaunchArgv": [
+        "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn"
+      ],
+      "Scheduling": "inherited taskset 0,2,4,6,8,10,12,14, nice 19; GOMAXPROCS=8"
+    }
+  },
+  "Selected": {
+    "Berserk 12": {
+      "Contempt": "0",
+      "EvalFile": "\u003cempty\u003e",
+      "Hash": "256",
+      "MoveOverhead": "100",
+      "MultiPV": "1",
+      "Ponder": "false",
+      "SyzygyPath": "\u003cempty\u003e",
+      "Threads": "8",
+      "UCI_Chess960": "false",
+      "UCI_ShowWDL": "true"
+    },
+    "Black Marlin 9.0": {
+      "Hash": "256",
+      "Threads": "8",
+      "UCI_Chess960": "false",
+      "UCI_ShowWDL": "false"
+    },
+    "Koivisto 6.0": {
+      "Hash": "256",
+      "OwnBook": "false",
+      "Threads": "8"
+    },
+    "akimbo 1.0.0": {
+      "Hash": "256",
+      "Threads": "8",
+      "UCI_Chess960": "false"
+    },
+    "candidate": {
+      "AspInit": "18",
+      "AspMult": "171",
+      "DeltaMargin": "261",
+      "EvalFile": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+      "ExtensionBudget": "29",
+      "FutilityMargin": "101",
+      "FutilityMaxDepth": "8",
+      "Hash": "256",
+      "LMPBase": "3",
+      "LMRFullDepth": "3",
+      "LMRMoveThreshold": "2",
+      "Move Overhead": "100",
+      "NullMoveMinDepth": "2",
+      "NullMoveR": "4",
+      "OwnBook": "false",
+      "ReverseFutilityMargin": "69",
+      "SingularDepth": "8",
+      "SingularMargin": "67",
+      "Threads": "8",
+      "UseNNUE": "true"
+    }
+  },
+  "ClockCheck": [
+    {
+      "Lane": 0,
+      "Role": "A",
+      "UsedNS": 50972663,
+      "BeforeNS": 120000000000,
+      "AfterNS": 120949027337,
+      "Move": "d2d4",
+      "Session": {
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+          "SHA256": "7c7fa0b2d389707f5d139483875664a3249125bcaa0f60199ebc76512ab16ea8"
+        },
+        "Events": [
+          {
+            "AtNS": 257805,
+            "Stream": "stdin",
+            "Line": "uci"
+          },
+          {
+            "AtNS": 5241201,
+            "Stream": "stdout",
+            "Line": "id name ngn 0.3.0-dev"
+          },
+          {
+            "AtNS": 5259663,
+            "Stream": "stdout",
+            "Line": "id author Bryan Ehrlich"
+          },
+          {
+            "AtNS": 5281409,
+            "Stream": "stdout",
+            "Line": "option name Hash type spin default 128 min 1 max 1024"
+          },
+          {
+            "AtNS": 5282241,
+            "Stream": "stdout",
+            "Line": "option name Threads type spin default 1 min 1 max 64"
+          },
+          {
+            "AtNS": 5284404,
+            "Stream": "stdout",
+            "Line": "option name Move Overhead type spin default 100 min 0 max 5000"
+          },
+          {
+            "AtNS": 5285105,
+            "Stream": "stdout",
+            "Line": "option name OwnBook type check default false"
+          },
+          {
+            "AtNS": 5285426,
+            "Stream": "stdout",
+            "Line": "option name EvalFile type string default \u003cembedded\u003e"
+          },
+          {
+            "AtNS": 5285817,
+            "Stream": "stdout",
+            "Line": "option name UseNNUE type check default true"
+          },
+          {
+            "AtNS": 5287289,
+            "Stream": "stdout",
+            "Line": "option name NullMoveR type spin default 4 min 2 max 5"
+          },
+          {
+            "AtNS": 5287670,
+            "Stream": "stdout",
+            "Line": "option name NullMoveMinDepth type spin default 2 min 1 max 6"
+          },
+          {
+            "AtNS": 5287980,
+            "Stream": "stdout",
+            "Line": "option name LMRFullDepth type spin default 3 min 1 max 6"
+          },
+          {
+            "AtNS": 5288311,
+            "Stream": "stdout",
+            "Line": "option name LMRMoveThreshold type spin default 2 min 1 max 8"
+          },
+          {
+            "AtNS": 5288641,
+            "Stream": "stdout",
+            "Line": "option name FutilityMargin type spin default 101 min 50 max 160"
+          },
+          {
+            "AtNS": 5288992,
+            "Stream": "stdout",
+            "Line": "option name FutilityMaxDepth type spin default 8 min 1 max 8"
+          },
+          {
+            "AtNS": 5289483,
+            "Stream": "stdout",
+            "Line": "option name ReverseFutilityMargin type spin default 69 min 40 max 300"
+          },
+          {
+            "AtNS": 5290274,
+            "Stream": "stdout",
+            "Line": "option name DeltaMargin type spin default 261 min 0 max 400"
+          },
+          {
+            "AtNS": 5290615,
+            "Stream": "stdout",
+            "Line": "option name SingularDepth type spin default 8 min 4 max 12"
+          },
+          {
+            "AtNS": 5291316,
+            "Stream": "stdout",
+            "Line": "option name SingularMargin type spin default 67 min 16 max 256"
+          },
+          {
+            "AtNS": 5291626,
+            "Stream": "stdout",
+            "Line": "option name ExtensionBudget type spin default 29 min 4 max 64"
+          },
+          {
+            "AtNS": 5291937,
+            "Stream": "stdout",
+            "Line": "option name AspInit type spin default 18 min 4 max 40"
+          },
+          {
+            "AtNS": 5292197,
+            "Stream": "stdout",
+            "Line": "option name AspMult type spin default 171 min 110 max 250"
+          },
+          {
+            "AtNS": 5292498,
+            "Stream": "stdout",
+            "Line": "option name LMPBase type spin default 3 min 2 max 16"
+          },
+          {
+            "AtNS": 5292858,
+            "Stream": "stdout",
+            "Line": "uciok"
+          },
+          {
+            "AtNS": 5310989,
+            "Stream": "stdin",
+            "Line": "setoption name EvalFile value /home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue"
+          },
+          {
+            "AtNS": 5330191,
+            "Stream": "stdin",
+            "Line": "setoption name UseNNUE value true"
+          },
+          {
+            "AtNS": 5332325,
+            "Stream": "stdin",
+            "Line": "setoption name AspInit value 18"
+          },
+          {
+            "AtNS": 5332716,
+            "Stream": "stdin",
+            "Line": "setoption name AspMult value 171"
+          },
+          {
+            "AtNS": 5333126,
+            "Stream": "stdin",
+            "Line": "setoption name DeltaMargin value 261"
+          },
+          {
+            "AtNS": 5333547,
+            "Stream": "stdin",
+            "Line": "setoption name ExtensionBudget value 29"
+          },
+          {
+            "AtNS": 5333898,
+            "Stream": "stdin",
+            "Line": "setoption name FutilityMargin value 101"
+          },
+          {
+            "AtNS": 5334218,
+            "Stream": "stdin",
+            "Line": "setoption name FutilityMaxDepth value 8"
+          },
+          {
+            "AtNS": 5334659,
+            "Stream": "stdin",
+            "Line": "setoption name Hash value 256"
+          },
+          {
+            "AtNS": 5335791,
+            "Stream": "stdin",
+            "Line": "setoption name LMPBase value 3"
+          },
+          {
+            "AtNS": 5336152,
+            "Stream": "stdin",
+            "Line": "setoption name LMRFullDepth value 3"
+          },
+          {
+            "AtNS": 5336492,
+            "Stream": "stdin",
+            "Line": "setoption name LMRMoveThreshold value 2"
+          },
+          {
+            "AtNS": 5341140,
+            "Stream": "stdin",
+            "Line": "setoption name Move Overhead value 100"
+          },
+          {
+            "AtNS": 5341611,
+            "Stream": "stdin",
+            "Line": "setoption name NullMoveMinDepth value 2"
+          },
+          {
+            "AtNS": 5341931,
+            "Stream": "stdin",
+            "Line": "setoption name NullMoveR value 4"
+          },
+          {
+            "AtNS": 5343955,
+            "Stream": "stdin",
+            "Line": "setoption name OwnBook value false"
+          },
+          {
+            "AtNS": 5344395,
+            "Stream": "stdin",
+            "Line": "setoption name ReverseFutilityMargin value 69"
+          },
+          {
+            "AtNS": 5344776,
+            "Stream": "stdin",
+            "Line": "setoption name SingularDepth value 8"
+          },
+          {
+            "AtNS": 5345137,
+            "Stream": "stdin",
+            "Line": "setoption name SingularMargin value 67"
+          },
+          {
+            "AtNS": 5345427,
+            "Stream": "stdin",
+            "Line": "setoption name Threads value 8"
+          },
+          {
+            "AtNS": 5345698,
+            "Stream": "stdin",
+            "Line": "isready"
+          },
+          {
+            "AtNS": 39094340,
+            "Stream": "stdout",
+            "Line": "info string threads configured 8 effective 8"
+          },
+          {
+            "AtNS": 39119593,
+            "Stream": "stdout",
+            "Line": "readyok"
+          },
+          {
+            "AtNS": 39133056,
+            "Stream": "stdin",
+            "Line": "position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+          },
+          {
+            "AtNS": 39156715,
+            "Stream": "stdin",
+            "Line": "go wtime 120000 btime 120000 winc 1000 binc 1000"
+          },
+          {
+            "AtNS": 41820091,
+            "Stream": "stdout",
+            "Line": "info string threads configured 8 effective 8"
+          },
+          {
+            "AtNS": 42070741,
+            "Stream": "stdout",
+            "Line": "info depth 1 seldepth 1 score cp 43 nodes 176 time 2 nps 62796 hashfull 0 pv d2d4"
+          },
+          {
+            "AtNS": 42209450,
+            "Stream": "stdout",
+            "Line": "info depth 2 seldepth 4 score cp 53 nodes 774 time 2 nps 261059 hashfull 0 pv e2e4 e7e5"
+          },
+          {
+            "AtNS": 42324144,
+            "Stream": "stdout",
+            "Line": "info depth 3 seldepth 3 score cp 42 nodes 1549 time 3 nps 499340 hashfull 0 pv e2e4 e7e5"
+          },
+          {
+            "AtNS": 42576810,
+            "Stream": "stdout",
+            "Line": "info depth 4 seldepth 4 score cp 59 nodes 3146 time 3 nps 941139 hashfull 0 pv e2e4 c7c5 g1f3 b8c6"
+          },
+          {
+            "AtNS": 43188041,
+            "Stream": "stdout",
+            "Line": "info depth 5 seldepth 7 score cp 32 nodes 8714 time 3 nps 2203494 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 f1b5 a7a6"
+          },
+          {
+            "AtNS": 45600437,
+            "Stream": "stdout",
+            "Line": "info depth 6 seldepth 8 score cp 45 nodes 15552 time 4 nps 3302015 hashfull 0 pv d2d4 d7d5 g1f3 g8f6 c2c4 e7e6 b1c3"
+          },
+          {
+            "AtNS": 45605356,
+            "Stream": "stdout",
+            "Line": "info depth 7 seldepth 9 score cp 45 nodes 16332 time 5 nps 3199758 hashfull 0 pv d2d4 d7d5 g1f3 g8f6 c2c4 e7e6 b1c3"
+          },
+          {
+            "AtNS": 47287298,
+            "Stream": "stdout",
+            "Line": "info depth 8 seldepth 13 score cp 58 nodes 39412 time 7 nps 5058294 hashfull 0 pv d2d4 d7d5 g1f3 e7e6 c2c4 d5c4 b1c3 a7a6"
+          },
+          {
+            "AtNS": 50413240,
+            "Stream": "stdout",
+            "Line": "info depth 9 seldepth 13 score cp 53 nodes 78357 time 11 nps 7004625 hashfull 0 pv d2d4 d7d5 g1f3"
+          },
+          {
+            "AtNS": 55019078,
+            "Stream": "stdout",
+            "Line": "info depth 10 seldepth 15 score cp 54 nodes 153240 time 15 nps 9693089 hashfull 0 pv e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 e7e5 f1b5 c8d7 b5d7"
+          },
+          {
+            "AtNS": 55783297,
+            "Stream": "stdout",
+            "Line": "info depth 11 seldepth 14 score cp 53 nodes 160224 time 16 nps 9672151 hashfull 0 pv e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 e7e5 f1b5 c8d7 b5d7"
+          },
+          {
+            "AtNS": 62438952,
+            "Stream": "stdout",
+            "Line": "info depth 12 seldepth 17 score cp 51 nodes 253501 time 23 nps 10918053 hashfull 0 pv e2e4 e7e5 g1f3"
+          },
+          {
+            "AtNS": 82561163,
+            "Stream": "stdout",
+            "Line": "info depth 13 seldepth 21 score cp 53 nodes 539591 time 43 nps 12447345 hashfull 2 pv d2d4"
+          },
+          {
+            "AtNS": 89978716,
+            "Stream": "stdin",
+            "Line": "stop"
+          },
+          {
+            "AtNS": 90129378,
+            "Stream": "stdout",
+            "Line": "bestmove d2d4"
+          },
+          {
+            "AtNS": 90187226,
+            "Stream": "stdin",
+            "Line": "quit"
+          }
+        ],
+        "Options": {
+          "AspInit": "spin default 18 min 4 max 40",
+          "AspMult": "spin default 171 min 110 max 250",
+          "DeltaMargin": "spin default 261 min 0 max 400",
+          "EvalFile": "string default \u003cembedded\u003e",
+          "ExtensionBudget": "spin default 29 min 4 max 64",
+          "FutilityMargin": "spin default 101 min 50 max 160",
+          "FutilityMaxDepth": "spin default 8 min 1 max 8",
+          "Hash": "spin default 128 min 1 max 1024",
+          "LMPBase": "spin default 3 min 2 max 16",
+          "LMRFullDepth": "spin default 3 min 1 max 6",
+          "LMRMoveThreshold": "spin default 2 min 1 max 8",
+          "Move Overhead": "spin default 100 min 0 max 5000",
+          "NullMoveMinDepth": "spin default 2 min 1 max 6",
+          "NullMoveR": "spin default 4 min 2 max 5",
+          "OwnBook": "check default false",
+          "ReverseFutilityMargin": "spin default 69 min 40 max 300",
+          "SingularDepth": "spin default 8 min 4 max 12",
+          "SingularMargin": "spin default 67 min 16 max 256",
+          "Threads": "spin default 1 min 1 max 64",
+          "UseNNUE": "check default true"
+        },
+        "Selected": {
+          "AspInit": "18",
+          "AspMult": "171",
+          "DeltaMargin": "261",
+          "EvalFile": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+          "ExtensionBudget": "29",
+          "FutilityMargin": "101",
+          "FutilityMaxDepth": "8",
+          "Hash": "256",
+          "LMPBase": "3",
+          "LMRFullDepth": "3",
+          "LMRMoveThreshold": "2",
+          "Move Overhead": "100",
+          "NullMoveMinDepth": "2",
+          "NullMoveR": "4",
+          "OwnBook": "false",
+          "ReverseFutilityMargin": "69",
+          "SingularDepth": "8",
+          "SingularMargin": "67",
+          "Threads": "8",
+          "UseNNUE": "true"
+        },
+        "PID": 542749,
+        "ExitCode": 0,
+        "LaunchArgv": [
+          "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn"
+        ],
+        "Scheduling": "inherited taskset 0,2,4,6,8,10,12,14, nice 19; GOMAXPROCS=8"
+      }
+    },
+    {
+      "Lane": 0,
+      "Role": "A-copy",
+      "UsedNS": 54612814,
+      "BeforeNS": 120000000000,
+      "AfterNS": 120945387186,
+      "Move": "d2d4",
+      "Session": {
+        "Engine": {
+          "Path": "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn",
+          "SHA256": "7c7fa0b2d389707f5d139483875664a3249125bcaa0f60199ebc76512ab16ea8"
+        },
+        "Events": [
+          {
+            "AtNS": 241097,
+            "Stream": "stdin",
+            "Line": "uci"
+          },
+          {
+            "AtNS": 5234497,
+            "Stream": "stdout",
+            "Line": "id name ngn 0.3.0-dev"
+          },
+          {
+            "AtNS": 5253579,
+            "Stream": "stdout",
+            "Line": "id author Bryan Ehrlich"
+          },
+          {
+            "AtNS": 5268855,
+            "Stream": "stdout",
+            "Line": "option name Hash type spin default 128 min 1 max 1024"
+          },
+          {
+            "AtNS": 5269696,
+            "Stream": "stdout",
+            "Line": "option name Threads type spin default 1 min 1 max 64"
+          },
+          {
+            "AtNS": 5270267,
+            "Stream": "stdout",
+            "Line": "option name Move Overhead type spin default 100 min 0 max 5000"
+          },
+          {
+            "AtNS": 5270808,
+            "Stream": "stdout",
+            "Line": "option name OwnBook type check default false"
+          },
+          {
+            "AtNS": 5271119,
+            "Stream": "stdout",
+            "Line": "option name EvalFile type string default \u003cembedded\u003e"
+          },
+          {
+            "AtNS": 5271479,
+            "Stream": "stdout",
+            "Line": "option name UseNNUE type check default true"
+          },
+          {
+            "AtNS": 5272090,
+            "Stream": "stdout",
+            "Line": "option name NullMoveR type spin default 4 min 2 max 5"
+          },
+          {
+            "AtNS": 5272431,
+            "Stream": "stdout",
+            "Line": "option name NullMoveMinDepth type spin default 2 min 1 max 6"
+          },
+          {
+            "AtNS": 5272791,
+            "Stream": "stdout",
+            "Line": "option name LMRFullDepth type spin default 3 min 1 max 6"
+          },
+          {
+            "AtNS": 5273132,
+            "Stream": "stdout",
+            "Line": "option name LMRMoveThreshold type spin default 2 min 1 max 8"
+          },
+          {
+            "AtNS": 5273412,
+            "Stream": "stdout",
+            "Line": "option name FutilityMargin type spin default 101 min 50 max 160"
+          },
+          {
+            "AtNS": 5273753,
+            "Stream": "stdout",
+            "Line": "option name FutilityMaxDepth type spin default 8 min 1 max 8"
+          },
+          {
+            "AtNS": 5274134,
+            "Stream": "stdout",
+            "Line": "option name ReverseFutilityMargin type spin default 69 min 40 max 300"
+          },
+          {
+            "AtNS": 5274945,
+            "Stream": "stdout",
+            "Line": "option name DeltaMargin type spin default 261 min 0 max 400"
+          },
+          {
+            "AtNS": 5275306,
+            "Stream": "stdout",
+            "Line": "option name SingularDepth type spin default 8 min 4 max 12"
+          },
+          {
+            "AtNS": 5276067,
+            "Stream": "stdout",
+            "Line": "option name SingularMargin type spin default 67 min 16 max 256"
+          },
+          {
+            "AtNS": 5276398,
+            "Stream": "stdout",
+            "Line": "option name ExtensionBudget type spin default 29 min 4 max 64"
+          },
+          {
+            "AtNS": 5276728,
+            "Stream": "stdout",
+            "Line": "option name AspInit type spin default 18 min 4 max 40"
+          },
+          {
+            "AtNS": 5277009,
+            "Stream": "stdout",
+            "Line": "option name AspMult type spin default 171 min 110 max 250"
+          },
+          {
+            "AtNS": 5277279,
+            "Stream": "stdout",
+            "Line": "option name LMPBase type spin default 3 min 2 max 16"
+          },
+          {
+            "AtNS": 5277700,
+            "Stream": "stdout",
+            "Line": "uciok"
+          },
+          {
+            "AtNS": 5300488,
+            "Stream": "stdin",
+            "Line": "setoption name EvalFile value /home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue"
+          },
+          {
+            "AtNS": 5319901,
+            "Stream": "stdin",
+            "Line": "setoption name UseNNUE value true"
+          },
+          {
+            "AtNS": 5321904,
+            "Stream": "stdin",
+            "Line": "setoption name AspInit value 18"
+          },
+          {
+            "AtNS": 5322305,
+            "Stream": "stdin",
+            "Line": "setoption name AspMult value 171"
+          },
+          {
+            "AtNS": 5322746,
+            "Stream": "stdin",
+            "Line": "setoption name DeltaMargin value 261"
+          },
+          {
+            "AtNS": 5323116,
+            "Stream": "stdin",
+            "Line": "setoption name ExtensionBudget value 29"
+          },
+          {
+            "AtNS": 5323457,
+            "Stream": "stdin",
+            "Line": "setoption name FutilityMargin value 101"
+          },
+          {
+            "AtNS": 5323807,
+            "Stream": "stdin",
+            "Line": "setoption name FutilityMaxDepth value 8"
+          },
+          {
+            "AtNS": 5324168,
+            "Stream": "stdin",
+            "Line": "setoption name Hash value 256"
+          },
+          {
+            "AtNS": 5325330,
+            "Stream": "stdin",
+            "Line": "setoption name LMPBase value 3"
+          },
+          {
+            "AtNS": 5325701,
+            "Stream": "stdin",
+            "Line": "setoption name LMRFullDepth value 3"
+          },
+          {
+            "AtNS": 5329357,
+            "Stream": "stdin",
+            "Line": "setoption name LMRMoveThreshold value 2"
+          },
+          {
+            "AtNS": 5331571,
+            "Stream": "stdin",
+            "Line": "setoption name Move Overhead value 100"
+          },
+          {
+            "AtNS": 5331851,
+            "Stream": "stdin",
+            "Line": "setoption name NullMoveMinDepth value 2"
+          },
+          {
+            "AtNS": 5332132,
+            "Stream": "stdin",
+            "Line": "setoption name NullMoveR value 4"
+          },
+          {
+            "AtNS": 5333724,
+            "Stream": "stdin",
+            "Line": "setoption name OwnBook value false"
+          },
+          {
+            "AtNS": 5334155,
+            "Stream": "stdin",
+            "Line": "setoption name ReverseFutilityMargin value 69"
+          },
+          {
+            "AtNS": 5334485,
+            "Stream": "stdin",
+            "Line": "setoption name SingularDepth value 8"
+          },
+          {
+            "AtNS": 5334836,
+            "Stream": "stdin",
+            "Line": "setoption name SingularMargin value 67"
+          },
+          {
+            "AtNS": 5335137,
+            "Stream": "stdin",
+            "Line": "setoption name Threads value 8"
+          },
+          {
+            "AtNS": 5336168,
+            "Stream": "stdin",
+            "Line": "isready"
+          },
+          {
+            "AtNS": 39508951,
+            "Stream": "stdout",
+            "Line": "info string threads configured 8 effective 8"
+          },
+          {
+            "AtNS": 39534384,
+            "Stream": "stdout",
+            "Line": "readyok"
+          },
+          {
+            "AtNS": 39549379,
+            "Stream": "stdin",
+            "Line": "position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+          },
+          {
+            "AtNS": 39573520,
+            "Stream": "stdin",
+            "Line": "go wtime 120000 btime 120000 winc 1000 binc 1000"
+          },
+          {
+            "AtNS": 42314908,
+            "Stream": "stdout",
+            "Line": "info string threads configured 8 effective 8"
+          },
+          {
+            "AtNS": 42540450,
+            "Stream": "stdout",
+            "Line": "info depth 1 seldepth 1 score cp 43 nodes 132 time 2 nps 46407 hashfull 0 pv d2d4"
+          },
+          {
+            "AtNS": 42666752,
+            "Stream": "stdout",
+            "Line": "info depth 2 seldepth 4 score cp 53 nodes 576 time 2 nps 194546 hashfull 0 pv e2e4 e7e5"
+          },
+          {
+            "AtNS": 42793317,
+            "Stream": "stdout",
+            "Line": "info depth 3 seldepth 3 score cp 42 nodes 1150 time 3 nps 368528 hashfull 0 pv e2e4 e7e5 g1f3"
+          },
+          {
+            "AtNS": 42952325,
+            "Stream": "stdout",
+            "Line": "info depth 4 seldepth 4 score cp 59 nodes 2262 time 3 nps 682932 hashfull 0 pv e2e4 c7c5 g1f3 b8c6"
+          },
+          {
+            "AtNS": 43479995,
+            "Stream": "stdout",
+            "Line": "info depth 5 seldepth 7 score cp 32 nodes 5417 time 3 nps 1425676 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 f1b5 a7a6"
+          },
+          {
+            "AtNS": 44254099,
+            "Stream": "stdout",
+            "Line": "info depth 6 seldepth 8 score cp 41 nodes 7907 time 4 nps 1815916 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 c2c3"
+          },
+          {
+            "AtNS": 44748576,
+            "Stream": "stdout",
+            "Line": "info depth 7 seldepth 9 score cp 52 nodes 11091 time 5 nps 2174460 hashfull 0 pv e2e4"
+          },
+          {
+            "AtNS": 46035817,
+            "Stream": "stdout",
+            "Line": "info depth 8 seldepth 12 score cp 52 nodes 22379 time 6 nps 3506181 hashfull 0 pv e2e4 c7c5 g1f3 b8c6 f1b5 g8f6 b5c6 b7c6 e4e5 f6d5"
+          },
+          {
+            "AtNS": 52157185,
+            "Stream": "stdout",
+            "Line": "info depth 9 seldepth 16 score cp 61 nodes 86728 time 12 nps 6934210 hashfull 1 pv g1f3 c7c5 e2e4 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 b8c6"
+          },
+          {
+            "AtNS": 57548000,
+            "Stream": "stdout",
+            "Line": "info depth 10 seldepth 16 score cp 59 nodes 152610 time 17 nps 8524650 hashfull 1 pv d2d4 d7d5 c2c4 d5c4 e2e3 g8f6 f1c4 c7c5 g1f3 e7e6 e1g1 c5d4 e3d4"
+          },
+          {
+            "AtNS": 60658236,
+            "Stream": "stdout",
+            "Line": "info depth 11 seldepth 16 score cp 59 nodes 191839 time 20 nps 9221688 hashfull 1 pv d2d4 d7d5 c2c4 d5c4 e2e3 g8f6 f1c4 c7c5 g1f3 e7e6 e1g1 c5d4 e3d4"
+          },
+          {
+            "AtNS": 63345879,
+            "Stream": "stdout",
+            "Line": "info depth 12 seldepth 14 score cp 59 nodes 208710 time 22 nps 9408062 hashfull 1 pv d2d4 d7d5 c2c4 d5c4 e2e3 g8f6 f1c4 c7c5 g1f3 e7e6 e1g1 c5d4 e3d4"
+          },
+          {
+            "AtNS": 82137369,
+            "Stream": "stdout",
+            "Line": "info depth 13 seldepth 20 score cp 51 nodes 473700 time 40 nps 11723069 hashfull 3 pv d2d4 d7d5 c2c4 e7e6 g1f3 g8f6 b1c3 f8b4 c4d5 e6d5 c1g5 b4c3 b2c3 h7h6"
+          },
+          {
+            "AtNS": 91351889,
+            "Stream": "stdin",
+            "Line": "stop"
+          },
+          {
+            "AtNS": 94161473,
+            "Stream": "stdout",
+            "Line": "info depth 14 seldepth 22 score cp 53 nodes 642113 time 51 nps 12393979 hashfull 4 pv d2d4 d7d5 c2c4 e7e6 g1f3 g8f6"
+          },
+          {
+            "AtNS": 94186334,
+            "Stream": "stdout",
+            "Line": "bestmove d2d4"
+          },
+          {
+            "AtNS": 94223387,
+            "Stream": "stdin",
+            "Line": "quit"
+          }
+        ],
+        "Options": {
+          "AspInit": "spin default 18 min 4 max 40",
+          "AspMult": "spin default 171 min 110 max 250",
+          "DeltaMargin": "spin default 261 min 0 max 400",
+          "EvalFile": "string default \u003cembedded\u003e",
+          "ExtensionBudget": "spin default 29 min 4 max 64",
+          "FutilityMargin": "spin default 101 min 50 max 160",
+          "FutilityMaxDepth": "spin default 8 min 1 max 8",
+          "Hash": "spin default 128 min 1 max 1024",
+          "LMPBase": "spin default 3 min 2 max 16",
+          "LMRFullDepth": "spin default 3 min 1 max 6",
+          "LMRMoveThreshold": "spin default 2 min 1 max 8",
+          "Move Overhead": "spin default 100 min 0 max 5000",
+          "NullMoveMinDepth": "spin default 2 min 1 max 6",
+          "NullMoveR": "spin default 4 min 2 max 5",
+          "OwnBook": "check default false",
+          "ReverseFutilityMargin": "spin default 69 min 40 max 300",
+          "SingularDepth": "spin default 8 min 4 max 12",
+          "SingularMargin": "spin default 67 min 16 max 256",
+          "Threads": "spin default 1 min 1 max 64",
+          "UseNNUE": "check default true"
+        },
+        "Selected": {
+          "AspInit": "18",
+          "AspMult": "171",
+          "DeltaMargin": "261",
+          "EvalFile": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+          "ExtensionBudget": "29",
+          "FutilityMargin": "101",
+          "FutilityMaxDepth": "8",
+          "Hash": "256",
+          "LMPBase": "3",
+          "LMRFullDepth": "3",
+          "LMRMoveThreshold": "2",
+          "Move Overhead": "100",
+          "NullMoveMinDepth": "2",
+          "NullMoveR": "4",
+          "OwnBook": "false",
+          "ReverseFutilityMargin": "69",
+          "SingularDepth": "8",
+          "SingularMargin": "67",
+          "Threads": "8",
+          "UseNNUE": "true"
+        },
+        "PID": 542760,
+        "ExitCode": 0,
+        "LaunchArgv": [
+          "/home/ehrli/ngn-data/night-20261007/session117/accepted-ngn"
+        ],
+        "Scheduling": "inherited taskset 0,2,4,6,8,10,12,14, nice 19; GOMAXPROCS=8"
+      }
+    }
+  ],
+  "Host": {
+    "Hostname": "NewPC",
+    "OS": "linux",
+    "Kernel": "Linux NewPC 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux",
+    "CPUStatus": "0,2,4,6,8,10,12,14",
+    "Nice": "19",
+    "Load": "6.38 7.59 7.76 2/418 542668",
+    "Scheduling": "taskset 0,2,4,6,8,10,12,14 nice 19; engines GOMAXPROCS=8; Threads8/Hash256",
+    "AtUTC": "2026-10-19T11:49:05.773092415Z"
+  },
+  "AfterClockHost": {
+    "Hostname": "NewPC",
+    "OS": "linux",
+    "Kernel": "Linux NewPC 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux",
+    "CPUStatus": "0,2,4,6,8,10,12,14",
+    "Nice": "19",
+    "Load": "6.38 7.59 7.76 1/418 542770",
+    "Scheduling": "taskset 0,2,4,6,8,10,12,14 nice 19; engines GOMAXPROCS=8; Threads8/Hash256",
+    "AtUTC": "2026-10-19T11:49:06.741516295Z"
+  },
+  "ScreenReceipt": {
+    "Path": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen/receipt.json",
+    "SHA256": "649f5bf4fb8c7d0e9a74233a76f03cd549168f5ca3ef8f0d4b18a6a2fed74d6b"
+  },
+  "ScreenAnalysis": {
+    "Path": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen/analysis.json",
+    "SHA256": "20794640e6b904f9bca576dedac064cd9963c06a1af6397f0451d96342a404eb"
+  },
+  "Occupancy": {
+    "Path": "/home/ehrli/ngn-data/claim-v4-20261016/attempt-002/screen/occupancy.json",
+    "SHA256": "80089bd47c56633e7a310e5d3b41ec8162130ab03f7d4617f88ae677a90d3fa1"
+  },
+  "Questions": [
+    "The 400-ply cap counts opening and played plies from the initial FEN; true terminals are tested first.",
+    "Threefold repetition and fifty-move eligibility are automatic rule draws; mate/stalemate take priority.",
+    "Bounded A/A is a same-clock/concurrency 50ms stop-response control, max 500ms response and 250ms paired asymmetry, not a strength/parity match.",
+    "Host load bound is 16 on this 16-logical-CPU rig; probes must also pass. This is an operational bound, not a correction to statistics."
+  ]
+}

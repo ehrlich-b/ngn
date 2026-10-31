@@ -1,0 +1,36 @@
+{
+  "completed_utc": "2026-10-10T07:20:10.398012+00:00",
+  "base_source": "6c0fc26a17e359442098802f9f33ee673c118c90",
+  "change": "horizon",
+  "checks": [
+    "existing narrow controls",
+    "full-short ./...",
+    "full-race ./...",
+    "go vet ./...",
+    "explicit PGO build"
+  ],
+  "machine": "forge / Ryzen6900HX Debian13 VM",
+  "go_version": "go version go1.25.5 linux/amd64",
+  "os": "Linux-6.12.111+deb13-cloud-amd64-x86_64-with-glibc2.41",
+  "cpus": [
+    8,
+    9,
+    10,
+    11
+  ],
+  "memory_max": 2684354560,
+  "nice": 10,
+  "files_sha256": {
+    "horizon.patch": "5beb46e6444a2db28377a7004475fe85ad62b878ed8677f0ce7fa2536847a407",
+    "base.tar": "2b976449f9630e4307ced53c135c0a5ad0b9f7f0ff2497476cab9e9f7840ac4c",
+    "horizon-ngn": "273478ce41583833bfd26646fcb7c19a502820d174d7e214b40d4dd2dbd0d84b",
+    "horizon/default.pgo": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+    "horizon/engine/hash.go": "48f94110e870c6e19c17ee0b3033d77d994a018e2b7bff87d161b8a508f2c31e"
+  },
+  "changed_source_sha256": {
+    "engine/time.go": "eee5d5bc38ddff1e404d654617746c43ec80f141583abdc09a0bd7afd79b0f48",
+    "engine/time_horizon_test.go": "bde9623884114aab8240dc8657d0f200a3ba3000731797a2303fc91e6cf2005f"
+  },
+  "strength_games": 0,
+  "automatic_promotion": false
+}

@@ -1,0 +1,45 @@
+{
+  "games": 1000,
+  "pairs": 500,
+  "orphan_games": 0,
+  "wdl": [
+    209,
+    603,
+    188
+  ],
+  "penta": [
+    8,
+    112,
+    246,
+    119,
+    15
+  ],
+  "printed_elo_ci95": [
+    7.3,
+    -5.0,
+    20.0
+  ],
+  "exact_elo_ci95": [
+    7.29722011350894,
+    -4.926058580503992,
+    19.538594379710243
+  ],
+  "final_pllr": 0.62,
+  "exact_pllr": 0.6167150863357719,
+  "native_verdict": "INCONCLUSIVE (ran out of games \u2014 add openings or raise -maxgames)",
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 588,
+    "checkmate": 397,
+    "max-moves": 15
+  },
+  "faults": [],
+  "verdict": "SHELVED",
+  "name": "s87-net-final174",
+  "finished_utc": "2026-10-16T12:50:49.595414+00:00",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session87/net-final174/manifest.json",
+  "automatic_adoption": false
+}

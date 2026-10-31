@@ -1,0 +1,11 @@
+{
+  "utc": "2026-10-13T01:18:32.727880+00:00",
+  "provenance": "ADMINISTRATIVE UNSCORED; certification owed; inputs intact",
+  "see": "WSL shutdown during own AA after 7 completed games; operationally unscored, zero candidate games; no retry or pooling",
+  "panel": "never started diagnostic rows; completed checks reused",
+  "horizon": "zero games; original automatic waiter interrupted; manual actual-base review pending diagnostic",
+  "keepalive": "existing ngn-wsl-keepalive task restarted, sleep infinity pid571 confirmed",
+  "playing_source": "f1d0a03",
+  "net": "a4d90b41",
+  "action": "diagnostic-only block, no scored games admitted by this recovery"
+}

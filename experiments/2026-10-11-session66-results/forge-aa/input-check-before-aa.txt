@@ -1,0 +1,9 @@
+ngn: OK
+base.nnue: OK
+sprt: OK
+openings.txt: OK
+paired-parser.py: OK
+aa.py: OK
+controller.sh: OK
+manifest.md: OK
+game-manifest.json: OK

@@ -1,0 +1,43 @@
+{
+  "base_source": "39eb128",
+  "source_commit": "39eb128bab6ff2c831668c2c002f5c91a0aad0c5",
+  "utc": "2026-10-09T20:49:51.855641+00:00",
+  "source_archive_sha256": "48eebb8c80b8ba437831991f4e5ec1e95b9146a2192f36a16d58675125e3f6b6",
+  "patch_sha256": "d58ca2a9629e18a6648a3397dec611259fd4269b2bb1ef5f13f38a3642edb5f8",
+  "source_sha256": {
+    "engine/cache.go": "969b810163ad8628923f5b97a464f6e2d238fbc25fd492119363699d8ccbf1ed",
+    "engine/tt_scan_test.go": "124342f733337e413615cfa5dc7633188f7f0ca10bf6ea51b083e5d4df74ad9d"
+  },
+  "binary_sha256": {
+    "baseline": "cada2a61bfadf6a0c9590c52a1bccb71ffc0af4143ba5064e06ca70fd9abfc39",
+    "candidate": "53f1f93b97a1054c3133a2e491b4cbd4248ac60f9841ce24f1fb48ba508d366d"
+  },
+  "profile_sha256": "616b1ebe276a6ee208f849bb1e48208973d98c6714bdebf7d8febd45cd5ee3f0",
+  "old_net_sha256": "c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2",
+  "tt_dump_identity": true,
+  "collision_dump_identity": true,
+  "diagnostic_sha256": {
+    "baseline-cache.bin": "2b88df6ce11ef9a90a66439c97afab60b97243c5bb6f09cf188f6b9189fbe11b",
+    "baseline-collisions.bin": "c7342730691c7b70d1c6bf620a81f9a259d1e73acf5c4f0e4ce674b06adfefa0"
+  },
+  "go_version": "go version go1.25.5 linux/amd64",
+  "goamd64": "v3",
+  "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "machine": "WSL Ryzen9800X3D",
+  "build_test_cpus": [
+    12,
+    14
+  ],
+  "nice": 19,
+  "tests_pass": true,
+  "build_argv": [
+    "go",
+    "build",
+    "-p",
+    "2",
+    "-pgo=/home/ehrli/ngn-data/night-20261007/session25-tt-scan/baseline/default.pgo",
+    "-o",
+    "OUTPUT",
+    "./cmd/speedprobe"
+  ]
+}

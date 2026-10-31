@@ -1,0 +1,48 @@
+{
+  "utc": "2026-10-17T17:26:01.669839+00:00",
+  "accepted": "9ec5d31/81215229/compiled final14",
+  "s3": {
+    "topic": "night/s101-select-cmov",
+    "commit": "29eec6f36e3e83c8a7e990e92ced927083b90a78",
+    "checks_exit": 0,
+    "identity": "60PASS",
+    "cmov": true,
+    "smoke": "PASS",
+    "adopted": false
+  },
+  "boundary": {
+    "pid": 296299,
+    "service": "ngn-s101-boundary.service",
+    "state": "WAITING_TRAINING",
+    "cpu_quota": "infinity",
+    "result": "/home/ehrli/ngn-data/night-20261007/session101-speed/boundary-result.json",
+    "net_result": "/home/ehrli/ngn-data/night-20261007/session101-speed/net-rebalanced-t74/result.json",
+    "speed_result": "/home/ehrli/ngn-data/night-20261007/session101-speed/s3-timing/result.json"
+  },
+  "spsa": {
+    "pid": 293720,
+    "service": "ngn-s100-spsa-resume.service",
+    "iteration": 825,
+    "games": 9900,
+    "time": "2026-10-17T17:22:41Z",
+    "target_games": 24000
+  },
+  "gpu": {
+    "controller_pid": 293724,
+    "trainer_pid": 293725,
+    "service": "ngn-root-gpu-capacity-resume.service",
+    "completed_epochs": 59,
+    "state": "NATIVE_RESUME_IN_PROGRESS",
+    "cold_start_note": "No first resumed completed epoch yet; no throughput gain asserted",
+    "memory_max": "6442450944",
+    "memory_current": "6442328064",
+    "memory_events": "low 0\nhigh 0\nmax 3478927\noom 0\noom_kill 0\noom_group_kill 0",
+    "gpu": "0 %, 4296 MiB"
+  },
+  "host_c_free_bytes": 35561967616,
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:           15514        5933        1356          87        8551        9580\nSwap:           4096           2        4093\n",
+  "services": "MainPID=296299\nCPUQuotaPerSecUSec=infinity\nMemoryMax=4294967296\nActiveState=active\n\nMainPID=293720\nCPUQuotaPerSecUSec=6s\nMemoryMax=3221225472\nActiveState=active\n\nMainPID=293724\nCPUQuotaPerSecUSec=2s\nMemoryMax=6442450944\nActiveState=active\n",
+  "hopper": "1188 untouched",
+  "goal_met": false,
+  "no_push": true
+}

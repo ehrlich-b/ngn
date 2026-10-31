@@ -1,0 +1,20 @@
+{
+  "source_commit": "f1d0a035f8b4f0b7883fed0a859e5769d076089f",
+  "engine_sha256": "4f8f631fe29eb010605b6eaec2d8c1fac769e39c416f3ff7f41e997feae7a61d",
+  "net_sha256": "a4d90b41f40228a2ce709efb8d8809b8f69ff7566f81d8f9f1651e0e9b9a6e86",
+  "pairmatch_sha256": "e6c2a22f97716db6b13e39d8636757801b3ec6dc39ac0154f0d34933e2455cb6",
+  "pairmatch_source_commit": "6341225d6d0d145c24a31fde2122ab265cda3b23",
+  "options": "final14 compiled defaults; factorizer off; explicit EvalFile/UseNNUEtrue/Hash64/Threads1/OwnBookfalse",
+  "manual_nomination": true,
+  "reviews": {
+    "transfer": "experiments/2026-10-11-session68-results/transfer/session68-review.json",
+    "data": "experiments/2026-10-11-session68-results/data/session68-review.json"
+  },
+  "transfer": [
+    32.22992477372374,
+    18.30784467224333,
+    46.256038344145836
+  ],
+  "data_verdict": "SHELVED",
+  "rule": "experiments/2026-10-11-rodent-confirmation.md"
+}

@@ -1,0 +1,6 @@
+{"utc": "2026-10-13T09:58:24.327427+00:00", "event": "predecessor-wait", "detail": "/home/ehrli/ngn-data/night-20261007/session77-root-ties-gate/controller.done native completion"}
+{"utc": "2026-10-13T17:51:21.363156+00:00", "event": "predecessor-review", "detail": {"allowed": true, "verdict": "shelved", "action": "unchangedf1d0a03 single-policy S gate"}}
+{"utc": "2026-10-13T17:51:21.627011+00:00", "event": "launcher-preflight-pass", "detail": "two natural bounded searches per role/configuration; CPU masks, exits and effective-width receipts pass"}
+{"utc": "2026-10-13T17:51:21.636623+00:00", "event": "aa-start", "detail": {"tc": "10+0.1", "concurrency": 1, "threads": [4, 4]}}
+{"utc": "2026-10-13T18:12:28.035496+00:00", "event": "aa-done", "detail": {"mode": "aa", "games": 40, "pairs": 20, "wins": 7, "draws": 27, "losses": 6, "penta": [0, 4, 11, 5, 0], "elo": 8.7, "ci95": [-42.0, 60.0], "exact_elo_ci95": [8.687699877294484, -42.4551301037293, 60.21252239538336], "flags": [0, 0], "reasons": {"checkmate": 13, "draw-rule": 26, "max-moves": 1}, "verdict": "aa-pass", "configuration_only": false}}
+{"utc": "2026-10-13T18:12:28.044617+00:00", "event": "gate-start", "detail": {"tc": "10+0.1", "concurrency": 1, "threads": [4, 4]}}

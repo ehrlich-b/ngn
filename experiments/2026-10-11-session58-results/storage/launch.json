@@ -1,0 +1,21 @@
+{
+  "recorded_utc": "2026-10-11T07:43:38.163072+00:00",
+  "forge_relocation_pid": 1532624,
+  "forge_allocation": "4-11/8GiB total/host pinning ON",
+  "relocation_scope": "ngn-s58-data-relocate/1GiB/swap0/nice10",
+  "rig_receiver_pid": 22266,
+  "rig_receiver_controller_pid": 22264,
+  "rig_receiver_scope": "ngn-s58-data-copy-ready/12,14/512MiB/swap0/nice19",
+  "rig_local_reader_pid": 22172,
+  "rig_local_reader_scope": "ngn-s58-local-data-reader/12,14/256MiB/swap0/nice19",
+  "local_reader_port": 8769,
+  "local_reader_sha256": "30d8da4cdf559640d7fbf86820a6fc6ea98486f70bbedb4d3b7d332f72fd20af",
+  "source_sha256": {
+    "2026-10-11-data-step2-relocate.py": "9d9a028835ffdf094194738ba13bc556b3a319b5277e9c504be889675a5c3a44",
+    "2026-10-11-data-step2-copy.py": "4624f299746d7d804ceb971250bd37bb6894aaf4570e7b8343b209699470081d",
+    "2026-10-11-data-step2-coverage.py": "8eb8330b978dff1c395a8d71a483166df35dc1cc390bd73bac95c7378227234f"
+  },
+  "first_actual_receiver_edt": "2026-10-11 03:39:19",
+  "startup": "initial shell quoting failed before data/Python; immediate detached launches left empty artifacts before entering scope; preserved empty exit/log and held launch until active acknowledgment; no work repeated",
+  "decision": "storage only; exact gather SHA256 and bytes, fsync receiver, frozen bottom65536/seed20261006 once on forge; same T75 processes resume; unchanged recipe/gate"
+}

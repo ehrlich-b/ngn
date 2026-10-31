@@ -1,0 +1,10 @@
+{
+  "utc": "2026-10-09T14:30:45.318217+00:00",
+  "pids": {
+    "controller": 675044,
+    "checks": 675045,
+    "data": 675046
+  },
+  "startup_capacity_bytes": 11769196544,
+  "heavy_work_started": false
+}

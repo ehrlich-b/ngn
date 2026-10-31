@@ -1,0 +1,585 @@
+{
+  "completed_utc": "2026-10-09T05:12:48.657118+00:00",
+  "hash_perft_passed": true,
+  "node_identical": false,
+  "compared": 12,
+  "differences": [
+    {
+      "baseline": {
+        "position": 0,
+        "kind": "iterative",
+        "depth": 14,
+        "nodes": 408802,
+        "score": 90,
+        "best": "d4c5",
+        "pv": [
+          "d4c5",
+          "e7c5",
+          "f1d1",
+          "c5d6",
+          "c3b5",
+          "d6b8",
+          "b2b3",
+          "a7a6",
+          "b5d4",
+          "c6d4",
+          "d1d4",
+          "c8g4",
+          "h2h3",
+          "g4h5"
+        ]
+      },
+      "candidate": {
+        "position": 0,
+        "kind": "iterative",
+        "depth": 14,
+        "nodes": 414461,
+        "score": 107,
+        "best": "d4c5",
+        "pv": [
+          "d4c5",
+          "e7c5",
+          "f1d1",
+          "c5d6",
+          "c2b3",
+          "c6a5",
+          "b3a4",
+          "a5c6",
+          "b2b3",
+          "c8e6",
+          "a4h4",
+          "h7h6",
+          "c3b5",
+          "d6e7"
+        ]
+      }
+    },
+    {
+      "baseline": {
+        "position": 0,
+        "kind": "fixed",
+        "depth": 14,
+        "nodes": 751721,
+        "score": 104,
+        "best": "d4c5",
+        "pv": [
+          "d4c5",
+          "e7c5",
+          "f1d1",
+          "c5b6",
+          "b2b3",
+          "c8g4",
+          "c1b2",
+          "a8c8",
+          "a1c1",
+          "d5d4",
+          "h2h3",
+          "g4h5",
+          "e3d4",
+          "h5f3"
+        ]
+      },
+      "candidate": {
+        "position": 0,
+        "kind": "fixed",
+        "depth": 14,
+        "nodes": 1033808,
+        "score": 116,
+        "best": "d4c5",
+        "pv": [
+          "d4c5",
+          "e7c5",
+          "f1d1",
+          "c5b6",
+          "a2a3",
+          "c8g4",
+          "b2b4",
+          "a8c8",
+          "h2h3",
+          "g4h5",
+          "c2b3",
+          "d5d4",
+          "c3a4",
+          "d8e7"
+        ]
+      }
+    },
+    {
+      "baseline": {
+        "position": 1,
+        "kind": "iterative",
+        "depth": 14,
+        "nodes": 489412,
+        "score": -224,
+        "best": "e2a6",
+        "pv": [
+          "e2a6",
+          "h3g2",
+          "f3g2",
+          "b4c3",
+          "d2c3",
+          "e6d5",
+          "e1g1",
+          "d5e4",
+          "f2f4",
+          "f6d5",
+          "g2e4",
+          "d5c3",
+          "b2c3",
+          "e8f8"
+        ]
+      },
+      "candidate": {
+        "position": 1,
+        "kind": "iterative",
+        "depth": 14,
+        "nodes": 537430,
+        "score": -159,
+        "best": "e2a6",
+        "pv": [
+          "e2a6",
+          "h3g2",
+          "f3g2",
+          "b4c3",
+          "d2c3",
+          "e6d5",
+          "e1g1",
+          "f6e4",
+          "e5c6",
+          "d7c6",
+          "c3g7",
+          "h8h7",
+          "g7d4",
+          "c6c5"
+        ]
+      }
+    },
+    {
+      "baseline": {
+        "position": 1,
+        "kind": "fixed",
+        "depth": 14,
+        "nodes": 2467757,
+        "score": -207,
+        "best": "e2a6",
+        "pv": [
+          "e2a6",
+          "b4c3",
+          "d2c3",
+          "e6d5",
+          "e5g4",
+          "h3g2",
+          "f3g2"
+        ]
+      },
+      "candidate": {
+        "position": 1,
+        "kind": "fixed",
+        "depth": 14,
+        "nodes": 1809614,
+        "score": -246,
+        "best": "d5e6",
+        "pv": [
+          "d5e6",
+          "e7e6",
+          "e2a6",
+          "e6e5",
+          "d2f4",
+          "e5a5",
+          "c3b5",
+          "a8c8",
+          "f3e2",
+          "h3g2",
+          "h1g1",
+          "h8h4",
+          "e4e5",
+          "f6d5"
+        ]
+      }
+    },
+    {
+      "baseline": {
+        "position": 2,
+        "kind": "iterative",
+        "depth": 14,
+        "nodes": 688779,
+        "score": 379,
+        "best": "c3d5",
+        "pv": [
+          "c3d5",
+          "f6d5",
+          "g5e7",
+          "d5f4",
+          "e2d1",
+          "c6e7",
+          "h2h3",
+          "g4h5",
+          "g1h2",
+          "f4g2",
+          "h2g2",
+          "g8h8",
+          "b2b4",
+          "c5a7"
+        ]
+      },
+      "candidate": {
+        "position": 2,
+        "kind": "iterative",
+        "depth": 14,
+        "nodes": 494538,
+        "score": 308,
+        "best": "c3d5",
+        "pv": [
+          "c3d5",
+          "e7d8",
+          "c2c3",
+          "g8h8",
+          "b2b4",
+          "c5a7",
+          "d5f6",
+          "g7f6",
+          "g5h6",
+          "f6f5",
+          "h6f8",
+          "d8f8",
+          "h2h3",
+          "g4h5"
+        ]
+      }
+    },
+    {
+      "baseline": {
+        "position": 2,
+        "kind": "fixed",
+        "depth": 14,
+        "nodes": 1165311,
+        "score": 304,
+        "best": "c3d5",
+        "pv": [
+          "c3d5",
+          "f6d5",
+          "g5e7",
+          "d5f4",
+          "e2d1",
+          "c6e7",
+          "h2h3",
+          "g4h5",
+          "g1h1",
+          "d6d5",
+          "g2g4",
+          "h5g6",
+          "e4d5",
+          "c5d6"
+        ]
+      },
+      "candidate": {
+        "position": 2,
+        "kind": "fixed",
+        "depth": 14,
+        "nodes": 952168,
+        "score": 314,
+        "best": "c3d5",
+        "pv": [
+          "c3d5",
+          "f6d5",
+          "g5e7",
+          "d5f4",
+          "e2d1",
+          "c6e7",
+          "c2c3",
+          "h7h6",
+          "d3d4",
+          "c5a7",
+          "f1e1",
+          "a8e8",
+          "d4e5",
+          "e7g6"
+        ]
+      }
+    },
+    {
+      "baseline": {
+        "position": 3,
+        "kind": "iterative",
+        "depth": 14,
+        "nodes": 189520,
+        "score": 157,
+        "best": "b4f4",
+        "pv": [
+          "b4f4",
+          "h4g3",
+          "f4c4",
+          "h5h7",
+          "a5a6",
+          "g3g2",
+          "c4c3",
+          "g2f2",
+          "e2e4",
+          "h7e7",
+          "a6b7",
+          "e7e4",
+          "c3c7",
+          "d6d5"
+        ]
+      },
+      "candidate": {
+        "position": 3,
+        "kind": "iterative",
+        "depth": 14,
+        "nodes": 250720,
+        "score": 191,
+        "best": "b4f4",
+        "pv": [
+          "b4f4",
+          "h4g3",
+          "f4c4",
+          "h5h7",
+          "a5a6",
+          "g3g2",
+          "c4c3",
+          "g2f2",
+          "e2e4",
+          "f2e2",
+          "a6b7",
+          "c7c5",
+          "b7c6",
+          "e2d2"
+        ]
+      }
+    },
+    {
+      "baseline": {
+        "position": 3,
+        "kind": "fixed",
+        "depth": 14,
+        "nodes": 166539,
+        "score": 227,
+        "best": "b4f4",
+        "pv": [
+          "b4f4",
+          "h4g3",
+          "f4c4",
+          "h5h7",
+          "a5a6",
+          "g3g2",
+          "c4c3",
+          "g2f2",
+          "e2e4",
+          "f2e2",
+          "a6b7",
+          "c7c5",
+          "b7c6",
+          "e2d2"
+        ]
+      },
+      "candidate": {
+        "position": 3,
+        "kind": "fixed",
+        "depth": 14,
+        "nodes": 172564,
+        "score": 238,
+        "best": "b4f4",
+        "pv": [
+          "b4f4",
+          "h4g3",
+          "f4c4",
+          "h5h7",
+          "a5a6",
+          "g3g2",
+          "c4c3",
+          "g2f2",
+          "e2e4",
+          "f2e2",
+          "a6b7",
+          "c7c5",
+          "b7c6",
+          "e2d2"
+        ]
+      }
+    },
+    {
+      "baseline": {
+        "position": 4,
+        "kind": "iterative",
+        "depth": 14,
+        "nodes": 12944,
+        "score": 0,
+        "best": "f4f5",
+        "pv": [
+          "f4f5",
+          "f7g7",
+          "f3g4",
+          "g7h7",
+          "g4h5",
+          "h7g7",
+          "h5g4",
+          "g7h7",
+          "g4h5",
+          "h7g7",
+          "h5g4"
+        ]
+      },
+      "candidate": {
+        "position": 4,
+        "kind": "iterative",
+        "depth": 14,
+        "nodes": 12942,
+        "score": 0,
+        "best": "f4f5",
+        "pv": [
+          "f4f5",
+          "f7g7",
+          "f3g4",
+          "g7h7",
+          "g4h5",
+          "h7g7",
+          "h5g4",
+          "g7h7",
+          "g4h5",
+          "h7g7",
+          "h5g4"
+        ]
+      }
+    },
+    {
+      "baseline": {
+        "position": 4,
+        "kind": "fixed",
+        "depth": 14,
+        "nodes": 26735,
+        "score": 0,
+        "best": "f4f5",
+        "pv": [
+          "f4f5",
+          "f7e7",
+          "f3g4",
+          "e7f8",
+          "g4h5",
+          "f8g7",
+          "h5h4",
+          "g7f8",
+          "h4g4"
+        ]
+      },
+      "candidate": {
+        "position": 4,
+        "kind": "fixed",
+        "depth": 14,
+        "nodes": 25498,
+        "score": 0,
+        "best": "f4f5",
+        "pv": [
+          "f4f5",
+          "f7e7",
+          "f3g4",
+          "e7f8",
+          "g4h5",
+          "f8g7",
+          "h5h4",
+          "g7f8",
+          "h4g4"
+        ]
+      }
+    },
+    {
+      "baseline": {
+        "position": 5,
+        "kind": "iterative",
+        "depth": 14,
+        "nodes": 153110,
+        "score": 2203,
+        "best": "d3d5",
+        "pv": [
+          "d3d5",
+          "g7g6",
+          "g1f1",
+          "g8g7",
+          "f1e2",
+          "h6h5"
+        ]
+      },
+      "candidate": {
+        "position": 5,
+        "kind": "iterative",
+        "depth": 14,
+        "nodes": 150097,
+        "score": 2192,
+        "best": "d3d5",
+        "pv": [
+          "d3d5",
+          "g7g6",
+          "d5e5",
+          "h6h5",
+          "e5d4",
+          "g8h7",
+          "g1f1",
+          "h7g8",
+          "f1e2",
+          "g8h7",
+          "d4e5",
+          "h7g8",
+          "e5f4",
+          "g8g7"
+        ]
+      }
+    },
+    {
+      "baseline": {
+        "position": 5,
+        "kind": "fixed",
+        "depth": 14,
+        "nodes": 100561,
+        "score": 2222,
+        "best": "d3d5",
+        "pv": [
+          "d3d5",
+          "g7g6",
+          "d5d2",
+          "g8g7",
+          "g1g2",
+          "g7h7",
+          "g2f3",
+          "h7g7",
+          "f3e2",
+          "g7g8",
+          "d2d4"
+        ]
+      },
+      "candidate": {
+        "position": 5,
+        "kind": "fixed",
+        "depth": 14,
+        "nodes": 119624,
+        "score": 2280,
+        "best": "d3d5",
+        "pv": [
+          "d3d5",
+          "g7g6",
+          "g1f1",
+          "h6h5",
+          "f1e2",
+          "g8g7",
+          "d5d4",
+          "g7g8",
+          "e2f3",
+          "g8h7",
+          "d4e5",
+          "h7h6",
+          "e5h8",
+          "h6g5"
+        ]
+      }
+    }
+  ],
+  "new_draw_order_completed": true,
+  "source_hash_sha256": "4832403dff585e069c2c83c9eb1aea4a81f53f6483dc94fd2cf912effcb065c7",
+  "patch_sha256": "93ee289ef85d21d8d0b33b5027a80c80790de18bc43eeaef55a5e811aa9768a4",
+  "probe_sha256": "2bdef3f7e795776963a34dc7878844b7e1048ec33094902f6bdb02a2c36650a9",
+  "logs_sha256": {
+    "hash-perft.log": "df0889d1031b62121b7e143307586e89141aa8cd1323ecee13c096a47eca30c2",
+    "probe-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "candidate-identity.jsonl": "cb47ea23bfb575af36d68db8fc04e7539bee79c7ff5ea1796863e4ac3d383d6f"
+  },
+  "adopted": false,
+  "decision": "node-neutral admission fails if any difference; no games or adoption authorized by this diagnostic"
+}

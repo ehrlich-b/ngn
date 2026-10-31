@@ -1,0 +1,15 @@
+2026-10-10T13:09:27-04:00
+               total        used        free      shared  buff/cache   available
+Mem:            17Gi       4.3Gi       1.9Gi       4.8Mi        11Gi        13Gi
+Swap:          4.0Gi       6.0Mi       4.0Gi
+    PID    PPID    PGID STAT     ELAPSED COMMAND
+  88166       1   88166 SNs     13:16:15 bash /work/lanes/ngn-spsa-20261009/controller.sh
+  88178   88166   88166 SNl     13:16:15 ./spsa-forge -engine /work/lanes/ngn-spsa-20261009/ngn-kb8 -tc 10+0.1 -iters 2000 -pairs 6 -concurrency 2 -openings /work/lanes/ngn-spsa-20261009/openings.txt -out /work/lanes/ngn-spsa-20261009/spsa.jsonl -lowpower=false -seed 20261008 -resume
+ 117631       1  117631 SNs     07:14:21 python3 archive_server_read.py --root /work/lanes/ngn-data-volume-20261010 --token-file /work/lanes/ngn-data-volume-20261010/token --bind 192.168.4.65 --port 8767
+{"iter":1825,"time":"2026-10-10T10:48:50-04:00","plus_pct":50.5,"theta":{"AspInit":16.766515833415585,"AspMult
+{
+  "utc": "2026-10-10T17:04:40.968957+00:00",
+  "reason": "plan13:05 migrates SEE isolation to rig; stopped before A/A; no verdict or pooling",
+  "aa_games": 0,
+  "candidate_games": 0
+}

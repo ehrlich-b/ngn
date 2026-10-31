@@ -1,0 +1,45 @@
+{
+  "base_source": "Rodent V1.2 black-box binary only",
+  "net_sha256": "opponent own net; existing archived receipt; no net/source opened",
+  "harness": "/home/ehrli/ngn-data/night-20261007/session80/sprt",
+  "book": "/home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt",
+  "tc": "10+0.1",
+  "cpus": "0-11",
+  "concurrency": 1,
+  "max_games": 400,
+  "min_games": 1000,
+  "nice": 19,
+  "machine": "rig/WSL/9800X3D",
+  "go": "1.25.5/linux/amd64/v3",
+  "max_memory": "3GiB/swap0",
+  "candidate_options": [
+    "Hash=256",
+    "Threads=4",
+    "OwnBook=false",
+    "UCI_LimitStrength=false"
+  ],
+  "base_options": [
+    "Hash=256",
+    "Threads=1",
+    "OwnBook=false",
+    "UCI_LimitStrength=false"
+  ],
+  "control_key": "rig/0-11/c1/10+0.1/Threads4/Hash256/b5bddf27f2de5b6098105ce776591bff0ee46103ee9cdd55a8758c2e4b386cae",
+  "name": "rodent-width",
+  "class": "measurement",
+  "candidate": "/home/ehrli/ngn-data/night-20261007/session80/rodent4",
+  "base": "/home/ehrli/ngn-data/night-20261007/session80/rodent1",
+  "output": "/home/ehrli/ngn-data/night-20261007/session80/rodent-width",
+  "decision": "fixed400/200 own-width measurement; report interval/zero faults; no NGN rating/adoption",
+  "affinity": "candidate0,2,4,6; base8: five distinct physical cores inside0-11; training12,14",
+  "control_note": "fresh symmetric4-v-4 harness control; unequal-width measurement intentionally changes baseline width",
+  "artifacts": {
+    "/home/ehrli/ngn-data/night-20261007/session80/sprt": "b5bddf27f2de5b6098105ce776591bff0ee46103ee9cdd55a8758c2e4b386cae",
+    "/home/ehrli/ngn-data/night-20261007/session79-admission-see/openings.txt": "f2fed55a1645dba85a9ef3e047eb5183b5b6342878c6dc8483e6768973470acc",
+    "/home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent-v12": "10dd722e730a70887fcaa07157b86c5ba3579618f858f7519d44f55036e00949",
+    "/home/ehrli/ngn-data/night-20261007/session80/rodent4": "c227db0e528bd649ec0c6ae43c318452b3174a1ee5f69dd3f2289a89ac45090a",
+    "/home/ehrli/ngn-data/night-20261007/session80/rodent1": "228053a3e2269fd16e054aedf9373f9daacc660f743021b9b7429eb52a5221e2"
+  },
+  "cwd": "/home/ehrli/ngn-data/night-20261007/session19-rodent3/opponent-only/rodent",
+  "readiness": "only after existing Rodent binary smoke4 completed without faults"
+}

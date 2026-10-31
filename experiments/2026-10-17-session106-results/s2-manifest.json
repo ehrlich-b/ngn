@@ -1,0 +1,44 @@
+{
+  "candidate": "s2",
+  "admission": {
+    "candidate": "s2",
+    "profile_admitted": true,
+    "immediate_base": "4958bc4/81215229/compiled final14",
+    "topic": "f527ab3",
+    "measured_panel": "/home/ehrli/ngn-data/night-20261007/session100-speed/panel/result.json",
+    "cpu_share_percent": 20,
+    "mechanism": "Shrink continuation/followup history footprint from 10.5625 to 2.640625MiB per worker",
+    "rule": "Fixed40 paired20s blocks/topology,T1/H64,T1/H256,T8/H256,alternatingAB/BA;paired geometric NPS lower95>1 in BOTH order strata for EVERY topology;otherwise SHELVED,no extension",
+    "new_identity_required": true,
+    "automatic_adoption": false
+  },
+  "binary_sha256": {
+    "base": "dd65aee7572f816958d654850d3a600b25a4f6c425e57b79c20309cc37f889ee",
+    "candidate": "3d0df08a184ac750e16eb28eafff668fa82b70557d7d67e68eb893413102fee8"
+  },
+  "identity_receipt": "/home/ehrli/ngn-data/night-20261007/session104-speed/s2-identity.json",
+  "identity_sha256": "a7cd46bc47e40336531245dc1031ea2c29ebb0e59fae60c7777ae2e75d2c6890",
+  "net": "/home/ehrli/ngn-data/night-20261007/session82/net-final115/candidate.nnue",
+  "net_sha256": "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22",
+  "topologies": [
+    [
+      1,
+      64
+    ],
+    [
+      1,
+      256
+    ],
+    [
+      8,
+      256
+    ]
+  ],
+  "paired_blocks": 40,
+  "milliseconds_per_engine": 20000,
+  "frame": "(block//2)%12; one frame per block",
+  "order": "AB/BA alternating; both engines receive identical frame per pair",
+  "rule": "Every topology and both order strata: paired log-NPS Student-t lower95>0,df19; otherwise SHELVED; no extensions",
+  "smoke": false,
+  "utc": "2026-10-18T01:53:34.632882+00:00"
+}

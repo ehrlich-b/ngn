@@ -1,0 +1,128 @@
+diff --git a/engine/search.go b/engine/search.go
+index 522f981..5044362 100644
+--- a/engine/search.go
++++ b/engine/search.go
+@@ -2070,6 +2070,12 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 			info.MoveStack[ply] = move
+ 
+ 			if singularScore < singularBeta {
++				// Spend a second singular ply only on a clearly separated non-PV
++				// move at moderate depth. Do not stack it with check/pawn depth;
++				// the ordinary path budget below still owns the final child depth.
++				if !isPV && depth >= 6 && depth <= 12 && nextDepth == depth-1 && singularScore < singularBeta-64 {
++					nextDepth++
++				}
+ 				nextDepth++
+ 				info.SingularExtensions++
+ 			} else if !isPV && ttEval >= beta {
+--- /dev/null
++++ b/engine/search_singular_double_test.go
+@@ -0,0 +1,108 @@
++package engine
++
++import "testing"
++
++// Preload every alternative at the parent with a zero score. The chosen
++// quiet move has a depth-d exact child entry: a single extension cuts there,
++// while a double extension must search and store that child at depth d+1.
++// This checks the consumer's depth through the live search, without a new
++// runtime observer or a counter that merely repeats the branch condition.
++func TestSingularDoubleChildDepth(t *testing.T) {
++	for _, tc := range []struct {
++		name                          string
++		depth, gap, budget, wantDepth int
++	}{
++		{"depth5", 5, 65, 26, 5},
++		{"gap64", 6, 64, 26, 6},
++		{"gap65", 6, 65, 26, 7},
++		{"depth12", 12, 65, 26, 13},
++		{"depth13", 13, 65, 26, 13},
++		{"path_budget", 6, 65, 1, 6},
++	} {
++		t.Run(tc.name, func(t *testing.T) {
++			pos, info, child := singularDoubleState(t, tc.depth, tc.gap)
++			before := snapshotPVPosition(pos)
++			oldBudget, oldMinDepth := EXTENSION_BUDGET, SINGULAR_DEPTH
++			EXTENSION_BUDGET, SINGULAR_DEPTH = tc.budget, 4
++			t.Cleanup(func() { EXTENSION_BUDGET, SINGULAR_DEPTH = oldBudget, oldMinDepth })
++			got := alphaBetaPV(pos, tc.depth, 0, 999, 1000, false, false, false, info)
++			if info.Stopped || got != 2000 || info.SingularTries != 1 || info.SingularExtensions != 1 {
++				t.Fatalf("score=%d stopped=%v singular tries/extensions=%d/%d", got, info.Stopped, info.SingularTries, info.SingularExtensions)
++			}
++			_, _, depth, _, hit, _ := info.tt.Get(child.Hash())
++			if !hit || int(depth) != tc.wantDepth {
++				t.Fatalf("live singular child depth=%d hit=%v, want %d", depth, hit, tc.wantDepth)
++			}
++			if tc.name == "path_budget" && info.ExtBudgetClamps != 1 {
++				t.Fatalf("path budget clamps=%d, want 1", info.ExtBudgetClamps)
++			}
++			if info.ExcludedMove != EmptyMove {
++				t.Fatal("completed singular search left a move excluded")
++			}
++			requireProbcutSearchUnwound(t, pos, before, info, EmptyMove, 0, 0)
++		})
++	}
++}
++
++func TestSingularDoublePreservesPVDepth(t *testing.T) {
++	pos, info, child := singularDoubleState(t, 6, 65)
++	before := snapshotPVPosition(pos)
++	alphaBetaPV(pos, 6, 0, 999, 1000, true, false, false, info)
++	if info.Stopped || info.SingularTries == 0 || info.SingularExtensions == 0 {
++		t.Fatalf("PV stopped=%v singular tries/extensions=%d/%d", info.Stopped, info.SingularTries, info.SingularExtensions)
++	}
++	_, _, depth, _, hit, _ := info.tt.Get(child.Hash())
++	if !hit || depth != 6 {
++		t.Fatalf("PV singular child depth=%d hit=%v, want 6", depth, hit)
++	}
++	requireProbcutSearchUnwound(t, pos, before, info, EmptyMove, 0, 0)
++}
++
++func TestSingularDoubleStoppedVerification(t *testing.T) {
++	pos, info, _ := singularDoubleState(t, 6, 65)
++	before := snapshotPVPosition(pos)
++	stoppedVerification := false
++	info.evaluator.transitionObserver = func(_ *Position, evaluator *workerEvaluator) {
++		if info.ExcludedMove != EmptyMove && evaluator.evaluationDepth() == 1 {
++			stoppedVerification = true
++			info.control.RequestStop()
++		}
++	}
++	got := alphaBetaPV(pos, 6, 0, 999, 1000, false, false, false, info)
++	if !stoppedVerification || !info.Stopped || got != stoppedSearchScore || info.ExcludedMove != EmptyMove {
++		t.Fatalf("verification stop observed=%v stopped=%v score=%d excluded=%s", stoppedVerification, info.Stopped, got, info.ExcludedMove.ToString())
++	}
++	requireProbcutSearchUnwound(t, pos, before, info, EmptyMove, 0, 0)
++}
++
++func singularDoubleState(t *testing.T, depth, gap int) (*Position, *SearchInfo, *Position) {
++	t.Helper()
++	pos, info := newProbcutContractState(t, depth)
++	old := SearchToggles
++	SearchToggles.NullMove = false
++	SearchToggles.Futility = false
++	SearchToggles.RFP = false
++	SearchToggles.Probcut = false
++	SearchToggles.LMP = false
++	SearchToggles.SEEPrune = false
++	SearchToggles.LMR = false
++	SearchToggles.HistPrune = false
++	SearchToggles.IID = false
++	SearchToggles.Singular = true
++	t.Cleanup(func() { SearchToggles = old })
++	move := adapterLegalMove(t, pos, "e1d1")
++	for _, alternative := range GenerateLegalMoves(pos) {
++		if alternative != move {
++			p := probcutChild(t, pos, alternative)
++			info.tt.Set(p.Hash(), EmptyMove, scoreToTT(0, 1), 127, Exact, false)
++		}
++	}
++	child := probcutChild(t, pos, move)
++	for _, reply := range GenerateLegalMoves(child) {
++		p := probcutChild(t, child, reply)
++		info.tt.Set(p.Hash(), EmptyMove, scoreToTT(2000, 2), 127, Exact, false)
++	}
++	info.tt.Set(child.Hash(), EmptyMove, scoreToTT(-2000, 1), int8(depth), Exact, false)
++	info.tt.Set(pos.Hash(), move, int16(gap+(SINGULAR_MARGIN*depth)/32), int8(depth-3), LowerBound, false)
++	return pos, info, child
++}

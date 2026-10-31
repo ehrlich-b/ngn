@@ -1,0 +1,16 @@
+e9289c52dd809a70a26a2b2b90589110f72c8c90e267a6203b19885f3372768d  /work/lanes/ngn-s47/finalize.py
+02e1e9c6a52c9710c13c7fedf6ca528687254e2bd07555d34aeb72147c53bc45  /work/lanes/ngn-s47/residuals.py
+d00983bc4aab2d9673f72cbcf188eaa192f12af8e4a06a0ee6f631aa57ee0867  /work/lanes/ngn-s47/data-games/games.py
+84dd1d9126ec6a2664ea44462f810a34aa05dfc6c007d1d5d3ac66f05341eb5a  /work/lanes/ngn-s47/data-games/controller.sh
+cc33276ba8fc7a7bafa4131e5a98ca625c5c6c7c49cfac8f4e087ed7a42c294a  /work/lanes/ngn-s47/tt/controller.sh
+filelock==3.32.3
+fsspec==2026.7.0
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+mpmath==1.3.0
+networkx==3.6.1
+numpy==2.5.3
+setuptools==78.1.0
+sympy==1.14.0
+torch==2.7.0+cpu
+typing_extensions==4.16.0

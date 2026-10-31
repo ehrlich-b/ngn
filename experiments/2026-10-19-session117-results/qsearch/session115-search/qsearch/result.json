@@ -1,0 +1,46 @@
+{
+  "games": 3130,
+  "pairs": 1565,
+  "orphan_games": 0,
+  "wdl": [
+    603,
+    1999,
+    528
+  ],
+  "penta": [
+    11,
+    297,
+    891,
+    338,
+    28
+  ],
+  "printed_elo_ci95": [
+    8.3,
+    2.0,
+    14.0
+  ],
+  "exact_elo_ci95": [
+    8.326727710505265,
+    2.2201689074556286,
+    14.438434963184626
+  ],
+  "final_pllr": 3.0,
+  "exact_pllr": 3.001928158853724,
+  "native_verdict": "H1 ACCEPTED: new is stronger (>= 5 ELO)",
+  "flags": [
+    0,
+    0
+  ],
+  "reasons": {
+    "draw-rule": 1956,
+    "checkmate": 1131,
+    "max-moves": 34,
+    "stalemate": 9
+  },
+  "faults": [],
+  "verdict": "KEEP",
+  "name": "s115-qsearch",
+  "finished_utc": "2026-10-19T08:10:01.693958+00:00",
+  "manifest": "/home/ehrli/ngn-data/night-20261007/session115-search/qsearch/manifest.json",
+  "automatic_adoption": false
+}

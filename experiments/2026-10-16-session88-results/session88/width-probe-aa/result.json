@@ -1,0 +1,48 @@
+{
+  "passed": true,
+  "children": [
+    {
+      "pid": 91836,
+      "gomaxprocs": "4",
+      "cpus": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "command": "/home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn ",
+      "peak_5s_cpu_wall_ratio": 3.9631418808944727
+    },
+    {
+      "pid": 91843,
+      "gomaxprocs": "4",
+      "cpus": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "command": "/home/ehrli/ngn-data/night-20261007/session80/candidates/singular/candidate-ngn ",
+      "peak_5s_cpu_wall_ratio": 4.06278017230105
+    }
+  ],
+  "expected_widths": [
+    4,
+    4
+  ],
+  "expected_masks": [
+    [
+      0,
+      2,
+      4,
+      6
+    ],
+    [
+      0,
+      2,
+      4,
+      6
+    ]
+  ],
+  "method": "Peak measured CPU seconds / wall seconds over4.8\u20135.2s windows in go movetime5000 searches; no score verdict"
+}
