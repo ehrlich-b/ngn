@@ -29,7 +29,7 @@ func TestRunDefaultEmbedsNNUEAndKeepsItForEchoedDefaults(t *testing.T) {
 			t.Fatalf("missing %q in %s", option, output.String())
 		}
 	}
-	if got := strings.Count(output.String(), "info string eval backend ngnn2 "); got != 3 {
+	if got := strings.Count(output.String(), "info string eval backend ngnn3 "); got != 3 {
 		t.Fatalf("embedded network evaluations=%d, want 3: %s", got, output.String())
 	}
 	if !strings.Contains(output.String(), "using embedded network") || strings.Count(output.String(), "info string eval backend hce ") != 1 {

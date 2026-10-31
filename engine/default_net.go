@@ -9,9 +9,9 @@ import (
 const DefaultNetName = "<embedded>"
 
 // DefaultNetSHA256 is the digest of the embedded network file.
-const DefaultNetSHA256 = "c6c127966d1cd9848b8bbe836ae74d5672874a3e74e973a488e4d92e350416f2"
+const DefaultNetSHA256 = "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22"
 
-//go:embed nets/ngn-h512-c6c12796.nnue
+//go:embed nets/ngn-h512-81215229.nnue
 var defaultNetBytes []byte
 
 // DefaultNetBytes returns a copy of the embedded network file.
