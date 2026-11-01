@@ -948,6 +948,9 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 				return info
 			}
 			if h1NewHistoryProducer {
+				info.history.updatePawnQuiets(pos,
+					h1CompletedQuiets(&completedRootQuiets, completedRootQuietCount),
+					iterationBestMove, currentDepth, windowAlpha, iterationBestScore)
 				info.history.h1UpdateCompletedNode(
 					h1CompletedQuiets(&completedRootQuiets, completedRootQuietCount),
 					iterationBestMove,
@@ -2245,6 +2248,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 		if score >= beta {
 			if h1NewHistoryProducer {
+				info.history.updatePawnQuiets(pos,
+					h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
+					bestMove, depth, origAlpha, bestScore)
 				info.history.h1UpdateCompletedNode(
 					h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
 					bestMove,
@@ -2376,6 +2382,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	}
 
 	if h1NewHistoryProducer && !info.Stopped {
+		info.history.updatePawnQuiets(pos,
+			h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
+			bestMove, depth, origAlpha, bestScore)
 		info.history.h1UpdateCompletedNode(
 			h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
 			bestMove,

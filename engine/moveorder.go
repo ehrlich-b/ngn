@@ -15,6 +15,8 @@ const (
 type workerHistory struct {
 	// Main quiet history indexed by [piece][to].
 	historyTable [13][64]int
+	// Pawn-context history contributes to quiet ordering only.
+	pawnQuietHistory [pawnQuietBuckets][13][64]int16
 	// Continuation and follow-up histories retain the exact [previous move][move]
 	// dimensions used by the package-owned implementation.
 	continuationHistory [13][64][13][64]int
@@ -306,6 +308,7 @@ func (h *workerHistory) PenalizeCaptureHistory(move Move, depth int) {
 
 // ClearHistoryTable resets both history tables (used between games)
 func (h *workerHistory) ClearHistoryTable() {
+	clear(h.pawnQuietHistory[:])
 	for i := range h.historyTable {
 		for j := range h.historyTable[i] {
 			h.historyTable[i][j] = 0
@@ -526,6 +529,10 @@ func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, depth int, previousMo
 	if usePrev2 {
 		fuHist = &h.followupHistory[prev2.MovingPiece()][prev2.Destination()]
 	}
+	var pawnHist *[13][64]int16
+	if pos != nil {
+		pawnHist = &h.pawnQuietHistory[pawnQuietIndex(pos)]
+	}
 
 	// Hoist the loop-invariant counter move and killer slots out of the per-move loop.
 	// previousMove and depth are constant for the whole list, so each quiet move becomes
@@ -607,6 +614,9 @@ func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, depth int, previousMo
 				}
 				if usePrev2 {
 					hs += fuHist[piece][to]
+				}
+				if pawnHist != nil {
+					hs += int(pawnHist[piece][to]) / 2
 				}
 				score += hs
 			}
