@@ -1,6 +1,7 @@
 package rating
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -43,19 +44,89 @@ var sha256Pattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
 // ReadStrengthRecord reads and validates exactly one v1 JSON record.
 func ReadStrengthRecord(r io.Reader) (StrengthRecord, error) {
 	var record StrengthRecord
-	dec := json.NewDecoder(r)
-	dec.DisallowUnknownFields()
-	if err := dec.Decode(&record); err != nil {
+	var raw json.RawMessage
+	input := json.NewDecoder(r)
+	if err := input.Decode(&raw); err != nil {
 		return record, err
 	}
 	var extra interface{}
-	if err := dec.Decode(&extra); err != io.EOF {
+	if err := input.Decode(&extra); err != io.EOF {
 		if err == nil {
 			return record, fmt.Errorf("multiple JSON values")
 		}
 		return record, err
 	}
+	if err := checkRecordKeys(json.NewDecoder(bytes.NewReader(raw)), recordFields); err != nil {
+		return record, err
+	}
+	dec := json.NewDecoder(bytes.NewReader(raw))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&record); err != nil {
+		return record, err
+	}
 	return record, record.Validate()
+}
+
+// Each object has its own exact set of field names. A nil child denotes a
+// scalar; malformed values are still rejected by the struct decoder.
+type fieldSet map[string]fieldSet
+
+var provenanceFields = fieldSet{"status": nil, "value": nil}
+var playerFields = fieldSet{"name": nil, "version": nil, "source": provenanceFields, "binary": provenanceFields, "model": provenanceFields, "threads": nil}
+var recordFields = fieldSet{
+	"schema_version": nil, "engine": playerFields, "opponent": playerFields,
+	"opponent_historical_rating": {"system": nil, "value": nil},
+	"time_control":               nil, "opening": nil, "engine_color": nil, "result": nil, "termination": nil,
+}
+
+// checkRecordKeys walks JSON tokens so duplicate keys cannot be hidden by
+// encoding/json's case-insensitive matching or object merging.
+func checkRecordKeys(dec *json.Decoder, fields fieldSet) error {
+	token, err := dec.Token()
+	if err != nil {
+		return err
+	}
+	if token != json.Delim('{') {
+		return fmt.Errorf("expected JSON object")
+	}
+	seen := make(map[string]bool)
+	for dec.More() {
+		token, err = dec.Token()
+		if err != nil {
+			return err
+		}
+		key, ok := token.(string)
+		if !ok {
+			return fmt.Errorf("expected object key")
+		}
+		child, ok := fields[key]
+		if !ok {
+			return fmt.Errorf("unknown or noncanonical field %q", key)
+		}
+		if seen[key] {
+			return fmt.Errorf("duplicate field %q", key)
+		}
+		seen[key] = true
+		if child != nil {
+			// null is handled by the regular decoder and validation.
+			var raw json.RawMessage
+			if err := dec.Decode(&raw); err != nil {
+				return err
+			}
+			if string(raw) != "null" {
+				if err := checkRecordKeys(json.NewDecoder(bytes.NewReader(raw)), child); err != nil {
+					return err
+				}
+			}
+		} else {
+			var value json.RawMessage
+			if err := dec.Decode(&value); err != nil {
+				return err
+			}
+		}
+	}
+	_, err = dec.Token()
+	return err
 }
 
 // Validate checks the v1 identity and game contract.

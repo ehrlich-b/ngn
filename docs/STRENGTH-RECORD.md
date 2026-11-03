@@ -1,6 +1,6 @@
 # Strength record v1
 
-A strength record is one JSON object per completed game. `internal/rating.ReadStrengthRecord` reads one object, rejects unknown fields and validates version 1. The examples in `internal/rating/testdata` are illustrative, not measurements or claims about actual games.
+A strength record is one JSON object per completed game. `internal/rating.ReadStrengthRecord` reads one object, rejects unknown, noncanonical, and duplicate fields and validates version 1. The examples in `internal/rating/testdata` are illustrative, not measurements or claims about actual games.
 
 `engine` and `opponent` each have a nonempty `name` and `version`, positive `threads`, and `source`, `binary`, and `model` provenance. Each provenance object has `status`: `known` with a nonempty `value`, or `unknown` with no value. Source values identify a revision; binary and model values are lowercase SHA-256 hex digests of the actual bytes. Use unknown when evidence is unavailable, including when no model identity is known; never substitute a label or an empty hash. The two name/version pairs must differ so their roles are unambiguous.
 
