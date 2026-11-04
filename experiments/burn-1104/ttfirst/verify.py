@@ -11,6 +11,8 @@ root=pathlib.Path(__file__).resolve().parents[3]
 folder=root/'experiments/burn-1104/ttfirst'
 base='faaf3741eaf0e2add133ffe6574a3c24db415907'
 previous='fbe5458b270d8e6cd384234728ceb4bc1073a025'
+# Integrated product tree before this experiment's isolation-check adjustment.
+default_baseline='5aebe1ed1ae35e317a830afdf2ceebeb849539c4'
 patch=folder/'candidate.patch'
 mode=sys.argv[1]
 def require(ok,message):
@@ -54,7 +56,7 @@ elif mode=='reference':
     require(actual==expected,'reference is not exact pinned baseline functions')
     print('pinned alphaBetaPV and eager scorer bodies match exactly')
 elif mode=='default':
-    changed=git('diff','--name-only',base,'--','.',':(exclude)experiments/burn-1104/ttfirst')
+    changed=git('diff','--name-only',default_baseline,'--','.',':(exclude)experiments/burn-1104/ttfirst')
     require(not changed,'default adoption detected: '+changed)
     require(not git('status','--porcelain','--','engine','cmd'),'default engine dirty')
     print('default tracked tree unchanged outside experiments/burn-1104/ttfirst')
