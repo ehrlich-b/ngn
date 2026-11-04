@@ -32,6 +32,7 @@ var (
 	REVERSE_FUTILITY_MARGIN = 69  // Reverse futility margin
 	DELTA_MARGIN            = 261 // Delta pruning margin in quiescence
 	SINGULAR_DEPTH          = 8   // Minimum depth for singular extensions
+	T1104_SINGULAR_DOUBLE   = 0   // Enable experimental multi-ply singular extensions
 	SINGULAR_MARGIN         = 67  // Margin for singular move detection
 	EXTENSION_BUDGET        = 29  // Max net extensions on a single root-to-leaf path (anti-explosion)
 	ASP_INIT                = 18  // Aspiration initial half-window (cp); delta = ASP_INIT + |prevScore|/ASP_SCORE_DIV
@@ -109,6 +110,7 @@ var TunableSearchParams = []TunableParam{
 	{"DeltaMargin", &DELTA_MARGIN, 261, 0, 400},
 	{"SingularDepth", &SINGULAR_DEPTH, 8, 4, 12},
 	{"SingularMargin", &SINGULAR_MARGIN, 67, 16, 256},
+	{"T1104SingularDouble", &T1104_SINGULAR_DOUBLE, 0, 0, 1},
 	{"ExtensionBudget", &EXTENSION_BUDGET, 29, 4, 64},
 	{"AspInit", &ASP_INIT, 18, 4, 40},
 	{"AspMult", &ASP_MULT, 171, 110, 250},
@@ -147,6 +149,22 @@ var TunableSearchParams = []TunableParam{
 	{"SoftIncrementPercent", &tuneSoftIncrementPercent, 80, 0, 150},
 	{"HardSoftMultiplier", &tuneHardSoftMultiplier, 4, 1, 8},
 	{"HardBankPercent", &tuneHardBankPercent, 30, 1, 100},
+}
+
+// singularExtension counts plies added to the normal child depth. The extra
+// margins are provisional centipawn thresholds, pending the fixed-node gate.
+func singularExtension(score, beta int, isPV bool) int {
+	if score >= beta {
+		return 0
+	}
+	ext := 1
+	if T1104_SINGULAR_DOUBLE != 0 && score < beta-32 {
+		ext = 2
+		if !isPV && score < beta-96 {
+			ext = 3
+		}
+	}
+	return ext
 }
 
 // Late Move Pruning thresholds, indexed [improving][depth] (S4, W11). Follows
@@ -2221,8 +2239,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			info.history.SetLastMovePlayed(move)
 			info.MoveStack[ply] = move
 
-			if singularScore < singularBeta {
-				nextDepth++
+			if extension := singularExtension(singularScore, singularBeta, isPV); extension > 0 {
+				nextDepth += extension
 				info.SingularExtensions++
 			} else if !isPV && ttEval >= beta {
 				// Singular-neg-ext (W-SE2): the verification failed high — another move
@@ -2234,13 +2252,16 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			}
 		}
 
-		if nextDepth > depth+1 {
-			// Guardrail: limit extensions to at most +1 beyond current depth
-			nextDepth = depth + 1
+		maxNodeDepth := depth + 1
+		if T1104_SINGULAR_DOUBLE != 0 {
+			maxNodeDepth = depth + 2
+		}
+		if nextDepth > maxNodeDepth {
+			nextDepth = maxNodeDepth
 		}
 
 		// Per-path extension budget (anti-explosion). The per-node guardrail above
-		// caps a single node at +1, but a check extension only RESTORES the decrement
+		// caps a single node, but a check extension only RESTORES the decrement
 		// (nextDepth == depth), so a non-decaying checking line keeps depth flat and
 		// can recurse toward MaximumDepth (the seldepth-111, ~20x-node explosion).
 		// Bound the CUMULATIVE net extension on this root-to-leaf path: the child's
