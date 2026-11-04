@@ -36,3 +36,22 @@ func TestGameRules(t *testing.T) {
 		t.Fatal(got)
 	}
 }
+
+func TestMaterialDrawStopsSearch(t *testing.T) {
+	for _, fen := range []string{
+		"7k/8/8/8/8/8/8/K7 w - - 0 1",
+		"7k/8/8/8/8/8/8/KN6 w - - 0 1",
+		"7k/8/8/8/8/8/8/KB6 w - - 0 1",
+		"6bk/8/8/8/8/8/8/KB6 w - - 0 1",
+	} {
+		req, _ := json.Marshal(request{FEN: fen, Depth: 1})
+		got := check(t, string(req))
+		if got["status"] != "insufficient material" || got["bestmove"] != nil {
+			t.Fatalf("%s: %v", fen, got)
+		}
+	}
+	got := check(t, `{"fen":"7k/8/8/8/8/8/8/KR6 w - - 0 1","depth":1}`)
+	if got["status"] != "" || got["bestmove"] == nil {
+		t.Fatal(got)
+	}
+}

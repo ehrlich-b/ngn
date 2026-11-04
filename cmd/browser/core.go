@@ -61,6 +61,8 @@ func execute(data []byte) []byte {
 		status = "50-move rule"
 	} else if p.Positions[p.Hash()] >= 3 {
 		status = "repetition"
+	} else if p.IsDraw() {
+		status = "insufficient material"
 	}
 	out := map[string]any{"fen": engine.GenerateFEN(p), "legal": moves, "status": status, "network": fmt.Sprintf("%x", sha256.Sum256(engine.DefaultNetBytes()))}
 	if (r.Depth > 0 || r.Millis > 0) && status == "" {
