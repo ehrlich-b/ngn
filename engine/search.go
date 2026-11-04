@@ -21,6 +21,7 @@ const (
 // TunableSearchParams below is the single source of truth tying each var to
 // its UCI name, default and spin range.
 var (
+	T1104CorrMore           = 0
 	NULL_MOVE_R             = 4   // Null move reduction depth
 	NULL_MOVE_MIN_DEPTH     = 2   // Minimum depth for null move pruning
 	LMR_FULL_DEPTH          = 3   // Minimum depth for LMR
@@ -96,6 +97,7 @@ type TunableParam struct {
 // Min/Max bound both the spin advertisement and SPSA exploration; Def is the
 // shipped default (== the literal above).
 var TunableSearchParams = []TunableParam{
+	{"T1104CorrMore", &T1104CorrMore, 0, 0, 1},
 	{"NullMoveR", &NULL_MOVE_R, 4, 2, 5},
 	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 2, 1, 6},
 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
@@ -1520,7 +1522,7 @@ func seedRootStaticEval(pos *Position, info *SearchInfo) {
 	corrIdx := pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
 	nonPawnCorrIdx := nonPawnCorrectionIndex(pos.Board.WhiteOccupancy()&^pos.Board.pieces[WhitePawn], pos.Board.BlackOccupancy()&^pos.Board.pieces[BlackPawn])
 	minorCorrIdx := minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
-	info.StaticEvalStack[0] = info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
+	info.StaticEvalStack[0] = info.history.moreCorrection(pos, EmptyMove) + info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
 }
 
 // searchDrawScore applies the same terminal rules in the main and quiescence
@@ -1734,6 +1736,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// (updatePawnCorrection, same form as gravityUpdate), which converges to the full correction only when
 	// it learns from the corrected value; learning from raw would saturate the entry to the clamp limit.
 	var corrStaticEval int
+	previous := EmptyMove
+	if T1104CorrMore != 0 && ply > 0 {
+		previous = info.MoveStack[ply-1]
+	}
 	if inCheck {
 		if ply >= 2 {
 			staticEval = info.StaticEvalStack[ply-2]
@@ -1744,7 +1750,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		corrIdx = pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
 		nonPawnCorrIdx = nonPawnCorrectionIndex(pos.Board.WhiteOccupancy()&^pos.Board.pieces[WhitePawn], pos.Board.BlackOccupancy()&^pos.Board.pieces[BlackPawn])
 		minorCorrIdx = minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
-		staticEval = info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
+		staticEval = info.history.moreCorrection(pos, previous) + info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
 		corrStaticEval = staticEval // T4: capture the corrected static (raw + pawn + non-pawn + minor) BEFORE S7 overwrites it (all tables' learn target)
 		// S7: a search-refined TT score is a sharper static estimate than a fresh
 		// eval for the margin heuristics below (RFP/futility/NMP/improving). Use it
@@ -2449,6 +2455,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			info.history.maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
 			info.history.maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
 			info.history.maybeUpdateMinorCorrection(stm, minorCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+			info.history.maybeUpdateMore(pos, previous, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
 
 			// Store in transposition table as Lower Bound (Cut-Node). Skip at the
 			// singular verification root: its result is a move-excluded search and
@@ -2501,6 +2508,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		info.history.maybeUpdatePawnCorrection(stm, corrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
 		info.history.maybeUpdateNonPawnCorrection(stm, nonPawnCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
 		info.history.maybeUpdateMinorCorrection(stm, minorCorrIdx, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
+		info.history.maybeUpdateMore(pos, previous, corrStaticEval, bestScore, beta, depth, bestMove, inCheck)
 	}
 
 	// Store in transposition table
@@ -2661,6 +2669,9 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
 			legalMoves++
 
+			if T1104CorrMore != 0 && ply < MaximumDepth {
+				info.MoveStack[ply] = move
+			}
 			score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
 			info.evaluator.mustPop()
 			pos.UnMakeMove(move, tag, ep, hc)
@@ -2723,7 +2734,11 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// route through (evaluateLazyStandPat) is pinned dead — qsearchLazyMargin=100000
 	// means lazyFailHigh never fires — so this is value-identical; re-route through a
 	// cache-aware lazy path if that margin is ever unpinned (SHELVED 2026-06-02).
-	standPat := info.history.correctedStandPat(pos, info.evaluator)
+	previous := EmptyMove
+	if T1104CorrMore != 0 && ply > 0 {
+		previous = info.MoveStack[ply-1]
+	}
+	standPat := info.history.correctedStandPatPrevious(pos, info.evaluator, previous)
 	// A non-cutting bound can still improve the horizon estimate. A lower
 	// bound supplies a floor and an upper bound supplies a ceiling; each only
 	// replaces the estimate in that direction. Keep mate-distance scores out
@@ -2804,6 +2819,9 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		}
 		info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
 
+		if T1104CorrMore != 0 && ply < MaximumDepth {
+			info.MoveStack[ply] = move
+		}
 		score := -quiescenceWithDepth(pos, -beta, -alpha, ply+1, info, qDepth+1)
 		info.evaluator.mustPop()
 		pos.UnMakeMove(move, tag, ep, hc)

@@ -22,13 +22,15 @@ type workerHistory struct {
 	continuationHistory [13][64][13][64]int
 	followupHistory     [13][64][13][64]int
 
-	pawnCorrectionHistory    [2][corrHistSize]int
-	nonPawnCorrectionHistory [2][corrHistSize]int
-	minorCorrectionHistory   [2][corrHistSize]int
-	captureHistory           [13][64][13]int
-	killerMoves              [MaximumDepth][2]Move
-	counterMoves             [64][64]Move
-	lastMovePlayed           Move
+	pawnCorrectionHistory         [2][corrHistSize]int
+	nonPawnCorrectionHistory      [2][corrHistSize]int
+	minorCorrectionHistory        [2][corrHistSize]int
+	majorCorrectionHistory        [2][corrHistSize]int
+	continuationCorrectionHistory [2][13][64]int
+	captureHistory                [13][64][13]int
+	killerMoves                   [MaximumDepth][2]Move
+	counterMoves                  [64][64]Move
+	lastMovePlayed                Move
 }
 
 // pawnCorrectionIndex hashes both colors' pawn bitboards into a correction-table slot.
@@ -53,8 +55,12 @@ func (h *workerHistory) correctionValue(stm Color, idx int) int {
 // in-check static must never be corrected. The eval cache is unaffected — the correction is
 // added outside it.
 func (h *workerHistory) correctedStandPat(pos *Position, evaluator *workerEvaluator) int {
+	return h.correctedStandPatPrevious(pos, evaluator, EmptyMove)
+}
+
+func (h *workerHistory) correctedStandPatPrevious(pos *Position, evaluator *workerEvaluator, previous Move) int {
 	stm := pos.Turn()
-	return evaluator.SearchSTM(pos) +
+	return h.moreCorrection(pos, previous) + evaluator.SearchSTM(pos) +
 		h.correctionValue(stm, pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])) +
 		h.nonPawnCorrectionValue(stm, nonPawnCorrectionIndex(pos.Board.WhiteOccupancy()&^pos.Board.pieces[WhitePawn], pos.Board.BlackOccupancy()&^pos.Board.pieces[BlackPawn])) +
 		h.minorCorrectionValue(stm, minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop]))
@@ -189,6 +195,50 @@ func (h *workerHistory) maybeUpdateMinorCorrection(stm Color, idx, staticEval, b
 		return
 	}
 	h.updateMinorCorrection(stm, idx, bestScore-staticEval, depth)
+}
+
+// Major placement and the preceding move provide independent correction contexts.
+func majorCorrectionIndex(pos *Position) int {
+	w := pos.Board.pieces[WhiteRook] | pos.Board.pieces[WhiteQueen]
+	b := pos.Board.pieces[BlackRook] | pos.Board.pieces[BlackQueen]
+	return nonPawnCorrectionIndex(w, b)
+}
+
+func (h *workerHistory) moreCorrection(pos *Position, previous Move) int {
+	if T1104CorrMore == 0 {
+		return 0
+	}
+	stm := pos.Turn()
+	value := h.majorCorrectionHistory[stm][majorCorrectionIndex(pos)] * 3 / 64
+	if previous != EmptyMove {
+		value += h.continuationCorrectionHistory[stm][previous.MovingPiece()][previous.Destination()] * 3 / 64
+	}
+	return value
+}
+
+func updateMoreEntry(e *int, diff, depth int) {
+	bonus := diff * depth / 8
+	if bonus > corrHistLimit/4 {
+		bonus = corrHistLimit / 4
+	} else if bonus < -corrHistLimit/4 {
+		bonus = -corrHistLimit / 4
+	}
+	mag := bonus
+	if mag < 0 {
+		mag = -mag
+	}
+	*e += bonus - *e*mag/corrHistLimit
+}
+
+func (h *workerHistory) maybeUpdateMore(pos *Position, previous Move, staticEval, bestScore, beta, depth int, bestMove Move, inCheck bool) {
+	if T1104CorrMore == 0 || inCheck || (bestMove != EmptyMove && bestMove.IsCapture()) || !((bestScore < staticEval && bestScore < beta) || (bestScore > staticEval && bestMove != EmptyMove)) {
+		return
+	}
+	stm := pos.Turn()
+	updateMoreEntry(&h.majorCorrectionHistory[stm][majorCorrectionIndex(pos)], bestScore-staticEval, depth)
+	if previous != EmptyMove {
+		updateMoreEntry(&h.continuationCorrectionHistory[stm][previous.MovingPiece()][previous.Destination()], bestScore-staticEval, depth)
+	}
 }
 
 // Killer moves table for move ordering heuristic.
@@ -341,6 +391,8 @@ func (h *workerHistory) ClearHistoryTable() {
 			h.minorCorrectionHistory[i][j] = 0
 		}
 	}
+	h.majorCorrectionHistory = [2][corrHistSize]int{}
+	h.continuationCorrectionHistory = [2][13][64]int{}
 	for i := range h.captureHistory {
 		for j := range h.captureHistory[i] {
 			for k := range h.captureHistory[i][j] {
