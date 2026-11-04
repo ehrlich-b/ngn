@@ -391,7 +391,7 @@ func runTacticalTests() error {
 
 	// Step 2: Build and test NGN
 	fmt.Println("\n=== STEP 2: BUILDING NGN ENGINE ===")
-	if err := exec.Command("go", "build", "-o", "../../build/ngn", "../../main.go").Run(); err != nil {
+	if err := exec.Command("go", "build", "-o", "../../build/ngn", "../..").Run(); err != nil {
 		return fmt.Errorf("failed to build engine: %v", err)
 	}
 
