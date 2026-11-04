@@ -168,6 +168,20 @@ index 6f99e43..5d8d0ca 100644
  		// Deferred selection sort: pull the next-best move into ordered[oi]. Doing this
  		// per-iteration (rather than fully up front) skips the sort tail after a cutoff.
  		if oi == 0 && ttIndex >= 0 {
+diff --git a/engine/search_stats.go b/engine/search_stats.go
+index fcf5117..4a5f889 100644
+--- a/engine/search_stats.go
++++ b/engine/search_stats.go
+@@ -48,6 +48,9 @@ func (info *SearchInfo) publishNodesIfDue(force bool) {
+ // addSearchMonotonicCounters merges only additive statistics. It deliberately
+ // excludes result, depth, PV, repetition, root, clock, and owner fields.
+ func addSearchMonotonicCounters(dst, src *SearchInfo) {
++	dst.TTFirstAttempts += src.TTFirstAttempts
++	dst.MainMoveLists += src.MainMoveLists
++	dst.MainMoveScores += src.MainMoveScores
+ 	dst.Nodes += src.Nodes
+ 	dst.FutilityPrunes += src.FutilityPrunes
+ 	dst.NullMoveCutoffs += src.NullMoveCutoffs
 diff --git a/engine/ttfirst_reference_test.go b/engine/ttfirst_reference_test.go
 new file mode 100644
 index 0000000..7d463c3

@@ -1,6 +1,6 @@
 {
   "base": "faaf3741eaf0e2add133ffe6574a3c24db415907",
-  "patch_sha256": "8dfef63146118fe3b3bbf3386eb32bf3f3f8bb9ef16981f2cdd07e061b8dcd3d",
+  "patch_sha256": "cd36eff4b700f5dad9956a55d35f33266593944054cd961d4ba718f7c12e64b4",
   "toolchain": "go1.27.3 linux/amd64; GOAMD64=v3; GOMAXPROCS=2; identical base/candidate -trimpath builds",
   "check": "bash experiments/burn-1104/ttfirst/check.sh",
   "status": "TT-first implementation for bounded correctness checks; full timing/adoption pending; no speed or strength claim",
@@ -29,6 +29,7 @@
     "No separate evasion generator or quiet heuristic change: verify full legal subset/order in check and every staged emitted score/move/tie against the pinned scorer.",
     "Corpus is twelve fixed FENs with HCE, fixed and iterative depth 4; full depth-12 both-backend identity is pending.",
     "ProbCut retains existing independent capture generation; deferred generation refers to the main alphaBetaPV move list.",
-    "Proof commands are serial, credential-free, nice 10, GOMAXPROCS=2, 120-second per subprocess limit; logs outside checkout."
+    "Proof commands are serial, credential-free, nice 10, GOMAXPROCS=2, 120-second per subprocess limit; logs outside checkout.",
+    "The three diagnostic counters explicitly sum in addSearchMonotonicCounters, satisfying the existing SMP merge-policy contract without affecting decisions."
   ]
 }
