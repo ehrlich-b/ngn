@@ -545,6 +545,9 @@ func setTunableParam(name, value string) bool {
 				v = p.Max
 			}
 			*p.Ptr = v
+			if p.Ptr == &tuneLMRBase || p.Ptr == &tuneLMRDivisor {
+				rebuildLMRTable()
+			}
 			return true
 		}
 	}

@@ -36,6 +36,43 @@ var (
 	ASP_MULT                = 171 // Aspiration widening multiplier in percent (150 => x1.5 delta growth per fail)
 )
 
+var (
+	tuneLMRBase                 = 0
+	tuneLMRDivisor              = 2
+	tuneHistoryLMRDivisor       = 2500
+	tuneHistoryLMRCap           = 2
+	tuneRFPMaxDepth             = 7
+	tuneRFPImproving            = 1
+	tuneFutilityImproving       = 1
+	tuneLMPQuadratic            = 1
+	tuneLMPNonImprovingDivisor  = 2
+	tuneLMPMaxDepth             = 9
+	tuneSEECaptureDepth         = 4
+	tuneSEECaptureThreshold     = 100
+	tuneSEEQuietDepth           = 4
+	tuneSEEQuietSlope           = 80
+	tuneHistoryPruneDepth       = 3
+	tuneHistoryPruneThreshold   = 1000
+	tuneHistoryPruneMoves       = 3
+	tuneNullMoveDepthDivisor    = 6
+	tuneNullMoveOffset          = 1
+	tuneIIRDepth                = 4
+	tuneIIRPhase                = 8
+	tuneIIDDepth                = 4
+	tuneIIDReduction            = 2
+	tuneSingularMarginDivisor   = 32
+	tuneSingularTTDepthOffset   = 3
+	tuneHistoryRateCap          = 400
+	tuneHistoryRateScale        = 1
+	tuneHistoryBonusCap         = 2048
+	tunePawnCorrectionWeight    = 3
+	tuneNonPawnCorrectionWeight = 3
+	tuneMinorCorrectionWeight   = 3
+	tuneSoftIncrementPercent    = 80
+	tuneHardSoftMultiplier      = 4
+	tuneHardBankPercent         = 30
+)
+
 // ASP_SCORE_DIV scales the aspiration init window by the previous score's
 // magnitude. NGN chose 80 as a neutral round placeholder for later NGN tuning.
 // Not a tunable — the two window
@@ -72,6 +109,40 @@ var TunableSearchParams = []TunableParam{
 	{"AspInit", &ASP_INIT, 18, 4, 40},
 	{"AspMult", &ASP_MULT, 171, 110, 250},
 	{"LMPBase", &LMP_BASE, 3, 2, 16},
+	{"LMRBase", &tuneLMRBase, 0, 0, 3},
+	{"LMRDivisor", &tuneLMRDivisor, 2, 1, 6},
+	{"HistoryLMRDivisor", &tuneHistoryLMRDivisor, 2500, 500, 6000},
+	{"HistoryLMRCap", &tuneHistoryLMRCap, 2, 1, 5},
+	{"RFPMaxDepth", &tuneRFPMaxDepth, 7, 1, 12},
+	{"RFPImproving", &tuneRFPImproving, 1, 0, 3},
+	{"FutilityImproving", &tuneFutilityImproving, 1, 0, 3},
+	{"LMPQuadratic", &tuneLMPQuadratic, 1, 1, 4},
+	{"LMPNonImprovingDivisor", &tuneLMPNonImprovingDivisor, 2, 1, 5},
+	{"LMPMaxDepth", &tuneLMPMaxDepth, 9, 2, 14},
+	{"SEECaptureDepth", &tuneSEECaptureDepth, 4, 1, 8},
+	{"SEECaptureThreshold", &tuneSEECaptureThreshold, 100, 0, 400},
+	{"SEEQuietDepth", &tuneSEEQuietDepth, 4, 1, 8},
+	{"SEEQuietSlope", &tuneSEEQuietSlope, 80, 0, 300},
+	{"HistoryPruneDepth", &tuneHistoryPruneDepth, 3, 1, 8},
+	{"HistoryPruneThreshold", &tuneHistoryPruneThreshold, 1000, 100, 4000},
+	{"HistoryPruneMoves", &tuneHistoryPruneMoves, 3, 0, 10},
+	{"NullMoveDepthDivisor", &tuneNullMoveDepthDivisor, 6, 1, 12},
+	{"NullMoveOffset", &tuneNullMoveOffset, 1, 0, 4},
+	{"IIRDepth", &tuneIIRDepth, 4, 2, 10},
+	{"IIRPhase", &tuneIIRPhase, 8, 0, 24},
+	{"IIDDepth", &tuneIIDDepth, 4, 2, 10},
+	{"IIDReduction", &tuneIIDReduction, 2, 1, 4},
+	{"SingularMarginDivisor", &tuneSingularMarginDivisor, 32, 8, 96},
+	{"SingularTTDepthOffset", &tuneSingularTTDepthOffset, 3, 0, 8},
+	{"HistoryRateCap", &tuneHistoryRateCap, 400, 64, 512},
+	{"HistoryRateScale", &tuneHistoryRateScale, 1, 1, 4},
+	{"HistoryBonusCap", &tuneHistoryBonusCap, 2048, 512, 8192},
+	{"PawnCorrectionWeight", &tunePawnCorrectionWeight, 3, 0, 10},
+	{"NonPawnCorrectionWeight", &tuneNonPawnCorrectionWeight, 3, 0, 10},
+	{"MinorCorrectionWeight", &tuneMinorCorrectionWeight, 3, 0, 10},
+	{"SoftIncrementPercent", &tuneSoftIncrementPercent, 80, 0, 150},
+	{"HardSoftMultiplier", &tuneHardSoftMultiplier, 4, 1, 8},
+	{"HardBankPercent", &tuneHardBankPercent, 30, 1, 100},
 }
 
 // Late Move Pruning thresholds, indexed [improving][depth] (S4, W11). Follows
@@ -91,9 +162,9 @@ var LMP_BASE = 3
 // lmpThresholdFor returns the late-move-pruning move count for a depth, matching
 // the historical table exactly at LMP_BASE == 5 (integer division intended).
 func lmpThresholdFor(depth int, improving bool) int {
-	t := LMP_BASE + depth*depth
+	t := LMP_BASE + tuneLMPQuadratic*depth*depth
 	if !improving {
-		t /= 2
+		t /= tuneLMPNonImprovingDivisor
 	}
 	return t
 }
@@ -124,10 +195,12 @@ var SearchToggles = struct {
 // killer adjustments, and the depth cap remain on top.
 var lmrTable [64][64]int
 
-func init() {
+func init() { rebuildLMRTable() }
+
+func rebuildLMRTable() {
 	for d := 1; d < 64; d++ {
 		for m := 1; m < 64; m++ {
-			lmrTable[d][m] = int(math.Log(float64(d)) * math.Log(float64(m)) / 2.0)
+			lmrTable[d][m] = int(float64(tuneLMRBase) + math.Log(float64(d))*math.Log(float64(m))/float64(tuneLMRDivisor))
 		}
 	}
 }
@@ -1522,9 +1595,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// Internal Iterative Deepening (IID)
 	// When we have no TT move at high depth, do a reduced search to find one
-	if SearchToggles.IID && ttMove == EmptyMove && depth >= 4 && isPV {
+	if SearchToggles.IID && ttMove == EmptyMove && depth >= tuneIIDDepth && isPV {
 		// Search at reduced depth to get a good move for ordering
-		iidDepth := depth - 2
+		iidDepth := depth - tuneIIDReduction
 		if iidDepth < 1 {
 			iidDepth = 1
 		}
@@ -1551,7 +1624,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// cutNode (not all-nodes) and skipped in low-material positions (accPhase < 8):
 	// endgames are low-branching and need depth, where reducing no-TT-move nodes cost
 	// ~2-4 ply in the probe and turned the unguarded version net-negative.
-	if ttMove == EmptyMove && depth >= 4 && cutNode && pos.Board.accPhase >= 8 {
+	if ttMove == EmptyMove && depth >= tuneIIRDepth && cutNode && pos.Board.accPhase >= tuneIIRPhase {
 		depth--
 	}
 
@@ -1631,10 +1704,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// improving (SF11 217*(d-improving), Ethereal/Weiss equivalents) — every
 	// reference engine prunes harder when the eval is NOT trending up; the
 	// ungated depth<=8 extension inflated sharp-position trees (probe-rejected).
-	if SearchToggles.RFP && depth <= 7 && !inCheck && beta-alpha == 1 {
+	if SearchToggles.RFP && depth <= tuneRFPMaxDepth && !inCheck && beta-alpha == 1 {
 		imp := 0
 		if improving {
-			imp = 1
+			imp = tuneRFPImproving
 		}
 		margin := REVERSE_FUTILITY_MARGIN * (depth - imp)
 		if staticEval-margin >= beta {
@@ -1651,7 +1724,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	if SearchToggles.Futility && depth <= FUTILITY_MAX_DEPTH && !inCheck && !isPV { // Don't prune in PV nodes
 		imp := 0
 		if improving {
-			imp = 1
+			imp = tuneFutilityImproving
 		}
 		margin := FUTILITY_MARGIN * (depth + imp)
 		if staticEval+margin <= alpha {
@@ -1692,7 +1765,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// reduction depth-NULL_MOVE_R-1 = -1 trips the negative-depth guard and
 		// verifies the null move with a raw static eval (tactically blind) instead
 		// of quiescence; flooring routes it through qsearch like the depth>=4 path.
-		nullDepth := depth - (NULL_MOVE_R + 1 + depth/6) // NMP reduction: tunable base NULL_MOVE_R (def 3 => R+1=4) + depth-scaling; CG/Ethereal/Weiss converge
+		nullDepth := depth - (NULL_MOVE_R + tuneNullMoveOffset + depth/tuneNullMoveDepthDivisor) // NMP reduction: tunable base NULL_MOVE_R (def 3 => R+1=4) + depth-scaling; CG/Ethereal/Weiss converge
 		if nullDepth < 0 {
 			nullDepth = 0
 		}
@@ -1795,7 +1868,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	if SearchToggles.Singular && ttHit && ttMove != EmptyMove && depth >= SINGULAR_DEPTH &&
 		info.ExcludedMove == EmptyMove && // Not already in singular search
 		(ttNodeType == Exact || ttNodeType == LowerBound) &&
-		ttDepth >= int8(depth-3) {
+		ttDepth >= int8(depth-tuneSingularTTDepthOffset) {
 		singularMove = ttMove
 	}
 
@@ -1909,7 +1982,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// Late Move Pruning (LMP) - skip very late quiet moves at low depths
 		// Only apply in non-PV nodes, not in check, and for quiet moves
 		// Use legalTried (not moveCount) since moveCount includes illegal moves
-		if SearchToggles.LMP && !isPV && !inCheck && depth > 0 && depth < 9 &&
+		if SearchToggles.LMP && !isPV && !inCheck && depth > 0 && depth < tuneLMPMaxDepth &&
 			!move.IsCapture() && move.PromoType() == NoType && move != ttMove && legalTried > 0 {
 			threshold := lmpThresholdFor(depth, improving)
 			if legalTried > threshold {
@@ -1921,9 +1994,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// SEE pruning for bad captures in main search
 		// Skip obviously losing captures at low depths (not in PV, not TT move).
 		// legalTried > 0 guard (F1): never prune before one legal move is searched.
-		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 && move.IsCapture() && move != ttMove && legalTried > 0 {
+		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= tuneSEECaptureDepth && move.IsCapture() && move != ttMove && legalTried > 0 {
 			// Skip the full swap when the capture is provably non-losing (SEE >= 0 > -100).
-			if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < -100 { // losing more than a pawn
+			if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < -tuneSEECaptureThreshold { // losing more than a pawn
 				info.SEECapPrunes++
 				continue
 			}
@@ -1935,10 +2008,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// larger losses. Exclude the TT move, promotions (tactical), and king
 		// moves — the king's infinite SEE weight poisons the swap, and a pinned
 		// enemy "attacker" of a king square may not be a legal capture.
-		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= 4 &&
+		if SearchToggles.SEEPrune && !isPV && !inCheck && depth <= tuneSEEQuietDepth &&
 			!move.IsCapture() && move != ttMove && move.PromoType() == NoType && legalTried > 0 {
 			if mp := move.MovingPiece(); mp != WhiteKing && mp != BlackKing {
-				if staticExchangeEvaluation(pos, move) < -80*depth {
+				if staticExchangeEvaluation(pos, move) < -tuneSEEQuietSlope*depth {
 					info.SEEQuietPrunes++
 					continue
 				}
@@ -1946,9 +2019,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		}
 
 		// History pruning: skip quiet moves with very bad history at low depths
-		if SearchToggles.HistPrune && !isPV && !inCheck && depth <= 3 && !move.IsCapture() && move.PromoType() == NoType && move != ttMove {
+		if SearchToggles.HistPrune && !isPV && !inCheck && depth <= tuneHistoryPruneDepth && !move.IsCapture() && move.PromoType() == NoType && move != ttMove {
 			histScore := info.history.GetHistoryScore(move, info.history.GetLastMovePlayed(), prev2)
-			if histScore < -1000 && legalTried > 3 { // Very bad history and not early move
+			if histScore < -tuneHistoryPruneThreshold && legalTried > tuneHistoryPruneMoves { // Very bad history and not early move
 				info.HistPrunes++
 				continue
 			}
@@ -2042,7 +2115,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			pos.UnMakeMove(move, tag, ep, hc)
 			info.history.SetLastMovePlayed(savedLast)
 
-			singularBeta := int(ttEval) - (SINGULAR_MARGIN*depth)/32 // singular margin: tunable base SINGULAR_MARGIN (def 64 => 2*depth) depth-scaled; CG/Ethereal/Weiss converge here
+			singularBeta := int(ttEval) - (SINGULAR_MARGIN*depth)/tuneSingularMarginDivisor // singular margin: tunable base SINGULAR_MARGIN (def 64 => 2*depth) depth-scaled; CG/Ethereal/Weiss converge here
 			info.SingularTries++
 			info.ExcludedMove = singularMove
 			info.ExcludedPly = ply           // the verification re-searches THIS node's position

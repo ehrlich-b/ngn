@@ -3,7 +3,6 @@ package engine
 const (
 	h1HistoryTarget  = historyMax
 	h1HistoryDivisor = 512
-	h1HistoryRateCap = 400
 )
 
 // HistoryPolicyName identifies the accepted policy-11 implementation. It is
@@ -29,9 +28,9 @@ func h1HistoryRate(depth int) int {
 	if depth < 0 {
 		depth = -depth
 	}
-	rate := depth * depth
-	if rate > h1HistoryRateCap {
-		rate = h1HistoryRateCap
+	rate := tuneHistoryRateScale * depth * depth
+	if rate > tuneHistoryRateCap {
+		rate = tuneHistoryRateCap
 	}
 	return rate
 }
@@ -83,11 +82,11 @@ func (h *workerHistory) h1UpdateCompletedNode(searchedQuiets []Move, bestMove Mo
 }
 
 func h1NormalizedLMRTerm(score int) int {
-	value := score / 2500
-	if value < -2 {
-		value = -2
-	} else if value > 2 {
-		value = 2
+	value := score / tuneHistoryLMRDivisor
+	if value < -tuneHistoryLMRCap {
+		value = -tuneHistoryLMRCap
+	} else if value > tuneHistoryLMRCap {
+		value = tuneHistoryLMRCap
 	}
 	return -value
 }

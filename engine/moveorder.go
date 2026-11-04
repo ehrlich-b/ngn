@@ -42,7 +42,7 @@ func pawnCorrectionIndex(whitePawns, blackPawns uint64) int {
 // NGN chooses 3/64 as a neutral round placeholder for later NGN tuning.
 // A saturated entry (±corrHistLimit) yields at most ±48 cp.
 func (h *workerHistory) correctionValue(stm Color, idx int) int {
-	return h.pawnCorrectionHistory[stm][idx] * 3 / 64
+	return h.pawnCorrectionHistory[stm][idx] * tunePawnCorrectionWeight / 64
 }
 
 // correctedStandPat is the raw eval plus the side-to-move's pawn-structure, non-pawn AND
@@ -112,7 +112,7 @@ func nonPawnCorrectionIndex(whiteNonPawn, blackNonPawn uint64) int {
 }
 
 func (h *workerHistory) nonPawnCorrectionValue(stm Color, idx int) int {
-	return h.nonPawnCorrectionHistory[stm][idx] * 3 / 64
+	return h.nonPawnCorrectionHistory[stm][idx] * tuneNonPawnCorrectionWeight / 64
 }
 
 func (h *workerHistory) updateNonPawnCorrection(stm Color, idx, diff, depth int) {
@@ -160,7 +160,7 @@ func minorCorrectionIndex(whiteMinors, blackMinors uint64) int {
 }
 
 func (h *workerHistory) minorCorrectionValue(stm Color, idx int) int {
-	return h.minorCorrectionHistory[stm][idx] * 3 / 64
+	return h.minorCorrectionHistory[stm][idx] * tuneMinorCorrectionWeight / 64
 }
 
 func (h *workerHistory) updateMinorCorrection(stm Color, idx, diff, depth int) {
@@ -208,22 +208,16 @@ func (h *workerHistory) maybeUpdateMinorCorrection(stm Color, idx, staticEval, b
 // 30000) and the history-pruning/LMR thresholds stay calibrated.
 const historyMax = 8192
 
-// historyBonusCap bounds a single update step. Gravity is self-bounding for any
-// |bonus| <= historyMax, but uncapped depth² steps (d12 → 144 vs d3 → 9 is fine;
-// d40+ → 1600+ is not) would let one deep cutoff swamp accumulated signal;
-// ~historyMax/4 is the reference engines' step ceiling.
-const historyBonusCap = 2048
-
 // gravityUpdate applies the standard bounded history update: the entry moves by
 // bonus, decayed in proportion to its current magnitude. Equilibrium at ±historyMax,
 // recent results outweigh stale ones, and there is no table-wide halving cliff (the
 // old ageHistoryTable erased ALL relative ordering info whenever any single entry
 // crossed the cap, and the per-entry /2 did the same locally).
 func gravityUpdate(e *int, bonus int) {
-	if bonus > historyBonusCap {
-		bonus = historyBonusCap
-	} else if bonus < -historyBonusCap {
-		bonus = -historyBonusCap
+	if bonus > tuneHistoryBonusCap {
+		bonus = tuneHistoryBonusCap
+	} else if bonus < -tuneHistoryBonusCap {
+		bonus = -tuneHistoryBonusCap
 	}
 	mag := bonus
 	if mag < 0 {

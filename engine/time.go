@@ -327,8 +327,8 @@ func (tm *TimeManager) computeTournamentLimits() {
 	}
 	uf := float64(usable)
 
-	soft := uf/float64(moves) + 0.8*float64(tm.increment)
-	hard := math.Min(soft*4, uf*0.3)
+	soft := uf/float64(moves) + (float64(tuneSoftIncrementPercent)/100)*float64(tm.increment)
+	hard := math.Min(soft*float64(tuneHardSoftMultiplier), uf*(float64(tuneHardBankPercent)/100))
 	if hard < soft {
 		hard = soft // tiny banks: don't let the 0.3 cap fall below the soft target
 	}
