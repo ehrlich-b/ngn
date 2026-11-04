@@ -20,7 +20,7 @@ cd "$(dirname "$0")/.."
 POSITIONS_FILE="scripts/test_positions.txt"
 
 build() {
-  go build -o build/ngn main.go
+  go build -o build/ngn .
   echo "built build/ngn"
 }
 

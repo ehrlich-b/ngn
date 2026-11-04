@@ -10,7 +10,7 @@ cd "$(dirname "$0")/.."
 
 DEPTH="${1:-8}"
 
-go build -o build/ngn main.go
+go build -o build/ngn .
 
 POSITIONS_FILE="scripts/test_positions.txt"
 
