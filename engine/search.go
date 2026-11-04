@@ -249,17 +249,8 @@ func seeNonLosingByMVV(move Move) bool {
 		move.CapturedPiece().seeWeight() >= move.MovingPiece().seeWeight()
 }
 
-// lmrCaptureReduction uses the same depth/move curve as quiet LMR, less one
-// ply. Only captures with negative learned history qualify. SEE is evaluated on
-// the parent position; a winning capture at a PV node is never reduced.
-func lmrCaptureReduction(pos *Position, move Move, history, depth, legalTried int, isPV bool) int {
-	if T1104_LMR_CAPTURES == 0 || !move.IsCapture() || history >= 0 ||
-		!SearchToggles.LMR || depth < LMR_FULL_DEPTH || legalTried <= LMR_MOVE_THRESHOLD {
-		return 0
-	}
-	if isPV && staticExchangeEvaluation(pos, move) > 0 {
-		return 0
-	}
+// quietLMRReduction returns the final quiet reduction, including its cap.
+func quietLMRReduction(depth, legalTried int, isPV, improving bool, histScore int, nodeTTPv, killer bool) int {
 	d, m := depth, legalTried
 	if d > 63 {
 		d = 63
@@ -267,12 +258,58 @@ func lmrCaptureReduction(pos *Position, move Move, history, depth, legalTried in
 	if m > 63 {
 		m = 63
 	}
-	r := lmrTable[d][m] - 1
-	if r > depth-2 {
+	r := lmrTable[d][m]
+	if !isPV {
+		r++
+	}
+	if !improving {
+		r++
+	}
+	if h1NormalizedLMRConsumer {
+		r += h1NormalizedLMRTerm(histScore)
+	} else if histScore < -500 {
+		r++
+	} else if histScore > 1000 {
+		r--
+	}
+	if r < 0 {
+		r = 0
+	}
+	if nodeTTPv {
+		r--
+		if r < 0 {
+			r = 0
+		}
+	}
+	if killer {
+		r--
+		if r < 0 {
+			r = 0
+		}
+	}
+	if r >= depth-1 {
 		r = depth - 2
 	}
 	if r < 0 {
 		r = 0
+	}
+	return r
+}
+
+// lmrCaptureReduction stays below even the least-reduced eligible quiet at
+// this node. If that quiet is not reduced, the capture is not reduced either.
+func lmrCaptureReduction(pos *Position, move Move, history, depth, legalTried int, isPV, improving, nodeTTPv bool) int {
+	if T1104_LMR_CAPTURES == 0 || !move.IsCapture() || history >= 0 ||
+		!SearchToggles.LMR || depth < LMR_FULL_DEPTH || legalTried <= LMR_MOVE_THRESHOLD {
+		return 0
+	}
+	if isPV && staticExchangeEvaluation(pos, move) > 0 {
+		return 0
+	}
+	// Maximum history bonus and killer status give the smallest quiet reduction.
+	r := quietLMRReduction(depth, legalTried, isPV, improving, 100000, nodeTTPv, true) - 1
+	if r < 0 {
+		return 0
 	}
 	return r
 }
@@ -2070,7 +2107,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		savedLast := info.history.GetLastMovePlayed()
 		capReduction := 0
 		if T1104_LMR_CAPTURES != 0 && !inCheck && move.IsCapture() {
-			capReduction = lmrCaptureReduction(pos, move, info.history.captureHistoryScore(move), depth, legalTried+1, isPV)
+			capReduction = lmrCaptureReduction(pos, move, info.history.captureHistoryScore(move), depth, legalTried+1, isPV, improving, nodeTTPv)
 		}
 		evalMove := info.evaluator.mustPrepareMove(pos, move)
 		ep, tag, hc, _ := pos.MakeMove(move)
@@ -2225,63 +2262,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			if SearchToggles.LMR && depth >= LMR_FULL_DEPTH && legalTried > LMR_MOVE_THRESHOLD &&
 				!move.IsCapture() && move.PromoType() == NoType && !inCheck && !givesCheck {
 
-				// Stockfish-style log-based base reduction; non-PV gets +1
-				d := depth
-				if d > 63 {
-					d = 63
-				}
-				m := legalTried
-				if m > 63 {
-					m = 63
-				}
-				reduction = lmrTable[d][m]
-				if !isPV {
-					reduction++
-				}
-
-				// Reduce one less ply when our position is improving.
-				if !improving {
-					reduction++
-				}
-				// History-based LMR adjustment:
-				// Reduce more for moves with bad history, less for moves with good history
 				histScore := info.history.GetHistoryScore(move, savedLast, prev2)
-				if h1NormalizedLMRConsumer {
-					reduction += h1NormalizedLMRTerm(histScore)
-				} else if histScore < -500 {
-					reduction++ // Bad history = reduce more
-				} else if histScore > 1000 {
-					reduction-- // Good history = reduce less
-				}
-				if reduction < 0 {
-					reduction = 0
-				}
-
-				// T19: reduce less at nodes that have ever been PV. NGN's FMC is ~84%
-				// vs elite ~90% and T3a proved ADDING reduction hurts here, so this
-				// moves with the measured weakness rather than against it.
-				if nodeTTPv {
-					reduction--
-					if reduction < 0 {
-						reduction = 0
-					}
-				}
-
-				// Killer move reduction adjustment - don't reduce killer moves as much
-				if info.history.IsKillerMove(move, ply) {
-					reduction-- // Reduce less for killer moves
-					if reduction < 0 {
-						reduction = 0
-					}
-				}
-
-				// Cap maximum reduction
-				if reduction >= depth-1 {
-					reduction = depth - 2
-				}
-				if reduction < 0 {
-					reduction = 0
-				}
+				reduction = quietLMRReduction(depth, legalTried, isPV, improving, histScore, nodeTTPv, info.history.IsKillerMove(move, ply))
 				// Track LMR usage
 				if reduction > 0 {
 					info.LMRReductions++

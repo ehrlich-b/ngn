@@ -14,20 +14,20 @@ func TestLMRCaptures(t *testing.T) {
 		t.Fatal("fixture must be SEE-winning")
 	}
 	T1104_LMR_CAPTURES = 0
-	if r := lmrCaptureReduction(pos, move, -1, 12, 20, false); r != 0 {
+	if r := lmrCaptureReduction(pos, move, -1, 12, 20, false, true, false); r != 0 {
 		t.Fatalf("off: %d", r)
 	}
 	T1104_LMR_CAPTURES = 1
-	if r := lmrCaptureReduction(pos, move, -1, 12, 20, true); r != 0 {
+	if r := lmrCaptureReduction(pos, move, -1, 12, 20, true, true, false); r != 0 {
 		t.Fatalf("PV winner: %d", r)
 	}
-	if r := lmrCaptureReduction(pos, move, 0, 12, 20, false); r != 0 {
+	if r := lmrCaptureReduction(pos, move, 0, 12, 20, false, true, false); r != 0 {
 		t.Fatalf("neutral history: %d", r)
 	}
-	if r := lmrCaptureReduction(pos, move, -1, 12, 2, false); r != 0 {
+	if r := lmrCaptureReduction(pos, move, -1, 12, 2, false, true, false); r != 0 {
 		t.Fatalf("early move: %d", r)
 	}
-	if r := lmrCaptureReduction(pos, move, -1, 12, 20, false); r <= 0 || r >= lmrTable[12][20] {
+	if r := lmrCaptureReduction(pos, move, -1, 20, 50, false, true, false); r <= 0 || r >= quietLMRReduction(20, 50, false, true, 100000, false, true) {
 		t.Fatalf("late capture reduction: %d", r)
 	}
 	losingFEN := "4k3/8/2p5/3p4/4Q3/8/8/4K3 w - - 0 1"
@@ -39,8 +39,30 @@ func TestLMRCaptures(t *testing.T) {
 	if staticExchangeEvaluation(losingPos, losing) > 0 {
 		t.Fatal("fixture must not be SEE-winning")
 	}
-	if r := lmrCaptureReduction(losingPos, losing, -1, 12, 20, true); r <= 0 {
+	if r := lmrCaptureReduction(losingPos, losing, -1, 20, 50, true, true, false); r <= 0 {
 		t.Fatalf("PV losing capture: %d", r)
+	}
+
+	// Compare against all quiet adjustments, including the depth cap and the
+	// shallow late-move case that previously produced equal reductions.
+	for depth := 3; depth <= 20; depth++ {
+		for moves := 3; moves <= 64; moves++ {
+			for _, pv := range []bool{false, true} {
+				for _, improving := range []bool{false, true} {
+					for _, ttPV := range []bool{false, true} {
+						r := lmrCaptureReduction(losingPos, losing, -1, depth, moves, pv, improving, ttPV)
+						for _, history := range []int{-100000, 0, 100000} {
+							for _, killer := range []bool{false, true} {
+								q := quietLMRReduction(depth, moves, pv, improving, history, ttPV, killer)
+								if r > 0 && r >= q {
+									t.Fatalf("depth=%d moves=%d capture=%d quiet=%d", depth, moves, r, q)
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 }
