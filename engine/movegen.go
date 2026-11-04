@@ -32,11 +32,17 @@ func generateMovesUnsafe(pos *Position) []Move {
 	return moves
 }
 
-// GenerateLegalMoves generates all legal moves for the current position
+// GenerateLegalMoves generates all legal moves without changing pos. Concurrent
+// queries may share pos provided no other goroutine mutates it.
 func GenerateLegalMoves(pos *Position) []Move {
-	return WrapMoveGeneration("GenerateLegalMoves", func() []Move {
-		return generateLegalMovesUnsafe(pos)
-	}, pos)
+	// Legality checks make and unmake moves, and castling checks temporarily edit
+	// the board. Bitboard is a value (including its evaluation accumulator).
+	// MakeMove does not access repetition history, so no map or mutex is shared.
+	scratch := Position{
+		Board: pos.Board, Side: pos.Side, EnPassant: pos.EnPassant, Tag: pos.Tag,
+		hash: pos.hash, HalfMoveClock: pos.HalfMoveClock,
+	}
+	return generateLegalMovesUnsafe(&scratch)
 }
 
 // validatePosition checks if a position has both kings (basic validity check)
