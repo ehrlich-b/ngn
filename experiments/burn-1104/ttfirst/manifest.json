@@ -1,0 +1,34 @@
+{
+  "base": "faaf3741eaf0e2add133ffe6574a3c24db415907",
+  "patch_sha256": "8dfef63146118fe3b3bbf3386eb32bf3f3f8bb9ef16981f2cdd07e061b8dcd3d",
+  "toolchain": "go1.27.3 linux/amd64; GOAMD64=v3; GOMAXPROCS=2; identical base/candidate -trimpath builds",
+  "check": "bash experiments/burn-1104/ttfirst/check.sh",
+  "status": "TT-first implementation for bounded correctness checks; full timing/adoption pending; no speed or strength claim",
+  "qualification": {
+    "owner": "ngn-speed-ttfirst-1104",
+    "status": "pending until after 2026-11-06 18:27 America/New_York",
+    "argv": "nice -n 10 python3 scripts/speedcheck.py build/sp-base build/sp-new --net engine/nets/ngn-h512-81215229.nnue --cpu 3 --depth 12 --duration 10 --repeats 8 --out evidence/speed.json",
+    "identity": "depth 12, exact nodes, scores and moves for both backends",
+    "decision": "mean nnue repeat_gain_pct >= +1.0 and at least seven of eight repeats positive; otherwise shelved"
+  },
+  "previous": "fbe5458b270d8e6cd384234728ceb4bc1073a025",
+  "base_tree": "6f01c61321359eca65979e5cd555e5c7ef1711fa",
+  "closes_original_card": false,
+  "engine_improvement_claim": false,
+  "commands": [
+    "bash experiments/burn-1104/ttfirst/check.sh focused",
+    "bash experiments/burn-1104/ttfirst/check.sh corpus",
+    "bash experiments/burn-1104/ttfirst/check.sh gates",
+    "nice -n 10 go vet -p 2 ./...",
+    "nice -n 10 go test -p 2 -short -count=1 ./..."
+  ],
+  "choices": [
+    "Retain prior generated validator as test-only oracle; direct full-packed validator covers specials without generation.",
+    "Use the existing loop for TT and tail; regenerate and restore the exact TT swap after a failed cutoff, retaining pseudo-legal moveCount and legalTried semantics.",
+    "Snapshot relevant ordering tables per reusable recursion frame before the child; scoring uses frozen tables while pruning and updates use live history. Copy cost is unqualified.",
+    "No separate evasion generator or quiet heuristic change: verify full legal subset/order in check and every staged emitted score/move/tie against the pinned scorer.",
+    "Corpus is twelve fixed FENs with HCE, fixed and iterative depth 4; full depth-12 both-backend identity is pending.",
+    "ProbCut retains existing independent capture generation; deferred generation refers to the main alphaBetaPV move list.",
+    "Proof commands are serial, credential-free, nice 10, GOMAXPROCS=2, 120-second per subprocess limit; logs outside checkout."
+  ]
+}

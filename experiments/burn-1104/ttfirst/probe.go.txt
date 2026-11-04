@@ -1,0 +1,43 @@
+package main
+
+import (
+	"encoding/json"
+	"github.com/ehrlich-b/ngn/engine"
+	"os"
+)
+
+func must(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+func main() {
+	var positions []string
+	data, err := os.ReadFile(os.Args[1])
+	must(err)
+	must(json.Unmarshal(data, &positions))
+	if len(positions) != 12 {
+		panic("expected twelve positions")
+	}
+	enc := json.NewEncoder(os.Stdout)
+	for i, fen := range positions {
+		for _, kind := range []string{"fixed", "iterative"} {
+			e, err := engine.NewSearchEngineWithHash(16)
+			must(err)
+			must(e.SelectHCEEvaluator())
+			p, err := engine.ParseFEN(fen)
+			must(err)
+			var info *engine.SearchInfo
+			if kind == "fixed" {
+				info = e.SearchFixed(p, 4, nil)
+			} else {
+				info = e.SearchIterativeDeepening(p, 4, nil)
+			}
+			pv := []string{}
+			for _, m := range e.ExtractPVFromTT(p, info.BestMove, 4) {
+				pv = append(pv, m.ToString())
+			}
+			must(enc.Encode(map[string]interface{}{"position": i, "fen": fen, "kind": kind, "backend": "hce", "depth": info.Depth, "nodes": info.Nodes, "score": info.BestScore, "best": info.BestMove.ToString(), "pv": pv, "threads": info.EffectiveThreads}))
+		}
+	}
+}
