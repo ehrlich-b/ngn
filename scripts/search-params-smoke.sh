@@ -4,7 +4,7 @@
 set -euo pipefail
 scratch=$(mktemp -d "${TMPDIR:?}/search-params.XXXXXXXX")
 mkdir "$scratch/base"
-git archive faaf3741eaf0e2add133ffe6574a3c24db415907 | tar -x -C "$scratch/base"
+git archive a87e6300fe11e801384a427b2025c092b35fb518 | tar -x -C "$scratch/base"
 (cd "$scratch/base" && go build -p 2 -o "$scratch/base-probe" ./cmd/speedprobe && go build -p 2 -o "$scratch/base-engine" .)
 go build -p 2 -o "$scratch/new-probe" ./cmd/speedprobe
 go build -p 2 -o "$scratch/new-engine" .
