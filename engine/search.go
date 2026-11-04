@@ -24,6 +24,7 @@ var (
 	NULL_MOVE_R             = 4   // Null move reduction depth
 	NULL_MOVE_MIN_DEPTH     = 2   // Minimum depth for null move pruning
 	LMR_FULL_DEPTH          = 3   // Minimum depth for LMR
+	T1104_LMR_CAPTURES      = 0   // Experimental capture reductions (default off)
 	LMR_MOVE_THRESHOLD      = 2   // Start reducing after this many moves
 	FUTILITY_MARGIN         = 101 // Futility per-depth coefficient (margin = FUTILITY_MARGIN*(depth+improving), CG-grounded)
 	FUTILITY_MAX_DEPTH      = 8   // Extended futility pruning depth (W1: was 3, CounterGo prunes quiets to depth 8)
@@ -99,6 +100,7 @@ var TunableSearchParams = []TunableParam{
 	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 2, 1, 6},
 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
 	{"LMRMoveThreshold", &LMR_MOVE_THRESHOLD, 2, 1, 8},
+	{"T1104LMRCaptures", &T1104_LMR_CAPTURES, 0, 0, 1},
 	{"FutilityMargin", &FUTILITY_MARGIN, 101, 50, 160},
 	{"FutilityMaxDepth", &FUTILITY_MAX_DEPTH, 8, 1, 8},
 	{"ReverseFutilityMargin", &REVERSE_FUTILITY_MARGIN, 69, 40, 300},
@@ -245,6 +247,34 @@ func scoreFromTT(score int16, ply int) int {
 func seeNonLosingByMVV(move Move) bool {
 	return !move.IsEnPassant() && move.PromoType() == NoType &&
 		move.CapturedPiece().seeWeight() >= move.MovingPiece().seeWeight()
+}
+
+// lmrCaptureReduction uses the same depth/move curve as quiet LMR, less one
+// ply. Only captures with negative learned history qualify. SEE is evaluated on
+// the parent position; a winning capture at a PV node is never reduced.
+func lmrCaptureReduction(pos *Position, move Move, history, depth, legalTried int, isPV bool) int {
+	if T1104_LMR_CAPTURES == 0 || !move.IsCapture() || history >= 0 ||
+		!SearchToggles.LMR || depth < LMR_FULL_DEPTH || legalTried <= LMR_MOVE_THRESHOLD {
+		return 0
+	}
+	if isPV && staticExchangeEvaluation(pos, move) > 0 {
+		return 0
+	}
+	d, m := depth, legalTried
+	if d > 63 {
+		d = 63
+	}
+	if m > 63 {
+		m = 63
+	}
+	r := lmrTable[d][m] - 1
+	if r > depth-2 {
+		r = depth - 2
+	}
+	if r < 0 {
+		r = 0
+	}
+	return r
 }
 
 // Static Exchange Evaluation (SEE) implementation
@@ -575,6 +605,7 @@ type SearchInfo struct {
 	// Pruning and search efficiency statistics
 	FutilityPrunes       uint64 // Moves pruned by futility pruning
 	NullMoveCutoffs      uint64 // Beta cutoffs from null move pruning
+	LMRCaptureReductions uint64 // Capture reductions applied by the experimental option
 	LMRReductions        uint64 // Moves reduced by Late Move Reduction
 	NullWindowScouts     uint64 // Non-first moves searched with a null window (re-search denominator)
 	LMRReSearches        uint64 // Reduced fail-highs re-searched at full depth (LMR verification churn)
@@ -2037,6 +2068,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// so children see the correct lastMovePlayed for counter-move lookups,
 		// and extension logic uses the true parent move.
 		savedLast := info.history.GetLastMovePlayed()
+		capReduction := 0
+		if T1104_LMR_CAPTURES != 0 && !inCheck && move.IsCapture() {
+			capReduction = lmrCaptureReduction(pos, move, info.history.captureHistoryScore(move), depth, legalTried+1, isPV)
+		}
 		evalMove := info.evaluator.mustPrepareMove(pos, move)
 		ep, tag, hc, _ := pos.MakeMove(move)
 		movingColor := move.MovingPiece().Color()
@@ -2252,6 +2287,13 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 					info.LMRReductions++
 					info.LMRPliesSum += uint64(reduction)
 				}
+			}
+
+			if capReduction > 0 && !givesCheck {
+				info.LMRCaptureReductions++
+				reduction = capReduction
+				info.LMRReductions++
+				info.LMRPliesSum += uint64(reduction)
 			}
 
 			// Compute reduced depth (check extension already applied via nextDepth)
