@@ -4,7 +4,7 @@
 
 # Variables
 BINARY_NAME=ngn
-MAIN_FILE=main.go
+MAIN_PACKAGE=.
 BUILD_DIR=build
 COVERAGE_FILE=coverage.out
 RELEASE_VERSION?=0.2.0-rc.1
@@ -29,10 +29,10 @@ help: ## Display this help message
 build: ## Build the engine binary (Linux + Windows)
 	@echo "Building $(BINARY_NAME)..."
 	@mkdir -p $(BUILD_DIR)
-	go build -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_FILE)
+	go build -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PACKAGE)
 	@echo "Built: $(BUILD_DIR)/$(BINARY_NAME)"
 	@echo "Building $(BINARY_NAME) for Windows..."
-	GOOS=windows GOARCH=amd64 GOAMD64=v3 go build -o $(BUILD_DIR)/$(BINARY_NAME).exe $(MAIN_FILE)
+	GOOS=windows GOARCH=amd64 GOAMD64=v3 go build -o $(BUILD_DIR)/$(BINARY_NAME).exe $(MAIN_PACKAGE)
 	@echo "Built Windows executable: $(BUILD_DIR)/$(BINARY_NAME).exe"
 	@if [ -w "/mnt/c/Users/behrlich/Desktop/ngn" ] && cp $(BUILD_DIR)/$(BINARY_NAME).exe "/mnt/c/Users/behrlich/Desktop/ngn/" 2>/dev/null; then \
 		echo "Copied to C:\\\\Users\\\\behrlich\\\\Desktop\\\\ngn\\\\$(BINARY_NAME).exe for Arena"; \
@@ -44,14 +44,14 @@ build: ## Build the engine binary (Linux + Windows)
 build-release: ## Build optimized release binary
 	@echo "Building $(BINARY_NAME) (release)..."
 	@mkdir -p $(BUILD_DIR)
-	go build -ldflags="-s -w" -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_FILE)
+	go build -ldflags="-s -w" -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PACKAGE)
 	@echo "Built release: $(BUILD_DIR)/$(BINARY_NAME)"
 
 .PHONY: build-windows
 build-windows: ## Build Windows executable for Arena Chess
 	@echo "Building $(BINARY_NAME) for Windows..."
 	@mkdir -p "/mnt/c/Users/behrlich/Desktop/ngn"
-	GOOS=windows GOARCH=amd64 GOAMD64=v3 go build -o "/mnt/c/Users/behrlich/Desktop/ngn/$(BINARY_NAME).exe" $(MAIN_FILE)
+	GOOS=windows GOARCH=amd64 GOAMD64=v3 go build -o "/mnt/c/Users/behrlich/Desktop/ngn/$(BINARY_NAME).exe" $(MAIN_PACKAGE)
 	@echo "Built Windows executable: C:\\\\Users\\\\behrlich\\\\Desktop\\\\ngn\\\\$(BINARY_NAME).exe"
 	@echo "Ready for Arena Chess! Point Arena to the .exe file above."
 
@@ -268,13 +268,13 @@ e2e: test-enhanced ## Run end-to-end tests for enhanced search features
 .PHONY: debug
 debug: ## Build with debug symbols and run with delve
 	@echo "Building with debug symbols..."
-	go build -gcflags="all=-N -l" -o $(BUILD_DIR)/$(BINARY_NAME)-debug $(MAIN_FILE)
+	go build -gcflags="all=-N -l" -o $(BUILD_DIR)/$(BINARY_NAME)-debug $(MAIN_PACKAGE)
 	@echo "Use 'dlv exec ./$(BUILD_DIR)/$(BINARY_NAME)-debug' to debug"
 
 .PHONY: profile-mem
 profile-mem: ## Run with memory profiling
 	@echo "Building for memory profiling..."
-	go build -o $(BUILD_DIR)/$(BINARY_NAME)-profile $(MAIN_FILE)
+	go build -o $(BUILD_DIR)/$(BINARY_NAME)-profile $(MAIN_PACKAGE)
 	@echo "Run with: GODEBUG=memprofile=mem.prof ./$(BUILD_DIR)/$(BINARY_NAME)-profile"
 
 # Info commands
