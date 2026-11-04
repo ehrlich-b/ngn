@@ -1,0 +1,13 @@
+{
+  "baseline_commit": "6d3168b8c5f15532cc7a352d05465a77ab50f361",
+  "go_version": "go version go1.27.3 linux/amd64",
+  "command": "GOOS=js GOARCH=wasm go build -p 2 -o <output> ./cmd/browser",
+  "baseline_wasm_bytes": 11030046,
+  "candidate_wasm_bytes": 14190162,
+  "delta_bytes": 3160116,
+  "baseline_wasm_sha256": "0b6ef0756aae22db0b4162148719069362a7f9c7095fa68b66ee1a19c93ac545",
+  "candidate_wasm_sha256": "0acb137ca14bf98df4c51ca2c6100c11bfb01116303e73d1e5a688ab58233696",
+  "baseline_net_bytes": 6308996,
+  "candidate_net_bytes": 9463428,
+  "note": "One size-only build per revision; no browser assets or rungine changes. A baseline build was necessary because no existing NGN wasm artifact was available in other ngn lane repos or shared caches."
+}

@@ -1,0 +1,4 @@
+$ bash -e -c 'go build -p 2 -o ../tmp/file-probe ./cmd/speedprobe
+go build -p 2 -overlay ../evidence/embedded-overlay.json -o ../tmp/embedded-probe ./cmd/speedprobe'
+
+{"elapsed_seconds": 1.03143718582578, "exit_code": 0, "peak_rss_kib": 129920, "system_seconds": 0.278321, "user_seconds": 1.160101}

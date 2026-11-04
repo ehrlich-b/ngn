@@ -32,7 +32,7 @@ func TestGameRules(t *testing.T) {
 	if got := check(t, `{"moves":["g1f3","g8f6","f3g1","f6g8","g1f3","g8f6","f3g1","f6g8"]}`); got["status"] != "repetition" {
 		t.Fatal(got)
 	}
-	if got := check(t, `{}`); got["network"] != "812152293dad04184599b2f9ab82779168e6e134b221de136d8f8daae86d9f22" {
+	if got := check(t, `{}`); got["network"] != "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443" {
 		t.Fatal(got)
 	}
 }

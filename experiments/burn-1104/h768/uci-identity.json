@@ -1,0 +1,151 @@
+{
+  "equal": true,
+  "depth": 10,
+  "evalfile": "engine/nets/ngn-h768-2dcb6d93.nnue",
+  "cases": [
+    {
+      "fen": "r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10",
+      "identity": {
+        "depth": 10,
+        "nodes": 36859,
+        "score": [
+          "cp",
+          "110"
+        ],
+        "pv": [
+          "d4c5",
+          "e7c5",
+          "f1d1",
+          "c5d6",
+          "c2b3",
+          "c8e6",
+          "b3b7",
+          "c6b4",
+          "c3b5",
+          "b4c2"
+        ],
+        "best": "d4c5"
+      }
+    },
+    {
+      "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+      "identity": {
+        "depth": 10,
+        "nodes": 36661,
+        "score": [
+          "cp",
+          "-145"
+        ],
+        "pv": [
+          "e2a6",
+          "h3g2",
+          "f3g2",
+          "b4c3",
+          "d2c3"
+        ],
+        "best": "e2a6"
+      }
+    },
+    {
+      "fen": "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
+      "identity": {
+        "depth": 10,
+        "nodes": 38288,
+        "score": [
+          "cp",
+          "248"
+        ],
+        "pv": [
+          "c3d5",
+          "f6d5",
+          "g5e7",
+          "d5f4",
+          "e2d1",
+          "c6e7",
+          "b2b4",
+          "c5d4",
+          "h2h3",
+          "g4f3",
+          "d1f3"
+        ],
+        "best": "c3d5"
+      }
+    },
+    {
+      "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+      "identity": {
+        "depth": 10,
+        "nodes": 9403,
+        "score": [
+          "cp",
+          "251"
+        ],
+        "pv": [
+          "b4f4",
+          "h4g3",
+          "f4c4",
+          "h5h7",
+          "a5a6",
+          "g3g2",
+          "c4c6",
+          "g2f2",
+          "a6b7",
+          "f2e2",
+          "c6c7"
+        ],
+        "best": "b4f4"
+      }
+    },
+    {
+      "fen": "8/5k2/2p2p2/3p4/3P1P2/2P2K2/8/8 w - - 0 1",
+      "identity": {
+        "depth": 10,
+        "nodes": 4211,
+        "score": [
+          "cp",
+          "0"
+        ],
+        "pv": [
+          "f3g4",
+          "f7g6",
+          "f4f5",
+          "g6g7",
+          "g4h4",
+          "g7g8",
+          "h4g4",
+          "g8g7",
+          "g4h4",
+          "g7g8",
+          "h4g4",
+          "g8g7"
+        ],
+        "best": "f3g4"
+      }
+    },
+    {
+      "fen": "6k1/5pp1/7p/3q4/8/3Q2P1/5P1P/6K1 w - - 0 1",
+      "identity": {
+        "depth": 10,
+        "nodes": 30477,
+        "score": [
+          "cp",
+          "1627"
+        ],
+        "pv": [
+          "d3d5",
+          "g7g6",
+          "d5a8",
+          "g8g7",
+          "a8a1",
+          "g7g8",
+          "a1e1",
+          "f7f5",
+          "g1g2",
+          "h6h5",
+          "e1e6"
+        ],
+        "best": "d3d5"
+      }
+    }
+  ]
+}

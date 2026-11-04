@@ -1,0 +1,8 @@
+$ env NGN_NGNN3_PARITY_NET=nets/ngn-h768-2dcb6d93.nnue NGN_NGNN3_PARITY_EVALS=../experiments/burn-1104/h768/parity.json go test -p 2 -short -count=1 -v ./engine -run '^TestNGNN3TrainerParity$'
+=== RUN   TestNGNN3TrainerParity
+    ngnn3_test.go:461: 20 exact trainer cases, H=768 KB=8 NB=8 kernel=go
+--- PASS: TestNGNN3TrainerParity (0.02s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.026s
+
+{"elapsed_seconds": 0.27281990903429687, "exit_code": 0, "peak_rss_kib": 119168, "system_seconds": 0.138347, "user_seconds": 0.14060599999999998}

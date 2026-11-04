@@ -1,0 +1,4 @@
+$ go test -p 2 -short -count=1 ./engine -run Net
+ok  	github.com/ehrlich-b/ngn/engine	0.004s
+
+{"elapsed_seconds": 0.15705855912528932, "exit_code": 0, "peak_rss_kib": 116608, "system_seconds": 0.064315, "user_seconds": 0.131249}
