@@ -93,6 +93,8 @@ def main():
                 continue  # interrupted game, not a completed result
             if g['Schema'] != 'NGN-CLAIM-4' or g['ID'] in ids or path.stem != g['ID'] or g['Anchor'] not in LABELS or g['Error']:
                 raise ValueError(f'invalid game {path}')
+            if g['Result'] not in ('1-0', '0-1', '1/2-1/2') or g['CandidateColor'] not in ('white', 'black'):
+                raise ValueError(f'invalid result or candidate color in {path}')
             ids.add(g['ID'])
             result = 'D' if g['Result'] == '1/2-1/2' else ('W' if (g['Result'], g['CandidateColor']) in [('1-0', 'white'), ('0-1', 'black')] else 'L')
             obs, drop, clock = analyze_game(g)
