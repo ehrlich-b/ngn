@@ -54,8 +54,7 @@ def main():
         assert m["bounded_check"]["depth"] == 4 and m["bounded_check"]["threads"] == 1
         assert m["bounded_check"]["timeout_seconds"] == 120
         pending = m["full_qualification"]
-        brief = (ROOT.parent / "BRIEF.md").read_text()
-        exact = brief.split("The manifest keeps these requirements verbatim as pending for a timed run on the rig: ", 1)[1].split("\n- Every new commit", 1)[0]
+        exact = (HERE / "qualification.txt").read_text().rstrip("\n")
         assert pending["pending_requirements_verbatim"] == exact
         assert pending["status"].startswith("pending")
         assert pending["speedcheck_argv"] in exact
