@@ -392,3 +392,41 @@ NGNN6 residual training uses `--format 6 --residual-source OWNED.ngn3
 The source supplies the exact inherited trunk, linear head and king map. See
 [`residual-trainer`](../experiments/wave2-1104/residual-trainer/README.md) for
 quantization, optimizer groups, CPU reproduction and the trained parity packet.
+### NGNN5 threat training
+
+Use `--format 5` with the NGNN3 king map and output buckets. Threats are directed
+occupied attacks by the perspective's own pieces, including friendly defenses;
+sliders stop at the first blocker. Tensor decoding applies the same rank flip,
+king-file mirror, king bucket and 42564-row geometry as the engine. Packed row
+indices feed summed embedding bags, so no dense threat-feature matrix or
+`[edges, hidden]` activation is allocated. Float32 threat parameters are learned
+with AdamW, clipped to `[-128/255, 127/255]`, and exported as sparse int8 rows.
+The piece transformer remains int16. Export to earlier formats rejects threats.
+
+Initialize from an NGNN3 checkpoint with `--warm-start checkpoint.pt`; specify
+matching `--hidden`, `--buckets`, `--kb-map` and `--king-factorizer`. This loads all
+NGNN3 coefficients, zeros threats, and starts a new optimizer and schedule.
+`--resume` instead restores a same-format training run and is mutually exclusive
+with warm start. CPU training enables deterministic algorithms so checkpoint
+continuation preserves exact floating point updates across processes. The CPU fixture test checks NGNN3/5 equality within `1e-6`, both
+factorized and ordinary, before any update.
+
+Reproduce the owned, 20-record trained parity fixture with
+`python3 -m trainer.make_ngnn5_fixture --out /path/to/scratch`. It uses CPU float32,
+H=16, KB=8, NB=8, six AdamW updates and a seeded NGNN3 warm start. The output
+contains the input records, checkpoints, exports, training throughput and scalar
+integer reference scores. `TestNGNN5TrainerParity` checks the committed small
+fixture's hash, training metadata, scores and exact active threat rows. The
+embedded default network is unchanged.
+
+Memory planning for B=16384, H=256, KB=8, NB=8, float32 training: piece features
+alone occupy 768 MiB. Threat parameters occupy 332.53125 MiB; including their
+gradients and both Adam moments costs 1330.125 MiB. All model parameters,
+gradients and moments together require about 1354.20 MiB (no factorizer).
+Budget an additional 3072 MiB per batch for dense piece features, activations,
+backward buffers, packed 32x32 pair indices, masks, sorting and embedding-bag
+indices/workspace: about 4.33 GiB total plus framework/allocator overhead.
+This is a conservative planning estimate, not a measured peak or a device
+capacity guarantee. There is no B*KB*42564 dense threat matrix (41.57 GiB at this
+batch size). AdamW implementations may need extra parameter-sized temporaries;
+allow a further 339 MiB if using foreach rather than sequential CPU updates.

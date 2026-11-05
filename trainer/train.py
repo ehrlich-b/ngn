@@ -1,4 +1,4 @@
-"""Train NGNN1/2/3/6 on NGNP1 shards or a direct archive; checkpoint/export each epoch."""
+"""Train NGNN1/2/3/5/6 on NGNP1 shards or a direct archive; checkpoint/export each epoch."""
 
 import argparse
 import hashlib
@@ -12,7 +12,7 @@ import numpy as np
 import torch
 
 from trainer.export import export_state
-from trainer.model import NGNN, blended_loss, decode_gpu, validate_buckets, validate_hidden
+from trainer.model import NGNN, blended_loss, decode_gpu, validate_buckets, validate_hidden, warm_start_ngnn3
 from trainer.ngnp import Shards
 from trainer.ngnp_split import ContentShards
 from trainer.archive import Archive
@@ -53,7 +53,8 @@ def validation_metrics(model, shards, batch, device, lam, k):
     seen = 0
     for raw_numpy in shards.batches(batch, 0, shuffle=False):
         raw = torch.from_numpy(np.ascontiguousarray(raw_numpy)).to(device)
-        features, stm, score, result, bucket = decode_gpu(raw, model.buckets, model.king_map, model.king_buckets)
+        features, stm, score, result, bucket = decode_gpu(
+            raw, model.buckets, model.king_map, model.king_buckets, model.threat_weights is not None)
         evaluation = model(features, stm, bucket)
         for i, objective_lambda in enumerate(lambdas):
             total[i] += blended_loss(evaluation, score, result, objective_lambda, k).double() * len(raw_numpy)
@@ -102,12 +103,12 @@ def parser() -> argparse.ArgumentParser:
     cli.add_argument("--out", type=Path, required=True)
     cli.add_argument("--hidden", type=int, default=256)
     cli.add_argument("--buckets", type=int, choices=(1, 2, 4, 8), default=1)
-    cli.add_argument("--format", type=int, choices=(1, 2, 3, 6), help="Default: 1 for NB=1, otherwise 2")
+    cli.add_argument("--format", type=int, choices=(1, 2, 3, 5, 6), help="Default: 1 for NB=1, otherwise 2")
     cli.add_argument("--residual-source", type=Path,
                      help="NGNN6: owned NGNN3 KB8/B8 zero-lift source (required)")
-    cli.add_argument("--kb-map", default="default", help="NGNN3: default or JSON file with 64 bucket IDs")
+    cli.add_argument("--kb-map", default="default", help="NGNN3/5: default or JSON file with 64 bucket IDs")
     cli.add_argument("--king-factorizer", action="store_true",
-                     help="NGNN3: learn shared feature rows plus king-bucket residuals; fold at export")
+                     help="NGNN3/5: learn shared feature rows plus king-bucket residuals; fold at export")
     cli.add_argument("--fake-quantize", action="store_true",
                      help="NGNN3: export-exact forward arithmetic with straight-through gradients")
     cli.add_argument("--batch", type=int, default=16384)
@@ -129,7 +130,9 @@ def parser() -> argparse.ArgumentParser:
     cli.add_argument("--device", default="cuda")
     cli.add_argument("--threads", type=int, default=4)
     cli.add_argument("--precision", choices=("fp32", "bf16"), default="bf16")
-    cli.add_argument("--resume", type=Path)
+    restart = cli.add_mutually_exclusive_group()
+    restart.add_argument("--resume", type=Path)
+    restart.add_argument("--warm-start", type=Path, help="Initialize NGNN5 from NGNN3; reset optimizer and schedule")
     cli.add_argument("--keep-best-only", action="store_true",
                      help="Retain latest and best checkpoints/exports instead of every epoch")
     return cli
@@ -142,8 +145,8 @@ def main() -> None:
     args.format = args.format or (2 if args.buckets > 1 else 1)
     if args.format == 1 and args.buckets != 1:
         raise ValueError("NGNN1 requires --buckets 1")
-    if args.format not in (3, 6) and args.kb_map != "default":
-        raise ValueError("--kb-map requires --format 3")
+    if args.format not in (3, 5, 6) and args.kb_map != "default":
+        raise ValueError("--kb-map requires --format 3 or 5")
     residual_model = None
     if args.format == 6:
         from trainer.residual_model import ResidualNGNN
@@ -158,10 +161,10 @@ def main() -> None:
     elif args.residual_source is not None:
         raise ValueError("--residual-source requires --format 6")
     king_map = (residual_model.king_map.tolist() if residual_model is not None else
-                load_map(args.kb_map) if args.format in (3, 6) else None)
+                load_map(args.kb_map) if args.format in (3, 5, 6) else None)
     if args.king_factorizer and (king_map is None or max(king_map) < 1):
         raise ValueError("King factorizer requires NGNN3 with at least two king buckets")
-    if args.fake_quantize and (king_map is None or residual_model is not None):
+    if args.fake_quantize and args.format != 3:
         raise ValueError("Fake quantization requires --format 3")
     if (args.batch < 1 or args.epochs < 1 or args.threads < 1 or args.lr <= 0 or args.k <= 0
             or not 0 <= args.wdl <= 1 or args.positions_per_epoch < 0 or args.weight_decay < 0
@@ -170,6 +173,9 @@ def main() -> None:
     torch.set_num_threads(args.threads)
     torch.set_num_interop_threads(1)
     torch.set_float32_matmul_precision("high")
+    # Checkpoint continuation must preserve floating point updates exactly.
+    if torch.device(args.device).type == "cpu":
+        torch.use_deterministic_algorithms(True)
     torch.manual_seed(args.seed)
     device = torch.device(args.device)
     if device.type == "cuda" and not torch.cuda.is_available():
@@ -190,14 +196,14 @@ def main() -> None:
                 raise ValueError("NGNP content holdout cannot be combined with --validation-data")
             args.ngnp_split_seed = args.seed if args.ngnp_split_seed is None else args.ngnp_split_seed
             shards = ContentShards(args.data, args.drop_flags, args.min_ply, args.block_records,
-                                   args.format in (3, 6), record_counts,
+                                   args.format in (3, 5, 6), record_counts,
                                    args.ngnp_holdout_modulus, args.ngnp_split_seed)
             validation = shards.holdout()
         else:
             if args.ngnp_split_seed is not None:
                 raise ValueError("--ngnp-split-seed requires --ngnp-holdout-modulus")
-            shards = Shards(args.data, args.drop_flags, args.min_ply, args.block_records, args.format in (3, 6), record_counts)
-            validation = (Shards(args.validation_data, args.drop_flags, args.min_ply, args.block_records, args.format in (3, 6))
+            shards = Shards(args.data, args.drop_flags, args.min_ply, args.block_records, args.format in (3, 5, 6), record_counts)
+            validation = (Shards(args.validation_data, args.drop_flags, args.min_ply, args.block_records, args.format in (3, 5, 6))
                           if args.validation_data else None)
     if record_counts is not None:
         record_counts = {str(Path(p).resolve()): n for p, n in record_counts.items()}
@@ -211,8 +217,12 @@ def main() -> None:
     steps_per_epoch = passes * steps_per_pass + math.ceil(remainder / args.batch)
     total_steps = args.epochs * steps_per_epoch
     model = (residual_model or NGNN(args.hidden, args.buckets, king_map, args.king_factorizer,
-                                    fake_quantize=args.fake_quantize)).to(device)
+                                    threats=args.format == 5, fake_quantize=args.fake_quantize)).to(device)
+    if args.warm_start:
+        warm_start_ngnn3(model, torch.load(args.warm_start, map_location=device, weights_only=True))
     decayed = [model.w1, model.o]
+    if getattr(model, "threat_weights", None) is not None:
+        decayed.append(model.threat_weights)
     if model.w1_shared is not None:
         decayed.append(model.w1_shared)
     groups = [
@@ -251,7 +261,7 @@ def main() -> None:
                 differences.append("ngnp_split")
         if args.format == 6 and saved.get("residual_source_sha256") != args.residual_source_sha256:
             differences.append("residual_source_sha256")
-        if args.format in (3, 6):
+        if args.format in (3, 5, 6):
             if saved.get("king_map") != list(king_map):
                 differences.append("king_map")
         if saved.get("validation_data") != args.validation_data:
@@ -278,6 +288,7 @@ def main() -> None:
         config["king_map"] = list(king_map)
     config["out"], config["resume"] = str(args.out), str(args.resume) if args.resume else None
     config["residual_source"] = str(args.residual_source) if args.residual_source else None
+    config["warm_start"] = str(args.warm_start) if args.warm_start else None
     config["record_counts"] = str(args.record_counts) if args.record_counts else None
     config["shard_record_counts"] = record_counts
     if args.data_format == "archive":
@@ -291,7 +302,8 @@ def main() -> None:
     write_history(args.out / "history.json", history)
 
     def objective(raw):
-        features, stm, score, result, bucket = decode_gpu(raw, args.buckets, model.king_map, model.king_buckets)
+        features, stm, score, result, bucket = decode_gpu(
+            raw, args.buckets, model.king_map, model.king_buckets, model.threat_weights is not None)
         return blended_loss(model(features, stm, bucket), score, result, args.wdl, args.k)
 
     print(json.dumps({"device": str(device), "torch": torch.__version__, "raw_records": shards.raw_count,

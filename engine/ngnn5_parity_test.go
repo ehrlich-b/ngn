@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"testing"
 	"time"
 )
@@ -222,4 +223,84 @@ func TestNGNN5FeatureCounts(t *testing.T) {
 		Definition string
 		Positions  any
 	}{"Every increment of SearchInfo.Nodes samples the current board (including root/parent counts after undo); both perspective piece blocks plus directed occupied attacks by each perspective's own pieces; independent of zero weights; fixed depth 4, Threads=1", rows})
+}
+
+// The fixture is produced by trainer.make_ngnn5_fixture: six CPU AdamW
+// updates after an NGNN3 warm start, with nonzero quantized threat rows.
+func TestNGNN5TrainerParity(t *testing.T) {
+	raw, err := os.ReadFile("../testdata/ngnn5/trained_h16_k8_b8.nnue")
+	if err != nil {
+		t.Fatal(err)
+	}
+	n, err := ReadNGNN1(bytes.NewReader(raw))
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile("../testdata/ngnn5/trained_h16_k8_b8_evals.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fixture struct {
+		Format        string `json:"format"`
+		Hidden        int    `json:"hidden"`
+		KingBuckets   int    `json:"king_buckets"`
+		Buckets       int    `json:"buckets"`
+		SHA256        string `json:"network_sha256"`
+		RecordsSHA256 string `json:"records_sha256"`
+		Training      struct {
+			Device                string
+			Epochs, Updates, Seed int
+		}
+		Cases []struct {
+			FEN        string   `json:"fen"`
+			CP         *int     `json:"eval_cp"`
+			Bucket     int      `json:"bucket"`
+			ThreatRows [2][]int `json:"threat_rows"`
+		} `json:"cases"`
+	}
+	if err := json.Unmarshal(data, &fixture); err != nil {
+		t.Fatal(err)
+	}
+	records, err := os.ReadFile("../testdata/ngnn5/trained_records.ngnp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fixture.Format != "NGNN5" || n.version != 5 || fixture.Hidden != n.hidden || fixture.KingBuckets != n.kingBuckets || fixture.Buckets != n.buckets || fixture.SHA256 != fmt.Sprintf("%x", sha256.Sum256(raw)) || len(fixture.Cases) != 20 || len(n.threatWeights) == 0 || fixture.Training.Device != "cpu" || fixture.Training.Updates != 6 || fixture.RecordsSHA256 != fmt.Sprintf("%x", sha256.Sum256(records)) || len(records) != 20*32 {
+		t.Fatal("CPU-trained NGNN5 fixture metadata mismatch")
+	}
+	e := ngnn1NewWorker(t, n, newUCIStartingPosition())
+	for i, c := range fixture.Cases {
+		pos, err := ParseFEN(c.FEN)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := e.Reset(pos); err != nil {
+			t.Fatal(err)
+		}
+		if c.CP == nil || e.SearchSTM(pos) != *c.CP || n.bucket(pos) != c.Bucket {
+			t.Fatalf("trainer case %d: %s got %d want %v", i, c.FEN, e.SearchSTM(pos), c.CP)
+		}
+		occupied := pos.Board.WhiteOccupancy() | pos.Board.BlackOccupancy()
+		for p, color := range []Color{White, Black} {
+			rows := []int{}
+			context := n.kingContext(pos, color)
+			for square, piece := range pos.Board.mailbox {
+				if !validPiece(piece) || piece.Color() != color {
+					continue
+				}
+				for targets := ngnn5Attacks(piece, Square(square), occupied) & occupied; targets != 0; targets &= targets - 1 {
+					target := Square(bitScanForward(targets))
+					row := ngnn5Feature(piece, Square(square), pos.Board.mailbox[target], target, color, context)
+					if row >= 0 {
+						rows = append(rows, row)
+					}
+				}
+			}
+			sort.Ints(rows)
+			if !reflect.DeepEqual(rows, c.ThreatRows[p]) {
+				t.Fatalf("trainer threat rows case %d perspective %d", i, p)
+			}
+		}
+	}
+	t.Logf("20 exact CPU-trained integer scores and threat row sets; H=%d KB=%d NB=%d nonzero_rows=%d", n.hidden, n.kingBuckets, n.buckets, len(n.threatWeights))
 }

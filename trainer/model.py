@@ -5,6 +5,7 @@ from torch import nn
 
 from trainer.king_buckets import validate_map
 from trainer.quantization import quantized_forward
+from trainer.threats import THREAT_FEATURES, decode_threats
 
 QA, QB, SCALE = 255, 64, 400
 
@@ -20,11 +21,12 @@ def validate_buckets(buckets: int) -> None:
 
 
 def decode_gpu(raw: torch.Tensor, buckets: int | None = None,
-               king_map: torch.Tensor | None = None, king_buckets: int = 8) -> tuple:
+               king_map: torch.Tensor | None = None, king_buckets: int = 8, threats: bool = False) -> tuple:
     """Return dense white/black perspectives and STM-relative labels on device.
 
     Input is contiguous uint8 [B,32]. Signed shifts still extract bit 63 exactly.
     Shards validates record values once, before this hot path is called.
+    With threats=True, features is (dense pieces, (packed rows, bag offsets)).
     If requested, also return material bucket indices computed on device:
     min(NB-1, (popcount(occupancy)-2)*NB//32). Empty records map to zero.
     """
@@ -53,6 +55,10 @@ def decode_gpu(raw: torch.Tensor, buckets: int | None = None,
     score = raw[:, 24:26].view(torch.int16).reshape(batch).float() * (1 - 2 * stm)
     result = raw[:, 26].float() * 0.5
     result = torch.where(stm == 0, result, 1 - result)
+    if threats:
+        if king_map is None:
+            raise ValueError("NGNN5 requires a king map")
+        features = (features, decode_threats(board, occupied, occupancy, king_map))
     decoded = features, stm, score, result
     if buckets is None:
         return decoded
@@ -63,7 +69,7 @@ def decode_gpu(raw: torch.Tensor, buckets: int | None = None,
 
 class NGNN(nn.Module):
     def __init__(self, hidden: int = 256, buckets: int = 1, king_map=None,
-                 king_factorizer: bool = False, fake_quantize: bool = False):
+                 king_factorizer: bool = False, threats: bool = False, fake_quantize: bool = False):
         super().__init__()
         validate_hidden(hidden)
         validate_buckets(buckets)
@@ -80,6 +86,10 @@ class NGNN(nn.Module):
         if fake_quantize and king_map is None:
             raise ValueError("Fake quantization requires NGNN3 king inputs")
         self.fake_quantize = fake_quantize
+        if threats and king_map is None:
+            raise ValueError("NGNN5 requires a king map")
+        self.register_parameter("threat_weights", nn.Parameter(torch.zeros(
+            self.king_buckets * THREAT_FEATURES, hidden)) if threats else None)
         self.w1 = nn.Parameter(torch.empty(768 * self.king_buckets, hidden))
         self.b1 = nn.Parameter(torch.full((hidden,), 0.25))
         # Keep single-bucket checkpoint shapes and floating arithmetic unchanged.
@@ -98,7 +108,7 @@ class NGNN(nn.Module):
         return (self.w1.reshape(self.king_buckets, 768, self.hidden)
                 + self.w1_shared).reshape(-1, self.hidden)
 
-    def forward(self, features: torch.Tensor, stm: torch.Tensor,
+    def forward(self, features: torch.Tensor | tuple, stm: torch.Tensor,
                 bucket: torch.Tensor | None = None) -> torch.Tensor:
         if self.fake_quantize:
             return quantized_forward(self, features, stm, bucket)
@@ -107,7 +117,13 @@ class NGNN(nn.Module):
     def forward_float(self, features: torch.Tensor, stm: torch.Tensor,
                       bucket: torch.Tensor | None = None) -> torch.Tensor:
         """Original float reference, also available when fake quantization is on."""
+        if self.threat_weights is not None:
+            features, (indices, offsets) = features
+            threat_acc = torch.nn.functional.embedding_bag(
+                indices, self.threat_weights, offsets, mode="sum", include_last_offset=True)
         acc = features @ self.effective_w1() + self.b1
+        if self.threat_weights is not None:
+            acc = acc + threat_acc
         activation = acc.clamp(0, 1).square()
         # Compute both STM orderings without materializing a gathered [B,2H].
         white, black = activation.chunk(2, dim=0)
@@ -133,6 +149,8 @@ class NGNN(nn.Module):
             # clipping each component would allow an overflowing merged row.
             self.w1.reshape(self.king_buckets, 768, self.hidden).clamp_(
                 -32768 / QA - self.w1_shared, 32767 / QA - self.w1_shared)
+        if self.threat_weights is not None:
+            self.threat_weights.clamp_(-128 / QA, 127 / QA)
         self.b1.clamp_(-32768 / QA, 32767 / QA)
         self.o.clamp_(-1.98, 1.98)
         # Leave a representable float32 margin below int32's positive boundary.
@@ -143,3 +161,18 @@ def blended_loss(evaluation: torch.Tensor, score: torch.Tensor, result: torch.Te
                  lam: float = 0.75, k: float = 400) -> torch.Tensor:
     target = lam * torch.sigmoid(score / k) + (1 - lam) * result
     return (torch.sigmoid(evaluation / k) - target).square().mean()
+
+
+def warm_start_ngnn3(model, checkpoint):
+    """Load coefficients only; a new objective gets a fresh optimizer/schedule."""
+    config, state = checkpoint["config"], checkpoint["model"]
+    if config.get("format") != 3 or model.threat_weights is None:
+        raise ValueError("Warm start requires an NGNN3 checkpoint and NGNN5 model")
+    if (config.get("hidden") != model.hidden or config.get("buckets", 1) != model.buckets
+            or "king_map" not in state or not torch.equal(state["king_map"], model.king_map)
+            or ("w1_shared" in state) != (model.w1_shared is not None)):
+        raise ValueError("Warm start architecture or king map differs")
+    expected = set(model.state_dict()) - {"threat_weights"}
+    if set(state) != expected:
+        raise ValueError("Warm start parameter set differs")
+    model.load_state_dict({**state, "threat_weights": torch.zeros_like(model.threat_weights)})

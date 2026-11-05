@@ -1,4 +1,4 @@
-"""Quantize float parameters and write little-endian NGNN1/2/3 + IEEE CRC32."""
+"""Quantize float parameters and write little-endian NGNN1/2/3/5 + IEEE CRC32."""
 
 import argparse
 from pathlib import Path
@@ -62,10 +62,12 @@ def export_bytes(state: dict, format: int | None = None, *, _ngnn6: bool = False
     expected_ob = () if o.ndim == 1 else (buckets,)
     if buckets not in (1, 2, 4, 8) or b1.shape != (hidden,) or o.shape != expected_o or ob.shape != expected_ob:
         raise ValueError("Invalid NGN parameter shape or bucket count")
-    format = (3 if king_map is not None else 2 if buckets > 1 else 1) if format is None else format
-    if (format not in (1, 2, 3) or (format == 1 and buckets != 1)
-            or (format == 3) != (king_map is not None)):
-        raise ValueError("NGNN1 requires one output bucket; only NGNN3 accepts a king map")
+    format = (5 if "threat_weights" in state else 3 if king_map is not None else 2 if buckets > 1 else 1) if format is None else format
+    if (format not in (1, 2, 3, 5) or (format == 1 and buckets != 1)
+            or (format in (3, 5)) != (king_map is not None)):
+        raise ValueError("NGNN1 requires one output bucket; NGNN3/5 require a king map")
+    if format != 5 and "threat_weights" in state:
+        raise ValueError("Threat weights require NGNN5 export")
     original_o = state["o"]
     if hasattr(original_o, "detach"):
         original_o = original_o.detach().cpu().numpy()
