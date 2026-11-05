@@ -105,6 +105,8 @@ def parser() -> argparse.ArgumentParser:
     cli.add_argument("--kb-map", default="default", help="NGNN3: default or JSON file with 64 bucket IDs")
     cli.add_argument("--king-factorizer", action="store_true",
                      help="NGNN3: learn shared feature rows plus king-bucket residuals; fold at export")
+    cli.add_argument("--fake-quantize", action="store_true",
+                     help="NGNN3: export-exact forward arithmetic with straight-through gradients")
     cli.add_argument("--batch", type=int, default=16384)
     cli.add_argument("--lr", type=float, default=0.001)
     cli.add_argument("--epochs", "--superbatches", dest="epochs", type=int, default=10)
@@ -142,6 +144,8 @@ def main() -> None:
     king_map = load_map(args.kb_map) if args.format == 3 else None
     if args.king_factorizer and (king_map is None or max(king_map) < 1):
         raise ValueError("King factorizer requires NGNN3 with at least two king buckets")
+    if args.fake_quantize and king_map is None:
+        raise ValueError("Fake quantization requires --format 3")
     if (args.batch < 1 or args.epochs < 1 or args.threads < 1 or args.lr <= 0 or args.k <= 0
             or not 0 <= args.wdl <= 1 or args.positions_per_epoch < 0 or args.weight_decay < 0
             or args.decay_steps < 1 or not 0 < args.gamma <= 1 or not 0 <= args.min_lr_ratio <= 1):
@@ -189,7 +193,8 @@ def main() -> None:
     passes, remainder = divmod(positions, shards.count)
     steps_per_epoch = passes * steps_per_pass + math.ceil(remainder / args.batch)
     total_steps = args.epochs * steps_per_epoch
-    model = NGNN(args.hidden, args.buckets, king_map, args.king_factorizer).to(device)
+    model = NGNN(args.hidden, args.buckets, king_map, args.king_factorizer,
+                 fake_quantize=args.fake_quantize).to(device)
     decayed = [model.w1, model.o]
     if model.w1_shared is not None:
         decayed.append(model.w1_shared)
@@ -206,7 +211,8 @@ def main() -> None:
                 "weight_decay", "drop_flags", "min_ply", "block_records", "positions_per_epoch",
                 "seed", "precision", "data")
         differences = [key for key in same if saved[key] != getattr(args, key)]
-        for key, default in (("buckets", 1), ("format", 1), ("king_factorizer", False)):
+        for key, default in (("buckets", 1), ("format", 1), ("king_factorizer", False),
+                             ("fake_quantize", False)):
             if saved.get(key, default) != getattr(args, key):
                 differences.append(key)
         if saved.get("data_format", "ngnp") != args.data_format:

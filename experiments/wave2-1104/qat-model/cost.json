@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/home/ehrli/ngn-original-nnue-night-20261001/venv/bin/python",
+    "-m",
+    "unittest",
+    "trainer.tests.test_quantized_forward",
+    "-v"
+  ],
+  "exit_code": 0,
+  "cpu_affinity": [
+    0,
+    1
+  ],
+  "cpu_seconds_limit": 10,
+  "elapsed_seconds": 1.0083515199366957,
+  "user_seconds": 0.813642,
+  "system_seconds": 0.121849,
+  "peak_rss_kib": 603292,
+  "diagnostic_only": true
+}

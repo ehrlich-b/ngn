@@ -1,0 +1,72 @@
+{
+  "synthetic_only": true,
+  "python": "3.12.3",
+  "torch": "2.7.0+cu128",
+  "numpy": "2.5.3",
+  "tensor_threads": 2,
+  "hidden": 32,
+  "king_buckets": 8,
+  "buckets": 8,
+  "cases": 32,
+  "export_bytes": 394436,
+  "integer_cp": [
+    -4,
+    -19,
+    -30,
+    8,
+    63,
+    -13,
+    -5,
+    34,
+    88,
+    11,
+    19,
+    59,
+    113,
+    36,
+    45,
+    84,
+    139,
+    62,
+    70,
+    109,
+    164,
+    87,
+    96,
+    135,
+    24999,
+    24999,
+    24999,
+    24999,
+    -24999,
+    -24999,
+    -24999,
+    -24999
+  ],
+  "floor_first_sensitive_cases": 2,
+  "floor_second_sensitive_cases": 5,
+  "gradients": {
+    "w1": {
+      "finite": true,
+      "nonzero": 280
+    },
+    "b1": {
+      "finite": true,
+      "nonzero": 3
+    },
+    "o": {
+      "finite": true,
+      "nonzero": 132
+    },
+    "ob": {
+      "finite": true,
+      "nonzero": 6
+    },
+    "w1_shared": {
+      "finite": true,
+      "nonzero": 168
+    }
+  },
+  "float_off_values_and_gradients_bitwise_equal": true,
+  "qat_forward_backward_seconds_diagnostic_only": 0.07779323705472052
+}

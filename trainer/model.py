@@ -4,6 +4,7 @@ import torch
 from torch import nn
 
 from trainer.king_buckets import validate_map
+from trainer.quantization import quantized_forward
 
 QA, QB, SCALE = 255, 64, 400
 
@@ -62,7 +63,7 @@ def decode_gpu(raw: torch.Tensor, buckets: int | None = None,
 
 class NGNN(nn.Module):
     def __init__(self, hidden: int = 256, buckets: int = 1, king_map=None,
-                 king_factorizer: bool = False):
+                 king_factorizer: bool = False, fake_quantize: bool = False):
         super().__init__()
         validate_hidden(hidden)
         validate_buckets(buckets)
@@ -76,6 +77,9 @@ class NGNN(nn.Module):
             self.register_buffer("king_map", torch.tensor(mapping, dtype=torch.int64))
         if king_factorizer and (king_map is None or self.king_buckets < 2):
             raise ValueError("King factorizer requires NGNN3 with at least two king buckets")
+        if fake_quantize and king_map is None:
+            raise ValueError("Fake quantization requires NGNN3 king inputs")
+        self.fake_quantize = fake_quantize
         self.w1 = nn.Parameter(torch.empty(768 * self.king_buckets, hidden))
         self.b1 = nn.Parameter(torch.full((hidden,), 0.25))
         # Keep single-bucket checkpoint shapes and floating arithmetic unchanged.
@@ -96,6 +100,13 @@ class NGNN(nn.Module):
 
     def forward(self, features: torch.Tensor, stm: torch.Tensor,
                 bucket: torch.Tensor | None = None) -> torch.Tensor:
+        if self.fake_quantize:
+            return quantized_forward(self, features, stm, bucket)
+        return self.forward_float(features, stm, bucket)
+
+    def forward_float(self, features: torch.Tensor, stm: torch.Tensor,
+                      bucket: torch.Tensor | None = None) -> torch.Tensor:
+        """Original float reference, also available when fake quantization is on."""
         acc = features @ self.effective_w1() + self.b1
         activation = acc.clamp(0, 1).square()
         # Compute both STM orderings without materializing a gathered [B,2H].

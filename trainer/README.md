@@ -332,6 +332,18 @@ parity controls. Run its CUDA FP32/BF16 control before a real training trial:
 `python -m unittest trainer.tests.test_king_factorizer.KingFactorizerTests.test_cuda_forward_gradients_and_bf16_step -v`.
 No playing-strength improvement is established by tooling checks.
 
+Optional `--fake-quantize` requires `--format 3` and enables export-exact
+forward values with straight-through round/truncation gradients. Shared rows
+merge before rounding; the opt-in path uses float64 integer-valued arithmetic
+with mixed precision disabled, then returns float32 cp. Both signed divisions,
+SCReLU saturation and the final cp clamp match the NGNN3 integer reference.
+The original float path remains `model.forward_float(...)`; default training
+is unchanged. The flag is bound on resume (legacy checkpoints default false).
+Run the small CPU control with
+`python -m unittest trainer.tests.test_quantized_forward`; reproducible inputs,
+command and actual result are in `experiments/wave2-1104/qat-model/`. This is
+an arithmetic fixture, with no H768 throughput or playing-strength claim.
+
 Workers own caches keyed by perspective, bucket and mirror state. A king move
 that changes either context refreshes only the moving side from the cached
 accumulator by subtracting removed piece squares and adding new ones. The
