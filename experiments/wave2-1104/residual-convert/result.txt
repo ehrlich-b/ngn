@@ -1,0 +1,25 @@
+GOMAXPROCS=2 python3 -m unittest trainer.tests.test_residual_export
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.173s
+
+OK
+{"exit_code": 0, "elapsed_seconds": 0.471, "cpu_seconds": 0.312, "peak_rss_kib": 45816}
+GOMAXPROCS=2 go test -p 1 -count=1 ./engine -run ^TestWave2ResidualParity -timeout 15s -v
+=== RUN   TestWave2ResidualParityRecords
+    ngnn6_parity_test.go:122: 32 NumPy/Go integer cases, eight buckets x mirrors x STM; 32 nonzero scores differ from NGNN3; compact/wide
+--- PASS: TestWave2ResidualParityRecords (0.92s)
+=== RUN   TestWave2ResidualParityTransitions
+    ngnn6_parity_test.go:201: NumPy/Go special transitions: captures=16 castles=8 promotions=8 ep=8 nulls=36 mirrors=8 buckets=8
+--- PASS: TestWave2ResidualParityTransitions (0.08s)
+=== RUN   TestWave2ResidualParityH768Search
+    ngnn6_parity_test.go:269: 32 actual H768 NumPy/Go integer records through compact/wide paths
+    ngnn6_parity_test.go:312: exact H768/NGNN6 search: {FEN:rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 BestMove:d2d4 PV:d2d4 d7d5 c2c4 d5c4  Depth:4 Score:63 Nodes:747}
+    ngnn6_parity_test.go:312: exact H768/NGNN6 search: {FEN:r3k2r/pp3ppp/2n1bn2/2pp4/8/2N1PN2/PPP2PPP/R3K2R w KQkq - 0 1 BestMove:f3g5 PV:f3g5 e6g4 f2f3 g4d7  Depth:4 Score:-753 Nodes:1387}
+    ngnn6_parity_test.go:312: exact H768/NGNN6 search: {FEN:4k3/8/8/3pP3/8/8/PP6/4K3 w - d6 0 1 BestMove:e1d2 PV:e1d2 e8e7 d2c3 e7e6  Depth:4 Score:1055 Nodes:319}
+    ngnn6_parity_test.go:312: exact H768/NGNN6 search: {FEN:4k3/pp6/8/8/3Pp3/8/8/4K3 b - d3 0 1 BestMove:e8d7 PV:e8d7 e1e2 d7c6 e2e3  Depth:4 Score:1055 Nodes:315}
+--- PASS: TestWave2ResidualParityH768Search (0.39s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	1.426s
+{"exit_code": 0, "elapsed_seconds": 6.998, "cpu_seconds": 5.675, "peak_rss_kib": 282272}
+{"h768_output_sha256": "a6bf7f472e69e6a36f78902bf9ec33ce6640dfc07a5ecfde78ce0d6ffdb111c0", "preserved_payload_bytes": 9463328, "numpy_integer_records": 32, "exact_depth4_searches": 4}

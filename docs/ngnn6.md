@@ -174,3 +174,22 @@ committed H32 fixture has an independent Python constructor (`generate.py
 zero-residual check also wraps the actual embedded H768 linear weights and
 compares both storage paths to the NGNN3 reference. No speed or strength claim
 follows from these tests.
+
+## Byte-exact warm start and independent oracle
+
+`python3 -m trainer.residual_export SOURCE OUTPUT --receipt RECEIPT` lifts
+an owned NGNN3 H32/H768 KB8/B8 file into NGNN6. It validates the original
+length, header and CRC, copies its complete numeric payload and king map
+without requantizing, and initializes the shared bottleneck using PCG64 seed
+20261104. Both residual projection arrays are zero, preserving the original
+integer function. `trainer.residual_refeval` independently reads NGNN3/6 and
+evaluates the specified arithmetic in NumPy int64; it also supports packed
+NGNP1 records and explicit nonzero residual arrays.
+
+`experiments/wave2-1104/residual-convert/` contains reproducible H32 zero and
+nonzero models, 32 packed records, cross-language parity cases, captured test
+output, and the accepted H768 conversion/search receipt. The executable
+`run.py h768` writes the large converted model only to external scratch and
+requires exact equality of four depth-four searches. A later nonzero trained
+model must pass the same independent oracle; zero-lift identity alone makes
+no loss or strength claim and does not authorize changing the embedded net.
