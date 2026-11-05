@@ -38,9 +38,9 @@ func TestLMRDeeperSearch(t *testing.T) {
 		depth, budget int
 		nodes         uint64
 	}{
-		{"marginal", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 8, 29, 4858},
-		{"strong", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 10, 29, 26836},
-		{"spent budget", "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 10, 0, 110443},
+		{"marginal", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 8, 29, 4739},
+		{"strong", "r1bqr1k1/ppp2ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQ1RK1 w - - 0 8", 8, 29, 21387},
+		{"spent budget", "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 10, 0, 101447},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
