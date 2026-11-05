@@ -1,0 +1,92 @@
+{"command": ["go", "test", "-p", "1", "-count=1", "./engine", "-run", "^TestWave2ScoreTime", "-timeout", "15s", "-v"], "cwd": ".", "cpu_affinity": [0, 1], "gomaxprocs": "2"}
+=== RUN   TestWave2ScoreTimeTraces
+=== RUN   TestWave2ScoreTimeTraces/stable_move_loses_100cp
+    wave2_time_test.go:115: TRACE stable_move_loses_100cp elapsed_ms=900 off_stop=false on_stop=false legacy_stop=false factor=1.250000 hard_ms=3000
+    wave2_time_test.go:115: TRACE stable_move_loses_100cp elapsed_ms=901 off_stop=true on_stop=false legacy_stop=true factor=1.250000 hard_ms=3000
+    wave2_time_test.go:115: TRACE stable_move_loses_100cp elapsed_ms=1150 off_stop=true on_stop=false legacy_stop=true factor=1.250000 hard_ms=3000
+    wave2_time_test.go:115: TRACE stable_move_loses_100cp elapsed_ms=1151 off_stop=true on_stop=true legacy_stop=true factor=1.250000 hard_ms=3000
+    wave2_time_test.go:115: TRACE stable_move_loses_100cp elapsed_ms=4000 off_stop=true on_stop=true legacy_stop=true factor=1.250000 hard_ms=3000
+=== RUN   TestWave2ScoreTimeTraces/improving_score
+    wave2_time_test.go:115: TRACE improving_score elapsed_ms=900 off_stop=false on_stop=false legacy_stop=false factor=1.000000 hard_ms=3000
+    wave2_time_test.go:115: TRACE improving_score elapsed_ms=901 off_stop=true on_stop=true legacy_stop=true factor=1.000000 hard_ms=3000
+    wave2_time_test.go:115: TRACE improving_score elapsed_ms=4000 off_stop=true on_stop=true legacy_stop=true factor=1.000000 hard_ms=3000
+=== RUN   TestWave2ScoreTimeTraces/small_20cp_loss
+    wave2_time_test.go:115: TRACE small_20cp_loss elapsed_ms=950 off_stop=true on_stop=false legacy_stop=true factor=1.100000 hard_ms=3000
+    wave2_time_test.go:115: TRACE small_20cp_loss elapsed_ms=1001 off_stop=true on_stop=true legacy_stop=true factor=1.100000 hard_ms=3000
+=== RUN   TestWave2ScoreTimeTraces/first_iteration
+    wave2_time_test.go:115: TRACE first_iteration elapsed_ms=1200 off_stop=false on_stop=false legacy_stop=false factor=1.000000 hard_ms=3000
+    wave2_time_test.go:115: TRACE first_iteration elapsed_ms=1201 off_stop=true on_stop=true legacy_stop=true factor=1.000000 hard_ms=3000
+=== RUN   TestWave2ScoreTimeTraces/unknown_breaks_trend
+    wave2_time_test.go:115: TRACE unknown_breaks_trend elapsed_ms=900 off_stop=false on_stop=false legacy_stop=false factor=1.000000 hard_ms=3000
+    wave2_time_test.go:115: TRACE unknown_breaks_trend elapsed_ms=901 off_stop=true on_stop=true legacy_stop=true factor=1.000000 hard_ms=3000
+=== RUN   TestWave2ScoreTimeTraces/unknown_after_loss
+    wave2_time_test.go:115: TRACE unknown_after_loss elapsed_ms=900 off_stop=false on_stop=false legacy_stop=false factor=1.000000 hard_ms=3000
+    wave2_time_test.go:115: TRACE unknown_after_loss elapsed_ms=901 off_stop=true on_stop=true legacy_stop=true factor=1.000000 hard_ms=3000
+=== RUN   TestWave2ScoreTimeTraces/positive_mate
+    wave2_time_test.go:115: TRACE positive_mate elapsed_ms=900 off_stop=false on_stop=false legacy_stop=false factor=1.000000 hard_ms=3000
+    wave2_time_test.go:115: TRACE positive_mate elapsed_ms=901 off_stop=true on_stop=true legacy_stop=true factor=1.000000 hard_ms=3000
+=== RUN   TestWave2ScoreTimeTraces/negative_mate
+    wave2_time_test.go:115: TRACE negative_mate elapsed_ms=900 off_stop=false on_stop=false legacy_stop=false factor=1.000000 hard_ms=3000
+    wave2_time_test.go:115: TRACE negative_mate elapsed_ms=901 off_stop=true on_stop=true legacy_stop=true factor=1.000000 hard_ms=3000
+=== RUN   TestWave2ScoreTimeTraces/cp_after_mate
+    wave2_time_test.go:115: TRACE cp_after_mate elapsed_ms=900 off_stop=false on_stop=false legacy_stop=false factor=1.000000 hard_ms=3000
+    wave2_time_test.go:115: TRACE cp_after_mate elapsed_ms=901 off_stop=true on_stop=true legacy_stop=true factor=1.000000 hard_ms=3000
+=== RUN   TestWave2ScoreTimeTraces/unknown_infinity
+    wave2_time_test.go:115: TRACE unknown_infinity elapsed_ms=900 off_stop=false on_stop=false legacy_stop=false factor=1.000000 hard_ms=3000
+    wave2_time_test.go:115: TRACE unknown_infinity elapsed_ms=901 off_stop=true on_stop=true legacy_stop=true factor=1.000000 hard_ms=3000
+=== RUN   TestWave2ScoreTimeTraces/new_search
+    wave2_time_test.go:115: TRACE new_search elapsed_ms=1200 off_stop=false on_stop=false legacy_stop=false factor=1.000000 hard_ms=3000
+    wave2_time_test.go:115: TRACE new_search elapsed_ms=1201 off_stop=true on_stop=true legacy_stop=true factor=1.000000 hard_ms=3000
+=== RUN   TestWave2ScoreTimeTraces/completed_research_and_composed_cap
+    wave2_time_test.go:115: TRACE completed_research_and_composed_cap elapsed_ms=1201 off_stop=true on_stop=false legacy_stop=true factor=1.250000 hard_ms=3000
+    wave2_time_test.go:115: TRACE completed_research_and_composed_cap elapsed_ms=1300 off_stop=true on_stop=false legacy_stop=true factor=1.250000 hard_ms=3000
+    wave2_time_test.go:115: TRACE completed_research_and_composed_cap elapsed_ms=1301 off_stop=true on_stop=true legacy_stop=true factor=1.250000 hard_ms=3000
+    wave2_time_test.go:115: TRACE completed_research_and_composed_cap elapsed_ms=4000 off_stop=true on_stop=true legacy_stop=true factor=1.250000 hard_ms=3000
+=== RUN   TestWave2ScoreTimeTraces/near_hard_deadline
+    wave2_time_test.go:115: TRACE near_hard_deadline elapsed_ms=1000 off_stop=true on_stop=false legacy_stop=true factor=1.250000 hard_ms=1100
+    wave2_time_test.go:115: TRACE near_hard_deadline elapsed_ms=1099 off_stop=true on_stop=false legacy_stop=true factor=1.250000 hard_ms=1100
+    wave2_time_test.go:115: TRACE near_hard_deadline elapsed_ms=1100 off_stop=true on_stop=true legacy_stop=true factor=1.250000 hard_ms=1100
+    wave2_time_test.go:115: TRACE near_hard_deadline elapsed_ms=1101 off_stop=true on_stop=true legacy_stop=true factor=1.250000 hard_ms=1100
+=== RUN   TestWave2ScoreTimeTraces/settled_node_share
+    wave2_time_test.go:115: TRACE settled_node_share elapsed_ms=800 off_stop=true on_stop=false legacy_stop=true factor=1.250000 hard_ms=3000
+    wave2_time_test.go:115: TRACE settled_node_share elapsed_ms=804 off_stop=true on_stop=true legacy_stop=true factor=1.250000 hard_ms=3000
+--- PASS: TestWave2ScoreTimeTraces (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/stable_move_loses_100cp (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/improving_score (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/small_20cp_loss (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/first_iteration (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/unknown_breaks_trend (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/unknown_after_loss (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/positive_mate (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/negative_mate (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/cp_after_mate (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/unknown_infinity (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/new_search (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/completed_research_and_composed_cap (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/near_hard_deadline (0.00s)
+    --- PASS: TestWave2ScoreTimeTraces/settled_node_share (0.00s)
+=== RUN   TestWave2ScoreTimeFormula
+--- PASS: TestWave2ScoreTimeFormula (0.00s)
+=== RUN   TestWave2ScoreTimeCompletedCallbackAndSearchReset
+    wave2_time_test.go:170: CALLBACK run=0 depth=1 attempts=1 score=23 previous=0 factor=1.000000
+    wave2_time_test.go:170: CALLBACK run=0 depth=2 attempts=1 score=23 previous=23 factor=1.000000
+    wave2_time_test.go:170: CALLBACK run=0 depth=3 attempts=1 score=23 previous=23 factor=1.000000
+    wave2_time_test.go:170: CALLBACK run=0 depth=4 attempts=1 score=23 previous=23 factor=1.000000
+    wave2_time_test.go:170: CALLBACK run=0 depth=5 attempts=22 score=1 previous=23 factor=1.110000
+    wave2_time_test.go:170: CALLBACK run=1 depth=1 attempts=1 score=1 previous=0 factor=1.000000
+    wave2_time_test.go:170: CALLBACK run=1 depth=2 attempts=1 score=1 previous=1 factor=1.000000
+    wave2_time_test.go:170: CALLBACK run=1 depth=3 attempts=1 score=1 previous=1 factor=1.000000
+    wave2_time_test.go:170: CALLBACK run=1 depth=4 attempts=1 score=1 previous=1 factor=1.000000
+    wave2_time_test.go:170: CALLBACK run=1 depth=5 attempts=1 score=1 previous=1 factor=1.000000
+--- PASS: TestWave2ScoreTimeCompletedCallbackAndSearchReset (0.06s)
+=== RUN   TestWave2ScoreTimeAspirationFailureBeforeCompletion
+    wave2_time_test.go:231: ASPIRATION completed_depth=4 failed_attempts=1 retained_score=23 reason=hard-deadline
+--- PASS: TestWave2ScoreTimeAspirationFailureBeforeCompletion (0.02s)
+=== RUN   TestWave2ScoreTimeFixedNodes
+    wave2_time_test.go:257: FIXED_NODES off/on nodes=1000 depth=5 move=37781760 score=1
+--- PASS: TestWave2ScoreTimeFixedNodes (0.03s)
+=== RUN   TestWave2ScoreTimeUCIOption
+--- PASS: TestWave2ScoreTimeUCIOption (0.09s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.218s
+{"exit_code": 0, "elapsed_seconds": 5.145538, "user_seconds": 4.310937, "system_seconds": 0.418805, "max_rss_kib": 259672}

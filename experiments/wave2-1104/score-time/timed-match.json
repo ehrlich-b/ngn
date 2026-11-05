@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "status": "DEFERRED",
+  "baseline": "3517a353a99bbe627a505ccc5463aadce047431b",
+  "candidate_branch": "codex/ngn-w2-score-time-1104-20261105",
+  "default_W2ScoreTime": 0,
+  "variants": [{"W2ScoreTime": 0}, {"W2ScoreTime": 1}],
+  "required_host": "rig",
+  "gate": "Completed timed-match gate on the rig before any default-play change",
+  "reason": "This card authorizes fake-clock fixtures and registered Go gates only; it specifies no executable timed-match protocol.",
+  "games_run": 0,
+  "elo_claim": null,
+  "required_evidence": ["paired timed-match protocol and opening manifest", "pinned candidate and baseline heads", "raw game and clock records", "completed gate result"]
+}

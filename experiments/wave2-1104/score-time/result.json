@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "baseline": "3517a353a99bbe627a505ccc5463aadce047431b",
+  "command": "nice -n 10 experiments/wave2-1104/score-time/run.sh -v",
+  "input_sha256": {
+    "engine/search.go": "53e09f80742b8cc4a99deb48dbb93ad2d9b0dacc8e282dc9c5ed72b47c3819b0",
+    "engine/time.go": "f30493cdd868bd1fd405ee3382ea1ae521f1ab09f338e7f8fd586ff48921f41c",
+    "engine/uci.go": "a55876c43e1b4c2ad94220292c0de8d0592666011e561e79c966cb686e425ca2",
+    "engine/wave2_time.go": "13b37a1e63d287417d2cd4f9c47a6a7680bb5f38dfef39af9666b2b1b4a3fd8c",
+    "engine/wave2_time_test.go": "ec704610c6a24b6bd5650f60d5ee5387b8623786f18288992c752c9278b3e8aa",
+    "experiments/wave2-1104/score-time/traces.json": "16a25c940a0a3b4622c7eecb242d63e1b7c09b6887c590fa059472e9541e7241",
+    "experiments/wave2-1104/score-time/run.sh": "167738c929843a1aa6e856f95d6dabbe0e545f44e3554215143958e35a1371b8",
+    "experiments/wave2-1104/score-time/proof.py": "204631b0daa2cbeea3e1a25b19aa7293bc3290faa56353904c84cd92826c65ac"
+  },
+  "log_sha256": "f77d385494927ccc05c4030b7aa174c9885928859e9ac65a4bfd784695d7dbae",
+  "execution": {
+    "exit_code": 0,
+    "elapsed_seconds": 5.145538,
+    "user_seconds": 4.310937,
+    "system_seconds": 0.418805,
+    "max_rss_kib": 259672
+  }
+}

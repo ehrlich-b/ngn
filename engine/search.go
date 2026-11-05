@@ -847,6 +847,10 @@ func searchIterativeDeepeningUnsafe(pos *Position, maxDepth int, timeManager *Ti
 }
 
 func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManager *TimeManager, callback DepthCallback, control *SearchControl, history *workerHistory, evaluator *workerEvaluator, tt *Cache, options iterativeSearchOptions) *SearchInfo {
+	if timeManager != nil {
+		// Also reset for API searches reusing a manager without reconfiguring clocks.
+		timeManager.scoreTime.reset()
+	}
 	if options.advanceTTAge {
 		tt.AdvanceAge()
 	}
@@ -1215,7 +1219,7 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 					if totalAttemptNodes > 0 {
 						bestMoveNodeFraction = float64(bestMoveNodes) / float64(totalAttemptNodes)
 					}
-					info.TimeManager.ReportCompletedIteration(bestMoveChanged, attempts == 1, bestMoveNodeFraction)
+					info.TimeManager.ReportCompletedIteration(bestMoveChanged, attempts == 1, bestMoveNodeFraction, iterationBestScore)
 					info.TimeManager.observeCompletedIteration(currentDepth, attempts)
 				}
 			}
@@ -1393,6 +1397,9 @@ func pvDrawTerminal(pos *Position, repetitionCount int) bool {
 // NOT centipawn-identical (guarded by TestSearchFixedMatchesProductionScore). Do
 // not draw strength conclusions from it.
 func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, control *SearchControl, history *workerHistory, evaluator *workerEvaluator, tt *Cache) *SearchInfo {
+	if timeManager != nil {
+		timeManager.scoreTime.reset()
+	}
 	// Allocate buffers once for the entire search tree
 	var moveBuffer [256]Move
 	var captureBuffer [64]Move

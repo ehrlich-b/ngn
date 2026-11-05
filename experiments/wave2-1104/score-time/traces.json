@@ -1,0 +1,16 @@
+[
+  {"name":"stable_move_loses_100cp","scores":[200,200,200,100],"factor":1.25,"share":0.625,"probes":[[900,false,false],[901,true,false],[1150,true,false],[1151,true,true],[4000,true,true]]},
+  {"name":"improving_score","scores":[0,0,0,100],"factor":1,"share":0.625,"probes":[[900,false,false],[901,true,true],[4000,true,true]]},
+  {"name":"small_20cp_loss","scores":[200,200,200,180],"factor":1.1,"share":0.625,"probes":[[950,true,false],[1001,true,true]]},
+  {"name":"first_iteration","scores":[100],"factor":1,"share":0.625,"probes":[[1200,false,false],[1201,true,true]]},
+  {"name":"unknown_breaks_trend","scores":[200,200,null,100],"factor":1,"share":0.625,"probes":[[900,false,false],[901,true,true]]},
+  {"name":"unknown_after_loss","scores":[200,200,100,null],"factor":1,"share":0.625,"probes":[[900,false,false],[901,true,true]]},
+  {"name":"positive_mate","scores":[200,200,200,29000],"factor":1,"share":0.625,"probes":[[900,false,false],[901,true,true]]},
+  {"name":"negative_mate","scores":[200,200,200,-29000],"factor":1,"share":0.625,"probes":[[900,false,false],[901,true,true]]},
+  {"name":"cp_after_mate","scores":[200,200,30000,100],"factor":1,"share":0.625,"probes":[[900,false,false],[901,true,true]]},
+  {"name":"unknown_infinity","scores":[200,200,2147483647,100],"factor":1,"share":0.625,"probes":[[900,false,false],[901,true,true]]},
+  {"name":"new_search","scores":[200,200,200,100],"reset":true,"post_reset":[-100],"factor":1,"share":0.625,"probes":[[1200,false,false],[1201,true,true]]},
+  {"name":"completed_research_and_composed_cap","scores":[200,200,200,100],"researched":true,"factor":1.25,"share":0.625,"probes":[[1201,true,false],[1300,true,false],[1301,true,true],[4000,true,true]]},
+  {"name":"near_hard_deadline","scores":[200,200,200,100],"factor":1.25,"share":0.625,"hard_ms":1100,"probes":[[1000,true,false],[1099,true,false],[1100,true,true],[1101,true,true]]},
+  {"name":"settled_node_share","scores":[200,200,200,200,200,200,200,100],"factor":1.25,"share":1,"probes":[[800,true,false],[804,true,true]]}
+]
