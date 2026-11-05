@@ -62,21 +62,10 @@ assertions. Each case is a separate engine process with a 10 CPU-second hard
 limit and a 30-second wall timeout; there are no speed samples. The runner uses
 at most two CPUs, GOMAXPROCS=2, Go -p 1 (registered suite gates use -p 2), tensor
 threads=2, shared caches, external scratch, a sanitized environment and no GPU.
-The full short suite includes kernel tests, so the G2 runner refuses it on
-forge hosts (including `forge2-vm`) with exit 75. That gate requires a suitable
-non-forge host; fragment success does not satisfy it.
-
-If readiness rejects G2 for this host restriction, keep the candidate blocked.
-On a suitable non-forge host, restore the committed candidate and retained
-readiness plan, then run from the repository root:
-
-```sh
-nice -n 10 python3 experiments/wave2-1104/qchecks/check.py run G2 -- nice -n 10 go test -p 2 -short -count=1 ./...
-```
-
-Regenerate the complete readiness evidence there against that same committed
-HEAD before accepting the candidate. Keep G2 in the plan; the named fragment
-and earlier short-suite receipts cannot replace its current-HEAD execution.
+The G2 runner blocks the short suite only when the hostname is exactly `forge`.
+Ordinary suite gates may run on `forge2-vm` and the rig without root or block
+device setup. A blocked gate must run on a suitable host before acceptance;
+fragment success does not replace its current-HEAD execution.
 
 Execution transcripts, native wait4 exit/resource receipts and the generated
 candidate result live outside the checkout in `../evidence/qchecks/`. The

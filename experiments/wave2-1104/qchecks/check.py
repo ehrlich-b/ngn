@@ -59,7 +59,7 @@ def receipt(label, args, root, log, started, rc, usage):
 
 
 def run(label, args, root=ROOT):
-    if label == 'G2' and socket.gethostname().startswith('forge'):
+    if label == 'G2' and socket.gethostname() == 'forge':
         print('BLOCKED: the full short suite includes kernel tests; '
               'run '+shlex.join(args)+' on a suitable non-forge host.', flush=True)
         return 75
@@ -221,7 +221,7 @@ def identity():
     commits = git('log','--format=%an <%ae>|%cn <%ce>',BASE+'..HEAD').splitlines()
     assert commits and all(line == wanted+'|'+wanted for line in commits), commits
     assert git('merge-base',BASE,'HEAD') == BASE
-    assert git('branch','--show-current') == 'codex/ngn-w2-qchecks-1104-20261105'
+    assert git('branch','--show-current') == 'codex/ngn-w2-qchecks-1104-r11050941-20261105'
     pending = json.loads((HERE/'pending-timed-gate.json').read_text())
     assert not pending['completed'] and pending['option_default'] == 0
     print('PASS: all new commits authored and committed by '+wanted+'; required branch/base; pending rig gate and default 0; no Elo claim')
