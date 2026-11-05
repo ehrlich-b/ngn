@@ -1,0 +1,722 @@
+[
+  {
+    "Name": "initial-white",
+    "FEN": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e2e4",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "initial-black",
+    "FEN": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b kqKQ - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e7e5",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "direct-pawn-white",
+    "FEN": "8/8/3k4/8/4P3/8/8/4K3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e4e5",
+        "Check": true
+      },
+      {
+        "Move": "e1d1",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "direct-pawn-black",
+    "FEN": "4k3/8/8/4p3/8/3K4/8/8 b - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e5e4",
+        "Check": true
+      },
+      {
+        "Move": "e8d8",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "direct-knight-white",
+    "FEN": "8/8/5k2/8/8/2N5/8/4K3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "c3d5",
+        "Check": true
+      },
+      {
+        "Move": "c3b1",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "direct-knight-black",
+    "FEN": "4k3/8/2n5/8/8/5K2/8/8 b - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "c6d4",
+        "Check": true
+      },
+      {
+        "Move": "c6b8",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "direct-bishop-white",
+    "FEN": "7k/8/8/8/8/8/8/2B1K3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "c1b2",
+        "Check": true
+      },
+      {
+        "Move": "c1d2",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "direct-bishop-black",
+    "FEN": "2b1k3/8/8/8/8/8/8/7K b - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "c8b7",
+        "Check": true
+      },
+      {
+        "Move": "c8d7",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "direct-rook-white",
+    "FEN": "8/8/8/7k/8/8/8/R3K3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "a1a5",
+        "Check": true
+      },
+      {
+        "Move": "a1a2",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "direct-rook-black",
+    "FEN": "r3k3/8/8/8/7K/8/8/8 b - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "a8a4",
+        "Check": true
+      },
+      {
+        "Move": "a8a7",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "direct-queen-white",
+    "FEN": "7k/8/8/8/8/8/8/3QK3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "d1h5",
+        "Check": true
+      },
+      {
+        "Move": "d1d2",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "direct-queen-black",
+    "FEN": "3qk3/8/8/8/8/8/8/7K b - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "d8h4",
+        "Check": true
+      },
+      {
+        "Move": "d8d7",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "discovered-and-double-white",
+    "FEN": "4k3/8/8/8/8/8/4B3/K3R3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e2f3",
+        "Check": true
+      },
+      {
+        "Move": "e2b5",
+        "Check": true
+      },
+      {
+        "Move": "e1d1",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "discovered-and-double-black",
+    "FEN": "k3r3/4b3/8/8/8/8/8/4K3 b - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e7f6",
+        "Check": true
+      },
+      {
+        "Move": "e7b4",
+        "Check": true
+      },
+      {
+        "Move": "e8d8",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "castle-kingside-white",
+    "FEN": "5k2/8/8/8/8/8/8/4K2R w K - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e1g1",
+        "Check": true
+      },
+      {
+        "Move": "h1h2",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "castle-kingside-black",
+    "FEN": "4k2r/8/8/8/8/8/8/5K2 b k - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e8g8",
+        "Check": true
+      },
+      {
+        "Move": "h8h7",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "castle-queenside-white",
+    "FEN": "3k4/8/8/8/8/8/8/R3K3 w Q - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e1c1",
+        "Check": true
+      },
+      {
+        "Move": "a1a2",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "castle-queenside-black",
+    "FEN": "r3k3/8/8/8/8/8/8/3K4 b q - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e8c8",
+        "Check": true
+      },
+      {
+        "Move": "a8a7",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "castle-vacated-king-square-white",
+    "FEN": "8/8/8/8/8/8/8/k3K2R w K - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e1g1",
+        "Check": true
+      },
+      {
+        "Move": "h1h2",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "castle-vacated-king-square-black",
+    "FEN": "K3k2r/8/8/8/8/8/8/8 b k - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e8g8",
+        "Check": true
+      },
+      {
+        "Move": "h8h7",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "castle-control-white",
+    "FEN": "1k6/8/8/8/8/8/8/R3K2R w KQ - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e1g1",
+        "Check": false
+      },
+      {
+        "Move": "e1c1",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "castle-control-black",
+    "FEN": "r3k2r/8/8/8/8/8/8/1K6 b kq - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e8g8",
+        "Check": false
+      },
+      {
+        "Move": "e8c8",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "ep-rank-discovery-white",
+    "FEN": "8/8/8/R3Pp1k/8/8/8/K7 w - f6 0 1",
+    "Witnesses": [
+      {
+        "Move": "e5f6",
+        "Check": true
+      },
+      {
+        "Move": "e5e6",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "ep-rank-discovery-black",
+    "FEN": "k7/8/8/8/r3pP1K/8/8/8 b - f3 0 1",
+    "Witnesses": [
+      {
+        "Move": "e4f3",
+        "Check": true
+      },
+      {
+        "Move": "e4e3",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "ep-diagonal-discovery-white",
+    "FEN": "6k1/8/8/3pP3/8/1B6/8/K7 w - d6 0 1",
+    "Witnesses": [
+      {
+        "Move": "e5d6",
+        "Check": true
+      },
+      {
+        "Move": "e5e6",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "ep-diagonal-discovery-black",
+    "FEN": "k7/8/1b6/8/3Pp3/8/8/6K1 b - d3 0 1",
+    "Witnesses": [
+      {
+        "Move": "e4d3",
+        "Check": true
+      },
+      {
+        "Move": "e4e3",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "ep-direct-white",
+    "FEN": "8/4k3/8/3pP3/8/8/8/4K3 w - d6 0 1",
+    "Witnesses": [
+      {
+        "Move": "e5d6",
+        "Check": true
+      },
+      {
+        "Move": "e1d1",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "ep-direct-black",
+    "FEN": "4k3/8/8/8/3Pp3/8/4K3/8 b - d3 0 1",
+    "Witnesses": [
+      {
+        "Move": "e4d3",
+        "Check": true
+      },
+      {
+        "Move": "e8d8",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "ep-control-white",
+    "FEN": "k7/8/8/3pP3/8/8/8/4K3 w - d6 0 1",
+    "Witnesses": [
+      {
+        "Move": "e5d6",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "ep-control-black",
+    "FEN": "4k3/8/8/8/3Pp3/8/8/K7 b - d3 0 1",
+    "Witnesses": [
+      {
+        "Move": "e4d3",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "ep-own-king-exposed-white",
+    "FEN": "4r3/8/8/k2pP2R/8/8/8/4K3 w - d6 0 1",
+    "Witnesses": [
+      {
+        "Move": "e5d6",
+        "Check": true,
+        "Illegal": true
+      },
+      {
+        "Move": "e5e6",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "ep-own-king-exposed-black",
+    "FEN": "4k3/8/8/8/K2Pp2r/8/8/4R3 b - d3 0 1",
+    "Witnesses": [
+      {
+        "Move": "e4d3",
+        "Check": true,
+        "Illegal": true
+      },
+      {
+        "Move": "e4e3",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "promotion-rank-white",
+    "FEN": "7k/P7/8/8/8/8/8/4K3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "a7a8q",
+        "Check": true
+      },
+      {
+        "Move": "a7a8r",
+        "Check": true
+      },
+      {
+        "Move": "a7a8b",
+        "Check": false
+      },
+      {
+        "Move": "a7a8n",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "promotion-rank-black",
+    "FEN": "4k3/8/8/8/8/8/p7/7K b - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "a2a1q",
+        "Check": true
+      },
+      {
+        "Move": "a2a1r",
+        "Check": true
+      },
+      {
+        "Move": "a2a1b",
+        "Check": false
+      },
+      {
+        "Move": "a2a1n",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "promotion-diagonal-white",
+    "FEN": "8/P7/8/8/8/8/8/3K3k w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "a7a8q",
+        "Check": true
+      },
+      {
+        "Move": "a7a8r",
+        "Check": false
+      },
+      {
+        "Move": "a7a8b",
+        "Check": true
+      },
+      {
+        "Move": "a7a8n",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "promotion-diagonal-black",
+    "FEN": "3k3K/8/8/8/8/8/p7/8 b - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "a2a1q",
+        "Check": true
+      },
+      {
+        "Move": "a2a1r",
+        "Check": false
+      },
+      {
+        "Move": "a2a1b",
+        "Check": true
+      },
+      {
+        "Move": "a2a1n",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "promotion-knight-white",
+    "FEN": "8/P1k5/8/8/8/8/8/4K3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "a7a8q",
+        "Check": false
+      },
+      {
+        "Move": "a7a8r",
+        "Check": false
+      },
+      {
+        "Move": "a7a8b",
+        "Check": false
+      },
+      {
+        "Move": "a7a8n",
+        "Check": true
+      }
+    ]
+  },
+  {
+    "Name": "promotion-knight-black",
+    "FEN": "4k3/8/8/8/8/8/p1K5/8 b - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "a2a1q",
+        "Check": false
+      },
+      {
+        "Move": "a2a1r",
+        "Check": false
+      },
+      {
+        "Move": "a2a1b",
+        "Check": false
+      },
+      {
+        "Move": "a2a1n",
+        "Check": true
+      }
+    ]
+  },
+  {
+    "Name": "capture-promotion-rank-white",
+    "FEN": "r6k/1P6/8/8/8/8/8/4K3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "b7a8q",
+        "Check": true
+      },
+      {
+        "Move": "b7a8r",
+        "Check": true
+      },
+      {
+        "Move": "b7a8b",
+        "Check": false
+      },
+      {
+        "Move": "b7a8n",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "capture-promotion-rank-black",
+    "FEN": "4k3/8/8/8/8/8/1p6/R6K b - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "b2a1q",
+        "Check": true
+      },
+      {
+        "Move": "b2a1r",
+        "Check": true
+      },
+      {
+        "Move": "b2a1b",
+        "Check": false
+      },
+      {
+        "Move": "b2a1n",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "capture-promotion-knight-white",
+    "FEN": "2r5/1P2k3/8/8/8/8/8/4K3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "b7c8q",
+        "Check": false
+      },
+      {
+        "Move": "b7c8r",
+        "Check": false
+      },
+      {
+        "Move": "b7c8b",
+        "Check": false
+      },
+      {
+        "Move": "b7c8n",
+        "Check": true
+      }
+    ]
+  },
+  {
+    "Name": "capture-promotion-knight-black",
+    "FEN": "4k3/8/8/8/8/8/1p2K3/2R5 b - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "b2c1q",
+        "Check": false
+      },
+      {
+        "Move": "b2c1r",
+        "Check": false
+      },
+      {
+        "Move": "b2c1b",
+        "Check": false
+      },
+      {
+        "Move": "b2c1n",
+        "Check": true
+      }
+    ]
+  },
+  {
+    "Name": "pseudo-king-adjacency-white",
+    "FEN": "8/8/8/8/8/4k3/8/4K3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e1e2",
+        "Check": true,
+        "Illegal": true
+      },
+      {
+        "Move": "e1d1",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "pseudo-king-adjacency-black",
+    "FEN": "4k3/8/4K3/8/8/8/8/8 b - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e8e7",
+        "Check": true,
+        "Illegal": true
+      },
+      {
+        "Move": "e8d8",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "file-blocker-preserved",
+    "FEN": "4k3/8/8/8/8/8/4P3/K3R3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e2e3",
+        "Check": false
+      },
+      {
+        "Move": "e2e4",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "discovered-capture",
+    "FEN": "4k3/8/8/8/8/5p2/4B3/K3R3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e2f3",
+        "Check": true
+      },
+      {
+        "Move": "e1d1",
+        "Check": false
+      }
+    ]
+  }
+]
