@@ -8,6 +8,7 @@ discovered and castling checks. Board-only own-king legality and the existing
 castling legality test reject illegal checks. Every class is disjoint. A 256-move
 buffer holds the complete class; the 96-score buffer covers only the unchanged
 capture/promotion prefix. No added check receives capture-only delta/SEE pruning.
+The admission/search counters participate in the existing additive worker merge.
 In-check evasions and deeper capture/promotion search retain their existing policy.
 
 Enhanced qDepth-0 TT bounds have a separate key. Their lower bounds cannot leak
