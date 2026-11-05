@@ -316,6 +316,11 @@ func runSPRT(cfg runConfig, openings [][]string) {
 					localCfg.MovesOut = &moves
 				}
 				res, ok := playWatch(newEng, baseEng, s.opening, s.newIsWhite, localCfg, deadline)
+				if cfg.noRetries && res.Reason == "engine-error" {
+					uci.Stop(newEng)
+					uci.Stop(baseEng)
+					log.Fatal("engine-error: strict run aborted without retry")
+				}
 				if !ok {
 					if cfg.noRetries {
 						log.Fatal("WATCHDOG: strict run aborted without retry")

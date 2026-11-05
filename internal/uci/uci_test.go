@@ -2,6 +2,7 @@ package uci
 
 import (
 	"bufio"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -9,6 +10,42 @@ import (
 	"testing"
 	"time"
 )
+
+func TestGetMoveCheckedRejectsRecoveredSearchError(t *testing.T) {
+	for _, output := range []string{
+		"info string error search recovered panic: owned failure\nbestmove e2e4\n",
+		"info depth 1 score cp 0\ninfo string error search failed\nbestmove e2e4\n",
+		"", // closed stdout must also fail promptly
+	} {
+		e := &Engine{stdin: bufio.NewWriter(io.Discard), stdout: bufio.NewScanner(strings.NewReader(output))}
+		move, err := GetMoveChecked(e, "go depth 1", time.Second, 0)
+		if err == nil || move != "" {
+			t.Fatalf("faulty search accepted: move=%q err=%v output=%q", move, err, output)
+		}
+	}
+	e := &Engine{stdin: bufio.NewWriter(io.Discard), stdout: bufio.NewScanner(strings.NewReader("info depth 1 score cp 12\nbestmove e2e4\n"))}
+	move, err := GetMoveChecked(e, "go depth 1", time.Second, 0)
+	if err != nil || move != "e2e4" || !e.LastScoreValid || e.LastScoreCp != 12 {
+		t.Fatalf("clean search rejected: move=%q err=%v", move, err)
+	}
+}
+
+func TestPlayGameReportsSearchErrorForEitherSide(t *testing.T) {
+	for _, newIsWhite := range []bool{true, false} {
+		makeEngine := func() *Engine {
+			return &Engine{stdin: bufio.NewWriter(io.Discard), stdout: bufio.NewScanner(strings.NewReader(
+				"readyok\ninfo string error search recovered panic: owned failure\nbestmove e2e4\n"))}
+		}
+		result := PlayGame(makeEngine(), makeEngine(), nil, newIsWhite, GameConfig{MaxMoves: 2, NewDepth: 1, BaseDepth: 1})
+		want := Loss
+		if !newIsWhite {
+			want = Win
+		}
+		if result.Reason != "engine-error" || result.Res != want {
+			t.Fatalf("newIsWhite=%v: recovered fault scored as %+v", newIsWhite, result)
+		}
+	}
+}
 
 func TestStartWithOptionsBeforeWarmup(t *testing.T) {
 	if runtime.GOOS == "windows" {

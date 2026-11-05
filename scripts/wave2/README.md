@@ -101,3 +101,8 @@ Its source recipe explicitly includes Go/assembly build inputs and NGNN1 trainer
 parity fixtures; original full-size embedded nets are unnecessary for this proof.
 Synthetic KEEP results exercise adoption plumbing only. Real fixed-clock gates
 and production admission belong to separately authorized runs.
+
+The process tests also build the real `cmd/sprt` harness and invoke it through
+`campaign_queue.run`. A reported warmup or in-game search error followed by a
+legal bestmove must abort strict play and produce an UNSCORED result with faults;
+it cannot register an A/A control or produce a KEEP.

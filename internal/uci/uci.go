@@ -168,8 +168,8 @@ func startWithAttempts(path, name string, lowPower bool, options []string, attem
 		// The observed failure was a process answering uci/isready but producing no
 		// bestmove, forfeiting every game as "no-move".
 		Send(e, "position startpos")
-		if mv := GetMove(e, "go movetime 200", 10*time.Second, 1500*time.Millisecond); mv == "" {
-			log.Printf("%s (%s): handshakes but emitted no warmup move (attempt %d/%d)", name, path, attempt, attempts)
+		if mv, err := GetMoveChecked(e, "go movetime 200", 10*time.Second, 1500*time.Millisecond); err != nil || mv == "" {
+			log.Printf("%s (%s): warmup search failed: %v (attempt %d/%d)", name, path, err, attempt, attempts)
 			Stop(e)
 			continue
 		}
@@ -212,6 +212,13 @@ func WaitFor(e *Engine, expected string, timeout time.Duration) bool {
 // has arrived by then, it sends UCI "stop" to force one — covering opponents that
 // ignore/overshoot their movetime budget — then waits up to timeout for the reply.
 func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
+	move, _ := GetMoveChecked(e, goCmd, timeout, stopAfter)
+	return move
+}
+
+// GetMoveChecked preserves engine-reported search failures, even if the engine
+// recovers and emits a legal bestmove. Such a search cannot certify a clean game.
+func GetMoveChecked(e *Engine, goCmd string, timeout, stopAfter time.Duration) (string, error) {
 	Send(e, goCmd)
 	start := time.Now()
 	deadline := start.Add(timeout)
@@ -228,6 +235,9 @@ func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
 		}
 		if e.stdout.Scan() {
 			line := e.stdout.Text()
+			if strings.HasPrefix(line, "info string error") {
+				return "", fmt.Errorf("engine search failed: %s", line)
+			}
 			if strings.HasPrefix(line, "info ") {
 				if sc, ok := parseScore(line); ok {
 					e.LastScoreCp = sc
@@ -246,12 +256,14 @@ func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
 							e.Overshoots++
 						}
 					}
-					return parts[1]
+					return parts[1], nil
 				}
 			}
+		} else {
+			return "", fmt.Errorf("engine search stdout closed: %v", e.stdout.Err())
 		}
 	}
-	return ""
+	return "", fmt.Errorf("engine search ended without bestmove")
 }
 
 // Analyze sends goCmd and returns every stdout line up to and including the
@@ -514,7 +526,14 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 			timeout = 180 * time.Second
 		}
 		moveStart := time.Now()
-		mv := GetMove(eng, goCmd, timeout, stopAfter)
+		mv, searchErr := GetMoveChecked(eng, goCmd, timeout, stopAfter)
+		if searchErr != nil {
+			log.Printf("engine-error: %v", searchErr)
+			if newToMove {
+				return GameResult{Loss, "engine-error"}
+			}
+			return GameResult{Win, "engine-error"}
+		}
 		if cfg.TCTimeMs > 0 {
 			// Deduct wall time from the mover's bank; an overshoot past the grace is a
 			// flag (loss on time) and ends the game before the move is even applied.

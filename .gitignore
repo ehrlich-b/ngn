@@ -53,6 +53,7 @@ stockfish-*
 # Temporary test files
 temp_*
 test_*
+!/scripts/wave2/test_net_job.py
 
 # Log files
 *.log

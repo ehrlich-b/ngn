@@ -63,7 +63,7 @@ def summarize(log, pgn, job, returncode):
         faults.append(f'harness exit{returncode}')
     if any(flags):
         faults.append('flag-out')
-    if re.search(r'WATCHDOG|panic:|fatal error:|no-move|illegal-move|PGN capture:|failed UCI', log):
+    if re.search(r'WATCHDOG|panic:|fatal error:|engine-error|no-move|illegal-move|PGN capture:|failed UCI', log):
         faults.append('harness/engine operational fault')
     tags = [dict(re.findall(r'^\[(\w+) "(.*)"\]$', block, re.M))
             for block in re.split(r'(?=\[Event )', pgn) if block.strip()]
@@ -184,7 +184,10 @@ def run(job, registry_path, status_path):
         result = summarize((directory / 'match.log').read_text(),
                            (directory / 'games.pgn').read_text(), job, rc)
     except Exception as error:
-        result = dict(verdict='UNSCORED', faults=[str(error)], harness_exit=rc)
+        faults = [f'invalid harness summary: {error}']
+        if rc:
+            faults.insert(0, f'harness exit{rc}')
+        result = dict(verdict='UNSCORED', faults=faults, harness_exit=rc)
     result.update(name=job['name'], finished_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                   manifest=str(directory / 'manifest.json'), automatic_adoption=False)
     write(result_path, result)
