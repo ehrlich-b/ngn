@@ -26,6 +26,7 @@ var (
 	NULL_MOVE_MIN_DEPTH     = 2   // Minimum depth for null move pruning
 	LMR_FULL_DEPTH          = 3   // Minimum depth for LMR
 	T1104_LMR_CAPTURES      = 0   // Experimental capture reductions (default off)
+	T1104_LMR_DEEPER        = 0   // Optional adaptive verification depth
 	LMR_MOVE_THRESHOLD      = 2   // Start reducing after this many moves
 	FUTILITY_MARGIN         = 101 // Futility per-depth coefficient (margin = FUTILITY_MARGIN*(depth+improving), CG-grounded)
 	FUTILITY_MAX_DEPTH      = 8   // Extended futility pruning depth (W1: was 3, CounterGo prunes quiets to depth 8)
@@ -102,6 +103,7 @@ var TunableSearchParams = []TunableParam{
 	{"NullMoveR", &NULL_MOVE_R, 4, 2, 5},
 	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 2, 1, 6},
 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
+	{"T1104LMRDeeper", &T1104_LMR_DEEPER, 0, 0, 1},
 	{"LMRMoveThreshold", &LMR_MOVE_THRESHOLD, 2, 1, 8},
 	{"T1104LMRCaptures", &T1104_LMR_CAPTURES, 0, 0, 1},
 	{"FutilityMargin", &FUTILITY_MARGIN, 101, 50, 160},
@@ -165,6 +167,23 @@ func singularExtension(score, beta int, isPV bool) int {
 		}
 	}
 	return ext
+}
+
+// lmrVerificationDepth adjusts a reduced move's verification using its scout
+// score. Strong improvements earn a ply; marginal alpha raises save one.
+// The extra ply must obey the same cumulative extension limit as other moves.
+func lmrVerificationDepth(nextDepth, depth, ply, rootDepth, score, bestScore, alpha int) int {
+	if T1104_LMR_DEEPER == 0 {
+		return nextDepth
+	}
+	if score > bestScore+20+2*depth {
+		if nextDepth+1 <= rootDepth-(ply+1)+EXTENSION_BUDGET && nextDepth+1 <= depth+1 {
+			return nextDepth + 1
+		}
+	} else if score <= alpha+20 && nextDepth > 0 {
+		return nextDepth - 1
+	}
+	return nextDepth
 }
 
 // Late Move Pruning thresholds, indexed [improving][depth] (S4, W11). Follows
@@ -2333,7 +2352,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// per-path extension budget bounds the check recursion this re-search opens.
 			if reduction > 0 && score > alpha {
 				info.LMRReSearches++
-				score = -alphaBetaPV(pos, nextDepth, ply+1, -alpha-1, -alpha, false, true, !cutNode, info)
+				verifyDepth := lmrVerificationDepth(nextDepth, depth, ply, info.RootDepth, score, bestScore, alpha)
+				score = -alphaBetaPV(pos, verifyDepth, ply+1, -alpha-1, -alpha, false, true, !cutNode, info)
 				if info.Stopped {
 					info.evaluator.mustPop()
 					pos.UnMakeMove(move, tag, ep, hc)
