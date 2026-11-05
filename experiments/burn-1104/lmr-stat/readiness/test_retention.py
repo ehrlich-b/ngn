@@ -2,6 +2,9 @@
 import json
 from pathlib import Path
 import shlex
+import shutil
+import subprocess
+import tempfile
 import unittest
 
 
@@ -25,12 +28,10 @@ class RetentionRegression(unittest.TestCase):
         for entry in keep:
             self.assertFalse(entry.is_absolute() or '..' in entry.parts)
         for name in HELPERS:
-            helper = ROOT / name
-            require_retained(helper, keep)
-            self.assertEqual(helper.read_bytes(), (BACKUPS / name).read_bytes())
-            # Simulate the reported omission without changing or deleting any file.
-            with self.assertRaisesRegex(AssertionError, 'unretained command dependency'):
-                require_retained(helper, [p for p in keep if p != Path(name)])
+            helper = BACKUPS / name
+            self.assertTrue(helper.is_file(), helper)
+            subprocess.run(['git', 'ls-files', '--error-unmatch', str(helper.relative_to(REPO))],
+                           check=True, stdout=subprocess.DEVNULL)
         plan = json.loads((ROOT / 'readiness-plan.json').read_text())
         require_retained(ROOT / 'readiness-plan.json', keep)
         for row in plan['acceptance'] + plan['gates']:
@@ -43,6 +44,30 @@ class RetentionRegression(unittest.TestCase):
                         self.assertTrue((ROOT / 'evidence/candidate.bundle').is_file())
                     else:
                         require_retained(path, keep)
+
+    def test_registered_helpers_run_without_lane_root_copies(self):
+        plan = json.loads((ROOT / 'readiness-plan.json').read_text())
+        for row in plan['acceptance'] + plan['gates']:
+            for word in shlex.split(row['command']):
+                if word.endswith(('.py', '.sh')):
+                    self.assertTrue((REPO / word).resolve().is_relative_to(REPO), word)
+        # Reproduce retention with only the committed helpers and required evidence.
+        with tempfile.TemporaryDirectory(dir=ROOT / 'tmp') as directory:
+            lane = Path(directory)
+            repo = lane / 'repo'
+            support = repo / BACKUPS.relative_to(REPO)
+            support.mkdir(parents=True)
+            for name in HELPERS:
+                shutil.copyfile(BACKUPS / name, support / name)
+                self.assertFalse((lane / name).exists())
+            (lane / 'evidence').mkdir()
+            shutil.copyfile(ROOT / 'evidence/decisions.json', lane / 'evidence/decisions.json')
+            command = next(row['command'] for row in plan['acceptance'] if row['id'] == 'A9')
+            result = subprocess.run(shlex.split(command), cwd=repo, text=True,
+                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            self.assertEqual(result.returncode, 0, result.stdout)
+            self.assertIn('Headless checks', result.stdout)
+            self.assertFalse((support / 'tmp').exists())
 
 
 if __name__ == '__main__':

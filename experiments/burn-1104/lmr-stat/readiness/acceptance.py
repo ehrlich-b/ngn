@@ -61,8 +61,8 @@ elif mode == 'headless':
     decisions = json.loads(Path('../evidence/decisions.json').read_text())
     assert decisions['mode'] == 'headless' and decisions['questions'] == 0
     assert decisions['prescreen'] == 'deferred-by-brief'
-    for name in ('../identity.sh', '../smoke.sh', '../proof.py', '../acceptance.py'):
-        assert not re.search(r'\binput\s*\(', Path(name).read_text())
+    for name in ('identity.sh', 'smoke.sh', 'proof.py', 'acceptance.py'):
+        assert not re.search(r'\binput\s*\(', (Path(__file__).resolve().parent / name).read_text())
     print('Headless checks use fixed fixture, 1000-node two-game smoke, and no interactive inputs; rig pre-screen deferred as required.')
 else:
     raise SystemExit('unknown acceptance mode')
