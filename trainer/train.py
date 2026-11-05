@@ -1,6 +1,7 @@
-"""Train NGNN1/2/3 on NGNP1 shards or a direct archive; checkpoint/export each epoch."""
+"""Train NGNN1/2/3/6 on NGNP1 shards or a direct archive; checkpoint/export each epoch."""
 
 import argparse
+import hashlib
 from concurrent.futures import ThreadPoolExecutor
 import json
 import math
@@ -101,7 +102,9 @@ def parser() -> argparse.ArgumentParser:
     cli.add_argument("--out", type=Path, required=True)
     cli.add_argument("--hidden", type=int, default=256)
     cli.add_argument("--buckets", type=int, choices=(1, 2, 4, 8), default=1)
-    cli.add_argument("--format", type=int, choices=(1, 2, 3), help="Default: 1 for NB=1, otherwise 2")
+    cli.add_argument("--format", type=int, choices=(1, 2, 3, 6), help="Default: 1 for NB=1, otherwise 2")
+    cli.add_argument("--residual-source", type=Path,
+                     help="NGNN6: owned NGNN3 KB8/B8 zero-lift source (required)")
     cli.add_argument("--kb-map", default="default", help="NGNN3: default or JSON file with 64 bucket IDs")
     cli.add_argument("--king-factorizer", action="store_true",
                      help="NGNN3: learn shared feature rows plus king-bucket residuals; fold at export")
@@ -139,12 +142,26 @@ def main() -> None:
     args.format = args.format or (2 if args.buckets > 1 else 1)
     if args.format == 1 and args.buckets != 1:
         raise ValueError("NGNN1 requires --buckets 1")
-    if args.format != 3 and args.kb_map != "default":
+    if args.format not in (3, 6) and args.kb_map != "default":
         raise ValueError("--kb-map requires --format 3")
-    king_map = load_map(args.kb_map) if args.format == 3 else None
+    residual_model = None
+    if args.format == 6:
+        from trainer.residual_model import ResidualNGNN
+        if (args.residual_source is None or args.king_factorizer or args.kb_map != "default"
+                or args.buckets != 8 or args.precision != "fp32"):
+            raise ValueError("NGNN6 requires --residual-source, --buckets 8, --precision fp32 and no map/factorizer override")
+        source = args.residual_source.read_bytes()
+        residual_model = ResidualNGNN.from_ngnn3(source)
+        if args.hidden != residual_model.hidden:
+            raise ValueError("NGNN6 hidden width differs from its source")
+        args.residual_source_sha256 = hashlib.sha256(source).hexdigest()
+    elif args.residual_source is not None:
+        raise ValueError("--residual-source requires --format 6")
+    king_map = (residual_model.king_map.tolist() if residual_model is not None else
+                load_map(args.kb_map) if args.format in (3, 6) else None)
     if args.king_factorizer and (king_map is None or max(king_map) < 1):
         raise ValueError("King factorizer requires NGNN3 with at least two king buckets")
-    if args.fake_quantize and king_map is None:
+    if args.fake_quantize and (king_map is None or residual_model is not None):
         raise ValueError("Fake quantization requires --format 3")
     if (args.batch < 1 or args.epochs < 1 or args.threads < 1 or args.lr <= 0 or args.k <= 0
             or not 0 <= args.wdl <= 1 or args.positions_per_epoch < 0 or args.weight_decay < 0
@@ -173,14 +190,14 @@ def main() -> None:
                 raise ValueError("NGNP content holdout cannot be combined with --validation-data")
             args.ngnp_split_seed = args.seed if args.ngnp_split_seed is None else args.ngnp_split_seed
             shards = ContentShards(args.data, args.drop_flags, args.min_ply, args.block_records,
-                                   args.format == 3, record_counts,
+                                   args.format in (3, 6), record_counts,
                                    args.ngnp_holdout_modulus, args.ngnp_split_seed)
             validation = shards.holdout()
         else:
             if args.ngnp_split_seed is not None:
                 raise ValueError("--ngnp-split-seed requires --ngnp-holdout-modulus")
-            shards = Shards(args.data, args.drop_flags, args.min_ply, args.block_records, args.format == 3, record_counts)
-            validation = (Shards(args.validation_data, args.drop_flags, args.min_ply, args.block_records, args.format == 3)
+            shards = Shards(args.data, args.drop_flags, args.min_ply, args.block_records, args.format in (3, 6), record_counts)
+            validation = (Shards(args.validation_data, args.drop_flags, args.min_ply, args.block_records, args.format in (3, 6))
                           if args.validation_data else None)
     if record_counts is not None:
         record_counts = {str(Path(p).resolve()): n for p, n in record_counts.items()}
@@ -193,15 +210,18 @@ def main() -> None:
     passes, remainder = divmod(positions, shards.count)
     steps_per_epoch = passes * steps_per_pass + math.ceil(remainder / args.batch)
     total_steps = args.epochs * steps_per_epoch
-    model = NGNN(args.hidden, args.buckets, king_map, args.king_factorizer,
-                 fake_quantize=args.fake_quantize).to(device)
+    model = (residual_model or NGNN(args.hidden, args.buckets, king_map, args.king_factorizer,
+                                    fake_quantize=args.fake_quantize)).to(device)
     decayed = [model.w1, model.o]
     if model.w1_shared is not None:
         decayed.append(model.w1_shared)
-    optimizer = torch.optim.AdamW([
+    groups = [
         {"params": decayed, "weight_decay": args.weight_decay},
         {"params": [model.b1, model.ob], "weight_decay": 0.0},
-    ], lr=args.lr, fused=device.type == "cuda")
+    ]
+    if residual_model is not None:
+        groups = model.optimizer_groups(args.weight_decay)
+    optimizer = torch.optim.AdamW(groups, lr=args.lr, fused=device.type == "cuda")
     first_epoch, step, history = 0, 0, []
     if args.resume:
         checkpoint = torch.load(args.resume, map_location=device, weights_only=True)
@@ -229,7 +249,9 @@ def main() -> None:
                     differences.append(key)
             if args.ngnp_holdout_modulus and saved.get("ngnp_split") != shards.split_receipt:
                 differences.append("ngnp_split")
-        if args.format == 3:
+        if args.format == 6 and saved.get("residual_source_sha256") != args.residual_source_sha256:
+            differences.append("residual_source_sha256")
+        if args.format in (3, 6):
             if saved.get("king_map") != list(king_map):
                 differences.append("king_map")
         if saved.get("validation_data") != args.validation_data:
@@ -255,6 +277,7 @@ def main() -> None:
     if king_map is not None:
         config["king_map"] = list(king_map)
     config["out"], config["resume"] = str(args.out), str(args.resume) if args.resume else None
+    config["residual_source"] = str(args.residual_source) if args.residual_source else None
     config["record_counts"] = str(args.record_counts) if args.record_counts else None
     config["shard_record_counts"] = record_counts
     if args.data_format == "archive":

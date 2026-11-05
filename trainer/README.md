@@ -386,3 +386,9 @@ directory's `files.json`, with each entry containing `bytes`, `sha256`, and
 CPU and memory scope. `--uploads` permits initial transfer into that new lane;
 stop the upload server after transfer and retain the read service for training.
 URLs containing tokens and private descriptors stay out of Git and public logs.
+
+NGNN6 residual training uses `--format 6 --residual-source OWNED.ngn3
+--hidden 768 --buckets 8 --precision fp32` (H32 is reserved for fixtures).
+The source supplies the exact inherited trunk, linear head and king map. See
+[`residual-trainer`](../experiments/wave2-1104/residual-trainer/README.md) for
+quantization, optimizer groups, CPU reproduction and the trained parity packet.

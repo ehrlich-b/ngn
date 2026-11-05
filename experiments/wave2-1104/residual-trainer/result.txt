@@ -1,0 +1,26 @@
+{"command": ["/work/cache/ngn-nnue-training/venv/bin/python", "-m", "unittest", "trainer.tests.test_residual_model"], "affinity": [0, 1], "GOMAXPROCS": "2", "host": "NewPC"}
+.warm start H32: payload=394336, bytes=396860, exact 16 scores
+warm start H768: payload=9463328, bytes=9512956, exact 16 scores
+...two-step gradients: [{'a': 0.0, 'hb': 0.0, 'r': 2.733823299407959, 'rb': 1.0}, {'a': 3.675823211669922, 'hb': 0.130498046875, 'r': 2.0838382244110107, 'rb': 0.8912500000000001}]
+..
+----------------------------------------------------------------------
+Ran 6 tests in 1.192s
+
+OK
+{"exit_code": 0, "elapsed_seconds": 2.273, "cpu_seconds": 2.378, "peak_rss_kib": 833816}
+{"command": ["go", "test", "-p", "1", "-count=1", "./engine", "-run", "^TestWave2ResidualParity", "-timeout", "15s", "-v"], "affinity": [0, 1], "GOMAXPROCS": "2", "host": "NewPC"}
+=== RUN   TestWave2ResidualParityRecords
+    ngnn6_parity_test.go:122: 32 NumPy/Go integer cases, eight buckets x mirrors x STM; 32 nonzero scores differ from NGNN3; compact/wide
+--- PASS: TestWave2ResidualParityRecords (0.07s)
+=== RUN   TestWave2ResidualParityTransitions
+    ngnn6_parity_test.go:201: NumPy/Go special transitions: captures=16 castles=8 promotions=8 ep=8 nulls=36 mirrors=8 buckets=8
+--- PASS: TestWave2ResidualParityTransitions (0.01s)
+=== RUN   TestWave2ResidualParityH768Search
+    ngnn6_parity_test.go:209: run residual-convert/run.py h768 with an external scratch directory
+--- SKIP: TestWave2ResidualParityH768Search (0.00s)
+=== RUN   TestWave2ResidualParityTrained
+    ngnn6_trainer_test.go:83: 16 trained NumPy/Go exact integer scores; all nonzero residuals; eight buckets x both STM; compact/wide
+--- PASS: TestWave2ResidualParityTrained (0.01s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.098s
+{"exit_code": 0, "elapsed_seconds": 0.305, "cpu_seconds": 0.359, "peak_rss_kib": 135040}
