@@ -66,6 +66,18 @@ The full short suite includes kernel tests, so the G2 runner refuses it on
 forge hosts (including `forge2-vm`) with exit 75. That gate requires a suitable
 non-forge host; fragment success does not satisfy it.
 
+If readiness rejects G2 for this host restriction, keep the candidate blocked.
+On a suitable non-forge host, restore the committed candidate and retained
+readiness plan, then run from the repository root:
+
+```sh
+nice -n 10 python3 experiments/wave2-1104/qchecks/check.py run G2 -- nice -n 10 go test -p 2 -short -count=1 ./...
+```
+
+Regenerate the complete readiness evidence there against that same committed
+HEAD before accepting the candidate. Keep G2 in the plan; the named fragment
+and earlier short-suite receipts cannot replace its current-HEAD execution.
+
 Execution transcripts, native wait4 exit/resource receipts and the generated
 candidate result live outside the checkout in `../evidence/qchecks/`. The
 committed result file is an expected-value fixture; this preserves reviewable
