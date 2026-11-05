@@ -1,0 +1,32 @@
+diff --git a/engine/cache.go b/engine/cache.go
+--- a/engine/cache.go
++++ b/engine/cache.go
+@@ -165,12 +165,23 @@
+ }
+ 
+ func (c *Cache) Get(hash uint64) (Move, int16, int8, NodeType, bool, bool) {
++	if c.mode == TTSynchronized {
++		return c.getSynchronized(hash)
++	}
++	return c.getDirect(hash)
++}
++
++// Keep locking and its deferred unlock off the ordinary direct-probe path.
++func (c *Cache) getSynchronized(hash uint64) (Move, int16, int8, NodeType, bool, bool) {
+ 	first := c.index(hash)
+-	if c.mode == TTSynchronized {
+-		lock := &c.stripes[(first/ttWays)%ttStripeCount]
+-		lock.Lock()
+-		defer lock.Unlock()
+-	}
++	lock := &c.stripes[(first/ttWays)%ttStripeCount]
++	lock.Lock()
++	defer lock.Unlock()
++	return c.getDirect(hash)
++}
++
++func (c *Cache) getDirect(hash uint64) (Move, int16, int8, NodeType, bool, bool) {
++	first := c.index(hash)
+ 	for i := first; i < first+ttWays; i++ {
+ 		record := c.items[i]
+ 		if record.payload&ttOccupied != 0 && record.hash == hash {

@@ -1,0 +1,63 @@
+package engine
+
+import (
+	"math/rand"
+	"testing"
+)
+
+// Keep the original probe as the oracle for every returned field. Fill the
+// records directly so all ways, occupied hash zero, duplicate keys, negative
+// scores, empty moves, collisions, and misses are exercised independently of Set.
+func TestHotspotGetEquivalence(t *testing.T) {
+	type answer struct {
+		move      Move
+		score     int16
+		depth     int8
+		bound     NodeType
+		found, pv bool
+	}
+	query := func(c *Cache, hash uint64) answer {
+		m, s, d, b, ok, pv := c.Get(hash)
+		return answer{m, s, d, b, ok, pv}
+	}
+	oracle := func(c *Cache, hash uint64) answer {
+		first := c.index(hash)
+		for i := first; i < first+ttWays; i++ {
+			r := c.items[i]
+			if r.payload&ttOccupied != 0 && r.hash == hash {
+				m, s, d, b, _, pv := Unpack(r.payload)
+				return answer{m, s, d, b, true, pv}
+			}
+		}
+		return answer{}
+	}
+	rng := rand.New(rand.NewSource(1104))
+	for _, mode := range []TTMode{TTDirect, TTSynchronized} {
+		c := newCacheWithMode(1, mode)
+		for trial := 0; trial < 256; trial++ {
+			// Every key hashes to cluster zero; alternating duplicates prove
+			// that the first occupied matching way still wins.
+			keys := []uint64{0, uint64(c.mask) + 1, 2 * (uint64(c.mask) + 1), 3 * (uint64(c.mask) + 1)}
+			for way := 0; way < ttWays; way++ {
+				key := keys[way]
+				if trial%2 == 0 {
+					key = 0
+				}
+				payload := Pack(Move(rng.Uint32()&uint32(ttMoveMask)), int16(rng.Uint32()), int8(rng.Intn(128)), NodeType(1+rng.Intn(3)), uint16(trial), way%2 == 0)
+				if trial&(1<<way) == 0 {
+					payload &^= ttOccupied
+				}
+				c.items[way] = ttRecord{key, payload}
+			}
+			for _, key := range append(keys, 4*(uint64(c.mask)+1)) {
+				if got, want := query(c, key), oracle(c, key); got != want {
+					t.Fatalf("mode=%d trial=%d key=%x got=%+v want=%+v", mode, trial, key, got, want)
+				}
+			}
+		}
+		c.Clear()
+		if got := query(c, 0); got != (answer{}) {
+			t.Fatalf("cleared mode=%d got=%+v", mode, got)
+		}
+	}
+}

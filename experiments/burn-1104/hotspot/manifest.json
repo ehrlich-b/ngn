@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "base": "6d3168b8c5f15532cc7a352d05465a77ab50f361",
+  "patch_sha256": "13fca551f7acd2a176c310af15e72bbc50fd14e3b4cec619cec11ab141b66106",
+  "toolchain": "go1.27.2 linux/amd64; GOAMD64=v3; go build -p 2 -trimpath; identical settings for base and candidate",
+  "command": "nice -n 10 python3 experiments/burn-1104/hotspot/check.py --out ../evidence/hotspot",
+  "implementation": "Split Cache.Get synchronized locking/defer into a slow helper; retain the original direct probe loop, first-match order and return tuple. No search or pruning changes.",
+  "selection": "Embedded-net cold fixed search at depth 20, position 0, Threads 1, CPU 3. Cache.Get largest flat function: 13.61% (0.52s of 3.82s samples); evidence/depth20-top.txt. Initial depth-10 and depth-15 profiles were too short for stable selection.",
+  "focused_fixture": "cache_get_test.go.txt",
+  "corpus": "positions.json",
+  "bounded_check": {
+    "positions": 12,
+    "depth": 4,
+    "threads": 1,
+    "backends": [
+      "hce",
+      "nnue (LoadDefaultNet)"
+    ],
+    "timeout_seconds": 120
+  },
+  "full_qualification": {
+    "status": "pending timed run on rig; default engine unchanged; no KEEP or speed claim",
+    "pending_requirements_verbatim": "Build the base from a worktree at the starting head and the candidate from the final head, both with 'GOAMD64=v3 go build -trimpath -o build/sp-X ./cmd/speedprobe', then run 'nice -n 10 python3 scripts/speedcheck.py build/sp-base build/sp-new --net engine/nets/ngn-h512-81215229.nnue --cpu 3 --depth 12 --duration 10 --repeats 8 --out evidence/speed.json'. Identity in evidence/speed.json must be equal for both backends (exact nodes, scores and moves): a difference means the change altered play, and the branch then carries no engine change. KEEP needs a mean of repeat_gain_pct at or above +1.0 for the nnue backend with at least 7 of 8 repeats positive; otherwise SHELVED, with the patch kept as evidence/candidate.patch and no engine change on the branch. Either is a complete result; no tuning retries. final.md gives the gain and the profile share before and after. Registered gates pass.",
+    "speedcheck_argv": "nice -n 10 python3 scripts/speedcheck.py build/sp-base build/sp-new --net engine/nets/ngn-h512-81215229.nnue --cpu 3 --depth 12 --duration 10 --repeats 8 --out evidence/speed.json",
+    "candidate_preparation": "Create the base worktree at base and the candidate worktree at final committed HEAD, then git apply --check and git apply experiments/burn-1104/hotspot/candidate.patch in the candidate worktree before building. Keep build products and timing evidence outside the deliverable checkout.",
+    "build_command": "GOAMD64=v3 go build -trimpath -o build/sp-X ./cmd/speedprobe",
+    "identity": "exact nodes, scores and moves for both backends; mismatch means no engine change",
+    "decision": "KEEP only if mean nnue repeat_gain_pct >= +1.0 and >=7 of 8 repeats positive; otherwise SHELVED with evidence/candidate.patch and no engine change; no tuning retries"
+  },
+  "headless_decision": "Keep one opt-in patch and defer the specified full timing/adoption to the rig; no questions or dialogs are needed.",
+  "reference_format": "Same patch/runner/manifest structure as ngn-speed-evasions-build-1104a; retained local source used."
+}
