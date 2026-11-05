@@ -790,6 +790,9 @@ func (info *SearchInfo) countNode() bool {
 		return false
 	}
 	info.Nodes++
+	if info.evaluator != nil && info.evaluator.nodeObserver != nil {
+		info.evaluator.nodeObserver()
+	}
 	info.publishNodesIfDue(false)
 	if info.maxNodes != 0 && info.Nodes >= info.maxNodes {
 		info.observeTermination(searchTerminationNodeCap)

@@ -40,6 +40,7 @@ def main():
     parser.add_argument("baseline")
     parser.add_argument("candidate")
     parser.add_argument("--net", required=True)
+    parser.add_argument("--candidate-net", help="candidate network (defaults to --net)")
     parser.add_argument("--cpu", type=int, default=2)
     parser.add_argument("--depth", type=int, default=9)
     parser.add_argument("--duration", type=float, default=10)
@@ -52,10 +53,12 @@ def main():
     result = {"baseline_sha256": digest(args.baseline), "candidate_sha256": digest(args.candidate),
               "net_sha256": digest(args.net), "cpu": args.cpu, "depth": args.depth,
               "duration": args.duration, "repeats": args.repeats, "identity": {}, "trials": []}
+    candidate_net = args.candidate_net or args.net
+    result["candidate_net_sha256"] = digest(candidate_net)
     output = Path(args.out)
     for backend, net in [("hce", ""), ("nnue", args.net)]:
         a = probe(args.baseline, args.cpu, "identity", net, args.depth, args.duration)
-        b = probe(args.candidate, args.cpu, "identity", net, args.depth, args.duration)
+        b = probe(args.candidate, args.cpu, "identity", candidate_net if net else "", args.depth, args.duration)
         if identity(a) != identity(b):
             result["identity"][backend] = {"equal": False, "baseline": a, "candidate": b}
             output.write_text(json.dumps(result, indent=2) + "\n")
@@ -72,7 +75,8 @@ def main():
                             order.reverse()
                         for side in order:
                             binary = args.baseline if side == "baseline" else args.candidate
-                            row = probe(binary, args.cpu, "timed", net, args.depth, args.duration, position)[0]
+                            selected_net = candidate_net if side == "candidate" and net else net
+                            row = probe(binary, args.cpu, "timed", selected_net, args.depth, args.duration, position)[0]
                             pair[side] = row
                         trial = dict(repeat=repeat, position=position, backend=backend, order=order,
                                      ratio=pair["candidate"]["nps"] / pair["baseline"]["nps"], **pair)

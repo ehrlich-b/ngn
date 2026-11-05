@@ -17,22 +17,23 @@ const (
 	ngnn1ScoreLimit = 24999
 )
 
-// NGNN1Network owns validated, immutable NGNN1, NGNN2 or NGNN3 weights. Workers share this
+// NGNN1Network owns validated, immutable NGNN1, NGNN2, NGNN3 or NGNN5 weights. Workers share this
 // object; their accumulators never live here. All arithmetic remains exact
 // even for the full int16 weight range permitted by the file format.
 type NGNN1Network struct {
-	hidden       int
-	version      int
-	buckets      int // zero means one for existing in-package single-row networks
-	kingBuckets  int
-	kingMap      [64]uint8
-	weights      []int16
-	bias         []int16
-	output       []int16
-	outputBias   int32 // first bucket, also the sole NGNN1 output bias
-	otherBiases  []int32
-	compactInput bool // loader-proved int16 accumulator bounds and small output
-	smallOutput  bool // immutable loader-derived bound: every output weight is within [-128, 128]
+	hidden        int
+	version       int
+	buckets       int // zero means one for existing in-package single-row networks
+	kingBuckets   int
+	kingMap       [64]uint8
+	weights       []int16
+	threatWeights map[uint32][]int8 // NGNN5 nonzero input rows; missing rows are zero
+	bias          []int16
+	output        []int16
+	outputBias    int32 // first bucket, also the sole NGNN1 output bias
+	otherBiases   []int32
+	compactInput  bool // loader-proved int16 accumulator bounds and small output
+	smallOutput   bool // immutable loader-derived bound: every output weight is within [-128, 128]
 }
 
 func (n *NGNN1Network) valid() bool {
@@ -49,7 +50,7 @@ func (n *NGNN1Network) bucketCount() int {
 	return n.buckets
 }
 
-// LoadNGNN1 accepts NGNN1/2/3, preserving the original API. No partial network is
+// LoadNGNN1 accepts NGNN1/2/3/5, preserving the original API. No partial network is
 // returned after an I/O, header, length, or checksum error.
 func LoadNGNN1(path string) (*NGNN1Network, error) {
 	f, err := os.Open(path)
@@ -81,6 +82,8 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 			return nil, fmt.Errorf("NGNN2: invalid bucket count %d", nb)
 		}
 		constants = 16
+	case string(header[:4]) == "NGN5" && version == 5:
+		return readNGNN5(r, header)
 	case string(header[:4]) == "NGN3" && version == 3:
 		header = storage[:96]
 		if _, err := io.ReadFull(r, header[24:]); err != nil {
@@ -171,6 +174,12 @@ func (n *NGNN1Network) row(feature int) []int16 {
 // refresh writes White then Black, independently of engine Color numbering.
 // int32 covers B1 + all 64 squares at the extreme int16 weight values.
 func (n *NGNN1Network) refresh(pos *Position, accum []int32) {
+	if n.version == 5 {
+		for p, color := range [...]Color{White, Black} {
+			n.ngnn5RefreshPerspective(pos, color, accum[p*n.hidden:(p+1)*n.hidden])
+		}
+		return
+	}
 	for p, color := range [...]Color{White, Black} {
 		context := ngnn3Context{}
 		if n.version == 3 {

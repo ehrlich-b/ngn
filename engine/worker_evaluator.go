@@ -39,6 +39,7 @@ type workerEvaluator struct {
 	depth              int
 	staticOracle       func(*Position) int
 	transitionObserver func(*Position, *workerEvaluator)
+	nodeObserver       func() // Optional diagnostics at the exact search node counter.
 }
 
 func (m evaluatorModel) newWorker(hce *hceEvaluator) (*workerEvaluator, error) {
@@ -77,7 +78,10 @@ func (e *workerEvaluator) Reset(pos *Position) error {
 	return nil
 }
 
-type workerEvalMove struct{ delta ngnn1Delta }
+type workerEvalMove struct {
+	delta        ngnn1Delta
+	threatBefore *Bitboard
+}
 type workerEvalNull struct{}
 
 func (e *workerEvaluator) PrepareMove(pos *Position, move Move) (workerEvalMove, error) {
@@ -87,6 +91,10 @@ func (e *workerEvaluator) PrepareMove(pos *Position, move Move) (workerEvalMove,
 	if e.nnue != nil {
 		if pos == nil || !validPiece(move.MovingPiece()) {
 			return workerEvalMove{}, errWorkerEvaluator
+		}
+		if e.nnue.network.version == 5 {
+			before := pos.Board
+			return workerEvalMove{delta: e.nnue.network.ngnn3MoveDelta(pos, move), threatBefore: &before}, nil
 		}
 		if e.nnue.network.version == 3 {
 			return workerEvalMove{delta: e.nnue.network.ngnn3MoveDelta(pos, move)}, nil
@@ -101,7 +109,11 @@ func (e *workerEvaluator) PushMove(pos *Position, transition workerEvalMove) err
 	}
 	e.depth++
 	if e.nnue != nil {
-		e.nnue.pushPosition(e.depth, transition.delta, pos)
+		if e.nnue.network.version == 5 {
+			e.nnue.pushNGNN5(e.depth, transition.delta, pos, transition.threatBefore)
+		} else {
+			e.nnue.pushPosition(e.depth, transition.delta, pos)
+		}
 	}
 	e.observeTransition(pos)
 	return nil
