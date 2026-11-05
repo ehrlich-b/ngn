@@ -27,6 +27,7 @@ var (
 	NULL_MOVE_R             = 4   // Null move reduction depth
 	NULL_MOVE_MIN_DEPTH     = 2   // Minimum depth for null move pruning
 	LMR_FULL_DEPTH          = 3   // Minimum depth for LMR
+	T1104_LMR_FRACTIONAL    = 0   // Experimental fractional quiet reductions (default off)
 	T1104_LMR_CAPTURES      = 0   // Experimental capture reductions (default off)
 	T1104_LMR_DEEPER        = 0   // Optional adaptive verification depth
 	LMR_MOVE_THRESHOLD      = 2   // Start reducing after this many moves
@@ -114,6 +115,7 @@ var TunableSearchParams = []TunableParam{
 	{"T1104LMRDeeper", &T1104_LMR_DEEPER, 0, 0, 1},
 	{"LMRMoveThreshold", &LMR_MOVE_THRESHOLD, 2, 1, 8},
 	{"T1104LMRCaptures", &T1104_LMR_CAPTURES, 0, 0, 1},
+	{"T1104LMRFractional", &T1104_LMR_FRACTIONAL, 0, 0, 1},
 	{"FutilityMargin", &FUTILITY_MARGIN, 101, 50, 160},
 	{"FutilityMaxDepth", &FUTILITY_MAX_DEPTH, 8, 1, 8},
 	{"ReverseFutilityMargin", &REVERSE_FUTILITY_MARGIN, 69, 40, 300},
@@ -244,12 +246,18 @@ var SearchToggles = struct {
 // killer adjustments, and the depth cap remain on top.
 var lmrTable [64][64]int
 
+const lmrPly = 1024
+
+var lmrFractionalTable [64][64]int
+
 func init() { rebuildLMRTable() }
 
 func rebuildLMRTable() {
 	for d := 1; d < 64; d++ {
 		for m := 1; m < 64; m++ {
-			lmrTable[d][m] = int(float64(tuneLMRBase) + math.Log(float64(d))*math.Log(float64(m))/float64(tuneLMRDivisor))
+			base := float64(tuneLMRBase) + math.Log(float64(d))*math.Log(float64(m))/float64(tuneLMRDivisor)
+			lmrTable[d][m] = int(base)
+			lmrFractionalTable[d][m] = int(base * lmrPly)
 		}
 	}
 }
@@ -341,6 +349,37 @@ func quietLMRReduction(depth, legalTried int, isPV, improving bool, histScore in
 		r = 0
 	}
 	return r
+}
+
+// quietLMRFractionalReduction applies the fractional-LMR / combined-history
+// idea using NGN's own log table and history scale. GetHistoryScore supplies
+// statScore = main + continuation + follow-up, with absent ancestors omitted.
+// Keep the table and every adjustment in 1/1024 ply until the final nearest-ply
+// rounding; in particular, do not quantize history to h1NormalizedLMRTerm.
+// The cut-node bump is experimental too; the legacy path has no such bump.
+func quietLMRFractionalReduction(depth, legalTried int, isPV, improving bool, statScore int, nodeTTPv, killer, cutNode bool) int {
+	d, m := min(depth, 63), min(legalTried, 63)
+	r := lmrFractionalTable[d][m]
+	if !isPV {
+		r += lmrPly
+	}
+	if !improving {
+		r += lmrPly
+	}
+	if cutNode {
+		r += lmrPly
+	}
+	if nodeTTPv {
+		r -= lmrPly
+	}
+	if killer {
+		r -= lmrPly
+	}
+	stat := statScore * lmrPly / tuneHistoryLMRDivisor
+	stat = max(-tuneHistoryLMRCap*lmrPly, min(stat, tuneHistoryLMRCap*lmrPly))
+	r -= stat
+	r = max(0, min(r, max(0, depth-2)*lmrPly))
+	return (r + lmrPly/2) / lmrPly
 }
 
 // lmrCaptureReduction stays below even the least-reduced eligible quiet at
@@ -1070,6 +1109,10 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 							m = 63
 						}
 						reduction = lmrTable[d][m]
+						if T1104_LMR_FRACTIONAL != 0 {
+							statScore := info.history.GetHistoryScore(move, savedLast, EmptyMove)
+							reduction = quietLMRFractionalReduction(currentDepth, legalRoot, true, true, statScore, false, info.history.IsKillerMove(move, 0), false)
+						}
 						if reduction >= currentDepth-1 {
 							reduction = currentDepth - 2
 						}
@@ -2351,7 +2394,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				!move.IsCapture() && move.PromoType() == NoType && !inCheck && !givesCheck {
 
 				histScore := info.history.GetHistoryScore(move, savedLast, prev2, prev4, prev6)
-				reduction = quietLMRReduction(depth, legalTried, isPV, improving, histScore, nodeTTPv, info.history.IsKillerMove(move, ply))
+				if T1104_LMR_FRACTIONAL != 0 {
+					reduction = quietLMRFractionalReduction(depth, legalTried, isPV, improving, histScore, nodeTTPv, info.history.IsKillerMove(move, ply), cutNode)
+				} else {
+					reduction = quietLMRReduction(depth, legalTried, isPV, improving, histScore, nodeTTPv, info.history.IsKillerMove(move, ply))
+				}
 				// Track LMR usage
 				if reduction > 0 {
 					info.LMRReductions++

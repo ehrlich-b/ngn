@@ -1,0 +1,24 @@
+[Event "NGN campaign"]
+[Site "rig"]
+[Date "2026.11.05"]
+[Round "1.1"]
+[White "candidate"]
+[Black "base"]
+[Result "1/2-1/2"]
+[Termination "max-moves"]
+[TimeControl "0+0"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 Nf6 4. O-O Nxe4 5. Re1 Nd6 6. Bxc6 dxc6 7. Rxe5+ Be7 8. Qe2 Be6 9. d3 O-O 10. Ng5 Bxg5 1/2-1/2
+
+[Event "NGN campaign"]
+[Site "rig"]
+[Date "2026.11.05"]
+[Round "1.2"]
+[White "base"]
+[Black "candidate"]
+[Result "1/2-1/2"]
+[Termination "max-moves"]
+[TimeControl "0+0"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 Nf6 4. Nc3 Bc5 5. Bxc6 dxc6 6. h3 Qd6 7. d3 Be6 8. Na4 Bb4+ 9. c3 Ba5 10. b4 Bb6 1/2-1/2
+

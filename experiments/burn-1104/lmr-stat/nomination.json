@@ -1,0 +1,19 @@
+{
+  "option": "T1104LMRFractional=1",
+  "verdict": "DEFERRED",
+  "gate": "rig composite gate",
+  "reason": "Run the required 40000-node pre-screen on the rig; this host runs only the two-game harness smoke.",
+  "penta_elo": null,
+  "interval": null,
+  "games": 0,
+  "W": 0,
+  "D": 0,
+  "L": 0,
+  "pentanomial_counts": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ]
+}
