@@ -209,6 +209,48 @@ all arithmetic fits int64 even at the int16 endpoints. FEN parsing ignores
 castling/en-passant/counters, because this network uses only pieces and STM.
 `Network.evaluate_record()` accepts a decoded NumPy NGNP1 record.
 
+### Bounded exported-integer validation diagnostic
+
+`trainer.quantized_validation` measures the actual NGNN3 export using the
+independent integer reference, including mirrored king inputs, STM ordering,
+SCReLU saturation, both signed truncating divisions and the engine cp clamp.
+It needs only NumPy and accepts precomputed **STM-relative cp** from the same
+float checkpoint, before export, as one JSON number or `null` per line.
+
+```bash
+python3 -m trainer.quantized_validation \
+  --network epoch-0001.nnue --records selected-validation.ngnp \
+  --float-predictions validation-float-cp.jsonl --max-records 32 \
+  --lambda 0.75 --k 400 --out integer-diagnostic.json
+```
+
+Supply the existing held-out stream, in its existing order, with exactly the
+same flag/ply filters, board split and lambda/K used by float validation.
+The CLI's raw NGNP1 file must already contain those selected records; it does
+not select or filter a partition. The Python `evaluate_stream` API accepts an
+iterable of NumPy NGNP1 records directly, so an existing holdout reader can
+supply records without materializing the corpus. The mandatory positive cap
+consumes no lookahead record or prediction; memory is independent of stream
+length. JSONL predictions must remain aligned even where unknown (`null`).
+Absent/exhausted predictions also remain unknown. Empty metrics are `null`.
+
+The report includes counts, integer probability-MSE loss on all processed
+records, paired float/integer losses and their difference, and signed/absolute/
+squared cp-error sums and means (plus RMSE and max absolute error), overall
+and for every existing material output bucket. Both differences are **integer
+minus float** and use only records with known float predictions. Loss uses
+`(sigmoid(cp/K) - (lambda*sigmoid(score_stm/K)+(1-lambda)*result_stm))^2`,
+matching the float objective. QA=255, QB=64 and score scale=400 are recorded
+separately from the configurable sigmoid K.
+
+This is a separate diagnostic: existing float validation metrics, splits,
+checkpoint selection and default play are unchanged. Never select checkpoints
+on claim games. The 32-record H32 fixture, reproducible command and JSON report
+are in `experiments/wave2-1104/integer-validation/`; run
+`python3 -m unittest trainer.tests.test_quantized_validation` for its controls.
+A full H768 corpus diagnostic and any play decision require a completed rig
+job; synthetic fixture success establishes no Elo improvement.
+
 ## Reproducible owned fixtures and smoke data
 
 ```bash
