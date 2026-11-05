@@ -1,0 +1,58 @@
+GOMAXPROCS=2 nice -n 10 go test -p 1 -count=1 ./engine -run ^TestWave2ResidualEval -timeout 15s -v
+=== RUN   TestWave2ResidualEvalOracle
+=== RUN   TestWave2ResidualEvalOracle/negative_inner_truncation
+=== RUN   TestWave2ResidualEvalOracle/negative_cp_truncation
+=== RUN   TestWave2ResidualEvalOracle/positive_unclamped_linear_canceled
+=== RUN   TestWave2ResidualEvalOracle/negative_unclamped_linear_canceled
+=== RUN   TestWave2ResidualEvalOracle/positive_final_clamp
+=== RUN   TestWave2ResidualEvalOracle/negative_final_clamp
+=== RUN   TestWave2ResidualEvalOracle/bottleneck_capped
+=== RUN   TestWave2ResidualEvalOracle/input_capped
+=== RUN   TestWave2ResidualEvalOracle/negative_input_clipped
+=== RUN   TestWave2ResidualEvalOracle/positive_clamp_edge_canceled
+=== RUN   TestWave2ResidualEvalOracle/negative_clamp_edge_canceled
+=== RUN   TestWave2ResidualEvalOracle/separate_branch_truncations
+=== NAME  TestWave2ResidualEvalOracle
+    ngnn6_eval_test.go:215: both STM, eight buckets, 192 nonzero oracle cases, zero projection and 12 signed/clamp cases
+--- PASS: TestWave2ResidualEvalOracle (0.03s)
+    --- PASS: TestWave2ResidualEvalOracle/negative_inner_truncation (0.00s)
+    --- PASS: TestWave2ResidualEvalOracle/negative_cp_truncation (0.00s)
+    --- PASS: TestWave2ResidualEvalOracle/positive_unclamped_linear_canceled (0.00s)
+    --- PASS: TestWave2ResidualEvalOracle/negative_unclamped_linear_canceled (0.00s)
+    --- PASS: TestWave2ResidualEvalOracle/positive_final_clamp (0.00s)
+    --- PASS: TestWave2ResidualEvalOracle/negative_final_clamp (0.00s)
+    --- PASS: TestWave2ResidualEvalOracle/bottleneck_capped (0.00s)
+    --- PASS: TestWave2ResidualEvalOracle/input_capped (0.01s)
+    --- PASS: TestWave2ResidualEvalOracle/negative_input_clipped (0.00s)
+    --- PASS: TestWave2ResidualEvalOracle/positive_clamp_edge_canceled (0.00s)
+    --- PASS: TestWave2ResidualEvalOracle/negative_clamp_edge_canceled (0.00s)
+    --- PASS: TestWave2ResidualEvalOracle/separate_branch_truncations (0.00s)
+=== RUN   TestWave2ResidualEvalStorageBounds
+=== RUN   TestWave2ResidualEvalStorageBounds/positive_endpoint
+=== RUN   TestWave2ResidualEvalStorageBounds/positive_overflow
+=== RUN   TestWave2ResidualEvalStorageBounds/negative_endpoint
+=== RUN   TestWave2ResidualEvalStorageBounds/negative_overflow
+=== RUN   TestWave2ResidualEvalStorageBounds/large_linear_output
+=== RUN   TestWave2ResidualEvalStorageBounds/full_int16
+--- PASS: TestWave2ResidualEvalStorageBounds (0.02s)
+    --- PASS: TestWave2ResidualEvalStorageBounds/positive_endpoint (0.00s)
+    --- PASS: TestWave2ResidualEvalStorageBounds/positive_overflow (0.00s)
+    --- PASS: TestWave2ResidualEvalStorageBounds/negative_endpoint (0.00s)
+    --- PASS: TestWave2ResidualEvalStorageBounds/negative_overflow (0.00s)
+    --- PASS: TestWave2ResidualEvalStorageBounds/large_linear_output (0.01s)
+    --- PASS: TestWave2ResidualEvalStorageBounds/full_int16 (0.01s)
+=== RUN   TestWave2ResidualEvalWalk
+    ngnn6_eval_test.go:380: wide=false zero=false: four 128-ply walks; castles=1 ep=1 promotions=1 mirrors=37 buckets=415 nulls=506
+    ngnn6_eval_test.go:380: wide=false zero=true: four 128-ply walks; castles=1 ep=1 promotions=1 mirrors=37 buckets=415 nulls=506
+    ngnn6_eval_test.go:380: wide=true zero=false: four 128-ply walks; castles=1 ep=1 promotions=1 mirrors=37 buckets=415 nulls=506
+    ngnn6_eval_test.go:380: wide=true zero=true: four 128-ply walks; castles=1 ep=1 promotions=1 mirrors=37 buckets=415 nulls=506
+--- PASS: TestWave2ResidualEvalWalk (0.13s)
+=== RUN   TestWave2ResidualEvalUCIIdentity
+    ngnn6_eval_test.go:457: EvalFile ngnn6 backend, residual-only reload invalidation, private workers, corrupt reload fail-closed
+--- PASS: TestWave2ResidualEvalUCIIdentity (0.04s)
+=== RUN   TestWave2ResidualEvalDefaultH768Zero
+    ngnn6_eval_test.go:527: embedded H768 exact NGNN3 identity through compact/wide, both STM and all buckets, nonzero A/HB, zero R/RB; residual numeric bytes=49504
+--- PASS: TestWave2ResidualEvalDefaultH768Zero (0.10s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.329s
+{"exit_code": 0, "elapsed_seconds": 8.438, "cpu_seconds": 6.063, "peak_rss_kib": 266344, "diagnostic_only": true}

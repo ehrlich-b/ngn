@@ -1,0 +1,168 @@
+{
+  "accum": [
+    -32768,
+    -256,
+    -1,
+    0,
+    1,
+    63,
+    64,
+    127,
+    254,
+    255,
+    256,
+    32767
+  ],
+  "walks": [
+    {
+      "fen": "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
+      "first": "e1g1"
+    },
+    {
+      "fen": "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1",
+      "first": "e5d6"
+    },
+    {
+      "fen": "1r2k3/P7/8/8/8/8/8/4K3 w - - 0 1",
+      "first": "a7b8q"
+    },
+    {
+      "fen": "7k/8/8/8/8/8/8/3K4 w - - 0 1",
+      "first": "d1e1"
+    }
+  ],
+  "arithmetic": [
+    {
+      "name": "negative inner truncation",
+      "lb": 41,
+      "rb": -41,
+      "hb": 65,
+      "l": -1,
+      "a": 1,
+      "r": -64,
+      "x": 1,
+      "want": -1
+    },
+    {
+      "name": "negative cp truncation",
+      "lb": -40,
+      "rb": -40,
+      "hb": -63,
+      "l": 0,
+      "a": 0,
+      "r": -64,
+      "x": 255,
+      "want": 0
+    },
+    {
+      "name": "positive unclamped linear canceled",
+      "lb": 1030200,
+      "rb": -122400,
+      "hb": 0,
+      "l": 0,
+      "a": 0,
+      "r": 0,
+      "x": 255,
+      "want": 22250
+    },
+    {
+      "name": "negative unclamped linear canceled",
+      "lb": -1030200,
+      "rb": 122400,
+      "hb": 0,
+      "l": 0,
+      "a": 0,
+      "r": 0,
+      "x": 255,
+      "want": -22250
+    },
+    {
+      "name": "positive final clamp",
+      "lb": 1020000,
+      "rb": 40800,
+      "hb": 0,
+      "l": 0,
+      "a": 0,
+      "r": 0,
+      "x": 256,
+      "want": 24999
+    },
+    {
+      "name": "negative final clamp",
+      "lb": -1020000,
+      "rb": -40800,
+      "hb": 0,
+      "l": 0,
+      "a": 0,
+      "r": 0,
+      "x": -1,
+      "want": -24999
+    },
+    {
+      "name": "bottleneck capped",
+      "lb": 0,
+      "rb": 0,
+      "hb": 200000,
+      "l": 0,
+      "a": 0,
+      "r": 64,
+      "x": 256,
+      "want": 400
+    },
+    {
+      "name": "input capped",
+      "lb": 0,
+      "rb": 0,
+      "hb": 0,
+      "l": 0,
+      "a": 64,
+      "r": 64,
+      "x": 32767,
+      "want": 400
+    },
+    {
+      "name": "negative input clipped",
+      "lb": 0,
+      "rb": 0,
+      "hb": 0,
+      "l": 0,
+      "a": 64,
+      "r": 64,
+      "x": -32768,
+      "want": 0
+    },
+    {
+      "name": "positive clamp edge canceled",
+      "lb": 1020000,
+      "rb": -82,
+      "hb": 0,
+      "l": 0,
+      "a": 0,
+      "r": 0,
+      "x": 0,
+      "want": 24998
+    },
+    {
+      "name": "negative clamp edge canceled",
+      "lb": -1020000,
+      "rb": 82,
+      "hb": 0,
+      "l": 0,
+      "a": 0,
+      "r": 0,
+      "x": 0,
+      "want": -24998
+    },
+    {
+      "name": "separate branch truncations",
+      "lb": 40,
+      "rb": 40,
+      "hb": 0,
+      "l": 0,
+      "a": 0,
+      "r": 0,
+      "x": 0,
+      "want": 0
+    }
+  ]
+}

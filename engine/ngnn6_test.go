@@ -106,8 +106,8 @@ func TestWave2ResidualFormatOracle(t *testing.T) {
 			t.Fatalf("missing bucket %d turn", b)
 		}
 	}
-	if model, err := ReadNGNN1(bytes.NewReader(raw)); model != nil || err == nil {
-		t.Fatal("default loader accepted NGNN6")
+	if model, err := ReadNGNN1(bytes.NewReader(raw)); err != nil || model == nil || model.version != 6 || model.residual == nil {
+		t.Fatalf("explicit loader rejected NGNN6: %v", err)
 	}
 	// The prefix really is the original NGNN3 payload, not a reinterpretation.
 	legacy := append([]byte(nil), raw[:96]...)

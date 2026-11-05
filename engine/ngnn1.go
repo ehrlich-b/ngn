@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"hash/crc32"
@@ -17,7 +18,7 @@ const (
 	ngnn1ScoreLimit = 24999
 )
 
-// NGNN1Network owns validated, immutable NGNN1, NGNN2, NGNN3 or NGNN5 weights. Workers share this
+// NGNN1Network owns validated, immutable NGNN1, NGNN2, NGNN3, NGNN5 or NGNN6 weights. Workers share this
 // object; their accumulators never live here. All arithmetic remains exact
 // even for the full int16 weight range permitted by the file format.
 type NGNN1Network struct {
@@ -32,13 +33,17 @@ type NGNN1Network struct {
 	output        []int16
 	outputBias    int32 // first bucket, also the sole NGNN1 output bias
 	otherBiases   []int32
-	compactInput  bool // loader-proved int16 accumulator bounds and small output
-	smallOutput   bool // immutable loader-derived bound: every output weight is within [-128, 128]
+	compactInput  bool          // loader-proved int16 accumulator bounds and small output
+	residual      *NGNN6Network // immutable version 6 head
+	smallOutput   bool          // immutable loader-derived bound: every output weight is within [-128, 128]
 }
 
 func (n *NGNN1Network) valid() bool {
 	return n != nil && n.hidden > 0 && n.hidden <= ngnn1MaxHidden && n.hidden%16 == 0 &&
 		(n.bucketCount() == 1 || n.buckets == 2 || n.buckets == 4 || n.buckets == 8) &&
+		(n.version != 6 || ((n.hidden == 32 || n.hidden == 768) && n.kingBuckets == 8 && n.buckets == 8 &&
+			n.residual != nil && n.residual.linear != nil && n.residual.linear.hidden == n.hidden &&
+			len(n.residual.hiddenWeight) == ngnn6Units*2*n.hidden)) &&
 		n.validKingLayout() && len(n.weights) == n.featureCount()*n.hidden && len(n.bias) == n.hidden &&
 		len(n.output) == n.bucketCount()*2*n.hidden && len(n.otherBiases) == n.bucketCount()-1
 }
@@ -50,7 +55,7 @@ func (n *NGNN1Network) bucketCount() int {
 	return n.buckets
 }
 
-// LoadNGNN1 accepts NGNN1/2/3/5, preserving the original API. No partial network is
+// LoadNGNN1 accepts NGNN1/2/3/5/6, preserving the original API. No partial network is
 // returned after an I/O, header, length, or checksum error.
 func LoadNGNN1(path string) (*NGNN1Network, error) {
 	f, err := os.Open(path)
@@ -71,6 +76,14 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 	version, nb, kb, constants := int(binary.LittleEndian.Uint32(header[4:8])), 1, 1, 12
 	var kingMap [64]uint8
 	switch {
+	case string(header[:4]) == "NGN6" && version == 6:
+		residual, err := ReadNGNN6(io.MultiReader(bytes.NewReader(header), r))
+		if err != nil {
+			return nil, err
+		}
+		n := *residual.linear
+		n.version, n.residual = 6, residual
+		return &n, nil
 	case string(header[:4]) == "NGNN" && version == 1:
 	case string(header[:4]) == "NGN2" && version == 2:
 		header = storage[:28]
@@ -137,6 +150,17 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 	n.weights = readWeights(kb * ngnn1Features * h)
 	n.bias = readWeights(h)
 	n.output = readWeights(nb * 2 * h)
+	n.outputBias = int32(binary.LittleEndian.Uint32(data[offset : offset+4]))
+	n.otherBiases = make([]int32, nb-1)
+	for i := range n.otherBiases {
+		offset += 4
+		n.otherBiases[i] = int32(binary.LittleEndian.Uint32(data[offset : offset+4]))
+	}
+	n.prepareOutputLayout()
+	return n, nil
+}
+
+func (n *NGNN1Network) prepareOutputLayout() {
 	n.smallOutput = true
 	for _, w := range n.output {
 		if w < -128 || w > 128 {
@@ -144,14 +168,7 @@ func ReadNGNN1(r io.Reader) (*NGNN1Network, error) {
 			break
 		}
 	}
-	n.outputBias = int32(binary.LittleEndian.Uint32(data[offset : offset+4]))
-	n.otherBiases = make([]int32, nb-1)
-	for i := range n.otherBiases {
-		offset += 4
-		n.otherBiases[i] = int32(binary.LittleEndian.Uint32(data[offset : offset+4]))
-	}
-	n.compactInput = n.version == 3 && n.smallOutput && n.compactInputBound()
-	return n, nil
+	n.compactInput = n.kingInputs() && n.smallOutput && n.compactInputBound()
 }
 
 func ngnn1Feature(piece Piece, square Square, perspective Color) int {
@@ -182,7 +199,7 @@ func (n *NGNN1Network) refresh(pos *Position, accum []int32) {
 	}
 	for p, color := range [...]Color{White, Black} {
 		context := ngnn3Context{}
-		if n.version == 3 {
+		if n.kingInputs() {
 			context = n.kingContext(pos, color)
 		}
 		a := accum[p*n.hidden : (p+1)*n.hidden]
@@ -233,6 +250,9 @@ func (n *NGNN1Network) evaluateBucket(acc []int32, turn Color, bucket int) int {
 	}
 	v := sum/ngnn1QA + int64(bias)
 	cp := v * ngnn1Scale / (ngnn1QA * ngnn1QB)
+	if n.residual != nil {
+		cp += ngnn6ResidualCP(n.residual, us, them, bucket)
+	}
 	if cp > ngnn1ScoreLimit {
 		return ngnn1ScoreLimit
 	}
@@ -352,7 +372,7 @@ func (s *ngnn1State) reset(pos *Position) {
 		s.resetCompact(pos)
 		return
 	}
-	if s.network.version == 3 {
+	if s.network.kingInputs() {
 		for p, color := range [...]Color{White, Black} {
 			s.cachedRefresh(p, s.network.kingContext(pos, color), pos, s.at(0)[p*s.network.hidden:(p+1)*s.network.hidden])
 		}

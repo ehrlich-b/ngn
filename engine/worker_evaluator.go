@@ -96,7 +96,7 @@ func (e *workerEvaluator) PrepareMove(pos *Position, move Move) (workerEvalMove,
 			before := pos.Board
 			return workerEvalMove{delta: e.nnue.network.ngnn3MoveDelta(pos, move), threatBefore: &before}, nil
 		}
-		if e.nnue.network.version == 3 {
+		if e.nnue.network.kingInputs() {
 			return workerEvalMove{delta: e.nnue.network.ngnn3MoveDelta(pos, move)}, nil
 		}
 		return workerEvalMove{delta: ngnn1MoveDelta(move)}, nil

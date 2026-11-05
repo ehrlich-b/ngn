@@ -11,15 +11,17 @@ func (c ngnn3Context) feature(base int) int {
 	return int(c.bucket)*ngnn1Features + (base ^ int(c.mirror))
 }
 
+func (n *NGNN1Network) kingInputs() bool { return n.version == 3 || n.version == 6 }
+
 func (n *NGNN1Network) featureCount() int {
-	if n.version == 3 || n.version == 5 {
+	if n.kingInputs() || n.version == 5 {
 		return n.kingBuckets * ngnn1Features
 	}
 	return ngnn1Features
 }
 
 func (n *NGNN1Network) validKingLayout() bool {
-	if n.version != 3 && n.version != 5 {
+	if !n.kingInputs() && n.version != 5 {
 		return true
 	}
 	if n.kingBuckets < 1 || n.kingBuckets > 8 {

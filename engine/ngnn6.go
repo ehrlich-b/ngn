@@ -15,7 +15,7 @@ const (
 )
 
 // NGNN6Network is a parsed residual-head layout, separate from the evaluator
-// configuration. ReadNGNN1 and default play do not accept or select this format.
+// configuration. ReadNGNN1 also loads this format for explicit selection.
 // The embedded linear layout uses version 3 so its feature semantics stay exact.
 type NGNN6Network struct {
 	linear       *NGNN1Network
@@ -112,6 +112,7 @@ func ReadNGNN6(r io.Reader) (*NGNN6Network, error) {
 			return nil, fmt.Errorf("NGNN6: projection arithmetic bound at bucket %d", b)
 		}
 	}
+	base.prepareOutputLayout()
 	return n, nil
 }
 
@@ -123,42 +124,4 @@ func ngnn6AffineBound(weights []int16, bias int32) bool {
 		high += max(int64(0), term)
 	}
 	return low >= -1<<31 && high <= 1<<31-1
-}
-
-// evaluateBucket is a scalar format reference for in-package diagnostics only;
-// it is deliberately absent from workerEvaluator and the UCI model loader.
-func (n *NGNN6Network) evaluateBucket(acc []int32, turn Color, bucket int) int {
-	h := n.linear.hidden
-	us, them := acc[:h], acc[h:2*h]
-	if turn == Black {
-		us, them = them, us
-	}
-	var x [2 * 768]int64
-	for i := 0; i < h; i++ {
-		x[i] = int64(min(ngnn1QA, max(0, us[i])))
-		x[h+i] = int64(min(ngnn1QA, max(0, them[i])))
-	}
-	// Preserve the original squared-clipped linear branch, including both
-	// divisions and the bias placement. Do not add to its already-clamped cp.
-	var sum int64
-	for i, w := range n.linear.output[bucket*2*h : (bucket+1)*2*h] {
-		sum += x[i] * x[i] * int64(w)
-	}
-	bias := n.linear.outputBias
-	if bucket > 0 {
-		bias = n.linear.otherBiases[bucket-1]
-	}
-	linearCP := (sum/ngnn1QA + int64(bias)) * ngnn1Scale / (ngnn1QA * ngnn1QB)
-	projection := int64(n.outputBias[bucket])
-	for j, bias := range n.hiddenBias {
-		v := int64(bias)
-		for i, w := range n.hiddenWeight[j*2*h : (j+1)*2*h] {
-			v += x[i] * int64(w)
-		}
-		z := min(int64(ngnn1QA), max(int64(0), v/ngnn6InputScale))
-		projection += z * int64(n.output[bucket*ngnn6Units+j])
-	}
-	residualCP := projection * ngnn1Scale / (ngnn1QA * ngnn1QB)
-	cp := linearCP + residualCP
-	return int(min(int64(ngnn1ScoreLimit), max(int64(-ngnn1ScoreLimit), cp)))
 }

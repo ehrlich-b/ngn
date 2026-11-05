@@ -9,8 +9,10 @@ All other widths, dimensions, flags and scales are rejected. No NGNN4/5 data
 or external weights are used.
 
 `ReadNGNN6(io.Reader)` returns a separate immutable layout. The scalar
-`evaluateBucket` method is an internal format reference. Neither the existing
-`ReadNGNN1` loader nor UCI/default evaluation selects NGNN6. Fixture success
+`evaluateBucket` method is an internal format reference. `ReadNGNN1` and UCI
+`EvalFile` accept explicit NGNN6 selection and report backend `ngnn6`. Both
+compact and wide workers execute the residual before the final clamp. The
+embedded default remains NGNN3. Fixture success
 makes no speed or Elo claim. Changing default play requires the completed rig
 gate for that separate decision.
 
@@ -162,3 +164,13 @@ GOMAXPROCS=2 go test -p 1 -count=1 ./engine -run '^TestWave2ResidualFormat' -tim
 The executable `experiments/wave2-1104/residual-format/run.py` runs that
 fragment at nice level 10 with two CPU threads and scrubbed credential
 variables. `result.txt` is the captured fixture-run result, not a benchmark.
+
+Production inference is checked by the separate int64 oracle and special-move
+walk in `engine/ngnn6_eval_test.go`. The executable
+`experiments/wave2-1104/residual-infer/run.py fragment` runs only
+`^TestWave2ResidualEval` with a 15-second timeout and two CPU threads. The
+committed H32 fixture has an independent Python constructor (`generate.py
+--check`); `fixture.json` includes signed arithmetic and walk inputs. The
+zero-residual check also wraps the actual embedded H768 linear weights and
+compares both storage paths to the NGNN3 reference. No speed or strength claim
+follows from these tests.

@@ -210,5 +210,8 @@ func (s *ngnn1State) evaluatePosition(depth int, pos *Position, n *NGNN1Network)
 	}
 	v := sum/ngnn1QA + int64(bias)
 	cp := v * ngnn1Scale / (ngnn1QA * ngnn1QB)
+	if n.residual != nil {
+		cp += ngnn6ResidualCP(n.residual, us, them, bucket)
+	}
 	return int(min(ngnn1ScoreLimit, max(-ngnn1ScoreLimit, cp)))
 }
