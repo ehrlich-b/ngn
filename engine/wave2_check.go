@@ -5,7 +5,7 @@ package engine
 // move on board (including its capture, castling and promotion fields).
 // It does not validate the move or test the mover's own king safety; search
 // must perform that legality check separately. No board, position metadata,
-// hash or evaluator state is changed, and no search path calls this yet.
+// hash or evaluator state is changed.
 func wave2GivesCheck(board *Bitboard, move Move) bool {
 	moving := move.MovingPiece()
 	color := moving.Color()

@@ -1,0 +1,6 @@
+{
+ "status":"pending", "completed":false, "option_default":0,
+ "reason":"Bounded fixtures and option-off parity do not complete a real-clock rig gate. No timed match is authorized in this task.",
+ "required_before_default_change":"Completed specified rig gate on a suitable host; concrete rig protocol and result must be supplied before enabling by default.",
+ "elo_claim":null
+}

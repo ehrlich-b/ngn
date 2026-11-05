@@ -23,6 +23,7 @@ const (
 var (
 	T1104ContPlies          = 0
 	T1104CorrMore           = 0
+	W2QChecks               = 0   // One layer of quiet checks at the qsearch horizon
 	NULL_MOVE_R             = 4   // Null move reduction depth
 	NULL_MOVE_MIN_DEPTH     = 2   // Minimum depth for null move pruning
 	LMR_FULL_DEPTH          = 3   // Minimum depth for LMR
@@ -106,6 +107,7 @@ var TunableSearchParams = []TunableParam{
 	{"W2NullVerify", &W2NullVerify, 0, 0, 1},
 	{"W2NullMargin", &W2NullMargin, 0, 0, 1},
 	{"W2CorrMargin", &W2CorrMargin, 0, 0, 1},
+	{"W2QChecks", &W2QChecks, 0, 0, 1},
 	{"NullMoveR", &NULL_MOVE_R, 4, 2, 5},
 	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 2, 1, 6},
 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
@@ -744,6 +746,8 @@ type SearchInfo struct {
 	QStandPatCuts       uint64 // qsearch stand-pat beta cutoffs
 	QDeltaPrunes        uint64 // qsearch delta prunes
 	QSEEPrunes          uint64 // qsearch SEE prunes
+	QChecksAdmitted     uint64 // Legal quiet non-promotion checks appended at qDepth 0
+	QChecksSearched     uint64 // Admitted checks actually searched before a cutoff
 	QBetaCutoffs        uint64 // qsearch beta cutoffs in the capture/evasion loops
 	AspFailLows         uint64 // Aspiration fail-lows (each costs a full-width re-iteration)
 	AspFailHighs        uint64 // Aspiration fail-highs
@@ -2684,14 +2688,26 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	}
 	inCheck := pos.IsInCheck()
 
-	// qDepth remains a diagnostic/call-site argument, not a capture horizon.
+	// qDepth bounds only the optional quiet-check layer, never captures.
 	// Qsearch lower bounds share depth-0 TT entries, so a capture-only cap here
 	// would let a shorter search certify a bound for a later, longer one.
 	// TT cutoff probe. Qsearch is depth 0; any cached entry at depth >= 0
 	// covers us (main search stores at depth >= 1 only). Mate scores need
 	// converting from node-relative TT encoding back to root-relative.
 	// Also keep ttMove for move ordering even when no cutoff is taken.
+	// The extra choices change the depth-0 bound. Isolate their entries from
+	// capture-only descendants, and retain the ordinary hash move for ordering.
+	qchecks := W2QChecks == 1 && qDepth == 0 && !inCheck
+	ttHash := hash
+	if qchecks {
+		ttHash ^= wave2QChecksTTKey
+	}
 	ttMove, ttEvalRaw, _, ttNodeType, ttHit, ttPvEntry := info.tt.Get(hash)
+	if qchecks {
+		// Preserve exactly the ordinary noisy ordering hint even if the
+		// enhanced entry's best move is a quiet check.
+		_, ttEvalRaw, _, ttNodeType, ttHit, ttPvEntry = info.tt.Get(ttHash)
+	}
 	info.QTTProbes++
 	if ttHit {
 		info.QTTHits++
@@ -2868,16 +2884,17 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		alpha = standPat
 	}
 
-	// Search captures plus all quiet promotions. Quiet checks remain dropped because
-	// moveGivesCheck misses discovered and en-passant checks; an incomplete
-	// quiet-check path is worse than this bounded noisy class at the horizon.
-	// Keep specialized capture generation and its ordering unchanged. Quiet
-	// promotions are the only added noisy class; 64 existing captures plus at
-	// most 32 promotion moves fit the local arrays without changing SearchInfo.
+	// Keep the existing noisy class and its selection order. The optional
+	// legal quiet checks form a separate suffix, bounded by the full move buffer.
 	captureCount := GenerateCapturesIntoBuffer(pos, info.CaptureBuffer[:])
-	var captures [96]Move
+	var captures [256]Move
 	copy(captures[:], (*info.CaptureBuffer)[:captureCount])
 	captureCount += appendQuietPromotions(pos, captures[captureCount:])
+	moveCount := captureCount
+	if qchecks {
+		moveCount += appendWave2QChecks(pos, captures[moveCount:], qframe.moveBuffer[:])
+		info.QChecksAdmitted += uint64(moveCount - captureCount)
+	}
 
 	// MVV/LVA scores for an INCREMENTAL selection-sort (select-max per iter, stop at
 	// cutoff — avoids the upfront full-sort cost the void "-129" comment cited).
@@ -2887,7 +2904,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		capScore[i] = info.history.wave2QCaptureScore(captures[i], ttMove)
 	}
 
-	for i := 0; i < captureCount; i++ {
+	for i := 0; i < moveCount; i++ {
 		// incremental selection: pull the best-scored remaining capture to i
 		best := i
 		for j := i + 1; j < captureCount; j++ {
@@ -2895,8 +2912,10 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 				best = j
 			}
 		}
-		captures[i], captures[best] = captures[best], captures[i]
-		capScore[i], capScore[best] = capScore[best], capScore[i]
+		if i < captureCount {
+			captures[i], captures[best] = captures[best], captures[i]
+			capScore[i], capScore[best] = capScore[best], capScore[i]
+		}
 		move := captures[i]
 
 		// Delta pruning: skip captures that cannot possibly raise alpha. For
@@ -2907,13 +2926,13 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			promoPiece := GetPiece(move.PromoType(), move.MovingPiece().Color())
 			gain += int(promoPiece.seeWeight()) - 100
 		}
-		if standPat+gain+DELTA_MARGIN <= alpha {
+		if i < captureCount && standPat+gain+DELTA_MARGIN <= alpha {
 			info.QDeltaPrunes++
 			continue
 		}
 
 		// SEE pruning: skip losing captures (skip the full swap when provably non-losing).
-		if !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < 0 {
+		if i < captureCount && !seeNonLosingByMVV(move) && staticExchangeEvaluation(pos, move) < 0 {
 			info.QSEEPrunes++
 			continue
 		}
@@ -2925,6 +2944,9 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			continue
 		}
 		info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
+		if i >= captureCount {
+			info.QChecksSearched++
+		}
 
 		if T1104CorrMore != 0 && ply < MaximumDepth {
 			info.MoveStack[ply] = move
@@ -2949,7 +2971,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 			// preserving it is free — and dropping it would let a depth-0 store erase a
 			// mark the main search had earned, silently weakening the LMR adjustment on
 			// exactly the nodes it is meant to protect. (SF preserves ttPv likewise.)
-			info.tt.Set(pos.Hash(), bestMove, scoreToTT(beta, ply), 0, LowerBound, ttHit && ttPvEntry)
+			info.tt.Set(ttHash, bestMove, scoreToTT(beta, ply), 0, LowerBound, ttHit && ttPvEntry)
 			info.QSearchTTStores++
 			return beta
 		}

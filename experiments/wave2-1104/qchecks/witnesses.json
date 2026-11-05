@@ -1,0 +1,102 @@
+[
+  {
+    "Name": "quiet-mate",
+    "FEN": "7k/8/5KQ1/8/8/8/8/8 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "g6g7",
+        "Check": true
+      },
+      {
+        "Move": "g6g8",
+        "Check": true
+      }
+    ]
+  },
+  {
+    "Name": "discovered",
+    "FEN": "4k3/8/8/8/8/8/4B3/K3R3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e2f3",
+        "Check": true
+      },
+      {
+        "Move": "e1d1",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "checking-castle",
+    "FEN": "5k2/8/8/8/8/8/8/4K2R w K - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e1g1",
+        "Check": true
+      }
+    ]
+  },
+  {
+    "Name": "checking-castle-black",
+    "FEN": "4k2r/8/8/8/8/8/8/5K2 b k - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e8g8",
+        "Check": true
+      }
+    ]
+  },
+  {
+    "Name": "castle-through-check",
+    "FEN": "5k2/8/8/8/2b5/8/8/4K2R w K - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e1g1",
+        "Check": true,
+        "Illegal": true
+      }
+    ]
+  },
+  {
+    "Name": "promotion-exclusion",
+    "FEN": "7k/5P2/6K1/8/8/8/8/8 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "f7f8q",
+        "Check": true
+      }
+    ]
+  },
+  {
+    "Name": "own-king-exposed",
+    "FEN": "4r3/8/8/7k/8/8/4B3/4K3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e2g4",
+        "Check": true,
+        "Illegal": true
+      }
+    ]
+  },
+  {
+    "Name": "nonchecking-control",
+    "FEN": "4k3/8/8/8/8/8/4P3/4K3 w - - 0 1",
+    "Witnesses": [
+      {
+        "Move": "e2e3",
+        "Check": false
+      }
+    ]
+  },
+  {
+    "Name": "noisy-order",
+    "FEN": "4k3/8/8/3p1p2/4P3/8/8/K2Q4 w - - 0 1",
+    "Witnesses": []
+  },
+  {
+    "Name": "in-check-evasions",
+    "FEN": "4k3/8/8/8/8/8/4r3/4K3 w - - 0 1",
+    "Witnesses": []
+  }
+]

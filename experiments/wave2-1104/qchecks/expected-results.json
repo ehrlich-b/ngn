@@ -1,0 +1,69 @@
+{
+  "baseline_head": "b704892247bccfa0e236d5119c157e06230b5795",
+  "depth": 4,
+  "backend": "embedded H768",
+  "off_cases": [
+    {
+      "name": "startpos",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "score_kind": "cp",
+      "score": 63,
+      "nodes": 747,
+      "pv": [
+        "d2d4",
+        "d7d5",
+        "c2c4",
+        "d5c4"
+      ],
+      "bestmove": "d2d4"
+    },
+    {
+      "name": "kiwipete",
+      "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+      "score_kind": "cp",
+      "score": -167,
+      "nodes": 1717,
+      "pv": [
+        "e2a6",
+        "b4c3",
+        "d2c3",
+        "e6d5"
+      ],
+      "bestmove": "e2a6"
+    },
+    {
+      "name": "middlegame",
+      "fen": "r1bq1rk1/pp2bppp/2n1pn2/2pp4/3P4/2PBPN2/PP1N1PPP/R1BQ1RK1 w - - 0 8",
+      "score_kind": "cp",
+      "score": 2,
+      "nodes": 1060,
+      "pv": [
+        "d4c5",
+        "e7c5",
+        "b2b4",
+        "c5d6"
+      ],
+      "bestmove": "d4c5"
+    },
+    {
+      "name": "endgame",
+      "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+      "score_kind": "cp",
+      "score": 200,
+      "nodes": 419,
+      "pv": [
+        "b4f4",
+        "h4g3",
+        "f4c4",
+        "h5h7"
+      ],
+      "bestmove": "b4f4"
+    }
+  ],
+  "tactical": {
+    "off": 0,
+    "on": 29999,
+    "no_pruning_oracle": 29999
+  },
+  "result_kind": "expected fixture assertions; no strength or speed claim"
+}

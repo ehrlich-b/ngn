@@ -1,0 +1,10 @@
+{
+ "option":"W2QChecks", "type":"spin", "default":0, "min":0, "max":1,
+ "candidate_base":"b704892247bccfa0e236d5119c157e06230b5795",
+ "enabled_policy":"Non-check qDepth=0 only; legal quiet non-promotion checks after unchanged noisy ordering; no delta or SEE pruning for the appended suffix.",
+ "tt_policy":"Enhanced entries use a separate key; ordinary hash moves remain ordering hints.",
+ "backend":"embedded H768", "network_sha256":"2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443",
+ "off_depth":4, "off_hash_mb":16, "threads":1, "cpu_affinity_limit":2,
+ "cpu_seconds_per_case_limit":10, "speed_sample":false, "strength_claim":false,
+ "default_enable_requires":"completed specified rig gate; pending-timed-gate.json"
+}
