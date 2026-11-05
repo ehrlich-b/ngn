@@ -1,0 +1,40 @@
+{
+  "option": "T1104ContPlies=1",
+  "baseline_option": "T1104ContPlies=0",
+  "verdict": "DEFERRED",
+  "penta_elo": null,
+  "interval": null,
+  "games": 0,
+  "wdl": {
+    "wins": 0,
+    "draws": 0,
+    "losses": 0
+  },
+  "pentanomial": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reason": "The full fixed-node pre-screen is reserved for the rig; nominate this candidate for its pre-screen and subsequent composite gate only after NOMINATE.",
+  "smoke": {
+    "purpose": "Harness wiring only; no strength inference.",
+    "nodes_per_move": 40000,
+    "max_plies": 20,
+    "games": 2,
+    "wdl": {
+      "wins": 0,
+      "draws": 2,
+      "losses": 0
+    },
+    "pentanomial": [
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    "log": "smoke.txt"
+  }
+}

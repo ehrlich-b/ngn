@@ -277,13 +277,14 @@ func gravityUpdate(e *int, bonus int) {
 }
 
 // UpdateHistoryTable increases the history score for a move that caused a cutoff
-func (h *workerHistory) UpdateHistoryTable(move Move, prevMove Move, prev2 Move, depth int) {
+func (h *workerHistory) UpdateHistoryTable(move Move, prevMove Move, prev2 Move, depth int, distant ...Move) {
 	if move.IsCapture() || move.PromoType() != NoType {
 		return
 	}
 	piece := move.MovingPiece()
 	to := move.Destination()
 	bonus := depth * depth
+	h.updateDistantHistory(move, bonus, distant)
 	gravityUpdate(&h.historyTable[piece][to], bonus)
 	if prevMove != EmptyMove {
 		gravityUpdate(&h.continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to], bonus)
@@ -294,13 +295,14 @@ func (h *workerHistory) UpdateHistoryTable(move Move, prevMove Move, prev2 Move,
 }
 
 // PenalizeHistoryTable decreases the history score for moves that didn't cause cutoff
-func (h *workerHistory) PenalizeHistoryTable(move Move, prevMove Move, prev2 Move, depth int) {
+func (h *workerHistory) PenalizeHistoryTable(move Move, prevMove Move, prev2 Move, depth int, distant ...Move) {
 	if move.IsCapture() || move.PromoType() != NoType {
 		return
 	}
 	piece := move.MovingPiece()
 	to := move.Destination()
 	penalty := depth * depth
+	h.updateDistantHistory(move, -penalty, distant)
 	gravityUpdate(&h.historyTable[piece][to], -penalty)
 	if prevMove != EmptyMove {
 		gravityUpdate(&h.continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to], -penalty)
@@ -313,15 +315,15 @@ func (h *workerHistory) PenalizeHistoryTable(move Move, prevMove Move, prev2 Mov
 // GetHistoryScore returns the history score for a move, summing the main
 // [piece][to] history with the continuation [prev-piece][prev-to][piece][to]
 // and follow-up [prev2-piece][prev2-to][piece][to] tables when those moves are
-// available. All terms get full weight — same magnitude updates means same ELO
-// scale.
-func (h *workerHistory) GetHistoryScore(move Move, prevMove Move, prev2 Move) int {
+// available. These near contexts get full weight; the optional distant
+// contexts contribute half weight through the same follow-up table.
+func (h *workerHistory) GetHistoryScore(move Move, prevMove Move, prev2 Move, distant ...Move) int {
 	if move.IsCapture() || move.PromoType() != NoType {
 		return 0
 	}
 	piece := move.MovingPiece()
 	to := move.Destination()
-	score := h.historyTable[piece][to]
+	score := h.historyTable[piece][to] + h.distantHistoryScore(piece, to, distant)
 	if prevMove != EmptyMove {
 		score += h.continuationHistory[prevMove.MovingPiece()][prevMove.Destination()][piece][to]
 	}
@@ -329,6 +331,35 @@ func (h *workerHistory) GetHistoryScore(move Move, prevMove Move, prev2 Move) in
 		score += h.followupHistory[prev2.MovingPiece()][prev2.Destination()][piece][to]
 	}
 	return score
+}
+
+// Plies four and six, like ply two, are moves by the current side. Reuse
+// followupHistory for these contexts; no additional per-worker table is needed.
+// Each distant context contributes half an entry and learns at half the capped
+// bonus rate. Empty moves (including null moves) provide no context.
+func (h *workerHistory) distantHistoryScore(piece Piece, to Square, distant []Move) int {
+	if T1104ContPlies == 0 {
+		return 0
+	}
+	score := 0
+	for _, previous := range distant {
+		if previous != EmptyMove {
+			score += h.followupHistory[previous.MovingPiece()][previous.Destination()][piece][to] / 2
+		}
+	}
+	return score
+}
+
+func (h *workerHistory) updateDistantHistory(move Move, bonus int, distant []Move) {
+	if T1104ContPlies == 0 {
+		return
+	}
+	bonus = max(-tuneHistoryBonusCap, min(tuneHistoryBonusCap, bonus)) / 2
+	for _, previous := range distant {
+		if previous != EmptyMove {
+			gravityUpdate(&h.followupHistory[previous.MovingPiece()][previous.Destination()][move.MovingPiece()][move.Destination()], bonus)
+		}
+	}
 }
 
 // Capture history: indexed by [moving-piece][to][captured-piece]. The quiet history
@@ -555,7 +586,7 @@ func materializeCaptureScores(out []Move, scores []int, n int, pos *Position) {
 // O(n^2) selection tail past a beta cutoff is never paid. Returns the number of moves written
 // and the index of the TT move within out[] (or -1 if absent), so the caller can hoist it to
 // the front in O(1) rather than rescanning for it in selectNextMove(oi=0).
-func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, prev2 Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position, lazySEE bool) (int, int) {
+func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, prev2 Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position, lazySEE bool, distant ...Move) (int, int) {
 	n := len(moves)
 	if n == 0 || len(out) < n || len(scores) < n {
 		return 0, -1
@@ -654,7 +685,7 @@ func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, depth int, previousMo
 				// would return 0) is always false here — identical result.
 				piece := move.MovingPiece()
 				to := move.Destination()
-				hs := h.historyTable[piece][to]
+				hs := h.historyTable[piece][to] + h.distantHistoryScore(piece, to, distant)
 				if usePrev {
 					hs += contHist[piece][to]
 				}

@@ -21,6 +21,7 @@ const (
 // TunableSearchParams below is the single source of truth tying each var to
 // its UCI name, default and spin range.
 var (
+	T1104ContPlies          = 0
 	T1104CorrMore           = 0
 	NULL_MOVE_R             = 4   // Null move reduction depth
 	NULL_MOVE_MIN_DEPTH     = 2   // Minimum depth for null move pruning
@@ -99,6 +100,7 @@ type TunableParam struct {
 // Min/Max bound both the spin advertisement and SPSA exploration; Def is the
 // shipped default (== the literal above).
 var TunableSearchParams = []TunableParam{
+	{"T1104ContPlies", &T1104ContPlies, 0, 0, 1},
 	{"T1104CorrMore", &T1104CorrMore, 0, 0, 1},
 	{"W2NullVerify", &W2NullVerify, 0, 0, 1},
 	{"W2NullMargin", &W2NullMargin, 0, 0, 1},
@@ -2045,9 +2047,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	if ply >= 2 {
 		prev2 = info.MoveStack[ply-2]
 	}
+	prev4, prev6 := info.contPlies(ply)
 	ordered := frame.ordered[:]
 	scores := frame.scores[:]
-	orderedCount, ttIndex := info.history.scoreMovesIntoBuffer(moves, ply, info.history.GetLastMovePlayed(), prev2, ttMove, ttHit, ordered, scores, pos, true)
+	orderedCount, ttIndex := info.history.scoreMovesIntoBuffer(moves, ply, info.history.GetLastMovePlayed(), prev2, ttMove, ttHit, ordered, scores, pos, true, prev4, prev6)
 	info.MoveLoopNodes++
 	if ttIndex >= 0 {
 		info.TTMoveListed++
@@ -2165,7 +2168,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 		// History pruning: skip quiet moves with very bad history at low depths
 		if SearchToggles.HistPrune && !isPV && !inCheck && depth <= tuneHistoryPruneDepth && !move.IsCapture() && move.PromoType() == NoType && move != ttMove {
-			histScore := info.history.GetHistoryScore(move, info.history.GetLastMovePlayed(), prev2)
+			histScore := info.history.GetHistoryScore(move, info.history.GetLastMovePlayed(), prev2, prev4, prev6)
 			if histScore < -tuneHistoryPruneThreshold && legalTried > tuneHistoryPruneMoves { // Very bad history and not early move
 				info.HistPrunes++
 				continue
@@ -2342,7 +2345,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			if SearchToggles.LMR && depth >= LMR_FULL_DEPTH && legalTried > LMR_MOVE_THRESHOLD &&
 				!move.IsCapture() && move.PromoType() == NoType && !inCheck && !givesCheck {
 
-				histScore := info.history.GetHistoryScore(move, savedLast, prev2)
+				histScore := info.history.GetHistoryScore(move, savedLast, prev2, prev4, prev6)
 				reduction = quietLMRReduction(depth, legalTried, isPV, improving, histScore, nodeTTPv, info.history.IsKillerMove(move, ply))
 				// Track LMR usage
 				if reduction > 0 {
@@ -2437,6 +2440,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 					depth,
 					origAlpha,
 					bestScore,
+					prev4, prev6,
 				)
 			}
 			info.BetaCutoffs++
@@ -2497,7 +2501,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			// Policy 00/01 retain cutoff-only gravity history. Policy 10/11 has
 			// already applied the completed-winner response exactly once above.
 			if !h1NewHistoryProducer {
-				info.history.UpdateHistoryTable(move, savedLast, prev2, depth)
+				info.history.UpdateHistoryTable(move, savedLast, prev2, depth, prev4, prev6)
 			}
 			// Update killer moves for quiet moves that cause beta cutoffs
 			info.history.UpdateKillerMoves(move, ply)
@@ -2510,7 +2514,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 				for i := 0; i < searchedQuietCount; i++ {
 					quietMove := searchedQuiets[i]
 					if quietMove != move {
-						info.history.PenalizeHistoryTable(quietMove, savedLast, prev2, depth)
+						info.history.PenalizeHistoryTable(quietMove, savedLast, prev2, depth, prev4, prev6)
 					}
 				}
 			}
@@ -2572,6 +2576,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			depth,
 			origAlpha,
 			bestScore,
+			prev4, prev6,
 		)
 	}
 
@@ -2956,4 +2961,18 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	}
 
 	return bestScore
+}
+
+// contPlies reads only live ancestor slots; root and shallow nodes have no
+// distant context. The option-off path does not inspect the stack.
+func (info *SearchInfo) contPlies(ply int) (prev4, prev6 Move) {
+	if T1104ContPlies != 0 {
+		if ply >= 4 {
+			prev4 = info.MoveStack[ply-4]
+		}
+		if ply >= 6 {
+			prev6 = info.MoveStack[ply-6]
+		}
+	}
+	return
 }
