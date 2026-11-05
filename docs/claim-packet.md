@@ -30,3 +30,7 @@ position, disclose any shared screen positions and exposed continuations, and
 state that no training or development separation is certified. Completing that
 audit does not make the openings a fresh holdout. Bind rerun authority to exact
 retained answer fields and their source, separately from the later schedule.
+
+Retain the exact authorization source bytes alongside the answer and bind their
+hash in the packet. Offline validation must resolve that retained source within
+the packet so that a relocated copy can verify authority without a parent file.
