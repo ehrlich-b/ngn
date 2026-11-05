@@ -101,6 +101,7 @@ type TunableParam struct {
 // shipped default (== the literal above).
 var TunableSearchParams = []TunableParam{
 	{"T1104ContPlies", &T1104ContPlies, 0, 0, 1},
+	{"W2QCapture", &W2QCapture, 0, 0, 1},
 	{"T1104CorrMore", &T1104CorrMore, 0, 0, 1},
 	{"W2NullVerify", &W2NullVerify, 0, 0, 1},
 	{"W2NullMargin", &W2NullMargin, 0, 0, 1},
@@ -2883,10 +2884,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	// Encoding-only (victim/attacker seeWeight, no board access); ttMove forced top.
 	var capScore [96]int
 	for i := 0; i < captureCount; i++ {
-		capScore[i] = 8*int(captures[i].CapturedPiece().seeWeight()) - int(captures[i].MovingPiece().seeWeight())
-		if captures[i] == ttMove {
-			capScore[i] = 1 << 30
-		}
+		capScore[i] = info.history.wave2QCaptureScore(captures[i], ttMove)
 	}
 
 	for i := 0; i < captureCount; i++ {

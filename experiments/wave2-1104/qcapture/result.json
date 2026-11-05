@@ -1,0 +1,120 @@
+{
+  "identities": {
+    "option_name": "W2QCapture",
+    "default": 0,
+    "verdict": "DEFERRED",
+    "baseline_head": "3517a353a99bbe627a505ccc5463aadce047431b",
+    "baseline_tree": "743918592e197066a307a3287090435c7840c7ec",
+    "baseline_engine_tree": "3f3ed50dbacf999fb4e84c1448918895c7e0dd5a",
+    "candidate_engine_tree": "4ae8a088462dfe65d8f51cba118908ea3d827908",
+    "source_sha256": {
+      "engine/search.go": "e9beb2725bbee6c29f52f315702e7e29c8b1db5d499525f5d752dd3b4e07c919",
+      "engine/wave2_qcapture.go": "bb1cc72ebaa9a7d1914370cd34137f5fbf741f2e41a0ff9fcd0815b51ecf3e9e",
+      "engine/wave2_qcapture_test.go": "9559f6e873ad7c4486aab4b3a177ca3c21db97d924a408d7abd7d6e92dd40bf4"
+    },
+    "net_path": "engine/nets/ngn-h768-2dcb6d93.nnue",
+    "net_sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443",
+    "fixture_sha256": "02b05472e97dfc02397a137a96f680b06867e0d7e1feef08ecafb015e5859fde",
+    "probe_sha256": "a72955579ff68c24199b60e43d0fe8cc681ee86204c1b706669d07f3b149f311",
+    "depth": 4,
+    "threads": 1,
+    "hash_mb": 16,
+    "cpu_limit_per_case_seconds": 10,
+    "claim": "Exact off parity only; no speed or Elo claim; rig gate remains undone."
+  },
+  "exact_off_parity": true,
+  "results": {
+    "baseline": [
+      {
+        "W2QCapture": "absent",
+        "backend": "ngnn3",
+        "bestmove": "d4c5",
+        "depth": 4,
+        "fen": "r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10",
+        "hash_mb": 16,
+        "nodes": 967,
+        "score": 87,
+        "threads": 1
+      },
+      {
+        "W2QCapture": "absent",
+        "backend": "ngnn3",
+        "bestmove": "e2a6",
+        "depth": 4,
+        "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+        "hash_mb": 16,
+        "nodes": 1717,
+        "score": -167,
+        "threads": 1
+      },
+      {
+        "W2QCapture": "absent",
+        "backend": "ngnn3",
+        "bestmove": "e5d6",
+        "depth": 4,
+        "fen": "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1",
+        "hash_mb": 16,
+        "nodes": 188,
+        "score": 0,
+        "threads": 1
+      },
+      {
+        "W2QCapture": "absent",
+        "backend": "ngnn3",
+        "bestmove": "b7a8q",
+        "depth": 4,
+        "fen": "r5k1/1P6/8/8/8/8/8/6K1 w - - 0 1",
+        "hash_mb": 16,
+        "nodes": 343,
+        "score": 1459,
+        "threads": 1
+      }
+    ],
+    "off": [
+      {
+        "W2QCapture": "0",
+        "backend": "ngnn3",
+        "bestmove": "d4c5",
+        "depth": 4,
+        "fen": "r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10",
+        "hash_mb": 16,
+        "nodes": 967,
+        "score": 87,
+        "threads": 1
+      },
+      {
+        "W2QCapture": "0",
+        "backend": "ngnn3",
+        "bestmove": "e2a6",
+        "depth": 4,
+        "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+        "hash_mb": 16,
+        "nodes": 1717,
+        "score": -167,
+        "threads": 1
+      },
+      {
+        "W2QCapture": "0",
+        "backend": "ngnn3",
+        "bestmove": "e5d6",
+        "depth": 4,
+        "fen": "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1",
+        "hash_mb": 16,
+        "nodes": 188,
+        "score": 0,
+        "threads": 1
+      },
+      {
+        "W2QCapture": "0",
+        "backend": "ngnn3",
+        "bestmove": "b7a8q",
+        "depth": 4,
+        "fen": "r5k1/1P6/8/8/8/8/8/6K1 w - - 0 1",
+        "hash_mb": 16,
+        "nodes": 343,
+        "score": 1459,
+        "threads": 1
+      }
+    ]
+  }
+}

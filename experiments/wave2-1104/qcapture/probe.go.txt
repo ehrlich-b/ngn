@@ -1,0 +1,32 @@
+// Bounded search identity probe; reports no timing or playing-strength estimate.
+package main
+
+import (
+    "encoding/json"
+    "os"
+    "github.com/ehrlich-b/ngn/engine"
+)
+
+func must(err error) { if err != nil { panic(err) } }
+
+func main() {
+    if len(os.Args) != 3 { panic("usage: probe network fen") }
+    // The baseline has no W2QCapture registry entry. The candidate must use 0.
+    option := "absent"
+    for _, p := range engine.TunableSearchParams {
+        if p.Name == "W2QCapture" { *p.Ptr = 0; option = "0" }
+    }
+    network, err := engine.LoadNGNN1(os.Args[1]); must(err)
+    searcher, err := engine.NewSearchEngineWithHash(16); must(err)
+    must(searcher.ConfigureThreads(1))
+    must(searcher.SelectNGNN1Evaluator(network))
+    pos, err := engine.ParseFEN(os.Args[2]); must(err)
+    info := searcher.SearchIterativeDeepening(pos, 4, nil)
+    if info.Depth != 4 || info.Stopped { panic("incomplete bounded search") }
+    must(json.NewEncoder(os.Stdout).Encode(map[string]interface{}{
+        "fen": os.Args[2], "depth": info.Depth, "threads": 1,
+        "hash_mb": 16, "backend": searcher.SelectedEvaluatorBackend(),
+        "W2QCapture": option, "nodes": info.Nodes, "score": info.BestScore,
+        "bestmove": info.BestMove.ToString(),
+    }))
+}
