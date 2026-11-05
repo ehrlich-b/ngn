@@ -2,6 +2,7 @@ package engine
 
 import (
 	"encoding/json"
+	"io"
 	"os"
 	"reflect"
 	"testing"
@@ -345,5 +346,65 @@ func TestWave2QChecksTTIsolation(t *testing.T) {
 	W2QChecks = 0
 	if got := quiescence(pos, -INFINITY, INFINITY, 0, info); got != 0 {
 		t.Fatalf("enhanced bound leaked with option off: %d", got)
+	}
+}
+
+func TestWave2QChecksOptionTransition(t *testing.T) {
+	old := W2QChecks
+	defer func() { W2QChecks = old }()
+	uci := NewUCIEngine()
+	uci.handleCommand("setoption name Hash value 1", io.Discard)
+	// Black must play Kh8, leaving White's quiet Qg7 mate at the horizon.
+	pos := wave2QPosition(t, "8/7k/5KQ1/8/8/8/8/8 b - - 0 1")
+	search := func() int {
+		info := wave2QInfo(pos)
+		info.tt = uci.searcher.tt
+		info.evaluator.staticOracle = func(*Position) int { return 0 }
+		// A non-PV main-search entry can reuse an exact ordinary TT bound.
+		score := alphaBetaPV(pos, 1, 0, -INFINITY, INFINITY, false, true, false, info)
+		if info.Stopped {
+			t.Fatal("bounded transition witness exhausted node limit")
+		}
+		return score
+	}
+	for _, transition := range []struct {
+		from, to      string
+		before, after int
+	}{
+		{"1", "0", -MATE_VALUE + 2, 0},
+		{"0", "1", 0, -MATE_VALUE + 2},
+	} {
+		t.Run(transition.from+"-to-"+transition.to, func(t *testing.T) {
+			uci.handleCommand("setoption name W2QChecks value "+transition.from, io.Discard)
+			uci.searcher.ClearHash()
+			if got := search(); got != transition.before {
+				t.Fatalf("initial score=%d want=%d", got, transition.before)
+			}
+			if _, _, depth, _, hit, _ := uci.searcher.TTProbe(pos.Hash()); !hit || depth < 1 {
+				t.Fatal("witness did not store a main-search bound")
+			}
+			uci.handleCommand("setoption name W2QChecks value "+transition.to, io.Discard)
+			retained := search()
+			uci.searcher.ClearHash()
+			fresh := search()
+			if retained != fresh || fresh != transition.after {
+				t.Fatalf("after switch retained=%d fresh=%d want=%d", retained, fresh, transition.after)
+			}
+			t.Logf("after switch retained=%d fresh=%d", retained, fresh)
+		})
+	}
+	// Invalid input and repeated/clamped current values preserve warm entries.
+	for _, value := range []string{"invalid", "1", "2"} {
+		uci.handleCommand("setoption name w2qchecks value "+value, io.Discard)
+		if _, _, _, _, hit, _ := uci.searcher.TTProbe(pos.Hash()); !hit {
+			t.Fatalf("unchanged option %q cleared the TT", value)
+		}
+	}
+	uci.handleCommand("setoption name w2qchecks value -1", io.Discard)
+	if W2QChecks != 0 {
+		t.Fatal("clamped option did not change to zero")
+	}
+	if _, _, _, _, hit, _ := uci.searcher.TTProbe(pos.Hash()); hit {
+		t.Fatal("clamped option change retained the old bound")
 	}
 }

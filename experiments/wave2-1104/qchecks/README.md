@@ -15,6 +15,11 @@ Enhanced qDepth-0 TT bounds have a separate key. Their lower bounds cannot leak
 into deeper capture-only qsearch or option-off qsearch. Ordinary TT moves remain
 ordering hints at enhanced entries. This also prevents a capture-only exact or
 upper bound from suppressing an available first-layer check.
+Changing the option through UCI stops and joins any active search, then clears
+the owning searcher's TT when the parsed/clamped value changes. This also
+invalidates main-search bounds derived from the previous horizon policy.
+Repeated values and invalid inputs preserve the warm table. The transition
+witness checks both directions against a fresh table through actual UCI handling.
 
 From the repository root:
 
@@ -57,8 +62,9 @@ assertions. Each case is a separate engine process with a 10 CPU-second hard
 limit and a 30-second wall timeout; there are no speed samples. The runner uses
 at most two CPUs, GOMAXPROCS=2, Go -p 1 (registered suite gates use -p 2), tensor
 threads=2, shared caches, external scratch, a sanitized environment and no GPU.
-The host is `forge2-vm`, not the exactly named `forge`; ordinary registered
-short-suite gates are allowed here. No OS kernel/device/root checks are needed.
+The full short suite includes kernel tests, so the G2 runner refuses it on
+forge hosts (including `forge2-vm`) with exit 75. That gate requires a suitable
+non-forge host; fragment success does not satisfy it.
 
 Execution transcripts, native wait4 exit/resource receipts and the generated
 candidate result live outside the checkout in `../evidence/qchecks/`. The

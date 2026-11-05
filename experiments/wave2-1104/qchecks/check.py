@@ -59,6 +59,10 @@ def receipt(label, args, root, log, started, rc, usage):
 
 
 def run(label, args, root=ROOT):
+    if label == 'G2' and socket.gethostname().startswith('forge'):
+        print('BLOCKED: the full short suite includes kernel tests; '
+              'run '+shlex.join(args)+' on a suitable non-forge host.', flush=True)
+        return 75
     OUTPUT.mkdir(parents=True, exist_ok=True)
     log = OUTPUT / (label + '.log')
     started = time.monotonic()
@@ -187,7 +191,7 @@ def policy():
     assert 'move.PromoType() != NoType' in helper
     print('PASS: required base, default-off registry, first-layer policy, disjoint full-capacity suffix, pruning bypass and TT isolation')
     args = FRAGMENT.copy()
-    args[args.index('-run')+1] = '^TestWave2QChecks(Production|TTIsolation)$'
+    args[args.index('-run')+1] = '^TestWave2QChecks(Production|TTIsolation|OptionTransition)$'
     return run('policy', args)
 
 

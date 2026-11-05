@@ -518,7 +518,12 @@ func (uci *UCIEngine) handleSetOption(args []string, output io.Writer) {
 	default:
 		if isTunableParam(optionName) {
 			uci.joinSearch(true)
+			oldQChecks := W2QChecks
 			setTunableParam(optionName, optionValue)
+			if W2QChecks != oldQChecks {
+				// Main-search bounds also depend on the horizon move policy.
+				uci.searcher.ClearHash()
+			}
 		}
 	}
 
