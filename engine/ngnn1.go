@@ -306,10 +306,12 @@ type ngnn1State struct {
 	wideView     []int32 // diagnostic access only; search reads compact frames directly
 	frames       []ngnn1Frame
 	refreshCache []ngnn3CacheEntry
+	pending      []ngnnCompactPending
 }
 
 func (s *ngnn1State) at(depth int) []int32 {
 	if s.network.compactInput {
+		s.materializeCompact(depth)
 		return s.compactView(depth)
 	}
 	return s.frames[depth].values
@@ -366,7 +368,7 @@ func (s *ngnn1State) push(depth int, delta ngnn1Delta) {
 func (s *ngnn1State) pushPosition(depth int, delta ngnn1Delta, pos *Position) {
 	s.ensure(depth)
 	if s.network.compactInput {
-		s.pushCompact(depth, delta, pos)
+		s.recordCompact(depth, delta, pos)
 		return
 	}
 	if delta.removes == 0 && delta.adds == 0 {

@@ -177,3 +177,43 @@ func TestNGNNCompactOutputExtremes(t *testing.T) {
 		}
 	}
 }
+
+func TestNGNNCompactLazyRandomLines(t *testing.T) {
+	rng := rand.New(rand.NewSource(1104))
+	n := ngnn3TestNetwork(t, 32, false)
+	for game := 0; game < 24; game++ {
+		pos := newUCIStartingPosition()
+		e := ngnn1NewWorker(t, n, pos)
+		type undo struct {
+			move  Move
+			ep    Square
+			tag   PositionState
+			clock uint8
+		}
+		var history []undo
+		for ply := 0; ply < 100; ply++ {
+			moves := GenerateLegalMoves(pos)
+			if len(moves) == 0 {
+				break
+			}
+			move := moves[rng.Intn(len(moves))]
+			tr := e.mustPrepareMove(pos, move)
+			ep, tag, clock, _ := pos.MakeMove(move)
+			e.mustPushMadeMove(pos, tr, move, tag, ep, clock)
+			history = append(history, undo{move, ep, tag, clock})
+			if rng.Intn(4) == 0 {
+				ngnn3Assert(t, e, pos)
+			}
+		}
+		for len(history) > 0 {
+			if rng.Intn(3) == 0 {
+				ngnn3Assert(t, e, pos)
+			}
+			u := history[len(history)-1]
+			history = history[:len(history)-1]
+			e.mustPop()
+			pos.UnMakeMove(u.move, u.tag, u.ep, u.clock)
+		}
+		ngnn3Assert(t, e, pos)
+	}
+}

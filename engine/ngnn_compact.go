@@ -42,6 +42,9 @@ func (s *ngnn1State) ensureCompact(depth int) {
 		frames[ply] = ngnn1Frame{slot: slot, compact: next[slot*width : (slot+1)*width]}
 	}
 	s.compactStack, s.frames = next, frames
+	pending := make([]ngnnCompactPending, plies)
+	copy(pending, s.pending)
+	s.pending = pending
 }
 
 // Existing diagnostics read int32 accumulators. This view is never touched
@@ -61,10 +64,44 @@ func (s *ngnn1State) compactView(depth int) []int32 {
 
 func (s *ngnn1State) resetCompact(pos *Position) {
 	h := s.network.hidden
+	s.pending[0] = ngnnCompactPending{valid: true}
 	// Reset the root slot after prior searches containing null aliases.
 	s.frames[0] = ngnn1Frame{slot: 0, compact: s.compactStack[:2*h]}
 	for p, color := range [...]Color{White, Black} {
 		s.cachedRefreshCompact(p, s.network.kingContext(pos, color), pos, s.frames[0].compact[p*h:(p+1)*h])
+	}
+}
+
+// Pending refreshes retain only the piece bitboards needed by the refresh cache.
+type ngnnCompactPending struct {
+	delta  ngnn1Delta
+	pieces [13]uint64
+	valid  bool
+}
+
+func (s *ngnn1State) recordCompact(depth int, delta ngnn1Delta, pos *Position) {
+	p := &s.pending[depth]
+	*p = ngnnCompactPending{delta: delta}
+	if delta.refreshMask != 0 {
+		p.pieces = pos.Board.pieces
+	}
+	if delta.removes == 0 && delta.adds == 0 {
+		s.frames[depth] = s.frames[depth-1]
+		p.valid = s.pending[depth-1].valid
+	}
+}
+
+func (s *ngnn1State) materializeCompact(depth int) {
+	start := depth
+	for !s.pending[start].valid {
+		start--
+	}
+	for ply := start + 1; ply <= depth; ply++ {
+		p := &s.pending[ply]
+		var pos Position
+		pos.Board.pieces = p.pieces
+		s.pushCompact(ply, p.delta, &pos)
+		p.valid = true
 	}
 }
 
@@ -158,6 +195,7 @@ func (s *ngnn1State) evaluatePosition(depth int, pos *Position, n *NGNN1Network)
 	if !n.compactInput {
 		return n.evaluateBucket(s.at(depth), pos.Turn(), n.bucket(pos))
 	}
+	s.materializeCompact(depth)
 	acc := s.frames[depth].compact
 	us, them := acc[:n.hidden], acc[n.hidden:]
 	if pos.Turn() == Black {
