@@ -41,7 +41,7 @@ elif args.check == 'short':
     command = ['nice', '-n', '10', 'go', 'test', '-p', '2', '-short', '-count=1', './...']
     # The brief explicitly prohibits kernel tests on forge. The unmodified short
     # suite includes them without a testing.Short guard. Do not pretend it passed.
-    if os.uname().nodename.startswith('forge'):
+    if os.uname().nodename == 'forge':
         print('BLOCKED on ' + os.uname().nodename + ': brief prohibits kernel tests; run on a suitable host.', flush=True)
         print('Required command: GOMAXPROCS=2 ' + ' '.join(command), flush=True)
         raise SystemExit(75)

@@ -27,7 +27,9 @@ exactly to the original reference. UCI selection, backend reporting, residual-on
 reload identity, private workers and corrupt reload fallback are also checked.
 
 `run.py vet` runs the brief's vet gate. `run.py short` runs the required short
-suite only on a suitable host: forge hosts are blocked with exit 75 because the
-brief prohibits kernel tests and that suite includes unguarded kernel tests.
-This is an outstanding gate, not a passing substitute. Default play and embedded
-weights stay unchanged. There is no speed KEEP or Elo claim.
+suite on forge2-vm and the rig. Only the exact hostname `forge` is blocked with
+exit 75 because kernel tests are prohibited there. Run `python3
+experiments/wave2-1104/residual-infer/test_run.py` to check short-gate dispatch
+for all three hosts without executing Go in the host-policy unit test.
+Default play and embedded weights stay unchanged. There is no speed KEEP or
+Elo claim.
