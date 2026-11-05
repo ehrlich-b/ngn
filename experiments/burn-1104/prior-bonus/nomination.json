@@ -1,0 +1,37 @@
+{
+  "option": {
+    "name": "T1104PriorBonus",
+    "new": 1,
+    "base": 0
+  },
+  "verdict": "DEFERRED",
+  "penta_elo": null,
+  "interval": null,
+  "games": 0,
+  "wdl": {
+    "wins": 0,
+    "draws": 0,
+    "losses": 0
+  },
+  "pentanomial": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reason": "The required 40,000-node pre-screen is reserved for the rig and was not run here.",
+  "rig_composite_gate": "Candidate submitted for the rig pre-screen; composite strength confirmation is pending a NOMINATE result.",
+  "smoke": {
+    "games": 2,
+    "nodes_per_move": 1000,
+    "max_plies": 40,
+    "wdl": [
+      0,
+      2,
+      0
+    ],
+    "log": "smoke.txt",
+    "strength_claim": false
+  }
+}

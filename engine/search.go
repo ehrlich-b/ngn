@@ -23,6 +23,7 @@ const (
 var (
 	T1104ContPlies          = 0
 	T1104Cuckoo             = 0
+	T1104PriorBonus         = 0
 	T1104CorrMore           = 0
 	W2QChecks               = 0   // One layer of quiet checks at the qsearch horizon
 	T1104LowPly             = 0   // Experimental near-root quiet ordering (default off)
@@ -113,6 +114,7 @@ var TunableSearchParams = []TunableParam{
 	{"W2CorrMargin", &W2CorrMargin, 0, 0, 1},
 	{"W2QChecks", &W2QChecks, 0, 0, 1},
 	{"T1104LowPly", &T1104LowPly, 0, 0, 1},
+	{"T1104PriorBonus", &T1104PriorBonus, 0, 0, 1},
 	{"NullMoveR", &NULL_MOVE_R, 4, 2, 5},
 	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 2, 1, 6},
 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
@@ -722,6 +724,11 @@ type SearchInfo struct {
 	// side's previous move for the follow-up history; only live-ancestor slots
 	// are ever read, so no restore on unwind is needed.
 	MoveStack [MaximumDepth]Move
+
+	// TT move used by each live parent's move loop. The separate root loops
+	// do not order by a TT move and leave slot zero empty. Only used when
+	// prior-move learning is enabled; a child's TT move is a different context.
+	priorBonusTTStack [MaximumDepth]Move
 
 	// Zero-allocation buffers passed through recursion
 	MoveBuffer    *[256]Move // For move generation
@@ -2117,6 +2124,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		prev2 = info.MoveStack[ply-2]
 	}
 	prev4, prev6 := info.contPlies(ply)
+	if T1104PriorBonus != 0 {
+		info.priorBonusTTStack[ply] = ttMove
+	}
 	ordered := frame.ordered[:]
 	scores := frame.scores[:]
 	orderedCount, ttIndex := info.history.scoreMovesIntoBuffer(moves, ply, info.history.GetLastMovePlayed(), prev2, ttMove, ttHit, ordered, scores, pos, true, prev4, prev6)
@@ -2368,6 +2378,9 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			info.evaluator.mustPushMadeMove(pos, evalMove, move, tag, ep, hc)
 			info.history.SetLastMovePlayed(move)
 			info.MoveStack[ply] = move
+			if T1104PriorBonus != 0 {
+				info.priorBonusTTStack[ply] = ttMove
+			}
 
 			if extension := singularExtension(singularScore, singularBeta, isPV); extension > 0 {
 				nextDepth += extension
@@ -2657,6 +2670,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			bestScore,
 			prev4, prev6,
 		)
+	}
+
+	// A restricted singular search cannot establish that every reply fails low.
+	if T1104PriorBonus != 0 && !inSingular {
+		info.rewardPriorQuiet(depth, ply, origAlpha, bestScore)
 	}
 
 	// Learn the pawn-structure + non-pawn + minor corrections from the completed search of this node.
