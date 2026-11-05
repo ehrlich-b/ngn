@@ -1,0 +1,2 @@
+GOMAXPROCS=2 nice -n 10 go test -p 1 -count=1 ./engine -run ^TestWave2ResidualFormat -timeout 15s
+ok  	github.com/ehrlich-b/ngn/engine	0.102s
