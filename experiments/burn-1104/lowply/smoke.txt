@@ -1,0 +1,24 @@
++ go build -trimpath -buildvcs=false -o ../build/ngn .
+elapsed_seconds=0.338 peak_rss_kib=92076 exit_code=0
++ go build -trimpath -buildvcs=false -o ../build/sprt ./cmd/sprt
+elapsed_seconds=0.419 peak_rss_kib=96880 exit_code=0
++ ../build/sprt -lowpower=false -new ../build/ngn -newoption T1104LowPly=1 -base ../build/ngn -nodes 1000 -concurrency 1 -elo0 0 -elo1 5 -mingames 2 -maxgames 2 -maxmoves 40 -pgn ../evidence/smoke.pgn
+NGN self-play SPRT
+==================
+new=../build/ngn  base=../build/ngn
+new options: [setoption name T1104LowPly value 1]
+base options: []
+mode: nodes 1000/move | openings: 24 (x2 colors) | concurrency: 1
+H0: elo<=0.0   H1: elo>=5.0   (alpha=0.05 beta=0.05 -> LLR bounds [-2.94, 2.94])
+
+G1     0W  1D  0L   50.0%  elo   +0.0 [-495,+495]  LLR  -0.00  pLLR  +0.00  max-moves   
+G2     0W  2D  0L   50.0%  elo   +0.0 [-393,+393]  LLR  -0.00  pLLR  -0.03  max-moves   
+
+=== RESULT (1s) ===
+Games: 2   W-D-L: 0-2-0   score: 50.0%
+Elo(new - base): +0.0   95% CI [-393, +393]
+LLR: -0.00   bounds [-2.94, 2.94]
+Pentanomial [LL 0  LD 0  {LW,DD} 1  WD 0  WW 0] over 1 pairs
+Penta Elo: -0.0   95% CI [-43, +43]   pLLR -0.03  (THE decision stat; trinomial above is secondary)
+Verdict: INCONCLUSIVE (ran out of games — add openings or raise -maxgames)
+elapsed_seconds=1.136 peak_rss_kib=7312 exit_code=0

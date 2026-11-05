@@ -24,6 +24,7 @@ var (
 	T1104ContPlies          = 0
 	T1104CorrMore           = 0
 	W2QChecks               = 0   // One layer of quiet checks at the qsearch horizon
+	T1104LowPly             = 0   // Experimental near-root quiet ordering (default off)
 	NULL_MOVE_R             = 4   // Null move reduction depth
 	NULL_MOVE_MIN_DEPTH     = 2   // Minimum depth for null move pruning
 	LMR_FULL_DEPTH          = 3   // Minimum depth for LMR
@@ -109,6 +110,7 @@ var TunableSearchParams = []TunableParam{
 	{"W2NullMargin", &W2NullMargin, 0, 0, 1},
 	{"W2CorrMargin", &W2CorrMargin, 0, 0, 1},
 	{"W2QChecks", &W2QChecks, 0, 0, 1},
+	{"T1104LowPly", &T1104LowPly, 0, 0, 1},
 	{"NullMoveR", &NULL_MOVE_R, 4, 2, 5},
 	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 2, 1, 6},
 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
@@ -2552,6 +2554,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			}
 			// Policy 00/01 retain cutoff-only gravity history. Policy 10/11 has
 			// already applied the completed-winner response exactly once above.
+			info.history.updateLowPly(move, ply, depth)
 			if !h1NewHistoryProducer {
 				info.history.UpdateHistoryTable(move, savedLast, prev2, depth, prev4, prev6)
 			}

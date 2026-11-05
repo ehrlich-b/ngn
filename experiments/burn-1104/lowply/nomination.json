@@ -1,0 +1,22 @@
+{
+  "option": "T1104LowPly=1",
+  "baseline_option": "T1104LowPly=0",
+  "verdict": "DEFERRED",
+  "penta_elo": null,
+  "interval": null,
+  "games": 0,
+  "wdl": {
+    "wins": 0,
+    "draws": 0,
+    "losses": 0
+  },
+  "pentanomial": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reason": "The brief prohibits the 40,000-node strength pre-screen on this host; awaiting the rig composite gate. Smoke results are excluded.",
+  "rig_gate": "Use the verbatim PRESCREEN.md procedure once, with this option as the only difference; no parameter retries."
+}

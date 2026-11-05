@@ -15,6 +15,8 @@ const (
 type workerHistory struct {
 	// Main quiet history indexed by [piece][to].
 	historyTable [13][64]int
+	// Near-root quiet cutoff history, indexed by [ply][from][to].
+	lowPlyHistory [lowPlyCount][64][64]int
 	// Pawn-context history contributes to quiet ordering only.
 	pawnQuietHistory [pawnQuietBuckets][13][64]int16
 	// Continuation and follow-up histories retain the exact [previous move][move]
@@ -383,6 +385,7 @@ func (h *workerHistory) PenalizeCaptureHistory(move Move, depth int) {
 
 // ClearHistoryTable resets both history tables (used between games)
 func (h *workerHistory) ClearHistoryTable() {
+	clear(h.lowPlyHistory[:])
 	clear(h.pawnQuietHistory[:])
 	for i := range h.historyTable {
 		for j := range h.historyTable[i] {
@@ -586,7 +589,7 @@ func materializeCaptureScores(out []Move, scores []int, n int, pos *Position) {
 // O(n^2) selection tail past a beta cutoff is never paid. Returns the number of moves written
 // and the index of the TT move within out[] (or -1 if absent), so the caller can hoist it to
 // the front in O(1) rather than rescanning for it in selectNextMove(oi=0).
-func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, depth int, previousMove Move, prev2 Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position, lazySEE bool, distant ...Move) (int, int) {
+func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, ply int, previousMove Move, prev2 Move, ttMove Move, ttHit bool, out []Move, scores []int, pos *Position, lazySEE bool, distant ...Move) (int, int) {
 	n := len(moves)
 	if n == 0 || len(out) < n || len(scores) < n {
 		return 0, -1
@@ -612,16 +615,16 @@ func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, depth int, previousMo
 	}
 
 	// Hoist the loop-invariant counter move and killer slots out of the per-move loop.
-	// previousMove and depth are constant for the whole list, so each quiet move becomes
+	// previousMove and ply are constant for the whole list, so each quiet move becomes
 	// two equality tests instead of re-indexing counterMoves[from][to] and the killer
 	// table (with its bounds check) every iteration. EmptyMove never matches a real
 	// generated quiet move, so the guards below are bit-identical to IsCounterMove /
 	// IsKillerMove.
 	counterMove := h.GetCounterMove(previousMove)
 	var killer0, killer1 Move
-	if depth >= 0 && depth < MaximumDepth {
-		killer0 = h.killerMoves[depth][0]
-		killer1 = h.killerMoves[depth][1]
+	if ply >= 0 && ply < MaximumDepth {
+		killer0 = h.killerMoves[ply][0]
+		killer1 = h.killerMoves[ply][1]
 	}
 
 	// Single pass: score all moves. Record where the TT move lands so the caller can hoist
@@ -694,6 +697,9 @@ func (h *workerHistory) scoreMovesIntoBuffer(moves []Move, depth int, previousMo
 				}
 				if pawnHist != nil {
 					hs += int(pawnHist[piece][to]) / 2
+				}
+				if T1104LowPly != 0 && ply >= 0 && ply < lowPlyCount {
+					hs += h.lowPlyHistory[ply][move.Source()][to]
 				}
 				score += hs
 			}
