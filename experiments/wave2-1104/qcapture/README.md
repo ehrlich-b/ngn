@@ -46,3 +46,23 @@ gate includes neural kernel tests. The `exec go test -p 2 -short -count=1 ./...`
 entry refuses that gate on a host whose name begins with `forge`, exits 77, and
 prints the command to run on a suitable CPU host. This is a blocked gate, not a
 passing or reduced-suite substitute. Vet and whitespace gates run normally.
+
+The short-suite gate remains BLOCKED on forge. To finish verification, move the
+committed candidate and the external readiness inputs to a suitable non-forge
+CPU host with the same repository path and existing H768 net. Preserve the
+brief, all acceptance IDs, all four gates, and the default-off option. Provision
+the documented shared caches and lane-local temporary directory before replay.
+Then run from the repository root:
+
+```sh
+nice -n 10 python3 experiments/wave2-1104/qcapture/check.py exec go test -p 2 -short -count=1 ./...
+nice -n 10 python3 /work/lanes/readiness.py run ..
+```
+
+The first command must execute the complete required short suite. The second
+regenerates every acceptance and gate log against the same committed HEAD; a
+prior failed record or results copied from a different HEAD cannot certify it.
+Keep generated readiness records and logs outside the checkout. Do not disable
+kernel tests, narrow the gate, or change the hostname to bypass the guard.
+Until that replay passes, retain BLOCKED readiness and the DEFERRED experiment
+verdict; the completed rig strength gate remains separately outstanding.
