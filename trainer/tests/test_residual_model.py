@@ -122,6 +122,34 @@ class ResidualModelTests(unittest.TestCase):
         model.clip_quantized()
         self.assertEqual(export_bytes(model.state_dict(), 6), zero)
 
+    def test_unused_king_buckets_preserve_fixed_allocation(self):
+        for path in (SOURCE, ROOT / "engine/nets/ngn-h768-2dcb6d93.nnue"):
+            for highest in (0, 3, 6):
+                with self.subTest(source=path.name, highest=highest):
+                    source = bytearray(path.read_bytes())
+                    source[32:96] = bytes(i % (highest + 1) for i in range(64))
+                    struct.pack_into('<I', source, len(source)-4, zlib.crc32(source[:-4]))
+                    source = bytes(source)
+                    zero = lift_bytes(source)
+                    model = ResidualNGNN.from_ngnn3(source)
+                    self.assertEqual(model.king_buckets, 8)
+                    self.assertEqual(tuple(model.w1.shape), (6144, model.hidden))
+                    self.assertEqual(model.king_map.tolist(), list(source[32:96]))
+                    model.clip_quantized()
+                    self.assertEqual(export_bytes(model.state_dict(), 6), zero)
+                    features, stm, _, _, bucket = inputs(model)
+                    oracle = Network(source)
+                    records = np.frombuffer((PACKET/'records.ngnp').read_bytes(), dtype=RECORD_DTYPE)
+                    with torch.no_grad():
+                        self.assertEqual(model(features, stm, bucket).tolist(),
+                                         [oracle.evaluate_record(rec) for rec in records])
+
+    def test_invalid_king_maps(self):
+        for mapping in ([], [0] * 63, [0] * 65, [-1] + [0] * 63,
+                        [8] + [0] * 63, [0.5] * 64):
+            with self.subTest(mapping=mapping), self.assertRaises(ValueError):
+                ResidualNGNN(32, mapping)
+
     def test_rounding_truncation_and_validation(self):
         values = torch.tensor([-2.5, -1.5, -0.5, 0.5, 1.5, 2.5], requires_grad=True)
         self.assertEqual(_quantized(values, 1).tolist(), [-2, -2, 0, 0, 2, 2])

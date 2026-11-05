@@ -32,6 +32,8 @@ def export_bytes(state: dict, format: int | None = None, *, _ngnn6: bool = False
         return export_model_bytes(state)
     king_map = validate_map(state["king_map"]) if "king_map" in state else None
     king_buckets = max(king_map) + 1 if king_map is not None else 1
+    if _ngnn6:
+        king_buckets = 8  # Fixed wire allocation, even when some map IDs are unused.
     transformer = state["w1"]
     if "w1_shared" in state:
         shared = state["w1_shared"]

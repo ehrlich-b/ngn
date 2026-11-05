@@ -6,6 +6,9 @@ linear head byte for byte. The shared bottleneck has 16 units; eight projection
 rows and eight biases start at zero. The accepted H768 head uses some linear
 weights outside the older float trainer's ±1.98 bound, so NGNN6 retains the full
 specified int16 range. Float64 head biases retain every int32 source bias.
+King maps contain 64 integer IDs in [0,7]; unused IDs do not reduce the fixed
+eight-bucket transformer allocation. Tests round-trip H32 and H768 sources with
+all-zero maps and maps using only IDs 0–3 or 0–6, preserving exact integer scores.
 
 Forward executes the exact wire arithmetic in float64, which can represent all
 bounded integer intermediates exactly. Parameters round to nearest with ties to

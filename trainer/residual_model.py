@@ -14,6 +14,7 @@ import numpy as np
 import torch
 from torch import nn
 
+from trainer.king_buckets import validate_map
 from trainer.model import NGNN, QA, QB, SCALE
 from trainer.residual_export import lift_bytes, residual_bytes, source_width
 
@@ -41,9 +42,14 @@ def _quantized(value, scale):
 class ResidualNGNN(NGNN):
     """Eight output rows over a shared 16-unit residual bottleneck."""
     def __init__(self, hidden, king_map):
-        if hidden not in (32, 768) or max(king_map) != 7:
-            raise ValueError("NGNN6 requires H32/H768 and eight king buckets")
-        super().__init__(hidden, 8, king_map)
+        if hidden not in (32, 768):
+            raise ValueError("NGNN6 requires H32/H768")
+        super().__init__(hidden, 8, validate_map(king_map))
+        # NGNN6 allocates all eight king buckets, including unused map IDs.
+        if self.king_buckets != 8:
+            self.king_buckets = 8
+            self.w1 = nn.Parameter(torch.empty(768 * self.king_buckets, hidden))
+            nn.init.normal_(self.w1, mean=0, std=0.02)
         self.a = nn.Parameter(torch.zeros(16, 2 * hidden))
         # Float64 head biases retain every int32 wire value at warm start.
         self.ob = nn.Parameter(self.ob.double())
