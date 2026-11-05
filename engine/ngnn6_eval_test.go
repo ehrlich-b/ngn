@@ -132,7 +132,7 @@ func residualAssertStorage(t *testing.T, n *NGNN1Network, acc []int32, turn Colo
 	for i, v := range acc {
 		compact[i] = int16(v)
 	}
-	s := ngnn1State{network: n, frames: []ngnn1Frame{{compact: compact}}}
+	s := ngnn1State{network: n, frames: []ngnn1Frame{{compact: compact}}, pending: []ngnnCompactPending{{valid: true}}}
 	if n.compactInput {
 		if got := s.evaluatePosition(0, p, n); got != want {
 			t.Fatalf("compact turn=%v bucket=%d got=%d want=%d", turn, bucket, got, want)
