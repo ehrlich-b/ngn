@@ -1,0 +1,21 @@
+{
+  "option": "T1104Cuckoo=1",
+  "verdict": "DEFERRED",
+  "penta_elo": null,
+  "interval": null,
+  "games": 0,
+  "W/D/L": [
+    0,
+    0,
+    0
+  ],
+  "pentanomial": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reason": "The required fixed-node pre-screen is reserved for the rig; smoke statistics are not strength evidence.",
+  "target": "rig composite gate after qualifying pre-screen"
+}

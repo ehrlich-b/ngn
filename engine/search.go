@@ -22,6 +22,7 @@ const (
 // its UCI name, default and spin range.
 var (
 	T1104ContPlies          = 0
+	T1104Cuckoo             = 0
 	T1104CorrMore           = 0
 	W2QChecks               = 0   // One layer of quiet checks at the qsearch horizon
 	T1104LowPly             = 0   // Experimental near-root quiet ordering (default off)
@@ -105,6 +106,7 @@ type TunableParam struct {
 var TunableSearchParams = []TunableParam{
 	{"T1104ContPlies", &T1104ContPlies, 0, 0, 1},
 	{"W2QCapture", &W2QCapture, 0, 0, 1},
+	{"T1104Cuckoo", &T1104Cuckoo, 0, 0, 1},
 	{"T1104CorrMore", &T1104CorrMore, 0, 0, 1},
 	{"W2NullVerify", &W2NullVerify, 0, 0, 1},
 	{"W2NullMargin", &W2NullMargin, 0, 0, 1},
@@ -809,6 +811,7 @@ type SearchInfo struct {
 	// Repetition detection during search
 	RepStack    [512]uint64 // Stack of Zobrist hashes on current search path
 	RepStackLen int         // Current depth in repetition stack
+	cuckooStart int         // First ancestor after the most recent null move
 
 	// maxNodes snapshots the `go nodes` budget at search start — it is constant for
 	// the whole search, so the per-node check reads a plain field instead of paying
@@ -935,6 +938,9 @@ func searchIterativeDeepeningWorkerUnsafe(pos *Position, maxDepth int, timeManag
 	}
 
 	seedRootStaticEval(pos, info)
+	if T1104Cuckoo != 0 {
+		info.RepStack[0], info.RepStackLen = pos.Hash(), 1
+	}
 
 	// Generate root moves without heap allocations (pseudo-legal; legality handled in search loop)
 	var rootGen [256]Move
@@ -1495,6 +1501,9 @@ func searchFixedUnsafe(pos *Position, depth int, timeManager *TimeManager, contr
 	}
 
 	seedRootStaticEval(pos, info)
+	if T1104Cuckoo != 0 {
+		info.RepStack[0], info.RepStackLen = pos.Hash(), 1
+	}
 
 	var orderedRoot [256]Move
 	orderedCount := info.history.orderMovesIntoBufferWithDepth(moves, 0, orderedRoot[:], pos) // killers are ply-keyed; root is ply 0
@@ -1721,6 +1730,13 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	if score, drawn := searchDrawScore(pos, ply, hash, info); drawn {
 		return score
 	}
+	cycleMove := cuckooRepetitionMove(pos, ply, alpha, hash, info)
+	if cycleMove != EmptyMove {
+		alpha = 0
+		if alpha >= beta {
+			return alpha
+		}
+	}
 
 	// Push current hash onto repetition stack
 	if info.RepStackLen < len(info.RepStack) {
@@ -1756,7 +1772,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// for move ordering; only the cutoff and the (corrupting) store are skipped.
 	inSingular := info.ExcludedMove != EmptyMove && ply == info.ExcludedPly
 
-	if ttHit && !isPV && ttDepth >= int8(depth) && !inSingular {
+	if ttHit && !isPV && ttDepth >= int8(depth) && !inSingular && (cycleMove == EmptyMove || ttEval >= 0) {
 		info.TTHits++
 		switch ttNodeType {
 		case Exact:
@@ -1959,7 +1975,10 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		if nullDepth < 0 {
 			nullDepth = 0
 		}
+		savedCuckooStart := info.cuckooStart
+		info.cuckooStart = info.RepStackLen
 		score := -info.searchNullChild(pos, nullDepth, ply+1, -beta, -beta+1, !cutNode)
+		info.cuckooStart = savedCuckooStart
 
 		info.evaluator.mustPop()
 		pos.UnMakeNullMove(oldEP)
@@ -2107,6 +2126,11 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	}
 	bestScore := -INFINITY
 	bestMove := EmptyMove
+	if cycleMove != EmptyMove {
+		// The legal closing move guarantees a draw even if quiet pruning skips
+		// it. Keep this path-dependent floor out of position-only TT entries.
+		bestScore, bestMove = 0, cycleMove
+	}
 	moveCount := 0
 	legalTried := 0
 
@@ -2661,7 +2685,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// Skip the store at the singular verification root (move-excluded result must
 	// not overwrite the real entry for this position).
-	if !inSingular {
+	if !inSingular && (cycleMove == EmptyMove || bestScore > 0) {
 		info.tt.Set(hash, bestMove, scoreToTT(bestScore, ply), int8(depth), nodeType, nodeTTPv)
 	}
 	return bestScore
@@ -2736,6 +2760,13 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 	if score, drawn := searchDrawScore(pos, ply, hash, info); drawn {
 		return score
 	}
+	cycleMove := cuckooRepetitionMove(pos, ply, alpha, hash, info)
+	if cycleMove != EmptyMove {
+		alpha = 0
+		if alpha >= beta {
+			return alpha
+		}
+	}
 	inCheck := pos.IsInCheck()
 
 	// qDepth bounds only the optional quiet-check layer, never captures.
@@ -2759,7 +2790,7 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		_, ttEvalRaw, _, ttNodeType, ttHit, ttPvEntry = info.tt.Get(ttHash)
 	}
 	info.QTTProbes++
-	if ttHit {
+	if ttHit && (cycleMove == EmptyMove || scoreFromTT(ttEvalRaw, ply) >= 0) {
 		info.QTTHits++
 		ttEval := scoreFromTT(ttEvalRaw, ply)
 		switch ttNodeType {
@@ -2825,6 +2856,9 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 		}
 
 		bestScore := -INFINITY
+		if cycleMove != EmptyMove {
+			bestScore = 0
+		}
 		legalMoves := 0
 
 		for i := 0; i < moveCount; i++ {
@@ -2930,6 +2964,9 @@ func quiescenceWithDepth(pos *Position, alpha int, beta int, ply int, info *Sear
 
 	bestScore := standPat
 	bestMove := EmptyMove
+	if cycleMove != EmptyMove && bestScore < 0 {
+		bestScore, bestMove = 0, cycleMove
+	}
 	if standPat > alpha {
 		alpha = standPat
 	}

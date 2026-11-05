@@ -29,6 +29,7 @@ func init() {
 		}
 	}
 	whiteSideKey = random.Uint64()
+	initCuckoo()
 }
 
 

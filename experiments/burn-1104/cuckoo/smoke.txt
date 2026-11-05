@@ -1,0 +1,25 @@
++ nice -n 10 go build -trimpath -o build/ngn .
+exit=0 elapsed=4.295s peak_rss_kib=137656
++ nice -n 10 go build -trimpath -o build/sprt ./cmd/sprt
+exit=0 elapsed=3.589s peak_rss_kib=131936
++ nice -n 10 build/sprt -lowpower=false -new build/ngn -newoption T1104Cuckoo=1 -base build/ngn -nodes 1000 -openings experiments/burn-1104/cuckoo/smoke-openings.txt -concurrency 1 -elo0 0 -elo1 5 -mingames 2 -maxgames 2 -maxmoves 40 -seed 1104 -pgn /work/lanes/q-ngn-search-cuckoo-1104-1105/evidence/smoke.pgn
+NGN self-play SPRT
+==================
+new=build/ngn  base=build/ngn
+new options: [setoption name T1104Cuckoo value 1]
+base options: []
+mode: nodes 1000/move | openings: 1 (x2 colors) | concurrency: 1
+H0: elo<=0.0   H1: elo>=5.0   (alpha=0.05 beta=0.05 -> LLR bounds [-2.94, 2.94])
+
+G1     0W  1D  0L   50.0%  elo   +0.0 [-495,+495]  LLR  -0.00  pLLR  +0.00  max-moves
+G2     0W  2D  0L   50.0%  elo   +0.0 [-393,+393]  LLR  -0.00  pLLR  -0.03  max-moves
+
+=== RESULT (3s) ===
+Games: 2   W-D-L: 0-2-0   score: 50.0%
+Elo(new - base): +0.0   95% CI [-393, +393]
+LLR: -0.00   bounds [-2.94, 2.94]
+Pentanomial [LL 0  LD 0  {LW,DD} 1  WD 0  WW 0] over 1 pairs
+Penta Elo: -0.0   95% CI [-43, +43]   pLLR -0.03  (THE decision stat; trinomial above is secondary)
+Verdict: INCONCLUSIVE (ran out of games — add openings or raise -maxgames)
+exit=0 elapsed=3.549s peak_rss_kib=18156
+PASS: exactly two color-swapped fixed-node smoke games; no strength inference
