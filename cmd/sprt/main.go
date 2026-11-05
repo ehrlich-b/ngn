@@ -96,6 +96,7 @@ func main() {
 	maxMoves := flag.Int("maxmoves", 200, "ply cap per game (then adjudicated draw)")
 	openingsFile := flag.String("openings", "", "file of opening move-sequences (one per line); default = built-in set")
 	concurrency := flag.Int("concurrency", 2, "parallel games")
+	noRetries := flag.Bool("noretries", false, "abort on first engine startup or watchdog failure; never restart engines")
 	lowPower := flag.Bool("lowpower", true, "route engines to macOS E-cores (taskpolicy -b)")
 	genBook := flag.Int("genbook", 0, "generate N balanced openings and exit (writes to -out)")
 	genPlies := flag.Int("genplies", 6, "random plies per generated opening")
@@ -214,8 +215,9 @@ func main() {
 		tcTimeMs: tcTimeMs, tcIncMs: tcIncMs, gameTimeout: *gameTimeout,
 		elo0: *elo0, elo1: *elo1, lower: lower, upper: upper,
 		maxGames: *maxGames, minGames: *minGames, concurrency: *concurrency, lowPower: *lowPower,
-		adj:     adj,
-		pgnPath: *pgnPath,
+		adj:       adj,
+		noRetries: *noRetries,
+		pgnPath:   *pgnPath,
 	}, openings)
 }
 
@@ -229,7 +231,7 @@ type runConfig struct {
 	maxMoves, gameTimeout           int
 	elo0, elo1, lower, upper        float64
 	maxGames, minGames, concurrency int
-	lowPower                        bool
+	lowPower, noRetries             bool
 	adj                             uci.AdjConfig
 }
 
@@ -290,8 +292,12 @@ func runSPRT(cfg runConfig, openings [][]string) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			newEng := uci.StartWithOptions(cfg.newPath, "new", cfg.lowPower, cfg.newOptions)
-			baseEng := uci.StartWithOptions(cfg.basePath, "base", cfg.lowPower, cfg.baseOptions)
+			startEngine := uci.StartWithOptions
+			if cfg.noRetries {
+				startEngine = uci.StartWithOptionsOnce
+			}
+			newEng := startEngine(cfg.newPath, "new", cfg.lowPower, cfg.newOptions)
+			baseEng := startEngine(cfg.basePath, "base", cfg.lowPower, cfg.baseOptions)
 			if newEng == nil || baseEng == nil {
 				log.Fatalf("engine failed UCI handshake after retries (new ok=%v, base ok=%v); aborting run instead of forfeiting every game as no-move", newEng != nil, baseEng != nil)
 			}
@@ -311,6 +317,9 @@ func runSPRT(cfg runConfig, openings [][]string) {
 				}
 				res, ok := playWatch(newEng, baseEng, s.opening, s.newIsWhite, localCfg, deadline)
 				if !ok {
+					if cfg.noRetries {
+						log.Fatal("WATCHDOG: strict run aborted without retry")
+					}
 					// The watchdog killed both engines to break a wedge; bring up fresh
 					// ones and void this game — the run survives on the remaining games.
 					newEng = uci.StartWithOptions(cfg.newPath, "new", cfg.lowPower, cfg.newOptions)

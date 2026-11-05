@@ -1,0 +1,89 @@
+{
+  "candidate_status": "READY",
+  "elo_claim": false,
+  "embedded_sha256": "5cbf5204fbe2207c6ee10ba0fa1f245caf6f5b2c0b9435b38b07c5533dc43704",
+  "fixture_only": true,
+  "format": "NGNN1",
+  "games_played": 0,
+  "hidden": 16,
+  "identity": {
+    "cases": 4,
+    "depth": 4,
+    "identical": true,
+    "rows": [
+      {
+        "bestmove": "bestmove g2g4",
+        "depth": "4",
+        "eval": "info string eval backend ngnn1 score_cp 0 pov side-to-move policy base-SearchSTM correction-history excluded",
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "nodes": "604",
+        "pv": [
+          "g2g4",
+          "b8c6",
+          "h2h4",
+          "a8b8"
+        ],
+        "score": [
+          "cp",
+          "1"
+        ]
+      },
+      {
+        "bestmove": "bestmove d4e5",
+        "depth": "4",
+        "eval": "info string eval backend ngnn1 score_cp 1 pov side-to-move policy base-SearchSTM correction-history excluded",
+        "fen": "r3k2r/ppp2ppp/2n1bn2/3qp3/3P4/2N1PN2/PPP2PPP/R2QKB1R w KQkq - 4 8",
+        "nodes": "1863",
+        "pv": [
+          "d4e5",
+          "d5d1",
+          "c3d1",
+          "e8c8",
+          "e5f6"
+        ],
+        "score": [
+          "cp",
+          "0"
+        ]
+      },
+      {
+        "bestmove": "bestmove b4f4",
+        "depth": "4",
+        "eval": "info string eval backend ngnn1 score_cp 0 pov side-to-move policy base-SearchSTM correction-history excluded",
+        "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+        "nodes": "298",
+        "pv": [
+          "b4f4",
+          "h4g3",
+          "e2e3",
+          "g3g2"
+        ],
+        "score": [
+          "cp",
+          "0"
+        ]
+      },
+      {
+        "bestmove": "bestmove e5d6",
+        "depth": "4",
+        "eval": "info string eval backend ngnn1 score_cp 0 pov side-to-move policy base-SearchSTM correction-history excluded",
+        "fen": "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1",
+        "nodes": "281",
+        "pv": [
+          "e5d6",
+          "e8d7",
+          "e1d1",
+          "d7d6"
+        ],
+        "score": [
+          "cp",
+          "0"
+        ]
+      }
+    ]
+  },
+  "net_sha256": "5cbf5204fbe2207c6ee10ba0fa1f245caf6f5b2c0b9435b38b07c5533dc43704",
+  "parity_passed": true,
+  "startup_identity_passed": true,
+  "version": 1
+}

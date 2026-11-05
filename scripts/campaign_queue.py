@@ -84,6 +84,18 @@ def summarize(log, pgn, job, returncode):
             recounted[round(2 * sum(outcomes))] += 1
         elif len(outcomes) > 2:
             faults.append('duplicate pair')
+    if job.get('strict_pairs'):
+        if re.search(r'WARNING: skipping', log):
+            faults.append('opening book rejected entries')
+        pair_tags = {}
+        for tag in tags:
+            pair_tags.setdefault(tag['Round'].split('.')[0], []).append(tag)
+        for group in pair_tags.values():
+            if (len(group) != 2 or {tag['Round'].split('.')[-1] for tag in group} != {'1', '2'} or
+                    {(tag['White'], tag['Black']) for tag in group} != {('candidate', 'base'), ('base', 'candidate')} or
+                    len({tag.get('FEN') for tag in group}) != 1 or
+                    any(tag.get('TimeControl') != job['tc'] or tag['Result'] not in ('1-0', '0-1', '1/2-1/2') for tag in group)):
+                faults.append('invalid reversed-color pair')
     if len(tags) != games or wdl != [wins, draws, losses] or recounted != penta:
         faults.append('PGN/result pair accounting mismatch')
     exact = paired(penta)
@@ -140,11 +152,18 @@ def run(job, registry_path, status_path):
             '-maxgames', str(job['max_games']), '-elo0', str(job.get('elo0', 0)), '-elo1', str(job.get('elo1', 5)),
             '-alpha', '.05', '-beta', '.05', '-maxmoves', '400', '-gametimeout', str(job.get('game_timeout', 180)),
             '-openings', job['book'], '-lowpower=false', '-pgn', str(directory / 'games.pgn')]
+    if job.get('no_retries'):
+        argv += ['-noretries']
+        argv = ['nice', '-n', '10', *argv]
     for role, options in (('new', job['candidate_options']), ('base', job['base_options'])):
         for option in options:
             argv += ['-' + role + 'option', option]
-    env = os.environ.copy()
+    env = {key: value for key, value in os.environ.items()
+           if not re.search('credential|token|secret|password|api.?key|access.?key|authorization|cookie|private.?key', key, re.I)}
     env['GOMAXPROCS'] = '1'
+    if job.get('no_retries'):
+        env.update(OMP_NUM_THREADS='2', MKL_NUM_THREADS='2', OPENBLAS_NUM_THREADS='2',
+                   NUMEXPR_NUM_THREADS='2', CUDA_VISIBLE_DEVICES='')
     manifest = dict(job, argv=argv, environment={'GOMAXPROCS': '1'}, pid=os.getpid(),
                     started_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                     reused_control=registry.get(job.get('control_key')))

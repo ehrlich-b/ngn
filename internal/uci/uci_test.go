@@ -67,6 +67,40 @@ func TestReadyRejectsConfigurationError(t *testing.T) {
 	}
 }
 
+func TestStartWithOptionsOnceNeverRetries(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("test subprocess uses a POSIX shell")
+	}
+	dir := t.TempDir()
+	path := filepath.Join(dir, "fake-uci")
+	receipt := filepath.Join(dir, "starts")
+	t.Setenv("NGN_UCI_TEST_STARTS", receipt)
+	script := `#!/bin/sh
+printf 'start\n' >> "$NGN_UCI_TEST_STARTS"
+while IFS= read -r line; do
+  case "$line" in
+    uci) printf 'uciok\n' ;;
+    isready) printf 'info string error owned startup failure\nreadyok\n' ;;
+    quit) exit 0 ;;
+  esac
+done
+`
+	if err := os.WriteFile(path, []byte(script), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if e := StartWithOptionsOnce(path, "test-once", false, nil); e != nil {
+		Stop(e)
+		t.Fatal("failed configuration was accepted")
+	}
+	starts, err := os.ReadFile(receipt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(starts) != "start\n" {
+		t.Fatalf("startup retried: %q", starts)
+	}
+}
+
 func TestParseScore(t *testing.T) {
 	cases := []struct {
 		line   string

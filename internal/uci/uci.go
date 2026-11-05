@@ -125,7 +125,16 @@ func Start(path, name string, lowPower bool) *Engine {
 // StartWithOptions applies ordered setoption commands before readiness and warmup.
 // Commands are constructed by the caller; options persist across ucinewgame.
 func StartWithOptions(path, name string, lowPower bool, options []string) *Engine {
-	for attempt := 1; attempt <= 3; attempt++ {
+	return startWithAttempts(path, name, lowPower, options, 3)
+}
+
+// StartWithOptionsOnce performs one handshake and warmup, without retrying.
+func StartWithOptionsOnce(path, name string, lowPower bool, options []string) *Engine {
+	return startWithAttempts(path, name, lowPower, options, 1)
+}
+
+func startWithAttempts(path, name string, lowPower bool, options []string, attempts int) *Engine {
+	for attempt := 1; attempt <= attempts; attempt++ {
 		var cmd *exec.Cmd
 		if lowPower && runtime.GOOS == "darwin" {
 			cmd = exec.Command("taskpolicy", "-b", path)
@@ -142,7 +151,7 @@ func StartWithOptions(path, name string, lowPower bool, options []string) *Engin
 		e.stdout.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 		Send(e, "uci")
 		if !WaitFor(e, "uciok", 15*time.Second) {
-			log.Printf("%s (%s): no uciok within 15s (attempt %d/3)", name, path, attempt)
+			log.Printf("%s (%s): no uciok within 15s (attempt %d/%d)", name, path, attempt, attempts)
 			Stop(e)
 			continue
 		}
@@ -151,7 +160,7 @@ func StartWithOptions(path, name string, lowPower bool, options []string) *Engin
 		}
 		Send(e, "isready")
 		if !WaitFor(e, "readyok", 15*time.Second) {
-			log.Printf("%s (%s): no readyok within 15s (attempt %d/3)", name, path, attempt)
+			log.Printf("%s (%s): no readyok within 15s (attempt %d/%d)", name, path, attempt, attempts)
 			Stop(e)
 			continue
 		}
@@ -160,7 +169,7 @@ func StartWithOptions(path, name string, lowPower bool, options []string) *Engin
 		// bestmove, forfeiting every game as "no-move".
 		Send(e, "position startpos")
 		if mv := GetMove(e, "go movetime 200", 10*time.Second, 1500*time.Millisecond); mv == "" {
-			log.Printf("%s (%s): handshakes but emitted no warmup move (attempt %d/3)", name, path, attempt)
+			log.Printf("%s (%s): handshakes but emitted no warmup move (attempt %d/%d)", name, path, attempt, attempts)
 			Stop(e)
 			continue
 		}
