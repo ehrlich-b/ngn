@@ -101,6 +101,7 @@ type TunableParam struct {
 var TunableSearchParams = []TunableParam{
 	{"T1104CorrMore", &T1104CorrMore, 0, 0, 1},
 	{"W2NullVerify", &W2NullVerify, 0, 0, 1},
+	{"W2NullMargin", &W2NullMargin, 0, 0, 1},
 	{"NullMoveR", &NULL_MOVE_R, 4, 2, 5},
 	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 2, 1, 6},
 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
@@ -1890,6 +1891,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// verifies the null move with a raw static eval (tactically blind) instead
 		// of quiescence; flooring routes it through qsearch like the depth>=4 path.
 		nullDepth := depth - (NULL_MOVE_R + tuneNullMoveOffset + depth/tuneNullMoveDepthDivisor) // NMP reduction: tunable base NULL_MOVE_R (def 3 => R+1=4) + depth-scaling; CG/Ethereal/Weiss converge
+		nullDepth -= wave2NullMargin(corrStaticEval, beta)
 		if nullDepth < 0 {
 			nullDepth = 0
 		}

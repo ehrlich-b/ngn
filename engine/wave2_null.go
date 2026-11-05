@@ -4,6 +4,20 @@ package engine
 // also fails high. Adoption requires a completed strength gate; shipped off.
 var W2NullVerify = 0
 
+// W2NullMargin adds a bounded surplus reduction only with null verification.
+// Adoption requires a completed strength gate; shipped off.
+var W2NullMargin = 0
+
+func wave2NullMargin(correctedStaticEval, beta int) int {
+	if W2NullMargin == 0 || W2NullVerify == 0 ||
+		correctedStaticEval == unknownStaticEval ||
+		correctedStaticEval <= -MATE_IN_MAX || correctedStaticEval >= MATE_IN_MAX ||
+		beta <= -MATE_IN_MAX || beta >= MATE_IN_MAX {
+		return 0
+	}
+	return min(2, max(0, (correctedStaticEval-beta)/200))
+}
+
 func (info *SearchInfo) allowNullMove(alpha, beta int) bool {
 	if info.nullVerification {
 		return false

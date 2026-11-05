@@ -1,0 +1,74 @@
+[
+  {
+    "best": "d2d4",
+    "depth": 4,
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "net_sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443",
+    "nodes": 747,
+    "null_cutoffs": 4,
+    "null_tries": 17,
+    "pv": [
+      "d2d4",
+      "d7d5",
+      "c2c4",
+      "d5c4"
+    ],
+    "qnodes": 294,
+    "score": 63,
+    "stopped": false
+  },
+  {
+    "best": "e2a6",
+    "depth": 4,
+    "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+    "net_sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443",
+    "nodes": 1717,
+    "null_cutoffs": 1,
+    "null_tries": 19,
+    "pv": [
+      "e2a6",
+      "b4c3",
+      "d2c3",
+      "e6d5"
+    ],
+    "qnodes": 1066,
+    "score": -167,
+    "stopped": false
+  },
+  {
+    "best": "d4c5",
+    "depth": 4,
+    "fen": "r1bq1rk1/pp2bppp/2n2n2/2pp4/3P4/2N1PN2/PPQ1BPPP/R1B2RK1 w - - 0 10",
+    "net_sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443",
+    "nodes": 967,
+    "null_cutoffs": 2,
+    "null_tries": 6,
+    "pv": [
+      "d4c5",
+      "e7c5",
+      "f1d1",
+      "c8e6"
+    ],
+    "qnodes": 362,
+    "score": 87,
+    "stopped": false
+  },
+  {
+    "best": "b4f4",
+    "depth": 4,
+    "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 17 1",
+    "net_sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443",
+    "nodes": 419,
+    "null_cutoffs": 0,
+    "null_tries": 0,
+    "pv": [
+      "b4f4",
+      "h4g3",
+      "f4c4",
+      "h5h7"
+    ],
+    "qnodes": 186,
+    "score": 200,
+    "stopped": false
+  }
+]

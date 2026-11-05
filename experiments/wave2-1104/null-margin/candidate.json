@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "parent": "fdd3227fa50b50dea7cdbbeaab7b7c4a4f6f071c",
+  "candidate": {
+    "W2NullVerify": 1,
+    "W2NullMargin": 1
+  },
+  "default": {
+    "W2NullVerify": 0,
+    "W2NullMargin": 0
+  },
+  "surplus_cp_per_ply": 200,
+  "max_extra_plies": 2,
+  "rig_gate": "DEFERRED",
+  "elo_claim": false,
+  "parameter_sweep": false
+}
