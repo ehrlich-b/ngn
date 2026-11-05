@@ -59,6 +59,8 @@ and SHA256 of the canonical `{path: [base_hash, candidate_hash]}` map. Only
 Tests, search, startup, embedded defaults and harness changes cannot pass this
 exception. Executable hashes, source/net identities, machine, CPUs, clock,
 options and frozen book all enter the A/A control key.
+The campaign result parser's SHA256 also enters the key, so a corrected fault
+policy cannot reuse a control certified under the old parser.
 
 Books require one full FEN per line. Supply the complete claim position inventory
 as `claim_books` FEN exports; this is an input obligation, not inferred from
@@ -103,6 +105,9 @@ Synthetic KEEP results exercise adoption plumbing only. Real fixed-clock gates
 and production admission belong to separately authorized runs.
 
 The process tests also build the real `cmd/sprt` harness and invoke it through
-`campaign_queue.run`. A reported warmup or in-game search error followed by a
-legal bestmove must abort strict play and produce an UNSCORED result with faults;
-it cannot register an A/A control or produce a KEEP.
+`campaign_queue.run`. A reported warmup, post-ucinewgame readiness or in-game
+search error must abort strict play and produce an UNSCORED result with faults.
+Readiness failure returns engine-error before any position or search is sent.
+The parser also rejects logged configuration errors in otherwise complete,
+positive transcripts with exit zero; they cannot register an A/A control or
+produce a KEEP.

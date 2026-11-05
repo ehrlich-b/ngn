@@ -10,6 +10,8 @@ for line in sys.stdin:
     if line == "uci":
         print("id name owned-net-job-fixture\nuciok", flush=True)
     elif line == "isready":
+        if error_mode == "readiness" and playing:
+            print("info string error eval option: owned readiness failure; using hce", flush=True)
         print("readyok", flush=True)
     elif line == "eval":
         print("info string eval backend ngnn1 score_cp 0", flush=True)

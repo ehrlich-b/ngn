@@ -2,6 +2,7 @@ package uci
 
 import (
 	"bufio"
+	"bytes"
 	"io"
 	"os"
 	"path/filepath"
@@ -10,6 +11,40 @@ import (
 	"testing"
 	"time"
 )
+
+func TestPlayGameRejectsReadinessFailureBeforeSearch(t *testing.T) {
+	for _, failedRole := range []string{"new", "base"} {
+		for _, newIsWhite := range []bool{true, false} {
+			for _, output := range []string{
+				"info string error eval option: owned failure; using hce\nreadyok\n",
+				"", // a closed readiness stream also fails before position/go
+			} {
+				var newCommands, baseCommands bytes.Buffer
+				makeEngine := func(role string, commands *bytes.Buffer) *Engine {
+					response := "readyok\n"
+					if role == failedRole {
+						response = output
+					}
+					return &Engine{stdin: bufio.NewWriter(commands), stdout: bufio.NewScanner(strings.NewReader(response))}
+				}
+				got := PlayGame(makeEngine("new", &newCommands), makeEngine("base", &baseCommands), nil,
+					newIsWhite, GameConfig{MaxMoves: 2, NewDepth: 1, BaseDepth: 1})
+				want := Loss
+				if failedRole == "base" {
+					want = Win
+				}
+				if got.Reason != "engine-error" || got.Res != want {
+					t.Fatalf("role=%s white=%v output=%q: got %+v", failedRole, newIsWhite, output, got)
+				}
+				for _, commands := range []string{newCommands.String(), baseCommands.String()} {
+					if strings.Contains(commands, "position ") || strings.Contains(commands, "go ") {
+						t.Fatalf("searched after failed readiness: %q", commands)
+					}
+				}
+			}
+		}
+	}
+}
 
 func TestGetMoveCheckedRejectsRecoveredSearchError(t *testing.T) {
 	for _, output := range []string{

@@ -304,6 +304,7 @@ def train(job, key, directory, cpus):
 
 def control_identity(job, selected, book, binaries, cpus):
     return identity({"candidate": selected, "baseline": job["inputs"], "book": book["sha256"],
+                     "result_parser_sha256": sha(campaign.__file__),
                      "binaries": {k: v["sha256"] for k, v in binaries.items()}, "cpus": cpus,
                      "machine": [socket.gethostname(), os.uname().machine], "tc": "10+0.1",
                      "options": ["Threads=1", "Hash=64", "OwnBook=false", "UseNNUE=true"],

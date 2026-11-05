@@ -178,11 +178,12 @@ func startWithAttempts(path, name string, lowPower bool, options []string, attem
 	return nil
 }
 
-// Reset issues ucinewgame between games.
-func Reset(e *Engine) {
+// Reset issues ucinewgame between games and confirms readiness. A rejected
+// configuration must never proceed to a scored game, even if readyok follows.
+func Reset(e *Engine) bool {
 	Send(e, "ucinewgame")
 	Send(e, "isready")
-	WaitFor(e, "readyok", 5*time.Second)
+	return WaitFor(e, "readyok", 5*time.Second)
 }
 
 // Send writes a single UCI command line to the engine.
@@ -203,6 +204,8 @@ func WaitFor(e *Engine, expected string, timeout time.Duration) bool {
 			if strings.Contains(e.stdout.Text(), expected) {
 				return true
 			}
+		} else {
+			return false
 		}
 	}
 	return false
@@ -428,8 +431,14 @@ func (a *adjState) record(cfg AdjConfig, whitePov, ply int) (fired, whiteWins, i
 // alternating the two engines by color, and returns the result from NEW's point
 // of view. Game ends are detected authoritatively via the engine package.
 func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg GameConfig) GameResult {
-	Reset(newEng)
-	Reset(baseEng)
+	if !Reset(newEng) {
+		log.Printf("engine-error: new engine failed readiness before game")
+		return GameResult{Loss, "engine-error"}
+	}
+	if !Reset(baseEng) {
+		log.Printf("engine-error: base engine failed readiness before game")
+		return GameResult{Win, "engine-error"}
+	}
 
 	// An opening is either a list of UCI moves from the standard start, or a single
 	// element that is a full FEN (detected by '/') seeding the game from a specific

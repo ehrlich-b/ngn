@@ -18,11 +18,26 @@ REPO = Path(__file__).resolve().parents[2]
 FIX = REPO / "experiments/wave2-1104/net-job"
 
 
+def proof_directory(test, prefix):
+    """Optionally retain actual process receipts/bundles outside the checkout."""
+    output = os.environ.get("NET_JOB_PROOF_OUTPUT")
+    if output:
+        destination = Path(output).resolve()
+        if destination == REPO or REPO in destination.parents:
+            raise ValueError("proof output must be outside the checkout")
+        destination.mkdir(parents=True, exist_ok=True)
+        return Path(tempfile.mkdtemp(prefix=prefix, dir=destination))
+    temporary = tempfile.TemporaryDirectory(prefix=prefix)
+    if isinstance(test, type):
+        test.addClassCleanup(temporary.cleanup)
+    else:
+        test.addCleanup(temporary.cleanup)
+    return Path(temporary.name)
+
+
 class NetJobTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="net-job-")
-        self.addCleanup(self.temporary.cleanup)
-        self.root = Path(self.temporary.name)
+        self.root = proof_directory(self, "net-job-")
         self.cpus = sorted(os.sched_getaffinity(0))[:2]
         self.source = self.root / "source.tar.gz"
         with tarfile.open(self.source, "w:gz") as archive:
@@ -206,6 +221,10 @@ class NetJobTests(unittest.TestCase):
             changed = copy.deepcopy(selected)
             changed[kind]["sha256"] = "0" * 64
             self.assertNotEqual(original, nj.control_identity(job, changed, *args[2:]))
+        parser = self.root / "changed-parser.py"
+        parser.write_text("owned alternate result policy")
+        with patch.object(nj.campaign, "__file__", str(parser)):
+            self.assertNotEqual(original, nj.control_identity(*args))
 
     def test_keep_writes_private_candidate_and_matching_embedded_file(self):
         job, receipt = self.run_gate()
@@ -258,18 +277,16 @@ class NetJobTests(unittest.TestCase):
 
 
 class StrictCampaignTests(unittest.TestCase):
-    """The real cmd/sprt and campaign caller must reject a recovered search fault."""
+    """Real harness failures and complete faulty transcripts cannot certify gates."""
     @classmethod
     def setUpClass(cls):
-        cls.temporary = tempfile.TemporaryDirectory(prefix="net-job-strict-")
-        cls.addClassCleanup(cls.temporary.cleanup)
-        cls.root = Path(cls.temporary.name)
+        cls.root = proof_directory(cls, "net-job-strict-")
         cls.harness = cls.root / "sprt"
         subprocess.run(["nice", "-n", "10", "go", "build", "-p", "1", "-o", str(cls.harness), "./cmd/sprt"],
                        cwd=REPO, env=nj.environment(), check=True)
 
-    def test_recovered_search_error_cannot_pass_aa_or_net(self):
-        for mode in ("warmup", "search"):
+    def test_readiness_and_search_errors_cannot_pass_aa_or_net(self):
+        for mode in ("warmup", "search", "readiness"):
             for kind in ("aa", "net"):
                 with self.subTest(mode=mode, kind=kind):
                     directory = self.root / (mode + "-" + kind)
@@ -282,19 +299,52 @@ class StrictCampaignTests(unittest.TestCase):
                                str(FIX / "fake_uci.py"): nj.sha(FIX / "fake_uci.py")},
                            "harness": str(self.harness), "candidate": str(FIX / "fake_uci.py"),
                            "base": str(FIX / "fake_uci.py"), "cpus": str(min(os.sched_getaffinity(0))),
-                           "tc": "10+0.1", "concurrency": 1, "min_games": 200, "max_games": 200,
+                           "tc": "10+0.1", "concurrency": 1, "min_games": 200,
+                           "max_games": 200 if kind == "aa" else 1000,
                            "book": str(FIX / "development-book.txt"), "candidate_options": ["FixtureError=" + mode],
                            "base_options": [], "no_retries": True, "strict_pairs": True}
                     result = nj.campaign.run(job, registry, status)
                     self.assertEqual(result["verdict"], "UNSCORED", result)
                     self.assertTrue(result["faults"])
+                    self.assertFalse(nj.strict_result(result, job["max_games"], "AA_PASS" if kind == "aa" else "KEEP"))
                     self.assertNotEqual(result["harness_exit"], 0)
                     self.assertIn("harness exit" + str(result["harness_exit"]), result["faults"])
                     log = (directory / "match/match.log").read_text()
                     self.assertIn("warmup" if mode == "warmup" else "engine-error", log)
                     self.assertNotIn("=== RESULT", log)
+                    if mode == "readiness":
+                        self.assertIn("engine rejected configuration: info string error", log)
+                        self.assertIn("failed readiness before game", log)
                     if kind == "aa":
                         self.assertFalse(registry.exists(), "failed control was registered")
+
+    def test_complete_readiness_fault_summary_cannot_register_or_adopt(self):
+        # A successful exit and otherwise winning, complete PGNs must still fail
+        # when an older harness only logged the readiness rejection.
+        for kind, count, verdict in (("aa", 200, "AA_PASS"), ("net", 1000, "KEEP")):
+            directory = self.root / ("complete-readiness-" + kind)
+            directory.mkdir()
+            registry, status = directory / "controls.json", directory / "status.jsonl"
+            if kind == "net":
+                nj.write(registry, {"fixture": {"result": "owned prerequisite fixture"}})
+            job = {"name": directory.name, "class": kind, "output": str(directory / "match"),
+                   "control_key": "fixture", "artifacts": {str(FIX / "fake_match.py"): nj.sha(FIX / "fake_match.py")},
+                   "harness": str(FIX / "fake_match.py"), "candidate": str(FIX / "fake_uci.py"),
+                   "base": str(FIX / "fake_uci.py"), "cpus": str(min(os.sched_getaffinity(0))),
+                   "tc": "10+0.1", "concurrency": 6, "min_games": count, "max_games": count,
+                   "book": str(FIX / "development-book.txt"), "candidate_options": ["FixtureMode=readiness"],
+                   "base_options": [], "no_retries": True, "strict_pairs": True}
+            result = nj.campaign.run(job, registry, status)
+            self.assertEqual(result["harness_exit"], 0)
+            self.assertEqual((result["games"], result["pairs"]), (count, count // 2))
+            self.assertEqual(result["faults"], ["harness/engine operational fault"])
+            self.assertEqual(result["verdict"], "UNSCORED")
+            self.assertFalse(nj.strict_result(result, count, verdict))
+            if kind == "aa":
+                self.assertFalse(registry.exists(), "faulty complete control was registered")
+            else:
+                self.assertGreater(result["printed_elo_ci95"][1], 0)
+                self.assertGreater(result["exact_elo_ci95"][1], 0)
 
 
 if __name__ == "__main__":

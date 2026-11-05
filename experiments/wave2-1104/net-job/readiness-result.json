@@ -1,0 +1,89 @@
+{
+  "adoptions": 0,
+  "cases": [
+    {
+      "fault_count": 1,
+      "games": 200,
+      "harness_exit": 0,
+      "name": "complete-readiness-aa",
+      "pairs": 100,
+      "readiness_rejection_logged": true,
+      "strict_pass": false,
+      "verdict": "UNSCORED"
+    },
+    {
+      "fault_count": 1,
+      "games": 1000,
+      "harness_exit": 0,
+      "name": "complete-readiness-net",
+      "pairs": 500,
+      "readiness_rejection_logged": true,
+      "strict_pass": false,
+      "verdict": "UNSCORED"
+    },
+    {
+      "fault_count": 2,
+      "games": 0,
+      "harness_exit": 1,
+      "name": "readiness-aa",
+      "pairs": 0,
+      "readiness_rejection_logged": true,
+      "strict_pass": false,
+      "verdict": "UNSCORED"
+    },
+    {
+      "fault_count": 2,
+      "games": 0,
+      "harness_exit": 1,
+      "name": "readiness-net",
+      "pairs": 0,
+      "readiness_rejection_logged": true,
+      "strict_pass": false,
+      "verdict": "UNSCORED"
+    },
+    {
+      "fault_count": 2,
+      "games": 0,
+      "harness_exit": 1,
+      "name": "search-aa",
+      "pairs": 0,
+      "readiness_rejection_logged": false,
+      "strict_pass": false,
+      "verdict": "UNSCORED"
+    },
+    {
+      "fault_count": 2,
+      "games": 0,
+      "harness_exit": 1,
+      "name": "search-net",
+      "pairs": 0,
+      "readiness_rejection_logged": false,
+      "strict_pass": false,
+      "verdict": "UNSCORED"
+    },
+    {
+      "fault_count": 2,
+      "games": 0,
+      "harness_exit": 1,
+      "name": "warmup-aa",
+      "pairs": 0,
+      "readiness_rejection_logged": false,
+      "strict_pass": false,
+      "verdict": "UNSCORED"
+    },
+    {
+      "fault_count": 2,
+      "games": 0,
+      "harness_exit": 1,
+      "name": "warmup-net",
+      "pairs": 0,
+      "readiness_rejection_logged": false,
+      "strict_pass": false,
+      "verdict": "UNSCORED"
+    }
+  ],
+  "elo_claim": false,
+  "fixture_only": true,
+  "passing_controls_registered": 0,
+  "version": 1
+}

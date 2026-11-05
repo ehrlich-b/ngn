@@ -34,3 +34,5 @@ print(f"Pentanomial [LL {penta[0]}  LD {penta[1]}  {{LW,DD}} {penta[2]}  WD {pen
 print(f"Penta Elo: 20  95% CI [{low}, {high}]  pLLR 1.0")
 print(f"Flag-outs (lost on time): new {int(mode == 'fault')}, base 0")
 print("Verdict: INCONCLUSIVE (synthetic fixed sample)")
+if mode == "readiness":
+    print("engine rejected configuration: info string error eval option: owned readiness failure; using hce")

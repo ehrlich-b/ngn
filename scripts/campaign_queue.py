@@ -63,7 +63,7 @@ def summarize(log, pgn, job, returncode):
         faults.append(f'harness exit{returncode}')
     if any(flags):
         faults.append('flag-out')
-    if re.search(r'WATCHDOG|panic:|fatal error:|engine-error|no-move|illegal-move|PGN capture:|failed UCI', log):
+    if re.search(r'WATCHDOG|panic:|fatal error:|engine-error|no-move|illegal-move|PGN capture:|failed UCI|engine rejected configuration:|info string error', log):
         faults.append('harness/engine operational fault')
     tags = [dict(re.findall(r'^\[(\w+) "(.*)"\]$', block, re.M))
             for block in re.split(r'(?=\[Event )', pgn) if block.strip()]
@@ -125,7 +125,7 @@ def summarize(log, pgn, job, returncode):
                 verdict = 'UNCERTIFIED_CAP'
             elif full and exact[0] >= 1 and unrounded_llr > 0 and exact[2] >= 0:
                 verdict = 'PROVISIONAL'
-    return dict(games=games, pairs=sum(penta), orphan_games=games - sum(penta) * 2,
+    return dict(harness_exit=returncode, games=games, pairs=sum(penta), orphan_games=games - sum(penta) * 2,
                 wdl=[wins, draws, losses], penta=penta, printed_elo_ci95=[elo, low, high],
                 exact_elo_ci95=exact, final_pllr=llr, exact_pllr=unrounded_llr, native_verdict=native,
                 flags=flags, reasons=reasons, faults=sorted(set(faults)), verdict=verdict)
