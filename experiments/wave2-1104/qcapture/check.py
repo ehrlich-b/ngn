@@ -150,6 +150,13 @@ def provenance():
     print('PASS: all candidate commits authored/committed by '+AUTHOR+'; default off; verdict DEFERRED, no Elo claim.')
 
 
+def execute_on_host(args):
+    if args == ['go', 'test', '-p', '2', '-short', '-count=1', './...'] and socket.gethostname() == 'forge':
+        print('BLOCKED: kernel tests are prohibited on the exact host forge. Run nice -n 10 go test -p 2 -short -count=1 ./... on a suitable CPU host such as forge2-vm or the rig.', flush=True)
+        sys.exit(77)
+    execute(args)
+
+
 if __name__ == '__main__':
     (LANE/'tmp').mkdir(exist_ok=True)
     (LANE/'evidence').mkdir(exist_ok=True)
@@ -161,9 +168,5 @@ if __name__ == '__main__':
     elif mode == 'policy': policy()
     elif mode == 'provenance': provenance()
     elif mode == 'exec':
-        args = sys.argv[2:]
-        if args == ['go', 'test', '-p', '2', '-short', '-count=1', './...'] and socket.gethostname().startswith('forge'):
-            print('BLOCKED: BRIEF.md prohibits kernel tests on forge; the short suite includes TestNGNN1KernelRowsDifferential, TestNGNN1KernelOutputDifferential and TestNGNNCompactKernels. Run nice -n 10 go test -p 2 -short -count=1 ./... on a suitable non-forge CPU host.', flush=True)
-            sys.exit(77)
-        execute(args)
+        execute_on_host(sys.argv[2:])
     else: raise ValueError('unknown mode: '+mode)

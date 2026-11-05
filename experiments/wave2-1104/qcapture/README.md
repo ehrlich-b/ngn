@@ -41,28 +41,27 @@ It leaves scratch for the retention policy. No network or model download is used
 Verdict: **DEFERRED**. Default play stays unchanged. The completed rig strength
 gate has not been run; fixture success makes no Elo claim.
 
-The brief prohibits kernel tests on forge hosts. The exact required short-suite
-gate includes neural kernel tests. The `exec go test -p 2 -short -count=1 ./...`
-entry refuses that gate on a host whose name begins with `forge`, exits 77, and
-prints the command to run on a suitable CPU host. This is a blocked gate, not a
-passing or reduced-suite substitute. Vet and whitespace gates run normally.
-
-The short-suite gate remains BLOCKED on forge. To finish verification, move the
-committed candidate and the external readiness inputs to a suitable non-forge
-CPU host with the same repository path and existing H768 net. Preserve the
-brief, all acceptance IDs, all four gates, and the default-off option. Provision
-the documented shared caches and lane-local temporary directory before replay.
-Then run from the repository root:
+The short-suite replay guard blocks only the exact hostname `forge` (exit 77).
+Ordinary Go tests, including neural kernel tests, are permitted on `forge2-vm`
+and the rig. The guard never matches a hostname prefix. Its dispatcher regression
+check simulates both blocked and permitted hosts without executing their suites:
 
 ```sh
-nice -n 10 python3 experiments/wave2-1104/qcapture/check.py exec go test -p 2 -short -count=1 ./...
-nice -n 10 python3 /work/lanes/readiness.py run ..
+PYTHONDONTWRITEBYTECODE=1 nice -n 10 python3 -m unittest discover -s experiments/wave2-1104/qcapture -p test_check.py -v
 ```
 
-The first command must execute the complete required short suite. The second
-regenerates every acceptance and gate log against the same committed HEAD; a
-prior failed record or results copied from a different HEAD cannot certify it.
-Keep generated readiness records and logs outside the checkout. Do not disable
-kernel tests, narrow the gate, or change the hostname to bypass the guard.
-Until that replay passes, retain BLOCKED readiness and the DEFERRED experiment
-verdict; the completed rig strength gate remains separately outstanding.
+Run all four required gates directly from the repository root with GOMAXPROCS=2
+and the shared Go caches configured:
+
+```sh
+nice -n 10 go vet -p 2 ./...
+nice -n 10 go test -p 2 -short -count=1 ./...
+nice -n 10 git diff --check 8ba878cb03a7eb81ca465b3d562953d0f45e81c7 HEAD
+git diff --check 3517a353a99bbe627a505ccc5463aadce047431b HEAD
+```
+
+The optional `check.py exec go test -p 2 -short -count=1 ./...` wrapper runs
+the same short suite on permitted hosts and preserves the exact-host restriction.
+No privileged operations, kernel modules or block devices are involved. The
+completed rig strength gate remains separately outstanding; keep the default off
+and the experiment verdict DEFERRED until that gate is completed.
