@@ -1,0 +1,10 @@
+{
+  "option": "T1104SingularDouble=1",
+  "verdict": "DEFERRED",
+  "penta_elo": null,
+  "interval": null,
+  "games": null,
+  "W_D_L": null,
+  "pentanomial": null,
+  "reason": "Full fixed-node pre-screen and its numerical verdict are deferred until after 2026-11-06 18:27 America/New_York; the two-game smoke is not a strength result."
+}

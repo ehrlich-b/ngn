@@ -1,0 +1,6 @@
+=== RUN   TestSingularDouble
+--- PASS: TestSingularDouble (0.00s)
+=== RUN   TestSingularDoubleSearch
+--- PASS: TestSingularDoubleSearch (1.58s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	1.600s

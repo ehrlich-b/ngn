@@ -1,0 +1,123 @@
+diff --git a/engine/search.go b/engine/search.go
+index 6f99e43..5d80e35 100644
+--- a/engine/search.go
++++ b/engine/search.go
+@@ -30,6 +30,7 @@ var (
+ 	REVERSE_FUTILITY_MARGIN = 69  // Reverse futility margin
+ 	DELTA_MARGIN            = 261 // Delta pruning margin in quiescence
+ 	SINGULAR_DEPTH          = 8   // Minimum depth for singular extensions
++	T1104_SINGULAR_DOUBLE   = 0   // Enable experimental multi-ply singular extensions
+ 	SINGULAR_MARGIN         = 67  // Margin for singular move detection
+ 	EXTENSION_BUDGET        = 29  // Max net extensions on a single root-to-leaf path (anti-explosion)
+ 	ASP_INIT                = 18  // Aspiration initial half-window (cp); delta = ASP_INIT + |prevScore|/ASP_SCORE_DIV
+@@ -68,12 +69,29 @@ var TunableSearchParams = []TunableParam{
+ 	{"DeltaMargin", &DELTA_MARGIN, 261, 0, 400},
+ 	{"SingularDepth", &SINGULAR_DEPTH, 8, 4, 12},
+ 	{"SingularMargin", &SINGULAR_MARGIN, 67, 16, 256},
++	{"T1104SingularDouble", &T1104_SINGULAR_DOUBLE, 0, 0, 1},
+ 	{"ExtensionBudget", &EXTENSION_BUDGET, 29, 4, 64},
+ 	{"AspInit", &ASP_INIT, 18, 4, 40},
+ 	{"AspMult", &ASP_MULT, 171, 110, 250},
+ 	{"LMPBase", &LMP_BASE, 3, 2, 16},
+ }
+ 
++// singularExtension counts plies added to the normal child depth. The extra
++// margins are provisional centipawn thresholds, pending the fixed-node gate.
++func singularExtension(score, beta int, isPV bool) int {
++	if score >= beta {
++		return 0
++	}
++	ext := 1
++	if T1104_SINGULAR_DOUBLE != 0 && score < beta-32 {
++		ext = 2
++		if !isPV && score < beta-96 {
++			ext = 3
++		}
++	}
++	return ext
++}
++
+ // Late Move Pruning thresholds, indexed [improving][depth] (S4, W11). Follows
+ // CounterGo's convergent class curve: improving = 5+depth², not-improving = that
+ // halved (prune ~2x sooner when our static eval isn't improving vs two plies ago).
+@@ -2067,8 +2085,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 			info.history.SetLastMovePlayed(move)
+ 			info.MoveStack[ply] = move
+ 
+-			if singularScore < singularBeta {
+-				nextDepth++
++			if extension := singularExtension(singularScore, singularBeta, isPV); extension > 0 {
++				nextDepth += extension
+ 				info.SingularExtensions++
+ 			} else if !isPV && ttEval >= beta {
+ 				// Singular-neg-ext (W-SE2): the verification failed high — another move
+@@ -2080,13 +2098,16 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
+ 			}
+ 		}
+ 
+-		if nextDepth > depth+1 {
+-			// Guardrail: limit extensions to at most +1 beyond current depth
+-			nextDepth = depth + 1
++		maxNodeDepth := depth + 1
++		if T1104_SINGULAR_DOUBLE != 0 {
++			maxNodeDepth = depth + 2
++		}
++		if nextDepth > maxNodeDepth {
++			nextDepth = maxNodeDepth
+ 		}
+ 
+ 		// Per-path extension budget (anti-explosion). The per-node guardrail above
+-		// caps a single node at +1, but a check extension only RESTORES the decrement
++		// caps a single node, but a check extension only RESTORES the decrement
+ 		// (nextDepth == depth), so a non-decaying checking line keeps depth flat and
+ 		// can recurse toward MaximumDepth (the seldepth-111, ~20x-node explosion).
+ 		// Bound the CUMULATIVE net extension on this root-to-leaf path: the child's
+diff --git a/engine/singular_double_test.go b/engine/singular_double_test.go
+new file mode 100644
+index 0000000..1e7d47e
+--- /dev/null
++++ b/engine/singular_double_test.go
+@@ -0,0 +1,43 @@
++package engine
++
++import "testing"
++
++func TestSingularDouble(t *testing.T) {
++	old := T1104_SINGULAR_DOUBLE
++	defer func() { T1104_SINGULAR_DOUBLE = old }()
++	for _, tc := range []struct {
++		option, score int
++		pv            bool
++		want          int
++	}{
++		{0, -1000, false, 1}, {1, 0, false, 0}, {1, -1, false, 1},
++		{1, -32, false, 1}, {1, -33, false, 2}, {1, -96, false, 2},
++		{1, -97, false, 3}, {1, -97, true, 2},
++	} {
++		T1104_SINGULAR_DOUBLE = tc.option
++		if got := singularExtension(tc.score, 0, tc.pv); got != tc.want {
++			t.Errorf("option=%d score=%d pv=%v: got %d, want %d", tc.option, tc.score, tc.pv, got, tc.want)
++		}
++	}
++}
++
++func TestSingularDoubleSearch(t *testing.T) {
++	old := T1104_SINGULAR_DOUBLE
++	defer func() { T1104_SINGULAR_DOUBLE = old }()
++	search := func(option int) *SearchInfo {
++		T1104_SINGULAR_DOUBLE = option
++		defaultSearchEngine, _ = NewSearchEngineWithHash(DEFAULT_CACHE_SIZE)
++		ClearHistoryTable()
++		ClearKillerMoves()
++		ClearCounterMoves()
++		pos, err := ParseFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1")
++		if err != nil {
++			t.Fatal(err)
++		}
++		return SearchIterativeDeepening(pos, 10, nil)
++	}
++	off, on := search(0), search(1)
++	if on.SingularExtensions == 0 || on.Nodes == off.Nodes {
++		t.Fatalf("option did not change singular search: off nodes=%d on nodes=%d singular=%d", off.Nodes, on.Nodes, on.SingularExtensions)
++	}
++}

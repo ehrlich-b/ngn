@@ -1,0 +1,18 @@
+NGN self-play SPRT
+==================
+new=build/ngn  base=build/ngn
+new options: [setoption name T1104SingularDouble value 1]
+base options: []
+mode: nodes 40000/move | openings: 24 (x2 colors) | concurrency: 2
+H0: elo<=0.0   H1: elo>=5.0   (alpha=0.05 beta=0.05 -> LLR bounds [-2.94, 2.94])
+
+G1     0W  1D  0L   50.0%  elo   +0.0 [-495,+495]  LLR  -0.00  pLLR  +0.00  draw-rule   
+G2     0W  1D  1L   25.0%  elo -190.8 [-625,+243]  LLR  -0.06  pLLR  -1.82  checkmate   
+
+=== RESULT (10s) ===
+Games: 2   W-D-L: 0-1-1   score: 25.0%
+Elo(new - base): -190.8   95% CI [-625, +243]
+LLR: -0.06   bounds [-2.94, 2.94]
+Pentanomial [LL 0  LD 1  {LW,DD} 0  WD 0  WW 0] over 1 pairs
+Penta Elo: -190.8   95% CI [-254, -137]   pLLR -1.82  (THE decision stat; trinomial above is secondary)
+Verdict: INCONCLUSIVE (ran out of games — add openings or raise -maxgames)
