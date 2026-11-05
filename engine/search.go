@@ -100,6 +100,7 @@ type TunableParam struct {
 // shipped default (== the literal above).
 var TunableSearchParams = []TunableParam{
 	{"T1104CorrMore", &T1104CorrMore, 0, 0, 1},
+	{"W2NullVerify", &W2NullVerify, 0, 0, 1},
 	{"NullMoveR", &NULL_MOVE_R, 4, 2, 5},
 	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 2, 1, 6},
 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
@@ -681,6 +682,9 @@ type SearchInfo struct {
 	// Pruning and search efficiency statistics
 	FutilityPrunes       uint64 // Moves pruned by futility pruning
 	NullMoveCutoffs      uint64 // Beta cutoffs from null move pruning
+	NullVerifySearches   uint64 // Deep null fail-highs checked on the real position
+	NullVerifyCutoffs    uint64 // Verified deep null cutoffs
+	NullVerifyFailLows   uint64 // Rejected null cutoffs; ordinary move search resumes
 	LMRCaptureReductions uint64 // Capture reductions applied by the experimental option
 	LMRReductions        uint64 // Moves reduced by Late Move Reduction
 	NullWindowScouts     uint64 // Non-first moves searched with a null window (re-search denominator)
@@ -743,6 +747,11 @@ type SearchInfo struct {
 	IIDSearches         uint64 // Internal iterative deepening searches run
 	SingularTries       uint64 // Singular verification searches run (success ctr exists)
 	ExtBudgetClamps     uint64 // Paths clamped by the extension budget (explosion lines)
+
+	// Private to this worker's SearchInfo; inherited by all recursive calls.
+	nullVerification bool
+	// Optional deterministic test seam for null-child and verification searches.
+	nullSearch func(*Position, int, int, int, int, bool, bool, bool, *SearchInfo) int
 
 	ExcludedMove Move // Move to exclude during singular search
 	ExcludedPly  int  // ply at which ExcludedMove applies (the singular verification root)
@@ -1862,12 +1871,13 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// all-node is expected to fail low, so NMP's "this node is already >= beta" premise is
 	// wrong there and the null search is speculative work against the node's own expectation.
 	// This makes the code match the claim the comment above already makes.
-	if SearchToggles.NullMove && !inCheck && depth >= NULL_MOVE_MIN_DEPTH && canNull && !isPV && cutNode && staticEval >= beta &&
+	if SearchToggles.NullMove && info.allowNullMove(alpha, beta) && !inCheck && depth >= NULL_MOVE_MIN_DEPTH && canNull && !isPV && cutNode && staticEval >= beta &&
 		hasNonPawnMaterial(&pos.Board, pos.Turn()) &&
 		!(ttHit && ttNodeType == UpperBound && ttEval < beta) {
 		// Set lastMovePlayed to EmptyMove so children don't pick spurious
 		// counter-move replies keyed on our own prior move.
 		savedLast := info.history.GetLastMovePlayed()
+		savedMove := info.MoveStack[ply]
 		info.NullMoveTries++
 		evalNull := info.evaluator.mustPrepareNull(pos)
 		oldEP := pos.MakeNullMove()
@@ -1883,18 +1893,25 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		if nullDepth < 0 {
 			nullDepth = 0
 		}
-		score := -alphaBetaPV(pos, nullDepth, ply+1, -beta, -beta+1, false, false, !cutNode, info)
+		score := -info.searchNullChild(pos, nullDepth, ply+1, -beta, -beta+1, !cutNode)
 
 		info.evaluator.mustPop()
 		pos.UnMakeNullMove(oldEP)
 		info.history.SetLastMovePlayed(savedLast)
+		info.MoveStack[ply] = savedMove
 		if info.Stopped {
 			return stoppedSearchScore
 		}
 
 		if score >= beta {
-			info.NullMoveCutoffs++
-			return beta
+			verified := info.verifyNullCutoff(pos, depth, ply, beta, cutNode)
+			if info.Stopped {
+				return stoppedSearchScore
+			}
+			if verified {
+				info.NullMoveCutoffs++
+				return beta
+			}
 		}
 	}
 

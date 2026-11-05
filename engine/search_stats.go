@@ -51,6 +51,9 @@ func addSearchMonotonicCounters(dst, src *SearchInfo) {
 	dst.Nodes += src.Nodes
 	dst.FutilityPrunes += src.FutilityPrunes
 	dst.NullMoveCutoffs += src.NullMoveCutoffs
+	dst.NullVerifySearches += src.NullVerifySearches
+	dst.NullVerifyCutoffs += src.NullVerifyCutoffs
+	dst.NullVerifyFailLows += src.NullVerifyFailLows
 	dst.LMRCaptureReductions += src.LMRCaptureReductions
 	dst.LMRReductions += src.LMRReductions
 	dst.NullWindowScouts += src.NullWindowScouts

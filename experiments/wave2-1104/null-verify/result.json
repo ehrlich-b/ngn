@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "tests": [
+    "TestWave2NullVerifyContract",
+    "TestWave2NullVerifySuppression",
+    "TestWave2NullVerifyGuards",
+    "TestWave2NullVerifySparseActual",
+    "TestWave2NullVerifyCancelDescendant",
+    "TestWave2NullVerifyOffIdentity"
+  ],
+  "witnesses": [
+    "null=1 verify=1 verified=1 rejected=0 ordinary=false stopped=false",
+    "null=1 verify=1 verified=1 rejected=0 ordinary=false stopped=false",
+    "null=1 verify=1 verified=0 rejected=1 ordinary=true stopped=true",
+    "null=1 verify=1 verified=0 rejected=1 ordinary=true stopped=false",
+    "null=1 verify=0 verified=0 rejected=0 ordinary=false stopped=false",
+    "null=1 verify=0 verified=0 rejected=0 ordinary=false stopped=false",
+    "null=1 verify=0 verified=0 rejected=0 ordinary=false stopped=true",
+    "null=1 verify=1 verified=0 rejected=0 ordinary=false stopped=true",
+    "null=1 verify=0 verified=0 rejected=0 ordinary=true stopped=true",
+    "real verification transitions=45 score=100 null attempts=0",
+    "actual sparse HCE score=415 beta=415 nodes=39 null=1 verification=1 verified=1",
+    "actual sparse H768 score=757 beta=757 nodes=7 null=1 verification=1 verified=1",
+    "H768 verification descendant cancellation: transitions=2 verify=1 cutoffs=0",
+    "H768 d4 best=d2d4 score=63 nodes=747 PV=[d2d4 d7d5 c2c4 d5c4]",
+    "H768 d4 best=e2a6 score=-167 nodes=1717 PV=[e2a6 b4c3 d2c3 e6d5]",
+    "H768 d4 best=d4c5 score=87 nodes=967 PV=[d4c5 e7c5 f1d1 c8e6]",
+    "H768 d4 best=b4f4 score=200 nodes=419 PV=[b4f4 h4g3 f4c4 h5h7]"
+  ],
+  "baseline_sha256": "0c486662720039f18f00114d735ed16cbc97a02c0a22aa04f4b1917dc1e87cd7",
+  "rig_gate": "DEFERRED",
+  "elo_claim": false
+}

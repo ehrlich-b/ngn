@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "starting_head": "3517a353a99bbe627a505ccc5463aadce047431b",
+  "default": 0,
+  "option": "W2NullVerify",
+  "depth": 4,
+  "hash_mb": 1,
+  "threads": 1,
+  "net_sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443",
+  "baseline_binary_sha256": "04551b6cea2dbb3c89765148ccb40cace216ddb66f38afe5c40eb98f5aa6b2d8",
+  "baseline_command": "go build -p 1 -trimpath -o ../tmp/null-base ../tmp/null-probe.go; ../tmp/null-base experiments/wave2-1104/null-verify/fens.json",
+  "command": "python3 experiments/wave2-1104/null-verify/verify.py fragment",
+  "rig_gate": {
+    "status": "DEFERRED",
+    "reason": "Completed rig strength gate is required before default play changes; this bounded proof does not run games. No quantitative gate protocol is specified in this task."
+  },
+  "elo_claim": false,
+  "sha256": {
+    "engine/search.go": "e881b0ee5e37e25daf8a1a0f73d42b6d0708713b27896e726b575899f068642c",
+    "engine/search_stats.go": "cd947095ca3704bb91b76878e28afb3b58d8eecb0b36088dd0d14e0a46308e51",
+    "engine/wave2_null.go": "2b220e5c448ae2b2750d9882ac54cd10ec62cf71d31d4218cecb0f32edc10933",
+    "engine/wave2_null_test.go": "2fb747003ad4425425500d2b5ec5dc1b16ee2ab3586a13a1c1bc1096c8566203",
+    "experiments/wave2-1104/null-verify/baseline.json": "0c486662720039f18f00114d735ed16cbc97a02c0a22aa04f4b1917dc1e87cd7",
+    "experiments/wave2-1104/null-verify/fens.json": "7b44b2c23277ff761af92236ccdb9217fa5f84d6c933ec2a1f0f55e2ca0b6869",
+    "experiments/wave2-1104/null-verify/probe.go.txt": "4336c7694d30f7253aa2b427a1cdf7ed754db9a75bcb31616baaae4623643e80",
+    "experiments/wave2-1104/null-verify/verify.py": "03e8e2dc532766c93baa4787ca70027cbf97f728e3a7075b79b224c861daf7c9",
+    "experiments/wave2-1104/null-verify/result.json": "21cb158eb12f52eec5165d70573d3b4fac2b66fc3bee29b671ea3fb32f872d90",
+    "experiments/wave2-1104/null-verify/README.md": "da33fc17420d8b0fd95789fed3ef66fd8b4fdd55cfb9ad8be9e6903a733a2d79"
+  }
+}
