@@ -102,6 +102,7 @@ var TunableSearchParams = []TunableParam{
 	{"T1104CorrMore", &T1104CorrMore, 0, 0, 1},
 	{"W2NullVerify", &W2NullVerify, 0, 0, 1},
 	{"W2NullMargin", &W2NullMargin, 0, 0, 1},
+	{"W2CorrMargin", &W2CorrMargin, 0, 0, 1},
 	{"NullMoveR", &NULL_MOVE_R, 4, 2, 5},
 	{"NullMoveMinDepth", &NULL_MOVE_MIN_DEPTH, 2, 1, 6},
 	{"LMRFullDepth", &LMR_FULL_DEPTH, 3, 1, 6},
@@ -1778,6 +1779,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	// ago to keep the improving chain sane across checking plies.
 	stm := pos.Turn()
 	var staticEval int
+	rawStaticEval := unknownStaticEval
 	var corrIdx int        // pawn-correction slot; valid only when !inCheck
 	var nonPawnCorrIdx int // non-pawn-correction slot; valid only when !inCheck
 	var minorCorrIdx int   // minor-piece-correction slot; valid only when !inCheck
@@ -1800,7 +1802,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		corrIdx = pawnCorrectionIndex(pos.Board.pieces[WhitePawn], pos.Board.pieces[BlackPawn])
 		nonPawnCorrIdx = nonPawnCorrectionIndex(pos.Board.WhiteOccupancy()&^pos.Board.pieces[WhitePawn], pos.Board.BlackOccupancy()&^pos.Board.pieces[BlackPawn])
 		minorCorrIdx = minorCorrectionIndex(pos.Board.pieces[WhiteKnight]|pos.Board.pieces[WhiteBishop], pos.Board.pieces[BlackKnight]|pos.Board.pieces[BlackBishop])
-		staticEval = info.history.moreCorrection(pos, previous) + info.evaluator.SearchSTM(pos) + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
+		rawStaticEval = info.evaluator.SearchSTM(pos)
+		staticEval = info.history.moreCorrection(pos, previous) + rawStaticEval + info.history.correctionValue(stm, corrIdx) + info.history.nonPawnCorrectionValue(stm, nonPawnCorrIdx) + info.history.minorCorrectionValue(stm, minorCorrIdx)
 		corrStaticEval = staticEval // T4: capture the corrected static (raw + pawn + non-pawn + minor) BEFORE S7 overwrites it (all tables' learn target)
 		// S7: a search-refined TT score is a sharper static estimate than a fresh
 		// eval for the margin heuristics below (RFP/futility/NMP/improving). Use it
@@ -1834,6 +1837,8 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			imp = tuneRFPImproving
 		}
 		margin := REVERSE_FUTILITY_MARGIN * (depth - imp)
+		// Use the learned correction before TT substitution, only for RFP.
+		margin += wave2CorrMargin(rawStaticEval, corrStaticEval)
 		if staticEval-margin >= beta {
 			info.RFPPrunes++
 			return staticEval - margin

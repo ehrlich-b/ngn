@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "base_head": "3517a353a99bbe627a505ccc5463aadce047431b",
+  "option": {
+    "name": "W2CorrMargin",
+    "default": 0,
+    "min": 0,
+    "max": 1
+  },
+  "formula": "min(128, abs(corrected_static_before_TT - raw_static) / 2)",
+  "integer_division": "truncate toward zero after absolute value",
+  "scope": "RFP margin only; unknown and mate-range raw/corrected inputs add zero",
+  "strength_status": "DEFERRED",
+  "strength_claim": null,
+  "adoption": "Keep default 0 until a completed specified rig strength gate; fixture success makes no Elo claim.",
+  "fixture": {
+    "path": "off-depth4.json",
+    "depth": 4,
+    "hash_mb": 1,
+    "threads": 1,
+    "cases": 4,
+    "network": "engine/nets/ngn-h768-2dcb6d93.nnue",
+    "network_sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443",
+    "baseline_head": "3517a353a99bbe627a505ccc5463aadce047431b"
+  },
+  "command": "python3 experiments/wave2-1104/corr-margin/run.py",
+  "result": "result.log"
+}

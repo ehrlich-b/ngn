@@ -1,0 +1,104 @@
+$ nice -n 10 go test -p 1 -count=1 ./engine -run '^TestWave2CorrMargin' -timeout 15s -v
+=== RUN   TestWave2CorrMarginOffDepth4
+=== RUN   TestWave2CorrMarginOffDepth4/start
+    wave2_corr_margin_test.go:46: BASELINE start d2d4 69 1970 669
+=== RUN   TestWave2CorrMarginOffDepth4/kiwipete
+    wave2_corr_margin_test.go:46: BASELINE kiwipete e2a6 -167 4363 1428
+=== RUN   TestWave2CorrMarginOffDepth4/rook-ending
+    wave2_corr_margin_test.go:46: BASELINE rook-ending b4f4 193 589 191
+=== RUN   TestWave2CorrMarginOffDepth4/en-passant
+    wave2_corr_margin_test.go:46: BASELINE en-passant e5d6 0 131 25
+--- PASS: TestWave2CorrMarginOffDepth4 (0.07s)
+    --- PASS: TestWave2CorrMarginOffDepth4/start (0.01s)
+    --- PASS: TestWave2CorrMarginOffDepth4/kiwipete (0.02s)
+    --- PASS: TestWave2CorrMarginOffDepth4/rook-ending (0.00s)
+    --- PASS: TestWave2CorrMarginOffDepth4/en-passant (0.01s)
+=== RUN   TestWave2CorrMarginFormula
+=== RUN   TestWave2CorrMarginFormula/zero
+=== RUN   TestWave2CorrMarginFormula/positive
+=== RUN   TestWave2CorrMarginFormula/negative
+=== RUN   TestWave2CorrMarginFormula/below-cap
+=== RUN   TestWave2CorrMarginFormula/cap
+=== RUN   TestWave2CorrMarginFormula/above-cap
+=== RUN   TestWave2CorrMarginFormula/negative-cap
+=== RUN   TestWave2CorrMarginFormula/largest-valid
+=== RUN   TestWave2CorrMarginFormula/unknown-raw
+=== RUN   TestWave2CorrMarginFormula/unknown-corrected
+=== RUN   TestWave2CorrMarginFormula/mate-raw
+=== RUN   TestWave2CorrMarginFormula/mate-corrected
+=== RUN   TestWave2CorrMarginFormula/negative-mate-raw
+=== RUN   TestWave2CorrMarginFormula/negative-mate-corrected
+=== RUN   TestWave2CorrMarginFormula/max-int
+=== RUN   TestWave2CorrMarginFormula/min-int
+--- PASS: TestWave2CorrMarginFormula (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/zero (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/positive (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/negative (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/below-cap (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/cap (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/above-cap (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/negative-cap (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/largest-valid (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/unknown-raw (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/unknown-corrected (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/mate-raw (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/mate-corrected (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/negative-mate-raw (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/negative-mate-corrected (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/max-int (0.00s)
+    --- PASS: TestWave2CorrMarginFormula/min-int (0.00s)
+=== RUN   TestWave2CorrMarginSearch
+=== RUN   TestWave2CorrMarginSearch/off-positive
+    wave2_corr_margin_test.go:159: raw=300 corrected=348 refined=348 beta=278 score=279 RFP=1 loops=0
+=== RUN   TestWave2CorrMarginSearch/off-negative
+    wave2_corr_margin_test.go:159: raw=300 corrected=252 refined=252 beta=182 score=183 RFP=1 loops=0
+=== RUN   TestWave2CorrMarginSearch/zero
+    wave2_corr_margin_test.go:159: raw=300 corrected=300 refined=300 beta=230 score=231 RFP=1 loops=0
+=== RUN   TestWave2CorrMarginSearch/positive
+    wave2_corr_margin_test.go:159: raw=300 corrected=348 refined=348 beta=278 score=277 RFP=0 loops=1
+=== RUN   TestWave2CorrMarginSearch/negative
+    wave2_corr_margin_test.go:159: raw=300 corrected=252 refined=252 beta=182 score=181 RFP=0 loops=1
+=== RUN   TestWave2CorrMarginSearch/tt-exact-positive
+    wave2_corr_margin_test.go:159: raw=300 corrected=348 refined=310 beta=231 score=230 RFP=0 loops=1
+=== RUN   TestWave2CorrMarginSearch/tt-exact-negative
+    wave2_corr_margin_test.go:159: raw=300 corrected=252 refined=290 beta=211 score=210 RFP=0 loops=1
+=== RUN   TestWave2CorrMarginSearch/tt-lower-positive
+    wave2_corr_margin_test.go:159: raw=300 corrected=348 refined=360 beta=281 score=280 RFP=0 loops=1
+=== RUN   TestWave2CorrMarginSearch/tt-upper-negative
+    wave2_corr_margin_test.go:159: raw=300 corrected=252 refined=240 beta=161 score=160 RFP=0 loops=1
+=== RUN   TestWave2CorrMarginSearch/tt-ignored-mate
+    wave2_corr_margin_test.go:159: raw=300 corrected=348 refined=348 beta=278 score=277 RFP=0 loops=1
+=== RUN   TestWave2CorrMarginSearch/tt-ignored-negative-mate
+    wave2_corr_margin_test.go:159: raw=300 corrected=252 refined=252 beta=182 score=181 RFP=0 loops=1
+=== RUN   TestWave2CorrMarginSearch/tt-zero-delta
+    wave2_corr_margin_test.go:159: raw=300 corrected=300 refined=500 beta=430 score=431 RFP=1 loops=0
+=== RUN   TestWave2CorrMarginSearch/corr-more
+    wave2_corr_margin_test.go:159: raw=300 corrected=348 refined=348 beta=278 score=277 RFP=0 loops=1
+=== RUN   TestWave2CorrMarginSearch/in-check
+    wave2_corr_margin_test.go:159: raw=300 corrected=348 refined=348 beta=278 score=277 RFP=0 loops=1
+=== RUN   TestWave2CorrMarginSearch/mate-raw
+    wave2_corr_margin_test.go:159: raw=29000 corrected=28952 refined=28952 beta=28882 score=28883 RFP=1 loops=0
+=== RUN   TestWave2CorrMarginSearch/mate-corrected
+    wave2_corr_margin_test.go:159: raw=28960 corrected=29008 refined=29008 beta=28938 score=28939 RFP=1 loops=0
+--- PASS: TestWave2CorrMarginSearch (0.12s)
+    --- PASS: TestWave2CorrMarginSearch/off-positive (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/off-negative (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/zero (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/positive (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/negative (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/tt-exact-positive (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/tt-exact-negative (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/tt-lower-positive (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/tt-upper-negative (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/tt-ignored-mate (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/tt-ignored-negative-mate (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/tt-zero-delta (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/corr-more (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/in-check (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/mate-raw (0.01s)
+    --- PASS: TestWave2CorrMarginSearch/mate-corrected (0.01s)
+=== RUN   TestWave2CorrMarginDefaultOption
+--- PASS: TestWave2CorrMarginDefaultOption (0.00s)
+PASS
+ok  	github.com/ehrlich-b/ngn/engine	0.203s
+{"GOMAXPROCS": 2, "argv": ["nice", "-n", "10", "go", "test", "-p", "1", "-count=1", "./engine", "-run", "^TestWave2CorrMargin", "-timeout", "15s", "-v"], "cpu_limit": 2, "elapsed_seconds": 4.170778924017213, "exit_code": 0, "peak_rss_kib": 274156, "system_seconds": 0.31463399999999997, "tensor_threads": 2, "user_seconds": 4.206981}
