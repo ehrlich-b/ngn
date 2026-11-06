@@ -1,7 +1,6 @@
 """Directed occupied attacks in NGNN5's perspective-relative row order."""
 from functools import lru_cache
 
-import torch
 
 THREAT_FEATURES = 42564
 
@@ -18,6 +17,8 @@ def geometry(kind, source, target):
 
 @lru_cache(maxsize=4)
 def tables(device):
+    import torch
+
     layout = torch.full((6, 64, 12, 64), -1, dtype=torch.int64)
     row = 0
     for kind in range(6):
@@ -53,6 +54,8 @@ def decode_threats(board, occupied, occupancy, king_map):
     own color's bag; slider rays include the first occupied target (defenses too).
     All batch-dependent operations stay on the input device.
     """
+    import torch
+
     batch = board.shape[0]
     layout, between = tables(board.device)
     squares = torch.arange(64, device=board.device).expand(batch, -1)
@@ -84,9 +87,25 @@ def decode_threats(board, occupied, occupancy, king_map):
     return indices, offsets
 
 
+@lru_cache(maxsize=1)
+def scalar_layout():
+    """Map valid directed attacks to rows without requiring tensor libraries."""
+    layout = {}
+    for kind in range(6):
+        for source in range(64):
+            for victim in range(12):
+                for target in range(64):
+                    if (geometry(kind, source, target)
+                            and not (victim % 6 == 0 and target // 8 in (0, 7))
+                            and not (kind == 5 and victim % 6 == 5)):
+                        layout[kind, source, victim, target] = len(layout)
+    assert len(layout) == THREAT_FEATURES
+    return layout
+
+
 def reference_indices(position, perspective, mapping):
     """Scalar board/ray reference, independent of the packed tensor decoder."""
-    layout, _ = tables(torch.device('cpu'))
+    layout = scalar_layout()
     board = dict(zip(map(int, position.squares), map(int, position.pieces)))
     king = next(s for s, c in board.items() if c == 5 + 6 * perspective) ^ (56 * perspective)
     flip = 56 * perspective ^ (7 if king % 8 >= 4 else 0)
@@ -96,8 +115,8 @@ def reference_indices(position, perspective, mapping):
         if code // 6 != perspective:
             continue
         for target, victim in board.items():
-            row = int(layout[code % 6, source ^ flip,
-                             victim % 6 + 6 * (victim // 6 != perspective), target ^ flip])
+            row = layout.get((code % 6, source ^ flip,
+                              victim % 6 + 6 * (victim // 6 != perspective), target ^ flip), -1)
             if row < 0:
                 continue
             if code % 6 in (2, 3, 4):
