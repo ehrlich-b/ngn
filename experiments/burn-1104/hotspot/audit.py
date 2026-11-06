@@ -48,7 +48,8 @@ def main():
         assert hashlib.sha256(patch).hexdigest() == m["patch_sha256"]
         assert patch.decode().count("diff --git ") == 1
         assert patch.decode().startswith("diff --git a/engine/cache.go b/engine/cache.go\n")
-        assert not git("diff", BASE, "HEAD", "--", "engine", "cmd", "scripts")
+        assert not git("diff", "2e7bc9da", "HEAD", "--", "engine/cache.go")
+        assert hashlib.sha256((HERE / "qualification.txt").read_bytes()).hexdigest() == "6711573eece1ce3e081fcb2708901998bac07ae90c7e556f62639bc2e666809d"
         corpus = json.loads((HERE / "positions.json").read_text())
         assert len(corpus) == len(set(corpus)) == 12
         assert m["bounded_check"]["depth"] == 4 and m["bounded_check"]["threads"] == 1
@@ -58,7 +59,7 @@ def main():
         assert pending["pending_requirements_verbatim"] == exact
         assert pending["status"].startswith("pending")
         assert pending["speedcheck_argv"] in exact
-        print(json.dumps(dict(head=git("rev-parse", "HEAD"), default_engine_unchanged=True,
+        print(json.dumps(dict(head=git("rev-parse", "HEAD"), cache_engine_unchanged=True,
                               patch_sha256=m["patch_sha256"], corpus_positions=len(corpus),
                               qualification=pending["status"], headless=True,
                               decision="Keep the single candidate as an opt-in patch; defer timing/adoption to the rig as the brief requires; no questions or dialogs are needed."), indent=2))

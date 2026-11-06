@@ -13,6 +13,8 @@ QA, QB, SCALE = 255, 64, 400
 HEADER = struct.Struct("<4s5I")
 HEADER2 = struct.Struct("<4s6I")
 HEADER3 = struct.Struct("<4s7I64s")
+HEADER5 = struct.Struct("<4s7I64s4I")
+THREAT_FEATURES = 42564
 
 
 def quantize(value, multiplier: int, dtype: str) -> np.ndarray:
@@ -73,12 +75,23 @@ def export_bytes(state: dict, format: int | None = None, *, _ngnn6: bool = False
         original_o = original_o.detach().cpu().numpy()
     if not _ngnn6 and np.any(np.abs(np.asarray(original_o, dtype=np.float64)) > 1.980001):
         raise ValueError("Output float weights must be clipped to [-1.98,1.98]")
-    if format == 3:
+    threat_data = b""
+    if format == 5:
+        if "threat_weights" not in state:
+            raise ValueError("NGNN5 requires threat weights")
+        threats = quantize(state["threat_weights"], QA, "i1")
+        if threats.shape != (king_buckets * THREAT_FEATURES, hidden):
+            raise ValueError("Expected threat weights [KB*42564,H]")
+        rows = np.flatnonzero(np.any(threats != 0, axis=1))
+        data = HEADER5.pack(b"NGN5", 5, hidden, king_buckets, buckets, QA, QB, SCALE,
+                            bytes(king_map), THREAT_FEATURES, len(rows), 1, 0)
+        threat_data = b"".join(struct.pack("<I", int(row)) + threats[row].tobytes() for row in rows)
+    elif format == 3:
         data = HEADER3.pack(b"NGN3", 3, hidden, king_buckets, buckets, QA, QB, SCALE, bytes(king_map))
     else:
         data = (HEADER.pack(b"NGNN", 1, hidden, QA, QB, SCALE) if format == 1 else
                 HEADER2.pack(b"NGN2", 2, hidden, buckets, QA, QB, SCALE))
-    data += w1.tobytes() + b1.tobytes() + o.tobytes() + ob.tobytes()
+    data += w1.tobytes() + threat_data + b1.tobytes() + o.tobytes() + ob.tobytes()
     data += struct.pack("<I", zlib.crc32(data))
     return data
 
@@ -96,7 +109,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("checkpoint")
     parser.add_argument("output")
-    parser.add_argument("--format", type=int, choices=(1, 2, 3, 6), help="Default: checkpoint format or infer from parameters")
+    parser.add_argument("--format", type=int, choices=(1, 2, 3, 5, 6), help="Default: checkpoint format or infer from parameters")
     args = parser.parse_args()
     import torch
     checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=True)

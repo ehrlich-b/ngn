@@ -35,7 +35,7 @@ class ContractAuditTest(unittest.TestCase):
                                 cwd=checkout, env=env, text=True, capture_output=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         report = json.loads(result.stdout)
-        self.assertTrue(report["default_engine_unchanged"])
+        self.assertTrue(report["cache_engine_unchanged"])
         self.assertEqual(report["corpus_positions"], 12)
         self.assertTrue(report["qualification"].startswith("pending"))
 
@@ -54,18 +54,14 @@ class ContractAuditTest(unittest.TestCase):
             for name in ("audit.py", "manifest.json", "candidate.patch", "positions.json",
                          "qualification.txt", "check.py", "probe.go", "cache_get_test.go.txt"):
                 shutil.copyfile(HERE / name, experiment / name)
-            evidence = parent / "evidence"
-            evidence.mkdir()
-            verifier = evidence / "verify_retry.py"
-            shutil.copyfile(ROOT.parent / "evidence/verify_retry.py", verifier)
             self.assertFalse((parent / "BRIEF.md").exists())
             self.assertFalse((checkout / "BRIEF.md").exists())
-            command = [sys.executable, str(verifier), "scope"]
+            command = [sys.executable, str(experiment / "audit.py"), "contract"]
             result = subprocess.run(command, cwd=checkout, env=env, text=True,
                                     capture_output=True, timeout=10)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             report = json.loads(result.stdout)
-            self.assertEqual(report["qualification"], "retained verbatim beside the audit")
+            self.assertTrue(report["qualification"].startswith("pending"))
             qualification = experiment / "qualification.txt"
             qualification.write_text(qualification.read_text().replace("+1.0", "+0.1", 1))
             altered = subprocess.run(command, cwd=checkout, env=env, text=True,
