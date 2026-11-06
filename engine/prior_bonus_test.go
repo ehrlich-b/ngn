@@ -157,3 +157,26 @@ func TestPriorBonusSkipsRestrictedSearch(t *testing.T) {
 		t.Fatal("restricted upper bound rewarded predecessor")
 	}
 }
+
+func TestPriorBonusCuckooImprovesIncomingAlpha(t *testing.T) {
+	oldCuckoo, oldPrior := T1104Cuckoo, T1104PriorBonus
+	T1104Cuckoo, T1104PriorBonus = 1, 1
+	t.Cleanup(func() { T1104Cuckoo, T1104PriorBonus = oldCuckoo, oldPrior })
+	pos, path := cuckooCycle(t)
+	_, info := newProbcutContractStateForFEN(t, "6rk/8/8/8/8/8/8/KR6 b - - 3 1", 1)
+	if err := info.evaluator.Reset(pos); err != nil {
+		t.Fatal(err)
+	}
+	info.RepStack, info.RepStackLen = path.RepStack, path.RepStackLen
+	previous := NewMove(B2, B1, WhiteRook, NoPiece, NoType, 0)
+	info.MoveStack[2] = previous
+	info.history.SetLastMovePlayed(previous)
+	info.evaluator.staticOracle = func(*Position) int { return 0 }
+	score := alphaBetaPV(pos, 1, 3, -100, 100, true, false, false, info)
+	if score != 0 || info.Stopped {
+		t.Fatalf("expected completed draw, got %d", score)
+	}
+	if got := info.history.historyTable[WhiteRook][B1]; got != 0 {
+		t.Fatalf("improved alpha rewarded predecessor: %d", got)
+	}
+}

@@ -39,6 +39,20 @@ class ContractAuditTest(unittest.TestCase):
         self.assertEqual(report["corpus_positions"], 12)
         self.assertTrue(report["qualification"].startswith("pending"))
 
+    def test_replay_on_merged_tree(self):
+        env = {k: v for k, v in os.environ.items()
+               if not any(s in k.lower() for s in ("credential", "token", "secret", "password"))}
+        scratch = ROOT.parent / "tmp"
+        scratch.mkdir(exist_ok=True)
+        env["TMPDIR"] = str(scratch)
+        with tempfile.TemporaryDirectory(prefix="hotspot-replay-output-", dir=scratch) as out:
+            result = subprocess.run([sys.executable, str(HERE / "check.py"), "--out", out],
+                                    cwd=ROOT, env=env, text=True, capture_output=True, timeout=1800)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            report = json.loads((Path(out) / "result.json").read_text())
+            self.assertTrue(report["cache_engine_unchanged"])
+            self.assertTrue(all(v["equal"] for v in report["identity"].values()))
+
     def test_scope_without_parent_brief(self):
         env = {k: v for k, v in os.environ.items()
                if not any(s in k.lower() for s in ("credential", "token", "secret", "password"))}

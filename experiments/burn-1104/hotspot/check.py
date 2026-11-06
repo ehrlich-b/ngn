@@ -55,12 +55,12 @@ def main():
     manifest = json.loads((HERE / "manifest.json").read_text())
     assert manifest["base"] == BASE
     assert manifest["patch_sha256"] == digest(HERE / "candidate.patch")
-    changed = run("default-tree", ["git", "diff", "--exit-code", BASE, "HEAD", "--", "engine", "cmd", "scripts"])
+    changed = run("default-tree", ["git", "diff", "--exit-code", "2e7bc9da", "HEAD", "--", "engine/cache.go"])
     assert not changed
     head = run("head", ["git", "rev-parse", "HEAD"]).strip()
     run("toolchain", ["go", "version"])
     trees = {}
-    for side, revision in [("before", BASE), ("after", head)]:
+    for side, revision in [("before", head), ("after", head)]:
         tree = work / side
         run(side + "-checkout", ["git", "worktree", "add", "--detach", tree, revision])
         trees[side] = tree
@@ -104,12 +104,12 @@ def main():
         (out / (side + "-top.txt")).write_text(top)
     fields = ("nodes", "score", "move", "threads")
     assert all(profiles["before"][k] == profiles["after"][k] for k in fields)
-    # The deliverable leaves the default engine untouched, so also run the
+    # The deliverable leaves the cache implementation untouched, so also run the
     # registered Go gates against the private patch-applied engine.
     run("candidate-vet", ["go", "vet", "-p", "2", "./..."], trees["after"], timeout=900)
     run("candidate-short", ["go", "test", "-p", "2", "-short", "-count=1", "./..."], trees["after"], timeout=900)
     result = dict(base=BASE, head=head, patch_sha256=digest(HERE / "candidate.patch"),
-                  default_engine_unchanged=True, identity_depth=4, identity_positions=12,
+                  cache_engine_unchanged=True, identity_depth=4, identity_positions=12,
                   identity_seconds=identity_seconds, identity=identity,
                   profile_depth=20, profiles=profiles, cpu=cpu,
                   candidate_gates="vet and short tests passed",

@@ -1737,6 +1737,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	if score, drawn := searchDrawScore(pos, ply, hash, info); drawn {
 		return score
 	}
+	incomingAlpha := alpha
 	cycleMove := cuckooRepetitionMove(pos, ply, alpha, hash, info)
 	if cycleMove != EmptyMove {
 		alpha = 0
@@ -2522,14 +2523,14 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 			if h1NewHistoryProducer {
 				info.history.updatePawnQuiets(pos,
 					h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
-					bestMove, depth, origAlpha, bestScore)
+					bestMove, depth, incomingAlpha, bestScore)
 				info.history.h1UpdateCompletedNode(
 					h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
 					bestMove,
 					savedLast,
 					prev2,
 					depth,
-					origAlpha,
+					incomingAlpha,
 					bestScore,
 					prev4, prev6,
 				)
@@ -2659,14 +2660,14 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 	if h1NewHistoryProducer && !info.Stopped {
 		info.history.updatePawnQuiets(pos,
 			h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
-			bestMove, depth, origAlpha, bestScore)
+			bestMove, depth, incomingAlpha, bestScore)
 		info.history.h1UpdateCompletedNode(
 			h1CompletedQuiets(&frame.completedHistoryQuiets, completedHistoryQuietCount),
 			bestMove,
 			info.history.GetLastMovePlayed(),
 			prev2,
 			depth,
-			origAlpha,
+			incomingAlpha,
 			bestScore,
 			prev4, prev6,
 		)
@@ -2674,7 +2675,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 
 	// A restricted singular search cannot establish that every reply fails low.
 	if T1104PriorBonus != 0 && !inSingular {
-		info.rewardPriorQuiet(depth, ply, origAlpha, bestScore)
+		info.rewardPriorQuiet(depth, ply, incomingAlpha, bestScore)
 	}
 
 	// Learn the pawn-structure + non-pawn + minor corrections from the completed search of this node.
