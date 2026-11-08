@@ -126,6 +126,13 @@ func main() {
 						break
 					}
 					p.Games = append(p.Games, g)
+					if g.Result.Reason == "search-error" {
+						p.Error = "search-error; incomplete pair excluded"
+						mu.Lock()
+						invalid = true
+						mu.Unlock()
+						break
+					}
 				}
 				results <- p
 				if p.Error != "" {
@@ -167,7 +174,7 @@ func main() {
 					opponentFlags++
 				}
 			}
-			if strings.Contains(g.Result.Reason, "no-move") || strings.Contains(g.Result.Reason, "illegal") || strings.Contains(g.Result.Reason, "crash") {
+			if g.Result.Reason == "search-error" || strings.Contains(g.Result.Reason, "no-move") || strings.Contains(g.Result.Reason, "illegal") || strings.Contains(g.Result.Reason, "crash") {
 				faults++
 			}
 		}

@@ -77,7 +77,7 @@ type result struct {
 // forfeitReasons are game-end reasons that signal a harness/process glitch rather
 // than real chess; too many of these taints the run (the anti-bogus-40-0 rule).
 var forfeitReasons = map[string]bool{
-	"no-move": true, "illegal-move": true,
+	"no-move": true, "illegal-move": true, "search-error": true,
 	"illegal-opening": true, "bad-opening": true, "fen-error": true,
 }
 
@@ -333,6 +333,11 @@ func playAnchor(ngnPath string, a Anchor, openings [][]string, games, movetimeMs
 			fmt.Fprintf(pgnW, "GAME %s %s %s %s | %s\n", a.Version, rc, color, gr.Reason, strings.Join(gameMoves, " "))
 		}
 		res.reasons[gr.Reason]++
+		if gr.Reason == "search-error" {
+			fmt.Printf("  ABORT %s: search-error at game %d — excluding anchor.\n", a.Version, g+1)
+			res.skipped = true
+			break
+		}
 		switch gr.Res {
 		case uci.Win:
 			res.w++
@@ -508,6 +513,9 @@ func playConcurrent(ngnPath string, anchors []Anchor, openings [][]string, games
 	for m := range msgs {
 		r := &results[m.anchorIdx]
 		r.reasons[m.res.Reason]++
+		if m.res.Reason == "search-error" {
+			r.skipped = true
+		}
 		switch m.res.Res {
 		case uci.Win:
 			r.w++
