@@ -15,6 +15,25 @@ func scriptedEngine(moves ...string) *Engine {
 	return &Engine{stdin: bufio.NewWriter(io.Discard), stdout: bufio.NewScanner(strings.NewReader(lines))}
 }
 
+func TestPlayGameRejectsSearchErrorBeforeFallback(t *testing.T) {
+	for _, newIsWhite := range []bool{true, false} {
+		faulted := &Engine{
+			stdin:  bufio.NewWriter(io.Discard),
+			stdout: bufio.NewScanner(strings.NewReader("readyok\ninfo string error search session failed: fixture panic\nbestmove e2e4\n")),
+		}
+		newEng, baseEng, want := faulted, scriptedEngine(), Loss
+		if !newIsWhite {
+			newEng, baseEng, want = baseEng, newEng, Win
+		}
+		var played []string
+		got := PlayGame(newEng, baseEng, nil, newIsWhite,
+			GameConfig{TCTimeMs: 10000, MaxMoves: 1, MovesOut: &played})
+		if got.Res != want || got.Reason != "search-error" || len(played) != 0 {
+			t.Fatalf("newIsWhite=%v: faulted fallback was applied: result=%+v moves=%v", newIsWhite, got, played)
+		}
+	}
+}
+
 func TestPlayGameRejectsIllegalMove(t *testing.T) {
 	var played []string
 	got := PlayGame(scriptedEngine("a1a8"), scriptedEngine(), nil, true,

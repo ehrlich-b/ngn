@@ -29,7 +29,7 @@ func TestFixedOptionsPreserveOrderAndPaths(t *testing.T) {
 }
 
 func TestTuningGameFaultCannotUpdateTheta(t *testing.T) {
-	for _, reason := range []string{"time-forfeit", "no-move", "illegal-move", "illegal-opening", "watchdog"} {
+	for _, reason := range []string{"time-forfeit", "no-move", "illegal-move", "search-error", "illegal-opening", "watchdog"} {
 		if _, err := validGamePoints(uci.GameResult{Res: uci.Win, Reason: reason}); err == nil {
 			t.Fatalf("scored fault %s", reason)
 		}

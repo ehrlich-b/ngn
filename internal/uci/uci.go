@@ -95,6 +95,8 @@ type Engine struct {
 	// single-goroutine ownership as Moves/Overshoots — no synchronization.
 	LastScoreCp    int
 	LastScoreValid bool
+	// SearchError persists an engine-reported fault for the process lifetime.
+	SearchError string
 }
 
 // overshootGrace is how long past the stop deadline a move may arrive before we
@@ -170,6 +172,10 @@ func startWithAttempts(path, name string, lowPower bool, options []string, attem
 		Send(e, "position startpos")
 		if mv, err := GetMoveChecked(e, "go movetime 200", 10*time.Second, 1500*time.Millisecond); err != nil || mv == "" {
 			log.Printf("%s (%s): warmup search failed: %v (attempt %d/%d)", name, path, err, attempt, attempts)
+			if e.SearchError != "" {
+				Stop(e)
+				return nil
+			}
 			Stop(e)
 			continue
 		}
@@ -222,6 +228,10 @@ func GetMove(e *Engine, goCmd string, timeout, stopAfter time.Duration) string {
 // GetMoveChecked preserves engine-reported search failures, even if the engine
 // recovers and emits a legal bestmove. Such a search cannot certify a clean game.
 func GetMoveChecked(e *Engine, goCmd string, timeout, stopAfter time.Duration) (string, error) {
+	e.LastScoreValid = false
+	if e.SearchError != "" {
+		return "", fmt.Errorf("engine search failed: %s", e.SearchError)
+	}
 	Send(e, goCmd)
 	start := time.Now()
 	deadline := start.Add(timeout)
@@ -239,6 +249,8 @@ func GetMoveChecked(e *Engine, goCmd string, timeout, stopAfter time.Duration) (
 		if e.stdout.Scan() {
 			line := e.stdout.Text()
 			if strings.HasPrefix(line, "info string error") {
+				e.SearchError = line
+				e.LastScoreValid = false
 				return "", fmt.Errorf("engine search failed: %s", line)
 			}
 			if strings.HasPrefix(line, "info ") {
@@ -538,10 +550,14 @@ func PlayGame(newEng, baseEng *Engine, opening []string, newIsWhite bool, cfg Ga
 		mv, searchErr := GetMoveChecked(eng, goCmd, timeout, stopAfter)
 		if searchErr != nil {
 			log.Printf("engine-error: %v", searchErr)
-			if newToMove {
-				return GameResult{Loss, "engine-error"}
+			reason := "engine-error"
+			if eng.SearchError != "" {
+				reason = "search-error"
 			}
-			return GameResult{Win, "engine-error"}
+			if newToMove {
+				return GameResult{Loss, reason}
+			}
+			return GameResult{Win, reason}
 		}
 		if cfg.TCTimeMs > 0 {
 			// Deduct wall time from the mover's bank; an overshoot past the grace is a

@@ -36,3 +36,10 @@ vectors, and writes `final-vector.json` at terminal. A fault stops execution,
 kills the tuner session, preserves the history, and records its reason in the
 final vector, `events.jsonl`, the unit log, and the shared status stream.
 There is no automatic retry, result adoption, or follow-up strength run.
+
+An engine-reported `info string error` during search is a fatal game fault,
+even when the engine follows it with a legal fallback move. The tuner rejects
+the whole batch before updating theta or writing a checkpoint. The original
+diagnostic remains in the tuner log; the controller records the failed exit
+and never reports that chunk as complete. Warmup search faults also stop
+startup without retrying the faulted engine.

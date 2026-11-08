@@ -76,9 +76,70 @@ func TestPlayGameReportsSearchErrorForEitherSide(t *testing.T) {
 		if !newIsWhite {
 			want = Win
 		}
-		if result.Reason != "engine-error" || result.Res != want {
+		if result.Reason != "search-error" || result.Res != want {
 			t.Fatalf("newIsWhite=%v: recovered fault scored as %+v", newIsWhite, result)
 		}
+	}
+}
+
+func TestGetMoveRejectsSearchErrorAndFallback(t *testing.T) {
+	const fault = "info string error search session failed: fixture panic"
+	e := &Engine{
+		stdin:  bufio.NewWriter(io.Discard),
+		stdout: bufio.NewScanner(strings.NewReader("info depth 1 score cp 50\n" + fault + "\nbestmove e2e4\n")),
+	}
+	for attempt := 0; attempt < 2; attempt++ {
+		if mv := GetMove(e, "go depth 1", time.Second, 0); mv != "" {
+			t.Fatalf("faulted engine returned fallback %q on attempt %d", mv, attempt)
+		}
+		if e.SearchError != fault || e.LastScoreValid {
+			t.Fatalf("search fault lost or score remained valid: %+v", e)
+		}
+	}
+}
+
+func TestGetMoveAcceptsOrdinaryInfo(t *testing.T) {
+	e := &Engine{
+		stdin:  bufio.NewWriter(io.Discard),
+		stdout: bufio.NewScanner(strings.NewReader("info string search complete\ninfo depth 1 score cp 50\nbestmove e2e4\n")),
+	}
+	if mv := GetMove(e, "go depth 1", time.Second, 0); mv != "e2e4" || e.SearchError != "" || !e.LastScoreValid || e.LastScoreCp != 50 {
+		t.Fatalf("healthy move/score rejected: move=%q engine=%+v", mv, e)
+	}
+}
+
+func TestStartRejectsWarmupSearchErrorWithoutRetry(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("test subprocess uses a POSIX shell")
+	}
+	dir := t.TempDir()
+	path := filepath.Join(dir, "fake-uci")
+	receipt := filepath.Join(dir, "commands")
+	t.Setenv("NGN_UCI_TEST_LOG", receipt)
+	script := `#!/bin/sh
+while IFS= read -r line; do
+  printf '%s\n' "$line" >> "$NGN_UCI_TEST_LOG"
+  case "$line" in
+    uci) printf 'uciok\n' ;;
+    isready) printf 'readyok\n' ;;
+    go*) printf 'info string error search session failed: fixture panic\nbestmove e2e4\n' ;;
+    quit) exit 0 ;;
+  esac
+done
+`
+	if err := os.WriteFile(path, []byte(script), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if e := Start(path, "fault fixture", false); e != nil {
+		Stop(e)
+		t.Fatal("warmup accepted a search failure with a legal fallback")
+	}
+	commands, err := os.ReadFile(receipt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(string(commands), "go movetime 200\n") != 1 {
+		t.Fatalf("reported search fault was retried: %s", commands)
 	}
 }
 
