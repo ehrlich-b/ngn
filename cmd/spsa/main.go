@@ -67,6 +67,7 @@ func run() error {
 	enginePath := flag.String("engine", "./build/ngn", "engine binary to tune (one process plays theta+, one plays theta-)")
 	tc := flag.String("tc", "10+0.1", "real clock SECONDS[+INC] (e.g. 10+0.1); search params are node-spending so real clock is the correct ruler")
 	iters := flag.Int("iters", 12000, "SPSA iterations (each = one color-balanced game pair unless -single)")
+	chunkIters := flag.Int("chunk-iters", 0, "maximum new iterations this invocation; 0 runs the full schedule (unchanged on resume)")
 	single := flag.Bool("single", false, "one game per iteration instead of a color-balanced pair (2x faster, noisier gradient)")
 	pairs := flag.Int("pairs", 1, "concurrent perturbations averaged per iteration — parallelizes wall-clock K× and cuts gradient variance ~1/K (T8 campaign uses 4); 1 = the original sequential SPSA (identical rng stream)")
 	openingsFile := flag.String("openings", "", "opening book (one move-seq per line); default = built-in set")
@@ -82,6 +83,9 @@ func run() error {
 
 	if *iters < 1 || *pairs < 1 || *report < 1 || !finite(*rEnd) || *rEnd <= 0 || !finite(*aFrac) || *aFrac < 0 {
 		return fmt.Errorf("iters, pairs, report and rend must be positive; afrac must be finite and nonnegative")
+	}
+	if _, err := campaignEnd(1, *iters, *chunkIters, *report); err != nil {
+		return err
 	}
 	if *selftest && *resume {
 		return fmt.Errorf("selftest cannot resume a real-game campaign")
@@ -145,6 +149,10 @@ func run() error {
 		fmt.Println("campaign already complete; gate the saved vector before accepting it")
 		printSetoptions(params)
 		return nil
+	}
+	endIter, err := campaignEnd(startIter, *iters, *chunkIters, *report)
+	if err != nil {
+		return err
 	}
 
 	type worker struct{ plus, minus *uci.Engine }
@@ -249,13 +257,34 @@ func run() error {
 		return nil
 	}
 
-	if err := runCampaign(params, startIter, *iters, A, rng, *report, K, len(openings), playBatch, onReport); err != nil {
+	if err := runCampaign(params, startIter, endIter, A, rng, *report, K, len(openings), playBatch, onReport); err != nil {
 		return err
 	}
 
+	if endIter < *iters {
+		fmt.Printf("\nchunk complete at iter %d; resume the unchanged %d-iteration schedule with -resume\n", endIter, *iters)
+		return nil
+	}
 	fmt.Printf("\n=== FINAL VECTOR (gate on the GAUNTLET, not this run's score) ===\n")
 	printSetoptions(params)
 	return nil
+}
+
+// Chunk size controls execution only. Schedule constants and the checkpoint
+// recipe always use the total iteration count. End on a normal report boundary
+// so loadCheckpoint can validate the uninterrupted checkpoint cadence.
+func campaignEnd(start, total, chunk, report int) (int, error) {
+	if chunk < 0 {
+		return 0, fmt.Errorf("chunk-iters must be nonnegative")
+	}
+	end := total
+	if chunk > 0 && chunk < total-start+1 {
+		end = start + chunk - 1
+	}
+	if end != total && end%report != 0 {
+		return 0, fmt.Errorf("chunk ends at iter %d outside report cadence %d", end, report)
+	}
+	return end, nil
 }
 
 // runCampaign is the SPSA loop shared by the real and selftest objectives.
