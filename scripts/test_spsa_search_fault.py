@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import spsa_chunks as s
@@ -57,6 +58,7 @@ class SearchFaultTests(unittest.TestCase):
                 patch.object(s.socket, 'gethostname', return_value='NewPC'), \
                 patch.object(s.os, 'getuid', return_value=1000), \
                 patch.object(s.os, 'getpriority', return_value=0), \
+                    patch.object(s.os, 'statvfs', return_value=SimpleNamespace(f_bavail=30 * 2**30, f_frsize=1)), \
                 patch.object(campaign, 'locked', side_effect=lambda action: action()):
             self.assertEqual(campaign.execute(), 1)
         final = json.loads((self.root / 'final-vector.json').read_text())
