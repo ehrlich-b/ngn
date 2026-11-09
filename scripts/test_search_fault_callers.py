@@ -43,6 +43,42 @@ def peer():
             break
 
 
+def matrix_peer():
+    mode, trace = sys.argv[2:]
+    in_game = False
+    def record(event):
+        with Path(trace).open('a') as output:
+            output.write(json.dumps({'pid': os.getpid(), 'event': event}) + '\n')
+    record('start')
+    for raw in sys.stdin:
+        line = raw.strip()
+        if line in ('ucinewgame', 'quit') or line.startswith('go '):
+            record(line)
+        if line == 'uci':
+            print('uciok', flush=True)
+        elif line == 'ucinewgame':
+            in_game = True
+        elif line == 'isready':
+            if mode == 'readiness-error' and in_game:
+                record('fault')
+                print('info string error rejected game configuration', flush=True)
+            else:
+                print('readyok', flush=True)
+        elif line.startswith('go '):
+            if not in_game:
+                print('bestmove e2e4', flush=True)
+            elif mode == 'eof':
+                record('fault')
+                break
+            else:
+                if mode == 'search-error':
+                    record('fault')
+                    print('info string error search session failed: local fixture', flush=True)
+                print('bestmove g6g7', flush=True)
+        elif line == 'quit':
+            break
+
+
 class SearchFaultCallersTests(unittest.TestCase):
     def test_sprt_aborts_on_search_fault_before_scoring(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -84,6 +120,59 @@ class SearchFaultCallersTests(unittest.TestCase):
                             self.assertEqual([event['event'] for event in events[fault_index + 1:]], ['quit'])
                         else:
                             self.assertEqual(pgn.read_text().count('[Event '), 4)
+
+    def test_sprt_strict_engine_fault_matrix(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            binary = root / 'sprt'
+            subprocess.run(['go', 'build', '-p', '2', '-o', str(binary), './cmd/sprt'], check=True)
+            book = root / 'openings.txt'
+            book.write_text('7k/8/5KQ1/8/8/8/8/8 w - - 0 1\n' * 2)
+            cases = [(True, 'healthy', None)]
+            cases += [(strict, 'search-error', side) for strict in (False, True)
+                      for side in ('new', 'base')]
+            cases += [(True, mode, side) for mode in ('readiness-error', 'eof')
+                      for side in ('new', 'base')]
+            for strict, mode, faulty in cases:
+                with self.subTest(strict=strict, mode=mode, faulty=faulty):
+                    paths, traces = {}, {}
+                    for side in ('new', 'base'):
+                        paths[side] = root / side
+                        traces[side] = root / (side + '.trace')
+                        traces[side].write_text('')
+                        paths[side].write_text('#!/bin/sh\nexec ' + shlex.join([
+                            sys.executable, str(Path(__file__).resolve()), '--matrix-peer',
+                            mode if side == faulty else 'healthy', str(traces[side])]) + '\n')
+                        paths[side].chmod(0o700)
+                    pgn = root / 'matrix.pgn'
+                    command = [str(binary), '-new', str(paths['new']), '-base', str(paths['base']),
+                               '-openings', str(book), '-concurrency', '1', '-maxgames', '4',
+                               '-mingames', '4', '-lowpower=false', '-pgn', str(pgn)]
+                    if strict:
+                        command.append('-noretries')
+                    run = subprocess.run(command, capture_output=True, text=True, timeout=15)
+                    text = pgn.read_text()
+                    events = {side: [json.loads(line) for line in trace.read_text().splitlines()]
+                              for side, trace in traces.items()}
+                    if not faulty:
+                        self.assertEqual(run.returncode, 0, run.stderr)
+                        self.assertEqual(text.count('[Event '), 4)
+                        self.assertIn('W-D-L: 2-0-2', run.stdout)
+                    else:
+                        self.assertNotEqual(run.returncode, 0, run.stdout)
+                        self.assertIn('search-error' if mode == 'search-error' else 'engine-error', run.stderr)
+                        self.assertNotIn('ACCEPTED', run.stdout)
+                        expected = 1 if faulty == 'base' and mode != 'readiness-error' else 0
+                        self.assertEqual(text.count('[Event '), expected)
+                        self.assertNotIn('engine-error', text)
+                        self.assertLessEqual(sum(line.startswith('G') for line in run.stdout.splitlines()), expected)
+                        self.assertNotIn('Pentanomial', run.stdout)
+                        for side_events in events.values():
+                            self.assertEqual(sum(e['event'] == 'start' for e in side_events), 1)
+                            self.assertLessEqual(sum(e['event'] == 'ucinewgame' for e in side_events), expected + 1)
+                        fault_events = events[faulty]
+                        index = next(i for i, event in enumerate(fault_events) if event['event'] == 'fault')
+                        self.assertTrue(all(e['event'] == 'quit' for e in fault_events[index + 1:]))
 
     def test_transient_fault_excludes_results_and_stops_poisoned_process(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -161,5 +250,7 @@ class SearchFaultCallersTests(unittest.TestCase):
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == '--peer':
         peer()
+    elif len(sys.argv) > 1 and sys.argv[1] == '--matrix-peer':
+        matrix_peer()
     else:
         unittest.main()

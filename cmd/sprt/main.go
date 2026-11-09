@@ -316,10 +316,10 @@ func runSPRT(cfg runConfig, openings [][]string) {
 					localCfg.MovesOut = &moves
 				}
 				res, ok := playWatch(newEng, baseEng, s.opening, s.newIsWhite, localCfg, deadline)
-				if res.Reason == "search-error" {
+				if res.Reason == "search-error" || (cfg.noRetries && res.Reason == "engine-error") {
 					uci.Stop(newEng)
 					uci.Stop(baseEng)
-					log.Fatal("search-error: run aborted without scoring the faulted game")
+					log.Fatalf("%s: run aborted without scoring the faulted game", res.Reason)
 				}
 				if !ok {
 					if cfg.noRetries {
