@@ -3,7 +3,9 @@
 `python3 scripts/match_queue.py run --dry-run` validates both committed jobs,
 including net and book hashes, without a lock, engine binary, or game process.
 Paths in recipes are relative to the repository; absolute paths are also
-supported for prepared artifacts. Engine source hashes are build provenance
+supported for prepared artifacts. Time-control bases must be at least one
+millisecond, so the harness cannot truncate them to zero and use fixed depth.
+Engine source hashes are build provenance
 declarations; the runner hashes the actual binaries at execution time. Prepare
 the declared source with its normal build process as `build/ngn-bc87352d` and
 build `cmd/sprt` as `build/sprt` before executing these recipes. Changing engines

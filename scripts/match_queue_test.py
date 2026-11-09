@@ -236,6 +236,27 @@ class RecipeTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 mq.load_job(path, mq.REPO)
 
+    def test_time_control_base_survives_millisecond_conversion(self):
+        root = proof_directory(self)
+        job = mq.read(FIX / '01-first.json')
+        path = root / 'job.json'
+        # cmd/sprt truncates base seconds * 1000 to an integer. A zero
+        # result selects fixed depth, even when the increment is nonzero.
+        for tc in ('0.0001+0.1', '0.000999999+0', '0.0001'):
+            with self.subTest(rejected=tc):
+                job['time_control'] = tc
+                path.write_text(json.dumps(job))
+                with self.assertRaisesRegex(ValueError, 'at least 1 millisecond'):
+                    mq.load_job(path, mq.REPO)
+        for tc in ('0.001', '0.001+0.1', '0.0019+0', '1+0.0001'):
+            with self.subTest(accepted=tc):
+                job['time_control'] = tc
+                path.write_text(json.dumps(job))
+                loaded = mq.load_job(path, mq.REPO)
+                self.assertEqual(loaded['time_control'], tc)
+                self.assertGreaterEqual(int(float(tc.split('+')[0]) * 1000), 1)
+        print('Sub-millisecond bases rejected; 1ms boundary and fractional increments accepted.')
+
     def test_user_unit_verify(self):
         root = proof_directory(self)
         unit = mq.REPO / 'experiments/match-queue/ngn-match-queue.service'

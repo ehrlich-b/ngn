@@ -126,8 +126,10 @@ def strength(ledger, output):
 def load_job(path, repo):
     job = read(path)
     validate(job, read(REPO / 'experiments/match-queue/job.schema.json'))
-    if float(job['time_control'].split('+')[0]) <= 0:
-        raise ValueError('time control base must be positive')
+    # cmd/sprt truncates seconds to integer milliseconds; a zero base
+    # selects fixed depth instead of the requested clock.
+    if float(job['time_control'].split('+')[0]) * 1000 < 1:
+        raise ValueError('time control base must be at least 1 millisecond')
     if job['bounds']['elo0'] >= job['bounds']['elo1']:
         raise ValueError('elo0 must be below elo1')
     if (job['min_games'] > job['max_games'] or job['max_games'] % 2 or job['min_games'] % 2):
