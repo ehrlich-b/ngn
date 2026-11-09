@@ -1,0 +1,16 @@
+[Unit]
+Description=NGN standing match queue
+
+[Service]
+Type=simple
+WorkingDirectory=%h/ngn
+ExecStart=/usr/bin/python3 %h/ngn/scripts/match_queue.py run --jobs %h/ngn/experiments/match-queue/jobs --ledger %h/ngn/experiments/ledger.jsonl --strength %h/ngn/docs/STRENGTH.md --sprt %h/ngn/build/sprt --output %h/.local/state/ngn-match-queue/runs --lock /home/ehrli/ngn-data/night-20261007/session138/cpu0-11.lock --cpus 0-11
+Nice=10
+Environment=GOMAXPROCS=2
+KillMode=control-group
+TimeoutStopSec=30
+Restart=no
+UMask=0077
+
+[Install]
+WantedBy=default.target

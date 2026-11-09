@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "id": "aa-h768-2000",
+  "base": {
+    "source_hash": "bc87352d94c58f58eeae42fb39989d003094252d",
+    "binary": "build/ngn-bc87352d",
+    "net": {
+      "path": "engine/nets/ngn-h768-2dcb6d93.nnue",
+      "sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443"
+    },
+    "options": [
+      "Threads=1",
+      "Hash=64",
+      "OwnBook=false"
+    ]
+  },
+  "candidate": {
+    "source_hash": "bc87352d94c58f58eeae42fb39989d003094252d",
+    "binary": "build/ngn-bc87352d",
+    "net": {
+      "path": "engine/nets/ngn-h768-2dcb6d93.nnue",
+      "sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443"
+    },
+    "options": [
+      "Threads=1",
+      "Hash=64",
+      "OwnBook=false"
+    ]
+  },
+  "bounds": {
+    "elo0": -3,
+    "elo1": 3,
+    "alpha": 0.05,
+    "beta": 0.05
+  },
+  "time_control": "10+0.1",
+  "book": {
+    "path": "experiments/2026-10-12-session74-results/panel/future-openings.txt",
+    "sha256": "f2fed55a1645dba85a9ef3e047eb5183b5b6342878c6dc8483e6768973470acc"
+  },
+  "min_games": 2000,
+  "max_games": 2000,
+  "concurrency": 2
+}

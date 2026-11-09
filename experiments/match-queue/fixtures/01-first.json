@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "id": "first",
+  "base": {
+    "source_hash": "bc87352d94c58f58eeae42fb39989d003094252d",
+    "binary": "scripts/match_queue.py",
+    "net": {
+      "path": "experiments/match-queue/fixtures/net.txt",
+      "sha256": "e0aff756acc0d90ba2679b67cee2fdd62f40ce6d77727526d0b7a5407de53657"
+    },
+    "options": [
+      "Threads=1",
+      "Hash=64",
+      "OwnBook=false"
+    ]
+  },
+  "candidate": {
+    "source_hash": "bc87352d94c58f58eeae42fb39989d003094252d",
+    "binary": "scripts/match_queue.py",
+    "net": {
+      "path": "experiments/match-queue/fixtures/net.txt",
+      "sha256": "e0aff756acc0d90ba2679b67cee2fdd62f40ce6d77727526d0b7a5407de53657"
+    },
+    "options": [
+      "Threads=1",
+      "Hash=64",
+      "OwnBook=false"
+    ]
+  },
+  "bounds": {
+    "elo0": -3,
+    "elo1": 3,
+    "alpha": 0.05,
+    "beta": 0.05
+  },
+  "time_control": "10+0.1",
+  "book": {
+    "path": "experiments/match-queue/fixtures/book.txt",
+    "sha256": "238cb583d318bcd4310daf555575b4540fb2ad1ee654528dae939759f9dcb4af"
+  },
+  "min_games": 4,
+  "max_games": 4,
+  "concurrency": 1
+}

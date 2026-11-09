@@ -1,0 +1,169 @@
+{
+  "type": "object",
+  "required": [
+    "version",
+    "job_id",
+    "job_hash",
+    "started_utc",
+    "finished_utc",
+    "source_hash",
+    "binary_hash",
+    "net_hash",
+    "book_hash",
+    "harness_hash",
+    "argv",
+    "log",
+    "games",
+    "pairs",
+    "orphan_games",
+    "pair_counts",
+    "wdl",
+    "verdict",
+    "faults"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,79}$"
+    },
+    "job_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "started_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "finished_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_hash": {
+      "type": "object",
+      "required": [
+        "base",
+        "candidate"
+      ],
+      "properties": {
+        "base": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "candidate": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "binary_hash": {
+      "type": "object",
+      "required": [
+        "base",
+        "candidate"
+      ],
+      "properties": {
+        "base": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "candidate": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "net_hash": {
+      "type": "object",
+      "required": [
+        "base",
+        "candidate"
+      ],
+      "properties": {
+        "base": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "candidate": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "book_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "harness_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "argv": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "log": {
+      "type": "string",
+      "minLength": 1
+    },
+    "games": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pairs": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "orphan_games": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pair_counts": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "minItems": 5,
+      "maxItems": 5
+    },
+    "wdl": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "H0",
+        "H1",
+        "INCONCLUSIVE",
+        "ERROR"
+      ]
+    },
+    "faults": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ngn.example/schemas/strength-ledger-v1",
+  "title": "One finished cmd/sprt match (one JSON object per ledger line)"
+}
