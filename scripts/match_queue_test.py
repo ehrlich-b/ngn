@@ -38,7 +38,8 @@ class LedgerTests(unittest.TestCase):
 
     def test_schema_required_provenance_counts_and_verdict(self):
         mq.validate_row(self.row)
-        self.assertEqual(mq.rows(mq.REPO / 'experiments/ledger.jsonl'), [])
+        # Validate every production row, including after the queue records results.
+        mq.rows(mq.REPO / 'experiments/ledger.jsonl')
         for field in ('source_hash', 'binary_hash', 'net_hash', 'book_hash', 'pair_counts', 'verdict'):
             with self.subTest(missing=field):
                 bad = copy.deepcopy(self.row)
