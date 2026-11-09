@@ -3,6 +3,7 @@ import copy
 import datetime
 import fcntl
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -256,6 +257,34 @@ class RecipeTests(unittest.TestCase):
                 self.assertEqual(loaded['time_control'], tc)
                 self.assertGreaterEqual(int(float(tc.split('+')[0]) * 1000), 1)
         print('Sub-millisecond bases rejected; 1ms boundary and fractional increments accepted.')
+
+    def test_time_control_milliseconds_fit_harness_integer(self):
+        root = proof_directory(self)
+        job = mq.read(FIX / '01-first.json')
+        path = root / 'job.json'
+        # Go converts float64 milliseconds to a signed native int. The
+        # exclusive bound avoids rounding the largest int up to 2**63.
+        limit = sys.maxsize + 1
+        overflow_seconds = format(limit / 1000, '.20f')
+        safe_seconds = format(math.nextafter(limit / 1000, 0), '.20f')
+        huge_seconds = '1' + '0' * 400
+        for tc in ('9223372036854776+0', overflow_seconds,
+                   overflow_seconds + '+0', '1+' + overflow_seconds,
+                   huge_seconds + '+0', '1+' + huge_seconds):
+            with self.subTest(rejected=tc):
+                job['time_control'] = tc
+                path.write_text(json.dumps(job))
+                with self.assertRaisesRegex(ValueError, 'signed native integer'):
+                    mq.load_job(path, mq.REPO)
+        for tc in (safe_seconds + '+0', '1+' + safe_seconds):
+            with self.subTest(accepted=tc):
+                job['time_control'] = tc
+                path.write_text(json.dumps(job))
+                loaded = mq.load_job(path, mq.REPO)
+                self.assertEqual(loaded['time_control'], tc)
+                argv = mq.command(loaded, mq.REPO, Path('fake-sprt'), '0')
+                self.assertEqual(argv[argv.index('-tc') + 1], tc)
+        print('Overflowing/non-finite base and increment rejected; representable upper neighbors accepted.')
 
     def test_user_unit_verify(self):
         root = proof_directory(self)

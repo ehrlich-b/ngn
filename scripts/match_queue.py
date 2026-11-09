@@ -12,6 +12,7 @@ from pathlib import Path
 import re
 import signal
 import subprocess
+import sys
 import time
 
 REPO = Path(__file__).resolve().parents[1]
@@ -126,10 +127,15 @@ def strength(ledger, output):
 def load_job(path, repo):
     job = read(path)
     validate(job, read(REPO / 'experiments/match-queue/job.schema.json'))
-    # cmd/sprt truncates seconds to integer milliseconds; a zero base
-    # selects fixed depth instead of the requested clock.
-    if float(job['time_control'].split('+')[0]) * 1000 < 1:
-        raise ValueError('time control base must be at least 1 millisecond')
+    # Match cmd/sprt's float64 seconds -> native signed int milliseconds.
+    # Zero or overflowing bases can select fixed depth instead of a clock.
+    # Use an exclusive power-of-two bound: float(max int) rounds up.
+    base, _, increment = job['time_control'].partition('+')
+    limit = sys.maxsize + 1
+    if not 1 <= float(base) * 1000 < limit:
+        raise ValueError('time control base must be at least 1 millisecond and fit a signed native integer')
+    if increment and not 0 <= float(increment) * 1000 < limit:
+        raise ValueError('time control increment must fit a nonnegative signed native integer')
     if job['bounds']['elo0'] >= job['bounds']['elo1']:
         raise ValueError('elo0 must be below elo1')
     if (job['min_games'] > job['max_games'] or job['max_games'] % 2 or job['min_games'] % 2):

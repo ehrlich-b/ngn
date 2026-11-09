@@ -4,7 +4,9 @@
 including net and book hashes, without a lock, engine binary, or game process.
 Paths in recipes are relative to the repository; absolute paths are also
 supported for prepared artifacts. Time-control bases must be at least one
-millisecond, so the harness cannot truncate them to zero and use fixed depth.
+millisecond; both base and increment milliseconds must fit a signed native
+integer, so the harness cannot truncate the base to zero or overflow and use
+fixed depth. Non-finite conversions are rejected as well.
 Engine source hashes are build provenance
 declarations; the runner hashes the actual binaries at execution time. Prepare
 the declared source with its normal build process as `build/ngn-bc87352d` and
