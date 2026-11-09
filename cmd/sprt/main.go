@@ -96,7 +96,7 @@ func main() {
 	maxMoves := flag.Int("maxmoves", 200, "ply cap per game (then adjudicated draw)")
 	openingsFile := flag.String("openings", "", "file of opening move-sequences (one per line); default = built-in set")
 	concurrency := flag.Int("concurrency", 2, "parallel games")
-	noRetries := flag.Bool("noretries", false, "abort on first engine startup or watchdog failure; never restart engines")
+	noRetries := flag.Bool("noretries", false, "abort on first engine startup, search, or watchdog failure; never restart engines")
 	lowPower := flag.Bool("lowpower", true, "route engines to macOS E-cores (taskpolicy -b)")
 	genBook := flag.Int("genbook", 0, "generate N balanced openings and exit (writes to -out)")
 	genPlies := flag.Int("genplies", 6, "random plies per generated opening")
@@ -316,10 +316,10 @@ func runSPRT(cfg runConfig, openings [][]string) {
 					localCfg.MovesOut = &moves
 				}
 				res, ok := playWatch(newEng, baseEng, s.opening, s.newIsWhite, localCfg, deadline)
-				if cfg.noRetries && res.Reason == "engine-error" {
+				if res.Reason == "search-error" {
 					uci.Stop(newEng)
 					uci.Stop(baseEng)
-					log.Fatal("engine-error: strict run aborted without retry")
+					log.Fatal("search-error: run aborted without scoring the faulted game")
 				}
 				if !ok {
 					if cfg.noRetries {

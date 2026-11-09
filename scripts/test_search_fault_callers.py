@@ -44,6 +44,47 @@ def peer():
 
 
 class SearchFaultCallersTests(unittest.TestCase):
+    def test_sprt_aborts_on_search_fault_before_scoring(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            binary = root / 'sprt'
+            subprocess.run(['go', 'build', '-p', '2', '-o', str(binary), './cmd/sprt'], check=True)
+            book = root / 'openings.txt'
+            book.write_text(('7k/8/5KQ1/8/8/8/8/8 w - - 0 1\n') * 2)
+            peers = {}
+            for name in ('new', 'base'):
+                switch, trace = root / (name + '.mode'), root / (name + '.trace')
+                path = root / name
+                path.write_text('#!/bin/sh\nexec ' + shlex.join(
+                    [sys.executable, str(Path(__file__).resolve()), '--peer',
+                     str(switch), str(trace)]) + '\n')
+                path.chmod(0o700)
+                peers[name] = (path, switch, trace)
+            for strict in (False, True):
+                for faulty in (None, 'new', 'base'):
+                    with self.subTest(strict=strict, faulty=faulty):
+                        for name, (_, switch, trace) in peers.items():
+                            switch.write_text('fault' if name == faulty else 'healthy')
+                            trace.write_text('')
+                        pgn = root / 'games.pgn'
+                        command = [str(binary), '-new', str(peers['new'][0]),
+                                   '-base', str(peers['base'][0]), '-openings', str(book),
+                                   '-concurrency', '1', '-maxgames', '4', '-mingames', '4',
+                                   '-lowpower=false', '-pgn', str(pgn)]
+                        if strict:
+                            command.append('-noretries')
+                        run = subprocess.run(command, text=True, capture_output=True, timeout=15)
+                        self.assertEqual(run.returncode == 0, faulty is None, run.stdout + run.stderr)
+                        if faulty:
+                            self.assertIn('search-error', run.stderr)
+                            self.assertNotIn('ACCEPTED', run.stdout)
+                            self.assertEqual(pgn.read_text().count('[Event '), 1 if faulty == 'base' else 0)
+                            events = [json.loads(line) for line in peers[faulty][2].read_text().splitlines()]
+                            fault_index = next(i for i, event in enumerate(events) if event['fault'])
+                            self.assertEqual([event['event'] for event in events[fault_index + 1:]], ['quit'])
+                        else:
+                            self.assertEqual(pgn.read_text().count('[Event '), 4)
+
     def test_transient_fault_excludes_results_and_stops_poisoned_process(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
