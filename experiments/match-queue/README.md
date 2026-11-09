@@ -3,10 +3,20 @@
 `python3 scripts/match_queue.py run --dry-run` validates both committed jobs,
 including net and book hashes, without a lock, engine binary, or game process.
 Paths in recipes are relative to the repository; absolute paths are also
-supported for prepared artifacts. Time-control bases must be at least one
-millisecond; both base and increment milliseconds must fit a signed native
-integer, so the harness cannot truncate the base to zero or overflow and use
-fixed depth. Non-finite conversions are rejected as well.
+supported for prepared artifacts. The supported time-control contract is decimal
+base seconds in [0.001,86400], optionally followed by `+` and decimal increment
+seconds in [0,3600]. No signs, exponents, whitespace, NaN or Inf are accepted.
+These are intentional supported limits, checked exactly before the harness runs;
+they do not cover every native-int-sized clock. Accepted recipe text is passed
+unchanged, including fractional millisecond increments (the harness truncates
+float64 seconds to integer milliseconds). The runner always sets `-maxmoves 400`.
+At the simultaneous maximum, increment milliseconds times 400 is 1,440,000,000,
+per-side milliseconds is 806,400,000, and twice that is 1,612,800,000; each fits
+signed 32-bit arithmetic. The watchdog is 6,451,260,000,000,000 ns, below signed
+64-bit duration limits; smaller budgets retain the three-minute floor. The UCI
+per-side bank and its 30-second timeout/grace also fit. The prior tests accepting
+the enormous native-int upper neighbors now reject them: individual conversion
+safety did not protect subsequent watchdog multiplication and addition.
 Engine source hashes are build provenance
 declarations; the runner hashes the actual binaries at execution time. Prepare
 the declared source with its normal build process as `build/ngn-bc87352d` and

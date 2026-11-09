@@ -141,7 +141,8 @@
     },
     "time_control": {
       "type": "string",
-      "pattern": "^[0-9]+(\\.[0-9]+)?(\\+[0-9]+(\\.[0-9]+)?)?$"
+      "pattern": "^[0-9]+(\\.[0-9]+)?(\\+[0-9]+(\\.[0-9]+)?)?$",
+      "description": "Supported decimal base seconds in [0.001,86400], optionally + decimal increment seconds in [0,3600]; exact ranges enforced by load_job, with fixed -maxmoves 400. No signs, exponents, whitespace or non-finite values. Accepted text, including fractional millisecond increments, is passed unchanged; cmd/sprt truncates float64 seconds to milliseconds. These intentional limits do not support every native-int-sized clock."
     },
     "book": {
       "type": "object",

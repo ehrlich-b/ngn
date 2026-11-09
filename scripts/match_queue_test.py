@@ -12,11 +12,26 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest import mock
 
 from scripts import match_queue as mq
 
 FIX = mq.REPO / 'experiments/match-queue/fixtures'
 RUNNER = mq.REPO / 'scripts/match_queue.py'
+
+
+ACCEPTED_CLOCKS = ('0.001', '0.001+0.1', '0.0019+0', '1+0.0001',
+                   '60+0.6', '86400', '86400+3600', '0.001+3600',
+                   '0.00100000000000000000001', '86399.999999999999',
+                   '1+0', '1+0.000000000000001', '1+3599.999999999999')
+REJECTED_CLOCKS = ('0', '0.0001+0.1', '0.000999999+0', '0.0001',
+                   '0.00099999999999999999999', '9223372036854776+0',
+                   '2000000000+0', '1+2000000000', '86400.000000000001',
+                   '86400.001', '1+3600.000000000001', '1+3600.001',
+                   'NaN', 'Inf', 'NaN+0', 'Inf+0', '1+NaN', '1+Inf',
+                   '-1', '-0.001', '1+-0.000000000000001', '1+-1',
+                   '1\n', '1+0\n', 'oops', '1e3', '1+', '+1', ' 1',
+                   '9' * 400 + '+0', '1+' + '9' * 400)
 
 
 def proof_directory(test):
@@ -83,6 +98,22 @@ class LedgerTests(unittest.TestCase):
         path.write_text((json.dumps(self.row) + '\n') * 2)
         with self.assertRaisesRegex(ValueError, 'duplicate'):
             mq.rows(path)
+
+    def test_populated_production_ledger(self):
+        # Model a populated production path without putting synthetic results
+        # in the real production ledger. Validation must not assume it is empty.
+        repo = self.root / 'populated'
+        (repo / 'experiments').mkdir(parents=True)
+        shutil.copyfile(mq.REPO / 'experiments/ledger.schema.json',
+                        repo / 'experiments/ledger.schema.json')
+        ledger = repo / 'experiments/ledger.jsonl'
+        ledger.write_text(json.dumps(self.row) + '\n')
+        with mock.patch.object(mq, 'REPO', repo):
+            self.assertEqual(mq.rows(mq.REPO / 'experiments/ledger.jsonl'), [self.row])
+            mq.strength(ledger, repo / 'first.md')
+            mq.strength(ledger, repo / 'second.md')
+            self.assertEqual((repo / 'first.md').read_bytes(), (repo / 'second.md').read_bytes())
+        print('Populated production-path ledger validates and renders deterministically in isolation.')
 
 
 class RunnerTests(unittest.TestCase):
@@ -262,29 +293,78 @@ class RecipeTests(unittest.TestCase):
         root = proof_directory(self)
         job = mq.read(FIX / '01-first.json')
         path = root / 'job.json'
-        # Go converts float64 milliseconds to a signed native int. The
-        # exclusive bound avoids rounding the largest int up to 2**63.
+        # Preserve the old overflow witnesses. Even the two formerly accepted
+        # upper neighbors exceed the supported contract: conversion alone did
+        # not protect the later watchdog multiplication/addition.
         limit = sys.maxsize + 1
         overflow_seconds = format(limit / 1000, '.20f')
         safe_seconds = format(math.nextafter(limit / 1000, 0), '.20f')
         huge_seconds = '1' + '0' * 400
         for tc in ('9223372036854776+0', overflow_seconds,
                    overflow_seconds + '+0', '1+' + overflow_seconds,
-                   huge_seconds + '+0', '1+' + huge_seconds):
+                   huge_seconds + '+0', '1+' + huge_seconds,
+                   safe_seconds + '+0', '1+' + safe_seconds):
             with self.subTest(rejected=tc):
                 job['time_control'] = tc
                 path.write_text(json.dumps(job))
-                with self.assertRaisesRegex(ValueError, 'signed native integer'):
+                with self.assertRaisesRegex(ValueError, 'time_control'):
                     mq.load_job(path, mq.REPO)
-        for tc in (safe_seconds + '+0', '1+' + safe_seconds):
-            with self.subTest(accepted=tc):
+        print('Old native-int overflow and upper-neighbor witnesses rejected by supported decimal ranges.')
+
+    def test_exact_decimal_boundary_matrix(self):
+        root = proof_directory(self)
+        job = mq.read(FIX / '01-first.json')
+        path = root / 'job.json'
+        for tc in ACCEPTED_CLOCKS + REJECTED_CLOCKS:
+            with self.subTest(tc=tc):
                 job['time_control'] = tc
                 path.write_text(json.dumps(job))
+                if tc in REJECTED_CLOCKS:
+                    with self.assertRaisesRegex(ValueError, 'time_control'):
+                        mq.load_job(path, mq.REPO)
+                    continue
                 loaded = mq.load_job(path, mq.REPO)
                 self.assertEqual(loaded['time_control'], tc)
                 argv = mq.command(loaded, mq.REPO, Path('fake-sprt'), '0')
                 self.assertEqual(argv[argv.index('-tc') + 1], tc)
-        print('Overflowing/non-finite base and increment rejected; representable upper neighbors accepted.')
+                self.assertEqual(argv[argv.index('-maxmoves') + 1], '400')
+        print(f'Exact decimal matrix: {len(ACCEPTED_CLOCKS)} accepted, {len(REJECTED_CLOCKS)} rejected; maxmoves remains 400.')
+
+    def test_invalid_clocks_launch_nothing_in_dry_run_or_runtime(self):
+        root = proof_directory(self)
+        jobs = root / 'jobs'
+        jobs.mkdir()
+        lock = root / 'synthetic.lock'
+        lock.write_text('existing shared inode\n')
+        events, ledger, output = root / 'events.jsonl', root / 'ledger.jsonl', root / 'runs'
+        env = mq.clean_env()
+        env.update(MATCH_QUEUE_LOCK=str(lock), MATCH_QUEUE_EVENTS=str(events))
+        argv = [sys.executable, str(RUNNER), 'run', '--once', '--jobs', str(jobs),
+                '--output', str(output), '--ledger', str(ledger),
+                '--strength', str(root / 'STRENGTH.md'), '--sprt', str(FIX / 'fake_sprt.py'),
+                '--cpus', str(min(os.sched_getaffinity(0)))]
+        job = mq.read(FIX / '01-first.json')
+        with (root / 'rejections.log').open('w') as log:
+            for tc in REJECTED_CLOCKS:
+                job['time_control'] = tc
+                (jobs / 'job.json').write_text(json.dumps(job))
+                for dry in (True, False):
+                    dry_output = root / 'dry-unused'
+                    command = argv + (['--output', str(dry_output), '--dry-run', '--lock', str(root / 'absent.lock')] if dry
+                                      else ['--lock', str(lock)])
+                    result = subprocess.run(command, env=env, text=True, capture_output=True, timeout=3)
+                    log.write(f'{tc!r} dry={dry} rc={result.returncode}\n' + result.stdout + result.stderr)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn('time_control', result.stderr)
+                    self.assertFalse(ledger.exists())
+                    self.assertFalse(events.exists(), 'game subprocess launched')
+                    self.assertFalse((root / 'STRENGTH.md').exists())
+                    if dry:
+                        self.assertFalse(dry_output.exists())
+                    if output.exists():
+                        self.assertEqual(list(output.iterdir()), [])
+        self.assertFalse((root / 'absent.lock').exists())
+        print('All invalid clocks reject in CLI dry-run/runtime, with no game events or ledger rows.')
 
     def test_user_unit_verify(self):
         root = proof_directory(self)

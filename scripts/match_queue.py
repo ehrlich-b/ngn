@@ -3,6 +3,7 @@
 import argparse
 from contextlib import contextmanager
 import datetime
+from decimal import Decimal
 import fcntl
 import hashlib
 import json
@@ -126,16 +127,20 @@ def strength(ledger, output):
 
 def load_job(path, repo):
     job = read(path)
+    # Compare decimal text exactly before float64 -> milliseconds in cmd/sprt.
+    # These supported limits also bound its 400-ply watchdog intermediates on
+    # signed 32-bit hosts, and the UCI clock bank and timeout on all hosts.
+    tc = job.get('time_control') if isinstance(job, dict) else None
+    if not isinstance(tc, str) or not re.fullmatch(r'[0-9]+(\.[0-9]+)?(\+[0-9]+(\.[0-9]+)?)?', tc):
+        raise ValueError('time_control: expected decimal SECONDS or SECONDS+INC; '
+                         'base [0.001,86400], increment [0,3600], no whitespace')
+    base, _, increment = tc.partition('+')
+    if not Decimal('0.001') <= Decimal(base) <= Decimal('86400'):
+        raise ValueError('time_control base must be at least 1 millisecond '
+                         '(0.001 seconds) and at most 86400 seconds')
+    if increment and not Decimal('0') <= Decimal(increment) <= Decimal('3600'):
+        raise ValueError('time_control increment must be in [0,3600] seconds')
     validate(job, read(REPO / 'experiments/match-queue/job.schema.json'))
-    # Match cmd/sprt's float64 seconds -> native signed int milliseconds.
-    # Zero or overflowing bases can select fixed depth instead of a clock.
-    # Use an exclusive power-of-two bound: float(max int) rounds up.
-    base, _, increment = job['time_control'].partition('+')
-    limit = sys.maxsize + 1
-    if not 1 <= float(base) * 1000 < limit:
-        raise ValueError('time control base must be at least 1 millisecond and fit a signed native integer')
-    if increment and not 0 <= float(increment) * 1000 < limit:
-        raise ValueError('time control increment must fit a nonnegative signed native integer')
     if job['bounds']['elo0'] >= job['bounds']['elo1']:
         raise ValueError('elo0 must be below elo1')
     if (job['min_games'] > job['max_games'] or job['max_games'] % 2 or job['min_games'] % 2):
