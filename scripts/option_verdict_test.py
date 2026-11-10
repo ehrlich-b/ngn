@@ -99,6 +99,61 @@ class OptionVerdictTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(output.read_text(), 'preserve on validation failure')
 
+    def test_moved_checkout_accepted_ledgers(self):
+        for prefix in ('/another/checkout', '/another/checkout with spaces'):
+            ledger = self.root / 'remote.jsonl'
+            ledger.write_text((FIX / 'all-accepted.jsonl').read_text().replace('$REPO', prefix))
+            self.assertEqual(set(ov.defaults(ledger)), set(ov.options()))
+            # Relocation changes only argv paths, never recorded provenance.
+            local = mq.rows(self.ledger('all-accepted'))
+            remote = mq.rows(ledger)
+            for original, moved in zip(local, remote):
+                self.assertEqual({k: v for k, v in original.items() if k != 'argv'},
+                                 {k: v for k, v in moved.items() if k != 'argv'})
+
+    def test_moved_checkout_tampering_is_refused(self):
+        ledger = self.root / 'remote.jsonl'
+        ledger.write_text((FIX / 'all-accepted.jsonl').read_text().replace('$REPO', '/another/checkout'))
+        good = mq.rows(ledger)[0]
+        mutations = []
+        for index, value in ((0, 'fake-taskset'), (3, '/another/checkout/build/fake-sprt'),
+                             (5, '/another/checkout/build/fake-ngn'),
+                             (7, '/elsewhere/build/ngn-7c2776ff'),
+                             (9, '20+0.1'), (11, '/elsewhere/openings.txt'),
+                             (13, '40000'), (25, '6')):
+            row = copy.deepcopy(good)
+            row['argv'][index] = value
+            mutations.append(row)
+        for old, new in (('T1104ContPlies=1', 'T1104ContPlies=0'),
+                         ('EvalFile=/another/checkout/engine/nets/ngn-h768-2dcb6d93.nnue',
+                          'EvalFile=/elsewhere/net.nnue'),
+                         ('UseNNUE=true', 'UseNNUE=false')):
+            row = copy.deepcopy(good)
+            row['argv'] = [new if arg == old else arg for arg in row['argv']]
+            mutations.append(row)
+        row = copy.deepcopy(good)
+        row['argv'].extend(['-newoption', 'T1104ContPlies=1'])
+        mutations.append(row)
+        for key in ('job_hash', 'book_hash', 'source_hash', 'net_hash', 'binary_hash', 'harness_hash', 'verdict'):
+            row = copy.deepcopy(good)
+            if key in ('source_hash', 'net_hash'):
+                row[key]['candidate'] = '0' * len(row[key]['candidate'])
+            elif key == 'binary_hash':
+                row[key]['candidate'] = 'invalid hash'
+            else:
+                row[key] = 'ACCEPTED' if key == 'verdict' else ('invalid hash' if key == 'harness_hash' else '0' * 64)
+            mutations.append(row)
+        for index, row in enumerate(mutations):
+            with self.subTest(mutation=index):
+                ledger.write_text(json.dumps(row) + '\n')
+                with self.assertRaises(ValueError):
+                    ov.defaults(ledger)
+        for verdict in ('H0', 'INCONCLUSIVE'):
+            row = copy.deepcopy(good)
+            row['verdict'] = verdict
+            ledger.write_text(json.dumps(row) + '\n')
+            self.assertEqual(ov.defaults(ledger), {})
+
     def test_unrelated_accepted_job_cannot_enable_option(self):
         ledger = self.ledger('empty')
         row = mq.rows(mq.REPO / 'experiments/match-queue/fixtures/ledger.jsonl')[0]

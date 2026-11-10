@@ -45,13 +45,29 @@ production adoption. Tests compile each fixture through a Go overlay and assert
 the advertised enabled set equals exactly the fixture's H1 rows, then run the
 existing short Go suite against each generated default map.
 
+Ledgers can be transferred between checkouts. The consumer infers the recorded
+checkout prefix from the candidate binary's exact recipe path and reconstructs
+the complete command under that prefix, including the default build/sprt
+harness. Base binary, net and book paths must share that prefix; options,
+bounds and flags must still match exactly. Custom harness paths need separate
+review and are refused. Provenance fields retain their original values and
+schema validation; source/net/book hashes must equal the pinned recipe.
+Binary and harness hashes are queue-recorded identities, not signatures: the
+ledger must come from a trusted queue, as an edited ledger cannot authenticate
+itself. No executable or artifact in the recorded checkout is opened or run.
+
 The offline node check compares the explicit original engine checkout to each
 switch after an on/off transition on the three canonical nodecheck positions:
 
 ```
-python3 -m scripts.option_identity --base-repo /path/to/original-engine --output /path/to/evidence
+python3 -m scripts.option_identity --base-carry /path/to/pinned-queue-checkout --base-repo /path/to/original-engine --output /path/to/evidence
 ```
 
 It uses HCE, one thread, 16 MB hash, cold state, depth 12 and no clock or games.
 All 15 switches produce 45 printed comparisons. Node identity is a correctness
 check and makes no claim about playing strength.
+The optional base-carry argument requires the exact 7c2776ff queue checkout and
+creates the original worktree at bc87352d if absent. Existing worktrees must
+belong to that carry and be clean at the exact baseline; mismatches fail without
+changing or deleting files. This makes the comparison replayable from a fresh
+checkout without retaining a previous build directory.

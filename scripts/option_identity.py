@@ -12,6 +12,35 @@ from scripts import match_queue as mq
 from scripts import option_verdict as ov
 
 BASE = 'bc87352d94c58f58eeae42fb39989d003094252d'
+CARRY = '7c2776ffd38c503f636133a015e14eacd3c0ab1b'
+
+
+def prepare_base(base_repo, carry):
+    """Create the original worktree if absent; never repair a dirty/wrong one."""
+    def git(repo, *args):
+        return subprocess.check_output(['git', '-C', str(repo), *args],
+                                       env=mq.clean_env(), text=True).strip()
+
+    base_repo = base_repo.resolve()
+    if carry is not None:
+        carry = carry.resolve()
+        if git(carry, 'rev-parse', 'HEAD') != CARRY:
+            raise ValueError('wrong queue carry')
+        if git(carry, 'status', '--porcelain', '--untracked-files=all'):
+            raise ValueError('queue carry is dirty')
+        subprocess.run(['git', '-C', str(carry), 'merge-base', '--is-ancestor', BASE, CARRY],
+                       env=mq.clean_env(), check=True)
+        if not base_repo.exists():
+            subprocess.run(['git', '-C', str(carry), 'worktree', 'add', '--detach',
+                            str(base_repo), BASE], env=mq.clean_env(), check=True)
+        if git(base_repo, 'rev-parse', '--path-format=absolute', '--git-common-dir') != git(
+                carry, 'rev-parse', '--path-format=absolute', '--git-common-dir'):
+            raise ValueError('original engine must be a worktree of the queue carry')
+    if git(base_repo, 'rev-parse', 'HEAD') != BASE:
+        raise ValueError('wrong original engine baseline')
+    if git(base_repo, 'status', '--porcelain', '--untracked-files=all'):
+        raise ValueError('original engine baseline is dirty')
+    print(f'Clean original engine worktree verified at {BASE}', flush=True)
 
 
 class Engine:
@@ -79,12 +108,11 @@ class Engine:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--base-repo', type=Path, required=True)
+    parser.add_argument('--base-carry', type=Path,
+                        help='clean pinned queue checkout from which to create/verify the original worktree')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
-    if subprocess.check_output(['git', '-C', str(args.base_repo), 'rev-parse', 'HEAD'], text=True).strip() != BASE:
-        raise ValueError('wrong original engine baseline')
-    if subprocess.check_output(['git', '-C', str(args.base_repo), 'status', '--porcelain'], text=True).strip():
-        raise ValueError('original engine baseline is dirty')
+    prepare_base(args.base_repo, args.base_carry)
     output = args.output.resolve()
     if output == mq.REPO or mq.REPO in output.parents:
         raise ValueError('identity evidence must be outside checkout')

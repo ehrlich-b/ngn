@@ -65,14 +65,31 @@ def defaults(ledger, directory=JOBS):
                 ('book_hash', job['book']['sha256'])):
             if row[key] != expected:
                 raise ValueError('ledger provenance mismatch: ' + key)
-        argv = row['argv']
-        if len(argv) < 4 or argv != mq.command(job, mq.REPO, Path(argv[3]), argv[2]):
-            raise ValueError('ledger command does not match recipe')
+        validate_command(job, row['argv'])
         if row['verdict'] == 'H1':
             if row['pairs'] < 1 or row['faults'] or row['games'] < job['min_games']:
                 raise ValueError('acceptance requires fault-free pairs and the recipe minimum games')
             enabled[name] = 1
     return enabled
+
+
+def validate_command(job, argv):
+    # The execution checkout can differ from this checkout. Infer just that
+    # prefix, then reconstruct the ENTIRE command; do not strip arbitrary paths
+    # or normalize options, executable names, bounds, or artifact identities.
+    suffix = '/' + job['candidate']['binary']
+    if len(argv) < 6 or not argv[5].endswith(suffix):
+        raise ValueError('ledger command does not match recipe')
+    prefix = argv[5][:-len(suffix)] or '/'
+    recorded_repo = Path(prefix)
+    if (not recorded_repo.is_absolute() or '..' in recorded_repo.parts or
+            str(recorded_repo) != prefix):
+        raise ValueError('invalid recorded checkout path')
+    # These option recipes use the queue's default harness. Accepting an
+    # arbitrary argv[3] here would also accept an altered executable identity.
+    expected = mq.command(job, recorded_repo, recorded_repo / 'build/sprt', argv[2])
+    if argv != expected:
+        raise ValueError('ledger command does not match recipe')
 
 
 def render(enabled):
