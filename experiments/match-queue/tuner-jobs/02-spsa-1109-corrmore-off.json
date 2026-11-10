@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "id": "spsa-1109-corrmore-off-v-defaults",
+  "base": {
+    "source_hash": "fcfcb048b672109fc718d433a12438bdec1fdfa6",
+    "binary": "build/ngn-fcfcb048",
+    "net": {
+      "path": "engine/nets/ngn-h768-2dcb6d93.nnue",
+      "sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443"
+    },
+    "options": [
+      "Threads=1",
+      "Hash=64",
+      "OwnBook=false"
+    ]
+  },
+  "candidate": {
+    "source_hash": "fcfcb048b672109fc718d433a12438bdec1fdfa6",
+    "binary": "build/ngn-fcfcb048",
+    "net": {
+      "path": "engine/nets/ngn-h768-2dcb6d93.nnue",
+      "sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443"
+    },
+    "options": [
+      "Threads=1",
+      "Hash=64",
+      "OwnBook=false",
+      "AspInit=17",
+      "AspMult=174",
+      "DeltaMargin=289",
+      "ExtensionBudget=31",
+      "FutilityImproving=1",
+      "FutilityMargin=100",
+      "FutilityMaxDepth=8",
+      "HardBankPercent=29",
+      "HardSoftMultiplier=4",
+      "HistoryBonusCap=1987",
+      "HistoryLMRCap=2",
+      "HistoryLMRDivisor=2575",
+      "HistoryPruneDepth=3",
+      "HistoryPruneMoves=3",
+      "HistoryPruneThreshold=1067",
+      "HistoryRateCap=393",
+      "HistoryRateScale=1",
+      "IIDDepth=4",
+      "IIDReduction=2",
+      "IIRDepth=4",
+      "IIRPhase=9",
+      "LMPBase=3",
+      "LMPMaxDepth=9",
+      "LMPNonImprovingDivisor=2",
+      "LMPQuadratic=1",
+      "LMRBase=0",
+      "LMRDivisor=259",
+      "LMRFullDepth=3",
+      "LMRMoveThreshold=2",
+      "MinorCorrectionWeight=3",
+      "NonPawnCorrectionWeight=3",
+      "NullMoveDepthDivisor=569",
+      "NullMoveMinDepth=2",
+      "NullMoveOffset=1",
+      "NullMoveR=4",
+      "PawnCorrectionWeight=3",
+      "RFPImproving=1",
+      "RFPMaxDepth=6",
+      "ReverseFutilityMargin=62",
+      "SEECaptureDepth=4",
+      "SEECaptureThreshold=108",
+      "SEEQuietDepth=4",
+      "SEEQuietSlope=80",
+      "SingularDepth=8",
+      "SingularMargin=65",
+      "SingularMarginDivisor=34",
+      "SingularTTDepthOffset=3",
+      "SoftIncrementPercent=84",
+      "T1104CorrMore=0",
+      "T1104LMRCaptures=0"
+    ]
+  },
+  "bounds": {
+    "elo0": 0,
+    "elo1": 6,
+    "alpha": 0.05,
+    "beta": 0.05
+  },
+  "time_control": "10+0.1",
+  "book": {
+    "path": "experiments/2026-10-12-session74-results/panel/future-openings.txt",
+    "sha256": "f2fed55a1645dba85a9ef3e047eb5183b5b6342878c6dc8483e6768973470acc"
+  },
+  "min_games": 400,
+  "max_games": 10000,
+  "concurrency": 2
+}

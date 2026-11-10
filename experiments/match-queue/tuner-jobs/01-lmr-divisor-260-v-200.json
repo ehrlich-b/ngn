@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "id": "lmr-divisor-260-v-200",
+  "base": {
+    "source_hash": "fcfcb048b672109fc718d433a12438bdec1fdfa6",
+    "binary": "build/ngn-fcfcb048",
+    "net": {
+      "path": "engine/nets/ngn-h768-2dcb6d93.nnue",
+      "sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443"
+    },
+    "options": [
+      "Threads=1",
+      "Hash=64",
+      "OwnBook=false",
+      "LMRDivisor=200"
+    ]
+  },
+  "candidate": {
+    "source_hash": "fcfcb048b672109fc718d433a12438bdec1fdfa6",
+    "binary": "build/ngn-fcfcb048",
+    "net": {
+      "path": "engine/nets/ngn-h768-2dcb6d93.nnue",
+      "sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443"
+    },
+    "options": [
+      "Threads=1",
+      "Hash=64",
+      "OwnBook=false",
+      "LMRDivisor=260"
+    ]
+  },
+  "bounds": {
+    "elo0": 0,
+    "elo1": 6,
+    "alpha": 0.05,
+    "beta": 0.05
+  },
+  "time_control": "10+0.1",
+  "book": {
+    "path": "experiments/2026-10-12-session74-results/panel/future-openings.txt",
+    "sha256": "f2fed55a1645dba85a9ef3e047eb5183b5b6342878c6dc8483e6768973470acc"
+  },
+  "min_games": 400,
+  "max_games": 10000,
+  "concurrency": 2
+}
