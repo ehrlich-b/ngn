@@ -44,6 +44,13 @@ func TestSPSACandidateOptions(t *testing.T) {
 			t.Fatalf("invalid value for %s", name)
 		}
 		seen[name] = true
+		// Preserve the archived checkpoint/commands in their original units.
+		// Applying its rounded vector to today's engine needs hundredths for
+		// these options; the new queue recipe separately rounds the float theta.
+		switch name {
+		case "LMRBase", "LMRDivisor", "NullMoveDepthDivisor":
+			value *= 100
+		}
 		var param *TunableParam
 		for i := range TunableSearchParams {
 			if strings.EqualFold(TunableSearchParams[i].Name, name) {
