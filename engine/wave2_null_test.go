@@ -80,7 +80,7 @@ func TestWave2NullVerifyContract(t *testing.T) {
 			info.nullSearch = func(pos *Position, d, ply, a, b int, pv, canNull, cut bool, s *SearchInfo) int {
 				calls++
 				if calls == 1 {
-					wantDepth := tc.depth - (NULL_MOVE_R + tuneNullMoveOffset + tc.depth/tuneNullMoveDepthDivisor)
+					wantDepth := tc.depth - (NULL_MOVE_R + tuneNullMoveOffset + tc.depth*100/tuneNullMoveDepthDivisor)
 					if wantDepth < 0 {
 						wantDepth = 0
 					}

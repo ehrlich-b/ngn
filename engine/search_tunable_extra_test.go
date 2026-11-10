@@ -12,7 +12,7 @@ func TestExtraSearchTunables(t *testing.T) {
 		}
 	}
 	old := lmrTable[20][20]
-	if !setTunableParam("LMRBase", "1") || lmrTable[20][20] != old+1 {
+	if !setTunableParam("LMRBase", "100") || lmrTable[20][20] != old+1 {
 		t.Fatal("LMR option did not rebuild table")
 	}
 	setTunableParam("LMRBase", "0")

@@ -61,7 +61,7 @@ func TestWave2NullMarginReduction(t *testing.T) {
 				if options == [2]int{1, 1} {
 					extra = tc.extra
 				}
-				wantDepth := max(0, tc.depth-(NULL_MOVE_R+tuneNullMoveOffset+tc.depth/tuneNullMoveDepthDivisor)-extra)
+				wantDepth := max(0, tc.depth-(NULL_MOVE_R+tuneNullMoveOffset+tc.depth*100/tuneNullMoveDepthDivisor)-extra)
 				calls := 0
 				info.nullSearch = func(pos *Position, d, ply, a, b int, pv, canNull, cut bool, s *SearchInfo) int {
 					calls++

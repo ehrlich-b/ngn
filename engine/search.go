@@ -47,8 +47,8 @@ var (
 )
 
 var (
-	tuneLMRBase                 = 0
-	tuneLMRDivisor              = 2
+	tuneLMRBase                 = 0   // Hundredths of a ply
+	tuneLMRDivisor              = 200 // Hundredths
 	tuneHistoryLMRDivisor       = 2500
 	tuneHistoryLMRCap           = 2
 	tuneRFPMaxDepth             = 7
@@ -64,7 +64,7 @@ var (
 	tuneHistoryPruneDepth       = 3
 	tuneHistoryPruneThreshold   = 1000
 	tuneHistoryPruneMoves       = 3
-	tuneNullMoveDepthDivisor    = 6
+	tuneNullMoveDepthDivisor    = 600 // Hundredths
 	tuneNullMoveOffset          = 1
 	tuneIIRDepth                = 4
 	tuneIIRPhase                = 8
@@ -133,8 +133,8 @@ var TunableSearchParams = []TunableParam{
 	{"AspInit", &ASP_INIT, 18, 4, 40},
 	{"AspMult", &ASP_MULT, 171, 110, 250},
 	{"LMPBase", &LMP_BASE, 3, 2, 16},
-	{"LMRBase", &tuneLMRBase, 0, 0, 3},
-	{"LMRDivisor", &tuneLMRDivisor, 2, 1, 6},
+	{"LMRBase", &tuneLMRBase, 0, 0, 300},
+	{"LMRDivisor", &tuneLMRDivisor, 200, 100, 600},
 	{"HistoryLMRDivisor", &tuneHistoryLMRDivisor, 2500, 500, 6000},
 	{"HistoryLMRCap", &tuneHistoryLMRCap, 2, 1, 5},
 	{"RFPMaxDepth", &tuneRFPMaxDepth, 7, 1, 12},
@@ -150,7 +150,7 @@ var TunableSearchParams = []TunableParam{
 	{"HistoryPruneDepth", &tuneHistoryPruneDepth, 3, 1, 8},
 	{"HistoryPruneThreshold", &tuneHistoryPruneThreshold, 1000, 100, 4000},
 	{"HistoryPruneMoves", &tuneHistoryPruneMoves, 3, 0, 10},
-	{"NullMoveDepthDivisor", &tuneNullMoveDepthDivisor, 6, 1, 12},
+	{"NullMoveDepthDivisor", &tuneNullMoveDepthDivisor, 600, 100, 1200},
 	{"NullMoveOffset", &tuneNullMoveOffset, 1, 0, 4},
 	{"IIRDepth", &tuneIIRDepth, 4, 2, 10},
 	{"IIRPhase", &tuneIIRPhase, 8, 0, 24},
@@ -261,7 +261,7 @@ func init() { rebuildLMRTable() }
 func rebuildLMRTable() {
 	for d := 1; d < 64; d++ {
 		for m := 1; m < 64; m++ {
-			base := float64(tuneLMRBase) + math.Log(float64(d))*math.Log(float64(m))/float64(tuneLMRDivisor)
+			base := float64(tuneLMRBase)/100 + math.Log(float64(d))*math.Log(float64(m))/(float64(tuneLMRDivisor)/100)
 			lmrTable[d][m] = int(base)
 			lmrFractionalTable[d][m] = int(base * lmrPly)
 		}
@@ -1978,7 +1978,7 @@ func alphaBetaPV(pos *Position, depth int, ply int, alpha int, beta int, isPV bo
 		// reduction depth-NULL_MOVE_R-1 = -1 trips the negative-depth guard and
 		// verifies the null move with a raw static eval (tactically blind) instead
 		// of quiescence; flooring routes it through qsearch like the depth>=4 path.
-		nullDepth := depth - (NULL_MOVE_R + tuneNullMoveOffset + depth/tuneNullMoveDepthDivisor) // NMP reduction: tunable base NULL_MOVE_R (def 3 => R+1=4) + depth-scaling; CG/Ethereal/Weiss converge
+		nullDepth := depth - (NULL_MOVE_R + tuneNullMoveOffset + depth*100/tuneNullMoveDepthDivisor) // NMP reduction: tunable base NULL_MOVE_R (def 3 => R+1=4) + depth-scaling; CG/Ethereal/Weiss converge
 		nullDepth -= wave2NullMargin(corrStaticEval, beta)
 		if nullDepth < 0 {
 			nullDepth = 0

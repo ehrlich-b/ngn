@@ -4,8 +4,8 @@ These ranges are exploratory; defaults remain the shipped values. Perturbation a
 
 | Parameter | Default | Min | Max | End perturbation |
 |---|---:|---:|---:|---:|
-| LMRBase | 0 | 0 | 3 | 0.5 |
-| LMRDivisor | 2 | 1 | 6 | 0.5 |
+| LMRBase | 0 | 0 | 300 | 15 |
+| LMRDivisor | 200 | 100 | 600 | 25 |
 | HistoryLMRDivisor | 2500 | 500 | 6000 | 275 |
 | HistoryLMRCap | 2 | 1 | 5 | 0.5 |
 | RFPMaxDepth | 7 | 1 | 12 | 0.55 |
@@ -21,7 +21,7 @@ These ranges are exploratory; defaults remain the shipped values. Perturbation a
 | HistoryPruneDepth | 3 | 1 | 8 | 0.5 |
 | HistoryPruneThreshold | 1000 | 100 | 4000 | 195 |
 | HistoryPruneMoves | 3 | 0 | 10 | 0.5 |
-| NullMoveDepthDivisor | 6 | 1 | 12 | 0.55 |
+| NullMoveDepthDivisor | 600 | 100 | 1200 | 55 |
 | NullMoveOffset | 1 | 0 | 4 | 0.5 |
 | IIRDepth | 4 | 2 | 10 | 0.5 |
 | IIRPhase | 8 | 0 | 24 | 1.2 |
@@ -53,4 +53,12 @@ These ranges are exploratory; defaults remain the shipped values. Perturbation a
 | AspMult | 171 | 110 | 250 | 7 |
 | LMPBase | 3 | 2 | 16 | 0.7 |
 
-LMRBase is added in plies; LMRDivisor divides the logarithmic product. Time percentages are in hundredths. Capture SEE has a fixed threshold and null-move pruning has no evaluation reduction term in this version.
+LMRBase, LMRDivisor and NullMoveDepthDivisor use hundredths: LMRBase=100 adds one ply, LMRDivisor=260 divides the logarithmic product by 2.60, and NullMoveDepthDivisor=600 gives floor(depth / 6.00). Defaults preserve the original search arithmetic. Time percentages are in hundredths. Capture SEE has a fixed threshold and null-move pruning has no evaluation reduction term in this version.
+
+SPSA rejects any selected range with fewer than 20 unit steps (`max - min < 20`), including 0/1 flags. Use `-params LMRBase,LMRDivisor,NullMoveDepthDivisor` to choose a continuous subset; omitting `-params` requests the entire registry and fails while it contains discrete ranges. Fixed `-engineoption` settings are not tuned; compare discrete choices with separate A/B jobs. For a synthetic check without games:
+
+```
+go run ./cmd/spsa -params LMRBase,LMRDivisor,NullMoveDepthDivisor -selftest
+```
+
+Old checkpoints bind their original units, parameter set and executable hashes. They cannot resume with this tuner. When preparing a new recipe from an old theta, multiply these three theta values by 100 before rounding; never reinterpret an old rounded divisor of 3 as the original fractional theta.

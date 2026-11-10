@@ -16,11 +16,12 @@
 // update math instantly with -selftest (synthetic quadratic objective, no games)
 // before committing days of compute.
 //
-//	./build/spsa -selftest                       # math check, seconds, no games
-//	./build/spsa -iters 20 -tc 10+0.1            # wiring sanity, ~20 min
-//	./build/spsa -iters 12000 -tc 10+0.1         # campaign (multi-day bg)
-//	./build/spsa -iters 3000 -pairs 4 -tc 5+0.05 # parallel campaign (K=4 pairs/iter, ~4x faster)
-//	./build/spsa -resume                         # continue a campaign from -out
+//	PARAMS=LMRBase,LMRDivisor,NullMoveDepthDivisor
+//	./build/spsa -params $PARAMS -selftest             # synthetic math check, no games
+//	./build/spsa -params $PARAMS -iters 20 -tc 10+0.1  # wiring sanity
+//	./build/spsa -params $PARAMS -iters 12000          # full campaign
+//	./build/spsa -params $PARAMS -resume               # resume the same recipe
+
 package main
 
 import (
@@ -79,6 +80,7 @@ func run() error {
 	seed := flag.Int64("seed", 1, "RNG seed (perturbation signs + opening selection)")
 	lowPower := flag.Bool("lowpower", true, "route engines to macOS E-cores (taskpolicy -b)")
 	selftest := flag.Bool("selftest", false, "validate the SPSA math against a synthetic quadratic objective (no games), then exit")
+	paramNames := flag.String("params", "", "comma-separated search parameters to tune; each must have at least 20 steps (empty selects all)")
 	flag.Parse()
 
 	if *iters < 1 || *pairs < 1 || *report < 1 || !finite(*rEnd) || *rEnd <= 0 || !finite(*aFrac) || *aFrac < 0 {
@@ -94,17 +96,9 @@ func run() error {
 	rng, source := newCampaignRNG(*seed)
 
 	// Build the parameter vector from the engine registry (single source of truth).
-	params := make([]*pvar, 0, len(engine.TunableSearchParams))
-	for _, tp := range engine.TunableSearchParams {
-		params = append(params, &pvar{
-			name:  tp.Name,
-			theta: float64(tp.Def),
-			min:   float64(tp.Min),
-			max:   float64(tp.Max),
-		})
-	}
-	if len(params) == 0 {
-		return fmt.Errorf("no tunable params in engine.TunableSearchParams")
+	params, err := tuningParams(engine.TunableSearchParams, *paramNames)
+	if err != nil {
+		return err
 	}
 
 	// Precompute the fishtest schedule: c_k = cEnd*(iters/k)^gamma shrinks to cEnd

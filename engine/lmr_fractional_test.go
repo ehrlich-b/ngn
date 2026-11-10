@@ -68,7 +68,7 @@ func TestLMRFractionalCombinedHistory(t *testing.T) {
 func TestLMRFractionalBoundsAndTunables(t *testing.T) {
 	old := lmrFractionalTable[20][20]
 	defer func() { setTunableParam("LMRBase", "0") }()
-	if !setTunableParam("LMRBase", "1") || lmrFractionalTable[20][20] != old+lmrPly {
+	if !setTunableParam("LMRBase", "100") || lmrFractionalTable[20][20] != old+lmrPly {
 		t.Fatal("fractional table did not rebuild with the base option")
 	}
 	setTunableParam("LMRBase", "0")
