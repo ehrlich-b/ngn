@@ -7,6 +7,7 @@ import re
 import subprocess
 import tempfile
 import unittest
+from unittest import mock
 
 from scripts import match_queue as mq
 from scripts import option_verdict as ov
@@ -43,9 +44,9 @@ class OptionVerdictTests(unittest.TestCase):
                 expected = {ov.recipes()[r['job_id']][1] for r in mq.rows(ledger) if r['verdict'] == 'H1'}
                 generated = self.root / 'accepted.go'
                 subprocess.run([os.sys.executable, '-m', 'scripts.option_verdict',
-                                '--ledger', str(ledger), '--output', str(generated)],
+                                '--ledger', str(ledger), '--artifacts', str(FIX / 'artifacts.json'), '--output', str(generated)],
                                cwd=mq.REPO, env=mq.clean_env(), check=True)
-                self.assertEqual(set(ov.defaults(ledger)), expected)
+                self.assertEqual(set(ov.defaults(ledger, artifacts=FIX / 'artifacts.json')), expected)
                 overlay = self.root / 'overlay.json'
                 overlay.write_text(json.dumps({'Replace': {
                     str(mq.REPO / 'engine/accepted_option_defaults.go'): str(generated)}}))
@@ -84,17 +85,17 @@ class OptionVerdictTests(unittest.TestCase):
             ledger = self.root / 'bad.jsonl'
             ledger.write_text(json.dumps(row) + '\n')
             with self.assertRaises(ValueError):
-                ov.defaults(ledger)
+                ov.defaults(ledger, artifacts=FIX / 'artifacts.json')
         ledger.write_text(json.dumps(good))
         with self.assertRaises(ValueError):
-            ov.defaults(ledger)
+            ov.defaults(ledger, artifacts=FIX / 'artifacts.json')
         ledger.write_text((json.dumps(good) + '\n') * 2)
         with self.assertRaises(ValueError):
-            ov.defaults(ledger)
+            ov.defaults(ledger, artifacts=FIX / 'artifacts.json')
         output = self.root / 'defaults.go'
         output.write_text('preserve on validation failure')
         result = subprocess.run([os.sys.executable, '-m', 'scripts.option_verdict',
-                                 '--ledger', str(ledger), '--output', str(output)],
+                                 '--ledger', str(ledger), '--artifacts', str(FIX / 'artifacts.json'), '--output', str(output)],
                                 env=mq.clean_env(), capture_output=True)
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(output.read_text(), 'preserve on validation failure')
@@ -103,7 +104,7 @@ class OptionVerdictTests(unittest.TestCase):
         for prefix in ('/another/checkout', '/another/checkout with spaces'):
             ledger = self.root / 'remote.jsonl'
             ledger.write_text((FIX / 'all-accepted.jsonl').read_text().replace('$REPO', prefix))
-            self.assertEqual(set(ov.defaults(ledger)), set(ov.options()))
+            self.assertEqual(set(ov.defaults(ledger, artifacts=FIX / 'artifacts.json')), set(ov.options()))
             # Relocation changes only argv paths, never recorded provenance.
             local = mq.rows(self.ledger('all-accepted'))
             remote = mq.rows(ledger)
@@ -139,27 +140,82 @@ class OptionVerdictTests(unittest.TestCase):
             if key in ('source_hash', 'net_hash'):
                 row[key]['candidate'] = '0' * len(row[key]['candidate'])
             elif key == 'binary_hash':
-                row[key]['candidate'] = 'invalid hash'
+                row[key]['candidate'] = 'a' * 64
             else:
-                row[key] = 'ACCEPTED' if key == 'verdict' else ('invalid hash' if key == 'harness_hash' else '0' * 64)
+                row[key] = 'ACCEPTED' if key == 'verdict' else '0' * 64
             mutations.append(row)
         for index, row in enumerate(mutations):
             with self.subTest(mutation=index):
                 ledger.write_text(json.dumps(row) + '\n')
                 with self.assertRaises(ValueError):
-                    ov.defaults(ledger)
+                    ov.defaults(ledger, artifacts=FIX / 'artifacts.json')
         for verdict in ('H0', 'INCONCLUSIVE'):
             row = copy.deepcopy(good)
             row['verdict'] = verdict
             ledger.write_text(json.dumps(row) + '\n')
-            self.assertEqual(ov.defaults(ledger), {})
+            self.assertEqual(ov.defaults(ledger, artifacts=FIX / 'artifacts.json'), {})
 
     def test_unrelated_accepted_job_cannot_enable_option(self):
         ledger = self.ledger('empty')
         row = mq.rows(mq.REPO / 'experiments/match-queue/fixtures/ledger.jsonl')[0]
         row['verdict'] = 'H1'
         ledger.write_text(json.dumps(row) + '\n')
-        self.assertEqual(ov.defaults(ledger), {})
+        self.assertEqual(ov.defaults(ledger, artifacts=FIX / 'artifacts.json'), {})
+
+    def test_valid_digest_tampering_preserves_output(self):
+        ledger = self.ledger('all-accepted')
+        good = mq.rows(ledger)[0]
+        output = self.root / 'defaults.go'
+        output.write_text('preserve on validation failure')
+        for target in ('base', 'candidate', 'both', 'harness', 'both-and-harness'):
+            with self.subTest(target=target):
+                row = copy.deepcopy(good)
+                if target in ('both', 'both-and-harness'):
+                    row['binary_hash'] = dict(base='a' * 64, candidate='a' * 64)
+                elif target in ('base', 'candidate'):
+                    row['binary_hash'][target] = 'a' * 64
+                if target in ('harness', 'both-and-harness'):
+                    row['harness_hash'] = 'b' * 64
+                ledger.write_text(json.dumps(row) + '\n')
+                # Each altered row still passes the queue's schema validation.
+                mq.rows(ledger)
+                with self.assertRaisesRegex(ValueError, 'ledger provenance mismatch'):
+                    ov.defaults(ledger, artifacts=FIX / 'artifacts.json')
+                result = subprocess.run([os.sys.executable, '-m', 'scripts.option_verdict',
+                                         '--ledger', str(ledger), '--artifacts', str(FIX / 'artifacts.json'),
+                                         '--output', str(output)],
+                                        env=mq.clean_env(), capture_output=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(output.read_text(), 'preserve on validation failure')
+
+    def test_local_artifacts_supply_independent_hashes(self):
+        jobs = ov.recipes()
+        good = mq.rows(self.ledger('all-accepted'))[0]
+        build = self.root / 'build'
+        build.mkdir()
+        binary = build / 'ngn-7c2776ff'
+        harness = build / 'sprt'
+        binary.write_bytes(b'synthetic engine')
+        harness.write_bytes(b'synthetic harness')
+        good['binary_hash'] = {r: mq.sha(binary) for r in ('base', 'candidate')}
+        good['harness_hash'] = mq.sha(harness)
+        ledger = self.root / 'local.jsonl'
+        ledger.write_text(json.dumps(good) + '\n')
+        schema = self.root / 'experiments/ledger.schema.json'
+        schema.parent.mkdir()
+        schema.write_bytes((mq.REPO / 'experiments/ledger.schema.json').read_bytes())
+        with mock.patch.object(mq, 'REPO', self.root), mock.patch.object(ov, 'recipes', return_value=jobs):
+            self.assertEqual(ov.defaults(ledger), {'T1104ContPlies': 1})
+            binary.write_bytes(b'changed engine')
+            with self.assertRaisesRegex(ValueError, 'binary_hash'):
+                ov.defaults(ledger)
+            binary.write_bytes(b'synthetic engine')
+            harness.write_bytes(b'changed harness')
+            with self.assertRaisesRegex(ValueError, 'harness_hash'):
+                ov.defaults(ledger)
+            harness.unlink()
+            with self.assertRaises(FileNotFoundError):
+                ov.defaults(ledger)
 
     def test_production_ledger_keeps_shipped_defaults_off(self):
         self.assertEqual(ov.defaults(mq.REPO / 'experiments/ledger.jsonl'), {})

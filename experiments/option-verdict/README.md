@@ -27,7 +27,7 @@ python3 -m unittest scripts.option_verdict_test -v
 
 The consumer reads only schema-valid terminal ledger rows and pinned recipes.
 Only H1, with at least one complete pair, no faults and matching recipe hash,
-source/net/book provenance and command, authorizes a default of 1. Other queue
+source/binary/net/book/harness provenance and command, authorizes a default of 1. Other queue
 families are ignored. Malformed, duplicate, truncated or mismatched rows fail
 before output is touched. Generate a proposed source file explicitly:
 
@@ -51,10 +51,28 @@ the complete command under that prefix, including the default build/sprt
 harness. Base binary, net and book paths must share that prefix; options,
 bounds and flags must still match exactly. Custom harness paths need separate
 review and are refused. Provenance fields retain their original values and
-schema validation; source/net/book hashes must equal the pinned recipe.
-Binary and harness hashes are queue-recorded identities, not signatures: the
-ledger must come from a trusted queue, as an edited ledger cannot authenticate
-itself. No executable or artifact in the recorded checkout is opened or run.
+schema validation; source/net/book hashes must equal the pinned recipe. Binary
+and harness hashes must match independently trusted artifact identities. By
+default the consumer hashes this checkout's recipe binaries and build/sprt;
+missing artifacts fail closed. Both recipe roles use the same binary path, so
+both recorded digests must match the same expected digest.
+
+When artifacts are unavailable locally, supply --artifacts /trusted/artifacts.json
+with this format (replace the example digests with actual SHA-256 values):
+
+```json
+{"version": 1, "binary_hash": {"build/ngn-7c2776ff": "<engine SHA-256>"}, "harness_hash": "<sprt SHA-256>"}
+```
+
+Obtain this manifest independently from trusted build artifacts, never by copying
+hashes out of the ledger being checked. It is an explicit trust input and must
+travel separately from an untrusted ledger. The synthetic artifacts.json beside
+the test ledgers is exclusively a fixture and must never authorize production
+adoption. Equal forged base/candidate hashes and changed harness hashes are
+refused against either independent source. These checks are not signatures; the
+ledger still needs trusted queue custody to authenticate its reported verdict.
+No executable or artifact in the recorded checkout is opened or run, and no
+binary is executed to compute its digest.
 
 The offline node check compares the explicit original engine checkout to each
 switch after an on/off transition on the three canonical nodecheck positions:

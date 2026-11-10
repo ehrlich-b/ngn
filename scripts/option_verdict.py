@@ -50,7 +50,29 @@ def recipes(directory=JOBS):
     return jobs
 
 
-def defaults(ledger, directory=JOBS):
+def artifact_hashes(job, artifacts):
+    """Use local artifacts or an independently trusted manifest, never the row."""
+    if artifacts is None:
+        return ({r: mq.sha(mq.REPO / job[r]['binary']) for r in ('base', 'candidate')},
+                mq.sha(mq.REPO / 'build/sprt'))
+    manifest = mq.read(artifacts)
+    digest = {'type': 'string', 'pattern': '^[0-9a-f]{64}$'}
+    binaries = {job[r]['binary']: digest for r in ('base', 'candidate')}
+    mq.validate(manifest, {
+        'type': 'object', 'additionalProperties': False,
+        'required': ['version', 'binary_hash', 'harness_hash'],
+        'properties': {
+            'version': {'type': 'integer', 'const': 1},
+            'binary_hash': {'type': 'object', 'required': list(binaries),
+                            'properties': binaries, 'additionalProperties': False},
+            'harness_hash': digest,
+        },
+    })
+    return ({r: manifest['binary_hash'][job[r]['binary']] for r in ('base', 'candidate')},
+            manifest['harness_hash'])
+
+
+def defaults(ledger, directory=JOBS, artifacts=None):
     jobs = recipes(directory)
     enabled = {}
     for row in mq.rows(ledger):
@@ -59,8 +81,13 @@ def defaults(ledger, directory=JOBS):
         job, name = jobs[row['job_id']]
         if row['job_hash'] != mq.identity(job):
             raise ValueError('ledger job hash does not match recipe')
+        # Both sides of these recipes name the same executable. Checking each
+        # role against one independent identity also rejects equal forged hashes.
+        binary_hash, harness_hash = artifact_hashes(job, artifacts)
         for key, expected in (
                 ('source_hash', {r: job[r]['source_hash'] for r in ('base', 'candidate')}),
+                ('binary_hash', binary_hash),
+                ('harness_hash', harness_hash),
                 ('net_hash', {r: job[r]['net']['sha256'] for r in ('base', 'candidate')}),
                 ('book_hash', job['book']['sha256'])):
             if row[key] != expected:
@@ -106,11 +133,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--ledger', type=Path, required=True)
     parser.add_argument('--jobs', type=Path, default=JOBS)
+    parser.add_argument('--artifacts', type=Path,
+                        help='independently trusted binary/harness digest manifest; '
+                             'otherwise hash local recipe binaries and build/sprt')
     parser.add_argument('--output', type=Path, required=True,
                         help='Go source output; adoption requires explicit source update and rebuild')
     args = parser.parse_args()
     # Validate everything before touching the output. No games or services run.
-    result = render(defaults(args.ledger, args.jobs))
+    result = render(defaults(args.ledger, args.jobs, args.artifacts))
     args.output.write_text(result)
 
 
