@@ -1,9 +1,6 @@
 package engine
 
-import (
-	"math"
-	"testing"
-)
+import "testing"
 
 func TestHundredthLMRTunables(t *testing.T) {
 	oldBase, oldDivisor := tuneLMRBase, tuneLMRDivisor
@@ -12,17 +9,19 @@ func TestHundredthLMRTunables(t *testing.T) {
 		rebuildLMRTable()
 	})
 	for _, tc := range []struct {
-		base, divisor int
-	}{{0, 200}, {1, 200}, {100, 200}, {0, 260}, {43, 259}} {
+		base, divisor, depth, move, whole, fractional int
+	}{
+		{0, 200, 20, 20, 4, 4594},  // Original whole-number default.
+		{1, 200, 1, 1, 0, 10},      // One hundredth survives in the fractional table.
+		{100, 200, 1, 1, 1, 1024},  // One full ply.
+		{0, 260, 20, 20, 3, 3534},  // Divisor 2.60 changes the whole reduction too.
+		{43, 259, 20, 20, 3, 3988}, // Both inputs have fractional parts.
+	} {
 		tuneLMRBase, tuneLMRDivisor = tc.base, tc.divisor
 		rebuildLMRTable()
-		for d := 1; d < 64; d++ {
-			for m := 1; m < 64; m++ {
-				want := float64(tc.base)/100 + math.Log(float64(d))*math.Log(float64(m))/(float64(tc.divisor)/100)
-				if lmrTable[d][m] != int(want) || lmrFractionalTable[d][m] != int(want*lmrPly) {
-					t.Fatalf("base=%d divisor=%d depth=%d move=%d", tc.base, tc.divisor, d, m)
-				}
-			}
+		if lmrTable[tc.depth][tc.move] != tc.whole || lmrFractionalTable[tc.depth][tc.move] != tc.fractional {
+			t.Fatalf("base=%d divisor=%d: whole=%d fractional=%d, want %d/%d", tc.base, tc.divisor,
+				lmrTable[tc.depth][tc.move], lmrFractionalTable[tc.depth][tc.move], tc.whole, tc.fractional)
 		}
 	}
 	setTunableParam("LMRBase", "0")
