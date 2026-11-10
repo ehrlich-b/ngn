@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "id": "option-w2qchecks-10-01-v1",
+  "base": {
+    "source_hash": "7c2776ffd38c503f636133a015e14eacd3c0ab1b",
+    "binary": "build/ngn-7c2776ff",
+    "net": {
+      "path": "engine/nets/ngn-h768-2dcb6d93.nnue",
+      "sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443"
+    },
+    "options": [
+      "Threads=1",
+      "Hash=64",
+      "OwnBook=false",
+      "T1104ContPlies=0",
+      "W2QCapture=0",
+      "T1104Cuckoo=0",
+      "T1104CorrMore=0",
+      "W2NullVerify=0",
+      "W2NullMargin=0",
+      "W2CorrMargin=0",
+      "W2QChecks=0",
+      "T1104LowPly=0",
+      "T1104PriorBonus=0",
+      "T1104LMRDeeper=0",
+      "T1104LMRCaptures=0",
+      "T1104LMRFractional=0",
+      "T1104SingularDouble=0",
+      "W2ScoreTime=0"
+    ]
+  },
+  "candidate": {
+    "source_hash": "7c2776ffd38c503f636133a015e14eacd3c0ab1b",
+    "binary": "build/ngn-7c2776ff",
+    "net": {
+      "path": "engine/nets/ngn-h768-2dcb6d93.nnue",
+      "sha256": "2dcb6d936c0275927cb9e881f42e22558e618ad7e6fd998df6c4e5046d42c443"
+    },
+    "options": [
+      "Threads=1",
+      "Hash=64",
+      "OwnBook=false",
+      "T1104ContPlies=0",
+      "W2QCapture=0",
+      "T1104Cuckoo=0",
+      "T1104CorrMore=0",
+      "W2NullVerify=0",
+      "W2NullMargin=0",
+      "W2CorrMargin=0",
+      "W2QChecks=1",
+      "T1104LowPly=0",
+      "T1104PriorBonus=0",
+      "T1104LMRDeeper=0",
+      "T1104LMRCaptures=0",
+      "T1104LMRFractional=0",
+      "T1104SingularDouble=0",
+      "W2ScoreTime=0"
+    ]
+  },
+  "bounds": {
+    "elo0": 0,
+    "elo1": 5,
+    "alpha": 0.05,
+    "beta": 0.05
+  },
+  "time_control": "10+0.1",
+  "book": {
+    "path": "experiments/2026-10-12-session74-results/panel/future-openings.txt",
+    "sha256": "f2fed55a1645dba85a9ef3e047eb5183b5b6342878c6dc8483e6768973470acc"
+  },
+  "min_games": 200,
+  "max_games": 20000,
+  "concurrency": 2
+}
