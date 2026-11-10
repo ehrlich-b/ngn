@@ -125,8 +125,17 @@ def strength(ledger, output):
     Path(output).write_text('\n'.join(lines) + '\n')
 
 
+def decimal_text(text, field):
+    fraction = re.split('[eE]', text.partition('.')[2], maxsplit=1)[0]
+    if len(fraction) > 12:
+        raise ValueError(f'{field}: decimal must have at most 12 digits after the point')
+    return text
+
+
 def load_job(path, repo):
-    job = read(path)
+    # Check JSON number text before float conversion discards fractional digits.
+    job = json.loads(Path(path).read_text(), parse_float=lambda text:
+                     float(decimal_text(text, 'numeric field')))
     # Compare decimal text exactly before float64 -> milliseconds in cmd/sprt.
     # These supported limits also bound its 400-ply watchdog intermediates on
     # signed 32-bit hosts, and the UCI clock bank and timeout on all hosts.
@@ -135,6 +144,8 @@ def load_job(path, repo):
         raise ValueError('time_control: expected decimal SECONDS or SECONDS+INC; '
                          'base [0.001,86400], increment [0,3600], no whitespace')
     base, _, increment = tc.partition('+')
+    decimal_text(base, 'time_control base')
+    decimal_text(increment, 'time_control increment')
     if not Decimal('0.001') <= Decimal(base) <= Decimal('86400'):
         raise ValueError('time_control base must be at least 1 millisecond '
                          '(0.001 seconds) and at most 86400 seconds')

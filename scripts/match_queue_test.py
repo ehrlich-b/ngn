@@ -22,8 +22,8 @@ RUNNER = mq.REPO / 'scripts/match_queue.py'
 
 ACCEPTED_CLOCKS = ('0.001', '0.001+0.1', '0.0019+0', '1+0.0001',
                    '60+0.6', '86400', '86400+3600', '0.001+3600',
-                   '0.00100000000000000000001', '86399.999999999999',
-                   '1+0', '1+0.000000000000001', '1+3599.999999999999')
+                   '0.001000000000', '86399.999999999999',
+                   '1+0', '1+0.000000000001', '1+3599.999999999999')
 REJECTED_CLOCKS = ('0', '0.0001+0.1', '0.000999999+0', '0.0001',
                    '0.00099999999999999999999', '9223372036854776+0',
                    '2000000000+0', '1+2000000000', '86400.000000000001',
@@ -31,7 +31,9 @@ REJECTED_CLOCKS = ('0', '0.0001+0.1', '0.000999999+0', '0.0001',
                    'NaN', 'Inf', 'NaN+0', 'Inf+0', '1+NaN', '1+Inf',
                    '-1', '-0.001', '1+-0.000000000000001', '1+-1',
                    '1\n', '1+0\n', 'oops', '1e3', '1+', '+1', ' 1',
-                   '9' * 400 + '+0', '1+' + '9' * 400)
+                   '9' * 400 + '+0', '1+' + '9' * 400,
+                   '0.00100000000000000000001', '1+0.000000000000001',
+                   '1.' + '0' * 400, '1+0.' + '0' * 400)
 
 
 def proof_directory(test):
@@ -310,6 +312,49 @@ class RecipeTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'time_control'):
                     mq.load_job(path, mq.REPO)
         print('Old native-int overflow and upper-neighbor witnesses rejected by supported decimal ranges.')
+
+    def test_decimal_digit_cap(self):
+        root = proof_directory(self)
+        job = mq.read(FIX / '01-first.json')
+        path = root / 'job.json'
+        for digits in (13, 400):
+            for tc, field in [('1.' + '0' * digits, 'base'),
+                              ('1+0.' + '0' * digits, 'increment')]:
+                with self.subTest(digits=digits, field=field):
+                    job['time_control'] = tc
+                    path.write_text(json.dumps(job))
+                    with self.assertRaisesRegex(ValueError, f'time_control {field}:.*12 digits'):
+                        mq.load_job(path, mq.REPO)
+        job['time_control'] = '10+0.1'
+        # Write raw JSON numbers: json.dumps(float(...)) would erase the witness.
+        for field, value in [('elo0', '-3'), ('elo1', '3'),
+                             ('alpha', '0.05'), ('beta', '0.05')]:
+            for digits in (12, 13, 400):
+                for exponent in ('', 'e+0', 'E-0'):
+                    with self.subTest(field=field, digits=digits, exponent=exponent):
+                        decimal = value + ('' if '.' in value else '.')
+                        decimal += '0' * (digits - len(value.partition('.')[2]))
+                        text = json.dumps(job).replace(f'"{field}": {job["bounds"][field]}',
+                                                       f'"{field}": {decimal}{exponent}')
+                        path.write_text(text)
+                        if digits > 12:
+                            with self.assertRaisesRegex(ValueError, 'numeric field:.*12 digits'):
+                                mq.load_job(path, mq.REPO)
+                        else:
+                            self.assertEqual(mq.load_job(path, mq.REPO)['bounds'][field],
+                                             job['bounds'][field])
+        for field in ('version', 'min_games', 'max_games', 'concurrency'):
+            with self.subTest(field=field):
+                text = json.dumps(job).replace(f'"{field}": {job[field]}',
+                                               f'"{field}": {job[field]}.' + '0' * 400)
+                path.write_text(text)
+                with self.assertRaisesRegex(ValueError, 'numeric field:.*12 digits'):
+                    mq.load_job(path, mq.REPO)
+        for tc in ('10+0.1', '1.' + '0' * 12 + '+0.' + '0' * 12):
+            job['time_control'] = tc
+            path.write_text(json.dumps(job))
+            self.assertEqual(mq.load_job(path, mq.REPO)['time_control'], tc)
+        print('12 fractional digits accepted; 13/400 rejected before conversion in both clock parts and all numeric bounds.')
 
     def test_exact_decimal_boundary_matrix(self):
         root = proof_directory(self)
