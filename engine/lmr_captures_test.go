@@ -68,6 +68,7 @@ func TestLMRCaptures(t *testing.T) {
 }
 
 func TestLMRCapturesSearch(t *testing.T) {
+	originalSearchOptions(t)
 	old := T1104_LMR_CAPTURES
 	defer func() { T1104_LMR_CAPTURES = old }()
 	T1104_LMR_CAPTURES = 1

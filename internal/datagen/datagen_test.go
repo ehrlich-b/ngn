@@ -234,6 +234,11 @@ func TestNetworkSearchMatchesEngineSelection(t *testing.T) {
 }
 
 func TestNetworkRunRecordsSidecar(t *testing.T) {
+	// Keep this tiny sidecar fixture within its 512-node search budget; quiet
+	// checks can exhaust it before producing a scored move on the random net.
+	oldQChecks := engine.W2QChecks
+	engine.W2QChecks = 0
+	t.Cleanup(func() { engine.W2QChecks = oldQChecks })
 	netPath, raw := fixtureNetwork(t)
 	s := Defaults()
 	s.NetPath, s.HashMB, s.Games = netPath, 1, 1

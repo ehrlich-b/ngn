@@ -58,7 +58,7 @@ class OptionVerdictTests(unittest.TestCase):
                 self.assertEqual({n for n in ov.options() if advertised.get(n) == '1'}, expected)
                 self.assertTrue(set(ov.options()) <= advertised.keys())
                 subprocess.run(['go', 'test', '-p', '2', '-short', '-count=1', '-overlay', str(overlay),
-                                '-run', '^TestAcceptedOptionDefaultsApplied$', './engine'],
+                                './...'],
                                cwd=mq.REPO, env=mq.clean_env(), check=True)
                 print(f'{case}: compiled default=1 options={sorted(expected)}', flush=True)
 

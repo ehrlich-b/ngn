@@ -2,6 +2,7 @@ package engine
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -18,8 +19,8 @@ func TestLowPlyUCIOption(t *testing.T) {
 	u := NewUCIEngine()
 	var out bytes.Buffer
 	u.handleCommand("uci", &out)
-	if !strings.Contains(out.String(), "option name T1104LowPly type spin default 0 min 0 max 1") {
-		t.Fatal("missing default-off spin option")
+	if !strings.Contains(out.String(), fmt.Sprintf("option name T1104LowPly type spin default %d min 0 max 1", acceptedOptionDefaults["T1104LowPly"])) {
+		t.Fatal("missing spin option with accepted default")
 	}
 	u.handleCommand("setoption name T1104LowPly value 1", &out)
 	if T1104LowPly != 1 {

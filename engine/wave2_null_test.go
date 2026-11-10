@@ -38,6 +38,7 @@ func requireWave2NullRestored(t *testing.T, p *Position, info *SearchInfo, befor
 }
 
 func TestWave2NullVerifyContract(t *testing.T) {
+	originalSearchOptions(t)
 	for _, tc := range []struct {
 		name                             string
 		depth, option, verificationScore int
@@ -320,6 +321,7 @@ func TestWave2NullVerifyCancelDescendant(t *testing.T) {
 }
 
 func TestWave2NullVerifyOffIdentity(t *testing.T) {
+	originalSearchOptions(t)
 	old := W2NullVerify
 	W2NullVerify = 0
 	t.Cleanup(func() { W2NullVerify = old })
@@ -375,7 +377,7 @@ func TestWave2NullVerifyOffIdentity(t *testing.T) {
 	}
 	for _, p := range TunableSearchParams {
 		if p.Name == "W2NullVerify" {
-			if p.Ptr != &W2NullVerify || p.Def != 0 || p.Min != 0 || p.Max != 1 {
+			if p.Ptr != &W2NullVerify || p.Def != acceptedOptionDefaults["W2NullVerify"] || p.Min != 0 || p.Max != 1 {
 				t.Fatal("bad option metadata")
 			}
 			return

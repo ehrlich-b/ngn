@@ -3,6 +3,7 @@ package engine
 import "testing"
 
 func TestIterativeDeepeningDoesNotStopOnShallowCachedMateWithHistory(t *testing.T) {
+	originalSearchOptions(t)
 	// replayGame46 supplies the real played-position counts. In particular,
 	// e5e8 g4g5 reaches a position already present twice in that history.
 	pos := replayGame46(t)

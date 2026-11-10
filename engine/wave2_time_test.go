@@ -3,6 +3,7 @@ package engine
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"math"
 	"os"
@@ -261,8 +262,9 @@ func TestWave2ScoreTimeUCIOption(t *testing.T) {
 	uci := NewUCIEngine()
 	var output bytes.Buffer
 	uci.handleUCI(&output)
-	if uci.timeManager.scoreTime.enabled || !strings.Contains(output.String(), "option name W2ScoreTime type spin default 0 min 0 max 1") {
-		t.Fatal("W2ScoreTime must be advertised default off")
+	wantDefault := acceptedOptionDefaults["W2ScoreTime"]
+	if uci.timeManager.scoreTime.enabled != (wantDefault == 1) || !strings.Contains(output.String(), fmt.Sprintf("option name W2ScoreTime type spin default %d min 0 max 1", wantDefault)) {
+		t.Fatal("W2ScoreTime must advertise and apply the accepted default")
 	}
 	if isTunableParam("W2ScoreTime") || isTunableParam("ScoreTimeScale") || isTunableParam("ScoreTimeMax") {
 		t.Fatal("score timing entered the SPSA registry")

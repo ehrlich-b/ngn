@@ -5,8 +5,8 @@ import "testing"
 func TestPriorBonusOption(t *testing.T) {
 	for _, param := range TunableSearchParams {
 		if param.Name == "T1104PriorBonus" {
-			if param.Ptr != &T1104PriorBonus || param.Def != 0 || param.Min != 0 || param.Max != 1 || T1104PriorBonus != 0 {
-				t.Fatal("prior bonus must ship as a default-off boolean spin")
+			if param.Ptr != &T1104PriorBonus || param.Def != acceptedOptionDefaults["T1104PriorBonus"] || param.Min != 0 || param.Max != 1 || T1104PriorBonus != acceptedOptionDefaults["T1104PriorBonus"] {
+				t.Fatal("prior bonus must use the accepted boolean spin default")
 			}
 			return
 		}

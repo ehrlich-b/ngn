@@ -19,6 +19,7 @@ func qstaticFixture(t *testing.T, fen string) (*Position, *SearchInfo) {
 }
 
 func TestQStaticCompatibleBoundChangesQuietHorizon(t *testing.T) {
+	originalSearchOptions(t)
 	for _, fen := range []string{
 		"4k3/8/8/8/8/8/4P3/4K3 w - - 0 1",
 		"4k3/4p3/8/8/8/8/8/4K3 b - - 0 1",

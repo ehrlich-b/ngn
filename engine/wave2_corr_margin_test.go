@@ -7,6 +7,7 @@ import (
 )
 
 func TestWave2CorrMarginOffDepth4(t *testing.T) {
+	originalSearchOptions(t)
 	old := W2CorrMargin
 	W2CorrMargin = 0
 	defer func() { W2CorrMargin = old }()
@@ -162,12 +163,12 @@ func TestWave2CorrMarginSearch(t *testing.T) {
 }
 
 func TestWave2CorrMarginDefaultOption(t *testing.T) {
-	if W2CorrMargin != 0 {
-		t.Fatal("must ship disabled")
+	if W2CorrMargin != acceptedOptionDefaults["W2CorrMargin"] {
+		t.Fatal("must use the accepted default")
 	}
 	for _, p := range TunableSearchParams {
 		if p.Name == "W2CorrMargin" {
-			if p.Ptr != &W2CorrMargin || p.Def != 0 || p.Min != 0 || p.Max != 1 {
+			if p.Ptr != &W2CorrMargin || p.Def != acceptedOptionDefaults["W2CorrMargin"] || p.Min != 0 || p.Max != 1 {
 				t.Fatalf("bad registry entry: %+v", p)
 			}
 			return

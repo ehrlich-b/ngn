@@ -42,7 +42,8 @@ Generating defaults does not run matches, edit jobs, install services, commit
 source or activate an engine. The committed generated map is empty, matching
 the empty production ledger. Fixture ledgers are synthetic and never authorize
 production adoption. Tests compile each fixture through a Go overlay and assert
-the advertised enabled set equals exactly the fixture's H1 rows.
+the advertised enabled set equals exactly the fixture's H1 rows, then run the
+existing short Go suite against each generated default map.
 
 The offline node check compares the explicit original engine checkout to each
 switch after an on/off transition on the three canonical nodecheck positions:

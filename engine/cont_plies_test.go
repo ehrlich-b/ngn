@@ -15,7 +15,7 @@ func TestContPliesOptionAndAncestors(t *testing.T) {
 	for _, param := range TunableSearchParams {
 		if param.Name == "T1104ContPlies" {
 			found = true
-			if param.Ptr != &T1104ContPlies || param.Def != 0 || param.Min != 0 || param.Max != 1 {
+			if param.Ptr != &T1104ContPlies || param.Def != acceptedOptionDefaults["T1104ContPlies"] || param.Min != 0 || param.Max != 1 {
 				t.Fatalf("invalid spin option: %+v", param)
 			}
 		}

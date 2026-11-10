@@ -37,6 +37,7 @@ func qsearchOf(t *testing.T, fen string) (got, standPat int) {
 // qsearch produces every leaf evaluation in the search, so a bug here corrupts
 // everything above it.
 func TestQuiescenceInvariants(t *testing.T) {
+	originalSearchOptions(t)
 	// A) Quiet positions (no captures, not in check): qsearch must return EXACTLY
 	// the stand-pat eval.
 	quiet := []string{

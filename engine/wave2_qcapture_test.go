@@ -2,6 +2,7 @@ package engine
 
 import (
 	"bytes"
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -103,6 +104,7 @@ func TestWave2QCapturePromotionsAndEnPassant(t *testing.T) {
 // Observe evaluator transitions in the real qsearch loop, rather than sorting a
 // test copy. A controlled static evaluation forces the first capture to cut off.
 func TestWave2QCaptureProductionOrderAndRestoration(t *testing.T) {
+	originalSearchOptions(t)
 	wave2QCaptureOption(t, 0)
 	for _, tc := range []struct {
 		name        string
@@ -195,8 +197,8 @@ func TestWave2QCaptureUCIOption(t *testing.T) {
 	u := NewUCIEngine()
 	var out bytes.Buffer
 	u.handleCommand("uci", &out)
-	if !strings.Contains(out.String(), "option name W2QCapture type spin default 0 min 0 max 1\n") {
-		t.Fatal("missing default-off UCI option")
+	if !strings.Contains(out.String(), fmt.Sprintf("option name W2QCapture type spin default %d min 0 max 1\n", acceptedOptionDefaults["W2QCapture"])) {
+		t.Fatal("missing UCI option with accepted default")
 	}
 	for _, value := range []string{"1", "0"} {
 		u.handleCommand("setoption name W2QCapture value "+value, &out)

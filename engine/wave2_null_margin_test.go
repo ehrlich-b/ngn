@@ -146,6 +146,7 @@ func TestWave2NullMarginMateWindows(t *testing.T) {
 }
 
 func TestWave2NullMarginOffParentTrace(t *testing.T) {
+	originalSearchOptions(t)
 	oldVerify, oldMargin := W2NullVerify, W2NullMargin
 	t.Cleanup(func() { W2NullVerify, W2NullMargin = oldVerify, oldMargin })
 	W2NullVerify, W2NullMargin = 1, 0
@@ -191,7 +192,7 @@ func TestWave2NullMarginOffParentTrace(t *testing.T) {
 	}
 	for _, p := range TunableSearchParams {
 		if p.Name == "W2NullMargin" {
-			if p.Ptr != &W2NullMargin || p.Def != 0 || p.Min != 0 || p.Max != 1 {
+			if p.Ptr != &W2NullMargin || p.Def != acceptedOptionDefaults["W2NullMargin"] || p.Min != 0 || p.Max != 1 {
 				t.Fatal("bad margin option metadata")
 			}
 			return

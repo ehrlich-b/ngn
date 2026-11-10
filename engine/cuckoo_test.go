@@ -118,11 +118,11 @@ func TestCuckooOptionAndAlpha(t *testing.T) {
 	found := false
 	for _, param := range TunableSearchParams {
 		if param.Name == "T1104Cuckoo" {
-			found = param.Ptr == &T1104Cuckoo && param.Def == 0 && param.Min == 0 && param.Max == 1
+			found = param.Ptr == &T1104Cuckoo && param.Def == acceptedOptionDefaults["T1104Cuckoo"] && param.Min == 0 && param.Max == 1
 		}
 	}
 	if !found || !setTunableParam("T1104Cuckoo", "1") || T1104Cuckoo != 1 {
-		t.Fatal("missing default-off UCI spin option")
+		t.Fatal("missing UCI spin option with accepted default")
 	}
 	for _, tc := range []struct {
 		name             string

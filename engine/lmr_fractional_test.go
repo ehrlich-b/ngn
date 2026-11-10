@@ -90,11 +90,11 @@ func TestLMRFractionalSearch(t *testing.T) {
 	found := false
 	for _, p := range TunableSearchParams {
 		if p.Name == "T1104LMRFractional" {
-			found = p.Ptr == &T1104_LMR_FRACTIONAL && p.Def == 0 && p.Min == 0 && p.Max == 1
+			found = p.Ptr == &T1104_LMR_FRACTIONAL && p.Def == acceptedOptionDefaults["T1104LMRFractional"] && p.Min == 0 && p.Max == 1
 		}
 	}
 	if !found || !setTunableParam("T1104LMRFractional", "1") || T1104_LMR_FRACTIONAL != 1 {
-		t.Fatal("default-off spin option is not wired")
+		t.Fatal("spin option with accepted default is not wired")
 	}
 	const fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
 	search := func() *SearchInfo {

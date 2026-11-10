@@ -31,6 +31,7 @@ func TestLMRDeeperDepth(t *testing.T) {
 // selection helper. Each vector changes if its corresponding decision is
 // removed: marginal, strong, or strong with a spent extension budget.
 func TestLMRDeeperSearch(t *testing.T) {
+	originalSearchOptions(t)
 	oldOption, oldBudget := T1104_LMR_DEEPER, EXTENSION_BUDGET
 	t.Cleanup(func() { T1104_LMR_DEEPER, EXTENSION_BUDGET = oldOption, oldBudget })
 	cases := []struct {
