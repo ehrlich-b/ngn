@@ -2,8 +2,8 @@
 
 [Campaign](experiments/2026-10-08-3600-campaign.md) owns queue and handles.
 Accepted **e8be8f2/81215229/compiled warm2000** unchanged. Warm24k and
-qsearch are completed keeps;never retune/regate. All compute onrig;
-forge storage/transfer only. Plan throughOctober19 10:25 governs;
+qsearch are completed keeps;never retune/regate. All compute on the compute host;
+The storage host handles storage and transfer only. Plan throughOctober19 10:25 governs;
 no pull/fetch/push/publication.
 
 **Attempt002 screen PASS07:49:05EDT October19:**320games/160pairs,
@@ -33,7 +33,7 @@ durable patches committed. Prepared code queue is full.
 
 Data **CALIBRATED_CAPACITY_HOLD**:frozen107residues/expected987.322M,
 cap1B,scale0.9998157766,admission67.03899GiB. C:**44.835117GiB**,
-deficit**22.203871GiB** before approved compaction. Rig stays untouched
+deficit**22.203871GiB** before approved compaction. The compute host stays untouched
 until confirmation terminal/result. Then compact at a quiet boundary with
 no NGN job running;enable sparse mode,restart WSL/keepalive;leave hopper
 stopped and tell Bryan. If fallback games start,let them finish naturally.
@@ -288,7 +288,7 @@ includes verified GoChess NNUE activation; their native calibration remains
 part of the wider frontier. No new source or network strength change is promoted.
 
 **Working reference evaluator is now owned:** K4 **WDL25-e10** (`1ec8fc17…`,
-WSL `/home/ehrli/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
+WSL `/home/user/nnue-owned-k4-20260920/night-20260927/runs/wdl25-e10.nnue`;
 A1 corpus and schedule with the game-result weight ramped 0→0.25) with
 `EvalBackend ngn-k4-768-v1` and **`K4EvalScale 60`**, on source at or after
 `ccfb56a`. It beat borrowed Rodent V1.2 by **+34.9 Elo [+20.0, +49.4]** (M11,
@@ -328,7 +328,7 @@ distro stops when the last `wsl.exe` client exits.
 
 **Night gates are all complete** (M4 K8+W1024 shelved at +10.9 [−3.0, +24.8];
 see the summary table in the night record). Artifacts are under
-`/home/ehrli/nnue-owned-k4-20260920/night-20260927/`.
+`/home/user/nnue-owned-k4-20260920/night-20260927/`.
 Several gate attempts were cut short by the shutdowns and are preserved as
 `*-aborted-*`, unscored. The e20 resume exposed four hash failures in
 `candidate-2375680`; it cannot be resumed under its original receipt. All files
@@ -728,7 +728,7 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
   boundary tests and the corrected SPRT's200-game A/A pass. NGN playing source
   is unchanged. Future external games must use `gauntlet_20260905_terminal.exe`
   (499946e1...), not the old default. [Integration evidence](experiments/2026-09-05-draw-conversion-audit.md).
-- The WSL checkout at `/home/ehrli/repos/ngn` was clean at `7587eb6` (early June),
+- The WSL checkout at `/home/user/repos/ngn` was clean at `7587eb6` (early June),
   with equally old binaries. Authorized task: repair correctness, validate and
   deploy the current engine there, preserving rollback.
 - **Earlier September repairs:** quiescence clocks/draws, mate at the fifty-move boundary,
@@ -891,9 +891,9 @@ is preserved in [the historical snapshot](experiments/2026-09-04-runbook-archive
 
 ## Box access and artifacts
 
-- SSH: `ehrli@192.168.4.108`, key `~/.ssh/id_ed25519`.
-- WSL: `wsl -e sh -lc ...`; Ubuntu, user `ehrli`, Go at `/usr/local/go/bin/go`.
-- Native Windows mill: `scripts/boxsprt.sh` uses `C:\Users\ehrli\ngn\sprt`.
+- SSH: `USER@HOST_ADDRESS`, key `~/.ssh/id_ed25519`.
+- WSL: `wsl -e sh -lc ...`; Ubuntu, user `USER`, Go at `/usr/local/go/bin/go`.
+- Native Windows mill: `scripts/boxsprt.sh` uses `C:\Users\USER\ngn\sprt`.
   Both default `sprt.exe` copies now contain the corrected harness; old copies
   have the `.pre-repair-20260904` suffix. Versioned artifacts remain available.
 - Poll: `scripts/boxsprt.sh tail <run>`. Fetch: `scripts/boxsprt.sh fetch <run> <dir>`.

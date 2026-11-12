@@ -332,7 +332,7 @@ func runTacticalTests() error {
 	const (
 		ngnTimeLimit       = 2000 * time.Millisecond // 2 seconds per position for NGN
 		stockfishTimeLimit = 500 * time.Millisecond  // 500ms for Stockfish validation
-		epdFile            = "../../validated_tactical_positions.epd"
+		epdFile            = "../../testdata/validated_tactical_positions.epd"
 		stockfishPath      = "../../stockfish/stockfish-ubuntu-x86-64-avx2"
 		numTestPositions   = 30 // Test 30 random positions
 		randomSeed         = 42 // Static seed for consistent results

@@ -507,7 +507,7 @@ Human-readable summaries can be generated from this. They should not be the prim
    - `TODO.md` reports 2655 and 2716 in different sections;
    - `docs/11-road-to-3000-census.md` still marks root PVS/LMR as missing even though it landed;
    - `docs/09-invariants-and-joints.md` is anchored to an old commit and contains stale line references;
-   - `DIAGNOSIS.md`, `review.md`, `performance_brief.md`, and ignored `gpt_review.md` are historical and should not appear current.
+   - `docs/notes/DIAGNOSIS.md`, `docs/notes/review.md`, `docs/notes/performance_brief.md`, and ignored `gpt_review.md` are historical and should not appear current.
 
 3. **Correct feature claims.**
 

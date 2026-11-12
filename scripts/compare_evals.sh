@@ -1,4 +1,6 @@
 #!/bin/bash
+# Resolve repository tools and outputs relative to the repository root.
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." || exit 1
 # Compare NGN and Stockfish evaluations on test positions
 
 POSITIONS=(

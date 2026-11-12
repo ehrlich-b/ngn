@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # scripts/acpl.sh — the standing EXTERNAL eval ruler: average centipawn loss vs
-# Stockfish over a committed, SF-labeled corpus (acpl_corpus.labels).
+# Stockfish over a committed, SF-labeled corpus (testdata/acpl_corpus.labels).
 #
 # WHY THIS EXISTS: the self-play SPRT over-credits eval changes (transfer-mirages —
 # gains that vanish on the gauntlet), and the gauntlet is too slow to run per change.
@@ -12,7 +12,7 @@
 # The SF labels are NGN-independent ground truth, so the committed corpus stays valid
 # across engine changes. Regrow/expand it with:
 #   ./build/oracle -mode gencorpus -new build/ngn -out output/c.fens -opens 300
-#   ./build/oracle -mode label -fens output/c.fens -out acpl_corpus.labels -sfdepth 16
+#   ./build/oracle -mode label -fens output/c.fens -out testdata/acpl_corpus.labels -sfdepth 16
 #
 # Usage:
 #   scripts/acpl.sh                                # ACPL of build/ngn
@@ -22,6 +22,6 @@ cd "$(dirname "$0")/.."
 NEW="${1:-build/ngn}"
 BASE="${2:-}"
 go build -o build/oracle ./cmd/oracle
-ARGS=(-mode acpl -labels acpl_corpus.labels -new "$NEW" -nodes 200000)
+ARGS=(-mode acpl -labels testdata/acpl_corpus.labels -new "$NEW" -nodes 200000)
 [ -n "$BASE" ] && ARGS+=(-base "$BASE")
 exec ./build/oracle "${ARGS[@]}"

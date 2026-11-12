@@ -82,7 +82,7 @@ func TestPruningAblation(t *testing.T) {
 	}
 	const depth = 7
 	const limit = 120
-	positions := loadAblationEPD(t, "../validated_tactical_positions.epd", limit)
+	positions := loadAblationEPD(t, "../testdata/validated_tactical_positions.epd", limit)
 	if len(positions) == 0 {
 		t.Skip("no positions loaded")
 	}

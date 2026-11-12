@@ -13,8 +13,8 @@ or external weights are used.
 `EvalFile` accept explicit NGNN6 selection and report backend `ngnn6`. Both
 compact and wide workers execute the residual before the final clamp. The
 embedded default remains NGNN3. Fixture success
-makes no speed or Elo claim. Changing default play requires the completed rig
-gate for that separate decision.
+makes no speed or Elo claim. Changing default play requires a completed
+confirmation on the compute host for that separate decision.
 
 ## Features and arithmetic
 

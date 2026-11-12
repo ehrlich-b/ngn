@@ -1,6 +1,6 @@
 # Unstick 2600: adversarial review
 
-I read `stuck_2600.md`, the governing top of `TODO.md`, the relevant memory files
+I read `docs/notes/stuck_2600.md`, the governing top of `TODO.md`, the relevant memory files
 (`project_meta_plan_v2`, `project_3000_mechanism`, `project_ebf_lane`,
 `texel_pipeline`, `sprt_instrument`, `feedback_no_nnue`), `docs/11-road-to-3000-census.md`,
 the current NGN search/eval/tuner/SPRT code, and CounterGo at `/tmp/countergo`

@@ -307,7 +307,7 @@ pgn-to-fens: ## Extract FEN positions from PGN file (usage: make pgn-to-fens PGN
 .PHONY: game-fens
 game-fens: ## Extract FEN positions from the specific game file
 	@echo "Extracting FENs from the game..."
-	@go run cmd/pgn_to_fens/simple_main.go the_game.pgn
+	@go run cmd/pgn_to_fens/simple_main.go testdata/the_game.pgn
 
 .PHONY: analyze-move37
 analyze-move37: ## Analyze move 37 blunder position at depths 1-10
@@ -317,8 +317,8 @@ analyze-move37: ## Analyze move 37 blunder position at depths 1-10
 .PHONY: stockfish-move37
 stockfish-move37: ## Analyze move 37 position with Stockfish at depths 1-20
 	@echo "Analyzing move 37 with Stockfish..."
-	@chmod +x analyze_with_stockfish.sh
-	@./analyze_with_stockfish.sh "r3kn1Q/1p2b3/p1n1b3/2ppq3/8/3B4/PPPP1PPP/R1B3K1 w q - 0 1" 20
+	@chmod +x scripts/analyze_with_stockfish.sh
+	@./scripts/analyze_with_stockfish.sh "r3kn1Q/1p2b3/p1n1b3/2ppq3/8/3B4/PPPP1PPP/R1B3K1 w q - 0 1" 20
 
 .PHONY: compare-move37
 compare-move37: ## Compare NGN and Stockfish analysis of move 37 position
@@ -326,8 +326,8 @@ compare-move37: ## Compare NGN and Stockfish analysis of move 37 position
 	@go run cmd/analyze_position/main.go -fen "r3kn1Q/1p2b3/p1n1b3/2ppq3/8/3B4/PPPP1PPP/R1B3K1 w q - 0 1" -depth 10
 	@echo ""
 	@echo "=== Stockfish Analysis ==="
-	@chmod +x analyze_with_stockfish.sh
-	@./analyze_with_stockfish.sh "r3kn1Q/1p2b3/p1n1b3/2ppq3/8/3B4/PPPP1PPP/R1B3K1 w q - 0 1" 10
+	@chmod +x scripts/analyze_with_stockfish.sh
+	@./scripts/analyze_with_stockfish.sh "r3kn1Q/1p2b3/p1n1b3/2ppq3/8/3B4/PPPP1PPP/R1B3K1 w q - 0 1" 10
 
 .PHONY: trace-h8e5
 trace-h8e5: ## Trace what happens after h8e5 on move 37 position
@@ -351,8 +351,8 @@ eval-move37-start: ## Show evaluation breakdown of move 37 starting position
 
 .PHONY: compare-evals
 compare-evals: ## Compare NGN vs Stockfish evaluations on multiple test positions
-	@chmod +x compare_evals.sh
-	@./compare_evals.sh
+	@chmod +x scripts/compare_evals.sh
+	@./scripts/compare_evals.sh
 
 .PHONY: analyze-position
 analyze-position: ## Analyze any FEN position (usage: make analyze-position FEN="..." DEPTH=10)

@@ -1,4 +1,6 @@
 #!/bin/bash
+# Resolve repository tools and outputs relative to the repository root.
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." || exit 1
 # Analyze a position with Stockfish at depths 1-20
 
 FEN="$1"

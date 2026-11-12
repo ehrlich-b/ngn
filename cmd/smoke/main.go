@@ -53,7 +53,7 @@ func main() {
 	targetELO := flag.Int("elo", 2400, "Stockfish ELO target")
 	skipTactical := flag.Bool("skip-tactical", false, "Skip tactical phase")
 	skipGames := flag.Bool("skip-games", false, "Skip game phase")
-	epdPath := flag.String("epd", "validated_tactical_positions.epd", "EPD file path")
+	epdPath := flag.String("epd", "testdata/validated_tactical_positions.epd", "EPD file path")
 	threshold := flag.Float64("threshold", 0.40, "Min tactical solve rate to pass (0-1)")
 	seed := flag.Int64("seed", 42, "RNG seed for deterministic position selection")
 	historyPath := flag.String("history", "output/smoke_history.jsonl", "JSONL file for rolling-ELO history")
